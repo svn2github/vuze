@@ -85,11 +85,15 @@ PEPeerControlImpl
     private final PiecePicker	piecePicker;
     private long            	lastNeededUndonePieceChange;
     
+    /** literally seeding as in 100% torrent complete */
 	private boolean 		seeding_mode;
 	private boolean			restart_initiated;
 
     private final int       _nbPieces;     //how many pieces in the torrent
     private PEPieceImpl[]	pePieces;      //pieces that are currently in progress
+    private int				nbPiecesActive;	// how many pieces are currently in progress
+    
+    private int				nbPeersSnubbed;
 
     private PeerIdentityDataID	_hash;
     private final byte[]        _myPeerId;
@@ -291,41 +295,41 @@ PEPeerControlImpl
   schedule()
   {
       try {
-				updateTrackerAnnounceInterval();
-				doConnectionChecks();
-				processPieceChecks();
+			updateTrackerAnnounceInterval();
+			doConnectionChecks();
+			processPieceChecks();
+			
+				// note that seeding_mode -> torrent totally downloaded, not just non-dnd files
+				// complete, so there is no change of a new piece appearing done by a means such as
+				// background periodic file rescans
+			
+			if ( !seeding_mode ){
 				
-					// note that seeding_mode -> torrent totally downloaded, not just non-dnd files
-					// complete, so there is no change of a new piece appearing done by a means such as
-					// background periodic file rescans
+				checkCompletedPieces();		//check to see if we've completed anything else
+			}
+			
+			updateStats();
+			
+            checkInterested();      // see if need to recheck Interested on all peers
+			
+			piecePicker.updateAvailability();
+			
+			boolean forcenoseeds = disconnect_seeds_when_seeding;
+			if (!seeding_mode)
+			{	// if we're not finished
+				checkRequests();	//check the requests
 				
-				if ( !seeding_mode ){
-					
-					checkCompletedPieces();		//check to see if we've completed anything else
-				}
-				
-				updateStats();
-				
-                checkInterested();      // see if need to recheck Interested on all peers
-				
-				piecePicker.updateAvailability();
-				
-				boolean forcenoseeds = disconnect_seeds_when_seeding;
-				if (!seeding_mode)
-				{	// if we're not finished
-					checkRequests();	//check the requests
-					
-					// if we have no downloadable pieces (due to "do not download") then
-					// we disconnect seeds and avoid calling these methods to save CPU.
-                    forcenoseeds =!piecePicker.checkDownloadPossible();	//download blocks if possible
-					checkRescan();
-					checkSpeedAndReserved();
-				}
-				
-				checkSeeds( forcenoseeds );
-				updatePeersInSuperSeedMode();
-				doUnchokes();
-				
+				// if we have no downloadable pieces (due to "do not download") then
+				// we disconnect seeds and avoid calling these methods to save CPU.
+                forcenoseeds =!piecePicker.checkDownloadPossible();	//download blocks if possible
+				checkRescan();
+				checkSpeedAndReserved();
+			}
+			
+			checkSeeds( forcenoseeds );
+			updatePeersInSuperSeedMode();
+			doUnchokes();
+			
       }catch (Throwable e) {
    	
         Debug.printStackTrace( e );
@@ -348,13 +352,13 @@ PEPeerControlImpl
 		TRTrackerAnnouncerResponse	tracker_response )
 	{
 		// tracker_response.print();
-		TRTrackerAnnouncerResponsePeer[]	peers = tracker_response.getPeers();
+		final TRTrackerAnnouncerResponsePeer[]	peers = tracker_response.getPeers();
 		
 		if ( peers != null ){
 			addPeersFromTracker( tracker_response.getPeers());  
 		}
 		
-		Map extensions = tracker_response.getExtensions();
+		final Map extensions = tracker_response.getExtensions();
 		
 		if (extensions != null ){
 			addExtendedPeersFromTracker( extensions );
@@ -375,25 +379,25 @@ PEPeerControlImpl
 	addExtendedPeersFromTracker(
 		Map		extensions )
 	{
-		Map	protocols = (Map)extensions.get("protocols");
+		final Map	protocols = (Map)extensions.get("protocols");
 		
 		if ( protocols != null ){
 			
 			System.out.println( "PEPeerControl: tracker response contained protocol extensions");
 			
-			Iterator protocol_it = protocols.keySet().iterator();
+			final Iterator protocol_it = protocols.keySet().iterator();
 			
 			while( protocol_it.hasNext()){
 				
-				String	protocol_name = (String)protocol_it.next();
+				final String	protocol_name = (String)protocol_it.next();
 				
-				Map	protocol = (Map)protocols.get(protocol_name);
+				final Map	protocol = (Map)protocols.get(protocol_name);
 				
-				List	transports = PEPeerTransportFactory.createExtendedTransports( this, protocol_name, protocol );
+				final List	transports = PEPeerTransportFactory.createExtendedTransports( this, protocol_name, protocol );
 				
 				for (int i=0;i<transports.size();i++){
 					
-					PEPeer	transport = (PEPeer)transports.get(i);
+					final PEPeer	transport = (PEPeer)transports.get(i);
 					
 					addPeer( transport );
 				}
@@ -417,19 +421,19 @@ PEPeerControlImpl
 			throw( new RuntimeException("invalid class"));
 		}
 		
-		PEPeerTransport	transport = (PEPeerTransport)_transport;
+		final PEPeerTransport	transport = (PEPeerTransport)_transport;
 		
 	    if (!ip_filter.isInRange(transport.getIp(), adapter.getDisplayName())) {
 
-		ArrayList peer_transports = peer_transports_cow;
+			final ArrayList peer_transports = peer_transports_cow;
 		
-		if ( !peer_transports.contains(transport)){
+	    	if ( !peer_transports.contains(transport)){
 			
-			addToPeerTransports( transport );
+	    		addToPeerTransports( transport );
 			
-		}else{
-			Debug.out( "addPeer():: peer_transports.contains(transport): SHOULD NEVER HAPPEN !" );
-			transport.closeConnection( "already connected" );
+	    	}else{
+	    		Debug.out( "addPeer():: peer_transports.contains(transport): SHOULD NEVER HAPPEN !" );
+	    		transport.closeConnection( "already connected" );
 		}
 	    }else{
 	    	
@@ -447,7 +451,7 @@ PEPeerControlImpl
 			throw( new RuntimeException("invalid class"));
 		}
 		
-		PEPeerTransport	transport = (PEPeerTransport)_transport;
+		final PEPeerTransport	transport = (PEPeerTransport)_transport;
 		
 		closeAndRemovePeer( transport, "remove peer", true );
 	}
@@ -461,7 +465,7 @@ PEPeerControlImpl
           
         if ( peer_transports_cow.contains( peer )){
 
-          ArrayList new_peer_transports = new ArrayList( peer_transports_cow );
+          final ArrayList new_peer_transports = new ArrayList( peer_transports_cow );
           
           new_peer_transports.remove( peer );
            
@@ -502,7 +506,7 @@ PEPeerControlImpl
 		}
 		
     for( int i=0; i < peer_transports.size(); i++ ) {
-	    PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+	    final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
 	      
 	    try{
 	    	peer.closeConnection( reason );
@@ -526,12 +530,12 @@ PEPeerControlImpl
     
     if( reconnect ) {
       for( int i=0; i < peer_transports.size(); i++ ) {
-        PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+        final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
         
         if( peer.getTCPListenPort() > 0 ) {
-        	boolean use_crypto = peer.getPeerItemIdentity().getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
-          PEPeerTransport new_conn = PEPeerTransportFactory.createTransport( this, peer.getPeerSource(), peer.getIp(), peer.getTCPListenPort(), use_crypto );
-          addToPeerTransports( new_conn );
+			final boolean use_crypto = peer.getPeerItemIdentity().getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
+			final PEPeerTransport new_conn = PEPeerTransportFactory.createTransport( this, peer.getPeerSource(), peer.getIp(), peer.getTCPListenPort(), use_crypto );
+			addToPeerTransports( new_conn );
         }
       }
     }
@@ -541,11 +545,11 @@ PEPeerControlImpl
 	
 	
 	public void addPeer( String ip_address, int port, boolean use_crypto ) {
-		int type = use_crypto ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
-		PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type );
+		final int type = use_crypto ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
+		final PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type );
 		
 		if( !isAlreadyConnected( peer_item ) ) {
-			boolean added = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, port, use_crypto );  //directly inject the the imported peer
+			final boolean added = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, port, use_crypto );  //directly inject the the imported peer
 			if( !added )  Debug.out( "injected peer was not added" );
 		}
 	}
@@ -558,20 +562,20 @@ PEPeerControlImpl
 	{
 		
 		for (int i = 0; i < peers.length; i++){
-			TRTrackerAnnouncerResponsePeer	peer = peers[i];
+			final TRTrackerAnnouncerResponsePeer	peer = peers[i];
 			
-			ArrayList peer_transports = peer_transports_cow;
+			final ArrayList peer_transports = peer_transports_cow;
 			
 			boolean already_connected = false;
 			
       		for( int x=0; x < peer_transports.size(); x++ ) {
-				PEPeerTransport transport = (PEPeerTransport)peer_transports.get( x );
+				final PEPeerTransport transport = (PEPeerTransport)peer_transports.get( x );
 				
 				// allow loopback connects for co-located proxy-based connections and testing
 				
 				if( peer.getAddress().equals( transport.getIp() )){
 					
-					boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) ||
+					final boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) ||
 					transport.getIp().equals( "127.0.0.1" );
 					
 					if( !same_allowed || peer.getPort() == transport.getPort() ) {
@@ -584,8 +588,8 @@ PEPeerControlImpl
 			if( already_connected )  continue;
 			
 			if( peer_database != null ) {				
-				int type = peer.getProtocol() == TRTrackerAnnouncerResponsePeer.PROTOCOL_CRYPT ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
-				PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), type );
+				final int type = peer.getProtocol() == TRTrackerAnnouncerResponsePeer.PROTOCOL_CRYPT ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
+				final PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), type );
 				peer_database.addDiscoveredPeer( item );
 			}
 		}
@@ -611,11 +615,11 @@ PEPeerControlImpl
 		}
 		
 		//make sure we need a new connection
-		int needed = getMaxNewConnectionsAllowed();
+		final int needed = getMaxNewConnectionsAllowed();
 		if( needed == 0 )  return false;
 		
 		//make sure not already connected to the same IP address; allow loopback connects for co-located proxy-based connections and testing
-		boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
+		final boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
 		if( !same_allowed && PeerIdentityManager.containsIPAddress( _hash, address ) ){  
 			return false;
 		}
@@ -629,7 +633,7 @@ PEPeerControlImpl
 		}
 		
 		//start the connection
-		PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, port, require_crypto );
+		final PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, port, require_crypto );
 		
 		addToPeerTransports( real );
 		return true;
@@ -644,11 +648,14 @@ PEPeerControlImpl
 	 * otherwise, it will unmark it as fully downloaded, so blocks can be retreived again.
 	 */
 	private void checkCompletedPieces() {
+		if ((mainloop_loop_count %MAINLOOP_ONE_SECOND_INTERVAL) !=0)
+			return;
+		
 		//for every piece
 		for (int i = 0; i <_nbPieces; i++) {
 			final DiskManagerPiece dmPiece =dm_pieces[i];
 			//if piece is completly written, not already checking, and not Done
-			if (!dmPiece.isDone() &&dmPiece.calcWritten() &&!dmPiece.isChecking())
+			if (!dmPiece.isDone() &&dmPiece.isDownloaded() &&!dmPiece.isChecking() &&dmPiece.calcWritten())
 			{
 				//check the piece from the disk
 				dmPiece.setChecking();
@@ -754,12 +761,16 @@ PEPeerControlImpl
         
         lastNeededUndonePieceChange =piecePicker.getNeededUndonePieceChange();
 
-        final List peer_transports =peer_transports_cow;
+		final ArrayList peer_transports = peer_transports_cow;
+        int cntPeersSnubbed =0;	// recount # snubbed peers while we're at it
         for (int i =0; i <peer_transports.size(); i++)
         {
-            PEPeerTransport peer =(PEPeerTransport)peer_transports.get(i);
+            final PEPeerTransport peer =(PEPeerTransport)peer_transports.get(i);
             peer.checkInterested();
+            if (peer.isSnubbed())
+            	cntPeersSnubbed++;
         }
+        setNbPeersSnubbed(cntPeersSnubbed);
     }
 
 
@@ -772,7 +783,7 @@ PEPeerControlImpl
 	{
 		if ( piece_check_result_list.size() > 0 ){
 			
-			List pieces;
+			final List pieces;
 			
 			// process complete piece results
 			
@@ -788,11 +799,11 @@ PEPeerControlImpl
 				piece_check_result_list_mon.exit();
 			}
 			
-			Iterator it = pieces.iterator();
+			final Iterator it = pieces.iterator();
 			
 			while (it.hasNext()) {
 				
-				Object[]	data = (Object[])it.next();
+				final Object[]	data = (Object[])it.next();
 				
 	    		processPieceCheckResult((DiskManagerCheckRequest)data[0],((Integer)data[1]).intValue());
 	    			
@@ -837,7 +848,7 @@ PEPeerControlImpl
 		
 			// delay as required
 		
-		long	now = SystemTime.getCurrentTime();
+		final long	now = SystemTime.getCurrentTime();
 		
 		if ( rescan_piece_time > now ){
 			
@@ -846,9 +857,9 @@ PEPeerControlImpl
 		
 			// 250K/sec limit
 		
-		long	piece_size = disk_mgr.getPieceLength();
+		final long	piece_size = disk_mgr.getPieceLength();
 		
-		long	millis_per_piece = piece_size / 250;
+		final long	millis_per_piece = piece_size / 250;
 		
 		if ( now - rescan_piece_time < millis_per_piece ){
 			
@@ -905,7 +916,7 @@ PEPeerControlImpl
 	 */
 	private void checkFinished(boolean start_of_day)
 	{
-		boolean all_pieces_done =disk_mgr.getRemaining() ==0;
+		final boolean all_pieces_done =disk_mgr.getRemaining() ==0;
 
 		if (all_pieces_done)
 		{
@@ -916,23 +927,24 @@ PEPeerControlImpl
 				adapter.setStateFinishing();
 
 			_timeFinished =SystemTime.getCurrentTime();
-			List peer_transports =peer_transports_cow;
+			final ArrayList peer_transports = peer_transports_cow;
 
 			// remove previous snubbing
 			for (int i =0; i <peer_transports.size(); i++ )
 			{
-				PEPeerTransport pc =(PEPeerTransport) peer_transports.get(i);
+				final PEPeerTransport pc =(PEPeerTransport) peer_transports.get(i);
 				pc.setSnubbed(false);
 			}
+			setNbPeersSnubbed(0);
 
 			// Disconnect seeds
 			checkSeeds(true);
-			boolean checkPieces =COConfigurationManager.getBooleanParameter("Check Pieces on Completion", true);
+			final boolean checkPieces =COConfigurationManager.getBooleanParameter("Check Pieces on Completion", true);
 
 			// re-check all pieces to make sure they are not corrupt, but only if we weren't already complete
 			if (checkPieces &&!start_of_day)
 			{
-				DiskManagerCheckRequest req =disk_mgr.createCheckRequest(-1, new Integer(CHECK_REASON_COMPLETE));
+				final DiskManagerCheckRequest req =disk_mgr.createCheckRequest(-1, new Integer(CHECK_REASON_COMPLETE));
 				disk_mgr.enqueueCompleteRecheckRequest(req, this);
 			}
 
@@ -952,7 +964,7 @@ PEPeerControlImpl
 		final long now =SystemTime.getCurrentTime();
 
 		//for every connection
-		final List peer_transports	= peer_transports_cow;
+		final ArrayList peer_transports = peer_transports_cow;
 		for (int i =peer_transports.size() -1; i >=0 ; i--)
 		{
 			final PEPeerTransport pc =(PEPeerTransport)peer_transports.get(i);
@@ -1010,7 +1022,7 @@ PEPeerControlImpl
       
 	  int num_wanted = getMaxNewConnectionsAllowed();
 	  
-	  boolean has_remote = adapter.isNATHealthy();
+	  final boolean has_remote = adapter.isNATHealthy();
 	  if( has_remote ) {
 	    //is not firewalled, so can accept incoming connections,
 	    //which means no need to continually keep asking the tracker for peers
@@ -1023,20 +1035,20 @@ PEPeerControlImpl
 	  
 	  int current_connection_count = PeerIdentityManager.getIdentityCount( _hash );
 	  
-	  TRTrackerScraperResponse tsr = adapter.getTrackerScrapeResponse();
+	  final TRTrackerScraperResponse tsr = adapter.getTrackerScrapeResponse();
 	  
 	  if( tsr != null && tsr.isValid() ) {  //we've got valid scrape info
-	    int num_seeds = tsr.getSeeds();   
-	    int num_peers = tsr.getPeers();
+	    final int num_seeds = tsr.getSeeds();   
+	    final int num_peers = tsr.getPeers();
 	
-	    int swarm_size;
+	    final int swarm_size;
 	    
 	    if( seeding_mode ) {
 	      //Only use peer count when seeding, as other seeds are unconnectable.
 	      //Since trackers return peers randomly (some of which will be seeds),
 	      //backoff by the seed2peer ratio since we're given only that many peers
 	      //on average each announce.
-	      float ratio = (float)num_peers / (num_seeds + num_peers);
+	      final float ratio = (float)num_peers / (num_seeds + num_peers);
 	      swarm_size = (int)(num_peers * ratio);
 	    }
 	    else {
@@ -1055,7 +1067,7 @@ PEPeerControlImpl
 	  
 	  if( current_connection_count == 0 )  current_connection_count = 1;  //fudge it :)
 	  
-	  int current_percent = (current_connection_count * 100) / (current_connection_count + num_wanted);
+	  final int current_percent = (current_connection_count * 100) / (current_connection_count + num_wanted);
 	  
 	  adapter.setTrackerRefreshDelayOverrides( current_percent );  //set dynamic interval override
   }
@@ -1084,7 +1096,7 @@ PEPeerControlImpl
 
 	public void addPeerTransport( PEPeerTransport transport ) {
     if (!ip_filter.isInRange(transport.getIp(), adapter.getDisplayName())) {
-			ArrayList peer_transports = peer_transports_cow;
+		final ArrayList peer_transports = peer_transports_cow;
 			
 			if (!peer_transports.contains( transport )) {
 				addToPeerTransports(transport);    
@@ -1111,8 +1123,8 @@ PEPeerControlImpl
 			return;
 		}
 
-    int max_to_unchoke = adapter.getMaxUploads();  //how many simultaneous uploads we should consider
-		ArrayList peer_transports = peer_transports_cow;
+		final int max_to_unchoke = adapter.getMaxUploads();  //how many simultaneous uploads we should consider
+		final ArrayList peer_transports = peer_transports_cow;
 		
 		//determine proper unchoker
 		if( seeding_mode ) {
@@ -1130,16 +1142,16 @@ PEPeerControlImpl
 		//do main choke/unchoke update every 10 secs
 		if( mainloop_loop_count % MAINLOOP_TEN_SECOND_INTERVAL == 0 ) {
 			
-			boolean refresh = mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0;
+			final boolean refresh = mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0;
 			
 			unchoker.calculateUnchokes( max_to_unchoke, peer_transports, refresh );
 			
-			ArrayList peers_to_choke = unchoker.getChokes();
-			ArrayList peers_to_unchoke = unchoker.getUnchokes();
+			final ArrayList peers_to_choke = unchoker.getChokes();
+			final ArrayList peers_to_unchoke = unchoker.getUnchokes();
 			
 			//do chokes
 			for( int i=0; i < peers_to_choke.size(); i++ ) {
-				PEPeerTransport peer = (PEPeerTransport)peers_to_choke.get( i );
+				final PEPeerTransport peer = (PEPeerTransport)peers_to_choke.get( i );
 				
 				if( !peer.isChokedByMe() ) {
 					peer.sendChoke(); 
@@ -1148,7 +1160,7 @@ PEPeerControlImpl
 			
 			//do unchokes
 			for( int i=0; i < peers_to_unchoke.size(); i++ ) {
-				PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );
+				final PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );
 				
 				if( peer.isChokedByMe() ) {
 					peer.sendUnChoke();
@@ -1157,11 +1169,11 @@ PEPeerControlImpl
 		}
 		else if( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ) {  //do quick unchoke check every 1 sec
 			
-			ArrayList peers_to_unchoke = unchoker.getImmediateUnchokes( max_to_unchoke, peer_transports );
+			final ArrayList peers_to_unchoke = unchoker.getImmediateUnchokes( max_to_unchoke, peer_transports );
 			
 			//ensure that lan-local peers always get unchoked
 			for( Iterator it=peer_transports.iterator();it.hasNext();) {
-				PEPeerTransport peer = (PEPeerTransport)it.next();				
+				final PEPeerTransport peer = (PEPeerTransport)it.next();				
 				if( peer.isLANLocal() ) {
 					peers_to_unchoke.add( peer );
 				}
@@ -1169,7 +1181,7 @@ PEPeerControlImpl
 						
 			//do unchokes
 			for( int i=0; i < peers_to_unchoke.size(); i++ ) {
-				PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );
+				final PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );
 				
 				if( peer.isChokedByMe() ) {
 					peer.sendUnChoke();
@@ -1183,11 +1195,11 @@ PEPeerControlImpl
 //	send the have requests out
 	private void sendHave(int pieceNumber) {
 		//fo
-		List	peer_transports = peer_transports_cow;
+		final ArrayList peer_transports = peer_transports_cow;
 		
 		for (int i = 0; i < peer_transports.size(); i++) {
 			//get a peer connection
-			PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+			final PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
 			//send the have message
 			pc.sendHave(pieceNumber);
 		}
@@ -1204,9 +1216,9 @@ PEPeerControlImpl
 	
     ArrayList to_close = null;
     
-    List	peer_transports = peer_transports_cow;          
+	final ArrayList peer_transports = peer_transports_cow;
     for (int i = 0; i < peer_transports.size(); i++) {
-      PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+      final PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
       
       if (pc != null && pc.getPeerState() == PEPeer.TRANSFERING && pc.isSeed()) {      	
       	if( to_close == null )  to_close = new ArrayList();
@@ -1231,12 +1243,12 @@ PEPeerControlImpl
 	   }
 	   
 		//calculate seeds vs peers
-		List	peer_transports = peer_transports_cow;
+		final ArrayList peer_transports = peer_transports_cow;
 		
 		_seeds = _peers = _remotes = 0;
 		
 		for (Iterator it=peer_transports.iterator();it.hasNext();){
-			PEPeerTransport pc = (PEPeerTransport) it.next();
+			final PEPeerTransport pc = (PEPeerTransport) it.next();
 			if (pc.getPeerState() == PEPeer.TRANSFERING) {
 				if (pc.isSeed())
 					_seeds++;
@@ -1346,7 +1358,7 @@ PEPeerControlImpl
 	 */
 	public void writeCompleted(DiskManagerWriteRequest request)
 	{
-		int pieceNumber =request.getPieceNumber();
+		final int pieceNumber =request.getPieceNumber();
         if (!dm_pieces[pieceNumber].isDone())
         {
             final PEPiece pePiece =pePieces[pieceNumber];
@@ -1379,22 +1391,19 @@ PEPeerControlImpl
             data.returnToPool();
             return;
         }
-        DiskManagerWriteRequest request =disk_mgr.createWriteRequest(pieceNumber, offset, data, sender);
+        final DiskManagerWriteRequest request =disk_mgr.createWriteRequest(pieceNumber, offset, data, sender);
         disk_mgr.enqueueWriteRequest(request, this);
+        // In case we are in endGame mode, remove the block from the chunk list
         if (piecePicker.isInEndGameMode())
-        {
-            // In case we are in endGame mode, remove the block from the chunk list
             piecePicker.removeFromEndGameModeChunks(pieceNumber, offset);
-            cancel =true;
-        }
-        if (cancel)
+        if (cancel ||piecePicker.isInEndGameMode())
         {   // cancel any matching outstanding download requests
             // For all connections cancel the request
-            List peer_transports =peer_transports_cow;
+    		final ArrayList peer_transports = peer_transports_cow;
             for (int i =0; i <peer_transports.size(); i++)
             {
-                PEPeerTransport connection =(PEPeerTransport) peer_transports.get(i);
-                DiskManagerReadRequest dmr =disk_mgr.createReadRequest(pieceNumber, offset, dmPiece.getBlockSize(blockNumber));
+                final PEPeerTransport connection =(PEPeerTransport) peer_transports.get(i);
+                final DiskManagerReadRequest dmr =disk_mgr.createReadRequest(pieceNumber, offset, dmPiece.getBlockSize(blockNumber));
                 connection.sendCancel(dmr);
             }
         }
@@ -1466,7 +1475,7 @@ PEPeerControlImpl
 				return;
             //for all peers
 
-			final List peer_transports = peer_transports_cow;
+			final ArrayList peer_transports = peer_transports_cow;
 
 			for (int i = peer_transports.size() - 1; i >= 0; i--) {
 				final PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
@@ -1518,7 +1527,7 @@ PEPeerControlImpl
 	public long 
 	getETA() 
 	{	
-		long	now = SystemTime.getCurrentTime();
+		final long	now = SystemTime.getCurrentTime();
 		
 		if ( now < last_eta_calculation || now - last_eta_calculation > 900 ){
 			
@@ -1546,7 +1555,7 @@ PEPeerControlImpl
 			long	result;
 			
 			if (dataRemaining == 0) {
-				long timeElapsed = (_timeFinished - _timeStarted)/1000;
+				final long timeElapsed = (_timeFinished - _timeStarted)/1000;
 				//if time was spent downloading....return the time as negative
 				if(timeElapsed > 1){
 					result = timeElapsed * -1;
@@ -1555,7 +1564,7 @@ PEPeerControlImpl
 				}
 			}else{
 			
-				long averageSpeed = _averageReceptionSpeed.getAverage();
+				final long averageSpeed = _averageReceptionSpeed.getAverage();
 				long lETA = (averageSpeed == 0) ? Constants.INFINITY_AS_INT : dataRemaining / averageSpeed;
 				// stop the flickering of ETA from "Finished" to "x seconds" when we are 
 				// just about complete, but the data rate is jumpy.
@@ -1589,7 +1598,7 @@ PEPeerControlImpl
 			
 			if( is_running ) {
 				//copy-on-write semantics
-				ArrayList new_peer_transports = new ArrayList(peer_transports_cow.size() +1);
+				final ArrayList new_peer_transports = new ArrayList(peer_transports_cow.size() +1);
 				
 				new_peer_transports.addAll( peer_transports_cow );
 				
@@ -1631,7 +1640,7 @@ PEPeerControlImpl
 			
 			if( peer_transports_cow.contains( peer )) {
 				
-				ArrayList new_peer_transports = new ArrayList( peer_transports_cow );
+				final ArrayList new_peer_transports = new ArrayList( peer_transports_cow );
 				
 				new_peer_transports.remove(peer);
 				
@@ -1663,7 +1672,7 @@ PEPeerControlImpl
 		adapter.addPeer(pc);  //async downloadmanager notification
 		
 		//sync peermanager notification
-		ArrayList peer_manager_listeners = peer_manager_listeners_cow;
+		final ArrayList peer_manager_listeners = peer_manager_listeners_cow;
 		
 		for( int i=0; i < peer_manager_listeners.size(); i++ ) {
       		((PEPeerManagerListener)peer_manager_listeners.get(i)).peerAdded( this, pc );
@@ -1676,7 +1685,7 @@ PEPeerControlImpl
 	peerRemoved(
 		PEPeer pc) 
 	{
-		int piece = pc.getUniqueAnnounce();
+		final int piece = pc.getUniqueAnnounce();
 		if(piece != -1 && superSeedMode ) {
 			superSeedModeNumberOfAnnounces--;
 			superSeedPieces[piece].peerLeft();
@@ -1685,31 +1694,38 @@ PEPeerControlImpl
 		adapter.removePeer(pc);  //async downloadmanager notification
     	
 		//sync peermanager notification
-		ArrayList peer_manager_listeners = peer_manager_listeners_cow;
+		final ArrayList peer_manager_listeners = peer_manager_listeners_cow;
 		
 		for( int i=0; i < peer_manager_listeners.size(); i++ ) {
       		((PEPeerManagerListener)peer_manager_listeners.get(i)).peerRemoved( this, pc );
 		}
 	}
 	
-	/** Don't pass a null to this method.
+	/** Don't pass a null to this method. All activations of pieces must go through here.
      * @param piece PEPiece invoked; notifications of it's invocation need to be done
      * @param pieceNumber of the PEPiece 
 	 */
-	public void addPiece(PEPiece piece, int pieceNumber)
+	public void addPiece(final PEPiece piece, final int pieceNumber)
 	{
 		pePieces[pieceNumber] =(PEPieceImpl)piece;
+		nbPiecesActive++;
 		adapter.addPiece(piece);
 	}
 	
-    /** Sends messages to listeners that the piece is no longer active.
-     * The piece will be null upon return
+    /** Sends messages to listeners that the piece is no longer active.  All closing
+     * out (deactivation) of pieces must go through here. The piece will be null upon return.
      * @param pePiece PEPiece to remove
      * @param pieceNumber int
      */
 	public void removePiece(PEPiece pePiece, int pieceNumber) {
         adapter.removePiece(pePiece);
         pePieces[pieceNumber] =null;
+		nbPiecesActive--;
+	}
+	
+	public int getNbActivePieces()
+	{
+		return nbPiecesActive;
 	}
 	
 	public String getElapsedTime() {
@@ -1729,14 +1745,14 @@ PEPeerControlImpl
 	{
 		BrokenMd5Hasher md5 =new BrokenMd5Hasher();
 		md5.reset();
-		int position =buffer.position(DirectByteBuffer.SS_DW);
+		final int position =buffer.position(DirectByteBuffer.SS_DW);
 		md5.update(buffer.getBuffer(DirectByteBuffer.SS_DW));
 		buffer.position(DirectByteBuffer.SS_DW, position);
 		ByteBuffer md5Result =ByteBuffer.allocate(16);
 		md5Result.position(0);
 		md5.finalDigest(md5Result);
 
-		byte[] result =new byte[16];
+		final byte[] result =new byte[16];
 		md5Result.position(0);
 		for (int i =0; i <result.length; i++ )
 		{
@@ -1748,19 +1764,19 @@ PEPeerControlImpl
 
 	private void MD5CheckPiece(PEPiece piece, boolean correct)
 	{
-		String[] writers =piece.getWriters();
+		final String[] writers =piece.getWriters();
 		int offset =0;
 		for (int i =0; i <writers.length; i++ )
 		{
-			int length =piece.getBlockSize(i);
-			String peer =writers[i];
+			final int length =piece.getBlockSize(i);
+			final String peer =writers[i];
 			if (peer !=null)
 			{
 				DirectByteBuffer buffer =disk_mgr.readBlock(piece.getPieceNumber(), offset, length);
 
 				if (buffer !=null)
 				{
-					byte[] hash =computeMd5Hash(buffer);
+					final byte[] hash =computeMd5Hash(buffer);
 					buffer.returnToPool();
 					buffer =null;
 					piece.addWrite(i, peer, hash, correct);
@@ -1810,7 +1826,7 @@ PEPeerControlImpl
 
 	public boolean needsMD5CheckOnCompletion(int pieceNumber)
 	{
-		PEPieceImpl piece = pePieces[pieceNumber];    
+		final PEPieceImpl piece = pePieces[pieceNumber];    
 		if (piece == null)
         {
 			return false;
@@ -1820,7 +1836,7 @@ PEPeerControlImpl
 	
 	private void processPieceCheckResult(DiskManagerCheckRequest request, int outcome)
 	{
-		int check_type =((Integer) request.getUserData()).intValue();
+		final int check_type =((Integer) request.getUserData()).intValue();
 
 		try
 		{
@@ -1858,7 +1874,7 @@ PEPeerControlImpl
 					if (needsMD5CheckOnCompletion(pieceNumber))
 						MD5CheckPiece(pePiece, true);
 
-					List list =pePiece.getPieceWrites();
+					final List list =pePiece.getPieceWrites();
 					if (list.size() >0)
 					{
 						// For each Block
@@ -1866,13 +1882,13 @@ PEPeerControlImpl
 						{
 							// System.out.println("Processing block " + i);
 							// Find out the correct hash
-							List listPerBlock =pePiece.getPieceWrites(i);
+							final List listPerBlock =pePiece.getPieceWrites(i);
 							byte[] correctHash =null;
 							// PEPeer correctSender = null;
 							Iterator iterPerBlock =listPerBlock.iterator();
 							while (iterPerBlock.hasNext())
 							{
-								PEPieceWriteImpl write =(PEPieceWriteImpl) iterPerBlock.next();
+								final PEPieceWriteImpl write =(PEPieceWriteImpl) iterPerBlock.next();
 								if (write.isCorrect())
 								{
 									correctHash =write.getHash();
@@ -1886,7 +1902,7 @@ PEPeerControlImpl
 								iterPerBlock =listPerBlock.iterator();
 								while (iterPerBlock.hasNext())
 								{
-									PEPieceWriteImpl write =(PEPieceWriteImpl) iterPerBlock.next();
+									final PEPieceWriteImpl write =(PEPieceWriteImpl) iterPerBlock.next();
 									if (!Arrays.equals(write.getHash(), correctHash))
 									{
 										// Bad peer found here
@@ -1896,8 +1912,8 @@ PEPeerControlImpl
 							}
 						}
 					}
-                	removePiece(pePiece, pieceNumber);
 				}
+            	removePiece(pePiece, pieceNumber);
 
                 // send all clients a have message
 				sendHave(pieceNumber);  //XXX: if Done isn't set yet, might refuse to send this piece
@@ -1908,12 +1924,12 @@ PEPeerControlImpl
 				{
 					MD5CheckPiece(pePiece, false);
 
-					String[] writers =pePiece.getWriters();
-					List uniqueWriters =new ArrayList();
-					int[] writesPerWriter =new int[writers.length];
+					final String[] writers =pePiece.getWriters();
+					final List uniqueWriters =new ArrayList();
+					final int[] writesPerWriter =new int[writers.length];
 					for (int i =0; i <writers.length; i++ )
 					{
-						String writer =writers[i];
+						final String writer =writers[i];
 						if (writer !=null)
 						{
 							int writerId =uniqueWriters.indexOf(writer);
@@ -1925,7 +1941,7 @@ PEPeerControlImpl
 							writesPerWriter[writerId]++ ;
 						}
 					}
-					int nbWriters =uniqueWriters.size();
+					final int nbWriters =uniqueWriters.size();
 					if (nbWriters ==1)
 					{
 						// Very simple case, only 1 peer contributed for that piece,
@@ -2019,7 +2035,7 @@ PEPeerControlImpl
 
 				if (peer !=null)
 				{
-					int ps =peer.getPeerState();
+					final int ps =peer.getPeerState();
 	
 					// might have been through here very recently and already started closing
 					// the peer (due to multiple bad blocks being found from same peer when checking piece)
@@ -2082,7 +2098,7 @@ PEPeerControlImpl
 			this_mon.enter();
 			
 			//copy on write
-			ArrayList peer_manager_listeners = new ArrayList( peer_manager_listeners_cow.size() + 1 );      
+			final ArrayList peer_manager_listeners = new ArrayList( peer_manager_listeners_cow.size() + 1 );      
 			peer_manager_listeners.addAll( peer_manager_listeners_cow );
 			peer_manager_listeners.add( l );
 			peer_manager_listeners_cow = peer_manager_listeners;
@@ -2101,7 +2117,7 @@ PEPeerControlImpl
 			this_mon.enter();
 			
 			//copy on write
-			ArrayList peer_manager_listeners = new ArrayList( peer_manager_listeners_cow );      
+			final ArrayList peer_manager_listeners = new ArrayList( peer_manager_listeners_cow );
 			peer_manager_listeners.remove( l );
 			peer_manager_listeners_cow = peer_manager_listeners;
 			
@@ -2130,9 +2146,9 @@ PEPeerControlImpl
   	if ( ip_filter.isEnabled()){  //if ipfiltering is enabled, remove any existing filtered connections    	
   		ArrayList to_close = null;
     	
-  		ArrayList	peer_transports = peer_transports_cow;      	
+		final ArrayList peer_transports = peer_transports_cow;
   		for (int i=0; i < peer_transports.size(); i++) {
-  			PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
+  			final PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
   			
   			if ( ip_filter.isInRange( conn.getIp(), adapter.getDisplayName() )) {        	
   				if( to_close == null )  to_close = new ArrayList();
@@ -2197,7 +2213,7 @@ PEPeerControlImpl
 		PEPeer selectedPeer = null;
 		List sortedPeers = null;
 
-		ArrayList peer_transports	= peer_transports_cow;
+		final ArrayList peer_transports = peer_transports_cow;
 		
 		sortedPeers = new ArrayList(peer_transports.size());
 		Iterator iter	=peer_transports.iterator();
@@ -2208,7 +2224,7 @@ PEPeerControlImpl
 		Collections.sort(sortedPeers);
 		iter = sortedPeers.iterator();
 		while(iter.hasNext()) {
-			PEPeer peer = ((SuperSeedPeer)iter.next()).peer;
+			final PEPeer peer = ((SuperSeedPeer)iter.next()).peer;
 			if((peer.getUniqueAnnounce() == -1) && (peer.getPeerState() == PEPeer.TRANSFERING)) {
 				selectedPeer = peer;
 				break;
@@ -2374,13 +2390,13 @@ PEPeerControlImpl
         	
         	if( item == null || !is_running )  break;
 
-        	PeerItem self = peer_database.getSelfPeer();
+        	final PeerItem self = peer_database.getSelfPeer();
         	if( self != null && self.equals( item ) ) {
         		continue;
         	}
         	
         	if( !isAlreadyConnected( item ) ) {
-        		String source = PeerItem.convertSourceString( item.getSource() );
+        		final String source = PeerItem.convertSourceString( item.getSource() );
 
         		final boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
         		
@@ -2438,9 +2454,9 @@ PEPeerControlImpl
 		//every 60 seconds
 		if ( mainloop_loop_count % MAINLOOP_SIXTY_SECOND_INTERVAL == 0 ) {
 			//do peer exchange volleys
-			ArrayList peer_transports = peer_transports_cow;
+			final ArrayList peer_transports = peer_transports_cow;
 			for( int i=0; i < peer_transports.size(); i++ ) {
-				PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+				final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
 				peer.updatePeerExchange();
 			}
 		}
@@ -2448,7 +2464,7 @@ PEPeerControlImpl
     
     public boolean doOptimisticDisconnect()
     {
-        final ArrayList peer_transports = peer_transports_cow;
+		final ArrayList peer_transports = peer_transports_cow;
         PEPeerTransport max_transport = null;
         long max_time = 0;
         
@@ -2481,7 +2497,7 @@ PEPeerControlImpl
                         if (!peer.isInterested())   // if mutually unInterested, really try to drop the connection
                             peerTestTime +=timeSinceConnection +timeSinceSentData;   // if we never sent, it will subtract 1, which is good
                         else
-                            peerTestTime -=timeSinceConnection +timeSinceSentData; // try to give interested peers a chance to get data
+                            peerTestTime -=(timeSinceConnection -timeSinceSentData); // try to give interested peers a chance to get data
                         
                         peerTestTime =peerTestTime *2;
                     }
@@ -2498,7 +2514,7 @@ PEPeerControlImpl
         }
         
         if( max_transport != null && max_time > 5 *60*1000 ) {  //ensure a 5 min minimum test time
-            closeAndRemovePeer( max_transport, "timed out by optimistic-disconnect", true );
+            closeAndRemovePeer( max_transport, "timed out by doOptimisticDisconnect()", true );
             return true;
         }
         return false;
@@ -2507,7 +2523,7 @@ PEPeerControlImpl
 	
 	public PeerExchangerItem createPeerExchangeConnection( final PEPeerTransport base_peer ) {
 		if( peer_database != null && base_peer.getTCPListenPort() > 0 ) {  //only accept peers whose remote port is known
-			PeerItem peer = PeerItemFactory.createPeerItem( base_peer.getIp(),
+			final PeerItem peer = PeerItemFactory.createPeerItem( base_peer.getIp(),
 																											base_peer.getTCPListenPort(),
 																											PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE,
 																											base_peer.getPeerItemIdentity().getHandshakeType() );
@@ -2523,9 +2539,9 @@ PEPeerControlImpl
 	
 	
 	private boolean isAlreadyConnected( PeerItem peer_id ) {
-		ArrayList peer_transports = peer_transports_cow;
+		final ArrayList peer_transports = peer_transports_cow;
 		for( int i=0; i < peer_transports.size(); i++ ) {
-			PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+			final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
 			if( peer.getPeerItemIdentity().equals( peer_id ) )  return true;
 		}
 		return false;
@@ -2534,7 +2550,8 @@ PEPeerControlImpl
 	
 	public void peerVerifiedAsSelf( PEPeerTransport self ) {
 		if( peer_database != null && self.getTCPListenPort() > 0 ) {  //only accept self if remote port is known
-			PeerItem peer = PeerItemFactory.createPeerItem( self.getIp(), self.getTCPListenPort(), PeerItem.convertSourceID( self.getPeerSource() ), self.getPeerItemIdentity().getHandshakeType() );
+			final PeerItem peer = PeerItemFactory.createPeerItem( self.getIp(), self.getTCPListenPort(),
+				PeerItem.convertSourceID( self.getPeerSource() ), self.getPeerItemIdentity().getHandshakeType() );
 			peer_database.setSelfPeer( peer );
 		}
 	}
@@ -2551,20 +2568,20 @@ PEPeerControlImpl
 	
 	public int getAverageCompletionInThousandNotation()
 	{
-		ArrayList peers =peer_transports_cow;
+		final ArrayList peer_transports = peer_transports_cow;
 
-		if (peers !=null)
+		if (peer_transports !=null)
 		{
-			long total =disk_mgr.getTotalLength();
+			final long total =disk_mgr.getTotalLength();
 
-			int my_completion =total ==0 ?1000 :(int) ((1000 *(total -disk_mgr.getRemaining())) /total);
+			final int my_completion =total ==0 ?1000 :(int) ((1000 *(total -disk_mgr.getRemaining())) /total);
 
 			int sum =my_completion ==1000 ?0 :my_completion; // add in our own percentage if not seeding
 			int num =my_completion ==1000 ?0 :1;
 
-			for (int i =0; i <peers.size(); i++ )
+			for (int i =0; i <peer_transports.size(); i++ )
 			{
-				PEPeer peer =(PEPeer) peers.get(i);
+				final PEPeer peer =(PEPeer) peer_transports.get(i);
 
 				if (peer.getPeerState() ==PEPeer.TRANSFERING &&!peer.isSeed())
 				{
@@ -2616,7 +2633,7 @@ PEPeerControlImpl
 	
 	
 	public PEPeerTransport getTransportFromIdentity( byte[] peer_id ) {
-		final ArrayList	peer_transports = peer_transports_cow;      	
+		final ArrayList peer_transports = peer_transports_cow;
 		for( int i=0; i < peer_transports.size(); i++ ) {
 			final PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );			
 			if( Arrays.equals( peer_id, conn.getId() ) )   return conn;
@@ -2650,4 +2667,26 @@ PEPeerControlImpl
 		}
 		return null;
 	}
+	
+	// Snubbed peers accounting
+	public void incNbPeersSnubbed()
+	{
+		nbPeersSnubbed++;
+	}
+	
+	public void decNbPeersSnubbed()
+	{
+		nbPeersSnubbed--;
+	}
+	
+	public void setNbPeersSnubbed(int n)
+	{
+		nbPeersSnubbed =n;
+	}
+	
+	public int getNbPeersSnubbed()
+	{
+		return nbPeersSnubbed;
+	}
+	
 }

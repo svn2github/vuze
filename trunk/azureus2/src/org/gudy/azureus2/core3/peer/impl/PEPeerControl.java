@@ -70,4 +70,12 @@ PEPeerControl
 	getPort();
     
     public boolean doOptimisticDisconnect();
+    
+	public int getNbActivePieces();
+
+	// Snubbed peers accounting
+	public void incNbPeersSnubbed();
+	public void decNbPeersSnubbed();
+	public void setNbPeersSnubbed(int n);
+	public int getNbPeersSnubbed();
 }
