@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.instancemanager;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.regex.PatternSyntaxException;
 
 import org.gudy.azureus2.plugins.download.Download;
 
@@ -63,6 +64,16 @@ AZInstanceManager
 	public boolean
 	isExternalAddress(
 		InetAddress			address );
+	
+	public void
+	addLANSubnet(
+		String				subnet )
+	
+		throws PatternSyntaxException;
+	
+	public void
+	addInstance(
+		InetAddress			explicit_address );
 	
 	public void
 	addListener(

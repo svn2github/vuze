@@ -28,6 +28,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -120,6 +122,9 @@ AZInstanceManagerImpl
 	
 	private volatile Set			lan_addresses	= new HashSet();
 	private volatile Set			ext_addresses	= new HashSet();
+	
+	private volatile List			lan_subnets		= new ArrayList();
+	private volatile List			explicit_peers 	= new ArrayList();
 	
 	private AESemaphore	initial_search_sem	= new AESemaphore( "AZInstanceManager:initialSearch" );
 	
@@ -230,16 +235,38 @@ AZInstanceManagerImpl
 	}
 	
 	protected void
+	sendAlive(
+		InetSocketAddress	target )
+	{
+		sendMessage( MT_ALIVE, target );
+	}
+	
+	protected void
 	sendByeBye()
 	{
 		sendMessage( MT_BYE );
 	}
 	
 	protected void
+	sendByeBye(
+		InetSocketAddress	target )
+	{
+		sendMessage( MT_BYE, target );
+	}
+	
+	protected void
 	sendMessage(
 		int		type )
 	{
-		sendMessage( type, null );
+		sendMessage( type, (Map)null );
+	}
+	
+	protected void
+	sendMessage(
+		int					type,
+		InetSocketAddress	target )
+	{
+		sendMessage( type, null, target );
 	}
 	
 	protected void
@@ -279,6 +306,12 @@ AZInstanceManagerImpl
 				
 				mc_group.sendToGroup( data );
 				
+				Iterator	it = explicit_peers.iterator();
+				
+				while( it.hasNext()){
+					
+					mc_group.sendToMember((InetSocketAddress)it.next(), data );
+				}
 			}else{
 				
 				mc_group.sendToMember( member, data );
@@ -716,9 +749,23 @@ AZInstanceManagerImpl
 	isLANAddress(
 		InetAddress			address )
 	{
-		if ( address.isLoopbackAddress()){
+		if ( 	address.isLoopbackAddress() || 
+				address.isLinkLocalAddress() ||
+				address.isSiteLocalAddress()){
 			
 			return( true );
+		}
+		
+		String	host_address = address.getHostAddress();
+		
+		for (int i=0;i<lan_subnets.size();i++){
+			
+			Pattern	p = (Pattern)lan_subnets.get(i);
+			
+			if ( p.matcher( host_address ).matches()){
+								
+				return( true );
+			}
 		}
 		
 		if ( lan_addresses.contains( address )){
@@ -727,6 +774,69 @@ AZInstanceManagerImpl
 		}
 		
 		return( false );
+	}
+	
+	public void
+	addLANSubnet(
+		String	subnet )
+	
+		throws PatternSyntaxException
+	{
+		String	str = "";
+		
+		for (int i=0;i<subnet.length();i++){
+			char	c = subnet.charAt(i);
+			
+			if ( c == '*' ){
+				
+				str += ".*?";
+				
+			}else if ( c == '.' ){
+				
+				str += "\\.";
+			
+			}else{
+				
+				str += c;
+			}
+		}
+		
+		try{
+			this_mon.enter();
+
+			List	new_nets = new ArrayList( lan_subnets );
+			
+			new_nets.add( Pattern.compile( str ));
+			
+			lan_subnets	= new_nets;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public void
+	addInstance(
+		InetAddress			explicit_address )
+	{
+		InetSocketAddress	sad = new InetSocketAddress( explicit_address, MC_GROUP_PORT );
+		
+		try{
+			this_mon.enter();
+
+			List	new_peers = new ArrayList( explicit_peers );
+			
+			new_peers.add( sad );
+			
+			explicit_peers	= new_peers;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		sendAlive( sad );
 	}
 	
 	public boolean

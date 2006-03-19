@@ -24,6 +24,8 @@ package com.aelitis.azureus.plugins.tracker.local;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -39,6 +41,9 @@ import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.plugins.ui.config.ParameterListener;
+import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.Monitor;
@@ -67,9 +72,13 @@ LocalTrackerPlugin
 	private Map 				downloads 	= new HashMap();
 	private Map					track_times	= new HashMap();
 	
+	private String				last_autoadd	= "";
+	private String				last_subnets	= "";
+	
 	private BooleanParameter	enabled;
 	
 	private long				plugin_start_time;
+	
 	
 	private LoggerChannel 		log;
 	private Monitor 			mon;
@@ -97,6 +106,15 @@ LocalTrackerPlugin
 		
 		enabled = config.addBooleanParameter2( "Plugin.localtracker.enable", "Plugin.localtracker.enable", true );
 
+		config.addLabelParameter2( "Plugin.localtracker.networks.info" );
+		
+		final StringParameter subnets = config.addStringParameter2( "Plugin.localtracker.networks", "Plugin.localtracker.networks", "" );
+
+		config.addLabelParameter2( "Plugin.localtracker.autoadd.info" );
+		
+		final StringParameter autoadd = config.addStringParameter2( "Plugin.localtracker.autoadd", "Plugin.localtracker.autoadd", "" );
+		
+	
 		final BasicPluginViewModel	view_model = 
 			plugin_interface.getUIManager().createBasicPluginViewModel( "Plugin.localtracker.name" );
 
@@ -143,6 +161,20 @@ LocalTrackerPlugin
 		instance_manager.addListener( this );
 		
 		plugin_interface.getDownloadManager().addListener( this );
+		
+		plugin_interface.getPluginconfig().addListener(
+				new PluginConfigListener()
+				{
+					public void
+					configSaved()
+					{
+						processSubNets( subnets.getValue());
+						processAutoAdd( autoadd.getValue());
+					}
+				});
+				
+		processSubNets( subnets.getValue());
+		processAutoAdd( autoadd.getValue());
 	}
 	
 	public void
@@ -156,6 +188,12 @@ LocalTrackerPlugin
 		
 		log.log( "Found: " + instance.getString());
 		
+		checkActivation();
+	}
+	
+	protected void
+	checkActivation()
+	{
 		try{
 			mon.enter();
 		
@@ -422,7 +460,7 @@ LocalTrackerPlugin
 			
 			log.log( "    " + download.getName() + ": Injecting peer " + peer_ip + ":" + peer_port );
 			
-			peer_manager.addPeer( peer_ip, peer_port );
+			peer_manager.addPeer( peer_ip, peer_port, false );
 		}
 	}
 	
@@ -514,5 +552,71 @@ LocalTrackerPlugin
 		int oldPosition,
 		int newPosition )
 	{
+	}
+	
+	protected void
+	processSubNets(
+		String	subnets )
+	{
+		if ( subnets.equals( last_subnets )){
+			
+			return;
+		}
+		
+		last_subnets = subnets;
+		
+		StringTokenizer	tok = new StringTokenizer( subnets, ";");
+		
+		int	count = 0;
+		
+		while( tok.hasMoreTokens()){
+			
+			String	net = tok.nextToken().trim();
+				
+			try{
+				
+				instance_manager.addLANSubnet( net );
+				
+				log.log( "Added network '" + net + "'" );
+				
+				count++;
+				
+			}catch( Throwable e ){
+				
+				log.log( "Failed to add network '" + net + "'", e );
+			}
+		}
+	}
+	
+	protected void
+	processAutoAdd(
+		String	autoadd )
+	{
+		if ( autoadd.equals( last_autoadd )){
+			
+			return;
+		}
+		
+		last_autoadd = autoadd;
+		
+		StringTokenizer	tok = new StringTokenizer( autoadd, ";");
+					
+		while( tok.hasMoreTokens()){
+			
+			String	peer = tok.nextToken();
+				
+			try{
+				
+				InetAddress p = InetAddress.getByName( peer.trim());
+				
+				instance_manager.addInstance( p );
+				
+				log.log( "Added peer '" + peer + "'" );
+				
+			}catch( Throwable e ){
+				
+				log.log( "Failed to decode peer '" + peer + "'", e );
+			}
+		}
 	}
 }
