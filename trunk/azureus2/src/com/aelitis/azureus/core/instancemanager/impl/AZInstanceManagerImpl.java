@@ -351,7 +351,7 @@ AZInstanceManagerImpl
 			
 			if ( map.get( "explicit" ) != null ){
 				
-				if ( addInstance( originator_address )){
+				if ( addInstanceSupport( originator_address )){
 					
 					sendAlive( new InetSocketAddress( originator_address, MC_GROUP_PORT ));
 				}
@@ -855,34 +855,36 @@ AZInstanceManagerImpl
 	addInstance(
 		InetAddress			explicit_address )
 	{
+		return( addInstanceSupport( explicit_address ));
+	}
+	
+	protected boolean
+	addInstanceSupport(
+		InetAddress			explicit_address )
+	{
 		InetSocketAddress	sad = new InetSocketAddress( explicit_address, MC_GROUP_PORT );
 		
-		try{
-			if ( !explicit_peers.contains( sad )){
-				
-				try{
-					this_mon.enter();
-		
-					List	new_peers = new ArrayList( explicit_peers );
-					
-					new_peers.add( sad );
-					
-					explicit_peers	= new_peers;
-					
-				}finally{
-					
-					this_mon.exit();
-				}
-								
-				return( true );
-
-			}else{
-				
-				return( false );
-			}
-		}finally{
+		if ( !explicit_peers.contains( sad )){
 			
-			sendAlive( sad );
+			try{
+				this_mon.enter();
+	
+				List	new_peers = new ArrayList( explicit_peers );
+				
+				new_peers.add( sad );
+				
+				explicit_peers	= new_peers;
+				
+			}finally{
+				
+				this_mon.exit();
+			}
+							
+			return( true );
+
+		}else{
+			
+			return( false );
 		}
 	}
 	
