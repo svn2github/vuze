@@ -306,11 +306,18 @@ AZInstanceManagerImpl
 				
 				mc_group.sendToGroup( data );
 				
-				Iterator	it = explicit_peers.iterator();
-				
-				while( it.hasNext()){
+				if ( explicit_peers.size() > 0 ){
 					
-					mc_group.sendToMember((InetSocketAddress)it.next(), data );
+					map.put( "explicit", new Long(1));
+				
+					byte[]	explicit_data = BEncoder.encode( map );
+					
+					Iterator	it = explicit_peers.iterator();
+				
+					while( it.hasNext()){
+					
+						mc_group.sendToMember((InetSocketAddress)it.next(), explicit_data );
+					}
 				}
 			}else{
 				
@@ -335,7 +342,17 @@ AZInstanceManagerImpl
 			long	version = ((Long)map.get( "ver" )).longValue();
 			long	type	= ((Long)map.get( "type" )).longValue();
 			
-			AZOtherInstanceImpl	instance = AZOtherInstanceImpl.decode( originator.getAddress(), (Map)map.get( "orig" ));
+			InetAddress	originator_address = originator.getAddress();
+			
+			if ( map.get( "explicit" ) != null ){
+				
+				if ( addInstance( originator_address )){
+					
+					sendAlive( new InetSocketAddress( originator_address, MC_GROUP_PORT ));
+				}
+			}
+			
+			AZOtherInstanceImpl	instance = AZOtherInstanceImpl.decode( originator_address, (Map)map.get( "orig" ));
 			
 			if ( type == MT_ALIVE ){
 				
@@ -776,7 +793,7 @@ AZInstanceManagerImpl
 		return( false );
 	}
 	
-	public void
+	public boolean
 	addLANSubnet(
 		String	subnet )
 	
@@ -785,6 +802,7 @@ AZInstanceManagerImpl
 		String	str = "";
 		
 		for (int i=0;i<subnet.length();i++){
+			
 			char	c = subnet.charAt(i);
 			
 			if ( c == '*' ){
@@ -801,12 +819,22 @@ AZInstanceManagerImpl
 			}
 		}
 		
+		Pattern pattern = Pattern.compile( str );
+		
+		for (int i=0;i<lan_subnets.size();i++){
+			
+			if ( pattern.pattern().equals(((Pattern)lan_subnets.get(i)).pattern())){
+				
+				return( false );
+			}
+		}
+		
 		try{
 			this_mon.enter();
-
+			
 			List	new_nets = new ArrayList( lan_subnets );
 			
-			new_nets.add( Pattern.compile( str ));
+			new_nets.add( pattern );
 			
 			lan_subnets	= new_nets;
 			
@@ -814,29 +842,43 @@ AZInstanceManagerImpl
 			
 			this_mon.exit();
 		}
+		
+		return( true );
 	}
 	
-	public void
+	public boolean
 	addInstance(
 		InetAddress			explicit_address )
 	{
 		InetSocketAddress	sad = new InetSocketAddress( explicit_address, MC_GROUP_PORT );
 		
 		try{
-			this_mon.enter();
+			if ( !explicit_peers.contains( sad )){
+				
+				try{
+					this_mon.enter();
+		
+					List	new_peers = new ArrayList( explicit_peers );
+					
+					new_peers.add( sad );
+					
+					explicit_peers	= new_peers;
+					
+				}finally{
+					
+					this_mon.exit();
+				}
+								
+				return( true );
 
-			List	new_peers = new ArrayList( explicit_peers );
-			
-			new_peers.add( sad );
-			
-			explicit_peers	= new_peers;
-			
+			}else{
+				
+				return( false );
+			}
 		}finally{
 			
-			this_mon.exit();
+			sendAlive( sad );
 		}
-		
-		sendAlive( sad );
 	}
 	
 	public boolean

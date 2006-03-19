@@ -65,13 +65,13 @@ AZInstanceManager
 	isExternalAddress(
 		InetAddress			address );
 	
-	public void
+	public boolean
 	addLANSubnet(
 		String				subnet )
 	
 		throws PatternSyntaxException;
 	
-	public void
+	public boolean
 	addInstance(
 		InetAddress			explicit_address );
 	

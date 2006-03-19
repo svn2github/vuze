@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.LabelParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
@@ -106,15 +107,19 @@ LocalTrackerPlugin
 		
 		enabled = config.addBooleanParameter2( "Plugin.localtracker.enable", "Plugin.localtracker.enable", true );
 
-		config.addLabelParameter2( "Plugin.localtracker.networks.info" );
+		LabelParameter	lp1 = config.addLabelParameter2( "Plugin.localtracker.networks.info" );
 		
 		final StringParameter subnets = config.addStringParameter2( "Plugin.localtracker.networks", "Plugin.localtracker.networks", "" );
 
-		config.addLabelParameter2( "Plugin.localtracker.autoadd.info" );
+		LabelParameter	lp2 = config.addLabelParameter2( "Plugin.localtracker.autoadd.info" );
 		
 		final StringParameter autoadd = config.addStringParameter2( "Plugin.localtracker.autoadd", "Plugin.localtracker.autoadd", "" );
 		
-	
+		enabled.addEnabledOnSelection( lp1 );
+		enabled.addEnabledOnSelection( subnets );
+		enabled.addEnabledOnSelection( lp2 );
+		enabled.addEnabledOnSelection( autoadd );
+
 		final BasicPluginViewModel	view_model = 
 			plugin_interface.getUIManager().createBasicPluginViewModel( "Plugin.localtracker.name" );
 
@@ -566,21 +571,18 @@ LocalTrackerPlugin
 		last_subnets = subnets;
 		
 		StringTokenizer	tok = new StringTokenizer( subnets, ";");
-		
-		int	count = 0;
-		
+				
 		while( tok.hasMoreTokens()){
 			
 			String	net = tok.nextToken().trim();
 				
 			try{
 				
-				instance_manager.addLANSubnet( net );
+				if ( instance_manager.addLANSubnet( net )){
 				
-				log.log( "Added network '" + net + "'" );
-				
-				count++;
-				
+					log.log( "Added network '" + net + "'" );
+				}
+								
 			}catch( Throwable e ){
 				
 				log.log( "Failed to add network '" + net + "'", e );
@@ -609,10 +611,10 @@ LocalTrackerPlugin
 				
 				InetAddress p = InetAddress.getByName( peer.trim());
 				
-				instance_manager.addInstance( p );
+				if ( instance_manager.addInstance( p )){
 				
-				log.log( "Added peer '" + peer + "'" );
-				
+					log.log( "Added peer '" + peer + "'" );
+				}
 			}catch( Throwable e ){
 				
 				log.log( "Failed to decode peer '" + peer + "'", e );

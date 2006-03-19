@@ -179,7 +179,8 @@ UPnPPlugin
 		enable_param.addEnabledOnSelection( alert_other_port_param );
 		enable_param.addEnabledOnSelection( alert_device_probs_param );
 		enable_param.addEnabledOnSelection( release_mappings_param );
-		
+		enable_param.addEnabledOnSelection( selected_interfaces_param );
+
 		boolean	enabled = enable_param.getValue();
 		
 		model.getStatus().setText( enabled?"Running":"Disabled" );
