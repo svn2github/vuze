@@ -82,7 +82,7 @@ SpeedManagerImpl
 		
 			// TODO: who persists this stuff like enabled?
 		
-		setEnabled( true );
+		setEnabled( false );
 		
 		speed_tester.addListener(
 				new DHTSpeedTesterListener()
