@@ -322,7 +322,10 @@ AZInstanceManagerImpl
 				}
 			}else{
 				
-				map.put( "explicit", new Long(1));
+				if ( explicit_peers.contains( member )){
+					
+					map.put( "explicit", new Long(1));
+				}
 				
 				byte[]	explicit_data = BEncoder.encode( map );
 
