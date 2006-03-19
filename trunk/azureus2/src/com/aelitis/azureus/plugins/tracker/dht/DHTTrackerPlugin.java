@@ -606,7 +606,8 @@ DHTTrackerPlugin
 		
 		if ( 	state == Download.ST_DOWNLOADING 	||
 				state == Download.ST_SEEDING 		||
-				state == Download.ST_QUEUED ){
+				state == Download.ST_QUEUED 		||
+				download.isPaused()){	// pause is a transitory state, don't dereg
 			
 			String[]	networks = download.getListAttribute( ta_networks );
 			
@@ -671,7 +672,8 @@ DHTTrackerPlugin
 										// only track if torrent's tracker is not available
 																
 									if ( 	state == Download.ST_DOWNLOADING ||
-											state == Download.ST_SEEDING ){
+											state == Download.ST_SEEDING ||
+											download.isPaused()){
 										
 										DownloadAnnounceResult result = download.getLastAnnounceResult();
 										

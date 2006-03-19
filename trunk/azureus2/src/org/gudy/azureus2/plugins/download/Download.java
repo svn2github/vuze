@@ -293,6 +293,14 @@ Download
 	public boolean
 	isPriorityLocked();
 	
+	/**
+	 * @since 2403
+	 * @return
+	 */
+	
+	public boolean
+	isPaused();
+	
 	/** Returns the name of the torrent.  Similar to Torrent.getName() and is usefull
    * if getTorrent() returns null and you still need the name.
    * @return name of the torrent

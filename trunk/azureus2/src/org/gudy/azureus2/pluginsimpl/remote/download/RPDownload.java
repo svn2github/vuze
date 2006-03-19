@@ -440,6 +440,14 @@ RPDownload
 		return( false );
 	}
 	
+	public boolean
+	isPaused()
+	{
+		notSupported();
+		
+		return( false );
+	}
+	
 	public int
 	getPriority()
 	{

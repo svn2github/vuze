@@ -999,8 +999,8 @@ public class GlobalManagerImpl
 	    	  
 	    	  boolean	forced = manager.isForceStart();
 	        	
-	    	  manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
-	          
+	    	  	// add first so anyone picking up the ->stopped transition see it is paused
+	    	  
 	    	  try{  
 	    		  paused_list_mon.enter();
 	          
@@ -1010,6 +1010,8 @@ public class GlobalManagerImpl
 	    		  
 	    		  paused_list_mon.exit();  
 	    	  }   
+	    	  
+	    	  manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
 	    	  
 	    	  return( true );
 	    	  
@@ -1042,15 +1044,21 @@ public class GlobalManagerImpl
         try {
         	boolean	forced = manager.isForceStart();
         	
+        		// add before stopping so anyone picking up the ->stopped transition sees that it is
+        		// paused
+        	
+          	try {
+          		paused_list_mon.enter();
+            
+          		paused_list.add( new Object[]{ manager.getTorrent().getHashWrapper(), new Boolean(forced)});
+          		
+	    	}finally{
+	    		
+	    		paused_list_mon.exit();  
+	    	}
+	    	
         	manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
-          
-        	try {  paused_list_mon.enter();
-          
-            	paused_list.add( new Object[]{ manager.getTorrent().getHashWrapper(), new Boolean(forced)});
-        	}
-        	finally {  
-        		paused_list_mon.exit();  
-        	}
+  
         }catch( TOTorrentException e ) {
         	Debug.printStackTrace( e );  
         }

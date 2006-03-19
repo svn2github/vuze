@@ -372,6 +372,12 @@ DownloadImpl
 		download_manager.setForceStart(forceStart);
 	}
 	
+	public boolean
+	isPaused()
+	{
+		return( download_manager.isPaused());
+	}
+	
 	public int
 	getPosition()
 	{
