@@ -169,8 +169,8 @@ DHTTransportUDPImpl
 		
 			
 	private static final int	STATS_PERIOD		= 60*1000;
-	private static final int 	STATS_DURATION_SECS	= 600;	// 10 minute average
-	private static final long	STATS_INIT_PERIOD	= 10*60*1000;	
+	private static final int 	STATS_DURATION_SECS	= 600;			// 10 minute average
+	private static final long	STATS_INIT_PERIOD	= 15*60*1000;	// bit more than 10 mins to allow average to establish
 	
 	private long	stats_start_time	= SystemTime.getCurrentTime();
 	private long	last_alien_count;
