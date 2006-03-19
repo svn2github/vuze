@@ -298,12 +298,13 @@ AZInstanceManagerImpl
 			
 			map.put( "body", body );
 		}
-		
+				
 		try{
-			byte[]	data = BEncoder.encode( map );
 			
 			if ( member == null ){
 				
+				byte[]	data = BEncoder.encode( map );
+
 				mc_group.sendToGroup( data );
 				
 				if ( explicit_peers.size() > 0 ){
@@ -321,7 +322,11 @@ AZInstanceManagerImpl
 				}
 			}else{
 				
-				mc_group.sendToMember( member, data );
+				map.put( "explicit", new Long(1));
+				
+				byte[]	explicit_data = BEncoder.encode( map );
+
+				mc_group.sendToMember( member, explicit_data );
 			}
 		}catch( Throwable e ){
 			
