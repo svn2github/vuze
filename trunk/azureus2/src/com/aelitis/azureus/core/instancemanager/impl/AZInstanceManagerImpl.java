@@ -354,10 +354,7 @@ AZInstanceManagerImpl
 			
 			if ( map.get( "explicit" ) != null ){
 				
-				if ( addInstanceSupport( originator_address )){
-					
-					sendAlive( new InetSocketAddress( originator_address, MC_GROUP_PORT ));
-				}
+				addInstanceSupport( originator_address, false );
 			}
 			
 			AZOtherInstanceImpl	instance = AZOtherInstanceImpl.decode( originator_address, (Map)map.get( "orig" ));
@@ -858,14 +855,17 @@ AZInstanceManagerImpl
 	addInstance(
 		InetAddress			explicit_address )
 	{
-		return( addInstanceSupport( explicit_address ));
+		return( addInstanceSupport( explicit_address, true ));
 	}
 	
 	protected boolean
 	addInstanceSupport(
-		InetAddress			explicit_address )
+		InetAddress			explicit_address,
+		boolean				force_send_alive )
 	{
 		InetSocketAddress	sad = new InetSocketAddress( explicit_address, MC_GROUP_PORT );
+		
+		boolean	new_peer = false;
 		
 		if ( !explicit_peers.contains( sad )){
 			
@@ -883,12 +883,16 @@ AZInstanceManagerImpl
 				this_mon.exit();
 			}
 							
-			return( true );
+			new_peer = true;
 
-		}else{
-			
-			return( false );
 		}
+		
+		if ( force_send_alive || new_peer ){
+			
+			sendAlive( sad );
+		}
+		
+		return( new_peer );
 	}
 	
 	public boolean
