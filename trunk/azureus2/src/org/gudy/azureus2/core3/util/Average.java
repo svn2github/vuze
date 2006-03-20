@@ -96,7 +96,7 @@ public class Average {
 
     //For all values between lastUpdate + 1 (next value than last updated)
     //and timeFactor (which is the new value insertion position) 
-    for (long i = lastUpdate + 1; i < timeFactor; i++) {
+    for (long i = lastUpdate + 1; i <= timeFactor; i++) {
       //We set the value to 0.
       values[(int) (i % nbElements)] = 0;
     }
