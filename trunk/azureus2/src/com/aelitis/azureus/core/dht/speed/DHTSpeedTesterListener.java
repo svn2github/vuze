@@ -28,4 +28,9 @@ DHTSpeedTesterListener
 	public void
 	contactAdded(
 		DHTSpeedTesterContact	contact );
+	
+	public void
+	resultGroup(
+		DHTSpeedTesterContact[]	contacts,
+		int[]					round_trip_times );
 }

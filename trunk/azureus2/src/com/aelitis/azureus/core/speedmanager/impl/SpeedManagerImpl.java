@@ -56,8 +56,16 @@ SpeedManagerImpl
 	
 	private volatile CopyOnWriteList		ping_sources = new CopyOnWriteList();
 	
-	private Average ping_average = Average.getInstance( 1000, 10 );
+	private Average upload_average = Average.getInstance( 1000, 5 );
 
+	private static final int	PING_AVERAGE_HISTORY_COUNT	= 9;
+	private int[]	ping_average_history	= new int[PING_AVERAGE_HISTORY_COUNT];
+	private int		ping_average_history_count;
+	
+	private static final int	IDLE_UPLOAD_SPEED	= 5*1024;
+	private int		idle_ticks;
+	private int		max_upload_average;
+	
 	public
 	SpeedManagerImpl(
 		AzureusCore			_core,
@@ -82,7 +90,7 @@ SpeedManagerImpl
 		
 			// TODO: who persists this stuff like enabled?
 		
-		setEnabled( false );
+		setEnabled( true );
 		
 		speed_tester.addListener(
 				new DHTSpeedTesterListener()
@@ -97,8 +105,16 @@ SpeedManagerImpl
 							
 						}else{
 							
-							new pingSource( contact );
+						//	new pingSource( contact );
 						}
+					}
+					
+					public void
+					resultGroup(
+						DHTSpeedTesterContact[]	contacts,
+						int[]					round_trip_times )
+					{
+						calculate( contacts, round_trip_times );
 					}
 				});
 		
@@ -110,50 +126,89 @@ SpeedManagerImpl
 				perform(
 					TimerEvent	event )
 				{
-					if ( !enabled ){
-						
-						return;
-					}
-															
-					List	sources = ping_sources.getList();
-					
-					if ( sources.size() > 0 ){
-						
-						calculate( sources);
-					}
+					int	current_speed = adapter.getCurrentUploadSpeed();
+
+					upload_average.addValue( current_speed );
 				}
 			});
 	}
 	
 	protected void
 	calculate(
-		List	sources )
-	{
+		DHTSpeedTesterContact[]	contacts,
+		int[]					round_trip_times )
+	{	
+		String	str = "";
+		
+		int	ping_total		= 0;
+		int	ping_count		= 0;
+		
+		for (int i=0;i<contacts.length;i++){
+			
+			int	rtt =  round_trip_times[i];
+			
+			str += (i==0?"":",") + rtt;
+
+			if ( rtt != -1 ){
+			
+				ping_total += round_trip_times[i];
+				
+				ping_count++;
+			}
+		}
+		
+		if ( ping_count == 0 ){
+		
+				// all failed
+			
+			return;
+		}
+		
+		int	ping_average = ping_total/ping_count;
+				
+		ping_average_history[ping_average_history_count++ % PING_AVERAGE_HISTORY_COUNT ] = ping_average;
+		
+		int	lim = ping_average_history_count > PING_AVERAGE_HISTORY_COUNT?PING_AVERAGE_HISTORY_COUNT:ping_average_history_count;
+		
+		int	running_average = 0;
+		
+		for (int i=0;i<lim;i++){
+			
+			running_average += ping_average_history[i];
+		}
+		
+		running_average = running_average/lim;
+		
+		System.out.println( "resultGroup: " + str + ": average=" + ping_average +", running_average=" + running_average );
+
+		int	up_average = (int)upload_average.getAverage();
+		
+		if ( up_average <= IDLE_UPLOAD_SPEED ){
+			
+			idle_ticks++;
+			
+			if ( idle_ticks >= PING_AVERAGE_HISTORY_COUNT ){
+				
+				System.out.println( "New idle average: " + running_average );
+			}
+		}else{
+			
+			if ( up_average > max_upload_average ){
+				
+				max_upload_average	= up_average;
+				
+				System.out.println( "New max upload:" +  max_upload_average );
+			}
+			
+			idle_ticks	= 0;
+			
+		}
+		
 		int	current_speed = adapter.getCurrentUploadSpeed();
 		
 		int	speed_limit	= current_speed;
 
-			// calculate...
-
-		String	str  = "";
-		
-		Iterator	it = sources.iterator();
-		
-		int	ping_total = 0;
-		
-		while( it.hasNext()){
-			
-			pingSource	source = (pingSource)it.next();
-			
-			ping_total += source.getPing();
-			
-			str += (str.length()==0?"":",") + source.getPing() + "(" + source.getPingCount() + ")";
-		}
-		
-		ping_average.addValue( ping_total / sources.size());
-		
-		System.out.println( "sources: " + str + " -> " + ping_average.getAverage());
-		
+	
 		
 		if ( min_up > 0 && speed_limit < min_up ){
 			
@@ -223,6 +278,7 @@ SpeedManagerImpl
 		return( speed_tester );
 	}
 	
+	/*
 	protected class
 	pingSource
 	{
@@ -301,4 +357,5 @@ SpeedManagerImpl
 			return( ping_count );
 		}
 	}
+	*/
 }

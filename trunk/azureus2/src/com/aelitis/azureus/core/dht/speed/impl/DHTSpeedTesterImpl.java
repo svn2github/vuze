@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht.speed.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.UTTimer;
@@ -86,11 +87,19 @@ DHTSpeedTesterImpl
 				1000,
 				new UTTimerEventPerformer()
 				{
+					int	tick_count;
+					
 					public void 
 					perform(
 						UTTimerEvent event) 
 					{
-						pingContacts();	
+						try{
+							pingContacts( tick_count );
+							
+						}finally{
+							
+							tick_count++;
+						}
 					}
 				});
 	}
@@ -147,7 +156,8 @@ DHTSpeedTesterImpl
 	}
 	
 	protected void
-	pingContacts()
+	pingContacts(
+		int		tick_count )
 	{
 		List	copy = null;
 		
@@ -190,11 +200,13 @@ DHTSpeedTesterImpl
 		
 		Iterator	pit = active_pings.iterator();
 		
+		pingInstanceSet	ping_set = new pingInstanceSet( true );
+		
 		while( pit.hasNext()){
 			
 			activePing ping = (activePing)pit.next();
 			
-			if ( ping.update()){
+			if ( ping.update( ping_set, tick_count )){
 				
 				if ( !ping.isInformedAlive()){
 					
@@ -222,6 +234,8 @@ DHTSpeedTesterImpl
 				ping.informDead();
 			}
 		}
+		
+		ping_set.setFull();
 		
 			// we try and keep three active pings running so we can spot overall trends in ping time
 			// each active ping is selected from the best rtt from the current 3 best three rtt estimates
@@ -283,6 +297,25 @@ DHTSpeedTesterImpl
 		}
 	}
 	
+	protected void
+	informResults(
+		DHTSpeedTesterContact[]		contacts,
+		int[]						rtts )
+	{
+		Iterator	it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((DHTSpeedTesterListener)it.next()).resultGroup( contacts, rtts );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
 	public void
 	addListener(
 		DHTSpeedTesterListener	listener )
@@ -335,9 +368,7 @@ DHTSpeedTesterImpl
 		private boolean		running;
 		private boolean		dead;
 		private boolean		informed_alive;
-		
-		private int					tick_count;
-		
+				
 		private int					outstanding;
 		private int					best_ping		= Integer.MAX_VALUE;
 		private DHTTransportContact	best_pingee;
@@ -354,6 +385,8 @@ DHTSpeedTesterImpl
 		{
 			String	str  = "";
 			
+			pingInstanceSet	ping_set = new pingInstanceSet( false );
+			
 			synchronized( this ){
 				
 				for (int i=0;i<candidates.size();i++){
@@ -362,7 +395,7 @@ DHTSpeedTesterImpl
 				
 					str += (i==0?"":",") + pp.getContact().getString() + "/" + pp.getRTT();
 					
-					ping( pp.getContact());
+					ping( ping_set, pp.getContact());
 				}
 				
 				System.out.println( "activePing: " + str );
@@ -370,41 +403,40 @@ DHTSpeedTesterImpl
 		}
 		
 		protected boolean
-		update()
+		update(
+			pingInstanceSet		ping_set,
+			int					tick_count )
 		{
-			try{
-				synchronized( this ){
+			synchronized( this ){
+				
+				if ( dead || !running || outstanding > 0 ){
 					
-					if ( dead || !running || outstanding > 0 ){
-						
-						return( false );
-					}
-					
-					if ( best_pingee == null ){
-						
-						dead	= true;
-						
-						return( false );
-					}					
+					return( false );
 				}
 				
-				if ( tick_count % period == 0 ){
+				if ( best_pingee == null ){
 					
-					ping( best_pingee );
-				}
-				
-				return( true );
-				
-			}finally{
-				
-				tick_count++;
+					dead	= true;
+					
+					return( false );
+				}					
 			}
+			
+			if ( tick_count % period == 0 ){
+				
+				ping( ping_set, best_pingee );
+			}
+			
+			return( true );
 		}
 		
 		protected void
 		ping(
+			pingInstanceSet		ping_set,
 			DHTTransportContact	contact )
 		{
+			final pingInstance	pi = new pingInstance( ping_set );
+			
 			outstanding++;
 
 			try{
@@ -415,43 +447,48 @@ DHTSpeedTesterImpl
 						pingReply(
 							DHTTransportContact contact )
 						{
-							synchronized( activePing.this ){
-															
-								outstanding--;
-								
-								if ( !running ){
-								
-									int	rtt = getElapsed();
-									
-									if ( rtt < best_ping ){
-										
-										best_pingee = contact;
-										best_ping	= rtt;
-									}
-								
-									if ( outstanding == 0 ){
-										
-										running = true;
-									}
-								}else{
-									
-									total_ok++;
-									
-									consec_fails	= 0;
-								}
-							}
+							int	rtt = getElapsed();
 							
-							Iterator	it = listeners.iterator();
-							
-							while( it.hasNext()){
-								
-								try{
-									((DHTSpeedTesterContactListener)it.next()).ping( activePing.this, getElapsed());
+							try{
+								synchronized( activePing.this ){
+																
+									outstanding--;
 									
-								}catch( Throwable e ){
+									if ( !running ){									
+										
+										if ( rtt < best_ping ){
+											
+											best_pingee = contact;
+											best_ping	= rtt;
+										}
 									
-									Debug.printStackTrace(e);
+										if ( outstanding == 0 ){
+											
+											running = true;
+										}
+									}else{
+										
+										total_ok++;
+										
+										consec_fails	= 0;
+									}
 								}
+								
+								Iterator	it = listeners.iterator();
+								
+								while( it.hasNext()){
+									
+									try{
+										((DHTSpeedTesterContactListener)it.next()).ping( activePing.this, getElapsed());
+										
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
+									}
+								}
+							}finally{
+								
+								pi.setResult( activePing.this, rtt );
 							}
 							// System.out.println( "    " + contact.getString() + ": " + getElapsed() + ", " + contact.getVivaldiPosition().estimateRTT( dht.getTransport().getLocalContact().getVivaldiPosition().getCoordinates()));					
 						}
@@ -461,61 +498,69 @@ DHTSpeedTesterImpl
 							DHTTransportContact 	contact,
 							Throwable				error )
 						{
-							synchronized( activePing.this ){
-								
-								outstanding--;
-								
-								if ( !running ){
-	
-									if ( outstanding == 0 ){
-										
-										running = true;
-									}
-								}else{
+							try{
+								synchronized( activePing.this ){
 									
-									consec_fails++;
-									total_fails++;
+									outstanding--;
 									
-									if ( consec_fails == 3 ){
+									if ( !running ){
+		
+										if ( outstanding == 0 ){
+											
+											running = true;
+										}
+									}else{
 										
-										dead	= true;
+										consec_fails++;
+										total_fails++;
 										
-									}else if ( 	total_ok > 10 && total_fails > 0 && 
-												total_ok / total_fails < 1 ){
-										
-											// failing too often
-										
-										dead	= true;
-										
-									}else if ( total_ok > 100 ){
-										
-										total_ok	= 0;
-										total_fails	= 0;
-									}
-								}
-							}
-							
-							if ( !dead ){
-								Iterator	it = listeners.iterator();
-								
-								while( it.hasNext()){
-									
-									try{
-										((DHTSpeedTesterContactListener)it.next()).pingFailed( activePing.this );
-										
-									}catch( Throwable e ){
-										
-										Debug.printStackTrace(e);
+										if ( consec_fails == 3 ){
+											
+											dead	= true;
+											
+										}else if ( 	total_ok > 10 && total_fails > 0 && 
+													total_ok / total_fails < 1 ){
+											
+												// failing too often
+											
+											dead	= true;
+											
+										}else if ( total_ok > 100 ){
+											
+											total_ok	= 0;
+											total_fails	= 0;
+										}
 									}
 								}
+								
+								if ( !dead ){
+									
+									Iterator	it = listeners.iterator();
+									
+									while( it.hasNext()){
+										
+										try{
+											((DHTSpeedTesterContactListener)it.next()).pingFailed( activePing.this );
+											
+										}catch( Throwable e ){
+											
+											Debug.printStackTrace(e);
+										}
+									}
+								}
+								// System.out.println( "    " + contact.getString() + ": failed" );
+							}finally{
+								
+								pi.setResult( activePing.this, -1 );
 							}
-							// System.out.println( "    " + contact.getString() + ": failed" );
 						}
 					},
 				PING_TIMEOUT );
 				
 			}catch( Throwable e ){
 			
+				pi.setResult( this, -1 );
+				
 				dead	= true;
 				
 				outstanding--;
@@ -599,6 +644,122 @@ DHTSpeedTesterImpl
 			DHTSpeedTesterContactListener	listener )
 		{
 			listeners.remove( listener );
+		}
+	}
+	
+	protected class
+	pingInstance
+	{
+		private activePing			contact;
+		private pingInstanceSet		set;
+		private int					result;
+		
+		protected
+		pingInstance(
+			pingInstanceSet		_set )
+		{
+			set	= _set;
+			
+			set.add( this );
+		}
+		
+		protected activePing
+		getContact()
+		{
+			return( contact );
+		}
+		
+		protected int
+		getResult()
+		{
+			return( result );
+		}
+		
+		protected void
+		setResult(
+			activePing	_contact,
+			int			_result )
+		{
+			contact	= _contact;
+			result	= _result;
+			
+			set.complete( this );
+		}
+	}
+	
+	protected class
+	pingInstanceSet
+	{
+		private boolean		active;
+		private int			instances;
+		private boolean		full;
+		
+		List	results = new ArrayList();
+		
+		protected 
+		pingInstanceSet(
+			boolean	_active )
+		{
+			active	= _active;
+		}
+		
+		protected void
+		add(
+			pingInstance	instance )
+		{
+			synchronized( this ){
+				
+				instances++;
+			}
+		}
+		
+		protected void
+		setFull()
+		{
+			synchronized( this ){
+
+				full	= true;
+				
+				if ( results.size() == instances ){
+					
+					sendResult();
+				}
+			}
+		}
+		
+		protected void
+		complete(
+			pingInstance	instance )
+		{
+			synchronized( this ){
+							
+				results.add( instance );
+				
+				if ( results.size() == instances && full ){
+					
+					sendResult();
+				}
+			}
+		}
+		
+		protected void
+		sendResult()
+		{
+			if ( active && results.size() > 0 ){
+				
+				DHTSpeedTesterContact[]	contacts 	= new DHTSpeedTesterContact[results.size()];
+				int[]					rtts		= new int[contacts.length];
+				
+				for (int i=0;i<contacts.length;i++){
+					
+					pingInstance	pi = (pingInstance)results.get(i);
+					
+					contacts[i] = pi.getContact();
+					rtts[i]		= pi.getResult();
+				}
+				
+				DHTSpeedTesterImpl.this.informResults( contacts, rtts );
+			}
 		}
 	}
 }
