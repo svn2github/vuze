@@ -199,15 +199,17 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     Rectangle clipping = new Rectangle(bounds.x, bounds.y, 
                                        bounds.width, 
                                        bounds.height);
-    if (clipping.y < table.getHeaderHeight()) {
-      clipping.height -= table.getHeaderHeight() - clipping.y;
-      clipping.y = table.getHeaderHeight();
+    int iMinY = table.getHeaderHeight() + tableBounds.y;
+    if (clipping.y < iMinY) {
+      clipping.height -= iMinY - clipping.y;
+      clipping.y = iMinY;
     }
-    if (clipping.y + clipping.height > tableBounds.height)
-      clipping.height = tableBounds.height - clipping.y + 1;
+    int iMaxY = tableBounds.height + tableBounds.y;
+    if (clipping.y + clipping.height > iMaxY)
+      clipping.height = iMaxY - clipping.y + 1;
 
     //debugOut("doPaint() clipping="+clipping, false);
-    if (clipping.width <= 0 && clipping.height <= 0) {
+    if (clipping.width <= 0 || clipping.height <= 0) {
       return;
     }
 
@@ -236,19 +238,24 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
       }
     }
 
-    Rectangle originalClipping = gc.getClipping();
-    clipping = clipping.intersection(originalClipping);
-    gc.setClipping(clipping);
-    gc.drawImage(image, bounds.x, bounds.y);
-//    System.out
-//				.println("doPnt#" + row.getIndex() + ":" + gc + ";"
-//						+ (ourGC ? "" : "!") + "ourGC;clp:" + gc.getClipping()
-//						+ ";bnds:" + bounds + ";imgBnds=" + imageBounds + ";ca="
-//						+ table.getClientArea() + ";" + originalClipping);
+    // Instead of using gc.setClipping, we calculate the source and dest bounds
+    // There are too many bugs in the SWT clipping code, and they differ from
+    // platform to platform, version to version
+    int width = Math.min(clipping.width, imageBounds.width);
+    int height = Math.min(clipping.height, imageBounds.height);
+    
+    try {
+	    gc.drawImage(image, clipping.x - bounds.x, clipping.y - bounds.y, width,
+					height, clipping.x, clipping.y, width, height);
+    } catch (Throwable t) {
+      System.err.println("doPnt#" + row.getIndex() + ":" + gc + ";"
+      		+ (ourGC ? "" : "!") + "ourGC;clp:" + gc.getClipping() + ";bnds:"
+      		+ bounds + ";imgBnds=" + imageBounds + ";ca=" + table.getClientArea()
+      		+ ";clp=" + clipping);
+    }
+
     if (ourGC) {
       gc.dispose();
-    } else {
-      gc.setClipping(originalClipping);
     }
   }
 
