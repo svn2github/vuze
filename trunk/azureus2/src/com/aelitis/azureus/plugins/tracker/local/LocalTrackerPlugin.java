@@ -193,6 +193,16 @@ LocalTrackerPlugin
 		
 		log.log( "Found: " + instance.getString());
 		
+		try{
+			mon.enter();
+			
+			track_times.put( instance.getID(), new HashMap());
+			
+		}finally{
+			
+			mon.exit();
+		}
+		
 		checkActivation();
 	}
 	
@@ -287,7 +297,7 @@ LocalTrackerPlugin
 			}catch( Throwable e ){
 			}
 		}
-		
+				
 		while( true ){
 	
 			now = plugin_interface.getUtilities().getCurrentSystemTime();
@@ -324,7 +334,7 @@ LocalTrackerPlugin
 					track((Download)todo.get(i));
 				}
 				
-				Thread.sleep(60*1000);
+				Thread.sleep(30*1000);
 				
 			}catch( Throwable e ){
 				
@@ -396,6 +406,31 @@ LocalTrackerPlugin
 	}
 	
 	protected void
+	forceTrack(
+		Download	download )
+	{
+		try{
+			mon.enter();
+
+			downloads.put( download, new Long(0));
+			
+			String	dl_key = plugin_interface.getUtilities().getFormatters().encodeBytesToString(download.getTorrent().getHash());
+
+			Iterator	it = track_times.values().iterator();
+			
+			while( it.hasNext()){
+				
+				((Map)it.next()).remove( dl_key );
+			}
+		}finally{
+			
+			mon.exit();
+		}
+		
+		track( download );
+	}
+	
+	protected void
 	handleTrackResult(
 		AZInstanceTracked		tracked_inst )
 	{
@@ -431,7 +466,7 @@ LocalTrackerPlugin
 				
 				long	lt = last_track.longValue();
 				
-				if ( now - lt < 60*1000 ){
+				if ( now - lt < 30*1000 ){
 					
 					skip	= true;
 				}
@@ -511,6 +546,8 @@ LocalTrackerPlugin
 				return;
 			}
 			
+			log.log( "Tracking " + download.getName());
+
 			downloads.put( download, new Long(0));
 			
 			download.addListener( this );
@@ -547,7 +584,7 @@ LocalTrackerPlugin
 		if ( 	new_state == Download.ST_DOWNLOADING ||
 				new_state == Download.ST_SEEDING ){
 			
-			track( download );
+			forceTrack( download );
 		}
 	}
 	
