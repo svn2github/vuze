@@ -173,9 +173,16 @@ AzureusCoreImpl
 						public int
 						getCurrentUploadSpeed()
 						{
-							GlobalManagerStats stats = global_manager.getStats();
-							
-							return( stats.getDataSendRate() + stats.getProtocolSendRate());
+							if ( global_manager != null ){
+								
+								GlobalManagerStats stats = global_manager.getStats();
+								
+								return( stats.getDataSendRate() + stats.getProtocolSendRate());
+								
+							}else{
+								
+								return(0);
+							}
 						}
 						
 						public void
