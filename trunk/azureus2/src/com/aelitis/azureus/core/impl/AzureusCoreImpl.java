@@ -25,8 +25,12 @@ package com.aelitis.azureus.core.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerFactory;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
@@ -189,7 +193,10 @@ AzureusCoreImpl
 						setCurrentUploadLimit(
 							int		bytes_per_second )
 						{
+							String key = TransferSpeedValidator.getActiveUploadParameter( global_manager );
+							
 							// System.out.println( "recommended upload rate: " + bytes_per_second );
+							// COConfigurationManager.setParameter( key, bytes_per_second );
 						}
 					});
 	}
@@ -277,8 +284,42 @@ AzureusCoreImpl
 									DHT 	dht = (DHT)ev.getValue();
 									
 									speed_manager.setSpeedTester( dht.getSpeedTester());
+									
+									global_manager.addListener(
+											new GlobalManagerAdapter()
+											{
+												public void 
+												seedingStatusChanged( 
+													boolean seeding_only_mode )
+												{
+													checkConfig();
+												}
+											});
+									
+									COConfigurationManager.addAndFireParameterListeners(
+										new String[]{	TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY,
+														TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY,
+														TransferSpeedValidator.UPLOAD_SEEDING_ENABLED_CONFIGKEY },
+										new ParameterListener()
+										{
+											public void 
+											parameterChanged(
+												String parameterName )
+											{
+												checkConfig();
+											}
+										});
+										
 								}
 							}
+						}
+						
+						protected void
+						checkConfig()
+						{
+							String	key = TransferSpeedValidator.getActiveAutoUploadParameter( global_manager );
+							
+							speed_manager.setEnabled( COConfigurationManager.getBooleanParameter( key ));
 						}
 						
 					});

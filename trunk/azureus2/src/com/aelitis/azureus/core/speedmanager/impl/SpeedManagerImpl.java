@@ -44,7 +44,6 @@ SpeedManagerImpl
 	implements SpeedManager
 {
 	private static final int CONTACT_NUMBER	= 3;
-	private static final int PING_SECS		= 5;
 	
 	private AzureusCore			core;
 	private DHTSpeedTester		speed_tester;
@@ -53,9 +52,7 @@ SpeedManagerImpl
 	private int					min_up;
 	private int					max_up;
 	private boolean				enabled;
-	
-	private volatile CopyOnWriteList		ping_sources = new CopyOnWriteList();
-	
+		
 	private Average upload_average = Average.getInstance( 1000, 5 );
 
 	private static final int	PING_AVERAGE_HISTORY_COUNT	= 9;
@@ -86,11 +83,9 @@ SpeedManagerImpl
 			return;
 		}
 		
-		speed_tester	= _tester;
+		speed_tester	= _tester; 
 		
-			// TODO: who persists this stuff like enabled?
-		
-		setEnabled( true );
+		setEnabled( enabled );
 		
 		speed_tester.addListener(
 				new DHTSpeedTesterListener()
@@ -104,8 +99,31 @@ SpeedManagerImpl
 							contact.destroy();
 							
 						}else{
+							System.out.println( "activePing: " + contact.getContact().getString());
 							
-						//	new pingSource( contact );
+							contact.addListener(
+								new DHTSpeedTesterContactListener()
+								{
+									public void
+									ping(
+										DHTSpeedTesterContact	contact,
+										int						round_trip_time )
+									{
+									}
+									
+									public void
+									pingFailed(
+										DHTSpeedTesterContact	contact )
+									{
+									}
+									
+									public void
+									contactDied(
+										DHTSpeedTesterContact	contact )
+									{
+										System.out.println( "deadPing: " + contact.getContact().getString());
+									}
+								});
 						}
 					}
 					
@@ -138,6 +156,16 @@ SpeedManagerImpl
 		DHTSpeedTesterContact[]	contacts,
 		int[]					round_trip_times )
 	{	
+		if ( !enabled ){
+			
+			for (int i=0;i<contacts.length;i++){
+				
+				contacts[i].destroy();
+			}
+			
+			return;
+		}
+		
 		String	str = "";
 		
 		int	ping_total		= 0;
@@ -219,13 +247,16 @@ SpeedManagerImpl
 			speed_limit = max_up;
 		}
 		
-		adapter.setCurrentUploadLimit( speed_limit );
+		if ( enabled ){
+			
+			adapter.setCurrentUploadLimit( speed_limit );
+		}
 	}
 	
 	public boolean
 	isAvailable()
 	{
-		return( ping_sources.getList().size() > 0 );
+		return( speed_tester != null );
 	}
 	
 	public void
@@ -277,85 +308,4 @@ SpeedManagerImpl
 	{
 		return( speed_tester );
 	}
-	
-	/*
-	protected class
-	pingSource
-	{
-		private static final int PING_HISTORY	= 3;
-		
-		private DHTSpeedTesterContact		contact;
-		
-		private volatile int		ping_count;
-		private volatile int		ping;
-		
-		protected
-		pingSource(
-			DHTSpeedTesterContact	_contact )
-		{
-			contact	= _contact;
-			
-			System.out.println( "Speed: contact added - " + contact.getContact().getString());
-			
-			contact.setPingPeriod( PING_SECS );
-			
-			contact.addListener(
-				new DHTSpeedTesterContactListener()
-				{
-					int[]	pings		= new int[PING_HISTORY];
-					
-					public void
-					ping(
-						DHTSpeedTesterContact	contact,	
-						int						round_trip_time )
-					{
-						// System.out.println( "    ping: " + round_trip_time );
-						
-						pings[ping_count++%PING_HISTORY] = round_trip_time;
-						
-						int	lim = ping_count > PING_HISTORY?PING_HISTORY:ping_count;
-						
-						int	res = 0;
-						
-						for (int i=0;i<lim;i++){
-							
-							res += pings[i];
-						}
-						
-						ping = res/lim;
-					}
-					
-					public void
-					pingFailed(
-						DHTSpeedTesterContact	contact )
-					{
-					
-					}
-					
-					public void
-					contactDied(
-						DHTSpeedTesterContact	contact )
-					{
-						System.out.println( "Speed: contact died - " + contact.getContact().getString());
-						
-						ping_sources.remove( pingSource.this );
-					}
-				});
-	
-			ping_sources.add( this );
-		}
-		
-		protected int
-		getPing()
-		{
-			return( ping );
-		}
-		
-		protected int
-		getPingCount()
-		{
-			return( ping_count );
-		}
-	}
-	*/
 }

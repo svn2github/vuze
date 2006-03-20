@@ -269,7 +269,8 @@ public class SystemTraySWT {
 	        });
 	        
 	        if(auto)auto_item.setSelection(true);
-	        
+	        auto_item.setEnabled(TransferSpeedValidator.isAutoUploadAvailable(mainWindow.getAzureusCore()));
+
 	        new MenuItem(parent,SWT.SEPARATOR);
         }
         

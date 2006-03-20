@@ -631,9 +631,9 @@ MainWindow
         }
         
         final String	auto_param = TransferSpeedValidator.getActiveAutoUploadParameter(globalManager);
-        
-        boolean	auto = COConfigurationManager.getBooleanParameter( auto_param );
-        
+               
+        boolean	auto = COConfigurationManager.getBooleanParameter( auto_param ); 
+
         	// auto
         final MenuItem auto_item = new MenuItem(menuUpSpeed,SWT.CHECK);
         auto_item.setText(MessageText.getString("ConfigView.auto"));
@@ -645,6 +645,7 @@ MainWindow
         });
         
         if(auto)auto_item.setSelection(true);
+        auto_item.setEnabled(TransferSpeedValidator.isAutoUploadAvailable(azureus_core));
         
         new MenuItem(menuUpSpeed,SWT.SEPARATOR);
 

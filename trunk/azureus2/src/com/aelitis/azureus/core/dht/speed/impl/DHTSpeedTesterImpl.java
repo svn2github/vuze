@@ -397,8 +397,6 @@ DHTSpeedTesterImpl
 					
 					ping( ping_set, pp.getContact());
 				}
-				
-				System.out.println( "activePing: " + str );
 			}
 		}
 		

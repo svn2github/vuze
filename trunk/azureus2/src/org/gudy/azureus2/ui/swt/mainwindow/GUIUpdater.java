@@ -360,7 +360,8 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 
 					    boolean	auto_up = 
 					    	COConfigurationManager.getBooleanParameter( 
-					    			TransferSpeedValidator.getActiveAutoUploadParameter( mainWindow.globalManager ));
+					    			TransferSpeedValidator.getActiveAutoUploadParameter( mainWindow.globalManager ))&&
+					    	TransferSpeedValidator.isAutoUploadAvailable(azureus_core);
 						 
 				
 						int ul_limit_norm = NetworkManager.getMaxUploadRateBPSNormal() / 1024;

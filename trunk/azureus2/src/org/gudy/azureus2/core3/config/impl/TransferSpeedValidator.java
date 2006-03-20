@@ -25,6 +25,8 @@ package org.gudy.azureus2.core3.config.impl;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 
+import com.aelitis.azureus.core.AzureusCore;
+
 /**
  * Provides validation for transfer speed settings
  * @version 1.0
@@ -40,6 +42,8 @@ public final class TransferSpeedValidator
     public static final String UPLOAD_SEEDING_CONFIGKEY =  "Max Upload Speed Seeding KBs";
     public static final String DOWNLOAD_CONFIGKEY 		=  "Max Download Speed KBs";
 
+    public static final String UPLOAD_SEEDING_ENABLED_CONFIGKEY =  "enable.seedingonly.upload.rate";
+    
     private final String configKey;
     private final Object configValue;
 
@@ -48,7 +52,7 @@ public final class TransferSpeedValidator
     static{
     	    		
     	COConfigurationManager.addAndFireParameterListener(
-    			"enable.seedingonly.upload.rate",
+    			UPLOAD_SEEDING_ENABLED_CONFIGKEY,
     			new ParameterListener()
         		{
         			public void 
@@ -155,11 +159,18 @@ public final class TransferSpeedValidator
       	}
     }
     
+    public static boolean
+    isAutoUploadAvailable(
+    	AzureusCore	core )
+    {
+    	return( core.getSpeedManager().isAvailable());
+    }
+    
     public static String
     getActiveAutoUploadParameter(
     	GlobalManager	gm )
     {
-       if ( gm.isSeedingOnly()){
+       if ( seeding_upload_enabled && gm.isSeedingOnly()){
         	
         	return( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY );
         	
