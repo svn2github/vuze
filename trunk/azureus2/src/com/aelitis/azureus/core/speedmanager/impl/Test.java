@@ -135,12 +135,14 @@ Test
 			
 			sm.setSpeedTester( dht.getSpeedTester());
 			
+			sm.setEnabled( true );
+			
 			new AEThread( "init", true )
 			{
 				public void
 				runSupport()
 				{
-					upload();
+					//upload();
 				}
 			}.start();
 		

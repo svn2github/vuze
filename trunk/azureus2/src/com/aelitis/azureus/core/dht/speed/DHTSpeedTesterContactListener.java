@@ -31,6 +31,10 @@ DHTSpeedTesterContactListener
 		int						round_trip_time );
 	
 	public void
+	pingFailed(
+		DHTSpeedTesterContact	contact );
+	
+	public void
 	contactDied(
 		DHTSpeedTesterContact	contact );
 }

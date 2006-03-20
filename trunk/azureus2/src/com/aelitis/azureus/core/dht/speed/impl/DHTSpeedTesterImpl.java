@@ -495,6 +495,20 @@ DHTSpeedTesterImpl
 								}
 							}
 							
+							if ( !dead ){
+								Iterator	it = listeners.iterator();
+								
+								while( it.hasNext()){
+									
+									try{
+										((DHTSpeedTesterContactListener)it.next()).pingFailed( activePing.this );
+										
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
+									}
+								}
+							}
 							// System.out.println( "    " + contact.getString() + ": failed" );
 						}
 					},

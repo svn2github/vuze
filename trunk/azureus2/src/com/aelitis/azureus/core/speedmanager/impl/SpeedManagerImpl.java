@@ -270,6 +270,13 @@ SpeedManagerImpl
 					}
 					
 					public void
+					pingFailed(
+						DHTSpeedTesterContact	contact )
+					{
+					
+					}
+					
+					public void
 					contactDied(
 						DHTSpeedTesterContact	contact )
 					{
