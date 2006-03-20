@@ -264,7 +264,7 @@ public class JCEIESCipher //extends WrapCipherSpi
         throw new IllegalArgumentException("can't handle null parameter spec in IES");
     }
 
-    protected byte[] engineUpdate(
+    public byte[] engineUpdate(
         byte[]  input,
         int     inputOffset,
         int     inputLen) 
@@ -273,7 +273,7 @@ public class JCEIESCipher //extends WrapCipherSpi
         return null;
     }
 
-    protected int engineUpdate(
+    public int engineUpdate(
         byte[]  input,
         int     inputOffset,
         int     inputLen,
@@ -309,7 +309,7 @@ public class JCEIESCipher //extends WrapCipherSpi
         }
     }
 
-    protected int engineDoFinal(
+    public int engineDoFinal(
         byte[]  input,
         int     inputOffset,
         int     inputLen,
