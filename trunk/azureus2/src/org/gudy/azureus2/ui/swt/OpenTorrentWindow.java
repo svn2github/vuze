@@ -73,6 +73,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	/** Don't allow disabling of downloading for files smaller than this */
 	private final static int MIN_NODOWNLOAD_SIZE = 1024 * 1024;
 
+	private final static int MIN_BUTTON_HEIGHT = Constants.isLinux ? -1 : 24;
+
 	private final static String PARAM_DEFSAVEPATH = "Default save path";
 
 	private final static int STARTMODE_QUEUED = 0;
@@ -246,7 +248,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		shell.setText(MessageText.getString("OpenTorrentWindow.title"));
 		Utils.setShellIcon(shell);
 
-		GridLayout layout = new GridLayout();
+		GridLayout layout = FixupLayout(new GridLayout(), false);
 		shell.setLayout(layout);
 		shell.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
@@ -270,8 +272,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		// ========
 
 		Composite cButtons = new Composite(shell, SWT.NONE);
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		cButtons.setLayoutData(gridData);
 		RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
 		rLayout.marginBottom = 0;
 		rLayout.marginLeft = 0;
@@ -298,6 +298,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				}
 			}
 		});
+
+		Utils.setGridData(cButtons, GridData.FILL_HORIZONTAL, browseTorrent,
+				MIN_BUTTON_HEIGHT);
 
 		Button browseURL = new Button(cButtons, SWT.PUSH);
 		Messages.setLanguageText(browseURL, "OpenTorrentWindow.addFiles.URL");
@@ -342,7 +345,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		Group gTorrentsArea = new Group(shell, SWT.NONE);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gTorrentsArea.setLayoutData(gridData);
-		layout = new GridLayout();
+		layout = FixupLayout(new GridLayout(), true);
 		gTorrentsArea.setLayout(layout);
 		Messages
 				.setLanguageText(gTorrentsArea, "OpenTorrentWindow.torrentLocation");
@@ -356,14 +359,15 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		Composite cTorrentOptions = new Composite(gTorrentsArea, SWT.NONE);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		cTorrentOptions.setLayoutData(gridData);
-		layout = new GridLayout();
+		layout = FixupLayout(new GridLayout(), true);
 		layout.marginHeight = 0;
+		layout.marginWidth = 0;
 		cTorrentOptions.setLayout(layout);
 
-		CLabel clabel = new CLabel(cTorrentOptions, SWT.SHADOW_OUT);
+		label = new Label(cTorrentOptions, SWT.NONE);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		clabel.setLayoutData(gridData);
-		Messages.setLanguageText(clabel, "OpenTorrentWindow.torrent.options");
+		label.setLayoutData(gridData);
+		Messages.setLanguageText(label, "OpenTorrentWindow.torrent.options");
 
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
 		if (userMode > 0) {
@@ -411,12 +415,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		// =========
 
 		cSaveTo = new Composite(cTorrentOptions, SWT.NONE);
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		cSaveTo.setLayoutData(gridData);
-		layout = new GridLayout();
-		layout.marginHeight = 1;
+		layout = FixupLayout(new GridLayout(), false);
+		layout.marginHeight = 0;
 		layout.marginWidth = 0;
-		layout.verticalSpacing = 2;
+		layout.verticalSpacing = 0;
 		layout.numColumns = 2;
 		cSaveTo.setLayout(layout);
 
@@ -454,7 +456,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		while (iter.hasNext()) {
 			cmbDataDir.add(iter.next());
 		}
-
+		
 		Button browseData = new Button(cSaveTo, SWT.PUSH);
 		Messages.setLanguageText(browseData, "ConfigView.button.browse");
 
@@ -483,13 +485,19 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			}
 		});
 
+
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		if (Constants.isOSX)
+			gridData.heightHint = cSaveTo.computeSize(SWT.DEFAULT, SWT.DEFAULT).y - 9;
+		cSaveTo.setLayoutData(gridData);
+
 		// File List
 		// =========
 
 		Group gFilesArea = new Group(shell, SWT.NONE);
 		gridData = new GridData(GridData.FILL_BOTH);
 		gFilesArea.setLayoutData(gridData);
-		layout = new GridLayout();
+		layout = FixupLayout(new GridLayout(), true);
 		gFilesArea.setLayout(layout);
 		Messages.setLanguageText(gFilesArea, "OpenTorrentWindow.fileList");
 
@@ -499,10 +507,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 		cArea = new Composite(shell, SWT.NULL);
 		layout = new GridLayout();
+		layout.marginHeight = 0;
 		layout.numColumns = 2;
 		cArea.setLayout(layout);
-		gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-		cArea.setLayoutData(gridData);
 
 		ok = new Button(cArea, SWT.PUSH);
 		Messages.setLanguageText(ok, "Button.ok");
@@ -591,6 +598,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			}
 		});
 
+		Utils.setGridData(cArea, GridData.HORIZONTAL_ALIGN_END, ok,
+				MIN_BUTTON_HEIGHT);
+
 		shell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				if (!bClosed)
@@ -635,10 +645,28 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		shell.pack();
 
 		if (!Utils.linkShellMetricsToConfig(shell, "OpenTorrentWindow")) {
-			if (!Constants.isOSX)
-				Utils.centreWindow(shell);
+			Utils.centreWindow(shell);
 		}
+		resizeTables(3);
 		shell.open();
+	}
+
+	/**
+	 * @param layout
+	 * @return
+	 */
+	private GridLayout FixupLayout(GridLayout layout, boolean bFixMargin) {
+		if (Constants.isOSX) {
+			layout.horizontalSpacing = 0;
+			layout.verticalSpacing = 0;
+			
+			if (bFixMargin) {
+				layout.marginHeight = 0;
+				layout.marginWidth = 0;
+			}
+		}
+
+		return layout;
 	}
 
 	private void updateStartModeCombo() {
@@ -994,14 +1022,15 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		tableTorrents.setMenu(menu);
 
 		Composite cTorrentListRight = new Composite(cArea, SWT.NONE);
-		gridData = new GridData(GridData.FILL_VERTICAL);
+		gridData = new GridData();
 		cTorrentListRight.setLayoutData(gridData);
 		RowLayout rLayout = new RowLayout(SWT.VERTICAL);
 		rLayout.marginBottom = 0;
 		rLayout.marginLeft = 0;
 		rLayout.marginRight = 0;
 		rLayout.marginTop = 0;
-		rLayout.spacing = 5;
+		if (!Constants.isOSX)
+			rLayout.spacing = 0;
 		rLayout.fill = true;
 		cTorrentListRight.setLayout(rLayout);
 
@@ -1122,7 +1151,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		dataFileTable = new Table(cArea, SWT.BORDER | SWT.CHECK
 				| SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.MULTI);
 		gridData = new GridData(GridData.FILL_BOTH);
-		gridData.heightHint = (Constants.isOSX) ? 150 : 100;
+		gridData.heightHint = 80;
 		gridData.widthHint = 100;
 		dataFileTable.setLayoutData(gridData);
 
@@ -1218,7 +1247,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 							String parentPath = f.getParent();
 							if (parentPath == null)
 								break;
-							
+
 							sFilterPath = parentPath;
 							f = new File(sFilterPath);
 							if (f.isDirectory())
@@ -1256,8 +1285,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		});
 
 		Composite cButtons = new Composite(cArea, SWT.NONE);
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		cButtons.setLayoutData(gridData);
 		RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
 		rLayout.marginBottom = 0;
 		rLayout.marginLeft = 0;
@@ -1272,6 +1299,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				dataFileTable.selectAll();
 			}
 		});
+
+		Utils.setGridData(cButtons, GridData.FILL_HORIZONTAL, btnSelectAll,
+				MIN_BUTTON_HEIGHT);
 
 		Button btnMarkSelected = new Button(cButtons, SWT.PUSH);
 		Messages.setLanguageText(btnMarkSelected, "Button.markSelected");
@@ -1340,7 +1370,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 			if (line == "") {
 				ok = false;
-			} else if (isURL(line)) {
+			} else if (UrlUtils.isURL(line)) {
 				ok = true;
 			} else {
 				File file = new File(line);
@@ -1412,7 +1442,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				continue;
 
 			// Process URL
-			if (isURL(sTorrentFilenames[i])) {
+			if (UrlUtils.isURL(sTorrentFilenames[i])) {
 				if (COConfigurationManager.getBooleanParameter("Add URL Silently"))
 					new FileDownloadWindow(MainWindow.getWindow().getAzureusCore(),
 							shellForChildren, sTorrentFilenames[i], null, this);
@@ -1458,7 +1488,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		// actually made a copy.
 		try {
 			File fOriginal = new File(sFileName);
-			
+
 			if (!fOriginal.isFile() || !fOriginal.exists()) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
@@ -1474,7 +1504,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				});
 				return null;
 			}
-			
+
 			torrentFile = TorrentUtils.copyTorrentFileToSaveDir(fOriginal, true);
 			bDeleteFileOnCancel = !fOriginal.equals(torrentFile);
 			// TODO if the files are still equal, and it isn't in the save
@@ -1538,13 +1568,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		}
 
 		return info;
-	}
-
-	private boolean isURL(String sURL) {
-		String sLower = sURL.toLowerCase();
-		return sLower.startsWith("http://") || sLower.startsWith("https://")
-				|| sLower.startsWith("magnet:") || sLower.startsWith("ftp://")
-				|| sLower.matches("^[a-fA-F0-9]{40}$");
 	}
 
 	private void updateOKButton() {
@@ -1992,5 +2015,17 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		}
 
 		return (sDefDir == "") ? null : sDefDir;
+	}
+	
+	public static void main(String[] args) {
+		Display display = Display.getDefault();
+
+		ImageRepository.loadImages(display);
+		
+		OpenTorrentWindow window = new OpenTorrentWindow(null, null, true);
+		while (!window.bClosed) {
+			if (!display.readAndDispatch())
+				display.sleep();
+		}
 	}
 }
