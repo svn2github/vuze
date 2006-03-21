@@ -121,6 +121,7 @@ public class SplashWindow implements AzureusCoreListener {
    * STProgressListener implementation
    */
   
+  // AzureusCoreListener
   public void reportCurrentTask(final String task) {
     //Ensure that display is set and not disposed
     if(display == null || display.isDisposed())
@@ -137,6 +138,7 @@ public class SplashWindow implements AzureusCoreListener {
     });
   }
   
+  // AzureusCoreListener
   public void reportPercent(final int percent) {
     //Ensure that display is set and not disposed
     if(display == null || display.isDisposed())
