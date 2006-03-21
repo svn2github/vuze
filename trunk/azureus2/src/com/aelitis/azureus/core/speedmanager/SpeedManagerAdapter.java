@@ -28,6 +28,9 @@ SpeedManagerAdapter
 	public int
 	getCurrentUploadSpeed();
 	
+	public int
+	getCurrentUploadLimit();
+	
 	public void
 	setCurrentUploadLimit(
 		int		bytes_per_second );

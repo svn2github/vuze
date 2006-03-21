@@ -37,12 +37,14 @@ import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContactListener;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterListener;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
-import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 
 public class 
 SpeedManagerImpl 
 	implements SpeedManager
 {
+	private static final int UNLIMITED	= Integer.MAX_VALUE;
+	
 	private static final int CONTACT_NUMBER	= 3;
 	
 	private AzureusCore			core;
@@ -59,8 +61,11 @@ SpeedManagerImpl
 	private int[]	ping_average_history	= new int[PING_AVERAGE_HISTORY_COUNT];
 	private int		ping_average_history_count;
 	
-	private static final int	IDLE_UPLOAD_SPEED	= 5*1024;
+	private static final int	IDLE_UPLOAD_SPEED		= 5*1024;
+	private static final int	INITIAL_IDLE_AVERAGE	= 50;
+	
 	private int		idle_ticks;
+	private int		idle_average		= INITIAL_IDLE_AVERAGE;
 	private int		max_upload_average;
 	
 	public
@@ -207,8 +212,6 @@ SpeedManagerImpl
 		
 		running_average = running_average/lim;
 		
-		System.out.println( "resultGroup: " + str + ": average=" + ping_average +", running_average=" + running_average );
-
 		int	up_average = (int)upload_average.getAverage();
 		
 		if ( up_average <= IDLE_UPLOAD_SPEED ){
@@ -218,6 +221,8 @@ SpeedManagerImpl
 			if ( idle_ticks >= PING_AVERAGE_HISTORY_COUNT ){
 				
 				System.out.println( "New idle average: " + running_average );
+				
+				idle_average	= running_average;
 			}
 		}else{
 			
@@ -232,24 +237,70 @@ SpeedManagerImpl
 			
 		}
 		
-		int	current_speed = adapter.getCurrentUploadSpeed();
+		int	current_speed 	= adapter.getCurrentUploadSpeed();
+		int	current_limit	= adapter.getCurrentUploadLimit();
 		
-		int	speed_limit	= current_speed;
+		System.out.println( 
+				"pings= " + str + ", average=" + ping_average +", running_average=" + running_average +
+				",idle_average=" + idle_average + ", speed=" + current_speed + ",limit=" + current_limit );
 
-	
+
+		int	new_limit	= current_limit;
+
+		if ( current_limit == UNLIMITED ){
+			
+			if ( running_average > 500 ){
+			
+				new_limit	= ( 85*idle_average )/100;
+			}
+		}else{
+			
+			int SOMETHING = 50;
+			
+			if ( running_average < 2* idle_average ){
+				
+				int	diff = running_average - idle_average;
+				
+				if ( diff < 100 ){
+					
+					diff = 100;
+				}
+				
+				new_limit += 1024 * ( diff / SOMETHING );
+				
+			}else if ( running_average > 4*idle_average ){
+				
+				new_limit -= 1024 * ((running_average - (3*idle_average )) / SOMETHING );
+			}			
+			
+			if ( new_limit < 1024 ){
+				
+				new_limit	= 1024;
+			}
+		}
+			
+			// final tidy up
 		
-		if ( min_up > 0 && speed_limit < min_up ){
+		if ( min_up > 0 && new_limit < min_up ){
 			
-			speed_limit = min_up;
+			new_limit = min_up;
 			
-		}else if ( max_up > 0 &&  speed_limit > max_up ){
+		}else if ( max_up > 0 &&  new_limit > max_up ){
 			
-			speed_limit = max_up;
+			new_limit = max_up;
+		}
+		
+			// if we're not achieving the current limit and the advice is to increase it, don't
+			// bother
+		
+		if ( new_limit > current_limit && current_speed < ( current_limit - 10*1024 )){
+		
+			new_limit = current_limit;
 		}
 		
 		if ( enabled ){
 			
-			adapter.setCurrentUploadLimit( speed_limit );
+			adapter.setCurrentUploadLimit( new_limit );
 		}
 	}
 	
