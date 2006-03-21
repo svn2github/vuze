@@ -29,13 +29,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -43,13 +40,9 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
-import org.gudy.azureus2.core3.stats.transfer.OverallStats;
-import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginView;
-import org.gudy.azureus2.plugins.network.ConnectionManager;
-import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.ColorUtils;
@@ -63,10 +56,8 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
-import org.gudy.azureus2.ui.swt.update.UpdateProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionConnection;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
@@ -95,8 +86,7 @@ MainWindow
 
   private AzureusCore			azureus_core;
   
-  //Package visibility for GUIUpdater
- GlobalManager       	globalManager;
+  private GlobalManager       	globalManager;
 
   //NICO handle swt on macosx
   public static boolean isAlreadyDead = false;
@@ -113,30 +103,14 @@ MainWindow
   private Composite folder;
       
   
-  private UpdateWindow updateWindow;
+  /** 
+   * Handles initializing and refreshing the status bar (w/help of GUIUpdater)
+   */
+  private MainStatusBar mainStatusBar;
   
-  private Composite statusArea;
-  Composite statusBar;
-  StackLayout layoutStatusArea;
-  
-  CLabel statusText;
-  private String statusTextKey = "";
-  private String statusImageKey = null;
+  private TrayWindow downloadBasket;
 
-  private Composite statusUpdate;
-  private Label statusUpdateLabel;
-  private ProgressBar statusUpdateProgressBar;
-  
-  //Package visibility for GUIUpdater
-  CLabel ipBlocked;
-  CLabel srStatus;
-  CLabel natStatus;
-  CLabel dhtStatus;
-  CLabel statusDown;
-  CLabel statusUp;
-  
-  private TrayWindow tray;
-  SystemTraySWT systemTraySWT;
+  private SystemTraySWT systemTraySWT;
   
   private HashMap downloadViews;
   private AEMonitor	downloadViews_mon			= new AEMonitor( "MainWindow:dlviews" );
@@ -154,15 +128,8 @@ MainWindow
   private Tab 			config;
   private ConfigView	config_view;
   
-  private ArrayList	update_stack = new ArrayList();
-  
   protected AEMonitor	this_mon			= new AEMonitor( "MainWindow" );
 
-  /**
-   * Warning status icon identifier
-    */
-  public static final String STATUS_ICON_WARN = "sb_warning";
-  
   private UISWTInstanceImpl uiSWTInstanceImpl;
 
   private ArrayList events;
@@ -400,373 +367,6 @@ MainWindow
       }
     }
 
-    final int borderFlag = (Constants.isOSX) ? SWT.NONE : SWT.SHADOW_IN;
-
-    statusBar = new Composite(mainWindow, SWT.NONE);
-    
-    formData = new FormData();
-    formData.top = new FormAttachment(separator);
-    formData.bottom = new FormAttachment(statusBar);
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
-    folder.setLayoutData(formData);
-    
-    GridLayout layout_status = new GridLayout();
-    layout_status.numColumns = 7;
-    layout_status.horizontalSpacing = 0;
-    layout_status.verticalSpacing = 0;
-    layout_status.marginHeight = 0;
-    if (Constants.isOSX) {
-    	// OSX has a resize widget on the bottom right.  It's about 15px wide.
-    	try {
-        layout_status.marginRight = 15;
-    	} catch (NoSuchFieldError e) {
-    		// Pre SWT 3.1 
-        layout_status.marginWidth = 15;
-    	}
-    } else {
-      layout_status.marginWidth = 0;
-    }
-    statusBar.setLayout(layout_status);
-
-    GridData gridData;
-    
-    
-    //Composite with StackLayout
-    statusArea = new Composite(statusBar, SWT.NONE);
-    gridData = new GridData(GridData.FILL_BOTH);
-    statusArea.setLayoutData(gridData);
-    
-    layoutStatusArea = new StackLayout();
-    statusArea.setLayout(layoutStatusArea);
-    
-    //Either the Status Text
-    statusText = new CLabel(statusArea, borderFlag);
-    gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL);
-    statusText.setLayoutData(gridData);
-    
-    // This is the highest image displayed on the statusbar
-    int imageHeight = ImageRepository.getImage(STATUS_ICON_WARN).getBounds().height;
-    
-    GC gc = new GC(statusText);
-    // add 6, because CLabel forces a 3 pixel indent
-    int height = Math.max(imageHeight, gc.getFontMetrics().getHeight()) + 6;
-    gc.dispose();
-    
-    formData = new FormData();
-    formData.height = height;
-    formData.bottom = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
-    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
-    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
-    statusBar.setLayoutData(formData);
-
-    Listener listener = new Listener() {
-      public void handleEvent(Event e) {
-        if(updateWindow != null) {
-          updateWindow.show();
-        }
-      }
-    };
-    
-    statusText.addListener(SWT.MouseUp,listener);
-    statusText.addListener(SWT.MouseDoubleClick,listener);
-    
-    //Or a composite with a label, a progressBar and a button
-    statusUpdate = new Composite(statusArea, SWT.NULL);
-    gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL);
-    statusUpdate.setLayoutData(gridData);
-    GridLayout layoutStatusUpdate = new GridLayout(2, false);
-    layoutStatusUpdate.marginHeight = 0;
-    layoutStatusUpdate.marginWidth = 0;
-    statusUpdate.setLayout(layoutStatusUpdate);
-    
-    statusUpdateLabel = new Label(statusUpdate,SWT.NULL);
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-    statusUpdateLabel.setLayoutData(gridData);
-    Messages.setLanguageText(statusUpdateLabel, "MainWindow.statusText.checking");
-    Messages.setLanguageText(statusUpdateLabel,"MainWindow.status.update.tooltip");
-    statusUpdateLabel.addMouseListener(new MouseAdapter() {
-        public void mouseDoubleClick(MouseEvent arg0) {
-         showUpdateProgressWindow();
-        }
-      });
-
-    final int progressFlag = (Constants.isOSX) ? SWT.INDETERMINATE : SWT.HORIZONTAL;
-    statusUpdateProgressBar = new ProgressBar(statusUpdate ,progressFlag);
-    gridData = new GridData(GridData.FILL_BOTH);
-    statusUpdateProgressBar.setLayoutData(gridData);
-    Messages.setLanguageText(statusUpdateProgressBar,"MainWindow.status.update.tooltip");
-    statusUpdateProgressBar.addMouseListener(new MouseAdapter() {
-        public void mouseDoubleClick(MouseEvent arg0) {
-         showUpdateProgressWindow();
-        }
-      });
-    
-    layoutStatusArea.topControl = statusText;
-    statusBar.layout();
-    
-    srStatus = new CLabelPadding(statusBar,borderFlag);
-    srStatus.setText( MessageText.getString("SpeedView.stats.ratio" ));
-   
-    COConfigurationManager.addAndFireParameterListener(
-    		"Status Area Show SR",
-    		new ParameterListener()
-    		{
-    			public void parameterChanged(String parameterName)
-    			{
-    				srStatus.setVisible( COConfigurationManager.getBooleanParameter(parameterName,true));
-    				statusBar.layout();
-    			}
-    		});
-    
-    natStatus = new CLabelPadding(statusBar,borderFlag);
-    natStatus.setText( "" );
-
-    COConfigurationManager.addAndFireParameterListener(
-    		"Status Area Show NAT",
-    		new ParameterListener()
-    		{
-    			public void parameterChanged(String parameterName)
-    			{
-    				natStatus.setVisible( COConfigurationManager.getBooleanParameter(parameterName,true));
-    				statusBar.layout();
-    			}
-    		});
-
-    dhtStatus = new CLabelPadding(statusBar,borderFlag);
-    dhtStatus.setText("");
-    dhtStatus.setToolTipText(MessageText.getString("MainWindow.dht.status.tooltip"));
-    
-    COConfigurationManager.addAndFireParameterListener(
-    		"Status Area Show DDB",
-    		new ParameterListener()
-    		{
-    			public void parameterChanged(String parameterName)
-    			{
-    				dhtStatus.setVisible( COConfigurationManager.getBooleanParameter(parameterName,true));
-    				statusBar.layout();
-    			}
-    		});
-    ipBlocked = new CLabelPadding(statusBar, borderFlag);
-    ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
-    Messages.setLanguageText(ipBlocked,"MainWindow.IPs.tooltip");
-    ipBlocked.addMouseListener(new MouseAdapter() {
-      public void mouseDoubleClick(MouseEvent arg0) {
-       BlockedIpsWindow.showBlockedIps(azureus_core, MainWindow.this.mainWindow);
-      }
-    });
-    
-    statusDown = new CLabelPadding(statusBar, borderFlag);
-    statusDown.setImage(ImageRepository.getImage("down"));
-    statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/ "n/a");
-    Messages.setLanguageText(statusDown,"MainWindow.status.updowndetails.tooltip");
-
-
-    Listener lStats = new Listener() {
-    	public void handleEvent(Event e) {
-    		showStats();
-    	}
-    };
-
-    statusUp = new CLabelPadding(statusBar, borderFlag);
-    statusUp.setImage(ImageRepository.getImage("up"));
-    statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/ "n/a");
-    Messages.setLanguageText(statusUp,"MainWindow.status.updowndetails.tooltip");
-
-    statusDown.addListener(SWT.MouseDoubleClick,lStats);
-    statusUp.addListener(SWT.MouseDoubleClick,lStats);
-    
-    Listener lDHT = new Listener() {
-    	public void handleEvent(Event e) {
-     		   
-  	    	showStats();
-	    	
-	    	((StatsView)stats_tab.getView()).showDHT();
-    	}
-    };
-    
-    dhtStatus.addListener(SWT.MouseDoubleClick,lDHT);
-    
-    Listener lSR = new Listener() {
-    	public void handleEvent(Event e) {
-     		   
-  	    	showStats();
-	    	
-	    	((StatsView)stats_tab.getView()).showTransfers();
-
-    		OverallStats	stats = StatsFactory.getStats();
-    		
-    	    long ratio = (1000* stats.getUploadedBytes() / (stats.getDownloadedBytes()+1) );
-
-    	    if ( ratio < 900 ){
-    	    	     	    	
-    			Utils.openURL( "http://azureus.aelitis.com/wiki/index.php/Share_Ratio" );
-    		}
-    	}
-    };
-    
-    srStatus.addListener(SWT.MouseDoubleClick,lSR);
-    
-    Listener lNAT = new Listener() {
-    	public void handleEvent(Event e) {
-    		showConfig();
-    		
-    		config_view.selectSection( ConfigSectionConnection.class );
-    		
-    		if( azureus_core.getPluginManager().getDefaultPluginInterface().getConnectionManager().getNATStatus() != ConnectionManager.NAT_OK ) {
-    			Utils.openURL( "http://azureus.aelitis.com/wiki/index.php/NAT_problem" );
-    		}
-    	}
-    };
-    
-    natStatus.addListener(SWT.MouseDoubleClick,lNAT);
-       
-  	// Status Bar Menu construction
-    final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);
-    menuUpSpeed.addListener(SWT.Show,new Listener() {
-      public void handleEvent(Event e) {
-        MenuItem[] items = menuUpSpeed.getItems();
-        for(int i = 0 ; i < items.length ; i++) {
-         items[i].dispose(); 
-        }
-        
-        final String	auto_param = TransferSpeedValidator.getActiveAutoUploadParameter(globalManager);
-               
-        boolean	auto = COConfigurationManager.getBooleanParameter( auto_param ); 
-
-        	// auto
-        final MenuItem auto_item = new MenuItem(menuUpSpeed,SWT.CHECK);
-        auto_item.setText(MessageText.getString("ConfigView.auto"));
-        auto_item.addListener(SWT.Selection,new Listener() {
-          public void handleEvent(Event e) {
-            COConfigurationManager.setParameter(auto_param,auto_item.getSelection());
-            COConfigurationManager.save();
-          }
-        });
-        
-        if(auto)auto_item.setSelection(true);
-        auto_item.setEnabled(TransferSpeedValidator.isAutoUploadAvailable(azureus_core));
-        
-        new MenuItem(menuUpSpeed,SWT.SEPARATOR);
-
-        	// unlimited
-        
-        final String	config_param = TransferSpeedValidator.getActiveUploadParameter(globalManager);
-
-        int upLimit = COConfigurationManager.getIntParameter(config_param,0);
-        
-        MenuItem item = new MenuItem(menuUpSpeed,SWT.RADIO);
-        item.setText(MessageText.getString("ConfigView.unlimited"));
-        item.addListener(SWT.Selection,new Listener() {
-          public void handleEvent(Event e) {
-            COConfigurationManager.setParameter(config_param,0);
-            COConfigurationManager.setParameter( auto_param, false );
-            COConfigurationManager.save();
-          }
-        });
-        if(upLimit == 0 && !auto) item.setSelection(true);
-        
-        
-        final Listener speedChangeListener = new Listener() {
-              public void handleEvent(Event e) {
-                int iSpeed = ((Integer)new TransferSpeedValidator(config_param, ((MenuItem)e.widget).getData("speed")).getValue()).intValue();
-                COConfigurationManager.setParameter(config_param, iSpeed);
-                COConfigurationManager.setParameter( auto_param, false );
-                COConfigurationManager.save();
-              }
-            };
-      
-        int iRel = 0;
-        for (int i = 0; i < 12; i++) {
-          int[] iAboveBelow;
-          if (iRel == 0) {
-            iAboveBelow = new int[] { upLimit };
-          } else {
-            iAboveBelow = new int[] { upLimit - iRel, upLimit + iRel };
-          }
-          
-          for (int j = 0; j < iAboveBelow.length; j++) {
-            if (iAboveBelow[j] >= 5) {
-              item = new MenuItem(menuUpSpeed, SWT.RADIO, 
-                                  (j == 0) ? 3 : menuUpSpeed.getItemCount());
-              item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iAboveBelow[j] * 1024, true));
-              item.setData("speed", new Long(iAboveBelow[j]));
-              item.addListener(SWT.Selection, speedChangeListener);
-  
-              if (upLimit == iAboveBelow[j]&& !auto) item.setSelection(true);
-            }
-          }
-          
-          iRel += (iRel >= 50) ? 50 : (iRel >= 10) ? 10 : (iRel >= 5) ? 5 : (iRel >= 2) ? 3 : 1;
-        }
-        
-      }
-    });    
-    statusUp.setMenu(menuUpSpeed);
-    
-    
-    final Menu menuDownSpeed = new Menu(mainWindow,SWT.POP_UP);    
-    menuDownSpeed.addListener(SWT.Show,new Listener() {
-      public void handleEvent(Event e) {
-        MenuItem[] items = menuDownSpeed.getItems();
-        for(int i = 0 ; i < items.length ; i++) {
-         items[i].dispose(); 
-        }
-        
-        int downLimit = COConfigurationManager.getIntParameter("Max Download Speed KBs",0);
-        final boolean unlim = (downLimit == 0);
-        if(downLimit == 0)
-            downLimit = 275;
-        
-        MenuItem item = new MenuItem(menuDownSpeed,SWT.RADIO);
-        item.setText(MessageText.getString("ConfigView.unlimited"));
-        item.addListener(SWT.Selection,new Listener() {
-          public void handleEvent(Event e) {
-            COConfigurationManager.setParameter(
-                    "Max Download Speed KBs",
-                    ((Integer)new TransferSpeedValidator("Max Download Speed KBs", new Integer(0)).getValue()).intValue()
-                ); 
-            COConfigurationManager.save();
-          }
-        });
-        if(unlim) item.setSelection(true);
-        
-        final Listener speedChangeListener = new Listener() {
-              public void handleEvent(Event e) {
-                int iSpeed = ((Integer)new TransferSpeedValidator("Max Download Speed KBs", ((MenuItem)e.widget).getData("speed")).getValue()).intValue();
-                COConfigurationManager.setParameter("Max Download Speed KBs", iSpeed);
-                COConfigurationManager.save();
-              }
-            };
-
-        int iRel = 0;
-        for (int i = 0; i < 12; i++) {
-          int[] iAboveBelow;
-          if (iRel == 0) {
-            iAboveBelow = new int[] { downLimit };
-          } else {
-            iAboveBelow = new int[] { downLimit - iRel, downLimit + iRel };
-          }
-          for (int j = 0; j < iAboveBelow.length; j++) {
-            if (iAboveBelow[j] >= 5) {
-              item = new MenuItem(menuDownSpeed, SWT.RADIO, 
-                                  (j == 0) ? 1 : menuDownSpeed.getItemCount());
-              item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iAboveBelow[j] * 1024, true));
-              item.setData("speed", new Long(iAboveBelow[j]));
-              item.addListener(SWT.Selection, speedChangeListener);
-              item.setSelection(!unlim && downLimit == iAboveBelow[j]);
-            }
-          }
-          
-          iRel += (iRel >= 50) ? 50 : (iRel >= 10) ? 10 : (iRel >= 5) ? 5 : (iRel >= 2) ? 3 : 1;
-        }
-        
-      }
-    });    
-    statusDown.setMenu(menuDownSpeed);
-    
-    
-
     if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Initializing GUI complete"));
    
@@ -788,8 +388,6 @@ MainWindow
     	}      
     });
         
-    mainWindow.layout();
-
     mainWindow.addShellListener(new ShellAdapter() {
       public void 
 	  shellClosed(ShellEvent event) 
@@ -827,73 +425,89 @@ MainWindow
         }
       }
     });
-       
-  }catch( Throwable e ){
-    System.out.println("Initialize Error");
-    Debug.printStackTrace( e );
-	}
-}
+    
+			mainStatusBar = new MainStatusBar();
+			Composite statusBar = mainStatusBar.initStatusBar(this);
+			formData = new FormData();
+			formData.top = new FormAttachment(separator);
+			formData.bottom = new FormAttachment(statusBar);
+			formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
+			formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
+			folder.setLayoutData(formData);
+			
+			azureus_core.getPluginManager().firePluginEvent(
+					PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS);
 
-  private void 
-  openMainWindow() 
-  {
-	   
-  		// attach the UI to plugins
-  
-  	uiSWTInstanceImpl = new UISWTInstanceImpl( azureus_core );
-  
-		//  share progress window
-	
-    new ProgressWindow();
-    
-    addUpdateListener();
-    
-    if ( azureus_core.getTrackerHost().getTorrents().length > 0 ){     
-    	
-      showMyTracker();
-    }
-    
-    showMyTorrents();
+			if (!COConfigurationManager
+					.getBooleanParameter("Wizard Completed", false)) {
+				ConfigureWizard wizard = new ConfigureWizard(getAzureusCore(), display);
 
-    if (COConfigurationManager.getBooleanParameter("Open Console", false)) {
-			showConsole();
+				wizard.addListener(new WizardListener() {
+					public void closed() {
+						azureus_core.getPluginManager().firePluginEvent(
+								PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES);
+					}
+				});
+			} else {
+
+				azureus_core.getPluginManager().firePluginEvent(
+						PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES);
+			}
+
+			// attach the UI to plugins
+			// Must be done before initializing views, since plugins may register
+			// table columns and other objects
+			uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
+
+			showMyTorrents();
+
+			//  share progress window
+
+			new ProgressWindow();
+
+			if (azureus_core.getTrackerHost().getTorrents().length > 0) {
+
+				showMyTracker();
+			}
+
+			if (COConfigurationManager.getBooleanParameter("Open Console", false)) {
+				showConsole();
+			}
+			events = null;
+
+			if (COConfigurationManager.getBooleanParameter("Open Config", false)) {
+				showConfig();
+			}
+
+			if (COConfigurationManager.getBooleanParameter("Open Stats On Start",
+					false)) {
+				showStats();
+			}
+
+			COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
+
+			updater = new GUIUpdater(this);
+			updater.start();
+
+		} catch (Throwable e) {
+			System.out.println("Initialize Error");
+			Debug.printStackTrace(e);
 		}
-    events = null;
-    
-    if (COConfigurationManager.getBooleanParameter("Open Config", false)) {
-        showConfig();
-    }
-    
-    if (COConfigurationManager.getBooleanParameter("Open Stats On Start", false)) {
-      showStats();
-    }
-
-    azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS );
-    
-    if (!COConfigurationManager.getBooleanParameter("Wizard Completed", false)) {
-    	ConfigureWizard	wizard = new ConfigureWizard(getAzureusCore(),display);
-    	
-    	wizard.addListener(
-    		new WizardListener()
-    		{
-    			public void
-    			closed()
-    			{
-   					azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
-    			}
-    		});
-    }else{
-    	
-    	azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
-    }
+  }
   
-    boolean bEnableTray = COConfigurationManager.getBooleanParameter("Enable System Tray");
-    boolean bPassworded = COConfigurationManager.getBooleanParameter("Password enabled", false);
-    boolean bStartMinimize = bEnableTray
+	private void showMainWindow() {
+		// No tray access on OSX yet
+		boolean bEnableTray = COConfigurationManager
+				.getBooleanParameter("Enable System Tray")
+				&& (!Constants.isOSX || SWT.getVersion() > 3230);
+		boolean bPassworded = COConfigurationManager.getBooleanParameter(
+				"Password enabled", false);
+		boolean bStartMinimize = bEnableTray
 				&& (bPassworded || COConfigurationManager.getBooleanParameter(
 						"Start Minimized", false));
-    
-    if (!bStartMinimize) {
+
+		if (!bStartMinimize) {
+	    mainWindow.layout();
 			mainWindow.open();
 			if (!Constants.isOSX) {
 				mainWindow.forceActive();
@@ -902,53 +516,40 @@ MainWindow
 			mainWindow.setMinimized(true);
 			mainWindow.setVisible(true);
 		}
-    updater = new GUIUpdater(azureus_core,this);
-    updater.start();
 
-     
-    
+		if (bEnableTray) {
 
-    if (bEnableTray){
-    	
-   	   try {
-    	      systemTraySWT = new SystemTraySWT(this);
-    	      
-   	    } catch (Throwable e) {
-   	    	
-   	    	Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+			try {
+				systemTraySWT = new SystemTraySWT(this);
+
+			} catch (Throwable e) {
+
+				Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
 						"Upgrade to SWT3.0M8 or later for system tray support."));
-   	    }
+			}
 
-	    if (bStartMinimize) {
-	      minimizeToTray(null);
-	    }
-	    //Only show the password if not started minimized
-	    //Correct bug #878227
-	    else {
-		    if (bPassworded) {
-		      minimizeToTray(null);
-		      PasswordWindow.showPasswordWindow(display);
-		    }
-	    }
-    }
+			if (bStartMinimize) {
+				minimizeToTray(null);
+			}
+			//Only show the password if not started minimized
+			//Correct bug #878227
+			else {
+				if (bPassworded) {
+					minimizeToTray(null);
+					PasswordWindow.showPasswordWindow(display);
+				}
+			}
+		}
 
-    if (COConfigurationManager.getBooleanParameter("Show Download Basket", false)) { //$NON-NLS-1$
-      if(tray == null)
-        tray = new TrayWindow(this);
-      tray.setVisible(true);
-    }
-    COConfigurationManager.addParameterListener("Show Download Basket", this);
-    COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
-    
-    checkForWhatsNewWindow();
-        
-    
-    // globalManager.startChecker();
-    
-    	// check file associations   
-    AssociationChecker.checkAssociations();
-    DonationWindow2.checkForDonationPopup();
-   }
+		COConfigurationManager.addAndFireParameterListener("Show Download Basket",
+				this);
+
+		checkForWhatsNewWindow();
+
+		// check file associations   
+		AssociationChecker.checkAssociations();
+		DonationWindow2.checkForDonationPopup();
+	}
 
 
   public void showMyTracker() {
@@ -973,10 +574,12 @@ MainWindow
   
   public void showMyTorrents() {
     if (mytorrents == null) {
-      mytorrents = new Tab(new MyTorrentsSuperView(azureus_core));
-    } else
+    	MyTorrentsSuperView view = new MyTorrentsSuperView(azureus_core);
+      mytorrents = new Tab(view);
+    } else {
       mytorrents.setFocus();
-    	refreshIconBar();
+    }
+    refreshIconBar();
   }
 	
   private void minimizeToTray(ShellEvent event) {
@@ -988,8 +591,8 @@ MainWindow
     } else {  
       mainWindow.setVisible(false);
     }
-    if (tray != null)
-      tray.setVisible(true);
+    if (downloadBasket != null)
+      downloadBasket.setVisible(true);
     try{
     	downloadBars_mon.enter();
       Iterator iter = downloadBars.values().iterator();
@@ -1002,47 +605,12 @@ MainWindow
     }
   }
   
-  public void setStatusText(String keyedSentence) {
-    this.statusTextKey = keyedSentence==null?"":keyedSentence;
-    statusImageKey = null;
-    if(statusTextKey.length() == 0) { // reset
-      if( Constants.isCVSVersion() ) {
-        statusTextKey =  "MainWindow.status.unofficialversion (" +Constants.AZUREUS_VERSION+ ")";
-        statusImageKey = STATUS_ICON_WARN;
-      }
-      else if( !Constants.isOSX ) {  //don't show official version numbers for OSX L&F
-        statusTextKey = Constants.AZUREUS_NAME+ " " +Constants.AZUREUS_VERSION;
-      }
-    }
-
-    updateStatusText();
-  }
-  
-  
-  private void updateStatusText() {
-    if (display == null || display.isDisposed())
-      return;
-    final String text;
-    if(updateWindow != null) {
-      text = "MainWindow.updateavail";
-    } else {
-      text = this.statusTextKey;
-    }
-    Utils.execSWTThread(new AERunnable(){
-      public void runSupport() {
-        if (statusText != null && !statusText.isDisposed()) {      
-          statusText.setText(MessageText.getStringForSentence(text));
-          statusText.setImage((statusImageKey == null) ? null : ImageRepository.getImage(statusImageKey));
-        }
-      }
-    });
-  }
-
   private void
   updateComponents()
   {
-  	if (statusText != null)
-  		statusText.update();
+  	if (mainStatusBar != null)
+  		mainStatusBar.refreshStatusText();
+
   	if (folder != null) {
   		if(useCustomTab) {
   			((CTabFolder)folder).update();
@@ -1124,33 +692,6 @@ MainWindow
     DonationWindow2.checkForDonationPopup();
       
     created.addListener(this);
-    /*
-	if (display != null && !display.isDisposed()){
-	
-	   display.asyncExec(new AERunnable() {
-			public void
-			runSupport()
-			{
-			    if (COConfigurationManager.getBooleanParameter("Open Details")){
-			    
-			      openManagerView(created);
-			    }
-			    
-			    if (COConfigurationManager.getBooleanParameter("Open Bar", false)) {
-			      try{
-			      	downloadBars_mon.enter();
-			      	
-			        MinimizedWindow mw = new MinimizedWindow(created, mainWindow);
-			        downloadBars.put(created, mw);
-			      }finally{
-			      
-			      	downloadBars_mon.exit();
-			      }
-			    }
-			}
-	   });
-    }
-    */
   }
 
   public void openManagerView(DownloadManager downloadManager) {
@@ -1216,8 +757,8 @@ MainWindow
   public void setVisible(boolean visible) {
     mainWindow.setVisible(visible);
     if (visible) {
-      if (tray != null)
-        tray.setVisible(false);
+      if (downloadBasket != null)
+        downloadBasket.setVisible(false);
       /*
       if (trayIcon != null)
         trayIcon.showIcon();
@@ -1396,7 +937,7 @@ MainWindow
 	 * @return
 	 */
   public TrayWindow getTray() {
-    return tray;
+    return downloadBasket;
   }
 
 
@@ -1543,13 +1084,13 @@ MainWindow
   public void parameterChanged(String parameterName) {
     if( parameterName.equals( "Show Download Basket" ) ) {
       if (COConfigurationManager.getBooleanParameter("Show Download Basket")) {
-        if(tray == null) {
-          tray = new TrayWindow(this);
-          tray.setVisible(true);
+        if(downloadBasket == null) {
+          downloadBasket = new TrayWindow(this);
+          downloadBasket.setVisible(true);
         }
-      } else if(tray != null) {
-        tray.setVisible(false);
-        tray = null;
+      } else if(downloadBasket != null) {
+        downloadBasket.setVisible(false);
+        downloadBasket = null;
       }
     }
     
@@ -1631,13 +1172,14 @@ MainWindow
           close();
   }
 
-  public void showConfig() {
+  public ConfigView showConfig() {
     if (config == null){
       config_view = new ConfigView( azureus_core );
       config = new Tab(config_view);
     }else{
       config.setFocus();
     }
+    return config_view;
   }
   
 
@@ -1667,6 +1209,22 @@ MainWindow
       stats_tab.setFocus();
   }
 
+  public void showStatsDHT() {
+    if (stats_tab == null)
+      stats_tab = new Tab(new StatsView(globalManager));
+    else
+      stats_tab.setFocus();
+		((StatsView) stats_tab.getView()).showDHT();
+  }
+  
+  public void showStatsTransfers() {
+    if (stats_tab == null)
+      stats_tab = new Tab(new StatsView(globalManager));
+    else
+      stats_tab.setFocus();
+		((StatsView) stats_tab.getView()).showTransfers();
+  }
+
   public void setSelectedLanguageItem() 
   {
   	try{
@@ -1678,10 +1236,10 @@ MainWindow
 	    	Messages.updateLanguageForControl(systemTraySWT.getMenu());
 	    }
 	    
-	    if (statusText != null){
-	    
-	    	statusText.update();
-	    }
+	  	if (mainStatusBar != null) {
+	  		mainStatusBar.refreshStatusText();
+  		}
+
 	    
 	    if (folder != null) {
 	      if(useCustomTab) {
@@ -1691,13 +1249,15 @@ MainWindow
 	      }
 	    }
 	
-	    if (tray != null){
-	      tray.updateLanguage();
+	    if (downloadBasket != null){
+	      downloadBasket.updateLanguage();
 	    }
 	    
 	    Tab.updateLanguage();
 	  
-	    setStatusText(statusTextKey);
+	  	if (mainStatusBar != null) {
+	  		mainStatusBar.updateStatusText();
+  		}
   	}finally{
   		
   		this_mon.exit();
@@ -1711,19 +1271,20 @@ MainWindow
   /*
    * STProgressListener implementation, used for startup.
    */
-  
+  // AzureusCoreListener
   public void reportCurrentTask(String task) {}
   
   /**
    * A percent > 100 means the end of the startup process
    */
+  // AzureusCoreListener
   public void reportPercent(int percent) {
     if(percent > 100) {
       Utils.execSWTThread(new AERunnable(){
         public void runSupport() {
           if(display == null || display.isDisposed())
             return;
-          openMainWindow();
+          showMainWindow();
         }
       });
     }
@@ -1737,15 +1298,8 @@ MainWindow
    * @param updateWindow the updateWindow or null if no update is available
    */
   public void setUpdateNeeded(UpdateWindow updateWindow) {
-    this.updateWindow = updateWindow;
-    if(updateWindow != null) {
-      statusText.setCursor(Cursors.handCursor);    
-      statusText.setForeground(Colors.colorWarning);      
-      updateStatusText();
-    } else {
-      statusText.setCursor(null); 
-      statusText.setForeground(null);
-      updateStatusText();
+    if (mainStatusBar != null) {
+    	mainStatusBar.setUpdateNeeded(updateWindow);
     }
   }
   
@@ -1805,227 +1359,6 @@ MainWindow
   	return( azureus_core );
   }
   
-  
-  private void 
-  addUpdateListener() 
-  {
-  	azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager().addListener(new UpdateManagerListener () {
-      public void checkInstanceCreated(UpdateCheckInstance instance) {
-        
-      	new updateStatusChanger( instance );
-      }
-    });
-  }  
-  
-  protected class
-  updateStatusChanger
-  {
-  	UpdateCheckInstance	instance;
-  	
-  	int					check_num = 0;
-  	boolean				active;
-  	
-  	protected
-	updateStatusChanger(
-		UpdateCheckInstance		_instance )
-  	{
- 		instance	= _instance;
-  		
-    	try{
-      		this_mon.enter();
-      	
-      		update_stack.add( this );
-      		
-       		instance.addListener(
-	        	new UpdateCheckInstanceListener () 
-				{
-		          public void 
-				  cancelled(
-				  		UpdateCheckInstance instance) 
-		          {
-		          	deactivate();
-		          }
-		          
-		          public void 
-				  complete(
-				  		UpdateCheckInstance instance) 
-		          {
-		          	deactivate();
-		          }
-				});
-        
-	        UpdateChecker[] checkers = instance.getCheckers();
-	        
-	        UpdateCheckerListener listener = new UpdateCheckerListener() {
-	          public void cancelled(UpdateChecker checker) {
-	            // we don't count a cancellation as progress step
-	          }
-	          
-	          public void completed(UpdateChecker checker) {
-	            setNextCheck();
-	          }
-	          
-	          public void failed(UpdateChecker checker) {
-	            setNextCheck();
-	          }
-	          
-	        };
-	        for(int i = 0 ; i < checkers.length ; i++) {
-	          checkers[i].addListener(listener);
-	        }
-       
-	        activate();
-	        
-       	}finally{
-    		
-    		this_mon.exit();
-    	}
-    	
-  
-  	}
-  	
-  	protected UpdateCheckInstance
-	getInstance()
-  	{
-  		return( instance );
-  	}
-  	
-  	private void
-	activate()
-  	{
-  		try{
-  			this_mon.enter();
-  		
-  			active	= true;
-  			
-  			switchStatusToUpdate();
-        
-  			setNbChecks(instance.getCheckers().length);
-  			
-  		}finally{
-  			
-  			this_mon.exit();
-  		}
-  	}
-  	
-  	private void
-	deactivate()
-  	{
-  		try{
-  			this_mon.enter();
-  			
-  			active	= false;
-  			
-  			for (int i=0;i<update_stack.size();i++){
-  				
-  				if ( update_stack.get(i) == this ){
-  					
-  					update_stack.remove(i);
-  					
-  					break;
-  				}
-  			}
-  			if ( update_stack.size()==0){
-  				
-  				switchStatusToText();
-  				
-  			}else{
-  				
-  				((updateStatusChanger)update_stack.get(update_stack.size()-1)).activate();
-  			}
-  			
-  		}finally{
-  			
-  			this_mon.exit();
-  		}
-  	}
-  	
-    private void setNbChecks(final int nbChecks) {
-        if(display != null && ! display.isDisposed())
-        	Utils.execSWTThread(new AERunnable() {
-            public void runSupport() {
-              if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
-                return;
-              statusUpdateProgressBar.setMinimum(0);
-              statusUpdateProgressBar.setMaximum(nbChecks);
-              statusUpdateProgressBar.setSelection(check_num);
-            }
-          });
-      }
-      
-      private void setNextCheck() {
-        if(display != null && ! display.isDisposed())
-        	Utils.execSWTThread(new AERunnable() {
-            public void runSupport() {
-              if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
-                return;
-              
-              check_num++;
-    
-              if ( active ){
-              	statusUpdateProgressBar.setSelection( check_num );
-              }
-            }
-          });
-      }
-      
-      private void switchStatusToUpdate() {
-        if(display != null && ! display.isDisposed())
-        	Utils.execSWTThread(new AERunnable(){
-            public void runSupport() {
-               	if ( statusArea == null || statusArea.isDisposed()){
-            		return;
-            	}
-               	
-               	String	name = instance.getName();
-               	
-               	if ( MessageText.keyExists(name)){
-               	
-               		name = MessageText.getString( name );
-               	}
-               	
-               	statusUpdateLabel.setText( name );
-               	
-               	layoutStatusArea.topControl = statusUpdate;
-               	statusArea.layout();
-            }
-          });
-      }
-      
-      private void switchStatusToText() {
-        if(display != null && ! display.isDisposed())
-        	Utils.execSWTThread(new AERunnable() {
-            public void runSupport() {
-            	if ( statusArea == null || statusArea.isDisposed()){
-            		return;
-            	}
-            	layoutStatusArea.topControl = statusText;
-            	statusArea.layout();
-            }
-          });
-      }
-  }
-  
-  protected void
-  showUpdateProgressWindow()
-  {
-  	try{
-  		this_mon.enter();
- 
-  		UpdateCheckInstance[]	instances = new UpdateCheckInstance[update_stack.size()];
-  		
-  		for (int i=0;i<instances.length;i++){
-  			
-  			instances[i] = ((updateStatusChanger)update_stack.get(i)).getInstance();
-  		}
-  		
-  		UpdateProgressWindow.show( instances, this.getShell());
-  		
-  	}finally{
-  		
-  		this_mon.exit();
-  	}
-  }
   
 	public void
 	generate(
@@ -2108,40 +1441,21 @@ MainWindow
   public UISWTInstanceImpl getUISWTInstanceImpl() {
   	return uiSWTInstanceImpl;
   }
-  
-  private class CLabelPadding extends CLabel {
-  	private int lastWidth = 0;
-  	private long widthSetOn = 0;
-  	private final int KEEPWIDTHFOR_MS = 30 * 1000;
 
-		public CLabelPadding(Composite parent, int style) {
-			super(parent, style | SWT.CENTER);
+	/**
+	 * @param string
+	 */
+	public void setStatusText(String string) {
+		// TODO Auto-generated method stub
+		if (mainStatusBar != null)
+			mainStatusBar.setStatusText(string);
+	}
 
-			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER
-					| GridData.VERTICAL_ALIGN_FILL);
-			setLayoutData(gridData);
-		}
+	public SystemTraySWT getSystemTraySWT() {
+		return systemTraySWT;
+	}
 
-		/* (non-Javadoc)
-		 * @see org.eclipse.swt.custom.CLabel#computeSize(int, int, boolean)
-		 */
-		public Point computeSize(int wHint, int hHint, boolean changed) {
-			if ( !isVisible()){
-				return( new Point(0,0));
-			}
-			Point pt = super.computeSize(wHint, hHint, changed);
-			pt.x += 4;
-			
-			long now = System.currentTimeMillis();
-			if (lastWidth > pt.x && now - widthSetOn < KEEPWIDTHFOR_MS) {
-				pt.x = lastWidth;
-			} else {
-				if (lastWidth != pt.x)
-					lastWidth = pt.x;
-				widthSetOn = now;
-			}
-			
-			return pt;
-		}
+	public MainStatusBar getMainStatusBar() {
+		return mainStatusBar;
 	}
 }

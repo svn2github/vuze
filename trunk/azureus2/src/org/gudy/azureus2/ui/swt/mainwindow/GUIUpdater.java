@@ -22,36 +22,26 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
-import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.eclipse.swt.widgets.Display;
-
-import com.aelitis.azureus.core.*;
-import com.aelitis.azureus.core.dht.DHT;
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.plugins.dht.DHTPlugin;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.ipfilter.*;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.stats.transfer.OverallStats;
-import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.network.ConnectionManager;
-import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.Tab;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 /**
  * @author Olivier Chalouhi
@@ -63,19 +53,8 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 	/** Calculate timer statistics for GUI update */
 	private static final boolean DEBUG_TIMER = Constants.isCVSVersion();
 
-  private AzureusCore		azureus_core;
-  private ConnectionManager	connection_manager;
-  private OverallStats		overall_stats;
-  private DHTPlugin     	dhtPlugin;
-  private NumberFormat  	numberFormat;
   private MainWindow 		mainWindow;
   private Display 			display;
-  
-  private long last_sr_ratio	= -1;
-  private int  last_sr_status	= -1;
-  private int lastNATstatus = -1;
-  private int lastDHTstatus = -1;
-  private long lastDHTcount = -1;
   
   boolean finished = false;
   boolean refreshed = true;
@@ -86,26 +65,12 @@ public class GUIUpdater extends AEThread implements ParameterListener {
   
   public 
   GUIUpdater(
-  	AzureusCore		_azureus_core,
 	MainWindow 		mainWindow) 
   {       
     super("GUI updater");
-    azureus_core		= _azureus_core;
     this.mainWindow = mainWindow;
     this.display = mainWindow.getDisplay();
-    this.numberFormat = NumberFormat.getInstance();
     
-    PluginManager	pm = AzureusCoreFactory.getSingleton().getPluginManager();
-    
-    connection_manager = pm.getDefaultPluginInterface().getConnectionManager();
-    
-	overall_stats = StatsFactory.getStats();
-		
-
-    PluginInterface dht_pi = pm.getPluginInterfaceByClass( DHTPlugin.class );
-    if ( dht_pi != null ){
-    	dhtPlugin = (DHTPlugin)dht_pi.getPlugin();
-    }
     setPriority(Thread.MAX_PRIORITY -2);
     COConfigurationManager.addParameterListener("GUI Refresh", this);
   }
@@ -160,243 +125,19 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 							if (DEBUG_TIMER)
 								timeMap.put("Tab Refresh", new Long(System.currentTimeMillis()));
 						}
-
-						// IP Filter Status Section
-						IpFilter ip_filter = azureus_core.getIpFilterManager()
-								.getIPFilter();
-
-						mainWindow.ipBlocked.setText("{"
-								+ DisplayFormatters.formatDateShort(ip_filter
-										.getLastUpdateTime())
-								+ "} IPs: "
-								+ numberFormat.format(ip_filter.getNbRanges())
-								+ " - "
-								+ numberFormat.format(ip_filter.getNbIpsBlockedAndLoggable())
-								+ "/"
-								+ numberFormat.format(ip_filter.getNbBannedIps())
-								+ "/"
-								+ numberFormat.format(azureus_core.getIpFilterManager()
-										.getBadIps().getNbBadIps()));
-
-						// SR status section
 						
-			    	    long ratio = (1000* overall_stats.getUploadedBytes() / (overall_stats.getDownloadedBytes()+1) );
-
-			    	    int	sr_status;
-			    	    
-			    	    if ( ratio < 500 ){
-			    	    	
-			    	    	sr_status = 0;
-			    	    	
-			    	    }else if ( ratio < 900 ){
-			    	    	
-			    	    	sr_status = 1;
-			    	    	
-			    	    }else{
-			    	    	
-			    	    	sr_status = 2;
-			    	    }
 						
-			    	    if ( sr_status != last_sr_status ){
-			    	    	
-							String imgID;
-							
-							switch (sr_status) {
-									case 2:
-									imgID = "greenled";
-									break;
-
-								case 1:
-									imgID = "yellowled";
-									break;
-
-								default:
-									imgID = "redled";
-									break;
-							}
-
-							mainWindow.srStatus.setImage( ImageRepository.getImage(imgID) );
-							
-			    	    	last_sr_status	= sr_status;
-			    	    }
-			    	    
-			    	    if ( ratio != last_sr_ratio ){
-			    	    	
-							String tooltipID;
-							
-							switch (sr_status) {
-									case 2:
-									tooltipID = "MainWindow.sr.status.tooltip.ok";
-									break;
-
-								case 1:
-									tooltipID = "MainWindow.sr.status.tooltip.poor";
-									break;
-
-								default:
-								  	tooltipID = "MainWindow.sr.status.tooltip.bad";
-									break;
-							}
-
-							String ratio_str = "";
-							
-						    String partial = "" + ratio%1000;
-						    
-						    while(partial.length() < 3){
-						    	
-						    	partial = "0" + partial;
-						    }
-						    
-						    ratio_str = (ratio/1000) + "." + partial;
-
-							mainWindow.srStatus.setToolTipText( MessageText.getString(tooltipID,new String[]{ratio_str}));
-				    	   
-							last_sr_ratio	= ratio;
-			    	    }
-		    	    
-						// NAT status Section
-						
-						int nat_status = connection_manager.getNATStatus();
-
-						if (lastNATstatus != nat_status) {
-							String imgID;
-							String tooltipID;
-							String statusID;
-							
-							switch (nat_status) {
-								case ConnectionManager.NAT_UNKNOWN:
-									imgID = "grayled";
-									tooltipID = "MainWindow.nat.status.tooltip.unknown";
-									statusID = "MainWindow.nat.status.unknown";
-									break;
-
-								case ConnectionManager.NAT_OK:
-									imgID = "greenled";
-									tooltipID = "MainWindow.nat.status.tooltip.ok";
-									statusID = "MainWindow.nat.status.ok";
-									break;
-
-								case ConnectionManager.NAT_PROBABLY_OK:
-									imgID = "yellowled";
-									tooltipID = "MainWindow.nat.status.tooltip.probok";
-									statusID = "MainWindow.nat.status.probok";
-									break;
-
-								default:
-									imgID = "redled";
-								  tooltipID = "MainWindow.nat.status.tooltip.bad";
-								  statusID = "MainWindow.nat.status.bad";
-									break;
-							}
-
-							mainWindow.natStatus.setImage( ImageRepository.getImage(imgID) );
-							mainWindow.natStatus.setToolTipText( MessageText.getString(tooltipID) );
-							mainWindow.natStatus.setText( MessageText.getString(statusID) );
-							lastNATstatus = nat_status;
-						}
-
-						// DHT Status Section
-						int dht_status = (dhtPlugin == null) ? DHTPlugin.STATUS_DISABLED	: dhtPlugin.getStatus();
-						long dht_count = -1;
-						if (dht_status == DHTPlugin.STATUS_RUNNING) {
-							DHT[] dhts = dhtPlugin.getDHTs();
-							
-							if( dhts.length > 0	&& dhts[0].getTransport().isReachable() ) {
-								dht_count = dhts[0].getControl().getStats().getEstimatedDHTSize();
-							}
-						}
-
-						if (lastDHTstatus != dht_status || lastDHTcount != dht_count) {
-							switch (dht_status) {
-								case DHTPlugin.STATUS_RUNNING:
-									if (dht_count > 100*1000 ) {  //release dht has at least a half million users
-										mainWindow.dhtStatus.setImage(ImageRepository.getImage( "greenled" ));
-										mainWindow.dhtStatus.setToolTipText(MessageText.getString( "MainWindow.dht.status.tooltip" ));
-										mainWindow.dhtStatus.setText(numberFormat.format(dht_count)+ " " +MessageText.getString("MainWindow.dht.status.users"));
-									}
-									else {
-										mainWindow.dhtStatus.setImage(ImageRepository.getImage( "yellowled" ));
-										mainWindow.dhtStatus.setToolTipText(MessageText.getString( "MainWindow.dht.status.unreachabletooltip" ));
-										mainWindow.dhtStatus.setText( MessageText.getString( "MainWindow.dht.status.unreachable" ));
-									}
-									break;
-
-								case DHTPlugin.STATUS_DISABLED:
-									mainWindow.dhtStatus.setImage(ImageRepository.getImage( "grayled" ));
-									mainWindow.dhtStatus.setText( MessageText.getString( "MainWindow.dht.status.disabled" ));
-									break;
-
-								case DHTPlugin.STATUS_INITALISING:
-									mainWindow.dhtStatus.setImage(ImageRepository.getImage( "yellowled" ));
-									mainWindow.dhtStatus.setText( MessageText.getString( "MainWindow.dht.status.initializing" ));
-									break;
-
-								case DHTPlugin.STATUS_FAILED:
-									mainWindow.dhtStatus.setImage(ImageRepository.getImage( "redled" ));
-									mainWindow.dhtStatus.setText( MessageText.getString( "MainWindow.dht.status.failed" ));
-									break;
-									
-								default:
-									mainWindow.dhtStatus.setImage(null);
-								 break;
-							}
-
-							lastDHTstatus = dht_status;
-							lastDHTcount = dht_count;
-						}
-
-						// UL/DL Status Sections
-						
-				        
-						int dl_limit = NetworkManager.getMaxDownloadRateBPS() / 1024;
-
-
-						mainWindow.statusDown.setText(
-								(dl_limit == 0 ? "" : "[" + dl_limit + "K] ")
-								+ DisplayFormatters
-										.formatDataProtByteCountToKiBEtcPerSec(
-												mainWindow.globalManager.getStats().getDataReceiveRate(),
-												mainWindow.globalManager.getStats().getProtocolReceiveRate()));
-
-					    boolean	auto_up = 
-					    	COConfigurationManager.getBooleanParameter( 
-					    			TransferSpeedValidator.getActiveAutoUploadParameter( mainWindow.globalManager ))&&
-					    	TransferSpeedValidator.isAutoUploadAvailable(azureus_core);
-						 
-				
-						int ul_limit_norm = NetworkManager.getMaxUploadRateBPSNormal() / 1024;
-
-						String seeding_only;
-						if (NetworkManager.isSeedingOnlyUploadRate()) {
-							int ul_limit_seed = NetworkManager
-									.getMaxUploadRateBPSSeedingOnly() / 1024;
-							if (ul_limit_seed == 0) {
-								seeding_only = "+" + Constants.INFINITY_STRING + "K";
-							} else {
-								int diff = ul_limit_seed - ul_limit_norm;
-								seeding_only = (diff >= 0 ? "+" : "") + diff + "K";
-							}
-						} else {
-							seeding_only = "";
-						}
-						
-						mainWindow.statusUp.setText(
-								(ul_limit_norm == 0 ? "" : "[" + ul_limit_norm + "K"
-										+ seeding_only + "]") + (auto_up?"* ":" ")
-								+ DisplayFormatters
-										.formatDataProtByteCountToKiBEtcPerSec(
-												mainWindow.globalManager.getStats().getDataSendRate(),
-												mainWindow.globalManager.getStats().getProtocolSendRate()));
-
-						// End of Status Sections
-						mainWindow.statusBar.layout();
+						MainStatusBar mainStatusBar = mainWindow.getMainStatusBar();
+						if (mainStatusBar != null)
+							mainStatusBar.refreshStatusBar();
 					}
 
 					if (DEBUG_TIMER)
 						timeMap.put("Status Bar", new Long(System.currentTimeMillis()));
 					
-					if (mainWindow.systemTraySWT != null)
-						mainWindow.systemTraySWT.update();
+					SystemTraySWT systemTraySWT = mainWindow.getSystemTraySWT();
+					if (systemTraySWT != null)
+						systemTraySWT.update();
 
 					if (DEBUG_TIMER)
 						timeMap.put("SysTray", new Long(System.currentTimeMillis()));
@@ -497,7 +238,9 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 				sb.append("; last:" + average[IDX_LAST]);
 			}
 		}
-		if (!mainWindow.getShell().isDisposed())
-			mainWindow.statusText.setToolTipText(sb.toString());
+
+		MainStatusBar mainStatusBar = mainWindow.getMainStatusBar();
+		if (mainStatusBar != null)
+			mainStatusBar.setDebugInfo(sb.toString());
 	}
 }

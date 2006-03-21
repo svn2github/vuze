@@ -194,8 +194,6 @@ Initializer
 	    }
 	    final ILogEventListener finalLogListener = logListener;
 
-	    StartupUtils.setLocale();
-	    	
 	    new SWTNetworkSelection();
 	    
 	    new AuthenticatorWindow();
@@ -225,31 +223,30 @@ Initializer
 	    			if ( comp instanceof GlobalManager ){
 	    				
 	    				gm	= (GlobalManager)comp;
-
-		    		    new UserAlerts(gm);
-		    		    
-		    		    nextTask();	    
-		    		    reportCurrentTaskByKey("splash.initializeGui");
-		    		    
-		    		    new Colors();
-		    		    
-		    		    Cursors.init();
-		    		    
-		    		    new MainWindow(core,Initializer.this,logEvents);
-		    		    if (finalLogListener != null)
-		    		    	Logger.removeListener(finalLogListener);
-		    		    
-	    				nextTask();	    
-	    				reportCurrentTask(MessageText.getString("splash.initializePlugins"));    				
 	    			}
 	    		}
 	    		
 	    		public void
 				started(
 					AzureusCore		core )
-	    		{	    		      		    	    
-	    		    nextTask();
-	    		    
+	    		{	    		      	
+	    			if (gm == null)
+	    				return;
+
+    		    new UserAlerts(gm);
+    		    
+    		    nextTask();	    
+    		    reportCurrentTaskByKey("splash.initializeGui");
+    		    
+    		    new Colors();
+    		    
+    		    Cursors.init();
+    		    
+    		    new MainWindow(core,Initializer.this,logEvents);
+    		    if (finalLogListener != null)
+    		    	Logger.removeListener(finalLogListener);
+
+    		    nextTask();
 	    		    reportCurrentTaskByKey( "splash.openViews");
 
 	    		    SWTUpdateChecker.initialize();
@@ -298,6 +295,9 @@ Initializer
 	    		}
 			});
 	    
+			nextTask();	    
+			reportCurrentTask(MessageText.getString("splash.initializePlugins"));
+
 	    azureus_core.start();
 
   	}catch( Throwable e ){
@@ -327,6 +327,7 @@ Initializer
     }
   }
   
+  // AzureusCoreListener
   public void reportCurrentTask(String currentTaskString) {
      try{
      	listeners_mon.enter();
@@ -342,6 +343,7 @@ Initializer
     }
   }
   
+  // AzureusCoreListener
   public void reportPercent(int percent) {
     try{
     	listeners_mon.enter();

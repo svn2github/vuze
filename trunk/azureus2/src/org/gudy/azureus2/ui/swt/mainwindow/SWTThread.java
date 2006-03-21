@@ -104,8 +104,14 @@ public class SWTThread {
         }
     }
     
-    runner = new Thread( new AERunnable(){ public void runSupport(){app.run();}},"Main Thread");
-    runner.start();   
+    if (app != null) {
+			runner = new Thread(new AERunnable() {
+				public void runSupport() {
+					app.run();
+				}
+			}, "Main Thread");
+			runner.start();
+		}
     
     
     if(!sleak) {
