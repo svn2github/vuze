@@ -35,10 +35,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -67,6 +64,8 @@ public class MessageSlideShell {
 	private static boolean USE_SWT32_BG_SET = !(Constants.isLinux && SWT
 			.getVersion() <= 3224);
 
+	private static final boolean DEBUG = false;
+
 	private final static String REGEX_URLHTML = "<A HREF=\"(.+?)\">(.+?)</A>";
 
 	/** Slide until there's this much gap between shell and edge of screen */
@@ -81,24 +80,28 @@ public class MessageSlideShell {
 	/** Maximimum height of popup.  If text is too long, the full text will be
 	 * put into details.
 	 */
-	private final static int SHELL_MAX_HEIGHT = 450;
+	private final static int SHELL_MAX_HEIGHT = 330;
 
 	/** Width of the details shell */
 	private final static int DETAILS_WIDTH = 550;
 
 	/** Height of the details shell */
-	private final static int DETAILS_HEIGHT = 300;
-
-	/** List of popups currently in queue.  Maintained so we can have the HideAll
-	 * and ""XX more slideys" text
-	 */
-	private final static ArrayList popupList = new ArrayList(2);
+	private final static int DETAILS_HEIGHT = 180;
 
 	/** Synchronization for popupList */
-	private final static AEMonitor popupList_mon = new AEMonitor("popupList_mon");
+	private final static AEMonitor monitor = new AEMonitor("slidey_mon");
+
+	/** List of all popups ever created */
+	private static ArrayList historyList = new ArrayList();
+
+	/** Current popup being displayed */
+	private static int currentPopupIndex = -1;
 
 	/** Shell for popup */
 	private Shell shell;
+
+	/** Composite in shell */
+	private Composite cShell;
 
 	/** popup could and closing in xx seconds label */
 	private Label lblCloseIn;
@@ -108,11 +111,10 @@ public class MessageSlideShell {
 	 */
 	private Button btnHideAll;
 
-	/** shell to start sliding in once this one starts unsliding */
-	private MessageSlideShell slideInAfter = null;
-
-	/** location to slide in next shell to */
-	private Rectangle slideInAfterEndBounds;
+	/** Button to move to next message.  Text changes from "Hide" to "Next"
+	 * appropriately.
+	 */
+	private Button btnNext;
 
 	/** paused state of auto-close delay */
 	private boolean bDelayPaused = false;
@@ -122,6 +124,9 @@ public class MessageSlideShell {
 
 	/** Text to put into details popup */
 	private String sDetails;
+
+	/** Position this popup is in the history list */
+	private int idxHistory;
 
 	/** Open a popup using resource keys for title/text
 	 * 
@@ -154,29 +159,69 @@ public class MessageSlideShell {
 	public MessageSlideShell(Display display, int iconID, String title,
 			String text, String details) {
 		try {
-			create(display, iconID, title, text, details);
+			monitor.enter();
+
+			PopupParams popupParams = new PopupParams(iconID, title, text, details);
+			historyList.add(popupParams);
+			if (currentPopupIndex < 0) {
+				create(display, popupParams, true);
+			}
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LogIDs.GUI, "Mr. Slidey Init", e));
 			disposeShell(shell);
 			Utils.disposeSWTObjects(disposeList);
+		} finally {
+			monitor.exit();
 		}
 	}
 
-	private void create(final Display display, int iconID, String title,
-			String text, String details) {
+	private MessageSlideShell(Display display, PopupParams popupParams,
+			boolean bSlide) {
+		create(display, popupParams, bSlide);
+	}
+
+	private void create(final Display display, final PopupParams popupParams,
+			boolean bSlide) {
 		GridData gridData;
 		int shellWidth;
 
-		sDetails = details;
+		if (DEBUG)
+			System.out.println("create " + (bSlide ? "SlideIn" : "") + ";"
+					+ historyList.indexOf(popupParams) + ";");
+
+		idxHistory = historyList.indexOf(popupParams);
+
+		// 2 Assertions
+		if (idxHistory < 0) {
+			System.err.println("Not in popup history list");
+			return;
+		}
+
+		if (currentPopupIndex == idxHistory) {
+			System.err.println("Trying to open already opened!! " + idxHistory);
+			return;
+		}
+
+		try {
+			monitor.enter();
+			currentPopupIndex = idxHistory;
+		} finally {
+			monitor.exit();
+		}
+
+		if (DEBUG)
+			System.out.println("set currIdx = " + idxHistory);
+
+		sDetails = popupParams.details;
 
 		// Load Images
 		// Disable BG Image on OSX
 		Image imgPopup;
-		if (Constants.isOSX && SWT.getVersion() < 3221) {
+		if (Constants.isOSX && (SWT.getVersion() < 3221 || !USE_SWT32_BG_SET)) {
 			USE_SWT32_BG_SET = false;
 			imgPopup = null;
 		} else {
-			imgPopup = ImageRepository.getImage("popup"); 
+			imgPopup = ImageRepository.getImage("popup");
 		}
 		Rectangle imgPopupBounds;
 		if (imgPopup != null) {
@@ -187,7 +232,7 @@ public class MessageSlideShell {
 			imgPopupBounds = null;
 		}
 		Image imgIcon = null;
-		switch (iconID) {
+		switch (popupParams.iconID) {
 			case SWT.ICON_ERROR:
 				imgIcon = ImageRepository.getImage("error");
 				break;
@@ -205,90 +250,10 @@ public class MessageSlideShell {
 				break;
 		}
 
-		// Create shell & widgets
-		shell = new Shell(display, SWT.ON_TOP);
-		if (USE_SWT32_BG_SET) {
-			try {
-				shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
-			} catch (NoSuchMethodError e) {
-				// Ignore
-			}
-		}
-		Utils.setShellIcon(shell);
-
-		FormLayout shellLayout = new FormLayout();
-		shell.setLayout(shellLayout);
-
-		final Composite cShell = new Composite(shell, SWT.NULL);
-		GridLayout layout = new GridLayout(2, false);
-		cShell.setLayout(layout);
-
-		Label label = new Label(cShell, SWT.NONE);
-		label.setImage(imgIcon);
-		label.setLayoutData(new GridData());
-
-		label = new Label(cShell, SWT.WRAP);
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		label.setLayoutData(gridData);
-		label.setText(title);
-		FontData[] fontData = label.getFont().getFontData();
-		fontData[0].setStyle(SWT.BOLD);
-		fontData[0].setHeight((int) (fontData[0].getHeight() * 1.5));
-		Font boldFont = new Font(display, fontData);
-		disposeList.add(boldFont);
-		label.setFont(boldFont);
-
-		try {
-			Link linkLabel = new Link(cShell, SWT.WRAP);
-			gridData = new GridData(GridData.FILL_BOTH);
-			gridData.horizontalSpan = 2;
-			linkLabel.setLayoutData(gridData);
-			linkLabel.setText(text);
-			linkLabel.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					if (e.text.endsWith(".torrent"))
-						TorrentOpener.openTorrent(e.text);
-					else
-						Program.launch(e.text);
-				}
-			});
-
-			Matcher matcher = Pattern
-					.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(text);
-			String tooltip = null;
-			while (matcher.find()) {
-				if (tooltip == null)
-					tooltip = "";
-				else
-					tooltip += "\n";
-				tooltip += matcher.group(2) + ": " + matcher.group(1);
-			}
-			linkLabel.setToolTipText(tooltip);
-		} catch (Throwable t) {
-			// 3.0
-			Label linkLabel = new Label(cShell, SWT.WRAP);
-			gridData = new GridData(GridData.FILL_BOTH);
-			gridData.horizontalSpan = 2;
-			linkLabel.setLayoutData(gridData);
-
-			//<a href="http://atorre.s">test</A> and <a href="http://atorre.s">test2</A>
-
-			text = Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
-					text).replaceAll("$2 ($1)");
-
-			if (sDetails == null) {
-				sDetails = text;
-			} else {
-				sDetails = text + "\n---------\n" + sDetails;
-			}
-
-			linkLabel.setText(text);
-		}
-
 		// if there's a link, or the info is non-information,
 		// disable timer and mouse watching
-		bDelayPaused = TorrentOpener.parseTextForURL(text) != null
-				|| iconID != SWT.ICON_INFORMATION;
+		bDelayPaused = UrlUtils.parseTextForURL(popupParams.text) != null
+				|| popupParams.iconID != SWT.ICON_INFORMATION || !bSlide;
 		// Pause the auto-close delay when mouse is over slidey
 		// This will be applies to every control
 		final MouseTrackAdapter mouseAdapter = bDelayPaused ? null
@@ -302,52 +267,52 @@ public class MessageSlideShell {
 					}
 				};
 
-		lblCloseIn = new Label(cShell, SWT.TRAIL);
-		// Ensure computeSize computes for 2 lined label
-		if (!bDelayPaused)
-			lblCloseIn.setText("\n");
-		gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-		gridData.horizontalSpan = 2;
-		lblCloseIn.setLayoutData(gridData);
-
-		final Composite cButtons = new Composite(cShell, SWT.NULL);
-		RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
-		rowLayout.marginBottom = 0;
-		rowLayout.marginLeft = 0;
-		rowLayout.marginRight = 0;
-		rowLayout.marginTop = 0;
-		cButtons.setLayout(rowLayout);
-		gridData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER);
-		gridData.horizontalSpan = 2;
-		cButtons.setLayoutData(gridData);
-
-		btnHideAll = new Button(cButtons, SWT.PUSH);
-		Messages.setLanguageText(btnHideAll, "popup.error.hideall");
-		btnHideAll.setVisible(false);
-		btnHideAll.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event arg0) {
-				cButtons.setEnabled(false);
-				try {
-					popupList_mon.enter();
-
-					MessageSlideShell[] slidies = (MessageSlideShell[]) popupList
-							.toArray(new MessageSlideShell[popupList.size()]);
-					for (int i = 0; i < slidies.length; i++) {
-						slidies[i].shell.dispose();
-					}
-
-					popupList.clear();
-
-				} catch (Exception e) {
-					Logger.log(new LogEvent(LogIDs.GUI, "Mr. Slidey HideAll", e));
-				} finally {
-					popupList_mon.exit();
-				}
+		// Create shell & widgets
+		shell = new Shell(display, SWT.ON_TOP);
+		if (USE_SWT32_BG_SET) {
+			try {
+				shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
+			} catch (NoSuchMethodError e) {
+				// Ignore
 			}
-		});
+		}
+		Utils.setShellIcon(shell);
+		shell.setText(popupParams.title);
 
-		final Button btnDetails = new Button(cButtons, SWT.TOGGLE);
+		FormLayout shellLayout = new FormLayout();
+		shell.setLayout(shellLayout);
+
+		cShell = new Composite(shell, SWT.NULL);
+		GridLayout layout = new GridLayout(3, false);
+		cShell.setLayout(layout);
+
+		FormData formData = new FormData();
+		formData.left = new FormAttachment(0, 0);
+		formData.right = new FormAttachment(100, 0);
+		cShell.setLayoutData(formData);
+
+		Label lblIcon = new Label(cShell, SWT.NONE);
+		lblIcon.setImage(imgIcon);
+		lblIcon.setLayoutData(new GridData());
+
+		Label lblTitle = new Label(cShell, SWT.getVersion() < 3100 ? SWT.NONE
+				: SWT.WRAP);
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		if (SWT.getVersion() < 3100)
+			gridData.widthHint = 140;
+		lblTitle.setLayoutData(gridData);
+		lblTitle.setText(popupParams.title);
+		FontData[] fontData = lblTitle.getFont().getFontData();
+		fontData[0].setStyle(SWT.BOLD);
+		fontData[0].setHeight((int) (fontData[0].getHeight() * 1.5));
+		Font boldFont = new Font(display, fontData);
+		disposeList.add(boldFont);
+		lblTitle.setFont(boldFont);
+
+		final Button btnDetails = new Button(cShell, SWT.TOGGLE);
 		Messages.setLanguageText(btnDetails, "popup.error.details");
+		gridData = new GridData();
+		btnDetails.setLayoutData(gridData);
 		btnDetails.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				try {
@@ -392,12 +357,120 @@ public class MessageSlideShell {
 			}
 		});
 
-		final Button btnHide = new Button(cButtons, SWT.PUSH);
-		Messages.setLanguageText(btnHide, "popup.error.hide");
-		btnHide.addListener(SWT.Selection, new Listener() {
+		try {
+			Link linkLabel = new Link(cShell, SWT.WRAP);
+			gridData = new GridData(GridData.FILL_BOTH);
+			gridData.horizontalSpan = 3;
+			linkLabel.setLayoutData(gridData);
+			linkLabel.setText(popupParams.text);
+			linkLabel.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					if (e.text.endsWith(".torrent"))
+						TorrentOpener.openTorrent(e.text);
+					else
+						Program.launch(e.text);
+				}
+			});
+
+			Matcher matcher = Pattern
+					.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
+							popupParams.text);
+			String tooltip = null;
+			while (matcher.find()) {
+				if (tooltip == null)
+					tooltip = "";
+				else
+					tooltip += "\n";
+				tooltip += matcher.group(2) + ": " + matcher.group(1);
+			}
+			linkLabel.setToolTipText(tooltip);
+		} catch (Throwable t) {
+			// 3.0
+			Label linkLabel = new Label(cShell, SWT.WRAP);
+			gridData = new GridData(GridData.FILL_BOTH);
+			gridData.horizontalSpan = 3;
+			linkLabel.setLayoutData(gridData);
+
+			//<a href="http://atorre.s">test</A> and <a href="http://atorre.s">test2</A>
+
+			popupParams.text = Pattern.compile(REGEX_URLHTML,
+					Pattern.CASE_INSENSITIVE).matcher(popupParams.text).replaceAll(
+					"$2 ($1)");
+
+			if (sDetails == null) {
+				sDetails = popupParams.text;
+			} else {
+				sDetails = popupParams.text + "\n---------\n" + sDetails;
+			}
+
+			linkLabel.setText(popupParams.text);
+		}
+
+		lblCloseIn = new Label(cShell, SWT.TRAIL);
+		// Ensure computeSize computes for 2 lined label
+		if (!bDelayPaused)
+			lblCloseIn.setText("\n");
+		gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+		gridData.horizontalSpan = 3;
+		lblCloseIn.setLayoutData(gridData);
+
+		final Composite cButtons = new Composite(cShell, SWT.NULL);
+		GridLayout gridLayout = new GridLayout();
+		gridLayout.marginHeight = 0;
+		gridLayout.marginWidth = 0;
+		gridLayout.verticalSpacing = 0;
+		if (Constants.isOSX)
+			gridLayout.horizontalSpacing = 0;
+		gridLayout.numColumns = (idxHistory > 0) ? 3 : 2;
+		cButtons.setLayout(gridLayout);
+		gridData = new GridData(GridData.HORIZONTAL_ALIGN_END
+				| GridData.VERTICAL_ALIGN_CENTER);
+		gridData.horizontalSpan = 3;
+		cButtons.setLayoutData(gridData);
+
+		btnHideAll = new Button(cButtons, SWT.PUSH);
+		Messages.setLanguageText(btnHideAll, "popup.error.hideall");
+		btnHideAll.setVisible(false);
+		btnHideAll.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				cButtons.setEnabled(false);
+
 				shell.dispose();
+			}
+		});
+
+		if (idxHistory > 0) {
+			final Button btnPrev = new Button(cButtons, SWT.PUSH);
+			btnPrev.setText(MessageText.getString("popup.previous", new String[] { ""
+					+ idxHistory }));
+			btnPrev.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event arg0) {
+					disposeShell(shell);
+					int idx = historyList.indexOf(popupParams) - 1;
+					if (idx >= 0) {
+						PopupParams item = (PopupParams) historyList.get(idx);
+						showPopup(display, item, false);
+						disposeShell(shell);
+					}
+				}
+			});
+		}
+
+		btnNext = new Button(cButtons, SWT.PUSH);
+		int numAfter = historyList.size() - idxHistory - 1;
+		setButtonNextText(numAfter);
+
+		btnNext.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event arg0) {
+				if (DEBUG)
+					System.out.println("Next Pressed");
+
+				if (idxHistory + 1 < historyList.size()) {
+					showPopup(display, (PopupParams) historyList.get(idxHistory + 1),
+							false);
+				}
+
+				disposeShell(shell);
 			}
 		});
 
@@ -409,9 +482,9 @@ public class MessageSlideShell {
 		else if (bestSize.y > SHELL_MAX_HEIGHT) {
 			bestSize.y = SHELL_MAX_HEIGHT;
 			if (sDetails == null) {
-				sDetails = text;
+				sDetails = popupParams.text;
 			} else {
-				sDetails = text + "\n===============\n" + sDetails;
+				sDetails = popupParams.text + "\n===============\n" + sDetails;
 			}
 		}
 
@@ -460,7 +533,7 @@ public class MessageSlideShell {
 					boolean alreadyPainting = false;
 
 					public void paintControl(PaintEvent e) {
-						if (alreadyPainting) {
+						if (alreadyPainting || e.width <= 0 || e.height <= 0) {
 							return;
 						}
 
@@ -511,13 +584,18 @@ public class MessageSlideShell {
 
 		Rectangle bounds;
 		try {
-			bounds = MainWindow.getWindow().getShell().getMonitor().getClientArea();
+			MainWindow window = MainWindow.getWindow();
+			if (window == null)
+				bounds = shell.getMonitor().getClientArea();
+			else
+				bounds = window.getShell().getMonitor().getClientArea();
 		} catch (Exception e) {
 			bounds = display.getClientArea();
 		}
 
-		final Rectangle endBounds = shell.computeTrim(bounds.width - bestSize.x,
-				bounds.height - bestSize.y, bestSize.x, bestSize.y);
+		final Rectangle endBounds = shell.computeTrim(bounds.x + bounds.width
+				- bestSize.x, bounds.y + bounds.height - bestSize.y, bestSize.x,
+				bestSize.y);
 		// bottom and right trim will be off the edge, calulate this trim
 		// and adjust it up and left (trim may not be the same size on all sides)
 		int diff = (endBounds.x + endBounds.width) - (bounds.x + bounds.width);
@@ -530,46 +608,66 @@ public class MessageSlideShell {
 
 		FormData data = new FormData(bestSize.x, bestSize.y);
 		cShell.setLayoutData(data);
+
+		btnDetails.setVisible(sDetails != null);
+		if (sDetails == null) {
+			gridData = new GridData();
+			gridData.widthHint = 0;
+			btnDetails.setLayoutData(gridData);
+		}
 		shell.layout();
 
-		btnDetails.setEnabled(sDetails != null);
-		btnHide.setFocus();
+		btnNext.setFocus();
 		shell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
-				try {
-					popupList_mon.enter();
-
-					popupList.remove(MessageSlideShell.this);
-
-				} finally {
-					popupList_mon.exit();
-				}
-
 				Utils.disposeSWTObjects(disposeList);
+
+				if (currentPopupIndex == idxHistory) {
+					if (DEBUG)
+						System.out
+								.println("Clear #" + currentPopupIndex + "/" + idxHistory);
+					try {
+						monitor.enter();
+						currentPopupIndex = -1;
+					} finally {
+						monitor.exit();
+					}
+				}
 			}
 		});
 
 		if (mouseAdapter != null)
 			addMouseTrackListener(shell, mouseAdapter);
 
-		int count = 0;
-		try {
-			popupList_mon.enter();
+		runPopup(endBounds, idxHistory, bSlide);
+	}
 
-			count = popupList.size();
-			if (count > 0) {
-				MessageSlideShell lastSlidey = (MessageSlideShell) popupList
-						.get(count - 1);
-				lastSlidey.setSlideInAfter(this, endBounds);
+	/**
+	 * @param numAfter
+	 */
+	private void setButtonNextText(int numAfter) {
+		if (numAfter <= 0)
+			Messages.setLanguageText(btnNext, "popup.error.hide");
+		else
+			Messages.setLanguageText(btnNext, "popup.next", new String[] { ""
+					+ numAfter });
+		cShell.layout(true);
+	}
+
+	/**
+	 * Show the popup with the specified parameters.
+	 * 
+	 * @param display Display to show on 
+	 * @param item popup to display.  Must already exist in historyList
+	 * @param bSlide Whether to slide in or show immediately 
+	 */
+	private void showPopup(final Display display, final PopupParams item,
+			final boolean bSlide) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				new MessageSlideShell(display, item, bSlide);
 			}
-			popupList.add(this);
-
-		} finally {
-			popupList_mon.exit();
-		}
-
-		if (count == 0)
-			startSliding(endBounds);
+		});
 	}
 
 	/**
@@ -642,30 +740,49 @@ public class MessageSlideShell {
 	 * returns immediately
 	 * 
 	 * @param endBounds end location and size wanted
+	 * @param idx Index in historyList of popup (Used to calculate # prev, next)
+	 * @param bSlide Whether to slide in, or show immediately
 	 */
-	private void startSliding(final Rectangle endBounds) {
+	private void runPopup(final Rectangle endBounds, final int idx,
+			final boolean bSlide) {
 		if (shell == null || shell.isDisposed())
 			return;
 
+		final Display display = shell.getDisplay();
+
+		if (DEBUG)
+			System.out
+					.println("runPopup " + idx + ((bSlide) ? " Slide" : " Instant"));
+
 		AEThread thread = new AEThread("Slidey", true) {
-			private final static int PAUSE = 200;
+			private final static int PAUSE = 500;
 
 			public void runSupport() {
 				if (shell == null || shell.isDisposed())
 					return;
 
-				new SlideShell(shell, SWT.UP, endBounds).run();
+				if (bSlide) {
+					new SlideShell(shell, SWT.UP, endBounds).run();
+				} else {
+					Utils.execSWTThread(new AERunnable() {
+
+						public void runSupport() {
+							shell.setBounds(endBounds);
+							shell.open();
+						}
+					});
+				}
 
 				int delayLeft = COConfigurationManager
 						.getIntParameter("Message Popup Autoclose in Seconds") * 1000;
 
 				long lastDelaySecs = 0;
-				long lastNumPopups = 0;
+				int lastNumPopups = -1;
 				while ((bDelayPaused || delayLeft > 0) && !shell.isDisposed()) {
 					int delayPausedOfs = (bDelayPaused ? 1 : 0);
 					final long delaySecs = Math.round(delayLeft / 1000.0)
 							+ delayPausedOfs;
-					final long numPopups = popupList.size();
+					final int numPopups = historyList.size();
 					if (lastDelaySecs != delaySecs || lastNumPopups != numPopups) {
 						lastDelaySecs = delaySecs;
 						lastNumPopups = numPopups;
@@ -676,27 +793,32 @@ public class MessageSlideShell {
 								if (lblCloseIn == null || lblCloseIn.isDisposed())
 									return;
 
+								lblCloseIn.setRedraw(false);
 								if (!bDelayPaused)
 									sText += MessageText.getString("popup.closing.in",
 											new String[] { String.valueOf(delaySecs) });
 
-								boolean bHasMany = numPopups > 1;
+								int numPopupsAfterUs = numPopups - idx - 1;
+								boolean bHasMany = numPopupsAfterUs > 0;
 								if (bHasMany) {
-									if (sText.length() > 0)
-										sText += "\n";
+									sText += "\n";
 									sText += MessageText.getString("popup.more.waiting",
-											new String[] { String.valueOf(numPopups - 1) });
+											new String[] { String.valueOf(numPopupsAfterUs) });
 								}
 
 								lblCloseIn.setText(sText);
 
 								if (btnHideAll.getVisible() != bHasMany) {
+									cShell.setRedraw(false);
 									btnHideAll.setVisible(bHasMany);
 									lblCloseIn.getParent().layout(true);
+									cShell.setRedraw(true);
 								}
 
+								setButtonNextText(numPopupsAfterUs);
+
 								// Need to redraw to cause a paint
-								lblCloseIn.redraw();
+								lblCloseIn.setRedraw(true);
 							}
 						});
 					}
@@ -711,27 +833,33 @@ public class MessageSlideShell {
 				}
 
 				if (this.isInterrupted()) {
+					// App closedown likely, boot out ASAP
 					disposeShell(shell);
 					return;
 				}
 
-				// start sliding in next popup
-				if (slideInAfter != null)
-					slideInAfter.startSliding(slideInAfterEndBounds);
+				// Assume that if the shell was disposed during loop, it's on purpose
+				// and that it has handled whether to show the next popup or not
+				if (shell != null && !shell.isDisposed()) {
+					if (idx + 1 < historyList.size()) {
+						showPopup(display, (PopupParams) historyList.get(idx + 1), true);
+					}
 
-				// slide out current popup
-				new SlideShell(shell, SWT.RIGHT).run();
-				
-				disposeShell(shell);
+					// slide out current popup
+					if (bSlide)
+						new SlideShell(shell, SWT.RIGHT).run();
+
+					disposeShell(shell);
+				}
 			}
 		};
 		thread.start();
 	}
-	
+
 	private void disposeShell(final Shell shell) {
 		if (shell == null || shell.isDisposed())
 			return;
-		
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				shell.dispose();
@@ -740,26 +868,14 @@ public class MessageSlideShell {
 	}
 
 	/**
-	 * Sets the slidey that will slide in when this one is closing/sliding out
-	 * 
-	 * @param slideInAfter The slideInAfter to set.
-	 * @param slideInAfterEndBounds 
-	 */
-	public void setSlideInAfter(MessageSlideShell slideInAfter,
-			Rectangle slideInAfterEndBounds) {
-		this.slideInAfter = slideInAfter;
-		this.slideInAfterEndBounds = slideInAfterEndBounds;
-	}
-
-	/**
 	 * Waits until all slideys are closed before returning to caller.
 	 */
-	public void waitUntilClosed() {
-		if (shell == null || shell.isDisposed())
+	public static void waitUntilClosed() {
+		if (currentPopupIndex < 0)
 			return;
 
-		Display display = shell.getDisplay();
-		while (!shell.isDisposed()) {
+		Display display = Display.getCurrent();
+		while (currentPopupIndex >= 0) {
 			if (!display.readAndDispatch())
 				display.sleep();
 		}
@@ -769,9 +885,9 @@ public class MessageSlideShell {
 	 * XXX This could/should be its own class 
 	 */
 	private class SlideShell {
-		private final static int STEP = 9;
+		private int STEP = 8;
 
-		private final static int PAUSE = 30;
+		private int PAUSE = 30;
 
 		private Shell shell;
 
@@ -806,10 +922,25 @@ public class MessageSlideShell {
 					if (shell == null || shell.isDisposed())
 						return;
 
-					shellBounds = new Rectangle(endBounds.x, endBounds.y
-							+ endBounds.height, endBounds.width, 0);
+					switch (SlideShell.this.direction) {
+						case SWT.UP:
+						default:
+							Rectangle displayBounds;
+							try {
+								displayBounds = shell.getMonitor().getBounds();
+							} catch (Throwable t) {
+								displayBounds = shell.getDisplay().getBounds();
+							}
+
+							shellBounds = new Rectangle(endBounds.x, displayBounds.y
+									+ displayBounds.height, endBounds.width, 0);
+							break;
+					}
 					shell.setBounds(shellBounds);
 					shell.setVisible(true);
+
+					if (DEBUG)
+						System.out.println("Slide In: " + shell.getText());
 				}
 			});
 		}
@@ -820,10 +951,16 @@ public class MessageSlideShell {
 		 * @param shell
 		 * @param direction
 		 */
-		public SlideShell(Shell shell, int direction) {
+		public SlideShell(final Shell shell, int direction) {
 			this.shell = shell;
 			this.slideIn = false;
 			this.direction = direction;
+			if (DEBUG && canContinue())
+				shell.getDisplay().syncExec(new Runnable() {
+					public void run() {
+						System.out.println("Slide Out: " + shell.getText());
+					}
+				});
 		}
 
 		private boolean canContinue() {
@@ -852,7 +989,9 @@ public class MessageSlideShell {
 		public void run() {
 
 			while (canContinue()) {
-				shell.getDisplay().asyncExec(new AERunnable() {
+				long lStartedAt = System.currentTimeMillis();
+
+				shell.getDisplay().syncExec(new AERunnable() {
 					public void runSupport() {
 						if (shell == null || shell.isDisposed()) {
 							return;
@@ -894,13 +1033,49 @@ public class MessageSlideShell {
 						}
 
 						shell.setBounds(shellBounds);
+						shell.update();
 					}
 				});
+
 				try {
-					Thread.sleep(PAUSE);
+					long lDrawTime = System.currentTimeMillis() - lStartedAt;
+					long lSleepTime = PAUSE - lDrawTime;
+					if (lSleepTime < 15) {
+						double d = (lDrawTime + 15.0) / PAUSE;
+						PAUSE *= d;
+						STEP *= d;
+						lSleepTime = 15;
+					}
+					Thread.sleep(lSleepTime);
 				} catch (Exception e) {
 				}
 			}
+		}
+	}
+
+	private class PopupParams {
+		int iconID;
+
+		String title;
+
+		String text;
+
+		String details;
+
+		long addedOn;
+
+		/**
+		 * @param iconID
+		 * @param title
+		 * @param text
+		 * @param details
+		 */
+		public PopupParams(int iconID, String title, String text, String details) {
+			this.iconID = iconID;
+			this.title = title;
+			this.text = text;
+			this.details = details;
+			addedOn = System.currentTimeMillis();
 		}
 	}
 
@@ -910,7 +1085,7 @@ public class MessageSlideShell {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Display display = new Display();
+		Display display = Display.getDefault();
 
 		ImageRepository.loadImages(display);
 
@@ -934,22 +1109,27 @@ public class MessageSlideShell {
 
 		//		MessagePopupShell shell = new MessagePopupShell(display,
 		//				MessagePopupShell.ICON_INFO, "Title", text, "Details");
-		MessageSlideShell slide = new MessageSlideShell(display,
-				SWT.ICON_INFORMATION, title, text, "Details: " + text);
 
-		new MessageSlideShell(display, SWT.ICON_INFORMATION, "ShortTitle",
-				"ShortText", "Details").waitUntilClosed();
+		new MessageSlideShell(display, SWT.ICON_INFORMATION,
+				"Simple. . . . . . . . . . . . . . . . . . .", "Simple", (String) null);
 
-		slide = new MessageSlideShell(display, SWT.ICON_INFORMATION, "ShortTitle3",
+		new MessageSlideShell(display, SWT.ICON_INFORMATION, title + "1", text,
+				"Details: " + text);
+
+		new MessageSlideShell(display, SWT.ICON_INFORMATION, "ShortTitle2",
+				"ShortText", "Details");
+		MessageSlideShell.waitUntilClosed();
+
+		new MessageSlideShell(display, SWT.ICON_INFORMATION, "ShortTitle3",
 				"ShortText", (String) null);
 		for (int x = 0; x < 10; x++)
 			text += "\n\n\n\n\n\n\n\nWow";
-		slide = new MessageSlideShell(display, SWT.ICON_INFORMATION, title, text,
+		new MessageSlideShell(display, SWT.ICON_INFORMATION, title + "4", text,
 				"Details");
 
-		slide = new MessageSlideShell(display, SWT.ICON_ERROR, title, text,
+		new MessageSlideShell(display, SWT.ICON_ERROR, title + "5", text,
 				(String) null);
 
-		slide.waitUntilClosed();
+		MessageSlideShell.waitUntilClosed();
 	}
 }
