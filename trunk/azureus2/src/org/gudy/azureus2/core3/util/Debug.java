@@ -476,4 +476,23 @@ public class Debug {
 			diag_logger.logAndOut( e );
 		}
 	}
+
+	/**
+	 * @param key
+	 * @return
+	 */
+	public static String secretFileName(String key) {
+		if (key == null)
+			return "";
+
+		final String sep = File.separator;
+		final String regex = "([\\" + sep + "][^\\" + sep + "]{0,3}+)[^\\" + sep
+				+ "]*";
+		
+		String secretName = key.replaceAll(regex, "$1");
+		int iExtensionPos = key.lastIndexOf(".");
+		if (iExtensionPos >= 0)
+			secretName += key.substring(iExtensionPos); 
+		return secretName;
+	}
 }

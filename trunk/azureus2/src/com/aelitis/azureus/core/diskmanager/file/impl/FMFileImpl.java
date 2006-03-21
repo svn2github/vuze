@@ -760,7 +760,15 @@ FMFileImpl
 	protected String
 	getString()
 	{
-		return( "can=" + canonical_path + ",link=" + linked_file + ",raf=" + raf + ",acc=" + access_mode + ",ctrl = " + file_access.getString());
+		File cPath = new File(canonical_path);
+		String sPaths;
+		if (cPath.equals(linked_file))
+			sPaths = "can/link=" + Debug.secretFileName(canonical_path);
+		else
+			sPaths = "can=" + Debug.secretFileName(canonical_path) + ",link="
+					+ Debug.secretFileName(linked_file.toString());
+		return sPaths + ",raf=" + raf + ",acc=" + access_mode + ",ctrl = "
+				+ file_access.getString();
 	}
 	
 	protected static void
@@ -799,7 +807,8 @@ FMFileImpl
 						str += (str.length()==0?"":", ") + owner.getName() + "[" + (write.booleanValue()?"write":"read")+ "/" + reason + "]";
 					}
 					
-					writer.println( key + " -> " + str );
+
+					writer.println( Debug.secretFileName(key) + " -> " + str );
 				}
 			}finally{
 				

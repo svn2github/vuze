@@ -2084,7 +2084,8 @@ public class GlobalManagerImpl
 				}catch( Throwable e ){
 				}
 				
-				writer.println( "    " + manager.getDisplayName() + "/" + hash + " (" + manager + ")");
+				writer.println("    #" + manager.getPosition() + "/"
+						+ manager.getSize() + "/" + hash + " (" + manager + ")");
 			}
 
 	    }finally{

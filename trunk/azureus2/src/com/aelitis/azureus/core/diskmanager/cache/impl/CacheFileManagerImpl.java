@@ -924,7 +924,28 @@ CacheFileManagerImpl
 						
 						files.add( file );
 						
-						writer.println( "File:" + file.getName() + ", access = " + file.getAccessMode());
+						TOTorrentFile torrentFile = file.getTorrentFile();
+						String fileLength = "";
+						try {
+							fileLength = "" + file.getLength();
+						} catch (Exception e) {
+							if (torrentFile != null)
+								fileLength = "" + torrentFile.getLength();
+						}
+						String	hash = "<unknown>";
+						
+						try{
+							if (torrentFile != null)
+								hash = ByteFormatter.encodeString( torrentFile.getTorrent().getHash());
+							
+						}catch( Throwable e ){
+						}
+						
+						String name = file.getName();
+
+						writer.println("File: " + Debug.secretFileName(name) + ", size "
+								+ fileLength + ", torrent " + hash + ", access = "
+								+ file.getAccessMode());
 					}
 				}
 				

@@ -2580,4 +2580,8 @@ DownloadManagerImpl
 	public Object[] getQueryableInterfaces() {
 		return new Object[] { tracker_client };
 	}
+	
+	public String toString() {
+		return "DownloadManagerImpl@" + Integer.toHexString(hashCode());
+	}
 }
