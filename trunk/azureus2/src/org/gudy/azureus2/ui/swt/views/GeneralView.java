@@ -39,18 +39,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
@@ -67,6 +56,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.*;
 import org.gudy.azureus2.ui.swt.components.*;
 
@@ -84,7 +74,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   int loopFactor;
 
   Composite genComposite;
-  Group gFile;
+  Composite gFile;
   Canvas piecesImage;
   Image pImage;
   BufferedLabel piecesPercent;
@@ -119,7 +109,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   
   BufferedLabel pieceNumber;
   BufferedLabel pieceSize;
-  BufferedLabel comment;
+  Control lblComment;
   BufferedLabel creation_date;
   BufferedLabel hashFails;
   BufferedLabel shareRatio;
@@ -156,15 +146,21 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     genComposite = new Canvas(composite, SWT.NULL);
     GridLayout genLayout = new GridLayout();
     genLayout.marginHeight = 0;
+    try {
+    	genLayout.marginTop = 5;
+    } catch (NoSuchFieldError e) {
+    	// pre 3.1
+    }
     genLayout.marginWidth = 2;
     genLayout.numColumns = 1;
     genComposite.setLayout(genLayout);
 
-    gFile = new Group(genComposite, SWT.SHADOW_OUT);
+    gFile = new Composite(genComposite, SWT.SHADOW_OUT);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
     gFile.setLayoutData(gridData);
     GridLayout fileLayout = new GridLayout();
-    fileLayout.marginHeight = 2;
+    fileLayout.marginHeight = 0;
+    fileLayout.marginWidth = 10;
     fileLayout.numColumns = 3;
     gFile.setLayout(fileLayout);
 
@@ -252,165 +248,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     Messages.setLanguageText(label, "GeneralView.label.uploadspeed"); //$NON-NLS-1$
     uploadSpeed = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
     uploadSpeed.setLayoutData(gridData);
-    
-    	// editable bit
-    
-    Composite culdl = new Composite(gTransfer, SWT.NULL);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 2;
-    gridData.verticalSpan = 4;
-    culdl.setLayoutData(gridData);
-
-    GridLayout layoutInfo = new GridLayout();
-    layoutInfo.numColumns = 2;
-    layoutInfo.horizontalSpacing = 2;
-    
-    layoutInfo.marginHeight = 0;
-    layoutInfo.marginWidth = 0;
-    culdl.setLayout(layoutInfo);
-    
-    /* max uploads moved to per-torrent options
-    label = new Label(culdl, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.maxuploads"); 
-    maxUploads = new Text(culdl, SWT.BORDER);
-    gridData = new GridData();
-    if( Constants.isLinux || Constants.isSolaris )  gridData.widthHint = 40;
-    else gridData.widthHint = 35;
-    
-    maxUploads.setLayoutData(gridData);
-    maxUploads.setText(String.valueOf(manager.getStats().getMaxUploads()));
-    maxUploads.addListener(SWT.Verify, new Listener() {
-      public void handleEvent(Event e) {
-        String text = e.text;
-        char[] chars = new char[text.length()];
-        text.getChars(0, chars.length, chars, 0);
-        for (int i = 0; i < chars.length; i++) {
-          if (!('0' <= chars[i] && chars[i] <= '9')) {
-            e.doit = false;
-            return;
-          }
-        }
-      }
-    });
-
-    maxUploads.addListener(SWT.Modify, new Listener() {
-      public void handleEvent(Event event) {
-        try {
-          int value = Integer.parseInt(maxUploads.getText());
-          if (value < 2)
-            value = 2;
-          manager.getStats().setMaxUploads(value);
-        }
-        catch (Exception e) {}
-      }
-    });
-
-    maxUploads.addListener(SWT.FocusOut, new Listener() {
-      public void handleEvent(Event event) {
-        try {
-          int value = Integer.parseInt(maxUploads.getText());
-          if (value < 2) {
-            maxUploads.setText("2");
-          }
-        }
-        catch (Exception e) {}
-      }
-    });
-	*/
-    
-    /*
-    //Disabled for release. Need to convert from user-specified units to
-    //KB/s before restoring the following line
-    //String k_unit = DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)
-    String k_unit = DisplayFormatters.getRateUnitBase10(DisplayFormatters.UNIT_KB);
-
-    // ul speed
-  
-    label = new Label(culdl, SWT.LEFT);
-    label.setText( MessageText.getString( "GeneralView.label.maxuploadspeed" ) + " " + k_unit +" :");
-    Messages.setLanguageText(label, "GeneralView.label.maxuploadspeed.tooltip", true);
-     
-    maxULSpeed = new Text(culdl, SWT.BORDER);
-    gridData = new GridData();
-    
-    if( Constants.isLinux || Constants.isSolaris )  gridData.widthHint = 40;
-    else gridData.widthHint = 35;
-    
-    maxULSpeed.setLayoutData(gridData);
-    maxULSpeed.setText(String.valueOf(manager.getStats().getUploadRateLimitBytesPerSecond() / 1024));
-    maxULSpeed.addListener(SWT.Verify, new Listener() {
-      public void handleEvent(Event e) {
-        String text = e.text;
-        char[] chars = new char[text.length()];
-        text.getChars(0, chars.length, chars, 0);
-        for (int i = 0; i < chars.length; i++) {
-          if (!('0' <= chars[i] && chars[i] <= '9')) {
-            e.doit = false;
-            return;
-          }
-        }
-      }
-    });
-
-    Listener maxULSpeedListener = new Listener() {
-      public void handleEvent(Event event) {
-        try {
-          int value = Integer.parseInt(maxULSpeed.getText());
-   
-          manager.getStats().setUploadRateLimitBytesPerSecond(value * 1024);
-        }
-        catch (Exception e) {}
-      }
-    };
-    
-    maxULSpeed.addListener(SWT.Modify, maxULSpeedListener);
-    maxULSpeed.addListener(SWT.FocusOut, maxULSpeedListener);
-
-    
-    
-//  dl speed
-
-      label = new Label(culdl, SWT.LEFT);
-      label.setText( MessageText.getString( "GeneralView.label.maxdownloadspeed" ) + " " + k_unit +" :");
-      Messages.setLanguageText(label, "GeneralView.label.maxdownloadspeed.tooltip", true);
-      
-      maxDLSpeed = new Text(culdl, SWT.BORDER);
-      gridData = new GridData();
-
-      if( Constants.isLinux || Constants.isSolaris )  gridData.widthHint = 40;
-      else gridData.widthHint = 35;
-      
-      maxDLSpeed.setLayoutData(gridData);
-      maxDLSpeed.setText(String.valueOf( manager.getStats().getDownloadRateLimitBytesPerSecond() /1024 ));
-      maxDLSpeed.addListener(SWT.Verify, new Listener() {
-        public void handleEvent(Event e) {
-          String text = e.text;
-          char[] chars = new char[text.length()];
-          text.getChars(0, chars.length, chars, 0);
-          for (int i = 0; i < chars.length; i++) {
-            if (!('0' <= chars[i] && chars[i] <= '9')) {
-              e.doit = false;
-              return;
-            }
-          }
-        }
-      });
-
-      Listener maxDLSpeedListener = new Listener() {
-        public void handleEvent(Event event) {
-          try {
-            int value = Integer.parseInt(maxDLSpeed.getText());
-     
-            manager.getStats().setDownloadRateLimitBytesPerSecond( value *1024 );
-          }
-          catch (Exception e) {}
-        }
-      };
-      
-      maxDLSpeed.addListener(SWT.Modify, maxDLSpeedListener);
-      maxDLSpeed.addListener(SWT.FocusOut, maxDLSpeedListener);
-    */
     
     	// blah
     
@@ -424,6 +263,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     Messages.setLanguageText(label, "GeneralView.label.peers"); 
     peers = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
     peers.setLayoutData(gridData);
 
     
@@ -438,15 +278,18 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     Messages.setLanguageText(label, "GeneralView.label.swarm_average_completion"); 
     ave_completion = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
     ave_completion.setLayoutData(gridData);
     
+    
+    ////////////////////////
 
     gInfo = new Group(genComposite, SWT.SHADOW_OUT);
     Messages.setLanguageText(gInfo, "GeneralView.section.info"); 
     gridData = new GridData(GridData.FILL_BOTH);
     gInfo.setLayoutData(gridData);
 
-    layoutInfo = new GridLayout();
+    GridLayout layoutInfo = new GridLayout();
     layoutInfo.numColumns = 4;
     gInfo.setLayout(layoutInfo);
 
@@ -709,10 +552,19 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     label.setLayoutData(gridData);
     
     Messages.setLanguageText(label, "GeneralView.label.comment"); //$NON-NLS-1$
-    comment = new BufferedLabel(gInfo, SWT.LEFT | SWT.WRAP);
+    try {
+    	lblComment = new Link(gInfo, SWT.LEFT | SWT.WRAP);
+    	((Link)lblComment).addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					Program.launch(e.text);
+				}
+			});
+    } catch (NoSuchMethodError e) {
+    	lblComment = new Label(gInfo, SWT.LEFT | SWT.WRAP);
+    }
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 3;
-    comment.setLayoutData(gridData);
+    lblComment.setLayoutData(gridData);
  
     
     piecesImage.addListener(SWT.Paint, new Listener() {
@@ -1296,64 +1148,48 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     final int _pieceNumber,
     final String _pieceLength,
     final String _comment,
-	final String _creation_date ) {
-    if (display == null || display.isDisposed())
-      return;
-    Utils.execSWTThread(new AERunnable(){
-      public void runSupport() {
-		fileName.setText(_fileName + (_encoding==null?"":(" [" + _encoding + "]")));
-		fileSize.setText( _fileSize);
-		saveIn.setText( _path);
-		hash.setText( _hash);
-		pieceNumber.setText( "" + _pieceNumber); //$NON-NLS-1$
-		pieceSize.setText( _pieceLength);
+	final String _creation_date) {
+		if (display == null || display.isDisposed())
+			return;
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				fileName.setText(_fileName
+						+ (_encoding == null ? "" : (" [" + _encoding + "]")));
+				fileSize.setText(_fileSize);
+				saveIn.setText(_path);
+				hash.setText(_hash);
+				pieceNumber.setText("" + _pieceNumber); //$NON-NLS-1$
+				pieceSize.setText(_pieceLength);
 
-		String	old_comment = comment.getText();
-	
-		comment.setText( _comment);
-	
-		if ( _comment != null && !old_comment.equals( _comment )){
+				String sOldComment = (String) lblComment.getData("comment");
 
-			String	lc = _comment.toLowerCase();
-			
-			final int	http_pos = lc.indexOf( "http" );
-			
-			if ( http_pos != -1 ){
-				
-				comment.setCursor(Cursors.handCursor);
-				
-				comment.setForeground(Colors.blue);
-				 
-				comment.addMouseListener(new MouseAdapter() {
-					public void 
-					mouseDown(
-						MouseEvent event) 
-					{        
-			          if(event.button == 1) {
-			          	
-			  	        String url = comment.getText().substring( http_pos );
-			  	        
-			  	        for (int i=0;i<url.length();i++){
-			  	        	
-			  	        	if ( Character.isWhitespace( url.charAt(i))){
-			  	        		
-			  	        		url = url.substring( 0, i );
-			  	        		
-			  	        		break;
-			  	        	}
-			  	        }
-			  	    
-			  	        Program.launch(url); 
-			          }
+				if (!_comment.equals(sOldComment)) {
+					if (lblComment instanceof Label) {
+						((Label) lblComment).setText(_comment);
+					} else if (lblComment instanceof Link) {
+						String sNewComment;
+
+						sNewComment = _comment.replaceAll(
+								"([^=\">][\\s]+|^)(http://[\\S]+)", "$1<A HREF=\"$2\">$2</A>");
+						// need quotes around url
+						sNewComment = sNewComment.replaceAll("(href=)(htt[^\\s>]+)",
+								"$1\"$2\"");
+
+						// Examples:
+						// http://cowbow.com/fsdjl&sdfkj=34.sk9391 moo
+						// <A HREF=http://cowbow.com/fsdjl&sdfkj=34.sk9391>moo</a>
+						// <A HREF="http://cowbow.com/fsdjl&sdfkj=34.sk9391">moo</a>
+						// <A HREF="http://cowbow.com/fsdjl&sdfkj=34.sk9391">http://moo.com</a>
+
+						((Link) lblComment).setText(sNewComment);
 					}
-				});
-			}
-		}
 
-		creation_date.setText( _creation_date );
-      }
-    });
-  }
+				}
+
+				creation_date.setText(_creation_date);
+			}
+		});
+	}
  
 
   public void parameterChanged(String parameterName) {
