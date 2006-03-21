@@ -95,19 +95,22 @@ StartServer
 		    		}
 				});
         
-	    Thread t = 
-	    	new AEThread("Start Server")
-			{
-	    		public void 
-	    		runSupport()
+        if ( socket != null ){
+        	
+		    Thread t = 
+		    	new AEThread("Start Server")
 				{
-	    			pollForConnectionsSupport( azureus_core );
-	    		}
-			};
-	    
-		t.setDaemon(true);
-			
-		t.start();     
+		    		public void 
+		    		runSupport()
+					{
+		    			pollForConnectionsSupport( azureus_core );
+		    		}
+				};
+		    
+			t.setDaemon(true);
+				
+			t.start(); 
+        }
 	}
     
   private void 
