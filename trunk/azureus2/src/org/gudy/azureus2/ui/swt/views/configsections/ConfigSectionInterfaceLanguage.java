@@ -38,7 +38,6 @@ import org.gudy.azureus2.ui.swt.config.Parameter;
 import org.gudy.azureus2.ui.swt.config.ParameterChangeListener;
 import org.gudy.azureus2.ui.swt.config.StringListParameter;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.StartupUtils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 /**
@@ -108,7 +107,7 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
     
     locale_param.addChangeListener( new ParameterChangeListener() {
       public void parameterChanged( Parameter p, boolean caused_internally ) {
-        StartupUtils.setLocale();
+				MessageText.loadBundle();
         DisplayFormatters.setUnits();
         DisplayFormatters.loadMessages();
         MainWindow.getWindow().getMenu().refreshLanguage();
