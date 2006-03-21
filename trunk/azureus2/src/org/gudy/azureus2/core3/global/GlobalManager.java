@@ -327,4 +327,18 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 * @return ConnectionManager.NAT_*
 	 */
 	public int getNATStatus();
+	
+		/**
+		 * Any adapters added will get a chance to see/set the initial state of downloads as they are
+		 * added
+		 * @param adapter
+		 */
+	
+	public void
+	addDownloadManagerInitialisationAdapter(
+		DownloadManagerInitialisationAdapter	adapter );
+	
+	public void
+	removeDownloadManagerInitialisationAdapter(
+		DownloadManagerInitialisationAdapter	adapter );
 }

@@ -1,5 +1,5 @@
 /*
- * Created on 15-Mar-2006
+ * Created on 21-Mar-2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -20,69 +20,19 @@
  *
  */
 
-package com.aelitis.azureus.core.util;
+package org.gudy.azureus2.plugins.download;
 
-import java.util.*;
 
-public class 
-CopyOnWriteList 
+public interface 
+DownloadWillBeAddedListener 
 {
-	private volatile List	list = new ArrayList();
-	private volatile int	version;
+		/**
+		 * this will be called early during download initialisation and allows the initial
+		 * file state to be set before allocation occurs (for example)
+		 * @param the file initialised
+		 */
 	
 	public void
-	add(
-		Object	obj )
-	{
-		synchronized( list ){
-			
-			List	new_list = new ArrayList( list );
-			
-			new_list.add( obj );
-		
-			list	= new_list;
-			
-			version++;
-		}
-	}
-	
-	public void
-	remove(
-		Object	obj )
-	{
-		synchronized( list ){
-			
-			List	new_list = new ArrayList( list );
-			
-			new_list.remove( obj );
-		
-			list	= new_list;
-			
-			version++;
-		}
-	}
-	
-	public Iterator
-	iterator()
-	{
-		return( list.iterator());
-	}
-	
-	public List
-	getList()
-	{
-		return( list );
-	}
-	
-	public int
-	size()
-	{
-		return( list.size());
-	}
-	
-	public int
-	getVersion()
-	{
-		return( version );
-	}
+	initialised(
+		Download				download );
 }

@@ -383,4 +383,18 @@ RPDownloadManager
 	{
 		notSupported();
 	}	
+	
+	public void
+	addDownloadWillBeAddedListener(
+		DownloadWillBeAddedListener		listener )
+	{
+		notSupported();
+	}
+	
+	public void
+	removeDownloadWillBeAddedListener(
+		DownloadWillBeAddedListener		listener )
+	{
+		notSupported();
+	}
 }

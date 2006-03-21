@@ -394,17 +394,12 @@ DownloadManagerImpl
 
 		if ( torrent != null && _initialisation_adapter != null ){
 			
-			DiskManagerFileInfo[]	file_info = getDiskManagerFileInfo();
-			
-			for (int i=0;i<file_info.length;i++){
-			
-				try{
-					_initialisation_adapter.fileInfoInitialised( file_info[i] );
+			try{
+				_initialisation_adapter.initialised( this );
+				
+			}catch( Throwable e ){
 					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
+				Debug.printStackTrace(e);
 			}
 		}
 	}

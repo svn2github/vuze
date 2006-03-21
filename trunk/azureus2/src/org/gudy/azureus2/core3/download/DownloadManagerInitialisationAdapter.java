@@ -22,12 +22,10 @@
 
 package org.gudy.azureus2.core3.download;
 
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-
 public interface 
 DownloadManagerInitialisationAdapter 
 {
 	public void
-	fileInfoInitialised(
-		DiskManagerFileInfo	info );
+	initialised(
+		DownloadManager		manager );
 }

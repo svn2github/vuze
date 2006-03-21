@@ -241,4 +241,12 @@ DownloadManager
 	public void
 	removeListener(
 		DownloadManagerListener	l );
+	
+	public void
+	addDownloadWillBeAddedListener(
+		DownloadWillBeAddedListener		listener );
+	
+	public void
+	removeDownloadWillBeAddedListener(
+		DownloadWillBeAddedListener		listener );
 }

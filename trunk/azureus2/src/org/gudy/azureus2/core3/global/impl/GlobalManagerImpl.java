@@ -44,6 +44,7 @@ import com.aelitis.azureus.core.AzureusCoreListener;
 
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
@@ -56,6 +57,7 @@ import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 
 /**
@@ -174,14 +176,18 @@ public class GlobalManagerImpl
 	private Set		old_network_interfaces;
 	private long	last_network_change;
 	
-	public class Checker extends AEThread {
+   private CopyOnWriteList	dm_adapters = new CopyOnWriteList();
+
+	
+	
+   public class Checker extends AEThread {
     int loopFactor;
     private static final int waitTime = 10*1000;
     // 5 minutes save resume data interval (default)
     private int saveResumeLoopCount = 5*60*1000 / waitTime;
     private int netCheckLoopCount	= 60*1000 / waitTime;
     private int natCheckLoopCount	= 30*1000 / waitTime;
-       
+           
     private AESemaphore	run_sem = new AESemaphore( "GM:Checker:run");
     
 
@@ -438,8 +444,10 @@ public class GlobalManagerImpl
 		int initialState, 
 		boolean persistent, 
 		boolean for_seeding,
-		DownloadManagerInitialisationAdapter adapter )
+		DownloadManagerInitialisationAdapter _adapter )
   {
+	DownloadManagerInitialisationAdapter	adapter = getDMAdapter( _adapter );
+	  
   		/* to recover the initial state for non-persistent downloads the simplest way is to do it here
   		 */
   	
@@ -2057,6 +2065,67 @@ public class GlobalManagerImpl
 		}
 	}
 	 
+	protected DownloadManagerInitialisationAdapter
+	getDMAdapter(
+		DownloadManagerInitialisationAdapter	adapter )
+	{
+		List	adapters = dm_adapters.getList();
+		
+		if ( adapters.size() == 0 ){
+			
+			return( adapter );	
+		}
+				
+		if ( adapter != null ){
+
+				// musn't update the copy-on-write list
+			
+			adapters = new ArrayList( adapters );
+
+			adapters.add( adapter );
+		}
+		
+		if ( adapters.size() == 1 ){
+			
+			return((DownloadManagerInitialisationAdapter)adapters.get(0));
+		}
+		
+		final List	f_adapters = adapters;
+		
+		return( new DownloadManagerInitialisationAdapter()
+				{
+					public void
+					initialised(
+						DownloadManager		manager )
+					{
+						for (int i=0;i<f_adapters.size();i++){
+							
+							try{
+								((DownloadManagerInitialisationAdapter)f_adapters.get(i)).initialised( manager );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}
+					}
+				});
+	}
+	
+	public void
+	addDownloadManagerInitialisationAdapter(
+		DownloadManagerInitialisationAdapter	adapter )
+	{
+		dm_adapters.remove( adapter );
+	}
+	
+	public void
+	removeDownloadManagerInitialisationAdapter(
+		DownloadManagerInitialisationAdapter	adapter )
+	{
+		dm_adapters.add( adapter );
+	}
+	
 	public void
 	generate(
 		IndentWriter		writer )

@@ -31,6 +31,8 @@ import java.io.File;
 import java.net.URL;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
@@ -40,6 +42,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerStats;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
+import org.gudy.azureus2.plugins.download.DownloadWillBeAddedListener;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.config.*;
@@ -51,7 +54,7 @@ import org.gudy.azureus2.core3.util.*;
 
 public class 
 DownloadManagerImpl
-	implements org.gudy.azureus2.plugins.download.DownloadManager
+	implements org.gudy.azureus2.plugins.download.DownloadManager, DownloadManagerInitialisationAdapter
 {
 	protected static DownloadManagerImpl	singleton;
 	protected static AEMonitor				class_mon	= new AEMonitor( "DownloadManager:class");
@@ -81,9 +84,11 @@ DownloadManagerImpl
 	private DownloadManagerStats	stats;
 	
 	private List			listeners		= new ArrayList();
+	private CopyOnWriteList	dwba_listeners	= new CopyOnWriteList();
 	private AEMonitor		listeners_mon	= new AEMonitor( "DownloadManager:L");
 	
 	private List			downloads		= new ArrayList();
+	private Map				pending_dls		= new HashMap();
 	private Map				download_map	= new HashMap();
 		
 	protected
@@ -126,6 +131,8 @@ DownloadManagerImpl
 							downloads.remove( dl );
 							
 							download_map.remove( dm );
+							
+							pending_dls.remove( dm );
 							
 							dl.destroy();
 						
@@ -221,7 +228,12 @@ DownloadManagerImpl
 			
 			if ( download_map.get(dm) == null ){
 	
-				dl = new DownloadImpl(dm);
+				dl = (DownloadImpl)pending_dls.remove( dm );
+				
+				if ( dl == null ){
+					
+					dl = new DownloadImpl(dm);
+				}
 				
 				downloads.add( dl );
 				
@@ -667,6 +679,76 @@ DownloadManagerImpl
 			new_listeners.remove(l);
 			
 			listeners	= new_listeners;
+			
+		}finally{
+			listeners_mon.exit();
+		}	
+	}
+	
+	public void
+	initialised(
+		DownloadManager		manager )
+	{
+		DownloadImpl	dl;
+		
+		try{
+			listeners_mon.enter();
+			
+			dl = new DownloadImpl( manager );
+			
+			pending_dls.put( manager, dl );
+			
+		}finally{
+			
+			listeners_mon.exit();
+		}
+		
+		Iterator	it = dwba_listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((DownloadWillBeAddedListener)it.next()).initialised(dl);
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public void
+	addDownloadWillBeAddedListener(
+		DownloadWillBeAddedListener		listener )
+	{
+		try{
+			listeners_mon.enter();
+			
+			dwba_listeners.add( listener );
+			
+			if ( dwba_listeners.size() == 1 ){
+				
+				global_manager.addDownloadManagerInitialisationAdapter( this );
+			}
+			
+		}finally{
+			listeners_mon.exit();
+		}	
+	}
+	
+	public void
+	removeDownloadWillBeAddedListener(
+		DownloadWillBeAddedListener		listener )
+	{
+		try{
+			listeners_mon.enter();
+			
+			dwba_listeners.remove( listener );
+			
+			if ( dwba_listeners.size() == 0 ){
+				
+				global_manager.removeDownloadManagerInitialisationAdapter( this );
+			}
 			
 		}finally{
 			listeners_mon.exit();

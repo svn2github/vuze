@@ -1708,9 +1708,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 						info.sDestDir, iStartMode, true,
 						info.iStartID == STARTMODE_SEEDING,
 						new DownloadManagerInitialisationAdapter() {
-							public void fileInfoInitialised(DiskManagerFileInfo fileInfo) {
-								int iIndex = fileInfo.getIndex();
-								if (iIndex >= 0 && iIndex < files.length
+							public void initialised(DownloadManager dm ){
+								DiskManagerFileInfo[]	fileInfos = dm.getDiskManagerFileInfo();
+								for (int iIndex=0;iIndex<fileInfos.length;iIndex++){
+								  DiskManagerFileInfo fileInfo = fileInfos[iIndex];
+								  if (iIndex >= 0 && iIndex < files.length
 										&& files[iIndex].lSize == fileInfo.getLength()) {
 
 									File fDest;
@@ -1727,6 +1729,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 											fileInfo.setStorageType(DiskManagerFileInfo.ST_COMPACT);
 										}
 									}
+								  }
 								}
 							}
 						});
