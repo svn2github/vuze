@@ -39,6 +39,7 @@ import java.util.*;
  *
  */
 public class ImageRepository {
+	private static boolean NO_IMAGES = false;
 
   private static Display display;
   private static final HashMap imagesToPath;
@@ -152,7 +153,14 @@ public class ImageRepository {
     return loadImage(ImageRepository.class.getClassLoader(),display,res,name,alpha);
   }
 
+  static Image onlyOneImage = null;
   public static Image loadImage(ClassLoader loader,Display display, String res, String name,int alpha) {
+  	if (NO_IMAGES) {
+  		if (onlyOneImage == null) {
+  			onlyOneImage = new Image(display, 1, 1);
+  		}
+  		return onlyOneImage;
+  	}
     imagesToPath.put(name,res);
     Image im = getImage(name,false);
     if(null == im) {
@@ -198,6 +206,12 @@ public class ImageRepository {
   }
 
   public static Image getImage(String name) {
+  	if (NO_IMAGES) {
+  		if (onlyOneImage == null) {
+  			onlyOneImage = new Image(display, 1, 1);
+  		}
+  		return onlyOneImage;
+  	}
     return getImage(name,true);
   }
   
