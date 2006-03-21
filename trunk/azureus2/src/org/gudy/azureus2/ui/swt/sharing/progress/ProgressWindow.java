@@ -32,6 +32,7 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.animations.Animator;
 import org.gudy.azureus2.ui.swt.animations.shell.AnimableShell;
 import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
@@ -50,7 +51,7 @@ ProgressWindow
 	implements ShareManagerListener
 {
 	private ShareManager	share_manager;
-	private progressDialog	dialog;
+	private progressDialog	dialog = null;
 	
 	private Display			display;
 	
@@ -75,8 +76,6 @@ ProgressWindow
 				return;
 			}
 		
-			dialog = new progressDialog( display );
-			
 			share_manager.addListener(this);
 			
 		}catch( ShareException e ){
@@ -303,57 +302,60 @@ ProgressWindow
 	reportProgress(
 		final int		percent_complete )
 	{
-		if (display != null && !display.isDisposed()){
-			
-			display.asyncExec(new AERunnable()
-				{
-					public void 
-					runSupport()
-					{
-						if (progress != null && !progress.isDisposed()){
-							
-								// only allow percentage updates to make the window visible
-								// if it hasn't been manually hidden 
-							
-							if ( !dialog.isShown() && !manually_hidden ){
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (progress != null && !progress.isDisposed()) {
 
-								dialog.showPanel();
-							}
-							
-							cancel_button.setEnabled( percent_complete < 100 );
-							
-							progress.setSelection(percent_complete);
+					if (dialog == null) {
+						dialog = new progressDialog(display);
+						if (dialog == null) {
+							return;
 						}
-
 					}
-				});
-		}
+
+					// only allow percentage updates to make the window visible
+					// if it hasn't been manually hidden 
+
+					if (!dialog.isShown() && !manually_hidden) {
+
+						dialog.showPanel();
+					}
+
+					cancel_button.setEnabled(percent_complete < 100);
+
+					progress.setSelection(percent_complete);
+				}
+
+			}
+		});
 	}
 	
 	public void
 	reportCurrentTask(
 		final String	task_description )
 	{
-		if (display != null && !display.isDisposed()){
-			
-			display.asyncExec(new AERunnable() 
-				{
-					public void runSupport()
-					{
-						if (tasks != null && !tasks.isDisposed()){
-														
-							dialog.showPanel();
-							
-							tasks.append(task_description + Text.DELIMITER);
-							
-							int lines = tasks.getLineCount();
-							
-							// tasks(nbLines - 2, 1, colors[_color]);
-							
-							tasks.setTopIndex(lines-1);						
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (tasks != null && !tasks.isDisposed()) {
+
+					if (dialog == null) {
+						dialog = new progressDialog(display);
+						if (dialog == null) {
+							return;
 						}
 					}
-				});
-		}	
+
+					dialog.showPanel();
+
+					tasks.append(task_description + Text.DELIMITER);
+
+					int lines = tasks.getLineCount();
+
+					// tasks(nbLines - 2, 1, colors[_color]);
+
+					tasks.setTopIndex(lines - 1);
+				}
+			}
+		});
 	}
 }
