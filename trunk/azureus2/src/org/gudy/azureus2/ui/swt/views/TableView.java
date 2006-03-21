@@ -215,7 +215,7 @@ public class TableView
 	/** TabViews */
   private CTabFolder tabFolder;
 	/** TabViews */
-  private ArrayList tabViews = new ArrayList();
+  private ArrayList tabViews = new ArrayList(1);
 
   private int lastTopIndex = 0;
   private int lastBottomIndex = -1;
@@ -284,18 +284,21 @@ public class TableView
     // XXX Adding Columns only has to be done once per TableID.  
     // Doing it more than once won't harm anything, but it's a waste.
     TableColumnManager tcManager = TableColumnManager.getInstance();
-    for (int i = 0; i < basicItems.length; i++) {
-      tcManager.addColumn(basicItems[i]);
+    if (tcManager.getTableColumnCount(sTableID) != basicItems.length) {
+	    for (int i = 0; i < basicItems.length; i++) {
+	      tcManager.addColumn(basicItems[i]);
+	    }
     }
 
     // fixup order
     tcManager.ensureIntegrety(sTableID);
-    
+
     tableColumns = tcManager.getAllTableColumnCoreAsArray(sTableID);
   }
 
   // AbstractIView::initialize
   public void initialize(Composite composite) {
+  	composite.setRedraw(false);
   	mainComposite = createSashForm(composite);
     menu = createMenu();
     table = createTable(tableComposite);
@@ -308,6 +311,7 @@ public class TableView
     // So all TableView objects of the same TableID have the same columns,
     // and column widths, etc
     TableStructureEventDispatcher.getInstance(sTableID).addListener(this);
+  	composite.setRedraw(true);
   }
 
   
@@ -809,7 +813,7 @@ public class TableView
     }
 */
 
-  	new TableTooltips(table);
+    new TableTooltips(table);
   	
   	table.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent event) {
@@ -895,7 +899,8 @@ public class TableView
         tmpColumnsOrdered[position] = tableColumns[i];
       }
     }
-    int iNewLength = table.getColumnCount() - (bSkipFirstColumn ? 1 : 0);
+    int numSWTColumns = table.getColumnCount();
+    int iNewLength = numSWTColumns - (bSkipFirstColumn ? 1 : 0);
     columnsOrdered = new TableColumnCore[iNewLength];
     System.arraycopy(tmpColumnsOrdered, 0, columnsOrdered, 0, iNewLength);
     
@@ -917,9 +922,9 @@ public class TableView
       
       int	adjusted_position = position + (bSkipFirstColumn ? 1 : 0);
       
-      if (adjusted_position >= table.getColumnCount()) {
+      if (adjusted_position >= numSWTColumns) {
 				Debug.out("Incorrect table column setup, skipping column '" + sName
-						+ "'");
+						+ "', position=" + adjusted_position + ";numCols=" + numSWTColumns);
 				continue;
 			}
       
@@ -968,7 +973,7 @@ public class TableView
 	        continue;
 	
 	      int	adjusted_position = position + (bSkipFirstColumn ? 1 : 0);
-	      if (adjusted_position >= table.getColumnCount())
+	      if (adjusted_position >= numSWTColumns)
 	      	continue;
 	      
 	      TableColumn column = table.getColumn(adjusted_position);
