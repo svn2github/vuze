@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -206,29 +207,26 @@ public class Utils {
   }
 
   public static void centreWindow(Shell shell) {
-		Rectangle displayBounds; // whole display area (including taskbar)
-		Rectangle displayClientArea; // area to center in
+		Rectangle displayArea; // area to center in
 		try {
-			displayBounds = shell.getMonitor().getBounds();
-			displayClientArea = shell.getMonitor().getClientArea();
+			displayArea = shell.getMonitor().getClientArea();
 		} catch (NoSuchMethodError e) {
-			displayBounds = shell.getDisplay().getBounds();
-			displayClientArea = shell.getDisplay().getClientArea();
+			displayArea = shell.getDisplay().getClientArea();
 		}
 
 		Rectangle shellRect = shell.getBounds();
 
-		if (shellRect.height > displayBounds.height - 50) {
-			shellRect.height = displayBounds.height - 50;
-			displayClientArea.height = displayBounds.height;
+		if (shellRect.height > displayArea.height) {
+			shellRect.height = displayArea.height;
 		}
-		if (shellRect.width > displayBounds.width - 50) {
-			shellRect.width = displayBounds.width - 50;
-			displayClientArea.width = displayBounds.width;
+		if (shellRect.width > displayArea.width - 50) {
+			shellRect.width = displayArea.width;
 		}
 
-		shellRect.x = (displayClientArea.width - shellRect.width) / 2;
-		shellRect.y = (displayClientArea.height - shellRect.height) / 2;
+		shellRect.x = displayArea.x
+				+ (displayArea.width - shellRect.width) / 2;
+		shellRect.y = displayArea.y
+				+ (displayArea.height - shellRect.height) / 2;
 
 		shell.setBounds(shellRect);
 	}
@@ -248,14 +246,13 @@ public class Utils {
       );
   }
 
-  public static DropTarget createTorrentDropTarget(Control control,
+  public static void createTorrentDropTarget(Composite composite,
 			boolean bAllowShareAdd) {
   	try {
-  		return createDropTarget(control, bAllowShareAdd, null);
+  		createDropTarget(composite, bAllowShareAdd, null);
   	} catch (Exception e) {
       Debug.out(e);
   	}
-    return null;
 	}
 
 	/**
@@ -264,71 +261,119 @@ public class Utils {
 	 *
 	 * @author Rene Leonhardt
 	 */
-	public static DropTarget createURLDropTarget(final Control control,
-			final Text url) {
+	public static void createURLDropTarget(Composite composite,
+			Text url) {
 		try {
-			return createDropTarget(control, false, url);
+			createDropTarget(composite, false, url);
 		} catch (Exception e) {
 			Debug.out(e);
 		}
-		return null;
 	}
 
-	private static DropTarget createDropTarget(final Control control,
-			final boolean bAllowShareAdd, final Text url) {
-  	DropTarget dropTarget = new DropTarget(control, DND.DROP_DEFAULT
-				| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
-
+	private static void createDropTarget(Composite composite,
+			final boolean bAllowShareAdd, final Text url,
+			DropTargetListener dropTargetListener) {
+		
+		Transfer[] transferList;
   	if (SWT.getVersion() >= 3107) {
-			dropTarget.setTransfer(new Transfer[] { HTMLTransfer.getInstance(),
+  		transferList = new Transfer[] { HTMLTransfer.getInstance(),
 					URLTransfer.getInstance(), FileTransfer.getInstance(),
-					TextTransfer.getInstance() });
+					TextTransfer.getInstance() };
 		} else {
-			dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(),
-					FileTransfer.getInstance(), TextTransfer.getInstance() });
+			transferList = new Transfer[] { URLTransfer.getInstance(),
+					FileTransfer.getInstance(), TextTransfer.getInstance() };
 		}
 
-  	dropTarget.addDropListener(new DropTargetAdapter() {
-			public void dropAccept(DropTargetEvent event) {
-				event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
-						event.currentDataType);
+		
+		final DropTarget dropTarget = new DropTarget(composite, DND.DROP_DEFAULT
+				| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
+		dropTarget.setTransfer(transferList);
+		dropTarget.addDropListener(dropTargetListener);
+		composite.addListener(SWT.Dispose, new Listener() {
+			public void handleEvent(Event event) {
+				if (dropTarget != null && !dropTarget.isDisposed())
+					dropTarget.dispose();
 			}
+		});
 
-			public void dragOver(DropTargetEvent event) {
-				// skip setting detail if user is forcing a drop type (ex. via the
-				// ctrl key), providing that the operation is valid
-				if (event.detail != DND.DROP_DEFAULT
-						&& ((event.operations & event.detail) > 0))
-					return;
-
-				if ((event.operations & DND.DROP_LINK) > 0)
-					event.detail = DND.DROP_LINK;
-				else if ((event.operations & DND.DROP_DEFAULT) > 0)
-					event.detail = DND.DROP_DEFAULT;
-				else if ((event.operations & DND.DROP_COPY) > 0)
-					event.detail = DND.DROP_COPY;
-			}
-
-			public void drop(DropTargetEvent event) {
-				if (url == null || url.isDisposed()) {
-					TorrentOpener.openDroppedTorrents(AzureusCoreImpl.getSingleton(),
-							event, bAllowShareAdd);
+		Control[] children = composite.getChildren();
+		for (int i = 0; i < children.length; i++) {
+			Control control = children[i];
+			if (!control.isDisposed()) {
+				if (control instanceof Composite) {
+					createDropTarget((Composite) control, bAllowShareAdd, url,
+							dropTargetListener);
 				} else {
-					if (event.data instanceof URLTransfer.URLType) {
-						if (((URLTransfer.URLType) event.data).linkURL != null)
-							url.setText(((URLTransfer.URLType) event.data).linkURL);
-					} else if (event.data instanceof String) {
-						String sURL = TorrentOpener.parseTextForURL((String) event.data);
-						if (sURL != null) {
-							url.setText(sURL);
+					final DropTarget dropTarget2 = new DropTarget(control,
+							DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK
+									| DND.DROP_TARGET_MOVE);
+					dropTarget2.setTransfer(transferList);
+					dropTarget2.addDropListener(dropTargetListener);
+
+					control.addListener(SWT.Dispose, new Listener() {
+						public void handleEvent(Event event) {
+							if (dropTarget2 != null && !dropTarget2.isDisposed())
+								dropTarget2.dispose();
 						}
+					});
+				}
+			}
+		}
+	}
+
+	private static void createDropTarget(Composite composite,
+			boolean bAllowShareAdd, Text url) {
+		
+		URLDropTarget target = new URLDropTarget(url, bAllowShareAdd);
+		createDropTarget(composite, bAllowShareAdd, url, target);
+  }
+	
+	private static class URLDropTarget extends DropTargetAdapter {
+		private final Text url;
+		private final boolean bAllowShareAdd;
+
+		public URLDropTarget(Text url, boolean bAllowShareAdd) {
+			this.url = url;
+			this.bAllowShareAdd = bAllowShareAdd;
+		}
+
+		public void dropAccept(DropTargetEvent event) {
+			event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
+					event.currentDataType);
+		}
+
+		public void dragOver(DropTargetEvent event) {
+			// skip setting detail if user is forcing a drop type (ex. via the
+			// ctrl key), providing that the operation is valid
+			if (event.detail != DND.DROP_DEFAULT
+					&& ((event.operations & event.detail) > 0))
+				return;
+
+			if ((event.operations & DND.DROP_LINK) > 0)
+				event.detail = DND.DROP_LINK;
+			else if ((event.operations & DND.DROP_DEFAULT) > 0)
+				event.detail = DND.DROP_DEFAULT;
+			else if ((event.operations & DND.DROP_COPY) > 0)
+				event.detail = DND.DROP_COPY;
+		}
+
+		public void drop(DropTargetEvent event) {
+			if (url == null || url.isDisposed()) {
+				TorrentOpener.openDroppedTorrents(AzureusCoreImpl.getSingleton(),
+						event, bAllowShareAdd);
+			} else {
+				if (event.data instanceof URLTransfer.URLType) {
+					if (((URLTransfer.URLType) event.data).linkURL != null)
+						url.setText(((URLTransfer.URLType) event.data).linkURL);
+				} else if (event.data instanceof String) {
+					String sURL = UrlUtils.parseTextForURL((String) event.data);
+					if (sURL != null) {
+						url.setText(sURL);
 					}
 				}
 			}
-		});
-		
-		return dropTarget;
-  }
+		}
+	}
 
   /**
    * Force label to use more vertical space if wrapped and in a GridLayout
@@ -534,12 +579,17 @@ public class Utils {
 			boolean async) {
     SWTThread swt = SWTThread.getInstance();
     
+    Display display;
     if (swt == null) {
-    	System.err.println("SWT Thread not started yet");
-    	return false;
+    	display = Display.getDefault();
+    	if (display == null) {
+      	System.err.println("SWT Thread not started yet!");
+      	return false;
+    	}
+    } else {
+      display = swt.getDisplay();
     }
     
-    Display display = swt.getDisplay();
 
   	if (display == null || display.isDisposed())
 			return false;
@@ -703,7 +753,26 @@ public class Utils {
 						values[i - 1] = 0;
 				}
 				if (i == 4) {
-					shell.setBounds(values[0], values[1], values[2], values[3]);
+					Rectangle displayClientArea;
+					try {
+						displayClientArea = shell.getMonitor().getBounds();
+					} catch (NoSuchMethodError e) {
+						displayClientArea = shell.getDisplay().getBounds();
+					}
+					
+					Rectangle shellBounds = new Rectangle(values[0], values[1],
+							values[2], values[3]);
+					if (shellBounds.x + shellBounds.width > displayClientArea.x
+							+ displayClientArea.width) {
+						shellBounds.width = displayClientArea.x + displayClientArea.width
+								- shellBounds.x - 50;
+					}
+					if (shellBounds.y + shellBounds.height > displayClientArea.y
+							+ displayClientArea.height) {
+						shellBounds.height = displayClientArea.y + displayClientArea.height
+								- shellBounds.y - 50;
+					}
+					shell.setBounds(shellBounds);
 					bDidResize = true;
 				}
 			} catch (Exception e) {
@@ -763,6 +832,17 @@ public class Utils {
 			if (event.type == SWT.Dispose)
 				saveMetrics();
 		}
+	}
+
+	public static GridData setGridData(Composite composite, int gridStyle,
+			Control ctrlBestSize, int maxHeight) {
+		GridData gridData = new GridData(gridStyle);
+		gridData.heightHint = ctrlBestSize.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+		if (gridData.heightHint > maxHeight && maxHeight > 0)
+			gridData.heightHint = maxHeight;
+		composite.setLayoutData(gridData);
+
+		return gridData;
 	}
 }
 

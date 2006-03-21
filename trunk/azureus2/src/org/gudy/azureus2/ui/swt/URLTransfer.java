@@ -31,6 +31,7 @@ import java.util.Map;
 import org.eclipse.swt.dnd.ByteArrayTransfer;
 import org.eclipse.swt.dnd.TransferData;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 
 /**
  * URL Transfer type for Drag and Drop of URLs
@@ -275,22 +276,13 @@ public class URLTransfer extends ByteArrayTransfer {
 			return false;
 		}
 
-		if (isURL(url.linkURL)) {
+		if (UrlUtils.isURL(url.linkURL)) {
 			if (DEBUG) System.out.println("Yes, type #" + transferData.type);
 			return true;
 		}
 
 		if (DEBUG) System.out.println("no, " + url.linkURL + " not URL for type #" + transferData.type);
 		return false;
-	}
-
-	public boolean isURL(String sURL) {
-		if (sURL == null || sURL.length() < 5)
-			return false;
-
-		String sLower = sURL.toLowerCase();
-		return sLower.startsWith("http://") || sLower.startsWith("https://")
-				|| sLower.startsWith("magnet:") || sLower.startsWith("ftp://");
 	}
 
 	/**

@@ -41,11 +41,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -142,21 +138,6 @@ public class TorrentOpener {
 		});
   }
   
-  public static String parseTextForURL(String text) {
-  	// examples:
-  	// <A HREF=http://abc.om/moo>test</a>
-  	// <A style=cow HREF="http://abc.om/moo">test</a>
-  	// <a href="http://www.gnu.org/licenses/fdl.html" target="_top">moo</a>
-  	
-		Pattern pat = Pattern.compile("<.*a\\s++.*href=\"?([^\\'\"\\s>]++).*", Pattern.CASE_INSENSITIVE);
-		Matcher m = pat.matcher(text);
-		if (m.find()) {
-			return m.group(1);
-		}
-		
-		return null;
-  }
-  
   public static void openDroppedTorrents(AzureusCore azureus_core,
 			DropTargetEvent event, boolean bAllowShareAdd) {
 		if (event.data == null)
@@ -174,7 +155,7 @@ public class TorrentOpener {
 
 			for (int i = 0; (i < sourceNames.length); i++) {
 				final File source = new File(sourceNames[i]);
-				String sURL = parseTextForURL(sourceNames[i]);
+				String sURL = UrlUtils.parseTextForURL(sourceNames[i]);
 
 				if (sURL != null || !source.exists()) {
 					openTorrentWindow(null, new String[] { sURL }, bOverrideToStopped);
