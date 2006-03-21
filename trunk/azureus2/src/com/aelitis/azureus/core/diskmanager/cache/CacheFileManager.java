@@ -23,9 +23,10 @@
 package com.aelitis.azureus.core.diskmanager.cache;
 
 import java.io.File;
-import java.util.Map;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+
+import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 
 
 /**
@@ -49,6 +50,6 @@ CacheFileManager
 	
 	public void
 	setFileLinks(
-		TOTorrent			torrent,
-		Map					links );
+		TOTorrent				torrent,
+		CaseSensitiveFileMap	links );
 }

@@ -31,6 +31,8 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 
+import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
+
 public interface 
 FMFileManager 
 {
@@ -44,8 +46,8 @@ FMFileManager
 	
 	public void
 	setFileLinks(
-		TOTorrent			torrent,
-		Map					links );
+		TOTorrent				torrent,
+		CaseSensitiveFileMap	links );
 	
 	public File
 	getFileLink(

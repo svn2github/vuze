@@ -29,6 +29,8 @@ import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.download.Download;
 
+import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
+
 /**
  * @author parg
  */
@@ -189,7 +191,7 @@ DownloadManagerState
 		 * @return
 		 */
 	
-	public Map
+	public CaseSensitiveFileMap
 	getFileLinks();
 	
 		// general access

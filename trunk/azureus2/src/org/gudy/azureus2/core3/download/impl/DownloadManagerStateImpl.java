@@ -44,6 +44,8 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
+import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
+
 /**
  * @author parg
  * Overall aim of this is to stop updating the torrent file itself and update something
@@ -1071,7 +1073,7 @@ DownloadManagerStateImpl
 		File	link_source,
 		File	link_destination )
 	{
-		Map	links = getFileLinks();
+		CaseSensitiveFileMap	links = getFileLinks();
 		
 		File	existing = (File)links.get(link_source);
 		
@@ -1090,7 +1092,7 @@ DownloadManagerStateImpl
 		
 		List	list = new ArrayList();
 		
-		Iterator	it = links.keySet().iterator();
+		Iterator	it = links.keySetIterator();
 		
 		while( it.hasNext()){
 			
@@ -1108,11 +1110,11 @@ DownloadManagerStateImpl
 	public void
 	clearFileLinks()
 	{
-		Map	links = getFileLinks();
+		CaseSensitiveFileMap	links = getFileLinks();
 		
 		List	list = new ArrayList();
 		
-		Iterator	it = links.keySet().iterator();
+		Iterator	it = links.keySetIterator();
 		
 		boolean	changed = false;
 		
@@ -1144,12 +1146,12 @@ DownloadManagerStateImpl
 		return((File)getFileLinks().get(link_source));
 	}
 					
-	public Map
+	public CaseSensitiveFileMap
 	getFileLinks()
 	{
 		List	values = getListAttributeSupport( AT_FILE_LINKS );
 
-		HashMap	res = new HashMap();
+		CaseSensitiveFileMap	res = new CaseSensitiveFileMap();
 		
 		for (int i=0;i<values.size();i++){
 			
@@ -1996,10 +1998,10 @@ DownloadManagerStateImpl
 			return( null );
 		}
 		
-		public Map
+		public CaseSensitiveFileMap
 		getFileLinks()
 		{
-			return( new HashMap());
+			return( new CaseSensitiveFileMap());
 		}
 		
 		public void

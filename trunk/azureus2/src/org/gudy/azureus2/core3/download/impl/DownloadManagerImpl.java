@@ -48,6 +48,8 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
+import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
+
 /**
  * @author Olivier
  * 
@@ -821,9 +823,9 @@ DownloadManagerImpl
 			String	new_dir 		= new File( _new_dir ).getCanonicalPath();
 			String	old_save_dir 	= _old_save_dir.getCanonicalPath();
 			
-			Map	links = download_manager_state.getFileLinks();
+			CaseSensitiveFileMap	links = download_manager_state.getFileLinks();
 			
-			Iterator	it = links.keySet().iterator();
+			Iterator	it = links.keySetIterator();
 			
 			while( it.hasNext()){
 				

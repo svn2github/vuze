@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import com.aelitis.azureus.core.diskmanager.access.*;
 import com.aelitis.azureus.core.diskmanager.cache.*;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerFactory;
+import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 
 
 /**
@@ -681,6 +682,8 @@ DiskManagerImpl
 	private int 
 	allocateFiles() 
 	{
+		Set	file_set	= new HashSet();
+		
 		DMPieceMapperFile[]	pm_files = piece_mapper.getFiles();
 		
 		DiskManagerFileInfoImpl[] allocated_files = new DiskManagerFileInfoImpl[pm_files.length];
@@ -741,6 +744,24 @@ DiskManagerImpl
 				CacheFile	cache_file 		= fileInfo.getCacheFile();
 				File		data_file		= fileInfo.getFile(true);
 				String		data_file_name 	= data_file.getName();
+				
+				String	file_key = data_file.getAbsolutePath();
+				
+				if ( Constants.isWindows ){
+					
+					file_key = file_key.toLowerCase();
+				}
+				
+				if ( file_set.contains( file_key )){
+					
+					this.errorMessage = "File occurs more than once in download: " + data_file.toString();
+					
+					setState( FAULTY );
+	        
+					return( -1 );
+				}
+				
+				file_set.add( file_key );
 				
 				int separator = data_file_name.lastIndexOf(".");
 				
@@ -2730,8 +2751,8 @@ DiskManagerImpl
 	
 	public static void
 	setFileLinks(
-		DownloadManager		download_manager,
-		Map					links )
+		DownloadManager			download_manager,
+		CaseSensitiveFileMap	links )
 	{
 		try{
 			CacheFileManagerFactory.getSingleton().setFileLinks( download_manager.getTorrent(), links );

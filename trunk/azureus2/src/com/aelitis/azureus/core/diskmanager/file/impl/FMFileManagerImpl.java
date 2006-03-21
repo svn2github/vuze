@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 
 import com.aelitis.azureus.core.diskmanager.file.*;
+import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 
 public class 
 FMFileManagerImpl
@@ -117,7 +118,7 @@ FMFileManagerImpl
 		}
 	}
 	
-	protected Map
+	protected CaseSensitiveFileMap
 	getLinksEntry(
 		TOTorrent	torrent )
 	{
@@ -134,11 +135,11 @@ FMFileManagerImpl
 			links_key	= "";
 		}
 		
-		Map	links_entry = (Map)links.get( links_key );
+		CaseSensitiveFileMap	links_entry = (CaseSensitiveFileMap)links.get( links_key );
 		
 		if ( links_entry == null ){
 			
-			links_entry	= new HashMap();
+			links_entry	= new CaseSensitiveFileMap();
 			
 			links.put( links_key, links_entry );
 		}
@@ -148,15 +149,15 @@ FMFileManagerImpl
 	
 	public void
 	setFileLinks(
-		TOTorrent 			torrent,
-		Map					new_links )
+		TOTorrent 				torrent,
+		CaseSensitiveFileMap	new_links )
 	{
 		try{
 			links_mon.enter();
 			
-			Map	links_entry = getLinksEntry( torrent );
+			CaseSensitiveFileMap	links_entry = getLinksEntry( torrent );
 			
-			Iterator	it = new_links.keySet().iterator();
+			Iterator	it = new_links.keySetIterator();
 			
 			while( it.hasNext()){
 				
@@ -187,7 +188,7 @@ FMFileManagerImpl
 		try{
 			links_mon.enter();
 			
-			Map	links_entry = getLinksEntry( torrent );
+			CaseSensitiveFileMap	links_entry = getLinksEntry( torrent );
 
 			File	res = (File)links_entry.get( file );
 			

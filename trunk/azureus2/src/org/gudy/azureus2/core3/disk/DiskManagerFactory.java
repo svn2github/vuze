@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.resume.*;
 import org.gudy.azureus2.core3.download.*;
 
+import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
+
 public class 
 DiskManagerFactory 
 {
@@ -113,8 +115,8 @@ DiskManagerFactory
 
 	public static void
 	setFileLinks(
-		DownloadManager		download_manager,
-		Map					links )
+		DownloadManager			download_manager,
+		CaseSensitiveFileMap	links )
 	{
 		DiskManagerImpl.setFileLinks( download_manager, links );
 	}
