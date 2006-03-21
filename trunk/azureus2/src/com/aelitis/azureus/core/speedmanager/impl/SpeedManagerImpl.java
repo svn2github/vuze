@@ -268,9 +268,9 @@ SpeedManagerImpl
 				
 				new_limit += 1024 * ( diff / SOMETHING );
 				
-			}else if ( running_average > 4*idle_average ){
+			}else if ( ping_average > 4*idle_average ){
 				
-				new_limit -= 1024 * ((running_average - (3*idle_average )) / SOMETHING );
+				new_limit -= 1024 * (( ping_average - (3*idle_average )) / SOMETHING );
 			}			
 			
 			if ( new_limit < 1024 ){

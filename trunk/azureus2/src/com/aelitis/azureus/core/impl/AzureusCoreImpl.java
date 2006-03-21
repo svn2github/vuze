@@ -191,14 +191,47 @@ AzureusCoreImpl
 							}
 						}
 						
+						public int
+						getCurrentUploadLimit()
+						{
+							String key = TransferSpeedValidator.getActiveUploadParameter( global_manager );
+							
+							int	k_per_second = COConfigurationManager.getIntParameter( key );
+							
+							int	bytes_per_second;
+							
+							if ( k_per_second == 0 ){
+								
+								bytes_per_second = Integer.MAX_VALUE;
+							}else{
+								
+								bytes_per_second = k_per_second*1024;
+							}
+							
+							return( bytes_per_second );
+						}
+						
 						public void
 						setCurrentUploadLimit(
 							int		bytes_per_second )
 						{
-							String key = TransferSpeedValidator.getActiveUploadParameter( global_manager );
-							
-							// System.out.println( "recommended upload rate: " + bytes_per_second );
-							// COConfigurationManager.setParameter( key, bytes_per_second );
+							if ( bytes_per_second != getCurrentUploadLimit()){
+								
+								String key = TransferSpeedValidator.getActiveUploadParameter( global_manager );
+									
+								int	k_per_second;
+								
+								if ( bytes_per_second == Integer.MAX_VALUE ){
+									
+									k_per_second	= 0;
+									
+								}else{
+								
+									k_per_second = bytes_per_second/1024;
+								}
+								
+								COConfigurationManager.setParameter( key, k_per_second );
+							}
 						}
 					});
 	}

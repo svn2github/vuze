@@ -46,7 +46,6 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
-import com.aelitis.azureus.core.speedmanager.SpeedManagerFactory;
 
 public class 
 Test 
@@ -54,6 +53,7 @@ Test
 {
 	private Average upload_average = Average.getInstance( 1000, 10 );
 
+	private int upload_limit;
 	private int	upload_rate;
 	
 	protected 
@@ -165,9 +165,15 @@ Test
 	setCurrentUploadLimit(
 		int		bytes_per_second )
 	{
-		// upload_rate	= bytes_per_second;
+		upload_limit	= bytes_per_second;
 	}
 
+	public int
+	getCurrentUploadLimit()
+	{
+		return( upload_limit );
+	}
+	
 	protected void
 	setManualUploadLimit(
 		int		bytes_per_second )
