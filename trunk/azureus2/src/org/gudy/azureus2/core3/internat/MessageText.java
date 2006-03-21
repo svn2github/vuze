@@ -19,6 +19,7 @@
  */
 package org.gudy.azureus2.core3.internat;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -54,6 +55,39 @@ public class MessageText {
   static{
 	  setResourceBundle( getResourceBundle(BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()));
   }
+  
+  public static void loadBundle() {
+		String savedLocaleString = COConfigurationManager
+				.getStringParameter("locale");
+
+		Locale savedLocale;
+		String[] savedLocaleStrings = savedLocaleString.split("_", 3);
+		if (savedLocaleStrings.length > 0 && savedLocaleStrings[0].length() == 2) {
+			if (savedLocaleStrings.length == 3) {
+				savedLocale = new Locale(savedLocaleStrings[0], savedLocaleStrings[1],
+						savedLocaleStrings[2]);
+			} else if (savedLocaleStrings.length == 2
+					&& savedLocaleStrings[1].length() == 2) {
+				savedLocale = new Locale(savedLocaleStrings[0], savedLocaleStrings[1]);
+			} else {
+				savedLocale = new Locale(savedLocaleStrings[0]);
+			}
+		} else {
+			if (savedLocaleStrings.length == 3 && savedLocaleStrings[0].length() == 0
+					&& savedLocaleStrings[2].length() > 0) {
+				savedLocale = new Locale(savedLocaleStrings[0], savedLocaleStrings[1],
+						savedLocaleStrings[2]);
+			} else {
+				savedLocale = Locale.getDefault();
+			}
+		}
+		MessageText.changeLocale(savedLocale);
+
+		COConfigurationManager
+				.setParameter("locale.set.complete.count", COConfigurationManager
+						.getIntParameter("locale.set.complete.count") + 1);
+
+	}
   
   static ResourceBundle
   getResourceBundle(

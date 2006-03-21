@@ -131,6 +131,8 @@ AzureusCoreImpl
 	{
 		COConfigurationManager.initialise();
 		
+		MessageText.loadBundle();
+		
 		AEDiagnostics.startup();
 		
 		AEDiagnostics.markDirty();
