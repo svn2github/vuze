@@ -393,4 +393,8 @@ COConfigurationManager
   {
 	return( ConfigurationDefaults.getInstance().getParameter( parameter ));
   }
+  
+  public static boolean removeParameter(String parameter) {
+		return ConfigurationManager.getInstance().removeParameter(parameter);
+	}
 }
