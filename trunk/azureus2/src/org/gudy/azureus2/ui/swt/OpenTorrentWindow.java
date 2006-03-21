@@ -56,6 +56,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -240,8 +241,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		Label label;
 		Composite cArea;
 
-		shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(
-				parent, SWT.RESIZE | SWT.DIALOG_TRIM);
+		shell = ShellFactory.createShell(parent, SWT.RESIZE | SWT.DIALOG_TRIM);
 
 		shellForChildren = shell;
 
@@ -456,7 +456,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		while (iter.hasNext()) {
 			cmbDataDir.add(iter.next());
 		}
-		
+
 		Button browseData = new Button(cSaveTo, SWT.PUSH);
 		Messages.setLanguageText(browseData, "ConfigView.button.browse");
 
@@ -484,7 +484,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				}
 			}
 		});
-
 
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		if (Constants.isOSX)
@@ -659,7 +658,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		if (Constants.isOSX) {
 			layout.horizontalSpacing = 0;
 			layout.verticalSpacing = 0;
-			
+
 			if (bFixMargin) {
 				layout.marginHeight = 0;
 				layout.marginWidth = 0;
@@ -1701,10 +1700,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				if (info.torrent == null)
 					continue;
 
-				// set "queued" to STATE_WAITING so that auto-open details will work  
-				// (even if the torrent immediately goes to queued)
 				int iStartMode = (info.iStartID == STARTMODE_STOPPED)
-						? DownloadManager.STATE_STOPPED : DownloadManager.STATE_WAITING;
+						? DownloadManager.STATE_STOPPED : DownloadManager.STATE_QUEUED;
 
 				final TorrentFileInfo[] files = info.getFiles();
 				DownloadManager dm = gm.addDownloadManager(info.sFileName,
@@ -2016,12 +2013,12 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 		return (sDefDir == "") ? null : sDefDir;
 	}
-	
+
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
 
 		ImageRepository.loadImages(display);
-		
+
 		OpenTorrentWindow window = new OpenTorrentWindow(null, null, true);
 		while (!window.bClosed) {
 			if (!display.readAndDispatch())
