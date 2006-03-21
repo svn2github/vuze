@@ -25,7 +25,7 @@ package com.aelitis.azureus.core.util.average;
  * Implements an exponential moving average.
  */
 public class ExponentialMovingAverage implements Average {
-  
+
    private final float weight;
    private double prevEMA;
    
@@ -53,6 +53,10 @@ public class ExponentialMovingAverage implements Average {
       this.prevEMA = 0;
    }
    
+   public void reset(){
+		 
+	  this.prevEMA = 0;
+   }
    
    /**
     * Update average and return average-so-far.

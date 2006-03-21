@@ -40,6 +40,14 @@ public abstract class AverageFactory {
       return new MovingAverage(periods);
    }
    
+   /**
+    * Create a moving average, that moves over the given number of periods and gives immediate
+    * results (i.e. after the first update of X the average will be X
+    */
+   
+   public static Average MovingImmediateAverage(int periods) {
+	      return new MovingImmediateAverage(periods);
+	   }
    /** 
     * Create an exponential moving average, smoothing over the given number
     * of periods, using a default smoothing weight value of 2/(1 + periods).

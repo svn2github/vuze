@@ -35,5 +35,11 @@ public interface Average {
     * Return average-so-far.
     */
    public double getAverage();
-    
+   
+   /**
+    * sets back to start-of-day
+    *
+    */
+   public void
+   reset();
 }

@@ -24,7 +24,7 @@ package com.aelitis.azureus.core.util.average;
 /**
  * Implements a basic moving average.
  */
-public class MovingAverage implements Average {
+public class MovingImmediateAverage implements Average {
   
    private final int periods;
    private double data[];
@@ -34,23 +34,26 @@ public class MovingAverage implements Average {
    /**
     * Create a new moving average.
     */
-   public MovingAverage(int periods) {
+   public MovingImmediateAverage(int periods) {
       this.periods = periods;
       this.data = new double[periods];
-      reset();
+      for (int i=0; i < periods; i++) { data[i] = 0.0; }
    }
    
-   	public void reset(){
-   		pos = 0;
-   		for (int i=0; i < periods; i++) { data[i] = 0.0; }
-	}
+   public void
+   reset()
+   {
+	   pos = 0;
+   }
+   
    /**
     * Update average and return average-so-far.
     */
    public double update(final double newValue) {
-      data[pos] = newValue;
-      pos++;
-      if (pos == periods) pos = 0;
+      data[pos++%periods] = newValue;
+      if ( pos==Integer.MAX_VALUE){
+    	  pos = pos%periods;
+      }
       return calculateAve();
    }
    
@@ -62,10 +65,11 @@ public class MovingAverage implements Average {
    
    private double calculateAve() {
       double sum = 0.0;
-      for (int i=0; i < periods; i++) {
+      int	lim = pos>periods?periods:pos;
+      for (int i=0; i < lim; i++) {
          sum += data[i];
       }
-      return sum / periods;
+      return sum / lim;
    }
 
 }

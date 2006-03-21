@@ -36,6 +36,10 @@ public class RunningAverage implements Average {
       this.sum = 0;
    }
    
+	public void reset(){
+		count = 0;
+		sum = 0;
+	}
    /**
     * Update average and return average-so-far.
     */

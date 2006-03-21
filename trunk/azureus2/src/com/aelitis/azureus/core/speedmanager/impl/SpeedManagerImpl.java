@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.speedmanager.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -37,6 +36,7 @@ import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContactListener;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterListener;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
+import com.aelitis.azureus.core.util.average.*;
 
 
 public class 
@@ -45,28 +45,65 @@ SpeedManagerImpl
 {
 	private static final int UNLIMITED	= Integer.MAX_VALUE;
 	
-	private static final int CONTACT_NUMBER	= 3;
+	private static final int CONTACT_NUMBER		= 3;
+	private static final int CONTACT_PING_SECS	= 5;
+	
+	private static final int	MODE_RUNNING	= 0;
+	private static final int	MODE_FORCED_MIN	= 1;
+	private static final int	MODE_FORCED_MAX	= 2;
+	
+	private static final int	TICK_PERIOD			= 1000;	// 1 sec
+	
+	private static final int	FORCED_MAX_TICKS	= 30;
+	
+	private static final int	FORCED_MIN_TICKS		= 30;
+	private static final int	FORCED_MIN_TICK_LIMIT	= 60;
+	private static final int	FORCED_MIN_SPEED		= 4*1024;
+	
+	private static final int	PING_AVERAGE_HISTORY_COUNT	= 6;
+
+	private static final int	IDLE_UPLOAD_SPEED		= 5*1024;
+	private static final int	INITIAL_IDLE_AVERAGE	= 100;
+
+	
 	
 	private AzureusCore			core;
 	private DHTSpeedTester		speed_tester;
 	private SpeedManagerAdapter	adapter;
 	
+	
 	private int					min_up;
 	private int					max_up;
 	private boolean				enabled;
 		
-	private Average upload_average = Average.getInstance( 1000, 5 );
-
-	private static final int	PING_AVERAGE_HISTORY_COUNT	= 9;
-	private int[]	ping_average_history	= new int[PING_AVERAGE_HISTORY_COUNT];
-	private int		ping_average_history_count;
+	private Average upload_average = AverageFactory.MovingImmediateAverage( 5 );
+	private Average	ping_average_history	= AverageFactory.MovingImmediateAverage(PING_AVERAGE_HISTORY_COUNT);
 	
-	private static final int	IDLE_UPLOAD_SPEED		= 5*1024;
-	private static final int	INITIAL_IDLE_AVERAGE	= 50;
+	private int					mode;
+	private volatile int		mode_ticks;
+	private int					saved_limit;
 	
+	private int		ticks;
 	private int		idle_ticks;
-	private int		idle_average		= INITIAL_IDLE_AVERAGE;
+	private int		idle_average;
+	private boolean	idle_average_set;
+	
 	private int		max_upload_average;
+	
+	protected void
+	reset()
+	{
+		ticks				= 0;
+		mode				= MODE_RUNNING;
+		mode_ticks			= 0;
+		idle_ticks			= 0;
+		idle_average		= INITIAL_IDLE_AVERAGE;
+		idle_average_set	= false;
+		max_upload_average	= 0;
+		upload_average.reset();
+		ping_average_history.reset();
+	}
+	
 	
 	public
 	SpeedManagerImpl(
@@ -89,9 +126,7 @@ SpeedManagerImpl
 		}
 		
 		speed_tester	= _tester; 
-		
-		setEnabled( enabled );
-		
+				
 		speed_tester.addListener(
 				new DHTSpeedTesterListener()
 				{
@@ -105,6 +140,8 @@ SpeedManagerImpl
 							
 						}else{
 							System.out.println( "activePing: " + contact.getContact().getString());
+							
+							contact.setPingPeriod( CONTACT_PING_SECS );
 							
 							contact.addListener(
 								new DHTSpeedTesterContactListener()
@@ -142,7 +179,7 @@ SpeedManagerImpl
 				});
 		
 		SimpleTimer.addPeriodicEvent(
-			1000,
+			TICK_PERIOD,
 			new TimerEventPerformer()
 			{
 				public void
@@ -151,7 +188,11 @@ SpeedManagerImpl
 				{
 					int	current_speed = adapter.getCurrentUploadSpeed();
 
-					upload_average.addValue( current_speed );
+					upload_average.update( current_speed );
+					
+					mode_ticks++;
+					
+					ticks++;
 				}
 			});
 	}
@@ -199,18 +240,7 @@ SpeedManagerImpl
 		
 		int	ping_average = ping_total/ping_count;
 				
-		ping_average_history[ping_average_history_count++ % PING_AVERAGE_HISTORY_COUNT ] = ping_average;
-		
-		int	lim = ping_average_history_count > PING_AVERAGE_HISTORY_COUNT?PING_AVERAGE_HISTORY_COUNT:ping_average_history_count;
-		
-		int	running_average = 0;
-		
-		for (int i=0;i<lim;i++){
-			
-			running_average += ping_average_history[i];
-		}
-		
-		running_average = running_average/lim;
+		int	running_average = (int)ping_average_history.update( ping_average );
 		
 		int	up_average = (int)upload_average.getAverage();
 		
@@ -223,6 +253,8 @@ SpeedManagerImpl
 				System.out.println( "New idle average: " + running_average );
 				
 				idle_average	= running_average;
+				
+				idle_average_set	= true;
 			}
 		}else{
 			
@@ -237,65 +269,121 @@ SpeedManagerImpl
 			
 		}
 		
+		if ( ticks > PING_AVERAGE_HISTORY_COUNT && running_average < idle_average ){
+			
+			idle_average = running_average;
+		}
+		
 		int	current_speed 	= adapter.getCurrentUploadSpeed();
 		int	current_limit	= adapter.getCurrentUploadLimit();
-		
+
+		int	new_limit	= current_limit;
+
 		System.out.println( 
 				"pings= " + str + ", average=" + ping_average +", running_average=" + running_average +
 				",idle_average=" + idle_average + ", speed=" + current_speed + ",limit=" + current_limit );
 
 
-		int	new_limit	= current_limit;
 
-		if ( current_limit == UNLIMITED ){
+		if ( mode == MODE_FORCED_MAX ){
 			
-			if ( running_average > 500 ){
-			
-				new_limit	= ( 85*idle_average )/100;
+			if ( mode_ticks > FORCED_MAX_TICKS ){
+				
+				mode		= MODE_RUNNING;
+				
+				current_limit = new_limit	= saved_limit;
 			}
-		}else{
 			
-			int SOMETHING = 50;
+		}else if ( mode == MODE_FORCED_MIN ){
 			
-			if ( running_average < 2* idle_average ){
+			if ( idle_average_set || mode_ticks > FORCED_MIN_TICKS ){
 				
-				int	diff = running_average - idle_average;
-				
-				if ( diff < 100 ){
+				System.out.println( "forced min ping calc complete" );
+
+				if ( !idle_average_set ){
 					
-					diff = 100;
+					idle_average	= running_average;
+				
+					idle_average_set	= true;
 				}
 				
-				new_limit += 1024 * ( diff / SOMETHING );
+				mode	= MODE_RUNNING;
 				
-			}else if ( ping_average > 4*idle_average ){
-				
-				new_limit -= 1024 * (( ping_average - (3*idle_average )) / SOMETHING );
-			}			
-			
-			if ( new_limit < 1024 ){
-				
-				new_limit	= 1024;
+				current_limit = new_limit	= saved_limit;
 			}
 		}
-			
-			// final tidy up
 		
-		if ( min_up > 0 && new_limit < min_up ){
+		if ( mode == MODE_RUNNING ){
 			
-			new_limit = min_up;
+			if ( ticks > FORCED_MIN_TICK_LIMIT && !idle_average_set ){
+				
+					// we've been running a while but no min set, force it
+				
+				System.out.println( "forcing min ping calc" );
+				
+				mode		= MODE_FORCED_MIN;
+				mode_ticks	= 0;
+				saved_limit	= current_limit;
+				
+				new_limit	= FORCED_MIN_SPEED;
+				
+			}else{
 			
-		}else if ( max_up > 0 &&  new_limit > max_up ){
+				if ( current_limit == UNLIMITED ){
+					
+					if ( running_average > 500 ){
+					
+						new_limit	= ( 85*idle_average )/100;
+					}
+				}else{
+					
+					int SOMETHING = 50;
+					
+					if ( running_average < 2* idle_average ){
+						
+						int	diff = running_average - idle_average;
+						
+						if ( diff < 100 ){
+							
+							diff = 100;
+						}
+						
+						int	increment = 1024 * ( diff / SOMETHING );
+						
+						new_limit += Math.min( increment, 5*1024 );
+						
+					}else if ( ping_average > 4*idle_average ){
+						
+						int decrement = 1024 * (( ping_average - (3*idle_average )) / SOMETHING );
+						
+						new_limit -= Math.min( decrement, 5*1024 );
+					}			
+					
+					if ( new_limit < 1024 ){
+						
+						new_limit	= 1024;
+					}
+				}
+			}
+		
+				// final tidy up
 			
-			new_limit = max_up;
-		}
-		
-			// if we're not achieving the current limit and the advice is to increase it, don't
-			// bother
-		
-		if ( new_limit > current_limit && current_speed < ( current_limit - 10*1024 )){
-		
-			new_limit = current_limit;
+			if ( min_up > 0 && new_limit < min_up ){
+				
+				new_limit = min_up;
+				
+			}else if ( max_up > 0 &&  new_limit > max_up ){
+				
+				new_limit = max_up;
+			}
+			
+				// if we're not achieving the current limit and the advice is to increase it, don't
+				// bother
+			
+			if ( new_limit > current_limit && current_speed < ( current_limit - 10*1024 )){
+			
+				new_limit = current_limit;
+			}
 		}
 		
 		if ( enabled ){
@@ -340,11 +428,16 @@ SpeedManagerImpl
 	setEnabled(
 		boolean		_enabled )
 	{
-		enabled	= _enabled;
-		
-		if ( speed_tester != null ){
+		if ( enabled != _enabled ){
 			
-			speed_tester.setContactNumber( enabled?CONTACT_NUMBER:0);
+			reset();
+			
+			enabled	= _enabled;
+			
+			if ( speed_tester != null ){
+				
+				speed_tester.setContactNumber( enabled?CONTACT_NUMBER:0);
+			}
 		}
 	}
 	
