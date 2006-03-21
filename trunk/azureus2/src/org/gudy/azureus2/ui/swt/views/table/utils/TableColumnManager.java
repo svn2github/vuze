@@ -171,6 +171,15 @@ public class TableColumnManager {
     }
   }
   
+  public int getTableColumnCount(String sTableID) {
+    Map mTypes = (Map)items.get(sTableID);
+    if (mTypes == null) {
+    	return 0;
+    }
+    return mTypes.size();
+  }
+
+  
   public TableColumnCore[] getAllTableColumnCoreAsArray(String sTableID) {
     Map mTypes = (Map)items.get(sTableID);
     if (mTypes != null) {
