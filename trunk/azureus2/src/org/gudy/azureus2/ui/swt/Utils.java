@@ -295,6 +295,11 @@ public class Utils {
 					dropTarget.dispose();
 			}
 		});
+		
+		// On Windows, dropping on children moves up to parent
+		// On OSX, each child needs it's own drop.
+		if (Constants.isWindows)
+			return;
 
 		Control[] children = composite.getChildren();
 		for (int i = 0; i < children.length; i++) {
