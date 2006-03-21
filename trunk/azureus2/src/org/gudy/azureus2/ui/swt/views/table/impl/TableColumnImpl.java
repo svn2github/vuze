@@ -173,7 +173,7 @@ public class TableColumnImpl
   		this_mon.enter();
   
   		if (cellRefreshListeners == null)
-  			cellRefreshListeners = new ArrayList();
+  			cellRefreshListeners = new ArrayList(1);
 
 		cellRefreshListeners.add(listener);
 		//System.out.println(this + " :: addCellRefreshListener " + listener + ". " + cellRefreshListeners.size());
@@ -210,7 +210,7 @@ public class TableColumnImpl
   		this_mon.enter();
   	
   		if (cellAddedListeners == null)
-  			cellAddedListeners = new ArrayList();
+  			cellAddedListeners = new ArrayList(1);
 
 		cellAddedListeners.add(listener);
 		
@@ -240,7 +240,7 @@ public class TableColumnImpl
   		this_mon.enter();
   	
   		if (cellDisposeListeners == null)
-  			cellDisposeListeners = new ArrayList();
+  			cellDisposeListeners = new ArrayList(1);
 
 		cellDisposeListeners.add(listener);
   	}finally{
@@ -268,7 +268,7 @@ public class TableColumnImpl
   		this_mon.enter();
   	
   		if (cellToolTipListeners == null)
-  			cellToolTipListeners = new ArrayList();
+  			cellToolTipListeners = new ArrayList(1);
 
 		cellToolTipListeners.add(listener);
 		
@@ -295,7 +295,7 @@ public class TableColumnImpl
 			this_mon.enter();
 
 			if (cellMouseListeners == null)
-				cellMouseListeners = new ArrayList();
+				cellMouseListeners = new ArrayList(1);
 
 			cellMouseListeners.add(listener);
 

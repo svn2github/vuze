@@ -435,7 +435,7 @@ public class TableCellImpl
   		this_mon.enter();
   	
   		if (refreshListeners == null)
-  			refreshListeners = new ArrayList();
+  			refreshListeners = new ArrayList(1);
 
   		refreshListeners.add(listener);
   		
@@ -463,7 +463,7 @@ public class TableCellImpl
   		this_mon.enter();
   
 	    if (disposeListeners == null) {
-	      disposeListeners = new ArrayList();
+	      disposeListeners = new ArrayList(1);
 	    }
 	    disposeListeners.add(listener);
   	}finally{
@@ -492,7 +492,7 @@ public class TableCellImpl
   		this_mon.enter();
   
   		if (tooltipListeners == null) {
-  			tooltipListeners = new ArrayList();
+  			tooltipListeners = new ArrayList(1);
   		}
   		tooltipListeners.add(listener);
   		
@@ -521,7 +521,7 @@ public class TableCellImpl
 			this_mon.enter();
 
 			if (cellMouseListeners == null)
-				cellMouseListeners = new ArrayList();
+				cellMouseListeners = new ArrayList(1);
 
 			cellMouseListeners.add(listener);
 

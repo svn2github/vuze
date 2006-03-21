@@ -52,7 +52,7 @@ public class TableStructureEventDispatcher implements ITableStructureModificatio
    * 
    */
   private TableStructureEventDispatcher() {
-    listeners = new ArrayList();
+    listeners = new ArrayList(2);
   }
   
   public static TableStructureEventDispatcher getInstance(String sTableID) {
