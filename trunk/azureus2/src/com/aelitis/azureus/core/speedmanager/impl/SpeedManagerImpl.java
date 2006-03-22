@@ -60,11 +60,14 @@ SpeedManagerImpl
 	private static final int	FORCED_MIN_TICK_LIMIT	= 60;
 	private static final int	FORCED_MIN_SPEED		= 4*1024;
 	
-	private static final int	PING_AVERAGE_HISTORY_COUNT	= 6;
+	private static final int	PING_CHOKE_TIME				= 1000;
+	private static final int	PING_AVERAGE_HISTORY_COUNT	= 5;
 
 	private static final int	IDLE_UPLOAD_SPEED		= 5*1024;
 	private static final int	INITIAL_IDLE_AVERAGE	= 100;
 
+	private static final int	INCREASING	= 1;
+	private static final int	DECREASING	= 2;
 	
 	
 	private AzureusCore			core;
@@ -76,19 +79,28 @@ SpeedManagerImpl
 	private int					max_up;
 	private boolean				enabled;
 		
-	private Average upload_average = AverageFactory.MovingImmediateAverage( 5 );
-	private Average	ping_average_history	= AverageFactory.MovingImmediateAverage(PING_AVERAGE_HISTORY_COUNT);
+	private Average upload_average			= AverageFactory.MovingImmediateAverage( 5 );
+	private Average upload_short_average	= AverageFactory.MovingImmediateAverage( 2 );
 	
+	private Average	ping_average_history		= AverageFactory.MovingImmediateAverage(PING_AVERAGE_HISTORY_COUNT);
+	private Average	ping_short_average_history	= AverageFactory.MovingImmediateAverage(2);
+	
+	private Average choke_speed_average			= AverageFactory.MovingImmediateAverage( 3 );
+
 	private int					mode;
 	private volatile int		mode_ticks;
 	private int					saved_limit;
 	
+	private int		direction;
 	private int		ticks;
 	private int		idle_ticks;
 	private int		idle_average;
 	private boolean	idle_average_set;
 	
 	private int		max_upload_average;
+	
+	private Map		contacts	= new HashMap();
+	private volatile int	new_contacts;
 	
 	protected void
 	reset()
@@ -100,8 +112,14 @@ SpeedManagerImpl
 		idle_average		= INITIAL_IDLE_AVERAGE;
 		idle_average_set	= false;
 		max_upload_average	= 0;
+		direction			= INCREASING;
+		new_contacts		= 0;
+		
+		choke_speed_average.reset();
 		upload_average.reset();
+		upload_short_average.reset();
 		ping_average_history.reset();
+		ping_short_average_history.reset();
 	}
 	
 	
@@ -143,6 +161,13 @@ SpeedManagerImpl
 							
 							contact.setPingPeriod( CONTACT_PING_SECS );
 							
+							synchronized( contacts ){
+								
+								contacts.put( contact, new pingContact( contact ));
+							}
+							
+							new_contacts++;
+							
 							contact.addListener(
 								new DHTSpeedTesterContactListener()
 								{
@@ -164,6 +189,11 @@ SpeedManagerImpl
 										DHTSpeedTesterContact	contact )
 									{
 										System.out.println( "deadPing: " + contact.getContact().getString());
+										
+										synchronized( contacts ){
+											
+											contacts.remove( contact );
+										}
 									}
 								});
 						}
@@ -190,6 +220,8 @@ SpeedManagerImpl
 
 					upload_average.update( current_speed );
 					
+					upload_short_average.update( current_speed );
+					
 					mode_ticks++;
 					
 					ticks++;
@@ -199,17 +231,29 @@ SpeedManagerImpl
 	
 	protected void
 	calculate(
-		DHTSpeedTesterContact[]	contacts,
+		DHTSpeedTesterContact[]	rtt_contacts,
 		int[]					round_trip_times )
 	{	
 		if ( !enabled ){
 			
-			for (int i=0;i<contacts.length;i++){
+			for (int i=0;i<rtt_contacts.length;i++){
 				
-				contacts[i].destroy();
+				rtt_contacts[i].destroy();
 			}
 			
 			return;
+		}
+		
+		int	min_rtt	= UNLIMITED;
+		
+		for (int i=0;i<rtt_contacts.length;i++){
+			
+			int	rtt =  round_trip_times[i];
+
+			if ( rtt < min_rtt ){
+				
+				min_rtt	= rtt;
+			}
 		}
 		
 		String	str = "";
@@ -217,11 +261,27 @@ SpeedManagerImpl
 		int	ping_total		= 0;
 		int	ping_count		= 0;
 		
-		for (int i=0;i<contacts.length;i++){
+		for (int i=0;i<rtt_contacts.length;i++){
+			
+			pingContact	pc;
+			
+			synchronized( contacts ){
+			
+				pc = (pingContact)contacts.get( rtt_contacts[i] );
+			}
 			
 			int	rtt =  round_trip_times[i];
 			
 			str += (i==0?"":",") + rtt;
+
+				// discount anything 5*min reported
+			
+			if ( pc != null ){
+			
+				boolean	good_ping =  rtt < 5*min_rtt;
+				
+				pc.pingReceived( good_ping );
+			}
 
 			if ( rtt != -1 ){
 			
@@ -244,7 +304,10 @@ SpeedManagerImpl
 		
 		int	up_average = (int)upload_average.getAverage();
 		
-		if ( up_average <= IDLE_UPLOAD_SPEED ){
+			// if we're uploading slowly or the current ping rate is better than our current idle average
+			// then we count this towards establishing the baseline
+		
+		if ( up_average <= IDLE_UPLOAD_SPEED || ( running_average < idle_average && !idle_average_set )){
 			
 			idle_ticks++;
 			
@@ -269,7 +332,9 @@ SpeedManagerImpl
 			
 		}
 		
-		if ( ticks > PING_AVERAGE_HISTORY_COUNT && running_average < idle_average ){
+		if ( idle_average_set && running_average < idle_average ){
+			
+				// bump down if we happen to come across lower idle values
 			
 			idle_average = running_average;
 		}
@@ -281,7 +346,8 @@ SpeedManagerImpl
 
 		System.out.println( 
 				"pings= " + str + ", average=" + ping_average +", running_average=" + running_average +
-				",idle_average=" + idle_average + ", speed=" + current_speed + ",limit=" + current_limit );
+				",idle_average=" + idle_average + ", speed=" + current_speed + ",limit=" + current_limit +
+				",choke = " + (int)choke_speed_average.getAverage());
 
 
 
@@ -298,81 +364,115 @@ SpeedManagerImpl
 			
 			if ( idle_average_set || mode_ticks > FORCED_MIN_TICKS ){
 				
-				System.out.println( "forced min ping calc complete" );
+				System.out.println( "Mode -> running" );
 
 				if ( !idle_average_set ){
 					
-					idle_average	= running_average;
+					idle_average		= running_average;
 				
 					idle_average_set	= true;
 				}
 				
-				mode	= MODE_RUNNING;
+				mode		= MODE_RUNNING;
+				mode_ticks	= 0;
 				
 				current_limit = new_limit	= saved_limit;
+				
+			}else if ( mode_ticks == 5 ){
+				
+					// we've had 5 secs of min up speed, clear out the ping average now
+					// to get accurate times
+				
+				ping_average_history.reset();
 			}
 		}
 		
 		if ( mode == MODE_RUNNING ){
 			
-			if ( ticks > FORCED_MIN_TICK_LIMIT && !idle_average_set ){
+			if (	( ticks > FORCED_MIN_TICK_LIMIT && !idle_average_set ) ||
+					( new_contacts >= 2 && idle_average_set )){
 				
-					// we've been running a while but no min set, force it
+					// we've been running a while but no min set, or we've got some new untested 
+					// contacts - force it
 				
-				System.out.println( "forcing min ping calc" );
+				System.out.println( "Mode -> forced min" );
 				
 				mode		= MODE_FORCED_MIN;
 				mode_ticks	= 0;
 				saved_limit	= current_limit;
 				
+				idle_average_set	= false;
+				new_contacts		= 0;
+				
 				new_limit	= FORCED_MIN_SPEED;
 				
 			}else{
 			
-				if ( current_limit == UNLIMITED ){
+				int SOMETHING = 50;
+				
+				int	short_up = (int)upload_short_average.getAverage();
+
+				int	choke_speed = (int)choke_speed_average.getAverage();
+			
+				
+				if ( running_average < 2* idle_average ){
 					
-					if ( running_average > 500 ){
+					direction = INCREASING;
 					
-						new_limit	= ( 85*idle_average )/100;
+					int	diff = running_average - idle_average;
+					
+					if ( diff < 100 ){
+						
+						diff = 100;
 					}
-				}else{
 					
-					int SOMETHING = 50;
+					int	increment = 1024 * ( diff / SOMETHING );
+										
+						// if we're close to the last choke-speed then decrease increments
+
+					int	max_inc	= 5*1024;
 					
-					if ( running_average < 2* idle_average ){
+					if ( new_limit + 2*1024 > choke_speed ){
 						
-						int	diff = running_average - idle_average;
+						max_inc = 1024;
 						
-						if ( diff < 100 ){
+					}else if ( new_limit + 5*1024 > choke_speed ){
+						
+						max_inc += 3*1024;
+					}
 							
-							diff = 100;
-						}
-						
-						int	increment = 1024 * ( diff / SOMETHING );
-						
-						new_limit += Math.min( increment, 5*1024 );
-						
-					}else if ( ping_average > 4*idle_average ){
-						
-						int decrement = 1024 * (( ping_average - (3*idle_average )) / SOMETHING );
-						
-						new_limit -= Math.min( decrement, 5*1024 );
-					}			
+					new_limit += Math.min( increment, max_inc );					
 					
-					if ( new_limit < 1024 ){
+				}else if ( ping_average > 4*idle_average || ping_average > PING_CHOKE_TIME ){
+					
+					if ( direction == INCREASING ){
 						
-						new_limit	= 1024;
+						if ( idle_average_set ){
+							
+							choke_speed_average.update( short_up );
+						}
 					}
+					
+					direction = DECREASING;
+					
+					int decrement = 1024 * (( ping_average - (3*idle_average )) / SOMETHING );
+					
+					new_limit -= Math.min( decrement, 5*1024 );
+				}			
+				
+				if ( new_limit < 1024 ){
+					
+					new_limit	= 1024;
 				}
 			}
 		
 				// final tidy up
 			
-			if ( min_up > 0 && new_limit < min_up ){
+			if ( min_up > 0 && new_limit < min_up && mode != MODE_FORCED_MIN  ){
 				
 				new_limit = min_up;
 				
-			}else if ( max_up > 0 &&  new_limit > max_up ){
+			}else if ( max_up > 0 &&  new_limit > max_up && mode != MODE_FORCED_MAX ){
 				
 				new_limit = max_up;
 			}
@@ -387,6 +487,10 @@ SpeedManagerImpl
 		}
 		
 		if ( enabled ){
+			
+				// round limit up to nearest K
+			
+			new_limit = (( new_limit + 1023 )/1024) * 1024;
 			
 			adapter.setCurrentUploadLimit( new_limit );
 		}
@@ -451,5 +555,41 @@ SpeedManagerImpl
 	getSpeedTester()
 	{
 		return( speed_tester );
+	}
+	
+	protected class
+	pingContact
+	{
+		private DHTSpeedTesterContact	contact;
+		
+		private int	bad_pings;
+		
+		protected
+		pingContact(
+			DHTSpeedTesterContact	_contact )
+		{
+			contact	= _contact;
+		}
+		
+		void
+		pingReceived(
+			boolean	good )
+		{
+			if ( good ){
+				
+				bad_pings = 0;
+				
+			}else{
+				
+				bad_pings++;
+			}
+			
+				// three strikes and you're out!
+			
+			if ( bad_pings == 3 ){
+				
+				contact.destroy();
+			}
+		}
 	}
 }
