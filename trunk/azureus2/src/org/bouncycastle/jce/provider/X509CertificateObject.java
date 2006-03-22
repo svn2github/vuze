@@ -491,7 +491,7 @@ public class X509CertificateObject
 
     public PublicKey getPublicKey()
     {
-        return JDKKeyFactoryRSAOnly.createPublicKeyFromPublicKeyInfo(c.getSubjectPublicKeyInfo());
+        return JDKKeyFactory.createPublicKeyFromPublicKeyInfo(c.getSubjectPublicKeyInfo());
     }
 
     public byte[] getEncoded()
