@@ -99,6 +99,7 @@ SpeedManagerImpl
 
 	private static final int	IDLE_UPLOAD_SPEED		= 5*1024;
 	private static final int	INITIAL_IDLE_AVERAGE	= 100;
+	private static final int	MIN_IDLE_AVERAGE		= 50;	// any lower than this and small ping variations cause overreaction
 
 	private static final int	INCREASING	= 1;
 	private static final int	DECREASING	= 2;
@@ -357,9 +358,9 @@ SpeedManagerImpl
 			
 			if ( idle_ticks >= PING_AVERAGE_HISTORY_COUNT ){
 				
-				System.out.println( "New idle average: " + running_average );
-				
-				idle_average	= running_average;
+				idle_average	= Math.max( running_average, MIN_IDLE_AVERAGE );
+
+				System.out.println( "New idle average: " + idle_average );
 				
 				idle_average_set	= true;
 			}
@@ -380,7 +381,7 @@ SpeedManagerImpl
 			
 				// bump down if we happen to come across lower idle values
 			
-			idle_average = running_average;
+			idle_average	= Math.max( running_average, MIN_IDLE_AVERAGE );
 		}
 		
 		int	current_speed 	= adapter.getCurrentUploadSpeed();
@@ -412,7 +413,7 @@ SpeedManagerImpl
 
 				if ( !idle_average_set ){
 					
-					idle_average		= running_average;
+					idle_average	= Math.max( running_average, MIN_IDLE_AVERAGE );
 				
 					idle_average_set	= true;
 				}
