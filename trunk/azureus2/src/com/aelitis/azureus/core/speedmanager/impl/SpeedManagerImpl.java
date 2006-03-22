@@ -56,8 +56,8 @@ SpeedManagerImpl
 	
 	private static final int	FORCED_MAX_TICKS	= 30;
 	
-	private static final int	FORCED_MIN_TICKS		= 30;
-	private static final int	FORCED_MIN_TICK_LIMIT	= 60;
+	private static final int	FORCED_MIN_TICKS		= 60;
+	private static final int	FORCED_MIN_TICK_LIMIT	= 30;
 	private static final int	FORCED_MIN_SPEED		= 4*1024;
 	
 	private static final int	PING_CHOKE_TIME				= 1000;
@@ -250,7 +250,7 @@ SpeedManagerImpl
 			
 			int	rtt =  round_trip_times[i];
 
-			if ( rtt < min_rtt ){
+			if ( rtt > 0 && rtt < min_rtt ){
 				
 				min_rtt	= rtt;
 			}
@@ -415,7 +415,7 @@ SpeedManagerImpl
 				int	choke_speed = (int)choke_speed_average.getAverage();
 			
 				
-				if ( running_average < 2* idle_average ){
+				if ( running_average < 2* idle_average && ping_average < PING_CHOKE_TIME ){
 					
 					direction = INCREASING;
 					
