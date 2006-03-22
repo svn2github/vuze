@@ -585,7 +585,7 @@ public class MyTorrentsView
       MainWindow.getWindow().openManagerView(dm);
   }
 
-  public void fillMenu(final Menu menu) {
+  public void fillTorrentMenu(final Menu menu) {
 		Object[] dms = getSelectedDataSources();
 		boolean hasSelection = (dms.length > 0);
 
@@ -1673,9 +1673,18 @@ public class MyTorrentsView
 			}
 		});
 		itemRecheck.setEnabled(recheck);
+  }
+  
+  public void fillMenu(final Menu menu) {
+		Object[] dms = getSelectedDataSources();
+		boolean hasSelection = (dms.length > 0);
 
-		// ---
-		new MenuItem(menu, SWT.SEPARATOR);
+		if (hasSelection) {
+			fillTorrentMenu(menu);
+
+			// ---
+			new MenuItem(menu, SWT.SEPARATOR);
+		}
 		
 		final MenuItem itemFilter = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemFilter, "MyTorrentsView.menu.filter");
