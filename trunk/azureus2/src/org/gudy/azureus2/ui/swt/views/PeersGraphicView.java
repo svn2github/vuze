@@ -228,7 +228,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
         angle = angles[iAngle];
         r     = rs[iAngle];
         currentPerimeter += r;
-        if(iAngle < NB_ANGLES) iAngle++;
+        if(iAngle + 1 < NB_ANGLES) iAngle++;
       } while( currentPerimeter < i * perimeter / nbPeers);
             
       angle = (4 * i - nbPeers) * Math.PI  / (2 * nbPeers) - Math.PI / 2;
