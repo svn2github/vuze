@@ -20,15 +20,20 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
+import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
+
+import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 
 /*
  * @deprecated
@@ -66,43 +71,50 @@ public class SWTManagerImpl
   }
   
 
-  	public void 
-  	addView(
-  		final PluginView view, 
-  		boolean bAutoOpen )
-  	{
-  		try{
-  			final MainWindow window = MainWindow.getWindow();
-  			
-  			if( window != null) {
-	    	
-  				if ( view instanceof PluginViewWrapper ){
-	    	
-  						// legacy support for RSSImport plugin
-  						// model already registered, no need to do anything as UI will pick it up
-  
-  				}else{
-	    		
-  					window.getMenu().addPluginView( view );
-		      
-  					if ( bAutoOpen ){
-	          
-  						window.getDisplay().asyncExec(
-  								new AERunnable()
-  								{
-  									public void 
-  									runSupport() 
-  									{
-  										window.openPluginView(view);
-  									}
-  								});
-  					}
-  				}
-  			}
-  		}catch( Throwable e ){
-  			// SWT not available prolly
-  		}
-  	} 
+	public void addView(final PluginView view, final boolean bAutoOpen) {
+		try {
+			UIManager ui_manager = AzureusCoreImpl.getSingleton().getPluginManager()
+					.getDefaultPluginInterface().getUIManager();
+
+			ui_manager.addUIListener(new UIManagerListener() {
+				public void UIAttached(UIInstance instance) {
+					if (instance instanceof UISWTInstance) {
+						final MainWindow window = MainWindow.getWindow();
+						System.out.println("OLD addView " + view.getPluginViewName() + ";"
+								+ window);
+
+						if (window != null) {
+
+							if (view instanceof PluginViewWrapper) {
+
+								// legacy support for RSSImport plugin
+								// model already registered, no need to do anything as UI will pick it up
+
+							} else {
+
+								window.getMenu().addPluginView(view);
+
+								if (bAutoOpen) {
+
+									window.getDisplay().asyncExec(new AERunnable() {
+										public void runSupport() {
+											window.openPluginView(view);
+										}
+									});
+								}
+							}
+						}
+					}
+				}
+
+				public void UIDetached(UIInstance instance) {
+				}
+			});
+
+		} catch (Throwable e) {
+			// SWT not available prolly
+		}
+	} 
 
   	public void 
   	addView(
