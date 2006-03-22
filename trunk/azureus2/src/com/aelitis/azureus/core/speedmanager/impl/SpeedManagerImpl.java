@@ -447,6 +447,7 @@ SpeedManagerImpl
 				saved_limit	= current_limit;
 				
 				idle_average_set	= false;
+				idle_ticks			= 0;
 				new_contacts		= 0;
 				
 				new_limit	= FORCED_MIN_SPEED;
