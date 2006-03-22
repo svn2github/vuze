@@ -758,27 +758,26 @@ public class Utils {
 						values[i - 1] = 0;
 				}
 				if (i == 4) {
-					Rectangle displayClientArea;
-					try {
-						displayClientArea = shell.getMonitor().getBounds();
-					} catch (NoSuchMethodError e) {
-						displayClientArea = shell.getDisplay().getBounds();
-					}
-					
 					Rectangle shellBounds = new Rectangle(values[0], values[1],
 							values[2], values[3]);
-					if (shellBounds.x + shellBounds.width > displayClientArea.x
-							+ displayClientArea.width) {
-						shellBounds.width = displayClientArea.x + displayClientArea.width
-								- shellBounds.x - 50;
+					boolean bMetricsOk;
+					try {
+						bMetricsOk = false;
+
+						Monitor[] monitors = shell.getDisplay().getMonitors();
+						for (int j = 0; j < monitors.length && !bMetricsOk; j++) {
+							Rectangle bounds = monitors[j].getBounds();
+							bMetricsOk = shellBounds.intersects(bounds);
+						}
+					} catch (NoSuchMethodError e) {
+						Rectangle bounds = shell.getDisplay().getBounds();
+						bMetricsOk = shellBounds.intersects(bounds);
 					}
-					if (shellBounds.y + shellBounds.height > displayClientArea.y
-							+ displayClientArea.height) {
-						shellBounds.height = displayClientArea.y + displayClientArea.height
-								- shellBounds.y - 50;
+
+					if (bMetricsOk) {
+						shell.setBounds(shellBounds);
+						bDidResize = true;
 					}
-					shell.setBounds(shellBounds);
-					bDidResize = true;
 				}
 			} catch (Exception e) {
 			}
