@@ -22,8 +22,11 @@
 
 package com.aelitis.azureus.core.speedmanager.impl;
 
+import java.net.InetSocketAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -36,6 +39,7 @@ import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContactListener;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterListener;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.util.average.*;
 
 
@@ -54,13 +58,43 @@ SpeedManagerImpl
 	
 	private static final int	TICK_PERIOD			= 1000;	// 1 sec
 	
+		// config items start
+	
+	private static final String	CONFIG_MIN_UP		= "AutoSpeed Min Upload Bytes";
+	private static final String	CONFIG_MAX_UP		= "AutoSpeed Min Upload Bytes";
+	private static final String	CONFIG_CHOKE_PING	= "AutoSpeed Choking Ping";
+	
+	private static final String[]	CONFIG_PARAMS = {
+		CONFIG_MIN_UP, CONFIG_MAX_UP, CONFIG_CHOKE_PING };
+		
+	private static int					PING_CHOKE_TIME;
+	private static int					MIN_UP;
+	private static int					MAX_UP;
+
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+				CONFIG_PARAMS,
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String parameterName )
+					{
+						PING_CHOKE_TIME	= COConfigurationManager.getIntParameter( CONFIG_CHOKE_PING );
+						MIN_UP			= COConfigurationManager.getIntParameter( CONFIG_MIN_UP );
+						MAX_UP			= COConfigurationManager.getIntParameter( CONFIG_MAX_UP );
+					}
+				});
+		
+	}
+		// config end
+	
 	private static final int	FORCED_MAX_TICKS	= 30;
 	
 	private static final int	FORCED_MIN_TICKS		= 60;
 	private static final int	FORCED_MIN_TICK_LIMIT	= 30;
 	private static final int	FORCED_MIN_SPEED		= 4*1024;
 	
-	private static final int	PING_CHOKE_TIME				= 1000;
 	private static final int	PING_AVERAGE_HISTORY_COUNT	= 5;
 
 	private static final int	IDLE_UPLOAD_SPEED		= 5*1024;
@@ -75,8 +109,6 @@ SpeedManagerImpl
 	private SpeedManagerAdapter	adapter;
 	
 	
-	private int					min_up;
-	private int					max_up;
 	private boolean				enabled;
 		
 	private Average upload_average			= AverageFactory.MovingImmediateAverage( 5 );
@@ -99,8 +131,9 @@ SpeedManagerImpl
 	
 	private int		max_upload_average;
 	
-	private Map		contacts	= new HashMap();
-	private volatile int	new_contacts;
+	private Map							contacts	= new HashMap();
+	private volatile int				new_contacts;
+	private SpeedManagerPingSource[]	contacts_array	= new SpeedManagerPingSource[0];
 	
 	protected void
 	reset()
@@ -130,6 +163,8 @@ SpeedManagerImpl
 	{
 		core			= _core;
 		adapter			= _adapter;
+		
+		reset();
 	}
 	
 	public void
@@ -164,6 +199,10 @@ SpeedManagerImpl
 							synchronized( contacts ){
 								
 								contacts.put( contact, new pingContact( contact ));
+								
+								contacts_array = new SpeedManagerPingSource[ contacts.size() ];
+								
+								contacts.values().toArray( contacts_array );
 							}
 							
 							new_contacts++;
@@ -193,6 +232,10 @@ SpeedManagerImpl
 										synchronized( contacts ){
 											
 											contacts.remove( contact );
+											
+											contacts_array = new SpeedManagerPingSource[ contacts.size() ];
+											
+											contacts.values().toArray( contacts_array );
 										}
 									}
 								});
@@ -280,7 +323,7 @@ SpeedManagerImpl
 			
 				boolean	good_ping =  rtt < 5*min_rtt;
 				
-				pc.pingReceived( good_ping );
+				pc.pingReceived( rtt, good_ping );
 			}
 
 			if ( rtt != -1 ){
@@ -468,13 +511,13 @@ SpeedManagerImpl
 		
 				// final tidy up
 			
-			if ( min_up > 0 && new_limit < min_up && mode != MODE_FORCED_MIN  ){
+			if ( MIN_UP > 0 && new_limit < MIN_UP && mode != MODE_FORCED_MIN  ){
 				
-				new_limit = min_up;
+				new_limit = MIN_UP;
 				
-			}else if ( max_up > 0 &&  new_limit > max_up && mode != MODE_FORCED_MAX ){
+			}else if ( MAX_UP > 0 &&  new_limit > MAX_UP && mode != MODE_FORCED_MAX ){
 				
-				new_limit = max_up;
+				new_limit = MAX_UP;
 			}
 			
 				// if we're not achieving the current limit and the advice is to increase it, don't
@@ -505,27 +548,40 @@ SpeedManagerImpl
 	public void
 	setMinumumUploadSpeed(
 		int		speed )
-	{
-		min_up	= speed;
+	{		
+		COConfigurationManager.setParameter( CONFIG_MIN_UP, speed );
 	}
 	
 	public int
 	getMinumumUploadSpeed()
 	{
-		return( min_up );
+		return( MIN_UP );
 	}
 	
 	public void
 	setMaximumUploadSpeed(
 		int		speed )
 	{
-		max_up	= speed;
+		COConfigurationManager.setParameter( CONFIG_MAX_UP, speed );
 	}
 	
 	public int
 	getMaximumUploadSpeed()
 	{
-		return( max_up );
+		return( MAX_UP );
+	}
+	
+	public int
+	getChokePingTime()
+	{
+		return( PING_CHOKE_TIME );
+	}
+	
+	public void
+	setChokePingTime(
+		int		milliseconds )
+	{
+		COConfigurationManager.setParameter( CONFIG_CHOKE_PING, milliseconds );
 	}
 	
 	public void
@@ -557,12 +613,20 @@ SpeedManagerImpl
 		return( speed_tester );
 	}
 	
+	public SpeedManagerPingSource[]
+	getPingSources()
+	{
+		return( contacts_array );
+	}
+	
 	protected class
 	pingContact
+		implements SpeedManagerPingSource
 	{
 		private DHTSpeedTesterContact	contact;
 		
 		private int	bad_pings;
+		private int	last_good_ping;
 		
 		protected
 		pingContact(
@@ -573,11 +637,14 @@ SpeedManagerImpl
 		
 		void
 		pingReceived(
-			boolean	good )
+			int		time,
+			boolean	good_ping )
 		{
-			if ( good ){
+			if ( good_ping ){
 				
 				bad_pings = 0;
+				
+				last_good_ping	= time;
 				
 			}else{
 				
@@ -590,6 +657,18 @@ SpeedManagerImpl
 				
 				contact.destroy();
 			}
+		}
+		
+		public InetSocketAddress
+		getAddress()
+		{
+			return( contact.getContact().getAddress());	
+		}
+		
+		public int
+		getPingTime()
+		{
+			return( last_good_ping );
 		}
 	}
 }

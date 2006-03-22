@@ -132,7 +132,10 @@ public class ConfigurationDefaults {
     def.put( "Max LAN Download Speed KBs", new Long(0) );
     def.put( "Max LAN Upload Speed KBs", new Long(0) );
     
-    
+    def.put( "AutoSpeed Min Upload Bytes", new Long(0) );
+    def.put( "AutoSpeed Max Upload Bytes", new Long(0) );
+    def.put( "AutoSpeed Choking Ping", new Long(1000) );
+
     
     def.put("Use Resume", TRUE);
     def.put("On Resume Recheck All", FALSE);

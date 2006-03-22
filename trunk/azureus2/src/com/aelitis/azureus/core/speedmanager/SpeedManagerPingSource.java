@@ -1,5 +1,5 @@
 /*
- * Created on 16-Mar-2006
+ * Created on 22-Mar-2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -22,49 +22,14 @@
 
 package com.aelitis.azureus.core.speedmanager;
 
-import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
+import java.net.InetSocketAddress;
 
 public interface 
-SpeedManager 
+SpeedManagerPingSource 
 {
-	public boolean
-	isAvailable();
-	
-	public void
-	setMinumumUploadSpeed(
-		int		speed );
+	public InetSocketAddress
+	getAddress();
 	
 	public int
-	getMinumumUploadSpeed();
-	
-	public void
-	setMaximumUploadSpeed(
-		int		speed );
-	
-	public int
-	getMaximumUploadSpeed();
-	
-	public int
-	getChokePingTime();
-	
-	public void
-	setChokePingTime(
-		int	milliseconds );
-	
-	public void
-	setEnabled(
-		boolean		enabled );
-	
-	public boolean
-	isEnabled();
-	
-	public void
-	setSpeedTester(
-		DHTSpeedTester	tester );
-	
-	public DHTSpeedTester
-	getSpeedTester();
-	
-	public SpeedManagerPingSource[]
-	getPingSources();
+	getPingTime();
 }
