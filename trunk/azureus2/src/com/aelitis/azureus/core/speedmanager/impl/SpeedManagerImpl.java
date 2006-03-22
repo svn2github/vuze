@@ -317,11 +317,12 @@ SpeedManagerImpl
 			
 			str += (i==0?"":",") + rtt;
 
-				// discount anything 5*min reported
+				// discount anything 5*min reported unless min is really small, in which case round
+				// up as we're only trying to catch badly behaved ones
 			
 			if ( pc != null ){
 			
-				boolean	good_ping =  rtt < 5*min_rtt;
+				boolean	good_ping =  rtt < 5* Math.max( min_rtt, 75 );
 				
 				pc.pingReceived( rtt, good_ping );
 			}
