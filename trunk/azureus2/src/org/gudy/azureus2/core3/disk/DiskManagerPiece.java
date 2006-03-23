@@ -38,7 +38,12 @@ public interface DiskManagerPiece
 {
 	public DiskManager	getManager();
 
+	/**
+	 * @deprecated Use {@link #getLastWriteTime(long)} instead
+	 */
 	public long			getLastWriteTime();
+
+	public long			getLastWriteTime(final long now);
 
 	public boolean		calcNeeded();
 	public void			clearNeeded();
@@ -50,15 +55,6 @@ public interface DiskManagerPiece
 	public boolean		isNeeded();
 	public void			setNeeded();
 	public void			setNeeded(boolean b);
-
-/*
-    // a piece is Avail if any other peer in the swarm makes the piece available, independant of if we have it or not
-	public boolean		calcAvail();
-	public void			clearAvail();
-	public boolean		isAvail();
-	public void			setAvail();
-	public void			setAvail(boolean b);
-*/
 
 	// a piece is Requested if there is at least 1 outstanding request on it AND there's no more blocks that need to be requested
 	public boolean		calcRequested();
@@ -92,6 +88,7 @@ public interface DiskManagerPiece
 	public void			setChecking();
 	public void			setChecking(boolean b);
     public void         clearChecking();
+    public boolean		isNeedsCheck();
 
 	public boolean		calcDone();
 	/** @return true when the hash check has passed and the DiskManager has asyncronously updated the Done status.
@@ -106,8 +103,7 @@ public interface DiskManagerPiece
     public boolean      isInteresting();
 
     /** This must not be used to qualify pieces in End Game Mode.
-	 * @return true is a piece is Needed but is not fully; Requested, Downloaded, Written, Checking, or Done.
-     * Avail isn't checked by this.
+	 * @return true if a piece is Needed but is not fully; Requested, Downloaded, Written, Checking, or Done.
 	 */
 	public boolean		isRequestable();
     

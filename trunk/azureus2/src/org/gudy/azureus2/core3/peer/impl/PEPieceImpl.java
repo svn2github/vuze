@@ -40,10 +40,10 @@ public class PEPieceImpl
 {
 	private static final LogIDs LOGID = LogIDs.PIECES;
 	
-	final private DiskManagerPiece	dmPiece;
-	final private PEPeerManager		manager;
+	private final DiskManagerPiece	dmPiece;
+	private final PEPeerManager		manager;
 	
-    final private int       nbBlocks;       // number of blocks in this piece
+	private final int       nbBlocks;       // number of blocks in this piece
     private long            creationTime;
     
 	private final String[]	requested;
@@ -59,7 +59,7 @@ public class PEPieceImpl
     private int             resumePriority;
     
 	// experimental class level lock
-	protected static AEMonitor 	class_mon	= new AEMonitor( "PEPiece:class");
+	protected static final AEMonitor 	class_mon	= new AEMonitor( "PEPiece:class");
 	
     /** piece for tracking partially downloaded pieces
      * @param _manager the PEPeerManager
@@ -97,7 +97,7 @@ public class PEPieceImpl
 
     public long getCreationTime()
     {
-        long now =SystemTime.getCurrentTime();
+        final long now =SystemTime.getCurrentTime();
         if (now >=creationTime &&creationTime >0)
             return creationTime;
         creationTime =now;
@@ -107,7 +107,7 @@ public class PEPieceImpl
     public long getTimeSinceLastActivity()
     {
         final long now =SystemTime.getCurrentTime();
-        long lastWriteTime =dmPiece.getLastWriteTime();
+        final long lastWriteTime =dmPiece.getLastWriteTime(now);
         if (lastWriteTime >0 &&now >=lastWriteTime)
             return now -lastWriteTime;
         if (creationTime >0 &&now >=creationTime)
@@ -115,7 +115,7 @@ public class PEPieceImpl
         creationTime =now;
         return 0;
     }
-
+    
 	/** Tells if a block has been requested
 	 * @param blockNumber the block in question
 	 * @return true if the block is Requested already
@@ -124,7 +124,7 @@ public class PEPieceImpl
 	{
 		return requested[blockNumber] !=null;
 	}
-
+	
 	/** Tells if a block has been downloaded
 	 * @param blockNumber the block in question
 	 * @return true if the block is downloaded already
@@ -133,7 +133,7 @@ public class PEPieceImpl
 	{
 		return downloaded[blockNumber];
 	}
-
+	
 	/** This flags the block at the given offset as having been downloaded
      * If all blocks are now downloaed, sets the dmPiece as downloaded
 	 * @param blockNumber
@@ -149,7 +149,7 @@ public class PEPieceImpl
         dmPiece.setDownloaded();
         dmPiece.clearRequested();
 	}
-
+	
     /** This flags the block at the given offset as NOT having been downloaded
      * and the whole piece as not having been fully downloaded
      * @param blockNumber
@@ -159,7 +159,7 @@ public class PEPieceImpl
         downloaded[offset /DiskManager.BLOCK_SIZE] =false;
         dmPiece.clearDownloaded();
     }
-
+    
 	/** This marks a given block as having been written by the given peer
 	 * @param peer the PEPeer that sent the data
 	 * @param blockNumber the block we're operating on
@@ -178,7 +178,7 @@ public class PEPieceImpl
 	{
 		requested[blockNumber] =downloaded[blockNumber] ?writers[blockNumber] :null;
 	}
-
+	
     /** @deprecated
      * This method is safe in a multi-threaded situation as the worst that it can do is mark a block as not requested even
      * though its downloaded which may lead to it being downloaded again
@@ -357,7 +357,7 @@ public class PEPieceImpl
 	
 	
 	public List getPieceWrites(int blockNumber) {
-		List result;
+		final List result;
 		try{
 			class_mon.enter();
 			
@@ -367,9 +367,9 @@ public class PEPieceImpl
 			
 			class_mon.exit();
 		}
-		Iterator iter = result.iterator();
+		final Iterator iter = result.iterator();
 		while(iter.hasNext()) {
-			PEPieceWriteImpl write = (PEPieceWriteImpl) iter.next();
+			final PEPieceWriteImpl write = (PEPieceWriteImpl) iter.next();
 			if(write.getBlockNumber() != blockNumber)
 				iter.remove();
 		}
@@ -378,7 +378,7 @@ public class PEPieceImpl
 	
 	
 	public List getPieceWrites(PEPeer peer) {
-		List result;
+		final List result;
 		try{
 			class_mon.enter();
 			
@@ -386,7 +386,7 @@ public class PEPieceImpl
 		}finally{
 			class_mon.exit();
 		}
-		Iterator iter = result.iterator();
+		final Iterator iter = result.iterator();
 		while(iter.hasNext()) {
 			PEPieceWriteImpl write = (PEPieceWriteImpl) iter.next();
 			if(peer == null || ! peer.equals(write.getSender()))
@@ -399,7 +399,7 @@ public class PEPieceImpl
 	getPieceWrites( 
 		String	ip ) 
 	{
-		List result;
+		final List result;
 		
 		try{
 			class_mon.enter();
@@ -411,11 +411,11 @@ public class PEPieceImpl
 			class_mon.exit();
 		}
 		
-		Iterator iter = result.iterator();
+		final Iterator iter = result.iterator();
 		
 		while(iter.hasNext()) {
 			
-			PEPieceWriteImpl write = (PEPieceWriteImpl) iter.next();
+			final PEPieceWriteImpl write = (PEPieceWriteImpl) iter.next();
 			
 			if ( !write.getSender().equals( ip )){
 				
@@ -525,7 +525,7 @@ public class PEPieceImpl
 	{
 		for (int i =0; i <writers.length; i++ )
 		{
-			String writer =writers[i];
+			final String writer =writers[i];
 
 			if (writer !=null &&writer.equals(address))
 				reDownloadBlock(i);

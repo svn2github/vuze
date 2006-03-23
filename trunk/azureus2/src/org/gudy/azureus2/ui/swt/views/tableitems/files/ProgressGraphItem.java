@@ -69,7 +69,7 @@ public class ProgressGraphItem
     }
 
     public void dispose(TableCell cell) {
-      Image img = ((TableCellCore)cell).getGraphicSWT();
+    	final Image img = ((TableCellCore)cell).getGraphicSWT();
       if (img != null && !img.isDisposed())
         img.dispose();
     }
@@ -77,7 +77,7 @@ public class ProgressGraphItem
 
 
     public void refresh(TableCell cell) {
-      DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
+    	final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
       int percentDone = 0;
       if (fileInfo != null && fileInfo.getLength() != 0)
         percentDone = (int)((1000 * fileInfo.getDownloaded()) / fileInfo.getLength());
@@ -89,15 +89,15 @@ public class ProgressGraphItem
       if (newWidth <= 0) {
         return;
       }
-      int newHeight = cell.getHeight();
+      final int newHeight = cell.getHeight();
 
-      int x1 = newWidth - borderWidth - 1;
-      int y1 = newHeight - borderWidth - 1;
+      final int x1 = newWidth - borderWidth - 1;
+      final int y1 = newHeight - borderWidth - 1;
       if (x1 < 10 || y1 < 3) {
         return;
       }
 
-	  DiskManager			manager			= fileInfo.getDiskManager();
+      final DiskManager			manager			= fileInfo.getDiskManager();
 
       	// we want to run through the image part once one the transition from with a disk manager (running)
       	// to without a disk manager (stopped) in order to clear the pieces view
@@ -105,7 +105,7 @@ public class ProgressGraphItem
 		 
 	  boolean	running	= manager != null;
 	  
-      boolean bImageBufferValid = (lastPercentDone == percentDone) &&
+	  final boolean bImageBufferValid = (lastPercentDone == percentDone) &&
                                   cell.isValid() && bNoRed && running == was_running;
       
       if (bImageBufferValid) {
@@ -123,10 +123,11 @@ public class ProgressGraphItem
       piecesImage = new Image(SWTThread.getInstance().getDisplay(),
                               newWidth, newHeight);
 
-      GC gcImage = new GC(piecesImage);
+      final GC gcImage = new GC(piecesImage);
 
 	  	// dm may be null if this is a skeleton file view
 	  
+  	final long now =SystemTime.getCurrentTime();
       if (fileInfo != null && manager != null ) {
     	   	  
         if (percentDone == 1000) {
@@ -134,14 +135,14 @@ public class ProgressGraphItem
           gcImage.setBackground(Colors.blues[Colors.BLUES_DARKEST]);
           gcImage.fillRectangle(1, 1, newWidth - 2, newHeight - 2);
         } else {
-          int firstPiece = fileInfo.getFirstPieceNumber();
-          int nbPieces = fileInfo.getNbPieces();
+        	final int firstPiece = fileInfo.getFirstPieceNumber();
+        	final int nbPieces = fileInfo.getNbPieces();
        
-          DiskManagerPiece[] dm_pieces = manager.getPieces();
+        	final DiskManagerPiece[] dm_pieces = manager.getPieces();
        
           bNoRed = true;
           for (int i = 0; i < newWidth; i++) {
-            int a0 = (i * nbPieces) / newWidth;
+        	  final int a0 = (i * nbPieces) / newWidth;
             int a1 = ((i + 1) * nbPieces) / newWidth;
             if (a1 == a0)
               a1++;
@@ -152,9 +153,9 @@ public class ProgressGraphItem
             boolean partially_written = false;
             if (firstPiece >= 0) {
               for (int j = a0; j < a1; j++){
-                int this_index = j+firstPiece;
+            	  final int this_index = j+firstPiece;
                 
-               	DiskManagerPiece	dm_piece = dm_pieces[this_index];
+                final DiskManagerPiece	dm_piece = dm_pieces[this_index];
                 
                 if (dm_piece.isDone()) {
                   nbAvailable++;
@@ -164,10 +165,10 @@ public class ProgressGraphItem
                   continue;
                 }
                 
-                written = written || (dm_piece.getLastWriteTime() + 500) > last_draw_time;
+                written = written || (dm_piece.getLastWriteTime(now) + 500) > last_draw_time;
     
                 if ((!written) && (!partially_written)) {
-                  boolean[] blocks = dm_piece.getWritten();
+                	final boolean[] blocks = dm_piece.getWritten();
     
                   if ( blocks != null ) {
                     for (int k = 0; k < blocks.length; k++){
@@ -203,7 +204,7 @@ public class ProgressGraphItem
 	  }
 
       gcImage.dispose();
-      last_draw_time = SystemTime.getCurrentTime();
+      last_draw_time =now;
 
       ((TableCellCore)cell).setGraphic(piecesImage);
     }
