@@ -1341,16 +1341,16 @@ PEPeerControlImpl
 		}
 	}
 	
-	public void dataBytesSent(int length) {
+	public void dataBytesSent(int length, boolean LAN) {
 		if (length > 0) {
-			_stats.dataBytesSent(length);
+			_stats.dataBytesSent(length, LAN );
 		}
 	}
 	
 	
-	public void protocolBytesSent( int length ) {
+	public void protocolBytesSent( int length, boolean LAN ) {
 		if (length > 0) {
-			_stats.protocolBytesSent(length);
+			_stats.protocolBytesSent(length, LAN);
 		}
 	}
 	

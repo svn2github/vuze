@@ -49,6 +49,8 @@ GlobalManagerStatsImpl
 
 	private Average data_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
     private Average protocol_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+	private Average data_send_speed_no_lan = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+    private Average protocol_send_speed_no_lan = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 
 
 	protected 
@@ -78,14 +80,20 @@ GlobalManagerStatsImpl
     
     
 
-	  public void dataBytesSent(int length) {
+	  public void dataBytesSent(int length, boolean LAN) {
 	    total_data_bytes_sent += length;
+	    if ( !LAN ){
+	    	data_send_speed_no_lan.addValue(length);
+	    }
 	    data_send_speed.addValue(length);
 	  }
     
     
-    public void protocolBytesSent(int length) {
+    public void protocolBytesSent(int length, boolean LAN) {
       total_protocol_bytes_sent += length;
+      if ( !LAN ){
+    	  protocol_send_speed_no_lan.addValue(length);
+      }
       protocol_send_speed.addValue(length);
     }
     
@@ -104,10 +112,15 @@ GlobalManagerStatsImpl
 	  public int getDataSendRate() {
 		  return (int)data_send_speed.getAverage();
 	  }
-    
-    public int getProtocolSendRate() {
-      return (int)protocol_send_speed.getAverage();
-    }
+	  public int getDataSendRateNoLAN() {
+		  return (int)data_send_speed_no_lan.getAverage();
+	  }
+	  public int getProtocolSendRate() {
+		  return (int)protocol_send_speed.getAverage();
+	  }
+	  public int getProtocolSendRateNoLAN() {
+		  return (int)protocol_send_speed_no_lan.getAverage();
+	  }
     
 
     

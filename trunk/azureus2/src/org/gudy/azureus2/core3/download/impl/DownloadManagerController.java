@@ -1293,21 +1293,23 @@ DownloadManagerController
 	
 	public void
 	protocolBytesSent(
-		int	bytes )
+		int		bytes,
+		boolean	LAN )
 	{
 		if ( global_stats != null ){
 			
-			global_stats.protocolBytesSent( bytes );
+			global_stats.protocolBytesSent( bytes, LAN );
 		}
 	}
 	
 	public void
 	dataBytesSent(
-		int	bytes )
+		int		bytes,
+		boolean	LAN )
 	{
 		if ( global_stats != null ){
 			
-			global_stats.dataBytesSent( bytes );
+			global_stats.dataBytesSent( bytes, LAN );
 		}
 	}
 	

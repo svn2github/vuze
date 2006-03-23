@@ -387,8 +387,7 @@ PeerForeignDelegate
 
  
 	public boolean isLANLocal() {
-		if( AddressUtils.isLANLocalAddress( foreign.getIp() ) )  return true;
-		return false;
+		return( AddressUtils.isLANLocalAddress( foreign.getIp()) == AddressUtils.LAN_LOCAL_YES );
 	}
 	
  

@@ -94,18 +94,18 @@ PEPeerManagerStatsImpl
   }
   
   
-	public void dataBytesSent(int length) {
+	public void dataBytesSent(int length, boolean LAN) {
 	  total_data_bytes_sent += length;
 	  data_send_speed.addValue(length);  
 	  
-	  adapter.dataBytesSent( length );
+	  adapter.dataBytesSent( length, LAN );
 	}
   
-  public void protocolBytesSent(int length) {
+  public void protocolBytesSent(int length, boolean LAN) {
     total_protocol_bytes_sent += length;
     protocol_send_speed.addValue(length);
     
- 	adapter.protocolBytesSent( length );
+ 	adapter.protocolBytesSent( length, LAN );
   }
   
 

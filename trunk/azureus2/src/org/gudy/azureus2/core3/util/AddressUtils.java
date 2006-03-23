@@ -33,6 +33,10 @@ import com.aelitis.azureus.core.proxy.AEProxyFactory;
 public class 
 AddressUtils 
 {
+	public static final byte LAN_LOCAL_MAYBE	= 0;
+	public static final byte LAN_LOCAL_YES		= 1;
+	public static final byte LAN_LOCAL_NO		= 2;
+	
 	private static AZInstanceManager	instance_manager;
 	
 	public static URL
@@ -88,7 +92,7 @@ AddressUtils
 		return( adjusted_address );
 	}
 	
-	public static boolean
+	public static byte
 	isLANLocalAddress(
 		InetAddress	address )
 
@@ -106,15 +110,15 @@ AddressUtils
 		
 		if ( instance_manager == null || !instance_manager.isInitialized()){
 			
-			return( false );
+			return( LAN_LOCAL_MAYBE );
 		}
 		
-		return( instance_manager.isLANAddress( address ));
+		return( instance_manager.isLANAddress( address )? LAN_LOCAL_YES:LAN_LOCAL_NO);
 	}
 	
 	
-	public static boolean isLANLocalAddress( String address ) {
-		boolean is_lan_local = false;
+	public static byte isLANLocalAddress( String address ) {
+		byte is_lan_local = LAN_LOCAL_MAYBE;
 		
 		try {
 			is_lan_local = isLANLocalAddress( InetAddress.getByName( address ) );

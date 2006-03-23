@@ -43,7 +43,8 @@ public class NetworkConnectionImpl implements NetworkConnection {
   private final InetSocketAddress remote_address;
   private final TCPTransport tcp_transport;
   private ConnectionListener connection_listener;
-  private boolean is_connected;
+  private boolean 	is_connected;
+  private byte		is_lan_local	= AddressUtils.LAN_LOCAL_MAYBE;
 
   private final OutgoingMessageQueue outgoing_message_queue;
   private final IncomingMessageQueue incoming_message_queue;
@@ -171,7 +172,11 @@ public class NetworkConnectionImpl implements NetworkConnection {
   
 	
 	public boolean isLANLocal() {
-		return AddressUtils.isLANLocalAddress( remote_address.getAddress() );
+		if ( is_lan_local == AddressUtils.LAN_LOCAL_MAYBE ){
+			
+			is_lan_local = AddressUtils.isLANLocalAddress( remote_address.getAddress() );
+		}
+		return( is_lan_local == AddressUtils.LAN_LOCAL_YES );
 	}
 	
 }

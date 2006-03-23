@@ -108,11 +108,11 @@ PEPeerManagerAdapter
 	
 	public void
 	protocolBytesSent(
-		int	bytes );
+		int	bytes, boolean LAN );
 	
 	public void
 	dataBytesSent(
-		int	bytes );
+		int	bytes, boolean LAN );
 	
 	public LogRelation
 	getLogRelation();

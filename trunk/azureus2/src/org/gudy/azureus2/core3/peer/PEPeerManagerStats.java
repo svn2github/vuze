@@ -32,8 +32,8 @@ PEPeerManagerStats
 	public void dataBytesReceived(int length);
 	public void protocolBytesReceived(int length);
   
-	public void dataBytesSent(int length);
-	public void protocolBytesSent(int length);
+	public void dataBytesSent(int length, boolean LAN);
+	public void protocolBytesSent(int length, boolean LAN);
   
   	public void haveNewPiece(int pieceLength);
   

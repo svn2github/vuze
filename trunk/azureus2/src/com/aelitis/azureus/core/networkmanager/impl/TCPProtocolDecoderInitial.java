@@ -137,7 +137,7 @@ TCPProtocolDecoderInitial
 									if ( NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED ){										
 										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["+ channel + "] is not encrypted but has been accepted as fallback is enabled" ));
 									}
-									else if( AddressUtils.isLANLocalAddress( channel.socket().getInetAddress().getHostAddress() ) ) {
+									else if( AddressUtils.isLANLocalAddress( channel.socket().getInetAddress().getHostAddress() ) == AddressUtils.LAN_LOCAL_YES ) {
 										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["+ channel + "] is not encrypted but has been accepted as lan-local" ));
 									}
 									else{										

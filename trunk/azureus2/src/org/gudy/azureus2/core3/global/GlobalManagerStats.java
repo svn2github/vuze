@@ -33,8 +33,10 @@ GlobalManagerStats
 	public int getProtocolReceiveRate();
 	
 	public int getDataSendRate();
-  
+	public int getDataSendRateNoLAN();
+	  
 	public int getProtocolSendRate();
+	public int getProtocolSendRateNoLAN();
   
   
 	public long getTotalDataBytesReceived();
@@ -51,8 +53,8 @@ GlobalManagerStats
   
 		// set methods
 		
-	public void	dataBytesSent( int bytes );
-	public void protocolBytesSent( int bytes );
+	public void	dataBytesSent( int bytes, boolean LAN );
+	public void protocolBytesSent( int bytes, boolean LAN );
 		
 	public void dataBytesReceived( int bytes );
 	public void protocolBytesReceived( int bytes );

@@ -1259,12 +1259,12 @@ Test
 		
 		public void
 		dataBytesSent(
-			int		l )
+			int		l, boolean LAN )
 		{
 			
 		}
 
-    public void protocolBytesSent( int length ) {}
+    public void protocolBytesSent( int length, boolean LAN ) {}
     
     public void protocolBytesReceived( int length ) {}
 		

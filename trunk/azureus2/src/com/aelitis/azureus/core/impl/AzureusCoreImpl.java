@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerFactory;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
@@ -183,7 +182,7 @@ AzureusCoreImpl
 								
 								GlobalManagerStats stats = global_manager.getStats();
 								
-								return( stats.getDataSendRate() + stats.getProtocolSendRate());
+								return( stats.getDataSendRateNoLAN() + stats.getProtocolSendRateNoLAN());
 								
 							}else{
 								

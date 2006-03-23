@@ -146,13 +146,13 @@ PEPeerManager
    * Data bytes sent.
    * @param l
    */
-	public void	dataBytesSent( int	l );
+	public void	dataBytesSent( int	l, boolean LAN );
 	
   /**
    * Protocol bytes sent.
    * @param length
    */
-  public void protocolBytesSent( int length );
+  public void protocolBytesSent( int length, boolean LAN );
   
   /**
    * Protocol bytes received.

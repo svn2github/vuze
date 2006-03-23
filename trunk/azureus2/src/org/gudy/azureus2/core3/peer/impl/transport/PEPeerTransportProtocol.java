@@ -1977,13 +1977,13 @@ PEPeerTransportProtocol
       public final void protocolBytesSent( int byte_count ) {
         //update stats
         peer_stats.protocolBytesSent( byte_count );
-        manager.protocolBytesSent( byte_count );
+        manager.protocolBytesSent( byte_count, isLANLocal());
       }
         
       public final void dataBytesSent( int byte_count ) {
         //update stats
         peer_stats.dataBytesSent( byte_count );
-        manager.dataBytesSent( byte_count );
+        manager.dataBytesSent( byte_count, isLANLocal());
       }
     });
 
@@ -2272,7 +2272,7 @@ PEPeerTransportProtocol
 	
 
 	public boolean isLANLocal() {
-		if( connection == null )  return AddressUtils.isLANLocalAddress( ip );
+		if( connection == null )  return( AddressUtils.isLANLocalAddress( ip ) == AddressUtils.LAN_LOCAL_YES );
 		return connection.isLANLocal();		
 	}
 	

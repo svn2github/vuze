@@ -394,7 +394,7 @@ IpFilterImpl
 	  }
 	  
 	  //never block lan local addresses
-	  if( AddressUtils.isLANLocalAddress( ipAddress ) ) {
+	  if( AddressUtils.isLANLocalAddress( ipAddress ) != AddressUtils.LAN_LOCAL_NO ) {
 	  	return false;
 	  }
 	  
