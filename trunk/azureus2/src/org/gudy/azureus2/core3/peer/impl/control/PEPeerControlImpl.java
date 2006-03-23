@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.impl.ConnectDisconnectManager;
@@ -588,7 +589,7 @@ PEPeerControlImpl
 			if( already_connected )  continue;
 			
 			if( peer_database != null ) {				
-				final int type = peer.getProtocol() == TRTrackerAnnouncerResponsePeer.PROTOCOL_CRYPT ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
+				final int type = peer.getProtocol() == DownloadAnnounceResultPeer.PROTOCOL_CRYPT ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
 				final PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), type );
 				peer_database.addDiscoveredPeer( item );
 			}
@@ -655,7 +656,7 @@ PEPeerControlImpl
 		for (int i = 0; i <_nbPieces; i++) {
 			final DiskManagerPiece dmPiece =dm_pieces[i];
 			//if piece is completly written, not already checking, and not Done
-			if (!dmPiece.isDone() &&dmPiece.isDownloaded() &&!dmPiece.isChecking() &&dmPiece.calcWritten())
+			if (dmPiece.isNeedsCheck())
 			{
 				//check the piece from the disk
 				dmPiece.setChecking();
@@ -2489,18 +2490,18 @@ PEPeerControlImpl
                     else
                         peerTestTime +=timeSinceGoodData;
                     
-                    peerTestTime +=peer.getSnubbedTime();
-                    
                     // try to drop unInteresting in favor of Interesting connections
                     if (!peer.isInteresting())
                     {
                         if (!peer.isInterested())   // if mutually unInterested, really try to drop the connection
                             peerTestTime +=timeSinceConnection +timeSinceSentData;   // if we never sent, it will subtract 1, which is good
                         else
-                            peerTestTime -=(timeSinceConnection -timeSinceSentData); // try to give interested peers a chance to get data
+                            peerTestTime +=(timeSinceConnection -timeSinceSentData); // try to give interested peers a chance to get data
                         
-                        peerTestTime =peerTestTime *2;
+                        peerTestTime *=2;
                     }
+
+                    peerTestTime +=peer.getSnubbedTime();
                 }
                 
                 if( !peer.isIncoming() )
