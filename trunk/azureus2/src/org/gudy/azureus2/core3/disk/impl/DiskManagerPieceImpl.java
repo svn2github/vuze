@@ -75,11 +75,11 @@ public class DiskManagerPieceImpl
 
 	private long        time_last_write;
 
+    private int         statusFlags;
 	/** it's *very* important to accurately maintain the "done" state of a piece. Currently the statusFlags
 	 * are updated in a non-thread-safe manner so a 'done' field is maintained seperatly.  Synchronizing
 	 * access to statusFlags or done would cause a tremendous performance hit.
 	 */
-    private int         statusFlags;
     private boolean		done;
     
 	protected DiskManagerPieceImpl(final DiskManagerImpl _disk_manager, final int pieceIndex)
