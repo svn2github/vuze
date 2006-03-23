@@ -169,7 +169,7 @@ public class PiecePickerImpl
 		class ParameterListenerImpl
 			implements ParameterListener
 		{
-			public final void parameterChanged(String parameterName)
+			public final void parameterChanged(final String parameterName)
 			{
 				if (parameterName.equals("Prioritize Most Completed Files"))
 				{
@@ -258,7 +258,7 @@ public class PiecePickerImpl
 	}
 	
 
-    public void addHavePiece(final int pieceNumber)
+    public final void addHavePiece(final int pieceNumber)
 	{
 		try
 		{	availabilityMon.enter();
@@ -274,7 +274,7 @@ public class PiecePickerImpl
      * This methd will compute the pieces' overall availability (including ourself)
      * and the _globalMinOthers & _globalAvail
      */
-    public void updateAvailability()
+    public final void updateAvailability()
     {
         final long now =SystemTime.getCurrentTime();
         if (now >=time_last_avail &&now <time_last_avail +TIME_MIN_AVAILABILITY)
@@ -370,14 +370,14 @@ public class PiecePickerImpl
         /(1 +peerControl.getNbSeeds() +peerControl.getNbPeers());
     }
 	
-	private int[] recomputeAvailability()
+	private final int[] recomputeAvailability()
 	{
 	    if (availabilityDrift >0 &&availabilityDrift !=nbPieces &&Logger.isEnabled())
 	        Logger.log(new LogEvent(diskManager.getTorrent(), LOGID, LogEvent.LT_INFORMATION,
 	            "Recomputing availabiliy. Drift=" +availabilityDrift +":" +peerControl.getDisplayName()));
 	    final List peers =peerControl.getPeers();
 	    
-	    int[]	newAvailability = new int[nbPieces];
+	    final int[]	newAvailability = new int[nbPieces];
 	    int j;
 	    int i;
 	    // first our pieces
@@ -406,23 +406,23 @@ public class PiecePickerImpl
 	}
 	
 	
-	public int[] getAvailability()
+	public final int[] getAvailability()
 	{
 		return availability;
 	}
 
-	public int getAvailability(final int pieceNumber)
+	public final int getAvailability(final int pieceNumber)
 	{
 		return availability[pieceNumber];
 	}
 	
 	//this only gets called when the My Torrents view is displayed
-	public float getMinAvailability()
+	public final float getMinAvailability()
 	{
 		return globalAvail;
 	}
 
-	public float getAvgAvail()
+	public final float getAvgAvail()
 	{
 		return globalAvgAvail;
 	}
@@ -432,7 +432,7 @@ public class PiecePickerImpl
 	 * Early-outs when finds a downloadable piece
 	 * Either way sets hasNeededUndonePiece and neededUndonePieceChange if necessary 
 	 */
-	protected void checkDownloadablePiece()
+	protected final void checkDownloadablePiece()
 	{
 		for (int i =0; i <nbPieces; i++)
 		{
@@ -458,7 +458,7 @@ public class PiecePickerImpl
 	 * sorted by best uploaders, providing some ooprtunity to download the most important
 	 * (ie; rarest and/or highest priority) pieces faster and more reliably
 	 */
-	public boolean checkDownloadPossible()
+	public final boolean checkDownloadPossible()
 	{
 		if (!hasNeededUndonePiece)
 			return false;
@@ -531,7 +531,7 @@ public class PiecePickerImpl
      * call, which will be most of the time since availability changes so dynamicaly
      * It will change startPriorities[] (unless there was nothing to do)
      */
-    private void computeBasePriorities()
+    private final void computeBasePriorities()
     {
         final long now =SystemTime.getCurrentTime();
         if (startPriorities !=null &&((now >timeLastPriorities &&now <time_last_avail +TIME_MIN_PRIORITIES)
@@ -643,12 +643,12 @@ public class PiecePickerImpl
 	 * @deprecated Use {@link #isRarestOverride()} instead.
 	 * Convention is to use "is" prefix for boolean return
 	 */
-	private boolean getRarestOverride()
+	private final boolean getRarestOverride()
 	{
 		return isRarestOverride();
 	}
 
-	private boolean isRarestOverride()
+	private final boolean isRarestOverride()
     {
         final int nbSeeds =peerControl.getNbSeeds();
         final int nbPeers =peerControl.getNbPeers();
@@ -678,7 +678,7 @@ public class PiecePickerImpl
 	 * @param pt the PEPeerTransport we're working on
 	 * @return int # of blocks that were requested (0 if no requests were made)
 	 */
-	protected int findPieceToDownload(PEPeerTransport pt, final int nbWanted)
+	protected final int findPieceToDownload(PEPeerTransport pt, final int nbWanted)
 	{
 		final int pieceNumber =getRequestCandidate(pt);
 		if (pieceNumber <0)
@@ -749,7 +749,7 @@ public class PiecePickerImpl
      * 
      * @return int with pieceNumberto be requested or -1 if no request could be found
      */
-    private int getRequestCandidate(final PEPeerTransport pt)
+    private final int getRequestCandidate(final PEPeerTransport pt)
     {
         if (pt ==null ||pt.getPeerState() !=PEPeer.TRANSFERING)
             return -1;
@@ -842,16 +842,20 @@ public class PiecePickerImpl
                             }
                             
                             final int pieceSpeed =pePiece.getSpeed();
+                        	final long timeSinceLastActivity =pePiece.getTimeSinceLastActivity();
                             // Snubbed peers or peers slower than the piece can only request on the piece if;
                             // they're the sole source OR
                             // it's the same as the last piece they were on AND there's enough free blocks
                             // TODO: instead of 3, should count how many peers are snubbed and use that
                             if (avail >1 &&(freeReqs <3 ||pieceSpeed -1 >=freeReqs *peerSpeed))
                             {
-                                // if the peer is snubbed or slow, don't request this piece, except;
-                            	//  if it's possible all sources for the piece are snubbed, OR
-                            	//  this was the same as the last piece the slow peer requested from
-                                if ((avail >nbSnubbed &&pt.isSnubbed()) ||(peerSpeed <pieceSpeed &&i !=lastPiece))
+                            	// unless the piece has been inactive too long,
+                            	//  don't request from snubbed peers UNLESS;
+                            	//   it's possible all sources for the piece are snubbed,
+                            	//  don't request from slow peers UNLESS;
+                            	//   it was the last piece requested from them already
+                                if (timeSinceLastActivity < 10 *60*1000 
+                                	&&(avail >nbSnubbed &&pt.isSnubbed()) ||(peerSpeed <pieceSpeed &&i !=lastPiece))
                                     continue;
                             }
                             if (avail <=resumeMinAvail)
@@ -861,7 +865,7 @@ public class PiecePickerImpl
                                 priority +=(i ==lastPiece) ?PRIORITY_W_SAME_PIECE :0;
                                 // Adjust priority for purpose of continuing pieces
                                 // how long since last written to (if written to)
-                                priority +=pePiece.getTimeSinceLastActivity() /PRIORITY_DW_STALE;
+                                priority +=timeSinceLastActivity /PRIORITY_DW_STALE;
                                 // how long since piece was started
                                 pieceAge =now -pePiece.getCreationTime();
                                 if (pieceAge >0)
@@ -968,7 +972,7 @@ public class PiecePickerImpl
      * the chosen piece to have been started already (by another thread).
      * This method considers that potential to not be relevant.
      */
-	protected int getPieceToStart(final PEPeer pt, final BitFlags startCandidates)
+	protected final int getPieceToStart(final PEPeer pt, final BitFlags startCandidates)
 	{
 		if (startCandidates ==null ||startCandidates.nbSet <=0)
 			return -1;
@@ -1000,18 +1004,18 @@ public class PiecePickerImpl
 		return -1;
 	}
 
-	public boolean hasDownloadablePiece()
+	public final boolean hasDownloadablePiece()
 	{
 		return hasNeededUndonePiece;
 	}
 
-	public long getNeededUndonePieceChange()
+	public final long getNeededUndonePieceChange()
 	{
 		return neededUndonePieceChange;
 	}
 
     
-    private void checkEndGameMode()
+    private final void checkEndGameMode()
     {
         if (peerControl.getNbSeeds() +peerControl.getNbPeers() <3)
             return;
@@ -1066,7 +1070,7 @@ public class PiecePickerImpl
         }
     }
     
-    private void computeEndGameModeChunks()
+    private final void computeEndGameModeChunks()
     {
     	final PEPiece[] _pieces =peerControl.getPieces();
         if (_pieces ==null)
@@ -1113,7 +1117,7 @@ public class PiecePickerImpl
         }
     }
 
-    public boolean isInEndGameMode()
+    public final boolean isInEndGameMode()
 	{
 		return endGameMode;
 	}
@@ -1121,7 +1125,7 @@ public class PiecePickerImpl
     /** adds every block from the piece to the list of chuncks to be selected for egm requesting
      * 
      */ 
-	public void addEndGameChunks(final PEPiece pePiece)
+	public final void addEndGameChunks(final PEPiece pePiece)
 	{
 		if (!endGameMode)
 			return;
@@ -1142,7 +1146,7 @@ public class PiecePickerImpl
     /** adds blocks from the piece that are neither downloaded nor written to the list
      * of  chuncks to be selected for egm requesting
      */ 
-	public void addEndGameBlocks(final PEPiece pePiece)
+	public final void addEndGameBlocks(final PEPiece pePiece)
 	{
 		if (!endGameMode ||pePiece ==null)
 			return;
@@ -1162,7 +1166,7 @@ public class PiecePickerImpl
 		}
 	}
 
-    protected int findPieceInEndGameMode(final PEPeerTransport pt, final int wants)
+    protected final int findPieceInEndGameMode(final PEPeerTransport pt, final int wants)
     {
         if (pt ==null ||wants <=0 ||pt.getPeerState() !=PEPeer.TRANSFERING)
             return 0;
@@ -1200,8 +1204,10 @@ public class PiecePickerImpl
         return 0;
     }
     
-	public void removeFromEndGameModeChunks(final int pieceNumber, final int offset)
+	public final void removeFromEndGameModeChunks(final int pieceNumber, final int offset)
 	{
+		if (!endGameMode)
+			return;
 		try
 		{
 			endGameModeChunks_mon.enter();
@@ -1219,7 +1225,7 @@ public class PiecePickerImpl
 		}
 	}
 	
-	public void clearEndGameChunks()
+	public final void clearEndGameChunks()
 	{
 		if (!endGameMode)
 			return;
