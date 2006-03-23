@@ -91,15 +91,15 @@ SpeedManagerImpl
 	
 	private static final int	FORCED_MAX_TICKS	= 30;
 	
-	private static final int	FORCED_MIN_TICKS		= 60;
-	private static final int	FORCED_MIN_TICK_LIMIT	= 30;
-	private static final int	FORCED_MIN_SPEED		= 4*1024;
+	private static final int	FORCED_MIN_TICKS		= 60;			// time we'll force low upload to get baseline
+	private static final int	FORCED_MIN_AT_START_TICK_LIMIT	= 60;	// how long we'll wait on start up before forcing min
+	private static final int	FORCED_MIN_SPEED		= 4*1024;		// speed forced during min period
 	
 	private static final int	PING_AVERAGE_HISTORY_COUNT	= 5;
 
-	private static final int	IDLE_UPLOAD_SPEED		= 5*1024;
+	private static final int	IDLE_UPLOAD_SPEED		= 5*1024;		// speed at which upload is treated as "idle"
 	private static final int	INITIAL_IDLE_AVERAGE	= 100;
-	private static final int	MIN_IDLE_AVERAGE		= 50;	// any lower than this and small ping variations cause overreaction
+	private static final int	MIN_IDLE_AVERAGE		= 50;		// any lower than this and small ping variations cause overreaction
 
 	private static final int	INCREASING	= 1;
 	private static final int	DECREASING	= 2;
@@ -323,7 +323,7 @@ SpeedManagerImpl
 			
 			if ( pc != null ){
 			
-				boolean	good_ping =  rtt < 5* Math.max( min_rtt, 75 );
+				boolean	good_ping =  rtt < 5 * Math.max( min_rtt, 75 );
 				
 				pc.pingReceived( rtt, good_ping );
 			}
@@ -434,7 +434,7 @@ SpeedManagerImpl
 		
 		if ( mode == MODE_RUNNING ){
 			
-			if (	( ticks > FORCED_MIN_TICK_LIMIT && !idle_average_set ) ||
+			if (	( ticks > FORCED_MIN_AT_START_TICK_LIMIT && !idle_average_set ) ||
 					( new_contacts >= 2 && idle_average_set )){
 				
 					// we've been running a while but no min set, or we've got some new untested 
