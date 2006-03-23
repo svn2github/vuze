@@ -38,12 +38,15 @@ import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
+import com.aelitis.azureus.core.AzureusCore;
+
 /**
  * 
  */
 public class StatsView extends AbstractIView {
   
   GlobalManager manager;
+  AzureusCore core;
   
   TabFolder folder;
   
@@ -62,8 +65,9 @@ public class StatsView extends AbstractIView {
   IView viewVivaldi;
   UpdateThread updateThread;
   
-  public StatsView(GlobalManager manager) {
+  public StatsView(GlobalManager manager,AzureusCore core) {
    this.manager = manager;
+   this.core = core;
   }
   
   private class UpdateThread extends Thread {
@@ -105,7 +109,7 @@ public class StatsView extends AbstractIView {
     itemVivaldi = new TabItem(folder,SWT.NULL);
 
     viewActivity = new ActivityView(manager);
-    viewStats = new TransferStatsView(manager);
+    viewStats = new TransferStatsView(manager,core);
     viewCache = new CacheView();
     viewDHT = new DHTView( DHTView.DHT_TYPE_MAIN );  
     if( Constants.isCVSVersion() )  viewDHTcvs = new DHTView( DHTView.DHT_TYPE_CVS );

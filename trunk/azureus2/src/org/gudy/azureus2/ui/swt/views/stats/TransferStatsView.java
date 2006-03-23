@@ -25,8 +25,11 @@ package org.gudy.azureus2.ui.swt.views.stats;
 import java.text.DecimalFormat;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -38,7 +41,13 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.components.graphics.PingGraphic;
+import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 
 /**
  * 
@@ -46,114 +55,172 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 public class TransferStatsView extends AbstractIView {
 
   GlobalManager manager;
+  AzureusCore core;
   GlobalManagerStats stats;
   
   OverallStats totalStats;
   
-  Composite panel;
+  Composite mainPanel;  
   
+  Composite generalPanel;
   BufferedLabel nowUp, nowDown, sessionDown, sessionUp, session_ratio, sessionTime, totalDown, totalUp, total_ratio, totalTime;
+  
+  Composite autoSpeedPanel;
+  StackLayout autoSpeedPanelLayout;
+  Composite autoSpeedInfoPanel;
+  Composite autoSpeedDisabledPanel;
+  Canvas  pingCanvas;  
+  PingGraphic pingGraph;
+  
   
   private final DecimalFormat formatter = new DecimalFormat( "##.#" );
   
   
   
-  public TransferStatsView(GlobalManager manager) {
+  public TransferStatsView(GlobalManager manager,AzureusCore core) {
+    this.core = core;
     this.manager = manager;
     this.stats = manager.getStats();
     this.totalStats = StatsFactory.getStats();
   }
   
   public void initialize(Composite composite) {
-    panel = new Composite(composite,SWT.NULL);
+    
+    mainPanel = new Composite(composite,SWT.NULL);
+    GridLayout mainLayout = new GridLayout();
+    mainPanel.setLayout(mainLayout);
+    
+    createGeneralPanel();
+    
+    createAutoSpeedPanel();
+  }
+
+  private void createGeneralPanel() {
+    generalPanel = new Composite(mainPanel,SWT.BORDER);
+    GridData generalPanelData = new GridData(GridData.FILL_HORIZONTAL);
+    generalPanel.setLayoutData(generalPanelData);
     
     GridLayout panelLayout = new GridLayout();
     panelLayout.numColumns = 5;
     panelLayout.makeColumnsEqualWidth = true;
-    panel.setLayout(panelLayout);
+    generalPanel.setLayout(panelLayout);
     
     GridData gridData;
     
-    Label lbl = new Label(panel,SWT.NULL);
+    Label lbl = new Label(generalPanel,SWT.NULL);
     
-    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.downloaded");
     
-    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.uploaded");
     
-    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.ratio");
     
-    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.uptime");
     
-    lbl = new Label(panel,SWT.NULL);
-    lbl = new Label(panel,SWT.NULL);
-    lbl = new Label(panel,SWT.NULL);
-    lbl = new Label(panel,SWT.NULL);
-    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
     
     /////// NOW /////////
-    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.now");
     
-    nowDown = new BufferedLabel(panel,SWT.NULL);
+    nowDown = new BufferedLabel(generalPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     nowDown.setLayoutData(gridData);
     
-    nowUp = new BufferedLabel(panel,SWT.NULL);
+    nowUp = new BufferedLabel(generalPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     nowUp.setLayoutData(gridData);
     
-    lbl = new Label(panel,SWT.NULL);
-    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
     
     
     //////// SESSION ////////
-    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(generalPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.session");
-    sessionDown = new BufferedLabel(panel,SWT.NULL);
+    sessionDown = new BufferedLabel(generalPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionDown.setLayoutData(gridData);
     
-    sessionUp = new BufferedLabel(panel,SWT.NULL);
+    sessionUp = new BufferedLabel(generalPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionUp.setLayoutData(gridData);
     
-    session_ratio = new BufferedLabel(panel,SWT.NULL);
+    session_ratio = new BufferedLabel(generalPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     session_ratio.setLayoutData(gridData);    
     
-    sessionTime = new BufferedLabel(panel,SWT.NULL);
+    sessionTime = new BufferedLabel(generalPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionTime.setLayoutData(gridData);
     
     
-    ///////// TOTOAL ///////////
-    lbl = new Label(panel,SWT.NULL);
+    ///////// TOTAL ///////////
+    lbl = new Label(generalPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.total");
     
-    totalDown = new BufferedLabel(panel,SWT.NULL);
+    totalDown = new BufferedLabel(generalPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalDown.setLayoutData(gridData);
     
-    totalUp = new BufferedLabel(panel,SWT.NULL);
+    totalUp = new BufferedLabel(generalPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalUp.setLayoutData(gridData);
     
-    total_ratio = new BufferedLabel(panel,SWT.NULL);
+    total_ratio = new BufferedLabel(generalPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     total_ratio.setLayoutData(gridData);
     
-    totalTime = new BufferedLabel(panel,SWT.NULL);
+    totalTime = new BufferedLabel(generalPanel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalTime.setLayoutData(gridData);
-    
   }
   
+  
+  private void createAutoSpeedPanel() {
+    autoSpeedPanel = new Composite(mainPanel,SWT.BORDER);
+    GridData generalPanelData = new GridData(GridData.FILL_BOTH);
+    autoSpeedPanel.setLayoutData(generalPanelData);
+    
+    autoSpeedPanelLayout = new StackLayout();
+    autoSpeedPanel.setLayout(autoSpeedPanelLayout);
+    
+    autoSpeedInfoPanel = new Composite(autoSpeedPanel,SWT.NULL);
+    autoSpeedInfoPanel.setLayoutData(new GridData(GridData.FILL_BOTH));
+    GridLayout layout = new GridLayout();
+    autoSpeedInfoPanel.setLayout(layout);
+    
+    pingCanvas = new Canvas(autoSpeedInfoPanel,SWT.NONE);
+    GridData data;
+    data = new GridData(GridData.FILL_BOTH);
+    data.widthHint = 300;
+    pingCanvas.setLayoutData(data);
+    
+    pingGraph = PingGraphic.getInstance();
+    pingGraph.initialize(pingCanvas);
+
+    SpeedManager speedManager = core.getSpeedManager();
+    layout.numColumns = speedManager.getPingSources().length;
+    
+    autoSpeedDisabledPanel = new Composite(autoSpeedPanel,SWT.NULL);
+    autoSpeedDisabledPanel.setLayout(new GridLayout());
+    Label disabled = new Label(autoSpeedDisabledPanel,SWT.NULL);
+    disabled.setEnabled(false);
+    Messages.setLanguageText(disabled,"SpeedView.stats.autoSpeedDisabled");
+    disabled.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL));
+    
+    autoSpeedPanelLayout.topControl = speedManager.isAvailable() ? autoSpeedInfoPanel : autoSpeedDisabledPanel;
+  }
   public void delete() {
-    Utils.disposeComposite(panel);
+    Utils.disposeComposite(generalPanel);
   }
 
   public String getFullTitle() {
@@ -161,13 +228,20 @@ public class TransferStatsView extends AbstractIView {
   }
   
   public Composite getComposite() {
-    return panel;
+    return mainPanel;
   }
   
   
   
   public void refresh() {
 
+    refreshGeneral();
+    
+    refreshPingPanel();
+    
+  }
+
+  private void refreshGeneral() {
     int now_prot_down_rate = stats.getProtocolReceiveRate();
     int now_prot_up_rate = stats.getProtocolSendRate();
     
@@ -233,8 +307,30 @@ public class TransferStatsView extends AbstractIView {
     
     total_ratio.setText( t_ratio );
     session_ratio.setText( s_ratio );
-    
   }  
+  
+  private void refreshPingPanel() {
+    SpeedManager speedManager = core.getSpeedManager();
+    if(speedManager.isAvailable() && speedManager.isEnabled()) {
+      autoSpeedPanelLayout.topControl = autoSpeedInfoPanel;
+      autoSpeedPanel.layout();
+      SpeedManagerPingSource sources[] = speedManager.getPingSources();
+      if(sources.length > 0) {
+        int[] pings = new int[sources.length];
+        for(int i = 0 ; i < sources.length ; i++) {
+          pings[i] = sources[i].getPingTime();
+        }
+        pingGraph.addIntsValue(pings);
+        pingGraph.refresh();        
+        
+      }
+    } else {
+      autoSpeedPanelLayout.topControl = autoSpeedDisabledPanel;
+      autoSpeedPanel.layout();
+    }
+    
+    
+  }
   
   public String getData() {
     return "TransferStatsView.title.full";

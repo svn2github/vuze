@@ -1204,14 +1204,14 @@ MainWindow
   
   public void showStats() {
     if (stats_tab == null)
-      stats_tab = new Tab(new StatsView(globalManager));
+      stats_tab = new Tab(new StatsView(globalManager,azureus_core));
     else
       stats_tab.setFocus();
   }
 
   public void showStatsDHT() {
     if (stats_tab == null)
-      stats_tab = new Tab(new StatsView(globalManager));
+      stats_tab = new Tab(new StatsView(globalManager,azureus_core));
     else
       stats_tab.setFocus();
 		((StatsView) stats_tab.getView()).showDHT();
@@ -1219,7 +1219,7 @@ MainWindow
   
   public void showStatsTransfers() {
     if (stats_tab == null)
-      stats_tab = new Tab(new StatsView(globalManager));
+      stats_tab = new Tab(new StatsView(globalManager,azureus_core));
     else
       stats_tab.setFocus();
 		((StatsView) stats_tab.getView()).showTransfers();
