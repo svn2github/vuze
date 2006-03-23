@@ -327,6 +327,11 @@ SpeedManagerImpl
 				boolean	good_ping =  rtt < 5 * Math.max( min_rtt, 75 );
 				
 				pc.pingReceived( rtt, good_ping );
+				
+				if ( !good_ping ){
+					
+					rtt = -1;
+				}
 			}
 
 			if ( rtt != -1 ){
