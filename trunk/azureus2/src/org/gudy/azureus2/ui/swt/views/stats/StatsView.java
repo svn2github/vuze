@@ -80,6 +80,7 @@ public class StatsView extends AbstractIView {
           ((ActivityView)viewActivity).periodicUpdate();
           ((CacheView)viewCache).periodicUpdate(); 
           ((DHTView)viewDHT).periodicUpdate();
+          ((TransferStatsView)viewStats).periodicUpdate();
           
           if( viewDHTcvs != null ) {
             ((DHTView)viewDHTcvs).periodicUpdate();

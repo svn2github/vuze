@@ -347,13 +347,10 @@ public class TransferStatsView extends AbstractIView {
       SpeedManagerPingSource sources[] = speedManager.getPingSources();
       if(sources.length > 0) {
         int average = 0;
-        int[] pings = new int[sources.length];
         for(int i = 0 ; i < sources.length ; i++) {
-          pings[i] = sources[i].getPingTime();
-          average += pings[i];
+          average += sources[i].getPingTime();
         }
-        average = average / sources.length;
-        pingGraph.addIntsValue(pings);
+        average = average / sources.length;        
         pingGraph.refresh();        
         
         currentPing.setText(average + " ms");
@@ -368,6 +365,20 @@ public class TransferStatsView extends AbstractIView {
     }
     
     
+  }
+  
+  public void periodicUpdate() {
+    SpeedManager speedManager = core.getSpeedManager();
+    if(speedManager.isAvailable() && speedManager.isEnabled()) {
+      SpeedManagerPingSource sources[] = speedManager.getPingSources();
+      if(sources.length > 0) {
+        int[] pings = new int[sources.length];
+        for(int i = 0 ; i < sources.length ; i++) {
+          pings[i] = sources[i].getPingTime();
+        }
+        pingGraph.addIntsValue(pings);
+      }
+    }
   }
   
   public String getData() {
