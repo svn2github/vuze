@@ -53,7 +53,7 @@ public class PiecePickerImpl
     /** min ms for recalculating base priorities */
     private static final long TIME_MIN_PRIORITIES	=999;
     /** min ms for forced availability rebuild */
-    private static final long TIME_AVAIL_REBUILD	=5*60*1000; 
+    private static final long TIME_AVAIL_REBUILD	=5*60*1000 -24; 
 
 	// The following are added to the base User setting based priorities (for all inspected pieces)
     /** user select prioritize first/last */
@@ -63,7 +63,7 @@ public class PiecePickerImpl
     /** user sets file as "High" */
     private static final int PRIORITY_W_FILE		=1000;
     /** Additional boost for more completed High priority */
-    private static final int PRIORITY_W_COMPLETION	=1000;
+    private static final int PRIORITY_W_COMPLETION	=2000;
     
     /** Additional boost for globally rarest piece */
     private static final int PRIORITY_W_RAREST		=1300;
@@ -118,6 +118,7 @@ public class PiecePickerImpl
     protected volatile int[]	availabilityAsynch;
     /** indicates availability needs to be recomputed due to detected drift */
     protected volatile long		availabilityDrift;
+    private long				timeAvailRebuild =TIME_AVAIL_REBUILD;
 	
     /** periodically updated consistent view of availability for calculating */
     protected volatile int[]	availability;
@@ -168,7 +169,7 @@ public class PiecePickerImpl
 		class ParameterListenerImpl
 			implements ParameterListener
 		{
-			public void parameterChanged(String parameterName)
+			public final void parameterChanged(String parameterName)
 			{
 				if (parameterName.equals("Prioritize Most Completed Files"))
 				{
@@ -182,7 +183,7 @@ public class PiecePickerImpl
 		    }
 		}
 
-		ParameterListenerImpl	parameterListener =new ParameterListenerImpl();;
+		final ParameterListenerImpl	parameterListener =new ParameterListenerImpl();;
 
 		COConfigurationManager.addParameterListener("Prioritize Most Completed Files", parameterListener);
 		COConfigurationManager.addAndFireParameterListener("Prioritize First Piece", parameterListener);
@@ -278,12 +279,12 @@ public class PiecePickerImpl
         final long now =SystemTime.getCurrentTime();
         if (now >=time_last_avail &&now <time_last_avail +TIME_MIN_AVAILABILITY)
             return;
-        if (availabilityDrift >0 || now < time_last_rebuild ||  (now - time_last_rebuild) > TIME_AVAIL_REBUILD ){
+        if (availabilityDrift >0 || now < time_last_rebuild ||  (now - time_last_rebuild) > timeAvailRebuild){
             try
             {	availabilityMon.enter();
                 
                 time_last_rebuild	= now;
-                int[]	new_availability = recomputeAvailability();
+                final int[]	new_availability = recomputeAvailability();
                 
                 if (Constants.isCVSVersion())
                 {
@@ -299,9 +300,12 @@ public class PiecePickerImpl
                     {
                         if (Logger.isEnabled())
                             Logger.log(new LogEvent(peerControl, LOGID, LogEvent.LT_ERROR,
-                                "updateAvailability(): availability rebuild errors = " +errors
+                                "updateAvailability(): availability rebuild errors =" +errors
+                                +" timeAvailRebuild =" +timeAvailRebuild
                             ));
-                    }
+                        timeAvailRebuild -=errors;
+                    } else
+                    	timeAvailRebuild++;
                 }
                 
                 availabilityAsynch	= new_availability;
@@ -371,7 +375,7 @@ public class PiecePickerImpl
 	    if (availabilityDrift >0 &&availabilityDrift !=nbPieces &&Logger.isEnabled())
 	        Logger.log(new LogEvent(diskManager.getTorrent(), LOGID, LogEvent.LT_INFORMATION,
 	            "Recomputing availabiliy. Drift=" +availabilityDrift +":" +peerControl.getDisplayName()));
-	    final List	peerTransports =peerControl.getPeers();
+	    final List peers =peerControl.getPeers();
 	    
 	    int[]	newAvailability = new int[nbPieces];
 	    int j;
@@ -380,13 +384,14 @@ public class PiecePickerImpl
 	    for (j =0; j <nbPieces; j++)
 	        newAvailability[j] =dmPieces[j].isDone() ?1 :0;
 	    //for all peers
-	    for (i =0; i <peerTransports.size(); i++)
+	    final int peersSize =peers.size();
+	    for (i =0; i <peersSize; i++)
 	    {	//get the peer connection
-	        final PEPeerTransport pt =(PEPeerTransport)peerTransports.get(i);
-	        if (pt !=null &&pt.getPeerState() ==PEPeer.TRANSFERING)
+	        final PEPeer peer =(PEPeerTransport)peers.get(i);
+	        if (peer !=null &&peer.getPeerState() ==PEPeer.TRANSFERING)
 	        {
 	            //cycle trhough the pieces they actually have
-	            final BitFlags peerHavePieces =pt.getAvailable();
+	            final BitFlags peerHavePieces =peer.getAvailable();
 	            if (peerHavePieces !=null &&peerHavePieces.nbSet >0)
 	            {
 	                for (j =peerHavePieces.start; j <=peerHavePieces.end; j++)
@@ -458,28 +463,30 @@ public class PiecePickerImpl
 		if (!hasNeededUndonePiece)
 			return false;
 
-		final List peer_transports =peerControl.getPeers();
-        final int peerTransportsSize =peer_transports.size();
-        final List bestUploaders =new ArrayList();
+		final List peers =peerControl.getPeers();
+        final int peersSize =peers.size();
 
-		final long[] upRates =new long[peerTransportsSize];
-//		Arrays.fill(upRates, -1);
+		final long[] upRates =new long[peersSize];
+        final ArrayList bestUploaders =new ArrayList();
 
-		for (int i =0; i <peerTransportsSize; i++)
+		for (int i =0; i <peersSize; i++)
 		{
-			final PEPeerTransport pt =(PEPeerTransport) peer_transports.get(i);
-			if (pt.isDownloadPossible())
+			final PEPeer peer =(PEPeerTransport) peers.get(i);
+			if (peer.isDownloadPossible())
 			{
-				final long upRate =pt.getStats().getSmoothDataReceiveRate();
-				UnchokerUtil.updateLargestValueFirstSort(upRate, upRates, pt, bestUploaders, 0);
+				final long upRate =peer.getStats().getSmoothDataReceiveRate();
+				UnchokerUtil.updateLargestValueFirstSort(upRate, upRates, peer, bestUploaders, 0);
 			}
 		}
-
+		final int uploadersSize =bestUploaders.size();
+		if (uploadersSize ==0)
+			return false;
+		
 		checkEndGameMode();
-
+		
 		computeBasePriorities();
 		
-		for (int i =0; i <bestUploaders.size(); i++)
+		for (int i =0; i <uploadersSize; i++)
 		{
 			// get a connection
 			final PEPeerTransport pt =(PEPeerTransport) bestUploaders.get(i);
@@ -535,40 +542,46 @@ public class PiecePickerImpl
             // store the latest change indicators before we start making dependent calculations so that a
             // further change while computing stuff doesn't get lost
         
+        timeLastPriorities =now;
         priorityParamChange =paramPriorityChange;
         priorityFileChange =filePriorityChange;
         priorityAvailChange =availabilityChange;
-        timeLastPriorities =now;
         
-        boolean         changedPriority =false;
-        boolean         foundPieceToDownload =false;
-        final int[]		newPriorities   =new int[nbPieces];
+        boolean     changedPriority =false;
+        boolean     foundPieceToDownload =false;
+        final int[]	newPriorities   =new int[nbPieces];
+
+        // locals are a tiny bit faster
+        final boolean firstPiecePriorityL =firstPiecePriority;
+        final boolean completionPriorityL =completionPriority;
+        
         try
         {
-            final boolean rarestOverride =getRarestOverride();
+            final boolean rarestOverride =isRarestOverride();
             // calculate all base (starting) priorities for all pieces needing requesting
+        	final int nbConnects =peerControl.getNbPeers() +peerControl.getNbSeeds();
             for (int i =0; i <nbPieces; i++)
             {
-                final int avail =availability[i];
-                DiskManagerPiece dmPiece =dmPieces[i];
+                final DiskManagerPiece dmPiece =dmPieces[i];
                 if (dmPiece.isDone())
                     continue;   // nothing to do for pieces not needing requesting
                 
-                int startPriority =Integer.MIN_VALUE;
                 int priority =Integer.MIN_VALUE;
+                int startPriority =Integer.MIN_VALUE;
                 
                 final DMPieceList pieceList =diskManager.getPieceList(dmPiece.getPieceNumber());
-                for (int j =0; j <pieceList.size(); j++)
+                final int pieceListSize =pieceList.size();
+                for (int j =0; j <pieceListSize; j++)
                 {
                     final DiskManagerFileInfoImpl fileInfo =pieceList.get(j).getFile();
-                    final long length =fileInfo.getLength();
                     final long downloaded =fileInfo.getDownloaded();
+                    final long length =fileInfo.getLength();
                     if (length >0 &&downloaded <length &&!fileInfo.isSkipped())
                     {
                         priority =0;
                         // user option "prioritize first and last piece"
-                        // TODO: should prioritize ~10% to ~%25 from edges of file
-                        if (firstPiecePriority &&fileInfo.getNbPieces() >FIRST_PIECE_MIN_NB)
+                        // TODO: should prioritize ~10% from edges of file
+                        if (firstPiecePriorityL &&fileInfo.getNbPieces() >FIRST_PIECE_MIN_NB)
                         {
                             if (i ==fileInfo.getFirstPieceNumber() ||i ==fileInfo.getLastPieceNumber())
                                 priority +=PRIORITY_W_FIRSTLAST;
@@ -578,7 +591,7 @@ public class PiecePickerImpl
                         if (fileInfo.isPriority())
                         {
                             priority +=PRIORITY_W_FILE;
-                            if (completionPriority)
+                            if (completionPriorityL)
                             {
                                 final long percent =(1000 *downloaded) /length;
                                 if (percent >=900)
@@ -594,13 +607,14 @@ public class PiecePickerImpl
                 {
                     dmPiece.setNeeded();
                     foundPieceToDownload =true;
+                    final int avail =availability[i];
                     if (avail >0)
                     {   // boost priority for rarity
-                        startPriority +=(peerControl.getNbPeers() +peerControl.getNbSeeds()) -avail;
+                        startPriority +=nbConnects -avail;
 //                        startPriority +=(PRIORITY_W_RARE +peerControl.getNbPeers()) /avail;
-//                        // Boost priority even a little more if it's a globally rarest piece
-//                        if (!rarestOverride &&avail <=globalMinOthers)
-//                            startPriority +=PRIORITY_W_RAREST /avail;
+                        // Boost priority even a little more if it's a globally rarest piece
+                        if (!rarestOverride &&avail <=globalMinOthers)
+                            startPriority +=nbConnects /avail;
                     }
                 } else
                 {
@@ -614,17 +628,10 @@ public class PiecePickerImpl
         {
             Debug.printStackTrace(e);
         }
-                
-        if (foundPieceToDownload)
+        
+        if (foundPieceToDownload !=hasNeededUndonePiece)
         {
-            if (!hasNeededUndonePiece)
-            {
-                hasNeededUndonePiece =true;
-                neededUndonePieceChange++;
-            }
-        } else if (hasNeededUndonePiece)
-        {
-            hasNeededUndonePiece =false;
+            hasNeededUndonePiece =foundPieceToDownload;
             neededUndonePieceChange++;
         }
         
@@ -632,13 +639,26 @@ public class PiecePickerImpl
             startPriorities =newPriorities;
     }
     
-    private boolean getRarestOverride()
+    /**
+	 * @deprecated Use {@link #isRarestOverride()} instead.
+	 * Convention is to use "is" prefix for boolean return
+	 */
+	private boolean getRarestOverride()
+	{
+		return isRarestOverride();
+	}
+
+	private boolean isRarestOverride()
     {
         final int nbSeeds =peerControl.getNbSeeds();
         final int nbPeers =peerControl.getNbPeers();
+        final int nbMost =(nbPeers >nbSeeds ?nbPeers :nbSeeds);
+        final int nbActive =peerControl.getNbActivePieces();
+        
         // Dont seek rarest under a few circumstances, so that other factors work better
         // never seek rarest when bootstrapping torrent
-        boolean rarestOverride =nbPiecesDone <4 ||endGameMode ||(nbRarestActive >=(nbSeeds +nbPeers) &&globalMinOthers >1);
+        boolean rarestOverride =nbPiecesDone <4 ||endGameMode
+        	||(globalMinOthers >1 &&(nbRarestActive >=nbMost ||nbActive >=nbMost));
         if (!rarestOverride &&nbRarestActive >1 &&globalMinOthers >1)
         {
             // if already getting some rarest, dont get more if swarm is healthy or too many pieces running
@@ -655,24 +675,25 @@ public class PiecePickerImpl
     }
     
 	/**
-	 * @param pc
-	 *            the PeerConnection we're working on
-	 * @return true if a request was assigned, false otherwise
+	 * @param pt the PEPeerTransport we're working on
+	 * @return int # of blocks that were requested (0 if no requests were made)
 	 */
-	protected int findPieceToDownload(final PEPeerTransport pt, final int nbWanted)
+	protected int findPieceToDownload(PEPeerTransport pt, final int nbWanted)
 	{
 		final int pieceNumber =getRequestCandidate(pt);
 		if (pieceNumber <0)
         {   // probaly should have found something since chose to try; probably not interested anymore
             // (or maybe Needed but not Done pieces are otherwise not requestable)
-            pt.checkInterested();
+//            pt.checkInterested();
 			return 0;
         }
 
-		int peerSpeed =(int) pt.getStats().getDataReceiveRate() /1000;
+		final int peerSpeed =(int) pt.getStats().getDataReceiveRate() /1000;
 
-		PEPiece pePiece =peerControl.getPiece(pieceNumber);
-		if (pePiece ==null)
+		final PEPiece pePiece;
+		if (peerControl.isPieceActive(pieceNumber))
+			pePiece =peerControl.getPiece(pieceNumber);
+		else
         {   //create piece manually
 			pePiece =new PEPieceImpl(pt.getManager(), dmPieces[pieceNumber], peerSpeed >>1);
 
@@ -755,7 +776,8 @@ public class PiecePickerImpl
 
         final int       peerSpeed =(int) pt.getStats().getDataReceiveRate() /1000;  // how many KB/s has the peer has been sending
         final int       lastPiece =pt.getLastPiece();
-        final boolean   rarestOverride =getRarestOverride();
+        final boolean   rarestOverride =isRarestOverride();
+        final int		nbSnubbed =peerControl.getNbPeersSnubbed();
 
         long        resumeMinAvail =Long.MAX_VALUE;
         int         resumeMaxPriority =Integer.MIN_VALUE;
@@ -824,10 +846,12 @@ public class PiecePickerImpl
                             // they're the sole source OR
                             // it's the same as the last piece they were on AND there's enough free blocks
                             // TODO: instead of 3, should count how many peers are snubbed and use that
-                            if (avail >1 &&(i !=lastPiece ||freeReqs <3 ||pieceSpeed -1 >=freeReqs *peerSpeed))
+                            if (avail >1 &&(freeReqs <3 ||pieceSpeed -1 >=freeReqs *peerSpeed))
                             {
-                                // if the peer is snubbed or slow, don't request this piece
-                                if (pt.isSnubbed() ||peerSpeed <pieceSpeed)
+                                // if the peer is snubbed or slow, don't request this piece, except;
+                            	//  if it's possible all sources for the piece are snubbed, OR
+                            	//  this was the same as the last piece the slow peer requested from
+                                if ((avail >nbSnubbed &&pt.isSnubbed()) ||(peerSpeed <pieceSpeed &&i !=lastPiece))
                                     continue;
                             }
                             if (avail <=resumeMinAvail)
@@ -915,23 +939,23 @@ public class PiecePickerImpl
 // this would allow more non-rarest pieces to be resumed so they get completed so they can be re-shared,
 // which can make us intersting to more peers, and generally improve the speed of the swarm,
 // however, it can sometimes be hard to get the rarest pieces, such as when a holder unchokes very infrequently
-// so for now we go back to always getting rarest (nearly complete pieces should complete soon enough, just less soon)
-//        final boolean resumeIsBetter;
-//        if (globalMinOthers >0)   // shouldn't get to here if 0, but better to be safe 
-//            resumeIsBetter =(resumeMaxPriority /resumeMinAvail) >(startMaxPriority /globalMinOthers);
-//        else
-//            resumeIsBetter =false;
-//        
-//        if (Logger.isEnabled())
-//            Logger.log(new LogEvent(new Object[] {pt, peerControl}, LOGID, 
-//                "Start/resume choice; piece #:" +pieceNumber +" resumeIsBetter:" +resumeIsBetter
-//                +" globalMinOthers=" +globalMinOthers
-//                +" startMaxPriority=" +startMaxPriority +" startMinAvail=" +startMinAvail
-//                +" resumeMaxPriority=" +resumeMaxPriority +" resumeMinAvail=" +resumeMinAvail
-//                +" : " +pt));
-//        
-//        if (resumeIsBetter)
-//            return pieceNumber;
+// 20060312[MjrTom] this can lead to TOO many active pieces, so do the extra check with arbitrary # of active pieces
+        final boolean resumeIsBetter;
+        if (pieceNumber >=0 &&globalMinOthers >0 &&peerControl.getNbActivePieces() >32)	// check at arbitrary figure of 32 pieces 
+        {
+            resumeIsBetter =(resumeMaxPriority /resumeMinAvail) >(startMaxPriority /globalMinOthers);
+            
+            if (Constants.isCVSVersion() &&Logger.isEnabled())
+                Logger.log(new LogEvent(new Object[] {pt, peerControl}, LOGID, 
+                    "Start/resume choice; piece #:" +pieceNumber +" resumeIsBetter:" +resumeIsBetter
+                    +" globalMinOthers=" +globalMinOthers
+                    +" startMaxPriority=" +startMaxPriority +" startMinAvail=" +startMinAvail
+                    +" resumeMaxPriority=" +resumeMaxPriority +" resumeMinAvail=" +resumeMinAvail
+                    +" : " +pt));
+            
+            if (resumeIsBetter)
+                return pieceNumber;
+        }
         
         // start a new piece; select piece from start candidates bitfield
         return getPieceToStart(pt, startCandidates);
@@ -1044,7 +1068,7 @@ public class PiecePickerImpl
     
     private void computeEndGameModeChunks()
     {
-        PEPiece[] _pieces =peerControl.getPieces();
+    	final PEPiece[] _pieces =peerControl.getPieces();
         if (_pieces ==null)
             return;
 
@@ -1055,16 +1079,16 @@ public class PiecePickerImpl
 
             for (int i =0; i <nbPieces; i++ )
             {
-                DiskManagerPiece dmPiece =dmPieces[i];
+            	final DiskManagerPiece dmPiece =dmPieces[i];
                 // Pieces not Needed or not needing more downloading are of no interest
                 if (!dmPiece.isInteresting())
                     continue;
                 
-                PEPiece pePiece =_pieces[i];
+                final PEPiece pePiece =_pieces[i];
                 if (pePiece ==null)
                     continue;
 
-                boolean written[] =dmPiece.getWritten();
+                final boolean written[] =dmPiece.getWritten();
                 if (written ==null)
                 {
                     if (!dmPiece.isDone())
@@ -1104,7 +1128,7 @@ public class PiecePickerImpl
 		try
 		{
 			endGameModeChunks_mon.enter();
-			int nbChunks =pePiece.getNbBlocks();
+			final int nbChunks =pePiece.getNbBlocks();
 			for (int i =0; i <nbChunks; i++ )
 			{
 				endGameModeChunks.add(new EndGameModeChunk(pePiece, i));
@@ -1146,7 +1170,7 @@ public class PiecePickerImpl
         try
         {
             endGameModeChunks_mon.enter();
-
+            
             final int nbChunks =endGameModeChunks.size();
             if (nbChunks >0)
             {
@@ -1160,6 +1184,7 @@ public class PiecePickerImpl
                 }
                 if (pt.isPieceAvailable(pieceNumber)
                     &&peerControl.isPieceActive(pieceNumber)
+                    &&(!pt.isSnubbed() ||availability[pieceNumber] <=peerControl.getNbPeersSnubbed())
                     &&pt.request(pieceNumber, chunk.getOffset(), chunk.getLength()))
                 {
                     final PEPiece pePiece =peerControl.getPiece(pieceNumber);
@@ -1181,7 +1206,7 @@ public class PiecePickerImpl
 		{
 			endGameModeChunks_mon.enter();
 
-			Iterator iter =endGameModeChunks.iterator();
+			final Iterator iter =endGameModeChunks.iterator();
 			while (iter.hasNext())
 			{
 				EndGameModeChunk chunk =(EndGameModeChunk) iter.next();
@@ -1218,7 +1243,7 @@ public class PiecePickerImpl
 	private class PEPeerManagerListenerImpl
 		implements PEPeerManagerListener
 	{
-		public void peerAdded(final PEPeerManager manager, PEPeer peer )
+		public final void peerAdded(final PEPeerManager manager, PEPeer peer )
 		{
 			PEPeerListenerImpl peerListener;
 			peerListener =(PEPeerListenerImpl)peerListeners.get(peer);
@@ -1230,7 +1255,7 @@ public class PiecePickerImpl
 			peer.addListener(peerListener);
 		}
 		
-		public void peerRemoved(final PEPeerManager manager, PEPeer peer)
+		public final void peerRemoved(final PEPeerManager manager, PEPeer peer)
 		{
 			// remove this listener from list of listeners and from the peer
 			final PEPeerListenerImpl peerListener =(PEPeerListenerImpl)peerListeners.remove(peer);
@@ -1244,7 +1269,7 @@ public class PiecePickerImpl
 	private class PEPeerListenerImpl
 		implements PEPeerListener
 	{
-		public void stateChanged(PEPeer peer, final int newState)
+		public final void stateChanged(PEPeer peer, final int newState)
 		{
             /*
 			switch (newState)
@@ -1267,12 +1292,12 @@ public class PiecePickerImpl
             */
 		}
 		
-		public void sentBadChunk(final PEPeer peer, final int piece_num, final int total_bad_chunks )
+		public final void sentBadChunk(final PEPeer peer, final int piece_num, final int total_bad_chunks )
 		{
 			/* nothing to do here */
 		}
 		
-		public void addAvailability(final PEPeer peer, final BitFlags peerHavePieces)
+		public final void addAvailability(final PEPeer peer, final BitFlags peerHavePieces)
 		{
 			if (peerHavePieces ==null ||peerHavePieces.nbSet <=0)
 				return;
@@ -1284,8 +1309,8 @@ public class PiecePickerImpl
 				for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++)
 				{
 					if ( peerHavePieces.flags[i] ){
-					++availabilityAsynch[i];
-				}
+						++availabilityAsynch[i];
+					}
 				}
 				availabilityChange++;
 			} finally {availabilityMon.exit();}
@@ -1296,7 +1321,7 @@ public class PiecePickerImpl
          * @param PEPeer peer this is about
          * @param peerHasPieces BitFlags of the pieces
          */
-		public void removeAvailability(final PEPeer peer, final BitFlags peerHavePieces)
+		public final void removeAvailability(final PEPeer peer, final BitFlags peerHavePieces)
 		{
 			if (peerHavePieces ==null ||peerHavePieces.nbSet <=0)
 				return;
@@ -1328,12 +1353,12 @@ public class PiecePickerImpl
 	private class DiskManagerListenerImpl
 		implements DiskManagerListener
 	{
-		public void stateChanged(int oldState, int newState)
+		public final void stateChanged(int oldState, int newState)
 		{
 			//starting torrent
 		}
 
-		public void filePriorityChanged(DiskManagerFileInfo file)
+		public final void filePriorityChanged(DiskManagerFileInfo file)
 		{
 			// record that user-based priorities changed
 			filePriorityChange++;	// this is a user's priority change event
@@ -1360,24 +1385,17 @@ public class PiecePickerImpl
 				if (!dmPiece.isDone())
 					foundPieceToDownload |=dmPiece.calcNeeded();
 			}
-			if (foundPieceToDownload)
+			if (foundPieceToDownload ^hasNeededUndonePiece)
 			{
-                if (!hasNeededUndonePiece)
-                {
-                    hasNeededUndonePiece =true;
-                    neededUndonePieceChange++;
-                }
-			} else if (hasNeededUndonePiece)
-            {
-                hasNeededUndonePiece =false;
-                neededUndonePieceChange++;
-            }
+				hasNeededUndonePiece =foundPieceToDownload;
+				neededUndonePieceChange++;
+			}
 		}
 		
 		
-		public void pieceDoneChanged(DiskManagerPiece dmPiece)
+		public final void pieceDoneChanged(DiskManagerPiece dmPiece)
 		{
-			int pieceNumber =dmPiece.getPieceNumber();
+			final int pieceNumber =dmPiece.getPieceNumber();
 			if (dmPiece.isDone())
 			{
 				addHavePiece(pieceNumber);
@@ -1406,7 +1424,7 @@ public class PiecePickerImpl
 			}
 		}
 
-		public void fileAccessModeChanged(DiskManagerFileInfo file, int old_mode, int new_mode)
+		public final void fileAccessModeChanged(DiskManagerFileInfo file, int old_mode, int new_mode)
 		{
 			//file done (write to read)
 			//starting to upload from the file (read to write)
