@@ -31,6 +31,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
@@ -65,12 +66,13 @@ public class TransferStatsView extends AbstractIView {
   Composite generalPanel;
   BufferedLabel nowUp, nowDown, sessionDown, sessionUp, session_ratio, sessionTime, totalDown, totalUp, total_ratio, totalTime;
   
-  Composite autoSpeedPanel;
+  Group autoSpeedPanel;
   StackLayout autoSpeedPanelLayout;
   Composite autoSpeedInfoPanel;
   Composite autoSpeedDisabledPanel;
   Canvas  pingCanvas;  
   PingGraphic pingGraph;
+  BufferedLabel idlePing,maxPing,maxUp,currentPing;
   
   
   private final DecimalFormat formatter = new DecimalFormat( "##.#" );
@@ -186,9 +188,11 @@ public class TransferStatsView extends AbstractIView {
   
   
   private void createAutoSpeedPanel() {
-    autoSpeedPanel = new Composite(mainPanel,SWT.BORDER);
+    autoSpeedPanel = new Group(mainPanel,SWT.NONE);
     GridData generalPanelData = new GridData(GridData.FILL_BOTH);
     autoSpeedPanel.setLayoutData(generalPanelData);
+    Messages.setLanguageText(autoSpeedPanel,"SpeedView.stats.autospeed");
+    
     
     autoSpeedPanelLayout = new StackLayout();
     autoSpeedPanel.setLayout(autoSpeedPanelLayout);
@@ -196,27 +200,53 @@ public class TransferStatsView extends AbstractIView {
     autoSpeedInfoPanel = new Composite(autoSpeedPanel,SWT.NULL);
     autoSpeedInfoPanel.setLayoutData(new GridData(GridData.FILL_BOTH));
     GridLayout layout = new GridLayout();
+    layout.numColumns = 8;
+    layout.makeColumnsEqualWidth = true;
     autoSpeedInfoPanel.setLayout(layout);
     
+    Label label;
+    GridData gridData;
+    
+    label = new Label(autoSpeedInfoPanel,SWT.NONE);
+    Messages.setLanguageText(label,"SpeedView.stats.idlePing");    
+    idlePing = new BufferedLabel(autoSpeedInfoPanel,SWT.NONE);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    idlePing.setLayoutData(gridData);
+    
+    label = new Label(autoSpeedInfoPanel,SWT.NONE);
+    Messages.setLanguageText(label,"SpeedView.stats.maxPing");    
+    maxPing = new BufferedLabel(autoSpeedInfoPanel,SWT.NONE);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    maxPing.setLayoutData(gridData);
+    
+    label = new Label(autoSpeedInfoPanel,SWT.NONE);
+    Messages.setLanguageText(label,"SpeedView.stats.maxUp");    
+    maxUp = new BufferedLabel(autoSpeedInfoPanel,SWT.NONE);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    maxUp.setLayoutData(gridData);
+    
+    label = new Label(autoSpeedInfoPanel,SWT.NONE);
+    Messages.setLanguageText(label,"SpeedView.stats.currentPing");    
+    currentPing = new BufferedLabel(autoSpeedInfoPanel,SWT.NONE);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    currentPing.setLayoutData(gridData);
+    
     pingCanvas = new Canvas(autoSpeedInfoPanel,SWT.NONE);
-    GridData data;
-    data = new GridData(GridData.FILL_BOTH);
-    data.widthHint = 300;
+    GridData data = new GridData(GridData.FILL_BOTH);
+    data.horizontalSpan = 8;
     pingCanvas.setLayoutData(data);
     
     pingGraph = PingGraphic.getInstance();
     pingGraph.initialize(pingCanvas);
-
-    SpeedManager speedManager = core.getSpeedManager();
-    layout.numColumns = speedManager.getPingSources().length;
     
     autoSpeedDisabledPanel = new Composite(autoSpeedPanel,SWT.NULL);
     autoSpeedDisabledPanel.setLayout(new GridLayout());
     Label disabled = new Label(autoSpeedDisabledPanel,SWT.NULL);
     disabled.setEnabled(false);
-    Messages.setLanguageText(disabled,"SpeedView.stats.autoSpeedDisabled");
+    Messages.setLanguageText(disabled,"SpeedView.stats.autospeed.disabled");
     disabled.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL));
     
+    SpeedManager speedManager = core.getSpeedManager();
     autoSpeedPanelLayout.topControl = speedManager.isAvailable() ? autoSpeedInfoPanel : autoSpeedDisabledPanel;
   }
   public void delete() {
@@ -316,12 +346,20 @@ public class TransferStatsView extends AbstractIView {
       autoSpeedPanel.layout();
       SpeedManagerPingSource sources[] = speedManager.getPingSources();
       if(sources.length > 0) {
+        int average = 0;
         int[] pings = new int[sources.length];
         for(int i = 0 ; i < sources.length ; i++) {
           pings[i] = sources[i].getPingTime();
+          average += pings[i];
         }
+        average = average / sources.length;
         pingGraph.addIntsValue(pings);
         pingGraph.refresh();        
+        
+        currentPing.setText(average + " ms");
+        idlePing.setText(speedManager.getIdlePingMillis() + " ms");
+        maxPing.setText(speedManager.getMaxPingMillis() + " ms");
+        maxUp.setText(DisplayFormatters.formatByteCountToBase10KBEtcPerSec(speedManager.getMaxUploadSpeed()));
         
       }
     } else {

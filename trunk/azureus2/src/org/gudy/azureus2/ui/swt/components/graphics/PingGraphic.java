@@ -201,18 +201,15 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
           position+= 2000;
         
         int xDraw = bounds.width - 71 - x;
-
+        gcImage.setLineWidth(1);
         for (int z=0;z<all_values.length;z++){
 	        int targetValue 	= all_values[z][position];
 	        int oldTargetValue 	= oldTargetValues[z];
 	        
-	        if ( x > 1 && 
-	        		( z == 1 && ( targetValue > 0 && oldTargetValue > 0 ) ||
-	        		( z > 1  && ( targetValue > 0 || oldTargetValue > 0 )))){
-	        	
+	        if ( x > 1 ){	        	
 		        	int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
 		        	int h2 = bounds.height - scale.getScaledValue(oldTargetValue) - 2;
-              gcImage.setForeground( z <= 3 ? colors[z] : colors[4]);
+              gcImage.setForeground( z <= 3 ? colors[z+1] : colors[4]);
 	            gcImage.drawLine(xDraw,h1,xDraw+1, h2);	        	
 	        }
 	        
@@ -224,6 +221,7 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
           int h1 = bounds.height - scale.getScaledValue(average) - 2;
           int h2 = bounds.height - scale.getScaledValue(oldAverage) - 2;
           gcImage.setForeground(colors[COLOR_AVERAGE]);
+          gcImage.setLineWidth(2);
           gcImage.drawLine(xDraw,h1,xDraw+1, h2);
         }
         oldAverage = average;
