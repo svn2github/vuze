@@ -2,6 +2,12 @@ AZUREUS CHANGELOG
 -----------------
 
 2006.0x.xx | Azureus 2.4.0.3
+FEATURE: Core | Reduced CPU usage, especially in some unusual conditions [MjrTom]
+
+CHANGE: Core  | Reduced starting many pieces instead of completing current ones [MjrTom]
+CHANGE: Core  | Further modifications to optimistic disconnect algorithm [MjrTom]
+
+BUGFIX: Core  | Fix for pieces not completing due to too many snubbed peers [MjrTom]
 
 
 2006.03.16 | Azureus 2.4.0.2
