@@ -116,7 +116,6 @@ SpeedManagerImpl
 	private Average upload_short_average	= AverageFactory.MovingImmediateAverage( 2 );
 	
 	private Average	ping_average_history		= AverageFactory.MovingImmediateAverage(PING_AVERAGE_HISTORY_COUNT);
-	private Average	ping_short_average_history	= AverageFactory.MovingImmediateAverage(2);
 	
 	private Average choke_speed_average			= AverageFactory.MovingImmediateAverage( 3 );
 
@@ -129,6 +128,8 @@ SpeedManagerImpl
 	private int		idle_ticks;
 	private int		idle_average;
 	private boolean	idle_average_set;
+	
+	private int		max_ping;
 	
 	private int		max_upload_average;
 	
@@ -148,12 +149,12 @@ SpeedManagerImpl
 		max_upload_average	= 0;
 		direction			= INCREASING;
 		new_contacts		= 0;
+		max_ping			= 0;
 		
 		choke_speed_average.reset();
 		upload_average.reset();
 		upload_short_average.reset();
 		ping_average_history.reset();
-		ping_short_average_history.reset();
 	}
 	
 	
@@ -346,6 +347,11 @@ SpeedManagerImpl
 		int	ping_average = ping_total/ping_count;
 				
 		int	running_average = (int)ping_average_history.update( ping_average );
+		
+		if ( ping_average > max_ping ){
+			
+			max_ping	= ping_average;
+		}
 		
 		int	up_average = (int)upload_average.getAverage();
 		
@@ -620,6 +626,41 @@ SpeedManagerImpl
 	getPingSources()
 	{
 		return( contacts_array );
+	}
+	
+	public int
+	getIdlePingMillis()
+	{
+		return( idle_average );
+	}
+	
+	public int
+	getCurrentPingMillis()
+	{
+		return( (int)ping_average_history.getAverage());
+	}
+	
+	public int
+	getMaxPingMillis()
+	{
+		return( max_ping );
+	}
+	
+		/**
+		 * Returns the current view of when choking occurs
+		 * @return speed in bytes/sec
+		 */
+	
+	public int
+	getCurrentChokeSpeed()
+	{
+		return((int)choke_speed_average.getAverage());
+	}
+	
+	public int
+	getMaxUploadSpeed()
+	{
+		return( max_upload_average );
 	}
 	
 	protected class

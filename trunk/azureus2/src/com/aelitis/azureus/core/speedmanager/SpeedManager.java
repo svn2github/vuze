@@ -58,6 +58,31 @@ SpeedManager
 	public boolean
 	isEnabled();
 	
+	public int
+	getIdlePingMillis();
+	
+	public int
+	getCurrentPingMillis();
+	
+	public int
+	getMaxPingMillis();
+	
+		/**
+		 * Returns the current view of when choking occurs
+		 * @return speed in bytes/sec
+		 */
+	
+	public int
+	getCurrentChokeSpeed();
+	
+		/**
+		 * Returns the maximum sustained upload speed 
+		 * @return speed in bytes/sec
+		 */
+	
+	public int
+	getMaxUploadSpeed();
+	
 	public void
 	setSpeedTester(
 		DHTSpeedTester	tester );
