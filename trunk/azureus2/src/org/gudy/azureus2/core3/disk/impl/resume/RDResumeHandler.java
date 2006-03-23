@@ -586,22 +586,43 @@ RDResumeHandler
 				// save the partial pieces for any pieces that have not yet been completed
 				// and are in-progress (i.e. have at least one block downloaded)
 			
-			boolean[] downloaded = piece.getWritten();
+			boolean[] written = piece.getWritten();
 
-			if (( !piece.isDone()) && piece.getNbWritten() > 0 && downloaded != null ){
+			if (( !piece.isDone()) && piece.getNbWritten() > 0 && written != null ){
 				
+				boolean	all_written = true;
 				
-				List blocks = new ArrayList();
-				
-				for (int j = 0; j < downloaded.length; j++) {
-					
-					if (downloaded[j]){
+				for (int j = 0; j < written.length; j++) {
+
+					if ( !written[j] ){
 						
-						blocks.add(new Long(j));
+						all_written = false;
+						
+						break;
 					}
 				}
-      
-				partialPieces.put("" + i, blocks);
+				
+				if ( all_written ){
+					
+						// just mark the entire piece for recheck as we've stopped the torrent at the
+						// point where a check-piece was, or was about to be, scheduled
+					
+					resume_pieces[ i ] = PIECE_RECHECK_REQUIRED;
+					
+				}else{
+					
+					List blocks = new ArrayList();
+					
+					for (int j = 0; j < written.length; j++) {
+						
+						if (written[j]){
+							
+							blocks.add(new Long(j));
+						}
+					}
+	      
+					partialPieces.put("" + i, blocks);
+				}
 			}
 		}
 		
