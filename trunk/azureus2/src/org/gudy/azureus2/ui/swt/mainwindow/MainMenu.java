@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
@@ -83,6 +84,7 @@ public class MainMenu {
   
   private MenuItem menu_plugin;
   private Menu pluginMenu;
+  private Menu pluginLogsMenu;
 
   /**
    * <p>Creates the main menu bar and attaches it to a shell that is not the main window</p>
@@ -332,12 +334,18 @@ public class MainMenu {
       }
       
       //the Plugins menu
-      menu_plugin = new MenuItem(menuBar, SWT.CASCADE);
-      Messages.setLanguageText(menu_plugin, "MainWindow.menu.view.plugins"); //$NON-NLS-1$
-      pluginMenu = new Menu(parent,SWT.DROP_DOWN);
-      menu_plugin.setEnabled(false);
-      menu_plugin.setMenu(pluginMenu);
-      if(notMainWindow) {performOneTimeDisable(menu_plugin, true);}
+        menu_plugin = new MenuItem(menuBar, SWT.CASCADE);
+        Messages.setLanguageText(menu_plugin, "MainWindow.menu.view.plugins"); //$NON-NLS-1$
+        pluginMenu = new Menu(parent,SWT.DROP_DOWN);
+        menu_plugin.setEnabled(false);
+        menu_plugin.setMenu(pluginMenu);
+        if(notMainWindow) {performOneTimeDisable(menu_plugin, true);}
+
+      MenuItem menu_plugin_logViews = new MenuItem(pluginMenu, SWT.CASCADE);
+			Messages.setLanguageText(menu_plugin_logViews, "MainWindow.menu.view.plugins.logViews");
+			pluginLogsMenu = new Menu(parent, SWT.DROP_DOWN);
+			menu_plugin_logViews.setMenu(pluginLogsMenu);
+			menu_plugin_logViews.setData("EOL", "1");
 
       new MenuItem(pluginMenu, SWT.SEPARATOR);
       
@@ -634,20 +642,22 @@ public class MainMenu {
 						name = sViewID.replace('.', ' ' );	// support old plugins
 					}
 				}
+				
+				Menu menu = (l instanceof BasicPluginViewImpl) ? pluginLogsMenu : pluginMenu;
 					
-				MenuItem[] items = pluginMenu.getItems();
+				MenuItem[] items = menu.getItems();
 
 				int insert_at = items.length;
 
 				for (int i = 0; i < items.length; i++) {
-					if (items[i].getStyle() == SWT.SEPARATOR
+					if (items[i].getData("EOL") != null
 							|| name.compareTo(items[i].getText()) < 0) {
 						insert_at = i;
 						break;
 					}
 				}
 
-				MenuItem item = new MenuItem(pluginMenu, SWT.NULL, insert_at);
+				MenuItem item = new MenuItem(menu, SWT.NULL, insert_at);
 				item.setData("ViewID", sViewID);
 
 				if (bResourceExists)
@@ -670,6 +680,13 @@ public class MainMenu {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				MenuItem[] items = pluginMenu.getItems();
+				for (int i = 0; i < items.length; i++) {
+					String sID = (String)items[i].getData("ViewID");
+					if (sID != null && sID.equals(sViewID)) {
+						items[i].dispose();
+					}
+				}
+				items = pluginLogsMenu.getItems();
 				for (int i = 0; i < items.length; i++) {
 					String sID = (String)items[i].getData("ViewID");
 					if (sID != null && sID.equals(sViewID)) {
@@ -700,7 +717,7 @@ public class MainMenu {
 
       	for (int i=0;i<items.length;i++){
 
-      		if ( 	items[i].getStyle() == SWT.SEPARATOR ||
+      		if (items[i].getData("EOL") != null ||
       				name.compareTo(items[i].getText()) < 0 ){
 
       			insert_at  = i;
