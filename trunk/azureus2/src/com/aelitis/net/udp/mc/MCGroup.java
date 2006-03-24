@@ -27,6 +27,9 @@ import java.net.InetSocketAddress;
 public interface 
 MCGroup 
 {
+	public int
+	getControlPort();
+	
 	public void
 	sendToGroup(
 		byte[]	data )

@@ -339,6 +339,12 @@ MCGroupImpl
 		}
 	}
 	
+	public int
+	getControlPort()
+	{
+		return( control_port );
+	}
+	
 	protected boolean
 	interfaceSelected(
 		NetworkInterface	ni )
@@ -569,10 +575,14 @@ MCGroupImpl
 		// System.out.println( "sendToMember: add = " + address + ", data = " +new String( data ));
 
 		try{
-			reply_socket = new DatagramSocket();
+			reply_socket = new DatagramSocket( null );
+			
+			reply_socket.setReuseAddress(true);
+
+			reply_socket.bind( new InetSocketAddress( group_port ));
 			
 			DatagramPacket reply_packet = new DatagramPacket(data,data.length,address);
-			
+						
 			reply_socket.send( reply_packet );
 			
 		}catch( Throwable e ){

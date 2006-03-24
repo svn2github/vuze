@@ -62,7 +62,7 @@ SSDPCore
 		try{
 			class_mon.enter();
 		
-			String	key = group_address + ":" + group_port + ":" + control_port;
+			String	key = group_address + ":" + group_port;// + ":" + control_port;
 			
 			SSDPCore	singleton = (SSDPCore)singletons.get( key );
 			
@@ -86,7 +86,6 @@ SSDPCore
 	private UPnPSSDPAdapter		adapter;
 	private String				group_address_str;
 	private int					group_port;
-	private int					control_port;
 
 	private boolean		first_response			= true;
 	
@@ -109,15 +108,20 @@ SSDPCore
 
 		group_address_str	= _group_address;
 		group_port			= _group_port;
-		control_port		= _control_port;
 		
 		try{
-			mc_group = MCGroupFactory.getSingleton( this, _group_address, group_port, control_port, _selected_interfaces );
+			mc_group = MCGroupFactory.getSingleton( this, _group_address, group_port, _control_port, _selected_interfaces );
 			
 		}catch( Throwable e ){
 						
 			throw( new UPnPException( "Failed to initialise SSDP", e ));
 		}
+	}
+	
+	public int
+	getControlPort()
+	{
+		return( mc_group.getControlPort());
 	}
 	
 	public void
@@ -137,7 +141,9 @@ SSDPCore
 	public void
 	notify(
 		String		NT,
-		String		NTS )
+		String		NTS,
+		String		UUID,
+		String		url )
 	{
 		/*
 		NOTIFY * HTTP/1.1
@@ -150,22 +156,26 @@ SSDPCore
 		USN: uuid:ab5d9077-0710-4373-a4ea-5192c8781666::urn:schemas-upnp-org:service:WANIPConnection:1
 		*/
 		
+		if ( url.startsWith("/")){
+			
+			url = url.substring(1);
+		}
+		
 		String	str =
 			"NOTIFY * HTTP/" + HTTP_VERSION + NL +  
 			"HOST: " + group_address_str + ":" + group_port + NL +
 			"CACHE-CONTROL: max-age=3600" + NL +
-			"LOCATION: http://127.0.0.1:" + control_port + "/" + NL +
+			"LOCATION: http://127.0.0.1:" + mc_group.getControlPort() + "/" + url + NL +
 			"NT: " + NT + NL + 
 			"NTS: " + NTS + NL + 
 			"SERVER: Azureus (UPnP/1.0)" + NL +
-			"USN: uuid:UUID-Azureus-1234::" + NT + NL + NL; 
+			"USN: " + (UUID==null?"":(UUID + "::")) + NT + NL + NL; 
 		
 		sendMC( str );
 	}
 	
 	public void
 	search(
-		String	user_agent,
 		String	ST )
 	{
 		String	str =
@@ -174,7 +184,7 @@ SSDPCore
 			"MX: 3" + NL +
 			"MAN: \"ssdp:discover\"" + NL + 
 			"HOST: " + group_address_str + ":" + group_port + NL +
-			(user_agent==null?NL:("USER-AGENT: " + user_agent + NL + NL));
+			"USER-AGENT: Azureus (UPnP/1.0)" + NL + NL;
 		
 		sendMC( str );
 	}
@@ -332,18 +342,26 @@ SSDPCore
 				USN: uuid:UUID-InternetGatewayDevice-1234::upnp:rootdevice
 				*/
 				
-				String	response = informSearch( network_interface, local_address, originator.getAddress(), user_agent, st );
+				String[]	response = informSearch( network_interface, local_address, originator.getAddress(), user_agent, st );
 				
 				if ( response != null ){
 					
+					String	UUID 	= response[0];
+					String	url		= response[1];
+					
+					if ( url.startsWith("/")){
+						url = url.substring(1);
+					}
+					
 					String	data = 
 						"HTTP/1.1 200 OK" + NL +
+						"LOCATION: http://" + local_address.getHostAddress() + ":" + mc_group.getControlPort() + "/" + url + NL +
+						"EXT:" + NL + 
+						"USN: " + UUID + "::" + st + NL + 
 						"SERVER: Azureus (UPnP/1.0)" + NL +
 						"CACHE-CONTROL: max-age=3600" + NL +
-						"LOCATION: http://" + local_address.getHostAddress() + ":" + control_port + "/" + NL +
 						"ST: " + st + NL + 
-						"USN: uuid:UUID-Azureus-1234::" + st + NL + 
-						"AL: " + response;
+						"Content-Length: 0" + NL + NL;
 										
 					byte[]	data_bytes = data.getBytes();
 					
@@ -366,7 +384,7 @@ SSDPCore
 				informNotify( network_interface, local_address, originator.getAddress(), location, nt, nts );
 			}else{
 				
-				adapter.trace( "SSDP::receive NITOFY - bad header:" + header );
+				adapter.trace( "SSDP::receive NOTIFY - bad header:" + header );
 			}
 		}else if ( header.startsWith( "HTTP") && header.indexOf( "200") != -1 ){
 			
@@ -427,7 +445,7 @@ SSDPCore
 		}
 	}
 	
-	protected String
+	protected String[]
 	informSearch(
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
@@ -438,7 +456,7 @@ SSDPCore
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
-				String	res = ((UPnPSSDPListener)listeners.get(i)).receivedSearch(network_interface,local_address,originator,user_agent,st );
+				String[]	res = ((UPnPSSDPListener)listeners.get(i)).receivedSearch(network_interface,local_address,originator,user_agent,st );
 				
 				if ( res != null ){
 					

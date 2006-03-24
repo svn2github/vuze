@@ -137,19 +137,24 @@ TRBlockingServerProcessor
 				
 				boolean	head	= false;
 				
+				String	url;
+				
+
 				if ( header_plus.startsWith( "GET " )){
 				
 					timeout_ticks		= 1;
 					
 					actual_header		= header_plus;
 					lowercase_header	= actual_header.toLowerCase();
-	
+					url					 = actual_header.substring(4).trim();
+					
 				}else if ( header_plus.startsWith( "HEAD " )){
 					
 					timeout_ticks		= 1;
 					
 					actual_header		= header_plus;
 					lowercase_header	= actual_header.toLowerCase();			
+					url 				= actual_header.substring(4).trim();
 
 					head	= true;
 					
@@ -173,7 +178,8 @@ TRBlockingServerProcessor
 					
 					actual_header 		= header_plus.substring(0,header_end+4);
 					lowercase_header	= actual_header.toLowerCase();
-					
+					url 				= actual_header.substring(4).trim();
+
 					int	cl_start = lowercase_header.indexOf("content-length:");
 					
 					if ( cl_start == -1 ){
@@ -249,9 +255,21 @@ TRBlockingServerProcessor
 					}
 					
 					// System.out.println( "TRTrackerServerProcessorTCP: request data = " + baos.size());
+					
 				}else{
 					
-					throw( new TRTrackerServerException( "header doesn't start with GET or POST ('" + (header_plus.length()>256?header_plus.substring(0,256):header_plus)+"')" ));
+					int	pos = header_plus.indexOf(' ');
+					
+					if ( pos == -1 ){
+						
+						throw( new TRTrackerServerException( "header doesn't have space in right place" ));
+					}
+					
+					timeout_ticks		= 1;
+						
+					actual_header		= header_plus;
+					lowercase_header	= actual_header.toLowerCase();
+					url					= actual_header.substring(pos+1).trim();
 				}
 				
 				setTaskState( "processing request" );
@@ -265,8 +283,6 @@ TRBlockingServerProcessor
 						
 						post_is = new ByteArrayInputStream(new byte[0]);
 					}
-					
-					String	url = actual_header.substring(4).trim();
 					
 					int	pos = url.indexOf( " " );
 					

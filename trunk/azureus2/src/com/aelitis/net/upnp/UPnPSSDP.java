@@ -29,15 +29,19 @@ UPnPSSDP
 	public static final int					SSDP_GROUP_PORT		= 1900;	
 	public static final int					SSDP_CONTROL_PORT	= 8008;
 
+	public int
+	getControlPort();
+	
 	public void
 	search(
-		String		user_agent,
 		String		ST );
 	
 	public void
 	notify(
 		String		NT,
-		String		NTS );
+		String		NTS,
+		String		UUID,
+		String		url );
 	
 	public void
 	addListener(

@@ -133,7 +133,7 @@ SSDPIGDImpl
 	protected void
 	search()
 	{
-		ssdp_core.search( null, "upnp:rootdevice" );
+		ssdp_core.search( "upnp:rootdevice" );
 	}
 	
 	
@@ -261,7 +261,7 @@ SSDPIGDImpl
 		}
 	}
 
-	public String
+	public String[]
 	receivedSearch(
 		NetworkInterface	network_interface,
 		InetAddress			local_address,

@@ -47,7 +47,7 @@ UPnPSSDPListener
 		String				NT,
 		String				NTS );
 
-	public String
+	public String[]
 	receivedSearch(
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
