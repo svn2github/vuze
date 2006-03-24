@@ -142,6 +142,7 @@ SSDPIGDImpl
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		InetAddress			originator,
+		String				usn,
 		URL					location,
 		String				st,
 		String				al )
@@ -151,7 +152,7 @@ SSDPIGDImpl
 
 			if ( st.equalsIgnoreCase( "upnp:rootdevice" )){
 				
-				gotRoot( network_interface, local_address, location );
+				gotRoot( network_interface, local_address, usn, location );
 			}
 		}finally{
 			
@@ -166,6 +167,7 @@ SSDPIGDImpl
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		InetAddress			originator,
+		String				usn,
 		URL					location,
 		String				nt,
 		String				nts )
@@ -238,19 +240,19 @@ SSDPIGDImpl
 								upnp.log( location + " -> " + best_ni.getDisplayName() + "/" + best_addr + " (prefix=" + (best_prefix + 1 ) + ")");
 							}
 							
-							gotRoot( best_ni, best_addr, location );
+							gotRoot( best_ni, best_addr, usn, location );
 							
 						}else{
 							
-							gotAlive( location );
+							gotAlive( usn, location );
 						}
 					}catch( Throwable e ){
 						
-						gotAlive( location );
+						gotAlive( usn, location );
 					}
 				}else if ( nts.indexOf( "byebye") != -1 ){
 						
-					lostRoot( local_address, location );
+					lostRoot( local_address, usn );
 				}
 			}
 		}finally{
@@ -298,31 +300,44 @@ SSDPIGDImpl
 	gotRoot(
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
+		String				usn,
 		URL					location )
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((SSDPIGDListener)listeners.get(i)).rootDiscovered( network_interface, local_address, location );
+			((SSDPIGDListener)listeners.get(i)).rootDiscovered( network_interface, local_address, usn, location );
 		}
 	}
 
 	protected void
 	gotAlive(
+		String	usn,
 		URL		location )
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((SSDPIGDListener)listeners.get(i)).rootAlive( location );
+			((SSDPIGDListener)listeners.get(i)).rootAlive( usn, location );
 		}
 	}
+	
 	protected void
 	lostRoot(
 		InetAddress	local_address,
-		URL		location )
+		String		usn )
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((SSDPIGDListener)listeners.get(i)).rootLost( local_address, location );
+			((SSDPIGDListener)listeners.get(i)).rootLost( local_address, usn );
+		}
+	}
+	
+	public void
+	interfaceChanged(
+		NetworkInterface	network_interface )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((SSDPIGDListener)listeners.get(i)).interfaceChanged( network_interface );
 		}
 	}
 	

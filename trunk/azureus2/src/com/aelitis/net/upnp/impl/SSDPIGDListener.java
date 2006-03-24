@@ -36,15 +36,21 @@ SSDPIGDListener
 	rootDiscovered(
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
+		String				usn,
 		URL					location );
 	
 	public void
 	rootAlive(
-		URL			location );
+		String				usn,
+		URL					location );
 	
 	public void
 	rootLost(
-		InetAddress	local_address,
-		URL			location );
+		InetAddress			local_address,
+		String				usn );
+	
+	public void
+	interfaceChanged(
+		NetworkInterface	network_interface );
 
 }

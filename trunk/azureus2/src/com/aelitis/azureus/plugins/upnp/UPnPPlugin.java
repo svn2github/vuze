@@ -340,11 +340,15 @@ UPnPPlugin
 								
 								String	all_info = "";
 									
+								List	reported_info = new ArrayList();
+								
 								while( it.hasNext()){
 									
 									String	info = (String)it.next();
 									
-									if ( info != null ){
+									if ( info != null && !reported_info.contains( info )){
+										
+										reported_info.add( info );
 										
 										all_info += (all_info.length()==0?"":",") + info;
 									}

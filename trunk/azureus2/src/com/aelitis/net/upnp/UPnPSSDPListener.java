@@ -34,6 +34,7 @@ UPnPSSDPListener
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		InetAddress			originator,
+		String				USN,
 		URL					location,
 		String				ST,
 		String				AL );
@@ -43,6 +44,7 @@ UPnPSSDPListener
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		InetAddress			originator,
+		String				USN,
 		URL					location,
 		String				NT,
 		String				NTS );
@@ -54,4 +56,8 @@ UPnPSSDPListener
 		InetAddress			originator,
 		String				user_agent,
 		String				ST );
+	
+	public void
+	interfaceChanged(
+		NetworkInterface	network_interface );
 }

@@ -203,7 +203,20 @@ SSDPCore
 		}
 	}
 	
-
+	public void
+	interfaceChanged(
+		NetworkInterface	network_interface )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((UPnPSSDPListener)listeners.get(i)).interfaceChanged(network_interface);
+				
+			}catch( Throwable e ){
+				
+				adapter.log(e);
+			}
+		}	}
 	
 	public void
 	received(
@@ -277,6 +290,7 @@ SSDPCore
 			// Parg's  Root: http://192.168.0.1:49152/gateway.xml, uuid:824ff22b-8c7d-41c5-a131-44f534e12555::upnp:rootdevice, upnp:rootdevice
 
 		URL		location	= null;
+		String	usn			= null;
 		String	nt			= null;
 		String	nts			= null;
 		String	st			= null;
@@ -308,6 +322,10 @@ SSDPCore
 			}else if ( key.equals( "NT" )){
 				
 				nt	= val;
+				
+			}else if ( key.equals( "USN" )){
+				
+				usn	= val;
 				
 			}else if ( key.equals( "NTS" )){
 				
@@ -379,9 +397,12 @@ SSDPCore
 			}
 		}else if ( header.startsWith( "NOTIFY" )){
 			
-			if ( location != null && nt != null && nts != null ){
+				// location is null for byebye
 			
-				informNotify( network_interface, local_address, originator.getAddress(), location, nt, nts );
+			if ( nt != null && nts != null ){
+			
+				informNotify( network_interface, local_address, originator.getAddress(), usn, location, nt, nts );
+				
 			}else{
 				
 				adapter.trace( "SSDP::receive NOTIFY - bad header:" + header );
@@ -390,7 +411,7 @@ SSDPCore
 			
 			if ( location != null && st != null ){
 		
-				informResult( network_interface, local_address, originator.getAddress(), location, st, al  );
+				informResult( network_interface, local_address, originator.getAddress(), usn, location, st, al  );
 				
 			}else{
 				
@@ -408,6 +429,7 @@ SSDPCore
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		InetAddress			originator,
+		String				usn,
 		URL					location,
 		String				st,
 		String				al )
@@ -415,7 +437,7 @@ SSDPCore
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
-				((UPnPSSDPListener)listeners.get(i)).receivedResult(network_interface,local_address,originator,location,st,al);
+				((UPnPSSDPListener)listeners.get(i)).receivedResult(network_interface,local_address,originator,usn,location,st,al);
 				
 			}catch( Throwable e ){
 				
@@ -429,6 +451,7 @@ SSDPCore
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		InetAddress			originator,
+		String				usn,
 		URL					location,
 		String				nt,
 		String				nts )
@@ -436,7 +459,7 @@ SSDPCore
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
-				((UPnPSSDPListener)listeners.get(i)).receivedNotify(network_interface,local_address,originator,location,nt,nts);
+				((UPnPSSDPListener)listeners.get(i)).receivedNotify(network_interface,local_address,originator,usn,location,nt,nts);
 				
 			}catch( Throwable e ){
 				

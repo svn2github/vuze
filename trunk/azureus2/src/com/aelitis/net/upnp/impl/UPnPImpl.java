@@ -123,6 +123,7 @@ UPnPImpl
 	rootDiscovered(
 		final NetworkInterface		network_interface,
 		final InetAddress			local_address,
+		final String				usn,
 		final URL					location )
 
 	{
@@ -140,7 +141,7 @@ UPnPImpl
 					try{
 						rd_listeners_mon.enter();
 
-						old_root_device = (UPnPRootDeviceImpl)root_locations.get( location.getHost());
+						old_root_device = (UPnPRootDeviceImpl)root_locations.get( usn );
 						
 					}finally{
 						
@@ -149,42 +150,19 @@ UPnPImpl
 					
 					if ( old_root_device != null ){
 				
-							// device is still there with same IP, however 
+							// we remember one route to the device - if the network interfaces change
+							// we do a full reset so we don't need to deal with that here
 						
+						if ( !old_root_device.getNetworkInterface().getName().equals( network_interface.getName())){
+							
+							return;
+						}
+						
+							// check that the device's location is the same
+												
 						if ( old_root_device.getLocation().equals( location )){		
-							
-								// 1) port of UPnP device might have changed (it does on mine when enabling/disabling UPnP)
-								// 2) our local IP might have changed (DHCP reassignment)
 
-							if ( old_root_device.getLocalAddress().equals( local_address )){
-							
-								// everythings the same, nothing to do
-							
-								return;
-							}
-						
-								// an alternative situation is where the same device is discovered by two network interfaces
-								// (see https://sourceforge.net/forum/message.php?msg_id=2912370 )
-								// if this is the case we just use the first NI through which it was discovered and
-								// map to that NI's local address
-						
-								// use the interfate.getName (e.g. eth0) as the "equals" method includes the addresses and we want to
-								// detect when an address has changed
-							
-							if ( !old_root_device.getNetworkInterface().getName().equals( network_interface.getName())){
-							
-								String	msg =  "UPnP: secondary route to = " + location + ", local = " + local_address.toString() + " - using initial network interface (" + 
-													old_root_device.getNetworkInterface();
-
-								if ( !secondary_route_log.equals( msg )){
-								
-									secondary_route_log	= msg;
-									
-									log( msg );
-								}
-				
-								return;
-							}
+							return;
 						}
 					}
 					
@@ -198,7 +176,7 @@ UPnPImpl
 							
 							rd_listeners_mon.enter();
 
-							root_locations.remove( location.getHost());
+							root_locations.remove( usn );
 						
 						}finally{
 							
@@ -208,17 +186,17 @@ UPnPImpl
 						old_root_device.destroy( true );
 					}
 		
-					log( "UPnP: root discovered = " + location + ", local = " + local_address.toString() );
+					log( "UPnP: root discovered: usn=" + usn + ", location=" + location + ", ni=" + network_interface.getName() + ",local=" + local_address.toString() );
 					
 					try{
-						UPnPRootDeviceImpl new_root_device = new UPnPRootDeviceImpl( UPnPImpl.this, network_interface, local_address, location );
+						UPnPRootDeviceImpl new_root_device = new UPnPRootDeviceImpl( UPnPImpl.this, network_interface, local_address, usn, location );
 					
 						final List	listeners;
 						
 						try{
 							rd_listeners_mon.enter();
 							
-							root_locations.put( location.getHost(), new_root_device );
+							root_locations.put( usn, new_root_device );
 			
 							listeners = new ArrayList( rd_listeners );
 							
@@ -244,9 +222,10 @@ UPnPImpl
 	
 	public void
 	rootAlive(
+		String		usn,
 		URL			location )
 	{
-		UPnPRootDeviceImpl root_device = (UPnPRootDeviceImpl)root_locations.get( location.getHost());
+		UPnPRootDeviceImpl root_device = (UPnPRootDeviceImpl)root_locations.get( usn );
 			
 		if ( root_device == null ){
 			
@@ -257,7 +236,7 @@ UPnPImpl
 	public void
 	rootLost(
 		final InetAddress	local_address,
-		final URL			location )
+		final String		usn )
 	{
 			// we need to take this operation off the main thread as it can take some time
 		
@@ -267,12 +246,13 @@ UPnPImpl
 				public void
 				runSupport()
 				{
-					UPnPRootDeviceImpl	root_device;
-				
+					UPnPRootDeviceImpl	root_device	= null;
+									
 					try{
 						rd_listeners_mon.enter();
 			
-						root_device = (UPnPRootDeviceImpl)root_locations.remove( location.getHost());
+						root_device = (UPnPRootDeviceImpl)root_locations.remove( usn );
+	
 						
 					}finally{
 						
@@ -283,12 +263,19 @@ UPnPImpl
 						
 						return;
 					}
-					
-					log( "UPnP: root lost = " + location +", local = " + local_address.toString() );
+									
+					log( "UPnP: root lost: usn=" + usn + ", location=" + root_device.getLocation() + ", ni=" + root_device.getNetworkInterface().getName() + ",local=" + root_device.getLocalAddress().toString());
 				
 					root_device.destroy( false );
 				}
 			});
+	}
+	
+	public void
+	interfaceChanged(
+		NetworkInterface	network_interface )
+	{
+		reset();
 	}
 	
 	public void

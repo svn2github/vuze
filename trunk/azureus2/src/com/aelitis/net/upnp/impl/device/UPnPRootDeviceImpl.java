@@ -62,6 +62,7 @@ UPnPRootDeviceImpl
 	private NetworkInterface	network_interface;
 	private InetAddress			local_address;
 	
+	private String		usn;
 	private URL			location;
 	private URL			url_base_for_relative_urls;
 	
@@ -80,6 +81,7 @@ UPnPRootDeviceImpl
 		UPnPImpl			_upnp,
 		NetworkInterface	_network_interface,
 		InetAddress			_local_address,
+		String				_usn,
 		URL					_location )
 	
 		throws UPnPException
@@ -87,6 +89,7 @@ UPnPRootDeviceImpl
 		upnp				= _upnp;
 		network_interface	= _network_interface;
 		local_address		= _local_address;
+		usn					= _usn;
 		location			= _location;
 		
 		SimpleXMLParserDocument	doc = upnp.downloadXML( location );
@@ -260,6 +263,12 @@ UPnPRootDeviceImpl
 	getLocalAddress()
 	{
 		return( local_address );
+	}
+	
+	public String
+	getUSN()
+	{
+		return( usn  );
 	}
 	
 	public URL

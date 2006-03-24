@@ -38,6 +38,10 @@ MCGroupAdapter
 		int					length );
 	
 	public void
+	interfaceChanged(
+		NetworkInterface	network_interface );
+	
+	public void
 	trace(
 		String		str );
 	

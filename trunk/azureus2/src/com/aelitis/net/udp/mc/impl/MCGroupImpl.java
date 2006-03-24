@@ -152,11 +152,13 @@ MCGroupImpl
 	
 	protected void
 	processNetworkInterfaces(
-		boolean		log_ignored )
+		boolean		start_of_day )
 	
 		throws SocketException
 	{
 		Map			new_registrations	= new HashMap();
+		
+		List		changed_interfaces	= new ArrayList();
 		
 		try{
 			this_mon.enter();
@@ -169,7 +171,7 @@ MCGroupImpl
 	
 				if ( !interfaceSelected( network_interface )){
 					
-					if ( log_ignored ){
+					if ( start_of_day ){
 						
 						adapter.trace( "ignoring interface " + network_interface.getName() + ":" + network_interface.getDisplayName() + ", not selected" );
 					}
@@ -207,7 +209,7 @@ MCGroupImpl
 					
 					if ( ni_address.isLoopbackAddress()){
 						
-						if ( log_ignored ){
+						if ( start_of_day ){
 							
 							adapter.trace( "ignoring loopback address " + ni_address + ", interface " + network_interface.getName());
 						}
@@ -217,14 +219,22 @@ MCGroupImpl
 					
 					if ( ni_address instanceof Inet6Address ){
 			
-						if ( log_ignored ){
+						if ( start_of_day ){
 							
 							adapter.trace( "ignoring IPv6 address " + ni_address + ", interface " + network_interface.getName());
 						}
 						
 						continue;
 					}
-										
+					
+					if ( !start_of_day ){
+						
+						if ( !changed_interfaces.contains( network_interface )){
+							
+							changed_interfaces.add( network_interface );
+						}
+					}
+					
 					try{
 							// set up group
 						
@@ -291,7 +301,7 @@ MCGroupImpl
 								public void
 								runSupport()
 								{
-									handleSocket( network_interface, ni_address, mc_sock );
+									handleSocket( network_interface, ni_address, mc_sock, true );
 								}
 							}.start();
 						
@@ -321,7 +331,7 @@ MCGroupImpl
 								public void
 								runSupport()
 								{
-									handleSocket( network_interface, ni_address, control_socket );
+									handleSocket( network_interface, ni_address, control_socket, false );
 								}
 							}.start();
 														
@@ -336,6 +346,11 @@ MCGroupImpl
 			current_registrations	= new_registrations;
 			
 			this_mon.exit();
+		}
+		
+		for (int i=0;i<changed_interfaces.size();i++){
+			
+			adapter.interfaceChanged((NetworkInterface)changed_interfaces.get(i));
 		}
 	}
 	
@@ -484,7 +499,8 @@ MCGroupImpl
 	handleSocket(
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
-		DatagramSocket		socket )
+		DatagramSocket		socket,
+		boolean				log_on_stop )
 	{
 		long	successful_accepts 	= 0;
 		long	failed_accepts		= 0;
@@ -505,10 +521,13 @@ MCGroupImpl
 			
 			if ( !validNetworkAddress( network_interface, local_address )){
 				
-				adapter.trace( 
-						"group = " + group_address +"/" + 
-						network_interface.getName()+":"+ 
-						network_interface.getDisplayName() + " - " + local_address + ": stopped" );
+				if ( log_on_stop ){
+					
+					adapter.trace( 
+							"group = " + group_address +"/" + 
+							network_interface.getName()+":"+ 
+							network_interface.getDisplayName() + " - " + local_address + ": stopped" );
+				}
 				
 				return;
 			}

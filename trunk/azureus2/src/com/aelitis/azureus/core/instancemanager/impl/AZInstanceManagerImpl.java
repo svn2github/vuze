@@ -515,7 +515,13 @@ AZInstanceManagerImpl
 		}
 	}
 	
-
+	public void
+	interfaceChanged(
+		NetworkInterface	network_interface )
+	{
+		sendAlive();
+	}
+	
 	protected AZOtherInstanceImpl
 	checkAdd(
 		AZOtherInstanceImpl	inst )
