@@ -44,7 +44,6 @@ import com.aelitis.azureus.core.AzureusCoreListener;
 
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
@@ -2116,14 +2115,14 @@ public class GlobalManagerImpl
 	addDownloadManagerInitialisationAdapter(
 		DownloadManagerInitialisationAdapter	adapter )
 	{
-		dm_adapters.remove( adapter );
+		dm_adapters.add( adapter );
 	}
 	
 	public void
 	removeDownloadManagerInitialisationAdapter(
 		DownloadManagerInitialisationAdapter	adapter )
 	{
-		dm_adapters.add( adapter );
+		dm_adapters.remove( adapter );
 	}
 	
 	public void
