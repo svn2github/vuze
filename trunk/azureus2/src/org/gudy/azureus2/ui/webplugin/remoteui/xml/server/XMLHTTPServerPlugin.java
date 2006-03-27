@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Map;
 import java.util.Properties;
 import java.io.*;
 
@@ -180,8 +181,34 @@ XMLHTTPServerPlugin
 
             InputStream is = null;
 
+            /**
+             * Two things we're doing here:
+             *   1) Reporting the user-agent, just for the fun of it.
+             *   2) For GTSdll v1, we need to generate XML which resembles the
+             *      old style (spaced out), just to make life for clients who
+             *      don't want to upgrade (or can't upgrade yet).
+             */
+            Map req_headers = request.getHeaders();
+            String user_agent = (String)req_headers.get("user-agent");
+            boolean space_out_xml = false;
+
+            /**
+             * GTSdll v1 doesn't send a User-Agent string, but does send Host
+             * and Referer fields, so we'll check against that.
+             */
+            if (user_agent == null) {
+                if ("www.adv-clan.com".equals(req_headers.get("host")) &&
+                    "www.adv-clan.com".equals(req_headers.get("referer"))) {
+
+                    user_agent = "GTSdll v1 (auto-detected)";
+                    space_out_xml = true;
+                }
+            }
+
+            String user_agent_text = (user_agent == null) ? "" : ", User-Agent: " + user_agent;
+
             if (this.log_to_plugin) {
-                this.getViewModel().getLogArea().appendText("REQUEST START: " + request.getClientAddress() + ", time: " + DateFormat.getTimeInstance().format(new Date()) + "\n");
+                this.getViewModel().getLogArea().appendText("REQUEST START: " + request.getClientAddress() + ", time: " + DateFormat.getTimeInstance().format(new Date()) + user_agent_text + "\n");
             }
 
             try{
@@ -196,7 +223,8 @@ XMLHTTPServerPlugin
                             this.plugin_interface,
                             this.channel,
                             this.serialise_debug,
-                            this.deserialise_debug);
+                            this.deserialise_debug,
+                            space_out_xml);
 
                 if (this.log_to_plugin) {
                     this.getViewModel().getLogArea().appendText("REQUEST END\n");

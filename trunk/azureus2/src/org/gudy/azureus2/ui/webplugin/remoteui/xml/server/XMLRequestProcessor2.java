@@ -82,7 +82,7 @@ public class XMLRequestProcessor2 {
     protected boolean deserialise_debug;
     protected LoggerChannel logger;
 
-    protected XMLRequestProcessor2(RPRequestHandler _request_handler, RPRequestAccessController _access_controller, String _client_ip, InputStream _request, OutputStream _reply, PluginInterface pi, LoggerChannel rp_channel, boolean serialise_debug, boolean deserialise_debug) {
+    protected XMLRequestProcessor2(RPRequestHandler _request_handler, RPRequestAccessController _access_controller, String _client_ip, InputStream _request, OutputStream _reply, PluginInterface pi, LoggerChannel rp_channel, boolean serialise_debug, boolean deserialise_debug, boolean space_out_xml) {
 
         PrintWriter pw = null;
         try {
@@ -121,7 +121,7 @@ public class XMLRequestProcessor2 {
 
         }
         finally{
-            response_xml.printTo(pw);
+            response_xml.printTo(pw, space_out_xml);
             pw.flush();
             pw.close();
         }
