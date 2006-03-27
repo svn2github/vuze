@@ -336,15 +336,15 @@ ProgressWindow
 	{
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (tasks != null && !tasks.isDisposed()) {
 
+				if (dialog == null) {
+					dialog = new progressDialog(display);
 					if (dialog == null) {
-						dialog = new progressDialog(display);
-						if (dialog == null) {
-							return;
-						}
+						return;
 					}
+				}
 
+				if (tasks != null && !tasks.isDisposed()) {
 					dialog.showPanel();
 
 					tasks.append(task_description + Text.DELIMITER);
