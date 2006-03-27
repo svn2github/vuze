@@ -106,19 +106,31 @@ public class XMLElement {
     }
 
     public void printTo(PrintWriter pw) {
-        printTo(pw, 0);
+        printTo(pw, 0, false);
+    }
+
+    public void printTo(PrintWriter pw, boolean spaced_out) {
+        printTo(pw, 0, spaced_out);
     }
 
     public void printTo(PrintWriter pw, int indent) {
+        printTo(pw, indent, false);
+    }
+
+    public void printTo(PrintWriter pw, int indent, boolean spaced_out) {
+
+        for (int i=0; i<indent; i++) {pw.print(" ");}
 
         if (this.attributes == null && this.contents == null && this.single_content == null) {
-            pw.print("<");
-            pw.print(this.tag_name);
-            pw.print(" />");
+
+            if (!spaced_out) {
+                pw.print("<");
+                pw.print(this.tag_name);
+                pw.print(" />");
+            }
             return;
         }
 
-        for (int i=0; i<indent; i++) {pw.print(" ");}
         pw.print("<");
         pw.print(this.tag_name);
         Iterator itr = null;
@@ -138,6 +150,9 @@ public class XMLElement {
         boolean needs_indented_close = (this.contents != null || this.single_content instanceof XMLElement);
         boolean needs_close_tag = needs_indented_close || this.single_content != null;
 
+        needs_indented_close = needs_indented_close || spaced_out;
+        needs_close_tag = needs_close_tag || spaced_out;
+
         if (needs_indented_close) {pw.println(">");}
         else if (needs_close_tag) {pw.print(">");}
         else {pw.print(" />");}
@@ -149,13 +164,21 @@ public class XMLElement {
         else if (this.single_content != null) {
             itr = Collections.singletonList(this.single_content).iterator();
         }
+        else {
+            itr = Collections.singletonList("").iterator();
+        }
 
         Object content_element = null;
         if (itr != null) {
             while (itr.hasNext()) {
                 content_element = itr.next();
                 if (content_element instanceof XMLElement) {
-                    ((XMLElement)content_element).printTo(pw, indent+2);
+                    ((XMLElement)content_element).printTo(pw, indent+2, spaced_out);
+                }
+                else if (spaced_out) {
+                	for (int i=0; i<indent+2; i++) {pw.print(" ");}
+                	pw.print(quote((String)content_element));
+                	pw.println();
                 }
                 else {
                     pw.print(quote((String)content_element));
