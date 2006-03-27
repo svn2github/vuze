@@ -459,7 +459,7 @@ public class MainMenu {
         help_checkupdate.addListener(SWT.Selection, new Listener() {
         	public void handleEvent(Event e) {
         		mainWindow.getShell().setFocus();
-        		UpdateMonitor.getSingleton( mainWindow.getAzureusCore()).performCheck();
+        		UpdateMonitor.getSingleton( mainWindow.getAzureusCore()).performCheck(true);
         	}
         });
       }

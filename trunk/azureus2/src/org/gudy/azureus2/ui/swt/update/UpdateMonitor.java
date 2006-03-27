@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.update;
 
 import com.aelitis.azureus.core.*;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
@@ -132,12 +133,14 @@ UpdateMonitor
 	{
 		boolean check_at_start	= false;
 		boolean check_periodic	= false;
+		boolean bOldSWT = SWT.getVersion() < 3139;
 	
 			// no update checks for java web start
 		
 		if ( !SystemProperties.isJavaWebStartInstance()){
 					
-			check_at_start	= COConfigurationManager.getBooleanParameter( "update.start", true );
+			// force check when SWT is really old
+			check_at_start	= COConfigurationManager.getBooleanParameter( "update.start", true ) || bOldSWT;
 			check_periodic	= COConfigurationManager.getBooleanParameter( "update.periodic", true );
 		}
 		
@@ -148,7 +151,7 @@ UpdateMonitor
 		if (	( check_at_start && start_of_day) ||
 				( check_periodic && !start_of_day )){
 			
-			performCheck();	// this will implicitly do usage stats
+			performCheck(bOldSWT);	// this will implicitly do usage stats
 			
 		}else{
 
@@ -170,7 +173,7 @@ UpdateMonitor
 	}
 	
 	public void
-	performCheck()
+	performCheck(final boolean bForce)
 	{
 		if ( SystemProperties.isJavaWebStartInstance()){
 			
@@ -218,7 +221,7 @@ UpdateMonitor
 				
 			    		current_update_instance = 
 			    			um.createUpdateCheckInstance(
-			    				UpdateCheckInstance.UCI_UPDATE,
+			    				bForce ? UpdateCheckInstance.UCI_INSTALL : UpdateCheckInstance.UCI_UPDATE,
 			  					"update.instance.update" );
 			  	
 			    		current_update_instance.start();
@@ -239,16 +242,8 @@ UpdateMonitor
 		
 		boolean	update_action = instance.getType() == UpdateCheckInstance.UCI_UPDATE;
 		
-		if ( update_action ){
-		
-			PluginInterface core_plugin = azureus_core.getPluginManager().getPluginInterfaceByClass( CoreUpdateChecker.class );
-			
-			String latest_version = core_plugin.getPluginProperties().getProperty( CoreUpdateChecker.LATEST_VERSION_PROPERTY );
-			
-			MainWindow mainWindow = MainWindow.getWindow();
-		
-		    mainWindow.setStatusText("");
-		}
+		MainWindow mainWindow = MainWindow.getWindow();
+		mainWindow.setStatusText("");
 		
 	    Update[] us = instance.getUpdates();
 	   

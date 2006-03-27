@@ -608,6 +608,7 @@ public class MainStatusBar {
 	 * @param updateWindow
 	 */
 	public void setUpdateNeeded(UpdateWindow updateWindow) {
+		this.updateWindow = updateWindow;
 		if (updateWindow != null) {
 			statusText.setCursor(Cursors.handCursor);
 			statusText.setForeground(Colors.colorWarning);
