@@ -301,6 +301,7 @@ public class MessageSlideShell {
 		if (SWT.getVersion() < 3100)
 			gridData.widthHint = 140;
 		lblTitle.setLayoutData(gridData);
+		lblTitle.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 		lblTitle.setText(popupParams.title);
 		FontData[] fontData = lblTitle.getFont().getFontData();
 		fontData[0].setStyle(SWT.BOLD);
@@ -310,6 +311,7 @@ public class MessageSlideShell {
 		lblTitle.setFont(boldFont);
 
 		final Button btnDetails = new Button(cShell, SWT.TOGGLE);
+		btnDetails.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 		Messages.setLanguageText(btnDetails, "popup.error.details");
 		gridData = new GridData();
 		btnDetails.setLayoutData(gridData);
@@ -362,6 +364,7 @@ public class MessageSlideShell {
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 3;
 			linkLabel.setLayoutData(gridData);
+			linkLabel.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 			linkLabel.setText(popupParams.text);
 			linkLabel.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
@@ -403,10 +406,12 @@ public class MessageSlideShell {
 				sDetails = popupParams.text + "\n---------\n" + sDetails;
 			}
 
+			linkLabel.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 			linkLabel.setText(popupParams.text);
 		}
 
 		lblCloseIn = new Label(cShell, SWT.TRAIL);
+		lblCloseIn.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 		// Ensure computeSize computes for 2 lined label
 		lblCloseIn.setText("\n");
 		gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -430,6 +435,7 @@ public class MessageSlideShell {
 		btnHideAll = new Button(cButtons, SWT.PUSH);
 		Messages.setLanguageText(btnHideAll, "popup.error.hideall");
 		btnHideAll.setVisible(false);
+		btnHideAll.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 		btnHideAll.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				cButtons.setEnabled(false);
@@ -440,6 +446,7 @@ public class MessageSlideShell {
 
 		if (idxHistory > 0) {
 			final Button btnPrev = new Button(cButtons, SWT.PUSH);
+			btnPrev.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 			btnPrev.setText(MessageText.getString("popup.previous", new String[] { ""
 					+ idxHistory }));
 			btnPrev.addListener(SWT.Selection, new Listener() {
@@ -456,6 +463,7 @@ public class MessageSlideShell {
 		}
 
 		btnNext = new Button(cButtons, SWT.PUSH);
+		btnNext.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 		int numAfter = historyList.size() - idxHistory - 1;
 		setButtonNextText(numAfter);
 
