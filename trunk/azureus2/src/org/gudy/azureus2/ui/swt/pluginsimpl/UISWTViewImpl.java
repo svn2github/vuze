@@ -37,6 +37,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginException;
+import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -125,7 +127,12 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	}
 
 	public void triggerEvent(int eventType, Object data) {
-		eventListener.eventOccurred(new UISWTViewEventImpl(this, eventType, data));
+		try {
+			eventListener.eventOccurred(new UISWTViewEventImpl(this, eventType, data));
+		} catch (Throwable t) {
+			throw (new UIRuntimeException("UISWTView.triggerEvent:: ViewID="
+					+ sViewID + "; EventID=" + eventType + "; data=" + data, t));
+		}
 	}
 
 	
@@ -140,13 +147,11 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	public void dataSourceChanged(Object newDataSource) {
 		dataSource = newDataSource;
 
-		eventListener.eventOccurred(new UISWTViewEventImpl(this,
-				UISWTViewEvent.TYPE_DATASOURCE_CHANGED, newDataSource));
+		triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, newDataSource);
 	}
 
 	public void delete() {
-		eventListener.eventOccurred(new UISWTViewEventImpl(this,
-				UISWTViewEvent.TYPE_DESTROY, null));
+		triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
 		super.delete();
 	}
 
@@ -184,8 +189,7 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 			GridData gridData = new GridData(GridData.FILL_BOTH);
 			composite.setLayoutData(gridData);
 
-			eventListener.eventOccurred(new UISWTViewEventImpl(this,
-					UISWTViewEvent.TYPE_INITIALIZE, composite));
+			triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, composite);
 		} else {
 			composite = new Composite(parent, SWT.EMBEDDED);
 			GridLayout layout = new GridLayout(1, false);
@@ -201,37 +205,32 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 
 			f.add(pan);
 
-			eventListener.eventOccurred(new UISWTViewEventImpl(this,
-					UISWTViewEvent.TYPE_INITIALIZE, pan));
+			triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, pan);
 		}
 		
 		if (composite != null) {
 			composite.addListener(SWT.Activate, new Listener() {
 				public void handleEvent(Event event) {
-					eventListener.eventOccurred(new UISWTViewEventImpl(UISWTViewImpl.this,
-							UISWTViewEvent.TYPE_FOCUSGAINED, null));
+					triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 				}
 			});
 	
 			composite.addListener(SWT.Deactivate, new Listener() {
 				public void handleEvent(Event event) {
-					eventListener.eventOccurred(new UISWTViewEventImpl(UISWTViewImpl.this,
-							UISWTViewEvent.TYPE_FOCUSLOST, null));
+					triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
 				}
 			});
 		}
 	}
 
 	public void refresh() {
-		eventListener.eventOccurred(new UISWTViewEventImpl(this,
-				UISWTViewEvent.TYPE_REFRESH, null));
+		triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
 	}
 
 	public void updateLanguage() {
 		super.updateLanguage();
 
-		eventListener.eventOccurred(new UISWTViewEventImpl(this,
-				UISWTViewEvent.TYPE_LANGUAGEUPDATE, null));
+		triggerEvent(UISWTViewEvent.TYPE_LANGUAGEUPDATE, null);
 	}
 	
 	// Core Functions
