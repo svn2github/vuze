@@ -559,7 +559,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 					Program.launch(e.text);
 				}
 			});
-    } catch (NoSuchMethodError e) {
+    } catch (Throwable e) {
     	lblComment = new Label(gInfo, SWT.LEFT | SWT.WRAP);
     }
     gridData = new GridData(GridData.FILL_BOTH);
