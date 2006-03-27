@@ -1274,6 +1274,7 @@ public class TableView
   	if (bEnableTabViews && tabFolder != null && !tabFolder.isDisposed()
 				&& !tabFolder.getMinimized())
   		refreshSelectedSubView();
+  	// TODO: Refresh folder titles
   }
   
 	public void refreshSelectedSubView() {

@@ -21,16 +21,14 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.widgets.*;
 
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
@@ -214,10 +212,46 @@ public class ManagerView extends AbstractIView implements
 			if (view != null)
 				view.refresh();
 
+			TabItem[] items = folder.getItems();
+			
+	    for (int i = 0; i < items.length; i++) {
+	    	TabItem item = items[i];
+	    	view = (IView) item.getData("IView");
+        try {
+          if (item.isDisposed())
+            continue;
+          String lastTitle = item.getText();
+          String newTitle = view.getShortTitle();
+          if (lastTitle == null || !lastTitle.equals(newTitle)) {
+            item.setText(escapeAccelerators(newTitle));
+          }
+          String lastToolTip = item.getToolTipText();
+          String newToolTip = view.getFullTitle() + " " +
+					 MessageText.getString("Tab.closeHint");
+          if (lastToolTip == null || !lastToolTip.equals(newToolTip)) {
+            item.setToolTipText(newToolTip);
+          }
+        }
+        catch (Exception e){
+        	Debug.printStackTrace(e);
+        }
+      }
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
 		}
 	}
+
+  protected static String
+  escapeAccelerators(
+	 String	str )
+  {
+	  if ( str == null ){
+		  
+		  return( str );
+	  }
+	  
+	  return( str.replaceAll( "&", "&&" ));
+  }
   
   public boolean isEnabled(String itemKey) {
     if(itemKey.equals("run"))
