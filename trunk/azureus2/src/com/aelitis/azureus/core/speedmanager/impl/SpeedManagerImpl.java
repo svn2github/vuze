@@ -112,8 +112,9 @@ SpeedManagerImpl
 	
 	private boolean				enabled;
 		
-	private Average upload_average			= AverageFactory.MovingImmediateAverage( 5 );
-	private Average upload_short_average	= AverageFactory.MovingImmediateAverage( 2 );
+	private Average upload_average				= AverageFactory.MovingImmediateAverage( 5 );
+	private Average upload_short_average		= AverageFactory.MovingImmediateAverage( 2 );
+	private Average upload_short_prot_average	= AverageFactory.MovingImmediateAverage( 2 );
 	
 	private Average	ping_average_history		= AverageFactory.MovingImmediateAverage(PING_AVERAGE_HISTORY_COUNT);
 	
@@ -154,6 +155,7 @@ SpeedManagerImpl
 		choke_speed_average.reset();
 		upload_average.reset();
 		upload_short_average.reset();
+		upload_short_prot_average.reset();
 		ping_average_history.reset();
 	}
 	
@@ -261,11 +263,16 @@ SpeedManagerImpl
 				perform(
 					TimerEvent	event )
 				{
-					int	current_speed = adapter.getCurrentUploadSpeed();
+					int	current_protocol_speed 	= adapter.getCurrentProtocolUploadSpeed();
+					int	current_data_speed		= adapter.getCurrentDataUploadSpeed();
 
+					int	current_speed = current_protocol_speed + current_data_speed;
+					
 					upload_average.update( current_speed );
 					
 					upload_short_average.update( current_speed );
+					
+					upload_short_prot_average.update( current_protocol_speed );
 					
 					mode_ticks++;
 					
@@ -395,7 +402,7 @@ SpeedManagerImpl
 			idle_average	= Math.max( running_average, MIN_IDLE_AVERAGE );
 		}
 		
-		int	current_speed 	= adapter.getCurrentUploadSpeed();
+		int	current_speed 	= adapter.getCurrentDataUploadSpeed() + adapter.getCurrentProtocolUploadSpeed();
 		int	current_limit	= adapter.getCurrentUploadLimit();
 
 		int	new_limit	= current_limit;
@@ -515,6 +522,15 @@ SpeedManagerImpl
 					int decrement = 1024 * (( ping_average - (3*idle_average )) / SOMETHING );
 					
 					new_limit -= Math.min( decrement, 5*1024 );
+					
+						// don't drop below the current protocol upload speed. This is to address
+						// the situation whereby it is downloading that is choking the line - killing
+						// protocol upspeed kills the downspeed
+					
+					if ( new_limit < upload_short_prot_average.getAverage() + 1024 ){
+						
+						new_limit = (int)upload_short_prot_average.getAverage() + 1024;
+					}
 				}			
 				
 				if ( new_limit < 1024 ){

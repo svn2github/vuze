@@ -153,7 +153,16 @@ Test
 	}
 
 	public int
-	getCurrentUploadSpeed()
+	getCurrentProtocolUploadSpeed()
+	{
+		synchronized( upload_average ){
+			
+			return( 0 );
+		}
+	}	
+	
+	public int
+	getCurrentDataUploadSpeed()
 	{
 		synchronized( upload_average ){
 			

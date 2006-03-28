@@ -176,13 +176,13 @@ AzureusCoreImpl
 					new SpeedManagerAdapter()
 					{
 						public int
-						getCurrentUploadSpeed()
+						getCurrentProtocolUploadSpeed()
 						{
 							if ( global_manager != null ){
 								
 								GlobalManagerStats stats = global_manager.getStats();
 								
-								return( stats.getDataSendRateNoLAN() + stats.getProtocolSendRateNoLAN());
+								return( stats.getProtocolSendRateNoLAN());
 								
 							}else{
 								
@@ -190,6 +190,20 @@ AzureusCoreImpl
 							}
 						}
 						
+						public int
+						getCurrentDataUploadSpeed()
+						{
+							if ( global_manager != null ){
+								
+								GlobalManagerStats stats = global_manager.getStats();
+								
+								return( stats.getDataSendRateNoLAN());
+								
+							}else{
+								
+								return(0);
+							}
+						}
 						public int
 						getCurrentUploadLimit()
 						{

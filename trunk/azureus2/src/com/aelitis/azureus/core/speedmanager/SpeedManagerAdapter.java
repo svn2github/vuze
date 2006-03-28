@@ -26,7 +26,10 @@ public interface
 SpeedManagerAdapter 
 {
 	public int
-	getCurrentUploadSpeed();
+	getCurrentProtocolUploadSpeed();
+	
+	public int
+	getCurrentDataUploadSpeed();
 	
 	public int
 	getCurrentUploadLimit();
