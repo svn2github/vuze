@@ -183,8 +183,7 @@ SSDPCore
 			"ST: " + ST + NL +
 			"MX: 3" + NL +
 			"MAN: \"ssdp:discover\"" + NL + 
-			"HOST: " + group_address_str + ":" + group_port + NL +
-			"USER-AGENT: Azureus (UPnP/1.0)" + NL + NL;
+			"HOST: " + group_address_str + ":" + group_port + NL + NL;
 		
 		sendMC( str );
 	}
@@ -216,7 +215,8 @@ SSDPCore
 				
 				adapter.log(e);
 			}
-		}	}
+		}	
+	}
 	
 	public void
 	received(
