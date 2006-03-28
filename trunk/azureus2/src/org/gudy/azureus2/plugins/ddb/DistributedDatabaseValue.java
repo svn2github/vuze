@@ -39,6 +39,9 @@ DistributedDatabaseValue
 	public long
 	getCreationTime();
 	
+	public long
+	getVersion();
+	
 	public DistributedDatabaseContact
 	getContact();
 }

@@ -41,6 +41,7 @@ DDBaseValueImpl
 	private byte[]			value_bytes;
 	
 	private long			creation_time;
+	private long			version;
 	
 		// we reserve 3 bytes for overflow marker and length encoding for multi-value values
 
@@ -50,13 +51,15 @@ DDBaseValueImpl
 	DDBaseValueImpl(
 		DDBaseContactImpl	_contact,
 		Object				_value,
-		long				_creation_time )
+		long				_creation_time,
+		long				_version )
 	
 		throws DistributedDatabaseException
 	{
 		contact			= _contact;
 		value			= _value;
 		creation_time	= _creation_time;
+		version			= _version;
 		
 		value_bytes	= DDBaseHelpers.encode( value );
 		
@@ -68,11 +71,13 @@ DDBaseValueImpl
 	DDBaseValueImpl(
 		DDBaseContactImpl	_contact,
 		byte[]				_value_bytes,
-		long				_creation_time )
+		long				_creation_time,
+		long				_version )
 	{
 		contact			= _contact;
 		value_bytes		= _value_bytes;
 		creation_time	= _creation_time;
+		version			= _version;
 	}
 	
 	public Object
@@ -101,6 +106,12 @@ DDBaseValueImpl
 		return( creation_time );
 	}
 
+	public long
+	getVersion()
+	{
+		return( version );
+	}
+	
 	public DistributedDatabaseContact
 	getContact()
 	{		

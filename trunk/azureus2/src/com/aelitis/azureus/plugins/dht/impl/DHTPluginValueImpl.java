@@ -51,6 +51,12 @@ DHTPluginValueImpl
 		return( value.getCreationTime());
 	}
 	
+	public long
+	getVersion()
+	{
+		return( value.getVersion());
+	}
+	
 	public int
 	getFlags()
 	{

@@ -268,7 +268,7 @@ DDBaseTTTorrent
 			return( null );
 		}
 		
-		return( new DDBaseValueImpl( contact, data, SystemTime.getCurrentTime()));
+		return( new DDBaseValueImpl( contact, data, SystemTime.getCurrentTime(), -1));
 	}
 	
 	protected byte[]

@@ -197,7 +197,7 @@ DDBaseImpl
 	{
 		throwIfNotAvailable();
 		
-		return( new DDBaseValueImpl( new DDBaseContactImpl( this, dht.getLocalAddress()), value, SystemTime.getCurrentTime()));
+		return( new DDBaseValueImpl( new DDBaseContactImpl( this, dht.getLocalAddress()), value, SystemTime.getCurrentTime(), -1));
 	}
 	
 	public DistributedDatabaseContact
@@ -466,7 +466,7 @@ DDBaseImpl
 							contact,
 							type,
 							new DDBaseKeyImpl( xfer_key ),
-							new DDBaseValueImpl( contact, value, SystemTime.getCurrentTime()));
+							new DDBaseValueImpl( contact, value, SystemTime.getCurrentTime(), -1));
 						
 					}catch( Throwable e ){
 						
@@ -540,7 +540,7 @@ DDBaseImpl
 				return( null );
 			}
 			
-			return( new DDBaseValueImpl( contact, data, SystemTime.getCurrentTime()));
+			return( new DDBaseValueImpl( contact, data, SystemTime.getCurrentTime(), -1));
 		}
 	}
 	
@@ -619,7 +619,7 @@ DDBaseImpl
 					
 					System.arraycopy( value, pos, d, 0, len );
 					
-					listener.event( new dbEvent( type, key, originator, d, _value.getCreationTime()));
+					listener.event( new dbEvent( type, key, originator, d, _value.getCreationTime(), _value.getVersion()));
 					
 					pos += len;
 				}				
@@ -699,7 +699,7 @@ DDBaseImpl
 			
 			contact	= new DDBaseContactImpl( DDBaseImpl.this, _contact );
 			
-			value	= new DDBaseValueImpl( contact, _value.getValue(), _value.getCreationTime()); 
+			value	= new DDBaseValueImpl( contact, _value.getValue(), _value.getCreationTime(), _value.getVersion()); 
 		}
 		
 		protected
@@ -708,14 +708,15 @@ DDBaseImpl
 			DistributedDatabaseKey	_key,
 			DHTPluginContact		_contact,
 			byte[]					_value,
-			long					_ct )
+			long					_ct,
+			long					_v )
 		{
 			type		= _type;
 			key			= _key;
 			
 			contact	= new DDBaseContactImpl( DDBaseImpl.this, _contact );
 			
-			value	= new DDBaseValueImpl( contact, _value, _ct ); 
+			value	= new DDBaseValueImpl( contact, _value, _ct, _v ); 
 		}
 		
 		public int
