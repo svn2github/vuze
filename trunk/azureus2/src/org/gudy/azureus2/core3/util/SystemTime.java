@@ -170,9 +170,11 @@ public class SystemTime {
   {
 	  long	adjusted_time = stepped_time;
 
-	  if ( access_average_per_slice > 0 ){
+	  long	temp = access_average_per_slice;
 	  
-		  long	x = (drift_adjusted_granularity*slice_access_count)/access_average_per_slice;
+	  if ( temp > 0 ){
+	  
+		  long	x = (drift_adjusted_granularity*slice_access_count)/temp;
 		  
 		  if ( x >= drift_adjusted_granularity ){
 			  
