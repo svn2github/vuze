@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.remote.disk;
 
 import java.io.File;
 
+import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -193,4 +194,12 @@ RPDiskManagerFileInfo
 		
 		return( null );
     }
+	
+	public DiskManagerChannel
+	createChannel()
+	{
+		notSupported();
+		
+		return( null );		
+	}
 }

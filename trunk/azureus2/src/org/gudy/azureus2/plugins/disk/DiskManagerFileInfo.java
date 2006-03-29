@@ -102,4 +102,7 @@ DiskManagerFileInfo
 	getDownload()
 	
          throws DownloadException;
+	
+	public DiskManagerChannel
+	createChannel();
 }
