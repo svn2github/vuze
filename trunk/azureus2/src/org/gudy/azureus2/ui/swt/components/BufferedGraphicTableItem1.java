@@ -143,8 +143,9 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     
     Table table = getTable();
 
-    //debugOut("doPnt:" + ((gc == null) ? "GC NULL" : String.valueOf(gc.getClipping())) + 
-    //         "ta="+table.getClientArea()+";bounds="+bounds, false);
+//    System.out.println("doPnt#" + row.getIndex()+": " + 
+//    		((gc == null) ? "GC NULL" : String.valueOf(gc.getClipping())) + 
+//        "ta="+table.getClientArea()+";bounds="+bounds);
 
     Rectangle imageBounds = image.getBounds();
     
@@ -153,15 +154,15 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     	return;
 
     Rectangle tableBounds = table.getClientArea();
-    if (bounds.y + bounds.height < table.getHeaderHeight() || bounds.y > tableBounds.height) {
-      //debugOut("doPaint() "+String.valueOf(bounds.y + bounds.height)+"<"+tableBounds.y, false);
+    if (bounds.y + bounds.height - tableBounds.y < table.getHeaderHeight()
+				|| bounds.y > tableBounds.height) {
+    	//System.out.println("doPnt#" + row.getIndex()+": "+String.valueOf(bounds.y + bounds.height)+"<"+tableBounds.y);
       return;
     }
     
     if (orientation == SWT.FILL) {
-      if (!Constants.isOSX
-					&& (imageBounds.width != bounds.width 
-							|| imageBounds.height != bounds.height)) {
+      if (imageBounds.width != bounds.width
+					|| imageBounds.height != bounds.height) {
         //System.out.println("doPaint() sizewrong #"+row.getIndex()+ ".  Image="+imageBounds +";us="+bounds);
 /**/
         // Enable this for semi-fast visual update with some flicker
@@ -189,11 +190,17 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
         invalidate();
         return;
       }
-    } else if (imageBounds.width < bounds.width) {
-    	if (orientation == SWT.CENTER)
-    		bounds.x += (bounds.width - imageBounds.width) / 2;
-    	else if (orientation == SWT.RIGHT)
-    		bounds.x = (bounds.x + bounds.width) - imageBounds.width;
+    } else {
+  		if (imageBounds.width < bounds.width) {
+	    	if (orientation == SWT.CENTER)
+	    		bounds.x += (bounds.width - imageBounds.width) / 2;
+	    	else if (orientation == SWT.RIGHT)
+	    		bounds.x = (bounds.x + bounds.width) - imageBounds.width;
+  		}
+
+  		if (imageBounds.height < bounds.height) {
+  			bounds.y += (bounds.height - imageBounds.height) / 2;
+  		}
     }
     
     Rectangle clipping = new Rectangle(bounds.x, bounds.y, 
