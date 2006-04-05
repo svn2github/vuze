@@ -29,13 +29,12 @@ import java.awt.Panel;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
@@ -190,9 +189,29 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 			composite.setLayoutData(gridData);
 
 			triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, composite);
+
+			// Force children to have GridData layoutdata.
+			Control[] children = composite.getChildren();
+			for (int i = 0; i < children.length; i++) {
+				Control control = children[i];
+				Object layoutData = control.getLayoutData();
+				if (layoutData == null || !(layoutData instanceof GridData)) {
+					if (layoutData != null)
+						Logger.log(new LogEvent(LogIDs.PLUGIN, LogEvent.LT_WARNING,
+								"Plugin View '" + sViewID + "' tried to setLayouData of "
+										+ control + " to a " + layoutData.getClass().getName()));
+
+					if (children.length == 1)
+						gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+					else
+						gridData = new GridData();
+					
+					control.setLayoutData(gridData);
+				}
+			}
 		} else {
 			composite = new Composite(parent, SWT.EMBEDDED);
-			GridLayout layout = new GridLayout(1, false);
+			FillLayout layout = new FillLayout();
 			layout.marginHeight = 0;
 			layout.marginWidth = 0;
 			composite.setLayout(layout);
