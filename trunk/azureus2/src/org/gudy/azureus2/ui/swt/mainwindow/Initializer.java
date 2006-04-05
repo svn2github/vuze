@@ -345,13 +345,18 @@ Initializer
   
   // AzureusCoreListener
   public void reportPercent(int percent) {
+  	int overallPercent = overallPercent(percent);
     try{
     	listeners_mon.enter();
     
 	    Iterator iter = listeners.iterator();
 	    while(iter.hasNext()) {
 	    	AzureusCoreListener listener = (AzureusCoreListener) iter.next();
-	      listener.reportPercent(overallPercent(percent));
+	      listener.reportPercent(overallPercent);
+	    }
+
+	    if (overallPercent > 100) {
+	    	listeners.clear();
 	    }
     }finally{
     	
