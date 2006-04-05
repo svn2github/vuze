@@ -514,6 +514,10 @@ PluginInterfaceImpl
   		
   		((PluginInterface)children.get(i)).unload();
   	}
+  	
+  	setOperational(false);
+
+  	class_loader = null;
   }
   
   public void

@@ -310,4 +310,19 @@ PluginManagerImpl
 	{
 		return( PluginInstallerImpl.getSingleton(this));
 	}
+	
+	public void refreshPluginList() {
+		List loadedPlugins = pi.loadPlugins(pi.getAzureusCore(), true);
+		for (Iterator iter = loadedPlugins.iterator(); iter.hasNext();) {
+			PluginInterfaceImpl plugin = (PluginInterfaceImpl) iter.next();
+			if (!plugin.isOperational()) {
+				try {
+					pi.reloadPlugin(plugin);
+				} catch (PluginException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 }

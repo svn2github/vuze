@@ -285,7 +285,7 @@ AzureusCoreImpl
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Loading of Plugins starts"));
 
-		pi.loadPlugins(this);
+		pi.loadPlugins(this, false);
 		
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Loading of Plugins complete"));

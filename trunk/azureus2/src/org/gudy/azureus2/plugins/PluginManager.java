@@ -197,5 +197,10 @@ PluginManager
 	
 	public abstract PluginInstaller
 	getPluginInstaller();
+
+	/**
+	 * 
+	 */
+	public abstract void refreshPluginList();
 	
 }

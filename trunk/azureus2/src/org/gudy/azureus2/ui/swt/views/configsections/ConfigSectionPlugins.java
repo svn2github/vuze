@@ -38,9 +38,11 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ParameterRepository;
@@ -70,18 +72,20 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 	private final static String HEADER_PREFIX = "ConfigView.pluginlist.column.";
 
 	private final static String[] COLUMN_HEADERS = { "loadAtStartup", "type",
-			"name", "version", "directory" };
+			"name", "version", "directory", "unloadable" };
 
-	private final static int[] COLUMN_SIZES = { 110, 50, 150, 75, 100 };
+	private final static int[] COLUMN_SIZES = { 110, 50, 150, 75, 100, 50 };
 
 	private final static int[] COLUMN_ALIGNS = { SWT.CENTER, SWT.LEFT, SWT.LEFT,
-			SWT.RIGHT, SWT.LEFT};
+			SWT.RIGHT, SWT.LEFT, SWT.CENTER};
 
 	private ConfigView configView;
 
 	private AzureusCore azureusCore;
 
 	FilterComparator comparator;
+	
+	List pluginIFs;
 	
 	class FilterComparator implements Comparator {
 		boolean ascending = true;
@@ -95,6 +99,8 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 		static final int FIELD_VERSION = 3;
 
 		static final int FIELD_DIRECTORY = 4;
+		
+		static final int FIELD_UNLOADABLE = 5;
 
 		int field = FIELD_NAME;
 
@@ -144,6 +150,13 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 					if (s1 == null)
 						s1 = "";
 					result = s0.compareToIgnoreCase(s1);
+					break;
+				}
+				
+				case FIELD_UNLOADABLE: {
+					boolean b0 = if0.isUnloadable();
+					boolean b1 = if1.isUnloadable();
+					result = (b0 == b1 ? 0 : (b0 ? 1 : -1));
 					break;
 				}
 			}
@@ -214,6 +227,11 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 
 				case FIELD_VERSION: {
 					return pluginIF.getPluginVersion();
+				}
+				
+				case FIELD_UNLOADABLE: {
+					return MessageText.getString("Button."
+							+ (pluginIF.isUnloadable() ? "yes" : "no"));
 				}
 			} // switch
 
@@ -347,8 +365,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 			}
 		});
 
-		final List pluginIFs = Arrays.asList(azureusCore.getPluginManager()
-				.getPlugins());
+		pluginIFs = Arrays.asList(azureusCore.getPluginManager().getPlugins());
 
 		Collections.sort(pluginIFs, new Comparator() {
 			public int compare(Object o1, Object o2) {
@@ -386,6 +403,58 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 			Messages.setLanguageText(tc, HEADER_PREFIX + COLUMN_HEADERS[i]);
 		}
 		table.setHeaderVisible(true);
+		
+		Composite cButtons = new Composite(infoGroup, SWT.NONE);
+		layout = new GridLayout();
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.numColumns = 2;
+		cButtons.setLayout(layout);
+		cButtons.setLayoutData(new GridData());
+		
+		final Button btnUnload = new Button(cButtons, SWT.PUSH);
+		btnUnload.setLayoutData(new GridData());
+		Messages.setLanguageText(btnUnload, "ConfigView.pluginlist.unloadSelected");
+		btnUnload.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				int[] items = table.getSelectionIndices();
+				for (int i = 0; i < items.length; i++) {
+					int index = items[i];
+					if (index >= 0 && index < pluginIFs.size()) {
+						PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
+						if (pluginIF.isOperational()) {
+							if (pluginIF.isUnloadable()) {
+								try {
+									pluginIF.unload();
+								} catch (PluginException e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								}
+							}
+						}
+						pluginIFs = Arrays.asList(azureusCore.getPluginManager().getPlugins());
+						table.setItemCount(pluginIFs.size());
+						Collections.sort(pluginIFs, comparator);
+						table.clearAll();
+					}
+				}
+			}
+		});
+		
+		
+		final Button btnScan = new Button(cButtons, SWT.PUSH);
+		btnScan.setLayoutData(new GridData());
+		Messages.setLanguageText(btnScan, "ConfigView.pluginlist.scan");
+		btnScan.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				azureusCore.getPluginManager().refreshPluginList();
+				pluginIFs = Arrays.asList(azureusCore.getPluginManager().getPlugins());
+				table.setItemCount(pluginIFs.size());
+				Collections.sort(pluginIFs, comparator);
+				table.clearAll();
+			}
+		});
+
 
 		table.addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
@@ -404,7 +473,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 					item.setText(i, sText);
 				}
 
-				item.setGrayed(pluginIF.isMandatory() || pluginIF.isBuiltIn());
+				item.setGrayed(pluginIF.isMandatory());
 				boolean bEnabled = COConfigurationManager.getBooleanParameter("PluginInfo."
 						+ pluginIF.getPluginID() + ".enabled", true);
 		    Utils.setCheckedInSetData(item, bEnabled);
@@ -429,6 +498,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 		});
 
 		table.setItemCount(pluginIFs.size());
+		
 
 		return infoGroup;
 	}

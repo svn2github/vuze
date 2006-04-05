@@ -23,9 +23,11 @@ package org.gudy.azureus2.pluginsimpl.local;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.net.URLConnection;
 import java.util.*;
 
 import com.aelitis.azureus.core.*;
@@ -309,10 +311,13 @@ PluginInitializer
     UpdaterUpdateChecker.checkPlugin();
   }
   
-  	public void 
+  	public List 
 	loadPlugins(
-			AzureusCore		core  ) 
+			AzureusCore		core,
+			boolean bSkipAlreadyLoaded) 
   	{
+  		List pluginLoaded = new ArrayList();
+  		
   		PluginManagerImpl.setStartDetails( core );
     
   			// first do explicit plugins
@@ -338,11 +343,13 @@ PluginInitializer
 	    
 	    	// user ones first so they override app ones if present
 	    
-	    loadPluginsFromDir( user_dir, 0, user_plugins + app_plugins );
+	    pluginLoaded.addAll(loadPluginsFromDir(user_dir, 0, user_plugins
+				+ app_plugins, bSkipAlreadyLoaded));
 	    
 	    if ( !user_dir.equals( app_dir )){
 	    	
-	    	loadPluginsFromDir(app_dir, user_plugins, user_plugins + app_plugins );
+	    	pluginLoaded.addAll(loadPluginsFromDir(app_dir, user_plugins,
+					user_plugins + app_plugins, bSkipAlreadyLoaded));
 	    }
       
 	    if (Logger.isEnabled())
@@ -433,14 +440,19 @@ PluginInitializer
 						"Load of dynamic plugin '" + id + "' fails", e));
 			}
 		}
+		
+		return pluginLoaded;
   	}
  
-  private void
+  private List
   loadPluginsFromDir(
   	File	pluginDirectory,
 	int		plugin_offset,
-	int		plugin_total )
+	int		plugin_total,
+	boolean bSkipAlreadyLoaded)
   {
+  	List dirLoadedPIs = new ArrayList();
+  	
   	if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Plugin Directory is " + pluginDirectory));
     
@@ -475,11 +487,12 @@ PluginInitializer
 	      
 	    try{
 	    
-	    	List	loaded_pis = loadPluginFromDir(pluginsDirectory[i]);
+	    	List	loaded_pis = loadPluginFromDir(pluginsDirectory[i], bSkipAlreadyLoaded);
 	      	
 	    		// save details for later initialisation
 	    	
 	    	loaded_pi_list.add( loaded_pis );
+	    	dirLoadedPIs.addAll( loaded_pis );
 	    	
 	      }catch( PluginException e ){
 	      	
@@ -492,11 +505,13 @@ PluginInitializer
 	      }
 	    }
     } 
+    return dirLoadedPIs;
   }
   
   private List 
   loadPluginFromDir(
-  	File directory)
+  	File directory,
+  	boolean bSkipAlreadyLoaded)
   
   	throws PluginException
   {
@@ -617,8 +632,11 @@ PluginInitializer
       			URL url = current.findResource("plugin.properties");
       		
       			if ( url != null ){
+        			URLConnection connection = url.openConnection();
+        			
+        			InputStream is = connection.getInputStream();
       				
-      				props.load(url.openStream());
+      				props.load(is);
       				
       			}else{
       				
@@ -675,6 +693,10 @@ PluginInitializer
   		PluginInterfaceImpl existing_pi = getPluginFromClass( plugin_class );
   		
   		if ( existing_pi != null ){
+  			
+  			if (bSkipAlreadyLoaded) {
+  				break;
+  			}
   				
   				// allow user dir entries to override app dir entries without warning
   			
@@ -993,6 +1015,9 @@ PluginInitializer
   	
   			Plugin	plugin = plugin_interface.getPlugin();
   			
+  			if (plugin_interface.isOperational())
+  				continue;
+  			
   			Throwable	load_failure = null;
   			
   			try{
@@ -1220,7 +1245,7 @@ PluginInitializer
   	
   	if ( key instanceof File ){
   		
-  		List	pis = loadPluginFromDir( (File)key );
+  		List	pis = loadPluginFromDir( (File)key, false );
   		
   		initialisePlugin( pis );
   		
