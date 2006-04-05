@@ -79,10 +79,12 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "TR", "Transmission" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "CD", "CTorrent" )) != null ) return decoded;      
       if( (decoded = decodeAzStyle( peerID, "RT", "Retriever" )) != null ) return decoded;      
+      if( (decoded = decodeAzStyle( peerID, "LP", "Lphant" )) != null ) return decoded;      
       
       if( (decoded = decodeTornadoStyle( peerID, "T", "BitTornado" )) != null ) return decoded;
       if( (decoded = decodeTornadoStyle( peerID, "A", "ABC" )) != null ) return decoded;
       if( (decoded = decodeTornadoStyle( peerID, "O", "Osprey permaseed" )) != null ) return decoded;
+      if( (decoded = decodeTornadoStyle( peerID, "R", "Tribler" )) != null ) return decoded;
      
       if( (decoded = decodeMainlineStyle( peerID, "M", "Mainline" )) != null ) return decoded;
       
