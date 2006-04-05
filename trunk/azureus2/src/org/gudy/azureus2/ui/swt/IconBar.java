@@ -143,6 +143,8 @@ public class IconBar {
     createBufferedToolItem(toolBar,SWT.PUSH,"start","cb_start","iconBar.start.tooltip");
     createBufferedToolItem(toolBar,SWT.PUSH,"stop","cb_stop","iconBar.stop.tooltip");
     createBufferedToolItem(toolBar,SWT.PUSH,"remove","cb_remove","iconBar.remove.tooltip");
+    createBufferedToolItem(toolBar,SWT.PUSH,"send",null,"iconBar.sendTorrent.tooltip");
+
     toolBar.pack();
     p = toolBar.getSize();
     coolItem.setControl(toolBar);

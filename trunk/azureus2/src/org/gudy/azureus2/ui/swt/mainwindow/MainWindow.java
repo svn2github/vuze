@@ -217,20 +217,28 @@ MainWindow
     formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
     formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
     separator.setLayoutData(formData);
-
-    this.iconBar = new IconBar(mainWindow);
-    this.iconBar.setCurrentEnabler(this);
     
-    formData = new FormData();
-    formData.top = new FormAttachment(separator);
-    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
-    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
-    this.iconBar.setLayoutData(formData);
+    Control attachToTopOf = separator;
 
-    separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
+    try {
+	    this.iconBar = new IconBar(mainWindow);
+	    this.iconBar.setCurrentEnabler(this);
+	    
+	    formData = new FormData();
+	    formData.top = new FormAttachment(attachToTopOf);
+	    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
+	    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
+	    this.iconBar.setLayoutData(formData);
+
+	    separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
+	    
+	    attachToTopOf = iconBar.getCoolBar();
+    } catch (Exception e) {
+    	Logger.log(new LogEvent(LOGID, "Creating Icon Bar", e));
+    }
 
     formData = new FormData();
-    formData.top = new FormAttachment(iconBar.getCoolBar());
+    formData.top = new FormAttachment(attachToTopOf);
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     separator.setLayoutData(formData);
@@ -313,8 +321,9 @@ MainWindow
                     //Do nothing
                   }
                 }
-              }    
-	            iconBar.setCurrentEnabler(MainWindow.this);
+              }
+              if (iconBar != null)
+									iconBar.setCurrentEnabler(MainWindow.this);
 	          }
           });       
       }
@@ -1157,9 +1166,10 @@ MainWindow
 	  }
   }
 
-  public void refreshIconBar() {
-    iconBar.setCurrentEnabler(this);
-  }
+	public void refreshIconBar() {
+		if (iconBar != null)
+			iconBar.setCurrentEnabler(this);
+	}
 
   public void close() {
       getShell().close();

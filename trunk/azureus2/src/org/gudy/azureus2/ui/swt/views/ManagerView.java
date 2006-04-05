@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.*;
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
@@ -53,6 +54,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+import org.gudy.azureus2.ui.swt.wizards.sendtorrent.SendTorrentWizard;
 
 /**
  * Torrent download view, consisting of several information tabs
@@ -254,75 +256,94 @@ public class ManagerView extends AbstractIView implements
   }
   
   public boolean isEnabled(String itemKey) {
-    if(itemKey.equals("run"))
-      return true;
-    if(itemKey.equals("start"))
-      return ManagerUtils.isStartable(manager);
-    if(itemKey.equals("stop"))
-      return ManagerUtils.isStopable(manager);
-    if(itemKey.equals("host"))
-      return true;
-    if(itemKey.equals("publish"))
-      return true;
-    if(itemKey.equals("remove"))
-      return true;
-    return false;
-  }
-  
-  public void itemActivated(String itemKey) {
-	  if(itemKey.equals("run")) {
-	    ManagerUtils.run(manager);
-	    return;
-	  }
-	  if(itemKey.equals("start")) {
-	    ManagerUtils.queue(manager,folder);
-	    return;
-	  }
-	  if(itemKey.equals("stop")) {
-	    ManagerUtils.stop(manager,folder);
-	    return;
-	  }
-	  if(itemKey.equals("host")) {
-	    ManagerUtils.host(azureus_core, manager,folder);
-	    MainWindow.getWindow().showMyTracker();
-	    return;
-	  }
-	  if(itemKey.equals("publish")) {
-	    ManagerUtils.publish(azureus_core, manager,folder);
-	    MainWindow.getWindow().showMyTracker();
-	    return;
-	  }
-	  if(itemKey.equals("remove")) {
-	  
-        
-        if( COConfigurationManager.getBooleanParameter( "confirm_torrent_removal" ) ) {
-          MessageBox mb = new MessageBox(folder.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
-          mb.setText(MessageText.getString("deletedata.title"));
-          mb.setMessage(MessageText.getString("MyTorrentsView.confirm_torrent_removal") + manager.getDisplayName() );
-          if( mb.open() == SWT.NO ) {
-            return;
-          }
-        }
-        
-       	new AEThread( "asyncStop", true )
-			{
-        		public void
-				runSupport()
-        		{
-        			try{
-        		        
-				        manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
-				        
-				        manager.getGlobalManager().removeDownloadManager( manager );
-					  		
-        			}catch( GlobalManagerDownloadRemovalVetoException e ){
-					  		
-        				Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", e );
+		if (itemKey.equals("run"))
+			return true;
+
+		if (itemKey.equals("start"))
+			return ManagerUtils.isStartable(manager);
+
+		if (itemKey.equals("stop"))
+			return ManagerUtils.isStopable(manager);
+
+		if (itemKey.equals("host"))
+			return true;
+		
+		if (itemKey.equals("publish"))
+			return true;
+
+		if (itemKey.equals("remove"))
+			return true;
+		
+		if (itemKey.equals("send"))
+			return true;
+		
+		return false;
+	}
+
+	public void itemActivated(String itemKey) {
+		if (itemKey.equals("run")) {
+			ManagerUtils.run(manager);
+			return;
+		}
+		
+		if (itemKey.equals("start")) {
+			ManagerUtils.queue(manager, folder);
+			return;
+		}
+		
+		if (itemKey.equals("stop")) {
+			ManagerUtils.stop(manager, folder);
+			return;
+		}
+		
+		if (itemKey.equals("host")) {
+			ManagerUtils.host(azureus_core, manager, folder);
+			MainWindow.getWindow().showMyTracker();
+			return;
+		}
+		
+		if (itemKey.equals("publish")) {
+			ManagerUtils.publish(azureus_core, manager, folder);
+			MainWindow.getWindow().showMyTracker();
+			return;
+		}
+		
+		if (itemKey.equals("remove")) {
+
+			if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
+				MessageBox mb = new MessageBox(folder.getShell(), SWT.ICON_WARNING
+						| SWT.YES | SWT.NO);
+				mb.setText(MessageText.getString("deletedata.title"));
+				mb.setMessage(MessageText
+						.getString("MyTorrentsView.confirm_torrent_removal")
+						+ manager.getDisplayName());
+				if (mb.open() == SWT.NO) {
+					return;
+				}
+			}
+
+			new AEThread("asyncStop", true) {
+				public void runSupport() {
+					try {
+
+						manager.stopIt(DownloadManager.STATE_STOPPED, false, false);
+
+						manager.getGlobalManager().removeDownloadManager(manager);
+
+					} catch (GlobalManagerDownloadRemovalVetoException e) {
+
+						Alerts.showErrorMessageBoxUsingResourceString(
+								"globalmanager.download.remove.veto", e);
 					}
-        		}
+				}
 			}.start();
-	  }
-  }
+		}
+
+		if (itemKey.equals("send")) {
+			new SendTorrentWizard(azureus_core, folder.getDisplay(),
+					new TOTorrent[] { manager.getTorrent() });
+		}
+	}
   
   
   public void downloadComplete(DownloadManager manager) {   

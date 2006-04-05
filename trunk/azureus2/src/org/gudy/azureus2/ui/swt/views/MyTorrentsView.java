@@ -77,6 +77,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+import org.gudy.azureus2.ui.swt.wizards.sendtorrent.SendTorrentWizard;
 
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -810,6 +811,16 @@ public class MyTorrentsView
 		});
 		itemExplore.setEnabled(hasSelection);
 
+		// Send
+		final MenuItem itemSend = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemSend, "MyTorrentsView.menu.sendTorrent");
+		itemSend.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				openSendTorrentWizForSelected();
+			}
+		});
+		itemSend.setEnabled(hasSelection);
+		
 		// === advanced menu ===
 
 		final MenuItem itemAdvanced = new MenuItem(menu, SWT.CASCADE);
@@ -2517,6 +2528,8 @@ public class MyTorrentsView
       return up;
     if(itemKey.equals("down"))
       return down;
+    if(itemKey.equals("send"))
+      return run;
     return false;
   }
 
@@ -2561,7 +2574,24 @@ public class MyTorrentsView
       removeSelectedTorrents();
       return;
     }
+
+		if (itemKey.equals("send")) {
+			openSendTorrentWizForSelected();
+			return;
+		}
   }
+  
+  public void openSendTorrentWizForSelected() {
+		Object[] dms = getSelectedDataSources();
+		TOTorrent[] torrents = new TOTorrent[dms.length];
+		for (int i = 0; i < torrents.length; i++) {
+			if (dms[i] instanceof DownloadManager) {
+				torrents[i] = ((DownloadManager) dms[i]).getTorrent();
+			}
+		}
+
+		new SendTorrentWizard(azureus_core, getTable().getDisplay(), torrents);
+	}
 
 
 
