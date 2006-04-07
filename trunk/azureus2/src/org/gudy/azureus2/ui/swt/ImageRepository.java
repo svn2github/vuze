@@ -32,6 +32,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -275,6 +276,9 @@ public class ImageRepository {
 	 * @return The image
 	 */
 	public static Image getPathIcon(final String path) {
+		if (path == null)
+			return null;
+
 		try {
 			final File file = new File(path);
 
@@ -321,13 +325,24 @@ public class ImageRepository {
 			if (image != null)
 				return image;
 
+			java.awt.Image awtImage = null;
+			
 			final Class sfClass = Class.forName("sun.awt.shell.ShellFolder");
-			final Object sfInstance = sfClass.getMethod("getShellFolder",
-					new Class[] { File.class }).invoke(null, new Object[] { file });
+			if (sfClass != null && file != null) {
+				Method method = sfClass.getMethod("getShellFolder",
+						new Class[] { File.class });
+				if (method != null) {
+					Object sfInstance = method.invoke(null, new Object[] { file });
 
-			final java.awt.Image awtImage = (java.awt.Image) sfClass.getMethod(
-					"getIcon", new Class[] { Boolean.TYPE }).invoke(sfInstance,
-					new Object[] { new Boolean(false) });
+					if (sfInstance != null) {
+						method = sfClass.getMethod("getIcon", new Class[] { Boolean.TYPE });
+						if (method != null) {
+							awtImage = (java.awt.Image) method.invoke(sfInstance,
+									new Object[] { new Boolean(false) });
+						}
+					}
+				}
+			}
 
 			if (awtImage != null) {
         final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
