@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.tracker.host;
  */
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.URL;
 
 public interface 
@@ -46,13 +47,13 @@ TRHostListener
 	
 	public boolean
 	handleExternalRequest(
-		String			client_address,
-		String			user,
-		String			url,
-		URL				absolute_url,
-		String			header,
-		InputStream		is,
-		OutputStream	os )
+		InetSocketAddress	client_address,
+		String				user,
+		String				url,
+		URL					absolute_url,
+		String				header,
+		InputStream			is,
+		OutputStream		os )
 	
 		throws IOException;
 }

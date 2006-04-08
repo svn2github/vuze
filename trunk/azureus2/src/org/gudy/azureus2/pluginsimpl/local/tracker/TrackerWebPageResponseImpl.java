@@ -129,7 +129,36 @@ TrackerWebPageResponseImpl
 		
 		// System.out.println( "TrackerWebPageResponse::complete: data = " + reply_bytes.length );
 		
-		String reply_header = "HTTP/1.1 " + reply_status + (reply_status == 200 || reply_status == 204?" OK":" BAD") + NL;
+		String	status_string = "BAD";
+		
+			// random collection
+		
+		if ( reply_status == 200 ){
+			
+			status_string = "OK";
+			
+		}else if ( reply_status == 204 ){
+			
+			status_string = "No Content";
+			
+		}else if ( reply_status == 206 ){
+			
+			status_string = "Partial Content";
+			
+		}else if ( reply_status == 401 ){
+			
+			status_string = "Unauthorized";
+			
+		}else if ( reply_status == 404 ){
+			
+			status_string = "Not Found";
+			
+		}else if ( reply_status == 501 ){
+				
+			status_string = "Not Implemented";
+		}
+		
+		String reply_header = "HTTP/1.1 " + reply_status + " " + status_string + NL;
 		
 		Iterator	it = header_map.keySet().iterator();
 		

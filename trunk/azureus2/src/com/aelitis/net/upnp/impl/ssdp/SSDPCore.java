@@ -26,6 +26,7 @@ import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Constants;
 
 
 import com.aelitis.net.udp.mc.MCGroup;
@@ -165,13 +166,25 @@ SSDPCore
 			"NOTIFY * HTTP/" + HTTP_VERSION + NL +  
 			"HOST: " + group_address_str + ":" + group_port + NL +
 			"CACHE-CONTROL: max-age=3600" + NL +
-			"LOCATION: http://127.0.0.1:" + mc_group.getControlPort() + "/" + url + NL +
+			"LOCATION: http://%AZINTERFACE%:" + mc_group.getControlPort() + "/" + url + NL +
 			"NT: " + NT + NL + 
 			"NTS: " + NTS + NL + 
-			"SERVER: Azureus (UPnP/1.0)" + NL +
+			"SERVER: " + getServerName() + NL +
 			"USN: " + (UUID==null?"":(UUID + "::")) + NT + NL + NL; 
 		
-		sendMC( str );
+		try{
+
+			mc_group.sendToGroup( str );
+			
+		}catch( Throwable e ){
+		}
+	}
+	
+	protected String
+	getServerName()
+	{
+		return( System.getProperty( "os.name" ) + "/" + System.getProperty("os.version") + " UPnP/1.0 " +
+				Constants.AZUREUS_NAME + "/" + Constants.AZUREUS_VERSION );
 	}
 	
 	public void
@@ -295,7 +308,6 @@ SSDPCore
 		String	nts			= null;
 		String	st			= null;
 		String	al			= null;
-		String	user_agent	= null;
 		
 		for (int i=1;i<lines.size();i++){
 			
@@ -338,10 +350,6 @@ SSDPCore
 			}else if ( key.equals( "AL" )){
 				
 				al	= val;
-				
-			}else if ( key.equals( "USER-AGENT" )){
-				
-				user_agent	= val;
 			}
 		}
 			
@@ -360,7 +368,7 @@ SSDPCore
 				USN: uuid:UUID-InternetGatewayDevice-1234::upnp:rootdevice
 				*/
 				
-				String[]	response = informSearch( network_interface, local_address, originator.getAddress(), user_agent, st );
+				String[]	response = informSearch( network_interface, local_address, originator.getAddress(), st );
 				
 				if ( response != null ){
 					
@@ -473,13 +481,12 @@ SSDPCore
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		InetAddress			originator,
-		String				user_agent,
 		String				st )
 	{
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
-				String[]	res = ((UPnPSSDPListener)listeners.get(i)).receivedSearch(network_interface,local_address,originator,user_agent,st );
+				String[]	res = ((UPnPSSDPListener)listeners.get(i)).receivedSearch(network_interface,local_address,originator,st );
 				
 				if ( res != null ){
 					

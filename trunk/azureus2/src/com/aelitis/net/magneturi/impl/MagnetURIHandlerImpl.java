@@ -286,7 +286,7 @@ MagnetURIHandlerImpl
 		}
 		
 
-		if ( get.equals( "/magnet10/badge.img" )){
+		if ( get.startsWith( "/magnet10/badge.img" )){
 			
 			for (int i=0;i<listeners.size();i++){
 				
@@ -361,39 +361,61 @@ MagnetURIHandlerImpl
 			
 		}else if ( get.startsWith( "/select/" )){
 
-			int	query	= get.indexOf( '?' );
-
-			boolean	ok = false;
-			
 			String	fail_reason = "";
 			
-			try{
+			boolean	ok = false;
 			
-				URL	magnet = new URL( "magnet:" + get.substring( query ));;
-			
-				for (int i=0;i<listeners.size();i++){
+			String urn = (String)params.get( "xt" );
+
+			if ( urn == null ){
+				
+				fail_reason	= "xt missing";
+				
+			}else{
 					
-					if (((MagnetURIHandlerListener)listeners.get(i)).download( magnet )){
+				try{
+				
+					URL	magnet = new URL( "magnet:?xt=" + urn );
+				
+					for (int i=0;i<listeners.size();i++){
 						
-						ok = true;
-						
-						break;
+						if (((MagnetURIHandlerListener)listeners.get(i)).download( magnet )){
+							
+							ok = true;
+							
+							break;
+						}
 					}
-				}
-				
-				if ( !ok ){
 					
-					fail_reason = "No listeners accepted the operation";
+					if ( !ok ){
+						
+						fail_reason = "No listeners accepted the operation";
+					}
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+					
+					fail_reason	= Debug.getNestedExceptionMessage(e);
 				}
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-				
-				fail_reason	= Debug.getNestedExceptionMessage(e);
 			}
 			
 			if ( ok ){
 				
+				if ( "image".equalsIgnoreCase((String)params.get( "result" ))){
+					
+					for (int i=0;i<listeners.size();i++){
+
+						byte[]	data = ((MagnetURIHandlerListener)listeners.get(i)).badge();
+					
+						if ( data != null ){
+							
+							writeReply( os, "image/gif", data );
+							
+							return( true );
+						}
+					}
+				}
+					
 				writeReply( os, "text/plain", "Download initiated" );
 				
 			}else{
@@ -581,7 +603,10 @@ MagnetURIHandlerImpl
 	{
 		PrintWriter	pw = new PrintWriter( new OutputStreamWriter( os ));
 
-		pw.print( "HTTP/1.0 200 OK" + NL );
+		pw.print( "HTTP/1.1 200 OK" + NL );
+		pw.print( "Cache-Control: no-cache" + NL );
+		pw.print( "Pragma: no-cache" + NL );
+		pw.print( "Content-type: " + content_type + NL );
 		pw.print( "Content-type: " + content_type + NL );
 		pw.print( "Content-length: " + content.length + NL );
 		

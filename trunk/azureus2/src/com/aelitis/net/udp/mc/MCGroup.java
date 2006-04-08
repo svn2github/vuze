@@ -36,6 +36,19 @@ MCGroup
 	
 		throws MCGroupException;
 	
+		/**
+		 * Sends to the group but will replace any occurrence of %AZINTERFACE% in the string with the
+		 * interface being used for the send
+		 * @param param_data
+		 * @throws MCGroupException
+		 */
+	
+	public void
+	sendToGroup(
+		String	param_data )
+	
+		throws MCGroupException;
+	
 	public void
 	sendToMember(
 		InetSocketAddress	address,

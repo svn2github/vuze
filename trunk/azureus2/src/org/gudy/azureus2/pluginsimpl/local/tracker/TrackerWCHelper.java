@@ -30,6 +30,7 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
 
 import java.util.*;
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.URL;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -66,13 +67,13 @@ TrackerWCHelper
 	
 	public boolean
 	handleExternalRequest(
-		String			_client_address,
-		String			_user,
-		String			_url,
-		URL				_absolute_url,
-		String			_header,
-		InputStream		_is,
-		OutputStream	_os )
+		InetSocketAddress	_client_address,
+		String				_user,
+		String				_url,
+		URL					_absolute_url,
+		String				_header,
+		InputStream			_is,
+		OutputStream		_os )
 	
 		throws IOException
 	{	

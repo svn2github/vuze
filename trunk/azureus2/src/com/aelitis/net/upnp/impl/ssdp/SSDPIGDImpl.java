@@ -268,7 +268,6 @@ SSDPIGDImpl
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		InetAddress			originator,
-		String				user_agent,
 		String				ST )
 	{
 		// not interested, loopback or other search

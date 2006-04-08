@@ -25,6 +25,7 @@ package org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
@@ -170,7 +171,7 @@ TRNonBlockingServerProcessor
 			processRequest( request_header,
 							request_header.toLowerCase(),
 							url, 
-							socket_channel.socket().getInetAddress().getHostAddress(),
+							(InetSocketAddress)socket_channel.socket().getRemoteSocketAddress(),
 							true,
 							new ByteArrayInputStream(new byte[0]),
 							response );

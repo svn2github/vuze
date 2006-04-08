@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  */
 
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +41,7 @@ TrackerWebPageRequestImpl
 {
 	private Tracker				tracker;
 	private TrackerWebContext	context;
-	private String				client_address;
+	private InetSocketAddress	client_address;
 	private String				user;
 	private String				url;
 	private URL					absolute_url;
@@ -51,7 +52,7 @@ TrackerWebPageRequestImpl
 	TrackerWebPageRequestImpl(
 		Tracker				_tracker,
 		TrackerWebContext	_context,
-		String				_client_address,
+		InetSocketAddress	_client_address,
 		String				_user,
 		String				_url,
 		URL					_absolute_url,
@@ -95,9 +96,15 @@ TrackerWebPageRequestImpl
 	public String
 	getClientAddress()
 	{
-		return( client_address );
+		return( client_address.getAddress().getHostAddress());
 	}
 
+	public InetSocketAddress
+	getClientAddress2()
+	{
+		return( client_address );
+	}
+	
 	public String
 	getUser()
 	{

@@ -27,6 +27,7 @@ package org.gudy.azureus2.plugins.tracker.web;
  */
 
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.Map;
 
@@ -40,6 +41,9 @@ TrackerWebPageRequest
 	
 	public String
 	getClientAddress();
+	
+	public InetSocketAddress
+	getClientAddress2();
 	
 	public String
 	getUser();

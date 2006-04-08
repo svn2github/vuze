@@ -30,6 +30,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -298,12 +299,12 @@ TRBlockingServerProcessor
 						ByteArrayOutputStream	head_response = new ByteArrayOutputStream(4096);
 						
 						processRequest( actual_header,
-								lowercase_header,
-								url, 
-								socket.getInetAddress().getHostAddress(),
-								false,
-								post_is,
-								head_response );
+										lowercase_header,
+										url, 
+										(InetSocketAddress)socket.getRemoteSocketAddress(),
+										false,
+										post_is,
+										head_response );
 						
 						byte[]	head_data = head_response.toByteArray();
 						
@@ -333,7 +334,7 @@ TRBlockingServerProcessor
 						processRequest( actual_header,
 										lowercase_header,
 										url, 
-										socket.getInetAddress().getHostAddress(),
+										(InetSocketAddress)socket.getRemoteSocketAddress(),
 										false,
 										post_is,
 										socket.getOutputStream() );

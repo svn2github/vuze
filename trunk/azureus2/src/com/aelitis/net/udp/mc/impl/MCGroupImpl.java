@@ -495,6 +495,94 @@ MCGroupImpl
 		}
 	}
 	
+	public void
+	sendToGroup(
+		String	param_data )
+	
+		throws MCGroupException
+	{	
+		try{
+			Enumeration	x = NetworkInterface.getNetworkInterfaces();
+			
+			while( x != null && x.hasMoreElements()){
+				
+				NetworkInterface	network_interface = (NetworkInterface)x.nextElement();
+				
+				if ( !interfaceSelected( network_interface )){
+					
+					continue;
+				}
+				
+				Enumeration ni_addresses = network_interface.getInetAddresses();
+								
+				InetAddress	an_address = null;
+				
+				while( ni_addresses.hasMoreElements()){
+					
+					InetAddress ni_address = (InetAddress)ni_addresses.nextElement();
+				
+					if ( !( ni_address instanceof Inet6Address || ni_address.isLoopbackAddress())){
+						
+						an_address	= ni_address;
+						
+						break;
+					}
+				}
+				
+				if ( an_address == null){
+					
+					continue;
+				}
+				
+				try{
+					
+					MulticastSocket mc_sock = new MulticastSocket(null);
+	
+					mc_sock.setReuseAddress(true);
+					
+					try{
+						mc_sock.setTimeToLive( TTL );
+						
+					}catch( Throwable e ){
+						
+						if ( !ttl_problem_reported ){
+							
+							ttl_problem_reported	= true;
+							
+							adapter.log( e );
+						}
+					}
+					
+					mc_sock.bind( new InetSocketAddress( control_port ));
+	
+					mc_sock.setNetworkInterface( network_interface );
+					
+					byte[]	data = param_data.replaceAll("%AZINTERFACE%", an_address.getHostAddress()).getBytes();
+					
+					// System.out.println( "sendToGroup: ni = " + network_interface.getName() + ", data = " + new String(data));
+					
+					DatagramPacket packet = new DatagramPacket(data, data.length, group_address.getAddress(), group_port );
+					
+					mc_sock.send(packet);
+					
+					mc_sock.close();
+						
+				}catch( Throwable e ){
+				
+					if ( !sso_problem_reported ){
+						
+						sso_problem_reported	= true;
+					
+						adapter.log( e );
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			throw( new MCGroupException( "sendToGroup failed", e ));
+		}
+	}
+	
 	protected void
 	handleSocket(
 		NetworkInterface	network_interface,

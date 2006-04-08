@@ -57,6 +57,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.mytracker.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.Arrays;
 
@@ -254,13 +255,13 @@ MyTrackerView
 
 	public boolean
 	handleExternalRequest(
-		String			client,
-		String			user,
-		String			url,
-		URL				absolute_url,
-		String			header,
-		InputStream		is,
-		OutputStream	os )
+		InetSocketAddress	client,
+		String				user,
+		String				url,
+		URL					absolute_url,
+		String				header,
+		InputStream			is,
+		OutputStream		os )
 	
 		throws IOException
 	{

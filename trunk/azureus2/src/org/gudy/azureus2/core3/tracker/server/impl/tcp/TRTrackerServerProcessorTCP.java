@@ -90,13 +90,13 @@ TRTrackerServerProcessorTCP
 	
 	protected void
 	processRequest(
-		String			input_header,
-		String			lowercase_input_header,
-		String			url_path,
-		String			client_ip_address,
-		boolean			announce_and_scrape_only,
-		InputStream		is,
-		OutputStream	os )
+		String				input_header,
+		String				lowercase_input_header,
+		String				url_path,
+		InetSocketAddress	client_address,
+		boolean				announce_and_scrape_only,
+		InputStream			is,
+		OutputStream		os )
 		
 		throws IOException
 	{
@@ -150,7 +150,7 @@ TRTrackerServerProcessorTCP
 						return;
 					}
 					
-					if ( handleExternalRequest( client_ip_address, user, str, input_header, is, os )){
+					if ( handleExternalRequest( client_address, user, str, input_header, is, os )){
 					
 						return;
 					}
@@ -261,6 +261,8 @@ TRTrackerServerProcessorTCP
 				boolean		no_peer_id		= false;
 				boolean		compact			= false;
 				String		key				= null;
+				
+				String		client_ip_address	= client_address.getAddress().getHostAddress();
 				
 				while(pos < str.length()){
 						
@@ -644,12 +646,12 @@ TRTrackerServerProcessorTCP
 		
 	protected boolean
 	handleExternalRequest(
-		String			client_address,
-		String			user,
-		String			url,
-		String			header,
-		InputStream		is,
-		OutputStream	os )
+		InetSocketAddress	client_address,
+		String				user,
+		String				url,
+		String				header,
+		InputStream			is,
+		OutputStream		os )
 		
 		throws IOException
 	{
