@@ -2,11 +2,13 @@ AZUREUS CHANGELOG
 -----------------
 
 2006.0x.xx | Azureus 2.4.0.3
+
 FEATURE: Core | Reduced CPU usage, especially in some unusual conditions [MjrTom]
 
+FEATURE: Core | Explicit local subnet and peer injection option for Lan Peer Finder [parg]
+FEATURE: Core | Auto upload speed [parg]
 CHANGE: Core  | Reduced starting many pieces instead of completing current ones [MjrTom]
 CHANGE: Core  | Further modifications to optimistic disconnect algorithm [MjrTom]
-
 BUGFIX: Core  | Fix for pieces not completing due to too many snubbed peers [MjrTom]
 
 
