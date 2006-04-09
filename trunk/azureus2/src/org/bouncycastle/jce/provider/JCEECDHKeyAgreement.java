@@ -38,6 +38,16 @@ public class JCEECDHKeyAgreement
         this.agreement = agreement;
     }
 
+    public Key
+    doPhase(
+    	Key		key,
+    	boolean	lastPhase )
+    
+    	throws InvalidKeyException, IllegalStateException
+    {
+    	return( engineDoPhase( key, lastPhase ));
+    }
+    
     protected Key engineDoPhase(
         Key     key,
         boolean lastPhase) 
@@ -65,6 +75,13 @@ public class JCEECDHKeyAgreement
         return null;
     }
 
+    public byte[] 
+    generateSecret() 
+    	throws IllegalStateException
+    {
+    	return( engineGenerateSecret());
+    }
+    
     protected byte[] engineGenerateSecret() 
         throws IllegalStateException
     {
@@ -94,6 +111,15 @@ public class JCEECDHKeyAgreement
         return new SecretKeySpec(result.toByteArray(), algorithm);
     }
 
+    public void
+    init(
+    	Key		key )
+    
+    	throws InvalidKeyException, InvalidAlgorithmParameterException
+    {
+    	engineInit( key, null );
+    }
+    
     protected void engineInit(
         Key                     key,
         AlgorithmParameterSpec  params,
