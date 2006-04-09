@@ -189,24 +189,26 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 			composite.setLayoutData(gridData);
 
 			triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, composite);
-
-			// Force children to have GridData layoutdata.
-			Control[] children = composite.getChildren();
-			for (int i = 0; i < children.length; i++) {
-				Control control = children[i];
-				Object layoutData = control.getLayoutData();
-				if (layoutData == null || !(layoutData instanceof GridData)) {
-					if (layoutData != null)
-						Logger.log(new LogEvent(LogIDs.PLUGIN, LogEvent.LT_WARNING,
-								"Plugin View '" + sViewID + "' tried to setLayouData of "
-										+ control + " to a " + layoutData.getClass().getName()));
-
-					if (children.length == 1)
-						gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-					else
-						gridData = new GridData();
-					
-					control.setLayoutData(gridData);
+			
+			if (composite.getLayout() instanceof GridLayout) {
+				// Force children to have GridData layoutdata.
+				Control[] children = composite.getChildren();
+				for (int i = 0; i < children.length; i++) {
+					Control control = children[i];
+					Object layoutData = control.getLayoutData();
+					if (layoutData == null || !(layoutData instanceof GridData)) {
+						if (layoutData != null)
+							Logger.log(new LogEvent(LogIDs.PLUGIN, LogEvent.LT_WARNING,
+									"Plugin View '" + sViewID + "' tried to setLayouData of "
+											+ control + " to a " + layoutData.getClass().getName()));
+	
+						if (children.length == 1)
+							gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+						else
+							gridData = new GridData();
+						
+						control.setLayoutData(gridData);
+					}
 				}
 			}
 		} else {
