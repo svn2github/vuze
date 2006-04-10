@@ -60,9 +60,9 @@ SpeedManagerImpl
 	
 		// config items start
 	
-	private static final String	CONFIG_MIN_UP		= "AutoSpeed Min Upload Bytes";
-	private static final String	CONFIG_MAX_UP		= "AutoSpeed Min Upload Bytes";
-	private static final String	CONFIG_CHOKE_PING	= "AutoSpeed Choking Ping";
+	private static final String	CONFIG_MIN_UP		= "AutoSpeed Min Upload KBs";
+	private static final String	CONFIG_MAX_UP		= "AutoSpeed Min Upload KBs";
+	private static final String	CONFIG_CHOKE_PING	= "AutoSpeed Choking Ping Millis";
 	
 	private static final String[]	CONFIG_PARAMS = {
 		CONFIG_MIN_UP, CONFIG_MAX_UP, CONFIG_CHOKE_PING };
@@ -81,8 +81,8 @@ SpeedManagerImpl
 						String parameterName )
 					{
 						PING_CHOKE_TIME	= COConfigurationManager.getIntParameter( CONFIG_CHOKE_PING );
-						MIN_UP			= COConfigurationManager.getIntParameter( CONFIG_MIN_UP );
-						MAX_UP			= COConfigurationManager.getIntParameter( CONFIG_MAX_UP );
+						MIN_UP			= COConfigurationManager.getIntParameter( CONFIG_MIN_UP ) * 1024;
+						MAX_UP			= COConfigurationManager.getIntParameter( CONFIG_MAX_UP ) * 1024;
 					}
 				});
 		
@@ -135,7 +135,8 @@ SpeedManagerImpl
 	private int		max_upload_average;
 	
 	private Map							contacts	= new HashMap();
-	private volatile int				new_contacts;
+	private volatile int				total_contacts;
+	private volatile int				replacement_contacts;
 	private SpeedManagerPingSource[]	contacts_array	= new SpeedManagerPingSource[0];
 	
 	protected void
@@ -149,7 +150,8 @@ SpeedManagerImpl
 		idle_average_set	= false;
 		max_upload_average	= 0;
 		direction			= INCREASING;
-		new_contacts		= 0;
+		total_contacts		= 0;
+		replacement_contacts= 0;
 		max_ping			= 0;
 		
 		choke_speed_average.reset();
@@ -209,7 +211,12 @@ SpeedManagerImpl
 								contacts.values().toArray( contacts_array );
 							}
 							
-							new_contacts++;
+							total_contacts++;
+							
+							if ( total_contacts > CONTACT_NUMBER ){
+								
+								replacement_contacts++;
+							}
 							
 							contact.addListener(
 								new DHTSpeedTesterContactListener()
@@ -408,7 +415,7 @@ SpeedManagerImpl
 		int	new_limit	= current_limit;
 
 		System.out.println( 
-				"pings= " + str + ", average=" + ping_average +", running_average=" + running_average +
+				"Pings: " + str + ", average=" + ping_average +", running_average=" + running_average +
 				",idle_average=" + idle_average + ", speed=" + current_speed + ",limit=" + current_limit +
 				",choke = " + (int)choke_speed_average.getAverage());
 
@@ -453,7 +460,7 @@ SpeedManagerImpl
 		if ( mode == MODE_RUNNING ){
 			
 			if (	( ticks > FORCED_MIN_AT_START_TICK_LIMIT && !idle_average_set ) ||
-					( new_contacts >= 2 && idle_average_set )){
+					( replacement_contacts >= 2 && idle_average_set )){
 				
 					// we've been running a while but no min set, or we've got some new untested 
 					// contacts - force it
@@ -466,7 +473,7 @@ SpeedManagerImpl
 				
 				idle_average_set	= false;
 				idle_ticks			= 0;
-				new_contacts		= 0;
+				replacement_contacts= 0;
 				
 				new_limit	= FORCED_MIN_SPEED;
 				

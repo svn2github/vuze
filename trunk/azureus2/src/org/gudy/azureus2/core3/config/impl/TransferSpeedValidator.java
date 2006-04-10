@@ -170,7 +170,7 @@ public final class TransferSpeedValidator
     getActiveAutoUploadParameter(
     	GlobalManager	gm )
     {
-       if ( seeding_upload_enabled && gm.isSeedingOnly()){
+       if ( gm.isSeedingOnly()){
         	
         	return( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY );
         	

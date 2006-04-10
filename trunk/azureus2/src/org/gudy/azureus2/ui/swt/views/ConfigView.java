@@ -199,6 +199,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionConnectionAdvanced(),
                                          new ConfigSectionConnectionEncryption(),
                                          new ConfigSectionTransfer(),
+                                         new ConfigSectionTransferAutoSpeed(),
                                          new ConfigSectionTransferLAN(),
                                          new ConfigSectionFile(), 
                                          new ConfigSectionFileTorrents(),

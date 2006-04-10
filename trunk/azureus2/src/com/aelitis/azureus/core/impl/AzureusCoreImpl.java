@@ -346,8 +346,7 @@ AzureusCoreImpl
 									
 									COConfigurationManager.addAndFireParameterListeners(
 										new String[]{	TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY,
-														TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY,
-														TransferSpeedValidator.UPLOAD_SEEDING_ENABLED_CONFIGKEY },
+														TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY },
 										new ParameterListener()
 										{
 											public void 
