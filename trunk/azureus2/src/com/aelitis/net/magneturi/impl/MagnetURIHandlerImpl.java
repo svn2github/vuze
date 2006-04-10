@@ -606,12 +606,9 @@ MagnetURIHandlerImpl
 		pw.print( "HTTP/1.1 200 OK" + NL );
 		pw.print( "Cache-Control: no-cache" + NL );
 		pw.print( "Pragma: no-cache" + NL );
-		pw.print( "Content-type: " + content_type + NL );
-		pw.print( "Content-type: " + content_type + NL );
-		pw.print( "Content-length: " + content.length + NL );
+		pw.print( "Content-Type: " + content_type + NL );
+		pw.print( "Content-Length: " + content.length + NL + NL );
 		
-		pw.print( NL );
-
 		pw.flush();
 		
 		os.write( content );
