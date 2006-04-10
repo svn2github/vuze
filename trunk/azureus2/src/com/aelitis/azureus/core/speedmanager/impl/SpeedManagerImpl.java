@@ -61,7 +61,7 @@ SpeedManagerImpl
 		// config items start
 	
 	private static final String	CONFIG_MIN_UP		= "AutoSpeed Min Upload KBs";
-	private static final String	CONFIG_MAX_UP		= "AutoSpeed Min Upload KBs";
+	private static final String	CONFIG_MAX_UP		= "AutoSpeed Max Upload KBs";
 	private static final String	CONFIG_CHOKE_PING	= "AutoSpeed Choking Ping Millis";
 	
 	private static final String[]	CONFIG_PARAMS = {
