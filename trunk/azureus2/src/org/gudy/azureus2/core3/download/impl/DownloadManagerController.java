@@ -398,7 +398,8 @@ DownloadManagerController
 	                public void 
 					filePriorityChanged(
 						DiskManagerFileInfo	file ) 
-	                {                    
+	                {  
+	                	download_manager.informPriorityChange( file );
 	                }
 	                
 	               	public void
@@ -624,7 +625,8 @@ DownloadManagerController
   	                public void 
   					filePriorityChanged(
   						DiskManagerFileInfo	file ) 
-  	                {                    
+  	                {     
+  	                	download_manager.informPriorityChange( file );
   	                }
   	                
   	               	public void
@@ -1058,6 +1060,34 @@ DownloadManagerController
 		skeleton_files = null;
 	}
 	
+	public boolean
+	isDownloadCompleteExcludingDND()
+	{
+		DiskManager	dm = getDiskManager();
+		
+		if ( dm != null ){
+			
+			return( dm.getRemainingExcludingDND() == 0 );
+		}
+		
+		for (int i=0;i<files_facade.length;i++){
+			
+			DiskManagerFileInfo	file = files_facade[i];
+			
+			if ( file.isSkipped()){
+				
+				continue;
+			}
+			
+			if ( file.getDownloaded() != file.getLength()){
+				
+				return( false );
+			}
+		}
+		
+		return( true );
+	}
+	
 	protected PEPeerManager
 	getPeerManager()
 	{
@@ -1390,7 +1420,38 @@ DownloadManagerController
 	   			
 	   			if ( res == null ){
 
-	   				res = DiskManagerFactory.getFileInfoSkeleton( download_manager );
+	   				res = DiskManagerFactory.getFileInfoSkeleton( 
+	   							download_manager,
+	   							new DiskManagerListener()
+	   							{
+	   								public void
+	   								stateChanged(
+	   									int oldState, 
+	   									int	newState )
+	   								{
+	   								}
+	   								
+	   								public void
+	   								filePriorityChanged(
+	   									DiskManagerFileInfo		file )
+	   								{
+	   									download_manager.informPriorityChange( file );
+	   								}
+
+	   								public void
+	   								pieceDoneChanged(
+	   									DiskManagerPiece		piece )
+	   								{
+	   								}
+	   								
+	   								public void
+	   								fileAccessModeChanged(
+	   									DiskManagerFileInfo		file,
+	   									int						old_mode,
+	   									int						new_mode )
+	   								{
+	   								}
+	   							});
 	   				
 	   				skeleton_files	= res;
 	   			}

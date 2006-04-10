@@ -2401,7 +2401,8 @@ DiskManagerImpl
 	
 	public static DiskManagerFileInfo[]
 	getFileInfoSkeleton(
-		final DownloadManager		download_manager )
+		final DownloadManager		download_manager,
+		final DiskManagerListener	listener )
 	{
 		TOTorrent	torrent = download_manager.getTorrent();
 		
@@ -2490,6 +2491,8 @@ DiskManagerImpl
 							priority	= b;
 							
 							storeFilePriorities( download_manager, res );
+							
+							listener.filePriorityChanged( this );
 						}
 				
 						public void 
@@ -2498,6 +2501,8 @@ DiskManagerImpl
 							skipped	= b;
 							
 							storeFilePriorities( download_manager, res );
+							
+							listener.filePriorityChanged( this );
 						}
 				 		 	
 						public int 

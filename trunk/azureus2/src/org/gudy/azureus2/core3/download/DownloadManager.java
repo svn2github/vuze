@@ -218,6 +218,9 @@ DownloadManager
  	public boolean
 	isDownloadComplete();
 	
+	public boolean
+	isDownloadCompleteExcludingDND();
+
 	public String
 	getTrackerStatus();
 	

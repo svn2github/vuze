@@ -62,10 +62,12 @@ DownloadManagerImpl
 {
 		// DownloadManager listeners
 	
-	private static final int LDT_STATECHANGED		= 1;
-	private static final int LDT_DOWNLOADCOMPLETE	= 2;
-	private static final int LDT_COMPLETIONCHANGED 	= 3;
-	private static final int LDT_POSITIONCHANGED 	= 4;
+	private static final int LDT_STATECHANGED			= 1;
+	private static final int LDT_DOWNLOADCOMPLETE		= 2;
+	private static final int LDT_COMPLETIONCHANGED 		= 3;
+	private static final int LDT_POSITIONCHANGED 		= 4;
+	private static final int LDT_FILEPRIORITYCHANGED 	= 5;
+	
 	
 	private AEMonitor	listeners_mon	= new AEMonitor( "DM:DownloadManager:L" );
 
@@ -96,6 +98,10 @@ DownloadManagerImpl
 					}else if ( type == LDT_COMPLETIONCHANGED ){
 						
 						listener.completionChanged(dm, ((Boolean)value[1]).booleanValue());
+
+					}else if ( type == LDT_FILEPRIORITYCHANGED ){
+						
+						listener.filePriorityChanged(dm, (DiskManagerFileInfo)value[1]);
 
 					}else if ( type == LDT_POSITIONCHANGED ){
 												
@@ -1730,6 +1736,12 @@ DownloadManagerImpl
   		return( onlySeeding );
   	}
   	
+	public boolean
+	isDownloadCompleteExcludingDND()
+	{
+		return( controller.isDownloadCompleteExcludingDND());
+	}
+	
 	public void
 	addListener(
 		DownloadManagerListener	listener )
@@ -1798,6 +1810,21 @@ DownloadManagerImpl
 			listeners_mon.enter();
 
 			listeners.dispatch( LDT_DOWNLOADCOMPLETE, new Object[]{ this });
+		
+		}finally{
+			
+			listeners_mon.exit();
+		}
+	}
+	
+	protected void
+	informPriorityChange(
+		DiskManagerFileInfo	file )
+	{
+		try{
+			listeners_mon.enter();
+
+			listeners.dispatch( LDT_FILEPRIORITYCHANGED, new Object[]{ this, file });
 		
 		}finally{
 			

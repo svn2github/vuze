@@ -644,6 +644,11 @@ Test
 			return( false );
 			
 		}
+		public boolean
+		isDownloadCompleteExcludingDND()
+		{
+			return( false );
+		}
 		
 		public String
 		getTrackerStatus()

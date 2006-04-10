@@ -749,7 +749,12 @@ DownloadImpl
 		boolean 			bCompleted) 
 	{
 	}
-	
+
+	public void
+	filePriorityChanged( DownloadManager download, org.gudy.azureus2.core3.disk.DiskManagerFileInfo file )
+	{	  
+	}
+	  
   public void 
   positionChanged(
   	DownloadManager download, 

@@ -61,6 +61,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -2641,6 +2642,11 @@ public class MyTorrentsView
   }
 
   public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
+  }
+  
+  public void
+  filePriorityChanged( DownloadManager download, org.gudy.azureus2.core3.disk.DiskManagerFileInfo file )
+  {	  
   }
   
   public void completionChanged(final DownloadManager manager, boolean bCompleted) {

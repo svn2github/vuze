@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.ColorUtils;
@@ -1317,6 +1318,11 @@ MainWindow
 
   public void completionChanged(DownloadManager manager, boolean bCompleted) {
     // Do Nothing
+  }
+  
+  public void
+  filePriorityChanged( DownloadManager download, org.gudy.azureus2.core3.disk.DiskManagerFileInfo file )
+  {	  
   }
   
   public void downloadComplete(DownloadManager manager) {

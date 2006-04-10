@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Alerts;
@@ -352,6 +353,11 @@ public class ManagerView extends AbstractIView implements
   public void completionChanged(DownloadManager manager, boolean bCompleted) {
   }
 
+  public void
+  filePriorityChanged( DownloadManager download, org.gudy.azureus2.core3.disk.DiskManagerFileInfo file )
+  {	  
+  }
+  
   public void stateChanged(DownloadManager manager, int state) {
     if(folder == null || folder.isDisposed())
       return;    

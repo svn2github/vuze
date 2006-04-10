@@ -45,6 +45,7 @@ import com.aelitis.azureus.core.AzureusCoreListener;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -64,7 +65,8 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
  * 
  */
 public class GlobalManagerImpl 
-	implements 	GlobalManager, DownloadManagerListener, AEDiagnosticsEvidenceGenerator
+	extends DownloadManagerAdapter
+	implements 	GlobalManager, AEDiagnosticsEvidenceGenerator
 {
 	private static final LogIDs LOGID = LogIDs.CORE;
 	
