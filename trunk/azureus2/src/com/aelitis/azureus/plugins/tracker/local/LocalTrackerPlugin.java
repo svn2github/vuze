@@ -28,6 +28,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.Download;
@@ -177,9 +178,21 @@ LocalTrackerPlugin
 						processAutoAdd( autoadd.getValue());
 					}
 				});
-				
-		processSubNets( subnets.getValue());
-		processAutoAdd( autoadd.getValue());
+			
+			// we have to take this off the init thread as any auto-added instances can
+			// cause an attempt to get out external address which unfortunately hangs 
+			// az initalisation if the version server is unavailable and it tries
+			// to use the DHT which is pending completion of this init...
+		
+		new AEThread( "azlocalplugin:init", true)
+		{
+			public void
+			runSupport()
+			{
+				processSubNets( subnets.getValue());
+				processAutoAdd( autoadd.getValue());
+			}
+		}.start();
 	}
 	
 	public void
