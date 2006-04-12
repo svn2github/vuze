@@ -36,7 +36,7 @@ public class X962NamedCurves
         cFp192v2,
         cFp192v2.decodePoint(
             Hex.decode("03eea2bae7e1497842f2de7769cfe9c989c072ad696f48034a")),
-        new BigInteger("ffffffffffffffffffffffff5fb1a724dc80418648d8dd31", 16),
+        new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFE5FB1A724DC80418648D8DD31", 16),	// parg fixed F->E...
         BigInteger.valueOf(1),
         Hex.decode("31a92ee2029fd10d901b113e990710f0d21ac6b6"));
 
