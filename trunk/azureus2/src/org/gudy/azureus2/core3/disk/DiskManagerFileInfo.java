@@ -22,6 +22,7 @@ package org.gudy.azureus2.core3.disk;
 import java.io.File;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 
 /**
@@ -86,6 +87,8 @@ DiskManagerFileInfo
 	public boolean isSkipped();
 	
 	public int	getIndex();
+	
+	public DownloadManager	getDownloadManager();
 	
 	public DiskManager getDiskManager();
 	

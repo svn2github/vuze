@@ -171,6 +171,14 @@ RPDiskManagerFileInfo
 		return( is_skipped );
 	}
 	
+	public int
+	getIndex()
+	{
+		notSupported();
+		
+		return( -1 );
+	}
+	
 	public void
 	setLink(
 		File	link_destination )

@@ -50,6 +50,8 @@ UPnPServiceImpl
 	protected List				actions;
 	protected List				state_vars;
 	
+	protected boolean			direct_invoke;
+	
 	public
 	UPnPServiceImpl(
 		UPnPDeviceImpl					_device,
@@ -262,5 +264,18 @@ UPnPServiceImpl
 			
 			return( null );
 		}
+	}
+	
+	public boolean
+	getDirectInvocations()
+	{
+		return( direct_invoke );
+	}
+	
+	public void
+	setDirectInvocations(
+		boolean	force )
+	{
+		direct_invoke	= force;
 	}
 }

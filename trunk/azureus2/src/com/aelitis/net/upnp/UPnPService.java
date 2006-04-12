@@ -73,4 +73,11 @@ UPnPService
 		 */
 	public UPnPSpecificService
 	getSpecificService();
+	
+	public boolean
+	getDirectInvocations();
+	
+	public void
+	setDirectInvocations(
+		boolean	force );
 }

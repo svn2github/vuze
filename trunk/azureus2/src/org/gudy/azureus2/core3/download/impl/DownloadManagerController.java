@@ -1602,6 +1602,12 @@ DownloadManagerController
 			return( delegate.getDiskManager());
 		}
 		
+		public DownloadManager	
+		getDownloadManager()
+		{
+			return( download_manager );
+		}
+		
 		public File 
 		getFile( boolean follow_link )
 		{

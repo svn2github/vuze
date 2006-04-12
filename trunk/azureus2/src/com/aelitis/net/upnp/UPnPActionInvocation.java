@@ -22,6 +22,8 @@
 
 package com.aelitis.net.upnp;
 
+import java.util.Map;
+
 /**
  * @author parg
  *
@@ -44,4 +46,9 @@ UPnPActionInvocation
 	invoke()
 	
 		throws UPnPException;
+	
+	public Map
+	invoke2()
+  	
+  		throws UPnPException;
 }

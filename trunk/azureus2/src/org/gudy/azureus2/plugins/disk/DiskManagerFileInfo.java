@@ -83,6 +83,9 @@ DiskManagerFileInfo
 	public File 
 	getFile();
 		
+	public int
+	getIndex();
+	
 	public int 
 	getFirstPieceNumber();
 	

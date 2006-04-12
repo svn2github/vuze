@@ -134,4 +134,21 @@ UPnPActionInvocationImpl
 			throw( new UPnPException( "Invoke of '" + soap_action + "' fails: " + e.getMessage(), e ));	
 		}
 	}
+	
+	public Map
+	invoke2()
+  	
+  		throws UPnPException
+	{
+		UPnPActionArgument[]	res = invoke();
+		
+		Map	map = new HashMap();
+		
+		for (int i=0;i<res.length;i++){
+			
+			map.put( res[i].getName(), res[i].getValue());
+		}
+		
+		return( map );
+	}
 }

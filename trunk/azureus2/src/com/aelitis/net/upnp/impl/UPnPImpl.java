@@ -429,20 +429,27 @@ UPnPImpl
 	{
 		SimpleXMLParserDocument	res;
 		
-		try{
-			res =  performSOAPRequest( service, soap_action, request, true );
-				
-			http_calls_ok++;
-			
-		}catch( IOException e ){
+		if ( service.getDirectInvocations()){
 			
 			res = performSOAPRequest( service, soap_action, request, false );
+
+		}else{
 			
-			direct_calls_ok++;
-			
-			if ( direct_calls_ok == 1 ){
+			try{
+				res =  performSOAPRequest( service, soap_action, request, true );
+					
+				http_calls_ok++;
 				
-				log( "Invocation via http connection failed (" + e.getMessage() + ") but socket connection succeeded" );
+			}catch( IOException e ){
+				
+				res = performSOAPRequest( service, soap_action, request, false );
+				
+				direct_calls_ok++;
+				
+				if ( direct_calls_ok == 1 ){
+					
+					log( "Invocation via http connection failed (" + e.getMessage() + ") but socket connection succeeded" );
+				}
 			}
 		}
 		

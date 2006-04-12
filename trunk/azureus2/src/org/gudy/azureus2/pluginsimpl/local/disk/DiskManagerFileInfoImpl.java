@@ -119,11 +119,17 @@ public class DiskManagerFileInfoImpl
 	  return core.isSkipped();
 	}
 	
+	public int
+	getIndex()
+	{
+		return( core.getIndex());
+	}
+	
 	public Download getDownload()
          throws DownloadException
-  {
-	return DownloadManagerImpl.getDownloadStatic( core.getDiskManager());
-  }
+    {
+		return DownloadManagerImpl.getDownloadStatic( core.getDownloadManager());
+    }
 	
 	public DiskManagerChannel
 	createChannel()
