@@ -52,7 +52,7 @@ TrackerWebPageResponseImpl
 	
 	protected int					reply_status	= 200;
 	
-	protected Map		header_map 	= new HashMap();
+	protected Map		header_map 	= new LinkedHashMap();
 	
 	protected
 	TrackerWebPageResponseImpl(
@@ -108,9 +108,37 @@ TrackerWebPageResponseImpl
 	
 	public void
 	setHeader(
-			String		name,
-			String		value )
+		String		name,
+		String		value )
 	{
+		addHeader( name, value, true );
+	}
+	
+	protected void
+	addHeader(
+		String		name,
+		String		value,
+		boolean		replace )
+	{
+		Iterator	it = header_map.keySet().iterator();
+		
+		while( it.hasNext()){
+			
+			String	key = (String)it.next();
+			
+			if ( key.equalsIgnoreCase( name )){
+				
+				if ( replace ){
+					
+					it.remove();
+					
+				}else{
+					
+					return;
+				}
+			}
+		}
+		
 		header_map.put( name, value );
 	}
 	
@@ -160,6 +188,12 @@ TrackerWebPageResponseImpl
 		
 		String reply_header = "HTTP/1.1 " + reply_status + " " + status_string + NL;
 		
+			// add header fields if not already present
+		
+		addHeader( "Server", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION, false );
+		addHeader( "Connection", "close", false );
+		addHeader( "Content-Type", content_type, false );
+		
 		Iterator	it = header_map.keySet().iterator();
 		
 		while( it.hasNext()){
@@ -171,9 +205,6 @@ TrackerWebPageResponseImpl
 		}
 
 		reply_header +=
-			"Server: "+ Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
-			"Connection: close" + NL+
-			"Content-Type: " + content_type + NL +
 			"Content-Length: " + reply_bytes.length + NL +
 			NL;
 		
