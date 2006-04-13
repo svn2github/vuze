@@ -479,8 +479,17 @@ public class PiecePickerImpl
 			}
 		}
 		final int uploadersSize =bestUploaders.size();
+		/**
+		 * This is potentially kicking seeds.  If all peers are !isDownloadPossible
+		 * then bestUploadrs.size() will be 0, and we will return false, causing
+		 * the caller (PEPeerControlImpl.schedule) to forceDisconnect of seeds.
+		 * This is wrong, because all the peers may be choking us, or not have
+		 * pieces for us.
+		 * 
+		 * Commenting out until MjrTom fixes it properly
 		if (uploadersSize ==0)
 			return false;
+		*/
 		
 		checkEndGameMode();
 		
