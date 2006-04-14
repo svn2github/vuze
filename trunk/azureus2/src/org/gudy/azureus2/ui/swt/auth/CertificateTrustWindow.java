@@ -63,28 +63,22 @@ CertificateTrustWindow
 			return( false );
 		}
 		
-		final AESemaphore	sem = new AESemaphore("SWTCert");
-				
 		final trustDialog[]	dialog = new trustDialog[1];
 		
 		try{
-			display.asyncExec(
-					new AERunnable()
-					{
+			Utils.execSWTThread(new AERunnable() {
 						public void
 						runSupport()
 						{
-							dialog[0] = new trustDialog( sem, display, resource, cert );
+							dialog[0] = new trustDialog( display, resource, cert );
 						}
-					});
+					}, false);
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
 			
 			return( false );
 		}
-		
-		sem.reserve();
 		
 		return(dialog[0].getTrusted());
 	}
@@ -93,22 +87,16 @@ CertificateTrustWindow
 	trustDialog
 	{
 		protected Shell			shell;
-		protected AESemaphore	sem;
 		
 		protected boolean		trusted;
 		
 		protected
 		trustDialog(
-				AESemaphore			_sem,
 				Display				display,
 				String				resource,
 				X509Certificate		cert )
 		{
-			sem	= _sem;
-			
 			if ( display.isDisposed()){
-				
-				sem.release();
 				
 				return;
 			}
@@ -247,6 +235,12 @@ CertificateTrustWindow
 			Utils.centreWindow( shell );
 
 			shell.open ();   
+
+	    while (!shell.isDisposed()) {
+	      if (!shell.getDisplay().readAndDispatch()) {
+	      	shell.getDisplay().sleep();
+	      }
+	    }
 		}
 		
 		protected void
@@ -256,7 +250,6 @@ CertificateTrustWindow
 			trusted = ok;
 			
 			shell.dispose();
-			sem.release();
 		}
 
 		protected String
