@@ -392,6 +392,8 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
+		flush();
+		
 		if ( raf == null ){
 			
 				// may have previously been implicitly closed, tidy up if required

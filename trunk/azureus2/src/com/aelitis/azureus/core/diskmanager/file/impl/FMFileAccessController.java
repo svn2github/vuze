@@ -377,7 +377,7 @@ FMFileAccessController
 	
 		throws FMFileManagerException
 	{
-	
+		file_access.flush();
 	}
 	
 	public String
