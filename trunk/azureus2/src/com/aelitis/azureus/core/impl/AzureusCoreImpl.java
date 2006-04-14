@@ -653,6 +653,9 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
+		if (stopped)
+			return;
+
 		runNonDaemon(new AERunnable() {
 			public void runSupport() {
 
