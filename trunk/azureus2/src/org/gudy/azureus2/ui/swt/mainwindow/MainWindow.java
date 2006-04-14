@@ -24,7 +24,6 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreException;
-import com.aelitis.azureus.core.AzureusCoreListener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
 import org.eclipse.swt.events.*;
@@ -43,7 +42,6 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginView;
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.ColorUtils;
@@ -75,8 +73,7 @@ public class
 MainWindow
 	extends AERunnable
 	implements 	GlobalManagerListener, DownloadManagerListener, 
-				ParameterListener, IconBarEnabler, AzureusCoreListener,
-				AEDiagnosticsEvidenceGenerator
+				ParameterListener, IconBarEnabler, AEDiagnosticsEvidenceGenerator
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
   
@@ -157,11 +154,9 @@ MainWindow
 	    
 	    window = this;
 	    
-	    initializer.addListener(this);
-	    
 	    this.events = events;
 	    
-	    display.syncExec(this);
+	    display.asyncExec(this);
 	    
   	}catch( AzureusCoreException e ){
   		
@@ -452,6 +447,7 @@ MainWindow
 					.getBooleanParameter("Wizard Completed", false)) {
 				ConfigureWizard wizard = new ConfigureWizard(getAzureusCore(), display);
 
+
 				wizard.addListener(new WizardListener() {
 					public void closed() {
 						azureus_core.getPluginManager().firePluginEvent(
@@ -503,6 +499,8 @@ MainWindow
 			System.out.println("Initialize Error");
 			Debug.printStackTrace(e);
 		}
+
+    showMainWindow();
   }
   
 	private void showMainWindow() {
@@ -1279,29 +1277,6 @@ MainWindow
     return mainMenu;
   }
   
-  /*
-   * STProgressListener implementation, used for startup.
-   */
-  // AzureusCoreListener
-  public void reportCurrentTask(String task) {}
-  
-  /**
-   * A percent > 100 means the end of the startup process
-   */
-  // AzureusCoreListener
-  public void reportPercent(int percent) {
-    if(percent > 100) {
-      Utils.execSWTThread(new AERunnable(){
-        public void runSupport() {
-          if(display == null || display.isDisposed())
-            return;
-          showMainWindow();
-        }
-      });
-    }
-  }
-  
-
   
     
   /**
