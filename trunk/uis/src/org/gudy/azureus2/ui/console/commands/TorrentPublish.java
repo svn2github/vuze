@@ -34,35 +34,33 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
  * console command to host a torrent.
  * extracted from the Torrent class written by tobias
  */
-public class TorrentHost extends TorrentCommand {
+public class TorrentPublish extends TorrentCommand {
 
-	public TorrentHost()
+	public TorrentPublish()
 	{
-		super(new String[] { "host"}, "Hosting");
+		super(new String[] { "publish"}, "Publishing");
 	}
 
 	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {
 		TOTorrent torrent = dm.getTorrent();
         if (torrent != null) {
           try {
-            	TRHost	host = ci.azureus_core.getTrackerHost();
-            	
-            	TRHostTorrent	existing = host.getHostTorrent( torrent );
-            	
-            	if ( existing == null ){
-            		
-            		 ci.azureus_core.getTrackerHost().hostTorrent(torrent,true, false);
-            		 
-            	}else{
-            		try{
-            			existing.remove();
-            			
-            		}catch( Throwable e ){
-            			
-            			e.printStackTrace();
-            		}
-            	}
-           
+        	TRHost	host = ci.azureus_core.getTrackerHost();
+        	
+        	TRHostTorrent	existing = host.getHostTorrent( torrent );
+        	
+        	if ( existing == null ){
+        		
+        		host.publishTorrent(torrent);
+        	}else{
+        		try{
+        			existing.remove();
+        			
+        		}catch( Throwable e ){
+        			
+        			e.printStackTrace();
+        		}
+        	}
           } catch (TRHostException e) {
             e.printStackTrace(ci.out);
             return false;
@@ -73,7 +71,7 @@ public class TorrentHost extends TorrentCommand {
 	}
 
 	public String getCommandDescriptions() {
-		return("host (<torrentoptions>)\t\th\tHost or stop hosting torrent(s).");
+		return("publish (<torrentoptions>)\t\th\tPublish or stop publishing torrent(s).");
 	}
 
 }

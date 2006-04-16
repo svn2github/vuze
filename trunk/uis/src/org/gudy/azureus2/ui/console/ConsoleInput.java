@@ -62,6 +62,7 @@ import org.gudy.azureus2.ui.console.commands.Show;
 import org.gudy.azureus2.ui.console.commands.TorrentCheck;
 import org.gudy.azureus2.ui.console.commands.TorrentForceStart;
 import org.gudy.azureus2.ui.console.commands.TorrentHost;
+import org.gudy.azureus2.ui.console.commands.TorrentPublish;
 import org.gudy.azureus2.ui.console.commands.TorrentQueue;
 import org.gudy.azureus2.ui.console.commands.TorrentRemove;
 import org.gudy.azureus2.ui.console.commands.TorrentStart;
@@ -252,6 +253,7 @@ public class ConsoleInput extends Thread {
 		registerCommand(new TorrentStart());
 		registerCommand(new TorrentStop());
 		registerCommand(new TorrentHost());
+		registerCommand(new TorrentPublish());
 		registerCommand(new TorrentForceStart());
 		registerCommand(new Log());
 		registerCommand(new Move());
