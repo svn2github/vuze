@@ -69,7 +69,7 @@ DiskAccessRequestImpl
 		size = buffer.remaining( DirectByteBuffer.SS_FILE );
 	}
 	
-	protected int
+	public int
 	getSize()
 	{
 		return( size );

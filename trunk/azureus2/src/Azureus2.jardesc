@@ -2,7 +2,7 @@
 <jardesc>
 <jar path="C:/Inetpub/ftproot/Azureus2_parg.jar"/>
 <options buildIfNeeded="true" compress="true" descriptionLocation="/azureus3/Azureus2.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
-<refactoring structuralOnly="false"/>
+<refactoring deprecationInfo="true" structuralOnly="false"/>
 <selectedProjects>
 <project name="azureus3"/>
 <project name="azuis"/>
@@ -61,6 +61,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.client"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.download.session.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.tracker"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.wizards.sendtorrent"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.config"/>
 <javaElement handleIdentifier="=azuis/&lt;org.pf.file"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.osx"/>
@@ -153,8 +154,8 @@
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.piecepicker.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.update.sf.impl2"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.ipchecker.natchecker"/>
-<javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.crypto.macs"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.magnet"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.crypto.macs"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.vivaldi.maths.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.disk"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.proxy"/>

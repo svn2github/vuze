@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.download.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFactory;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
 import org.gudy.azureus2.core3.disk.DiskManagerListener;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -53,6 +55,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
@@ -1057,7 +1060,7 @@ DownloadManagerController
 	protected void
 	fileInfoChanged()
 	{
-		skeleton_files = null;
+		destroySkeletonFiles();
 	}
 	
 	public boolean
@@ -1379,12 +1382,28 @@ DownloadManagerController
 		return( interfaces.toArray());
 	}
 	
+	protected void
+	destroySkeletonFiles()
+	{
+		DiskManagerFileInfo[]	files = skeleton_files;
+		
+		if ( files != null ){
+			
+			for (int i=0;i<files.length;i++){
+				
+				files[i].close();
+			}
+		}
+	}
+	
 	protected class
 	fileInfoFacade
 		implements DiskManagerFileInfo
 	{
 		private DiskManagerFileInfo		delegate;
 		private int						index;
+		
+		private List					listeners;
 		
 		protected 
 		fileInfoFacade(
@@ -1396,6 +1415,8 @@ DownloadManagerController
 		protected void
 		fixup()
 		{
+			DiskManagerFileInfo	old_delegate = delegate;
+			
 	 		DiskManager	dm = DownloadManagerController.this.getDiskManager();
 
 	   		DiskManagerFileInfo[]	res	= null;
@@ -1408,7 +1429,7 @@ DownloadManagerController
 	   			
 	   			if ( dm_state == DiskManager.CHECKING || dm_state == DiskManager.READY ){
 	   			
-	   				skeleton_files	= null;
+	   				destroySkeletonFiles();
 	   			
 	   				res = dm.getFiles();
 	   			}
@@ -1458,6 +1479,14 @@ DownloadManagerController
 	   		}
 	
 	   		delegate = res[index];
+	   		
+	   		if ( delegate != old_delegate && listeners != null ){
+	   			
+	   			for (int i=0;i<listeners.size();i++){
+	   				
+	   				delegate.addListener((DiskManagerFileInfoListener)listeners.get(i));
+	   			}
+	   		}
 		}
 		
 		public void 
@@ -1632,6 +1661,53 @@ DownloadManagerController
 			fixup();
 			
 			delegate.flushCache();
+		}
+		
+		public DirectByteBuffer
+		read(
+			long	offset,
+			int		length )
+		
+			throws IOException
+		{
+			fixup();
+			
+			return( delegate.read( offset, length ));
+		}
+		
+		public void
+		close()
+		{
+			fixup();
+			
+			delegate.close();
+		}
+		
+		public void
+		addListener(
+			DiskManagerFileInfoListener	listener )
+		{
+			fixup();
+			
+			if ( listeners == null ){
+				
+				listeners = new ArrayList();
+			}
+			
+			listeners.add( listener );
+			
+			delegate.addListener( listener );
+		}
+		
+		public void
+		removeListener(
+			DiskManagerFileInfoListener	listener )
+		{
+			fixup();
+			
+			listeners.remove( listener );
+			
+			delegate.removeListener( listener );
 		}
 	}
 }

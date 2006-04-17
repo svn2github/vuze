@@ -572,17 +572,16 @@ DMWriterImpl
 		
 		protected void
 		doRequest(
-			DiskAccessRequestListener	l )
+			final DiskAccessRequestListener	l )
 		
 			throws CacheFileManagerException
 		{
 			Object[]	stuff = (Object[])chunks.get( chunk_index++ );
 
-			
-			DiskManagerFileInfoImpl	file = (DiskManagerFileInfoImpl)stuff[0];
+			final DiskManagerFileInfoImpl	file = (DiskManagerFileInfoImpl)stuff[0];
 			
 			buffer.limit( DirectByteBuffer.SS_DR, ((Integer)stuff[2]).intValue());
-			
+						
 			if ( file.getAccessMode() == DiskManagerFileInfo.READ ){
 				
 				if (Logger.isEnabled())
@@ -595,12 +594,40 @@ DMWriterImpl
 			
 			boolean	handover_buffer	= chunk_index == chunks.size(); 
 			
+			DiskAccessRequestListener	delegate_listener = 
+				new DiskAccessRequestListener()
+				{
+					public void
+					requestComplete(
+						DiskAccessRequest	request )
+					{
+						l.requestComplete( request );
+						
+						file.dataWritten( request.getOffset(), request.getSize());
+					}
+					
+					public void
+					requestCancelled(
+						DiskAccessRequest	request )
+					{
+						l.requestCancelled( request );
+					}
+					
+					public void
+					requestFailed(
+						DiskAccessRequest	request,
+						Throwable			cause )
+					{
+						l.requestFailed( request, cause );
+					}
+				};
+				
 			disk_access.queueWriteRequest(
 				file.getCacheFile(),
 				((Long)stuff[1]).longValue(),
 				buffer,
 				handover_buffer,
-				l );
+				delegate_listener );
 		}
 		
 		public void

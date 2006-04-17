@@ -338,9 +338,24 @@ DMCheckerImpl
 						DiskManagerCheckRequest 	request,
 						boolean						passed )
 					{
-						try{						
-							disk_manager.getPiece(request.getPieceNumber()).setDone( passed );
+						try{		
+							int	piece_number	= request.getPieceNumber();
 							
+							DiskManagerPiece	piece = disk_manager.getPiece(request.getPieceNumber());
+							
+							piece.setDone( passed );
+							
+							if ( passed ){
+								
+								DMPieceList	piece_list = disk_manager.getPieceList( piece_number );
+								
+								for (int i = 0; i < piece_list.size(); i++) {
+									
+									DMPieceMapEntry piece_entry = piece_list.get(i);
+										
+									piece_entry.getFile().dataChecked( piece_entry.getOffset(), piece_entry.getLength());
+								}
+							}
 						}finally{
 							
 							listener.checkCompleted( request, passed );

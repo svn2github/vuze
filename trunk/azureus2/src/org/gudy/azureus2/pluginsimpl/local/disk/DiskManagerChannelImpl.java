@@ -25,24 +25,29 @@ package org.gudy.azureus2.pluginsimpl.local.disk;
 import java.io.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
+import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 public class 
 DiskManagerChannelImpl 
-	implements DiskManagerChannel
+	implements DiskManagerChannel, DiskManagerFileInfoListener
 {
 	private DiskManagerFileInfoImpl		file;
-	private RandomAccessFile			raf;
 	
 	protected
 	DiskManagerChannelImpl(
 		DiskManagerFileInfoImpl		_file )
 	{
 		file		= _file;
+		
+		file.getCore().addListener( this );
 	}
 	
 	public DiskManagerRequest
@@ -50,23 +55,26 @@ DiskManagerChannelImpl
 	{
 		return( new request());
 	}
+	public void
+	dataWritten(
+		long	offset,
+		long	length )
+	{
+		System.out.println( "data written:" + offset + "/" + length );
+	}
+	
+	public void
+	dataChecked(
+		long	offset,
+		long	length )
+	{
+		System.out.println( "data checked:" + offset + "/" + length );
+	}
 	
 	public void
 	destroy()
 	{
-	
-		if ( raf != null ){
-			
-			try{
-				raf.close();
-				
-				raf = null;
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-			}
-		}
+		file.getCore().removeListener( this );
 	}
 	
 	protected class
@@ -104,19 +112,7 @@ DiskManagerChannelImpl
 		public void
 		queue()
 		{
-			if ( raf == null ){
-				
-				try{
-					
-					raf = new RandomAccessFile( file.getFile(), "r" );
-					
-				}catch( Throwable e ){
-										
-					inform( e );
-				}
-			}
-			
-			byte[]	buffer = new byte[65536];
+			int	max_chunk = 65536;
 			
 			long	rem = request_length;
 			
@@ -124,23 +120,19 @@ DiskManagerChannelImpl
 			
 			try{
 
-				raf.seek( request_offset );
-
 				while( rem > 0 && !cancelled ){
 					
-					int	len = raf.read( buffer, 0, (int)( rem<buffer.length?rem:buffer.length ));
+					int	len = (int)( rem<max_chunk?rem:max_chunk);
+					
+					DirectByteBuffer buffer = file.getCore().read( pos, len );
 
-					if ( len <= 0 ){
-						
-						inform( new IOException( "file too short" ));
-					}
-				
-					inform( new event( buffer, pos, len ));
+					inform( new event( new PooledByteBufferImpl( buffer ), pos, len ));
 					
 					pos += len;
 					rem -= len;
+					
+					Thread.sleep(60*1000);
 				}
-				
 			}catch( Throwable e ){
 				
 				inform( e );
@@ -200,11 +192,11 @@ DiskManagerChannelImpl
 		event
 			implements DiskManagerEvent
 		{
-			private int			event_type;
-			private Throwable	error;
-			private byte[]		bytes;
-			private long		event_offset;
-			private int			event_length;
+			private int					event_type;
+			private Throwable			error;
+			private PooledByteBuffer	buffer;
+			private long				event_offset;
+			private int					event_length;
 			
 			protected
 			event(
@@ -216,12 +208,12 @@ DiskManagerChannelImpl
 			
 			protected
 			event(
-				byte[]		_bytes,
-				long		_offset,
-				int			_length )
+				PooledByteBuffer	_buffer,
+				long				_offset,
+				int					_length )
 			{
 				event_type		= DiskManagerEvent.EVENT_TYPE_SUCCESS;
-				bytes			= _bytes;
+				buffer			= _buffer;
 				event_offset	= _offset;
 				event_length	= _length;
 			}
@@ -250,10 +242,10 @@ DiskManagerChannelImpl
 				return( event_length );
 			}
 			
-			public byte[]
-			getBytes()
+			public PooledByteBuffer
+			getBuffer()
 			{
-				return( bytes );
+				return( buffer );
 			}
 			
 			public Throwable

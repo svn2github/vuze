@@ -136,4 +136,10 @@ public class DiskManagerFileInfoImpl
 	{
 		return( new DiskManagerChannelImpl( this ));
 	}
+	
+	protected org.gudy.azureus2.core3.disk.DiskManagerFileInfo
+	getCore()
+	{
+		return( core );
+	}
 }

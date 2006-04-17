@@ -25,14 +25,18 @@ package org.gudy.azureus2.core3.disk.impl;
  *
  */
 import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
 
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * @author Olivier
@@ -57,6 +61,8 @@ DiskManagerFileInfoImpl
   
   private boolean priority = false;  
   private boolean skipped = false;
+  
+  private CopyOnWriteList	listeners;
   
   public
   DiskManagerFileInfoImpl(
@@ -378,4 +384,253 @@ DiskManagerFileInfoImpl
 	  
 	  return( state.getDownloadManager());
   }
+  
+  	public void
+  	dataWritten(
+  		long		offset,
+  		long		size )
+  	{
+  		if ( listeners != null ){
+  			
+  			Iterator	it = listeners.iterator();
+  			
+  			while( it.hasNext()){
+  				
+  				try{
+  					((DiskManagerFileInfoListener)it.next()).dataWritten( offset, size );
+  					
+  				}catch( Throwable e ){
+  					
+  					Debug.printStackTrace(e);
+  				}
+  			}
+  		}
+  	}
+  
+  	public void
+  	dataChecked(
+  		long		offset,
+  		long		size )
+  	{
+  		if ( listeners != null ){
+  			
+  			Iterator	it = listeners.iterator();
+  			
+  			while( it.hasNext()){
+  				
+  				try{
+  					((DiskManagerFileInfoListener)it.next()).dataChecked( offset, size );
+  					
+  				}catch( Throwable e ){
+  					
+  					Debug.printStackTrace(e);
+  				}
+  			}
+  		}
+  	}
+  	
+	public DirectByteBuffer
+	read(
+		long	offset,
+		int		length )
+	
+		throws IOException
+	{
+		DirectByteBuffer	buffer = 
+			DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ, length );
+		
+		try{
+			cache_file.read( buffer, offset, CacheFile.CP_READ_CACHE );
+			
+		}catch( Throwable e ){
+			
+			buffer.returnToPool();
+			
+			Debug.printStackTrace(e);
+			
+			throw( new IOException( e.getMessage()));
+		}
+		
+		return( buffer );	
+	}
+			
+	public void
+	close()
+	{
+	}
+	
+	public void
+	addListener(
+		final DiskManagerFileInfoListener	listener )
+	{
+		if ( listeners == null ){
+			
+			listeners = new CopyOnWriteList();
+		}
+		
+		listeners.add( listener );
+		
+		new Runnable()
+		{
+			private long	file_start;
+			private long	file_end;
+
+			private long	current_write_start  	= -1;
+			private long	current_write_end		= -1;
+			private long	current_check_start  	= -1;
+			private long	current_check_end		= -1;
+
+			public void
+			run()
+			{
+				TOTorrentFile[]	tfs = torrent_file.getTorrent().getFiles();
+				
+				long	torrent_offset = 0;
+				
+				for (int i=0;i<file_index;i++){
+					
+					torrent_offset += tfs[i].getLength();
+				}
+				
+				file_start 	= torrent_offset;
+				file_end	= file_start + torrent_file.getLength();
+					
+				DiskManagerPiece[]	pieces = diskManager.getPieces();
+				
+				int	first_piece = getFirstPieceNumber();
+				int last_piece	= getLastPieceNumber();
+				long	piece_size	= torrent_file.getTorrent().getPieceLength();
+							
+				for (int i=first_piece;i<=last_piece;i++){
+				
+					long	piece_offset = piece_size * i;
+					
+					DiskManagerPiece	piece = pieces[i];
+					
+					if ( piece.isDone()){
+						
+						long	bit_start 	= piece_offset;
+						long	bit_end		= bit_start + piece.getLength();
+						
+						bitWritten( bit_start, bit_end, true );
+						
+					}else{
+						
+						int	block_offset = 0;
+						
+						for (int j=0;j<piece.getNbBlocks();j++){
+							
+							int	block_size = piece.getBlockSize(j);
+							
+							if ( piece.isWritten(j)){
+								
+								long	bit_start 	= piece_offset + block_offset;
+								long	bit_end		= bit_start + block_size;
+								
+								bitWritten( bit_start, bit_end, false );
+							}
+							
+							block_offset += block_size;
+						}
+					}
+				}
+				
+				bitWritten( -1, -1, false );
+			}
+			
+			protected void
+			bitWritten(
+				long	bit_start,
+				long	bit_end,
+				boolean	checked )
+			{
+				if ( current_write_start == -1 ){
+					
+					current_write_start	= bit_start;
+					current_write_end	= bit_end;
+					
+				}else if ( current_write_end == bit_start ){
+					
+					current_write_end = bit_end;
+					
+				}else{
+					
+					if ( current_write_start < file_start ){
+						
+						current_write_start  = file_start;
+					}
+					
+					if ( current_write_end > file_end ){
+						
+						current_write_end	= file_end;
+					}
+					
+					if ( current_write_start < current_write_end ){
+						
+						try{
+							listener.dataWritten( current_write_start-file_start, current_write_end-current_write_start );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+					
+					current_write_start	= bit_start;
+					current_write_end	= bit_end;
+				}
+				
+					// checked case
+				
+				if ( checked && current_check_start == -1 ){
+					
+					current_check_start	= bit_start;
+					current_check_end	= bit_end;
+					
+				}else if ( checked && current_check_end == bit_start ){
+					
+					current_check_end = bit_end;
+					
+				}else{
+					
+					if ( current_check_start < file_start ){
+						
+						current_check_start  = file_start;
+					}
+					
+					if ( current_check_end > file_end ){
+						
+						current_check_end	= file_end;
+					}
+					
+					if ( current_check_start < current_check_end ){
+						
+						try{
+							listener.dataChecked( current_check_start-file_start, current_check_end-current_check_start );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+					
+					if ( checked ){
+						current_check_start	= bit_start;
+						current_check_end	= bit_end;
+					}else{
+						current_check_start	= -1;
+						current_check_end	= -1;
+					}
+				}
+			}
+		}.run();
+	}
+	
+
+	public void
+	removeListener(
+		DiskManagerFileInfoListener	listener )
+	{	
+		listeners.remove( listener );
+	}
 }

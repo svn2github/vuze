@@ -88,6 +88,8 @@ DiskManagerImpl
 	private static DiskManagerRecheckScheduler		recheck_scheduler 		= new DiskManagerRecheckScheduler();
 	private static DiskManagerAllocationScheduler	allocation_scheduler 	= new DiskManagerAllocationScheduler();
 	
+	private static AEMonitor	cache_read_mon	= new AEMonitor( "DiskManager:cacheRead" );
+
 	private boolean	used	= false;
 	
 	private boolean started = false;
@@ -193,7 +195,6 @@ DiskManagerImpl
 	
 	private AEMonitor	start_stop_mon	= new AEMonitor( "DiskManager:startStop" );
 	private AEMonitor	file_piece_mon	= new AEMonitor( "DiskManager:filePiece" );
-	
 	
 	protected static int		max_read_block_size;
 	
@@ -2485,6 +2486,8 @@ DiskManagerImpl
 						private boolean	skipped;
 						private long	downloaded;
 						
+						private CacheFile	read_cache_file;
+						
 						public void 
 						setPriority(boolean b)
 						{
@@ -2733,6 +2736,107 @@ DiskManagerImpl
 						public void
 						flushCache()
 						{
+						}
+						
+						public DirectByteBuffer
+						read(
+							long	offset,
+							int		length )
+						
+							throws IOException
+						{
+							try{
+								cache_read_mon.enter();
+							
+								if ( read_cache_file == null ){
+									
+									try{
+										String[]	types = getStorageTypes( download_manager );
+		
+										int	type = types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT;
+		
+									 	read_cache_file = 
+									 		CacheFileManagerFactory.getSingleton().createFile( 
+							  						new CacheFileOwner()
+							  						{
+							  						 	public String
+							  						  	getCacheFileOwnerName()
+							  						  	{
+							  						  		return( download_manager.getInternalName());
+							  						  	}
+							  						  	
+							  							public TOTorrentFile
+							  							getCacheFileTorrentFile()
+							  							{
+							  								return( torrent_file );
+							  							}
+							  							
+							  							public File 
+							  							getCacheFileControlFile(String name) 
+							  							{
+							  								return( download_manager.getDownloadState().getStateFile( name ));
+							  							}  							
+							  						}, 
+							  						getFile( true ), 
+							  						type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );							
+										
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
+										
+										throw( new IOException( e.getMessage()));
+									}
+								}
+							}finally{
+								
+								cache_read_mon.exit();
+							}
+							
+							DirectByteBuffer	buffer = 
+								DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ, length );
+							
+							try{
+								read_cache_file.read( buffer, offset, CacheFile.CP_READ_CACHE );
+								
+							}catch( Throwable e ){
+								
+								buffer.returnToPool();
+								
+								Debug.printStackTrace(e);
+								
+								throw( new IOException( e.getMessage()));
+							}
+							
+							return( buffer );
+						}
+							
+						public void
+						close()
+						{
+							if ( read_cache_file != null ){
+								
+								try{
+									read_cache_file.close();
+									
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+								
+								read_cache_file	= null;
+							}
+						}
+						
+						public void
+						addListener(
+							DiskManagerFileInfoListener	listener )
+						{
+						}
+						
+						public void
+						removeListener(
+							DiskManagerFileInfoListener	listener )
+						{						
 						}
 					};
 					

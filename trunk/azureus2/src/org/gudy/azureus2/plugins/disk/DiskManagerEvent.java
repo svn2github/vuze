@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.plugins.disk;
 
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
+
 public interface 
 DiskManagerEvent 
 {
@@ -40,8 +42,8 @@ DiskManagerEvent
 	public int
 	getLength();
 	
-	public byte[]
-	getBytes();
+	public PooledByteBuffer
+	getBuffer();
 	
 	public Throwable
 	getFailure();

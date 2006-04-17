@@ -20,10 +20,12 @@
 package org.gudy.azureus2.core3.disk;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 /**
  * @author Olivier
@@ -97,8 +99,27 @@ DiskManagerFileInfo
 	public TOTorrentFile
 	getTorrentFile();
 	
+	public DirectByteBuffer
+	read(
+		long	offset,
+		int		length )
+	
+		throws IOException;
+	
 	public void
 	flushCache()
 	
 		throws	Exception;
+	
+	public void
+	close();
+	
+	public void
+	addListener(
+		DiskManagerFileInfoListener	listener );
+	
+	public void
+	removeListener(
+		DiskManagerFileInfoListener	listener );
+	
 }
