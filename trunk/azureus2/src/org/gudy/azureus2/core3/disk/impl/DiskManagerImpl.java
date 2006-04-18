@@ -2831,6 +2831,18 @@ DiskManagerImpl
 						addListener(
 							DiskManagerFileInfoListener	listener )
 						{
+							if ( getDownloaded() == getLength()){
+								
+								try{
+									listener.dataWritten( 0, getLength());
+									
+									listener.dataChecked( 0, getLength());
+									
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+							}
 						}
 						
 						public void

@@ -26,12 +26,14 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
@@ -39,6 +41,8 @@ public class
 DiskManagerChannelImpl 
 	implements DiskManagerChannel, DiskManagerFileInfoListener
 {
+	private static final int COMPACT_DELAY	= 32;
+	
 	private static Comparator comparator = new
 		Comparator()
 		{
@@ -82,8 +86,12 @@ DiskManagerChannelImpl
 
 	private Set	data_written = new TreeSet( comparator );
 	
+	private int compact_delay	= COMPACT_DELAY;
+	
 	private List	waiters	= new ArrayList();
 
+	private Average	byte_rate = Average.getInstance( 1000, 20 );
+	
 	protected
 	DiskManagerChannelImpl(
 		DiskManagerFileInfoImpl		_file )
@@ -104,7 +112,7 @@ DiskManagerChannelImpl
 		long	offset,
 		long	length )
 	{
-		System.out.println( "data written:" + offset + "/" + length );
+		// System.out.println( "data written:" + offset + "/" + length );
 		
 		dataEntry	entry = new dataEntry( offset, length );
 		
@@ -112,7 +120,46 @@ DiskManagerChannelImpl
 			
 			data_written.add( entry );
 			
-				// TODO: compact
+			compact_delay--;
+			
+			if ( compact_delay == 0 ){
+				
+				compact_delay	= COMPACT_DELAY;
+				
+				Iterator	it = data_written.iterator();
+				
+				dataEntry	prev_e	= null;
+				
+				while( it.hasNext()){
+					
+					dataEntry	this_e = (dataEntry)it.next();
+					
+					if ( prev_e == null ){
+						
+						prev_e = this_e;
+						
+					}else{
+						
+						long	prev_offset = prev_e.getOffset();
+						long	prev_length	= prev_e.getLength();
+						long	this_offset = this_e.getOffset();
+						long	this_length	= this_e.getLength();
+						
+						if ( this_offset <= prev_offset + prev_length ){
+							
+							// System.out.println( "merging: " + prev_e.getString()  + "/" + this_e.getString());
+							
+							it.remove();
+							
+							prev_e.setLength( Math.max( prev_offset + prev_length, this_offset + this_length ) - prev_offset );
+						
+						}else{
+							
+							prev_e = this_e;
+						}
+					}
+				}
+			}
 			
 			for (int i=0;i<waiters.size();i++){
 				
@@ -213,15 +260,24 @@ DiskManagerChannelImpl
 						}
 					}				
 
+						// TODO: use byte_rate * some buffering size to dynamically prioritise pieces
+						// for downloading
+					
 					if ( len > 0 ){
 						
 						DirectByteBuffer buffer = file.getCore().read( pos, len );
 	
+						byte_rate.addValue( len );
+												
 						inform( new event( new PooledByteBufferImpl( buffer ), pos, len ));
 						
 						pos += len;
+						
 						rem -= len;
+						
 					}else{
+						
+						inform( new event( pos ));
 						
 						synchronized( this ){
 							
@@ -311,6 +367,15 @@ DiskManagerChannelImpl
 				error		= _error;
 			}
 			
+			protected 
+			event(
+				long				_offset )
+			{
+				event_type		= DiskManagerEvent.EVENT_TYPE_BLOCKED;
+
+				event_offset	= _offset;	
+			}
+			
 			protected
 			event(
 				PooledByteBuffer	_buffer,
@@ -386,6 +451,19 @@ DiskManagerChannelImpl
 		getLength()
 		{
 			return( length );
+		}
+		
+		protected void
+		setLength(
+			long	_length )
+		{
+			length	= _length;
+		}
+		
+		protected String
+		getString()
+		{
+			return( "offset=" + offset + ",length=" + length );
 		}
 	}
 }

@@ -29,6 +29,7 @@ DiskManagerEvent
 {
 	public static final int	EVENT_TYPE_SUCCESS	= 1;
 	public static final int	EVENT_TYPE_FAILED	= 2;
+	public static final int	EVENT_TYPE_BLOCKED	= 3;	// operation has blocked pending data
 	
 	public int
 	getType();
