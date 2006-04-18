@@ -31,6 +31,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -88,6 +90,42 @@ AZInstanceManagerImpl
 	
 	private static AEMonitor	class_mon = new AEMonitor( "AZInstanceManager:class" );
 	
+	private static String	socks_proxy	= null;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{ "Proxy.Data.Enable", "Proxy.Host", "Proxy.Data.Same", "Proxy.Data.Host" },
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameterName )
+				{
+					if ( !COConfigurationManager.getBooleanParameter("Proxy.Data.Enable")){
+						
+						socks_proxy = null;
+						
+						return;
+					}
+					
+					if ( COConfigurationManager.getBooleanParameter("Proxy.Data.Same")){
+						
+						socks_proxy = COConfigurationManager.getStringParameter( "Proxy.Host" );
+						
+					}else{
+						
+						socks_proxy = COConfigurationManager.getStringParameter( "Proxy.Data.Host" );
+
+					}
+					
+					if ( socks_proxy != null ){
+						
+						socks_proxy	= socks_proxy.trim();
+					}
+				}
+			});
+	}
+	
 	public static AZInstanceManager
 	getSingleton(
 		AzureusCore	core )
@@ -125,6 +163,8 @@ AZInstanceManagerImpl
 	
 	private volatile List			lan_subnets		= new ArrayList();
 	private volatile List			explicit_peers 	= new ArrayList();
+	
+	private volatile boolean		include_well_known_lans	= true;
 	
 	private AESemaphore	initial_search_sem	= new AESemaphore( "AZInstanceManager:initialSearch" );
 	
@@ -777,11 +817,24 @@ AZInstanceManagerImpl
 	isLANAddress(
 		InetAddress			address )
 	{
-		if ( 	address.isLoopbackAddress() || 
-				address.isLinkLocalAddress() ||
-				address.isSiteLocalAddress()){
+		String	sp = socks_proxy;
+		
+		if ( sp != null ){
 			
-			return( true );
+			if ( sp.equals( address.getHostAddress())){
+				
+				return( false );
+			}
+		}
+		
+		if ( include_well_known_lans ){
+		
+			if ( 	address.isLoopbackAddress() || 
+					address.isLinkLocalAddress() ||
+					address.isSiteLocalAddress()){
+					
+				return( true );
+			}
 		}
 		
 		String	host_address = address.getHostAddress();
@@ -855,6 +908,19 @@ AZInstanceManagerImpl
 		}
 		
 		return( true );
+	}
+	
+	public void
+	setIncludeWellKnownLANs(
+		boolean	include )
+	{
+		include_well_known_lans	= include;
+	}
+	
+	public boolean
+	getIncludeWellKnownLANs()
+	{
+		return( include_well_known_lans );
 	}
 	
 	public boolean

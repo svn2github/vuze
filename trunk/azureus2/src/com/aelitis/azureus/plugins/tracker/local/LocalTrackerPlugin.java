@@ -25,7 +25,6 @@ package com.aelitis.azureus.plugins.tracker.local;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread;
@@ -112,15 +111,22 @@ LocalTrackerPlugin
 		
 		final StringParameter subnets = config.addStringParameter2( "Plugin.localtracker.networks", "Plugin.localtracker.networks", "" );
 
+		final BooleanParameter include_wellknown = config.addBooleanParameter2( "Plugin.localtracker.wellknownlocals", "Plugin.localtracker.wellknownlocals", true );
+		
 		LabelParameter	lp2 = config.addLabelParameter2( "Plugin.localtracker.autoadd.info" );
 		
 		final StringParameter autoadd = config.addStringParameter2( "Plugin.localtracker.autoadd", "Plugin.localtracker.autoadd", "" );
 		
+		/*
+		 * actually these parameters affect LAN detection as a whole, not just the local tracker,
+		 * so leave them enabled...
+		 * 
 		enabled.addEnabledOnSelection( lp1 );
 		enabled.addEnabledOnSelection( subnets );
 		enabled.addEnabledOnSelection( lp2 );
 		enabled.addEnabledOnSelection( autoadd );
-
+		*/
+		
 		final BasicPluginViewModel	view_model = 
 			plugin_interface.getUIManager().createBasicPluginViewModel( "Plugin.localtracker.name" );
 
@@ -174,7 +180,7 @@ LocalTrackerPlugin
 					public void
 					configSaved()
 					{
-						processSubNets( subnets.getValue());
+						processSubNets( subnets.getValue(),include_wellknown.getValue() );
 						processAutoAdd( autoadd.getValue());
 					}
 				});
@@ -189,7 +195,7 @@ LocalTrackerPlugin
 			public void
 			runSupport()
 			{
-				processSubNets( subnets.getValue());
+				processSubNets( subnets.getValue(),include_wellknown.getValue() );
 				processAutoAdd( autoadd.getValue());
 			}
 		}.start();
@@ -611,8 +617,16 @@ LocalTrackerPlugin
 	
 	protected void
 	processSubNets(
-		String	subnets )
+		String	subnets,
+		boolean	include_well_known )
 	{
+		if ( include_well_known != instance_manager.getIncludeWellKnownLANs()){
+		
+			instance_manager.setIncludeWellKnownLANs( include_well_known );
+			
+			log.log( "Include well known local networks set to " + include_well_known );
+		}
+		
 		if ( subnets.equals( last_subnets )){
 			
 			return;

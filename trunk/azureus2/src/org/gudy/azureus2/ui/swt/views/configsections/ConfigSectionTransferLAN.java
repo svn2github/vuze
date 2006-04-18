@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -96,7 +97,12 @@ public class ConfigSectionTransferLAN implements UISWTConfigSection {
 		}
 
 		
-		
+		BooleanParameter enable_lan = new BooleanParameter(
+				cSection, "LAN Speed Enabled", true,
+				CFG_PREFIX + "enable" );
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		enable_lan.setLayoutData(gridData);
 		
 		IntParameter lan_max_upload = new IntParameter( cSection, "Max LAN Upload Speed KBs" );
 		gridData = new GridData();
@@ -113,6 +119,10 @@ public class ConfigSectionTransferLAN implements UISWTConfigSection {
 		Label llmdx = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText( llmdx, CFG_PREFIX + "downloadrate" );
 		
+		enable_lan.setAdditionalActionPerformer(
+	    		new ChangeSelectionActionPerformer( new Parameter[]{ lan_max_upload, lan_max_download } ));
+		enable_lan.setAdditionalActionPerformer(
+	    		new ChangeSelectionActionPerformer( new Control[]{ llmux, llmdx }));
 
 
 		return cSection;

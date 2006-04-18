@@ -54,6 +54,7 @@ public class NetworkManager {
   protected static int max_upload_rate_bps_seeding_only;
   protected static int max_upload_rate_bps;
   
+  protected static boolean lan_rate_enabled;
   protected static int max_lan_upload_rate_bps;
   protected static int max_lan_download_rate_bps;
   
@@ -70,6 +71,7 @@ public class NetworkManager {
   			new String[]{ "network.transport.encrypted.require",
     									"network.transport.encrypted.fallback.incoming",
     									"network.transport.encrypted.fallback.outgoing",
+    									"LAN Speed Enabled",
     									"Max Upload Speed KBs",
     									"Max LAN Upload Speed KBs",
     									"Max Upload Speed Seeding KBs",
@@ -101,6 +103,7 @@ public class NetworkManager {
     				 if( max_download_rate_bps < 1024 )  max_download_rate_bps = UNLIMITED_RATE;
     				 if( max_download_rate_bps > UNLIMITED_RATE )  max_download_rate_bps = UNLIMITED_RATE;
     	        
+    				 lan_rate_enabled = COConfigurationManager.getBooleanParameter("LAN Speed Enabled");
     				 max_lan_download_rate_bps = COConfigurationManager.getIntParameter( "Max LAN Download Speed KBs" ) * 1024;
     				 if( max_lan_download_rate_bps < 1024 )  max_lan_download_rate_bps = UNLIMITED_RATE;
     				 if( max_lan_download_rate_bps > UNLIMITED_RATE )  max_lan_download_rate_bps = UNLIMITED_RATE;
@@ -348,7 +351,7 @@ public class NetworkManager {
    * @param download_group download rate limit group
    */
   public void startTransferProcessing( NetworkConnection peer_connection, LimitedRateGroup upload_group, LimitedRateGroup download_group ) {
-  	if( peer_connection.isLANLocal() ) {
+  	if( peer_connection.isLANLocal() && lan_rate_enabled ) {
   		lan_upload_processor.registerPeerConnection( peer_connection, unlimited_rate_group );
   		lan_download_processor.registerPeerConnection( peer_connection, unlimited_rate_group );
   	}
@@ -364,7 +367,7 @@ public class NetworkManager {
    * @param peer_connection to cancel
    */
   public void stopTransferProcessing( NetworkConnection peer_connection ) {
-  	if( peer_connection.isLANLocal() ) {
+  	if( lan_upload_processor.isRegistered( peer_connection )) {
   		lan_upload_processor.deregisterPeerConnection( peer_connection );
   		lan_download_processor.deregisterPeerConnection( peer_connection );
   	}
@@ -380,7 +383,7 @@ public class NetworkManager {
    * @param peer_connection to upgrade
    */
   public void upgradeTransferProcessing( NetworkConnection peer_connection ) {
-  	if( peer_connection.isLANLocal() ) {
+	  if( lan_upload_processor.isRegistered( peer_connection )) {
   		lan_upload_processor.upgradePeerConnection( peer_connection );
   		lan_download_processor.upgradePeerConnection( peer_connection );
   	}
@@ -395,7 +398,7 @@ public class NetworkManager {
    * @param peer_connection to downgrade
    */
   public void downgradeTransferProcessing( NetworkConnection peer_connection ) {
-  	if( peer_connection.isLANLocal() ) {
+	  if( lan_upload_processor.isRegistered( peer_connection )) {
   		lan_upload_processor.downgradePeerConnection( peer_connection );
   		lan_download_processor.downgradePeerConnection( peer_connection );
   	}

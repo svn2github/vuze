@@ -72,6 +72,13 @@ AZInstanceManager
 		throws PatternSyntaxException;
 	
 	public boolean
+	getIncludeWellKnownLANs();
+	
+	public void
+	setIncludeWellKnownLANs(
+		boolean		include );
+	
+	public boolean
 	addInstance(
 		InetAddress			explicit_address );
 	

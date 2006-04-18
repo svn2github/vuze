@@ -105,7 +105,12 @@ public class TransferProcessor {
     main_controller.registerPeerConnection( connection );
   }
   
-  
+  public boolean isRegistered( NetworkConnection connection ){
+    try{ connections_mon.enter();
+      return( connections.containsKey( connection ));
+    }
+    finally{ connections_mon.exit(); }
+  }
   
   /**
    * Cancel upload handling for the given peer connection.
