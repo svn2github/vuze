@@ -43,9 +43,6 @@ DiskManagerRequest
 	run();
 	
 	public void
-	queue();
-	
-	public void
 	cancel();
 	
 	public void

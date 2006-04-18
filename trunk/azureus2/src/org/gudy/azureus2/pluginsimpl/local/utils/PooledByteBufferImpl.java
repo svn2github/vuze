@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.pluginsimpl.local.utils;
 
+import java.nio.ByteBuffer;
+
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
@@ -71,6 +73,12 @@ PooledByteBufferImpl
 		buffer.position( DirectByteBuffer.SS_EXTERNAL, 0 );
 
 		return( res );
+	}
+	
+	public ByteBuffer
+	toByteBuffer()
+	{
+		return( buffer.getBuffer( DirectByteBuffer.SS_EXTERNAL ));
 	}
 	
 	public DirectByteBuffer

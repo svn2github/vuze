@@ -133,7 +133,7 @@ DownloadManagerController
 	private volatile DiskManager 			disk_manager_use_accessors;
 	
 	private DiskManagerFileInfo[]	skeleton_files;
-	private fileInfoFacade[]		files_facade;
+	private fileInfoFacade[]		files_facade		= new fileInfoFacade[0];	// default before torrent avail
 	private PEPeerManager 			peer_manager;
 	
 	private String errorDetail;
@@ -349,7 +349,15 @@ DownloadManagerController
 			  				}
 			  					  
 			  				if ( newDMState == DiskManager.READY ){
+			  					
+			  						// good time to trigger minimum file info fixup as the disk manager's
+			  						// files are now in a good state
+			  					
+			  					for (int i=0;i<files_facade.length;i++){
 			  						
+			  						files_facade[i].fixupMinimum();
+			  					}
+			  					
 			  					if ( 	stats.getTotalDataBytesReceived() == 0 &&
 			  							stats.getTotalDataBytesSent() == 0 &&
 			  							stats.getSecondsDownloading() == 0 ){
@@ -1487,6 +1495,15 @@ DownloadManagerController
 	   				delegate.addListener((DiskManagerFileInfoListener)listeners.get(i));
 	   			}
 	   		}
+		}
+		
+		protected void
+		fixupMinimum()
+		{
+			if ( listeners != null ){
+				
+				fixup();
+			}
 		}
 		
 		public void 

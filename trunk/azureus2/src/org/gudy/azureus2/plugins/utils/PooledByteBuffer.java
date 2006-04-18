@@ -22,11 +22,16 @@
 
 package org.gudy.azureus2.plugins.utils;
 
+import java.nio.ByteBuffer;
+
 public interface 
 PooledByteBuffer 
 {
 	public byte[]
 	toByteArray();
+	
+	public ByteBuffer
+	toByteBuffer();
 	
 	public void
 	returnToPool();

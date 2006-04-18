@@ -22,10 +22,10 @@
 
 package org.gudy.azureus2.pluginsimpl.local.disk;
 
-import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
@@ -39,8 +39,51 @@ public class
 DiskManagerChannelImpl 
 	implements DiskManagerChannel, DiskManagerFileInfoListener
 {
+	private static Comparator comparator = new
+		Comparator()
+		{
+			public int 
+		   	compare(
+		   		Object _o1, 
+				Object _o2)
+			{
+				dataEntry	o1 = (dataEntry)_o1;
+				dataEntry	o2 = (dataEntry)_o2;
+				
+				long	offset1 = o1.getOffset();
+				long	length1	= o1.getLength();
+				
+				long	offset2 = o2.getOffset();
+				long	length2	= o2.getLength();
+			
+		   	
+				long	res;
+				
+				if ( offset1 == offset2 ){
+					
+					res = length1 - length2;
+					
+				}else{
+					
+					res = offset1 - offset2;
+				}
+				
+				if ( res == 0 ){
+					return(0);
+				}else if ( res < 0 ){
+					return(-1);
+				}else{
+					return(1);
+				}
+			}
+		};
+		
 	private DiskManagerFileInfoImpl		file;
+
+	private Set	data_written = new TreeSet( comparator );
 	
+	private List	waiters	= new ArrayList();
+
 	protected
 	DiskManagerChannelImpl(
 		DiskManagerFileInfoImpl		_file )
@@ -55,12 +98,27 @@ DiskManagerChannelImpl
 	{
 		return( new request());
 	}
+	
 	public void
 	dataWritten(
 		long	offset,
 		long	length )
 	{
 		System.out.println( "data written:" + offset + "/" + length );
+		
+		dataEntry	entry = new dataEntry( offset, length );
+		
+		synchronized( this ){
+			
+			data_written.add( entry );
+			
+				// TODO: compact
+			
+			for (int i=0;i<waiters.size();i++){
+				
+				((AESemaphore)waiters.get(i)).release();
+			}
+		}
 	}
 	
 	public void
@@ -68,7 +126,7 @@ DiskManagerChannelImpl
 		long	offset,
 		long	length )
 	{
-		System.out.println( "data checked:" + offset + "/" + length );
+		// System.out.println( "data checked:" + offset + "/" + length );
 	}
 	
 	public void
@@ -86,7 +144,9 @@ DiskManagerChannelImpl
 		private long	request_length;
 		private List	listeners	= new ArrayList();
 		
-		private boolean	cancelled;
+		private volatile boolean	cancelled;
+		
+		AESemaphore	wait_sem = new AESemaphore( "DiskManagerChannelImpl:wait" );
 		
 		public void
 		setType(
@@ -109,8 +169,9 @@ DiskManagerChannelImpl
 			request_length	= _length;
 		}
 		
+		
 		public void
-		queue()
+		run()
 		{
 			int	max_chunk = 65536;
 			
@@ -122,16 +183,62 @@ DiskManagerChannelImpl
 
 				while( rem > 0 && !cancelled ){
 					
-					int	len = (int)( rem<max_chunk?rem:max_chunk);
+					int	len = 0;
 					
-					DirectByteBuffer buffer = file.getCore().read( pos, len );
+					synchronized( data_written ){
+						
+						Iterator	it = data_written.iterator();
+						
+						while( it.hasNext()){
+							
+							dataEntry	entry = (dataEntry)it.next();
+							
+							long	entry_offset = entry.getOffset();
+							
+							if ( entry_offset > pos ){
+																
+								break;
+							}
+							
+							long	entry_length = entry.getLength();
+							
+							long	available = entry_offset + entry_length - pos;
+							
+							if ( available > 0 ){
+								
+								len = (int)( available<max_chunk?available:max_chunk);
+								
+								break;
+							}
+						}
+					}				
 
-					inform( new event( new PooledByteBufferImpl( buffer ), pos, len ));
-					
-					pos += len;
-					rem -= len;
-					
-					Thread.sleep(60*1000);
+					if ( len > 0 ){
+						
+						DirectByteBuffer buffer = file.getCore().read( pos, len );
+	
+						inform( new event( new PooledByteBufferImpl( buffer ), pos, len ));
+						
+						pos += len;
+						rem -= len;
+					}else{
+						
+						synchronized( this ){
+							
+							waiters.add( wait_sem );
+						}
+						
+						try{
+							wait_sem.reserve();
+							
+						}finally{
+							
+							synchronized( this ){
+								
+								waiters.remove( wait_sem );
+							}
+						}
+					}
 				}
 			}catch( Throwable e ){
 				
@@ -140,15 +247,13 @@ DiskManagerChannelImpl
 		}
 		
 		public void
-		run()
-		{
-			queue();
-		}
-		
-		public void
 		cancel()
 		{
 			cancelled	= true;
+						
+			inform( new Throwable( "Request cancelled" ));
+
+			wait_sem.release();
 		}
 		
 		protected void
@@ -253,6 +358,34 @@ DiskManagerChannelImpl
 			{
 				return( error );
 			}
+		}
+	}
+	
+	protected static class
+	dataEntry
+	{
+		private long	offset;
+		private long	length;
+	
+		protected
+		dataEntry(
+			long		_offset,
+			long		_length )
+		{
+			offset	= _offset;
+			length	= _length;
+		}
+		
+		protected long
+		getOffset()
+		{
+			return( offset );
+		}
+		
+		protected long
+		getLength()
+		{
+			return( length );
 		}
 	}
 }
