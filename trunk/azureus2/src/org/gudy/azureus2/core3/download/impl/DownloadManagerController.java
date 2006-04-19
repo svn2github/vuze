@@ -1505,6 +1505,8 @@ DownloadManagerController
 	   					
 	   					download_manager.informPriorityChange((DiskManagerFileInfo)delayed_prio_changes.get(i));
 	   				}
+	   				
+	   				delayed_prio_changes.clear();
 	   			}
 	   		}
 	
