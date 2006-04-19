@@ -27,6 +27,10 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.utils.UTTimer;
+import org.gudy.azureus2.plugins.utils.UTTimerEvent;
+import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 
 import com.aelitis.net.udp.mc.MCGroup;
@@ -91,6 +95,8 @@ SSDPCore
 	private boolean		first_response			= true;
 	
 	private List			listeners	= new ArrayList();
+
+	private UTTimer			timer;
 	
 	protected AEMonitor		this_mon	= new AEMonitor( "SSDP" );
 
@@ -233,11 +239,11 @@ SSDPCore
 	
 	public void
 	received(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		InetSocketAddress	originator,
-		byte[]				packet_data,
-		int					length )
+		NetworkInterface		network_interface,
+		InetAddress				local_address,
+		final InetSocketAddress	originator,
+		byte[]					packet_data,
+		int						length )
 	{
 		String	str = new String( packet_data, 0,length );
 				
@@ -308,6 +314,7 @@ SSDPCore
 		String	nts			= null;
 		String	st			= null;
 		String	al			= null;
+		String	mx			= null;
 		
 		for (int i=1;i<lines.size();i++){
 			
@@ -350,6 +357,10 @@ SSDPCore
 			}else if ( key.equals( "AL" )){
 				
 				al	= val;
+				
+			}else if ( key.equals( "MX" )){
+				
+				mx	= val;
 			}
 		}
 			
@@ -389,15 +400,61 @@ SSDPCore
 						"ST: " + st + NL + 
 						"Content-Length: 0" + NL + NL;
 										
-					byte[]	data_bytes = data.getBytes();
+					final byte[]	data_bytes = data.getBytes();
 					
-					try{
-						mc_group.sendToMember( originator, data_bytes );
+					if ( timer == null ){
 						
-					}catch( Throwable e ){
+						timer	= adapter.createTimer( "SSDPCore:MX" );
+					}
+					
+					int	delay = 0;
+					
+					if ( mx != null ){
 						
-						adapter.log(e);
-					}	
+						try{
+							
+							delay = Integer.parseInt( mx ) * 1000;
+							
+							delay = (int)(Math.random()*delay);
+							
+						}catch( Throwable e ){
+						}
+					}
+					
+					final Runnable task =
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								try{
+									mc_group.sendToMember( originator, data_bytes );
+									
+								}catch( Throwable e ){
+									
+									adapter.log(e);
+								}	
+							}
+						};
+												
+					if ( delay == 0 ){
+						
+						task.run();
+						
+					}else{
+						
+						timer.addEvent( 
+								SystemTime.getCurrentTime() + delay,
+								new UTTimerEventPerformer()
+								{
+									public void
+									perform(
+										UTTimerEvent		event )
+									{
+										task.run();
+									}
+								});
+					}
 				}
 			}else{
 				
