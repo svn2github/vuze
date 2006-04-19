@@ -980,8 +980,7 @@ public class MainStatusBar {
 						dhtStatus.setImage(ImageRepository.getImage("greenled"));
 						dhtStatus.setToolTipText(MessageText
 								.getString("MainWindow.dht.status.tooltip"));
-						dhtStatus.setText(numberFormat.format(dht_count) + " "
-								+ MessageText.getString("MainWindow.dht.status.users"));
+						dhtStatus.setText(MessageText.getString("MainWindow.dht.status.users").replaceAll("%1", numberFormat.format(dht_count)));
 					} else {
 						dhtStatus.setImage(ImageRepository.getImage("yellowled"));
 						dhtStatus.setToolTipText(MessageText

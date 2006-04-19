@@ -364,26 +364,26 @@ public class SystemTraySWT {
  
 	  	// something went funny here across Java versions, leading " " got lost
 	  
-    String	seeding_text 		= MessageText.getString("SystemTray.tooltip.seeding");
-	String	downloading_text 	= MessageText.getString("SystemTray.tooltip.downloading");
+    String	seeding_text 		= MessageText.getString("SystemTray.tooltip.seeding").replaceAll("%1", ""+seeding);
+	String	downloading_text 	= MessageText.getString("SystemTray.tooltip.downloading").replaceAll("%1", ""+downloading);
 	
-	if ( !seeding_text.startsWith(" " )){
+/*	if ( !seeding_text.startsWith(" " )){
 		seeding_text = " " + seeding_text;
-	}
+	}*/
 	if ( !downloading_text.startsWith(" " )){
 		downloading_text = " " + downloading_text;
 	}
 	
-    toolTip.append(seeding);
-    toolTip.append(seeding_text);
-    toolTip.append(downloading);
-    toolTip.append(downloading_text)
-           .append(MessageText.getString("ConfigView.download.abbreviated"))
-           .append(" "); 
+    
+    toolTip.append(seeding_text)
+    	.append(downloading_text)
+    	.append("\n");
+    toolTip.append(MessageText.getString("ConfigView.download.abbreviated"))
+    	.append(" "); 
     toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.getGlobalManager().getStats().getDataReceiveRate() + mainWindow.getGlobalManager().getStats().getProtocolReceiveRate() ));
     toolTip.append(", ")
-           .append(MessageText.getString("ConfigView.upload.abbreviated"))
-           .append(" ");
+    	.append(MessageText.getString("ConfigView.upload.abbreviated"))
+    	.append(" ");
     toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.getGlobalManager().getStats().getDataSendRate() + mainWindow.getGlobalManager().getStats().getProtocolSendRate()));
     
     
