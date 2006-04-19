@@ -468,6 +468,14 @@ DiskManagerFileInfoImpl
 			listeners = new CopyOnWriteList();
 		}
 		
+		synchronized( listeners ){
+			
+			if ( listeners.getList().contains( listener )){
+				
+				return;
+			}
+		}
+		
 		listeners.add( listener );
 		
 		new Runnable()

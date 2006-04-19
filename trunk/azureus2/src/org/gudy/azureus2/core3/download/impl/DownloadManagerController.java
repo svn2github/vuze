@@ -1449,6 +1449,14 @@ DownloadManagerController
 	   			
 	   			if ( res == null ){
 
+	   				final List	delayed_prio_changes = new ArrayList();
+	   				
+	   				final boolean[]	initialising = { true };
+	   				
+	   					// chance of recursion with this listener as the file-priority-changed is triggered
+	   					// synchronously during construction and this can cause a listener to reenter the
+	   					// incomplete fixup logic here + instantiate new skeletons.....
+	   				
 	   				res = DiskManagerFactory.getFileInfoSkeleton( 
 	   							download_manager,
 	   							new DiskManagerListener()
@@ -1464,7 +1472,14 @@ DownloadManagerController
 	   								filePriorityChanged(
 	   									DiskManagerFileInfo		file )
 	   								{
-	   									download_manager.informPriorityChange( file );
+	   									if ( initialising[0] ){
+	   										
+	   										delayed_prio_changes.add( file );
+	   										
+	   									}else{
+	   										
+	   										download_manager.informPriorityChange( file );
+	   									}
 	   								}
 
 	   								public void
@@ -1483,6 +1498,13 @@ DownloadManagerController
 	   							});
 	   				
 	   				skeleton_files	= res;
+	   				
+	   				initialising[0]	= false;
+	   				
+	   				for (int i=0;i<delayed_prio_changes.size();i++){
+	   					
+	   					download_manager.informPriorityChange((DiskManagerFileInfo)delayed_prio_changes.get(i));
+	   				}
 	   			}
 	   		}
 	
