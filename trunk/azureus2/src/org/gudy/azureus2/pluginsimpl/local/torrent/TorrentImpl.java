@@ -71,13 +71,6 @@ TorrentImpl
 	{
 		pi		= _pi;
 		torrent	= _torrent;
-		
-		try{
-			decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
-			
-		}catch( Throwable e ){
-			
-		}
 	}
 	
 	public String
@@ -286,9 +279,27 @@ TorrentImpl
 		return( res );
 	}
 	
+	protected void
+	getDecoder()
+	{
+			// We defer the getting of the decoder until it is required as this Torrent may have been 
+			// created in order to simply remove additional properties from it before serialising it
+			// Indeed, this was happening and unfortunately resulting in 1) the encoding being
+			// serialised 2) the user being prompted for an encoding choice 
+		
+		try{
+			decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+			
+		}catch( Throwable e ){
+			
+		}
+	}
+	
 	public String
 	getEncoding()
 	{
+		getDecoder();
+		
 		if ( decoder != null ){
 			
 			return( decoder.getName());
@@ -301,6 +312,7 @@ TorrentImpl
 	decode(
 		byte[]		data )
 	{
+		getDecoder();
 		
 		if ( data != null ){
 			

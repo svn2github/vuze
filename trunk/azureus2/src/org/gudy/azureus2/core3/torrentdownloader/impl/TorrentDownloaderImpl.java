@@ -371,13 +371,13 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         					        					
         					if ( !s.equals( getStatus())){
         						
-        						if ( s.toLowerCase().indexOf( "no sources found" ) == -1 ){
+        						if ( !s.toLowerCase().startsWith("error:")){
         							
         							setStatus(s);
         							
         						}else{
         							
-        							error(s);
+        							error(s.substring(6));
         						}
         						
         						changed_status	= true;

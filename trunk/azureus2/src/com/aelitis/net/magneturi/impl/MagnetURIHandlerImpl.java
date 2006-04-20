@@ -38,6 +38,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -435,7 +436,7 @@ MagnetURIHandlerImpl
 				return( true );
 			}
 			
-			final PrintWriter	pw = new PrintWriter( new OutputStreamWriter( os ));
+			final PrintWriter	pw = new PrintWriter( new OutputStreamWriter( os, "UTF-8" ));
 
 			try{			
 				pw.print( "HTTP/1.0 200 OK" + NL ); 
@@ -488,7 +489,7 @@ MagnetURIHandlerImpl
 								reportSize(
 									long	size )
 								{
-									pw.print( "X-Report: torrent size: " + size + NL );
+									pw.print( "X-Report: " + getMessageText( "torrent_size", String.valueOf( size )) + NL );
 									
 									pw.flush();
 								}
@@ -498,7 +499,7 @@ MagnetURIHandlerImpl
 									String	str )
 								{
 									pw.print( "X-Report: " + str + NL );
-									
+																			
 									pw.flush();
 								}
 								
@@ -506,7 +507,7 @@ MagnetURIHandlerImpl
 								reportCompleteness(
 									int		percent )
 								{
-									pw.print( "X-Report: completed: " + percent + "%" + NL );
+									pw.print( "X-Report: " + getMessageText( "percent", String.valueOf(percent)) + NL );
 									
 									pw.flush();
 								}
@@ -540,10 +541,10 @@ MagnetURIHandlerImpl
 					
 				}else{
 					
-						// HACK: don't change this message below, it is used by TorrentDownloader to detect this
+						// HACK: don't change the "error:" message below, it is used by TorrentDownloader to detect this
 						// condition
 					
-					pw.print( "X-Report: no sources found for torrent" + NL );
+					pw.print( "X-Report: error: " + getMessageText( "no_sources" ) + NL );
 					
 					pw.flush();
 					
@@ -553,7 +554,9 @@ MagnetURIHandlerImpl
 				}
 			}catch( Throwable e ){
 				
-				pw.print( "X-Report: Error " + Debug.getNestedExceptionMessage(e) + NL );
+					// don't remove the "error:" (see above)
+				
+				pw.print( "X-Report: error: " + getMessageText( "error", Debug.getNestedExceptionMessage(e)) + NL );
 				
 				pw.flush();
 				
@@ -566,6 +569,21 @@ MagnetURIHandlerImpl
 		}
 		
 		return( true );
+	}
+	
+	protected String
+	getMessageText(
+		String	resource )
+	{
+		return( MessageText.getString( "MagnetURLHandler.report." + resource ));
+	}
+	
+	protected String
+	getMessageText(
+		String	resource,
+		String	param )
+	{
+		return( MessageText.getString( "MagnetURLHandler.report." + resource, new String[]{ param } ));
 	}
 	
 	protected String

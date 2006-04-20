@@ -103,7 +103,7 @@ MagnetPlugin
 
 					if ( torrent.isPrivate()){
 						
-						cb_data = "<private torrent>";
+						cb_data = getMessageText( "private_torrent" );
 						
 					}else if ( torrent.isDecentralised()){
 							
@@ -127,11 +127,11 @@ MagnetPlugin
 		
 						if ( !ok ){
 							
-							cb_data = "<decentralised tracking disabled>";
+							cb_data = getMessageText( "decentral_disabled" );
 						}
 					}else{
 						
-						cb_data = "<decentralised backup disabled>";
+						cb_data = getMessageText( "decentral_backup_disabled" );
 					}
 					
 					// System.out.println( "MagnetPlugin: export = " + url );
@@ -357,6 +357,8 @@ MagnetPlugin
 		throws MagnetURIHandlerException
 	{
 		try{
+			listener.reportActivity( getMessageText( "report.waiting_ddb" ));
+
 			final DistributedDatabase db = plugin_interface.getDistributedDatabase();
 			
 			final List			potential_contacts 		= new ArrayList();
@@ -365,7 +367,7 @@ MagnetPlugin
 			
 			final int[]			outstanding		= {0};
 
-			listener.reportActivity( "searching..." );
+			listener.reportActivity(  getMessageText( "report.searching" ));
 			
 			DistributedDatabaseListener	ddb_listener = 
 				new DistributedDatabaseListener()
@@ -404,7 +406,7 @@ MagnetPlugin
 					contactFound(
 						final DistributedDatabaseContact	contact )
 					{
-						listener.reportActivity( "found " + contact.getName());
+						listener.reportActivity( getMessageText( "report.found", contact.getName()));
 				
 						outstanding[0]++;
 						
@@ -417,7 +419,8 @@ MagnetPlugin
 									try{
 										boolean	alive = contact.isAlive(20*1000);
 																						
-										listener.reportActivity( contact.getName() + " is " + (alive?"":"not ") + "alive" );
+										listener.reportActivity( 
+												getMessageText( alive?"report.alive":"report.dead",	contact.getName()));
 										
 										try{
 											potential_contacts_mon.enter();
@@ -478,7 +481,8 @@ MagnetPlugin
 			db.read(
 				ddb_listener,
 				db.createKey( hash, "Torrent download lookup for '" + ByteFormatter.encodeString( hash ) + "'" ),
-				timeout );
+				timeout,
+				DistributedDatabase.OP_EXHAUSTIVE_READ );
 			
 			long	remaining	= timeout;
 			
@@ -523,13 +527,13 @@ MagnetPlugin
 				
 				if ( !live_contact ){
 					
-					listener.reportActivity( "tunnelling to " + contact.getName());
+					listener.reportActivity( getMessageText( "report.tunnel", contact.getName()));
 
 					contact.openTunnel();
 				}
 				
 				try{
-					listener.reportActivity( "downloading from " + contact.getName());
+					listener.reportActivity( getMessageText( "report.downloading", contact.getName()));
 					
 					DistributedDatabaseValue	value = 
 						contact.read( 
@@ -565,7 +569,7 @@ MagnetPlugin
 					}
 				}catch( Throwable e ){
 					
-					listener.reportActivity("Failed: " + Debug.getNestedExceptionMessage(e));
+					listener.reportActivity( getMessageText( "report.error", Debug.getNestedExceptionMessage(e)));
 					
 					Debug.printStackTrace(e);
 				}
@@ -577,9 +581,25 @@ MagnetPlugin
 			
 			Debug.printStackTrace(e);
 			
-			listener.reportActivity("Failed: " + Debug.getNestedExceptionMessage(e));
+			listener.reportActivity( getMessageText( "report.error", Debug.getNestedExceptionMessage(e)));
 
 			throw( new MagnetURIHandlerException( "MagnetURIHandler failed", e ));
 		}
+	}
+	
+	protected String
+	getMessageText(
+		String	resource )
+	{
+		return( plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText( "MagnetPlugin." + resource ));
+	}
+	
+	protected String
+	getMessageText(
+		String	resource,
+		String	param )
+	{
+		return( plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText( 
+				"MagnetPlugin." + resource, new String[]{ param }));
 	}
 }

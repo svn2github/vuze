@@ -28,6 +28,7 @@ import java.net.InetSocketAddress;
 import java.security.SecureRandom;
 import java.util.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -2426,7 +2427,7 @@ DHTTransportUDPImpl
 			
 			if ( read_transfer ){
 			
-				listener.reportActivity( "Requesting entire transfer from " + target_name );
+				listener.reportActivity( getMessageText( "request_all", target_name ));
 
 				entire_request_count++;
 			
@@ -2473,7 +2474,12 @@ DHTTransportUDPImpl
 					
 					if ( !duplicate ){
 						
-						listener.reportActivity( "Received " + reply.getStartPosition() + " to " + (reply.getStartPosition() + reply.getLength()) + " from " + target_name );
+						listener.reportActivity( 
+								getMessageText( "received_bit", 
+								new String[]{ 
+										String.valueOf( reply.getStartPosition()),
+										String.valueOf(reply.getStartPosition() + reply.getLength()),
+										target_name }));
 
 						transferred += reply.getLength();
 						
@@ -2510,7 +2516,7 @@ DHTTransportUDPImpl
 							
 									// huzzah, we got the lot
 							
-								listener.reportActivity( "Complete" );
+								listener.reportActivity( getMessageText( "complete" ));
 								
 								byte[]	result = new byte[actual_end];
 								
@@ -2539,14 +2545,14 @@ DHTTransportUDPImpl
 						
 						if ( entire_request_count == 2 ){
 						
-							listener.reportActivity( "Timeout, no replies from " + target_name );
+							listener.reportActivity( getMessageText( "timeout", target_name ));
 							
 							return( null );
 						}
 						
 						entire_request_count++;
 						
-						listener.reportActivity( "Re-requesting entire transfer from " + target_name );
+						listener.reportActivity( getMessageText( "rerequest_all", target_name ));
 						
 						sendReadRequest( transfer_queue.getID(), (DHTTransportUDPContactImpl)target, handler_key, key );
 						
@@ -2568,7 +2574,12 @@ DHTTransportUDPImpl
 							
 							if ( p.getStartPosition() != pos ){
 								
-								listener.reportActivity( "Re-requesting " + pos + " to " + p.getStartPosition() +  " from " + target_name );
+								listener.reportActivity( 
+										getMessageText( "rerequest_bit",
+												new String[]{
+													String.valueOf( pos ),
+													String.valueOf( p.getStartPosition()),
+													target_name }));
 								
 								sendReadRequest( 
 										transfer_queue.getID(), 
@@ -2585,8 +2596,13 @@ DHTTransportUDPImpl
 						
 						if ( pos != actual_end ){
 							
-							listener.reportActivity( "Re-requesting " + pos + " to " + actual_end + " from " + target_name );
-
+							listener.reportActivity( 
+									getMessageText( "rerequest_bit",
+											new String[]{
+												String.valueOf( pos ),
+												String.valueOf( actual_end ),
+												target_name }));
+			
 							sendReadRequest( 
 									transfer_queue.getID(), 
 									(DHTTransportUDPContactImpl)target, 
@@ -2599,11 +2615,18 @@ DHTTransportUDPImpl
 				}
 			}
 			
-			listener.reportActivity( 
-					"Timeout, " + 
-						(packets.size()==0?
-							" no replies received":
-							("" + packets.size() + " packets received but incomplete" )));
+			if ( packets.size()==0 ){
+				
+				listener.reportActivity( getMessageText( "timeout", target_name ));
+				
+			}else{
+				
+				listener.reportActivity( 
+						getMessageText( 
+							"timeout_some", 
+							new String[]{ String.valueOf( packets.size()), target_name }));
+							
+			}
 			
 			return( null );
 			
@@ -2663,7 +2686,7 @@ DHTTransportUDPImpl
 				
 				if ( time_since_last_packet >= WRITE_XFER_RESEND_DELAY ){
 					
-					listener.reportActivity( loop==0?"Sending data":"Resending data" );
+					listener.reportActivity( getMessageText( loop==0?"sending":"resending" ));
 				
 					loop++;
 				
@@ -2702,11 +2725,11 @@ DHTTransportUDPImpl
 				
 				listener.reportCompleteness( 100 );
 				
-				listener.reportActivity( "Complete" );
+				listener.reportActivity( getMessageText( "send_complete" ));
 				
 			}else{
 				
-				listener.reportActivity( "Failed, timeout" );
+				listener.reportActivity( getMessageText( "send_timeout" ));
 				
 				throw( new DHTTransportException( "Timeout" ));
 			}
@@ -3313,6 +3336,29 @@ DHTTransportUDPImpl
 			
 			this_mon.exit();
 		}	
+	}
+	
+	protected String
+	getMessageText(
+		String	resource )
+	{
+		return( MessageText.getString( "DHTTransport.report." + resource ));
+	}
+	
+	protected String
+	getMessageText(
+		String	resource,
+		String	param )
+	{
+		return( MessageText.getString( "DHTTransport.report." + resource, new String[]{ param }));
+	}
+	
+	protected String
+	getMessageText(
+		String		resource,
+		String[]	params )
+	{
+		return( MessageText.getString( "DHTTransport.report." + resource, params));
 	}
 	
 	protected class

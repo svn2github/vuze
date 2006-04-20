@@ -29,6 +29,7 @@ import java.net.Socket;
 import java.net.URL;
 
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.net.magneturi.MagnetURIHandler;
@@ -80,6 +81,9 @@ MagnetConnection
 		
 		byte[]	buffer = new byte[1];
 
+		byte[]	line_bytes		= new byte[2048];
+		int		line_bytes_pos 	= 0;
+		
 		while(true){
 		
 			int	len = is.read( buffer );
@@ -90,6 +94,8 @@ MagnetConnection
 			}
 			
 			line += (char)buffer[0];
+			
+			line_bytes[line_bytes_pos++] = buffer[0];
 			
 			if ( line.endsWith( NL )){
 				
@@ -102,12 +108,17 @@ MagnetConnection
 				
 				if ( line.startsWith( "X-Report:")){
 					
-					line = line.substring( 9 ).trim();
+					line = new String( line_bytes, 0, line_bytes_pos, "UTF-8" );
+					
+					line = line.substring( 9 );
+										
+					line = line.trim();
 					
 					status = Character.toUpperCase( line.charAt(0)) + line.substring(1);
 				}
 				
-				line	= "";
+				line			= "";
+				line_bytes_pos	= 0;
 			}
 		}
 		
