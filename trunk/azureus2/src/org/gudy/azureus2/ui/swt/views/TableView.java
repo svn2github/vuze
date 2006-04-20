@@ -1003,7 +1003,7 @@ public class TableView
 				// get fired (async workaround provided by Eclipse Bug #87678)
 				e.widget.getDisplay().asyncExec(new AERunnable() {
 					public void runSupport() {
-						if (bShown)
+						if (bShown || menu.isDisposed())
 							return;
 						MenuItem[] items = menu.getItems();
 						for (int i = 0; i < items.length; i++) {
