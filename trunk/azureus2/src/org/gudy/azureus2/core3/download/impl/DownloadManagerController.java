@@ -112,8 +112,9 @@ DownloadManagerController
 	
 	private AEMonitor	disk_listeners_mon	= new AEMonitor( "DownloadManagerController:DL" );
 	
-	protected AEMonitor	this_mon	= new AEMonitor( "DownloadManagerController" );
-	protected AEMonitor	state_mon	= new AEMonitor( "DownloadManagerController:State" );
+	protected AEMonitor	this_mon		= new AEMonitor( "DownloadManagerController" );
+	protected AEMonitor	state_mon		= new AEMonitor( "DownloadManagerController:State" );
+	protected AEMonitor	skeleton_mon	= new AEMonitor( "DownloadManagerController:Skeletons" );
 
 	
 	private DownloadManagerImpl			download_manager;
@@ -1408,7 +1409,19 @@ DownloadManagerController
 	protected void
 	destroySkeletonFiles()
 	{
-		DiskManagerFileInfo[]	files = skeleton_files;
+		DiskManagerFileInfo[]	files;
+		
+		try{
+			skeleton_mon.enter();
+			
+			files = skeleton_files;
+			
+			skeleton_files = null;
+			
+		}finally{
+			
+			skeleton_mon.exit();
+		}
 		
 		if ( files != null ){
 			
@@ -1460,19 +1473,20 @@ DownloadManagerController
 	   		
 	   		if ( res == null ){
 	   			
-	   			res = skeleton_files;
-	   			
-	   			if ( res == null ){
+   				final List	delayed_prio_changes = new ArrayList();
 
-	   				final List	delayed_prio_changes = new ArrayList();
-	   				
-	   				final boolean[]	initialising = { true };
-	   				
-	   					// chance of recursion with this listener as the file-priority-changed is triggered
-	   					// synchronously during construction and this can cause a listener to reenter the
-	   					// incomplete fixup logic here + instantiate new skeletons.....
-	   				
-	   				res = DiskManagerFactory.getFileInfoSkeleton( 
+	   			try{
+	   				skeleton_mon.enter();
+	   				   			
+	   				if ( skeleton_files == null ){
+	   					
+		   				final boolean[]	initialising = { true };
+		   				
+		   					// chance of recursion with this listener as the file-priority-changed is triggered
+		   					// synchronously during construction and this can cause a listener to reenter the
+		   					// incomplete fixup logic here + instantiate new skeletons.....
+		   				
+		   				skeleton_files = DiskManagerFactory.getFileInfoSkeleton( 
 	   							download_manager,
 	   							new DiskManagerListener()
 	   							{
@@ -1511,18 +1525,23 @@ DownloadManagerController
 	   								{
 	   								}
 	   							});
-	   				
-	   				skeleton_files	= res;
-	   				
-	   				initialising[0]	= false;
-	   				
-	   				for (int i=0;i<delayed_prio_changes.size();i++){
-	   					
-	   					download_manager.informPriorityChange((DiskManagerFileInfo)delayed_prio_changes.get(i));
+	   					   				
+		   				initialising[0]	= false;
 	   				}
 	   				
-	   				delayed_prio_changes.clear();
+   					res = skeleton_files;
+
+	   			}finally{
+	   				
+	   				skeleton_mon.exit();
 	   			}
+	   			
+	   			for (int i=0;i<delayed_prio_changes.size();i++){
+	   					
+	   				download_manager.informPriorityChange((DiskManagerFileInfo)delayed_prio_changes.get(i));
+	   			}
+	   				
+	   			delayed_prio_changes.clear();
 	   		}
 	
 	   		delegate = res[index];
