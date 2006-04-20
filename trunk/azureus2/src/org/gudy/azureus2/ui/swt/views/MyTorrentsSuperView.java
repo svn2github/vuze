@@ -74,6 +74,7 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new CompletionItem(),
     new MaxUploadsItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new TotalSpeedItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+    new FilesDoneItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SavePathItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new TorrentPathItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new CategoryItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
@@ -109,6 +110,7 @@ public class MyTorrentsSuperView extends AbstractIView  {
     // Initially Invisible
     new MaxUploadsItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new TotalSpeedItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
+    new FilesDoneItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new SavePathItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new TorrentPathItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new CategoryItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
