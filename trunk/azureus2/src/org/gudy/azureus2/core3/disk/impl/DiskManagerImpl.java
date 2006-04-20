@@ -2499,9 +2499,17 @@ DiskManagerImpl
 						}
 				
 						public void 
-						setSkipped(boolean b)
+						setSkipped(boolean _skipped)
 						{
-							skipped	= b;
+							if ( !_skipped && getStorageType() == ST_COMPACT ){
+								
+								if ( !setStorageType( ST_LINEAR )){
+									
+									return;
+								}
+							}
+							
+							skipped	= _skipped;
 							
 							storeFilePriorities( download_manager, res );
 							
@@ -2635,6 +2643,8 @@ DiskManagerImpl
 								return( true );
 							}
 							
+							boolean	set_skipped	= false;
+							
 							try{
 								File	target_file = getFile( true );
 								
@@ -2672,6 +2682,8 @@ DiskManagerImpl
 						  						type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );							
 						  							
 						  			cache_file.close();
+						  			
+						  			set_skipped	= type == ST_COMPACT && !isSkipped();
 						  			
 						  				// download's not running, update resume data as necessary 
 						  			
@@ -2722,6 +2734,11 @@ DiskManagerImpl
 								dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
 								
 								dm_state.save();
+								
+								if ( set_skipped ){
+									
+									setSkipped( true );
+								}
 							}
 						}
 						

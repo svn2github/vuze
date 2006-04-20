@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.util.Iterator;
 
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.*;
@@ -82,6 +81,13 @@ DiskManagerFileInfoImpl
     
   	cache_file = CacheFileManagerFactory.getSingleton().createFile( 
   						this, _file, _linear_storage?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
+  
+  		// if compact storage then the file must be skipped
+  	
+  	if ( !_linear_storage ){
+  		
+  		skipped	= true;
+  	}
   }
   
   	public String
@@ -222,17 +228,21 @@ DiskManagerFileInfoImpl
 			
 			return( true );
 		}
-		
+	
 		if ( type == ST_COMPACT ){
 			
 			Debug.out( "Download must be stopped for linear -> compact conversion" );
 			
 			return( false );
 		}
+	
+		boolean	set_skipped	= false;	// currently compact files must be skipped
 		
 		try{
 			
 			cache_file.setStorageType( type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );	
+			
+			set_skipped	= type == ST_COMPACT && !isSkipped();
 			
 			return( true );
 			
@@ -253,6 +263,11 @@ DiskManagerFileInfoImpl
 			dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
 			
 			dm_state.save();
+			
+			if ( set_skipped ){
+				
+				setSkipped( true );
+			}
 		}
 	}
 	
@@ -366,6 +381,12 @@ DiskManagerFileInfoImpl
    * @param skipped
    */
   public void setSkipped(boolean _skipped) {
+	  // currently a non-skipped file must be linear
+	if ( !_skipped && getStorageType() == ST_COMPACT ){
+		if ( !setStorageType( ST_LINEAR )){
+			return;
+		}
+	}
 	skipped = _skipped;
 	diskManager.skippedFileSetChanged( this );
   }

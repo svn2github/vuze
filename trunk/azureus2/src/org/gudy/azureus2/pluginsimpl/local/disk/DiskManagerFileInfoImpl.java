@@ -57,9 +57,7 @@ public class DiskManagerFileInfoImpl
 	setDeleted(boolean b)
 	{
 		if ( b ){
-			
-			core.setSkipped( true );
-			
+						
 			core.setStorageType( org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_COMPACT );
 			
 		}else{
