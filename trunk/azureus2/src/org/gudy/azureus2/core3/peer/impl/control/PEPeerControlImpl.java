@@ -325,6 +325,12 @@ PEPeerControlImpl
                 forcenoseeds =!piecePicker.checkDownloadPossible();	//download blocks if possible
 				checkRescan();
 				checkSpeedAndReserved();
+			} else {
+				if (disk_mgr.getRemainingExcludingDND() != 0) {
+					seeding_mode = false;
+					Logger.log(new LogEvent(disk_mgr.getTorrent(), LOGID,
+							"Turning off seeding mode for PEPeerManager"));
+				}
 			}
 			
 			checkSeeds( forcenoseeds );
@@ -917,7 +923,7 @@ PEPeerControlImpl
 	 */
 	private void checkFinished(boolean start_of_day)
 	{
-		final boolean all_pieces_done =disk_mgr.getRemaining() ==0;
+		final boolean all_pieces_done =disk_mgr.getRemainingExcludingDND() ==0;
 
 		if (all_pieces_done)
 		{
@@ -2575,7 +2581,9 @@ PEPeerControlImpl
 		{
 			final long total =disk_mgr.getTotalLength();
 
-			final int my_completion =total ==0 ?1000 :(int) ((1000 *(total -disk_mgr.getRemaining())) /total);
+			final int my_completion = total == 0
+					? 1000
+					: (int) ((1000 * (total - disk_mgr.getRemainingExcludingDND())) / total);
 
 			int sum =my_completion ==1000 ?0 :my_completion; // add in our own percentage if not seeding
 			int num =my_completion ==1000 ?0 :1;

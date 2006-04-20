@@ -40,7 +40,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LogRelation;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerManagerAdapter;
@@ -173,6 +173,14 @@ DownloadManagerController
 		}
 	}
 
+	public void setStateDownloading() {
+		if (getState() == DownloadManager.STATE_SEEDING) {
+			setState(DownloadManager.STATE_DOWNLOADING, true);
+		} else if (getState() != DownloadManager.STATE_DOWNLOADING) {
+			Logger.log(new LogEvent(this, LogIDs.CORE, LogEvent.LT_WARNING,
+					"Trying to set state to downloading when state is not seeding"));
+		}
+	}
 	
 
 	public void 
@@ -345,7 +353,7 @@ DownloadManagerController
 			  						
 			  					stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 			  						
-			  					download_manager.setOnlySeeding(dm.getRemaining() == 0);
+			  					download_manager.setOnlySeeding(isDownloadCompleteExcludingDND());
 			  				}
 			  					  
 			  				if ( newDMState == DiskManager.READY ){
@@ -573,7 +581,7 @@ DownloadManagerController
 	  	  									  					  		
 	  	  									dm.stop();
 		  							
-	  	  									only_seeding	= dm.getRemaining() == 0;
+	  	  									only_seeding	= dm.getRemainingExcludingDND() == 0;
 	  	  									
 	  	  									update_only_seeding	= true;
 	  	  								
@@ -1071,6 +1079,12 @@ DownloadManagerController
 		destroySkeletonFiles();
 	}
 	
+	/**
+	 * Determine if the download is complete, excluding DND files.  This
+	 * function is mostly cached when there is a DiskManager.
+	 * 
+	 * @return completion state
+	 */
 	public boolean
 	isDownloadCompleteExcludingDND()
 	{
@@ -1081,6 +1095,7 @@ DownloadManagerController
 			return( dm.getRemainingExcludingDND() == 0 );
 		}
 		
+		// XXX Please cache me
 		for (int i=0;i<files_facade.length;i++){
 			
 			DiskManagerFileInfo	file = files_facade[i];

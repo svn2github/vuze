@@ -104,7 +104,8 @@ PeerManagerImpl
 	public boolean
 	isSeeding()
 	{
-		return( manager.getDiskManager().getRemaining() == 0 ); //yuck
+		// this is the wrong thing to check for seeding..
+		return( manager.getDiskManager().getRemainingExcludingDND() == 0 ); //yuck
 	}
 	
 	public boolean

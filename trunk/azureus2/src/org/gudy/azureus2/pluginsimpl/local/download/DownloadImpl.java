@@ -663,7 +663,15 @@ DownloadImpl
  		
  		return( state == ST_SEEDING || download_manager.isDownloadComplete());
  	}
- 	
+
+ 	public boolean
+	isCompleteExcludingDND()
+ 	{
+ 		int	state = getState();
+ 		
+ 		return( state == ST_SEEDING || download_manager.isDownloadCompleteExcludingDND());
+ 	}
+
  	public boolean
  	isChecking()
  	{

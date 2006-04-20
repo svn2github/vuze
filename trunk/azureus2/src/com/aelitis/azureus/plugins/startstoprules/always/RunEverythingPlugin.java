@@ -434,7 +434,7 @@ RunEverythingPlugin
 		protected boolean
 		isComplete()
 		{
-			return( download.getStats().getDownloadCompleted( false ) == 1000 );
+			return( download.isCompleteExcludingDND() );
 		}
 		
 		protected boolean

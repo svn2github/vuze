@@ -35,9 +35,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.*;
-import org.gudy.azureus2.core3.logging.LogAlert;
-import org.gudy.azureus2.core3.logging.LogRelation;
-import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -60,6 +58,8 @@ DownloadManagerImpl
 	extends LogRelation
 	implements DownloadManager
 {
+	
+	private static final String CFG_MOVE_COMPLETED_TOP = "Newly Seeding Torrents Get First Priority";
 		// DownloadManager listeners
 	
 	private static final int LDT_STATECHANGED			= 1;
@@ -1200,48 +1200,53 @@ DownloadManagerImpl
 	setOnlySeeding(
 		boolean _onlySeeding) 
 	{
-		//LGLogger.log(getName()+"] setOnlySeeding("+onlySeeding+") was " + onlySeeding);
-		
-		if ( onlySeeding != _onlySeeding ){
-			
-			onlySeeding = _onlySeeding;
-
-			if (_onlySeeding && filesExist()) {
-				
-				// make sure stats always knows we are completed
-				
-			  stats.setDownloadCompleted(1000);
-			}
-
-			  	  // we are in a new list, move to the top of the list so that we continue seeding
-			  	  // -1 position means it hasn't been added to the global list.  We shouldn't
-			  	  // touch it, since it'll get a position once it's adding is complete
-			
-			if ( position != -1) {
-  		  
-				DownloadManager[] dms = { DownloadManagerImpl.this };
-				
-					// pretend we are at the bottom of the new list
-					// so that move top will shift everything down one
-				
-				position = globalManager.getDownloadManagers().size() + 1;
-  		  
-				if ( COConfigurationManager.getBooleanParameter("Newly Seeding Torrents Get First Priority" )){
-					
-					globalManager.moveTop(dms);
-					
-				}else{
-					
-					globalManager.moveEnd(dms);	
-				}
-				
-					// we left a gap in incomplete list, fixup
-				
-				globalManager.fixUpDownloadManagerPositions();
-			}
-			
-			listeners.dispatch( LDT_COMPLETIONCHANGED, new Object[]{ this, new Boolean( _onlySeeding )});
+		if (onlySeeding == _onlySeeding) {
+			return;
 		}
+		
+//		Logger.log(new LogEvent(this, LogIDs.CORE, "setOnlySeeding(" + _onlySeeding
+//				+ ") was " + onlySeeding));
+
+		onlySeeding = _onlySeeding;
+		
+		if (!onlySeeding) {
+			controller.setStateDownloading();
+		}
+
+		// NOTE: We don't set "stats.setDownloadCompleted(1000)" anymore because
+		//       we can be in seeding mode with an unfinished torrent
+
+		if (position != -1) {
+			// we are in a new list, move to the top of the list so that we continue 
+			// seeding.
+			// -1 position means it hasn't been added to the global list.  We
+			// shouldn't touch it, since it'll get a position once it's adding is
+			// complete
+
+			DownloadManager[] dms = { DownloadManagerImpl.this };
+
+			// pretend we are at the bottom of the new list
+			// so that move top will shift everything down one
+
+			position = globalManager.getDownloadManagers().size() + 1;
+
+			if (COConfigurationManager.getBooleanParameter(CFG_MOVE_COMPLETED_TOP)) {
+
+				globalManager.moveTop(dms);
+
+			} else {
+
+				globalManager.moveEnd(dms);
+			}
+
+			// we left a gap in incomplete list, fixup
+
+			globalManager.fixUpDownloadManagerPositions();
+		}
+
+		listeners.dispatch(LDT_COMPLETIONCHANGED, new Object[] {
+				this,
+				new Boolean(_onlySeeding) });
 	}
   
   
@@ -1739,7 +1744,8 @@ DownloadManagerImpl
 	public boolean
 	isDownloadCompleteExcludingDND()
 	{
-		return( controller.isDownloadCompleteExcludingDND());
+		return getStats().getDownloadCompleted(false) == 1000
+				|| controller.isDownloadCompleteExcludingDND();
 	}
 	
 	public void
@@ -1830,6 +1836,8 @@ DownloadManagerImpl
 			
 			listeners_mon.exit();
 		}
+		
+		setOnlySeeding(isDownloadCompleteExcludingDND());
 	}
 	
 	protected void

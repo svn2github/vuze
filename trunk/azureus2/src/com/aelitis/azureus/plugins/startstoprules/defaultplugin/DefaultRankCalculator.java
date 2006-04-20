@@ -260,8 +260,8 @@ public class DefaultRankCalculator implements Comparable {
 	public int compareTo(Object obj) {
 		DefaultRankCalculator dlData = (DefaultRankCalculator) obj;
 		// Test Completeness
-		boolean aIsComplete = dlData.dl.getStats().getDownloadCompleted(false) == 1000;
-		boolean bIsComplete = dl.getStats().getDownloadCompleted(false) == 1000;
+		boolean aIsComplete = dlData.dl.isCompleteExcludingDND();
+		boolean bIsComplete = dl.isCompleteExcludingDND();
 		if (aIsComplete && !bIsComplete)
 			return 1;
 		if (!aIsComplete && bIsComplete)
@@ -428,12 +428,15 @@ public class DefaultRankCalculator implements Comparable {
 
 			int oldSR = dl.getSeedingRank();
 			DownloadStats stats = dl.getStats();
-			int numCompleted = stats.getDownloadCompleted(false);
+
+			int newSR = 0;
 
 			// make undownloaded sort to top so they can start first.
-			if (numCompleted < 1000) {
-				dl.setSeedingRank(SR_COMPLETE_STARTS_AT + (10000 - dl.getPosition()));
-				return oldSR;
+			if (!dl.isCompleteExcludingDND()) {
+				newSR = SR_COMPLETE_STARTS_AT + (10000 - dl.getPosition());
+				dl.setSeedingRank(newSR);
+				sExplainSR += "  not complete. SetSR " + newSR + "\n";
+				return newSR;
 			}
 
 			// here we are seeding
@@ -445,8 +448,6 @@ public class DefaultRankCalculator implements Comparable {
 
 			boolean bScrapeResultsOk = (numPeers > 0) || (numSeeds > 0)
 					|| scrapeResultOk(dl);
-
-			int newSR = 0;
 
 			if (!isFirstPriority()) {
 				// Check Ignore Rules
@@ -548,13 +549,15 @@ public class DefaultRankCalculator implements Comparable {
 
 			if (iRankType == StartStopRulesDefaultPlugin.RANK_TIMED) {
 				if (bIsFirstPriority) {
-					dl.setSeedingRank(newSR + SR_TIMED_QUEUED_ENDS_AT + 1);
+					newSR += SR_TIMED_QUEUED_ENDS_AT + 1;
+					dl.setSeedingRank(newSR);
 					return newSR;
 				}
 
 				int state = dl.getState();
 				if (state == Download.ST_STOPPING || state == Download.ST_STOPPED
 						|| state == Download.ST_ERROR) {
+					sExplainSR += "  Download stopping, stopped or in error\n";
 					dl.setSeedingRank(SR_NOTQUEUED);
 					return SR_NOTQUEUED;
 				} else if (state == Download.ST_SEEDING || state == Download.ST_READY
@@ -623,7 +626,8 @@ public class DefaultRankCalculator implements Comparable {
 						}
 					}
 				}
-
+			} else {
+				sExplainSR += "  Can't calculate SR, no scrape results\n";
 			}
 
 			if (newSR < 0)
@@ -667,7 +671,7 @@ public class DefaultRankCalculator implements Comparable {
 		}
 
 		// FP only applies to completed
-		if (dl.getStats().getDownloadCompleted(false) < 1000) {
+		if (!dl.isCompleteExcludingDND()) {
 			if (rules.bDebugLog)
 				sExplainFP += "Not FP: Download not complete\n";
 			return false;

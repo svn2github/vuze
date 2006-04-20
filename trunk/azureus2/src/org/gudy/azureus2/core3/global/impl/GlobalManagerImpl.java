@@ -619,7 +619,7 @@ public class GlobalManagerImpl
 	        }
 	
 	        
-	        boolean bCompleted = dm_stats.getDownloadCompleted(false) == 1000;
+	        boolean bCompleted = download_manager.isDownloadCompleteExcludingDND();
 	      
 	        download_manager.setOnlySeeding(bCompleted);
 	        
@@ -712,13 +712,13 @@ public class GlobalManagerImpl
         	saved_SecondsDownloading,
         	saved_SecondsOnlySeeding );
         
-        boolean isCompleted = download_manager.getStats().getDownloadCompleted(false) == 1000;
+        boolean isCompleted = download_manager.isDownloadCompleteExcludingDND();
 	   
         if (download_manager.getPosition() == -1) {
 	        int endPosition = 0;
 	        for (int i = 0; i < managers_cow.size(); i++) {
 	          DownloadManager dm = (DownloadManager) managers_cow.get(i);
-	          boolean dmIsCompleted = dm.getStats().getDownloadCompleted(false) == 1000;
+	          boolean dmIsCompleted = dm.isDownloadCompleteExcludingDND();
 	          if (dmIsCompleted == isCompleted)
 	            endPosition++;
 	        }
@@ -1558,7 +1558,7 @@ public class GlobalManagerImpl
 
   public boolean isMoveableUp(DownloadManager manager) {
 
-    if ((manager.getStats().getDownloadCompleted(false) == 1000) &&
+    if ((manager.isDownloadCompleteExcludingDND()) &&
         (COConfigurationManager.getIntParameter("StartStopManager_iRankType") != 0) &&
         (COConfigurationManager.getBooleanParameter("StartStopManager_bAutoReposition")))
       return false;
@@ -1570,7 +1570,7 @@ public class GlobalManagerImpl
     int numInGroup = 0;
     for (Iterator it = managers_cow.iterator();it.hasNext();) {
       DownloadManager dm = (DownloadManager)it.next();
-      if ((dm.getStats().getDownloadCompleted(false) == 1000) == bCompleted)
+      if (dm.isDownloadCompleteExcludingDND() == bCompleted)
         numInGroup++;
     }
     return numInGroup;
@@ -1578,7 +1578,7 @@ public class GlobalManagerImpl
 
   public boolean isMoveableDown(DownloadManager manager) {
 
-    boolean isCompleted = manager.getStats().getDownloadCompleted(false) == 1000;
+    boolean isCompleted = manager.isDownloadCompleteExcludingDND();
 
     if (isCompleted &&
         (COConfigurationManager.getIntParameter("StartStopManager_iRankType") != 0) &&
@@ -1618,13 +1618,13 @@ public class GlobalManagerImpl
         int endPosIncomplete = 0;
         for (int j = 0; j < managers_cow.size(); j++) {
           DownloadManager dm = (DownloadManager) managers_cow.get(j);
-          if (dm.getStats().getDownloadCompleted(false) == 1000)
+          if (dm.isDownloadCompleteExcludingDND())
             endPosComplete++;
           else
             endPosIncomplete++;
         }
         for (int i = manager.length - 1; i >= 0; i--) {
-          if (manager[i].getStats().getDownloadCompleted(false) == 1000 && endPosComplete > 0) {
+          if (manager[i].isDownloadCompleteExcludingDND() && endPosComplete > 0) {
             moveTo(manager[i], endPosComplete--);
           } else if (endPosIncomplete > 0) {
             moveTo(manager[i], endPosIncomplete--);
@@ -1636,7 +1636,7 @@ public class GlobalManagerImpl
   }
   
   public void moveTo(DownloadManager manager, int newPosition) {
-    boolean curCompleted = (manager.getStats().getDownloadCompleted(false) == 1000);
+    boolean curCompleted = manager.isDownloadCompleteExcludingDND();
 
     if (newPosition < 1 || newPosition > downloadManagerCount(curCompleted))
       return;
@@ -1651,7 +1651,7 @@ public class GlobalManagerImpl
           int numToMove = newPosition - curPosition;
           for (int i = 0; i < managers_cow.size(); i++) {
             DownloadManager dm = (DownloadManager) managers_cow.get(i);
-            boolean dmCompleted = (dm.getStats().getDownloadCompleted(false) == 1000);
+            boolean dmCompleted = (dm.isDownloadCompleteExcludingDND());
             if (dmCompleted == curCompleted) {
               int dmPosition = dm.getPosition();
               if ((dmPosition > curPosition) && (dmPosition <= newPosition)) {
@@ -1672,7 +1672,7 @@ public class GlobalManagerImpl
   
           for (int i = 0; i < managers_cow.size(); i++) {
             DownloadManager dm = (DownloadManager) managers_cow.get(i);
-            boolean dmCompleted = (dm.getStats().getDownloadCompleted(false) == 1000);
+            boolean dmCompleted = (dm.isDownloadCompleteExcludingDND());
             int dmPosition = dm.getPosition();
             if ((dmCompleted == curCompleted) &&
                 (dmPosition >= newPosition) &&
@@ -1706,7 +1706,7 @@ public class GlobalManagerImpl
 	        } );
         for (int i = 0; i < managers_cow.size(); i++) {
           DownloadManager dm = (DownloadManager) managers_cow.get(i);
-          if (dm.getStats().getDownloadCompleted(false) == 1000)
+          if (dm.isDownloadCompleteExcludingDND())
           	dm.setPosition(posComplete++);
          	else
           	dm.setPosition(posIncomplete++);
@@ -1903,13 +1903,6 @@ public class GlobalManagerImpl
 	  return( seeding_only_mode );
   }
   
-  
-  	public void downloadComplete(DownloadManager manager) { }
-
-  	public void completionChanged(DownloadManager manager, boolean bCompleted) { }
-  
-  	public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
-  	}
   
 	public long 
 	getTotalSwarmsPeerRate(

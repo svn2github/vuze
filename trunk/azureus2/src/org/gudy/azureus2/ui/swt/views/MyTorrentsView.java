@@ -47,6 +47,7 @@ import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.CategoryManagerListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -61,7 +62,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -540,25 +540,31 @@ public class MyTorrentsView
   }
   
   private boolean isOurDownloadManager(DownloadManager dm) {
-    boolean bCompleted = dm.getStats().getDownloadCompleted(false) == 1000;
-    boolean bOurs = ((bCompleted && isSeedingView) || (!bCompleted && !isSeedingView));
-    
-    if (bOurs && sLastSearch.length() > 0) {
-    	try {
-	    	String name = dm.getDisplayName();
+		boolean bCompleted = dm.isDownloadCompleteExcludingDND();
+		boolean bOurs = (bCompleted && isSeedingView)
+				|| (!bCompleted && !isSeedingView);
+		
+//		System.out.println("ourDM? " + sTableID + "; " + dm.getDisplayName()
+//				+ "; Complete=" + bCompleted + ";Ours=" + bOurs + ";bc"
+//				+ dm.getStats().getDownloadCompleted(false) + ";"
+//				+ dm.getStats().getDownloadCompleted(true));
+
+		if (bOurs && sLastSearch.length() > 0) {
+			try {
+				String name = dm.getDisplayName();
 				String s = bRegexSearch ? sLastSearch : "\\Q"
 						+ sLastSearch.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
 				Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
-				
+
 				if (!pattern.matcher(name).find())
 					bOurs = false;
-    	} catch (Exception e) {
-    		// Future: report PatternSyntaxException message to user.
-    	}
-    }
+			} catch (Exception e) {
+				// Future: report PatternSyntaxException message to user.
+			}
+		}
 
-    return bOurs;
-  }
+		return bOurs;
+	}
 
   public Table createTable(Composite panel) {
     Table table = new Table(cTablePanel, iTableStyle);
@@ -2641,50 +2647,55 @@ public class MyTorrentsView
     }
   }
 
+  // DownloadManagerListener
   public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
   }
   
-  public void
-  filePriorityChanged( DownloadManager download, org.gudy.azureus2.core3.disk.DiskManagerFileInfo file )
-  {	  
-  }
-  
-  public void completionChanged(final DownloadManager manager, boolean bCompleted) {
-    // manager has moved lists
-	  
-    if ((isSeedingView && bCompleted) || (!isSeedingView && !bCompleted)) {
-    	
-    		// only make the download visible if it satisfies the category selection
-    	
-    	if ( currentCategory == null || currentCategory.getType() == Category.TYPE_ALL ){
-    		
-    		addDataSource(manager, true);
-    		
-    	}else{
-    	
-    		int catType = currentCategory.getType();
-    	
-    		Category	manager_category = manager.getDownloadState().getCategory();
-    		
-   	        if ( manager_category == null ){
-   	         
-   	        	if ( catType == Category.TYPE_UNCATEGORIZED){
-  	
-    	        	addDataSource(manager, true);
-    	        }
-    		}else{
-    			
-    			if ( currentCategory.getName().equals( manager_category.getName()))
-   
-    				addDataSource(manager, true);
-    		}
-    	}
-    }else if ((isSeedingView && !bCompleted) || (!isSeedingView && bCompleted)) {
-     
-    	removeDataSource(manager, true);
-    }
-  }
+  // DownloadManagerListener
+  public void filePriorityChanged(DownloadManager download,
+			DiskManagerFileInfo file) {
+	}
 
+  // DownloadManagerListener
+	public void completionChanged(final DownloadManager manager,
+			boolean bCompleted) {
+		// manager has moved lists
+
+		if (isOurDownloadManager(manager)) {
+
+			// only make the download visible if it satisfies the category selection
+
+			if (currentCategory == null
+					|| currentCategory.getType() == Category.TYPE_ALL) {
+
+				addDataSource(manager, true);
+
+			} else {
+
+				int catType = currentCategory.getType();
+
+				Category manager_category = manager.getDownloadState().getCategory();
+
+				if (manager_category == null) {
+
+					if (catType == Category.TYPE_UNCATEGORIZED) {
+
+						addDataSource(manager, true);
+					}
+				} else {
+
+					if (currentCategory.getName().equals(manager_category.getName()))
+
+						addDataSource(manager, true);
+				}
+			}
+		} else if ((isSeedingView && !bCompleted) || (!isSeedingView && bCompleted)) {
+
+			removeDataSource(manager, true);
+		}
+	}
+
+  // DownloadManagerListener
   public void downloadComplete(DownloadManager manager) {
   }
 

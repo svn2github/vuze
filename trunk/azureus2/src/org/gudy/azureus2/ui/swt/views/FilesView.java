@@ -188,10 +188,6 @@ public class FilesView
 
 		itemRename.setEnabled(manager.isPersistent());
 
-		// no point in changing priority of completed downloads
-
-		itemPriority.setEnabled(!manager.isDownloadComplete());
-
 		itemDelete.setEnabled(!(manager.isDownloadComplete() || all_compact));
 
     itemOpen.addListener(SWT.Selection, new SelectedTableRowsListener() {

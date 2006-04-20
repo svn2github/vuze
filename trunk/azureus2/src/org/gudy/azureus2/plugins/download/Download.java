@@ -552,7 +552,13 @@ Download
   	
   	public boolean
 	isComplete();
-  	
+
+ 	/**
+	 * indicates if the download has completed or not 
+	 * @since 2.4.0.3
+	 */
+	public boolean isCompleteExcludingDND();
+
   		/**
   		 * When a download is completed it is rechecked (if the option is enabled). This method
   		 * returns true during this phase (at which time the status will be seeding)
