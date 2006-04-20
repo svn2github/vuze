@@ -618,6 +618,16 @@ public class GlobalManagerImpl
 	          if (cat != null) download_manager.getDownloadState().setCategory(cat);
 	        }
 	
+	        	// make sure we restore file priorities *before* testing isDownloadCompleteExcludingDND as 
+	        	// this requires the priorities!
+	        
+	        //TODO: move this to downloadstate 
+	        try {
+	        	//load file priorities
+	        	List file_priorities = (List) save_download_state.get("file_priorities");
+	        	if ( file_priorities != null ) download_manager.setData( "file_priorities", file_priorities );
+	        }
+	        catch (Throwable t) { Debug.printStackTrace( t ); }
 	        
 	        boolean bCompleted = download_manager.isDownloadCompleteExcludingDND();
 	      
@@ -685,13 +695,6 @@ public class GlobalManagerImpl
 	        	}
 	        }
 	        
-	        //TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
-	        try {
-	        	//load file priorities
-	        	List file_priorities = (List) save_download_state.get("file_priorities");
-	        	if ( file_priorities != null ) download_manager.setData( "file_priorities", file_priorities );
-	        }
-	        catch (Throwable t) { Debug.printStackTrace( t ); }
         }else{
         	
         		// no stats, bodge the uploaded for seeds
