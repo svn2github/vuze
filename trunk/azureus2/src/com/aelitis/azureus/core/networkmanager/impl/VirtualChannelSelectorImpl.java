@@ -460,6 +460,8 @@ public class VirtualChannelSelectorImpl {
       
       if( !selector.isOpen() )  return count;
       
+      int	progress_made_key_count	= 0;
+      
       //notification of ready keys via listener callback
       for( Iterator i = selector.selectedKeys().iterator(); i.hasNext(); ) {
         SelectionKey key = (SelectionKey)i.next();
@@ -479,6 +481,8 @@ public class VirtualChannelSelectorImpl {
             
           if ( progress_made ){
             
+        	progress_made_key_count++;
+        	  
             data.non_progress_count = 0;
           }else{
             	
@@ -514,11 +518,16 @@ public class VirtualChannelSelectorImpl {
         }
       }
       
+      	// if any of the ready keys hasn't made any progress then enforce minimum sleep period to avoid
+      	// spinning
       
-      long time_diff = SystemTime.getCurrentTime() - select_start_time;
-      
-      if( time_diff < timeout && time_diff >= 0 ) {  //ensure that it always takes at least 'timeout' time to complete the select op
-      	try {  Thread.sleep( timeout - time_diff );  }catch(Throwable e) { e.printStackTrace(); }      
+      if ( count == 0 || progress_made_key_count != count ){
+    	  
+	      long time_diff = SystemTime.getCurrentTime() - select_start_time;
+	      
+	      if( time_diff < timeout && time_diff >= 0 ) {  //ensure that it always takes at least 'timeout' time to complete the select op
+	      	try {  Thread.sleep( timeout - time_diff );  }catch(Throwable e) { e.printStackTrace(); }      
+	      }
       }
       
       return count;

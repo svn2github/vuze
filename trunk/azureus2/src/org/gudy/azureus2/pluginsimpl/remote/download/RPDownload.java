@@ -779,6 +779,14 @@ RPDownload
  		return( false );
  	}
  	
+ 	public boolean 
+ 	isCompleteExcludingDND()
+ 	{
+		notSupported();
+ 		
+ 		return( false );	
+ 	}
+ 	
 	public boolean
  	isChecking()
 	{
