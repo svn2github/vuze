@@ -99,8 +99,6 @@ MagnetPlugin
 					
 					String	cb_data = "magnet:?xt=urn:btih:" + Base32.encode( torrent.getHash());
 
-					TorrentAttribute ta_peer_sources 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_PEER_SOURCES );
-
 					if ( torrent.isPrivate()){
 						
 						cb_data = getMessageText( "private_torrent" );
@@ -109,8 +107,13 @@ MagnetPlugin
 							
 						// ok
 						
+						/* relaxed this as we allow such torrents to be downloaded via magnet links
+						 * (as opposed to tracked in the DHT)
+						 
 					}else if ( torrent.isDecentralisedBackupEnabled()){
-									
+							
+						TorrentAttribute ta_peer_sources 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_PEER_SOURCES );
+
 						String[]	sources = download.getListAttribute( ta_peer_sources );
 		
 						boolean	ok = false;
@@ -132,6 +135,7 @@ MagnetPlugin
 					}else{
 						
 						cb_data = getMessageText( "decentral_backup_disabled" );
+						*/
 					}
 					
 					// System.out.println( "MagnetPlugin: export = " + url );
