@@ -92,7 +92,7 @@ DHTTrackerPlugin
 	private static final int	INTERESTING_INIT_MIN		=    5*60*1000;
 
 	private static final int	INTERESTING_AVAIL_MAX		= 8;	// won't pub if more
-	private static final int	INTERESTING_PUB_MAX			= 30;	// limit on pubs
+	private static final int	INTERESTING_PUB_MAX_DEFAULT	= 30;	// limit on pubs
 	
 	private static final boolean	TRACK_NORMAL_DEFAULT	= true;
 	
@@ -119,7 +119,7 @@ DHTTrackerPlugin
 
 	private Map					interesting_downloads 	= new HashMap();
 	private int					interesting_published	= 0;
-	
+	private int					interesting_pub_max		= INTERESTING_PUB_MAX_DEFAULT;
 	private Set					running_downloads 		= new HashSet();
 	private Map					registered_downloads 	= new HashMap();
 	
@@ -174,6 +174,9 @@ DHTTrackerPlugin
 					configChanged();
 				}
 			});
+		
+		interesting_pub_max = plugin_interface.getPluginconfig().getIntParameter( "dhttracker.presencepubmax", INTERESTING_PUB_MAX_DEFAULT );
+		
 		
 		if ( !TRACK_NORMAL_DEFAULT ){
 			// should be TRUE by default
@@ -1502,7 +1505,7 @@ DHTTrackerPlugin
 			return;
 		}
 		
-		if ( interesting_published > INTERESTING_PUB_MAX ){
+		if ( interesting_pub_max > 0 && interesting_published > interesting_pub_max ){
 			
 			return;
 		}
