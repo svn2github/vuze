@@ -356,6 +356,7 @@ public class VirtualChannelSelector {
      * Called when a channel is successfully selected for readyness.
      * @param attachment originally given with the channel's registration
      * @return indicator of whether or not any 'progress' was made due to this select
+     * 			null -> progress made, String -> location of non progress
      *         e.g. read-select -> read >0 bytes, write-select -> wrote > 0 bytes
      */
     public boolean selectSuccess(VirtualChannelSelector selector, SocketChannel sc, Object attachment);

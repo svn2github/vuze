@@ -62,7 +62,7 @@ AEProxyImpl
 	private VirtualChannelSelector	write_selector	 = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
 	
 	private List				processors = new ArrayList();
-  private final HashMap write_select_regs = new HashMap();
+	private final HashMap write_select_regs = new HashMap();
 	
 	private AEMonitor			this_mon	= new AEMonitor( "AEProxyImpl" );
 	

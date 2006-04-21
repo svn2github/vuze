@@ -1682,13 +1682,14 @@ TCPProtocolDecoderPHE
 		Object 					attachment)
 	{
 		try{
-			int	old_bytes_read	= bytes_read;
+			int	old_bytes_read		= bytes_read;
+			int	old_bytes_written	= bytes_written;
 			
 			process();
 			
 			if ( selector == write_selector ){
 				
-				return( true );
+				return( bytes_written != old_bytes_written );
 				
 			}else{
 				

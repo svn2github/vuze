@@ -65,6 +65,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   private byte[] msg_id_bytes = null;
   private boolean msg_id_read_complete = false;
   
+  private boolean last_read_made_progress;
   
   public AZMessageDecoder() {
     /*nothing*/
@@ -96,12 +97,16 @@ public class AZMessageDecoder implements MessageStreamDecoder {
         break;
       }
       
+      long	actual_read;
+      
       if( reading_length_mode ) {
-        transport.read( decode_array, 1, 1 );  //only read into length buffer
+    	  actual_read = transport.read( decode_array, 1, 1 );  //only read into length buffer
       }
       else {
-        transport.read( decode_array, 0, 2 );  //read payload buffer, and possibly next message length buffer
+    	  actual_read = transport.read( decode_array, 0, 2 );  //read payload buffer, and possibly next message length buffer
       }
+      
+      last_read_made_progress = actual_read > 0;
       
       int bytes_read = postReadProcess();
       
@@ -140,6 +145,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   
   public int getDataBytesDecoded() {  return data_bytes_last_read;  }
 
+  public boolean getLastReadMadeProgress(){ return last_read_made_progress; };
 
   public ByteBuffer destroy() {
     is_paused = true;

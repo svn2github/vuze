@@ -53,6 +53,7 @@ public class ClientConnection {
 	private boolean	close_pending;
 	private boolean	closed;
 	
+	private boolean	last_write_made_progress;
 	
 	private String debug_string = "<>";
 	
@@ -87,11 +88,22 @@ public class ClientConnection {
 	 */
 	public Message[] readMessages() throws IOException {
 		int bytes_read = decoder.performStreamDecode( light_transport, 1024*1024 );
-		if( bytes_read > 0 )  last_activity_time = System.currentTimeMillis();	
+		if( bytes_read > 0 )  last_activity_time = System.currentTimeMillis();
+		
 		return decoder.removeDecodedMessages();
 	}
 	
+	public boolean
+	getLastReadMadeProgress()
+	{
+		return( decoder.getLastReadMadeProgress());
+	}
 	
+	public boolean
+	getLastWriteMadeProgress()
+	{
+		return( last_write_made_progress );
+	}
 	
 	public void sendMessage( final ClientMessage client_msg, final Message msg ) {
 		try{  msg_mon.enter();
@@ -130,6 +142,9 @@ public class ClientConnection {
 	public boolean writeMessages() throws IOException {
 		int bytes_written = out_queue.deliverToTransport( 1024*1024, false );
 		if( bytes_written > 0 )  last_activity_time = System.currentTimeMillis();
+		
+		last_write_made_progress = bytes_written > 0;
+		
 		return out_queue.getTotalSize() > 0;
 	}
 	

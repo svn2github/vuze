@@ -248,7 +248,7 @@ TRNonBlockingServer
 				{
 	        		public boolean 
 					selectSuccess( 
-              VirtualChannelSelector 	selector, 
+						VirtualChannelSelector 	selector, 
 						SocketChannel 			sc, 
 						Object 					attachment ) 
 	        		{
@@ -258,24 +258,27 @@ TRNonBlockingServer
 		        			if( read_result == 0 ) {  //read processing is complete
 		        				
 		        				read_selector.pauseSelects( sc );
-		        				
+		        					        						
 		        			}else if ( read_result < 0 ) {  //a read error occured
 
 		        				removeAndCloseConnection( processor );
 		        			}
+		        			
+		        			return( read_result != 2 );
+		        			
 	              		}catch( Throwable e ){
 	            			
 	            			Debug.printStackTrace(e);
 	            			
 	            			removeAndCloseConnection( processor );
+	            			
+	            			return( false );
 	            		}
-	              		
-	              		return( true );
 	        		}
 	
 	        		public void 
 					selectFailure( 
-              VirtualChannelSelector 	selector, 
+						VirtualChannelSelector 	selector, 
 						SocketChannel 			sc, 
 						Object 					attachment, 
 						Throwable 				msg ) 
@@ -297,7 +300,7 @@ TRNonBlockingServer
 			{
             	public boolean 
 				selectSuccess( 
-            VirtualChannelSelector 	selector, 
+					VirtualChannelSelector 	selector, 
 					SocketChannel 			sc, 
 					Object 					attachment ) 
             	{
@@ -316,14 +319,17 @@ TRNonBlockingServer
 
 	            			removeAndCloseConnection( processor );
 	            		}
+	            		
+	            		return( write_result != 2 );
+	            		
             		}catch( Throwable e ){
             			
             			Debug.printStackTrace(e);
             			
             			removeAndCloseConnection( processor );
+            			
+            			return( false );
             		}
-            		
-            		return( true );
             	}
 
             	public void 

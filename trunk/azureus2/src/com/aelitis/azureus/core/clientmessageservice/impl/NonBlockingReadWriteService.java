@@ -167,6 +167,8 @@ public class NonBlockingReadWriteService {
       				listener.messageReceived( client_msg );	
       			}
       		}	
+      		
+      		return( client.getLastReadMadeProgress());
       	}
       	catch( Throwable t ) {
       		if ( !client.isClosePending()){
@@ -175,9 +177,8 @@ public class NonBlockingReadWriteService {
       		}
       		
       		listener.connectionError( client );
+      		return( false );
       	}
-
-        return true;
       }
 
       //FAILURE
@@ -199,13 +200,14 @@ public class NonBlockingReadWriteService {
       		if( more_writes_needed ) {
       			write_selector.resumeSelects( client.getSocketChannel() );  //we need to resume since write selects are auto-paused after select op
       		}
+      		
+      		return( client.getLastWriteMadeProgress());
       	}
       	catch( Throwable t ) {
           System.out.println( "[" +new Date()+ "] Connection write error [" +sc.socket().getInetAddress()+ "] [" +client.getDebugString()+ "]: " +t.getMessage() );
           listener.connectionError( client );
+          return( false );
       	}
-
-      	return true;
       }
 
       public void selectFailure( VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg ) {

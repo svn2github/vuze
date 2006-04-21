@@ -630,6 +630,7 @@ public class IncomingSocketChannelManager
 				  removeConnection( ic, false );
 				  listener.connectionMatched( ic.filter, ic.buffer );
 			  }
+			  return( true );
 		  }
 		  catch( Throwable t ) {
 			  try {
@@ -651,9 +652,9 @@ public class IncomingSocketChannelManager
 			  }
 			  
 			  removeConnection( ic, true );
+			  
+			  return( false );
 		  }
-		  
-		  return true;
 	  }
 	  
 	  //FAILURE

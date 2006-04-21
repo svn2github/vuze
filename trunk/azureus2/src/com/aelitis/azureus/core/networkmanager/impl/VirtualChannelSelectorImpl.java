@@ -477,24 +477,27 @@ public class VirtualChannelSelectorImpl {
             key.interestOps( key.interestOps() & ~INTEREST_OP );
           }
                         
-          boolean	progress_made = parent.selectSuccess( data.listener, data.channel, data.attachment );
+          boolean	progress_indicator = parent.selectSuccess( data.listener, data.channel, data.attachment );
             
-          if ( progress_made ){
+          if ( progress_indicator ){
             
         	progress_made_key_count++;
         	  
             data.non_progress_count = 0;
+            
           }else{
-            	
+            	       	  
             data.non_progress_count++;
             	
             if ( data.non_progress_count %100 == 0 && data.non_progress_count > 0 ){
             		
-              System.out.println( 
-                  "VirtualChannelSelector: No progress for op " + INTEREST_OP + ": " + data.non_progress_count +
-                  ", socket: open = " + data.channel.isOpen() + 
-                  (INTEREST_OP==VirtualChannelSelector.OP_ACCEPT?"":
-                	  	(", connected = " + ((SocketChannel)data.channel).isConnected())));
+              Debug.out( 
+                  "VirtualChannelSelector: No progress for op " + INTEREST_OP + 
+                  	": listener = " + data.listener.getClass() + 
+                  	", count = " + data.non_progress_count +
+                  	", socket: open = " + data.channel.isOpen() + 
+                  		(INTEREST_OP==VirtualChannelSelector.OP_ACCEPT?"":
+                  			(", connected = " + ((SocketChannel)data.channel).isConnected())));
                 			  
             		
               if ( data.non_progress_count == 1000 ){

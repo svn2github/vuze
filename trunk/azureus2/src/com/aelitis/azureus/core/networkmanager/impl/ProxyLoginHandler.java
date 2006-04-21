@@ -40,6 +40,10 @@ import com.aelitis.azureus.core.proxy.AEProxyFactory;
  */
 public class ProxyLoginHandler {  
   
+  private static final int	READ_DONE			= 0;
+  private static final int	READ_NOT_DONE		= 1;
+  private static final int	READ_NO_PROGRESS	= 2;
+	
   public static final InetSocketAddress SOCKS_SERVER_ADDRESS;
   private static final String socks_version;
   private static final String socks_user;
@@ -127,9 +131,9 @@ public class ProxyLoginHandler {
       NetworkManager.getSingleton().getReadSelector().register( proxy_connection.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
         public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
           try {
-            boolean finished = readMessage( data[1] );
+            int result = readMessage( data[1] );
             
-            if( finished ) {
+            if( result == READ_DONE ) {
               NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
               parseSocks4Reply( data[1] );  //will throw exception on error
               proxy_listener.connectSuccess();
@@ -137,14 +141,16 @@ public class ProxyLoginHandler {
             else {
               NetworkManager.getSingleton().getReadSelector().resumeSelects( proxy_connection.getSocketChannel() );  //resume read ops
             }
+            
+            return( result != READ_NO_PROGRESS );
           }
           catch( Throwable t ) {
           	//Debug.out( t );
             NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
             proxy_listener.connectFailure( t );
+            return false;
           }
-          return true;
-        }
+         }
         
         public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
           Debug.out( msg );
@@ -176,9 +182,9 @@ public class ProxyLoginHandler {
       NetworkManager.getSingleton().getReadSelector().register( proxy_connection.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
         public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
           try {
-            boolean finished = readMessage( (ByteBuffer)data.get(1) );  
+            int result = readMessage( (ByteBuffer)data.get(1) );  
             
-            if( finished ) {
+            if( result == READ_DONE ) {
               boolean done = parseSocks5Reply( (ByteBuffer)data.get(1) );  //will throw exception on error
 
               if( done ) {
@@ -197,13 +203,15 @@ public class ProxyLoginHandler {
             else {
               NetworkManager.getSingleton().getReadSelector().resumeSelects( proxy_connection.getSocketChannel() );  //resume read ops
             }
+            
+            return( result != READ_NO_PROGRESS );
           }
           catch( Throwable t ) {
             //Debug.out( t );
             NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
             proxy_listener.connectFailure( t );
+            return false;
           }
-          return true;
         }
         
         public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
@@ -254,15 +262,15 @@ public class ProxyLoginHandler {
   
   
   
-  private boolean readMessage( ByteBuffer msg ) throws IOException {
+  private int readMessage( ByteBuffer msg ) throws IOException {
     if( read_start_time == 0 )  read_start_time = SystemTime.getCurrentTime();
     
-    proxy_connection.read( new ByteBuffer[]{ msg }, 0, 1 );
+    long bytes_read = proxy_connection.read( new ByteBuffer[]{ msg }, 0, 1 );
     
     if( !msg.hasRemaining() ) {
       msg.position( 0 );
       read_start_time = 0;  //reset for next round
-      return true;
+      return READ_DONE;
     }
 
     if( SystemTime.getCurrentTime() - read_start_time > 30*1000 ) {
@@ -271,7 +279,7 @@ public class ProxyLoginHandler {
       throw new IOException( error );
     }
     
-    return false;
+    return( bytes_read==0?READ_NO_PROGRESS:READ_NOT_DONE);
   }
   
   

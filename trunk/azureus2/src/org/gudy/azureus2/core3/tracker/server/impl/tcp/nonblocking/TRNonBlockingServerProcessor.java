@@ -69,6 +69,11 @@ TRNonBlockingServerProcessor
 		read_buffer = ByteBuffer.allocate( READ_BUFFER_INITIAL );
 	}
 
+		// 0 -> complete
+		// 1 -> more to do
+		// 2 -> no progress
+		// -1 -> error
+	
 	protected int
 	processRead()
 	{
@@ -97,9 +102,13 @@ TRNonBlockingServerProcessor
 		try{
 			int	len = socket_channel.read( read_buffer );
 			
-			if ( len <= 0 ){
+			if ( len < 0 ){
 				
 				return( -1 );
+				
+			}else if ( len == 0 ){
+				
+				return( 2 );	// no progress
 			}
 			
 			byte[]	data = read_buffer.array();
@@ -115,17 +124,22 @@ TRNonBlockingServerProcessor
 					
 					getServer().runProcessor( this );
 					
-					return(0);				
+					return( 0 );				
 				}
 			}
 			
-			return( len );
+			return( 1 );
 			
 		}catch( IOException e ){
 			
 			return( -1 );
 		}
 	}
+	
+		// 0 -> complete
+		// 1 -> more to do
+		// 2 -> no progress made
+		// -1 -> error
 	
 	protected int
 	processWrite()
@@ -141,7 +155,12 @@ TRNonBlockingServerProcessor
 		}
 		
 		try{
-			socket_channel.write( write_buffer );
+			int	written = socket_channel.write( write_buffer );
+			
+			if ( written == 0 ){
+				
+				return( 2 );
+			}
 			
 			if ( write_buffer.hasRemaining()){
 				

@@ -189,8 +189,9 @@ public class TCPTransportImpl implements TCPTransport {
     //read selection
     NetworkManager.getSingleton().getReadSelector().register( filter.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
+    	boolean	progress = !is_ready_for_read;
         is_ready_for_read = true;
-        return true;
+        return progress;
       }
       
       public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
@@ -203,8 +204,9 @@ public class TCPTransportImpl implements TCPTransport {
     //write selection
     NetworkManager.getSingleton().getWriteSelector().register( filter.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
+    	boolean	progress = !is_ready_for_write;
         is_ready_for_write = true;
-        return true;
+        return progress;
       }
 
       public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
