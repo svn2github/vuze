@@ -175,7 +175,7 @@ DHTTrackerPlugin
 				}
 			});
 		
-		interesting_pub_max = plugin_interface.getPluginconfig().getIntParameter( "dhttracker.presencepubmax", INTERESTING_PUB_MAX_DEFAULT );
+		interesting_pub_max = plugin_interface.getPluginconfig().getPluginIntParameter( "dhttracker.presencepubmax", INTERESTING_PUB_MAX_DEFAULT );
 		
 		
 		if ( !TRACK_NORMAL_DEFAULT ){
