@@ -112,7 +112,10 @@ ShareResourceDirContentsImpl
 	{
 		for (int i=0;i<children.length;i++){
 			
-			children[i].canBeDeleted();
+			if ( !children[i].canBeDeleted()){
+				
+				return( false );
+			}
 		}
 		
 		return( true );

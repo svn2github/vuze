@@ -523,6 +523,12 @@ DownloadImpl
 	}else if ( attribute.getName() == TorrentAttribute.TA_PEER_SOURCES ){
   		
 		return( DownloadManagerState.AT_PEER_SOURCES );
+		
+	}else if ( attribute.getName() == TorrentAttribute.TA_SHARE_PROPERTIES ){
+  		
+			// this is a share-level attribute only, not propagated to individual downloads
+		
+		return( null );
   		
 	}else if ( attribute.getName().startsWith( "Plugin." )){
   		

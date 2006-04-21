@@ -599,25 +599,18 @@ ShareManagerImpl
 		
 				reportCurrentTask( "Adding file '" + name + "'");
 				
-				new_resource = new ShareResourceFileImpl( this, file );
+				new_resource = new ShareResourceFileImpl( this, parent, file );
 				
 			}else{
 				
 				reportCurrentTask( "Adding dir '" + name + "'");
 				
-				new_resource = new ShareResourceDirImpl( this, file );
+				new_resource = new ShareResourceDirImpl( this, parent, file );
 			}
 			
 			shares.put(name, new_resource );
 			
 			config.saveConfig();
-			
-			if ( parent != null ){
-				
-				new_resource.setParent( parent );
-				
-				new_resource.inheritAttributes( parent );
-			}
 			
 			for (int i=0;i<listeners.size();i++){
 				

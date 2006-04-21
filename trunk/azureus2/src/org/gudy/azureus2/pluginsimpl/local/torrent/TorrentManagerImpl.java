@@ -46,6 +46,7 @@ TorrentManagerImpl
 	private static AEMonitor 			class_mon 	= new AEMonitor( "TorrentManager" );
 
 	private static TorrentAttribute	category_attribute = new TorrentAttributeCategoryImpl();
+	private static TorrentAttribute	share_properties_attribute = new TorrentAttributeSharePropertiesImpl();
 	private static TorrentAttribute	networks_attribute = new TorrentAttributeNetworksImpl();
 	private static TorrentAttribute	peer_sources_attribute = new TorrentAttributePeerSourcesImpl();
 	private static TorrentAttribute	tr_ext_attribute = new TorrentAttributeTrackerClientExtImpl();
@@ -53,9 +54,10 @@ TorrentManagerImpl
 	private static Map	attribute_map = new HashMap();
 	
 	static{
-		attribute_map.put( TorrentAttribute.TA_CATEGORY, 	category_attribute );
-		attribute_map.put( TorrentAttribute.TA_NETWORKS, 	networks_attribute );
-		attribute_map.put( TorrentAttribute.TA_PEER_SOURCES, peer_sources_attribute );
+		attribute_map.put( TorrentAttribute.TA_CATEGORY, 				category_attribute );
+		attribute_map.put( TorrentAttribute.TA_SHARE_PROPERTIES, 		share_properties_attribute );
+		attribute_map.put( TorrentAttribute.TA_NETWORKS, 				networks_attribute );
+		attribute_map.put( TorrentAttribute.TA_PEER_SOURCES, 			peer_sources_attribute );
 		attribute_map.put( TorrentAttribute.TA_TRACKER_CLIENT_EXTENSIONS, tr_ext_attribute );
 	}
 	
@@ -207,7 +209,8 @@ TorrentManagerImpl
 		}catch( TOTorrentException e ){
 			
 			throw( new TorrentException( "TorrentManager::createFromDataFile Fails", e ));
-		}	}
+		}	
+	}
 	
 	public TorrentAttribute[]
 	getDefinedAttributes()

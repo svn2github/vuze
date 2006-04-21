@@ -31,6 +31,7 @@ import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -66,9 +67,10 @@ ShareResourceFileOrDirImpl
 	
 	protected
 	ShareResourceFileOrDirImpl(
-		ShareManagerImpl	_manager,
-		int					_type,
-		File				_file )
+		ShareManagerImpl				_manager,
+		ShareResourceDirContentsImpl	_parent,
+		int								_type,
+		File							_file )
 	
 		throws ShareException
 	{
@@ -106,6 +108,14 @@ ShareResourceFileOrDirImpl
 		}catch( IOException e ){
 	
 			throw( new ShareException("ShareResourceFile: failed to get canonical name", e));
+		}
+		
+		
+		if ( _parent != null ){
+			
+			setParent( _parent );
+			
+			inheritAttributes( _parent );
 		}
 		
 		createTorrent();
@@ -182,18 +192,65 @@ ShareResourceFileOrDirImpl
 			}
 			
 			String	comment = COConfigurationManager.getStringParameter( "Sharing Torrent Comment" ).trim();
+
+			boolean	private_torrent = COConfigurationManager.getBooleanParameter( "Sharing Torrent Private" );
+			
+			boolean	dht_backup_enabled = COConfigurationManager.getBooleanParameter( "Sharing Permit DHT", true );
+
+			TorrentAttribute ta_props = TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_SHARE_PROPERTIES );
+			
+			String	props = getAttribute( ta_props );
+			
+			if ( props != null ){
+			
+				StringTokenizer	tok = new StringTokenizer( props, ";" );
+				
+				while( tok.hasMoreTokens()){
+					
+					String	token = tok.nextToken();
+					
+					int	pos = token.indexOf('=');
+					
+					if ( pos == -1 ){
+						
+						Debug.out( "ShareProperty invalid: " + props );
+						
+					}else{
+						
+						String	lhs = token.substring(0,pos).trim().toLowerCase();
+						String	rhs = token.substring(pos+1).trim().toLowerCase();
+						
+						boolean	set = rhs.equals("true");
+						
+						if ( lhs.equals("private")){
+							
+							private_torrent	= set;
+							
+						}else if ( lhs.equals("dht_backup")){
+							
+							dht_backup_enabled	= set;
+							
+						}else if ( lhs.equals("comment")){
+							
+							comment = rhs;
+							
+						}else{
+							
+							Debug.out( "ShareProperty invalid: " + props );
+							
+							break;
+						}
+					}
+				}
+			}
 			
 			if ( comment.length() > 0 ){
 				
 				to_torrent.setComment( comment );
 			}
 			
-			boolean	dht_backup_enabled = COConfigurationManager.getBooleanParameter( "Sharing Permit DHT", true );
-			
 			TorrentUtils.setDHTBackupEnabled( to_torrent, dht_backup_enabled );
-			
-			boolean	private_torrent = COConfigurationManager.getBooleanParameter( "Sharing Torrent Private" );
-
+		
 			TorrentUtils.setPrivate( to_torrent, private_torrent );
 			
 			if ( TorrentUtils.isDecentralised(to_torrent)){

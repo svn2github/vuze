@@ -55,12 +55,13 @@ ShareResourceDirImpl
 	
 	protected
 	ShareResourceDirImpl(
-		ShareManagerImpl	_manager,
-		File				_file )
+		ShareManagerImpl				_manager,
+		ShareResourceDirContentsImpl	_parent,
+		File							_file )
 	
 		throws ShareException
 	{
-		super( _manager, ST_DIR, _file );
+		super( _manager, _parent, ST_DIR, _file );
 	}
 	
 	protected
