@@ -51,8 +51,9 @@ public class Share extends IConsoleCommand {
 		out.println( "remove         Remove a share given its path");
 		
 		out.println( "      <properties> is semicolon separated <name>=<value> list.");
-		out.println( "      Defined <name> values are 'category' only");
-		out.println( "      For example: share file /tmp/wibble.mp3 category=music");
+		out.println( "      Defined values are 'category=<cat>', 'private=<true/false>', 'dht_backup=<true/false>' and 'comment=<comment>' ('_' in <comment> are replaced with spaces)");
+		out.println( "          currently only 'category' can be applied to file/folder and the rest only apply to items added *after* the share has been defined" );
+		out.println( "      For example: share contents /music category=music;private=true;comment=Great_Stuff");
 		out.println( "> -----" );
 	}
 	
@@ -102,11 +103,23 @@ public class Share extends IConsoleCommand {
 				
 				Iterator	it = share_map.iterator();
 				
+				TorrentManager tm = ci.azureus_core.getPluginManager().getDefaultPluginInterface().getTorrentManager();
+
+				TorrentAttribute	category_attribute 	= tm.getAttribute( TorrentAttribute.TA_CATEGORY );
+				TorrentAttribute	props_attribute 	= tm.getAttribute( TorrentAttribute.TA_SHARE_PROPERTIES );
+				
 				while( it.hasNext()){
 					
 					ShareResourceDirContents	root = (ShareResourceDirContents)it.next();
 					
-					ci.out.println( "> " + share_num++ + ": " + root.getName());
+					String	cat 	= root.getAttribute( category_attribute );
+					String	props 	= root.getAttribute( props_attribute );
+					
+					String	extra = cat==null?"":(",cat=" + cat );
+					
+					extra += props==null?"":(",props=" + props );
+					
+					ci.out.println( "> " + share_num++ + ": " + root.getName() + extra );
 					
 					outputChildren( ci, "    ", root );
 				}
@@ -156,22 +169,73 @@ public class Share extends IConsoleCommand {
 			return;
 		}
 		
-		String	category = null;
+		String	category 	= null;
+		String	props		= null;
 		
 		if ( args.size() == 2 ){
-			String	properties = (String) args.get(1);
-			int	pos = properties.indexOf("=");
 			
-			if ( pos == -1 ){
-				ci.out.println( "ERROR: invalid properties string '" + properties + "'" );
-				return;
+			String	properties = (String)args.get(1);
+			
+			StringTokenizer tok = new StringTokenizer( properties, ";" );
+			
+			while( tok.hasMoreTokens()){
+				
+				String	token = tok.nextToken();
+			
+				int	pos = token.indexOf('=');
+				
+				if ( pos == -1 ){
+					
+					ci.out.println( "ERROR: invalid properties string '" + properties + "'" );
+					
+					return;
+					
+				}else{
+					
+					String	lhs = token.substring(0,pos).trim().toLowerCase();
+					String	rhs = token.substring(pos+1).trim();
+								
+					if ( lhs.equals( "category" )){
+						
+						category = rhs;
+						
+					}else{
+						
+						if ( 	lhs.equals( "private" ) ||
+								lhs.equals( "dht_backup" ) ||
+								lhs.equals( "comment" )){
+						
+							if ( props == null ){
+								
+								props = "";
+							}
+							
+								// _ are replaced with spaces
+							
+							if ( lhs.equals("comment")){
+								
+								rhs = rhs.replace('_', ' ' );
+							}
+							
+							if ( rhs.length() > 0 ){
+								
+								props += (props.length()==0?"":";") + lhs + "=" + rhs;
+							}
+							
+						}else{
+							
+							ci.out.println( "ERROR: invalid properties string '" + properties + "'" );
+							
+							return;
+						}
+					}
+				}			
 			}
-			
-			category = properties.substring( pos+1 );
 		}
 		
 		final String		f_category	= category;
-			
+		final String		f_props		= props;
+		
 		new AEThread( "shareFile" ) 
 		{
 			public void 
@@ -220,21 +284,36 @@ public class Share extends IConsoleCommand {
 						ci.out.println( "ERROR: type '" + arg + "' unknown." );
 						
 					}
-					
-					String	cat = f_category;
-					
-					if ( resource != null && cat != null ){
-						
-						if ( cat.length() == 0 ){
-							
-							cat	= null;
-						}
+										
+					if ( resource != null ){
 						
 						TorrentManager tm = ci.azureus_core.getPluginManager().getDefaultPluginInterface().getTorrentManager();
 						
-						resource.setAttribute( tm.getAttribute( TorrentAttribute.TA_CATEGORY), cat );
+						String	cat = f_category;
+
+						if ( cat != null ){
+						
+							if ( cat.length() == 0 ){
+								
+								cat	= null;
+							}
+							
+							resource.setAttribute( tm.getAttribute( TorrentAttribute.TA_CATEGORY), cat );
+						}
+							
+						String	pro = f_props;
+						
+						if ( pro != null ){
+							
+							if ( pro.length() == 0 ){
+								
+								pro = null;
+							}
+							
+							resource.setAttribute( tm.getAttribute( TorrentAttribute.TA_SHARE_PROPERTIES), pro );
+						}
 					}
-					
+						
 					if ( resource != null ){
 						
 						ci.out.println( "... processing complete" );
