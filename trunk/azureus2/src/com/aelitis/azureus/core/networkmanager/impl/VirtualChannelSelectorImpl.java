@@ -461,9 +461,13 @@ public class VirtualChannelSelectorImpl {
       if( !selector.isOpen() )  return count;
       
       int	progress_made_key_count	= 0;
+      int	total_key_count			= 0;
       
       //notification of ready keys via listener callback
       for( Iterator i = selector.selectedKeys().iterator(); i.hasNext(); ) {
+    	  
+    	total_key_count++;
+    	
         SelectionKey key = (SelectionKey)i.next();
         i.remove();
         RegistrationData data = (RegistrationData)key.attachment();
@@ -489,7 +493,8 @@ public class VirtualChannelSelectorImpl {
             	       	  
             data.non_progress_count++;
             	
-            if ( data.non_progress_count %100 == 0 && data.non_progress_count > 0 ){
+            if ( 	data.non_progress_count == 10 ||
+            		data.non_progress_count %100 == 0 && data.non_progress_count > 0 ){
             		
               Debug.out( 
                   "VirtualChannelSelector: No progress for op " + INTEREST_OP + 
@@ -524,7 +529,7 @@ public class VirtualChannelSelectorImpl {
       	// if any of the ready keys hasn't made any progress then enforce minimum sleep period to avoid
       	// spinning
       
-      if ( count == 0 || progress_made_key_count != count ){
+      if ( total_key_count == 0 || progress_made_key_count != total_key_count ){
     	  
 	      long time_diff = SystemTime.getCurrentTime() - select_start_time;
 	      
