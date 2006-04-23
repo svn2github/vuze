@@ -26,6 +26,8 @@ import java.nio.channels.*;
 import java.nio.channels.spi.AbstractSelectableChannel;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -37,6 +39,29 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
  * Provides a simplified and safe (selectable-channel) socket single-op selector.
  */
 public class VirtualChannelSelectorImpl {
+	
+	static boolean	rm_trace 	= false;
+	static boolean	rm_test_fix = false;
+	
+	static{
+	
+		COConfigurationManager.addAndFireParameterListeners(
+				new String[]{ "user.rm.trace", "user.rm.testfix" },
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String parameterName)
+					{
+						rm_trace 	= COConfigurationManager.getBooleanParameter( "user.rm.trace", false );
+						rm_test_fix = COConfigurationManager.getBooleanParameter( "user.rm.testfix", false );
+					}
+				});
+	}
+	
+	private long rm_flag_last_log;
+	private Map	rm_listener_map = new HashMap();
+	
     protected Selector selector;
     private final SelectorGuard selector_guard;
     
@@ -51,8 +76,8 @@ public class VirtualChannelSelectorImpl {
     protected final VirtualChannelSelector parent;
     
     
-    private int[] select_counts = new int[ 50 ];
-    private int round = 0;
+    //private int[] select_counts = new int[ 50 ];
+    //private int round = 0;
     
     private volatile boolean	destroyed;
     
@@ -472,58 +497,81 @@ public class VirtualChannelSelectorImpl {
         i.remove();
         RegistrationData data = (RegistrationData)key.attachment();
 
+        int	rm_type;
+        
         if( key.isValid() ) {
           if( (key.interestOps() & INTEREST_OP) == 0 ) {  //it must have been paused between select and notification
-            continue;
-          }            
+        	rm_type = 2;
+          }else{            
             
-          if( pause_after_select ) { 
-            key.interestOps( key.interestOps() & ~INTEREST_OP );
-          }
-                        
-          boolean	progress_indicator = parent.selectSuccess( data.listener, data.channel, data.attachment );
-            
-          if ( progress_indicator ){
-            
-        	progress_made_key_count++;
-        	  
-            data.non_progress_count = 0;
-            
-          }else{
-            	       	  
-            data.non_progress_count++;
-            	
-            if ( 	data.non_progress_count == 10 ||
-            		data.non_progress_count %100 == 0 && data.non_progress_count > 0 ){
-            		
-              Debug.out( 
-                  "VirtualChannelSelector: No progress for op " + INTEREST_OP + 
-                  	": listener = " + data.listener.getClass() + 
-                  	", count = " + data.non_progress_count +
-                  	", socket: open = " + data.channel.isOpen() + 
-                  		(INTEREST_OP==VirtualChannelSelector.OP_ACCEPT?"":
-                  			(", connected = " + ((SocketChannel)data.channel).isConnected())));
-                			  
-            		
-              if ( data.non_progress_count == 1000 ){
-                
-                Debug.out( "No progress for " + data.non_progress_count + ", closing connection" );
-            			
-                try{
-                  data.channel.close();
-            				
-                }catch( Throwable e ){
-            				e.printStackTrace();
-                }
-              }
-            }
-          }
-        }
-        else {
+	          if( pause_after_select ) { 
+	            key.interestOps( key.interestOps() & ~INTEREST_OP );
+	          }
+	                        
+	          boolean	progress_indicator = parent.selectSuccess( data.listener, data.channel, data.attachment );
+	          
+	          if ( progress_indicator ){
+	            
+	        	rm_type = 0;
+	        	
+	        	progress_made_key_count++;
+	        	  
+	            data.non_progress_count = 0;
+	            
+	          }else{
+	            
+	        	rm_type = 1;
+	        	  
+	            data.non_progress_count++;
+	            	
+	            if ( 	data.non_progress_count == 10 ||
+	            		data.non_progress_count %100 == 0 && data.non_progress_count > 0 ){
+	            		
+	              Debug.out( 
+	                  "VirtualChannelSelector: No progress for op " + INTEREST_OP + 
+	                  	": listener = " + data.listener.getClass() + 
+	                  	", count = " + data.non_progress_count +
+	                  	", socket: open = " + data.channel.isOpen() + 
+	                  		(INTEREST_OP==VirtualChannelSelector.OP_ACCEPT?"":
+	                  			(", connected = " + ((SocketChannel)data.channel).isConnected())));
+	                			  
+	            		
+	              if ( data.non_progress_count == 1000 ){
+	                
+	                Debug.out( "No progress for " + data.non_progress_count + ", closing connection" );
+	            			
+	                try{
+	                  data.channel.close();
+	            				
+	                }catch( Throwable e ){
+	            				e.printStackTrace();
+	                }
+	              }
+	            }
+	          }
+	        }
+        }else{
+          rm_type = 3;
           key.cancel();
           parent.selectFailure( data.listener, data.channel, data.attachment, new Throwable( "key is invalid" ) );
           // can get this if socket has been closed between select and here
         }
+        
+        if ( rm_trace ){
+        	
+          	Object	rm_key = data.listener.getClass();
+          	
+          	int[]	rm_count = (int[])rm_listener_map.get( rm_key );
+          	
+          	if ( rm_count == null ){
+          		
+          		rm_count = new int[]{0,0,0,0};
+          		
+          		rm_listener_map.put( rm_key, rm_count );
+          	}
+          	
+          	rm_count[rm_type]++;
+          }
       }
       
       	// if any of the ready keys hasn't made any progress then enforce minimum sleep period to avoid
@@ -536,6 +584,44 @@ public class VirtualChannelSelectorImpl {
 	      if( time_diff < timeout && time_diff >= 0 ) {  //ensure that it always takes at least 'timeout' time to complete the select op
 	      	try {  Thread.sleep( timeout - time_diff );  }catch(Throwable e) { e.printStackTrace(); }      
 	      }
+      }else{
+    	  if ( rm_test_fix ){
+    		 
+    	      long time_diff = SystemTime.getCurrentTime() - select_start_time;
+    	      
+    	      if( time_diff < 10 && time_diff >= 0 ) { 
+    	      	try {  Thread.sleep( 10 - time_diff );  }catch(Throwable e) { e.printStackTrace(); }      
+    	      } 
+    	  }
+      }
+      
+      if ( rm_trace ){
+    	  
+    	  if ( select_start_time - rm_flag_last_log > 10000 ){
+    		  
+    		  rm_flag_last_log	= select_start_time;
+    		  
+    		  Iterator it = rm_listener_map.entrySet().iterator();
+    		
+    		  String	str = "";
+    		  
+    		  while( it.hasNext()){
+    			  
+    			  Map.Entry	entry = (Map.Entry)it.next();
+    			  
+    			  Class	cla = (Class)entry.getKey();
+    			  
+    			  String	name = cla.getName();
+    			  int		pos = name.lastIndexOf('.');
+    			  name = name.substring( pos+1 );
+    			  
+    			  int[]	counts = (int[])entry.getValue();
+    			  
+    			  str += (str.length()==0?"":",")+ name + ":" + counts[0]+"/"+counts[1]+"/"+counts[2]+"/"+counts[3];
+    		  }
+    		  
+       		  Debug.outNoStack( "RM trace: " + hashCode() + ": op=" + INTEREST_OP + "-" + str ); 
+    	  }
       }
       
       return count;

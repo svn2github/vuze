@@ -257,6 +257,20 @@ public class ConfigSectionLogging implements UISWTConfigSection {
         }
     );
 
+    BooleanParameter rm_trace = new BooleanParameter(gLogging, "user.rm.trace", false );
+    gridData = new GridData();
+    gridData.horizontalSpan = 1;
+    rm_trace.setLayoutData(gridData);
+    Label	rm_label = new Label(gLogging,SWT.NULL);
+    rm_label.setText("RM: trace");
+    
+    BooleanParameter rm_fix = new BooleanParameter(gLogging, "user.rm.testfix", false );
+    gridData = new GridData();
+    gridData.horizontalSpan = 1;
+    rm_fix.setLayoutData(gridData);
+    rm_label = new Label(gLogging,SWT.NULL);
+    rm_label.setText("RM: test fix");
+    
 		// diagnostics
 	
 	Label generate_info = new Label(gLogging, SWT.NULL);
