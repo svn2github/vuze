@@ -32,6 +32,8 @@ import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContact;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContactListener;
@@ -142,8 +144,8 @@ DHTSpeedTesterImpl
 					potentialPing	ping = 
 						new potentialPing( 
 								contact,
-								contact.getVivaldiPosition().estimateRTT( dht.getTransport().getLocalContact().getVivaldiPosition().getCoordinates()));
-								
+								DHTNetworkPositionManager.estimateRTT( contact.getNetworkPositions(), dht.getTransport().getLocalContact().getNetworkPositions()));
+									
 					pending_contacts.add( 0, ping );
 					
 					if ( pending_contacts.size() > 60 ){
@@ -345,7 +347,7 @@ DHTSpeedTesterImpl
 			float				_rtt )
 		{
 			contact	= _contact;
-			rtt		= (int)_rtt;
+			rtt		= (int)(Float.isNaN(rtt)?1000.0:_rtt);
 		}
 		
 		protected DHTTransportContact

@@ -60,13 +60,15 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_VENDOR_ID				= 14;
 	public static final byte PROTOCOL_VERSION_BLOCK_KEYS			= 14;
 
+	public static final byte PROTOCOL_VERSION_GENERIC_NETPOS		= 15;
+
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
 	
 	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_VENDOR_ID;	
 	
-	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_VENDOR_ID;
+	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_GENERIC_NETPOS;
 
 	public static final byte VENDOR_ID_AELITIS		= 0x00;
 	public static final byte VENDOR_ID_ShareNET		= 0x01;			// http://www.sharep2p.net/

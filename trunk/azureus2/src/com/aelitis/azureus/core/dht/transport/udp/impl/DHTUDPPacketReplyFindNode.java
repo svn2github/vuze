@@ -79,7 +79,7 @@ DHTUDPPacketReplyFindNode
 		
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_VIVALDI ){
 
-			DHTUDPUtils.deserialiseVivaldi( is, this );
+			DHTUDPUtils.deserialiseVivaldi( this, is );
 		}
 		
 		contacts = DHTUDPUtils.deserialiseContacts( getTransport(), is );
@@ -110,7 +110,7 @@ DHTUDPPacketReplyFindNode
 		
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_VIVALDI ){
 
-			DHTUDPUtils.serialiseVivaldi( os, this );
+			DHTUDPUtils.serialiseVivaldi( this, os );
 		}
 		
 		DHTUDPUtils.serialiseContacts( os, contacts );

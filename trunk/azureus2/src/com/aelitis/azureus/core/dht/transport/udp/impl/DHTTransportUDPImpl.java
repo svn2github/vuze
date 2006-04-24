@@ -45,6 +45,8 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandler;
@@ -3200,7 +3202,7 @@ DHTTransportUDPImpl
 		if ( 	action == DHTUDPPacketHelper.ACT_REPLY_PING ||
 				action == DHTUDPPacketHelper.ACT_REPLY_FIND_NODE ){
 						
-			reply.setVivaldiData( local_contact.getVivaldiPosition().toFloatArray());
+			reply.setNetworkPositions( local_contact.getNetworkPositions());
 		}
 	}
 	
@@ -3233,17 +3235,17 @@ DHTTransportUDPImpl
 		
 		// System.out.println( "request:" + contact.getAddress() + " = " + elapsed_time );
 		
-		float[]	vivaldi_data = reply.getVivaldiData();
+		DHTNetworkPosition[]	remote_nps = reply.getNetworkPositions();
 		
-		if ( vivaldi_data != null ){
+		if ( remote_nps != null ){
 			
-				// update local position
+				// update local positions
 			
-			local_contact.getVivaldiPosition().update( (float)elapsed_time, vivaldi_data );
-			
+			DHTNetworkPositionManager.update( local_contact.getNetworkPositions(), remote_nps, (float)elapsed_time );
+						
 				// save current position of target
 			
-			contact.getVivaldiPosition().fromFloatArray( vivaldi_data );
+			contact.setNetworkPositions( remote_nps );
 		}
 		
 		if ( reply.getAction() == DHTUDPPacketHelper.ACT_REPLY_ERROR ){

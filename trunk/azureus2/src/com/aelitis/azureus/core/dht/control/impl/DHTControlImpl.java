@@ -48,11 +48,11 @@ import com.aelitis.azureus.core.dht.DHTStorageBlock;
 import com.aelitis.azureus.core.dht.impl.*;
 import com.aelitis.azureus.core.dht.control.*;
 import com.aelitis.azureus.core.dht.db.*;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.dht.router.*;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
-import com.aelitis.azureus.core.dht.vivaldi.maths.Coordinates;
-import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 
 /**
  * @author parg
@@ -1638,45 +1638,37 @@ DHTControlImpl
 						
 					if ( contacts_queried.size() < concurrency ){
 						
-						VivaldiPosition	loc_vp = local_contact.getVivaldiPosition();
-						
-						if ( !loc_vp.getCoordinates().atOrigin()){
+						DHTNetworkPosition[]	loc_nps = local_contact.getNetworkPositions();
+													
+						DHTTransportContact	vp_closest = null;
 							
-							DHTTransportContact	vp_closest = null;
+						Iterator vp_it = contacts_to_query.iterator();
 							
-							Iterator vp_it = contacts_to_query.iterator();
+						int	vp_count_limit = (concurrency*2) - contacts_queried.size();
 							
-							int	vp_count_limit = (concurrency*2) - contacts_queried.size();
+						int	vp_count = 0;
 							
-							int	vp_count = 0;
+						float	best_dist = Float.MAX_VALUE;
 							
-							float	best_dist = Float.MAX_VALUE;
-							
-							while( vp_it.hasNext() && vp_count < vp_count_limit ){
+						while( vp_it.hasNext() && vp_count < vp_count_limit ){
 								
-								vp_count++;
+							vp_count++;
 								
-								DHTTransportContact	entry	= (DHTTransportContact)vp_it.next();
+							DHTTransportContact	entry	= (DHTTransportContact)vp_it.next();
 								
-								VivaldiPosition	vp = entry.getVivaldiPosition();
-								
-								Coordinates	coords = vp.getCoordinates();
-								
-								if ( !coords.atOrigin()){
+							DHTNetworkPosition[]	rem_nps = entry.getNetworkPositions();
 									
-									float	dist = loc_vp.estimateRTT( coords );
+							float	dist = DHTNetworkPositionManager.estimateRTT( loc_nps, rem_nps );
 									
-									if ( dist < best_dist ){
-										
-										best_dist	= dist;
-										
-										vp_closest	= entry;
-										
-										// System.out.println( start + ": lookup for " + DHTLog.getString2( lookup_id ) + ": vp override (dist = " + dist + ")");
-									}
-								}
+							if ( (!Float.isNaN(dist)) && dist < best_dist ){
+								
+								best_dist	= dist;
+								
+								vp_closest	= entry;
+								
+								// System.out.println( start + ": lookup for " + DHTLog.getString2( lookup_id ) + ": vp override (dist = " + dist + ")");
 							}
-						
+
 							if ( vp_closest != null ){
 								
 									// override ID closest with VP closes
@@ -3025,10 +3017,18 @@ DHTControlImpl
 	public void
 	print()
 	{
+		DHTNetworkPosition[]	nps = transport.getLocalContact().getNetworkPositions();
+		
+		String	np_str = "";
+		
+		for (int j=0;j<nps.length;j++){
+			np_str += (j==0?"":",") + nps[j];
+		}
+		
 		logger.log( "DHT Details: external IP = " + transport.getLocalContact().getAddress() + 
 						", network = " + transport.getNetwork() +
 						", protocol = V" + transport.getProtocolVersion() + 
-						", vp = " + local_contact.getVivaldiPosition());
+						", nps = " + np_str );
 		
 		router.print();
 		

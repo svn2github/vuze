@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.util.SHA1Simple;
 
 
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
@@ -571,48 +573,109 @@ DHTUDPUtils
 			
 	protected static void
 	serialiseVivaldi(
-		DataOutputStream	os,
-		DHTUDPPacketReply	reply )
+		DHTUDPPacketReply	reply, 
+		DataOutputStream	os )
 	
 		throws IOException
 	{
-		float[]	data = reply.getVivaldiData();
-	
-		if ( data.length != DHTUDPPacketReply.VIVALDI_DATA_LENGTH_V1 ){
-		
-			Debug.out( "Vivaldi serialisation length changed!!!!" );
+		DHTNetworkPosition[]	nps = reply.getNetworkPositions();
+
+		if ( reply.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_GENERIC_NETPOS ){
 			
-			throw( new IOException( "argh!!" ));
-		}
-		
-		for (int i=0;i<data.length;i++){
+			os.writeByte((byte)nps.length);
 			
-			os.writeFloat( data[i] );
+			for (int i=0;i<nps.length;i++){
+					
+				DHTNetworkPosition	np = nps[i];
+				
+				os.writeByte( np.getPositionType());
+				os.writeByte( np.getSerialisedSize());
+				
+				np.serialise( os );
+			}
+		}else{
+			
+			for (int i=0;i<nps.length;i++){
+				
+				if ( nps[i].getPositionType() == DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1 ){
+										
+					nps[i].serialise( os );
+					
+					return;
+				}
+			}
+
+			Debug.out( "Vivaldi V1 missing" );
+			
+			throw( new IOException( "Vivaldi V1 missing" ));
 		}
 	}
 	
 	protected static void
 	deserialiseVivaldi(
-		DataInputStream		is,
-		DHTUDPPacketReply	reply )
+		DHTUDPPacketReply	reply,
+		DataInputStream		is )
 	
 		throws IOException
 	{
-		float[]	data	= new float[DHTUDPPacketReply.VIVALDI_DATA_LENGTH];
+		DHTNetworkPosition[]	nps;
 		
-		if ( data.length != DHTUDPPacketReply.VIVALDI_DATA_LENGTH_V1 ){
+		if ( reply.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_GENERIC_NETPOS ){
 			
-			Debug.out( "Vivaldi serialisation length changed!!!!" );
+			int	entries = is.readByte()&0xff;
 			
-			throw( new IOException( "argh!!" ));
+			nps	= new DHTNetworkPosition[ entries ];
+			
+			int	skipped = 0;
+			
+			for (int i=0;i<entries;i++){
+				
+				byte	type = is.readByte();
+				byte	size = is.readByte();
+				
+				DHTNetworkPosition	np = DHTNetworkPositionManager.deserialise( type, is );
+				
+				if ( np == null ){
+					
+					skipped++;
+					
+					for (int j=0;j<size;j++){
+						
+						is.readByte();
+					}
+				}else{
+					
+					nps[i] = np;
+				}
+			}
+			
+			if ( skipped > 0 ){
+				
+				DHTNetworkPosition[] x	= new DHTNetworkPosition[ entries - skipped ];
+				
+				int	pos = 0;
+				
+				for (int i=0;i<nps.length;i++){
+					
+					if ( nps[i] != null ){
+						
+						x[pos++] = nps[i];
+					}
+				}
+				
+				nps	= x;
+				
+				if ( nps.length == 0 ){
+					
+					Debug.out( "hmm" );
+				}
+			}
+		}else{
+			
+			nps = new DHTNetworkPosition[]{ DHTNetworkPositionManager.deserialise( DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1, is )};	
 		}
 		
-		for (int i=0;i<data.length;i++){
-			
-			data[i] = is.readFloat();
-		}
-		
-		reply.setVivaldiData( data );
+		reply.setNetworkPositions( nps );
 	}
 	
 	protected static void

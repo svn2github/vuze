@@ -30,10 +30,12 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
+import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.VivaldiPositionProvider;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
-import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
-import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPositionFactory;
+
 
 /**
  * @author parg
@@ -46,6 +48,10 @@ DHTTransportUDPContactImpl
 {
 	public static final int			NODE_STATUS_UNKNOWN		= 0xffffffff;
 	public static final int			NODE_STATUS_ROUTABLE	= 0x00000001;
+
+	static{
+		DHTNetworkPositionManager.registerProvider( new VivaldiPositionProvider());
+	}
 	
 	private	DHTTransportUDPImpl		transport;
 	private InetSocketAddress		external_address;
@@ -58,7 +64,7 @@ DHTTransportUDPContactImpl
 	private int					random_id;
 	private int					node_status	= NODE_STATUS_UNKNOWN;
 		
-	private VivaldiPosition		vivaldi_position;
+	private DHTNetworkPosition[]		network_positions;
 	
 	protected
 	DHTTransportUDPContactImpl(
@@ -90,7 +96,7 @@ DHTTransportUDPContactImpl
 			id = DHTUDPUtils.getNodeID( external_address );
 		}
 		
-		vivaldi_position	= VivaldiPositionFactory.createPosition();
+		network_positions	= DHTNetworkPositionManager.createPositions();
 	}
 	
 	public DHTTransport
@@ -365,11 +371,33 @@ DHTTransportUDPContactImpl
 		transport.removeContact( this );
 	}
 	
-	public VivaldiPosition
-	getVivaldiPosition()
+	protected void
+    setNetworkPositions(
+    	DHTNetworkPosition[]	positions )
+  	{
+  		network_positions	= positions;
+  	}
+	
+	public DHTNetworkPosition[]
+  	getNetworkPositions()
 	{
-		return( vivaldi_position );
+		return( network_positions );
 	}
+  	
+  	public DHTNetworkPosition
+  	getNetworkPosition(
+  		byte	position_type )
+  	{
+  		for (int i=0;i<network_positions.length;i++){
+  			
+  			if ( network_positions[i].getPositionType() == position_type ){
+  				
+  				return( network_positions[i] );
+  			}
+  		}
+  		
+  		return( null );
+  	}
 	
 	public String
 	getString()

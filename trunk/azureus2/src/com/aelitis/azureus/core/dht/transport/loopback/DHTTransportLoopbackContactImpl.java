@@ -26,8 +26,8 @@ import java.io.*;
 import java.net.InetSocketAddress;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.transport.*;
-import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 
 /**
  * @author parg
@@ -210,11 +210,18 @@ DHTTransportLoopbackContactImpl
 		transport.removeContact( this );
 	}
 	
-	public VivaldiPosition
-	getVivaldiPosition()
+	public DHTNetworkPosition[]
+	getNetworkPositions()
 	{
-		return( null );
+		return( new DHTNetworkPosition[0] );
 	}
+	
+	public DHTNetworkPosition
+  	getNetworkPosition(
+  		byte		type )
+  	{
+  		return( null );
+  	}
 	
 	public String
 	getString()

@@ -59,7 +59,7 @@ DHTUDPPacketReplyPing
 		
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_VIVALDI ){
 
-			DHTUDPUtils.deserialiseVivaldi( is, this );
+			DHTUDPUtils.deserialiseVivaldi( this, is );
 		}
 	}
 	
@@ -73,7 +73,7 @@ DHTUDPPacketReplyPing
 		
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_VIVALDI ){
 
-			DHTUDPUtils.serialiseVivaldi( os, this );
+			DHTUDPUtils.serialiseVivaldi( this, os );
 		}
 	}
 }

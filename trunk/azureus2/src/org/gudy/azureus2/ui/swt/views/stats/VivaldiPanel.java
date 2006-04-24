@@ -39,10 +39,9 @@ import org.eclipse.swt.widgets.Display;
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
 import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
-import com.aelitis.azureus.core.dht.vivaldi.maths.Coordinates;
-import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
-import com.aelitis.azureus.core.dht.vivaldi.maths.impl.HeightCoordinatesImpl;
-import com.aelitis.azureus.core.dht.vivaldi.maths.impl.VivaldiPositionImpl;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
+import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.*;
+import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.impl.*;
 
 public class VivaldiPanel {
   
@@ -183,7 +182,13 @@ public class VivaldiPanel {
     gc.setForeground(blue);
     gc.setBackground(white);     
     
-    VivaldiPosition ownPosition = self.getVivaldiPosition();
+    DHTNetworkPosition _ownPosition = self.getNetworkPosition(DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1);
+
+    if ( _ownPosition == null ){
+    	return;
+    }
+    
+    VivaldiPosition ownPosition = (VivaldiPosition)_ownPosition;
     float ownErrorEstimate = ownPosition.getErrorEstimate();
     HeightCoordinatesImpl ownCoords =
     	(HeightCoordinatesImpl) ownPosition.getCoordinates();
@@ -197,7 +202,11 @@ public class VivaldiPanel {
     Iterator iter = contacts.iterator();
     while(iter.hasNext()) {
       DHTControlContact contact = (DHTControlContact) iter.next();
-      VivaldiPosition position = contact.getTransportContact().getVivaldiPosition();
+      DHTNetworkPosition _position = contact.getTransportContact().getNetworkPosition(DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1);
+      if ( _position == null ){
+    	  continue;
+      }
+      VivaldiPosition position = (VivaldiPosition)_position;
       HeightCoordinatesImpl coord = (HeightCoordinatesImpl) position.getCoordinates();
       if(coord.isValid()) {
         draw(gc,coord.getX(),coord.getY(),coord.getH(),contact,(int)ownCoords.distance(coord),position.getErrorEstimate());
