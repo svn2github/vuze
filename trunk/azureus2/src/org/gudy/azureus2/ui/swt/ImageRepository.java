@@ -119,6 +119,7 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/remove.gif", "cb_remove");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/host.gif", "cb_host");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/publish.gif", "cb_publish");
+    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/sendto.png", "cb_send");
 
     //Status icons
     loadImage(display, "org/gudy/azureus2/ui/icons/status/ok.gif", "st_ok");
