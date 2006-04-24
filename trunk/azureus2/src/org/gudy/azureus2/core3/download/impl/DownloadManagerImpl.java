@@ -485,7 +485,7 @@ DownloadManagerImpl
 						 
 					 torrent	= null;	// prevent this download from being used
 					 
-					 throw( new Exception( "Download identity changed - please remove and re-add the download" ));
+					 throw( new NoStackException( "Download identity changed - please remove and re-add the download" ));
 				 }
 				 
 				 read_torrent_state	= null;	// no longer needed if we saved it
@@ -549,7 +549,7 @@ DownloadManagerImpl
 				 			
 				 			if ( save_dir_file.getParent() == null ){
 				 				
-				 				throw( new Exception( "Data location '" + torrent_save_dir + "' is invalid" ));
+				 				throw( new NoStackException( "Data location '" + torrent_save_dir + "' is invalid" ));
 	
 				 			}
 				 			
@@ -569,7 +569,7 @@ DownloadManagerImpl
 				 			
 				 			if ( !save_dir_file.isDirectory()){
 				 				
-				 				throw( new Exception( "'" + torrent_save_dir + "' is not a directory" ));
+				 				throw( new NoStackException( "'" + torrent_save_dir + "' is not a directory" ));
 				 			}
 				 			
 				 			if ( save_dir_file.getName().equals( display_name )){
@@ -606,7 +606,7 @@ DownloadManagerImpl
 						
 						if ( has_ever_been_started ){
 				 		
-							throw( new Exception( MessageText.getString("DownloadManager.error.datamissing") + " " + linked_target.toString()));
+							throw( new NoStackException( MessageText.getString("DownloadManager.error.datamissing") + " " + linked_target.toString()));
 						}
 				 	}
 				 }	
@@ -674,6 +674,10 @@ DownloadManagerImpl
 				Debug.printStackTrace( e );
 				       					
 				setFailed( MessageText.getString("DownloadManager.error.unsupportedencoding"));
+				
+			}catch( NoStackException e ){
+				
+				Debug.out( e.getMessage());
 				
 			}catch( Throwable e ){
 				
@@ -2615,5 +2619,17 @@ DownloadManagerImpl
 	
 	public String toString() {
 		return "DownloadManagerImpl@" + Integer.toHexString(hashCode());
+	}
+	
+	protected static class
+	NoStackException
+		extends Exception
+	{
+		protected
+		NoStackException(
+			String	str )
+		{
+			super( str );
+		}
 	}
 }
