@@ -312,6 +312,11 @@ DHTControlImpl
 		
 		local_contact	= _local_contact;
 		
+		if ( router != null ){
+			
+			router.destroy();
+		}
+		
 		router	= DHTRouterFactory.create( 
 					K, B, max_rep_per_node,
 					local_contact.getID(), 

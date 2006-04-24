@@ -72,4 +72,22 @@ DHTRouterContact
 	
 	public String
 	getString();
+	
+	/**
+	 * Returns whether this router contact is in a bucket.
+	 * 
+	 * @return
+	 * <code>true</code> if in a bucket, <code>false</code> otherwise
+	 */
+	public boolean 
+	isBucketEntry();
+	
+	/**
+	 * Returns whether this router contact is a replacement.
+	 * 
+	 * @return
+	 * <code>true</code> if a replacement, <code>false</code> otherwise
+	 */
+	public boolean 
+	isReplacement();
 }

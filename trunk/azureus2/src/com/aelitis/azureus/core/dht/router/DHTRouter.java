@@ -141,5 +141,35 @@ DHTRouter
 	getStats();
 	
 	public void
+	destroy();
+	
+	public void
 	print();
+	
+	/**
+	 * Adds a routing table observer if it is not already observing.
+	 * 
+	 * @param rto
+	 * the observer to add
+	 * @return <code>true</code> if now observing, <code>false</code> otherwise
+	 */
+	public boolean addObserver(DHTRouterObserver rto);
+	
+	/**
+	 * Returns whether the given observer is already observing.
+	 * 
+	 * @param rto
+	 * the observer to query as observing
+	 * @return <code>true</code> if observing, <code>false</code> otherwise
+	 */
+	public boolean containsObserver(DHTRouterObserver rto);
+	
+	/**
+	 * Removes the observer if it is already observing.
+	 * 
+	 * @param rto
+	 * the observer to remove
+	 * @return <code>true</code> if no longer observing, <code>false</code> otherwise
+	 */
+	public boolean removeObserver(DHTRouterObserver rto);
 }

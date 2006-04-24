@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.dht.control;
 
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.control.impl.DHTControlImpl;

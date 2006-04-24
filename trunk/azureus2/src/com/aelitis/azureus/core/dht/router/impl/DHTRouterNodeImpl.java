@@ -22,7 +22,9 @@
 
 package com.aelitis.azureus.core.dht.router.impl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -120,6 +122,10 @@ DHTRouterNodeImpl
 	addNode(
 		DHTRouterContactImpl	node )
 	{
+		// MGP: notify that node added to bucket
+		node.setBucketEntry();
+		router.notifyAdded(node);
+		
 		buckets.add( node );
 		
 		requestNodeAdd( node, false );
@@ -162,6 +168,9 @@ DHTRouterNodeImpl
 							
 							try_ping	= true;
 							
+							// MGP: kicking out a replacement that was never alive
+							router.notifyRemoved(r);
+							
 							replacements.remove(i);
 							
 							break;
@@ -173,7 +182,10 @@ DHTRouterNodeImpl
 					
 					if ( replacements.size() == max_rep_per_node ){
 						
-						replacements.remove(0);
+						DHTRouterContactImpl removed = (DHTRouterContactImpl) replacements.remove(0);
+						
+						// MGP: kicking out the oldest replacement
+						router.notifyRemoved(removed);
 					}
 				}else{
 						
@@ -184,6 +196,9 @@ DHTRouterNodeImpl
 						DHTRouterContactImpl	r = (DHTRouterContactImpl)replacements.get(i);
 				
 						if ( !r.hasBeenAlive()){
+							
+							// MGP: kicking out an older replacement that was never alive
+							router.notifyRemoved(r);
 							
 							replacements.remove(i);
 							
@@ -203,6 +218,10 @@ DHTRouterNodeImpl
 			
 			return( null );
 		}
+		
+		// MGP: notify observers contact added as a replacement
+		replacement.setReplacement();
+		router.notifyAdded(replacement);
 		
 		replacements.add( replacement );
 			
@@ -241,7 +260,8 @@ DHTRouterNodeImpl
 			if ( Arrays.equals(node_id, contact.getID())){
 
 				if ( known_to_be_alive ){
-										
+					
+					// MGP: will update observers of updated status in this method
 					alive( contact );
 				}
 				
@@ -292,6 +312,7 @@ DHTRouterNodeImpl
 	
 					if ( known_to_be_alive ){
 						
+						// MGP: will update observers of updated status in this method
 						alive( contact );
 					}
 	
@@ -311,10 +332,19 @@ DHTRouterNodeImpl
 			
 		contact.setPingOutstanding( false );
 		
+		// record whether was alive
+		boolean was_alive = contact.isAlive();
+		
 		if ( buckets.remove( contact )){
 			
 			contact.setAlive();
 			
+			if (!was_alive) {
+				// MGP: notify observers that now alive
+				router.notifyNowAlive(contact);
+			}
+			
+			// MGP: simply reinserting, so do not notify observers that added to bucket
 			buckets.add( contact );
 			
 		}else if ( replacements.remove( contact )){
@@ -322,6 +352,11 @@ DHTRouterNodeImpl
 			long	last_time = contact.getFirstFailOrLastAliveTime();
 			
 			contact.setAlive();
+			
+			if (!was_alive) {
+				// MGP: notify observers that now alive
+				router.notifyNowAlive(contact);
+			}
 			
 				// this is a good time to probe the contacts as we know a 
 				// replacement is alive and therefore in a position to replace a
@@ -347,6 +382,7 @@ DHTRouterNodeImpl
 				}
 			}
 			
+			// MGP: simply reinserting, so do not notify observers that added to replacments
 			replacements.add( contact );		
 		}
 	}
@@ -360,11 +396,22 @@ DHTRouterNodeImpl
 		
 		contact.setPingOutstanding( false );
 		
+		// record whether was failing
+		boolean was_failing = contact.isFailing();
+		
 		if ( contact.setFailed() || force ){
-						
+			
 				// check the contact is still present
 			
 			if ( buckets.remove( contact )){
+				
+				if (!was_failing) {
+					// MGP: first notify observers that now failing
+					router.notifyNowFailing(contact);
+				}
+				
+				// MGP: notify that removed from bucket
+				router.notifyRemoved(contact);
 								
 				if ( replacements != null && replacements.size() > 0 ){
 					
@@ -379,6 +426,10 @@ DHTRouterNodeImpl
 						if ( rep.hasBeenAlive()){
 							
 							DHTLog.log( DHTLog.getString( contact.getID()) + ": using live replacement " + DHTLog.getString(rep.getID()));
+							
+							// MGP: notify that a replacement was promoted to the bucket
+							rep.setBucketEntry();
+							router.notifyLocationChanged(rep);
 
 							replacements.remove( rep );
 							
@@ -400,6 +451,10 @@ DHTRouterNodeImpl
 					
 						DHTLog.log( DHTLog.getString( contact.getID()) + ": using unknown replacement " + DHTLog.getString(rep.getID()));
 
+						// MGP: notify that a replacement was promoted to the bucket
+						rep.setBucketEntry();
+						router.notifyLocationChanged(rep);
+						
 						buckets.add( rep );
 						
 							// add-node logic will ping the node if its not known to
@@ -409,6 +464,14 @@ DHTRouterNodeImpl
 					}
 				}
 			}else{
+				
+				if (!was_failing) {
+					// MGP: first notify observers that now failing
+					router.notifyNowFailing(contact);
+				}
+				
+				// MGP: notify that removed from replacement list
+				router.notifyRemoved(contact);
 				
 				replacements.remove( contact );
 			}

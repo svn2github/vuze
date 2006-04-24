@@ -189,7 +189,7 @@ AEDiagnostics
 				// pull in the JDK1.5 monitoring stuff if present
 				
 				try{
-					Class.forName( "com.aelitis.azureus.core.monitoring.thread.AEThreadMonitor" );
+					Class.forName( "com.aelitis.azureus.jdk15.Java15Initialiser" );
 						
 					// System.out.println( "**** AEThread debug on ****" );
 	

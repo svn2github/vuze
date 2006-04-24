@@ -22,16 +22,28 @@
 
 package com.aelitis.azureus.core.dht.router.impl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
-import com.aelitis.azureus.core.dht.router.*;
+import com.aelitis.azureus.core.dht.router.DHTRouter;
+import com.aelitis.azureus.core.dht.router.DHTRouterAdapter;
+import com.aelitis.azureus.core.dht.router.DHTRouterContact;
+import com.aelitis.azureus.core.dht.router.DHTRouterContactAttachment;
+import com.aelitis.azureus.core.dht.router.DHTRouterObserver;
+import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 
 /**
  * @author parg
@@ -73,6 +85,8 @@ DHTRouterImpl
 	private AEMonitor	this_mon	= new AEMonitor( "DHTRouter" );
 
 	private static AEMonitor	class_mon	= new AEMonitor( "DHTRouter:class" );
+	
+	private final List observers;
 
 	public
 	DHTRouterImpl(
@@ -119,6 +133,90 @@ DHTRouterImpl
 		buckets.add( local_contact );
 		
 		root	= new DHTRouterNodeImpl( this, 0, true, buckets );
+		
+		observers = new LinkedList();
+	}
+	
+	protected void notifyAdded(DHTRouterContact contact) {
+		for (Iterator i = observers.iterator(); i.hasNext(); ) {
+			DHTRouterObserver rto = (DHTRouterObserver) i.next();
+			try{
+				rto.added(contact);
+			}catch( Throwable e ){
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	protected void notifyRemoved(DHTRouterContact contact) {
+		for (Iterator i = observers.iterator(); i.hasNext(); ) {
+			DHTRouterObserver rto = (DHTRouterObserver) i.next();
+			try{
+				rto.removed(contact);
+			}catch( Throwable e ){
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	protected void notifyLocationChanged(DHTRouterContact contact) {
+		for (Iterator i = observers.iterator(); i.hasNext(); ) {
+			DHTRouterObserver rto = (DHTRouterObserver) i.next();
+			try{
+				rto.locationChanged(contact);
+			}catch( Throwable e ){
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	protected void notifyNowAlive(DHTRouterContact contact) {
+		for (Iterator i = observers.iterator(); i.hasNext(); ) {
+			DHTRouterObserver rto = (DHTRouterObserver) i.next();
+			try{
+				rto.nowAlive(contact);
+			}catch( Throwable e ){
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	protected void notifyNowFailing(DHTRouterContact contact) {
+		for (Iterator i = observers.iterator(); i.hasNext(); ) {
+			DHTRouterObserver rto = (DHTRouterObserver) i.next();
+			try{
+				rto.nowFailing(contact);
+			}catch( Throwable e ){
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	protected void notifyDead() {
+		for (Iterator i = observers.iterator(); i.hasNext(); ) {
+			DHTRouterObserver rto = (DHTRouterObserver) i.next();
+			try{
+				rto.destroyed(this);
+			}catch( Throwable e ){
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public boolean addObserver(DHTRouterObserver rto) {
+		if ((rto != null) && !observers.contains(rto)) {
+			observers.add(rto);
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean containsObserver(DHTRouterObserver rto) {
+		return ((rto != null) && observers.contains(rto));
+	}
+	
+	public boolean removeObserver(DHTRouterObserver rto) {
+		return ((rto != null) && observers.remove(rto));
 	}
 	
 	public DHTRouterStats
@@ -1127,5 +1225,11 @@ DHTRouterImpl
 			
 			this_mon.exit();
 		}
+	}
+	
+	public void
+	destroy()
+	{
+		notifyDead();
 	}
 }

@@ -47,6 +47,8 @@ DHTRouterContactImpl
 	private long		first_fail_or_last_alive_time;
 	private long		last_added_time;
 	
+	private boolean		is_bucket_entry;
+	
 	protected
 	DHTRouterContactImpl(
 		byte[]							_node_id,
@@ -58,6 +60,8 @@ DHTRouterContactImpl
 		has_been_alive	= _has_been_alive;
 		
 		attachment.setRouterContact( this );
+		
+		is_bucket_entry = false;
 	}
 	
 	public byte[]
@@ -203,5 +207,21 @@ DHTRouterContactImpl
 		return( DHTLog.getString2(node_id) + "[hba=" + (has_been_alive?"Y":"N" ) + 
 				",bad=" + fail_count +
 				",OK=" + getTimeAlive() + "]");
+	}
+
+	public boolean isBucketEntry() {
+		return is_bucket_entry;
+	}
+	
+	public void setBucketEntry() {
+		is_bucket_entry = true;
+	}
+
+	public boolean isReplacement() {
+		return !is_bucket_entry;
+	}
+	
+	public void setReplacement() {
+		is_bucket_entry = false;
 	}
 }
