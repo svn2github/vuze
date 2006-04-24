@@ -34,6 +34,7 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.control.DHTControlStats;
 import com.aelitis.azureus.core.dht.db.DHTDBStats;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
@@ -512,11 +513,18 @@ public class Show extends IConsoleCommand {
 				
 				long[]	rs = r_stats.getStats();
 	
-	
+				DHTNetworkPosition[]	nps = transport.getLocalContact().getNetworkPositions();
+				
+				String	np_str = "";
+				
+				for (int j=0;j<nps.length;j++){
+					np_str += (j==0?"":",") + nps[j];
+				}
+				
 				ci.out.println( 	"DHT:ip=" + transport.getLocalContact().getAddress() + 
 									",net=" + transport.getNetwork() +
 									",prot=V" + transport.getProtocolVersion() + 
-									",vp=" + transport.getLocalContact().getVivaldiPosition());
+									",np=" + np_str);
 				
 				ci.out.println( 	
 							"Router" +
