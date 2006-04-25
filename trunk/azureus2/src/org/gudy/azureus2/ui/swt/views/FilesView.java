@@ -161,9 +161,12 @@ public class FilesView
 			return;
 		}
 
-		boolean open = true;
-		boolean all_compact = true;
-
+		boolean open 				= true;
+		boolean all_compact 		= true;
+		boolean	all_skipped			= true;
+		boolean	all_priority		= true;
+		boolean	all_not_priority	= true;
+		
 		for (int i = 0; i < infos.length; i++) {
 
 			DiskManagerFileInfo file_info = (DiskManagerFileInfo) infos[i];
@@ -177,6 +180,23 @@ public class FilesView
 
 				all_compact = false;
 			}
+			
+			if ( file_info.isSkipped()){
+				
+				all_priority		= false;
+				all_not_priority	= false;
+				
+			}else{
+				all_skipped = false;
+			
+				if ( !file_info.isPriority()){
+					
+					all_priority = false;
+				}else{
+					
+					all_not_priority = false;
+				}
+			}
 		}
 
 		// we can only open files if they are read-only
@@ -188,7 +208,13 @@ public class FilesView
 
 		itemRename.setEnabled(manager.isPersistent());
 
-		itemDelete.setEnabled(!(manager.isDownloadComplete() || all_compact));
+		itemSkipped.setEnabled( !all_skipped );
+	
+		itemHigh.setEnabled( !all_priority );
+		
+		itemLow.setEnabled( !all_not_priority );
+		
+		itemDelete.setEnabled( !all_compact );
 
     itemOpen.addListener(SWT.Selection, new SelectedTableRowsListener() {
       public void run(TableRowCore row) {
