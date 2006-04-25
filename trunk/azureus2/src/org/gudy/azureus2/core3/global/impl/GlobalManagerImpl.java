@@ -454,6 +454,8 @@ public class GlobalManagerImpl
   	
   	byte[]	torrent_hash	= null;
   	
+  	List	file_priorities = null;
+  	
   	if (!persistent){
   	
         Map	save_download_state	= (Map)saved_download_manager_state.get(torrent_file_name);
@@ -471,6 +473,8 @@ public class GlobalManagerImpl
 	            	initialState	= saved_state;
 	            }
         	}
+        	
+        	file_priorities	= (List)save_download_state.get( "file_priorities" );
         }
   	}
   	
@@ -494,7 +498,7 @@ public class GlobalManagerImpl
     
       	// now do the creation!
       
-      DownloadManager new_manager = DownloadManagerFactory.create(this, torrent_hash, fName, savePath, initialState, persistent, for_seeding, adapter );
+      DownloadManager new_manager = DownloadManagerFactory.create(this, torrent_hash, fName, savePath, initialState, persistent, for_seeding, file_priorities, adapter );
       
       DownloadManager manager = addDownloadManager(new_manager, true);
       
@@ -512,12 +516,12 @@ public class GlobalManagerImpl
     catch (IOException e) {
       System.out.println( "DownloadManager::addDownloadManager: fails - td = " + torrentDir + ", fd = " + fDest );
       Debug.printStackTrace( e );
-      DownloadManager manager = DownloadManagerFactory.create(this, torrent_hash, torrent_file_name, savePath, initialState, persistent, for_seeding, adapter );
+      DownloadManager manager = DownloadManagerFactory.create(this, torrent_hash, torrent_file_name, savePath, initialState, persistent, for_seeding, file_priorities, adapter );
       return addDownloadManager(manager, true);
     }
     catch (Exception e) {
     	// get here on duplicate files, no need to treat as error
-      DownloadManager manager = DownloadManagerFactory.create(this, torrent_hash, torrent_file_name, savePath, initialState, persistent, for_seeding, adapter );
+      DownloadManager manager = DownloadManagerFactory.create(this, torrent_hash, torrent_file_name, savePath, initialState, persistent, for_seeding, file_priorities, adapter );
       return addDownloadManager(manager, true);
     }
   }
@@ -617,18 +621,7 @@ public class GlobalManagerImpl
 	          Category cat = CategoryManager.getCategory(sCategory);
 	          if (cat != null) download_manager.getDownloadState().setCategory(cat);
 	        }
-	
-	        	// make sure we restore file priorities *before* testing isDownloadCompleteExcludingDND as 
-	        	// this requires the priorities!
-	        
-	        //TODO: move this to downloadstate 
-	        try {
-	        	//load file priorities
-	        	List file_priorities = (List) save_download_state.get("file_priorities");
-	        	if ( file_priorities != null ) download_manager.setData( "file_priorities", file_priorities );
-	        }
-	        catch (Throwable t) { Debug.printStackTrace( t ); }
-	        
+		        
 	        boolean bCompleted = download_manager.isDownloadCompleteExcludingDND();
 	      
 	        download_manager.setOnlySeeding(bCompleted);
@@ -1356,8 +1349,13 @@ public class GlobalManagerImpl
           	// it won't get saved unless it is picked up, hence dead data is dropped as required
           
           if ( persistent ){
-          	
-          	DownloadManager dm = DownloadManagerFactory.create(this, torrent_hash, fileName, torrent_save_dir, torrent_save_file, state, true, true, has_ever_been_started );
+          		        
+	        List file_priorities = (List) mDownload.get("file_priorities");
+	        
+          	DownloadManager dm = 
+          		DownloadManagerFactory.create(
+          				this, torrent_hash, fileName, torrent_save_dir, torrent_save_file, 
+          				state, true, true, has_ever_been_started, file_priorities );
           	
             addDownloadManager(dm, false);
           }

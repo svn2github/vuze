@@ -366,6 +366,7 @@ DownloadManagerImpl
 		boolean									_recovered,
 		boolean									_open_for_seeding,
 		boolean									_has_ever_been_started,
+		List									_file_priorities,
 		DownloadManagerInitialisationAdapter	_initialisation_adapter ) 
 	{
 		if ( 	_initialState != STATE_WAITING &&
@@ -379,6 +380,13 @@ DownloadManagerImpl
 		globalManager 		= _gm;
 		open_for_seeding	= _open_for_seeding;
 
+			// TODO: move this to download state!
+		
+    	if ( _file_priorities != null ){
+    		
+    		setData( "file_priorities", _file_priorities );
+    	}
+    	
 		stats = new DownloadManagerStatsImpl( this );
   	
 		controller	= new DownloadManagerController( this );
@@ -1748,8 +1756,11 @@ DownloadManagerImpl
 	public boolean
 	isDownloadCompleteExcludingDND()
 	{
-		return getStats().getDownloadCompleted(false) == 1000
+		boolean	res = 
+			getStats().getDownloadCompleted(false) == 1000
 				|| controller.isDownloadCompleteExcludingDND();
+		
+		return( res );
 	}
 	
 	public void
@@ -1831,6 +1842,8 @@ DownloadManagerImpl
 	informPriorityChange(
 		DiskManagerFileInfo	file )
 	{
+		controller.filePriorityChanged();
+		
 		try{
 			listeners_mon.enter();
 

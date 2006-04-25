@@ -127,4 +127,10 @@ public interface DiskManagerPiece
      * not even needed according to the current priority settings.
      */
     public int          getStatus();
+    
+    /**
+     * returns true if all the files that the piece spans are skipped
+     * @return
+     */
+    public boolean	    isSkipped();
 }

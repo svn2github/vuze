@@ -206,90 +206,98 @@ DMCheckerImpl
 		            
 	  				for ( int i=0; i < nbPieces; i++ ){
 	  					
-	  					run_sem.reserve();
-	  					
-		  				while( !stopped ){
-			  				
-			  				if ( recheck_inst.getPermission()){
-			  					
-			  					break;
-			  				}
-			  			}
-
-	  					if ( stopped ){
-	  						
-	  						break;
-	  					}
-	  					
 	  					complete_recheck_progress = 1000*i / nbPieces;
 	  					
-	  					enqueueCheckRequest( 
-	  						createRequest( i, request.getUserData()),
-	  	       				new DiskManagerCheckRequestListener()
-							{
-			  	       			public void 
-			  	       			checkCompleted( 
-			  	       				DiskManagerCheckRequest 	request,
-			  	       				boolean						passed )
-			  	       			{
-			  	       				try{
-			  	       					listener.checkCompleted( request, passed );
-			  	       					
-			  	       				}catch( Throwable e ){
-			  	       					
-			  	       					Debug.printStackTrace(e);
-			  	       					
-			  	       				}finally{
-			  	       					
-			  	       					complete();
-			  	       				}
-			  	       			}
-			  	       			 
-			  	       			public void
-			  	       			checkCancelled(
-			  	       				DiskManagerCheckRequest		request )
-			  	       			{
-			  	       				try{
-			  	       					listener.checkCancelled( request );
-			  	       					
-			  	       				}catch( Throwable e ){
-			  	       					
-			  	       					Debug.printStackTrace(e);
-			  	       					
-			  	       				}finally{
-			  	       				
-			  	       					complete();
-			  	       				}
-			  	       			}
-			  	       			
-			  	       			public void 
-			  	       			checkFailed( 
-			  	       				DiskManagerCheckRequest 	request, 
-			  	       				Throwable		 			cause )
-			  	       			{
-			  	       				try{
-			  	       					listener.checkFailed( request, cause );
-			  	       					
-			  	       				}catch( Throwable e ){
-			  	       					
-			  	       					Debug.printStackTrace(e);
-			  	       					
-			  	       				}finally{
-			  	       				
-			  	       					complete();
-			  	       				}			  	       			}
-			  	       			
-			  	       			protected void
-			  	       			complete()
-			  	       			{
-	  	       						run_sem.release();
-		  	       						
-	  	       						sem.release();
-		  	       				}
-							},
-							false );
+	  					DiskManagerPiece	dm_piece = disk_manager.getPiece(i);
 	  					
-	  					checks_submitted++;
+  							// only recheck the piece if it happens to be done (a complete dnd file that's
+  							// been set back to dnd for example) or the piece is part of a non-dnd file 
+  					
+	  					if ( dm_piece.isDone() || !dm_piece.isSkipped()){
+
+		  					run_sem.reserve();
+		  					
+			  				while( !stopped ){
+				  				
+				  				if ( recheck_inst.getPermission()){
+				  					
+				  					break;
+				  				}
+				  			}
+	
+		  					if ( stopped ){
+		  						
+		  						break;
+		  					}
+		  					
+		  					enqueueCheckRequest( 
+		  						createRequest( i, request.getUserData()),
+		  	       				new DiskManagerCheckRequestListener()
+								{
+				  	       			public void 
+				  	       			checkCompleted( 
+				  	       				DiskManagerCheckRequest 	request,
+				  	       				boolean						passed )
+				  	       			{
+				  	       				try{
+				  	       					listener.checkCompleted( request, passed );
+				  	       					
+				  	       				}catch( Throwable e ){
+				  	       					
+				  	       					Debug.printStackTrace(e);
+				  	       					
+				  	       				}finally{
+				  	       					
+				  	       					complete();
+				  	       				}
+				  	       			}
+				  	       			 
+				  	       			public void
+				  	       			checkCancelled(
+				  	       				DiskManagerCheckRequest		request )
+				  	       			{
+				  	       				try{
+				  	       					listener.checkCancelled( request );
+				  	       					
+				  	       				}catch( Throwable e ){
+				  	       					
+				  	       					Debug.printStackTrace(e);
+				  	       					
+				  	       				}finally{
+				  	       				
+				  	       					complete();
+				  	       				}
+				  	       			}
+				  	       			
+				  	       			public void 
+				  	       			checkFailed( 
+				  	       				DiskManagerCheckRequest 	request, 
+				  	       				Throwable		 			cause )
+				  	       			{
+				  	       				try{
+				  	       					listener.checkFailed( request, cause );
+				  	       					
+				  	       				}catch( Throwable e ){
+				  	       					
+				  	       					Debug.printStackTrace(e);
+				  	       					
+				  	       				}finally{
+				  	       				
+				  	       					complete();
+				  	       				}			  	       			}
+				  	       			
+				  	       			protected void
+				  	       			complete()
+				  	       			{
+		  	       						run_sem.release();
+			  	       						
+		  	       						sem.release();
+			  	       				}
+								},
+								false );
+		  					
+		  					checks_submitted++;
+	  					}
 	  				}
 	  					  					
 	  					// wait for all to complete

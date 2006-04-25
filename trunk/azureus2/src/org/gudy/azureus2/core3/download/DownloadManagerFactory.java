@@ -26,6 +26,8 @@ package org.gudy.azureus2.core3.download;
  *
  */
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.download.impl.*;
 import org.gudy.azureus2.core3.global.*;
 
@@ -36,16 +38,17 @@ DownloadManagerFactory
 	
 	public static DownloadManager
 	create(
-		GlobalManager 	gm, 
-		byte[]			torrent_hash,
-		String 			torrentFileName, 
-		String 			savePath, 
-		int      		initialState,
-		boolean			persistent,
-		boolean			for_seeding,
-		DownloadManagerInitialisationAdapter adapter )
+		GlobalManager 							gm, 
+		byte[]									torrent_hash,
+		String 									torrentFileName, 
+		String 									savePath, 
+		int      								initialState,
+		boolean									persistent,
+		boolean									for_seeding,
+		List									file_priorities,
+		DownloadManagerInitialisationAdapter 	adapter )
 	{
-		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, savePath, null, initialState, persistent, false, for_seeding, false, adapter ));
+		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, savePath, null, initialState, persistent, false, for_seeding, false, file_priorities, adapter ));
 	}
 	
 		// recovery method
@@ -60,8 +63,9 @@ DownloadManagerFactory
 		int      		initialState,
 		boolean			persistent,
 		boolean			recovered,
-		boolean			has_ever_been_started )
+		boolean			has_ever_been_started,
+		List			file_priorities )
 	{
-		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, torrent_save_dir, torrent_save_file, initialState, persistent, recovered, false, has_ever_been_started, null ));
+		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, torrent_save_dir, torrent_save_file, initialState, persistent, recovered, false, has_ever_been_started, file_priorities, null ));
 	}
 }

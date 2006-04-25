@@ -62,9 +62,7 @@ public class Debug {
   	String		str,
 	boolean		stderr)
   {
-    diagLoggerLogAndOut("DEBUG::"+ new Date(SystemTime.getCurrentTime()).toString(), stderr );
-    
-    diagLoggerLogAndOut("  " + str, stderr );
+    diagLoggerLogAndOut("DEBUG::"+ new Date(SystemTime.getCurrentTime()).toString() + "  " + str, stderr );
   }
   
   /**

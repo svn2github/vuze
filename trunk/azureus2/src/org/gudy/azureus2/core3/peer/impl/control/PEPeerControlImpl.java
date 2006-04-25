@@ -316,6 +316,9 @@ PEPeerControlImpl
 			piecePicker.updateAvailability();
 			
 			boolean forcenoseeds = disconnect_seeds_when_seeding;
+			
+			checkCompletionState();	// pick up changes in completion caused by dnd file changes
+			
 			if (!seeding_mode)
 			{	// if we're not finished
 				checkRequests();	//check the requests
@@ -325,12 +328,6 @@ PEPeerControlImpl
                 forcenoseeds =!piecePicker.checkDownloadPossible();	//download blocks if possible
 				checkRescan();
 				checkSpeedAndReserved();
-			} else {
-				if (disk_mgr.getRemainingExcludingDND() != 0) {
-					seeding_mode = false;
-					Logger.log(new LogEvent(disk_mgr.getTorrent(), LOGID,
-							"Turning off seeding mode for PEPeerManager"));
-				}
 			}
 			
 			checkSeeds( forcenoseeds );
@@ -958,6 +955,45 @@ PEPeerControlImpl
 			disk_mgr.downloadEnded();
 			_timeStartedSeeding =SystemTime.getCurrentTime();
 			adapter.setStateSeeding(start_of_day);
+		}
+	}
+	
+	protected void
+	checkCompletionState()
+	{
+		if ( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL != 0 ){
+	  		
+	  		return;
+	  	}
+		
+		boolean dm_done = disk_mgr.getRemainingExcludingDND() == 0;
+		
+		if ( seeding_mode ){
+			
+			if ( !dm_done ){
+				
+				seeding_mode = false;
+				
+				_timeStartedSeeding = -1;
+				_timeFinished		= 0;
+				
+				Logger.log(
+						new LogEvent(	disk_mgr.getTorrent(), LOGID,
+										"Turning off seeding mode for PEPeerManager"));
+			}
+		}else{
+			
+			if ( dm_done ){
+				
+				checkFinished( false );
+				
+				if ( seeding_mode ){
+					
+					Logger.log(
+							new LogEvent(	disk_mgr.getTorrent(), LOGID,
+											"Turning on seeding mode for PEPeerManager"));
+				}
+			}
 		}
 	}
 	

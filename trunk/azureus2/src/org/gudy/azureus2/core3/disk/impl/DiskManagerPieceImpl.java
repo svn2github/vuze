@@ -130,6 +130,18 @@ public class DiskManagerPieceImpl
         return DiskManager.BLOCK_SIZE;
     }
     
+    public boolean
+    isSkipped()
+    {
+		final DMPieceList pieceList =diskManager.getPieceList(pieceNumber);
+		for (int i =0; i <pieceList.size(); i++){
+			if ( !pieceList.get(i).getFile().isSkipped()){
+				return( false );
+			}
+		}
+		return( true );
+    }
+    
 	public boolean isNeeded()
 	{
 		return (statusFlags &PIECE_STATUS_NEEDED) !=0;

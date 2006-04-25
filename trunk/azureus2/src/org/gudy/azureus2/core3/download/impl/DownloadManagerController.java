@@ -114,7 +114,7 @@ DownloadManagerController
 	
 	protected AEMonitor	this_mon		= new AEMonitor( "DownloadManagerController" );
 	protected AEMonitor	state_mon		= new AEMonitor( "DownloadManagerController:State" );
-	protected AEMonitor	skeleton_mon	= new AEMonitor( "DownloadManagerController:Skeletons" );
+	protected AEMonitor	facade_mon	= new AEMonitor( "DownloadManagerController:Facade" );
 
 	
 	private DownloadManagerImpl			download_manager;
@@ -133,8 +133,8 @@ DownloadManagerController
 	
 	private volatile DiskManager 			disk_manager_use_accessors;
 	
-	private DiskManagerFileInfo[]	skeleton_files;
 	private fileInfoFacade[]		files_facade		= new fileInfoFacade[0];	// default before torrent avail
+	private boolean					cached_complete_excluding_dnd;
 	private PEPeerManager 			peer_manager;
 	
 	private String errorDetail;
@@ -159,13 +159,15 @@ DownloadManagerController
 	setInitialState(
 		int	initial_state )
 	{
-		files_facade	= new fileInfoFacade[download_manager.getTorrent()==null?0:download_manager.getTorrent().getFiles().length];
+		fileInfoFacade[] new_files_facade	= new fileInfoFacade[download_manager.getTorrent()==null?0:download_manager.getTorrent().getFiles().length];
 		
-		for (int i=0;i<files_facade.length;i++){
+		for (int i=0;i<new_files_facade.length;i++){
 			
-			files_facade[i] = new fileInfoFacade(i);
+			new_files_facade[i] = new fileInfoFacade();
 		}
 		
+		fixupFileInfo( new_files_facade );
+				
 			// only take note if there's been no errors
 		
 		if ( getState() == DownloadManager.STATE_START_OF_DAY ){
@@ -362,10 +364,7 @@ DownloadManagerController
 			  						// good time to trigger minimum file info fixup as the disk manager's
 			  						// files are now in a good state
 			  					
-			  					for (int i=0;i<files_facade.length;i++){
-			  						
-			  						files_facade[i].fixupMinimum();
-			  					}
+			  					fixupFileInfo( files_facade );
 			  					
 			  					if ( 	stats.getTotalDataBytesReceived() == 0 &&
 			  							stats.getTotalDataBytesSent() == 0 &&
@@ -1077,7 +1076,42 @@ DownloadManagerController
 	protected void
 	fileInfoChanged()
 	{
-		destroySkeletonFiles();
+		fixupFileInfo( files_facade );
+	}
+	
+	protected void
+	filePriorityChanged()
+	{
+		calculateCompleteness( files_facade );
+	}
+	
+	protected void
+	calculateCompleteness(
+		DiskManagerFileInfo[]	active )
+	{
+		if ( getDiskManager() == null ){
+			
+			boolean	complete_exluding_dnd	= true;
+			
+			for (int i=0;i<active.length;i++){
+				
+				DiskManagerFileInfo	file = active[i];
+				
+				if ( file.isSkipped()){
+					
+					continue;
+				}
+				
+				if ( file.getDownloaded() != file.getLength()){
+					
+					complete_exluding_dnd	= false;
+					
+					break;
+				}
+			}
+			
+			cached_complete_excluding_dnd	= complete_exluding_dnd;
+		}
 	}
 	
 	/**
@@ -1093,26 +1127,15 @@ DownloadManagerController
 		
 		if ( dm != null ){
 			
-			return( dm.getRemainingExcludingDND() == 0 );
-		}
-		
-		// XXX Please cache me
-		for (int i=0;i<files_facade.length;i++){
+			int	dm_state = dm.getState();
 			
-			DiskManagerFileInfo	file = files_facade[i];
-			
-			if ( file.isSkipped()){
+			if ( dm_state == DiskManager.CHECKING || dm_state == DiskManager.READY ){
 				
-				continue;
-			}
-			
-			if ( file.getDownloaded() != file.getLength()){
-				
-				return( false );
+				return( dm.getRemainingExcludingDND() == 0 );
 			}
 		}
-		
-		return( true );
+				
+		return( cached_complete_excluding_dnd );
 	}
 	
 	protected PEPeerManager
@@ -1407,29 +1430,110 @@ DownloadManagerController
 	}
 	
 	protected void
-	destroySkeletonFiles()
+	fixupFileInfo(
+		fileInfoFacade[]	info )
 	{
-		DiskManagerFileInfo[]	files;
+		if ( info.length == 0 ){
 		
+				// too early in initialisation sequence to action this - it'll get reinvoked later anyway
+			
+			return;
+		}
+		
+		final List	delayed_prio_changes = new ArrayList();
+
 		try{
-			skeleton_mon.enter();
-			
-			files = skeleton_files;
-			
-			skeleton_files = null;
-			
-		}finally{
-			
-			skeleton_mon.exit();
-		}
-		
-		if ( files != null ){
-			
-			for (int i=0;i<files.length;i++){
+			facade_mon.enter();
 				
-				files[i].close();
+			DiskManager	dm = DownloadManagerController.this.getDiskManager();
+
+			DiskManagerFileInfo[]	active	= null;
+   		
+			if ( dm != null ){
+   			
+				int	dm_state = dm.getState();
+   			
+   					// grab the live file info if available
+   			
+				if ( dm_state == DiskManager.CHECKING || dm_state == DiskManager.READY ){
+   			  			
+					active = dm.getFiles();
+				}
+   			}
+   		
+			if ( active == null ){
+   		  					
+	   			final boolean[]	initialising = { true };
+	   				
+   					// chance of recursion with this listener as the file-priority-changed is triggered
+   					// synchronously during construction and this can cause a listener to reenter the
+   					// incomplete fixup logic here + instantiate new skeletons.....
+   				
+	   			try{
+	   				active = DiskManagerFactory.getFileInfoSkeleton( 
+							download_manager,
+							new DiskManagerListener()
+							{
+								public void
+								stateChanged(
+									int oldState, 
+									int	newState )
+								{
+								}
+								
+								public void
+								filePriorityChanged(
+									DiskManagerFileInfo		file )
+								{
+									if ( initialising[0] ){
+										
+										delayed_prio_changes.add( file );
+										
+									}else{
+										
+										download_manager.informPriorityChange( file );
+									}
+								}
+	
+								public void
+								pieceDoneChanged(
+									DiskManagerPiece		piece )
+								{
+								}
+								
+								public void
+								fileAccessModeChanged(
+									DiskManagerFileInfo		file,
+									int						old_mode,
+									int						new_mode )
+								{
+								}
+							});
+	   			}finally{
+	   				
+	   				initialising[0]	= false;
+	   			}
+	   			
+	   			calculateCompleteness( active );
 			}
-		}
+   
+			for (int i=0;i<info.length;i++){
+				
+				info[i].setDelegate( active[i] );
+			}
+		}finally{
+   				
+   			facade_mon.exit();
+   		}
+   			
+		files_facade	= info;
+		
+   		for (int i=0;i<delayed_prio_changes.size();i++){
+   					
+   			download_manager.informPriorityChange((DiskManagerFileInfo)delayed_prio_changes.get(i));
+   		}
+   				
+   		delayed_prio_changes.clear();
 	}
 	
 	protected class
@@ -1437,116 +1541,33 @@ DownloadManagerController
 		implements DiskManagerFileInfo
 	{
 		private DiskManagerFileInfo		delegate;
-		private int						index;
 		
 		private List					listeners;
 		
 		protected 
-		fileInfoFacade(
-			int	_index )
+		fileInfoFacade()
 		{
-			index	= _index;
 		}
 		
 		protected void
-		fixup()
+		setDelegate(
+			DiskManagerFileInfo		_delegate )
 		{
-			DiskManagerFileInfo	old_delegate = delegate;
+			if ( _delegate == delegate ){
+				
+				return;
+			}
 			
-	 		DiskManager	dm = DownloadManagerController.this.getDiskManager();
+			if ( delegate != null ){
+				
+				delegate.close();
+			}
 
-	   		DiskManagerFileInfo[]	res	= null;
+	 		delegate = _delegate;
 	   		
-	   		if ( dm != null ){
-	   			
-	   			int	dm_state = dm.getState();
-	   			
-	   				// grab the live file info if available
-	   			
-	   			if ( dm_state == DiskManager.CHECKING || dm_state == DiskManager.READY ){
-	   			
-	   				destroySkeletonFiles();
-	   			
-	   				res = dm.getFiles();
-	   			}
-	   		}
-	   		
-	   		if ( res == null ){
-	   			
-   				final List	delayed_prio_changes = new ArrayList();
-
-	   			try{
-	   				skeleton_mon.enter();
-	   				   			
-	   				if ( skeleton_files == null ){
-	   					
-		   				final boolean[]	initialising = { true };
-		   				
-		   					// chance of recursion with this listener as the file-priority-changed is triggered
-		   					// synchronously during construction and this can cause a listener to reenter the
-		   					// incomplete fixup logic here + instantiate new skeletons.....
-		   				
-		   				skeleton_files = DiskManagerFactory.getFileInfoSkeleton( 
-	   							download_manager,
-	   							new DiskManagerListener()
-	   							{
-	   								public void
-	   								stateChanged(
-	   									int oldState, 
-	   									int	newState )
-	   								{
-	   								}
-	   								
-	   								public void
-	   								filePriorityChanged(
-	   									DiskManagerFileInfo		file )
-	   								{
-	   									if ( initialising[0] ){
-	   										
-	   										delayed_prio_changes.add( file );
-	   										
-	   									}else{
-	   										
-	   										download_manager.informPriorityChange( file );
-	   									}
-	   								}
-
-	   								public void
-	   								pieceDoneChanged(
-	   									DiskManagerPiece		piece )
-	   								{
-	   								}
-	   								
-	   								public void
-	   								fileAccessModeChanged(
-	   									DiskManagerFileInfo		file,
-	   									int						old_mode,
-	   									int						new_mode )
-	   								{
-	   								}
-	   							});
-	   					   				
-		   				initialising[0]	= false;
-	   				}
-	   				
-   					res = skeleton_files;
-
-	   			}finally{
-	   				
-	   				skeleton_mon.exit();
-	   			}
-	   			
-	   			for (int i=0;i<delayed_prio_changes.size();i++){
-	   					
-	   				download_manager.informPriorityChange((DiskManagerFileInfo)delayed_prio_changes.get(i));
-	   			}
-	   				
-	   			delayed_prio_changes.clear();
-	   		}
-	
-	   		delegate = res[index];
-	   		
-	   		if ( delegate != old_delegate && listeners != null ){
+	 			// transfer any existing listeners across
+	 		
+	   		if ( listeners != null ){
 	   			
 	   			for (int i=0;i<listeners.size();i++){
 	   				
@@ -1554,22 +1575,11 @@ DownloadManagerController
 	   			}
 	   		}
 		}
-		
-		protected void
-		fixupMinimum()
-		{
-			if ( listeners != null ){
-				
-				fixup();
-			}
-		}
-		
+
 		public void 
 		setPriority(
 			boolean b )
 		{
-			fixup();
-			
 			delegate.setPriority(b);
 		}
 		
@@ -1577,8 +1587,6 @@ DownloadManagerController
 		setSkipped(
 			boolean b)
 		{
-			fixup();
-			
 			delegate.setSkipped(b);
 		}
 		 
@@ -1587,16 +1595,12 @@ DownloadManagerController
 		setLink(
 			File	link_destination )
 		{
-			fixup();
-		
 			return( delegate.setLink( link_destination ));
 		}
 		
 		public File
 		getLink()
 		{
-			fixup();
-			
 			return( delegate.getLink());
 		}
 		
@@ -1604,16 +1608,12 @@ DownloadManagerController
 		setStorageType(
 			int		type )
 		{
-			fixup();
-			
 			return( delegate.setStorageType( type ));
 		}
 		
 		public int
 		getStorageType()
 		{
-			fixup();
-			
 			return( delegate.getStorageType());
 		}
 		
@@ -1621,88 +1621,66 @@ DownloadManagerController
 		public int 
 		getAccessMode()
 		{
-			fixup();
-			
 			return( delegate.getAccessMode());
 		}
 		
 		public long 
 		getDownloaded()
 		{
-			fixup();
-			
 			return( delegate.getDownloaded());
 		}
 		
 		public String 
 		getExtension()
 		{
-			fixup();
-			
 			return( delegate.getExtension());
 		}
 			
 		public int 
 		getFirstPieceNumber()
 		{
-			fixup();
-			
 			return( delegate.getFirstPieceNumber());
 		}
 	  
 		public int 
 		getLastPieceNumber()
 		{
-			fixup();
-			
 			return( delegate.getLastPieceNumber());
 		}
 		
 		public long 
 		getLength()
 		{
-			fixup();
-			
 			return( delegate.getLength());
 		}
 			
 		public int 
 		getNbPieces()
 		{
-			fixup();
-			
 			return( delegate.getNbPieces());
 		}
 				
 		public boolean 
 		isPriority()
 		{
-			fixup();
-			
 			return( delegate.isPriority());
 		}
 		
 		public boolean 
 		isSkipped()
 		{
-			fixup();
-			
 			return( delegate.isSkipped());
 		}
 		
 		public int	
 		getIndex()
 		{
-			fixup();
-			
 			return( delegate.getIndex());
 		}
 		
 		public DiskManager 
 		getDiskManager()
 		{
-			fixup();
-			
 			return( delegate.getDiskManager());
 		}
 		
@@ -1715,16 +1693,12 @@ DownloadManagerController
 		public File 
 		getFile( boolean follow_link )
 		{
-			fixup();
-			
 			return( delegate.getFile( follow_link ));
 		}
 		
 		public TOTorrentFile
 		getTorrentFile()
 		{
-			fixup();
-			
 			return( delegate.getTorrentFile());
 		}
 		
@@ -1733,8 +1707,6 @@ DownloadManagerController
 		
 			throws	Exception
 		{
-			fixup();
-			
 			delegate.flushCache();
 		}
 		
@@ -1745,16 +1717,12 @@ DownloadManagerController
 		
 			throws IOException
 		{
-			fixup();
-			
 			return( delegate.read( offset, length ));
 		}
 		
 		public void
 		close()
 		{
-			fixup();
-			
 			delegate.close();
 		}
 		
@@ -1762,8 +1730,6 @@ DownloadManagerController
 		addListener(
 			DiskManagerFileInfoListener	listener )
 		{
-			fixup();
-			
 			if ( listeners == null ){
 				
 				listeners = new ArrayList();
@@ -1778,8 +1744,6 @@ DownloadManagerController
 		removeListener(
 			DiskManagerFileInfoListener	listener )
 		{
-			fixup();
-			
 			listeners.remove( listener );
 			
 			delegate.removeListener( listener );
