@@ -39,10 +39,18 @@ public class UrlUtils {
 		if (sURL == null || sURL.length() < 5)
 			return false;
 
-		String sLower = sURL.toLowerCase();
-		return sLower.startsWith("http://") || sLower.startsWith("https://")
-				|| sLower.startsWith("magnet:") || sLower.startsWith("ftp://")
-				|| sLower.matches("^[a-fA-F0-9]{40}$");
+		try{
+			// jre bug - toLowerCase can null-pointer if given crap!
+		
+			String sLower = sURL.toLowerCase();
+			return sLower.startsWith("http://") || sLower.startsWith("https://")
+					|| sLower.startsWith("magnet:") || sLower.startsWith("ftp://")
+					|| sLower.matches("^[a-fA-F0-9]{40}$");
+			
+		}catch( Throwable e ){
+			
+			return( false );
+		}
 	}
 
 	public static String parseTextForURL(String text) {
