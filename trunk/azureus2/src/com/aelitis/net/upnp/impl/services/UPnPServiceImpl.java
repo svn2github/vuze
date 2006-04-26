@@ -66,7 +66,7 @@ UPnPServiceImpl
 		
 		control_url	= device.getAbsoluteURL(service_node.getChild("controlURL").getValue());
 		
-		device.getUPnP().log( indent + "desc=" + desc_url + ", control=" + control_url );
+		device.getUPnP().log( indent + service_type + ":desc=" + desc_url + ", control=" + control_url );
 	}
 	
 	public UPnPDevice
