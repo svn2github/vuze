@@ -58,9 +58,41 @@ DHTNetworkPositionManager
 		
 		DHTNetworkPosition[]	res = new DHTNetworkPosition[prov.length];
 		
+		int	skipped	= 0;
+		
 		for (int i=0;i<res.length;i++){
 			
-			res[i] = prov[i].create( ID, is_local );
+			try{
+				res[i] = prov[i].create( ID, is_local );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+				
+				skipped++;
+			}
+		}
+		
+		if  ( skipped > 0 ){
+			
+			DHTNetworkPosition[] x	= new DHTNetworkPosition[ res.length - skipped ];
+			
+			int	pos = 0;
+			
+			for (int i=0;i<res.length;i++){
+				
+				if ( res[i] != null ){
+					
+					x[pos++] = res[i];
+				}
+			}
+			
+			res	= x;
+			
+			if ( res.length == 0 ){
+				
+				Debug.out( "hmm" );
+			}
 		}
 		
 		return( res );
@@ -87,15 +119,20 @@ DHTNetworkPositionManager
 				
 				if ( p1_type == p2.getPositionType()){
 					
-					float	f = p1.estimateRTT( p2 );
-					
-					if ( !Float.isNaN( f )){
+					try{
+						float	f = p1.estimateRTT( p2 );
 						
-						if ( p1_type > best_provider ){
+						if ( !Float.isNaN( f )){
 							
-							best_result		= f;
-							best_provider	= p1_type;
+							if ( p1_type > best_provider ){
+								
+								best_result		= f;
+								best_provider	= p1_type;
+							}
 						}
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
 					}
 					
 					break;
@@ -122,7 +159,15 @@ DHTNetworkPositionManager
 				
 				if ( p1.getPositionType() == p2.getPositionType()){
 					
-					p1.update( p2, rtt );
+					try{
+						p1.update( p2, rtt );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+					
+					break;
 				}
 			}
 		}
@@ -141,7 +186,15 @@ DHTNetworkPositionManager
 			
 			if ( prov[i].getPositionType() == position_type ){
 				
-				return( prov[i].deserialise( is ));
+				try{
+					return( prov[i].deserialise( is ));
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+				
+				break;
 			}
 		}
 		
