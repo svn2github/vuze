@@ -256,7 +256,7 @@ DHTTransportUDPImpl
 
 		logger.log( "Initial external address: " + address );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, address, address, protocol_version, random.nextInt(), 0);
+		local_contact = new DHTTransportUDPContactImpl( true, this, address, address, protocol_version, random.nextInt(), 0 );
 	}
 	
 	protected void
@@ -441,7 +441,7 @@ DHTTransportUDPImpl
 	
 		throws DHTTransportException
 	{
-		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getTransportAddress(), local_contact.getExternalAddress(), protocol_version, random.nextInt(), 0);		
+		local_contact = new DHTTransportUDPContactImpl( true, this, local_contact.getTransportAddress(), local_contact.getExternalAddress(), protocol_version, random.nextInt(), 0);		
 	}
 	
 	public void
@@ -459,7 +459,7 @@ DHTTransportUDPImpl
 		
 		InetSocketAddress	address = new InetSocketAddress( external_address, port );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, address, address, protocol_version, local_contact.getInstanceID(), 0 );		
+		local_contact = new DHTTransportUDPContactImpl( true, this, address, address, protocol_version, local_contact.getInstanceID(), 0 );		
 
 		for (int i=0;i<listeners.size();i++){
 			
@@ -866,7 +866,7 @@ DHTTransportUDPImpl
 		InetSocketAddress	s_address = new InetSocketAddress( external_address, port );
 		
 		try{
-			local_contact = new DHTTransportUDPContactImpl( DHTTransportUDPImpl.this, s_address, s_address, protocol_version, random.nextInt(), 0);
+			local_contact = new DHTTransportUDPContactImpl( true, DHTTransportUDPImpl.this, s_address, s_address, protocol_version, random.nextInt(), 0);
 	
 			logger.log( "External address changed: " + s_address );
 			
@@ -908,7 +908,7 @@ DHTTransportUDPImpl
 	{
 			// instance id of 0 means "unknown"
 		
-		DHTTransportUDPContactImpl	contact = new DHTTransportUDPContactImpl( this, _address, _address, _protocol_version, 0, 0 );
+		DHTTransportUDPContactImpl	contact = new DHTTransportUDPContactImpl( false, this, _address, _address, _protocol_version, 0, 0 );
 		
 		importContact( contact );
 
@@ -2814,6 +2814,7 @@ DHTTransportUDPImpl
 			
 			DHTTransportUDPContactImpl	originating_contact = 
 				new DHTTransportUDPContactImpl( 
+						false,
 						this, 
 						transport_address, 
 						request.getOriginatorAddress(), 

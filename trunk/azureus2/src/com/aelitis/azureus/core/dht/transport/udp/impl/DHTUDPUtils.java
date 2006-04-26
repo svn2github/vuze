@@ -27,6 +27,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
@@ -86,6 +87,16 @@ DHTUDPUtils
 			
 			return( res );
 		}
+	}
+	
+	protected static byte[]
+	getBogusNodeID()
+	{
+		byte[]	id = new byte[20];
+		
+		new Random().nextBytes( id );
+		
+		return( id );
 	}
 	
 	protected static void
@@ -344,7 +355,7 @@ DHTUDPUtils
 				
 		InetSocketAddress	external_address = deserialiseAddress( is );
 		
-		return( new DHTTransportUDPContactImpl( transport, external_address, external_address, version, 0, 0 ));
+		return( new DHTTransportUDPContactImpl( false, transport, external_address, external_address, version, 0, 0 ));
 	}
 	
 

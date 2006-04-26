@@ -50,7 +50,9 @@ DHTNetworkPositionManager
 	}
 	
 	public static DHTNetworkPosition[]
-	createPositions()
+	createPositions(
+		byte[]		ID,
+		boolean		is_local )
 	{
 		DHTNetworkPositionProvider[]	prov = providers;
 		
@@ -58,7 +60,7 @@ DHTNetworkPositionManager
 		
 		for (int i=0;i<res.length;i++){
 			
-			res[i] = prov[i].create();
+			res[i] = prov[i].create( ID, is_local );
 		}
 		
 		return( res );

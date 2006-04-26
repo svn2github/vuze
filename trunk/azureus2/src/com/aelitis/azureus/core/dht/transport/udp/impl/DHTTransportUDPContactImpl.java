@@ -68,6 +68,7 @@ DHTTransportUDPContactImpl
 	
 	protected
 	DHTTransportUDPContactImpl(
+		boolean					_is_local,
 		DHTTransportUDPImpl		_transport,
 		InetSocketAddress		_transport_address,
 		InetSocketAddress		_external_address,
@@ -96,7 +97,7 @@ DHTTransportUDPContactImpl
 			id = DHTUDPUtils.getNodeID( external_address );
 		}
 		
-		network_positions	= DHTNetworkPositionManager.createPositions();
+		network_positions	= DHTNetworkPositionManager.createPositions( id==null?DHTUDPUtils.getBogusNodeID():id, _is_local );
 	}
 	
 	public DHTTransport

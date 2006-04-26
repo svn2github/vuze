@@ -39,7 +39,9 @@ VivaldiPositionProvider
 	}
 	
 	public DHTNetworkPosition
-	create()
+	create(
+		byte[]		ID,
+		boolean		is_local )
 	{
 		return( VivaldiPositionFactory.createPosition());
 	}

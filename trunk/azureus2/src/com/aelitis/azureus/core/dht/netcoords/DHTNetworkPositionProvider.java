@@ -32,7 +32,9 @@ DHTNetworkPositionProvider
 	getPositionType();
 	
 	public DHTNetworkPosition
-	create();
+	create(
+		byte[]		ID,
+		boolean		is_local );
 	
 	public DHTNetworkPosition
 	deserialise(
