@@ -24,7 +24,6 @@ package org.gudy.azureus2.core3.util;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -335,11 +334,22 @@ public class FileUtil {
 			// mac file names can end in space - fix this up by getting
 			// the canonical form which removes this on Windows
 		
-		String str = new File(file_name_out).getCanonicalFile().toString();
-	
-		int	p = str.lastIndexOf( File.separator );
+			// however, for soem reason getCanonicalFile can generate high CPU usage on some user's systems
+			// in  java.io.Win32FileSystem.canonicalize
+			// so changing this to only be used on non-windows
 		
-		file_name_out = str.substring(p+1);
+		if ( Constants.isWindows ){
+			
+			file_name_out	= file_name_out.trim();
+			
+		}else{
+			
+			String str = new File(file_name_out).getCanonicalFile().toString();
+		
+			int	p = str.lastIndexOf( File.separator );
+			
+			file_name_out = str.substring(p+1);
+		}
 		
 	}catch( Throwable e ){
 		// ho hum, carry on, it'll fail later
