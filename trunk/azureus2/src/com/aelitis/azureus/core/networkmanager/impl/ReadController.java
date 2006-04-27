@@ -26,6 +26,7 @@ import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.networkmanager.EventWaiter;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 
 
@@ -42,9 +43,11 @@ public class ReadController {
   private int next_normal_position = 0;
   private int next_high_position = 0;
   
-  private static final int IDLE_SLEEP_TIME = 25;
+  private static final int IDLE_SLEEP_TIME = 50;
   private static final int SELECT_LOOP_TIME = 25;
   
+  private EventWaiter 	read_waiter = new EventWaiter();
+
   
   public ReadController() {
     //start read selector processing
@@ -94,7 +97,7 @@ public class ReadController {
           check_high_first = false;
           if( !doHighPriorityRead() ) {
             if( !doNormalPriorityRead() ) {
-              try {  Thread.sleep( IDLE_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+            	read_waiter.waitForEvent( IDLE_SLEEP_TIME ); 
             }
           }
         }
@@ -102,7 +105,7 @@ public class ReadController {
           check_high_first = true;
           if( !doNormalPriorityRead() ) {
             if( !doHighPriorityRead() ) {
-              try {  Thread.sleep( IDLE_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+            	read_waiter.waitForEvent( IDLE_SLEEP_TIME ); 
             }
           }
         }
@@ -116,7 +119,7 @@ public class ReadController {
   
   private boolean doNormalPriorityRead() {
     RateControlledEntity ready_entity = getNextReadyNormalPriorityEntity();
-    if( ready_entity != null && ready_entity.doProcessing() ) {
+    if( ready_entity != null && ready_entity.doProcessing( read_waiter ) ) {
       return true;
     }
     return false;
@@ -124,7 +127,7 @@ public class ReadController {
   
   private boolean doHighPriorityRead() {
     RateControlledEntity ready_entity = getNextReadyHighPriorityEntity();
-    if( ready_entity != null && ready_entity.doProcessing() ) {
+    if( ready_entity != null && ready_entity.doProcessing( read_waiter ) ) {
       return true;
     }
     return false;
@@ -142,7 +145,7 @@ public class ReadController {
       RateControlledEntity entity = (RateControlledEntity)ref.get( next_normal_position );
       next_normal_position++;
       num_checked++;
-      if( entity.canProcess() ) {  //is ready
+      if( entity.canProcess( read_waiter ) ) {  //is ready
         return entity;
       }
     }
@@ -162,7 +165,7 @@ public class ReadController {
       RateControlledEntity entity = (RateControlledEntity)ref.get( next_high_position );
       next_high_position++;
       num_checked++;
-      if( entity.canProcess() ) {  //is ready
+      if( entity.canProcess( read_waiter ) ) {  //is ready
         return entity;
       }
     }

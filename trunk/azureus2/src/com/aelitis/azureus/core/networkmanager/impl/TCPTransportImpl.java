@@ -65,8 +65,9 @@ public class TCPTransportImpl implements TCPTransport {
   private byte[]	shared_secret;
   private int		fallback_count;
   private final boolean fallback_allowed;
-  
-  
+
+  private volatile EventWaiter read_waiter;
+  private volatile EventWaiter write_waiter;
   
   /**
    * Constructor for disconnected (outbound) transport.
@@ -127,7 +128,9 @@ public class TCPTransportImpl implements TCPTransport {
    * i.e. will a write request result in >0 bytes written.
    * @return true if the transport is write ready, false if not yet ready
    */
-  public boolean isReadyForWrite() {  return is_ready_for_write;  }
+  public boolean isReadyForWrite( EventWaiter waiter ) {
+	  write_waiter = waiter;
+	  return is_ready_for_write;  }
   
   
   /**
@@ -135,7 +138,9 @@ public class TCPTransportImpl implements TCPTransport {
    * i.e. will a read request result in >0 bytes read.
    * @return true if the transport is read ready, false if not yet ready
    */
-  public boolean isReadyForRead() {  return is_ready_for_read;  }
+  public boolean isReadyForRead( EventWaiter waiter ) {
+	  read_waiter = waiter;
+	  return is_ready_for_read;  }
     
   
   /**
@@ -191,6 +196,10 @@ public class TCPTransportImpl implements TCPTransport {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
     	boolean	progress = !is_ready_for_read;
         is_ready_for_read = true;
+        EventWaiter rw = read_waiter;
+        if ( rw != null ){
+        	rw.eventOccurred();
+        }
         return progress;
       }
       
@@ -206,6 +215,10 @@ public class TCPTransportImpl implements TCPTransport {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
     	boolean	progress = !is_ready_for_write;
         is_ready_for_write = true;
+        EventWaiter ww = write_waiter;
+        if ( ww != null ){
+        	ww.eventOccurred();
+        }
         return progress;
       }
 

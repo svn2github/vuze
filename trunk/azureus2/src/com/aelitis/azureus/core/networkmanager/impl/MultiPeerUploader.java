@@ -249,7 +249,7 @@ public class MultiPeerUploader implements RateControlledEntity {
   
   
   
-  private int write( int num_bytes_to_write ) {  //TODO: model this class after the simplicity of MultiPeerDownloader
+  private int write( EventWaiter waiter, int num_bytes_to_write ) {  //TODO: model this class after the simplicity of MultiPeerDownloader
     if( num_bytes_to_write < 1 ) {
       Debug.out( "num_bytes_to_write < 1" );
       return 0;  //not allowed to write
@@ -268,7 +268,7 @@ public class MultiPeerUploader implements RateControlledEntity {
       while( num_bytes_remaining > 0 && num_unusable_connections < ready_connections.size() ) {
         NetworkConnection conn = (NetworkConnection)ready_connections.removeFirst();
         
-        if( !conn.getTCPTransport().isReadyForWrite() ) {  //not yet ready for writing
+        if( !conn.getTCPTransport().isReadyForWrite( waiter ) ) {  //not yet ready for writing
           ready_connections.addLast( conn );  //re-add to end as currently unusable
           num_unusable_connections++;
           continue;  //move on to the next connection
@@ -384,7 +384,7 @@ public class MultiPeerUploader implements RateControlledEntity {
   
   //////////////// RateControlledWriteEntity implementation ////////////////////
   
-  public boolean canProcess() {
+  public boolean canProcess( EventWaiter waiter ) {
     flushCheck();  //since this method is called repeatedly from a loop, we can use it to check flushes
 
     if( ready_connections.isEmpty() )  return false;  //no data to send
@@ -392,11 +392,11 @@ public class MultiPeerUploader implements RateControlledEntity {
     return true;
   }
   
-  public boolean doProcessing() {
+  public boolean doProcessing( EventWaiter waiter ) {
     int num_bytes_allowed = rate_handler.getCurrentNumBytesAllowed();
     if( num_bytes_allowed < 1 )  return false;
     
-    return write( num_bytes_allowed ) > 0 ? true : false;
+    return write( waiter, num_bytes_allowed ) > 0 ? true : false;
   }
 
   public int getPriority() {

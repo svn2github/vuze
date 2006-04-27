@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
+import com.aelitis.azureus.core.networkmanager.EventWaiter;
+
 /**
  * Interface designation for rate-limited entities controlled by a handler.
  */
@@ -40,13 +42,13 @@ public interface RateControlledEntity {
    * Is ready for a processing op.
    * @return true if it can process >0 bytes, false if not ready
    */
-  public boolean canProcess();
+  public boolean canProcess(  EventWaiter waiter );
   
   /**
    * Attempt to do a processing operation.
    * @return true if >0 bytes were processed (success), false if 0 bytes were processed (failure)
    */
-  public boolean doProcessing();
+  public boolean doProcessing( EventWaiter waiter );
   
   /**
    * Get this entity's priority level.

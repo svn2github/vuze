@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.networkmanager.EventWaiter;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 
 
@@ -44,8 +45,8 @@ public class SinglePeerUploader implements RateControlledEntity {
   
 ////////////////RateControlledWriteEntity implementation ////////////////////
   
-  public boolean canProcess() {
-    if( !connection.getTCPTransport().isReadyForWrite() )  {
+  public boolean canProcess(EventWaiter waiter) {
+    if( !connection.getTCPTransport().isReadyForWrite(waiter) )  {
       return false;  //underlying transport not ready
     }
     if( connection.getOutgoingMessageQueue().getTotalSize() < 1 ) {
@@ -57,8 +58,8 @@ public class SinglePeerUploader implements RateControlledEntity {
     return true;
   }
   
-  public boolean doProcessing() {
-    if( !connection.getTCPTransport().isReadyForWrite() )  {
+  public boolean doProcessing(EventWaiter waiter) {
+    if( !connection.getTCPTransport().isReadyForWrite(waiter) )  {
       Debug.out("dW:not ready");
       return false;
     }

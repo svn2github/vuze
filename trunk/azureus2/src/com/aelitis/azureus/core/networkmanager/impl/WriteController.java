@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.networkmanager.EventWaiter;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 
 
@@ -41,9 +42,10 @@ public class WriteController {
   private int next_normal_position = 0;
   private int next_high_position = 0;
   
-  private static final int IDLE_SLEEP_TIME  = 25;
+  private static final int IDLE_SLEEP_TIME  = 50;
   private static final int SELECT_LOOP_TIME = 25;
   
+  private EventWaiter 	write_waiter = new EventWaiter();
   
   /**
    * Create a new write controller.
@@ -94,7 +96,7 @@ public class WriteController {
           check_high_first = false;
           if( !doHighPriorityWrite() ) {
             if( !doNormalPriorityWrite() ) {
-              try {  Thread.sleep( IDLE_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+              write_waiter.waitForEvent( IDLE_SLEEP_TIME );
             }
           }
         }
@@ -102,7 +104,7 @@ public class WriteController {
           check_high_first = true;
           if( !doNormalPriorityWrite() ) {
             if( !doHighPriorityWrite() ) {
-              try {  Thread.sleep( IDLE_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+            	write_waiter.waitForEvent( IDLE_SLEEP_TIME );
             }
           }
         }
@@ -116,7 +118,7 @@ public class WriteController {
   
   private boolean doNormalPriorityWrite() {
     RateControlledEntity ready_entity = getNextReadyNormalPriorityEntity();
-    if( ready_entity != null && ready_entity.doProcessing() ) {
+    if( ready_entity != null && ready_entity.doProcessing( write_waiter ) ) {
       return true;
     }
     return false;
@@ -124,7 +126,7 @@ public class WriteController {
   
   private boolean doHighPriorityWrite() {
     RateControlledEntity ready_entity = getNextReadyHighPriorityEntity();
-    if( ready_entity != null && ready_entity.doProcessing() ) {
+    if( ready_entity != null && ready_entity.doProcessing( write_waiter ) ) {
       return true;
     }
     return false;
@@ -142,7 +144,7 @@ public class WriteController {
       RateControlledEntity entity = (RateControlledEntity)ref.get( next_normal_position );
       next_normal_position++;
       num_checked++;
-      if( entity.canProcess() ) {  //is ready
+      if( entity.canProcess( write_waiter ) ) {  //is ready
         return entity;
       }
     }
@@ -162,7 +164,7 @@ public class WriteController {
       RateControlledEntity entity = (RateControlledEntity)ref.get( next_high_position );
       next_high_position++;
       num_checked++;
-      if( entity.canProcess() ) {  //is ready
+      if( entity.canProcess( write_waiter ) ) {  //is ready
         return entity;
       }
     }

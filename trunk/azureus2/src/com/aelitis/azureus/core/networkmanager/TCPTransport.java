@@ -69,7 +69,7 @@ public interface TCPTransport {
    * i.e. will a write request result in >0 bytes written.
    * @return true if the transport is write ready, false if not yet ready
    */
-  public boolean isReadyForWrite();
+  public boolean isReadyForWrite( EventWaiter waiter );
   
   
   /**
@@ -77,7 +77,7 @@ public interface TCPTransport {
    * i.e. will a read request result in >0 bytes read.
    * @return true if the transport is read ready, false if not yet ready
    */
-  public boolean isReadyForRead();
+  public boolean isReadyForRead( EventWaiter waiter );
     
   
   /**

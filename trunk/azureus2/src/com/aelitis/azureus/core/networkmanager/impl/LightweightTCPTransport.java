@@ -26,6 +26,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import com.aelitis.azureus.core.networkmanager.EventWaiter;
 import com.aelitis.azureus.core.networkmanager.TCPTransport;
 
 
@@ -64,8 +65,8 @@ public class LightweightTCPTransport implements TCPTransport {
   
   
   public void setAlreadyRead( ByteBuffer bytes_already_read ){ 	throw new RuntimeException( "not implemented" );  }
-  public boolean isReadyForWrite(){  throw new RuntimeException( "not implemented" );  }  
-  public boolean isReadyForRead(){  throw new RuntimeException( "not implemented" );  }  
+  public boolean isReadyForWrite(EventWaiter waiter){  throw new RuntimeException( "not implemented" );  }  
+  public boolean isReadyForRead(EventWaiter waiter){  throw new RuntimeException( "not implemented" );  }  
   public void establishOutboundConnection( final InetSocketAddress address, final ConnectListener listener ){ throw new RuntimeException( "not implemented" ); }  
   public void setTransportMode( int mode ){ throw new RuntimeException( "not implemented" ); } 
   public int getTransportMode(){ throw new RuntimeException( "not implemented" );  }

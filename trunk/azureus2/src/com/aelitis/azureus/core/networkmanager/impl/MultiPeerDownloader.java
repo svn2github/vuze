@@ -88,7 +88,7 @@ public class MultiPeerDownloader implements RateControlledEntity {
 
 
   
-  public boolean canProcess() {
+  public boolean canProcess( EventWaiter waiter ) {
     if( main_handler.getCurrentNumBytesAllowed() < 1/*NetworkManager.getTcpMssSize()*/ )  return false;
 
     return true;
@@ -97,7 +97,7 @@ public class MultiPeerDownloader implements RateControlledEntity {
   
   
   
-  public boolean doProcessing() {
+  public boolean doProcessing( EventWaiter waiter ) {
     int num_bytes_allowed = main_handler.getCurrentNumBytesAllowed();
     if( num_bytes_allowed < 1 )  return false;
 
@@ -112,7 +112,7 @@ public class MultiPeerDownloader implements RateControlledEntity {
       next_position++;
       num_checked++;
       
-      if( connection.getTCPTransport().isReadyForRead() ) {
+      if( connection.getTCPTransport().isReadyForRead( waiter ) ) {
         int allowed = num_bytes_remaining > NetworkManager.getTcpMssSize() ? NetworkManager.getTcpMssSize() : num_bytes_remaining;
           
         int bytes_read = 0;
