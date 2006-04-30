@@ -333,4 +333,8 @@ public class TableRowImpl
         cell.setUpToDate(upToDate);
     }
 	}
+
+	public String toString() {
+		return "TableRowImpl@" + Integer.toHexString(hashCode()) + "/#" + getIndex();
+	}
 }

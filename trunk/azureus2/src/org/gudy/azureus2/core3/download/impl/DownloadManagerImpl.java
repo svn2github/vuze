@@ -2631,7 +2631,19 @@ DownloadManagerImpl
 	}
 	
 	public String toString() {
-		return "DownloadManagerImpl@" + Integer.toHexString(hashCode());
+		String hash = "<unknown>";
+
+		try {
+			hash = ByteFormatter.encodeString(torrent.getHash());
+
+		} catch (Throwable e) {
+		}
+
+		return "DownloadManagerImpl@" + Integer.toHexString(hashCode()) + "/#"
+				+ getPosition() + (getOnlySeeding() ? "S" : "D") + "/" + getSize()
+				+ "/" + hash + "/Listeners:L=" + listeners.size() + ";DL="
+				+ controller.getDiskListenerCount() + ";PL=" + peer_listeners.size()
+				+ ";TL=" + tracker_listeners.size();
 	}
 	
 	protected static class

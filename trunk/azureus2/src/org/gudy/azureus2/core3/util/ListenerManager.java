@@ -35,6 +35,10 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+
 
 public class 
 ListenerManager
@@ -104,7 +108,18 @@ ListenerManager
 			
 			ArrayList	new_listeners	= new ArrayList( listeners );
 			
+			if (new_listeners.contains(listener)) {
+				Logger.log(new LogEvent(LogIDs.CORE, LogEvent.LT_WARNING,
+						"addListener called but listener already added for " + name
+								+ "\n\t" + Debug.getStackTrace(true, false)));
+			}
 			new_listeners.add( listener );
+			
+			if (new_listeners.size() > 50) {
+				Logger.log(new LogEvent(LogIDs.CORE, LogEvent.LT_WARNING,
+						"addListener: over 50 listeners added for " + name
+								+ "\n\t" + Debug.getStackTrace(true, false)));
+			}
 			
 			listeners	= new_listeners;
 			
@@ -538,6 +553,13 @@ ListenerManager
 				Debug.out( "Listener dispatch timeout: failed = " + str );
 			}
 		}
+	}
+	
+	public long size() {
+		if (listeners == null)
+			return 0;
+
+		return listeners.size();
 	}
 }
 

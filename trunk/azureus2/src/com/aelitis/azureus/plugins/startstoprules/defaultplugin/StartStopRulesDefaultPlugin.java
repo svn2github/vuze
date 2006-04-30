@@ -22,12 +22,11 @@
 package com.aelitis.azureus.plugins.startstoprules.defaultplugin;
 
 import java.util.*;
+import java.util.Timer;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -64,7 +63,7 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt.StartStop
  * "See"
  */
 public class StartStopRulesDefaultPlugin
-       implements Plugin, COConfigurationListener
+       implements Plugin, COConfigurationListener, AEDiagnosticsEvidenceGenerator
 {
   // for debugging
   private static final String sStates = " WPRDS.XEQ";
@@ -159,6 +158,8 @@ public class StartStopRulesDefaultPlugin
     	bAlreadyInitialized = true;
   	}
   	
+		AEDiagnostics.addEvidenceGenerator( this );
+
     startedOn = SystemTime.getCurrentTime();
     changeCheckerTimer = new Timer(true);
 
@@ -1591,5 +1592,18 @@ public class StartStopRulesDefaultPlugin
   	somethingChanged = true;
   }
 
+	public void generate(IndentWriter writer) {
+		writer.println("StartStopRules Manager");
+
+		try {
+			writer.indent();
+			writer.println("downloadDataMap size = " + downloadDataMap.size());
+			
+		} catch (Exception e) {
+			// ignore
+		} finally {
+			writer.exdent();
+		}
+	}
 } // class
 

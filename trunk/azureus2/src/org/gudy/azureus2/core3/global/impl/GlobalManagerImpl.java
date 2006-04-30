@@ -2138,18 +2138,7 @@ public class GlobalManagerImpl
 				
 				DownloadManager	manager = (DownloadManager)managers_cow.get(i);
 				
-				TOTorrent	torrent = manager.getTorrent();
-				
-				String	hash = "<unknown>";
-				
-				try{
-					hash = ByteFormatter.encodeString( torrent.getHash());
-					
-				}catch( Throwable e ){
-				}
-				
-				writer.println("    #" + manager.getPosition() + "/"
-						+ manager.getSize() + "/" + hash + " (" + manager + ")");
+				writer.println("    " + manager);
 			}
 
 	    }finally{

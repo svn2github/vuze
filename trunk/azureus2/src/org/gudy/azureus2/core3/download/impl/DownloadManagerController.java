@@ -1227,6 +1227,10 @@ DownloadManagerController
 	  	}
 	}
 	
+	public long getDiskListenerCount() {
+		return disk_listeners.size();
+	}
+	
 	public String
 	getDisplayName()
 	{
