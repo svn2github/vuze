@@ -28,14 +28,16 @@ import java.io.IOException;
 
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.dht.impl.DHTLog;
+
 public class 
 DHTNetworkPositionManager 
 {
 	private static DHTNetworkPositionProvider[]	providers = new DHTNetworkPositionProvider[0];
 	
-	public static void
+	public static DHTNetworkPositionProviderInstance
 	registerProvider(
-		DHTNetworkPositionProvider	provider )
+		final DHTNetworkPositionProvider	provider )
 	{
 		synchronized( providers ){
 			
@@ -47,6 +49,16 @@ DHTNetworkPositionManager
 			
 			providers	= p;
 		}
+		
+		return( new DHTNetworkPositionProviderInstance()
+				{	
+					public void
+					log(
+						String		log )
+					{
+						DHTLog.log("NetPos " + provider.getPositionType() + ": " + log );
+					}
+				});
 	}
 	
 	public static DHTNetworkPosition[]
@@ -187,7 +199,11 @@ DHTNetworkPositionManager
 			if ( prov[i].getPositionType() == position_type ){
 				
 				try{
-					return( prov[i].deserialise( is ));
+					DHTNetworkPosition np = prov[i].deserialise( is );
+					
+					System.out.println( "Deserialised: " + np.getPositionType());
+					
+					return( np );
 					
 				}catch( Throwable e ){
 					
