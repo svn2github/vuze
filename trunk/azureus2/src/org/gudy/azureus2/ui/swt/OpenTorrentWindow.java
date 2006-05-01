@@ -336,7 +336,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 					String sClipText = (String) clipboard.getContents(TextTransfer
 							.getInstance());
 					if (sClipText != null) {
-						addTorrentsFromTextList(sClipText, false);
+						addTorrentsFromTextList(sClipText.trim(), false);
 					}
 				}
 			});
