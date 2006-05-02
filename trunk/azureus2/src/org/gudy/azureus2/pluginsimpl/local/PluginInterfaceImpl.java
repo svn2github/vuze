@@ -34,6 +34,7 @@ import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.installer.PluginInstallerImpl;
+import org.gudy.azureus2.pluginsimpl.local.ipc.IPCInterfaceImpl;
 import org.gudy.azureus2.pluginsimpl.local.ipfilter.IPFilterImpl;
 import org.gudy.azureus2.pluginsimpl.local.logging.LoggerImpl;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageManagerImpl;
@@ -48,6 +49,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.config.ParameterRepository;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.PluginConfigUIFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
@@ -97,7 +99,7 @@ PluginInterfaceImpl
   private boolean				operational;
   private boolean				disabled;
   private Logger				logger;
-   
+  private IPCInterface			ipc_interface;
   private List					children		= new ArrayList();
   
   public 
@@ -123,6 +125,7 @@ PluginInterfaceImpl
     config 				= new PluginConfigImpl(this,pluginConfigKey);
     plugin_id			= _plugin_id;
     plugin_version		= _plugin_version;
+    ipc_interface		= new IPCInterfaceImpl( plugin );
   }
   
   	public Plugin
@@ -672,6 +675,12 @@ PluginInterfaceImpl
 		}
 	}
 	
+	 public IPCInterface 
+	 getIPC() 
+	 {
+		 return( ipc_interface );
+	 }
+	 
   public void
   addListener(
   	PluginListener	l )

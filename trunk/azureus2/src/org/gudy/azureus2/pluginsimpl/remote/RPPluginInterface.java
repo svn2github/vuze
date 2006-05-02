@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
 import org.gudy.azureus2.plugins.clientid.ClientIDManager;
@@ -464,6 +465,14 @@ RPPluginInterface
 	getLocalPluginInterface(
 		Class		plugin,
 		String		id )
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
+	public IPCInterface
+	getIPC ()
 	{
 		notSupported();
 		

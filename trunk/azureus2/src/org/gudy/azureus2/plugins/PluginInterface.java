@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.download.DownloadManager;
@@ -365,6 +366,14 @@ public interface PluginInterface {
 	String		id )
   
   	throws PluginException;
+  
+  	/**
+  	 * get the inter-plugin-communcations interface for this plugin
+  	 * @return
+  	 */
+  
+  public IPCInterface
+  getIPC ();
   
   /**
    * Gives access to the plugin itself
