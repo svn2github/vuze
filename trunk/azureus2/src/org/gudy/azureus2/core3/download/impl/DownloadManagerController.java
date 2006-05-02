@@ -68,6 +68,8 @@ DownloadManagerController
 	extends LogRelation
 	implements PEPeerManagerAdapter
 {
+	private static long skeleton_builds;
+	
 		// DISK listeners
 	
 	private static final int LDT_DL_ADDED		= 1;
@@ -1474,6 +1476,13 @@ DownloadManagerController
    					// incomplete fixup logic here + instantiate new skeletons.....
    				
 	   			try{
+	   				skeleton_builds++;
+	   				
+	   				if ( skeleton_builds % 1000 == 0 ){
+	   					
+	   					Debug.outNoStack( "Skeleton builds: " + skeleton_builds );
+	   				}
+	   				
 	   				active = DiskManagerFactory.getFileInfoSkeleton( 
 							download_manager,
 							new DiskManagerListener()
