@@ -47,6 +47,7 @@ import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionProvider;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandler;
@@ -1262,6 +1263,8 @@ DHTTransportUDPImpl
 			final DHTUDPPacketRequestStats	request = 
 				new DHTUDPPacketRequestStats( this, connection_id, local_contact, contact );
 				
+			// request.setStatsType( DHTUDPPacketRequestStats.STATS_TYPE_NP_VER2 );
+			
 			stats.statsSent( request );
 
 			requestSendRequestProcessor( contact, request );
@@ -1291,7 +1294,15 @@ DHTTransportUDPImpl
 
 							stats.statsOK();
 							
-							handler.statsReply( contact, reply.getStats());
+							if ( reply.getStatsType() == DHTUDPPacketRequestStats.STATS_TYPE_ORIGINAL ){
+								
+								handler.statsReply( contact, reply.getOriginalStats());
+							}else{
+								
+								// currently no handler for new stats
+								
+								System.out.println( "new stats reply:" + reply.getString());
+							}
 						
 						}catch( DHTUDPPacketHandlerException e ){
 							
@@ -2908,8 +2919,8 @@ DHTTransportUDPImpl
 					}
 				}else if ( request instanceof DHTUDPPacketRequestStats ){
 					
-					DHTTransportFullStats	full_stats = request_handler.statsRequest( originating_contact );
-					
+					DHTUDPPacketRequestStats	stats_request = (DHTUDPPacketRequestStats)request;
+										
 					DHTUDPPacketReplyStats	reply = 
 						new DHTUDPPacketReplyStats(
 								this,
@@ -2918,7 +2929,39 @@ DHTTransportUDPImpl
 								local_contact,
 								originating_contact );
 					
-					reply.setStats( full_stats );
+					int	type = stats_request.getStatsType();
+					
+					if ( type == DHTUDPPacketRequestStats.STATS_TYPE_ORIGINAL ){
+						
+						DHTTransportFullStats	full_stats = request_handler.statsRequest( originating_contact );
+
+						reply.setOriginalStats( full_stats );
+						
+					}else if ( type == DHTUDPPacketRequestStats.STATS_TYPE_NP_VER2 ){
+						
+						DHTNetworkPositionProvider prov = DHTNetworkPositionManager.getProvider( DHTNetworkPosition.POSITION_TYPE_VIVALDI_V2 );
+						
+						byte[]	data = new byte[0];
+						
+						if ( prov != null ){
+							
+							ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+							
+							DataOutputStream	dos = new DataOutputStream( baos );
+							
+							prov.serialiseStats( dos );
+							
+							dos.flush();
+							
+							data = baos.toByteArray();
+						}
+						
+						reply.setNewStats( data, DHTNetworkPosition.POSITION_TYPE_VIVALDI_V2 );
+						
+					}else{
+						
+						throw( new IOException( "Uknown stats type '" + type + "'" ));
+					}
 					
 					requestReceiveReplyProcessor( originating_contact, reply );
 

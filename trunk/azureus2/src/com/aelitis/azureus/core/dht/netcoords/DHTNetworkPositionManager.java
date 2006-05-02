@@ -61,6 +61,24 @@ DHTNetworkPositionManager
 				});
 	}
 	
+	public static DHTNetworkPositionProvider
+	getProvider(
+		byte		type )
+	{
+		synchronized( providers ){
+
+			for (int i=0;i<providers.length;i++){
+				
+				if ( providers[i].getPositionType() == type ){
+					
+					return( providers[i] );
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
 	public static DHTNetworkPosition[]
 	createPositions(
 		byte[]		ID,
@@ -199,9 +217,9 @@ DHTNetworkPositionManager
 			if ( prov[i].getPositionType() == position_type ){
 				
 				try{
-					DHTNetworkPosition np = prov[i].deserialise( is );
+					DHTNetworkPosition np = prov[i].deserialisePosition( is );
 					
-					System.out.println( "Deserialised: " + np.getPositionType());
+					// System.out.println( "Deserialised: " + np.getPositionType());
 					
 					return( np );
 					

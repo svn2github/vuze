@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht.netcoords;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 public interface 
@@ -37,8 +38,14 @@ DHTNetworkPositionProvider
 		boolean		is_local );
 	
 	public DHTNetworkPosition
-	deserialise(
+	deserialisePosition(
 		DataInputStream		is )
 	
 		throws IOException;	
+	
+	public void
+	serialiseStats(
+		DataOutputStream	os )
+	
+		throws IOException;
 }

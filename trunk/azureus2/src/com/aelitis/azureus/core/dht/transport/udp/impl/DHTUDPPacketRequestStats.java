@@ -26,6 +26,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 
 
@@ -38,6 +39,11 @@ public class
 DHTUDPPacketRequestStats 
 	extends DHTUDPPacketRequest
 {
+	public static final int	STATS_TYPE_ORIGINAL			= 1;
+	public static final int	STATS_TYPE_NP_VER2			= 2;
+	
+	private int	stats_type	= STATS_TYPE_ORIGINAL;
+	
 	public
 	DHTUDPPacketRequestStats(
 		DHTTransportUDPImpl				_transport,
@@ -59,6 +65,11 @@ DHTUDPPacketRequestStats
 	{
 		super( network_handler, is,  DHTUDPPacketHelper.ACT_REQUEST_STATS, con_id, trans_id );
 		
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_GENERIC_NETPOS ){
+
+			stats_type	= is.readInt();
+		}
+		
 		super.postDeserialise(is);
 	}
 	
@@ -70,7 +81,25 @@ DHTUDPPacketRequestStats
 	{
 		super.serialise(os);
 		
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_GENERIC_NETPOS ){
+
+			os.writeInt( stats_type );
+		}
+		
 		super.postSerialise( os );
+	}
+	
+	public void
+	setStatsType(
+		int		_type )
+	{
+		stats_type	= _type;
+	}
+	
+	public int
+	getStatsType()
+	{
+		return( stats_type );
 	}
 	
 	public String

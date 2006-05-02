@@ -30,13 +30,17 @@ import java.io.*;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 
 public class 
 DHTUDPPacketReplyStats
 	extends DHTUDPPacketReply
 {
-	private DHTTransportFullStats		stats;
+	private int							stats_type = DHTUDPPacketRequestStats.STATS_TYPE_ORIGINAL;
+	
+	private DHTTransportFullStats		original_stats;
+	private byte[]						new_stats;
 	
 	public
 	DHTUDPPacketReplyStats(
@@ -59,20 +63,57 @@ DHTUDPPacketReplyStats
 	{
 		super( network_handler, is, DHTUDPPacketHelper.ACT_REPLY_STATS, trans_id );
 		
-		stats = DHTUDPUtils.deserialiseStats( getProtocolVersion(), is );
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_GENERIC_NETPOS ){
+
+			stats_type = is.readInt();
+			
+			if ( stats_type == DHTUDPPacketRequestStats.STATS_TYPE_ORIGINAL ){
+				
+				original_stats = DHTUDPUtils.deserialiseStats( getProtocolVersion(), is );
+				
+			}else{
+				
+				new_stats = DHTUDPUtils.deserialiseByteArray( is, 65535 );
+			}
+		}else{
+			
+			original_stats = DHTUDPUtils.deserialiseStats( getProtocolVersion(), is );
+		}
+	}
+	
+	public int
+	getStatsType()
+	{
+		return( stats_type );
 	}
 	
 	public DHTTransportFullStats
-	getStats()
+	getOriginalStats()
 	{
-		return( stats );
+		return( original_stats );
 	}
 	
 	public void
-	setStats(
+	setOriginalStats(
 		DHTTransportFullStats	_stats )
 	{
-		stats	= _stats;
+		stats_type		= DHTUDPPacketRequestStats.STATS_TYPE_ORIGINAL;
+		original_stats	= _stats;
+	}
+	
+	public byte[]
+	getNewStats()
+	{
+		return( new_stats );
+	}
+	
+	public void
+	setNewStats(
+		byte[]					_stats,
+		int						_stats_type )
+	{
+		stats_type		= _stats_type;
+		new_stats		= _stats;
 	}
 	
 	public void
@@ -83,6 +124,22 @@ DHTUDPPacketReplyStats
 	{
 		super.serialise(os);
 		
-		DHTUDPUtils.serialiseStats( getProtocolVersion(), os, stats );
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_GENERIC_NETPOS ){
+
+			os.writeInt( stats_type );
+			
+			if ( stats_type == DHTUDPPacketRequestStats.STATS_TYPE_ORIGINAL ){
+				
+				DHTUDPUtils.serialiseStats( getProtocolVersion(), os, original_stats );
+				
+			}else{
+				
+				DHTUDPUtils.serialiseByteArray( os, new_stats, 65535 );
+			}
+			
+		}else{
+			
+			DHTUDPUtils.serialiseStats( getProtocolVersion(), os, original_stats );
+		}
 	}
 }

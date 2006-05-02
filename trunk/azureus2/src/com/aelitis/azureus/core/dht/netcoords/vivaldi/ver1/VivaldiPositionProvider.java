@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
@@ -47,7 +48,7 @@ VivaldiPositionProvider
 	}
 	
 	public DHTNetworkPosition
-	deserialise(
+	deserialisePosition(
 		DataInputStream		is )
 	
 		throws IOException
@@ -64,5 +65,13 @@ VivaldiPositionProvider
 		pos.fromFloatArray( data );
 		
 		return( pos );
+	}
+	
+	public void
+	serialiseStats(
+		DataOutputStream	os )
+	
+		throws IOException
+	{	
 	}
 }
