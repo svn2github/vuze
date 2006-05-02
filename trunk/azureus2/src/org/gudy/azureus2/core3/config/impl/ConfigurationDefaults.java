@@ -128,6 +128,7 @@ public class ConfigurationDefaults {
     def.put( "enable.seedingonly.upload.rate", FALSE );
     def.put( "Auto Upload Speed Enabled", FALSE );
     def.put( "Auto Upload Speed Seeding Enabled", FALSE );
+    def.put( "Auto Upload Speed Debug Enabled", FALSE );
     
     def.put( "LAN Speed Enabled", TRUE );
     def.put( "Max LAN Download Speed KBs", new Long(0) );

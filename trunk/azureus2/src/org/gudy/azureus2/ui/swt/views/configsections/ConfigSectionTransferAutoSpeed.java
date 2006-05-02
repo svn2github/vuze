@@ -117,6 +117,13 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 			choke_ping.setLayoutData(gridData);
 			Label llcp = new Label(cSection, SWT.NULL);
 			Messages.setLanguageText( llcp, CFG_PREFIX + "chokeping" );
+			
+			BooleanParameter debug_au = new BooleanParameter(
+					cSection, "Auto Upload Speed Debug Enabled", false,
+					CFG_PREFIX + "enabledebug" );
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			debug_au.setLayoutData(gridData);
 		}
 
 		return cSection;

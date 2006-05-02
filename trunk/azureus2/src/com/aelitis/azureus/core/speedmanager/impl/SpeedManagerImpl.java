@@ -63,14 +63,16 @@ SpeedManagerImpl
 	private static final String	CONFIG_MIN_UP		= "AutoSpeed Min Upload KBs";
 	private static final String	CONFIG_MAX_UP		= "AutoSpeed Max Upload KBs";
 	private static final String	CONFIG_CHOKE_PING	= "AutoSpeed Choking Ping Millis";
+	private static final String	CONFIG_DEBUG		= "Auto Upload Speed Debug Enabled";
 	
 	private static final String[]	CONFIG_PARAMS = {
-		CONFIG_MIN_UP, CONFIG_MAX_UP, CONFIG_CHOKE_PING };
+		CONFIG_MIN_UP, CONFIG_MAX_UP, CONFIG_CHOKE_PING, CONFIG_DEBUG };
 		
 	private static int					PING_CHOKE_TIME;
 	private static int					MIN_UP;
 	private static int					MAX_UP;
-
+	private static boolean				DEBUG;
+	
 	static{
 		COConfigurationManager.addAndFireParameterListeners(
 				CONFIG_PARAMS,
@@ -83,6 +85,7 @@ SpeedManagerImpl
 						PING_CHOKE_TIME	= COConfigurationManager.getIntParameter( CONFIG_CHOKE_PING );
 						MIN_UP			= COConfigurationManager.getIntParameter( CONFIG_MIN_UP ) * 1024;
 						MAX_UP			= COConfigurationManager.getIntParameter( CONFIG_MAX_UP ) * 1024;
+						DEBUG			= COConfigurationManager.getBooleanParameter( CONFIG_DEBUG );
 					}
 				});
 		
@@ -198,7 +201,7 @@ SpeedManagerImpl
 							contact.destroy();
 							
 						}else{
-							System.out.println( "activePing: " + contact.getContact().getString());
+							log( "activePing: " + contact.getContact().getString());
 							
 							contact.setPingPeriod( CONTACT_PING_SECS );
 							
@@ -238,7 +241,7 @@ SpeedManagerImpl
 									contactDied(
 										DHTSpeedTesterContact	contact )
 									{
-										System.out.println( "deadPing: " + contact.getContact().getString());
+										log( "deadPing: " + contact.getContact().getString());
 										
 										synchronized( contacts ){
 											
@@ -385,7 +388,7 @@ SpeedManagerImpl
 				
 				idle_average	= Math.max( running_average, MIN_IDLE_AVERAGE );
 
-				System.out.println( "New idle average: " + idle_average );
+				log( "New idle average: " + idle_average );
 				
 				idle_average_set	= true;
 			}
@@ -395,7 +398,7 @@ SpeedManagerImpl
 				
 				max_upload_average	= up_average;
 				
-				System.out.println( "New max upload:" +  max_upload_average );
+				log( "New max upload:" +  max_upload_average );
 			}
 			
 			idle_ticks	= 0;
@@ -414,7 +417,7 @@ SpeedManagerImpl
 
 		int	new_limit	= current_limit;
 
-		System.out.println( 
+		log( 
 				"Pings: " + str + ", average=" + ping_average +", running_average=" + running_average +
 				",idle_average=" + idle_average + ", speed=" + current_speed + ",limit=" + current_limit +
 				",choke = " + (int)choke_speed_average.getAverage());
@@ -434,7 +437,7 @@ SpeedManagerImpl
 			
 			if ( idle_average_set || mode_ticks > FORCED_MIN_TICKS ){
 				
-				System.out.println( "Mode -> running" );
+				log( "Mode -> running" );
 
 				if ( !idle_average_set ){
 					
@@ -465,7 +468,7 @@ SpeedManagerImpl
 					// we've been running a while but no min set, or we've got some new untested 
 					// contacts - force it
 				
-				System.out.println( "Mode -> forced min" );
+				log( "Mode -> forced min" );
 				
 				mode		= MODE_FORCED_MIN;
 				mode_ticks	= 0;
@@ -689,6 +692,16 @@ SpeedManagerImpl
 	getMaxUploadSpeed()
 	{
 		return( max_upload_average );
+	}
+	
+	protected void
+	log(
+		String		str )
+	{
+		if ( DEBUG ){
+			
+			System.out.println( str );
+		}
 	}
 	
 	protected class
