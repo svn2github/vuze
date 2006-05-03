@@ -93,7 +93,7 @@ LocaleUtilDecoderFallback
 			return( null );
 		}
 		
-		String	res = "";
+		StringBuffer	res = new StringBuffer( data.length*2 );
 		
 		for (int i=0;i<data.length;i++){
 			
@@ -101,11 +101,12 @@ LocaleUtilDecoderFallback
 			
 			if ( VALID_CHARS.indexOf( Character.toLowerCase((char)c)) != -1 ){
 				
-				res += (char)c;
+				res.append((char)c);
 				
 			}else{
 				
-				res += "_" + ByteFormatter.nicePrint(c);
+				res.append( "_" );
+				res.append( ByteFormatter.nicePrint(c));
 			}
 		}
 		
@@ -137,6 +138,10 @@ LocaleUtilDecoderFallback
 						if ( fileLengthOK( i )){
 							
 							max_ok_name_length	= i;
+							
+						}else{
+							
+							break;
 						}
 					}
 					
@@ -166,33 +171,35 @@ LocaleUtilDecoderFallback
 				
 				String	hash_str = ByteFormatter.nicePrint( hash, true );
 				
-				res = res.substring( 
+				res = new StringBuffer(res.substring( 
 							0, 
-							max_ok_name_length - hash_str.length() - (extension == null?0:extension.length())) + hash_str;
+							max_ok_name_length - hash_str.length() - (extension == null?0:extension.length())));
+				
+				res.append( hash_str );
 				
 				if ( extension != null ){
 					
-					res += extension;
+					res.append( extension );
 				}
 			}
 		}
 		
-		return( res );
+		return( res.toString());
 	}
 	
 	protected boolean
 	fileLengthOK(
 		int		len )
 	{
-		String n = "";
+		StringBuffer n = new StringBuffer( len );
 		
 		for (int i=0;i<len;i++){
 			
-			n += "A";
+			n.append( "A" );
 		}
-		
+				
 		try{
-			File f = File.createTempFile( n, "" );
+			File f = File.createTempFile( n.toString(), "" );
 						
 			f.delete();
 			
