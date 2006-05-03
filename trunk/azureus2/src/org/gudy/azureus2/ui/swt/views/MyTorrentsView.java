@@ -1622,6 +1622,22 @@ public class MyTorrentsView
 		});
 		itemStop.setEnabled(stop);
 
+		// Force Recheck
+		final MenuItem itemRecheck = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemRecheck, "MyTorrentsView.menu.recheck");
+		Utils.setMenuItemImage(itemRecheck, "recheck");
+		itemRecheck.addListener(SWT.Selection, new SelectedTableRowsListener() {
+			public void run(TableRowCore row) {
+				DownloadManager dm = (DownloadManager) row.getDataSource(true);
+
+				if (dm.canForceRecheck()) {
+
+					dm.forceRecheck();
+				}
+			}
+		});
+		itemRecheck.setEnabled(recheck);
+		
 		// Remove
 		final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
@@ -1675,22 +1691,6 @@ public class MyTorrentsView
 				removeTorrent((DownloadManager) row.getDataSource(true), true, true);
 			}
 		});
-
-		// Force Recheck
-		final MenuItem itemRecheck = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemRecheck, "MyTorrentsView.menu.recheck");
-		Utils.setMenuItemImage(itemRecheck, "recheck");
-		itemRecheck.addListener(SWT.Selection, new SelectedTableRowsListener() {
-			public void run(TableRowCore row) {
-				DownloadManager dm = (DownloadManager) row.getDataSource(true);
-
-				if (dm.canForceRecheck()) {
-
-					dm.forceRecheck();
-				}
-			}
-		});
-		itemRecheck.setEnabled(recheck);
   }
   
   public void fillMenu(final Menu menu) {
