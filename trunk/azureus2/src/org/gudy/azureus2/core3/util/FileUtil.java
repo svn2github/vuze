@@ -340,7 +340,10 @@ public class FileUtil {
 		
 		if ( Constants.isWindows ){
 			
-			file_name_out	= file_name_out.trim();
+			while( file_name_out.endsWith( " " )){
+				
+				file_name_out = file_name_out.substring(0,file_name_out.length()-1);
+			}
 			
 		}else{
 			
