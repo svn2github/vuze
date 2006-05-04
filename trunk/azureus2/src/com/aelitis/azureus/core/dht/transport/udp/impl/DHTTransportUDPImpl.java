@@ -3268,7 +3268,7 @@ DHTTransportUDPImpl
 	
 	protected void
 	requestSendReplyProcessor(
-		DHTTransportUDPContactImpl	contact,
+		DHTTransportUDPContactImpl	remote_contact,
 		DHTTransportReplyHandler	handler,
 		DHTUDPPacketReply			reply,
 		long						elapsed_time )
@@ -3283,13 +3283,13 @@ DHTTransportUDPImpl
 		
 		if ( remote_nps != null ){
 			
-				// update local positions
-			
-			DHTNetworkPositionManager.update( local_contact.getNetworkPositions(), remote_nps, (float)elapsed_time );
-						
 				// save current position of target
 			
-			contact.setNetworkPositions( remote_nps );
+			remote_contact.setNetworkPositions( remote_nps );
+
+				// update local positions
+			
+			DHTNetworkPositionManager.update( local_contact.getNetworkPositions(), remote_contact.getID(), remote_nps, (float)elapsed_time );						
 		}
 		
 		if ( reply.getAction() == DHTUDPPacketHelper.ACT_REPLY_ERROR ){
@@ -3301,7 +3301,7 @@ DHTTransportUDPImpl
 				case DHTUDPPacketReplyError.ET_ORIGINATOR_ADDRESS_WRONG:
 				{
 					try{
-						externalAddressChange( contact, error.getOriginatingAddress());
+						externalAddressChange( remote_contact, error.getOriginatingAddress());
 						
 					}catch( DHTTransportException e ){
 						
@@ -3312,9 +3312,9 @@ DHTTransportUDPImpl
 				}
 				case DHTUDPPacketReplyError.ET_KEY_BLOCKED:
 				{
-					handler.keyBlockRequest( contact, error.getKeyBlockRequest(), error.getKeyBlockSignature());
+					handler.keyBlockRequest( remote_contact, error.getKeyBlockRequest(), error.getKeyBlockSignature());
 					
-					contactAlive( contact );
+					contactAlive( remote_contact );
 					
 					throw( new DHTUDPPacketHandlerException( "key blocked" ));
 				}
@@ -3324,7 +3324,7 @@ DHTTransportUDPImpl
 			
 		}else{
 			
-			contactAlive( contact );
+			contactAlive( remote_contact );
 		}
 	}
 	

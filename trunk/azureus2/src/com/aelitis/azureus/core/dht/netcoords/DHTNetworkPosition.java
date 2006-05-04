@@ -53,6 +53,7 @@ DHTNetworkPosition
 	
 	public void
 	update(
+		byte[]				other_id,
 		DHTNetworkPosition	other,
 		float				rtt );
 	

@@ -193,6 +193,7 @@ public class VivaldiPositionImpl implements VivaldiPosition{
   
   public void
   update(
+	byte[]				_other_id,
 	DHTNetworkPosition	_other,
 	float				rtt )
   {

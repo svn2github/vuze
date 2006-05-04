@@ -176,6 +176,7 @@ DHTNetworkPositionManager
 	public static void
 	update(
 		DHTNetworkPosition[]	local_positions,
+		byte[]					remote_id,
 		DHTNetworkPosition[]	remote_positions,
 		float					rtt )
 	{	
@@ -190,7 +191,7 @@ DHTNetworkPositionManager
 				if ( p1.getPositionType() == p2.getPositionType()){
 					
 					try{
-						p1.update( p2, rtt );
+						p1.update( remote_id, p2, rtt );
 						
 					}catch( Throwable e ){
 						
