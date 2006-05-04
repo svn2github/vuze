@@ -489,6 +489,20 @@ ExternalSeedPeer
 			
 			connection_mon.exit();
 		}
+		
+		try{
+			listenerListMon.enter();
+			
+			if ( availabilityAdded ){
+				
+				fireEvent( PeerEvent.ET_REMOVE_AVAILABILITY, getAvailable());
+				
+				availabilityAdded	= false;
+			}
+		}finally{
+			
+			listenerListMon.exit();
+		}
 	}
 	
 
