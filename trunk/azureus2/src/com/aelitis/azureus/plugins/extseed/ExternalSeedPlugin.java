@@ -198,7 +198,7 @@ ExternalSeedPlugin
 		
 		for (int i=0;i<factories.length;i++){
 			
-			ExternalSeedReader[]	x = factories[i].getSeedReaders( this, download );
+			ExternalSeedReader[]	x = factories[i].getSeedReaders( this, download, config );
 			
 			for (int j=0;j<x.length;j++){
 				
