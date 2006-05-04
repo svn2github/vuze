@@ -54,6 +54,10 @@ ExternalSeedReader
 	isActive();
 	
 	public boolean
+	sameAs(
+		ExternalSeedReader	other );
+	
+	public boolean
 	checkActivation(
 		PeerManager		peer_manager,
 		Peer			peer );

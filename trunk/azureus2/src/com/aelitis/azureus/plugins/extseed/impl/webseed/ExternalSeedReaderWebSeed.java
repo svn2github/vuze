@@ -34,6 +34,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
 import com.aelitis.azureus.plugins.extseed.impl.ExternalSeedReaderImpl;
 import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloader;
 
@@ -77,6 +78,18 @@ ExternalSeedReaderWebSeed
 			
 			Debug.printStackTrace(e);
 		}
+	}
+	
+	public boolean
+	sameAs(
+		ExternalSeedReader	other )
+	{
+		if ( other instanceof ExternalSeedReaderWebSeed ){
+			
+			return( url.toString().equals(((ExternalSeedReaderWebSeed)other).url.toString()));
+		}
+		
+		return( false );
 	}
 	
 	public String

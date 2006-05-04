@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.extseed;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
@@ -86,6 +87,13 @@ ExternalSeedPeer
 		listenerListMon	= plugin.getPluginInterface().getUtilities().getMonitor();
 		
 		_reader.addListener( this );
+	}
+	
+	protected boolean
+	sameAs(
+		ExternalSeedPeer	other )
+	{
+		return( reader.sameAs( other.reader ));
 	}
 	
 	protected void
@@ -177,9 +185,16 @@ ExternalSeedPeer
 		try{
 			listenerListMon.enter();
 
-			fireEvent( PeerEvent.ET_ADD_AVAILABILITY, getAvailable());
-		
-			availabilityAdded	= true;
+			if ( availabilityAdded ){
+				
+				Debug.out( "availabililty already added" );
+				
+			}else{
+				
+				availabilityAdded	= true;
+
+				fireEvent( PeerEvent.ET_ADD_AVAILABILITY, getAvailable());				
+			}
 		
 		}finally{
 			
@@ -197,9 +212,9 @@ ExternalSeedPeer
 			
 			if ( availabilityAdded ){
 				
-				fireEvent( PeerEvent.ET_REMOVE_AVAILABILITY, getAvailable());
-				
 				availabilityAdded	= false;
+
+				fireEvent( PeerEvent.ET_REMOVE_AVAILABILITY, getAvailable());				
 			}
 		}finally{
 			
@@ -494,10 +509,10 @@ ExternalSeedPeer
 			listenerListMon.enter();
 			
 			if ( availabilityAdded ){
-				
-				fireEvent( PeerEvent.ET_REMOVE_AVAILABILITY, getAvailable());
-				
+							
 				availabilityAdded	= false;
+
+				fireEvent( PeerEvent.ET_REMOVE_AVAILABILITY, getAvailable());
 			}
 		}finally{
 			

@@ -220,51 +220,83 @@ ExternalSeedPlugin
 	{
 		if ( peers.size() > 0 ){
 			
-			download.addPeerListener(
-				new DownloadPeerListener()
-				{
-					public void
-					peerManagerAdded(
-						Download		download,
-						PeerManager		peer_manager )
-					{
-						for (int i=0;i<peers.size();i++){
-							
-							ExternalSeedPeer	peer = (ExternalSeedPeer)peers.get(i);
-							
-							peer.setManager( peer_manager );
-						}
-					}
-					
-					public void
-					peerManagerRemoved(
-						Download		download,
-						PeerManager		peer_manager )
-					{
-						for (int i=0;i<peers.size();i++){
-
-							ExternalSeedPeer	peer = (ExternalSeedPeer)peers.get(i);
-						
-							peer.setManager( null );
-						}
-					}
-				});
+			boolean	add_listener = false;
 			
 			try{
 				download_mon.enter();
 				
 				List	existing_peers = (List)download_map.get( download );
 				
-				if ( existing_peers != null ){
+				if ( existing_peers == null ){
 					
-					peers.addAll( existing_peers );
+					add_listener	= true;
+					
+					existing_peers = new ArrayList();
+					
+					download_map.put( download, existing_peers );
+				}
+	
+				for (int i=0;i<peers.size();i++){
+					
+					ExternalSeedPeer	peer = (ExternalSeedPeer)peers.get(i);
+					
+					boolean	skip = false;
+					
+					for (int j=0;j<existing_peers.size();j++){
+						
+						ExternalSeedPeer	existing_peer = (ExternalSeedPeer)existing_peers.get(j);
+						
+						if ( existing_peer.sameAs( peer )){
+							
+							skip	= true;
+							
+							break;
+						}
+					}
+
+					if ( !skip ){
+						
+						existing_peers.add( peer );
+					}
 				}
 				
-				download_map.put( download, peers );
 				
 			}finally{
 				
 				download_mon.exit();
+			}
+			
+			if ( add_listener ){
+			
+				download.addPeerListener(
+					new DownloadPeerListener()
+					{
+						public void
+						peerManagerAdded(
+							Download		download,
+							PeerManager		peer_manager )
+						{
+							for (int i=0;i<peers.size();i++){
+								
+								ExternalSeedPeer	peer = (ExternalSeedPeer)peers.get(i);
+								
+								peer.setManager( peer_manager );
+							}
+						}
+						
+						public void
+						peerManagerRemoved(
+							Download		download,
+							PeerManager		peer_manager )
+						{
+							for (int i=0;i<peers.size();i++){
+	
+								ExternalSeedPeer	peer = (ExternalSeedPeer)peers.get(i);
+							
+								peer.setManager( null );
+							}
+						}
+					});
 			}
 		}
 	}
