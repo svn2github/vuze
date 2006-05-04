@@ -135,7 +135,7 @@ ExternalSeedPeer
 		try{
 			connection_mon.enter();
 			
-			boolean	active = reader.checkActivation( manager );
+			boolean	active = reader.checkActivation( manager, this );
 			
 			if ( manager != null && active != peer_added ){
 				

@@ -27,6 +27,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -98,7 +99,8 @@ ExternalSeedReaderWebSeed
 	
 	protected boolean
 	readyToActivate(
-		PeerManager	peer_manager )
+		PeerManager	peer_manager,
+		Peer		peer )
 	{
 		int	fail_count = getFailureCount();
 		
@@ -145,7 +147,8 @@ ExternalSeedReaderWebSeed
 	
 	protected boolean
 	readyToDeactivate(
-		PeerManager	peer_manager )
+		PeerManager	peer_manager,
+		Peer		peer )
 	{
 		try{
 			float availability = peer_manager.getDownload().getStats().getAvailability();

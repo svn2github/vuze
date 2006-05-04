@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.extseed;
 
 import java.util.List;
 
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -54,7 +55,8 @@ ExternalSeedReader
 	
 	public boolean
 	checkActivation(
-		PeerManager		peer_manager );
+		PeerManager		peer_manager,
+		Peer			peer );
 	
 	public void
 	addRequest(

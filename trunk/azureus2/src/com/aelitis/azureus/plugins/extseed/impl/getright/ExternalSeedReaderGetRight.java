@@ -26,6 +26,8 @@ import java.util.*;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -45,6 +47,10 @@ ExternalSeedReaderGetRight
 	
 	private ExternalSeedHTTPDownloader	http_downloader;
 	
+	private int			min_availability;
+	private int			min_speed;
+	private long		valid_until;
+	
 	protected
 	ExternalSeedReaderGetRight(
 		ExternalSeedPlugin 		_plugin,
@@ -55,6 +61,15 @@ ExternalSeedReaderGetRight
 		super( _plugin, _torrent );
 		
 		System.out.println( "params: " + _params );
+		
+		min_availability 	= getIntParam( _params, "min_avail", 1 );	// default is avail based
+		min_speed			= getIntParam( _params, "min_speed", 0 );
+		valid_until			= getIntParam( _params, "valid_ms", 0 );
+		
+		if ( valid_until > 0 ){
+			
+			valid_until += getSystemTime();
+		}
 		
 		url		= _url;
 		
@@ -68,6 +83,22 @@ ExternalSeedReaderGetRight
 		
 		http_downloader  = new ExternalSeedHTTPDownloader( url, getUserAgent());
 		
+	}
+	
+	protected int
+	getIntParam(
+		Map			map,
+		String		name,
+		int			def )
+	{
+		Object	obj = map.get(name);
+		
+		if ( obj instanceof Long ){
+			
+			return(((Long)obj).intValue());
+		}
+		
+		return( def );
 	}
 	
 	public String
@@ -90,7 +121,8 @@ ExternalSeedReaderGetRight
 	
 	protected boolean
 	readyToActivate(
-		PeerManager	peer_manager )
+		PeerManager	peer_manager,
+		Peer		peer )
 	{
 		int	fail_count = getFailureCount();
 		
@@ -119,14 +151,38 @@ ExternalSeedReaderGetRight
 		}
 		
 		try{
-			float availability = peer_manager.getDownload().getStats().getAvailability();
-			
-			if ( availability < 1.0 ){
+			if ( valid_until > 0 && getSystemTime() > valid_until ){
 				
-				log( getName() + ": activating as availability is poor" );
-				
-				return( true );
+				return( false );
 			}
+			
+			if ( peer_manager.getDownload().getState() == Download.ST_SEEDING ){
+				
+				return( false );
+			}
+						
+			if ( min_availability > 0 ){
+				
+				float availability = peer_manager.getDownload().getStats().getAvailability();
+			
+				if ( availability < min_availability){
+				
+					log( getName() + ": activating as availability is poor" );
+					
+					return( true );
+				}
+			}
+				
+			if ( min_speed > 0 ){
+				
+				if ( peer_manager.getStats().getDownloadAverage() < min_speed ){
+					
+					log( getName() + ": activating as speed is slow" );
+					
+					return( true );
+				}
+			}
+			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
@@ -137,16 +193,45 @@ ExternalSeedReaderGetRight
 	
 	protected boolean
 	readyToDeactivate(
-		PeerManager	peer_manager )
+		PeerManager	peer_manager,
+		Peer		peer )
 	{
 		try{
-			float availability = peer_manager.getDownload().getStats().getAvailability();
-			
-			if ( availability >= 2.0 ){
-				
-				log( getName() + ": deactivating as availability is good" );
+			if ( valid_until > 0 && getSystemTime() > valid_until ){
 				
 				return( true );
+			}
+			
+			if ( peer_manager.getDownload().getState() == Download.ST_SEEDING ){
+				
+				return( true );
+			}
+		
+			if ( min_availability > 0 ){
+
+				float availability = peer_manager.getDownload().getStats().getAvailability();
+			
+				if ( availability >= min_availability + 1 ){
+				
+					log( getName() + ": deactivating as availability is good" );
+				
+					return( true );
+				}
+			}
+			
+			if ( min_speed > 0 ){
+				
+				long	my_speed 		= peer.getStats().getDownloadAverage();
+				
+				long	overall_speed 	= peer_manager.getStats().getDownloadAverage();
+				
+				if ( overall_speed - my_speed > 2 * min_speed ){
+					
+					log( getName() + ": deactivating as speed is good" );
+
+					return( true );
+				}
+				
 			}
 		}catch( Throwable e ){
 			

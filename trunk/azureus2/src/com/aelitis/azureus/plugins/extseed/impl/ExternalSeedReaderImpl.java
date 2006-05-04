@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -150,15 +151,18 @@ ExternalSeedReaderImpl
 	
 	protected abstract boolean
 	readyToActivate(
-		PeerManager		peer_manager );
+		PeerManager		peer_manager,
+		Peer			peer );
 	
 	protected abstract boolean
 	readyToDeactivate(
-		PeerManager		peer_manager );
+		PeerManager		peer_manager,
+		Peer			peer );
 	
 	public boolean
 	checkActivation(
-		PeerManager		peer_manager )
+		PeerManager		peer_manager,
+		Peer			peer )
 	{
 		long now = getSystemTime();
 		
@@ -173,7 +177,7 @@ ExternalSeedReaderImpl
 				
 				if ( active ){
 					
-					if ( now - peer_manager_change_time > 30000 && readyToDeactivate( peer_manager )){
+					if ( now - peer_manager_change_time > 30000 && readyToDeactivate( peer_manager, peer )){
 													
 						setActive( false );			
 					}
@@ -181,7 +185,7 @@ ExternalSeedReaderImpl
 					
 					if ( !isPermanentlyUnavailable()){
 					
-						if ( now - peer_manager_change_time > 30000 && readyToActivate( peer_manager )){
+						if ( now - peer_manager_change_time > 30000 && readyToActivate( peer_manager, peer )){
 							
 							setActive( true );				
 						}
@@ -209,7 +213,7 @@ ExternalSeedReaderImpl
 	{
 		plugin.log( getName() + ": deactivating (" + reason  + ")" );
 		
-		checkActivation( null );
+		checkActivation( null, null );
 	}
 	
 	protected void

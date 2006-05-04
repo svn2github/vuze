@@ -115,7 +115,7 @@ ExternalSeedPlugin
 		plugin_interface.getDownloadManager().addListener( this );
 		
 		plugin_interface.getUtilities().createTimer( "ExternalPeerScheduler", true ).addPeriodicEvent(
-				30000,
+				15000,
 				new UTTimerEventPerformer()
 				{
 					public void
