@@ -45,20 +45,50 @@ ExternalSeedReaderFactoryGetRight
 	}
 	
 	public ExternalSeedReader[]
+   	getSeedReaders(
+   		ExternalSeedPlugin		plugin,
+   		Download				download )
+  	{		
+  		Torrent	torrent = download.getTorrent();
+  		
+  		try{
+  			Map	config = new HashMap();
+  			
+  			Object	obj = torrent.getAdditionalProperty( "url-list" );
+  			
+  			if ( obj != null ){
+  				
+  				config.put( "url-list", obj );
+  			}
+  			
+  			return( getSeedReaders( plugin, download, config ));
+  			
+  		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+		
+		return( new ExternalSeedReader[0] );  	
+	}
+	
+	public ExternalSeedReader[]
   	getSeedReaders(
   		ExternalSeedPlugin		plugin,
-  		Download				download )
-	{		
-		Torrent	torrent = download.getTorrent();
-		
+  		Download				download,
+  		Map						config )
+	{				
 		try{
-			Object	obj = torrent.getAdditionalProperty( "url-list" );
+			Object	obj = config.get( "url-list" );
 			
 			if ( obj instanceof List ){
 				
 				List	urls = (List)obj;
 
 				List	readers = new ArrayList();
+				
+				Object	_params = config.get( "url-list-params" );
+				
+				Map	params = _params instanceof Map?(Map)_params:new HashMap();
 				
 				for (int i=0;i<urls.size();i++){
 					
@@ -71,7 +101,7 @@ ExternalSeedReaderFactoryGetRight
 						
 						if ( protocol.equals( "http" )){
 							
-							readers.add( new ExternalSeedReaderGetRight(plugin,torrent, url));
+							readers.add( new ExternalSeedReaderGetRight(plugin, download.getTorrent(), url, params ));
 							
 						}else{
 							

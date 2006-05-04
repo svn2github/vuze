@@ -163,7 +163,7 @@ ExternalSeedPlugin
 			return;
 		}
 		
-		final List	peers = new ArrayList();
+		List	peers = new ArrayList();
 		
 		for (int i=0;i<factories.length;i++){
 			
@@ -179,6 +179,45 @@ ExternalSeedPlugin
 			}
 		}
 		
+		addPeers( download, peers );
+	}
+	
+	public void
+	addSeed(
+		Download	download,
+		Map			config )
+	{
+		Torrent	torrent = download.getTorrent();
+		
+		if ( torrent == null ){
+			
+			return;
+		}
+		
+		List	peers = new ArrayList();
+		
+		for (int i=0;i<factories.length;i++){
+			
+			ExternalSeedReader[]	x = factories[i].getSeedReaders( this, download );
+			
+			for (int j=0;j<x.length;j++){
+				
+				ExternalSeedReader	reader = x[j];
+				
+				ExternalSeedPeer	peer = new ExternalSeedPeer( this, reader );
+				
+				peers.add( peer );
+			}
+		}
+		
+		addPeers( download, peers );
+	}
+	
+	protected void
+	addPeers(
+		final Download	download,
+		final List		peers )
+	{
 		if ( peers.size() > 0 ){
 			
 			download.addPeerListener(
@@ -213,6 +252,13 @@ ExternalSeedPlugin
 			
 			try{
 				download_mon.enter();
+				
+				List	existing_peers = (List)download_map.get( download );
+				
+				if ( existing_peers != null ){
+					
+					peers.addAll( existing_peers );
+				}
 				
 				download_map.put( download, peers );
 				

@@ -45,14 +45,42 @@ ExternalSeedReaderFactoryWebSeed
 	}
 	
 	public ExternalSeedReader[]
-  	getSeedReaders(
-  		ExternalSeedPlugin		plugin,
-  		Download				download )
+ 	getSeedReaders(
+ 		ExternalSeedPlugin		plugin,
+ 		Download				download )
 	{		
 		Torrent	torrent = download.getTorrent();
 		
 		try{
+			Map	config = new HashMap();
+			
 			Object	obj = torrent.getAdditionalProperty( "httpseeds" );
+			
+			if ( obj != null ){
+				
+				config.put( "httpseeds", obj );
+			}
+			
+			return( getSeedReaders( plugin, download, config ));
+			
+		}catch( Throwable e ){
+		
+			e.printStackTrace();
+		}
+	
+		return( new ExternalSeedReader[0] );  	
+	}
+	
+	public ExternalSeedReader[]
+  	getSeedReaders(
+  		ExternalSeedPlugin		plugin,
+  		Download				download,
+  		Map						config )
+	{		
+		Torrent	torrent = download.getTorrent();
+		
+		try{
+			Object	obj = config.get( "httpseeds" );
 			
 			if ( obj instanceof List ){
 				

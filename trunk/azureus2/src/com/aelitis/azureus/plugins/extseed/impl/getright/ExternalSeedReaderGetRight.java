@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.plugins.extseed.impl.getright;
 
+import java.util.*;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -48,9 +49,12 @@ ExternalSeedReaderGetRight
 	ExternalSeedReaderGetRight(
 		ExternalSeedPlugin 		_plugin,
 		Torrent					_torrent,	
-		URL						_url )
+		URL						_url,
+		Map						_params )
 	{
 		super( _plugin, _torrent );
+		
+		System.out.println( "params: " + _params );
 		
 		url		= _url;
 		

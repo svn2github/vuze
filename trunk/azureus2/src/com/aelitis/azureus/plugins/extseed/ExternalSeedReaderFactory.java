@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.plugins.extseed;
 
+import java.util.Map;
+
 import org.gudy.azureus2.plugins.download.Download;
 
 public interface 
@@ -31,4 +33,10 @@ ExternalSeedReaderFactory
 	getSeedReaders(
 		ExternalSeedPlugin	plugin,
 		Download			download );
+	
+	public ExternalSeedReader[]
+	getSeedReaders(
+		ExternalSeedPlugin		plugin,
+		Download				download,
+		Map						config );
 }
