@@ -60,9 +60,7 @@ ExternalSeedReaderGetRight
 		Map						_params )
 	{
 		super( _plugin, _torrent );
-		
-		System.out.println( "params: " + _params );
-		
+				
 		min_availability 	= getIntParam( _params, "min_avail", 1 );	// default is avail based
 		min_speed			= getIntParam( _params, "min_speed", 0 );
 		valid_until			= getIntParam( _params, "valid_ms", 0 );
