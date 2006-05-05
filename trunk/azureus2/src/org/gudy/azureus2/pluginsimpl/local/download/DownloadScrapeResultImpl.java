@@ -37,12 +37,12 @@ public class
 DownloadScrapeResultImpl
 	implements DownloadScrapeResult
 {
-	protected Download					download;
+	protected DownloadImpl				download;
 	protected TRTrackerScraperResponse	response;
 	
 	protected
 	DownloadScrapeResultImpl(
-		Download					_download,
+		DownloadImpl				_download,
 		TRTrackerScraperResponse	_response )
 	{
 		download	= _download;
@@ -97,15 +97,22 @@ DownloadScrapeResultImpl
 	setNextScrapeStartTime(
 		long nextScrapeStartTime) 
 	{
-		if (response != null){
-			response.setNextScrapeStartTime(nextScrapeStartTime);
+		TRTrackerScraperResponse	current_response = getCurrentResponse();
+
+		if (current_response != null){
+			current_response.setNextScrapeStartTime(nextScrapeStartTime);
 		}
 	}
   
 	public long
 	getNextScrapeStartTime()
 	{
-		return( response == null?-1:response.getNextScrapeStartTime());
+			// some weirdness going on here as we're not reporting the current values correctly
+			// so quick hack to base this on the current
+		
+		TRTrackerScraperResponse	current_response = getCurrentResponse();
+		
+		return( current_response == null?-1:current_response.getNextScrapeStartTime());
 	}
 	
 	public String
@@ -122,5 +129,18 @@ DownloadScrapeResultImpl
 	getURL()
 	{
 		return( response.getURL());
+	}
+	
+	protected TRTrackerScraperResponse
+	getCurrentResponse()
+	{
+		TRTrackerScraperResponse	current = download.getDownload().getTrackerScrapeResponse();
+		
+		if ( current == null ){
+			
+			current	= response;
+		}
+		
+		return( current );
 	}
 }
