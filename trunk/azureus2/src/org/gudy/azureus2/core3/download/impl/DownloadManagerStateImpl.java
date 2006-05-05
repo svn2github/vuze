@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
@@ -626,8 +627,8 @@ DownloadManagerStateImpl
 		return(( value & flag ) != 0 );
 	}
 	
-	public int
-	getIntParameter(
+	public long
+	getLongParameter(
 		String	name )
 	{
 		try{
@@ -676,11 +677,11 @@ DownloadManagerStateImpl
 				
 			}else if ( value instanceof Integer ){
 				
-				return( ((Integer)value).intValue());
+				return( ((Integer)value).longValue());
 				
 			}else if ( value instanceof Long ){
 				
-				return( ((Long)value).intValue());
+				return( ((Long)value).longValue());
 			}
 			
 			Debug.out( "Invalid parameter value for '" + name + "' - " + value );
@@ -694,9 +695,9 @@ DownloadManagerStateImpl
 	}
 	
 	public void
-	setIntParameter(
-		String	name,
-		int		value )
+	setLongParameter(
+		String		name,
+		long		value )
 	{
 		Object	default_value = default_parameters.get( name );
 
@@ -723,11 +724,26 @@ DownloadManagerStateImpl
 		setMapAttribute( AT_PARAMETERS, parameters );
 	}
 	
+	public int
+	getIntParameter(
+		String	name )
+	{
+		return( (int)getLongParameter( name ));
+	}
+	
+	public void
+	setIntParameter(
+		String	name,
+		int		value )
+	{
+		setLongParameter( name, value );
+	}
+	
 	public boolean
 	getBooleanParameter(
 		String	name )
 	{
-		return( getIntParameter( name ) != 0 );
+		return( getLongParameter( name ) != 0 );
 	}
 	
 	public void
@@ -735,7 +751,7 @@ DownloadManagerStateImpl
 		String		name,
 		boolean		value )
 	{
-		setIntParameter( name, value?1:0 );
+		setLongParameter( name, value?1:0 );
 	}
 	
 	public void
@@ -1830,6 +1846,20 @@ DownloadManagerStateImpl
 			long		flag )
 		{
 			return( false );
+		}
+		
+		public long
+		getLongParameter(
+			String	name )
+		{
+			return( 0 );
+		}
+		
+		public void
+		setLongParameter(
+			String	name,
+			long	value )
+		{
 		}
 		
 		public int

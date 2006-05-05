@@ -625,6 +625,8 @@ DownloadManagerImpl
 	
 				 if ( new_torrent ){
 				 	
+					download_manager_state.setLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME, SystemTime.getCurrentTime());
+					 
 				 	download_manager_state.setTrackerResponseCache( new HashMap());
 				 	
 				 		// also remove resume data incase someone's published a torrent with resume
@@ -638,6 +640,27 @@ DownloadManagerImpl
 				 		
 				 		download_manager_state.clearResumeData();
 				 	}
+				 }else{
+					 
+			       long	add_time = download_manager_state.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+			        
+			       if ( add_time == 0 ){
+			    	  
+			        		// grab an initial value from torrent file - migration only
+			    	   
+			        	try{
+			        		add_time = new File( torrentFileName ).lastModified();
+			        		
+			        	}catch( Throwable e ){
+			        	}
+			        	
+			        	if ( add_time == 0 ){
+			        		
+			        		add_time = SystemTime.getCurrentTime();
+			        	}
+			        	
+			        	download_manager_state.setLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME, add_time );
+			        }
 				 }
 				 
 		         

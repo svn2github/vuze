@@ -90,7 +90,8 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new SeedToPeerRatioItem( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
     new DownSpeedLimitItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SwarmAverageSpeed( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
-    new SwarmAverageCompletion( TableManager.TABLE_MYTORRENTS_INCOMPLETE )
+    new SwarmAverageCompletion( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
+    new DateAddedItem( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
   };
 
   final static TableColumnCore[] tableCompleteItems = {
@@ -126,7 +127,8 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new TrackerNameItem( TableManager.TABLE_MYTORRENTS_COMPLETE ),
     new SeedToPeerRatioItem( TableManager.TABLE_MYTORRENTS_COMPLETE ),
     new SwarmAverageSpeed( TableManager.TABLE_MYTORRENTS_COMPLETE ),
-    new SwarmAverageCompletion( TableManager.TABLE_MYTORRENTS_COMPLETE )
+    new SwarmAverageCompletion( TableManager.TABLE_MYTORRENTS_COMPLETE ),
+    new DateAddedItem( TableManager.TABLE_MYTORRENTS_COMPLETE ),
   };
 
   public MyTorrentsSuperView(AzureusCore	_azureus_core) {
