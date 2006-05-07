@@ -2161,7 +2161,14 @@ DownloadManagerImpl
 	    
 	    if ( tc != null ){
 	    	
-	    	tc.complete( never_downloaded );
+	    	DiskManager	dm = getDiskManager();
+	    	
+	    		// only report "complete" if we really are complete, not a dnd completion event
+	    	
+	    	if ( dm != null && dm.getRemaining() == 0 ){
+	    		
+	    		tc.complete( never_downloaded );
+	    	}
 	    }
 	}
 
