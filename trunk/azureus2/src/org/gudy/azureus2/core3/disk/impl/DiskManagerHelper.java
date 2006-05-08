@@ -52,11 +52,7 @@ DiskManagerHelper
 		int	piece_number )
 	
 		throws TOTorrentException;
-	
-	public void
-	setState(
-		int	state );
-	
+		
 	/**
 	 * Stops the disk manager and informs the download manager that things have gone
 	 * wrong. 

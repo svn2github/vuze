@@ -119,10 +119,7 @@ RDResumeHandler
 				
 		DiskManagerRecheckInstance	recheck_inst = disk_manager.getRecheckScheduler().register( disk_manager, false );
 
-		try{			
-			disk_manager.setState( DiskManager.CHECKING );
-					
-			
+		try{						
 			boolean resumeEnabled = use_fast_resume;
 			
 				//disable fast resume if a new file was created

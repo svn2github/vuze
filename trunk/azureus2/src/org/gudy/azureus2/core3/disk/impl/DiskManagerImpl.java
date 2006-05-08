@@ -425,6 +425,8 @@ DiskManagerImpl
 			return;
 		}
 		
+		setState( DiskManager.CHECKING );
+		
 		resume_handler.start();
 		  
 		if ( newFiles == 0 ){
@@ -1181,7 +1183,7 @@ DiskManagerImpl
 		return state_set_via_method;
 	}
 
-	public void
+	protected void
 	setState(
 		int		_state ) 
 	{

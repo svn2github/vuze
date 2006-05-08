@@ -356,18 +356,18 @@ DownloadManagerController
 			  					
 			  				if ( oldDMState == DiskManager.CHECKING ){
 			  						
+			  						// good time to trigger minimum file info fixup as the disk manager's
+		  							// files are now in a good state
+
+			  					fixupFileInfo( files_facade );
+
 			  					stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 			  						
 			  					download_manager.setOnlySeeding(isDownloadCompleteExcludingDND());
 			  				}
 			  					  
 			  				if ( newDMState == DiskManager.READY ){
-			  					
-			  						// good time to trigger minimum file info fixup as the disk manager's
-			  						// files are now in a good state
-			  					
-			  					fixupFileInfo( files_facade );
-			  					
+			  								  					
 			  					if ( 	stats.getTotalDataBytesReceived() == 0 &&
 			  							stats.getTotalDataBytesSent() == 0 &&
 			  							stats.getSecondsDownloading() == 0 ){
@@ -561,7 +561,12 @@ DownloadManagerController
   								
 							this_mon.exit();
   	  					}
-  							
+  						
+ 	  					if ( newDMState == DiskManager.CHECKING ){
+ 	  					 
+ 	  						fixupFileInfo( files_facade );
+ 	  					}
+ 	  					
   	  					if ( newDMState == DiskManager.READY || newDMState == DiskManager.FAULTY ){
   	  						
 	  	  					force_start = wasForceStarted;
