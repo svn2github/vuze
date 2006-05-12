@@ -1663,8 +1663,8 @@ PEPeerTransportProtocol
 	  final int offset = piece.getPieceOffset();
 	  final DirectByteBuffer payload = piece.getPieceData();
 	  final int length = payload.remaining( DirectByteBuffer.SS_PEER );
-    
-    /*
+
+	  /*
     if ( AEDiagnostics.CHECK_DUMMY_FILE_DATA ){
       int pos = payload.position( DirectByteBuffer.SS_PEER );
       long  off = ((long)number) * getControl().getPieceLength(0) + offset;
@@ -1678,137 +1678,137 @@ PEPeerTransportProtocol
       }
       payload.position( DirectByteBuffer.SS_PEER, pos );
     }
-    */
-    
-	final Object error_msg = 
-		new Object()
-		{
-			public final String
-			toString()
-			{
-				return( "decodePiece(): Peer has sent piece #" + pieceNumber + ":" + offset + "->"	+ (offset + length -1) + ", " );
-			}
-		};
-    
-    if( !manager.checkBlock( pieceNumber, offset, payload ) ) {
-      peer_stats.bytesDiscarded( length );
-      manager.discarded( length );
-      requests_discarded++;
-      printRequestStats();
-      piece.destroy();
-  	if (Logger.isEnabled())
-		Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-            error_msg
-            +"but piece block discarded as invalid."));
-      return;
-    }
-    
-    final PEPiece pePiece =manager.getPiece(pieceNumber);
-    if (pePiece !=null)
-        pePiece.setDownloaded(offset);
-    
-    final DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, offset, length );
-    boolean piece_error = true;
+	   */
 
-    if( hasBeenRequested( request ) ) {  //from active request
-      removeRequest( request );
-      final long now =SystemTime.getCurrentTime();
-      reSetRequestsTime(now);
-        
-      if( manager.isWritten( pieceNumber, offset ) ) {  //oops, looks like this block has already been written
-        peer_stats.bytesDiscarded( length );
-        manager.discarded( length );
+	  final Object error_msg = 
+		  new Object()
+	  {
+		  public final String
+		  toString()
+		  {
+			  return( "decodePiece(): Peer has sent piece #" + pieceNumber + ":" + offset + "->"	+ (offset + length -1) + ", " );
+		  }
+	  };
 
-        if( manager.isInEndGameMode() ) {  //we're probably in end-game mode then
-            if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
-                setSnubbed(false);
-            last_good_data_time =now;
-            requests_discarded_endgame++;
-        	if (Logger.isEnabled())
-						Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_INFORMATION,
-                            error_msg
-                            +"but piece block ignored as already written in end-game mode."));      
-        }
-        else {
-            // if they're not snubbed, then most likely this peer got a re-request after some other peer
-            // snubbed themselves, and the slow peer finially finished the piece, but before this peer did
-            // so give credit to this peer anyway for having delivered a block at this time
-            if (!isSnubbed())
-                last_good_data_time =now;
-        	if (Logger.isEnabled())
-						Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_WARNING,
-                            error_msg
-                            +"but piece block discarded as already written."));
-          requests_discarded++;
-        }
-        
-        printRequestStats();
-      }
-      else {  //successfully received block!
-          manager.writeBlock( pieceNumber, offset, payload, this, false);
-          if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
-              setSnubbed(false);
-          last_good_data_time =now;
-        requests_completed++;
-        piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
-      }
-    }
-    else {  //initial request may have already expired, but check if we can use the data anyway
-      if( !manager.isWritten( pieceNumber, offset ) ) {
-        final boolean ever_requested;
-        
-        try{  recent_outgoing_requests_mon.enter();
-          ever_requested = recent_outgoing_requests.containsKey( request );
-        }
-        finally{  recent_outgoing_requests_mon.exit();  }
-        
-        if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
-            manager.writeBlock( pieceNumber, offset, payload, this, true);
-            final long now =SystemTime.getCurrentTime();
-            if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
-                setSnubbed(false);
-            reSetRequestsTime(now);
-            last_good_data_time =now;
-          requests_recovered++;
-          printRequestStats();
-          piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
-      	if (Logger.isEnabled())
-			Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_INFORMATION,
-                error_msg
-                +"expired piece block data recovered as useful."));
-        }
-        else {
-          
-          System.out.println( "[" +client+ "]" +error_msg + "but expired piece block discarded as never requested." );
-          
-          peer_stats.bytesDiscarded( length );
-          manager.discarded( length );
-          requests_discarded++;
-          printRequestStats();
-      	if (Logger.isEnabled())
-			Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_ERROR,
-                error_msg
-                +"but expired piece block discarded as never requested."));
-        }
-      }
-      else {
-        peer_stats.bytesDiscarded( length );
-        manager.discarded( length );
-        requests_discarded++;
-        printRequestStats();
-      	if (Logger.isEnabled())
-			Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_WARNING,
-                error_msg
-                +"but expired piece block discarded as already written."));
-      }
-    }
-    
-    if( piece_error )
-    {
-        piece.destroy();
-        if (!manager.isWritten(pieceNumber, offset) &&pePiece !=null)
-            pePiece.clearDownloaded(offset);
-    }
+	  if( !manager.checkBlock( pieceNumber, offset, payload ) ) {
+		  peer_stats.bytesDiscarded( length );
+		  manager.discarded( length );
+		  requests_discarded++;
+		  printRequestStats();
+		  piece.destroy();
+		  if (Logger.isEnabled())
+			  Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+					  error_msg
+					  +"but piece block discarded as invalid."));
+		  return;
+	  }
+
+	  final PEPiece pePiece =manager.getPiece(pieceNumber);
+	  if (pePiece !=null)
+		  pePiece.setDownloaded(offset);
+
+	  final DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, offset, length );
+	  boolean piece_error = true;
+
+	  if( hasBeenRequested( request ) ) {  //from active request
+		  removeRequest( request );
+		  final long now =SystemTime.getCurrentTime();
+		  reSetRequestsTime(now);
+
+		  if( manager.isWritten( pieceNumber, offset ) ) {  //oops, looks like this block has already been written
+			  peer_stats.bytesDiscarded( length );
+			  manager.discarded( length );
+
+			  if( manager.isInEndGameMode() ) {  //we're probably in end-game mode then
+				  if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
+					  setSnubbed(false);
+				  last_good_data_time =now;
+				  requests_discarded_endgame++;
+				  if (Logger.isEnabled())
+					  Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_INFORMATION,
+							  error_msg
+							  +"but piece block ignored as already written in end-game mode."));      
+			  }
+			  else {
+				  // if they're not snubbed, then most likely this peer got a re-request after some other peer
+				  // snubbed themselves, and the slow peer finially finished the piece, but before this peer did
+				  // so give credit to this peer anyway for having delivered a block at this time
+				  if (!isSnubbed())
+					  last_good_data_time =now;
+				  if (Logger.isEnabled())
+					  Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_WARNING,
+							  error_msg
+							  +"but piece block discarded as already written."));
+				  requests_discarded++;
+			  }
+
+			  printRequestStats();
+		  }
+		  else {  //successfully received block!
+			  manager.writeBlock( pieceNumber, offset, payload, this, false);
+			  if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
+				  setSnubbed(false);
+			  last_good_data_time =now;
+			  requests_completed++;
+			  piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
+		  }
+	  }
+	  else {  //initial request may have already expired, but check if we can use the data anyway
+		  if( !manager.isWritten( pieceNumber, offset ) ) {
+			  final boolean ever_requested;
+
+			  try{  recent_outgoing_requests_mon.enter();
+			  ever_requested = recent_outgoing_requests.containsKey( request );
+			  }
+			  finally{  recent_outgoing_requests_mon.exit();  }
+
+			  if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
+				  manager.writeBlock( pieceNumber, offset, payload, this, true);
+				  final long now =SystemTime.getCurrentTime();
+				  if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
+					  setSnubbed(false);
+				  reSetRequestsTime(now);
+				  last_good_data_time =now;
+				  requests_recovered++;
+				  printRequestStats();
+				  piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
+				  if (Logger.isEnabled())
+					  Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_INFORMATION,
+							  error_msg
+							  +"expired piece block data recovered as useful."));
+			  }
+			  else {
+
+				  System.out.println( "[" +client+ "]" +error_msg + "but expired piece block discarded as never requested." );
+
+				  peer_stats.bytesDiscarded( length );
+				  manager.discarded( length );
+				  requests_discarded++;
+				  printRequestStats();
+				  if (Logger.isEnabled())
+					  Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_ERROR,
+							  error_msg
+							  +"but expired piece block discarded as never requested."));
+			  }
+		  }
+		  else {
+			  peer_stats.bytesDiscarded( length );
+			  manager.discarded( length );
+			  requests_discarded++;
+			  printRequestStats();
+			  if (Logger.isEnabled())
+				  Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_WARNING,
+						  error_msg
+						  +"but expired piece block discarded as already written."));
+		  }
+	  }
+
+	  if( piece_error )
+	  {
+		  piece.destroy();
+		  if (!manager.isWritten(pieceNumber, offset) &&pePiece !=null)
+			  pePiece.clearDownloaded(offset);
+	  }
   }
   
   

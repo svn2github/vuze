@@ -304,7 +304,7 @@ public class FilesView
     						if ( MessageBoxWindow.open( 
     								"FilesView.messagebox.rename.id",
     								SWT.OK | SWT.CANCEL,
-    								SWT.OK,
+    								SWT.OK, true,
     								getComposite().getDisplay(), 
     								MessageBoxWindow.ICON_WARNING,
     								MessageText.getString( "FilesView.rename.confirm.delete.title" ),
@@ -435,7 +435,7 @@ public class FilesView
 					MessageBoxWindow.open( 
 						"FilesView.messagebox.delete.id",
 						SWT.OK | SWT.CANCEL,
-						SWT.OK,
+						SWT.OK, true,
 						getComposite().getDisplay(), 
 						MessageBoxWindow.ICON_WARNING,
 						MessageText.getString( "FilesView.rename.confirm.delete.title" ),

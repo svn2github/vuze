@@ -204,21 +204,7 @@ PlatformManagerUpdateChecker
 				
 				rdf.getTimeoutDownloader(rdf.getRetryDownloader(alternate_rdl,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
 				
-				alternate_rdl.addListener( 
-						new ResourceDownloaderAdapter()
-						{
-							public boolean
-							completed(
-								final ResourceDownloader	downloader,
-								InputStream					data )
-							{	
-								installUpdate( checker, downloader, data );
-									
-								return( true );
-							}							
-						});
-
-				
+			
 				List	update_desc = new ArrayList();
 				
 				List	desc_lines = HTMLUtils.convertHTMLToText( "", sf_details.getDescription());
@@ -233,12 +219,27 @@ PlatformManagerUpdateChecker
 				
 				update_desc.toArray( update_d );
 
-				checker.addUpdate(
+				final Update	update = 
+					checker.addUpdate(
 						UPDATE_NAME,
 						update_d,
 						target_version,
 						alternate_rdl,
 						Update.RESTART_REQUIRED_YES );
+				
+				alternate_rdl.addListener( 
+						new ResourceDownloaderAdapter()
+						{
+							public boolean
+							completed(
+								final ResourceDownloader	downloader,
+								InputStream					data )
+							{	
+								installUpdate( checker, update, downloader, data );
+									
+								return( true );
+							}							
+						});
 			}
 		}catch( Throwable e ){
 			
@@ -255,12 +256,17 @@ PlatformManagerUpdateChecker
 	protected void
 	installUpdate(
 		UpdateChecker		checker,
+		Update 				update,
 		ResourceDownloader	rd,
 		InputStream			data )
 	{
 		ZipInputStream zip = null;
 		
 		try {
+			data = update.verifyData( data, true );
+
+			rd.reportActivity( "Data verified successfully" );
+			
 			UpdateInstaller installer = checker.createInstaller();
 
 			zip = new ZipInputStream(data);

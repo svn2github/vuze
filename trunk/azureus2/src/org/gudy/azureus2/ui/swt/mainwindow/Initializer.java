@@ -242,16 +242,18 @@ Initializer
     		    
     		    Cursors.init();
     		    
-    		    new MainWindow(core,Initializer.this,logEvents);
+    		    MainWindow main_window = new MainWindow(core,Initializer.this,logEvents);
+    		    
     		    if (finalLogListener != null)
     		    	Logger.removeListener(finalLogListener);
 
     		    nextTask();
+    		    
 	    		    reportCurrentTaskByKey( "splash.openViews");
 
 	    		    SWTUpdateChecker.initialize();
 	    		    
-	    		    UpdateMonitor.getSingleton( core );	// setup the update monitor
+	    		    UpdateMonitor.getSingleton( core, main_window );	// setup the update monitor
 	    			
 	    		    //Tell listeners that all is initialized :
 	    		    

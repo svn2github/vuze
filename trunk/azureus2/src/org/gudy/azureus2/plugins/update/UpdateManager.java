@@ -117,6 +117,15 @@ UpdateManager
 	
 		throws UpdateException;
 	
+	
+	public void
+	addVerificationListener(
+		UpdateManagerVerificationListener	l );
+	
+	public void
+	removeVerificationListener(
+		UpdateManagerVerificationListener	l );
+	
 	public void
 	addListener(
 		UpdateManagerListener	l );

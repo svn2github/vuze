@@ -55,6 +55,11 @@ MessageBoxWindow
 		String		id,
 		int			remember_map )
 	{
+		if ( remember_map == SWT.NULL ){
+			
+			return( SWT.NULL );
+		}
+		
 		Map	remembered_decisions = COConfigurationManager.getMapParameter( "MessageBoxWindow.decisions", new HashMap());
 		
 		Long	l = (Long)remembered_decisions.get( id );
@@ -77,6 +82,7 @@ MessageBoxWindow
 		String	id,
 		int		options,
 		int		remember_map,
+		boolean	default_is_yes,
 		Display display,
 		String	icon,
 		String	title,
@@ -89,7 +95,7 @@ MessageBoxWindow
 			return( remembered );
 		}
 		
-		return( new MessageBoxWindow( id, options, display, icon, title, message ).getResult());
+		return( new MessageBoxWindow( id, options, remember_map != SWT.NULL, default_is_yes, display, icon, title, message ).getResult());
 	}
   
 	private Shell shell;
@@ -103,6 +109,8 @@ MessageBoxWindow
 	MessageBoxWindow(
 		final String	id,
 		final int		options,
+		final boolean	remember_decision,
+		final boolean	default_is_yes,
 		final Display 	display,
 		final String	icon,
 		final String	title,
@@ -133,7 +141,7 @@ MessageBoxWindow
 	    
 	    	// buffered label handles & in the text properly
 	    
-	    BufferedLabel	msg_label = new BufferedLabel(shell,SWT.NONE);
+	    BufferedLabel	msg_label = new BufferedLabel(shell,SWT.WRAP);
 	    msg_label.setText(message);
 	    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.horizontalSpan = 2;
@@ -141,12 +149,23 @@ MessageBoxWindow
 	    
 	    	// remember decision
 	    
-	    final Button checkBox = new Button(shell, SWT.CHECK);
-	    checkBox.setSelection(false);
-	    checkBox.setText( MessageText.getString( "MessageBoxWindow.rememberdecision" ));
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.horizontalSpan = 3;
-		checkBox.setLayoutData(gridData);
+	    final Button checkBox;
+	    
+	    if ( remember_decision ){
+	    	
+		    checkBox = new Button(shell, SWT.CHECK);
+		    checkBox.setSelection(false);
+		    checkBox.setText( MessageText.getString( "MessageBoxWindow.rememberdecision" ));
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalSpan = 3;
+			checkBox.setLayoutData(gridData);
+	    }else{
+	    	checkBox = null;
+	    	Label	pad = new Label( shell, SWT.NULL );
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalSpan = 3;
+			pad.setLayoutData(gridData);
+	    }
 
 	    
 			// line
@@ -170,7 +189,7 @@ MessageBoxWindow
 	 	bYes.setLayoutData(gridData);
 	 	bYes.addListener(SWT.Selection,new Listener() {
 	  		public void handleEvent(Event e) {
-	  			setResult( id, yes_option, checkBox.getSelection());
+	  			setResult( id, yes_option, checkBox==null?false:checkBox.getSelection());
 	   		}
 		 });
     
@@ -184,11 +203,11 @@ MessageBoxWindow
 	 	bNo.setLayoutData(gridData);    
 	 	bNo.addListener(SWT.Selection,new Listener() {
 	 		public void handleEvent(Event e) {
-	 			setResult( id, no_option, checkBox.getSelection());
+	 			setResult( id, no_option, checkBox==null?false:checkBox.getSelection());
 	   		}
 	 	});
 	 	
-		shell.setDefaultButton( bYes );
+		shell.setDefaultButton( default_is_yes?bYes:bNo );
 		
 		shell.addListener(SWT.Traverse, new Listener() {	
 			public void handleEvent(Event e) {
@@ -216,6 +235,8 @@ MessageBoxWindow
 		Utils.centreWindow( shell );
         
 	    shell.open();
+	    
+	    (default_is_yes?bYes:bNo).setFocus();
 	    
 	    while( !shell.isDisposed()) {
 	       

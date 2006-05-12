@@ -926,9 +926,9 @@ public class FileUtil {
       }
     }
     
-    public static boolean copyFile( final File _source, final OutputStream _dest, boolean closeOutputStream ) {
+    public static boolean copyFile( final File _source, final OutputStream _dest, boolean closeInputStream ) {
         try {
-          copyFile( new FileInputStream( _source ), _dest, closeOutputStream );
+          copyFile( new FileInputStream( _source ), _dest, closeInputStream );
           return true;
         }
         catch( Throwable e ) {
@@ -936,6 +936,30 @@ public class FileUtil {
           return false;
         }
       }
+    
+    public static void 
+    copyFile( 
+    	final InputStream _source, 
+    	final File _dest )
+    
+    	throws IOException
+    {
+    	FileOutputStream	dest = null;
+    	
+    	try{
+    		dest = new FileOutputStream(_dest);
+   
+    		copyFile( _source, dest, true );
+    		
+    	}finally{
+    		
+    		if ( dest != null ){
+    			
+    			dest.close();
+    		}
+    	}
+    }
+    
     public static void 
     copyFile( 
       InputStream   is,
@@ -948,7 +972,7 @@ public class FileUtil {
 	copyFile( 
 		InputStream		is,
 		OutputStream	os,
-    boolean closeInputStream)
+		boolean 		closeInputStream )
 	
 		throws IOException
 	{
@@ -974,8 +998,9 @@ public class FileUtil {
     		}
     	}finally{
     		try{
-        if(closeInputStream)
+    			if(closeInputStream){
     			  is.close();
+    			}
     		}catch( IOException e ){
     			
     		}

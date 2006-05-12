@@ -37,6 +37,7 @@ import com.aelitis.azureus.core.peermanager.piecepicker.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.priority.PiecePriorityShaper;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.unchoker.UnchokerUtil;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * @author MjrTom
@@ -164,6 +165,10 @@ public class PiecePickerImpl
 	/** The list of chunks needing to be downloaded (the mechanism change when entering end-game mode) */
 	private List 				endGameModeChunks;
 	
+	private long				lastShaperRecalcTime;
+	private CopyOnWriteList		priority_shapers = new CopyOnWriteList();
+	private int[]				priority_shaper_priorities;
+	
 	static
 	{
 		class ParameterListenerImpl
@@ -183,7 +188,7 @@ public class PiecePickerImpl
 		    }
 		}
 
-		final ParameterListenerImpl	parameterListener =new ParameterListenerImpl();;
+		final ParameterListenerImpl	parameterListener =new ParameterListenerImpl();
 
 		COConfigurationManager.addParameterListener("Prioritize Most Completed Files", parameterListener);
 		COConfigurationManager.addAndFireParameterListener("Prioritize First Piece", parameterListener);
@@ -458,11 +463,12 @@ public class PiecePickerImpl
 	 * sorted by best uploaders, providing some ooprtunity to download the most important
 	 * (ie; rarest and/or highest priority) pieces faster and more reliably
 	 */
-	public final boolean checkDownloadPossible()
+	public final void allocateRequests()
 	{
-		if (!hasNeededUndonePiece)
-			return false;
-
+		if (!hasNeededUndonePiece){
+			return;
+		}
+		
 		final List peers =peerControl.getPeers();
         final int peersSize =peers.size();
 
@@ -478,18 +484,14 @@ public class PiecePickerImpl
 				UnchokerUtil.updateLargestValueFirstSort(upRate, upRates, peer, bestUploaders, 0);
 			}
 		}
+		
 		final int uploadersSize =bestUploaders.size();
-		/**
-		 * This is potentially kicking seeds.  If all peers are !isDownloadPossible
-		 * then bestUploadrs.size() will be 0, and we will return false, causing
-		 * the caller (PEPeerControlImpl.schedule) to forceDisconnect of seeds.
-		 * This is wrong, because all the peers may be choking us, or not have
-		 * pieces for us.
-		 * 
-		 * Commenting out until MjrTom fixes it properly
-		if (uploadersSize ==0)
-			return false;
-		*/
+
+		if ( uploadersSize ==0 ){
+			
+				// no usable peers, bail out early
+			return;
+		}
 		
 		checkEndGameMode();
 		
@@ -532,7 +534,6 @@ public class PiecePickerImpl
 				}
 			}
 		}
-		return true;
 	}
 	
     /** This computes the base priority for all pieces that need requesting if there's
@@ -542,11 +543,23 @@ public class PiecePickerImpl
      */
     private final void computeBasePriorities()
     {
-        final long now =SystemTime.getCurrentTime();
-        if (startPriorities !=null &&((now >timeLastPriorities &&now <time_last_avail +TIME_MIN_PRIORITIES)
-            ||(priorityParamChange >=paramPriorityChange &&priorityFileChange >=filePriorityChange
-                &&priorityAvailChange >=availabilityChange)))
-            return;     // *somehow* nothing changed, so nothing to do
+        final long now = SystemTime.getCurrentTime();
+           
+        boolean force = false;
+        
+        if ( now < lastShaperRecalcTime || now - lastShaperRecalcTime > 1000 ){
+        	
+        	lastShaperRecalcTime = now;
+        	
+        	force = computeShapePriorities();
+        }
+        
+        if ( !force ){
+	        if (startPriorities !=null &&((now >timeLastPriorities &&now <time_last_avail +TIME_MIN_PRIORITIES)
+	            ||(priorityParamChange >=paramPriorityChange &&priorityFileChange >=filePriorityChange
+	                &&priorityAvailChange >=availabilityChange)))
+	            return;     // *somehow* nothing changed, so nothing to do
+        }
         
             // store the latest change indicators before we start making dependent calculations so that a
             // further change while computing stuff doesn't get lost
@@ -556,7 +569,6 @@ public class PiecePickerImpl
         priorityFileChange =filePriorityChange;
         priorityAvailChange =availabilityChange;
         
-        boolean     changedPriority =false;
         boolean     foundPieceToDownload =false;
         final int[]	newPriorities   =new int[nbPieces];
 
@@ -625,13 +637,17 @@ public class PiecePickerImpl
                         if (!rarestOverride &&avail <=globalMinOthers)
                             startPriority +=nbConnects /avail;
                     }
+                    
+                    if ( priority_shaper_priorities != null ){
+                    	
+                    	startPriority += priority_shaper_priorities[i];
+                    }
                 } else
                 {
                     dmPiece.clearNeeded();
                 }
                 
                 newPriorities[i] =startPriority;
-                changedPriority =true;
             }
         } catch (Throwable e)
         {
@@ -644,8 +660,7 @@ public class PiecePickerImpl
             neededUndonePieceChange++;
         }
         
-        if (changedPriority)
-            startPriorities =newPriorities;
+        startPriorities = newPriorities;
     }
     
     /**
@@ -739,9 +754,6 @@ public class PiecePickerImpl
 		return requested;
 	}
 
-    // set FORCE_PIECE if trying to diagnose piece problems and only want to d/l a specific piece from a torrent
-    private static final int    FORCE_PIECE =-1;
-
     /**
      * This method is the downloading core. It decides, for a given peer,
      * which block should be requested. Here is the overall algorithm :
@@ -766,21 +778,55 @@ public class PiecePickerImpl
         if (peerHavePieces ==null ||peerHavePieces.nbSet <=0)
             return -1;
         
-        // piece number and its block number that we'll try to DL
-        int pieceNumber;                // will be set to the piece # we want to resume
+        	// piece number and its block number that we'll try to DL
+        
+        int pieceNumber = pt.getReservedPieceNumber();
 
-        if (FORCE_PIECE >=0 &&FORCE_PIECE <nbPieces)
-            pieceNumber =FORCE_PIECE;
-        else
-            pieceNumber =pt.getReservedPieceNumber();
-
-        // If there's a piece Reserved to this peer or a FORCE_PIECE, start/resume it and only it (if possible)
-        if (pieceNumber >=0)
-        {
+        	// If there's a piece seserved to this peer resume it and only it (if possible)
+        
+        if ( pieceNumber >=0 ){
+        	
             final DiskManagerPiece dmPiece =dmPieces[pieceNumber];
-            if (peerHavePieces.flags[pieceNumber] &&dmPiece.isRequestable())
-                return pieceNumber;
-            return -1; // this is an odd case that maybe should be handled better, but checkers might fully handle it
+            
+            PEPiece pePiece = peerControl.getPiece(pieceNumber);
+
+            if ( pePiece != null ){
+            	
+            	String peerReserved = pePiece.getReservedBy();
+            	
+            	if ( peerReserved != null && peerReserved.equals( pt.getIp())){
+            		
+            		if ( peerHavePieces.flags[pieceNumber] &&dmPiece.isRequestable()){
+            
+            			return pieceNumber;
+            		}
+            	}
+            }
+            
+            Debug.out( "Peer's reserved piece is no longer valid" );
+            
+            	// reserved piece is no longer valid, dump it
+            
+            pt.setReservedPieceNumber(-1);
+            
+            	// clear the reservation if the piece is still allocated to the peer
+            
+            if ( pePiece != null ){
+            	
+            	String peerReserved = pePiece.getReservedBy();
+            
+            	if ( peerReserved != null ){
+            
+            		if ( peerReserved.equals(pt.getIp())){
+            			
+            			pePiece.setReservedBy( null );
+            		}
+            	}
+            }
+
+            	// note, pieces reserved to peers that get disconnected are released in pepeercontrol
+            
+            pieceNumber	= -1;
         }
 
         final int       peerSpeed =(int) pt.getStats().getDataReceiveRate() /1000;  // how many KB/s has the peer has been sending
@@ -821,7 +867,7 @@ public class PiecePickerImpl
                     if (dmPiece.isRequestable())
                     {
                         avail =availability[i];
-                        if (avail ==0)
+                        if (avail ==0 )
                         {   // maybe we didn't know we could get it before
                             availability[i] =1;    // but the peer says s/he has it
                             avail =1;
@@ -1249,6 +1295,50 @@ public class PiecePickerImpl
 		}
 	}
 	
+	private boolean
+	computeShapePriorities()
+	{
+		List	list = priority_shapers.getList();
+		
+		if ( list.size() == 0 ){
+			
+			priority_shaper_priorities = null;
+			
+		}else{
+
+				// prolly more efficient to reallocate than reset to 0
+			
+			priority_shaper_priorities = new int[nbPieces];
+			
+			for (int i=0;i<list.size();i++){
+				
+				PiecePiecerPriorityShaper	shaper = (PiecePiecerPriorityShaper)list.get(i);
+				
+				final int[]	offsets = shaper.updatePriorityOffsets( this );
+				
+				for (int j=0;j<offsets.length;j++){
+					
+					priority_shaper_priorities[j] += offsets[j];
+				}
+			}
+		}
+		
+		return( true );
+	}
+	
+	public void
+	addPriorityShaper(
+		PiecePiecerPriorityShaper		shaper )
+	{
+		priority_shapers.add( shaper );
+	}
+	
+	public void
+	removePriorityShaper(
+		PiecePiecerPriorityShaper		shaper )
+	{
+		priority_shapers.remove( shaper );
+	}
 	
 	/**
 	 * An instance of this listener is registered with peerControl

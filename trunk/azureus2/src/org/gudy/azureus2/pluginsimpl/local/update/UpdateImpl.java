@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.update;
  *
  */
 
+import java.io.InputStream;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -189,6 +190,16 @@ UpdateImpl
 	{
 		return( instance.getDecision( 
 				this, decision_type, decision_name, decision_description, decision_data ));
+	}
+	
+	public InputStream
+	verifyData(
+		InputStream		is,
+		boolean			force )
+	
+		throws UpdateException
+	{
+		return(((UpdateManagerImpl)instance.getManager()).verifyData( this, is, force ));
 	}
 	
 	public void

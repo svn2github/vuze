@@ -314,24 +314,30 @@ PEPeerControlImpl
             checkInterested();      // see if need to recheck Interested on all peers
 			
 			piecePicker.updateAvailability();
-			
-			boolean forcenoseeds = disconnect_seeds_when_seeding;
-			
+						
 			checkCompletionState();	// pick up changes in completion caused by dnd file changes
 			
-			if (!seeding_mode)
-			{	// if we're not finished
-				checkRequests();	//check the requests
+			if ( seeding_mode ){
 				
-				// if we have no downloadable pieces (due to "do not download") then
-				// we disconnect seeds and avoid calling these methods to save CPU.
-                forcenoseeds =!piecePicker.checkDownloadPossible();	//download blocks if possible
+				checkSeeds();
+
+			}else{
+					// if we're not finished
+				
+				checkRequests();
+				
+				piecePicker.allocateRequests();
+               
 				checkRescan();
+				
 				checkSpeedAndReserved();
+				
+				check99PercentBug();
 			}
 			
-			checkSeeds( forcenoseeds );
+				
 			updatePeersInSuperSeedMode();
+			
 			doUnchokes();
 			
       }catch (Throwable e) {
@@ -703,7 +709,6 @@ PEPeerControlImpl
 			return;
 		}
 		
-		final long now =SystemTime.getCurrentTime();
 		final int nbPieces =_nbPieces;
 		final PEPieceImpl[] pieces =pePieces;
 		//for every piece
@@ -754,6 +759,47 @@ PEPeerControlImpl
 		}
 	}
 
+	private void
+	check99PercentBug()
+	{
+			// there's a bug whereby pieces are left downloaded but never written. might have been fixed by
+			// changes to the "write result" logic, however as a stop gap I'm adding code to scan for such
+			// stuck pieces and reset them
+		
+		if ( mainloop_loop_count % MAINLOOP_SIXTY_SECOND_INTERVAL == 0 ) {
+			
+			long	now = SystemTime.getCurrentTime();
+			
+			for ( int i=0;i<dm_pieces.length;i++){
+				
+				DiskManagerPiece	dm_piece = dm_pieces[i];
+				
+				if ( !dm_piece.isDone()){
+					
+					if ( dm_piece.isDownloaded()){
+						
+						if ( now - dm_piece.getLastWriteTime( now ) > 60*1000 ){
+							
+							PEPiece	pe_piece = pePieces[ i ];
+							
+							Debug.out( "Fully downloaded piece stalled pending write, resetting " + (pe_piece==null?"d_piece":"p_piece" ) + " " + i );
+							
+							if ( pe_piece != null ){
+								
+								pe_piece.reset();
+								
+							}else{
+								
+								dm_piece.reset();
+							}
+						}
+					}
+				}
+			}
+			
+		}
+	}
+	
     private void checkInterested()
     {
         if ( (mainloop_loop_count %MAINLOOP_ONE_SECOND_INTERVAL) != 0 ){
@@ -918,7 +964,9 @@ PEPeerControlImpl
 	 * This method checks if the downloading process is finished.
 	 * 
 	 */
-	private void checkFinished(boolean start_of_day)
+	private void 
+	checkFinished(
+		boolean start_of_day )
 	{
 		final boolean all_pieces_done =disk_mgr.getRemainingExcludingDND() ==0;
 
@@ -940,9 +988,7 @@ PEPeerControlImpl
 				pc.setSnubbed(false);
 			}
 			setNbPeersSnubbed(0);
-
-			// Disconnect seeds
-			checkSeeds(true);
+			
 			final boolean checkPieces =COConfigurationManager.getBooleanParameter("Check Pieces on Completion", true);
 
 			// re-check all pieces to make sure they are not corrupt, but only if we weren't already complete
@@ -1250,13 +1296,15 @@ PEPeerControlImpl
 	}
 	
   //Method that checks if we are connected to another seed, and if so, disconnect from him.
-  private void checkSeeds(boolean forceDisconnect) {
+  private void checkSeeds() {
     //proceed on mainloop 1 second intervals if we're a seed and we want to force disconnects
     if ((mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL) != 0)
         return;
-  	if (!disconnect_seeds_when_seeding ||(!forceDisconnect &&!seeding_mode))
+    
+  	if (!disconnect_seeds_when_seeding ){
         return;
-	
+  	}
+  	
     ArrayList to_close = null;
     
 	final ArrayList peer_transports = peer_transports_cow;
@@ -1402,11 +1450,36 @@ PEPeerControlImpl
 	public void writeCompleted(DiskManagerWriteRequest request)
 	{
 		final int pieceNumber =request.getPieceNumber();
-        if (!dm_pieces[pieceNumber].isDone())
+		
+		DiskManagerPiece	dm_piece = dm_pieces[pieceNumber];
+		
+        if (!dm_piece.isDone())
         {
             final PEPiece pePiece =pePieces[pieceNumber];
-            if (pePiece !=null)
+            
+            if (pePiece !=null){
+            	
                 pePiece.setWritten((PEPeer)request.getUserData(), request.getOffset() /DiskManager.BLOCK_SIZE );
+                
+            }else{
+            	
+            		// this is a way of fixing a 99.9% bug where a dmpiece is left in a 
+            		// fully downloaded state with the underlying pe_piece null. Possible explanation is
+            		// that a slow peer sends an entire piece at around the time a pe_piece gets reset
+            		// due to inactivity.
+            	            
+            		// we also get here when recovering data that has come in late after the piece has
+            		// been abandoned
+            	
+            	dm_piece.setWritten( request.getOffset() /DiskManager.BLOCK_SIZE );
+            	
+            		// unfortunately a dm piece marked as full-downloaded will never be considered for
+            		// selection by the piece picker so we need to clear it here in case it is set
+            		// "downloaded" should NOT be part of disk-manager state anyway. neither should "requested"
+            		// or any of the EGM crap.
+            	
+            	dm_piece.clearDownloaded();
+            }
         }
 	}
 
@@ -1415,6 +1488,25 @@ PEPeerControlImpl
 	DiskManagerWriteRequest 	request, 
 	Throwable		 			cause )
   {
+	  	Debug.printStackTrace( cause );
+	  
+		final int pieceNumber =request.getPieceNumber();
+		
+        if (!dm_pieces[pieceNumber].isDone())
+        {
+            final PEPiece pePiece =pePieces[pieceNumber];
+            
+            if (pePiece !=null){
+            	
+                pePiece.clearDownloaded( request.getOffset());
+                
+            }else{
+             	
+            	Debug.out( "block write failed and piece has been removed, resetting piece [" + pieceNumber + "/" + request.getOffset() + "]");
+            	
+            	dm_pieces[pieceNumber].reset();
+            }
+        }  
   }
   
     /** This method will queue up a dism manager write request for the block if the block is not already written.
@@ -1732,6 +1824,23 @@ PEPeerControlImpl
 		if(piece != -1 && superSeedMode ) {
 			superSeedModeNumberOfAnnounces--;
 			superSeedPieces[piece].peerLeft();
+		}
+		
+		int	reserved_piece = pc.getReservedPieceNumber();
+		
+		if ( reserved_piece >= 0 ){
+			
+			PEPiece	pe_piece = pePieces[reserved_piece];
+			
+			if ( pe_piece != null ){
+				
+				String	reserved_by = pe_piece.getReservedBy();
+				
+				if ( reserved_by != null && reserved_by.equals( pc.getIp())){
+					
+					pe_piece.setReservedBy( null );
+				}
+			}
 		}
 		
 		adapter.removePeer(pc);  //async downloadmanager notification

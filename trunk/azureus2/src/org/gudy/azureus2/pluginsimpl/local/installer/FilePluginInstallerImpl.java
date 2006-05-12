@@ -371,7 +371,8 @@ FilePluginInstallerImpl
 								version,
 								rd,
 								is_jar,
-								plugin_interface.isUnloadable()?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
+								plugin_interface.isUnloadable()?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES,
+								false );
 								
 						}finally{
 							

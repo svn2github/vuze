@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.UPnPImpl;
 import com.aelitis.net.upnp.impl.device.UPnPRootDeviceImpl;
+import com.aelitis.net.upnp.services.UPnPWANConnection;
+import com.aelitis.net.upnp.services.UPnPWANConnectionListener;
 import com.aelitis.net.upnp.services.UPnPWANConnectionPortMapping;
 
 /**
@@ -42,6 +44,7 @@ import com.aelitis.net.upnp.services.UPnPWANConnectionPortMapping;
 
 public class 
 UPnPSSWANConnectionImpl 
+	implements UPnPWANConnection
 {
 	private static AEMonitor	class_mon 	= new AEMonitor( "UPnPSSWANConnection" );
 	private static List			services	= new ArrayList();
@@ -56,7 +59,7 @@ UPnPSSWANConnectionImpl
 					while( true ){
 						
 						try{
-							Thread.sleep( 5*60*1000 );
+							Thread.sleep( 10*60*1000 );
 							
 							List	to_check = new ArrayList();
 							
@@ -109,6 +112,9 @@ UPnPSSWANConnectionImpl
 	
 	private UPnPServiceImpl		service;
 	private List				mappings	= new ArrayList();
+	private List				listeners	= new ArrayList();
+	
+	private boolean				recheck_mappings	= true;
 	
 		// start off true to avoid logging first of repetitive failures
 	
@@ -184,11 +190,23 @@ UPnPSSWANConnectionImpl
 		}		
    	}
 	
+	public void
+	periodicallyRecheckMappings(
+		boolean	on )
+	{
+		recheck_mappings	= on;
+	}
+	
 	protected void
 	checkMappings()
 	
 		throws UPnPException
 	{		
+		if ( !recheck_mappings ){
+			
+			return;
+		}
+		
 		List	mappings_copy;
 		
 		try{
@@ -321,6 +339,19 @@ UPnPSSWANConnectionImpl
 			}finally{
 									
 				((UPnPRootDeviceImpl)service.getDevice().getRootDevice()).portMappingResult(ok);
+				
+				for (int i=0;i<listeners.size();i++){
+					
+					UPnPWANConnectionListener	listener = (UPnPWANConnectionListener)listeners.get(i);
+					
+					try{
+						listener.mappingResult( this, ok );
+					
+					}catch( Throwable e){
+						
+						Debug.printStackTrace(e);
+					}
+				}
 			}
 			
 			try{
@@ -413,101 +444,138 @@ UPnPSSWANConnectionImpl
 										
 		throws UPnPException
 	{
-		//UPnPStateVariable noe = service.getStateVariable("PortMappingNumberOfEntries");
-		//System.out.println( "NOE = " + noe.getValue());
+		boolean	ok = true;
 		
-		int	entries = 0; //Integer.parseInt( noe.getValue());
-		
-			// some routers (e.g. Gudy's) return 0 here whatever!
-			// In this case take mindless approach
-			// hmm, even for my router the state variable isn't accurate...
-		
-		UPnPAction act	= service.getAction( "GetGenericPortMappingEntry" );
-
-		if ( act == null ){
+		try{
+			//UPnPStateVariable noe = service.getStateVariable("PortMappingNumberOfEntries");
+			//System.out.println( "NOE = " + noe.getValue());
 			
-			service.getDevice().getRootDevice().getUPnP().log( "Action 'GetGenericPortMappingEntry' not supported, can't enumerate bindings" );
-		
-			return( new UPnPWANConnectionPortMapping[0] );
+			int	entries = 0; //Integer.parseInt( noe.getValue());
 			
-		}else{
-			List	res = new ArrayList();
+				// some routers (e.g. Gudy's) return 0 here whatever!
+				// In this case take mindless approach
+				// hmm, even for my router the state variable isn't accurate...
 			
-				// I've also seen some routers loop here rather than failing when the index gets too large (they
-				// seem to keep returning the last entry) - check for a duplicate entry and exit if found
-			
-			portMapping	prev_mapping	= null;
-			
-			for (int i=0;i<(entries==0?512:entries);i++){
-						
-				UPnPActionInvocation inv = act.getInvocation();
+			UPnPAction act	= service.getAction( "GetGenericPortMappingEntry" );
 	
-				inv.addArgument( "NewPortMappingIndex", "" + i );
+			if ( act == null ){
 				
-				try{
-					UPnPActionArgument[] outs = inv.invoke();
-					
-					int		port			= 0;
-					boolean	tcp				= false;
-					String	internal_host	= null;
-					String	description		= "";
-					
-					for (int j=0;j<outs.length;j++){
-						
-						UPnPActionArgument	out = outs[j];
-						
-						String	out_name = out.getName();
-						
-						if ( out_name.equalsIgnoreCase("NewExternalPort")){
-							
-							port	= Integer.parseInt( out.getValue());
-							
-						}else if ( out_name.equalsIgnoreCase( "NewProtocol" )){
-							
-							tcp = out.getValue().equalsIgnoreCase("TCP");
-				
-						}else if ( out_name.equalsIgnoreCase( "NewInternalClient" )){
-							
-							internal_host = out.getValue();
-							
-						}else if ( out_name.equalsIgnoreCase( "NewPortMappingDescription" )){
-							
-							description = out.getValue();
-						}
-					}
+				service.getDevice().getRootDevice().getUPnP().log( "Action 'GetGenericPortMappingEntry' not supported, can't enumerate bindings" );
 			
-					if ( prev_mapping != null ){
-						
-						if ( 	prev_mapping.getExternalPort() == port &&
-								prev_mapping.isTCP() == tcp ){
+				return( new UPnPWANConnectionPortMapping[0] );
+				
+			}else{
+				
+				List	res = new ArrayList();
+				
+					// I've also seen some routers loop here rather than failing when the index gets too large (they
+					// seem to keep returning the last entry) - check for a duplicate entry and exit if found
+				
+				portMapping	prev_mapping	= null;
+				
+				for (int i=0;i<(entries==0?512:entries);i++){
+							
+					UPnPActionInvocation inv = act.getInvocation();
+		
+					inv.addArgument( "NewPortMappingIndex", "" + i );
 					
-								// repeat, get out
+					try{
+						UPnPActionArgument[] outs = inv.invoke();
+						
+						int		port			= 0;
+						boolean	tcp				= false;
+						String	internal_host	= null;
+						String	description		= "";
+						
+						for (int j=0;j<outs.length;j++){
+							
+							UPnPActionArgument	out = outs[j];
+							
+							String	out_name = out.getName();
+							
+							if ( out_name.equalsIgnoreCase("NewExternalPort")){
+								
+								port	= Integer.parseInt( out.getValue());
+								
+							}else if ( out_name.equalsIgnoreCase( "NewProtocol" )){
+								
+								tcp = out.getValue().equalsIgnoreCase("TCP");
+					
+							}else if ( out_name.equalsIgnoreCase( "NewInternalClient" )){
+								
+								internal_host = out.getValue();
+								
+							}else if ( out_name.equalsIgnoreCase( "NewPortMappingDescription" )){
+								
+								description = out.getValue();
+							}
+						}
+				
+						if ( prev_mapping != null ){
+							
+							if ( 	prev_mapping.getExternalPort() == port &&
+									prev_mapping.isTCP() == tcp ){
+						
+									// repeat, get out
+								
+								break;
+							}
+						}
+						
+						prev_mapping = new portMapping( port, tcp, internal_host, description );
+						
+						res.add( prev_mapping );
+						
+					}catch( UPnPException e ){
+						
+						if ( entries == 0 ){
 							
 							break;
 						}
-					}
-					
-					prev_mapping = new portMapping( port, tcp, internal_host, description );
-					
-					res.add( prev_mapping );
-					
-				}catch( UPnPException e ){
-					
-					if ( entries == 0 ){
 						
-						break;
+						ok	= false;
+						
+						throw(e);
 					}
-					
-					throw(e);
 				}
+				
+				UPnPWANConnectionPortMapping[]	res2= new UPnPWANConnectionPortMapping[res.size()];
+				
+				res.toArray( res2 );
+		
+				return( res2 );
 			}
+		}finally{
 			
-			UPnPWANConnectionPortMapping[]	res2= new UPnPWANConnectionPortMapping[res.size()];
-			
-			res.toArray( res2 );
-	
-			return( res2 );
+			for (int i=0;i<listeners.size();i++){
+				
+				UPnPWANConnectionListener	listener = (UPnPWANConnectionListener)listeners.get(i);
+				
+				try{
+					listener.mappingsReadResult( this, ok );
+				
+				}catch( Throwable e){
+					
+					Debug.printStackTrace(e);
+				}
+				
+			}
 		}
+	}
+	
+	
+	public void
+	addListener(
+		UPnPWANConnectionListener	listener )
+	{
+		listeners.add( listener );
+	}
+	
+	public void
+	removeListener(
+		UPnPWANConnectionListener	listener )
+	{
+		listeners.add( listener );
 	}
 	
 	protected class

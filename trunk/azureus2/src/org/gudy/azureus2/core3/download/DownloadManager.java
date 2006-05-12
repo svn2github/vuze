@@ -326,6 +326,15 @@ DownloadManager
 	public int getSeedingRank();
 
 		/**
+		 * returns the currently in force upload speed limit which may vary from the stats. value
+		 * as this gives the fixed per-torrent limit
+		 * @return
+		 */
+	
+	public int
+	getEffectiveUploadRateLimitBytesPerSecond();
+	
+		/**
 		 * Move data files to new location. Torrent must be in stopped/error state
 		 * @param new_parent_dir
 		 * @return

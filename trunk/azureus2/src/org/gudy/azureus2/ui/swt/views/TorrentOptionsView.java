@@ -134,6 +134,22 @@ TorrentOptionsView
 		gridData.widthHint = 40;
 		max_upload.setLayoutData(gridData);
 		
+		if ( userMode > 0) {
+
+				// max upload when busy
+			
+			label = new Label(gTransfer, SWT.NULL);
+			gridData = new GridData();
+			label.setLayoutData( gridData );
+			Messages.setLanguageText(label, TEXT_PREFIX + "max.uploads.when.busy");
+			
+			GenericIntParameter	max_upload_when_busy = 
+				new GenericIntParameter( ds_param_adapter, gTransfer, DownloadManagerState.PARAM_MAX_UPLOAD_WHEN_BUSY, false );
+			gridData = new GridData();
+			gridData.widthHint = 40;
+			max_upload_when_busy.setLayoutData(gridData);
+		}
+		
 			// max download speed
 		
 		label = new Label(gTransfer, SWT.NULL);

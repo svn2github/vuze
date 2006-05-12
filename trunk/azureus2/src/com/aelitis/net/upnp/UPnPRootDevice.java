@@ -38,6 +38,9 @@ UPnPRootDevice
 	public UPnP
 	getUPnP();
 	
+	public String
+	getUSN();
+	
 	public URL
 	getLocation();
 	

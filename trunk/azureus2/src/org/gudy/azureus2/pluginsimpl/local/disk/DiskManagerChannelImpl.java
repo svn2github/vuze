@@ -24,7 +24,12 @@ package org.gudy.azureus2.pluginsimpl.local.disk;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
+import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
@@ -33,13 +38,15 @@ import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
-import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePiecerPriorityShaper;
+
 public class 
 DiskManagerChannelImpl 
-	implements DiskManagerChannel, DiskManagerFileInfoListener
+	implements DiskManagerChannel, DiskManagerFileInfoListener, DownloadManagerPeerListener, PiecePiecerPriorityShaper
 {
 	private static final int COMPACT_DELAY	= 32;
 	
@@ -82,8 +89,9 @@ DiskManagerChannelImpl
 			}
 		};
 		
-	private DiskManagerFileInfoImpl		file;
-
+	private org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl	plugin_file;
+	private org.gudy.azureus2.core3.disk.DiskManagerFileInfo					core_file;
+	
 	private Set	data_written = new TreeSet( comparator );
 	
 	private int compact_delay	= COMPACT_DELAY;
@@ -92,13 +100,22 @@ DiskManagerChannelImpl
 
 	private Average	byte_rate = Average.getInstance( 1000, 20 );
 	
+	private PEPeerManager	peer_manager;
+	private int[]	priority_offsets;
+	
 	protected
 	DiskManagerChannelImpl(
-		DiskManagerFileInfoImpl		_file )
+		org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl		_plugin_file )
 	{
-		file		= _file;
+		plugin_file		= _plugin_file;
 		
-		file.getCore().addListener( this );
+		core_file		= plugin_file.getCore();
+		
+		core_file.addListener( this );
+		
+		priority_offsets	= new int[core_file.getDiskManager().getNbPieces()];
+		
+		core_file.getDownloadManager().addPeerListener(this);
 	}
 	
 	public DiskManagerRequest
@@ -177,9 +194,68 @@ DiskManagerChannelImpl
 	}
 	
 	public void
+	peerManagerAdded(
+		PEPeerManager	manager )
+	{
+		peer_manager = manager;
+		
+		manager.getPiecePicker().addPriorityShaper( this );
+	}
+	
+	public void
+	peerManagerRemoved(
+		PEPeerManager	manager )
+	{
+		peer_manager = null;
+		
+		manager.getPiecePicker().removePriorityShaper( this );
+	}
+	
+	public void
+	peerAdded(
+		PEPeer 	peer )
+	{
+	}
+		
+	public void
+	peerRemoved(
+		PEPeer	peer )
+	{
+	}
+		
+	public void
+	pieceAdded(
+		PEPiece 	piece )
+	{
+	}
+		
+	public void
+	pieceRemoved(
+		PEPiece		piece )
+	{
+	}
+
+	       	
+   	public int[]
+   	updatePriorityOffsets(
+   		PiecePicker		picker )
+   	{
+   		Arrays.fill( priority_offsets, 9999);
+   		
+   		return( priority_offsets );
+   	}
+   	
+	public void
 	destroy()
 	{
-		file.getCore().removeListener( this );
+		core_file.removeListener( this );
+		
+		core_file.getDownloadManager().removePeerListener(this);
+		
+		if ( peer_manager != null ){
+			
+			peer_manager.getPiecePicker().removePriorityShaper( this );
+		}
 	}
 	
 	protected class
@@ -265,7 +341,7 @@ DiskManagerChannelImpl
 					
 					if ( len > 0 ){
 						
-						DirectByteBuffer buffer = file.getCore().read( pos, len );
+						DirectByteBuffer buffer = core_file.read( pos, len );
 	
 						byte_rate.addValue( len );
 												

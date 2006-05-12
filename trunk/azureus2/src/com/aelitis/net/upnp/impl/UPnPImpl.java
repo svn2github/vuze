@@ -33,6 +33,7 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.ThreadPool;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
@@ -127,6 +128,7 @@ UPnPImpl
 		final URL					location )
 
 	{
+		
 			// we need to take this operation off the main thread as it can take some time. This is a single
 			// concurrency queued thread pool so things get done serially in the right order
 		
@@ -188,18 +190,40 @@ UPnPImpl
 		
 					log( "UPnP: root discovered: usn=" + usn + ", location=" + location + ", ni=" + network_interface.getName() + ",local=" + local_address.toString() );
 					
+					final List	listeners;
+					
+					try{
+						rd_listeners_mon.enter();
+						
+						listeners = new ArrayList( rd_listeners );
+						
+					}finally{
+						
+						rd_listeners_mon.exit();
+					}
+					
+					for (int i=0;i<listeners.size();i++){
+						
+						try{
+							if ( !((UPnPListener)listeners.get(i)).deviceDiscovered( usn, location )){
+								
+								return;
+							}
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}				
+
 					try{
 						UPnPRootDeviceImpl new_root_device = new UPnPRootDeviceImpl( UPnPImpl.this, network_interface, local_address, usn, location );
-					
-						final List	listeners;
-						
+											
 						try{
 							rd_listeners_mon.enter();
 							
 							root_locations.put( usn, new_root_device );
-			
-							listeners = new ArrayList( rd_listeners );
-							
+										
 						}finally{
 							
 							rd_listeners_mon.exit();
@@ -207,7 +231,13 @@ UPnPImpl
 			
 						for (int i=0;i<listeners.size();i++){
 							
-							((UPnPListener)listeners.get(i)).rootDeviceFound( new_root_device );	
+							try{
+								((UPnPListener)listeners.get(i)).rootDeviceFound( new_root_device );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
 						}
 					
 					}catch( UPnPException e ){
@@ -774,6 +804,14 @@ UPnPImpl
 			upnp.addRootDeviceListener(
 					new UPnPListener()
 					{
+						public boolean
+						deviceDiscovered(
+							String		USN,
+							URL			location )
+						{
+							return( true );
+						}
+						
 						public void
 						rootDeviceFound(
 							UPnPRootDevice		device )

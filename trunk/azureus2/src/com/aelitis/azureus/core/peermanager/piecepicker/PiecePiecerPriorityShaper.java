@@ -1,5 +1,5 @@
 /*
- * Created on 24-Apr-2006
+ * Created on 12 May 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -20,46 +20,12 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.netcoords;
-
-import java.io.*;
+package com.aelitis.azureus.core.peermanager.piecepicker;
 
 public interface 
-DHTNetworkPosition 
+PiecePiecerPriorityShaper 
 {
-	public static byte	POSITION_TYPE_NONE				= 0;
-	public static byte	POSITION_TYPE_VIVALDI_V1		= 1;
-	public static byte	POSITION_TYPE_VIVALDI_V2		= 3;	// was 2 but serialisation format changed to include header and 5-dimensions
-	
-	public byte
-	getPositionType();
-	
-		/**
-		 * number of bytes on wire
-		 * @return
-		 */
-	
-	public int
-	getSerialisedSize();
-	
-		/**
-		 * @param other
-		 * @return Float.NaN if no value available
-		 */
-	
-	public float
-	estimateRTT(
-		DHTNetworkPosition	other );
-	
-	public void
-	update(
-		byte[]				other_id,
-		DHTNetworkPosition	other,
-		float				rtt );
-	
-	public void
-	serialise(
-		DataOutputStream	os )
-	
-		throws IOException;
+	public int[]
+	updatePriorityOffsets(
+		PiecePicker		picker );
 }

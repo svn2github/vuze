@@ -49,10 +49,19 @@ import com.aelitis.net.upnp.services.*;
 
 public class 
 UPnPPlugin
-	implements Plugin, UPnPMappingListener
+	implements Plugin, UPnPMappingListener, UPnPWANConnectionListener
 {
 	private static final String PLUGIN_CONFIGSECTION_ID = "UPnP";
 
+	private static final String		STATS_DISCOVER 	= "discover";
+	private static final String		STATS_FOUND		= "found";
+	private static final String		STATS_READ_OK 	= "read_ok";
+	private static final String		STATS_READ_BAD 	= "read_bad";
+	private static final String		STATS_MAP_OK 	= "map_ok";
+	private static final String		STATS_MAP_BAD 	= "map_bad";
+	
+	private static final String[]	STATS_KEYS = { STATS_DISCOVER, STATS_FOUND, STATS_READ_OK, STATS_READ_BAD, STATS_MAP_OK, STATS_MAP_BAD };
+	
 	protected PluginInterface		plugin_interface;
 	protected LoggerChannel 		log;
 	
@@ -66,6 +75,9 @@ UPnPPlugin
 	protected BooleanParameter	alert_device_probs_param;
 	protected BooleanParameter	release_mappings_param;
 	protected StringParameter	selected_interfaces_param;
+	
+	protected BooleanParameter	ignore_bad_devices;
+	protected LabelParameter	ignored_devices_list;
 	
 	protected List	mappings	= new ArrayList();
 	protected List	services	= new ArrayList();
@@ -173,6 +185,34 @@ UPnPPlugin
 		
 		selected_interfaces_param = config.addStringParameter2( "upnp.selectedinterfaces", "upnp.selectedinterfaces", "" );
 
+		ignore_bad_devices = config.addBooleanParameter2( "upnp.ignorebaddevices", "upnp.ignorebaddevices", true );
+		
+		ignored_devices_list = config.addLabelParameter2( "upnp.ignorebaddevices.info" );
+
+		ActionParameter reset_param = config.addActionParameter2( "upnp.ignorebaddevices.reset", "upnp.ignorebaddevices.reset.action" );
+		
+		reset_param.addListener(
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					Parameter	param )
+				{
+					PluginConfig pc = plugin_interface.getPluginconfig();
+					
+					for (int i=0;i<STATS_KEYS.length;i++){
+						
+						String	key = "upnp.device.stats." + STATS_KEYS[i];
+						
+						pc.setPluginMapParameter( key, new HashMap());
+					}
+					
+					pc.setPluginMapParameter( "upnp.device.ignorelist", new HashMap());
+					
+					updateIgnoreList();
+				}
+			});
+		
 		enable_param.addEnabledOnSelection( alert_success_param );
 		enable_param.addEnabledOnSelection( grab_ports_param );
 		enable_param.addEnabledOnSelection( refresh_param );
@@ -180,6 +220,9 @@ UPnPPlugin
 		enable_param.addEnabledOnSelection( alert_device_probs_param );
 		enable_param.addEnabledOnSelection( release_mappings_param );
 		enable_param.addEnabledOnSelection( selected_interfaces_param );
+		enable_param.addEnabledOnSelection( ignore_bad_devices );
+		enable_param.addEnabledOnSelection( ignored_devices_list );
+		enable_param.addEnabledOnSelection( reset_param );
 
 		boolean	enabled = enable_param.getValue();
 		
@@ -232,7 +275,86 @@ UPnPPlugin
 		
 		if ( enabled ){
 			
+			updateIgnoreList();
+			
 			startUp();			
+		}
+	}
+	
+	protected void
+	updateIgnoreList()
+	{
+		try{
+			String	param = "";
+			
+			PluginConfig pc = plugin_interface.getPluginconfig();
+
+			Map	ignored = pc.getPluginMapParameter( "upnp.device.ignorelist", new HashMap());
+			
+			Iterator	it = ignored.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+							
+				Map	value = (Map)entry.getValue();
+				
+				param += "\n    " + entry.getKey() + ": " + new String((byte[])value.get( "Location" ));
+			}
+			
+			if ( ignored.size() > 0 ){
+				
+				log.log( "Devices currently being ignored: " + param );
+			}
+			
+			String	text = 
+				plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(
+					"upnp.ignorebaddevices.info",
+					new String[]{ param });
+			
+			ignored_devices_list.setLabelText( text );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	protected void
+	ignoreDevice(
+		String		USN,
+		URL			location )
+	{
+		try{
+			PluginConfig pc = plugin_interface.getPluginconfig();
+
+			Map	ignored = pc.getPluginMapParameter( "upnp.device.ignorelist", new HashMap());
+	
+			Map	entry = (Map)ignored.get( USN );
+			
+			if ( entry == null ){
+				
+				entry	= new HashMap();
+				
+				entry.put( "Location", location.toString().getBytes());
+				
+				ignored.put( USN, entry );
+				
+				pc.setPluginMapParameter( "upnp.device.ignorelist", ignored );
+				
+				updateIgnoreList();
+				
+				String	text = 
+					plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(
+						"upnp.ignorebaddevices.alert",
+						new String[]{ location.toString() });
+
+				log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
 		}
 	}
 	
@@ -324,10 +446,48 @@ UPnPPlugin
 			upnp.addRootDeviceListener(
 				new UPnPListener()
 				{
+					public boolean
+					deviceDiscovered(
+						String		USN,
+						URL			location )
+					{
+						if ( !ignore_bad_devices.getValue()){
+							
+							return( true );
+						}
+						
+						incrementDeviceStats( USN, STATS_DISCOVER );
+
+						boolean	ok = checkDeviceStats( USN, location );
+						
+						String	stats = "";
+						
+						for (int i=0;i<STATS_KEYS.length;i++){
+
+							stats += (i==0?"":",")+STATS_KEYS[i] + "=" + getDeviceStats( USN, STATS_KEYS[i] );
+						}
+
+						if ( !ok ){
+							
+							log.log( "Device '" + location + "' is being ignored: " + stats );
+							
+						}else{
+							
+							
+							log.log( "Device '" + location +"' is ok: " + stats );
+						}
+						
+						return( ok );
+					}
+					
 					public void
 					rootDeviceFound(
 						UPnPRootDevice		device )
 					{
+						incrementDeviceStats( device.getUSN(), "found" );
+
+						checkDeviceStats( device );
+						
 						try{
 							processDevice( device.getDevice() );
 							
@@ -488,6 +648,145 @@ UPnPPlugin
 		}		
 	}
 
+	protected boolean
+	checkDeviceStats(
+		UPnPRootDevice	root )
+	{
+		return( checkDeviceStats( root.getUSN(), root.getLocation()));
+	}
+	
+	protected boolean
+	checkDeviceStats(
+		String	USN,
+		URL		location )
+	{
+		long	discovers 	= getDeviceStats( USN, STATS_DISCOVER );
+		long	founds		= getDeviceStats( USN, STATS_FOUND );
+		
+		if ( discovers > 3 && founds == 0 ){
+			
+				// discovered but never found - something went wrong with the device
+				// construction process
+			
+			ignoreDevice( USN, location );
+			
+			return( false );
+			
+		}else if ( founds > 0 ){
+			
+				// found ok before, reset details in case now its screwed
+			
+			setDeviceStats( USN, STATS_DISCOVER, 0 );
+			setDeviceStats( USN, STATS_FOUND, 0 );
+		}
+		
+		long	map_ok	 	= getDeviceStats( USN, STATS_MAP_OK );
+		long	map_bad		= getDeviceStats( USN, STATS_MAP_BAD );
+
+		if ( map_bad > 5 && map_ok == 0 ){
+			
+			ignoreDevice( USN, location );
+			
+			return( false );
+			
+		}else if ( map_ok > 0 ){
+			
+			setDeviceStats( USN, STATS_MAP_OK, 0 );
+			setDeviceStats( USN, STATS_MAP_BAD, 0 );
+		}
+		
+		return( true );
+	}
+	
+	protected long
+	incrementDeviceStats(
+		String		USN,
+		String		stat_key )
+	{
+		String	key = "upnp.device.stats." + stat_key;
+		
+		PluginConfig pc = plugin_interface.getPluginconfig();
+
+		Map	counts = pc.getPluginMapParameter( key, new HashMap());
+		
+		Long	count = (Long)counts.get( USN );
+		
+		if ( count == null ){
+			
+			count = new Long(1);
+			
+		}else{
+			
+			count = new Long( count.longValue() + 1 );
+		}
+		
+		counts.put( USN, count );
+		
+		pc.getPluginMapParameter( key, counts );
+				
+		return( count.longValue());
+	}
+	
+	protected long
+	getDeviceStats(
+		String		USN,
+		String		stat_key )
+	{
+		String	key = "upnp.device.stats." + stat_key;
+		
+		PluginConfig pc = plugin_interface.getPluginconfig();
+
+		Map	counts = pc.getPluginMapParameter( key, new HashMap());
+		
+		Long	count = (Long)counts.get( USN );
+		
+		if ( count == null ){
+			
+			return( 0 );
+		}
+		
+		return( count.longValue());
+	}
+		
+	protected void
+	setDeviceStats(
+		String		USN,
+		String		stat_key,
+		long		value )
+	{
+		String	key = "upnp.device.stats." + stat_key;
+		
+		PluginConfig pc = plugin_interface.getPluginconfig();
+
+		Map	counts = pc.getPluginMapParameter( key, new HashMap());
+		
+		counts.put( USN, new Long( value ));
+		
+		pc.getPluginMapParameter( key, counts );
+	}
+	
+	public void
+	mappingResult(
+		UPnPWANConnection	connection,
+		boolean				ok )
+	{
+		UPnPRootDevice	root = connection.getGenericService().getDevice().getRootDevice();
+		
+		incrementDeviceStats( root.getUSN(), ok?STATS_MAP_OK:STATS_MAP_BAD );
+		
+		checkDeviceStats( root );
+	}
+	
+	public void
+	mappingsReadResult(
+		UPnPWANConnection	connection,
+		boolean				ok )
+	{
+		UPnPRootDevice	root = connection.getGenericService().getDevice().getRootDevice();
+
+		incrementDeviceStats( root.getUSN(), ok?STATS_READ_OK:STATS_READ_BAD );
+	}
+	
 	protected String[]
 	getSelectedInterfaces()
 	{
@@ -560,6 +859,7 @@ UPnPPlugin
 				
 			}else if ( 	service_type.equalsIgnoreCase( "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1")){ 
 				
+				/* useless stats
 				try{
 					UPnPWANCommonInterfaceConfig	config = (UPnPWANCommonInterfaceConfig)s.getSpecificService();
 				
@@ -575,6 +875,7 @@ UPnPPlugin
 					
 					log.log(e);
 				}
+				*/
 			}
 		}
 	}
@@ -585,12 +886,29 @@ UPnPPlugin
 	
 		throws UPnPException
 	{
+		wan_service.addListener( this );
+				
 		try{
 			this_mon.enter();
 		
 			log.log( "    Found " + ( wan_service.getGenericService().getServiceType().indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection" ));
 			
-			UPnPWANConnectionPortMapping[] ports = wan_service.getPortMappings();
+			UPnPWANConnectionPortMapping[] ports;
+			
+			String	usn = wan_service.getGenericService().getDevice().getRootDevice().getUSN();
+			
+			if ( getDeviceStats( usn, STATS_READ_OK ) == 0 && getDeviceStats( usn, STATS_READ_BAD ) > 2 ){
+				
+				ports = new UPnPWANConnectionPortMapping[0];
+				
+				wan_service.periodicallyRecheckMappings( false );
+				
+				log.log( "    Not reading port mappings from device due to previous failures" );
+				
+			}else{
+				
+				ports = wan_service.getPortMappings();
+			}
 			
 			for (int j=0;j<ports.length;j++){
 				

@@ -27,6 +27,8 @@ package org.gudy.azureus2.plugins.update;
  *
  */
 
+import java.io.InputStream;
+
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public interface 

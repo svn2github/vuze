@@ -90,14 +90,6 @@ public class SWTUpdateChecker implements UpdatableComponent
             downloaders.toArray(new ResourceDownloader[downloaders.size()]);
           
           swtDownloader = factory.getRandomDownloader(resourceDownloaders);
-          	      
-	      swtDownloader.addListener(new ResourceDownloaderAdapter() {
-	        
-	        public boolean completed(ResourceDownloader downloader, InputStream data) {
-	          //On completion, process the InputStream to store temp files
-	          return processData(checker,data);
-	        }
-	      });
 	      
 	      	// get the size so its cached up
 	      
@@ -109,13 +101,21 @@ public class SWTUpdateChecker implements UpdatableComponent
 	      	Debug.printStackTrace( e );
 	      }
 	      
-	      checker.addUpdate("SWT Library for " + versionGetter.getPlatform(),
-	          new String[] {"SWT is the graphical library used by Azureus"},
-	          "" + versionGetter.getLatestVersion(),
-	          swtDownloader,
-	          Update.RESTART_REQUIRED_YES
+	      final Update update = 
+	    	  checker.addUpdate("SWT Library for " + versionGetter.getPlatform(),
+		          new String[] {"SWT is the graphical library used by Azureus"},
+		          "" + versionGetter.getLatestVersion(),
+		          swtDownloader,
+		          Update.RESTART_REQUIRED_YES
 	          );      
 	      
+	      swtDownloader.addListener(new ResourceDownloaderAdapter() {
+		        
+		        public boolean completed(ResourceDownloader downloader, InputStream data) {
+		          //On completion, process the InputStream to store temp files
+		          return processData(checker,update,downloader,data);
+		        }
+		      });
 	    }
   	}catch( Throwable e ){
   		Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
@@ -132,12 +132,18 @@ public class SWTUpdateChecker implements UpdatableComponent
   
   private boolean 
   processData(
-	UpdateChecker checker,
-	InputStream data ) 
+	UpdateChecker 		checker,
+	Update				update,
+	ResourceDownloader	rd,
+	InputStream 		data ) 
   {
 	ZipInputStream zip = null;
 	
     try {
+	  data = update.verifyData( data, true );
+   	
+	  rd.reportActivity( "Data verified successfully" );
+	  
       String	osx_app = "/" + SystemProperties.getApplicationName() + ".app";
         
       UpdateInstaller installer = checker.createInstaller();
@@ -190,16 +196,17 @@ public class SWTUpdateChecker implements UpdatableComponent
           
           installer.addMoveAction(name,installer.getInstallDir() + File.separator + name);
   
-        }else if ( name.equals("javaw.exe.manifest")){
+        }else if ( name.equals("javaw.exe.manifest") || name.equals( "azureus.sig" )){
         	
         	// silently ignore this one 
         }else{
         	
-    	   Debug.out( "SWTUpdate: ignoring zip entry '" + name + "'" );
+    	   Debug.outNoStack( "SWTUpdate: ignoring zip entry '" + name + "'" );
        }
       }     
     } catch(Exception e) {
-    	Debug.printStackTrace( e );
+  		Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+				"SWT Update failed", e));
       return false;
     }finally{
     	if ( zip != null ){

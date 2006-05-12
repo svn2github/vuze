@@ -193,6 +193,7 @@ public class PEPieceImpl
 	 * If not, it'll unmark the block as requested.
 	 * @return int of how many were cleared (0 to nbBlocks)
 	 */
+    /*
 	public int checkRequests()
 	{
         if (getTimeSinceLastActivity() <30 *1000)
@@ -235,7 +236,8 @@ public class PEPieceImpl
 		}
 		return cleared;
 	}
-
+	*/
+    
 	/** @return true if the piece has any blocks that are not;
 	 *  Downloaded, Requested, or Written
 	 */

@@ -1247,7 +1247,7 @@ DownloadManagerController
 	public int
 	getUploadRateLimitBytesPerSecond()
 	{
-		return( stats.getUploadRateLimitBytesPerSecond());
+		return( download_manager.getEffectiveUploadRateLimitBytesPerSecond());
 	}
 	
 	public int

@@ -644,7 +644,8 @@ PluginUpdatePlugin
 								sf_plugin_version,
 								alternate_rdl,
 								sf_plugin_download.toLowerCase().endsWith(".jar"),
-								plugin_unloadable?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
+								plugin_unloadable?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES,
+								true );
 			
 						}
 				}catch( Throwable e ){
@@ -678,7 +679,8 @@ PluginUpdatePlugin
 		final String					version,
 		final ResourceDownloader		resource_downloader,
 		final boolean					is_jar,
-		final int						restart_type )
+		final int						restart_type,
+		final boolean					verify )
 	{
 		final Update update = checker.addUpdate(
 				update_name,
@@ -725,12 +727,14 @@ PluginUpdatePlugin
 						log.addListener(list);
 							
 						installUpdate( 
+								checker,
 								update,
 								pi_for_update,
 								restart_type == Update.RESTART_REQUIRED_NO,
 								is_jar,
 								version, 
-								data );
+								data,
+								verify );
 						
 						return( true );
 					}finally{
@@ -744,12 +748,14 @@ PluginUpdatePlugin
 	
 	protected void
 	installUpdate(
+		UpdateChecker		checker,
 		Update				update,
 		PluginInterface		plugin,		// note this will be first one if > 1 defined
 		boolean				unloadable,
 		boolean				is_jar,		// false -> zip 
 		String				version,
-		InputStream			data )
+		InputStream			data,
+		boolean				verify )
 	{
 		log.log( LoggerChannel.LT_INFORMATION,
 				 "Installing plugin " + plugin.getPluginID() + ", version " + version );
@@ -761,6 +767,11 @@ PluginUpdatePlugin
 		UpdateInstaller	installer	= null;
 		
 		try{
+		
+			data = update.verifyData( data, verify );
+		
+			log.log( "    Data verification stage complete" );
+			
 			boolean update_txt_found	= false;
 
 			if ( plugin_dir == null || plugin_dir.length() == 0 ){
@@ -882,26 +893,17 @@ PluginUpdatePlugin
 									}
 								}
 							}
-							
-							long	rem = entry.getSize();
-												
+																		
 							byte[]	buffer = new byte[65536];
 							
-							while( rem > 0 ){
+							while( true ){
 							
-								int	len = zis.read( buffer, 0, buffer.length>rem?(int)rem:buffer.length);
+								int	len = zis.read( buffer );
 								
 								if ( len <= 0 ){
 									
 									break;
 								}
-								
-								rem -= len;
-							}
-							
-							if ( rem != 0 ){
-								
-								throw( new Exception( "Invalid ZIP file" ));
 							}
 						}
 					}finally{
@@ -1085,22 +1087,18 @@ PluginUpdatePlugin
 											entry_os = new FileOutputStream( final_target );
 										}
 									}
-									
-									long	rem = entry.getSize();
-									
+																		
 									byte[]	buffer = new byte[65536];
 									
-									while( rem > 0 ){
+									while( true ){
 									
-										int	len = zis.read( buffer, 0, buffer.length>rem?(int)rem:buffer.length);
+										int	len = zis.read( buffer );
 										
 										if ( len <= 0 ){
 											
 											break;
 										}
-										
-										rem -= len;
-										
+																				
 										if ( entry_os != null ){
 											
 											entry_os.write( buffer, 0, len );

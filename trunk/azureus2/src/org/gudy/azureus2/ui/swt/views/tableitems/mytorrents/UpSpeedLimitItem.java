@@ -47,7 +47,7 @@ public class UpSpeedLimitItem
 
 	public void refresh(TableCell cell) {
 	  DownloadManager dm = (DownloadManager)cell.getDataSource();
-	  long value = (dm == null) ? 0 : dm.getStats().getUploadRateLimitBytesPerSecond();
+	  long value = (dm == null) ? 0 : dm.getEffectiveUploadRateLimitBytesPerSecond();
 	  if (!cell.setSortValue(value) && cell.isValid())
 	    return;
 	  

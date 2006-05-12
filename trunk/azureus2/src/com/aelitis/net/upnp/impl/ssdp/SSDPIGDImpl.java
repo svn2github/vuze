@@ -304,7 +304,13 @@ SSDPIGDImpl
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((SSDPIGDListener)listeners.get(i)).rootDiscovered( network_interface, local_address, usn, location );
+			try{
+				((SSDPIGDListener)listeners.get(i)).rootDiscovered( network_interface, local_address, usn, location );
+				
+			}catch( Throwable e ){
+			
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 
@@ -315,7 +321,13 @@ SSDPIGDImpl
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((SSDPIGDListener)listeners.get(i)).rootAlive( usn, location );
+			try{
+				((SSDPIGDListener)listeners.get(i)).rootAlive( usn, location );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
@@ -325,8 +337,14 @@ SSDPIGDImpl
 		String		usn )
 	{
 		for (int i=0;i<listeners.size();i++){
-			
-			((SSDPIGDListener)listeners.get(i)).rootLost( local_address, usn );
+		
+			try{
+				((SSDPIGDListener)listeners.get(i)).rootLost( local_address, usn );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
@@ -336,7 +354,13 @@ SSDPIGDImpl
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((SSDPIGDListener)listeners.get(i)).interfaceChanged( network_interface );
+			try{
+				((SSDPIGDListener)listeners.get(i)).interfaceChanged( network_interface );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	

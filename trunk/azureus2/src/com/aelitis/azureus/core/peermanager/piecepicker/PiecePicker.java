@@ -55,7 +55,7 @@ public interface PiecePicker
     public float    getMinAvailability();
     public float    getAvgAvail();
 
-	public boolean	checkDownloadPossible();
+	public void		allocateRequests();
 
 	public boolean	isInEndGameMode();
 	public void		clearEndGameChunks();
@@ -68,4 +68,12 @@ public interface PiecePicker
 	 */
 	public void 	addEndGameBlocks(final PEPiece pePiece);
 	public void		removeFromEndGameModeChunks(final int pieceNumber, final int offset);
+	
+	public void
+	addPriorityShaper(
+		PiecePiecerPriorityShaper		shaper );
+	
+	public void
+	removePriorityShaper(
+		PiecePiecerPriorityShaper		shaper );
 }

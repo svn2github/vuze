@@ -32,8 +32,10 @@ import java.net.*;
 
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
@@ -46,6 +48,7 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 
 /**
@@ -350,6 +353,9 @@ DownloadManagerImpl
     private int		max_uploads_when_seeding;
     private boolean	max_uploads_when_seeding_enabled;
     
+    private int		max_upload_when_busy_bps;
+    private int		current_upload_when_busy_bps;
+    private long	last_upload_when_busy_update;
     
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	
@@ -810,6 +816,8 @@ DownloadManagerImpl
 		max_connections						= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_PEERS );
 		max_uploads_when_seeding_enabled 	= getDownloadState().getBooleanParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED );
 		max_uploads_when_seeding 			= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING );
+		max_upload_when_busy_bps			= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOAD_WHEN_BUSY ) * 1024;
+
 	}
 	
 	protected int
@@ -828,6 +836,95 @@ DownloadManagerImpl
 	getMaxUploadsWhenSeeding()
 	{
 		return( max_uploads_when_seeding );
+	}
+	
+	public int
+	getEffectiveUploadRateLimitBytesPerSecond()
+	{
+		int	local_max_bps	= stats.getUploadRateLimitBytesPerSecond();
+		int	rate			= local_max_bps;
+		
+		if ( max_upload_when_busy_bps != 0 ){
+			
+			long	now = SystemTime.getCurrentTime();
+			
+			if ( now < last_upload_when_busy_update || now - last_upload_when_busy_update > 5000 ){
+				
+				last_upload_when_busy_update	= now;
+				
+					// might need to impose the limit
+				
+				String key = TransferSpeedValidator.getActiveUploadParameter( globalManager );
+				
+				int	global_limit_bps = COConfigurationManager.getIntParameter( key )*1024;
+								
+				if ( global_limit_bps > 0 && max_upload_when_busy_bps < global_limit_bps ){
+				
+						// we have a global limit and a valid busy limit
+				
+					local_max_bps = local_max_bps==0?global_limit_bps:local_max_bps;
+
+					GlobalManagerStats gm_stats = globalManager.getStats();
+	
+					int	actual = gm_stats.getDataSendRateNoLAN() + gm_stats.getProtocolSendRateNoLAN();
+				
+					int	move_by = ( local_max_bps - max_upload_when_busy_bps ) / 10;
+					
+					if ( move_by < 1024 ){
+						
+						move_by = 1024;
+					}
+					
+					if ( global_limit_bps - actual <= 3*1024 ){
+				
+							// close enough to impose the busy limit downwards
+						
+						
+						if ( current_upload_when_busy_bps == 0 ){
+							
+							current_upload_when_busy_bps = local_max_bps;
+						}
+						
+						current_upload_when_busy_bps -= move_by;
+						
+						if ( current_upload_when_busy_bps < max_upload_when_busy_bps ){
+							
+							current_upload_when_busy_bps = max_upload_when_busy_bps;
+						}
+						
+					}else{
+						
+							// not hitting limit, increase
+						
+						if ( current_upload_when_busy_bps != 0 ){
+							
+							current_upload_when_busy_bps += move_by;
+							
+							if ( current_upload_when_busy_bps >= local_max_bps ){
+								
+								current_upload_when_busy_bps	= 0;
+							}
+						}
+					}
+					
+					if ( current_upload_when_busy_bps > 0 ){
+						
+						rate = current_upload_when_busy_bps;
+					}
+				}else{
+					
+					current_upload_when_busy_bps = 0;
+				}
+			}else{
+				
+				if ( current_upload_when_busy_bps > 0 ){
+				
+					rate = current_upload_when_busy_bps;
+				}
+			}
+		}
+		
+		return( rate );
 	}
 	
 	protected void

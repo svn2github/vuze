@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+import org.gudy.azureus2.pluginsimpl.local.update.UpdateManagerImpl;
 
 import com.aelitis.azureus.core.versioncheck.*;
 
@@ -230,19 +231,6 @@ CoreUpdateChecker
 			
 			top_downloader.getSize();		
 							
-			top_downloader.addListener( 
-					new ResourceDownloaderAdapter()
-					{
-						public boolean
-						completed(
-							final ResourceDownloader	downloader,
-							InputStream					data )
-						{	
-							installUpdate( checker, downloader, f_latest_version, data );
-									
-							return( true );
-						}
-					});
 
 			byte[]	info_b = (byte[])decoded.get( "info" );
 			
@@ -270,13 +258,27 @@ CoreUpdateChecker
 				desc = new String[]{"Core Azureus Version", info };
 			}
 			
-			checker.addUpdate(
+			final Update update = 
+				checker.addUpdate(
 						"Core Azureus Version",
 						desc,
 						latest_version,
 						top_downloader,
 						Update.RESTART_REQUIRED_YES );
 			
+			top_downloader.addListener( 
+					new ResourceDownloaderAdapter()
+					{
+						public boolean
+						completed(
+							final ResourceDownloader	downloader,
+							InputStream					data )
+						{	
+							installUpdate( checker, update, downloader, f_latest_version, data );
+									
+							return( true );
+						}
+					});
 		}catch( Throwable e ){
 			
 			log.log( e );
@@ -313,6 +315,25 @@ CoreUpdateChecker
         String  last = COConfigurationManager.getStringParameter( "CoreUpdateChecker.lastmessage", "" );
         
         if ( !s_message.equals( last )){
+          
+          byte[]	signature = (byte[])reply.get( "message_sig" );
+          
+          if ( signature == null ){
+        	  
+        	  Logger.log( new LogEvent( LogIDs.LOGGER, "Signature missing from message" ));
+        	  
+        	  return;
+          }
+          
+          try{
+	          UpdateManagerImpl.verifyData( s_message, signature );
+	          
+          }catch( Throwable e ){
+        	  
+           	  Logger.log( new LogEvent( LogIDs.LOGGER, "Message signature check failed", e  ));
+           	      
+           	  return;
+          }
           
           int   alert_type    = LogAlert.AT_WARNING;
           String  alert_text    = s_message;
@@ -461,6 +482,7 @@ CoreUpdateChecker
 					try{
 						
 						res.add( new URL( mirror + latest_file_name ));
+						// res.add( new URL( "http://torrents.aelitis.com:88/torrents/Azureus2.4.0.2_signed.jar.torrent" ));
 						
 					}catch(Throwable e){
 						
@@ -496,11 +518,16 @@ CoreUpdateChecker
 	protected void
 	installUpdate(
 		UpdateChecker		checker,
+		Update				update,
 		ResourceDownloader	rd,
 		String				version,
 		InputStream			data )
 	{
 		try{
+			data = update.verifyData( data, true );
+
+			rd.reportActivity( "Data verified successfully" );
+			
 			String	temp_jar_name 	= "Azureus2_" + version + ".jar";
 			String	target_jar_name	= "Azureus2.jar";
 			

@@ -58,13 +58,15 @@ DownloadManagerState
 	public static final String	PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED	= "max.uploads.when.seeding.enabled";
 	public static final String	PARAM_STATS_COUNTED						= "stats.counted";
 	public static final String	PARAM_DOWNLOAD_ADDED_TIME				= "stats.download.added.time";
-
+	public static final String	PARAM_MAX_UPLOAD_WHEN_BUSY				= "max.upload.when.busy";
+	
 	public static Object[][] PARAMETERS = {
 		{ PARAM_MAX_PEERS,							new Integer( 0 ) },
 		{ PARAM_MAX_UPLOADS_WHEN_SEEDING, 			new Integer( 4 ) },
 		{ PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED, 	new Boolean( false ) },
 		{ PARAM_STATS_COUNTED, 						new Boolean( false ) },
 		{ PARAM_DOWNLOAD_ADDED_TIME,				new Long( 0 ) },
+		{ PARAM_MAX_UPLOAD_WHEN_BUSY,				new Long( 0 ) },
 	};
 	
 	public TOTorrent

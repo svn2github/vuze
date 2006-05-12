@@ -64,4 +64,16 @@ UPnPWANConnection
 	getStatusInfo()
 	
 		throws UPnPException;
+	
+	public void
+	periodicallyRecheckMappings(
+		boolean	on );
+	
+	public void
+	addListener(
+		UPnPWANConnectionListener	listener );
+	
+	public void
+	removeListener(
+		UPnPWANConnectionListener	listener );
 }

@@ -595,14 +595,28 @@ DHTUDPUtils
 			
 			os.writeByte((byte)nps.length);
 			
+			boolean	v1_found = false;
+			
 			for (int i=0;i<nps.length;i++){
 					
 				DHTNetworkPosition	np = nps[i];
+				
+				if ( np.getPositionType() == DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1 ){
+					
+					v1_found	= true;
+				}
 				
 				os.writeByte( np.getPositionType());
 				os.writeByte( np.getSerialisedSize());
 				
 				np.serialise( os );
+			}
+			
+			if ( !v1_found ){
+				
+				Debug.out( "Vivaldi V1 missing" );
+				
+				throw( new IOException( "Vivaldi V1 missing" ));
 			}
 		}else{
 			
@@ -675,15 +689,27 @@ DHTUDPUtils
 				}
 				
 				nps	= x;
-				
-				if ( nps.length == 0 ){
-					
-					Debug.out( "hmm" );
-				}
 			}
 		}else{
 			
 			nps = new DHTNetworkPosition[]{ DHTNetworkPositionManager.deserialise( DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1, is )};	
+		}
+		
+		boolean	v1_found = false;
+		
+		for (int i=0;i<nps.length;i++){
+			
+			if ( nps[i].getPositionType() == DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1 ){
+				
+				v1_found	= true;
+			}			
+		}
+		
+		if ( !v1_found ){
+			
+			Debug.out( "Vivaldi V1 missing" );
+			
+			throw( new IOException( "Vivaldi V1 missing" ));
 		}
 		
 		reply.setNetworkPositions( nps );

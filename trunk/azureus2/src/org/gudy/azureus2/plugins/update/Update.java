@@ -27,6 +27,8 @@ package org.gudy.azureus2.plugins.update;
  *
  */
 
+import java.io.InputStream;
+
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public interface 
@@ -88,6 +90,13 @@ Update
 		String		decision_name,
 		String		decision_description,
 		Object		decision_data );
+	
+	public InputStream
+	verifyData(
+		InputStream		is,
+		boolean			force )
+	
+		throws UpdateException;
 	
 	public void
 	addListener(

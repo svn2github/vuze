@@ -22,6 +22,8 @@
 
 package com.aelitis.net.upnp;
 
+import java.net.URL;
+
 /**
  * @author parg
  *
@@ -29,6 +31,11 @@ package com.aelitis.net.upnp;
 public interface 
 UPnPListener 
 {
+	public boolean
+	deviceDiscovered(
+		String		USN,
+		URL			location );
+	
 	public void
 	rootDeviceFound(
 		UPnPRootDevice		device );	

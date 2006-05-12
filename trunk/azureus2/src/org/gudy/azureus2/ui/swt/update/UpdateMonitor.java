@@ -26,18 +26,18 @@ package org.gudy.azureus2.ui.swt.update;
 import com.aelitis.azureus.core.*;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 
-import org.gudy.azureus2.ui.swt.components.StringListChooser;
+import org.gudy.azureus2.ui.swt.MessageBoxWindow;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import org.gudy.azureus2.update.CoreUpdateChecker;
 
-import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.update.*;
 
 /**
@@ -58,14 +58,15 @@ UpdateMonitor
 	
 	public static UpdateMonitor
 	getSingleton(
-		AzureusCore		core )
+		AzureusCore		core,
+		MainWindow		main_window )
 	{
 		try{
 			class_mon.enter();
 		
 			if ( singleton == null ){
 				
-				singleton = new UpdateMonitor( core );
+				singleton = new UpdateMonitor( core, main_window );
 			}
 			
 			return( singleton );
@@ -84,7 +85,8 @@ UpdateMonitor
 	
 	protected 
 	UpdateMonitor(
-		AzureusCore		_azureus_core ) 
+		AzureusCore				_azureus_core ,
+		final MainWindow		_main_window )
 	{
 		azureus_core	= _azureus_core;
 		
@@ -100,6 +102,63 @@ UpdateMonitor
 	  				instance.addListener( UpdateMonitor.this );
 	  			}
 			});
+	  	
+	  	um.addVerificationListener(
+	  			new UpdateManagerVerificationListener()
+	  			{
+	  				public boolean
+	  				acceptUnVerifiedUpdate(
+	  					final Update		update )
+	  				{
+						final boolean	accept[]	 = {false};
+						
+						Utils.execSWTThread(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										accept[0] = MessageBoxWindow.open( 
+											"UpdateMonitor.messagebox.accept.unverified",
+											SWT.YES | SWT.NO,
+											SWT.NULL,
+											false,
+											_main_window.getDisplay(), 
+											MessageBoxWindow.ICON_WARNING,
+											MessageText.getString( "UpdateMonitor.messagebox.accept.unverified.title" ),
+											MessageText.getString( 
+													"UpdateMonitor.messagebox.accept.unverified.text", 
+													new String[]{ update.getName()})) == SWT.YES;
+										
+									}
+								},
+								false );	
+							
+						return( accept[0] );
+	  				}
+	  				
+	  				public void
+	  				verificationFailed(
+	  					final Update		update,
+	  					final Throwable		cause )
+	  				{
+	  					final String	cause_str = Debug.getNestedExceptionMessage( cause );
+	  					
+						Utils.execSWTThread(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										Utils.openMessageBox(
+											_main_window.getShell(),
+											SWT.OK,
+											"UpdateMonitor.messagebox.verification.failed",
+											new String[]{ update.getName(), cause_str });
+									}
+								});
+	  				}
+	  			});
 	  	
 	    SimpleTimer.addPeriodicEvent( 
 	            AUTO_UPDATE_CHECK_PERIOD,

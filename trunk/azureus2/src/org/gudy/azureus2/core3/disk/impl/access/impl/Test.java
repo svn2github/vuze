@@ -954,28 +954,33 @@ Test
 	}
 
 		public void setSeedingRank(int rank) {
-			// TODO Auto-generated method stub
+		
 			
 		}
 
 		public int getSeedingRank() {
-			// TODO Auto-generated method stub
+			
 			return 0;
 		}
 
 		public void addPeerListener(DownloadManagerPeerListener listener, boolean bDispatchForExisting) {
-			// TODO Auto-generated method stub
+			
 			
 		}
 
 		public PEPiece[] getCurrentPieces() {
-			// TODO Auto-generated method stub
+		
 			return null;
 		}
 
 		public PEPeer[] getCurrentPeers() {
-			// TODO Auto-generated method stub
+		
 			return null;
+		}
+
+		public int getEffectiveUploadRateLimitBytesPerSecond() {
+		
+			return 0;
 		}
 	}
 	
