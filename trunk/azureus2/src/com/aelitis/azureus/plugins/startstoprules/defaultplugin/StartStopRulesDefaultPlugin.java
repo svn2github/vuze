@@ -426,9 +426,16 @@ public class StartStopRulesDefaultPlugin
   }
   
   private class ChangeCheckerTimerTask extends TimerTask {
+  	long lLastRunTime = 0;
+  	
     public void run() {
       // make sure process isn't running and stop it from running while we do stuff
       try{
+      	//System.out.println(SystemTime.getCurrentTime() - lLastRunTime);
+      	if (SystemTime.getCurrentTime() - lLastRunTime < 1000)
+      		return;
+      	
+      	lLastRunTime = SystemTime.getCurrentTime();
       	this_mon.enter();
       	
         DefaultRankCalculator[] dlDataArray = 
