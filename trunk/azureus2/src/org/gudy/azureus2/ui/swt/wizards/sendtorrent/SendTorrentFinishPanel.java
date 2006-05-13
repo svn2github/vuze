@@ -25,7 +25,12 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
@@ -37,7 +42,8 @@ import org.gudy.azureus2.ui.swt.wizard.Wizard;
  * @created Apr 4, 2006
  *
  */
-public class SendTorrentFinishPanel extends AbstractWizardPanel {
+public class SendTorrentFinishPanel extends AbstractWizardPanel
+{
 
 	/**
 	 * @param wizard
@@ -72,11 +78,9 @@ public class SendTorrentFinishPanel extends AbstractWizardPanel {
 		else
 			Messages.setLanguageText(lblInstructions, "sendTorrent.finish.byHTML");
 
-		final Text txtCode = new Text(panel, SWT.READ_ONLY + SWT.MULTI);
+		final Text txtCode = new Text(panel, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP);
 		gridData = new GridData(GridData.FILL_BOTH);
 		txtCode.setLayoutData(gridData);
-		txtCode.setText("Silly beta-tester, this option isn't complete!\n\n"
-				+ "Gudy will tell me what to put here");
 		txtCode.setBackground(panel.getBackground());
 
 		Button btnToClipboard = new Button(panel, SWT.PUSH);
@@ -89,6 +93,65 @@ public class SendTorrentFinishPanel extends AbstractWizardPanel {
 		});
 
 		sendWiz.switchToClose();
+
+		TOTorrent[] torrents = sendWiz.getTorrents();
+		if (sendWiz.getShareByMode() == SendTorrentWizard.SHARE_BY_EMAIL) {
+			String s = "";
+			for (int i = 0; i < torrents.length; i++) {
+				TOTorrent torrent = torrents[i];
+
+				if (i > 0) {
+					s += "\n";
+				}
+
+				try {
+					s += "http://getazureus.com/getContent.php?magnet=";
+					s += Base32.encode(torrent.getHash());
+				} catch (TOTorrentException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			txtCode.setText(s);
+
+		} else {
+			// web
+
+			GlobalManager gm = sendWiz.getAzureusCore().getGlobalManager();
+
+			String s = "";
+			for (int i = 0; i < torrents.length; i++) {
+				TOTorrent torrent = torrents[i];
+
+				String sName = null;
+				if (gm != null) {
+					DownloadManager downloadManager = gm.getDownloadManager(torrent);
+					if (downloadManager != null) {
+						sName = downloadManager.getDisplayName();
+					}
+				}
+
+				if (sName == null) {
+					sName = new String(torrent.getName());
+				}
+
+				if (i > 0) {
+					s += "<br>\n";
+				}
+
+				try {
+					s += "<script language=\"javascript\" src=\"http://getazureus.com/js/azdetect.js\"></script>\n";
+					s += "<a href=\"javascript:detectAndLoadMagnet('"
+							+ Base32.encode(torrent.getHash()) + "');\">\n";
+					s += "<img src=\"http://getazureus.com/js/az.png\" border=\"0\">\n";
+					s += "Download " + sName + "</a>\n";
+				} catch (TOTorrentException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				txtCode.setText(s);
+			}
+		}
 	}
 
 	public void finish() {

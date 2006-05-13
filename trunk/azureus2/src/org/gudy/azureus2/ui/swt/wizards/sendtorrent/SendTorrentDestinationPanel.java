@@ -39,7 +39,8 @@ import org.gudy.azureus2.ui.swt.wizard.Wizard;
  * @created Apr 2, 2006
  *
  */
-public class SendTorrentDestinationPanel extends AbstractWizardPanel {
+public class SendTorrentDestinationPanel extends AbstractWizardPanel
+{
 
 	/**
 	 * @param wizard
@@ -83,10 +84,11 @@ public class SendTorrentDestinationPanel extends AbstractWizardPanel {
 				sendWiz.setShareByMode(mode);
 			}
 		};
+		sendWiz.setShareByMode(SendTorrentWizard.SHARE_BY_EMAIL);
 
 		btnByEmail.addListener(SWT.Selection, modeListener);
 		btnByHTML.addListener(SWT.Selection, modeListener);
-		
+
 		wizard.setFinishEnabled(true);
 	}
 
@@ -97,7 +99,7 @@ public class SendTorrentDestinationPanel extends AbstractWizardPanel {
 	public IWizardPanel getNextPanel() {
 		return new SendTorrentFinishPanel(wizard, this);
 	}
-	
+
 	public IWizardPanel getFinishPanel() {
 		return new SendTorrentFinishPanel(wizard, this);
 	}
