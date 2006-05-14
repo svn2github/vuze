@@ -49,8 +49,12 @@ OverallStatsImpl
 	implements OverallStats, TimerEventPerformer
 {
 	
+	
+	//TODO additional types?  rar (r01 etc) handling?
+	//TODO filter out really small sizes?
+	
   private static final int download_stats_version = 1;
-  private static final String[]	exts = { "mp3;ogg;wav;wma;flac", "avi;mpg;mpeg;wmv;vob;mp4;divx;mov;mkv", "zip;rar;iso;bin;tar;sit" };
+  private static final String[]	exts = { "mp3;ogg;wav;wma;flac", "avi;mpg;mpeg;wmv;vob;mp4;divx;mov;mkv", "zip;rar;iso;bin;tar;sit;dmg" };
   private static Set[]	ext_sets;
   
   	// sizes in MB
