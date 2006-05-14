@@ -18,15 +18,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package org.gudy.azureus2.core3.ipfilter.impl;
 
 import java.net.UnknownHostException;
-import java.util.*;
 
-// import java.util.*;
-
-import org.gudy.azureus2.core3.ipfilter.*;
+import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
+import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 
 /**
@@ -34,539 +32,332 @@ import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
  * 
  */
 
-public class 
-IpRangeImpl
-	implements IpRange 
+public class IpRangeImpl implements IpRange
 {
-   private byte[] description;
-    
-   private Object startIp;		// Integer if value, String/null otherwise
-   private Object endIp;		// Integer if value, String/null otherwise
-          
-   private boolean sessionOnly;
-   private boolean added_to_range_list;
-   
-  public 
-  IpRangeImpl(
-  	String _description, 
-	String _startIp, 
-	String _endIp) 
-  {
-    this(_description,_startIp,_endIp,true);
-  }
-   
-   public 
-   IpRangeImpl(
-   	String 	_description, 
-	String 	_startIp, 
-	String 	_endIp,
-	boolean _sessionOnly) 
-   {     
-     sessionOnly = _sessionOnly;
-     
-     if(_startIp == null || _endIp == null) {
-     	
-     	throw( new RuntimeException( "Invalid start/end values - null not supported" ));
-     }
-     
-     startIp = _startIp.trim();
-     
-     endIp = _endIp.trim();
-     
-     internDescription(_description);
-     
-     checkValid(); 
-   }
-    
-   public void 
-   checkValid() 
-   {  	
-	if ( startIp != null && endIp != null ){
-				
-		if ( startIp instanceof String ){
+	private final static byte FLAG_SESSION_ONLY = 0x1;
 
-			try{
-				startIp = new Integer( PRHelpers.addressToInt((String)startIp ));
-				
-			}catch( UnknownHostException e ){
-				
-			}
+	private final static byte FLAG_ADDED_TO_RANGE_LIST = 0x2;
+
+	private Object startIp; // Integer if value, String/null otherwise
+
+	private Object endIp; // Integer if value, String/null otherwise
+
+	private byte flags;
+
+	private Object descRef = null;
+
+	// Merging stuff 
+	private final static byte FLAG_MERGED = 0x4;
+
+	private int merged_end;
+
+	private IpRange[] my_merged_entries;
+
+	public IpRangeImpl(String _description, String _startIp, String _endIp,
+			boolean _sessionOnly) {
+		if (_sessionOnly) {
+			flags = FLAG_SESSION_ONLY;
 		}
-		
-		if ( endIp instanceof String ){
 
-			try{
-				endIp = new Integer( PRHelpers.addressToInt((String)endIp ));
-				
-			}catch( UnknownHostException e ){
-				
-			}
+		if (_startIp == null || _endIp == null) {
+
+			throw (new RuntimeException(
+					"Invalid start/end values - null not supported"));
 		}
-	}
-	
-   	((IpFilterImpl)IpFilterImpl.getInstance()).setValidOrNot( this, isValid());
-   	
-   }
-    
-   public boolean 
-   isValid() 
-   {
-   		if (startIp instanceof Integer && 
-   			endIp instanceof Integer ){
-   			
-   		   	long start_address 	= ((Integer)startIp).intValue(); 
-   	     	long end_address 	= ((Integer)endIp).intValue();
-   	     	
-   	    	if ( start_address < 0 ){
-   	     		
-   	    		start_address += 0x100000000L;
-   	     	}
-   	       	if ( end_address < 0 ){
-   	     		
-   	       		end_address += 0x100000000L;
-   	     	}
-   	       	
-   	       	return( end_address >= start_address);
-   		}
 
-   		return( false );
-   }
-    
-   public boolean 
-   isInRange(
-     String ipAddress ) 
-   {
-     if(!isValid()){
-     	
-       return false;
-     }
-     
-     try{
-     	long	int_address = PRHelpers.addressToInt( ipAddress );
-     	
-     	if ( int_address < 0 ){
-     		
-     		int_address += 0x100000000L;
-     	}
-     	
-     	long start_address 	= ((Integer)startIp).intValue(); 
-     	long end_address 	= ((Integer)endIp).intValue();
-     	
-    	if ( start_address < 0 ){
-     		
-    		start_address += 0x100000000L;
-     	}
-       	if ( end_address < 0 ){
-     		
-       		end_address += 0x100000000L;
-     	}
-     	
-       	return( int_address >= start_address && int_address <= end_address );
-       	
-     }catch( UnknownHostException e ){
-     	
-     	return( false );
-     }
-   }
-    
-   public String
-   getDescription()
-   {
-   	return( externDescription());
-   }
+		if (_startIp == "") {
+			startIp = "";
+		} else {
+			startIp = _startIp.trim();
+		}
 
-   public void
-   setDescription(
-   	String	str )
-   {  	
-   	internDescription(str);
-   }
-   
-   // private static Map word_map = new HashMap();
-   
-   private final static byte[][]	frequent_words =
-   	{
-   		"ap2p".getBytes(),
-		"city".getBytes(),
-		"of".getBytes(),
-		"proxy".getBytes(),
-		"spider".getBytes(),
-		".com".getBytes(),
-		"ads".getBytes(),
-		"customer".getBytes(),
-		"software".getBytes(),
-		"government".getBytes(),
-		"gmbh".getBytes(),
-		"interconnexion".getBytes(),
-		"backbone".getBytes(),
-   	};
-			
-   
-    protected void
-	internDescription(
-		String	description_str )
-    {
-    	if ( description_str == null ){
-    		
-    		description = null;
-    		
-    		return;
-    	}
-    	
-    	byte[]	bytes = description_str.toLowerCase().getBytes();
-    	
-    	int	word_start = 0;
-    	
-      	description = new byte[bytes.length];
-    	
-    	int	desc_pos = 0;
-    	
-       	for (int i=0;i<bytes.length+1;i++){
+		if (_endIp == "") {
+			endIp = "";
+		} else {
+			endIp = _endIp.trim();
+		}
 
-       		byte	b = i==bytes.length?(byte)' ':bytes[i];
-       		
-       			// kill any existing characters in the space we're using for frequent words
-       		
-       		if ( b < 0 ){
-       			
-       			b = (byte)'_';
-       		}
-       		
-       		if ( b == ' ' || b == '.' || b == '-' ){
-       			
-       			int	word_len = i - word_start;
-      
-       			boolean	hit = false;
-       			
-       			if ( word_len > 1 ){
-      
-       				for (int j=0;j<frequent_words.length;j++){
-       					
-       					byte[]	fw = frequent_words[j];
-       					
-       					if ( fw.length == word_len ){
-       					
-       						hit	= true;
-       						
-       						for (int k=word_start;k<i;k++){
-       						
-       							if ( bytes[k] != fw[k-word_start]){
-       								
-       								hit	= false;
-       								
-       								break;
-       							}
-       						}
-       					}
-       					
-       					if ( hit ){
+		if (_description != "") {
+			setDescription(_description);
+		}
 
-       						description[desc_pos++] = (byte)(128+j);
-       						      						
-       						break;
-       					}
-       				}
-       				
-       				/*
-       				if ( false ){
-       
-	       				String	w = new String(bytes,word_start,word_len);
-	       				
-	       				Integer	x = (Integer)word_map.get(w);
-	       				
-	       				if ( x == null ){
-	       					
-	       					x = new Integer(1);
-	       				}else{
-	       					
-	       					int	ff = x.intValue() + 1;
-	       					
-	       					x = new Integer( ff );
-	       					
-	       					if ( ff % 100 == 0 && ff > 500 ){
-	       						
-	       						System.out.println(w + " -> " + ff );
-	       					}
-	       				}
-	       				
-	       				word_map.put( w, x );
-       				}
-       				*/
-       			}
-       			
-       			if ( !hit ){
-       				
-       				for (int j=word_start;j<i;j++){
-       					
-       					description[ desc_pos++ ] = bytes[j]<0?(byte)'_':bytes[j];
-       				}
-       			}
-       			
-       			if ( i < bytes.length ){
-       				
-       				description[ desc_pos++ ] = b;
-       				
-       			}
-       			
-       			word_start = i+1;
-       		}
-       	}
-       	
-       	if ( desc_pos < description.length ){
-       		
-       		byte[]	d = new byte[desc_pos];
-       		
-       		System.arraycopy( description, 0, d, 0, desc_pos );
-       		
-       		description	= d;
-       	}
-    }
-   
-    protected String
-	externDescription()
-    {
-    	if ( description == null ){
-    		
-    		return( null );
-    	}
-    	
-    	StringBuffer	res = new StringBuffer();
-    	
-    	for (int i=0;i<description.length;i++){
-    		
-    		byte	b = description[i];
-    		
-    		if ( b < 0 ){
-    			
-    			res.append( new String(frequent_words[128+b]));
-    			
-    		}else{
-    			
-    			res.append((char)b);
-    		}
-    	}
-    	
-    	return( res.toString());
-    }
-    
-   public String
-   getStartIp()
-   {
-   	return( startIp instanceof Integer?PRHelpers.intToAddress(((Integer)startIp).intValue()):(String)startIp);
-   }
-	
-   protected long
-   getStartIpLong()
-   {
-   	if ( startIp instanceof Integer ){
-   		
-   		long	val = ((Integer)startIp).intValue();
-   		
-   		if ( val < 0 ){
-   			
-   			val += 0x100000000L;
-   		}
-   		
-   		return( val );
-   	}else{
-   		return( -1 );
-   	}
-   }
-   
-	public void
-	setStartIp(
-		String	str )
-	{
-	  	if ( str == null ){
-	   		throw( new RuntimeException( "Invalid start value - null not supported" ));
-	   	}
-
-	   	if ( str.equals( getStartIp())){
-	   		
-	   		return;
-	   	}
-	   	
-		startIp	= str;
-		
 		checkValid();
 	}
-	
-   public String
-   getEndIp()
-   {
-   	return( endIp instanceof Integer?PRHelpers.intToAddress(((Integer)endIp).intValue()):(String)endIp);
-   }
-   
-   protected long
-   getEndIpLong()
-   {
-   	if ( endIp instanceof Integer ){
-   		
-   		long	val = ((Integer)endIp).intValue();
-   		
-   		if ( val < 0 ){
-   			
-   			val += 0x100000000L;
-   		}
-   		
-   		return( val );
-   	}else{
-   		return( -1 );
-   	}
-   }
-   
-   public void
-   setEndIp(
-	   String	str )
-   
-   {
-   	if ( str == null ){
-   		
-   		throw( new RuntimeException( "Invalid end value - null not supported" ));
-   	}
 
-   	if ( str.equals( getEndIp())){
-   		
-   		return;
-   	}
-   	
-	endIp	= str;
-	   
-	checkValid();
-   }
-   
-   public String 
-   toString() 
-   {
-     return( getDescription() + " : " + getStartIp() + " - "+ getEndIp()); 
-   }
+	public void checkValid() {
+		if (startIp != null && endIp != null) {
 
-  public boolean 
-  isSessionOnly() 
-  {
-    return( sessionOnly );
-  }
+			if (startIp instanceof String) {
 
-  public void 
-  setSessionOnly(
-  	boolean _sessionOnly) 
-  {
-    sessionOnly = _sessionOnly;
-  }
+				try {
+					startIp = new Integer(PRHelpers.addressToInt((String) startIp));
 
-	public int
-	compareStartIpTo(
-		IpRange	other )
-	{
-		long l = getStartIpLong() - ((IpRangeImpl)other).getStartIpLong();
-		
-		if ( l < 0 ){
-			return( -1 );
-		}else if ( l > 0 ){
-			return( 1 );
-		}else{
-			return(0);
-		}
-	}
-	
-	public int
-	compareEndIpTo(
-		IpRange	other )
-	{
-		long l = getEndIpLong() - ((IpRangeImpl)other).getEndIpLong();
-		
-		if ( l < 0 ){
-			return( -1 );
-		}else if ( l > 0 ){
-			return( 1 );
-		}else{
-			return(0);
-		}
-	}
-	
-	public int
-	compareDescription(
-		IpRange	other )
-	{
-		byte[]	other_description = ((IpRangeImpl)other).description;
-		
-		if ( description == null || other_description == null ){
-			
-			return(0);
-		}
-				
-		int	pos = 0;
-		
-		byte[]	this_b	= description;
-		byte[]	other_b	= other_description;
-		
-		while(true){
-			if ( pos == this_b.length || pos == other_b.length ){
-				
-				break;
+				} catch (UnknownHostException e) {
+
+				}
 			}
-			
-			byte	b1 = this_b[pos];
-			byte	b2 = other_b[pos];
-						
-			pos++;
-			
-			if ( b1 != b2 ){
-			
-				if ( b1 < 0 ){
-					
-					pos--;
-					
-					byte[]	word 		= frequent_words[128+b1];
-					int		word_len 	= word.length;
-					
-					byte[]	new_b = new byte[ word_len + this_b.length ];
-					
-					System.arraycopy( word,		0, 		new_b, pos, word_len );
-					System.arraycopy( this_b, 	pos, 	new_b, pos+word_len, this_b.length - pos );
-					
-					this_b = new_b;
-					
-					b1 = this_b[pos++];
-				}
-				
-				if ( b2 < 0 ){
-					
-					pos--;
-					
-					byte[]	word 		= frequent_words[128+b2];
-					int		word_len 	= word.length;
-					
-					byte[]	new_b = new byte[ word_len + other_b.length ];
-					
-					System.arraycopy( word,		0, 		new_b, pos, word_len );
-					System.arraycopy( other_b, 	pos, 	new_b, pos+word_len, other_b.length - pos );
-					
-					other_b = new_b;
-					
-					b2 = other_b[pos++];
-				}
-				
-				if ( b1 != b2 ){
-					
-					return( b1 - b2 );
+
+			if (endIp instanceof String) {
+
+				try {
+					endIp = new Integer(PRHelpers.addressToInt((String) endIp));
+
+				} catch (UnknownHostException e) {
+
 				}
 			}
 		}
-		
-		return( this_b.length - other_b.length );
+
+		((IpFilterImpl) IpFilterImpl.getInstance()).setValidOrNot(this, isValid());
+
 	}
-	
-	protected void
-	setAddedToRangeList(
-		boolean		b )
+
+	public boolean isValid() {
+		if (startIp instanceof Integer && endIp instanceof Integer) {
+
+			long start_address = ((Integer) startIp).intValue();
+			long end_address = ((Integer) endIp).intValue();
+
+			if (start_address < 0) {
+
+				start_address += 0x100000000L;
+			}
+			if (end_address < 0) {
+
+				end_address += 0x100000000L;
+			}
+
+			return (end_address >= start_address);
+		}
+
+		return (false);
+	}
+
+	public boolean isInRange(String ipAddress) {
+		if (!isValid()) {
+			return false;
+		}
+
+		try {
+			long int_address = PRHelpers.addressToInt(ipAddress);
+
+			if (int_address < 0) {
+
+				int_address += 0x100000000L;
+			}
+
+			long start_address = ((Integer) startIp).intValue();
+			long end_address = ((Integer) endIp).intValue();
+
+			if (start_address < 0) {
+
+				start_address += 0x100000000L;
+			}
+			if (end_address < 0) {
+
+				end_address += 0x100000000L;
+			}
+
+			return (int_address >= start_address && int_address <= end_address);
+
+		} catch (UnknownHostException e) {
+
+			return (false);
+		}
+	}
+
+	public String getDescription() {
+		return new String(IpFilterManagerFactory.getSingleton().getDescription(
+				descRef));
+	}
+
+	public void setDescription(String str) {
+		descRef = IpFilterManagerFactory.getSingleton().addDecription(this,
+				str.getBytes());
+	}
+
+	public String getStartIp() {
+		return (startIp instanceof Integer
+				? PRHelpers.intToAddress(((Integer) startIp).intValue())
+				: (String) startIp);
+	}
+
+	public long getStartIpLong() {
+		if (startIp instanceof Integer) {
+
+			long val = ((Integer) startIp).intValue();
+
+			if (val < 0) {
+
+				val += 0x100000000L;
+			}
+
+			return (val);
+		}
+
+		return (-1);
+	}
+
+	public void setStartIp(String str) {
+		if (str == null) {
+			throw (new RuntimeException("Invalid start value - null not supported"));
+		}
+
+		if (str.equals(getStartIp())) {
+			return;
+		}
+
+		startIp = str;
+
+		if (endIp != "") {
+			checkValid();
+		}
+	}
+
+	public String getEndIp() {
+		return (endIp instanceof Integer)
+				? PRHelpers.intToAddress(((Integer) endIp).intValue()) : (String) endIp;
+	}
+
+	public long getEndIpLong() {
+		if (endIp instanceof Integer) {
+
+			long val = ((Integer) endIp).intValue();
+
+			if (val < 0) {
+				val += 0x100000000L;
+			}
+
+			return (val);
+		}
+
+		return (-1);
+	}
+
+	public void setEndIp(String str)
+
 	{
-		added_to_range_list = b;
+		if (str == null) {
+			throw (new RuntimeException("Invalid end value - null not supported"));
+		}
+
+		if (str.equals(getEndIp())) {
+			return;
+		}
+
+		endIp = str;
+
+		if (startIp != "") {
+			checkValid();
+		}
 	}
-	
-	protected boolean
-	getAddedToRangeList()
-	{
-		return( added_to_range_list );
+
+	public String toString() {
+		return getDescription() + " : " + getStartIp() + " - " + getEndIp();
 	}
- }
+
+	public boolean isSessionOnly() {
+		return (flags & FLAG_SESSION_ONLY) != 0;
+	}
+
+	public void setSessionOnly(boolean _sessionOnly) {
+		if (_sessionOnly) {
+			flags |= FLAG_SESSION_ONLY;
+		} else {
+			flags &= ~FLAG_SESSION_ONLY;
+		}
+	}
+
+	public int compareStartIpTo(IpRange other) {
+		long l = getStartIpLong() - ((IpRangeImpl) other).getStartIpLong();
+
+		if (l < 0) {
+			return (-1);
+		} else if (l > 0) {
+			return (1);
+		} else {
+			return (0);
+		}
+	}
+
+	public int compareEndIpTo(IpRange other) {
+		long l = getEndIpLong() - ((IpRangeImpl) other).getEndIpLong();
+
+		if (l < 0) {
+			return (-1);
+		} else if (l > 0) {
+			return (1);
+		}
+		return (0);
+	}
+
+	protected void setAddedToRangeList(boolean b) {
+		if (b) {
+			flags |= FLAG_ADDED_TO_RANGE_LIST;
+		} else {
+			flags &= ~FLAG_ADDED_TO_RANGE_LIST;
+		}
+	}
+
+	protected boolean getAddedToRangeList() {
+		return (flags & FLAG_ADDED_TO_RANGE_LIST) != 0;
+	}
+
+	public int compareDescription(IpRange other) {
+		return getDescription().compareTo(other.getDescription());
+	}
+
+	protected Object getDescRef() {
+		return descRef;
+	}
+
+	protected void setDescRef(Object descRef) {
+		this.descRef = descRef;
+	}
+
+	public long getMergedEndLong() {
+		return (merged_end < 0 ? (merged_end + 0x100000000L) : merged_end);
+	}
+
+	public IpRange[] getMergedEntries() {
+		return (my_merged_entries);
+	}
+
+	public void resetMergeInfo() {
+		flags &= ~FLAG_MERGED;
+
+		if (endIp instanceof Integer) {
+			merged_end = ((Integer) endIp).intValue();
+		}
+	}
+
+	public boolean getMerged() {
+		return (flags & FLAG_MERGED) != 0;
+	}
+
+	public void setMerged() {
+		flags |= FLAG_MERGED;
+	}
+
+	public void setMergedEnd(long endIpLong) {
+		merged_end = (int) (endIpLong >= 0x100000000L ? endIpLong - 0x100000000L
+				: endIpLong);
+	}
+
+	public void addMergedEntry(IpRange e2) {
+		if (my_merged_entries == null) {
+
+			my_merged_entries = new IpRange[] { e2 };
+
+		} else {
+
+			IpRange[] x = new IpRange[my_merged_entries.length + 1];
+
+			System.arraycopy(my_merged_entries, 0, x, 0, my_merged_entries.length);
+
+			x[x.length - 1] = e2;
+
+			my_merged_entries = x;
+		}
+	}
+}

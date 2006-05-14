@@ -51,8 +51,6 @@ IpFilterImpl
 	private static IpFilterImpl ipFilter;
 	private static AEMonitor	class_mon	= new AEMonitor( "IpFilter:class" );
  
-	private List 		all_ip_ranges;
-	
 	private IPAddressRangeManager	range_manager = new IPAddressRangeManager();
 	
 	private Map			bannedIps;
@@ -73,8 +71,6 @@ IpFilterImpl
 	private IpFilterImpl() 
 	{
 	  ipFilter = this;
-	  
-	  all_ip_ranges	= new ArrayList(1024);
 	  
 	  bannedIps = new HashMap();
 	  
@@ -129,6 +125,7 @@ IpFilterImpl
 	
 		throws Exception
 	{
+		if (true) return;
 		try{
 			class_mon.enter();
 		
@@ -137,7 +134,8 @@ IpFilterImpl
 	
 			List filters = new ArrayList();
 			map.put("ranges",filters);
-			Iterator iter = all_ip_ranges.iterator();
+			List entries = range_manager.getEntries();
+			Iterator iter = entries.iterator();
 			while(iter.hasNext()) {
 			  IpRange range = (IpRange) iter.next();
 			  if(range.isValid() && ! range.isSessionOnly()) {
@@ -225,9 +223,8 @@ IpFilterImpl
 				}
 			}
 			
-		  	all_ip_ranges 	= new_ipRanges;
 		  	
-		  	Iterator	it = all_ip_ranges.iterator();
+		  	Iterator	it = new_ipRanges.iterator();
 		  	
 		  	while( it.hasNext()){
 		  		  		
@@ -524,7 +521,7 @@ IpFilterImpl
 		try{
 			class_mon.enter();
 
-			return new ArrayList( all_ip_ranges );
+			return new ArrayList( range_manager.getEntries() );
 			
 		}finally{
 			
@@ -538,9 +535,10 @@ IpFilterImpl
 		try{
 			class_mon.enter();
 			
-			IpRange[]	res = new IpRange[all_ip_ranges.size()];
+			List entries = range_manager.getEntries();
+			IpRange[]	res = new IpRange[entries.size()];
 			
-			all_ip_ranges.toArray( res );
+			entries.toArray( res );
 			
 			return( res );
 			
@@ -553,7 +551,7 @@ IpFilterImpl
 	public IpRange
 	createRange(boolean sessionOnly)
 	{
-		return( new IpRangeImpl("","","",sessionOnly));
+		return ( new IpRangeImpl("","","",sessionOnly));
 	}
 	
 	public void
@@ -564,8 +562,6 @@ IpFilterImpl
 			class_mon.enter();
 		
 			((IpRangeImpl)range).setAddedToRangeList(true);
-			
-			all_ip_ranges.add( range );
 			
 				// we only allow the validity check to take effect once its added to
 				// the list of all ip ranges (coz safepeer creates lots of dummy entries
@@ -590,8 +586,6 @@ IpFilterImpl
 		
 			((IpRangeImpl)range).setAddedToRangeList( false );
 			
-			all_ip_ranges.remove( range );
-			
 			range_manager.removeRange( range );
 			
 		}finally{
@@ -603,7 +597,9 @@ IpFilterImpl
 	}
 	
 	public int getNbRanges() {
-	  return all_ip_ranges.size();
+		List entries = range_manager.getEntries();
+
+	  return entries.size();
 	}
 	
 	protected void
@@ -629,7 +625,7 @@ IpFilterImpl
 		
 		if ( valid ){
 					
-			range_manager.addRange(range.getStartIp(), range.getEndIp(), range );
+			range_manager.addRange( range );
 				
 		}else{
 			

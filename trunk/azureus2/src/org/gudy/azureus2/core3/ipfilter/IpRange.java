@@ -74,4 +74,49 @@ IpRange
 	public int 
 	compareDescription(
 		IpRange other );
+
+	/**
+	 * @return
+	 */
+	long getEndIpLong();
+
+	/**
+	 * @return
+	 */
+	long getStartIpLong();
+
+	/**
+	 * @return
+	 */
+	public long getMergedEndLong();
+
+	/**
+	 * @return
+	 */
+	public IpRange[] getMergedEntries();
+
+	/**
+	 * 
+	 */
+	public void resetMergeInfo();
+
+	/**
+	 * @return
+	 */
+	public boolean getMerged();
+
+	/**
+	 * 
+	 */
+	public void setMerged();
+
+	/**
+	 * @param endIpLong
+	 */
+	public void setMergedEnd(long endIpLong);
+
+	/**
+	 * @param e2
+	 */
+	public void addMergedEntry(IpRange e2);
 }

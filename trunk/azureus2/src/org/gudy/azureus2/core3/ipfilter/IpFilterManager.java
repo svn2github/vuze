@@ -35,4 +35,26 @@ IpFilterManager
 	
 	public BadIps
 	getBadIps();
+
+	/**
+	 * @param range
+	 * @return
+	 */
+	byte[] getDescription(Object info);
+
+	/**
+	 * @param range
+	 * @param description
+	 */
+	Object addDecription(IpRange range, byte[] description);
+
+	/**
+	 * 
+	 */
+	void cacheAllDescriptions();
+
+	/**
+	 * 
+	 */
+	void clearDescriptionCache();
 }

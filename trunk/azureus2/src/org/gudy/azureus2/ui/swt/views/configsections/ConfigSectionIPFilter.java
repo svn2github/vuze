@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
+import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -61,6 +62,8 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
   boolean noChange;
   
   FilterComparator comparator;
+  
+  private boolean bIsCachingDescriptions = false;
   
   class FilterComparator implements Comparator {
     
@@ -126,13 +129,19 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
   }
 
   public void configSectionDelete() {
-    
+  	if (bIsCachingDescriptions) {
+	    IpFilterManager ipFilterManager = azureus_core.getIpFilterManager();
+	  	ipFilterManager.clearDescriptionCache();
+	  	bIsCachingDescriptions = false;
+  	}
   }
 
   public Composite configSectionCreate(final Composite parent) {
     GridData gridData;
 
-    filter = azureus_core.getIpFilterManager().getIPFilter();
+    final IpFilterManager ipFilterManager = azureus_core.getIpFilterManager();
+    filter = ipFilterManager.getIPFilter();
+    
 
     Composite gFilter = new Composite(parent, SWT.NULL);
     GridLayout layout = new GridLayout();
@@ -243,6 +252,11 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
         TableColumn tc = (TableColumn) e.widget;
         int field = ((Integer) tc.getData()).intValue();
         comparator.setField(field);
+        
+        if (field == FilterComparator.FIELD_NAME && !bIsCachingDescriptions) {
+        	ipFilterManager.cacheAllDescriptions();
+        	bIsCachingDescriptions = true;
+        }
         ipRanges = getSortedRanges(filter.getRanges());
         table.setItemCount(ipRanges.length);
         table.clearAll();

@@ -31,6 +31,7 @@ import java.util.*;
 
 import java.net.UnknownHostException;
 
+import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
@@ -40,68 +41,28 @@ IPAddressRangeManager
 {
 	private static final LogIDs LOGID = LogIDs.CORE;
 
-	protected Map		entries = new HashMap();
+	protected ArrayList entries = new ArrayList();
 	
 	protected long		total_span;
 	
 	protected boolean	rebuild_required;
 	protected long		last_rebuild_time;
 	
-	protected entry[]	merged_entries	= new entry[0];
+	protected IpRange[] mergedRanges = new IpRange[0];
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "IPAddressRangeManager" );
 
 	public void
-	addRange(
-		String	start,
-		String	end,
-		Object	user_data )
-	{
-		try{
-			this_mon.enter();
-			
-			int	s = addressToInt( start );
-			
-			int	e = addressToInt( end );
-			
-			addRange( s, e,user_data);
-							
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-	
-	private void
-	addRange(
-		int		start_int,
-		int		end_int,
-		Object	user_data )
+	addRange(IpRange range)
 	{
 		try{
 			this_mon.enter();
 		
-				// see if entry is already there
-			
-			entry	old_entry = (entry)entries.get( user_data );
-
-			if( old_entry != null ){
+			// checking for existing (either by entries.contains, or by
+			// rebuilding and searching ips) is slow.  Skip check, merge will take
+			// care of it
 				
-				if ( old_entry.getStartInt() == start_int && old_entry.getEndInt() == end_int ){
-				
-						// no change, bail out
-					
-					return;
-				}
-				
-				old_entry.setStartInt( start_int );
-				
-				old_entry.setEndInt( end_int );
-				
-			}else{
-				
-				entries.put( user_data, new entry( start_int, end_int, user_data ));
-			}	
+			entries.add( range);
 			
 			rebuild_required	= true;
 			
@@ -110,15 +71,12 @@ IPAddressRangeManager
 			this_mon.exit();
 		}
 	}
-	
-	public void
-	removeRange(
-		Object		user_data )
-	{
+			
+	public void removeRange(IpRange range) {
 		try{
 			this_mon.enter();
 		
-			entries.remove( user_data );
+			entries.remove( range );
 		
 			rebuild_required	= true;
 			
@@ -156,38 +114,31 @@ IPAddressRangeManager
 	
 	public boolean
 	isInRange(
-		Object		user_data,
+		IpRange		range,
 		String		address )
 	{
-		try{
+		try {
 			this_mon.enter();
-			
-			long	address_long	= PRHelpers.addressToInt( address );
-				
-	    	if ( address_long < 0 ){
-	     		
-	    		address_long += 0x100000000L;
-	     	}
-	
-			entry	e = (entry)entries.get( user_data );
-			
-			if ( e == null ){
-				
-				return( false );
-			}
-			
-			return( address_long >= e.getStartLong() && address_long <= e.getEndLong());
 
-		}catch( UnknownHostException e ){
-			
-			return( false );
-			
-		}finally{
-			
+			long address_long = PRHelpers.addressToInt(address);
+
+			if (address_long < 0) {
+				address_long += 0x100000000L;
+			}
+
+			return address_long >= range.getStartIpLong()
+					&& address_long <= range.getStartIpLong();
+
+		} catch (UnknownHostException e) {
+
+			return (false);
+
+		} finally {
+
 			this_mon.exit();
 		}
 	}
-	
+
 	protected Object
 	isInRange(
 		long	address_long )
@@ -197,7 +148,7 @@ IPAddressRangeManager
 			
 			checkRebuild();
 			
-			if ( merged_entries.length == 0 ){
+			if ( mergedRanges.length == 0 ){
 				
 				return( null );
 			}
@@ -205,17 +156,17 @@ IPAddressRangeManager
 				// assisted binary chop 
 			
 			int	bottom 	= 0;
-			int	top		= merged_entries.length-1;
+			int	top		= mergedRanges.length-1;
 			
 			int	current	= -1;
 			
-			while( top >= 0 && bottom < merged_entries.length && bottom <= top){
+			while( top >= 0 && bottom < mergedRanges.length && bottom <= top){
 				
 				current = (bottom+top)/2;
 				
-				entry	e = merged_entries[current];
+				IpRange	e = mergedRanges[current];
 				
-				long	this_start 	= e.getStartLong();
+				long	this_start 	= e.getStartIpLong();
 				long 	this_end	= e.getMergedEndLong();
 				
 				if ( address_long == this_start ){
@@ -249,16 +200,16 @@ IPAddressRangeManager
 				}
 			}
 			
-			if ( top >= 0 && bottom < merged_entries.length && bottom <= top ){
+			if ( top >= 0 && bottom < mergedRanges.length && bottom <= top ){
 	
-				entry	e = merged_entries[current];
+				IpRange	e = mergedRanges[current];
 			
-				if ( address_long <= e.getEndLong()){
+				if ( address_long <= e.getEndIpLong()){
 					
-					return( e.getUserData());
+					return( e );
 				}
 				
-				entry[]	merged = e.getMergedEntries();
+				IpRange[]	merged = e.getMergedEntries();
 				
 				if ( merged == null ){
 					
@@ -269,11 +220,11 @@ IPAddressRangeManager
 				
 				for (int i=0;i<merged.length;i++){
 					
-					entry	me = (entry)merged[i];
+					IpRange	me = merged[i];
 					
-					if ( me.getStartLong() <= address_long && me.getEndLong() >= address_long ){
+					if ( me.getStartIpLong() <= address_long && me.getEndIpLong() >= address_long ){
 						
-						return( me.getUserData());
+						return( me );
 					}
 				}
 				
@@ -341,15 +292,13 @@ IPAddressRangeManager
 			Logger.log(new LogEvent(LOGID, "IPAddressRangeManager: rebuilding "
 					+ entries.size() + " entries starts"));
 
-		Collection col = entries.values();
+		IpRange[]	ents = new IpRange[entries.size()];
 		
-		entry[]	ents = new entry[col.size()];
-		
-		col.toArray(ents);
+		entries.toArray(ents);
 		
 		for (int i=0;i<ents.length;i++){
 			
-			ents[i].reset();
+			ents[i].resetMergeInfo();
 		}
 		
 			// sort based on start address
@@ -363,28 +312,15 @@ IPAddressRangeManager
 					Object o1, 
 					Object o2 )
 				{
-					entry	e1 = (entry)o1;
-					entry 	e2 = (entry)o2;
+					IpRange	e1 = (IpRange)o1;
+					IpRange 	e2 = (IpRange)o2;
 					
-					if ( e1.getStartLong() < e2.getStartLong()){
-						return( -1 );
-					}else if ( e1.getStartLong() > e2.getStartLong()){
-						return( 1 );
-					}else{
-						long l = e2.getEndLong() - e1.getEndLong();
-						
-						if ( l < 0 ){
-							
-							return( -1 );
-							
-						}else if ( l > 0 ){
-							
-							return( 1 );
-							
-						}else{
-							return( 0 );
-						}
+					long diff = e1.getStartIpLong() - e2.getStartIpLong();
+					if (diff == 0) {
+						diff = e2.getEndIpLong() - e1.getEndIpLong();
 					}
+
+					return signum(diff);
 				}
 				
 				public boolean 
@@ -400,7 +336,7 @@ IPAddressRangeManager
 		
 		for (int i=0;i<ents.length;i++){
 			
-			entry	entry = ents[i];
+			IpRange	entry = ents[i];
 			
 			if ( entry.getMerged()){
 				
@@ -415,17 +351,17 @@ IPAddressRangeManager
 				
 				long	end_pos = entry.getMergedEndLong();
 				
-				entry	e2 = ents[pos++];
+				IpRange	e2 = ents[pos++];
 				
 				if (!e2.getMerged()){
 					
-					if ( end_pos >= e2.getStartLong()){
+					if ( end_pos >= e2.getStartIpLong()){
 						
 						e2.setMerged();
 						
-						if ( e2.getEndLong() > end_pos ){
+						if ( e2.getEndIpLong() > end_pos ){
 							
-							entry.setMergedEndInt( e2.getEndInt());
+							entry.setMergedEnd( e2.getEndIpLong() );
 							
 							entry.addMergedEntry( e2 );
 						}
@@ -446,19 +382,19 @@ IPAddressRangeManager
 		}
 		*/
 		
-		merged_entries = new entry[me.size()];
+		mergedRanges = new IpRange[me.size()];
 		
-		me.toArray( merged_entries );
+		me.toArray( mergedRanges );
 		
 		total_span	= 0;
 		
-		for (int i=0;i<merged_entries.length;i++){
+		for (int i=0;i<mergedRanges.length;i++){
 			
-			entry	e = (entry)merged_entries[i];
+			IpRange	e = mergedRanges[i];
 			
 				// span is inclusive
 			
-			long	span = ( e.getMergedEndLong() - e.getStartLong()) + 1;
+			long	span = ( e.getMergedEndLong() - e.getStartIpLong()) + 1;
 			
 			total_span	+= span;
 		}
@@ -470,6 +406,22 @@ IPAddressRangeManager
 
 	}
 	
+	/**
+	 * @param diff
+	 * @return
+	 */
+	protected int signum(long diff) {
+		if (diff > 0) {
+			return 1;
+		}
+		
+		if (diff < 0) {
+			return -1;
+		}
+
+		return 0;
+	}
+
 	protected long
 	getTotalSpan()
 	{
@@ -478,164 +430,63 @@ IPAddressRangeManager
 		return( total_span );
 	}
 	
-	protected class
-	entry
-	{
-		private int			start;
-		private int			end;
-		private Object		user_data;
-		
-		private boolean		merged;
-		private int			merged_end;
-		
-		private entry[]		my_merged_entries;
-		
-		protected
-		entry(
-			int			_start,
-			int			_end,
-			Object		_ud )
-		{
-			start		= _start;
-			end			= _end;
-			user_data	= _ud;
-		}
-		
-		
-		protected int
-		getStartInt()
-		{
-			return( start );
-		}
-		
-		protected long
-		getStartLong()
-		{
-			return( start<0?(start+0x100000000L):start );
-		}
-		
-		protected void
-		setStartInt(
-			int		_start )
-		{
-			start	= _start;
-		}
-		
-		protected int
-		getEndInt()
-		{
-			return( end );
-		}
-		
-		protected long
-		getEndLong()
-		{
-			return( end<0?(end+0x100000000L):end );
-		}
-		
-		protected void
-		setEndInt(
-			int		_end )
-		{
-			end	= _end;
-		}
-		
-		protected void
-		setMergedEndInt(
-			int		_merged_end )
-		{
-			merged_end	= _merged_end;
-		}
-		
-		protected long
-		getMergedEndInt()
-		{
-			return( merged_end );
-		}
-		
-		protected long
-		getMergedEndLong()
-		{
-			return( merged_end<0?(merged_end+0x100000000L):merged_end );
-		}
-		
-		protected Object
-		getUserData()
-		{
-			return( user_data );
-		}
-		
-		protected boolean
-		getMerged()
-		{
-			return( merged );
-		}
-		
-		protected void
-		setMerged()
-		{
-			merged	= true;
-		}
-	
-		protected void
-		addMergedEntry(
-			entry	e2 )
-		{
-			if ( my_merged_entries == null ){
-				
-				my_merged_entries = new entry[]{ e2 };
-				
-			}else{
-				
-				entry[]	x = new entry[my_merged_entries.length+1];
-				
-				System.arraycopy( my_merged_entries, 0, x, 0, my_merged_entries.length );
-				
-				x[x.length-1] = e2;
-				
-				my_merged_entries	= x;
-			}
-		}
-		
-		protected entry[]
-		getMergedEntries()
-		{
-			return( my_merged_entries );
-		}
-		
-		protected void
-		reset()
-		{
-			merged		= false;
-			merged_end	= end;
-		}
-	}
-	
-	
 	
 	public static void
 	main(
 		String[]	args )
 	{
 		IPAddressRangeManager manager = new IPAddressRangeManager();
+
+		Object[] testBlockIPs1 = {
+				new String[] { "1", "3.1.1.1", "3.1.1.2" },
+				new String[] { "2", "3.1.1.1", "3.1.1.3" },
+				new String[] { "3", "1.1.1.1", "2.2.2.2", "2" },
+				new String[] { "4", "0.1.1.1", "2.2.2.2", "3" },
+				new String[] { "5", "1.1.1.1", "1.2.2.2" },
+				new String[] { "6", "7.7.7.7", "7.7.8.7" },
+				new String[] { "7", "8.8.8.8", "8.8.8.8" },
+				//new String[] {"8","0.0.0.0", "255.255.255.255"},
+				new String[] { "9", "5.5.5.5", "6.6.6.9" },
+				new String[] { "10", "6.6.6.6", "7.7.0.0" },
+				new String[] { "11", "254.6.6.6", "254.7.0.0" } };
 		
+		Object[] testBlockIPs2 = {
+				new String[] { "1", "0.0.0.1", "60.0.0.0" },
+				new String[] { "2", "60.0.0.2", "119.255.255.255" },
+				new String[] { "2a", "60.0.0.2", "119.255.255.255" },
+				new String[] { "3", "120.0.0.1", "180.0.0.0" },
+				new String[] { "4", "180.0.0.0", "255.255.255.255" }
+		};
 		
-		manager.addRange( "3.1.1.1", "3.1.1.2", "1" );
-		manager.addRange( "3.1.1.1", "3.1.1.3", "1" );
-		manager.addRange( "1.1.1.1", "2.2.2.2", "2" );
-		manager.addRange( "0.1.1.1", "2.2.2.2", "3" );
-		manager.addRange( "1.1.1.1", "1.2.2.2", "4" );
-		manager.addRange( "7.7.7.7", "7.7.8.7", "5" );
-		manager.addRange( "8.8.8.8", "8.8.8.8", "6" );
-		//manager.addRange( "0.0.0.0", "255.255.255.255", "7" );
-		manager.addRange( "5.5.5.5", "6.6.6.9", "8" );
-		manager.addRange( "6.6.6.6", "7.7.0.0", "9" );
-		manager.addRange( "254.6.6.6", "254.7.0.0", "10" );
-		
+		Object[] testBlockIPs = testBlockIPs2;
+
+		for (int i = 0; i < testBlockIPs.length; i++) {
+			String[] ip = (String[]) testBlockIPs[i];
+			
+			if (ip == null)
+				continue;
+
+			manager.addRange(new IpRangeImpl(ip[0], ip[1], ip[2], true));
+		}
 		
 		System.out.println( "inRange -> " + manager.isInRange( "254.6.6.8" ));
 		
+		
+		String [] testIPs = { "60.0.0.0", "60.0.0.1", "60.0.0.2", "60.0.0.3",
+				"119.255.255.254", "119.255.255.255", "120.0.0.0", "120.0.0.1",
+				"120.0.0.2", "179.255.255.255", "180.0.0.0", "180.0.0.1"
+		};
+		
+		for (int i = 0; i < testIPs.length; i++) {
+			String string = testIPs[i];
+			System.out.println(string + " InRange? " + manager.isInRange(string));
+			
+		}
+		
+		
+		
 		System.out.println( "Total span = " + manager.getTotalSpan());
+		
 		
 		/*
 		for (int i=0;i<100000;i++){
@@ -652,14 +503,14 @@ IPAddressRangeManager
 		
 		while(true){
 			
-			num++;
-		
 			if ( num % 1000 == 0 ){
 				
 				System.out.println( num + "/" + hits );
 				
 			}
 			
+			num++;
+		
 			int	ip 	= (int)(Math.random() * 0xffffffff);
 
 			Object	res = manager.isInRange( ip );
@@ -670,5 +521,9 @@ IPAddressRangeManager
 			}
 		}
 		*/
+	}
+
+	public ArrayList getEntries() {
+		return entries;
 	}
 }
