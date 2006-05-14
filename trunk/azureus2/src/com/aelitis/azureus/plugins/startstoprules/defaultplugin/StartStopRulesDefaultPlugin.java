@@ -431,12 +431,17 @@ public class StartStopRulesDefaultPlugin
     public void run() {
       // make sure process isn't running and stop it from running while we do stuff
       try{
+       	this_mon.enter();
+        
+    	long now = SystemTime.getCurrentTime();
+    	
       	//System.out.println(SystemTime.getCurrentTime() - lLastRunTime);
-      	if (SystemTime.getCurrentTime() - lLastRunTime < 1000)
+      	if ( now > lLastRunTime && now - lLastRunTime < 1000){
+      		
       		return;
+      	}
       	
-      	lLastRunTime = SystemTime.getCurrentTime();
-      	this_mon.enter();
+      	lLastRunTime = now;
       	
         DefaultRankCalculator[] dlDataArray = 
           (DefaultRankCalculator[])downloadDataMap.values().toArray(new DefaultRankCalculator[0]);
