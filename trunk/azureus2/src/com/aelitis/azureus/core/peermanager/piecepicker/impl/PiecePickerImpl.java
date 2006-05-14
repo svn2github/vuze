@@ -477,7 +477,7 @@ public class PiecePickerImpl
 
 		for (int i =0; i <peersSize; i++)
 		{
-			final PEPeer peer =(PEPeerTransport) peers.get(i);
+			final PEPeerTransport peer =(PEPeerTransport) peers.get(i);
 			if (peer.isDownloadPossible())
 			{
 				final long upRate =peer.getStats().getSmoothDataReceiveRate();

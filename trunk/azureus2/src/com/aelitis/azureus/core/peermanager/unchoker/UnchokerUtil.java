@@ -25,13 +25,13 @@ package com.aelitis.azureus.core.peermanager.unchoker;
 import java.util.*;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.util.RandomUtils;
 
 /**
  * Utility collection for unchokers.
  */
 public class UnchokerUtil {
-  
-  private static final Random random = new Random();
   
   /**
    * Test whether or not the given peer is allowed to be unchoked.
@@ -39,7 +39,7 @@ public class UnchokerUtil {
    * @param allow_snubbed if true, ignore snubbed state
    * @return true if peer is allowed to be unchoked, false if not
    */
-  public static boolean isUnchokable( PEPeer peer, boolean allow_snubbed ) {
+  public static boolean isUnchokable( PEPeerTransport peer, boolean allow_snubbed ) {
     return peer.getPeerState() == PEPeer.TRANSFERING && !peer.isSeed() && peer.isInterested() && ( !peer.isSnubbed() || allow_snubbed );
   }
   
@@ -53,7 +53,7 @@ public class UnchokerUtil {
    * @param items existing items
    * @param start_pos index at which to start compare
    */
-  public static void updateLargestValueFirstSort( long new_value, long[] values, PEPeer new_item, List items, int start_pos ) {  
+  public static void updateLargestValueFirstSort( long new_value, long[] values, PEPeerTransport new_item, List items, int start_pos ) {  
     for( int i=start_pos; i < values.length; i++ ) {
       if( new_value >= values[ i ] ) {
         for( int j = values.length - 2; j >= i; j-- ) {  //shift displaced values to the right
@@ -80,11 +80,11 @@ public class UnchokerUtil {
    * @param allow_snubbed allow the picking of snubbed-state peers as last resort
    * @return the next peer to optimistically unchoke, or null if there are no peers available
    */
-  public static PEPeer getNextOptimisticPeer( ArrayList all_peers, boolean factor_reciprocated, boolean allow_snubbed ) {
+  public static PEPeerTransport getNextOptimisticPeer( ArrayList all_peers, boolean factor_reciprocated, boolean allow_snubbed ) {
     //find all potential optimistic peers
     ArrayList optimistics = new ArrayList();
     for( int i=0; i < all_peers.size(); i++ ) {
-      PEPeer peer = (PEPeer)all_peers.get( i );
+    	PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
       
       if( isUnchokable( peer, false ) && peer.isChokedByMe() ) {
         optimistics.add( peer );
@@ -93,7 +93,7 @@ public class UnchokerUtil {
     
     if( optimistics.isEmpty() && allow_snubbed ) {  //try again, allowing snubbed peers as last resort
       for( int i=0; i < all_peers.size(); i++ ) {
-        PEPeer peer = (PEPeer)all_peers.get( i );
+      	PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
         
         if( isUnchokable( peer, true ) && peer.isChokedByMe() ) {
           optimistics.add( peer );
@@ -111,7 +111,7 @@ public class UnchokerUtil {
         
       //order by upload ratio
       for( int i=0; i < optimistics.size(); i++ ) {
-        PEPeer peer = (PEPeer)optimistics.get( i );
+      	PEPeerTransport peer = (PEPeerTransport)optimistics.get( i );
 
         //score of >0 means we've uploaded more, <0 means we've downloaded more
         long score = peer.getStats().getTotalDataBytesSent() - peer.getStats().getTotalDataBytesReceived();
@@ -119,16 +119,16 @@ public class UnchokerUtil {
         UnchokerUtil.updateLargestValueFirstSort( score, ratios, peer, ratioed_peers, 0 );  //higher value = worse score
       }
       
-      double factor = 1F / ( 0.8 + 0.2 * Math.pow( random.nextFloat(), -1 ) );  //map to sorted list using a logistic curve 
+      double factor = 1F / ( 0.8 + 0.2 * Math.pow( RandomUtils.nextFloat(), -1 ) );  //map to sorted list using a logistic curve 
       
       int pos = (int)(factor * ratioed_peers.size());
 
-      return (PEPeer)ratioed_peers.get( pos );
+      return (PEPeerTransport)ratioed_peers.get( pos );
     }
 
     
     int rand_pos = new Random().nextInt( optimistics.size() );
-    PEPeer peer = (PEPeer)optimistics.get( rand_pos );
+    PEPeerTransport peer = (PEPeerTransport)optimistics.get( rand_pos );
 
     return peer;
     
@@ -136,8 +136,49 @@ public class UnchokerUtil {
     //in downloading mode, we would be better off optimistically unchoking just peers we are interested in ourselves,
     //as they could potentially reciprocate. however, new peers have no pieces to share, and are not interesting to
     //us, and would never be unchoked, and thus would never get any data.
-    //we could 1) use 2+ opt unchokes, one for interesting and one for just interested, and 2) use a deterministic 
-    //method for new peers to get their very first piece from us
+    //we could use a deterministic method for new peers to get their very first piece from us
   }
 
+  
+  
+  /**
+   * Send choke/unchoke messages to the given peers.
+   * @param peers_to_choke
+   * @param peers_to_unchoke
+   */
+  public static void performChokes( ArrayList peers_to_choke, ArrayList peers_to_unchoke ) {
+  	//do chokes
+  	if( peers_to_choke != null ) {
+  		for( int i=0; i < peers_to_choke.size(); i++ ) {
+  			final PEPeerTransport peer = (PEPeerTransport)peers_to_choke.get( i );
+			
+  			if( !peer.isChokedByMe() ) {
+  				peer.sendChoke(); 
+  			}
+  		}
+  	}
+		
+		//do unchokes
+  	if( peers_to_unchoke != null ) {
+  		for( int i=0; i < peers_to_unchoke.size(); i++ ) {
+  			final PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );
+			
+  			if( peer.isChokedByMe() ) {
+  				peer.sendUnChoke();
+  			}
+  		}  	
+  	}
+  }
+  
+  
+  public static void performChokeUnchoke( PEPeerTransport to_choke, PEPeerTransport to_unchoke ) {
+  	if( to_choke != null && !to_choke.isChokedByMe() ) {  
+  		to_choke.sendChoke();   		
+  	}
+  	
+  	if( to_unchoke != null && to_unchoke.isChokedByMe() ) {
+  		to_unchoke.sendUnChoke();
+		}
+  }
+  
 }

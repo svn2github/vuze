@@ -1235,26 +1235,7 @@ PEPeerControlImpl
 			
 			unchoker.calculateUnchokes( max_to_unchoke, peer_transports, refresh );
 			
-			final ArrayList peers_to_choke = unchoker.getChokes();
-			final ArrayList peers_to_unchoke = unchoker.getUnchokes();
-			
-			//do chokes
-			for( int i=0; i < peers_to_choke.size(); i++ ) {
-				final PEPeerTransport peer = (PEPeerTransport)peers_to_choke.get( i );
-				
-				if( !peer.isChokedByMe() ) {
-					peer.sendChoke(); 
-				}
-			}
-			
-			//do unchokes
-			for( int i=0; i < peers_to_unchoke.size(); i++ ) {
-				final PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );
-				
-				if( peer.isChokedByMe() ) {
-					peer.sendUnChoke();
-				}
-			}
+			UnchokerUtil.performChokes( unchoker.getChokes(), unchoker.getUnchokes() );
 		}
 		else if( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ) {  //do quick unchoke check every 1 sec
 			
@@ -1268,14 +1249,7 @@ PEPeerControlImpl
 				}
 			}
 						
-			//do unchokes
-			for( int i=0; i < peers_to_unchoke.size(); i++ ) {
-				final PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );
-				
-				if( peer.isChokedByMe() ) {
-					peer.sendUnChoke();
-				}
-			}
+			UnchokerUtil.performChokes( null, peers_to_unchoke );
 		}
 		
 	}
