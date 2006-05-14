@@ -62,7 +62,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
  */
 public class MessageSlideShell {
 	private static boolean USE_SWT32_BG_SET = !(Constants.isLinux && SWT
-			.getVersion() <= 3230);
+			.getVersion() <= 3232);
 
 	private static final boolean DEBUG = false;
 
