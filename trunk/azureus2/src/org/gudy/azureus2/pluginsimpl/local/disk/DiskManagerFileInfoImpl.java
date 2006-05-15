@@ -28,6 +28,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 
@@ -39,10 +40,16 @@ import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 public class DiskManagerFileInfoImpl
        implements DiskManagerFileInfo 
 {
-	protected org.gudy.azureus2.core3.disk.DiskManagerFileInfo core;
+	protected DownloadImpl										download;
+	protected org.gudy.azureus2.core3.disk.DiskManagerFileInfo 	core;
 	
-	public DiskManagerFileInfoImpl(org.gudy.azureus2.core3.disk.DiskManagerFileInfo coreFileInfo) {
-	  core = coreFileInfo;
+	public
+	DiskManagerFileInfoImpl(
+		DownloadImpl										_download,
+		org.gudy.azureus2.core3.disk.DiskManagerFileInfo 	coreFileInfo )
+	{
+	  core 		= coreFileInfo;
+	  download	= _download;
 	}
 
 	public void setPriority(boolean b) {
@@ -131,8 +138,14 @@ public class DiskManagerFileInfoImpl
 	
 	public DiskManagerChannel
 	createChannel()
+	 	throws DownloadException
 	{
-		return( new DiskManagerChannelImpl( this ));
+		if ( core.getDownloadManager().getTorrent() == null ){
+			
+			throw( new DownloadException( "Torrent invalid" ));
+		}
+		
+		return( new DiskManagerChannelImpl( download, this ));
 	}
 	
 	protected org.gudy.azureus2.core3.disk.DiskManagerFileInfo

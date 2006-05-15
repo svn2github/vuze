@@ -24,12 +24,13 @@ package org.gudy.azureus2.pluginsimpl.local.disk;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
@@ -39,6 +40,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
@@ -50,7 +52,7 @@ DiskManagerChannelImpl
 {
 	private static final int COMPACT_DELAY	= 32;
 	
-	private static Comparator comparator = new
+	private static final Comparator comparator = new
 		Comparator()
 		{
 			public int 
@@ -89,6 +91,11 @@ DiskManagerChannelImpl
 			}
 		};
 		
+	private static final String	channel_key = "DiskManagerChannel";
+	private static int	channel_id_next;
+	
+	private DownloadImpl	download;
+	
 	private org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl	plugin_file;
 	private org.gudy.azureus2.core3.disk.DiskManagerFileInfo					core_file;
 	
@@ -98,29 +105,88 @@ DiskManagerChannelImpl
 	
 	private List	waiters	= new ArrayList();
 
+	private long	file_offset_in_torrent;
+	private long	piece_size;
+	
+	private static final int	PIECES_TO_BUFFER_MIN	= 10;
+	
 	private Average	byte_rate = Average.getInstance( 1000, 20 );
+	
+	private long	current_position;
+	private int		pieces_to_buffer	= PIECES_TO_BUFFER_MIN;
 	
 	private PEPeerManager	peer_manager;
 	private int[]	priority_offsets;
 	
+	private int		channel_id;
+	
 	protected
 	DiskManagerChannelImpl(
+		DownloadImpl															_download,
 		org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl		_plugin_file )
 	{
+		download		= _download;
 		plugin_file		= _plugin_file;
 		
 		core_file		= plugin_file.getCore();
 		
-		core_file.addListener( this );
+		synchronized( DiskManagerChannelImpl.class ){
+			
+			channel_id = channel_id_next++;
+		}
+				
+		TOTorrentFile	tf = core_file.getTorrentFile();
 		
-		priority_offsets	= new int[core_file.getDiskManager().getNbPieces()];
+		TOTorrent 	torrent = tf.getTorrent();
+		
+		TOTorrentFile[]	tfs = torrent.getFiles();
+
+		priority_offsets	= new int[torrent.getNumberOfPieces()];
 		
 		core_file.getDownloadManager().addPeerListener(this);
+			
+		for (int i=0;i<core_file.getIndex();i++){
+				
+			file_offset_in_torrent += tfs[i].getLength();
+		}
+			
+		piece_size	= tf.getTorrent().getPieceLength();
+		
+		core_file.addListener( this );
 	}
 	
 	public DiskManagerRequest
 	createRequest()
 	{
+		if ( core_file.getDownloaded() != core_file.getLength()){
+			
+			if ( core_file.isSkipped()){
+				
+				core_file.setSkipped( false );
+			}
+			
+			boolean	force_start = download.isForceStart();
+			
+			if ( !force_start ){
+				
+				synchronized( download ){
+					
+					Map	dl_state = (Map)download.getDownload().getData( channel_key );
+					
+					if ( dl_state == null ){
+						
+						dl_state = new HashMap();
+						
+						download.getDownload().setData( channel_key, dl_state );
+					}
+					
+					dl_state.put( ""+channel_id, "" );
+				}
+				
+				download.setForceStart( true );
+			}
+		}
+		
 		return( new request());
 	}
 	
@@ -177,11 +243,11 @@ DiskManagerChannelImpl
 					}
 				}
 			}
-			
-			for (int i=0;i<waiters.size();i++){
+		}
+		
+		for (int i=0;i<waiters.size();i++){
 				
-				((AESemaphore)waiters.get(i)).release();
-			}
+			((AESemaphore)waiters.get(i)).release();
 		}
 	}
 	
@@ -240,7 +306,16 @@ DiskManagerChannelImpl
    	updatePriorityOffsets(
    		PiecePicker		picker )
    	{
-   		Arrays.fill( priority_offsets, 9999);
+   		long	overall_pos = current_position + file_offset_in_torrent;
+   		
+   		int	first_piece = (int)( overall_pos / piece_size );
+   		
+   		Arrays.fill( priority_offsets, 0 );
+   		   		
+   		for (int i=first_piece;i<first_piece+pieces_to_buffer&&i<priority_offsets.length;i++){
+   			
+   			priority_offsets[i]	= 100000 - ((i-first_piece)*250);
+   		}
    		
    		return( priority_offsets );
    	}
@@ -255,6 +330,28 @@ DiskManagerChannelImpl
 		if ( peer_manager != null ){
 			
 			peer_manager.getPiecePicker().removePriorityShaper( this );
+		}
+		
+		boolean	stop_force_start = false;
+		
+		synchronized( download ){
+			
+			Map	dl_state = (Map)download.getDownload().getData( channel_key );
+			
+			if ( dl_state != null ){
+				
+				dl_state.remove( "" + channel_id );
+				
+				if ( dl_state.size() == 0 ){
+					
+					stop_force_start	= true;
+				}
+			}
+		}
+		
+		if ( stop_force_start ){
+			
+			download.setForceStart( false );
 		}
 	}
 	
@@ -310,6 +407,8 @@ DiskManagerChannelImpl
 					
 					synchronized( data_written ){
 						
+						current_position = pos;
+						
 						Iterator	it = data_written.iterator();
 						
 						while( it.hasNext()){
@@ -335,22 +434,23 @@ DiskManagerChannelImpl
 							}
 						}
 					}				
-
-						// TODO: use byte_rate * some buffering size to dynamically prioritise pieces
-						// for downloading
 					
 					if ( len > 0 ){
 						
 						DirectByteBuffer buffer = core_file.read( pos, len );
 	
-						byte_rate.addValue( len );
-												
 						inform( new event( new PooledByteBufferImpl( buffer ), pos, len ));
 						
 						pos += len;
 						
 						rem -= len;
 						
+						synchronized( data_written ){
+							
+							byte_rate.addValue( len );
+							
+							current_position = pos;
+						}
 					}else{
 						
 						inform( new event( pos ));

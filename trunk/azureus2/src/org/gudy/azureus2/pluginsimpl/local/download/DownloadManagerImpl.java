@@ -375,13 +375,13 @@ DownloadManagerImpl
         return( default_start_stopped?DownloadManager.STATE_STOPPED:DownloadManager.STATE_WAITING);
 	}
 	
-	protected Download
+	protected DownloadImpl
 	getDownload(
 		DownloadManager	dm )
 	
 		throws DownloadException
 	{
-		Download dl = (Download)download_map.get(dm);
+		DownloadImpl dl = (DownloadImpl)download_map.get(dm);
 		
 		if ( dl == null ){
 			
@@ -398,7 +398,7 @@ DownloadManagerImpl
 	 * @return plugin object
 	 * @throws DownloadException
 	 */
-	public static Download
+	public static DownloadImpl
 	getDownloadStatic(
 		DownloadManager	dm )
 	

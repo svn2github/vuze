@@ -257,8 +257,14 @@ public class TableRowImpl
 
     if (sTableID.equals(TableManager.TABLE_TORRENT_FILES)) {
       DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)coreDataSource;
-      if (fileInfo != null)
-        pluginDataSource = new DiskManagerFileInfoImpl(fileInfo);
+      if (fileInfo != null){
+    	  try {
+    		  pluginDataSource = 
+    			  new DiskManagerFileInfoImpl(
+    					  DownloadManagerImpl.getDownloadStatic(fileInfo.getDownloadManager()),
+    					  fileInfo);
+          } catch (DownloadException e) { /* Ignore */ }
+      }
     }
 
     if (sTableID.equals(TableManager.TABLE_MYSHARES)) {

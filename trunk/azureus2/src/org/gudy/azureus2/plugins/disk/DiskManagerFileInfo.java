@@ -107,5 +107,7 @@ DiskManagerFileInfo
          throws DownloadException;
 	
 	public DiskManagerChannel
-	createChannel();
+	createChannel()
+	
+		throws DownloadException;
 }

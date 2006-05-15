@@ -1202,7 +1202,7 @@ DownloadImpl
 		
 		for (int i=0;i<res.length;i++){
 			
-			res[i] = new DiskManagerFileInfoImpl( info[i] );
+			res[i] = new DiskManagerFileInfoImpl( this, info[i] );
 		}
 		
 		return( res );
