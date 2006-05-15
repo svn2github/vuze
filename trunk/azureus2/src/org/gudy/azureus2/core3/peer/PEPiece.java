@@ -23,7 +23,6 @@ package org.gudy.azureus2.core3.peer;
 
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 
-import com.aelitis.azureus.core.util.Piece;
 
 /**
  * Represents a Peer Piece and the status of its different blocks (un-requested, requested, downloaded, written).
@@ -34,17 +33,20 @@ import com.aelitis.azureus.core.util.Piece;
  *			2006/Jan/2: refactoring, mostly to base Piece interface
  */
 
-public interface PEPiece
-	extends Piece
+public interface 
+PEPiece
 {  
 	public PEPeerManager	getManager();
     public DiskManagerPiece getDMPiece();
-    public int          getPieceNumber();
+    public int         		getPieceNumber();
+	public int				getLength();
+	public int				getNbBlocks();
     /**
      * @param offset int bytes into piece 
      * @return block int number corresponding to given offset
      */
     public int          getBlockNumber(int offset);
+	public int			getBlockSize( int block_index );
 
     /** The time the pePiece was [re]created
      */
@@ -57,7 +59,8 @@ public interface PEPiece
      */
     public long         getTimeSinceLastActivity();
 
-
+    public long         getLastDownloadTime( long now );
+    
 	/**
 	 * record details of a piece's blocks that have been completed for bad peer detection purposes
 	 * @param blockNumber
@@ -81,11 +84,10 @@ public interface PEPiece
 	public boolean		setRequested(PEPeer peer, int blockNumber);
 	public void			clearRequested(int blocNumber);
     public boolean      isRequested(int blockNumber);
-    /** @deprecated
-     * Use clearRequested(int blocNumber) instead 
-     * @param blockNumber
-     */
-    public void         unmarkBlock(int blockNumber);
+    
+    public boolean      isRequested();
+    public void			setRequested();
+    public boolean		isRequestable();
     
 	public int			getNbRequests();
 	public int			getNbUnrequested();
@@ -94,6 +96,7 @@ public interface PEPiece
 	public boolean		isDownloaded(int blockNumber);   
     public void         setDownloaded(int offset);
     public void         clearDownloaded(int offset);
+	public boolean		isDownloaded();   
 
 	//A Piece can be reserved by a peer, so that only s/he can
 	//contribute to it.
@@ -111,7 +114,8 @@ public interface PEPiece
 
 	public String[] 	getWriters();
 	public void			setWritten(PEPeer peer, int blockNumber);
-	public boolean isWritten();
+	public boolean 		isWritten();
+	
 	public int 			getSpeed();
 	public void			setSpeed(int speed);
 	public void			incSpeed();
@@ -120,4 +124,6 @@ public interface PEPiece
      * This is not good for high speed transfers
      */
 	public void			decSpeed();
+	
+	public void			reset();
 }

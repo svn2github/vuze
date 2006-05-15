@@ -845,6 +845,15 @@ PEPeerTransportProtocol
   public PEPeerManager getManager() {  return manager;  }
   public PEPeerStats getStats() {  return peer_stats;  }
   
+	public int[]
+	getPriorityOffsets(
+		int[]	base_priorities )
+	{
+			// normal peer has no special priority requirements
+		
+		return( null );
+	}
+	
   	/**
   	 * @return null if no bitfield has been recieved yet
   	 * else returns BitFlags indicating what pieces the peer has
@@ -1704,8 +1713,6 @@ PEPeerTransportProtocol
 	  }
 
 	  final PEPiece pePiece =manager.getPiece(pieceNumber);
-	  if (pePiece !=null)
-		  pePiece.setDownloaded(offset);
 
 	  final DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, offset, length );
 	  boolean piece_error = true;
@@ -1806,8 +1813,6 @@ PEPeerTransportProtocol
 	  if( piece_error )
 	  {
 		  piece.destroy();
-		  if (!manager.isWritten(pieceNumber, offset) &&pePiece !=null)
-			  pePiece.clearDownloaded(offset);
 	  }
   }
   

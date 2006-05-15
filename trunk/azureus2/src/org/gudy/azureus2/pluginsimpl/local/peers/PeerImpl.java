@@ -281,6 +281,13 @@ PeerImpl
 		throw( new RuntimeException( "not supported"));
 	}
 
+	public int[]
+	getPriorityOffsets(
+		int[]	base_priorities )
+	{
+		throw( new RuntimeException( "not supported"));
+	}
+	
 	public void
 	cancelRequest(
 		PeerReadRequest	request )

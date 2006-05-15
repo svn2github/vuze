@@ -92,6 +92,9 @@ PeerManager
 		PeerReadRequest		request,
 		Peer				sender );
 	
+	public Piece[]
+	getPieces();
+	
 	public void
 	addListener(
 		PeerManagerListener	l );

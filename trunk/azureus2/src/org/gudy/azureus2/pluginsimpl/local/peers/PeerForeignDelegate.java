@@ -152,6 +152,13 @@ PeerForeignDelegate
 		return( foreign.getNumberOfRequests());
 	}
 		
+	public int[]
+	getPriorityOffsets(
+		int[]	base_priorities )
+	{
+		return( foreign.getPriorityOffsets( base_priorities ));
+	}
+	
 	public PEPeerControl
 	getControl()
 	{

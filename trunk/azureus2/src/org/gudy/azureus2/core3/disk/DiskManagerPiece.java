@@ -22,7 +22,6 @@
 
 package org.gudy.azureus2.core3.disk;
 
-import com.aelitis.azureus.core.util.Piece;
 
 /**
  * Represents a DiskManager Piece
@@ -33,20 +32,19 @@ import com.aelitis.azureus.core.util.Piece;
  *			2006/Jan/2: refactoring, mostly to base Piece interface
  */
 
-public interface DiskManagerPiece
-	extends Piece
+public interface 
+DiskManagerPiece
 {
 	public DiskManager	getManager();
 
-	/**
-	 * @deprecated Use {@link #getLastWriteTime(long)} instead
-	 */
-	public long			getLastWriteTime();
-
-	public long			getLastWriteTime(final long now);
+	public int			getLength();
+	public int         	getPieceNumber();
+	public int			getNbBlocks();
+	public int			getBlockSize( int block_index );
 
 	public boolean		calcNeeded();
 	public void			clearNeeded();
+	
 	/** @return true if any file the piece covers is neither Do Not Download nor Delete.
 	 * This is not a real-time indicator.  Also, the results are not reliable for pieces that are Done.
 	 * Use calcNeeded() for guaranteed correct and up to date results
@@ -56,25 +54,11 @@ public interface DiskManagerPiece
 	public void			setNeeded();
 	public void			setNeeded(boolean b);
 
-	// a piece is Requested if there is at least 1 outstanding request on it AND there's no more blocks that need to be requested
-	public boolean		calcRequested();
-	public void			clearRequested();
-	public boolean		isRequested();
-	public void			setRequested();
-	public void			setRequested(boolean b);
-
-	// a piece is Downloaded if data has been received for every block (without concern for if it's written or checked)  
-	public boolean		calcDownloaded();
-	public void			clearDownloaded();
-	public boolean		isDownloaded();
-	public void			setDownloaded();
-
 	// a piece is Written if data has been written to storage for every block (without concern for if it's checked)  
     public boolean      isWritten();
 	public int			getNbWritten();
-	public boolean		calcWritten();
-	public void			clearWritten();
-	public void			setWritten();
+	public boolean[] 	getWritten();
+	
 	/**
 	 * @param blockNumber int
 	 * @return true if the given blockNumber has already been written to disk
@@ -88,6 +72,8 @@ public interface DiskManagerPiece
 	public void			setChecking();
 	public void			setChecking(boolean b);
     public void         clearChecking();
+    public boolean 		isChecking();
+    
     public boolean		isNeedsCheck();
 
 	public boolean		calcDone();
@@ -105,32 +91,15 @@ public interface DiskManagerPiece
     /** This must not be used to qualify pieces in End Game Mode.
 	 * @return true if a piece is Needed but is not fully; Requested, Downloaded, Written, Checking, or Done.
 	 */
-	public boolean		isRequestable();
-    
-    /** End Game Mode considers a piece to be active that is;
-     * Needed and fully Requested, but not fully Downloaded, fully Written, hash Checking, or Done
-     * @return true if EGM should count the piece as active
-     */
-    public boolean      isEGMActive();
-
-    /** End Game Mode ignores pieces that are not Needed, or are fully; 
-     * Downlaoded, Written, Checking, or Done
-     * @return true if EGM should ignore the piece
-     */
-    public boolean      isEGMIgnored();
-    
-    /** This returns a single concise status for the stage of progression the entire piece
-     * has reached.  The statuses are defined in Piece.java.
-     * @return may be;  PIECE_STATUS_DONE, PIECE_STATUS_CHECKING, PIECE_STATUS_WRITTEN,
-     * PIECE_STATUS_DOWNLOADED, PIECE_STATUS_REQUESTED, or if nothing else PIECE_STATUS_NEEDED.
-     * A status of 0 means that the piece has not progressed to any stage of completion and is
-     * not even needed according to the current priority settings.
-     */
-    public int          getStatus();
-    
-    /**
+	public boolean		isDownloadable();
+	public void 		setDownloadable();
+	    
+     /**
      * returns true if all the files that the piece spans are skipped
      * @return
      */
     public boolean	    isSkipped();
+    
+    public void 		reDownloadBlock(int blockNumber);
+    public void			reset();
 }

@@ -27,6 +27,9 @@ package org.gudy.azureus2.ui.swt.views.tableitems.files;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -127,7 +130,14 @@ public class ProgressGraphItem
 
 	  	// dm may be null if this is a skeleton file view
 	  
-  	final long now =SystemTime.getCurrentTime();
+      DownloadManager	download_manager = fileInfo.getDownloadManager();
+      
+      PEPeerManager	peer_manager = download_manager==null?null:download_manager.getPeerManager();
+      
+      PEPiece[]	pe_pieces = peer_manager==null?null:peer_manager.getPieces();
+    	  
+  	  final long now =SystemTime.getCurrentTime();
+  	  
       if (fileInfo != null && manager != null ) {
     	   	  
         if (percentDone == 1000) {
@@ -165,8 +175,16 @@ public class ProgressGraphItem
                   continue;
                 }
                 
-                written = written || (dm_piece.getLastWriteTime(now) + 500) > last_draw_time;
-    
+                if ( pe_pieces != null ){
+                	
+                	PEPiece	pe_piece = pe_pieces[this_index];
+                	
+                	if ( pe_piece != null ){
+                		
+                		written = written || (pe_piece.getLastDownloadTime(now) + 500) > last_draw_time;
+                	}
+                }
+                
                 if ((!written) && (!partially_written)) {
                 	final boolean[] blocks = dm_piece.getWritten();
     

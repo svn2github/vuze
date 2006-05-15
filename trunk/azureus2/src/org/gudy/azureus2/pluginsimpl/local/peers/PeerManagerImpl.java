@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -46,12 +47,6 @@ PeerManagerImpl
 	protected PEPeerManager	manager;
 	
 	protected static AEMonitor	pm_map_mon	= new AEMonitor( "PeerManager:Map" );
-
-	protected Map		foreign_map		= new HashMap();
-	
-	protected Map		listener_map 	= new HashMap();
-	
-	 protected AEMonitor	this_mon	= new AEMonitor( "PeerManager" );
 
 	public static PeerManagerImpl
 	getPeerManager(
@@ -76,11 +71,24 @@ PeerManagerImpl
 		}
 	}
 	
+	private Map		foreign_map		= new HashMap();
+	
+	private Map		listener_map 	= new HashMap();
+	
+	protected AEMonitor	this_mon	= new AEMonitor( "PeerManager" );
+
+	private final DiskManagerPiece[]	dm_pieces;
+	private final PEPiece[]				pe_pieces;
+	private pieceFacade[]	piece_facades;
+	
 	protected
 	PeerManagerImpl(
 		PEPeerManager	_manager )
 	{
 		manager	= _manager;
+		
+		dm_pieces	= _manager.getDiskManager().getPieces();
+		pe_pieces	= _manager.getPieces();
 	}
 
 	public PEPeerManager
@@ -122,6 +130,23 @@ PeerManagerImpl
 		return( DownloadManagerImpl.getDownloadStatic( manager.getDiskManager().getTorrent()));
 	}
 	
+	public Piece[]
+	getPieces()
+	{
+		if ( piece_facades == null ){
+			
+			pieceFacade[]	pf = new pieceFacade[manager.getDiskManager().getNbPieces()];
+			
+			for (int i=0;i<pf.length;i++){
+				
+				pf[i] = new pieceFacade(i);
+			}
+			
+			piece_facades	= pf;
+		}
+		
+		return( piece_facades );
+	}
 	
 	public PeerStats
 	createPeerStats(
@@ -329,6 +354,49 @@ PeerManagerImpl
       
 		}finally{
 			this_mon.exit();
+		}
+	}
+	
+	protected class
+	pieceFacade
+		implements Piece
+	{
+		private final int	index;
+		
+		protected
+		pieceFacade(
+			int		_index )
+		{
+			index	= _index;
+		}
+		
+		public boolean
+		isDone()
+		{
+			return( dm_pieces[index].isDone());
+		}
+		
+		public boolean
+		isNeeded()
+		{
+			return( dm_pieces[index].isNeeded());
+		}
+		
+		public boolean
+		isDownloading()
+		{
+			return( pe_pieces[index] != null );
+		}
+		
+		public boolean
+		isAllocatable()
+		{
+			if ( pe_pieces[index] != null ){
+				
+				return( false );
+			}
+			
+			return( dm_pieces[index].isInteresting());
 		}
 	}
 }

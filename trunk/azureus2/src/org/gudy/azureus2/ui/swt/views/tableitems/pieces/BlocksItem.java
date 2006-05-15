@@ -148,7 +148,7 @@ public class BlocksItem
       
       TOTorrent torrent = pePiece.getManager().getDiskManager().getTorrent();
       
-      boolean[]	written 	= pePiece.getWritten();
+      boolean[]	written 	= pePiece.getDMPiece().getWritten();
       boolean	piece_written 	= pePiece.isWritten();
       int	drawnWidth	= 0;
       int	blockStep	= 0;

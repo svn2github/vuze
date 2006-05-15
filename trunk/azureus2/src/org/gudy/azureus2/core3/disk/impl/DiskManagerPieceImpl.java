@@ -32,7 +32,6 @@ package org.gudy.azureus2.core3.disk.impl;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.SystemTime;
 
 public class DiskManagerPieceImpl
 	implements DiskManagerPiece
@@ -40,18 +39,15 @@ public class DiskManagerPieceImpl
     private static final LogIDs LOGID = LogIDs.PIECES;
 
     public static final int	PIECE_STATUS_NEEDED		=0x01;	//want to have the piece
-	public static final int	PIECE_STATUS_REQUESTED	=0x04;	//piece fully requested
-    public static final int	PIECE_STATUS_DOWNLOADED	=0x10;	//piece fully downloaded
     public static final int	PIECE_STATUS_WRITTEN	=0x20;	//piece fully written to storage
     public static final int	PIECE_STATUS_CHECKING	=0x40;	//piece is being hash checked
-    public static final int	PIECE_STATUS_DONE		=0x80;	//everything completed - piece 100%
-    
-    private static final int PIECE_STATUS_MASK_REQUESTABLE=0x75;    // Needed IS once again included in this
+       
+    private static final int PIECE_STATUS_MASK_DOWNLOADABLE	=
+    	PIECE_STATUS_CHECKING | PIECE_STATUS_WRITTEN | PIECE_STATUS_NEEDED;
 
-	private static final int PIECE_STATUS_MASK_EGM_ACTIVE =0x05;    //requested and needed
-	private static final int PIECE_STATUS_MASK_EGM_IGNORED=0x71;    //EGM ignores these pieces
-	
-	private static final int PIECE_STATUS_MASK_NEEDS_CHECK =0x60;
+    										// 0x65;    // Needed IS once again included in this
+		
+	private static final int PIECE_STATUS_MASK_NEEDS_CHECK 	= PIECE_STATUS_CHECKING | PIECE_STATUS_WRITTEN;
 
     //private static boolean statusTested =false;
 
@@ -72,8 +68,6 @@ public class DiskManagerPieceImpl
 	// as problems only occur when switching from all-written to done=true, both of which signify
 	// the same state of affairs.
 	protected volatile boolean[]	written;
-
-	private long        time_last_write;
 
     private int         statusFlags;
 	/** it's *very* important to accurately maintain the "done" state of a piece. Currently the statusFlags
@@ -184,99 +178,11 @@ public class DiskManagerPieceImpl
 			statusFlags &=~PIECE_STATUS_NEEDED;
 	}
 
-
-	public boolean isRequested()
-	{
-		return (statusFlags &PIECE_STATUS_REQUESTED) !=0;
-	}
-
-	//TODO: implement
-	public boolean calcRequested()
-	{
-		return isRequested();
-	}
-
-	public void clearRequested()
-	{
-		statusFlags &=~PIECE_STATUS_REQUESTED;
-	}
-
-	public void setRequested()
-	{
-		statusFlags |=PIECE_STATUS_REQUESTED;
-	}
-
-	public void setRequested(boolean b)
-	{
-		if (b)
-			statusFlags |=PIECE_STATUS_REQUESTED;
-		else
-			statusFlags &=~PIECE_STATUS_REQUESTED;
-	}
-
-
-	public boolean isDownloaded()
-	{
-		return (statusFlags &PIECE_STATUS_DOWNLOADED) !=0;
-	}
-
-	//TODO: implement
-	public boolean calcDownloaded()
-	{
-		return isDownloaded();
-	}
-
-	public void clearDownloaded()
-	{
-		statusFlags &=~PIECE_STATUS_DOWNLOADED;
-	}
-
-	public void setDownloaded()
-	{
-		statusFlags |=PIECE_STATUS_DOWNLOADED;
-	}
-
-	public boolean calcWritten()
-	{
-		final boolean[] written_ref =written;
-		
-		if (written_ref ==null)
-		{
-            if ( done )
-            {
-                statusFlags |=PIECE_STATUS_WRITTEN;
-                return true;
-            }
-            statusFlags &=~PIECE_STATUS_WRITTEN;
-            return false;
-		}
-		
-		for (int i =0; i <nbBlocks; i++ )
-		{
-			if (!written_ref[i])
-			{
-                statusFlags &=~PIECE_STATUS_WRITTEN;
-				return false;
-			}
-		}
-        statusFlags |=PIECE_STATUS_WRITTEN;
-		return true;
-	}
-
-	public void clearWritten()
-	{
-		statusFlags &=~PIECE_STATUS_WRITTEN;
-	}
-
 	public boolean isWritten()
 	{
 		return (statusFlags &PIECE_STATUS_WRITTEN) !=0;
 	}
 
-	public void setWritten()
-	{
-		statusFlags |=PIECE_STATUS_WRITTEN;
-	}
 
 	/** written[] can be null, in which case if the piece is Done,
 	*  all blocks are complete otherwise no blocks are complete
@@ -319,7 +225,6 @@ public class DiskManagerPieceImpl
 		final boolean[] written_ref =written;
 		
 		written_ref[blockNumber] =true;
-		time_last_write =SystemTime.getCurrentTime();
 		for (int i =0; i <nbBlocks; i++)
 		{
 			if (!written_ref[i])
@@ -394,37 +299,18 @@ public class DiskManagerPieceImpl
             written =null;
 	}
 
-	/**
-	 * @deprecated Use {@link #getLastWriteTime(final long now)} instead
-	 */
-	public long getLastWriteTime()
-	{
-		return getLastWriteTime(SystemTime.getCurrentTime());
-	}
-
-	public long getLastWriteTime(final long now)
-	{
-		if (time_last_write <=now)
-			return time_last_write;
-		return time_last_write =now;
-	}
-
-	/**
-	 * Clears flags that show the piece doesn't need more downloading requested of it
-	 * Including; Requested, Downloaded, Written, Checking, and Done.
-	 */
-	public void setRequestable()
+	public void setDownloadable()
 	{		
 		setDone(false);
-		statusFlags &=~(PIECE_STATUS_MASK_REQUESTABLE);
+		statusFlags &=~(PIECE_STATUS_MASK_DOWNLOADABLE);
 		calcNeeded();	// Needed wouldn't have been calced before if couldn't download more
 	}
 
-	public boolean isRequestable()
+	public boolean isDownloadable()
 	{
-		return !done &&(statusFlags &PIECE_STATUS_MASK_REQUESTABLE) ==PIECE_STATUS_NEEDED;
+		return !done &&(statusFlags &PIECE_STATUS_MASK_DOWNLOADABLE) == PIECE_STATUS_NEEDED;
 	}
-
+	
 	/**
 	 * @return true if the piece is Needed and not Done
 	 */
@@ -433,21 +319,10 @@ public class DiskManagerPieceImpl
 		return !done &&(statusFlags &PIECE_STATUS_NEEDED) != 0;
 	}
     
-    public boolean      isEGMActive()
-    {
-        return (statusFlags &PIECE_STATUS_MASK_EGM_ACTIVE) ==PIECE_STATUS_MASK_EGM_ACTIVE;
-    }
-
-    public boolean isEGMIgnored()
-    {
-        return done || (statusFlags &PIECE_STATUS_MASK_EGM_IGNORED) !=PIECE_STATUS_NEEDED;
-    }
-    
 	public void reset()
 	{
-        setRequestable();
+		setDownloadable();
 		written =null;
-		time_last_write =0;
 	}
 
 	public void reDownloadBlock(int blockNumber)
@@ -456,33 +331,11 @@ public class DiskManagerPieceImpl
 		if (written_ref !=null)
 		{
 			written_ref[blockNumber] =false;
-			setRequestable();
+			setDownloadable();
 		}
 	}
     
-    public int getStatus()
-    {
-        if (done)
-            return PIECE_STATUS_DONE;
-        
-        if ((statusFlags &PIECE_STATUS_CHECKING) !=0)
-            return PIECE_STATUS_CHECKING;
-
-        if ((statusFlags &PIECE_STATUS_WRITTEN) !=0)
-            return PIECE_STATUS_WRITTEN;
-        
-        if ((statusFlags &PIECE_STATUS_DOWNLOADED) !=0)
-            return PIECE_STATUS_DOWNLOADED;
-        
-        if ((statusFlags &PIECE_STATUS_REQUESTED) !=0)
-            return PIECE_STATUS_REQUESTED;
-        
-        if ((statusFlags &PIECE_STATUS_NEEDED) !=0)
-            return PIECE_STATUS_NEEDED;
-        
-        return 0;
-    }
-
+ 
     /*
     public static final void testStatus()
     {

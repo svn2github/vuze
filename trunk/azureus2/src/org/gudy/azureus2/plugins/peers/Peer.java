@@ -139,6 +139,10 @@ Peer
 	public int
 	getNumberOfRequests();
 
+	public int[]
+	getPriorityOffsets(
+		int[]	base_priorities );
+	       	
 	public void
 	cancelRequest(
 		PeerReadRequest	request );

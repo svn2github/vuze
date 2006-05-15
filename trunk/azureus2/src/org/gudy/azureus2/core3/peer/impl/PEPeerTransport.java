@@ -91,7 +91,14 @@ PEPeerTransport
 	public PEPeerControl
 	getControl();
   
-  
+		/**
+		 * Any priority offsets this peer has, or null if none
+		 * @return
+		 */
+	
+	public int[]
+	getPriorityOffsets(
+		int[]	base_priorities );
   
 	/**
 	 * Check if we need to send a keep-alive message.

@@ -335,7 +335,9 @@ ExternalSeedPeer
 		return( available );
 	}
    
-	public final boolean isPieceAvailable(int pieceNumber)
+	public final boolean 
+	isPieceAvailable(
+		int pieceNumber )
 	{
 		return( true );
 	}
@@ -469,6 +471,15 @@ ExternalSeedPeer
 		return( reader.getRequestCount());
 	}
 
+	public int[]
+	getPriorityOffsets(
+		int[]	base_priorities )
+	{
+		Piece[]	pieces = manager.getPieces();
+		
+		return( null );
+	}
+	
 	public void
 	cancelRequest(
 		PeerReadRequest	request )

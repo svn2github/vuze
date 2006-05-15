@@ -45,9 +45,15 @@ public class PEPieceImpl
 	
 	private final int       nbBlocks;       // number of blocks in this piece
     private long            creationTime;
-    
+
+
 	private final String[]	requested;
+	private boolean			fully_requested;
+	
 	private final boolean[]	downloaded;
+	private boolean			fully_downloaded;
+	private long        	time_last_download;
+
 	private final String[] 	writers;
 	private List 			writes;
 	
@@ -107,15 +113,22 @@ public class PEPieceImpl
     public long getTimeSinceLastActivity()
     {
         final long now =SystemTime.getCurrentTime();
-        final long lastWriteTime =dmPiece.getLastWriteTime(now);
-        if (lastWriteTime >0 &&now >=lastWriteTime)
-            return now -lastWriteTime;
+        final long lastWriteTime =getLastDownloadTime(now);
+        if (time_last_download >0 &&now >=time_last_download)
+            return now -time_last_download;
         if (creationTime >0 &&now >=creationTime)
             return now -creationTime;
         creationTime =now;
         return 0;
     }
     
+	public long getLastDownloadTime(final long now)
+	{
+		if (time_last_download <=now)
+			return time_last_download;
+		return time_last_download =now;
+	}
+
 	/** Tells if a block has been requested
 	 * @param blockNumber the block in question
 	 * @return true if the block is Requested already
@@ -140,14 +153,16 @@ public class PEPieceImpl
 	 */
 	public void setDownloaded(int offset)
 	{
+		time_last_download =SystemTime.getCurrentTime();
 		downloaded[offset /DiskManager.BLOCK_SIZE] =true;
         for (int i =0; i <nbBlocks; i++)
         {
             if (!downloaded[i])
                 return;
         }
-        dmPiece.setDownloaded();
-        dmPiece.clearRequested();
+        
+        fully_downloaded	= true;
+        fully_requested		= false;
 	}
 	
     /** This flags the block at the given offset as NOT having been downloaded
@@ -157,7 +172,14 @@ public class PEPieceImpl
     public void clearDownloaded(int offset)
     {
         downloaded[offset /DiskManager.BLOCK_SIZE] =false;
-        dmPiece.clearDownloaded();
+       
+        fully_downloaded	= false;
+    }
+    
+    public boolean		
+    isDownloaded()
+    {
+    	return( fully_downloaded );
     }
     
 	/** This marks a given block as having been written by the given peer
@@ -177,16 +199,21 @@ public class PEPieceImpl
 	public void clearRequested(int blockNumber)
 	{
 		requested[blockNumber] =downloaded[blockNumber] ?writers[blockNumber] :null;
+		
+		fully_requested = false;
 	}
 	
-    /** @deprecated
-     * This method is safe in a multi-threaded situation as the worst that it can do is mark a block as not requested even
-     * though its downloaded which may lead to it being downloaded again
-     */
-    public void unmarkBlock(int blockNumber)
-    {
-        requested[blockNumber] =downloaded[blockNumber] ?writers[blockNumber] :null;
-    }
+	public boolean      
+	isRequested()
+	{
+		return( fully_requested );
+	}
+	    
+	public void			
+	setRequested()
+	{
+		fully_requested	= true;
+	}
 
 	/** This will scan each block looking for requested blocks. For each one, it'll verify
 	 * if the PEPeer for it still exists and is still willing and able to upload data.
@@ -316,6 +343,12 @@ public class PEPieceImpl
 		return false;
 	}
 	
+	public boolean		
+	isRequestable()
+	{
+		return( dmPiece.isDownloadable() && !( fully_downloaded || fully_requested ));
+	}
+	
 	public int 
 	getBlockSize(
 		int blockNumber) 
@@ -437,6 +470,8 @@ public class PEPieceImpl
 			downloaded[i] =false;
 			writers[i] =null;
 		}
+		fully_downloaded = false;
+		time_last_download = 0;
 		reservedBy =null;
 	}
 
@@ -516,6 +551,7 @@ public class PEPieceImpl
 	{
 		downloaded[blockNumber] =false;
 		requested[blockNumber] =null;
+		fully_downloaded = false;
 		dmPiece.reDownloadBlock(blockNumber);
 	}
 
@@ -588,7 +624,10 @@ public class PEPieceImpl
 
 	public void setRequestable()
 	{
-		dmPiece.setRequestable();
+		fully_downloaded	= false;
+		fully_requested		= false;
+		
+		dmPiece.setDownloadable();
 	}
 	
 	public boolean isChecking()
@@ -620,11 +659,6 @@ public class PEPieceImpl
 	public void setChecking(boolean b)
 	{
 		dmPiece.setChecking(b);
-	}
-
-	public boolean isNeeded()
-	{
-		return dmPiece.isNeeded();
 	}
 */
 }

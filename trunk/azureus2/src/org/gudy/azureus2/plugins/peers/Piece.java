@@ -1,7 +1,7 @@
 /*
- * Created by Joseph Bridgewater
- * Created on Jan 2, 2006
- * Copyright (C) 2005, 2006 Aelitis, All Rights Reserved.
+ * Created on 15 May 2006
+ * Created by Paul Gardner
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,31 +20,26 @@
  *
  */
 
-package com.aelitis.azureus.core.util;
+package org.gudy.azureus2.plugins.peers;
 
-/**
- * @author MjrTom
- * Base Piece methods
- *
- */
-
-public interface Piece
+public interface 
+Piece 
 {
-    public int          getPieceNumber();
-    public int          getNbBlocks();
-    /**
-     * @return int the number of bytes in the piece
-     */
-    public int          getLength();
-    public int          getBlockSize(int blockNumber);
-
-	public boolean		isChecking();
-
-	public boolean[]	getWritten();
-
-	public void			reDownloadBlock(int blockNumber);
-	public void			reset();
+	public boolean
+	isDone();
 	
-	public void			setRequestable();
-
+	public boolean
+	isNeeded();
+	
+	public boolean
+	isDownloading();
+	
+		/**
+		 * indicates if this piece is free and available to be allocated for download 
+		 * not done, needed and not downloading
+		 * @return
+		 */
+	
+	public boolean
+	isAllocatable();
 }

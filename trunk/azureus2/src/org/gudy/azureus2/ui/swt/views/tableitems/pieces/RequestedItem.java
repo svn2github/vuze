@@ -48,8 +48,7 @@ public class RequestedItem
         final PEPiece pePiece =(PEPiece) cell.getDataSource();
         if (pePiece !=null)
         {
-            final DiskManagerPiece dmPiece =pePiece.getDMPiece();
-            value =(dmPiece !=null &&dmPiece.isRequested());
+             value = pePiece.isRequested();
         }
         if (!cell.setSortValue(value ?1 :0) &&cell.isValid())
             return;

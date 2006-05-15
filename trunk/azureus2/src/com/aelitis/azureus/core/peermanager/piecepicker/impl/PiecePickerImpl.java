@@ -109,7 +109,8 @@ public class PiecePickerImpl
 	
 	protected final int			nbPieces;
 	protected final DiskManagerPiece[]	dmPieces;
-
+	protected final PEPiece[]			pePieces;
+	
 	protected final AEMonitor availabilityMon = new AEMonitor("PiecePicker:avail");
 	private final AEMonitor endGameModeChunks_mon =new AEMonitor("PiecePicker:EGM");
 
@@ -207,6 +208,7 @@ public class PiecePickerImpl
  		nbPieces =diskManager.getNbPieces();
 		nbPiecesDone =0;
 		
+		pePieces = pc.getPieces();
 		
 		// now do stuff related to availability
 		availability =new int[nbPieces];  //always needed
@@ -342,7 +344,9 @@ public class PiecePickerImpl
         {
             final int avail =availability[i];
             final DiskManagerPiece dmPiece =dmPieces[i];
-            if (avail >0 &&avail <rarestMin &&dmPiece.isRequestable()) 
+            final PEPiece	pePiece = pePieces[i];
+            
+            if (avail >0 &&avail <rarestMin && dmPiece.isDownloadable() && (pePiece == null || pePiece.isRequestable())) 
                 rarestMin =avail;	// most important targets for near future requests from others
 
             if (avail <allMin)
@@ -359,11 +363,13 @@ public class PiecePickerImpl
         {
             final int avail =availability[i];
             final DiskManagerPiece dmPiece =dmPieces[i];
+            final PEPiece	pePiece = pePieces[i];
+            
             if (avail >0)
             {
                 if (avail >allMin)
                     total++;
-                if (avail <=rarestMin &&dmPiece.isRequestable() &&peerControl.isPieceActive(i))
+                if (avail <=rarestMin &&dmPiece.isDownloadable() && pePiece != null && !pePiece.isRequested())
                     rarestActive++;
                 totalAvail +=avail;
             }
@@ -714,11 +720,12 @@ public class PiecePickerImpl
 
 		final int peerSpeed =(int) pt.getStats().getDataReceiveRate() /1000;
 
-		final PEPiece pePiece;
-		if (peerControl.isPieceActive(pieceNumber))
-			pePiece =peerControl.getPiece(pieceNumber);
-		else
-        {   //create piece manually
+		PEPiece pePiece = pePieces[pieceNumber];
+		
+		if ( pePiece==null ){
+
+			   //create piece manually
+			
 			pePiece =new PEPieceImpl(pt.getManager(), dmPieces[pieceNumber], peerSpeed >>1);
 
 			// Assign the created piece to the pieces array.
@@ -788,7 +795,7 @@ public class PiecePickerImpl
         	
             final DiskManagerPiece dmPiece =dmPieces[pieceNumber];
             
-            PEPiece pePiece = peerControl.getPiece(pieceNumber);
+            PEPiece pePiece = pePieces[pieceNumber];
 
             if ( pePiece != null ){
             	
@@ -796,7 +803,7 @@ public class PiecePickerImpl
             	
             	if ( peerReserved != null && peerReserved.equals( pt.getIp())){
             		
-            		if ( peerHavePieces.flags[pieceNumber] &&dmPiece.isRequestable()){
+            		if ( peerHavePieces.flags[pieceNumber] &&pePiece.isRequestable()){
             
             			return pieceNumber;
             		}
@@ -852,6 +859,8 @@ public class PiecePickerImpl
         final int	endI =peerHavePieces.end;
         int         i;
 
+        final int[]		peerPriorities	= pt.getPriorityOffsets( startPriorities );
+        
         final long  now =SystemTime.getCurrentTime();
         // Try to continue a piece already loaded, according to priority
         for (i =startI; i <=endI; i++)
@@ -860,11 +869,22 @@ public class PiecePickerImpl
             if (peerHavePieces.flags[i])
             {
                 priority =startPriorities[i];
+                
+                if ( peerPriorities != null ){
+                	
+                	if ( priority > 0 ){
+                		
+                		priority += peerPriorities[i];
+                	}
+                }
+                
                 if (priority >=0)
                 {
                     final DiskManagerPiece dmPiece =dmPieces[i];
+                    final PEPiece pePiece = pePieces[i];
+
                     // is the piece: Needed, not fully: Requested, Downloaded, Written, hash-Checking or Done?
-                    if (dmPiece.isRequestable())
+                    if (dmPiece.isDownloadable() && ( pePiece==null || pePiece.isRequestable()))
                     {
                         avail =availability[i];
                         if (avail ==0 )
@@ -874,14 +894,13 @@ public class PiecePickerImpl
                         }
                         
                         // is the piece active
-                        final PEPiece pePiece =peerControl.getPiece(i);
                         if (pePiece !=null)
                         {
                             // How many requests can still be made on this piece?
                             final int freeReqs =pePiece.getNbUnrequested();
                             if (freeReqs <=0)
                             {
-                                dmPiece.setRequested();
+                            	pePiece.setRequested();
                                 continue;
                             }
                             
@@ -1099,10 +1118,17 @@ public class PiecePickerImpl
         {
             final DiskManagerPiece dmPiece =dmPieces[i];
             // If the piece isn't even Needed, or doesn't need more downloading, simply continue
-            if (dmPiece.isEGMIgnored())
+            if (!dmPiece.isDownloadable())
                 continue;
+            
+            final PEPiece pePiece = pePieces[i];
+            
+            if ( pePiece != null && pePiece.isDownloaded()){
+            	continue;
+            }
+            
             // If the piece is being downloaded (fully requested), count it and continue
-            if (dmPiece.isEGMActive())
+            if ( pePiece != null && pePiece.isRequested() && dmPiece.isNeeded())
             {
                 active_pieces++;
                 continue;
@@ -1127,10 +1153,6 @@ public class PiecePickerImpl
     
     private final void computeEndGameModeChunks()
     {
-    	final PEPiece[] _pieces =peerControl.getPieces();
-        if (_pieces ==null)
-            return;
-
         endGameModeChunks =new ArrayList();
         try
         {
@@ -1143,7 +1165,7 @@ public class PiecePickerImpl
                 if (!dmPiece.isInteresting())
                     continue;
                 
-                final PEPiece pePiece =_pieces[i];
+                final PEPiece pePiece =pePieces[i];
                 if (pePiece ==null)
                     continue;
 
@@ -1241,12 +1263,12 @@ public class PiecePickerImpl
                     endGameModeChunks.remove(chunk);
                     return 0;
                 }
+                final PEPiece	pePiece = pePieces[pieceNumber];
                 if (pt.isPieceAvailable(pieceNumber)
-                    &&peerControl.isPieceActive(pieceNumber)
+                    &&pePiece != null 
                     &&(!pt.isSnubbed() ||availability[pieceNumber] <=peerControl.getNbPeersSnubbed())
                     &&pt.request(pieceNumber, chunk.getOffset(), chunk.getLength()))
                 {
-                    final PEPiece pePiece =peerControl.getPiece(pieceNumber);
                     pePiece.setRequested(pt, chunk.getBlockNumber());
                     pt.setLastPiece(pieceNumber);
                     return 1;

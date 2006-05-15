@@ -170,6 +170,8 @@ PEPeerControlImpl
 		_nbPieces =disk_mgr.getNbPieces();
         dm_pieces =disk_mgr.getPieces();
 
+        pePieces =new PEPieceImpl[_nbPieces];
+
 		piecePicker = PiecePickerFactory.create( this );
 
 		COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
@@ -197,8 +199,6 @@ PEPeerControlImpl
 
 			_hash =PeerIdentityManager.createDataID(new byte[20]);
 		}
-
-        pePieces =new PEPieceImpl[_nbPieces];
 
         // the recovered active pieces
         for (int i =0; i <_nbPieces; i++ )
@@ -691,7 +691,7 @@ PEPeerControlImpl
             return false;   // be sure to not remove pieces in EGM
 		final PEPiece pePiece =pePieces[pieceNumber];
 		final DiskManagerPiece dmPiece =dm_pieces[pieceNumber];
-		if (pePiece ==null ||dmPiece.isRequested())
+		if (pePiece == null || pePiece.isRequested())
 			return false;
 		if (dmPiece.getNbWritten() >0 ||pePiece.getNbRequests() >0 ||pePiece.getSpeed() >0 ||pePiece.getReservedBy() !=null)
 			return false;
@@ -726,7 +726,7 @@ PEPeerControlImpl
 					if (oldSpeed >0)
                     {
                         final DiskManagerPiece dmPiece =dm_pieces[i];
-                        if (dmPiece.isRequested() ||timeSinceActivity >29 *1000)
+                        if (pePiece.isRequested() ||timeSinceActivity >29 *1000)
                             pePiece.setSpeed(0);
                         else
                         {
@@ -770,33 +770,28 @@ PEPeerControlImpl
 			
 			long	now = SystemTime.getCurrentTime();
 			
-			for ( int i=0;i<dm_pieces.length;i++){
+			for ( int i=0;i<pePieces.length;i++){
 				
-				DiskManagerPiece	dm_piece = dm_pieces[i];
+				PEPiece	pe_piece = pePieces[ i ];
+
+				if ( pe_piece != null ){
+									
+					DiskManagerPiece	dm_piece = dm_pieces[i];
 				
-				if ( !dm_piece.isDone()){
+					if ( !dm_piece.isDone()){
 					
-					if ( dm_piece.isDownloaded()){
+						if ( pe_piece.isDownloaded()){
 						
-						if ( now - dm_piece.getLastWriteTime( now ) > 60*1000 ){
+							if ( now - pe_piece.getLastDownloadTime(now) > 60*1000 ){
 							
-							PEPiece	pe_piece = pePieces[ i ];
-							
-							Debug.out( "Fully downloaded piece stalled pending write, resetting " + (pe_piece==null?"d_piece":"p_piece" ) + " " + i );
-							
-							if ( pe_piece != null ){
-								
+								Debug.out( "Fully downloaded piece stalled pending write, resetting p_piece " + i );
+															
 								pe_piece.reset();
-								
-							}else{
-								
-								dm_piece.reset();
 							}
 						}
 					}
 				}
 			}
-			
 		}
 	}
 	
@@ -1083,12 +1078,11 @@ PEPeerControlImpl
                             pc.sendCancel(request);             //cancel the request object
                             //get the piece number
                             final int pieceNumber = request.getPieceNumber();
+                            PEPiece	pe_piece = pePieces[pieceNumber];
                             //unmark the request on the block
-                            if (isPieceActive(pieceNumber))
-                                pePieces[pieceNumber].clearRequested(request.getOffset() /DiskManager.BLOCK_SIZE);
-                            //set piece to not fully requested
-                            dm_pieces[pieceNumber].clearRequested();
-                            // remove piece if empty so peers can choose something else, except in end game
+                            if ( pe_piece != null )
+                            	pe_piece.clearRequested(request.getOffset() /DiskManager.BLOCK_SIZE);
+                             // remove piece if empty so peers can choose something else, except in end game
                             if (!piecePicker.isInEndGameMode())
                                 checkEmptyPiece(pieceNumber);
                         }
@@ -1335,10 +1329,9 @@ PEPeerControlImpl
 	public void requestCanceled(DiskManagerReadRequest request)
 	{
         final int pieceNumber =request.getPieceNumber();  //get the piece number
-        if (isPieceActive(pieceNumber))
-    		pePieces[pieceNumber].clearRequested(request.getOffset() /DiskManager.BLOCK_SIZE);
-		//set as not fully Requested
-		dm_pieces[pieceNumber].clearRequested();
+        PEPiece pe_piece = pePieces[pieceNumber];
+        if (pe_piece != null )
+        	pe_piece.clearRequested(request.getOffset() /DiskManager.BLOCK_SIZE);
 	}
 	
 	
@@ -1427,11 +1420,11 @@ PEPeerControlImpl
 		
 		DiskManagerPiece	dm_piece = dm_pieces[pieceNumber];
 		
-        if (!dm_piece.isDone())
-        {
+        if (!dm_piece.isDone()){
+        
             final PEPiece pePiece =pePieces[pieceNumber];
             
-            if (pePiece !=null){
+            if ( pePiece != null ){
             	
                 pePiece.setWritten((PEPeer)request.getUserData(), request.getOffset() /DiskManager.BLOCK_SIZE );
                 
@@ -1446,13 +1439,6 @@ PEPeerControlImpl
             		// been abandoned
             	
             	dm_piece.setWritten( request.getOffset() /DiskManager.BLOCK_SIZE );
-            	
-            		// unfortunately a dm piece marked as full-downloaded will never be considered for
-            		// selection by the piece picker so we need to clear it here in case it is set
-            		// "downloaded" should NOT be part of disk-manager state anyway. neither should "requested"
-            		// or any of the EGM crap.
-            	
-            	dm_piece.clearDownloaded();
             }
         }
 	}
@@ -1463,24 +1449,9 @@ PEPeerControlImpl
 	Throwable		 			cause )
   {
 	  	Debug.printStackTrace( cause );
-	  
-		final int pieceNumber =request.getPieceNumber();
-		
-        if (!dm_pieces[pieceNumber].isDone())
-        {
-            final PEPiece pePiece =pePieces[pieceNumber];
-            
-            if (pePiece !=null){
-            	
-                pePiece.clearDownloaded( request.getOffset());
-                
-            }else{
-             	
-            	Debug.out( "block write failed and piece has been removed, resetting piece [" + pieceNumber + "/" + request.getOffset() + "]");
-            	
-            	dm_pieces[pieceNumber].reset();
-            }
-        }  
+
+	  	// if the write has failed then the download will have been stopped so there is no need to try
+	  	// and reset the piece
   }
   
     /** This method will queue up a dism manager write request for the block if the block is not already written.
@@ -1500,6 +1471,14 @@ PEPeerControlImpl
             data.returnToPool();
             return;
         }
+        
+        PEPiece	pe_piece = pePieces[ pieceNumber ];
+        
+        if ( pe_piece != null ){
+        	
+        	pe_piece.setDownloaded( offset );
+        }
+        
         final DiskManagerWriteRequest request =disk_mgr.createWriteRequest(pieceNumber, offset, data, sender);
         disk_mgr.enqueueWriteRequest(request, this);
         // In case we are in endGame mode, remove the block from the chunk list
@@ -2189,14 +2168,7 @@ PEPeerControlImpl
 	{
 		return pePieces[pieceNumber];
 	}
-	
-    public boolean isPieceActive(int pieceNumber)
-    {
-        if (pePieces ==null ||pePieces[pieceNumber] ==null)
-            return false;
-        return true;
-    }
-    
+	    
 	public PEPeerStats
 	createPeerStats()
 	{
