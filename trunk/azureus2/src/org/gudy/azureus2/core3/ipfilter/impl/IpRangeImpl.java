@@ -167,16 +167,18 @@ public class IpRangeImpl implements IpRange
 	}
 
 	public String getDescription() {
-		return new String(IpFilterManagerFactory.getSingleton().getDescription(
+		String str = new String(IpFilterManagerFactory.getSingleton().getDescription(
 				descRef));
-	}
 
-	public void setDescription(String str) {
 		// Stuffer assumes we store in lowercase..
 		if (str.startsWith("Stuffer")) {
 			str = "s" + str.substring(1);
 		}
 
+		return str;
+	}
+
+	public void setDescription(String str) {
 		descRef = IpFilterManagerFactory.getSingleton().addDecription(this,
 				str.getBytes());
 	}
