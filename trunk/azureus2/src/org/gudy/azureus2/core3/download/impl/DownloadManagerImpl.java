@@ -2784,4 +2784,27 @@ DownloadManagerImpl
 			super( str );
 		}
 	}
+	
+	public void
+	generateEvidence(
+		IndentWriter		writer )
+	{
+		writer.println( "DownloadManager " + getDisplayName() + "/" + this );
+		
+		PEPeerManager	pm = getPeerManager();
+		
+		if ( pm != null ){
+			
+			try{
+				writer.indent();
+				
+				pm.generateEvidence( writer );
+				
+			}finally{
+				
+				writer.exdent();
+			}
+		}
+	}
+
 }

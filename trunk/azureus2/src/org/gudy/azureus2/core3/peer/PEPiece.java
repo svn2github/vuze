@@ -126,4 +126,7 @@ PEPiece
 	public void			decSpeed();
 	
 	public void			reset();
+	
+	public String
+	getString();
 }

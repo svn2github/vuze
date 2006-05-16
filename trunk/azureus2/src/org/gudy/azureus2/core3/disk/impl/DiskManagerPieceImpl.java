@@ -364,4 +364,24 @@ public class DiskManagerPieceImpl
         statusFlags =originalStatus;
     }
     */
+	
+	public String
+	getString()
+	{
+		String	text = "";
+		
+		text += ( isNeeded()?"needed,":"" );
+		text += ( isDone()?"done,":"" );
+		
+		if ( !isDone()){
+			text += ( isDownloadable()?"downable,":"" );
+			text += ( isWritten()?"written":("written " + getNbWritten())) + ",";
+			text += ( isChecking()?"checking":"" );
+		}
+		
+		if ( text.endsWith(",")){
+			text = text.substring(0,text.length()-1);
+		}
+		return( text );
+	}
 }

@@ -102,4 +102,7 @@ DiskManagerPiece
     
     public void 		reDownloadBlock(int blockNumber);
     public void			reset();
+    
+    public String
+    getString();
 }

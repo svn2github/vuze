@@ -635,30 +635,23 @@ public class PEPieceImpl
 		return dmPiece.isChecking();
 	}
 
-/*
-    public boolean isWritten()
-    {
-        return dmPiece.isWritten();
-    }
-
-    public void clearChecking()
-    {
-        dmPiece.clearChecking();
-    }
-
-	public int getNbWritten()
+	public String
+	getString()
 	{
-		return dmPiece.getNbWritten();
+		String	text  = "";
+		
+		text	+= ( isRequestable()?"reqable,":"" );
+		text	+= "req=" + getNbRequests() + ",";
+		text	+= ( isRequested()?"reqstd,":"" );
+		text	+= ( isDownloaded()?"downed,":"" );
+		text	+= ( getReservedBy()!=null?"resrv,":"" );
+		text	+= "speed=" + getSpeed() + ",";
+		text	+= "pri=" + getResumePriority();
+		
+		if ( text.endsWith(",")){
+			text = text.substring(0,text.length()-1);
+		}
+		
+		return( text );
 	}
-	
-	public boolean isRequestable()
-	{
-		return dmPiece.isRequestable();
-	}
-
-	public void setChecking(boolean b)
-	{
-		dmPiece.setChecking(b);
-	}
-*/
 }

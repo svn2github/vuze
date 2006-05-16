@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
@@ -441,4 +442,8 @@ DownloadManager
 	public void
 	removeDiskListener(
 		DownloadManagerDiskListener	listener );
+	
+	public void
+	generateEvidence(
+		IndentWriter		writer );
 }

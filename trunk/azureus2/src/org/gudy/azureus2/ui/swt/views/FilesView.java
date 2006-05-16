@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.MessageBoxWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
@@ -80,6 +81,7 @@ public class FilesView
 				"firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
     setRowDefaultIconSize(new Point(16, 16));
     bEnableTabViews = true;
+    coreTabViews = new IView[] { new FileInfoView() };
   }
 
 	public void dataSourceChanged(Object newDataSource) {

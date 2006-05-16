@@ -305,6 +305,13 @@ Test
 		{
 		}
 		
+		public void
+		generateEvidence(
+			IndentWriter		writer )
+		{
+			
+		}
+
 		public int
 		getState()
 		{
@@ -1003,7 +1010,12 @@ Test
 	 	{
 	 		return( null );
 	 	}
-	 	
+		public void
+		generateEvidence(
+			IndentWriter		writer )
+		{
+		}
+		
 	 	public PiecePicker getPiecePicker()
 	 	{
 	 		return null;

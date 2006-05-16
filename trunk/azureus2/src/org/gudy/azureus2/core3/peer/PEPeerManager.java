@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityDataID;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.IndentWriter;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerExchangerItem;
@@ -291,5 +292,9 @@ PEPeerManager
 	 * @return PEPeerTransport with matching address String, or null if no match is found
 	 */
 	public PEPeerTransport getTransportFromAddress(String peer);
+	
+	public void
+	generateEvidence(
+		IndentWriter		writer );
 	
 }

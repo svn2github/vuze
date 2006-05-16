@@ -2138,7 +2138,15 @@ public class GlobalManagerImpl
 				
 				DownloadManager	manager = (DownloadManager)managers_cow.get(i);
 				
-				writer.println("    " + manager);
+				try{
+					writer.indent();
+					
+					manager.generateEvidence( writer );
+					
+				}finally{
+					
+					writer.exdent();
+				}
 			}
 
 	    }finally{

@@ -2789,4 +2789,93 @@ PEPeerControlImpl
 		return nbPeersSnubbed;
 	}
 	
+	public void
+	generateEvidence(
+		IndentWriter		writer )
+	{
+		writer.println( "PeerManager: seeding=" + seeding_mode );
+		
+		if ( !seeding_mode ){
+			
+			writer.println( "  Active Pieces" );
+			
+			int	num_active = 0;
+			
+			try{
+				writer.indent();
+				
+				String	str	= "";
+				int		num	= 0;
+				
+				for (int i=0;i<pePieces.length;i++){
+					
+					PEPiece	piece = pePieces[i];
+					
+					if ( piece != null ){
+						
+						num_active++;
+						
+						str += (str.length()==0?"":",") + "#" + i + " " + dm_pieces[i].getString() + ": " + piece.getString();
+						
+						num++;
+						
+						if ( num == 20 ){
+							
+							writer.println( str );
+							str = "";
+							num	= 0;
+						}
+					}
+				}
+				
+				if ( num > 0 ){
+					writer.println(str);
+				}
+				
+			}finally{
+				
+				writer.exdent();
+			}
+			
+			if ( num_active == 0 ){
+				
+				writer.println( "  Inactive Pieces (excluding done/skiped)" );
+				
+				try{
+					writer.indent();
+					
+					String	str	= "";
+					int		num	= 0;
+					
+					for (int i=0;i<dm_pieces.length;i++){
+
+						DiskManagerPiece	dm_piece = dm_pieces[i];
+						
+						if ( dm_piece.isInteresting()){
+														
+							str += (str.length()==0?"":",") + "#" + i + " " + dm_pieces[i].getString();
+							
+							num++;
+							
+							if ( num == 20 ){
+								
+								writer.println( str );
+								str = "";
+								num	= 0;
+							}
+						}
+					}
+					
+					if ( num > 0 ){
+						
+						writer.println(str);
+					}
+					
+				}finally{
+					
+					writer.exdent();
+				}
+			}
+		}
+	}
 }

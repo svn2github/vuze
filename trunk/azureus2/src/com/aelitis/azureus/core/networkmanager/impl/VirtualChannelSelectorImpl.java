@@ -40,6 +40,7 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
  */
 public class VirtualChannelSelectorImpl {
 	
+	/*
 	static boolean	rm_trace 	= false;
 	static boolean	rm_test_fix = false;
 	
@@ -61,6 +62,7 @@ public class VirtualChannelSelectorImpl {
 	
 	private long rm_flag_last_log;
 	private Map	rm_listener_map = new HashMap();
+	*/
 	
     protected Selector selector;
     private final SelectorGuard selector_guard;
@@ -497,11 +499,11 @@ public class VirtualChannelSelectorImpl {
         i.remove();
         RegistrationData data = (RegistrationData)key.attachment();
 
-        int	rm_type;
+        // int	rm_type;
         
         if( key.isValid() ) {
           if( (key.interestOps() & INTEREST_OP) == 0 ) {  //it must have been paused between select and notification
-        	rm_type = 2;
+        	// rm_type = 2;
           }else{            
             
 	          if( pause_after_select ) { 
@@ -512,7 +514,7 @@ public class VirtualChannelSelectorImpl {
 	          
 	          if ( progress_indicator ){
 	            
-	        	rm_type = 0;
+	        	// rm_type = 0;
 	        	
 	        	progress_made_key_count++;
 	        	  
@@ -520,7 +522,7 @@ public class VirtualChannelSelectorImpl {
 	            
 	          }else{
 	            
-	        	rm_type = 1;
+	        	// rm_type = 1;
 	        	  
 	            data.non_progress_count++;
 	            	
@@ -551,12 +553,13 @@ public class VirtualChannelSelectorImpl {
 	          }
 	        }
         }else{
-          rm_type = 3;
+          // rm_type = 3;
           key.cancel();
           parent.selectFailure( data.listener, data.channel, data.attachment, new Throwable( "key is invalid" ) );
           // can get this if socket has been closed between select and here
         }
         
+        /*
         if ( rm_trace ){
         	
           	Object	rm_key = data.listener.getClass();
@@ -572,8 +575,9 @@ public class VirtualChannelSelectorImpl {
           	
           	rm_count[rm_type]++;
           }
+          */
       }
-      
+        
       	// if any of the ready keys hasn't made any progress then enforce minimum sleep period to avoid
       	// spinning
       
@@ -585,6 +589,7 @@ public class VirtualChannelSelectorImpl {
 	      	try {  Thread.sleep( timeout - time_diff );  }catch(Throwable e) { e.printStackTrace(); }      
 	      }
       }else{
+    	  /*
     	  if ( rm_test_fix ){
     		 
     	      long time_diff = SystemTime.getCurrentTime() - select_start_time;
@@ -593,8 +598,10 @@ public class VirtualChannelSelectorImpl {
     	      	try {  Thread.sleep( 10 - time_diff );  }catch(Throwable e) { e.printStackTrace(); }      
     	      } 
     	  }
+    	  */
       }
       
+      /*
       if ( rm_trace ){
     	  
     	  if ( select_start_time - rm_flag_last_log > 10000 ){
@@ -623,6 +630,7 @@ public class VirtualChannelSelectorImpl {
        		  Debug.outNoStack( "RM trace: " + hashCode() + ": op=" + INTEREST_OP + "-" + str ); 
     	  }
       }
+      */
       
       return count;
     }

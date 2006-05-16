@@ -257,6 +257,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
         }
     );
 
+    /*
     BooleanParameter rm_trace = new BooleanParameter(gLogging, "user.rm.trace", false );
     gridData = new GridData();
     gridData.horizontalSpan = 1;
@@ -270,6 +271,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     rm_fix.setLayoutData(gridData);
     rm_label = new Label(gLogging,SWT.NULL);
     rm_label.setText("RM: test fix");
+    */
     
 		// diagnostics
 	
