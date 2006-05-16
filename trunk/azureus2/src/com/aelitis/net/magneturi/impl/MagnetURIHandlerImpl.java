@@ -163,9 +163,8 @@ MagnetURIHandlerImpl
 										        		
 											        	if ( line.toUpperCase().startsWith( "GET " )){
 											        	
-											        		if (Logger.isEnabled())
-											        			Logger.log(new LogEvent(LOGID,
-											        					"MagentURIHandler: processing '" + line + "'"));
+											        		Logger.log(new LogEvent(LOGID,
+											        					"MagnetURIHandler: processing '" + line + "'"));
 			
 											        		line = line.substring(4);
 											        		
@@ -176,16 +175,23 @@ MagnetURIHandlerImpl
 											        		close_socket = process( line, sck.getOutputStream() );
 											        		
 											        	}else{
-																	Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-																			"MagentURIHandler: invalid command - '" + line
-																					+ "'"));
+											        		
+															Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+																		"MagnetURIHandler: invalid command - '" + line
+																			+ "'"));
 											        	}
-											        }else{
-											        	if (Logger.isEnabled())
-											        		Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-											        				"MagentURIHandler: connect from "
-											        				+ "invalid address '" + address + "'"));
-											        }
+										        	}else{
+										        		
+											       		Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+											       				"MagnetURIHandler: connect from "
+											       				+ "'" + address + "': no data read"));
+									        		
+										        	}
+											   }else{
+												   
+											      	Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+											      				"MagnetURIHandler: connect from "
+											       				+ "invalid address '" + address + "'"));
 										        }
 											}catch( Throwable e ){
 												
@@ -222,7 +228,7 @@ MagnetURIHandlerImpl
 								if ( errors > 100 ){
 									if (Logger.isEnabled())
 										Logger.log(new LogEvent(LOGID,
-										"MagentURIHandler: bailing out, too many socket errors"));
+										"MagnetURIHandler: bailing out, too many socket errors"));
 								}
 							}
 						}
@@ -431,7 +437,7 @@ MagnetURIHandlerImpl
 			if ( urn == null || !( urn.startsWith( "urn:sha1:") || urn.startsWith( "urn:btih:"))){
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-							"MagentURIHandler: " + "invalid command - '" + get + "'"));
+							"MagnetURIHandler: " + "invalid command - '" + get + "'"));
 				
 				return( true );
 			}
@@ -472,7 +478,7 @@ MagnetURIHandlerImpl
 				sources.toArray( s );
 				
 				if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID, "MagentURIHandler: download of '"
+					Logger.log(new LogEvent(LOGID, "MagnetURIHandler: download of '"
 							+ base_32 + "' starts (initial sources=" + s.length + ")"));
 
 				byte[] sha1 = Base32.decode( base_32 );
@@ -523,7 +529,7 @@ MagnetURIHandlerImpl
 				}
 				
 				if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID, "MagentURIHandler: download of '"
+					Logger.log(new LogEvent(LOGID, "MagnetURIHandler: download of '"
 							+ base_32
 							+ "' completes, data "
 							+ (data == null ? "not found"
