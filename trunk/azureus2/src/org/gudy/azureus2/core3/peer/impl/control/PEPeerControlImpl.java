@@ -2876,6 +2876,8 @@ PEPeerControlImpl
 					writer.exdent();
 				}
 			}
+			
+			piecePicker.generateEvidence( writer );
 		}
 	}
 }

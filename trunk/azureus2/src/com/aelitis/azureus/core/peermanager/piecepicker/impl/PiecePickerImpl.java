@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.*;
-import com.aelitis.azureus.core.peermanager.piecepicker.priority.PiecePriorityShaper;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.unchoker.UnchokerUtil;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -65,11 +64,7 @@ public class PiecePickerImpl
     private static final int PRIORITY_W_FILE		=1000;
     /** Additional boost for more completed High priority */
     private static final int PRIORITY_W_COMPLETION	=2000;
-    
-    /** Additional boost for globally rarest piece */
-    private static final int PRIORITY_W_RAREST		=1300;
-    /** boost for rarity */
-    private static final int PRIORITY_W_RARE		=2300;
+  
 
 	// The following are only used when resuming already running pieces
     /** priority boost due to being too old */
@@ -100,7 +95,6 @@ public class PiecePickerImpl
 
 	private final DiskManager			diskManager;
 	private final PEPeerControl			peerControl;
-	private final PiecePriorityShaper	priorityShaper;
 	
 	private final DiskManagerListenerImpl	diskManagerListener;
 	
@@ -200,7 +194,7 @@ public class PiecePickerImpl
 	public PiecePickerImpl(final PEPeerControl pc)
 	{
 		// class administration first
-		priorityShaper =null;	//PiecePriorityShaperFactory.create(this);
+
 		peerControl	= pc;
 		diskManager = peerControl.getDiskManager();
 		dmPieces =diskManager.getPieces();
@@ -669,14 +663,6 @@ public class PiecePickerImpl
         startPriorities = newPriorities;
     }
     
-    /**
-	 * @deprecated Use {@link #isRarestOverride()} instead.
-	 * Convention is to use "is" prefix for boolean return
-	 */
-	private final boolean getRarestOverride()
-	{
-		return isRarestOverride();
-	}
 
 	private final boolean isRarestOverride()
     {
@@ -792,9 +778,7 @@ public class PiecePickerImpl
         	// If there's a piece seserved to this peer resume it and only it (if possible)
         
         if ( pieceNumber >=0 ){
-        	
-            final DiskManagerPiece dmPiece =dmPieces[pieceNumber];
-            
+        	           
             PEPiece pePiece = pePieces[pieceNumber];
 
             if ( pePiece != null ){
@@ -852,7 +836,6 @@ public class PiecePickerImpl
 
         int         priority;   // aggregate priority of piece under inspection (start priority or resume priority for pieces to be resumed)
         int         avail =0;   // the swarm-wide availability level of the piece under inspection
-        long        staleness;  // how long since there's been a write to the resume piece under inspection
         long        pieceAge;   // how long since the PEPiece first started downloading (requesting, actually)
         
         final int	startI =peerHavePieces.start;
@@ -1036,17 +1019,17 @@ public class PiecePickerImpl
         }
         
         // start a new piece; select piece from start candidates bitfield
-        return getPieceToStart(pt, startCandidates);
+        return getPieceToStart(startCandidates);
     }
     
     
-    /** @param pt PEPeer the piece is to be chosen for
+    /** 
      * @param startCandidates BitFlags of potential candidates to choose from
      * @return int the piece number that was chosen to be started. Note it's possible for
      * the chosen piece to have been started already (by another thread).
      * This method considers that potential to not be relevant.
      */
-	protected final int getPieceToStart(final PEPeer pt, final BitFlags startCandidates)
+	protected final int getPieceToStart(final BitFlags startCandidates)
 	{
 		if (startCandidates ==null ||startCandidates.nbSet <=0)
 			return -1;
@@ -1558,4 +1541,28 @@ public class PiecePickerImpl
 		}
 	}
 	
+	public void
+	generateEvidence(
+		IndentWriter	writer )
+	{
+		writer.println( "Piece Picker" );
+		
+		try{
+			writer.indent();
+			
+			writer.println( "globalAvail: " + globalAvail );
+			writer.println( "globalAvgAvail: " + globalAvgAvail );
+			writer.println( "nbRarestActive: " + nbRarestActive );
+			writer.println( "globalMin: " + globalMin );
+			writer.println( "globalMinOthers: " + globalMinOthers );
+			writer.println( "hasNeededUndonePiece: " + hasNeededUndonePiece );
+			writer.println( "endGameMode: " + endGameMode );
+			writer.println( "endGameModeAbandoned: " + endGameModeAbandoned );
+			writer.println( "endGameModeChunks: " + endGameModeChunks );			
+			
+		}finally{
+			
+			writer.exdent();
+		}
+	}
 }

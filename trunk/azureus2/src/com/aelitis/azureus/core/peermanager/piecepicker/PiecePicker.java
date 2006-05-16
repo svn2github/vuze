@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.peermanager.piecepicker;
 
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.util.IndentWriter;
 
 
 /**
@@ -76,4 +77,8 @@ public interface PiecePicker
 	public void
 	removePriorityShaper(
 		PiecePiecerPriorityShaper		shaper );
+	
+	public void
+	generateEvidence(
+		IndentWriter	writer );
 }
