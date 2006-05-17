@@ -58,6 +58,20 @@ PEPeerTransport
 	sendCancel(
 		DiskManagerReadRequest	request );
 	
+		/**
+		 * Two methods that allow a peer to aggregate the individual requests generated during an
+		 * allocation cycle if so desired
+		 * @return true if the peer is managing request priorities and doesn't want end-game random
+		 * allocation behaviour
+		 */
+	
+	public boolean
+	requestAllocationStarts(
+		int[]	base_priorities );
+	
+	public void
+	requestAllocationComplete();
+	
   /**
    * 
    * @param pieceNumber
@@ -84,7 +98,15 @@ PEPeerTransport
 	
 	public List
 	getExpiredRequests();
-  		
+  	
+		/**
+		 * peer-specific request max. return -1 to use the default piece-picker allocation method
+		 * @return
+		 */
+	
+	public int
+	getMaxNbRequests();
+	
 	public int
 	getNbRequests();
 	
@@ -97,8 +119,7 @@ PEPeerTransport
 		 */
 	
 	public int[]
-	getPriorityOffsets(
-		int[]	base_priorities );
+	getPriorityOffsets();
   
 	/**
 	 * Check if we need to send a keep-alive message.

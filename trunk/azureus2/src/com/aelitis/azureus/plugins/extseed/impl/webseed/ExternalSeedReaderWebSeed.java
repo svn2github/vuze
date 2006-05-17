@@ -29,13 +29,13 @@ import java.net.URLEncoder;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
-import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
 import com.aelitis.azureus.plugins.extseed.impl.ExternalSeedReaderImpl;
+import com.aelitis.azureus.plugins.extseed.impl.ExternalSeedReaderRequest;
 import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloader;
 
 public class 
@@ -180,17 +180,27 @@ ExternalSeedReaderWebSeed
 		return( false );
 	}
 	
-
+	protected int
+	getPieceGroupSize()
+	{
+		return( 1 );
+	}
 	
-	protected byte[]
+	protected boolean
+	getRequestCanSpanPieces()
+	{
+		return( false );
+	}
+	
+	protected void
 	readData(
-		PeerReadRequest	request )
+		ExternalSeedReaderRequest	request )
 	
 		throws ExternalSeedException
 	{		
-		long	piece = request.getPieceNumber();
+		long	piece = request.getStartPieceNumber();
 		
-		long	piece_start = request.getOffset();
+		long	piece_start = request.getStartPieceOffset();
 		long	piece_end	= piece_start + request.getLength()-1;
 			
 		String	str = url_prefix + "&piece=" + piece + "&ranges=" + piece_start + "-" + piece_end;
@@ -200,19 +210,15 @@ ExternalSeedReaderWebSeed
 		try{
 			ExternalSeedHTTPDownloader	http_downloader = new ExternalSeedHTTPDownloader( new URL( str ), getUserAgent());
 
-			byte[]	data = http_downloader.downloadSocket(request.getLength());
+			http_downloader.downloadSocket( request.getLength(), request );
 			
 			if ( http_downloader.getLastResponse() == 503 ){
 				
-				Integer	retry = new Integer( new String(data));
+				Integer	retry = new Integer( new String( http_downloader.getLast503ResponseData()));
 				
 				reconnect_delay = retry.intValue() * 1000;
 				
 				throw( new ExternalSeedException( "Server temporarily unavailable, retrying in " + retry ));
-				
-			}else{
-						
-				return( data );
 			}
 		}catch( MalformedURLException e ){
 			

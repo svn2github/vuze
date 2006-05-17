@@ -55,6 +55,8 @@ ExternalSeedPeer
 	private Monitor					connection_mon;
 	private boolean					peer_added;
 	
+	private List					request_list = new ArrayList();
+	
 	private List					listenerList;
 	private Monitor					listenerListMon;
 		
@@ -465,21 +467,62 @@ ExternalSeedPeer
 		return( reader.getRequests());
 		
 	}
+
+	public int
+	getMaximumNumberOfRequests()
+	{
+		return( reader.getMaximumNumberOfRequests());
+	}
+	
 	public int
 	getNumberOfRequests()
 	{
-		return( reader.getRequestCount());
+		return( reader.getRequestCount() + request_list.size());
 	}
 
 	public int[]
-	getPriorityOffsets(
-		int[]	base_priorities )
+	getPriorityOffsets()
 	{
-		Piece[]	pieces = manager.getPieces();
-		
-		return( null );
+
+		return( reader.getPriorityOffsets());
 	}
 	
+	public boolean
+	requestAllocationStarts(
+		int[]	base_priorities )
+	{
+		if ( request_list.size() != 0 ){
+			
+			Debug.out( "req list must be empty" );
+		}
+		
+		PeerManager	pm = manager;
+		
+		if ( pm != null ){
+		
+			reader.calculatePriorityOffsets( pm, base_priorities );
+		}
+		
+		return( true );
+	}
+	
+	public void
+	requestAllocationComplete()
+	{
+		reader.addRequests( request_list );
+		
+		request_list.clear();
+	}
+	
+	public boolean 
+	addRequest(
+		PeerReadRequest	request )
+	{		
+		request_list.add( request );
+		
+		return( true );
+	}
+
 	public void
 	cancelRequest(
 		PeerReadRequest	request )
@@ -487,15 +530,6 @@ ExternalSeedPeer
 		reader.cancelRequest( request );
 	}
 
-	public boolean 
-	addRequest(
-		PeerReadRequest	request )
-	{		
-		reader.addRequest( request );
-			
-		return( true );
-	}
-	
 	public void
 	close(
 		String 		reason,

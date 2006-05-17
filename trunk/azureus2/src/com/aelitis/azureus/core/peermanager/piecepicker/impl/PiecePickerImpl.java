@@ -502,34 +502,49 @@ public class PiecePickerImpl
 			// get a connection
 			final PEPeerTransport pt =(PEPeerTransport) bestUploaders.get(i);
 			// can we transfer something?
-			if (pt.isDownloadPossible())
-			{
+			if (pt.isDownloadPossible()){
+			
+				int	peer_request_num = pt.getMaxNbRequests();
+				
 				// If request queue is too low, enqueue another request
 				int found =1;
 				int maxRequests;
                 
-                if (!pt.isSnubbed())
-                {
-                    if (!endGameMode)
-                    {
-                        maxRequests =REQUESTS_MIN +(int) (pt.getStats().getDataReceiveRate() /SLOPE_REQUESTS);
-                        if (maxRequests >REQUESTS_MAX ||maxRequests <0)
-                            maxRequests =REQUESTS_MAX;
-                    } else
-                        maxRequests =2;
-                } else
-                    maxRequests =1;
+				if ( peer_request_num != -1 ){
+					
+					maxRequests = peer_request_num;
+					
+				}else{
+	                if (!pt.isSnubbed())
+	                {
+	                    if (!endGameMode)
+	                    {
+	                        maxRequests =REQUESTS_MIN +(int) (pt.getStats().getDataReceiveRate() /SLOPE_REQUESTS);
+	                        if (maxRequests >REQUESTS_MAX ||maxRequests <0)
+	                            maxRequests =REQUESTS_MAX;
+	                    } else
+	                        maxRequests =2;
+	                } else
+	                    maxRequests =1;
+				}
 
 				// Only loop when 3/5 of the queue is empty, in order to make more consecutive requests,
 				// and improve cache efficiency
 				if (pt.getNbRequests() <=(maxRequests *3) /5)
 				{
-					while (found >0 &&pt.isDownloadPossible() &&pt.getNbRequests() <maxRequests)
-					{   // is there anything else to download?
-                        if (!endGameMode)
-                            found =findPieceToDownload(pt, maxRequests);
-                        else
-                            found =findPieceInEndGameMode(pt, maxRequests);
+					try{
+						boolean	peer_managing_requests = pt.requestAllocationStarts( startPriorities );
+					
+						while (found >0 &&pt.isDownloadPossible() &&pt.getNbRequests() <maxRequests)
+						{   // is there anything else to download?
+	                        if ( peer_managing_requests || !endGameMode )
+	                            found =findPieceToDownload(pt, maxRequests);
+	                        else
+	                            found =findPieceInEndGameMode(pt, maxRequests);
+						}
+					}finally{
+						
+						pt.requestAllocationComplete();
 					}
 				}
 			}
@@ -629,7 +644,8 @@ public class PiecePickerImpl
                     dmPiece.setNeeded();
                     foundPieceToDownload =true;
                     final int avail =availability[i];
-                    if (avail >0)
+                    	// nbconnects is async calculate so may be wrong - make sure we don't decrease pri by accident
+                    if (avail >0 && nbConnects > avail )
                     {   // boost priority for rarity
                         startPriority +=nbConnects -avail;
 //                        startPriority +=(PRIORITY_W_RARE +peerControl.getNbPeers()) /avail;
@@ -710,14 +726,19 @@ public class PiecePickerImpl
 		
 		if ( pePiece==null ){
 
+			int[]	peer_priority_offsets = pt.getPriorityOffsets();
+			
+			int	this_offset = peer_priority_offsets==null?0:peer_priority_offsets[pieceNumber];
+			
 			   //create piece manually
 			
 			pePiece =new PEPieceImpl(pt.getManager(), dmPieces[pieceNumber], peerSpeed >>1);
 
 			// Assign the created piece to the pieces array.
 			peerControl.addPiece(pePiece, pieceNumber);
-            if (startPriorities !=null)
-                pePiece.setResumePriority(startPriorities[pieceNumber]);
+            if (startPriorities !=null){
+                pePiece.setResumePriority(startPriorities[pieceNumber] + this_offset);
+            }
 			if (availability[pieceNumber] <=globalMinOthers)
 				nbRarestActive++;
 		}
@@ -842,7 +863,7 @@ public class PiecePickerImpl
         final int	endI =peerHavePieces.end;
         int         i;
 
-        final int[]		peerPriorities	= pt.getPriorityOffsets( startPriorities );
+        final int[]		peerPriorities	= pt.getPriorityOffsets();
         
         final long  now =SystemTime.getCurrentTime();
         // Try to continue a piece already loaded, according to priority
@@ -855,7 +876,7 @@ public class PiecePickerImpl
                 
                 if ( peerPriorities != null ){
                 	
-                	if ( priority > 0 ){
+                	if ( priority >= 0 ){
                 		
                 		priority += peerPriorities[i];
                 	}

@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
+import org.gudy.azureus2.plugins.peers.Piece;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.Monitor;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
@@ -67,6 +68,9 @@ ExternalSeedReaderImpl
 	private Semaphore		request_sem;
 	private Monitor			requests_mon;
 	
+	private int[]		priority_offsets;
+	
+
 	private List	listeners	= new ArrayList();
 	
 	protected
@@ -277,16 +281,56 @@ ExternalSeedReaderImpl
 					}
 				}else{
 					
-					PeerReadRequest	request;
+					List			selected_requests 	= new ArrayList();
+					PeerReadRequest	cancelled_request	= null;
 					
 					try{
 						requests_mon.enter();
 
-						request	= (PeerReadRequest)requests.remove(0);
+							// get an advisory set to process together
 						
-						if ( !request.isCancelled()){
+						int	count = selectRequests( requests );
 						
-							request_count--;
+						if ( count <= 0 || count > requests.size()){
+							
+							Debug.out( "invalid count" );
+							
+							count	= 1;
+						}
+						
+						for (int i=0;i<count;i++){
+							
+							PeerReadRequest	request = (PeerReadRequest)requests.remove(0);
+							
+							if ( request.isCancelled()){
+								
+									// if this is the first request then process it, otherwise leave
+									// for the next-round
+															
+								if ( i == 0 ){
+									
+									cancelled_request = request;
+									
+								}else{
+									
+									requests.add( 0, request );
+								}
+								
+								break;
+								
+							}else{
+								
+								selected_requests.add( request );
+								
+								request_count--;
+								
+								if ( i > 0 ){
+								
+										// we've only got the sem for the first request, catch up for subsequent
+									
+									request_sem.reserve();
+								}
+							}
 						}
 						
 					}finally{
@@ -294,13 +338,13 @@ ExternalSeedReaderImpl
 						requests_mon.exit();
 					}
 					
-					if ( request.isCancelled()){
+					if ( cancelled_request != null ){
 						
-						informCancelled( request );
+						informCancelled( cancelled_request );
 
 					}else{
 						
-						processRequest( request );
+						processRequests( selected_requests );
 					}
 				}
 			}catch( Throwable e ){
@@ -309,29 +353,190 @@ ExternalSeedReaderImpl
 			}
 		}
 	}
+
+	public int
+	getMaximumNumberOfRequests()
+	{
+		if ( getRequestCount() == 0 ){
+			
+			return((int)(( getPieceGroupSize() * torrent.getPieceSize() ) / PeerReadRequest.NORMAL_REQUEST_SIZE ));
+			
+		}else{
+			
+			return( 0 );
+		}
+	}
+
+	public void
+	calculatePriorityOffsets(
+		PeerManager		peer_manager,
+		int[]			base_priorities )
+	{
+		try{
+			Piece[]	pieces = peer_manager.getPieces();
+			
+			int	piece_group_size = getPieceGroupSize();
+			
+			int[]	contiguous_best_pieces = new int[piece_group_size];
+			int[]	contiguous_highest_pri = new int[piece_group_size];
+					
+			Arrays.fill( contiguous_highest_pri, -1 );
+			
+			int	contiguous			= 0;
+			int	contiguous_best_pri	= -1;
+			
+			int	max_contiguous	= 0;
+			
+			int	max_free_reqs		= 0;
+			int max_free_reqs_piece	= -1;
+			
+			for (int i=0;i<pieces.length;i++){
+				
+				Piece	piece = pieces[i];
+				
+				if ( piece.isFullyAllocatable()){
+			
+					contiguous++;
+					
+					int	base_pri = base_priorities[i];
+					
+					if ( base_pri > contiguous_best_pri ){
+						
+						contiguous_best_pri	= base_pri;
+					}
+					
+					for (int j=0;j<contiguous && j<contiguous_highest_pri.length;j++){
+						
+						if ( contiguous_best_pri > contiguous_highest_pri[j] ){
+							
+							contiguous_highest_pri[j]	= contiguous_best_pri;
+							contiguous_best_pieces[j]	= i - j;
+						}
+						
+						if ( j+1 > max_contiguous ){
+								
+							max_contiguous	= j+1;
+						}
+					}
+		
+				}else{
+					
+					contiguous			= 0;
+					contiguous_best_pri	= -1;
+					
+					if ( max_contiguous == 0 ){
+						
+						int	free_reqs = piece.getAllocatableRequestCount();
+						
+						if ( free_reqs > max_free_reqs ){
+							
+							max_free_reqs 		= free_reqs;
+							max_free_reqs_piece	= i;
+						}
+					}
+				}
+			}
+					
+			if ( max_contiguous == 0 ){
+			
+				if ( max_free_reqs_piece >= 0 ){
+					
+					priority_offsets	 = new int[ (int)getTorrent().getPieceCount()];
+
+					priority_offsets[max_free_reqs_piece] = 10000;
+					
+				}else{
+					
+					priority_offsets	= null;
+				}
+			}else{
+				
+				priority_offsets	 = new int[ (int)getTorrent().getPieceCount()];
+				
+				int	start_piece = contiguous_best_pieces[max_contiguous-1];
+				
+				for (int i=start_piece;i<start_piece+max_contiguous;i++){
+								
+					priority_offsets[i] = 10000 - (i-start_piece);
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			priority_offsets	= null;
+		}
+	}
 	
-	protected abstract byte[]
+	protected abstract int
+	getPieceGroupSize();
+	
+	protected abstract boolean
+	getRequestCanSpanPieces();
+	
+	public int[]
+	getPriorityOffsets()
+	{
+		return( priority_offsets );
+	}
+	
+	protected int
+	selectRequests(
+		List	requests )
+	{
+		long	next_start = -1;
+		
+		int	last_piece_number = -1;
+		
+		for (int i=0;i<requests.size();i++){
+			
+			PeerReadRequest	request = (PeerReadRequest)requests.get(i);
+			
+			int	this_piece_number	= request.getPieceNumber();
+			
+			if ( last_piece_number != -1 && last_piece_number != this_piece_number ){
+				
+				if ( !getRequestCanSpanPieces()){
+					
+					return( i );
+				}
+			}
+			
+			long	this_start = this_piece_number * torrent.getPieceSize() + request.getOffset();
+			
+			if ( next_start != -1 && this_start != next_start ){
+				
+				return(i);
+			}
+			
+			next_start	= this_start + request.getLength();
+			
+			last_piece_number	= this_piece_number;
+		}
+		
+		return( requests.size());
+	}
+
+	protected abstract void
 	readData(
-		PeerReadRequest	request )
+		ExternalSeedReaderRequest	request )
 	
 		throws ExternalSeedException;
 	
 	protected void
-	processRequest(
-		PeerReadRequest	request )
+	processRequests(
+		List		requests )
 	{	
 		boolean	ok = false;
+				
+		ExternalSeedReaderRequest	request = new ExternalSeedReaderRequest( this, requests );
 		
 		try{
 			
-			byte[] data = readData( request );
-			
+			readData( request );
+													
 			ok	= true;
-						
-			PooledByteBuffer buffer = plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( data );
-			
-			informComplete( request, buffer );
-			
+
 		}catch( ExternalSeedException 	e ){
 			
 			if ( e.isPermanentFailure()){
@@ -341,15 +546,13 @@ ExternalSeedReaderImpl
 			
 			status = "Failed: " + Debug.getNestedExceptionMessage(e);
 			
-			informFailed( request );
+			request.failed();
 			
 		}catch( Throwable e ){
 			
-			request.cancel();
-
 			status = "Failed: " + Debug.getNestedExceptionMessage(e);
-			
-			informFailed( request );
+				
+			request.failed();
 			
 		}finally{
 			
@@ -368,8 +571,8 @@ ExternalSeedReaderImpl
 	}
 	
 	public void
-	addRequest(
-		PeerReadRequest	request )
+	addRequests(
+		List	new_requests )
 	{
 		try{
 			requests_mon.enter();
@@ -378,12 +581,15 @@ ExternalSeedReaderImpl
 				
 				Debug.out( "request added when not active!!!!" );
 			}
-								
-			requests.add( request );
+				
+			for (int i=0;i<new_requests.size();i++){
+			
+				requests.add( new_requests.get(i));
+
+				request_sem.release();
+			}
 			
 			request_count	= requests.size();
-			
-			request_sem.release();
 			
 			if ( request_thread == null ){
 				
@@ -505,12 +711,14 @@ ExternalSeedReaderImpl
 	protected void
 	informComplete(
 		PeerReadRequest		request,
-		PooledByteBuffer	buffer )
+		byte[]				buffer )
 	{
+		PooledByteBuffer pool_buffer = plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( buffer );
+		
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
-				((ExternalSeedReaderListener)listeners.get(i)).requestComplete( request, buffer );
+				((ExternalSeedReaderListener)listeners.get(i)).requestComplete( request, pool_buffer );
 				
 			}catch( Throwable e ){
 				

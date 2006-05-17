@@ -281,11 +281,29 @@ PeerImpl
 		throw( new RuntimeException( "not supported"));
 	}
 
+	public int
+	getMaximumNumberOfRequests()
+	{
+		throw( new RuntimeException( "not supported"));
+	}
+
 	public int[]
-	getPriorityOffsets(
+	getPriorityOffsets()
+	{
+		throw( new RuntimeException( "not supported"));
+	}
+	
+	public boolean
+	requestAllocationStarts(
 		int[]	base_priorities )
 	{
 		throw( new RuntimeException( "not supported"));
+	}
+	
+	public void
+	requestAllocationComplete()
+	{
+		throw( new RuntimeException( "not supported"));		
 	}
 	
 	public void

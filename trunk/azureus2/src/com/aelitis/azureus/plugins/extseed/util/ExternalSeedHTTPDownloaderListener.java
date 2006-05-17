@@ -1,5 +1,5 @@
 /*
- * Created on 15 May 2006
+ * Created on 17 May 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -20,34 +20,18 @@
  *
  */
 
-package org.gudy.azureus2.plugins.peers;
+package com.aelitis.azureus.plugins.extseed.util;
+
+import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 
 public interface 
-Piece 
+ExternalSeedHTTPDownloaderListener 
 {
-	public boolean
-	isDone();
+	public byte[]
+	getBuffer()
 	
-	public boolean
-	isNeeded();
+		throws ExternalSeedException;
 	
-	public boolean
-	isDownloading();
-	
-		/**
-		 * indicates if this piece is free and available to be allocated for download 
-		 * not done, needed and not downloading
-		 * @return
-		 */
-	
-	public boolean
-	isFullyAllocatable();
-	
-		/**
-		 * number of requests that are available to be made
-		 * @return
-		 */
-	
-	public int
-	getAllocatableRequestCount();
+	public void
+	done();
 }

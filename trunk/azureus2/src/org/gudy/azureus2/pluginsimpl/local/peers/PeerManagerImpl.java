@@ -389,7 +389,7 @@ PeerManagerImpl
 		}
 		
 		public boolean
-		isAllocatable()
+		isFullyAllocatable()
 		{
 			if ( pe_pieces[index] != null ){
 				
@@ -397,6 +397,24 @@ PeerManagerImpl
 			}
 			
 			return( dm_pieces[index].isInteresting());
+		}
+		
+		public int
+		getAllocatableRequestCount()
+		{
+			PEPiece	pe_piece = pe_pieces[index];
+			
+			if ( pe_piece != null ){
+				
+				return( pe_piece.getNbUnrequested());
+			}
+			
+			if ( dm_pieces[index].isInteresting() ){
+				
+				return( dm_pieces[index].getNbBlocks());
+			}
+			
+			return( 0 );
 		}
 	}
 }

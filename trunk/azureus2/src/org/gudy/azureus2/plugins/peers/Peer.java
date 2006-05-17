@@ -137,17 +137,25 @@ Peer
 	getRequests();
 	
 	public int
+	getMaximumNumberOfRequests();
+	
+	public int
 	getNumberOfRequests();
 
-	public int[]
-	getPriorityOffsets(
-		int[]	base_priorities );
-	       	
 	public void
 	cancelRequest(
 		PeerReadRequest	request );
 
- 
+	public boolean
+	requestAllocationStarts(
+		int[]	base_priorities );
+	
+	public int[]
+	getPriorityOffsets();
+	       	       	
+	public void
+	requestAllocationComplete();
+	
 	public boolean 
 	addRequest(
 		PeerReadRequest	request );

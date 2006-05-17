@@ -27,6 +27,7 @@ import java.util.List;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
+import org.gudy.azureus2.plugins.peers.Piece;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
 public interface 
@@ -63,13 +64,24 @@ ExternalSeedReader
 		Peer			peer );
 	
 	public void
-	addRequest(
-		PeerReadRequest	request );
+	addRequests(
+		List			requests );
 	
 	public void
 	cancelRequest(
 		PeerReadRequest	request );
 	
+	public int
+	getMaximumNumberOfRequests();
+
+	public void
+	calculatePriorityOffsets(
+		PeerManager		peer_manager,
+		int[]			base_priorities );
+	
+	public int[]
+	getPriorityOffsets();
+
 	public void
 	cancelAllRequests();
 	

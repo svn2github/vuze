@@ -846,12 +846,23 @@ PEPeerTransportProtocol
   public PEPeerStats getStats() {  return peer_stats;  }
   
 	public int[]
-	getPriorityOffsets(
-		int[]	base_priorities )
+	getPriorityOffsets()
 	{
 			// normal peer has no special priority requirements
 		
 		return( null );
+	}
+	
+	public boolean
+	requestAllocationStarts(
+		int[]	base_priorities )
+	{
+		return( false );
+	}
+	
+	public void
+	requestAllocationComplete()
+	{	
 	}
 	
   	/**
@@ -1007,6 +1018,11 @@ PEPeerTransportProtocol
         }
     }
   
+		public int 
+		getMaxNbRequests() 
+		{
+			return( -1 );
+		}
 
 		public int 
 		getNbRequests() {

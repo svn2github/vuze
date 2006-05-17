@@ -29,28 +29,33 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
-import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
 import com.aelitis.azureus.plugins.extseed.impl.ExternalSeedReaderImpl;
+import com.aelitis.azureus.plugins.extseed.impl.ExternalSeedReaderRequest;
 import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloader;
 
 public class 
 ExternalSeedReaderGetRight
 	extends ExternalSeedReaderImpl
 {
+	private static final int	TARGET_REQUEST_SIZE_DEFAULT	= 256*1024;
+	
 	private URL			url;
 	private String		ip;
 	private int			port;
 	
 	private ExternalSeedHTTPDownloader	http_downloader;
 	
+	private int			piece_size;
+	
 	private int			min_availability;
 	private int			min_speed;
 	private long		valid_until;
+	private int			piece_group_size;
 	
 	protected
 	ExternalSeedReaderGetRight(
@@ -64,6 +69,9 @@ ExternalSeedReaderGetRight
 		min_availability 	= getIntParam( _params, "min_avail", 1 );	// default is avail based
 		min_speed			= getIntParam( _params, "min_speed", 0 );
 		valid_until			= getIntParam( _params, "valid_ms", 0 );
+		
+		int target_request_size	= getIntParam( _params, "req_size", TARGET_REQUEST_SIZE_DEFAULT );
+		
 		
 		if ( valid_until > 0 ){
 			
@@ -81,7 +89,15 @@ ExternalSeedReaderGetRight
 		}
 		
 		http_downloader  = new ExternalSeedHTTPDownloader( url, getUserAgent());
+	
+		piece_size = (int)getTorrent().getPieceSize();
 		
+		piece_group_size = target_request_size / piece_size;
+		
+		if ( piece_group_size == 0 ){
+			
+			piece_group_size	= 1;
+		}
 	}
 	
 	public boolean
@@ -252,16 +268,27 @@ ExternalSeedReaderGetRight
 		return( false );
 	}
 	
-
+	protected int
+	getPieceGroupSize()
+	{
+		return( piece_group_size );
+	}
 	
-	protected byte[]
+	protected boolean
+	getRequestCanSpanPieces()
+	{
+		return( true );
+	}
+	
+	protected void
 	readData(
-		PeerReadRequest	request )
+		ExternalSeedReaderRequest	request )
 	
 		throws ExternalSeedException
 	{
-		return( http_downloader.downloadRange( 
-						request.getPieceNumber() * getTorrent().getPieceSize() + request.getOffset(), 
-						request.getLength()));
+		http_downloader.downloadRange( 
+						request.getStartPieceNumber() * piece_size + request.getStartPieceOffset(), 
+						request.getLength(),
+						request );
 	}
 }

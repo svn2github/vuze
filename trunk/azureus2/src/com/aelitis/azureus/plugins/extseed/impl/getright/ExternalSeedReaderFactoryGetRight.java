@@ -26,6 +26,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.plugins.download.Download;
@@ -132,6 +133,8 @@ ExternalSeedReaderFactoryGetRight
 		String[]	args )
 	{
 		try{
+			COConfigurationManager.preInitialise();
+			
 			File file = new File  ( "C:\\temp\\test.torrent");
 			
 			TOTorrent	torrent = TOTorrentFactory.deserialiseFromBEncodedFile( file );
@@ -143,6 +146,10 @@ ExternalSeedReaderFactoryGetRight
 			urls.add( "http://192.168.1.2:8080/test.dat" );
 			
 			map.put( "url-list", urls);
+			
+			Map params = new HashMap();
+			
+			map.put( "url-list-params", params );
 			
 			torrent = TOTorrentFactory.deserialiseFromMap( map );
 			

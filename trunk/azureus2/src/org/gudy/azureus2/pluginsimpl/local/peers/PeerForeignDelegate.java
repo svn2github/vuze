@@ -147,16 +147,33 @@ PeerForeignDelegate
 	}
   		
 	public int
+	getMaxNbRequests()
+	{
+		return( foreign.getMaximumNumberOfRequests());
+	}
+	public int
 	getNbRequests()
 	{
 		return( foreign.getNumberOfRequests());
 	}
 		
 	public int[]
-	getPriorityOffsets(
+	getPriorityOffsets()
+	{
+		return( foreign.getPriorityOffsets());
+	}
+	
+	public boolean
+	requestAllocationStarts(
 		int[]	base_priorities )
 	{
-		return( foreign.getPriorityOffsets( base_priorities ));
+		return( foreign.requestAllocationStarts( base_priorities ));
+	}
+	
+	public void
+	requestAllocationComplete()
+	{
+		foreign.requestAllocationComplete();
 	}
 	
 	public PEPeerControl

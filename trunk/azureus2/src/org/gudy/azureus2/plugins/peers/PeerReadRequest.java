@@ -30,6 +30,8 @@ package org.gudy.azureus2.plugins.peers;
 public interface 
 PeerReadRequest 
 {
+	public static final int	NORMAL_REQUEST_SIZE	= 16384;
+	
 	public int
 	getPieceNumber();
 	

@@ -1304,21 +1304,27 @@ PEPeerControlImpl
 		//calculate seeds vs peers
 		final ArrayList peer_transports = peer_transports_cow;
 		
-		_seeds = _peers = _remotes = 0;
+		int	new_seeds = 0;
+		int new_peers = 0;
+		int new_remotes = 0;
 		
 		for (Iterator it=peer_transports.iterator();it.hasNext();){
 			final PEPeerTransport pc = (PEPeerTransport) it.next();
 			if (pc.getPeerState() == PEPeer.TRANSFERING) {
 				if (pc.isSeed())
-					_seeds++;
+					new_seeds++;
 				else
-					_peers++;
+					new_peers++;
 				
 				if(((PEPeer)pc).isIncoming()) {
-					_remotes++;
+					new_remotes++;
 				}
 			}
 		}
+		
+		_seeds = new_seeds;
+		_peers = new_peers;
+		_remotes = new_remotes;
 	}
 
 	/**
@@ -1448,8 +1454,6 @@ PEPeerControlImpl
 	DiskManagerWriteRequest 	request, 
 	Throwable		 			cause )
   {
-	  	Debug.printStackTrace( cause );
-
 	  	// if the write has failed then the download will have been stopped so there is no need to try
 	  	// and reset the piece
   }

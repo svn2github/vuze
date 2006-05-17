@@ -45,6 +45,7 @@ ExternalSeedHTTPDownloader
 	private String		user_agent;
 	
 	private int			last_response;
+	private byte[]		last_response_data;
 	
 	public
 	ExternalSeedHTTPDownloader(
@@ -55,32 +56,36 @@ ExternalSeedHTTPDownloader
 		user_agent	= _user_agent;
 	}
 	
-	public byte[]
+	public void
 	download(
-		int				length )
+		int									length,
+		ExternalSeedHTTPDownloaderListener	listener )
 	
 		throws ExternalSeedException
 	{
-		return( download( new String[0], new String[0], length ));
+		download( new String[0], new String[0], length, listener );
 	}
 	
-	public byte[]
+	public void
 	downloadRange(
-		long		offset,
-		int			length )
+		long								offset,
+		int									length,
+		ExternalSeedHTTPDownloaderListener	listener )
 	
 		throws ExternalSeedException
 	{
-		return( download( 
+		download( 
 					new String[]{ "Range" }, new String[]{ "bytes=" + offset + "-" + (offset+length-1)},
-					length ));
+					length,
+					listener );
 	}
 	
-	public byte[]
+	public void
 	download(
-		String[]		prop_names,
-		String[]		prop_values,
-		int				length )
+		String[]							prop_names,
+		String[]							prop_values,
+		int									length,
+		ExternalSeedHTTPDownloaderListener	listener )
 	
 		throws ExternalSeedException
 	{
@@ -102,17 +107,23 @@ ExternalSeedHTTPDownloader
 			if ( 	response == HttpURLConnection.HTTP_ACCEPTED || 
 					response == HttpURLConnection.HTTP_OK ||
 					response == HttpURLConnection.HTTP_PARTIAL ){
-				
-				byte[]	data = new byte[length];
-				
+								
 				InputStream	is = connection.getInputStream();
 				
 				try{
 					int	pos = 0;
 					
+					byte[]	buffer 		= null;
+					int		buffer_pos	= 0;
+
 					while( pos < length ){
 						
-						int	len = is.read( data, pos, length-pos );
+						if ( buffer == null ){
+							
+							buffer = listener.getBuffer();
+						}
+
+						int	len = is.read( buffer, buffer_pos, buffer.length-buffer_pos );
 						
 						if ( len < 0 ){
 							
@@ -120,25 +131,45 @@ ExternalSeedHTTPDownloader
 						}
 						
 						pos	+= len;
+						
+						buffer_pos	+= len;
+						
+						if ( buffer_pos == buffer.length ){
+							
+							listener.done();
+							
+							buffer		= null;
+							buffer_pos	= 0;
+						}
 					}
 					
 					if ( pos != length ){
 						
-						String	data_str =  new String( data, 0, length );
+						String	log_str;
 						
-						if ( data_str.length() > 64 ){
+						if ( buffer == null ){
 							
-							data_str = data_str.substring( 0, 64 );
+							log_str = "No buffer assigned";
+							
+						}else{
+							
+							log_str =  new String( buffer, 0, length );
+							
+							if ( log_str.length() > 64 ){
+								
+								log_str = log_str.substring( 0, 64 );
+							}
 						}
 						
-						throw( new ExternalSeedException("Connection failed: data too short - " + length + "/" + pos + " [" + data_str + "]" ));
+						throw( new ExternalSeedException("Connection failed: data too short - " + length + "/" + pos + " [" + log_str + "]" ));
 					}
+					
+					// System.out.println( "download length: " + pos );
+					
 				}finally{
 					
 					is.close();
 				}
-				
-				return( data );
 				
 			}else{
 				
@@ -159,20 +190,22 @@ ExternalSeedHTTPDownloader
 		}
 	}
 	
-	public byte[]
+	public void
 	downloadSocket(
-		int				length )
+		int									length,
+		ExternalSeedHTTPDownloaderListener	listener )
 	        	
 	    throws ExternalSeedException
 	{
-		return( downloadSocket( new String[0], new String[0], length ));
+		downloadSocket( new String[0], new String[0], length, listener );
 	}
 	
-	public byte[]
+	public void
 	downloadSocket(
-		String[]		prop_names,
-		String[]		prop_values,
-		int				length )
+		String[]							prop_names,
+		String[]							prop_values,
+		int									length,
+		ExternalSeedHTTPDownloaderListener	listener )
 	
 		throws ExternalSeedException
 	{
@@ -254,13 +287,19 @@ ExternalSeedHTTPDownloader
 						response == HttpURLConnection.HTTP_OK ||
 						response == HttpURLConnection.HTTP_PARTIAL ){
 					
-					byte[]	data = new byte[length];
-								
+					byte[]	buffer 		= null;
+					int		buffer_pos	= 0;
+					
 					int	pos = 0;
 					
 					while( pos < length ){
 						
-						int	len = is.read( data, pos, length-pos );
+						if ( buffer == null ){
+							
+							buffer = listener.getBuffer();
+						}
+						
+						int	len = is.read( buffer, buffer_pos, buffer.length-buffer_pos );
 						
 						if ( len < 0 ){
 							
@@ -268,22 +307,41 @@ ExternalSeedHTTPDownloader
 						}
 						
 						pos	+= len;
+						
+						buffer_pos	+= len;
+						
+						if ( buffer_pos == buffer.length ){
+							
+							listener.done();
+							
+							buffer		= null;
+							buffer_pos	= 0;
+						}
 					}
 					
 					if ( pos != length ){
 						
-						String	data_str =  new String( data, 0, length );
+						String	log_str;
 						
-						if ( data_str.length() > 64 ){
+						if ( buffer == null ){
 							
-							data_str = data_str.substring( 0, 64 );
+							log_str = "No buffer assigned";
+							
+						}else{
+							
+							log_str =  new String( buffer, 0, length );
+							
+							if ( log_str.length() > 64 ){
+								
+								log_str = log_str.substring( 0, 64 );
+							}
 						}
 						
-						throw( new ExternalSeedException("Connection failed: data too short - " + length + "/" + pos + " [" + data_str + "]" ));
+						throw( new ExternalSeedException("Connection failed: data too short - " + length + "/" + pos + " [" + log_str + "]" ));
 					}
 					
-					return( data );
-					
+					// System.out.println( "download length: " + pos );
+										
 				}else if ( 	response == 503 ){
 					
 						// webseed support for temp unavail - read the data
@@ -304,7 +362,7 @@ ExternalSeedHTTPDownloader
 						data_str += (char)buffer[0];
 					}
 					
-					return( data_str.getBytes());
+					last_response_data = data_str.getBytes();
 				
 				}else{
 					
@@ -345,5 +403,11 @@ ExternalSeedHTTPDownloader
 	getLastResponse()
 	{
 		return( last_response );
+	}
+	
+	public byte[]
+	getLast503ResponseData()
+	{
+		return( last_response_data );
 	}
 }
