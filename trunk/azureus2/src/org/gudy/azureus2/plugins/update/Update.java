@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.plugins.update;
+package org.gudy.azureus2.plugins.update; 
 
 /**
  * @author parg
