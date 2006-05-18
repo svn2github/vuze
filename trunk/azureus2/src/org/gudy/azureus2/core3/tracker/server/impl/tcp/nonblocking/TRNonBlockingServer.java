@@ -64,9 +64,11 @@ TRNonBlockingServer
 	
 	private		  List		processors					= new ArrayList();
 	
+	/*
 	private long	last_stats_time;
 	private long	last_timeouts;
 	private long	last_connections;
+	*/
 	
 	private long	total_timeouts;
 	private long	total_connections;
@@ -402,6 +404,7 @@ TRNonBlockingServer
    		// we don't particularly care about timeouts if nothing's going on, hence we only
 		// trigger the check on the arrival of a new connection
 	
+		/*
 		String	con_rate 	= "";
 		String	tim_rate	= "";
 		
@@ -415,15 +418,16 @@ TRNonBlockingServer
 			con_rate = "" + (conn_diff/time_diff);
 			tim_rate = "" + (tim_diff/time_diff);
 		}
-		
+
+		System.out.println( "Tracker: con/sec = " + con_rate + ", timeout/sec = " + tim_rate + ", tot_con = " + total_connections+ ", total timeouts = " + total_timeouts + 
+							", current connections = " + processors.size() + ", closing = " + connections_to_close.size());
+
 		last_stats_time		= now;
 		last_connections	= total_connections;
 		last_timeouts		= total_timeouts;
+
+		*/
 		
-		
-		System.out.println( "Tracker: con/sec = " + con_rate + ", timeout/sec = " + tim_rate + ", tot_con = " + total_connections+ ", total timeouts = " + total_timeouts + 
-							", current connections = " + processors.size() + ", closing = " + connections_to_close.size());
-	
 		try{
         	this_mon.enter();
         
