@@ -67,6 +67,8 @@ TRNonBlockingServerProcessor
 		start_time	= SystemTime.getCurrentTime(); 
 		
 		read_buffer = ByteBuffer.allocate( READ_BUFFER_INITIAL );
+		
+		// System.out.println( "created: " + System.currentTimeMillis());
 	}
 
 		// 0 -> complete
@@ -102,6 +104,9 @@ TRNonBlockingServerProcessor
 		try{
 			int	len = socket_channel.read( read_buffer );
 			
+			// System.out.println( "read op[" + len + "]: " + System.currentTimeMillis());
+
+
 			if ( len < 0 ){
 				
 				return( -1 );
@@ -121,6 +126,8 @@ TRNonBlockingServerProcessor
 						data[i+3] == FF ){
 					
 					request_header = new String(data,0,read_buffer.position());
+					
+					// System.out.println( "read done: " + System.currentTimeMillis());
 					
 					getServer().runProcessor( this );
 					
@@ -195,6 +202,8 @@ TRNonBlockingServerProcessor
 							new ByteArrayInputStream(new byte[0]),
 							response );
 			
+			// System.out.println( "write: " + System.currentTimeMillis());
+			
 			write_buffer = ByteBuffer.wrap( response.toByteArray());
 			
 		}catch( Throwable e ){
@@ -221,5 +230,17 @@ TRNonBlockingServerProcessor
 	public void
 	interruptTask()
 	{
+	}
+	
+	protected void
+	completed()
+	{
+		// System.out.println( "complete: " + System.currentTimeMillis());
+	}
+	
+	protected void
+	closed()
+	{
+		// System.out.println( "close: " + System.currentTimeMillis());
 	}
 }

@@ -55,7 +55,7 @@ TRNonBlockingServer
 	private static final LogIDs LOGID = LogIDs.TRACKER;
 	private static final int TIMEOUT_CHECK_INTERVAL = 10*1000;  //10sec
 	
-	private static final int CLOSE_DELAY			= 10*1000;
+	private static final int CLOSE_DELAY			= 5*1000;
 	
 	private final VirtualChannelSelector read_selector	 	= new VirtualChannelSelector( VirtualChannelSelector.OP_READ, false );
 	private final VirtualChannelSelector write_selector 	= new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
@@ -246,6 +246,8 @@ TRNonBlockingServer
           VirtualChannelSelector.VirtualSelectorListener read_listener = 
 	        	new VirtualChannelSelector.VirtualSelectorListener() 
 				{
+        	  		private boolean	selector_registered;
+        	  		
 	        		public boolean 
 					selectSuccess( 
 						VirtualChannelSelector 	selector, 
@@ -255,15 +257,27 @@ TRNonBlockingServer
 	        			try{
 		        			int read_result = processor.processRead();
 		            
-		        			if( read_result == 0 ) {  //read processing is complete
+		        			if ( read_result == 0 ) {  //read processing is complete
 		        				
-		        				read_selector.pauseSelects( sc );
+		        				if ( selector_registered ){
+		        					
+		        					read_selector.pauseSelects( sc );
+		        				}
 		        					        						
 		        			}else if ( read_result < 0 ) {  //a read error occured
 
 		        				removeAndCloseConnection( processor );
-		        			}
+		        				
+		        			}else{
 		        			
+			        			if ( !selector_registered ){
+			        				
+			        				selector_registered	= true;
+			        				
+			        		        read_selector.register( sc, this, null );
+			        			}
+		        			}
+			        			
 		        			return( read_result != 2 );
 		        			
 	              		}catch( Throwable e ){
@@ -286,9 +300,9 @@ TRNonBlockingServer
 	        			removeAndCloseConnection( processor );
 	        		}	
 				};
-	        
-	        read_selector.register( channel, read_listener, null );  //start reading from the connection
-		}
+				
+			read_listener.selectSuccess( read_selector, channel, null );
+        }
     }
 
     protected void
@@ -298,6 +312,8 @@ TRNonBlockingServer
         final VirtualChannelSelector.VirtualSelectorListener write_listener = 
         	new VirtualChannelSelector.VirtualSelectorListener() 
 			{
+        		private boolean	selector_registered;
+
             	public boolean 
 				selectSuccess( 
 					VirtualChannelSelector 	selector, 
@@ -309,7 +325,16 @@ TRNonBlockingServer
 	              
 	            		if( write_result > 0 ) { //more writing is needed
 	            			
-	            			write_selector.resumeSelects( sc );  //resume for more writing
+	            			if ( selector_registered ){
+	            				
+		            			write_selector.resumeSelects( sc );  //resume for more writing
+
+	            			}else{
+	            				
+	            				selector_registered	= true;
+	            				
+	            				write_selector.register( sc, this, null ); 
+	            			}
 	            			
 	            		}else if( write_result == 0 ) {  //write processing is complete
 
@@ -334,7 +359,7 @@ TRNonBlockingServer
 
             	public void 
 				selectFailure( 
-            VirtualChannelSelector 	selector, 
+					VirtualChannelSelector 	selector, 
 					SocketChannel 			sc, 
 					Object 					attachment, 
 					Throwable 				msg ) 
@@ -343,14 +368,16 @@ TRNonBlockingServer
             	}
 			};
   
-		write_selector.register( processor.getSocketChannel(), write_listener, null );  //start writing back to the connection
-    
+
+		write_listener.selectSuccess( write_selector, processor.getSocketChannel(), null );
     }
     
     protected void
     removeAndCloseConnection(
     	TRNonBlockingServerProcessor	processor )
     {
+    	processor.completed();
+    	
         try{
         	this_mon.enter();
         	
@@ -394,8 +421,8 @@ TRNonBlockingServer
 		last_timeouts		= total_timeouts;
 		
 		
-		//System.out.println( "Tracker: con/sec = " + con_rate + ", timeout/sec = " + tim_rate + ", tot_con = " + total_connections+ ", total timeouts = " + total_timeouts + 
-		//					", current connections = " + processors.size() + ", closing = " + connections_to_close.size());
+		System.out.println( "Tracker: con/sec = " + con_rate + ", timeout/sec = " + tim_rate + ", tot_con = " + total_connections+ ", total timeouts = " + total_timeouts + 
+							", current connections = " + processors.size() + ", closing = " + connections_to_close.size());
 	
 		try{
         	this_mon.enter();
@@ -464,7 +491,11 @@ TRNonBlockingServer
 	        for (int i=0;i<pending_list.size();i++){
 	        	
 	        	try{
-	        		((TRNonBlockingServerProcessor)pending_list.get(i)).getSocketChannel().close();
+	        		TRNonBlockingServerProcessor processor = (TRNonBlockingServerProcessor)pending_list.get(i);
+	        		
+	        		processor.closed();
+	        		
+	        		processor.getSocketChannel().close();
 	        		
 	        	}catch( Throwable e ){
 	        		
