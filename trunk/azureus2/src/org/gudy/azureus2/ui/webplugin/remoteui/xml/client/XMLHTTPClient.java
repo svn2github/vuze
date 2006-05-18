@@ -127,7 +127,7 @@ XMLHTTPClient
 				
 				
 					// tracker torrents
-				
+				/*
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
@@ -149,7 +149,7 @@ XMLHTTPClient
 						"</REQUEST>");
 			
 				res.print();
-				
+				*/
 				
 				/*
 				SimpleXMLParserDocumentNode[]	kids = res.getChildren();
@@ -310,7 +310,7 @@ XMLHTTPClient
 				
 				/* stuff for adding a torrent */
 				 
-				/*
+			
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
@@ -327,7 +327,7 @@ XMLHTTPClient
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + torrent_man_oid + "</_object_id></OBJECT>" +
 							"<METHOD>getURLDownloader[URL]</METHOD>"+
-							"<PARAMS><ENTRY>http://www.torrentreactor.net/torrents/download_15835</ENTRY></PARAMS>" +
+							"<PARAMS><ENTRY>http://torrents.aelitis.com:88/torrents/Rob%20Costlow.torrent</ENTRY></PARAMS>" +
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");
@@ -354,15 +354,33 @@ XMLHTTPClient
 				
 				res = sendRequest( 
 						"<REQUEST>" +
+							"<OBJECT><_object_id>" + torrent_oid + "</_object_id></OBJECT>" +
+							"<METHOD>writeToFile[File]</METHOD>"+
+							"<PARAMS>"+
+   							    "<ENTRY>C:\\temp\\fred.torrent</ENTRY>"+
+						    "</PARAMS>" +
+	
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+			
+				res.print();
+				
+				res = sendRequest( 
+						"<REQUEST>" +
 							"<OBJECT><_object_id>" + dl_man_oid + "</_object_id></OBJECT>" +
-							"<METHOD>addDownload[Torrent]</METHOD>"+
-							"<PARAMS><ENTRY><OBJECT><_object_id>" + torrent_oid + "</_object_id></OBJECT></ENTRY></PARAMS>" +
+							"<METHOD>addDownload[Torrent,File,File]</METHOD>"+
+							"<PARAMS>" +
+							    "<ENTRY><OBJECT><_object_id>" + torrent_oid + "</_object_id></OBJECT></ENTRY>" +
+							    "<ENTRY>C:\\temp\\fred.torrent</ENTRY>"+
+							    "<ENTRY>C:\\temp</ENTRY>"+
+							"</PARAMS>" +
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");
 	
 				res.print();
-				*/
+				
 				
 				res = sendRequest( 
 						"<REQUEST>" +
@@ -375,7 +393,7 @@ XMLHTTPClient
 				res.print();
 				
 				
-			
+				
 				SimpleXMLParserDocumentNode[]	kids = res.getChildren();
 				
 				for (int i=0;i<kids.length;i++){

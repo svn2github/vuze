@@ -45,4 +45,10 @@ TRHostPeer
 	
 	public String
 	getIPRaw();
+	
+	public int
+	getPort();
+	
+	public byte[]
+	getPeerID();
 }

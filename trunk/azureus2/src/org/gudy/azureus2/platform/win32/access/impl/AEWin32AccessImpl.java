@@ -237,6 +237,15 @@ AEWin32AccessImpl
 		AEWin32AccessInterface.copyPermission( from_file_name, to_file_name ); 
 	}
 	
+	public boolean
+	testNativeAvailability(
+		String	name )
+	
+		throws AEWin32AccessException
+	{
+		return( AEWin32AccessInterface.testNativeAvailability( name ));
+	}
+	
 	public void
     addListener(
     	AEWin32AccessListener		listener )

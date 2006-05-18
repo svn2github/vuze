@@ -131,6 +131,12 @@ AEWin32Access
 	
 		throws AEWin32AccessException;
 	
+	public boolean
+	testNativeAvailability(
+		String	name )
+		
+		throws AEWin32AccessException;
+	
 	public void
 	addListener(
 		AEWin32AccessListener	listener );

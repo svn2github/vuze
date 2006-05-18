@@ -96,6 +96,12 @@ PlatformManager
 	
 		throws PlatformManagerException;
 
+	public boolean
+	testNativeAvailability(
+		String	name )
+	
+		throws PlatformManagerException;
+	
     /**
      * <p>Gets whether the platform manager supports a capability</p>
      * <p>Users of PlatformManager should check for supported capabilities before calling

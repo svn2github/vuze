@@ -38,6 +38,8 @@ import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.plugins.*;
@@ -405,9 +407,51 @@ AzureusCoreImpl
 			Logger.log(new LogEvent(LOGID, "Shutdown hook triggered" ));
 			AzureusCoreImpl.this.stop();
 	     }
-	   });		   
+	   });	
+	   
+	   checkBadNatives();
 	}
   
+	protected void
+	checkBadNatives()
+	{
+		PlatformManager	p_man = PlatformManagerFactory.getPlatformManager();
+		
+		if ( 	p_man.getPlatformType() == PlatformManager.PT_WINDOWS &&
+				p_man.hasCapability( PlatformManagerCapabilities.TestNativeAvailability )){
+		
+	
+			String[]	dlls = { "niphk", "nvappfilter", "netdog", "vlsp", "imon", "sarah" };
+			
+			for (int i=0;i<dlls.length;i++){
+				
+				String	dll = dlls[i];
+				
+				if ( !COConfigurationManager.getBooleanParameter( "platform.win32.dll_found." + dll, false )){
+							
+					try{
+						if ( p_man.testNativeAvailability( dll + ".dll" )){
+							
+							COConfigurationManager.setParameter( "platform.win32.dll_found." + dll, true );
+
+							String	detail = MessageText.getString( "platform.win32.baddll." + dll );
+							
+							Logger.logTextResource(
+									new LogAlert(
+											LogAlert.REPEATABLE, 
+											LogAlert.AT_WARNING,
+											"platform.win32.baddll.info" ),	
+									new String[]{ dll + ".dll", detail });
+						}
+			
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			}
+		}
+	}
  
 	
 	private void

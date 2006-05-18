@@ -93,11 +93,31 @@ TCPTransportHelperFilterTransparent
 			
 			for (int i=array_offset;i<array_offset+length;i++){
 				
-				buffers[i].put( read_insert );
+				ByteBuffer	buffer = buffers[i];
 				
-				if ( !read_insert.hasRemaining()){
-										
-					break;
+				int	space = buffer.remaining();
+				
+				if ( space > 0 ){
+					
+					if ( space < read_insert.remaining()){
+						
+						int	old_limit = read_insert.limit();
+						
+						read_insert.limit( read_insert.position() + space );
+						
+						buffer.put( read_insert );
+
+						read_insert.limit( old_limit );
+						
+					}else{
+						
+						buffer.put( read_insert );
+					}
+					
+					if ( !read_insert.hasRemaining()){
+											
+						break;
+					}
 				}
 			}
 			

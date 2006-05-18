@@ -23,7 +23,7 @@ package org.gudy.azureus2.pluginsimpl.local;
 
 import java.util.*;
 import java.io.File;
-import java.net.URL;
+import java.net.URL; 
 
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.*;
@@ -582,6 +582,11 @@ PluginInterfaceImpl
   			Debug.printStackTrace( e );
   		}
   	}
+  	
+  	for (int i=0;i<children.size();i++){
+  		
+  		((PluginInterfaceImpl)children.get(i)).initialisationComplete();
+  	}
   }
   
   protected void
@@ -596,6 +601,11 @@ PluginInterfaceImpl
   			
   			Debug.printStackTrace( e );
   		}
+  	}
+  	
+  	for (int i=0;i<children.size();i++){
+  		
+  		((PluginInterfaceImpl)children.get(i)).closedownInitiated();
   	}
   }
   
@@ -612,6 +622,11 @@ PluginInterfaceImpl
   			Debug.printStackTrace( e );
   		}
   	}
+  	
+ 	for (int i=0;i<children.size();i++){
+  		
+  		((PluginInterfaceImpl)children.get(i)).closedownComplete();
+  	}
   }
   
   public void
@@ -627,7 +642,12 @@ PluginInterfaceImpl
   			
   			Debug.printStackTrace( e );
   		}
-  	} 	
+  	} 
+  	
+	for (int i=0;i<children.size();i++){
+  		
+  		((PluginInterfaceImpl)children.get(i)).firePluginEvent(event);
+  	}
   }
   
   public ClassLoader

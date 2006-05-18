@@ -620,6 +620,15 @@ public class PlatformManagerImpl implements PlatformManager
         }
     }
     
+	public boolean
+	testNativeAvailability(
+		String	name )
+	
+		throws PlatformManagerException
+	{
+	    throw new PlatformManagerException("Unsupported capability called on platform manager");		
+	}
+    
     public void
     addListener(
     	PlatformManagerListener		listener )

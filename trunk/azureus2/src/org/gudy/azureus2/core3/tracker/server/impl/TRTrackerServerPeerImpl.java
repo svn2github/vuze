@@ -201,6 +201,12 @@ TRTrackerServerPeerImpl
 		return( peer_id );
 	}
 	
+	public byte[]
+	getPeerID()
+	{
+		return( peer_id.getBytes());
+	}
+	
 	protected int
 	getKeyHashCode()
 	{
@@ -241,7 +247,7 @@ TRTrackerServerPeerImpl
 		return( ip_bytes );
 	}
 	
-	protected int
+	public int
 	getPort()
 	{
 		return( port );

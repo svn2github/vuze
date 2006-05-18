@@ -49,52 +49,62 @@ TRTrackerServerTorrentImpl
 	public static final boolean	USE_LIGHTWEIGHT_SEEDS	= true;
 	
 	
-	protected HashWrapper			hash;
+	private HashWrapper			hash;
 
-	protected Map				peer_map 		= new HashMap();
-	protected Map				peer_reuse_map	= new HashMap();
+	private Map				peer_map 		= new HashMap();
+	private Map				peer_reuse_map	= new HashMap();
 	
-	protected List				peer_list		= new ArrayList();
-	protected int				peer_list_hole_count;
-	protected boolean			peer_list_compaction_suspended;
+	private List			peer_list		= new ArrayList();
+	private int				peer_list_hole_count;
+	private boolean			peer_list_compaction_suspended;
 	
-	protected Map				lightweight_seed_map	= new HashMap();
+	private Map				lightweight_seed_map	= new HashMap();
 	
-	protected int				seed_count;
-	protected int				removed_count;
+	private int				seed_count;
+	private int				removed_count;
 	
-	protected int				bad_NAT_count;	// calculated periodically
+	private int				bad_NAT_count;	// calculated periodically
 	
-	protected Random			random		= new Random( SystemTime.getCurrentTime());
+	private Random			random		= new Random( SystemTime.getCurrentTime());
 	
-	protected long				last_scrape_calc_time;
-	protected Map				last_scrape;
+	private long			last_scrape_calc_time;
+	private Map				last_scrape;
 	
-	protected LinkedHashMap		announce_cache	= new LinkedHashMap();
+	private LinkedHashMap		announce_cache	= new LinkedHashMap();
 	
-	protected TRTrackerServerTorrentStatsImpl	stats;
+	private TRTrackerServerTorrentStatsImpl	stats;
 		
-	protected List				listeners	= new ArrayList();
-	protected boolean			deleted;
+	private List			listeners	= new ArrayList();
+	private List			peer_listeners;
+	private boolean			deleted;
+	private boolean			enabled;
 	
-	protected boolean			map_size_diff_reported;
+	private boolean			map_size_diff_reported;
 	
-	protected byte				duplicate_peer_checker_index	= 0;
-	protected byte[]			duplicate_peer_checker			= new byte[0];
+	private byte			duplicate_peer_checker_index	= 0;
+	private byte[]			duplicate_peer_checker			= new byte[0];
 	
-	protected boolean			caching_enabled	= true;
+	private boolean			caching_enabled	= true;
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTorrent" );
 
 	public
 	TRTrackerServerTorrentImpl(
-		HashWrapper				_hash )
+		HashWrapper				_hash,
+		boolean					_enabled )
 	{
 		hash		= _hash;
+		enabled		= _enabled;
 		
 		stats		= new TRTrackerServerTorrentStatsImpl( this );
 	}
 	
+	public void
+	setEnabled(
+		boolean		_enabled )
+	{
+		enabled	= _enabled;
+	}
 	
 	public TRTrackerServerPeerImpl
 	peerContact(
@@ -111,13 +121,35 @@ TRTrackerServerTorrentImpl
 	
 		throws TRTrackerServerException
 	{
+		if ( !enabled ){
+			
+			throw( new TRTrackerServerException( "Torrent temporarily disabled" ));
+		}
+		
 		try{
 			this_mon.enter();
 		
 			// System.out.println( "TRTrackerServerTorrent: peerContact, ip = " + ip_address );
+				
+			int	event_type = TRTrackerServerTorrentPeerListener.ET_UPDATED;
+			
+			if ( event != null && event.length() > 2){
+		
+				char	c = event.charAt(2);
+				
+				if ( c == 'm' ){	// "coMpleted"
 					
-			boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
-			boolean	completed 	= event != null && event.equalsIgnoreCase("completed");
+					event_type	= TRTrackerServerTorrentPeerListener.ET_COMPLETE;
+					
+				}else if ( c == 'o' ){	// "stOpped"
+					
+					event_type = TRTrackerServerTorrentPeerListener.ET_STOPPED;
+					
+				}else{
+					
+					event_type = TRTrackerServerTorrentPeerListener.ET_STARTED;
+				}
+			}
 			
 			long	now = SystemTime.getCurrentTime();
 			
@@ -159,7 +191,7 @@ TRTrackerServerTorrentImpl
 					
 					already_completed	= old_peer.getDownloadCompleted();
 					
-					removePeer( old_peer );
+					removePeer( old_peer,  TRTrackerServerTorrentPeerListener.ET_REPLACED );
 					
 					lightweight_seed_map.remove( old_peer.getPeerId());
 					
@@ -186,7 +218,7 @@ TRTrackerServerTorrentImpl
 					}
 				}
 				
-				if ( !stopped ){			
+				if ( event_type != TRTrackerServerTorrentPeerListener.ET_STOPPED ){			
 							
 					peer = new TRTrackerServerPeerImpl( 
 									peer_id, 
@@ -201,7 +233,7 @@ TRTrackerServerTorrentImpl
 					
 					peer_list.add( peer );
 									
-					peer_reuse_map.put( reuse_key, peer );
+					peer_reuse_map.put( reuse_key, peer );					
 				}
 			}else{
 				
@@ -219,9 +251,9 @@ TRTrackerServerTorrentImpl
 				
 				last_contact_time	= peer.getLastContactTime();
 				
-				if ( stopped ){
+				if ( event_type == TRTrackerServerTorrentPeerListener.ET_STOPPED ){
 					
-					removePeer( peer );
+					removePeer( peer, event_type );
 					
 				}else{
 					
@@ -251,7 +283,7 @@ TRTrackerServerTorrentImpl
 						
 						if ( old_peer != null ){
 						
-							removePeer( old_peer );
+							removePeer( old_peer, TRTrackerServerTorrentPeerListener.ET_REPLACED );
 						}
 	
 							// now swap the keys
@@ -272,6 +304,8 @@ TRTrackerServerTorrentImpl
 			
 			if ( peer != null ){
 				
+				peerEvent( peer, event_type );
+
 				peer.setTimeout( now, new_timeout );
 							
 					// if this is the first time we've heard from this peer then we don't want to
@@ -322,7 +356,7 @@ TRTrackerServerTorrentImpl
 				}
 						// when the peer is removed its "left" amount will dealt with
 					
-				le_diff = stopped?0:(left - peer.getAmountLeft());
+				le_diff = (event_type==TRTrackerServerTorrentPeerListener.ET_STOPPED)?0:(left - peer.getAmountLeft());
 				
 				boolean	was_seed 	= new_peer?false:peer.isSeed();
 				
@@ -330,7 +364,7 @@ TRTrackerServerTorrentImpl
 				
 				boolean	is_seed		= peer.isSeed();
 				
-				if (!(stopped || was_seed || !is_seed )){
+				if (!(event_type == TRTrackerServerTorrentPeerListener.ET_STOPPED || was_seed || !is_seed )){
 					
 					seed_count++;
 				}
@@ -338,7 +372,7 @@ TRTrackerServerTorrentImpl
 			
 			stats.addAnnounce( ul_diff, dl_diff, le_diff );
 			
-			if ( completed && !already_completed ){
+			if ( event_type==TRTrackerServerTorrentPeerListener.ET_COMPLETE && !already_completed ){
 				
 				peer.setDownloadCompleted();
 				
@@ -351,7 +385,7 @@ TRTrackerServerTorrentImpl
 				
 				if ( seed_limit != 0 && seed_count > seed_limit && !loopback ){
 					
-					removePeer( peer );
+					removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TOO_MANY_PEERS );
 					
 						// this is picked up by AZ client removal rules and causes the torrent to
 						// be removed
@@ -434,15 +468,17 @@ TRTrackerServerTorrentImpl
 	
 	protected void
 	removePeer(
-		TRTrackerServerPeerImpl	peer )
+		TRTrackerServerPeerImpl	peer,
+		int						reason )
 	{
-		removePeer( peer, -1 );
+		removePeer( peer, -1, reason );
 	}
 		
 	protected void
 	removePeer(
 		TRTrackerServerPeerImpl	peer,
-		int						peer_list_index )	// -1 if not known
+		int						peer_list_index,
+		int						reason )	// -1 if not known
 	{
 		try{
 			this_mon.enter();
@@ -465,6 +501,14 @@ TRTrackerServerTorrentImpl
 				if ( o == null ){
 					
 					Debug.out(" TRTrackerServerTorrent::removePeer: peer_map doesn't contain peer");
+				}else{
+					
+					try{
+						peerEvent( peer, reason );
+						
+					}catch( TRTrackerServerException e ){
+						// ignore during peer removal
+					}
 				}
 			}
 			
@@ -748,7 +792,7 @@ TRTrackerServerTorrentImpl
 										
 									}else if ( now > peer.getTimeout()){
 										
-										removePeer( peer );
+										removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TIMEOUT );
 										
 										peer_removed	= true;
 										
@@ -834,7 +878,7 @@ TRTrackerServerTorrentImpl
 							
 							if ( now > peer.getTimeout()){
 								
-								removePeer( peer );
+								removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TIMEOUT );
 								
 							}else if ( peer.getPort() == 0 ){
 								
@@ -1174,6 +1218,54 @@ TRTrackerServerTorrentImpl
 		TRTrackerServerTorrentListener	l )
 	{
 		listeners.remove(l);
+	}
+	
+	protected void
+	peerEvent(
+		TRTrackerServerPeer		peer,
+		int						event )
+	
+		throws TRTrackerServerException
+	{
+		if ( peer_listeners != null ){
+			
+			for (int i=0;i<peer_listeners.size();i++){
+				
+				try{
+					((TRTrackerServerTorrentPeerListener)peer_listeners.get(i)).eventOccurred( this, peer, event );
+					
+				}catch( TRTrackerServerException e ){
+					
+					throw( e );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+	}
+	
+	public void
+	addPeerListener(
+		TRTrackerServerTorrentPeerListener	l )
+	{
+		if ( peer_listeners == null ){
+			
+			peer_listeners = new ArrayList();
+		}
+		
+		peer_listeners.add( l );
+	}
+	
+	public void
+	removePeerListener(
+		TRTrackerServerTorrentPeerListener	l )
+	{
+		if ( peer_listeners != null ){
+
+			peer_listeners.remove(l);
+		}
 	}
 	
 	public void

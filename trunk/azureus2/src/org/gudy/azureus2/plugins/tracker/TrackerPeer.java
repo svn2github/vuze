@@ -43,6 +43,12 @@ TrackerPeer
 	public String
 	getIP();
 	
+	public int
+	getPort();
+	
+	public byte[]
+	getPeerID();
+	
 		/**
 		 * Raw value is as read, not InetAddress lookuped
 		 * @return

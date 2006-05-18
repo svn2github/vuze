@@ -82,4 +82,16 @@ TRHostPeerPublishImpl
 	{
 		return("");
 	}
+	
+	public int
+	getPort()
+	{
+		return( 0 );
+	}
+	
+	public byte[]
+	getPeerID()
+	{
+		return( null );
+	}
 }

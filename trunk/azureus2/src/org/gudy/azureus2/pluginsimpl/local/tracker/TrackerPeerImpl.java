@@ -25,7 +25,7 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  * @author parg
  *
  */
-
+ 
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.plugins.tracker.*;
 
@@ -76,5 +76,17 @@ TrackerPeerImpl
 	getIPRaw()
 	{
 		return( peer.getIPRaw());
+	}
+	
+	public int
+	getPort()
+	{
+		return( peer.getPort());
+	}
+	
+	public byte[]
+	getPeerID()
+	{
+		return( peer.getPeerID());
 	}
 }

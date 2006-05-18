@@ -74,6 +74,21 @@ TRHostPeerHostImpl
 	public String
 	getIPRaw()
 	{
+		if ( peer == null ){
+			int f=2;
+		}
 		return( peer.getIPRaw());
+	}
+	
+	public int
+	getPort()
+	{
+		return( peer.getPort());
+	}
+	
+	public byte[]
+	getPeerID()
+	{
+		return( peer.getPeerID());
 	}
 }

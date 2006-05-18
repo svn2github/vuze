@@ -44,10 +44,22 @@ TRTrackerServerTorrent
 	disableCaching();
 	
 	public void
+	setEnabled(
+		boolean	enabled );
+	
+	public void
 	addListener(
 		TRTrackerServerTorrentListener	l );
 	
 	public void
 	removeListener(
 		TRTrackerServerTorrentListener	l );
+	
+	public void
+	addPeerListener(
+		TRTrackerServerTorrentPeerListener	l );
+	
+	public void
+	removePeerListener(
+		TRTrackerServerTorrentPeerListener	l );
 }

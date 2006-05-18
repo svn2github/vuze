@@ -62,6 +62,14 @@ TRTrackerServer
 		
 		throws TRTrackerServerException;
 		
+	public TRTrackerServerTorrent
+	permit(
+		byte[]		hash,
+		boolean		explicit,
+		boolean		enabled )
+		
+		throws TRTrackerServerException;
+	
 	public void
 	deny(
 		byte[]		hash,

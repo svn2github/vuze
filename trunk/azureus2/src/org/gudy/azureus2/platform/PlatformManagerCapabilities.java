@@ -46,6 +46,7 @@ public final class PlatformManagerCapabilities
     
     public static final PlatformManagerCapabilities SetTCPTOSEnabled	 	= new PlatformManagerCapabilities("SetTCPTOSEnabled");
     public static final PlatformManagerCapabilities CopyFilePermissions 	= new PlatformManagerCapabilities("CopyFilePermissions");
+    public static final PlatformManagerCapabilities TestNativeAvailability 	= new PlatformManagerCapabilities("TestNativeAvailability");
 
     private final String myName; // for debug only
 

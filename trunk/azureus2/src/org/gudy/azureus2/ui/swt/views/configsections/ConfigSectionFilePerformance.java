@@ -85,7 +85,13 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     gridData.horizontalSpan = 3;
     friendly_hashchecking.setLayoutData(gridData);
     
+    // diskmanager.friendly.hashchecking
+    final BooleanParameter check_smallest = new BooleanParameter(cSection, "diskmanager.hashchecking.smallestfirst", "ConfigView.section.file.hashchecking.smallestfirst");
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    check_smallest.setLayoutData(gridData);
     
+ 
     
     
 

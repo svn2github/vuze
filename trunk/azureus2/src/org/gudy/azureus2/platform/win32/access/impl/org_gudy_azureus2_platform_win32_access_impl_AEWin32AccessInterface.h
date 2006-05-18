@@ -19,6 +19,7 @@ extern "C" {
 #define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_QUERYENDSESSION 17L
 #undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_ENDSESSION
 #define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_ENDSESSION 22L
+/* Inaccessible static: enabled */
 /* Inaccessible static: cb */
 /*
  * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
@@ -115,6 +116,14 @@ JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32
  */
 JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_copyPermission
   (JNIEnv *, jclass, jstring, jstring);
+
+/*
+ * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
+ * Method:    testNativeAvailability
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_testNativeAvailability
+  (JNIEnv *, jclass, jstring);
 
 #ifdef __cplusplus
 }

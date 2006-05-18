@@ -35,6 +35,7 @@ public class
 DiskManagerRecheckScheduler 
 {
 	private static boolean 	friendly_hashing;
+	private static boolean 	smallest_first;
 
     static{
     	
@@ -43,12 +44,16 @@ DiskManagerRecheckScheduler
 			parameterChanged( 
 				String  str ) 
     	    {
-    	      friendly_hashing 	= COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
- 
+    	   	      friendly_hashing 	= COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
+    	   	      smallest_first	= COConfigurationManager.getBooleanParameter( "diskmanager.hashchecking.smallestfirst" ); 
     	    }
     	 };
 
- 		COConfigurationManager.addAndFireParameterListener( "diskmanager.friendly.hashchecking", param_listener );
+ 		COConfigurationManager.addAndFireParameterListeners(
+ 				new String[]{
+ 					"diskmanager.friendly.hashchecking",
+ 					"diskmanager.hashchecking.smallestfirst" },
+ 				param_listener );
     }
     
 	private List		instances		= new ArrayList();
@@ -72,30 +77,33 @@ DiskManagerRecheckScheduler
 			
 			instances.add( res );
 			
-			Collections.sort(
-					instances,
-					new Comparator()
-					{
-						public int
-						compare(
-							Object	o1,
-							Object	o2 )
+			if ( smallest_first ){
+				
+				Collections.sort(
+						instances,
+						new Comparator()
 						{
-							long	comp = ((DiskManagerRecheckInstance)o1).getMetric() - ((DiskManagerRecheckInstance)o2).getMetric();
-							
-							if ( comp < 0 ){
+							public int
+							compare(
+								Object	o1,
+								Object	o2 )
+							{
+								long	comp = ((DiskManagerRecheckInstance)o1).getMetric() - ((DiskManagerRecheckInstance)o2).getMetric();
 								
-								return( -1 );
-								
-							}else if ( comp == 0 ){
-								
-								return( 0 );
-								
-							}else{
-								return( 1 );
+								if ( comp < 0 ){
+									
+									return( -1 );
+									
+								}else if ( comp == 0 ){
+									
+									return( 0 );
+									
+								}else{
+									return( 1 );
+								}
 							}
-						}
-					});
+						});
+			}
 			
 			return( res );
 			

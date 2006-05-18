@@ -402,6 +402,7 @@ public class ConfigurationDefaults {
     def.put( "Auto Update", TRUE );
     def.put( "Alert on close", TRUE );
     def.put( "diskmanager.friendly.hashchecking", FALSE );
+    def.put( "diskmanager.hashchecking.smallestfirst", TRUE );    
     def.put( "Default Start Torrents Stopped", FALSE);
     def.put( "Server Enable UDP", TRUE);
     def.put( "diskmanager.perf.cache.enable", TRUE);

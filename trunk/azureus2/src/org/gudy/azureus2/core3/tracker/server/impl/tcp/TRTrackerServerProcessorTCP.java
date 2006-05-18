@@ -404,7 +404,14 @@ TRTrackerServerProcessorTCP
 				
 				if ( root.get( "_data" ) == null ){
 	
-					server.postProcess( peer_out[0], specific_torrent, request_type, str, root );
+					TRTrackerServerPeer	post_process_peer = peer_out[0];
+					
+					if ( post_process_peer == null ){
+						
+						post_process_peer = new lightweightPeer( client_ip_address, port, peer_id );
+					}
+					
+					server.postProcess( post_process_peer, specific_torrent, request_type, str, root );
 				}
 				
 			}catch( Exception e ){

@@ -198,6 +198,15 @@ public class PlatformManagerImpl implements PlatformManager
         throw new PlatformManagerException("Unsupported capability called on platform manager");
     }
 
+	public boolean
+	testNativeAvailability(
+		String	name )
+	
+		throws PlatformManagerException
+	{
+	    throw new PlatformManagerException("Unsupported capability called on platform manager");		
+	}
+	
     /**
      * {@inheritDoc}
      */

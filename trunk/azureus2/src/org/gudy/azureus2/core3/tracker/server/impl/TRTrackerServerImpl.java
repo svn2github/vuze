@@ -600,6 +600,17 @@ TRTrackerServerImpl
 	
 		throws TRTrackerServerException
 	{
+		return( permit( _hash, _explicit, true ));
+	}
+	
+	public TRTrackerServerTorrent
+	permit(
+		byte[]		_hash,
+		boolean		_explicit,
+		boolean		_enabled )
+	
+		throws TRTrackerServerException
+	{
 		// System.out.println( "TRTrackerServerImpl::permit( " + _explicit + ")");
 		
 		HashWrapper	hash = new HashWrapper( _hash );
@@ -637,7 +648,7 @@ TRTrackerServerImpl
 				
 				if ( entry == null ){
 				
-					entry = new TRTrackerServerTorrentImpl( hash );
+					entry = new TRTrackerServerTorrentImpl( hash, _enabled );
 				
 					torrent_map.put( hash, entry );
 				}
@@ -875,7 +886,7 @@ TRTrackerServerImpl
 	
 	public void
 	postProcess(
-		TRTrackerServerPeerImpl		peer,
+		TRTrackerServerPeer			peer,
 		TRTrackerServerTorrentImpl	torrent,
 		int							type,
 		String						request,

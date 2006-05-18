@@ -169,6 +169,12 @@ PlatformManagerImpl
 	            capabilitySet.add(PlatformManagerCapabilities.CopyFilePermissions);
 	            
 	        }
+	        
+	        if ( 	Constants.compareVersions( access.getVersion(), "1.12" ) >= 0 ){
+	        	
+	            capabilitySet.add(PlatformManagerCapabilities.TestNativeAvailability);
+	        }
+	        
     	}else{
     		
     			// disabled -> only available capability is that to get the version
@@ -789,6 +795,26 @@ PlatformManagerImpl
         }
     }
 
+	public boolean
+	testNativeAvailability(
+		String	name )
+	
+		throws PlatformManagerException
+	{
+		if ( !hasCapability( PlatformManagerCapabilities.TestNativeAvailability )){
+			
+			throw new PlatformManagerException("Unsupported capability called on platform manager");
+		}
+		
+		try{
+			return( access.testNativeAvailability( name ));
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "Failed to test availability", e ));
+		}
+	}
+	
     /**
      * {@inheritDoc}
      */

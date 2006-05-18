@@ -34,7 +34,7 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.11"
+#define VERSION "1.12"
 
 
 HMODULE	application_module;
@@ -998,6 +998,38 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_copyPer
 	}
 }
 
+JNIEXPORT jboolean JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_testNativeAvailabilityW(
+	JNIEnv *env, 
+	jclass	cla, 
+	jstring _name )
+{
+	WCHAR		name[2048];
+    
+	if ( !jstringToCharsW( env, _name, name, sizeof( name )-1)){
+
+		return( 0 );
+	}
+
+
+	HMODULE	mod = 
+		LoadLibraryExW( 
+			name,
+			NULL,
+			LOAD_LIBRARY_AS_DATAFILE );
+
+	if ( mod == NULL ){
+
+		return( 0 );
+
+	}else{
+
+		FreeLibrary( mod );
+
+		return( 1 );
+	}
+}
+
 
 // NON-UNICODE VARIANT FOR WIN95,98,ME
 
@@ -1594,7 +1626,37 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_copyPer
 	}
 }
 
+JNIEXPORT jboolean JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_testNativeAvailabilityA(
+	JNIEnv *env, 
+	jclass	cla, 
+	jstring _name )
+{
+	char		name[2048];
+    
+	if ( !jstringToCharsA( env, _name, name, sizeof( name )-1)){
 
+		return( 0 );
+	}
+
+
+	HMODULE	mod = 
+		LoadLibraryExA( 
+			name,
+			NULL,
+			LOAD_LIBRARY_AS_DATAFILE );
+
+	if ( mod == NULL ){
+
+		return( 0 );
+
+	}else{
+
+		FreeLibrary( mod );
+
+		return( 1 );
+	}
+}
 
 
 // BLAH
@@ -1755,5 +1817,18 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_copyPer
 		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_copyPermissionA( env, cla, _fileNameIn, _fileNameOut );
 	}else{
 		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_copyPermissionW( env, cla, _fileNameIn, _fileNameOut );
+	}
+}
+
+JNIEXPORT jboolean JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_testNativeAvailability(
+	JNIEnv	*env,
+	jclass	cla,
+	jstring	name )
+{
+	if ( non_unicode ){
+		return( Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_testNativeAvailabilityA( env, cla,name ));
+	}else{
+		return( Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_testNativeAvailabilityW( env, cla, name ));
 	}
 }

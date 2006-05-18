@@ -181,4 +181,10 @@ AEWin32AccessInterface
 		String		to_file_name )
 	
 		throws AEWin32AccessException;
+	
+	public static native boolean
+	testNativeAvailability(
+		String	name )
+	
+		throws AEWin32AccessException;
 }

@@ -50,6 +50,12 @@ TRTrackerServerPeer
 	public String
 	getIPRaw();
 	
+	public int
+	getPort();
+	
+	public byte[]
+	getPeerID();
+	
 		/**
 		 * returns the current NAT status of the peer
 		 * @return

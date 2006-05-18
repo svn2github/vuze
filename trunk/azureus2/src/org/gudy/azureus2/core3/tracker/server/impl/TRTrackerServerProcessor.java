@@ -152,7 +152,16 @@ TRTrackerServerProcessor
 				
 				HashMap	pre_map = new HashMap();
 				
-				server.preProcess( peer, torrent, request_type, request, pre_map );
+				TRTrackerServerPeer	pre_process_peer = peer;
+				
+				if ( pre_process_peer == null ){
+					
+						// can be null for stop events received without a previous start
+					
+					pre_process_peer = new lightweightPeer(client_ip_address,port,peer_id);
+				}
+				
+				server.preProcess( pre_process_peer, torrent, request_type, request, pre_map );
 				
 					// set num_want to 0 for stopped events as no point in returning peers
 				
@@ -224,7 +233,7 @@ TRTrackerServerProcessor
 						max_interval	= interval;
 					}
 					
-					server.preProcess( new lightweightPeer(client_ip_address), torrent, request_type, request, null );
+					server.preProcess( new lightweightPeer(client_ip_address,port,peer_id), torrent, request_type, request, null );
 
 					// we don't cache local scrapes as if we do this causes the hosting of
 					// torrents to retrieve old values initially. Not a fatal error but not
@@ -256,7 +265,7 @@ TRTrackerServerProcessor
 				
 				TRTrackerServerTorrentImpl	this_torrent = torrents[i];
 						
-				server.preProcess( new lightweightPeer(client_ip_address), this_torrent, request_type, request, null );
+				server.preProcess( new lightweightPeer(client_ip_address,port,peer_id), this_torrent, request_type, request, null );
 
 				byte[]	torrent_hash = this_torrent.getHash().getHash();
 				
@@ -318,12 +327,18 @@ TRTrackerServerProcessor
 		implements TRTrackerServerPeer
 	{
 		private String	ip;
+		private int		port;
+		private byte[]	peer_id;
 		
-		protected
+		public
 		lightweightPeer(
-			String	_ip )
+			String		_ip,
+			int			_port,
+			HashWrapper	_peer_id )
 		{
-			ip	= _ip;
+			ip		= _ip;
+			port	= _port;
+			peer_id	= _peer_id==null?null:_peer_id.getBytes();
 		}
 		
 		public long
@@ -360,6 +375,18 @@ TRTrackerServerProcessor
 		getNATStatus()
 		{
 			return( NAT_CHECK_UNKNOWN );
+		}
+		
+		public int
+		getPort()
+		{
+			return( port );
+		}
+		
+		public byte[]
+		getPeerID()
+		{
+			return( peer_id );
 		}
 	}
 }
