@@ -181,6 +181,9 @@ DownloadManager
 	public void
 	pauseDownloads();
 	
+	public boolean
+	canPauseDownloads();
+	
 	/**
 	 * resume previously paused downloads
 	 * @since 2.1.0.5
@@ -188,6 +191,9 @@ DownloadManager
 	
 	public void
 	resumeDownloads();
+	
+	public boolean
+	canResumeDownloads();
 	
 	/**
 	 * starts all non-running downloads

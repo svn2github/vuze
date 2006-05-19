@@ -334,11 +334,27 @@ RPDownloadManager
 	{
 		_dispatcher.dispatch( new RPRequest( this, "pauseDownloads", null )).getResponse();
 	}
+	
+	public boolean
+	canPauseDownloads()
+	{
+		notSupported();
+		
+		return false;
+	}
 		
 	public void
 	resumeDownloads()
 	{
 		_dispatcher.dispatch( new RPRequest( this, "resumeDownloads", null )).getResponse();
+	}
+	
+	public boolean
+	canResumeDownloads()
+	{
+		notSupported();
+		
+		return false;
 	}
 		
 	public void

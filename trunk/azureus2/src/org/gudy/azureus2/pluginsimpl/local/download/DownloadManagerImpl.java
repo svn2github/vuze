@@ -601,11 +601,23 @@ DownloadManagerImpl
 	{
 		global_manager.pauseDownloads();
 	}
+	
+	public boolean
+	canPauseDownloads()
+	{
+		return global_manager.canPauseDownloads();
+	}
 		
 	public void
 	resumeDownloads()
 	{
 		global_manager.resumeDownloads();
+	}
+	
+	public boolean
+	canResumeDownloads()
+	{
+		return global_manager.canResumeDownloads();
 	}
 		
 	public void
