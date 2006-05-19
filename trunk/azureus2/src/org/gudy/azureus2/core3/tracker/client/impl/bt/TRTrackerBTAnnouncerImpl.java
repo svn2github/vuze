@@ -882,29 +882,53 @@ TRTrackerBTAnnouncerImpl
 		
 		for (int j = 0 ; j < urls.size() ; j++) {
 			
-		  URL url = (URL)urls.get(j);
+		  URL original_url = (URL)urls.get(j);
 		  
-		  lastUsedUrl = url;
+		  lastUsedUrl = original_url;
 		   
 		  URL	request_url = null;
 		  
 		  try{
 		  
-		  	request_url = constructUrl(evt,url);
-			  					  	  			  
-			TRTrackerAnnouncerResponseImpl resp = decodeTrackerResponse( url, updateOld(request_url));
-			  
+		  	request_url = constructUrl(evt,original_url);
+			  			
+		  	URL[]	tracker_url = { original_url };
+		  	
+		  	byte[]	result_bytes = updateOld( tracker_url, request_url);
+		  	
+		  	lastUsedUrl = tracker_url[0];	// url may have redirected, use this value as it will be correct
+		  	
+			TRTrackerAnnouncerResponseImpl resp = decodeTrackerResponse( lastUsedUrl, result_bytes );
+			  	    	
 		    if ( resp.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
 					
+		    	try{
+		    			// tracker looks ok, make any redirection permanent
+		    		
+		    		if ( !original_url.toString().equals(lastUsedUrl.toString())){
+		    	
+		    			if (Logger.isEnabled())
+							Logger.log(new LogEvent(torrent, LOGID,
+									"announce url permanently redirected: old = " + original_url + ", new = " + lastUsedUrl ));
+						
+					
+						TorrentUtils.replaceAnnounceURL( torrent, original_url, lastUsedUrl );
+						
+					}
+		    	}catch( Throwable e ){
+		    		
+		    		Debug.printStackTrace(e);
+		    	}
+
 	            urls.remove(j);
 	            	
-	            urls.add(0,url);
+	            urls.add(0, lastUsedUrl );	
 	            	
 	            trackerUrlLists.remove(i);
 	            	
 	            trackerUrlLists.add(0,urls);            
 	            
-	            informURLChange( url, false );
+	            informURLChange( lastUsedUrl, false );
 	            	
 	            	//and return the result
 	            		
@@ -920,7 +944,7 @@ TRTrackerBTAnnouncerImpl
 		  	
 		  	last_failure_resp = 
 		  		new TRTrackerAnnouncerResponseImpl( 
-		  				url,
+		  				original_url,
 		  				torrent_hash,
 		  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
@@ -930,7 +954,7 @@ TRTrackerBTAnnouncerImpl
 		  			  	
 		  	last_failure_resp = 
 		  		new TRTrackerAnnouncerResponseImpl(
-		  				url,
+		  				original_url,
 		  				torrent_hash,
 		  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
@@ -978,6 +1002,7 @@ TRTrackerBTAnnouncerImpl
 
  	private byte[] 
  	updateOld(
+ 		URL[]		tracker_url,
  		URL 		reqUrl )
   
   		throws Exception
@@ -1008,7 +1033,7 @@ TRTrackerBTAnnouncerImpl
 		  			
 		  		}else{
 		  			
-		  			failure_reason = announceHTTP( reqUrl, message );
+		  			failure_reason = announceHTTP( tracker_url, reqUrl, message );
 		  			
 		  		}
 					// if we've got some kind of response then return it
@@ -1077,11 +1102,12 @@ TRTrackerBTAnnouncerImpl
  	
  	protected String
  	announceHTTP(
+ 		URL[]					tracker_url,	// overwritten if redirected
  		URL						reqUrl,
  		ByteArrayOutputStream	message )
  	
  		throws IOException
- 	{
+ 	{ 		
  		TRTrackerUtilsImpl.checkForBlacklistedURLs( reqUrl );
  		
  		reqUrl = TRTrackerUtilsImpl.adjustURLForHosting( reqUrl );
@@ -1157,6 +1183,34 @@ TRTrackerBTAnnouncerImpl
  			try{
  				
  				is = con.getInputStream();
+ 				
+ 				String	resulting_url_str = con.getURL().toString();
+ 				
+ 				if ( !reqUrl.toString().equals( resulting_url_str )){
+ 					
+ 						// some kind of redirect has occurred. Unfortunately we can't get at the underlying
+ 						// redirection reason (temp, perm etc) so we support the use of an explicit indicator
+ 						// in the resulting url
+ 					
+ 					String	marker = "permredirect=1";
+ 					
+ 					int	pos = resulting_url_str.indexOf( marker );
+ 				
+ 					if ( pos != -1 ){
+ 						
+ 						pos = pos-1;	// include the '&' or '?'
+ 						
+ 						try{
+ 							URL	redirect_url = 
+ 								new URL( resulting_url_str.substring(0,pos));
+ 							
+  							tracker_url[0]	= redirect_url;
+						
+ 						}catch( Throwable e ){
+ 							Debug.printStackTrace(e);
+ 						}
+ 					}
+ 				}
  				
  				String encoding = con.getHeaderField( "content-encoding");
  				

@@ -739,6 +739,62 @@ TorrentUtils
 		return( true );
 	}
 	
+	public static boolean
+	replaceAnnounceURL(
+		TOTorrent		torrent,
+		URL				old_url,
+		URL				new_url )
+	{
+		boolean	found = false;
+		
+		String	old_str = old_url.toString();
+		String	new_str = new_url.toString();
+		
+		List	l = announceGroupsToList( torrent );
+		
+		for (int i=0;i<l.size();i++){
+			
+			List	set = (List)l.get(i);
+			
+			for (int j=0;j<set.size();j++){
+		
+				if (((String)set.get(j)).equals(old_str)){
+					
+					found	= true;
+					
+					set.set( j, new_str );
+				}
+			}
+		}
+		
+		if ( found ){
+			
+			listToAnnounceGroups( l, torrent );
+		}
+		
+		if ( torrent.getAnnounceURL().toString().equals( old_str )){
+			
+			torrent.setAnnounceURL( new_url );
+			
+			found	= true;
+		}
+		
+		if ( found ){
+			
+			try{
+				writeToFile( torrent );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+				
+				return( false );
+			}
+		}
+		
+		return( found );
+	}
+	
 	public static void
 	setResumeDataCompletelyValid(
 		DownloadManagerState	download_manager_state )

@@ -380,6 +380,22 @@ public class GlobalManagerImpl
     			
     			return( dm.getDownloadState().getTrackerClientExtensions());
     		}
+    		
+    		public boolean
+    		redirectTrackerUrl(
+    			byte[]		hash,
+    			URL			old_url,
+    			URL			new_url )
+    		{
+       			DownloadManager	dm = getDownloadManager(hash);
+       		 
+       			if ( dm == null || dm.getTorrent() == null ){
+       				
+       				return( false );
+       			}
+       			
+       			return( TorrentUtils.replaceAnnounceURL( dm.getTorrent(), old_url, new_url ));
+    		}
 		});
     
     trackerScraper.addListener(

@@ -253,6 +253,15 @@ TRTrackerScraperImpl
 		return( client_resolver.getExtensions( hash ));
 	}
 	
+	public boolean
+	redirectTrackerUrl(
+		byte[]		hash,
+		URL			old_url,
+		URL			new_url )
+	{
+		return( client_resolver.redirectTrackerUrl( hash, old_url, new_url ));
+	}
+	
 	public void
 	addListener(
 		TRTrackerScraperListener	l )

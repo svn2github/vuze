@@ -55,4 +55,10 @@ TRTrackerScraperClientResolver
 	public String
 	getExtensions(
 		byte[]	hash );
+	
+	public boolean
+	redirectTrackerUrl(
+		byte[]		hash,
+		URL			old_url,
+		URL			new_url );
 }

@@ -146,6 +146,7 @@ TRTrackerServerProcessor
 				
 				TRTrackerServerPeerImpl peer = 
 					torrent.peerContact( 	
+						request,
 						event, peer_id, port, client_ip_address, loopback, key,
 						uploaded, downloaded, left,
 						interval );
@@ -226,6 +227,17 @@ TRTrackerServerProcessor
 						}
 					}
 					
+					if ( torrent.getRedirects() != null ){
+						
+						if ( hashes.length > 1 ){
+							
+								// just drop this from the set. this will cause the client to revert
+								// to single-hash scrapes and subsequently pick up the redirect
+							
+							continue;							
+						}
+					}
+					
 					long	interval = server.getScrapeRetryInterval( torrent );				
 				
 					if ( interval > max_interval ){
@@ -239,7 +251,7 @@ TRTrackerServerProcessor
 					// torrents to retrieve old values initially. Not a fatal error but not
 					// the best behaviour as the (local) seed isn't initially visible.
 				
-					Map	hash_entry = torrent.exportScrapeToMap( !local_scrape );
+					Map	hash_entry = torrent.exportScrapeToMap( request, client_ip_address, !local_scrape );
 										
 						// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
 					
@@ -264,7 +276,14 @@ TRTrackerServerProcessor
 			for (int i=0;i<torrents.length;i++){
 				
 				TRTrackerServerTorrentImpl	this_torrent = torrents[i];
-						
+					
+				if ( this_torrent.getRedirects() != null ){
+					
+						// not visible to a full-scrape
+					
+					continue;
+				}
+				
 				server.preProcess( new lightweightPeer(client_ip_address,port,peer_id), this_torrent, request_type, request, null );
 
 				byte[]	torrent_hash = this_torrent.getHash().getHash();
@@ -274,7 +293,7 @@ TRTrackerServerProcessor
 					
 					// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
 					
-					Map	hash_entry = this_torrent.exportScrapeToMap( true );
+					Map	hash_entry = this_torrent.exportScrapeToMap( request, client_ip_address, true );
 					
 					files.put( str_hash, hash_entry );
 					

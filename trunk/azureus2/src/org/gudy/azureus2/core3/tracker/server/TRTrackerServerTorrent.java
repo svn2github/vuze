@@ -26,6 +26,8 @@ package org.gudy.azureus2.core3.tracker.server;
  *
  */
 
+import java.net.URL;
+
 import org.gudy.azureus2.core3.util.*;
 
 public interface 
@@ -46,6 +48,16 @@ TRTrackerServerTorrent
 	public void
 	setEnabled(
 		boolean	enabled );
+	
+	public boolean
+	isEnabled();
+	
+	public void
+	setRedirects(
+		URL[]		urls );
+	
+	public URL[]
+	getRedirects();
 	
 	public void
 	addListener(

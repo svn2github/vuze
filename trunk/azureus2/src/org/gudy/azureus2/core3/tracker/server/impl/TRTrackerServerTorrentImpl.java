@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 
 import java.util.*;
 import java.io.*;
+import java.net.URL;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
@@ -84,6 +85,8 @@ TRTrackerServerTorrentImpl
 	private byte			duplicate_peer_checker_index	= 0;
 	private byte[]			duplicate_peer_checker			= new byte[0];
 	
+	private URL[]			redirects;
+	
 	private boolean			caching_enabled	= true;
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTorrent" );
@@ -106,8 +109,15 @@ TRTrackerServerTorrentImpl
 		enabled	= _enabled;
 	}
 	
+	public boolean
+	isEnabled()
+	{
+		return( enabled );
+	}
+	
 	public TRTrackerServerPeerImpl
 	peerContact(
+		String		url_parameters,
 		String		event,
 		HashWrapper	peer_id,
 		int			port,
@@ -126,9 +136,13 @@ TRTrackerServerTorrentImpl
 			throw( new TRTrackerServerException( "Torrent temporarily disabled" ));
 		}
 		
+		TRTrackerServerException	deferred_failure = null;
+		
 		try{
 			this_mon.enter();
 		
+			handleRedirects( url_parameters, ip_address, false  );
+
 			// System.out.println( "TRTrackerServerTorrent: peerContact, ip = " + ip_address );
 				
 			int	event_type = TRTrackerServerTorrentPeerListener.ET_UPDATED;
@@ -304,7 +318,13 @@ TRTrackerServerTorrentImpl
 			
 			if ( peer != null ){
 				
-				peerEvent( peer, event_type );
+				try{
+					peerEvent( peer, event_type );
+					
+				}catch( TRTrackerServerException	e ){
+					
+					deferred_failure = e;
+				}
 
 				peer.setTimeout( now, new_timeout );
 							
@@ -430,7 +450,7 @@ TRTrackerServerTorrentImpl
 															this_peer.getNATStatus()));
 										}
 										
-										removePeer( this_peer, i );
+										removePeer( this_peer, i, TRTrackerServerTorrentPeerListener.ET_TOO_MANY_PEERS );
 			
 										if ( --to_remove == 0 ){
 											
@@ -452,6 +472,16 @@ TRTrackerServerTorrentImpl
 					
 					checkForPeerListCompaction( false );
 				}
+			}
+			
+			if ( deferred_failure != null ){
+			
+				if ( peer != null ){
+					
+					removePeer( peer, TRTrackerServerTorrentPeerListener.ET_FAILED );
+				}
+				
+				throw( deferred_failure );
 			}
 			
 			return( peer );
@@ -694,7 +724,7 @@ TRTrackerServerTorrentImpl
 										
 								// System.out.println( "removing timed out client '" + peer.getString());
 							
-							removePeer( peer, i );									
+							removePeer( peer, i, TRTrackerServerTorrentPeerListener.ET_TIMEOUT );									
 							
 						}else if ( peer.getPort() == 0 ){
 							
@@ -991,11 +1021,17 @@ TRTrackerServerTorrentImpl
 		
 	public Map
 	exportScrapeToMap(
+		String		url_parameters,
+		String		ip_address,
 		boolean		allow_cache )
+	
+		throws TRTrackerServerException
 	{
 		try{
 			this_mon.enter();
 		
+			handleRedirects( url_parameters, ip_address, true );
+
 			stats.addScrape();
 			
 			long now = SystemTime.getCurrentTime();
@@ -1046,7 +1082,7 @@ TRTrackerServerTorrentImpl
 					
 					if ( now > peer.getTimeout()){
 						
-						removePeer( peer, i );
+						removePeer( peer, i, TRTrackerServerTorrentPeerListener.ET_TIMEOUT );
 						
 					}else{
 						
@@ -1201,6 +1237,85 @@ TRTrackerServerTorrentImpl
 		return( hash );
 	}
 		
+	public void
+	setRedirects(
+		URL[]		urls )
+	{
+		try{
+			this_mon.enter();
+		
+			redirects	= urls;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public URL[]
+	getRedirects()
+	{
+		return( redirects );
+	}
+	
+	protected void
+	handleRedirects(
+		String	url_parameters,
+		String	ip_address,
+		boolean	scrape )
+	
+		throws TRTrackerServerException
+	{
+		if ( redirects != null ){
+			
+			if ( url_parameters.indexOf("permredirect") != -1 ){
+				
+				Debug.out( "redirect recursion" );
+				
+				throw( new TRTrackerServerException( "redirection recursion not supported" ));
+			}
+			
+			URL	redirect = redirects[ip_address.hashCode()%redirects.length];
+			
+			Map	headers = new HashMap();
+			
+			String	redirect_str = redirect.toString();
+			
+			if ( scrape ){
+				
+				int	pos = redirect_str.indexOf( "/announce" );
+				
+				if ( pos == -1 ){
+					
+					return;
+				}
+				
+				redirect_str	= redirect_str.substring( 0, pos ) + "/scrape" + redirect_str.substring( pos + 9 );
+			}
+			
+			if ( redirect_str.indexOf('?' ) == -1 ){
+				
+				redirect_str += "?";
+				
+			}else{
+				
+				redirect_str += "&";
+			}
+			
+			redirect_str += "permredirect=1";
+			
+			if ( url_parameters.length() > 0 ){
+				
+				redirect_str += "&" + url_parameters;
+			}
+			
+			System.out.println( "redirect -> " + redirect_str );
+			
+			headers.put( "Location", redirect_str);
+			
+			throw( new TRTrackerServerException(301, "Moved Permanently", headers ));
+		}
+	}
 	public void
 	addListener(
 		TRTrackerServerTorrentListener	l )

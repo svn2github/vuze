@@ -21,10 +21,27 @@
 
 package org.gudy.azureus2.core3.tracker.server;
 
+import java.util.Map;
+
 public class 
 TRTrackerServerException 
 	extends Exception
 {
+	private int		response_code	= -1;
+	private String	response_text;
+	private Map		response_headers;
+	
+	public
+	TRTrackerServerException(
+		int		_response_code,
+		String	_response_text,
+		Map		_response_headers )
+	{
+		response_code		= _response_code;
+		response_text		= _response_text;
+		response_headers	= _response_headers;
+	}
+	
 	public
 	TRTrackerServerException(
 		String		str )
@@ -38,5 +55,23 @@ TRTrackerServerException
 		Throwable	e )
 	{
 		super(str,e);
+	}
+	
+	public int
+	getResponseCode()
+	{
+		return( response_code );
+	}
+	
+	public String
+	getResponseText()
+	{
+		return( response_text );
+	}
+	
+	public Map
+	getResponseHeaders()
+	{
+		return( response_headers );
 	}
 }

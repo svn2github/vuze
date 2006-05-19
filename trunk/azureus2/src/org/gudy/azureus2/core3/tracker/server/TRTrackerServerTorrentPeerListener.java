@@ -35,6 +35,7 @@ TRTrackerServerTorrentPeerListener
 	public static final int	ET_TIMEOUT			= 5;		// peer has timed out and been removed
 	public static final int	ET_REPLACED			= 5;		// peer's address has changed and someone else already has it - old one is removed
 	public static final int	ET_TOO_MANY_PEERS	= 6;		// peer removed due to too many peers
+	public static final int	ET_FAILED			= 7;		// eventOccurred method threw exception
 	
 	public void
 	eventOccurred(

@@ -421,6 +421,8 @@ public class TrackerStatus {
 
 				long scrapeStartTime = SystemTime.getCurrentTime();
 
+				URL	redirect_url = null;
+				
 				if (reqUrl.getProtocol().equalsIgnoreCase("udp")) {
 
 					// TODO: support multi hash scrapes on UDP
@@ -430,8 +432,8 @@ public class TrackerStatus {
 					bSingleHashScrapes = true;
 
 				} else {
-
-					scrapeHTTP(reqUrl, message);
+					
+					redirect_url = scrapeHTTP(reqUrl, message);
 				}
 
 				Map map = BDecoder.decode(message.toByteArray());
@@ -689,6 +691,32 @@ public class TrackerStatus {
 
 						// notifiy listeners
 						scraper.scrapeReceived(response);
+						
+						try{
+							if ( responses.size() == 1 && redirect_url != null ){
+								
+									// we only deal with redirects for single urls - if the tracker wants to
+									// redirect one of a group is has to force single-hash scrapes anyway
+								
+								String	redirect_str = redirect_url.toString();
+								
+								int s_pos =  redirect_str.indexOf( "/scrape" );
+								
+								if ( s_pos != -1 ){
+									
+									URL	new_url = new URL( redirect_str.substring(0,s_pos) +
+													"/announce" + redirect_str.substring(s_pos+7));
+									
+									if ( scraper.redirectTrackerUrl( response.getHash(), tracker_url, new_url )){
+										
+										removeHash( new HashWrapper( response.getHash()));
+									}
+								}
+							}
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
 					}
 				} // for responses
 
@@ -771,13 +799,15 @@ public class TrackerStatus {
 		}
 	}
 
-  protected void 
+  protected URL 
   scrapeHTTP(
   	URL 					reqUrl, 
 	ByteArrayOutputStream 	message )
   
   	throws IOException
   {
+	URL	redirect_url = null;
+	
   	TRTrackerUtils.checkForBlacklistedURLs( reqUrl );
   	
     reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
@@ -843,6 +873,32 @@ public class TrackerStatus {
 
 	  	is = con.getInputStream();
 	
+		String	resulting_url_str = con.getURL().toString();
+			
+		if ( !reqUrl.toString().equals( resulting_url_str )){
+			
+				// some kind of redirect has occurred. Unfortunately we can't get at the underlying
+				// redirection reason (temp, perm etc) so we support the use of an explicit indicator
+				// in the resulting url
+			
+			String	marker = "permredirect=1";
+			
+			int	pos = resulting_url_str.indexOf( marker );
+		
+			if ( pos != -1 ){
+				
+				pos = pos-1;	// include the '&' or '?'
+				
+				try{
+					redirect_url = 
+						new URL( resulting_url_str.substring(0,pos));
+								
+				}catch( Throwable e ){
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+		
 	  	String encoding = con.getHeaderField( "content-encoding");
 	  	
 	  	boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
@@ -893,7 +949,7 @@ public class TrackerStatus {
 								"Error from scrape interface " + scrapeURL + " : "
 										+ Debug.getNestedExceptionMessage(e)));
 
-	  			return;
+	  			return( null );
 	  		}
 	  	}
 	  } finally {
@@ -903,6 +959,8 @@ public class TrackerStatus {
   	  	} catch (IOException e1) { }
   	  }
 	  }
+	  
+	  return( redirect_url );
   }
   
   protected void

@@ -556,7 +556,7 @@ TRTrackerServerProcessorUDP
 				
 				boolean	local_scrape = client_ip_address.equals( "127.0.0.1" );
 
-				Map scrape_details = torrent.exportScrapeToMap( !local_scrape );
+				Map scrape_details = torrent.exportScrapeToMap( "", client_ip_address,!local_scrape );
 				
 				int	seeders 	= ((Long)scrape_details.get("complete")).intValue();
 				int leechers 	= ((Long)scrape_details.get("incomplete")).intValue();

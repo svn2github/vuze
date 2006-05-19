@@ -416,6 +416,41 @@ TRTrackerServerProcessorTCP
 				
 			}catch( Exception e ){
 				
+				
+				if ( e instanceof TRTrackerServerException ){
+					
+					TRTrackerServerException	tr_excep = (TRTrackerServerException)e;
+					
+					int	reason = tr_excep.getResponseCode();
+					
+					if ( reason != -1 ){
+						
+						String	resp = "HTTP/1.1 " + reason + " " + tr_excep.getResponseText() + NL;
+						
+						Map	headers = tr_excep.getResponseHeaders();
+						
+						Iterator	it = headers.entrySet().iterator();
+						
+						while( it.hasNext()){
+							
+							Map.Entry	entry = (Map.Entry)it.next();
+							
+							String	key 	= (String)entry.getKey();
+							String	value 	= (String)entry.getValue();
+							
+							resp += key + ": " + value + NL;
+						}
+
+						resp += NL;
+
+						os.write( resp.getBytes());
+						
+						os.flush();
+
+						return;
+					}
+				}
+				
 				String	message = e.getMessage();
 				
 				// e.printStackTrace();
