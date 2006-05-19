@@ -406,7 +406,7 @@ public class ConfigurationDefaults {
     def.put( "Default Start Torrents Stopped", FALSE);
     def.put( "Server Enable UDP", TRUE);
     def.put( "diskmanager.perf.cache.enable", TRUE);
-    def.put( "diskmanager.perf.cache.enable.read", TRUE);
+    def.put( "diskmanager.perf.cache.enable.read", FALSE);
     def.put( "diskmanager.perf.cache.enable.write", TRUE);
     def.put( "diskmanager.perf.cache.size", new Long(4));		// 4 MB
     def.put( "diskmanager.perf.cache.notsmallerthan", new Long(1024));	// 1024 K
