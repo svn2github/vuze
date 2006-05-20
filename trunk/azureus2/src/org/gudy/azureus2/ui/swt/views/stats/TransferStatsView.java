@@ -278,8 +278,8 @@ public class TransferStatsView extends AbstractIView {
     int now_total_down_rate = stats.getDataReceiveRate() + now_prot_down_rate;
     int now_total_up_rate = stats.getDataSendRate() + now_prot_up_rate;
     
-    float now_perc_down = (float)(now_prot_down_rate *100) / (now_total_down_rate +1);
-    float now_perc_up = (float)(now_prot_up_rate *100) / (now_total_up_rate +1);
+    float now_perc_down = (float)(now_prot_down_rate *100) / (now_total_down_rate==0?1:now_total_down_rate);
+    float now_perc_up = (float)(now_prot_up_rate *100) / (now_total_up_rate==0?1:now_total_up_rate);
 
     nowDown.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec( now_total_down_rate ) +
                     "  (" + DisplayFormatters.formatByteCountToKiBEtcPerSec( now_prot_down_rate ) +
@@ -297,8 +297,8 @@ public class TransferStatsView extends AbstractIView {
     long session_total_received = stats.getTotalDataBytesReceived() + session_prot_received;
     long session_total_sent = stats.getTotalDataBytesSent() + session_prot_sent;
 
-    float session_perc_received = (float)(session_prot_received *100) / (session_total_received +1);
-    float session_perc_sent = (float)(session_prot_sent *100) / (session_total_sent +1);
+    float session_perc_received = (float)(session_prot_received *100) / (session_total_received==0?1:session_total_received);
+    float session_perc_sent = (float)(session_prot_sent *100) / (session_total_sent==0?1:session_total_sent);
 
     sessionDown.setText(DisplayFormatters.formatByteCountToKiBEtc( session_total_received ) +
                         "  (" + DisplayFormatters.formatByteCountToKiBEtc( session_prot_received ) +
@@ -316,8 +316,10 @@ public class TransferStatsView extends AbstractIView {
     sessionTime.setText( DisplayFormatters.formatETA( totalStats.getSessionUpTime() ) );
     totalTime.setText( DisplayFormatters.formatETA( totalStats.getTotalUpTime() ) );
     
-    long t_ratio_raw = (1000* totalStats.getUploadedBytes() / (totalStats.getDownloadedBytes()+1) );
-    long s_ratio_raw = (1000* session_total_sent / (session_total_received+1) );
+    long dl_bytes = totalStats.getDownloadedBytes();
+    
+    long t_ratio_raw = (1000* totalStats.getUploadedBytes() / (dl_bytes==0?1:dl_bytes) );
+    long s_ratio_raw = (1000* session_total_sent / (session_total_received==0?1:session_total_received) );
     
     String t_ratio = "";
     String s_ratio = "";
