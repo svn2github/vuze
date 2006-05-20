@@ -55,7 +55,6 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   
   protected Image bufferImage;
   
-  private int average = 0;
   private int nbValues = 0;
   
   private int[][] all_values	= new int[1][ENTRIES];
@@ -101,9 +100,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     		
     		all_values = new_all_values;
     	}
-    	
-	    average += new_values[0] - all_values[0][currentPosition];
-	    
+    		    
 	    for (int i=0;i<new_values.length;i++){
     		
 	        all_values[i][currentPosition] = new_values[i];
@@ -229,6 +226,10 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
         int xDraw = bounds.width - 71 - x;
         int height = scale.getScaledValue(value); 
         
+        if ( height < 0 ){
+        	int a = 2;
+        	int b = a;
+        }
         gcImage.setForeground(background);
         gcImage.setBackground(foreground); 
         gcImage.setClipping(xDraw,bounds.height - 1 - height,1, height);
@@ -292,7 +293,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   }
   
   protected int computeAverage(int position) {
-    int sum = 0;
+    long sum = 0;
     for(int i = -5 ; i < 6 ; i++) {
       int pos = position + i;
       if (pos < 0)
@@ -301,7 +302,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
         pos -= 2000;
       sum += all_values[0][pos];
     }
-    return (sum / 11);
+    return(int)(sum / 11);
     
   }
   

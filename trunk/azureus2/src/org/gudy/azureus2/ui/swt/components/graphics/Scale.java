@@ -94,7 +94,7 @@ public class Scale {
   }
   
   public int getScaledValue(int value) {
-    return (value * nbPixels) / displayedMax;
+    return(int)( ((long)value * nbPixels) / displayedMax );
   }
   
 }
