@@ -1441,13 +1441,14 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				continue;
 
 			// Process URL
-			if (UrlUtils.isURL(sTorrentFilenames[i])) {
+			String sURL = UrlUtils.parseTextForURL(sTorrentFilenames[i], true);
+			if (sURL != null) {
 				if (COConfigurationManager.getBooleanParameter("Add URL Silently"))
 					new FileDownloadWindow(MainWindow.getWindow().getAzureusCore(),
-							shellForChildren, sTorrentFilenames[i], null, this);
+							shellForChildren, sURL, null, this);
 				else
 					new OpenUrlWindow(MainWindow.getWindow().getAzureusCore(),
-							shellForChildren, sTorrentFilenames[i], null, this);
+							shellForChildren, sURL, null, this);
 				numAdded++;
 				continue;
 			}

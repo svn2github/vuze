@@ -155,7 +155,7 @@ public class TorrentOpener {
 
 			for (int i = 0; (i < sourceNames.length); i++) {
 				final File source = new File(sourceNames[i]);
-				String sURL = UrlUtils.parseTextForURL(sourceNames[i]);
+				String sURL = UrlUtils.parseTextForURL(sourceNames[i], true);
 
 				if (sURL != null || !source.exists()) {
 					openTorrentWindow(null, new String[] { sURL }, bOverrideToStopped);

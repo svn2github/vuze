@@ -141,8 +141,8 @@ public class Utils {
    * If a valid link is found in the clipboard, it will be inserted
    * and the size (and location) of the dialog is adjusted.
    * @param shell to set the dialog location if needed
-   * @param gridData to adjust the dialog with
    * @param url the URL text control
+   * @param accept_magnets 
    *
    * @author Rene Leonhardt
    */
@@ -158,6 +158,7 @@ public class Utils {
    * <p>Gets an URL from the clipboard if a valid URL for downloading has been copied.</p>
    * <p>The supported protocols currently are http, https, and magnet.</p>
    * @param display
+   * @param accept_magnets 
    * @return first valid link from clipboard, else "http://"
    */
   public static String 
@@ -165,45 +166,17 @@ public class Utils {
 	 Display 	display,
 	 boolean	accept_magnets ) 
   {
-    final String[] prefixes = new String[] {"http://", "https://", "magnet:?", "magnet://?" };
-    
     final Clipboard cb = new Clipboard(display);
     final TextTransfer transfer = TextTransfer.getInstance();
     
     String data = (String)cb.getContents(transfer);
     
-    if (data != null) {
-      data	= data.trim();
-      for(int i = 0; i < (accept_magnets?prefixes.length:2 ); i++) {
-        final int begin = data.indexOf(prefixes[i]);
-        if (begin >= 0) {
-          final int end = data.indexOf("\n", begin + prefixes[i].length());
-          final String stringURL = (end >= 0) ? data.substring(begin, end - 1) : data.substring(begin);
-          try {
-            final URL parsedURL = new URL(stringURL);
-            return parsedURL.toExternalForm();
-          } catch (MalformedURLException e1) {
-          }
-        }
-      }
-    
-      if ( accept_magnets && data.length() == 40 ){
-    	  
-    	  for (int i=0;i<data.length();i++){
-    		  
-    		  if ( "0123456789abcdefABCDEF".indexOf( data.charAt(i)) == -1 ){
-    			  
-    			  return( prefixes[0] );
-    		  }
-    	  }
-    	  
-    	  	// accept raw hash of 40 hex chars
-    	  
-    	  return( data );
-      }
+    String text = UrlUtils.parseTextForURL(data, accept_magnets);
+    if (text == null) {
+    	return "http://";
     }
     
-    return prefixes[0];
+    return text;
   }
 
   public static void centreWindow(Shell shell) {
@@ -371,7 +344,7 @@ public class Utils {
 					if (((URLTransfer.URLType) event.data).linkURL != null)
 						url.setText(((URLTransfer.URLType) event.data).linkURL);
 				} else if (event.data instanceof String) {
-					String sURL = UrlUtils.parseTextForURL((String) event.data);
+					String sURL = UrlUtils.parseTextForURL((String) event.data, true);
 					if (sURL != null) {
 						url.setText(sURL);
 					}
