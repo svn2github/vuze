@@ -252,7 +252,7 @@ public class MessageSlideShell {
 
 		// if there's a link, or the info is non-information,
 		// disable timer and mouse watching
-		bDelayPaused = UrlUtils.parseTextForURL(popupParams.text) != null
+		bDelayPaused = UrlUtils.parseHTMLforURL(popupParams.text) != null
 				|| popupParams.iconID != SWT.ICON_INFORMATION || !bSlide;
 		// Pause the auto-close delay when mouse is over slidey
 		// This will be applies to every control
@@ -268,7 +268,12 @@ public class MessageSlideShell {
 				};
 
 		// Create shell & widgets
-		shell = new Shell(display, SWT.ON_TOP);
+		int style = SWT.ON_TOP;
+		if (Constants.isLinux) {
+			// XXX Disable ON_TOP until Eclipse Bug 142861 is fixed
+			style = SWT.DIALOG_TRIM;
+		}
+		shell = new Shell(display, style);
 		if (USE_SWT32_BG_SET) {
 			try {
 				shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
@@ -600,17 +605,20 @@ public class MessageSlideShell {
 			bounds = display.getClientArea();
 		}
 
-		final Rectangle endBounds = shell.computeTrim(bounds.x + bounds.width
-				- bestSize.x, bounds.y + bounds.height - bestSize.y, bestSize.x,
-				bestSize.y);
+		int boundsX2 = bounds.x + bounds.width;
+		int boundsY2 = bounds.y + bounds.height;
+		final Rectangle endBounds = shell.computeTrim(boundsX2 - bestSize.x,
+				boundsY2 - bestSize.y, bestSize.x, bestSize.y);
+
 		// bottom and right trim will be off the edge, calulate this trim
 		// and adjust it up and left (trim may not be the same size on all sides)
-		int diff = (endBounds.x + endBounds.width) - (bounds.x + bounds.width);
+		int diff = (endBounds.x + endBounds.width) - boundsX2;
 		if (diff >= 0)
 			endBounds.x -= diff + EDGE_GAP;
-		diff = (endBounds.y + endBounds.height) - (bounds.y + bounds.height);
-		if (diff >= 0)
+		diff = (endBounds.y + endBounds.height) - boundsY2;
+		if (diff >= 0) {
 			endBounds.y -= diff + EDGE_GAP;
+		}
 		//System.out.println("best" + bestSize + ";mon" + bounds + ";end" + endBounds);
 
 		FormData data = new FormData(bestSize.x, bestSize.y);
