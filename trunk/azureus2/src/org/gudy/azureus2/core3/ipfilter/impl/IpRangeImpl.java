@@ -172,7 +172,7 @@ public class IpRangeImpl implements IpRange
 
 		// Stuffer assumes we store in lowercase..
 		if (str.startsWith("Stuffer")) {
-			str = "s" + str.substring(1);
+			str = str.toLowerCase();
 		}
 
 		return str;
