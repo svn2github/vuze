@@ -80,42 +80,66 @@ DDBaseImpl
 	}
 	
 	
-	private DHTPlugin		dht;
+	private AzureusCore		azureus_core;
+	private DHTPlugin		dht_use_accessor;
 		
 	protected
 	DDBaseImpl(
-		final AzureusCore	azureus_core )
+		final AzureusCore	_azureus_core )
 	{
-		torrent_transfer =  new DDBaseTTTorrent( azureus_core, this );
+		azureus_core	= _azureus_core;
 		
-		PluginInterface dht_pi = 
-			azureus_core.getPluginManager().getPluginInterfaceByClass(
-						DHTPlugin.class );
-				
-		if ( dht_pi == null ){
+		torrent_transfer =  new DDBaseTTTorrent( _azureus_core, this );
+		
+		grabDHT();
+	}
+	
+	protected DHTPlugin
+	grabDHT()
+	{
+		if ( dht_use_accessor != null ){
 			
-			Debug.out( "DHTPlugin unavailable - if this is unexpected consider revising the plugin initialisation sequence" );
+			return( dht_use_accessor );
+		}
+		
+		try{
+			class_mon.enter();
 			
-		}else{
-			
-			dht = (DHTPlugin)dht_pi.getPlugin();
-			
-			if ( dht.isEnabled()){
-				
-				try{
-					addTransferHandler(	torrent_transfer, torrent_transfer );
-
-				}catch( Throwable e ){
+			if( dht_use_accessor == null ){
+						
+			PluginInterface dht_pi = 
+					azureus_core.getPluginManager().getPluginInterfaceByClass(
+								DHTPlugin.class );
+						
+				if ( dht_pi != null ){
 					
-					Debug.printStackTrace(e);
+					dht_use_accessor = (DHTPlugin)dht_pi.getPlugin();
+					
+					if ( dht_use_accessor.isEnabled()){
+						
+						try{
+							addTransferHandler(	torrent_transfer, torrent_transfer );
+		
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
 				}
 			}
+		}finally{
+			
+			class_mon.exit();
 		}
+		
+		return( dht_use_accessor );
 	}
 	
 	public boolean
 	isAvailable()
 	{
+		DHTPlugin	dht = grabDHT();
+		
 		if ( dht == null ){
 			
 			return( false );
@@ -127,6 +151,8 @@ DDBaseImpl
 	public boolean
 	isExtendedUseAllowed()
 	{
+		DHTPlugin	dht = grabDHT();
+		
 		if ( dht == null ){
 			
 			return( false );
@@ -153,13 +179,15 @@ DDBaseImpl
 	{
 		throwIfNotAvailable();
 		
-		return( dht );
+		return( grabDHT());
 	}
 	
 	protected void
 	log(
 		String	str )
 	{
+		DHTPlugin	dht = grabDHT();
+		
 		if ( dht != null ){
 			
 			dht.log( str );
@@ -197,7 +225,7 @@ DDBaseImpl
 	{
 		throwIfNotAvailable();
 		
-		return( new DDBaseValueImpl( new DDBaseContactImpl( this, dht.getLocalAddress()), value, SystemTime.getCurrentTime(), -1));
+		return( new DDBaseValueImpl( new DDBaseContactImpl( this, getDHT().getLocalAddress()), value, SystemTime.getCurrentTime(), -1));
 	}
 	
 	public DistributedDatabaseContact
@@ -208,7 +236,7 @@ DDBaseImpl
 	{
 		throwIfNotAvailable();
 	
-		DHTPluginContact	contact = dht.importContact( address );
+		DHTPluginContact	contact = getDHT().importContact( address );
 		
 		if ( contact == null ){
 			
@@ -253,7 +281,7 @@ DDBaseImpl
 			
 		}else if ( values.length == 1 ){
 			
-			dht.put(	
+			getDHT().put(	
 					((DDBaseKeyImpl)key).getBytes(),
 					key.getDescription(),
 					((DDBaseValueImpl)values[0]).getBytes(),
@@ -321,7 +349,7 @@ DDBaseImpl
 					
 					final byte[]					f_current_key	= current_key;
 					
-					dht.put(	
+					getDHT().put(	
 							f_current_key,
 							key.getDescription(),
 							copy,
@@ -344,7 +372,7 @@ DDBaseImpl
 				
 				final byte[]					f_current_key	= current_key;
 				
-				dht.put(	
+				getDHT().put(	
 						f_current_key,
 						key.getDescription(),
 						copy,
@@ -380,7 +408,7 @@ DDBaseImpl
 		
 			// TODO: max values?
 		
-		dht.get(	
+		getDHT().get(	
 			((DDBaseKeyImpl)key).getBytes(), 
 			key.getDescription(),
 			(byte)0, 
@@ -399,7 +427,7 @@ DDBaseImpl
 	{
 		throwIfNotAvailable();
 		
-		dht.remove( ((DDBaseKeyImpl)key).getBytes(),
+		getDHT().remove( ((DDBaseKeyImpl)key).getBytes(),
 					key.getDescription(),
 					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key, 0, false ));
 	}
@@ -422,7 +450,7 @@ DDBaseImpl
 		
 		transfer_map.put( type_key, handler );
 		
-		dht.registerHandler(
+		getDHT().registerHandler(
 			type_key.getHash(),
 			new DHTPluginTransferHandler()
 			{
@@ -632,7 +660,7 @@ DDBaseImpl
 					
 					complete_disabled	= true;
 	
-					dht.get(	
+					grabDHT().get(	
 						next_key_bytes, 
 						key.getDescription(),
 						(byte)0, 
