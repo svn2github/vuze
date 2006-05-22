@@ -87,6 +87,7 @@ DHTDB
 		DHTTransportContact		reader,
 		HashWrapper				key,
 		int						max_values,
+		byte					flags,
 		boolean					external_request );
 		
 		/**

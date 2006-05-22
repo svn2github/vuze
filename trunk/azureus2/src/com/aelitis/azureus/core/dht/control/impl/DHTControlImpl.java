@@ -2140,7 +2140,7 @@ DHTControlImpl
 	{
 		DHTLog.log( "findValueRequest from " + DHTLog.getString( originating_contact.getID()));
 		
-		DHTDBLookupResult	result	= database.get( originating_contact, new HashWrapper( key ), max_values, true );
+		DHTDBLookupResult	result	= database.get( originating_contact, new HashWrapper( key ), max_values, flags, true );
 					
 		if ( result != null ){
 			
@@ -2269,7 +2269,7 @@ DHTControlImpl
 				continue;
 			}
 			
-			DHTDBLookupResult	result = database.get( null, key, 0, false );
+			DHTDBLookupResult	result = database.get( null, key, 0, (byte)0, false );
 			
 			if ( result == null  ){
 				

@@ -437,6 +437,7 @@ DHTDBImpl
 		DHTTransportContact		reader,
 		HashWrapper				key,
 		int						max_values,	// 0 -> all
+		byte					flags,
 		boolean					external_request )	
 	{
 		try{
@@ -456,7 +457,7 @@ DHTDBImpl
 				mapping.addHit();
 			}
 			
-			final DHTDBValue[]	values = mapping.get( reader, max_values );
+			final DHTDBValue[]	values = mapping.get( reader, max_values, flags );
 						
 			return(
 				new DHTDBLookupResult()
@@ -1215,6 +1216,12 @@ DHTDBImpl
 		}
 	}
 	
+	protected DHTTransportContact
+	getLocalContact()
+	{
+		return( local_contact );
+	}
+	
 	protected DHTStorageAdapter
 	getAdapter()
 	{
@@ -1254,7 +1261,7 @@ DHTDBImpl
 				
 				DHTDBMapping	mapping = (DHTDBMapping)entry.getValue();
 				
-				DHTDBValue[]	values = mapping.get(null,0);
+				DHTDBValue[]	values = mapping.get(null,0,(byte)0);
 					
 				for (int i=0;i<values.length;i++){
 					

@@ -32,4 +32,13 @@ DHTStorageKey
 {
 	public byte
 	getDiversificationType();
+	
+	public int
+	getReadsPerMinute();
+	
+	public int
+	getSize();
+	
+	public int
+	getEntryCount();
 }

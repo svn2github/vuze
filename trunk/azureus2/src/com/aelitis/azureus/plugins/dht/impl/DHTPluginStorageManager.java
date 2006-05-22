@@ -1773,8 +1773,7 @@ DHTPluginStorageManager
 		private long			expiry;
 		
 		private long			read_count_start;
-		//private int			read_count;
-		//private int[]			read_history	= new int[8];
+		private short			reads_per_min;
 		
 		private BloomFilter		ip_bloom_filter;
 		
@@ -1863,6 +1862,24 @@ DHTPluginStorageManager
 			return( type );
 		}
 		
+		public int
+		getReadsPerMinute()
+		{
+			return( reads_per_min );
+		}
+		
+		public int
+		getSize()
+		{
+			return( size );
+		}
+		
+		public int
+		getEntryCount()
+		{
+			return( entries );
+		}
+		
 		protected void
 		read(
 			DHTTransportContact	contact )
@@ -1880,6 +1897,8 @@ DHTPluginStorageManager
 					if ( ip_bloom_filter != null ){
 						
 						int	ip_entries = ip_bloom_filter.getEntryCount();
+						
+						reads_per_min = (short)( ip_entries / LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES );
 						
 						if ( ip_entries > LOCAL_DIVERSIFICATION_READS_PER_MIN * LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES ){
 						

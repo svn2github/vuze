@@ -415,6 +415,32 @@ Test
 									}		
 								});
 						
+					}else if ( command == '?' ){
+						
+						System.out.println( "Using dht " + dht_index );
+						
+						stats_before = dht.getTransport().getStats().snapshot();
+					
+						dht.get( 
+								rhs.getBytes(), "", DHT.FLAG_STATS, 32, 0, false,
+								new DHTOperationAdapter()
+								{
+									public void
+									read(
+										DHTTransportContact	contact,
+										DHTTransportValue	value )
+									{
+										System.out.println( "-> " + new String(value.getValue()) + ", flags=" + value.getFlags());
+									}
+																	
+									public void
+									complete(
+										boolean				timeout )
+									{
+										System.out.println( "-> complete" );
+									}		
+								});
+						
 						
 						
 					}else if ( command == 'd' ){
@@ -937,6 +963,23 @@ Test
 					getDiversificationType()
 					{
 						return( DHT.DT_NONE );
+					}
+					public int
+					getReadsPerMinute()
+					{
+						return( 12 );
+					}
+					
+					public int
+					getSize()
+					{
+						return( 24 );
+					}
+					
+					public int
+					getEntryCount()
+					{
+						return( 36 );
 					}
 				});
 	}

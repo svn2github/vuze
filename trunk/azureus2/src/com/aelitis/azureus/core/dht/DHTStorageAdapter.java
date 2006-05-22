@@ -55,7 +55,7 @@ DHTStorageAdapter
 	keyRead(
 		DHTStorageKey			adapter_key,
 		DHTTransportContact		contact );
-	
+		
 	public void
 	valueAdded(
 		DHTStorageKey		key,

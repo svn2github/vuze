@@ -22,10 +22,13 @@
 
 package com.aelitis.azureus.core.dht.db.impl;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SystemTime;
 // import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 import com.aelitis.azureus.core.dht.*;
@@ -323,8 +326,48 @@ DHTDBMapping
 	protected DHTDBValueImpl[]
 	get(
 		DHTTransportContact		by_who,
-		int						max )
+		int						max,
+		byte					flags )
 	{
+		if ((flags & DHT.FLAG_STATS) != 0 ){
+			
+			if ( adapter_key != null ){
+								
+				byte	div = adapter_key.getDiversificationType();
+				
+				try{
+					ByteArrayOutputStream	baos = new ByteArrayOutputStream(64);
+					
+					DataOutputStream	dos = new DataOutputStream( baos );
+					
+					dos.writeByte( (byte)0 );
+					dos.writeInt( adapter_key.getEntryCount());
+					dos.writeInt( adapter_key.getSize());
+					dos.writeInt( adapter_key.getReadsPerMinute());
+					dos.writeByte( adapter_key.getDiversificationType());
+					
+					dos.close();
+					
+					return( 
+						new DHTDBValueImpl[]{
+							new DHTDBValueImpl(
+								SystemTime.getCurrentTime(),
+								baos.toByteArray(),
+								0,
+								db.getLocalContact(),
+								db.getLocalContact(),
+								true,
+								DHT.FLAG_STATS )});
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+				
+			return( new DHTDBValueImpl[0] );
+		}
+		
 		List	res 		= new ArrayList();
 		
 		Set		duplicate_check = new HashSet();
