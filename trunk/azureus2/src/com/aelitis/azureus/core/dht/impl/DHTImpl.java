@@ -267,6 +267,12 @@ DHTImpl
 		return( speed_tester );
 	}
 	
+	public DHTStorageAdapter
+	getStorageAdapter()
+	{
+		return( storage_adapter );
+	}
+	
 	public void
 	integrate(
 		boolean		full_wait )

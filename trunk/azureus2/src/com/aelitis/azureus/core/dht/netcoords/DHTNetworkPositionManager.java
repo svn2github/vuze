@@ -213,12 +213,16 @@ DHTNetworkPositionManager
 	{
 		DHTNetworkPositionProvider[]	prov = providers;
 
+		is.mark( 512 );
+
 		for (int i=0;i<prov.length;i++){
 			
 			if ( prov[i].getPositionType() == position_type ){
 				
+				DHTNetworkPositionProvider	provider = prov[i];
+				
 				try{
-					DHTNetworkPosition np = prov[i].deserialisePosition( is );
+					DHTNetworkPosition np = provider.deserialisePosition( is );
 					
 					// System.out.println( "Deserialised: " + np.getPositionType());
 					
@@ -227,6 +231,8 @@ DHTNetworkPositionManager
 				}catch( Throwable e ){
 					
 					Debug.printStackTrace(e);
+					
+					is.reset();
 				}
 				
 				break;

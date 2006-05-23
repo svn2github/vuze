@@ -87,6 +87,11 @@ DHTPlugin
 	public static final byte		FLAG_DOWNLOADING	= DHT.FLAG_DOWNLOADING;
 	public static final byte		FLAG_SEEDING		= DHT.FLAG_SEEDING;
 	public static final byte		FLAG_MULTI_VALUE	= DHT.FLAG_MULTI_VALUE;
+	public static final byte		FLAG_STATS			= DHT.FLAG_STATS;
+	
+	public static final byte		DT_NONE				= DHT.DT_NONE;
+	public static final byte		DT_FREQUENCY		= DHT.DT_FREQUENCY;
+	public static final byte		DT_SIZE				= DHT.DT_SIZE;
 	
 	public static final int			MAX_VALUE_SIZE		= DHT.MAX_VALUE_SIZE;
 
@@ -282,6 +287,13 @@ DHTPlugin
 					DHTPluginValue		value )
 				{
 					log.log( "valueRead: " + new String(value.getValue()) + " from " + originator.getName());
+					
+					if ( ( value.getFlags() & DHTPlugin.FLAG_STATS ) != 0 ){
+						
+						DHTPluginKeyStats stats = decodeStats( value );
+						
+						log.log( "    stats: size=" + stats.getSize());
+					}
 				}
 				
 				public void
@@ -373,6 +385,11 @@ DHTPlugin
 												DHTPlugin.this.get(
 													rhs.getBytes(), "DHT Plugin: get", (byte)0, 1, 10000, true, log_polistener );
 	
+											}else if ( lhs.equals( "query" )){
+												
+												DHTPlugin.this.get(
+													rhs.getBytes(), "DHT Plugin: get", DHTPlugin.FLAG_STATS, 1, 10000, true, log_polistener );
+
 											}else if ( lhs.equals( "punch" )){
 
 												dht.getNATPuncher().punch( transport.getLocalContact());
@@ -1260,6 +1277,13 @@ DHTPlugin
 		}
 		
 		return( res );
+	}
+	
+	public DHTPluginKeyStats
+	decodeStats(
+		DHTPluginValue		value )
+	{
+		return( dhts[0].decodeStats( value ));
 	}
 	
 	public void

@@ -35,6 +35,12 @@ DistributedDatabase
 	public static final int	OP_NONE				= 0;
 	public static final int	OP_EXHAUSTIVE_READ	= 1;
 	
+		// diversification types
+	
+	public static final byte	DT_NONE			= 1;
+	public static final byte	DT_FREQUENCY	= 2;
+	public static final byte	DT_SIZE			= 3;
+	
 	public boolean
 	isAvailable();
 
@@ -100,7 +106,14 @@ DistributedDatabase
 	
 		throws DistributedDatabaseException;
 	
-
+	public void
+	readKeyStats(
+		DistributedDatabaseListener		listener,
+		DistributedDatabaseKey			key,
+		long							timeout )
+	
+		throws DistributedDatabaseException;
+	
 	public void
 	delete(
 		DistributedDatabaseListener		listener,

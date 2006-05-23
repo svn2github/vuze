@@ -1,7 +1,7 @@
 /*
- * Created on 14-Jun-2005
+ * Created on 23 May 2006
  * Created by Paul Gardner
- * Copyright (C) 2005, 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,48 +20,20 @@
  *
  */
 
-package com.aelitis.azureus.plugins.dht.impl;
+package com.aelitis.azureus.plugins.dht;
 
-import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
-import com.aelitis.azureus.plugins.dht.DHTPlugin;
-import com.aelitis.azureus.plugins.dht.DHTPluginKeyStats;
-import com.aelitis.azureus.plugins.dht.DHTPluginValue;
-
-
-public class
-DHTPluginValueImpl
-	implements DHTPluginValue
+public interface 
+DHTPluginKeyStats 
 {
-	private DHTTransportValue		value;
-	
-	protected
-	DHTPluginValueImpl(
-		DHTTransportValue	_value )
-	{
-		value	= _value;
-	}
-	
-	public byte[]
-	getValue()
-	{
-		return( value.getValue());
-	}
-	
-	public long
-	getCreationTime()
-	{
-		return( value.getCreationTime());
-	}
-	
-	public long
-	getVersion()
-	{
-		return( value.getVersion());
-	}
+	public int
+	getEntryCount();
 	
 	public int
-	getFlags()
-	{
-		return( value.getFlags()&0xff);
-	}
+	getSize();
+	
+	public int
+	getReadsPerMinute();
+	
+	public byte
+	getDiversification();
 }

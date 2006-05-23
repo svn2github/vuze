@@ -139,6 +139,9 @@ DHT
 	public DHTSpeedTester
 	getSpeedTester();
 	
+	public DHTStorageAdapter
+	getStorageAdapter();
+	
 		/**
 		 * externalises information that allows the DHT to be recreated at a later date
 		 * and populated via the import method

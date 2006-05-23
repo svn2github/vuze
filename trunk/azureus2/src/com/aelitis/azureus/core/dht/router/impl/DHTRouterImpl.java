@@ -108,7 +108,7 @@ DHTRouterImpl
 			
 			class_mon.exit();
 		}
-		
+				
 		K					= _K;
 		B					= _B;
 		max_rep_per_node	= _max_rep_per_node;
@@ -1038,6 +1038,11 @@ DHTRouterImpl
 	protected void
 	dispatchPings()
 	{
+		if ( outstanding_pings.size() == 0 ){
+			
+			return;
+		}
+		
 		List	pings;
 		
 		try{
@@ -1087,6 +1092,11 @@ DHTRouterImpl
 	protected void
 	dispatchNodeAdds()
 	{
+		if ( outstanding_adds.size() == 0 ){
+			
+			return;
+		}
+		
 		List	adds;
 		
 		try{

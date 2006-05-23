@@ -22,6 +22,10 @@
 
 package com.aelitis.azureus.core.dht;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import org.gudy.azureus2.core3.util.HashWrapper;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -55,7 +59,13 @@ DHTStorageAdapter
 	keyRead(
 		DHTStorageKey			adapter_key,
 		DHTTransportContact		contact );
-		
+	
+	public DHTStorageKeyStats
+	deserialiseStats(
+		DataInputStream			is )
+	
+		throws IOException;
+	
 	public void
 	valueAdded(
 		DHTStorageKey		key,

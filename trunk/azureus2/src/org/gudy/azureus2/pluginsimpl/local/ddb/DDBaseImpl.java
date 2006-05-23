@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.ddb.*;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
+import com.aelitis.azureus.plugins.dht.DHTPluginKeyStats;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginProgressListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginTransferHandler;
@@ -419,6 +420,27 @@ DDBaseImpl
 	}
 	
 	public void
+	readKeyStats(
+		DistributedDatabaseListener		listener,
+		DistributedDatabaseKey			key,
+		long							timeout )
+	
+		throws DistributedDatabaseException
+	{
+		throwIfNotAvailable();
+				
+		getDHT().get(	
+			((DDBaseKeyImpl)key).getBytes(), 
+			key.getDescription(),
+			DHTPlugin.FLAG_STATS,
+			256, 
+			timeout, 
+			false,
+			new listenerMapper( listener, DistributedDatabaseEvent.ET_KEY_STATS_READ, key, timeout, false ));
+		
+	}
+	
+	public void
 	delete(
 		final DistributedDatabaseListener		listener,
 		final DistributedDatabaseKey			key )
@@ -625,53 +647,101 @@ DDBaseImpl
 			DHTPluginContact	originator,
 			DHTPluginValue		_value )
 		{
-			byte[]	value = _value.getValue();
-			
-			if ( _value.getFlags() == DHTPlugin.FLAG_MULTI_VALUE ){
-
-				int	pos = 1;
+			if ( type == DistributedDatabaseEvent.ET_KEY_STATS_READ ){
 				
-				while( pos < value.length ){
+				if (( _value.getFlags() & DHTPlugin.FLAG_STATS ) == 0 ){
 					
-					int	len = (	( value[pos++]<<8 ) & 0x0000ff00 )+
-							 	( value[pos++] & 0x000000ff );
+						// skip, old impl
 					
-					if ( len > value.length - pos ){
+					return;
+				}
+				
+				try{
+					final DHTPluginKeyStats	stats = getDHT().decodeStats( _value );
+					
+					DistributedDatabaseKeyStats ddb_stats = new
+						DistributedDatabaseKeyStats()
+						{
+							public int
+							getEntryCount()
+							{
+								return( stats.getEntryCount());
+							}
+							
+							public int
+							getSize()
+							{
+								return( stats.getSize());
+							}
+							
+							public int
+							getReadsPerMinute()
+							{
+								return( stats.getReadsPerMinute());
+							}
+							
+							public byte
+							getDiversification()
+							{
+								return( stats.getDiversification());
+							}
+						};
 						
-						Debug.out( "Invalid length: len = " + len + ", remaining = " + (value.length - pos ));
-						
-						break;
-					}
+					listener.event( new dbEvent( type, key, originator, ddb_stats ));
 					
-					byte[]	d = new byte[len];
+				}catch( Throwable e ){
 					
-					System.arraycopy( value, pos, d, 0, len );
-					
-					listener.event( new dbEvent( type, key, originator, d, _value.getCreationTime(), _value.getVersion()));
-					
-					pos += len;
-				}				
-
-				if ( value[0] == 1 ){
-					
-						// continuation exists
-					
-					final	byte[]	next_key_bytes = new SHA1Simple().calculateHash( key_bytes );
-					
-					complete_disabled	= true;
-	
-					grabDHT().get(	
-						next_key_bytes, 
-						key.getDescription(),
-						(byte)0, 
-						256, 
-						timeout, 
-						exhaustive,
-						new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key, next_key_bytes, timeout ));
+					Debug.printStackTrace(e);
 				}
 			}else{
+				byte[]	value = _value.getValue();
 				
-				listener.event( new dbEvent( type, key, originator, _value ));
+				if ( _value.getFlags() == DHTPlugin.FLAG_MULTI_VALUE ){
+	
+					int	pos = 1;
+					
+					while( pos < value.length ){
+						
+						int	len = (	( value[pos++]<<8 ) & 0x0000ff00 )+
+								 	( value[pos++] & 0x000000ff );
+						
+						if ( len > value.length - pos ){
+							
+							Debug.out( "Invalid length: len = " + len + ", remaining = " + (value.length - pos ));
+							
+							break;
+						}
+						
+						byte[]	d = new byte[len];
+						
+						System.arraycopy( value, pos, d, 0, len );
+						
+						listener.event( new dbEvent( type, key, originator, d, _value.getCreationTime(), _value.getVersion()));
+						
+						pos += len;
+					}				
+	
+					if ( value[0] == 1 ){
+						
+							// continuation exists
+						
+						final	byte[]	next_key_bytes = new SHA1Simple().calculateHash( key_bytes );
+						
+						complete_disabled	= true;
+		
+						grabDHT().get(	
+							next_key_bytes, 
+							key.getDescription(),
+							(byte)0, 
+							256, 
+							timeout, 
+							exhaustive,
+							new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key, next_key_bytes, timeout ));
+					}
+				}else{
+					
+					listener.event( new dbEvent( type, key, originator, _value ));
+				}
 			}
 		}
 		
@@ -703,6 +773,7 @@ DDBaseImpl
 	{
 		private int							type;
 		private DistributedDatabaseKey		key;
+		private DistributedDatabaseKeyStats	key_stats;
 		private DistributedDatabaseValue	value;
 		private DDBaseContactImpl			contact;
 		
@@ -728,6 +799,21 @@ DDBaseImpl
 			contact	= new DDBaseContactImpl( DDBaseImpl.this, _contact );
 			
 			value	= new DDBaseValueImpl( contact, _value.getValue(), _value.getCreationTime(), _value.getVersion()); 
+		}
+		
+		protected
+		dbEvent(
+			int								_type,
+			DistributedDatabaseKey			_key,
+			DHTPluginContact				_contact,
+			DistributedDatabaseKeyStats		_key_stats )
+		{
+			type		= _type;
+			key			= _key;
+			
+			contact	= new DDBaseContactImpl( DDBaseImpl.this, _contact );
+
+			key_stats	= _key_stats;
 		}
 		
 		protected
@@ -759,6 +845,12 @@ DDBaseImpl
 			return( key );
 		}
 		
+		public DistributedDatabaseKeyStats
+		getKeyStats()
+		{
+			return( key_stats );
+		}
+
 		public DistributedDatabaseValue
 		getValue()
 		{

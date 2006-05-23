@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.dht.db.impl;
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
@@ -41,6 +43,7 @@ import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.DHTStorageBlock;
 import com.aelitis.azureus.core.dht.DHTStorageKey;
+import com.aelitis.azureus.core.dht.DHTStorageKeyStats;
 import com.aelitis.azureus.core.dht.db.*;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
@@ -1703,6 +1706,15 @@ DHTDBImpl
 			reportSizes( "keyRead" );
 			
 			delegate.keyRead( adapter_key, contact );
+		}
+		
+		public DHTStorageKeyStats
+		deserialiseStats(
+			DataInputStream			is )
+		
+			throws IOException
+		{
+			return( delegate.deserialiseStats( is ));
 		}
 		
 		public void

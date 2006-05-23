@@ -331,6 +331,7 @@ AEMonSem
 	protected boolean		is_monitor;
 	protected int			waiting		= 0;
 
+	// protected boolean	trace;
 	
 	protected
 	AEMonSem(
@@ -397,6 +398,9 @@ AEMonSem
 	protected void
 	debugEntry()
 	{
+		//if ( trace ){
+		//	System.out.println( Debug.getStackTrace( true, false ));
+		//}
 		try{
 				// bad things are:
 				// A->B and somewhere else B->A
@@ -668,6 +672,15 @@ AEMonSem
 			}
 		}
 	}
+	
+	/*
+	public void
+	trace(
+		boolean	_on )
+	{
+		trace	= _on;
+	}
+	*/
 	
 	protected static class
 	monSemData

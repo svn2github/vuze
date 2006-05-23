@@ -37,12 +37,16 @@ DistributedDatabaseEvent
 	public static final int	ET_OPERATION_COMPLETE	= 4;
 	public static final int	ET_OPERATION_TIMEOUT	= 5;
 
-	
+	public static final int	ET_KEY_STATS_READ		= 6;
+
 	public int
 	getType();
 	
 	public DistributedDatabaseKey
 	getKey();
+	
+	public DistributedDatabaseKeyStats
+	getKeyStats();
 	
 	public DistributedDatabaseValue
 	getValue();

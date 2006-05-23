@@ -28,6 +28,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.Signature;
@@ -55,6 +56,7 @@ import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.DHTStorageBlock;
 import com.aelitis.azureus.core.dht.DHTStorageKey;
+import com.aelitis.azureus.core.dht.DHTStorageKeyStats;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
@@ -555,6 +557,63 @@ DHTPluginStorageManager
 			
 			storage_mon.exit();
 		}
+	}
+	
+	public void
+	serialiseStats(
+		storageKey			key,
+		DataOutputStream	dos )
+	
+		throws IOException
+	{
+		dos.writeByte( (byte)0 );	// version
+		dos.writeInt( key.getEntryCount());
+		dos.writeInt( key.getSize());
+		dos.writeInt( key.getReadsPerMinute());
+		dos.writeByte( key.getDiversificationType());
+	}
+	
+	public DHTStorageKeyStats
+	deserialiseStats(
+		DataInputStream			is )
+	
+		throws IOException
+	{
+		
+		byte	version 	= is.readByte();
+		
+		final int	entry_count = is.readInt();
+		final int	size		= is.readInt();
+		final int	reads		= is.readInt();
+		final byte	div			= is.readByte();
+
+		return( 
+			new DHTStorageKeyStats()
+			{
+				public int
+				getEntryCount()
+				{
+					return( entry_count );
+				}
+				
+				public int
+				getSize()
+				{
+					return( size );
+				}
+				
+				public int
+				getReadsPerMinute()
+				{
+					return( reads );
+				}
+				
+				public byte
+				getDiversification()
+				{
+					return( div );
+				}
+			});
 	}
 	
 	public void
@@ -1816,6 +1875,7 @@ DHTPluginStorageManager
 			
 			return( map );
 		}
+		
 		protected static storageKey
 		deserialise(
 			DHTPluginStorageManager	_manager,
@@ -1828,6 +1888,15 @@ DHTPluginStorageManager
 			_manager.log.log( "SM: deserialised sk: " + DHTLog.getString2( key.getBytes()) + ", " + DHT.DT_STRINGS[type] + ", " + formatExpiry(exp));
 
 			return( new storageKey( _manager, (byte)type, key, exp ));
+		}
+	
+		public void
+		serialiseStats(
+			DataOutputStream	dos )
+		
+			throws IOException
+		{
+			manager.serialiseStats( this, dos );
 		}
 		
 		protected HashWrapper
@@ -1899,6 +1968,13 @@ DHTPluginStorageManager
 						int	ip_entries = ip_bloom_filter.getEntryCount();
 						
 						reads_per_min = (short)( ip_entries / LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES );
+						
+						if ( reads_per_min == 0 && ip_entries > 0 ){
+						
+								// show at least some activity!
+							
+							reads_per_min	= 1;
+						}
 						
 						if ( ip_entries > LOCAL_DIVERSIFICATION_READS_PER_MIN * LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES ){
 						

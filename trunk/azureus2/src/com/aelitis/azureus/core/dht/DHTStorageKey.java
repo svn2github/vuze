@@ -22,6 +22,9 @@
 
 package com.aelitis.azureus.core.dht;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 /**
  * @author parg
  *
@@ -33,12 +36,9 @@ DHTStorageKey
 	public byte
 	getDiversificationType();
 	
-	public int
-	getReadsPerMinute();
+	public void
+	serialiseStats(
+		DataOutputStream		os )
 	
-	public int
-	getSize();
-	
-	public int
-	getEntryCount();
+		throws IOException;
 }

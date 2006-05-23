@@ -421,6 +421,8 @@ Test
 						
 						stats_before = dht.getTransport().getStats().snapshot();
 					
+						final DHT	f_dht = dht;
+						
 						dht.get( 
 								rhs.getBytes(), "", DHT.FLAG_STATS, 32, 0, false,
 								new DHTOperationAdapter()
@@ -431,6 +433,15 @@ Test
 										DHTTransportValue	value )
 									{
 										System.out.println( "-> " + new String(value.getValue()) + ", flags=" + value.getFlags());
+										
+										try{
+											DHTStorageKeyStats	stats = f_dht.getStorageAdapter().deserialiseStats( new DataInputStream( new ByteArrayInputStream( value.getValue())));
+											
+											System.out.println( "    stats: size = " + stats.getSize() + ", entries=" + stats.getEntryCount() + ", rpm=" + stats.getReadsPerMinute());
+										}catch( Throwable e ){
+											
+											e.printStackTrace();
+										}
 									}
 																	
 									public void
@@ -949,6 +960,7 @@ Test
 		transports[i] = transport;
 	}
 	
+	/*
 	public DHTStorageKey
 	keyCreated(
 		HashWrapper		key,
@@ -964,22 +976,13 @@ Test
 					{
 						return( DHT.DT_NONE );
 					}
-					public int
-					getReadsPerMinute()
-					{
-						return( 12 );
-					}
+					public void
+					serialiseStats(
+						DataOutputStream		os )
 					
-					public int
-					getSize()
-					{
-						return( 24 );
-					}
-					
-					public int
-					getEntryCount()
-					{
-						return( 36 );
+						throws IOException
+					{	
+						os.writeInt( 45 );
 					}
 				});
 	}
@@ -1044,6 +1047,7 @@ Test
 
 		return( new byte[0][] );
 	}
+	*/
 	
 	protected static void
 	usage()

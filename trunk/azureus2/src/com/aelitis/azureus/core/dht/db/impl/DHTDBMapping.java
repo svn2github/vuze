@@ -332,19 +332,13 @@ DHTDBMapping
 		if ((flags & DHT.FLAG_STATS) != 0 ){
 			
 			if ( adapter_key != null ){
-								
-				byte	div = adapter_key.getDiversificationType();
-				
+												
 				try{
 					ByteArrayOutputStream	baos = new ByteArrayOutputStream(64);
 					
 					DataOutputStream	dos = new DataOutputStream( baos );
 					
-					dos.writeByte( (byte)0 );
-					dos.writeInt( adapter_key.getEntryCount());
-					dos.writeInt( adapter_key.getSize());
-					dos.writeInt( adapter_key.getReadsPerMinute());
-					dos.writeByte( adapter_key.getDiversificationType());
+					adapter_key.serialiseStats( dos );
 					
 					dos.close();
 					

@@ -23,6 +23,8 @@
 package com.aelitis.azureus.plugins.dht.impl;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -44,6 +46,7 @@ import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTFactory;
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
+import com.aelitis.azureus.core.dht.DHTStorageKeyStats;
 
 import com.aelitis.azureus.core.dht.control.DHTControlStats;
 import com.aelitis.azureus.core.dht.db.DHTDBStats;
@@ -61,6 +64,7 @@ import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
+import com.aelitis.azureus.plugins.dht.DHTPluginKeyStats;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginProgressListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginTransferHandler;
@@ -999,5 +1003,56 @@ outer:
 		}
 		
 		return( new DHTPluginValueImpl(value));
+	}
+	
+	
+	public DHTPluginKeyStats
+	decodeStats(
+		DHTPluginValue	value )
+	{
+		if (( value.getFlags() & DHTPlugin.FLAG_STATS) == 0 ){
+			
+			return( null );
+		}
+		
+		try{
+			DataInputStream	dis = new DataInputStream( new ByteArrayInputStream( value.getValue()));
+			
+			final DHTStorageKeyStats stats = storage_manager.deserialiseStats( dis );
+			
+			return( 
+				new DHTPluginKeyStats()
+				{
+					public int
+					getEntryCount()
+					{
+						return( stats.getEntryCount());
+					}
+					
+					public int
+					getSize()
+					{
+						return( stats.getSize());
+					}
+					
+					public int
+					getReadsPerMinute()
+					{
+						return( stats.getReadsPerMinute());
+					}
+					
+					public byte
+					getDiversification()
+					{
+						return( stats.getDiversification());
+					}
+				});
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
 	}
 }
