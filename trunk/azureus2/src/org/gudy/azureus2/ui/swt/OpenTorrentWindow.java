@@ -1337,7 +1337,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	 * @param bVerifyOnly Only check if there's potential torrents in the text,
 	 *                     do not try to add the torrents.
 	 * 
-	 * @return Number of torrents added or found
+	 * @return Number of torrents added or found.  When bVerifyOnly, this number
+	 *          may not be exact.
 	 */
 	private int addTorrentsFromTextList(String sClipText, boolean bVerifyOnly) {
 		String[] lines = null;
@@ -1377,10 +1378,18 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				if (!file.exists()) {
 					ok = false;
 				} else if (file.isDirectory()) {
-					addTorrents(lines[i], null);
-					ok = false;
-				} else
+					if (bVerifyOnly) {
+						// XXX Could do a file count here, but the number found is not
+						//     expected to be an exact number anyway, since we aren't
+						//     event verifying if they are torrents.
+						ok = true;
+					} else {
+						iNumFound += addTorrents(lines[i], null);
+						ok = false;
+					}
+				} else {
 					ok = true;
+				}
 			}
 
 			if (!ok) {
@@ -1394,8 +1403,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			}
 		}
 
-		if (bVerifyOnly)
+		if (bVerifyOnly) {
 			return iNumFound;
+		}
 
 		return addTorrents(null, lines);
 	}
