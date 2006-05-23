@@ -182,7 +182,8 @@ public class Tab {
 
 			if (useCustomTab) {
 				((CTabItem) tabItem).setControl(tabArea);
-				((CTabItem) tabItem).setToolTipText(view.getFullTitle());
+// Disabled for SWT 3.2RC5.. CTabItem tooltip doesn't always disappear
+//				((CTabItem) tabItem).setToolTipText(view.getFullTitle());
 				if (bFocus)
 					((CTabFolder) folder).setSelection((CTabItem) tabItem);
 			} else {
@@ -271,11 +272,12 @@ public class Tab {
             item.setText(escapeAccelerators(newTitle));
           }
           if (item instanceof CTabItem) {
-            String lastToolTip = ((CTabItem) item).getToolTipText();
-            String newToolTip = view.getFullTitle();
-            if (lastToolTip == null || !lastToolTip.equals(newToolTip)) {
-              ((CTabItem) item).setToolTipText(newToolTip);
-            }
+// Disabled for SWT 3.2RC5.. CTabItem tooltip doesn't always disappear
+//            String lastToolTip = ((CTabItem) item).getToolTipText();
+//            String newToolTip = view.getFullTitle();
+//            if (lastToolTip == null || !lastToolTip.equals(newToolTip)) {
+//              ((CTabItem) item).setToolTipText(newToolTip);
+//            }
           }
           else if (item instanceof TabItem) {
             String lastToolTip = ((TabItem) item).getToolTipText();
