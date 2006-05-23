@@ -61,8 +61,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
  *
  */
 public class MessageSlideShell {
-	private static boolean USE_SWT32_BG_SET = !(Constants.isLinux && SWT
-			.getVersion() <= 3232);
+	private static boolean USE_SWT32_BG_SET = true;
 
 	private static final boolean DEBUG = false;
 
@@ -269,10 +268,6 @@ public class MessageSlideShell {
 
 		// Create shell & widgets
 		int style = SWT.ON_TOP;
-		if (Constants.isLinux) {
-			// XXX Disable ON_TOP until Eclipse Bug 142861 is fixed
-			style = SWT.DIALOG_TRIM;
-		}
 		shell = new Shell(display, style);
 		if (USE_SWT32_BG_SET) {
 			try {
@@ -441,7 +436,8 @@ public class MessageSlideShell {
 		Messages.setLanguageText(btnHideAll, "popup.error.hideall");
 		btnHideAll.setVisible(false);
 		btnHideAll.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-		btnHideAll.addListener(SWT.Selection, new Listener() {
+		// XXX SWT.Selection doesn't work on latest GTK (2.8.17) & SWT3.2 for ON_TOP
+		btnHideAll.addListener(SWT.MouseUp, new Listener() {
 			public void handleEvent(Event arg0) {
 				cButtons.setEnabled(false);
 
@@ -454,7 +450,7 @@ public class MessageSlideShell {
 			btnPrev.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 			btnPrev.setText(MessageText.getString("popup.previous", new String[] { ""
 					+ idxHistory }));
-			btnPrev.addListener(SWT.Selection, new Listener() {
+			btnPrev.addListener(SWT.MouseUp, new Listener() {
 				public void handleEvent(Event arg0) {
 					disposeShell(shell);
 					int idx = historyList.indexOf(popupParams) - 1;
@@ -472,7 +468,7 @@ public class MessageSlideShell {
 		int numAfter = historyList.size() - idxHistory - 1;
 		setButtonNextText(numAfter);
 
-		btnNext.addListener(SWT.Selection, new Listener() {
+		btnNext.addListener(SWT.MouseUp, new Listener() {
 			public void handleEvent(Event arg0) {
 				if (DEBUG)
 					System.out.println("Next Pressed");
