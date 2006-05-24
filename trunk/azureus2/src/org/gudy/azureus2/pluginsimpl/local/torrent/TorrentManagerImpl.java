@@ -128,8 +128,29 @@ TorrentManagerImpl
 	
 		throws TorrentException
 	{
+		return( createFromBEncodedFile( file, false ));
+	}
+	
+	public Torrent
+	createFromBEncodedFile(
+		File		file,
+		boolean		for_seeding )
+	
+		throws TorrentException
+	{
 		try{
-			return( new TorrentImpl(plugin_interface,TorrentUtils.readFromFile( file, false )));
+			TOTorrent	torrent;
+			
+			if ( for_seeding ){
+				
+				torrent = TorrentUtils.readFromFile( file, true, true );
+
+			}else{
+				
+				torrent = TorrentUtils.readFromFile( file, false );
+			}
+			
+			return( new TorrentImpl(plugin_interface,torrent));
 			
 		}catch( TOTorrentException e ){
 			

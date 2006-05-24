@@ -61,6 +61,22 @@ TorrentManager
 		throws TorrentException;
 	
 		/**
+		 * decodes a torrent encoded using the normal "bencoding" rules from a file but discards the piece
+		 * hashes to save memory. note that this means that if something reads the hashes they will be
+		 * re-read from the torrent file and if the file has since been deleted things go smelly
+		 * @param file
+		 * @param for_seeding reduces memory usage by discarding piece hashes
+		 * @return
+		 */
+	
+	public Torrent
+	createFromBEncodedFile(
+		File		file,
+		boolean		for_seeding )
+	
+		throws TorrentException;
+	
+		/**
 		 * decodes a torrent encoded using the normal "bencoding" rules from an InputStream
 		 * @param file
 		 * @return

@@ -90,16 +90,17 @@ TRTrackerBTAnnouncerImpl
 	private static Map			tracker_report_map	= new HashMap();
 	
     
-	protected TOTorrent				torrent;
+	private TOTorrent				torrent;
 	
-	protected TimerEvent				current_timer_event;
+	private TimerEvent				current_timer_event;
 	private TimerEventPerformer		timer_event_action;
 	
-	protected int					tracker_state 			= TS_INITIALISED;
+	protected int				tracker_state 			= TS_INITIALISED;
 	private String				tracker_status_str		= "";
 	private TRTrackerAnnouncerResponse	last_response			= null;
 	private long				last_update_time_secs;
-	protected long				current_time_to_wait_secs;
+	private long				current_time_to_wait_secs;
+	private boolean				manual_control;
   
 	private long min_interval = 0;
   
@@ -181,12 +182,14 @@ TRTrackerBTAnnouncerImpl
   public 
   TRTrackerBTAnnouncerImpl(
    	TOTorrent		_torrent,
-	String[]		_peer_networks ) 
+	String[]		_peer_networks,
+	boolean			_manual ) 
   	
   	throws TRTrackerAnnouncerException
   {
   	torrent			= _torrent;
   	peer_networks	= _peer_networks;
+  	manual_control	= _manual;
   	
 		//Get the Tracker url
 		
@@ -247,6 +250,13 @@ TRTrackerBTAnnouncerImpl
 			perform(
 				TimerEvent	this_event )
 			{
+				if ( manual_control ){
+					
+					requestUpdateSupport();
+					
+					return;
+				}
+				
 				long	secs_to_wait = getErrorRetryInterval();
 							
 				try{
@@ -557,7 +567,7 @@ TRTrackerBTAnnouncerImpl
 
         long	effective_min = min_interval_override>0?min_interval_override:REFRESH_MINIMUM_SECS;
         
-		if( force || ( now - last_update_time_secs >= effective_min )){
+		if ( manual_control || force || ( now - last_update_time_secs >= effective_min )){
 			
 		  requestUpdate();
 		}

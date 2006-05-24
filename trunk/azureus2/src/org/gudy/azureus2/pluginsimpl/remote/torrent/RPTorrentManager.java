@@ -189,6 +189,17 @@ RPTorrentManager
 	}
 	
 	public Torrent
+	createFromBEncodedFile(
+		File		file,
+		boolean		for_seeding )
+	
+		throws TorrentException
+	{
+		notSupported();
+		
+		return( null );
+	}
+	public Torrent
 	createFromBEncodedInputStream(
 		InputStream		data )
 	

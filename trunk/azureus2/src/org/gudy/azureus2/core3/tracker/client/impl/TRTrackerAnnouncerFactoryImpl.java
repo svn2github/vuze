@@ -46,7 +46,8 @@ TRTrackerAnnouncerFactoryImpl
 	public static TRTrackerAnnouncer
 	create(
 		TOTorrent		torrent,
-		String[]		networks )
+		String[]		networks,
+		boolean			manual )
 		
 		throws TRTrackerAnnouncerException
 	{
@@ -58,7 +59,7 @@ TRTrackerAnnouncerFactoryImpl
 			
 		}else{
 			
-			client = new TRTrackerBTAnnouncerImpl( torrent, networks );
+			client = new TRTrackerBTAnnouncerImpl( torrent, networks, manual );
 		}
 		
 		List	listeners_copy	= new ArrayList();

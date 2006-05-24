@@ -40,11 +40,21 @@ TRTrackerAnnouncerFactory
 	public static TRTrackerAnnouncer
 	create(
 		TOTorrent		torrent,
+		boolean			manual )
+		
+		throws TRTrackerAnnouncerException
+	{
+		return( TRTrackerAnnouncerFactoryImpl.create( torrent, null, manual ));
+	}
+	
+	public static TRTrackerAnnouncer
+	create(
+		TOTorrent		torrent,
 		String[]		networks )
 		
 		throws TRTrackerAnnouncerException
 	{
-		return( TRTrackerAnnouncerFactoryImpl.create( torrent, networks ));
+		return( TRTrackerAnnouncerFactoryImpl.create( torrent, networks, false ));
 	}
 	
 	public static void
