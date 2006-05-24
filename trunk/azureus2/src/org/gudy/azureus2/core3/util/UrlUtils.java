@@ -22,6 +22,7 @@ package org.gudy.azureus2.core3.util;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -135,5 +136,14 @@ public class UrlUtils
 			System.out.println(test[i] + " -> " + parseTextForURL(test[i], true));
 		}
 
+	}
+
+	/**
+	 * Like URLEncoder.encode, except translates spaces into %20 instead of +
+	 * @param s
+	 * @return
+	 */
+	public static String encode(String s) {
+		return URLEncoder.encode(s).replaceAll("\\+", "%20");
 	}
 }
