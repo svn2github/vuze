@@ -320,7 +320,7 @@ Download
   
   
   	/**
-  	 * Sets an attribute of this download. For category use the Category torrent attribute
+  	 * Gets an attribute of this download. For category use the Category torrent attribute
   	 * @param attribute
   	 * @return
   	 */
@@ -329,6 +329,12 @@ Download
   getAttribute(
   	TorrentAttribute		attribute );
   
+  /**
+	 * Sets an attribute of this download. For category use the Category torrent attribute
+   * 
+   * @param attribute Previously created attribute
+   * @param value Value to store.  null to remove attribute
+   */
   public void
   setAttribute(
   	TorrentAttribute		attribute,
