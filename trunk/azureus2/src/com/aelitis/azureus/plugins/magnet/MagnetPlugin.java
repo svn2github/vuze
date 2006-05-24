@@ -210,6 +210,25 @@ MagnetPlugin
 				
 					throws MagnetURIHandlerException
 				{
+						// see if we've already got it!
+					
+					try{
+						Download	dl = plugin_interface.getDownloadManager().getDownload( hash );
+					
+						if ( dl != null ){
+							
+							Torrent	torrent = dl.getTorrent();
+							
+							if ( torrent != null ){
+								
+								return( torrent.writeToBEncodedData());
+							}
+						}
+					}catch( Throwable e ){
+					
+						Debug.printStackTrace(e);
+					}
+					
 					return( MagnetPlugin.this.download(
 							new MagnetPluginProgressListener()
 							{
