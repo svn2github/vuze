@@ -823,6 +823,13 @@ DownloadImpl
 	public DownloadAnnounceResult
 	getLastAnnounceResult()
 	{
+		TRTrackerAnnouncer tc = download_manager.getTrackerClient();
+		
+		if ( tc != null ){
+			
+			last_announce_result.setContent( tc.getLastResponse());
+		}
+		
 		return( last_announce_result );
 	}
 	
