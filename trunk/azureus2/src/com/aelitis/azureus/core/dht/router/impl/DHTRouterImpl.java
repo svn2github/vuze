@@ -44,6 +44,7 @@ import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 import com.aelitis.azureus.core.dht.router.DHTRouterContactAttachment;
 import com.aelitis.azureus.core.dht.router.DHTRouterObserver;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * @author parg
@@ -86,7 +87,7 @@ DHTRouterImpl
 
 	private static AEMonitor	class_mon	= new AEMonitor( "DHTRouter:class" );
 	
-	private final List observers;
+	private final CopyOnWriteList	observers = new CopyOnWriteList();
 
 	public
 	DHTRouterImpl(
@@ -133,8 +134,6 @@ DHTRouterImpl
 		buckets.add( local_contact );
 		
 		root	= new DHTRouterNodeImpl( this, 0, true, buckets );
-		
-		observers = new LinkedList();
 	}
 	
 	protected void notifyAdded(DHTRouterContact contact) {

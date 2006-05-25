@@ -46,7 +46,7 @@ CopyOnWriteList
 		}
 	}
 	
-	public void
+	public boolean
 	remove(
 		Object	obj )
 	{
@@ -54,12 +54,21 @@ CopyOnWriteList
 			
 			List	new_list = new ArrayList( list );
 			
-			new_list.remove( obj );
+			boolean result = new_list.remove( obj );
 		
 			list	= new_list;
 			
 			version++;
+			
+			return( result );
 		}
+	}
+	
+	public boolean
+	contains(
+		Object	obj )
+	{
+		return( list.contains( obj ));
 	}
 	
 	public Iterator
