@@ -292,7 +292,7 @@ SimpleXMLParserDocumentImpl
 		{
             String message = "Fatal Error: " + getParseExceptionInfo(spe);
 			
-            throw new SAXException(message);
+            throw new SAXException(message,spe);
         }
     }
     
@@ -300,9 +300,42 @@ SimpleXMLParserDocumentImpl
     main(
     	String[]	args )
     {
+    	
     	try{
-    		new SimpleXMLParserDocumentImpl(new File( "C:\\temp\\getRSS.php")).print();
-    		
+			StringBuffer	data = new StringBuffer(1024);
+			
+			FileInputStream is = new FileInputStream( "C:\\temp\\upnp_trace3.log" );
+			
+			LineNumberReader	lnr = new LineNumberReader( new InputStreamReader( is, "UTF-8" ));
+			
+			while( true ){
+				
+				String	line = lnr.readLine();
+				
+				if ( line == null ){
+					
+					break;
+				}
+				
+				for (int i=0;i<line.length();i++){
+					char	c = line.charAt(i);
+				
+					if ( c < 0x20 ){
+						data.append( ' ' );
+					}else{
+						data.append( c );
+					}
+				}
+				
+				data.append( "\n" );	
+			}
+				
+			String	data_str = data.toString();
+			
+	  		new SimpleXMLParserDocumentImpl( data_str ).print();
+	  		
+	  		//new SimpleXMLParserDocumentImpl(new File( "C:\\temp\\upnp_trace3.log")).print();
+	  		    		
     	}catch( Throwable e ){
     		
     		e.printStackTrace();

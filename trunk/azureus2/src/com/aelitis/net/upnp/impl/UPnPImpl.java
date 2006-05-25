@@ -387,7 +387,26 @@ UPnPImpl
 					break;
 				}
 				
-				data.append( line.trim() + "\n" );	
+					// remove any obviously invalid characters - I've seen some routers generate stuff like
+					// 0x18 which stuffs the xml parser with "invalid unicode character"
+				
+				for (int i=0;i<line.length();i++){
+					
+					char	c = line.charAt(i);
+				
+					if ( c < 0x20 && c != '\r' ){
+						
+						data.append( ' ' );
+						
+						adapter.trace( "    ignoring character " + (int)c + " in xml response" );
+						
+					}else{
+						
+						data.append( c );
+					}
+				}
+				
+				data.append( "\n" );				
 			}
 				
 			String	data_str = data.toString();
