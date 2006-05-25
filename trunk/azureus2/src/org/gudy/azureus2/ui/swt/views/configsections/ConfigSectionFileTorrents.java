@@ -184,12 +184,21 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
 
     Label lWatchTorrentFolderInterval = new Label(gWatchFolder, SWT.NULL);
     Messages.setLanguageText(lWatchTorrentFolderInterval, "ConfigView.label.watchtorrentfolderinterval");
-    final String watchTorrentFolderIntervalLabels[] = new String[5];
-    final int watchTorrentFolderIntervalValues[] = new int[5];
-    for (int i = 1; i < 6; i++) {
-      watchTorrentFolderIntervalLabels[i - 1] = " " + i + " min";
-      watchTorrentFolderIntervalValues[i - 1] = i;
+    String	min = " " + MessageText.getString("ConfigView.section.stats.minutes");
+    String	hr  = " " + MessageText.getString("ConfigView.section.stats.hours");
+    
+    int	[]	watchTorrentFolderIntervalValues = 
+    	{ 1, 2, 3, 4, 5, 10, 15, 30, 60, 2*60, 4*60, 6*60, 8*60, 12*60, 16*60, 20*60, 24*60 };
+    
+    final String watchTorrentFolderIntervalLabels[] = new String[watchTorrentFolderIntervalValues.length];
+
+    for (int i = 0; i < watchTorrentFolderIntervalValues.length; i++) {
+      int mins 	= watchTorrentFolderIntervalValues[i];
+      int hrs	= mins/60;
+      
+      watchTorrentFolderIntervalLabels[i] = " " + (hrs==0?(mins + min):(hrs + hr ));
     }
+    
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     new IntListParameter(gWatchFolder, "Watch Torrent Folder Interval", 1, 

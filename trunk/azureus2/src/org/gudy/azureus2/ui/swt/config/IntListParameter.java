@@ -63,7 +63,8 @@ public class IntListParameter extends Parameter {
       
       list.addListener(SWT.Selection, new Listener() {
            public void handleEvent(Event e) {
-			COConfigurationManager.setParameter(name, values[list.getSelectionIndex()]);
+        	int	selected_value = values[list.getSelectionIndex()];
+			COConfigurationManager.setParameter(name, selected_value);
            }
          });
       
