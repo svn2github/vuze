@@ -79,6 +79,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 	private final static String PARAM_DEFSAVEPATH = "Default save path";
 
+	private final static String PARAM_MOVEWHENDONE = "Move Completed When Done";
+
 	private final static int STARTMODE_QUEUED = 0;
 
 	private final static int STARTMODE_STOPPED = 1;
@@ -1947,6 +1949,14 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				e.printStackTrace();
 			}
 
+			if (getSaveSilentlyDir() != null
+					&& !COConfigurationManager.getBooleanParameter(PARAM_MOVEWHENDONE)) {
+				this.sDestDir = getSmartDestDir();
+			}
+		}
+
+		public String getSmartDestDir() {
+			String sSmartDir = sDestDir;
 			try {
 				String name = getTorrentName();
 
@@ -1994,13 +2004,14 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 						f = f.getParentFile();
 					}
 					if (f != null && f.isDirectory()) {
-						sDestDir = f.getAbsolutePath();
+						sSmartDir = f.getAbsolutePath();
 					}
 				}
 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			return sSmartDir;
 		}
 
 		public TorrentFileInfo[] getFiles() {
