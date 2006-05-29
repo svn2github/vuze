@@ -1949,7 +1949,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				e.printStackTrace();
 			}
 
-			if (getSaveSilentlyDir() != null
+			if (getSaveSilentlyDir() == null
 					&& !COConfigurationManager.getBooleanParameter(PARAM_MOVEWHENDONE)) {
 				this.sDestDir = getSmartDestDir();
 			}
