@@ -21,13 +21,13 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 
 import com.aelitis.azureus.core.*;
@@ -42,12 +42,13 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -64,7 +65,7 @@ import org.gudy.azureus2.ui.swt.wizards.sendtorrent.SendTorrentWizard;
  * 
  */
 public class ManagerView extends AbstractIView implements
-		DownloadManagerListener {
+		DownloadManagerListener, ObfusticateTab, ObfusticateImage {
 
   private AzureusCore		azureus_core;
   private DownloadManager 	manager;
@@ -195,6 +196,20 @@ public class ManagerView extends AbstractIView implements
     views[0].refresh();
     views[0].getComposite().layout(true);
   }
+  
+  private IView getActiveView() {
+		int index = folder.getSelectionIndex();
+		if (index == -1) {
+			return null;
+		}
+
+		TabItem ti = folder.getItem(index);
+		if (ti.isDisposed()) {
+			return null;
+		}
+
+		return (IView) ti.getData("IView");
+  }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
@@ -204,14 +219,7 @@ public class ManagerView extends AbstractIView implements
 			return;
 
 		try {
-			int index = folder.getSelectionIndex();
-			if (index == -1)
-				return;
-			TabItem ti = folder.getItem(index);
-			if (ti.isDisposed())
-				return;
-
-			IView view = (IView) ti.getData("IView");
+			IView view = getActiveView();
 			if (view != null)
 				view.refresh();
 
@@ -276,7 +284,7 @@ public class ManagerView extends AbstractIView implements
 			return true;
 		
 		if (itemKey.equals("send"))
-			return true;
+			return false;
 		
 		return false;
 	}
@@ -395,4 +403,18 @@ public class ManagerView extends AbstractIView implements
 		item.setData("IView", view);
 		tabViews.add(view);
 	}
+
+	public Image obfusticatedImage(Image image, Point shellOffset) {
+		IView view = getActiveView();
+		if (view instanceof ObfusticateImage) {
+			((ObfusticateImage)view).obfusticatedImage(image, shellOffset);
+		}
+		return image;
+	}
+
+	public String getObfusticatedHeader() {
+    int completed = manager.getStats().getCompleted();
+    return DisplayFormatters.formatPercentFromThousands(completed) + " : " + manager;
+	}
+	
 }
