@@ -22,21 +22,16 @@
 
 package org.gudy.azureus2.core3.util;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
-import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.platform.PlatformManagerFactory;
-import org.gudy.azureus2.platform.PlatformManagerCapabilities;
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
-
 import java.io.*;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 /**
  * File utility class.
@@ -81,23 +76,6 @@ public class FileUtil {
   }
   
   
-  
-  public static boolean isTorrentFile(String filename) throws FileNotFoundException, IOException {
-    File check = new File(filename);
-    if (!check.exists())
-      throw new FileNotFoundException("File "+filename+" not found.");
-    if (!check.canRead())
-      throw new IOException("File "+filename+" cannot be read.");
-    if (check.isDirectory())
-      throw new FileIsADirectoryException("File "+filename+" is a directory.");
-    try {
-      TOTorrentFactory.deserialiseFromBEncodedFile(check);
-      return true;
-    } catch (Throwable e) {
-      return false;
-    }
-  }
-
   
   /**
    * Deletes the given dir and all files/dirs underneath
@@ -165,31 +143,7 @@ public class FileUtil {
   	}
   }
   
-  /**
-   * Deletes the given dir and all dirs underneath if empty.
-   * Don't delete default save path or completed files directory, however,
-   * allow deletion of their empty subdirectories
-   * Files defined to be ignored for the sake of torrent creation are automatically deleted
-   * For example, by default this includes thumbs.db
-   */
-  
-  public static void 
-  recursiveEmptyDirDelete(
-  	File f) 
-  {
-	  recursiveEmptyDirDelete( f, true );
-  }
-  public static void 
-  recursiveEmptyDirDelete(
-  	File 	f,
-  	boolean	log_warnings )
-  {
-    Set		ignore_map	= TorrentUtils.getIgnoreSet();
-	
-	recursiveEmptyDirDelete( f, ignore_map, log_warnings );
-  }
-  
-  private static void 
+  protected static void 
   recursiveEmptyDirDelete(
   	File	f,
 	Set		ignore_set,
@@ -1195,7 +1149,6 @@ public class FileUtil {
 				return( true );
 	
 			}else{
-				
 				boolean		success	= false;
 				
 					// can't rename across file systems under Linux - try copy+delete

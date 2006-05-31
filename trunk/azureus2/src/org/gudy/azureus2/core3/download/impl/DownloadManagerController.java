@@ -52,15 +52,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.ListenerManager;
-import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
-import org.gudy.azureus2.core3.util.NonDaemonTask;
-import org.gudy.azureus2.core3.util.NonDaemonTaskRunner;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 public class 
@@ -953,7 +945,7 @@ DownloadManagerController
 	
 	  					if ( save_dir_file != null && save_dir_file.exists() && save_dir_file.isDirectory()){
 		      		
-	  						FileUtil.recursiveEmptyDirDelete( save_dir_file, false );
+	  						TorrentUtils.recursiveEmptyDirDelete( save_dir_file, false );
 	  					}
 	  				}
 	  			}

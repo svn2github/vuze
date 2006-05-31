@@ -238,7 +238,7 @@ DiskManagerImpl
 		LocaleUtilDecoder	locale_decoder = null;
 		
 		try{
-			locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+			locale_decoder = LocaleTorrentUtil.getTorrentEncoding( torrent );
 			
 		}catch( TOTorrentException e ){
 			
@@ -1799,7 +1799,7 @@ DiskManagerImpl
 		      
 		      if (	save_location.isDirectory()){
 		      
-		    	  FileUtil.recursiveEmptyDirDelete( save_location, false );
+		    	  TorrentUtils.recursiveEmptyDirDelete( save_location, false );
 		      }
 		        
 		      	// NOTE: this operation FIXES up any file links
@@ -1987,7 +1987,7 @@ DiskManagerImpl
 		try{
 			int	res = 0;
 			
-			LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+			LocaleUtilDecoder locale_decoder = LocaleTorrentUtil.getTorrentEncoding( torrent );
 
 	        TOTorrentFile[] files = torrent.getFiles();
 
@@ -2044,7 +2044,7 @@ DiskManagerImpl
     
             throws TOTorrentException, UnsupportedEncodingException, LocaleUtilEncodingException
     {
-        LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+        LocaleUtilDecoder locale_decoder = LocaleTorrentUtil.getTorrentEncoding( torrent );
 
         TOTorrentFile[] files = torrent.getFiles();
 
@@ -2120,7 +2120,7 @@ DiskManagerImpl
             }
         }
 
-        FileUtil.recursiveEmptyDirDelete(new File( torrent_save_dir, torrent_save_file ));
+        TorrentUtils.recursiveEmptyDirDelete(new File( torrent_save_dir, torrent_save_file ));
     }
 
     public void
@@ -2424,7 +2424,7 @@ DiskManagerImpl
 		root_dir	+= File.separator;	
 
 		try{
-		    LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+		    LocaleUtilDecoder locale_decoder = LocaleTorrentUtil.getTorrentEncoding( torrent );
 			
 		    TOTorrentFile[]	torrent_files = torrent.getFiles();
 			

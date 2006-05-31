@@ -162,7 +162,7 @@ public class TorrentOpener {
 				} else if (source.isFile()) {
 					String filename = source.getAbsolutePath();
 					try {
-						if (!FileUtil.isTorrentFile(filename) && bAllowShareAdd) {
+						if (!TorrentUtils.isTorrentFile(filename) && bAllowShareAdd) {
 							Logger.log(new LogEvent(LogIDs.GUI,
 											"openDroppedTorrents: file not a torrent file, sharing"));
 							ShareUtils.shareFile(azureus_core, filename);

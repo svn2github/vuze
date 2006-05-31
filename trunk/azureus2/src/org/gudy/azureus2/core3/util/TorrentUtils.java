@@ -808,7 +808,7 @@ TorrentUtils
 	{
 		try{
 			
-			LocaleUtilDecoder decoder = LocaleUtil.getSingleton().getTorrentEncodingIfAvailable( torrent );
+			LocaleUtilDecoder decoder = LocaleTorrentUtil.getTorrentEncodingIfAvailable( torrent );
 			
 			if ( decoder == null ){
 				
@@ -1781,5 +1781,84 @@ TorrentUtils
 		} catch (Exception e) {
 			return null;
 		}
+	}
+
+	/**
+	 * Deletes the given dir and all dirs underneath if empty.
+	 * Don't delete default save path or completed files directory, however,
+	 * allow deletion of their empty subdirectories
+	 * Files defined to be ignored for the sake of torrent creation are automatically deleted
+	 * For example, by default this includes thumbs.db
+	 */
+	public static void recursiveEmptyDirDelete(File f) {
+		TorrentUtils.recursiveEmptyDirDelete(f, true);
+	}
+
+	/**
+	 * Same as #recursiveEmptyDirDelete(File), except allows disabling of logging
+	 * of any warnings
+	 * 
+	 * @param f Dir to delete
+	 * @param log_warnings Whether to log warning
+	 */
+	public static void recursiveEmptyDirDelete(File f, boolean log_warnings) {
+		Set ignore_map = getIgnoreSet();
+
+		FileUtil.recursiveEmptyDirDelete(f, ignore_map, log_warnings);
+	}
+
+	/**
+	 * A nice string of a Torrent's hash
+	 * 
+	 * @param torrent Torrent to fromat hash of
+	 * @return Hash string in a nice format
+	 */
+	public static String nicePrintTorrentHash(TOTorrent torrent) {
+		return nicePrintTorrentHash(torrent, false);
+	}
+
+	/**
+	 * A nice string of a Torrent's hash
+	 * 
+	 * @param torrent Torrent to fromat hash of
+	 * @param tight No spaces between groups of numbers
+	 * 
+	 * @return Hash string in a nice format
+	 */
+	public static String nicePrintTorrentHash(TOTorrent torrent, boolean tight) {
+		byte[] hash;
+
+		if (torrent == null) {
+
+			hash = new byte[20];
+		} else {
+			try {
+				hash = torrent.getHash();
+
+			} catch (TOTorrentException e) {
+
+				Debug.printStackTrace(e);
+
+				hash = new byte[20];
+			}
+		}
+
+		return (ByteFormatter.nicePrint(hash, tight));
+	}
+
+	public static boolean isTorrentFile(String filename) throws FileNotFoundException, IOException {
+	  File check = new File(filename);
+	  if (!check.exists())
+	    throw new FileNotFoundException("File "+filename+" not found.");
+	  if (!check.canRead())
+	    throw new IOException("File "+filename+" cannot be read.");
+	  if (check.isDirectory())
+	    throw new FileIsADirectoryException("File "+filename+" is a directory.");
+	  try {
+	    TOTorrentFactory.deserialiseFromBEncodedFile(check);
+	    return true;
+	  } catch (Throwable e) {
+	    return false;
+	  }
 	}
 }

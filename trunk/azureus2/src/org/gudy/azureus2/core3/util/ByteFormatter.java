@@ -27,39 +27,10 @@ package org.gudy.azureus2.core3.util;
 
 import java.nio.ByteBuffer;
 
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 
 public class ByteFormatter
 {
-   public static String nicePrintTorrentHash(TOTorrent	torrent )
-  {
-  	return( nicePrintTorrentHash( torrent, false ));
-  }
-  
-  public static String nicePrintTorrentHash(TOTorrent	torrent, boolean tight)
-  {
-	byte[]	hash;
-	
-	if ( torrent == null ){
-		
-		hash = new byte[20];
-	}else{
-		try{
-			hash = torrent.getHash();
-			
-		}catch( TOTorrentException e ){
-			
-			Debug.printStackTrace( e );
-			
-			hash = new byte[20];
-		}
-	}
-
-	return( nicePrint( hash, tight ));
-  }
-
-  public static String
+   public static String
   nicePrint(
   	String	str )
   {

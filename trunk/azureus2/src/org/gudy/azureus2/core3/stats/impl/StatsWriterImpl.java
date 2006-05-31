@@ -192,7 +192,7 @@ StatsWriterImpl
 							
 							if ( torrent != null ){
 								
-								writeTag( "HASH", ByteFormatter.nicePrintTorrentHash(torrent, true));
+								writeTag( "HASH", TorrentUtils.nicePrintTorrentHash(torrent, true));
 							
 								writeRawCookedTag( "SIZE", torrent.getSize());
 								
