@@ -504,7 +504,7 @@ DownloadManagerImpl
 				 
 				 read_torrent_state	= null;	// no longer needed if we saved it
 	
-				 LocaleUtilDecoder	locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+				 LocaleUtilDecoder	locale_decoder = LocaleTorrentUtil.getTorrentEncoding( torrent );
 						 
 				 	// if its a simple torrent and an explicit save file wasn't supplied, use
 				 	// the torrent name itself
@@ -2789,21 +2789,28 @@ DownloadManagerImpl
 	generateEvidence(
 		IndentWriter		writer )
 	{
-		writer.println( "DownloadManager " + getDisplayName() + "/" + this );
-		
-		PEPeerManager	pm = getPeerManager();
-		
-		if ( pm != null ){
+		writer.println(toString());
+
+		PEPeerManager pm = getPeerManager();
+
+		try {
+			writer.indent();
+
+			writer.println("Save Dir: "
+					+ Debug.secretFileName(getSaveLocation().toString()));
 			
-			try{
-				writer.indent();
-				
-				pm.generateEvidence( writer );
-				
-			}finally{
-				
-				writer.exdent();
+			writer.println("# Peers: " + current_peers.size());
+			writer.println("# Pieces: " + current_pieces.size());
+
+			if (pm != null) {
+
+				pm.generateEvidence(writer);
+
 			}
+
+		} finally {
+
+			writer.exdent();
 		}
 	}
 
