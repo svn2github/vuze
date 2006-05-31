@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem1;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem2;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
@@ -570,6 +571,7 @@ public class TableCellImpl
 
 	/* Start of Core-Only function */
   //////////////////////////////////
+	
   public void invalidate(final boolean bMustRefresh) {
   	valid = false;
 
@@ -839,5 +841,16 @@ public class TableCellImpl
     	ti.orientation = SWT.LEFT; 
     else if (align == TableColumn.ALIGN_TRAIL)
     	ti.orientation = SWT.RIGHT; 
+	}
+
+	public String getObfusticatedText() {
+		if (tableColumn.isObfusticated()) {
+			if (tableColumn instanceof ObfusticateCellText) {
+				return ((ObfusticateCellText)tableColumn).getObfusticatedText(this);
+			}
+			
+			return "";
+		}
+		return null;
 	}
 }

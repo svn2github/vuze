@@ -59,6 +59,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.*;
 import org.gudy.azureus2.ui.swt.components.*;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 
 /**
  * View of General information on the torrent
@@ -66,7 +68,9 @@ import org.gudy.azureus2.ui.swt.components.*;
  * @author Olivier
  * 
  */
-public class GeneralView extends AbstractIView implements ParameterListener {
+public class GeneralView extends AbstractIView implements ParameterListener,
+		ObfusticateImage
+{
 
   private Display display;
   private DownloadManager manager = null;
@@ -196,7 +200,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.widthHint = 50;
     availabilityPercent.setLayoutData(gridData);
-    Messages.setLanguageText(availabilityPercent, "GeneralView.label.status.pieces_available.tooltip");
+    Messages.setLanguageText(availabilityPercent.getWidget(), "GeneralView.label.status.pieces_available.tooltip");
     
     gTransfer = new Group(genComposite, SWT.SHADOW_OUT);
     Messages.setLanguageText(gTransfer, "GeneralView.section.transfer"); //$NON-NLS-1$
@@ -314,7 +318,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.hash"); //$NON-NLS-1$
     hash = new BufferedLabel(gInfo, SWT.LEFT);
-    Messages.setLanguageText(hash, "GeneralView.label.hash.tooltip", true);
+    Messages.setLanguageText(hash.getWidget(), "GeneralView.label.hash.tooltip", true);
     
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     hash.setLayoutData(gridData);
@@ -712,10 +716,10 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     setInfos(
       manager.getDisplayName(),
-	  torrent==null?null:LocaleUtil.getSingleton().getCurrentTorrentEncoding( torrent ),
+	  torrent==null?null:LocaleTorrentUtil.getCurrentTorrentEncoding( torrent ),
 	  DisplayFormatters.formatByteCountToKiBEtc(manager.getSize()),
       manager.getSaveLocation().toString(),
-      ByteFormatter.nicePrintTorrentHash(torrent),
+      TorrentUtils.nicePrintTorrentHash(torrent),
       manager.getNbPieces(),
       manager.getPieceLength(),
       manager.getTorrentComment(),
@@ -1116,11 +1120,11 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 		if((trackerURL.startsWith("http://")||trackerURL.startsWith("https://"))) {
 		  trackerUrlValue.setForeground(Colors.blue);
 		  trackerUrlValue.setCursor(Cursors.handCursor);
-		  Messages.setLanguageText(trackerUrlValue, "GeneralView.label.trackerurlopen.tooltip", true);
+		  Messages.setLanguageText(trackerUrlValue.getWidget(), "GeneralView.label.trackerurlopen.tooltip", true);
 		} else {
 		  trackerUrlValue.setForeground(null);
 		  trackerUrlValue.setCursor(null);
-		  Messages.setLanguageText(trackerUrlValue, null);	
+		  Messages.setLanguageText(trackerUrlValue.getWidget(), null);	
 		  trackerUrlValue.setToolTipText(null);
 		}
    	}
@@ -1195,4 +1199,12 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   public void parameterChanged(String parameterName) {
     graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
   }
+
+	public Image obfusticatedImage(Image image, Point shellOffset) {
+		UIDebugGenerator.obfusticateArea(image, (Control) fileName.getWidget(),
+				shellOffset, manager.toString());
+		UIDebugGenerator.obfusticateArea(image, (Control) saveIn.getWidget(),
+				shellOffset, Debug.secretFileName(saveIn.getText()));
+		return image;
+	}
 }

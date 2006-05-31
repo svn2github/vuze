@@ -38,6 +38,7 @@ public class WritersItem
   /** Default Constructor */
   public WritersItem() {
     super("writers", ALIGN_LEAD, POSITION_INVISIBLE, 80, TableManager.TABLE_TORRENT_PIECES);
+    setObfustication(true);
     setRefreshInterval(4);
   }
 

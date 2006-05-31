@@ -25,6 +25,7 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
@@ -34,12 +35,13 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class IpItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener
+       implements TableCellRefreshListener, ObfusticateCellText
 {
 	
   /** Default Constructor */
   public IpItem() {
     super("ip", POSITION_LAST, 100, TableManager.TABLE_TORRENT_PEERS);
+    setObfustication(true);
    }
 
   public void refresh(TableCell cell) {
@@ -58,5 +60,9 @@ public class IpItem
         } catch (Exception e) { e.printStackTrace(); /* ignore */ }
       }
     }
+  }
+
+  public String getObfusticatedText(TableCell cell) {
+  	return cell.getText().substring(0, 3);
   }
 }

@@ -40,11 +40,14 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
@@ -96,7 +99,7 @@ import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 public class TableView 
   extends AbstractIView 
   implements ParameterListener,
-             ITableStructureModificationListener
+             ITableStructureModificationListener, ObfusticateImage
 {
 	private final static LogIDs LOGID = LogIDs.GUI;
 	
@@ -725,6 +728,14 @@ public class TableView
       }
     });
 
+    // we are sent a SWT.Settings event when the language changes and
+    // when System fonts/colors change.  In both cases, invalidate
+    table.addListener(SWT.Settings, new Listener() {
+      public void handleEvent(Event e) {
+      	tableInvalidate();
+      }
+    });
+
     if (bTableVirtual)
 	    table.addListener(SWT.SetData, new Listener() {
 	      public void handleEvent(Event e) {
@@ -1277,17 +1288,23 @@ public class TableView
   	// TODO: Refresh folder titles
   }
   
-	public void refreshSelectedSubView() {
+  public IView getActiveSubView() {
   	if (!bEnableTabViews || tabFolder == null || tabFolder.isDisposed()
 				|| tabFolder.getMinimized())
-  		return;
+  		return null;
 
 		CTabItem item = tabFolder.getSelection();
 		if (item != null) {
-			IView view = (IView)item.getData("IView");
-			if (view != null)
-				view.refresh();
+			return (IView)item.getData("IView");
 		}
+
+		return null;
+  }
+  
+	public void refreshSelectedSubView() {
+		IView view = getActiveSubView();
+		if (view != null)
+			view.refresh();
 	}
 
   public void refreshTable(boolean bForceSort) {
@@ -2805,4 +2822,63 @@ public class TableView
 		}
 	}
 
+	public Image obfusticatedImage(final Image image, Point shellOffset) {
+		if (table.getItemCount() == 0) {
+			return image;
+		}
+		Rectangle tableArea = table.getClientArea();
+
+		TableColumn[] tableColumnsSWT = table.getColumns();
+		for (int i = 0; i < tableColumnsSWT.length; i++) {
+			final TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
+
+			if (tc != null && tc.isObfusticated()) {
+				int iTopIndex = table.getTopIndex();
+				int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+
+				int size = iBottomIndex - iTopIndex + 1;
+				if (size <= 0)
+					continue;
+
+				for (int j = iTopIndex; j <= iBottomIndex; j++) {
+					TableItem rowSWT = table.getItem(j);
+					TableRowCore row = (TableRowCore) table.getItem(j).getData("TableRow");
+					if (row != null) {
+						TableCellCore cell = row.getTableCellCore(tc.getName());
+						final Rectangle columnBounds = rowSWT.getBounds(i);
+						if (columnBounds.y + columnBounds.height > tableArea.y
+								+ tableArea.height) {
+							columnBounds.height -= (columnBounds.y + columnBounds.height)
+									- (tableArea.y + tableArea.height);
+						}
+						if (columnBounds.x + columnBounds.width > tableArea.x
+								+ tableArea.width) {
+							columnBounds.width -= (columnBounds.x + columnBounds.width)
+									- (tableArea.x + tableArea.width);
+						}
+
+						final Point offset = table.toDisplay(columnBounds.x, columnBounds.y);
+
+						columnBounds.x = offset.x - shellOffset.x;
+						columnBounds.y = offset.y - shellOffset.y;
+
+						String text = cell.getObfusticatedText();
+
+						if (text != null) {
+							UIDebugGenerator.obfusticateArea(image, columnBounds, text);
+						}
+					}
+				}
+
+				//UIDebugGenerator.offusticateArea(image, columnBounds);
+			}
+		}
+
+		IView view = getActiveSubView();
+		if (view instanceof ObfusticateImage) {
+			System.out.println(view.getFullTitle());
+			((ObfusticateImage)view).obfusticatedImage(image, shellOffset);
+		}
+		return image;
+	}
 }

@@ -452,6 +452,17 @@ TableManagerImpl
 				delegate.addListeners(listenerObject);
 		}
 
+
+		public boolean isObfusticated() {
+			return delegate == null ? false : delegate.isObfusticated();
+		}
+
+		public void setObfustication(boolean hideData) {
+			if (delegate != null) {
+				delegate.setObfustication(hideData);
+			}
+		}
+
 	  	protected class
 	  	TableContextMenuItemDelegate
 	  		implements TableContextMenuItem

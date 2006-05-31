@@ -27,17 +27,20 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
  *
  */
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
 public class TorrentPathItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener
+       implements TableCellRefreshListener, ObfusticateCellText
 {
   /** Default Constructor */
   public TorrentPathItem(String sTableID) {
     super("torrentpath", 150, sTableID);
+    setObfustication(true);
     setRefreshInterval(INTERVAL_LIVE);
   }
 
@@ -46,4 +49,8 @@ public class TorrentPathItem
     
     cell.setText((dm == null) ? "" : dm.getTorrentFileName());
   }
+
+	public String getObfusticatedText(TableCell cell) {
+		return Debug.secretFileName(cell.getText());
+	}
 }

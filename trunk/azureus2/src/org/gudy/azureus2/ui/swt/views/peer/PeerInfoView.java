@@ -48,6 +48,8 @@ import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.components.Legend;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
@@ -62,7 +64,7 @@ import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
  * 
  * @todo on paint, paint cached image instead of recalc
  */
-public class PeerInfoView extends AbstractIView {
+public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 	private final static int BLOCK_FILLSIZE = 14;
 
 	private final static int BLOCK_SPACING = 2;
@@ -557,5 +559,10 @@ public class PeerInfoView extends AbstractIView {
 		}
 
 		super.delete();
+	}
+
+	public Image obfusticatedImage(Image image, Point shellOffset) {
+		UIDebugGenerator.obfusticateArea(image, topLabel, shellOffset, "");
+		return image;
 	}
 }

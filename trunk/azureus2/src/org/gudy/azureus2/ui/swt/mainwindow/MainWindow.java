@@ -27,7 +27,7 @@ import com.aelitis.azureus.core.AzureusCoreException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -47,6 +47,10 @@ import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.ColorUtils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
+import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
@@ -73,7 +77,8 @@ public class
 MainWindow
 	extends AERunnable
 	implements 	GlobalManagerListener, DownloadManagerListener, 
-				ParameterListener, IconBarEnabler, AEDiagnosticsEvidenceGenerator
+				ParameterListener, IconBarEnabler, AEDiagnosticsEvidenceGenerator,
+				ObfusticateShell
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
   
@@ -182,6 +187,7 @@ MainWindow
     
     //The Main Window
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
+    mainWindow.setData("class", this);
     mainWindow.setText("Azureus"); //$NON-NLS-1$
     Utils.setShellIcon(mainWindow);
 
@@ -1448,5 +1454,47 @@ MainWindow
 
 	public MainStatusBar getMainStatusBar() {
 		return mainStatusBar;
+	}
+
+	public Image generateObfusticatedImage() {
+		Image image;
+
+		IView[] allViews = Tab.getAllViews();
+		for (int i = 0; i < allViews.length; i++) {
+			IView view = allViews[i];
+			
+			if (view instanceof ObfusticateTab) {
+				Item tab = Tab.getTab(view);
+				tab.setText(((ObfusticateTab)view).getObfusticatedHeader());
+				folder.update();
+			}
+		}
+		
+		Rectangle clientArea = mainWindow.getClientArea();
+		image = new Image(display, clientArea.width, clientArea.height);
+		
+		GC gc = new GC(mainWindow);
+		try {
+			gc.copyArea(image, clientArea.x, clientArea.y);
+		} finally {
+			gc.dispose();
+		}
+		
+		IView currentView = getCurrentView();
+
+		if (currentView instanceof ObfusticateImage) {
+			Point ofs = mainWindow.toDisplay(clientArea.x, clientArea.y);
+			((ObfusticateImage)currentView).obfusticatedImage(image, ofs);
+		}
+
+		for (int i = 0; i < allViews.length; i++) {
+			IView view = allViews[i];
+			
+			if (view instanceof ObfusticateTab) {
+				view.refresh();
+			}
+		}
+
+		return image;
 	}
 }

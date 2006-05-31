@@ -247,4 +247,27 @@ public interface TableColumn {
    * @return a newly created menu item
    */
   public TableContextMenuItem addContextMenuItem(String resourceKey);
+
+
+	/**
+	 * Returns whether the column's data will be obfusticated when screen
+	 * capturing (for bug reports, etc).
+	 * <p>
+	 * Currently not fully implemented for plugins  
+	 * 
+	 * @return Obfusticated value
+	 * 
+	 * @since 2.4.0.3 
+	 */
+	boolean isObfusticated();
+
+	/**
+	 * Sets whether the column's data will be obfusticated during a screen
+	 * capture (for bug reports, etc).
+	 *  
+	 * @param hideData new state of obfustication
+	 * 
+	 * @since 2.4.0.3 
+	 */
+	void setObfustication(boolean hideData);
 }

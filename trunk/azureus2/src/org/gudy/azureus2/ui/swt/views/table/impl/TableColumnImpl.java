@@ -30,12 +30,6 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -65,6 +59,8 @@ public class TableColumnImpl
 	private ArrayList cellMouseListeners;
 	private int iConsecutiveErrCount;
   private ArrayList menuItems;
+
+  private boolean bObfusticateData;
   
   protected AEMonitor 		this_mon 	= new AEMonitor( "TableColumn" );
 
@@ -527,4 +523,12 @@ public class TableColumnImpl
 
     return (TableContextMenuItem[])menuItems.toArray(new TableContextMenuItem[0]);
   }
+
+	public boolean isObfusticated() {
+		return bObfusticateData;
+	}
+
+	public void setObfustication(boolean hideData) {
+		bObfusticateData = hideData;
+	}
 }

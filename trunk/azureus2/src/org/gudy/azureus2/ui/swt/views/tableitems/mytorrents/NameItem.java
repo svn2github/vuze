@@ -31,6 +31,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -40,10 +41,11 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
 public class NameItem extends CoreTableColumn implements
-		TableCellRefreshListener {
+		TableCellRefreshListener, ObfusticateCellText {
 	/** Default Constructor */
 	public NameItem(String sTableID) {
 		super("name", POSITION_LAST, 250, sTableID);
+		setObfustication(true);
 		setType(TableColumn.TYPE_TEXT);
 	}
 
@@ -66,5 +68,21 @@ public class NameItem extends CoreTableColumn implements
 				((TableCellCore) cell).setImage(icon);
 			}
 		}
+	}
+
+	public String getObfusticatedText(TableCell cell) {
+		String name = null;
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		if (dm != null) {
+			name = dm.toString();
+			int i = name.indexOf('@');
+			if (i > 0) {
+				name = name.substring(i + 1);
+			}
+		}
+		
+		if (name == null)
+			name = "";
+		return name;
 	}
 }

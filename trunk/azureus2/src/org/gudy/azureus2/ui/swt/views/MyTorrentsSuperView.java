@@ -23,10 +23,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Event;
 
 import com.aelitis.azureus.core.*;
+
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -43,7 +47,9 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
  *			2005/Dec/08: Avg Avail Item
  */
 
-public class MyTorrentsSuperView extends AbstractIView  {
+public class MyTorrentsSuperView extends AbstractIView implements
+		ObfusticateImage
+{
   private AzureusCore	azureus_core;
   
   private MyTorrentsView torrentview;
@@ -292,4 +298,11 @@ public class MyTorrentsSuperView extends AbstractIView  {
 		  writer.exdent();
 	  }
   }
+
+	public Image obfusticatedImage(Image image, Point shellOffset) {
+		System.out.println("hoora");
+		torrentview.obfusticatedImage(image, shellOffset);
+		seedingview.obfusticatedImage(image, shellOffset);
+		return image;
+	}
 }

@@ -1,7 +1,6 @@
 /*
- * Created on 27-May-2004
- * Created by Paul Gardner
- * Copyright (C) 2004, 2005, 2006 Aelitis, All Rights Reserved.
+ * Created on May 28, 2006 4:51:20 PM
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -14,39 +13,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *
  * AELITIS, SAS au capital de 46,603.30 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
- *
  */
+package org.gudy.azureus2.ui.swt.debug;
 
-package org.gudy.azureus2.ui.swt.views.tableitems.peers;
-
-import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-
+import org.eclipse.swt.graphics.Image;
 
 /**
- * @author parg
+ * @author TuxPaper
+ * @created May 28, 2006
  *
  */
-
-public class 
-HostNameItem 
-	extends CoreTableColumn 
-	implements TableCellRefreshListener
+public interface ObfusticateShell
 {
-	 /** Default Constructor */
-	  public HostNameItem() {
-	    super("host", POSITION_INVISIBLE, 100, TableManager.TABLE_TORRENT_PEERS);
-	    setRefreshInterval(INTERVAL_LIVE);
-	    setObfustication(true);
-	  }
 
-	  public void refresh(TableCell cell) {
-	    PEPeer peer = (PEPeer)cell.getDataSource();
+	/**
+	 * @return
+	 */
+	Image generateObfusticatedImage();
 
-	    cell.setText( peer == null ? "" : peer.getIPHostName() );
-	  }
 }
