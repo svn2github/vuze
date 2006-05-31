@@ -20,10 +20,18 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -36,15 +44,7 @@ import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.*;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.LinkedList;
 
 /**
  * @author Olivier
@@ -253,6 +253,40 @@ public class Tab {
 		   class_mon.exit();
 	   }
   }
+  
+  public static Item[] getAllTabs() {
+		try {
+			class_mon.enter();
+
+			Item[] tabItems = new Item[tabs.size()];
+			if (tabItems.length > 0) {
+				tabItems = (Item[]) tabs.keySet().toArray(tabItems);
+			}
+
+			return tabItems;
+		} finally {
+
+			class_mon.exit();
+		}
+	}
+  
+  public static IView[] getAllViews() {
+		try {
+			class_mon.enter();
+
+			IView[] views = new IView[tabs.size()];
+			if (views.length > 0) {
+				views = (IView[])tabs.values().toArray(views);
+			}
+			
+			return views;
+		} finally {
+
+			class_mon.exit();
+		}
+	}
+
+  
   public static void refresh() {
     try{
     	class_mon.enter();
