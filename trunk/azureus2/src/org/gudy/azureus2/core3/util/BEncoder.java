@@ -23,7 +23,6 @@
 package org.gudy.azureus2.core3.util;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.ByteBuffer;
 import java.util.*;
 
