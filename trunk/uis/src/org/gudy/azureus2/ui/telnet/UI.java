@@ -34,6 +34,7 @@ import org.apache.log4j.Logger;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.console.ConsoleInput;
@@ -104,7 +105,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
 	    }
 	    
 	    try {
-	      if (!FileUtil.isTorrentFile(fileName)) {//$NON-NLS-1$
+	      if (!TorrentUtils.isTorrentFile(fileName)) {//$NON-NLS-1$
 	        Logger.getLogger("azureus2.ui.telnet").error(fileName+" doesn't seem to be a torrent file. Not added.");
 	        return;
 	      }

@@ -17,6 +17,7 @@ import java.util.List;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 import org.gudy.azureus2.ui.console.UserProfile;
 
@@ -91,7 +92,7 @@ public abstract class TorrentCommand extends IConsoleCommand {
 							Iterator torrent = torrents.iterator();
 							while (torrent.hasNext()) {
 								dm = (DownloadManager) torrent.next();
-								if (hash.equals(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true))) {
+								if (hash.equals(TorrentUtils.nicePrintTorrentHash(dm.getTorrent(), true))) {
 									if (dm.getDisplayName() == null)
 										name = "?";
 									else

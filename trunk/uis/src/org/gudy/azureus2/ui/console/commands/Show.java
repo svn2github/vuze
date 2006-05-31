@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
@@ -409,7 +410,7 @@ public class Show extends IConsoleCommand {
 		out.println("State: " + Integer.toString(dm.getState()));
 		if (dm.getState() == DownloadManager.STATE_ERROR)
 			out.println("Error: " + dm.getErrorDetails());
-		out.println("Hash: " + ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
+		out.println("Hash: " + TorrentUtils.nicePrintTorrentHash(dm.getTorrent(), true));
 		out.println("- Torrent file -");
 		out.println("Torrent Filename: " + dm.getTorrentFileName());
 		out.println("Saving to: " + dm.getSaveLocation());
