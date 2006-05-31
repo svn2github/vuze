@@ -94,7 +94,7 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     RadioParameter rparamPeerSeed =
         new RadioParameter(cRankType, "StartStopManager_iRankType", 
                            StartStopRulesDefaultPlugin.RANK_SPRATIO);
-    Messages.setLanguageText(rparamPeerSeed, "ConfigView.label.seeding.rankType.peerSeed");
+    Messages.setLanguageText(rparamPeerSeed.getControl(), "ConfigView.label.seeding.rankType.peerSeed");
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     rparamPeerSeed.setLayoutData(gridData);
 
@@ -105,7 +105,7 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     RadioParameter rparamSeedCount =
         new RadioParameter(cRankType, "StartStopManager_iRankType", 
                            StartStopRulesDefaultPlugin.RANK_SEEDCOUNT);
-    Messages.setLanguageText(rparamSeedCount, "ConfigView.label.seeding.rankType.seed");
+    Messages.setLanguageText(rparamSeedCount.getControl(), "ConfigView.label.seeding.rankType.seed");
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     rparamSeedCount.setLayoutData(gridData);
 
@@ -140,7 +140,7 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     RadioParameter rparamTimed =
         new RadioParameter(cRankType, "StartStopManager_iRankType", 
                            StartStopRulesDefaultPlugin.RANK_TIMED);
-    Messages.setLanguageText(rparamTimed, "ConfigView.label.seeding.rankType.timedRotation");
+    Messages.setLanguageText(rparamTimed.getControl(), "ConfigView.label.seeding.rankType.timedRotation");
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     rparamTimed.setLayoutData(gridData);
 
@@ -151,7 +151,7 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     RadioParameter rparamNone =
         new RadioParameter(cRankType, "StartStopManager_iRankType", 
                            StartStopRulesDefaultPlugin.RANK_NONE);
-    Messages.setLanguageText(rparamNone, "ConfigView.label.seeding.rankType.none");
+    Messages.setLanguageText(rparamNone.getControl(), "ConfigView.label.seeding.rankType.none");
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     rparamNone.setLayoutData(gridData);
     

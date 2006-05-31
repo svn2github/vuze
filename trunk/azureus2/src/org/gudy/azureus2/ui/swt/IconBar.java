@@ -101,7 +101,7 @@ public class IconBar {
   private BufferedToolItem createBufferedToolItem(ToolBar toolBar,int style,String key,String imageName,String toolTipKey) {    
     final BufferedToolItem bufferedToolItem = new BufferedToolItem(toolBar,style);
     bufferedToolItem.setData("key",key);
-    Messages.setLanguageText(bufferedToolItem,toolTipKey,true);   
+    Messages.setLanguageText(bufferedToolItem.getWidget(),toolTipKey,true);   
     bufferedToolItem.setImage(ImageRepository.getImage(imageName));
    
     

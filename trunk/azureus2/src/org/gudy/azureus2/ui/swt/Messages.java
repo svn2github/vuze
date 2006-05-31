@@ -25,11 +25,8 @@ import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.*;
-import org.gudy.azureus2.ui.swt.components.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.config.IParameter;
-import org.gudy.azureus2.ui.swt.views.TableView;
 
 import java.util.regex.Pattern;
 
@@ -96,10 +93,13 @@ public class Messages {
           updateLanguageFromData(columns[i], null);
         }
         updateLanguageForControl(table.getMenu());
-
-        TableView tv = (TableView)widget.getData("TableView");
-        if (tv != null)
-          tv.tableInvalidate();
+        
+        // XXX We could (should?) send this event for all widget types
+        // XXX Would it better to have a custom event type?
+        Event event = new Event();
+        event.type = SWT.Settings;
+        event.widget = widget;
+        widget.notifyListeners(SWT.Settings, event);
       }
       else if (widget instanceof Tree) {
         Tree tree = (Tree) widget;
@@ -142,14 +142,6 @@ public class Messages {
     
   }
 
-  public static void setLanguageText(IParameter paramObject, String key) {
-    setLanguageText(paramObject.getControl(), key, false);
-  }
-
-  public static void setLanguageText(IParameter paramObject, String key, String[] params) {
-    setLanguageText(paramObject.getControl(), key, params, false );
-  }
-
   public static void setLanguageText(Widget widget, String key) {
     setLanguageText(widget, key, false);
   }
@@ -168,14 +160,6 @@ public class Messages {
   	if(!setTooltipOnly)
       updateLanguageFromData(widget, params);
   	updateToolTipFromData(widget);
-  }
-  
-  public static void setLanguageText(BufferedWidget buffered_widget, String key) {
-    setLanguageText(buffered_widget.getWidget(), key, false);
-  }
-
-  public static void setLanguageText(BufferedWidget buffered_widget, String key, boolean setTooltipOnly) {
-    setLanguageText(buffered_widget.getWidget(), key, setTooltipOnly);
   }
   
   private static void updateToolTipFromData(Widget widget) {

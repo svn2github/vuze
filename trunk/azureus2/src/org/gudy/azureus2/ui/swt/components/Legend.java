@@ -157,7 +157,7 @@ public class Legend {
 			});
 
 			BufferedLabel lblDesc = new BufferedLabel(colorSet, SWT.NULL);
-			Messages.setLanguageText(lblDesc, keys[i]);
+			Messages.setLanguageText(lblDesc.getWidget(), keys[i]);
 
 			// If color changes, update our legend
 			config.addParameterListener(keys[i], new ParameterListener() {
