@@ -53,6 +53,7 @@ import org.gudy.azureus2.pluginsimpl.local.update.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
+import org.gudy.azureus2.update.UpdaterUtils;
 
 
 
@@ -308,7 +309,7 @@ PluginInitializer
        
     plugin_manager = PluginManagerImpl.getSingleton( this );
     
-    UpdaterUpdateChecker.checkPlugin();
+    UpdaterUtils.checkPlugin();
   }
   
   	public List 

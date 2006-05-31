@@ -30,6 +30,7 @@ package org.gudy.azureus2.platform.win32.access.impl;
 import org.gudy.azureus2.platform.win32.access.*;
 import org.gudy.azureus2.platform.win32.*;
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
+import org.gudy.azureus2.update.UpdaterUtils;
 
 public class 
 AEWin32AccessInterface 
@@ -50,7 +51,7 @@ AEWin32AccessInterface
 					
 		System.loadLibrary( PlatformManagerImpl.DLL_NAME );
 		
-		enabled = !UpdaterUpdateChecker.disableNativeCode( getVersion());
+		enabled = !UpdaterUtils.disableNativeCode( getVersion());
 		
 		if ( !enabled ){
 		

@@ -42,104 +42,10 @@ public class
 UpdaterUpdateChecker
 	implements UnloadablePlugin
 {
-	private static String PLUGIN_ID		= "azupdater";
-	
-	public static boolean
-	disableNativeCode(
-		String	version )
-	{
-		try{
-			File	plugin_dir = null;
-			
-				// we can't check the user-dir here due to crazy recursion problems
-				// during startup (platform manager init etc)
-			
-		    File shared_plugin_dir = FileUtil.getApplicationFile("plugins");
-	
-		    File shared_updater_plugin = new File( shared_plugin_dir, PLUGIN_ID );
-		    			    			    
-		    if ( shared_updater_plugin.exists()){
-		    		    	
-		    	plugin_dir	= shared_updater_plugin;
-		    }
-		    
-		    if ( plugin_dir == null ){
-		    	
-		    	return( false );
-		    }
-		    
-		    return( new File( plugin_dir, "disnat" + version ).exists());
-		    
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
-		
-	    return( false );
-	}
-	
-	public static void
-	checkPlugin()
-	{
-		try{
-				// this is a bootstrap to ensure that the updater plugin exists
-			
-		    File user_plugin_dir = FileUtil.getUserFile("plugins");
-
-		    File user_updater_plugin = new File( user_plugin_dir, PLUGIN_ID );
-	
-		    File user_updater_props = new File( user_updater_plugin, "plugin.properties" );
-		    
-		    if ( user_updater_props.exists()){
-		    	
-		    	return;
-		    }
-		    
-		    File shared_plugin_dir = FileUtil.getApplicationFile("plugins");
-
-		    File shared_updater_plugin = new File( shared_plugin_dir, PLUGIN_ID );
-		    
-		    shared_updater_plugin.mkdirs();
-		    
-		    File	props = new File( shared_updater_plugin, "plugin.properties" );
-		    
-		    if ( props.exists()){
-		    		    	
-		    	return;
-		    }
-		    
-		    PrintWriter	pw = null;
-		    
-		    try{
-		    	pw = new PrintWriter( new FileWriter( props ));
-		    	
-		    	pw.println( "plugin.class=org.gudy.azureus2.update.UpdaterUpdateChecker;org.gudy.azureus2.update.UpdaterPatcher" );
-		    	pw.println( "plugin.name=Azureus Update Support;Azureus Updater Support Patcher" );
-		    	
-		    }finally{
-		    	
-		    	if ( pw != null ){
-		    		
-		    		pw.close();
-		    	}
-		    }
-		    
-		    if ( !props.exists()){
-		    	
-		    	throw( new Exception( "Failed to write '" + props.toString() + "'"));
-		    }
-		    
-		}catch( Throwable e ){
-
-			Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
-					"azupdater plugin: initialisation error", e));
-		}
-	}
-	
 	public static String
 	getPluginID()
 	{
-		return( PLUGIN_ID );
+		return( UpdaterUtils.PLUGIN_ID );
 	}
 	
 	public void
