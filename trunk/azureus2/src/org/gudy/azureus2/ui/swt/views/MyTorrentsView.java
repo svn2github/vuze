@@ -826,7 +826,7 @@ public class MyTorrentsView
 				openSendTorrentWizForSelected();
 			}
 		});
-		itemSend.setEnabled(false);
+		itemSend.setEnabled(hasSelection);
 		
 		// === advanced menu ===
 
@@ -2536,7 +2536,7 @@ public class MyTorrentsView
     if(itemKey.equals("down"))
       return down;
     if(itemKey.equals("send"))
-      return false;
+      return run;
     return false;
   }
 

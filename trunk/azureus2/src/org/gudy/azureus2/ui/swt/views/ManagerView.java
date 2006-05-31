@@ -284,7 +284,7 @@ public class ManagerView extends AbstractIView implements
 			return true;
 		
 		if (itemKey.equals("send"))
-			return false;
+			return true;
 		
 		return false;
 	}
