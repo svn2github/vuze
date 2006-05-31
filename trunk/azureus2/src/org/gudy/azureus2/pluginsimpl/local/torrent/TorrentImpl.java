@@ -288,7 +288,7 @@ TorrentImpl
 			// serialised 2) the user being prompted for an encoding choice 
 		
 		try{
-			decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+			decoder = LocaleTorrentUtil.getTorrentEncoding( torrent );
 			
 		}catch( Throwable e ){
 			
@@ -499,7 +499,7 @@ TorrentImpl
 		throws TorrentException
 	{		
 		try{
-			LocaleUtil.getSingleton().setDefaultTorrentEncoding( torrent );
+			LocaleTorrentUtil.setDefaultTorrentEncoding( torrent );
 		
 			DownloadManagerState	download_manager_state = 
 				DownloadManagerStateFactory.getDownloadState( torrent ); 

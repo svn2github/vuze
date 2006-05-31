@@ -339,7 +339,7 @@ TorrentManagerImpl
 		throws TorrentEncodingException
 	{
 		try{
-			LocaleUtil.getSingleton().setTorrentEncoding( torrent, encoding );
+			LocaleTorrentUtil.setTorrentEncoding( torrent, encoding );
 			
 		}catch( LocaleUtilEncodingException e ){
 			
@@ -363,7 +363,7 @@ TorrentManagerImpl
 		throws TorrentException 
 	{
 		try{
-			LocaleUtil.getSingleton().setDefaultTorrentEncoding( torrent );
+			LocaleTorrentUtil.setDefaultTorrentEncoding( torrent );
 			
 		}catch( LocaleUtilEncodingException e ){
 			

@@ -59,7 +59,7 @@ LocaleUtilSWT
   LocaleUtilSWT(
   	AzureusCore		core ) 
   {
-  	core.getLocaleUtil().addListener( this );
+  	LocaleTorrentUtil.addListener( this );
   }
   
   

@@ -59,7 +59,7 @@ TRHostExternalTorrent
 		name = ByteFormatter.nicePrint( hash, true ).getBytes();
 		
 		try{
-			LocaleUtil.getSingleton().setDefaultTorrentEncoding( this );
+			LocaleTorrentUtil.setDefaultTorrentEncoding( this );
 			
 		}catch( LocaleUtilEncodingException e ){
 			

@@ -47,6 +47,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -1944,7 +1945,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 			// Force a check on the encoding, will prompt user if we dunno
 			try {
-				LocaleUtil.getSingleton().getTorrentEncoding(TorrentInfo.this.torrent);
+				LocaleTorrentUtil.getTorrentEncoding(TorrentInfo.this.torrent);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -2030,7 +2031,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			if (torrent == null)
 				return "";
 			try {
-				LocaleUtilDecoder decoder = LocaleUtil.getSingleton().getTorrentEncodingIfAvailable(
+				LocaleUtilDecoder decoder = LocaleTorrentUtil.getTorrentEncodingIfAvailable(
 						torrent);
 				if (decoder != null)
 					return decoder.decodeString(torrent.getName());
