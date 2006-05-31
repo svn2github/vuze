@@ -22,6 +22,8 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import java.util.Iterator;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.program.Program;
@@ -29,16 +31,20 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.predicate.AllPredicate;
 import org.gudy.azureus2.core3.predicate.NotPredicate;
 import org.gudy.azureus2.core3.predicate.Predicable;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
+import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
@@ -64,16 +70,16 @@ import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
-import org.gudy.azureus2.plugins.PluginView;
 
-import java.util.Iterator;
-import java.util.Locale;
+import com.aelitis.azureus.core.AzureusCore;
 
 /**
  * @author Olivier Chalouhi
  * @author James Yeh Accessibility: Changes to allow better validation and unified menu bar state
  */
 public class MainMenu {
+	private static boolean ENABLE_TUX = false;
+	
 	private static final LogIDs LOGID = LogIDs.GUI;
 
   private Display display;
@@ -85,6 +91,8 @@ public class MainMenu {
   private MenuItem menu_plugin;
   private Menu pluginMenu;
   private Menu pluginLogsMenu;
+  
+  private AzureusCore core;
 
   /**
    * <p>Creates the main menu bar and attaches it to a shell that is not the main window</p>
@@ -115,6 +123,14 @@ public class MainMenu {
 
     buildMenu(mainWindow.getShell());
   }
+  
+  public void createMenu(AzureusCore core, Shell shell) {
+    this.display = SWTThread.getInstance().getDisplay();
+    attachedShell = shell;
+
+    this.core = core;
+    buildMenu(shell);
+  }
 
   /**
    * Populates Azureus' menu bar
@@ -123,13 +139,16 @@ public class MainMenu {
    */
   private void buildMenu(final Shell parent) {
     try {
+    	if (core == null) {
+    		core = mainWindow.getAzureusCore();
+    	}
       
       //The Main Menu
       menuBar = new Menu(parent, SWT.BAR);
       parent.setMenuBar(menuBar);
 
       // one time disable conditions
-      boolean notMainWindow = (attachedShell != mainWindow.getShell());
+      boolean notMainWindow = mainWindow != null && attachedShell != mainWindow.getShell();
       boolean isModal = new ShellIsModalPredicate().evaluate(attachedShell);
 
       //The File Menu
@@ -245,7 +264,7 @@ public class MainMenu {
       Messages.setLanguageText(file_share_file, "MainWindow.menu.file.share.file");
       file_share_file.addListener(SWT.Selection, new Listener() {
       	public void handleEvent(Event e) {
-      		ShareUtils.shareFile( mainWindow.getAzureusCore(),parent );
+      		ShareUtils.shareFile(core, parent);
       	}
       });
       
@@ -254,7 +273,7 @@ public class MainMenu {
       Messages.setLanguageText(file_share_dir, "MainWindow.menu.file.share.dir");
       file_share_dir.addListener(SWT.Selection, new Listener() {
       	public void handleEvent(Event e) {
-      		ShareUtils.shareDir( mainWindow.getAzureusCore(), parent );
+      		ShareUtils.shareDir(core, parent);
       	}
       });
       
@@ -263,7 +282,7 @@ public class MainMenu {
       Messages.setLanguageText(file_share_dircontents, "MainWindow.menu.file.share.dircontents");
       file_share_dircontents.addListener(SWT.Selection, new Listener() {
       	public void handleEvent(Event e) {
-      		ShareUtils.shareDirContents( mainWindow.getAzureusCore(),parent, false );
+      		ShareUtils.shareDirContents(core, parent, false);
       	}
       });
       MenuItem file_share_dircontents_rec = new MenuItem(shareMenu, SWT.NULL);
@@ -271,26 +290,26 @@ public class MainMenu {
       Messages.setLanguageText(file_share_dircontents_rec, "MainWindow.menu.file.share.dircontentsrecursive");
       file_share_dircontents_rec.addListener(SWT.Selection, new Listener() {
       	public void handleEvent(Event e) {
-      		ShareUtils.shareDirContents( mainWindow.getAzureusCore(),parent, true );
+      		ShareUtils.shareDirContents(core, parent, true);
       	}
       });
          	// file->create
       
       file_create.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
-          new NewTorrentWizard(mainWindow.getAzureusCore(), display);
+          new NewTorrentWizard(core, display);
         }
       });
       
       file_export.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
-          new ExportTorrentWizard(mainWindow.getAzureusCore(), display);
+          new ExportTorrentWizard(core, display);
         }
       });
   
       file_import.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
-          new ImportTorrentWizard(mainWindow.getAzureusCore(),display);
+          new ImportTorrentWizard(core,display);
         }
       });
 
@@ -354,7 +373,7 @@ public class MainMenu {
       Messages.setLanguageText(plugins_install_wizard, "MainWindow.menu.plugins.installPlugins"); //$NON-NLS-1$
       plugins_install_wizard.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
-          new InstallPluginWizard(mainWindow.getAzureusCore(), display);
+          new InstallPluginWizard(core, display);
         }
       });
       
@@ -363,7 +382,7 @@ public class MainMenu {
       Messages.setLanguageText(plugins_uninstall_wizard, "MainWindow.menu.plugins.uninstallPlugins"); //$NON-NLS-1$
       plugins_uninstall_wizard.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
-          new UnInstallPluginWizard(mainWindow.getAzureusCore(), display);
+          new UnInstallPluginWizard(core, display);
         }
       });
 
@@ -459,7 +478,7 @@ public class MainMenu {
         help_checkupdate.addListener(SWT.Selection, new Listener() {
         	public void handleEvent(Event e) {
         		mainWindow.getShell().setFocus();
-        		UpdateMonitor.getSingleton( mainWindow.getAzureusCore(), mainWindow).performCheck(true);
+        		UpdateMonitor.getSingleton(core, mainWindow).performCheck(true);
         	}
         });
       }
@@ -473,6 +492,17 @@ public class MainMenu {
           //Program.launch(donationString);
         }
       });
+      
+      if (ENABLE_TUX) {
+	      new MenuItem(helpMenu,SWT.SEPARATOR);
+	      MenuItem help_debug = new MenuItem(helpMenu, SWT.NULL);
+	      Messages.setLanguageText(help_debug, "MainWindow.menu.help.debug");
+	      help_debug.addListener(SWT.Selection, new Listener() {
+	        public void handleEvent(Event e) {
+	        	UIDebugGenerator.generate();
+	        }
+	      });
+      }
       
       /*
       new MenuItem(helpMenu,SWT.SEPARATOR);
@@ -503,7 +533,7 @@ public class MainMenu {
     }
   }
 
-  private void addTransferMenu(final Shell parent, boolean modal, boolean notMainWindow)
+	private void addTransferMenu(final Shell parent, boolean modal, boolean notMainWindow)
   {
       // ******** The Download Menu
 
@@ -933,7 +963,7 @@ public class MainMenu {
     private MenuItem addConfigWizardMenuItem(Menu menu) {
         return addMenuItem(menu, "MainWindow.menu.file.configure", new Listener() {
           public void handleEvent(Event e) {
-            new ConfigureWizard(mainWindow.getAzureusCore(), display);
+            new ConfigureWizard(core, display);
           }
         });
     }
@@ -948,7 +978,7 @@ public class MainMenu {
        Listener enableHandler = new Listener() {
         public void handleEvent(Event event) {
             if(!item.isDisposed() && !event.widget.isDisposed())
-                item.setEnabled(mainWindow.getShell() == attachedShell && Tab.hasDetails());
+                item.setEnabled(mainWindow != null && mainWindow.getShell() == attachedShell && Tab.hasDetails());
         }
       };
 
@@ -961,7 +991,7 @@ public class MainMenu {
   }
 
   private MenuItem addCloseWindowMenuItem(Menu menu) {
-      final boolean isMainWindow = (mainWindow.getShell() == attachedShell);
+      final boolean isMainWindow = mainWindow != null && mainWindow.getShell() == attachedShell;
       MenuItem item = addMenuItem(menu, "MainWindow.menu.file.closewindow", new Listener() {
           public void handleEvent(Event event) {
               if(isMainWindow)
@@ -1064,7 +1094,7 @@ public class MainMenu {
           public void handleEvent(Event event) {
               if(MainWindow.isAlreadyDead) {return;}
 
-              BlockedIpsWindow.showBlockedIps(mainWindow.getAzureusCore(), mainWindow.getShell());
+              BlockedIpsWindow.showBlockedIps(core, mainWindow.getShell());
           }
       });
   }
@@ -1163,7 +1193,6 @@ public class MainMenu {
           }
       }
   }
-
 }
 
 
