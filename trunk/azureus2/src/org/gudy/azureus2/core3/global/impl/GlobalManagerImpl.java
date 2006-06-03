@@ -44,6 +44,8 @@ import com.aelitis.azureus.core.AzureusCoreListener;
 
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerController;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -877,6 +879,41 @@ public class GlobalManagerImpl
     	managers_mon.exit();
     }
     
+    /**
+     *  Give the disk manager a chance to move the data files.
+     */ 
+    if (!manager.hasDeletedDataFiles()) {
+    	
+    	/**
+    	 * I don't like doing this, but the DiskManager for the download might not be there.
+    	 * If it isn't, then we have to force one to be created so that we can move the files.
+    	 * We tear it down afterwards.
+    	 */
+    	DiskManager disk_manager_for_download = manager.getDiskManager();
+    	boolean no_disk_manager = (disk_manager_for_download == null);
+    	if (no_disk_manager) {
+    		manager.initialize();
+    		disk_manager_for_download = manager.getDiskManager();
+    	}
+    	
+        if (disk_manager_for_download != null) {
+        	disk_manager_for_download.downloadRemoved(!manager.hasDeletedTorrentFile());
+        }
+        
+        // XXX: Any other tearing down I should be doing here?
+        if (no_disk_manager) {
+        	manager.destroy();
+        }
+        
+        /**
+         * I was hoping the below code would release any file handles it had to the
+         * data files, but it doesn't seem to work. What else would keep a handle on
+         * to the data files?
+         */
+        if (disk_manager_for_download != null) {
+        	disk_manager_for_download.stop();
+        }
+    }
     fixUpDownloadManagerPositions();
     listeners.dispatch( LDT_MANAGER_REMOVED, manager );
     manager.removeListener(this);

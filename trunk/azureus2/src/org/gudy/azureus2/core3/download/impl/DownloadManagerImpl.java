@@ -353,6 +353,8 @@ DownloadManagerImpl
     private int		max_uploads_when_seeding;
     private boolean	max_uploads_when_seeding_enabled;
     
+    private boolean has_deleted_data_files = false;
+    private boolean has_deleted_torrent_file = false;
     private int		max_upload_when_busy_bps;
     private int		current_upload_when_busy_bps;
     private long	last_upload_when_busy_update;
@@ -1301,6 +1303,11 @@ DownloadManagerImpl
   		boolean	remove_torrent,
   		boolean	remove_data )
   	{
+  		/*
+  	    if (!manager.hasDeletedDataFiles()) {
+  	    	disk_manager_for_download.downloadRemoved(!manager.hasDeletedTorrentFile());
+  	    }
+  	    */
   		controller.stopIt( state_after_stopping, remove_torrent, remove_data );
   	}
   	
@@ -2460,6 +2467,7 @@ DownloadManagerImpl
 	deleteDataFiles() 
 	{
 		DiskManagerFactory.deleteDataFiles(torrent, torrent_save_location.getParent(), torrent_save_location.getName());
+        this.has_deleted_data_files = true;
 	}
   
 	protected void 
@@ -2468,9 +2476,13 @@ DownloadManagerImpl
 		if ( torrentFileName != null ){
   		
 			TorrentUtils.delete( new File(torrentFileName));
+            this.has_deleted_torrent_file = true;
 		}
 	}
   
+    public boolean hasDeletedDataFiles() {return this.has_deleted_data_files;}
+    public boolean hasDeletedTorrentFile() {return this.has_deleted_torrent_file;}
+
 	public DownloadManagerState 
 	getDownloadState()
 	{	

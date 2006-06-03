@@ -188,6 +188,9 @@ DiskManager
 	public void
 	downloadEnded();
 
+    public void
+    downloadRemoved(boolean torrent_file_exists);
+
 	public void
 	moveDataFiles(
 		File	new_parent_dir );

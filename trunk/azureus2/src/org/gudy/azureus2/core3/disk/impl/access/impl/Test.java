@@ -360,6 +360,9 @@ Test
 			
 		}
 		
+		public boolean hasDeletedDataFiles() {return false;}
+		public boolean hasDeletedTorrentFile() {return false;}
+		
 		public DownloadManagerState 
 		getDownloadState()
 		{
