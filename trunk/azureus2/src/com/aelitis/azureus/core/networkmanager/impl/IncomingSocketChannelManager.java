@@ -55,7 +55,8 @@ public class IncomingSocketChannelManager
   private int max_match_buffer_size = 0;
   private int max_min_match_buffer_size = 0;
    
-  private int listen_port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+  private int tcp_listen_port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+  private int udp_listen_port = COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
   private int so_rcvbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
   private String bind_address = COConfigurationManager.getStringParameter( "Bind IP" );
   
@@ -75,12 +76,21 @@ public class IncomingSocketChannelManager
     COConfigurationManager.addParameterListener( "TCP.Listen.Port", new ParameterListener() {
       public void parameterChanged(String parameterName) {
         int port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
-        if( port != listen_port ) {
-          listen_port = port;
+        if( port != tcp_listen_port ) {
+        	tcp_listen_port = port;
           restart();
         }
       }
     });
+    
+    COConfigurationManager.addParameterListener( "UDP.Listen.Port", new ParameterListener() {
+        public void parameterChanged(String parameterName) {
+          int port = COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
+          if( port != udp_listen_port ) {
+        	  udp_listen_port = port;
+          }
+        }
+      });
     
     //allow dynamic receive buffer size changes
     COConfigurationManager.addParameterListener( "network.tcp.socket.SO_RCVBUF", new ParameterListener() {
@@ -133,7 +143,7 @@ public class IncomingSocketChannelManager
       					try{   					
       						if( inet_address == null )  inet_address = InetAddress.getByName( "127.0.0.1" );  //failback
       					
-      						Socket sock = new Socket( inet_address, listen_port, inet_address, 0 );
+      						Socket sock = new Socket( inet_address, tcp_listen_port, inet_address, 0 );
 
       						sock.close();
       						fail_count = 0;
@@ -142,17 +152,17 @@ public class IncomingSocketChannelManager
       						
       						//ok, let's try again without the explicit local bind
       						try {
-      							Socket sock = new Socket( InetAddress.getByName( "127.0.0.1" ), listen_port );      							
+      							Socket sock = new Socket( InetAddress.getByName( "127.0.0.1" ), tcp_listen_port );      							
       							sock.close();
       							fail_count = 0;
       						}
       						catch( Throwable x ) {
       							fail_count++;
-        						Debug.out( new Date()+ ": listen port on [" +inet_address+ ": " +listen_port+ "] seems CLOSED [" +fail_count+ "x]" );
+        						Debug.out( new Date()+ ": listen port on [" +inet_address+ ": " +tcp_listen_port+ "] seems CLOSED [" +fail_count+ "x]" );
         				
         						if( fail_count > 4 ) {
         							String error = t.getMessage() == null ? "<null>" : t.getMessage();
-        							String msg = "Listen server socket on [" +inet_address+ ": " +listen_port+ "] does not appear to be accepting inbound connections.\n[" +error+ "]\nAuto-repairing listen service....\n";
+        							String msg = "Listen server socket on [" +inet_address+ ": " +tcp_listen_port+ "] does not appear to be accepting inbound connections.\n[" +error+ "]\nAuto-repairing listen service....\n";
         							Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING, msg));
         							restart();
         							fail_count = 0;
@@ -180,7 +190,8 @@ public class IncomingSocketChannelManager
    * Get port that the TCP server socket is listening for incoming connections on.
    * @return port number
    */
-  public int getTCPListeningPortNumber() {  return listen_port;  }
+  public int getTCPListeningPortNumber() {  return tcp_listen_port;  }
+  public int getUDPListeningPortNumber() {  return udp_listen_port;  }
   
   
 
@@ -257,27 +268,33 @@ public class IncomingSocketChannelManager
   	try{
   		this_mon.enter();
       
-        if( listen_port < 0 || listen_port > 65535 || listen_port == 6880 ) {
-          String msg = "Invalid incoming listen port configured, " +listen_port+ ". Port reset to default. Please check your config!";
+        if( tcp_listen_port < 0 || tcp_listen_port > 65535 || tcp_listen_port == 6880 ) {
+          String msg = "Invalid incoming TCP listen port configured, " +tcp_listen_port+ ". Port reset to default. Please check your config!";
           Debug.out( msg );
           Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg));
-          listen_port = RandomUtils.generateRandomNetworkListenPort();
-          COConfigurationManager.setParameter( "TCP.Listen.Port", listen_port );
+          tcp_listen_port = RandomUtils.generateRandomNetworkListenPort();
+          COConfigurationManager.setParameter( "TCP.Listen.Port", tcp_listen_port );
         }
-  	
+        if( udp_listen_port < 0 || udp_listen_port > 65535 || udp_listen_port == 6880 ) {
+            String msg = "Invalid incoming UDP listen port configured, " +udp_listen_port+ ". Port reset to default. Please check your config!";
+            Debug.out( msg );
+            Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg));
+            udp_listen_port = tcp_listen_port;
+            COConfigurationManager.setParameter( "UDP.Listen.Port", udp_listen_port );
+        }
 	    if( server_selector == null ) {
 	      InetSocketAddress address;
 	      try{
 	        if( bind_address.length() > 6 ) {
-	          address = new InetSocketAddress( InetAddress.getByName( bind_address ), listen_port );
+	          address = new InetSocketAddress( InetAddress.getByName( bind_address ), tcp_listen_port );
 	        }
 	        else {
-	          address = new InetSocketAddress( listen_port );
+	          address = new InetSocketAddress( tcp_listen_port );
 	        }
 	      }
 	      catch( UnknownHostException e ) {
 	        Debug.out( e );
-	        address = new InetSocketAddress( listen_port );
+	        address = new InetSocketAddress( tcp_listen_port );
 	      }
 	      
 	      server_selector = VirtualServerChannelSelectorFactory.createTest( address, so_rcvbuf_size, new VirtualBlockingServerChannelSelector.SelectListener() {

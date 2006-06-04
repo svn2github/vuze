@@ -217,10 +217,14 @@ ConfigurationChecker
 	    	 	
 	    	//make sure we set and save a random listen port
 	    	if( !COConfigurationManager.doesParameterNonDefaultExist( "TCP.Listen.Port" ) ) {
-	    		COConfigurationManager.setParameter( "TCP.Listen.Port", RandomUtils.generateRandomNetworkListenPort() );
+	    		int	rand_port = RandomUtils.generateRandomNetworkListenPort();
+	    		COConfigurationManager.setParameter( "TCP.Listen.Port", rand_port );
+	    		COConfigurationManager.setParameter( "UDP.Listen.Port", rand_port );
 	    		changed = true;
+	    		
+	    	}else if( !COConfigurationManager.doesParameterNonDefaultExist( "UDP.Listen.Port" ) ) {
+	    		COConfigurationManager.setParameter( "UDP.Listen.Port", COConfigurationManager.getIntParameter( "TCP.Listen.Port" ));
 	    	}
-	    	
 	    }
 	    else {  //this is a pre-existing installation, called every time after first
 	    	

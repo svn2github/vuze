@@ -65,7 +65,7 @@ UPnPPlugin
 	protected PluginInterface		plugin_interface;
 	protected LoggerChannel 		log;
 	
-	protected UPnPMappingManager	mapping_manager	= UPnPMappingManager.getSingleton();
+	protected UPnPMappingManager	mapping_manager	= UPnPMappingManager.getSingleton( this );
 	
 	protected UPnP	upnp;
 	
@@ -487,6 +487,8 @@ UPnPPlugin
 						incrementDeviceStats( device.getUSN(), "found" );
 
 						checkDeviceStats( device );
+						
+						mapping_manager.deviceFound( device );
 						
 						try{
 							processDevice( device.getDevice() );
@@ -1047,7 +1049,7 @@ UPnPPlugin
 		int			port,
 		boolean		enabled )
 	{
-		return( UPnPMappingManager.getSingleton().addMapping( desc_resource, tcp, port, enabled ));
+		return( mapping_manager.addMapping( desc_resource, tcp, port, enabled ));
 	}
 	
 	public UPnPMapping
@@ -1055,6 +1057,19 @@ UPnPPlugin
 		boolean	tcp,
 		int		port )
 	{
-		return( UPnPMappingManager.getSingleton().getMapping( tcp, port ));
+		return( mapping_manager.getMapping( tcp, port ));
+	}
+	
+	protected void
+	logAlert(
+		int			type,
+		String		resource,
+		String[]	params )
+	{
+		String	text = 
+			plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(
+					resource, params );
+
+		log.logAlertRepeatable( type, text );
 	}
 }

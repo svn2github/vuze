@@ -31,31 +31,46 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+
+import com.aelitis.net.upnp.UPnPRootDevice;
 
 public class 
 UPnPMappingManager 
 {
-	protected static UPnPMappingManager	singleton = new UPnPMappingManager();
+	private static UPnPMappingManager	singleton;
 	
-	public static UPnPMappingManager
-	getSingleton()
+	protected static synchronized UPnPMappingManager
+	getSingleton(
+		UPnPPlugin	plugin )
 	{
+		if ( singleton == null ){
+			
+			singleton = new UPnPMappingManager( plugin );
+		}
+		
 		return( singleton );
 	}
 	
-	protected List	mappings	= new ArrayList();
-	protected List	listeners	= new ArrayList();
+	private UPnPPlugin	plugin;
+	
+	private List	mappings	= new ArrayList();
+	private List	listeners	= new ArrayList();
 	
 	protected
-	UPnPMappingManager()
+	UPnPMappingManager(
+		UPnPPlugin		_plugin )
 	{
+		plugin	= _plugin;
+		
 			// incoming data port
 
 			// Zyxel routers currently seem to overwrite the TCP mapping for a given port
 			// with the UDP one, leaving the TCP one non-operational. Hack to try setting them
 			// in UDP -> TCP order to hopefully leave the more important one working :)
 		
-		addConfigPort( "upnp.mapping.dataportudp", false, "Server Enable UDP", "TCP.Listen.Port" );
+		addConfigPort( "upnp.mapping.dataportudp", false, "Server Enable UDP", "UDP.Listen.Port" );
 
 		addConfigPort( "upnp.mapping.dataport", true, "TCP.Listen.Port", true );
 		
@@ -75,6 +90,86 @@ UPnPMappingManager
 		addConfigPort( "upnp.mapping.udptrackerport", false, "Tracker Port UDP Enable", "Tracker Port" );
 	}
 	
+	protected void
+	deviceFound(
+		UPnPRootDevice		device )
+	{
+		String	device_name = device.getDevice().getFriendlyName();
+		
+		boolean save_config = false;
+		
+		if ( device_name.equals( "WRT54G" )){
+			
+				// doesn't support UDP and TCP on same port number - patch up
+				// unfortunately the router remembers the stuffed ports and makes it unusable for
+				// either UDP OR TCP until a HARD reset so we need to change both ports...
+			
+			UPnPMapping[]	maps = getMappings();
+			
+			for (int i=0;i<maps.length;i++){
+				
+				UPnPMapping	map = maps[i];
+				
+				if ( map.isEnabled() && !map.isTCP()){
+					
+					UPnPMapping	other = getMapping( true, map.getPort());
+					
+					if ( other != null && other.isEnabled()){
+						
+						int	new_port_1;
+						int	new_port_2;
+						
+						while( true ){
+						
+							int	new_port = RandomUtils.generateRandomNetworkListenPort();
+						
+							if ( getMapping( true, new_port ) == null && getMapping( false, new_port ) == null){
+								
+								new_port_1 = new_port;
+								
+								break;
+							}
+						}
+						
+						while( true ){
+							
+							int	new_port = RandomUtils.generateRandomNetworkListenPort();
+						
+							if ( getMapping( true, new_port ) == null && getMapping( false, new_port ) == null){
+								
+								if ( new_port_1 != new_port ){
+									
+									new_port_2 = new_port;
+								
+									break;
+								}
+							}
+						}
+						
+						plugin.logAlert( 
+								LoggerChannel.LT_WARNING,
+								"upnp.portchange.alert",
+								new String[]{ 
+										map.getString( new_port_1 ),
+										String.valueOf( map.getPort()),
+										other.getString( new_port_2 ),
+										String.valueOf(other.getPort())});
+
+						map.setPort( new_port_1 );
+						other.setPort( new_port_2 );
+						
+						save_config	= true;
+					}
+				}
+			}
+		}
+		
+		if ( save_config ){
+			
+			COConfigurationManager.save();
+		}
+	}
+
 	protected UPnPMapping
 	addConfigPort(
 		String			name_resource,
@@ -85,6 +180,23 @@ UPnPMappingManager
 		int	value = COConfigurationManager.getIntParameter(int_param_name);
 		
 		final UPnPMapping	mapping = addMapping( name_resource, tcp, value, enabled );
+		
+		mapping.addListener(
+				new UPnPMappingListener()
+				{
+					public void 
+					mappingChanged(
+						UPnPMapping mapping) 
+					{
+						COConfigurationManager.setParameter( int_param_name, mapping.getPort());
+					}
+					
+					public void
+					mappingDestroyed(
+						UPnPMapping	mapping )
+					{
+					}
+				});
 		
 		COConfigurationManager.addParameterListener(
 				int_param_name,
@@ -111,6 +223,23 @@ UPnPMappingManager
 		boolean	enabled = COConfigurationManager.getBooleanParameter(enabler_param_name);
 		
 		final UPnPMapping	mapping = addConfigPort( name_resource, tcp, int_param_name, enabled );
+		
+		mapping.addListener(
+				new UPnPMappingListener()
+				{
+					public void 
+					mappingChanged(
+						UPnPMapping mapping) 
+					{
+						COConfigurationManager.setParameter( int_param_name, mapping.getPort());
+					}
+					
+					public void
+					mappingDestroyed(
+						UPnPMapping	mapping )
+					{
+					}
+				});
 		
 		COConfigurationManager.addParameterListener(
 				enabler_param_name,

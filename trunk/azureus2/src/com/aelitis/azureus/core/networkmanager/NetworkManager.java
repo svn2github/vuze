@@ -424,6 +424,7 @@ public class NetworkManager {
    * @return port number
    */
   public int getTCPListeningPortNumber() {  return incoming_socketchannel_manager.getTCPListeningPortNumber();  }
+  public int getUDPListeningPortNumber() {  return incoming_socketchannel_manager.getUDPListeningPortNumber();  }
   
   
   public NetworkManagerStats

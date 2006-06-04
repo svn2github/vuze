@@ -110,6 +110,7 @@ public class ConfigurationDefaults {
     def.put("Override Ip", "");
     def.put("Enable incremental file creation", FALSE);
     def.put("TCP.Listen.Port", new Long( 6881 ));
+    def.put("UDP.Listen.Port", new Long( 6881 ));
     def.put("max active torrents", new Long(4));
     def.put("max downloads", new Long(4));
     def.put("Newly Seeding Torrents Get First Priority", TRUE);

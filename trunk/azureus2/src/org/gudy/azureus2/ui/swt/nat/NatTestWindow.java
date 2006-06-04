@@ -193,6 +193,8 @@ public class NatTestWindow {
     bApply.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         COConfigurationManager.setParameter("TCP.Listen.Port",serverTCPListenPort);
+        COConfigurationManager.setParameter("UDP.Listen.Port",serverTCPListenPort);
+
         shell.close();
       }
     });

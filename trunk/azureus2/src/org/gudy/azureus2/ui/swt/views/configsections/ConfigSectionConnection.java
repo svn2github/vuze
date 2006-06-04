@@ -85,9 +85,10 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		cMiniArea.setLayoutData(gridData);
 		
-		
+		final boolean	separate_ports = userMode > 1 || COConfigurationManager.getIntParameter( "TCP.Listen.Port" ) != COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
+
 		label = new Label(cMiniArea, SWT.NULL);
-		Messages.setLanguageText(label, "ConfigView.label.serverport");
+		Messages.setLanguageText(label, separate_ports?"ConfigView.label.tcplistenport":"ConfigView.label.serverport");
 		gridData = new GridData();
 		label.setLayoutData(gridData);
 
@@ -102,11 +103,42 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 				int val = tcplisten.getValue();
 
 				if (val == 6880 || val == 6881) {
-					tcplisten.setValue(6881);
+					val = 6881;
+					tcplisten.setValue(val);
+				}
+				
+				if ( !separate_ports ){
+					
+					COConfigurationManager.setParameter( "UDP.Listen.Port", val );
 				}
 			}
 		});
+		
+		if ( separate_ports ){
+			
+			label = new Label(cMiniArea, SWT.NULL);
+			Messages.setLanguageText(label, "ConfigView.label.udplistenport");
+			gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			label.setLayoutData(gridData);
 
+			final IntParameter udp_listen = new IntParameter(cMiniArea,
+					"UDP.Listen.Port", 1, 65535, false, false);
+			gridData = new GridData();
+			gridData.widthHint = 40;
+			udp_listen.setLayoutData(gridData);
+
+			udp_listen.addChangeListener(new ParameterChangeListener() {
+				public void parameterChanged(Parameter p, boolean caused_internally) {
+					int val = udp_listen.getValue();
+
+					if (val == 6880 || val == 6881) {
+						val = 6881;
+						udp_listen.setValue(val);
+					}
+				}
+			});
+		}
+		
 		if (userMode < 2) {
 			// wiki link
 			label = new Label(cSection, SWT.NULL);

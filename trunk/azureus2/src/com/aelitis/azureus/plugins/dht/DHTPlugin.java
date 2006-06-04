@@ -63,6 +63,7 @@ import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
 
 import com.aelitis.azureus.plugins.upnp.UPnPMapping;
+import com.aelitis.azureus.plugins.upnp.UPnPMappingListener;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 /**
@@ -149,7 +150,7 @@ DHTPlugin
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	PLUGIN_VERSION );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
 
-		dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
+		dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "UDP.Listen.Port" );
 
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
 		
@@ -199,7 +200,7 @@ DHTPlugin
 					public void
 					configSaved()
 					{
-						int	new_dht_data_port_default = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
+						int	new_dht_data_port_default = plugin_interface.getPluginconfig().getIntParameter( "UDP.Listen.Port" );
 						
 						int	new_dht_data_port = dht_port_param.getValue();
 						
@@ -594,6 +595,38 @@ DHTPlugin
 							false, 
 							dht_data_port, 
 							true );
+			
+				// this listener will be triggered either when we explicitly change the udp port here *or* if
+				// the port is changed via the upnp subsystem (in particular if upnp decides that a router can't
+				// support the configured port
+			
+			upnp_mapping.addListener(
+				new UPnPMappingListener()
+				{
+					public void 
+					mappingChanged(
+						UPnPMapping mapping) 
+					{
+							// ensure that the config matches the selected port
+							
+						int	mapping_port = mapping.getPort();
+						
+						int	core_udp_port = plugin_interface.getPluginconfig().getIntParameter( "UDP.Listen.Port" );
+						
+						if ( core_udp_port != mapping_port ){
+							
+							dht_port_param.setValue( mapping_port );
+						
+							use_default_port.setValue( false );
+						}
+					}
+					
+					public void
+					mappingDestroyed(
+						UPnPMapping	mapping )
+					{
+					}
+				});
 		}
 
 		setPluginInfo();
