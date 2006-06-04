@@ -114,6 +114,35 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 					.getControls()));
 
 		}
+		
+        /**
+         * Default download / upload limits available in the UI.
+         */
+        Group limit_group = new Group(cDisplay, SWT.NULL);
+        Messages.setLanguageText(limit_group, LBLKEY_PREFIX + "set_ui_transfer_speeds");
+        layout = new GridLayout();
+        limit_group.setLayout(layout);
+        
+        Label limit_group_label = new Label(limit_group, SWT.WRAP);
+        Messages.setLanguageText(limit_group_label, LBLKEY_PREFIX + "set_ui_transfer_speeds.description");
+        
+        String[] limit_types = new String[] {"download", "upload"};
+        final String limit_type_prefix = "config.ui.speed.partitions.manual.";
+        for (int i=0; i<limit_types.length; i++) {
+        	final BooleanParameter bp = new BooleanParameter(limit_group, limit_type_prefix + limit_types[i] + ".enabled", false, LBLKEY_PREFIX + "set_ui_transfer_speeds.description." + limit_types[i]);
+        	final StringParameter sp = new StringParameter(limit_group, limit_type_prefix + limit_types[i] + ".values", "");
+        	IAdditionalActionPerformer iaap = new GenericActionPerformer(new Control[] {}) {
+        		public void performAction() {
+        			sp.getControl().setEnabled(bp.isSelected());	
+        		}
+        	};
+        	
+            gridData = new GridData();
+            gridData.widthHint = 150;
+            sp.setLayoutData(gridData);
+        	iaap.performAction();
+        	bp.setAdditionalActionPerformer(iaap);
+        }
 
 		new BooleanParameter(cDisplay, "Send Version Info", true, LBLKEY_PREFIX
 				+ "allowSendVersion");

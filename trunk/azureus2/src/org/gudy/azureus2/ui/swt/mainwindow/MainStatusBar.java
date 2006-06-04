@@ -389,93 +389,7 @@ public class MainStatusBar {
 		final Menu menuUpSpeed = new Menu(shell, SWT.POP_UP);
 		menuUpSpeed.addListener(SWT.Show, new Listener() {
 			public void handleEvent(Event e) {
-				GlobalManager globalManager = mainWindow.getGlobalManager();
-
-				MenuItem[] items = menuUpSpeed.getItems();
-				for (int i = 0; i < items.length; i++) {
-					items[i].dispose();
-				}
-
-				final String auto_param = TransferSpeedValidator
-						.getActiveAutoUploadParameter(globalManager);
-
-				boolean auto = COConfigurationManager.getBooleanParameter(auto_param);
-
-				// auto
-				final MenuItem auto_item = new MenuItem(menuUpSpeed, SWT.CHECK);
-				auto_item.setText(MessageText.getString("ConfigView.auto"));
-				auto_item.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event e) {
-						COConfigurationManager.setParameter(auto_param, auto_item
-								.getSelection());
-						COConfigurationManager.save();
-					}
-				});
-
-				if (auto)
-					auto_item.setSelection(true);
-
-				auto_item.setEnabled(TransferSpeedValidator
-						.isAutoUploadAvailable(azureusCore));
-
-				new MenuItem(menuUpSpeed, SWT.SEPARATOR);
-
-				// unlimited
-
-				final String config_param = TransferSpeedValidator
-						.getActiveUploadParameter(globalManager);
-
-				int upLimit = COConfigurationManager.getIntParameter(config_param, 0);
-
-				MenuItem item = new MenuItem(menuUpSpeed, SWT.RADIO);
-				item.setText(MessageText.getString("ConfigView.unlimited"));
-				item.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event e) {
-						COConfigurationManager.setParameter(config_param, 0);
-						COConfigurationManager.setParameter(auto_param, false);
-						COConfigurationManager.save();
-					}
-				});
-				if (upLimit == 0 && !auto)
-					item.setSelection(true);
-
-				final Listener speedChangeListener = new Listener() {
-					public void handleEvent(Event e) {
-						int iSpeed = ((Integer) new TransferSpeedValidator(config_param,
-								((MenuItem) e.widget).getData("speed")).getValue()).intValue();
-						COConfigurationManager.setParameter(config_param, iSpeed);
-						COConfigurationManager.setParameter(auto_param, false);
-						COConfigurationManager.save();
-					}
-				};
-
-				int iRel = 0;
-				for (int i = 0; i < 12; i++) {
-					int[] iAboveBelow;
-					if (iRel == 0) {
-						iAboveBelow = new int[] { upLimit };
-					} else {
-						iAboveBelow = new int[] { upLimit - iRel, upLimit + iRel };
-					}
-
-					for (int j = 0; j < iAboveBelow.length; j++) {
-						if (iAboveBelow[j] >= 5) {
-							item = new MenuItem(menuUpSpeed, SWT.RADIO, (j == 0) ? 3
-									: menuUpSpeed.getItemCount());
-							item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(
-									iAboveBelow[j] * 1024, true));
-							item.setData("speed", new Long(iAboveBelow[j]));
-							item.addListener(SWT.Selection, speedChangeListener);
-
-							if (upLimit == iAboveBelow[j] && !auto)
-								item.setSelection(true);
-						}
-					}
-
-					iRel += (iRel >= 50) ? 50 : (iRel >= 10) ? 10 : (iRel >= 5) ? 5
-							: (iRel >= 2) ? 3 : 1;
-				}
-
+				SelectableSpeedMenu.generateMenuItems(menuUpSpeed, mainWindow, true);
 			}
 		});
 		statusUp.setMenu(menuUpSpeed);
@@ -483,63 +397,7 @@ public class MainStatusBar {
 		final Menu menuDownSpeed = new Menu(shell, SWT.POP_UP);
 		menuDownSpeed.addListener(SWT.Show, new Listener() {
 			public void handleEvent(Event e) {
-				MenuItem[] items = menuDownSpeed.getItems();
-				for (int i = 0; i < items.length; i++) {
-					items[i].dispose();
-				}
-
-				int downLimit = COConfigurationManager.getIntParameter(CFG_MAXDLSPEED,
-						0);
-				final boolean unlim = (downLimit == 0);
-				if (downLimit == 0)
-					downLimit = 275;
-
-				MenuItem item = new MenuItem(menuDownSpeed, SWT.RADIO);
-				item.setText(MessageText.getString("ConfigView.unlimited"));
-				item.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event e) {
-						COConfigurationManager.setParameter(CFG_MAXDLSPEED,
-								((Integer) new TransferSpeedValidator(CFG_MAXDLSPEED,
-										new Integer(0)).getValue()).intValue());
-						COConfigurationManager.save();
-					}
-				});
-				if (unlim)
-					item.setSelection(true);
-
-				final Listener speedChangeListener = new Listener() {
-					public void handleEvent(Event e) {
-						int iSpeed = ((Integer) new TransferSpeedValidator(CFG_MAXDLSPEED,
-								((MenuItem) e.widget).getData("speed")).getValue()).intValue();
-						COConfigurationManager.setParameter(CFG_MAXDLSPEED, iSpeed);
-						COConfigurationManager.save();
-					}
-				};
-
-				int iRel = 0;
-				for (int i = 0; i < 12; i++) {
-					int[] iAboveBelow;
-					if (iRel == 0) {
-						iAboveBelow = new int[] { downLimit };
-					} else {
-						iAboveBelow = new int[] { downLimit - iRel, downLimit + iRel };
-					}
-					for (int j = 0; j < iAboveBelow.length; j++) {
-						if (iAboveBelow[j] >= 5) {
-							item = new MenuItem(menuDownSpeed, SWT.RADIO, (j == 0) ? 1
-									: menuDownSpeed.getItemCount());
-							item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(
-									iAboveBelow[j] * 1024, true));
-							item.setData("speed", new Long(iAboveBelow[j]));
-							item.addListener(SWT.Selection, speedChangeListener);
-							item.setSelection(!unlim && downLimit == iAboveBelow[j]);
-						}
-					}
-
-					iRel += (iRel >= 50) ? 50 : (iRel >= 10) ? 10 : (iRel >= 5) ? 5
-							: (iRel >= 2) ? 3 : 1;
-				}
-
+				SelectableSpeedMenu.generateMenuItems(menuDownSpeed, mainWindow, false);
 			}
 		});
 		statusDown.setMenu(menuDownSpeed);

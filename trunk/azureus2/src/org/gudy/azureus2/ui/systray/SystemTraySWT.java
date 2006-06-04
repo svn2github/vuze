@@ -34,6 +34,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.PasswordWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.SelectableSpeedMenu;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import java.util.List;
@@ -193,7 +194,7 @@ public class SystemTraySWT {
         {
             public void handleEvent(Event event)
             {
-                createLimitMenuItems( true, uploadSpeedMenu );
+            	SelectableSpeedMenu.generateMenuItems(uploadSpeedMenu, mainWindow, true);
             }
         });
 
@@ -216,91 +217,13 @@ public class SystemTraySWT {
         {
             public void handleEvent(Event event)
             {
-                createLimitMenuItems(false, downloadSpeedMenu);
+            	SelectableSpeedMenu.generateMenuItems(downloadSpeedMenu, mainWindow, false);
             }
         });
 
         downloadSpeedItem.setMenu(downloadSpeedMenu);
     }
 
-    /**
-     * Creates the submenu items for bandwidth limit
-     * @param configKey Configuration key to get initial max bandwidth
-     * @param parent Parent menu to populate the items in
-     */
-    private final void createLimitMenuItems(boolean up_menu, final Menu parent) {
-        final MenuItem[] oldItems = parent.getItems();
-        for(int i = 0; i < oldItems.length; i++)
-        {
-            oldItems[i].dispose();
-        }
-
-        final String configKey = 
-        	up_menu?
-        		TransferSpeedValidator.getActiveUploadParameter( mainWindow.getGlobalManager()):
-        		"Max Download Speed KBs";
-               	 
-        final int speedPartitions = 12;
-
-        int maxBandwidth = COConfigurationManager.getIntParameter(configKey);
-        final boolean unlim = (maxBandwidth == 0);
-        if(maxBandwidth == 0 && !up_menu )
-        {
-            maxBandwidth = 275;
-        }
-        
-        boolean	auto = false;
-        
-        if ( up_menu ){	   
-        	
-            final String configAutoKey = 
-            		TransferSpeedValidator.getActiveAutoUploadParameter( mainWindow.getGlobalManager());
-     
-	        auto = COConfigurationManager.getBooleanParameter( configAutoKey );
-	        
-	        	// auto
-	        final MenuItem auto_item = new MenuItem(parent,SWT.CHECK);
-	        auto_item.setText(MessageText.getString("ConfigView.auto"));
-	        auto_item.addListener(SWT.Selection,new Listener() {
-	          public void handleEvent(Event e) {
-	            COConfigurationManager.setParameter(configAutoKey,auto_item.getSelection());
-	            COConfigurationManager.save();
-	          }
-	        });
-	        
-	        if(auto)auto_item.setSelection(true);
-	        auto_item.setEnabled(TransferSpeedValidator.isAutoUploadAvailable(mainWindow.getAzureusCore()));
-
-	        new MenuItem(parent,SWT.SEPARATOR);
-        }
-        
-        MenuItem item = new MenuItem(parent, SWT.RADIO);
-        item.setText(MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"));
-        item.setData("maxkb", new Integer(0));
-        item.setSelection(unlim && !auto);
-        item.addListener(SWT.Selection, getLimitMenuItemListener(up_menu,parent, configKey));
-
-        int delta = 0;
-        for (int i = 0; i < speedPartitions; i++) {
-            final int[] valuePair;
-              if (delta == 0)
-                valuePair = new int[] { maxBandwidth };
-              else
-                valuePair = new int[] { maxBandwidth - delta, maxBandwidth + delta };
-
-              for (int j = 0; j < valuePair.length; j++) {
-                if (valuePair[j] >= 5) {
-                  item = new MenuItem(parent, SWT.RADIO, (j == 0) ? (up_menu?3:1) : parent.getItemCount());
-                  item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(valuePair[j] * 1024, true));
-                  item.setData("maxkb", new Integer(valuePair[j]));
-                  item.addListener(SWT.Selection, getLimitMenuItemListener(up_menu,parent, configKey));
-                  item.setSelection(!unlim && valuePair[j] == maxBandwidth && !auto);
-                }
-              }
-
-              delta += (delta >= 50) ? 50 : (delta >= 10) ? 10 : (delta >= 5) ? 5 : (delta >= 2) ? 3 : 1;
-        }
-    }
 
     /**
      * Gets the selection listener of a upload or download limit menu item (including unlimited)
@@ -405,4 +328,5 @@ public class SystemTraySWT {
   public Menu getMenu() {
     return menu;
   }
+  
 }
