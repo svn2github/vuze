@@ -1293,6 +1293,11 @@ DHTNATPuncherImpl
 			
 			request.put("origin", encodeContact( originator ));
 			
+			if ( originator instanceof DHTTransportUDPContact ){
+				
+				request.put( "port", new Long( ((DHTTransportUDPContact)originator).getTransportAddress().getPort()));
+			}
+			
 			Map response = sendRequest( target, request );
 			
 			if ( response == null ){
@@ -1348,6 +1353,31 @@ DHTNATPuncherImpl
 			final DHTTransportContact	target = decodeContact( (byte[])request.get( "origin" ));
 			
 			if ( target != null ){
+			
+				if ( target instanceof DHTTransportUDPContact ){
+										
+					int	transport_port = 0;
+					
+					Long	indirect_port = (Long)response.get( "port" );
+				
+					if ( indirect_port != null ){
+					
+						transport_port	= indirect_port.intValue();
+					}
+				
+					if ( transport_port != 0 ){
+					
+						DHTTransportUDPContact	udp_contact = (DHTTransportUDPContact)target;
+
+						InetSocketAddress	existing_address = udp_contact.getTransportAddress();
+					
+						if ( transport_port != existing_address.getPort()){
+							
+							udp_contact.setTransportAddress(
+								new InetSocketAddress(existing_address.getAddress(), transport_port ));
+						}
+					}
+				}
 				
 				log( "Received connect request from " + target.getString());
 				
