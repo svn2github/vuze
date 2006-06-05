@@ -26,8 +26,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.net.InetSocketAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.*;
@@ -46,6 +48,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportProgressListener;
 import com.aelitis.azureus.core.dht.transport.DHTTransportReplyHandlerAdapter;
 import com.aelitis.azureus.core.dht.transport.DHTTransportTransferHandler;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDPContact;
 
 public class 
 DHTNATPuncherImpl
@@ -68,6 +71,7 @@ DHTNATPuncherImpl
 	private static final int	RT_PUNCH_REPLY			= 3;	
 	private static final int	RT_CONNECT_REQUEST		= 4;
 	private static final int	RT_CONNECT_REPLY		= 5;	
+	private static final int	RT_TUNNEL				= 6;	
 	
 	private static final int	RESP_OK			= 0;
 	private static final int	RESP_NOT_OK		= 1;
@@ -77,8 +81,9 @@ DHTNATPuncherImpl
 	
 	private boolean				started;
 	
-	private	DHT					dht;
-	private DHTLogger			logger;
+	private DHTNATPuncherAdapter	adapter;
+	private	DHT						dht;
+	private DHTLogger				logger;
 	
 	private PluginInterface		plugin_interface;
 	private Formatters			formatters;
@@ -122,11 +127,16 @@ DHTNATPuncherImpl
 	
 	private Map		explicit_rendezvous_map		= new HashMap();
 	
+	private Monitor	punch_mon;
+	private List	oustanding_punches 	= new ArrayList();
+	
 	public
 	DHTNATPuncherImpl(
-		DHT			_dht )
+		DHTNATPuncherAdapter	_adapter,
+		DHT						_dht )
 	{
-		dht	= _dht;
+		adapter	= _adapter;
+		dht		= _dht;
 	
 		logger	= dht.getLogger();
 		
@@ -135,6 +145,7 @@ DHTNATPuncherImpl
 		formatters	= plugin_interface.getUtilities().getFormatters();
 		pub_mon		= plugin_interface.getUtilities().getMonitor();
 		server_mon	= plugin_interface.getUtilities().getMonitor();
+		punch_mon	= plugin_interface.getUtilities().getMonitor();
 		
 		timer = plugin_interface.getUtilities().createTimer(
 						"DHTNATPuncher:refresher", true );
@@ -857,6 +868,49 @@ DHTNATPuncherImpl
 		}		
 	}
 	
+	protected int
+   	sendMessage(
+   		DHTTransportContact		target,
+   		byte[]					data )
+   	{
+   		try{
+			dht.getTransport().writeTransfer(
+				new DHTTransportProgressListener()
+				{
+					public void
+					reportSize(
+						long	size )
+					{
+					}
+					
+					public void
+					reportActivity(
+						String	str )
+					{
+					}
+					
+					public void
+					reportCompleteness(
+						int		percent )
+					{						
+					}
+				},
+				target,
+				transfer_handler_key,
+				new byte[0],
+				data,
+				TRANSFER_TIMEOUT );
+   				
+			return( RESP_OK );
+			
+   		}catch( DHTTransportException e ){
+   			
+   			// log(e); timeout most likely
+ 
+   			return( RESP_NOT_OK );
+   		}		
+   	}
+	
 	protected byte[]
 	receiveRequest(
 		DHTTransportContact		originator,
@@ -903,6 +957,22 @@ DHTNATPuncherImpl
 		}
 	}
 	
+	protected int
+	sendMessage(
+		DHTTransportContact		target,
+		Map						data )
+	{
+		try{
+			return( sendMessage( target, formatters.bEncode( data )));
+			
+		}catch( Throwable e ){
+			
+			log(e);
+			
+			return( RESP_NOT_OK );
+		}
+	}
+	
 	protected Map
 	receiveRequest(
 		DHTTransportContact		originator,
@@ -935,6 +1005,14 @@ DHTNATPuncherImpl
 				response.put( "type", new Long( RT_CONNECT_REPLY ));
 				
 				receiveConnect( originator, data, response );
+				
+				break;
+			}
+			case RT_TUNNEL:
+			{				
+				receiveTunnel( originator, data );
+				
+				response = null;
 				
 				break;
 			}
@@ -1040,12 +1118,26 @@ DHTNATPuncherImpl
 		response.put( "ok", new Long(ok?1:0));
 	}
 		
-	protected int
+	protected Map
 	sendPunch(
 		DHTTransportContact rendezvous,
 		DHTTransportContact	target )
 	{
+		AESemaphore	wait_sem 	= new AESemaphore( "DHTNatPuncher::sendPunch" );
+		Object[]	wait_data 	= new Object[]{ target, wait_sem, new Integer(0)};
+		
 		try{
+
+			try{
+				punch_mon.enter();
+			
+				oustanding_punches.add( wait_data );
+				
+			}finally{
+				
+				punch_mon.exit();
+			}
+			
 			Map	request = new HashMap();
 			
 			request.put("type", new Long( RT_PUNCH_REQUEST ));
@@ -1056,7 +1148,7 @@ DHTNATPuncherImpl
 			
 			if ( response == null ){
 				
-				return( RESP_FAILED );
+				return( null );
 			}
 			
 			if (((Long)response.get( "type" )).intValue() == RT_PUNCH_REPLY ){
@@ -1069,17 +1161,85 @@ DHTNATPuncherImpl
 				
 				if ( result == 1 ){
 					
-					return( RESP_OK );
+						// give the other end a few seconds to kick off some tunnel events to us
+					
+					wait_sem.reserve(10000);
+					
+					if ( target instanceof DHTTransportUDPContact ){
+
+						DHTTransportUDPContact	udp_contact = (DHTTransportUDPContact)target;
+						
+							// routers often fiddle with the port when not mapped so we need to grab the right one to use
+							// for direct communication
+						
+							// first priority goes to direct tunnel messages received
+						
+						int	transport_port = 0;
+						
+						try{
+							punch_mon.enter();
+						
+							transport_port = ((Integer)wait_data[2]).intValue();
+							
+						}finally{
+							
+							punch_mon.exit();
+						}
+						
+							// second priority to that reported by the rendezvous
+						
+						if ( transport_port == 0 ){
+						
+							Long	indirect_port = (Long)response.get( "port" );
+						
+							if ( indirect_port != null ){
+							
+								transport_port	= indirect_port.intValue();
+							}
+						}
+					
+						if ( transport_port != 0 ){
+							
+							InetSocketAddress	existing_address = udp_contact.getTransportAddress();
+							
+							if ( transport_port != existing_address.getPort()){
+								
+								udp_contact.setTransportAddress(
+									new InetSocketAddress(existing_address.getAddress(), transport_port ));
+							}
+						}
+					}
+					
+					Map	client_data = (Map)response.get( "client_data" );
+					
+					if ( client_data == null ){
+						
+						client_data = new HashMap();
+					}
+					
+					return( client_data );
 				}
 			}
 			
-			return( RESP_NOT_OK );
+			return( null );
 			
 		}catch( Throwable e ){
 			
 			log(e);
 			
-			return( RESP_FAILED );
+			return( null );
+			
+		}finally{
+			
+			try{
+				punch_mon.enter();
+			
+				oustanding_punches.remove( wait_data );
+				
+			}finally{
+				
+				punch_mon.exit();
+			}
 		}
 	}
 	
@@ -1106,8 +1266,19 @@ DHTNATPuncherImpl
 				
 				DHTTransportContact	target = (DHTTransportContact)entry[0];
 				
-				if ( sendConnect( target, originator ) == RESP_OK ){
+				Map client_data = sendConnect( target, originator );
 				
+				if ( client_data != null ){
+					
+					response.put( "client_data", client_data );
+						
+						// bit of a hack but then all contacts are UDP at the mo...
+					
+					if ( target instanceof DHTTransportUDPContact ){
+						
+						response.put( "port", new Long( ((DHTTransportUDPContact)target).getTransportAddress().getPort()));
+					}
+					
 					ok	= true;
 				}
 			}
@@ -1122,7 +1293,7 @@ DHTNATPuncherImpl
 		response.put( "ok", new Long(ok?1:0));
 	}
 	
-	protected int
+	protected Map
 	sendConnect(
 		DHTTransportContact target,
 		DHTTransportContact	originator )
@@ -1138,7 +1309,7 @@ DHTNATPuncherImpl
 			
 			if ( response == null ){
 				
-				return( RESP_FAILED );
+				return( null );
 			}
 			
 			if (((Long)response.get( "type" )).intValue() == RT_CONNECT_REPLY ){
@@ -1151,17 +1322,24 @@ DHTNATPuncherImpl
 					
 				if ( result == 1 ){
 					
-					return( RESP_OK );
+					Map client_data = (Map)response.get( "client_data" );
+					
+					if ( client_data == null ){
+						
+						client_data = new HashMap();
+					}
+					
+					return( client_data );
 				}
 			}
 			
-			return( RESP_NOT_OK );
+			return( null );
 			
 		}catch( Throwable e ){
 			
 			log(e);
 			
-			return( RESP_FAILED );
+			return( null );
 		}
 	}
 	
@@ -1186,6 +1364,8 @@ DHTNATPuncherImpl
 			final DHTTransportContact	target = decodeContact( (byte[])request.get( "origin" ));
 			
 			if ( target != null ){
+				
+				log( "Received connect request from " + target.getString());
 				
 					// ping the origin a few times to try and establish a tunnel
 				
@@ -1216,65 +1396,97 @@ DHTNATPuncherImpl
 										pub_mon.exit();
 									}
 										
-									target.sendPing(
-											new DHTTransportReplyHandlerAdapter()
-											{
-												public void
-												pingReply(
-													DHTTransportContact ok_contact )
-												{
-													if ( TRACE ){
-														System.out.println( "tunnel ping ok" );
-													}
-												}
-												
-												public void
-												failed(
-													DHTTransportContact 	failed_contact,
-													Throwable				e )
-												{
-												}
-											});
+									int	resp = sendTunnel( target );
+									
+									if ( TRACE ){
+										System.out.println( "tunnel result = " + resp );
+									}
 								}
 							});
 					
-				target.sendPing(
-					new DHTTransportReplyHandlerAdapter()
-					{
-						public void
-						pingReply(
-							DHTTransportContact ok_contact )
-						{
-							try{
-								pub_mon.enter();
-
-								pings[0]	= 100;	// stop periodic above
-							
-								if ( TRACE ){
-									System.out.println( "tunnel ping ok" );
-								}
-							}finally{
-								
-								pub_mon.exit();
-							}
-						}
-						
-						public void
-						failed(
-							DHTTransportContact 	failed_contact,
-							Throwable				e )
-						{
-						}
-					});
+				int	resp = sendTunnel( target );
+				
+				if ( TRACE ){
+					System.out.println( "tunnel result = " + resp );
+				}
+				
+				response.put( "client_data", adapter.getClientData());
 				
 				ok	= true;
+				
+			}else{
+				
+				log( "Connect request: failed to decode target" );
 			}
+		}else{
+			
+			log( "Connect request from invalid rendezvous: " + rendezvous.getString());
 		}
 		
 		response.put( "ok", new Long(ok?1:0));
 	}
 	
-	public boolean
+	protected int
+	sendTunnel(
+		DHTTransportContact target )
+	{
+		log( "Sending tunnel message to " + target.getString());
+		
+		try{
+			Map	message = new HashMap();
+			
+			message.put( "type", new Long( RT_TUNNEL ));
+			
+			return( sendMessage( target, message ));
+			
+		}catch( Throwable e ){
+			
+			log(e);
+			
+			return( RESP_NOT_OK );
+		}
+	}
+	
+	protected void
+	receiveTunnel(
+		DHTTransportContact		originator,
+		Map						data )
+	{
+		log( "Received tunnel message from " + originator.getString());
+		
+		if ( originator instanceof DHTTransportUDPContact ){
+			
+			DHTTransportUDPContact	udp_originator = (DHTTransportUDPContact)originator;
+		
+			try{
+				punch_mon.enter();
+			
+				for (int i=0;i<oustanding_punches.size();i++){
+					
+					Object[]	wait_data = (Object[])oustanding_punches.get(i);
+					
+					DHTTransportContact	wait_contact = (DHTTransportContact)wait_data[0];
+					
+					if( udp_originator.getAddress().getAddress().equals( wait_contact.getAddress().getAddress())){
+						
+						wait_data[2] = new Integer( udp_originator.getAddress().getPort());
+						
+						if ( TRACE ){
+							System.out.println( "releasing sem!!!!" );
+						}
+						
+						((AESemaphore)wait_data[1]).release();
+					}
+				}
+				
+			}finally{
+				
+				punch_mon.exit();
+			}
+		}
+	}
+	
+	public Map
 	punch(
 		DHTTransportContact	target )
 	{
@@ -1283,14 +1495,16 @@ DHTNATPuncherImpl
 			
 			if ( rendezvous == null ){
 				
-				return( false );
+				return( null );
 			}
 			
-			if ( sendPunch( rendezvous, target ) == RESP_OK ){
+			Map	client_data = sendPunch( rendezvous, target );
+			
+			if ( client_data != null ){
 				
 				log( "    punch to " + target.getString() + " succeeded" );
 				
-				return( true );
+				return( client_data );
 			}
 			
 		}catch( Throwable e ){
@@ -1300,7 +1514,7 @@ DHTNATPuncherImpl
 		
 		log( "    punch to " + target.getString() + " failed" );
 
-		return( false );
+		return( null );
 	}
 	
 	public void
