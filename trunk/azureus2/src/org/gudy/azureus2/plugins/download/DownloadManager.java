@@ -92,9 +92,15 @@ DownloadManager
 	
 
 	/**
-	 * add a torrent from a "Torrent" object and point it at the data location 
-	 * @param torrent
-	 * @param torrent_location	null -> use default torrent save location if defined
+	 * Add a torrent from a "Torrent" object and point it at the data location.
+	 * 
+	 * The torrent_location should be the location of where the torrent file is on disk.
+	 * This will be the torrent file that Azureus will use internally. If null is passed,
+	 * then a file to store the torrent data in will be automatically created by Azureus.
+	 * 
+	 * @param torrent The torrent object to create a download with.
+	 * @param torrent_location The location of the file on disk - if  <code>null</code>,
+	 *   a file to store the torrent data into will be created automatically. 
 	 * @param data_location null -> user default data save location if defined
 	 * @return
    * support for null params for torrent_location/data_location since 2.1.0.4
