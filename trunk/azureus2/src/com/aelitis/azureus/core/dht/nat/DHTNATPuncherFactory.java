@@ -30,8 +30,9 @@ DHTNATPuncherFactory
 {
 	public static DHTNATPuncher
 	create(
-		DHT		dht )
+		DHTNATPuncherAdapter	adapter,
+		DHT						dht )
 	{
-		return( new DHTNATPuncherImpl( dht ));
+		return( new DHTNATPuncherImpl( adapter, dht ));
 	}
 }
