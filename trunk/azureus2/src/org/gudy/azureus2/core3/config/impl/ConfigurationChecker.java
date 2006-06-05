@@ -222,22 +222,23 @@ ConfigurationChecker
 	    		COConfigurationManager.setParameter( "UDP.Listen.Port", rand_port );
 	    		changed = true;
 	    		
-	    	}else if( !COConfigurationManager.doesParameterNonDefaultExist( "UDP.Listen.Port" ) ) {
-	    		COConfigurationManager.setParameter( "UDP.Listen.Port", COConfigurationManager.getIntParameter( "TCP.Listen.Port" ));
 	    	}
-	    }
-	    else {  //this is a pre-existing installation, called every time after first
+	    }else {  //this is a pre-existing installation, called every time after first
 	    	
 	   	 //enable Advanced user mode for existing users by default, to ease 2304-->2306 migrations
 	   	 if( !COConfigurationManager.doesParameterNonDefaultExist( "User Mode" ) ) {
 	   		 COConfigurationManager.setParameter( "User Mode", 2 );
 	   		 changed	= true;
 	   	 }
-	   	 
 	    }
 	    
+	    	// initial UDP port is same as TCP
 	    
-	    
+	    if( !COConfigurationManager.doesParameterNonDefaultExist( "UDP.Listen.Port" ) ){
+	    	COConfigurationManager.setParameter( "UDP.Listen.Port", COConfigurationManager.getIntParameter( "TCP.Listen.Port" ));
+	    	
+	    	changed = true;
+	    }
 	    
 	    // migrate to split tracker client/server key config
 	    
