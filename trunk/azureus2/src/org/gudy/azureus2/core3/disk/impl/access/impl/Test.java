@@ -360,8 +360,7 @@ Test
 			
 		}
 		
-		public boolean hasDeletedDataFiles() {return false;}
-		public boolean hasDeletedTorrentFile() {return false;}
+		public void downloadRemoved(boolean torrent_file_exists) {}
 		
 		public DownloadManagerState 
 		getDownloadState()

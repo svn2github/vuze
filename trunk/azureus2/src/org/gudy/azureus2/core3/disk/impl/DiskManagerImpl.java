@@ -1509,6 +1509,133 @@ DiskManagerImpl
    * Returns a string path to the new torrent file.
    */
 
+    public static class MoveDownloadInfo {
+        public String location = null;
+        public boolean move_torrent = false;
+    }
+
+    public static MoveDownloadInfo getMoveDownloadInfoOnCompletion(
+        DownloadManager dm, LogRelation log_object) {
+        return getMoveDownloadInfo(false, dm, log_object);
+    }
+
+    public static MoveDownloadInfo getMoveDownloadInfoOnRemoval(
+        DownloadManager dm, LogRelation log_object) {
+        return getMoveDownloadInfo(true, dm, log_object);
+    }
+
+    private static MoveDownloadInfo getMoveDownloadInfo(
+        final boolean removing, final DownloadManager dm,
+        final LogRelation log_object) {
+    	
+        // We don't move non-persistent files as these aren't managed by us.
+        if (!dm.isPersistent()) {return null;}
+        final boolean ending = !removing; // Just a friendly alias.
+
+        /**
+         *  We currently only move removed torrents when they are complete. So we must either
+         *  be complete, or we must be complete excluding DND files, if that option has been
+         *  enabled.
+         */
+        if (removing) {
+            if (dm.isDownloadComplete()) {
+                /* This is OK. */
+            }
+            else if (!dm.isDownloadCompleteExcludingDND()) {
+                // Download is not complete in any form.
+                return null;
+            }
+            else {
+                // Download is complete, but only all non-DND files.
+                if (!COConfigurationManager.getBooleanParameter("File.move.download.removed.move_partial", false)) {
+                    return null;
+                }
+            }
+        }
+
+        /**
+         * Is the automatic moving of files enabled?
+         */
+        String move_when_done_param = (ending) ? "Move Completed When Done" : "File.move.download.removed.enabled";
+        boolean move_when_done = COConfigurationManager.getBooleanParameter(move_when_done_param, false);
+        if (!move_when_done) {
+        	return null;
+        }
+
+        /**
+         * Do we have a path to move to?
+         */
+        String move_path_param = (ending) ? "Completed Files Directory" : "File.move.download.removed.path";
+        String move_path = COConfigurationManager.getStringParameter(move_path_param, "");
+        if (move_path.length() == 0) {
+        	return null;
+        }
+
+        /**
+         * Do we only move if the files are in the default directory?
+         *
+         * If we are trying to move a completed download, then we only check
+         * the default save path directory. If we are checking a removed
+         * download, then we either check the default save path, or the
+         * completed file path.
+         */
+        String move_only_in_default_param = (ending) ? "Move Only When In Default Save Dir" : "File.move.download.removed.only_in_default";
+        boolean move_only_in_default = COConfigurationManager.getBooleanParameter(move_only_in_default_param);
+
+        String save_dir = dm.getSaveLocation().getParent();
+
+        if (move_only_in_default) {
+            boolean use_completed_dir = removing;
+            String[] params_to_check = (use_completed_dir) ?
+            		new String[] {"Completed Files Directory", "Default save path"} :
+            		new String[] {"Default save path"};
+            
+            String dir_to_check = null;
+            boolean dir_matches = false;
+            for (int i=0; i<params_to_check.length; i++) {
+            	dir_to_check = COConfigurationManager.getStringParameter(params_to_check[i]);
+
+	            /**
+	             * Canonicalise is as the rpath is canonicalised so links have been
+	             * followed etc.
+	             */
+	            try{
+	            	dir_to_check = new File(dir_to_check).getCanonicalPath();
+	            }
+	
+	            // XXX: Shouldn't we restrict the types of exception we catch?
+	            catch(Throwable e){Debug.printStackTrace(e);}
+	            
+	            if (save_dir.equals(dir_to_check)) {
+	            	dir_matches = true;
+	            	break;
+	            }
+	            
+            }
+            
+            if (!dir_matches) {
+                if (Logger.isEnabled()) {
+                    String log_message = "Not moving-on-" +
+                    ((removing) ? "remove" : "complete") + " since data is" +
+                    " not within " + use_completed_dir;
+
+                    Logger.log(new LogEvent(
+                        log_object, LOGID, LogEvent.LT_WARNING, log_message));
+                }
+                return null;
+            }
+        }
+
+        String move_torrent_param = (ending) ? "Move Torrent When Done" : "File.move.download.removed.move_torrent";
+        boolean move_torrent = COConfigurationManager.getBooleanParameter(move_torrent_param, true);
+
+        // Debug.out("Moving data files: " + save_dir + " -> " + move_path);
+        MoveDownloadInfo result = new MoveDownloadInfo();
+        result.location = move_path;
+        result.move_torrent = move_torrent;
+        return result;
+    }
+
     public void downloadEnded() {
         moveDownloadFilesWhenEndedOrRemoved(false, true);
     }
@@ -1522,108 +1649,26 @@ DiskManagerImpl
         start_stop_mon.enter();
         final boolean ending = !removing; // Just a friendly alias.
 
-        // We don't move non-persistent files as these aren't managed by us.
-        if (!download_manager.isPersistent()) {return false;}
-
         /**
-         * If the torrent has been moved once (after being completed), then
-         * we don't move it again. We don't worry about this if the download
-         * is being removed (if it's being removed, then we will only move it
-         * at this point, and we don't need to care about the download any more
-         * because we're deleting it.
+         * It doesn't matter if we set alreadyMoved, but don't end up moving the files.
+         * This is because we only get called once (when it matters), which is when the
+         * download has finished. We only want this to apply when the download has finished,
+         * not if the user restarts the (already completed) download.
          */
         if (ending) {
             if (this.alreadyMoved) {return false;}
             this.alreadyMoved = true;
         }
 
-        /**
-         *  We currently only move removed torrents when they are complete. So we must either
-         *  be complete, or we must be complete excluding DND files, if that option has been
-         *  enabled.
-         */
-        if (removing) {
-            if (this.download_manager.isDownloadComplete()) {
-                /* This is OK. */
-            }
-            else if (!this.download_manager.isDownloadCompleteExcludingDND()) {
-                // Download is not complete in any form.
-                return false;
-            }
-            else {
-                // Download is complete, but only all non-DND files.
-                if (!COConfigurationManager.getBooleanParameter("File.move.download.removed.move_partial", false)) {
-                    return false;
-                }
-            }
-        }
+        MoveDownloadInfo mdi = getMoveDownloadInfo(removing, this.download_manager, this);
 
-        /**
-         * Is the automatic moving of files enabled?
-         */
-        String move_when_done_param = (ending) ? "Move Completed When Done" : "File.move.download.removed.enabled";
-        boolean move_when_done = COConfigurationManager.getBooleanParameter(move_when_done_param, false);
-        if (!move_when_done) {return false;}
+        if (mdi == null) {return false;}
 
-        /**
-         * Do we have a path to move to?
-         */
-        String move_path_param = (ending) ? "Completed Files Directory" : "File.move.download.removed.path";
-        String move_path = COConfigurationManager.getStringParameter(move_path_param, "");
-        if (move_path.length() == 0) {return false;}
-
-        /**
-         * Do we only move if the files are in the default directory?
-         *
-         * If we are trying to move a completed download, then we only check
-         * the default save path directory. If we are checking a removed
-         * download, then we either check the default save path, or the
-         * completed file path.
-         */
-        String move_only_in_default_param = (ending) ? "Move Only When In Default Save Dir" : "File.move.download.removed.only_in_default";
-        boolean move_only_in_default = COConfigurationManager.getBooleanParameter(move_only_in_default_param);
-
-        String save_dir = download_manager.getSaveLocation().getParent();
-        
-        if (move_only_in_default) {
-            boolean use_completed_dir = (removing && this.alreadyMoved);
-            String current_save_dir_param = (use_completed_dir) ? "Completed Files Directory" : "Default save path";
-            String current_save_dir = COConfigurationManager.getStringParameter(current_save_dir_param);
-
-            /**
-             * Canonicalise is as the rpath is canonicalised so links have been
-             * followed etc.
-             */
-            try{
-                current_save_dir = new File(current_save_dir).getCanonicalPath();
-            }
-
-            // XXX: Shouldn't we restrict the types of exception we catch?
-            catch(Throwable e){Debug.printStackTrace(e);}
-
-            if (!save_dir.equals(current_save_dir)) {
-                if (Logger.isEnabled()) {
-                    String log_message = "Not moving-on-" +
-                    ((removing) ? "remove" : "complete") + " since data is" +
-                    " not within " +
-                    ((use_completed_dir) ? "completed" : "default save") +
-                    "dir";
-
-                    Logger.log(new LogEvent(
-                        this, LOGID, LogEvent.LT_WARNING, log_message));
-                }
-                return false;
-            }
-        }
-
-        String move_torrent_param = (ending) ? "Move Torrent When Done" : "File.move.download.removed.move_torrent";
-        boolean move_torrent = COConfigurationManager.getBooleanParameter(move_torrent_param, true);
-
-        // Debug.out("Moving data files: " + save_dir + " -> " + move_path);
-        moveFiles(move_path, move_torrent && torrent_file_exists, true);
+        //Debug.out("Moving data files: -> " + mdi.location);
+        moveFiles(mdi.location, mdi.move_torrent && torrent_file_exists, true);
         return true;
-      }
 
+      }
       finally{
           start_stop_mon.exit();
           if (!removing) {
@@ -1635,8 +1680,8 @@ DiskManagerImpl
           }
 
       }
-
     }
+
 
     public void
     moveDataFiles(
@@ -1761,17 +1806,6 @@ DiskManagerImpl
         }
 
         // first of all check that no destination files already exist
-        
-        /**
-         * We're about the process the files, but it is possible that no files have yet been allocated.
-         * This is normally the case if this DiskManager has been constructed just to move files to the
-         * "completed and being removed" directory. In this instance, we force files to be initialised.
-         */
-        if (files == null) {
-        	int result = allocateFiles();
-        	if (result == -1) {return false;}
-        }
-
         File[]    new_files   = new File[files.length];
         File[]    old_files   = new File[files.length];
         boolean[] link_only   = new boolean[files.length];
@@ -1915,7 +1949,7 @@ DiskManagerImpl
               // NOTE: this operation FIXES up any file links
 
             download_manager.setTorrentSaveDir( move_to_dir );
-        
+
         return true;
 
     }

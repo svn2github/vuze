@@ -34,6 +34,7 @@ import java.net.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerImpl;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.*;
@@ -48,7 +49,6 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 
 /**
@@ -353,8 +353,6 @@ DownloadManagerImpl
     private int		max_uploads_when_seeding;
     private boolean	max_uploads_when_seeding_enabled;
     
-    private boolean has_deleted_data_files = false;
-    private boolean has_deleted_torrent_file = false;
     private int		max_upload_when_busy_bps;
     private int		current_upload_when_busy_bps;
     private long	last_upload_when_busy_update;
@@ -1303,11 +1301,6 @@ DownloadManagerImpl
   		boolean	remove_torrent,
   		boolean	remove_data )
   	{
-  		/*
-  	    if (!manager.hasDeletedDataFiles()) {
-  	    	disk_manager_for_download.downloadRemoved(!manager.hasDeletedTorrentFile());
-  	    }
-  	    */
   		controller.stopIt( state_after_stopping, remove_torrent, remove_data );
   	}
   	
@@ -2467,7 +2460,6 @@ DownloadManagerImpl
 	deleteDataFiles() 
 	{
 		DiskManagerFactory.deleteDataFiles(torrent, torrent_save_location.getParent(), torrent_save_location.getName());
-        this.has_deleted_data_files = true;
 	}
   
 	protected void 
@@ -2476,12 +2468,9 @@ DownloadManagerImpl
 		if ( torrentFileName != null ){
   		
 			TorrentUtils.delete( new File(torrentFileName));
-            this.has_deleted_torrent_file = true;
 		}
 	}
   
-    public boolean hasDeletedDataFiles() {return this.has_deleted_data_files;}
-    public boolean hasDeletedTorrentFile() {return this.has_deleted_torrent_file;}
 
 	public DownloadManagerState 
 	getDownloadState()
@@ -2826,4 +2815,34 @@ DownloadManagerImpl
 		}
 	}
 
+    public void downloadRemoved(boolean torrent_file_exists) {
+    	Debug.out("Entered downloadRemoved on DownloadManager.");
+    	DiskManager dm = this.getDiskManager();
+    	if (dm != null) {
+    		dm.downloadRemoved(torrent_file_exists);
+    		return;
+    	}
+    	    	
+    	DiskManagerImpl.MoveDownloadInfo mdi = DiskManagerImpl.getMoveDownloadInfoOnRemoval(this, this);
+    	if (mdi == null) {
+    		return;
+    	}
+    	
+    	boolean moved_files = false;
+    	try {
+    		this.moveDataFiles(new File(mdi.location));
+    		moved_files = true;
+    	}
+    	catch (Exception e) {
+    		Debug.out("Problem moving files to removed download directory", e);
+    	}
+    	if (moved_files && mdi.move_torrent) {
+    		try {
+    			this.moveTorrentFile(new File(mdi.location));
+    		}
+    		catch (Exception e) {
+    			Debug.out("Problem moving torrent to removed download directory", e);
+    		}
+    	}
+    }
 }

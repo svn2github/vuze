@@ -446,9 +446,7 @@ DownloadManager
     public void
     generateEvidence(
         IndentWriter        writer );
-
-    public boolean hasDeletedDataFiles();
-    public boolean hasDeletedTorrentFile();
-
+    
+    public void downloadRemoved(boolean torrent_file_exists);
 
 }
