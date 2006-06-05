@@ -307,6 +307,15 @@ DownloadManagerImpl
 		    }
 		}
 		
+		else {
+			if (!torrent_file.exists()) {
+				throw new DownloadException("DownloadManager::addDownload: torrent file does not exist - " + torrent_file.toString()); 
+			}
+			else if (!torrent_file.isFile()) {
+				throw new DownloadException("DownloadManager::addDownload: torrent filepath given is not a file - " + torrent_file.toString());
+			}
+		}
+		
 		if ( data_location == null ){
 			
 		    boolean useDefDataDir = COConfigurationManager.getBooleanParameter("Use default data dir");
