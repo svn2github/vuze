@@ -455,7 +455,7 @@ DHTNATPuncherImpl
 							pingReply(
 								DHTTransportContact ok_contact )
 							{
-								// System.out.println( "Punch:" + ok_contact.getString() + " OK" );
+								trace( "Punch:" + ok_contact.getString() + " OK" );
 								
 								try{
 									pub_mon.enter();
@@ -478,7 +478,7 @@ DHTNATPuncherImpl
 								Throwable				e )
 							{
 								try{
-									// System.out.println( "Punch:" + failed_contact.getString() + " Failed" );
+									trace( "Punch:" + failed_contact.getString() + " Failed" );
 									
 								}finally{
 									
@@ -757,11 +757,8 @@ DHTNATPuncherImpl
 					int	bind_result = sendBind( current_target );
 					
 					if ( bind_result == RESP_OK ){
-					
-						if ( TRACE ){
-							
-							System.out.println( "Rendezvous:" + current_target.getString() + " OK" );
-						}
+												
+						trace( "Rendezvous:" + current_target.getString() + " OK" );
 												
 						rendevzous_fail_count	= 0;
 						
@@ -1046,11 +1043,8 @@ DHTNATPuncherImpl
 			if (((Long)response.get( "type" )).intValue() == RT_BIND_REPLY ){
 				
 				int	result = ((Long)response.get("ok")).intValue();
-
-				if ( TRACE ){
 					
-					System.out.println( "received bind reply: " + (result==0?"failed":"ok" ));
-				}
+				trace( "received bind reply: " + (result==0?"failed":"ok" ));
 					
 				if ( result == 1 ){
 					
@@ -1074,9 +1068,7 @@ DHTNATPuncherImpl
 		Map						request,
 		Map						response )
 	{
-		if ( TRACE ){
-			System.out.println( "received bind request" );
-		}
+		trace( "received bind request" );
 		
 		boolean	ok 	= true;
 		boolean	log	= true;
@@ -1155,9 +1147,7 @@ DHTNATPuncherImpl
 				
 				int	result = ((Long)response.get("ok")).intValue();
 
-				if ( TRACE ){
-					System.out.println( "received punch reply: " + (result==0?"failed":"ok" ));
-				}
+				trace( "received punch reply: " + (result==0?"failed":"ok" ));
 				
 				if ( result == 1 ){
 					
@@ -1249,9 +1239,7 @@ DHTNATPuncherImpl
 		Map						request,
 		Map						response )
 	{
-		if ( TRACE ){
-			System.out.println( "received puch request" );
-		}
+		trace( "received puch request" );
 		
 		boolean	ok = false;
 		
@@ -1316,10 +1304,8 @@ DHTNATPuncherImpl
 				
 				int	result = ((Long)response.get("ok")).intValue();
 
-				if ( TRACE ){
-					System.out.println( "received connect reply: " + (result==0?"failed":"ok" ));
-				}
-					
+				trace( "received connect reply: " + (result==0?"failed":"ok" ));
+
 				if ( result == 1 ){
 					
 					Map client_data = (Map)response.get( "client_data" );
@@ -1349,9 +1335,7 @@ DHTNATPuncherImpl
 		Map						request,
 		Map						response )
 	{
-		if ( TRACE ){
-			System.out.println( "received connect request" );
-		}
+		trace( "received connect request" );
 
 		boolean	ok = false;
 			
@@ -1398,18 +1382,14 @@ DHTNATPuncherImpl
 										
 									int	resp = sendTunnel( target );
 									
-									if ( TRACE ){
-										System.out.println( "tunnel result = " + resp );
-									}
+									trace( "tunnel result = " + resp );
 								}
 							});
 					
 				int	resp = sendTunnel( target );
 				
-				if ( TRACE ){
-					System.out.println( "tunnel result = " + resp );
-				}
-				
+				trace( "tunnel result = " + resp );
+
 				response.put( "client_data", adapter.getClientData());
 				
 				ok	= true;
@@ -1469,11 +1449,9 @@ DHTNATPuncherImpl
 					
 					if( udp_originator.getAddress().getAddress().equals( wait_contact.getAddress().getAddress())){
 						
-						wait_data[2] = new Integer( udp_originator.getAddress().getPort());
+						wait_data[2] = new Integer( udp_originator.getTransportAddress().getPort());
 						
-						if ( TRACE ){
-							System.out.println( "releasing sem!!!!" );
-						}
+						trace( "releasing sem!!!!" );
 						
 						((AESemaphore)wait_data[1]).release();
 					}
@@ -1702,5 +1680,14 @@ DHTNATPuncherImpl
 		logger.log( "NATPuncher: error occurred" );
 		
 		logger.log(e);
+	}
+	
+	protected void
+	trace(
+		String	str )
+	{
+		if ( TRACE ){
+			System.out.println( str );
+		}
 	}
 }
