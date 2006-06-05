@@ -137,6 +137,21 @@ UPnPSSWANConnectionImpl
 		}
 	}
 	
+	public int
+	getCapabilities()
+	{
+		String	device_name = service.getDevice().getRootDevice().getDevice().getFriendlyName();
+		
+		int	capabilities = CAP_ALL;
+		
+		if ( device_name.equals( "WRT54G" )){
+		
+			capabilities = CAP_ALL & ~CAP_UDP_TCP_SAME_PORT;
+		}
+		
+		return( capabilities );
+	}
+	
 	public UPnPService
 	getGenericService()
 	{

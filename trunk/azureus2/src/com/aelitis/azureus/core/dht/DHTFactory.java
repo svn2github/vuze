@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht;
 import java.util.Properties;
 
 import com.aelitis.azureus.core.dht.impl.DHTImpl;
+import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 
 /**
@@ -37,11 +38,12 @@ DHTFactory
 {
 	public static DHT
 	create(
-		DHTTransport		transport,
-		Properties			properties,
-		DHTStorageAdapter	storage_adapter,
-		DHTLogger			logger )
+		DHTTransport			transport,
+		Properties				properties,
+		DHTStorageAdapter		storage_adapter,
+		DHTNATPuncherAdapter	nat_adapter,
+		DHTLogger				logger )
 	{
-		return( new DHTImpl( transport, properties, storage_adapter, logger ));
+		return( new DHTImpl( transport, properties, storage_adapter, nat_adapter, logger ));
 	}
 }

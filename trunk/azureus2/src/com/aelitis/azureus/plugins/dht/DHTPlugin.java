@@ -26,7 +26,9 @@ package com.aelitis.azureus.plugins.dht;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -53,12 +55,14 @@ import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
 
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
+import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
 
@@ -141,6 +145,21 @@ DHTPlugin
 	
 	private List				listeners	= new ArrayList();
 	
+	private DHTNATPuncherAdapter	nat_adapter = 
+		new DHTNATPuncherAdapter()
+		{
+			public Map
+			getClientData()
+			{
+				Map	res = new HashMap();
+				
+				res.put( "udp_data_port", new Long( NetworkManager.getSingleton().getUDPListeningPortNumber()));
+				res.put( "tcp_data_port", new Long( NetworkManager.getSingleton().getTCPListeningPortNumber()));
+				
+				return( res );
+			}
+		};
+		
 	public void
 	initialize(
 		PluginInterface 	_plugin_interface )
@@ -810,6 +829,7 @@ DHTPlugin
 								
 								DHTPluginImpl plug = new DHTPluginImpl(
 												plugin_interface,
+												nat_adapter,
 												DHTTransportUDP.PROTOCOL_VERSION_MAIN,
 												DHT.NW_MAIN,
 												override_ip,
@@ -825,6 +845,7 @@ DHTPlugin
 								
 								plugins.add( new DHTPluginImpl(
 										plugin_interface,
+										nat_adapter,
 										DHTTransportUDP.PROTOCOL_VERSION_CVS,
 										DHT.NW_CVS,
 										override_ip,

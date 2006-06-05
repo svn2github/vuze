@@ -50,6 +50,7 @@ import com.aelitis.azureus.core.dht.DHTStorageKeyStats;
 
 import com.aelitis.azureus.core.dht.control.DHTControlStats;
 import com.aelitis.azureus.core.dht.db.DHTDBStats;
+import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
@@ -113,6 +114,7 @@ DHTPluginImpl
 	public
 	DHTPluginImpl(
 		PluginInterface			_plugin_interface,
+		DHTNATPuncherAdapter	_nat_adapter,
 		byte					_protocol_version,
 		int						_network,
 		String					_ip,
@@ -205,6 +207,7 @@ DHTPluginImpl
 						transport, 
 						props,
 						storage_manager,
+						_nat_adapter,
 						dht_log );
 			
 			plugin_interface.firePluginEvent(

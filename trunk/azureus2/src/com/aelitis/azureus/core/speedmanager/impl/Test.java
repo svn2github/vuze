@@ -42,6 +42,7 @@ import com.aelitis.azureus.core.clientmessageservice.ClientMessageServiceClient;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTFactory;
 import com.aelitis.azureus.core.dht.DHTLogger;
+import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
@@ -49,7 +50,7 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
 
 public class 
 Test 
-	implements SpeedManagerAdapter
+	implements SpeedManagerAdapter, DHTNATPuncherAdapter
 {
 	private Average upload_average = Average.getInstance( 1000, 10 );
 
@@ -116,7 +117,7 @@ Test
 						true,
 						dht_logger );
 		
-			final DHT dht = DHTFactory.create( transport, new Properties(), null, dht_logger );
+			final DHT dht = DHTFactory.create( transport, new Properties(), null, this, dht_logger );
 						
 			transport.importContact(
 					new InetSocketAddress( "dht.aelitis.com", 6881 ),
@@ -295,8 +296,17 @@ Test
 				}
 			}.start();
 		}
+	}
+	
+	public Map
+	getClientData()
+	{
+		Map	res = new HashMap();
 		
-
+		res.put( "udp_data_port", new Long( 1234 ));
+		res.put( "tcp_data_port", new Long( 5678 ));
+		
+		return( res );
 	}
 	
 	public static void

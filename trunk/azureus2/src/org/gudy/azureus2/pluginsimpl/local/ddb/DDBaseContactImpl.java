@@ -83,7 +83,7 @@ DDBaseContactImpl
 	public boolean
 	openTunnel()
 	{
-		return( contact.openTunnel());
+		return( contact.openTunnel() != null );
 	}
 	
 	public void

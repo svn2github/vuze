@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.net.upnp.UPnPRootDevice;
+import com.aelitis.net.upnp.services.UPnPWANConnection;
 
 public class 
 UPnPMappingManager 
@@ -91,17 +92,15 @@ UPnPMappingManager
 	}
 	
 	protected void
-	deviceFound(
-		UPnPRootDevice		device )
+	serviceFound(
+		UPnPWANConnection		service )
 	{
-		String	device_name = device.getDevice().getFriendlyName();
-		
 		boolean save_config = false;
 		
-		if ( device_name.equals( "WRT54G" )){
+		if (( service.getCapabilities() & UPnPWANConnection.CAP_UDP_TCP_SAME_PORT ) == 0 ){
 			
 				// doesn't support UDP and TCP on same port number - patch up
-				// unfortunately the router remembers the stuffed ports and makes it unusable for
+				// unfortunately some routers remember the stuffed ports and makes them unusable for
 				// either UDP OR TCP until a HARD reset so we need to change both ports...
 			
 			UPnPMapping[]	maps = getMappings();

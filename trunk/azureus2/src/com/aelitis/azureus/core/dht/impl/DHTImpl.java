@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.control.*;
 import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
+import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncherFactory;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
@@ -49,7 +50,8 @@ public class
 DHTImpl 
 	implements DHT
 {
-	private DHTStorageAdapter	storage_adapter;
+	private DHTStorageAdapter		storage_adapter;
+	private DHTNATPuncherAdapter	nat_adapter;
 	private DHTControl			control;
 	private DHTNATPuncher		nat_puncher;
 	private DHTSpeedTester		speed_tester;
@@ -58,13 +60,15 @@ DHTImpl
 	
 	public 
 	DHTImpl(
-		DHTTransport		_transport,
-		Properties			_properties,
-		DHTStorageAdapter	_storage_adapter,
-		DHTLogger			_logger )
+		DHTTransport			_transport,
+		Properties				_properties,
+		DHTStorageAdapter		_storage_adapter,
+		DHTNATPuncherAdapter	_nat_adapter,
+		DHTLogger				_logger )
 	{		
 		properties		= _properties;
 		storage_adapter	= _storage_adapter;
+		nat_adapter		= _nat_adapter;
 		logger			= _logger;
 		
 		DHTLog.setLogger( logger );
@@ -155,7 +159,7 @@ DHTImpl
 				o_rep, c_rep, c_n,
 				logger );
 		
-		nat_puncher	= DHTNATPuncherFactory.create( this );
+		nat_puncher	= DHTNATPuncherFactory.create( nat_adapter, this );
 		
 		speed_tester = DHTSpeedTesterFactory.create( this );
 	}

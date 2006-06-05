@@ -36,5 +36,12 @@ DHTTransportUDPContact
 	extends DHTTransportContact
 {
 	public InetSocketAddress
+	getTransportAddress();
+	
+	public void
+	setTransportAddress(
+		InetSocketAddress	address );
+	
+	public InetSocketAddress
 	getExternalAddress();
 }

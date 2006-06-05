@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.dht.nat;
 
+import java.util.Map;
+
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 
 public interface 
@@ -46,7 +48,7 @@ DHTNATPuncher
 	public boolean
 	operational();
 	
-	public boolean
+	public Map
 	punch(
 		DHTTransportContact	target );
 	

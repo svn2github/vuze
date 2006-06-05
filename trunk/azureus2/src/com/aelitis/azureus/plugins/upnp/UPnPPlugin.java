@@ -488,8 +488,6 @@ UPnPPlugin
 
 						checkDeviceStats( device );
 						
-						mapping_manager.deviceFound( device );
-						
 						try{
 							processDevice( device.getDevice() );
 							
@@ -844,7 +842,7 @@ UPnPPlugin
 					service_type.equalsIgnoreCase( "urn:schemas-upnp-org:service:WANPPPConnection:1")){
 				
 				final UPnPWANConnection	wan_service = (UPnPWANConnection)s.getSpecificService();
-				
+								
 				device.getRootDevice().addListener(
 					new UPnPRootDeviceListener()
 					{
@@ -889,7 +887,9 @@ UPnPPlugin
 		throws UPnPException
 	{
 		wan_service.addListener( this );
-				
+			
+		mapping_manager.serviceFound( wan_service );
+
 		try{
 			this_mon.enter();
 		

@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.impl;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
+import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
 import com.aelitis.azureus.core.dht.nat.impl.DHTNATPuncherImpl;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.loopback.DHTTransportLoopbackImpl;
@@ -60,6 +61,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 
 public class 
 Test 
+	implements DHTNATPuncherAdapter
 {
 	static boolean	AELITIS_TEST	= false;
 	static InetSocketAddress	AELITIS_ADDRESS = new InetSocketAddress("213.186.46.164", 6881);
@@ -759,7 +761,9 @@ Test
 							
 							DHTNATPuncherImpl	puncher = (DHTNATPuncherImpl)dhts[0].getNATPuncher();
 
-							puncher.punch( dhts[2].getTransport().getLocalContact());
+							Map client_data = puncher.punch( dhts[2].getTransport().getLocalContact());
+							
+							System.out.println( "   punch client data: " + client_data );
 						}
 					}else if ( command == 'k' ){
 						
@@ -953,7 +957,7 @@ Test
 		
 		DHTStorageAdapter	storage_adapter = new DHTPluginStorageManager( network, logger, new File( "C:\\temp\\dht\\" + i));
 
-		DHT	dht = DHTFactory.create( transport, dht_props, storage_adapter, logger );
+		DHT	dht = DHTFactory.create( transport, dht_props, storage_adapter, this, logger );
 		
 		dhts[i]	= dht;					
 
@@ -1048,6 +1052,17 @@ Test
 		return( new byte[0][] );
 	}
 	*/
+	
+	public Map
+	getClientData()
+	{
+		Map	res = new HashMap();
+		
+		res.put( "udp_data_port", new Long( 1234 ));
+		res.put( "tcp_data_port", new Long( 5678 ));
+		
+		return( res );
+	}
 	
 	protected static void
 	usage()

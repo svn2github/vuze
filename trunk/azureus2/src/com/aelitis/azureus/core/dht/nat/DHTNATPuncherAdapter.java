@@ -1,7 +1,7 @@
 /*
- * Created on 25-Feb-2005
+ * Created on 04-Jun-2006
  * Created by Paul Gardner
- * Copyright (C) 2004, 2005, 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,35 +20,13 @@
  *
  */
 
-package com.aelitis.azureus.plugins.dht;
+package com.aelitis.azureus.core.dht.nat;
 
-import java.net.InetSocketAddress;
 import java.util.Map;
 
-/**
- * @author parg
- *
- */
-
 public interface 
-DHTPluginContact 
+DHTNATPuncherAdapter 
 {
-	public String
-	getName();
-	
-	public InetSocketAddress
-	getAddress();
-	
-	public byte
-	getProtocolVersion();
-	
-	public boolean
-	isAlive(
-		long		timeout );
-	
-	public boolean
-	isOrHasBeenLocal();
-	
 	public Map
-	openTunnel();
+	getClientData();
 }

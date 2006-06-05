@@ -23,6 +23,7 @@
 package com.aelitis.azureus.plugins.dht.impl;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
@@ -80,7 +81,7 @@ DHTPluginContactImpl
 		return( plugin.isRecentAddress( contact.getAddress().getAddress().getHostAddress()));
 	}
 	
-	public boolean
+	public Map
 	openTunnel()
 	{
 		return( plugin.getDHT().getNATPuncher().punch( contact ));

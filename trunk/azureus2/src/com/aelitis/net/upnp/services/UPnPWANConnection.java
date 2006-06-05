@@ -33,6 +33,9 @@ public interface
 UPnPWANConnection
 	extends UPnPSpecificService
 {
+	public static final int	CAP_UDP_TCP_SAME_PORT	= 0x0000001;
+	public static final int	CAP_ALL					= 0xffffffff;
+	
 		/**
 		 * adda new port mapping from external port X to port X on local host
 		 * @param tcp
@@ -68,6 +71,9 @@ UPnPWANConnection
 	public void
 	periodicallyRecheckMappings(
 		boolean	on );
+	
+	public int
+	getCapabilities();
 	
 	public void
 	addListener(

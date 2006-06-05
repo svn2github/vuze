@@ -170,6 +170,13 @@ DHTTransportUDPContactImpl
 		return( transport_address );
 	}
 	
+	public void
+	setTransportAddress(
+		InetSocketAddress	address )
+	{
+		transport_address = address;
+	}
+	
 	public InetSocketAddress
 	getExternalAddress()
 	{
