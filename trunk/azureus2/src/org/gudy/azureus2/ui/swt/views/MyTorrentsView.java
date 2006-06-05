@@ -935,13 +935,16 @@ public class MyTorrentsView
 		Messages.setLanguageText(itemDownSpeedManual, "MyTorrentsView.menu.manual");
 		itemDownSpeedManual.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
+				String kbps_str = MessageText.getString("MyTorrentsView.dialog.setNumber.inKbps",
+						new String[]{ DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB ) });
+				
 				InputShell is = new InputShell(
 						"MyTorrentsView.dialog.setSpeed.title",
 						new String[] { MessageText
 								.getString("MyTorrentsView.dialog.setNumber.download") },
 						"MyTorrentsView.dialog.setNumber.text",
 						new String[] {
-								MessageText.getString("MyTorrentsView.dialog.setNumber.inKbps"),
+								kbps_str,
 								MessageText
 										.getString("MyTorrentsView.dialog.setNumber.download") });
 
@@ -1065,13 +1068,16 @@ public class MyTorrentsView
 		Messages.setLanguageText(itemUpSpeedManual, "MyTorrentsView.menu.manual");
 		itemUpSpeedManual.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
+				String kbps_str = MessageText.getString("MyTorrentsView.dialog.setNumber.inKbps",
+						new String[]{ DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB ) });
+
 				InputShell is = new InputShell(
 						"MyTorrentsView.dialog.setSpeed.title",
 						new String[] { MessageText
 								.getString("MyTorrentsView.dialog.setNumber.upload") },
 						"MyTorrentsView.dialog.setNumber.text",
 						new String[] {
-								MessageText.getString("MyTorrentsView.dialog.setNumber.inKbps"),
+								kbps_str,
 								MessageText.getString("MyTorrentsView.dialog.setNumber.upload") });
 
 				String sReturn = is.open();
