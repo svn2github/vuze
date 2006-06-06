@@ -176,8 +176,10 @@ public class Tab {
 				viewComposite.addListener(SWT.Activate, activateListener);
 
 				// make sure the view's layout data is of GridLayoutData
-				if (!(viewComposite.getLayoutData() instanceof GridData))
+				if ((tabArea.getLayout() instanceof GridLayout)
+						&& !(viewComposite.getLayoutData() instanceof GridData)) {
 					viewComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+				}
 			}
 
 			if (useCustomTab) {
