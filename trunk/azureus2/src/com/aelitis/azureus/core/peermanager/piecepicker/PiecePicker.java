@@ -81,4 +81,8 @@ public interface PiecePicker
 	public void
 	generateEvidence(
 		IndentWriter	writer );
+	
+	public String
+	getPieceString(
+		int	piece_number );
 }

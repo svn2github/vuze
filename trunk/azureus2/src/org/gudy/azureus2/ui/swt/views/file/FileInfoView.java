@@ -315,12 +315,16 @@ public class FileInfoView extends AbstractIView {
 			
 			String	text =  "Piece " + piece_number + ": " + dm_piece.getString();
 			
-		
-
 			if ( pe_piece != null ){
 				
-				text 	+= ", active: " + pe_piece.getString();
+				text += ", active: " + pe_piece.getString();
 
+			}else{
+				
+				if ( dm_piece.isNeeded() && !dm_piece.isDone()){
+					
+					text += ", inactive: " + peer_manager.getPiecePicker().getPieceString( piece_number );
+				}
 			}
 			
 			topLabel.setText( text );

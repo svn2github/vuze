@@ -167,7 +167,7 @@ UPnPSSWANConnectionImpl
 		
 		if ( act == null ){
 			
-			service.getDevice().getRootDevice().getUPnP().log( "Action 'GetStatusInfo' not supported, binding not established" );
+			log( "Action 'GetStatusInfo' not supported, binding not established" );
 			
 			throw( new UPnPException( "GetStatusInfo not supported" ));
 			
@@ -283,7 +283,7 @@ UPnPSSWANConnectionImpl
 				
 				if ( log ){
 					
-					service.getDevice().getRootDevice().getUPnP().log( "Re-establishing mapping " + mapping.getString());
+					log( "Re-establishing mapping " + mapping.getString());
 				}
 
 				addPortMapping(  mapping.isTCP(), mapping.getExternalPort(), mapping.getDescription());
@@ -307,7 +307,7 @@ UPnPSSWANConnectionImpl
 		
 		if ( act == null ){
 			
-			service.getDevice().getRootDevice().getUPnP().log( "Action 'AddPortMapping' not supported, binding not established" );
+			log( "Action 'AddPortMapping' not supported, binding not established" );
 			
 		}else{
 					
@@ -404,31 +404,11 @@ UPnPSSWANConnectionImpl
 		
 		if ( act == null ){
 			
-			service.getDevice().getRootDevice().getUPnP().log( "Action 'DeletePortMapping' not supported, binding not removed" );
+			log( "Action 'DeletePortMapping' not supported, binding not removed" );
 			
 		}else{	
 
-			long	start = SystemTime.getCurrentTime();
-			
-			UPnPActionInvocation inv = act.getInvocation();
-			
-			inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
-			inv.addArgument( "NewProtocol", 				tcp?"TCP":"UDP" );
-			inv.addArgument( "NewExternalPort", 			"" + port );
-			
-			inv.invoke();
-			
-			long	elapsed = SystemTime.getCurrentTime() - start;
-
-			if ( elapsed > 4000 ){
-				
-				String	info = service.getDevice().getRootDevice().getInfo();
-				
-				((UPnPImpl)service.getDevice().getRootDevice().getUPnP()).logAlert( 
-						"UPnP device '" + info + "' is taking a long time to release port mappings, consider disabling this via the UPnP configuration.",
-						false,
-						UPnPLogListener.TYPE_ONCE_EVER );
-			}
+			boolean	mapping_found = false;
 			
 			try{
 				class_mon.enter();
@@ -444,12 +424,50 @@ UPnPSSWANConnectionImpl
 						
 						it.remove();
 						
+						mapping_found	= true;
+						
 						break;
 					}
 				}
 			}finally{
 				
 				class_mon.exit();
+			}
+			
+			try{
+				long	start = SystemTime.getCurrentTime();
+				
+				UPnPActionInvocation inv = act.getInvocation();
+				
+				inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
+				inv.addArgument( "NewProtocol", 				tcp?"TCP":"UDP" );
+				inv.addArgument( "NewExternalPort", 			"" + port );
+				
+				inv.invoke();
+				
+				long	elapsed = SystemTime.getCurrentTime() - start;
+	
+				if ( elapsed > 4000 ){
+					
+					String	info = service.getDevice().getRootDevice().getInfo();
+					
+					((UPnPImpl)service.getDevice().getRootDevice().getUPnP()).logAlert( 
+							"UPnP device '" + info + "' is taking a long time to release port mappings, consider disabling this via the UPnP configuration.",
+							false,
+							UPnPLogListener.TYPE_ONCE_EVER );
+				}
+			}catch( UPnPException e ){
+				
+					// only bitch about the failure if we believed we mapped it in the first place
+				
+				if ( mapping_found ){
+					
+					throw( e );
+					
+				}else{
+					
+					log( "Removal of mapping failed but not established explicitly so ignoring error" );
+				}
 			}
 		}
 	}
@@ -475,7 +493,7 @@ UPnPSSWANConnectionImpl
 	
 			if ( act == null ){
 				
-				service.getDevice().getRootDevice().getUPnP().log( "Action 'GetGenericPortMappingEntry' not supported, can't enumerate bindings" );
+				log( "Action 'GetGenericPortMappingEntry' not supported, can't enumerate bindings" );
 			
 				return( new UPnPWANConnectionPortMapping[0] );
 				
@@ -578,6 +596,12 @@ UPnPSSWANConnectionImpl
 		}
 	}
 	
+	protected void
+	log(
+		String	str )
+	{
+		service.getDevice().getRootDevice().getUPnP().log( str );
+	}
 	
 	public void
 	addListener(

@@ -1562,6 +1562,13 @@ public class PiecePickerImpl
 		}
 	}
 	
+	public String
+	getPieceString(
+		int	piece_number )
+	{
+		return( "pri=" + (startPriorities==null?0:startPriorities[piece_number]));
+	}
+	
 	public void
 	generateEvidence(
 		IndentWriter	writer )
