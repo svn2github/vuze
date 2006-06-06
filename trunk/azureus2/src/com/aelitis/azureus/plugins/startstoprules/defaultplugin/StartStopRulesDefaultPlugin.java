@@ -21,8 +21,10 @@
 
 package com.aelitis.azureus.plugins.startstoprules.defaultplugin;
 
-import java.util.*;
-import java.util.Timer;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -86,7 +88,7 @@ public class StartStopRulesDefaultPlugin
   /** 
    * Check for non triggerable changes ever period of time (in ms) 
    */
-  private static final int CHECK_FOR_GROSS_CHANGE_PERIOD= 30000;
+  private static final int CHECK_FOR_GROSS_CHANGE_PERIOD = 30000;
 
   /** 
    * Interval in ms between checks to see if the {@link #somethingChanged} 
@@ -108,7 +110,7 @@ public class StartStopRulesDefaultPlugin
 
   private Timer               changeCheckerTimer;
   /** Used only for RANK_TIMED. Recalculate ranks on a timer */
-  private TimerTask           recalcSeedingRanksTask;
+  private RecalcSeedingRanksTask recalcSeedingRanksTask;
 
   /** Map to relate downloadData to a Download */  
   private static Map downloadDataMap = AEMonitor.getSynchronisedMap(new HashMap());
@@ -161,7 +163,7 @@ public class StartStopRulesDefaultPlugin
 		AEDiagnostics.addEvidenceGenerator( this );
 
     startedOn = SystemTime.getCurrentTime();
-    changeCheckerTimer = new Timer(true);
+    changeCheckerTimer = new Timer("StartStopRules");
 
     plugin_interface  = _plugin_interface;
 
@@ -230,8 +232,8 @@ public class StartStopRulesDefaultPlugin
     download_manager = plugin_interface.getDownloadManager();
     download_manager.addListener(new StartStopDMListener());
     
-    changeCheckerTimer.schedule(new ChangeCheckerTimerTask(), 10000, CHECK_FOR_GROSS_CHANGE_PERIOD );
-    changeCheckerTimer.schedule(new ChangeFlagCheckerTask(), 10000, PROCESS_CHECK_PERIOD );
+    changeCheckerTimer.addPeriodicEvent(CHECK_FOR_GROSS_CHANGE_PERIOD, new ChangeCheckerTimerTask() );
+    changeCheckerTimer.addPeriodicEvent(PROCESS_CHECK_PERIOD, new ChangeFlagCheckerTask());
   }
   
   public static DefaultRankCalculator getRankCalculator(Download dl) {
@@ -264,23 +266,36 @@ public class StartStopRulesDefaultPlugin
   
   /** A simple timer task to recalculate all seeding ranks.
    */
-  private class RecalcSeedingRanksTask extends TimerTask 
+  private class RecalcSeedingRanksTask implements TimerEventPerformer 
   {
-    public void run() {
+  	boolean bCancel = false;
+  	
+  	public void perform(TimerEvent event) {
+  		if (bCancel) {
+  			event.cancel();
+  			return;
+  		}
       // System.out.println("RecalcAllSeedingRanks");
       recalcAllSeedingRanks(false);
     }
+
+		/**
+		 * 
+		 */
+		public void cancel() {
+			bCancel = true;
+		}
   }
 
   /** This class check if the somethingChanged flag and call process() when
    * its set.  This allows pooling of changes, thus cutting down on the number
    * of sucessive process() calls.
    */
-  private class ChangeFlagCheckerTask extends TimerTask 
+  private class ChangeFlagCheckerTask implements TimerEventPerformer
   {
   	long	last_process_time = 0;
 	
-    public void run() {
+  	public void perform(TimerEvent event) {
       if (closingDown)
         return;
 
@@ -425,10 +440,10 @@ public class StartStopRulesDefaultPlugin
     }
   }
   
-  private class ChangeCheckerTimerTask extends TimerTask {
+  private class ChangeCheckerTimerTask implements TimerEventPerformer {
   	long lLastRunTime = 0;
-  	
-    public void run() {
+
+  	public void perform(TimerEvent event) {
       // make sure process isn't running and stop it from running while we do stuff
       try{
        	this_mon.enter();
@@ -511,11 +526,11 @@ public class StartStopRulesDefaultPlugin
 	    if (iNewRankType != iRankType) {
 	      iRankType = iNewRankType;
 	      
-	      // shorted recalc for timed rank type, since the calculation is fast and we want to stop on the second
+	      // shorten recalc for timed rank type, since the calculation is fast and we want to stop on the second
 	      if (iRankType == RANK_TIMED) {
 	        if (recalcSeedingRanksTask == null) {
 	          recalcSeedingRanksTask = new RecalcSeedingRanksTask();
-	          changeCheckerTimer.schedule(recalcSeedingRanksTask, 1000, 1000);
+	          changeCheckerTimer.addPeriodicEvent(1000, recalcSeedingRanksTask);
 	        }
 	      } else if (recalcSeedingRanksTask != null) {
 	        recalcSeedingRanksTask.cancel();
