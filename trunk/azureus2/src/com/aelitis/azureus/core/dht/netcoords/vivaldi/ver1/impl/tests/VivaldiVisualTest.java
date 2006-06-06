@@ -50,7 +50,7 @@ public class VivaldiVisualTest {
     shell.setText("Vivaldi Simulator");
     shell.open();
     
-    Thread runner = new Thread() {
+    Thread runner = new Thread("Viviladi Simulator") {
       public void run() {
         VivaldiPosition positions[][] = new VivaldiPosition[ELEMENTS_X][ELEMENTS_Y];
         final List lPos = new ArrayList(ELEMENTS_X*ELEMENTS_Y);        

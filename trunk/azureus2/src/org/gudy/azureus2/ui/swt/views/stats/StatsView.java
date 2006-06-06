@@ -73,6 +73,10 @@ public class StatsView extends AbstractIView {
   private class UpdateThread extends Thread {
     boolean bContinue;
     
+		public UpdateThread() {
+			super("StatsView Update Thread");
+		}
+    
     public void run() {
       try {
         bContinue = true;
