@@ -33,9 +33,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -48,7 +50,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
-import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -59,9 +60,11 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterf
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 /**
  * Torrent Opener Window.
@@ -153,6 +156,12 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 	private String sDestDir;
 
 	protected boolean bSkipDataDirModify = false;
+
+	private static final AzureusCore core;
+
+	static {
+		core = AzureusCoreFactory.getSingleton();
+	}
 
 	/**
 	 * 
@@ -807,8 +816,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 	}
 
 	private void browseURL() {
-		new OpenUrlWindow(MainWindow.getWindow().getAzureusCore(),
-				shellForChildren, null, null, OpenTorrentWindow.this);
+		new OpenUrlWindow(core, shellForChildren, null, null,
+				OpenTorrentWindow.this);
 	}
 
 	private void close(boolean dispose, boolean bCancel) {
@@ -1501,11 +1510,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			String sURL = UrlUtils.parseTextForURL(sTorrentFilenames[i], true);
 			if (sURL != null) {
 				if (COConfigurationManager.getBooleanParameter("Add URL Silently"))
-					new FileDownloadWindow(MainWindow.getWindow().getAzureusCore(),
-							shellForChildren, sURL, null, this);
+					new FileDownloadWindow(core, shellForChildren, sURL, null, this);
 				else
-					new OpenUrlWindow(MainWindow.getWindow().getAzureusCore(),
-							shellForChildren, sURL, null, this);
+					new OpenUrlWindow(core, shellForChildren, sURL, null, this);
 				numAdded++;
 				continue;
 			}
@@ -1551,9 +1558,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						if (shell == null)
-							new MessageSlideShell(MainWindow.getWindow().getDisplay(),
-									SWT.ICON_ERROR, "OpenTorrentWindow.mb.openError", "",
-									new String[] { sOriginatingLocation, "Not a File" });
+							new MessageSlideShell(Display.getCurrent(), SWT.ICON_ERROR,
+									"OpenTorrentWindow.mb.openError", "", new String[] {
+											sOriginatingLocation,
+											"Not a File" });
 						else
 							Utils.openMessageBox(shell, SWT.OK,
 									"OpenTorrentWindow.mb.openError", new String[] {
@@ -1583,11 +1591,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (shell == null)
-						new MessageSlideShell(MainWindow.getWindow().getDisplay(),
-								SWT.ICON_ERROR, "OpenTorrentWindow.mb.openError",
-								Debug.getStackTrace(e), new String[] {
-										sOriginatingLocation,
-										e.getMessage() });
+						new MessageSlideShell(Display.getCurrent(), SWT.ICON_ERROR,
+								"OpenTorrentWindow.mb.openError", Debug.getStackTrace(e),
+								new String[] { sOriginatingLocation, e.getMessage() });
 					else
 						Utils.openMessageBox(shell, SWT.OK,
 								"OpenTorrentWindow.mb.openError", new String[] {
@@ -1614,9 +1620,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (shell == null)
-						new MessageSlideShell(MainWindow.getWindow().getDisplay(),
-								SWT.ICON_ERROR, "OpenTorrentWindow.mb.alreadyExists", null,
-								new String[] {
+						new MessageSlideShell(Display.getCurrent(), SWT.ICON_ERROR,
+								"OpenTorrentWindow.mb.alreadyExists", null, new String[] {
 										sOriginatingLocation,
 										existingDownload.getDisplayName() });
 					else
@@ -1812,11 +1817,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 			} catch (Exception e) {
 				if (shell == null)
-					new MessageSlideShell(MainWindow.getWindow().getDisplay(),
-							SWT.ICON_ERROR, "OpenTorrentWindow.mb.openError",
-							Debug.getStackTrace(e), new String[] {
-									info.sOriginatingLocation,
-									e.getMessage() });
+					new MessageSlideShell(Display.getCurrent(), SWT.ICON_ERROR,
+							"OpenTorrentWindow.mb.openError", Debug.getStackTrace(e),
+							new String[] { info.sOriginatingLocation, e.getMessage() });
 				else
 					Utils.openMessageBox(shell, SWT.OK, "OpenTorrentWindow.mb.openError",
 							new String[] { info.sOriginatingLocation, e.getMessage() });
@@ -2031,8 +2034,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			if (torrent == null)
 				return "";
 			try {
-				LocaleUtilDecoder decoder = LocaleTorrentUtil.getTorrentEncodingIfAvailable(
-						torrent);
+				LocaleUtilDecoder decoder = LocaleTorrentUtil.getTorrentEncodingIfAvailable(torrent);
 				if (decoder != null)
 					return decoder.decodeString(torrent.getName());
 			} catch (Exception e) {
