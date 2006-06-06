@@ -161,7 +161,9 @@ public class LoggerImpl {
 			char c = (char) data;
 
 			if (c == '\n') {
-				ps.println(buffer);
+				if (!bLogToStdOut) {
+					ps.println(buffer);
+				}
 				log(new LogEvent(logID, logType, buffer.toString()));
 				buffer.setLength(0);
 			} else if (c != '\r') {
