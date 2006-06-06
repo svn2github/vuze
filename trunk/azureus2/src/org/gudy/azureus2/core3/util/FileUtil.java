@@ -963,6 +963,47 @@ public class FileUtil {
     	}
 	}
     
+    public static void
+    copyFileOrDirectory(
+    	File	from_file_or_dir,
+    	File	to_parent_dir )
+    
+    	throws IOException
+    {
+    	if ( !from_file_or_dir.exists()){
+    		
+    		throw( new IOException( "File '" + from_file_or_dir.toString() + "' doesn't exist" ));
+    	}
+    	
+    	if ( !to_parent_dir.exists()){
+    		
+    		throw( new IOException( "File '" + to_parent_dir.toString() + "' doesn't exist" ));
+    	}
+    	
+    	if ( !to_parent_dir.isDirectory()){
+    		
+    		throw( new IOException( "File '" + to_parent_dir.toString() + "' is not a directory" ));
+    	}
+    	
+    	if ( from_file_or_dir.isDirectory()){
+    		
+    		File[]	files = from_file_or_dir.listFiles();
+    		
+    		File	new_parent = new File( to_parent_dir, from_file_or_dir.getName());
+    		
+    		new_parent.mkdirs();
+    		
+    		for (int i=0;i<files.length;i++){
+    			
+    			File	from_file	= files[i];
+    			
+    			copyFileOrDirectory( from_file, new_parent );
+    		}
+    	}else{
+    		
+    		copyFile(  from_file_or_dir, new File( to_parent_dir, from_file_or_dir.getName()));
+    	}
+    }
     
     /**
      * Returns the file handle for the given filename or it's
