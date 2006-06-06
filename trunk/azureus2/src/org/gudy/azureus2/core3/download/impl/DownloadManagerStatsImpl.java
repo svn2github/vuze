@@ -408,7 +408,7 @@ DownloadManagerStatsImpl
 	public long
 	getTotalAveragePerPeer()
 	{
-		int div = download_manager.getNbPeers() + (download_manager.isDownloadComplete() ? 0 : 1);  //since total speed includes our own speed when downloading
+		int div = download_manager.getNbPeers() + (download_manager.isDownloadComplete(false) ? 0 : 1);  //since total speed includes our own speed when downloading
 	    
 	    long average = div < 1 ? 0 : getTotalAverage() / div;
 

@@ -129,6 +129,7 @@ DownloadManagerController
 	
 	private fileInfoFacade[]		files_facade		= new fileInfoFacade[0];	// default before torrent avail
 	private boolean					cached_complete_excluding_dnd;
+	private boolean					cached_has_dnd_files;
 	private PEPeerManager 			peer_manager;
 	
 	private String errorDetail;
@@ -355,7 +356,7 @@ DownloadManagerController
 
 			  					stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 			  						
-			  					download_manager.setOnlySeeding(isDownloadCompleteExcludingDND());
+			  					download_manager.setOnlySeeding(isDownloadComplete(false));
 			  				}
 			  					  
 			  				if ( newDMState == DiskManager.READY ){
@@ -1092,11 +1093,15 @@ DownloadManagerController
 			
 			boolean	complete_exluding_dnd	= true;
 			
+			boolean has_dnd_files = false;
+			
 			for (int i=0;i<active.length;i++){
 				
 				DiskManagerFileInfo	file = active[i];
 				
 				if ( file.isSkipped()){
+
+					has_dnd_files = true;
 					
 					continue;
 				}
@@ -1110,6 +1115,7 @@ DownloadManagerController
 			}
 			
 			cached_complete_excluding_dnd	= complete_exluding_dnd;
+			cached_has_dnd_files = has_dnd_files;
 		}
 	}
 	
@@ -1119,22 +1125,28 @@ DownloadManagerController
 	 * 
 	 * @return completion state
 	 */
-	public boolean
-	isDownloadCompleteExcludingDND()
-	{
-		DiskManager	dm = getDiskManager();
-		
-		if ( dm != null ){
-			
-			int	dm_state = dm.getState();
-			
-			if ( dm_state == DiskManager.CHECKING || dm_state == DiskManager.READY ){
-				
-				return( dm.getRemainingExcludingDND() == 0 );
+	protected boolean isDownloadComplete(boolean bIncludeDND) {
+		DiskManager dm = getDiskManager();
+
+		if (dm != null) {
+
+			int dm_state = dm.getState();
+
+			if (dm_state == DiskManager.CHECKING || dm_state == DiskManager.READY) {
+				long remaining = bIncludeDND ? dm.getRemaining()
+						: dm.getRemainingExcludingDND();
+				return remaining == 0;
 			}
 		}
-				
-		return( cached_complete_excluding_dnd );
+
+		if (bIncludeDND) {
+			if (cached_has_dnd_files) {
+				return false;
+			}
+			return stats.getDownloadCompleted(false) == 1000;
+		}
+		
+		return cached_complete_excluding_dnd;
 	}
 	
 	protected PEPeerManager

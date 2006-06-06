@@ -545,7 +545,8 @@ AZInstanceManagerImpl
 			
 			Map	reply = new HashMap();
 			
-			reply.put( "seed", new Long( matching_dm.isDownloadComplete()?1:0));		
+			// XXX include DND?  I don't know
+			reply.put( "seed", new Long( matching_dm.isDownloadComplete(true)?1:0));		
 			
 			return( reply );
 			

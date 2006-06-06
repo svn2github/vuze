@@ -260,8 +260,8 @@ public class DefaultRankCalculator implements Comparable {
 	public int compareTo(Object obj) {
 		DefaultRankCalculator dlData = (DefaultRankCalculator) obj;
 		// Test Completeness
-		boolean aIsComplete = dlData.dl.isCompleteExcludingDND();
-		boolean bIsComplete = dl.isCompleteExcludingDND();
+		boolean aIsComplete = dlData.dl.isComplete();
+		boolean bIsComplete = dl.isComplete();
 		if (aIsComplete && !bIsComplete)
 			return 1;
 		if (!aIsComplete && bIsComplete)
@@ -432,7 +432,7 @@ public class DefaultRankCalculator implements Comparable {
 			int newSR = 0;
 
 			// make undownloaded sort to top so they can start first.
-			if (!dl.isCompleteExcludingDND()) {
+			if (!dl.isComplete()) {
 				newSR = SR_COMPLETE_STARTS_AT + (10000 - dl.getPosition());
 				dl.setSeedingRank(newSR);
 				sExplainSR += "  not complete. SetSR " + newSR + "\n";
@@ -671,7 +671,7 @@ public class DefaultRankCalculator implements Comparable {
 		}
 
 		// FP only applies to completed
-		if (!dl.isCompleteExcludingDND()) {
+		if (!dl.isComplete()) {
 			if (rules.bDebugLog)
 				sExplainFP += "Not FP: Download not complete\n";
 			return false;

@@ -1538,10 +1538,10 @@ DiskManagerImpl
          *  enabled.
          */
         if (removing) {
-            if (dm.isDownloadComplete()) {
+            if (dm.isDownloadComplete(true)) {
                 /* This is OK. */
             }
-            else if (!dm.isDownloadCompleteExcludingDND()) {
+            else if (!dm.isDownloadComplete(false)) {
                 // Download is not complete in any form.
                 return null;
             }

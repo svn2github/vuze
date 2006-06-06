@@ -780,7 +780,7 @@ RPDownload
  	}
  	
  	public boolean 
- 	isCompleteExcludingDND()
+ 	isComplete(boolean b)
  	{
 		notSupported();
  		

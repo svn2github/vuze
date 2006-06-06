@@ -550,20 +550,25 @@ Download
     public void setUploadRateLimitBytesPerSecond( int max_rate_bps );
     
 
-  	/**
-  	 * indicates if the download has completed or not 
-  	 * @return
-  	 * @since 2.1.0.4
-  	 */
-  	
-  	public boolean
-	isComplete();
+	/**
+	 * Indicates if the download has completed or not, exluding any files marked
+	 * as Do No Download
+	 *  
+	 * @return Download Complete status
+	 * @since 2.1.0.4
+	 */
+	public boolean isComplete();
 
- 	/**
-	 * indicates if the download has completed or not 
+	/**
+	 * Indicates if the download has completed or not
+	 *  
+	 * @param bIncludeDND Whether to include DND files when determining 
+	 *                     completion state
+	 * @return Download Complete status
+	 * 
 	 * @since 2.4.0.3
 	 */
-	public boolean isCompleteExcludingDND();
+	public boolean isComplete(boolean bIncludeDND);
 
   		/**
   		 * When a download is completed it is rechecked (if the option is enabled). This method

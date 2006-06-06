@@ -152,12 +152,12 @@ StatsWriterImpl
 							int	d1_index 	= d1.getPosition();
 							int d2_index	= d2.getPosition();
 							
-							if ( d1.isDownloadCompleteExcludingDND() ){
+							if ( d1.isDownloadComplete(false) ){
 								
 								d1_index	+= 1000000;
 							}
 							
-							if ( d2.isDownloadCompleteExcludingDND() ){
+							if ( d2.isDownloadComplete(false) ){
 								
 								d2_index	+= 1000000;
 							}

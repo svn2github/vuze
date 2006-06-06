@@ -540,7 +540,7 @@ public class MyTorrentsView
   }
   
   private boolean isOurDownloadManager(DownloadManager dm) {
-		boolean bCompleted = dm.isDownloadCompleteExcludingDND();
+		boolean bCompleted = dm.isDownloadComplete(false);
 		boolean bOurs = (bCompleted && isSeedingView)
 				|| (!bCompleted && !isSeedingView);
 		
@@ -716,7 +716,9 @@ public class MyTorrentsView
 				
 				boolean	scan = dm.getDownloadState().getFlag( DownloadManagerState.FLAG_SCAN_INCOMPLETE_PIECES );
 				
-				boolean	incomplete = !dm.isDownloadComplete();
+				// include DND files in incomplete stat, since a recheck may
+				// find those files have been completed
+				boolean	incomplete = !dm.isDownloadComplete(true);
 				
 				allScanSelected 	= incomplete && allScanSelected && scan;
 				allScanNotSelected 	= incomplete && allScanNotSelected && !scan;

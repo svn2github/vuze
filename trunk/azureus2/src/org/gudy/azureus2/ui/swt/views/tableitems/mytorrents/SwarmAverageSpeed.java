@@ -45,8 +45,7 @@ public class SwarmAverageSpeed
 
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     if( dm != null ) {
-      int div = dm.getNbPeers() + (dm.isDownloadComplete() ? 0 : 1);  //since total speed includes our own speed when downloading   
-      speed = div < 1 ? 0 : dm.getStats().getTotalAverage() / div;
+    	speed = dm.getStats().getTotalAveragePerPeer();
     }
 
     if( !cell.setSortValue( speed ) && cell.isValid() ) {

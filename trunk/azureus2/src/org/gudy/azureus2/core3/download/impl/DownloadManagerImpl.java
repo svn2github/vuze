@@ -1867,22 +1867,14 @@ DownloadManagerImpl
 		return( controller.getPeerManager());
 	}
 
-  	public boolean
-	isDownloadComplete()
-  	{
-  		return( onlySeeding );
-  	}
-  	
-	public boolean
-	isDownloadCompleteExcludingDND()
-	{
-		boolean	res = 
-			getStats().getDownloadCompleted(false) == 1000
-				|| controller.isDownloadCompleteExcludingDND();
+	public boolean isDownloadComplete(boolean bIncludeDND) {
+		if (!bIncludeDND) {
+			return onlySeeding;
+		}
 		
-		return( res );
+		return controller.isDownloadComplete(bIncludeDND);
 	}
-	
+  	
 	public void
 	addListener(
 		DownloadManagerListener	listener )
@@ -1974,7 +1966,7 @@ DownloadManagerImpl
 			listeners_mon.exit();
 		}
 		
-		setOnlySeeding(isDownloadCompleteExcludingDND());
+		setOnlySeeding(controller.isDownloadComplete(false));
 	}
 	
 	protected void

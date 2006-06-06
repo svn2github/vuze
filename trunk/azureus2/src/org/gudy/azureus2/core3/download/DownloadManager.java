@@ -216,11 +216,18 @@ DownloadManager
     public boolean
     isPersistent();
 
+    /**
+     * Retrieves whether the download is complete
+     * 
+     * @param bIncludingDND true- include files marked as Do Not Download.<BR>
+     *                       false- don't include files marked DND.<p>
+     *                       If there are DND files and you choose to include
+     *                       DND in the calculation, false will always be 
+     *                       returned.
+     * @return whether download is complete
+     */
     public boolean
-    isDownloadComplete();
-
-    public boolean
-    isDownloadCompleteExcludingDND();
+    isDownloadComplete(boolean bIncludingDND);
 
     public String
     getTrackerStatus();

@@ -654,7 +654,7 @@ Test
 			
 		}
 		public boolean
-		isDownloadCompleteExcludingDND()
+		isDownloadComplete(boolean b)
 		{
 			return( false );
 		}

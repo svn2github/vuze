@@ -735,7 +735,7 @@ public class StartStopRulesDefaultPlugin
 				DefaultRankCalculator dlData = dlDataArray[i];
 
 				Download download = dlData.getDownloadObject();
-				boolean completed = download.isCompleteExcludingDND();
+				boolean completed = download.isComplete();
 				boolean bIsFirstP = false;
 
 				// Count forced seedings as using a slot
@@ -936,7 +936,7 @@ public class StartStopRulesDefaultPlugin
 				}
 
 				if (bAutoReposition && (iRankType != RANK_NONE)
-						&& download.isCompleteExcludingDND()
+						&& download.isComplete()
 						&& (totals.bOkToStartSeeding || totals.firstPriority > 0))
 					download.setPosition(++vars.posComplete);
 
@@ -949,7 +949,7 @@ public class StartStopRulesDefaultPlugin
 				}
 
 				// Handle incomplete DLs
-				if (!download.isCompleteExcludingDND()) {
+				if (!download.isComplete()) {
 					handleInCompleteDownload(dlData, vars, totals);
 				} else if (totals.bOkToStartSeeding) {
 					handleCompletedDownload(dlDataArray, dlData, vars, totals);
