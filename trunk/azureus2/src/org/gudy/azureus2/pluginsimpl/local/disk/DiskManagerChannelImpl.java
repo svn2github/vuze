@@ -50,6 +50,8 @@ public class
 DiskManagerChannelImpl 
 	implements DiskManagerChannel, DiskManagerFileInfoListener, DownloadManagerPeerListener, PiecePiecerPriorityShaper
 {
+	private static final boolean	TRACE = false;
+	
 	private static final int COMPACT_DELAY	= 32;
 	
 	private static final Comparator comparator = new
@@ -195,11 +197,13 @@ DiskManagerChannelImpl
 		long	offset,
 		long	length )
 	{
-		// System.out.println( "data written:" + offset + "/" + length );
+		if ( TRACE ){
+			System.out.println( "data written:" + offset + "/" + length );
+		}
 		
 		dataEntry	entry = new dataEntry( offset, length );
 		
-		synchronized( this ){
+		synchronized( data_written ){
 			
 			data_written.add( entry );
 			
@@ -230,12 +234,18 @@ DiskManagerChannelImpl
 						
 						if ( this_offset <= prev_offset + prev_length ){
 							
-							// System.out.println( "merging: " + prev_e.getString()  + "/" + this_e.getString());
+							if ( TRACE ){	
+								System.out.println( "merging: " + prev_e.getString()  + "/" + this_e.getString());
+							}
 							
 							it.remove();
 							
 							prev_e.setLength( Math.max( prev_offset + prev_length, this_offset + this_length ) - prev_offset );
 						
+							if ( TRACE ){	
+								System.out.println( "    -> " + prev_e.getString());
+							}
+
 						}else{
 							
 							prev_e = this_e;
@@ -243,11 +253,11 @@ DiskManagerChannelImpl
 					}
 				}
 			}
-		}
 		
-		for (int i=0;i<waiters.size();i++){
-				
-			((AESemaphore)waiters.get(i)).release();
+			for (int i=0;i<waiters.size();i++){
+					
+				((AESemaphore)waiters.get(i)).release();
+			}
 		}
 	}
 	
@@ -455,7 +465,7 @@ DiskManagerChannelImpl
 						
 						inform( new event( pos ));
 						
-						synchronized( this ){
+						synchronized( data_written ){
 							
 							waiters.add( wait_sem );
 						}
@@ -465,7 +475,7 @@ DiskManagerChannelImpl
 							
 						}finally{
 							
-							synchronized( this ){
+							synchronized( data_written ){
 								
 								waiters.remove( wait_sem );
 							}
