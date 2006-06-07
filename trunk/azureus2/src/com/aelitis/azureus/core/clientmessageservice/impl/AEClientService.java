@@ -43,6 +43,8 @@ public class AEClientService implements ClientMessageService {
 	private final String address;
 	private final int port;
 	private final String msg_type_id;
+	private final int timeout_secs;
+	
 	private ClientConnection conn;
 	
 	private final AESemaphore read_block = new AESemaphore( "AEClientService:R" );
@@ -63,6 +65,7 @@ public class AEClientService implements ClientMessageService {
 	public AEClientService( String server_address, int server_port, int timeout, String _msg_type_id ) {
 		this.address = server_address;
 		this.port = server_port;
+		this.timeout_secs = timeout;
 		this.msg_type_id = _msg_type_id;
 		
 		try {
@@ -107,7 +110,9 @@ public class AEClientService implements ClientMessageService {
     	}
     });
     
-    connect_block.reserve();  //block while waiting for connect
+    if ( !connect_block.reserve( timeout_secs*1000 )){
+        throw new IOException( "connect op failed: timeout" );
+    }
     
     //connect op finished   
     
