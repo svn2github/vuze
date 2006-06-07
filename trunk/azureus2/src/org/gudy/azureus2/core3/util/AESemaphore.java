@@ -162,7 +162,7 @@ AESemaphore
 
 					Debug.out( "**** semaphore operation interrupted ****" );
 
-					throw( new RuntimeException("Semaphore: operation interrupted" ));
+					throw( new RuntimeException("Semaphore: operation interrupted", e ));
 					
 				}finally{
 					
