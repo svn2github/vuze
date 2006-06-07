@@ -376,6 +376,8 @@ UPnPPlugin
 			upnp = UPnPFactory.getSingleton(
 					new UPnPAdapter()
 					{
+						Set	exception_traces = new HashSet();
+						
 						public SimpleXMLParserDocument
 						parseXML(
 							String	data )
@@ -423,9 +425,24 @@ UPnPPlugin
 						log(
 							Throwable	e )
 						{
-							core_log.log( e );
+
+							String	nested = Debug.getNestedExceptionMessage(e);
 							
-							Debug.printStackTrace( e );
+							if ( !exception_traces.contains( nested )){
+								
+								exception_traces.add( nested );
+								
+								if ( exception_traces.size() > 128 ){
+									
+									exception_traces.clear();
+								}
+								
+								core_log.log( e );
+																
+							}else{
+								
+								core_log.log( nested );
+							}
 						}
 						
 						public void
