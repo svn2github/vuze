@@ -494,7 +494,7 @@ PEPeerControlImpl
     }
     else {
     	if ( log_if_not_found ){
-    		Debug.out( "closeAndRemovePeer(): peer not removed" );
+    		// we know this happens due to timing issues... Debug.out( "closeAndRemovePeer(): peer not removed" );
     	}
     }
   }
