@@ -81,6 +81,8 @@ PEPiece
 
 	public boolean		hasUnrequestedBlock();
 	public int[]		getAndMarkBlocks(PEPeer peer, int nbWanted);
+	public int[]		getAndMarkRealTimeBlocks(PEPeer peer, int nbWanted, int peerSpeedKBSec, int peerRequestCount);
+	
 	public boolean		setRequested(PEPeer peer, int blockNumber);
 	public void			clearRequested(int blocNumber);
     public boolean      isRequested(int blockNumber);
@@ -97,6 +99,8 @@ PEPiece
     public void         setDownloaded(int offset);
     public void         clearDownloaded(int offset);
 	public boolean		isDownloaded();   
+	public boolean[]	getDownloaded();
+	public boolean		hasUndownloadedBlock();
 
 	//A Piece can be reserved by a peer, so that only s/he can
 	//contribute to it.
@@ -118,12 +122,10 @@ PEPiece
 	
 	public int 			getSpeed();
 	public void			setSpeed(int speed);
-	public void			incSpeed();
-    /**
-     * @deprecated
-     * This is not good for high speed transfers
-     */
-	public void			decSpeed();
+
+	public void
+	setLastRequestedPeerSpeed(
+		int		speed );
 	
 	public void			reset();
 	

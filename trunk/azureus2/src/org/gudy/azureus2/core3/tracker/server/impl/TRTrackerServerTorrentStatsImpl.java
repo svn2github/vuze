@@ -166,4 +166,10 @@ TRTrackerServerTorrentStatsImpl
 	{
 		return( torrent.getBadNATPeerCount());
 	}
+	
+	public String
+	getString()
+	{
+		return( "an=" + announce_count + ",sc=" + scrape_count + ",co=" + completed_count +",le=" + getLeecherCount() + ",se=" + getSeedCount() + ",bi=" + bytes_in + ",bo=" + bytes_out );
+	}
 }

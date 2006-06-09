@@ -45,7 +45,8 @@ DiskManager
 	
 		// CHANGE THIS AND YOU MUST CHANGE NORMAL_REQUEST_SIZE in PeerReadRequest (plugin interface)
 	
-	public static final int BLOCK_SIZE = 16384;
+	public static final int BLOCK_SIZE_KB 	= 16;
+	public static final int BLOCK_SIZE 		= BLOCK_SIZE_KB*1024;
 
 	/**
 	 * Start checking/allocating

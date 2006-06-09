@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
+
 public class PEPieceImpl
     implements PEPiece
 {
@@ -63,6 +65,8 @@ public class PEPieceImpl
     private int             speed;      //slower peers dont slow down fast pieces too much
     
     private int             resumePriority;
+    
+    private Object			realTimeData;	// Object[] - int[] peer speed, long[] - request time
     
 	// experimental class level lock
 	protected static final AEMonitor 	class_mon	= new AEMonitor( "PEPiece:class");
@@ -182,6 +186,26 @@ public class PEPieceImpl
     	return( fully_downloaded );
     }
     
+    public boolean[]	
+    getDownloaded()
+    {
+    	return( downloaded );
+    }
+    
+    public boolean
+    hasUndownloadedBlock()
+    {
+    	for (int i =0; i <nbBlocks; i++ ){
+    		
+			if (!downloaded[i]){
+				
+				return( true );
+			}
+		}
+    	
+    	return( false );
+    }
+    
 	/** This marks a given block as having been written by the given peer
 	 * @param peer the PEPeer that sent the data
 	 * @param blockNumber the block we're operating on
@@ -287,7 +311,7 @@ public class PEPieceImpl
 	 * TODO: this should return the largest span equal or smaller than nbWanted
 	 * OR, probably a different method should do that, so this one can support 'more sequential' picking
 	 */
-	public int[] getAndMarkBlocks(PEPeer peer, int nbWanted)
+	public int[] getAndMarkBlocks(PEPeer peer, int nbWanted )
 	{
 		final String ip =peer.getIp();
         final boolean[] written =dmPiece.getWritten();
@@ -307,6 +331,102 @@ public class PEPieceImpl
 		return new int[] {-1, 0};
 	}
 
+		/**
+		 * Allocates firstly unrequested blocks and then requested blocks again
+		 * @param peer
+		 * @param nbWanted
+		 * @return
+		 */
+	public int[] getAndMarkRealTimeBlocks(PEPeer peer, int nbWanted, int peerSpeedKBSec, int peerRequestCount )
+	{
+		final String ip =peer.getIp();
+        final boolean[] written =dmPiece.getWritten();
+
+
+        int[]	result 	= new int[nbBlocks];
+        int		pos		= 0;
+        
+        try{
+			// scan piece to find first free block
+			
+			for (int i =0; i <nbBlocks; i++){
+	
+				if (	!downloaded[i] &&
+						requested[i] ==null &&
+						(written ==null ||!written[i])){
+					
+					requested[i] 	= ip;
+					result[pos++] 	= i;
+					
+					if ( pos == nbWanted ){
+						return( result );
+					}
+				}
+			}
+			
+			if ( pos < nbBlocks ){
+				
+					// now do the requested ones (but not those we requested above or already requested)
+				
+				long	now = SystemTime.getCurrentTime();
+				
+				if ( realTimeData == null ){
+					realTimeData = new Object[]{ new int[nbBlocks], new long[nbBlocks]};
+				}
+
+				int[]	speeds 			= (int[])((Object[])realTimeData)[0];
+				long[]	target_times 	= (long[])((Object[])realTimeData)[1];
+				
+				for (int i =0; i <nbBlocks; i++){
+					
+					if (	!downloaded[i] &&
+							requested[i] != null &&
+							!requested[i].equals( ip ) &&
+							(written ==null ||!written[i])){
+												
+						int		block_speed = speeds[i];
+						long	target_time	= target_times[i];
+						
+							// set a minuimum speed to avoid / 0s
+						
+						if ( peerSpeedKBSec == 0 ){
+							peerSpeedKBSec = 1;
+						}
+						
+						if ( peerSpeedKBSec >= block_speed || now < target_time || ( target_time > 0 && now > target_time )){
+													
+							speeds[i] 		= peerSpeedKBSec;
+							
+							long	duration = ( DiskManager.BLOCK_SIZE * 1000 * (peerRequestCount+1))/peerSpeedKBSec;
+							
+							duration = duration * 2;	// bit of slack
+							
+							duration = Math.max( duration, 2*PeerControlScheduler.SCHEDULE_PERIOD_MILLIS );
+							
+							target_times[i]	= now + duration;
+							
+							requested[i] 	= ip;
+							result[pos++] 	= i;
+							
+							if ( pos == nbWanted ){
+								return( result );
+							}
+						}
+					}
+				}
+			}
+			
+			return( result );
+			
+        }finally{
+        	
+        	if ( pos < result.length ){
+        		
+        		result[pos] = -1;
+        	}
+        }
+	}
+	
     public int getNbRequests()
     {
         int result =0;
@@ -473,6 +593,7 @@ public class PEPieceImpl
 		fully_downloaded = false;
 		time_last_download = 0;
 		reservedBy =null;
+		realTimeData=null;
 	}
 
 	protected void addWrite(PEPieceWriteImpl write) {
@@ -512,17 +633,14 @@ public class PEPieceImpl
 		speed =newSpeed;
 	}
 
-	/** @deprecated
-	*/
-	public void decSpeed()
+	public void
+	setLastRequestedPeerSpeed(
+		int		peerSpeed )
 	{
-		if (speed >0)
-			speed--;
-	}
-
-	public void incSpeed()
-	{
-		speed++;
+		// Up the speed on this piece?
+		if (peerSpeed > speed ){
+			speed++;
+		}
 	}
 
 	/**

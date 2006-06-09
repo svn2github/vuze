@@ -324,7 +324,7 @@ DiskManagerChannelImpl
    		   		
    		for (int i=first_piece;i<first_piece+pieces_to_buffer&&i<priority_offsets.length;i++){
    			
-   			priority_offsets[i]	= 100000 - ((i-first_piece)*250);
+   			priority_offsets[i]	= 1000000 - ((i-first_piece)*10000);
    		}
    		
    		return( priority_offsets );
