@@ -22,6 +22,7 @@ package org.gudy.azureus2.ui.swt.views;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -242,7 +243,24 @@ public class ConfigView extends AbstractIView {
 							+ "configSectionGetName function", e));
           name = "Bad Plugin";
         }
-        try {
+
+         String	section_key = name;
+         
+         if ( plugin_section ){
+         		// if resource exists without prefix then use it as plugins don't
+         		// need to start with the prefix
+         	
+         	if ( !MessageText.keyExists(section_key)){
+         		
+         		section_key = sSectionPrefix + name;
+         	}
+         	
+         }else{
+         	
+         	section_key = sSectionPrefix + name;
+         }
+         
+         try {
           TreeItem treeItem = null;
           String location = section.configSectionGetParentSection();
   
@@ -251,9 +269,23 @@ public class ConfigView extends AbstractIView {
           else if (location != "") {
             TreeItem treeItemFound = findTreeItem(tree, location);
             if (treeItemFound != null)
-              treeItem = new TreeItem(treeItemFound, SWT.NULL);
+              if (location.equalsIgnoreCase(ConfigSection.SECTION_PLUGINS)) {
+            	  // Force ordering by name here.
+            	  int position = findInsertPointFor(MessageText.getString(section_key), treeItemFound);
+            	  if (position == -1) {
+            		  treeItem = new TreeItem(treeItemFound, SWT.NULL);
+            	  }
+            	  else {
+            		  treeItem = new TreeItem(treeItemFound, SWT.NULL, position);
+            	  }
+              }
+              else {
+            	  treeItem = new TreeItem(treeItemFound, SWT.NULL);
+              }
           }
-  
+
+          // XXX: Is this statement ever executed? I can't see where
+          // treePlugins ever gets initialised...
           if (treeItem == null)
             treeItem = new TreeItem(treePlugins, SWT.NULL);
   
@@ -273,21 +305,6 @@ public class ConfigView extends AbstractIView {
             	  c = ((UISWTConfigSection)section).configSectionCreate(sc);
             }
             sc.setContent(c);
-          }
-          String	section_key = name;
-          
-          if ( plugin_section ){
-          		// if resource exists without prefix then use it as plugins don't
-          		// need to start with the prefix
-          	
-          	if ( !MessageText.keyExists(section_key)){
-          		
-          		section_key = sSectionPrefix + name;
-          	}
-          	
-          }else{
-          	
-          	section_key = sSectionPrefix + name;
           }
           
           Messages.setLanguageText(treeItem, section_key);
@@ -390,6 +407,12 @@ public class ConfigView extends AbstractIView {
     sc.setLayoutData(new GridData(GridData.FILL_BOTH));
 
     Composite cConfigSection = new Composite(sc, SWT.NULL);
+    
+    String section_key = ((bPrefix) ? sSectionPrefix : "") + sNameID;
+    
+    if (position == -2) { // Means "auto-order".
+    	position = findInsertPointFor(MessageText.getString(section_key), (treeItemParent == null) ? (Object)tree : (Object)treeItemParent);
+    }
 
     TreeItem treeItem;
     if (treeItemParent == null) {
@@ -403,12 +426,50 @@ public class ConfigView extends AbstractIView {
       else
         treeItem = new TreeItem(treeItemParent, SWT.NULL);
     }
-    Messages.setLanguageText(treeItem, ((bPrefix) ? sSectionPrefix : "") + sNameID);
+    Messages.setLanguageText(treeItem, section_key);
     treeItem.setData("Panel", sc);
     treeItem.setData("ID", sNameID);
 
     sc.setContent(cConfigSection);
     return cConfigSection;
+  }
+  
+  private static Comparator insert_point_comparator = new Comparator() {
+	  
+	  private String asString(Object o) {
+		  if (o instanceof String) {
+			  return (String)o;
+		  }
+		  else if (o instanceof TreeItem) {
+			  return ((TreeItem)o).getText();
+		  }
+		  else {
+			  throw new ClassCastException("object is not String or TreeItem: " + o.getClass().getName());
+		  }
+	  }
+	  
+	  public int compare(Object o1, Object o2) {
+		  int result = String.CASE_INSENSITIVE_ORDER.compare(asString(o1), asString(o2));
+		  return result;
+	  }
+  };
+  
+  public static int findInsertPointFor(String name, Object structure) {
+	  TreeItem[] children = null;
+	  if (structure instanceof Tree) {
+	      children = ((Tree)structure).getItems();
+	  }
+	  else {
+		  children = ((TreeItem)structure).getItems();
+	  }
+	  if (children.length == 0) {return -1;}
+	  int result =  Arrays.binarySearch(children, name, insert_point_comparator);
+	  if (result > 0) {return result;}
+	  result = -(result+1);
+	  if (result == children.length) {
+		  result = -1;
+	  }
+	  return result;
   }
 
   public TreeItem findTreeItem(String ID) {

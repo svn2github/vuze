@@ -531,7 +531,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 			boolean bUsePrefix = MessageText.keyExists(ConfigView.sSectionPrefix
 					+ "plugins." + pluginName);
 			Composite pluginGroup = configView.createConfigSection(treePlugins,
-					pluginName, -1, bUsePrefix);
+					pluginName, -2, bUsePrefix);
 			GridLayout pluginLayout = new GridLayout();
 			pluginLayout.numColumns = 3;
 			pluginGroup.setLayout(pluginLayout);
