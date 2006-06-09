@@ -1100,9 +1100,10 @@ public class FileUtil {
     		return( false );
     	}
     	
+    	File to_file_parent = to_file.getParentFile();
+    	if (!to_file_parent.exists()) {to_file_parent.mkdirs();}
+    	
     	if ( from_file.isDirectory()){
-    		
-    		to_file.mkdirs();
     		
     		File[]	files = from_file.listFiles();
     		
@@ -1114,6 +1115,8 @@ public class FileUtil {
     		}
     		
     		int	last_ok = 0;
+    		
+    		if (!to_file.exists()) {to_file.mkdir();}
     		
     		for (int i=0;i<files.length;i++){
     			
