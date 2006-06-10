@@ -828,7 +828,7 @@ PluginUpdatePlugin
 							
 							String	name = entry.getName();
 							
-							if ( !name.endsWith("/")){
+							if ( !( name.equals( "azureus.sig" ) || name.endsWith("/"))){
 								
 								if ( common_prefix == null ){
 									
@@ -984,7 +984,7 @@ PluginUpdatePlugin
 								
 								try{
 									if ( 	name.length() >= common_prefix.length() &&
-											!name.endsWith("/")){
+											!( name.equals( "azureus.sig") || name.endsWith("/"))){
 										
 										boolean	skip_file = false;
 										
