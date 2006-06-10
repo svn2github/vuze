@@ -454,6 +454,6 @@ DownloadManager
     generateEvidence(
         IndentWriter        writer );
     
-    public void downloadRemoved(boolean torrent_file_exists);
+    public void downloadRemoved();
 
 }

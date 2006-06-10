@@ -190,7 +190,7 @@ DiskManager
 	downloadEnded();
 
     public void
-    downloadRemoved(boolean torrent_file_exists);
+    downloadRemoved();
 
 	public void
 	moveDataFiles(

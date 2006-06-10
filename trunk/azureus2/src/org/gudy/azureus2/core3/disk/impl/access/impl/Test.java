@@ -360,7 +360,7 @@ Test
 			
 		}
 		
-		public void downloadRemoved(boolean torrent_file_exists) {}
+		public void downloadRemoved() {}
 		
 		public DownloadManagerState 
 		getDownloadState()
@@ -828,12 +828,6 @@ Test
 			
 		}
 	  
-
-	    public void downloadEnded()
-		{
-			
-		}
-
 	    public DiskManager initializeDiskManager()
 		{
 			return( null );

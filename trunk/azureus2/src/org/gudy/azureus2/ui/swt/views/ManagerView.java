@@ -337,7 +337,6 @@ public class ManagerView extends AbstractIView implements
 
 						manager.stopIt(DownloadManager.STATE_STOPPED, false, false);
 						manager.getGlobalManager().removeDownloadManager(manager);
-						manager.downloadRemoved(true);
 
 					} catch (GlobalManagerDownloadRemovalVetoException e) {
 

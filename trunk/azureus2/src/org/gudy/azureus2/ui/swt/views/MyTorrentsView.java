@@ -2299,7 +2299,6 @@ public class MyTorrentsView
 		      try {
 		        dm.stopIt( DownloadManager.STATE_STOPPED, bDeleteTorrent, bDeleteData );
 		        dm.getGlobalManager().removeDownloadManager( dm );
-		        dm.downloadRemoved(true);
 		      }
 		      catch (GlobalManagerDownloadRemovalVetoException f) {
 		        Alerts.showErrorMessageBoxUsingResourceString("globalmanager.download.remove.veto", f);

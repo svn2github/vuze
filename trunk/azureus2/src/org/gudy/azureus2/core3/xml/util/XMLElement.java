@@ -176,9 +176,9 @@ public class XMLElement {
                     ((XMLElement)content_element).printTo(pw, indent+2, spaced_out);
                 }
                 else if (spaced_out) {
-                	for (int i=0; i<indent+2; i++) {pw.print(" ");}
-                	pw.print(quote((String)content_element));
-                	pw.println();
+                    for (int i=0; i<indent+2; i++) {pw.print(" ");}
+                    pw.print(quote((String)content_element));
+                    pw.println();
                 }
                 else {
                     pw.print(quote((String)content_element));
@@ -246,9 +246,27 @@ public class XMLElement {
         public int compare(Object o1, Object o2) {
             if (o1 instanceof XMLElement) {
                 if (o2 instanceof XMLElement) {
-                    int result = String.CASE_INSENSITIVE_ORDER.compare(((XMLElement)o1).getTag(), ((XMLElement)o2).getTag());
+                    XMLElement xe1 = (XMLElement)o1;
+                    XMLElement xe2 = (XMLElement)o2;
+                    int result = String.CASE_INSENSITIVE_ORDER.compare(xe1.getTag(), xe2.getTag());
                     if (result == 0) {
-                        throw new RuntimeException("Shouldn't be using sorting for contents if you have tags with same name! (e.g. " + o1 + ")");
+                        int xe1_index = 0, xe2_index = 0;
+                        try {
+                            xe1_index = Integer.parseInt(xe1.getAttribute("index"));
+                            xe2_index = Integer.parseInt(xe2.getAttribute("index"));
+                        }
+                        catch (NullPointerException ne) {
+                            xe1_index = xe2_index = 0;
+                        }
+                        catch (NumberFormatException ne) {
+                            xe1_index = xe2_index = 0;
+                        }
+
+                        if (xe1_index != xe2_index) {
+                            return xe1_index - xe2_index;
+                        }
+
+                        throw new RuntimeException("Shouldn't be using sorting for contents if you have tags with same name and no index attribute! (e.g. " + o1 + ")");
                     }
                     return result;
                 }

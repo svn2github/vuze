@@ -1640,8 +1640,8 @@ DiskManagerImpl
         moveDownloadFilesWhenEndedOrRemoved(false, true);
     }
 
-    public void downloadRemoved (boolean torrent_file_exists) {
-        moveDownloadFilesWhenEndedOrRemoved(true, torrent_file_exists);
+    public void downloadRemoved () {
+        moveDownloadFilesWhenEndedOrRemoved(true, true);
     }
 
     private boolean moveDownloadFilesWhenEndedOrRemoved(final boolean removing, final boolean torrent_file_exists) {

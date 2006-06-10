@@ -614,10 +614,6 @@ DownloadImpl
 					download_manager.stopIt( dl_state, delete_torrent, delete_data );
 				}
 				
-				if (!delete_data) {
-					download_manager.downloadRemoved(!delete_torrent);
-				}
-				
 				globalManager.removeDownloadManager(download_manager);
 				
 			}catch( GlobalManagerDownloadRemovalVetoException e ){

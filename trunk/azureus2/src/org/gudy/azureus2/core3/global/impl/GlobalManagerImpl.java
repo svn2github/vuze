@@ -882,6 +882,7 @@ public class GlobalManagerImpl
     fixUpDownloadManagerPositions();
     listeners.dispatch( LDT_MANAGER_REMOVED, manager );
     manager.removeListener(this);
+    manager.downloadRemoved();
     
     saveDownloads( false );
 
