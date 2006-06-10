@@ -2807,11 +2807,13 @@ DownloadManagerImpl
 		}
 	}
 
-    public void downloadRemoved(boolean torrent_file_exists) {
-    	Debug.out("Entered downloadRemoved on DownloadManager.");
+    public void downloadRemoved() {
+    	// Data files don't exist, so we just don't do anything.
+    	if (!getSaveLocation().exists()) {return;}
+    	
     	DiskManager dm = this.getDiskManager();
     	if (dm != null) {
-    		dm.downloadRemoved(torrent_file_exists);
+    		dm.downloadRemoved();
     		return;
     	}
     	    	
@@ -2826,15 +2828,17 @@ DownloadManagerImpl
     		moved_files = true;
     	}
     	catch (Exception e) {
-    		Debug.out("Problem moving files to removed download directory", e);
+    		Logger.log(new LogAlert(true, "Problem moving files to removed download directory", e));
     	}
+    	
+    	// This code will silently fail if the torrent file doesn't exist.
     	if (moved_files && mdi.move_torrent) {
-    		try {
-    			this.moveTorrentFile(new File(mdi.location));
-    		}
-    		catch (Exception e) {
-    			Debug.out("Problem moving torrent to removed download directory", e);
-    		}
+  		    try {
+	    		this.moveTorrentFile(new File(mdi.location));
+	    	}
+	    	catch (Exception e) {
+	    		Logger.log(new LogAlert(true, "Problem moving torrent to removed download directory", e));
+	    	}
     	}
     }
 }
