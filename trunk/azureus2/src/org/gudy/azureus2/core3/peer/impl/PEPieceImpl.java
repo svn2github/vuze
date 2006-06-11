@@ -393,16 +393,18 @@ public class PEPieceImpl
 							peerSpeedKBSec = 1;
 						}
 						
-						if ( peerSpeedKBSec >= block_speed || now < target_time || ( target_time > 0 && now > target_time )){
-													
-							speeds[i] 		= peerSpeedKBSec;
+						if ( peerSpeedKBSec > block_speed || ( target_time > 0 && now > target_time )){
 							
-							long	duration = ( DiskManager.BLOCK_SIZE * 1000 * (peerRequestCount+1))/peerSpeedKBSec;
+							long	duration = ( DiskManager.BLOCK_SIZE_KB * 1000 * (peerRequestCount+1))/peerSpeedKBSec;
 							
 							duration = duration * 2;	// bit of slack
 							
 							duration = Math.max( duration, 2*PeerControlScheduler.SCHEDULE_PERIOD_MILLIS );
 							
+							// System.out.println( "Requesting " + getPieceNumber() + "/" + i + ",os=" + speeds[i] + ",ns=" + peerSpeedKBSec + ",du=" + duration + ", pe=" + ip );
+									
+							speeds[i] 		= peerSpeedKBSec;
+
 							target_times[i]	= now + duration;
 							
 							requested[i] 	= ip;
