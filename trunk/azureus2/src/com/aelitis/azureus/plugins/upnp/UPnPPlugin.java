@@ -44,12 +44,15 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.net.natpmp.NatPMPDeviceFactory;
+import com.aelitis.net.natpmp.upnp.NatPMPUPnP;
+import com.aelitis.net.natpmp.upnp.NatPMPUPnPFactory;
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.services.*;
 
 public class 
 UPnPPlugin
-	implements Plugin, UPnPMappingListener, UPnPWANConnectionListener
+	implements Plugin, UPnPListener, UPnPMappingListener, UPnPWANConnectionListener
 {
 	private static final String PLUGIN_CONFIGSECTION_ID = "UPnP";
 
@@ -460,93 +463,7 @@ UPnPPlugin
 					},
 					getSelectedInterfaces());
 				
-			upnp.addRootDeviceListener(
-				new UPnPListener()
-				{
-					public boolean
-					deviceDiscovered(
-						String		USN,
-						URL			location )
-					{
-						if ( !ignore_bad_devices.getValue()){
-							
-							return( true );
-						}
-						
-						incrementDeviceStats( USN, STATS_DISCOVER );
-
-						boolean	ok = checkDeviceStats( USN, location );
-						
-						String	stats = "";
-						
-						for (int i=0;i<STATS_KEYS.length;i++){
-
-							stats += (i==0?"":",")+STATS_KEYS[i] + "=" + getDeviceStats( USN, STATS_KEYS[i] );
-						}
-
-						if ( !ok ){
-							
-							log.log( "Device '" + location + "' is being ignored: " + stats );
-							
-						}else{
-							
-							
-							log.log( "Device '" + location +"' is ok: " + stats );
-						}
-						
-						return( ok );
-					}
-					
-					public void
-					rootDeviceFound(
-						UPnPRootDevice		device )
-					{
-						incrementDeviceStats( device.getUSN(), "found" );
-
-						checkDeviceStats( device );
-						
-						try{
-							processDevice( device.getDevice() );
-							
-							try{
-								this_mon.enter();
-							
-								root_info_map.put( device.getLocation(), device.getInfo());
-							
-								Iterator	it = root_info_map.values().iterator();
-								
-								String	all_info = "";
-									
-								List	reported_info = new ArrayList();
-								
-								while( it.hasNext()){
-									
-									String	info = (String)it.next();
-									
-									if ( info != null && !reported_info.contains( info )){
-										
-										reported_info.add( info );
-										
-										all_info += (all_info.length()==0?"":",") + info;
-									}
-								}
-								
-								if ( all_info.length() > 0 ){
-									
-									plugin_interface.getPluginconfig().setPluginParameter( "plugin.info", all_info );
-								}
-								
-							}finally{
-								
-								this_mon.exit();
-							}
-							
-						}catch( Throwable e ){
-							
-							log.log( "Root device processing fails", e );
-						}
-					}
-				});
+			upnp.addRootDeviceListener( this );
 			
 			upnp.addLogListener(
 				new UPnPLogListener()
@@ -637,6 +554,15 @@ UPnPPlugin
 				addMapping( upnp_mappings[i] );
 			}
 			
+			try{
+				NatPMPUPnP	nat_pmp_upnp = NatPMPUPnPFactory.create( upnp, NatPMPDeviceFactory.getSingleton());
+				
+				nat_pmp_upnp.addListener( this );
+				
+			}catch( Throwable e ){
+				
+				log.log( "Failed to initialise NAT-PMP subsystem", e );
+			}
 		}catch( Throwable e ){
 			
 			log.log( e );
@@ -665,6 +591,90 @@ UPnPPlugin
 		}		
 	}
 
+	public boolean
+	deviceDiscovered(
+		String		USN,
+		URL			location )
+	{
+		if ( !ignore_bad_devices.getValue()){
+			
+			return( true );
+		}
+		
+		incrementDeviceStats( USN, STATS_DISCOVER );
+
+		boolean	ok = checkDeviceStats( USN, location );
+		
+		String	stats = "";
+		
+		for (int i=0;i<STATS_KEYS.length;i++){
+
+			stats += (i==0?"":",")+STATS_KEYS[i] + "=" + getDeviceStats( USN, STATS_KEYS[i] );
+		}
+
+		if ( !ok ){
+			
+			log.log( "Device '" + location + "' is being ignored: " + stats );
+			
+		}else{
+			
+			
+			log.log( "Device '" + location +"' is ok: " + stats );
+		}
+		
+		return( ok );
+	}
+	
+	public void
+	rootDeviceFound(
+		UPnPRootDevice	device )
+	{
+		incrementDeviceStats( device.getUSN(), "found" );
+
+		checkDeviceStats( device );
+		
+		try{
+			processDevice( device.getDevice() );
+			
+			try{
+				this_mon.enter();
+			
+				root_info_map.put( device.getLocation(), device.getInfo());
+			
+				Iterator	it = root_info_map.values().iterator();
+				
+				String	all_info = "";
+					
+				List	reported_info = new ArrayList();
+				
+				while( it.hasNext()){
+					
+					String	info = (String)it.next();
+					
+					if ( info != null && !reported_info.contains( info )){
+						
+						reported_info.add( info );
+						
+						all_info += (all_info.length()==0?"":",") + info;
+					}
+				}
+				
+				if ( all_info.length() > 0 ){
+					
+					plugin_interface.getPluginconfig().setPluginParameter( "plugin.info", all_info );
+				}
+				
+			}finally{
+				
+				this_mon.exit();
+			}
+			
+		}catch( Throwable e ){
+			
+			log.log( "Root device processing fails", e );
+		}
+	}
+	
 	protected boolean
 	checkDeviceStats(
 		UPnPRootDevice	root )
