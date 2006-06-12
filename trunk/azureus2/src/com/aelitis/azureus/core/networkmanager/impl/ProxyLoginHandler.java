@@ -46,7 +46,7 @@ public class ProxyLoginHandler {
 	
   public static final InetSocketAddress SOCKS_SERVER_ADDRESS;
   private static final String socks_version;
-  private static final String socks_user;
+  private static String socks_user;
   private static final String socks_password;
   
 
@@ -63,6 +63,9 @@ public class ProxyLoginHandler {
     
     socks_version = COConfigurationManager.getStringParameter( "Proxy.Data.SOCKS.version" );
     socks_user  = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Username" : "Proxy.Data.Username" );
+    if ( socks_user.trim().equalsIgnoreCase("<none>")){
+    	socks_user = "";
+    }
     socks_password = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Password" : "Proxy.Data.Password" );
   }
   

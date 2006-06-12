@@ -134,7 +134,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 
 		Label lUser = new Label(gProxyTracker, SWT.NULL);
 		Messages.setLanguageText(lUser, CFG_PREFIX + "username");
-		StringParameter pUser = new StringParameter(gProxyTracker, "Proxy.Username", "");
+		StringParameter pUser = new StringParameter(gProxyTracker, "Proxy.Username" );
 		gridData = new GridData();
 		gridData.widthHint = 105;
 		pUser.setLayoutData(gridData);
@@ -206,7 +206,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		Label lDataUser = new Label(gProxyPeer, SWT.NULL);
 		Messages.setLanguageText(lDataUser, CFG_PREFIX + "username");
 		StringParameter pDataUser = new StringParameter(gProxyPeer,
-				"Proxy.Data.Username", "");
+				"Proxy.Data.Username");
 		gridData = new GridData();
 		gridData.widthHint = 105;
 		pDataUser.setLayoutData(gridData);
@@ -262,6 +262,12 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		enableSocksPeer.setAdditionalActionPerformer(proxy_peer_enabler);
 		sameConfig.setAdditionalActionPerformer(proxy_peer_enabler);
 
+		Label label = new Label(cSection, SWT.WRAP);
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		label.setLayoutData(gridData);
+		label.setText(MessageText.getString(CFG_PREFIX+"username.info" ));
+		
 		return cSection;
 
 	}

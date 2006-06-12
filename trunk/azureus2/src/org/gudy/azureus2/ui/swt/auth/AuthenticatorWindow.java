@@ -441,7 +441,19 @@ AuthenticatorWindow
 		close(
 			boolean		ok )
 	 	{
-	 		if ( !ok ){
+	 		if ( ok ){
+	 			
+	 			if ( username == null ){
+	 				
+	 				username = "";
+	 			}
+	 			
+	 			if ( password == null ){
+	 				
+	 				password = "";
+	 			}
+	 			
+	 		}else{
 	 			
 	 			username	= null;
 	 			password	= null;

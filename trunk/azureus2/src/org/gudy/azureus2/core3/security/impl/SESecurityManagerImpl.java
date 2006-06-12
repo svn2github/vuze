@@ -35,6 +35,7 @@ import java.security.*;
 import java.security.cert.*;
 import java.security.cert.Certificate;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
@@ -318,6 +319,18 @@ SESecurityManagerImpl
 		String		host,
 		int			port )
 	{
+			// special case for socks auth when user is explicitly "<none>" as some servers seem to cause
+			// a password prompt when no auth defined and java doesn't cache a successful blank response
+			// thus causing repetitive prompts
+		
+		if ( protocol.toLowerCase().startsWith( "socks" )){
+			
+			if ( COConfigurationManager.getStringParameter("Proxy.Username").trim().equalsIgnoreCase( "<none>" )){
+				
+				return( new PasswordAuthentication( "", "".toCharArray()));
+			}
+		}
+		
 		try{			
 			URL	tracker_url = new URL( protocol + "://" + host + ":" + port + "/" );
 		

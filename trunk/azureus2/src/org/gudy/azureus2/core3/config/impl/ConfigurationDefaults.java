@@ -231,7 +231,7 @@ public class ConfigurationDefaults {
     def.put( "Enable.SOCKS", FALSE );
     def.put( "Proxy.Host", "" );
     def.put( "Proxy.Port", "" );
-    def.put( "Proxy.Username", "" );
+    def.put( "Proxy.Username", "<none>" );	// default is explicit "none", as opposed to "not defined"
     def.put( "Proxy.Password", "" );
     
     	// data proxy defaults
@@ -241,7 +241,7 @@ public class ConfigurationDefaults {
     def.put( "Proxy.Data.Same", TRUE);
     def.put( "Proxy.Data.Host", "" );
     def.put( "Proxy.Data.Port", "" );
-    def.put( "Proxy.Data.Username", "" );
+    def.put( "Proxy.Data.Username", "<none>" );
     def.put( "Proxy.Data.Password", "" );
 
     //old
