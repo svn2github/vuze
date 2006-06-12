@@ -546,7 +546,7 @@ public class PiecePickerImpl
 						while (found >0 &&pt.isDownloadPossible() &&pt.getNbRequests() <maxRequests)
 						{   // is there anything else to download?
 	                        if ( peer_managing_requests || !endGameMode )
-	                            found =findPieceToDownload(pt, maxRequests, upRates[i]);
+	                            found =findPieceToDownload(pt, maxRequests, (int)(upRates[i]/1024));
 	                        else
 	                            found =findPieceInEndGameMode(pt, maxRequests);
 						}
@@ -718,9 +718,9 @@ public class PiecePickerImpl
 	 * @param pt the PEPeerTransport we're working on
 	 * @return int # of blocks that were requested (0 if no requests were made)
 	 */
-	protected final int findPieceToDownload(PEPeerTransport pt, final int nbWanted, final long smoothPeerSpeed)
+	protected final int findPieceToDownload(PEPeerTransport pt, final int nbWanted, final int smoothPeerSpeedKBSec)
 	{
-		final int pieceNumber =getRequestCandidate(pt);
+		final int pieceNumber =getRequestCandidate(pt,smoothPeerSpeedKBSec);
 		if (pieceNumber <0)
         {   // probaly should have found something since chose to try; probably not interested anymore
             // (or maybe Needed but not Done pieces are otherwise not requestable)
@@ -755,7 +755,7 @@ public class PiecePickerImpl
 
 		if ( pePiece.getResumePriority() >= PRIORITY_REALTIME_MIN ){
 			
-			final int[] blocksFound =pePiece.getAndMarkRealTimeBlocks( pt, nbWanted, (int)(smoothPeerSpeed/1024), pt.getNbRequests());
+			final int[] blocksFound =pePiece.getAndMarkRealTimeBlocks( pt, nbWanted, smoothPeerSpeedKBSec, pt.getNbRequests());
 	
 			int requested =0;
 			// really try to send the request to the peer
@@ -821,7 +821,7 @@ public class PiecePickerImpl
      * 
      * @return int with pieceNumberto be requested or -1 if no request could be found
      */
-    private final int getRequestCandidate(final PEPeerTransport pt)
+    private final int getRequestCandidate(final PEPeerTransport pt,final int smoothPeerSpeedKBSec)
     {
         if (pt ==null ||pt.getPeerState() !=PEPeer.TRANSFERING)
             return -1;
@@ -851,9 +851,7 @@ public class PiecePickerImpl
             		}
             	}
             }
-            
-            Debug.out( "Peer's reserved piece is no longer valid" );
-            
+                       
             	// reserved piece is no longer valid, dump it
             
             pt.setReservedPieceNumber(-1);
@@ -924,13 +922,9 @@ public class PiecePickerImpl
 
                 if ( priority >=0 && dmPiece.isDownloadable()){
                
-                		// if this priority exceeds the priority-override threshold then  we override rarity
-                	
-                	boolean	pieceRarestOverride = priority>=PRIORITY_OVERRIDES_RAREST?true:globalRarestOverride;
-                	
                     final PEPiece pePiece = pePieces[i];
 
-                    if ( priority >= PRIORITY_REALTIME_MIN && ( pePiece == null || pePiece.hasUndownloadedBlock())){
+                    if ( priority >= PRIORITY_REALTIME_MIN && ( pePiece == null || pePiece.hasRealTimeBlock(pt,smoothPeerSpeedKBSec))){
                     	                   	
                     		// we want to get the best peer on the job we can. the peers are already sorted by (smoothed) speed
                     		// so the first peers through this code will be the fastest peers (with room to reserve at least one
@@ -980,10 +974,14 @@ public class PiecePickerImpl
                     	continue;
                     }
                     
+               			// if we are considering realtime pieces then don't bother with non-realtime ones
+                    
                     if (( pePiece == null || pePiece.isRequestable()) && !startIsRealtime){
                     
-                    		// if we are considering  realtime pieces then don't bother with non-realtime ones
-     
+                   			// if this priority exceeds the priority-override threshold then  we override rarity
+                    	
+                    	boolean	pieceRarestOverride = priority>=PRIORITY_OVERRIDES_RAREST?true:globalRarestOverride;
+                    	    
                         	// piece is: Needed, not fully: Requested, Downloaded, Written, hash-Checking or Done
                      	
                         avail =availability[i];

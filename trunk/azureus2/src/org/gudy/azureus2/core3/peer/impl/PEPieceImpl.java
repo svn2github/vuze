@@ -331,6 +331,51 @@ public class PEPieceImpl
 		return new int[] {-1, 0};
 	}
 
+	public boolean
+	hasRealTimeBlock( PEPeer peer, int peerSpeedKBSec )
+	{
+		if ( hasUnrequestedBlock()){
+			
+			return( true );
+		}
+		
+		long	now = SystemTime.getCurrentTime();
+        final boolean[] written =dmPiece.getWritten();
+		final String ip =peer.getIp();
+
+		if ( realTimeData == null ){
+			realTimeData = new Object[]{ new int[nbBlocks], new long[nbBlocks]};
+		}
+
+		int[]	speeds 			= (int[])((Object[])realTimeData)[0];
+		long[]	target_times 	= (long[])((Object[])realTimeData)[1];
+		
+		for (int i =0; i <nbBlocks; i++){
+			
+			if (	!downloaded[i] &&
+					requested[i] != null &&
+					!requested[i].equals( ip ) &&
+					(written ==null ||!written[i])){
+										
+				int		block_speed = speeds[i];
+				long	target_time	= target_times[i];
+				
+					// set a minuimum speed to avoid / 0s
+				
+				if ( peerSpeedKBSec == 0 ){
+					peerSpeedKBSec = 1;
+				}
+				
+				if ( peerSpeedKBSec > block_speed || ( target_time > 0 && now > target_time )){
+					
+					return( true );
+				}
+			}
+		}
+		
+		return( false );
+	}
+	
 		/**
 		 * Allocates firstly unrequested blocks and then requested blocks again
 		 * @param peer
