@@ -1,167 +1,75 @@
 /*
- * File    : BufferedTableItem.java
- * Created : 24 nov. 2003
- * By      : Olivier
+ * Created on Jun 12, 2006 11:34:42 PM
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
- * Azureus - a Java Bittorrent client
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
- *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details ( see the LICENSE file ).
- *
+ * GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * AELITIS, SAS au capital de 46,603.30 euros
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
- 
 package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core3.util.Debug;
 
 /**
- * @author Olivier
+ * @author TuxPaper
+ * @created Jun 12, 2006
  *
  */
-public abstract class BufferedTableItem {
-  
-  protected BufferedTableRow row;
-  private int position;
-  private Color ourFGColor = null;
-  
-  public BufferedTableItem(BufferedTableRow row,int position) {
-    this.row = row;
-    this.position = position;
-  }
-  
-  public String getText() {
-    if (position != -1)
-      return row.getText(position);
-    return "";
-  }
+public interface BufferedTableItem
+{
 
-  public boolean setText(String text) {
-    if(position != -1)
-      return row.setText(position,text);
-    return false;
-  }
-  
-  public void setImage(Image img) {
-    if(position != -1)
-      row.setImage(position,img);
-  }
-  
-  public void setRowForeground(Color color) {
-    row.setForeground(color);
-  }
-  
-  public boolean setItemForeground(Color color) {
-    if (position == -1)
-      return false;
+	public abstract String getText();
 
-    boolean ok;
-    if (ourFGColor != null) {
-      ok = row.setForeground(position, color);
-      if (ok) {
-        if (!color.isDisposed())
-          color.dispose();
-        ourFGColor = null;
-      }
-    } else {
-      ok = row.setForeground(position, color);
-    }
-    return ok;
-  }
+	public abstract boolean setText(String text);
 
-  public boolean setItemForeground(int red, int green, int blue) {
-    if (position == -1)
-      return false;
+	public abstract void setImage(Image img);
 
-    Color oldColor = row.getForeground(position);
-    
-    RGB newRGB = new RGB(red, green, blue);
-	
-    if (oldColor != null && oldColor.getRGB().equals(newRGB)){
-		  return false;
-    }
-    
-    Color newColor = new Color(row.getTable().getDisplay(), newRGB);
-    boolean ok = row.setForeground(position, newColor);
-    if (ok) {
-      if (ourFGColor != null && !ourFGColor.isDisposed())
-          ourFGColor.dispose();
-      ourFGColor = newColor;
-    } else {
-      if (!newColor.isDisposed())
-        newColor.dispose();
-    }
-    
-    return ok;
-  }
-  
-  public Color getBackground() {
-    return row.getBackground();
-  }
+	public abstract void setRowForeground(Color color);
 
-  public Rectangle getBounds() {
-    if(position != -1)
-      return row.getBounds(position);
-    return null;
-  }
-  
-  public Table getTable() {
-    return row.getTable();
-  }
+	public abstract boolean setItemForeground(Color color);
 
-  public abstract void refresh();
-  
-  public void dispose() {
-    if (ourFGColor != null && !ourFGColor.isDisposed())
-      ourFGColor.dispose();
-  }
-  
-  public boolean isShown() {
-    return position != -1;
-  }
-  
-  public boolean needsPainting() {
-  	return false; 
-  }
-  
-  /** Paint the image only (no update needed)
-   */
-  public void doPaint(GC gc) {
-  } 
-  
-  /** Column location (not position) changed.  Usually due to a resize of
-   * a column in a position prior to this one.
-   */
-  public void locationChanged() {
-  }
+	public abstract boolean setItemForeground(int red, int green, int blue);
 
-  public int getPosition() {
-    return position;
-  }
-  
-  public String getColumnName() {
-    if (!isShown())
-      return null;
-    Table table = row.getTable();
-    if (table != null && !table.isDisposed() && 
-        position >= 0 && position < table.getColumnCount())
-      return table.getColumn(position).getText();
+	public abstract Color getBackground();
 
-    return null;
-  }
+	public abstract Rectangle getBounds();
+
+	public abstract Table getTable();
+
+	public abstract void refresh();
+
+	public abstract void dispose();
+
+	public abstract boolean isShown();
+
+	public abstract boolean needsPainting();
+
+	/** Paint the image only (no update needed)
+	 */
+	public abstract void doPaint(GC gc);
+
+	/** Column location (not position) changed.  Usually due to a resize of
+	 * a column in a position prior to this one.
+	 */
+	public abstract void locationChanged();
+
+	public abstract int getPosition();
+
+	public abstract String getColumnName();
+
 }

@@ -45,11 +45,7 @@ import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
-import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem1;
-import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem2;
-import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
-import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.components.*;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -120,6 +116,19 @@ public class TableCellImpl
 				});
   }
 
+  public TableCellImpl(TableRowCore _tableRow, TableColumnCore _tableColumn,
+      int position, BufferedTableItem item) {
+    this.tableColumn = _tableColumn;
+    this.tableRow = _tableRow;
+    valid = false;
+    refreshErrLoopCount = 0;
+    tooltipErrLoopCount = 0;
+    loopFactor = 0;
+
+    bufferedTableItem = item;
+
+    tableColumn.invokeCellAddedListeners(this);
+  }
   /**
    * Initialize
    *  
@@ -136,6 +145,14 @@ public class TableCellImpl
     tooltipErrLoopCount = 0;
     loopFactor = 0;
 
+    createBufferedTableItem(position);
+    
+    tableColumn.invokeCellAddedListeners(this);
+    
+    //bDebug = (position == 1) && tableColumn.getTableID().equalsIgnoreCase("Peers");
+  }
+  
+  private void createBufferedTableItem(int position) {
     BufferedTableRow bufRow = (BufferedTableRow)tableRow;
     if (tableColumn.getType() == TableColumnCore.TYPE_GRAPHIC) {
     	if (bAlternateTablePainting) {
@@ -159,7 +176,7 @@ public class TableCellImpl
 	    }
     	setOrientationViaColumn();
     } else {
-      bufferedTableItem = new BufferedTableItem(bufRow, position) {
+      bufferedTableItem = new BufferedTableItemImpl(bufRow, position) {
         public void refresh() {
           TableCellImpl.this.refresh();
         }
@@ -168,10 +185,6 @@ public class TableCellImpl
         }
       };
     }
-
-    tableColumn.invokeCellAddedListeners(this);
-    
-    //bDebug = (position == 1) && tableColumn.getTableID().equalsIgnoreCase("Peers");
   }
 
   private void pluginError(Throwable e) {
@@ -408,7 +421,7 @@ public class TableCellImpl
       return;
     
     if (bFillCell)
-    	((BufferedGraphicTableItem)bufferedTableItem).orientation = SWT.FILL;
+    	((BufferedGraphicTableItem)bufferedTableItem).setOrientation(SWT.FILL);
     else
     	setOrientationViaColumn();
   }
@@ -418,7 +431,7 @@ public class TableCellImpl
 
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
-    ((BufferedGraphicTableItem)bufferedTableItem).marginHeight = height;
+    ((BufferedGraphicTableItem)bufferedTableItem).setMargin(-1, height);
   }
 
   public void setMarginWidth(int width) {
@@ -426,7 +439,7 @@ public class TableCellImpl
 
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
-    ((BufferedGraphicTableItem)bufferedTableItem).marginWidth = width;
+    ((BufferedGraphicTableItem)bufferedTableItem).setMargin(width, -1);
   }
 
   /* End TYPE_GRAPHIC Functions */
@@ -825,7 +838,7 @@ public class TableCellImpl
 	public Rectangle getBounds() {
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return new Rectangle(0,0,0,0);
-    return ((BufferedGraphicTableItem)bufferedTableItem).getBounds();
+    return bufferedTableItem.getBounds();
 	}
 
 	private void setOrientationViaColumn() {
@@ -836,11 +849,11 @@ public class TableCellImpl
 
 		int align = tableColumn.getAlignment();
     if (align == TableColumn.ALIGN_CENTER)
-    	ti.orientation = SWT.CENTER; 
+    	ti.setOrientation(SWT.CENTER); 
     else if (align == TableColumn.ALIGN_LEAD)
-    	ti.orientation = SWT.LEFT; 
+    	ti.setOrientation(SWT.LEFT); 
     else if (align == TableColumn.ALIGN_TRAIL)
-    	ti.orientation = SWT.RIGHT; 
+    	ti.setOrientation(SWT.RIGHT); 
 	}
 
 	public String getObfusticatedText() {

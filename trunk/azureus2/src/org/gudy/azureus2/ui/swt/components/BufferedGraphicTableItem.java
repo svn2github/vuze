@@ -22,42 +22,30 @@
 
 package org.gudy.azureus2.ui.swt.components;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Image;
 
-/** 
- * @author TuxPaper
- */
-public abstract class BufferedGraphicTableItem 
-       extends BufferedTableItem
+public abstract interface BufferedGraphicTableItem
 {
-  // same names as GridLayout
+	public abstract int getMarginWidth();
 
-  /** marginHeight specifies the number of pixels of vertical margin that will 
-   * be placed along the top and bottom edges of the layout.
-   * The default is 1.
-   */
-  public int marginHeight = 1;
+	public abstract int getMarginHeight();
 
-  /** marginWidth specifies the number of pixels of horizontal margin that will
-   * be placed along the left and right edges of the layout.
-   * The default is 1.
-   */
-  public int marginWidth = 1;
+	public abstract void setMargin(int width, int height);
 
-  /** Orientation of cell.  SWT.LEFT, SWT.RIGHT, SWT.CENTER, or SWT.FILL.
-   * When SWT.FILL, update() will be called when the size of the cell has 
-   * changed.
-   */
-  public int orientation = SWT.CENTER;
-  
-  public BufferedGraphicTableItem(BufferedTableRow row,int position) {
-    super(row, position);
-  }
+	/** Orientation of cell.  SWT.LEFT, SWT.RIGHT, SWT.CENTER, or SWT.FILL.
+	 * When SWT.FILL, update() will be called when the size of the cell has 
+	 * changed.
+	 */
+	public abstract void setOrientation(int orientation);
 
-  public abstract Point getSize();
-  public abstract boolean setGraphic(Image img);
-  public abstract Image getGraphic();
-  public abstract void invalidate();
+	public abstract int getOrientation();
+
+	public abstract Point getSize();
+
+	public abstract boolean setGraphic(Image img);
+
+	public abstract Image getGraphic();
+
+	public abstract void invalidate();
 }

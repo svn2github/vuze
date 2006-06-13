@@ -48,7 +48,13 @@ import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
  * @author TuxPaper
  *
  */
-public abstract class BufferedGraphicTableItem2 extends BufferedGraphicTableItem {
+public abstract class BufferedGraphicTableItem2 extends BufferedTableItemImpl
+		implements BufferedGraphicTableItem
+{
+  private int marginHeight = 1;
+  private int marginWidth = 1;
+  private int orientation = SWT.CENTER;
+
   /** Canvas that image is drawn on */
   Canvas cBlockView = null;
   //The Buffered image
@@ -348,5 +354,31 @@ public abstract class BufferedGraphicTableItem2 extends BufferedGraphicTableItem
   }
 
   public void invalidate() {
+  }
+
+	public int getMarginHeight() {
+		return marginHeight;
+	}
+
+	public int getMarginWidth() {
+		return marginWidth;
+	}
+
+  public void setMargin(int width, int height) {
+  	if (width >= 0) {
+  		marginWidth = width;
+  	}
+  	
+  	if (height >= 0) {
+  		marginHeight = height;
+  	}
+  }
+
+	public int getOrientation() {
+		return orientation;
+	}
+  
+  public void setOrientation(int orientation) {
+  	this.orientation = orientation;
   }
 }

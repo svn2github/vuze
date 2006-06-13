@@ -47,8 +47,14 @@ import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
  * @author TuxPaper
  *
  */
-public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem {
-  //The Buffered image
+public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
+		implements BufferedGraphicTableItem
+{
+  private int marginHeight = 1;
+  private int marginWidth = 1;
+  private int orientation = SWT.CENTER;
+
+	//The Buffered image
   private Image image;
   /** Track if we have ever drawn the cell.  Don't draw the cell using our
    * own GC if we've never drawn before.  ie.  If we setGraphic before the
@@ -295,5 +301,31 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
   }
   
   public void invalidate() {
+  }
+  
+	public int getMarginHeight() {
+		return marginHeight;
+	}
+
+	public int getMarginWidth() {
+		return marginWidth;
+	}
+
+  public void setMargin(int width, int height) {
+  	if (width >= 0) {
+  		marginWidth = width;
+  	}
+  	
+  	if (height >= 0) {
+  		marginHeight = height;
+  	}
+  }
+
+	public int getOrientation() {
+		return orientation;
+	}
+  
+  public void setOrientation(int orientation) {
+  	this.orientation = orientation;
   }
 }
