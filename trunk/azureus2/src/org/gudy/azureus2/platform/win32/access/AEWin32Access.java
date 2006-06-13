@@ -106,6 +106,11 @@ AEWin32Access
 		throws AEWin32AccessException;
 	
 	public String
+	getProgramFilesDir()
+	
+		throws AEWin32AccessException;
+	
+	public String
 	getApplicationInstallDir(
 		String	app_name )
 		

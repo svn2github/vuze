@@ -51,12 +51,16 @@ AEWin32AccessImpl
 		return( singleton );		
 	}
 	
+	private boolean	fully_initialise;
+	
 	private List	listeners = new ArrayList();
 	
 	protected
 	AEWin32AccessImpl(
-		boolean		fully_initialise )
+		boolean		_fully_initialise )
 	{
+		fully_initialise	= _fully_initialise;
+		
 		if ( isEnabled()){
 			
 			AEWin32AccessInterface.load( this, fully_initialise );
@@ -66,7 +70,7 @@ AEWin32AccessImpl
 	public boolean
 	isEnabled()
 	{
-		return( AEWin32AccessInterface.isEnabled());
+		return( AEWin32AccessInterface.isEnabled( fully_initialise ));
 	}
 	
 	public long
@@ -189,6 +193,21 @@ AEWin32AccessImpl
 					app_data_name ));
 
 	}
+	
+	public String
+	getProgramFilesDir()
+	
+		throws AEWin32AccessException
+	{
+		String	app_data_key	= "software\\microsoft\\windows\\currentversion";
+		String	app_data_name 	= "ProgramFilesDir";
+		
+		return(	readStringValue(
+					HKEY_LOCAL_MACHINE,
+					app_data_key,
+					app_data_name ));
+	}
+	
 	
 	public String
 	getApplicationInstallDir(

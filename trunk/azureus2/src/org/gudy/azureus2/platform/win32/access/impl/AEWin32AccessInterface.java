@@ -43,32 +43,42 @@ AEWin32AccessInterface
 	public static final int	WM_ENDSESSION           =       0x0016;
 	
 	private static boolean						enabled;
+	private static boolean						enabled_set;
+	
 	private static AEWin32AccessCallback		cb;
 	
 	static{
-			// protection against something really bad in the dll
-					
 		System.loadLibrary( PlatformManagerImpl.DLL_NAME );
+	}
+	
+	protected static boolean
+	isEnabled(
+		boolean		check_if_disabled )
+	{
+		if ( !check_if_disabled ){
+			
+			return( true );
+		}
+		
+		if ( enabled_set ){
+			
+			return( enabled );
+		}
 		
 		try{
+				// protection against something really bad in the dll
+
 			enabled = !UpdaterUtils.disableNativeCode( getVersion());
 			
 			if ( !enabled ){
 			
 				System.err.println( "Native code has been disabled" );
 			}
-		}catch( NoClassDefFoundError	e ){
+		}finally{
 			
-				// get here if running in isolation without UpdaterUtils available
-			
-			enabled	= true;
+			enabled_set	= true;
 		}
-
-	}
-	
-	protected static boolean
-	isEnabled()
-	{
+		
 		return( enabled );
 	}
 	
