@@ -42,7 +42,7 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_2400					= 13;	
 	public static final byte PROTOCOL_VERSION_2402					= 14;	
 	
-	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_2304;
+	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_2402;
 	public static final byte PROTOCOL_VERSION_DIV_AND_CONT			= 6;
 	public static final byte PROTOCOL_VERSION_ANTI_SPOOF			= 7;
 	public static final byte PROTOCOL_VERSION_ENCRYPT_TT			= 8;	// refed from DDBase
@@ -66,7 +66,7 @@ DHTTransportUDP
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
 	
-	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_VENDOR_ID;	
+	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_GENERIC_NETPOS;	
 	
 	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_GENERIC_NETPOS;
 
