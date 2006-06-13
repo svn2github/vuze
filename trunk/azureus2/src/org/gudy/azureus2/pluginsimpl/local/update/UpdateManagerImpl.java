@@ -44,6 +44,8 @@ import java.util.zip.ZipInputStream;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
+import org.gudy.azureus2.core3.util.AEVerifier;
+import org.gudy.azureus2.core3.util.AEVerifierException;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -56,11 +58,7 @@ UpdateManagerImpl
 	implements UpdateManager
 {
 	protected static UpdateManagerImpl		singleton;
-	
-    private static final String pub_exp = "10001";
-    private static final String modulus	= "9a68296f49bf47b2a83ae4ba3cdb5a840a2689e5b36a6f2bfc27b916fc4dc9437f9087c4f0b5ae2fc5127a901b3c048753aa63d29cd7f9da7c81d475380de68236bd919230b0074aa6f40f29a78ac4a14e84fb8946cbcb5a840d1c2f77d83c795c289e37135843b8da008e082654a83b8bd3341b9f2ff6064e20b6c7ba89a707a1f3e1d8b2e0035dae539b04e49775eba23e5cbe89e22290da6c84ec3f450d07";
-    
-	
+		
 	public static UpdateManager
 	getSingleton(
 		AzureusCore		core )
@@ -244,15 +242,15 @@ UpdateManagerImpl
 			FileUtil.copyFile( is, temp );
 			
 			try{
-				verifyData( temp );
+				AEVerifier.verifyData( temp );
 			
 				ok	= true;
 				
 				return( new FileInputStream( temp ));
 
-			}catch( UpdateException e ){
+			}catch( AEVerifierException e ){
 								
-				if ( (!force) && e.getMessage().indexOf( "Signature missing" ) != -1 ){
+				if ( (!force) && e.getFailureType() == AEVerifierException.FT_SIGNATURE_MISSING ){
 					
 					for (int i=0;i<verification_listeners.size();i++){
 						
@@ -312,137 +310,7 @@ UpdateManagerImpl
 		}
 	}
 	
-	public static void
-	verifyData(
-		File		file )
-	
-		throws UpdateException, Exception
-	{
-		KeyFactory key_factory = KeyFactory.getInstance("RSA");
-		
-		RSAPublicKeySpec 	public_key_spec = 
-			new RSAPublicKeySpec( new BigInteger(modulus,16), new BigInteger(pub_exp,16));
 
-		RSAPublicKey public_key 	= (RSAPublicKey)key_factory.generatePublic( public_key_spec );
-
-		verifyData( file, public_key );
-	}
-	
-	protected static void
-	verifyData(
-		File			file,
-		RSAPublicKey	key )
-	
-		throws Exception
-	{
-		ZipInputStream	zis = null;
-		
-		try{
-			zis = new ZipInputStream( 
-					new BufferedInputStream( new FileInputStream( file ) ));
-				
-			byte[]		signature	= null;
-			
-			Signature	sig = Signature.getInstance("MD5withRSA" );
-
-			sig.initVerify( key );
-			
-			while( true ){
-				
-				ZipEntry	entry = zis.getNextEntry();
-					
-				if ( entry == null ){
-					
-					break;
-				}
-			
-				if ( entry.isDirectory()){
-					
-					continue;
-				}
-				
-				String	name = entry.getName();
-			
-				ByteArrayOutputStream	output = null;
-				
-				if ( name.equalsIgnoreCase("azureus.sig")){
-					
-					output	= new ByteArrayOutputStream();
-				}
-												
-				byte[]	buffer = new byte[65536];
-				
-				while( true ){
-				
-					int	len = zis.read( buffer );
-					
-					if ( len <= 0 ){
-						
-						break;
-					}
-					
-					if ( output == null ){
-						
-						sig.update( buffer, 0, len );
-						
-					}else{
-						
-						output.write( buffer, 0, len );
-					}
-				}
-				
-				if ( output != null ){
-					
-					signature = output.toByteArray();
-				}
-			}
-						
-			if ( signature == null ){
-				
-					// don't change this text, its used above!
-				
-				throw( new UpdateException( "Signature missing from file" ));
-			}
-			
-			if ( !sig.verify( signature )){
-				
-				throw( new UpdateException( "Signature doesn't match data" ));
-			}
-		}finally{
-			
-			if ( zis != null ){
-				
-				zis.close();
-			}
-		}
-	}
-	
-	public static void
-	verifyData(
-		String			data,
-		byte[]			signature )
-	
-		throws Exception
-	{
-		KeyFactory key_factory = KeyFactory.getInstance("RSA");
-		
-		RSAPublicKeySpec 	public_key_spec = 
-			new RSAPublicKeySpec( new BigInteger(modulus,16), new BigInteger(pub_exp,16));
-
-		RSAPublicKey public_key 	= (RSAPublicKey)key_factory.generatePublic( public_key_spec );
-		
-		Signature	sig = Signature.getInstance("MD5withRSA" );
-
-		sig.initVerify( public_key );
-		
-		sig.update( data.getBytes( "UTF-8" ));
-			
-		if ( !sig.verify( signature )){
-			
-			throw( new UpdateException( "Data verification failed, signature doesn't match data" ));
-		}
-	}
-	
 	public void
 	addVerificationListener(
 		UpdateManagerVerificationListener	l )

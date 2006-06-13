@@ -326,7 +326,7 @@ CoreUpdateChecker
           }
           
           try{
-	          UpdateManagerImpl.verifyData( s_message, signature );
+	          AEVerifier.verifyData( s_message, signature );
 	          
           }catch( Throwable e ){
         	  
