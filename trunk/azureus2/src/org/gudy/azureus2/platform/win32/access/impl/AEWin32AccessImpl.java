@@ -29,43 +29,37 @@ package org.gudy.azureus2.platform.win32.access.impl;
 
 import java.util.*;
 
+// don't use any core stuff in here as we need this access stub to be able to run in isolation
+
 import org.gudy.azureus2.platform.win32.access.*;
-import org.gudy.azureus2.core3.util.*;
 
 public class 
 AEWin32AccessImpl
 	implements AEWin32Access, AEWin32AccessCallback
 {
 	protected static AEWin32AccessImpl	singleton;
-	protected static AEMonitor			class_mon	= new AEMonitor( "AEWin32Access" );
 	
-	public static AEWin32Access
-	getSingleton()
+	public static synchronized AEWin32Access
+	getSingleton(
+		boolean	fully_initialise )
 	{
-		try{
-			class_mon.enter();
-		
-			if ( singleton == null ){
-				
-				singleton = new AEWin32AccessImpl();
-			}
+		if ( singleton == null ){
 			
-			return( singleton );
-			
-		}finally{
-			
-			class_mon.exit();
+			singleton = new AEWin32AccessImpl(fully_initialise);
 		}
+		
+		return( singleton );		
 	}
 	
 	private List	listeners = new ArrayList();
 	
 	protected
-	AEWin32AccessImpl()
+	AEWin32AccessImpl(
+		boolean		fully_initialise )
 	{
 		if ( isEnabled()){
 			
-			AEWin32AccessInterface.load( this );
+			AEWin32AccessInterface.load( this, fully_initialise );
 		}
 	}
 	
@@ -88,7 +82,7 @@ AEWin32AccessImpl
 				
 			}catch( Throwable e ){
 				
-				Debug.printStackTrace(e);
+				e.printStackTrace();
 			}
 		}
 		

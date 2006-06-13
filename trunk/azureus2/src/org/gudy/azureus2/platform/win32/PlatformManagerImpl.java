@@ -140,7 +140,7 @@ PlatformManagerImpl
 	
 		throws PlatformManagerException
 	{
-		access	= AEWin32Manager.getAccessor();
+		access	= AEWin32Manager.getAccessor( true );
 		
 		access.addListener( this );
 		

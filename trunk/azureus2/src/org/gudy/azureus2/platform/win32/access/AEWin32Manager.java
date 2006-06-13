@@ -33,8 +33,9 @@ public class
 AEWin32Manager 
 {
 	public static AEWin32Access
-	getAccessor()
+	getAccessor(
+		boolean fully_initialise )
 	{
-		return( AEWin32AccessImpl.getSingleton());
+		return( AEWin32AccessImpl.getSingleton( fully_initialise ));
 	}
 }

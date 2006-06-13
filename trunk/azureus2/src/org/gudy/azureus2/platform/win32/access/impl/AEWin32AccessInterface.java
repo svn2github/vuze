@@ -29,7 +29,6 @@ package org.gudy.azureus2.platform.win32.access.impl;
 
 import org.gudy.azureus2.platform.win32.access.*;
 import org.gudy.azureus2.platform.win32.*;
-import org.gudy.azureus2.update.UpdaterUpdateChecker;
 import org.gudy.azureus2.update.UpdaterUtils;
 
 public class 
@@ -51,11 +50,18 @@ AEWin32AccessInterface
 					
 		System.loadLibrary( PlatformManagerImpl.DLL_NAME );
 		
-		enabled = !UpdaterUtils.disableNativeCode( getVersion());
-		
-		if ( !enabled ){
-		
-			System.err.println( "Native code has been disabled" );
+		try{
+			enabled = !UpdaterUtils.disableNativeCode( getVersion());
+			
+			if ( !enabled ){
+			
+				System.err.println( "Native code has been disabled" );
+			}
+		}catch( NoClassDefFoundError	e ){
+			
+				// get here if running in isolation without UpdaterUtils available
+			
+			enabled	= true;
 		}
 
 	}
@@ -68,17 +74,21 @@ AEWin32AccessInterface
 	
 	protected static void
 	load(
-		AEWin32AccessCallback	_callback )
+		AEWin32AccessCallback	_callback,
+		boolean					_fully_initialise )
 	{	
 		cb = _callback;
 		
-		try{
-			initialise();
+		if ( _fully_initialise ){
 			
-		}catch( Throwable e ){
-			
-			// get here when running 2400 java against old non-updated aereg.dll (for example)
-			// System.out.println( "Old aereg version, please update!" );
+			try{
+				initialise();
+				
+			}catch( Throwable e ){
+				
+				// get here when running 2400 java against old non-updated aereg.dll (for example)
+				// System.out.println( "Old aereg version, please update!" );
+			}
 		}
 	}
 	
