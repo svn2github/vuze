@@ -186,7 +186,7 @@ public class Debug {
 	}
 
 	public static String getStackTrace(boolean bCompressed, boolean bIncludeSelf) {
-		return getStackTrace(bCompressed, bIncludeSelf, 0, 200);
+		return getStackTrace(bCompressed, bIncludeSelf, bIncludeSelf ? 0 : 1, 200);
 	}
 
 	public static String getStackTrace(boolean bCompressed, boolean bIncludeSelf,
