@@ -24,8 +24,6 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -48,6 +46,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 /**
  * @author Olivier Chalouhi
@@ -78,12 +77,8 @@ public class TorrentOpener {
   {
   	Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-		  	MainWindow mainWindow = MainWindow.getWindow();
-				if (mainWindow == null)
-					return;
-
-				final Display display = mainWindow.getDisplay();
-		  	final AzureusCore azureus_core = mainWindow.getAzureusCore();
+				final Display display = SWTThread.getInstance().getDisplay();
+		  	final AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
 		  	if (display == null || display.isDisposed() || azureus_core == null)
 		  		return;
 		  	
