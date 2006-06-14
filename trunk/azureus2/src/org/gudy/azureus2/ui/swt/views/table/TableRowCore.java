@@ -100,6 +100,8 @@ public interface TableRowCore
    */
 	public void setForeground(Color	c);
 	
+  public Color getBackground();
+	
 	/** Retreive whether the row is visible to the user.  In SWT, when the table
 	 * is not VIRTUAL, all rows are "visible"
 	 * 
