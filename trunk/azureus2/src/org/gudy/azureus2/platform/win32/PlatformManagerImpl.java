@@ -433,7 +433,20 @@ PlatformManagerImpl
 			registerAdditionalFileType( NEW_MAIN_ASSOC, "BitTorrent File", ".torrent", "application/x-bittorrent" );
 		}
 		
-		return( isAdditionalFileTypeRegistered( NEW_MAIN_ASSOC, ".torrent" ));
+		boolean	reg = isAdditionalFileTypeRegistered( NEW_MAIN_ASSOC, ".torrent" );
+		
+			// one off auto registration on new install
+		
+		if ( !reg && !COConfigurationManager.getBooleanParameter( "platform.win32.autoregdone", false )){
+			
+			registerAdditionalFileType( NEW_MAIN_ASSOC, "BitTorrent File", ".torrent", "application/x-bittorrent" );
+
+			COConfigurationManager.setParameter( "platform.win32.autoregdone", true );
+			
+			reg	= true;
+		}
+		
+		return( reg );
 	}
 	
 	public boolean
