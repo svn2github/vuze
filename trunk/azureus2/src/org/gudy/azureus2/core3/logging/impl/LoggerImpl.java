@@ -213,7 +213,7 @@ public class LoggerImpl {
 			}
 
 		// Write error to stderr, which will eventually get back here
-		if (event.err != null && event.entryType == LogEvent.LT_ERROR ){
+		if (event.err != null && event.entryType == LogEvent.LT_ERROR){
 			Debug.printStackTrace(event.err);
 		}
 	}
@@ -294,10 +294,6 @@ public class LoggerImpl {
 				}
 			}
 		}
-
-		// Write error to stderr, which will eventually get back here
-		if (alert.err != null)
-			Debug.printStackTrace(alert.err);
 	}
 
 	public void logTextResource(LogAlert alert) {
