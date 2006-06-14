@@ -28,12 +28,17 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 
+import com.aelitis.azureus.core.AzureusCore;
+
 public class SelectableSpeedMenu {
 
-	public static void generateMenuItems(final Menu parent, final MainWindow main_window, boolean up_menu) {
+	public static void generateMenuItems(final Menu parent,
+			final AzureusCore core, final GlobalManager globalManager, boolean up_menu)
+	{
         final MenuItem[] oldItems = parent.getItems();
         for(int i = 0; i < oldItems.length; i++)
         {
@@ -42,7 +47,7 @@ public class SelectableSpeedMenu {
 
         final String configKey = 
         	up_menu?
-        		TransferSpeedValidator.getActiveUploadParameter( main_window.getGlobalManager()):
+        		TransferSpeedValidator.getActiveUploadParameter(globalManager):
         		"Max Download Speed KBs";
                	 
         final int speedPartitions = 12;
@@ -59,7 +64,7 @@ public class SelectableSpeedMenu {
         if ( up_menu ){	   
         	
             final String configAutoKey = 
-            		TransferSpeedValidator.getActiveAutoUploadParameter( main_window.getGlobalManager());
+            		TransferSpeedValidator.getActiveAutoUploadParameter(globalManager);
      
 	        auto = COConfigurationManager.getBooleanParameter( configAutoKey );
 	        
@@ -74,7 +79,7 @@ public class SelectableSpeedMenu {
 	        });
 	        
 	        if(auto)auto_item.setSelection(true);
-	        auto_item.setEnabled(TransferSpeedValidator.isAutoUploadAvailable(main_window.getAzureusCore()));
+	        auto_item.setEnabled(TransferSpeedValidator.isAutoUploadAvailable(core));
 
 	        new MenuItem(parent,SWT.SEPARATOR);
         }
@@ -83,7 +88,7 @@ public class SelectableSpeedMenu {
         item.setText(MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"));
         item.setData("maxkb", new Integer(0));
         item.setSelection(unlim && !auto);
-        item.addListener(SWT.Selection, getLimitMenuItemListener(up_menu, parent, main_window, configKey));
+        item.addListener(SWT.Selection, getLimitMenuItemListener(up_menu, parent, globalManager, configKey));
         
         Integer[] speed_limits = null;
         
@@ -119,7 +124,7 @@ public class SelectableSpeedMenu {
             item = new MenuItem(parent, SWT.RADIO);
             item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value * 1024, true));
             item.setData("maxkb", i_value);
-            item.addListener(SWT.Selection, getLimitMenuItemListener(up_menu, parent, main_window, configKey));
+            item.addListener(SWT.Selection, getLimitMenuItemListener(up_menu, parent, globalManager, configKey));
             item.setSelection(!unlim && value == maxBandwidth && !auto);
         }
     }
@@ -151,7 +156,9 @@ public class SelectableSpeedMenu {
 	     * @param configKey The configuration key
 	     * @return The selection listener
 	     */
-	   private static final Listener getLimitMenuItemListener(final boolean up_menu, final Menu parent, final MainWindow main_window,  final String configKey)
+	   private static final Listener getLimitMenuItemListener(final boolean up_menu,
+			final Menu parent, final GlobalManager globalManager,
+			final String configKey)
 	   {
 	       return new Listener() {
 	           public void handleEvent(Event event) {
@@ -166,7 +173,7 @@ public class SelectableSpeedMenu {
 	                        if ( up_menu ){
 	                            
 	                        	String configAutoKey = 
-	                        		TransferSpeedValidator.getActiveAutoUploadParameter( main_window.getGlobalManager());
+	                        		TransferSpeedValidator.getActiveAutoUploadParameter(globalManager);
 	             
 	                        	COConfigurationManager.setParameter( configAutoKey, false );
 	                        }

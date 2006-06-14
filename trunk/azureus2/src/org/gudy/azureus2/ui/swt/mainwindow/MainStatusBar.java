@@ -34,6 +34,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
@@ -47,10 +48,6 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.network.ConnectionManager;
-import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -65,13 +62,17 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.ui.UIFunctions;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.plugins.update.*;
 
 /**
  * Moved from MainWindow and GUIUpdater
  */
 public class MainStatusBar {
-	private static final String CFG_MAXDLSPEED = "Max Download Speed KBs";
-
 	/**
 	 * Warning status icon identifier
 	 */
@@ -113,8 +114,6 @@ public class MainStatusBar {
 
 	private CLabel statusUp;
 
-	private MainWindow mainWindow;
-
 	private Display display;
 
 	// For Refresh..
@@ -140,6 +139,8 @@ public class MainStatusBar {
 
 	private AzureusCore azureusCore;
 
+	private UIFunctions uiFunctions;
+
 	/**
 	 * 
 	 */
@@ -156,22 +157,21 @@ public class MainStatusBar {
 
 	/**
 	 * 
-	 * @param mainWindow
 	 * @return composite holiding the statusbar
 	 */
-	public Composite initStatusBar(final MainWindow mainWindow) {
-		this.mainWindow = mainWindow;
-		this.display = mainWindow.getDisplay();
-		globalManager = mainWindow.getGlobalManager();
-		azureusCore = mainWindow.getAzureusCore();
+	public Composite initStatusBar(final AzureusCore core, final GlobalManager globalManager,
+			Display display, final Composite parent, final UIFunctions uiFunctions)
+	{
+		this.display = display;
+		this.globalManager = globalManager;
+		this.azureusCore = core;
+		this.uiFunctions = uiFunctions;
 
 		FormData formData;
 
-		final Shell shell = mainWindow.getShell();
-
 		final int borderFlag = (Constants.isOSX) ? SWT.SHADOW_NONE : SWT.SHADOW_IN;
 
-		statusBar = new Composite(shell, SWT.NONE);
+		statusBar = new Composite(parent, SWT.NONE);
 
 		GridLayout layout_status = new GridLayout();
 		layout_status.numColumns = 7;
@@ -314,7 +314,7 @@ public class MainStatusBar {
 		Messages.setLanguageText(ipBlocked, "MainWindow.IPs.tooltip");
 		ipBlocked.addMouseListener(new MouseAdapter() {
 			public void mouseDoubleClick(MouseEvent arg0) {
-				BlockedIpsWindow.showBlockedIps(azureusCore, shell);
+				BlockedIpsWindow.showBlockedIps(azureusCore, parent.getShell());
 			}
 		});
 
@@ -327,7 +327,7 @@ public class MainStatusBar {
 
 		Listener lStats = new Listener() {
 			public void handleEvent(Event e) {
-				mainWindow.showStats();
+				uiFunctions.showStats();
 			}
 		};
 
@@ -343,7 +343,7 @@ public class MainStatusBar {
 
 		Listener lDHT = new Listener() {
 			public void handleEvent(Event e) {
-				mainWindow.showStatsDHT();
+				uiFunctions.showStatsDHT();
 			}
 		};
 
@@ -352,7 +352,7 @@ public class MainStatusBar {
 		Listener lSR = new Listener() {
 			public void handleEvent(Event e) {
 
-				mainWindow.showStatsTransfers();
+				uiFunctions.showStatsTransfers();
 
 				OverallStats stats = StatsFactory.getStats();
 
@@ -371,7 +371,7 @@ public class MainStatusBar {
 
 		Listener lNAT = new Listener() {
 			public void handleEvent(Event e) {
-				ConfigView view = mainWindow.showConfig();
+				ConfigView view = uiFunctions.showConfig();
 
 				view.selectSection(ConfigSectionConnection.class);
 
@@ -386,18 +386,20 @@ public class MainStatusBar {
 		natStatus.addListener(SWT.MouseDoubleClick, lNAT);
 
 		// Status Bar Menu construction
-		final Menu menuUpSpeed = new Menu(shell, SWT.POP_UP);
+		final Menu menuUpSpeed = new Menu(statusBar.getShell(), SWT.POP_UP);
 		menuUpSpeed.addListener(SWT.Show, new Listener() {
 			public void handleEvent(Event e) {
-				SelectableSpeedMenu.generateMenuItems(menuUpSpeed, mainWindow, true);
+				SelectableSpeedMenu.generateMenuItems(menuUpSpeed, core, globalManager,
+						true);
 			}
 		});
 		statusUp.setMenu(menuUpSpeed);
 
-		final Menu menuDownSpeed = new Menu(shell, SWT.POP_UP);
+		final Menu menuDownSpeed = new Menu(statusBar.getShell(), SWT.POP_UP);
 		menuDownSpeed.addListener(SWT.Show, new Listener() {
 			public void handleEvent(Event e) {
-				SelectableSpeedMenu.generateMenuItems(menuDownSpeed, mainWindow, false);
+				SelectableSpeedMenu.generateMenuItems(menuDownSpeed, core,
+						globalManager, false);
 			}
 		});
 		statusDown.setMenu(menuDownSpeed);
@@ -674,7 +676,7 @@ public class MainStatusBar {
 						.getInstance();
 			}
 
-			UpdateProgressWindow.show(instances, mainWindow.getShell());
+			UpdateProgressWindow.show(instances, statusBar.getShell());
 
 		} finally {
 
