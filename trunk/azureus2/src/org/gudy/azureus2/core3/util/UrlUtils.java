@@ -66,7 +66,14 @@ public class UrlUtils
 			return href;
 		}
 
-		text = URLDecoder.decode(text.trim());
+		try {
+			text = text.trim();
+			text = URLDecoder.decode(text);
+		} catch (Exception e) {
+			// sometimes fires a IllegalArgumentException
+			// catch everything and ignore.
+		}
+
 		String textLower;
 		try {
 			textLower = text.toLowerCase();
@@ -113,7 +120,14 @@ public class UrlUtils
 				Pattern.CASE_INSENSITIVE);
 		Matcher m = pat.matcher(text);
 		if (m.find()) {
-			return URLDecoder.decode(m.group(1));
+			String sURL = m.group(1);
+			try {
+				sURL = URLDecoder.decode(sURL);
+			} catch (Exception e) {
+				// sometimes fires a IllegalArgumentException
+				// catch everything and ignore.
+			}
+			return sURL;
 		}
 
 		return null;
