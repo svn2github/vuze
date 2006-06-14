@@ -554,10 +554,6 @@ public class Utils {
   public static boolean execSWTThread(Runnable code,
 			boolean async) {
   	
-  	if (code == null) {
-  		return false;
-  	}
-
     SWTThread swt = SWTThread.getInstance();
     
     Display display;
@@ -572,7 +568,7 @@ public class Utils {
     }
     
 
-  	if (display == null || display.isDisposed())
+  	if (display == null || display.isDisposed() || code == null)
 			return false;
 
 		if (display.getThread() == Thread.currentThread())
