@@ -24,6 +24,8 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreException;
+import com.aelitis.azureus.ui.UIFunctions;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
 import org.eclipse.swt.events.*;
@@ -78,7 +80,7 @@ MainWindow
 	extends AERunnable
 	implements 	GlobalManagerListener, DownloadManagerListener, 
 				ParameterListener, IconBarEnabler, AEDiagnosticsEvidenceGenerator,
-				ObfusticateShell
+				ObfusticateShell, UIFunctions
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
   
@@ -438,7 +440,8 @@ MainWindow
     });
     
 			mainStatusBar = new MainStatusBar();
-			Composite statusBar = mainStatusBar.initStatusBar(this);
+			Composite statusBar = mainStatusBar.initStatusBar(azureus_core,
+					globalManager, display, mainWindow, this);
 			formData = new FormData();
 			formData.top = new FormAttachment(separator);
 			formData.bottom = new FormAttachment(statusBar);

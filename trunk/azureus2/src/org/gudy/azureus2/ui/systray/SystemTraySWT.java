@@ -37,6 +37,9 @@ import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SelectableSpeedMenu;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+
 import java.util.List;
 
 /**
@@ -192,7 +195,8 @@ public class SystemTraySWT {
         {
             public void handleEvent(Event event)
             {
-            	SelectableSpeedMenu.generateMenuItems(uploadSpeedMenu, mainWindow, true);
+            	AzureusCore core = AzureusCoreFactory.getSingleton();
+            	SelectableSpeedMenu.generateMenuItems(uploadSpeedMenu, core, core.getGlobalManager(), true);
             }
         });
 
@@ -215,7 +219,8 @@ public class SystemTraySWT {
         {
             public void handleEvent(Event event)
             {
-            	SelectableSpeedMenu.generateMenuItems(downloadSpeedMenu, mainWindow, false);
+            	AzureusCore core = AzureusCoreFactory.getSingleton();
+            	SelectableSpeedMenu.generateMenuItems(downloadSpeedMenu, core, core.getGlobalManager(), false);
             }
         });
 
