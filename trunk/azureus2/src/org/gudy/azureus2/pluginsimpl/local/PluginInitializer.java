@@ -801,7 +801,13 @@ PluginInitializer
 	    		  Class c = classLoader.loadClass(plugin_class);
 		      
 	    		  plugin	= (Plugin) c.newInstance();
-	      
+	    		  
+	    	  }catch (java.lang.UnsupportedClassVersionError e) {
+	    		  plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
+	    		  
+	    		  // shorten stack trace
+	    		  load_failure	= new UnsupportedClassVersionError(e.getMessage());
+	    		  
 	    	  }catch( Throwable e ){
 	      	
 	    		  load_failure	= e;
