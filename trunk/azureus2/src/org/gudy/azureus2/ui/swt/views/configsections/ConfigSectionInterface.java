@@ -98,7 +98,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 				+ "opendetails");
 		new BooleanParameter(cDisplay, "Open Bar", false, LBLKEY_PREFIX + "openbar");
 
-		if (!Constants.isOSX) {
+		if (!Constants.isOSX || SWT.getVersion() > 3232) {
 
 			BooleanParameter est = new BooleanParameter(cDisplay,
 					"Enable System Tray", true, KEY_PREFIX + "enabletray");

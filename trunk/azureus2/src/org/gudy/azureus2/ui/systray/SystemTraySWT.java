@@ -60,9 +60,7 @@ public class SystemTraySWT {
     tray = display.getSystemTray();
     trayItem = new TrayItem(tray,SWT.NULL);
     
-    if( ! Constants.isOSX) {
-      trayItem.setImage(ImageRepository.getImage("azureus"));  
-    }    
+    trayItem.setImage(ImageRepository.getImage("azureus"));  
     trayItem.setVisible(true);
     
     menu = new Menu(mainWindow.getShell(),SWT.POP_UP);
