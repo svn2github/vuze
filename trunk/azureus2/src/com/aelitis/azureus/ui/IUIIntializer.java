@@ -19,8 +19,6 @@
  */
 package com.aelitis.azureus.ui;
 
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-
 /**
  * @author TuxPaper
  * @created May 29, 2006
