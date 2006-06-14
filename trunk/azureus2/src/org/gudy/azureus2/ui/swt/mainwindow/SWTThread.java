@@ -29,6 +29,8 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 
+import com.aelitis.azureus.ui.IUIIntializer;
+
 import java.lang.reflect.Constructor;
 
 /**
@@ -42,7 +44,7 @@ public class SWTThread {
     return instance;
   }
   
-  public static void createInstance(Initializer app) throws SWTThreadAlreadyInstanciatedException {
+  public static void createInstance(IUIIntializer initializer) throws SWTThreadAlreadyInstanciatedException {
     if(instance != null) {
       throw new SWTThreadAlreadyInstanciatedException();
     }
@@ -55,7 +57,7 @@ public class SWTThread {
     
     	//Will only return on termination
     
-    new SWTThread(app);
+    new SWTThread(initializer);
 
   }
   
@@ -67,7 +69,7 @@ public class SWTThread {
   
   private 
   SWTThread(
-  	final Initializer app ) 
+  	final IUIIntializer app ) 
   { 
     
     instance = this;

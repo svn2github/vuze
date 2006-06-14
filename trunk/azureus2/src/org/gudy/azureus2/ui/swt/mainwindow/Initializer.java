@@ -22,6 +22,7 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.ui.IUIIntializer;
 
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -58,7 +59,7 @@ import java.util.Iterator;
  */
 public class 
 Initializer 
-	implements AzureusCoreListener 
+	implements AzureusCoreListener, IUIIntializer
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
   private AzureusCore		azureus_core;
@@ -163,9 +164,7 @@ Initializer
 	  	
 	    new LocaleUtilSWT( azureus_core );
 
-	    SWTThread swt = SWTThread.getInstance();
-	    
-	    Display display = swt.getDisplay();
+			Display display = SWTThread.getInstance().getDisplay();
 	    
 	    //The splash window, if displayed will need some images. 
 	    ImageRepository.loadImagesForSplashWindow(display);
