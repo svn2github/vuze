@@ -553,6 +553,11 @@ public class Utils {
    */
   public static boolean execSWTThread(Runnable code,
 			boolean async) {
+  	
+  	if (code == null) {
+  		return false;
+  	}
+
     SWTThread swt = SWTThread.getInstance();
     
     Display display;
