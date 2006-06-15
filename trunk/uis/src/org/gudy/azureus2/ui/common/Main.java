@@ -284,7 +284,7 @@ public class Main {
         Logger.getLogger("azureus2").fatal("Azureus started at "+temp.format(UIConst.startTime));
         
         try{
-	        new_core.start();
+	        new_core.start( null );
 	        
 	        UIConst.setAzureusCore( new_core );
 	        
