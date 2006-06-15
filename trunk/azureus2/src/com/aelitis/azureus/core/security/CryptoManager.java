@@ -20,12 +20,24 @@
  *
  */
 
-package com.aelitis.azureus.core;
+package com.aelitis.azureus.core.security;
 
 public interface 
-AzureusCoreAdapter 
+CryptoManager 
 {
-	public char[]
-	getCryptoPassword();
-	            
+	public static final int HANDLER_ECC	= 1;
+	
+	public byte[]
+	getSecureID();
+	
+	public CryptoHandler
+	getECCHandler();
+	
+	public void
+	addPasswordHandler(
+		CryptoManagerPasswordHandler		handler );
+	
+	public void
+	removePasswordHandler(
+		CryptoManagerPasswordHandler		handler );
 }

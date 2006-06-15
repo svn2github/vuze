@@ -100,7 +100,7 @@ PluginManagerImpl
 				
 				azureus_core = AzureusCoreFactory.create();
 				
-				azureus_core.start( null );
+				azureus_core.start();
 				
 			}catch( Throwable e ){
 				

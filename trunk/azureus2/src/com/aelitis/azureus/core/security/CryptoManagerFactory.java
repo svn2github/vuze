@@ -22,14 +22,14 @@
 
 package com.aelitis.azureus.core.security;
 
-import com.aelitis.azureus.core.security.impl.AESecurityManagerImpl;
+import com.aelitis.azureus.core.security.impl.CryptoManagerImpl;
 
 public class 
-AESecurityManagerFactory 
+CryptoManagerFactory 
 {
-	public static AESecurityManager
+	public static CryptoManager
 	getSingleton()
 	{
-		return( AESecurityManagerImpl.getSingleton());
+		return( CryptoManagerImpl.getSingleton());
 	}
 }

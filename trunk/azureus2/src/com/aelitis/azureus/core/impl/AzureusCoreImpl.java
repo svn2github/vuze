@@ -52,9 +52,9 @@ import com.aelitis.azureus.core.instancemanager.AZInstanceManagerFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.download.session.TorrentSessionManager;
-import com.aelitis.azureus.core.security.AESecurityManager;
-import com.aelitis.azureus.core.security.AESecurityManagerFactory;
-import com.aelitis.azureus.core.security.AESecurityManagerPasswordHandler;
+import com.aelitis.azureus.core.security.CryptoManager;
+import com.aelitis.azureus.core.security.CryptoManagerFactory;
+import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerFactory;
@@ -120,7 +120,7 @@ AzureusCoreImpl
 	private GlobalManager		global_manager;
 	private AZInstanceManager	instance_manager;
 	private SpeedManager		speed_manager;
-	private AESecurityManager	security_manager;
+	private CryptoManager		crypto_manager;
 	
 	private boolean				started;
 	private boolean				stopped;
@@ -142,11 +142,11 @@ AzureusCoreImpl
 		
 		AEDiagnostics.markDirty();
 		
-		security_manager = AESecurityManagerFactory.getSingleton();
-		
 		AETemporaryFileHandler.startup();
     
 		AEThread.setOurThread();
+		
+		crypto_manager = CryptoManagerFactory.getSingleton();
 		
 		PlatformManagerFactory.getPlatformManager().addListener(
 			new PlatformManagerListener()
@@ -264,8 +264,7 @@ AzureusCoreImpl
 	}
 	
 	public void
-	start(
-		final AzureusCoreAdapter		_adapter )
+	start()
 	
 		throws AzureusCoreException
 	{
@@ -290,21 +289,6 @@ AzureusCoreImpl
 			
 			this_mon.exit();
 		}
-
-		security_manager.addPasswordHandler(
-			new AESecurityManagerPasswordHandler()
-			{
-				public char[]
-				getPassword()
-				{
-					if ( _adapter != null ){
-						
-						return( _adapter.getCryptoPassword());
-					}
-					
-					return( null );
-				}
-			});
 		
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Loading of Plugins starts"));
@@ -864,6 +848,12 @@ AzureusCoreImpl
 	getSpeedManager()
 	{
 		return( speed_manager );
+	}
+	
+	public CryptoManager
+	getCryptoManager()
+	{
+		return( crypto_manager );
 	}
 	
 	public void 

@@ -22,22 +22,23 @@
 
 package com.aelitis.azureus.core.security;
 
-public class 
-AESecurityManagerException
-	extends Exception
+public interface 
+CryptoManagerPasswordHandler 
 {
-	public
-	AESecurityManagerException(
-		String		str )
-	{
-		super( str );
-	}
+	public static final int ACTION_ENCRYPT			= 1;
+	public static final int	ACTION_DECRYPT			= 2;
 	
-	public
-	AESecurityManagerException(
-		String		str,
-		Throwable	cause )
-	{
-		super( str, cause );
-	}
+		/**
+		 * Gets a password
+		 * @param handler_type	from AESecurityManager.HANDLER_x enum
+		 * @param action_type	from above ACTION_x enum
+		 * @param reason		reason for the password being sought
+		 * @return
+		 */
+	
+	public char[]
+	getPassword(
+		int			handler_type,
+		int			action_type,
+		String		reason );
 }

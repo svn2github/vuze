@@ -34,40 +34,44 @@ import javax.crypto.spec.PBEParameterSpec;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.core.security.AECryptoHandler;
-import com.aelitis.azureus.core.security.AESecurityManager;
-import com.aelitis.azureus.core.security.AESecurityManagerException;
-import com.aelitis.azureus.core.security.AESecurityManagerPasswordHandler;
+import com.aelitis.azureus.core.security.CryptoHandler;
+import com.aelitis.azureus.core.security.CryptoManager;
+import com.aelitis.azureus.core.security.CryptoManagerException;
+import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
+import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 
 public class 
-AESecurityManagerImpl 
-	implements AESecurityManager
+CryptoManagerImpl 
+	implements CryptoManager
 {
 	private static final int 	PBE_ITERATIONS	= 100;
 	private static final String	PBE_ALG			= "PBEWithMD5AndDES";
 	
-	private static AESecurityManagerImpl		singleton;
+	private static CryptoManagerImpl		singleton;
 	
-	public static synchronized AESecurityManager
+	public static synchronized CryptoManager
 	getSingleton()
 	{
 		if ( singleton == null ){
 			
-			singleton = new AESecurityManagerImpl();
+			singleton = new CryptoManagerImpl();
 		}
 		
 		return( singleton );
 	}
 	
 	private byte[]				secure_id;
-	private AECryptoHandler		ecc_handler;
+	private CryptoHandler		ecc_handler;
 	private List				listeners	= Collections.synchronizedList( new ArrayList());
 	
 	protected
-	AESecurityManagerImpl()
+	CryptoManagerImpl()
 	{
 		SESecurityManager.initialise();
+		
+		ecc_handler = new CryptoHandlerECC( this, 1 );
 	}
 	
 	public byte[]
@@ -92,25 +96,19 @@ AESecurityManagerImpl
 		return( secure_id );
 	}
 	
-	public synchronized AECryptoHandler
+	public CryptoHandler
 	getECCHandler()
 	{
-		if ( ecc_handler == null ){
-			
-			ecc_handler = new AECryptoHandlerECC( this );
-		}
-		
 		return( ecc_handler );
 	}
 	
 	protected byte[]
 	encryptWithPBE(
-		byte[]		data )
+		byte[]		data,
+		char[]		password )
 	
-		throws AESecurityManagerException
+		throws CryptoManagerException
 	{
-		char[]	password = getPassword();
-		
 		try{
 			byte[]	salt = new byte[8];
 			
@@ -140,17 +138,18 @@ AESecurityManagerImpl
 			
 		}catch( Throwable e ){
 			
-			throw( new AESecurityManagerException( "PBE encryption failed", e ));
+			throw( new CryptoManagerException( "PBE encryption failed", e ));
 		}
 	}
 	
 	protected byte[]
    	decryptWithPBE(
-   		byte[]		data )
+   		byte[]		data,
+   		char[]		password )
 	
-		throws AESecurityManagerException
+		throws CryptoManagerException
    	{
-		char[]	password = getPassword();
+		boolean fail_is_pw_error = false;
 		
 		try{
 			byte[]	salt = new byte[8];
@@ -169,30 +168,66 @@ AESecurityManagerImpl
 			
 			cipher.init(Cipher.DECRYPT_MODE, key, paramSpec);
 	
+			fail_is_pw_error = true;
+			
 			return( cipher.doFinal( data, 8, data.length-8 ));
 			
 		}catch( Throwable e ){
 			
-			throw( new AESecurityManagerException( "PBE encryption failed", e ));
+			if ( fail_is_pw_error ){
+				
+				throw( new CryptoManagerPasswordException( e ));
+				
+			}else{
+				throw( new CryptoManagerException( "PBE decryption failed", e ));
+			}
 		}
    	}
 	
 	protected char[]
-	getPassword()
+	getPassword(
+		int		handler,
+		int		action,
+		String	reason )
+	
+		throws CryptoManagerException
 	{
-		return( "arse".toCharArray());
+		System.out.println( "getPassword:" + handler + "/" + action + "/" + reason );
+		
+		if ( listeners.size() == 0 ){
+			
+			throw( new CryptoManagerException( "No password handlers registered" ));
+		}
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				char[]	pw = ((CryptoManagerPasswordHandler)listeners.get(i)).getPassword( handler, action, reason );
+				
+				if ( pw != null ){
+					
+					return( pw );
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		throw( new CryptoManagerException( "No password handlers returned a password" ));
 	}
 	
+
 	public void
 	addPasswordHandler(
-		AESecurityManagerPasswordHandler		handler )
+		CryptoManagerPasswordHandler		handler )
 	{
 		listeners.add( handler );
 	}
 	
 	public void
 	removePasswordHandler(
-		AESecurityManagerPasswordHandler		handler )
+		CryptoManagerPasswordHandler		handler )
 	{
 		listeners.remove( handler );
 	}
@@ -202,13 +237,31 @@ AESecurityManagerImpl
 		String[]	args )
 	{
 		try{
+
 			String	stuff = "12345";
 			
-			AESecurityManagerImpl man = (AESecurityManagerImpl)getSingleton();
+			CryptoManager man = (CryptoManagerImpl)getSingleton();
 			
-			byte[]	enc = man.encryptWithPBE( stuff.getBytes());
+			man.addPasswordHandler(
+				new CryptoManagerPasswordHandler()
+				{
+					public char[] 
+					getPassword(
+							int handler_type, 
+							int action_type, 
+							String reason )
+					{
+						return( "trout".toCharArray());
+					}
+				});
 			
-			System.out.println( new String( man.decryptWithPBE( enc )));
+			CryptoHandler	handler = man.getECCHandler();
+			
+			//handler.resetKeys( "monkey".toCharArray() );
+			
+			byte[]	sig = handler.sign( stuff.getBytes(), null, "Test signing" );
+			
+			System.out.println(handler.verify( handler.getPublicKey( null, "Test verify" ), stuff.getBytes(), sig ));
 			
 		}catch( Throwable e ){
 			
