@@ -41,7 +41,8 @@ public interface
 AzureusCore 
 {	
 	public void
-	start()
+	start(
+		AzureusCoreAdapter	adapter )
 	
 		throws AzureusCoreException;
 	

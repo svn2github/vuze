@@ -299,7 +299,7 @@ Initializer
 			nextTask();	    
 			reportCurrentTask(MessageText.getString("splash.initializePlugins"));
 
-	    azureus_core.start();
+	    azureus_core.start( null );
 
   	}catch( Throwable e ){
   		Logger.log(new LogEvent(LOGID, "Initialization fails:", e));

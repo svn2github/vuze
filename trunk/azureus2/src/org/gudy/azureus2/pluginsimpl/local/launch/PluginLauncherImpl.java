@@ -207,7 +207,7 @@ PluginLauncherImpl
 							
 							AzureusCore azureus_core = AzureusCoreFactory.create();
 
-							azureus_core.start();
+							azureus_core.start( null );
 							
 						}catch( Throwable e ){
 							
