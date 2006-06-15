@@ -34,6 +34,7 @@ import javax.crypto.spec.PBEParameterSpec;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.security.CryptoHandler;
@@ -240,7 +241,7 @@ CryptoManagerImpl
 
 			String	stuff = "12345";
 			
-			CryptoManager man = (CryptoManagerImpl)getSingleton();
+			CryptoManagerImpl man = (CryptoManagerImpl)getSingleton();
 			
 			man.addPasswordHandler(
 				new CryptoManagerPasswordHandler()
@@ -255,13 +256,23 @@ CryptoManagerImpl
 					}
 				});
 			
-			CryptoHandler	handler = man.getECCHandler();
+			CryptoHandler	handler1 = man.getECCHandler();
 			
+			CryptoHandler	handler2 = new CryptoHandlerECC( man, 2 );
+			
+
 			//handler.resetKeys( "monkey".toCharArray() );
 			
-			byte[]	sig = handler.sign( stuff.getBytes(), null, "Test signing" );
+			byte[]	sig = handler1.sign( stuff.getBytes(), "Test signing" );
 			
-			System.out.println(handler.verify( handler.getPublicKey( null, "Test verify" ), stuff.getBytes(), sig ));
+			System.out.println( handler1.verify( handler1.getPublicKey(  "Test verify" ), stuff.getBytes(), sig ));
+			
+			byte[]	enc = handler1.encrypt( handler2.getPublicKey( "" ), stuff.getBytes(), "" );
+			
+			System.out.println( "pk1 = " + ByteFormatter.encodeString( handler1.getPublicKey("")));
+			System.out.println( "pk2 = " + ByteFormatter.encodeString( handler2.getPublicKey("")));
+			
+			System.out.println( "dec: " + new String( handler2.decrypt(handler1.getPublicKey( "" ), enc, "" )));
 			
 		}catch( Throwable e ){
 			

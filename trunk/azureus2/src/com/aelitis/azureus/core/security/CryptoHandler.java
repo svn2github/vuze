@@ -56,20 +56,18 @@ CryptoHandler
 	setUnlockTimeoutSeconds(
 		int		secs );
 	
-		/**
-		 * 
-		 * @param data
-		 * @param password		null -> password listener is asked for password IF required
-		 * @param reason
-		 * @return
-		 * @throws CryptoManagerException
-		 */
+	
+	public byte[]
+   	sign(
+   		byte[]		data,
+		String		reason )
+	
+		throws CryptoManagerException;
 	
 	public byte[]
 	sign(
 		byte[]		data,
-		char[]		password,
-		String		reason )
+		char[]		password )
 	
 		throws CryptoManagerException;
 	
@@ -81,32 +79,58 @@ CryptoHandler
 	
 		throws CryptoManagerException;
 
-		/**
-		 * 
-		 * @param password		null -> password listener is asked for password IF required
-		 * @param reason
-		 * @return
-		 * @throws CryptoManagerException
-		 */
+	public byte[]
+	encrypt(
+		byte[]		other_public_key,
+		byte[]		data,
+		String		reason )
+		
+		throws CryptoManagerException;
+	
+	public byte[]
+	encrypt(
+		byte[]		other_public_key,
+		byte[]		data,
+		char[]		password )
+		
+		throws CryptoManagerException;
+	
+	public byte[]
+	decrypt(
+		byte[]		other_public_key,
+		byte[]		data,
+		char[]		password )
+		
+		throws CryptoManagerException;
+	
+	public byte[]
+	decrypt(
+		byte[]		other_public_key,
+		byte[]		data,
+		String		reason )
+		
+		throws CryptoManagerException;
 	
 	public byte[]
 	getPublicKey(
-		char[]		password,
+		char[]		password )
+	
+		throws CryptoManagerException;
+	
+	public byte[]
+	getPublicKey(
 		String		reason )
 	
 		throws CryptoManagerException;
 
-		/**
-		 * 
-		 * @param password		null -> password listener is asked for password IF required
-		 * @param reason
-		 * @return
-		 * @throws CryptoManagerException
-		 */
-	
 	public byte[]
 	getEncryptedPrivateKey(
-		char[]		password,
+		char[]		password )
+	
+		throws CryptoManagerException;
+
+	public byte[]
+	getEncryptedPrivateKey(
 		String		reason )
 	
 		throws CryptoManagerException;

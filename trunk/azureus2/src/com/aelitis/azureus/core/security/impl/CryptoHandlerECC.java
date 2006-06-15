@@ -32,13 +32,18 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.spec.KeySpec;
 
+import javax.crypto.Cipher;
+
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.interfaces.ECPrivateKey;
 import org.bouncycastle.jce.interfaces.ECPublicKey;
+import org.bouncycastle.jce.provider.JCEIESCipher;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.jce.spec.ECPrivateKeySpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.bouncycastle.jce.spec.IEKeySpec;
+import org.bouncycastle.jce.spec.IESParameterSpec;
 import org.bouncycastle.math.ec.ECPoint;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -55,12 +60,16 @@ CryptoHandlerECC
 {
 	private static final ECNamedCurveParameterSpec ECCparam = ECNamedCurveTable.getParameterSpec("prime192v2");
 
-	private static String	CONFIG_PREFIX = "core.crypto.ecc.";
-	
+	private static final byte[]  ECIES_D = new byte[] {(byte)0x6d, (byte)0xc1, (byte)0x62, (byte)0x32, (byte)0x15, (byte)0x4d, (byte)0x0f, (byte)0x7b }; 
+	private static final byte[]  ECIES_E = new byte[] {(byte)0x6a, (byte)0x64, (byte)0x98, (byte)0xde, (byte)0x1a, (byte)0xa4, (byte)0x98, (byte)0xcc }; 
+
 	private static final int	TIMEOUT_DEFAULT_SECS		= 60*60;
+
 	
 	private CryptoManagerImpl		manager;
 	
+	private String					CONFIG_PREFIX = "core.crypto.ecc.";
+
 	private PrivateKey			use_method_private_key;
 	private PublicKey			use_method_public_key;
 	
@@ -107,6 +116,26 @@ CryptoHandlerECC
 	public byte[]
 	sign(
 		byte[]		data,
+		char[]		password )
+	
+		throws CryptoManagerException
+	{
+		return( sign( data, password, null ));
+	}
+	
+	public byte[]
+	sign(
+		byte[]		data,
+		String		reason )
+	
+		throws CryptoManagerException
+	{
+		return( sign( data, null, reason ));
+	}
+	
+	protected byte[]
+	sign(
+		byte[]		data,
 		char[]		password,
 		String		reason )
 	
@@ -151,6 +180,127 @@ CryptoHandlerECC
 	}
 	
 	public byte[]
+    encrypt(
+		byte[]		other_public_key,
+		byte[]		data,
+		char[]		password )
+		
+		throws CryptoManagerException
+	{
+		return( encrypt( other_public_key, data, password, null ));
+	}
+	public byte[]
+    encrypt(
+		byte[]		other_public_key,
+		byte[]		data,
+		String		reason )
+		
+		throws CryptoManagerException
+	{
+		return( encrypt( other_public_key, data, null, reason ));
+	}
+	
+	protected byte[]
+	encrypt(
+		byte[]		other_public_key,
+		byte[]		data,
+		char[]		password,
+		String		reason )
+		
+		throws CryptoManagerException
+	{	        
+		try{
+			IEKeySpec   key_spec = new IEKeySpec( getMyPrivateKey( password, reason ), rawdataToPubkey( other_public_key ));
+	 
+			IESParameterSpec param = new IESParameterSpec(ECIES_D, ECIES_E, 128);
+		
+			JCEIESCipher	cipher = new JCEIESCipher.ECIES();
+	
+			cipher.engineInit( Cipher.ENCRYPT_MODE, key_spec, param, null ); 
+		
+			return( cipher.engineDoFinal(data, 0, data.length ));
+			
+		}catch( CryptoManagerException e ){
+			
+			throw( e );
+			
+		}catch( Throwable e){
+			
+			throw( new CryptoManagerException( "Encrypt failed", e ));
+		}
+	}
+	
+	public byte[]
+	decrypt(
+		byte[]		other_public_key,
+		byte[]		data,
+		char[]		password )
+		
+		throws CryptoManagerException
+	{
+		return( decrypt( other_public_key, data, password, null ));
+	}
+	   
+	public byte[]
+	decrypt(
+		byte[]		other_public_key,
+		byte[]		data,
+		String		reason )
+		
+		throws CryptoManagerException
+	{
+		return( decrypt( other_public_key, data, null, reason ));
+	}
+	
+	protected byte[]
+	decrypt(
+		byte[]		other_public_key,
+		byte[]		data,
+		char[]		password,
+		String		reason )
+		
+		throws CryptoManagerException
+	{	        
+		try{
+			IEKeySpec   key_spec = new IEKeySpec( getMyPrivateKey( password, reason ), rawdataToPubkey( other_public_key ));
+	 	
+			IESParameterSpec param = new IESParameterSpec(ECIES_D, ECIES_E, 128);
+		
+			JCEIESCipher	cipher = new JCEIESCipher.ECIES();
+	
+			cipher.engineInit( Cipher.DECRYPT_MODE, key_spec, param, null ); 
+		
+			return( cipher.engineDoFinal(data, 0, data.length ));
+			
+		}catch( CryptoManagerException e ){
+			
+			throw( e );
+			
+		}catch( Throwable e){
+			
+			throw( new CryptoManagerException( "Decrypt failed", e ));
+		}
+	}
+	
+	public byte[]
+	getPublicKey(
+		char[]		password )
+	
+		throws CryptoManagerException
+	{
+		return( keyToRawdata( getMyPublicKey( password, null )));
+	}
+	
+	public byte[]
+	getPublicKey(
+		String		reason )
+	
+		throws CryptoManagerException
+	{
+		return( keyToRawdata( getMyPublicKey( null, reason )));
+	}
+	
+	protected byte[]
 	getPublicKey(
 		char[]		password,
 		String		reason )
@@ -161,6 +311,24 @@ CryptoHandlerECC
 	}
 
 	public byte[]
+   	getEncryptedPrivateKey(
+   		char[]		password )
+	
+		throws CryptoManagerException
+	{
+		return( getEncryptedPrivateKey( password, null ));
+	}
+	
+	public byte[]
+   	getEncryptedPrivateKey(
+   		String		reason )
+	
+		throws CryptoManagerException
+	{
+		return( getEncryptedPrivateKey( null, reason ));
+	}
+  
+	protected byte[]
 	getEncryptedPrivateKey(
 		char[]		password,
 		String		reason )
