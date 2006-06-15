@@ -22,12 +22,22 @@
 
 package com.aelitis.azureus.core.security;
 
-public interface 
-AECryptoHandler 
+public class 
+AESecurityManagerException
+	extends Exception
 {
-	public byte[]
-	sign(
-		byte[]		data )
+	public
+	AESecurityManagerException(
+		String		str )
+	{
+		super( str );
+	}
 	
-		throws AESecurityManagerException;
+	public
+	AESecurityManagerException(
+		String		str,
+		Throwable	cause )
+	{
+		super( str, cause );
+	}
 }
