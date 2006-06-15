@@ -169,6 +169,11 @@ public class NatPMPDeviceImpl implements NatPMPDevice
             }
         } 
         
+        if ( !recRep ){
+        	
+        	throw( new PortUnreachableException());
+        }
+        
         // check recRep for true!!!
         return recPkt;
     }
