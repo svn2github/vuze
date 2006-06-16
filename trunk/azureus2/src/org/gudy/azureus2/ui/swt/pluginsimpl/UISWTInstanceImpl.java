@@ -46,6 +46,7 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -173,12 +174,31 @@ UISWTInstanceImpl
 							public void
 							runSupport()
 							{
-								URL[]	urls = (URL[])data;
+								Object[]	params = (Object[])data;
 								
-								new FileDownloadWindow(
-										core,
-										MainWindow.getWindow().getShell(),
-										urls[0].toString(), urls[1]==null?null:urls[1].toString());
+								URL		target 			= (URL)params[0];
+								URL		referrer		= (URL)params[1];
+								boolean	auto_download	= ((Boolean)params[2]).booleanValue();
+								
+									// programmatic request to add a torrent, make sure az is visible
+								
+			            		if( !COConfigurationManager.getBooleanParameter( "add_torrents_silently" ) ) {
+			            			
+			            			MainWindow.getWindow().setVisible( true );
+			            		}
+			            		
+								if ( auto_download ){
+									
+									new FileDownloadWindow(
+											core,
+											MainWindow.getWindow().getShell(),
+											target.toString(), referrer==null?null:referrer.toString());
+								}else{
+									
+										// TODO: handle referrer?
+									
+									TorrentOpener.openTorrent( target.toString());
+								}
 							}
 						});
 				

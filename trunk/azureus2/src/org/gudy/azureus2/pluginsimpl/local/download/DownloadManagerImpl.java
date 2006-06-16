@@ -205,7 +205,17 @@ DownloadManagerImpl
 	addDownload(
 		final URL	url) 
 	{
-		addDownload(url,null);
+		addDownload(url,null,true);
+	}
+	
+	public void 
+	addDownload(
+		URL		url,
+		boolean	auto_download )
+	
+		throws DownloadException
+	{
+		addDownload(url,null,auto_download);	
 	}
 	
 	public void 
@@ -213,7 +223,16 @@ DownloadManagerImpl
 		final URL	url,
 		final URL 	referrer) 
 	{
-		UIManagerImpl.fireEvent( UIManagerEvent.ET_OPEN_TORRENT_VIA_URL, new URL[]{ url, referrer });
+		addDownload(url,referrer,true);
+	}
+	
+	public void 
+	addDownload(
+		final URL	url,
+		final URL 	referrer,
+		boolean		auto_download )
+	{
+		UIManagerImpl.fireEvent( UIManagerEvent.ET_OPEN_TORRENT_VIA_URL, new Object[]{ url, referrer, new Boolean( auto_download )});
 	}
 	
 	protected void

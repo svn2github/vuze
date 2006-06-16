@@ -63,6 +63,21 @@ DownloadManager
 		throws DownloadException;
 	
 	/**
+	 * Add a torrent from a URL with explicit auto-download option
+	 * @param url
+	 * @param auto_download
+	 * @throws DownloadException
+	 * @since 2403
+	 */
+	
+	public void 
+	addDownload(
+		URL			url,
+		boolean		auto_download )
+	
+		throws DownloadException;
+	
+	/**
 	 * add a torrent from a URL. This will prompt the user for download location etc. if required
 	 * This is an async operation so no Download returned
 	 * @param url
@@ -108,9 +123,9 @@ DownloadManager
 	 */
 	public Download
 	addDownload(
-			Torrent		torrent,
-			File		torrent_location,
-			File		data_location )
+		Torrent		torrent,
+		File		torrent_location,
+		File		data_location )
 	
 		throws DownloadException;
 	

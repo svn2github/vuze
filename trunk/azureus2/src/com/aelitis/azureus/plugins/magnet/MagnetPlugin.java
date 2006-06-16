@@ -266,7 +266,7 @@ MagnetPlugin
 				{
 					try{
 						
-						plugin_interface.getDownloadManager().addDownload( url );
+						plugin_interface.getDownloadManager().addDownload( url, false );
 						
 						return( true );
 						

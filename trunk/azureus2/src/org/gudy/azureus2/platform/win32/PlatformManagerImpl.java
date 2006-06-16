@@ -414,6 +414,10 @@ PlatformManagerImpl
 	
 		throws PlatformManagerException
 	{
+			// all this stuff needs the exe location so bail out early if unavailable
+		
+		getApplicationEXELocation();
+		
 		try{
 				// always trigger magnet reg here if not owned so old users get it...
 			

@@ -213,6 +213,15 @@ RPDownloadManager
 		_dispatcher.dispatch( new RPRequest( this, "addDownload[URL]", new Object[]{url} )).getResponse();
 	}
 	
+	public void 
+	addDownload(
+		URL			url,
+		boolean		auto_download )
+	
+		throws DownloadException
+	{
+		notSupported();
+	}
 	
 	public Download
 	addDownload(
