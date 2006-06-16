@@ -70,7 +70,7 @@ public class ProxyLoginHandler {
   }
   
   
-  private final TCPTransport proxy_connection;
+  private final TCPTransportImpl proxy_connection;
   private final InetSocketAddress remote_address;  
   private final ProxyListener proxy_listener;
   
@@ -88,7 +88,7 @@ public class ProxyLoginHandler {
    * @param remote_address address to proxy to
    * @param listener for proxy login success or faulure
    */
-  public ProxyLoginHandler( TCPTransport _proxy_connection, InetSocketAddress _remote_address, ProxyListener listener ) {
+  public ProxyLoginHandler( TCPTransportImpl _proxy_connection, InetSocketAddress _remote_address, ProxyListener listener ) {
     this.proxy_connection = _proxy_connection;
     this.remote_address = _remote_address;
     this.proxy_listener = listener;

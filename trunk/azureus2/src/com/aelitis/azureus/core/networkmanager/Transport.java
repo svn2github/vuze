@@ -25,12 +25,11 @@ package com.aelitis.azureus.core.networkmanager;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 /**
  * Represents a peer TCP transport connection (eg. a network socket).
  */
-public interface TCPTransport {
+public interface Transport {
 	
 	public static final int TRANSPORT_MODE_NORMAL = 0;
   public static final int TRANSPORT_MODE_FAST   = 1;
@@ -48,7 +47,7 @@ public interface TCPTransport {
    * Get the socket channel used by the transport.
    * @return the socket channel
    */
-  public SocketChannel getSocketChannel();
+  public TransportEndpoint getTransportEndpoint();
   
   
   /**
@@ -104,15 +103,6 @@ public interface TCPTransport {
    */
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException;
 
- 
-  /**
-   * Request the transport connection be established.
-   * NOTE: Will automatically connect via configured proxy if necessary.
-   * @param address remote peer address to connect to
-   * @param listener establishment failure/success listener
-   */
-  public void establishOutboundConnection( final InetSocketAddress address, final ConnectListener listener );
-    
   
   
   /**
@@ -128,7 +118,12 @@ public interface TCPTransport {
   public int getTransportMode();
   
   
-
+  public void
+  connectOutbound(
+		ConnectListener 	listener );
+  
+  public InetSocketAddress 
+  getRemoteAddress();
   
   /**
    * Close the transport connection.
@@ -150,7 +145,7 @@ public interface TCPTransport {
      * The connection attempt succeeded.
      * The connection is now established.
      */
-    public void connectSuccess() ;
+    public void connectSuccess(Transport	transport) ;
     
     /**
      * The connection attempt failed.

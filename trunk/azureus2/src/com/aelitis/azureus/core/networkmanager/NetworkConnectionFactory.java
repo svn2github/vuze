@@ -55,7 +55,7 @@ public class NetworkConnectionFactory {
    * @param decoder
    * @return inbound connection
    */
-  protected static NetworkConnection create( TCPTransportHelperFilter filter, ByteBuffer data_already_read, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
-    return new NetworkConnectionImpl( filter, data_already_read, encoder, decoder );
+  protected static NetworkConnection create( Transport transport, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
+    return new NetworkConnectionImpl( transport, encoder, decoder );
   }
 }

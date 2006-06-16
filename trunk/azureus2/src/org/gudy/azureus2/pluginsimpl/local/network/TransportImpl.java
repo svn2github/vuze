@@ -27,26 +27,41 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.plugins.network.Transport;
 
-import com.aelitis.azureus.core.networkmanager.TCPTransport;
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 
 /**
  *
  */
-public class TCPTransportImpl implements Transport {
-  private final TCPTransport core_transport;
+public class TransportImpl implements Transport {
+  private com.aelitis.azureus.core.networkmanager.Transport core_transport;
+  private NetworkConnection	core_network;
   
-  public TCPTransportImpl( TCPTransport core_transport ) {
-    this.core_transport = core_transport;
+  public TransportImpl( NetworkConnection core_network ) {
+    this.core_network = core_network;
   }
   
-  
+  public TransportImpl( com.aelitis.azureus.core.networkmanager.Transport core_transport ) {
+	    this.core_transport = core_transport;
+  }
   
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
+	if ( core_transport == null ){
+		core_transport = core_network.getTransport();
+		if ( core_transport == null ){
+			throw( new IOException( "Not connected" ));
+		}
+	}
     return core_transport.read( buffers, array_offset, length );
   }
   
  
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
+	if ( core_transport == null ){
+		core_transport = core_network.getTransport();
+		if ( core_transport == null ){
+			throw( new IOException( "Not connected" ));
+		}
+	}
     return core_transport.write( buffers, array_offset, length );
   }
  

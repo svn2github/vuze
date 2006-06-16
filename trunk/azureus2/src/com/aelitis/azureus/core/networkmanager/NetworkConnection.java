@@ -88,7 +88,7 @@ public interface NetworkConnection {
    * Get the connection's data tcp transport interface.
    * @return the transport
    */
-  public TCPTransport getTCPTransport();
+  public Transport getTransport();
   
 
   

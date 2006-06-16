@@ -645,7 +645,14 @@ public class IncomingSocketChannelManager
 							  + "known byte pattern: "
 							  + ByteFormatter.nicePrint(ic.buffer.array())));
 				  removeConnection( ic, false );
-				  listener.connectionMatched( ic.filter, ic.buffer );
+				  
+				  ConnectionEndpoint	co_ep = new ConnectionEndpoint();
+				  
+				  ProtocolEndpointTCP	pe_tcp = new ProtocolEndpointTCP( co_ep, new InetSocketAddress( sc.socket().getInetAddress(), sc.socket().getPort()));
+				  				  
+				  Transport transport = new TCPTransportImpl( pe_tcp, ic.filter, ic.buffer );
+				  
+				  listener.connectionMatched( transport );
 			  }
 			  return( true );
 		  }
@@ -707,7 +714,7 @@ public class IncomingSocketChannelManager
      * @param channel matching accepted connection
      * @param read_so_far bytes already read
      */
-    public void connectionMatched( TCPTransportHelperFilter filter, ByteBuffer read_so_far );
+    public void connectionMatched( Transport	transport );
   }
   
   

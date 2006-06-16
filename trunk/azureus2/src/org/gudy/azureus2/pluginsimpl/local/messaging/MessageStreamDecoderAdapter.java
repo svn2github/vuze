@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.plugins.messaging.*;
-import org.gudy.azureus2.pluginsimpl.local.network.TCPTransportImpl;
+import org.gudy.azureus2.pluginsimpl.local.network.TransportImpl;
 
 
 /**
@@ -44,8 +44,8 @@ public class MessageStreamDecoderAdapter implements com.aelitis.azureus.core.pee
   }
   
   
-  public int performStreamDecode( com.aelitis.azureus.core.networkmanager.TCPTransport transport, int max_bytes ) throws IOException {
-    return plug_decoder.performStreamDecode( new TCPTransportImpl( transport ), max_bytes );
+  public int performStreamDecode( com.aelitis.azureus.core.networkmanager.Transport transport, int max_bytes ) throws IOException {
+    return plug_decoder.performStreamDecode( new TransportImpl( transport ), max_bytes );
   }
   
   

@@ -61,7 +61,7 @@ public class IncomingMessageQueue {
    */
   public void setDecoder( MessageStreamDecoder new_stream_decoder ) {
     ByteBuffer already_read = stream_decoder.destroy();
-    connection.getTCPTransport().setAlreadyRead( already_read );
+    connection.getTransport().setAlreadyRead( already_read );
     stream_decoder = new_stream_decoder;
     stream_decoder.resumeDecoding();
   }
@@ -96,7 +96,7 @@ public class IncomingMessageQueue {
     }
     
     //perform decode op
-    int bytes_read = stream_decoder.performStreamDecode( connection.getTCPTransport(), max_bytes );
+    int bytes_read = stream_decoder.performStreamDecode( connection.getTransport(), max_bytes );
     
     //check if anything was decoded and notify listeners if so
     Message[] messages = stream_decoder.removeDecodedMessages();
@@ -105,7 +105,7 @@ public class IncomingMessageQueue {
         Message msg = messages[ i ];
         
         if( msg == null ) {
-        	System.out.println( "received msg == null [messages.length=" +messages.length+ ", #" +i+ "]: " +connection.getTCPTransport().getDescription() );
+        	System.out.println( "received msg == null [messages.length=" +messages.length+ ", #" +i+ "]: " +connection.getTransport().getDescription() );
         	continue;
         }
         

@@ -28,7 +28,7 @@ import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.networkmanager.TCPTransport;
+import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 
 
@@ -73,7 +73,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   
   
   
-  public int performStreamDecode( TCPTransport transport, int max_bytes ) throws IOException {
+  public int performStreamDecode( Transport transport, int max_bytes ) throws IOException {
     protocol_bytes_last_read = 0;
     data_bytes_last_read = 0;
     

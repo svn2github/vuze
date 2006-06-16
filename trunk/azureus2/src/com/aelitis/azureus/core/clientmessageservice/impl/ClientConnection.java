@@ -30,6 +30,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.TCPTransportImpl;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 
@@ -39,8 +40,8 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
  */
 public class ClientConnection {
 
-	private TCPTransport parent_transport;
-	private final TCPTransport light_transport;
+	private Transport parent_transport;
+	private final Transport light_transport;
 	private final OutgoingMessageQueue out_queue;
 	private final AZMessageDecoder decoder;
 	private static final AZMessageEncoder encoder = new AZMessageEncoder();
@@ -64,8 +65,9 @@ public class ClientConnection {
 	 */
 	public ClientConnection( SocketChannel channel ) {
 		decoder = new AZMessageDecoder();
-		light_transport = TransportFactory.createLightweightTCPTransport( channel );
-		out_queue = new OutgoingMessageQueue( encoder, light_transport );		
+		light_transport = ((ProtocolEndpointTCP)new ConnectionEndpoint().addTCP( null )).connectLightWeight( channel );
+		out_queue = new OutgoingMessageQueue( encoder );
+		out_queue.setTransport( light_transport );
 		last_activity_time = System.currentTimeMillis();
 	}
 	
@@ -74,7 +76,7 @@ public class ClientConnection {
 	 * Create a new connection based on an already-established outgoing socket.
 	 * @param transport parent
 	 */
-	public ClientConnection( TCPTransport transport ) {
+	public ClientConnection( TCPTransportImpl transport ) {
 		this( transport.getSocketChannel() );  //run as a lightweight
 		parent_transport = transport;  //save parent for close
 	}
@@ -204,7 +206,7 @@ public class ClientConnection {
 		return( close_pending );
 	}
 	
-	public SocketChannel getSocketChannel(){  return light_transport.getSocketChannel();  }
+	public SocketChannel getSocketChannel(){  return ((TransportEndpointTCP)light_transport.getTransportEndpoint()).getSocketChannel();  }
 	
 	
   /**

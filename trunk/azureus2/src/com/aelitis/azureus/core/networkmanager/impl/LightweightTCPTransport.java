@@ -27,20 +27,30 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
-import com.aelitis.azureus.core.networkmanager.TCPTransport;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.Transport;
+import com.aelitis.azureus.core.networkmanager.TransportEndpoint;
+import com.aelitis.azureus.core.networkmanager.TransportEndpointTCP;
 
 
 /**
  * This class is essentially a socket channel wrapper to support working with az message encoders/decoders.
  */
-public class LightweightTCPTransport implements TCPTransport {
+public class LightweightTCPTransport implements Transport {
 	
-	private final TCPTransportHelperFilter filter;	
+	private final TransportEndpoint			transport_endpoint;
+	private final TCPTransportHelperFilter 	filter;	
 	
-	public LightweightTCPTransport( TCPTransportHelperFilter filter ) {
+	public LightweightTCPTransport( ProtocolEndpoint	pe, TCPTransportHelperFilter filter ) {
+		transport_endpoint	= new TransportEndpointTCP( pe, filter.getSocketChannel());
 		this.filter = filter;
 	}
 	
+	public TransportEndpoint
+	getTransportEndpoint()
+	{
+		return( transport_endpoint );
+	}
 
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
   	return filter.write( buffers, array_offset, length );
@@ -53,6 +63,12 @@ public class LightweightTCPTransport implements TCPTransport {
   
 
   public SocketChannel getSocketChannel(){  return filter.getSocketChannel();  }
+  
+  public InetSocketAddress 
+  getRemoteAddress()
+  {
+	  return( new InetSocketAddress( getSocketChannel().socket().getInetAddress(), getSocketChannel().socket().getPort()));
+  }
   
   public String getDescription(){  return getSocketChannel().socket().getInetAddress().getHostAddress() + ": " + getSocketChannel().socket().getPort();  }
   
@@ -67,7 +83,7 @@ public class LightweightTCPTransport implements TCPTransport {
   public void setAlreadyRead( ByteBuffer bytes_already_read ){ 	throw new RuntimeException( "not implemented" );  }
   public boolean isReadyForWrite(EventWaiter waiter){  throw new RuntimeException( "not implemented" );  }  
   public boolean isReadyForRead(EventWaiter waiter){  throw new RuntimeException( "not implemented" );  }  
-  public void establishOutboundConnection( final InetSocketAddress address, final ConnectListener listener ){ throw new RuntimeException( "not implemented" ); }  
+  public void connectOutbound( final ConnectListener listener ){ throw new RuntimeException( "not implemented" ); }  
   public void setTransportMode( int mode ){ throw new RuntimeException( "not implemented" ); } 
   public int getTransportMode(){ throw new RuntimeException( "not implemented" );  }
 

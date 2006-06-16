@@ -28,14 +28,7 @@ import org.gudy.azureus2.plugins.messaging.*;
 /**
  * Inbound message queue.
  */
-public interface IncomingMessageQueue {
-
-  /**
-   * Set the message stream decoder that will be used to decode incoming messages.
-   * @param stream_decoder to use
-   */
-  public void setDecoder( MessageStreamDecoder stream_decoder );
-  
+public interface IncomingMessageQueue {  
   
   /**
    * Register queue listener.

@@ -46,7 +46,7 @@ public class SinglePeerUploader implements RateControlledEntity {
 ////////////////RateControlledWriteEntity implementation ////////////////////
   
   public boolean canProcess(EventWaiter waiter) {
-    if( !connection.getTCPTransport().isReadyForWrite(waiter) )  {
+    if( !connection.getTransport().isReadyForWrite(waiter) )  {
       return false;  //underlying transport not ready
     }
     if( connection.getOutgoingMessageQueue().getTotalSize() < 1 ) {
@@ -59,7 +59,7 @@ public class SinglePeerUploader implements RateControlledEntity {
   }
   
   public boolean doProcessing(EventWaiter waiter) {
-    if( !connection.getTCPTransport().isReadyForWrite(waiter) )  {
+    if( !connection.getTransport().isReadyForWrite(waiter) )  {
       Debug.out("dW:not ready");
       return false;
     }
@@ -96,7 +96,7 @@ public class SinglePeerUploader implements RateControlledEntity {
               e.getMessage().indexOf( "Broken pipe" ) == -1 &&
               e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
             
-            System.out.println( "SP: write exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+            System.out.println( "SP: write exception [" +connection.getTransport().getDescription()+ "]: " +e.getMessage() );
           }
         }
       }

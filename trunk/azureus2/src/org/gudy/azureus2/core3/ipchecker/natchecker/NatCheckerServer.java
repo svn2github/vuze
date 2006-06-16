@@ -86,7 +86,7 @@ public class NatCheckerServer extends AEThread {
                 try{
                   ByteBuffer msg = ByteBuffer.wrap( check.getBytes() );
                   while( msg.hasRemaining() ) {
-                    connection.getTCPTransport().getSocketChannel().write( msg );
+                    connection.getTransport().write( new ByteBuffer[]{ msg }, 0, 1 );
                     Thread.sleep( 20 );
                   }
                 }

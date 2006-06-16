@@ -51,7 +51,7 @@ public class OutgoingMessageQueue {
   private boolean destroyed = false;
   
   private MessageStreamEncoder stream_encoder;
-  private TCPTransport tcp_transport;
+  private Transport transport;
   
   private int percent_complete = -1;
   
@@ -66,11 +66,16 @@ public class OutgoingMessageQueue {
    * Create a new outgoing message queue.
    * @param stream_encoder default message encoder
    */
-  public OutgoingMessageQueue( MessageStreamEncoder stream_encoder, TCPTransport transport ) {
+  public OutgoingMessageQueue( MessageStreamEncoder stream_encoder ) {
     this.stream_encoder = stream_encoder;
-    this.tcp_transport = transport;
   }
   
+  public void
+  setTransport(
+	 Transport		_transport )
+  {
+	transport = _transport;  
+  }
   
   /**
    * Set the message stream encoder that will be used to encode outgoing messages.
@@ -378,6 +383,9 @@ public class OutgoingMessageQueue {
       return 0;
     }
     
+    if ( transport == null ){
+    	throw( new IOException( "not ready to deliver data" ));
+    }
     int data_written = 0;
     int protocol_written = 0;
     
@@ -421,7 +429,7 @@ public class OutgoingMessageQueue {
         ByteBuffer[] buffs = new ByteBuffer[ num_raw ];
         raw_buffers.toArray( buffs );
         
-        tcp_transport.write( buffs, 0, num_raw );
+        transport.write( buffs, 0, num_raw );
         
         last_buff.limit( orig_last_limit );
         

@@ -38,9 +38,10 @@ import com.aelitis.azureus.core.networkmanager.*;
 /**
  * Represents a peer TCP transport connection (eg. a network socket).
  */
-public class TCPTransportImpl implements TCPTransport {
+public class TCPTransportImpl implements Transport {
 	private static final LogIDs LOGID = LogIDs.NET;
   
+  protected ProtocolEndpointTCP		protocol_endpoint;
   protected TCPTransportHelperFilter filter;
 
   protected volatile boolean is_ready_for_write = false;
@@ -72,7 +73,9 @@ public class TCPTransportImpl implements TCPTransport {
   /**
    * Constructor for disconnected (outbound) transport.
    */
-  public TCPTransportImpl( boolean use_crypto, boolean allow_fallback, byte[] _shared_secret ) {
+  public TCPTransportImpl( ProtocolEndpointTCP endpoint, boolean use_crypto, boolean allow_fallback, byte[] _shared_secret ) 
+  {
+	  protocol_endpoint = endpoint;
 	  filter = null;
     is_inbound_connection = false;
     connect_with_crypto = use_crypto;
@@ -86,7 +89,9 @@ public class TCPTransportImpl implements TCPTransport {
    * @param channel connection
    * @param already_read bytes from the channel
    */
-  public TCPTransportImpl( TCPTransportHelperFilter	filter, ByteBuffer already_read ) {
+  public TCPTransportImpl( ProtocolEndpointTCP endpoint, TCPTransportHelperFilter	filter, ByteBuffer already_read ) 
+  {
+	protocol_endpoint = endpoint;
     this.filter = filter;
     this.data_already_read = already_read;   
     is_inbound_connection = true;
@@ -115,6 +120,11 @@ public class TCPTransportImpl implements TCPTransport {
    */
   public SocketChannel getSocketChannel() {  return filter.getSocketChannel();  }
   
+  public TransportEndpoint
+  getTransportEndpoint()
+  {
+	  return( new TransportEndpointTCP( protocol_endpoint, filter.getSocketChannel()));
+  }
   
   /**
    * Get a textual description for this transport.
@@ -299,17 +309,19 @@ public class TCPTransportImpl implements TCPTransport {
    * @param address remote peer address to connect to
    * @param listener establishment failure/success listener
    */
-  public void establishOutboundConnection( final InetSocketAddress address, final ConnectListener listener ) {
+  public void connectOutbound( final ConnectListener listener ) {
     if( has_been_closed )  return;
     
     if( filter != null ) {  //already connected
       Debug.out( "socket_channel != null" );
-      listener.connectSuccess();
+      listener.connectSuccess( this );
       return;
     }
     
     final boolean use_proxy = COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" );
-    final TCPTransport transport_instance = this;    
+    final TCPTransportImpl transport_instance = this;    
+    
+    final InetSocketAddress	address = protocol_endpoint.getAddress();
     
     ConnectDisconnectManager.ConnectListener connect_listener = new ConnectDisconnectManager.ConnectListener() {
       public void connectAttemptStarted() {
@@ -384,7 +396,7 @@ public class TCPTransportImpl implements TCPTransport {
     			}
     			
         	registerSelectHandling();
-          listener.connectSuccess();
+          listener.connectSuccess( TCPTransportImpl.this );
     		}
 
     		public void handshakeFailure( Throwable failure_msg ) {        	
@@ -395,7 +407,7 @@ public class TCPTransportImpl implements TCPTransport {
         		NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
         		close();
         		has_been_closed = false;
-        		establishOutboundConnection( address, listener );
+        		connectOutbound( listener );
         	}
         	else {
         		NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
@@ -427,7 +439,7 @@ public class TCPTransportImpl implements TCPTransport {
 		  Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + filter.getName() + ", fallback = " + (fallback_count==0?"no":"yes" )));
 		}
     	registerSelectHandling();
-      listener.connectSuccess();
+      listener.connectSuccess( this );
   	}
   }
   
@@ -493,6 +505,11 @@ public class TCPTransportImpl implements TCPTransport {
   
   public String getEncryption(){ return( filter==null?"":filter.getName()); }
 
+  public InetSocketAddress 
+  getRemoteAddress()
+  {
+	  return( protocol_endpoint.getAddress());
+  }
   
   /**
    * Close the transport connection.

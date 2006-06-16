@@ -40,8 +40,13 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
  *
  */
 public class NetworkConnectionImpl implements NetworkConnection {
+  private final ConnectionEndpoint	connection_endpoint;
   private final InetSocketAddress remote_address;
-  private final TCPTransport tcp_transport;
+  
+  private boolean connect_with_crypto;
+  private boolean allow_fallback;
+  private byte[] shared_secret;
+  
   private ConnectionListener connection_listener;
   private boolean 	is_connected;
   private byte		is_lan_local	= AddressUtils.LAN_LOCAL_MAYBE;
@@ -49,8 +54,10 @@ public class NetworkConnectionImpl implements NetworkConnection {
   private final OutgoingMessageQueue outgoing_message_queue;
   private final IncomingMessageQueue incoming_message_queue;
   
+  private Transport	transport;
   
-  
+  private volatile ConnectionAttempt	connection_attempt;
+  private volatile boolean				closed;
   
   
   /**
@@ -60,11 +67,21 @@ public class NetworkConnectionImpl implements NetworkConnection {
    * @param encoder default message stream encoder to use for the outgoing queue
    * @param decoder default message stream decoder to use for the incoming queue
    */
-  public NetworkConnectionImpl( InetSocketAddress _remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto, boolean allow_fallback, byte[] shared_secret ) {
+  public NetworkConnectionImpl( 
+		  		InetSocketAddress _remote_address, MessageStreamEncoder encoder, 
+		  		MessageStreamDecoder decoder, boolean _connect_with_crypto, boolean _allow_fallback,
+		  		byte[] _shared_secret ) 
+  {
     remote_address = _remote_address;
-    tcp_transport = TransportFactory.createTCPTransport( connect_with_crypto, allow_fallback, shared_secret );
+    connect_with_crypto	= _connect_with_crypto;
+    allow_fallback = _allow_fallback;
+    shared_secret = _shared_secret;
+    
+    connection_endpoint	= new ConnectionEndpoint();
+    connection_endpoint.addTCP( _remote_address );
+    
     is_connected = false;
-    outgoing_message_queue = new OutgoingMessageQueue( encoder, tcp_transport );
+    outgoing_message_queue = new OutgoingMessageQueue( encoder );
     incoming_message_queue = new IncomingMessageQueue( decoder, this );
   }
   
@@ -77,11 +94,13 @@ public class NetworkConnectionImpl implements NetworkConnection {
    * @param encoder default message stream encoder to use for the outgoing queue
    * @param decoder default message stream decoder to use for the incoming queue
    */
-  public NetworkConnectionImpl( TCPTransportHelperFilter filter, ByteBuffer data_already_read, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
-    remote_address = new InetSocketAddress( filter.getSocketChannel().socket().getInetAddress(), filter.getSocketChannel().socket().getPort() );
-    tcp_transport = TransportFactory.createTCPTransport( filter, data_already_read );
+  public NetworkConnectionImpl( Transport _transport, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
+    transport = _transport;
+    connection_endpoint = transport.getTransportEndpoint().getProtocolEndpoint().getConnectionEndpoint();
+    remote_address = transport.getRemoteAddress();
     is_connected = true;
-    outgoing_message_queue = new OutgoingMessageQueue( encoder, tcp_transport );
+    outgoing_message_queue = new OutgoingMessageQueue( encoder );
+    outgoing_message_queue.setTransport( transport );
     incoming_message_queue = new IncomingMessageQueue( decoder, this );
   }
   
@@ -96,28 +115,43 @@ public class NetworkConnectionImpl implements NetworkConnection {
       return;
     }
     
-    tcp_transport.establishOutboundConnection( remote_address, new TCPTransport.ConnectListener() {
-      public void connectAttemptStarted() {
-        connection_listener.connectStarted();
-      }
-      
-      public void connectSuccess() {
-        is_connected = true;
-        connection_listener.connectSuccess();
-      }
-      
-      public void connectFailure( Throwable failure_msg ) {
-        is_connected = false;
-        connection_listener.connectFailure( failure_msg );
-      }
-    });
+    connection_attempt = 
+    	connection_endpoint.connectOutbound( 
+    			connect_with_crypto, 
+    			allow_fallback, 
+    			shared_secret, 
+    			new Transport.ConnectListener() {
+			      public void connectAttemptStarted() {
+			        connection_listener.connectStarted();
+			      }
+			      
+			      public void connectSuccess( Transport	_transport ) {
+			        is_connected = true;
+			        transport	= _transport;
+			        outgoing_message_queue.setTransport( transport );
+			        connection_listener.connectSuccess();
+			      }
+			      
+			      public void connectFailure( Throwable failure_msg ) {
+			        is_connected = false;
+			        connection_listener.connectFailure( failure_msg );
+			      }
+			    });
+    
+    if ( closed ){
+    	
+    	connection_attempt.abandon();
+    }
   }
   
 
   
   public void close() {
-  	NetworkManager.getSingleton().stopTransferProcessing( this );    
-    tcp_transport.close();
+  	NetworkManager.getSingleton().stopTransferProcessing( this );   
+  	closed	= true;
+    if ( connection_attempt != null ){
+    	connection_attempt.abandon();
+    }
     incoming_message_queue.destroy();
     outgoing_message_queue.destroy();  
     is_connected = false;
@@ -154,7 +188,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
   }
   
 
-  public TCPTransport getTCPTransport() {  return tcp_transport;  }
+  public Transport getTransport() {  return transport;  }
   
 
   public InetSocketAddress getAddress() {  return remote_address;  }
@@ -162,7 +196,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
   
   
   public String toString() {
-    return tcp_transport.getDescription();
+    return( transport==null?connection_endpoint.getDescription():transport.getDescription() );
   }
 
 

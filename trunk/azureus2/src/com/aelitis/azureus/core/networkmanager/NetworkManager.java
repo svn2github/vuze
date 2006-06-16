@@ -245,8 +245,8 @@ public class NetworkManager {
       {
     	return( listener.autoCryptoFallback());
       }
-      public void connectionMatched( TCPTransportHelperFilter filter, ByteBuffer read_so_far ) {
-        listener.connectionRouted( NetworkConnectionFactory.create( filter, read_so_far, factory.createEncoder(), factory.createDecoder() ) );
+      public void connectionMatched( Transport	transport ) {
+        listener.connectionRouted( NetworkConnectionFactory.create( transport, factory.createEncoder(), factory.createDecoder() ) );
       }
     });
   }

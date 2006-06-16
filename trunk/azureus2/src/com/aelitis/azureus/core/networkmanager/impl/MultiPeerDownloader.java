@@ -112,7 +112,7 @@ public class MultiPeerDownloader implements RateControlledEntity {
       next_position++;
       num_checked++;
       
-      if( connection.getTCPTransport().isReadyForRead( waiter ) ) {
+      if( connection.getTransport().isReadyForRead( waiter ) ) {
         int allowed = num_bytes_remaining > NetworkManager.getTcpMssSize() ? NetworkManager.getTcpMssSize() : num_bytes_remaining;
           
         int bytes_read = 0;
@@ -132,7 +132,7 @@ public class MultiPeerDownloader implements RateControlledEntity {
                   e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
                   e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
                   
-                System.out.println( "MP: read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+                System.out.println( "MP: read exception [" +connection.getTransport().getDescription()+ "]: " +e.getMessage() );
               }
             }
           }

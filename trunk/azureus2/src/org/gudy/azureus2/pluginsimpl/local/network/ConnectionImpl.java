@@ -35,14 +35,14 @@ public class ConnectionImpl implements Connection {
   private final com.aelitis.azureus.core.networkmanager.NetworkConnection core_connection;
   private final OutgoingMessageQueueImpl out_queue;
   private final IncomingMessageQueueImpl in_queue;
-  private final TCPTransportImpl tcp_transport;
+  private final TransportImpl tcp_transport;
   
   
   public ConnectionImpl( com.aelitis.azureus.core.networkmanager.NetworkConnection core_connection ) {
     this.core_connection = core_connection;
     this.out_queue = new OutgoingMessageQueueImpl( core_connection.getOutgoingMessageQueue() );
     this.in_queue = new IncomingMessageQueueImpl( core_connection.getIncomingMessageQueue() );
-    this.tcp_transport = new TCPTransportImpl( core_connection.getTCPTransport() );
+    this.tcp_transport = new TransportImpl( core_connection );
   }
   
   

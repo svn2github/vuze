@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.clientmessageservice.*;
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.TCPTransportImpl;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 
@@ -92,15 +93,18 @@ public class AEClientService implements ClientMessageService {
 
 	//NOTE: blocking op
 	private void connect() throws IOException {
-    final TCPTransport transport = TransportFactory.createTCPTransport( false, false, null );  //use transport for proxy capabilities
-    
+		
+	ConnectionEndpoint	ce = new ConnectionEndpoint();
+	
+	ce.addTCP( new InetSocketAddress( address, port ));
+	   
     final AESemaphore connect_block = new AESemaphore( "AEClientService:C" );
     
-    transport.establishOutboundConnection( new InetSocketAddress( address, port ), new TCPTransport.ConnectListener() {  //NOTE: async operation!
+    ce.connectOutbound( false, false, null, new Transport.ConnectListener() {  //NOTE: async operation!
     	public void connectAttemptStarted() {  /*nothing*/ }
       
-    	public void connectSuccess() {
-    		conn = new ClientConnection( transport );
+    	public void connectSuccess(Transport transport) {
+    		conn = new ClientConnection((TCPTransportImpl)transport );
     		connect_block.release();       
     	}
      

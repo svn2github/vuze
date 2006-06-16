@@ -27,7 +27,6 @@ import java.util.HashMap;
 import org.gudy.azureus2.plugins.messaging.*;
 import org.gudy.azureus2.plugins.network.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
-import org.gudy.azureus2.pluginsimpl.local.messaging.MessageStreamDecoderAdapter;
 
 
 
@@ -41,14 +40,7 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
   
   protected IncomingMessageQueueImpl( com.aelitis.azureus.core.networkmanager.IncomingMessageQueue core_queue ) {
     this.core_queue = core_queue;
-  }
-  
-  
-  
-  public void setDecoder( MessageStreamDecoder stream_decoder ) {
-    core_queue.setDecoder( new MessageStreamDecoderAdapter( stream_decoder ) );
-  }
-  
+  } 
 
   public void registerListener( final IncomingMessageQueueListener listener ) {
     com.aelitis.azureus.core.networkmanager.IncomingMessageQueue.MessageQueueListener core_listener = 

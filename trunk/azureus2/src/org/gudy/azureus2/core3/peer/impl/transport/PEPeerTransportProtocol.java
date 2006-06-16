@@ -1189,22 +1189,24 @@ PEPeerTransportProtocol
   
   
   public void doPerformanceTuningCheck() {
-    if( peer_stats != null && outgoing_piece_message_handler != null ) {
+	Transport	transport = connection.getTransport();
+	
+    if( transport != null && peer_stats != null && outgoing_piece_message_handler != null ) {
 
       //send speed -based tuning
     	final long send_rate = peer_stats.getDataSendRate() + peer_stats.getProtocolSendRate();
       
       if( send_rate >= 3125000 ) {  // 25 Mbit/s
-        connection.getTCPTransport().setTransportMode( TCPTransport.TRANSPORT_MODE_TURBO );
+    	  transport.setTransportMode( Transport.TRANSPORT_MODE_TURBO );
         outgoing_piece_message_handler.setRequestReadAhead( 256 );
       }
       else if( send_rate >= 1250000 ) {  // 10 Mbit/s
-        connection.getTCPTransport().setTransportMode( TCPTransport.TRANSPORT_MODE_TURBO );
+    	  transport.setTransportMode( Transport.TRANSPORT_MODE_TURBO );
         outgoing_piece_message_handler.setRequestReadAhead( 128 );
       }
       else if( send_rate >= 125000 ) {  // 1 Mbit/s
-        if( connection.getTCPTransport().getTransportMode() < TCPTransport.TRANSPORT_MODE_FAST ) {
-          connection.getTCPTransport().setTransportMode( TCPTransport.TRANSPORT_MODE_FAST );
+        if( transport.getTransportMode() < Transport.TRANSPORT_MODE_FAST ) {
+        	transport.setTransportMode( Transport.TRANSPORT_MODE_FAST );
         }
         outgoing_piece_message_handler.setRequestReadAhead( 32 );
       }
@@ -1226,11 +1228,11 @@ PEPeerTransportProtocol
       final long receive_rate = peer_stats.getDataReceiveRate() + peer_stats.getProtocolReceiveRate();
       
       if( receive_rate >= 1250000 ) {  // 10 Mbit/s
-        connection.getTCPTransport().setTransportMode( TCPTransport.TRANSPORT_MODE_TURBO );
+    	  transport.setTransportMode( Transport.TRANSPORT_MODE_TURBO );
       }
       else if( receive_rate >= 125000 ) {  // 1 Mbit/s
-        if( connection.getTCPTransport().getTransportMode() < TCPTransport.TRANSPORT_MODE_FAST ) {
-          connection.getTCPTransport().setTransportMode( TCPTransport.TRANSPORT_MODE_FAST );
+        if( transport.getTransportMode() < Transport.TRANSPORT_MODE_FAST ) {
+        	transport.setTransportMode( Transport.TRANSPORT_MODE_FAST );
         }
       }
       
@@ -2032,7 +2034,14 @@ PEPeerTransportProtocol
   public String
   getEncryption()
   {
-	  return( connection.getTCPTransport().getEncryption());
+	  Transport	transport = connection.getTransport();
+	  
+	  if ( transport == null ){
+		  
+		  return( "" );
+	  }
+	  
+	  return( transport.getEncryption());
   }
   
   

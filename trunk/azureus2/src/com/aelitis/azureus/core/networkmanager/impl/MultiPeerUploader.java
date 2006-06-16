@@ -268,7 +268,7 @@ public class MultiPeerUploader implements RateControlledEntity {
       while( num_bytes_remaining > 0 && num_unusable_connections < ready_connections.size() ) {
         NetworkConnection conn = (NetworkConnection)ready_connections.removeFirst();
         
-        if( !conn.getTCPTransport().isReadyForWrite( waiter ) ) {  //not yet ready for writing
+        if( !conn.getTransport().isReadyForWrite( waiter ) ) {  //not yet ready for writing
           ready_connections.addLast( conn );  //re-add to end as currently unusable
           num_unusable_connections++;
           continue;  //move on to the next connection
@@ -317,7 +317,7 @@ public class MultiPeerUploader implements RateControlledEntity {
                     e.getMessage().indexOf( "Broken pipe" ) == -1 &&
                     e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
                   
-                  System.out.println( "MP: write exception [" +conn.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+                  System.out.println( "MP: write exception [" +conn.getTransport().getDescription()+ "]: " +e.getMessage() );
                 }
               }
             }
