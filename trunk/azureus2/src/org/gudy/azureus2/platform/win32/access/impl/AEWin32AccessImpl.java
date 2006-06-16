@@ -215,10 +215,24 @@ AEWin32AccessImpl
 		
 		throws AEWin32AccessException
 	{
-		return(	readStringValue(
-				HKEY_LOCAL_MACHINE,
-				"software\\" + app_name,
-				null ));		
+		String	res = "";
+		
+		try{
+			res = readStringValue(
+					HKEY_CURRENT_USER,
+					"software\\" + app_name,
+					null );
+			
+		}catch( AEWin32AccessException e ){
+			
+			res = readStringValue(
+					HKEY_LOCAL_MACHINE,
+					"software\\" + app_name,
+					null );
+						
+		}
+		
+		return( res );
 	}
 	
 	public void
