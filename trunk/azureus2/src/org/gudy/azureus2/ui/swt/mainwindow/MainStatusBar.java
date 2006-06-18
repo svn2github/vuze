@@ -169,7 +169,8 @@ public class MainStatusBar {
 
 		FormData formData;
 
-		final int borderFlag = (Constants.isOSX) ? SWT.SHADOW_NONE : SWT.SHADOW_IN;
+		//final int borderFlag = (Constants.isOSX) ? SWT.SHADOW_NONE : SWT.SHADOW_IN;
+		final int borderFlag = SWT.SHADOW_NONE;
 
 		statusBar = new Composite(parent, SWT.NONE);
 
