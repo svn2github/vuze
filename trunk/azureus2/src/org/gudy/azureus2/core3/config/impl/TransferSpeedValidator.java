@@ -170,7 +170,15 @@ public final class TransferSpeedValidator
     getActiveAutoUploadParameter(
     	GlobalManager	gm )
     {
-       if ( gm.isSeedingOnly()){
+    		// if downloading+seeding is set then we always use this regardless of
+    		// only seeding status
+    	
+    	if ( COConfigurationManager.getBooleanParameter(TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY)){
+    		
+    		return( TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY );
+    	}
+    	
+    	if ( gm.isSeedingOnly()){
         	
         	return( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY );
         	
