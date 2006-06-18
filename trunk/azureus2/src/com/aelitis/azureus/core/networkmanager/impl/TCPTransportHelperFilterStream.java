@@ -29,6 +29,8 @@ import java.nio.channels.SocketChannel;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
+
 
 public abstract class 
 TCPTransportHelperFilterStream 

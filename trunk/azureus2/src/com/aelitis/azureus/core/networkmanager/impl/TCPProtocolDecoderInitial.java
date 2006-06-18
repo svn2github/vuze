@@ -36,17 +36,19 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.IncomingSocketChannelManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
 
 public class 
 TCPProtocolDecoderInitial 
-	extends TCPProtocolDecoder
+	extends ProtocolDecoder
 {	
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
 	private static VirtualChannelSelector	read_selector	= NetworkManager.getSingleton().getReadSelector();
 	private static VirtualChannelSelector	write_selector	= NetworkManager.getSingleton().getWriteSelector();
 
-	private TCPProtocolDecoderAdapter	adapter;
+	private ProtocolDecoderAdapter	adapter;
 	
 	private TCPTransportHelperFilter	filter;
 	
@@ -69,7 +71,7 @@ TCPProtocolDecoderInitial
 		SocketChannel				_channel,
 		byte[]						_shared_secret,
 		boolean						_outgoing,
-		TCPProtocolDecoderAdapter	_adapter )
+		ProtocolDecoderAdapter	_adapter )
 	
 		throws IOException
 	{
@@ -128,11 +130,11 @@ TCPProtocolDecoderInitial
 							
 							int	match =  adapter.matchPlainHeader( decode_buffer );
 							
-							if ( match != TCPProtocolDecoderAdapter.MATCH_NONE ){
+							if ( match != ProtocolDecoderAdapter.MATCH_NONE ){
 								
 								read_selector.cancel( channel );
 																		
-								if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE && match == TCPProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK ){
+								if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE && match == ProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK ){
 								
 									if ( NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED ){										
 										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["+ channel + "] is not encrypted but has been accepted as fallback is enabled" ));
@@ -195,12 +197,12 @@ TCPProtocolDecoderInitial
 	
 		throws IOException
 	{
-		TCPProtocolDecoderAdapter	phe_adapter = 
-			new TCPProtocolDecoderAdapter()
+		ProtocolDecoderAdapter	phe_adapter = 
+			new ProtocolDecoderAdapter()
 			{
 				public void
 				decodeComplete(
-					TCPProtocolDecoder	decoder )	
+					ProtocolDecoder	decoder )	
 				{
 					filter = decoder.getFilter();
 					
@@ -209,7 +211,7 @@ TCPProtocolDecoderInitial
 				
 				public void
 				decodeFailed(
-					TCPProtocolDecoder	decoder,
+					ProtocolDecoder	decoder,
 					Throwable			cause )
 				{
 					failed( cause );

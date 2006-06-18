@@ -19,7 +19,7 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
-package com.aelitis.azureus.core.networkmanager.impl;
+package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -31,6 +31,7 @@ import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
 import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.TransportEndpoint;
 import com.aelitis.azureus.core.networkmanager.TransportEndpointTCP;
+import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilter;
 
 
 /**

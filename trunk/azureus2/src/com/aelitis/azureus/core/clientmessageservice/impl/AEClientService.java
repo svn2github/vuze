@@ -31,7 +31,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.clientmessageservice.*;
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.networkmanager.impl.TCPTransportImpl;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportImpl;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 

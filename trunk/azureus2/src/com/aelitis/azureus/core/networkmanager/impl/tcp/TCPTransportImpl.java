@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager.impl;
+package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -32,6 +32,13 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilter;
+import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilterFactory;
+import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
+import com.aelitis.azureus.core.networkmanager.impl.TransportStats;
+import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager.HandshakeListener;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager.ConnectListener;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.ProxyLoginHandler.ProxyListener;
 
 
 

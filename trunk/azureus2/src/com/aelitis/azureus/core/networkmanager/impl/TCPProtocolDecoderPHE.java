@@ -56,12 +56,13 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 public class 
 TCPProtocolDecoderPHE 
-	extends TCPProtocolDecoder 
+	extends ProtocolDecoder 
 	implements VirtualSelectorListener
 {
 	private static final LogIDs LOGID = LogIDs.NWMAN;
@@ -134,9 +135,9 @@ TCPProtocolDecoderPHE
 
 		    SecretKeySpec	rc4_test_secret_key_spec = new SecretKeySpec(rc4_test_secret, 0, RC4_STREAM_KEY_SIZE_BYTES, RC4_STREAM_ALG );
 		        		        
-		    TCPTransportCipher rc4_cipher = new TCPTransportCipher( RC4_STREAM_CIPHER, Cipher.ENCRYPT_MODE, rc4_test_secret_key_spec );
+		    TransportCipher rc4_cipher = new TransportCipher( RC4_STREAM_CIPHER, Cipher.ENCRYPT_MODE, rc4_test_secret_key_spec );
 		         
-		    rc4_cipher = new TCPTransportCipher( RC4_STREAM_CIPHER, Cipher.DECRYPT_MODE, rc4_test_secret_key_spec );
+		    rc4_cipher = new TransportCipher( RC4_STREAM_CIPHER, Cipher.DECRYPT_MODE, rc4_test_secret_key_spec );
 	        
 		    /*
 			try{
@@ -291,7 +292,7 @@ TCPProtocolDecoderPHE
 	private ByteBuffer			read_buffer;
 	
 
-	private TCPProtocolDecoderAdapter	adapter;
+	private ProtocolDecoderAdapter	adapter;
 	
 	private KeyAgreement 	key_agreement;
 	private byte[]			dh_public_key_bytes;
@@ -304,8 +305,8 @@ TCPProtocolDecoderPHE
 	private int				initial_data_out_len;
 	private int				initial_data_in_len;
 	
-	private TCPTransportCipher		write_cipher;
-	private TCPTransportCipher		read_cipher;
+	private TransportCipher		write_cipher;
+	private TransportCipher		read_cipher;
 
 	private byte[]			padding_skip_marker;
 	
@@ -335,7 +336,7 @@ TCPProtocolDecoderPHE
 		SocketChannel				_channel,
 		byte[]						_shared_secret,
 		ByteBuffer					_header,
-		TCPProtocolDecoderAdapter	_adapter )
+		ProtocolDecoderAdapter	_adapter )
 	
 		throws IOException
 	{
@@ -489,9 +490,9 @@ TCPProtocolDecoderPHE
 		        
 		    SecretKeySpec	secret_key_spec_b = new SecretKeySpec( b_key, RC4_STREAM_ALG );
 		        	        
-		    write_cipher 	= new TCPTransportCipher( RC4_STREAM_CIPHER, Cipher.ENCRYPT_MODE, outbound?secret_key_spec_a:secret_key_spec_b );
+		    write_cipher 	= new TransportCipher( RC4_STREAM_CIPHER, Cipher.ENCRYPT_MODE, outbound?secret_key_spec_a:secret_key_spec_b );
 			    
-		    read_cipher 	= new TCPTransportCipher( RC4_STREAM_CIPHER, Cipher.DECRYPT_MODE, outbound?secret_key_spec_b:secret_key_spec_a );
+		    read_cipher 	= new TransportCipher( RC4_STREAM_CIPHER, Cipher.DECRYPT_MODE, outbound?secret_key_spec_b:secret_key_spec_a );
 		    
 		}catch( Throwable e ){
 			

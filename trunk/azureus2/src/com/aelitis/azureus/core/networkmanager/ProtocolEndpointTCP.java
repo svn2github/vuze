@@ -26,9 +26,9 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
 import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
-import com.aelitis.azureus.core.networkmanager.impl.LightweightTCPTransport;
 import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilterFactory;
-import com.aelitis.azureus.core.networkmanager.impl.TCPTransportImpl;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.LightweightTCPTransport;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportImpl;
 
 public class 
 ProtocolEndpointTCP 

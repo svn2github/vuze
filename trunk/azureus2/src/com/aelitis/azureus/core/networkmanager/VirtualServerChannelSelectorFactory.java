@@ -26,8 +26,8 @@ import java.net.InetSocketAddress;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
-import com.aelitis.azureus.core.networkmanager.impl.VirtualBlockingServerChannelSelector;
-import com.aelitis.azureus.core.networkmanager.impl.VirtualNonBlockingServerChannelSelector;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.VirtualBlockingServerChannelSelector;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.VirtualNonBlockingServerChannelSelector;
 
 public class 
 VirtualServerChannelSelectorFactory 

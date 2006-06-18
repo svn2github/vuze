@@ -32,11 +32,10 @@ import javax.crypto.spec.SecretKeySpec;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.engines.RC4Engine;
 import org.bouncycastle.crypto.params.KeyParameter;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 
 public class 
-TCPTransportCipher 
+TransportCipher 
 {
 	private static boolean	internal_rc4	= true;	// force internal as we want 160 bit and JCE no supports it
 	
@@ -44,7 +43,7 @@ TCPTransportCipher
 	private RC4Engine	rc4_engine;
 	
 	protected
-	TCPTransportCipher(
+	TransportCipher(
 		String					algorithm,
 		int						mode,
 		SecretKeySpec			key_spec,
@@ -57,7 +56,7 @@ TCPTransportCipher
     	cipher.init( mode, key_spec, params );
 	}
 	
-	TCPTransportCipher(
+	TransportCipher(
 		String					algorithm,
 		int						mode,
 		SecretKeySpec			key_spec )

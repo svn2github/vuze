@@ -25,7 +25,7 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.nio.ByteBuffer;
 
 public interface 
-TCPProtocolDecoderAdapter 
+ProtocolDecoderAdapter 
 {
 	public static final int MATCH_NONE							= 1;
 	public static final int MATCH_CRYPTO_NO_AUTO_FALLBACK		= 2;
@@ -40,10 +40,10 @@ TCPProtocolDecoderAdapter
 	
 	public void
 	decodeComplete(
-		TCPProtocolDecoder	decoder );
+		ProtocolDecoder	decoder );
 	
 	public void
 	decodeFailed(
-		TCPProtocolDecoder	decoder,
+		ProtocolDecoder	decoder,
 		Throwable			cause );
 }

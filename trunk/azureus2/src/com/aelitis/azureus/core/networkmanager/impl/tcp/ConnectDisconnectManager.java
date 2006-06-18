@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager.impl;
+package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import java.net.*;
 import java.nio.channels.*;

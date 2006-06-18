@@ -23,6 +23,8 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.nio.channels.SocketChannel;
 
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
+
 /**
  * 
  */

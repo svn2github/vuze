@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
@@ -151,6 +150,9 @@ public class NetworkConnectionImpl implements NetworkConnection {
   	closed	= true;
     if ( connection_attempt != null ){
     	connection_attempt.abandon();
+    }
+    if ( transport != null ){
+    	transport.close();
     }
     incoming_message_queue.destroy();
     outgoing_message_queue.destroy();  

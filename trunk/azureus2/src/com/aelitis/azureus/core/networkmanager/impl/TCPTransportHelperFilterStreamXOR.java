@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
+
 public class 
 TCPTransportHelperFilterStreamXOR
 	extends TCPTransportHelperFilterStream

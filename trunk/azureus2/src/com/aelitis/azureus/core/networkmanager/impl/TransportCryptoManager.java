@@ -49,7 +49,7 @@ public class TransportCryptoManager {
 						channel, 
 						shared_secret,
 						!is_incoming,
-						new TCPProtocolDecoderAdapter()
+						new ProtocolDecoderAdapter()
 						{
 							public int
 							getMaximumPlainHeaderLength()
@@ -66,14 +66,14 @@ public class TransportCryptoManager {
 
 							public void
 							decodeComplete(
-								TCPProtocolDecoder	decoder )
+								ProtocolDecoder	decoder )
 							{
 								listener.handshakeSuccess( decoder.getFilter());
 							}
 							
 							public void
 							decodeFailed(
-								TCPProtocolDecoder	decoder,
+								ProtocolDecoder	decoder,
 								Throwable			cause )
 							{
 								listener.handshakeFailure( cause );
@@ -90,9 +90,9 @@ public class TransportCryptoManager {
 	
 	
 	public interface HandshakeListener {
-		public static final int MATCH_NONE						= TCPProtocolDecoderAdapter.MATCH_NONE;
-		public static final int MATCH_CRYPTO_NO_AUTO_FALLBACK	= TCPProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK;
-		public static final int MATCH_CRYPTO_AUTO_FALLBACK		= TCPProtocolDecoderAdapter.MATCH_CRYPTO_AUTO_FALLBACK;
+		public static final int MATCH_NONE						= ProtocolDecoderAdapter.MATCH_NONE;
+		public static final int MATCH_CRYPTO_NO_AUTO_FALLBACK	= ProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK;
+		public static final int MATCH_CRYPTO_AUTO_FALLBACK		= ProtocolDecoderAdapter.MATCH_CRYPTO_AUTO_FALLBACK;
 		
 		public void handshakeSuccess( TCPTransportHelperFilter filter );
 

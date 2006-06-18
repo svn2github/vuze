@@ -39,7 +39,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
-import com.aelitis.azureus.core.networkmanager.impl.ConnectDisconnectManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.control.*;
 import com.aelitis.azureus.core.peermanager.peerdb.*;

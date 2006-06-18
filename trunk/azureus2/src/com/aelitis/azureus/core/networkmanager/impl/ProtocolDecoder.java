@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 public abstract class 
-TCPProtocolDecoder 
+ProtocolDecoder 
 {
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
@@ -72,7 +72,7 @@ TCPProtocolDecoder
 						
 						while( it.hasNext()){
 							
-							TCPProtocolDecoder	decoder = (TCPProtocolDecoder)it.next();
+							ProtocolDecoder	decoder = (ProtocolDecoder)it.next();
 							
 							if ( decoder.isComplete( now )){
 								
@@ -96,7 +96,7 @@ TCPProtocolDecoder
 	}
 	
 	protected
-	TCPProtocolDecoder(
+	ProtocolDecoder(
 		boolean	run_timer )
 	{
 		if ( run_timer ){

@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.impl.*;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.IncomingSocketChannelManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 
 

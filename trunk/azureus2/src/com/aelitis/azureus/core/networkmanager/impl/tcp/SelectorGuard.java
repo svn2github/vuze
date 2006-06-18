@@ -19,7 +19,7 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
-package com.aelitis.azureus.core.networkmanager.impl;
+package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;

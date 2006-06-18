@@ -37,9 +37,9 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelectorFactory;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
-import com.aelitis.azureus.core.networkmanager.impl.TCPProtocolDecoder;
+import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TCPProtocolDecoderInitial;
-import com.aelitis.azureus.core.networkmanager.impl.TCPProtocolDecoderAdapter;
+import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoderAdapter;
 import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilter;
 
 public class 
@@ -56,7 +56,7 @@ PHETester
 	public
 	PHETester()
 	{
-		TCPProtocolDecoder.addSecret( shared_secret );
+		ProtocolDecoder.addSecret( shared_secret );
 		
 		VirtualServerChannelSelector
 			accept_server = VirtualServerChannelSelectorFactory.createNonBlocking( 
@@ -104,11 +104,11 @@ PHETester
 						channel, 
 						null,
 						false,
-						new TCPProtocolDecoderAdapter()
+						new ProtocolDecoderAdapter()
 						{
 							public void
 							decodeComplete(
-								TCPProtocolDecoder	decoder )
+								ProtocolDecoder	decoder )
 							{
 								System.out.println( "incoming decode complete: " +  decoder.getFilter().getName());
 																
@@ -119,7 +119,7 @@ PHETester
 							
 							public void
 							decodeFailed(
-								TCPProtocolDecoder	decoder,
+								ProtocolDecoder	decoder,
 								Throwable			cause )
 							{
 								System.out.println( "incoming decode failed: " + Debug.getNestedExceptionMessage(cause));
@@ -147,7 +147,7 @@ PHETester
 								
 								System.out.println( "Match - " + match );
 								
-								return( match?TCPProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK:TCPProtocolDecoderAdapter.MATCH_NONE );
+								return( match?ProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK:ProtocolDecoderAdapter.MATCH_NONE );
 							}
 						});
 		}catch( Throwable e ){
@@ -246,11 +246,11 @@ PHETester
 						channel,
 						shared_secret,
 						true,
-						new TCPProtocolDecoderAdapter()
+						new ProtocolDecoderAdapter()
 						{
 							public void
 							decodeComplete(
-								TCPProtocolDecoder	decoder )
+								ProtocolDecoder	decoder )
 							{
 								System.out.println( "outgoing decode complete: " +  decoder.getFilter().getName());
 															
@@ -263,7 +263,7 @@ PHETester
 							
 							public void
 							decodeFailed(
-								TCPProtocolDecoder	decoder,
+								ProtocolDecoder	decoder,
 								Throwable			cause )
 							{
 								System.out.println( "outgoing decode failed: " + Debug.getNestedExceptionMessage(cause));

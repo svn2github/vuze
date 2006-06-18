@@ -25,19 +25,21 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
+
 
 public class 
 TCPTransportHelperFilterStreamCipher 
 	extends TCPTransportHelperFilterStream
 {
-	private TCPTransportCipher					read_cipher;
-	private TCPTransportCipher					write_cipher;
+	private TransportCipher					read_cipher;
+	private TransportCipher					write_cipher;
 		
 	protected
 	TCPTransportHelperFilterStreamCipher(
 		TCPTransportHelper		_transport,
-		TCPTransportCipher		_read_cipher,
-		TCPTransportCipher		_write_cipher )
+		TransportCipher		_read_cipher,
+		TransportCipher		_write_cipher )
 	{
 		super( _transport );
 		

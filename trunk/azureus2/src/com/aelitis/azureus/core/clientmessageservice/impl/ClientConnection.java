@@ -30,7 +30,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.networkmanager.impl.TCPTransportImpl;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportImpl;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 

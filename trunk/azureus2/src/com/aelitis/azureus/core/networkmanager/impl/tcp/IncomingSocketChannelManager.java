@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager.impl;
+package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import java.io.IOException;
 import java.net.*;
@@ -34,6 +34,10 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
+import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilter;
+import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
+import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager.HandshakeListener;
 
 
 /**
@@ -223,7 +227,7 @@ public class IncomingSocketChannelManager
       
       if ( secret != null ){
     	  
-	     TCPProtocolDecoder.addSecret( secret );
+	     ProtocolDecoder.addSecret( secret );
       }
     } finally {  match_buffers_mon.exit();  }
     
@@ -256,7 +260,7 @@ public class IncomingSocketChannelManager
       
       if ( secret != null ){
     	  
-	      TCPProtocolDecoder.removeSecret( secret );
+	      ProtocolDecoder.removeSecret( secret );
       }
     } finally {  match_buffers_mon.exit();  }  
   } 
