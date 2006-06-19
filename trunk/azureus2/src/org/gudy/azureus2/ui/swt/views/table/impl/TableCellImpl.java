@@ -224,6 +224,12 @@ public class TableCellImpl
     return valid;
   }
   
+  public Color getForeground() {
+  	checkCellForSetting();
+
+    return bufferedTableItem.getItemForeground();
+  }
+  
   public boolean setForeground(Color color) {
   	checkCellForSetting();
 
@@ -865,5 +871,9 @@ public class TableCellImpl
 			return "";
 		}
 		return null;
+	}
+
+	public Image getBackgroundImage() {
+  	return bufferedTableItem.getBackgroundImage();
 	}
 }

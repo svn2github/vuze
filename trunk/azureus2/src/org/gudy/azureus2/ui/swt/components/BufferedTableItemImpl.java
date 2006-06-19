@@ -80,6 +80,13 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		}
 		return ok;
 	}
+	
+	public Color getItemForeground() {
+		if (position == -1)
+			return null;
+
+		return row.getForeground(position);
+	}
 
 	public boolean setItemForeground(int red, int green, int blue) {
 		if (position == -1)
@@ -153,5 +160,23 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 			return table.getColumn(position).getText();
 
 		return null;
+	}
+	
+	public Image getBackgroundImage() {
+		Table table = row.getTable();
+		
+		Rectangle bounds = getBounds();
+		
+		if (bounds.isEmpty()) {
+			return null;
+		}
+		
+		Image image = new Image(table.getDisplay(), bounds.width, bounds.height);
+		
+		GC gc = new GC(table);
+		gc.copyArea(image, bounds.x, bounds.y);
+		gc.dispose();
+		
+		return image;
 	}
 }

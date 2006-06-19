@@ -72,4 +72,14 @@ public interface BufferedTableItem
 
 	public abstract String getColumnName();
 
+	/**
+	 * 
+	 */
+	public abstract Image getBackgroundImage();
+
+	/**
+	 * @return
+	 */
+	Color getItemForeground();
+
 }

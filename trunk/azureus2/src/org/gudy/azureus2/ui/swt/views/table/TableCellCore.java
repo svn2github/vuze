@@ -124,4 +124,14 @@ public interface TableCellCore
 	 * @return
 	 */
 	String getObfusticatedText();
+
+	/**
+	 * @return
+	 */
+	public Image getBackgroundImage();
+
+	/**
+	 * @return
+	 */
+	Color getForeground();
 }
