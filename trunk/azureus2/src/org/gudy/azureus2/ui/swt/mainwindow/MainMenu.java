@@ -124,6 +124,10 @@ public class MainMenu {
     buildMenu(mainWindow.getShell());
   }
   
+  public void setMainWindow(MainWindow mainWindow) {
+    this.mainWindow = mainWindow;
+  }
+  
   public void createMenu(AzureusCore core, Shell shell) {
     this.display = SWTThread.getInstance().getDisplay();
     attachedShell = shell;

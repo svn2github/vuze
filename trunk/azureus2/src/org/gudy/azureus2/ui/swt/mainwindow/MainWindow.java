@@ -32,6 +32,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -98,7 +99,8 @@ MainWindow
   public static boolean isDisposeFromListener = false;  
 
   private Display display;
-  private Shell mainWindow;
+  private Composite parent;
+  private Shell shell;
   
   private MainMenu mainMenu;
   
@@ -171,7 +173,38 @@ MainWindow
   	}
   }
   
+  public MainWindow(AzureusCore _azureus_core, Initializer _initializer,
+			Shell shell, Composite parent) {
+		this.shell = shell;
+		this.parent = parent;
+
+		try {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "MainWindow start"));
+
+			AEDiagnostics.addEvidenceGenerator(this);
+
+			azureus_core = _azureus_core;
+
+			globalManager = azureus_core.getGlobalManager();
+
+			initializer = _initializer;
+
+			display = SWTThread.getInstance().getDisplay();
+
+			window = this;
+
+  		runSupport();
+			//display.asyncExec(this);
+
+		} catch (AzureusCoreException e) {
+
+			Debug.printStackTrace(e);
+		}
+	}
+  
   public void runSupport() {
+    FormData formData;
     try{
        
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
@@ -187,70 +220,149 @@ MainWindow
     downloadViews = new HashMap();
     downloadBars = new HashMap();
     
+    Control attachToTopOf = null;
+    Control controlAboveFolder = null;
+    Control controlBelowFolder = null;
+    
     //The Main Window
-    mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
-    mainWindow.setData("class", this);
-    mainWindow.setText("Azureus"); //$NON-NLS-1$
-    Utils.setShellIcon(mainWindow);
+			if (shell == null) {
+				shell = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE
+						| SWT.MAX | SWT.MIN);
+				shell.setData("class", this);
+				shell.setText("Azureus"); //$NON-NLS-1$
+				Utils.setShellIcon(shell);
 
-    // register window
-    ShellManager.sharedManager().addWindow(mainWindow);
+				if (parent == null) {
+					parent = shell;
+				}
 
-    mainMenu = new MainMenu(this);
+				// register window
+				ShellManager.sharedManager().addWindow(shell);
 
+				mainMenu = new MainMenu(this);
+
+				FormLayout mainLayout = new FormLayout();
+				mainLayout.marginHeight = 0;
+				mainLayout.marginWidth = 0;
+				try {
+					mainLayout.spacing = 0;
+				} catch (NoSuchFieldError e) { /* Pre SWT 3.0 */
+				}
+				shell.setLayout(mainLayout);
+
+				Utils.linkShellMetricsToConfig(shell, "window");
+
+				//NICO catch the dispose event from file/quit on osx
+				shell.addDisposeListener(new DisposeListener() {
+					public void widgetDisposed(DisposeEvent event) {
+						if (!isAlreadyDead) {
+							isDisposeFromListener = true;
+							if (shell != null) {
+								shell.removeDisposeListener(this);
+								dispose(false, false);
+							}
+							isAlreadyDead = true;
+						}
+					}
+				});
+
+				shell.addShellListener(new ShellAdapter() {
+					public void shellClosed(ShellEvent event) {
+						if (systemTraySWT != null
+								&& COConfigurationManager.getBooleanParameter("Enable System Tray")
+								&& COConfigurationManager.getBooleanParameter("Close To Tray",
+										true)) {
+
+							minimizeToTray(event);
+						} else {
+							event.doit = dispose(false, false);
+						}
+					}
+
+					public void shellIconified(ShellEvent event) {
+						if (systemTraySWT != null
+								&& COConfigurationManager.getBooleanParameter("Enable System Tray")
+								&& COConfigurationManager.getBooleanParameter(
+										"Minimize To Tray", false)) {
+
+							minimizeToTray(event);
+						}
+					}
+
+				});
+
+				shell.addListener(SWT.Deiconify, new Listener() {
+					public void handleEvent(Event e) {
+						if (Constants.isOSX
+								&& COConfigurationManager.getBooleanParameter(
+										"Password enabled", false)) {
+							e.doit = false;
+							shell.setVisible(false);
+							PasswordWindow.showPasswordWindow(display);
+						}
+					}
+				});
+
+				// Separator between menu and icon bar
+				Label separator = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
+				formData = new FormData();
+				formData.top = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
+				formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
+				formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
+				separator.setLayoutData(formData);
+
+				attachToTopOf = separator;
+
+				mainStatusBar = new MainStatusBar();
+				Composite statusBar = mainStatusBar.initStatusBar(azureus_core,
+						globalManager, display, shell, this);
+
+				controlAboveFolder = attachToTopOf;
+				controlBelowFolder = statusBar;
+
+			}
+	
     try {
-    	Utils.createTorrentDropTarget(mainWindow, true);
+    	Utils.createTorrentDropTarget(parent, true);
     } catch (Throwable e) {
     	Logger.log(new LogEvent(LOGID, "Drag and Drop not available", e));
     }
     
 
-    FormLayout mainLayout = new FormLayout(); 
-    FormData formData;
     
-    mainLayout.marginHeight = 0;
-    mainLayout.marginWidth = 0;
     try {
-      mainLayout.spacing = 0;
-    } catch (NoSuchFieldError e) { /* Pre SWT 3.0 */ }
-    mainWindow.setLayout(mainLayout);
-
-    Label separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
-    formData = new FormData();
-    formData.top = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
-    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
-    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
-    separator.setLayoutData(formData);
-    
-    Control attachToTopOf = separator;
-
-    try {
-	    this.iconBar = new IconBar(mainWindow);
+	    this.iconBar = new IconBar(parent);
 	    this.iconBar.setCurrentEnabler(this);
 	    
 	    formData = new FormData();
-	    formData.top = new FormAttachment(attachToTopOf);
+	    if (attachToTopOf != null) {
+	    	formData.top = new FormAttachment(attachToTopOf);
+	    } else {
+		    formData.top = new FormAttachment(0, 0);
+	    }
 	    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
 	    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
 	    this.iconBar.setLayoutData(formData);
 
-	    separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
-	    
 	    attachToTopOf = iconBar.getCoolBar();
+
+	    Label separator = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
+	    
+	    formData = new FormData();
+	    formData.top = new FormAttachment(attachToTopOf);
+	    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+	    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
+	    separator.setLayoutData(formData);
+	    
+			controlAboveFolder = separator;
     } catch (Exception e) {
     	Logger.log(new LogEvent(LOGID, "Creating Icon Bar", e));
     }
 
-    formData = new FormData();
-    formData.top = new FormAttachment(attachToTopOf);
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
-    separator.setLayoutData(formData);
-        
     if(!useCustomTab) {
-      folder = new TabFolder(mainWindow, SWT.V_SCROLL);
+      folder = new TabFolder(parent, SWT.V_SCROLL);
     } else {
-      folder = new CTabFolder(mainWindow, SWT.CLOSE | SWT.FLAT);
+      folder = new CTabFolder(parent, SWT.CLOSE | SWT.FLAT);
       final Color bg = ColorUtils.getShade(folder.getBackground(), (Constants.isOSX) ? -25 : -6);
       final Color fg = ColorUtils.getShade(folder.getForeground(), (Constants.isOSX) ? 25 : 6);
       folder.setBackground(bg);
@@ -264,13 +376,29 @@ MainWindow
       });
     }    
     
+		formData = new FormData();
+		if (controlAboveFolder == null) {
+			formData.top = new FormAttachment(0,0); 
+		} else {
+			formData.top = new FormAttachment(controlAboveFolder);
+		}
+		
+		if (controlBelowFolder == null) {
+			formData.bottom = new FormAttachment(100,0); 
+		} else {
+			formData.bottom = new FormAttachment(controlBelowFolder);
+		}
+		formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
+		formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
+		folder.setLayoutData(formData);
+		
     Tab.setFolder(folder);
     
     folder.getDisplay().addFilter(SWT.KeyDown, new Listener() {
 				public void handleEvent(Event event) {
 					// Another window has control, skip filter
 					Control focus_control = display.getFocusControl();
-					if (focus_control != null && focus_control.getShell() != mainWindow)
+					if (focus_control != null && focus_control.getShell() != shell)
 						return;
 
 					int key = event.character;
@@ -299,7 +427,7 @@ MainWindow
 						}
 					} else if (key == 'l' && (event.stateMask & SWT.MOD1) != 0) {
 						// Ctrl-L: Open URL
-						OpenTorrentWindow.invokeURLPopup(mainWindow, globalManager);
+						OpenTorrentWindow.invokeURLPopup(shell, globalManager);
 						event.doit = false;
 					}
 				}
@@ -385,70 +513,6 @@ MainWindow
    
     globalManager.addListener(this);
 
-    Utils.linkShellMetricsToConfig(mainWindow, "window");
-    
-    //NICO catch the dispose event from file/quit on osx
-    mainWindow.addDisposeListener(new DisposeListener() {
-    	public void widgetDisposed(DisposeEvent event) {
-    		if (!isAlreadyDead) {
-    			isDisposeFromListener = true;
-    			if (mainWindow != null) {
-    				mainWindow.removeDisposeListener(this);
-    				dispose(false,false);
-    			}
-    			isAlreadyDead = true;
-    		}
-    	}      
-    });
-        
-    mainWindow.addShellListener(new ShellAdapter() {
-      public void 
-	  shellClosed(ShellEvent event) 
-      {
-        if (	systemTraySWT != null &&
-        		COConfigurationManager.getBooleanParameter("Enable System Tray") && 
-        		COConfigurationManager.getBooleanParameter("Close To Tray", true)){
-        	
-          minimizeToTray(event);
-        }
-        else {
-          event.doit = dispose(false,false);
-        }
-      }
-
-      public void 
-	  shellIconified(ShellEvent event) 
-      {
-        if ( 	systemTraySWT != null &&
-        		COConfigurationManager.getBooleanParameter("Enable System Tray") &&
-        		COConfigurationManager.getBooleanParameter("Minimize To Tray", false)) {
-        	
-          minimizeToTray(event);
-        }
-      }
-      
-    });
-    
-    mainWindow.addListener(SWT.Deiconify, new Listener() {
-      public void handleEvent(Event e) {
-        if (Constants.isOSX && COConfigurationManager.getBooleanParameter("Password enabled", false)) {
-          e.doit = false;
-        		mainWindow.setVisible(false);
-        		PasswordWindow.showPasswordWindow(display);
-        }
-      }
-    });
-    
-			mainStatusBar = new MainStatusBar();
-			Composite statusBar = mainStatusBar.initStatusBar(azureus_core,
-					globalManager, display, mainWindow, this);
-			formData = new FormData();
-			formData.top = new FormAttachment(separator);
-			formData.bottom = new FormAttachment(statusBar);
-			formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
-			formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
-			folder.setLayoutData(formData);
-			
 			azureus_core.getPluginManager().firePluginEvent(
 					PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS);
 
@@ -524,14 +588,14 @@ MainWindow
 						"Start Minimized", false));
 
 		if (!bStartMinimize) {
-	    mainWindow.layout();
-			mainWindow.open();
+	    shell.layout();
+	    shell.open();
 			if (!Constants.isOSX) {
-				mainWindow.forceActive();
+				shell.forceActive();
 			}
 		} else if (Constants.isOSX) {
-			mainWindow.setMinimized(true);
-			mainWindow.setVisible(true);
+			shell.setMinimized(true);
+			shell.setVisible(true);
 		}
 
 		if (bEnableTray) {
@@ -604,9 +668,9 @@ MainWindow
     if (event != null)
       event.doit = false;
     if(Constants.isOSX) {
-      mainWindow.setMinimized(true);
+    	shell.setMinimized(true);
     } else {  
-      mainWindow.setVisible(false);
+    	shell.setVisible(false);
     }
     if (downloadBasket != null)
       downloadBasket.setVisible(true);
@@ -768,11 +832,11 @@ MainWindow
   }
 
   public Shell getShell() {
-    return mainWindow;
+    return shell;
   }
 
   public void setVisible(boolean visible) {
-    mainWindow.setVisible(visible);
+  	shell.setVisible(visible);
     if (visible) {
       if (downloadBasket != null)
         downloadBasket.setVisible(false);
@@ -780,13 +844,13 @@ MainWindow
       if (trayIcon != null)
         trayIcon.showIcon();
       */
-      mainWindow.forceActive();
-      mainWindow.setMinimized(false);
+      shell.forceActive();
+      shell.setMinimized(false);
     }
   }
 
   public boolean isVisible() {
-    return mainWindow.isVisible();
+    return shell.isVisible();
   }
 
   public boolean 
@@ -815,11 +879,13 @@ MainWindow
       updater.stopIt();
     }
     
-    initializer.stopIt( for_restart, close_already_in_progress );
+    if (initializer != null) {
+    	initializer.stopIt( for_restart, close_already_in_progress );
+    }
 
     //NICO swt disposes the mainWindow all by itself (thanks... ;-( ) on macosx
-    if(!mainWindow.isDisposed() && !isDisposeFromListener) {
-    	mainWindow.dispose();
+    if(!shell.isDisposed() && !isDisposeFromListener) {
+    	shell.dispose();
     }
       
     
@@ -865,7 +931,7 @@ MainWindow
   private boolean 
   getExitConfirmation(
   	boolean	for_restart) {
-    MessageBox mb = new MessageBox(mainWindow, SWT.ICON_WARNING | SWT.YES | SWT.NO);
+    MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES | SWT.NO);
     
     mb.setText(MessageText.getString(
     		for_restart?"MainWindow.dialog.restartconfirmation.title":"MainWindow.dialog.exitconfirmation.title"));
@@ -1248,7 +1314,7 @@ MainWindow
   	try{
   		this_mon.enter();
   	
-	    Messages.updateLanguageForControl(mainWindow.getShell());
+	    Messages.updateLanguageForControl(shell);
 	    
 	    if ( systemTraySWT != null ){
 	    	Messages.updateLanguageForControl(systemTraySWT.getMenu());
@@ -1338,7 +1404,7 @@ MainWindow
                 	downloadBars_mon.enter();
                 
                 	if(downloadBars.get(manager) == null) {
-                	  MinimizedWindow mw = new MinimizedWindow(manager, mainWindow);
+                	  MinimizedWindow mw = new MinimizedWindow(manager, shell);
                 	
                 	  downloadBars.put(manager, mw);
                 	}
@@ -1473,10 +1539,10 @@ MainWindow
 			}
 		}
 		
-		Rectangle clientArea = mainWindow.getClientArea();
+		Rectangle clientArea = shell.getClientArea();
 		image = new Image(display, clientArea.width, clientArea.height);
 		
-		GC gc = new GC(mainWindow);
+		GC gc = new GC(shell);
 		try {
 			gc.copyArea(image, clientArea.x, clientArea.y);
 		} finally {
@@ -1486,7 +1552,7 @@ MainWindow
 		IView currentView = getCurrentView();
 
 		if (currentView instanceof ObfusticateImage) {
-			Point ofs = mainWindow.toDisplay(clientArea.x, clientArea.y);
+			Point ofs = shell.toDisplay(clientArea.x, clientArea.y);
 			((ObfusticateImage)currentView).obfusticatedImage(image, ofs);
 		}
 
