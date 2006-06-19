@@ -28,6 +28,7 @@ import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
+import org.gudy.azureus2.ui.swt.mainwindow.MainMenu;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -92,7 +93,10 @@ public class SWTManagerImpl
 
 							} else {
 
-								window.getMenu().addPluginView(view);
+								MainMenu menu = window.getMenu();
+								if (menu != null) {
+									window.getMenu().addPluginView(view);
+								}
 
 								if (bAutoOpen) {
 
