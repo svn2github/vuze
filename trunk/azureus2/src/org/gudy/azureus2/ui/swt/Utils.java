@@ -31,6 +31,8 @@ import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -564,6 +566,9 @@ public class Utils {
       	return false;
     	}
     } else {
+    	if (swt.isTerminated()) {
+    		return false;
+    	}
       display = swt.getDisplay();
     }
     
@@ -571,12 +576,19 @@ public class Utils {
   	if (display == null || display.isDisposed() || code == null)
 			return false;
 
-		if (display.getThread() == Thread.currentThread())
+		if (display.getThread() == Thread.currentThread()) {
 			code.run();
-		else if (async)
-			display.asyncExec(code);
-		else
+		} else if (async) {
+			try {
+				display.asyncExec(code);
+			} catch (NullPointerException e) {
+				// If the display is being disposed of, asyncExec may give a null
+				// pointer error
+				return false;
+			}
+		} else {
 			display.syncExec(code);
+		}
 
 		return true;
 	}
@@ -819,6 +831,16 @@ public class Utils {
 		composite.setLayoutData(gridData);
 
 		return gridData;
+	}
+	
+	public static FormData getFilledFormData() {
+		FormData formData = new FormData();
+		formData.top = new FormAttachment(0, 0);
+		formData.left = new FormAttachment(0, 0);
+		formData.right = new FormAttachment(100, 0);
+		formData.bottom = new FormAttachment(100, 0);
+		
+		return formData;
 	}
 }
 
