@@ -34,6 +34,8 @@ import java.security.cert.Certificate;
 
 import javax.net.ssl.SSLSocketFactory;
 
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
+
 public interface 
 SESecurityManager 
 {
@@ -107,6 +109,52 @@ SESecurityManager
 		String		alias,
 		String		cert_dn,
 		int			strength )
+	
+		throws Exception;
+	
+		/**
+		 * Gets this azureus instance's unique random identity
+		 * @return
+		 */
+	
+	public byte[]
+	getIdentity();
+	
+		/**
+		 * Gets the public key for this az instance of the supplied key type
+		 * @param key_type	see KEY_TYPE_x constants in SEPublicKey
+		 * @param reason_resource a message text resource giving the reason for the key being required
+		 * @return
+		 */
+	
+	public SEPublicKey
+	getPublicKey(
+		int		key_type,
+		String	reason_resource )
+	
+		throws Exception;
+	
+	public SEPublicKey
+	decodePublicKey(
+		byte[]	encoded )
+	
+		throws Exception;
+	
+		/**
+		 * Returns a proxy generic STS connection for incoming connection requests
+		 * @param connection
+		 * @param my_public_key
+		 * @param key_locator
+		 * @return
+		 * @throws Exception
+		 */
+	
+	public GenericMessageConnection
+	getSTSConnection(
+		GenericMessageConnection	connection,
+		SEPublicKey					my_public_key,
+		SEPublicKeyLocator			key_locator,
+		String						reason_resource )
 	
 		throws Exception;
 }

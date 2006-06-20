@@ -1,7 +1,7 @@
 /*
- * Created on 21-Jul-2005
+ * Created on 19 Jun 2006
  * Created by Paul Gardner
- * Copyright (C) 2005, 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,31 +20,54 @@
  *
  */
 
-package org.gudy.azureus2.plugins.utils;
+package org.gudy.azureus2.pluginsimpl.local.utils.security;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Map;
+import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
 
-public interface 
-PooledByteBuffer 
+public class 
+SEPublicKeyImpl
+	implements SEPublicKey
 {
+	public static SEPublicKey
+	decode(
+		byte[]	encoded )
+	{
+		int	type = encoded[0]&0xff;
+		
+		byte[]	x = new byte[encoded.length-1];
+		
+		System.arraycopy( encoded, 1, x, 0, x.length );
+		
+		return( new SEPublicKeyImpl( type, x ));
+	}
+	
+	private int		type;
+	private byte[]	encoded;
+	
+	protected
+	SEPublicKeyImpl(
+		int			_type,
+		byte[]		_encoded )
+	{
+		type		= _type;
+		encoded		= _encoded;
+	}
+	
+	public int
+	getType()
+	{
+		return( type );
+	}
+	
 	public byte[]
-	toByteArray();
-	
-	public ByteBuffer
-	toByteBuffer();
-	
-		/**
-		 * Data must be b-encoded...
-		 * @return
-		 */
-	
-	public Map
-	toMap()
-	
-		throws IOException;
-	
-	public void
-	returnToPool();
+	encodePublicKey()
+	{
+		byte[]	res = new byte[encoded.length+1];
+		
+		res[0] = (byte)type;
+		
+		System.arraycopy( encoded, 0, res, 1, encoded.length );
+		
+		return( res );
+	}
 }

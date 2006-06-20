@@ -158,7 +158,7 @@ public class PeerManager {
             // make sure not already connected to the same IP address; allow
             // loopback connects for co-located proxy-based connections and
             // testing
-            String address = connection.getAddress().getAddress().getHostAddress();
+            String address = connection.getEndpoint().getNotionalAddress().getAddress().getHostAddress();
             boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
             if( !same_allowed && PeerIdentityManager.containsIPAddress( manager.getPeerIdentityDataID(), address ) ){  
             	if (Logger.isEnabled())

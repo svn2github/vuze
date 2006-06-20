@@ -394,7 +394,7 @@ PluginInterfaceImpl
   public Utilities
   getUtilities()
   {
-  	return( new UtilitiesImpl( this ));
+  	return( new UtilitiesImpl( initialiser.getAzureusCore(), this ));
   }
   
   public ShortCuts

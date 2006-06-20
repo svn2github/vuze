@@ -42,16 +42,30 @@ import org.gudy.azureus2.core3.util.SHA1Hasher;
  */
 
 import org.gudy.azureus2.core3.security.*;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.utils.security.CertificateListener;
 import org.gudy.azureus2.plugins.utils.security.PasswordListener;
+import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
+import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
+
+import com.aelitis.azureus.core.AzureusCore;
 
 
 public class 
 SESecurityManagerImpl 
 	implements org.gudy.azureus2.plugins.utils.security.SESecurityManager
 {
+	private AzureusCore	core;
+	
 	private Map	password_listeners		= new HashMap();
 	private Map	certificate_listeners	= new HashMap();
+	
+	public
+	SESecurityManagerImpl(
+		AzureusCore		_core )
+	{
+		core	= _core;
+	}
 	
 	public byte[]
 	calculateSHA1(
@@ -191,5 +205,42 @@ SESecurityManagerImpl
 		throws Exception
 	{
 		return( SESecurityManager.createSelfSignedCertificate(alias, cert_dn, strength ));		
+	}
+	
+	public byte[]
+	getIdentity()
+	{
+		return( core.getCryptoManager().getSecureID());
+	}
+	
+	public SEPublicKey
+	getPublicKey(
+		int		key_type,
+		String	reason_resource )
+	
+		throws Exception
+	{
+		 byte[]	encoded = core.getCryptoManager().getECCHandler().getPublicKey( reason_resource );
+		 
+		 return( new SEPublicKeyImpl( key_type, encoded ));
+	}
+	
+	public SEPublicKey
+	decodePublicKey(
+		byte[]	encoded )
+	{
+		return( SEPublicKeyImpl.decode( encoded ));
+	}
+	
+	public GenericMessageConnection
+	getSTSConnection(
+		GenericMessageConnection	connection,
+		SEPublicKey					my_public_key,
+		SEPublicKeyLocator			key_locator,
+		String						reason_resource )
+	
+		throws Exception
+	{
+		return( new SESTSConnectionImpl( core, connection, my_public_key, key_locator, reason_resource ));
 	}
 }

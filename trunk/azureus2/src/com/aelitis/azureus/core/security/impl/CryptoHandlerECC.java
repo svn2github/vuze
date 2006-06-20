@@ -53,6 +53,7 @@ import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerException;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
+import com.aelitis.azureus.core.security.CryptoSTSEngine;
 
 public class 
 CryptoHandlerECC
@@ -280,6 +281,34 @@ CryptoHandlerECC
 			
 			throw( new CryptoManagerException( "Decrypt failed", e ));
 		}
+	}
+	
+	public CryptoSTSEngine
+	getSTSEngine(
+		char[]		password )
+	
+		throws CryptoManagerException
+	{
+		return( getSTSEngine( password, null ));
+	}
+	
+	public CryptoSTSEngine
+	getSTSEngine(
+		String		reason )
+	
+		throws CryptoManagerException
+	{
+		return( getSTSEngine( null, reason ));
+	}
+	
+	protected CryptoSTSEngine
+	getSTSEngine(
+		char[]		password,
+		String		reason )
+	
+		throws CryptoManagerException
+	{
+		return( new CryptoSTSEngineImpl( this, getMyPublicKey( password, reason ), getMyPrivateKey( password, reason )));
 	}
 	
 	public byte[]

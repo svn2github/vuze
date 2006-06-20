@@ -29,7 +29,21 @@ import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
 public class 
 ConnectionEndpoint 
 {
+	private InetSocketAddress	notional_address;
 	private ProtocolEndpoint[]	protocols;
+	
+	public
+	ConnectionEndpoint(
+		InetSocketAddress	_notional_address )
+	{
+		notional_address	= _notional_address;
+	}
+	
+	public InetSocketAddress
+	getNotionalAddress()
+	{
+		return( notional_address );
+	}
 	
 	public ProtocolEndpoint[]
 	getProtocols()

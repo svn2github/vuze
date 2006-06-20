@@ -203,8 +203,11 @@ PEPeerTransportProtocol
     nbPieces =diskManager.getNbPieces();
     
     peer_source	= _peer_source;
-    ip    = _connection.getAddress().getAddress().getHostAddress();
-    port  = _connection.getAddress().getPort();
+    
+    InetSocketAddress notional_address = _connection.getEndpoint().getNotionalAddress();
+    
+    ip    = notional_address.getAddress().getHostAddress();
+    port  = notional_address.getPort();
     
     peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN );  //this will be recreated upon az handshake decode
     
@@ -286,7 +289,10 @@ PEPeerTransportProtocol
     
     if( isLANLocal() )  use_crypto = false;  //dont bother with PHE for lan peers
     
-    connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder(), use_crypto, !require_crypto_handshake, manager.getTorrentHash());
+    InetSocketAddress	tcp_endpoint = new InetSocketAddress( ip, port );
+    ConnectionEndpoint connection_endpoint	= new ConnectionEndpoint( tcp_endpoint );
+	connection_endpoint.addTCP( tcp_endpoint );
+    connection = NetworkManager.getSingleton().createConnection( connection_endpoint, new BTMessageEncoder(), new BTMessageDecoder(), use_crypto, !require_crypto_handshake, manager.getTorrentHash());
     
     plugin_connection = new ConnectionImpl(connection);
     

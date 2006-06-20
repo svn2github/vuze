@@ -36,11 +36,28 @@ import org.gudy.azureus2.plugins.ddb.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.messaging.MessageException;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListener;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentAttributeEvent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttributeListener;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
+import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
+import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
+import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
+import org.gudy.azureus2.pluginsimpl.local.messaging.GenericMessageEndpointImpl;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
+import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -120,7 +137,8 @@ Test
 								runSupport()
 								{
 									
-									testLinks();
+									//testLinks();
+									testMessaging();
 									try{
 										// PlatformManagerFactory.getPlatformManager().performRecoverableFileDelete( "C:\\temp\\recycle.txt" );
 										// PlatformManagerFactory.getPlatformManager().setTCPTOSEnabled( false );
@@ -149,6 +167,185 @@ Test
 				});
 	}
 	
+	protected void
+	testMessaging()
+	{
+		try{
+			AzureusCoreFactory.getSingleton().getCryptoManager().addPasswordHandler(
+				new CryptoManagerPasswordHandler()
+				{
+					public char[]
+		        	getPassword(
+		        		int			handler_type,
+		        		int			action_type,
+		        		String		reason )
+					{
+						System.out.println( "CryptoPassword (" + reason + ")");
+						
+						return( "changeit".toCharArray());
+					}
+				});
+			
+			final SESecurityManager	sec_man = plugin_interface.getUtilities().getSecurityManager();
+			
+			final SEPublicKey	my_key = sec_man.getPublicKey( SEPublicKey.KEY_TYPE_ECC_192, "test" );
+
+			GenericMessageRegistration	reg = 
+				plugin_interface.getMessageManager().registerGenericMessageType(
+					"GENTEST", "Gen test desc", 
+					new GenericMessageHandler()
+					{
+						public boolean
+						accept(
+							GenericMessageConnection	connection )
+						
+							throws MessageException
+						{
+							System.out.println( "accept" );
+							
+							try{
+								connection = sec_man.getSTSConnection(
+										connection, 
+										my_key,
+										new SEPublicKeyLocator()
+										{
+											public boolean
+											accept(
+												SEPublicKey	other_key )
+											{
+												System.out.println( "acceptKey" );
+												
+												return( true );
+											}
+										},
+										"test" );
+								
+										
+								connection.addListener(
+									new GenericMessageConnectionListener()
+									{
+										public void
+										connected(
+											GenericMessageConnection	connection )
+										{
+										}
+										
+										public void
+										receive(
+											GenericMessageConnection	connection,
+											PooledByteBuffer			message )
+										
+											throws MessageException
+										{
+											System.out.println( "receive: " + new String( message.toByteArray()));
+											
+											PooledByteBuffer	reply = plugin_interface.getUtilities().allocatePooledByteBuffer( "5678".getBytes());
+											
+											connection.send( reply );
+										}
+										
+										public void
+										failed(
+											GenericMessageConnection	connection,
+											Throwable 					error )
+										
+											throws MessageException
+										{
+											error.printStackTrace();
+										}	
+									});
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+							}
+							
+							return( true );
+						}
+					});
+			
+			InetSocketAddress	target = new InetSocketAddress( "127.0.0.1", 6881 );
+			
+			GenericMessageEndpoint	endpoint = reg.createEndpoint( target );
+			
+			endpoint.addTCP( target );
+			
+			GenericMessageConnection	con = reg.createConnection( endpoint );
+			
+			sec_man.getSTSConnection( 
+				con, my_key,
+				new SEPublicKeyLocator()
+				{
+					public boolean
+					accept(
+						SEPublicKey	other_key )
+					{
+						System.out.println( "acceptKey" );
+						
+						return( true );
+					}
+				},
+				"test");
+			
+			con.addListener(
+				new GenericMessageConnectionListener()
+				{
+					public void
+					connected(
+						GenericMessageConnection	connection )
+					{
+						System.out.println( "connected" );
+						
+						PooledByteBuffer	data = plugin_interface.getUtilities().allocatePooledByteBuffer( "1234".getBytes());
+						
+						try{
+							connection.send( data );
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}
+					
+					public void
+					receive(
+						GenericMessageConnection	connection,
+						PooledByteBuffer			message )
+					
+						throws MessageException
+					{
+						System.out.println( "receive: " + new String( message.toByteArray()));
+						
+						PooledByteBuffer	reply = plugin_interface.getUtilities().allocatePooledByteBuffer( "abcd".getBytes());
+						
+						try{
+							Thread.sleep(1000);
+							
+						}catch( Throwable e ){
+						}
+						
+						connection.send( reply );
+					}
+					
+					public void
+					failed(
+						GenericMessageConnection	connection,
+						Throwable 					error )
+					
+						throws MessageException
+					{
+						error.printStackTrace();
+					}
+				});
+			
+
+			con.connect();
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
 	protected void
 	testLinks()
 	{

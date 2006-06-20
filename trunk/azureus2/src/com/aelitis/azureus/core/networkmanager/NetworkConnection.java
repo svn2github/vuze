@@ -22,14 +22,14 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
-import java.net.InetSocketAddress;
-
 
 /**
  * Represents a managed network connection, over which messages can be sent and received. 
  */
 public interface NetworkConnection {
   
+	public ConnectionEndpoint
+	getEndpoint();
   
   /**
    * Connect this connection's transport, i.e. establish the network connection.
@@ -85,19 +85,10 @@ public interface NetworkConnection {
   
   
   /**
-   * Get the connection's data tcp transport interface.
-   * @return the transport
+   * Get the connection's data transport interface.
+   * @return the transport - MAY BE NULL if not yet fully connected
    */
   public Transport getTransport();
-  
-
-  
-  /**
-   * Get the connection's internet address.
-   * @return remote address
-   */
-  public InetSocketAddress getAddress();  //TODO hmmm
-
   
 
   public boolean isConnected();

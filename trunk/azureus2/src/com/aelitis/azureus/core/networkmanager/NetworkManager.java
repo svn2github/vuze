@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
@@ -228,8 +227,8 @@ public class NetworkManager {
    * @param decoder default message stream decoder to use for the incoming queue
    * @return a new connection
    */
-  public NetworkConnection createConnection( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto, boolean allow_fallback, byte[] shared_secret ) { 
-    return NetworkConnectionFactory.create( remote_address, encoder, decoder, connect_with_crypto, allow_fallback, shared_secret );
+  public NetworkConnection createConnection( ConnectionEndpoint	target, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto, boolean allow_fallback, byte[] shared_secret ) { 
+    return NetworkConnectionFactory.create( target, encoder, decoder, connect_with_crypto, allow_fallback, shared_secret );
   }
   
   

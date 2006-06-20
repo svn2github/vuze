@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils;
  *
  */
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
 import java.net.InetAddress;
@@ -58,6 +59,7 @@ import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceLi
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
@@ -72,6 +74,7 @@ import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 public class 
@@ -81,6 +84,7 @@ UtilitiesImpl
 	private static InetAddress		last_public_ip_address;
 	private static long				last_public_ip_address_time;
 	
+	private AzureusCore				core;
 	private PluginInterface			pi;
 	
 	private static ThreadLocal		tls	= 
@@ -96,8 +100,10 @@ UtilitiesImpl
 		
 	public
 	UtilitiesImpl(
+		AzureusCore			_core,
 		PluginInterface		_pi )
 	{
+		core	= _core;
 		pi		= _pi;
 	}
 	
@@ -204,6 +210,15 @@ UtilitiesImpl
 		return( new PooledByteBufferImpl( data ));
 	}
 	
+	public PooledByteBuffer
+	allocatePooledByteBuffer(
+		Map		map )
+	
+		throws IOException
+	{
+		return( new PooledByteBufferImpl( BEncoder.encode( map )));
+	}
+	
 	public Formatters
 	getFormatters()
 	{
@@ -295,7 +310,7 @@ UtilitiesImpl
 	public SESecurityManager
 	getSecurityManager()
 	{
-		return( new SESecurityManagerImpl());
+		return( new SESecurityManagerImpl( core ));
 	}
 	
 	public SimpleXMLParserDocumentFactory

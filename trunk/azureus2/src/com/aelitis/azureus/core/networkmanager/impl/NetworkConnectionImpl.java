@@ -40,7 +40,6 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
  */
 public class NetworkConnectionImpl implements NetworkConnection {
   private final ConnectionEndpoint	connection_endpoint;
-  private final InetSocketAddress remote_address;
   
   private boolean connect_with_crypto;
   private boolean allow_fallback;
@@ -67,17 +66,15 @@ public class NetworkConnectionImpl implements NetworkConnection {
    * @param decoder default message stream decoder to use for the incoming queue
    */
   public NetworkConnectionImpl( 
-		  		InetSocketAddress _remote_address, MessageStreamEncoder encoder, 
+		  		ConnectionEndpoint _target, MessageStreamEncoder encoder, 
 		  		MessageStreamDecoder decoder, boolean _connect_with_crypto, boolean _allow_fallback,
 		  		byte[] _shared_secret ) 
   {
-    remote_address = _remote_address;
+	connection_endpoint	= _target;
     connect_with_crypto	= _connect_with_crypto;
     allow_fallback = _allow_fallback;
     shared_secret = _shared_secret;
     
-    connection_endpoint	= new ConnectionEndpoint();
-    connection_endpoint.addTCP( _remote_address );
     
     is_connected = false;
     outgoing_message_queue = new OutgoingMessageQueue( encoder );
@@ -96,7 +93,6 @@ public class NetworkConnectionImpl implements NetworkConnection {
   public NetworkConnectionImpl( Transport _transport, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
     transport = _transport;
     connection_endpoint = transport.getTransportEndpoint().getProtocolEndpoint().getConnectionEndpoint();
-    remote_address = transport.getRemoteAddress();
     is_connected = true;
     outgoing_message_queue = new OutgoingMessageQueue( encoder );
     outgoing_message_queue.setTransport( transport );
@@ -104,6 +100,11 @@ public class NetworkConnectionImpl implements NetworkConnection {
   }
   
 
+  public ConnectionEndpoint
+  getEndpoint()
+  {
+	  return( connection_endpoint );
+  }
   
   public void connect( ConnectionListener listener ) {
     this.connection_listener = listener;
@@ -192,10 +193,6 @@ public class NetworkConnectionImpl implements NetworkConnection {
 
   public Transport getTransport() {  return transport;  }
   
-
-  public InetSocketAddress getAddress() {  return remote_address;  }
-
-  
   
   public String toString() {
     return( transport==null?connection_endpoint.getDescription():transport.getDescription() );
@@ -210,7 +207,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
 	public boolean isLANLocal() {
 		if ( is_lan_local == AddressUtils.LAN_LOCAL_MAYBE ){
 			
-			is_lan_local = AddressUtils.isLANLocalAddress( remote_address.getAddress() );
+			is_lan_local = AddressUtils.isLANLocalAddress( connection_endpoint.getNotionalAddress().getAddress());
 		}
 		return( is_lan_local == AddressUtils.LAN_LOCAL_YES );
 	}

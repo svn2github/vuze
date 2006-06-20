@@ -22,12 +22,30 @@
 
 package org.gudy.azureus2.pluginsimpl.local.messaging;
 
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.messaging.*;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
+import org.gudy.azureus2.plugins.network.ConnectionListener;
 import org.gudy.azureus2.plugins.peers.*;
+
+import com.aelitis.azureus.core.networkmanager.ConnectionAttempt;
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageDecoder;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageEncoder;
 
 
 
@@ -141,5 +159,126 @@ public class MessageManagerImpl implements MessageManager {
         break;
       }
     }
+  }
+  
+  public GenericMessageRegistration
+  registerGenericMessageType(
+	 final String					_type,
+	 final String					description,
+	 final GenericMessageHandler	handler )
+  
+  	throws MessageException
+  {	  
+	final String	type 		= "AEGEN:" + _type;
+	final byte[]	type_bytes 	= type.getBytes();
+	
+	final NetworkManager.ByteMatcher matcher = 
+			new NetworkManager.ByteMatcher()
+			{
+				public int 
+				size() 
+				{  
+					return type_bytes.length;  
+				}
+				
+				public int 
+				minSize()
+				{ 
+					return size(); 
+				}
+	
+				public boolean 
+				matches( 
+					ByteBuffer to_compare, int port ) 
+				{             
+					int old_limit = to_compare.limit();
+					
+					to_compare.limit( to_compare.position() + size() );
+					
+					boolean matches = to_compare.equals( ByteBuffer.wrap( type_bytes ) );
+					
+					to_compare.limit( old_limit );  //restore buffer structure
+					
+					return matches;
+				}
+				
+				public boolean 
+				minMatches( 
+					ByteBuffer to_compare, 
+					int port ) 
+				{ 
+					return( matches( to_compare, port )); 
+				} 
+				
+				public byte[] 
+				getSharedSecret()
+				{ 
+					return( null ); 
+				}
+			};
+			
+	NetworkManager.getSingleton().requestIncomingConnectionRouting(
+				matcher,
+				new NetworkManager.RoutingListener() 
+				{
+					public void 
+					connectionRouted( 
+						final NetworkConnection connection ) 
+					{  	
+						try{
+							ByteBuffer[]	skip_buffer = { ByteBuffer.allocate(type_bytes.length) };
+							
+							connection.getTransport().read( skip_buffer, 0, 1 );
+
+							if ( !handler.accept( new GenericMessageConnectionImpl( type, description, connection ))){
+								
+								connection.close();
+							}
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+							
+							connection.close();
+						}
+					}
+					
+					public boolean
+					autoCryptoFallback()
+					{
+						return( true );
+					}
+				},
+				new MessageStreamFactory() {
+					public MessageStreamEncoder createEncoder() {  return new GenericMessageEncoder();}
+					public MessageStreamDecoder createDecoder() {  return new GenericMessageDecoder(type, description);}
+				}
+		);
+		
+	return( 
+		new GenericMessageRegistration()
+		{
+			public GenericMessageEndpoint
+			createEndpoint(
+				InetSocketAddress	notional_target )
+			{
+				return( new GenericMessageEndpointImpl( notional_target ));
+			}
+			
+			public GenericMessageConnection
+			createConnection(
+				GenericMessageEndpoint	endpoint )
+			
+				throws MessageException
+			{
+				return( new GenericMessageConnectionImpl( type, description, endpoint ));
+			}
+			
+			public void
+			cancel()
+			{
+				NetworkManager.getSingleton().cancelIncomingConnectionRouting( matcher );
+			}
+		});
   }
 }

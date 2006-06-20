@@ -650,9 +650,11 @@ public class IncomingSocketChannelManager
 							  + ByteFormatter.nicePrint(ic.buffer.array())));
 				  removeConnection( ic, false );
 				  
-				  ConnectionEndpoint	co_ep = new ConnectionEndpoint();
+				  InetSocketAddress tcp_address = new InetSocketAddress( sc.socket().getInetAddress(), sc.socket().getPort());
 				  
-				  ProtocolEndpointTCP	pe_tcp = new ProtocolEndpointTCP( co_ep, new InetSocketAddress( sc.socket().getInetAddress(), sc.socket().getPort()));
+				  ConnectionEndpoint	co_ep = new ConnectionEndpoint(tcp_address);
+				  
+				  ProtocolEndpointTCP	pe_tcp = new ProtocolEndpointTCP( co_ep, tcp_address );
 				  				  
 				  Transport transport = new TCPTransportImpl( pe_tcp, ic.filter, ic.buffer );
 				  

@@ -94,9 +94,11 @@ public class AEClientService implements ClientMessageService {
 	//NOTE: blocking op
 	private void connect() throws IOException {
 		
-	ConnectionEndpoint	ce = new ConnectionEndpoint();
+	InetSocketAddress	tcp_target = new InetSocketAddress( address, port );
 	
-	ce.addTCP( new InetSocketAddress( address, port ));
+	ConnectionEndpoint	ce = new ConnectionEndpoint( tcp_target );
+	
+	ce.addTCP( tcp_target );
 	   
     final AESemaphore connect_block = new AESemaphore( "AEClientService:C" );
     

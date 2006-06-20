@@ -27,6 +27,7 @@ package org.gudy.azureus2.plugins.utils;
  */
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
@@ -88,6 +89,18 @@ Utilities
 	public PooledByteBuffer
 	allocatePooledByteBuffer(
 		byte[]	data  );
+	
+		/**
+		 * 
+		 * @param data	must be b-encodable
+		 * @return
+		 */
+	
+	public PooledByteBuffer
+	allocatePooledByteBuffer(
+		Map		data  )
+	
+		throws IOException;
 	
 	public Formatters
 	getFormatters();

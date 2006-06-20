@@ -1,7 +1,7 @@
 /*
- * Created on Jan 8, 2005
- * Created by Alon Rohter
- * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
+ * Created on 19 Jun 2006
+ * Created by Paul Gardner
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,18 +20,16 @@
  *
  */
 
-package org.gudy.azureus2.plugins.messaging;
+package org.gudy.azureus2.plugins.messaging.generic;
 
-/**
- *
- */
-public class MessageException extends Exception {
+import org.gudy.azureus2.plugins.messaging.MessageException;
 
-  public MessageException( String reason ) {
-    super( reason );
-  }
-  
-  public MessageException( String reason, Throwable e ){
-	  super( reason,e );
-  }
+public interface 
+GenericMessageHandler 
+{
+	public boolean
+	accept(
+		GenericMessageConnection	connection )
+	
+		throws MessageException;
 }

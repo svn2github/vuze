@@ -111,6 +111,18 @@ CryptoHandler
 		
 		throws CryptoManagerException;
 	
+	public CryptoSTSEngine
+	getSTSEngine(
+		char[]		password )
+	
+		throws CryptoManagerException;
+	
+	public CryptoSTSEngine
+	getSTSEngine(
+		String		reason )
+	
+		throws CryptoManagerException;
+	
 	public byte[]
 	getPublicKey(
 		char[]		password )

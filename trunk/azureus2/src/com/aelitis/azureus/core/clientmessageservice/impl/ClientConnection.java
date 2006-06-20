@@ -65,7 +65,7 @@ public class ClientConnection {
 	 */
 	public ClientConnection( SocketChannel channel ) {
 		decoder = new AZMessageDecoder();
-		light_transport = ((ProtocolEndpointTCP)new ConnectionEndpoint().addTCP( null )).connectLightWeight( channel );
+		light_transport = ((ProtocolEndpointTCP)new ConnectionEndpoint( null ).addTCP( null )).connectLightWeight( channel );
 		out_queue = new OutgoingMessageQueue( encoder );
 		out_queue.setTransport( light_transport );
 		last_activity_time = System.currentTimeMillis();

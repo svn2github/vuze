@@ -23,6 +23,9 @@
 package org.gudy.azureus2.plugins.messaging;
 
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 
 
 /**
@@ -61,4 +64,21 @@ public interface MessageManager {
    * @param orig_listener listener used for registration
    */
   public void cancelCompatiblePeersLocation( MessageManagerListener orig_listener );
+  
+  /**
+   * Register a peer-independent message handler
+   * @param type
+   * @param description
+   * @param handler
+   * @return
+   * @throws MessageException
+   */
+  
+  public GenericMessageRegistration
+  registerGenericMessageType(
+		 String					type,
+		 String					description,
+		 GenericMessageHandler	handler )
+  
+  	throws MessageException;
 }
