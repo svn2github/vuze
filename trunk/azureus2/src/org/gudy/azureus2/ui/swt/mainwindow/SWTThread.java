@@ -169,4 +169,8 @@ public class SWTThread {
   public Display getDisplay() {
     return display;
   }
+  
+  public boolean isTerminated() {
+  	return terminated;
+  }
 }
