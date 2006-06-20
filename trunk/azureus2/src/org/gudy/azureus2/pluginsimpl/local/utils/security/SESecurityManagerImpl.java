@@ -220,9 +220,9 @@ SESecurityManagerImpl
 	
 		throws Exception
 	{
-		 byte[]	encoded = core.getCryptoManager().getECCHandler().getPublicKey( reason_resource );
+		byte[]	encoded = core.getCryptoManager().getECCHandler().getPublicKey( reason_resource );
 		 
-		 return( new SEPublicKeyImpl( key_type, encoded ));
+		return( new SEPublicKeyImpl( key_type, encoded ));
 	}
 	
 	public SEPublicKey

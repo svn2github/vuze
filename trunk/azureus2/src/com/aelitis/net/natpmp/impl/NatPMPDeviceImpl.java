@@ -159,8 +159,8 @@ public class NatPMPDeviceImpl implements NatPMPDevice
                 skt.receive(recPkt);
                 recRep = true;        
             } catch (SocketTimeoutException ste) {
-                System.out.println("Timed Out!");
-                System.out.println( ste.getMessage() );
+                //System.out.println("Timed Out!");
+                //System.out.println( ste.getMessage() );
                 // sleep before trying again
                 // this.sleep(retryInterval);
                 Thread.sleep(retryInterval);        // not sleeping?!?

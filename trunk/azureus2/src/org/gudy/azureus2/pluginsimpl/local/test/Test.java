@@ -272,7 +272,7 @@ Test
 			
 			GenericMessageConnection	con = reg.createConnection( endpoint );
 			
-			sec_man.getSTSConnection( 
+			con = sec_man.getSTSConnection( 
 				con, my_key,
 				new SEPublicKeyLocator()
 				{

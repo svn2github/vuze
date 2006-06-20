@@ -45,16 +45,6 @@ CryptoSTSEngineImpl
 {
 	public static final int	VERSION	= 1;
 
-	public static final int AUTH_FAILED = 0;
-
-	public static final int SEND_PUBKEY = 1;
-	public static final int WAIT_OTHER_PUBKEY = SEND_PUBKEY;
-
-	public static final int SEND_AUTH = 2;
-	public static final int WAIT_OTHER_AUTH = SEND_AUTH;
-
-	public static final int AUTHED = 3;
-
 	private CryptoHandlerECC	handler;
 
 	private KeyPair 	ephemeralKeyPair;
@@ -63,7 +53,6 @@ CryptoSTSEngineImpl
 	private PrivateKey	myPrivateKey;
 	private PublicKey 	remotePubKey;
 	private byte[] 		sharedSecret;
-	private int 		state;
 	
 	private JCEECDHKeyAgreement ecDH;
 	
@@ -82,9 +71,7 @@ CryptoSTSEngineImpl
 		handler			= _handler;
 		myPublicKey		= _myPub;
 		myPrivateKey	= _myPriv;
-		
-		state = SEND_PUBKEY;
-		
+				
 		ephemeralKeyPair = handler.createKeys();
 		
 		try{
@@ -101,29 +88,66 @@ CryptoSTSEngineImpl
 	}
 
 	public void 
-	putMessage(
+	getKeys(
 		ByteBuffer		message )
 	
 		throws CryptoManagerException
 	{
+		getMessage( message, true );
+	}
+	
+	public void 
+	putKeys(
+		ByteBuffer		message )
+	
+		throws CryptoManagerException
+	{
+		putMessage( message, true );
+	}
+
+	public void 
+	getAuth(
+		ByteBuffer		message )
+	
+		throws CryptoManagerException
+	{
+		getMessage( message, false );
+	}
+	
+	public void 
+	putAuth(
+		ByteBuffer		message )
+	
+		throws CryptoManagerException
+	{
+		putMessage( message, false );
+	}
+	
+	public void 
+	putMessage(
+		ByteBuffer		message,
+		boolean			keys )
+	
+		throws CryptoManagerException
+	{
+		// System.out.println( "put( " + keys + ") " + this );
+		
 		try{
 			int	version = getInt( message, 255 );
 			
 			if ( version != VERSION ){
 				
-				throw( new CryptoManagerException( "invalid version" ));
+				throw( new CryptoManagerException( "invalid version (" + version + ")" ));
 			}
+							
+			if ( keys ){
 			
-			int	message_state = getInt( message, 255 );
-			
-			if( message_state != state){
+				if ( sharedSecret != null ){
+					
+					throw( new CryptoManagerException( "phase error: keys already received" ));
+				}
 				
-				throw( new CryptoManagerException( "Unexpected state: current = " + state + ", received = " + message_state ));
-			}
-				
-			if ( state == WAIT_OTHER_PUBKEY ){
-			
-				final byte[] rawRemoteIdentPubkey = getBytes( message, 65535 );
+				final byte[] rawRemoteOtherPubkey = getBytes( message, 65535 );
 				
 				final byte[] rawRemoteEphemeralPubkey = getBytes( message, 65535 );
 	
@@ -131,18 +155,16 @@ CryptoSTSEngineImpl
 				
 				final byte[] pad = getBytes( message, 65535 );
 				
-				remotePubKey = handler.rawdataToPubkey(rawRemoteIdentPubkey);
+				remotePubKey = handler.rawdataToPubkey(rawRemoteOtherPubkey);
 				
 				Signature check = handler.getSignature(remotePubKey);
 	
-				check.update(rawRemoteIdentPubkey);
+				check.update(rawRemoteOtherPubkey);
 				
 				check.update(rawRemoteEphemeralPubkey);
 				
 				if ( check.verify(remoteSig)){
-					
-					state = SEND_AUTH;
-					
+										
 					ecDH.doPhase(handler.rawdataToPubkey(rawRemoteEphemeralPubkey), true);
 					
 					sharedSecret = ecDH.generateSecret();
@@ -152,7 +174,12 @@ CryptoSTSEngineImpl
 					throw( new CryptoManagerException( "Signature check failed" ));
 				}
 				
-			}else if( state == WAIT_OTHER_AUTH ){
+			}else{
+				
+				if ( sharedSecret == null ){
+					
+					throw( new CryptoManagerException( "phase error: keys not received" ));
+				}
 				
 				final byte[] IV = getBytes( message, 65535 );
 				
@@ -164,36 +191,30 @@ CryptoSTSEngineImpl
 					
 				check.update(sharedSecret);
 					
-				if ( check.verify(remoteSig)){
-						
-					state = AUTHED;
-						
-				}else{
-					
+				if ( !check.verify(remoteSig)){
+	
 					throw( new CryptoManagerException( "Signature check failed" ));
-						
 				}
 			}
 		}catch( CryptoManagerException	e ){
-			
-			state	= AUTH_FAILED;
-			
+						
 			throw( e );
 			
 		}catch( Throwable e ){
-			
-			state	= AUTH_FAILED;
-			
+						
 			throw( new CryptoManagerException( "Failed to generate message" ));
 		}
 	}
 	
 	public void 
 	getMessage(
-		ByteBuffer	buffer )
+		ByteBuffer	buffer,
+		boolean		keys )
 	
 		throws CryptoManagerException
 	{
+		// System.out.println( "get( " + keys + ") " + this );
+
 		try{
 			putInt( buffer, VERSION, 255 );
 						
@@ -201,13 +222,13 @@ CryptoSTSEngineImpl
 
 			Signature sig = handler.getSignature(myPrivateKey);
 			
-			if ( state == SEND_PUBKEY ){
-				
-				final byte[] rawIdentPubkey = handler.keyToRawdata(myPublicKey);
+			if ( keys ){
+								
+				final byte[] rawMyPubkey = handler.keyToRawdata(myPublicKey);
 				
 				final byte[] rawEphemeralPubkey = handler.keyToRawdata(ephemeralKeyPair.getPublic());
 				
-				sig.update(rawIdentPubkey);
+				sig.update(rawMyPubkey);
 					
 				sig.update(rawEphemeralPubkey);
 					
@@ -216,10 +237,8 @@ CryptoSTSEngineImpl
 				final byte[] pad = new byte[random.nextInt(32)];
 				
 				random.nextBytes(pad);
-
-				putInt( buffer, state, 255 );
 				
-				putBytes( buffer, rawIdentPubkey, 65535 );
+				putBytes( buffer, rawMyPubkey, 65535 );
 				
 				putBytes( buffer, rawEphemeralPubkey, 65535 );
 				
@@ -227,8 +246,13 @@ CryptoSTSEngineImpl
 				
 				putBytes( buffer, pad, 65535 );
 	
-			}else if( state == SEND_AUTH ){
-								
+			}else{
+					
+				if ( sharedSecret == null ){
+					
+					throw( new CryptoManagerException( "phase error: keys not received" ));
+				}
+				
 				final byte[] IV = new byte[20 + random.nextInt(32)];
 				
 				random.nextBytes(IV);
@@ -239,46 +263,44 @@ CryptoSTSEngineImpl
 				
 				final byte[] rawSig = sig.sign();
 
-				putInt( buffer, state, 255 );
-
 				putBytes( buffer, IV, 65535 );
 
 				putBytes( buffer, rawSig, 65535 );
-
-			}else{
-			
-				throw( new CryptoManagerException( "Invalid state" ));
 			}
-			
 		}catch( CryptoManagerException	e ){
-			
-			state	= AUTH_FAILED;
-			
+						
 			throw( e );
 			
 		}catch( Throwable e ){
-			
-			state	= AUTH_FAILED;
-			
+						
 			throw( new CryptoManagerException( "Failed to generate message" ));
 		}
 	}
 	
 	public byte[] 
 	getSharedSecret()
+	
+		throws CryptoManagerException
 	{
+		if ( sharedSecret == null ){
+			
+			throw( new CryptoManagerException( "secret not yet available" ));
+		}
+		
 		return sharedSecret;
 	}
 	
-	public PublicKey 
-	getRemotePubkey()
-	{
-		return remotePubKey;
-	}
+	public byte[] 
+	getRemotePublicKey()
 	
-	int getState()
+		throws CryptoManagerException
 	{
-		return state;
+		if ( remotePubKey == null ){
+			
+			throw( new CryptoManagerException( "key not yet available" ));
+		}
+		
+		return( handler.keyToRawdata( remotePubKey ));
 	}
 	
 	protected int
@@ -315,6 +337,11 @@ CryptoSTSEngineImpl
 		throws CryptoManagerException
 	{
 		int	len = getInt( buffer, max_size );
+		
+		if ( len > max_size ){
+			
+			throw( new CryptoManagerException( "Invalid length" ));
+		}
 		
 		try{
 			byte[]	res = new byte[len];

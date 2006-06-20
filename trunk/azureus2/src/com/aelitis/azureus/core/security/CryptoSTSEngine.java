@@ -26,16 +26,39 @@ import java.nio.ByteBuffer;
 
 public interface 
 CryptoSTSEngine 
-{
+{	
 	public void 
-	putMessage(
+	getKeys(
 		ByteBuffer		message )
 	
 		throws CryptoManagerException;
 	
 	public void 
-	getMessage(
+	putKeys(
 		ByteBuffer		message )
+	
+		throws CryptoManagerException;
+
+	public void 
+	getAuth(
+		ByteBuffer		message )
+	
+		throws CryptoManagerException;
+	
+	public void 
+	putAuth(
+		ByteBuffer		message )
+	
+		throws CryptoManagerException;
+
+	
+	public byte[]
+	getSharedSecret()
+	
+		throws CryptoManagerException;
+	
+	public byte[]
+	getRemotePublicKey()
 	
 		throws CryptoManagerException;
 }
