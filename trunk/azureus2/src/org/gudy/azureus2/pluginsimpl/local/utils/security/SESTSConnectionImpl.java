@@ -38,7 +38,6 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -477,9 +476,7 @@ SESTSConnectionImpl
 			
 			try{
 				byte[]	shared_secret = sts_engine.getSharedSecret();
-			
-				System.out.println( "shared secret = " + ByteFormatter.nicePrint( shared_secret ) + ", " + shared_secret.length );
-					
+								
 			    SecretKeySpec	secret_key_spec1 = new SecretKeySpec(shared_secret, 0, 16, "AES" );
 			    SecretKeySpec	secret_key_spec2 = new SecretKeySpec(shared_secret, 8, 16, "AES" );
 		        
