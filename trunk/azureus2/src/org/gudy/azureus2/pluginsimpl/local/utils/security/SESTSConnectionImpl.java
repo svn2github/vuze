@@ -25,7 +25,12 @@ package org.gudy.azureus2.pluginsimpl.local.utils.security;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.security.spec.AlgorithmParameterSpec;
 import java.util.*;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -33,6 +38,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -43,6 +49,8 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
+import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
+import org.gudy.azureus2.pluginsimpl.local.messaging.GenericMessageConnectionImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -56,6 +64,17 @@ SESTSConnectionImpl
 {	
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
+	private static final byte[]		AES_IV1				= 
+   	{ 	(byte)0x15, (byte)0xE0, (byte)0x6B, (byte)0x7E, (byte)0x98, (byte)0x59, (byte)0xE4, (byte)0xA7, 
+		(byte)0x34, (byte)0x66, (byte)0xAD, (byte)0x48, (byte)0x35, (byte)0xE2, (byte)0xD0, (byte)0x24 };
+
+	private static final byte[]		AES_IV2				= { 
+		(byte)0xC4, (byte)0xEF, (byte)0x06, (byte)0x3C, (byte)0x98, (byte)0x23, (byte)0xE8, (byte)0xB4, 
+		(byte)0x26, (byte)0x58, (byte)0xAE, (byte)0xB9, (byte)0x2C, (byte)0x24, (byte)0xB6, (byte)0x11 };
+
+	private final int	AES_KEY_SIZE_BYTES = AES_IV1.length;
+	
+	
 	private static long					last_incoming_sts_create;
 	
 	private static final int			BLOOM_RECREATE				= 30*1000;
@@ -64,11 +83,12 @@ SESTSConnectionImpl
 	private static long					generate_bloom_create_time	= SystemTime.getCurrentTime();
 
 
-	private AzureusCore					core;
-	private GenericMessageConnection	connection;
-	private SEPublicKey					my_public_key;
-	private SEPublicKeyLocator			key_locator;
-	private String						reason;
+	private AzureusCore						core;
+	private GenericMessageConnectionImpl	connection;
+	private SEPublicKey						my_public_key;
+	private SEPublicKeyLocator				key_locator;
+	private String							reason;
+	private int								block_crypto;
 	
 	private CryptoSTSEngine	sts_engine;
 	
@@ -81,6 +101,9 @@ SESTSConnectionImpl
 
 	private AESemaphore	crypto_complete	= new AESemaphore( "SESTSConnection:send" );
 	
+	private Cipher	outgoing_cipher;
+	private Cipher	incoming_cipher;
+	
 	
 	private volatile boolean	failed;
 	
@@ -91,15 +114,17 @@ SESTSConnectionImpl
 		GenericMessageConnection	_connection,
 		SEPublicKey					_my_public_key,
 		SEPublicKeyLocator			_key_locator,
-		String						_reason )
+		String						_reason,
+		int							_block_crypto )
 	
 		throws Exception
 	{
 		core			= _core;
-		connection		= _connection;
+		connection		= (GenericMessageConnectionImpl)_connection;
 		my_public_key	= _my_public_key;
 		key_locator		= _key_locator;
 		reason			= _reason;
+		block_crypto	= _block_crypto;
 				
 		connection.addListener(
 			new GenericMessageConnectionListener()
@@ -228,7 +253,13 @@ SESTSConnectionImpl
 	{
 		failed	= true;
 		
-		crypto_complete.releaseForever();
+		try{
+			cryptoComplete();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
 	}
 	
 	public void
@@ -238,7 +269,8 @@ SESTSConnectionImpl
 		throws MessageException
 	{
 		try{
-			boolean	forward	= false;
+			boolean	forward				= false;
+			boolean	crypto_completed	= false;
 			
 			ByteBuffer	out_buffer = null;
 
@@ -333,19 +365,40 @@ SESTSConnectionImpl
 							
 							throw( new MessageException( "remote public key not accepted" ));
 						}
-											
+							
+						setupBlockCrypto();
+						
 						ByteBuffer	pending_bb = pending_message.toByteBuffer();
 						
-						if ( out_buffer.remaining() >= pending_bb.remaining()){
+						int	pending_size = pending_bb.remaining();
+						
+						if ( outgoing_cipher != null ){
 							
-							out_buffer.put( pending_bb );
+							pending_size =  (( pending_size + AES_KEY_SIZE_BYTES -1 )/AES_KEY_SIZE_BYTES)*AES_KEY_SIZE_BYTES;
+							
+							if ( pending_size == 0 ){
+								
+								pending_size = AES_KEY_SIZE_BYTES;
+							}
+						}
+						
+						if ( out_buffer.remaining() >= pending_size ){
+							
+							if ( outgoing_cipher != null ){
+								
+								outgoing_cipher.doFinal( pending_bb, out_buffer );
+								
+							}else{
+							
+								out_buffer.put( pending_bb );
+							}
 							
 								// don't deallocate the pending message, the original caller does this
 							
 							pending_message	= null;
 						}
 						
-						crypto_complete.releaseForever();
+						crypto_completed	= true;
 						
 					}else{
 							// we've received
@@ -364,7 +417,9 @@ SESTSConnectionImpl
 							throw( new MessageException( "remote public key not accepted" ));
 						}
 						
-						crypto_complete.releaseForever();
+						setupBlockCrypto();
+
+						crypto_completed	= true;
 						
 							// pick up any remaining data for delivery
 						
@@ -385,6 +440,10 @@ SESTSConnectionImpl
 				connection.send( new PooledByteBufferImpl( new DirectByteBuffer( out_buffer )));
 			}
 			
+			if ( crypto_completed ){
+				
+				cryptoComplete();
+			}
 			if ( forward ){
 				
 				receiveContent( message );
@@ -402,6 +461,64 @@ SESTSConnectionImpl
 				throw( new MessageException( "Receive failed", e ));
 			}
 		}
+	}
+
+	protected void
+	setupBlockCrypto()
+	
+		throws MessageException
+	{
+		if ( !failed ){
+			
+			if ( block_crypto == SESecurityManager.BLOCK_ENCRYPTION_NONE ){
+				
+				return;
+			}
+			
+			try{
+				byte[]	shared_secret = sts_engine.getSharedSecret();
+			
+				System.out.println( "shared secret = " + ByteFormatter.nicePrint( shared_secret ) + ", " + shared_secret.length );
+					
+			    SecretKeySpec	secret_key_spec1 = new SecretKeySpec(shared_secret, 0, 16, "AES" );
+			    SecretKeySpec	secret_key_spec2 = new SecretKeySpec(shared_secret, 8, 16, "AES" );
+		        
+			    AlgorithmParameterSpec	param_spec1 = 	new IvParameterSpec( AES_IV1);
+			    AlgorithmParameterSpec	param_spec2 = 	new IvParameterSpec( AES_IV2);      
+			        
+			    Cipher cipher1 = Cipher.getInstance( "AES/CBC/PKCS5Padding" );
+			    Cipher cipher2 = Cipher.getInstance( "AES/CBC/PKCS5Padding" );
+		        
+			    if ( connection.isIncoming()){
+			    	
+			        cipher1.init( Cipher.ENCRYPT_MODE, secret_key_spec1, param_spec1 );
+			        cipher2.init( Cipher.DECRYPT_MODE, secret_key_spec2, param_spec2 );
+			        
+			        incoming_cipher	= cipher2;
+			        outgoing_cipher	= cipher1;
+			        
+			    }else{
+			    	
+			        cipher1.init( Cipher.DECRYPT_MODE, secret_key_spec1, param_spec1 );
+			        cipher2.init( Cipher.ENCRYPT_MODE, secret_key_spec2, param_spec2 );
+			        
+			        incoming_cipher	= cipher1;
+			        outgoing_cipher	= cipher2;
+			    }
+
+			}catch( Throwable e ){
+				
+				throw( new MessageException( "Failed to setup block encryption", e ));
+			}
+		}
+	}
+
+	protected void
+	cryptoComplete()
+	
+		throws MessageException
+	{
+		crypto_complete.releaseForever();
 	}
 	
 	public void
@@ -421,6 +538,14 @@ SESTSConnectionImpl
 			synchronized( this ){
 								
 				if ( !sent_keys ){
+					
+						// protocol optimisation requires initiator to send first message...
+						// this can be fixed up if needed 
+					
+					if ( connection.isIncoming()){
+						
+						throw( new MessageException( "Only the initiator of a connection can send the first message" ));
+					}
 					
 					getSTSEngine( false );
 					
@@ -493,7 +618,44 @@ SESTSConnectionImpl
 	
 		throws MessageException
 	{
-		connection.send( message );
+		if ( outgoing_cipher != null ){
+			
+			try{
+				byte[]	plain	=  message.toByteArray();
+				byte[]	enc		= outgoing_cipher.doFinal( plain );
+			
+				PooledByteBuffer	temp = new PooledByteBufferImpl( enc );
+				
+				try{
+					connection.send( temp );
+					
+						// successfull send -> release caller's buffer
+					
+					message.returnToPool();
+					
+				}catch( Throwable e ){
+					
+						// failed semantics are to not release the caller's buffer
+					
+					temp.returnToPool();
+					
+					throw( e );
+				}
+				
+			}catch( Throwable e ){
+				
+				throw( new MessageException( "Failed to encrypt data", e ));
+			}
+		}else{
+				// sanity check - never allow unencrypted outbound if block enc selected
+			
+			if ( block_crypto != SESecurityManager.BLOCK_ENCRYPTION_NONE ){
+				
+				throw( new MessageException( "Crypto isn't setup" ));
+			}
+		
+			connection.send( message );
+		}
 	}
 	
 	protected void
@@ -502,16 +664,71 @@ SESTSConnectionImpl
 	
 		throws MessageException
 	{
-		for (int i=0;i<listeners.size();i++){
+		boolean	buffer_handled = false;
+		
+		try{
+			if ( incoming_cipher != null ){
 			
-			try{
-				((GenericMessageConnectionListener)listeners.get(i)).receive( this, message );
+				try{
+					byte[]	enc 	= message.toByteArray();
+					byte[]	plain 	= incoming_cipher.doFinal( enc );
+	
+					PooledByteBuffer	temp = new PooledByteBufferImpl( plain );
+	
+					message.returnToPool();
+					
+					buffer_handled	= true;
+					
+					message	= temp;
+					
+				}catch( Throwable e ){
+					
+					throw( new MessageException( "Failed to decrypt data", e ));
+				}
 				
-			}catch( Throwable e ){
+			}else if ( block_crypto != SESecurityManager.BLOCK_ENCRYPTION_NONE ){
 				
-				Debug.printStackTrace( e );
+				throw( new MessageException( "Crypto isn't setup" ));
 			}
-		}	
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				PooledByteBuffer	message_to_deliver;
+				
+				if ( i == 0 ){
+					
+					message_to_deliver	= message;
+					
+				}else{
+				
+						// unlikely we'll ever have > 1 receiver....
+					
+					message_to_deliver = new PooledByteBufferImpl( message.toByteArray());
+				}
+				
+				try{
+					((GenericMessageConnectionListener)listeners.get(i)).receive( this, message_to_deliver );
+					
+					if ( message_to_deliver == message ){
+						
+						buffer_handled	= true;
+					}
+				}catch( Throwable e ){
+					
+					message_to_deliver.returnToPool();
+					
+					buffer_handled	= true;
+					
+					Debug.printStackTrace( e );
+				}
+			}
+		}finally{
+			
+			if ( !buffer_handled ){
+				
+				message.returnToPool();
+			}
+		}
 	}
 	
 	public void

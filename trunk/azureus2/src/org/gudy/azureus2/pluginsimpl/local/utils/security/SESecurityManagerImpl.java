@@ -237,10 +237,11 @@ SESecurityManagerImpl
 		GenericMessageConnection	connection,
 		SEPublicKey					my_public_key,
 		SEPublicKeyLocator			key_locator,
-		String						reason_resource )
+		String						reason_resource,
+		int							block_crypto )
 	
 		throws Exception
 	{
-		return( new SESTSConnectionImpl( core, connection, my_public_key, key_locator, reason_resource ));
+		return( new SESTSConnectionImpl( core, connection, my_public_key, key_locator, reason_resource, block_crypto ));
 	}
 }

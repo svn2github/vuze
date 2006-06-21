@@ -52,6 +52,7 @@ GenericMessageConnectionImpl
 	private NetworkConnection			connection;
 	
 	private boolean	connected;
+	private boolean	incoming;
 	
 	private List	listeners	= new ArrayList();
 	
@@ -68,6 +69,8 @@ GenericMessageConnectionImpl
 		connection		= _connection;
 		stream_crypto	= _stream_crypto;
 		shared_secret	= _shared_secret;
+		
+		incoming	= true;
 		
 		endpoint	= new GenericMessageEndpointImpl( _connection.getEndpoint());
 	
@@ -120,6 +123,14 @@ GenericMessageConnectionImpl
 		endpoint		= (GenericMessageEndpointImpl)_endpoint;
 		stream_crypto	= _stream_crypto;
 		shared_secret	= _shared_secret;
+		
+		incoming	= false;
+	}
+	
+	public boolean
+	isIncoming()
+	{
+		return( incoming );
 	}
 	
 	public GenericMessageEndpoint

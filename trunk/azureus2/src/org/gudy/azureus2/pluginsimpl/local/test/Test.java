@@ -27,7 +27,6 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
@@ -50,11 +49,7 @@ import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
-import org.gudy.azureus2.pluginsimpl.local.messaging.GenericMessageEndpointImpl;
-
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 
 import java.io.File;
@@ -191,10 +186,14 @@ Test
 			
 			final SEPublicKey	my_key = sec_man.getPublicKey( SEPublicKey.KEY_TYPE_ECC_192, "test" );
 
+			final int	stream_crypto 	= MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED;
+			final boolean	use_sts		= true;
+			final int	block_crypto 	= SESecurityManager.BLOCK_ENCRYPTION_AES;
+			
 			GenericMessageRegistration	reg = 
 				plugin_interface.getMessageManager().registerGenericMessageType(
 					"GENTEST", "Gen test desc", 
-					MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED,
+					stream_crypto,
 					new GenericMessageHandler()
 					{
 						public boolean
@@ -206,22 +205,25 @@ Test
 							System.out.println( "accept" );
 							
 							try{
-								connection = sec_man.getSTSConnection(
-										connection, 
-										my_key,
-										new SEPublicKeyLocator()
-										{
-											public boolean
-											accept(
-												SEPublicKey	other_key )
+								if ( use_sts ){
+									
+									connection = sec_man.getSTSConnection(
+											connection, 
+											my_key,
+											new SEPublicKeyLocator()
 											{
-												System.out.println( "acceptKey" );
-												
-												return( true );
-											}
-										},
-										"test" );
-								
+												public boolean
+												accept(
+													SEPublicKey	other_key )
+												{
+													System.out.println( "acceptKey" );
+													
+													return( true );
+												}
+											},
+											"test",
+											block_crypto );
+								}
 										
 								connection.addListener(
 									new GenericMessageConnectionListener()
@@ -274,20 +276,23 @@ Test
 			
 			GenericMessageConnection	con = reg.createConnection( endpoint );
 			
-			con = sec_man.getSTSConnection( 
-				con, my_key,
-				new SEPublicKeyLocator()
-				{
-					public boolean
-					accept(
-						SEPublicKey	other_key )
+			if ( use_sts ){
+				
+				con = sec_man.getSTSConnection( 
+					con, my_key,
+					new SEPublicKeyLocator()
 					{
-						System.out.println( "acceptKey" );
-						
-						return( true );
-					}
-				},
-				"test");
+						public boolean
+						accept(
+							SEPublicKey	other_key )
+						{
+							System.out.println( "acceptKey" );
+							
+							return( true );
+						}
+					},
+					"test", block_crypto );
+			}
 			
 			con.addListener(
 				new GenericMessageConnectionListener()

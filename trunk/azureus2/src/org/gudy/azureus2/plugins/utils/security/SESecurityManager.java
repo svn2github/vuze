@@ -39,6 +39,9 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 public interface 
 SESecurityManager 
 {
+	public static final int	BLOCK_ENCRYPTION_NONE		= 1;
+	public static final int	BLOCK_ENCRYPTION_AES		= 2;
+	
 		// runs the given task with the supplied Authenticator. Note that the 
 		// scope of the authenticator is "vm-wide" so that if by chance another
 		// thread attempts to perform an operation that requires authentication
@@ -154,7 +157,8 @@ SESecurityManager
 		GenericMessageConnection	connection,
 		SEPublicKey					my_public_key,
 		SEPublicKeyLocator			key_locator,
-		String						reason_resource )
+		String						reason_resource,
+		int							block_encryption )
 	
 		throws Exception;
 }
