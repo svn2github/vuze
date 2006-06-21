@@ -123,6 +123,7 @@ public class ConfigurationDefaults {
     def.put( "Max Uploads", new Long(4) );
     def.put( "Max Uploads Seeding", new Long(4));
     def.put( "enable.seedingonly.maxuploads", FALSE );
+    def.put( "max.uploads.when.busy.inc.min.secs", new Long( 30 ));
     def.put( "Max Download Speed KBs", new Long(0) );
     def.put( "Max Upload Speed KBs", new Long(0));
     def.put( "Max Upload Speed Seeding KBs", new Long(0) );

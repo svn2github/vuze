@@ -62,6 +62,22 @@ DownloadManagerImpl
 	implements DownloadManager
 {
 	
+	private static int	upload_when_busy_min_secs;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"max.uploads.when.busy.inc.min.secs",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					upload_when_busy_min_secs = COConfigurationManager.getIntParameter( name );
+				}
+			});
+	}
+	
 	private static final String CFG_MOVE_COMPLETED_TOP = "Newly Seeding Torrents Get First Priority";
 		// DownloadManager listeners
 	
@@ -356,6 +372,7 @@ DownloadManagerImpl
     private int		max_upload_when_busy_bps;
     private int		current_upload_when_busy_bps;
     private long	last_upload_when_busy_update;
+    private long	last_upload_when_busy_dec_time;
     
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	
@@ -875,7 +892,7 @@ DownloadManagerImpl
 						move_by = 1024;
 					}
 					
-					if ( global_limit_bps - actual <= 3*1024 ){
+					if ( global_limit_bps - actual <= 2*1024 ){
 				
 							// close enough to impose the busy limit downwards
 						
@@ -885,6 +902,8 @@ DownloadManagerImpl
 							current_upload_when_busy_bps = local_max_bps;
 						}
 						
+						int	prev_upload_when_busy_bps = current_upload_when_busy_bps;
+						
 						current_upload_when_busy_bps -= move_by;
 						
 						if ( current_upload_when_busy_bps < max_upload_when_busy_bps ){
@@ -892,17 +911,28 @@ DownloadManagerImpl
 							current_upload_when_busy_bps = max_upload_when_busy_bps;
 						}
 						
+						if ( current_upload_when_busy_bps < prev_upload_when_busy_bps ){
+							
+							last_upload_when_busy_dec_time = now;
+						}
 					}else{
 						
 							// not hitting limit, increase
 						
 						if ( current_upload_when_busy_bps != 0 ){
 							
-							current_upload_when_busy_bps += move_by;
+								// only try increment if sufficient time passed
 							
-							if ( current_upload_when_busy_bps >= local_max_bps ){
+							if ( 	upload_when_busy_min_secs == 0 ||
+									now < last_upload_when_busy_dec_time ||
+									now - last_upload_when_busy_dec_time >=  upload_when_busy_min_secs*1000 ){
+									
+								current_upload_when_busy_bps += move_by;
 								
-								current_upload_when_busy_bps	= 0;
+								if ( current_upload_when_busy_bps >= local_max_bps ){
+									
+									current_upload_when_busy_bps	= 0;
+								}
 							}
 						}
 					}

@@ -149,6 +149,20 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 					"http://azureus.aelitis.com/wiki/index.php/Good_settings");
 		}
 
+		if ( userMode > 1 ){
+		
+			gridData = new GridData();
+			label = new Label(cSection, SWT.NULL);
+			label.setLayoutData(gridData);
+			Messages.setLanguageText(label, "ConfigView.label.maxuploadswhenbusymin" );
+
+			gridData = new GridData();
+			gridData.widthHint = 35;
+			new IntParameter(
+					 cSection,
+					 "max.uploads.when.busy.inc.min.secs", 0, -1, true, false).setLayoutData(gridData);
+		}
+		
 		// max download speed
 		gridData = new GridData();
 		label = new Label(cSection, SWT.NULL);
