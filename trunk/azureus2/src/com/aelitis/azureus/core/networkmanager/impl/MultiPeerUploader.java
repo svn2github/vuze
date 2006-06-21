@@ -349,7 +349,7 @@ public class MultiPeerUploader implements RateControlledEntity {
     for( Iterator i = connections_to_notify_of_exception.entrySet().iterator(); i.hasNext(); ) {
       Map.Entry entry = (Map.Entry)i.next();
       NetworkConnection conn = (NetworkConnection)entry.getKey();
-      IOException exception = (IOException)entry.getValue();
+      Throwable exception = (Throwable)entry.getValue();
       conn.notifyOfException( exception );
     }
     
