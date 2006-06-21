@@ -164,7 +164,7 @@ GenericMessageConnectionImpl
 							startProcessing();
 							
 							reportConnected();
-							
+
 						}catch( Throwable e ){
 							
 							connectFailure( e );

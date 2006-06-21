@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -138,12 +139,15 @@ SESTSConnectionImpl
 	
 		throws Exception
 	{
-		if ( incoming ){
+		if ( sts_engine == null ){
 			
-			rateLimit( connection.getEndpoint().getNotionalAddress());
+			if ( incoming ){
+				
+				rateLimit( connection.getEndpoint().getNotionalAddress());
+			}
+			
+			sts_engine	= core.getCryptoManager().getECCHandler().getSTSEngine( reason );
 		}
-		
-		sts_engine	= core.getCryptoManager().getECCHandler().getSTSEngine( reason );
 	}
 	
 	protected static void
@@ -521,16 +525,28 @@ SESTSConnectionImpl
 	protected void
 	reportConnected()
 	{
-		for (int i=0;i<listeners.size();i++){
-			
-			try{
-				((GenericMessageConnectionListener)listeners.get(i)).connected( this );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
+			// we've got to take this off the current thread to avoid the connection even causing immediate
+			// submission of a message which then block this thread awaiting crypto completion. "this" thread
+			// is currently the selector thread which then screws the crypto protocol...
+		
+		new AEThread( "SESTSConnection:connected", true )
+		{
+			public void
+			runSupport()
+			{
+				for (int i=0;i<listeners.size();i++){
+					
+					try{
+						((GenericMessageConnectionListener)listeners.get(i)).connected( SESTSConnectionImpl.this );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace( e );
+					}
+				}
 			}
-		}
+		}.start();
+		
 	}
 	
 	protected void
