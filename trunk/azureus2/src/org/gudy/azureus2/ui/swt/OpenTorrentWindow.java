@@ -664,6 +664,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				}
 			}
 		};
+		
+		cSaveTo.setFocus();
 
 		setPasteKeyListener(shell, pasteKeyListener);
 
