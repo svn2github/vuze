@@ -367,9 +367,9 @@ SESTSConnectionImpl
 							
 						setupBlockCrypto();
 						
-						ByteBuffer	pending_bb = pending_message.toByteBuffer();
+						byte[]	pending_bytes = pending_message.toByteArray();
 						
-						int	pending_size = pending_bb.remaining();
+						int	pending_size = pending_bytes.length;
 						
 						if ( outgoing_cipher != null ){
 							
@@ -385,11 +385,12 @@ SESTSConnectionImpl
 							
 							if ( outgoing_cipher != null ){
 								
-								outgoing_cipher.doFinal( pending_bb, out_buffer );
+								
+								out_buffer.put( outgoing_cipher.doFinal( pending_bytes ));
 								
 							}else{
 							
-								out_buffer.put( pending_bb );
+								out_buffer.put( pending_bytes );
 							}
 							
 								// don't deallocate the pending message, the original caller does this
