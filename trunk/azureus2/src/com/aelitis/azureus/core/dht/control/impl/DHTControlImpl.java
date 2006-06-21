@@ -1223,7 +1223,7 @@ DHTControlImpl
 		return( diversified[0] );
 	}
 	
-	public void
+	protected void
 	getSupport(
 		final byte[]						initial_encoded_key,
 		final String						description,
@@ -1259,7 +1259,7 @@ DHTControlImpl
 					flags,
 					true, 
 					timeout,
-					search_concurrency,
+					search_concurrency * 2,	// double conc for priority gets
 					max_values,
 					router.getK(),
 					new lookupResultHandler( get_listener )
