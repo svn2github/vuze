@@ -37,6 +37,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.messaging.MessageException;
+import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListener;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
@@ -193,6 +194,7 @@ Test
 			GenericMessageRegistration	reg = 
 				plugin_interface.getMessageManager().registerGenericMessageType(
 					"GENTEST", "Gen test desc", 
+					MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED,
 					new GenericMessageHandler()
 					{
 						public boolean

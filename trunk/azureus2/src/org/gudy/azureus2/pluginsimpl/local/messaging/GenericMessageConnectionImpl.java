@@ -27,6 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.messaging.MessageException;
+import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListener;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
@@ -45,7 +46,8 @@ GenericMessageConnectionImpl
 {
 	private String						msg_id;
 	private String						msg_desc;
-	
+	private int							stream_crypto;
+	private byte[]						shared_secret;
 	private GenericMessageEndpointImpl	endpoint;
 	private NetworkConnection			connection;
 	
@@ -57,11 +59,16 @@ GenericMessageConnectionImpl
 	GenericMessageConnectionImpl(
 		String					_msg_id,
 		String					_msg_desc,
+		int						_stream_crypto,
+		byte[]					_shared_secret,
 		NetworkConnection		_connection )
 	{
-		msg_id		= _msg_id;
-		msg_desc	= _msg_desc;
-		connection	= _connection;
+		msg_id			= _msg_id;
+		msg_desc		= _msg_desc;
+		connection		= _connection;
+		stream_crypto	= _stream_crypto;
+		shared_secret	= _shared_secret;
+		
 		endpoint	= new GenericMessageEndpointImpl( _connection.getEndpoint());
 	
 		connection.connect(
@@ -104,11 +111,15 @@ GenericMessageConnectionImpl
 	GenericMessageConnectionImpl(
 		String					_msg_id,
 		String					_msg_desc,
-		GenericMessageEndpoint	_endpoint )
+		GenericMessageEndpoint	_endpoint,
+		int						_stream_crypto,
+		byte[]					_shared_secret )
 	{
-		msg_id		= _msg_id;
-		msg_desc	= _msg_desc;
-		endpoint	= (GenericMessageEndpointImpl)_endpoint;
+		msg_id			= _msg_id;
+		msg_desc		= _msg_desc;
+		endpoint		= (GenericMessageEndpointImpl)_endpoint;
+		stream_crypto	= _stream_crypto;
+		shared_secret	= _shared_secret;
 	}
 	
 	public GenericMessageEndpoint
@@ -130,7 +141,9 @@ GenericMessageConnectionImpl
 				endpoint.getConnectionEndpoint(),
 				new GenericMessageEncoder(),
 				new GenericMessageDecoder( msg_id, msg_desc ),
-				false, true, null );
+				stream_crypto != MessageManager.STREAM_ENCRYPTION_NONE, 			// use crypto
+				stream_crypto != MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED, 	// allow fallback
+				shared_secret );
 		
 		connection.connect(
 				new NetworkConnection.ConnectionListener()

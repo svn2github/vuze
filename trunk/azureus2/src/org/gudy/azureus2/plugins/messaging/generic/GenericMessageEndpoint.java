@@ -27,6 +27,9 @@ import java.net.InetSocketAddress;
 public interface 
 GenericMessageEndpoint 
 {
+	public InetSocketAddress
+	getNotionalAddress();
+	
 	public void
 	addTCP(
 		InetSocketAddress	target );

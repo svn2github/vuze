@@ -22,13 +22,19 @@
 
 package org.gudy.azureus2.pluginsimpl.local.utils.security;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 
 
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListener;
@@ -40,14 +46,28 @@ import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.security.CryptoSTSEngine;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 public class 
 SESTSConnectionImpl
 	implements GenericMessageConnection
-{
+{	
+	private static final LogIDs LOGID = LogIDs.NWMAN;
+
+	private static long					last_incoming_sts_create;
+	
+	private static final int			BLOOM_RECREATE				= 30*1000;
+	private static final int			BLOOM_INCREASE				= 500;
+	private static BloomFilter			generate_bloom				= BloomFilterFactory.createAddRemove4Bit(BLOOM_INCREASE);
+	private static long					generate_bloom_create_time	= SystemTime.getCurrentTime();
+
+
+	private AzureusCore					core;
 	private GenericMessageConnection	connection;
 	private SEPublicKey					my_public_key;
 	private SEPublicKeyLocator			key_locator;
+	private String						reason;
 	
 	private CryptoSTSEngine	sts_engine;
 	
@@ -74,12 +94,12 @@ SESTSConnectionImpl
 	
 		throws Exception
 	{
+		core			= _core;
 		connection		= _connection;
 		my_public_key	= _my_public_key;
 		key_locator		= _key_locator;
-		
-		sts_engine	= _core.getCryptoManager().getECCHandler().getSTSEngine( _reason );
-		
+		reason			= _reason;
+				
 		connection.addListener(
 			new GenericMessageConnectionListener()
 			{
@@ -110,6 +130,79 @@ SESTSConnectionImpl
 					reportFailed( error );
 				}
 			});
+	}
+	
+	protected void
+	getSTSEngine(
+		boolean	incoming )
+	
+		throws Exception
+	{
+		if ( incoming ){
+			
+			rateLimit( connection.getEndpoint().getNotionalAddress());
+		}
+		
+		sts_engine	= core.getCryptoManager().getECCHandler().getSTSEngine( reason );
+	}
+	
+	protected static void
+	rateLimit(
+		InetSocketAddress	originator )
+	
+		throws Exception
+	{
+		synchronized( SESTSConnectionImpl.class ){
+							
+			int	hit_count = generate_bloom.add( originator.getAddress().getAddress());
+			
+			long	now = SystemTime.getCurrentTime();
+
+				// allow up to 10% bloom filter utilisation
+			
+			if ( generate_bloom.getSize() / generate_bloom.getEntryCount() < 10 ){
+				
+				generate_bloom = BloomFilterFactory.createAddRemove4Bit(generate_bloom.getSize() + BLOOM_INCREASE );
+				
+				generate_bloom_create_time	= now;
+				
+	     		Logger.log(	new LogEvent(LOGID, "STS bloom: size increased to " + generate_bloom.getSize()));
+
+			}else if ( now < generate_bloom_create_time || now - generate_bloom_create_time > BLOOM_RECREATE ){
+				
+				generate_bloom = BloomFilterFactory.createAddRemove4Bit(generate_bloom.getSize());
+				
+				generate_bloom_create_time	= now;
+			}
+				
+			if ( hit_count >= 15 ){
+				
+	     		Logger.log(	new LogEvent(LOGID, "STS bloom: too many recent connection attempts from " + originator ));
+	     		
+	     		Debug.out( "STS: too many recent connection attempts from " + originator );
+	     		
+				throw( new IOException( "Too many recent connection attempts (phe)"));
+			}
+			
+			long	since_last = now - last_incoming_sts_create;
+			
+			long	delay = 100 - since_last;
+			
+				// limit key gen operations to 10 a second
+			
+			if ( delay > 0 && delay < 100 ){
+				
+				try{
+		    		Logger.log(	new LogEvent(LOGID, "STS: too many recent connection attempts, delaying " + delay ));
+		    		 
+					Thread.sleep( delay );
+					
+				}catch( Throwable e ){
+				}
+			}
+			
+			last_incoming_sts_create = now;
+		}
 	}
 	
 	public GenericMessageEndpoint
@@ -152,6 +245,8 @@ SESTSConnectionImpl
 					forward	= true;
 					
 				}else{
+					getSTSEngine( true );
+					
 						// basic sts flow:
 						//   a -> puba -> b
 						//   a <- pubb <- b
@@ -322,6 +417,8 @@ SESTSConnectionImpl
 			synchronized( this ){
 								
 				if ( !sent_keys ){
+					
+					getSTSEngine( false );
 					
 					sent_keys	= true;
 					

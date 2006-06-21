@@ -28,6 +28,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.messaging.*;
@@ -165,6 +166,7 @@ public class MessageManagerImpl implements MessageManager {
   registerGenericMessageType(
 	 final String					_type,
 	 final String					description,
+	 final int						stream_crypto,
 	 final GenericMessageHandler	handler )
   
   	throws MessageException
@@ -172,6 +174,8 @@ public class MessageManagerImpl implements MessageManager {
 	final String	type 		= "AEGEN:" + _type;
 	final byte[]	type_bytes 	= type.getBytes();
 	
+	final byte[]	shared_secret = new SHA1Simple().calculateHash( type_bytes );
+		
 	final NetworkManager.ByteMatcher matcher = 
 			new NetworkManager.ByteMatcher()
 			{
@@ -213,7 +217,7 @@ public class MessageManagerImpl implements MessageManager {
 				public byte[] 
 				getSharedSecret()
 				{ 
-					return( null ); 
+					return( shared_secret ); 
 				}
 			};
 			
@@ -230,7 +234,7 @@ public class MessageManagerImpl implements MessageManager {
 							
 							connection.getTransport().read( skip_buffer, 0, 1 );
 
-							if ( !handler.accept( new GenericMessageConnectionImpl( type, description, connection ))){
+							if ( !handler.accept( new GenericMessageConnectionImpl( type, description, stream_crypto, shared_secret, connection ))){
 								
 								connection.close();
 							}
@@ -246,7 +250,7 @@ public class MessageManagerImpl implements MessageManager {
 					public boolean
 					autoCryptoFallback()
 					{
-						return( true );
+						return( stream_crypto != MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED );
 					}
 				},
 				new MessageStreamFactory() {
@@ -271,7 +275,7 @@ public class MessageManagerImpl implements MessageManager {
 			
 				throws MessageException
 			{
-				return( new GenericMessageConnectionImpl( type, description, endpoint ));
+				return( new GenericMessageConnectionImpl( type, description, endpoint, stream_crypto, shared_secret ));
 			}
 			
 			public void

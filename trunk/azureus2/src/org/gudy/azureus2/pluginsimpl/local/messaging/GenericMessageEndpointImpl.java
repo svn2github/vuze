@@ -50,6 +50,12 @@ GenericMessageEndpointImpl
 		ce		= new ConnectionEndpoint( _ne );
 	}
 	
+	public InetSocketAddress
+	getNotionalAddress()
+	{
+		return( ce.getNotionalAddress());
+	}
+	
 	protected ConnectionEndpoint
 	getConnectionEndpoint()
 	{

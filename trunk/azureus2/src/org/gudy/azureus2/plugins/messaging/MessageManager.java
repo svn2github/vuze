@@ -25,7 +25,6 @@ package org.gudy.azureus2.plugins.messaging;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
-import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 
 
 /**
@@ -33,6 +32,10 @@ import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
  */
 public interface MessageManager {
 
+  public static final int	STREAM_ENCRYPTION_NONE				= 1;
+  public static final int	STREAM_ENCRYPTION_RC4_PREFERRED		= 2;
+  public static final int	STREAM_ENCRYPTION_RC4_REQUIRED		= 3;
+  
   /**
    * Register the given message type with the manager for processing.
    * NOTE: A message type needs to be registered in order for support to be
@@ -76,9 +79,10 @@ public interface MessageManager {
   
   public GenericMessageRegistration
   registerGenericMessageType(
-		 String					type,
-		 String					description,
-		 GenericMessageHandler	handler )
+		String					type,
+		String					description,
+		int						stream_encryption,
+		GenericMessageHandler	handler )
   
   	throws MessageException;
 }
