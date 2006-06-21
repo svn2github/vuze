@@ -343,7 +343,7 @@ DHTTransportUDPImpl
 					
 					reachable	= true;
 					
-				}else if ( alien_average.getAverage() > 5 ){
+				}else if ( alien_average.getAverage() > 3 ){
 					
 					reachable	= true;
 					
