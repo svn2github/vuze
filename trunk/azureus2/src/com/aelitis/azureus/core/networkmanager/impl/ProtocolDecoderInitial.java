@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -34,26 +33,19 @@ import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
-import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.IncomingSocketChannelManager;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
 
 public class 
-TCPProtocolDecoderInitial 
+ProtocolDecoderInitial 
 	extends ProtocolDecoder
 {	
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
-	private static VirtualChannelSelector	read_selector	= TCPNetworkManager.getSingleton().getReadSelector();
-	private static VirtualChannelSelector	write_selector	= TCPNetworkManager.getSingleton().getWriteSelector();
-
 	private ProtocolDecoderAdapter	adapter;
 	
-	private TCPTransportHelperFilter	filter;
+	private TransportHelperFilter	filter;
 	
-	private SocketChannel	channel;
+	private TransportHelper	transport;
 
 	private byte[]		shared_secret;
 	private ByteBuffer	decode_buffer; 
@@ -61,36 +53,34 @@ TCPProtocolDecoderInitial
 	
 	private long	start_time	= SystemTime.getCurrentTime();
 	
-	private TCPProtocolDecoderPHE	phe_decoder;
+	private ProtocolDecoderPHE	phe_decoder;
 	
 	private long	last_read_time		= 0;
 	
 	private boolean processing_complete;
 	
 	public
-	TCPProtocolDecoderInitial(
-		SocketChannel				_channel,
+	ProtocolDecoderInitial(
+		TransportHelper				_transport,
 		byte[]						_shared_secret,
 		boolean						_outgoing,
-		ProtocolDecoderAdapter	_adapter )
+		ProtocolDecoderAdapter		_adapter )
 	
 		throws IOException
 	{
 		super( true );
 		
-		channel			= _channel;
+		transport		= _transport;
 		shared_secret	= _shared_secret;
 		adapter			= _adapter;
 		
-		final TCPTransportHelper transport_helper	= new TCPTransportHelper( channel);
-
-		final TCPTransportHelperFilterTransparent transparent_filter = new TCPTransportHelperFilterTransparent( transport_helper, false );
+		final TransportHelperFilterTransparent transparent_filter = new TransportHelperFilterTransparent( transport, false );
 				
 		filter	= transparent_filter;
 		
 		if ( _outgoing ){  //we assume that for outgoing connections, if we are here, we want to use crypto
 
-			if ( TCPProtocolDecoderPHE.isCryptoOK()){
+			if ( ProtocolDecoderPHE.isCryptoOK()){
 					
 				decodePHE( null );
 					
@@ -103,18 +93,16 @@ TCPProtocolDecoderInitial
 			
 			decode_buffer = ByteBuffer.allocate( adapter.getMaximumPlainHeaderLength());
 			
-			read_selector.register(
-				channel,
-				new VirtualSelectorListener()
+			transport.registerForReadSelects(
+				new TransportHelper.selectListener()
 				{
-					public boolean 
-					selectSuccess(
-						VirtualChannelSelector	selector, 
-						SocketChannel			sc, 
-						Object 					attachment )
-					{
+				   	public boolean 
+			    	selectSuccess(
+			    		TransportHelper	helper, 
+			    		Object 			attachment )
+				   	{
 						try{
-							int	len = transport_helper.read( decode_buffer );
+							int	len = helper.read( decode_buffer );
 							
 							if ( len < 0 ){
 								
@@ -133,15 +121,15 @@ TCPProtocolDecoderInitial
 							
 							if ( match != ProtocolDecoderAdapter.MATCH_NONE ){
 								
-								read_selector.cancel( channel );
+								helper.cancelReadSelects();
 																		
 								if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE && match == ProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK ){
 								
 									if ( NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED ){										
-										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["+ channel + "] is not encrypted but has been accepted as fallback is enabled" ));
+										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as fallback is enabled" ));
 									}
-									else if( AddressUtils.isLANLocalAddress( channel.socket().getInetAddress().getHostAddress() ) == AddressUtils.LAN_LOCAL_YES ) {
-										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["+ channel + "] is not encrypted but has been accepted as lan-local" ));
+									else if( AddressUtils.isLANLocalAddress( transport.getAddress().getAddress().getHostAddress() ) == AddressUtils.LAN_LOCAL_YES ) {
+										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as lan-local" ));
 									}
 									else{										
 										throw( new IOException( "Crypto required but incoming connection has none" ));
@@ -158,7 +146,7 @@ TCPProtocolDecoderInitial
 								
 								if ( !decode_buffer.hasRemaining()){
 									
-									read_selector.cancel( channel );
+									helper.cancelReadSelects();
 
 									decode_buffer.flip();
 									
@@ -170,23 +158,22 @@ TCPProtocolDecoderInitial
 							
 						}catch( Throwable e ){
 							
-							selectFailure( selector, sc, attachment, e );
+							selectFailure( helper, attachment, e );
 							
 							return( false );
 						}
-					}
+				   	}
 
-					public void 
-					selectFailure(
-						VirtualChannelSelector	selector, 
-						SocketChannel 			sc, 
-						Object 					attachment, 
-						Throwable 				msg)
-					{
-						read_selector.cancel( channel );
+			        public void 
+			        selectFailure(
+			        	TransportHelper	helper,
+			        	Object 			attachment, 
+			        	Throwable 		msg)
+			        {
+						helper.cancelReadSelects();
 						
 						failed( msg );
-					}
+			        }
 				},
 				this );
 		}
@@ -232,7 +219,7 @@ TCPProtocolDecoderInitial
 				}
 			};
 		
-		phe_decoder = new TCPProtocolDecoderPHE( channel, shared_secret, buffer, phe_adapter );
+		phe_decoder = new ProtocolDecoderPHE( transport, shared_secret, buffer, phe_adapter );
 	}
 	
 	public boolean
@@ -273,9 +260,9 @@ TCPProtocolDecoderInitial
 			if ( now - time > timeout ){
 				
 				try{
-					read_selector.cancel( channel );
+					transport.cancelReadSelects();
 					
-					write_selector.cancel( channel );
+					transport.cancelWriteSelects();
 											
 				}catch( Throwable e ){
 					
@@ -291,7 +278,7 @@ TCPProtocolDecoderInitial
 		       	if ( Logger.isEnabled()){
 		       		
 					Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
-							+ channel + "] forcibly timed out after "
+							+ transport.getAddress() + "] forcibly timed out after "
 							+ timeout/1000 + "sec due to socket inactivity"));
 		       	}
 		       	
@@ -302,7 +289,7 @@ TCPProtocolDecoderInitial
 		return( processing_complete );
 	}
 	
-	public TCPTransportHelperFilter
+	public TransportHelperFilter
 	getFilter()
 	{
 		return( filter );

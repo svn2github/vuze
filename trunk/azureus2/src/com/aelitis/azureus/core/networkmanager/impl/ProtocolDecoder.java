@@ -117,20 +117,20 @@ ProtocolDecoder
 	isComplete(
 		long	now );
 	
-	public abstract TCPTransportHelperFilter
+	public abstract TransportHelperFilter
 	getFilter();
 	
 	public static void
 	addSecret(
 		byte[]		secret )
 	{
-		TCPProtocolDecoderPHE.addSecretSupport( secret );
+		ProtocolDecoderPHE.addSecretSupport( secret );
 	}
 	
 	public static void
 	removeSecret(
 		byte[]		secret )
 	{
-		TCPProtocolDecoderPHE.removeSecretSupport( secret );
+		ProtocolDecoderPHE.removeSecretSupport( secret );
 	}
 }

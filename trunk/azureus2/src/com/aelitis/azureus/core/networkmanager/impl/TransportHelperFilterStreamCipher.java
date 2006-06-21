@@ -1,6 +1,6 @@
 /*
- * Created on Jan 18, 2006
- * Created by Alon Rohter
+ * Created on 17-Jan-2006
+ * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -19,19 +19,56 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
+
 package com.aelitis.azureus.core.networkmanager.impl;
 
-import java.nio.channels.SocketChannel;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
 
-/**
- * 
- */
-public class TCPTransportHelperFilterFactory {
+
+public class 
+TransportHelperFilterStreamCipher 
+	extends TransportHelperFilterStream
+{
+	private TransportCipher					read_cipher;
+	private TransportCipher					write_cipher;
+		
+	protected
+	TransportHelperFilterStreamCipher(
+		TransportHelper			_transport,
+		TransportCipher			_read_cipher,
+		TransportCipher			_write_cipher )
+	{
+		super( _transport );
+		
+		read_cipher		= _read_cipher;
+		write_cipher	= _write_cipher;
+	}
 	
+	protected void
+	cryptoOut(
+		ByteBuffer	source_buffer,
+		ByteBuffer	target_buffer )
 	
-	public static TCPTransportHelperFilter createTransparentFilter( SocketChannel channel ) {
-		return new TCPTransportHelperFilterTransparent( new TCPTransportHelper( channel ), false);
+		throws IOException
+	{
+		write_cipher.update( source_buffer, target_buffer );
+	}
+	
+	protected void
+	cryptoIn(
+		ByteBuffer	source_buffer,
+		ByteBuffer	target_buffer )
+	
+		throws IOException
+	{
+		read_cipher.update( source_buffer, target_buffer );
+	}	
+	
+	public String
+	getName()
+	{
+		return( read_cipher.getName());
 	}
 }

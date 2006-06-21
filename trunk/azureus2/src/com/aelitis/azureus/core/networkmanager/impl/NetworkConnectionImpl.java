@@ -23,8 +23,6 @@
 package com.aelitis.azureus.core.networkmanager.impl;
 
 
-import java.net.InetSocketAddress;
-
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
 

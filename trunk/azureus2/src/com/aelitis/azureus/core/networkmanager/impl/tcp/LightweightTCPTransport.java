@@ -30,8 +30,7 @@ import com.aelitis.azureus.core.networkmanager.EventWaiter;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
 import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.TransportEndpoint;
-import com.aelitis.azureus.core.networkmanager.TransportEndpointTCP;
-import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilter;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 
 
 /**
@@ -40,10 +39,11 @@ import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilter;
 public class LightweightTCPTransport implements Transport {
 	
 	private final TransportEndpoint			transport_endpoint;
-	private final TCPTransportHelperFilter 	filter;	
+	private final TransportHelperFilter 	filter;	
 	
-	public LightweightTCPTransport( ProtocolEndpoint	pe, TCPTransportHelperFilter filter ) {
-		transport_endpoint	= new TransportEndpointTCP( pe, filter.getSocketChannel());
+	public LightweightTCPTransport( ProtocolEndpoint	pe, TransportHelperFilter filter ) {
+		SocketChannel channel = ((TCPTransportHelper)filter.getHelper()).getSocketChannel();
+		transport_endpoint	= new TransportEndpointTCP( pe, channel );
 		this.filter = filter;
 	}
 	
@@ -63,7 +63,7 @@ public class LightweightTCPTransport implements Transport {
   }
   
 
-  public SocketChannel getSocketChannel(){  return filter.getSocketChannel();  }
+  public SocketChannel getSocketChannel(){  return ((TCPTransportHelper)filter.getHelper()).getSocketChannel();  }
   
   public InetSocketAddress 
   getRemoteAddress()

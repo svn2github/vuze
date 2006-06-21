@@ -25,26 +25,23 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
-
 
 public class 
-TCPTransportHelperFilterStreamCipher 
-	extends TCPTransportHelperFilterStream
+TransportHelperFilterStreamXOR
+	extends TransportHelperFilterStream
 {
-	private TransportCipher					read_cipher;
-	private TransportCipher					write_cipher;
-		
+	private byte[]		mask;
+	private int			read_position;
+	private int			write_position;
+	
 	protected
-	TCPTransportHelperFilterStreamCipher(
-		TCPTransportHelper		_transport,
-		TransportCipher		_read_cipher,
-		TransportCipher		_write_cipher )
+	TransportHelperFilterStreamXOR(
+		TransportHelper			_transport,
+		byte[]					_mask )
 	{
 		super( _transport );
 		
-		read_cipher		= _read_cipher;
-		write_cipher	= _write_cipher;
+		mask		= _mask;
 	}
 	
 	protected void
@@ -53,8 +50,22 @@ TCPTransportHelperFilterStreamCipher
 		ByteBuffer	target_buffer )
 	
 		throws IOException
-	{
-		write_cipher.update( source_buffer, target_buffer );
+	{		
+		int	rem = source_buffer.remaining();
+		
+		for (int i=0;i<rem;i++){
+			
+			byte	b = source_buffer.get();
+			
+			b = (byte)( b ^ mask[ write_position++ ]);
+			
+			target_buffer.put( b );
+			
+			if ( write_position == mask.length  ){
+				
+				write_position	= 0;
+			}
+		}
 	}
 	
 	protected void
@@ -63,13 +74,27 @@ TCPTransportHelperFilterStreamCipher
 		ByteBuffer	target_buffer )
 	
 		throws IOException
-	{
-		read_cipher.update( source_buffer, target_buffer );
-	}	
+	{		
+		int	rem = source_buffer.remaining();
+		
+		for (int i=0;i<rem;i++){
+			
+			byte	b = source_buffer.get();
+			
+			b = (byte)( b ^ mask[ read_position++ ]);
+			
+			target_buffer.put( b );
+			
+			if ( read_position == mask.length  ){
+				
+				read_position	= 0;
+			}
+		}	
+	}
 	
 	public String
 	getName()
 	{
-		return( read_cipher.getName());
+		return( "XOR-" + mask.length*8 );
 	}
 }

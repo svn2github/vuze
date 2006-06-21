@@ -22,7 +22,6 @@
 package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 
 /**
@@ -39,14 +38,14 @@ public class TransportCryptoManager {
 	
 	public void 
 	manageCrypto( 
-		SocketChannel 				channel,
+		TransportHelper				transport,
 		byte[]						shared_secret,
 		boolean 					is_incoming, 
 		final HandshakeListener 	listener ) 
 	{						
 			try{
-				new TCPProtocolDecoderInitial( 
-						channel, 
+				new ProtocolDecoderInitial( 
+						transport, 
 						shared_secret,
 						!is_incoming,
 						new ProtocolDecoderAdapter()
@@ -94,7 +93,7 @@ public class TransportCryptoManager {
 		public static final int MATCH_CRYPTO_NO_AUTO_FALLBACK	= ProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK;
 		public static final int MATCH_CRYPTO_AUTO_FALLBACK		= ProtocolDecoderAdapter.MATCH_CRYPTO_AUTO_FALLBACK;
 		
-		public void handshakeSuccess( TCPTransportHelperFilter filter );
+		public void handshakeSuccess( TransportHelperFilter filter );
 
 		public void handshakeFailure( Throwable failure_msg );
 		

@@ -24,26 +24,24 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
 
 
 public abstract class 
-TCPTransportHelperFilterStream 
-	implements TCPTransportHelperFilter
+TransportHelperFilterStream 
+	implements TransportHelperFilter
 {
-	private TCPTransportHelper		transport;
+	private TransportHelper		transport;
 
 	private DirectByteBuffer	write_buffer_pending_db;
 	private ByteBuffer			write_buffer_pending_byte;
 	
 	protected
-	TCPTransportHelperFilterStream(
-		TCPTransportHelper		_transport )
+	TransportHelperFilterStream(
+		TransportHelper		_transport )
 	{
 		transport	= _transport;
 	}
@@ -52,6 +50,12 @@ TCPTransportHelperFilterStream
 	isFlushed()
 	{
 		return( write_buffer_pending_db == null && write_buffer_pending_byte == null );
+	}
+	
+	public TransportHelper
+	getHelper()
+	{
+		return( transport );
 	}
 	
 	public long 
@@ -313,10 +317,4 @@ TCPTransportHelperFilterStream
 		ByteBuffer	target_buffer )
 	
 		throws IOException;
-	
-	public SocketChannel
-	getSocketChannel()
-	{
-		return( transport.getSocketChannel());
-	}
 }

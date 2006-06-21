@@ -35,7 +35,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
-import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilter;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager.HandshakeListener;
 
@@ -300,13 +300,15 @@ public class IncomingSocketChannelManager
 	        Debug.out( e );
 	        address = new InetSocketAddress( tcp_listen_port );
 	      }
-	      
+	      	      
 	      server_selector = VirtualServerChannelSelectorFactory.createTest( address, so_rcvbuf_size, new VirtualBlockingServerChannelSelector.SelectListener() {
 	        public void newConnectionAccepted( final ServerSocketChannel server, final SocketChannel channel ) {
 	        	
 	        	//check for encrypted transport
-	        	TransportCryptoManager.getSingleton().manageCrypto( channel, null, true, new TransportCryptoManager.HandshakeListener() {
-	        		public void handshakeSuccess( TCPTransportHelperFilter filter ) {
+	  	      	TCPTransportHelper	helper = new TCPTransportHelper( channel );
+
+	        	TransportCryptoManager.getSingleton().manageCrypto( helper, null, true, new TransportCryptoManager.HandshakeListener() {
+	        		public void handshakeSuccess( TransportHelperFilter filter ) {
 	        			process( server, filter );
 	        		}
 
@@ -384,7 +386,7 @@ public class IncomingSocketChannelManager
   }
   
   
-  protected void process( ServerSocketChannel	server, TCPTransportHelperFilter filter ) {
+  protected void process( ServerSocketChannel	server, TransportHelperFilter filter ) {
     //do timeout check if necessary
     long now = SystemTime.getCurrentTime();
     if( now < last_timeout_check_time || now - last_timeout_check_time > 5*1000 ) {
@@ -392,22 +394,24 @@ public class IncomingSocketChannelManager
       last_timeout_check_time = now;
     }
     
+    SocketChannel	channel = ((TCPTransportHelper)filter.getHelper()).getSocketChannel();
+    
     if( match_buffers_cow.isEmpty() ) {  //no match registrations, just close
     	if (Logger.isEnabled())
     		Logger.log(new LogEvent(LOGID, "Incoming TCP connection from ["
-    				+ filter.getSocketChannel().socket().getInetAddress().getHostAddress() + ":"
-    				+ filter.getSocketChannel().socket().getPort()+ "] dropped because zero routing handlers registered"));
-    	TCPNetworkManager.getSingleton().closeSocketChannel( filter.getSocketChannel() );
+    				+ channel.socket().getInetAddress().getHostAddress() + ":"
+    				+ channel.socket().getPort()+ "] dropped because zero routing handlers registered"));
+    	TCPNetworkManager.getSingleton().closeSocketChannel( channel );
       return;
     }
     
     //set advanced socket options
     try {
       int so_sndbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
-      if( so_sndbuf_size > 0 )  filter.getSocketChannel().socket().setSendBufferSize( so_sndbuf_size );
+      if( so_sndbuf_size > 0 )  channel.socket().setSendBufferSize( so_sndbuf_size );
       
       String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
-      if( ip_tos.length() > 0 )  filter.getSocketChannel().socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+      if( ip_tos.length() > 0 )  channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
     }
     catch( Throwable t ) {
       t.printStackTrace();
@@ -428,7 +432,7 @@ public class IncomingSocketChannelManager
       connections.add( ic );
       
       selector.register(  
-    		 ic.filter.getSocketChannel(),
+    		 channel,
     		 sel_listener,
     		 ic );
       
@@ -436,7 +440,7 @@ public class IncomingSocketChannelManager
 
     	// might be stuff queued up in the filter - force one process cycle (NAT check in particular )
     
-    sel_listener.selectSuccess( selector, ic.filter.getSocketChannel(), ic );
+    sel_listener.selectSuccess( selector, channel, ic );
   }
   
   
@@ -462,15 +466,17 @@ public class IncomingSocketChannelManager
   
   
   protected void removeConnection( IncomingConnection connection, boolean close_as_well ) {
+    SocketChannel	channel = ((TCPTransportHelper)connection.filter.getHelper()).getSocketChannel();
+
     try{  connections_mon.enter();
-    
-      TCPNetworkManager.getSingleton().getReadSelector().cancel( connection.filter.getSocketChannel() );  //cancel read op
+     
+      TCPNetworkManager.getSingleton().getReadSelector().cancel( channel );  //cancel read op
       connections.remove( connection );   //remove from connection list
       
     } finally {  connections_mon.exit();  }
     
     if( close_as_well ) {
-    	TCPNetworkManager.getSingleton().closeSocketChannel( connection.filter.getSocketChannel() );  //async close it
+    	TCPNetworkManager.getSingleton().closeSocketChannel( channel );  //async close it
     }
   }
   
@@ -529,6 +535,8 @@ public class IncomingSocketChannelManager
       for( int i=0; i < connections.size(); i++ ) {
         IncomingConnection ic = (IncomingConnection)connections.get( i );
         
+        SocketChannel	channel = ((TCPTransportHelper)ic.filter.getHelper()).getSocketChannel();
+
         if( ic.last_read_time > 0 ) {  //at least one read op has occured
           if( now < ic.last_read_time ) {  //time went backwards!
             ic.last_read_time = now;
@@ -536,8 +544,8 @@ public class IncomingSocketChannelManager
           else if( now - ic.last_read_time > READ_TIMEOUT ) {  //10s read timeout
           	if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
-									+ ic.filter.getSocketChannel().socket().getInetAddress().getHostAddress() + ":"
-									+ ic.filter.getSocketChannel().socket().getPort()
+									+ channel.socket().getInetAddress().getHostAddress() + ":"
+									+ channel.socket().getPort()
 									+ "] forcibly timed out due to socket read inactivity ["
 									+ ic.buffer.position() + " bytes read: "
 									+ new String(ic.buffer.array()) + "]"));
@@ -552,7 +560,7 @@ public class IncomingSocketChannelManager
           else if( now - ic.initial_connect_time > CONNECT_TIMEOUT ) {  //60s connect timeout
           	if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
-									+ ic.filter.getSocketChannel() + "] forcibly timed out after "
+									+ channel + "] forcibly timed out after "
 									+ "60sec due to socket inactivity"));
             if( to_close == null )  to_close = new ArrayList();
             to_close.add( ic );
@@ -576,12 +584,12 @@ public class IncomingSocketChannelManager
  
   
   protected static class IncomingConnection {
-  	protected final TCPTransportHelperFilter filter;
+  	protected final TransportHelperFilter filter;
   	protected final ByteBuffer buffer;
   	protected long initial_connect_time;
   	protected long last_read_time = -1;
     
-  	protected IncomingConnection( TCPTransportHelperFilter filter, int buff_size ) {
+  	protected IncomingConnection( TransportHelperFilter filter, int buff_size ) {
       this.filter = filter;
       this.buffer = ByteBuffer.allocate( buff_size );
       this.initial_connect_time = SystemTime.getCurrentTime();

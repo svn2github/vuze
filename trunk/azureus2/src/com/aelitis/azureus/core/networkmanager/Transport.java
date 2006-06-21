@@ -23,15 +23,14 @@
 package com.aelitis.azureus.core.networkmanager;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 /**
- * Represents a peer TCP transport connection (eg. a network socket).
+ * Represents a peer Transport connection (eg. a network socket).
  */
 public interface Transport {
 	
-	public static final int TRANSPORT_MODE_NORMAL = 0;
+  public static final int TRANSPORT_MODE_NORMAL = 0;
   public static final int TRANSPORT_MODE_FAST   = 1;
   public static final int TRANSPORT_MODE_TURBO  = 2;
 
@@ -101,9 +100,8 @@ public interface Transport {
    * @return number of bytes read
    * @throws IOException on read error
    */
-  public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException;
-
   
+  public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException;
   
   /**
    * Set the transport to the given speed mode.
@@ -121,10 +119,7 @@ public interface Transport {
   public void
   connectOutbound(
 		ConnectListener 	listener );
-  
-  public InetSocketAddress 
-  getRemoteAddress();
-  
+   
   /**
    * Close the transport connection.
    */
@@ -153,17 +148,4 @@ public interface Transport {
      */
     public void connectFailure( Throwable failure_msg );
   }
- 
-   
-   
-  /**
-   * Listener for notification for transport reads.
-   */
-  public interface ReadListener {
-    /**
-     * Notification of transport read readiness.
-     */
-    public void readyToRead();
-  }
-  
 }

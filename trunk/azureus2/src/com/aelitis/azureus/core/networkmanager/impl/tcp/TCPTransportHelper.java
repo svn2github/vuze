@@ -22,18 +22,26 @@
 package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
+import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
+
 
 
 /**
  * 
  */
-public class TCPTransportHelper {
+public class 
+TCPTransportHelper 
+	implements TransportHelper
+{
 	
 	private static boolean enable_efficient_io = !Constants.JAVA_VERSION.startsWith("1.4");
 
@@ -43,7 +51,13 @@ public class TCPTransportHelper {
 		channel = _channel;
 	}
 	
-	 public int write( ByteBuffer buffer ) throws IOException {  	
+	public InetSocketAddress
+	getAddress()
+	{
+		return( new InetSocketAddress( channel.socket().getInetAddress(), channel.socket().getPort()));
+	}
+	
+	public int write( ByteBuffer buffer ) throws IOException {  	
 		    if( channel == null ) {
 		      Debug.out( "channel == null" );
 		      return 0;
@@ -149,7 +163,103 @@ public class TCPTransportHelper {
     return bytes_read;
   }
   
+  public void
+  registerForReadSelects(
+	final selectListener		listener,
+	Object						attachment )
+  {
+	  TCPNetworkManager.getSingleton().getReadSelector().register(
+				channel,
+				new VirtualSelectorListener()
+				{
+					public boolean 
+					selectSuccess(
+						VirtualChannelSelector	selector, 
+						SocketChannel			sc, 
+						Object 					attachment )
+					{
+						return( listener.selectSuccess( TCPTransportHelper.this, attachment ));
+					}
 
+					public void 
+					selectFailure(
+						VirtualChannelSelector	selector, 
+						SocketChannel 			sc, 
+						Object 					attachment, 
+						Throwable 				msg)
+					{
+						listener.selectFailure( TCPTransportHelper.this, attachment, msg );
+					}
+				},
+				attachment );
+  }
+  
+  public void
+  registerForWriteSelects(
+	final selectListener		listener,
+	Object						attachment )
+  {
+	  TCPNetworkManager.getSingleton().getWriteSelector().register(
+				channel,
+				new VirtualSelectorListener()
+				{
+					public boolean 
+					selectSuccess(
+						VirtualChannelSelector	selector, 
+						SocketChannel			sc, 
+						Object 					attachment )
+					{
+						return( listener.selectSuccess( TCPTransportHelper.this, attachment ));
+					}
+
+					public void 
+					selectFailure(
+						VirtualChannelSelector	selector, 
+						SocketChannel 			sc, 
+						Object 					attachment, 
+						Throwable 				msg)
+					{
+						listener.selectFailure( TCPTransportHelper.this, attachment, msg );
+					}
+				},
+				attachment );
+  }
+  
+  public void
+  cancelReadSelects()
+  {
+	  TCPNetworkManager.getSingleton().getReadSelector().cancel( channel );
+  }
+  
+  public void
+  cancelWriteSelects()
+  {
+	  TCPNetworkManager.getSingleton().getWriteSelector().cancel( channel );
+  }
+  
+  public void
+  resumeReadSelects()
+  {
+	  TCPNetworkManager.getSingleton().getReadSelector().resumeSelects( channel );
+  }
+  
+  public void
+  resumeWriteSelects()
+  {
+	  TCPNetworkManager.getSingleton().getWriteSelector().resumeSelects( channel );
+  }
+  
+  public void
+  pauseReadSelects()
+  {
+	  TCPNetworkManager.getSingleton().getReadSelector().pauseSelects( channel );
+  }
+  
+  public void
+  pauseWriteSelects()
+  {
+	  TCPNetworkManager.getSingleton().getWriteSelector().pauseSelects( channel );
+  }
   
   public SocketChannel getSocketChannel(){  return channel; }
 	

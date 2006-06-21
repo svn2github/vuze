@@ -24,10 +24,9 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 public interface 
-TCPTransportHelperFilter 
+TransportHelperFilter 
 {
 	public long 
 	write( 
@@ -48,8 +47,8 @@ TCPTransportHelperFilter
 	public boolean
 	isFlushed();
 	
-	public SocketChannel
-	getSocketChannel();
+	public TransportHelper
+	getHelper();
 	
 	public String
 	getName();

@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
-import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;

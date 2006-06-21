@@ -32,13 +32,10 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilter;
-import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilterFactory;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.networkmanager.impl.TransportStats;
-import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager.HandshakeListener;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager.ConnectListener;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.ProxyLoginHandler.ProxyListener;
 
 
 
@@ -49,7 +46,7 @@ public class TCPTransportImpl implements Transport {
 	private static final LogIDs LOGID = LogIDs.NET;
   
   protected ProtocolEndpointTCP		protocol_endpoint;
-  protected TCPTransportHelperFilter filter;
+  protected TransportHelperFilter filter;
 
   protected volatile boolean is_ready_for_write = false;
   protected volatile boolean is_ready_for_read = false;
@@ -96,7 +93,7 @@ public class TCPTransportImpl implements Transport {
    * @param channel connection
    * @param already_read bytes from the channel
    */
-  public TCPTransportImpl( ProtocolEndpointTCP endpoint, TCPTransportHelperFilter	filter, ByteBuffer already_read ) 
+  public TCPTransportImpl( ProtocolEndpointTCP endpoint, TransportHelperFilter	filter, ByteBuffer already_read ) 
   {
 	protocol_endpoint = endpoint;
     this.filter = filter;
@@ -104,7 +101,7 @@ public class TCPTransportImpl implements Transport {
     is_inbound_connection = true;
     connect_with_crypto = false;  //inbound connections will automatically be using crypto if necessary
     fallback_allowed = false;
-    description = ( is_inbound_connection ? "R" : "L" ) + ": " + filter.getSocketChannel().socket().getInetAddress().getHostAddress() + ": " + filter.getSocketChannel().socket().getPort();
+    description = ( is_inbound_connection ? "R" : "L" ) + ": " + getSocketChannel().socket().getInetAddress().getHostAddress() + ": " + getSocketChannel().socket().getPort();
     
     registerSelectHandling();
   }
@@ -125,12 +122,12 @@ public class TCPTransportImpl implements Transport {
    * Get the socket channel used by the transport.
    * @return the socket channel
    */
-  public SocketChannel getSocketChannel() {  return filter.getSocketChannel();  }
+  public SocketChannel getSocketChannel() {  return ((TCPTransportHelper)filter.getHelper()).getSocketChannel();  }
   
   public TransportEndpoint
   getTransportEndpoint()
   {
-	  return( new TransportEndpointTCP( protocol_endpoint, filter.getSocketChannel()));
+	  return( new TransportEndpointTCP( protocol_endpoint, getSocketChannel()));
   }
   
   /**
@@ -188,7 +185,7 @@ public class TCPTransportImpl implements Transport {
   private void requestWriteSelect() {
     is_ready_for_write = false;
     if( filter != null ){
-    	TCPNetworkManager.getSingleton().getWriteSelector().resumeSelects( filter.getSocketChannel() );
+    	filter.getHelper().resumeWriteSelects();
     }
   }
   
@@ -196,7 +193,7 @@ public class TCPTransportImpl implements Transport {
   private void requestReadSelect() {
     is_ready_for_read = false;
     if( filter != null ){
-    	TCPNetworkManager.getSingleton().getReadSelector().resumeSelects( filter.getSocketChannel() );
+    	filter.getHelper().resumeReadSelects();
     }
   } 
   
@@ -209,7 +206,7 @@ public class TCPTransportImpl implements Transport {
     }
 
     //read selection
-    TCPNetworkManager.getSingleton().getReadSelector().register( filter.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+    TCPNetworkManager.getSingleton().getReadSelector().register( getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
     	boolean	progress = !is_ready_for_read;
         is_ready_for_read = true;
@@ -228,7 +225,7 @@ public class TCPTransportImpl implements Transport {
     
     
     //write selection
-    TCPNetworkManager.getSingleton().getWriteSelector().register( filter.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+    TCPNetworkManager.getSingleton().getWriteSelector().register( getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
     	boolean	progress = !is_ready_for_write;
         is_ready_for_write = true;
@@ -394,8 +391,9 @@ public class TCPTransportImpl implements Transport {
   protected void handleCrypto( final InetSocketAddress address, final SocketChannel channel, final ConnectListener listener ) {  	
   	if( connect_with_crypto ) {
     	//attempt encrypted transport
-    	TransportCryptoManager.getSingleton().manageCrypto( channel, shared_secret, false, new TransportCryptoManager.HandshakeListener() {
-    		public void handshakeSuccess( TCPTransportHelperFilter _filter ) {    			
+  		TransportHelper	helper = new TCPTransportHelper( channel );
+    	TransportCryptoManager.getSingleton().manageCrypto( helper, shared_secret, false, new TransportCryptoManager.HandshakeListener() {
+    		public void handshakeSuccess( TransportHelperFilter _filter ) {    			
     			//System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" );     			
     			filter = _filter; 
     			if ( Logger.isEnabled()){
@@ -460,11 +458,13 @@ public class TCPTransportImpl implements Transport {
   	}
   	
     try{
-    	filter.getSocketChannel().socket().setSendBufferSize( size_in_bytes );
-    	filter.getSocketChannel().socket().setReceiveBufferSize( size_in_bytes );
+    	SocketChannel	channel = getSocketChannel();
+    	
+    	channel.socket().setSendBufferSize( size_in_bytes );
+    	channel.socket().setReceiveBufferSize( size_in_bytes );
       
-      int snd_real = filter.getSocketChannel().socket().getSendBufferSize();
-      int rcv_real = filter.getSocketChannel().socket().getReceiveBufferSize();
+      int snd_real = channel.socket().getSendBufferSize();
+      int rcv_real = channel.socket().getReceiveBufferSize();
       
       Logger.log(new LogEvent(LOGID, "Setting new transport [" + description
 					+ "] buffer sizes: SND=" + size_in_bytes + " [" + snd_real
@@ -532,9 +532,10 @@ public class TCPTransportImpl implements Transport {
     is_ready_for_write = false;
 
     if( filter != null ){
-      TCPNetworkManager.getSingleton().getReadSelector().cancel( filter.getSocketChannel() );
-      TCPNetworkManager.getSingleton().getWriteSelector().cancel( filter.getSocketChannel() );
-      TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( filter.getSocketChannel() );
+      SocketChannel channel = getSocketChannel();
+      TCPNetworkManager.getSingleton().getReadSelector().cancel( channel );
+      TCPNetworkManager.getSingleton().getWriteSelector().cancel( channel );
+      TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
       
       filter = null;
     }

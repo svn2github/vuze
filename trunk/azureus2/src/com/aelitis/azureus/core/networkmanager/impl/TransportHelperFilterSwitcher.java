@@ -24,24 +24,23 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 public class 
-TCPTransportHelperFilterSwitcher 
-	implements TCPTransportHelperFilter
+TransportHelperFilterSwitcher 
+	implements TransportHelperFilter
 {
-	private TCPTransportHelperFilter	current_reader;
-	private TCPTransportHelperFilter	current_writer;
+	private TransportHelperFilter	current_reader;
+	private TransportHelperFilter	current_writer;
 	
-	private TCPTransportHelperFilter	second_filter;
+	private TransportHelperFilter	second_filter;
 	
 	private int	read_rem;
 	private int	write_rem;
 	
 	public
-	TCPTransportHelperFilterSwitcher(
-		TCPTransportHelperFilter	_filter1,
-		TCPTransportHelperFilter	_filter2,
+	TransportHelperFilterSwitcher(
+		TransportHelperFilter	_filter1,
+		TransportHelperFilter	_filter2,
 		int							_switch_read,
 		int							_switch_write )
 	{
@@ -210,11 +209,11 @@ TCPTransportHelperFilterSwitcher
 	{
 		return( current_writer.isFlushed());
 	}
-	
-	public SocketChannel
-	getSocketChannel()
+
+	public TransportHelper
+	getHelper()
 	{
-		return( second_filter.getSocketChannel());
+		return( second_filter.getHelper());
 	}
 	
 	public String

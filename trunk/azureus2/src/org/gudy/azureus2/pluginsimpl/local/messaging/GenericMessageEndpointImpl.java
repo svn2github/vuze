@@ -28,7 +28,7 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
-import com.aelitis.azureus.core.networkmanager.ProtocolEndpointTCP;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 
 public class 
 GenericMessageEndpointImpl 

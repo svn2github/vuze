@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager;
 import java.net.InetSocketAddress;
 
 import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 
 public class 
 ConnectionEndpoint 

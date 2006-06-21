@@ -20,15 +20,15 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
+import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
-import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilterFactory;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.LightweightTCPTransport;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportImpl;
 
 public class 
 ProtocolEndpointTCP 

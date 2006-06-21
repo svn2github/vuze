@@ -38,10 +38,12 @@ import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelectorFactory;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
-import com.aelitis.azureus.core.networkmanager.impl.TCPProtocolDecoderInitial;
+import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoderInitial;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoderAdapter;
-import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilter;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
 
 public class 
 PHETester 
@@ -100,9 +102,11 @@ PHETester
 		SocketChannel	channel )
 	{
 		try{
-			final TCPProtocolDecoderInitial	decoder = 
-				new TCPProtocolDecoderInitial( 
-						channel, 
+			TransportHelper	helper = new TCPTransportHelper( channel );
+			
+			final ProtocolDecoderInitial	decoder = 
+				new ProtocolDecoderInitial( 
+						helper, 
 						null,
 						false,
 						new ProtocolDecoderAdapter()
@@ -241,10 +245,12 @@ PHETester
 				
 				writeStream( "two jolly porkers".getBytes(), channel );
 				
-			}else{				
-				final TCPProtocolDecoderInitial decoder =
-					new TCPProtocolDecoderInitial( 
-						channel,
+			}else{			
+				TransportHelper	helper = new TCPTransportHelper( channel );
+
+				final ProtocolDecoderInitial decoder =
+					new ProtocolDecoderInitial( 
+						helper,
 						shared_secret,
 						true,
 						new ProtocolDecoderAdapter()
@@ -294,11 +300,11 @@ PHETester
 	protected void
 	readStream(
 		final String					str,
-		final TCPTransportHelperFilter	filter )
+		final TransportHelperFilter	filter )
 	{
 		try{
 			TCPNetworkManager.getSingleton().getReadSelector().register(
-				filter.getSocketChannel(),
+				((TCPTransportHelper)filter.getHelper()).getSocketChannel(),
 				new VirtualSelectorListener()
 				{
 					public boolean 
@@ -346,7 +352,7 @@ PHETester
 	protected void
 	writeStream(
 		String						str,
-		TCPTransportHelperFilter	filter )
+		TransportHelperFilter	filter )
 	{
 		writeStream( str.getBytes(), filter );
 	}
@@ -354,7 +360,7 @@ PHETester
 	protected void
 	writeStream(
 		byte[]						data,
-		TCPTransportHelperFilter	filter )
+		TransportHelperFilter	filter )
 	{
 		try{
 			filter.write( new ByteBuffer[]{ ByteBuffer.wrap(data)}, 0, 1 );

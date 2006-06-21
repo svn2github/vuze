@@ -25,7 +25,6 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -54,17 +53,12 @@ import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
-import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 public class 
-TCPProtocolDecoderPHE 
-	extends ProtocolDecoder 
-	implements VirtualSelectorListener
+ProtocolDecoderPHE 
+	extends ProtocolDecoder
 {
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
@@ -266,9 +260,6 @@ TCPProtocolDecoderPHE
 	}
 	
 		
-	private static VirtualChannelSelector	read_selector	= TCPNetworkManager.getSingleton().getReadSelector();
-	private static VirtualChannelSelector	write_selector	= TCPNetworkManager.getSingleton().getWriteSelector();
-
 	private static final int		PS_OUTBOUND_1	= 0;
 	private static final int		PS_OUTBOUND_2	= 1;
 	private static final int		PS_OUTBOUND_3	= 2;
@@ -288,7 +279,7 @@ TCPProtocolDecoderPHE
 	
 	
 	
-	private SocketChannel		channel;
+	private TransportHelper		transport;
 	private ByteBuffer			write_buffer;
 	private ByteBuffer			read_buffer;
 	
@@ -326,18 +317,18 @@ TCPProtocolDecoderPHE
 	
 	private long	last_read_time	= SystemTime.getCurrentTime();
 	
-	private TCPTransportHelperFilter		filter;
+	private TransportHelperFilter		filter;
 	
 	private boolean processing_complete;
 	
 	private AEMonitor	process_mon	= new AEMonitor( "TCPProtocolDecoder:process" );
 	
 	public 
-	TCPProtocolDecoderPHE(
-		SocketChannel				_channel,
+	ProtocolDecoderPHE(
+		TransportHelper				_transport,
 		byte[]						_shared_secret,
 		ByteBuffer					_header,
-		ProtocolDecoderAdapter	_adapter )
+		ProtocolDecoderAdapter		_adapter )
 	
 		throws IOException
 	{
@@ -348,7 +339,7 @@ TCPProtocolDecoderPHE
 			throw( new IOException( "PHE crypto broken" ));
 		}
 		
-		channel			= _channel;
+		transport		= _transport;
 		shared_secret	= _shared_secret;
 		adapter			= _adapter;
 		
@@ -388,16 +379,57 @@ TCPProtocolDecoderPHE
 		
 		initCrypto();
 
-		read_selector.register( channel, this, null );
-		write_selector.register( channel, this, null );
+		transport.registerForReadSelects(
+			new TransportHelper.selectListener()
+			{
+			   	public boolean 
+		    	selectSuccess(
+		    		TransportHelper	helper, 
+		    		Object 			attachment )
+			   	{
+			   		return( ProtocolDecoderPHE.this.selectSuccess( helper, attachment, false ));
+			   	}
+
+		        public void 
+		        selectFailure(
+		        	TransportHelper	helper,
+		        	Object 			attachment, 
+		        	Throwable 		msg)
+		        {
+		        	ProtocolDecoderPHE.this.selectFailure( helper, attachment, msg );
+		        }
+			},
+			null );
 		
-		write_selector.pauseSelects( channel );
+		transport.registerForWriteSelects(
+				new TransportHelper.selectListener()
+				{
+				   	public boolean 
+			    	selectSuccess(
+			    		TransportHelper	helper, 
+			    		Object 			attachment )
+				   	{
+				   		return( ProtocolDecoderPHE.this.selectSuccess( helper, attachment, true ));
+				   	}
+
+			        public void 
+			        selectFailure(
+			        	TransportHelper	helper,
+			        	Object 			attachment, 
+			        	Throwable 		msg)
+			        {
+			        	ProtocolDecoderPHE.this.selectFailure( helper, attachment, msg );
+			        }
+				},
+				null );
+		
+		transport.pauseWriteSelects();
 		
 		if ( outbound ){
 		
 			protocol_state	= PS_OUTBOUND_1;
 
-			read_selector.pauseSelects( channel );
+			transport.pauseReadSelects();
 			
 		}else{
 			
@@ -419,7 +451,7 @@ TCPProtocolDecoderPHE
 		throws IOException
 	{
 		try{
-	        KeyPair key_pair = generateDHKeyPair( channel, outbound );
+	        KeyPair key_pair = generateDHKeyPair( transport, outbound );
 	    	    
 	        key_agreement = KeyAgreement.getInstance("DH");
 	        
@@ -548,21 +580,19 @@ TCPProtocolDecoderPHE
 	handshakeComplete()
 	
 		throws IOException
-	{
-		TCPTransportHelper	helper = new TCPTransportHelper( channel );
-		
+	{		
 		if ( selected_protocol == CRYPTO_PLAIN ){
 			
-			filter = new TCPTransportHelperFilterTransparent( helper, true );
+			filter = new TransportHelperFilterTransparent( transport, true );
 									
 		}else if ( selected_protocol == CRYPTO_XOR ){
 		
-			filter = new TCPTransportHelperFilterStreamXOR( helper, secret_bytes );
+			filter = new TransportHelperFilterStreamXOR( transport, secret_bytes );
 						
 		}else if ( selected_protocol == CRYPTO_RC4 ){
 		
-			filter = new TCPTransportHelperFilterStreamCipher( 
-						helper,
+			filter = new TransportHelperFilterStreamCipher( 
+						transport,
 						read_cipher,
 						write_cipher );
 
@@ -598,8 +628,8 @@ TCPProtocolDecoderPHE
 		if ( selected_protocol != CRYPTO_RC4 ){
 			
 			filter = 
-				new TCPTransportHelperFilterSwitcher(
-					 new TCPTransportHelperFilterStreamCipher( helper, read_cipher,	write_cipher ),
+				new TransportHelperFilterSwitcher(
+					 new TransportHelperFilterStreamCipher( transport, read_cipher,	write_cipher ),
 					 filter,
 					 initial_data_in_len,
 					 initial_data_out_len );
@@ -1192,9 +1222,9 @@ TCPProtocolDecoderPHE
 		
 				if ( handshake_complete ){
 					
-					read_selector.cancel( channel );
+					transport.cancelReadSelects();
 					
-					write_selector.cancel( channel );
+					transport.cancelWriteSelects();
 					
 					loop	= false;
 					
@@ -1204,11 +1234,11 @@ TCPProtocolDecoderPHE
 				
 					if ( read_buffer == null ){
 						
-						read_selector.pauseSelects( channel );
+						transport.pauseReadSelects();
 						
 					}else{
 						
-						read_selector.resumeSelects ( channel );
+						transport.resumeReadSelects();
 						
 						loop	= false;
 						
@@ -1216,11 +1246,11 @@ TCPProtocolDecoderPHE
 					
 					if ( write_buffer == null ){
 						
-						write_selector.pauseSelects( channel );
+						transport.pauseWriteSelects();
 						
 					}else{
 						
-						write_selector.resumeSelects ( channel );
+						transport.resumeWriteSelects();
 						
 						loop	= false;
 					}
@@ -1647,7 +1677,7 @@ TCPProtocolDecoderPHE
 	
 		throws IOException
 	{
-		int	len = channel.read( buffer );
+		int	len = transport.read( buffer );
 	
 		// System.out.println( "read:" + this + "/" + protocol_state + "/" + protocol_substate + " -> " + len +"[" + buffer +"]");
 		
@@ -1665,7 +1695,7 @@ TCPProtocolDecoderPHE
 	
 		throws IOException
 	{
-		int	len = channel.write( buffer );
+		int	len = transport.write( buffer );
 		
 		// System.out.println( "write:" + this + "/" + protocol_state + "/" + protocol_substate + " -> " + len +"[" + buffer +"]");
 
@@ -1679,9 +1709,9 @@ TCPProtocolDecoderPHE
 	
 	public boolean 
 	selectSuccess(
-		VirtualChannelSelector 	selector, 
-		SocketChannel 			sc, 
-		Object 					attachment)
+		TransportHelper			transport,
+		Object 					attachment,
+		boolean					write_operation )
 	{
 		try{
 			int	old_bytes_read		= bytes_read;
@@ -1689,7 +1719,7 @@ TCPProtocolDecoderPHE
 			
 			process();
 			
-			if ( selector == write_selector ){
+			if ( write_operation ){
 				
 				return( bytes_written != old_bytes_written );
 				
@@ -1715,8 +1745,7 @@ TCPProtocolDecoderPHE
 
 	public void 
 	selectFailure(
-		VirtualChannelSelector 	selector, 
-		SocketChannel 			sc, 
+		TransportHelper			transport,
 		Object 					attachment, 
 		Throwable				msg )
 	{
@@ -1767,8 +1796,8 @@ TCPProtocolDecoderPHE
 	
 	protected static KeyPair
 	generateDHKeyPair(
-		SocketChannel	channel,
-		boolean			outbound )
+		TransportHelper		transport,
+		boolean				outbound )
 	
 		throws IOException
 	{
@@ -1776,7 +1805,9 @@ TCPProtocolDecoderPHE
 			
 			if ( !outbound ){
 				
-				int	hit_count = generate_bloom.add( channel.socket().getInetAddress().getAddress());
+				byte[]	address = transport.getAddress().getAddress().getAddress();
+				
+				int	hit_count = generate_bloom.add( address );
 				
 				long	now = SystemTime.getCurrentTime();
 	
@@ -1799,7 +1830,7 @@ TCPProtocolDecoderPHE
 					
 				if ( hit_count >= 15 ){
 					
-		     		Logger.log(	new LogEvent(LOGID, "PHE bloom: too many recent connection attempts from " + channel.socket().getInetAddress()));
+		     		Logger.log(	new LogEvent(LOGID, "PHE bloom: too many recent connection attempts from " + transport.getAddress()));
 		     		
 					throw( new IOException( "Too many recent connection attempts (phe)"));
 				}
@@ -1846,9 +1877,9 @@ TCPProtocolDecoderPHE
 
 		processing_complete	= true;
 		
-		read_selector.cancel( channel );
+		transport.cancelReadSelects();
 		
-		write_selector.cancel( channel );
+		transport.cancelWriteSelects();
 
 		adapter.decodeFailed( this, cause );
 	}
@@ -1860,7 +1891,7 @@ TCPProtocolDecoderPHE
 		return( processing_complete );
 	}
 	
-	public TCPTransportHelperFilter
+	public TransportHelperFilter
 	getFilter()
 	{
 		return( filter );
@@ -1883,11 +1914,5 @@ TCPProtocolDecoderPHE
 	getString()
 	{
 		return( "state=" + protocol_state + ",sub=" + protocol_substate + ",in=" + bytes_read + ",out=" + bytes_written);
-	}
-	
-	public SocketChannel
-	getChannel()
-	{
-		return( channel );
 	}
 }

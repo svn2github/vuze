@@ -24,22 +24,20 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
 
 public class 
-TCPTransportHelperFilterTransparent 
-	implements TCPTransportHelperFilter
+TransportHelperFilterTransparent 
+	implements TransportHelperFilter
 {
-	private TCPTransportHelper		transport;
-	private boolean					is_plain;
+	private TransportHelper		transport;
+	private boolean				is_plain;
 	
 	private ByteBuffer			read_insert;
 	
-	protected 
-	TCPTransportHelperFilterTransparent(
-		TCPTransportHelper	_transport,
+	public 
+	TransportHelperFilterTransparent(
+		TransportHelper		_transport,
 		boolean				_is_plain )
 	{
 		transport	= _transport;
@@ -153,10 +151,10 @@ TCPTransportHelperFilterTransparent
 		return( transport.read( buffer ));
 	}
 	
-	public SocketChannel
-	getSocketChannel()
+	public TransportHelper
+	getHelper()
 	{
-		return( transport.getSocketChannel());
+		return( transport );
 	}
 	
 	public String
