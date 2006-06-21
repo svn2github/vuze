@@ -338,7 +338,7 @@ public class IncomingSocketChannelManager
 	            		NetworkManager.getSingleton().closeSocketChannel( channel, 10*1000 );
 	            	*/
 	            
-	            	NetworkManager.getSingleton().closeSocketChannel( channel );
+	            	TCPNetworkManager.getSingleton().closeSocketChannel( channel );
 	            }
 	            
 	    		public int
@@ -397,7 +397,7 @@ public class IncomingSocketChannelManager
     		Logger.log(new LogEvent(LOGID, "Incoming TCP connection from ["
     				+ filter.getSocketChannel().socket().getInetAddress().getHostAddress() + ":"
     				+ filter.getSocketChannel().socket().getPort()+ "] dropped because zero routing handlers registered"));
-    	NetworkManager.getSingleton().closeSocketChannel( filter.getSocketChannel() );
+    	TCPNetworkManager.getSingleton().closeSocketChannel( filter.getSocketChannel() );
       return;
     }
     
@@ -419,7 +419,7 @@ public class IncomingSocketChannelManager
     
     final IncomingConnection ic = new IncomingConnection( filter, max_match_buffer_size );
     
-    VirtualChannelSelector	selector = NetworkManager.getSingleton().getReadSelector();
+    VirtualChannelSelector	selector = TCPNetworkManager.getSingleton().getReadSelector();
     
     SelectorListener	sel_listener = new SelectorListener( server );
     
@@ -464,13 +464,13 @@ public class IncomingSocketChannelManager
   protected void removeConnection( IncomingConnection connection, boolean close_as_well ) {
     try{  connections_mon.enter();
     
-      NetworkManager.getSingleton().getReadSelector().cancel( connection.filter.getSocketChannel() );  //cancel read op
+      TCPNetworkManager.getSingleton().getReadSelector().cancel( connection.filter.getSocketChannel() );  //cancel read op
       connections.remove( connection );   //remove from connection list
       
     } finally {  connections_mon.exit();  }
     
     if( close_as_well ) {
-      NetworkManager.getSingleton().closeSocketChannel( connection.filter.getSocketChannel() );  //async close it
+    	TCPNetworkManager.getSingleton().closeSocketChannel( connection.filter.getSocketChannel() );  //async close it
     }
   }
   

@@ -188,7 +188,7 @@ public class TCPTransportImpl implements Transport {
   private void requestWriteSelect() {
     is_ready_for_write = false;
     if( filter != null ){
-      NetworkManager.getSingleton().getWriteSelector().resumeSelects( filter.getSocketChannel() );
+    	TCPNetworkManager.getSingleton().getWriteSelector().resumeSelects( filter.getSocketChannel() );
     }
   }
   
@@ -196,7 +196,7 @@ public class TCPTransportImpl implements Transport {
   private void requestReadSelect() {
     is_ready_for_read = false;
     if( filter != null ){
-      NetworkManager.getSingleton().getReadSelector().resumeSelects( filter.getSocketChannel() );
+    	TCPNetworkManager.getSingleton().getReadSelector().resumeSelects( filter.getSocketChannel() );
     }
   } 
   
@@ -209,7 +209,7 @@ public class TCPTransportImpl implements Transport {
     }
 
     //read selection
-    NetworkManager.getSingleton().getReadSelector().register( filter.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+    TCPNetworkManager.getSingleton().getReadSelector().register( filter.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
     	boolean	progress = !is_ready_for_read;
         is_ready_for_read = true;
@@ -228,7 +228,7 @@ public class TCPTransportImpl implements Transport {
     
     
     //write selection
-    NetworkManager.getSingleton().getWriteSelector().register( filter.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+    TCPNetworkManager.getSingleton().getWriteSelector().register( filter.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
     	boolean	progress = !is_ready_for_write;
         is_ready_for_write = true;
@@ -344,7 +344,7 @@ public class TCPTransportImpl implements Transport {
       	}
       	
         if( has_been_closed ) {  //closed between select ops
-          NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
+          TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
           return;
         }
         
@@ -365,7 +365,7 @@ public class TCPTransportImpl implements Transport {
             }
             
             public void connectFailure( Throwable failure_msg ) {
-            	NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
+            	TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
               listener.connectFailure( failure_msg );
             }
           });
@@ -385,7 +385,7 @@ public class TCPTransportImpl implements Transport {
     
     InetSocketAddress to_connect = use_proxy ? ProxyLoginHandler.SOCKS_SERVER_ADDRESS : address;
     
-    NetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( to_connect, connect_listener );
+    TCPNetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( to_connect, connect_listener );
   }
   
     
@@ -411,13 +411,13 @@ public class TCPTransportImpl implements Transport {
         		if( Logger.isEnabled() ) Logger.log(new LogEvent(LOGID, description+ " | crypto handshake failure [" +failure_msg.getMessage()+ "], attempting non-crypto fallback." ));
         		connect_with_crypto = false;
         		fallback_count++;
-        		NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
+        		TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
         		close();
         		has_been_closed = false;
         		connectOutbound( listener );
         	}
         	else {
-        		NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
+        		TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
         		listener.connectFailure( failure_msg );
         	}
         }
@@ -525,16 +525,16 @@ public class TCPTransportImpl implements Transport {
     has_been_closed = true;
     
     if( connect_request_key != null ) {
-      NetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
+    	TCPNetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
     }
     
     is_ready_for_read = false;
     is_ready_for_write = false;
 
     if( filter != null ){
-      NetworkManager.getSingleton().getReadSelector().cancel( filter.getSocketChannel() );
-      NetworkManager.getSingleton().getWriteSelector().cancel( filter.getSocketChannel() );
-      NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( filter.getSocketChannel() );
+      TCPNetworkManager.getSingleton().getReadSelector().cancel( filter.getSocketChannel() );
+      TCPNetworkManager.getSingleton().getWriteSelector().cancel( filter.getSocketChannel() );
+      TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( filter.getSocketChannel() );
       
       filter = null;
     }

@@ -56,6 +56,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
@@ -265,8 +266,8 @@ TCPProtocolDecoderPHE
 	}
 	
 		
-	private static VirtualChannelSelector	read_selector	= NetworkManager.getSingleton().getReadSelector();
-	private static VirtualChannelSelector	write_selector	= NetworkManager.getSingleton().getWriteSelector();
+	private static VirtualChannelSelector	read_selector	= TCPNetworkManager.getSingleton().getReadSelector();
+	private static VirtualChannelSelector	write_selector	= TCPNetworkManager.getSingleton().getWriteSelector();
 
 	private static final int		PS_OUTBOUND_1	= 0;
 	private static final int		PS_OUTBOUND_2	= 1;

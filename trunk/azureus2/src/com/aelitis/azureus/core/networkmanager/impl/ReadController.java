@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
-import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 
 
 
@@ -35,8 +34,6 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
  * Processes reads of read-entities and handles the read selector.
  */
 public class ReadController {
-  private final VirtualChannelSelector read_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_READ, true );
-
   private volatile ArrayList normal_priority_entities = new ArrayList();  //copied-on-write
   private volatile ArrayList high_priority_entities = new ArrayList();  //copied-on-write
   private final AEMonitor entities_mon = new AEMonitor( "ReadController:EM" );
@@ -44,23 +41,12 @@ public class ReadController {
   private int next_high_position = 0;
   
   private static final int IDLE_SLEEP_TIME = 50;
-  private static final int SELECT_LOOP_TIME = 25;
   
   private EventWaiter 	read_waiter = new EventWaiter();
 
   
   public ReadController() {
-    //start read selector processing
-    Thread read_selector_thread = new AEThread( "ReadController:ReadSelector" ) {
-      public void runSupport() {
-        readSelectorLoop();
-      }
-    };
-    read_selector_thread.setDaemon( true );
-    read_selector_thread.setPriority( Thread.MAX_PRIORITY - 2 );
-    read_selector_thread.start();
-    
-    
+     
     //start read handler processing
     Thread read_processor_thread = new AEThread( "ReadController:ReadProcessor" ) {
       public void runSupport() {
@@ -74,17 +60,7 @@ public class ReadController {
   
 
   
-  private void readSelectorLoop() {
-    while( true ) {
-      try {
-        read_selector.select( SELECT_LOOP_TIME );
-      }
-      catch( Throwable t ) {
-        Debug.out( "readSelectorLoop() EXCEPTION: ", t );
-      }      
-    }
-  }
-  
+
   
   
   
@@ -221,11 +197,4 @@ public class ReadController {
     }
     finally {  entities_mon.exit();  }
   }
-
-  
-  /**
-   * Get the virtual selector for socket channel read readiness.
-   * @return selector
-   */
-  public VirtualChannelSelector getReadSelector() {  return read_selector;  }
 }

@@ -37,6 +37,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.IncomingSocketChannelManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
 
 public class 
@@ -45,8 +46,8 @@ TCPProtocolDecoderInitial
 {	
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
-	private static VirtualChannelSelector	read_selector	= NetworkManager.getSingleton().getReadSelector();
-	private static VirtualChannelSelector	write_selector	= NetworkManager.getSingleton().getWriteSelector();
+	private static VirtualChannelSelector	read_selector	= TCPNetworkManager.getSingleton().getReadSelector();
+	private static VirtualChannelSelector	write_selector	= TCPNetworkManager.getSingleton().getWriteSelector();
 
 	private ProtocolDecoderAdapter	adapter;
 	

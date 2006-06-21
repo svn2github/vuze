@@ -131,25 +131,25 @@ public class ProxyLoginHandler {
     	sendMessage( data[0] );  //send initial handshake to get things started
     	
       //register for read ops
-      NetworkManager.getSingleton().getReadSelector().register( proxy_connection.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+    	TCPNetworkManager.getSingleton().getReadSelector().register( proxy_connection.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
         public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
           try {
             int result = readMessage( data[1] );
             
             if( result == READ_DONE ) {
-              NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
+            	TCPNetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
               parseSocks4Reply( data[1] );  //will throw exception on error
               proxy_listener.connectSuccess();
             }
             else {
-              NetworkManager.getSingleton().getReadSelector().resumeSelects( proxy_connection.getSocketChannel() );  //resume read ops
+            	TCPNetworkManager.getSingleton().getReadSelector().resumeSelects( proxy_connection.getSocketChannel() );  //resume read ops
             }
             
             return( result != READ_NO_PROGRESS );
           }
           catch( Throwable t ) {
           	//Debug.out( t );
-            NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
+        	  TCPNetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
             proxy_listener.connectFailure( t );
             return false;
           }
@@ -157,14 +157,14 @@ public class ProxyLoginHandler {
         
         public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
           Debug.out( msg );
-          NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
+          TCPNetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
           proxy_listener.connectFailure( msg );
         }
       }, null );
     }
     catch( Throwable t ) {
       Debug.out( t );
-      NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
+      TCPNetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
       proxy_listener.connectFailure( t );
     }
   }
@@ -182,7 +182,7 @@ public class ProxyLoginHandler {
       sendMessage( (ByteBuffer)data.get(0) );  //send initial handshake to get things started
       
       //register for read ops
-      NetworkManager.getSingleton().getReadSelector().register( proxy_connection.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+      TCPNetworkManager.getSingleton().getReadSelector().register( proxy_connection.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
         public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
           try {
             int result = readMessage( (ByteBuffer)data.get(1) );  
@@ -191,7 +191,7 @@ public class ProxyLoginHandler {
               boolean done = parseSocks5Reply( (ByteBuffer)data.get(1) );  //will throw exception on error
 
               if( done ) {
-                NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
+            	  TCPNetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
                 proxy_listener.connectSuccess();
               }
               else {
@@ -200,18 +200,18 @@ public class ProxyLoginHandler {
                 data.set( 1, raw[1] );                
                 
                 if( raw[0] != null )  sendMessage( raw[0] );
-                NetworkManager.getSingleton().getReadSelector().resumeSelects( proxy_connection.getSocketChannel() );  //resume read ops
+                TCPNetworkManager.getSingleton().getReadSelector().resumeSelects( proxy_connection.getSocketChannel() );  //resume read ops
               }
             }
             else {
-              NetworkManager.getSingleton().getReadSelector().resumeSelects( proxy_connection.getSocketChannel() );  //resume read ops
+            	TCPNetworkManager.getSingleton().getReadSelector().resumeSelects( proxy_connection.getSocketChannel() );  //resume read ops
             }
             
             return( result != READ_NO_PROGRESS );
           }
           catch( Throwable t ) {
             //Debug.out( t );
-            NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
+        	  TCPNetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
             proxy_listener.connectFailure( t );
             return false;
           }
@@ -219,14 +219,14 @@ public class ProxyLoginHandler {
         
         public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
           Debug.out( msg );
-          NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
+          TCPNetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
           proxy_listener.connectFailure( msg );
         }
       }, null );
     }
     catch( Throwable t ) {
       Debug.out( t );
-      NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
+      TCPNetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
       proxy_listener.connectFailure( t );
     }
   }

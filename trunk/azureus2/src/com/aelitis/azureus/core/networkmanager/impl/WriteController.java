@@ -34,7 +34,6 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
  * Processes writes of write-entities and handles the write selector.
  */
 public class WriteController {
-  private final VirtualChannelSelector write_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
   
   private volatile ArrayList normal_priority_entities = new ArrayList();  //copied-on-write
   private volatile ArrayList high_priority_entities = new ArrayList();  //copied-on-write
@@ -43,24 +42,13 @@ public class WriteController {
   private int next_high_position = 0;
   
   private static final int IDLE_SLEEP_TIME  = 50;
-  private static final int SELECT_LOOP_TIME = 25;
-  
+   
   private EventWaiter 	write_waiter = new EventWaiter();
   
   /**
    * Create a new write controller.
    */
   public WriteController() {
-    //start write selector processing
-    Thread write_selector_thread = new AEThread( "WriteController:WriteSelector" ) {
-      public void runSupport() {
-        writeSelectorLoop();
-      }
-    };
-    write_selector_thread.setDaemon( true );
-    write_selector_thread.setPriority( Thread.MAX_PRIORITY - 2 );
-    write_selector_thread.start();
-    
     
     //start write handler processing
     Thread write_processor_thread = new AEThread( "WriteController:WriteProcessor" ) {
@@ -72,20 +60,7 @@ public class WriteController {
     write_processor_thread.setPriority( Thread.MAX_PRIORITY - 1 );
     write_processor_thread.start();
   }
-  
-  
-  
-  private void writeSelectorLoop() {
-    while( true ) {
-      try {
-        write_selector.select( SELECT_LOOP_TIME );
-      }
-      catch( Throwable t ) {
-        Debug.out( "writeSelectorLoop() EXCEPTION: ", t );
-      }      
-    }
-  }
-  
+    
   
   private void writeProcessorLoop() {
     boolean check_high_first = true;
@@ -220,12 +195,4 @@ public class WriteController {
     }
     finally {  entities_mon.exit();  }
   }
-  
-  
-  /**
-   * Get the virtual selector for socket channel write readiness.
-   * @return selector
-   */
-  public VirtualChannelSelector getWriteSelector() {  return write_selector;  }
-  
 }

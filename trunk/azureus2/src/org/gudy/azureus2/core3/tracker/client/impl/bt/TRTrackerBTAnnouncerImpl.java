@@ -54,7 +54,7 @@ import org.gudy.azureus2.plugins.clientid.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
@@ -358,7 +358,7 @@ TRTrackerBTAnnouncerImpl
   			
   		}else{
   		
-  			port_num	= NetworkManager.getSingleton().getTCPListeningPortNumber();
+  			port_num	= TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
   		}
   		
  		if ( port_override != -1 ){
@@ -1340,7 +1340,7 @@ TRTrackerBTAnnouncerImpl
  				 auth = SESecurityManager.getPasswordAuthentication( UDP_REALM, reqUrl );
  			}
  						
- 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( NetworkManager.getSingleton().getUDPListeningPortNumber() );
+ 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( TCPNetworkManager.getSingleton().getUDPListeningPortNumber() );
  			
  			InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort()==-1?80:reqUrl.getPort());
  			

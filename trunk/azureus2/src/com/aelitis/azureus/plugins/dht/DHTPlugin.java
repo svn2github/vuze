@@ -62,7 +62,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
 
@@ -153,8 +153,8 @@ DHTPlugin
 			{
 				Map	res = new HashMap();
 				
-				res.put( "udp_data_port", new Long( NetworkManager.getSingleton().getUDPListeningPortNumber()));
-				res.put( "tcp_data_port", new Long( NetworkManager.getSingleton().getTCPListeningPortNumber()));
+				res.put( "udp_data_port", new Long( TCPNetworkManager.getSingleton().getUDPListeningPortNumber()));
+				res.put( "tcp_data_port", new Long( TCPNetworkManager.getSingleton().getTCPListeningPortNumber()));
 				
 				return( res );
 			}

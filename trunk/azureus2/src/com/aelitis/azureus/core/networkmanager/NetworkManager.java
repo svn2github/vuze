@@ -36,6 +36,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.impl.*;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.IncomingSocketChannelManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 
 
@@ -117,8 +118,6 @@ public class NetworkManager {
   }
 
   
-  private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();
-  private final IncomingSocketChannelManager incoming_socketchannel_manager = new IncomingSocketChannelManager();
   private final WriteController write_controller = new WriteController();
   private final ReadController read_controller = new ReadController();
 
@@ -150,7 +149,14 @@ public class NetworkManager {
     /* nothing */    
   }
   
-  
+  /**
+   * Get the configured TCP MSS (Maximum Segment Size) unit, i.e. the max (preferred) packet payload size.
+   * NOTE: MSS is MTU-40bytes for TCPIP headers, usually 1460 (1500-40) for standard ethernet
+   * connections, or 1452 (1492-40) for PPPOE connections.
+   * @return mss size in bytes
+   */
+  public static int getTcpMssSize() {  return tcp_mss_size;  }
+
 
   
   private static void refreshRates() {
@@ -240,7 +246,7 @@ public class NetworkManager {
    * @param factory to use for creating default stream encoder/decoders
    */
   public void requestIncomingConnectionRouting( ByteMatcher matcher, final RoutingListener listener, final MessageStreamFactory factory ) {
-    incoming_socketchannel_manager.registerMatchBytes( matcher, new IncomingSocketChannelManager.MatchListener() {
+    TCPNetworkManager.getSingleton().getIncomingSocketChannelManager().registerMatchBytes( matcher, new IncomingSocketChannelManager.MatchListener() {
       public boolean
       autoCryptoFallback()
       {
@@ -258,7 +264,7 @@ public class NetworkManager {
    * @param matcher byte sequence originally used to register
    */
   public void cancelIncomingConnectionRouting( ByteMatcher matcher ) {
-    incoming_socketchannel_manager.deregisterMatchBytes( matcher );
+	  TCPNetworkManager.getSingleton().getIncomingSocketChannelManager().deregisterMatchBytes( matcher );
   }
   
 
@@ -302,46 +308,7 @@ public class NetworkManager {
   
   
 
-  /**
-   * Get the manager for new incoming socket channel connections.
-   * @return manager
-   */
-  public IncomingSocketChannelManager getIncomingSocketChannelManager() {  return incoming_socketchannel_manager;  }
-  
-
-  /**
-   * Get the socket channel connect / disconnect manager.
-   * @return connect manager
-   */
-  public ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
-  
-  
-  /**
-   * Asynchronously close the given socket channel.
-   * @param channel to close
-   */
-  public void closeSocketChannel( SocketChannel channel ) {
-    connect_disconnect_manager.closeConnection( channel );
-  }
-  
-  public void closeSocketChannel( SocketChannel channel, int delay ) {
-	    connect_disconnect_manager.closeConnection( channel, delay );
-  }
-  
-  
-  /**
-   * Get the virtual selector used for socket channel read readiness.
-   * @return read readiness selector
-   */
-  public VirtualChannelSelector getReadSelector() {  return read_controller.getReadSelector();  }
-  
-  
-  /**
-   * Get the virtual selector used for socket channel write readiness.
-   * @return write readiness selector
-   */
-  public VirtualChannelSelector getWriteSelector() {  return write_controller.getWriteSelector();  }
-  
+ 
   
   /**
    * Register peer connection for network upload and download handling.
@@ -409,25 +376,7 @@ public class NetworkManager {
   	}
   }
   
-  
-  
-  /**
-   * Get the configured TCP MSS (Maximum Segment Size) unit, i.e. the max (preferred) packet payload size.
-   * NOTE: MSS is MTU-40bytes for TCPIP headers, usually 1460 (1500-40) for standard ethernet
-   * connections, or 1452 (1492-40) for PPPOE connections.
-   * @return mss size in bytes
-   */
-  public static int getTcpMssSize() {  return tcp_mss_size;  }
-  
-  
-  /**
-   * Get port that the TCP server socket is listening for incoming connections on.
-   * @return port number
-   */
-  public int getTCPListeningPortNumber() {  return incoming_socketchannel_manager.getTCPListeningPortNumber();  }
-  public int getUDPListeningPortNumber() {  return incoming_socketchannel_manager.getUDPListeningPortNumber();  }
-  
-  
+    
   public NetworkManagerStats
   getStats()
   {

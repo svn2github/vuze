@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TCPProtocolDecoderInitial;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoderAdapter;
 import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilter;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 
 public class 
 PHETester 
@@ -296,7 +297,7 @@ PHETester
 		final TCPTransportHelperFilter	filter )
 	{
 		try{
-			NetworkManager.getSingleton().getReadSelector().register(
+			TCPNetworkManager.getSingleton().getReadSelector().register(
 				filter.getSocketChannel(),
 				new VirtualSelectorListener()
 				{
