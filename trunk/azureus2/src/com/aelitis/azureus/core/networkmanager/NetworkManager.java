@@ -246,7 +246,7 @@ public class NetworkManager {
    * @param factory to use for creating default stream encoder/decoders
    */
   public void requestIncomingConnectionRouting( ByteMatcher matcher, final RoutingListener listener, final MessageStreamFactory factory ) {
-    TCPNetworkManager.getSingleton().getIncomingSocketChannelManager().registerMatchBytes( matcher, new IncomingSocketChannelManager.MatchListener() {
+	  IncomingConnectionManager.getSingleton().registerMatchBytes( matcher, new IncomingConnectionManager.MatchListener() {
       public boolean
       autoCryptoFallback()
       {
@@ -264,7 +264,7 @@ public class NetworkManager {
    * @param matcher byte sequence originally used to register
    */
   public void cancelIncomingConnectionRouting( ByteMatcher matcher ) {
-	  TCPNetworkManager.getSingleton().getIncomingSocketChannelManager().deregisterMatchBytes( matcher );
+	  IncomingConnectionManager.getSingleton().deregisterMatchBytes( matcher );
   }
   
 

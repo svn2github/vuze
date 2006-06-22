@@ -32,13 +32,35 @@ public class
 UDPTransportHelper 
 	implements TransportHelper
 {
-	private InetSocketAddress	address;
+	private UDPConnectionManager	manager;
+	private InetSocketAddress		address;
+	
+	private UDPConnection			connection;
 	
 	protected
 	UDPTransportHelper(
-		InetSocketAddress	_address )
+		UDPConnectionManager	_manager,
+		InetSocketAddress		_address )
 	{
-		address = _address;
+			// outgoing
+	
+		manager		= _manager;
+		address 	= _address;
+		
+		connection 	= manager.registerOutgoing( this );
+	}
+	
+	protected
+	UDPTransportHelper(
+		UDPConnectionManager	_manager,
+		InetSocketAddress		_address, 
+		UDPConnection			_connection )
+	{
+			// incoming
+			
+		manager		= _manager;
+		address 	= _address;
+		connection = _connection;
 	}
 	
 	public InetSocketAddress
@@ -53,14 +75,14 @@ UDPTransportHelper
 	
 		throws IOException
 	{
-		throw( new IOException( "not imp" ));
+		return( connection.write( buffer ));
 	}
 
     public long 
     write( 
-    	ByteBuffer[] buffers, 
-    	int array_offset, 
-    	int length ) 
+    	ByteBuffer[] 	buffers, 
+    	int 			array_offset, 
+    	int 			length ) 
     
     	throws IOException
     {
@@ -78,9 +100,9 @@ UDPTransportHelper
 
     public long 
     read( 
-    	ByteBuffer[] buffers, 
-    	int array_offset, 
-    	int length ) 
+    	ByteBuffer[] 	buffers, 
+    	int 			array_offset, 
+    	int 			length ) 
     
     	throws IOException
     {
@@ -135,6 +157,12 @@ UDPTransportHelper
     
     public void
     cancelWriteSelects()
+    {
+    	
+    }
+    
+    public void
+    close()
     {
     	
     }

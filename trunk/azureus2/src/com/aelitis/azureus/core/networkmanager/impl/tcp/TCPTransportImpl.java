@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -36,7 +35,6 @@ import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.networkmanager.impl.TransportImpl;
-import com.aelitis.azureus.core.networkmanager.impl.TransportStats;
 
 
 
@@ -366,11 +364,11 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     readyForRead( false );
     readyForWrite( false );
 
-    if( getFilter() != null ){
-      SocketChannel channel = getSocketChannel();
-      TCPNetworkManager.getSingleton().getReadSelector().cancel( channel );
-      TCPNetworkManager.getSingleton().getWriteSelector().cancel( channel );
-      TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
+	TransportHelperFilter	filter = getFilter();
+
+    if( filter != null ){
+ 
+      filter.getHelper().close();
       
       setFilter( null );
     }

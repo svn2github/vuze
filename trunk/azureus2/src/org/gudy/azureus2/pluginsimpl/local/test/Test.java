@@ -268,11 +268,12 @@ Test
 						}
 					});
 			
-			InetSocketAddress	target = new InetSocketAddress( "127.0.0.1", 6881 );
+			InetSocketAddress	tcp_target = new InetSocketAddress( "127.0.0.1", 6881 );
+			InetSocketAddress	udp_target = new InetSocketAddress( "127.0.0.1", 6882 );
 			
-			GenericMessageEndpoint	endpoint = reg.createEndpoint( target );
+			GenericMessageEndpoint	endpoint = reg.createEndpoint( udp_target );
 			
-			endpoint.addUDP( target );
+			endpoint.addUDP( udp_target );
 			
 			GenericMessageConnection	con = reg.createConnection( endpoint );
 			

@@ -89,6 +89,9 @@ TransportHelper
     public void
     cancelWriteSelects();
     
+    public void
+    close();
+    
     public interface
     selectListener
     {

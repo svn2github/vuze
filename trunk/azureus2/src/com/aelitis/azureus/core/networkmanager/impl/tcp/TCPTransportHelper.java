@@ -261,6 +261,14 @@ TCPTransportHelper
 	  TCPNetworkManager.getSingleton().getWriteSelector().pauseSelects( channel );
   }
   
+  public void
+  close()
+  {
+      TCPNetworkManager.getSingleton().getReadSelector().cancel( channel );
+      TCPNetworkManager.getSingleton().getWriteSelector().cancel( channel );
+      TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
+  }
+  
   public SocketChannel getSocketChannel(){  return channel; }
 	
 }

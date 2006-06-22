@@ -42,6 +42,8 @@ UDPNetworkManager
 	
 	private int udp_listen_port	= -1;
 
+	private UDPConnectionManager	connection_manager = new UDPConnectionManager();
+	
 	protected
 	UDPNetworkManager()
 	{
@@ -84,5 +86,11 @@ UDPNetworkManager
 	getUDPListeningPortNumber()
 	{
 		return( udp_listen_port );
+	}
+	
+	public UDPConnectionManager
+	getConnectionManager()
+	{
+		return( connection_manager );
 	}
 }

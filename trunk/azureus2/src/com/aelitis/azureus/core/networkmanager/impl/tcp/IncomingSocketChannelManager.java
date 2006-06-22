@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
@@ -52,12 +53,7 @@ public class IncomingSocketChannelManager
   
   private final ArrayList connections = new ArrayList();
   private final AEMonitor connections_mon = new AEMonitor( "IncomingConnectionManager:conns" );
-  
-  private volatile Map match_buffers_cow = new HashMap();	// copy-on-write
-  private final AEMonitor match_buffers_mon = new AEMonitor( "IncomingConnectionManager:match" );
-  private int max_match_buffer_size = 0;
-  private int max_min_match_buffer_size = 0;
-   
+     
   private int tcp_listen_port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
   private int so_rcvbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
   private String bind_address = COConfigurationManager.getStringParameter( "Bind IP" );
@@ -65,6 +61,8 @@ public class IncomingSocketChannelManager
   private long last_timeout_check_time = SystemTime.getCurrentTime();
   
   private VirtualServerChannelSelector server_selector = null;
+  
+  private IncomingConnectionManager	incoming_manager = IncomingConnectionManager.getSingleton();
   
   protected AEMonitor	this_mon	= new AEMonitor( "IncomingSocketChannelManager" );
 
@@ -186,73 +184,7 @@ public class IncomingSocketChannelManager
   public int getTCPListeningPortNumber() {  return tcp_listen_port;  }  
   
 
-  /**
-   * Register the given byte sequence matcher to handle matching against new incoming connection
-   * initial data; i.e. the first bytes read from a connection must match in order for the given
-   * listener to be invoked.
-   * @param matcher byte filter sequence
-   * @param listener to call upon match
-   */
-  public void registerMatchBytes( NetworkManager.ByteMatcher matcher, MatchListener listener ) {
-    try {  match_buffers_mon.enter();
-    
-      if( matcher.size() > max_match_buffer_size ) {
-        max_match_buffer_size = matcher.size();
-      }
 
-      if ( matcher.minSize() > max_min_match_buffer_size ){
-    	  max_min_match_buffer_size = matcher.minSize();
-      }
-      
-      Map	new_match_buffers = new HashMap( match_buffers_cow );
-      
-      new_match_buffers.put( matcher, listener );
-      
-      match_buffers_cow = new_match_buffers;
-    
-      byte[]	secret = matcher.getSharedSecret();
-      
-      if ( secret != null ){
-    	  
-	     ProtocolDecoder.addSecret( secret );
-      }
-    } finally {  match_buffers_mon.exit();  }
-    
-  }
-  
-  
-  /**
-   * Remove the given byte sequence match from the registration list.
-   * @param to_remove byte sequence originally used to register
-   */
-  public void deregisterMatchBytes( NetworkManager.ByteMatcher to_remove ) {
-    try {  match_buffers_mon.enter();
-      Map	new_match_buffers = new HashMap( match_buffers_cow );
-    
-      new_match_buffers.remove( to_remove );
-    
-      if( to_remove.size() == max_match_buffer_size ) { //recalc longest buffer if necessary
-        max_match_buffer_size = 0;
-        for( Iterator i = new_match_buffers.keySet().iterator(); i.hasNext(); ) {
-          NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)i.next();
-          if( bm.size() > max_match_buffer_size ) {
-            max_match_buffer_size = bm.size();
-          }
-        }
-      }
-    
-      match_buffers_cow = new_match_buffers;
-      
-      byte[]	secret = to_remove.getSharedSecret();
-      
-      if ( secret != null ){
-    	  
-	      ProtocolDecoder.removeSecret( secret );
-      }
-    } finally {  match_buffers_mon.exit();  }  
-  } 
-  
-    
   
   
   private void start() {
@@ -327,14 +259,14 @@ public class IncomingSocketChannelManager
 	    		public int
 	    		getMaximumPlainHeaderLength()
 	    		{
-	    			return( max_min_match_buffer_size );
+	    			return( incoming_manager.getMaxMinMatchBufferSize());
 	    		}
 	    		
 	    		public int
 	    		matchPlainHeader(
 	    			ByteBuffer			buffer )
 	    		{
-	    			MatchListener	match = checkForMatch( server.socket().getLocalPort(), buffer, true );
+	    			IncomingConnectionManager.MatchListener	match = incoming_manager.checkForMatch( server.socket().getLocalPort(), buffer, true );
 	    			
 	    			if ( match == null ){
 	    				
@@ -377,7 +309,7 @@ public class IncomingSocketChannelManager
     
     SocketChannel	channel = ((TCPTransportHelper)filter.getHelper()).getSocketChannel();
     
-    if( match_buffers_cow.isEmpty() ) {  //no match registrations, just close
+    if( incoming_manager.isEmpty() ) {  //no match registrations, just close
     	if (Logger.isEnabled())
     		Logger.log(new LogEvent(LOGID, "Incoming TCP connection from ["
     				+ channel.socket().getInetAddress().getHostAddress() + ":"
@@ -402,7 +334,7 @@ public class IncomingSocketChannelManager
     	// (in particular the BT header). However, there should be some data right behind it that will trigger
     	// a read-select below, thus giving prompt access to the queued data
     
-    final IncomingConnection ic = new IncomingConnection( filter, max_match_buffer_size );
+    final IncomingConnection ic = new IncomingConnection( filter, incoming_manager.getMaxMatchBufferSize());
     
     VirtualChannelSelector	selector = TCPNetworkManager.getSingleton().getReadSelector();
     
@@ -462,51 +394,7 @@ public class IncomingSocketChannelManager
   }
   
 
-  protected MatchListener 
-  checkForMatch( 
-	 int	incoming_port, ByteBuffer to_check, boolean min_match ) 
-  { 
-       //remember original values for later restore
-      int orig_position = to_check.position();
-      int orig_limit = to_check.limit();
-      
-      //rewind
-      to_check.position( 0 );
-
-      MatchListener listener = null;
-           
-      for( Iterator i = match_buffers_cow.entrySet().iterator(); i.hasNext(); ) {
-        Map.Entry entry = (Map.Entry)i.next();
-        NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)entry.getKey();
-        
-        if ( min_match ){
-            if( orig_position < bm.minSize() ) {  //not enough bytes yet to compare
-  	          continue;
-  	        }
-  	                
-  	        if( bm.minMatches( to_check, incoming_port ) ) {  //match found!
-  	          listener = (MatchListener)entry.getValue();
-  	          break;
-  	        }      	
-        }else{
-	        if( orig_position < bm.size() ) {  //not enough bytes yet to compare
-	          continue;
-	        }
-	                
-	        if( bm.matches( to_check, incoming_port ) ) {  //match found!
-	          listener = (MatchListener)entry.getValue();
-	          break;
-	        }
-        }
-      }
-
-      //restore original values in case the checks changed them
-      to_check.position( orig_position );
-      to_check.limit( orig_limit );
-      
-      return listener;
-  }
-  
+ 
   protected void doTimeoutChecks() {
     try{  connections_mon.enter();
 
@@ -606,10 +494,10 @@ public class IncomingSocketChannelManager
 			  
 			  ic.last_read_time = SystemTime.getCurrentTime();
 			  
-			  MatchListener listener = checkForMatch( server.socket().getLocalPort(), ic.buffer, false );
+			  IncomingConnectionManager.MatchListener listener = incoming_manager.checkForMatch( server.socket().getLocalPort(), ic.buffer, false );
 			  
 			  if( listener == null ) {  //no match found
-				  if( ic.buffer.position() >= max_match_buffer_size ) { //we've already read in enough bytes to have compared against all potential match buffers
+				  if( ic.buffer.position() >= incoming_manager.getMaxMatchBufferSize()) { //we've already read in enough bytes to have compared against all potential match buffers
 					  ic.buffer.flip();
 					  if (Logger.isEnabled())
 						  Logger.log(new LogEvent(LOGID,
@@ -686,31 +574,5 @@ public class IncomingSocketChannelManager
 					  + msg.getMessage()));
 		  removeConnection( ic, true );
 	  }
- }
-  
-  
-  /**
-   * Listener for byte matches.
-   */
-  public interface MatchListener {
-    
-	  /**
-	   * Currently if message crypto is on and default fallback for incoming not
-	   * enabled then we would bounce incoming messages from non-crypto transports
-	   * For example, NAT check
-	   * This method allows auto-fallback for such transports
-	   * @return
-	   */
-	public boolean
-	autoCryptoFallback();
-	
-    /**
-     * The given socket has been accepted as matching the byte filter.
-     * @param channel matching accepted connection
-     * @param read_so_far bytes already read
-     */
-    public void connectionMatched( Transport	transport );
-  }
-  
-  
+ }  
 }

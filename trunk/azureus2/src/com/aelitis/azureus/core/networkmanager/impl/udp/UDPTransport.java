@@ -22,23 +22,44 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.udp;
 
+import java.nio.ByteBuffer;
+
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.networkmanager.TransportEndpoint;
+import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportImpl;
 
 public class 
 UDPTransport
 	extends TransportImpl
 {
+	private static final LogIDs LOGID = LogIDs.NET;
+	
 	private ProtocolEndpointUDP		endpoint;
-
+	private byte[]					shared_secret;
+	
 	private int transport_mode = TRANSPORT_MODE_NORMAL;
-
+	
+	private boolean	outgoing;
+	
+	private volatile boolean	closed;
+	
 	protected
 	UDPTransport(
 		ProtocolEndpointUDP		_endpoint,
 		byte[]					_shared_secret )
 	{
-		endpoint	= _endpoint;
+		endpoint		= _endpoint;
+		shared_secret	= _shared_secret;
+		outgoing		= true;
+
+		
 	}
 	
 
@@ -71,14 +92,108 @@ UDPTransport
 	    
 	public void
 	connectOutbound(
-		ConnectListener 	listener )
+		final ConnectListener 	listener )
 	{
+		if ( closed ){
+			
+			listener.connectFailure( new Throwable( "Connection already closed" ));
+			
+			return;
+		}
+		    
+		if( getFilter() != null ){
+		     
+			listener.connectFailure( new Throwable( "Already connected" ));
+			
+			return;
+		}
 		
+		try{
+			listener.connectAttemptStarted();
+
+	 		TransportHelper	helper = 
+	 			new UDPTransportHelper( UDPNetworkManager.getSingleton().getConnectionManager(), endpoint.getAddress());
+	 		
+	    	TransportCryptoManager.getSingleton().manageCrypto( 
+	    			helper, 
+	    			shared_secret, 
+	    			false, 
+	    			new TransportCryptoManager.HandshakeListener() 
+	    			{
+	    				public void 
+	    				handshakeSuccess( 
+	    					TransportHelperFilter filter )
+	    				{
+	    					try{
+		    					setFilter( filter );
+		    					
+		    					if ( closed ){
+		    						
+		    						close();
+		    						
+		    						listener.connectFailure( new Exception( "Connection already closed" ));
+		    						
+		    					}else{
+		    						
+			    		   			if ( Logger.isEnabled()){
+			    		    		
+			    		   				Logger.log(new LogEvent(LOGID, "Outgoing UDP stream to " + endpoint.getAddress() + " established, type = " + filter.getName()));
+			    		    		}
+			    		   			
+			    		   			listener.connectSuccess( UDPTransport.this );
+		    					}
+	    					}catch( Throwable e ){
+	    						
+	    						Debug.printStackTrace(e);
+	    						
+	    						listener.connectFailure( e );
+	    					}
+	    				}
+	
+	    				public void 
+	    				handshakeFailure( 
+	    					Throwable failure_msg )
+	    				{
+	    					listener.connectFailure( failure_msg );
+	    				}
+	    				
+	    				public int 
+	    				getMaximumPlainHeaderLength()
+	    				{
+	    		   			throw( new RuntimeException());	// this is outgoing
+	    				}
+	    				
+	    				public int 
+	    				matchPlainHeader( 
+	    					ByteBuffer buffer )
+	    				{
+	    					throw( new RuntimeException());	// this is outgoing
+	    				}
+	    			});
+	    	
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			listener.connectFailure( e );
+		}
 	}
 	   
 	public void 
 	close()
 	{
+		closed	= true;
 		
+		readyForRead( false );
+		readyForWrite( false );
+
+		TransportHelperFilter	filter = getFilter();
+		
+		if ( filter != null ){
+			
+			filter.getHelper().close();
+			
+			setFilter( null );
+		}
 	}
 }
