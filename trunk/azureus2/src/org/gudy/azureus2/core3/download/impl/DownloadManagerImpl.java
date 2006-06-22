@@ -2789,11 +2789,15 @@ DownloadManagerImpl
 		} catch (Throwable e) {
 		}
 
-		return "DownloadManagerImpl@" + Integer.toHexString(hashCode()) + "/#"
-				+ getPosition() + (getOnlySeeding() ? "S" : "D") + "/" + getSize()
-				+ "/" + hash + "/Listeners:L=" + listeners.size() + ";DL="
-				+ controller.getDiskListenerCount() + ";PL=" + peer_listeners.size()
-				+ ";TL=" + tracker_listeners.size();
+		String status = DisplayFormatters.formatDownloadStatus(this);
+		if (status.length() > 10) {
+			status = status.substring(0, 10);
+		}
+		return "DownloadManagerImpl#" + getPosition()
+				+ (getOnlySeeding() ? "s" : "d") + "@"
+				+ Integer.toHexString(hashCode()) + "/"
+				+ status + "/"
+				+ getSize() + "/" + hash;
 	}
 	
 	protected static class
@@ -2822,13 +2826,55 @@ DownloadManagerImpl
 			writer.println("Save Dir: "
 					+ Debug.secretFileName(getSaveLocation().toString()));
 			
-			writer.println("# Peers: " + current_peers.size());
-			writer.println("# Pieces: " + current_pieces.size());
+			if (current_peers.size() > 0) {
+				writer.println("# Peers: " + current_peers.size());
+			}
+			
+			if (current_pieces.size() > 0) {
+				writer.println("# Pieces: " + current_pieces.size());
+			}
+			
+			writer.println("Listeners: DownloadManager=" + listeners.size() + "; Disk="
+				+ controller.getDiskListenerCount() + "; Peer=" + peer_listeners.size()
+				+ "; Tracker=" + tracker_listeners.size());
+			
+			writer.println("SR: " + iSeedingRank);
+			
+			
+			String sFlags = "";
+			if (open_for_seeding) {
+				sFlags += "Opened for Seeding; ";
+			}
+			
+			if (data_already_allocated) {
+				sFlags += "Data Already Allocated; ";
+			}
+			
+			if (onlySeeding) {
+				sFlags += "onlySeeding; ";
+			}
+			
+			if (persistent) {
+				sFlags += "peristent; ";
+			}
+			
+			if (sFlags.length() > 0) {
+				writer.println("Flags: " + sFlags);
+			}
+			
 
 			if (pm != null) {
-
 				pm.generateEvidence(writer);
-
+			}
+			
+			if (stats != null) {
+				writer.println("Completed? Live: " + stats.getDownloadCompleted(true)
+						+ "; NonLive: " + stats.getDownloadCompleted(false) + "; other: "
+						+ stats.getCompleted());
+			}
+			
+			if (controller != null) {
+				controller.generateEvidence(writer);
 			}
 
 		} finally {

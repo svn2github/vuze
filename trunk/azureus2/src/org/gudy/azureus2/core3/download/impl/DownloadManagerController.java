@@ -53,6 +53,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 public class 
@@ -1769,6 +1770,30 @@ DownloadManagerController
 			listeners.remove( listener );
 			
 			delegate.removeListener( listener );
+		}
+	}
+	
+	public void generateEvidence(IndentWriter writer) {
+		writer.println("DownloadManager Controller:");
+		
+		writer.indent();
+		try {
+			writer.println("cached info: complete w/o DND="
+					+ cached_complete_excluding_dnd + "; hasDND? " + cached_has_dnd_files);
+
+			writer.println("Complete w/DND? " + isDownloadComplete(true)
+					+ "; w/o DND? " + isDownloadComplete(false));
+
+			writer.println("filesFacade length: " + files_facade.length);
+
+			if (force_start) {
+				writer.println("Force Start");
+			}
+
+			writer.println("FilesExist? " + filesExist());
+			
+		} finally {
+			writer.exdent();
 		}
 	}
 }
