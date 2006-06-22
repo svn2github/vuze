@@ -244,6 +244,31 @@ ConfigurationChecker
 	    	changed = true;
 	    }
 	    
+	    	// remove separate DHT udp port config and migrate to main UDP port above
+	    
+	    if ( !COConfigurationManager.getBooleanParameter( "Plugin.DHT.dht.portdefault", true )){
+	    	
+	    	COConfigurationManager.removeParameter( "Plugin.DHT.dht.portdefault" );
+	    	
+	    	int	tcp_port	= COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+	    	int	udp_port	= COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
+	    	
+	    	int	dht_port = COConfigurationManager.getIntParameter( "Plugin.DHT.dht.port", udp_port );
+	    	
+	    	if ( dht_port != udp_port ){
+	    		
+	    			// if tcp + udp are currently different then we leave them as is and migrate
+	    			// dht to the udp one. Otherwise we change the core udp to be that of the dht
+	    		
+	    		if ( tcp_port == udp_port ){
+	    			
+	    			COConfigurationManager.setParameter( "UDP.Listen.Port", dht_port );
+	    		}
+	    	}
+	    	
+	    	changed	= true;
+	    }
+	    
 	    // migrate to split tracker client/server key config
 	    
 	    if ( !COConfigurationManager.doesParameterDefaultExist( "Tracker Key Enable Client")){

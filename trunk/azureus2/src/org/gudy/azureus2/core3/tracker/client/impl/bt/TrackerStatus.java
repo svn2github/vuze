@@ -50,6 +50,7 @@ import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
@@ -1023,7 +1024,7 @@ public class TrackerStatus {
 			auth = SESecurityManager.getPasswordAuthentication( "UDP Tracker", reqUrl );
 		}		
 	
-		int port = COConfigurationManager.getIntParameter("UDP.Listen.Port");
+		int port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
 		
 		PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( port );
 		

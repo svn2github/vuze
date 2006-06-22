@@ -23,6 +23,9 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.Random;
 
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
+
 /**
  *	@author MjrTom
  *		2006/Jan/02:	added various methods, including some java.util.Random method aliases 
@@ -72,10 +75,21 @@ public class RandomUtils {
 	 * NOTE: Will return a valid non-privileged port number >= LISTEN_PORT_MIN and <= LISTEN_PORT_MAX.
 	 * @return random port number
 	 */
-	public static int generateRandomNetworkListenPort() {
-		int min = LISTEN_PORT_MIN;
-		int port = min + RANDOM.nextInt( LISTEN_PORT_MAX + 1 - min );
-		return port;
+	public static int 
+	generateRandomNetworkListenPort() 
+	{
+		int	existing_tcp	= TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
+		int existing_udp	= UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
+		
+		while( true ){
+			int min 	= LISTEN_PORT_MIN;
+			int port 	= min + RANDOM.nextInt( LISTEN_PORT_MAX + 1 - min );
+			
+			if ( port != existing_tcp && port != existing_udp ){
+				
+				return port;
+			}
+		}
 	}
 
 	/**

@@ -37,6 +37,7 @@ import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
@@ -520,23 +521,7 @@ PEPeerTransportProtocol
       avail_vers[i] = (byte)1;  //NOTE: hack for ADV messaging transition
     }
     
-    int local_udp_port = 0;
-    try{  //TODO udp port value should be in the core someday
-    	
-    	final PluginInterface dht_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-        
-        	// may not be present
-        	
-        if ( dht_pi != null ){
-        	
-        	DHTPlugin dht = (DHTPlugin)dht_pi.getPlugin();
-             
-        	local_udp_port = dht.getPort();
-        }
-    }
-    catch( Throwable t ) {
-      Debug.out( "Exception while obtaining local udp listen port from DHTPlugin:", t );
-    }
+    int local_udp_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
     
     AZHandshake az_handshake = new AZHandshake(
         AZPeerIdentityManager.getAZPeerIdentity(),

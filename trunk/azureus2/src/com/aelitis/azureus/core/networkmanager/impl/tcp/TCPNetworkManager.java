@@ -111,9 +111,7 @@ TCPNetworkManager
 	   * Get port that the TCP server socket is listening for incoming connections on.
 	   * @return port number
 	   */
-	  public int getTCPListeningPortNumber() {  return incoming_socketchannel_manager.getTCPListeningPortNumber();  }
-	  public int getUDPListeningPortNumber() {  return incoming_socketchannel_manager.getUDPListeningPortNumber();  }
-	  
+	  public int getTCPListeningPortNumber() {  return incoming_socketchannel_manager.getTCPListeningPortNumber();  }	  
 	  
 	  private void readSelectorLoop() {
 		    while( true ) {

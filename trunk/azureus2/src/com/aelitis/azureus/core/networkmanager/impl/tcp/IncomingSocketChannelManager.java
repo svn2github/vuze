@@ -37,7 +37,6 @@ import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
-import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager.HandshakeListener;
 
 
 /**
@@ -60,7 +59,6 @@ public class IncomingSocketChannelManager
   private int max_min_match_buffer_size = 0;
    
   private int tcp_listen_port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
-  private int udp_listen_port = COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
   private int so_rcvbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
   private String bind_address = COConfigurationManager.getStringParameter( "Bind IP" );
   
@@ -86,15 +84,6 @@ public class IncomingSocketChannelManager
         }
       }
     });
-    
-    COConfigurationManager.addParameterListener( "UDP.Listen.Port", new ParameterListener() {
-        public void parameterChanged(String parameterName) {
-          int port = COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
-          if( port != udp_listen_port ) {
-        	  udp_listen_port = port;
-          }
-        }
-      });
     
     //allow dynamic receive buffer size changes
     COConfigurationManager.addParameterListener( "network.tcp.socket.SO_RCVBUF", new ParameterListener() {
@@ -194,9 +183,7 @@ public class IncomingSocketChannelManager
    * Get port that the TCP server socket is listening for incoming connections on.
    * @return port number
    */
-  public int getTCPListeningPortNumber() {  return tcp_listen_port;  }
-  public int getUDPListeningPortNumber() {  return udp_listen_port;  }
-  
+  public int getTCPListeningPortNumber() {  return tcp_listen_port;  }  
   
 
   /**
@@ -279,13 +266,7 @@ public class IncomingSocketChannelManager
           tcp_listen_port = RandomUtils.generateRandomNetworkListenPort();
           COConfigurationManager.setParameter( "TCP.Listen.Port", tcp_listen_port );
         }
-        if( udp_listen_port < 0 || udp_listen_port > 65535 || udp_listen_port == 6880 ) {
-            String msg = "Invalid incoming UDP listen port configured, " +udp_listen_port+ ". Port reset to default. Please check your config!";
-            Debug.out( msg );
-            Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg));
-            udp_listen_port = tcp_listen_port;
-            COConfigurationManager.setParameter( "UDP.Listen.Port", udp_listen_port );
-        }
+ 
 	    if( server_selector == null ) {
 	      InetSocketAddress address;
 	      try{

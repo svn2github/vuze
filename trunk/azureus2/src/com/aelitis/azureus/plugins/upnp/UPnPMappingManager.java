@@ -71,12 +71,16 @@ UPnPMappingManager
 			// with the UDP one, leaving the TCP one non-operational. Hack to try setting them
 			// in UDP -> TCP order to hopefully leave the more important one working :)
 		
+		addConfigPort( "upnp.mapping.dataport", false, "UDP.Listen.Port", true );
+		
+			// this is actually the UDP tracker client mapping, very badly named params...
+		
 		addConfigPort( "upnp.mapping.dataportudp", false, "Server Enable UDP", "UDP.Listen.Port" );
 
 		addConfigPort( "upnp.mapping.dataport", true, "TCP.Listen.Port", true );
 		
 
-			// tracker TCP
+			// tracker server TCP
 		
 		addConfigPort( "upnp.mapping.tcptrackerport", true, "Tracker Port Enable", "Tracker Port" );
 		
@@ -86,7 +90,7 @@ UPnPMappingManager
 		
 		addConfigPortX( "upnp.mapping.tcpssltrackerport", true, "Tracker Port SSL Enable", "Tracker Port SSL Backups" );
 		
-			// tracker UDP
+			// tracker server UDP
 
 		addConfigPort( "upnp.mapping.udptrackerport", false, "Tracker Port UDP Enable", "Tracker Port" );
 	}

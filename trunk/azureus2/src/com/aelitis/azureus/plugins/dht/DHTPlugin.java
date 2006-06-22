@@ -63,11 +63,11 @@ import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
 
 import com.aelitis.azureus.plugins.upnp.UPnPMapping;
-import com.aelitis.azureus.plugins.upnp.UPnPMappingListener;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 /**
@@ -153,7 +153,7 @@ DHTPlugin
 			{
 				Map	res = new HashMap();
 				
-				res.put( "udp_data_port", new Long( TCPNetworkManager.getSingleton().getUDPListeningPortNumber()));
+				res.put( "udp_data_port", new Long( UDPNetworkManager.getSingleton().getUDPListeningPortNumber()));
 				res.put( "tcp_data_port", new Long( TCPNetworkManager.getSingleton().getTCPListeningPortNumber()));
 				
 				return( res );
@@ -169,7 +169,7 @@ DHTPlugin
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	PLUGIN_VERSION );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
 
-		dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "UDP.Listen.Port" );
+		dht_data_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
 
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
 		
@@ -185,58 +185,18 @@ DHTPlugin
 		config.addLabelParameter2( "dht.info" );
 		
 		final BooleanParameter	enabled_param = config.addBooleanParameter2( "dht.enabled", "dht.enabled", true );
-
-		final BooleanParameter	use_default_port = config.addBooleanParameter2( "dht.portdefault", "dht.portdefault", true );
-
-		final IntParameter		dht_port_param	= config.addIntParameter2( "dht.port", "dht.port", dht_data_port );
-				
-		use_default_port.addDisabledOnSelection( dht_port_param );
 		
-	    dht_port_param.addListener( new ParameterListener() {
-	        public void parameterChanged( Parameter p ) {
-		        int val = dht_port_param.getValue();
-		          
-		        if( val == 6880 || val == 6881 ) {
-		        	  dht_port_param.setValue( 6881 );
-		        }
-		        if( val > 65535 ) {
-		        	dht_port_param.setValue(65535);
-		    	}
-		        if( val < 1 ) {
-		        	dht_port_param.setValue(1);
-		    	}
-	        }
-	      });
-		
-		if ( !use_default_port.getValue()){
-		
-			dht_data_port	= dht_port_param.getValue();
-		}
-			
 		plugin_interface.getPluginconfig().addListener(
 				new PluginConfigListener()
 				{
 					public void
 					configSaved()
 					{
-						int	new_dht_data_port_default = plugin_interface.getPluginconfig().getIntParameter( "UDP.Listen.Port" );
+						int	new_dht_data_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
 						
-						int	new_dht_data_port = dht_port_param.getValue();
-						
-						if ( use_default_port.getValue()){
+						if ( new_dht_data_port != dht_data_port ){
 							
-							if ( new_dht_data_port != new_dht_data_port_default ){
-								
-								dht_port_param.setValue( new_dht_data_port_default );
-								
-								changePort( new_dht_data_port_default );
-							}
-						}else{
-							
-							if ( new_dht_data_port != dht_data_port ){
-								
-								changePort( new_dht_data_port );
-							}
+							changePort( new_dht_data_port );
 						}
 					}
 				});
@@ -614,38 +574,6 @@ DHTPlugin
 							false, 
 							dht_data_port, 
 							true );
-			
-				// this listener will be triggered either when we explicitly change the udp port here *or* if
-				// the port is changed via the upnp subsystem (in particular if upnp decides that a router can't
-				// support the configured port
-			
-			upnp_mapping.addListener(
-				new UPnPMappingListener()
-				{
-					public void 
-					mappingChanged(
-						UPnPMapping mapping) 
-					{
-							// ensure that the config matches the selected port
-							
-						int	mapping_port = mapping.getPort();
-						
-						int	core_udp_port = plugin_interface.getPluginconfig().getIntParameter( "UDP.Listen.Port" );
-						
-						if ( core_udp_port != mapping_port ){
-							
-							dht_port_param.setValue( mapping_port );
-						
-							use_default_port.setValue( false );
-						}
-					}
-					
-					public void
-					mappingDestroyed(
-						UPnPMapping	mapping )
-					{
-					}
-				});
 		}
 
 		setPluginInfo();
@@ -973,12 +901,6 @@ DHTPlugin
 		}
 		
 		return( extended_use );
-	}
-	
-	public int
-	getPort()
-	{
-		return( dht_data_port );
 	}
 	
 	public boolean

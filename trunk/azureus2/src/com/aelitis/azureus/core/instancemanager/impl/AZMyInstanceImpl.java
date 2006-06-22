@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
@@ -50,6 +52,7 @@ AZMyInstanceImpl
 	private String				id;
 	private InetAddress			internal_address;
 	private int					tcp_port;
+	private int					udp_port;
 	
 	private long				last_force_read_ext;
 	private InetAddress			last_external_address;
@@ -113,18 +116,21 @@ AZMyInstanceImpl
 			}
 		}
 				
-		int	new_tcp_port = COConfigurationManager.getIntParameter("TCP.Listen.Port");
+		int	new_tcp_port = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
+		int	new_udp_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
 		
 		boolean	same = true;
 		
 		if ( !first_time ){
 			
-			same = internal_address.equals( new_internal_address) && tcp_port == new_tcp_port;
+			same = 	internal_address.equals( new_internal_address) &&
+					tcp_port == new_tcp_port &&
+					udp_port == new_udp_port;
 		}
 		
 		internal_address 	= new_internal_address;
 		tcp_port			= new_tcp_port;
-		
+		udp_port			= new_udp_port;
 		
 		if ( !same ){
 			
@@ -267,17 +273,6 @@ AZMyInstanceImpl
 	public int
 	getDHTPort()
 	{
-	    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-        
-	    	// may not be present
-	    	
-	    if ( dht_pi != null ){
-	    	
-	    	DHTPlugin dht = (DHTPlugin)dht_pi.getPlugin();
-	         
-	    	return( dht.getPort());
-	    }
-	    
-	    return( 0 );
+		return( udp_port );
 	}
 }

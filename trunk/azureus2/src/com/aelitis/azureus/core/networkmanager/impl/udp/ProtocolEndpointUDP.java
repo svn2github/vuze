@@ -1,5 +1,5 @@
 /*
- * Created on 16 Jun 2006
+ * Created on 21 Jun 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -20,29 +20,56 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl.udp;
 
+import java.net.InetSocketAddress;
+
+import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
+import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
+import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
 
-public interface 
-ProtocolEndpoint 
+public class 
+ProtocolEndpointUDP 
+	implements ProtocolEndpoint
 {
-	public static final int	PROTOCOL_TCP	= 1;
-	public static final int	PROTOCOL_UDP	= 2;
+	private ConnectionEndpoint		ce;
+	private InetSocketAddress		address;
+	
+	public
+	ProtocolEndpointUDP(
+		ConnectionEndpoint		_ce,
+		InetSocketAddress		_address )
+	{
+		ce		= _ce;
+		address	= _address;
+	}
 	
 	public int
-	getType();
+	getType()
+	{
+		return( PROTOCOL_UDP );
+	}
 	
 	public ConnectionEndpoint
-	getConnectionEndpoint();
+	getConnectionEndpoint()
+	{
+		return( ce );
+	}
 	
 	public Transport
 	connectOutbound(
 		boolean				connect_with_crypto, 
 		boolean 			allow_fallback, 
 		byte[] 				shared_secret,
-		ConnectListener 	listener );
+		ConnectListener 	listener )
+	{
+		return( null );
+	}
 	
 	public String
-	getDescription();
+	getDescription()
+	{
+		return( address.toString());
+	}
 }
