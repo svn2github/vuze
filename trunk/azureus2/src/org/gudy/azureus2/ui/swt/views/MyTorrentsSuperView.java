@@ -300,7 +300,6 @@ public class MyTorrentsSuperView extends AbstractIView implements
   }
 
 	public Image obfusticatedImage(Image image, Point shellOffset) {
-		System.out.println("hoora");
 		torrentview.obfusticatedImage(image, shellOffset);
 		seedingview.obfusticatedImage(image, shellOffset);
 		return image;
