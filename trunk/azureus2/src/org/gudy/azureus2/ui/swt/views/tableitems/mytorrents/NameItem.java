@@ -75,7 +75,7 @@ public class NameItem extends CoreTableColumn implements
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 		if (dm != null) {
 			name = dm.toString();
-			int i = name.indexOf('@');
+			int i = name.indexOf('#');
 			if (i > 0) {
 				name = name.substring(i + 1);
 			}
