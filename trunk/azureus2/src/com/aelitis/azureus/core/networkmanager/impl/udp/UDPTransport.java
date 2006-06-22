@@ -1,5 +1,5 @@
 /*
- * Created on 19 Jun 2006
+ * Created on 22 Jun 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -20,27 +20,65 @@
  *
  */
 
-package org.gudy.azureus2.plugins.messaging.generic;
+package com.aelitis.azureus.core.networkmanager.impl.udp;
 
-import java.net.InetSocketAddress;
+import com.aelitis.azureus.core.networkmanager.TransportEndpoint;
+import com.aelitis.azureus.core.networkmanager.impl.TransportImpl;
 
-public interface 
-GenericMessageEndpoint 
+public class 
+UDPTransport
+	extends TransportImpl
 {
-	public InetSocketAddress
-	getNotionalAddress();
+	private ProtocolEndpointUDP		endpoint;
+
+	private int transport_mode = TRANSPORT_MODE_NORMAL;
+
+	protected
+	UDPTransport(
+		ProtocolEndpointUDP		_endpoint,
+		byte[]					_shared_secret )
+	{
+		endpoint	= _endpoint;
+	}
 	
+
+	public TransportEndpoint 
+	getTransportEndpoint()
+	{
+		return( new TransportEndpointUDP( endpoint ));
+	}
+	  
+	public String 
+	getDescription()
+	{
+		return( "parp" );
+	}
+	
+
+
+	public void 
+	setTransportMode( 
+		int mode )
+	{
+		transport_mode	= mode;
+	}
+	 
+	public int 
+	getTransportMode()
+	{
+		return( transport_mode );
+	}
+	    
 	public void
-	addTCP(
-		InetSocketAddress	target );
-	
-	public InetSocketAddress
-	getTCP();
-	
-	public void
-	addUDP(
-		InetSocketAddress	target );
-	
-	public InetSocketAddress
-	getUDP();
+	connectOutbound(
+		ConnectListener 	listener )
+	{
+		
+	}
+	   
+	public void 
+	close()
+	{
+		
+	}
 }

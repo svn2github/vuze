@@ -51,6 +51,12 @@ ProtocolEndpointUDP
 		return( PROTOCOL_UDP );
 	}
 	
+	public InetSocketAddress
+	getAddress()
+	{
+		return( address );
+	}
+	
 	public ConnectionEndpoint
 	getConnectionEndpoint()
 	{
@@ -64,7 +70,11 @@ ProtocolEndpointUDP
 		byte[] 				shared_secret,
 		ConnectListener 	listener )
 	{
-		return( null );
+		Transport t = new UDPTransport( this, shared_secret );
+		
+		t.connectOutbound( listener );
+		
+		return( t );
 	}
 	
 	public String

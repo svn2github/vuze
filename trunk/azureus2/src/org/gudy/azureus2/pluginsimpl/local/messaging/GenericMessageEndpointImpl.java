@@ -29,6 +29,7 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
+import com.aelitis.azureus.core.networkmanager.impl.udp.ProtocolEndpointUDP;
 
 public class 
 GenericMessageEndpointImpl 
@@ -79,6 +80,29 @@ GenericMessageEndpointImpl
 			if ( pes[i] instanceof ProtocolEndpointTCP ){
 				
 				return( ((ProtocolEndpointTCP)pes[i]).getAddress());
+			}
+		}
+			
+		return( null );
+	}
+	
+	public void
+	addUDP(
+		InetSocketAddress	target )
+	{
+		ce.addUDP( target );
+	}
+	
+	public InetSocketAddress
+	getUDP()
+	{
+		ProtocolEndpoint[]	pes = ce.getProtocols();
+		
+		for (int i=0;i<pes.length;i++){
+			
+			if ( pes[i] instanceof ProtocolEndpointUDP ){
+				
+				return( ((ProtocolEndpointUDP)pes[i]).getAddress());
 			}
 		}
 			

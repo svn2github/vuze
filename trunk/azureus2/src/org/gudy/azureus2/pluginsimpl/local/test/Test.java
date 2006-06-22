@@ -272,7 +272,7 @@ Test
 			
 			GenericMessageEndpoint	endpoint = reg.createEndpoint( target );
 			
-			endpoint.addTCP( target );
+			endpoint.addUDP( target );
 			
 			GenericMessageConnection	con = reg.createConnection( endpoint );
 			
