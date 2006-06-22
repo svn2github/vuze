@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.transfer.*;
 import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -368,6 +369,12 @@ public class VersionCheckClient {
       if( send_info ) {
         Integer swt_version = (Integer)c.getMethod( "getVersion", new Class[]{} ).invoke( null, new Object[]{} );
         message.put( "swt_version", new Long( swt_version.longValue() ) );
+
+        c = Class.forName("org.gudy.azureus2.ui.swt.mainwindow.MainWindow");
+				if (c != null) {
+					c.getMethod("addToVersionCheckMessage", new Class[] { Map.class }).invoke(
+							null, new Object[] { message });
+				}
       }
     }
     catch( ClassNotFoundException e ) {  /* ignore */ }
@@ -377,7 +384,6 @@ public class VersionCheckClient {
     
     boolean using_phe = COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require" );
     message.put( "using_phe", using_phe ? new Long(1) : new Long(0) );
-    
     
     return message;
   }

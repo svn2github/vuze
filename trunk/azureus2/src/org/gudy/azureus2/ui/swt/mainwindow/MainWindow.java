@@ -1566,4 +1566,53 @@ MainWindow
 
 		return image;
 	}
+	
+	public static void addToVersionCheckMessage(final Map map) {
+		try {
+			if (window != null) {
+				final Shell shell = window.getShell();
+				if (shell != null) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							Point size = shell.getSize();
+							map.put("mainwindow.w", new Long(size.x));
+							map.put("mainwindow.h", new Long(size.y));
+						}
+					}, false);
+					return;
+				}
+			}
+
+			boolean isMaximized = COConfigurationManager.getBooleanParameter(
+					"window.maximized", false);
+			if (isMaximized) {
+				Display current = Display.getCurrent();
+				if (current != null) {
+					Rectangle clientArea = current.getClientArea();
+					map.put("mainwindow.w", new Long(clientArea.width));
+					map.put("mainwindow.h", new Long(clientArea.height));
+				}
+			}
+
+			String windowRectangle = COConfigurationManager.getStringParameter(
+					"window.rectangle", null);
+			if (windowRectangle != null) {
+				String[] values = windowRectangle.split(",");
+				if (values.length == 4) {
+					try {
+						int w = Integer.parseInt(values[2]);
+						map.put("mainwindow.w", new Long(w));
+					} catch (Exception e) {
+					}
+					try {
+						int h = Integer.parseInt(values[3]);
+						map.put("mainwindow.h", new Long(h));
+					} catch (Exception e) {
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }
