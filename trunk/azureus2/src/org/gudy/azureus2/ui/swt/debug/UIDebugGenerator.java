@@ -19,13 +19,21 @@
  */
 package org.gudy.azureus2.ui.swt.debug;
 
+import java.io.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Widget;
+
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 
 /**
  * @author TuxPaper
@@ -47,6 +55,11 @@ public class UIDebugGenerator
 		Shell[] shells = display.getShells();
 		if (shells == null || shells.length == 0) {
 			return;
+		}
+
+		File path = new File(SystemProperties.getUserPath(), "debug");
+		if (!path.isDirectory()) {
+			path.mkdir();
 		}
 
 		for (int i = 0; i < shells.length; i++) {
@@ -71,12 +84,134 @@ public class UIDebugGenerator
 			}
 
 			if (image != null) {
-				String sFileName = "C:\\temp\\image-" + i + ".jpg";
+				File file = new File(path, "image-" + i + ".jpg");
+				String sFileName = file.getAbsolutePath();
+
 				ImageLoader imageLoader = new ImageLoader();
 				imageLoader.data = new ImageData[] { image.getImageData() };
 				imageLoader.save(sFileName, SWT.IMAGE_JPEG);
+			}
+		}
 
-				Program.launch(sFileName);
+		try {
+			File fEvidence = new File(path, "evidence.log");
+			FileWriter fw;
+			fw = new FileWriter(fEvidence);
+			PrintWriter pw = new PrintWriter(fw);
+
+			AEDiagnostics.generateEvidence(pw);
+
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		try {
+			File outFile = new File(SystemProperties.getUserPath(), "debug.zip");
+			if (outFile.exists()) {
+				outFile.delete();
+			}
+
+			ZipOutputStream out = new ZipOutputStream(new FileOutputStream(outFile));
+
+			File logPath = new File(SystemProperties.getUserPath(), "logs");
+			File[] files = logPath.listFiles(new FileFilter() {
+				public boolean accept(File pathname) {
+					return pathname.getName().endsWith(".log");
+				}
+			});
+			addFilesToZip(out, files);
+
+			files = path.listFiles();
+			addFilesToZip(out, files);
+
+			final long ago = SystemTime.getCurrentTime() - 1000L * 60 * 60 * 24 * 90;
+			File azureusPath = new File(SystemProperties.getApplicationPath());
+			files = azureusPath.listFiles(new FileFilter() {
+				public boolean accept(File pathname) {
+					return (pathname.getName().startsWith("hs_err") && pathname.lastModified() > ago);
+				}
+			});
+			addFilesToZip(out, files);
+
+			File userPath = new File(System.getProperty("user.home"), "Library"
+					+ File.separator + "Logs" + File.separator + "Java");
+			if (userPath.isDirectory()) {
+				files = userPath.listFiles(new FileFilter() {
+					public boolean accept(File pathname) {
+						if (pathname.getName().endsWith("log")) {
+							System.out.println("" + pathname
+									+ (pathname.lastModified() - ago));
+						}
+						return (pathname.getName().endsWith("log") && pathname.lastModified() > ago);
+					}
+				});
+				addFilesToZip(out, files);
+			}
+
+			out.close();
+
+			if (outFile.exists()) {
+				MessageBox box = new MessageBox(Display.getCurrent().getActiveShell());
+				box.setText("Debug Info Generated");
+				box.setMessage("Please send the file '" + outFile
+						+ " to tuxpaper@users.sourceforge.net\n\n"
+						+ "Click Ok to open a window to this file.");
+				if (box.open() == SWT.OK) {
+					try {
+						PlatformManagerFactory.getPlatformManager().showFile(
+								outFile.getAbsolutePath());
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	private static void addFilesToZip(ZipOutputStream out, File[] files) {
+		byte[] buf = new byte[1024];
+		if (files == null) {
+			return;
+		}
+
+		for (int j = 0; j < files.length; j++) {
+			File file = files[j];
+
+			FileInputStream in;
+			try {
+				in = new FileInputStream(file);
+			} catch (FileNotFoundException e) {
+				continue;
+			}
+
+			try {
+				out.putNextEntry(new ZipEntry(file.getName()));
+				//	Transfer bytes from the file to the ZIP file
+				int len;
+				while ((len = in.read(buf)) > 0) {
+					out.write(buf, 0, len);
+				}
+
+				// Complete the entry
+				out.closeEntry();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			try {
+				in.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}

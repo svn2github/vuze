@@ -78,7 +78,7 @@ import com.aelitis.azureus.core.AzureusCore;
  * @author James Yeh Accessibility: Changes to allow better validation and unified menu bar state
  */
 public class MainMenu {
-	private static boolean ENABLE_TUX = false;
+	private static boolean ENABLE_TUX = true;
 	
 	private static final LogIDs LOGID = LogIDs.GUI;
 
