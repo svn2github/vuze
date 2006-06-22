@@ -301,12 +301,8 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 					String	evidence = sw.toString();
 					
 					ClipboardCopy.copyToClipBoard( evidence );
-					
-					StringTokenizer	tok = new StringTokenizer(evidence, "\n" );
-					
-					while( tok.hasMoreTokens()){
-						Logger.log( new LogEvent(LOGID, tok.nextToken().trim()));
-					}
+
+					Logger.log( new LogEvent(LOGID, "Evidence Generation:\n" + evidence));
 				}
 			});
 	
