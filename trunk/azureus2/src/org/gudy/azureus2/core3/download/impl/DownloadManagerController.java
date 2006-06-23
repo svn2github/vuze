@@ -1041,31 +1041,29 @@ DownloadManagerController
 	public boolean 
 	filesExist() 
 	{
-		DiskManager	dm = getDiskManager();
-		
-		String strErrMessage = "";
-		
-			// currently can only seed if whole torrent exists
-		
-		if ( dm  == null) {
-  		
-			dm = DiskManagerFactory.createNoStart( download_manager.getTorrent(), download_manager);
+		DiskManager dm = getDiskManager();
+
+		if (dm != null) {
+			return dm.filesExist();
 		}
-		
-  		if ( dm.getState() == DiskManager.FAULTY || !dm.filesExist() ){
-  			
-  			strErrMessage = dm.getErrorMessage();
-  		}
-  
-  	
-  		if ( !strErrMessage.equals("")){
-     
-  			setFailed( MessageText.getString("DownloadManager.error.datamissing") + " " + strErrMessage );
-  
-  			return( false );
-  		}
-  		
-  		return( true );
+
+		for (int i = 0; i < files_facade.length; i++) {
+			fileInfoFacade fileInfo = files_facade[i];
+			if (!fileInfo.isSkipped()) {
+				File file = fileInfo.getFile(true);
+				if (!file.exists()) {
+					setFailed(MessageText.getString("DownloadManager.error.datamissing")
+							+ " " + file);
+					return false;
+				} else if (fileInfo.getLength() != file.length()) { // && file exists
+					setFailed(MessageText.getString("DownloadManager.error.badsize")
+							+ " " + file);
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 	
    	public DiskManagerFileInfo[]
