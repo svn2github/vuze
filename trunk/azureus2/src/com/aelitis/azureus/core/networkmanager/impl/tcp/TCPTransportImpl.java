@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
@@ -214,11 +215,12 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     	//attempt encrypted transport
   		TransportHelper	helper = new TCPTransportHelper( channel );
     	TransportCryptoManager.getSingleton().manageCrypto( helper, shared_secret, false, new TransportCryptoManager.HandshakeListener() {
-    		public void handshakeSuccess( TransportHelperFilter _filter ) {    			
-    			//System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" );     			
-    			setFilter( _filter ); 
+    		public void handshakeSuccess( ProtocolDecoder decoder ) {    			
+    			//System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" ); 
+    			TransportHelperFilter filter = decoder.getFilter();
+    			setFilter( filter ); 
     			if ( Logger.isEnabled()){
-    		      Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + _filter.getName()));
+    		      Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + filter.getName()));
     			}
     			
     			connectedOutbound();
@@ -241,6 +243,12 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         		listener.connectFailure( failure_msg );
         	}
         }
+    		
+    		public void
+    		gotSecret(
+				byte[]				session_secret )
+    		{
+    		}
     		
     		public int
     		getMaximumPlainHeaderLength()

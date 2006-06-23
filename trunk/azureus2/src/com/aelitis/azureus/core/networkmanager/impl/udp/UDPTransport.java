@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.TransportEndpoint;
+import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
@@ -119,7 +120,7 @@ UDPTransport
 		try{
 			listener.connectAttemptStarted();
 
-	 		TransportHelper	helper = 
+			final UDPTransportHelper	helper = 
 	 			new UDPTransportHelper( UDPNetworkManager.getSingleton().getConnectionManager(), endpoint.getAddress());
 	 		
 	    	TransportCryptoManager.getSingleton().manageCrypto( 
@@ -130,8 +131,10 @@ UDPTransport
 	    			{
 	    				public void 
 	    				handshakeSuccess( 
-	    					TransportHelperFilter filter )
+	    					ProtocolDecoder	decoder )
 	    				{
+	    					TransportHelperFilter	filter = decoder.getFilter();
+	    					
 	    					try{
 		    					setFilter( filter );
 		    					
@@ -156,6 +159,8 @@ UDPTransport
 	    						
 	    						Debug.printStackTrace(e);
 	    						
+	    						close();
+	    						
 	    						listener.connectFailure( e );
 	    					}
 	    				}
@@ -164,7 +169,16 @@ UDPTransport
 	    				handshakeFailure( 
 	    					Throwable failure_msg )
 	    				{
+	    					helper.close();
+	    					
 	    					listener.connectFailure( failure_msg );
+	    				}
+	    				
+	    				public void
+	    				gotSecret(
+							byte[]				session_secret )
+	    				{
+	    		   			helper.getConnection().setSecret( session_secret );
 	    				}
 	    				
 	    				public int 

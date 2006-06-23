@@ -39,11 +39,15 @@ ProtocolDecoderAdapter
 		ByteBuffer			buffer );
 	
 	public void
+	gotSecret(
+		byte[]				session_secret );
+	
+	public void
 	decodeComplete(
-		ProtocolDecoder	decoder );
+		ProtocolDecoder		decoder );
 	
 	public void
 	decodeFailed(
-		ProtocolDecoder	decoder,
+		ProtocolDecoder		decoder,
 		Throwable			cause );
 }

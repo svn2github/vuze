@@ -36,6 +36,8 @@ UDPTransportHelper
 	private UDPSelector				selector;
 	private InetSocketAddress		address;
 	
+	private boolean					incoming;
+	
 	private UDPConnection			connection;
 	
 	private selectListener		read_listener;
@@ -59,6 +61,8 @@ UDPTransportHelper
 		manager		= _manager;
 		address 	= _address;
 		
+		incoming	= false;
+		
 		selector	= _manager.getSelector();
 
 		connection 	= manager.registerOutgoing( this );
@@ -75,6 +79,8 @@ UDPTransportHelper
 		manager		= _manager;
 		address 	= _address;
 		connection = _connection;
+	
+		incoming	= true;
 		
 		selector	= _manager.getSelector();
 	}
@@ -83,6 +89,18 @@ UDPTransportHelper
 	getAddress()
 	{
 		return( address );
+	}
+	
+	public boolean
+	isIncoming()
+	{
+		return( incoming );
+	}
+	
+	protected UDPConnection
+	getConnection()
+	{
+		return( connection );
 	}
 	
 	public int 

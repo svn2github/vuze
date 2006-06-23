@@ -129,6 +129,12 @@ PHETester
 							{
 								System.out.println( "incoming decode failed: " + Debug.getNestedExceptionMessage(cause));
 							}
+							
+							public void
+							gotSecret(
+								byte[]				session_secret )
+							{
+							}
 
 							public int
 							getMaximumPlainHeaderLength()
@@ -275,6 +281,12 @@ PHETester
 							{
 								System.out.println( "outgoing decode failed: " + Debug.getNestedExceptionMessage(cause));
 	
+							}
+							
+							public void
+							gotSecret(
+								byte[]				session_secret )
+							{	
 							}
 							
 							public int

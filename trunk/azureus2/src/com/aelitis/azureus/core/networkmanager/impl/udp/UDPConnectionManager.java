@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
+import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
@@ -123,7 +124,7 @@ UDPConnectionManager
 		final InetSocketAddress	remote_address,
 		final UDPConnection		connection )
 	{
-		UDPTransportHelper	helper = new UDPTransportHelper( this, remote_address, connection );
+		final UDPTransportHelper	helper = new UDPTransportHelper( this, remote_address, connection );
 
 		connection.setTransport( helper );
 		
@@ -135,8 +136,10 @@ UDPConnectionManager
 			{
 				public void 
 				handshakeSuccess( 
-					TransportHelperFilter filter ) 
+					ProtocolDecoder	decoder ) 
 				{
+					TransportHelperFilter	filter = decoder.getFilter();
+					
 					ConnectionEndpoint	co_ep = new ConnectionEndpoint( remote_address);
 
 					ProtocolEndpointUDP	pe_udp = new ProtocolEndpointUDP( co_ep, remote_address );
@@ -157,6 +160,13 @@ UDPConnectionManager
 					connection.close();
 				}
             
+				public void
+				gotSecret(
+					byte[]				session_secret )
+				{
+					helper.getConnection().setSecret( session_secret );
+				}
+				
 				public int
 				getMaximumPlainHeaderLength()
 				{
@@ -181,15 +191,6 @@ UDPConnectionManager
     				}
     			}
         	});
-	}
-	
-	protected void
-	routeIncomingConnection(
-		int			local_port,
-		ByteBuffer	buffer )
-	{
-		IncomingConnectionManager.MatchListener listener = incoming_manager.checkForMatch( local_port, buffer, false );
-
 	}
 	
 	protected UDPConnection

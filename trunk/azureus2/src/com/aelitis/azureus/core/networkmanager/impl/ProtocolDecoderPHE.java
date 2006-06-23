@@ -321,7 +321,7 @@ ProtocolDecoderPHE
 	
 	private boolean processing_complete;
 	
-	private AEMonitor	process_mon	= new AEMonitor( "TCPProtocolDecoder:process" );
+	private AEMonitor	process_mon	= new AEMonitor( "ProtocolDecoderPHE:process" );
 	
 	public 
 	ProtocolDecoderPHE(
@@ -486,6 +486,8 @@ ProtocolDecoderPHE
 		    
 		    secret_bytes = key_agreement.generateSecret();
 			    
+		    adapter.gotSecret( secret_bytes );
+		    
 		    // System.out.println( "secret = " + ByteFormatter.encodeString( secret_bytes ));
 		    
 		}catch( Throwable e ){
@@ -1896,7 +1898,7 @@ ProtocolDecoderPHE
 	{
 		return( filter );
 	}
-	
+
 	public long
 	getLastReadTime()
 	{

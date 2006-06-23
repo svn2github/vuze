@@ -64,10 +64,17 @@ public class TransportCryptoManager {
 							}
 
 							public void
+							gotSecret(
+								byte[]				session_secret )
+							{
+								listener.gotSecret( session_secret );
+							}
+							
+							public void
 							decodeComplete(
 								ProtocolDecoder	decoder )
 							{
-								listener.handshakeSuccess( decoder.getFilter());
+								listener.handshakeSuccess( decoder );
 							}
 							
 							public void
@@ -93,9 +100,11 @@ public class TransportCryptoManager {
 		public static final int MATCH_CRYPTO_NO_AUTO_FALLBACK	= ProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK;
 		public static final int MATCH_CRYPTO_AUTO_FALLBACK		= ProtocolDecoderAdapter.MATCH_CRYPTO_AUTO_FALLBACK;
 		
-		public void handshakeSuccess( TransportHelperFilter filter );
+		public void handshakeSuccess( ProtocolDecoder decoder );
 
 		public void handshakeFailure( Throwable failure_msg );
+		
+		public void gotSecret( byte[] session_secret );
 		
 		public int getMaximumPlainHeaderLength();
 		

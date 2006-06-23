@@ -125,10 +125,10 @@ ProtocolDecoderInitial
 								if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE && match == ProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK ){
 								
 									if ( NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED ){										
-										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as fallback is enabled" ));
+										Logger.log(new LogEvent(LOGID, "Incoming connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as fallback is enabled" ));
 									}
 									else if( AddressUtils.isLANLocalAddress( transport.getAddress().getAddress().getHostAddress() ) == AddressUtils.LAN_LOCAL_YES ) {
-										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as lan-local" ));
+										Logger.log(new LogEvent(LOGID, "Incoming connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as lan-local" ));
 									}
 									else{										
 										throw( new IOException( "Crypto required but incoming connection has none" ));
@@ -204,6 +204,13 @@ ProtocolDecoderInitial
 					failed( cause );
 				}
 				
+				public void
+				gotSecret(
+					byte[]				session_secret )
+				{
+					adapter.gotSecret( session_secret );
+				}
+				
 				public int
 				getMaximumPlainHeaderLength()
 				{
@@ -276,7 +283,7 @@ ProtocolDecoderInitial
 				
 		       	if ( Logger.isEnabled()){
 		       		
-					Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
+					Logger.log(new LogEvent(LOGID, "Connection ["
 							+ transport.getAddress() + "] forcibly timed out after "
 							+ timeout/1000 + "sec due to socket inactivity"));
 		       	}

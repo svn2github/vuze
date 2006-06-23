@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
+import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
 
@@ -214,8 +215,8 @@ public class IncomingSocketChannelManager
 	  	      	TCPTransportHelper	helper = new TCPTransportHelper( channel );
 
 	        	TransportCryptoManager.getSingleton().manageCrypto( helper, null, true, new TransportCryptoManager.HandshakeListener() {
-	        		public void handshakeSuccess( TransportHelperFilter filter ) {
-	        			process( server.socket().getLocalPort(), filter );
+	        		public void handshakeSuccess( ProtocolDecoder decoder ) {
+	        			process( server.socket().getLocalPort(), decoder.getFilter());
 	        		}
 
 	            public void 
@@ -249,6 +250,12 @@ public class IncomingSocketChannelManager
 	            	TCPNetworkManager.getSingleton().closeSocketChannel( channel );
 	            }
 	            
+	        	public void
+	        	gotSecret(
+					byte[]				session_secret )
+	        	{
+	        	}
+	        	
 	    		public int
 	    		getMaximumPlainHeaderLength()
 	    		{

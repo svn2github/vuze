@@ -72,19 +72,8 @@ public class RC4Engine implements StreamCipher
         int     inOff, 
         int     len, 
         byte[]     out, 
-        int     outOff
-    )
+        int     outOff )
     {
-        if ((inOff + len) > in.length)
-        {
-            throw new DataLengthException("input buffer too short");
-        }
-
-        if ((outOff + len) > out.length)
-        {
-            throw new DataLengthException("output buffer too short");
-        }
-
         for (int i = 0; i < len ; i++)
         {
             x = (x + 1) & 0xff;
@@ -98,6 +87,28 @@ public class RC4Engine implements StreamCipher
             // xor
             out[i+outOff] = (byte)(in[i + inOff]
                     ^ engineState[(engineState[x] + engineState[y]) & 0xff]);
+        }
+    }
+    
+    public void 
+    processBytes(
+        byte[]     in, 
+        byte[]     out )
+    {
+    	int	len = in.length;
+    	
+        for (int i = 0; i < len ; i++)
+        {
+            x = (x + 1) & 0xff;
+            y = (engineState[x] + y) & 0xff;
+
+            // swap
+            byte tmp = engineState[x];
+            engineState[x] = engineState[y];
+            engineState[y] = tmp;
+
+            // xor
+            out[i] = (byte)(in[i] ^ engineState[(engineState[x] + engineState[y]) & 0xff]);
         }
     }
 

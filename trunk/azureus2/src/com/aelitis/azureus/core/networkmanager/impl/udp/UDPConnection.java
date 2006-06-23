@@ -43,6 +43,7 @@ UDPConnection
 		set			= _set;
 		transport	= _transport;
 	}
+	
 	protected
 	UDPConnection(
 		UDPConnectionSet	_set )
@@ -50,11 +51,30 @@ UDPConnection
 		set			= _set;
 	}
 	
+	public boolean
+	isIncoming()
+	{
+		return( transport.isIncoming());
+	}
+	
+	protected void
+	setSecret(
+		byte[]	session_secret )
+	{
+		set.setSecret( this, session_secret );
+	}
+	
 	protected void
 	setTransport(
 		UDPTransportHelper	_transport )
 	{
 		transport	= _transport;
+	}
+	
+	protected UDPTransportHelper
+	getTransport()
+	{
+		return( transport );
 	}
 	
 	protected void
@@ -88,7 +108,7 @@ UDPConnection
 	protected boolean
 	canWrite()
 	{
-		return( set.canWrite());
+		return( set.canWrite( this ));
 	}
 	
 	protected int 
@@ -151,7 +171,7 @@ UDPConnection
 	protected void
 	close()
 	{
-		
+		set.close( this );
 	}
 	
 	protected void
