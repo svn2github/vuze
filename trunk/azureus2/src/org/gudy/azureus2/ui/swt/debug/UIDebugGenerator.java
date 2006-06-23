@@ -30,6 +30,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -63,33 +66,37 @@ public class UIDebugGenerator
 		}
 
 		for (int i = 0; i < shells.length; i++) {
-			Shell shell = shells[i];
-			Image image;
-
-			if (shell.getData("class") instanceof ObfusticateShell) {
-				ObfusticateShell shellClass = (ObfusticateShell) shell.getData("class");
-
-				image = shellClass.generateObfusticatedImage();
-			} else {
-
-				Rectangle clientArea = shell.getClientArea();
-				image = new Image(display, clientArea.width, clientArea.height);
-
-				GC gc = new GC(shell);
-				try {
-					gc.copyArea(image, clientArea.x, clientArea.y);
-				} finally {
-					gc.dispose();
+			try {
+				Shell shell = shells[i];
+				Image image;
+	
+				if (shell.getData("class") instanceof ObfusticateShell) {
+					ObfusticateShell shellClass = (ObfusticateShell) shell.getData("class");
+	
+					image = shellClass.generateObfusticatedImage();
+				} else {
+	
+					Rectangle clientArea = shell.getClientArea();
+					image = new Image(display, clientArea.width, clientArea.height);
+	
+					GC gc = new GC(shell);
+					try {
+						gc.copyArea(image, clientArea.x, clientArea.y);
+					} finally {
+						gc.dispose();
+					}
 				}
-			}
-
-			if (image != null) {
-				File file = new File(path, "image-" + i + ".jpg");
-				String sFileName = file.getAbsolutePath();
-
-				ImageLoader imageLoader = new ImageLoader();
-				imageLoader.data = new ImageData[] { image.getImageData() };
-				imageLoader.save(sFileName, SWT.IMAGE_JPEG);
+	
+				if (image != null) {
+					File file = new File(path, "image-" + i + ".jpg");
+					String sFileName = file.getAbsolutePath();
+	
+					ImageLoader imageLoader = new ImageLoader();
+					imageLoader.data = new ImageData[] { image.getImageData() };
+					imageLoader.save(sFileName, SWT.IMAGE_JPEG);
+				}
+			} catch (Exception e) {
+				Logger.log(new LogEvent(LogIDs.GUI, "Creating Obfusticated Image", e));
 			}
 		}
 
@@ -140,10 +147,6 @@ public class UIDebugGenerator
 			if (userPath.isDirectory()) {
 				files = userPath.listFiles(new FileFilter() {
 					public boolean accept(File pathname) {
-						if (pathname.getName().endsWith("log")) {
-							System.out.println("" + pathname
-									+ (pathname.lastModified() - ago));
-						}
 						return (pathname.getName().endsWith("log") && pathname.lastModified() > ago);
 					}
 				});
