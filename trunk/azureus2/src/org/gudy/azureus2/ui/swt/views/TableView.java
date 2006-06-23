@@ -2865,7 +2865,8 @@ public class TableView
 						String text = cell.getObfusticatedText();
 
 						if (text != null) {
-							UIDebugGenerator.obfusticateArea(image, columnBounds, text);
+							UIDebugGenerator.obfusticateArea(table.getDisplay(), image,
+									columnBounds, text);
 						}
 					}
 				}

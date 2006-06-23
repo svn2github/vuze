@@ -223,11 +223,13 @@ public class UIDebugGenerator
 	 * @param image
 	 * @param bounds
 	 */
-	public static void obfusticateArea(Image image, Rectangle bounds) {
+	// XXX After we swith to 3.2, display param can be removed, and 
+	// image.getDevice() can be used
+	public static void obfusticateArea(Display display, Image image, Rectangle bounds) {
 		GC gc = new GC(image);
 		try {
-			gc.setBackground(image.getDevice().getSystemColor(SWT.COLOR_WHITE));
-			gc.setForeground(image.getDevice().getSystemColor(SWT.COLOR_RED));
+			gc.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+			gc.setForeground(display.getSystemColor(SWT.COLOR_RED));
 			gc.fillRectangle(bounds);
 			gc.drawRectangle(bounds);
 			int x2 = bounds.x + bounds.width;
@@ -244,21 +246,21 @@ public class UIDebugGenerator
 	 * @param bounds
 	 * @param text
 	 */
-	public static void obfusticateArea(Image image, Rectangle bounds, String text)
+	public static void obfusticateArea(Display display, Image image, Rectangle bounds, String text)
 	{
 
 		if (bounds.isEmpty())
 			return;
 
 		if (text == "") {
-			obfusticateArea(image, bounds);
+			obfusticateArea(display, image, bounds);
 			return;
 		}
 
 		GC gc = new GC(image);
 		try {
-			gc.setBackground(image.getDevice().getSystemColor(SWT.COLOR_WHITE));
-			gc.setForeground(image.getDevice().getSystemColor(SWT.COLOR_RED));
+			gc.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+			gc.setForeground(display.getSystemColor(SWT.COLOR_RED));
 			gc.fillRectangle(bounds);
 			gc.drawRectangle(bounds);
 			gc.setClipping(bounds);
@@ -282,6 +284,6 @@ public class UIDebugGenerator
 		bounds.x = offset.x - shellOffset.x;
 		bounds.y = offset.y - shellOffset.y;
 
-		obfusticateArea(image, bounds, text);
+		obfusticateArea(control.getDisplay(), image, bounds, text);
 	}
 }
