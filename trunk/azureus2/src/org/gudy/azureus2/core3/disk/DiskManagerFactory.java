@@ -26,7 +26,6 @@ package org.gudy.azureus2.core3.disk;
  *
  */
 
-import java.util.Map;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.impl.*;
@@ -53,6 +52,7 @@ DiskManagerFactory
 		return dm;
 	}
 	
+	/*
 	public static DiskManager
 	createNoStart(
 		TOTorrent		torrent, 
@@ -60,6 +60,7 @@ DiskManagerFactory
 	{
 		return( new DiskManagerImpl( torrent, manager ));
 	}
+	*/
 
 		/**
 		 * Method to preset resume data to indicate completely valid file. 
