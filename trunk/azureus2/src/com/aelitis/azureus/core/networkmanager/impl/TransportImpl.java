@@ -299,5 +299,77 @@ TransportImpl
 			
 		    filter.getHelper().resumeReadSelects();
 		}
-	} 	  
+	} 
+	
+	public void
+	connectedInbound()
+	{	   
+		registerSelectHandling();
+	}
+	
+	protected void
+	connectedOutbound()
+	{
+		registerSelectHandling();
+	}
+	
+	private void 
+	registerSelectHandling() 
+	{
+		TransportHelperFilter	filter = getFilter();
+		
+		if( filter == null ) {
+			Debug.out( "ERROR: registerSelectHandling():: filter == null" );
+			return;
+		}
+
+		TransportHelper	helper = filter.getHelper();
+		
+		//read selection
+		
+		helper.registerForReadSelects(
+			new TransportHelper.selectListener()
+			{
+			   	public boolean 
+		    	selectSuccess(
+		    		TransportHelper	helper, 
+		    		Object 			attachment )
+			   	{
+			   		return( readyForRead( true ));
+			   	}
+
+		        public void 
+		        selectFailure(
+		        	TransportHelper	helper,
+		        	Object 			attachment, 
+		        	Throwable 		msg)
+		        {
+		        	readFailed( msg );
+		        }
+			},
+			null );
+
+
+		helper.registerForWriteSelects(
+				new TransportHelper.selectListener()
+				{
+				   	public boolean 
+			    	selectSuccess(
+			    		TransportHelper	helper, 
+			    		Object 			attachment )
+				   	{
+				   		return( readyForWrite( true ));
+				   	}
+
+			        public void 
+			        selectFailure(
+			        	TransportHelper	helper,
+			        	Object 			attachment, 
+			        	Throwable 		msg)
+			        {
+			        	writeFailed( msg );
+			        }
+				},
+				null );
+	}
 }

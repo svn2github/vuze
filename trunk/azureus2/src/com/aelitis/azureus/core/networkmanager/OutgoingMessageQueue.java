@@ -54,8 +54,7 @@ public class OutgoingMessageQueue {
   private Transport transport;
   
   private int percent_complete = -1;
-  
-  
+    
   private static final boolean TRACE_HISTORY = true;  //TODO
   private static final int MAX_HISTORY_TRACES = 30;
   private final LinkedList prev_sent = new LinkedList();
@@ -74,7 +73,13 @@ public class OutgoingMessageQueue {
   setTransport(
 	 Transport		_transport )
   {
-	transport = _transport;  
+	transport 	= _transport;  
+  }
+  
+  public int
+  getMssSize()
+  {
+	  return( transport==null?NetworkManager.getMinMssSize():transport.getMssSize());
   }
   
   /**

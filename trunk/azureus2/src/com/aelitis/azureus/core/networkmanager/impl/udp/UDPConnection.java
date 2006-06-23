@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.udp;
 
+import java.util.*;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -30,6 +32,8 @@ UDPConnection
 {
 	private UDPConnectionSet	set;
 	private UDPTransportHelper	transport;
+	
+	private List	buffers = new LinkedList();
 	
 	protected
 	UDPConnection(
@@ -57,18 +61,102 @@ UDPConnection
 	receive(
 		ByteBuffer		data )
 	{
+		boolean	was_empty = false;
 		
+		synchronized( buffers ){
+		
+			was_empty = buffers.size() == 0;
+			
+			buffers.add( data );
+		}
+		
+		if ( was_empty ){
+			
+			transport.canRead();
+		}
 	}
 	
+	protected boolean
+	canRead()
+	{
+		synchronized( buffers ){
+
+			return( buffers.size() > 0 );
+		}
+	}
 	
+	protected boolean
+	canWrite()
+	{
+		return( set.canWrite());
+	}
 	
-	
-	public int 
+	protected int 
 	write( 
 		ByteBuffer buffer ) 
 	
 		throws IOException
 	{
 		return( set.write( this, buffer ));
+	}
+	
+	protected int
+	read(
+		ByteBuffer	buffer )
+	
+		throws IOException
+	{
+		int	total = 0;
+		
+		synchronized( buffers ){
+
+			while( buffers.size() > 0 ){
+				
+				int	rem = buffer.remaining();
+				
+				if ( rem == 0 ){
+					
+					break;
+				}
+
+				ByteBuffer	b = (ByteBuffer)buffers.get(0);
+								
+				int	old_limit = b.limit();
+				
+				if ( b.remaining() > rem ){
+					
+					b.limit( b.position() + rem );
+				}
+				
+				buffer.put( b );
+				
+				b.limit( old_limit );
+				
+				total += rem - buffer.remaining();
+				
+				if ( b.hasRemaining()){
+					
+					break;
+					
+				}else{
+					
+					buffers.remove(0);
+				}
+			}
+		}
+		
+		return( total );
+	}
+	
+	protected void
+	close()
+	{
+		
+	}
+	
+	protected void
+	poll()
+	{
+		transport.poll();
 	}
 }

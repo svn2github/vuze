@@ -33,9 +33,21 @@ UDPTransportHelper
 	implements TransportHelper
 {
 	private UDPConnectionManager	manager;
+	private UDPSelector				selector;
 	private InetSocketAddress		address;
 	
 	private UDPConnection			connection;
+	
+	private selectListener		read_listener;
+	private Object				read_attachment;
+	private boolean 			read_selects_paused;
+	
+	private selectListener		write_listener;
+	private Object				write_attachment;
+	private boolean 			write_selects_paused	= true;	// default is paused
+
+	private boolean				closed;
+	private IOException			failed;
 	
 	protected
 	UDPTransportHelper(
@@ -47,6 +59,8 @@ UDPTransportHelper
 		manager		= _manager;
 		address 	= _address;
 		
+		selector	= _manager.getSelector();
+
 		connection 	= manager.registerOutgoing( this );
 	}
 	
@@ -61,6 +75,8 @@ UDPTransportHelper
 		manager		= _manager;
 		address 	= _address;
 		connection = _connection;
+		
+		selector	= _manager.getSelector();
 	}
 	
 	public InetSocketAddress
@@ -75,6 +91,19 @@ UDPTransportHelper
 	
 		throws IOException
 	{
+		synchronized( this ){
+			
+			if ( failed != null ){
+				
+				throw( failed );
+			}
+			
+			if ( closed ){
+				
+				throw( new IOException( "Transport closed" ));
+			}
+		}
+		
 		return( connection.write( buffer ));
 	}
 
@@ -86,7 +115,38 @@ UDPTransportHelper
     
     	throws IOException
     {
-    	throw( new IOException( "not imp" ));
+		synchronized( this ){
+			
+			if ( failed != null ){
+				
+				throw( failed );
+			}
+			
+			if ( closed ){
+				
+				throw( new IOException( "Transport closed" ));
+			}
+		}
+		
+    	long	total = 0;
+    	
+    	for (int i=array_offset;i<array_offset+length;i++){
+    		
+    		ByteBuffer	buffer = buffers[i];
+    		
+    		int	max = buffer.remaining();
+    		
+    		int	written = connection.write( buffer );
+    		
+    		total += written;
+    		
+    		if ( written < max ){
+    		
+    			break;
+    		}
+    	}
+    	
+    	return( total );
     }
 
     public int 
@@ -95,7 +155,20 @@ UDPTransportHelper
     
     	throws IOException
     {
-    	throw( new IOException( "not imp" ));
+		synchronized( this ){
+			
+			if ( failed != null ){
+				
+				throw( failed );
+			}
+			
+			if ( closed ){
+				
+				throw( new IOException( "Transport closed" ));
+			}
+		}
+		
+    	return( connection.read( buffer ));
     }
 
     public long 
@@ -106,31 +179,98 @@ UDPTransportHelper
     
     	throws IOException
     {
-    	throw( new IOException( "not imp" ));
+		synchronized( this ){
+			
+			if ( failed != null ){
+				
+				throw( failed );
+			}
+			
+			if ( closed ){
+				
+				throw( new IOException( "Transport closed" ));
+			}
+		}
+		
+    	long	total = 0;
+    	
+    	for (int i=array_offset;i<array_offset+length;i++){
+    		
+    		ByteBuffer	buffer = buffers[i];
+    		
+    		int	max = buffer.remaining();
+    		
+    		int	read = connection.read( buffer );
+    		
+    		total += read;
+    		
+    		if ( read < max ){
+    		
+    			break;
+    		}
+    	}
+    	
+    	return( total );
     }
 
-    public void
+    protected void
+    canRead()
+    {
+     	synchronized( this ){
+    
+    		if ( read_listener != null && !read_selects_paused ){
+    			    	   		
+    			selector.ready( this, read_listener, read_attachment );
+    		}
+    	}
+    }
+    
+    protected void
+    canWrite()
+    {
+       	synchronized( this ){
+       	    
+    		if ( write_listener != null  && !write_selects_paused ){
+    			    	   		
+    			write_selects_paused	= true;
+    			
+    			selector.ready( this, write_listener, write_attachment );
+    		}
+    	}
+    }
+    
+    public synchronized void
     pauseReadSelects()
     {
-    	
+    	read_selects_paused	= true;
     }
     
-    public void
+    public synchronized void
     pauseWriteSelects()
     {
-    	
+    	write_selects_paused = true;
     }
  
-    public void
+    public synchronized void
     resumeReadSelects()
     {
+    	read_selects_paused = false;
     	
+    	if ( connection.canRead()){
+    		
+    		canRead();
+    	}
     }
     
-    public void
+    public synchronized void
     resumeWriteSelects()
     {
+    	write_selects_paused = false;
     	
+    	if ( connection.canWrite()){
+    		
+    		canWrite();
+    	}
     }
     
     public void
@@ -138,7 +278,13 @@ UDPTransportHelper
     	selectListener	listener,
     	Object			attachment )
     {
+    	synchronized( this ){
+    		
+	    	read_listener		= listener;
+	    	read_attachment		= attachment;
+    	}
     	
+    	resumeReadSelects();
     }
     
     public void
@@ -146,24 +292,99 @@ UDPTransportHelper
     	selectListener	listener,
     	Object			attachment )
     {
+    	synchronized( this ){
+    		
+	      	write_listener		= listener;
+	    	write_attachment	= attachment;  
+    	} 	
     	
+    	resumeWriteSelects();
     }
     
-    public void
+    public synchronized void
     cancelReadSelects()
     {
-    	
+    	read_selects_paused	= true;
+      	read_listener		= null;
+    	read_attachment		= null;
     }
     
-    public void
+    public synchronized void
     cancelWriteSelects()
     {
+    	write_selects_paused	= true;
+     	write_listener			= null;
+    	write_attachment		= null;
+    }
+    
+    protected void
+    failed(
+    	IOException	error )
+    {
+    	synchronized( this ){
+        		
+    		failed			= error;
     	
+    		if ( read_listener != null && !read_selects_paused ){
+    		
+    			selector.ready( this, read_listener, read_attachment, failed );
+    		}
+    		
+      		if ( write_listener != null && !write_selects_paused ){
+        		
+      			write_selects_paused	= true;
+      			
+    			selector.ready( this, write_listener, write_attachment, failed );
+    		}
+    	}
     }
     
     public void
     close()
     {
+    	synchronized( this ){
+    		
+    		cancelReadSelects();
+    		cancelWriteSelects();
+    		
+    		closed	= true;
+    	}
     	
+    	connection.close();
     }
+    
+	protected void
+	poll()
+	{
+	   	synchronized( this ){
+	   		
+	   		if ( read_listener != null && !read_selects_paused ){
+	   			
+	   			if ( failed != null  ){
+	   				
+	   	 			selector.ready( this, read_listener, read_attachment, failed );
+	   	 		  
+	   			}else if ( connection.canRead()){
+	   				
+	   	 			selector.ready( this, read_listener, read_attachment );
+	   			}
+	   		}
+	   		
+	   		if ( write_listener != null && !write_selects_paused ){
+	   			
+	   			if ( failed != null  ){
+	   				
+	   				write_selects_paused	= true;
+	   				
+	   	 			selector.ready( this, write_listener, write_attachment, failed );
+	   	 		  
+	   			}else if ( connection.canWrite()){
+	   				
+	   				write_selects_paused	= true;
+	   				
+	   	 			selector.ready( this, write_listener, write_attachment );
+	   			}
+	   		}
+	   	}
+	}
 }

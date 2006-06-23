@@ -23,7 +23,6 @@
 package com.aelitis.azureus.core.networkmanager;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -34,9 +33,8 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.impl.*;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.IncomingSocketChannelManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 
 
@@ -49,19 +47,18 @@ public class NetworkManager {
   
   private static final NetworkManager instance = new NetworkManager();
 
-  protected static int tcp_mss_size;
-  protected static int max_download_rate_bps;
+  private static int max_download_rate_bps;
   
-  protected static int max_upload_rate_bps_normal;
-  protected static int max_upload_rate_bps_seeding_only;
-  protected static int max_upload_rate_bps;
+  private static int max_upload_rate_bps_normal;
+  private static int max_upload_rate_bps_seeding_only;
+  private static int max_upload_rate_bps;
   
-  protected static boolean lan_rate_enabled;
-  protected static int max_lan_upload_rate_bps;
-  protected static int max_lan_download_rate_bps;
+  private static boolean lan_rate_enabled;
+  private static int max_lan_upload_rate_bps;
+  private static int max_lan_download_rate_bps;
   
-  protected static boolean seeding_only_mode_allowed;
-  protected static boolean seeding_only_mode = false;  
+  private static boolean seeding_only_mode_allowed;
+  private static boolean seeding_only_mode = false;  
   
   public static boolean 	REQUIRE_CRYPTO_HANDSHAKE;
   public static boolean 	INCOMING_HANDSHAKE_FALLBACK_ALLOWED;	
@@ -80,7 +77,9 @@ public class NetworkManager {
     									"enable.seedingonly.upload.rate",
     									"Max Download Speed KBs",
     									"Max LAN Download Speed KBs",
-    									"network.tcp.mtu.size" },
+    									"network.tcp.mtu.size",
+  										"network.udp.mtu.size" },
+  										
     		new ParameterListener()	{
     			 public void  parameterChanged(	String ignore ) {
     				 REQUIRE_CRYPTO_HANDSHAKE				      = COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
@@ -110,9 +109,7 @@ public class NetworkManager {
     				 if( max_lan_download_rate_bps < 1024 )  max_lan_download_rate_bps = UNLIMITED_RATE;
     				 if( max_lan_download_rate_bps > UNLIMITED_RATE )  max_lan_download_rate_bps = UNLIMITED_RATE;
     	        
-    				 tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
-    	        
-    				 refreshRates();
+     				 refreshRates();
     			 }
     		});
   }
@@ -149,14 +146,7 @@ public class NetworkManager {
     /* nothing */    
   }
   
-  /**
-   * Get the configured TCP MSS (Maximum Segment Size) unit, i.e. the max (preferred) packet payload size.
-   * NOTE: MSS is MTU-40bytes for TCPIP headers, usually 1460 (1500-40) for standard ethernet
-   * connections, or 1452 (1492-40) for PPPOE connections.
-   * @return mss size in bytes
-   */
-  public static int getTcpMssSize() {  return tcp_mss_size;  }
-
+  public static int getMinMssSize() {  return Math.min( TCPNetworkManager.getTcpMssSize(), UDPNetworkManager.getUdpMssSize()); }
 
   
   private static void refreshRates() {
@@ -171,13 +161,14 @@ public class NetworkManager {
       Debug.out( "max_upload_rate_bps < 1024=" +max_upload_rate_bps);
     }
     
-    //ensure that mss isn't greater than up/down rate limits
-    if( tcp_mss_size > max_upload_rate_bps )  tcp_mss_size = max_upload_rate_bps - 1;
-    if( tcp_mss_size > max_download_rate_bps )  tcp_mss_size = max_download_rate_bps - 1;
-    if( tcp_mss_size > max_lan_upload_rate_bps )  tcp_mss_size = max_lan_upload_rate_bps -1;
-    if( tcp_mss_size > max_lan_download_rate_bps )  tcp_mss_size = max_lan_download_rate_bps -1;
+    	//ensure that mss isn't greater than up/down rate limits
     
-    if( tcp_mss_size < 512 )  tcp_mss_size = 512; 
+    int	min_rate = Math.min( max_upload_rate_bps, 
+    					Math.min( max_download_rate_bps, 
+    						Math.min( max_lan_upload_rate_bps, max_lan_download_rate_bps )));
+    
+    TCPNetworkManager.refreshRates( min_rate );
+    UDPNetworkManager.refreshRates( min_rate );
   }
   
   

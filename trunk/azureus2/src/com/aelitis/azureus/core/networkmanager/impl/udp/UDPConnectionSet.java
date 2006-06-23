@@ -50,37 +50,6 @@ UDPConnectionSet
 		remote_address	= _remote_address;
 	}
 	
-	public void
-	receive(
-		int					local_port,
-		ByteBuffer			data )
-	{
-		UDPConnection	connection = null;
-		
-		boolean	new_connection = false;
-		
-		synchronized( connections ){
-
-			if ( connections.size() == 0 ){
-				
-				new_connection	= true;
-				
-				connection	= new UDPConnection( this );
-	
-				connections.add( connection );
-				
-				lead_connection	= connection;
-			}
-		}
-		
-		connection.receive( data );
-		
-		if ( new_connection ){
-			
-			manager.accept( local_port, remote_address, connection );
-		}
-	}
-	
 	protected void
 	add(
 		UDPConnection	connection )
@@ -96,13 +65,71 @@ UDPConnectionSet
 		}
 	}
 	
+	protected void
+	poll()
+	{
+		synchronized( connections ){
+
+			for (int i=0;i<connections.size();i++){
+				
+				((UDPConnection)connections.get(i)).poll();
+			}
+		}
+	}
+	
+	public void
+	receive(
+		ByteBuffer			data )
+	{
+		System.out.println( local_port + ":" + remote_address + " received " + data.remaining());
+		
+		UDPConnection	connection = null;
+		
+		boolean	new_connection = false;
+		
+		synchronized( connections ){
+
+			if ( connections.size() == 0 ){
+				
+				new_connection	= true;
+				
+				connection	= new UDPConnection( this );
+	
+				connections.add( connection );
+				
+				lead_connection	= connection;
+				
+			}else{
+				
+					// TODO:
+				
+				connection = (UDPConnection)connections.get(0);
+			}
+		}
+		
+		if ( new_connection ){
+			
+			manager.accept( local_port, remote_address, connection );
+		}
+		
+		connection.receive( data );
+	}
+	
 	protected int 
 	write( 
 		UDPConnection	connection,
-		ByteBuffer 		buffer ) 
+		ByteBuffer 		data ) 
 	
 		throws IOException
 	{
-		return( manager.send( local_port, remote_address, buffer ));
+		System.out.println( local_port + ":" + remote_address + " sent " + data.remaining());
+
+		return( manager.send( local_port, remote_address, data ));
+	}
+	
+	protected boolean
+	canWrite()
+	{
+		return( true );	// TODO:!
 	}
 }

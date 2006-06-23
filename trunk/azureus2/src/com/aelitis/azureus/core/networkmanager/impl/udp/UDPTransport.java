@@ -46,8 +46,6 @@ UDPTransport
 	
 	private int transport_mode = TRANSPORT_MODE_NORMAL;
 	
-	private boolean	outgoing;
-	
 	private volatile boolean	closed;
 	
 	protected
@@ -57,26 +55,36 @@ UDPTransport
 	{
 		endpoint		= _endpoint;
 		shared_secret	= _shared_secret;
-		outgoing		= true;
+	}
 
-		
+	protected
+	UDPTransport(
+		ProtocolEndpointUDP		_endpoint,
+		TransportHelperFilter	_filter )
+	{
+		endpoint		= _endpoint;
+	
+		setFilter( _filter );
 	}
 	
-
 	public TransportEndpoint 
 	getTransportEndpoint()
 	{
 		return( new TransportEndpointUDP( endpoint ));
 	}
 	  
+	public int
+	getMssSize()
+	{
+	  return( UDPNetworkManager.getUdpMssSize());
+	}
+	 
 	public String 
 	getDescription()
 	{
-		return( "parp" );
+		return( endpoint.getAddress().toString());
 	}
 	
-
-
 	public void 
 	setTransportMode( 
 		int mode )
@@ -89,7 +97,7 @@ UDPTransport
 	{
 		return( transport_mode );
 	}
-	    
+	
 	public void
 	connectOutbound(
 		final ConnectListener 	listener )
@@ -139,6 +147,8 @@ UDPTransport
 			    		    		
 			    		   				Logger.log(new LogEvent(LOGID, "Outgoing UDP stream to " + endpoint.getAddress() + " established, type = " + filter.getName()));
 			    		    		}
+			    		   			
+			    		   			connectedOutbound();
 			    		   			
 			    		   			listener.connectSuccess( UDPTransport.this );
 		    					}

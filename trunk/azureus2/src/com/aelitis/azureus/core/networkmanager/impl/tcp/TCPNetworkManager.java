@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -34,9 +35,32 @@ TCPNetworkManager
 {  
 	private static final int SELECT_LOOP_TIME = 25;
 	
+	protected static int tcp_mss_size;
+	  
 	private static final TCPNetworkManager instance = new TCPNetworkManager();
 
 	public static TCPNetworkManager getSingleton(){ return( instance ); }
+
+	
+	 /**
+	   * Get the configured TCP MSS (Maximum Segment Size) unit, i.e. the max (preferred) packet payload size.
+	   * NOTE: MSS is MTU-40bytes for TCPIP headers, usually 1460 (1500-40) for standard ethernet
+	   * connections, or 1452 (1492-40) for PPPOE connections.
+	   * @return mss size in bytes
+	   */
+	
+	public static int getTcpMssSize() {  return tcp_mss_size;  }
+
+	public static void
+	refreshRates(
+		int		min_rate )
+	{
+		 tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40; 	        
+
+	    if( tcp_mss_size > min_rate )  tcp_mss_size = min_rate - 1;
+	    
+	    if( tcp_mss_size < 512 )  tcp_mss_size = 512; 
+	}
 	
 	protected
 	TCPNetworkManager()

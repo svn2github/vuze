@@ -34,6 +34,8 @@ public interface Transport {
   public static final int TRANSPORT_MODE_FAST   = 1;
   public static final int TRANSPORT_MODE_TURBO  = 2;
 
+  public int
+  getMssSize();
   
   /**
    * Inject the given already-read data back into the read stream.
@@ -116,10 +118,21 @@ public interface Transport {
   public int getTransportMode();
   
   
+  /**
+   * Kick off an outbound connection
+   * @param listener
+   */
   public void
   connectOutbound(
 		ConnectListener 	listener );
    
+  /**
+   * Indicate that inbound connection is complete 
+   */
+  
+  public void
+  connectedInbound();
+  
   /**
    * Close the transport connection.
    */

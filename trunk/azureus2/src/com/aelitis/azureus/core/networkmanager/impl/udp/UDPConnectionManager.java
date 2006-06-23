@@ -33,9 +33,14 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
+import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportImpl;
 
 public class
 UDPConnectionManager
@@ -48,6 +53,33 @@ UDPConnectionManager
 	private IncomingConnectionManager	incoming_manager = IncomingConnectionManager.getSingleton();
 
 	private NetworkGlue	network_glue = new NetworkGlueLoopBack( this );
+	
+	private UDPSelector		selector	= new UDPSelector( this );
+	
+	protected
+	UDPConnectionManager()
+	{
+	}
+	
+	protected UDPSelector
+	getSelector()
+	{
+		return( selector );
+	}
+	
+	protected void
+	poll()
+	{
+		synchronized( connections ){
+
+			Iterator	it = connections.values().iterator();
+			
+			while( it.hasNext()){
+				
+				((UDPConnectionSet)it.next()).poll();
+			}
+		}
+	}
 	
 	public void
 	receive(
@@ -71,7 +103,7 @@ UDPConnectionManager
 			}
 		}
 		
-		connection_set.receive( local_port, data );
+		connection_set.receive( data );
 	}
 	
 	public int
@@ -87,9 +119,9 @@ UDPConnectionManager
 	
 	protected void
 	accept(
-		final int			local_port,
-		InetSocketAddress	remote_address,
-		UDPConnection		connection )
+		final int				local_port,
+		final InetSocketAddress	remote_address,
+		final UDPConnection		connection )
 	{
 		UDPTransportHelper	helper = new UDPTransportHelper( this, remote_address, connection );
 
@@ -105,7 +137,13 @@ UDPConnectionManager
 				handshakeSuccess( 
 					TransportHelperFilter filter ) 
 				{
-        			
+					ConnectionEndpoint	co_ep = new ConnectionEndpoint( remote_address);
+
+					ProtocolEndpointUDP	pe_udp = new ProtocolEndpointUDP( co_ep, remote_address );
+
+					UDPTransport transport = new UDPTransport( pe_udp, filter );
+										
+					incoming_manager.addConnection( local_port, filter, transport );
         		}
 
 				public void 
@@ -116,7 +154,7 @@ UDPConnectionManager
 						Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
 					}
  
-					// TODO: close
+					connection.close();
 				}
             
 				public int

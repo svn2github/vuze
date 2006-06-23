@@ -32,8 +32,26 @@ import org.gudy.azureus2.core3.util.RandomUtils;
 public class 
 UDPNetworkManager 
 {
+	private static int udp_mss_size;
+	
+	public static int getUdpMssSize() {  return udp_mss_size;  }
+
+	public static void
+	refreshRates(
+		int		min_rate )
+	{
+			// TODO: adjust this!!!!
+		
+		udp_mss_size = COConfigurationManager.getIntParameter( "network.udp.mtu.size" ) - 40; 	        
+
+	    if( udp_mss_size > min_rate )  udp_mss_size = min_rate - 1;
+	    
+	    if( udp_mss_size < 512 )  udp_mss_size = 512; 
+	}
+	
 	private static UDPNetworkManager	singleton = new UDPNetworkManager();
 	
+
 	public static UDPNetworkManager
 	getSingleton()
 	{

@@ -65,7 +65,12 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
   /**
    * Constructor for disconnected (outbound) transport.
    */
-  public TCPTransportImpl( ProtocolEndpointTCP endpoint, boolean use_crypto, boolean allow_fallback, byte[] _shared_secret ) 
+  public 
+  TCPTransportImpl( 
+	ProtocolEndpointTCP endpoint, 
+	boolean use_crypto, 
+	boolean allow_fallback, 
+	byte[] _shared_secret ) 
   {
 	protocol_endpoint = endpoint;  
     is_inbound_connection = false;
@@ -80,22 +85,22 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
    * @param channel connection
    * @param already_read bytes from the channel
    */
-  public TCPTransportImpl( ProtocolEndpointTCP endpoint, TransportHelperFilter	filter, ByteBuffer already_read ) 
+  
+  public 
+  TCPTransportImpl( 
+	ProtocolEndpointTCP 	endpoint, 
+	TransportHelperFilter	filter )
   {
 	protocol_endpoint = endpoint;
    
 	setFilter( filter );
-    
-    setAlreadyRead( already_read );
-    
+        
     is_inbound_connection = true;
     connect_with_crypto = false;  //inbound connections will automatically be using crypto if necessary
     fallback_allowed = false;
     description = ( is_inbound_connection ? "R" : "L" ) + ": " + getSocketChannel().socket().getInetAddress().getHostAddress() + ": " + getSocketChannel().socket().getPort();
-    
-    registerSelectHandling();
+ 
   }
-  
   
   /**
    * Get the socket channel used by the transport.
@@ -109,44 +114,19 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 	  return( new TransportEndpointTCP( protocol_endpoint, getSocketChannel()));
   }
   
+  public int
+  getMssSize()
+  {
+	  return( TCPNetworkManager.getTcpMssSize());
+  }
+  
   /**
    * Get a textual description for this transport.
    * @return description
    */
   public String getDescription() {  return description;  }
   
-
-  
-  private void registerSelectHandling() {
-    if( getFilter() == null ) {
-      Debug.out( "ERROR: registerSelectHandling():: socket_channel == null" );
-      return;
-    }
-
-    //read selection
-    TCPNetworkManager.getSingleton().getReadSelector().register( getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
-      public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
-    	  return( readyForRead( true ));
-      }
-      
-      public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
-    	  readFailed( msg );
-      }
-    }, null );
-    
-    
-    //write selection
-    TCPNetworkManager.getSingleton().getWriteSelector().register( getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
-      public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
-    	  return( readyForWrite( true ));
-      }
-
-      public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
-    	  writeFailed( msg );
-      }
-    }, null );
-  }
-  
+ 
  
   /**
    * Request the transport connection be established.
@@ -241,8 +221,9 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     		      Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + _filter.getName()));
     			}
     			
-        	registerSelectHandling();
-          listener.connectSuccess( TCPTransportImpl.this );
+    			connectedOutbound();
+          
+    			listener.connectSuccess( TCPTransportImpl.this );
     		}
 
     		public void handshakeFailure( Throwable failure_msg ) {        	
@@ -284,8 +265,10 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 		if ( Logger.isEnabled()){
 		  Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + getFilter().getName() + ", fallback = " + (fallback_count==0?"no":"yes" )));
 		}
-    	registerSelectHandling();
-      listener.connectSuccess( this );
+		
+		connectedOutbound();
+		
+    	listener.connectSuccess( this );
   	}
   }
   

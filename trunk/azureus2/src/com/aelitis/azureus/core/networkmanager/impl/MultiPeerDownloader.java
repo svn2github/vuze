@@ -113,7 +113,8 @@ public class MultiPeerDownloader implements RateControlledEntity {
       num_checked++;
       
       if( connection.getTransport().isReadyForRead( waiter ) ) {
-        int allowed = num_bytes_remaining > NetworkManager.getTcpMssSize() ? NetworkManager.getTcpMssSize() : num_bytes_remaining;
+    	int	mss = connection.getMssSize();
+        int allowed = num_bytes_remaining > mss ? mss : num_bytes_remaining;
           
         int bytes_read = 0;
           

@@ -147,7 +147,7 @@ public class ByteBucket {
    * otherwise it will never allow a full packet's worth of data.
    */
   private void ensureByteBucketMinBurstRate() {
-    int mss = NetworkManager.getTcpMssSize();
+    int mss = NetworkManager.getMinMssSize();
     if( burst_rate < mss ) {  //oops, this won't ever allow a full packet
       burst_rate = mss;  //so increase the max byte size
     }

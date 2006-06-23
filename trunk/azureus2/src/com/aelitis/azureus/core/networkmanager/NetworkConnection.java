@@ -31,6 +31,9 @@ public interface NetworkConnection {
 	public ConnectionEndpoint
 	getEndpoint();
   
+	public int
+	getMssSize();
+	  
   /**
    * Connect this connection's transport, i.e. establish the network connection.
    * If this connection is already established (from an incoming connection for example),

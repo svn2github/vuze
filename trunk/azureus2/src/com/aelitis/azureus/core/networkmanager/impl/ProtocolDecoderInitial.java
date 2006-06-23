@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.IncomingSocketChannelManager;
 
 public class 
 ProtocolDecoderInitial 
@@ -248,12 +247,12 @@ ProtocolDecoderInitial
 			
 			if ( last_read_time == 0 ){
 				
-				timeout = IncomingSocketChannelManager.CONNECT_TIMEOUT;
+				timeout = IncomingConnectionManager.CONNECT_TIMEOUT;
 				time	= start_time;
 				
 			}else{
 				
-				timeout = IncomingSocketChannelManager.READ_TIMEOUT;
+				timeout = IncomingConnectionManager.READ_TIMEOUT;
 				time	= last_read_time;
 			}
 			

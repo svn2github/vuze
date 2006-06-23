@@ -425,6 +425,7 @@ public class ConfigurationDefaults {
     def.put( "Security.JAR.tools.dir", "" );
     def.put( "network.max.simultaneous.connect.attempts", new Long( 8 ));
     def.put( "network.tcp.mtu.size", new Long(1500) );
+    def.put( "network.udp.mtu.size", new Long(1500) );
     def.put( "network.tcp.socket.SO_SNDBUF", new Long(0) );
     def.put( "network.tcp.socket.SO_RCVBUF", new Long(0) );
     def.put( "network.tcp.socket.IPTOS", "" );

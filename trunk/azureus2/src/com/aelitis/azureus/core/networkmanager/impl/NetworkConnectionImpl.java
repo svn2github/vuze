@@ -191,6 +191,18 @@ public class NetworkConnectionImpl implements NetworkConnection {
 
   public Transport getTransport() {  return transport;  }
   
+  public int
+  getMssSize()
+  {
+	  if ( transport == null ){
+		  
+		  return( NetworkManager.getMinMssSize());
+		  
+	  }else{
+		  
+		  return( transport.getMssSize());
+	  }
+  }
   
   public String toString() {
     return( transport==null?connection_endpoint.getDescription():transport.getDescription() );

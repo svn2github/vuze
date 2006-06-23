@@ -143,7 +143,7 @@ public class TransferProcessor {
    * Upgrade the given connection to a high-speed transfer handler.
    * @param connection to upgrade
    */
-  public void upgradePeerConnection( NetworkConnection connection ) {
+  public void upgradePeerConnection( final NetworkConnection connection ) {
     ConnectionData connection_data = null;
     
     try{ connections_mon.enter();
@@ -170,7 +170,7 @@ public class TransferProcessor {
           int global_allowed = main_bucket.getAvailableByteCount();
 
           // reserve bandwidth for the general pool
-          global_allowed -= NetworkManager.getTcpMssSize();
+          global_allowed -= connection.getMssSize();
           if( global_allowed < 0 ) global_allowed = 0;
           
           int allowed = group_allowed > global_allowed ? global_allowed : group_allowed;
