@@ -28,6 +28,13 @@ public interface
 NatPMPUPnP 
 {
 	public void
+	setEnabled(
+		boolean	enabled );
+	
+	public boolean
+	isEnabled();
+
+	public void
 	addListener(
 		UPnPListener	listener );
 	

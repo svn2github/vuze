@@ -1,5 +1,5 @@
 /*
- * Created on 12 Jun 2006
+ * Created on 24 Jun 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -22,17 +22,10 @@
 
 package com.aelitis.net.natpmp;
 
-import com.aelitis.net.natpmp.impl.NatPMPDeviceImpl;
-
-public class 
-NatPMPDeviceFactory 
+public interface 
+NATPMPDeviceAdapter
 {
-	public static NatPMPDevice
-	getSingleton(
-		NATPMPDeviceAdapter	adapter )
-	
-		throws Exception
-	{
-		return( NatPMPDeviceImpl.getSingletonObject(adapter));
-	}
+	public void
+	log(
+		String	str );
 }

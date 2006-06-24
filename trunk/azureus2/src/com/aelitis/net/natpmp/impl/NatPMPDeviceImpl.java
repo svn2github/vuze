@@ -48,6 +48,7 @@ package com.aelitis.net.natpmp.impl;
 
 import java.net.*;
 
+import com.aelitis.net.natpmp.NATPMPDeviceAdapter;
 import com.aelitis.net.natpmp.NatPMPDevice;
 
 /**
@@ -111,23 +112,26 @@ public class NatPMPDeviceImpl implements NatPMPDevice
     boolean nat_pmp_found = false;
     int nat_epoch = 0;           // This gets updated each request
     
+    private NATPMPDeviceAdapter	adapter;
+    
     /**
      * Singleton creation
      **/
     private static NatPMPDeviceImpl NatPMPDeviceSingletonRef;
     
     public static synchronized NatPMPDeviceImpl
-                    getSingletonObject() throws Exception {
+                    getSingletonObject(NATPMPDeviceAdapter adapter) throws Exception {
         if (NatPMPDeviceSingletonRef == null)
-            NatPMPDeviceSingletonRef = new NatPMPDeviceImpl();
+            NatPMPDeviceSingletonRef = new NatPMPDeviceImpl(adapter);
         return NatPMPDeviceSingletonRef;
     }
     
-    private NatPMPDeviceImpl() throws Exception {
+    private NatPMPDeviceImpl(NATPMPDeviceAdapter _adapter) throws Exception {
+    	adapter	= _adapter;
         hostInet = InetAddress.getLocalHost();
         
         String natAddr = convertHost2RouterAddress(hostInet);
-        System.out.println("Using Router IP: " + natAddr);
+        log("Using Router IP: " + natAddr);
         natPriInet = InetAddress.getByName(natAddr);
         networkInterface = NetworkInterface.getByInetAddress( natPriInet );
     }
@@ -159,8 +163,8 @@ public class NatPMPDeviceImpl implements NatPMPDevice
                 skt.receive(recPkt);
                 recRep = true;        
             } catch (SocketTimeoutException ste) {
-                //System.out.println("Timed Out!");
-                //System.out.println( ste.getMessage() );
+                //log("Timed Out!");
+                //log( ste.getMessage() );
                 // sleep before trying again
                 // this.sleep(retryInterval);
                 Thread.sleep(retryInterval);        // not sleeping?!?
@@ -211,9 +215,9 @@ public class NatPMPDeviceImpl implements NatPMPDevice
 	        if (recErr != 0) 
 	            throw( new Exception("NAT-PMP connection error: " + recErr) );
 	            
-	        System.out.println("Err: " +recErr);
-	        System.out.println("Uptime: " + recEpoch);
-	        System.out.println("Public Address: " + recPubAddr);
+	        log("Err: " +recErr);
+	        log("Uptime: " + recEpoch);
+	        log("Public Address: " + recPubAddr);
 	           
 	        /**
 	         * TO DO:
@@ -315,15 +319,15 @@ public class NatPMPDeviceImpl implements NatPMPDevice
          * Should save the epoch. This can be used to determine the
          * time the mapping will be deleted. 
          **/
-        System.out.println("Seconds since Start of Epoch: " + recEpoch);
-        System.out.println("Returned Mapped Port Lifetime: " + recLifetime);
+        log("Seconds since Start of Epoch: " + recEpoch);
+        log("Returned Mapped Port Lifetime: " + recLifetime);
         
         if ( recCode != 0 )
             throw( new Exception( "An error occured while getting a port mapping: " + recCode ) );
         if ( recOP != ( NATOp + 128) )
             throw( new Exception( "Received the incorrect port type: " + recOP) );
         if ( lifetime != recLifetime )
-            System.out.println("Received different port life time!");
+            log("Received different port life time!");
 
         return recPubPort;
     }
@@ -346,6 +350,12 @@ public class NatPMPDeviceImpl implements NatPMPDevice
 		return( nat_epoch );
 	}
 	
+	protected void
+	log(
+		String	str )
+	{
+		adapter.log( str );
+	}
     /**
      *
      * Bunch of conversion functions

@@ -33,7 +33,6 @@ import com.aelitis.net.natpmp.NatPMPDevice;
 import com.aelitis.net.natpmp.upnp.NatPMPUPnP;
 import com.aelitis.net.upnp.UPnP;
 import com.aelitis.net.upnp.UPnPListener;
-import com.aelitis.net.upnp.UPnPRootDevice;
 
 public class 
 NatPMPUPnPImpl 
@@ -42,9 +41,11 @@ NatPMPUPnPImpl
 	private UPnP			upnp;
 	private NatPMPDevice	nat_device;
 
-	private UPnPRootDevice	root_device;
+	private NatPMPUPnPRootDeviceImpl	root_device;
 	
 	private List			listeners = new ArrayList();
+	
+	private boolean			enabled	= true;
 	
 	private boolean			started;
 	
@@ -75,9 +76,27 @@ NatPMPUPnPImpl
 		search();
 	}
 	
+	public void
+	setEnabled(
+		boolean	_enabled )
+	{
+		enabled	= _enabled;
+	}
+	
+	public boolean
+	isEnabled()
+	{
+		return( enabled );
+	}
+	
 	protected void
 	search()
 	{
+		if ( !enabled ){
+			
+			return;
+		}
+		
 		if ( root_device != null ){
 			
 			return;

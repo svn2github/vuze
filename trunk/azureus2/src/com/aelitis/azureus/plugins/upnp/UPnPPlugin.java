@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.net.natpmp.NATPMPDeviceAdapter;
 import com.aelitis.net.natpmp.NatPMPDeviceFactory;
 import com.aelitis.net.natpmp.upnp.NatPMPUPnP;
 import com.aelitis.net.natpmp.upnp.NatPMPUPnPFactory;
@@ -54,7 +55,8 @@ public class
 UPnPPlugin
 	implements Plugin, UPnPListener, UPnPMappingListener, UPnPWANConnectionListener
 {
-	private static final String PLUGIN_CONFIGSECTION_ID = "UPnP";
+	private static final String UPNP_PLUGIN_CONFIGSECTION_ID 	= "UPnP";
+	private static final String NATPMP_PLUGIN_CONFIGSECTION_ID 	= "NATPMP";
 
 	private static final String		STATS_DISCOVER 	= "discover";
 	private static final String		STATS_FOUND		= "found";
@@ -65,27 +67,32 @@ UPnPPlugin
 	
 	private static final String[]	STATS_KEYS = { STATS_DISCOVER, STATS_FOUND, STATS_READ_OK, STATS_READ_BAD, STATS_MAP_OK, STATS_MAP_BAD };
 	
-	protected PluginInterface		plugin_interface;
-	protected LoggerChannel 		log;
+	private PluginInterface		plugin_interface;
+	private LoggerChannel 		log;
 	
-	protected UPnPMappingManager	mapping_manager	= UPnPMappingManager.getSingleton( this );
+	private UPnPMappingManager	mapping_manager	= UPnPMappingManager.getSingleton( this );
 	
-	protected UPnP	upnp;
+	private UPnP	upnp;
 	
-	protected BooleanParameter	alert_success_param;
-	protected BooleanParameter	grab_ports_param;
-	protected BooleanParameter	alert_other_port_param;
-	protected BooleanParameter	alert_device_probs_param;
-	protected BooleanParameter	release_mappings_param;
-	protected StringParameter	selected_interfaces_param;
+	private NatPMPUPnP	nat_pmp_upnp;
 	
-	protected BooleanParameter	ignore_bad_devices;
-	protected LabelParameter	ignored_devices_list;
+	private BooleanParameter	natpmp_enable_param;
+	private BooleanParameter 	upnp_enable_param;
 	
-	protected List	mappings	= new ArrayList();
-	protected List	services	= new ArrayList();
+	private BooleanParameter	alert_success_param;
+	private BooleanParameter	grab_ports_param;
+	private BooleanParameter	alert_other_port_param;
+	private BooleanParameter	alert_device_probs_param;
+	private BooleanParameter	release_mappings_param;
+	private StringParameter	selected_interfaces_param;
 	
-	protected Map	root_info_map	= new HashMap();
+	private BooleanParameter	ignore_bad_devices;
+	private LabelParameter	ignored_devices_list;
+	
+	private List	mappings	= new ArrayList();
+	private List	services	= new ArrayList();
+	
+	private Map	root_info_map	= new HashMap();
 	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UPnPPlugin" );
 	   
@@ -129,17 +136,60 @@ UPnPPlugin
 		final BasicPluginViewModel model = 
 			ui_manager.createBasicPluginViewModel( 
 					"UPnP");
-		model.setConfigSectionID(PLUGIN_CONFIGSECTION_ID);
+		model.setConfigSectionID(UPNP_PLUGIN_CONFIGSECTION_ID);
 		
-		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel(ConfigSection.SECTION_PLUGINS, PLUGIN_CONFIGSECTION_ID );
+		BasicPluginConfigModel	upnp_config = ui_manager.createBasicPluginConfigModel(ConfigSection.SECTION_PLUGINS, UPNP_PLUGIN_CONFIGSECTION_ID );
 		
-		config.addLabelParameter2( "upnp.info" );
+			// NATPMP
 		
-		ActionParameter	wiki = config.addActionParameter2( "Utils.link.visit", "MainWindow.about.internet.wiki" );
+		BasicPluginConfigModel	natpmp_config = ui_manager.createBasicPluginConfigModel( UPNP_PLUGIN_CONFIGSECTION_ID, NATPMP_PLUGIN_CONFIGSECTION_ID );
+
+		natpmp_config.addLabelParameter2( "natpmp.info" );
 		
-		wiki.setStyle( ActionParameter.STYLE_LINK );
+		ActionParameter	natpmp_wiki = natpmp_config.addActionParameter2( "Utils.link.visit", "MainWindow.about.internet.wiki" );
 		
-		wiki.addListener(
+		natpmp_wiki.setStyle( ActionParameter.STYLE_LINK );
+		
+		natpmp_wiki.addListener(
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					Parameter	param )
+				{
+					try{
+						plugin_interface.getUIManager().openURL( new URL( "http://azureus.aelitis.com/wiki/index.php/NATPMP" ));
+						
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
+				}
+			});
+		
+		natpmp_enable_param = 
+			natpmp_config.addBooleanParameter2( "natpmp.enable", "natpmp.enable", false );
+		
+		natpmp_enable_param.addListener(
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					Parameter	param )
+				{
+					setNATPMPEnableState();
+				}
+			});
+		
+			// UPNP
+		
+		upnp_config.addLabelParameter2( "upnp.info" );
+		
+		ActionParameter	upnp_wiki = upnp_config.addActionParameter2( "Utils.link.visit", "MainWindow.about.internet.wiki" );
+		
+		upnp_wiki.setStyle( ActionParameter.STYLE_LINK );
+		
+		upnp_wiki.addListener(
 			new ParameterListener()
 			{
 				public void
@@ -156,15 +206,15 @@ UPnPPlugin
 				}
 			});
 		
-		final BooleanParameter enable_param = 
-			config.addBooleanParameter2( "upnp.enable", "upnp.enable", true );
+		upnp_enable_param = 
+			upnp_config.addBooleanParameter2( "upnp.enable", "upnp.enable", true );
 		
 		
-		grab_ports_param = config.addBooleanParameter2( "upnp.grabports", "upnp.grabports", false );
+		grab_ports_param = upnp_config.addBooleanParameter2( "upnp.grabports", "upnp.grabports", false );
 		
-		release_mappings_param	 = config.addBooleanParameter2( "upnp.releasemappings", "upnp.releasemappings", true );
+		release_mappings_param	 = upnp_config.addBooleanParameter2( "upnp.releasemappings", "upnp.releasemappings", true );
 
-		ActionParameter refresh_param = config.addActionParameter2( "upnp.refresh.label", "upnp.refresh.button" );
+		ActionParameter refresh_param = upnp_config.addActionParameter2( "upnp.refresh.label", "upnp.refresh.button" );
 		
 		refresh_param.addListener(
 			new ParameterListener()
@@ -178,21 +228,21 @@ UPnPPlugin
 			});
 
 		
-		config.addLabelParameter2( "blank.resource" );
+		upnp_config.addLabelParameter2( "blank.resource" );
 		
-		alert_success_param = config.addBooleanParameter2( "upnp.alertsuccess", "upnp.alertsuccess", false );
+		alert_success_param = upnp_config.addBooleanParameter2( "upnp.alertsuccess", "upnp.alertsuccess", false );
 		
-		alert_other_port_param = config.addBooleanParameter2( "upnp.alertothermappings", "upnp.alertothermappings", true );
+		alert_other_port_param = upnp_config.addBooleanParameter2( "upnp.alertothermappings", "upnp.alertothermappings", true );
 		
-		alert_device_probs_param = config.addBooleanParameter2( "upnp.alertdeviceproblems", "upnp.alertdeviceproblems", true );
+		alert_device_probs_param = upnp_config.addBooleanParameter2( "upnp.alertdeviceproblems", "upnp.alertdeviceproblems", true );
 		
-		selected_interfaces_param = config.addStringParameter2( "upnp.selectedinterfaces", "upnp.selectedinterfaces", "" );
+		selected_interfaces_param = upnp_config.addStringParameter2( "upnp.selectedinterfaces", "upnp.selectedinterfaces", "" );
 
-		ignore_bad_devices = config.addBooleanParameter2( "upnp.ignorebaddevices", "upnp.ignorebaddevices", true );
+		ignore_bad_devices = upnp_config.addBooleanParameter2( "upnp.ignorebaddevices", "upnp.ignorebaddevices", true );
 		
-		ignored_devices_list = config.addLabelParameter2( "upnp.ignorebaddevices.info" );
+		ignored_devices_list = upnp_config.addLabelParameter2( "upnp.ignorebaddevices.info" );
 
-		ActionParameter reset_param = config.addActionParameter2( "upnp.ignorebaddevices.reset", "upnp.ignorebaddevices.reset.action" );
+		ActionParameter reset_param = upnp_config.addActionParameter2( "upnp.ignorebaddevices.reset", "upnp.ignorebaddevices.reset.action" );
 		
 		reset_param.addListener(
 			new ParameterListener()
@@ -216,29 +266,33 @@ UPnPPlugin
 				}
 			});
 		
-		enable_param.addEnabledOnSelection( alert_success_param );
-		enable_param.addEnabledOnSelection( grab_ports_param );
-		enable_param.addEnabledOnSelection( refresh_param );
-		enable_param.addEnabledOnSelection( alert_other_port_param );
-		enable_param.addEnabledOnSelection( alert_device_probs_param );
-		enable_param.addEnabledOnSelection( release_mappings_param );
-		enable_param.addEnabledOnSelection( selected_interfaces_param );
-		enable_param.addEnabledOnSelection( ignore_bad_devices );
-		enable_param.addEnabledOnSelection( ignored_devices_list );
-		enable_param.addEnabledOnSelection( reset_param );
+		upnp_enable_param.addEnabledOnSelection( alert_success_param );
+		upnp_enable_param.addEnabledOnSelection( grab_ports_param );
+		upnp_enable_param.addEnabledOnSelection( refresh_param );
+		upnp_enable_param.addEnabledOnSelection( alert_other_port_param );
+		upnp_enable_param.addEnabledOnSelection( alert_device_probs_param );
+		upnp_enable_param.addEnabledOnSelection( release_mappings_param );
+		upnp_enable_param.addEnabledOnSelection( selected_interfaces_param );
+		upnp_enable_param.addEnabledOnSelection( ignore_bad_devices );
+		upnp_enable_param.addEnabledOnSelection( ignored_devices_list );
+		upnp_enable_param.addEnabledOnSelection( reset_param );
 
-		boolean	enabled = enable_param.getValue();
+		boolean	enabled = upnp_enable_param.getValue();
+		
+		natpmp_enable_param.setEnabled( enabled );
 		
 		model.getStatus().setText( enabled?"Running":"Disabled" );
 		
-		enable_param.addListener(
+		upnp_enable_param.addListener(
 				new ParameterListener()
 				{
 					public void
 					parameterChanged(
 						Parameter	p )
 					{
-						boolean	e = enable_param.getValue();
+						boolean	e = upnp_enable_param.getValue();
+						
+						natpmp_enable_param.setEnabled( e );
 						
 						model.getStatus().setText( e?"Running":"Disabled" );
 						
@@ -250,6 +304,8 @@ UPnPPlugin
 							
 							closeDown( true );
 						}
+						
+						setNATPMPEnableState();
 					}
 				});
 		
@@ -554,15 +610,8 @@ UPnPPlugin
 				addMapping( upnp_mappings[i] );
 			}
 			
-			try{
-				NatPMPUPnP	nat_pmp_upnp = NatPMPUPnPFactory.create( upnp, NatPMPDeviceFactory.getSingleton());
-				
-				nat_pmp_upnp.addListener( this );
-				
-			}catch( Throwable e ){
-				
-				log.log( "Failed to initialise NAT-PMP subsystem", e );
-			}
+			setNATPMPEnableState();
+
 		}catch( Throwable e ){
 			
 			log.log( e );
@@ -1087,6 +1136,46 @@ UPnPPlugin
 		return( mapping_manager.getMapping( tcp, port ));
 	}
 	
+	protected void
+	setNATPMPEnableState()
+	{
+		boolean	enabled = natpmp_enable_param.getValue() && upnp_enable_param.getValue();
+		
+		try{
+			if ( enabled ){
+				
+				if ( nat_pmp_upnp == null ){
+			
+					nat_pmp_upnp = 
+						NatPMPUPnPFactory.create( 
+							upnp, 
+							NatPMPDeviceFactory.getSingleton(
+								new NATPMPDeviceAdapter()
+								{
+									public void
+									log(
+										String	str )
+									{
+										log.log( "NAT-PMP: " + str );
+									}
+								}));
+			
+					nat_pmp_upnp.addListener( this );
+				}
+				
+				nat_pmp_upnp.setEnabled( true );
+			}else{
+				
+				if ( nat_pmp_upnp != null ){
+					
+					nat_pmp_upnp.setEnabled( false );
+				}
+			}
+		}catch( Throwable e ){
+			
+			log.log( "Failed to initialise NAT-PMP subsystem", e );
+		}
+	}
 	protected void
 	logAlert(
 		int			type,
