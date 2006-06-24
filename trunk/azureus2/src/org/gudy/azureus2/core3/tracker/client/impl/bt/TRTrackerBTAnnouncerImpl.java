@@ -411,9 +411,19 @@ TRTrackerBTAnnouncerImpl
 	  		if( failure_added_time < 900 )  failure_added_time = 900;
   			secs_to_wait = getErrorRetryInterval();
   			
+    		if (Logger.isEnabled()) {
+					Logger.log(new LogEvent(torrent, LOGID,
+							"MIN INTERVAL CALC: tracker reported error, " + 
+							"adjusting to error retry interval"));
+    		}
 	  	}
 	  	else {	//tracker is OFFLINE
 	  		secs_to_wait = getErrorRetryInterval();
+    		if (Logger.isEnabled()) {
+					Logger.log(new LogEvent(torrent, LOGID,
+							"MIN INTERVAL CALC: tracker seems to be offline, " + 
+							"adjusting to error retry interval"));
+    		}
 	  	}
 							
 	  }
@@ -425,8 +435,14 @@ TRTrackerBTAnnouncerImpl
 							"MIN INTERVAL CALC: override, perc = 0"));
       	return REFRESH_MINIMUM_SECS;
       }
-							
-      secs_to_wait = (secs_to_wait * rd_override_percentage) /100;
+
+      if (rd_override_percentage != 100) {
+      	secs_to_wait = (secs_to_wait * rd_override_percentage) /100;
+    		if (Logger.isEnabled()) {
+					Logger.log(new LogEvent(torrent, LOGID,
+							"MIN INTERVAL CALC: override, perc = " + rd_override_percentage));
+    		}
+      }
 									
       if ( secs_to_wait < REFRESH_MINIMUM_SECS ){
 	  			
