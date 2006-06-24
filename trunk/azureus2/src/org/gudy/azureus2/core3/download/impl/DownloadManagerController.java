@@ -1125,6 +1125,15 @@ DownloadManagerController
 	 * @return completion state
 	 */
 	protected boolean isDownloadComplete(boolean bIncludeDND) {
+		// The calculate from stats doesn't take into consideration DND
+		// So, if we have no DND files, use calculation from stats, which
+		// remembers things like whether the file was once complete
+		if (!cached_has_dnd_files) {
+			return stats.getDownloadCompleted(false) == 1000;
+		}
+
+		// We have DND files.  If we have an existing diskmanager, then it
+		// will have better information than the stats object.
 		DiskManager dm = getDiskManager();
 
 		if (dm != null) {
@@ -1138,13 +1147,15 @@ DownloadManagerController
 			}
 		}
 
+		// No DiskManager or it's in a bad state for us.
+		// Assumed: We have DND files
 		if (bIncludeDND) {
-			if (cached_has_dnd_files) {
-				return false;
-			}
-			return stats.getDownloadCompleted(false) == 1000;
+			// Want to include DND files in calculation, which there some, which
+			// means completion MUST be false
+			return false;
 		}
-		
+
+		// Have DND files, bad DiskManager, and we don't want to include DND files
 		return cached_complete_excluding_dnd;
 	}
 	
