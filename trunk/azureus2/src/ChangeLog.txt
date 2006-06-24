@@ -8,6 +8,7 @@ FEATURE: Core | Explicit local subnet and peer injection option for Lan Peer Fin
 FEATURE: Core | Auto upload speed [Parg]
 FEATURE: Core | DND completion handled better [Parg,TuxPaper]
 FEATURE: Core | Added option for per-torrent max upload speed when upload busy [Parg]
+FEATURE: Core | Ranges allowed for port listing to ignore peers from. [TuxPaper]
 FEATURE: UI   | File pieces shown in files view [Parg]
 
 CHANGE: Core  | Reduced starting many pieces instead of completing current ones [MjrTom]

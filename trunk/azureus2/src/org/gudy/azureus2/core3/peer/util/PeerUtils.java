@@ -129,38 +129,34 @@ public class PeerUtils {
 	private static void
 	readIgnorePeerPorts()
 	{
+		// XXX Optimize me for ranges!!
 		String	str = COConfigurationManager.getStringParameter( "Ignore.peer.ports" ).trim();
 		
 		ignore_peer_ports.clear();
 		
 		if ( str.length() > 0 ){
 			
-			int	pos = 0;
-			
-			while(true){
-				
-				int	p1 = str.indexOf( ';', pos );
-				
-				String	bit;
-				
-				if ( p1 == -1 ){
-					
-					bit = str.substring(pos);
-					
-				}else{
-					
-					bit = str.substring(pos,p1);
-					
-					pos	= p1+1;
-				}
-				
-				bit	= bit.trim();
+			String[] ports = str.split("\\;");
+			if (ports != null && ports.length > 0) {
+				for (int i = 0; i < ports.length; i++) {
+					String port = ports[i];
+					int spreadPos = port.indexOf('-');
+					if (spreadPos > 0 && spreadPos < port.length() - 1) {
+						try {
+							int iMin = Integer.parseInt(port.substring(0, spreadPos).trim());
+							int iMax = Integer.parseInt(port.substring(spreadPos + 1).trim());
 							
-				ignore_peer_ports.add( bit );
-				
-				if ( p1 == -1 ){
-					
-					break;
+							for (int j = iMin; j <= iMax; j++) {
+								ignore_peer_ports.add("" + j);
+								System.out.println("Ignore Port " + j);
+							}
+						} catch (Exception e) {
+							// TODO: handle exception
+						}
+					} else {
+						System.out.println("Ignore Port " + port);
+						ignore_peer_ports.add(port.trim());
+					}
 				}
 			}
 		}
