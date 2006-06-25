@@ -196,7 +196,9 @@ public class UIDebugGenerator
 			}
 
 			try {
-				out.putNextEntry(new ZipEntry(file.getName()));
+				ZipEntry entry = new ZipEntry(file.getName());
+				entry.setTime(file.lastModified());
+				out.putNextEntry(entry);
 				//	Transfer bytes from the file to the ZIP file
 				int len;
 				while ((len = in.read(buf)) > 0) {
