@@ -256,6 +256,14 @@ DownloadManager
     public int
     getNbPeers();
 
+    /**
+     * Checks if all the files the user wants to download from this torrent
+     * actually exist on their filesystem.
+     * <p>
+     * If a file does not exist, the download will be set to error state.
+     * 
+     * @return Whether all the non-skipped (non-DND) files exist
+     */
     public boolean
     filesExist();
 
@@ -272,11 +280,32 @@ DownloadManager
     setPosition(
         int     newPosition );
 
+  	/**
+  	 * Retrieve whether this download is assumed complete.
+  	 * <p>
+  	 * Assumed complete status is kept while the torrent is in a non-running 
+  	 * state, even if it has no data.  
+  	 * <p>
+  	 * When the torrent starts up, the real complete
+  	 * level will be checked, and if the torrent
+  	 * actually does have missing data, the download will be thrown
+  	 * into error state.
+  	 * <p>
+  	 * Only a forced-recheck should clear this flag.
+  	 * 
+  	 * @see {@link #requestAssumedCompleteMode()}
+  	 */
     public boolean
-    getOnlySeeding();
+    getAssumedComplete();
 
-    public void
-    setOnlySeeding(boolean onlySeeding);
+    /**
+     * Will set this download to be "assumed complete" for if the download
+     * is already complete (excluding DND)
+     * 
+     * @return true- success; false- failure, download not complete
+     */
+    public boolean
+    requestAssumedCompleteMode();
 
     /**
      * @return the wealthy status of this download

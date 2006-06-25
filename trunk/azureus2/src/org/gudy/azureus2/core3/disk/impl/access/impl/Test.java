@@ -799,7 +799,7 @@ Test
 		}
 
 		public boolean
-		getOnlySeeding()
+		getAssumedComplete()
 		{
 			return( false );
 			
@@ -984,6 +984,11 @@ Test
 		public int getEffectiveUploadRateLimitBytesPerSecond() {
 		
 			return 0;
+		}
+
+		public boolean requestAssumedCompleteMode() {
+			// TODO Auto-generated method stub
+			return false;
 		}
 	}
 	

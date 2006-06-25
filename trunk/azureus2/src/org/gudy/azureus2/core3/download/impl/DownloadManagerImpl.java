@@ -249,14 +249,19 @@ DownloadManagerImpl
 	private boolean		persistent;
 
 	/**
-	 * Only seed this torrent. Never download or allocate<P>
-	 * Current Implementation:
-	 * - implies that the user completed the download at one point
+	 * Pretend this download is complete while not running, 
+	 * even if it has no data.  When the torrent starts up, the real complete
+	 * level will be checked (probably by DiskManager), and if the torrent
+	 * actually does have missing data at that point, the download will be thrown
+	 * into error state.
+	 * <p>
+	 * Only a forced-recheck should clear this flag.
+	 * <p>
+	 * Current Implementation:<br>
+	 * - implies that the user completed the download at one point<br>
 	 * - Checks if there's Data Missing when torrent is done (or torrent load)
-	 *
-	 * Perhaps a better name would be "bCompleted"
 	 */
-	private boolean onlySeeding;
+	private boolean assumedComplete;
 	
 	/**
 	 * forceStarted torrents can't/shouldn't be automatically stopped
@@ -711,11 +716,11 @@ DownloadManagerImpl
 						
 					  stats.setDownloadCompleted(1000);
 				  
-					  setOnlySeeding(true);
+					  setAssumedComplete(true);
 				  
 				 }else{
 				 					 
-					 setOnlySeeding(false);
+					 setAssumedComplete(false);
 				}
 			}catch( TOTorrentException e ){
 			
@@ -1136,7 +1141,7 @@ DownloadManagerImpl
     
 		// we don't want to update the torrent if we're seeding
 	  
-		if ( !onlySeeding  ){
+		if ( !assumedComplete  ){
 	  	
 			download_manager_state.save();
 		}
@@ -1176,13 +1181,14 @@ DownloadManagerImpl
 			return;
 		}
 		         	
-			// If we only want to seed, do a quick check first (before we create the diskManager, which allocates diskspace)
-    
-		if ( onlySeeding && !filesExist()) {
-    	
-				// If the user wants to re-download the missing files, they must
-				// do a re-check, which will reset the onlySeeding flag.
-    	
+		// If a torrent that is assumed complete, verify that it actually has the
+		// files, before we create the diskManager, which will try to allocate
+		// disk space.
+		if (assumedComplete && !filesExist()) {
+			// filesExist() has set state to error for us
+
+			// If the user wants to re-download the missing files, they must
+			// do a re-check, which will reset the flag.
 			return;
 		}
    
@@ -1352,26 +1358,32 @@ DownloadManagerImpl
 		globalManager.resumeDownload( this );
 	}
 	
-	public boolean 
-	getOnlySeeding() 
-	{
-		return onlySeeding;
+	public boolean getAssumedComplete() {
+		return assumedComplete;
 	}
-	
-	public void 
-	setOnlySeeding(
-		boolean _onlySeeding) 
-	{
-		if (onlySeeding == _onlySeeding) {
+
+	public boolean requestAssumedCompleteMode() {
+		boolean bCompleteNoDND = isDownloadComplete(false);
+
+		setAssumedComplete(bCompleteNoDND);
+		return bCompleteNoDND;
+	}
+
+	// Protected: Use requestAssumedCompleteMode outside of scope
+	protected void setAssumedComplete(boolean _assumedComplete) {
+		if (assumedComplete == _assumedComplete) {
 			return;
 		}
-		
-//		Logger.log(new LogEvent(this, LogIDs.CORE, "setOnlySeeding(" + _onlySeeding
-//				+ ") was " + onlySeeding));
 
-		onlySeeding = _onlySeeding;
-		
-		if (!onlySeeding) {
+		// Temp Debug:
+		Debug.outNoStack("setAssumedComplete to " + _assumedComplete + " for "
+				+ this + " by " + Debug.getStackTrace(true, false));
+		//Logger.log(new LogEvent(this, LogIDs.CORE, "setAssumedComplete("
+		//		+ _assumedComplete + ") was " + assumedComplete));
+
+		assumedComplete = _assumedComplete;
+
+		if (!assumedComplete) {
 			controller.setStateDownloading();
 		}
 
@@ -1408,10 +1420,8 @@ DownloadManagerImpl
 
 		listeners.dispatch(LDT_COMPLETIONCHANGED, new Object[] {
 				this,
-				new Boolean(_onlySeeding) });
+				new Boolean(_assumedComplete) });
 	}
-  
-  
   
   
   public int 
@@ -1899,7 +1909,7 @@ DownloadManagerImpl
 
 	public boolean isDownloadComplete(boolean bIncludeDND) {
 		if (!bIncludeDND) {
-			return onlySeeding;
+			return assumedComplete;
 		}
 		
 		return controller.isDownloadComplete(bIncludeDND);
@@ -1996,7 +2006,7 @@ DownloadManagerImpl
 			listeners_mon.exit();
 		}
 		
-		setOnlySeeding(controller.isDownloadComplete(false));
+		requestAssumedCompleteMode();
 	}
 	
 	protected void
@@ -2271,7 +2281,7 @@ DownloadManagerImpl
 	    		setForceStart(false);
 	    	}
 
-	    	setOnlySeeding(true);
+	    	setAssumedComplete(true);
 	
 	    	informDownloadEnded();
 	    }
@@ -2794,7 +2804,7 @@ DownloadManagerImpl
 			status = status.substring(0, 10);
 		}
 		return "DownloadManagerImpl#" + getPosition()
-				+ (getOnlySeeding() ? "s" : "d") + "@"
+				+ (getAssumedComplete() ? "s" : "d") + "@"
 				+ Integer.toHexString(hashCode()) + "/"
 				+ status + "/"
 				+ getSize() + "/" + hash;
@@ -2850,7 +2860,7 @@ DownloadManagerImpl
 				sFlags += "Data Already Allocated; ";
 			}
 			
-			if (onlySeeding) {
+			if (assumedComplete) {
 				sFlags += "onlySeeding; ";
 			}
 			

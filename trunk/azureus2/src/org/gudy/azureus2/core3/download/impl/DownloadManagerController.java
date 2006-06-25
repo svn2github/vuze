@@ -357,7 +357,7 @@ DownloadManagerController
 
 			  					stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 			  						
-			  					download_manager.setOnlySeeding(isDownloadComplete(false));
+			  					download_manager.setAssumedComplete(isDownloadComplete(false));
 			  				}
 			  					  
 			  				if ( newDMState == DiskManager.READY ){
@@ -547,7 +547,7 @@ DownloadManagerController
    								
 	  	  							// already closed down via stop
    								
-	  	  						download_manager.setOnlySeeding(false);
+	  	  						download_manager.setAssumedComplete(false);
 	  	  						
 	  	  						return;
   							}
@@ -610,7 +610,7 @@ DownloadManagerController
 	  	  							
 	  	  							if ( update_only_seeding ){
 	  	  								
-	  	  								download_manager.setOnlySeeding( only_seeding );
+	  	  								download_manager.setAssumedComplete( only_seeding );
 	  	  							}
 	  	  						
 	  	  						}catch( Exception e ){
@@ -637,7 +637,7 @@ DownloadManagerController
   	  								this_mon.exit();
   	  							}
   	  							
-	  	  						download_manager.setOnlySeeding(false);
+	  	  						download_manager.setAssumedComplete(false);
 	  	  					}
 	  					}
   	  				}
@@ -762,7 +762,7 @@ DownloadManagerController
 
 					  		// we don't want to update the torrent if we're seeding
 					  
-						if ( !download_manager.getOnlySeeding()){
+						if ( !download_manager.getAssumedComplete()){
 					  	
 							download_manager.getDownloadState().save();
 						}			  					  
@@ -927,7 +927,7 @@ DownloadManagerController
 	        
 	  				// pick up any errors regarding missing data for queued SEEDING torrents
 	    	  
-	  				if (  download_manager.getOnlySeeding()){
+	  				if (  download_manager.getAssumedComplete()){
 	    		  
 	  					call_filesExist	= true;
 	  				}

@@ -157,7 +157,7 @@ public class MyTorrentsView
     super((isSeedingView) ? TableManager.TABLE_MYTORRENTS_COMPLETE
                           : TableManager.TABLE_MYTORRENTS_INCOMPLETE,
           "MyTorrentsView", basicItems, "#", 
-          SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
+          SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
     setRowDefaultIconSize(new Point(16, 16));
     azureus_core		= _azureus_core;
     this.globalManager 	= azureus_core.getGlobalManager();
@@ -711,8 +711,9 @@ public class MyTorrentsView
 					}
 
 				}
-				bChangeDir &= (dm.getState() == DownloadManager.STATE_ERROR && !dm
-						.filesExist());
+				int state = dm.getState();
+				bChangeDir &= (state == DownloadManager.STATE_ERROR || state == DownloadManager.STATE_STOPPED)
+						&& !dm.filesExist();
 				
 				boolean	scan = dm.getDownloadState().getFlag( DownloadManagerState.FLAG_SCAN_INCOMPLETE_PIECES );
 				

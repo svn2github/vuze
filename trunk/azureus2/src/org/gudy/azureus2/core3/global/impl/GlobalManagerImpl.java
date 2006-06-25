@@ -640,11 +640,10 @@ public class GlobalManagerImpl
 	          if (cat != null) download_manager.getDownloadState().setCategory(cat);
 	        }
 		        
-	        boolean bCompleted = download_manager.isDownloadComplete(false);
-	      
-	        download_manager.setOnlySeeding(bCompleted);
+	        download_manager.requestAssumedCompleteMode();
 	        
 	        if (lDownloaded != null && lUploaded != null) {
+		        boolean bCompleted = download_manager.isDownloadComplete(false);
 	        	
 	          long lUploadedValue = lUploaded.longValue();
 	          
@@ -744,7 +743,7 @@ public class GlobalManagerImpl
 	      // readTorrent), there's a chance that the torrent file didn't have the
 	      // resume data.  If it didn't, but we marked it as complete in our
 	      // downloads config file, we should set to onlySeeding
-	      download_manager.setOnlySeeding(isCompleted);
+	      download_manager.requestAssumedCompleteMode();
 
 	      List	new_download_managers = new ArrayList( managers_cow );
 	      
@@ -1487,7 +1486,7 @@ public class GlobalManagerImpl
         	  
             state = DownloadManager.STATE_STOPPED;
             
-	      }else if (	dm.getOnlySeeding() && !dm.isForceStart() && 
+	      }else if (	dm.getAssumedComplete() && !dm.isForceStart() && 
 	    		  		state != DownloadManager.STATE_STOPPED) {
 	    	  
 	    	state = DownloadManager.STATE_QUEUED;
