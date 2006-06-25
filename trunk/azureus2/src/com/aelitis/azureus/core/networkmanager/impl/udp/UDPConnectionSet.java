@@ -35,6 +35,7 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.engines.RC4Engine;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 public class 
@@ -184,9 +185,7 @@ UDPConnectionSet
 		}
 		
 		received_packet_count++;
-		
-		System.out.println( local_port + ":" + remote_address + " received " + data.remaining());
-		
+				
 		UDPConnection	connection = null;
 		
 		boolean	new_connection = false;
@@ -197,7 +196,7 @@ UDPConnectionSet
 				
 				new_connection	= true;
 				
-				connection	= new UDPConnection( this );
+				connection	= new UDPConnection( this, manager.allocationConnectionID());
 	
 				connections.add( connection );
 				
@@ -211,6 +210,8 @@ UDPConnectionSet
 			}
 		}
 		
+		System.out.println( "Connection::read(" + connection.getID() + ") loc="+local_port + " - " + remote_address + ",rem="+data.remaining() + "[" + Debug.getCompressedStackTrace());
+
 		if ( new_connection ){
 			
 			manager.accept( local_port, remote_address, connection );
@@ -234,7 +235,7 @@ UDPConnectionSet
 			}
 		}
 		
-		System.out.println( local_port + ":" + remote_address + " sent " + data.remaining());
+		System.out.println( "Connection::write(" + connection.getID() + ") loc="+local_port + " - " + remote_address + ",rem="+data.remaining() + "[" + Debug.getCompressedStackTrace());
 
 			// TODO: make this take a bytebuffer[] and aggregate
 		
@@ -246,6 +247,10 @@ UDPConnectionSet
 		
 		if ( sent_packet_count > 0 ){
 		
+			if ( sequence_out == null ){
+				
+				header_size = 0;
+			}
 			int	packet_number = sequence_out.nextInt();
 			
 			CRC32	checksum = new CRC32();
@@ -314,9 +319,10 @@ UDPConnectionSet
 	
 	public void
 	close(
-		UDPConnection	connection )
+		UDPConnection	connection,
+		String			reason )
 	{
-		System.out.println( "UDPConnection::close" );
+		System.out.println( "UDPConnection::close(" + connection.getID() + "): " + reason );
 	}
 	
 	protected long

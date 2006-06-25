@@ -116,7 +116,7 @@ ConnectionEndpoint
 				public void 
 				abandon() 
 				{
-					transport.close();
+					transport.close( "Connection attempt abandoned" );
 				}
 			});
 	}  

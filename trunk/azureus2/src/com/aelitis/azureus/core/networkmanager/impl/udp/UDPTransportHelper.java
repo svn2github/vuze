@@ -315,8 +315,6 @@ UDPTransportHelper
 	      	write_listener		= listener;
 	    	write_attachment	= attachment;  
     	} 	
-    	
-    	resumeWriteSelects();
     }
     
     public synchronized void
@@ -358,7 +356,8 @@ UDPTransportHelper
     }
     
     public void
-    close()
+    close(
+    	String	reason )
     {
     	synchronized( this ){
     		
@@ -368,7 +367,7 @@ UDPTransportHelper
     		closed	= true;
     	}
     	
-    	connection.close();
+    	connection.close( reason );
     }
     
 	protected void

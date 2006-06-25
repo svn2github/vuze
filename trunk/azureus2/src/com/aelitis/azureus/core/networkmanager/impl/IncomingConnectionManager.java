@@ -251,7 +251,7 @@ IncomingConnectionManager
 		    				 "] dropped because zero routing handlers registered"));
 			}
 			
-			transport_helper.close();
+			transport_helper.close( "No routing handler" );
 		      
 		    return;
 		}
@@ -301,7 +301,7 @@ IncomingConnectionManager
 		    
 		if( close_as_well ) {
 		
-			connection.filter.getHelper().close();
+			connection.filter.getHelper().close( "Tidy close" );
 		}
 	}
 		  

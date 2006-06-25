@@ -349,6 +349,19 @@ public class Debug {
 	}
 	
 	public static String
+	getNestedExceptionMessageAndStack(
+		Throwable 		e )
+	{
+		return( getNestedExceptionMessage(e) + ", " + getCompressedStackTrace( e, 2 ));
+	}
+	
+	public static String
+	getCompressedStackTrace()
+	{
+		return( getCompressedStackTrace( new Throwable(), 2 ));
+	}
+	
+	public static String
 	getExceptionMessage(
 		Throwable	e )
 	{

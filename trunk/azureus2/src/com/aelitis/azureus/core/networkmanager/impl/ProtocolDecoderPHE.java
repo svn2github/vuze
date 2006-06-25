@@ -379,29 +379,10 @@ ProtocolDecoderPHE
 		
 		initCrypto();
 
-		transport.registerForReadSelects(
-			new TransportHelper.selectListener()
-			{
-			   	public boolean 
-		    	selectSuccess(
-		    		TransportHelper	helper, 
-		    		Object 			attachment )
-			   	{
-			   		return( ProtocolDecoderPHE.this.selectSuccess( helper, attachment, false ));
-			   	}
-
-		        public void 
-		        selectFailure(
-		        	TransportHelper	helper,
-		        	Object 			attachment, 
-		        	Throwable 		msg)
-		        {
-		        	ProtocolDecoderPHE.this.selectFailure( helper, attachment, msg );
-		        }
-			},
-			null );
+		try{
+			process_mon.enter();
 		
-		transport.registerForWriteSelects(
+			transport.registerForReadSelects(
 				new TransportHelper.selectListener()
 				{
 				   	public boolean 
@@ -409,9 +390,9 @@ ProtocolDecoderPHE
 			    		TransportHelper	helper, 
 			    		Object 			attachment )
 				   	{
-				   		return( ProtocolDecoderPHE.this.selectSuccess( helper, attachment, true ));
+				   		return( ProtocolDecoderPHE.this.selectSuccess( helper, attachment, false ));
 				   	}
-
+	
 			        public void 
 			        selectFailure(
 			        	TransportHelper	helper,
@@ -422,24 +403,50 @@ ProtocolDecoderPHE
 			        }
 				},
 				null );
-		
-		transport.pauseWriteSelects();
-		
-		if ( outbound ){
-		
-			protocol_state	= PS_OUTBOUND_1;
-
-			transport.pauseReadSelects();
 			
-		}else{
+			transport.registerForWriteSelects(
+					new TransportHelper.selectListener()
+					{
+					   	public boolean 
+				    	selectSuccess(
+				    		TransportHelper	helper, 
+				    		Object 			attachment )
+					   	{
+					   		return( ProtocolDecoderPHE.this.selectSuccess( helper, attachment, true ));
+					   	}
+	
+				        public void 
+				        selectFailure(
+				        	TransportHelper	helper,
+				        	Object 			attachment, 
+				        	Throwable 		msg)
+				        {
+				        	ProtocolDecoderPHE.this.selectFailure( helper, attachment, msg );
+				        }
+					},
+					null );
 			
-			protocol_state	= PS_INBOUND_1;
-
-			read_buffer = ByteBuffer.allocate( dh_public_key_bytes.length );					
+			transport.pauseWriteSelects();
+			
+			if ( outbound ){
+			
+				protocol_state	= PS_OUTBOUND_1;
+	
+				transport.pauseReadSelects();
 				
-			read_buffer.put( _header );
-		
-			bytes_read += _header.limit();
+			}else{
+				
+				protocol_state	= PS_INBOUND_1;
+	
+				read_buffer = ByteBuffer.allocate( dh_public_key_bytes.length );					
+					
+				read_buffer.put( _header );
+			
+				bytes_read += _header.limit();
+			}
+		}finally{
+			
+			process_mon.exit();
 		}
 		
 		process();
@@ -679,7 +686,7 @@ ProtocolDecoderPHE
 		
 			while( loop ){
 					
-				// System.out.println( (outbound?"out: ":"in : ") + protocol_state + "/" + protocol_substate + ": r " + bytes_read + " - " + read_buffer + ", w " + bytes_written + " - " + write_buffer );
+				// System.out.println( this + ":" + (outbound?"out: ":"in : ") + protocol_state + "/" + protocol_substate + ": r " + bytes_read + " - " + read_buffer + ", w " + bytes_written + " - " + write_buffer );
 				
 				if ( protocol_state == PS_OUTBOUND_1 ){
 					
@@ -1681,7 +1688,7 @@ ProtocolDecoderPHE
 	{
 		int	len = transport.read( buffer );
 	
-		// System.out.println( "read:" + this + "/" + protocol_state + "/" + protocol_substate + " -> " + len +"[" + buffer +"]");
+		//System.out.println( "read:" + this + "/" + protocol_state + "/" + protocol_substate + " -> " + len +"[" + buffer +"]");
 		
 		if ( len < 0 ){
 			
@@ -1697,9 +1704,11 @@ ProtocolDecoderPHE
 	
 		throws IOException
 	{
+		//System.out.println( "write pre:" + this + "/" + protocol_state + "/" + protocol_substate + " - " + buffer );
+
 		int	len = transport.write( buffer );
 		
-		// System.out.println( "write:" + this + "/" + protocol_state + "/" + protocol_substate + " -> " + len +"[" + buffer +"]");
+		//System.out.println( "write:" + this + "/" + protocol_state + "/" + protocol_substate + " -> " + len +"[" + buffer +"]");
 
 		if ( len < 0 ){
 			

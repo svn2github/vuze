@@ -73,7 +73,7 @@ public class LightweightTCPTransport implements Transport {
   
   public String getDescription(){  return getSocketChannel().socket().getInetAddress().getHostAddress() + ": " + getSocketChannel().socket().getPort();  }
   
-  public void close(){
+  public void close( String reason ){
   	try {
   		getSocketChannel().close();  //close() can block
     }

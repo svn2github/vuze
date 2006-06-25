@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import com.aelitis.azureus.core.networkmanager.TransportEndpoint;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
-import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportImpl;
 
@@ -140,7 +139,7 @@ UDPTransport
 		    					
 		    					if ( closed ){
 		    						
-		    						close();
+		    						close( "Already closed" );
 		    						
 		    						listener.connectFailure( new Exception( "Connection already closed" ));
 		    						
@@ -159,7 +158,7 @@ UDPTransport
 	    						
 	    						Debug.printStackTrace(e);
 	    						
-	    						close();
+	    						close( Debug.getNestedExceptionMessageAndStack(e));
 	    						
 	    						listener.connectFailure( e );
 	    					}
@@ -169,7 +168,7 @@ UDPTransport
 	    				handshakeFailure( 
 	    					Throwable failure_msg )
 	    				{
-	    					helper.close();
+	    					helper.close( Debug.getNestedExceptionMessageAndStack(failure_msg));
 	    					
 	    					listener.connectFailure( failure_msg );
 	    				}
@@ -204,7 +203,8 @@ UDPTransport
 	}
 	   
 	public void 
-	close()
+	close(
+		String	reason )
 	{
 		closed	= true;
 		
@@ -215,7 +215,7 @@ UDPTransport
 		
 		if ( filter != null ){
 			
-			filter.getHelper().close();
+			filter.getHelper().close( reason );
 			
 			setFilter( null );
 		}

@@ -183,10 +183,10 @@ public class ClientConnection {
 		out_queue.destroy();
 		
 		if( parent_transport != null ) {
-			parent_transport.close();  //have the parent do the close if possible
+			parent_transport.close( "Tidy close");  //have the parent do the close if possible
 		}
 		else {
-			light_transport.close();
+			light_transport.close("Tidy close");
 		}
 	}
 	

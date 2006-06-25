@@ -234,7 +234,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         		connect_with_crypto = false;
         		fallback_count++;
         		TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
-        		close();
+        		close( "Handshake failure and retry" );
         		has_been_closed = false;
         		connectOutbound( listener );
         	}
@@ -345,7 +345,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
   /**
    * Close the transport connection.
    */
-  public void close() {
+  public void close( String reason ) {
     has_been_closed = true;
     
     if( connect_request_key != null ) {
@@ -359,7 +359,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 
     if( filter != null ){
  
-      filter.getHelper().close();
+      filter.getHelper().close( reason );
       
       setFilter( null );
     }

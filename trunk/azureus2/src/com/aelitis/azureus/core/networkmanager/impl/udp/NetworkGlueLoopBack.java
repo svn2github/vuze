@@ -29,6 +29,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 NetworkGlueLoopBack
@@ -53,7 +54,7 @@ NetworkGlueLoopBack
 				while( true ){
 					
 					try{
-						Thread.sleep(100);
+						Thread.sleep(1);
 						
 					}catch( Throwable e ){
 						
@@ -92,7 +93,9 @@ NetworkGlueLoopBack
 	
 		throws IOException
 	{
-		ByteBuffer	copy = ByteBuffer.allocate( data.remaining());
+		int	to_send = data.remaining();
+		
+		ByteBuffer	copy = ByteBuffer.allocate( to_send);
 		
 		copy.put( data );
 		
@@ -105,6 +108,6 @@ NetworkGlueLoopBack
 			message_queue.add( new Object[]{ local_address, target, copy });
 		}
 		
-		return( copy.limit());
+		return( to_send );
 	}
 }

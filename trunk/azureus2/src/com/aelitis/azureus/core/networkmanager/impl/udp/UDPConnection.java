@@ -31,6 +31,7 @@ public class
 UDPConnection 
 {
 	private UDPConnectionSet	set;
+	private int					id;
 	private UDPTransportHelper	transport;
 	
 	private List	buffers = new LinkedList();
@@ -38,6 +39,7 @@ UDPConnection
 	protected
 	UDPConnection(
 		UDPConnectionSet	_set,
+		int					_id,
 		UDPTransportHelper	_transport )
 	{
 		set			= _set;
@@ -46,9 +48,17 @@ UDPConnection
 	
 	protected
 	UDPConnection(
-		UDPConnectionSet	_set )
+		UDPConnectionSet	_set,
+		int					_id )
 	{
 		set			= _set;
+		id			= _id;
+	}
+	
+	protected int
+	getID()
+	{
+		return( id );
 	}
 	
 	public boolean
@@ -117,7 +127,11 @@ UDPConnection
 	
 		throws IOException
 	{
-		return( set.write( this, buffer ));
+		int	length = set.write( this, buffer );
+		
+		// System.out.println( "Connection(" + getID() + ") - write -> " +length );
+		
+		return( length );
 	}
 	
 	protected int
@@ -165,18 +179,24 @@ UDPConnection
 			}
 		}
 		
+		// System.out.println( "Connection(" + getID() + ") - read -> " +total );
+
 		return( total );
 	}
 	
 	protected void
-	close()
+	close(
+		String	reason )
 	{
-		set.close( this );
+		set.close( this, reason );
 	}
 	
 	protected void
 	poll()
 	{
-		transport.poll();
+		if ( transport != null ){
+			
+			transport.poll();
+		}
 	}
 }

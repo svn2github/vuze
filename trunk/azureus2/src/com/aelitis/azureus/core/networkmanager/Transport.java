@@ -136,7 +136,7 @@ public interface Transport {
   /**
    * Close the transport connection.
    */
-  public void close();
+  public void close( String reason );
   
   
   /**

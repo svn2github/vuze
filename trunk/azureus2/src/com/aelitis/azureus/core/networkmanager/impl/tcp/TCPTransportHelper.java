@@ -262,7 +262,7 @@ TCPTransportHelper
   }
   
   public void
-  close()
+  close( String reason )
   {
       TCPNetworkManager.getSingleton().getReadSelector().cancel( channel );
       TCPNetworkManager.getSingleton().getWriteSelector().cancel( channel );

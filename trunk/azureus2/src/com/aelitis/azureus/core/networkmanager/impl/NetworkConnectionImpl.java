@@ -107,10 +107,22 @@ public class NetworkConnectionImpl implements NetworkConnection {
   public void connect( ConnectionListener listener ) {
     this.connection_listener = listener;
     
-    if( is_connected ) {
+    if( is_connected ){
+    	
       connection_listener.connectStarted();
+      
       connection_listener.connectSuccess();
+      
       return;
+    }
+    
+    if ( connection_attempt != null ){
+    	
+    	Debug.out( "Connection attempt already active" );
+    	
+    	listener.connectFailure( new Throwable( "Connection attempt already active" ));
+    	
+    	return;
     }
     
     connection_attempt = 
@@ -151,7 +163,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
     	connection_attempt.abandon();
     }
     if ( transport != null ){
-    	transport.close();
+    	transport.close( "Tidy close" );
     }
     incoming_message_queue.destroy();
     outgoing_message_queue.destroy();  

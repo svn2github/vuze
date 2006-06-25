@@ -51,6 +51,9 @@ UDPConnectionManager
 
 	private static final Map	connections = new HashMap();
 	
+	private int next_connection_id;
+
+	
 	private IncomingConnectionManager	incoming_manager = IncomingConnectionManager.getSingleton();
 
 	private NetworkGlue	network_glue = new NetworkGlueLoopBack( this );
@@ -157,7 +160,7 @@ UDPConnectionManager
 						Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
 					}
  
-					connection.close();
+					connection.close( "handshake failure: " + Debug.getNestedExceptionMessage(failure_msg));
 				}
             
 				public void
@@ -214,7 +217,7 @@ UDPConnectionManager
 				connections.put( key, connection_set );
 			}
 			
-			UDPConnection	connection = new UDPConnection( connection_set, helper );
+			UDPConnection	connection = new UDPConnection( connection_set, allocationConnectionID(), helper );
 			
 			connection_set.add( connection );
 			
@@ -222,4 +225,9 @@ UDPConnectionManager
 		}
 	}
 	
+	protected synchronized int
+	allocationConnectionID()
+	{
+		return( next_connection_id++ );
+	}
 }
