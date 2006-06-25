@@ -169,6 +169,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
 
     GridData gridData;
     form = new SashForm(composite0,SWT.VERTICAL);
+    form.SASH_WIDTH = 5;
     gridData = new GridData(GridData.FILL_BOTH); 
     form.setLayoutData(gridData);
     
