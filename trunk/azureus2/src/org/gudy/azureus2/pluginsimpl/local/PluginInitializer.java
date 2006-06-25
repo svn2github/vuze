@@ -193,6 +193,8 @@ PluginInitializer
   private PluginInterfaceImpl	default_plugin;
   private PluginManager			plugin_manager;
   
+  private ClassLoader			root_class_loader	= getClass().getClassLoader();
+  
   private List		loaded_pi_list		= new ArrayList();
   
   private List		plugins				= new ArrayList();
@@ -320,7 +322,9 @@ PluginInitializer
   		List pluginLoaded = new ArrayList();
   		
   		PluginManagerImpl.setStartDetails( core );
-    
+      		
+  		getRootClassLoader();
+  		
   			// first do explicit plugins
   	  	
 	    File	user_dir = FileUtil.getUserFile("plugins");
@@ -369,7 +373,7 @@ PluginInitializer
   						// if we need to improve on this then we'll have to move to a system more akin to
   						// the dir-loaded plugins
   					
-  					Class	cla = getClass().getClassLoader().loadClass( builtin_plugins[i][1]);
+  					Class	cla = root_class_loader.loadClass( builtin_plugins[i][1]);
 							      
   			      	Method	load_method = cla.getMethod( "load", new Class[]{ PluginInterface.class });
   			      	
@@ -445,6 +449,48 @@ PluginInitializer
 		return pluginLoaded;
   	}
  
+  	private void
+	getRootClassLoader()
+  	{	
+  			// first do explicit plugins
+	
+  		File	user_dir = FileUtil.getUserFile("shared");
+
+  		getRootClassLoader( user_dir );
+  		
+  		File	app_dir	 = FileUtil.getApplicationFile("shared");
+  		
+  		if ( !user_dir.equals( app_dir )){
+  			
+  			getRootClassLoader( app_dir );
+  		}
+  	}
+
+ 	private void
+	getRootClassLoader(
+		File		dir )
+  	{
+ 		dir = new File( dir, "lib" );
+ 		
+ 		if ( dir.exists() && dir.isDirectory()){
+ 			
+ 			File[]	files = dir.listFiles();
+ 			
+ 			if ( files != null ){
+ 				
+ 				files = PluginLauncherImpl.getHighestJarVersions( files, new String[]{ null }, new String[]{ null }, false );
+ 				
+ 				for (int i=0;i<files.length;i++){
+ 					
+ 				 	if (Logger.isEnabled())
+ 						Logger.log(new LogEvent(LOGID, "Share class loader extended by " + files[i].toString()));
+
+ 					PluginLauncherImpl.addFileToClassPath( root_class_loader, files[i] );
+ 				}
+ 			}
+ 		}
+  	}
+ 	
   private List
   loadPluginsFromDir(
   	File	pluginDirectory,
@@ -518,7 +564,7 @@ PluginInitializer
   {
     List	loaded_pis = new ArrayList();
     
-  	ClassLoader classLoader = getClass().getClassLoader();
+  	ClassLoader classLoader = root_class_loader;
   	
     if( !directory.isDirectory()){
     	
@@ -566,7 +612,7 @@ PluginInitializer
     String[]	plugin_version = {null};
     String[]	plugin_id = {null};
     
-    pluginContents	= PluginLauncherImpl.getHighestJarVersions( pluginContents, plugin_version, plugin_id );
+    pluginContents	= PluginLauncherImpl.getHighestJarVersions( pluginContents, plugin_version, plugin_id, true );
     
     for( int i = 0 ; i < pluginContents.length ; i++){
     	
@@ -944,7 +990,7 @@ PluginInitializer
 				String key = builtin_plugins[i][3];
 
 				try {
-					Class cla = getClass().getClassLoader().loadClass(
+					Class cla = root_class_loader.loadClass(
 							builtin_plugins[i][1]);
 
 					initializePluginFromClass(cla, id, key);

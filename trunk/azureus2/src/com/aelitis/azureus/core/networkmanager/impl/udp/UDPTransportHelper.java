@@ -314,7 +314,9 @@ UDPTransportHelper
     		
 	      	write_listener		= listener;
 	    	write_attachment	= attachment;  
-    	} 	
+    	} 
+    	
+    	resumeWriteSelects();
     }
     
     public synchronized void

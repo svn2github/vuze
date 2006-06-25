@@ -309,7 +309,7 @@ PluginLauncherImpl
 	    	    String[]	plugin_version 	= {null};
 	    	    String[]	plugin_id 		= {null};
 		    	    
-	    	    contents	= getHighestJarVersions( contents, plugin_version, plugin_id );
+	    	    contents	= getHighestJarVersions( contents, plugin_version, plugin_id, true );
 		    	    
 	    	    for( int j = 0 ; j < contents.length ; j++){
 		    	    			    	    	
@@ -411,7 +411,8 @@ PluginLauncherImpl
 	getHighestJarVersions(
 		File[]		files,
 		String[]	version_out ,
-		String[]	id_out )	// currently the version of last versioned jar found...
+		String[]	id_out,	// currently the version of last versioned jar found...
+		boolean		discard_non_versioned_when_versioned_found )
 	{
   			// WARNING!!!!
   			// don't use Debug/lglogger here as we can be called before AZ has been initialised
@@ -471,7 +472,7 @@ PluginLauncherImpl
   			// For migration purposes (i.e. on the first real introduction of the update versioning
   			// system) we drop all non-versioned jars from the set
   		
-  		if ( version_map.size() > 0 ){
+  		if ( version_map.size() > 0 && discard_non_versioned_when_versioned_found ){
   			
   			res.clear();
   		}
