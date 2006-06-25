@@ -148,13 +148,10 @@ public class PeerUtils {
 							
 							for (int j = iMin; j <= iMax; j++) {
 								ignore_peer_ports.add("" + j);
-								System.out.println("Ignore Port " + j);
 							}
 						} catch (Exception e) {
-							// TODO: handle exception
 						}
 					} else {
-						System.out.println("Ignore Port " + port);
 						ignore_peer_ports.add(port.trim());
 					}
 				}
