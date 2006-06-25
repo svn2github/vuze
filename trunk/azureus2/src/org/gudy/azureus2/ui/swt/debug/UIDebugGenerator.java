@@ -159,7 +159,7 @@ public class UIDebugGenerator
 				MessageBox box = new MessageBox(Display.getCurrent().getActiveShell());
 				box.setText("Debug Info Generated");
 				box.setMessage("Please send the file '" + outFile
-						+ " to tuxpaper@users.sourceforge.net\n\n"
+						+ " to arronm@azureus-inc.com\n\n"
 						+ "Click Ok to open a window to this file.");
 				if (box.open() == SWT.OK) {
 					try {
