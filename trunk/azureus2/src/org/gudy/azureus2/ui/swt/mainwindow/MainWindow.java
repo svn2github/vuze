@@ -1576,8 +1576,7 @@ MainWindow
 			Display current = Display.getCurrent();
 			if (current != null) {
 				Rectangle clientArea = current.getClientArea();
-				size.x = clientArea.width;
-				size.y = clientArea.height;
+				size = new Point(clientArea.width, clientArea.height);
 				return size;
 			}
 		}
