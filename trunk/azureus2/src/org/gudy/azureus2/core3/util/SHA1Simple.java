@@ -301,10 +301,18 @@ public final class SHA1Simple {
   }
   
 
-
+	public byte[] 
+	calculateHash(
+		byte[] buffer ) 
+	{
+		return( calculateHash( buffer, 0, buffer.length ));
+	}
+	
   	public byte[] 
   	calculateHash(
-		byte[] buffer) 
+		final byte[] 	buffer,
+		final int		offset,
+		final int		length )
 	{
 		h0 = 0x67452301;
 	    h1 = 0xEFCDAB89;
@@ -312,8 +320,8 @@ public final class SHA1Simple {
 	    h3 = 0x10325476;    
 	    h4 = 0xC3D2E1F0;   
 		
-		int	pos = 0;
-		int	rem	= buffer.length;
+		int	pos = offset;
+		int	rem	= length;
 	  
 		while( rem >= 64) {
 		  
@@ -353,7 +361,7 @@ public final class SHA1Simple {
 			temp[i] = 0;
 		}
 	  
-		long	l = buffer.length << 3;
+		long	l = length << 3;
 	  
 		temp[56]	= (byte)(l >> 56);
 		temp[57]	= (byte)(l >> 48);
