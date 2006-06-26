@@ -665,8 +665,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			}
 		};
 		
-		cSaveTo.setFocus();
-
 		setPasteKeyListener(shell, pasteKeyListener);
 
 		Utils.createTorrentDropTarget(shell, false);
@@ -677,6 +675,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		}
 		resizeTables(3);
 		shell.open();
+
+		cSaveTo.setFocus();
 	}
 
 	/**
