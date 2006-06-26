@@ -62,7 +62,7 @@ NetworkGlueLoopBack
 				
 					InetSocketAddress	local_address 	= null;
 					InetSocketAddress	source_address 	= null;
-					ByteBuffer			data			= null;
+					byte[]				data			= null;
 					
 					synchronized( message_queue ){
 						
@@ -72,7 +72,7 @@ NetworkGlueLoopBack
 							
 							source_address	= (InetSocketAddress)entry[0];
 							local_address 	= (InetSocketAddress)entry[1];
-							data			= (ByteBuffer)entry[2];
+							data			= (byte[])entry[2];
 						}
 					}
 					
@@ -89,25 +89,17 @@ NetworkGlueLoopBack
 	send(
 		int					local_port,
 		InetSocketAddress	target,
-		ByteBuffer			data )
+		byte[]				data )
 	
 		throws IOException
-	{
-		int	to_send = data.remaining();
-		
-		ByteBuffer	copy = ByteBuffer.allocate( to_send);
-		
-		copy.put( data );
-		
-		copy.rewind();
-		
+	{	
 		InetSocketAddress local_address = new InetSocketAddress( target.getAddress(), local_port );
 		
 		synchronized( message_queue ){
 			
-			message_queue.add( new Object[]{ local_address, target, copy });
+			message_queue.add( new Object[]{ local_address, target, data });
 		}
 		
-		return( to_send );
+		return( data.length );
 	}
 }

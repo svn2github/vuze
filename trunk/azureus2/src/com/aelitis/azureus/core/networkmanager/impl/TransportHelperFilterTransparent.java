@@ -70,11 +70,12 @@ TransportHelperFilterTransparent
 
 	public int 
 	write( 
-		ByteBuffer 		buffer )
+		ByteBuffer 		buffer,
+		boolean			partial_write )
 	
 		throws IOException
 	{
-		return( transport.write( buffer ));
+		return( transport.write( buffer, partial_write ));
 	}
 	
 	public long 

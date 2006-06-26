@@ -57,7 +57,13 @@ TCPTransportHelper
 		return( new InetSocketAddress( channel.socket().getInetAddress(), channel.socket().getPort()));
 	}
 	
-	public int write( ByteBuffer buffer ) throws IOException {  	
+	public boolean
+	minimiseOverheads()
+	{
+		return( false );
+	}
+	
+	public int write( ByteBuffer buffer, boolean partial_write ) throws IOException {  	
 		    if( channel == null ) {
 		      Debug.out( "channel == null" );
 		      return 0;

@@ -70,7 +70,7 @@ TransportHelperFilterStream
 		
 		if  ( write_buffer_pending_byte != null ){
 			
-			if ( transport.write( write_buffer_pending_byte ) == 0 ){
+			if ( transport.write( write_buffer_pending_byte, false ) == 0 ){
 				
 				return( 0 );
 			}
@@ -110,7 +110,7 @@ TransportHelperFilterStream
 				write_buffer_pending.limit( pending_position + pending_writable );
 			}
 			
-			int	written = transport.write( write_buffer_pending );
+			int	written = transport.write( write_buffer_pending, false );
 			
 			write_buffer_pending.limit( pending_limit );
 			
@@ -196,7 +196,17 @@ TransportHelperFilterStream
 				
 				target_buffer.position( 0 );
 				
-				int	written = transport.write( target_buffer );
+				boolean	partial_write = false;
+				
+				for (int j=i+1;j<array_offset+length;j++){
+
+					if ( buffers[j].hasRemaining()){
+						
+						partial_write = true;
+					}
+				}
+				
+				int	written = transport.write( target_buffer, partial_write );
 				
 				total_written += written;
 				

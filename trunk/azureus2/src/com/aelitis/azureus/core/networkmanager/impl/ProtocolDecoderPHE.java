@@ -112,6 +112,9 @@ ProtocolDecoderPHE
     
     private static final int		PADDING_MAX	= 512;
     
+    private static final int		PADDING_MAX_NORMAL	= PADDING_MAX;
+    private static final int		PADDING_MAX_LIMITED	= 128;
+       
 	private static final Random	random = new SecureRandom();
 	
 	private static Map	shared_secrets	= new HashMap();
@@ -694,7 +697,7 @@ ProtocolDecoderPHE
 						
 							// A sends B Ya + Pa
 						
-						byte[]	padding_a = getRandomPadding(PADDING_MAX/2);									
+						byte[]	padding_a = getRandomPadding(getPaddingMax()/2);									
 						
 						write_buffer = ByteBuffer.allocate( dh_public_key_bytes.length + padding_a.length );
 												
@@ -741,7 +744,7 @@ ProtocolDecoderPHE
 
 					if ( write_buffer == null ){
 						
-						byte[]	padding_b = getRandomPadding( PADDING_MAX/2 );
+						byte[]	padding_b = getRandomPadding( getPaddingMax()/2 );
 						
 						write_buffer = ByteBuffer.allocate( dh_public_key_bytes.length + padding_b.length );
 						
@@ -799,9 +802,11 @@ ProtocolDecoderPHE
 						
 							// padding_a here is half of the padding from before
 						
-						byte[]	padding_a = getRandomPadding(PADDING_MAX/2);									
+						int	pad_max = getPaddingMax();
+						
+						byte[]	padding_a = getRandomPadding(pad_max/2);									
 
-						byte[]	padding_c = getZeroPadding();
+						byte[]	padding_c = getZeroPadding(pad_max);
 						
 						write_buffer = ByteBuffer.allocate( padding_a.length + 20 + 20 + ( VC.length + 4 + 2 + padding_c.length + 2 ));
 						
@@ -1050,9 +1055,11 @@ ProtocolDecoderPHE
 	
 					if ( write_buffer == null ){
 								
-						byte[]	padding_b = getRandomPadding( PADDING_MAX/2 );	// half padding b sent here
+						int	pad_max = getPaddingMax();
+						
+						byte[]	padding_b = getRandomPadding( pad_max/2 );	// half padding b sent here
 
-						byte[]	padding_d = getZeroPadding();
+						byte[]	padding_d = getZeroPadding( pad_max );
 						
 						write_buffer = ByteBuffer.allocate( padding_b.length + VC.length + 4 + 2 + padding_d.length ); // + 2 + initial_data_out.length );
 						
@@ -1706,7 +1713,7 @@ ProtocolDecoderPHE
 	{
 		//System.out.println( "write pre:" + this + "/" + protocol_state + "/" + protocol_substate + " - " + buffer );
 
-		int	len = transport.write( buffer );
+		int	len = transport.write( buffer, false );
 		
 		//System.out.println( "write:" + this + "/" + protocol_state + "/" + protocol_substate + " -> " + len +"[" + buffer +"]");
 
@@ -1786,6 +1793,19 @@ ProtocolDecoderPHE
 		return( new BigInteger( ByteFormatter.encodeString( bytes, offset, len  ), 16 ));
 	}
 	
+	protected int
+	getPaddingMax()
+	{
+		if ( transport.minimiseOverheads()){
+			
+			return( PADDING_MAX_LIMITED );
+			
+		}else{
+			
+			return( PADDING_MAX_NORMAL );
+		}
+	}
+	
 	protected static synchronized byte[]
 	getRandomPadding(
 		int		max_len )
@@ -1798,9 +1818,10 @@ ProtocolDecoderPHE
 	}
 	
 	protected static synchronized byte[]
-   	getZeroPadding()
+   	getZeroPadding(
+   		int	max_len )
    	{
-   		byte[]	bytes = new byte[ random.nextInt(PADDING_MAX)];
+   		byte[]	bytes = new byte[ random.nextInt(max_len)];
    		
    		return( bytes );
    	}

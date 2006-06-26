@@ -34,14 +34,10 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
-import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportImpl;
 
 public class
 UDPConnectionManager
@@ -86,10 +82,31 @@ UDPConnectionManager
 	}
 	
 	public void
+	remove(
+		UDPConnectionSet	set,
+		UDPConnection		connection )
+	{
+		synchronized( connections ){
+
+			if ( set.remove( connection )){
+				
+				InetSocketAddress	remote_address = set.getRemoteAddress();
+				
+				String	key = set.getLocalPort() + ":" + remote_address.getAddress().getHostAddress() + ":" + remote_address.getPort();
+
+				if ( connections.remove( key ) == null ){
+					
+					Debug.out( "Connection set not found" );
+				}
+			}	                          
+		}                    
+	}
+	
+	public void
 	receive(
 		int					local_port,
 		InetSocketAddress	remote_address,
-		ByteBuffer			data )
+		byte[]				data )
 	{
 		String	key = local_port + ":" + remote_address.getAddress().getHostAddress() + ":" + remote_address.getPort();
 		
@@ -114,7 +131,7 @@ UDPConnectionManager
 	send(
 		int					local_port,
 		InetSocketAddress	remote_address,
-		ByteBuffer			data )
+		byte[]				data )
 	
 		throws IOException
 	{
@@ -148,7 +165,9 @@ UDPConnectionManager
 					ProtocolEndpointUDP	pe_udp = new ProtocolEndpointUDP( co_ep, remote_address );
 
 					UDPTransport transport = new UDPTransport( pe_udp, filter );
-										
+							
+					helper.setTransport( transport );
+					
 					incoming_manager.addConnection( local_port, filter, transport );
         		}
 
@@ -228,6 +247,14 @@ UDPConnectionManager
 	protected synchronized int
 	allocationConnectionID()
 	{
-		return( next_connection_id++ );
+		int	id = next_connection_id++;
+		
+		if ( id < 0 ){
+			
+			id					= 0;
+			next_connection_id	= 1;
+		}
+		
+		return( id );
 	}
 }

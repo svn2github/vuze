@@ -34,7 +34,7 @@ UDPConnection
 	private int					id;
 	private UDPTransportHelper	transport;
 	
-	private List	buffers = new LinkedList();
+	private List	read_buffers = new LinkedList();
 	
 	protected
 	UDPConnection(
@@ -43,6 +43,7 @@ UDPConnection
 		UDPTransportHelper	_transport )
 	{
 		set			= _set;
+		id			= _id;
 		transport	= _transport;
 	}
 	
@@ -59,6 +60,13 @@ UDPConnection
 	getID()
 	{
 		return( id );
+	}
+	
+	protected void
+	setID(
+		int		_id )
+	{
+		id	= _id;
 	}
 	
 	public boolean
@@ -93,11 +101,11 @@ UDPConnection
 	{
 		boolean	was_empty = false;
 		
-		synchronized( buffers ){
+		synchronized( read_buffers ){
 		
-			was_empty = buffers.size() == 0;
+			was_empty = read_buffers.size() == 0;
 			
-			buffers.add( data );
+			read_buffers.add( data );
 		}
 		
 		if ( was_empty ){
@@ -109,9 +117,9 @@ UDPConnection
 	protected boolean
 	canRead()
 	{
-		synchronized( buffers ){
+		synchronized( read_buffers ){
 
-			return( buffers.size() > 0 );
+			return( read_buffers.size() > 0 );
 		}
 	}
 	
@@ -123,15 +131,17 @@ UDPConnection
 	
 	protected int 
 	write( 
-		ByteBuffer buffer ) 
+		ByteBuffer[] 	buffers,
+		int				offset,
+		int				length )
 	
 		throws IOException
 	{
-		int	length = set.write( this, buffer );
+		int	written = set.write( this, buffers, offset, length );
 		
 		// System.out.println( "Connection(" + getID() + ") - write -> " +length );
 		
-		return( length );
+		return( written );
 	}
 	
 	protected int
@@ -142,9 +152,9 @@ UDPConnection
 	{
 		int	total = 0;
 		
-		synchronized( buffers ){
+		synchronized( read_buffers ){
 
-			while( buffers.size() > 0 ){
+			while( read_buffers.size() > 0 ){
 				
 				int	rem = buffer.remaining();
 				
@@ -153,7 +163,7 @@ UDPConnection
 					break;
 				}
 
-				ByteBuffer	b = (ByteBuffer)buffers.get(0);
+				ByteBuffer	b = (ByteBuffer)read_buffers.get(0);
 								
 				int	old_limit = b.limit();
 				
@@ -174,7 +184,7 @@ UDPConnection
 					
 				}else{
 					
-					buffers.remove(0);
+					read_buffers.remove(0);
 				}
 			}
 		}

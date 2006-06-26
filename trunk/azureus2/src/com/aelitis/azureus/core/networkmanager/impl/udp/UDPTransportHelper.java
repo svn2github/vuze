@@ -35,6 +35,7 @@ UDPTransportHelper
 	private UDPConnectionManager	manager;
 	private UDPSelector				selector;
 	private InetSocketAddress		address;
+	private UDPTransport			transport;
 	
 	private boolean					incoming;
 	
@@ -51,15 +52,19 @@ UDPTransportHelper
 	private boolean				closed;
 	private IOException			failed;
 	
+	private ByteBuffer			pending_partial_write;
+	
 	protected
 	UDPTransportHelper(
 		UDPConnectionManager	_manager,
-		InetSocketAddress		_address )
+		InetSocketAddress		_address,
+		UDPTransport			_transport )
 	{
 			// outgoing
 	
 		manager		= _manager;
 		address 	= _address;
+		transport	= _transport;
 		
 		incoming	= false;
 		
@@ -85,6 +90,36 @@ UDPTransportHelper
 		selector	= _manager.getSelector();
 	}
 	
+	protected void
+	setTransport(
+		UDPTransport	_transport )
+	{
+		transport	= _transport;
+	}
+
+	protected UDPTransport
+	getTransport()
+	{
+		return( transport );
+	}
+	
+	protected int
+	getMss()
+	{
+		if ( transport == null ){
+			
+			return( UDPNetworkManager.getUdpMssSize());
+		}
+		
+		return( transport.getMssSize());
+	}
+	
+	public boolean
+	minimiseOverheads()
+	{
+		return( true );
+	}
+	
 	public InetSocketAddress
 	getAddress()
 	{
@@ -105,7 +140,8 @@ UDPTransportHelper
 	
 	public int 
 	write( 
-		ByteBuffer buffer ) 
+		ByteBuffer 	buffer, 
+		boolean		partial_write )
 	
 		throws IOException
 	{
@@ -122,7 +158,39 @@ UDPTransportHelper
 			}
 		}
 		
-		return( connection.write( buffer ));
+		if ( partial_write ){
+			
+			if ( pending_partial_write == null ){
+				
+				if ( buffer.remaining() < UDPConnectionSet.MIN_WRITE_PAYLOAD ){
+				
+					ByteBuffer	copy = ByteBuffer.allocate( buffer.remaining());
+					
+					copy.put( buffer );
+					
+					copy.position( 0 );
+					
+					pending_partial_write = copy;
+					
+					return( copy.remaining());
+				}
+			}
+		}
+		
+		if ( pending_partial_write != null ){
+			
+			int	pw_len = pending_partial_write.remaining();
+			
+			ByteBuffer pw = pending_partial_write;
+			
+			pending_partial_write = null;
+			
+			return( connection.write( new ByteBuffer[]{ pw, buffer }, 0, 2 ) - pw_len );
+			
+		}else{
+			
+			return( connection.write( new ByteBuffer[]{ buffer }, 0, 1 ));
+		}
 	}
 
     public long 
@@ -146,25 +214,7 @@ UDPTransportHelper
 			}
 		}
 		
-    	long	total = 0;
-    	
-    	for (int i=array_offset;i<array_offset+length;i++){
-    		
-    		ByteBuffer	buffer = buffers[i];
-    		
-    		int	max = buffer.remaining();
-    		
-    		int	written = connection.write( buffer );
-    		
-    		total += written;
-    		
-    		if ( written < max ){
-    		
-    			break;
-    		}
-    	}
-    	
-    	return( total );
+		return( connection.write( buffers, array_offset, length ));
     }
 
     public int 

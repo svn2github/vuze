@@ -120,7 +120,10 @@ UDPTransport
 			listener.connectAttemptStarted();
 
 			final UDPTransportHelper	helper = 
-	 			new UDPTransportHelper( UDPNetworkManager.getSingleton().getConnectionManager(), endpoint.getAddress());
+	 			new UDPTransportHelper( 
+	 					UDPNetworkManager.getSingleton().getConnectionManager(), 
+	 					endpoint.getAddress(),
+	 					this );
 	 		
 	    	TransportCryptoManager.getSingleton().manageCrypto( 
 	    			helper, 

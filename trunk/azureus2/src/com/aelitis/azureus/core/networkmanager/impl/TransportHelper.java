@@ -32,10 +32,14 @@ TransportHelper
 {
 	public InetSocketAddress
 	getAddress();
+
+	public boolean
+	minimiseOverheads();
 	
 	public int 
 	write( 
-		ByteBuffer buffer ) 
+		ByteBuffer 	buffer,
+		boolean		partial_write ) 
 	
 		throws IOException;  	
 

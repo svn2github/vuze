@@ -1,5 +1,5 @@
 /*
- * Created on 22 Jun 2006
+ * Created on 26 Jun 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -22,14 +22,40 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.udp;
 
-import java.net.InetSocketAddress;
 
-public interface 
-NetworkGlueListener 
+public class 
+UDPPacket 
 {
-	public void
-	receive(
-		int					local_port,
-		InetSocketAddress	source,
-		byte[]				data );
+	private final UDPConnection		connection;
+	private final int				sequence;
+	private final byte[]			buffer;
+	
+	protected
+	UDPPacket(
+		UDPConnection	_connection,
+		int				_sequence,
+		byte[]			_buffer )
+	{
+		connection	= _connection;
+		sequence	= _sequence;
+		buffer		= _buffer;
+	}
+		
+	protected UDPConnection
+	getConnection()
+	{
+		return( connection );
+	}
+	
+	protected int
+	getSequence()
+	{
+		return( sequence );
+	}
+	
+	protected byte[]
+	getBuffer()
+	{
+		return( buffer );
+	}
 }

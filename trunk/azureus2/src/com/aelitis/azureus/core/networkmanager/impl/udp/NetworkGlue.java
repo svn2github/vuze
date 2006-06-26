@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.networkmanager.impl.udp;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 
 public interface 
 NetworkGlue 
@@ -33,7 +32,7 @@ NetworkGlue
 	send(
 		int					local_port,
 		InetSocketAddress	target,
-		ByteBuffer			data )
+		byte[]				data )
 	
 		throws IOException;
 }
