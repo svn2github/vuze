@@ -485,7 +485,10 @@ PluginInitializer
  				 	if (Logger.isEnabled())
  						Logger.log(new LogEvent(LOGID, "Share class loader extended by " + files[i].toString()));
 
- 					PluginLauncherImpl.addFileToClassPath( root_class_loader, files[i] );
+ 				 	root_class_loader = 
+ 				 		PluginLauncherImpl.addFileToClassPath(
+ 				 				PluginInitializer.class.getClassLoader(),
+ 				 				root_class_loader, files[i] );
  				}
  			}
  		}
@@ -564,7 +567,7 @@ PluginInitializer
   {
     List	loaded_pis = new ArrayList();
     
-  	ClassLoader classLoader = root_class_loader;
+  	ClassLoader plugin_class_loader = root_class_loader;
   	
     if( !directory.isDirectory()){
     	
@@ -638,7 +641,7 @@ PluginInitializer
     		}
     	}
     	
-        classLoader = PluginLauncherImpl.addFileToClassPath(classLoader, jar_file);
+        plugin_class_loader = PluginLauncherImpl.addFileToClassPath( root_class_loader, plugin_class_loader, jar_file);
     }
         
     String plugin_class_string = null;
@@ -672,9 +675,9 @@ PluginInitializer
       		
       	}else{
       		
-      		if ( classLoader instanceof URLClassLoader ){
+      		if ( plugin_class_loader instanceof URLClassLoader ){
       			
-      			URLClassLoader	current = (URLClassLoader)classLoader;
+      			URLClassLoader	current = (URLClassLoader)plugin_class_loader;
       		    			
       			URL url = current.findResource("plugin.properties");
       		
@@ -844,7 +847,7 @@ PluginInitializer
 	      if ( plugin == null ){
 	    	  
 	    	  try{
-	    		  Class c = classLoader.loadClass(plugin_class);
+	    		  Class c = plugin_class_loader.loadClass(plugin_class);
 		      
 	    		  plugin	= (Plugin) c.newInstance();
 	    		  
@@ -862,17 +865,17 @@ PluginInitializer
 	    	  }
 	      }else{
 	    	  
-	    	  classLoader = plugin.getClass().getClassLoader();
+	    	  plugin_class_loader = plugin.getClass().getClassLoader();
 	      }
 	      
-	      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
+	      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),plugin_class_loader);
 
 	      PluginInterfaceImpl plugin_interface = 
 	      		new PluginInterfaceImpl(
 	      					plugin, 
 							this, 
 							directory, 
-							classLoader,
+							plugin_class_loader,
 							directory.getName(),	// key for config values
 							new_props,
 							directory.getAbsolutePath(),
@@ -952,8 +955,8 @@ PluginInitializer
 					PluginInterfaceImpl plugin_interface = (PluginInterfaceImpl) l.get(0);
 
 					if (Logger.isEnabled())
-						Logger.log(new LogEvent(LOGID, "Initialising plugin "
-								+ plugin_interface.getPluginName()));
+						Logger.log(new LogEvent(LOGID, "Initializing plugin '"
+								+ plugin_interface.getPluginName() + "'"));
 
 					if (listener != null) {
 						listener.reportCurrentTask(MessageText
@@ -962,6 +965,11 @@ PluginInitializer
 					}
 
 					initialisePlugin(l);
+					
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "Initialization of plugin '"
+								+ plugin_interface.getPluginName() + "' complete"));
+
 				}
 
 			} catch (PluginException e) {
@@ -993,10 +1001,14 @@ PluginInitializer
 					Class cla = root_class_loader.loadClass(
 							builtin_plugins[i][1]);
 
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "Initializing built-in plugin '"
+								+ builtin_plugins[i][2] + "'" ));
+
 					initializePluginFromClass(cla, id, key);
 
 					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-							"Built-in plugin '" + builtin_plugins[i][2] + "' ok"));
+							"Initialization of built in plugin '" + builtin_plugins[i][2] + "' complete"));
 				} catch (Throwable e) {
 					try {
 						// replace it with a "broken" plugin instance
@@ -1008,7 +1020,7 @@ PluginInitializer
 					if (builtin_plugins[i][4].equalsIgnoreCase("true")) {
 						Debug.printStackTrace(e);
 						Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
-								"Initialisation of built in plugin '" + builtin_plugins[i][2]
+								"Initialization of built in plugin '" + builtin_plugins[i][2]
 										+ "' fails", e));
 					}
 				}
@@ -1096,7 +1108,7 @@ PluginInitializer
 	      	
   				Debug.printStackTrace( load_failure );
 	        
-  				String	msg = "Error initialising plugin '" + plugin_interface.getPluginName() + "'";
+  				String	msg = "Error initializing plugin '" + plugin_interface.getPluginName() + "'";
 	   	 
   				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, load_failure));
 	

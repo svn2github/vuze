@@ -24,8 +24,8 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.ddb"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.asn1.misc"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.config.wizard"/>
-<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.client.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.platform.win32.access.impl{AEWin32AccessImpl.java"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.client.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.diskmanager.cache"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.server.impl.tcp.blocking"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.networkmanager.impl.test"/>
@@ -175,6 +175,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.net.natpmp"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.ui.SWT"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.security"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.networkmanager.impl.udp"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.util.average"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.netcoords"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.impl"/>
@@ -248,6 +249,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.components.graphics"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.ipfilter"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.ui.tables"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.messaging.generic"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.helpers"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.messaging.azureus.session"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.crypto.agreement"/>

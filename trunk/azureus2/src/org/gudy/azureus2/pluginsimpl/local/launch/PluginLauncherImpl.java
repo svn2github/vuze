@@ -296,7 +296,9 @@ PluginLauncherImpl
 		    try{
 		    	    	    
 		      	ClassLoader classLoader = PluginLauncherImpl.class.getClassLoader();
-		    	    		    	    
+		    	    	
+		      	ClassLoader	root_cl = classLoader;
+		      	
 		    	File[] contents = plugin_dir.listFiles();
 		    	    
 	    	    if ( contents == null || contents.length == 0){
@@ -313,7 +315,7 @@ PluginLauncherImpl
 		    	    
 	    	    for( int j = 0 ; j < contents.length ; j++){
 		    	    			    	    	
-		    	    classLoader = addFileToClassPath(classLoader, contents[j]);
+		    	    classLoader = addFileToClassPath( root_cl, classLoader, contents[j]);
 	    	    }
 		    	        		    	    
 	    	    Properties props = new Properties();
@@ -525,6 +527,7 @@ PluginLauncherImpl
   	
     public static ClassLoader 
     addFileToClassPath(
+    	ClassLoader		root,
     	ClassLoader		classLoader,
     	File 			f) 
     {
@@ -551,7 +554,7 @@ PluginLauncherImpl
       			
       			classLoader = new URLClassLoader(
       								new_urls,
-  									classLoader==PluginLauncherImpl.class.getClassLoader()?
+  									classLoader==root?
   											classLoader:
   											classLoader.getParent());
       		}else{
