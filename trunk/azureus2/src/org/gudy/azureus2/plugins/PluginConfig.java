@@ -45,7 +45,7 @@ PluginConfig
  	public static final String CORE_PARAM_INT_MAX_ACTIVE_SEEDING				= "Max Active Torrents When Only Seeding";
  	public static final String CORE_PARAM_INT_MAX_UPLOADS							= "Max Uploads";
  	public static final String CORE_PARAM_INT_MAX_UPLOADS_SEEDING				= "Max Uploads Seeding";
- 	
+ 	public static final String CORE_PARAM_BOOLEAN_AUTO_SPEED_ON = "Auto Upload Speed Enabled";
  	public static final String CORE_PARAM_BOOLEAN_MAX_UPLOAD_SPEED_SEEDING = "Max Upload Speed When Only Seeding Enabled";
  	public static final String CORE_PARAM_BOOLEAN_MAX_ACTIVE_SEEDING = "Max Active Torrents When Only Seeding Enabled";
 	public static final String CORE_PARAM_BOOLEAN_SOCKS_PROXY_NO_INWARD_CONNECTION		= "SOCKS Proxy No Inward Connection";
