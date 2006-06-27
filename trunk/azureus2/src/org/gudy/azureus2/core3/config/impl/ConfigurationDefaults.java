@@ -136,6 +136,7 @@ public class ConfigurationDefaults {
     def.put( "Max LAN Download Speed KBs", new Long(0) );
     def.put( "Max LAN Upload Speed KBs", new Long(0) );
     
+    def.put( "AutoSpeed Available", FALSE );	// informative read-only parameter
     def.put( "AutoSpeed Min Upload KBs", new Long(0) );
     def.put( "AutoSpeed Max Upload KBs", new Long(0) );
     def.put( "AutoSpeed Choking Ping Millis", new Long(1000) );

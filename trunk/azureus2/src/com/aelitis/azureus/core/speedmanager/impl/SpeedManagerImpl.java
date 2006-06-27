@@ -60,6 +60,7 @@ SpeedManagerImpl
 	
 		// config items start
 	
+	private static final String	CONFIG_AVAIL		= "AutoSpeed Available";	// informative only
 	private static final String	CONFIG_MIN_UP		= "AutoSpeed Min Upload KBs";
 	private static final String	CONFIG_MAX_UP		= "AutoSpeed Max Upload KBs";
 	private static final String	CONFIG_CHOKE_PING	= "AutoSpeed Choking Ping Millis";
@@ -173,6 +174,8 @@ SpeedManagerImpl
 		core			= _core;
 		adapter			= _adapter;
 		
+		COConfigurationManager.setParameter( CONFIG_AVAIL, false );
+		
 		reset();
 	}
 	
@@ -187,6 +190,8 @@ SpeedManagerImpl
 			return;
 		}
 		
+		COConfigurationManager.setParameter( CONFIG_AVAIL, true );
+
 		speed_tester	= _tester; 
 				
 		speed_tester.addListener(
