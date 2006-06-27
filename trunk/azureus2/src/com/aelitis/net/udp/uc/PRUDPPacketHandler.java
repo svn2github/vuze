@@ -93,6 +93,10 @@ PRUDPPacketHandler
 	setRequestHandler(
 		PRUDPRequestHandler	request_handler );
 	
+	public void
+	setPrimordialHandler(
+		PRUDPPrimordialHandler	handler );
+	
 	public int
 	getPort();
 	

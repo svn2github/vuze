@@ -41,6 +41,7 @@ import com.aelitis.net.udp.uc.PRUDPPacketHandlerStats;
 import com.aelitis.net.udp.uc.PRUDPPacketReceiver;
 import com.aelitis.net.udp.uc.PRUDPPacketReply;
 import com.aelitis.net.udp.uc.PRUDPPacketRequest;
+import com.aelitis.net.udp.uc.PRUDPPrimordialHandler;
 import com.aelitis.net.udp.uc.PRUDPRequestHandler;
 
 import org.bouncycastle.util.encoders.Base64;
@@ -59,7 +60,8 @@ PRUDPPacketHandlerImpl
 	private int				port;
 	private DatagramSocket	socket;
 	
-	private PRUDPRequestHandler	request_handler;
+	private PRUDPPrimordialHandler	primordial_handler;
+	private PRUDPRequestHandler		request_handler;
 	
 	private PRUDPPacketHandlerStatsImpl	stats = new PRUDPPacketHandlerStatsImpl( this );
 	
@@ -123,6 +125,18 @@ PRUDPPacketHandlerImpl
 				});
 		
 		init_sem.reserve();
+	}
+	
+	public void
+	setPrimordialHandler(
+		PRUDPPrimordialHandler	handler )
+	{
+		if ( primordial_handler != null ){
+			
+			Debug.out( "Primordial handler replaced!" );
+		}
+		
+		primordial_handler	= handler;
 	}
 	
 	public void
@@ -314,6 +328,13 @@ PRUDPPacketHandlerImpl
 		long			receive_time )
 	{
 		try{
+			if ( primordial_handler != null ){
+				
+				if ( primordial_handler.packetReceived( dg_packet )){
+					
+					return;
+				}
+			}
 				// HACK alert. Due to the form of the tracker UDP protocol (no common
 				// header for requests and replies) we enforce a rule. All connection ids
 				// must have their MSB set. As requests always start with the action, which

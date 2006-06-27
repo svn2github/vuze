@@ -60,12 +60,12 @@ UDPNetworkManager
 	
 	private int udp_listen_port	= -1;
 
-	private UDPConnectionManager	connection_manager = new UDPConnectionManager();
+	private UDPConnectionManager	connection_manager;
 	
 	protected
 	UDPNetworkManager()
 	{
-	   COConfigurationManager.addAndFireParameterListener( 
+		COConfigurationManager.addAndFireParameterListener( 
 			   "UDP.Listen.Port", 
 			   new ParameterListener() 
 			   {
@@ -97,6 +97,8 @@ UDPNetworkManager
 					    }
 				   }
 			   });
+	   
+		connection_manager = new UDPConnectionManager( udp_listen_port );
 	}
 	
   

@@ -68,11 +68,13 @@ UDPConnectionSet
 	private short			duplicate_packet_count;
 	private short			missed_packet_count;
 	
-	private RC4Engine		cipher_out;
-	private RC4Engine		cipher_in;
+	private RC4Engine		header_cipher_out;
+	private RC4Engine		header_cipher_in;
+	private RC4Engine		seq_cipher_out;
+	private RC4Engine		seq_cipher_in;
 	
-	private SecureRandom		sequence_in;
-	private SecureRandom		sequence_out;
+	private Random			sequence_in;
+	private Random			sequence_out;
 	
 	private volatile boolean	crypto_done;
 	
@@ -189,45 +191,40 @@ UDPConnectionSet
 			    hasher.update( session_secret );
 			    	
 			    byte[]	d_key = hasher.getDigest();
-	
+				    
+			    	// for RC4 enc/dec is irrelevant
 			    
-			    SecretKeySpec	secret_key_spec_a = new SecretKeySpec( a_key, "RC4" );
-			    SecretKeySpec	secret_key_spec_b = new SecretKeySpec( b_key, "RC4" );
-			    
-			    RC4Engine rc4_engine_a	= new RC4Engine();
+			    RC4Engine rc4_engine_a	= getCipher( a_key );	
+	    		RC4Engine rc4_engine_b	= getCipher( b_key );
+	    		RC4Engine rc4_engine_c	= getCipher( c_key );	
+	    		RC4Engine rc4_engine_d	= getCipher( d_key );	
 	    		
-	    		CipherParameters	params_a = new KeyParameter(secret_key_spec_a.getEncoded());
 	    		
-	    		rc4_engine_a.init( true, params_a ); 
-	    		
-	    		RC4Engine rc4_engine_b	= new RC4Engine();
-	    		
-	    		CipherParameters	params_b = new KeyParameter(secret_key_spec_b.getEncoded());
-	    		
-	    		rc4_engine_b.init( false, params_b ); 
-	    		
-	   			sequence_in 	= SecureRandom.getInstance( "SHA1PRNG" );
-	 			sequence_out	= SecureRandom.getInstance( "SHA1PRNG" ); 
-	
-	    		if ( lead_connection.isIncoming()){
+		    	if ( lead_connection.isIncoming()){
 	    			
-	    			cipher_out	= rc4_engine_a;
-	    			cipher_in	= rc4_engine_b;
+	    			header_cipher_out	= rc4_engine_a;
+	    			header_cipher_in	= rc4_engine_b;
+	    			seq_cipher_out		= rc4_engine_c;
+	    			seq_cipher_in		= rc4_engine_d;
 	    			
 	    				// we use deterministic random number sequences as packet numbers to
-	    				// help avoid bit twiddling attacks
+	    				// help avoid bit twiddling attacks, I wanted to use SHA1PRNG but this isn't
+	    				// a standard algorithm it is Sun's own...
 	    			
-	       			sequence_in.setSeed( c_key );	
-	       			sequence_out.setSeed( d_key );
+	       			sequence_in 	= new Random( bytesToLong( c_key ));
+		 			sequence_out	= new Random( bytesToLong( d_key ));
+	
 	      			 
 	    		}else{
 	    			
-	       			cipher_out	= rc4_engine_b;
-	    			cipher_in	= rc4_engine_a;
-	 	
-	      			sequence_in.setSeed( d_key );	
-	       			sequence_out.setSeed( c_key );
-	    		}
+	       			header_cipher_out	= rc4_engine_b;
+	    			header_cipher_in	= rc4_engine_a;
+	    			seq_cipher_out		= rc4_engine_d;
+	    			seq_cipher_in		= rc4_engine_c;
+
+	       			sequence_in 	= new Random( bytesToLong( d_key ));
+		 			sequence_out	= new Random( bytesToLong( c_key ));
+		    	}
 	    		
 	    		crypto_done	= true;
 	    		
@@ -241,6 +238,29 @@ UDPConnectionSet
 			
 			connection.close( "Crypto problems: "+ Debug.getNestedExceptionMessage(e));
 		}
+	}
+	
+	protected RC4Engine
+	getCipher(
+		byte[]			key )
+	{
+	    SecretKeySpec	secret_key_spec = new SecretKeySpec( key, "RC4" );
+	    
+	    RC4Engine rc4_engine	= new RC4Engine();
+		
+		CipherParameters	params_a = new KeyParameter( secret_key_spec.getEncoded());
+		
+			// for RC4 enc/dec is irrelevant
+		
+		rc4_engine.init( true, params_a ); 
+		
+			// skip first 1024 bytes of stream to protected against a Fluhrer, Mantin and Shamir attack
+    	
+    	byte[]	temp = new byte[1024];
+	
+    	rc4_engine.processBytes( temp, temp );
+    	
+    	return( rc4_engine );
 	}
 	
 	protected void
@@ -300,7 +320,7 @@ UDPConnectionSet
 				int	seq2 = buffer.getInt();
 				buffer.getInt();	// seq3
 						
-				int[]	seq_in = getNextSequenceNumber( sequence_in );
+				int[]	seq_in = getNextSequenceNumber( sequence_in, seq_cipher_in );
 				
 					// TODO !
 				
@@ -309,7 +329,7 @@ UDPConnectionSet
 					throw( new IOException( "seq mismatch" ));
 				}
 				
-				cipher_in.processBytes( data, 12, 2, data, 12 );
+				header_cipher_in.processBytes( data, 12, 2, data, 12 );
 	
 				int	header_len = buffer.getShort()&0xffff;
 				
@@ -318,7 +338,7 @@ UDPConnectionSet
 					throw( new IOException( "Header length too large" ));
 				}
 				
-				cipher_in.processBytes( data, 14, header_len-14, data, 14 );
+				header_cipher_in.processBytes( data, 14, header_len-14, data, 14 );
 				
 				byte[]	hash = new SHA1Simple().calculateHash( data, 0, header_len - 4 ); 
 						
@@ -478,7 +498,7 @@ UDPConnectionSet
 		
 			// don't encrypt the sequence numbers
 		
-		cipher_out.processBytes( bytes, 12, total_length-12, bytes, 12 );
+		header_cipher_out.processBytes( bytes, 12, total_length-12, bytes, 12 );
 		
 		if ( total_length > MAX_HEADER ){
 			
@@ -536,7 +556,7 @@ UDPConnectionSet
 		
 			byte[]	header = new byte[256];
 			
-			int[]	sequence_numbers = getNextSequenceNumber( sequence_out );
+			int[]	sequence_numbers = getNextSequenceNumber( sequence_out, seq_cipher_out );
 			
 			int header_size = writePacketHeader( sequence_numbers, header, connection );
 						
@@ -646,7 +666,8 @@ UDPConnectionSet
 	
 	protected int[]
 	getNextSequenceNumber(
-		Random		generator )
+		Random		generator,
+		RC4Engine	cipher )
 	{
 			// damn tracker udp protocol has:
 			// request: long (random connection id) int (action)
@@ -665,11 +686,27 @@ UDPConnectionSet
 			int	seq2 = generator.nextInt();
 			int	seq3 = generator.nextInt();
 		
+			seq1 = cipherInt( cipher, seq1 );
+			seq2 = cipherInt( cipher, seq2 );
+			seq3 = cipherInt( cipher, seq3 );
+			
 			if (( seq1 & mask ) != 0 && seq2 != -1 && ( seq3 & mask ) != 0){
 				
 				return( new int[]{ seq1, seq2, seq2 });
 			}
 		}
+	}
+	
+	protected int
+	cipherInt(
+		RC4Engine	cipher,
+		int			i )
+	{
+		byte[]	bytes = intToBytes( i );
+		
+		cipher.processBytes( bytes, bytes );
+		
+		return( bytesToInt( bytes, 0 ));
 	}
 	
 	protected int

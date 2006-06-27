@@ -52,13 +52,15 @@ UDPConnectionManager
 	
 	private IncomingConnectionManager	incoming_manager = IncomingConnectionManager.getSingleton();
 
-	private NetworkGlue	network_glue = new NetworkGlueLoopBack( this );
+	private NetworkGlue	network_glue;
 	
 	private UDPSelector		selector	= new UDPSelector( this );
 	
 	protected
-	UDPConnectionManager()
+	UDPConnectionManager(
+		int		udp_port )
 	{
+		network_glue = new NetworkGlueLoopBack( this, udp_port );
 	}
 	
 	protected UDPSelector

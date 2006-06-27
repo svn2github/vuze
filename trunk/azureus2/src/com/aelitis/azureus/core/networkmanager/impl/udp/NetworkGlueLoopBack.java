@@ -25,11 +25,16 @@ package com.aelitis.azureus.core.networkmanager.impl.udp;
 import java.util.*;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
+import com.aelitis.net.udp.uc.PRUDPPrimordialHandler;
 
 public class 
 NetworkGlueLoopBack
@@ -42,10 +47,45 @@ NetworkGlueLoopBack
 	
 	protected
 	NetworkGlueLoopBack(
-		NetworkGlueListener		_listener )
+		NetworkGlueListener		_listener,
+		int						_udp_port )
 	{
 		listener	= _listener;
-		
+				
+		PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( _udp_port );
+
+		handler.setPrimordialHandler(
+			new PRUDPPrimordialHandler()
+			{
+				public boolean
+				packetReceived(
+					DatagramPacket	packet )
+				{
+					boolean	tracker_protocol = true;
+					
+					if ( packet.getLength() >= 12 ){
+											
+						byte[]	data = packet.getData();
+						
+							// mask: 0xfffff800
+						
+						if ( 	( data[0] & 0xff ) == 0 &&
+								( data[1] & 0xff ) == 0 &&
+								( data[2] & 0xf8 ) == 0 &&
+						
+								( data[8] & 0xff ) == 0 &&
+								( data[9] & 0xff ) == 0 &&
+								( data[10]& 0xf8 ) == 0 ){
+							
+							tracker_protocol	= false;
+						}
+					}
+					
+					
+					return( !tracker_protocol );
+				}
+			});
+				
 		new AEThread( "NetworkGlueLoopBack", true )
 		{
 			public void
