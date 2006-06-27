@@ -712,7 +712,11 @@ DownloadManagerImpl
 		   
 				 if ( DiskManagerFactory.isTorrentResumeDataComplete( this )) {
 				 	
-					  download_manager_state.clearTrackerResponseCache();
+					 	// actually, can't think of a good reason not to restore the
+					 	// cache for seeds, after all if the tracker's down we still want
+					 	// to connect to peers to upload to
+					 
+					  // download_manager_state.clearTrackerResponseCache();
 						
 					  stats.setDownloadCompleted(1000);
 				  
