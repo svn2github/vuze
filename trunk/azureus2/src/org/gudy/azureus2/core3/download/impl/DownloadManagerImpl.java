@@ -1363,7 +1363,7 @@ DownloadManagerImpl
 	}
 
 	public boolean requestAssumedCompleteMode() {
-		boolean bCompleteNoDND = isDownloadComplete(false);
+		boolean bCompleteNoDND = controller.isDownloadComplete(false);
 
 		setAssumedComplete(bCompleteNoDND);
 		return bCompleteNoDND;
