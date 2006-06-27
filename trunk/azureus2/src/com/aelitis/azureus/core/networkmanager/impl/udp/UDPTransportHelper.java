@@ -181,11 +181,26 @@ UDPTransportHelper
 			
 			int	pw_len = pending_partial_write.remaining();
 			
-			ByteBuffer pw = pending_partial_write;
+			try{
 			
-			pending_partial_write = null;
-			
-			return( connection.write( new ByteBuffer[]{ pw, buffer }, 0, 2 ) - pw_len );
+				int	written = connection.write( new ByteBuffer[]{ pending_partial_write, buffer }, 0, 2 );
+				
+				if ( written >= pw_len ){
+					
+					return( written - pw_len );
+					
+				}else{
+					
+					return( 0 );
+				}
+				
+			}finally{
+				
+				if ( pending_partial_write.remaining() == 0 ){
+					
+					pending_partial_write = null;
+				}
+			}
 			
 		}else{
 			
@@ -419,7 +434,7 @@ UDPTransportHelper
     		closed	= true;
     	}
     	
-    	connection.close( reason );
+    	connection.closeSupport( reason );
     }
     
 	protected void

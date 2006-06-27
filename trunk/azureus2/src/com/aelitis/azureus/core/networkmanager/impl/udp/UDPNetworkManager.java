@@ -29,9 +29,14 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 
+import com.aelitis.net.udp.uc.PRUDPPacket;
+
 public class 
 UDPNetworkManager 
 {
+	private static final int MIN_MSS = 128;
+	private static final int MAX_MSS = PRUDPPacket.MAX_PACKET_SIZE;
+	
 	private static int udp_mss_size;
 	
 	public static int getUdpMssSize() {  return udp_mss_size;  }
@@ -46,7 +51,9 @@ UDPNetworkManager
 
 	    if( udp_mss_size > min_rate )  udp_mss_size = min_rate - 1;
 	    
-	    if( udp_mss_size < 512 )  udp_mss_size = 512; 
+	    if( udp_mss_size < MIN_MSS )  udp_mss_size = MIN_MSS; 
+	    
+	    if ( udp_mss_size > MAX_MSS ) udp_mss_size = MAX_MSS;
 	}
 	
 	private static UDPNetworkManager	singleton = new UDPNetworkManager();

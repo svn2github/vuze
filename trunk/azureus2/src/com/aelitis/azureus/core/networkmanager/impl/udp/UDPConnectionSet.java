@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.udp;
 
-import java.security.SecureRandom;
 import java.util.*;
 
 import java.io.IOException;
@@ -54,6 +53,7 @@ UDPConnectionSet
 	
 	private static final int MIN_MSS	= 256;
 	private static final int MAX_HEADER	= 128;
+	
 	public static final int MIN_WRITE_PAYLOAD	= MIN_MSS - MAX_HEADER;
 	
 	private UDPConnectionManager	manager;
@@ -62,7 +62,6 @@ UDPConnectionSet
 	
 	private UDPConnection	lead_connection;
 	private int				sent_packet_count;
-	private int				received_packet_count;
 	
 	private int				first_unreceived_sequence_number;
 	private short			duplicate_packet_count;
@@ -80,6 +79,26 @@ UDPConnectionSet
 	
 	
 	private Map	connections = new HashMap();
+	
+		// transmit
+	
+	private static final int RETRANSMIT_TIMER	= 500;
+	private static final int RETRANSMIT_TICKS	= RETRANSMIT_TIMER / UDPConnectionManager.TIMER_TICK_MILLIS;
+	private int retransmit_ticks = 0;
+	private UDPPacket retransmit_pending_packet;
+	
+	private static final int 	MAX_TRANSMIT_UNACK_PACKETS	= 10;
+	private List				transmit_unack_packets = new ArrayList();
+	
+		// receive
+		
+	private int		receive_last_inorder_sequence	= -1;
+	
+	private static final int RECEIVE_DONE_SEQ_MAX	= 128;
+	private LinkedList	receive_done_sequences	= new LinkedList();
+	
+	private static final int RECEIVE_OUT_OF_ORDER_PACKETS_MAX	= 32;
+	private List	receive_out_of_order_packets	= new LinkedList();
 	
 	protected
 	UDPConnectionSet(
@@ -263,6 +282,87 @@ UDPConnectionSet
     	return( rc4_engine );
 	}
 	
+	
+	protected void
+	timerTick()
+	
+		throws IOException
+	{
+		if ( retransmit_ticks > 0 ){
+			
+			retransmit_ticks--;
+			
+			if ( retransmit_ticks == 0 ){
+				
+				retransmitExpired();
+			}
+		}
+	}
+	
+	protected void
+	retransmitExpired()
+	
+		throws IOException
+	{
+		synchronized( this ){
+			
+			if ( retransmit_pending_packet != null ){
+				
+					// TODO: retrans all non ack packets?
+				
+				send( retransmit_pending_packet );
+			}
+		}
+	}
+	
+	protected void
+	remoteLastInSequenceAck(
+		int		sequence )
+	{
+			// if we find this packet then we can also discard any prior to it as they are implicitly
+			// ack too
+	
+		synchronized( this ){
+
+			for (int i=0;i<transmit_unack_packets.size();i++){
+				
+				UDPPacket	packet = (UDPPacket)transmit_unack_packets.get(i);
+				
+				if ( packet.getSequence() == sequence ){
+					
+					boolean	removed_pending_retransmit = false;
+					
+					for (int j=0;j<=i;j++){
+						
+						packet = (UDPPacket)transmit_unack_packets.remove(0);
+						
+						if ( packet == retransmit_pending_packet ){
+							
+							removed_pending_retransmit	= true;
+							
+								// cancel the timer
+							
+							retransmit_pending_packet	= null;
+							retransmit_ticks			= 0;
+						}
+					}
+					
+					if ( removed_pending_retransmit ){
+						
+						if ( transmit_unack_packets.size() > 0 ){
+							
+							retransmit_pending_packet = (UDPPacket)transmit_unack_packets.get(0);
+							
+							retransmit_ticks = RETRANSMIT_TICKS;
+						}
+					}
+					
+					return;
+				}
+			}
+		}
+	}
+	
 	protected void
 	send(
 		UDPPacket		packet )
@@ -277,56 +377,193 @@ UDPConnectionSet
 		
 		sent_packet_count++;
 		
+		synchronized( this ){
+			
+			if ( retransmit_ticks == 0 ){
+				
+				retransmit_ticks = RETRANSMIT_TICKS;
+				
+				retransmit_pending_packet	= packet;
+			}
+			
+			if ( !transmit_unack_packets.contains( packet )){
+			
+				transmit_unack_packets.add( packet );
+			}
+		}
+		
 		manager.send( local_port, remote_address, payload );
 	}
 	
 	public void
 	receive(
 		byte[]			data )
+	
+		throws IOException
 	{
-		UDPConnection	connection	= null;
+		ByteBuffer	initial_buffer = ByteBuffer.wrap( data );
 		
-		try{				
-			boolean	new_connection = false;
-	
-			ByteBuffer	buffer = ByteBuffer.wrap( data );
+		if ( !crypto_done ){
 			
-			if ( !crypto_done ){
+				// first packet - connection setup and crypto handshake
+			
+			initial_buffer.position( 4 );
+			
+			Integer	pseudo_seq = new Integer( initial_buffer.getInt());
+			
+			initial_buffer.position( 0 );
+			
+			if ( !receive_done_sequences.contains( pseudo_seq )){
 				
-					// first packet - connection setup and crypto handshake
+				receive_done_sequences.addFirst( pseudo_seq );
+			
+				if ( receive_done_sequences.size() > RECEIVE_DONE_SEQ_MAX ){
+					
+					receive_done_sequences.removeLast();
+				}
+			}
+			
+			boolean	new_connection = false;
+			
+			UDPConnection	connection = null;
+			
+			synchronized( connections ){
+
+				if ( connections.size() == 0 ){
+					
+						// -1 for connection id as we don't know what it is yet
+					
+					connection	= new UDPConnection( this, -1 );
+			
+					connections.put( new Integer( connection.getID()), connection );
+						
+					lead_connection	= connection;
+					
+					new_connection	= true;
+					
+				}else{
+					
+					connection = lead_connection;
+				}
+			}
+						
+			if ( new_connection ){
 				
-				synchronized( connections ){
+				manager.accept( local_port, remote_address, connection );
+			}
+				
+			System.out.println( "Connection::read(" + connection.getID() + ") loc="+local_port + " - " + remote_address + ",rem="+data.length + "[" + Debug.getCompressedStackTrace());
 	
-					if ( connections.size() == 0 ){
-						
-							// -1 for connection id as we don't know what it is yet
-						
-						connection	= new UDPConnection( this, -1 );
+			connection.receive( initial_buffer );
+			
+		}else{
+			
+			initial_buffer.getInt();	// seq1
+			
+			Integer	seq2 = new Integer( initial_buffer.getInt());
+			
+			initial_buffer.getInt();	// seq3
 				
-						connections.put( new Integer( connection.getID()), connection );
+				// first see if we know about this sequence number already
+			
+			if ( receive_done_sequences.contains( seq2 )){
+				
+				System.out.println( "Duplicate processed packet: " + seq2 );
+				
+				return;
+			}
+			
+			boolean	oop = false;
+			
+			for (int i=0;i<receive_out_of_order_packets.size();i++){
+				
+				Object[]	entry = (Object[])receive_out_of_order_packets.get(i);
+				
+				Integer	oop_seq = (Integer)entry[0];
+				
+				ByteBuffer	oop_buffer = (ByteBuffer)entry[1];
+				
+				if ( oop_seq.equals( seq2 )){
+					
+					if ( oop_buffer != null ){
+					
+						System.out.println( "Duplicate out-of-order packet: " + seq2 );
+					
+						return;
+					}
+					
+						// got data matching out-of-order-entry, add it in!
+					
+					byte[]	copy = new byte[data.length-12];
+					
+					System.arraycopy( data, 12, copy, 0, copy.length );
+					
+					entry[1] = ByteBuffer.wrap(copy);
+					
+					oop = true;
+					
+					break;
+				}
+			}
+			
+			if ( !oop ){
+				
+					// not a known out-of-order packet. If our oop list is full then all we can do is drop
+					// the packet
+				
+				boolean	added = false;
+				
+				while ( receive_out_of_order_packets.size() < RECEIVE_OUT_OF_ORDER_PACKETS_MAX ){
+								
+					int[]	seq_in = getNextSequenceNumber( sequence_in, seq_cipher_in );
 							
-						lead_connection	= connection;
+					if ( seq2.intValue() == seq_in[1] ){
+									
+						receive_out_of_order_packets.add( new Object[]{ seq2, initial_buffer } );
 						
-						new_connection	= true;
+						added = true;
+						
+						break;
 						
 					}else{
 						
-						connection = lead_connection;
+						receive_out_of_order_packets.add( new Object[]{ new Integer( seq_in[1]) , null } );
 					}
-				}				
-			}else{
+				}
 				
-				buffer.getInt();	// seq1
-				int	seq2 = buffer.getInt();
-				buffer.getInt();	// seq3
-						
-				int[]	seq_in = getNextSequenceNumber( sequence_in, seq_cipher_in );
+				if ( !added ){
 				
-					// TODO !
-				
-				if ( seq2 != seq_in[1] ){
+						// drop the packet, we have no room to store it
 					
-					throw( new IOException( "seq mismatch" ));
+					return;
+				}
+			}
+			
+				// process any ready packets
+			
+			Iterator	it = receive_out_of_order_packets.iterator();
+			
+			while( it.hasNext()){
+				
+				Object[]	entry = (Object[])it.next();
+				
+				ByteBuffer	buffer = (ByteBuffer)entry[1];
+				
+				if ( buffer == null ){
+					
+					break;
+				}
+			
+				it.remove();
+			
+				if ( !receive_done_sequences.contains( entry[0] )){
+					
+					receive_done_sequences.addFirst( entry[0] );
+				
+					if ( receive_done_sequences.size() > RECEIVE_DONE_SEQ_MAX ){
+						
+						receive_done_sequences.removeLast();
+					}
 				}
 				
 				header_cipher_in.processBytes( data, 12, 2, data, 12 );
@@ -369,7 +606,10 @@ UDPConnectionSet
 				if ( command == COMMAND_DATA ){
 					
 					int	connection_id = buffer.getInt();
-								
+						
+					UDPConnection	connection 		= null;
+					boolean			new_connection 	= false;
+					
 					synchronized( connections ){
 						
 						connection = (UDPConnection)connections.get( new Integer( connection_id ));
@@ -403,23 +643,24 @@ UDPConnectionSet
 					
 					buffer.position( header_len );
 					
+					if ( new_connection ){
+						
+						manager.accept( local_port, remote_address, connection );
+					}
+						
+					System.out.println( "Connection::read(" + connection.getID() + ") loc="+local_port + " - " + remote_address + ",rem="+data.length + "[" + Debug.getCompressedStackTrace());
+
+					connection.receive( buffer );
+						
+
 				}else{
-					
+				
 					throw( new IOException( "Invalid command" ));
 				}
 			}
-			
-			received_packet_count++;
-	
-			if ( new_connection ){
-				
-				manager.accept( local_port, remote_address, connection );
-			}
-				
-			System.out.println( "Connection::read(" + connection.getID() + ") loc="+local_port + " - " + remote_address + ",rem="+data.length + "[" + Debug.getCompressedStackTrace());
-	
-			connection.receive( buffer );
-			
+		
+		}
+		/*
 		}catch( Throwable e ){
 	
 			Debug.printStackTrace(e);
@@ -429,6 +670,7 @@ UDPConnectionSet
 				connection.close( Debug.getNestedExceptionMessageAndStack(e));
 			}
 		}
+		*/
 	}
 	
 	protected int
@@ -540,7 +782,6 @@ UDPConnectionSet
 			
 				// first packet, cram it all in
 			
-			
 			byte[]	packet_bytes = new byte[ payload_to_send ];
 			
 			ByteBuffer packet_buffer = ByteBuffer.wrap( packet_bytes );
@@ -643,7 +884,7 @@ UDPConnectionSet
 			}
 		}
 		
-		return( true );	// TODO: write speed limiting
+		return( transmit_unack_packets.size() < MAX_TRANSMIT_UNACK_PACKETS );
 	}
 	
 	public void
@@ -654,6 +895,21 @@ UDPConnectionSet
 		System.out.println( "UDPConnection::close(" + connection.getID() + "): " + reason );
 		
 		manager.remove( this, connection );
+	}
+	
+	protected void
+	failed(
+		Throwable e )
+	{
+		synchronized( connections ){
+
+			List	conns = new ArrayList( connections.values());
+		
+			for (int i=0;i<conns.size();i++){
+				
+				((UDPConnection)conns.get(i)).close( Debug.getNestedExceptionMessage(e));
+			}
+		}
 	}
 	
 	static void

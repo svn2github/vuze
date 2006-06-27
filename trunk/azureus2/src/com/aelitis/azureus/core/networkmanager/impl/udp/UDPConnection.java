@@ -198,6 +198,20 @@ UDPConnection
 	close(
 		String	reason )
 	{
+		if ( transport != null ){
+			
+			transport.close( reason );
+			
+		}else{
+			
+			closeSupport( reason );
+		}
+	}
+	
+	protected void
+	closeSupport(
+		String	reason )
+	{
 		set.close( this, reason );
 	}
 	

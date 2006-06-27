@@ -31,6 +31,7 @@ import java.nio.ByteBuffer;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
@@ -45,6 +46,8 @@ UDPConnectionManager
 {
 	private static final LogIDs LOGID = LogIDs.NET;
 
+	public static final int	TIMER_TICK_MILLIS	= 25;
+	
 	private static final Map	connections = new HashMap();
 	
 	private int next_connection_id;
@@ -60,6 +63,43 @@ UDPConnectionManager
 	UDPConnectionManager(
 		int		udp_port )
 	{
+		new AEThread( "UDPConnectionManager:timer", true )
+		{
+			public void
+			runSupport()
+			{
+				Thread.currentThread().setPriority( Thread.NORM_PRIORITY + 1 );
+				
+				while( true ){
+					
+					try{
+						Thread.sleep( TIMER_TICK_MILLIS );
+						
+					}catch( Throwable e ){
+						
+					}
+										
+					synchronized( connections ){
+
+						Iterator	it = connections.values().iterator();
+						
+						while( it.hasNext()){
+							
+							UDPConnectionSet	set = (UDPConnectionSet)it.next();
+							
+							try{
+								set.timerTick();
+								
+							}catch( Throwable e ){
+								
+								set.failed( e );
+							}
+						}
+					}
+				}
+			}
+		}.start();
+		
 		network_glue = new NetworkGlueLoopBack( this, udp_port );
 	}
 	
@@ -126,7 +166,13 @@ UDPConnectionManager
 			}
 		}
 		
-		connection_set.receive( data );
+		try{
+			connection_set.receive( data );
+			
+		}catch( Throwable e ){
+			
+			connection_set.failed( e );
+		}
 	}
 	
 	public int
