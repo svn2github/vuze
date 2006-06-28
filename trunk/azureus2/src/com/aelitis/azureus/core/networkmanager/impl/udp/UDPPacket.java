@@ -28,17 +28,31 @@ UDPPacket
 {
 	private final UDPConnection		connection;
 	private final int				sequence;
+	private final int				alt_sequence;
+	private final byte				command;
 	private final byte[]			buffer;
+	private final long				unack_in_sequence_count;
+	
+	private boolean auto_retransmit			= true;
+	private int		sent_count;
+	private boolean received;
+	private long	send_tick_count;
 	
 	protected
 	UDPPacket(
 		UDPConnection	_connection,
-		int				_sequence,
-		byte[]			_buffer )
+		int[]			_sequences,
+		byte			_command,
+		byte[]			_buffer,
+		long			_unack_in_sequence_count )
 	{
-		connection	= _connection;
-		sequence	= _sequence;
-		buffer		= _buffer;
+		connection		= _connection;
+		sequence		= _sequences[1];
+		alt_sequence	= _sequences[3];
+		command			= _command;
+		buffer			= _buffer;
+		
+		unack_in_sequence_count	= _unack_in_sequence_count;
 	}
 		
 	protected UDPConnection
@@ -53,9 +67,74 @@ UDPPacket
 		return( sequence );
 	}
 	
+	protected int
+	getAlternativeSequence()
+	{
+		return( alt_sequence );
+	}
+	
+	protected byte
+	getCommand()
+	{
+		return( command );
+	}
+	
 	protected byte[]
 	getBuffer()
 	{
 		return( buffer );
+	}
+	
+	protected long
+	getUnAckInSequenceCount()
+	{
+		return( unack_in_sequence_count );
+	}
+	
+	protected boolean
+	autoRetransmit()
+	{
+		return( auto_retransmit );
+	}
+	
+	protected int
+	sent(
+		long	tick_count )
+	{
+		sent_count++;
+		
+		send_tick_count = tick_count;
+		
+		return( sent_count );
+	}
+	
+	protected long
+	getSendTickCount()
+	{
+		return( send_tick_count );
+	}
+	
+	protected void
+	setHasBeenReceived()
+	{
+		received	= true;
+	}
+	
+	protected boolean
+	hasBeenReceived()
+	{
+		return( received );
+	}
+	
+	protected int
+	getSentCount()
+	{
+		return( sent_count );
+	}
+	
+	protected String
+	getString()
+	{
+		return( "seq=" + sequence + ",type=" + command + ",sent=" + sent_count +",len=" + buffer.length );
 	}
 }

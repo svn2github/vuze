@@ -171,6 +171,8 @@ UDPConnectionManager
 			
 		}catch( Throwable e ){
 			
+			e.printStackTrace();
+			
 			connection_set.failed( e );
 		}
 	}

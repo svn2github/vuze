@@ -241,9 +241,9 @@ Test
 										
 											throws MessageException
 										{
-											System.out.println( "receive: " + new String( message.toByteArray()));
+											System.out.println( "receive: " + message.toByteArray().length );
 											
-											PooledByteBuffer	reply = plugin_interface.getUtilities().allocatePooledByteBuffer( "5678".getBytes());
+											PooledByteBuffer	reply = plugin_interface.getUtilities().allocatePooledByteBuffer( new byte[32*1024]);
 											
 											connection.send( reply );
 										}
@@ -322,9 +322,10 @@ Test
 					
 						throws MessageException
 					{
-						System.out.println( "receive: " + new String( message.toByteArray()));
+						System.out.println( "receive: " + message.toByteArray().length );
 						
-						PooledByteBuffer	reply = plugin_interface.getUtilities().allocatePooledByteBuffer( "abcd".getBytes());
+						PooledByteBuffer	reply = 
+							plugin_interface.getUtilities().allocatePooledByteBuffer( new byte[16*1024]);
 						
 						try{
 							Thread.sleep(1000);

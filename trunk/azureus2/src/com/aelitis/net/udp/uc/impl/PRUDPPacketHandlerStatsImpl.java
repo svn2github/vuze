@@ -78,6 +78,18 @@ PRUDPPacketHandlerStatsImpl
 		bytes_received	+= len;
 	}
 	
+	protected void
+	primordialPacketSent(
+		int	len )
+	{	
+	}
+	
+	protected void
+	primordialPacketReceived(
+		int	len )
+	{	
+	}
+	
 	public long
 	getRequestsTimedOut()
 	{

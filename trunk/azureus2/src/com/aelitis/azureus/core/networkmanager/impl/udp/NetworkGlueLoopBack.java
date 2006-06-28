@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
 import com.aelitis.net.udp.uc.PRUDPPrimordialHandler;
 
@@ -42,11 +43,15 @@ NetworkGlueLoopBack
 	implements NetworkGlue, PRUDPPrimordialHandler
  
 {
+	private boolean	UDP_TEST	= true;
+	
 	private NetworkGlueListener		listener;
 
 	private PRUDPPacketHandler handler;
 	
 	private List	message_queue	= new ArrayList();
+	
+	private Random	random = new Random();
 	
 	protected
 	NetworkGlueLoopBack(
@@ -152,11 +157,25 @@ NetworkGlueLoopBack
 	
 		throws IOException
 	{	
-		InetSocketAddress local_address = new InetSocketAddress( target.getAddress(), local_port );
-		
-		synchronized( message_queue ){
+		if ( UDP_TEST ){
 			
-			message_queue.add( new Object[]{ local_address, target, data });
+			try{
+				handler.primordialSend( data, target );
+				
+			}catch( PRUDPPacketHandlerException	e ){
+				
+				throw( new IOException( e.getMessage()));
+			}
+			
+		}else{
+			InetSocketAddress local_address = new InetSocketAddress( target.getAddress(), local_port );
+			
+			synchronized( message_queue ){
+				
+				if ( random.nextInt(2) == 0 ){
+					message_queue.add( new Object[]{ local_address, target, data });
+				}
+			}
 		}
 		
 		return( data.length );

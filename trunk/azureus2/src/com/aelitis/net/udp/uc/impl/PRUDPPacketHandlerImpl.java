@@ -332,6 +332,8 @@ PRUDPPacketHandlerImpl
 				
 				if ( primordial_handler.packetReceived( dg_packet )){
 					
+					stats.primordialPacketReceived( dg_packet.getLength());
+					
 					return;
 				}
 			}
@@ -967,8 +969,35 @@ PRUDPPacketHandlerImpl
 	getReceiveQueueLength()
 	{
 		return( recv_queue.size());
-		
 	}
+	
+	public void
+	primordialSend(
+		byte[]				buffer,
+		InetSocketAddress	target )
+	
+		throws PRUDPPacketHandlerException
+	{
+		try{
+			DatagramPacket dg_packet = new DatagramPacket(buffer, buffer.length, target );
+			
+			// System.out.println( "Outgoing to " + dg_packet.getAddress());	
+			
+			if ( TRACE_REQUESTS ){
+				Logger.log(new LogEvent(LOGID,
+						"PRUDPPacketHandler: reply packet sent: " + buffer.length + " to " + target ));
+			}
+			
+			socket.send( dg_packet );
+			
+			stats.primordialPacketSent( buffer.length );
+			
+		}catch( Throwable e ){
+			
+			throw( new PRUDPPacketHandlerException( e.getMessage()));
+		}
+	}
+	
 	public PRUDPPacketHandlerStats
 	getStats()
 	{

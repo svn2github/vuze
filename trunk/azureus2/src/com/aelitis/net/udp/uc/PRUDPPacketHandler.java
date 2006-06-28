@@ -94,6 +94,13 @@ PRUDPPacketHandler
 		PRUDPRequestHandler	request_handler );
 	
 	public void
+	primordialSend(
+		byte[]				data,
+		InetSocketAddress	target )
+	
+		throws PRUDPPacketHandlerException;
+	
+	public void
 	setPrimordialHandler(
 		PRUDPPrimordialHandler	handler );
 	
