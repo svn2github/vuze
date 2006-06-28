@@ -59,6 +59,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
   final static TableColumnCore[] tableIncompleteItems = {
     new HealthItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new RankItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+    new SendToItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new NameItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new DownItem(),
@@ -103,6 +104,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
   final static TableColumnCore[] tableCompleteItems = {
     new HealthItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new RankItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
+    new SendToItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new NameItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new DoneItem(TableManager.TABLE_MYTORRENTS_COMPLETE),

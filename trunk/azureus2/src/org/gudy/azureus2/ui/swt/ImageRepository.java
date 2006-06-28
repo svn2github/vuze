@@ -144,6 +144,7 @@ public class ImageRepository {
 
     loadImage(display, "org/gudy/azureus2/ui/icons/smallx.png", "smallx");
     loadImage(display, "org/gudy/azureus2/ui/icons/smallx-gray.png", "smallx-gray");
+    loadImage(display, "org/gudy/azureus2/ui/icons/sendto-small.png", "sendto-small");
     }
 
 
