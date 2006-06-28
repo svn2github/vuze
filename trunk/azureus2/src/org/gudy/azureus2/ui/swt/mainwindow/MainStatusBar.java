@@ -688,6 +688,10 @@ public class MainStatusBar {
 	/**
 	 */
 	public void refreshStatusBar() {
+		if (ipBlocked.isDisposed()) {
+			return;
+		}
+		
 		// IP Filter Status Section
 		IpFilter ip_filter = azureusCore.getIpFilterManager().getIPFilter();
 
