@@ -31,21 +31,21 @@ public class TableCellMouseEvent {
 	 *  
 	 * @since 2.3.0.7
 	 */
-	public static int EVENT_MOUSEDOWN = 0;
+	public final static int EVENT_MOUSEDOWN = 0;
 
 	/** 
 	 * eventType is triggered when mouse is let go 
 	 *  
 	 * @since 2.3.0.7
 	 */
-	public static int EVENT_MOUSEUP = 1;
+	public final static int EVENT_MOUSEUP = 1;
 
 	/** 
 	 * eventType is trigggered when mouse is double clicked 
 	 *  
 	 * @since 2.3.0.7
 	 */
-	public static int EVENT_MOUSEDOUBLECLICK = 2;
+	public final static int EVENT_MOUSEDOUBLECLICK = 2;
 
 	/**
 	 * EVENT_* constant specifying the type of event that has been triggered 
