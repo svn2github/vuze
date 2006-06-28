@@ -30,7 +30,12 @@ import java.nio.ByteBuffer;
 
 public class ByteFormatter
 {
-   public static String
+	final static char[] HEXDIGITS = {
+  	'0' , '1' , '2' , '3' , '4' , '5' ,
+  	'6' , '7' , '8' , '9' , 'A' , 'B' ,
+  	'C' , 'D' , 'E' , 'F' };
+
+	public static String
   nicePrint(
   	String	str )
   {
@@ -59,23 +64,27 @@ public class ByteFormatter
   	byte[] data, 
 	boolean tight) 
   {
-    if(data == null){
-      return "";     
-    }
-    
-    String out = "";
-    
-    for (int i = 0; i < data.length; i++) {
-    	
-        if ((!tight) && i > 0 && (i % 4 == 0)){
-        	
-            out = out + " ";
-        }
-        
-        out = out + nicePrint(data[i]);
-    }
-    
-    return( out );
+		if (data == null) {
+			return "";
+		}
+
+		int size = data.length * 2;
+		if (!tight) {
+			size += (data.length - 1) / 4;
+		}
+		char[] out = new char[size];
+
+		int pos = 0;
+		for (int i = 0; i < data.length; i++) {
+			if ((!tight) && (i % 4 == 0) && i > 0) {
+				out[pos++] = ' ';
+			}
+
+			out[pos++] = HEXDIGITS[(byte) ((data[i] >> 4) & 0xF)];
+			out[pos++] = HEXDIGITS[(byte) (data[i] & 0xF)];
+		}
+
+		return new String(out);
   }
 
 
