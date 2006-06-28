@@ -69,7 +69,8 @@ public class SendToItem extends CoreTableColumn implements
 			return;
 		}
 
-		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
+		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP
+				&& event.button == 1) {
 			new SendTorrentWizard(AzureusCoreFactory.getSingleton(),
 					Display.getCurrent(), new TOTorrent[] { dm.getTorrent() });
 		}
