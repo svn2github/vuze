@@ -747,11 +747,12 @@ public class Utils {
 					boolean bMetricsOk;
 					try {
 						bMetricsOk = false;
+						Point ptTopLeft = new Point(values[0], values[1]);
 
 						Monitor[] monitors = shell.getDisplay().getMonitors();
 						for (int j = 0; j < monitors.length && !bMetricsOk; j++) {
 							Rectangle bounds = monitors[j].getBounds();
-							bMetricsOk = shellBounds.intersects(bounds);
+							bMetricsOk = bounds.contains(ptTopLeft);
 						}
 					} catch (NoSuchMethodError e) {
 						Rectangle bounds = shell.getDisplay().getBounds();
