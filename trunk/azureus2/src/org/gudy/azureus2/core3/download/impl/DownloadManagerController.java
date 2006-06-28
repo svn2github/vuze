@@ -1051,13 +1051,18 @@ DownloadManagerController
 			fileInfoFacade fileInfo = files_facade[i];
 			if (!fileInfo.isSkipped()) {
 				File file = fileInfo.getFile(true);
-				if (!file.exists()) {
-					setFailed(MessageText.getString("DownloadManager.error.datamissing")
-							+ " " + file);
-					return false;
-				} else if (fileInfo.getLength() != file.length()) { // && file exists
-					setFailed(MessageText.getString("DownloadManager.error.badsize")
-							+ " " + file);
+				try {
+					if (!file.exists()) {
+						setFailed(MessageText.getString("DownloadManager.error.datamissing")
+								+ " " + file);
+						return false;
+					} else if (fileInfo.getLength() != file.length()) { // && file exists
+						setFailed(MessageText.getString("DownloadManager.error.badsize")
+								+ " " + file);
+						return false;
+					}
+				} catch (Exception e) {
+					setFailed(e.getMessage());
 					return false;
 				}
 			}
@@ -1079,8 +1084,13 @@ DownloadManagerController
 	}
 	
 	protected void
-	filePriorityChanged()
+	filePriorityChanged(DiskManagerFileInfo file)
 	{
+		// no need to calculate completeness if there are no DND files and the
+		// file being changed is not DND
+		if (!cached_has_dnd_files && !file.isSkipped()){
+			return;
+		}
 		calculateCompleteness( files_facade );
 	}
 	
@@ -1088,34 +1098,31 @@ DownloadManagerController
 	calculateCompleteness(
 		DiskManagerFileInfo[]	active )
 	{
-		if ( getDiskManager() == null ){
-			
-			boolean	complete_exluding_dnd	= true;
-			
-			boolean has_dnd_files = false;
-			
-			for (int i=0;i<active.length;i++){
-				
-				DiskManagerFileInfo	file = active[i];
-				
-				if ( file.isSkipped()){
+		boolean complete_exluding_dnd = true;
 
-					has_dnd_files = true;
-					
-					continue;
-				}
-				
-				if ( file.getDownloaded() != file.getLength()){
-					
-					complete_exluding_dnd	= false;
-					
-					break;
-				}
+		boolean has_dnd_files = false;
+
+		for (int i = 0; i < active.length; i++) {
+
+			DiskManagerFileInfo file = active[i];
+
+			if (file.isSkipped()) {
+
+				has_dnd_files = true;
+
+				continue;
 			}
-			
-			cached_complete_excluding_dnd	= complete_exluding_dnd;
-			cached_has_dnd_files = has_dnd_files;
+
+			if (file.getDownloaded() != file.getLength()) {
+
+				complete_exluding_dnd = false;
+
+				break;
+			}
 		}
+
+		cached_complete_excluding_dnd = complete_exluding_dnd;
+		cached_has_dnd_files = has_dnd_files;
 	}
 	
 	/**

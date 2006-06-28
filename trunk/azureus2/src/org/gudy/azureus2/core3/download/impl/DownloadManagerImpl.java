@@ -1998,7 +1998,7 @@ DownloadManagerImpl
 	informPriorityChange(
 		DiskManagerFileInfo	file )
 	{
-		controller.filePriorityChanged();
+		controller.filePriorityChanged(file);
 		
 		try{
 			listeners_mon.enter();
