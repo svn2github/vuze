@@ -1379,9 +1379,6 @@ DownloadManagerImpl
 			return;
 		}
 
-		// Temp Debug:
-		Debug.outNoStack("setAssumedComplete to " + _assumedComplete + " for "
-				+ this + " by " + Debug.getStackTrace(true, false));
 		//Logger.log(new LogEvent(this, LogIDs.CORE, "setAssumedComplete("
 		//		+ _assumedComplete + ") was " + assumedComplete));
 
