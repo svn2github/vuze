@@ -70,44 +70,51 @@ final class SocketServer implements Runnable
 		int threadNum = 1;
 		System.out.println("Telnet server started. Listening on port: " + serverSocket.getLocalPort());
 		
-		mainloop: while(true)
-		{
+		while( true ) {
 			try {
 				Socket socket = serverSocket.accept();
+				
 				InetSocketAddress addr = (InetSocketAddress) socket.getRemoteSocketAddress();
-				if( addr.isUnresolved() || ! isAllowed(addr) )
-				{
-					System.out.println("rejecting connection from: " + addr + " as address is not allowed");
+				
+				if( addr.isUnresolved() || ! isAllowed(addr) ) {
+					System.out.println("TelnetUI: rejecting connection from: " + addr + " as address is not allowed");
 					socket.close();
 				}
-				else
-				{
-					System.out.println("accepting connection: " + addr);
+				else {
+					System.out.println("TelnetUI: accepting connection from: " + addr);
 					int loginAttempts = 0;
-					while( true )
-					{
+					
+					while( true ) {
 						// TODO: might want to put this in another thread so the port doesnt block while the user logs in
+						
+						System.out.println("TelnetUI: starting login" );
+						
 						UserProfile profile = login( socket.getInputStream(), socket.getOutputStream() );
-						if( profile != null )
-						{
+						
+						System.out.println("TelnetUI: login profile obtained" );
+						
+						if( profile != null ) {
+							
+							System.out.println("TelnetUI: creating console input" );
+							
 							ui.createNewConsoleInput("Telnet Console " + threadNum++, socket.getInputStream(), new PrintStream(socket.getOutputStream()), profile);
 							break;
 						}
-						else
-						{
-							loginAttempts++;
-							if( loginAttempts >= maxLoginAttempts )
-							{
-								System.out.println("rejecting connection from: " + addr + " as number of failed connections > max login attempts (" + maxLoginAttempts + ")");
-								socket.close();
-								break;
-							}
+						
+						System.out.println("TelnetUI: failed to obtain login profile" );
+						
+						loginAttempts++;
+						
+						if( loginAttempts >= maxLoginAttempts ) {
+							System.out.println("TelnetUI: rejecting connection from: " + addr + " as number of failed connections > max login attempts (" + maxLoginAttempts + ")");
+							socket.close();
+							break;
 						}
 					}
-					
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			}
+			catch (Throwable t) {
+				t.printStackTrace();
 				break;
 			}
 		}

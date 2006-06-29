@@ -136,8 +136,14 @@ public class ConsoleInput extends Thread {
 		this.controlling = _controlling.booleanValue();
 		this.br = new CommandReader(_in);
 		
-		initialise();		
+		
+		System.out.println( "ConsoleInput: initializing..." );
+		initialise();
+		System.out.println( "ConsoleInput: initialized OK" );
+		
+		System.out.println( "ConsoleInput: starting..." );
 		start();
+		System.out.println( "ConsoleInput: started OK" );
 	}
 
 	protected void initialise() {

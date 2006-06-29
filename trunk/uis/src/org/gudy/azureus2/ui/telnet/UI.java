@@ -43,6 +43,8 @@ import org.gudy.azureus2.ui.console.multiuser.MultiUserConsoleInput;
 import org.gudy.azureus2.ui.console.multiuser.UserManager;
 import org.gudy.azureus2.ui.console.multiuser.commands.UserCommand;
 
+import com.aelitis.azureus.core.AzureusCore;
+
 /**
  * this is a telnet UI that starts up a server socket that listens for new connections 
  * on a (configurable) port. when an incoming connection is recieved, we check the host 
@@ -141,7 +143,23 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
 		}
 		else
 		{
-			console = new ConsoleInput(consoleName, UIConst.getAzureusCore(), new InputStreamReader(inputStream), outputStream, Boolean.FALSE, profile);
+			
+			AzureusCore az_core = UIConst.getAzureusCore();
+			
+			if( az_core == null ) {
+				System.out.println( "TelnetUI: az_core is null" );
+			}
+			else {
+				System.out.println( "TelnetUI: az_core OK: " +az_core.toString() );
+			}
+			
+			
+			if( inputStream == null )  System.out.println( "TelnetUI: inputStream is null" );
+			if( outputStream == null )  System.out.println( "TelnetUI: outputStream is null" );
+			
+			console = new ConsoleInput(consoleName, az_core, new InputStreamReader(inputStream), outputStream, Boolean.FALSE, profile);
+			
+			System.out.println( "TelnetUI: console input instanciated" );
 		}	
 		console.printconsolehelp();
 	}
