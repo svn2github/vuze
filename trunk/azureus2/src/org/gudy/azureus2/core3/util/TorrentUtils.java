@@ -63,6 +63,17 @@ TorrentUtils
 		
 	private static volatile Set		ignore_set;
 	
+	private static boolean bSaveTorrentBackup;
+	
+	static {
+		COConfigurationManager.addAndFireParameterListener("Save Torrent Backup",
+				new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						bSaveTorrentBackup = COConfigurationManager.getBooleanParameter(
+								parameterName, false);
+					}
+				});
+	}
 
 	public static TOTorrent
 	readFromFile(
@@ -101,7 +112,7 @@ TorrentUtils
 			
 				// make an immediate backup if requested and one doesn't exist 
 			
-	    	if ( COConfigurationManager.getBooleanParameter("Save Torrent Backup", false )) {
+	    	if (bSaveTorrentBackup) {
 	    		
 	    		File torrent_file_bak = new File(file.getParent(), file.getName() + ".bak");
 
@@ -1846,6 +1857,15 @@ TorrentUtils
 		return (ByteFormatter.nicePrint(hash, tight));
 	}
 
+	/**
+	 * Runs a file through a series of test to verify if it is a torrent.
+	 * 
+	 * @param filename File to test
+	 * @return true - file is a valid torrent file
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
 	public static boolean isTorrentFile(String filename) throws FileNotFoundException, IOException {
 	  File check = new File(filename);
 	  if (!check.exists())
