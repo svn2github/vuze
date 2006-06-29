@@ -116,15 +116,19 @@ UDPTransport
 			return;
 		}
 		
+		UDPTransportHelper	helper = null;
+
 		try{
 			listener.connectAttemptStarted();
 
-			final UDPTransportHelper	helper = 
+			helper = 
 	 			new UDPTransportHelper( 
 	 					UDPNetworkManager.getSingleton().getConnectionManager(), 
 	 					endpoint.getAddress(),
 	 					this );
 	 		
+			final UDPTransportHelper f_helper = helper;
+			
 	    	TransportCryptoManager.getSingleton().manageCrypto( 
 	    			helper, 
 	    			shared_secret, 
@@ -171,7 +175,7 @@ UDPTransport
 	    				handshakeFailure( 
 	    					Throwable failure_msg )
 	    				{
-	    					helper.close( Debug.getNestedExceptionMessageAndStack(failure_msg));
+	    					f_helper.close( Debug.getNestedExceptionMessageAndStack(failure_msg));
 	    					
 	    					listener.connectFailure( failure_msg );
 	    				}
@@ -180,7 +184,7 @@ UDPTransport
 	    				gotSecret(
 							byte[]				session_secret )
 	    				{
-	    		   			helper.getConnection().setSecret( session_secret );
+	    					f_helper.getConnection().setSecret( session_secret );
 	    				}
 	    				
 	    				public int 
@@ -201,6 +205,11 @@ UDPTransport
 			
 			Debug.printStackTrace(e);
 			
+			if ( helper != null ){
+			
+				helper.close( Debug.getNestedExceptionMessage( e ));
+			}
+				
 			listener.connectFailure( e );
 		}
 	}

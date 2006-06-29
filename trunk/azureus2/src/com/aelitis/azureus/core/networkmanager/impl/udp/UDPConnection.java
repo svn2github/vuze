@@ -27,9 +27,13 @@ import java.util.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 public class 
 UDPConnection 
 {
+	private static final int	MAX_QUEUED_READ_BUFFERS	= 512;	// sanity check
+	
 	private UDPConnectionSet	set;
 	private int					id;
 	private UDPTransportHelper	transport;
@@ -98,11 +102,20 @@ UDPConnection
 	protected void
 	receive(
 		ByteBuffer		data )
+	
+		throws IOException
 	{
 		boolean	was_empty = false;
 		
 		synchronized( read_buffers ){
 		
+			if ( read_buffers.size() == MAX_QUEUED_READ_BUFFERS ){
+				
+				Debug.out( "Read buffer queue limit exceeded" );
+				
+				throw( new IOException( "Read buffer queue limit exceeded" ));
+			}
+			
 			was_empty = read_buffers.size() == 0;
 			
 			read_buffers.add( data );
@@ -209,10 +222,31 @@ UDPConnection
 	}
 	
 	protected void
+	failed(
+		Throwable	reason )
+	{
+		if ( transport != null ){
+			
+			transport.failed( reason );
+			
+		}else{
+			
+			failedSupport( reason );
+		}
+	}
+	
+	protected void
 	closeSupport(
 		String	reason )
 	{
 		set.close( this, reason );
+	}
+	
+	protected void
+	failedSupport(
+		Throwable	reason )
+	{
+		set.failed( this, reason );
 	}
 	
 	protected void

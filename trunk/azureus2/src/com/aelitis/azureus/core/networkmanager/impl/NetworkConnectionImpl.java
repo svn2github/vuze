@@ -140,6 +140,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
 			        transport	= _transport;
 			        outgoing_message_queue.setTransport( transport );
 			        connection_listener.connectSuccess();
+			        connection_attempt	= null;
 			      }
 			      
 			      public void connectFailure( Throwable failure_msg ) {
@@ -150,7 +151,12 @@ public class NetworkConnectionImpl implements NetworkConnection {
     
     if ( closed ){
     	
-    	connection_attempt.abandon();
+    	ConnectionAttempt	ca = connection_attempt;
+    	
+    	if ( ca != null ){
+    		
+    		ca.abandon();
+    	}
     }
   }
   

@@ -63,21 +63,28 @@ UDPSelector
 						
 						TransportHelper.selectListener	listener = (TransportHelper.selectListener)entry[1];
 						
-						Object	attachment = entry[2];
-						
-						try{
-							if ( entry.length == 3 ){
-								
-								listener.selectSuccess( transport, attachment );
-								
-							}else{
-								
-								listener.selectFailure( transport, attachment, (Throwable)entry[3] );
-								
-							}
-						}catch( Throwable e ){
+						if ( listener == null ){
 							
-							Debug.printStackTrace(e);
+							Debug.out( "Null listener" );
+							
+						}else{
+							
+							Object	attachment = entry[2];
+							
+							try{
+								if ( entry.length == 3 ){
+									
+									listener.selectSuccess( transport, attachment );
+									
+								}else{
+									
+									listener.selectFailure( transport, attachment, (Throwable)entry[3] );
+									
+								}
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
 						}
 					}
 				}

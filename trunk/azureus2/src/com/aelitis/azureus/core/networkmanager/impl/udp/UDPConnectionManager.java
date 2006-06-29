@@ -78,7 +78,9 @@ UDPConnectionManager
 					}catch( Throwable e ){
 						
 					}
-										
+							
+					List	failed_sets = null;
+					
 					synchronized( connections ){
 
 						Iterator	it = connections.values().iterator();
@@ -92,8 +94,23 @@ UDPConnectionManager
 								
 							}catch( Throwable e ){
 								
-								set.failed( e );
+								if ( failed_sets == null ){
+									
+									failed_sets = new ArrayList();
+								}
+								
+								failed_sets.add( new Object[]{ set, e });
 							}
+						}
+					}
+					
+					if ( failed_sets != null ){
+						
+						for (int i=0;i<failed_sets.size();i++){
+							
+							Object[]	entry = (Object[])failed_sets.get(i);
+							
+							((UDPConnectionSet)entry[0]).failed((Throwable)entry[1]);
 						}
 					}
 				}
@@ -131,16 +148,43 @@ UDPConnectionManager
 		synchronized( connections ){
 
 			if ( set.remove( connection )){
-				
+
 				InetSocketAddress	remote_address = set.getRemoteAddress();
-				
+
 				String	key = set.getLocalPort() + ":" + remote_address.getAddress().getHostAddress() + ":" + remote_address.getPort();
 
-				if ( connections.remove( key ) == null ){
+				if ( set.hasFailed()){
 					
-					Debug.out( "Connection set not found" );
+					if ( connections.remove( key ) != null ){
+						
+						System.out.println( "Connection set " + key + " failed" );
+					}
+				}else{
+					
+					System.out.println( "Connection set " + key + " empty, initiating close sequence" );
 				}
 			}	                          
+		}                    
+	}
+	
+	public void
+	failed(
+		UDPConnectionSet	set )
+	{
+		synchronized( connections ){
+
+			InetSocketAddress	remote_address = set.getRemoteAddress();
+
+			String	key = set.getLocalPort() + ":" + remote_address.getAddress().getHostAddress() + ":" + remote_address.getPort();
+					
+			if ( connections.remove( key ) != null ){
+						
+				System.out.println( "Connection set " + key + " failed" );
+						
+			}else{
+						
+				Debug.out( "Connection set not found" );
+			}                      
 		}                    
 	}
 	
@@ -171,7 +215,7 @@ UDPConnectionManager
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			Debug.printStackTrace( e );
 			
 			connection_set.failed( e );
 		}
@@ -196,78 +240,88 @@ UDPConnectionManager
 	{
 		final UDPTransportHelper	helper = new UDPTransportHelper( this, remote_address, connection );
 
-		connection.setTransport( helper );
-		
-		TransportCryptoManager.getSingleton().manageCrypto( 
-			helper, 
-			null, 
-			true, 
-			new TransportCryptoManager.HandshakeListener() 
-			{
-				public void 
-				handshakeSuccess( 
-					ProtocolDecoder	decoder ) 
+		try{
+			connection.setTransport( helper );
+			
+			TransportCryptoManager.getSingleton().manageCrypto( 
+				helper, 
+				null, 
+				true, 
+				new TransportCryptoManager.HandshakeListener() 
 				{
-					TransportHelperFilter	filter = decoder.getFilter();
-					
-					ConnectionEndpoint	co_ep = new ConnectionEndpoint( remote_address);
-
-					ProtocolEndpointUDP	pe_udp = new ProtocolEndpointUDP( co_ep, remote_address );
-
-					UDPTransport transport = new UDPTransport( pe_udp, filter );
-							
-					helper.setTransport( transport );
-					
-					incoming_manager.addConnection( local_port, filter, transport );
-        		}
-
-				public void 
-				handshakeFailure( 
-            		Throwable failure_msg ) 
-				{
-					if (Logger.isEnabled()){
-						Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
-					}
- 
-					connection.close( "handshake failure: " + Debug.getNestedExceptionMessage(failure_msg));
-				}
-            
-				public void
-				gotSecret(
-					byte[]				session_secret )
-				{
-					helper.getConnection().setSecret( session_secret );
-				}
-				
-				public int
-				getMaximumPlainHeaderLength()
-				{
-					return( incoming_manager.getMaxMinMatchBufferSize());
-				}
-    		
-				public int
-				matchPlainHeader(
-						ByteBuffer			buffer )
-				{
-					IncomingConnectionManager.MatchListener	match = incoming_manager.checkForMatch( local_port, buffer, true );
-    			
-					if ( match == null ){
-    				
-						return( TransportCryptoManager.HandshakeListener.MATCH_NONE );
-    				
-					}else{
+					public void 
+					handshakeSuccess( 
+						ProtocolDecoder	decoder ) 
+					{
+						TransportHelperFilter	filter = decoder.getFilter();
 						
-							// no fallback for UDP
-    				
-						return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_NO_AUTO_FALLBACK );
-    				}
-    			}
-        	});
+						ConnectionEndpoint	co_ep = new ConnectionEndpoint( remote_address);
+	
+						ProtocolEndpointUDP	pe_udp = new ProtocolEndpointUDP( co_ep, remote_address );
+	
+						UDPTransport transport = new UDPTransport( pe_udp, filter );
+								
+						helper.setTransport( transport );
+						
+						incoming_manager.addConnection( local_port, filter, transport );
+	        		}
+	
+					public void 
+					handshakeFailure( 
+	            		Throwable failure_msg ) 
+					{
+						if (Logger.isEnabled()){
+							Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
+						}
+	 
+						connection.close( "handshake failure: " + Debug.getNestedExceptionMessage(failure_msg));
+					}
+	            
+					public void
+					gotSecret(
+						byte[]				session_secret )
+					{
+						helper.getConnection().setSecret( session_secret );
+					}
+					
+					public int
+					getMaximumPlainHeaderLength()
+					{
+						return( incoming_manager.getMaxMinMatchBufferSize());
+					}
+	    		
+					public int
+					matchPlainHeader(
+							ByteBuffer			buffer )
+					{
+						IncomingConnectionManager.MatchListener	match = incoming_manager.checkForMatch( local_port, buffer, true );
+	    			
+						if ( match == null ){
+	    				
+							return( TransportCryptoManager.HandshakeListener.MATCH_NONE );
+	    				
+						}else{
+							
+								// no fallback for UDP
+	    				
+							return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_NO_AUTO_FALLBACK );
+	    				}
+	    			}
+	        	});
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+			
+			helper.close( Debug.getNestedExceptionMessage(e));
+		}
 	}
 	
 	protected UDPConnection
 	registerOutgoing(
 		UDPTransportHelper		helper )
+	
+		throws IOException
 	{
 		int	local_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
 		

@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 
 public class 
@@ -59,6 +61,8 @@ UDPTransportHelper
 		UDPConnectionManager	_manager,
 		InetSocketAddress		_address,
 		UDPTransport			_transport )
+	
+		throws IOException
 	{
 			// outgoing
 	
@@ -342,6 +346,17 @@ UDPTransportHelper
     	if ( connection.canRead()){
     		
     		canRead();
+ 	
+    	}else if ( read_listener != null ){
+    		
+    		if ( closed ){
+    			
+    			selector.ready( this, read_listener, read_attachment, new Throwable( "Transport closed" ));
+    			
+    		}else  if ( failed != null ){
+   				
+   				selector.ready( this, read_listener, read_attachment, failed );
+   			}
     	}
     }
     
@@ -353,6 +368,17 @@ UDPTransportHelper
     	if ( connection.canWrite()){
     		
     		canWrite();
+    		
+    	}else if ( write_listener != null ){
+    		
+    		if ( closed ){
+    			
+    			selector.ready( this, write_listener, write_attachment, new Throwable( "Transport closed" ));
+    			
+    		}else  if ( failed != null ){
+   				
+   				selector.ready( this, write_listener, write_attachment, failed );
+   			}
     	}
     }
     
@@ -432,9 +458,28 @@ UDPTransportHelper
     		cancelWriteSelects();
     		
     		closed	= true;
-    	}
+     	}
     	
     	connection.closeSupport( reason );
+    }
+    
+    public void
+    failed(
+    	Throwable	reason )
+    {
+    	synchronized( this ){
+    		   		
+    		if ( reason instanceof IOException ){
+    			
+    			failed = (IOException)reason;
+    			
+    		}else{
+    			
+    			failed	= new IOException( Debug.getNestedExceptionMessageAndStack(reason));
+    		}
+     	}
+    	
+    	connection.failedSupport( reason );
     }
     
 	protected void

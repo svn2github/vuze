@@ -43,7 +43,7 @@ NetworkGlueLoopBack
 	implements NetworkGlue, PRUDPPrimordialHandler
  
 {
-	private boolean	UDP_TEST	= true;
+	private boolean	UDP_TEST	= false;
 	
 	private NetworkGlueListener		listener;
 
@@ -172,7 +172,7 @@ NetworkGlueLoopBack
 			
 			synchronized( message_queue ){
 				
-				if ( random.nextInt(2) == 0 ){
+				if ( random.nextInt(2) != 99 ){
 					message_queue.add( new Object[]{ local_address, target, data });
 				}
 			}

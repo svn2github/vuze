@@ -34,7 +34,8 @@ UDPPacket
 	private final long				unack_in_sequence_count;
 	
 	private boolean auto_retransmit			= true;
-	private int		sent_count;
+	private short	sent_count;
+	private short	resend_count;
 	private boolean received;
 	private long	send_tick_count;
 	
@@ -97,7 +98,7 @@ UDPPacket
 		return( auto_retransmit );
 	}
 	
-	protected int
+	protected short
 	sent(
 		long	tick_count )
 	{
@@ -106,6 +107,18 @@ UDPPacket
 		send_tick_count = tick_count;
 		
 		return( sent_count );
+	}
+	
+	protected short
+	getResendCount()
+	{
+		return( resend_count );
+	}
+	
+	protected void
+	resent()
+	{
+		resend_count++ ;
 	}
 	
 	protected long

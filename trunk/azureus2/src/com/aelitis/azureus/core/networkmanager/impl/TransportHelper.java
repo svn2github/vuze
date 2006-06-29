@@ -95,7 +95,11 @@ TransportHelper
     
     public void
     close(
-    	String	reason );
+    	String		reason );
+    
+    public void
+    failed(
+    	Throwable	reason );
     
     public interface
     selectListener

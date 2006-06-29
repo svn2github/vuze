@@ -275,6 +275,13 @@ TCPTransportHelper
       TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
   }
   
+  public void
+  failed(
+	Throwable	reason )
+  {
+	  close( Debug.getNestedExceptionMessage( reason ));
+  }
+  
   public SocketChannel getSocketChannel(){  return channel; }
 	
 }
