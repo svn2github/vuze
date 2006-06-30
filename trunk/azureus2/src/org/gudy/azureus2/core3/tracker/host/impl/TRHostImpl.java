@@ -96,6 +96,22 @@ TRHostImpl
 			}
 		});	
 	
+	private static boolean host_add_announce_urls;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+				"Tracker Host Add Our Announce URLs",
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String name )
+					{
+						host_add_announce_urls = COConfigurationManager.getBooleanParameter( name );
+					}
+				});
+	}
+	
 	private List	auth_listeners		= new ArrayList();
 	
 	private boolean	server_factory_listener_added;
@@ -312,7 +328,10 @@ TRHostImpl
 			
 			if ( persistent && state != TRHostTorrent.TS_PUBLISHED ){
 
-				addTrackerAnnounce( torrent );
+				if ( host_add_announce_urls ){
+					
+					addTrackerAnnounce( torrent );
+				}
 			}
 			
 			TRHostTorrent	ht = lookupHostTorrent( torrent );

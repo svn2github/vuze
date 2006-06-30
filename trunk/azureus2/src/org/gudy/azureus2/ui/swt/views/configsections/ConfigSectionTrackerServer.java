@@ -61,6 +61,7 @@ public class
 ConfigSectionTrackerServer 
 	implements UISWTConfigSection 
 {
+	private static final String	CFG_PREFIX = "ConfigView.section.";
 	
 	protected	AzureusCore	azureus_core;
 	
@@ -109,9 +110,9 @@ ConfigSectionTrackerServer
 		gridData = new GridData();
 		label.setLayoutData(gridData);
 
-		final String[] modeKeys = { "ConfigView.section.mode.beginner",
-				"ConfigView.section.mode.intermediate",
-				"ConfigView.section.mode.advanced" };
+		final String[] modeKeys = { CFG_PREFIX + "mode.beginner",
+				CFG_PREFIX + "mode.intermediate",
+				CFG_PREFIX + "mode.advanced" };
 
 		String param1, param2;
 		if (REQUIRED_MODE < modeKeys.length)
@@ -137,7 +138,7 @@ ConfigSectionTrackerServer
     if(userMode>0) { // XXX
 
     label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.ip");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.ip");
 
     final StringParameter tracker_ip = new StringParameter(gMainTab, "Tracker IP", "" );
 
@@ -150,7 +151,7 @@ ConfigSectionTrackerServer
     gridData.horizontalSpan = 2;
     check_button.setLayoutData(gridData);
     
-    Messages.setLanguageText(check_button, "ConfigView.section.tracker.checkip"); //$NON-NLS-1$
+    Messages.setLanguageText(check_button, CFG_PREFIX + "tracker.checkip"); //$NON-NLS-1$
 
     final Display display = gMainTab.getDisplay();
 
@@ -177,7 +178,7 @@ ConfigSectionTrackerServer
 
     final BooleanParameter nonsslEnable = 
         new BooleanParameter(gMainTab, "Tracker Port Enable", false, 
-                             "ConfigView.section.tracker.port");
+                             CFG_PREFIX + "tracker.port");
 
     IntParameter tracker_port = new IntParameter(gMainTab, "Tracker Port", TRHost.DEFAULT_PORT, false );
 
@@ -192,7 +193,7 @@ ConfigSectionTrackerServer
     tracker_port_backup.setLayoutData( gridData );
     
     Label tracker_port_backup_label = new Label(gMainTab, SWT.NULL );
-    Messages.setLanguageText(tracker_port_backup_label, "ConfigView.section.tracker.portbackup");
+    Messages.setLanguageText(tracker_port_backup_label, CFG_PREFIX + "tracker.portbackup");
 
     Control[] non_ssl_controls = new Control[3];
     non_ssl_controls[0] = tracker_port.getControl();
@@ -206,7 +207,7 @@ ConfigSectionTrackerServer
 
     final BooleanParameter sslEnable = 
         new BooleanParameter(gMainTab, "Tracker Port SSL Enable", false,
-                             "ConfigView.section.tracker.sslport");
+                             CFG_PREFIX + "tracker.sslport");
 
     IntParameter tracker_port_ssl = 
         new IntParameter(gMainTab, "Tracker Port SSL", TRHost.DEFAULT_PORT_SSL, false);
@@ -221,16 +222,16 @@ ConfigSectionTrackerServer
     tracker_port_ssl_backup.setLayoutData( gridData );
     
     Label tracker_port_ssl_backup_label = new Label(gMainTab, SWT.NULL );
-    Messages.setLanguageText(tracker_port_ssl_backup_label, "ConfigView.section.tracker.portbackup");
+    Messages.setLanguageText(tracker_port_ssl_backup_label, CFG_PREFIX + "tracker.portbackup");
 
     	// create cert row
 
     Label cert_label = new Label(gMainTab, SWT.NULL );
-    Messages.setLanguageText(cert_label, "ConfigView.section.tracker.createcert");
+    Messages.setLanguageText(cert_label, CFG_PREFIX + "tracker.createcert");
 
     Button cert_button = new Button(gMainTab, SWT.PUSH);
 
-    Messages.setLanguageText(cert_button, "ConfigView.section.tracker.createbutton");
+    Messages.setLanguageText(cert_button, CFG_PREFIX + "tracker.createbutton");
 
     cert_button.addListener(SWT.Selection, 
     		new Listener() 
@@ -246,7 +247,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     ssl_faq_label.setLayoutData(gridData);
-    Messages.setLanguageText(ssl_faq_label, "ConfigView.section.tracker.sslport.info");
+    Messages.setLanguageText(ssl_faq_label, CFG_PREFIX + "tracker.sslport.info");
     final String linkFAQ = "http://azureus.sourceforge.net/faq.php#19";
     ssl_faq_label.setCursor(Cursors.handCursor);
     ssl_faq_label.setForeground(Colors.blue);
@@ -276,10 +277,10 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     gridData.horizontalSpan = 1;
     new BooleanParameter(gMainTab, "Tracker Public Enable", false,
-                         "ConfigView.section.tracker.publicenable").setLayoutData( gridData );
+                         CFG_PREFIX + "tracker.publicenable").setLayoutData( gridData );
 
     label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.publicenable.info");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.publicenable.info");
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     label.setLayoutData(gridData);
@@ -288,7 +289,7 @@ ConfigSectionTrackerServer
     
     BooleanParameter forcePortDetails = 
         new BooleanParameter(gMainTab,  "Tracker Port Force External", false, 
-                             "ConfigView.section.tracker.forceport");
+                             CFG_PREFIX + "tracker.forceport");
 
     label = new Label(gMainTab, SWT.NULL);
     gridData = new GridData();
@@ -314,19 +315,34 @@ ConfigSectionTrackerServer
     sslEnable.setAdditionalActionPerformer(f_enabler);
     
     // row
+    	// add announce urls to hosted torrents
+    BooleanParameter hostAddURLs = 
+        new BooleanParameter(gMainTab,  "Tracker Host Add Our Announce URLs", true, 
+                             CFG_PREFIX + "tracker.host.addurls");
+   
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    hostAddURLs.setLayoutData( gridData );
+    
+    label = new Label(gMainTab, SWT.NULL);
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    label.setLayoutData(gridData);
+    
+    // row
 
     gridData = new GridData();
     gridData.horizontalSpan = 1;
     final BooleanParameter passwordEnableWeb = 
         new BooleanParameter(gMainTab, "Tracker Password Enable Web", false, 
-                             "ConfigView.section.tracker.passwordenableweb");
+                             CFG_PREFIX + "tracker.passwordenableweb");
     passwordEnableWeb.setLayoutData( gridData );
     
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     final BooleanParameter passwordWebHTTPSOnly = 
         new BooleanParameter(gMainTab, "Tracker Password Web HTTPS Only", false, 
-                             "ConfigView.section.tracker.passwordwebhttpsonly");
+                             CFG_PREFIX + "tracker.passwordwebhttpsonly");
     passwordWebHTTPSOnly.setLayoutData( gridData );
 
     IAdditionalActionPerformer web_https_enabler =
@@ -351,10 +367,10 @@ ConfigSectionTrackerServer
 
      final BooleanParameter passwordEnableTorrent = 
       new BooleanParameter(gMainTab, "Tracker Password Enable Torrent", false, 
-                           "ConfigView.section.tracker.passwordenabletorrent");
+                           CFG_PREFIX + "tracker.passwordenabletorrent");
  
     label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.passwordenabletorrent.info");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.passwordenabletorrent.info");
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     label.setLayoutData( gridData );
@@ -362,7 +378,7 @@ ConfigSectionTrackerServer
      // row
 
     label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.username");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.username");
 
     final StringParameter tracker_username = new StringParameter(gMainTab, "Tracker Username", "" );
 
@@ -375,7 +391,7 @@ ConfigSectionTrackerServer
      // row
 
     label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.password");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.password");
 
     final PasswordParameter tracker_password = new PasswordParameter(gMainTab, "Tracker Password" );
 
@@ -413,7 +429,7 @@ ConfigSectionTrackerServer
     	// Poll Group //
     
     Group gPollStuff = new Group(gMainTab, SWT.NULL);
-    Messages.setLanguageText(gPollStuff, "ConfigView.section.tracker.pollinterval");
+    Messages.setLanguageText(gPollStuff, CFG_PREFIX + "tracker.pollinterval");
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.horizontalSpan = 4;
     gPollStuff.setLayoutData(gridData);
@@ -422,7 +438,7 @@ ConfigSectionTrackerServer
     gPollStuff.setLayout(layout);
 
     label = new Label(gPollStuff, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmin");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.pollintervalmin");
     gridData = new GridData();
     label.setLayoutData( gridData );
 
@@ -433,7 +449,7 @@ ConfigSectionTrackerServer
     pollIntervalMin.setLayoutData( gridData );
 
     label = new Label(gPollStuff, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmax");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.pollintervalmax");
     gridData = new GridData();
     label.setLayoutData( gridData );
 
@@ -446,7 +462,7 @@ ConfigSectionTrackerServer
     // row
 
     label = new Label(gPollStuff, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalincby");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.pollintervalincby");
     gridData = new GridData();
     label.setLayoutData( gridData );
 
@@ -457,7 +473,7 @@ ConfigSectionTrackerServer
     pollIntervalIncBy.setLayoutData( gridData );
 
     label = new Label(gPollStuff, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalincper");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.pollintervalincper");
     gridData = new GridData();
     label.setLayoutData( gridData );
 
@@ -471,7 +487,7 @@ ConfigSectionTrackerServer
     // scrape + cache group
 
     Group gScrapeCache = new Group(gMainTab, SWT.NULL);
-    Messages.setLanguageText(gScrapeCache, "ConfigView.section.tracker.scrapeandcache");
+    Messages.setLanguageText(gScrapeCache, CFG_PREFIX + "tracker.scrapeandcache");
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.horizontalSpan = 4;
     gScrapeCache.setLayoutData(gridData);
@@ -482,7 +498,7 @@ ConfigSectionTrackerServer
     // row
     
     label = new Label(gScrapeCache, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.announcescrapepercentage");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.announcescrapepercentage");
 
     IntParameter scrapeannouncepercentage = new IntParameter(gScrapeCache, "Tracker Scrape Retry Percentage", TRHost.DEFAULT_SCRAPE_RETRY_PERCENTAGE );
 
@@ -491,7 +507,7 @@ ConfigSectionTrackerServer
     scrapeannouncepercentage.setLayoutData( gridData );
     
     label = new Label(gScrapeCache, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.scrapecacheperiod");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.scrapecacheperiod");
     gridData = new GridData();
     label.setLayoutData( gridData );
 
@@ -505,7 +521,7 @@ ConfigSectionTrackerServer
     // row
 
     label = new Label(gScrapeCache, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.announcecacheminpeers");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.announcecacheminpeers");
 
     IntParameter announceCacheMinPeers = new IntParameter(gScrapeCache, "Tracker Announce Cache Min Peers", TRHost.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD );
 
@@ -514,7 +530,7 @@ ConfigSectionTrackerServer
     announceCacheMinPeers.setLayoutData( gridData );
     
     label = new Label(gScrapeCache, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.announcecacheperiod");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.announcecacheperiod");
     gridData = new GridData();
     label.setLayoutData( gridData );
 
@@ -529,7 +545,7 @@ ConfigSectionTrackerServer
     // row
 
     label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxpeersreturned");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.maxpeersreturned");
     gridData = new GridData();
     label.setLayoutData( gridData );
 
@@ -545,7 +561,7 @@ ConfigSectionTrackerServer
     	// seed retention limit
     
     label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.seedretention");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.seedretention");
     gridData = new GridData();
     label.setLayoutData( gridData );
 
@@ -556,7 +572,7 @@ ConfigSectionTrackerServer
     seedRetentionLimit.setLayoutData( gridData );
 
     label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.seedretention.info");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.seedretention.info");
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     label.setLayoutData( gridData );
@@ -566,7 +582,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     new BooleanParameter(gMainTab, "Tracker NAT Check Enable", true, 
-                         "ConfigView.section.tracker.natcheckenable").setLayoutData( gridData );
+                         CFG_PREFIX + "tracker.natcheckenable").setLayoutData( gridData );
     
     Composite gNATDetails = new Composite(gMainTab, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -581,7 +597,7 @@ ConfigSectionTrackerServer
     	// row
     
     label = new Label(gNATDetails, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.natchecktimeout");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.natchecktimeout");
     gridData = new GridData();
     label.setLayoutData( gridData );
 
@@ -598,7 +614,7 @@ ConfigSectionTrackerServer
     gridData.horizontalSpan = 4;
  
     new BooleanParameter(gMainTab, "Tracker Send Peer IDs", true, 
-                         "ConfigView.section.tracker.sendpeerids").setLayoutData(gridData);
+                         CFG_PREFIX + "tracker.sendpeerids").setLayoutData(gridData);
     
     // row
  
@@ -607,14 +623,14 @@ ConfigSectionTrackerServer
  
     BooleanParameter	enable_udp = 
     	new BooleanParameter(gMainTab, "Tracker Port UDP Enable", false, 
-                         "ConfigView.section.tracker.enableudp");
+                         CFG_PREFIX + "tracker.enableudp");
 
     enable_udp.setLayoutData(gridData);
     
     // row
     
     Label udp_version_label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(udp_version_label,  "ConfigView.section.tracker.udpversion");
+    Messages.setLanguageText(udp_version_label,  CFG_PREFIX + "tracker.udpversion");
     gridData = new GridData();
     gridData.widthHint = 40;
     IntParameter	udp_version = new IntParameter(gMainTab, "Tracker Port UDP Version", 2);
@@ -631,7 +647,7 @@ ConfigSectionTrackerServer
     gridData.horizontalSpan = 4;
  
     new BooleanParameter(gMainTab, "Tracker Compact Enable", true,
-                         "ConfigView.section.tracker.enablecompact").setLayoutData(gridData);
+                         CFG_PREFIX + "tracker.enablecompact").setLayoutData(gridData);
     
     // row
 
@@ -639,7 +655,7 @@ ConfigSectionTrackerServer
     gridData.horizontalSpan = 4;
     BooleanParameter log_enable = 
     	new BooleanParameter(gMainTab, "Tracker Log Enable", false, 
-                         "ConfigView.section.tracker.logenable");
+                         CFG_PREFIX + "tracker.logenable");
     log_enable.setLayoutData( gridData );
     
     if(userMode>1) { // XXX
@@ -650,12 +666,12 @@ ConfigSectionTrackerServer
     gridData.horizontalSpan = 4;
  
     new BooleanParameter(gMainTab, "Tracker Key Enable Server", true,
-                         "ConfigView.section.tracker.enablekey").setLayoutData(gridData);
+                         CFG_PREFIX + "tracker.enablekey").setLayoutData(gridData);
 
     // Networks Group //
     
     Group networks_group = new Group( gMainTab, SWT.NULL );
-    Messages.setLanguageText( networks_group, "ConfigView.section.tracker.server.group.networks" );
+    Messages.setLanguageText( networks_group, CFG_PREFIX + "tracker.server.group.networks" );
     GridData    networks_layout = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     networks_layout.horizontalSpan = 4;
     networks_group.setLayoutData( networks_layout );
@@ -664,7 +680,7 @@ ConfigSectionTrackerServer
     networks_group.setLayout(layout);
         
     label = new Label(networks_group, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.server.group.networks.info");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.server.group.networks.info");
     GridData grid_data = new GridData();
     grid_data.horizontalSpan = 2;
     label.setLayoutData( grid_data );
@@ -674,7 +690,7 @@ ConfigSectionTrackerServer
 		String	nn = AENetworkClassifier.AT_NETWORKS[i];
 	
 		String	config_name = "Tracker Network Selection Default." + nn;
-		String	msg_text	= "ConfigView.section.connection.networks." + nn;
+		String	msg_text	= CFG_PREFIX + "connection.networks." + nn;
 		 
 		BooleanParameter network = new BooleanParameter(networks_group, config_name, msg_text );
 				
@@ -686,7 +702,7 @@ ConfigSectionTrackerServer
     // processing limits group //
 
     Group gProcessing = new Group(gMainTab, SWT.NULL);
-    Messages.setLanguageText(gProcessing, "ConfigView.section.tracker.processinglimits");
+    Messages.setLanguageText(gProcessing, CFG_PREFIX + "tracker.processinglimits");
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.horizontalSpan = 4;
     gProcessing.setLayoutData(gridData);
@@ -697,7 +713,7 @@ ConfigSectionTrackerServer
     	// row annouce/scrape max process time
     
     label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxgettime");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.maxgettime");
     gridData = new GridData();
     label.setLayoutData( gridData );
 
@@ -708,12 +724,12 @@ ConfigSectionTrackerServer
     maxGetTime.setLayoutData( gridData );
 
     label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxgettime.info");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.maxgettime.info");
    
   	// row post multiplier
     
     label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxposttimemultiplier");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.maxposttimemultiplier");
     gridData = new GridData();
     label.setLayoutData( gridData );
 
@@ -724,12 +740,12 @@ ConfigSectionTrackerServer
     maxPostTimeMultiplier.setLayoutData( gridData );
 
     label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxposttimemultiplier.info");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.maxposttimemultiplier.info");
    
    	// row max threads
     
     label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxthreads");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.maxthreads");
     gridData = new GridData();
     label.setLayoutData( gridData );
 
@@ -746,7 +762,7 @@ ConfigSectionTrackerServer
   	// non-blocking tracker group //
     
     Group gNBTracker = new Group(gMainTab, SWT.NULL);
-    Messages.setLanguageText(gNBTracker, "ConfigView.section.tracker.nonblocking");
+    Messages.setLanguageText(gNBTracker, CFG_PREFIX + "tracker.nonblocking");
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.horizontalSpan = 4;
     gNBTracker.setLayoutData(gridData);
@@ -761,13 +777,13 @@ ConfigSectionTrackerServer
  
     BooleanParameter nb_enable =
     	new BooleanParameter(gNBTracker, "Tracker TCP NonBlocking", false,
-                         "ConfigView.section.tracker.tcpnonblocking");
+                         CFG_PREFIX + "tracker.tcpnonblocking");
     nb_enable.setLayoutData(gridData);
 
  	// row max conc connections
     
     label = new Label(gNBTracker, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.nonblockingconcmax");
+    Messages.setLanguageText(label, CFG_PREFIX + "tracker.nonblockingconcmax");
     gridData = new GridData();
     label.setLayoutData( gridData );
 

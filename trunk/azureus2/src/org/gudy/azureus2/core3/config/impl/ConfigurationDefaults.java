@@ -311,6 +311,7 @@ public class ConfigurationDefaults {
     def.put( "Tracker Port SSL", new Long( TRHost.DEFAULT_PORT_SSL ) );
     def.put( "Tracker Port SSL Backups", "" );
     def.put( "Tracker Port Force External", FALSE );
+    def.put( "Tracker Host Add Our Announce URLs", TRUE );
     def.put( "Tracker IP", "" );
     def.put( "Tracker Port UDP Enable", FALSE );
     def.put( "Tracker Port UDP Version", new Long(2) );
