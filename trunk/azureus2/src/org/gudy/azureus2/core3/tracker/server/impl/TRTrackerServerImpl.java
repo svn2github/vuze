@@ -879,7 +879,17 @@ TRTrackerServerImpl
 			
 			for (int i=0;i<request_listeners.size();i++){
 				
-				((TRTrackerServerRequestListener)request_listeners.elementAt(i)).preProcess( req );
+				try{
+					((TRTrackerServerRequestListener)request_listeners.elementAt(i)).preProcess( req );
+					
+				}catch( TRTrackerServerException e ){
+				
+					throw( e );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
+				}
 			}
 		}
 	}
@@ -900,7 +910,17 @@ TRTrackerServerImpl
 			
 			for (int i=0;i<request_listeners.size();i++){
 				
-				((TRTrackerServerRequestListener)request_listeners.elementAt(i)).postProcess( req );
+				try{
+					((TRTrackerServerRequestListener)request_listeners.elementAt(i)).postProcess( req );
+				
+				}catch( TRTrackerServerException e ){
+					
+					throw( e );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
+				}
 			}
 		}
 	}

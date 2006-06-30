@@ -289,7 +289,11 @@ TrackerTorrentImpl
 				
 			}catch( TrackerException e ){
 				
-				throw( new TRHostException( "Pre process fails", e ));
+				throw( new TRHostException( e.getMessage(), e ));
+				
+			}catch( Throwable e ){
+			
+				throw( new TRHostException( "Pre-process fails", e ));
 			}
 		}
 	}
@@ -309,7 +313,11 @@ TrackerTorrentImpl
 				
 			}catch( TrackerException e ){
 				
-				throw( new TRHostException( "Post process fails", e ));
+				throw( new TRHostException( e.getMessage(), e ));
+				
+			}catch( Throwable e ){
+			
+				throw( new TRHostException( "Post-process fails", e ));
 			}
 		}
 	}

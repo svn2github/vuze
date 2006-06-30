@@ -1075,6 +1075,10 @@ TRHostImpl
 					}
 				}catch( TRHostException e ){
 					
+					throw( new TRTrackerServerException( e.getMessage(), e ));
+					
+				}catch( Throwable e ){
+					
 					throw( new TRTrackerServerException( "Pre-process fails", e ));
 				}
 			}

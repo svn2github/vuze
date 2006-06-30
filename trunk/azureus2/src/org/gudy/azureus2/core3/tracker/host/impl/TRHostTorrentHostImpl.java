@@ -657,6 +657,10 @@ TRHostTorrentHostImpl
 			try{
 				((TRHostTorrentListener)listeners_ref.get(i)).preProcess(req);
 				
+			}catch( TRHostException e ){
+				
+				throw( e );
+				
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace(e);
@@ -676,6 +680,10 @@ TRHostTorrentHostImpl
 		
 			try{
 				((TRHostTorrentListener)listeners_ref.get(i)).postProcess(req);
+				
+			}catch( TRHostException e ){
+				
+				throw( e );
 				
 			}catch( Throwable e ){
 				
