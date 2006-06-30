@@ -257,6 +257,11 @@ PeerManagerImpl
 	mapForeignPeer(
 		Peer	_foreign )
 	{
+		if ( _foreign instanceof PeerImpl ){
+			
+			return(((PeerImpl)_foreign).getDelegate());
+		}
+		
 		PEPeer	local = (PEPeer)foreign_map.get( _foreign );
 		
 		if( local == null ){
