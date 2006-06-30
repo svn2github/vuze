@@ -87,21 +87,21 @@ final class SocketServer implements Runnable
 					while( true ) {
 						// TODO: might want to put this in another thread so the port doesnt block while the user logs in
 						
-						System.out.println("TelnetUI: starting login" );
+						//System.out.println("TelnetUI: starting login" );
 						
 						UserProfile profile = login( socket.getInputStream(), socket.getOutputStream() );
 						
-						System.out.println("TelnetUI: login profile obtained" );
+						//System.out.println("TelnetUI: login profile obtained" );
 						
 						if( profile != null ) {
 							
-							System.out.println("TelnetUI: creating console input" );
+							//System.out.println("TelnetUI: creating console input" );
 							
 							ui.createNewConsoleInput("Telnet Console " + threadNum++, socket.getInputStream(), new PrintStream(socket.getOutputStream()), profile);
 							break;
 						}
 						
-						System.out.println("TelnetUI: failed to obtain login profile" );
+						//System.out.println("TelnetUI: failed to obtain login profile" );
 						
 						loginAttempts++;
 						

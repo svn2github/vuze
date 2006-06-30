@@ -143,21 +143,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
 		}
 		else
 		{
-			
-			AzureusCore az_core = UIConst.getAzureusCore();
-			
-			if( az_core == null ) {
-				System.out.println( "TelnetUI: az_core is null" );
-			}
-			else {
-				System.out.println( "TelnetUI: az_core OK: " +az_core.toString() );
-			}
-			
-			
-			if( inputStream == null )  System.out.println( "TelnetUI: inputStream is null" );
-			if( outputStream == null )  System.out.println( "TelnetUI: outputStream is null" );
-			
-			console = new ConsoleInput(consoleName, az_core, new InputStreamReader(inputStream), outputStream, Boolean.FALSE, profile);
+			console = new ConsoleInput(consoleName, UIConst.getAzureusCore(), new InputStreamReader(inputStream), outputStream, Boolean.FALSE, profile);
 			
 			System.out.println( "TelnetUI: console input instanciated" );
 		}	
