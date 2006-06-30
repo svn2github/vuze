@@ -172,7 +172,7 @@ NetworkGlueLoopBack
 			
 			synchronized( message_queue ){
 				
-				if ( random.nextInt(2) != 99 ){
+				if ( random.nextInt(10) != 0 ){
 					message_queue.add( new Object[]{ local_address, target, data });
 				}
 			}

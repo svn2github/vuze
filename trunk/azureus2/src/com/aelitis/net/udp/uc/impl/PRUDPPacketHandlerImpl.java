@@ -202,7 +202,7 @@ PRUDPPacketHandlerImpl
 				Logger.log(new LogEvent(LOGID,
 						"PRUDPPacketReceiver: receiver established on port " + port)); 
 	
-			byte[] buffer = new byte[PRUDPPacket.MAX_PACKET_SIZE];
+			byte[] buffer = null;
 			
 			long	successful_accepts 	= 0;
 			long	failed_accepts		= 0;
@@ -210,7 +210,12 @@ PRUDPPacketHandlerImpl
 			while(true){
 				
 				try{
+					
+					if ( buffer == null ){
 						
+						buffer = new byte[PRUDPPacket.MAX_PACKET_SIZE];
+					}
+
 					DatagramPacket packet = new DatagramPacket( buffer, buffer.length, address );
 					
 					socket.receive( packet );
@@ -221,7 +226,23 @@ PRUDPPacketHandlerImpl
 					
 					failed_accepts = 0;
 					
-					process( packet, receive_time );
+					if ( primordial_handler != null ){
+						
+						if ( primordial_handler.packetReceived( packet )){
+					
+								// primordial handlers get their own buffer as we can't guarantee
+								// that they don't need to hang onto the data
+							
+							buffer	= null;
+							
+							stats.primordialPacketReceived( packet.getLength());
+						}
+					}
+					
+					if ( buffer != null ){
+						
+						process( packet, receive_time );
+					}
 				
 				}catch( SocketTimeoutException e ){
 										
@@ -328,15 +349,7 @@ PRUDPPacketHandlerImpl
 		long			receive_time )
 	{
 		try{
-			if ( primordial_handler != null ){
-				
-				if ( primordial_handler.packetReceived( dg_packet )){
-					
-					stats.primordialPacketReceived( dg_packet.getLength());
-					
-					return;
-				}
-			}
+
 				// HACK alert. Due to the form of the tracker UDP protocol (no common
 				// header for requests and replies) we enforce a rule. All connection ids
 				// must have their MSB set. As requests always start with the action, which

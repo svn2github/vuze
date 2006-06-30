@@ -324,15 +324,19 @@ Test
 					{
 						System.out.println( "receive: " + message.toByteArray().length );
 						
-						/*
+						try{
+							Thread.sleep(1000);
+						}catch( Throwable e ){
+							
+						}
+						
 						PooledByteBuffer	reply = 
 							plugin_interface.getUtilities().allocatePooledByteBuffer( new byte[16*1024]);
 						
 						
 						connection.send( reply );
-						*/
 						
-						connection.close();
+						// connection.close();
 					}
 					
 					public void

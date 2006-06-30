@@ -232,7 +232,7 @@ UDPConnectionSet
 		try{
 			if ( connection == lead_connection ){
 					
-				log( connection.getTransport().getAddress() + ": crypto done" );
+				log( "crypto done" );
 				
 			    SHA1Hasher	hasher = new SHA1Hasher();
 			    
@@ -426,7 +426,7 @@ UDPConnectionSet
 		
 		if ( packet_to_send != null ){
 			
-			log( "Retransmit " + getName() + ":" + packet_to_send.getString());
+			log( "Retransmit: " + packet_to_send.getString());
 
 			send( packet_to_send );
 		}
@@ -464,7 +464,7 @@ UDPConnectionSet
 	dumpState()
 	{
 		if ( LOG ){
-			String	str = getName() + ": State:";
+			String	str = "State:";
 			
 			String	unack = "";
 			
@@ -501,6 +501,8 @@ UDPConnectionSet
 				oo += (i==0?"":",") + entry[0] + "/" + entry[1] + "/" + entry[2];
 			}
 			
+			str += ",oo=" + oo;
+			
 			str += ",sent_data=" + total_data_sent +"/" + total_data_resent + ",sent_prot=" + total_protocol_sent + "/" + total_protocol_resent;
 			
 			log( str );
@@ -523,7 +525,7 @@ UDPConnectionSet
 		
 		byte[]	payload = packet.getBuffer();
 				
-		log( "Connection::write(" + packet.getConnection().getID() + ") loc="+local_port + " - " + remote_address + ": " + packet.getString());
+		log( packet.getConnection(), "Write: " + packet.getString());
 
 			// cache packet for resend
 		
@@ -545,13 +547,6 @@ UDPConnectionSet
 			if ( unackin > 	sent_receive_unack_in_sequence_count ){
 				
 				sent_receive_unack_in_sequence_count	= unackin;
-			}
-			
-				// ALL packets have to be received by the receiver else the crypto breakifies
-			
-			if ( !transmit_unack_packets.contains( packet )){
-				
-				transmit_unack_packets.add( packet );
 			}
 			
 				// trigger the retransmit timer if any sent packets have the auto-retransmit property 
@@ -637,7 +632,7 @@ UDPConnectionSet
 		
 		dumpState();
 		
-		log( "Connection::read loc=" + local_port + " - " + remote_address + ",total=" + initial_data.length );
+		log( "Read: total=" + initial_data.length );
 		
 		ByteBuffer	initial_buffer = ByteBuffer.wrap( initial_data );
 		
@@ -732,17 +727,11 @@ UDPConnectionSet
 							return;
 						}
 						
+						log( "Out-of-order packet entry data matched for seq " + seq2 );
+						
 							// got data matching out-of-order-entry, add it in!
-						
-						byte[]	copy = new byte[initial_data.length];
-						
-						System.arraycopy( initial_data, 0, copy, 0, copy.length );
-						
-						ByteBuffer	copy_buffer = ByteBuffer.wrap(copy);
-						
-						copy_buffer.position( 12 );
-						
-						entry[2] = copy_buffer;
+												
+						entry[2] = initial_buffer;
 						
 						oop = true;
 						
@@ -762,7 +751,9 @@ UDPConnectionSet
 						int[]	seq_in = in_seq_generator.getNextSequenceNumber();
 								
 						if ( seq2.intValue() == seq_in[1] ){
-										
+								
+							log( "Out-of-order packet entry adding for seq " + seq_in[1] );
+														
 							receive_out_of_order_packets.add( new Object[]{ seq2, new Integer( seq_in[3]), initial_buffer } );
 							
 							added = true;
@@ -867,7 +858,7 @@ UDPConnectionSet
 					
 					if ( version != PROTOCOL_VERSION ){
 						
-						throw( new IOException( "Invalid protocol version '" + version + "'" ));
+						// throw( new IOException( "Invalid protocol version '" + version + "'" ));
 					}
 					
 					byte	flags = buffer.get();
@@ -967,12 +958,17 @@ UDPConnectionSet
 			
 			packet_buffer.put( buffers[i] );
 		}
-					
-		UDPPacket packet = new UDPPacket( lead_connection, new int[]{ -1, -1, -1, -1 }, COMMAND_CRYPTO, packet_bytes, 0 );	
+			
+		UDPPacket packet_to_send = new UDPPacket( lead_connection, new int[]{ -1, -1, -1, -1 }, COMMAND_CRYPTO, packet_bytes, 0 );	
 		
-		log( "sendCrypto: seq=" + packet.getSequence() + ", len=" + payload_to_send );
+		synchronized( this ){
+			
+			transmit_unack_packets.add( packet_to_send );
+		}
+		
+		log( "sendCrypto: seq=" + packet_to_send.getSequence() + ", len=" + payload_to_send );
 
-		send( packet );
+		send( packet_to_send );
 	
 		return( payload_to_send );
 	}
@@ -1017,7 +1013,7 @@ UDPConnectionSet
 			manager.accept( local_port, remote_address, connection );
 		}
 			
-		log( "readCrypto(" + connection.getID() + ") loc="+local_port + " - " + remote_address + ",rem="+ buffer.remaining() + "[" + Debug.getCompressedStackTrace());
+		log( connection, "readCrypto: rem="+ buffer.remaining());
 
 		connection.receive( buffer );
 	}
@@ -1043,74 +1039,80 @@ UDPConnectionSet
 		
 		ByteBuffer	header_buffer = ByteBuffer.wrap( header );
 		
-		long	unack_in_sequence_count	= current_receive_unack_in_sequence_count;
+		UDPPacket	packet_to_send;
 		
-		int[]	sequence_numbers = writeHeaderStart( header_buffer, COMMAND_DATA );
-		
-		header_buffer.putInt( connection.getID());
-		
-		int header_size = writeHeaderEnd( header_buffer );
-					
-		int	mss = connection.getTransport().getMss();
-
-			// just in case we have some crazy limit set
-		
-		if ( mss < MIN_MSS ){
+		synchronized( this ){
 			
-			mss = MIN_MSS;
-		}
-		
-		if ( payload_to_send > mss - header_size ){
+			long	unack_in_sequence_count	= current_receive_unack_in_sequence_count;
 			
-			payload_to_send	= mss - header_size;
-		}
-		
-		if ( payload_to_send < 0 ){
+			int[]	sequence_numbers = writeHeaderStart( header_buffer, COMMAND_DATA );
 			
-			payload_to_send	= 0;
-		}
+			header_buffer.putInt( connection.getID());
+			
+			int header_size = writeHeaderEnd( header_buffer );
+						
+			int	mss = connection.getTransport().getMss();
+	
+				// just in case we have some crazy limit set
+			
+			if ( mss < MIN_MSS ){
 				
-		byte[]	packet_bytes = new byte[ header_size + payload_to_send ];
-		
-		ByteBuffer packet_buffer = ByteBuffer.wrap( packet_bytes );
-		
-		packet_buffer.put( header, 0, header_size );
-		
-		int	rem = payload_to_send;
-		
-		for (int i=offset;i<offset+length;i++){
+				mss = MIN_MSS;
+			}
 			
-			ByteBuffer	buffer = buffers[i];
+			if ( payload_to_send > mss - header_size ){
+				
+				payload_to_send	= mss - header_size;
+			}
 			
-			int	limit = buffer.limit();
-			
-			try{
-				if ( buffer.remaining() > rem ){
+			if ( payload_to_send < 0 ){
+				
+				payload_to_send	= 0;
+			}
 					
-					buffer.limit( buffer.position() + rem );
+			byte[]	packet_bytes = new byte[ header_size + payload_to_send ];
+			
+			ByteBuffer packet_buffer = ByteBuffer.wrap( packet_bytes );
+			
+			packet_buffer.put( header, 0, header_size );
+			
+			int	rem = payload_to_send;
+			
+			for (int i=offset;i<offset+length;i++){
+				
+				ByteBuffer	buffer = buffers[i];
+				
+				int	limit = buffer.limit();
+				
+				try{
+					if ( buffer.remaining() > rem ){
+						
+						buffer.limit( buffer.position() + rem );
+					}
+					
+					rem -= buffer.remaining();
+					
+					packet_buffer.put( buffer );
+					
+				}finally{
+					
+					buffer.limit( limit );
 				}
 				
-				rem -= buffer.remaining();
-				
-				packet_buffer.put( buffer );
-				
-			}finally{
-				
-				buffer.limit( limit );
+				if ( rem == 0 ){
+					
+					break;
+				}
 			}
+				
+			packet_to_send = new UDPPacket( connection, sequence_numbers, COMMAND_DATA, packet_bytes, unack_in_sequence_count );
 			
-			if ( rem == 0 ){
-				
-				break;
-			}
+			transmit_unack_packets.add( packet_to_send );
 		}
-			
-		UDPPacket packet = new UDPPacket( connection, sequence_numbers, COMMAND_DATA, packet_bytes, unack_in_sequence_count );
-		
 
-		log( "sendData(" + connection.getID() + ") loc="+local_port + " - " + remote_address + ",seq=" + packet.getSequence() + ",data="+ payload_to_send );
+		log( connection, "sendData: seq=" + packet_to_send.getSequence() + ",data="+ payload_to_send );
 
-		send( packet );
+		send( packet_to_send );
 	
 		return( payload_to_send );
 	}
@@ -1171,7 +1173,7 @@ UDPConnectionSet
 			manager.accept( local_port, remote_address, connection );
 		}
 			
-		log( "receiveData(" + connection.getID() + ") loc="+local_port + " - " + remote_address + ",seq=" + sequence + ",data="+ buffer.remaining());
+		log( connection, "receiveData: seq=" + sequence + ",data="+ buffer.remaining());
 
 		connection.receive( buffer );
 	}
@@ -1183,18 +1185,10 @@ UDPConnectionSet
 	
 		throws IOException
 	{
+		UDPPacket	packet_to_send = null;
+
 		synchronized( this ){
-			
-				// we *must* send this packet while synchronized as we may select to reuse and existing
-				// ack packet to convey the latest received packet spliced into it. If we select the packet
-				// and then release the monitor prior to sending then it is possible that the packet will
-				// be removed in the interveening period. This then causes the packet to get re-added
-				// to the unack list where it will incorrectly sit. This behaviour isn't actually fatal
-				// but it can be confusing as a packet keeps being reused until this end of the connection
-				// decides to send one again.
-			
-			UDPPacket	packet_to_send = null;
-			
+									
 				// if there's already an ACK packet outstanding then we just resend that one
 			
 			Iterator	it = transmit_unack_packets.iterator();
@@ -1207,9 +1201,11 @@ UDPConnectionSet
 					
 					if ( total_tick_count - packet.getSendTickCount() >= EXPLICITACK_TICKS ){
 					
-						log( "retransAck " + getName() + ":" + packet.getString());
+						log( packet.getConnection(), "retransAck:" + packet.getString());
 					
 						packet_to_send	= packet;
+						
+						break;
 						
 					}else{
 					
@@ -1258,16 +1254,18 @@ UDPConnectionSet
 				byte[]	packet_bytes = new byte[size];
 				
 				System.arraycopy( header_bytes, 0, packet_bytes, 0, size );
-				
-				log( "sendAck: in_seq=" + receive_last_inorder_sequence + ",out_of_seq=" + oos_str );
-				
+								
 				packet_to_send = new UDPPacket( lead_connection, sequences, COMMAND_ACK, packet_bytes, unack_in_sequence_count );
+									
+				transmit_unack_packets.add( packet_to_send );
+
+				log( lead_connection, "sendAck: in_seq=" + receive_last_inorder_sequence + ",out_of_seq=" + oos_str );
 			}
+		}
 		
-			if ( packet_to_send != null ){
+		if ( packet_to_send != null ){
 				
-				send( packet_to_send );
-			}
+			send( packet_to_send );
 		}
 	}
 
@@ -1323,12 +1321,12 @@ UDPConnectionSet
 			}
 		}
 		
+		log( "receiveAck: in_seq=" + receive_their_last_inorder_sequence + ",out_of_seq=" + oos_str );
+
 		for (int i=0;i<resend_list.size();i++){
 				
 			send((UDPPacket)resend_list.get(i));
-		}
-			
-		log( "receiveAck: in_seq=" + receive_their_last_inorder_sequence + ",out_of_seq=" + oos_str );
+		}			
 	}
 	
 	
@@ -1340,26 +1338,35 @@ UDPConnectionSet
 	{
 		if ( crypto_done ){
 			
-			byte[]	header_bytes = new byte[256];
+			UDPPacket	packet_to_send;
 			
-			ByteBuffer	header = ByteBuffer.wrap( header_bytes );
+			synchronized( this ){
+				
+				byte[]	header_bytes = new byte[256];
+				
+				ByteBuffer	header = ByteBuffer.wrap( header_bytes );
+				
+				long	unack_in_sequence_count	= current_receive_unack_in_sequence_count;
+		
+				int[]	sequences = writeHeaderStart( header, COMMAND_CLOSE );
+				
+				header.putInt( connection.getID());
+				
+				int	size = writeHeaderEnd( header );
+				
+				byte[]	packet_bytes = new byte[size];
+				
+				System.arraycopy( header_bytes, 0, packet_bytes, 0, size );
+				
+				log( connection, "sendClose" );
+				
+				packet_to_send = new UDPPacket( lead_connection, sequences, COMMAND_CLOSE, packet_bytes, unack_in_sequence_count );
+				
+				transmit_unack_packets.add( packet_to_send );
+			}
 			
-			long	unack_in_sequence_count	= current_receive_unack_in_sequence_count;
-	
-			int[]	sequences = writeHeaderStart( header, COMMAND_CLOSE );
-			
-			header.putInt( connection.getID());
-			
-			int	size = writeHeaderEnd( header );
-			
-			byte[]	packet_bytes = new byte[size];
-			
-			System.arraycopy( header_bytes, 0, packet_bytes, 0, size );
-			
-			log( "sendClose: con=" + connection.getID());
-			
-			send( new UDPPacket( lead_connection, sequences, COMMAND_CLOSE, packet_bytes, unack_in_sequence_count ));
-			
+			send( packet_to_send );
+				
 		}else{
 			
 			log( "sendClose: crypto not setup" );
@@ -1529,7 +1536,7 @@ UDPConnectionSet
 		UDPConnection	connection,
 		String			reason )
 	{
-		log( "UDPConnection::close(" + connection.getID() + "): " + reason );
+		log( connection, "close: " + reason );
 		
 		boolean	found;
 		
@@ -1561,7 +1568,7 @@ UDPConnectionSet
 		UDPConnection	connection,
 		Throwable		reason )
 	{
-		log( "UDPConnection::failed(" + connection.getID() + "): " + Debug.getNestedExceptionMessage(reason));
+		log( connection, "Failed: " + Debug.getNestedExceptionMessage(reason));
 	
 			// run a final poll operation to inform any selector listeners of the failure
 			
@@ -1685,10 +1692,22 @@ UDPConnectionSet
 			String timeStamp =
 				"[" +  DateFormat.getDateTimeInstance().format(new Date()) + "] ";        
 	
-			System.out.println( timeStamp + ": " + str );
+			System.out.println( timeStamp + ": " + getName() + ": " + str );
 		}
 	}
 	
+	protected void
+	log(
+		UDPConnection	connection,
+		String			str )
+	{
+		if ( LOG ){
+			String timeStamp =
+				"[" +  DateFormat.getDateTimeInstance().format(new Date()) + "] ";        
+	
+			System.out.println( timeStamp + ": " + getName() + " (" + connection.getID() + "): " + str );
+		}
+	}
 	protected class
 	SequenceGenerator
 	{
@@ -1700,7 +1719,7 @@ UDPConnectionSet
 		private final int[]	alt_seq_memory;
 		private int seq_memory_pos;
 
-		private static final boolean	DEBUG_SEQUENCES	= false;
+		private static final boolean	DEBUG_SEQUENCES	= true;
 		
 		private int debug_seq_in_next	= outgoing?0:1000000;
 		private int debug_seq_out_next	= outgoing?1000000:0;
