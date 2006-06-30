@@ -33,6 +33,7 @@ import java.net.*;
 
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.torrent.*;
@@ -332,24 +333,30 @@ TrackerWebPageResponseImpl
 
 				if ( host_torrent.getStatus() != TRHostTorrent.TS_PUBLISHED && url_sets.length > 0 ){
 				
-					String protocol = torrent_to_send.getAnnounceURL().getProtocol();
-
-					for (int i=0;i<url_sets.length;i++){
-											
-						URL[]	urls = url_sets[i];
+						// if the user has disabled the mangling of urls when hosting then don't do it here
+						// either
+					
+					if ( COConfigurationManager.getBooleanParameter("Tracker Host Add Our Announce URLs")){
 						
-						if ( urls[0].getProtocol().equalsIgnoreCase( protocol )){
+						String protocol = torrent_to_send.getAnnounceURL().getProtocol();
+	
+						for (int i=0;i<url_sets.length;i++){
+												
+							URL[]	urls = url_sets[i];
 							
-							torrent_to_send.setAnnounceURL( urls[0] );
-						
-							torrent_to_send.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
-							
-							for (int j=1;j<urls.length;j++){
+							if ( urls[0].getProtocol().equalsIgnoreCase( protocol )){
 								
-								TorrentUtils.announceGroupsInsertLast( torrent_to_send, new URL[]{ urls[j] });
-							}
+								torrent_to_send.setAnnounceURL( urls[0] );
 							
-							break;
+								torrent_to_send.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
+								
+								for (int j=1;j<urls.length;j++){
+									
+									TorrentUtils.announceGroupsInsertLast( torrent_to_send, new URL[]{ urls[j] });
+								}
+								
+								break;
+							}
 						}
 					}
 				}
