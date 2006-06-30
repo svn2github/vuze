@@ -62,6 +62,7 @@ UDPConnectionSet
 	public static final int MIN_WRITE_PAYLOAD	= MIN_MSS - MAX_HEADER;
 		
 	private UDPConnectionManager	manager;
+	private UDPSelector				selector;
 	private int						local_port;
 	private InetSocketAddress		remote_address;
 	private boolean					outgoing;
@@ -145,12 +146,20 @@ UDPConnectionSet
 	protected
 	UDPConnectionSet(
 		UDPConnectionManager	_manager,
+		UDPSelector				_selector,
 		int						_local_port,
 		InetSocketAddress		_remote_address )
 	{
 		manager			= _manager;
+		selector		= _selector;
 		local_port		= _local_port;
 		remote_address	= _remote_address;
+	}
+	
+	protected UDPSelector
+	getSelector()
+	{
+		return( selector );
 	}
 	
 	protected int

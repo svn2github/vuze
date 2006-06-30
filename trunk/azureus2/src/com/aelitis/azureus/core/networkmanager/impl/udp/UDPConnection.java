@@ -60,6 +60,12 @@ UDPConnection
 		id			= _id;
 	}
 	
+	protected UDPSelector
+	getSelector()
+	{
+		return( set.getSelector());
+	}
+	
 	protected int
 	getID()
 	{

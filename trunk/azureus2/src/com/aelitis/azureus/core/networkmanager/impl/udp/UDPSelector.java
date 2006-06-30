@@ -22,11 +22,13 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.udp;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 
@@ -35,6 +37,8 @@ UDPSelector
 {
 	private List		ready_set	= new LinkedList();
 	private AESemaphore	ready_sem	= new AESemaphore( "UDPSelector" );
+	
+	private volatile boolean destroyed;
 	
 	protected
 	UDPSelector(
@@ -45,9 +49,26 @@ UDPSelector
 			public void
 			runSupport()
 			{
-				while( true ){
+				boolean	quit		= false;
+				long	last_poll	= 0;
+				
+				while( !quit ){
+				
+					if ( destroyed ){
+						
+							// one last dispatch cycle
+						
+						quit	= true;
+					}
 					
-					manager.poll();
+					long	now = SystemTime.getCurrentTime();
+					
+					if ( now < last_poll || now - last_poll >= 100 ){
+						
+						manager.poll();
+						
+						last_poll	= now;
+					}
 					
 					if ( ready_sem.reserve(25)){
 						
@@ -93,6 +114,15 @@ UDPSelector
 	}
 	
 	protected void
+	destroy()
+	{
+		synchronized( ready_set ){
+			
+			destroyed	= true;
+		}
+	}
+	
+	protected void
 	ready(
 		TransportHelper						transport,
 		TransportHelper.selectListener		listener,
@@ -102,6 +132,13 @@ UDPSelector
 		
 		synchronized( ready_set ){
 
+			if( destroyed ){
+				
+				Debug.out( "Selector has been destroyed" );
+				
+				throw( new RuntimeException( "Selector has been destroyed" ));
+			}
+			
 			Iterator	it = ready_set.iterator();
 			
 			while( it.hasNext()){
@@ -138,6 +175,13 @@ UDPSelector
 		
 		synchronized( ready_set ){
 
+			if( destroyed ){
+				
+				Debug.out( "Selector has been destroyed" );
+				
+				throw( new RuntimeException( "Selector has been destroyed" ));
+			}
+		
 			Iterator	it = ready_set.iterator();
 			
 			while( it.hasNext()){

@@ -72,9 +72,10 @@ UDPTransportHelper
 		
 		incoming	= false;
 		
-		selector	= _manager.getSelector();
-
 		connection 	= manager.registerOutgoing( this );
+		
+		selector	= connection.getSelector();
+
 	}
 	
 	protected
@@ -91,7 +92,7 @@ UDPTransportHelper
 	
 		incoming	= true;
 		
-		selector	= _manager.getSelector();
+		selector	= connection.getSelector();
 	}
 	
 	protected void

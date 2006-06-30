@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
@@ -46,7 +47,8 @@ UDPConnectionManager
 {
 	private static final LogIDs LOGID = LogIDs.NET;
 
-	public static final int	TIMER_TICK_MILLIS	= 25;
+	public static final int	TIMER_TICK_MILLIS				= 25;
+	public static final int	THREAD_LINGER_ON_IDLE_PERIOD	= 30*1000;
 	
 	private static final Map	connections = new HashMap();
 	
@@ -57,73 +59,77 @@ UDPConnectionManager
 
 	private NetworkGlue	network_glue;
 	
-	private UDPSelector		selector	= new UDPSelector( this );
+	private UDPSelector		selector;
+	private ProtocolTimer	protocol_timer;
+	private long			idle_start;
 	
 	protected
 	UDPConnectionManager(
 		int		udp_port )
-	{
-		new AEThread( "UDPConnectionManager:timer", true )
-		{
-			public void
-			runSupport()
-			{
-				Thread.currentThread().setPriority( Thread.NORM_PRIORITY + 1 );
-				
-				while( true ){
-					
-					try{
-						Thread.sleep( TIMER_TICK_MILLIS );
-						
-					}catch( Throwable e ){
-						
-					}
-							
-					List	failed_sets = null;
-					
-					synchronized( connections ){
-
-						Iterator	it = connections.values().iterator();
-						
-						while( it.hasNext()){
-							
-							UDPConnectionSet	set = (UDPConnectionSet)it.next();
-							
-							try{
-								set.timerTick();
-								
-							}catch( Throwable e ){
-								
-								if ( failed_sets == null ){
-									
-									failed_sets = new ArrayList();
-								}
-								
-								failed_sets.add( new Object[]{ set, e });
-							}
-						}
-					}
-					
-					if ( failed_sets != null ){
-						
-						for (int i=0;i<failed_sets.size();i++){
-							
-							Object[]	entry = (Object[])failed_sets.get(i);
-							
-							((UDPConnectionSet)entry[0]).failed((Throwable)entry[1]);
-						}
-					}
-				}
-			}
-		}.start();
-		
+	{		
 		network_glue = new NetworkGlueLoopBack( this, udp_port );
 	}
 	
 	protected UDPSelector
-	getSelector()
+	checkThreadCreation()
 	{
+			// called while holding the "connections" monitor
+		
+		if ( selector == null ){
+			
+			if (Logger.isEnabled()){
+				Logger.log(new LogEvent(LOGID, "UDPConnectionManager: activating" ));
+			}
+			
+			System.out.println( "UDPConnectionManager: active" );
+
+			selector = new UDPSelector(this );
+			
+			protocol_timer = new ProtocolTimer();
+		}
+		
 		return( selector );
+	}
+	
+	protected void
+	checkThreadDeath(
+		boolean		connections_running )
+	{
+			// called while holding the "connections" monitor
+
+		if ( connections_running ){
+			
+			idle_start = 0;
+			
+		}else{
+			
+			long	now = SystemTime.getCurrentTime();
+			
+			if ( idle_start == 0 ){
+				
+				idle_start = now;
+				
+			}else if ( idle_start > now ){
+				
+				idle_start = now;
+				
+			}else if ( now - idle_start > THREAD_LINGER_ON_IDLE_PERIOD ){
+				
+				if (Logger.isEnabled()){
+					Logger.log(new LogEvent(LOGID, "UDPConnectionManager: deactivating" ));
+				}
+
+				System.out.println( "UDPConnectionManager: idle" );
+				
+				selector.destroy();
+				
+				selector = null;
+				
+				protocol_timer.destroy();
+				
+				protocol_timer = null;
+			}
+		}
 	}
 	
 	protected void
@@ -188,6 +194,39 @@ UDPConnectionManager
 		}                    
 	}
 	
+	protected UDPConnection
+	registerOutgoing(
+		UDPTransportHelper		helper )
+	
+		throws IOException
+	{
+		int	local_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
+		
+		InetSocketAddress	address = helper.getAddress();
+		
+		String	key = local_port + ":" + address.getAddress().getHostAddress() + ":" + address.getPort();
+		
+		synchronized( connections ){
+			
+			UDPSelector	current_selector	= checkThreadCreation();
+			
+			UDPConnectionSet	connection_set = (UDPConnectionSet)connections.get( key );
+			
+			if ( connection_set == null ){
+				
+				connection_set = new UDPConnectionSet( this, current_selector, local_port, address );
+				
+				connections.put( key, connection_set );
+			}
+			
+			UDPConnection	connection = new UDPConnection( connection_set, allocationConnectionID(), helper );
+			
+			connection_set.add( connection );
+			
+			return( connection  );
+		}
+	}
+	
 	public void
 	receive(
 		int					local_port,
@@ -200,11 +239,13 @@ UDPConnectionManager
 		
 		synchronized( connections ){
 			
+			UDPSelector	current_selector	= checkThreadCreation();
+			
 			connection_set = (UDPConnectionSet)connections.get( key );
 			
 			if ( connection_set == null ){
 				
-				connection_set = new UDPConnectionSet( this, local_port, remote_address );
+				connection_set = new UDPConnectionSet( this, current_selector, local_port, remote_address );
 				
 				connections.put( key, connection_set );
 			}
@@ -317,37 +358,6 @@ UDPConnectionManager
 		}
 	}
 	
-	protected UDPConnection
-	registerOutgoing(
-		UDPTransportHelper		helper )
-	
-		throws IOException
-	{
-		int	local_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
-		
-		InetSocketAddress	address = helper.getAddress();
-		
-		String	key = local_port + ":" + address.getAddress().getHostAddress() + ":" + address.getPort();
-		
-		synchronized( connections ){
-			
-			UDPConnectionSet	connection_set = (UDPConnectionSet)connections.get( key );
-			
-			if ( connection_set == null ){
-				
-				connection_set = new UDPConnectionSet( this, local_port, address );
-				
-				connections.put( key, connection_set );
-			}
-			
-			UDPConnection	connection = new UDPConnection( connection_set, allocationConnectionID(), helper );
-			
-			connection_set.add( connection );
-			
-			return( connection  );
-		}
-	}
-	
 	protected synchronized int
 	allocationConnectionID()
 	{
@@ -360,5 +370,77 @@ UDPConnectionManager
 		}
 		
 		return( id );
+	}
+	
+	protected class
+	ProtocolTimer
+	{
+		private volatile boolean	destroyed;
+		
+		protected 
+		ProtocolTimer()
+		{
+			new AEThread( "UDPConnectionManager:timer", true )
+			{
+				public void
+				runSupport()
+				{
+					Thread.currentThread().setPriority( Thread.NORM_PRIORITY + 1 );
+					
+					while( !destroyed ){
+						
+						try{
+							Thread.sleep( TIMER_TICK_MILLIS );
+							
+						}catch( Throwable e ){
+							
+						}
+								
+						List	failed_sets = null;
+						
+						synchronized( connections ){
+									
+							checkThreadDeath( connections.size() > 0 );
+								
+							Iterator	it = connections.values().iterator();
+							
+							while( it.hasNext()){
+								
+								UDPConnectionSet	set = (UDPConnectionSet)it.next();
+								
+								try{
+									set.timerTick();
+									
+								}catch( Throwable e ){
+									
+									if ( failed_sets == null ){
+										
+										failed_sets = new ArrayList();
+									}
+									
+									failed_sets.add( new Object[]{ set, e });
+								}
+							}
+						}
+						
+						if ( failed_sets != null ){
+							
+							for (int i=0;i<failed_sets.size();i++){
+								
+								Object[]	entry = (Object[])failed_sets.get(i);
+								
+								((UDPConnectionSet)entry[0]).failed((Throwable)entry[1]);
+							}
+						}
+					}
+				}
+			}.start();
+		}
+		
+		protected void
+		destroy()
+		{
+			destroyed	= true;
+		}
 	}
 }
