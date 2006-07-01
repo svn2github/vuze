@@ -378,6 +378,8 @@ UPnPImpl
 			
 			LineNumberReader	lnr = new LineNumberReader( new InputStreamReader( is, "UTF-8" ));
 			
+			Set	ignore_map = null;
+			
 			while( true ){
 				
 				String	line = lnr.readLine();
@@ -394,12 +396,23 @@ UPnPImpl
 					
 					char	c = line.charAt(i);
 				
-					if ( c < 0x20 && c != '\r' ){
+					if ( c < 0x20 && c != '\r' && c != '\t' ){
 						
 						data.append( ' ' );
 						
-						adapter.trace( "    ignoring character " + (int)c + " in xml response" );
+						if ( ignore_map == null ){
+							
+							ignore_map = new HashSet();
+						}
 						
+						Character	cha = new Character(c);
+						
+						if ( !ignore_map.contains( cha )){
+						
+							ignore_map.add( cha );
+							
+							adapter.trace( "    ignoring character(s) " + (int)c + " in xml response" );
+						}
 					}else{
 						
 						data.append( c );

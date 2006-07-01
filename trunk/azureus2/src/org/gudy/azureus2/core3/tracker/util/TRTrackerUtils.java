@@ -50,6 +50,13 @@ TRTrackerUtils
 		return( getAnnounceURLs().length > 0 );
 	}
 	
+	public static boolean
+	isHosting(
+		URL		url )
+	{
+		return( TRTrackerUtilsImpl.isHosting( url ));
+	}
+	
 	public static String
 	getTrackerIP()
 	{

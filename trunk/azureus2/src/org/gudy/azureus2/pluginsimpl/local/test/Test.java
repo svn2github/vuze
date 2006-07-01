@@ -275,83 +275,98 @@ Test
 			
 			endpoint.addUDP( udp_target );
 			
-			GenericMessageConnection	con = reg.createConnection( endpoint );
-			
-			if ( use_sts ){
+			for (int i=0;i<100;i++){
 				
-				con = sec_man.getSTSConnection( 
-					con, my_key,
-					new SEPublicKeyLocator()
-					{
-						public boolean
-						accept(
-							SEPublicKey	other_key )
+				System.out.println( "Test: initiating connection" );
+				
+				final AESemaphore	sem = new AESemaphore( "wait!" );
+				
+				GenericMessageConnection	con = reg.createConnection( endpoint );
+				
+				if ( use_sts ){
+					
+					con = sec_man.getSTSConnection( 
+						con, my_key,
+						new SEPublicKeyLocator()
 						{
-							System.out.println( "acceptKey" );
+							public boolean
+							accept(
+								SEPublicKey	other_key )
+							{
+								System.out.println( "acceptKey" );
+								
+								return( true );
+							}
+						},
+						"test", block_crypto );
+				}
+				
+				con.addListener(
+					new GenericMessageConnectionListener()
+					{
+						public void
+						connected(
+							GenericMessageConnection	connection )
+						{
+							System.out.println( "connected" );
 							
-							return( true );
+							PooledByteBuffer	data = plugin_interface.getUtilities().allocatePooledByteBuffer( "1234".getBytes());
+							
+							try{
+								connection.send( data );
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+							}
 						}
-					},
-					"test", block_crypto );
+						
+						public void
+						receive(
+							GenericMessageConnection	connection,
+							PooledByteBuffer			message )
+						
+							throws MessageException
+						{
+							System.out.println( "receive: " + message.toByteArray().length );
+							
+							/*
+							try{
+								Thread.sleep(1000);
+							}catch( Throwable e ){
+								
+							}
+						
+							PooledByteBuffer	reply = 
+								plugin_interface.getUtilities().allocatePooledByteBuffer( new byte[16*1024]);
+							
+							
+							connection.send( reply );
+							*/
+							
+							connection.close();
+							
+							sem.release();
+						}
+						
+						public void
+						failed(
+							GenericMessageConnection	connection,
+							Throwable 					error )
+						
+							throws MessageException
+						{
+							error.printStackTrace();
+						}
+					});
+				
+	
+				con.connect();
+				
+				sem.reserve();
+				
+				Thread.sleep( 60*1000 );
 			}
-			
-			con.addListener(
-				new GenericMessageConnectionListener()
-				{
-					public void
-					connected(
-						GenericMessageConnection	connection )
-					{
-						System.out.println( "connected" );
-						
-						PooledByteBuffer	data = plugin_interface.getUtilities().allocatePooledByteBuffer( "1234".getBytes());
-						
-						try{
-							connection.send( data );
-							
-						}catch( Throwable e ){
-							
-							e.printStackTrace();
-						}
-					}
-					
-					public void
-					receive(
-						GenericMessageConnection	connection,
-						PooledByteBuffer			message )
-					
-						throws MessageException
-					{
-						System.out.println( "receive: " + message.toByteArray().length );
-						
-						try{
-							Thread.sleep(1000);
-						}catch( Throwable e ){
-							
-						}
-						
-						PooledByteBuffer	reply = 
-							plugin_interface.getUtilities().allocatePooledByteBuffer( new byte[16*1024]);
-						
-						
-						connection.send( reply );
-						
-						// connection.close();
-					}
-					
-					public void
-					failed(
-						GenericMessageConnection	connection,
-						Throwable 					error )
-					
-						throws MessageException
-					{
-						error.printStackTrace();
-					}
-				});
-			
-
-			con.connect();
 			
 		}catch( Throwable e ){
 			

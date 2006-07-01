@@ -610,7 +610,22 @@ TRHostImpl
 			// set the ip override so that we announce ourselves to other peers via the 
 			// real external address, not the local one used to connect to the tracker 
 			
-		tracker_client.setIPOverride( torrent.getAnnounceURL().getHost());
+		URL	announce = torrent.getAnnounceURL();
+		
+		if ( host_add_announce_urls ){
+		
+			tracker_client.setIPOverride( announce.getHost());
+			
+		}else{
+			
+				// prolly a backup tracker, we only want to override the IP if we're hosting it
+			
+			if ( TRTrackerUtils.isHosting( announce )){
+				
+				tracker_client.setIPOverride( announce.getHost());
+
+			}
+		}
 		
 			// hook into the client so that when the announce succeeds after the refresh below
 			// we can force a rescrape to pick up the new status 

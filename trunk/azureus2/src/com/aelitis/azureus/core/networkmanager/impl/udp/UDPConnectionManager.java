@@ -50,7 +50,7 @@ UDPConnectionManager
 	public static final int	TIMER_TICK_MILLIS				= 25;
 	public static final int	THREAD_LINGER_ON_IDLE_PERIOD	= 30*1000;
 	
-	private static final Map	connections = new HashMap();
+	private static final Map	connection_sets = new HashMap();
 	
 	private int next_connection_id;
 
@@ -135,9 +135,9 @@ UDPConnectionManager
 	protected void
 	poll()
 	{
-		synchronized( connections ){
+		synchronized( connection_sets ){
 
-			Iterator	it = connections.values().iterator();
+			Iterator	it = connection_sets.values().iterator();
 			
 			while( it.hasNext()){
 				
@@ -151,7 +151,7 @@ UDPConnectionManager
 		UDPConnectionSet	set,
 		UDPConnection		connection )
 	{
-		synchronized( connections ){
+		synchronized( connection_sets ){
 
 			if ( set.remove( connection )){
 
@@ -161,13 +161,10 @@ UDPConnectionManager
 
 				if ( set.hasFailed()){
 					
-					if ( connections.remove( key ) != null ){
+					if ( connection_sets.remove( key ) != null ){
 						
 						System.out.println( "Connection set " + key + " failed" );
 					}
-				}else{
-					
-					System.out.println( "Connection set " + key + " empty, initiating close sequence" );
 				}
 			}	                          
 		}                    
@@ -177,13 +174,13 @@ UDPConnectionManager
 	failed(
 		UDPConnectionSet	set )
 	{
-		synchronized( connections ){
+		synchronized( connection_sets ){
 
 			InetSocketAddress	remote_address = set.getRemoteAddress();
 
 			String	key = set.getLocalPort() + ":" + remote_address.getAddress().getHostAddress() + ":" + remote_address.getPort();
 					
-			if ( connections.remove( key ) != null ){
+			if ( connection_sets.remove( key ) != null ){
 						
 				System.out.println( "Connection set " + key + " failed" );
 						
@@ -206,17 +203,19 @@ UDPConnectionManager
 		
 		String	key = local_port + ":" + address.getAddress().getHostAddress() + ":" + address.getPort();
 		
-		synchronized( connections ){
+		synchronized( connection_sets ){
 			
 			UDPSelector	current_selector	= checkThreadCreation();
 			
-			UDPConnectionSet	connection_set = (UDPConnectionSet)connections.get( key );
+			UDPConnectionSet	connection_set = (UDPConnectionSet)connection_sets.get( key );
 			
 			if ( connection_set == null ){
 				
 				connection_set = new UDPConnectionSet( this, current_selector, local_port, address );
 				
-				connections.put( key, connection_set );
+				System.out.println( "Created new set - " + connection_set.getName() + ", outgoing" );
+				
+				connection_sets.put( key, connection_set );
 			}
 			
 			UDPConnection	connection = new UDPConnection( connection_set, allocationConnectionID(), helper );
@@ -237,17 +236,19 @@ UDPConnectionManager
 		
 		UDPConnectionSet	connection_set;
 		
-		synchronized( connections ){
+		synchronized( connection_sets ){
 			
 			UDPSelector	current_selector	= checkThreadCreation();
 			
-			connection_set = (UDPConnectionSet)connections.get( key );
+			connection_set = (UDPConnectionSet)connection_sets.get( key );
 			
 			if ( connection_set == null ){
 				
 				connection_set = new UDPConnectionSet( this, current_selector, local_port, remote_address );
 				
-				connections.put( key, connection_set );
+				System.out.println( "Created new set - " + connection_set.getName() + ", incoming" );
+
+				connection_sets.put( key, connection_set );
 			}
 		}
 		
@@ -398,11 +399,11 @@ UDPConnectionManager
 								
 						List	failed_sets = null;
 						
-						synchronized( connections ){
+						synchronized( connection_sets ){
 									
-							checkThreadDeath( connections.size() > 0 );
+							checkThreadDeath( connection_sets.size() > 0 );
 								
-							Iterator	it = connections.values().iterator();
+							Iterator	it = connection_sets.values().iterator();
 							
 							while( it.hasNext()){
 								
@@ -411,6 +412,12 @@ UDPConnectionManager
 								try{
 									set.timerTick();
 									
+									if ( set.idleLimitExceeded()){
+										
+										System.out.println( "Idle limit exceeded for " + set.getName() + ", removing" );
+										
+										it.remove();
+									}
 								}catch( Throwable e ){
 									
 									if ( failed_sets == null ){

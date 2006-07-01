@@ -85,6 +85,11 @@ UDPConnectionSet
 	
 	private long	total_tick_count;
 	
+	private static final int IDLE_TIMER	= 10*1000;
+	private static final int IDLE_TICKS	= Math.max( 1, IDLE_TIMER / UDPConnectionManager.TIMER_TICK_MILLIS );
+	private int idle_ticks = 0;
+
+	
 		// transmit
 
 	private int	total_data_sent		= 0;
@@ -344,6 +349,15 @@ UDPConnectionSet
 		
 		synchronized( this ){
 			
+			if ( connections.size() == 0 ){
+				
+				idle_ticks++;
+				
+			}else{
+				
+				idle_ticks = 0;
+			}
+			
 			total_tick_count++;
 			
 			if ( retransmit_ticks > 0 ){
@@ -376,6 +390,25 @@ UDPConnectionSet
 			
 			sendAckCommand();
 		}
+	}
+	
+	protected boolean
+	idleLimitExceeded()
+	{
+		if ( idle_ticks > IDLE_TICKS ){
+			
+			synchronized( connections ){
+				
+				if ( connections.size() == 0 ){
+				
+					failed	= true;
+					
+					return( true );
+				}
+			}
+		}
+		
+		return( false );
 	}
 	
 	protected UDPPacket
@@ -507,7 +540,7 @@ UDPConnectionSet
 				
 				Object[] entry = (Object[])receive_out_of_order_packets.get(i);
 				
-				oo += (i==0?"":",") + entry[0] + "/" + entry[1] + "/" + entry[2];
+				oo += (i==0?"":",") + entry[0] + "/" + entry[1] + "/" + (entry[2]==null?"mull":String.valueOf(((ByteBuffer)entry[2]).remaining()));
 			}
 			
 			str += ",oo=" + oo;
@@ -761,7 +794,14 @@ UDPConnectionSet
 								
 						if ( seq2.intValue() == seq_in[1] ){
 								
-							log( "Out-of-order packet entry adding for seq " + seq_in[1] );
+							if ( receive_out_of_order_packets.size() == 0 ){
+
+								// this is an in-order packet :)
+
+							}else{
+								
+								log( "Out-of-order packet entry adding for seq " + seq_in[1] );
+							}
 														
 							receive_out_of_order_packets.add( new Object[]{ seq2, new Integer( seq_in[3]), initial_buffer } );
 							
@@ -1060,7 +1100,9 @@ UDPConnectionSet
 			
 			int header_size = writeHeaderEnd( header_buffer );
 						
-			int	mss = connection.getTransport().getMss();
+				// we get to add the header back in here to give the total packet size available
+			
+			int	mss = connection.getTransport().getMss() + UDPNetworkManager.PROTOCOL_HEADER_SIZE;
 	
 				// just in case we have some crazy limit set
 			
@@ -1378,7 +1420,7 @@ UDPConnectionSet
 				
 		}else{
 			
-			log( "sendClose: crypto not setup" );
+			throw( new IOException( "Connection failed during setup phase" ));
 		}
 	}
 	

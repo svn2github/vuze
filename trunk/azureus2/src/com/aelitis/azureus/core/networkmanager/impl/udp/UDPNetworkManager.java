@@ -34,6 +34,8 @@ import com.aelitis.net.udp.uc.PRUDPPacket;
 public class 
 UDPNetworkManager 
 {
+	public static final int	PROTOCOL_HEADER_SIZE	= 40;
+	
 	private static final int MIN_MSS = 128;
 	private static final int MAX_MSS = PRUDPPacket.MAX_PACKET_SIZE;
 	
@@ -47,7 +49,7 @@ UDPNetworkManager
 	{
 			// TODO: adjust this!!!!
 		
-		udp_mss_size = COConfigurationManager.getIntParameter( "network.udp.mtu.size" ) - 40; 	        
+		udp_mss_size = COConfigurationManager.getIntParameter( "network.udp.mtu.size" ) - PROTOCOL_HEADER_SIZE; 	        
 
 	    if( udp_mss_size > min_rate )  udp_mss_size = min_rate - 1;
 	    
