@@ -163,7 +163,7 @@ public class StartStopRulesDefaultPlugin
 		AEDiagnostics.addEvidenceGenerator( this );
 
     startedOn = SystemTime.getCurrentTime();
-    changeCheckerTimer = new Timer("StartStopRules");
+    changeCheckerTimer = new Timer("StartStopRules", 3, 4);
 
     plugin_interface  = _plugin_interface;
 
@@ -439,16 +439,22 @@ public class StartStopRulesDefaultPlugin
                 "somethingChanged: downloadRemoved");
     }
   }
-  
+
+  private long changeCheckCount = 0;
+  private long changeCheckTotalMS = 0;
+  private long changeCheckMaxMS = 0;
+
   private class ChangeCheckerTimerTask implements TimerEventPerformer {
   	long lLastRunTime = 0;
 
   	public void perform(TimerEvent event) {
+  		long now = 0;
+
       // make sure process isn't running and stop it from running while we do stuff
       try{
        	this_mon.enter();
         
-    	long now = SystemTime.getCurrentTime();
+       	now = SystemTime.getCurrentTime();
     	
       	//System.out.println(SystemTime.getCurrentTime() - lLastRunTime);
       	if ( now > lLastRunTime && now - lLastRunTime < 1000){
@@ -490,6 +496,15 @@ public class StartStopRulesDefaultPlugin
         }
 
       }finally{
+      	if (now > 0) {
+	      	changeCheckCount++;
+	      	long timeTaken = (SystemTime.getCurrentTime() - now);
+	      	changeCheckTotalMS += timeTaken;
+	      	if (timeTaken > changeCheckMaxMS) {
+	      		changeCheckMaxMS = timeTaken;
+	      	}
+      	}
+
       	this_mon.exit();
       }
     }
@@ -879,13 +894,17 @@ public class StartStopRulesDefaultPlugin
 		boolean bStopAndQueued;
 	}
 
+  private long processCount = 0;
+  private long processTotalMS = 0;
+  private long processMaxMS = 0;
+  private long processLastComplete = 0;
+  private long processTotalGap = 0;
 	protected void process() {
+		long now = 0;
 		try {
 			this_mon.enter();
 
-			// long  process_time = SystemTime.getCurrentTime();
-
-			boolean bDebugOn = false;
+			now = SystemTime.getCurrentTime();
 
 			// pull the data into a local array, so we don't have to lock/synchronize
 			DefaultRankCalculator[] dlDataArray;
@@ -931,7 +950,6 @@ public class StartStopRulesDefaultPlugin
 			// Loop 2 of 2:
 			// - Start/Stop torrents based on criteria
 
-			boolean bHandlingDLs = true;
 			for (int i = 0; i < dlDataArray.length; i++) {
 				DefaultRankCalculator dlData = dlDataArray[i];
 				Download download = dlData.getDownloadObject();
@@ -966,7 +984,7 @@ public class StartStopRulesDefaultPlugin
 				// Handle incomplete DLs
 				if (!download.isComplete()) {
 					handleInCompleteDownload(dlData, vars, totals);
-				} else if (totals.bOkToStartSeeding) {
+				} else {
 					handleCompletedDownload(dlDataArray, dlData, vars, totals);
 				}
 			} // Loop 2/2 (Start/Stopping)
@@ -989,6 +1007,18 @@ public class StartStopRulesDefaultPlugin
 						"", "", true, null);
 			}
 		} finally {
+    	if (now > 0) {
+      	processCount++;
+      	long timeTaken = (SystemTime.getCurrentTime() - now);
+      	processTotalMS += timeTaken;
+      	if (timeTaken > processMaxMS) {
+      		processMaxMS = timeTaken;
+      	}
+      	if (processLastComplete > 0) {
+      		processTotalGap += (now - processLastComplete);
+      	}
+      	processLastComplete = now;
+    	}
 
 			this_mon.exit();
 		}
@@ -1057,11 +1087,6 @@ public class StartStopRulesDefaultPlugin
 				|| state == Download.ST_PREPARING) {
 			vars.numWaitingOrDLing++;
 		}
-
-		//    if (bDebugOn) {
-		//      System.out.println( "maxActive: " + totals.maxActive + " / activeSeedingCount: " + totals.activeluCDing + " / maxDownloads: " + maxDownloads + " / maxDLs: " + maxDLs + " / DLmax: " + DLmax);
-		//      System.out.println("totalFirstPriority: " + totals.firstPriority + " / totalFPStalledSeeders: " + totals.stalledFPSeeders + " / total0PeerSeeders: "  + totals.zeroPeerSeeders);	        	
-		//    }
 
 		if (state == Download.ST_READY || state == Download.ST_DOWNLOADING
 				|| state == Download.ST_WAITING) {
@@ -1198,6 +1223,9 @@ public class StartStopRulesDefaultPlugin
 	 */
 	private void handleCompletedDownload(DefaultRankCalculator[] dlDataArray,
 			DefaultRankCalculator dlData, ProcessVars vars, TotalsStats totals) {
+		if (!totals.bOkToStartSeeding)
+			return;
+
 		Download download = dlData.dl;
 		int state = download.getState();
 
@@ -1215,12 +1243,11 @@ public class StartStopRulesDefaultPlugin
 		//    c) other
 		// 7) Seeding Torrent changes to Queued.  Go to step 1.
 
-		if (!totals.bOkToStartSeeding)
-			return;
-
 		int numPeers = calcPeersNoUs(download);
+		boolean isFP = false;
 
 		if (bDebugLog) {
+			isFP = dlData.isFirstPriority();
 			debugEntries = new String[] { "CD state=" + sStates.charAt(state),
 					"shareR=" + download.getStats().getShareRatio(),
 					"nWorCDing=" + vars.numWaitingOrSeeding,
@@ -1228,13 +1255,12 @@ public class StartStopRulesDefaultPlugin
 					"sr=" + download.getSeedingRank(),
 					"hgherQd=" + boolDebug(vars.higherCDQueued),
 					"maxCDrs=" + totals.maxSeeders,
-					"FP=" + boolDebug(dlData.isFirstPriority()),
+					"FP=" + boolDebug(isFP),
 					"nActCDing=" + totals.activelyCDing,
 					"ActCDing=" + boolDebug(dlData.getActivelySeeding()) };
 		}
 
 		try {
-			
 			boolean bScrapeOk = scrapeResultOk(download);
 			
 			// Ignore rules and other auto-starting rules do not apply when 
@@ -1278,7 +1304,11 @@ public class StartStopRulesDefaultPlugin
 			}
 			
 	
-			boolean isFP = dlData.isFirstPriority();
+			if (!bDebugLog) {
+				// In debug mode, we already calculated FP
+				isFP = dlData.isFirstPriority();
+			}
+
 			boolean bActivelySeeding = dlData.getActivelySeeding();
 			boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING)
 					&& (!isFP || (isFP && ((totals.maxActive != 0 && vars.numWaitingOrSeeding >= totals.maxSeeders))))
@@ -1489,7 +1519,7 @@ public class StartStopRulesDefaultPlugin
 						"sr=" + download.getSeedingRank(),
 						"hgherQd=" + boolDebug(vars.higherCDQueued),
 						"maxCDrs=" + totals.maxSeeders,
-						"FP=" + boolDebug(dlData.isFirstPriority()),
+						"FP=" + boolDebug(isFP),
 						"nActCDing=" + totals.activelyCDing,
 						"ActCDing=" + boolDebug(dlData.getActivelySeeding()) };
 				printDebugChanges("", debugEntries, debugEntries2, sDebugLine, "  ",
@@ -1625,7 +1655,21 @@ public class StartStopRulesDefaultPlugin
 		try {
 			writer.indent();
 			writer.println("downloadDataMap size = " + downloadDataMap.size());
-			
+			if (changeCheckCount > 0) {
+				writer.println("changeCheck CPU ms: avg="
+						+ (changeCheckTotalMS / changeCheckCount) + "; max = "
+						+ changeCheckMaxMS);
+			}
+
+			if (processCount > 0) {
+				writer.println("process CPU ms: avg=" + (processTotalMS / processCount)
+						+ "; max = " + processMaxMS);
+				if (processCount > 1) {
+					writer.println("process avg gap: "
+							+ (processTotalGap / ((processCount - 1))) + "ms");
+				}
+			}
+
 		} catch (Exception e) {
 			// ignore
 		} finally {
