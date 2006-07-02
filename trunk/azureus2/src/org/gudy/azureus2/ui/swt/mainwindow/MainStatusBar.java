@@ -943,7 +943,7 @@ public class MainStatusBar {
 
 		private long widthSetOn = 0;
 
-		private final int KEEPWIDTHFOR_MS = 30 * 1000;
+		private static final int KEEPWIDTHFOR_MS = 30 * 1000;
 
 		/**
 		 * Default Constructor
