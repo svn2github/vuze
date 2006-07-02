@@ -670,17 +670,17 @@ public class DefaultRankCalculator implements Comparable {
 			return false;
 		}
 
-		// FP only applies to completed
-		if (!dl.isComplete()) {
-			if (rules.bDebugLog)
-				sExplainFP += "Not FP: Download not complete\n";
-			return false;
-		}
-
 		if (dl.getState() == Download.ST_ERROR
 				|| dl.getState() == Download.ST_STOPPED) {
 			if (rules.bDebugLog)
 				sExplainFP += "Not FP: Download is ERROR or STOPPED\n";
+			return false;
+		}
+
+		// FP only applies to completed
+		if (!dl.isComplete()) {
+			if (rules.bDebugLog)
+				sExplainFP += "Not FP: Download not complete\n";
 			return false;
 		}
 
