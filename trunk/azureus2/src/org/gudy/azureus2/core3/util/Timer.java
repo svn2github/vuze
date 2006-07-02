@@ -46,11 +46,20 @@ public class Timer
 	{
 		this( name, 1 );
 	}
-		
+
 	public
 	Timer(
 		String	name,
 		int		thread_pool_size )
+	{
+		this(name, thread_pool_size, Thread.NORM_PRIORITY);
+	}
+
+	public
+	Timer(
+		String	name,
+		int		thread_pool_size,
+		int		thread_priority )
 	{
 		thread_pool = new ThreadPool(name,thread_pool_size);
 	
@@ -59,6 +68,8 @@ public class Timer
 		Thread t = new Thread(this, "Timer:" + name );
 		
 		t.setDaemon( true );
+		
+		t.setPriority(thread_priority);
 			
 		t.start();
 	}
