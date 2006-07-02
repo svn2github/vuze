@@ -113,35 +113,21 @@ AEDiagnostics
 
 			boolean	was_tidy	= COConfigurationManager.getBooleanParameter( CONFIG_KEY );
 			
+			Timer cleanTimer = new Timer("Clean Log Dir");
+			cleanTimer.addEvent(SystemTime.getCurrentTime() + 60000
+					+ (int) (Math.random() * 15000), new TimerEventPerformer() {
+				public void perform(TimerEvent event) {
+					cleanOldLogs();
+				}
+			});
+
 			if ( debug_dir.exists()){
 				
 				long	now = SystemTime.getCurrentTime();
 				
 				debug_save_dir.mkdir();
 				
-					// clear out any really old files in the save-dir
-				
-				File[]	files = debug_save_dir.listFiles();
-
-				if ( files != null ){
-					
-					for (int i=0;i<files.length;i++){
-						
-						File	file = files[i];
-						
-						if ( !file.isDirectory()){
-							
-							long	last_modified = file.lastModified();
-							
-							if ( now - last_modified > 30*24*60*60*1000L ){
-								
-								file.delete();
-							}
-						}
-					}
-				}
-				
-				files = debug_dir.listFiles();
+				File[] files = debug_dir.listFiles();
 				
 				if ( files != null ){
 					
@@ -199,6 +185,35 @@ AEDiagnostics
 		}
 	}
 	
+	/**
+	 * 
+	 */
+	protected static void cleanOldLogs() {
+		long	now = SystemTime.getCurrentTime();
+
+		// clear out any really old files in the save-dir
+
+		File[] files = debug_save_dir.listFiles();
+
+		if (files != null) {
+
+			for (int i = 0; i < files.length; i++) {
+
+				File file = files[i];
+
+				if (!file.isDirectory()) {
+
+					long last_modified = file.lastModified();
+
+					if (now - last_modified > 30 * 24 * 60 * 60 * 1000L) {
+
+						file.delete();
+					}
+				}
+			}
+		}
+	}
+
 	public static synchronized AEDiagnosticsLogger
 	getLogger(
 		String		name )
