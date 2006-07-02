@@ -28,18 +28,17 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StackLayout;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
@@ -66,9 +65,13 @@ public class ConfigView extends AbstractIView {
   StackLayout layoutConfigSection;
   Label lHeader;
   Font headerFont;
+  Font filterFoundFont;
   Tree tree;
   TreeItem treePlugins;
   ArrayList pluginSections;
+
+	private Timer filterDelayTimer;
+	private String filterText = "";
 
   /**
    * Main Initializer
@@ -88,24 +91,26 @@ public class ConfigView extends AbstractIView {
   public void initialize(Composite composite) {
     GridData gridData;
     /*
-    /--cConfig-------------------------------------------------------\
-    | ###SashForm#form############################################## |
-    | # /--tree--\ /--cRightSide---------------------------------\ # |
-    | # |        | | ***cHeader********************************* | # |
-    | # |        | | * lHeader                                 * | # |
-    | # |        | | ******************************************* | # |
-    | # |        | | ###Composite cConfigSection################ | # |
-    | # |        | | #                                         # | # |
-    | # |        | | #                                         # | # |
-    | # |        | | #                                         # | # |
-    | # |        | | #                                         # | # |
-    | # |        | | ########################################### | # |
-    | # \--------/ \---------------------------------------------/ # |
-    | ############################################################## |
-    |  [Button]                                                      |
-    \----------------------------------------------------------------/
+    /--cConfig-----------------------------------------------------------\
+    | ###SashForm#form################################################## |
+    | # /--cLeftSide-\ /--cRightSide---------------------------------\ # |
+    | # | txtFilter  | | ***cHeader********************************* | # |
+    | # | ##tree#### | | * lHeader                                 * | # |
+    | # | #        # | | ******************************************* | # |
+    | # | #        # | | ###Composite cConfigSection################ | # |
+    | # | #        # | | #                                         # | # |
+    | # | #        # | | #                                         # | # |
+    | # | #        # | | #                                         # | # |
+    | # | #        # | | #                                         # | # |
+    | # | ########## | | ########################################### | # |
+    | # \------------/ \---------------------------------------------/ # |
+    | ################################################################## |
+    |  [Button]                                                          |
+    \--------------------------------------------------------------------/
     */
     try {
+      Display d = composite.getDisplay();
+
       cConfig = new Composite(composite, SWT.NONE);
       GridLayout configLayout = new GridLayout();
       configLayout.marginHeight = 0;
@@ -117,9 +122,52 @@ public class ConfigView extends AbstractIView {
       SashForm form = new SashForm(cConfig,SWT.HORIZONTAL);
       gridData = new GridData(GridData.FILL_BOTH);
       form.setLayoutData(gridData);
+      
+      Composite cLeftSide = new Composite(form, SWT.BORDER);
+      gridData = new GridData(GridData.FILL_BOTH);
+      cLeftSide.setLayoutData(gridData);
+      
+      FormLayout layout = new FormLayout();
+      cLeftSide.setLayout(layout);
+      
+      final Text txtFilter = new Text(cLeftSide, SWT.BORDER);
+      final String sFilterText = MessageText.getString("ConfigView.filter");
+      txtFilter.setText(sFilterText);
+      txtFilter.selectAll();
+      txtFilter.addModifyListener(new ModifyListener() {
+      	public void modifyText(ModifyEvent e) {
+      		filterTree(txtFilter.getText());
+      	}
+      });
+      txtFilter.addMouseListener(new MouseAdapter() {
+				public void mouseDown(MouseEvent e) {
+					if (txtFilter.getText().equals(sFilterText)) {
+						txtFilter.selectAll();
+					}
+				}
+			});
+      txtFilter.setFocus();
+      
   
-      tree = new Tree(form, SWT.BORDER);
-      tree.setLayout(new FillLayout());
+      tree = new Tree(cLeftSide, SWT.NONE);
+      FontData[] fontData = tree.getFont().getFontData();
+      fontData[0].setStyle(SWT.BOLD);
+      filterFoundFont = new Font(d, fontData);
+      
+      cLeftSide.setBackground(tree.getBackground());
+      
+      FormData formData = new FormData();
+      formData.top = new FormAttachment(0,5);
+      formData.left = new FormAttachment(0,5);
+      formData.right = new FormAttachment(100,-5);
+      txtFilter.setLayoutData(formData);
+
+      formData = new FormData();
+      formData.top = new FormAttachment(txtFilter,5);
+      formData.left = new FormAttachment(0,0);
+      formData.right = new FormAttachment(100,0);
+      formData.bottom = new FormAttachment(100,0);
+      tree.setLayoutData(formData);
   
       Composite cRightSide = new Composite(form, SWT.NULL);
       configLayout = new GridLayout();
@@ -136,14 +184,13 @@ public class ConfigView extends AbstractIView {
       gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
       cHeader.setLayoutData(gridData);
   
-      Display d = cRightSide.getDisplay();
       cHeader.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
       cHeader.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
   
       lHeader = new Label(cHeader, SWT.NULL);
       lHeader.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
       lHeader.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
-      FontData[] fontData = lHeader.getFont().getFontData();
+      fontData = lHeader.getFont().getFontData();
       fontData[0].setStyle(SWT.BOLD);
       int fontHeight = (int)(fontData[0].getHeight() * 1.2);
       fontData[0].setHeight(fontHeight);
@@ -203,6 +250,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionTransferAutoSpeed(),
                                          new ConfigSectionTransferLAN(),
                                          new ConfigSectionFile(), 
+                                         new ConfigSectionFileMove(),
                                          new ConfigSectionFileTorrents(),
                                          new ConfigSectionFilePerformance(),
                                          new ConfigSectionInterface(),
@@ -334,7 +382,125 @@ public class ConfigView extends AbstractIView {
     showSection(items[0]);
   }
 
-  private void showSection(TreeItem section) {
+  /**
+	 * @param text
+	 */
+	protected void filterTree(String text) {
+		filterText = text;
+		if (filterDelayTimer != null) {
+			filterDelayTimer.destroy();
+		}
+
+		filterDelayTimer = new Timer("Filter");
+		filterDelayTimer.addEvent(SystemTime.getCurrentTime() + 300,
+				new TimerEventPerformer() {
+					public void perform(TimerEvent event) {
+						filterDelayTimer.destroy();
+						filterDelayTimer = null;
+
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								// TODO Auto-generated method stub
+								ArrayList foundItems = new ArrayList();
+								TreeItem[] items = tree.getItems();
+								try {
+									tree.setRedraw(false);
+									for (int i = 0; i < items.length; i++) {
+										items[i].setExpanded(false);
+									}
+
+									filterTree(items, filterText, foundItems);
+								} finally {
+									tree.setRedraw(true);
+								}
+							}
+						});
+					}
+				});
+	}
+
+	protected void filterTree(TreeItem[] items, String text, ArrayList foundItems)
+	{
+		text = text.toLowerCase();
+		for (int i = 0; i < items.length; i++) {
+			ensureSectionBuilt(items[i]);
+			ScrolledComposite composite = (ScrolledComposite) items[i].getData("Panel");
+
+			if (text.length() > 0
+					&& (items[i].getText().toLowerCase().indexOf(text) >= 0 || compositeHasText(
+							composite, text))) {
+				foundItems.add(items[i]);
+
+				ensureExpandedTo(items[i]);
+				items[i].setFont(filterFoundFont);
+			} else {
+				items[i].setFont(null);
+			}
+			filterTree(items[i].getItems(), text, foundItems);
+		}
+	}
+	
+	private void ensureExpandedTo(TreeItem item) {
+    TreeItem itemParent = item.getParentItem();
+  	if (itemParent != null) {
+  		itemParent.setExpanded(true);
+  		ensureExpandedTo(itemParent);
+  	}
+	}
+
+	/**
+	 * @param composite 
+	 * @param text
+	 * @return
+	 */
+	private boolean compositeHasText(Composite composite, String text) {
+		Control[] children = composite.getChildren();
+		
+		for (int i = 0; i < children.length; i++) {
+			Control child = children[i];
+			if (child instanceof Label) {
+				if (((Label)child).getText().toLowerCase().indexOf(text) >= 0) {
+					return true;
+				}
+			} else if (child instanceof Group) {
+				if (((Group)child).getText().toLowerCase().indexOf(text) >= 0) {
+					return true;
+				}
+			} else if (child instanceof Button) {
+				if (((Button)child).getText().toLowerCase().indexOf(text) >= 0) {
+					return true;
+				}
+			}
+
+			if (child instanceof Composite) {
+				if (compositeHasText((Composite) child, text)) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+
+	private void showSection(TreeItem section) {
+    ScrolledComposite item = (ScrolledComposite)section.getData("Panel");
+
+    if (item != null) {
+    	
+    	ensureSectionBuilt(section);
+    	
+      layoutConfigSection.topControl = item;
+      
+      Composite c = (Composite)item.getContent();
+      
+      item.setMinSize(c.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+      cConfigSection.layout();
+      
+      updateHeader(section);
+    }
+  }
+	
+	private void ensureSectionBuilt(TreeItem section) {
     ScrolledComposite item = (ScrolledComposite)section.getData("Panel");
 
     if (item != null) {
@@ -361,19 +527,9 @@ public class ConfigView extends AbstractIView {
         }
         
         item.setContent(c);
-        
-        c.layout();
       }
-      layoutConfigSection.topControl = item;
-      
-      Composite c = (Composite)item.getContent();
-      
-      item.setMinSize(c.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-      cConfigSection.layout();
-      
-      updateHeader(section);
     }
-  }
+	}
 
   private void updateHeader(TreeItem section) {
     if (section == null)
@@ -561,10 +717,9 @@ public class ConfigView extends AbstractIView {
     }
     Utils.disposeComposite(cConfig);
 
-  	if (headerFont != null && !headerFont.isDisposed()) {
-  		headerFont.dispose();
-  		headerFont = null;
-  	}
+  	Utils.disposeSWTObjects(new Object[] { headerFont, filterFoundFont });
+		headerFont = null;
+		filterFoundFont = null;
   }
 
   public String getFullTitle() {
