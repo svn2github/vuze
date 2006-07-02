@@ -25,6 +25,8 @@ package org.gudy.azureus2.ui.swt.views.table;
 
 import org.eclipse.swt.graphics.*;
 
+import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
+
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 
@@ -134,4 +136,9 @@ public interface TableCellCore
 	 * @return
 	 */
 	Color getForeground();
+
+	/**
+	 * @return
+	 */
+	BufferedTableItem getBufferedTableItem();
 }

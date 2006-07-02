@@ -41,15 +41,13 @@ public interface BufferedTableItem
 
 	public abstract void setRowForeground(Color color);
 
-	public abstract boolean setItemForeground(Color color);
+	public abstract boolean setForeground(Color color);
 
-	public abstract boolean setItemForeground(int red, int green, int blue);
+	public abstract boolean setForeground(int red, int green, int blue);
 
 	public abstract Color getBackground();
 
 	public abstract Rectangle getBounds();
-
-	public abstract Table getTable();
 
 	public abstract void refresh();
 
@@ -70,8 +68,6 @@ public interface BufferedTableItem
 
 	public abstract int getPosition();
 
-	public abstract String getColumnName();
-
 	/**
 	 * 
 	 */
@@ -80,6 +76,6 @@ public interface BufferedTableItem
 	/**
 	 * @return
 	 */
-	Color getItemForeground();
+	public abstract Color getForeground();
 
 }

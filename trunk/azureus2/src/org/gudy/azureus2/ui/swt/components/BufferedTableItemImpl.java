@@ -63,7 +63,7 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		row.setForeground(color);
 	}
 
-	public boolean setItemForeground(Color color) {
+	public boolean setForeground(Color color) {
 		if (position == -1)
 			return false;
 
@@ -81,14 +81,14 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		return ok;
 	}
 	
-	public Color getItemForeground() {
+	public Color getForeground() {
 		if (position == -1)
 			return null;
 
 		return row.getForeground(position);
 	}
 
-	public boolean setItemForeground(int red, int green, int blue) {
+	public boolean setForeground(int red, int green, int blue) {
 		if (position == -1)
 			return false;
 
@@ -151,17 +151,6 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		return position;
 	}
 
-	public String getColumnName() {
-		if (!isShown())
-			return null;
-		Table table = row.getTable();
-		if (table != null && !table.isDisposed() && position >= 0
-				&& position < table.getColumnCount())
-			return table.getColumn(position).getText();
-
-		return null;
-	}
-	
 	public Image getBackgroundImage() {
 		Table table = row.getTable();
 		

@@ -36,6 +36,7 @@ import org.eclipse.swt.graphics.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -188,10 +189,12 @@ public class TableCellImpl
   }
 
   private void pluginError(Throwable e) {
+    String sTitleLanguageKey = tableColumn.getTitleLanguageKey();
+
     String sPosition = (bufferedTableItem == null) 
       ? "null" 
       : "" + bufferedTableItem.getPosition() + 
-        " (" + bufferedTableItem.getColumnName() + ")";
+        " (" + MessageText.getString(sTitleLanguageKey) + ")";
     Logger.log(new LogEvent(LOGID, "Table Cell Plugin for Column #" + sPosition
 				+ " generated an exception ", e));
   }
@@ -227,7 +230,7 @@ public class TableCellImpl
   public Color getForeground() {
   	checkCellForSetting();
 
-    return bufferedTableItem.getItemForeground();
+    return bufferedTableItem.getForeground();
   }
   
   public boolean setForeground(Color color) {
@@ -237,7 +240,7 @@ public class TableCellImpl
   	if (!tableRow.isVisible())
   		return false;
 
-    return bufferedTableItem.setItemForeground(color);
+    return bufferedTableItem.setForeground(color);
   }
   
   public boolean setForeground(int red, int green, int blue) {
@@ -247,7 +250,7 @@ public class TableCellImpl
   	if (!tableRow.isVisible())
   		return false;
 
-    return bufferedTableItem.setItemForeground(red, green, blue);
+    return bufferedTableItem.setForeground(red, green, blue);
   }
 
   public boolean setText(String text) {
@@ -875,5 +878,9 @@ public class TableCellImpl
 
 	public Image getBackgroundImage() {
   	return bufferedTableItem.getBackgroundImage();
+	}
+	
+	public BufferedTableItem getBufferedTableItem() {
+		return bufferedTableItem;
 	}
 }
