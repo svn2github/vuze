@@ -31,29 +31,31 @@ public class
 TRTrackerServerPeerImpl
 	implements TRTrackerServerPeer, HostNameToIPResolverListener, TRTrackerServerNatCheckerListener
 {	
-	protected HashWrapper	peer_id;
-	protected int			key_hash_code;
+	private HashWrapper	peer_id;
+	private int			key_hash_code;
 	
-	protected byte[]		ip;
-	protected int			port;
-	protected String		ip_str;
-	protected byte[]		ip_bytes;
-	protected byte			NAT_status	= NAT_CHECK_UNKNOWN;
+	private byte[]		ip;
+	private boolean		ip_override;
+	private int			port;
+	private String		ip_str;
+	private byte[]		ip_bytes;
+	private byte		NAT_status	= NAT_CHECK_UNKNOWN;
 	
-	protected long			timeout;
+	private long		timeout;
 	
-	protected long			uploaded;
-	protected long			downloaded;
-	protected long			amount_left;
+	private long		uploaded;
+	private long		downloaded;
+	private long		amount_left;
 	
-	protected long			last_contact_time;
-	protected boolean		download_completed;
+	private long		last_contact_time;
+	private boolean		download_completed;
 	
 	protected
 	TRTrackerServerPeerImpl(
 		HashWrapper	_peer_id,
 		int			_key_hash_code,
 		byte[]		_ip,
+		boolean		_ip_override,
 		int			_port,
 		long		_last_contact_time,
 		boolean		_download_completed,
@@ -62,6 +64,7 @@ TRTrackerServerPeerImpl
 		peer_id				= _peer_id;
 		key_hash_code		= _key_hash_code;
 		ip					= _ip;
+		ip_override			= _ip_override;
 		port				= _port;
 		last_contact_time	= _last_contact_time;
 		download_completed	= _download_completed;
@@ -234,6 +237,12 @@ TRTrackerServerPeerImpl
 	getIP()
 	{		
 		return( ip_str );
+	}
+	
+	protected boolean
+	isIPOverride()
+	{
+		return( ip_override );
 	}
 	
 		/**

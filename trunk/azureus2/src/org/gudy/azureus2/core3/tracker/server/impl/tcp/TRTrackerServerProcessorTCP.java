@@ -262,7 +262,8 @@ TRTrackerServerProcessorTCP
 				boolean		compact			= false;
 				String		key				= null;
 				
-				String		client_ip_address	= client_address.getAddress().getHostAddress();
+				String		real_ip_address		= client_address.getAddress().getHostAddress();
+				String		client_ip_address	= real_ip_address;
 				
 				while(pos < str.length()){
 						
@@ -344,6 +345,21 @@ TRTrackerServerProcessorTCP
 							
 					}else if ( lhs.equals( "ip" )){
 							
+						if ( AENetworkClassifier.categoriseAddress( rhs ) == AENetworkClassifier.AT_PUBLIC ){
+	
+								// only accept public resolved addresses
+							
+							for (int i=0;i<rhs.length();i++){
+								
+								char	c = rhs.charAt(i);
+								
+								if ( c != '.' && !Character.isDigit( c )){
+									
+									throw( new Exception( "IP override address must be resolved by the client" ));
+								}
+							}
+						}
+						
 						client_ip_address = rhs;
 						
 					}else if ( lhs.equals( "uploaded" )){
@@ -394,6 +410,7 @@ TRTrackerServerProcessorTCP
 							peer_id, no_peer_id, compact, key, 
 							event,
 							port,
+							real_ip_address,
 							client_ip_address,
 							downloaded, uploaded, left,
 							num_want );

@@ -54,6 +54,7 @@ TRTrackerServerProcessor
 		String						key,
 		String						event,
 		int							port,
+		String						real_ip_address,
 		String						client_ip_address,
 		long						downloaded,
 		long						uploaded,
@@ -63,8 +64,21 @@ TRTrackerServerProcessor
 		throws TRTrackerServerException
 	{
 		server	= _server;
-				
-			// translate any 127.0.0.1 local addresses back to the tracker address
+			
+		boolean	ip_override = real_ip_address != client_ip_address;
+		
+		boolean	loopback	= TRTrackerUtils.isLoopback( real_ip_address );
+		
+		if ( loopback ){
+					
+				// any override is purely for routing purposes for loopback connections and we don't
+				// want to apply the ip-override precedence rules against us 
+						
+			ip_override	= false;
+		}
+		
+			// translate any 127.0.0.1 local addresses back to the tracker address. Note this
+			// fixes up .i2p and onion addresses back to their real values when needed
 		
 		client_ip_address = TRTrackerUtils.adjustHostFromHosting( client_ip_address );
 		
@@ -91,9 +105,7 @@ TRTrackerServerProcessor
 				throw( new TRTrackerServerException( "Network '" + network + "' not supported" ));
 			}
 		}
-		
-		boolean	loopback	= client_ip_address.equals( TRTrackerUtils.getTrackerIP());
-		
+				
 		TRTrackerServerTorrentImpl	torrent = null;
 		
 		if ( request_type != TRTrackerServerRequest.RT_FULL_SCRAPE ){
@@ -147,7 +159,8 @@ TRTrackerServerProcessor
 				TRTrackerServerPeerImpl peer = 
 					torrent.peerContact( 	
 						request,
-						event, peer_id, port, client_ip_address, loopback, key,
+						event, peer_id, port, 
+						client_ip_address, ip_override, loopback, key,
 						uploaded, downloaded, left,
 						interval );
 				

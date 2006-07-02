@@ -28,7 +28,9 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 
 import java.util.*;
 import java.io.*;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
@@ -122,6 +124,7 @@ TRTrackerServerTorrentImpl
 		HashWrapper	peer_id,
 		int			port,
 		String		ip_address,
+		boolean		ip_override,
 		boolean		loopback,
 		String		tracker_key,
 		long		uploaded,
@@ -134,6 +137,21 @@ TRTrackerServerTorrentImpl
 		if ( !enabled ){
 			
 			throw( new TRTrackerServerException( "Torrent temporarily disabled" ));
+		}
+		
+			// we can safely resolve the client_ip_address here as it is either already resolved or that of
+			// the tracker. We need it resolved so we canonically store peers, otherwise we can get two 
+			// entries for a dns name and the corresponding ip
+
+		if ( !HostNameToIPResolver.isNonDNSName( ip_address )){
+		
+			try{
+				ip_address	= HostNameToIPResolver.syncResolve( ip_address ).getHostAddress();
+			
+			}catch( UnknownHostException e ){
+				
+				Debug.printStackTrace( e );
+			}
 		}
 		
 		TRTrackerServerException	deferred_failure = null;
@@ -200,7 +218,16 @@ TRTrackerServerTorrentImpl
 				TRTrackerServerPeerImpl old_peer	= (TRTrackerServerPeerImpl)peer_reuse_map.get( reuse_key );
 								
 				if ( old_peer != null ){
-									
+							
+						// don't allow an ip_override to grab a non-override entry as this is a way for 
+						// a malicious client to remove, say, a seed (simply send in a "stopped" command
+						// with override set to the seed you want to remove)
+					
+					if ( ip_override && !old_peer.isIPOverride()){
+						
+						throw( new TRTrackerServerException( "IP Override denied" ));
+					}
+					
 					last_contact_time	= old_peer.getLastContactTime();
 					
 					already_completed	= old_peer.getDownloadCompleted();
@@ -238,6 +265,7 @@ TRTrackerServerTorrentImpl
 									peer_id, 
 									tracker_key_hash_code, 
 									ip_address_bytes,
+									ip_override,
 									port,
 									last_contact_time,
 									already_completed,
@@ -261,6 +289,13 @@ TRTrackerServerTorrentImpl
 					
 				}
 				
+					// prevent an ip_override peer from affecting a non-override entry
+				
+				if ( ip_override && !peer.isIPOverride()){
+					
+					throw( new TRTrackerServerException( "IP Override denied" ));
+				}
+
 				already_completed	= peer.getDownloadCompleted();
 				
 				last_contact_time	= peer.getLastContactTime();
@@ -1261,7 +1296,7 @@ TRTrackerServerTorrentImpl
 	protected void
 	handleRedirects(
 		String	url_parameters,
-		String	ip_address,
+		String	real_ip_address,
 		boolean	scrape )
 	
 		throws TRTrackerServerException
@@ -1275,7 +1310,7 @@ TRTrackerServerTorrentImpl
 				throw( new TRTrackerServerException( "redirection recursion not supported" ));
 			}
 			
-			URL	redirect = redirects[ip_address.hashCode()%redirects.length];
+			URL	redirect = redirects[real_ip_address.hashCode()%redirects.length];
 			
 			Map	headers = new HashMap();
 			

@@ -306,6 +306,14 @@ TRTrackerUtilsImpl
 		return( host_in );
 	}
 	
+	public static boolean
+	isLoopback(
+		String	host )
+	{
+		return( host.equals( "127.0.0.1")  || host.equals( bind_ip ));
+	}
+	
+	
 	public static void
 	checkForBlacklistedURLs(
 		URL		url )

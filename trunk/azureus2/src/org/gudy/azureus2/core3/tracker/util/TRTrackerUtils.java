@@ -57,6 +57,13 @@ TRTrackerUtils
 		return( TRTrackerUtilsImpl.isHosting( url ));
 	}
 	
+	public static boolean
+	isLoopback(
+		String	host )
+	{
+		return( TRTrackerUtilsImpl.isLoopback( host ));
+	}
+	
 	public static String
 	getTrackerIP()
 	{
@@ -73,7 +80,7 @@ TRTrackerUtils
 	adjustURLForHosting(
 		URL		url_in )
 	{
-		return( TRTrackerUtilsImpl.adjustURLForHosting(url_in ));
+		return( TRTrackerUtilsImpl.adjustURLForHosting( url_in ));
 	}
 
 	public static String
