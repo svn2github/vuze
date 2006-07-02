@@ -118,6 +118,7 @@ AEDiagnostics
 					+ (int) (Math.random() * 15000), new TimerEventPerformer() {
 				public void perform(TimerEvent event) {
 					cleanOldLogs();
+					event.timer.destroy();
 				}
 			});
 
