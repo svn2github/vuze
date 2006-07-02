@@ -101,10 +101,15 @@ public class Utils {
    * @param disposeList
    */
   public static void disposeSWTObjects(List disposeList) {
+  	disposeSWTObjects(disposeList.toArray());
+		disposeList.clear();
+  }
+
+  public static void disposeSWTObjects(Object[] disposeList) {
   	boolean bResourceObjectExists = SWT.getVersion() >= 3129;
   	
-		for (int i = 0; i < disposeList.size(); i++) {
-			Object o = disposeList.get(i);
+		for (int i = 0; i < disposeList.length; i++) {
+			Object o = disposeList[i];
 			if (o instanceof Widget && !((Widget) o).isDisposed())
 				((Widget) o).dispose();
 			else if (bResourceObjectExists && (o instanceof Resource)
@@ -133,7 +138,6 @@ public class Utils {
 				// Resource
 			}
 		}
-		disposeList.clear();
   }
   
   /**
