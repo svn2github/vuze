@@ -25,28 +25,23 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
-import org.gudy.azureus2.ui.swt.Messages;
+
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
 public class ConfigSectionFile implements UISWTConfigSection {
   public String configSectionGetParentSection() {
@@ -77,6 +72,67 @@ public class ConfigSectionFile implements UISWTConfigSection {
 
     
     int userMode = COConfigurationManager.getIntParameter("User Mode");
+
+    // Default Dir Sction
+    Group gDefaultDir = new Group(gFile, SWT.NONE);
+    Messages.setLanguageText(gDefaultDir, "ConfigView.section.file.defaultdir.section");
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    layout.marginHeight = 0;
+    gDefaultDir.setLayout(layout);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
+    gDefaultDir.setLayoutData(gridData);
+
+    // Save Path
+    Label lblDefaultDir = new Label(gDefaultDir, SWT.NONE);
+    Messages.setLanguageText(lblDefaultDir, "ConfigView.section.file.defaultdir.ask");
+    lblDefaultDir.setLayoutData(new GridData());
+    
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    final StringParameter pathParameter = new StringParameter(gDefaultDir, "Default save path" );
+    pathParameter.setLayoutData(gridData);
+
+    Button browse = new Button(gDefaultDir, SWT.PUSH);
+    browse.setImage(imgOpenFolder);
+    imgOpenFolder.setBackground(browse.getBackground());
+    browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+
+    browse.addListener(SWT.Selection, new Listener() {
+      /* (non-Javadoc)
+       * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+       */
+      public void handleEvent(Event event) {
+        DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
+        dialog.setFilterPath(pathParameter.getValue());
+        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaultsavepath"));
+        String path = dialog.open();
+        if (path != null) {
+          pathParameter.setValue(path);
+        }
+      }
+    });
+    
+    // def dir: autoSave
+    BooleanParameter autoSaveToDir = new BooleanParameter(gDefaultDir,
+				"Use default data dir", "ConfigView.section.file.defaultdir.auto");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    autoSaveToDir.setLayoutData(gridData);
+    
+    // def dir: best guess
+    BooleanParameter bestGuess = new BooleanParameter(gDefaultDir,
+				"DefaultDir.BestGuess", "ConfigView.section.file.defaultdir.bestguess");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    bestGuess.setLayoutData(gridData);
+
+    IAdditionalActionPerformer aapDefaultDirStuff = new ChangeSelectionActionPerformer(
+				bestGuess.getControls(), true);
+    autoSaveToDir.setAdditionalActionPerformer(aapDefaultDirStuff);
+    
+    
+    ////////////////////
     
     BooleanParameter zeroNew = null;
     
@@ -218,66 +274,6 @@ public class ConfigSectionFile implements UISWTConfigSection {
       save_peers.setAdditionalActionPerformer(f_enabler);
 
     } //end usermode>0
-      
-      
-    // savepath
-    BooleanParameter saveDefault = new BooleanParameter(gFile, "Use default data dir",
-                                                        "ConfigView.label.defaultsavepath");
-
-    Composite cSave = new Composite(gFile, SWT.NULL);
-      gridData = new GridData(GridData.FILL_HORIZONTAL);
-      cSave.setLayoutData(gridData);
-      layout = new GridLayout();
-      layout.marginHeight = 0;
-      layout.marginWidth = 0;
-      layout.numColumns = 2;
-      cSave.setLayout(layout);
-
-      gridData = new GridData(GridData.FILL_HORIZONTAL);
-      final StringParameter pathParameter = new StringParameter(cSave, "Default save path" );
-      pathParameter.setLayoutData(gridData);
-
-      Button browse = new Button(cSave, SWT.PUSH);
-      browse.setImage(imgOpenFolder);
-      imgOpenFolder.setBackground(browse.getBackground());
-      browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
-
-      browse.addListener(SWT.Selection, new Listener() {
-        /* (non-Javadoc)
-         * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-         */
-        public void handleEvent(Event event) {
-          DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
-          dialog.setFilterPath(pathParameter.getValue());
-          dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaultsavepath"));
-          String path = dialog.open();
-          if (path != null) {
-            pathParameter.setValue(path);
-          }
-        }
-      });
-
-      Control[] controls2 = new Control[2];
-      controls2[0] = pathParameter.getControl();
-      controls2[1] = browse;
-      IAdditionalActionPerformer defaultSave = new ChangeSelectionActionPerformer(controls2);
-      saveDefault.setAdditionalActionPerformer(defaultSave);
-
-    // Move on complete / deletion.
-    createMoveOnEventGrouping(gFile, "ConfigView.label.movecompleted", "Move Completed When Done", "Completed Files Directory", "Move Torrent When Done", "Move Only When In Default Save Dir", null);
-    createMoveOnEventGrouping(gFile, "ConfigView.label.moveremoved", "File.move.download.removed.enabled", "File.move.download.removed.path", "File.move.download.removed.move_torrent", "File.move.download.removed.only_in_default", "File.move.download.removed.move_partial");
-    
- 
-      if( userMode > 0 ) {
-      	// copy rather than move
-      
-      	BooleanParameter copyDontMove = 
-      		new BooleanParameter(	gFile, "Copy And Delete Data Rather Than Move", false,
-      								"ConfigView.label.copyanddeleteratherthanmove");
-      	gridData = new GridData();
-      	gridData.horizontalSpan = 2;
-      	copyDontMove.setLayoutData(gridData);
-      }
 
       if( userMode > 0 ) {   	
       	// Auto-Prioritize
@@ -336,87 +332,5 @@ public class ConfigSectionFile implements UISWTConfigSection {
     }
 
     return gFile;
-  }
-  
-  private void createMoveOnEventGrouping(final Composite gFile, String enable_section_label,
-		  String move_when_done_setting, String move_path_setting,
-		  String move_torrent_setting, String move_when_in_save_dir_setting, 
-		  String move_partial_downloads_setting) {
-	  
-	  
-	  Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
-	    
-	    BooleanParameter moveCompleted = new BooleanParameter(gFile, move_when_done_setting, false,
-	                                                          enable_section_label);
-	    GridData gridData = new GridData();
-	    GridLayout layout = null;
-	    gridData.horizontalSpan = 2;
-	    moveCompleted.setLayoutData(gridData);
-
-	    Composite gMoveCompleted = new Composite(gFile, SWT.NULL);
-	      gridData = new GridData(GridData.FILL_HORIZONTAL);
-	      gridData.horizontalIndent = 25;
-	      gridData.horizontalSpan = 2;
-	      gMoveCompleted.setLayoutData(gridData);
-	      layout = new GridLayout();
-	      layout.marginHeight = 0;
-	      layout.marginWidth = 4;
-	      layout.numColumns = 3;
-	      gMoveCompleted.setLayout(layout);
-
-	      Label lDir = new Label(gMoveCompleted, SWT.NULL);
-	      Messages.setLanguageText(lDir, "ConfigView.label.directory");
-
-	      gridData = new GridData(GridData.FILL_HORIZONTAL);
-	      final StringParameter movePath = new StringParameter(gMoveCompleted,
-	    		  move_path_setting, "");
-	      movePath.setLayoutData(gridData);
-
-	      Button browse3 = new Button(gMoveCompleted, SWT.PUSH);
-	      browse3.setImage(imgOpenFolder);
-	      imgOpenFolder.setBackground(browse3.getBackground());
-	      browse3.setToolTipText(MessageText.getString("ConfigView.button.browse"));
-
-	      browse3.addListener(SWT.Selection, new Listener() {
-	        public void handleEvent(Event event) {
-	          DirectoryDialog dialog = new DirectoryDialog(gFile.getShell(), SWT.APPLICATION_MODAL);
-	          dialog.setFilterPath(movePath.getValue());
-	          dialog.setText(MessageText.getString("ConfigView.dialog.choosemovepath"));
-	          String path = dialog.open();
-	          if (path != null) {
-	            movePath.setValue(path);
-	          }
-	        }
-	      });
-
-	      	// move when done
-
-	      BooleanParameter moveTorrent = new BooleanParameter(gMoveCompleted, move_torrent_setting, true,
-	                                                          "ConfigView.label.movetorrent");
-	      gridData = new GridData();
-	      gridData.horizontalSpan = 2;
-	      moveTorrent.setLayoutData(gridData);
-
-	      	// only in default
-	      
-	      BooleanParameter moveOnly = new BooleanParameter(gMoveCompleted, move_when_in_save_dir_setting, true,
-	                                                       "ConfigView.label.moveonlyusingdefaultsave");
-	      gridData = new GridData();
-	      gridData.horizontalSpan = 2;
-	      moveOnly.setLayoutData(gridData);
-	      
-	      // move if partially finished.
-	      if (move_partial_downloads_setting != null) {
-	    	  BooleanParameter movePartial = new BooleanParameter(gMoveCompleted, move_partial_downloads_setting, false,
-	    			  "ConfigView.label.movepartialdownloads");
-	    	  gridData = new GridData();
-		      gridData.horizontalSpan = 2;
-		      movePartial.setLayoutData(gridData);
-	      }
-
-	      Control[] controls3 = new Control[]{ gMoveCompleted };
-	      IAdditionalActionPerformer grayPathAndButton2 = new ChangeSelectionActionPerformer(controls3);
-	      moveCompleted.setAdditionalActionPerformer(grayPathAndButton2);
-
   }
 }
