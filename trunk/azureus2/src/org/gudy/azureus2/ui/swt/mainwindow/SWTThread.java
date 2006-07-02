@@ -21,8 +21,11 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import java.lang.reflect.Constructor;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
@@ -30,8 +33,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 
 import com.aelitis.azureus.ui.IUIIntializer;
-
-import java.lang.reflect.Constructor;
 
 /**
  * The main SWT Thread, the only one that should run any GUI code.
@@ -66,13 +67,15 @@ public class SWTThread {
   private boolean sleak;
   private boolean terminated;
   private Thread runner;
+	private final IUIIntializer initializer;
   
   private 
   SWTThread(
   	final IUIIntializer app ) 
   { 
     
-    instance = this;
+    this.initializer = app;
+		instance = this;
     try {
       display = Display.getCurrent();
 	  if ( display == null ){
@@ -157,7 +160,6 @@ public class SWTThread {
        // dispose platform manager here
       PlatformManagerFactory.getPlatformManager().dispose();
     }
-    
   }
   
   
@@ -173,4 +175,8 @@ public class SWTThread {
   public boolean isTerminated() {
   	return terminated;
   }
+
+	public IUIIntializer getInitializer() {
+		return initializer;
+	}
 }
