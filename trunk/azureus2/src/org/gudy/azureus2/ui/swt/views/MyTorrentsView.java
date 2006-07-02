@@ -713,7 +713,7 @@ public class MyTorrentsView
 				}
 				int state = dm.getState();
 				bChangeDir &= (state == DownloadManager.STATE_ERROR || state == DownloadManager.STATE_STOPPED)
-						&& !dm.filesExist();
+						&& dm.isDownloadComplete(false) && !dm.filesExist();
 				
 				boolean	scan = dm.getDownloadState().getFlag( DownloadManagerState.FLAG_SCAN_INCOMPLETE_PIECES );
 				
