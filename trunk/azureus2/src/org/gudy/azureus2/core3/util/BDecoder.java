@@ -120,7 +120,7 @@ public class BDecoder {
   
   	throws IOException 
   {
-    if (!bais.markSupported()) {
+    if (nesting == 0 && !bais.markSupported()) {
     	
       throw new IOException("InputStream must support the mark() method");
     }
@@ -156,7 +156,10 @@ public class BDecoder {
 	          tempMap.put( key, value);
 	        }
 	
-	        if ( bais.available() < nesting ){
+	        bais.mark(Integer.MAX_VALUE);
+	        tempByte = bais.read();
+	        bais.reset();
+	        if ( nesting > 0 && tempByte == -1 ){
 	        		        		
 	        	throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of dictionary"));
 	        }
@@ -188,7 +191,10 @@ public class BDecoder {
 	          tempList.add(tempElement);
 	        }
 	        
-	        if ( bais.available() < nesting ){
+	        bais.mark(Integer.MAX_VALUE);
+	        tempByte = bais.read();
+	        bais.reset();
+	        if ( nesting > 0 && tempByte == -1 ){
 	        		        		
 	        	throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of list"));
 	        }
@@ -249,6 +255,24 @@ public class BDecoder {
   }
 
   private long getNumberFromStream(InputStream bais, char parseChar) throws IOException {
+    StringBuffer sb = new StringBuffer(3);
+
+    int tempByte = bais.read();
+    while ((tempByte != parseChar) && (tempByte >= 0)) {
+    	sb.append((char)tempByte);
+      tempByte = bais.read();
+    }
+
+    //are we at the end of the stream?
+    if (tempByte < 0) {
+      return -1;
+    }
+
+    return Long.parseLong(sb.toString());
+  }
+
+  // This one causes lots of "Query Information" calls to the filesystem
+  private long getNumberFromStreamOld(InputStream bais, char parseChar) throws IOException {
     int length = 0;
 
     //place a mark
