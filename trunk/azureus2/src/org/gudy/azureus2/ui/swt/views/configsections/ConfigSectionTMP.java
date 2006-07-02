@@ -28,42 +28,77 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
-public class ConfigSectionTMP implements UISWTConfigSection {
-  public String configSectionGetParentSection() {
-    return ConfigSection.SECTION_ROOT;
-  }
+public class ConfigSectionTMP implements UISWTConfigSection
+{
+	private final int REQUIRED_MODE = 0;
 
-  /* Name of section will be pulled from 
-   * ConfigView.section.<i>configSectionGetName()</i>
-   */
+	public String configSectionGetParentSection() {
+		return ConfigSection.SECTION_ROOT;
+	}
+
+	/* Name of section will be pulled from 
+	 * ConfigView.section.<i>configSectionGetName()</i>
+	 */
 	public String configSectionGetName() {
 		return "newsectionname";
 	}
 
-  public void configSectionSave() {
-  }
+	public void configSectionSave() {
+	}
 
-  public void configSectionDelete() {
-  }
-  
+	public void configSectionDelete() {
+	}
 
-  public Composite configSectionCreate(final Composite parent) {
-    GridData gridData;
-    GridLayout layout;
+	public Composite configSectionCreate(final Composite parent) {
+		GridData gridData;
+		GridLayout layout;
 
-    Composite cSection = new Composite(parent, SWT.NULL);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    cSection.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 2;
-    cSection.setLayout(layout);
+		Composite cSection = new Composite(parent, SWT.NULL);
+		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL
+				| GridData.HORIZONTAL_ALIGN_FILL);
+		cSection.setLayoutData(gridData);
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		cSection.setLayout(layout);
 
-    // Place SWT config items here
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
+		if (userMode < REQUIRED_MODE) {
+			Label label = new Label(cSection, SWT.WRAP);
+			gridData = new GridData();
+			label.setLayoutData(gridData);
 
-    return cSection;
-  }
+			final String[] modeKeys = {
+					"ConfigView.section.mode.beginner",
+					"ConfigView.section.mode.intermediate",
+					"ConfigView.section.mode.advanced" };
+
+			String param1, param2;
+			if (REQUIRED_MODE < modeKeys.length)
+				param1 = MessageText.getString(modeKeys[REQUIRED_MODE]);
+			else
+				param1 = String.valueOf(REQUIRED_MODE);
+
+			if (userMode < modeKeys.length)
+				param2 = MessageText.getString(modeKeys[userMode]);
+			else
+				param2 = String.valueOf(userMode);
+
+			label.setText(MessageText.getString("ConfigView.notAvailableForMode",
+					new String[] { param1, param2 }));
+
+			return cSection;
+		}
+
+		// Place SWT config items here
+
+		return cSection;
+	}
 }
