@@ -252,6 +252,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionFile(), 
                                          new ConfigSectionFileMove(),
                                          new ConfigSectionFileTorrents(),
+                                         new ConfigSectionFileTorrentsDecoding(),
                                          new ConfigSectionFilePerformance(),
                                          new ConfigSectionInterface(),
                                          new ConfigSectionInterfaceLanguage(),

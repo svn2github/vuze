@@ -214,57 +214,17 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     watchFolder.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
 
     
-    if( userMode > 0 ) {
-    	
-    // locale decoder
-    label = new Label(cTorrent, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.file.decoder.label");
-  
-    LocaleUtilDecoder[] decoders = LocaleUtil.getSingleton().getDecoders();
-  
-    String decoderLabels[] = new String[decoders.length + 1];
-    String decoderValues[] = new String[decoders.length + 1];
-  
-    decoderLabels[0] = MessageText.getString("ConfigView.section.file.decoder.nodecoder");
-    decoderValues[0] = "";
-  
-    for (int i = 1; i <= decoders.length; i++) {
-      decoderLabels[i] = decoderValues[i] = decoders[i-1].getName();
-      }
-    new StringListParameter(cTorrent, "File.Decoder.Default", "", 
-                            decoderLabels, decoderValues);
-  
-      // locale always prompt
-  
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    new BooleanParameter(cTorrent, "File.Decoder.Prompt", false,
-                         "ConfigView.section.file.decoder.prompt").setLayoutData(gridData);
-          
-    
-    	// show lax decodings
-    
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    new BooleanParameter(cTorrent, "File.Decoder.ShowLax", false,
-                         "ConfigView.section.file.decoder.showlax").setLayoutData(gridData);
+    if (userMode > 0) {
 
-    	// show all decoders
-    
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    new BooleanParameter(cTorrent, "File.Decoder.ShowAll", false,
-                         "ConfigView.section.file.decoder.showall").setLayoutData(gridData);
-   
-    
-    Label lIgnoreFiles = new Label(cTorrent, SWT.NULL);
-    Messages.setLanguageText(lIgnoreFiles, "ConfigView.section.file.torrent.ignorefiles");
+			Label lIgnoreFiles = new Label(cTorrent, SWT.NULL);
+			Messages.setLanguageText(lIgnoreFiles,
+					"ConfigView.section.file.torrent.ignorefiles");
 
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    new StringParameter(cTorrent, "File.Torrent.IgnoreFiles",
-                        TOTorrent.DEFAULT_IGNORE_FILES).setLayoutData(gridData);
-    
-    } //end usermode>0
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			new StringParameter(cTorrent, "File.Torrent.IgnoreFiles",
+					TOTorrent.DEFAULT_IGNORE_FILES).setLayoutData(gridData);
+
+		} //end usermode>0
 
     return cTorrent;
   }
