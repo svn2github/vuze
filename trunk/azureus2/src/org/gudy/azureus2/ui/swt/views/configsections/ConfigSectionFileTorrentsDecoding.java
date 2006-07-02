@@ -34,11 +34,9 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.config.StringListParameter;
-import org.gudy.azureus2.ui.swt.config.StringParameter;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class ConfigSectionFileTorrentsDecoding implements UISWTConfigSection
