@@ -176,6 +176,7 @@ public class ConfigurationDefaults {
     //default data location options
     def.put("Use default data dir", FALSE);	
     def.put("Default save path", "" );
+    def.put("DefaultDir.BestGuess", TRUE);
     
     def.put("GUI_SWT_bFancyTab", TRUE);
     def.put("GUI_SWT_bAlternateTablePainting", FALSE);
