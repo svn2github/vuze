@@ -621,7 +621,7 @@ public class FileUtil {
   			while(true){
   				
   				try{
-  					bin = new BufferedInputStream( new FileInputStream(file), 8192 );
+  					bin = new BufferedInputStream( new FileInputStream(file), 16384 );
   				
   					break;
   					
