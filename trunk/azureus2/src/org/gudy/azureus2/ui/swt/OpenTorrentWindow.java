@@ -1956,6 +1956,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			}
 
 			if (getSaveSilentlyDir() == null
+					&& COConfigurationManager.getBooleanParameter("DefaultDir.BestGuess")
 					&& !COConfigurationManager.getBooleanParameter(PARAM_MOVEWHENDONE)) {
 				this.sDestDir = getSmartDestDir();
 			}
