@@ -486,28 +486,28 @@ public class DefaultRankCalculator implements Comparable {
 						return SR_0PEERS;
 					}
 
-					if (bFirstPriorityIgnore0Peer) {
-						if (rules.bDebugLog)
-							sExplainSR += "  Ignore 0 Peers criteria for FP met\n";
-
-						dl.setSeedingRank(SR_FP0PEERS);
-						return SR_FP0PEERS;
-					}
+//					if (bFirstPriorityIgnore0Peer) {
+//						if (rules.bDebugLog)
+//							sExplainSR += "  Ignore 0 Peers criteria for FP met\n";
+//
+//						dl.setSeedingRank(SR_FP0PEERS);
+//						return SR_FP0PEERS;
+//					}
 				} else if (rules.bDebugLog && numPeers == 0) {
 					sExplainSR += "  0 Peer Ignore rule NOT applied: Scrape invalid\n";
 				}
 
-				if (numPeers != 0 && iFirstPriorityIgnoreSPRatio != 0
-						&& numSeeds / numPeers >= iFirstPriorityIgnoreSPRatio) {
-					if (rules.bDebugLog)
-						sExplainSR += "  Ignore rule for S:P Ratio for FP met.  Current: ("
-								+ (numSeeds / numPeers)
-								+ ") >= Threshold("
-								+ iFirstPriorityIgnoreSPRatio + ")\n";
-
-					dl.setSeedingRank(SR_FP_SPRATIOMET);
-					return SR_FP_SPRATIOMET;
-				}
+//				if (numPeers != 0 && iFirstPriorityIgnoreSPRatio != 0
+//						&& numSeeds / numPeers >= iFirstPriorityIgnoreSPRatio) {
+//					if (rules.bDebugLog)
+//						sExplainSR += "  Ignore rule for S:P Ratio for FP met.  Current: ("
+//								+ (numSeeds / numPeers)
+//								+ ") >= Threshold("
+//								+ iFirstPriorityIgnoreSPRatio + ")\n";
+//
+//					dl.setSeedingRank(SR_FP_SPRATIOMET);
+//					return SR_FP_SPRATIOMET;
+//				}
 
 				//0 means disabled
 				if ((iIgnoreSeedCount != 0) && (numSeeds >= iIgnoreSeedCount)) {
