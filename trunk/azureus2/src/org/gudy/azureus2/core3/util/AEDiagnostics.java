@@ -189,28 +189,32 @@ AEDiagnostics
 	 * 
 	 */
 	protected static void cleanOldLogs() {
-		long	now = SystemTime.getCurrentTime();
+		try {
+			long now = SystemTime.getCurrentTime();
 
-		// clear out any really old files in the save-dir
+			// clear out any really old files in the save-dir
 
-		File[] files = debug_save_dir.listFiles();
+			File[] files = debug_save_dir.listFiles();
 
-		if (files != null) {
+			if (files != null) {
 
-			for (int i = 0; i < files.length; i++) {
+				for (int i = 0; i < files.length; i++) {
 
-				File file = files[i];
+					File file = files[i];
 
-				if (!file.isDirectory()) {
+					if (!file.isDirectory()) {
 
-					long last_modified = file.lastModified();
+						long last_modified = file.lastModified();
 
-					if (now - last_modified > 30 * 24 * 60 * 60 * 1000L) {
+						if (now - last_modified > 30 * 24 * 60 * 60 * 1000L) {
 
-						file.delete();
+							file.delete();
+						}
 					}
 				}
 			}
+
+		} catch (Exception e) {
 		}
 	}
 
