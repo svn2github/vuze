@@ -258,6 +258,10 @@ public class DefaultRankCalculator implements Comparable {
 	/** Sort first by SeedingRank Descending, then by Position Ascending.
 	 */
 	public int compareTo(Object obj) {
+		if (!(obj instanceof DefaultRankCalculator)) {
+			return -1;
+		}
+
 		DefaultRankCalculator dlData = (DefaultRankCalculator) obj;
 		// Test Completeness
 		boolean aIsComplete = dlData.dl.isComplete();
