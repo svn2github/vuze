@@ -63,16 +63,25 @@ public class TableRowComparator implements Comparator {
 		Comparable c1 = (cell1 == null) ? "" : cell1.getSortValue();
 		
 		try {
-			if ((c0 instanceof String) && (c1 instanceof String)) {
+			boolean c0isString = c0 instanceof String; 
+			boolean c1isString = c1 instanceof String; 
+			if (c0isString && c1isString) {
 				if (bAscending)
 					return ((String)c0).compareToIgnoreCase((String)c1);
 
 				return ((String)c1).compareToIgnoreCase((String)c0);
 			}
 			
-			if (bAscending)
+			if (bAscending) {
+				if (c0isString && !c1isString) {
+					return -1;
+				}
 				return c0.compareTo(c1);
+			}
 			
+			if (c1isString && !c0isString) {
+				return 1;
+			}
 			return c1.compareTo(c0);
 		} catch (ClassCastException e) {
 			System.err.println("Can't compare " + c0.getClass().getName()
