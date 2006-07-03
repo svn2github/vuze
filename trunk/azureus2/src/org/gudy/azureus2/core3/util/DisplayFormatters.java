@@ -564,7 +564,7 @@ DisplayFormatters
 			tmp = ManagerItem_allocating;
 			break;
 		  case DownloadManager.STATE_CHECKING :
-			tmp = ManagerItem_checking;
+			tmp = ManagerItem_checking + ": " + formatPercentFromThousands(manager.getStats().getCompleted());
 			break;
 		  case DownloadManager.STATE_FINISHING :
 		    tmp = ManagerItem_finishing;
