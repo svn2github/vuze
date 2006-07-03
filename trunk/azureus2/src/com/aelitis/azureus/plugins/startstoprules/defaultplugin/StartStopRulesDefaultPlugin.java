@@ -103,7 +103,7 @@ public class StartStopRulesDefaultPlugin
   
   // Core/Plugin classes
   private AEMonitor		this_mon	= new AEMonitor( "StartStopRules" );
-  private PluginInterface     plugin_interface;
+  private PluginInterface     pi;
   protected PluginConfig      plugin_config;
   private DownloadManager     download_manager;
   protected LoggerChannel     log;
@@ -154,87 +154,88 @@ public class StartStopRulesDefaultPlugin
   private boolean bSWTUI = false;
 
   public void initialize(PluginInterface _plugin_interface) {
-  	if (bAlreadyInitialized) {
-  		System.err.println("StartStopRulesDefaultPlugin Already initialized!!");
-  	} else {
-    	bAlreadyInitialized = true;
-  	}
-  	
-		AEDiagnostics.addEvidenceGenerator( this );
+		if (bAlreadyInitialized) {
+			System.err.println("StartStopRulesDefaultPlugin Already initialized!!");
+		} else {
+			bAlreadyInitialized = true;
+		}
 
-    startedOn = SystemTime.getCurrentTime();
-    changeCheckerTimer = new Timer("StartStopRules", 3, 4);
+		AEDiagnostics.addEvidenceGenerator(this);
 
-    plugin_interface  = _plugin_interface;
+		startedOn = SystemTime.getCurrentTime();
+		changeCheckerTimer = new Timer("StartStopRules", 3, 4);
 
-	plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-	plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Start/Stop Rules" );
+		pi = _plugin_interface;
 
-    plugin_interface.addListener(new PluginListener() {
-      public void initializationComplete() { /* not implemented */ }
+		pi.getPluginProperties().setProperty("plugin.version", "1.0");
+		pi.getPluginProperties().setProperty("plugin.name", "Start/Stop Rules");
 
-      public void 
-	  closedownInitiated() 
-      {
-        closingDown = true;
-      
-        	// we don't want to go off recalculating stuff when config is saved on closedown
-        
-        COConfigurationManager.removeListener(StartStopRulesDefaultPlugin.this);
-      }
+		pi.addListener(new PluginListener() {
+			public void initializationComplete() {
+				/* not implemented */
+			}
 
-      public void closedownComplete() { /* not implemented */ }
-    });
+			public void closedownInitiated() {
+				closingDown = true;
 
-    log = plugin_interface.getLogger().getChannel("StartStopRules");
-    log.log( LoggerChannel.LT_INFORMATION, "Default StartStopRules Plugin Initialisation" );
+				// we don't want to go off recalculating stuff when config is saved
+				// on closedown
+				COConfigurationManager.removeListener(StartStopRulesDefaultPlugin.this);
+			}
 
-    COConfigurationManager.addListener(this);
+			public void closedownComplete() { /* not implemented */
+			}
+		});
 
-    plugin_config = plugin_interface.getPluginconfig();
+		log = pi.getLogger().getChannel("StartStopRules");
+		log.log(LoggerChannel.LT_INFORMATION,
+				"Default StartStopRules Plugin Initialisation");
 
-    try {
-      TableManager tm = plugin_interface.getUIManager().getTableManager();
-      seedingRankColumn = tm.createColumn(TableManager.TABLE_MYTORRENTS_COMPLETE,
-                                          "SeedingRank");
-      seedingRankColumn.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST,
-                                   80, TableColumn.INTERVAL_LIVE);
-  
-      SeedingRankColumnListener columnListener = new SeedingRankColumnListener(downloadDataMap, plugin_config);
-      seedingRankColumn.addCellRefreshListener(columnListener);
-      tm.addColumn(seedingRankColumn);
-      
-      plugin_interface.getUIManager().addUIListener(
-			new UIManagerListener()
-			{
-				public void
-				UIAttached(
-					UIInstance		instance )
-				{
-					if ( instance instanceof UISWTInstance ){
+		COConfigurationManager.addListener(this);
+
+		plugin_config = pi.getPluginconfig();
+
+		try {
+			pi.getUIManager().addUIListener(new UIManagerListener() {
+				public void UIAttached(UIInstance instance) {
+					TableManager tm = pi.getUIManager().getTableManager();
+					seedingRankColumn = tm.createColumn(
+							TableManager.TABLE_MYTORRENTS_COMPLETE, "SeedingRank");
+					seedingRankColumn.initialize(TableColumn.ALIGN_TRAIL,
+							TableColumn.POSITION_LAST, 80, TableColumn.INTERVAL_LIVE);
+
+					SeedingRankColumnListener columnListener = new SeedingRankColumnListener(
+							downloadDataMap, plugin_config);
+					seedingRankColumn.addCellRefreshListener(columnListener);
+					tm.addColumn(seedingRankColumn);
+
+					if (instance instanceof UISWTInstance) {
 						bSWTUI = true;
-						new StartStopRulesDefaultPluginSWTUI( plugin_interface );
+						new StartStopRulesDefaultPluginSWTUI(pi);
 					}
 				}
-				
-				public void
-				UIDetached(
-					UIInstance		instance )
-				{
-					
+
+				public void UIDetached(UIInstance instance) {
+
 				}
 			});
-     } catch( Throwable e ){
-    	Debug.printStackTrace( e );
-    }
-    reloadConfigParams();
+		} catch (Throwable e) {
+			Debug.printStackTrace(e);
+		}
+		reloadConfigParams();
 
-    download_manager = plugin_interface.getDownloadManager();
-    download_manager.addListener(new StartStopDMListener());
-    
-    changeCheckerTimer.addPeriodicEvent(CHECK_FOR_GROSS_CHANGE_PERIOD, new ChangeCheckerTimerTask() );
-    changeCheckerTimer.addPeriodicEvent(PROCESS_CHECK_PERIOD, new ChangeFlagCheckerTask());
-  }
+		download_manager = pi.getDownloadManager();
+		// CPU Intensive, delay until after initialization
+		new DelayedEvent(4000, new AERunnable() {
+			public void runSupport() {
+				download_manager.addListener(new StartStopDMListener());
+				changeCheckerTimer.addPeriodicEvent(CHECK_FOR_GROSS_CHANGE_PERIOD,
+						new ChangeCheckerTimerTask());
+				changeCheckerTimer.addPeriodicEvent(PROCESS_CHECK_PERIOD,
+						new ChangeFlagCheckerTask());
+			}
+		});
+	}
   
   public static DefaultRankCalculator getRankCalculator(Download dl) {
   	return (DefaultRankCalculator)downloadDataMap.get(dl);
@@ -603,7 +604,7 @@ public class StartStopRulesDefaultPlugin
 									if (bSWTUI)
 										StartStopRulesDefaultPluginSWTUI.openDebugWindow(dlData);
 									else
-										plugin_interface.getUIManager().showTextMessage(
+										pi.getUIManager().showTextMessage(
 												null,
 												null,
 												"FP:\n" + dlData.sExplainFP + "\n" + "SR:"
@@ -612,7 +613,7 @@ public class StartStopRulesDefaultPlugin
 								}
 							}
 						};
-						TableManager tm = plugin_interface.getUIManager().getTableManager();
+						TableManager tm = pi.getUIManager().getTableManager();
 						TableContextMenuItem menu;
 						menu = tm.addContextMenuItem(
 								TableManager.TABLE_MYTORRENTS_COMPLETE, DEBUG_MENU_ID);
