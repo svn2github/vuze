@@ -130,8 +130,19 @@ public class ConfigSectionFile implements UISWTConfigSection {
     IAdditionalActionPerformer aapDefaultDirStuff = new ChangeSelectionActionPerformer(
 				bestGuess.getControls(), true);
     autoSaveToDir.setAdditionalActionPerformer(aapDefaultDirStuff);
-    
-    
+
+    // def dir: auto update
+    BooleanParameter autoUpdateSaveDir = new BooleanParameter(gDefaultDir, 
+    		"DefaultDir.AutoUpdate", "ConfigView.section.file.defaultdir.lastused");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    autoUpdateSaveDir.setLayoutData(gridData);
+
+    IAdditionalActionPerformer aapDefaultDirStuff2 = new ChangeSelectionActionPerformer(
+    		autoUpdateSaveDir.getControls(), true);
+    autoSaveToDir.setAdditionalActionPerformer(aapDefaultDirStuff2);
+
+
     ////////////////////
     
     BooleanParameter zeroNew = null;

@@ -177,6 +177,7 @@ public class ConfigurationDefaults {
     def.put("Use default data dir", FALSE);	
     def.put("Default save path", "" );
     def.put("DefaultDir.BestGuess", TRUE);
+    def.put("DefaultDir.AutoUpdate", TRUE);
     
     def.put("GUI_SWT_bFancyTab", TRUE);
     def.put("GUI_SWT_bAlternateTablePainting", FALSE);
