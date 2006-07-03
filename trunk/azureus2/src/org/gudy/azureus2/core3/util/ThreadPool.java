@@ -117,6 +117,21 @@ ThreadPool
 	run(
 		AERunnable	runnable )
 	{
+		return( run( runnable, false ));
+	}
+	
+		/**
+		 * 
+		 * @param runnable
+		 * @param high_priority		inserts at front if tasks queueing
+		 * @return
+		 */
+	
+	public threadPoolWorker
+	run(
+		AERunnable	runnable,
+		boolean		high_priority )
+	{
 		// System.out.println( "Thread pool:" + name + " - sem = " + thread_sem.getValue() + ", queue = " + task_queue.size());
 		
 			// not queueing, grab synchronous sem here
@@ -173,8 +188,14 @@ ThreadPool
 			
 				allocated_worker	= null;
 			
-				task_queue.add( runnable );
+				if ( high_priority ){
+					
+					task_queue.add( 0, runnable );
+					
+				}else{
 				
+					task_queue.add( runnable );
+				}
 			}else{
 				
 				if ( thread_pool.isEmpty()){

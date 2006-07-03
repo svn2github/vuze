@@ -398,7 +398,7 @@ Test
 						stats_before = dht.getTransport().getStats().snapshot();
 					
 						dht.get( 
-								rhs.getBytes(), "", (byte)0, 32, 0, false,
+								rhs.getBytes(), "", (byte)0, 32, 0, false, false,
 								new DHTOperationAdapter()
 								{
 									public void
@@ -426,7 +426,7 @@ Test
 						final DHT	f_dht = dht;
 						
 						dht.get( 
-								rhs.getBytes(), "", DHT.FLAG_STATS, 32, 0, false,
+								rhs.getBytes(), "", DHT.FLAG_STATS, 32, 0, false, false,
 								new DHTOperationAdapter()
 								{
 									public void
@@ -472,7 +472,7 @@ Test
 						
 						stats_before = dht.getTransport().getStats().snapshot();
 						
-						dht.get( rhs.getBytes(), "", (byte)0, 10, 0, false,
+						dht.get( rhs.getBytes(), "", (byte)0, 10, 0, false, false,
 								new DHTOperationListener()
 								{
 									public void

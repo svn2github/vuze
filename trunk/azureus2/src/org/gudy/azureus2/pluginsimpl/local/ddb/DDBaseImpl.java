@@ -287,7 +287,7 @@ DDBaseImpl
 					key.getDescription(),
 					((DDBaseValueImpl)values[0]).getBytes(),
 					DHTPlugin.FLAG_SINGLE_VALUE,
-					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0, false ));
+					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0, false, false ));
 		}else{
 			
 				
@@ -355,7 +355,7 @@ DDBaseImpl
 							key.getDescription(),
 							copy,
 							DHTPlugin.FLAG_MULTI_VALUE,
-							new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0, false ));
+							new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0, false, false ));
 					
 					payload_length	= 1;
 					
@@ -378,7 +378,7 @@ DDBaseImpl
 						key.getDescription(),
 						copy,
 						DHTPlugin.FLAG_MULTI_VALUE,
-						new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0, false ));
+						new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0, false, false ));
 			}
 		}
 	}
@@ -405,7 +405,8 @@ DDBaseImpl
 	{
 		throwIfNotAvailable();
 		
-		boolean	exhaustive  = (options&OP_EXHAUSTIVE_READ)==1;
+		boolean	exhaustive  	= (options&OP_EXHAUSTIVE_READ)!=0;
+		boolean	high_priority  	= (options&OP_PRIORITY_HIGH)!=0;
 		
 			// TODO: max values?
 		
@@ -416,7 +417,8 @@ DDBaseImpl
 			256, 
 			timeout, 
 			exhaustive,
-			new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key, timeout, exhaustive ));
+			high_priority,
+			new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key, timeout, exhaustive, high_priority ));
 	}
 	
 	public void
@@ -436,7 +438,8 @@ DDBaseImpl
 			256, 
 			timeout, 
 			false,
-			new listenerMapper( listener, DistributedDatabaseEvent.ET_KEY_STATS_READ, key, timeout, false ));
+			false,
+			new listenerMapper( listener, DistributedDatabaseEvent.ET_KEY_STATS_READ, key, timeout, false, false ));
 		
 	}
 	
@@ -451,7 +454,7 @@ DDBaseImpl
 		
 		getDHT().remove( ((DDBaseKeyImpl)key).getBytes(),
 					key.getDescription(),
-					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key, 0, false ));
+					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key, 0, false, false ));
 	}
 	
 	public void
@@ -605,6 +608,9 @@ DDBaseImpl
 		private long						timeout;
 		private boolean						complete_disabled;
 		private boolean						exhaustive;
+		private boolean						high_priority;
+		
+		private int							continuation_num;
 		
 		protected
 		listenerMapper(
@@ -612,7 +618,8 @@ DDBaseImpl
 			int							_type,
 			DistributedDatabaseKey		_key,
 			long						_timeout,
-			boolean						_exhaustive )
+			boolean						_exhaustive,
+			boolean						_high_priority )
 		{
 			listener	= _listener;
 			type		= _type;
@@ -620,6 +627,9 @@ DDBaseImpl
 			key_bytes	= ((DDBaseKeyImpl)key).getBytes();
 			timeout		= _timeout;
 			exhaustive	= _exhaustive;
+			high_priority	= _high_priority;
+			
+			continuation_num	= 1;
 		}
 		
 		private
@@ -628,13 +638,16 @@ DDBaseImpl
 			int							_type,
 			DistributedDatabaseKey		_key,
 			byte[]						_key_bytes,
-			long						_timeout )
+			long						_timeout,
+			int							_continuation_num )
 		{
 			listener	= _listener;
 			type		= _type;
 			key			= _key;
 			key_bytes	= _key_bytes;
 			timeout		= _timeout;
+			
+			continuation_num	= _continuation_num;
 		}
 		
 		public void
@@ -731,12 +744,13 @@ DDBaseImpl
 		
 						grabDHT().get(	
 							next_key_bytes, 
-							key.getDescription(),
+							key.getDescription() + " [continuation " + continuation_num + "]",
 							(byte)0, 
 							256, 
 							timeout, 
 							exhaustive,
-							new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key, next_key_bytes, timeout ));
+							high_priority,
+							new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key, next_key_bytes, timeout, continuation_num+1 ));
 					}
 				}else{
 					

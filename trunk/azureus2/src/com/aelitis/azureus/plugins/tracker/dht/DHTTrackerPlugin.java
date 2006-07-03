@@ -1108,7 +1108,7 @@ DHTTrackerPlugin
 							dl.isComplete()?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
 							NUM_WANT, 
 							ANNOUNCE_TIMEOUT,
-							false,
+							false, false,
 							new DHTPluginOperationListener()
 							{
 								List	addresses 	= new ArrayList();
@@ -1580,7 +1580,7 @@ DHTTrackerPlugin
 							(byte)0,
 							INTERESTING_AVAIL_MAX, 
 							ANNOUNCE_TIMEOUT,
-							false,
+							false, false,
 							new DHTPluginOperationListener()
 							{
 								private boolean diversified;
@@ -1753,7 +1753,7 @@ DHTTrackerPlugin
 				DHTPlugin.FLAG_DOWNLOADING,
 				NUM_WANT, 
 				SCRAPE_TIMEOUT,
-				false,
+				false, false,
 				new DHTPluginOperationListener()
 				{
 					public void

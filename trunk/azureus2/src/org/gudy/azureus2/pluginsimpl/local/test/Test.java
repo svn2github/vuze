@@ -275,7 +275,7 @@ Test
 			
 			endpoint.addUDP( udp_target );
 			
-			for (int i=0;i<100;i++){
+			for (int i=0;i<1;i++){
 				
 				System.out.println( "Test: initiating connection" );
 				
@@ -330,9 +330,9 @@ Test
 						{
 							System.out.println( "receive: " + message.toByteArray().length );
 							
-							/*
+							
 							try{
-								Thread.sleep(1000);
+								Thread.sleep(50000);
 							}catch( Throwable e ){
 								
 							}
@@ -342,9 +342,9 @@ Test
 							
 							
 							connection.send( reply );
-							*/
 							
-							connection.close();
+							
+							// connection.close();
 							
 							sem.release();
 						}

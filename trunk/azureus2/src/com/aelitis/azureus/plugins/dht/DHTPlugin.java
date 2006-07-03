@@ -363,12 +363,12 @@ DHTPlugin
 											}else if ( lhs.equals( "get" )){
 												
 												DHTPlugin.this.get(
-													rhs.getBytes(), "DHT Plugin: get", (byte)0, 1, 10000, true, log_polistener );
+													rhs.getBytes(), "DHT Plugin: get", (byte)0, 1, 10000, true, false, log_polistener );
 	
 											}else if ( lhs.equals( "query" )){
 												
 												DHTPlugin.this.get(
-													rhs.getBytes(), "DHT Plugin: get", DHTPlugin.FLAG_STATS, 1, 10000, true, log_polistener );
+													rhs.getBytes(), "DHT Plugin: get", DHTPlugin.FLAG_STATS, 1, 10000, true, false, log_polistener );
 
 											}else if ( lhs.equals( "punch" )){
 
@@ -1000,6 +1000,7 @@ DHTPlugin
 		final int									max_values,
 		final long									timeout,
 		final boolean								exhaustive,
+		final boolean								high_priority,
 		final DHTPluginOperationListener			listener )
 	{
 		if ( !isEnabled()){
@@ -1007,7 +1008,7 @@ DHTPlugin
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 				
-		dhts[0].get( key, description, flags, max_values, timeout, exhaustive, listener );
+		dhts[0].get( key, description, flags, max_values, timeout, exhaustive, high_priority, listener );
 		
 		for (int i=1;i<dhts.length;i++){
 
@@ -1019,7 +1020,7 @@ DHTPlugin
 				runSupport()
 				{
 					dhts[f_i].get( 
-							key, description, flags, max_values, timeout, exhaustive, 
+							key, description, flags, max_values, timeout, exhaustive, high_priority,
 							new DHTPluginOperationListener()
 							{
 								public void

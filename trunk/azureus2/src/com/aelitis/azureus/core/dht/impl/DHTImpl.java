@@ -221,9 +221,10 @@ DHTImpl
 		int						max_values,
 		long					timeout,
 		boolean					exhaustive,
+		boolean					high_priority,
 		DHTOperationListener	listener )
 	{
-		control.get( key, description, flags, max_values, timeout, exhaustive, listener );
+		control.get( key, description, flags, max_values, timeout, exhaustive, high_priority, listener );
 	}
 		
 	public byte[]

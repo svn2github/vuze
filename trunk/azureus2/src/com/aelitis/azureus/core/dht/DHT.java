@@ -104,6 +104,7 @@ DHT
 		int						max_values,
 		long					timeout,
 		boolean					exhaustive,
+		boolean					high_priority,
 		DHTOperationListener	listener );
 	
 		

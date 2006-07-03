@@ -32,8 +32,9 @@ import java.net.InetSocketAddress;
 public interface 
 DistributedDatabase 
 {
-	public static final int	OP_NONE				= 0;
-	public static final int	OP_EXHAUSTIVE_READ	= 1;
+	public static final int	OP_NONE				= 0x00000000;
+	public static final int	OP_EXHAUSTIVE_READ	= 0x00000001;
+	public static final int	OP_PRIORITY_HIGH	= 0x00000002;
 	
 		// diversification types
 	

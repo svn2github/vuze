@@ -736,9 +736,10 @@ outer:
 		final int									max_values,
 		final long									timeout,
 		final boolean								exhaustive,
+		final boolean								high_priority,
 		final DHTPluginOperationListener			listener )
 	{
-		dht.get( 	key, description, flags, max_values, timeout, exhaustive, 
+		dht.get( 	key, description, flags, max_values, timeout, exhaustive, high_priority, 
 					new DHTOperationListener()
 					{
 						public void

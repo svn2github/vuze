@@ -26,6 +26,20 @@ package com.aelitis.azureus.core.networkmanager.impl.udp;
 public class 
 UDPPacket 
 {
+	public static final byte	PROTOCOL_VERSION	= 1;
+	
+	public static final byte	COMMAND_CRYPTO			= 0;
+	public static final byte	COMMAND_DATA			= 1;
+	public static final byte	COMMAND_ACK				= 2;
+	public static final byte	COMMAND_CLOSE			= 3;
+	public static final byte	COMMAND_STAT_REQUEST	= 4;
+	public static final byte	COMMAND_STAT_REPLY		= 5;
+	
+	
+
+	public static final byte	FLAG_NONE		= 0x00;
+	public static final byte	FLAG_LAZY_ACK	= 0x01;
+	
 	private final UDPConnection		connection;
 	private final int				sequence;
 	private final int				alt_sequence;
@@ -93,9 +107,16 @@ UDPPacket
 	}
 	
 	protected boolean
-	autoRetransmit()
+	isAutoRetransmit()
 	{
 		return( auto_retransmit );
+	}
+	
+	protected void
+	setAutoRetransmit(
+		boolean	b  )
+	{
+		auto_retransmit	= b;
 	}
 	
 	protected short
@@ -148,6 +169,6 @@ UDPPacket
 	protected String
 	getString()
 	{
-		return( "seq=" + sequence + ",type=" + command + ",sent=" + sent_count +",len=" + buffer.length );
+		return( "seq=" + sequence + ",type=" + command + ",retrans=" + auto_retransmit + ",sent=" + sent_count +",len=" + buffer.length );
 	}
 }

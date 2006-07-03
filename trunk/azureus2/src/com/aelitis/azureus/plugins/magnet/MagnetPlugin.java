@@ -505,7 +505,7 @@ MagnetPlugin
 				ddb_listener,
 				db.createKey( hash, "Torrent download lookup for '" + ByteFormatter.encodeString( hash ) + "'" ),
 				timeout,
-				DistributedDatabase.OP_EXHAUSTIVE_READ );
+				DistributedDatabase.OP_EXHAUSTIVE_READ | DistributedDatabase.OP_PRIORITY_HIGH );
 			
 			long	remaining	= timeout;
 			

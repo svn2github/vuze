@@ -338,7 +338,7 @@ DHTControlImpl
 					byte[]		id,
 					String		description )
 				{
-					lookup( internal_lookup_pool, 
+					lookup( internal_lookup_pool, false,
 							id, 
 							description,
 							(byte)0,
@@ -609,7 +609,7 @@ DHTControlImpl
 	{
 		final AESemaphore	sem = new AESemaphore( "DHTControl:seed" );
 		
-		lookup( internal_lookup_pool,
+		lookup( internal_lookup_pool, false,
 				router.getID(), 
 				"Seeding DHT",
 				(byte)0,
@@ -837,7 +837,7 @@ DHTControlImpl
 						description:
 						("Diversification of [" + description + "]" );
 			
-			lookup( thread_pool,
+			lookup( thread_pool, false,
 					encoded_key,
 					this_description,
 					(byte)0,
@@ -1106,13 +1106,14 @@ DHTControlImpl
 		int							max_values,
 		long						timeout,
 		boolean						exhaustive,
+		boolean						high_priority,
 		final DHTOperationListener	get_listener )
 	{
 		final byte[]	encoded_key = encodeKey( unencoded_key );
 
 		DHTLog.log( "get for " + DHTLog.getString( encoded_key ));
 		
-		getSupport( encoded_key, description, flags, max_values, timeout, exhaustive, new DHTOperationListenerDemuxer( get_listener ));
+		getSupport( encoded_key, description, flags, max_values, timeout, exhaustive, high_priority, new DHTOperationListenerDemuxer( get_listener ));
 	}
 	
 	public boolean
@@ -1186,7 +1187,7 @@ DHTControlImpl
 				}
 			};
 			
-		lookup( 	external_lookup_pool,
+		lookup( 	external_lookup_pool, false,
 					encoded_key, 
 					"lookup",
 					(byte)0,
@@ -1231,6 +1232,7 @@ DHTControlImpl
 		final int							max_values,
 		final long							timeout,
 		final boolean						exhaustive,
+		final boolean						high_priority,
 		final DHTOperationListenerDemuxer	get_listener )
 	{
 			// get the initial starting point for the get - may have previously been diversified
@@ -1254,6 +1256,7 @@ DHTControlImpl
 				div?("Diversification of [" + description + "]" ):description;						
 
 			lookup( external_lookup_pool,
+					high_priority,
 					encoded_key, 
 					this_description,
 					flags,
@@ -1290,7 +1293,7 @@ DHTControlImpl
 									
 									for (int j=0;j<diversified_keys.length;j++){
 										
-										getSupport( diversified_keys[j], "Diversification of [" + this_description + "]", flags, rem,  timeout, exhaustive, get_listener );
+										getSupport( diversified_keys[j], "Diversification of [" + this_description + "]", flags, rem,  timeout, exhaustive, high_priority, get_listener );
 									}
 								}								
 							}
@@ -1408,6 +1411,7 @@ DHTControlImpl
 	protected void
 	lookup(
 		ThreadPool					thread_pool,
+		boolean						high_priority,
 		final byte[]				lookup_id,
 		final String				description,
 		final byte					flags,
@@ -1444,7 +1448,7 @@ DHTControlImpl
 				{
 					return( description );
 				}
-			});
+			}, high_priority );
 	}
 	
 	protected void

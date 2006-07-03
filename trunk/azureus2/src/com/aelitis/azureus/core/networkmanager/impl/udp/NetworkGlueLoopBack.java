@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
@@ -44,6 +45,7 @@ NetworkGlueLoopBack
  
 {
 	private boolean	UDP_TEST	= false;
+	private int latency			= 5000;
 	
 	private NetworkGlueListener		listener;
 
@@ -96,25 +98,43 @@ NetworkGlueLoopBack
 						
 					}
 				
-					InetSocketAddress	local_address 	= null;
+					InetSocketAddress	target_address 	= null;
 					InetSocketAddress	source_address 	= null;
 					byte[]				data			= null;
+					
+					long	now = SystemTime.getCurrentTime();
 					
 					synchronized( message_queue ){
 						
 						if ( message_queue.size() > 0 ){
 							
-							Object[]	entry = (Object[])message_queue.remove(0);
+							Object[]	entry = (Object[])message_queue.get(0);
 							
-							source_address	= (InetSocketAddress)entry[0];
-							local_address 	= (InetSocketAddress)entry[1];
-							data			= (byte[])entry[2];
+							if (((Long)entry[0]).longValue() < now ){
+								
+								message_queue.remove(0);
+								
+								source_address	= (InetSocketAddress)entry[1];
+								target_address 	= (InetSocketAddress)entry[2];
+								data			= (byte[])entry[3];
+							}
 						}
 					}
 					
 					if ( source_address != null ){
 						
-						listener.receive( local_address.getPort(), source_address, data );
+						if ( UDP_TEST ){
+							
+							try{
+								handler.primordialSend( data, target_address );
+								
+							}catch( PRUDPPacketHandlerException	e ){
+								
+								e.printStackTrace();
+							}
+						}else{
+							listener.receive( target_address.getPort(), source_address, data );
+						}
 					}
 				}
 			}
@@ -157,7 +177,7 @@ NetworkGlueLoopBack
 	
 		throws IOException
 	{	
-		if ( UDP_TEST ){
+		if ( UDP_TEST && latency == 0 ){
 			
 			try{
 				handler.primordialSend( data, target );
@@ -168,12 +188,15 @@ NetworkGlueLoopBack
 			}
 			
 		}else{
+			Long	expires = new Long( SystemTime.getCurrentTime() + latency );
+			
 			InetSocketAddress local_address = new InetSocketAddress( target.getAddress(), local_port );
 			
 			synchronized( message_queue ){
 				
 				if ( random.nextInt(10) != 0 ){
-					message_queue.add( new Object[]{ local_address, target, data });
+					
+					message_queue.add( new Object[]{ expires, local_address, target, data });
 				}
 			}
 		}

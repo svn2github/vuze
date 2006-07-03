@@ -1560,7 +1560,7 @@ DHTNATPuncherImpl
 					(byte)0,
 					1,
 					RENDEZVOUS_LOOKUP_TIMEOUT,
-					false,
+					false, true,
 					new DHTOperationAdapter()
 					{
 						public void
