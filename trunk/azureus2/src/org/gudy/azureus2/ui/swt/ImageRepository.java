@@ -50,114 +50,126 @@ public class ImageRepository {
   private static final boolean doNotUseAWTIcon = Constants.isOSX;
 
     static {
-    images = new HashMap();
-    imagesToPath = new HashMap();
+    images = new HashMap(150);
+    imagesToPath = new HashMap(150);
     registry = new HashMap();
   }
 
   public static void loadImagesForSplashWindow(Display display) {
     ImageRepository.display = display; 
-    loadImage(display, "org/gudy/azureus2/ui/icons/a16.png", "azureus");
-    loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash");
+    addPath("org/gudy/azureus2/ui/icons/a16.png", "azureus");
+    addPath("org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash");
   }
 
   public static void loadImages(Display display) {
-    loadImage(display, "org/gudy/azureus2/ui/icons/a32.png", "azureus32");
-    loadImage(display, "org/gudy/azureus2/ui/icons/a64.png", "azureus64");
-    loadImage(display, "org/gudy/azureus2/ui/icons/a128.png", "azureus128");
-    loadImage(display, "org/gudy/azureus2/ui/icons/Azureus_big.png", "tray");
-    loadImage(display, "org/gudy/azureus2/ui/icons/dragger.gif", "dragger");
-    loadImage(display, "org/gudy/azureus2/ui/icons/folder.gif", "folder");
-    loadImage(display, "org/gudy/azureus2/ui/icons/ipfilter.png", "ipfilter");
-    loadImage(display, "org/gudy/azureus2/ui/icons/start.gif", "start");
-    loadImage(display, "org/gudy/azureus2/ui/icons/stop.gif", "stop");
-    loadImage(display, "org/gudy/azureus2/ui/icons/bar.gif", "downloadBar");
-    loadImage(display, "org/gudy/azureus2/ui/icons/delete.gif", "delete");
-    loadImage(display, "org/gudy/azureus2/ui/icons/lock.gif", "lock");
-    loadImage(display, "org/gudy/azureus2/ui/icons/host.gif", "host");
-    loadImage(display, "org/gudy/azureus2/ui/icons/publish.gif", "publish");
-    loadImage(display, "org/gudy/azureus2/ui/icons/run.gif", "run");
-    loadImage(display, "org/gudy/azureus2/ui/icons/details.gif", "details");
-    loadImage(display, "org/gudy/azureus2/ui/icons/up.gif", "up");
-    loadImage(display, "org/gudy/azureus2/ui/icons/down.gif", "down");
-    loadImage(display, "org/gudy/azureus2/ui/icons/top.gif", "top");
-    loadImage(display, "org/gudy/azureus2/ui/icons/bottom.gif", "bottom");
-    loadImage(display, "org/gudy/azureus2/ui/icons/recheck.gif", "recheck");
-    loadImage(display, "org/gudy/azureus2/ui/icons/export.gif", "export");
-    loadImage(display, "org/gudy/azureus2/ui/icons/move.gif", "move");
-    loadImage(display, "org/gudy/azureus2/ui/icons/add_tracker.gif", "add_tracker");
-    loadImage(display, "org/gudy/azureus2/ui/icons/edit_trackers.gif", "edit_trackers");
-    loadImage(display, "org/gudy/azureus2/ui/icons/columns.gif", "columns");
-    loadImage(display, "org/gudy/azureus2/ui/icons/speed.gif", "speed");
-    loadImage(display, "org/gudy/azureus2/ui/icons/openFolder16x12.gif", "openFolderButton");
-    loadImage(display, "org/gudy/azureus2/ui/icons/forcestart.gif", "forcestart");
-    loadImage(display, "org/gudy/azureus2/ui/icons/greenled.gif", "greenled");
-    loadImage(display, "org/gudy/azureus2/ui/icons/redled.gif", "redled");
-    loadImage(display, "org/gudy/azureus2/ui/icons/yellowled.gif", "yellowled");
-    loadImage(display, "org/gudy/azureus2/ui/icons/grayled.gif", "grayled");
-    imagesToPath.put("donation","org/gudy/azureus2/ui/icons/donation.jpg");
-    loadImage(display, "org/gudy/azureus2/ui/icons/popup.png","popup");
-    loadImage(display, "org/gudy/azureus2/ui/icons/error.gif","error");
-    loadImage(display, "org/gudy/azureus2/ui/icons/info.gif","info");
-    loadImage(display, "org/gudy/azureus2/ui/icons/warning.gif","warning");
-    loadImage(display, "org/gudy/azureus2/ui/icons/subitem.gif","subitem");
-    
-    //ToolBar Icons
+		addPath("org/gudy/azureus2/ui/icons/a32.png", "azureus32");
+		addPath("org/gudy/azureus2/ui/icons/a64.png", "azureus64");
+		addPath("org/gudy/azureus2/ui/icons/a128.png", "azureus128");
+		addPath("org/gudy/azureus2/ui/icons/Azureus_big.png", "tray");
+		addPath("org/gudy/azureus2/ui/icons/dragger.gif", "dragger");
+		addPath("org/gudy/azureus2/ui/icons/folder.gif", "folder");
+		addPath("org/gudy/azureus2/ui/icons/ipfilter.png", "ipfilter");
+		addPath("org/gudy/azureus2/ui/icons/start.gif", "start");
+		addPath("org/gudy/azureus2/ui/icons/stop.gif", "stop");
+		addPath("org/gudy/azureus2/ui/icons/bar.gif", "downloadBar");
+		addPath("org/gudy/azureus2/ui/icons/delete.gif", "delete");
+		addPath("org/gudy/azureus2/ui/icons/lock.gif", "lock");
+		addPath("org/gudy/azureus2/ui/icons/host.gif", "host");
+		addPath("org/gudy/azureus2/ui/icons/publish.gif", "publish");
+		addPath("org/gudy/azureus2/ui/icons/run.gif", "run");
+		addPath("org/gudy/azureus2/ui/icons/details.gif", "details");
+		addPath("org/gudy/azureus2/ui/icons/up.gif", "up");
+		addPath("org/gudy/azureus2/ui/icons/down.gif", "down");
+		addPath("org/gudy/azureus2/ui/icons/top.gif", "top");
+		addPath("org/gudy/azureus2/ui/icons/bottom.gif", "bottom");
+		addPath("org/gudy/azureus2/ui/icons/recheck.gif", "recheck");
+		addPath("org/gudy/azureus2/ui/icons/export.gif", "export");
+		addPath("org/gudy/azureus2/ui/icons/move.gif", "move");
+		addPath("org/gudy/azureus2/ui/icons/add_tracker.gif", "add_tracker");
+		addPath("org/gudy/azureus2/ui/icons/edit_trackers.gif", "edit_trackers");
+		addPath("org/gudy/azureus2/ui/icons/columns.gif", "columns");
+		addPath("org/gudy/azureus2/ui/icons/speed.gif", "speed");
+		addPath("org/gudy/azureus2/ui/icons/openFolder16x12.gif",
+				"openFolderButton");
+		addPath("org/gudy/azureus2/ui/icons/forcestart.gif", "forcestart");
+		addPath("org/gudy/azureus2/ui/icons/greenled.gif", "greenled");
+		addPath("org/gudy/azureus2/ui/icons/redled.gif", "redled");
+		addPath("org/gudy/azureus2/ui/icons/yellowled.gif", "yellowled");
+		addPath("org/gudy/azureus2/ui/icons/grayled.gif", "grayled");
+		imagesToPath.put("donation", "org/gudy/azureus2/ui/icons/donation.jpg");
+		addPath("org/gudy/azureus2/ui/icons/popup.png", "popup");
+		addPath("org/gudy/azureus2/ui/icons/error.gif", "error");
+		addPath("org/gudy/azureus2/ui/icons/info.gif", "info");
+		addPath("org/gudy/azureus2/ui/icons/warning.gif", "warning");
+		addPath("org/gudy/azureus2/ui/icons/subitem.gif", "subitem");
 
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/open.gif", "cb_open");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/open_no_default.gif", "cb_open_no_default");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/open_folder.gif", "cb_open_folder");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/open_url.gif", "cb_open_url");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/new.gif", "cb_new");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/up.gif", "cb_up");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/down.gif", "cb_down");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/top.gif", "cb_top");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/bottom.gif", "cb_bottom");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/run.gif", "cb_run");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/start.gif", "cb_start");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/stop.gif", "cb_stop");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/remove.gif", "cb_remove");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/host.gif", "cb_host");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/publish.gif", "cb_publish");
-    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/sendto.png", "cb_send");
+		//ToolBar Icons
 
-    //Status icons
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/ok.gif", "st_ok");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/ko.gif", "st_ko");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/stopped.gif", "st_stopped");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/error.gif", "st_error");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/no_tracker.gif", "st_no_tracker");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/no_remote.gif", "st_no_remote");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/open.gif", "cb_open");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/open_no_default.gif",
+				"cb_open_no_default");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/open_folder.gif",
+				"cb_open_folder");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/open_url.gif", "cb_open_url");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/new.gif", "cb_new");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/up.gif", "cb_up");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/down.gif", "cb_down");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/top.gif", "cb_top");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/bottom.gif", "cb_bottom");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/run.gif", "cb_run");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/start.gif", "cb_start");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/stop.gif", "cb_stop");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/remove.gif", "cb_remove");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/host.gif", "cb_host");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/publish.gif", "cb_publish");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/sendto.png", "cb_send");
 
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/ok_shared.gif", "st_ok_shared");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/ko_shared.gif", "st_ko_shared");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/error_shared.gif", "st_error_shared");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/stopped_shared.gif", "st_stopped_shared");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/no_tracker_shared.gif", "st_no_tracker_shared");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/no_remote_shared.gif", "st_no_remote_shared");
+		//Status icons
+		addPath("org/gudy/azureus2/ui/icons/status/ok.gif", "st_ok");
+		addPath("org/gudy/azureus2/ui/icons/status/ko.gif", "st_ko");
+		addPath("org/gudy/azureus2/ui/icons/status/stopped.gif", "st_stopped");
+		addPath("org/gudy/azureus2/ui/icons/status/error.gif", "st_error");
+		addPath("org/gudy/azureus2/ui/icons/status/no_tracker.gif", "st_no_tracker");
+		addPath("org/gudy/azureus2/ui/icons/status/no_remote.gif", "st_no_remote");
 
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/explain.gif", "st_explain");
-    loadImage(display, "org/gudy/azureus2/ui/icons/status/shared.gif", "st_shared");
+		addPath("org/gudy/azureus2/ui/icons/status/ok_shared.gif", "st_ok_shared");
+		addPath("org/gudy/azureus2/ui/icons/status/ko_shared.gif", "st_ko_shared");
+		addPath("org/gudy/azureus2/ui/icons/status/error_shared.gif",
+				"st_error_shared");
+		addPath("org/gudy/azureus2/ui/icons/status/stopped_shared.gif",
+				"st_stopped_shared");
+		addPath("org/gudy/azureus2/ui/icons/status/no_tracker_shared.gif",
+				"st_no_tracker_shared");
+		addPath("org/gudy/azureus2/ui/icons/status/no_remote_shared.gif",
+				"st_no_remote_shared");
 
-    loadImage(display, "org/gudy/azureus2/ui/icons/statusbar/status_warning.gif", "sb_warning");
+		addPath("org/gudy/azureus2/ui/icons/status/explain.gif", "st_explain");
+		addPath("org/gudy/azureus2/ui/icons/status/shared.gif", "st_shared");
 
+		addPath("org/gudy/azureus2/ui/icons/statusbar/status_warning.gif",
+				"sb_warning");
 
-    loadImage(display, "org/gudy/azureus2/ui/icons/smallx.png", "smallx");
-    loadImage(display, "org/gudy/azureus2/ui/icons/smallx-gray.png", "smallx-gray");
-    loadImage(display, "org/gudy/azureus2/ui/icons/sendto-small.png", "sendto-small");
-    }
+		addPath("org/gudy/azureus2/ui/icons/smallx.png", "smallx");
+		addPath("org/gudy/azureus2/ui/icons/smallx-gray.png", "smallx-gray");
+		addPath("org/gudy/azureus2/ui/icons/sendto-small.png", "sendto-small");
+	}
 
+  private static void addPath(String path, String id) {
+    imagesToPath.put(id,path);
+  	// 2x longer
+    //loadImage(display, path, id);
+  }
 
-  public static Image loadImage(Display display, String res, String name){
+  private static Image loadImage(Display display, String res, String name){
     return loadImage(display,res,name,255);
   }
 
-  public static Image loadImage(Display display, String res, String name,int alpha) {
+  private static Image loadImage(Display display, String res, String name,int alpha) {
     return loadImage(ImageRepository.class.getClassLoader(),display,res,name,alpha);
   }
 
   static Image onlyOneImage = null;
-  public static Image loadImage(ClassLoader loader,Display display, String res, String name,int alpha) {
+  private static Image loadImage(ClassLoader loader,Display display, String res, String name,int alpha) {
   	if (NO_IMAGES) {
   		if (onlyOneImage == null) {
   			onlyOneImage = new Image(display, 1, 1);
