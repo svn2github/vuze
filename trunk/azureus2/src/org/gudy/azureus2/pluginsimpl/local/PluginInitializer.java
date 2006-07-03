@@ -37,12 +37,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
-import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
 
@@ -360,14 +355,17 @@ PluginInitializer
 	    if (Logger.isEnabled())
 	    	Logger.log(new LogEvent(LOGID, "Loading built-in plugins"));
 	    
+	    if (listener != null) {
+	    	listener.reportCurrentTask(MessageText.getString("splash.plugin")
+	    			+ MessageText.getString("ConfigView.pluginlist.column.type.builtIn"));
+	    }
+
   		PluginManagerDefaults	def = PluginManager.getDefaults();
     
   		for (int i=0;i<builtin_plugins.length;i++){
     		
   			if ( def.isDefaultPluginEnabled( builtin_plugins[i][0])){
     		
-  				String	key	= builtin_plugins[i][3];
-	    	
   				try{
   						// lazyness here, for builtin we use static load method with default plugin interface
   						// if we need to improve on this then we'll have to move to a system more akin to
@@ -525,6 +523,7 @@ PluginInitializer
           
           continue;
         }
+        
 	    	
       if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "Loading plugin "
