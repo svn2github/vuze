@@ -45,7 +45,7 @@ NetworkGlueLoopBack
  
 {
 	private boolean	UDP_TEST	= false;
-	private int latency			= 5000;
+	private int latency			= 2000;
 	
 	private NetworkGlueListener		listener;
 

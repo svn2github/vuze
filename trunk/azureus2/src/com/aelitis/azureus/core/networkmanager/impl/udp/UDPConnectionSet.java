@@ -88,9 +88,10 @@ UDPConnectionSet
 	private int	current_timer_base	= TIMER_BASE;
 	
 
-	private int	stats_packets_sent;
-	private int stats_packets_resent;
-	private int stats_duplicates;
+	private int	stats_packets_sent			= 1;	// crypto setup message
+	private int stats_packets_resent;				// total resent due to resend timer expiry
+	private int	stats_packets_received;				// unique packets received (not resends)
+	private int stats_packets_duplicates;			// duplicates received
 	
 		// transmit
 
@@ -349,6 +350,80 @@ UDPConnectionSet
     	return( rc4_engine );
 	}
 	
+	protected void
+	sendTimerBase()
+	{
+			// only the outgoing side of a connection can initiate changes in timer base
+		
+		if ( !outgoing ){
+			
+			return;
+		}
+		
+		synchronized( this ){
+			
+			if ( stats_packets_sent > 2 ){
+				
+				boolean	adjusted = false;
+				
+				if ( stats_packets_resent > 0 ){
+					
+					int	resend_ratio = stats_packets_resent / stats_packets_sent;
+					
+					if ( resend_ratio >= 1 ){
+						
+						int	new_timer_base = current_timer_base * ( resend_ratio + 1 );
+						
+						log( "Increasing timer base from " + current_timer_base + " to " + new_timer_base + " due to resends" );
+						
+						current_timer_base	= new_timer_base;
+						
+						adjusted = true;
+					}
+				}
+				
+				if ( !adjusted && stats_packets_duplicates > 0 ){
+					
+					int	duplicate_ratio = stats_packets_duplicates / stats_packets_received;
+					
+					if ( duplicate_ratio >= 1 ){
+						
+						int	new_timer_base = current_timer_base * ( duplicate_ratio + 1 );
+						
+						log( "Increasing timer base from " + current_timer_base + " to " + new_timer_base + " due to duplicates" );
+						
+						current_timer_base	= new_timer_base;
+						
+						adjusted = true;
+					}
+				}
+				
+				if ( adjusted ){
+					
+					stats_packets_sent			= 0;
+					stats_packets_resent		= 0;
+					stats_packets_duplicates	= 0;
+					stats_packets_received		= 0;
+				}
+			}
+		}
+	}
+	
+	protected void
+	receiveTimerBase(
+		int	theirs )
+	{
+		log( "Received timer base " + theirs );
+		
+		synchronized( this ){
+
+			if ( outgoing ){
+
+				}else{
+				
+				}
+		}
+	}
 	
 	protected void
 	timerTick()
@@ -797,7 +872,7 @@ UDPConnectionSet
 					
 					synchronized( this ){
 						
-						stats_duplicates++;
+						stats_packets_duplicates++;
 						
 						if ( transmit_unack_packets.size() == 1 ){
 							
@@ -842,27 +917,30 @@ UDPConnectionSet
 					
 					if ( oop_seq.equals( seq2 )){
 						
-						if ( oop_buffer != null ){
+						synchronized( this ){
+
+							if ( oop_buffer != null ){
 						
-							synchronized( this ){
 								
-								stats_duplicates++;
+								stats_packets_duplicates++;
+								
+								log( "Duplicate out-of-order packet: " + seq2 );
+													
+								return;
 							}
 							
-							log( "Duplicate out-of-order packet: " + seq2 );
+							stats_packets_received++;
+							
+							log( "Out-of-order packet entry data matched for seq " + seq2 );
+							
+								// got data matching out-of-order-entry, add it in!
 													
-							return;
+							entry[2] = initial_buffer;
+							
+							oop = true;
+							
+							break;
 						}
-						
-						log( "Out-of-order packet entry data matched for seq " + seq2 );
-						
-							// got data matching out-of-order-entry, add it in!
-												
-						entry[2] = initial_buffer;
-						
-						oop = true;
-						
-						break;
 					}
 				}
 				
@@ -879,6 +957,11 @@ UDPConnectionSet
 								
 						if ( seq2.intValue() == seq_in[1] ){
 								
+							synchronized( this ){
+								
+								stats_packets_received++;
+							}
+							
 							if ( receive_out_of_order_packets.size() == 0 ){
 
 								// this is an in-order packet :)
@@ -1003,6 +1086,10 @@ UDPConnectionSet
 						
 						lazy_ack_found	= true;
 					}
+					
+					int	their_timer_base = (buffer.getShort()&0xffff)*10;
+					
+					receiveTimerBase( their_timer_base );
 					
 					byte	command = buffer.get();
 					
@@ -1753,6 +1840,8 @@ UDPConnectionSet
 		// header checksum
 		// payload
 	
+		sendTimerBase();
+		
 		stats_packets_sent++;
 		
 		int[]	sequence_numbers = out_seq_generator.getNextSequenceNumber();
@@ -1769,7 +1858,7 @@ UDPConnectionSet
 				
 		buffer.put((byte)UDPPacket.PROTOCOL_VERSION);
 		buffer.put( flags );
-				
+		buffer.putShort((short)(current_timer_base/10));
 		buffer.put((byte)command);
 
 		return( sequence_numbers );
