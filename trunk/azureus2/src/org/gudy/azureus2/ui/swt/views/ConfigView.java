@@ -166,6 +166,7 @@ public class ConfigView extends AbstractIView {
       filterFoundFont = new Font(d, fontData);
       
       cLeftSide.setBackground(tree.getBackground());
+      lblX.setBackground(tree.getBackground());
 
       FormData formData;
       formData = new FormData();
