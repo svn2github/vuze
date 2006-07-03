@@ -570,8 +570,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					// and add it to the top
 					dirList.add(0, sDestDir);
 
-					// Limit to 10
-					if (dirList.size() > 10)
+					// Limit
+					if (dirList.size() > 15)
 						dirList.remove(dirList.size() - 1);
 
 					// Temporary list cleanup
@@ -605,7 +605,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					COConfigurationManager.save();
 				}
 
-				if (!COConfigurationManager.getBooleanParameter("Use default data dir"))
+				if (COConfigurationManager.getBooleanParameter("DefaultDir.AutoUpdate") &&
+						!COConfigurationManager.getBooleanParameter("Use default data dir"))
 					COConfigurationManager.setParameter(PARAM_DEFSAVEPATH, sDestDir);
 
 				openTorrents();
@@ -725,6 +726,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 			if (allSame && lastDir != null) {
 				cmbDataDir.setText(lastDir);
+				sDestDir = lastDir;
 			} else {
 				cmbDataDir.setText("");
 			}
@@ -1966,12 +1968,24 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			String sSmartDir = sDestDir;
 			try {
 				String name = getTorrentName();
+				int totalSegmentsLengths = 0;
 
 				String[][] segments = {
 						name.split("[^a-zA-Z]+"),
 						sFileName.split("[^a-zA-Z]+") };
 				List downloadManagers = gm.getDownloadManagers();
 
+				for (int x = 0; x < segments.length; x++) {
+					String[] segmentArray = segments[x];
+					for (int i = 0; i < segmentArray.length; i++) {
+						int l = segmentArray[i].length();
+						if (l <= 1) {
+							continue;
+						}
+						totalSegmentsLengths += l;
+					}
+				}
+				
 				int maxMatches = 0;
 				DownloadManager match = null;
 				for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
@@ -1988,14 +2002,15 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					for (int x = 0; x < segments.length; x++) {
 						String[] segmentArray = segments[x];
 						for (int i = 0; i < segmentArray.length; i++) {
-							if (segmentArray[i].length() <= 1) {
+							int l = segmentArray[i].length();
+							if (l <= 1) {
 								continue;
 							}
 
 							String segment = segmentArray[i].toLowerCase();
 
 							if (dmName.matches(".*" + segment + ".*")) {
-								numMatches++;
+								numMatches += l;
 							}
 						}
 					}
@@ -2006,12 +2021,16 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					}
 				}
 				if (match != null) {
-					File f = match.getSaveLocation();
-					if (!f.isDirectory()) {
-						f = f.getParentFile();
-					}
-					if (f != null && f.isDirectory()) {
-						sSmartDir = f.getAbsolutePath();
+					//System.out.println(match + ": " + (maxMatches * 100 / totalSegmentsLengths) + "%\n");
+					int iMatchLevel = (maxMatches * 100 / totalSegmentsLengths);
+					if (iMatchLevel >= 30) {
+						File f = match.getSaveLocation();
+						if (!f.isDirectory()) {
+							f = f.getParentFile();
+						}
+						if (f != null && f.isDirectory()) {
+							sSmartDir = f.getAbsolutePath();
+						}
 					}
 				}
 
