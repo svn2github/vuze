@@ -444,7 +444,15 @@ public class DefaultRankCalculator implements Comparable {
 			int shareRatio = stats.getShareRatio();
 
 			int numPeers = rules.calcPeersNoUs(dl);
+			if (numPeers < 0) {
+				// negative value from tracker, assume there's at least one peer
+				numPeers = 1;
+			}
 			int numSeeds = rules.calcSeedsNoUs(dl);
+			if (numSeeds < 0) {
+				// negative value from tracker, assume there's at least one seed
+				numSeeds = 1;
+			}
 
 			boolean bScrapeResultsOk = (numPeers > 0) || (numSeeds > 0)
 					|| scrapeResultOk(dl);
