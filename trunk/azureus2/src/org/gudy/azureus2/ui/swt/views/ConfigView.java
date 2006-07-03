@@ -31,6 +31,7 @@ import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
@@ -42,6 +43,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
@@ -72,6 +74,7 @@ public class ConfigView extends AbstractIView {
 
 	private Timer filterDelayTimer;
 	private String filterText = "";
+	private Label lblX;
 
   /**
    * Main Initializer
@@ -94,7 +97,7 @@ public class ConfigView extends AbstractIView {
     /--cConfig-----------------------------------------------------------\
     | ###SashForm#form################################################## |
     | # /--cLeftSide-\ /--cRightSide---------------------------------\ # |
-    | # | txtFilter  | | ***cHeader********************************* | # |
+    | # |txtFilter X | | ***cHeader********************************* | # |
     | # | ##tree#### | | * lHeader                                 * | # |
     | # | #        # | | ******************************************* | # |
     | # | #        # | | ###Composite cConfigSection################ | # |
@@ -147,7 +150,15 @@ public class ConfigView extends AbstractIView {
 				}
 			});
       txtFilter.setFocus();
-      
+
+  		lblX = new Label(cLeftSide, SWT.WRAP);
+      Messages.setLanguageTooltip(lblX, "MyTorrentsView.clearFilter.tooltip");
+      lblX.setImage(ImageRepository.getImage("smallx-gray"));
+      lblX.addMouseListener(new MouseAdapter() {
+      	public void mouseUp(MouseEvent e) {
+      		txtFilter.setText("");
+      	}
+      });
   
       tree = new Tree(cLeftSide, SWT.NONE);
       FontData[] fontData = tree.getFont().getFontData();
@@ -155,12 +166,18 @@ public class ConfigView extends AbstractIView {
       filterFoundFont = new Font(d, fontData);
       
       cLeftSide.setBackground(tree.getBackground());
-      
-      FormData formData = new FormData();
+
+      FormData formData;
+      formData = new FormData();
       formData.top = new FormAttachment(0,5);
       formData.left = new FormAttachment(0,5);
-      formData.right = new FormAttachment(100,-5);
+      formData.right = new FormAttachment(lblX, -3);
       txtFilter.setLayoutData(formData);
+
+      formData = new FormData();
+      formData.top = new FormAttachment(0,5);
+      formData.right = new FormAttachment(100,-5);
+      lblX.setLayoutData(formData);
 
       formData = new FormData();
       formData.top = new FormAttachment(txtFilter,5);
@@ -391,6 +408,14 @@ public class ConfigView extends AbstractIView {
 		if (filterDelayTimer != null) {
 			filterDelayTimer.destroy();
 		}
+		
+		if (lblX != null && !lblX.isDisposed()) {
+			Image img = ImageRepository.getImage(filterText.length() > 0 ? "smallx"
+					: "smallx-gray");
+
+			lblX.setImage(img);
+		}
+
 
 		filterDelayTimer = new Timer("Filter");
 		filterDelayTimer.addEvent(SystemTime.getCurrentTime() + 300,
