@@ -580,7 +580,7 @@ MainWindow
 		// No tray access on OSX yet
 		boolean bEnableTray = COConfigurationManager
 				.getBooleanParameter("Enable System Tray")
-				&& (!Constants.isOSX || SWT.getVersion() > 3232);
+				&& (!Constants.isOSX || SWT.getVersion() > 3300);
 		boolean bPassworded = COConfigurationManager.getBooleanParameter(
 				"Password enabled", false);
 		boolean bStartMinimize = bEnableTray
