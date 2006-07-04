@@ -65,7 +65,7 @@ public class SeedToPeerRatioItem
       } else {
 	      if (peers == 0) {
 	      	if (seeds == 0)
-	      		ratio = 1;
+	      		ratio = 0;
 	      	else
 	        	ratio = Float.POSITIVE_INFINITY;
 	      } else {
