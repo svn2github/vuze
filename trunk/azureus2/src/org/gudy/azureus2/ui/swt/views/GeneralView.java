@@ -493,21 +493,22 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     trackerUrlValue = new BufferedTruncatedLabel(gInfo, SWT.LEFT,70);        
     
     trackerUrlValue.addMouseListener(new MouseAdapter() {
-      public void mouseDown(MouseEvent event) {        
-        if(event.button == 1) {
-	        String url = trackerUrlValue.getText();
-	        if(url.startsWith("http://" ) || url.startsWith("https://")) {
-	          int pos = -1;
-	          if((pos = url.indexOf("/announce")) != -1) {
-	            url = url.substring(0,pos+1);
-	          }
-	          Program.launch(url);
-        	}
-        } else if(event.button == 3){
-          menuTracker.setVisible(true);
-        }
-      }
-    });
+			public void mouseDown(MouseEvent event) {
+				if (event.button == 3
+						|| (event.button == 1 && event.stateMask == SWT.CONTROL)) {
+					menuTracker.setVisible(true);
+				} else if (event.button == 1) {
+					String url = trackerUrlValue.getText();
+					if (url.startsWith("http://") || url.startsWith("https://")) {
+						int pos = -1;
+						if ((pos = url.indexOf("/announce")) != -1) {
+							url = url.substring(0, pos + 1);
+						}
+						Program.launch(url);
+					}
+				}
+			}
+		});
     
     
     label = new Label(gInfo, SWT.LEFT);
