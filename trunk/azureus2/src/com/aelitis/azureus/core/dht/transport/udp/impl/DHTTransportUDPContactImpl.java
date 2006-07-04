@@ -94,7 +94,7 @@ DHTTransportUDPContactImpl
 		if ( 	transport_address == external_address ||
 				transport_address.getAddress().equals( external_address.getAddress())){
 
-			id = DHTUDPUtils.getNodeID( external_address );
+			id = DHTUDPUtils.getNodeID( external_address, protocol_version );
 		}
 		
 		network_positions	= DHTNetworkPositionManager.createPositions( id==null?DHTUDPUtils.getBogusNodeID():id, _is_local );

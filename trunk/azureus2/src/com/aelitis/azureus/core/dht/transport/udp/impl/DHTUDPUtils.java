@@ -64,7 +64,8 @@ DHTUDPUtils
 		
 	protected static byte[]
 	getNodeID(
-		InetSocketAddress	address )
+		InetSocketAddress	address,
+		byte				protocol_version )
 	
 		throws DHTTransportException
 	{		
@@ -80,8 +81,20 @@ DHTUDPUtils
 			
 			SHA1Simple	hasher = (SHA1Simple)tls.get();
 			
-			byte[]	res = hasher.calculateHash(
-						(	ia.getHostAddress() + ":" + address.getPort()).getBytes());
+			byte[]	res;
+			
+			if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID_PORTS ){
+				
+					// limit range to around 2000 (1999 is prime)
+				
+				res = hasher.calculateHash(
+						(	ia.getHostAddress() + ":" + ( address.getPort() % 1999)).getBytes());
+
+			}else{
+				
+				res = hasher.calculateHash(
+							(	ia.getHostAddress() + ":" + address.getPort()).getBytes());
+			}
 			
 			//System.out.println( "NodeID: " + address + " -> " + DHTLog.getString( res ));
 			

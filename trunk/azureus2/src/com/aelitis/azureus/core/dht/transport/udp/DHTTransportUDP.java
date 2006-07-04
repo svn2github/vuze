@@ -62,6 +62,10 @@ DHTTransportUDP
 
 	public static final byte PROTOCOL_VERSION_GENERIC_NETPOS		= 15;
 
+	
+	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS		= 32;	// introduced now (2403/V15) to support possible future change to id allocation
+																			// If/when introduced the min DHT version must be set to 15 at the same time
+
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
