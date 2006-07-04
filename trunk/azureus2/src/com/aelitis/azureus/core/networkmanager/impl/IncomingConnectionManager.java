@@ -60,9 +60,6 @@ IncomingConnectionManager
 	private int max_min_match_buffer_size = 0;
 
 	
-	public static final int READ_TIMEOUT		= 10*1000;
-	public static final int CONNECT_TIMEOUT		= 60*1000;
-	  
 	private final ArrayList connections = new ArrayList();
 	private final AEMonitor connections_mon = new AEMonitor( "IncomingConnectionManager:conns" );
 
@@ -326,7 +323,7 @@ IncomingConnectionManager
 				if( now < ic.last_read_time ) {  //time went backwards!
 					ic.last_read_time = now;
 				}
-				else if( now - ic.last_read_time > READ_TIMEOUT ) {  //10s read timeout
+				else if( now - ic.last_read_time > transport_helper.getReadTimeout()) {  
 					if (Logger.isEnabled())
 						Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
 								+ transport_helper.getAddress()
@@ -341,7 +338,7 @@ IncomingConnectionManager
 				if( now < ic.initial_connect_time ) {  //time went backwards!
 					ic.initial_connect_time = now;
 				}
-				else if( now - ic.initial_connect_time > CONNECT_TIMEOUT ) {  //60s connect timeout
+				else if( now - ic.initial_connect_time > transport_helper.getConnectTimeout()) {  
 					if (Logger.isEnabled())
 						Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
 								+ transport_helper.getAddress()	+ "] forcibly timed out after "

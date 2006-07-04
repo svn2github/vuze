@@ -254,12 +254,12 @@ ProtocolDecoderInitial
 			
 			if ( last_read_time == 0 ){
 				
-				timeout = IncomingConnectionManager.CONNECT_TIMEOUT;
+				timeout = transport.getConnectTimeout();
 				time	= start_time;
 				
 			}else{
 				
-				timeout = IncomingConnectionManager.READ_TIMEOUT;
+				timeout = transport.getReadTimeout();
 				time	= last_read_time;
 			}
 			

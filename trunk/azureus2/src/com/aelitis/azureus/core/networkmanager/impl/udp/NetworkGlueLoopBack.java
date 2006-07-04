@@ -44,8 +44,8 @@ NetworkGlueLoopBack
 	implements NetworkGlue, PRUDPPrimordialHandler
  
 {
-	private boolean	UDP_TEST	= false;
-	private int latency			= 2000;
+	private boolean	UDP_TEST	= true;
+	private int latency			= 0;
 	
 	private NetworkGlueListener		listener;
 
@@ -133,7 +133,7 @@ NetworkGlueLoopBack
 								e.printStackTrace();
 							}
 						}else{
-							listener.receive( target_address.getPort(), source_address, data );
+							listener.receive( target_address.getPort(), source_address, data, data.length );
 						}
 					}
 				}
@@ -145,28 +145,27 @@ NetworkGlueLoopBack
 	packetReceived(
 		DatagramPacket	packet )
 	{
-		boolean	tracker_protocol = true;
-		
 		if ( packet.getLength() >= 12 ){
 								
 			byte[]	data = packet.getData();
 			
 				// mask: 0xfffff800
 			
-			if ( 	( data[0] & 0xff ) == 0 &&
-					( data[1] & 0xff ) == 0 &&
-					( data[2] & 0xf8 ) == 0 &&
+			if ( 	( data[0] & 0xff ) != 0 ||
+					( data[1] & 0xff ) != 0 ||
+					( data[2] & 0xf8 ) != 0 ||
 			
-					( data[8] & 0xff ) == 0 &&
-					( data[9] & 0xff ) == 0 &&
-					( data[10]& 0xf8 ) == 0 ){
+					( data[8] & 0xff ) != 0 ||
+					( data[9] & 0xff ) != 0 ||
+					( data[10]& 0xf8 ) != 0 ){
 				
-				tracker_protocol	= false;
+				listener.receive( handler.getPort(), new InetSocketAddress( packet.getAddress(), packet.getPort()), packet.getData(), packet.getLength());
+				
+				return( true );
 			}
 		}
 		
-		
-		return( !tracker_protocol );
+		return( false );
 	}
 	
 	public int

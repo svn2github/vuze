@@ -31,5 +31,6 @@ NetworkGlueListener
 	receive(
 		int					local_port,
 		InetSocketAddress	source,
-		byte[]				data );
+		byte[]				data,
+		int					data_length );
 }

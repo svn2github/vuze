@@ -230,7 +230,8 @@ UDPConnectionManager
 	receive(
 		int					local_port,
 		InetSocketAddress	remote_address,
-		byte[]				data )
+		byte[]				data,
+		int					data_length )
 	{
 		String	key = local_port + ":" + remote_address.getAddress().getHostAddress() + ":" + remote_address.getPort();
 		
@@ -253,7 +254,7 @@ UDPConnectionManager
 		}
 		
 		try{
-			connection_set.receive( data );
+			connection_set.receive( data, data_length );
 			
 		}catch( Throwable e ){
 			

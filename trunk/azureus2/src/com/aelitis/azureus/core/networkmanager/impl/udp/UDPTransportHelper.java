@@ -34,6 +34,9 @@ public class
 UDPTransportHelper 
 	implements TransportHelper
 {
+	public static final int READ_TIMEOUT		= 30*1000;
+	public static final int CONNECT_TIMEOUT		= 60*1000;
+	
 	private UDPConnectionManager	manager;
 	private UDPSelector				selector;
 	private InetSocketAddress		address;
@@ -123,6 +126,18 @@ UDPTransportHelper
 	minimiseOverheads()
 	{
 		return( true );
+	}
+	
+	public int
+	getConnectTimeout()
+	{
+		return( CONNECT_TIMEOUT );
+	}
+	
+	public int
+	getReadTimeout()
+	{
+		return( READ_TIMEOUT );
 	}
 	
 	public InetSocketAddress
@@ -297,7 +312,7 @@ UDPTransportHelper
     			break;
     		}
     	}
-    	
+    	//System.out.println( "total = " + total );
     	return( total );
     }
 

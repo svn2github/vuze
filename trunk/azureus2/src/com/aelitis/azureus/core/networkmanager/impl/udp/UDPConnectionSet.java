@@ -36,13 +36,14 @@ import org.bouncycastle.crypto.engines.RC4Engine;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.net.udp.uc.PRUDPPacketReply;
 
 public class 
 UDPConnectionSet 
 {
-	private static final boolean	LOG = true;
+	private static final boolean	LOG = false;
 	
 	private static final byte[]	KEYA_IV	= "UDPDriverKeyA".getBytes();
 	private static final byte[]	KEYB_IV	= "UDPDriverKeyB".getBytes();
@@ -84,14 +85,22 @@ UDPConnectionSet
 	private static final int IDLE_TICKS	= Math.max( 1, IDLE_TIMER / UDPConnectionManager.TIMER_TICK_MILLIS );
 	private int idle_ticks = 0;
 
-	private static final int	TIMER_BASE		= 300;
-	private int	current_timer_base	= TIMER_BASE;
+	private static final int	TIMER_BASE_DEFAULT		= 300;
+	private static final int	TIMER_BASE_MIN			= 100;
+	private static final int	TIMER_BASE_MAX			= 15*1000;
 	
+	private int	current_timer_base	= TIMER_BASE_DEFAULT;
+	private int old_timer_base		= current_timer_base;
+	private boolean	timer_is_adjusting;
 
 	private int	stats_packets_sent			= 1;	// crypto setup message
 	private int stats_packets_resent;				// total resent due to resend timer expiry
 	private int	stats_packets_received;				// unique packets received (not resends)
 	private int stats_packets_duplicates;			// duplicates received
+	
+	private static final int STATS_RESET_TIMER = 30*1000;
+	
+	private long	stats_reset_time = SystemTime.getCurrentTime();
 	
 		// transmit
 
@@ -102,8 +111,6 @@ UDPConnectionSet
 	private int	total_protocol_resent	= 0;
 
 	
-	private static final int RETRANSMIT_TIMER	= 500;
-	private static final int RETRANSMIT_TICKS	= Math.max( 1, RETRANSMIT_TIMER / UDPConnectionManager.TIMER_TICK_MILLIS );
 	private int retransmit_ticks = 0;
 	private UDPPacket	current_retransmit_target;
 	
@@ -112,7 +119,7 @@ UDPConnectionSet
 	
 	private static final int MIN_RETRANSMIT_TIMER	= 100;
 	private static final int MIN_RETRANSMIT_TICKS	= Math.max( 1, MIN_RETRANSMIT_TIMER / UDPConnectionManager.TIMER_TICK_MILLIS );
-	private static final int MAX_RETRANSMIT_TIMER	= 5000;
+	private static final int MAX_RETRANSMIT_TIMER	= 20*1000;
 	private static final int MAX_RETRANSMIT_TICKS	= Math.max( 1, MAX_RETRANSMIT_TIMER / UDPConnectionManager.TIMER_TICK_MILLIS );
 
 	
@@ -120,7 +127,7 @@ UDPConnectionSet
 	private static final int 	MAX_TRANSMIT_UNACK_PACKETS		= MAX_TRANSMIT_UNACK_DATA_PACKETS + 4;	// + protocol packets
 	private List				transmit_unack_packets = new ArrayList();
 		
-	private static final int	MAX_CONTIGUOUS_RETRANS	= 3;
+	private static final int	MAX_CONTIGUOUS_RETRANS_FOR_ACK	= 3;
 	
 	private static final int MIN_KEEPALIVE_TIMER	= 10*1000;
 	private static final int MIN_KEEPALIVE_TICKS	= Math.max( 1, MIN_KEEPALIVE_TIMER / UDPConnectionManager.TIMER_TICK_MILLIS );
@@ -150,8 +157,6 @@ UDPConnectionSet
 	private static final int RECEIVE_OUT_OF_ORDER_PACKETS_MAX	= 32;
 	private List	receive_out_of_order_packets	= new LinkedList();
 	
-	private static final int EXPLICITACK_TIMER	= 300;
-	private static final int EXPLICITACK_TICKS	= Math.max( 1, EXPLICITACK_TIMER / UDPConnectionManager.TIMER_TICK_MILLIS );
 	private int explicitack_ticks = 0;
 
 	private static final int MAX_SEQ_MEMORY = Math.max( RECEIVE_OUT_OF_ORDER_PACKETS_MAX, MAX_TRANSMIT_UNACK_PACKETS );
@@ -360,46 +365,101 @@ UDPConnectionSet
 			return;
 		}
 		
+			// the thing that kills a connection is too many retransmits so we need to keep these minimised during timer changes
+		
+			// when we increase our base timer we can immediately increase our retransmit timer but need to wait until they have 
+			// modified their timer before increasing the ack. Otherwise they won't be receiving acks as fast as they expect and therefore
+			// trigger retransmits 
+		
+			// when we decrease our base timer it is the opposite way around - we can immediately decrease acks but delay retrans
+		
 		synchronized( this ){
+			
+			if ( timer_is_adjusting ){
+				
+				return;
+			}
+				// only consider the stats if we've sent at least a few this interval
 			
 			if ( stats_packets_sent > 2 ){
 				
-				boolean	adjusted = false;
-				
+				int	new_timer_base = current_timer_base;
+								
 				if ( stats_packets_resent > 0 ){
 					
-					int	resend_ratio = stats_packets_resent / stats_packets_sent;
+					float	resend_ratio = (float)stats_packets_resent / stats_packets_sent;
 					
-					if ( resend_ratio >= 1 ){
+					System.out.println( "resend ratio: " + resend_ratio );
+					
+					if ( resend_ratio >= 0.25 ){
 						
-						int	new_timer_base = current_timer_base * ( resend_ratio + 1 );
+						new_timer_base = (int)( current_timer_base * ( resend_ratio + 1 ));
 						
-						log( "Increasing timer base from " + current_timer_base + " to " + new_timer_base + " due to resends" );
+						new_timer_base = Math.min( TIMER_BASE_MAX, new_timer_base );
 						
-						current_timer_base	= new_timer_base;
-						
-						adjusted = true;
+						if ( new_timer_base != current_timer_base ){
+							
+							log( "Increasing timer base from " + current_timer_base + " to " + new_timer_base + " due to resends" );
+						}
 					}
 				}
 				
-				if ( !adjusted && stats_packets_duplicates > 0 ){
+				if ( new_timer_base == current_timer_base && stats_packets_duplicates > 0 ){
 					
-					int	duplicate_ratio = stats_packets_duplicates / stats_packets_received;
+					float	duplicate_ratio = (float)stats_packets_duplicates / stats_packets_received;
 					
-					if ( duplicate_ratio >= 1 ){
+					System.out.println( "duplicate ratio: " + duplicate_ratio );
+
+					if ( duplicate_ratio >= 0.25 ){
 						
-						int	new_timer_base = current_timer_base * ( duplicate_ratio + 1 );
+						new_timer_base = (int)( current_timer_base * ( duplicate_ratio + 1 ));
 						
-						log( "Increasing timer base from " + current_timer_base + " to " + new_timer_base + " due to duplicates" );
+						new_timer_base = Math.min( TIMER_BASE_MAX, new_timer_base );
 						
-						current_timer_base	= new_timer_base;
-						
-						adjusted = true;
+						if ( new_timer_base != current_timer_base ){
+
+							log( "Increasing timer base from " + current_timer_base + " to " + new_timer_base + " due to duplicates" );
+						}
 					}
 				}
 				
-				if ( adjusted ){
+				if ( new_timer_base == current_timer_base && stats_packets_received > 2 ){
 					
+						// conservative approach - reduce by 10% if we've had no errors
+					
+					if ( stats_packets_resent == 0 && stats_packets_duplicates == 0 ){
+						
+						new_timer_base = current_timer_base - (current_timer_base/10);
+						
+						new_timer_base = Math.max( new_timer_base, TIMER_BASE_MIN );
+					}
+				}				
+				
+				boolean	reset_stats	= false;
+				
+				long	now = SystemTime.getCurrentTime();
+
+				if ( new_timer_base == current_timer_base ){
+					
+					if ( now < stats_reset_time || now - stats_reset_time > STATS_RESET_TIMER ){
+												
+						reset_stats	= true;
+					}
+					
+				}else{
+					
+					timer_is_adjusting	= true;
+					
+					old_timer_base		= current_timer_base;
+					current_timer_base	= new_timer_base;
+					
+					reset_stats = true;
+				}
+				
+				if ( reset_stats ){
+					
+					stats_reset_time = now;
+
 					stats_packets_sent			= 0;
 					stats_packets_resent		= 0;
 					stats_packets_duplicates	= 0;
@@ -419,9 +479,19 @@ UDPConnectionSet
 
 			if ( outgoing ){
 
-				}else{
-				
+				if ( theirs == current_timer_base ){
+					
+					if ( timer_is_adjusting ){
+						
+						timer_is_adjusting = false;
+					}
 				}
+			}else{
+			
+					// simply use the new value
+				
+				current_timer_base = theirs;
+			}
 		}
 	}
 	
@@ -494,6 +564,63 @@ UDPConnectionSet
 		}
 	}
 	
+	protected int
+	getRetransmitTicks()
+	{
+		int	timer_to_use;
+		
+		synchronized( this ){
+			
+			if ( timer_is_adjusting ){
+				
+				if ( current_timer_base > old_timer_base ){
+					
+					timer_to_use = current_timer_base;
+					
+				}else{
+					
+					timer_to_use = old_timer_base;
+				}
+			}else{
+				
+				timer_to_use = current_timer_base;
+			}
+		}
+			
+			// 5/3 of base
+			
+
+		int	timer = ( timer_to_use * 5 ) / 3;
+		
+		return( Math.max( 1, timer / UDPConnectionManager.TIMER_TICK_MILLIS ));
+	}
+	
+	protected int
+	getExplicitAckTicks()
+	{
+		int	timer_to_use;
+		
+		synchronized( this ){
+			
+			if ( timer_is_adjusting ){
+				
+				if ( current_timer_base > old_timer_base ){
+					
+					timer_to_use = old_timer_base;
+					
+				}else{
+					
+					timer_to_use = current_timer_base;
+				}
+			}else{
+				
+				timer_to_use = current_timer_base;
+			}
+		}
+		
+		return( Math.max( 1, timer_to_use / UDPConnectionManager.TIMER_TICK_MILLIS ));
+	}
+	
 	protected void
 	startKeepAliveTimer()
 	{
@@ -554,18 +681,20 @@ UDPConnectionSet
 	getRetransmitTicks( 
 		int	resend_count )
 	{
+		int ticks = getRetransmitTicks();
+		
 		int	res;
 		
 		if ( resend_count == 0 ){
 			
-			res = RETRANSMIT_TICKS;
+			res = ticks;
 			
 		}else{
 			
-			res = RETRANSMIT_TICKS + (( MAX_RETRANSMIT_TICKS - RETRANSMIT_TICKS ) * resend_count ) / ( RETRANSMIT_COUNT_LIMIT-1 ); 
+			res = ticks + (( MAX_RETRANSMIT_TICKS - ticks ) * resend_count ) / ( RETRANSMIT_COUNT_LIMIT-1 ); 
 		}
 		
-		System.out.println( "retry: " + res );
+		// System.out.println( "retry: " + res );
 		
 		return( res );
 	}
@@ -786,7 +915,8 @@ UDPConnectionSet
 	
 	public void
 	receive(
-		byte[]			initial_data )
+		byte[]			initial_data,
+		int				initial_data_length )
 	
 		throws IOException
 	{
@@ -797,9 +927,11 @@ UDPConnectionSet
 		
 		dumpState();
 		
-		log( "Read: total=" + initial_data.length );
+		log( "Read: total=" + initial_data_length );
 		
 		ByteBuffer	initial_buffer = ByteBuffer.wrap( initial_data );
+		
+		initial_buffer.limit( initial_data_length );
 		
 		if ( !crypto_done ){
 			
@@ -1170,7 +1302,7 @@ UDPConnectionSet
 							
 							if ( explicitack_ticks == 0 ){
 								
-								explicitack_ticks = EXPLICITACK_TICKS;
+								explicitack_ticks = getExplicitAckTicks();
 							}
 						}
 					}
@@ -1451,7 +1583,7 @@ UDPConnectionSet
 				
 				if ( packet.getCommand() == UDPPacket.COMMAND_ACK ){
 					
-					if ( total_tick_count - packet.getSendTickCount() >= EXPLICITACK_TICKS ){
+					if ( total_tick_count - packet.getSendTickCount() >= getExplicitAckTicks() ){
 					
 						log( packet.getConnection(), "retransAck:" + packet.getString());
 					
@@ -1544,7 +1676,7 @@ UDPConnectionSet
 				
 			Iterator it = transmit_unack_packets.iterator();
 
-			while( resend_list.size() < MAX_CONTIGUOUS_RETRANS ){
+			while( resend_list.size() < MAX_CONTIGUOUS_RETRANS_FOR_ACK ){
 				
 				int	out_of_order_seq = buffer.getInt();
 				
@@ -1556,7 +1688,7 @@ UDPConnectionSet
 						
 					oos_str += (oos_str.length()==0?"":",") + out_of_order_seq;
 
-					while( it.hasNext() && resend_list.size() < MAX_CONTIGUOUS_RETRANS ){
+					while( it.hasNext() && resend_list.size() < MAX_CONTIGUOUS_RETRANS_FOR_ACK ){
 						
 						UDPPacket	packet = (UDPPacket)it.next();
 						

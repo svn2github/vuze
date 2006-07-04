@@ -36,6 +36,12 @@ TransportHelper
 	public boolean
 	minimiseOverheads();
 	
+	public int
+	getConnectTimeout();
+	
+	public int
+	getReadTimeout();
+	
 	public int 
 	write( 
 		ByteBuffer 	buffer,

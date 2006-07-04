@@ -42,7 +42,10 @@ public class
 TCPTransportHelper 
 	implements TransportHelper
 {
-	
+	public static final int READ_TIMEOUT		= 10*1000;
+	public static final int CONNECT_TIMEOUT		= 60*1000;
+	  
+
 	private static boolean enable_efficient_io = !Constants.JAVA_VERSION.startsWith("1.4");
 
 	private	final SocketChannel	channel;
@@ -61,6 +64,18 @@ TCPTransportHelper
 	minimiseOverheads()
 	{
 		return( false );
+	}
+	
+	public int
+	getConnectTimeout()
+	{
+		return( CONNECT_TIMEOUT );
+	}
+	
+	public int
+	getReadTimeout()
+	{
+		return( READ_TIMEOUT );
 	}
 	
 	public int write( ByteBuffer buffer, boolean partial_write ) throws IOException {  	
