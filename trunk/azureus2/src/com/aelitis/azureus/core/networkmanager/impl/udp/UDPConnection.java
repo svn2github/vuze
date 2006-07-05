@@ -40,6 +40,8 @@ UDPConnection
 	
 	private List	read_buffers = new LinkedList();
 	
+	private volatile boolean	connected = true;
+	
 	protected
 	UDPConnection(
 		UDPConnectionSet	_set,
@@ -131,6 +133,14 @@ UDPConnection
 			
 			transport.canRead();
 		}
+	}
+	
+	protected void
+	sent()
+	{
+			// notification that a packet has been sent 
+		
+		transport.canWrite();
 	}
 	
 	protected boolean
@@ -245,6 +255,8 @@ UDPConnection
 	closeSupport(
 		String	reason )
 	{
+		connected	= false;
+		
 		set.close( this, reason );
 	}
 	
@@ -252,7 +264,15 @@ UDPConnection
 	failedSupport(
 		Throwable	reason )
 	{
+		connected	= false;
+		
 		set.failed( this, reason );
+	}
+	
+	protected boolean
+	isConnected()
+	{
+		return( connected );
 	}
 	
 	protected void

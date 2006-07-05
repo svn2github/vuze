@@ -442,13 +442,20 @@ UDPTransportHelper
     	write_attachment		= null;
     }
     
-    protected void
+    public void
     failed(
-    	IOException	error )
+    	Throwable	reason )
     {
     	synchronized( this ){
         		
-    		failed			= error;
+    		if ( reason instanceof IOException ){
+    			
+    			failed = (IOException)reason;
+    			
+    		}else{
+    			
+    			failed	= new IOException( Debug.getNestedExceptionMessageAndStack(reason));
+    		}
     	
     		if ( read_listener != null && !read_selects_paused ){
     		
@@ -462,6 +469,8 @@ UDPTransportHelper
     			selector.ready( this, write_listener, write_attachment, failed );
     		}
     	}
+    	
+    	connection.failedSupport( reason );
     }
     
     public void
@@ -470,6 +479,16 @@ UDPTransportHelper
     {
     	synchronized( this ){
     		
+      		if ( read_listener != null && !read_selects_paused ){
+        		
+    			selector.ready( this, read_listener, read_attachment );
+    		}
+    		
+      		if ( write_listener != null && !write_selects_paused ){
+        		     			
+    			selector.ready( this, write_listener, write_attachment );
+    		}
+      		
     		cancelReadSelects();
     		cancelWriteSelects();
     		
@@ -477,25 +496,6 @@ UDPTransportHelper
      	}
     	
     	connection.closeSupport( reason );
-    }
-    
-    public void
-    failed(
-    	Throwable	reason )
-    {
-    	synchronized( this ){
-    		   		
-    		if ( reason instanceof IOException ){
-    			
-    			failed = (IOException)reason;
-    			
-    		}else{
-    			
-    			failed	= new IOException( Debug.getNestedExceptionMessageAndStack(reason));
-    		}
-     	}
-    	
-    	connection.failedSupport( reason );
     }
     
 	protected void

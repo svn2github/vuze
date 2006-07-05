@@ -43,7 +43,7 @@ import com.aelitis.net.udp.uc.PRUDPPacketReply;
 public class 
 UDPConnectionSet 
 {
-	private static final boolean	LOG = false;
+	private static final boolean	LOG = true;
 	private static final boolean	DEBUG_SEQUENCES	= false;
 	
 	static{
@@ -85,6 +85,8 @@ UDPConnectionSet
 	private volatile boolean	failed;
 	
 	private Map	connections = new HashMap();
+	
+	private LinkedList	connection_writers = new LinkedList();
 	
 	private long	total_tick_count;
 	
@@ -325,6 +327,16 @@ UDPConnectionSet
 		 			random = new Random( bytesToLong( c_key, 8 ));
 		    	}
 	    		
+		    		// as the first packet each way is crypto we skip a sequence number from each generator
+		    		// to represent this and initialise the last-in-order seq appropriately so a sensible value is
+		    		// spliced into the next packet
+		    	
+		    	out_seq_generator.getNextSequenceNumber();
+		    	
+		    	int[]	initial_in_seqs = in_seq_generator.getNextSequenceNumber();
+		    	
+		    	receive_last_inorder_alt_sequence = initial_in_seqs[3];
+		    	
 	    		crypto_done	= true;
 	    		
 			}else if ( !crypto_done ){
@@ -739,7 +751,7 @@ UDPConnectionSet
 	{
 			// if we find this packet then we can also discard any prior to it as they are implicitly
 			// ack too
-	
+			
 		synchronized( this ){
 
 			for (int i=0;i<transmit_unack_packets.size();i++){
@@ -755,6 +767,24 @@ UDPConnectionSet
 						transmit_unack_packets.remove(0);
 					}
 					
+					Iterator	it = connection_writers.iterator();
+					
+					while( it.hasNext()){
+						
+						UDPConnection	c = (UDPConnection)it.next();
+						
+						if ( c.isConnected()){
+							
+								// we can safely do this while holding monitor as this simply queues an async selector notification if required
+							
+							c.sent();
+							
+						}else{
+							
+							it.remove();
+						}
+					}	
+
 					return;
 				}
 			}
@@ -914,8 +944,6 @@ UDPConnectionSet
 				}
 			}
 		}
-		
-
 		
 		manager.send( local_port, remote_address, payload );
 	}
@@ -2069,6 +2097,24 @@ UDPConnectionSet
 		if ( !canWrite( connection )){
 			
 			return( 0 );
+		}
+		
+		synchronized( connection_writers ){
+			
+			int	size = connection_writers.size();
+			
+			if ( size == 0 ){
+				
+				connection_writers.add( connection );
+				
+			}else if ( connection_writers.size() == 1 && connection_writers.get(0) == connection ){
+				
+			}else{
+				
+				connection_writers.remove( connection );
+			
+				connection_writers.addLast( connection );
+			}
 		}
 		
 		if ( sent_packet_count == 0 ){
