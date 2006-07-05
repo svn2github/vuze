@@ -44,6 +44,13 @@ public class
 UDPConnectionSet 
 {
 	private static final boolean	LOG = false;
+	private static final boolean	DEBUG_SEQUENCES	= false;
+	
+	static{
+		if ( DEBUG_SEQUENCES ){
+			System.out.println( "**** UDPConnectionSet: debug sequences is on ****" );
+		}
+	}
 	
 	private static final byte[]	KEYA_IV	= "UDPDriverKeyA".getBytes();
 	private static final byte[]	KEYB_IV	= "UDPDriverKeyB".getBytes();
@@ -2115,7 +2122,7 @@ UDPConnectionSet
 				
 			}catch( Throwable e ){
 				
-				Debug.printStackTrace(e);
+				failed( e );
 			}
 		}
 
@@ -2144,7 +2151,7 @@ UDPConnectionSet
 	failed(
 		Throwable e )
 	{
-		List	conns;
+		List	conns = null;
 		
 		synchronized( connections ){
 			
@@ -2153,23 +2160,26 @@ UDPConnectionSet
 				log( "Connection set failed: " + Debug.getNestedExceptionMessage( e ));
 			
 				failed	= true;
-			}
 
-			conns = new ArrayList( connections.values());
-		}
-		
-		for (int i=0;i<conns.size();i++){
-			
-			try{
-				((UDPConnection)conns.get(i)).failed( e );
-				
-			}catch( Throwable f ){
-				
-				Debug.printStackTrace(f);
+				conns = new ArrayList( connections.values());
 			}
 		}
 		
-		manager.failed( this );
+		if ( conns != null ){
+				
+			for (int i=0;i<conns.size();i++){
+				
+				try{
+					((UDPConnection)conns.get(i)).failed( e );
+					
+				}catch( Throwable f ){
+					
+					Debug.printStackTrace(f);
+				}
+			}
+			
+			manager.failed( this );
+		}
 	}
 	
 	protected boolean
@@ -2289,8 +2299,6 @@ UDPConnectionSet
 		private final int[]	seq_memory;
 		private final int[]	alt_seq_memory;
 		private int seq_memory_pos;
-
-		private static final boolean	DEBUG_SEQUENCES	= true;
 		
 		private int debug_seq_in_next	= outgoing?0:1000000;
 		private int debug_seq_out_next	= outgoing?1000000:0;

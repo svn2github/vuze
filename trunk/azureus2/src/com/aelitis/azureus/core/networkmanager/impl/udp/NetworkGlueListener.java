@@ -27,7 +27,7 @@ import java.net.InetSocketAddress;
 public interface 
 NetworkGlueListener 
 {
-	public void
+	public boolean
 	receive(
 		int					local_port,
 		InetSocketAddress	source,

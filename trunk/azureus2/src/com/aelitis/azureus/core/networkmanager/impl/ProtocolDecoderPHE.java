@@ -78,6 +78,9 @@ ProtocolDecoderPHE
 	
 	private static final int		DH_SIZE_BYTES	= DH_P.length()/2;
 
+	public static final int MIN_INCOMING_INITIAL_PACKET_SIZE	= DH_SIZE_BYTES;
+	
+
 	private static final BigInteger	DH_P_BI = new BigInteger( DH_P, 16 );
 	private static final BigInteger	DH_G_BI = new BigInteger( DH_G, 16 );
 	
@@ -115,6 +118,13 @@ ProtocolDecoderPHE
     private static final int		PADDING_MAX_NORMAL	= PADDING_MAX;
     private static final int		PADDING_MAX_LIMITED	= 128;
        
+    public static int 
+    getMaxIncomingInitialPacketSize(
+    	boolean	min_overheads )
+    {
+    	return( MIN_INCOMING_INITIAL_PACKET_SIZE + (min_overheads?PADDING_MAX_LIMITED:PADDING_MAX_NORMAL)/2 );
+    }
+    
 	private static final Random	random = new SecureRandom();
 	
 	private static Map	shared_secrets	= new HashMap();
@@ -697,7 +707,7 @@ ProtocolDecoderPHE
 						
 							// A sends B Ya + Pa
 						
-						byte[]	padding_a = getRandomPadding(getPaddingMax()/2);									
+						byte[]	padding_a = getRandomPadding(getPaddingMax()/2);	// note that /2 also used in calculating max initial packet size above									
 						
 						write_buffer = ByteBuffer.allocate( dh_public_key_bytes.length + padding_a.length );
 												

@@ -125,7 +125,7 @@ UDPTransportHelper
 	public boolean
 	minimiseOverheads()
 	{
-		return( true );
+		return( UDPNetworkManager.MINIMISE_OVERHEADS );
 	}
 	
 	public int

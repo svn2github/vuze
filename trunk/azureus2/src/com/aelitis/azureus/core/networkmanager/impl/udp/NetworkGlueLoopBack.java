@@ -149,19 +149,17 @@ NetworkGlueLoopBack
 								
 			byte[]	data = packet.getData();
 			
-				// mask: 0xfffff800
+				// first or third word must have something set in mask: 0xfffff800
 			
-			if ( 	( data[0] & 0xff ) != 0 ||
-					( data[1] & 0xff ) != 0 ||
-					( data[2] & 0xf8 ) != 0 ||
-			
-					( data[8] & 0xff ) != 0 ||
-					( data[9] & 0xff ) != 0 ||
-					( data[10]& 0xf8 ) != 0 ){
+			if ( 	(	( data[0] & 0xff ) != 0 ||
+						( data[1] & 0xff ) != 0 ||
+						( data[2] & 0xf8 ) != 0 ) &&
+					
+					(	( data[8] & 0xff ) != 0 ||
+						( data[9] & 0xff ) != 0 ||
+						( data[10]& 0xf8 ) != 0 )){
 				
-				listener.receive( handler.getPort(), new InetSocketAddress( packet.getAddress(), packet.getPort()), packet.getData(), packet.getLength());
-				
-				return( true );
+				return( listener.receive( handler.getPort(), new InetSocketAddress( packet.getAddress(), packet.getPort()), packet.getData(), packet.getLength()));
 			}
 		}
 		

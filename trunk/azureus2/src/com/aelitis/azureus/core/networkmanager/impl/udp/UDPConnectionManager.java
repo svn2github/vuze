@@ -40,6 +40,8 @@ import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 public class
 UDPConnectionManager
@@ -62,6 +64,13 @@ UDPConnectionManager
 	private UDPSelector		selector;
 	private ProtocolTimer	protocol_timer;
 	private long			idle_start;
+	
+	private static final int			BLOOM_RECREATE				= 30*1000;
+	private static final int			BLOOM_INCREASE				= 1000;
+	private BloomFilter					incoming_bloom				= BloomFilterFactory.createAddRemove4Bit(BLOOM_INCREASE);
+	private long						incoming_bloom_create_time	= SystemTime.getCurrentTime();
+	private long						last_incoming;
+	
 	
 	protected
 	UDPConnectionManager(
@@ -226,7 +235,7 @@ UDPConnectionManager
 		}
 	}
 	
-	public void
+	public boolean
 	receive(
 		int					local_port,
 		InetSocketAddress	remote_address,
@@ -245,11 +254,28 @@ UDPConnectionManager
 			
 			if ( connection_set == null ){
 				
-				connection_set = new UDPConnectionSet( this, current_selector, local_port, remote_address );
+					// check that this at least looks like an initial crypto packet
 				
-				System.out.println( "Created new set - " + connection_set.getName() + ", incoming" );
-
-				connection_sets.put( key, connection_set );
+				if (	data_length >= UDPNetworkManager.MIN_INCOMING_INITIAL_PACKET_SIZE &&
+						data_length <= UDPNetworkManager.MAX_INCOMING_INITIAL_PACKET_SIZE ){
+				
+					if ( !rateLimitIncoming( remote_address )){
+						
+						return( false );
+					}
+					
+					connection_set = new UDPConnectionSet( this, current_selector, local_port, remote_address );
+					
+					System.out.println( "Created new set - " + connection_set.getName() + ", incoming" );
+	
+					connection_sets.put( key, connection_set );
+					
+				}else{
+					
+					Debug.out( "Incoming UDP packet mismatch for connection establishment" );
+					
+					return( false );
+				}
 			}
 		}
 		
@@ -262,6 +288,62 @@ UDPConnectionManager
 			
 			connection_set.failed( e );
 		}
+		
+		return( true );
+	}
+	
+	protected synchronized boolean
+	rateLimitIncoming(
+		InetSocketAddress	s_address )
+	{
+		byte[]	address = s_address.getAddress().getAddress();
+		
+		int	hit_count = incoming_bloom.add( address );
+		
+		long	now = SystemTime.getCurrentTime();
+
+			// allow up to 10% bloom filter utilisation
+		
+		if ( incoming_bloom.getSize() / incoming_bloom.getEntryCount() < 10 ){
+			
+			incoming_bloom = BloomFilterFactory.createAddRemove4Bit(incoming_bloom.getSize() + BLOOM_INCREASE );
+			
+			incoming_bloom_create_time	= now;
+			
+     		Logger.log(	new LogEvent(LOGID, "UDP connnection bloom: size increased to " + incoming_bloom.getSize()));
+
+		}else if ( now < incoming_bloom_create_time || now - incoming_bloom_create_time > BLOOM_RECREATE ){
+			
+			incoming_bloom = BloomFilterFactory.createAddRemove4Bit(incoming_bloom.getSize());
+			
+			incoming_bloom_create_time	= now;
+		}
+			
+		if ( hit_count >= 15 ){
+			
+     		Logger.log(	new LogEvent(LOGID, "UDP incoming: too many recent connection attempts from " + s_address ));
+     		
+			return( false );
+		}
+		
+		long	since_last = now - last_incoming;
+		
+		long	delay = 100 - since_last;
+		
+			// limit to 10 a second
+		
+		if ( delay > 0 && delay < 100 ){
+			
+			try{
+				Thread.sleep( delay );
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		last_incoming = now;	
+		
+		return( true );
 	}
 	
 	public int

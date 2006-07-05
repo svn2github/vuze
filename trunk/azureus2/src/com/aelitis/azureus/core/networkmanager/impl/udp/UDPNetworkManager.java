@@ -29,12 +29,17 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 
+import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoderPHE;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 
 public class 
 UDPNetworkManager 
 {
-	public static final int	PROTOCOL_HEADER_SIZE	= 40;
+	public static final int		PROTOCOL_HEADER_SIZE	= 40;
+	public static final boolean	MINIMISE_OVERHEADS	= true;
+	
+	public static final int MIN_INCOMING_INITIAL_PACKET_SIZE = ProtocolDecoderPHE.MIN_INCOMING_INITIAL_PACKET_SIZE;
+	public static final int MAX_INCOMING_INITIAL_PACKET_SIZE = ProtocolDecoderPHE.getMaxIncomingInitialPacketSize(MINIMISE_OVERHEADS);
 	
 	private static final int MIN_MSS = 128;
 	private static final int MAX_MSS = PRUDPPacket.MAX_PACKET_SIZE;
