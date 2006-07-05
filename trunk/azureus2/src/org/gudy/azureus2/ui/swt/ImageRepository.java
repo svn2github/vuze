@@ -268,7 +268,7 @@ public class ImageRepository {
     }
 
     if (image == null) {
-      image = (Image) images.get("folder");
+      image = getImage("folder", true);
     }
     return image;
   }
@@ -280,7 +280,7 @@ public class ImageRepository {
   public static Image
   getFolderImage()
   {
-  	return( (Image) images.get("folder"));
+  	return getImage("folder", true);
   }
 
     /**
