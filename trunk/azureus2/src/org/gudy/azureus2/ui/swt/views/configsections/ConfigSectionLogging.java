@@ -26,7 +26,6 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.StringTokenizer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -54,7 +53,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class ConfigSectionLogging implements UISWTConfigSection {
-	private static final LogIDs LOGID = LogIDs.GUI;
+  private static final LogIDs LOGID = LogIDs.GUI;
+  private static final String CFG_PREFIX =  "ConfigView.section.logging.";
   private static final int logFileSizes[] =
      {
        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50, 75, 100, 200, 300, 500
@@ -88,7 +88,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     gLogging.setLayout(layout);
 
     
-    BooleanParameter enable_logger = new BooleanParameter(gLogging, "Logger.Enabled", "ConfigView.section.logging.loggerenable");
+    BooleanParameter enable_logger = new BooleanParameter(gLogging, "Logger.Enabled", CFG_PREFIX + "loggerenable");
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     enable_logger.setLayoutData(gridData);
@@ -98,7 +98,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     final BooleanParameter enableLogging = 
       new BooleanParameter(gLogging, 
                            "Logging Enable", 
-                           "ConfigView.section.logging.enable");
+                           CFG_PREFIX + "enable");
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     enableLogging.setLayoutData(gridData);
@@ -117,7 +117,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     // row
 
     Label lStatsPath = new Label(cArea, SWT.NULL);
-    Messages.setLanguageText(lStatsPath, "ConfigView.section.logging.logdir"); //$NON-NLS-1$
+    Messages.setLanguageText(lStatsPath, CFG_PREFIX + "logdir"); //$NON-NLS-1$
 
     gridData = new GridData();
     gridData.widthHint = 150;
@@ -134,7 +134,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
       public void handleEvent(Event event) {
       DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(pathParameter.getValue());
-        dialog.setText(MessageText.getString("ConfigView.section.logging.choosedefaultsavepath")); //$NON-NLS-1$
+        dialog.setText(MessageText.getString(CFG_PREFIX + "choosedefaultsavepath")); //$NON-NLS-1$
         String path = dialog.open();
         if (path != null) {
         pathParameter.setValue(path);
@@ -144,7 +144,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 
     Label lMaxLog = new Label(cArea, SWT.NULL);
 
-    Messages.setLanguageText(lMaxLog, "ConfigView.section.logging.maxsize");
+    Messages.setLanguageText(lMaxLog, CFG_PREFIX + "maxsize");
     final String lmLabels[] = new String[logFileSizes.length];
     final int lmValues[] = new int[logFileSizes.length];
     for (int i = 0; i < logFileSizes.length; i++) {
@@ -162,7 +162,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     /** FileLogging filter, consisting of a List of types (info, warning, error)
      * and a checkbox Table of component IDs.
      */ 
-    final String sFilterPrefix = "ConfigView.section.logging.filter";
+    final String sFilterPrefix = CFG_PREFIX + "filter";
     Group gLogIDs = new Group(gLogging, SWT.NULL);
     Messages.setLanguageText(gLogIDs, sFilterPrefix);
     layout = new GridLayout();
@@ -180,7 +180,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     final int[] logTypes = { LogEvent.LT_INFORMATION, LogEvent.LT_WARNING,
 				LogEvent.LT_ERROR };
 		for (int i = 0; i < logTypes.length; i++)
-			listLogTypes.add(MessageText.getString("ConfigView.section.logging.log" + i + "type"));
+			listLogTypes.add(MessageText.getString(CFG_PREFIX + "log" + i + "type"));
 		listLogTypes.select(0);
 
 		final LogIDs[] logIDs = FileLogging.configurableLOGIDs;
@@ -257,31 +257,21 @@ public class ConfigSectionLogging implements UISWTConfigSection {
         }
     );
 
-    /*
-    BooleanParameter rm_trace = new BooleanParameter(gLogging, "user.rm.trace", false );
-    gridData = new GridData();
-    gridData.horizontalSpan = 1;
-    rm_trace.setLayoutData(gridData);
-    Label	rm_label = new Label(gLogging,SWT.NULL);
-    rm_label.setText("RM: trace");
     
-    BooleanParameter rm_fix = new BooleanParameter(gLogging, "user.rm.testfix", false );
+    BooleanParameter udp_transport = new BooleanParameter(gLogging, "Logging Enable UDP Transport", CFG_PREFIX + "udptransport");
     gridData = new GridData();
-    gridData.horizontalSpan = 1;
-    rm_fix.setLayoutData(gridData);
-    rm_label = new Label(gLogging,SWT.NULL);
-    rm_label.setText("RM: test fix");
-    */
+    gridData.horizontalSpan = 2;
+    udp_transport.setLayoutData(gridData);
     
 		// diagnostics
 	
 	Label generate_info = new Label(gLogging, SWT.NULL);
 
-	Messages.setLanguageText(generate_info, "ConfigView.section.logging.generatediagnostics.info");
+	Messages.setLanguageText(generate_info, CFG_PREFIX + "generatediagnostics.info");
 
 	Button generate_button = new Button(gLogging, SWT.PUSH);
 
-	Messages.setLanguageText(generate_button, "ConfigView.section.logging.generatediagnostics");
+	Messages.setLanguageText(generate_button, CFG_PREFIX + "generatediagnostics");
 
 	generate_button.addListener(
 			SWT.Selection, 

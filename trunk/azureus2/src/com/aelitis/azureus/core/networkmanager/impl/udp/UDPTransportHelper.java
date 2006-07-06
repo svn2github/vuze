@@ -58,7 +58,7 @@ UDPTransportHelper
 	private IOException			failed;
 	
 	private ByteBuffer			pending_partial_write;
-	
+		
 	protected
 	UDPTransportHelper(
 		UDPConnectionManager	_manager,
@@ -319,38 +319,34 @@ UDPTransportHelper
     protected void
     canRead()
     {
-     	synchronized( this ){
-    
-    		if ( read_listener != null && !read_selects_paused ){
-    			    	   		
-    			selector.ready( this, read_listener, read_attachment );
-    		}
-    	}
+    	fireReadSelect();
     }
     
     protected void
     canWrite()
     {
-       	synchronized( this ){
-       	    
-    		if ( write_listener != null  && !write_selects_paused ){
-    			    	   		
-    			write_selects_paused	= true;
-    			
-    			selector.ready( this, write_listener, write_attachment );
-    		}
-    	}
+    	fireWriteSelect();
     }
     
     public synchronized void
     pauseReadSelects()
     {
+    	if ( read_listener != null ){
+    		
+    		selector.cancel( this, read_listener );
+    	}
+    	
     	read_selects_paused	= true;
     }
     
     public synchronized void
     pauseWriteSelects()
     {
+    	if ( write_listener != null ){
+    		
+    		selector.cancel( this, write_listener );
+    	}
+    	
     	write_selects_paused = true;
     }
  
@@ -359,43 +355,15 @@ UDPTransportHelper
     {
     	read_selects_paused = false;
     	
-    	if ( connection.canRead()){
-    		
-    		canRead();
- 	
-    	}else if ( read_listener != null ){
-    		
-    		if ( closed ){
-    			
-    			selector.ready( this, read_listener, read_attachment, new Throwable( "Transport closed" ));
-    			
-    		}else  if ( failed != null ){
-   				
-   				selector.ready( this, read_listener, read_attachment, failed );
-   			}
-    	}
+    	fireReadSelect();
     }
     
     public synchronized void
     resumeWriteSelects()
     {
     	write_selects_paused = false;
-    	
-    	if ( connection.canWrite()){
-    		
-    		canWrite();
-    		
-    	}else if ( write_listener != null ){
-    		
-    		if ( closed ){
-    			
-    			selector.ready( this, write_listener, write_attachment, new Throwable( "Transport closed" ));
-    			
-    		}else  if ( failed != null ){
-   				
-   				selector.ready( this, write_listener, write_attachment, failed );
-   			}
-    	}
+    	    	
+    	fireWriteSelect();
     }
     
     public void
@@ -429,6 +397,8 @@ UDPTransportHelper
     public synchronized void
     cancelReadSelects()
     {
+    	selector.cancel( this, read_listener );
+    	
     	read_selects_paused	= true;
       	read_listener		= null;
     	read_attachment		= null;
@@ -437,9 +407,62 @@ UDPTransportHelper
     public synchronized void
     cancelWriteSelects()
     {
+       	selector.cancel( this, write_listener );
+        
     	write_selects_paused	= true;
      	write_listener			= null;
     	write_attachment		= null;
+    }
+    
+    protected void
+    fireReadSelect()
+    {
+     	synchronized( this ){
+     		 
+	   		if ( read_listener != null && !read_selects_paused ){
+	   			
+	   			if ( failed != null  ){
+	   				
+	   	 			selector.ready( this, read_listener, read_attachment, failed );
+	   	 		  
+	   			}else if ( closed ){
+	   				
+	   	   			selector.ready( this, read_listener, read_attachment, new Throwable( "Transport closed" ));
+	   	   		 
+	   			}else if ( connection.canRead()){
+	   				
+	   	 			selector.ready( this, read_listener, read_attachment );
+	   			}
+	   		}
+     	}
+    }
+    protected void
+    fireWriteSelect()
+    {
+      	synchronized( this ){
+       	    
+	   		if ( write_listener != null && !write_selects_paused ){
+	   			
+	   			if ( failed != null  ){
+	   				
+	   				write_selects_paused	= true;
+	   				
+	   	 			selector.ready( this, write_listener, write_attachment, failed );
+	   	 		  
+	   			}else if ( closed ){
+	   				
+	   				write_selects_paused	= true;
+
+	   	   			selector.ready( this, write_listener, write_attachment, new Throwable( "Transport closed" ));
+
+	   			}else if ( connection.canWrite()){
+	   				
+	   				write_selects_paused	= true;
+	   					   				
+	   	 			selector.ready( this, write_listener, write_attachment );
+	   			}
+	   		}
+    	}
     }
     
     public void
@@ -457,17 +480,8 @@ UDPTransportHelper
     			failed	= new IOException( Debug.getNestedExceptionMessageAndStack(reason));
     		}
     	
-    		if ( read_listener != null && !read_selects_paused ){
-    		
-    			selector.ready( this, read_listener, read_attachment, failed );
-    		}
-    		
-      		if ( write_listener != null && !write_selects_paused ){
-        		
-      			write_selects_paused	= true;
-      			
-    			selector.ready( this, write_listener, write_attachment, failed );
-    		}
+    		fireReadSelect();
+    		fireWriteSelect();
     	}
     	
     	connection.failedSupport( reason );
@@ -479,20 +493,13 @@ UDPTransportHelper
     {
     	synchronized( this ){
     		
-      		if ( read_listener != null && !read_selects_paused ){
-        		
-    			selector.ready( this, read_listener, read_attachment );
-    		}
-    		
-      		if ( write_listener != null && !write_selects_paused ){
-        		     			
-    			selector.ready( this, write_listener, write_attachment );
-    		}
+       		closed	= true;
+       		
+    		fireReadSelect();
+      		fireWriteSelect();
       		
     		cancelReadSelects();
     		cancelWriteSelects();
-    		
-    		closed	= true;
      	}
     	
     	connection.closeSupport( reason );
@@ -503,33 +510,9 @@ UDPTransportHelper
 	{
 	   	synchronized( this ){
 	   		
-	   		if ( read_listener != null && !read_selects_paused ){
-	   			
-	   			if ( failed != null  ){
-	   				
-	   	 			selector.ready( this, read_listener, read_attachment, failed );
-	   	 		  
-	   			}else if ( connection.canRead()){
-	   				
-	   	 			selector.ready( this, read_listener, read_attachment );
-	   			}
-	   		}
+	   		fireReadSelect();
 	   		
-	   		if ( write_listener != null && !write_selects_paused ){
-	   			
-	   			if ( failed != null  ){
-	   				
-	   				write_selects_paused	= true;
-	   				
-	   	 			selector.ready( this, write_listener, write_attachment, failed );
-	   	 		  
-	   			}else if ( connection.canWrite()){
-	   				
-	   				write_selects_paused	= true;
-	   				
-	   	 			selector.ready( this, write_listener, write_attachment );
-	   			}
-	   		}
+	   		fireWriteSelect();
 	   	}
 	}
 }

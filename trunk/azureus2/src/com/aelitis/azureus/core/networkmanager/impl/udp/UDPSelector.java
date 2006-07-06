@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.udp;
 
-import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -35,6 +34,8 @@ import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 public class 
 UDPSelector 
 {
+	private static final int POLL_FREQUENCY	= 100;
+	
 	private List		ready_set	= new LinkedList();
 	private AESemaphore	ready_sem	= new AESemaphore( "UDPSelector" );
 	
@@ -63,18 +64,23 @@ UDPSelector
 					
 					long	now = SystemTime.getCurrentTime();
 					
-					if ( now < last_poll || now - last_poll >= 100 ){
+					if ( now < last_poll || now - last_poll >= POLL_FREQUENCY ){
 						
 						manager.poll();
 						
 						last_poll	= now;
 					}
 					
-					if ( ready_sem.reserve(25)){
+					if ( ready_sem.reserve(POLL_FREQUENCY/2)){
 						
 						Object[]	entry;
 						
 						synchronized( ready_set ){
+							
+							if ( ready_set.size() == 0 ){
+								
+								continue;
+							}
 							
 							entry = (Object[])ready_set.remove(0);
 						}
@@ -204,6 +210,29 @@ UDPSelector
 		if ( !removed ){
 			
 			ready_sem.release();
+		}
+	}
+	
+	protected void
+	cancel(
+		TransportHelper						transport,
+		TransportHelper.selectListener		listener )
+	{
+		synchronized( ready_set ){
+		
+			Iterator	it = ready_set.iterator();
+			
+			while( it.hasNext()){
+			
+				Object[]	entry = (Object[])it.next();
+				
+				if ( entry[0] == transport && entry[1] == listener ){
+					
+					it.remove();
+										
+					break;
+				}
+			}
 		}
 	}
 }

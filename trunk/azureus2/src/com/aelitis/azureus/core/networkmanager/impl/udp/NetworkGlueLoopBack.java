@@ -31,25 +31,16 @@ import java.net.InetSocketAddress;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
-
-import com.aelitis.net.udp.uc.PRUDPPacketHandler;
-import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
-import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
-import com.aelitis.net.udp.uc.PRUDPPrimordialHandler;
 
 public class 
 NetworkGlueLoopBack
-	implements NetworkGlue, PRUDPPrimordialHandler
+	implements NetworkGlue
  
 {
-	private boolean	UDP_TEST	= true;
 	private int latency			= 0;
 	
 	private NetworkGlueListener		listener;
-
-	private PRUDPPacketHandler handler;
 	
 	private List	message_queue	= new ArrayList();
 	
@@ -61,28 +52,6 @@ NetworkGlueLoopBack
 		int						_udp_port )
 	{
 		listener	= _listener;
-				
-		handler = PRUDPPacketHandlerFactory.getHandler( _udp_port );
-
-		handler.setPrimordialHandler( this );
-		
-		COConfigurationManager.addListener(
-			new COConfigurationListener()
-			{
-				public void
-				configurationSaved()
-				{
-					int	port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
-					
-					if ( port != handler.getPort()){
-						
-						handler = PRUDPPacketHandlerFactory.getHandler( port );
-
-						handler.setPrimordialHandler( NetworkGlueLoopBack.this );
-
-					}
-				}
-			});
 				
 		new AEThread( "NetworkGlueLoopBack", true )
 		{
@@ -122,48 +91,12 @@ NetworkGlueLoopBack
 					}
 					
 					if ( source_address != null ){
-						
-						if ( UDP_TEST ){
-							
-							try{
-								handler.primordialSend( data, target_address );
-								
-							}catch( PRUDPPacketHandlerException	e ){
-								
-								e.printStackTrace();
-							}
-						}else{
-							listener.receive( target_address.getPort(), source_address, data, data.length );
-						}
+	
+						listener.receive( target_address.getPort(), source_address, data, data.length );
 					}
 				}
 			}
 		}.start();
-	}
-	
-	public boolean
-	packetReceived(
-		DatagramPacket	packet )
-	{
-		if ( packet.getLength() >= 12 ){
-								
-			byte[]	data = packet.getData();
-			
-				// first or third word must have something set in mask: 0xfffff800
-			
-			if ( 	(	( data[0] & 0xff ) != 0 ||
-						( data[1] & 0xff ) != 0 ||
-						( data[2] & 0xf8 ) != 0 ) &&
-					
-					(	( data[8] & 0xff ) != 0 ||
-						( data[9] & 0xff ) != 0 ||
-						( data[10]& 0xf8 ) != 0 )){
-				
-				return( listener.receive( handler.getPort(), new InetSocketAddress( packet.getAddress(), packet.getPort()), packet.getData(), packet.getLength()));
-			}
-		}
-		
-		return( false );
 	}
 	
 	public int
@@ -174,27 +107,15 @@ NetworkGlueLoopBack
 	
 		throws IOException
 	{	
-		if ( UDP_TEST && latency == 0 ){
+		Long	expires = new Long( SystemTime.getCurrentTime() + latency );
 			
-			try{
-				handler.primordialSend( data, target );
+		InetSocketAddress local_address = new InetSocketAddress( target.getAddress(), local_port );
+			
+		synchronized( message_queue ){
 				
-			}catch( PRUDPPacketHandlerException	e ){
-				
-				throw( new IOException( e.getMessage()));
-			}
-			
-		}else{
-			Long	expires = new Long( SystemTime.getCurrentTime() + latency );
-			
-			InetSocketAddress local_address = new InetSocketAddress( target.getAddress(), local_port );
-			
-			synchronized( message_queue ){
-				
-				if ( random.nextInt(10) != 0 ){
+			if ( random.nextInt(10) != 0 ){
 					
-					message_queue.add( new Object[]{ expires, local_address, target, data });
-				}
+				message_queue.add( new Object[]{ expires, local_address, target, data });
 			}
 		}
 		

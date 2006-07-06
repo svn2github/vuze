@@ -27,18 +27,19 @@ import java.util.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.AESemaphore;
 
 public class 
 UDPConnection 
-{
-	private static final int	MAX_QUEUED_READ_BUFFERS	= 512;	// sanity check
-	
+{	
 	private UDPConnectionSet	set;
 	private int					id;
 	private UDPTransportHelper	transport;
 	
 	private List	read_buffers = new LinkedList();
+	
+	private AESemaphore	read_buffer_sem	= new AESemaphore( "UDPConnection", 64 );
+	
 	
 	private volatile boolean	connected = true;
 	
@@ -113,17 +114,17 @@ UDPConnection
 	
 		throws IOException
 	{
-		boolean	was_empty = false;
+		read_buffer_sem.reserve();
 		
+		if ( !connected ){
+			
+			throw( new IOException( "Transport closed" ));
+		}
+		
+		boolean	was_empty = false;
+	
 		synchronized( read_buffers ){
 		
-			if ( read_buffers.size() == MAX_QUEUED_READ_BUFFERS ){
-				
-				Debug.out( "Read buffer queue limit exceeded" );
-				
-				throw( new IOException( "Read buffer queue limit exceeded" ));
-			}
-			
 			was_empty = read_buffers.size() == 0;
 			
 			read_buffers.add( data );
@@ -168,7 +169,7 @@ UDPConnection
 	{
 		int	written = set.write( this, buffers, offset, length );
 		
-		// System.out.println( "Connection(" + getID() + ") - write -> " +length );
+		// System.out.println( "Connection(" + getID() + ") - write -> " + written );
 		
 		return( written );
 	}
@@ -214,6 +215,8 @@ UDPConnection
 				}else{
 					
 					read_buffers.remove(0);
+					
+					read_buffer_sem.release();
 				}
 			}
 		}
@@ -257,6 +260,8 @@ UDPConnection
 	{
 		connected	= false;
 		
+		read_buffer_sem.releaseForever();
+		
 		set.close( this, reason );
 	}
 	
@@ -266,6 +271,8 @@ UDPConnection
 	{
 		connected	= false;
 		
+		read_buffer_sem.releaseForever();
+
 		set.failed( this, reason );
 	}
 	

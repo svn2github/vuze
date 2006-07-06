@@ -28,11 +28,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -49,11 +50,31 @@ UDPConnectionManager
 	implements NetworkGlueListener
 {
 	private static final LogIDs LOGID = LogIDs.NET;
+	private static final boolean LOOPBACK	= false;
 
+	private static boolean	LOG = false;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+				"Logging Enable UDP Transport",
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String name )
+					{
+						LOG = COConfigurationManager.getBooleanParameter( name );
+					}
+				});
+		
+	}
+	
 	public static final int	TIMER_TICK_MILLIS				= 25;
 	public static final int	THREAD_LINGER_ON_IDLE_PERIOD	= 30*1000;
+	public static final int	DEAD_KEY_RETENTION_PERIOD		= 30*1000;
 	
-	private static final Map	connection_sets = new HashMap();
+	private final Map	connection_sets 	= new HashMap();
+	private final Map	recently_dead_keys	= new HashMap();
 	
 	private int next_connection_id;
 
@@ -77,7 +98,14 @@ UDPConnectionManager
 	UDPConnectionManager(
 		int		udp_port )
 	{		
-		network_glue = new NetworkGlueLoopBack( this, udp_port );
+		if ( LOOPBACK ){
+			
+			network_glue = new NetworkGlueLoopBack( this, udp_port );
+			
+		}else{
+			
+			network_glue = new NetworkGlueUDP( this, udp_port );
+		}
 	}
 	
 	protected UDPSelector
@@ -91,8 +119,6 @@ UDPConnectionManager
 				Logger.log(new LogEvent(LOGID, "UDPConnectionManager: activating" ));
 			}
 			
-			System.out.println( "UDPConnectionManager: active" );
-
 			selector = new UDPSelector(this );
 			
 			protocol_timer = new ProtocolTimer();
@@ -128,8 +154,6 @@ UDPConnectionManager
 				if (Logger.isEnabled()){
 					Logger.log(new LogEvent(LOGID, "UDPConnectionManager: deactivating" ));
 				}
-
-				System.out.println( "UDPConnectionManager: idle" );
 				
 				selector.destroy();
 				
@@ -165,15 +189,20 @@ UDPConnectionManager
 
 			if ( set.remove( connection )){
 
-				InetSocketAddress	remote_address = set.getRemoteAddress();
-
-				String	key = set.getLocalPort() + ":" + remote_address.getAddress().getHostAddress() + ":" + remote_address.getPort();
+				String	key = set.getKey();
 
 				if ( set.hasFailed()){
 					
 					if ( connection_sets.remove( key ) != null ){
 						
-						System.out.println( "Connection set " + key + " failed" );
+						set.removed();
+						
+						recently_dead_keys.put( key, new Long( SystemTime.getCurrentTime()));
+						
+						if (Logger.isEnabled()){
+							
+							Logger.log(new LogEvent(LOGID, "Connection set " + key + " failed"));
+						}
 					}
 				}
 			}	                          
@@ -186,17 +215,18 @@ UDPConnectionManager
 	{
 		synchronized( connection_sets ){
 
-			InetSocketAddress	remote_address = set.getRemoteAddress();
-
-			String	key = set.getLocalPort() + ":" + remote_address.getAddress().getHostAddress() + ":" + remote_address.getPort();
+			String	key = set.getKey();
 					
 			if ( connection_sets.remove( key ) != null ){
-						
-				System.out.println( "Connection set " + key + " failed" );
-						
-			}else{
-						
-				Debug.out( "Connection set not found" );
+					
+				set.removed();
+				
+				recently_dead_keys.put( key, new Long( SystemTime.getCurrentTime()));
+				
+				if (Logger.isEnabled()){
+					
+					Logger.log(new LogEvent(LOGID, "Connection set " + key + " failed"));
+				}
 			}                      
 		}                    
 	}
@@ -221,9 +251,14 @@ UDPConnectionManager
 			
 			if ( connection_set == null ){
 				
-				connection_set = new UDPConnectionSet( this, current_selector, local_port, address );
+				timeoutDeadKeys();
 				
-				System.out.println( "Created new set - " + connection_set.getName() + ", outgoing" );
+				connection_set = new UDPConnectionSet( this, key, current_selector, local_port, address );
+				
+				if (Logger.isEnabled()){
+					
+					Logger.log(new LogEvent(LOGID, "Created new set - " + connection_set.getName() + ", outgoing"));
+				}
 				
 				connection_sets.put( key, connection_set );
 			}
@@ -255,6 +290,8 @@ UDPConnectionManager
 			
 			if ( connection_set == null ){
 				
+				timeoutDeadKeys();
+				
 					// check that this at least looks like an initial crypto packet
 				
 				if (	data_length >= UDPNetworkManager.MIN_INCOMING_INITIAL_PACKET_SIZE &&
@@ -265,15 +302,21 @@ UDPConnectionManager
 						return( false );
 					}
 					
-					connection_set = new UDPConnectionSet( this, current_selector, local_port, remote_address );
+					connection_set = new UDPConnectionSet( this, key, current_selector, local_port, remote_address );
+						
+					if (Logger.isEnabled()){
+						
+						Logger.log(new LogEvent(LOGID, "Created new set - " + connection_set.getName() + ", incoming"));
+					}
 					
-					System.out.println( "Created new set - " + connection_set.getName() + ", incoming" );
-	
 					connection_sets.put( key, connection_set );
 					
 				}else{
 					
-					Debug.out( "Incoming UDP packet mismatch for connection establishment" );
+					if ( recently_dead_keys.get( key ) == null ){
+	
+						Debug.out( "Incoming UDP packet mismatch for connection establishment: " + key );
+					}
 					
 					return( false );
 				}
@@ -281,7 +324,7 @@ UDPConnectionManager
 		}
 		
 		try{
-			//System.out.println( "revc:" + ByteFormatter.encodeString( data, 0, data_length>64?64:data_length ) + (data_length>64?"...":""));
+			//System.out.println( "recv:" + ByteFormatter.encodeString( data, 0, data_length>64?64:data_length ) + (data_length>64?"...":""));
 			
 			connection_set.receive( data, data_length );
 			
@@ -459,6 +502,24 @@ UDPConnectionManager
 		return( id );
 	}
 	
+	protected void
+	timeoutDeadKeys()
+	{
+		Iterator	it = recently_dead_keys.values().iterator();
+		
+		long	now = SystemTime.getCurrentTime();
+		
+		while( it.hasNext()){
+			
+			long	dead_time = ((Long)it.next()).longValue();
+		
+			if ( dead_time > now || now - dead_time > DEAD_KEY_RETENTION_PERIOD ){
+								
+				it.remove();
+			}
+		}
+	}
+	
 	protected class
 	ProtocolTimer
 	{
@@ -499,10 +560,17 @@ UDPConnectionManager
 									set.timerTick();
 									
 									if ( set.idleLimitExceeded()){
+																				
+										if (Logger.isEnabled()){
+											
+											Logger.log(new LogEvent(LOGID, "Idle limit exceeded for " + set.getName() + ", removing" ));
+										}
 										
-										System.out.println( "Idle limit exceeded for " + set.getName() + ", removing" );
+										recently_dead_keys.put( set.getKey(), new Long( SystemTime.getCurrentTime()));
 										
 										it.remove();
+										
+										set.removed();
 									}
 								}catch( Throwable e ){
 									
@@ -534,6 +602,25 @@ UDPConnectionManager
 		destroy()
 		{
 			destroyed	= true;
+		}
+	}
+	
+	protected boolean
+	trace()
+	{
+		return( LOG );
+	}
+	
+	protected void
+	trace(
+		String				str )
+	{
+		if ( LOG ){
+			
+			if (Logger.isEnabled()){
+				
+				Logger.log(new LogEvent(LOGID, str ));
+			}
 		}
 	}
 }

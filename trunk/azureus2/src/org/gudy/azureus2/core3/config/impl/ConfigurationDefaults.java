@@ -196,7 +196,8 @@ public class ConfigurationDefaults {
       for (int j = 0; j <= 3; j++)
         def.put("bLog" + logComponents[i] + "-" + j, TRUE);
     def.put("Logger.DebugFiles.Enabled", TRUE);
-    
+    def.put("Logging Enable UDP Transport", FALSE); 
+
     
     
     // Start/Stop Automation Stuff
