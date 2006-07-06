@@ -121,4 +121,8 @@ public interface TableColumnCore extends TableColumn {
   public TableContextMenuItem addContextMenuItem(String key);
   public void removeContextMenuItem(TableContextMenuItem menuItem);
   public TableContextMenuItem[] getContextMenuItems();
+	/**
+	 * @return
+	 */
+	boolean hasCellRefreshListener();
 }

@@ -192,6 +192,10 @@ public class TableColumnImpl
   		this_mon.exit();
   	}
   }
+  
+  public boolean hasCellRefreshListener() {
+  	return cellRefreshListeners != null && cellRefreshListeners.size() > 0;
+  }
 
   public void setRefreshInterval(int interval) {
     iInterval = interval;
