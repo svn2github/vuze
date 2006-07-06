@@ -30,9 +30,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.logging.impl.FileLogging;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -69,16 +71,16 @@ public class UIDebugGenerator
 			try {
 				Shell shell = shells[i];
 				Image image;
-	
+
 				if (shell.getData("class") instanceof ObfusticateShell) {
 					ObfusticateShell shellClass = (ObfusticateShell) shell.getData("class");
-	
+
 					image = shellClass.generateObfusticatedImage();
 				} else {
-	
+
 					Rectangle clientArea = shell.getClientArea();
 					image = new Image(display, clientArea.width, clientArea.height);
-	
+
 					GC gc = new GC(shell);
 					try {
 						gc.copyArea(image, clientArea.x, clientArea.y);
@@ -86,11 +88,11 @@ public class UIDebugGenerator
 						gc.dispose();
 					}
 				}
-	
+
 				if (image != null) {
 					File file = new File(path, "image-" + i + ".jpg");
 					String sFileName = file.getAbsolutePath();
-	
+
 					ImageLoader imageLoader = new ImageLoader();
 					imageLoader.data = new ImageData[] { image.getImageData() };
 					imageLoader.save(sFileName, SWT.IMAGE_JPEG);
@@ -151,6 +153,16 @@ public class UIDebugGenerator
 					}
 				});
 				addFilesToZip(out, files);
+			}
+
+			boolean bLogToFile = COConfigurationManager.getBooleanParameter("Logging Enable");
+			String sLogDir = COConfigurationManager.getStringParameter("Logging Dir",
+					"");
+			if (bLogToFile && sLogDir != null) {
+				File loggingFile = new File(sLogDir, FileLogging.LOG_FILE_NAME);
+				if (loggingFile.isFile()) {
+					addFilesToZip(out, new File[] { loggingFile });
+				}
 			}
 
 			out.close();
@@ -227,7 +239,9 @@ public class UIDebugGenerator
 	 */
 	// XXX After we swith to 3.2, display param can be removed, and 
 	// image.getDevice() can be used
-	public static void obfusticateArea(Display display, Image image, Rectangle bounds) {
+	public static void obfusticateArea(Display display, Image image,
+			Rectangle bounds)
+	{
 		GC gc = new GC(image);
 		try {
 			gc.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
@@ -248,7 +262,8 @@ public class UIDebugGenerator
 	 * @param bounds
 	 * @param text
 	 */
-	public static void obfusticateArea(Display display, Image image, Rectangle bounds, String text)
+	public static void obfusticateArea(Display display, Image image,
+			Rectangle bounds, String text)
 	{
 
 		if (bounds.isEmpty())
