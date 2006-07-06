@@ -25,11 +25,8 @@ package com.aelitis.azureus.core.networkmanager.impl.udp;
 import java.util.*;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 
-import org.gudy.azureus2.core3.config.COConfigurationListener;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -38,7 +35,7 @@ NetworkGlueLoopBack
 	implements NetworkGlue
  
 {
-	private int latency			= 0;
+	private int latency			= 2500;
 	
 	private NetworkGlueListener		listener;
 	
@@ -113,7 +110,7 @@ NetworkGlueLoopBack
 			
 		synchronized( message_queue ){
 				
-			if ( random.nextInt(10) != 0 ){
+			if ( random.nextInt(4) != 9 ){
 					
 				message_queue.add( new Object[]{ expires, local_address, target, data });
 			}

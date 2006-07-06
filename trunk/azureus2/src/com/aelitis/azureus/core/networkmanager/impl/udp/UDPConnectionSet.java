@@ -191,7 +191,7 @@ UDPConnectionSet
 	private static final int RECEIVE_DONE_SEQ_MAX	= 128;
 	private LinkedList	receive_done_sequences	= new LinkedList();
 	
-	private static final int RECEIVE_OUT_OF_ORDER_PACKETS_MAX	= 32;
+	private static final int RECEIVE_OUT_OF_ORDER_PACKETS_MAX	= 64;
 	private List	receive_out_of_order_packets	= new LinkedList();
 	
 	private int explicitack_ticks = 0;
@@ -440,39 +440,52 @@ UDPConnectionSet
 					
 					float	resend_ratio = (float)stats_packets_resent_via_timer / stats_packets_unique_sent;
 					
-					System.out.println( "resend ratio: " + resend_ratio );
+					// System.out.println( "resend ratio: " + resend_ratio );
 					
 					if ( resend_ratio >= 0.25 ){
 						
 						new_timer_base = (int)( current_timer_base * ( resend_ratio + 1 ));
 						
-						new_timer_base = Math.min( TIMER_BASE_MAX, new_timer_base );
+						// round to 100th sec as we send 100ths over the wire and expect to get it back
+						
+						new_timer_base = (new_timer_base/10)*10;
+	
+						new_timer_base = Math.min( TIMER_BASE_MAX, new_timer_base );					
 						
 						if ( new_timer_base != current_timer_base ){
 							
-							if ( manager.trace() ){
-								trace( "Increasing timer base from " + current_timer_base + " to " + new_timer_base + " due to resends" );
+							if ( manager.trace()){
+								
+								trace( "Increasing timer base from " + current_timer_base + " to " + new_timer_base + " due to resends (ratio=" + resend_ratio + ")" );
 							}
 						}
 					}
 				}
 				
-				if ( new_timer_base == current_timer_base && stats_packets_duplicates > 0 ){
+				if ( new_timer_base == current_timer_base && stats_packets_unique_received > 2 ){
 					
 					float	duplicate_ratio = (float)stats_packets_duplicates / stats_packets_unique_received;
+
+						// we use duplicate packets sometimes to force sequence numbers through, so 
+						// reduce our sensitivity this them
 					
-					System.out.println( "duplicate ratio: " + duplicate_ratio );
+					duplicate_ratio = duplicate_ratio/2;
+					
+					// System.out.println( "duplicate ratio: " + duplicate_ratio );
 
 					if ( duplicate_ratio >= 0.25 ){
 						
 						new_timer_base = (int)( current_timer_base * ( duplicate_ratio + 1 ));
 						
+						new_timer_base = (new_timer_base/10)*10;
+
 						new_timer_base = Math.min( TIMER_BASE_MAX, new_timer_base );
 						
 						if ( new_timer_base != current_timer_base ){
 
 							if ( manager.trace() ){
-								trace( "Increasing timer base from " + current_timer_base + " to " + new_timer_base + " due to duplicates" );
+								
+								trace( "Increasing timer base from " + current_timer_base + " to " + new_timer_base + " due to duplicates (ratio=" + duplicate_ratio + ")" );
 							}
 						}
 					}
@@ -486,7 +499,17 @@ UDPConnectionSet
 						
 						new_timer_base = current_timer_base - (current_timer_base/10);
 						
+						new_timer_base = (new_timer_base/10)*10;
+
 						new_timer_base = Math.max( new_timer_base, TIMER_BASE_MIN );
+						
+						if ( new_timer_base != current_timer_base ){
+
+							if ( manager.trace()){
+								
+								trace( "Decreasing timer base from " + current_timer_base + " to " + new_timer_base  );
+							}
+						}
 					}
 				}				
 				
@@ -513,15 +536,21 @@ UDPConnectionSet
 				
 				if ( reset_stats ){
 					
-					stats_reset_time = now;
-
-					stats_packets_unique_sent			= 0;
-					stats_packets_resent_via_timer		= 0;
-					stats_packets_duplicates			= 0;
-					stats_packets_unique_received		= 0;
+					resetTimerStats();
 				}
 			}
 		}
+	}
+	
+	protected void
+	resetTimerStats()
+	{
+		stats_reset_time = SystemTime.getCurrentTime();
+
+		stats_packets_unique_sent			= 0;
+		stats_packets_resent_via_timer		= 0;
+		stats_packets_duplicates			= 0;
+		stats_packets_unique_received		= 0;
 	}
 	
 	protected void
@@ -534,7 +563,7 @@ UDPConnectionSet
 				
 				if ( manager.trace() ){
 			
-					trace( "Received timer base " + theirs );
+					trace( "Received timer base: current=" + current_timer_base + ",theirs=" + theirs + "(adj=" + timer_is_adjusting + ")" );
 				}
 			}
 
@@ -545,6 +574,8 @@ UDPConnectionSet
 					if ( timer_is_adjusting ){
 						
 						timer_is_adjusting = false;
+						
+						resetTimerStats();
 					}
 				}
 			}else{
@@ -2497,15 +2528,19 @@ UDPConnectionSet
 	{
 		if ( Logger.isEnabled()){
 				
-			String	str = "sent: tot=" + total_packets_sent + ",uni=" + total_packets_unique_sent +
-							",ds=" + total_data_sent + ",dr=" + total_data_resent +
-							",ps=" + total_protocol_sent + ",pr=" + total_protocol_resent + 
-							",rt=" + total_packets_resent_via_timer + ",ra=" + total_packets_resent_via_ack;
-			
-			str += " recv: tot=" + total_packets_received + ",uni=" + total_packets_unique_received +
-							",du=" + total_packets_duplicates + ",oo=" + total_packets_out_of_order;
-			
-			Logger.log(new LogEvent(LOGID, "UDP " + getName() + " - " + str ));
+			synchronized( this ){
+				String	str = "sent: tot=" + total_packets_sent + ",uni=" + total_packets_unique_sent +
+								",ds=" + total_data_sent + ",dr=" + total_data_resent +
+								",ps=" + total_protocol_sent + ",pr=" + total_protocol_resent + 
+								",rt=" + total_packets_resent_via_timer + ",ra=" + total_packets_resent_via_ack;
+				
+				str += " recv: tot=" + total_packets_received + ",uni=" + total_packets_unique_received +
+								",du=" + total_packets_duplicates + ",oo=" + total_packets_out_of_order;
+				
+				str += " timer=" + current_timer_base + ",adj=" + timer_is_adjusting;
+				
+				Logger.log(new LogEvent(LOGID, "UDP " + getName() + " - " + str ));
+			}
 		}
 	}
 	

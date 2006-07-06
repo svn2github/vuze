@@ -66,7 +66,6 @@ UDPConnectionManager
 						LOG = COConfigurationManager.getBooleanParameter( name );
 					}
 				});
-		
 	}
 	
 	public static final int	TIMER_TICK_MILLIS				= 25;
