@@ -71,6 +71,7 @@ public class TableRowImpl
   private Object coreDataSource;
   private Object pluginDataSource;
   private boolean bDisposed;
+  private boolean bSetNotUpToDateLastRefresh = false;
 
   private static AEMonitor sortedDisposal_mon = new AEMonitor( "TableRowImpl" );
 
@@ -175,14 +176,24 @@ public class TableRowImpl
     if (bDisposed)
       return;
     
+    boolean bVisible = isVisible();
+
+    refresh(bDoGraphics, bVisible);
+  }
+
+  public void refresh(boolean bDoGraphics, boolean bVisible) {
     // If this were called from a plugin, we'd have to refresh the sorted column
     // even if we weren't visible
     
-    boolean bVisible = isVisible();
     if (!bVisible) {
-  		setUpToDate(false);
+    	if (!bSetNotUpToDateLastRefresh) {
+    		setUpToDate(false);
+    		bSetNotUpToDateLastRefresh = true;
+    	}
   		return;
   	}
+
+		bSetNotUpToDateLastRefresh = false;
 
     Iterator iter = mTableCells.values().iterator();
     while(iter.hasNext()) {

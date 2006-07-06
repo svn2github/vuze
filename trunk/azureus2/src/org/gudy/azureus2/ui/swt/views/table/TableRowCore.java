@@ -124,4 +124,10 @@ public interface TableRowCore
  	public boolean isRowDisposed();
  	
  	public void setUpToDate(boolean upToDate);
+
+	/**
+	 * @param bDoGraphics
+	 * @param bVisible
+	 */
+	void refresh(boolean bDoGraphics, boolean bVisible);
 }
