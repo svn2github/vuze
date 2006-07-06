@@ -19,6 +19,7 @@
  */
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -56,11 +57,12 @@ public class SendToItem extends CoreTableColumn implements
 			iPosition = POSITION_LAST;
 		}
 
-		initializeAsGraphic(iPosition, 18);
+		initializeAsGraphic(iPosition, 20);
 	}
 
 	public void cellAdded(TableCell cell) {
 		((TableCellCore) cell).setGraphic(ImageRepository.getImage("sendto-small"));
+		((TableCellCore) cell).setCursorID(SWT.CURSOR_HAND);
 	}
 
 	public void cellMouseTrigger(TableCellMouseEvent event) {
