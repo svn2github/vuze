@@ -68,24 +68,43 @@ public class ByteFormatter
 			return "";
 		}
 
-		int size = data.length * 2;
-		if (!tight) {
-			size += (data.length - 1) / 4;
+		int dataLength = data.length;
+
+		// Arbitrary limit
+		if (dataLength > 1024) {
+			dataLength = 1024;
 		}
+
+		int size = dataLength * 2;
+		if (!tight) {
+			size += (dataLength - 1) / 4;
+		}
+
 		char[] out = new char[size];
 
-		int pos = 0;
-		for (int i = 0; i < data.length; i++) {
-			if ((!tight) && (i % 4 == 0) && i > 0) {
-				out[pos++] = ' ';
+		try {
+			int pos = 0;
+			for (int i = 0; i < dataLength; i++) {
+				if ((!tight) && (i % 4 == 0) && i > 0) {
+					out[pos++] = ' ';
+				}
+
+				out[pos++] = HEXDIGITS[(byte) ((data[i] >> 4) & 0xF)];
+				out[pos++] = HEXDIGITS[(byte) (data[i] & 0xF)];
 			}
 
-			out[pos++] = HEXDIGITS[(byte) ((data[i] >> 4) & 0xF)];
-			out[pos++] = HEXDIGITS[(byte) (data[i] & 0xF)];
+		} catch (Exception e) {
+			Debug.printStackTrace(e);
 		}
 
-		return new String(out);
-  }
+		try {
+			return new String(out);
+		} catch (Exception e) {
+			Debug.printStackTrace(e);
+		}
+
+		return "";
+	}
 
 
   public static String nicePrint(byte b) {
