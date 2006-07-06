@@ -23,7 +23,6 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -130,7 +129,6 @@ public class MyTorrentsView
   private AEMonitor				downloadBars_mon	= new AEMonitor( "MyTorrentsView:DL" );
 
   private Category currentCategory;
-  private boolean skipDMAdding = true;
 
   // table item index, where the drag has started
   private int drag_drop_line_start = -1;
@@ -184,13 +182,11 @@ public class MyTorrentsView
     COConfigurationManager.addParameterListener("Confirm Data Delete", this);
     COConfigurationManager.addAndFireParameterListener("User Mode", this);
 
-    activateCategory(currentCategory);
+    if (currentCategory != null) {
+    	currentCategory.addCategoryListener(this);
+    }
     CategoryManager.addCategoryManagerListener(this);
-    // globalManager.addListener sends downloadManagerAdded()'s when you addListener
-    // we don't need them..
-    skipDMAdding = true;
     globalManager.addListener(this);
-    skipDMAdding = false;
   }
 
 
@@ -541,6 +537,10 @@ public class MyTorrentsView
   }
   
   private boolean isOurDownloadManager(DownloadManager dm) {
+  	if (!isInCategory(dm, currentCategory)) {
+  		return false;
+  	}
+
 		boolean bCompleted = dm.isDownloadComplete(false);
 		boolean bOurs = (bCompleted && isSeedingView)
 				|| (!bCompleted && !isSeedingView);
@@ -2731,29 +2731,44 @@ public class MyTorrentsView
 
 			currentCategory = category;
 		}
-
-		int catType = (currentCategory == null) ? Category.TYPE_ALL
-				: currentCategory.getType();
-		java.util.List managers;
-		if (catType == Category.TYPE_USER)
-			managers = currentCategory.getDownloadManagers();
-		else
-			managers = globalManager.getDownloadManagers();
-
-		java.util.List managersToAdd = new ArrayList();
-		removeAllTableRows();
-
-		for (int i = 0; i < managers.size(); i++) {
-			DownloadManager manager = (DownloadManager) managers.get(i);
-			if (isOurDownloadManager(manager)
-					&& (catType != Category.TYPE_UNCATEGORIZED || manager
-							.getDownloadState().getCategory() == null)) {
-				managersToAdd.add(manager);
+		
+		Object[] managers = globalManager.getDownloadManagers().toArray();
+		List list = Arrays.asList(getDataSources());
+		
+		for (int i = 0; i < managers.length; i++) {
+			DownloadManager dm = (DownloadManager) managers[i];
+		
+			boolean bHave = list.contains(dm);
+			if (!isOurDownloadManager(dm)) {
+				if (bHave) {
+					removeDataSource(dm);
+				}
+			} else {
+				if (!bHave) {
+					addDataSource(dm);
+				}
 			}
 		}
-    addDataSources(managersToAdd.toArray(), true);
+		
     refreshTable(false);
 	}
+  
+  private boolean isInCategory(DownloadManager manager, Category category) {
+  	if (category == null) {
+  		return true;
+  	}
+		int type = category.getType();
+		if (type == Category.TYPE_ALL) {
+			return true;
+		}
+
+  	Category dmCategory = manager.getDownloadState().getCategory();
+  	if (dmCategory == null) {
+  		return type == Category.TYPE_UNCATEGORIZED;
+  	}
+  	
+  	return category.equals(dmCategory);
+  }
 
 
   // CategoryManagerListener Functions
@@ -2784,13 +2799,7 @@ public class MyTorrentsView
   // globalmanagerlistener Functions
   public void downloadManagerAdded( DownloadManager dm ) {
     dm.addListener( this );
-
-    if (skipDMAdding ||
-        (currentCategory != null && currentCategory.getType() == Category.TYPE_USER))
-      return;
-    Category cat = dm.getDownloadState().getCategory();
-    if (cat == null)
-      downloadManagerAdded(null, dm);
+    downloadManagerAdded(null, dm);
   }
 
   public void downloadManagerRemoved( DownloadManager dm ) {
@@ -2799,9 +2808,6 @@ public class MyTorrentsView
     MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(dm);
     if (mw != null) mw.close();
 
-    if (skipDMAdding ||
-        (currentCategory != null && currentCategory.getType() == Category.TYPE_USER))
-      return;
     downloadManagerRemoved(null, dm);
   }
 
