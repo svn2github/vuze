@@ -182,6 +182,7 @@ public class MyTorrentsView
     createDragDrop();
 
     COConfigurationManager.addParameterListener("Confirm Data Delete", this);
+    COConfigurationManager.addAndFireParameterListener("User Mode", this);
 
     activateCategory(currentCategory);
     CategoryManager.addCategoryManagerListener(this);
@@ -597,7 +598,6 @@ public class MyTorrentsView
 		Object[] dms = getSelectedDataSources();
 		boolean hasSelection = (dms.length > 0);
 
-		userMode = COConfigurationManager.getIntParameter("User Mode");
 		isTrackerOn = TRTrackerUtils.isTrackerEnabled();
 
 		// Enable/Disable Logic
@@ -1957,7 +1957,6 @@ public class MyTorrentsView
     if (getComposite() == null || getComposite().isDisposed())
       return;
     
-    userMode = COConfigurationManager.getIntParameter("User Mode");
     isTrackerOn = TRTrackerUtils.isTrackerEnabled();
     
     computePossibleActions();
@@ -2497,6 +2496,7 @@ public class MyTorrentsView
   public void parameterChanged(String parameterName) {
     super.parameterChanged(parameterName);
     confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete", true);
+    userMode = COConfigurationManager.getIntParameter("User Mode");
   }
 
   private boolean top,bottom,up,down,run,host,publish,start,stop,remove;
