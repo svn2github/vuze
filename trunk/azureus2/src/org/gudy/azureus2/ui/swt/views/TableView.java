@@ -2551,6 +2551,9 @@ public class TableView
 			return null;
 		TableRowCore row = (TableRowCore) item.getData("TableRow");
 
+		if (row == null)
+			return null;
+		
 		TableColumn tcColumn = table.getColumn(iColumn);
 		String sCellName = (String) tcColumn.getData("Name");
 		if (sCellName == null)
