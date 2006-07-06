@@ -1002,6 +1002,14 @@ DownloadImpl
 	addTrackerListener(
 		DownloadTrackerListener	l )
 	{
+		addTrackerListener(l, true);
+	}
+
+	public void
+	addTrackerListener(
+		DownloadTrackerListener	l,
+		boolean immediateTrigger )
+	{
 		try{
 			tracker_listeners_mon.enter();
 	
@@ -1020,9 +1028,11 @@ DownloadImpl
 			tracker_listeners_mon.exit();
 		}
 		
-		l.announceResult( last_announce_result );
-		
-		l.scrapeResult( last_scrape_result );
+		if (immediateTrigger) {
+			l.announceResult( last_announce_result );
+			
+			l.scrapeResult( last_scrape_result );
+		}
 	}
 	
 	public void

@@ -913,4 +913,8 @@ RPDownload
 			// TODO Auto-generated method stub
 			
 		}
+
+		public void addTrackerListener(DownloadTrackerListener l, boolean immediateTrigger) {
+			notSupported();
+		}
 }

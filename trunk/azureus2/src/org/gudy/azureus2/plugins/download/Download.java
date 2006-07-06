@@ -683,7 +683,10 @@ Download
 		DownloadListener	l );
 
 	/**
-	 * Adds a listener that will be informed when the latest announce/scrape results change
+	 * Adds a listener that will be informed when the latest announce/scrape results change.
+	 * <p>
+	 * listener events will be immediately triggered after listener is added
+	 * 
 	 * @param l
    *
    * @since 2.0.7.0
@@ -692,6 +695,16 @@ Download
 	addTrackerListener(
 		DownloadTrackerListener	l );
 	
+	/**
+	 * Adds a listener that will be informed when the latest announce/scrape results change
+	 *  
+	 * @param l Listener to add
+	 * @param immediateTrigger Whether to immediately trigger listener's events
+   *
+   * @since 2.4.0.3
+	 */
+	void addTrackerListener(DownloadTrackerListener l, boolean immediateTrigger);
+  
 	/**
 	 * Removes listeners added above
 	 * @param l
@@ -792,5 +805,5 @@ Download
    * @param auth handler
    */
   public void setSessionAuthenticator( SessionAuthenticator auth );
-  
+
 }
