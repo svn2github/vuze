@@ -669,11 +669,31 @@ public class TableView
       }
     });
     
-    // XXX this may not be needed if all platforms process mouseDown
-    //     before the menu
     table.addMouseMoveListener(new MouseMoveListener() {
+    	TableCellCore lastCell = null;
+    	int lastCursorID = -1;
+    	
       public void mouseMove(MouseEvent e) {
+        // XXX this may not be needed if all platforms process mouseDown
+        //     before the menu
         iMouseX = e.x;
+        
+				TableCellCore cell = getTableCell(e.x, e.y);
+				int iCursorID = -1;
+				if (cell != lastCell) {
+					iCursorID = cell.getCursorID();
+					cell = lastCell;
+				}
+
+				if (iCursorID != lastCursorID) {
+					lastCursorID = iCursorID;
+
+					if (iCursorID >= 0) {
+						table.setCursor(table.getDisplay().getSystemCursor(iCursorID));
+					} else {
+						table.setCursor(null);
+					}
+				}
       }
     });
 
@@ -776,7 +796,7 @@ public class TableView
 					if (row.setIconSize(ptIconSize))
 						visibleRowsChanged();
 					else
-						row.refresh(true);
+						row.refresh(true, true);
 
 					if (!Constants.isLinux) {
 						Utils.alternateRowBackground(item);
@@ -1348,9 +1368,9 @@ public class TableView
 	    lTimeStart = System.currentTimeMillis();
 	    
 	    //Refresh all visible items in table...
-	    runForAllRows(new GroupTableRowRunner() {
-	      public void run(TableRowCore row) {
-      		row.refresh(bDoGraphics);
+	    runForAllRows(new GroupTableRowVisibilityRunner() {
+	      public void run(TableRowCore row, boolean bVisible) {
+      		row.refresh(bDoGraphics, bVisible);
 	      }
 	    });
 
@@ -1896,11 +1916,11 @@ public class TableView
 
   public void columnRefresh(TableColumnCore tableColumn) {
     final String sColumnName = tableColumn.getName();
-    runForAllRows(new GroupTableRowRunner() {
-      public void run(TableRowCore row) {
+    runForAllRows(new GroupTableRowVisibilityRunner() {
+      public void run(TableRowCore row, boolean bVisible) {
         TableCellCore cell = row.getTableCellCore(sColumnName);
         if (cell != null)
-          cell.refresh();
+          cell.refresh(true, bVisible);
       }
     });
   }
@@ -1909,10 +1929,10 @@ public class TableView
    * Invalidate and refresh whole table
    */
   public void tableInvalidate() {
-    runForAllRows(new GroupTableRowRunner() {
-      public void run(TableRowCore row) {
+    runForAllRows(new GroupTableRowVisibilityRunner() {
+      public void run(TableRowCore row, boolean bVisible) {
         row.invalidate();
-        row.refresh(true);
+        row.refresh(true, bVisible);
       }
     });
   }
@@ -2182,6 +2202,23 @@ public class TableView
 			runner.run(rows[i]);
 	}
 
+  /** For every row source, run the code provided by the specified 
+	 * parameter.
+	 *
+	 * @param runner Code to run for each row/datasource
+	 */
+	public void runForAllRows(GroupTableRowVisibilityRunner runner) {
+		// put to array instead of synchronised iterator, so that runner can remove
+		TableRowCore[] rows = getRows();
+		int iTopIndex = table.getTopIndex();
+		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+
+		for (int i = 0; i < rows.length; i++) {
+			int index = rows[i].getIndex();
+			runner.run(rows[i], index >= iTopIndex && index <= iBottomIndex);
+		}
+	}
+	
   /**
    * Runs a specified task for a list of table items that the table contains
    * @param items A list of TableItems that are part of the table view
@@ -2235,6 +2272,14 @@ public class TableView
 		 * @param row TableRowCore to run code against
 		 */
 		public void run(TableRowCore row) {
+		}
+	}
+
+	public abstract class GroupTableRowVisibilityRunner {
+		/** Code to run 
+		 * @param row TableRowCore to run code against
+		 */
+		public void run(TableRowCore row, boolean bVisible) {
 		}
 	}
 
@@ -2787,7 +2832,7 @@ public class TableView
 					sortedRows_mon.enter();
 					for (int i = iTopIndex; i < tmpIndex && i < sortedRows.size(); i++) {
 						TableRowCore row = (TableRowCore) sortedRows.get(i);
-						row.refresh(true);
+						row.refresh(true, true);
 					}
 				} finally {
 					sortedRows_mon.exit();
@@ -2796,6 +2841,8 @@ public class TableView
 				// A refresh might have triggered a row height resize, so
 				// bottom index needs updating
 				iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+			} else {
+				//System.out.println("Made T.Invisible " + (tmpIndex) + " to " + (iTopIndex - 1));
 			}
 		}
 
@@ -2813,11 +2860,13 @@ public class TableView
 					for (int i = tmpIndex + 1; i <= iBottomIndex
 							&& i < sortedRows.size(); i++) {
 						TableRowCore row = (TableRowCore) sortedRows.get(i);
-						row.refresh(true);
+						row.refresh(true, true);
 					}
 				} finally {
 					sortedRows_mon.exit();
 				}
+			} else {
+				//System.out.println("Made B.Invisible " + (tmpIndex) + " to " + (iBottomIndex + 1));
 			}
 		}
 	}
