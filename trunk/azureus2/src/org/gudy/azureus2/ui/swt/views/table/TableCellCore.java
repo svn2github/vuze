@@ -141,4 +141,14 @@ public interface TableCellCore
 	 * @return
 	 */
 	BufferedTableItem getBufferedTableItem();
+
+	/**
+	 * @return
+	 */
+	public int getCursorID();
+
+	/**
+	 * @param cursor_hand
+	 */
+	public void setCursorID(int cursorID);
 }

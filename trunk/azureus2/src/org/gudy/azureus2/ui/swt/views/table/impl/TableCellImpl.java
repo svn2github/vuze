@@ -41,6 +41,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
+
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
@@ -82,6 +84,8 @@ public class TableCellImpl
   private int tooltipErrLoopCount;
   private int loopFactor;
   private Object oToolTip;
+	private int iCursorID = -1;
+  
   /**
    * For refreshing, this flag manages whether the row is actually up to date.
    * 
@@ -106,7 +110,7 @@ public class TableCellImpl
 
   private static final String CFG_PAINT = "GUI_SWT_bAlternateTablePainting";
   private static boolean bAlternateTablePainting;
-  
+
   static {
   	COConfigurationManager.addAndFireParameterListener(CFG_PAINT,
 				new ParameterListener() {
@@ -128,8 +132,13 @@ public class TableCellImpl
 
     bufferedTableItem = item;
 
-    tableColumn.invokeCellAddedListeners(this);
+    Utils.execSWTThread(new AERunnable() {
+    	public void runSupport() {
+        tableColumn.invokeCellAddedListeners(TableCellImpl.this);
+    	}
+    });
   }
+
   /**
    * Initialize
    *  
@@ -148,8 +157,11 @@ public class TableCellImpl
 
     createBufferedTableItem(position);
     
-    tableColumn.invokeCellAddedListeners(this);
-    
+    Utils.execSWTThread(new AERunnable() {
+    	public void runSupport() {
+        tableColumn.invokeCellAddedListeners(TableCellImpl.this);
+    	}
+    });
     //bDebug = (position == 1) && tableColumn.getTableID().equalsIgnoreCase("Peers");
   }
   
@@ -237,7 +249,7 @@ public class TableCellImpl
   	checkCellForSetting();
 
   	// Don't need to set when not visible
-  	if (!tableRow.isVisible())
+  	if (isInvisibleAndCanRefresh())
   		return false;
 
     return bufferedTableItem.setForeground(color);
@@ -247,7 +259,7 @@ public class TableCellImpl
   	checkCellForSetting();
 
   	// Don't need to set when not visible
-  	if (!tableRow.isVisible())
+  	if (isInvisibleAndCanRefresh())
   		return false;
 
     return bufferedTableItem.setForeground(red, green, blue);
@@ -266,13 +278,26 @@ public class TableCellImpl
     		debug("Setting SortValue to text;");
   	}
   	
-  	if (!tableRow.isVisible())
+  	if (isInvisibleAndCanRefresh()) {
+  		if (bDebug) {
+  			debug("setText ignored: invisible");
+  		}
   		return false;
+  	}
+
+		if (bDebug) {
+			debug("setText: " + text);
+		}
   	
     if (bufferedTableItem.setText(text) && !bSortValueIsText)
     	bChanged = true;
 
   	return bChanged;
+  }
+  
+  private boolean isInvisibleAndCanRefresh() {
+  	return !tableRow.isVisible()
+				&& (refreshListeners != null || tableColumn.hasCellRefreshListener());
   }
   
   public String getText() {
@@ -460,6 +485,9 @@ public class TableCellImpl
   		if (refreshListeners == null)
   			refreshListeners = new ArrayList(1);
 
+  		if (bDebug) {
+  			debug("addRefreshListener; count=" + refreshListeners.size());
+  		}
   		refreshListeners.add(listener);
   		
   	}finally{
@@ -642,13 +670,17 @@ public class TableCellImpl
 
     try {
     	if (bDebug)
-    		debug("Cell Valid?" + valid + "; Visible?" + tableRow.isVisible());
+    		debug("Cell Valid?" + valid + "; Visible?" + tableRow.isVisible() + "/" + bufferedTableItem.isShown());
       int iInterval = tableColumn.getRefreshInterval();
     	if (iInterval == TableColumnCore.INTERVAL_INVALID_ONLY && !valid
     			&& !bMustRefresh && bSortValueIsText && sortValue != null
 					&& tableColumn.getType() == TableColumnCore.TYPE_TEXT_ONLY) {
-    		setText((String)sortValue);
-    		valid = true;
+    		if (bRowVisible) {
+	      	if (bDebug)
+	      		debug("fast refresh: setText");
+	    		setText((String)sortValue);
+	    		valid = true;
+    		}
     	} else if ((iInterval == TableColumnCore.INTERVAL_LIVE ||
           (iInterval == TableColumnCore.INTERVAL_GRAPHIC && bDoGraphics) ||
           (iInterval > 0 && (loopFactor % iInterval) == 0) ||
@@ -656,10 +688,14 @@ public class TableCellImpl
       {
       	boolean bWasValid = isValid();
 
+      	if (bDebug)
+      		debug("invoke refresh");
+
         tableColumn.invokeCellRefreshListeners(this);
-        if (refreshListeners != null)
+        if (refreshListeners != null) {
           for (int i = 0; i < refreshListeners.size(); i++)
             ((TableCellRefreshListener)(refreshListeners.get(i))).refresh(this);
+        }
 
         // Change to valid only if we weren't valid before the listener calls
         // This is in case the listeners set valid to false when it was true
@@ -714,7 +750,7 @@ public class TableCellImpl
   }
   
   public void setImage(Image img) {
-  	if (!tableRow.isVisible())
+  	if (isInvisibleAndCanRefresh())
   		return;
 
     bufferedTableItem.setImage(img);
@@ -725,6 +761,17 @@ public class TableCellImpl
   }
   
   public void doPaint(GC gc) {
+  	if ((!bIsUpToDate || !valid)
+				&& (refreshListeners != null || tableColumn.hasCellRefreshListener())) {
+  		if (bDebug) {
+  			debug("doPaint: invoke refresh");
+  		}
+  		refresh();
+  	}
+
+		if (bDebug) {
+			debug("doPaint " + bIsUpToDate + ";" + valid + ";" + refreshListeners);
+		}
     bufferedTableItem.doPaint(gc);
   }
 
@@ -839,15 +886,18 @@ public class TableCellImpl
 	private void debug(final String s) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				System.out.println("r" + tableRow.getIndex() + "; " + s);
+				System.out.println(SystemTime.getCurrentTime() + ": r"
+						+ tableRow.getIndex() + "; " + s);
 			}
 		}, true);
 	}
 
 	public Rectangle getBounds() {
-    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
+		Rectangle bounds = bufferedTableItem.getBounds();
+		if (bounds == null) {
       return new Rectangle(0,0,0,0);
-    return bufferedTableItem.getBounds();
+		}
+    return bounds;
 	}
 
 	private void setOrientationViaColumn() {
@@ -882,5 +932,13 @@ public class TableCellImpl
 	
 	public BufferedTableItem getBufferedTableItem() {
 		return bufferedTableItem;
+	}
+
+	public int getCursorID() {
+		return iCursorID;
+	}
+	
+	public void setCursorID(int cursorID) {
+		iCursorID = cursorID;
 	}
 }
