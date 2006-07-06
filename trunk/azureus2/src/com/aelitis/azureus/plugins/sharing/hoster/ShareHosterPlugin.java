@@ -139,9 +139,9 @@ ShareHosterPlugin
 	resourceAdded(
 		final ShareResource		resource )
 	{
-		log.log( LoggerChannel.LT_INFORMATION, "Resource added:".concat(resource.getName()));
-		
 		if ( initialised ){
+			
+			log.log( LoggerChannel.LT_INFORMATION, "Resource added:".concat(resource.getName()));
 			
 			try{
 				
