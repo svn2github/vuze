@@ -413,7 +413,7 @@ public class StartStopRulesDefaultPlugin
         dlData = new DefaultRankCalculator(StartStopRulesDefaultPlugin.this, download);
         downloadDataMap.put( download, dlData );
         download.addListener( download_listener );
-        download.addTrackerListener( download_tracker_listener );
+        download.addTrackerListener( download_tracker_listener, false );
       }
 
       if (dlData != null) {
@@ -882,9 +882,9 @@ public class StartStopRulesDefaultPlugin
 		 * store whether there's a torrent higher in the list that is queued
 		 * We don't want to start a torrent lower in the list if there's a higherQueued
 		 */
-		boolean higherCDQueued;
+		boolean higherCDtoStart;
 		
-		boolean higherDLQueued;
+		boolean higherDLtoStart;
 
 		/**
 		 * Tracks the position we should be at in the Completed torrents list
@@ -944,8 +944,8 @@ public class StartStopRulesDefaultPlugin
 			// would stop)
 			vars.numWaitingOrSeeding = totals.forcedSeeding; // Running Count
 			vars.numWaitingOrDLing = 0; // Running Count
-			vars.higherCDQueued = false;
-			vars.higherDLQueued = false;
+			vars.higherCDtoStart = false;
+			vars.higherDLtoStart = false;
 			vars.posComplete = 0;
 
 			// Loop 2 of 2:
@@ -1075,7 +1075,7 @@ public class StartStopRulesDefaultPlugin
 					+ totals.maxSeeders + ";forced=" + boolDebug(download.isForceStart())
 					+ ";actvDLs=" + totals.activelyDLing + ";maxDLs=" + maxDLs
 					+ ";ActDLing=" + boolDebug(dlData.getActivelyDownloading())
-					+ ";hgherQd=" + boolDebug(vars.higherDLQueued)
+					+ ";hgherQd=" + boolDebug(vars.higherDLtoStart)
 					+ ";isCmplt="+boolDebug(download.isComplete());
 			log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 			dlData.sTrace += s + "\n";
@@ -1096,7 +1096,7 @@ public class StartStopRulesDefaultPlugin
 
 			// Stop torrent if over limit
 			boolean bOverLimit = vars.numWaitingOrDLing > maxDLs
-					|| (vars.numWaitingOrDLing >= maxDLs && vars.higherDLQueued);
+					|| (vars.numWaitingOrDLing >= maxDLs && vars.higherDLtoStart);
 
 			boolean bDownloading = state == Download.ST_DOWNLOADING; 
 			
@@ -1197,9 +1197,12 @@ public class StartStopRulesDefaultPlugin
 			}
 		}
 
-		if (download.getState() == Download.ST_QUEUED
-				&& download.getSeedingRank() >= 0)
-			vars.higherDLQueued = true;
+		state = download.getState();
+		if (download.getSeedingRank() >= 0
+				&& (state == Download.ST_QUEUED || state == Download.ST_READY
+						|| state == Download.ST_WAITING || state == Download.ST_PREPARING)) {
+			vars.higherDLtoStart = true;
+		}
 
 		if (bDebugLog) {
 			String s = "<< DL state=" + sStates.charAt(download.getState())
@@ -1207,7 +1210,7 @@ public class StartStopRulesDefaultPlugin
 					+ ";numW8tngorDLing=" + vars.numWaitingOrDLing + ";maxCDrs="
 					+ totals.maxSeeders + ";forced=" + boolDebug(download.isForceStart())
 					+ ";actvDLs=" + totals.activelyDLing 
-					+ ";hgherQd=" + boolDebug(vars.higherDLQueued)
+					+ ";hgherQd=" + boolDebug(vars.higherDLtoStart)
 					+ ";ActDLing=" + boolDebug(dlData.getActivelyDownloading());
 			log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 			dlData.sTrace += s + "\n";
@@ -1254,7 +1257,7 @@ public class StartStopRulesDefaultPlugin
 					"nWorCDing=" + vars.numWaitingOrSeeding,
 					"nWorDLing=" + vars.numWaitingOrDLing,
 					"sr=" + download.getSeedingRank(),
-					"hgherQd=" + boolDebug(vars.higherCDQueued),
+					"hgherQd=" + boolDebug(vars.higherCDtoStart),
 					"maxCDrs=" + totals.maxSeeders,
 					"FP=" + boolDebug(isFP),
 					"nActCDing=" + totals.activelyCDing,
@@ -1351,7 +1354,7 @@ public class StartStopRulesDefaultPlugin
 					&& (state == Download.ST_QUEUED)
 					&& (totals.maxActive == 0 || vars.numWaitingOrSeeding < totals.maxSeeders)
 					//&& (totals.maxActive == 0 || (activeSeedingCount + activeDLCount) < totals.maxActive) &&
-					&& (rank >= DefaultRankCalculator.SR_IGNORED_LESS_THAN) && !vars.higherCDQueued) {
+					&& (rank >= DefaultRankCalculator.SR_IGNORED_LESS_THAN) && !vars.higherCDtoStart) {
 				try {
 					if (bDebugLog)
 						sDebugLine += "\n  restart: ok2Q=" + okToQueue
@@ -1371,8 +1374,8 @@ public class StartStopRulesDefaultPlugin
 				sDebugLine += "\n  NOT restarting:";
 				if (rank < DefaultRankCalculator.SR_IGNORED_LESS_THAN)
 					sDebugLine += " torrent is being ignored";
-				else if (vars.higherCDQueued)
-					sDebugLine += " a torrent with a higher rank is queued";
+				else if (vars.higherCDtoStart)
+					sDebugLine += " a torrent with a higher rank is queued or starting";
 				else {
 					if (okToQueue)
 						sDebugLine += " no starting of okToQueue'd;";
@@ -1419,7 +1422,7 @@ public class StartStopRulesDefaultPlugin
 				if (!okToStop) {
 					// break up the logic into variables to make more readable
 					boolean bOverLimit = vars.numWaitingOrSeeding > totals.maxSeeders
-							|| (vars.numWaitingOrSeeding >= totals.maxSeeders && vars.higherCDQueued);
+							|| (vars.numWaitingOrSeeding >= totals.maxSeeders && vars.higherCDtoStart);
 					boolean bSeeding = state == Download.ST_SEEDING;
 
 					// not checking AND (at limit of seeders OR rank is set to ignore) AND
@@ -1432,7 +1435,7 @@ public class StartStopRulesDefaultPlugin
 						if (okToStop) {
 							sDebugLine += "\n  stopAndQueue: ";
 							if (bOverLimit) {
-								if (vars.higherCDQueued)
+								if (vars.higherCDtoStart)
 									sDebugLine += "higherQueued (it should be seeding instead of this one)";
 								else
 									sDebugLine += "over limit";
@@ -1507,8 +1510,12 @@ public class StartStopRulesDefaultPlugin
 				download.setSeedingRank(rank);
 			}
 	
-			if (download.getState() == Download.ST_QUEUED && rank >= 0)
-				vars.higherCDQueued = true;
+			state = download.getState();
+			if (rank >= 0
+					&& (state == Download.ST_QUEUED || state == Download.ST_READY
+							|| state == Download.ST_WAITING || state == Download.ST_PREPARING)) {
+				vars.higherCDtoStart = true;
+			}
 
 		} finally {
 			if (bDebugLog) {
@@ -1518,7 +1525,7 @@ public class StartStopRulesDefaultPlugin
 						"nWorCDing=" + vars.numWaitingOrSeeding,
 						"nWorDLing=" + vars.numWaitingOrDLing,
 						"sr=" + download.getSeedingRank(),
-						"hgherQd=" + boolDebug(vars.higherCDQueued),
+						"hgherQd=" + boolDebug(vars.higherCDtoStart),
 						"maxCDrs=" + totals.maxSeeders,
 						"FP=" + boolDebug(isFP),
 						"nActCDing=" + totals.activelyCDing,
