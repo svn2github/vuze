@@ -570,6 +570,11 @@ public class TableView
       public void paintControl(PaintEvent event) {
       	if (first) {
   				changeColumnIndicator();
+  				// This fixes the scrollbar not being long enough on Win2k
+  				// There may be other methods to get it to refresh right, but
+  				// layout(true, true) didn't work.
+  				table.setRedraw(false);
+  				table.setRedraw(true);
   				first = false;
       	}
         if(event.width == 0 || event.height == 0) return;
@@ -1572,8 +1577,9 @@ public class TableView
   		
   			if (dataSourcesToAdd == null)
 	  			dataSourcesToAdd = new ArrayList(4);
-	  		for (int i = 0; i < dataSources.length; i++)
+	  		for (int i = 0; i < dataSources.length; i++) {
 	  			dataSourcesToAdd.add(dataSources[i]);
+	  		}
 	  		return;
   		}finally{
   			
@@ -2022,6 +2028,10 @@ public class TableView
 		return dataSourceToRow.size();
 	}
   
+	public Object[] getDataSources() {
+		return dataSourceToRow.keySet().toArray();
+	}
+	
   /* various selected rows functions */
   /***********************************/
 
