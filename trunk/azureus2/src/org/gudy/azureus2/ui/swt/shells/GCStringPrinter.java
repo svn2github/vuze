@@ -40,6 +40,22 @@ public class GCStringPrinter
 	public static boolean printString(GC gc, String string, Rectangle printArea,
 			boolean skipClip, boolean fullLinesOnly)
 	{
+		try {
+			return _printString(gc, string, printArea, skipClip, fullLinesOnly);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return false;
+	}
+
+	private static boolean _printString(GC gc, String string,
+			Rectangle printArea, boolean skipClip, boolean fullLinesOnly)
+	{
+		if (printArea.isEmpty()) {
+			return false;
+		}
+
 		int x0 = printArea.x;
 		int y0 = printArea.y;
 		int height = 0;
@@ -75,7 +91,7 @@ public class GCStringPrinter
 
 					// check if word is longer than our print area, and split it
 					Point ptWordSize = gc.stringExtent(word + " ");
-					while (ptWordSize.x > printArea.width) {
+					while (ptWordSize.x > printArea.width && word.length() > 1) {
 						int endIndex = word.length() - 1;
 						do {
 							endIndex--;
@@ -119,7 +135,7 @@ public class GCStringPrinter
 					outputLine.append(space).append(word);
 					space = " ";
 				}
-				
+
 				if (height > printArea.height) {
 					break;
 				}
