@@ -1801,10 +1801,12 @@ public class GlobalManagerImpl
 			// Don't use Dispatch.. async is bad (esp for plugin initialization)
 			try{
 				managers_mon.enter();
+				
+		    List managers = managers_cow;
 			
-				for (int i=0;i<managers_cow.size();i++){
+				for (int i=0;i<managers.size();i++){
 					
-				  listener.downloadManagerAdded((DownloadManager)managers_cow.get(i));
+				  listener.downloadManagerAdded((DownloadManager)managers.get(i));
 				}	
 			}finally{
 				
