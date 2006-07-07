@@ -28,6 +28,7 @@ import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -209,7 +210,8 @@ public class MainStatusBar {
 		statusText.setLayoutData(gridData);
 
 		// This is the highest image displayed on the statusbar
-		int imageHeight = ImageRepository.getImage(STATUS_ICON_WARN).getBounds().height;
+		Image image = ImageRepository.getImage(STATUS_ICON_WARN);
+		int imageHeight = (image == null) ? 20 : image.getBounds().height;
 
 		GC gc = new GC(statusText);
 		// add 6, because CLabel forces a 3 pixel indent
