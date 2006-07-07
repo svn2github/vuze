@@ -275,6 +275,7 @@ TRTrackerDHTAnnouncerImpl
 									ext_peer.getPeerID(),
 									ext_peer.getAddress(), 
 									ext_peer.getPort(),
+									ext_peer.getUDPPort(),
 									ext_peer.getProtocol());
 			}
 			

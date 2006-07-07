@@ -39,6 +39,9 @@ DownloadAnnounceResultPeer
 	public int
 	getPort();
 	
+	public int
+	getUDPPort();
+	
 	public String
 	getAddress();
 	

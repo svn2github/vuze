@@ -247,7 +247,7 @@ PEPeerTransportProtocol
       
       public final void connectFailure( Throwable failure_msg ) {  //should never happen
         Debug.out( "ERROR: incoming connect failure: ", failure_msg );
-        closeConnectionInternally( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage() );
+        closeConnectionInternally( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true );
       }
       
       public final void exceptionThrown( Throwable error ) {
@@ -255,7 +255,7 @@ PEPeerTransportProtocol
           Debug.out( error );
         }
         
-        closeConnectionInternally( "connection exception: " + error.getMessage() );
+        closeConnectionInternally( "connection exception: " + error.getMessage(), true );
       }
     });
   }
@@ -408,10 +408,13 @@ PEPeerTransportProtocol
    * Close the peer connection from within the PEPeerTransport object.
    * @param reason
    */
-  protected void closeConnectionInternally( String reason ) {
-    performClose( reason, false );
+  protected void closeConnectionInternally( String reason, boolean connect_failed ) {
+    performClose( reason, connect_failed, false );
   }
   
+  protected void closeConnectionInternally( String reason ) {
+	performClose( reason, false, false );
+  }
   
   /**
    * Close the peer connection from the PEPeerControl manager side.
@@ -420,11 +423,11 @@ PEPeerTransportProtocol
    * You probably should not invoke this directly.
    */
   public void closeConnection( String reason ) {
-    performClose( reason, true );
+    performClose( reason, false, true );
   }
 
   
-  private void performClose( String reason, boolean externally_closed ) {
+  private void performClose( String reason, boolean connect_failed, boolean externally_closed ) {
     try{
       closing_mon.enter();
     
@@ -489,7 +492,7 @@ PEPeerTransportProtocol
 			Logger.log(new LogEvent(this, LOGID, "Peer connection closed: " + reason));
 
     if( !externally_closed ) {  //if closed internally, notify manager, otherwise we assume it already knows
-      manager.peerConnectionClosed( this );
+      manager.peerConnectionClosed( this, connect_failed );
     }
   }
   
@@ -2326,6 +2329,12 @@ PEPeerTransportProtocol
 		return connection.isLANLocal();		
 	}
 	
+	public boolean
+	isTCP()
+	{
+		return( connection.getEndpoint().getProtocols()[0].getType() == ProtocolEndpoint.PROTOCOL_TCP );
+	}
+	
 	public long getUnchokedTimeTotal()
 	{
 		if (choked_by_other_peer)
@@ -2336,7 +2345,7 @@ PEPeerTransportProtocol
 	public PEPeerTransport
 	reconnect()
 	{
-		boolean	use_tcp = connection.getEndpoint().getProtocols()[0].getType() == ProtocolEndpoint.PROTOCOL_TCP;
+		boolean	use_tcp = isTCP();
 		
 		if (	( use_tcp && getTCPListenPort() > 0 ) ||
 				( !use_tcp && getUDPListenPort() > 0 )){

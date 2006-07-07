@@ -33,6 +33,9 @@ TransportHelper
 	public InetSocketAddress
 	getAddress();
 
+	public String
+	getName();
+	
 	public boolean
 	minimiseOverheads();
 	

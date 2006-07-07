@@ -142,6 +142,11 @@ TRTrackerAnnouncerImpl
 				entry.put( "ip", peer.getAddress().getBytes());
 				entry.put( "src", peer.getSource().getBytes());
 				entry.put( "port", new Long(peer.getPort()));
+				
+				int	udp_port = peer.getUDPPort();
+				if ( udp_port != 0 ){
+					entry.put( "udpport", new Long( udp_port));
+				}
 				entry.put( "prot", new Long(peer.getProtocol()));
 				
 				peers.add( entry );
@@ -230,10 +235,13 @@ TRTrackerAnnouncerImpl
 					byte[]	src_bytes = (byte[])peer.get("src");
 					String	peer_source = src_bytes==null?PEPeerSource.PS_BT_TRACKER:new String(src_bytes);
 					String	peer_ip_address = new String((byte[])peer.get("ip"));
-					int		peer_port		= ((Long)peer.get("port")).intValue();
-					byte[]	peer_peer_id	= getAnonymousPeerId( peer_ip_address, peer_port );
+					int		peer_tcp_port	= ((Long)peer.get("port")).intValue();
+					byte[]	peer_peer_id	= getAnonymousPeerId( peer_ip_address, peer_tcp_port );
 					Long	l_protocol		= (Long)peer.get( "prot" );
 					short	protocol		= l_protocol==null?DownloadAnnounceResultPeer.PROTOCOL_NORMAL:l_protocol.shortValue();
+					Long	l_udp_port		= (Long)peer.get("udpport");
+					int		peer_udp_port	= l_udp_port==null?0:l_udp_port.intValue();
+					
 					//System.out.println( "recovered " + ip_address + ":" + port );
 
 					tracker_peer_cache.put( 
@@ -242,7 +250,8 @@ TRTrackerAnnouncerImpl
 									peer_source, 
 									peer_peer_id, 
 									peer_ip_address, 
-									peer_port,
+									peer_tcp_port,
+									peer_udp_port,
 									protocol ));
 					
 				}

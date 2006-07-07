@@ -146,6 +146,12 @@ UDPTransportHelper
 		return( address );
 	}
 	
+	public String
+	getName()
+	{
+		return( " (UDP)" );
+	}
+	
 	public boolean
 	isIncoming()
 	{

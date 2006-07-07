@@ -54,6 +54,7 @@ import org.gudy.azureus2.plugins.clientid.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.net.udp.uc.PRUDPPacket;
@@ -242,7 +243,7 @@ TRTrackerBTAnnouncerImpl
   
 	COConfigurationManager.addParameterListener("TCP.Announce.Port",this);
 	
-	setPort();
+	setPorts();
 	   
 	timer_event_action =  
 		new TimerEventPerformer()
@@ -336,35 +337,29 @@ TRTrackerBTAnnouncerImpl
 			Logger.log(new LogEvent(torrent, LOGID,
 					"Tracker Announcer Created using url : " + trackerURLListToString()));
   }
-	
-	public void
-	portChanged(
-		int		_new_port )
-	{
-		setPort();
-		
-		update( true );
-	}
+
 	
   	protected void
-	setPort()
+	setPorts()
   	{
    			// we currently don't support incoming connections when SOCKs proxying
   		
-  		int	port_num;
-  		
+ 		int	tcp_port_num;
+ 		int	udp_port_num;
+ 		  		
   		if ( socks_peer_inform ){
   			
-  			port_num	= 0;
-  			
+  			tcp_port_num	= 0;
+  			udp_port_num	= 0;
   		}else{
   		
-  			port_num	= TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
+ 			tcp_port_num	= TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
+ 			udp_port_num	= UDPNetworkManager.getSingleton().getUDPListeningPortNumber();	  		
   		}
   		
  		if ( port_override != -1 ){
  			
- 			port_num = port_override;
+ 			tcp_port_num = port_override;
  			
  		}else{
 
@@ -373,7 +368,7 @@ TRTrackerBTAnnouncerImpl
 	  		if(! portOverride.equals("")) {
 	  		  
 	  			try{
-	  				port_num = Integer.parseInt( portOverride );
+	  				tcp_port_num = Integer.parseInt( portOverride );
 	  				
 	  			}catch( Throwable e ){
 	  				
@@ -382,13 +377,36 @@ TRTrackerBTAnnouncerImpl
 	  		}
  		}
   		  
- 		port_number	= port_num;
+ 		port_number	= tcp_port_num;
  		
-  		port = "&port=" + port_num;
-  		  
+ 		port = "";
+ 		
+   		if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ){
+  			
+  			port += "&requirecrypto=1";
+  			
+  		}else{
+  			
+			port += "&supportcrypto=1"; 
+  		}
+ 		  
+ 		if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE && !NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED ){
+ 			
+ 			port += "&port=0&cryptoport=" + tcp_port_num;
+ 			
+ 		}else{
+ 
+ 			port += "&port=" + tcp_port_num;
+ 		}
+
+ 		if ( udp_port_num != 0 ){
+ 			
+ 			port += "&azudp=" + udp_port_num;
+ 		}
+ 		
   		  	//  BitComet extension for no incoming connections
   		
-  		if ( port_num == 0 ){
+  		if ( tcp_port_num == 0 ){
   			
   			port += "&hide=1";
   		}		
@@ -1950,7 +1968,7 @@ TRTrackerBTAnnouncerImpl
 	{
 		port_override	= port;
 		
-		setPort();
+		setPorts();
 	}
 	
 	public void
@@ -1958,7 +1976,7 @@ TRTrackerBTAnnouncerImpl
 	{
 		port_override	= -1;
 		
-		setPort();
+		setPorts();
 	}
 	
 	public int
@@ -2220,7 +2238,7 @@ TRTrackerBTAnnouncerImpl
 							Object s_peerid	= peer.get("peer id"); 
 							Object s_ip		= peer.get("ip"); 
 							Object s_port	= peer.get("port"); 
-													
+												
 								// Assert that all ip and port are available
 							
 							if ( s_ip != null && s_port != null ){
@@ -2239,12 +2257,12 @@ TRTrackerBTAnnouncerImpl
                                 if (peer_port <0)
                                     peer_port +=65536;
 				                
-                if (peer_port < 0 || peer_port > 65535) {
-                	if (Logger.isEnabled())
-										Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
-												"Invalid peer port given: " + ip + ": " + peer_port));
-                  continue;
-                }
+                                if (peer_port < 0 || peer_port > 65535) {
+                                	if (Logger.isEnabled())
+                                		Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+                                				"Invalid peer port given: " + ip + ": " + peer_port));
+                                	continue;
+                                }
 								
 								byte[] peer_peer_id;
 								
@@ -2264,7 +2282,8 @@ TRTrackerBTAnnouncerImpl
 									peer_peer_id = (byte[])s_peerid ; 
 								}
 								
-								short protocol = DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
+								short 	protocol 	= DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
+								int		udp_port	= 0;
 								
 								if (Logger.isEnabled())
 									Logger.log(new LogEvent(torrent, LOGID,
@@ -2276,6 +2295,7 @@ TRTrackerBTAnnouncerImpl
 											peer_peer_id, 
 											ip, 
 											peer_port,
+											udp_port,
 											protocol  ));
 								
 							} 
@@ -2287,7 +2307,11 @@ TRTrackerBTAnnouncerImpl
 				    
 				    	byte[]	meta_peers = (byte[])meta_peers_peek;
 				    	
-				    	for (int i=0;i<meta_peers.length;i+=6){
+				    	boolean	az_compact = metaData.get( "azcompact" ) != null;
+				    	
+				    	int	entry_size = az_compact?9:6;
+				    		
+				    	for (int i=0;i<meta_peers.length;i+=entry_size){
 				    		
 				    		int	ip1 = 0xFF & meta_peers[i];
 				    		int	ip2 = 0xFF & meta_peers[i+1];
@@ -2299,17 +2323,36 @@ TRTrackerBTAnnouncerImpl
 				    		String	ip 		= "" + ip1 + "." + ip2 + "." + ip3 + "." + ip4;
 				    		int		peer_port 	= po1*256+po2;
 				    		
-                if (peer_port < 0 || peer_port > 65535) {
-                	if (Logger.isEnabled())
-										Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
-												"Invalid compact peer port given: " + ip + ": "
-														+ peer_port));
-                  continue;
-                }
+				    		if (peer_port < 0 || peer_port > 65535) {
+				    			if (Logger.isEnabled())
+				    				Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+				    						"Invalid compact peer port given: " + ip + ": "
+				    						+ peer_port));
+				    			continue;
+				    		}
                 
 				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, peer_port );
 							
-				    		short protocol = DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
+				    		short 	protocol;
+				    		int		udp_port;
+				    		
+				    		if ( az_compact ){
+				    			
+					    		int	upo1 = 0xFF & meta_peers[i+6];
+					    		int	upo2 = 0xFF & meta_peers[i+7];
+					    		
+					    		udp_port 	= upo1*256+upo2;
+
+					    		byte	flags = meta_peers[i+8];
+					    		
+					    		protocol = (flags&0x01)==0?DownloadAnnounceResultPeer.PROTOCOL_NORMAL:DownloadAnnounceResultPeer.PROTOCOL_CRYPT;
+					    		
+				    		}else{
+				    			
+				    			protocol 	= DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
+				    			
+				    			udp_port	= 0;
+				    		}
 				    		
 				    		if (Logger.isEnabled())
 									Logger.log(new LogEvent(torrent, LOGID, "COMPACT PEER: ip="
@@ -2321,6 +2364,7 @@ TRTrackerBTAnnouncerImpl
 				    					peer_peer_id, 
 				    					ip, 
 				    					peer_port,
+				    					udp_port,
 				    					protocol ));
                 			
 				    	}
@@ -2595,6 +2639,7 @@ TRTrackerBTAnnouncerImpl
 								ext_peer.getPeerID(),
 								ext_peer.getAddress(), 
 								ext_peer.getPort(),
+								ext_peer.getUDPPort(),
 								ext_peer.getProtocol());
 			}
 			
@@ -2620,7 +2665,7 @@ TRTrackerBTAnnouncerImpl
   // ParameterListener Implementation
   public void parameterChanged(String parameterName) {
     if("TCP.Announce.Port".equals(parameterName)) {
-      setPort();
+      setPorts();
     }
   }
 }

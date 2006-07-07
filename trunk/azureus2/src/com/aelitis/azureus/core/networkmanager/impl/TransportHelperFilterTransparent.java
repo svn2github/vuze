@@ -161,6 +161,6 @@ TransportHelperFilterTransparent
 	public String
 	getName()
 	{
-		return( is_plain?"Plain":"None" );
+		return( is_plain?"Plain":"None" + getHelper().getName());
 	}
 }

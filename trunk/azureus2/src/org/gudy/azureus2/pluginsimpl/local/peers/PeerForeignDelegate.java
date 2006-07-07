@@ -419,7 +419,12 @@ PeerForeignDelegate
 		return( AddressUtils.isLANLocalAddress( foreign.getIp()) == AddressUtils.LAN_LOCAL_YES );
 	}
 	
- 
+	public boolean
+	isTCP()
+	{
+		return( true );
+	}
+	
 	public PEPeerStats 
 	getStats()
 	{

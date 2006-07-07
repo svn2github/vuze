@@ -1046,7 +1046,7 @@ Test
 			
 		}
     
-    public void peerConnectionClosed( PEPeerTransport peer ) {
+    public void peerConnectionClosed( PEPeerTransport peer, boolean connect_failed ) {
       
     }
     

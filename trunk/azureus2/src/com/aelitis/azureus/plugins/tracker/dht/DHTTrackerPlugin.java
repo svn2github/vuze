@@ -1113,6 +1113,7 @@ DHTTrackerPlugin
 							{
 								List	addresses 	= new ArrayList();
 								List	ports		= new ArrayList();
+								List	udp_ports	= new ArrayList();
 								List	flags		= new ArrayList();
 								
 								int		seed_count;
@@ -1175,6 +1176,8 @@ DHTTrackerPlugin
 													ip_str==null?originator.getAddress().getAddress().getHostAddress():ip_str);
 											
 											ports.add( new Integer(port));
+											
+											udp_ports.add( new Integer( originator.getAddress().getPort()));
 											
 											flags.add( flag );
 											
@@ -1266,6 +1269,12 @@ DHTTrackerPlugin
 												getPort()
 												{
 													return(((Integer)ports.get(f_i)).intValue());
+												}
+												
+												public int
+												getUDPPort()
+												{
+													return(((Integer)udp_ports.get(f_i)).intValue());
 												}
 												
 												public byte[]

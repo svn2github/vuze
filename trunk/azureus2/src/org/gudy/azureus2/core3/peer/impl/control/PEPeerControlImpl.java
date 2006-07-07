@@ -1735,8 +1735,16 @@ PEPeerControlImpl
 	
 	
 //	the peer calls this method itself in closeConnection() to notify this manager
-	public void peerConnectionClosed( PEPeerTransport peer ) {
+	public void peerConnectionClosed( PEPeerTransport peer, boolean connect_failed ) {
 		boolean	connection_found = false;
+		
+		if ( connect_failed && peer.isTCP() && peer.getUDPListenPort() != 0 ){
+		
+				// candidate for a fallback UDP connection attempt
+			
+			System.out.println( "UDP candidate: " + peer.getIp() + ":" + peer.getUDPListenPort());
+		}
+		
 		
 		try{
 			peer_transports_mon.enter();

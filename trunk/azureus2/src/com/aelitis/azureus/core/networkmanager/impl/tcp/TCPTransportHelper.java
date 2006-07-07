@@ -60,6 +60,14 @@ TCPTransportHelper
 		return( new InetSocketAddress( channel.socket().getInetAddress(), channel.socket().getPort()));
 	}
 	
+	public String
+	getName()
+	{
+			// default is TCP so don't clutter up views with this info
+		
+		return( "" );
+	}
+	
 	public boolean
 	minimiseOverheads()
 	{

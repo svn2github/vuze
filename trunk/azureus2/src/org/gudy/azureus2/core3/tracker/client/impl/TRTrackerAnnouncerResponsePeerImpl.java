@@ -31,7 +31,8 @@ TRTrackerAnnouncerResponsePeerImpl
 	private String		source;
 	private byte[]		peer_id;
 	private String		address;
-	private int			port;
+	private int			tcp_port;
+	private int			udp_port;
 	private short		crypto;
 	
 	public
@@ -39,13 +40,15 @@ TRTrackerAnnouncerResponsePeerImpl
 		String		_source,
 		byte[]		_peer_id,
 		String		_address,
-		int			_port,
+		int			_tcp_port,
+		int			_udp_port,
 		short		_crypto )
 	{
 		source		= _source;
 		peer_id		= _peer_id;
 		address		= _address;
-		port		= _port;
+		tcp_port	= _tcp_port;
+		udp_port	= _udp_port;
 		crypto		= _crypto;
 	}
 	
@@ -70,7 +73,13 @@ TRTrackerAnnouncerResponsePeerImpl
 	public int
 	getPort()
 	{
-		return( port );
+		return( tcp_port );
+	}
+	
+	public int
+	getUDPPort()
+	{
+		return( udp_port );
 	}
 	
 	public short

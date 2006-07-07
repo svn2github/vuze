@@ -95,6 +95,6 @@ TransportHelperFilterStreamXOR
 	public String
 	getName()
 	{
-		return( "XOR-" + mask.length*8 );
+		return( "XOR-" + mask.length*8 + getHelper().getName());
 	}
 }

@@ -69,6 +69,6 @@ TransportHelperFilterStreamCipher
 	public String
 	getName()
 	{
-		return( read_cipher.getName());
+		return( read_cipher.getName() + getHelper().getName());
 	}
 }
