@@ -165,7 +165,7 @@ public class UnchokerUtilTest {
         public int getUniqueAnnounce(){ return 0; }
         public Object getData (String key){ return null; }
         public void setData (String key, Object value){}
-        public Connection getConnection(){ return null; }
+        public Connection getPluginConnection(){ return null; }
         public boolean supportsMessaging(){ return false;  }
         public Message[] getSupportedMessages(){ return null; }
         public String getEncryption(){ return( "" ); };

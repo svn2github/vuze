@@ -45,6 +45,21 @@ ProtocolEndpointUDP
 		address	= _address;
 	}
 	
+	public
+	ProtocolEndpointUDP(
+		InetSocketAddress		_address )
+	{
+		ce		= new ConnectionEndpoint(_address );
+		address	= _address;
+	}
+	
+	public void
+	setConnectionEndpoint(
+		ConnectionEndpoint		_ce )
+	{
+		ce	= _ce;
+	}
+	
 	public int
 	getType()
 	{

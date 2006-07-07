@@ -67,7 +67,7 @@ GenericMessageEndpointImpl
 	addTCP(
 		InetSocketAddress	target )
 	{
-		ce.addTCP( target );
+		ce.addProtocol( new ProtocolEndpointTCP( target ));
 	}
 	
 	public InetSocketAddress
@@ -90,7 +90,7 @@ GenericMessageEndpointImpl
 	addUDP(
 		InetSocketAddress	target )
 	{
-		ce.addUDP( target );
+		ce.addProtocol( new ProtocolEndpointUDP( target ));
 	}
 	
 	public InetSocketAddress

@@ -541,7 +541,7 @@ PeerForeignDelegate
 	}
   
 	public Connection
-	getConnection()
+	getPluginConnection()
 	{
 		return( foreign.getConnection());
 	}
@@ -687,4 +687,6 @@ PeerForeignDelegate
      * Nothing to do if called
      */
 	public void clearAvailabilityAdded() {};
+	
+	public PEPeerTransport reconnect(){ return null; }
 }

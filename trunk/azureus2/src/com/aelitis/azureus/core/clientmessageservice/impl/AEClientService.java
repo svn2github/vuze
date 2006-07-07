@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.clientmessageservice.*;
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportImpl;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
@@ -98,7 +99,7 @@ public class AEClientService implements ClientMessageService {
 	
 	ConnectionEndpoint	ce = new ConnectionEndpoint( tcp_target );
 	
-	ce.addTCP( tcp_target );
+	ce.addProtocol( new ProtocolEndpointTCP( tcp_target ));
 	   
     final AESemaphore connect_block = new AESemaphore( "AEClientService:C" );
     

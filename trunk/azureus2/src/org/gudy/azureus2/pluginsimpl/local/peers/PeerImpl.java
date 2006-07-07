@@ -76,7 +76,7 @@ PeerImpl
 	}
   
   public Connection getConnection() {
-    return delegate.getConnection();
+    return delegate.getPluginConnection();
   }
   
   

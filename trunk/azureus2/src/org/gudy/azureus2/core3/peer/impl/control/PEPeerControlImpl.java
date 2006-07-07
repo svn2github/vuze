@@ -540,19 +540,14 @@ PEPeerControlImpl
     
     if( reconnect ) {
       for( int i=0; i < peer_transports.size(); i++ ) {
+    	  
         final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
         
-        if( peer.getTCPListenPort() > 0 ) {
-			final boolean use_crypto = peer.getPeerItemIdentity().getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
-			final PEPeerTransport new_conn = 
-				PEPeerTransportFactory.createTransport( 
-						this, 
-						peer.getPeerSource(), 
-						peer.getIp(), 
-						peer.getTCPListenPort(), 
-						peer.getUDPListenPort(),
-						use_crypto );
-			addToPeerTransports( new_conn );
+        PEPeerTransport	reconnected_peer = peer.reconnect();
+ 
+        if ( reconnected_peer != null ){
+        	
+			addToPeerTransports( reconnected_peer );
         }
       }
     }
@@ -572,7 +567,7 @@ PEPeerControlImpl
 		final PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, tcp_port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type, udp_port );
 		
 		if( !isAlreadyConnected( peer_item ) ) {
-			String fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, use_crypto );  //directly inject the the imported peer
+			String fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, true, use_crypto );  //directly inject the the imported peer
 			if( fail_reason != null )  Debug.out( "injected peer was not added - " + fail_reason );
 		}
 	}
@@ -631,6 +626,7 @@ PEPeerControlImpl
 		String 		address, 
 		int 		tcp_port,
 		int			udp_port,
+		boolean		use_tcp,
 		boolean 	require_crypto ) 
 	{    
 		//make sure this connection isn't filtered
@@ -658,7 +654,7 @@ PEPeerControlImpl
 		}
 		
 		//start the connection
-		final PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, tcp_port, udp_port, require_crypto );
+		final PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, tcp_port, udp_port, use_tcp, require_crypto );
 		
 		addToPeerTransports( real );
 		return null;
@@ -2517,7 +2513,7 @@ PEPeerControlImpl
 
         		final boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
         		
-        		if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), use_crypto ) == null) {
+        		if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), true, use_crypto ) == null) {
         			num_waiting_establishments++;
         		}
         	}          

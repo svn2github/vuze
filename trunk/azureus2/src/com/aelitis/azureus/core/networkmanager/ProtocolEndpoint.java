@@ -36,6 +36,10 @@ ProtocolEndpoint
 	public ConnectionEndpoint
 	getConnectionEndpoint();
 	
+	public void
+	setConnectionEndpoint(
+		ConnectionEndpoint	ce );
+	
 	public Transport
 	connectOutbound(
 		boolean				connect_with_crypto, 

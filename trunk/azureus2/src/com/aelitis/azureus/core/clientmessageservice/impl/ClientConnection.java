@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.clientmessageservice.impl;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,7 +68,13 @@ public class ClientConnection {
 	 */
 	public ClientConnection( SocketChannel channel ) {
 		decoder = new AZMessageDecoder();
-		light_transport = ((ProtocolEndpointTCP)new ConnectionEndpoint( null ).addTCP( null )).connectLightWeight( channel );
+		
+		InetSocketAddress remote = null;	// unfortunately we don't have an address at this point (see NATTestService)
+		
+		ProtocolEndpointTCP	pe =  new ProtocolEndpointTCP( remote );
+				
+		light_transport = pe.connectLightWeight( channel );
+		
 		out_queue = new OutgoingMessageQueue( encoder );
 		out_queue.setTransport( light_transport );
 		last_activity_time = System.currentTimeMillis();

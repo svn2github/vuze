@@ -35,7 +35,9 @@ import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.udp.ProtocolEndpointUDP;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
@@ -260,8 +262,18 @@ PEPeerTransportProtocol
   
   
   
-  //OUTGOING
-  public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, String _ip, int _tcp_port, int _udp_port, boolean require_crypto_handshake ) {
+  	//OUTGOING
+  
+  public 
+  PEPeerTransportProtocol( 
+		PEPeerControl 	_manager, 
+		String 			_peer_source, 
+		String 			_ip, 
+		int 			_tcp_port, 
+		int 			_udp_port,
+		boolean			_use_tcp,
+		boolean 		require_crypto_handshake ) 
+  {
     manager = _manager;
     diskManager =manager.getDiskManager();
     piecePicker =manager.getPiecePicker();
@@ -289,9 +301,26 @@ PEPeerTransportProtocol
     
     if( isLANLocal() )  use_crypto = false;  //dont bother with PHE for lan peers
     
-    InetSocketAddress	tcp_endpoint = new InetSocketAddress( ip, port );
-    ConnectionEndpoint connection_endpoint	= new ConnectionEndpoint( tcp_endpoint );
-	connection_endpoint.addTCP( tcp_endpoint );
+    InetSocketAddress	endpoint_address;
+    ProtocolEndpoint	pe;
+    
+    if ( _use_tcp ){
+    	
+    	endpoint_address = new InetSocketAddress( ip, tcp_listen_port );
+    	   
+    	pe = new ProtocolEndpointTCP( endpoint_address );
+    	
+    }else{
+    	
+      	endpoint_address = new InetSocketAddress( ip, udp_listen_port );
+ 	   
+    	pe = new ProtocolEndpointUDP( endpoint_address );
+    }
+	
+    ConnectionEndpoint connection_endpoint	= new ConnectionEndpoint( endpoint_address );
+    
+    connection_endpoint.addProtocol( pe );
+    
     connection = NetworkManager.getSingleton().createConnection( connection_endpoint, new BTMessageEncoder(), new BTMessageDecoder(), use_crypto, !require_crypto_handshake, manager.getTorrentHash());
     
     plugin_connection = new ConnectionImpl(connection);
@@ -2008,7 +2037,7 @@ PEPeerTransportProtocol
   
   
   
-  public Connection getConnection() {
+  public Connection getPluginConnection() {
     return plugin_connection;
   }
   
@@ -2304,4 +2333,31 @@ PEPeerTransportProtocol
 		return unchokedTimeTotal +(SystemTime.getCurrentTime() -unchokedTime);
 	}
 
+	public PEPeerTransport
+	reconnect()
+	{
+		boolean	use_tcp = connection.getEndpoint().getProtocols()[0].getType() == ProtocolEndpoint.PROTOCOL_TCP;
+		
+		if (	( use_tcp && getTCPListenPort() > 0 ) ||
+				( !use_tcp && getUDPListenPort() > 0 )){
+	        	
+			boolean use_crypto = getPeerItemIdentity().getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
+			
+			PEPeerTransport new_conn = 
+					PEPeerTransportFactory.createTransport( 
+							manager, 
+							getPeerSource(), 
+							getIp(), 
+							getTCPListenPort(), 
+							getUDPListenPort(),
+							use_tcp,
+							use_crypto );
+			
+			return( new_conn );
+			
+		}else{
+			
+			return( null );
+		}
+	}
 }

@@ -195,7 +195,7 @@ PEPeer
    * @return connection
    */
   
-  public Connection getConnection();
+  public Connection getPluginConnection();
   
   
   /**

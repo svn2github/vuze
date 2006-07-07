@@ -58,32 +58,12 @@ ConnectionEndpoint
 		return( protocols );
 	}
 	
-	public ProtocolEndpoint
-	addTCP(
-		InetSocketAddress	address )
-	{
-		ProtocolEndpoint	ep = new ProtocolEndpointTCP( this, address );
-		
-		addProtocol( ep );
-		
-		return( ep );
-	}
-	
-	public ProtocolEndpoint
-	addUDP(
-		InetSocketAddress	address )
-	{
-		ProtocolEndpoint	ep = new ProtocolEndpointUDP( this, address );
-		
-		addProtocol( ep );
-		
-		return( ep );
-	}
-	
-	protected void
+	public void
 	addProtocol(
 		ProtocolEndpoint	ep )
 	{
+		ep.setConnectionEndpoint( this );
+		
 		if ( protocols == null ){
 			
 			protocols = new ProtocolEndpoint[]{ ep };

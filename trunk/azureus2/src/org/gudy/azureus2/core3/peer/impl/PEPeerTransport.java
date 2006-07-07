@@ -192,4 +192,11 @@ PEPeerTransport
 	 */
 	public void checkInterested();
 	
+		/**
+		 * Attempts to reconnect to the same peer
+		 * @return null if reconnect not possible, reconnected peer otherwise
+		 */
+	
+	public PEPeerTransport
+	reconnect();
 }

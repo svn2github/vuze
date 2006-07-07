@@ -34,6 +34,7 @@ import org.gudy.azureus2.pluginsimpl.local.messaging.MessageStreamEncoderAdapter
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 
 /**
  *
@@ -63,13 +64,20 @@ public class ConnectionManagerImpl implements ConnectionManager {
   }
   
 
-  public Connection createConnection( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
+  public Connection 
+  createConnection( 
+	InetSocketAddress remote_address, 
+	MessageStreamEncoder encoder, 
+	MessageStreamDecoder decoder ) 
+  {
 	  ConnectionEndpoint connection_endpoint	= new ConnectionEndpoint( remote_address );
-	  connection_endpoint.addTCP( remote_address );
+	  
+	  connection_endpoint.addProtocol( new ProtocolEndpointTCP( remote_address ));
 	 
-    com.aelitis.azureus.core.networkmanager.NetworkConnection core_conn =
-      NetworkManager.getSingleton().createConnection( connection_endpoint, new MessageStreamEncoderAdapter( encoder ), new MessageStreamDecoderAdapter( decoder ), false, false, null );
-    return new ConnectionImpl( core_conn );
+	  com.aelitis.azureus.core.networkmanager.NetworkConnection core_conn =
+		  NetworkManager.getSingleton().createConnection( connection_endpoint, new MessageStreamEncoderAdapter( encoder ), new MessageStreamDecoderAdapter( decoder ), false, false, null );
+    
+	  return new ConnectionImpl( core_conn );
   }
   
   public int
