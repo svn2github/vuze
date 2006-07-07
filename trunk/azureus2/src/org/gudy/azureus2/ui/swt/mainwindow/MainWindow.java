@@ -622,6 +622,8 @@ MainWindow
 			}
 		}
 
+		globalManager.loadExistingTorrentsNow(null, true);
+		
 		COConfigurationManager.addAndFireParameterListener("Show Download Basket",
 				this);
 
