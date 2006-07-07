@@ -670,8 +670,8 @@ AZInstanceManagerImpl
 	{
 		InetAddress	internal_address 	= inst.getInternalAddress();
 		InetAddress	external_address	= inst.getExternalAddress();
-		int			tcp					= inst.getTrackerClientPort();
-		int			udp					= inst.getDHTPort();
+		int			tcp					= inst.getTCPListenPort();
+		int			udp					= inst.getUDPListenPort();
 		
 		modifyAddresses( internal_address, external_address, tcp, udp, true );
 	}
@@ -682,8 +682,8 @@ AZInstanceManagerImpl
 	{
 		List		internal_addresses 	= inst.getInternalAddresses();
 		InetAddress	external_address	= inst.getExternalAddress();
-		int			tcp					= inst.getTrackerClientPort();
-		int			udp					= inst.getDHTPort();
+		int			tcp					= inst.getTCPListenPort();
+		int			udp					= inst.getUDPListenPort();
 		
 		for (int i=0;i<internal_addresses.size();i++){
 			

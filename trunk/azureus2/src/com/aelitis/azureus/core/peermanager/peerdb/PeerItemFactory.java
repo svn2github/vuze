@@ -33,14 +33,14 @@ import org.gudy.azureus2.core3.util.Debug;
  *
  */
 public class PeerItemFactory {
-  public static final int PEER_SOURCE_TRACKER       = 0;
-  public static final int PEER_SOURCE_DHT           = 1;
-  public static final int PEER_SOURCE_PEER_EXCHANGE = 2;
-  public static final int PEER_SOURCE_PLUGIN        = 3;
-  public static final int PEER_SOURCE_INCOMING      = 4;
+  public static final byte PEER_SOURCE_TRACKER       = 0;
+  public static final byte PEER_SOURCE_DHT           = 1;
+  public static final byte PEER_SOURCE_PEER_EXCHANGE = 2;
+  public static final byte PEER_SOURCE_PLUGIN        = 3;
+  public static final byte PEER_SOURCE_INCOMING      = 4;
   
-  public static final int HANDSHAKE_TYPE_PLAIN  = 0;
-  public static final int HANDSHAKE_TYPE_CRYPTO = 1;
+  public static final byte HANDSHAKE_TYPE_PLAIN  = 0;
+  public static final byte HANDSHAKE_TYPE_CRYPTO = 1;
   
   
   
@@ -56,8 +56,8 @@ public class PeerItemFactory {
    * @param source this peer info was obtained from
    * @return peer
    */
-  public static PeerItem createPeerItem( String address, int port, int source, int handshake_type ) {
-    return getLightweight( new PeerItem( address, port, source, handshake_type ) );
+  public static PeerItem createPeerItem( String address, int tcp_port, byte source, byte handshake_type, int udp_port ) {
+    return getLightweight( new PeerItem( address, tcp_port, source, handshake_type, udp_port ) );
   }
   
   /**
@@ -66,8 +66,8 @@ public class PeerItemFactory {
    * @param source this peer info was obtained from
    * @return peer
    */
-  public static PeerItem createPeerItem( byte[] serialization, int source, int handshake_type ) {
-    return getLightweight( new PeerItem( serialization, source, handshake_type ) );
+  public static PeerItem createPeerItem( byte[] serialization, byte source, byte handshake_type, int udp_port ) {
+    return getLightweight( new PeerItem( serialization, source, handshake_type, udp_port ) );
   }
   
   

@@ -59,14 +59,25 @@ public class AZPeerExchange implements AZMessage {
     if( peers != null && peers.length > 0 ) {
       ArrayList raw_peers = new ArrayList();
       byte[] handshake_types = new byte[ peers.length ];
+      byte[] udp_ports = new byte[peers.length*2];	// 2403 B55+
+      int	num_valid_udp = 0;
       
       for( int i=0; i < peers.length; i++ ) {
         raw_peers.add( peers[i].getSerialization() );
         handshake_types[i] = (byte)peers[i].getHandshakeType();
+        int	udp_port = peers[i].getUDPPort();
+        if ( udp_port > 0 ){
+        	num_valid_udp++;
+           	udp_ports[i*2] = (byte)(udp_port>>8);
+           	udp_ports[i*2+1] = (byte)udp_port;
+        }
       }
 
       root_map.put( key_name, raw_peers );
       root_map.put( key_name + "_HST", handshake_types );
+      if ( num_valid_udp > 0 ){
+    	root_map.put( key_name + "_UDP", udp_ports );     
+      }
     }
   }
   
@@ -78,19 +89,22 @@ public class AZPeerExchange implements AZMessage {
 
     List raw_peers = (List)root_map.get( key_name );
     if( raw_peers != null ) {
-    	byte[] handshake_types = (byte[])root_map.get( key_name + "_HST" );
-    	
-    	int pos = 0;
+      byte[] handshake_types = (byte[])root_map.get( key_name + "_HST" );
+      byte[] udp_ports = (byte[])root_map.get( key_name + "_UDP" ); // 2403 B55+
+      int pos = 0;
     	
       for( Iterator it = raw_peers.iterator(); it.hasNext(); ) {
         byte[] full_address = (byte[])it.next();
         
-        int type = PeerItemFactory.HANDSHAKE_TYPE_PLAIN;        
+        byte type = PeerItemFactory.HANDSHAKE_TYPE_PLAIN;        
         if( handshake_types != null ) { //only 2307+ send types
         	type = handshake_types[pos];
         }
-        
-        PeerItem peer = PeerItemFactory.createPeerItem( full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE, type );
+        int	udp_port = 0;
+        if ( udp_ports != null ){
+        	udp_port = ((udp_ports[pos*2]<<8)&0xff00) + (udp_ports[pos*2+1]&0xff);
+        }
+        PeerItem peer = PeerItemFactory.createPeerItem( full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE, type, udp_port );
         peers.add( peer );
         pos++;
       }

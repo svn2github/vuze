@@ -52,10 +52,11 @@ PEPeerTransportFactory
 		PEPeerControl	 	control,
 		String				peer_source,
 		String 				ip, 
-		int 				port,
-		boolean require_crypto_handshake )
+		int 				tcp_port,
+		int					udp_port,
+		boolean 			require_crypto_handshake )
 	{
-    return new PEPeerTransportProtocol( control, peer_source, ip, port, require_crypto_handshake );    
+    return new PEPeerTransportProtocol( control, peer_source, ip, tcp_port, udp_port, require_crypto_handshake );    
 	}
   
   

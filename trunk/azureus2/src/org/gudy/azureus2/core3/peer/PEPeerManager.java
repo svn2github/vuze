@@ -180,10 +180,16 @@ PEPeerManager
    * (like for peers given in announce reply), using the given address
    * and port.
    * @param ip_address of peer to inject
-   * @param port of peer to inject
+   * @param tcp_port of peer to inject
+   * @param udp_port of peer to inject (0 if unknown)
    * @param use_crypto use encrypted transport
    */
-  public void addPeer( String ip_address, int port, boolean use_crypto );
+	public void 
+	addPeer( 
+		String 		ip_address, 
+		int 		tcp_port,
+		int			udp_port,
+		boolean 	use_crypto );
   
 	
 	public void

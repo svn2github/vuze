@@ -1317,28 +1317,28 @@ Test
 		public void
 		addPeer(
 			PEPeer	peer )
-		{
-			
+		{			
 		}
 
-    
-    public void addPeer( String ip, int port ) {  /* nothing */   }    
-    public void addPeer( String ip_address, int port, boolean use_crypto ) {  }
+		public void 
+		addPeer( 
+			String ip_address, 
+			int port, 
+			int udp_port, 
+			boolean use_crypto ) 
+		{
+		}
 		
 		public void
 		removePeer(
 			PEPeer	peer )
-		{
-			
+		{	
 		}
-
 		
 		public void 
 		peerAdded(PEPeer pc)
-		{
-			
+		{	
 		}
-
 
 		public void 
 		peerRemoved(PEPeer pc)

@@ -544,7 +544,14 @@ PEPeerControlImpl
         
         if( peer.getTCPListenPort() > 0 ) {
 			final boolean use_crypto = peer.getPeerItemIdentity().getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
-			final PEPeerTransport new_conn = PEPeerTransportFactory.createTransport( this, peer.getPeerSource(), peer.getIp(), peer.getTCPListenPort(), use_crypto );
+			final PEPeerTransport new_conn = 
+				PEPeerTransportFactory.createTransport( 
+						this, 
+						peer.getPeerSource(), 
+						peer.getIp(), 
+						peer.getTCPListenPort(), 
+						peer.getUDPListenPort(),
+						use_crypto );
 			addToPeerTransports( new_conn );
         }
       }
@@ -554,13 +561,19 @@ PEPeerControlImpl
 	
 	
 	
-	public void addPeer( String ip_address, int port, boolean use_crypto ) {
-		final int type = use_crypto ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
-		final PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type );
+	public void 
+	addPeer( 
+		String 	ip_address, 
+		int		tcp_port, 
+		int		udp_port,
+		boolean use_crypto ) 
+	{
+		final byte type = use_crypto ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
+		final PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, tcp_port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type, udp_port );
 		
 		if( !isAlreadyConnected( peer_item ) ) {
-			final boolean added = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, port, use_crypto );  //directly inject the the imported peer
-			if( !added )  Debug.out( "injected peer was not added" );
+			String fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, use_crypto );  //directly inject the the imported peer
+			if( fail_reason != null )  Debug.out( "injected peer was not added - " + fail_reason );
 		}
 	}
 	
@@ -598,8 +611,8 @@ PEPeerControlImpl
 			if( already_connected )  continue;
 			
 			if( peer_database != null ) {				
-				final int type = peer.getProtocol() == DownloadAnnounceResultPeer.PROTOCOL_CRYPT ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
-				final PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), type );
+				final byte type = peer.getProtocol() == DownloadAnnounceResultPeer.PROTOCOL_CRYPT ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
+				final PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), type, 0 );
 				peer_database.addDiscoveredPeer( item );
 			}
 		}
@@ -610,43 +623,45 @@ PEPeerControlImpl
 	 * Request a new outgoing peer connection.
 	 * @param address ip of remote peer
 	 * @param port remote peer listen port
-	 * @return true if the connection was added to the transport list, false if rejected
+	 * @return null if the connection was added to the transport list, reason if rejected
 	 */
-	private boolean 
+	private String 
 	makeNewOutgoingConnection( 
-		String	peer_source,
-		String 	address, 
-		int port,
-		boolean require_crypto ) 
+		String		peer_source,
+		String 		address, 
+		int 		tcp_port,
+		int			udp_port,
+		boolean 	require_crypto ) 
 	{    
 		//make sure this connection isn't filtered
-    if( ip_filter.isInRange( address, adapter.getDisplayName() ) ) {
-			return false;
+   
+		if( ip_filter.isInRange( address, adapter.getDisplayName() ) ) {
+			return "IPFilter block";
 		}
 		
 		//make sure we need a new connection
 		final int needed = getMaxNewConnectionsAllowed();
-		if( needed == 0 )  return false;
+		if( needed == 0 )  return "Too many connections";
 		
 		//make sure not already connected to the same IP address; allow loopback connects for co-located proxy-based connections and testing
 		final boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
 		if( !same_allowed && PeerIdentityManager.containsIPAddress( _hash, address ) ){  
-			return false;
+			return "Already connected to IP";
 		}
 		
-		if( PeerUtils.ignorePeerPort( port ) ) {
-    	if (Logger.isEnabled())
+		if( PeerUtils.ignorePeerPort( tcp_port ) ) {
+			if (Logger.isEnabled())
 				Logger.log(new LogEvent(disk_mgr.getTorrent(), LOGID,
-						"Skipping connect with " + address + ":" + port
+						"Skipping connect with " + address + ":" + tcp_port
 								+ " as peer port is in ignore list."));
-			return false;
+			return "TCP port in ignore list";
 		}
 		
 		//start the connection
-		final PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, port, require_crypto );
+		final PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, tcp_port, udp_port, require_crypto );
 		
 		addToPeerTransports( real );
-		return true;
+		return null;
 	}
 	
 	
@@ -2502,7 +2517,7 @@ PEPeerControlImpl
 
         		final boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
         		
-        		if( makeNewOutgoingConnection( source, item.getAddressString(), item.getPort(), use_crypto ) ) {
+        		if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), use_crypto ) == null) {
         			num_waiting_establishments++;
         		}
         	}          
@@ -2625,10 +2640,12 @@ PEPeerControlImpl
 	
 	public PeerExchangerItem createPeerExchangeConnection( final PEPeerTransport base_peer ) {
 		if( peer_database != null && base_peer.getTCPListenPort() > 0 ) {  //only accept peers whose remote port is known
-			final PeerItem peer = PeerItemFactory.createPeerItem( base_peer.getIp(),
-																											base_peer.getTCPListenPort(),
-																											PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE,
-																											base_peer.getPeerItemIdentity().getHandshakeType() );
+			final PeerItem peer = 
+				PeerItemFactory.createPeerItem( base_peer.getIp(),
+												base_peer.getTCPListenPort(),
+												PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE,
+												base_peer.getPeerItemIdentity().getHandshakeType(),
+												base_peer.getUDPListenPort());
 			
 			return peer_database.registerPeerConnection( peer, new PeerExchangerItem.Helper(){
 				public boolean isSeed(){  return base_peer.isSeed();  }
@@ -2653,7 +2670,7 @@ PEPeerControlImpl
 	public void peerVerifiedAsSelf( PEPeerTransport self ) {
 		if( peer_database != null && self.getTCPListenPort() > 0 ) {  //only accept self if remote port is known
 			final PeerItem peer = PeerItemFactory.createPeerItem( self.getIp(), self.getTCPListenPort(),
-				PeerItem.convertSourceID( self.getPeerSource() ), self.getPeerItemIdentity().getHandshakeType() );
+				PeerItem.convertSourceID( self.getPeerSource() ), self.getPeerItemIdentity().getHandshakeType(), self.getUDPListenPort());
 			peer_database.setSelfPeer( peer );
 		}
 	}

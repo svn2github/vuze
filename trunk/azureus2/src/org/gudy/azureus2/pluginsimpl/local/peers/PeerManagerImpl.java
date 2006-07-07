@@ -203,18 +203,34 @@ PeerManagerImpl
 		manager.removePeer(mapForeignPeer( peer ));
 	}
   
-	public void addPeer( 
+	public void 
+	addPeer( 
 		String 	ip_address, 
-		int 	port ) 
+		int 	tcp_port ) 
 	{
-		manager.addPeer( ip_address, port, false );
+		manager.addPeer( ip_address, tcp_port, 0, false );
 	}
   
 	
-	public void addPeer( String ip_address, int port, boolean use_crypto ) {
-		manager.addPeer( ip_address, port, use_crypto );
+	public void 
+	addPeer( 
+		String 		ip_address, 
+		int 		tcp_port, 
+		boolean 	use_crypto ) 
+	{
+		manager.addPeer( ip_address, tcp_port, 0, use_crypto );
 	}
   
+	public void 
+	addPeer( 
+		String 		ip_address, 
+		int 		tcp_port, 
+		int			udp_port,
+		boolean 	use_crypto ) 
+	{
+		manager.addPeer( ip_address, tcp_port, udp_port, use_crypto );
+	}
+	
 	public Peer[]
 	getPeers()
 	{

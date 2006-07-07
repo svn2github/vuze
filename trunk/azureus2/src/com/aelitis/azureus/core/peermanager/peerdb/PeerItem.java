@@ -36,12 +36,13 @@ import org.gudy.azureus2.core3.peer.PEPeerSource;
  */
 public class PeerItem {
   private final byte[] address;
-  private final int port;
-  private final int source;
+  private final short udp_port;
+  private final short tcp_port;
+  private final byte source;
   private final int hashcode;
-  private final int handshake;
+  private final byte handshake;
   
-  protected PeerItem( String _address, int port, int source, int handshake_type ) {
+  protected PeerItem( String _address, int _tcp_port, byte _source, byte _handshake, int _udp_port ) {
     byte[] raw;
     try{
       //see if we can resolve the address into a compact raw IPv4/6 byte array (4 or 16 bytes)
@@ -53,11 +54,12 @@ public class PeerItem {
       raw = _address.getBytes();
     }
 
-    this.address = raw;
-    this.port = port;
-    this.source = source;
-    this.hashcode = new String( address ).hashCode() + port;
-    this.handshake = handshake_type;
+    address = raw;
+    tcp_port = (short)_tcp_port;
+    udp_port = (short)_udp_port;
+    source = _source;
+    hashcode = new String( address ).hashCode() + tcp_port;
+    handshake = _handshake;
     
     if( address.length != 4 ) {
       System.out.println( "PeerItem OUT: address byte size=" +address.length);
@@ -65,18 +67,19 @@ public class PeerItem {
   }
   
 
-  protected PeerItem( byte[] serialization, int source, int handshake_type ) {
+  protected PeerItem( byte[] _serialization, byte _source, byte _handshake, int _udp_port ) {
     //extract address and port
-    address = new byte[ serialization.length -2 ];
-    System.arraycopy( serialization, 0, address, 0, serialization.length -2 );
+    address = new byte[ _serialization.length -2 ];
+    System.arraycopy( _serialization, 0, address, 0, _serialization.length -2 );
     
-    byte p0 = serialization[ serialization.length -2 ];
-    byte p1 = serialization[ serialization.length -1 ];  
-    port = (p1 & 0xFF) + ((p0 & 0xFF) << 8);
+    byte p0 = _serialization[ _serialization.length -2 ];
+    byte p1 = _serialization[ _serialization.length -1 ];  
+    tcp_port = (short)((p1 & 0xFF) + ((p0 & 0xFF) << 8));
     
-    this.source = source;
-    this.hashcode = new String( address ).hashCode() + port;
-    this.handshake = handshake_type;
+    source = _source;
+    hashcode = new String( address ).hashCode() + tcp_port;
+    handshake = _handshake;
+    udp_port = (short)_udp_port;
     
     if( address.length > 15 ) {
       System.out.println( "PeerItem IN: address byte size=" +address.length);
@@ -89,8 +92,8 @@ public class PeerItem {
     //combine address and port bytes into one
     byte[] full_address = new byte[ address.length +2 ];
     System.arraycopy( address, 0, full_address, 0, address.length );
-    full_address[ address.length ] = (byte)(port >> 8);
-    full_address[ address.length +1 ] = (byte)(port & 0xff);
+    full_address[ address.length ] = (byte)(tcp_port >> 8);
+    full_address[ address.length +1 ] = (byte)(tcp_port & 0xff);
     return full_address;
   }
   
@@ -107,18 +110,20 @@ public class PeerItem {
   }
   
   
-  public int getPort() {  return port;  }
+  public int getTCPPort() {  return tcp_port&0xffff;  }
   
-  public int getSource() {  return source;  }
+  public int getUDPPort() {  return udp_port&0xffff;  }
+   
+  public byte getSource() {  return source;  }
 
-  public int getHandshakeType() {  return handshake;  }
+  public byte getHandshakeType() {  return handshake;  }
   
 
   public boolean equals( Object obj ) {
     if( this == obj )  return true;
     if( obj != null && obj instanceof PeerItem ) {
       PeerItem other = (PeerItem)obj;
-      if( this.port == other.port && Arrays.equals( this.address, other.address ) )  return true;
+      if( this.tcp_port == other.tcp_port && Arrays.equals( this.address, other.address ) )  return true;
     }
     return false;
   }
@@ -127,7 +132,7 @@ public class PeerItem {
   
   
   
-  public static String convertSourceString( int source_id ) {
+  public static String convertSourceString( byte source_id ) {
     //we use an int to store the source text string as this class is supposed to be lightweight
     switch( source_id ) {
       case PeerItemFactory.PEER_SOURCE_TRACKER:        return PEPeerSource.PS_BT_TRACKER;
@@ -140,7 +145,7 @@ public class PeerItem {
   }
   
   
-  public static int convertSourceID( String source ) {
+  public static byte convertSourceID( String source ) {
     if( source.equals( PEPeerSource.PS_BT_TRACKER ) )  return PeerItemFactory.PEER_SOURCE_TRACKER;
     if( source.equals( PEPeerSource.PS_DHT ) )         return PeerItemFactory.PEER_SOURCE_DHT;
     if( source.equals( PEPeerSource.PS_OTHER_PEER ) )  return PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE;

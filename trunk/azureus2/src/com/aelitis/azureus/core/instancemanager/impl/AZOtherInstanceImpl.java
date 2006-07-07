@@ -149,13 +149,13 @@ AZOtherInstanceImpl
 	}
 	
 	public int
-	getTrackerClientPort()
+	getTCPListenPort()
 	{
 		return( tcp_port );
 	}
 	
 	public int
-	getDHTPort()
+	getUDPListenPort()
 	{
 		return( udp_port );
 	}

@@ -56,7 +56,18 @@ PeerManager
 		String ip_address, 
 		int port );
 	
-	public void addPeer( String ip_address, int port, boolean use_crypto );
+	public void 
+	addPeer( 
+		String 	ip_address, 
+		int 	tcp_port, 
+		boolean use_crypto );
+  
+	public void 
+	addPeer( 
+		String 	ip_address, 
+		int 	tcp_port, 
+		int		udp_port,
+		boolean use_crypto );
   
 	public void
 	removePeer(

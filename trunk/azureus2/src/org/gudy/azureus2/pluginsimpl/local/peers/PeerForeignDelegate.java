@@ -192,7 +192,12 @@ PeerForeignDelegate
 	public PeerItem 
 	getPeerItemIdentity() 
 	{
-		return PeerItemFactory.createPeerItem( foreign.getIp(), foreign.getPort(), PeerItemFactory.PEER_SOURCE_PLUGIN, PeerItemFactory.HANDSHAKE_TYPE_PLAIN );
+		return PeerItemFactory.createPeerItem( 
+				foreign.getIp(), 
+				foreign.getTCPListenPort(), 
+				PeerItemFactory.PEER_SOURCE_PLUGIN, 
+				PeerItemFactory.HANDSHAKE_TYPE_PLAIN,
+				foreign.getUDPListenPort());
 	}
   
   

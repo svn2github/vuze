@@ -35,6 +35,7 @@ import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
@@ -207,7 +208,7 @@ PEPeerTransportProtocol
     ip    = notional_address.getAddress().getHostAddress();
     port  = notional_address.getPort();
     
-    peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN );  //this will be recreated upon az handshake decode
+    peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, 0 );  //this will be recreated upon az handshake decode
     
     incoming = true;
     connection = _connection;
@@ -260,7 +261,7 @@ PEPeerTransportProtocol
   
   
   //OUTGOING
-  public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, String _ip, int _port, boolean require_crypto_handshake ) {
+  public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, String _ip, int _tcp_port, int _udp_port, boolean require_crypto_handshake ) {
     manager = _manager;
     diskManager =manager.getDiskManager();
     piecePicker =manager.getPiecePicker();
@@ -269,10 +270,11 @@ PEPeerTransportProtocol
 
     peer_source	= _peer_source;
     ip    = _ip;
-    port  = _port;
-    tcp_listen_port = _port;
+    port  = _tcp_port;
+    tcp_listen_port = _tcp_port;
+    udp_listen_port	= _udp_port;
     
-    peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN );  //this will be recreated upon az handshake decode
+    peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, _udp_port );  //this will be recreated upon az handshake decode
     
     incoming = false;
     
@@ -518,13 +520,14 @@ PEPeerTransportProtocol
       avail_vers[i] = (byte)1;  //NOTE: hack for ADV messaging transition
     }
     
+    int local_tcp_port = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
     int local_udp_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
-    
+       
     AZHandshake az_handshake = new AZHandshake(
         AZPeerIdentityManager.getAZPeerIdentity(),
         Constants.AZUREUS_NAME,
         Constants.AZUREUS_VERSION,
-        COConfigurationManager.getIntParameter( "TCP.Listen.Port" ),
+        local_tcp_port,
         local_udp_port,
         avail_ids,
         avail_vers,
@@ -1472,10 +1475,10 @@ PEPeerTransportProtocol
     if( handshake.getTCPListenPort() > 0 ) {  //use the ports given in handshake
       tcp_listen_port = handshake.getTCPListenPort();
       udp_listen_port = handshake.getUDPListenPort();
-      final int type = handshake.getHandshakeType() == AZHandshake.HANDSHAKE_TYPE_CRYPTO ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
+      final byte type = handshake.getHandshakeType() == AZHandshake.HANDSHAKE_TYPE_CRYPTO ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
       
       //remake the id using the peer's remote listen port instead of their random local port
-      peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( peer_source ), type );
+      peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( peer_source ), type, udp_listen_port );
     }
 
     //find mutually available message types

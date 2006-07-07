@@ -514,12 +514,13 @@ LocalTrackerPlugin
 		
 		if ( peer_manager != null ){	
 			
-			String	peer_ip		= inst.getInternalAddress().getHostAddress();
-			int		peer_port	= inst.getTrackerClientPort();
+			String	peer_ip			= inst.getInternalAddress().getHostAddress();
+			int		peer_tcp_port	= inst.getTCPListenPort();
+			int		peer_udp_port	= inst.getUDPListenPort();
 			
-			log.log( "    " + download.getName() + ": Injecting peer " + peer_ip + ":" + peer_port );
+			log.log( "    " + download.getName() + ": Injecting peer " + peer_ip + ":" + peer_tcp_port + "/" + peer_udp_port);
 			
-			peer_manager.addPeer( peer_ip, peer_port, false );
+			peer_manager.addPeer( peer_ip, peer_tcp_port, peer_udp_port, false );
 		}
 	}
 	

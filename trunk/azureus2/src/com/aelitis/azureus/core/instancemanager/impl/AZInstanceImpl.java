@@ -46,9 +46,9 @@ AZInstanceImpl
 		
 		map.put( "eip", getExternalAddress().getHostAddress().getBytes());
 		
-		map.put( "tp", new Long( getTrackerClientPort()));
+		map.put( "tp", new Long( getTCPListenPort()));
 		
-        map.put( "dp", new Long( getDHTPort()));
+        map.put( "dp", new Long( getUDPListenPort()));
 	}
 	
 	public String
@@ -62,6 +62,6 @@ AZInstanceImpl
 		}
 		
 		return( "id=" + id + ",int=" + getInternalAddress().getHostAddress() + ",ext=" + 
-				getExternalAddress().getHostAddress() +	",tcp=" + getTrackerClientPort() + ",udp=" + getDHTPort() );
+				getExternalAddress().getHostAddress() +	",tcp=" + getTCPListenPort() + ",udp=" + getUDPListenPort() );
 	}
 }

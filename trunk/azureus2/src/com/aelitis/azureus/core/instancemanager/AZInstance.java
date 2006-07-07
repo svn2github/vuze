@@ -37,10 +37,10 @@ AZInstance
 	getExternalAddress();
 	
 	public int
-	getTrackerClientPort();
+	getTCPListenPort();
 	
 	public int
-	getDHTPort();
+	getUDPListenPort();
 	
 	public String
 	getString();
