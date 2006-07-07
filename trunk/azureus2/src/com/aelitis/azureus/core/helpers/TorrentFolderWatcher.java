@@ -236,6 +236,11 @@ public class TorrentFolderWatcher {
 						// being used for the download
 
 					} else {
+						
+						byte[] hash = null;
+						try {
+							hash = torrent.getHash();
+						} catch (Exception e) { }
 
 						if (!save_torrents) {
 
@@ -243,12 +248,12 @@ public class TorrentFolderWatcher {
 
 							TorrentUtils.move(file, imported);
 
-							global_manager.addDownloadManager(imported.getAbsolutePath(),
+							global_manager.addDownloadManager(imported.getAbsolutePath(), hash,
 									data_save_path, start_state, true);
 
 						} else {
 
-							global_manager.addDownloadManager(file.getAbsolutePath(),
+							global_manager.addDownloadManager(file.getAbsolutePath(), hash,
 									data_save_path, start_state, true);
 
 							// add torrent for deletion, since there will be a 

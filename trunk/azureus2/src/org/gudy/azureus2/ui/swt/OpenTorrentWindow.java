@@ -1775,7 +1775,13 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 						? DownloadManager.STATE_STOPPED : DownloadManager.STATE_QUEUED;
 
 				final TorrentFileInfo[] files = info.getFiles();
-				DownloadManager dm = gm.addDownloadManager(info.sFileName,
+
+				byte[] hash = null;
+				try {
+					hash = info.torrent.getHash();
+				} catch (TOTorrentException e1) {	}
+
+				DownloadManager dm = gm.addDownloadManager(info.sFileName, hash,
 						info.sDestDir, iStartMode, true,
 						info.iStartID == STARTMODE_SEEDING,
 						new DownloadManagerInitialisationAdapter() {

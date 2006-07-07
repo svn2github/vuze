@@ -203,9 +203,15 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 			runSupport() 
             {
              	boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
+             	
+             	byte[] hash = null;
+             	try {
+             		hash = torrent.getHash();
+             	} catch (TOTorrentException e1) { }
 
                 ((NewTorrentWizard)wizard).getAzureusCore().getGlobalManager().addDownloadManager(
-                		torrent_file.toString(), 
+                		torrent_file.toString(),
+                		hash,
                 		save_dir.toString(), 
 						default_start_stopped 	? DownloadManager.STATE_STOPPED 
 												: DownloadManager.STATE_QUEUED,

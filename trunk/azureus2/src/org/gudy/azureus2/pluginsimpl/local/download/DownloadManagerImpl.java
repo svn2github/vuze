@@ -355,11 +355,15 @@ DownloadManagerImpl
 		    
 		    data_location.mkdirs();
 		}
+
+		byte[] hash = null;
+		try {
+			hash = torrent.getHash();
+		} catch (Exception e) { }
 		
-		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),
-		                                                       data_location.toString(), 
-		                                                       getInitialState(), 
-		                                                       true );
+		DownloadManager dm = global_manager.addDownloadManager(
+				torrent_file.toString(), hash, data_location.toString(),
+				getInitialState(), true);
 		
 		if ( dm == null ){
 			
@@ -380,10 +384,14 @@ DownloadManagerImpl
 		throws DownloadException
 	{
 
-		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),
-		                                                       data_location.toString(), 
-		                                                       getInitialState(), 
-		                                                       false );
+		byte[] hash = null;
+		try {
+			hash = torrent.getHash();
+		} catch (Exception e) { }
+
+		DownloadManager dm = global_manager.addDownloadManager(
+				torrent_file.toString(), hash, data_location.toString(),
+				getInitialState(), false);
 		
 		if ( dm == null ){
 			

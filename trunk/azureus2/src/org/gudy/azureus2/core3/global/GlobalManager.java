@@ -59,8 +59,8 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 *          May return an existing DownloadManager if torrent was already
 	 *          in GlobalManager. 
 	 */
-	public DownloadManager addDownloadManager(String fileName, String savePath,
-			int initialState, boolean persistent);
+	public DownloadManager addDownloadManager(String fileName, byte[]	optionalHash,
+			String savePath, int initialState, boolean persistent);
 
 	/**
 	 * Create and add a Download Manager to the global list
@@ -76,8 +76,10 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 *          May return an existing DownloadManager if torrent was already
 	 *          in GlobalManager. 
 	 */
-	public DownloadManager addDownloadManager(String fileName, String savePath,
-			int initialState, boolean persistent, boolean for_seeding, DownloadManagerInitialisationAdapter adapter );
+	public DownloadManager addDownloadManager(String fileName,
+			byte[] optionalHash, String savePath,
+			int initialState, boolean persistent, boolean for_seeding, 
+			DownloadManagerInitialisationAdapter adapter );
 
 	/**
 	 * Removes a DownloadManager from the global list, providing it can be

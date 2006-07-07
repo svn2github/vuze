@@ -26,40 +26,34 @@ package org.gudy.azureus2.core3.global.impl;
  *
  */
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.NetworkInterface;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Comparator;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 
-import com.aelitis.azureus.core.AzureusCoreListener;
-
-import org.gudy.azureus2.core3.global.*;
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.download.impl.DownloadManagerController;
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryManager;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.*;
-import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.category.CategoryManager;
-import org.gudy.azureus2.core3.category.Category;
-import org.gudy.azureus2.plugins.network.ConnectionManager;
 
+import com.aelitis.azureus.core.AzureusCoreListener;
 import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+
+import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 
 /**
@@ -186,7 +180,7 @@ public class GlobalManagerImpl
    /** Whether loading of existing torrents is done */
    boolean loadingComplete = false;
    /** Monitor to block adding torrents while loading existing torrent list */
-   AEMonitor loadingMon = new AEMonitor("Loading Torrents");
+   AESemaphore loadingSem = new AESemaphore("Loading Torrents");
 
 	
 	
@@ -455,6 +449,7 @@ public class GlobalManagerImpl
 		if (listener != null)
 			listener.reportCurrentTask(MessageText.getString("splash.loadingTorrents"));
 
+		//System.out.println("load via " + Debug.getCompressedStackTrace());
 		if (async) {
 			AEThread thread = new AEThread("load torrents", true) {
 				public void runSupport() {
@@ -473,17 +468,20 @@ public class GlobalManagerImpl
   		String fileName, 
 		String savePath) 
   {
-  	return addDownloadManager(fileName, savePath, DownloadManager.STATE_WAITING, true);
+  	// TODO: add optionalHash?
+  	return addDownloadManager(fileName, null, savePath, DownloadManager.STATE_WAITING, true);
   }
    
 	public DownloadManager
 	addDownloadManager(
 	    String 		fileName,
+	    byte[]	optionalHash,
 	    String 		savePath,
 	    int         initialState,
 		boolean		persistent )
 	{
-	 	return( addDownloadManager(fileName, savePath, initialState, persistent, false, null ));
+	 	return addDownloadManager(fileName, optionalHash, savePath, initialState,
+				persistent, false, null);
 	}
 	
   /**
@@ -495,6 +493,7 @@ public class GlobalManagerImpl
   public DownloadManager 
   addDownloadManager(
   		String torrent_file_name, 
+  		byte[] optionalHash,
 		String savePath, 
 		int initialState, 
 		boolean persistent, 
@@ -504,111 +503,107 @@ public class GlobalManagerImpl
 		boolean needsFixup = false;
 		DownloadManager manager;
 
+		// wait for "load existing" to complete
+		loadingSem.reserve(60 * 1000);
+
+		DownloadManagerInitialisationAdapter adapter = getDMAdapter(_adapter);
+
+		/* to recover the initial state for non-persistent downloads the simplest way is to do it here
+		 */
+
+		List file_priorities = null;
+
+		if (!persistent) {
+
+			Map save_download_state = (Map) saved_download_manager_state.get(new HashWrapper(
+					optionalHash));
+
+			if (save_download_state != null) {
+
+				if (save_download_state.containsKey("state")) {
+
+					int saved_state = ((Long) save_download_state.get("state")).intValue();
+
+					if (saved_state == DownloadManager.STATE_STOPPED) {
+
+						initialState = saved_state;
+					}
+				}
+
+				file_priorities = (List) save_download_state.get("file_priorities");
+
+				// non persistent downloads come in at random times
+				// If it has a position, it's probably invalid because the
+				// list has been fixed up to remove gaps.  Set a flag to
+				// do another fixup after adding
+				Long lPosition = (Long) save_download_state.get("position");
+				if (lPosition != null) {
+					if (lPosition.longValue() != -1) {
+						needsFixup = true;
+					}
+				}
+			}
+		}
+
+		File torrentDir = null;
+		File fDest = null;
+
 		try {
-			loadingMon.enter();
+			File f = new File(torrent_file_name);
 
-			DownloadManagerInitialisationAdapter adapter = getDMAdapter(_adapter);
-
-			/* to recover the initial state for non-persistent downloads the simplest way is to do it here
-			 */
-
-			byte[] torrent_hash = null;
-
-			List file_priorities = null;
-
-			if (!persistent) {
-
-				Map save_download_state = (Map) saved_download_manager_state.get(torrent_file_name);
-
-				if (save_download_state != null) {
-
-					torrent_hash = (byte[]) save_download_state.get("torrent_hash");
-
-					if (save_download_state.containsKey("state")) {
-
-						int saved_state = ((Long) save_download_state.get("state")).intValue();
-
-						if (saved_state == DownloadManager.STATE_STOPPED) {
-
-							initialState = saved_state;
-						}
-					}
-
-					file_priorities = (List) save_download_state.get("file_priorities");
-
-					// non persistent downloads come in at random times
-					// If it has a position, it's probably invalid because the
-					// list has been fixed up to remove gaps.  Set a flag to
-					// do another fixup after adding
-					Long lPosition = (Long) save_download_state.get("position");
-					if (lPosition != null) {
-						if (lPosition.longValue() != -1) {
-							needsFixup = true;
-						}
-					}
-				}
+			if (!f.exists()) {
+				throw (new IOException("Torrent file '" + torrent_file_name
+						+ "' doesn't exist"));
 			}
 
-			File torrentDir = null;
-			File fDest = null;
-
-			try {
-				File f = new File(torrent_file_name);
-
-				if (!f.exists()) {
-					throw (new IOException("Torrent file '" + torrent_file_name
-							+ "' doesn't exist"));
-				}
-
-				if (!f.isFile()) {
-					throw (new IOException("Torrent '" + torrent_file_name
-							+ "' is not a file"));
-				}
-
-				fDest = TorrentUtils.copyTorrentFileToSaveDir(f, persistent);
-
-				String fName = fDest.getCanonicalPath();
-
-				// now do the creation!
-
-				DownloadManager new_manager = DownloadManagerFactory.create(this,
-						torrent_hash, fName, savePath, initialState, persistent,
-						for_seeding, file_priorities, adapter);
-
-				manager = addDownloadManager(new_manager, true, true);
-
-				// if a different manager is returned then an existing manager for 
-				// this torrent exists and the new one isn't needed (yuck)
-
-				if (manager == null || manager != new_manager) {
-					fDest.delete();
-					File backupFile = new File(fName + ".bak");
-					if (backupFile.exists())
-						backupFile.delete();
-				}
-			} catch (IOException e) {
-				System.out.println("DownloadManager::addDownloadManager: fails - td = "
-						+ torrentDir + ", fd = " + fDest);
-				Debug.printStackTrace(e);
-				manager = DownloadManagerFactory.create(this,
-						torrent_hash, torrent_file_name, savePath, initialState,
-						persistent, for_seeding, file_priorities, adapter);
-				manager = addDownloadManager(manager, true, true);
-			} catch (Exception e) {
-				// get here on duplicate files, no need to treat as error
-				manager = DownloadManagerFactory.create(this,
-						torrent_hash, torrent_file_name, savePath, initialState,
-						persistent, for_seeding, file_priorities, adapter);
-				manager = addDownloadManager(manager, true, true);
+			if (!f.isFile()) {
+				throw (new IOException("Torrent '" + torrent_file_name
+						+ "' is not a file"));
 			}
-		} finally {
-			loadingMon.exit();
+
+			fDest = TorrentUtils.copyTorrentFileToSaveDir(f, persistent);
+
+			String fName = fDest.getCanonicalPath();
+
+			// now do the creation!
+
+			DownloadManager new_manager = DownloadManagerFactory.create(this,
+					optionalHash, fName, savePath, initialState, persistent, for_seeding,
+					file_priorities, adapter);
+
+			manager = addDownloadManager(new_manager, true, true);
+
+			// if a different manager is returned then an existing manager for 
+			// this torrent exists and the new one isn't needed (yuck)
+
+			if (manager == null || manager != new_manager) {
+				fDest.delete();
+				File backupFile = new File(fName + ".bak");
+				if (backupFile.exists())
+					backupFile.delete();
+			}
+		} catch (IOException e) {
+			System.out.println("DownloadManager::addDownloadManager: fails - td = "
+					+ torrentDir + ", fd = " + fDest);
+			Debug.printStackTrace(e);
+			manager = DownloadManagerFactory.create(this, optionalHash,
+					torrent_file_name, savePath, initialState, persistent, for_seeding,
+					file_priorities, adapter);
+			manager = addDownloadManager(manager, true, true);
+		} catch (Exception e) {
+			// get here on duplicate files, no need to treat as error
+			manager = DownloadManagerFactory.create(this, optionalHash,
+					torrent_file_name, savePath, initialState, persistent, for_seeding,
+					file_priorities, adapter);
+			manager = addDownloadManager(manager, true, true);
 		}
-		
-		if (needsFixup) {
-			fixUpDownloadManagerPositions();
+
+		if (needsFixup && manager != null) {
+			if (manager.getPosition() <= downloadManagerCount(manager.isDownloadComplete(false))) {
+				fixUpDownloadManagerPositions();
+			}
 		}
-		
+
 		return manager;
 	}
 
@@ -638,9 +633,12 @@ public class GlobalManagerImpl
                 
         DownloadManagerStats dm_stats = download_manager.getStats();
 
-        String	torrent_file_name = download_manager.getTorrentFileName();
-        
-        Map	save_download_state	= (Map)saved_download_manager_state.get(torrent_file_name);
+        HashWrapper hashwrapper = null;
+				try {
+					hashwrapper = download_manager.getTorrent().getHashWrapper();
+				} catch (Exception e1) { }
+				
+        Map	save_download_state	= (Map)saved_download_manager_state.get(hashwrapper);
         
       	long saved_data_bytes_downloaded	= 0;
       	long saved_data_bytes_uploaded		= 0;
@@ -650,10 +648,9 @@ public class GlobalManagerImpl
       	long saved_SecondsOnlySeeding 		= 0;
       	
         if ( save_download_state != null ){
-        	
         		// once the state's been used we remove it
         	
-        	saved_download_manager_state.remove( torrent_file_name );
+        	saved_download_manager_state.remove( hashwrapper );
         	
 	        int nbUploads = ((Long) save_download_state.get("uploads")).intValue();
 	        int maxDL = save_download_state.get("maxdl")==null?0:((Long) save_download_state.get("maxdl")).intValue();
@@ -1335,8 +1332,6 @@ public class GlobalManagerImpl
   	int triggerOnCount = 2;
     ArrayList downloadsAdded = new ArrayList();
   	try{
-  		loadingMon.enter();
-  		
        Map map = FileUtil.readResilientConfigFile("downloads.config");
       
       boolean debug = Boolean.getBoolean("debug");
@@ -1365,6 +1360,7 @@ public class GlobalManagerImpl
           Long	lPersistent = (Long)mDownload.get( "persistent" );
           
           boolean	persistent = lPersistent==null || lPersistent.longValue()==1;
+          
           
           String fileName = new String((byte[]) mDownload.get("torrent"), Constants.DEFAULT_ENCODING);
           
@@ -1439,7 +1435,7 @@ public class GlobalManagerImpl
 
 		  boolean	has_ever_been_started = seconds_downloading != null && seconds_downloading.longValue() > 0;
 		  
-          saved_download_manager_state.put( fileName, mDownload );
+      saved_download_manager_state.put( new HashWrapper(torrent_hash), mDownload );
           
           	// for non-persistent downloads the state will be picked up if the download is re-added
           	// it won't get saved unless it is picked up, hence dead data is dropped as required
@@ -1452,7 +1448,7 @@ public class GlobalManagerImpl
           		DownloadManagerFactory.create(
           				this, torrent_hash, fileName, torrent_save_dir, torrent_save_file, 
           				state, true, true, has_ever_been_started, file_priorities );
-          	
+
             if (addDownloadManager(dm, false, false) == dm) {
             	downloadsAdded.add(dm);
 
@@ -1516,10 +1512,8 @@ public class GlobalManagerImpl
 			loadingComplete = true;
 			triggerAddListener(downloadsAdded);
 
-			loadingMon.exit();
+			loadingSem.releaseForever();
 		}
-  	
-
   }
   
   private void triggerAddListener(List downloadsToAdd) {
