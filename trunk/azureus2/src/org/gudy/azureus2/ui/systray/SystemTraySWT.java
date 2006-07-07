@@ -28,7 +28,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -103,7 +102,7 @@ public class SystemTraySWT {
     
     itemShow.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
-        show();
+    	  showMainWindow();
       }
     });
     
@@ -169,7 +168,7 @@ public class SystemTraySWT {
     
     trayItem.addListener(SWT.DefaultSelection,new Listener() {
       public void handleEvent(Event arg0) {
-        show();
+    	  showMainWindow();
       }
     });
     
@@ -321,9 +320,21 @@ public class SystemTraySWT {
     trayItem.setVisible(true);    
   }
   
+  private void showMainWindow() {
+	    if (mainWindow.isVisible()) {
+	        hide();
+	    } else {
+	        show();
+	    }
+	}
+
+	private void hide() {
+	    mainWindow.setVisible(false);
+	}
+
   private void show() {
     if (!COConfigurationManager.getBooleanParameter("Password enabled",false))          
-      SystemTraySWT.this.mainWindow.setVisible(true);
+      mainWindow.setVisible(true);
     else
       PasswordWindow.showPasswordWindow(MainWindow.getWindow().getDisplay());
   }
