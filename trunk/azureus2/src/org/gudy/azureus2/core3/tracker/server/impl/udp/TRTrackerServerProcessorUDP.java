@@ -514,12 +514,14 @@ TRTrackerServerProcessorUDP
 				server, "", root_out, peer_out, 
 				request_type,
 				new byte[][]{ hash_bytes },
-				peer_id, false,	false, key, // currently no "no_peer_id" / "compact" in the packet and anyway they aren't returned / key
+				peer_id, false, TRTrackerServerTorrentImpl.COMPACT_MODE_NONE, key, // currently no "no_peer_id" / "compact" in the packet and anyway they aren't returned / key
 				event,
 				port,
+				0,
 				client_ip_address, client_ip_address,
 				downloaded, uploaded, left,
-				num_want );
+				num_want,
+				TRTrackerServerPeer.CRYPTO_NONE );
 		
 		Map	root = root_out[0];
 		

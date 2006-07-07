@@ -607,7 +607,7 @@ PEPeerControlImpl
 			
 			if( peer_database != null ) {				
 				final byte type = peer.getProtocol() == DownloadAnnounceResultPeer.PROTOCOL_CRYPT ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
-				final PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), type, 0 );
+				final PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), type, peer.getUDPPort());
 				peer_database.addDiscoveredPeer( item );
 			}
 		}
@@ -1742,7 +1742,7 @@ PEPeerControlImpl
 		
 				// candidate for a fallback UDP connection attempt
 			
-			System.out.println( "UDP candidate: " + peer.getIp() + ":" + peer.getUDPListenPort());
+			// System.out.println( "UDP candidate: " + peer.getIp() + ":" + peer.getUDPListenPort());
 		}
 		
 		

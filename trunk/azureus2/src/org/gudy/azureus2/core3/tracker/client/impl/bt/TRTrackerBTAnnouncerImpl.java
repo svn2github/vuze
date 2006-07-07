@@ -398,11 +398,8 @@ TRTrackerBTAnnouncerImpl
  
  			port += "&port=" + tcp_port_num;
  		}
-
- 		if ( udp_port_num != 0 ){
- 			
- 			port += "&azudp=" + udp_port_num;
- 		}
+			
+		port += "&azudp=" + udp_port_num;
  		
   		  	//  BitComet extension for no incoming connections
   		
@@ -2214,6 +2211,7 @@ TRTrackerBTAnnouncerImpl
 			             tracker_id = new String( trackerid );
 			           }
 			           
+				    byte[]	crypto_flags = (byte[])metaData.get( "crypto_flags" );
            						
 						//build the list of peers
 					List valid_meta_peers = new ArrayList();
@@ -2227,10 +2225,19 @@ TRTrackerBTAnnouncerImpl
 				    	
 						List meta_peers = (List)meta_peers_peek;
 						 					 
-						
 							//for every peer
+						
 						int peers_length = meta_peers.size();
 							
+						if ( crypto_flags != null && peers_length != crypto_flags.length ){
+							
+							crypto_flags = null;
+							
+                           	if (Logger.isEnabled())
+                        		Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+                        				"Invalid crypto_flags returned: length mismatch" ));
+						}
+						
 						for (int i = 0; i < peers_length; i++) {
 							 	
 							Map peer = (Map) meta_peers.get(i);
@@ -2282,7 +2289,17 @@ TRTrackerBTAnnouncerImpl
 									peer_peer_id = (byte[])s_peerid ; 
 								}
 								
-								short 	protocol 	= DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
+								short 	protocol;
+								
+								if ( crypto_flags == null ){
+									
+									protocol 	= DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
+									
+								}else{
+									
+									protocol = crypto_flags[i]==0?DownloadAnnounceResultPeer.PROTOCOL_NORMAL:DownloadAnnounceResultPeer.PROTOCOL_CRYPT;
+								}
+								
 								int		udp_port	= 0;
 								
 								if (Logger.isEnabled())
@@ -2306,12 +2323,25 @@ TRTrackerBTAnnouncerImpl
 				    	
 				    
 				    	byte[]	meta_peers = (byte[])meta_peers_peek;
-				    	
+				    					    	
 				    	boolean	az_compact = metaData.get( "azcompact" ) != null;
 				    	
 				    	int	entry_size = az_compact?9:6;
-				    		
+				    	
+				    	if ( crypto_flags != null && meta_peers.length/entry_size != crypto_flags.length ){
+							
+							crypto_flags = null;
+							
+                           	if (Logger.isEnabled())
+                        		Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+                        				"Invalid crypto_flags returned: length mismatch" ));
+						}
+
+				    	int	peer_number = 0;
+				    	
 				    	for (int i=0;i<meta_peers.length;i+=entry_size){
+				    		
+				    		peer_number++;
 				    		
 				    		int	ip1 = 0xFF & meta_peers[i];
 				    		int	ip2 = 0xFF & meta_peers[i+1];
@@ -2320,18 +2350,18 @@ TRTrackerBTAnnouncerImpl
 				    		int	po1 = 0xFF & meta_peers[i+4];
 				    		int	po2 = 0xFF & meta_peers[i+5];
 				    		
-				    		String	ip 		= "" + ip1 + "." + ip2 + "." + ip3 + "." + ip4;
-				    		int		peer_port 	= po1*256+po2;
+				    		String	ip 			= "" + ip1 + "." + ip2 + "." + ip3 + "." + ip4;
+				    		int		tcp_port 	= po1*256+po2;
 				    		
-				    		if (peer_port < 0 || peer_port > 65535) {
+				    		if (tcp_port < 0 || tcp_port > 65535) {
 				    			if (Logger.isEnabled())
 				    				Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
 				    						"Invalid compact peer port given: " + ip + ": "
-				    						+ peer_port));
+				    						+ tcp_port));
 				    			continue;
 				    		}
                 
-				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, peer_port );
+				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, tcp_port );
 							
 				    		short 	protocol;
 				    		int		udp_port;
@@ -2349,29 +2379,37 @@ TRTrackerBTAnnouncerImpl
 					    		
 				    		}else{
 				    			
-				    			protocol 	= DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
 				    			
+								if ( crypto_flags == null ){
+									
+					    			protocol 	= DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
+
+								}else{
+									
+									protocol = crypto_flags[peer_number-1]==0?DownloadAnnounceResultPeer.PROTOCOL_NORMAL:DownloadAnnounceResultPeer.PROTOCOL_CRYPT;
+								}
+								
 				    			udp_port	= 0;
 				    		}
 				    		
 				    		if (Logger.isEnabled())
 									Logger.log(new LogEvent(torrent, LOGID, "COMPACT PEER: ip="
-											+ ip + ",port=" + peer_port + ",prot=" + protocol ));
+											+ ip + ",tcp_port=" + tcp_port + ",udp_port=" + udp_port + ",prot=" + protocol ));
 
 				    		valid_meta_peers.add(
 				    			new TRTrackerAnnouncerResponsePeerImpl( 
 				    					PEPeerSource.PS_BT_TRACKER, 
 				    					peer_peer_id, 
 				    					ip, 
-				    					peer_port,
+				    					tcp_port,
 				    					udp_port,
-				    					protocol ));
-                			
+				    					protocol ));    			
 				    	}
 				    }else{
 						
 						throw( new IOException( "peers missing from response" ));
 				    }
+				    
 				    
 					TRTrackerAnnouncerResponsePeer[] peers=new TRTrackerAnnouncerResponsePeer[valid_meta_peers.size()];
 					

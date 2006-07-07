@@ -35,6 +35,11 @@ TRTrackerServerPeer
 	public static final byte	NAT_CHECK_FAILED				= 4;
 	public static final byte	NAT_CHECK_FAILED_AND_REPORTED	= 5;
 	
+	public static final byte	CRYPTO_NONE				= 0;
+	public static final byte	CRYPTO_SUPPORTED		= 1;
+	public static final byte	CRYPTO_REQUIRED			= 2;
+	
+	
 	public long
 	getUploaded();
 	
@@ -51,7 +56,7 @@ TRTrackerServerPeer
 	getIPRaw();
 	
 	public int
-	getPort();
+	getTCPPort();
 	
 	public byte[]
 	getPeerID();

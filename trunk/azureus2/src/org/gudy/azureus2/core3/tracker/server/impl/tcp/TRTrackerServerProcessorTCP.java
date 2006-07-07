@@ -259,8 +259,11 @@ TRTrackerServerProcessorTCP
 				long		left			= 0;
 				int			num_want		= -1;
 				boolean		no_peer_id		= false;
-				boolean		compact			= false;
+				byte		compact_mode	= TRTrackerServerTorrentImpl.COMPACT_MODE_NONE;
 				String		key				= null;
+				byte		crypto_level 	= TRTrackerServerPeer.CRYPTO_NONE;
+				int			crypto_port		= 0;
+				int			udp_port		= 0;
 				
 				String		real_ip_address		= client_address.getAddress().getHostAddress();
 				String		client_ip_address	= real_ip_address;
@@ -326,7 +329,10 @@ TRTrackerServerProcessorTCP
 						
 						if ( server.isCompactEnabled()){
 							
-							compact = rhs.equals("1");
+							if ( rhs.equals("1") && compact_mode == TRTrackerServerTorrentImpl.COMPACT_MODE_NONE ){
+								
+								compact_mode = TRTrackerServerTorrentImpl.COMPACT_MODE_NORMAL;
+							}
 						}
 					}else if ( lhs.equals( "key" )){
 						
@@ -377,11 +383,40 @@ TRTrackerServerProcessorTCP
 					}else if ( lhs.equals( "numwant" )){
 						
 						num_want = Integer.parseInt( rhs );
+						
+					}else if ( lhs.equals( "azudp" )){
+						
+						udp_port 	= Integer.parseInt( rhs );
+						
+						compact_mode = TRTrackerServerTorrentImpl.COMPACT_MODE_AZ;
+						
+					}else if ( lhs.equals( "supportcrypto" )){
+						
+						if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE ){
+						
+							crypto_level	= TRTrackerServerPeer.CRYPTO_SUPPORTED;
+						}
+						
+					}else if ( lhs.equals( "requirecrypto" )){
+												
+						crypto_level	= TRTrackerServerPeer.CRYPTO_REQUIRED;
+					
+					}else if ( lhs.equals( "cryptoport" )){
+
+						crypto_port = Integer.parseInt( rhs );
 					}
 						
 					if ( p1 == -1 ){
 							
 						break;
+					}
+				}
+				
+				if ( crypto_level == TRTrackerServerPeer.CRYPTO_REQUIRED ){
+					
+					if ( crypto_port != 0 ){
+						
+						port = crypto_port;
 					}
 				}
 				
@@ -407,13 +442,14 @@ TRTrackerServerProcessorTCP
 							root_out, peer_out,
 							request_type,
 							hashes,
-							peer_id, no_peer_id, compact, key, 
+							peer_id, no_peer_id, compact_mode, key, 
 							event,
-							port,
+							port, udp_port,
 							real_ip_address,
 							client_ip_address,
 							downloaded, uploaded, left,
-							num_want );
+							num_want,
+							crypto_level );
 				
 				root	= root_out[0];
 				

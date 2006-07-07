@@ -83,7 +83,7 @@ TRHostPeerHostImpl
 	public int
 	getPort()
 	{
-		return( peer.getPort());
+		return( peer.getTCPPort());
 	}
 	
 	public byte[]

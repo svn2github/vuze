@@ -28,7 +28,6 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 
 import java.util.*;
 import java.io.*;
-import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 
@@ -50,6 +49,10 @@ TRTrackerServerTorrentImpl
 	public static final int MAX_DOWNLOAD_BYTES_PER_SEC	= MAX_UPLOAD_BYTES_PER_SEC;
 	
 	public static final boolean	USE_LIGHTWEIGHT_SEEDS	= true;
+
+	public static final byte	COMPACT_MODE_NONE		= 0;
+	public static final byte	COMPACT_MODE_NORMAL		= 1;
+	public static final byte	COMPACT_MODE_AZ			= 2;
 	
 	
 	private HashWrapper			hash;
@@ -123,6 +126,8 @@ TRTrackerServerTorrentImpl
 		String		event,
 		HashWrapper	peer_id,
 		int			port,
+		int			udp_port,
+		byte		crypto_level,
 		String		ip_address,
 		boolean		ip_override,
 		boolean		loopback,
@@ -267,6 +272,8 @@ TRTrackerServerTorrentImpl
 									ip_address_bytes,
 									ip_override,
 									port,
+									udp_port,
+									crypto_level,
 									last_contact_time,
 									already_completed,
 									last_NAT_status );
@@ -313,9 +320,9 @@ TRTrackerServerTorrentImpl
 						// will see here is address/port changes as each peer announces
 	
 					byte[]	old_ip 		= peer.getIPAsRead();
-					int		old_port	= peer.getPort();
+					int		old_port	= peer.getTCPPort();
 					
-					if ( peer.checkForIPOrPortChange( ip_address_bytes, port )){
+					if ( peer.checkForIPOrPortChange( ip_address_bytes, port, udp_port, crypto_level )){
 						
 							// same peer id so same port
 						
@@ -606,7 +613,7 @@ TRTrackerServerTorrentImpl
 			checkForPeerListCompaction( false );
 			
 			try{
-				Object o = peer_reuse_map.remove( new String( peer.getIPAsRead(), Constants.BYTE_ENCODING ) + ":" + peer.getPort());
+				Object o = peer_reuse_map.remove( new String( peer.getIPAsRead(), Constants.BYTE_ENCODING ) + ":" + peer.getTCPPort());
 			
 				if ( o == null ){
 					
@@ -638,7 +645,8 @@ TRTrackerServerTorrentImpl
 		long						interval,
 		long						min_interval,
 		boolean						no_peer_id,
-		boolean						compact )
+		byte						compact_mode,
+		byte						crypto_level )
 	{
 		try{
 			this_mon.enter();
@@ -657,7 +665,7 @@ TRTrackerServerTorrentImpl
 			
 				// override if client has explicitly not requested them
 			
-			if ( no_peer_id || compact ){
+			if ( no_peer_id || compact_mode != COMPACT_MODE_NONE ){
 				
 				send_peer_ids	= false;
 			}
@@ -685,7 +693,8 @@ TRTrackerServerTorrentImpl
 					preprocess_map.size() == 0 &&	// don't cache if we've got pre-process stuff to add
 					cache_millis > 0 &&
 					num_want >= MIN_CACHE_ENTRY_SIZE &&
-					total_peers >= TRTrackerServerImpl.getAnnounceCachePeerThreshold()){
+					total_peers >= TRTrackerServerImpl.getAnnounceCachePeerThreshold() &&
+					crypto_level != TRTrackerServerPeer.CRYPTO_REQUIRED ){	// no cache for crypto required peers
 							
 					// note that we've got to select a cache entry that is somewhat 
 					// relevant to the num_want param (but NOT greater than it)
@@ -724,7 +733,7 @@ TRTrackerServerTorrentImpl
 								// make sure this is compatible
 							
 							if ( 	entry.getSendPeerIds() == send_peer_ids &&
-									entry.getCompact() == compact ){
+									entry.getCompactMode() == compact_mode ){
 							
 								return( entry.getData());
 							}
@@ -761,9 +770,13 @@ TRTrackerServerTorrentImpl
 							
 							removePeer( peer, i, TRTrackerServerTorrentPeerListener.ET_TIMEOUT );									
 							
-						}else if ( peer.getPort() == 0 ){
+						}else if ( peer.getTCPPort() == 0 ){
 							
-								// a port of 0 means that the peer definitely can't accept incoming connections
+							// a port of 0 means that the peer definitely can't accept incoming connections
+
+						}else if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE && peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED ){
+							
+							// don't return "crypto required" peers to those that can't correctly connect to them
 							
 						}else if ( include_seeds || !peer.isSeed()){
 											
@@ -774,7 +787,7 @@ TRTrackerServerTorrentImpl
 								rep_peer.put( "peer id", peer.getPeerId().getHash());
 							}
 							
-							if ( compact ){
+							if ( compact_mode != COMPACT_MODE_NONE ){
 								
 								byte[]	peer_bytes = peer.getIPBytes();
 								
@@ -784,11 +797,22 @@ TRTrackerServerTorrentImpl
 								}
 								
 								rep_peer.put( "ip", peer_bytes );
+								
+								if ( compact_mode == COMPACT_MODE_AZ ){
+									
+									rep_peer.put( "azudp", new Long( peer.getUDPPort()));
+								}
+								
 							}else{
 								rep_peer.put( "ip", peer.getIPAsRead() );
 							}
 							
-							rep_peer.put( "port", new Long( peer.getPort()));
+							rep_peer.put( "port", new Long( peer.getTCPPort()));
+							
+							if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
+								
+								rep_peer.put( "crypto_flag", new Long( peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED?1:0));
+							}
 							
 							rep_peers.add( rep_peer );
 						}
@@ -861,10 +885,14 @@ TRTrackerServerTorrentImpl
 										
 										peer_removed	= true;
 										
-									}else if ( peer.getPort() == 0 ){
+									}else if ( peer.getTCPPort() == 0 ){
 										
 											// a port of 0 means that the peer definitely can't accept incoming connections
 								
+									}else if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE && peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED ){
+										
+										// don't return "crypto required" peers to those that can't correctly connect to them
+
 									}else if ( include_seeds || !peer.isSeed()){
 								
 										boolean	bad_nat = peer.isNATStatusBad();
@@ -890,7 +918,7 @@ TRTrackerServerTorrentImpl
 													rep_peer.put( "peer id", peer.getPeerId().getHash());
 												}
 												
-												if ( compact ){
+												if ( compact_mode != COMPACT_MODE_NONE ){
 													
 													byte[]	peer_bytes = peer.getIPBytes();
 													
@@ -901,13 +929,22 @@ TRTrackerServerTorrentImpl
 													
 													rep_peer.put( "ip", peer_bytes );
 													
+													if ( compact_mode == COMPACT_MODE_AZ ){
+														
+														rep_peer.put( "azudp", new Long( peer.getUDPPort()));
+													}
 												}else{
 													
 													rep_peer.put( "ip", peer.getIPAsRead() );
 												}
 												
-												rep_peer.put( "port", new Long( peer.getPort()));	
+												rep_peer.put( "port", new Long( peer.getTCPPort()));	
 												
+												if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
+													
+													rep_peer.put( "crypto_flag", new Long( peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED?1:0));
+												}
+
 												rep_peers.add( rep_peer );
 											}
 										}
@@ -945,10 +982,14 @@ TRTrackerServerTorrentImpl
 								
 								removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TIMEOUT );
 								
-							}else if ( peer.getPort() == 0 ){
+							}else if ( peer.getTCPPort() == 0 ){
 								
 									// a port of 0 means that the peer definitely can't accept incoming connections
 								
+							}else if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE && peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED ){
+								
+								// don't return "crypto required" peers to those that can't correctly connect to them
+
 							}else if ( include_seeds || !peer.isSeed()){
 								
 								added++;
@@ -961,7 +1002,7 @@ TRTrackerServerTorrentImpl
 									rep_peer.put( "peer id", peer.getPeerId().getHash());
 								}
 								
-								if ( compact ){
+								if ( compact_mode != COMPACT_MODE_NONE ){
 									
 									byte[]	peer_bytes = peer.getIPBytes();
 									
@@ -971,12 +1012,22 @@ TRTrackerServerTorrentImpl
 									}
 									
 									rep_peer.put( "ip", peer_bytes );
+									
+									if ( compact_mode == COMPACT_MODE_AZ ){
+										
+										rep_peer.put( "azudp", new Long( peer.getUDPPort()));
+									}
 								}else{
 									rep_peer.put( "ip", peer.getIPAsRead() );
 								}
 								
-								rep_peer.put( "port", new Long( peer.getPort()));
+								rep_peer.put( "port", new Long( peer.getTCPPort()));
 								
+								if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
+									
+									rep_peer.put( "crypto_flag", new Long( peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED?1:0));
+								}
+
 								rep_peers.add( rep_peer );
 							
 							}
@@ -994,31 +1045,97 @@ TRTrackerServerTorrentImpl
 			
 			int	num_peers_returned	= rep_peers.size();
 			
-			if ( compact ){
+			if ( compact_mode == COMPACT_MODE_AZ ){
+
+				byte[]	compact_peers = new byte[num_peers_returned*9];
 				
-				byte[]	compact_peers = new byte[rep_peers.size()*6];
-							
 				for ( int i=0;i<num_peers_returned;i++){
 					
 					Map	rep_peer = (Map)rep_peers.get(i);
 					
-					byte[] 	ip 		= (byte[])rep_peer.get( "ip" );
-					int		port	= ((Long)rep_peer.get( "port" )).intValue();
+					byte[] 	ip 				= (byte[])rep_peer.get( "ip" );
+					int		tcp_port		= ((Long)rep_peer.get( "port" )).intValue();
+					int		udp_port		= ((Long)rep_peer.get( "azudp" )).intValue();
+					Long	crypto_flag_l	= (Long)rep_peer.get( "crypto_flag" );
+					byte	crypto_flag		= crypto_flag_l==null?0:crypto_flag_l.byteValue();
 					
-					int	pos = i*6;
+					int	pos = i*9;
 					
 					System.arraycopy( ip, 0, compact_peers, pos, 4 );
 					
 					pos += 4;
 					
-					compact_peers[pos++] = (byte)(port>>8);
-					compact_peers[pos++] = (byte)(port&0xff);
+					compact_peers[pos++] = (byte)(tcp_port>>8);
+					compact_peers[pos++] = (byte)(tcp_port&0xff);
+					compact_peers[pos++] = (byte)(udp_port>>8);
+					compact_peers[pos++] = (byte)(udp_port&0xff);
+					compact_peers[pos++] = crypto_flag;
 				}
 									
 				root.put( "peers", compact_peers );
+				
+				root.put( "azcompact", new Long(1));
+				
 			}else{
 				
-				root.put( "peers", rep_peers );
+				byte[]	crypto_flags = null;
+				
+				if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
+					
+					crypto_flags = new byte[num_peers_returned];
+				}
+				
+				if ( compact_mode == COMPACT_MODE_NORMAL ){
+					
+					byte[]	compact_peers = new byte[num_peers_returned*6];
+								
+					for ( int i=0;i<num_peers_returned;i++){
+						
+						Map	rep_peer = (Map)rep_peers.get(i);
+						
+						byte[] 	ip 		= (byte[])rep_peer.get( "ip" );
+						int		port	= ((Long)rep_peer.get( "port" )).intValue();
+						
+						int	pos = i*6;
+						
+						System.arraycopy( ip, 0, compact_peers, pos, 4 );
+						
+						pos += 4;
+						
+						compact_peers[pos++] = (byte)(port>>8);
+						compact_peers[pos++] = (byte)(port&0xff);
+						
+						if ( crypto_flags != null ){
+							
+							Long	crypto_flag = (Long)rep_peer.remove( "crypto_flag" );
+							
+							crypto_flags[i] = crypto_flag.byteValue();
+						}
+					}
+										
+					root.put( "peers", compact_peers );
+					
+				}else{
+					
+					for ( int i=0;i<num_peers_returned;i++){
+						
+						Map	rep_peer = (Map)rep_peers.get(i);
+											
+						if ( crypto_flags != null ){
+							
+							Long	crypto_flag = (Long)rep_peer.remove( "crypto_flag" );
+							
+							crypto_flags[i] = crypto_flag.byteValue();
+						}
+					}
+					
+					root.put( "peers", rep_peers );
+				}
+				
+				if ( crypto_flags != null ){
+					
+					root.put( "crypto_flags", crypto_flags );
+				}
 			}
 			
 			root.put( "interval", new Long( interval ));
@@ -1031,7 +1148,7 @@ TRTrackerServerTorrentImpl
 				
 				root.put( 
 						"warning message", 
-						("Unable to connect to your incoming data port (" + requesting_peer.getIP() + ":" + requesting_peer.getPort() +"). " +
+						("Unable to connect to your incoming data port (" + requesting_peer.getIP() + ":" + requesting_peer.getTCPPort() +"). " +
 						 "This will result in slow downloads. Please check your firewall/router settings").getBytes());
 			}
 			
@@ -1043,7 +1160,7 @@ TRTrackerServerTorrentImpl
 			
 			if ( add_to_cache ){
 					
-				announce_cache.put( new Integer((num_peers_returned+9)/10), new announceCacheEntry( root, send_peer_ids, compact ));
+				announce_cache.put( new Integer((num_peers_returned+9)/10), new announceCacheEntry( root, send_peer_ids, compact_mode ));
 			}
 			
 			return( root );
@@ -1452,18 +1569,18 @@ TRTrackerServerTorrentImpl
 	{
 		protected Map		data;
 		protected boolean	send_peer_ids;
-		protected boolean	compact;
+		protected byte		compact_mode;
 		protected long		time;
 		
 		protected
 		announceCacheEntry(
 			Map		_data,
 			boolean	_send_peer_ids,
-			boolean	_compact )
+			byte	_compact_mode )
 		{
 			data			= _data;
 			send_peer_ids	= _send_peer_ids;
-			compact			= _compact;
+			compact_mode	= _compact_mode;
 			time			= SystemTime.getCurrentTime();
 		}
 		
@@ -1473,10 +1590,10 @@ TRTrackerServerTorrentImpl
 			return( send_peer_ids );
 		}
 		
-		protected boolean
-		getCompact()
+		protected byte
+		getCompactMode()
 		{
-			return( compact );
+			return( compact_mode );
 		}
 		
 		protected long

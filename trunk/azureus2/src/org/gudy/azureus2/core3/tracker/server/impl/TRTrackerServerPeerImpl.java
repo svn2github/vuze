@@ -36,7 +36,9 @@ TRTrackerServerPeerImpl
 	
 	private byte[]		ip;
 	private boolean		ip_override;
-	private int			port;
+	private short		tcp_port;
+	private short		udp_port;
+	private byte		crypto_level;
 	private String		ip_str;
 	private byte[]		ip_bytes;
 	private byte		NAT_status	= NAT_CHECK_UNKNOWN;
@@ -56,7 +58,9 @@ TRTrackerServerPeerImpl
 		int			_key_hash_code,
 		byte[]		_ip,
 		boolean		_ip_override,
-		int			_port,
+		int			_tcp_port,
+		int			_udp_port,
+		byte		_crypto_level,
 		long		_last_contact_time,
 		boolean		_download_completed,
 		byte		_last_nat_status )
@@ -65,7 +69,9 @@ TRTrackerServerPeerImpl
 		key_hash_code		= _key_hash_code;
 		ip					= _ip;
 		ip_override			= _ip_override;
-		port				= _port;
+		tcp_port			= (short)_tcp_port;
+		udp_port			= (short)_udp_port;
+		crypto_level		= _crypto_level;
 		last_contact_time	= _last_contact_time;
 		download_completed	= _download_completed;
 		NAT_status			= _last_nat_status;	
@@ -76,13 +82,18 @@ TRTrackerServerPeerImpl
 	protected boolean
 	checkForIPOrPortChange(
 		byte[]		_ip,
-		int			_port )
+		int			_port,
+		int			_udp_port,
+		byte		_crypto_level )
 	{
+		udp_port		= (short)_udp_port;
+		crypto_level	= _crypto_level;
+		
 		boolean	res	= false;
 		
-		if ( _port != port ){
+		if ( _port != getTCPPort() ){
 			
-			port	= _port;
+			tcp_port	= (short)_port;
 			
 			res		= true;
 		}
@@ -148,7 +159,7 @@ TRTrackerServerPeerImpl
 			// a port of 0 is taken to mean that the client can't/won't receive incoming
 			// connections - tr
 
-		if ( port == 0 ){
+		if ( tcp_port == 0 ){
 			
 			NAT_status = NAT_CHECK_FAILED_AND_REPORTED;
 			
@@ -160,7 +171,7 @@ TRTrackerServerPeerImpl
 				
 				NAT_status	= NAT_CHECK_INITIATED;
 				
-				if ( !TRTrackerServerNATChecker.getSingleton().addNATCheckRequest( ip_str, port, this )){
+				if ( !TRTrackerServerNATChecker.getSingleton().addNATCheckRequest( ip_str, getTCPPort(), this )){
 					
 					NAT_status = NAT_CHECK_DISABLED;
 				}
@@ -257,9 +268,21 @@ TRTrackerServerPeerImpl
 	}
 	
 	public int
-	getPort()
+	getTCPPort()
 	{
-		return( port );
+		return( tcp_port&0xffff );
+	}
+	
+	protected int
+	getUDPPort()
+	{
+		return( udp_port&0xffff );
+	}
+	
+	protected byte
+	getCryptoLevel()
+	{
+		return( crypto_level );
 	}
 	
 	protected void
@@ -316,6 +339,6 @@ TRTrackerServerPeerImpl
 	protected String
 	getString()
 	{
-		return( new String(ip) + ":" + port + "(" + new String(peer_id.getHash()) + ")" );
+		return( new String(ip) + ":" + getTCPPort() + "(" + new String(peer_id.getHash()) + ")" );
 	}
 }

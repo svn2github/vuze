@@ -50,16 +50,18 @@ TRTrackerServerProcessor
 		byte[][]					hashes,
 		HashWrapper					peer_id,
 		boolean						no_peer_id,
-		boolean						compact,
+		byte						compact_mode,
 		String						key,
 		String						event,
 		int							port,
+		int							udp_port,
 		String						real_ip_address,
 		String						client_ip_address,
 		long						downloaded,
 		long						uploaded,
 		long						left,
-		int							num_want )
+		int							num_want,
+		byte						crypto_level )
 	
 		throws TRTrackerServerException
 	{
@@ -159,7 +161,7 @@ TRTrackerServerProcessor
 				TRTrackerServerPeerImpl peer = 
 					torrent.peerContact( 	
 						request,
-						event, peer_id, port, 
+						event, peer_id, port, udp_port, crypto_level, 
 						client_ip_address, ip_override, loopback, key,
 						uploaded, downloaded, left,
 						interval );
@@ -181,7 +183,7 @@ TRTrackerServerProcessor
 				
 				boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
 				
-				root_out[0] = torrent.exportAnnounceToMap( pre_map, peer, left > 0, stopped?0:num_want, interval, server.getMinAnnounceRetryInterval(), no_peer_id, compact );
+				root_out[0] = torrent.exportAnnounceToMap( pre_map, peer, left > 0, stopped?0:num_want, interval, server.getMinAnnounceRetryInterval(), no_peer_id, compact_mode, crypto_level );
 				
 				peer_out[0]	= peer;	
 				
@@ -410,7 +412,7 @@ TRTrackerServerProcessor
 		}
 		
 		public int
-		getPort()
+		getTCPPort()
 		{
 			return( port );
 		}

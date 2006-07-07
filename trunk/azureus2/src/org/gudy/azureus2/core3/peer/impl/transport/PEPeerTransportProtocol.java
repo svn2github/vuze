@@ -247,7 +247,7 @@ PEPeerTransportProtocol
       
       public final void connectFailure( Throwable failure_msg ) {  //should never happen
         Debug.out( "ERROR: incoming connect failure: ", failure_msg );
-        closeConnectionInternally( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true );
+        closeConnectionInternally( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage());
       }
       
       public final void exceptionThrown( Throwable error ) {
@@ -255,7 +255,7 @@ PEPeerTransportProtocol
           Debug.out( error );
         }
         
-        closeConnectionInternally( "connection exception: " + error.getMessage(), true );
+        closeConnectionInternally( "connection exception: " + error.getMessage());
       }
     });
   }
@@ -346,7 +346,7 @@ PEPeerTransportProtocol
       }
         
       public final void connectFailure( Throwable failure_msg ) {
-        closeConnectionInternally( "failed to establish outgoing connection: " + failure_msg.getMessage() );
+        closeConnectionInternally( "failed to establish outgoing connection: " + failure_msg.getMessage(), true );
       }
         
       public final void exceptionThrown( Throwable error ) {
@@ -354,7 +354,7 @@ PEPeerTransportProtocol
           Debug.out( error );
         }
         
-        closeConnectionInternally( "connection exception: " + error.getMessage() );
+        closeConnectionInternally( "connection exception: " + error.getMessage(), true );
       }
     });
       
