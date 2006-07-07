@@ -44,6 +44,8 @@ ProtocolEndpointTCP
 	{
 		ce		= _ce;
 		address	= _address;
+		
+		ce.addProtocol( this );
 	}
 	
 	public
@@ -52,6 +54,8 @@ ProtocolEndpointTCP
 	{
 		ce		= new ConnectionEndpoint(_address );
 		address	= _address;
+		
+		ce.addProtocol( this );
 	}
 	
 	public void
@@ -59,6 +63,8 @@ ProtocolEndpointTCP
 		ConnectionEndpoint		_ce )
 	{
 		ce	= _ce;
+		
+		ce.addProtocol( this );
 	}
 	
 	public int

@@ -43,6 +43,8 @@ ProtocolEndpointUDP
 	{
 		ce		= _ce;
 		address	= _address;
+		
+		ce.addProtocol( this );
 	}
 	
 	public
@@ -51,6 +53,8 @@ ProtocolEndpointUDP
 	{
 		ce		= new ConnectionEndpoint(_address );
 		address	= _address;
+		
+		ce.addProtocol( this );
 	}
 	
 	public void
@@ -58,6 +62,8 @@ ProtocolEndpointUDP
 		ConnectionEndpoint		_ce )
 	{
 		ce	= _ce;
+		
+		ce.addProtocol( this );
 	}
 	
 	public int

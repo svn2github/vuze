@@ -383,7 +383,7 @@ TRTrackerBTAnnouncerImpl
  		
    		if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ){
   			
-  			port += "&requirecrypto=1";
+  			port += "&reqcrypto=1";
   			
   		}else{
   			

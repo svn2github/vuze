@@ -25,8 +25,6 @@ package com.aelitis.azureus.core.networkmanager;
 import java.net.InetSocketAddress;
 
 import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
-import com.aelitis.azureus.core.networkmanager.impl.udp.ProtocolEndpointUDP;
 
 public class 
 ConnectionEndpoint 
@@ -62,14 +60,20 @@ ConnectionEndpoint
 	addProtocol(
 		ProtocolEndpoint	ep )
 	{
-		ep.setConnectionEndpoint( this );
-		
 		if ( protocols == null ){
 			
 			protocols = new ProtocolEndpoint[]{ ep };
 			
 		}else{
 		
+			for (int i=0;i<protocols.length;i++){
+				
+				if ( protocols[i] == ep ){
+					
+					return;
+				}
+			}
+			
 			ProtocolEndpoint[]	new_ep = new ProtocolEndpoint[ protocols.length + 1 ];
 			
 			System.arraycopy( protocols, 0, new_ep, 0, protocols.length );
@@ -78,6 +82,8 @@ ConnectionEndpoint
 			
 			protocols	= new_ep;
 		}
+		
+		ep.setConnectionEndpoint( this );
 	}
 	
 	
