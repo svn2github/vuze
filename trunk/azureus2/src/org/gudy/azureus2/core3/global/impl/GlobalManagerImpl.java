@@ -181,6 +181,13 @@ public class GlobalManagerImpl
 	
    private CopyOnWriteList	dm_adapters = new CopyOnWriteList();
 
+   /** delay loading of torrents */
+   DelayedEvent loadTorrentsDelay = null;
+   /** Whether loading of existing torrents is done */
+   boolean loadingComplete = false;
+   /** Monitor to block adding torrents while loading existing torrent list */
+   AEMonitor loadingMon = new AEMonitor("Loading Torrents");
+
 	
 	
    public class Checker extends AEThread {
@@ -285,7 +292,7 @@ public class GlobalManagerImpl
   }
 
   public 
-  GlobalManagerImpl(
+  GlobalManagerImpl(final
   		AzureusCoreListener listener)
   {
     //Debug.dumpThreadsLoop("Active threads");
@@ -301,11 +308,16 @@ public class GlobalManagerImpl
     	
     	Logger.log(new LogEvent(LOGID, "Stats unavailable", e ));
     }
-           
-    if (listener != null)
-      listener.reportCurrentTask(MessageText.getString("splash.initializeGM") + ": " +
-                            MessageText.getString("splash.loadingTorrents"));
-    loadDownloads(listener);
+
+    // Wait at least a few seconds before loading existing torrents.
+    // typically the UI will call loadExistingTorrents before this runs
+    // This is here in case the UI is stupid or forgets
+    loadTorrentsDelay = new DelayedEvent(10000, new AERunnable() {
+    	public void runSupport() {
+    		loadExistingTorrentsNow(listener, false); // already async
+    	}
+    });
+
     if (listener != null)
       listener.reportCurrentTask(MessageText.getString("splash.initializeGM"));
 
@@ -431,6 +443,30 @@ public class GlobalManagerImpl
     
     torrent_folder_watcher = new TorrentFolderWatcher( this );
   }
+  
+  public void loadExistingTorrentsNow(final AzureusCoreListener listener,
+			boolean async)
+	{
+		if (loadTorrentsDelay == null) {
+			return;
+		}
+		loadTorrentsDelay = null;
+
+		if (listener != null)
+			listener.reportCurrentTask(MessageText.getString("splash.loadingTorrents"));
+
+		if (async) {
+			AEThread thread = new AEThread("load torrents", true) {
+				public void runSupport() {
+					loadDownloads(listener);
+				}
+			};
+			thread.setPriority(3);
+			thread.start();
+		} else {
+			loadDownloads(listener);
+		}
+	}
 
   public DownloadManager 
   addDownloadManager(
@@ -465,93 +501,129 @@ public class GlobalManagerImpl
 		boolean for_seeding,
 		DownloadManagerInitialisationAdapter _adapter )
   {
-	DownloadManagerInitialisationAdapter	adapter = getDMAdapter( _adapter );
-	  
-  		/* to recover the initial state for non-persistent downloads the simplest way is to do it here
-  		 */
-  	
-  	byte[]	torrent_hash	= null;
-  	
-  	List	file_priorities = null;
-  	
-  	if (!persistent){
-  	
-        Map	save_download_state	= (Map)saved_download_manager_state.get(torrent_file_name);
-        
-        if ( save_download_state != null ){
-        	
-        	torrent_hash	= (byte[])save_download_state.get( "torrent_hash" );
-        	
-        	if ( save_download_state.containsKey( "state" )){
-        	
-	            int	saved_state = ((Long) save_download_state.get("state")).intValue();
-	            
-	            if ( saved_state == DownloadManager.STATE_STOPPED ){
-	            	
-	            	initialState	= saved_state;
-	            }
-        	}
-        	
-        	file_priorities	= (List)save_download_state.get( "file_priorities" );
-        }
-  	}
-  	
-	File torrentDir	= null;
-	File fDest		= null;
-	
-    try {
-      File f = new File(torrent_file_name);
-      
-      if ( !f.exists()){
-    	  throw( new IOException( "Torrent file '" + torrent_file_name + "' doesn't exist" ));
-      }
-      
-      if ( !f.isFile()){
-       	  throw( new IOException( "Torrent '" + torrent_file_name + "' is not a file" ));    	  
-      }
-      
-      fDest = TorrentUtils.copyTorrentFileToSaveDir(f, persistent);
-      
-      String fName = fDest.getCanonicalPath();
-    
-      	// now do the creation!
-      
-      DownloadManager new_manager = DownloadManagerFactory.create(this, torrent_hash, fName, savePath, initialState, persistent, for_seeding, file_priorities, adapter );
-      
-      DownloadManager manager = addDownloadManager(new_manager, true);
-      
-      	// if a different manager is returned then an existing manager for this torrent
-      	// exists and the new one isn't needed (yuck)
-      
-      if ( manager == null || manager != new_manager ) {
-        fDest.delete();
-        File backupFile = new File(fName + ".bak");
-        if(backupFile.exists())
-          backupFile.delete();
-      }
-      return( manager );
-    }
-    catch (IOException e) {
-      System.out.println( "DownloadManager::addDownloadManager: fails - td = " + torrentDir + ", fd = " + fDest );
-      Debug.printStackTrace( e );
-      DownloadManager manager = DownloadManagerFactory.create(this, torrent_hash, torrent_file_name, savePath, initialState, persistent, for_seeding, file_priorities, adapter );
-      return addDownloadManager(manager, true);
-    }
-    catch (Exception e) {
-    	// get here on duplicate files, no need to treat as error
-      DownloadManager manager = DownloadManagerFactory.create(this, torrent_hash, torrent_file_name, savePath, initialState, persistent, for_seeding, file_priorities, adapter );
-      return addDownloadManager(manager, true);
-    }
-  }
+		boolean needsFixup = false;
+		DownloadManager manager;
+
+		try {
+			loadingMon.enter();
+
+			DownloadManagerInitialisationAdapter adapter = getDMAdapter(_adapter);
+
+			/* to recover the initial state for non-persistent downloads the simplest way is to do it here
+			 */
+
+			byte[] torrent_hash = null;
+
+			List file_priorities = null;
+
+			if (!persistent) {
+
+				Map save_download_state = (Map) saved_download_manager_state.get(torrent_file_name);
+
+				if (save_download_state != null) {
+
+					torrent_hash = (byte[]) save_download_state.get("torrent_hash");
+
+					if (save_download_state.containsKey("state")) {
+
+						int saved_state = ((Long) save_download_state.get("state")).intValue();
+
+						if (saved_state == DownloadManager.STATE_STOPPED) {
+
+							initialState = saved_state;
+						}
+					}
+
+					file_priorities = (List) save_download_state.get("file_priorities");
+
+					// non persistent downloads come in at random times
+					// If it has a position, it's probably invalid because the
+					// list has been fixed up to remove gaps.  Set a flag to
+					// do another fixup after adding
+					Long lPosition = (Long) save_download_state.get("position");
+					if (lPosition != null) {
+						if (lPosition.longValue() != -1) {
+							needsFixup = true;
+						}
+					}
+				}
+			}
+
+			File torrentDir = null;
+			File fDest = null;
+
+			try {
+				File f = new File(torrent_file_name);
+
+				if (!f.exists()) {
+					throw (new IOException("Torrent file '" + torrent_file_name
+							+ "' doesn't exist"));
+				}
+
+				if (!f.isFile()) {
+					throw (new IOException("Torrent '" + torrent_file_name
+							+ "' is not a file"));
+				}
+
+				fDest = TorrentUtils.copyTorrentFileToSaveDir(f, persistent);
+
+				String fName = fDest.getCanonicalPath();
+
+				// now do the creation!
+
+				DownloadManager new_manager = DownloadManagerFactory.create(this,
+						torrent_hash, fName, savePath, initialState, persistent,
+						for_seeding, file_priorities, adapter);
+
+				manager = addDownloadManager(new_manager, true, true);
+
+				// if a different manager is returned then an existing manager for 
+				// this torrent exists and the new one isn't needed (yuck)
+
+				if (manager == null || manager != new_manager) {
+					fDest.delete();
+					File backupFile = new File(fName + ".bak");
+					if (backupFile.exists())
+						backupFile.delete();
+				}
+			} catch (IOException e) {
+				System.out.println("DownloadManager::addDownloadManager: fails - td = "
+						+ torrentDir + ", fd = " + fDest);
+				Debug.printStackTrace(e);
+				manager = DownloadManagerFactory.create(this,
+						torrent_hash, torrent_file_name, savePath, initialState,
+						persistent, for_seeding, file_priorities, adapter);
+				manager = addDownloadManager(manager, true, true);
+			} catch (Exception e) {
+				// get here on duplicate files, no need to treat as error
+				manager = DownloadManagerFactory.create(this,
+						torrent_hash, torrent_file_name, savePath, initialState,
+						persistent, for_seeding, file_priorities, adapter);
+				manager = addDownloadManager(manager, true, true);
+			}
+		} finally {
+			loadingMon.exit();
+		}
+		
+		if (needsFixup) {
+			fixUpDownloadManagerPositions();
+		}
+		
+		return manager;
+	}
 
 
 
    protected DownloadManager 
    addDownloadManager(
    		DownloadManager 	download_manager, 
-		boolean 			save) 
+		boolean 			save, 
+		boolean notifyListeners) 
    {
     if (!isStopping) {
+    	// make sure we have existing ones loaded so that existing check works
+    	loadExistingTorrentsNow(null, false);
+
       try{
       	managers_mon.enter();
       	
@@ -764,7 +836,9 @@ public class GlobalManagerImpl
         	}
         }
 
-        listeners.dispatch( LDT_MANAGER_ADDED, download_manager );
+        if (notifyListeners) {
+        	listeners.dispatch( LDT_MANAGER_ADDED, download_manager );
+        }
         
         download_manager.addListener(this);
         
@@ -1258,7 +1332,11 @@ public class GlobalManagerImpl
   
   private void loadDownloads(AzureusCoreListener listener) 
   {
+  	int triggerOnCount = 2;
+    ArrayList downloadsAdded = new ArrayList();
   	try{
+  		loadingMon.enter();
+  		
        Map map = FileUtil.readResilientConfigFile("downloads.config");
       
       boolean debug = Boolean.getBoolean("debug");
@@ -1370,12 +1448,20 @@ public class GlobalManagerImpl
           		        
 	        List file_priorities = (List) mDownload.get("file_priorities");
 	        
-          	DownloadManager dm = 
+          	final DownloadManager dm = 
           		DownloadManagerFactory.create(
           				this, torrent_hash, fileName, torrent_save_dir, torrent_save_file, 
           				state, true, true, has_ever_been_started, file_priorities );
           	
-            addDownloadManager(dm, false);
+            if (addDownloadManager(dm, false, false) == dm) {
+            	downloadsAdded.add(dm);
+
+            	if (downloadsAdded.size() >= triggerOnCount) {
+            		triggerOnCount *= 2;
+              	triggerAddListener(downloadsAdded);
+              	downloadsAdded.clear();
+            	}
+            }
           }
         }
         catch (UnsupportedEncodingException e1) {
@@ -1420,12 +1506,38 @@ public class GlobalManagerImpl
       fixUpDownloadManagerPositions();
       Logger.log(new LogEvent(LOGID, "Loaded " + managers_cow.size()
 					+ " torrents"));
+
   	}catch( Throwable e ){
   			// there's been problems with corrupted download files stopping AZ from starting
   			// added this to try and prevent such foolishness
   		
   		Debug.printStackTrace( e );
-  	}
+  	} finally {
+			loadingComplete = true;
+			triggerAddListener(downloadsAdded);
+
+			loadingMon.exit();
+		}
+  	
+
+  }
+  
+  private void triggerAddListener(List downloadsToAdd) {
+		try {
+			managers_mon.enter();
+			List listenersCopy = listeners.getListenersCopy();
+
+			for (int j = 0; j < listenersCopy.size(); j++) {
+				GlobalManagerListener gmListener = (GlobalManagerListener) listenersCopy.get(j);
+				for (int i = 0; i < downloadsToAdd.size(); i++) {
+					DownloadManager dm = (DownloadManager) downloadsToAdd.get(i);
+					gmListener.downloadManagerAdded(dm);
+				}
+			}
+		} finally {
+
+			managers_mon.exit();
+		}
   }
 
 
@@ -1440,6 +1552,11 @@ public class GlobalManagerImpl
 		  return;
 	  }
 	  
+  	if (!loadingComplete) {
+  		needsSaving = true;
+  		return;
+  	}
+
     //    if(Boolean.getBoolean("debug")) return;
 
 	  needsSaving = false;
@@ -1712,7 +1829,6 @@ public class GlobalManagerImpl
   }
 	
 	public void fixUpDownloadManagerPositions() {
-  
       try{
       	managers_mon.enter();
       
@@ -1720,7 +1836,19 @@ public class GlobalManagerImpl
       	int posIncomplete = 1;
 		    Collections.sort(managers_cow, new Comparator () {
 	          public final int compare (Object a, Object b) {
-	            return ((DownloadManager)a).getPosition() - ((DownloadManager)b).getPosition();
+	            int i = ((DownloadManager)a).getPosition() - ((DownloadManager)b).getPosition();
+	            if (i != 0) {
+	            	return i;
+	            }
+	            
+	            // non persistent before persistent
+	            if (((DownloadManager)a).isPersistent()) {
+	            	return 1;
+	            } else if (((DownloadManager)b).isPersistent()) {
+	            	return -1;
+	            }
+
+	            return 0;
 	          }
 	        } );
         for (int i = 0; i < managers_cow.size(); i++) {
