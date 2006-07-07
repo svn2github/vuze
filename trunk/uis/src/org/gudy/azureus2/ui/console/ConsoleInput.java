@@ -51,6 +51,7 @@ import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
 import org.gudy.azureus2.plugins.update.UpdateManager;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.console.commands.AddFind;
+import org.gudy.azureus2.ui.console.commands.Priority;
 import org.gudy.azureus2.ui.console.commands.Alias;
 import org.gudy.azureus2.ui.console.commands.Hack;
 import org.gudy.azureus2.ui.console.commands.IConsoleCommand;
@@ -271,6 +272,7 @@ public class ConsoleInput extends Thread {
 		registerCommand(new CommandQuit());
 		registerCommand(new CommandHelp());
 		registerCommand(new Alias());
+		registerCommand(new Priority());
 	}
 
 	/**
