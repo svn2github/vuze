@@ -449,12 +449,26 @@ public class BTPeerIDByteDecoder {
   
   private static String decodeMainlineStyle( byte[] id, String ident, String name ) {
     try {
+    	
+    	// Mx-y-z--
+    	// where version = x.y.z
       if ( (id[2] == (byte)45) && (id[4] == (byte)45) && (id[6] == (byte)45) && (id[7] == (byte)45) ) {
         String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
         if( decoded.equals( ident ) ) {
           String v1 = new String( id, 1, 1, Constants.BYTE_ENCODING );
           String v2 = new String( id, 3, 1, Constants.BYTE_ENCODING );
           String v3 = new String( id, 5, 1, Constants.BYTE_ENCODING );
+          return name + " " + v1 + "." + v2 + "." + v3;
+        }
+      }
+    	// Mx-yy-z-
+    	// where version = x.yy.z
+      if ( (id[2] == (byte)45) && (id[5] == (byte)45) && (id[7] == (byte)45) ) {
+        String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
+        if( decoded.equals( ident ) ) {
+          String v1 = new String( id, 1, 1, Constants.BYTE_ENCODING );
+          String v2 = new String( id, 3, 2, Constants.BYTE_ENCODING );
+          String v3 = new String( id, 6, 1, Constants.BYTE_ENCODING );
           return name + " " + v1 + "." + v2 + "." + v3;
         }
       }
