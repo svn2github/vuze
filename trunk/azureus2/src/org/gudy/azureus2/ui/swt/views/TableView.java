@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
+
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
@@ -119,6 +120,8 @@ public class TableView
 			.getInstance();
 
 	private static final String CFG_SORTDIRECTION = "config.style.table.defaultSortOrder";
+
+	private static final long IMMEDIATE_ADDREMOVE_DELAY = 80;
 
   /** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
    * of the table this class is
@@ -212,6 +215,9 @@ public class TableView
 	
 	/** Queue removed datasources and add them on refresh */
 	private List dataSourcesToRemove = null;
+
+	private Timer timerProcessDataSources = new Timer("Process Data Sources");
+	private TimerEvent timerEventProcessDS;
 
 	/** TabViews */
 	public boolean bEnableTabViews = false;
@@ -1396,53 +1402,51 @@ public class TableView
    * Process the queue of datasources to be added and removed
    *
    */
-  public void 
-  processDataSourceQueue() 
-  {
-	Object[] dataSourcesAdd = null;
-	Object[] dataSourcesRemove = null;
-	
-	try{
-		dataSourceToRow_mon.enter();
-	  	if (dataSourcesToAdd != null) {
-	  		dataSourcesAdd = dataSourcesToAdd.toArray();
-	  		dataSourcesToAdd.clear();
-	  		
-	  		// remove the ones we are going to add then delete
-	  		if (dataSourcesToRemove != null && dataSourcesToRemove.size() > 0) {
-		  		for (int i = 0; i < dataSourcesAdd.length; i++)
-		  			if (dataSourcesToRemove.contains(dataSourcesAdd[i])) {
-		  				dataSourcesToRemove.remove(dataSourcesAdd[i]);
-		  				dataSourcesAdd[i] = null;
-		  				if (DEBUGADDREMOVE)
-		  					System.out.println(sTableID
+  public void processDataSourceQueue() {
+		Object[] dataSourcesAdd = null;
+		Object[] dataSourcesRemove = null;
+
+		try {
+			dataSourceToRow_mon.enter();
+			if (dataSourcesToAdd != null) {
+				dataSourcesAdd = dataSourcesToAdd.toArray();
+				dataSourcesToAdd.clear();
+
+				// remove the ones we are going to add then delete
+				if (dataSourcesToRemove != null && dataSourcesToRemove.size() > 0) {
+					for (int i = 0; i < dataSourcesAdd.length; i++)
+						if (dataSourcesToRemove.contains(dataSourcesAdd[i])) {
+							dataSourcesToRemove.remove(dataSourcesAdd[i]);
+							dataSourcesAdd[i] = null;
+							if (DEBUGADDREMOVE)
+								System.out.println(sTableID
 										+ ": Saved time by not adding a row that was removed");
-		  			}
-	  		}
-	  	}
-	  	
-	 	if (dataSourcesToRemove != null && dataSourcesToRemove.size() > 0) {
-	  		dataSourcesRemove = dataSourcesToRemove.toArray();
-	  		if (DEBUGADDREMOVE && dataSourcesRemove.length > 1)
-	  			System.out.println(sTableID + ": Streamlining removing "
+						}
+				}
+			}
+
+			if (dataSourcesToRemove != null && dataSourcesToRemove.size() > 0) {
+				dataSourcesRemove = dataSourcesToRemove.toArray();
+				if (DEBUGADDREMOVE && dataSourcesRemove.length > 1)
+					System.out.println(sTableID + ": Streamlining removing "
 							+ dataSourcesRemove.length + " rows");
-	  		dataSourcesToRemove.clear();
-	 	}
-	}finally{
-		dataSourceToRow_mon.exit();
-	}
-  		
-	if ( dataSourcesAdd != null ){
-  		addDataSources(dataSourcesAdd, true);
-  		if (DEBUGADDREMOVE && dataSourcesAdd.length > 1)
-  			System.out.println(sTableID + ": Streamlined adding "
+				dataSourcesToRemove.clear();
+			}
+		} finally {
+			dataSourceToRow_mon.exit();
+		}
+
+		if (dataSourcesAdd != null) {
+			reallyAddDataSources(dataSourcesAdd);
+			if (DEBUGADDREMOVE && dataSourcesAdd.length > 1)
+				System.out.println(sTableID + ": Streamlined adding "
 						+ dataSourcesAdd.length + " rows");
-  	}
-	
-	if ( dataSourcesRemove != null ){
-  		removeDataSources(dataSourcesRemove, true);
-  	}
-  }
+		}
+
+		if (dataSourcesRemove != null) {
+			reallyRemoveDataSources(dataSourcesRemove);
+		}
+	}
   
   private void locationChanged(final int iStartColumn) {
     if (getComposite() == null || getComposite().isDisposed())
@@ -1560,32 +1564,51 @@ public class TableView
    */
   public void addDataSources(final Object dataSources[],
 			boolean bImmediate) {
-  	
-  	if (dataSources == null)
-  		return;
 
-  	// In order to save time, we cache entries to be added and process them
-  	// in a refresh cycle.  This is a huge benefit to tables that have
-  	// many rows being added and removed in rapid succession
-  	if (!bImmediate) {
-  		if (DEBUGADDREMOVE)
-  			System.out.println(sTableID + ": Queueing " + dataSources.length
-						+ " dataSources to add");
+		if (dataSources == null)
+			return;
 
-  		try{
-  			dataSourceToRow_mon.enter();
-  		
-  			if (dataSourcesToAdd == null)
-	  			dataSourcesToAdd = new ArrayList(4);
-	  		for (int i = 0; i < dataSources.length; i++) {
-	  			dataSourcesToAdd.add(dataSources[i]);
-	  		}
-	  		return;
-  		}finally{
-  			
-  			dataSourceToRow_mon.exit();
-  		}
-  	}
+		if (bImmediate && IMMEDIATE_ADDREMOVE_DELAY == 0) {
+			reallyAddDataSources(dataSources);
+			return;
+		}
+
+		// In order to save time, we cache entries to be added and process them
+		// in a refresh cycle.  This is a huge benefit to tables that have
+		// many rows being added and removed in rapid succession
+		if (DEBUGADDREMOVE)
+			System.out.println(sTableID + ": Queueing " + dataSources.length
+					+ " dataSources to add");
+
+		try {
+			dataSourceToRow_mon.enter();
+
+			if (dataSourcesToAdd == null)
+				dataSourcesToAdd = new ArrayList(4);
+			for (int i = 0; i < dataSources.length; i++) {
+				dataSourcesToAdd.add(dataSources[i]);
+			}
+		} finally {
+
+			dataSourceToRow_mon.exit();
+		}
+
+		// Immediate not really immediate, just sooner than the next refresh cycle
+		if (bImmediate) {
+			if (timerEventProcessDS != null) {
+				timerEventProcessDS.cancel();
+			}
+			timerEventProcessDS = timerProcessDataSources.addEvent(
+					SystemTime.getCurrentTime() + IMMEDIATE_ADDREMOVE_DELAY,
+					new TimerEventPerformer() {
+						public void perform(TimerEvent event) {
+							processDataSourceQueue();
+						}
+					});
+		}
+	}
+  
+  private void reallyAddDataSources(final Object dataSources[]) {
   	
 		if (mainComposite == null || table == null || mainComposite.isDisposed()
 				|| table.isDisposed())
@@ -1727,24 +1750,43 @@ public class TableView
    */
   public void removeDataSources(final Object[] dataSources,
 			boolean bImmediate) {
-  	if (!bImmediate) {
-  		try{
-  			dataSourceToRow_mon.enter();	
-  	
-	  		if (dataSourcesToRemove == null)
-	  			dataSourcesToRemove = new ArrayList(4);
-	  		for (int i = 0; i < dataSources.length; i++)
-	  			dataSourcesToRemove.add(dataSources[i]);
-  		}finally{
-  			dataSourceToRow_mon.exit();
-  		}
-
-  		// .size() not modifying the structure of List, so sync not needed
-  		if (dataSourcesToRemove.size() >= 20)
-  			processDataSourceQueue();
-
+  	if (dataSources == null) {
   		return;
   	}
+
+		if (bImmediate && IMMEDIATE_ADDREMOVE_DELAY == 0) {
+			reallyAddDataSources(dataSources);
+			return;
+		}
+
+		try{
+			dataSourceToRow_mon.enter();	
+	
+  		if (dataSourcesToRemove == null)
+  			dataSourcesToRemove = new ArrayList(4);
+  		for (int i = 0; i < dataSources.length; i++)
+  			dataSourcesToRemove.add(dataSources[i]);
+		}finally{
+			dataSourceToRow_mon.exit();
+		}
+
+		// .size() not modifying the structure of List, so sync not needed
+		// Immediate not really immediate, just sooner than the next refresh cycle
+		if (bImmediate || dataSourcesToRemove.size() >= 20) {
+			if (timerEventProcessDS != null) {
+				timerEventProcessDS.cancel();
+			}
+			timerEventProcessDS = timerProcessDataSources.addEvent(
+					SystemTime.getCurrentTime() + IMMEDIATE_ADDREMOVE_DELAY,
+					new TimerEventPerformer() {
+						public void perform(TimerEvent event) {
+							processDataSourceQueue();
+						}
+					});
+		}
+  }
+  
+  private void reallyRemoveDataSources(final Object[] dataSources) {
   	
   	if (DEBUGADDREMOVE)
   		System.out.println(">>" + sTableID + " Remove rows");
