@@ -2847,7 +2847,7 @@ public class MyTorrentsView
 
 	public synchronized void addDataSources(Object[] dataSources, boolean bImmediate) {
 		super.addDataSources(dataSources, bImmediate);
-		if (bImmediate && lblHeader != null && !lblHeader.isDisposed()) {
+		if (bImmediate) {
 			updateTableLabel();
 		}
 	}
@@ -2855,9 +2855,14 @@ public class MyTorrentsView
 	public synchronized void removeDataSources(Object[] dataSources, boolean bImmediate) {
 		super.removeDataSources(dataSources, bImmediate);
 		
-		if (bImmediate && lblHeader != null && !lblHeader.isDisposed()) {
+		if (bImmediate) {
 			updateTableLabel();
 		}
+	}
+	
+	public void processDataSourceQueue() {
+		super.processDataSourceQueue();
+		updateTableLabel();
 	}
 	
 
@@ -2871,12 +2876,16 @@ public class MyTorrentsView
 	 * 
 	 */
 	private void updateTableLabel() {
+		if (lblHeader == null || lblHeader.isDisposed()) {
+			return;
+		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (lblHeader != null && !lblHeader.isDisposed()) {
 					String sText = MessageText.getString(sTableID + "View.header") + " ("
 							+ getRowCount() + ")";
 					lblHeader.setText(sText);
+					lblHeader.getParent().layout();
 				}
 			}
 		});
