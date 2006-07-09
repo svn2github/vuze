@@ -27,13 +27,11 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
-import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTScraperResponseImpl;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
  * @author Olivier
@@ -44,7 +42,7 @@ public class TrackerStatusItem extends CoreTableColumn implements
 {
 	public TrackerStatusItem(String sTableID) {
 		super("tracker", POSITION_LAST, 90, sTableID);
-		setRefreshInterval(10); // Slow update while no responses from tracker
+		setRefreshInterval(15); // Slow update while no responses from tracker
 	}
 
 	public void cellAdded(TableCell cell) {

@@ -113,7 +113,11 @@ public class SeedsItem extends CoreTableColumn implements
 				lConnectedSeeds = dm.getNbSeeds();
 
 				if (lTotalSeeds == -1) {
-					scrapeResult(dm.getTrackerScrapeResponse());
+					TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
+					if (response != null && response.isValid()) {
+						lTotalSeeds = response.getSeeds();
+						lTotalPeers = response.getPeers();
+					}
 				}
 			}
 
