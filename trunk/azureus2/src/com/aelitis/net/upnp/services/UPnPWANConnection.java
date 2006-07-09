@@ -75,6 +75,11 @@ UPnPWANConnection
 	public int
 	getCapabilities();
 	
+	public String
+	getExternalIPAddress()
+	
+		throws UPnPException;
+	
 	public void
 	addListener(
 		UPnPWANConnectionListener	listener );

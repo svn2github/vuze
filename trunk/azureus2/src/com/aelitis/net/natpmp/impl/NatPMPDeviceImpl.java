@@ -344,6 +344,12 @@ public class NatPMPDeviceImpl implements NatPMPDevice
 		return( networkInterface );
 	}
 	
+	public String
+	getExternalIPAddress()
+	{
+		return( natPubInet.getHostAddress());
+	}
+	
 	public int
 	getEpoch()
 	{

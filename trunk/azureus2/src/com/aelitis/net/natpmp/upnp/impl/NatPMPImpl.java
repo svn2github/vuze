@@ -123,6 +123,12 @@ public class NatPMPImpl {
         return( new String[] { connection_status, connection_error, uptime } );
     }
     
+	public String
+	getExternalIPAddress()
+	{
+		return(natDevice.getExternalIPAddress());
+	}
+	
     protected class portMapping 
         implements UPnPWANConnectionPortMapping
     {

@@ -57,4 +57,7 @@ NatPMPDevice
 	
 	public int
 	getEpoch();
+	
+	public String
+	getExternalIPAddress();
 }

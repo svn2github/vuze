@@ -596,6 +596,43 @@ UPnPSSWANConnectionImpl
 		}
 	}
 	
+	public String
+	getExternalIPAddress()
+	
+		throws UPnPException
+	{
+		UPnPAction act = service.getAction( "GetExternalIPAddress" );
+		
+		if ( act == null ){
+			
+			log( "Action 'GetExternalIPAddress' not supported, binding not established" );
+			
+			throw( new UPnPException( "GetExternalIPAddress not supported" ));
+			
+		}else{
+					
+			UPnPActionInvocation inv = act.getInvocation();
+						
+			UPnPActionArgument[]	args = inv.invoke();
+			
+			String	ip	= null;
+			
+			for (int i=0;i<args.length;i++){
+				
+				UPnPActionArgument	arg = args[i];
+			
+				String	name = arg.getName();
+				
+				if ( name.equalsIgnoreCase("NewExternalIPAddress")){
+					
+					ip = arg.getValue();
+				}
+			}
+			
+			return( ip );
+		}	
+	}
+	
 	protected void
 	log(
 		String	str )

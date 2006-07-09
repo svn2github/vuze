@@ -337,6 +337,14 @@ NatPMPUPnPRootDeviceImpl
 			return( nat_impl.getStatusInfo());
 		}
 		
+		public String
+		getExternalIPAddress()
+		
+			throws UPnPException
+		{
+			return( nat_impl.getExternalIPAddress());
+		}
+		
 		public void
 		periodicallyRecheckMappings(
 			boolean	on )

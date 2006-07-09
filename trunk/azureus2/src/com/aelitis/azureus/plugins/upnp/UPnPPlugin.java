@@ -1116,6 +1116,38 @@ UPnPPlugin
 		}
 	}
 	
+	public String[]
+	getExternalIPAddresses()
+	{
+		List	res = new ArrayList();
+		
+		try{
+			this_mon.enter();
+			
+			for (int j=0;j<services.size();j++){
+				
+				UPnPPluginService	service = (UPnPPluginService)services.get(j);
+				
+				try{
+					String	address = service.getService().getExternalIPAddress();
+				
+					if ( address != null ){
+						
+						res.add( address );
+					}
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		return((String[])res.toArray( new String[res.size()]));
+	}
+	
 		// for external use, e.g. webui
 	
 	public UPnPMapping

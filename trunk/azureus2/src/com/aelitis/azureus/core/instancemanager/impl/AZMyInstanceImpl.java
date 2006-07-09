@@ -39,6 +39,7 @@ import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginListener;
+import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 public class 
 AZMyInstanceImpl
@@ -143,6 +144,8 @@ AZMyInstanceImpl
 	{
 	    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
         
+		InetAddress	 external_address = null;
+		
 	    DHTPlugin dht = null;
 	    
 	    if ( dht_pi != null ){
@@ -169,8 +172,6 @@ AZMyInstanceImpl
 	    	}
 	    }
 	    
-		InetAddress	 external_address = null;
-		
 			// use cached version if available and the DHT isn't
 		
 		if ( dht == null || dht.getStatus() != DHTPlugin.STATUS_RUNNING ){
@@ -198,6 +199,33 @@ AZMyInstanceImpl
 			try{
 				external_address = dht.getLocalAddress().getAddress().getAddress();
 	        	
+			}catch( Throwable e ){
+			}
+		}
+	    
+			// try upnp
+	   
+		if ( external_address == null && last_external_address != null ){
+			
+			try{
+			    PluginInterface upnp_pi = core.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+		        			    
+			    if ( upnp_pi != null ){
+		    	
+			    	UPnPPlugin upnp = (UPnPPlugin)upnp_pi.getPlugin();
+			    	
+			    	String[]	addresses = upnp.getExternalIPAddresses();
+			    	
+			    	for (int i=0;i<addresses.length;i++){
+			    		
+			    		if ( addresses[i].equals( last_external_address.getHostAddress())){
+			    			
+			    			external_address = last_external_address; 
+			    			
+			    			break;
+			    		}
+			    	}
+			    }
 			}catch( Throwable e ){
 			}
 		}
