@@ -48,17 +48,33 @@ public class WritersItem
     StringBuffer sb = new StringBuffer();
 
     Map map = new HashMap();
+    String last_writer = null;
+    int end_range = 0;
     for(int i = 0 ; i < writers.length ; i++) {
-      if (writers[i] != null) {
-      	String value = (String)map.get(writers[i]);
-      	if (value == null)
-      		value = Integer.toString(i);
-      	else
-      		value += "," + i;
-      	map.put(writers[i], value);
+      if (last_writer == writers[i]) { // if the writer is the same as before
+        if (writers[i] != null)        // and the block has been written
+          end_range = i;               // then keep tracking the range
+      } else {                         // otherwise the writer is different
+        if (end_range != 0) {          // if we were tracking a range, end the range
+          map.put(last_writer, (String)map.get(last_writer) + "-" + end_range);
+          end_range = 0;               // and stop tracking it
+        }
+
+        if (writers[i] != null) {
+          String value = (String)map.get(writers[i]);
+          if (value == null)
+            value = Integer.toString(i);
+          else
+            value += "," + i;
+          map.put(writers[i], value);
+        }
       }
+      last_writer = writers[i];
     }
     
+    if (end_range != 0)
+      map.put(last_writer, (String)map.get(last_writer) + "-" + end_range);
+
     for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
 			String writer =(String)iter.next();
 			if (sb.length() != 0)
