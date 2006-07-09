@@ -36,6 +36,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
@@ -231,6 +232,7 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 				}
 			}
 		});
+		sc.getVerticalBar().setIncrement(BLOCK_SIZE);
 
 		peerInfoCanvas = new Canvas(sc, SWT.NO_REDRAW_RESIZE | SWT.NO_BACKGROUND);
 		gridData = new GridData(GridData.FILL, SWT.DEFAULT, true, false);
@@ -258,6 +260,11 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 				}
 			}
 		});
+		Listener doNothingListener = new Listener() {
+			public void handleEvent(Event event) {
+			}
+		};
+		peerInfoCanvas.addListener(SWT.KeyDown, doNothingListener);
 
 		sc.setContent(peerInfoCanvas);
 
