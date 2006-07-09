@@ -455,7 +455,7 @@ public class GlobalManagerImpl
 
     final Map map = FileUtil.readResilientConfigFile("downloads.config");
     
-		System.out.println(SystemTime.getCurrentTime() + ": load via " + Debug.getCompressedStackTrace());
+		//System.out.println(SystemTime.getCurrentTime() + ": load via " + Debug.getCompressedStackTrace());
 		if (async) {
 			AEThread thread = new AEThread("load torrents", true) {
 				public void runSupport() {
