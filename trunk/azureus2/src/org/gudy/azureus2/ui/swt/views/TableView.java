@@ -25,25 +25,29 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.*;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabFolder2Adapter;
+import org.eclipse.swt.custom.CTabFolderEvent;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
-
-import org.gudy.azureus2.plugins.ui.Graphic;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -52,7 +56,6 @@ import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
@@ -60,10 +63,18 @@ import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableRowComparator;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableRowImpl;
-import org.gudy.azureus2.ui.swt.views.table.utils.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableStructureEventDispatcher;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
+
+import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 
 
 /** 
@@ -635,6 +646,11 @@ public class TableView
     		TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellCore cell = getTableCell(e.x, e.y);
 				if (cell != null && tc != null) {
+	      	if (e.button == 2 && e.stateMask == SWT.CONTROL) {
+	      		((TableCellImpl)cell).bDebug = !((TableCellImpl)cell).bDebug;
+	      		System.out.println("Set debug for " + cell + " to "
+								+ ((TableCellImpl) cell).bDebug);
+	      	}
 					TableCellMouseEvent event = createMouseEvent(cell, e,
 							TableCellMouseEvent.EVENT_MOUSEDOWN);
 					tc.invokeCellMouseListeners(event);
@@ -784,7 +800,7 @@ public class TableView
 						System.out.println("XXX TI < 0!!");
 						return;
 					}
-	
+					
 					TableRowCore row = (TableRowCore) item.getData("TableRow");
 					if (row == null || row.getIndex() != tableIndex) {
 						//System.out.println("SetData " + tableIndex + ": Sort..");
@@ -879,6 +895,10 @@ public class TableView
   	if (bar != null) {
   		bar.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
+					// Bug: Scroll is slow when table is not focus
+					if (!table.isFocusControl()) {
+						table.setFocus();
+					}
 	      	visibleRowsChanged();
 				}
   		});
@@ -1306,6 +1326,7 @@ public class TableView
   }
 
   long count = 0;
+
   public void refresh(boolean bForceSort) {
   	// don't refresh while there's no table
   	if (table == null)
@@ -1388,7 +1409,7 @@ public class TableView
 			if (DEBUGADDREMOVE) {
 		    long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
 				if (lTimeDiff > 500)
-					System.out.println(sTableID + ": " + lTimeDiff + "ms to refresh rows");
+					debug(lTimeDiff + "ms to refresh rows");
 			}
 	
 	    loopFactor++;
@@ -1419,8 +1440,7 @@ public class TableView
 							dataSourcesToRemove.remove(dataSourcesAdd[i]);
 							dataSourcesAdd[i] = null;
 							if (DEBUGADDREMOVE)
-								System.out.println(sTableID
-										+ ": Saved time by not adding a row that was removed");
+								debug("Saved time by not adding a row that was removed");
 						}
 				}
 			}
@@ -1428,22 +1448,20 @@ public class TableView
 			if (dataSourcesToRemove != null && dataSourcesToRemove.size() > 0) {
 				dataSourcesRemove = dataSourcesToRemove.toArray();
 				if (DEBUGADDREMOVE && dataSourcesRemove.length > 1)
-					System.out.println(sTableID + ": Streamlining removing "
-							+ dataSourcesRemove.length + " rows");
+					debug("Streamlining removing " + dataSourcesRemove.length + " rows");
 				dataSourcesToRemove.clear();
 			}
 		} finally {
 			dataSourceToRow_mon.exit();
 		}
 
-		if (dataSourcesAdd != null) {
+		if (dataSourcesAdd != null && dataSourcesAdd.length > 0) {
 			reallyAddDataSources(dataSourcesAdd);
 			if (DEBUGADDREMOVE && dataSourcesAdd.length > 1)
-				System.out.println(sTableID + ": Streamlined adding "
-						+ dataSourcesAdd.length + " rows");
+				debug("Streamlined adding " + dataSourcesAdd.length + " rows");
 		}
 
-		if (dataSourcesRemove != null) {
+		if (dataSourcesRemove != null && dataSourcesRemove.length > 0) {
 			reallyRemoveDataSources(dataSourcesRemove);
 		}
 	}
@@ -1577,8 +1595,7 @@ public class TableView
 		// in a refresh cycle.  This is a huge benefit to tables that have
 		// many rows being added and removed in rapid succession
 		if (DEBUGADDREMOVE)
-			System.out.println(sTableID + ": Queueing " + dataSources.length
-					+ " dataSources to add");
+			debug("Queueing " + dataSources.length + " dataSources to add");
 
 		try {
 			dataSourceToRow_mon.enter();
@@ -1615,7 +1632,7 @@ public class TableView
 			return;
 		
 		if (DEBUGADDREMOVE)
-			System.out.print(">>" + sTableID + " Add " + dataSources.length + " rows;");
+			debug(">>" + " Add " + dataSources.length + " rows;");
 
 		// Create row, and add to map immediately
 		try {
@@ -1640,6 +1657,8 @@ public class TableView
 			dataSourceToRow_mon.exit();
 		}
 
+		final int iSizeNow = dataSourceToRow.size();
+		
 		// Now, add to sortedRows which requires the SWT thread.
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -1673,6 +1692,7 @@ public class TableView
 
 						try {
 							sortedRows_mon.enter();
+							int index = 0;
 							if (sortedRows.size() > 0) {
 								// If we are >= to the last item, then just add it to the end
 								// instead of relying on binarySearch, which may return an item
@@ -1680,11 +1700,12 @@ public class TableView
 								TableRowCore lastRow = (TableRowCore) sortedRows.get(sortedRows
 										.size() - 1);
 								if (rowSorter.compare(row, lastRow) >= 0) {
+									index = sortedRows.size();
 									sortedRows.add(row);
 									if (DEBUGADDREMOVE)
-										System.out.println("Adding new row to bottom");
+										debug("Adding new row to bottom");
 								} else {
-									int index = Collections.binarySearch(sortedRows, row,
+									index = Collections.binarySearch(sortedRows, row,
 											rowSorter);
 									if (index < 0)
 										index = -1 * index - 1; // best guess
@@ -1693,19 +1714,23 @@ public class TableView
 										index = sortedRows.size();
 
 									if (DEBUGADDREMOVE)
-										System.out.println("Adding new row at position " + index
-												+ " of " + (sortedRows.size() - 1));
+										debug("Adding new row at position " + index + " of " 
+												+ (sortedRows.size() - 1));
 									sortedRows.add(index, row);
 								}
 							} else {
 								if (DEBUGADDREMOVE)
-									System.out.println("Adding new row to bottom (1st Entry)");
+									debug("Adding new row to bottom (1st Entry)");
+								index = sortedRows.size();
 								sortedRows.add(row);
 							}
 
 							if (!bTableVirtual) {
 								row.createSWTRow();
 								row.setIconSize(ptIconSize);
+							} else {
+								table.setItemCount(sortedRows.size());
+								row.setTableItem(index);
 							}
 						} catch (Exception e) {
 							Logger.log(new LogEvent(LOGID, "Error adding a row to table "
@@ -1720,9 +1745,7 @@ public class TableView
 							sortedRows_mon.exit();
 						}
 					} // for dataSources
-
-					if (bTableVirtual)
-						table.setItemCount(dataSourceToRow.size());
+					
 
 				} finally {
 					dataSourceToRow_mon.exit();
@@ -1730,7 +1753,7 @@ public class TableView
 
 				fillRowGaps(false);
 				if (DEBUGADDREMOVE)
-					System.out.println("<<");
+					debug("<<");
 			}
 		});
 	}
@@ -1789,12 +1812,12 @@ public class TableView
   private void reallyRemoveDataSources(final Object[] dataSources) {
   	
   	if (DEBUGADDREMOVE)
-  		System.out.println(">>" + sTableID + " Remove rows");
+  		debug(">> Remove rows");
 
 		boolean ok = Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (DEBUGADDREMOVE)
-					System.out.println(">>>" + sTableID + " Remove rows.  Start");
+					debug(">>> Remove rows.  Start");
 				
 				ArrayList itemsToRemove = new ArrayList();
 				
@@ -1820,7 +1843,7 @@ public class TableView
 				}
 
 				if (DEBUGADDREMOVE)
-					System.out.println("<<" + sTableID + " Remove "
+					debug("<< Remove "
 							+ itemsToRemove.size() + " rows. now " + dataSourceToRow.size()
 							+ "ds; tc=" + table.getItemCount());
 			}
@@ -1840,7 +1863,7 @@ public class TableView
 				}
 			}
 			if (DEBUGADDREMOVE)
-				System.out.println("<<" + sTableID + " Remove 1 row, noswt");
+				debug("<< Remove 1 row, noswt");
 		}
 	}
 
@@ -1875,7 +1898,7 @@ public class TableView
 				dataSourcesToRemove.clear();
 
 			if (DEBUGADDREMOVE)
-				System.out.println(sTableID + " removeAll");
+				debug("removeAll");
 
 		} finally {
 
@@ -1886,7 +1909,7 @@ public class TableView
 		if (DEBUGADDREMOVE) {
 	    long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
 			if (lTimeDiff > 10)
-				System.out.println("RemovaAll took " + lTimeDiff + "ms");
+				debug("RemovaAll took " + lTimeDiff + "ms");
 		}
   }
     
@@ -2102,7 +2125,9 @@ public class TableView
         	// Try again
           row = (TableRowCore)tis[i].getData("TableRow");
           if (row == null)
-          	System.out.println("XXX Boo, row still null");
+          	System.out.println("XXX Boo, row still null "
+								+ table.indexOf(tis[i]) + ";sd=" + tis[i].getData("SD") + ";" 
+								+ Debug.getCompressedStackTrace());
         }
         if (row != null && row.getDataSource(true) != null)
           l.add(row.getDataSource(bCoreDataSource));
@@ -2690,15 +2715,15 @@ public class TableView
 	}
 	
 	private void fillRowGaps(boolean bForceDataRefresh) {
-		_sortColumn(bForceDataRefresh, true);
+		_sortColumn(bForceDataRefresh, true, true);
 	}
 
 	private void sortColumn(boolean bForceDataRefresh) {
-		_sortColumn(bForceDataRefresh, false);
+		_sortColumn(bForceDataRefresh, false, true);
 	}
 
 	private void _sortColumn(boolean bForceDataRefresh,
-			boolean bFillGapsOnly) 
+			boolean bFillGapsOnly, boolean bFollowSelected) 
 	{
 		try{
 			sortColumn_mon.enter();
@@ -2796,11 +2821,17 @@ public class TableView
 					// XXX setSelection calls showSelection().  We don't want the table
 					//     to jump all over.  Quick fix is to reset topIndex, but
 					//     there might be a better way
-	//				table.setRedraw(false);
-	//				int iTopIndex = table.getTopIndex();
+					int iTopIndex = 0;
+					if (!bFollowSelected) {
+						table.setRedraw(false);
+						iTopIndex = table.getTopIndex();
+					}
 					table.setSelection(newSelectedRowIndices);
-	//				table.setTopIndex(iTopIndex);
-	//				table.setRedraw(true);
+					if (!bFollowSelected) {
+						table.setTopIndex(iTopIndex);
+						table.setRedraw(true);
+					}
+					visibleRowsChanged();
 				}
 			}
 	
@@ -2870,6 +2901,7 @@ public class TableView
 		  lastBottomIndex = -1;
 		  return;
 		}
+		//System.out.println(SystemTime.getCurrentTime() + ": VRC");
 		
 		int iTopIndex = table.getTopIndex();
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
@@ -2985,5 +3017,9 @@ public class TableView
 			((ObfusticateImage)view).obfusticatedImage(image, shellOffset);
 		}
 		return image;
+	}
+	
+	private void debug(String s) {
+		System.out.println(SystemTime.getCurrentTime() + ": " + sTableID + ": " + s);
 	}
 }
