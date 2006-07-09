@@ -401,7 +401,7 @@ UDPConnectionSet
     	
     	byte[]	temp = new byte[1024];
 	
-    	rc4_engine.processBytes( temp, temp );
+    	rc4_engine.processBytes( temp, 0, temp.length, temp, 0 );
     	
     	return( rc4_engine );
 	}
@@ -2463,7 +2463,7 @@ UDPConnectionSet
 	{
 		byte[]	bytes = intToBytes( i );
 		
-		cipher.processBytes( bytes, bytes );
+		cipher.processBytes( bytes, 0, bytes.length, bytes, 0 );
 		
 		return( bytesToInt( bytes, 0 ));
 	}
