@@ -354,7 +354,7 @@ public class DefaultRankCalculator implements Comparable {
 		if (bActivelyDownloading != bIsActive) {
 			bActivelyDownloading = bIsActive;
 			if (rules != null) {
-				rules.requestProcessCycle();
+				rules.requestProcessCycle(null);
 				if (rules.bDebugLog)
 					rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 							"somethingChanged: ActivelyDownloading changed");
@@ -411,7 +411,7 @@ public class DefaultRankCalculator implements Comparable {
 		if (bActivelySeeding != bIsActive) {
 			bActivelySeeding = bIsActive;
 			if (rules != null) {
-				rules.requestProcessCycle();
+				rules.requestProcessCycle(null);
 				if (rules.bDebugLog)
 					rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 							"somethingChanged: ActivelySeeding changed");
@@ -575,7 +575,7 @@ public class DefaultRankCalculator implements Comparable {
 					if (lMsElapsed >= minTimeAlive) {
 						dl.setSeedingRank(1);
 						if (oldSR > SR_TIMED_QUEUED_ENDS_AT) {
-							rules.requestProcessCycle();
+							rules.requestProcessCycle(null);
 							if (rules.bDebugLog)
 								rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 										"somethingChanged: TimeUp");
@@ -584,7 +584,7 @@ public class DefaultRankCalculator implements Comparable {
 						newSR = SR_TIMED_QUEUED_ENDS_AT + 1 + (int) (lMsElapsed / 1000);
 						dl.setSeedingRank(newSR);
 						if (oldSR <= SR_TIMED_QUEUED_ENDS_AT) {
-							rules.requestProcessCycle();
+							rules.requestProcessCycle(null);
 							if (rules.bDebugLog)
 								rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 										"somethingChanged: strange timer change");
@@ -595,7 +595,7 @@ public class DefaultRankCalculator implements Comparable {
 					if (oldSR <= 0) {
 						newSR = SR_TIMED_QUEUED_ENDS_AT - dl.getPosition();
 						dl.setSeedingRank(newSR);
-						rules.requestProcessCycle();
+						rules.requestProcessCycle(null);
 						if (rules.bDebugLog)
 							rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 									"somethingChanged: NotIgnored");
@@ -654,7 +654,7 @@ public class DefaultRankCalculator implements Comparable {
 
 		if (bIsFirstPriority != bFP) {
 			bIsFirstPriority = bFP;
-			rules.requestProcessCycle();
+			rules.requestProcessCycle(null);
 			if (rules.bDebugLog)
 				rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 						"somethingChanged: FP changed");
