@@ -72,6 +72,8 @@ public class TrackerStatus {
   private final static String SSErr = "Scrape.status.error.";
 
   private final static int FAULTY_SCRAPE_RETRY_INTERVAL = 60 * 10 * 1000;
+  private final static int NOHASH_RETRY_INTERVAL = 1000 * 60 * 60 * 3; // 3 hrs
+  
   /**
    * When scraping a single hash, also scrape other hashes that are going to
    * be scraped within this range.
@@ -100,13 +102,15 @@ public class TrackerStatus {
   private boolean bSingleHashScrapes = false;
     
   protected AEMonitor hashes_mon 	= new AEMonitor( "TrackerStatus:hashes" );
+	private final TrackerChecker checker;
 
   public 
   TrackerStatus(
-  	TRTrackerScraperImpl	_scraper, 
+  	TrackerChecker checker, TRTrackerScraperImpl	_scraper, 
 	URL 					_tracker_url ) 
   {    	
-  	scraper		= _scraper;
+  	this.checker = checker;
+		scraper		= _scraper;
     tracker_url	= _tracker_url;
     
     bSingleHashScrapes	= COConfigurationManager.getBooleanParameter( "Tracker Client Scrape Single Only" );
@@ -282,7 +286,7 @@ public class TrackerStatus {
 		      	hashes_mon.exit();
 		      }
 		    }
-	    
+		    
 		    runScrapes(responsesToUpdate,  force, async);
 		    
   		}catch( Throwable t ) {
@@ -382,6 +386,10 @@ public class TrackerStatus {
 
 						response.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
 								MessageText.getString(SS + "scraping"));
+
+						// technically haven't recieved a scrape yet, but we need
+						// to notify listeners (the ones that display status)
+						scraper.scrapeReceived(response);
 
 						// the client-id stuff RELIES on info_hash being the FIRST
 						// parameter added by
@@ -526,8 +534,7 @@ public class TrackerStatus {
 							}
 						} else {
 							long nextScrapeTime = SystemTime.getCurrentTime()
-									+ ((iMinRequestInterval == 0)
-											? FAULTY_SCRAPE_RETRY_INTERVAL
+									+ ((iMinRequestInterval == 0) ? NOHASH_RETRY_INTERVAL
 											: iMinRequestInterval * 1000);
 							// 1 was requested, 0 returned. Therefore, hash not found.
 							TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses
@@ -574,7 +581,7 @@ public class TrackerStatus {
 						if (responses.size() == 1 || mapFiles.size() != 1) {
 
 							response.setNextScrapeStartTime(SystemTime.getCurrentTime()
-									+ FAULTY_SCRAPE_RETRY_INTERVAL);
+									+ NOHASH_RETRY_INTERVAL);
 
 							response.setStatus(TRTrackerScraperResponse.ST_ERROR,
 									MessageText.getString(SS + "error")
@@ -1222,6 +1229,8 @@ public class TrackerStatus {
       response.setStatus(TRTrackerScraperResponse.ST_INITIALIZING,
                          MessageText.getString(SS + "initializing"));
     }
+    
+    response.setNextScrapeStartTime(checker.getNextScrapeCheckOn());
   	try{
   		hashes_mon.enter();
   	
