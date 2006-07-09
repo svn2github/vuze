@@ -120,6 +120,10 @@ TRTrackerAnnouncerResponseImpl
 		return( str );
 	}
 	
+	public void setFailurReason(String reason) {
+		failure_reason = reason;
+	}
+	
 	public long
 	getTimeToWait()
 	{
@@ -127,7 +131,7 @@ TRTrackerAnnouncerResponseImpl
 	}
 	
 	public String
-	getFailureReason()
+	getAdditionalInfo()
 	{
 		return( failure_reason );
 	}
@@ -169,7 +173,7 @@ TRTrackerAnnouncerResponseImpl
 	{
 		System.out.println( "TRTrackerResponse::print");
 		System.out.println( "\tstatus = " + getStatus());
-		System.out.println( "\tfail msg = " + getFailureReason());
+		System.out.println( "\tfail msg = " + getAdditionalInfo());
 		System.out.println( "\tpeers:" );
 		
 		if ( peers != null ){

@@ -54,13 +54,15 @@ TRTrackerAnnouncerResponse
 	getTimeToWait();
 	
 	/**
-	 * if the status is ST_REPORTED_ERROR then this method is of use
-	 * Also populated when ST_OFFLINE - in this case it gives a reason where possible
-	 * @return	failure reason as reported by tracker.
+	 * Returns any additional textual information associated with reponse. 
+	 * If the status is ST_REPORTED_ERROR, this will return the error description
+	 * (possibly directly from the tracker).
+	 * 
+	 * @return	Additional information
 	 */
 	
 	public String
-	getFailureReason();
+	getAdditionalInfo();
 	
 	/**
 	 * 
