@@ -134,7 +134,16 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 	}
 
 	public boolean isShown() {
-		return position != -1;
+		if (position < 0) {
+			return false;
+		}
+		
+		Rectangle bounds = row.getBounds(position);
+		if (bounds == null) {
+			return false;
+		}
+
+		return row.getTable().getClientArea().intersects(bounds);
 	}
 
 	public boolean needsPainting() {
