@@ -119,7 +119,7 @@ DownloadAnnounceResultImpl
 	public String
 	getError()
 	{
-		return( response==null?"No Response":response.getFailureReason());
+		return( response==null?"No Response":response.getAdditionalInfo());
 	}
 	
 	public URL
