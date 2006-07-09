@@ -22,13 +22,13 @@
 package com.aelitis.azureus.plugins.startstoprules.defaultplugin;
 
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.Timer;
+
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -83,7 +83,7 @@ public class StartStopRulesDefaultPlugin
    * Force at least one check every period of time (in ms).  
    * Used in ChangeFlagCheckerTask 
    */
-  private static final int FORCE_CHECK_PERIOD	= 30000;
+  private static final int FORCE_CHECK_PERIOD	= 60000;
 
   /** 
    * Check for non triggerable changes ever period of time (in ms) 
@@ -117,6 +117,8 @@ public class StartStopRulesDefaultPlugin
 
   private volatile boolean         closingDown;
   private volatile boolean         somethingChanged;
+  
+  private Set ranksToRecalc = new HashSet();
 
   /** When rules class started.  Used for initial waiting logic */
   private long startedOn;
@@ -263,7 +265,7 @@ public class StartStopRulesDefaultPlugin
   		this_mon.exit();
   	}
   }
-    
+
   
   /** A simple timer task to recalculate all seeding ranks.
    */
@@ -301,7 +303,7 @@ public class StartStopRulesDefaultPlugin
         return;
 
       long	now = SystemTime.getCurrentTime();
-      
+
       if ( 	now < last_process_time  ||
       		now - last_process_time >= FORCE_CHECK_PERIOD ){
       	
@@ -331,9 +333,8 @@ public class StartStopRulesDefaultPlugin
       DefaultRankCalculator dlData = (DefaultRankCalculator)downloadDataMap.get(download);
 
       if (dlData != null) {
-        // force a SR recalc, so that it gets positiong properly next process()
-        dlData.recalcSeedingRank();
-        somethingChanged = true;
+        // force a SR recalc, so that it gets position properly next process()
+        requestProcessCycle(dlData);
         if (bDebugLog) 
         	log.log(dlData.dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 							"somethingChanged: stateChange from " + sStates.charAt(old_state)
@@ -346,8 +347,7 @@ public class StartStopRulesDefaultPlugin
                                 int oldPosition, int newPosition) {
       DefaultRankCalculator dlData = (DefaultRankCalculator)downloadDataMap.get(download);
       if (dlData != null) {
-        dlData.recalcSeedingRank();
-        somethingChanged = true;
+      	requestProcessCycle(dlData);
         if (bDebugLog) 
           log.log(dlData.dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 							"somethingChanged: positionChanged from " + oldPosition + " to "
@@ -374,8 +374,7 @@ public class StartStopRulesDefaultPlugin
 
       DefaultRankCalculator dlData = (DefaultRankCalculator)downloadDataMap.get(dl);
       if (dlData != null) {
-        dlData.recalcSeedingRank();
-        somethingChanged = true;
+      	requestProcessCycle(dlData);
         if (bDebugLog)
 					log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 							"somethingChanged: new scrapeResult S:" + result.getSeedCount()
@@ -398,7 +397,7 @@ public class StartStopRulesDefaultPlugin
   {
     private DownloadTrackerListener download_tracker_listener;
     private DownloadListener        download_listener;
-    
+
     public StartStopDMListener() {
       download_tracker_listener = new StartStopDMTrackerListener();
       download_listener = new StartStopDownloadListener();
@@ -417,8 +416,7 @@ public class StartStopRulesDefaultPlugin
       }
 
       if (dlData != null) {
-        dlData.recalcSeedingRank();
-        somethingChanged = true;
+      	requestProcessCycle(dlData);
         if (bDebugLog) 
           log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
                   "somethingChanged: downloadAdded");
@@ -434,7 +432,7 @@ public class StartStopRulesDefaultPlugin
         downloadDataMap.remove(download);
       }
 
-      somethingChanged = true;
+    	requestProcessCycle(null);
       if (bDebugLog) 
         log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
                 "somethingChanged: downloadRemoved");
@@ -454,7 +452,7 @@ public class StartStopRulesDefaultPlugin
       // make sure process isn't running and stop it from running while we do stuff
       try{
        	this_mon.enter();
-        
+
        	now = SystemTime.getCurrentTime();
     	
       	//System.out.println(SystemTime.getCurrentTime() - lLastRunTime);
@@ -472,7 +470,7 @@ public class StartStopRulesDefaultPlugin
         int iNumCDing = 0;
         for (int i = 0; i < dlDataArray.length; i++) {
           if (dlDataArray[i].changeChecker()) {
-          	somethingChanged = true;
+          	requestProcessCycle(null);
           	return;
           }
 
@@ -480,7 +478,7 @@ public class StartStopRulesDefaultPlugin
           // (The call sets somethingChanged it was changed)
           if (dlDataArray[i].getActivelyDownloading())
             iNumDLing++;
-          
+
           // Check Seeders for change in activeness (speed threshold)
           // (The call sets somethingChanged it was changed)
           if (dlDataArray[i].getActivelySeeding()) {
@@ -490,7 +488,7 @@ public class StartStopRulesDefaultPlugin
 
         int iMaxSeeders = calcMaxSeeders(iNumDLing);
         if (iNumCDing > iMaxSeeders) {
-          somethingChanged = true;
+        	requestProcessCycle(null);
             if (bDebugLog) 
               log.log(LoggerChannel.LT_INFORMATION,
                       "somethingChanged: More Seeding than limit");
@@ -577,9 +575,19 @@ public class StartStopRulesDefaultPlugin
 		    }
 	    }
 */
+
+	    // force a recalc on all downloads by setting SR to 0, scheduling
+	    // a recalc on next process, and requsting a process cycle
 	    
-	    recalcAllSeedingRanks(true);
-			somethingChanged = true;
+	    Collection allDownloads = downloadDataMap.values();
+	    DefaultRankCalculator[] dlDataArray = 
+	      (DefaultRankCalculator[])allDownloads.toArray(new DefaultRankCalculator[0]);
+	    for (int i = 0; i < dlDataArray.length; i++) {
+        dlDataArray[i].getDownloadObject().setSeedingRank(0);
+	    }
+	    ranksToRecalc.addAll(allDownloads);
+	    requestProcessCycle(null);
+
 			if (bDebugLog) {
 				log.log(LoggerChannel.LT_INFORMATION,
 								"somethingChanged: config reload");
@@ -764,17 +772,25 @@ public class StartStopRulesDefaultPlugin
 			// - Do anything that doesn't need to be done in Queued order
 			for (int i = 0; i < dlDataArray.length; i++) {
 				DefaultRankCalculator dlData = dlDataArray[i];
+				if (dlData == null) {
+					continue;
+				}
 
 				Download download = dlData.getDownloadObject();
+				int state = download.getState();
+				
+				// No stats colllected on error or stopped torrents
+				if (state == Download.ST_ERROR || state == Download.ST_STOPPED) {
+					continue;
+				}
+
 				boolean completed = download.isComplete();
 				boolean bIsFirstP = false;
-
+				
 				// Count forced seedings as using a slot
 				// Don't count forced downloading as using a slot
 				if (!completed && download.isForceStart())
 					continue;
-
-				int state = download.getState();
 
 				if (completed) {
 					// Only used when !bOkToStartSeeding.. set only to make compiler happy
@@ -789,45 +805,46 @@ public class StartStopRulesDefaultPlugin
 							bOkToStartSeeding = true;
 					}
 
-					if (state != Download.ST_ERROR && state != Download.ST_STOPPED) {
-						complete++;
-						
-						if (!bOkToStartSeeding && bScrapeOk)
-							totalOKScrapes++;
+					complete++;
+					
+					if (!bOkToStartSeeding && bScrapeOk)
+						totalOKScrapes++;
 
-						if (dlData.isFirstPriority()) {
-							if (!bOkToStartSeeding)
-								bOkToStartSeeding = true;
+					if (dlData.isFirstPriority()) {
+						if (!bOkToStartSeeding)
+							bOkToStartSeeding = true;
 
-							firstPriority++;
-							bIsFirstP = true;
-						}
-
-						if (dlData.getActivelySeeding()) {
-							activelyCDing++;
-							if (download.isForceStart()) {
-								forcedSeeding++;
-								if (!bIsFirstP)
-									forcedSeedingNonFP++;
-							}
-						} else if (state == Download.ST_SEEDING) {
-							if (bIsFirstP) {
-								stalledFPSeeders++;
-							}
-
-							stalledSeeders++;
-						}
-						if (state == Download.ST_READY || state == Download.ST_WAITING
-								|| state == Download.ST_PREPARING) {
-							waitingToSeed++;
-						}
-
+						firstPriority++;
+						bIsFirstP = true;
 					}
-				} else {
-					if (state == Download.ST_DOWNLOADING)
+
+					if (dlData.getActivelySeeding()) {
+						activelyCDing++;
+						if (download.isForceStart()) {
+							forcedSeeding++;
+							if (!bIsFirstP)
+								forcedSeedingNonFP++;
+						}
+					} else if (state == Download.ST_SEEDING) {
+						if (bIsFirstP) {
+							stalledFPSeeders++;
+						}
+
+						stalledSeeders++;
+					}
+
+					if (state == Download.ST_READY || state == Download.ST_WAITING
+							|| state == Download.ST_PREPARING) {
+						waitingToSeed++;
+					}
+
+				} else { // !completed
+					if (state == Download.ST_DOWNLOADING) {
 						downloading++;
-					if (dlData.getActivelyDownloading())
-						activelyDLing++;
+
+						if (dlData.getActivelyDownloading())
+							activelyDLing++;
+					}
 
 					if (state == Download.ST_READY || state == Download.ST_WAITING
 							|| state == Download.ST_PREPARING) {
@@ -900,6 +917,8 @@ public class StartStopRulesDefaultPlugin
   private long processMaxMS = 0;
   private long processLastComplete = 0;
   private long processTotalGap = 0;
+  private long processTotalRecalcs = 0;
+  private long processTotalZeroRecalcs = 0;
 	protected void process() {
 		long now = 0;
 		try {
@@ -933,6 +952,16 @@ public class StartStopRulesDefaultPlugin
 			}
 
 			somethingChanged = false;
+			Object[] recalcArray = ranksToRecalc.toArray();
+			ranksToRecalc.clear();
+			for (int i = 0; i < recalcArray.length; i++) {
+				DefaultRankCalculator rankObj = (DefaultRankCalculator) recalcArray[i];
+				rankObj.recalcSeedingRank();
+			}
+			processTotalRecalcs += recalcArray.length;
+			if (recalcArray.length == 0) {
+				processTotalZeroRecalcs++;
+			}
 
 			// Sort
 			Arrays.sort(dlDataArray);
@@ -1653,15 +1682,32 @@ public class StartStopRulesDefaultPlugin
    * Request that the startstop rules process.  Used when it's known that
    * something has changed that will effect torrent's state/position/rank.
    */
-  public void requestProcessCycle() {
-  	somethingChanged = true;
-  }
+  private long processMergeCount = 0;
+  public void requestProcessCycle(DefaultRankCalculator rankToRecalc) {
+		if (rankToRecalc != null) {
+			try {
+				this_mon.enter();
+
+				ranksToRecalc.add(rankToRecalc);
+			} finally {
+				this_mon.exit();
+			}
+		}
+
+		if (somethingChanged) {
+			processMergeCount++;
+		} else {
+			somethingChanged = true;
+		}
+	}
 
 	public void generate(IndentWriter writer) {
 		writer.println("StartStopRules Manager");
 
 		try {
 			writer.indent();
+			writer.println("Started " + (SystemTime.getCurrentTime() - startedOn)
+					+ "ms ago");
 			writer.println("downloadDataMap size = " + downloadDataMap.size());
 			if (changeCheckCount > 0) {
 				writer.println("changeCheck CPU ms: avg="
@@ -1670,11 +1716,19 @@ public class StartStopRulesDefaultPlugin
 			}
 
 			if (processCount > 0) {
+				writer.println("# process cycles: " + processCount);
+				
 				writer.println("process CPU ms: avg=" + (processTotalMS / processCount)
 						+ "; max = " + processMaxMS);
 				if (processCount > 1) {
 					writer.println("process avg gap: "
 							+ (processTotalGap / ((processCount - 1))) + "ms");
+				}
+				writer.println("Avg # recalcs per process cycle: "
+						+ (processTotalRecalcs / processCount));
+				if (processTotalZeroRecalcs > 0) {
+					writer.println("# process cycle with 0 recalcs: "
+							+ processTotalZeroRecalcs);
 				}
 			}
 
