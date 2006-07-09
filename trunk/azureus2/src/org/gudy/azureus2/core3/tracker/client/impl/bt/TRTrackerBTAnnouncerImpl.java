@@ -759,23 +759,10 @@ TRTrackerBTAnnouncerImpl
       
 					tracker_status_str = MessageText.getString("PeerManager.status.offline"); 
       		      
-					String	reason = response.getFailureReason();
-      		
-					if ( reason != null ){
-      			
-						tracker_status_str += " (" + reason + ")";		
-					}
 				}else if ( rs == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR ){
 
 					tracker_status_str = MessageText.getString("PeerManager.status.error"); 
 	      		      
-					String	reason = response.getFailureReason();
-      		
-					if ( reason != null ){
-      			
-						tracker_status_str += " (" + reason + ")";		
-					}
-			
 						// move state back to initialised to next time around a "started"
 						// event it resent. Required for trackers like 123torrents.com that
 						// will fail peers that don't start with a "started" event after a 
@@ -786,6 +773,12 @@ TRTrackerBTAnnouncerImpl
 				}else{
 	    	       	        	
 					tracker_status_str = MessageText.getString("PeerManager.status.ok"); //set the status      //$NON-NLS-1$
+				}
+
+				String	reason = response.getAdditionalInfo();
+    		
+				if ( reason != null ){
+					tracker_status_str += " (" + reason + ")";		
 				}
 				
 				last_response = response;
@@ -2459,25 +2452,37 @@ TRTrackerBTAnnouncerImpl
 
 						int incomplete = incomplete_l == null ? 0 : incomplete_l.intValue();
 
-						TRTrackerScraper scraper = TRTrackerScraperFactory.getSingleton();
+						if (complete < 0 || incomplete < 0) {
+							resp.setFailurReason(MessageText.getString(
+									"Tracker.announce.ignorePeerSeed",
+									new String[] { (complete < 0
+											? MessageText.getString("MyTorrentsView.seeds") + " == "
+													+ complete + ". " : "")
+											+ (incomplete < 0
+													? MessageText.getString("MyTorrentsView.peers")
+															+ " == " + incomplete + ". " : "") }));
+						} else {
 
-						if (scraper != null) {
-							TRTrackerScraperResponse scrapeResponse = scraper.scrape(this);
-							if (scrapeResponse != null) {
-								long lNextScrapeTime = scrapeResponse.getNextScrapeStartTime();
-								long lNewNextScrapeTime = TRTrackerScraperResponseImpl
-										.calcScrapeIntervalSecs(0, complete) * 1000;
+							TRTrackerScraper scraper = TRTrackerScraperFactory.getSingleton();
 
-								// make it look as if the scrape has just run. Important
-								// as seeding rules may make calculations on when the 
-								// scrape value were set
+							if (scraper != null) {
+								TRTrackerScraperResponse scrapeResponse = scraper.scrape(this);
+								if (scrapeResponse != null) {
+									long lNextScrapeTime = scrapeResponse.getNextScrapeStartTime();
+									long lNewNextScrapeTime = TRTrackerScraperResponseImpl.calcScrapeIntervalSecs(
+											0, complete) * 1000;
 
-								scrapeResponse.setScrapeStartTime(SystemTime.getCurrentTime());
+									// make it look as if the scrape has just run. Important
+									// as seeding rules may make calculations on when the 
+									// scrape value were set
 
-								if (lNextScrapeTime < lNewNextScrapeTime)
-									scrapeResponse.setNextScrapeStartTime(lNewNextScrapeTime);
+									scrapeResponse.setScrapeStartTime(SystemTime.getCurrentTime());
 
-								scrapeResponse.setSeedsPeers(complete, incomplete);
+									if (lNextScrapeTime < lNewNextScrapeTime)
+										scrapeResponse.setNextScrapeStartTime(lNewNextScrapeTime);
+
+									scrapeResponse.setSeedsPeers(complete, incomplete);
+								}
 							}
 						}
 					}
