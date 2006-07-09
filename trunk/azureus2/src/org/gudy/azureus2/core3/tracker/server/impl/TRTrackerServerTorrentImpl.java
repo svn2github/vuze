@@ -125,7 +125,7 @@ TRTrackerServerTorrentImpl
 		String		url_parameters,
 		String		event,
 		HashWrapper	peer_id,
-		int			port,
+		int			tcp_port,
 		int			udp_port,
 		byte		crypto_level,
 		String		ip_address,
@@ -207,7 +207,7 @@ TRTrackerServerTorrentImpl
 			
 			if ( peer == null ){
 				
-				String	reuse_key = new String( ip_address_bytes, Constants.BYTE_ENCODING ) + ":" + port;
+				String	reuse_key = new String( ip_address_bytes, Constants.BYTE_ENCODING ) + ":" + tcp_port;
 				
 				byte	last_NAT_status	= loopback?TRTrackerServerPeer.NAT_CHECK_OK:TRTrackerServerPeer.NAT_CHECK_UNKNOWN;
 				
@@ -271,7 +271,7 @@ TRTrackerServerTorrentImpl
 									tracker_key_hash_code, 
 									ip_address_bytes,
 									ip_override,
-									port,
+									tcp_port,
 									udp_port,
 									crypto_level,
 									last_contact_time,
@@ -322,13 +322,13 @@ TRTrackerServerTorrentImpl
 					byte[]	old_ip 		= peer.getIPAsRead();
 					int		old_port	= peer.getTCPPort();
 					
-					if ( peer.checkForIPOrPortChange( ip_address_bytes, port, udp_port, crypto_level )){
+					if ( peer.checkForIPOrPortChange( ip_address_bytes, tcp_port, udp_port, crypto_level )){
 						
 							// same peer id so same port
 						
 						String 	old_key = new String( old_ip, Constants.BYTE_ENCODING ) + ":" + old_port;
 						
-						String	new_key = new String(ip_address_bytes, Constants.BYTE_ENCODING ) + ":" + port;
+						String	new_key = new String( ip_address_bytes, Constants.BYTE_ENCODING ) + ":" + tcp_port;
 						
 							// it is possible, on address change, that the target address already exists and is
 							// (was) being used by another peer. Given that this peer has taken over its address

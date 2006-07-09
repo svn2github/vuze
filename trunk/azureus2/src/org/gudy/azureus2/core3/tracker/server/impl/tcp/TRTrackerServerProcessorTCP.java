@@ -251,7 +251,7 @@ TRTrackerServerProcessorTCP
 				List		hash_list	= null;
 				
 				HashWrapper	peer_id		= null;
-				int			port		= 0;
+				int			tcp_port	= 0;
 				String		event		= null;
 					
 				long		uploaded		= 0;
@@ -343,7 +343,7 @@ TRTrackerServerProcessorTCP
 						
 					}else if ( lhs.equals( "port" )){
 							
-						port = Integer.parseInt( rhs );
+						tcp_port = Integer.parseInt( rhs );
 						
 					}else if ( lhs.equals( "event" )){
 							
@@ -416,7 +416,7 @@ TRTrackerServerProcessorTCP
 					
 					if ( crypto_port != 0 ){
 						
-						port = crypto_port;
+						tcp_port = crypto_port;
 					}
 				}
 				
@@ -444,7 +444,7 @@ TRTrackerServerProcessorTCP
 							hashes,
 							peer_id, no_peer_id, compact_mode, key, 
 							event,
-							port, udp_port,
+							tcp_port&0xffff, udp_port&0xffff,
 							real_ip_address,
 							client_ip_address,
 							downloaded, uploaded, left,
@@ -461,7 +461,7 @@ TRTrackerServerProcessorTCP
 					
 					if ( post_process_peer == null ){
 						
-						post_process_peer = new lightweightPeer( client_ip_address, port, peer_id );
+						post_process_peer = new lightweightPeer( client_ip_address, tcp_port, peer_id );
 					}
 					
 					server.postProcess( post_process_peer, specific_torrent, request_type, str, root );
