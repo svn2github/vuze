@@ -61,6 +61,8 @@ DownloadManagerImpl
 	extends LogRelation
 	implements DownloadManager
 {
+	private final static long SCRAPE_DELAY_ERROR_TORRENTS = 1000 * 60 * 60 * 2;// 2 hrs
+	private final static long SCRAPE_DELAY_STOPPED_TORRENTS = 1000 * 60 * 60;  // 1 hr
 	
 	private static int	upload_when_busy_min_secs;
 	
@@ -1676,10 +1678,10 @@ DownloadManagerImpl
 
 		// this is called asynchronously when a response is received
 	  
-  	public void
-  	setTrackerScrapeResponse(
-  		TRTrackerScraperResponse	response )
-  	{
+ 	public void
+ 	setTrackerScrapeResponse(
+  	TRTrackerScraperResponse	response )
+ 	{
   			// this is a reasonable place to pick up the change in active url caused by this scrape
   			// response and update the torrent's url accordingly
 		
@@ -1692,18 +1694,24 @@ DownloadManagerImpl
 			torrent.setAnnounceURL( active_url );
 		}
 		
-			// big-time yuck here. GlobalManager used to only call this method if the response was valid
-			// so errors got lost. Due to the changes to setting the announce-url here (rather than in the
-			// "get" logic that was leading to recursive mayhem) I need to pick up the errors here to so 
-			// I dropped the GM condition. However, I'm a little worried about screwing up existing code
-			// that doesn't do sensible things with "invalid" responses, so I've added the test here
-			// for the moment...
-		
-		if ( response.isValid()){
-		
-			tracker_listeners.dispatch( LDT_TL_SCRAPERESULT, response );
+		if (response != null) {
+			if (response.isValid()) {
+				int state = getState();
+				if (state == STATE_ERROR || state == STATE_STOPPED) {
+					long minNextScrape = SystemTime.getCurrentTime()
+							+ (state == STATE_ERROR ? SCRAPE_DELAY_ERROR_TORRENTS
+									: SCRAPE_DELAY_STOPPED_TORRENTS);
+					if (response.getNextScrapeStartTime() < minNextScrape) {
+						response.setNextScrapeStartTime(minNextScrape);
+					}
+				}
+			}
+			
+			// Need to notify listeners, even if scrape result is not valid, in
+			// case they parse invalid scrapes 
+			tracker_listeners.dispatch(LDT_TL_SCRAPERESULT, response);
 		}
-  	}
+	}
   	
 	public TRTrackerScraperResponse 
 	getTrackerScrapeResponse() 
