@@ -46,6 +46,8 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
   /** TRTrackerScraperImpl object associated with this object.
    */
   private TRTrackerBTScraperImpl    scraper;
+
+	private long nextScrapeCheckOn;
     
   /** Initialize TrackerChecker.  
    *
@@ -160,7 +162,7 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
     
 	    	//System.out.println( "adding hash for " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
       
-	    	ts = new TrackerStatus(scraper.getScraper(),trackerUrl);
+	    	ts = new TrackerStatus(this, scraper.getScraper(),trackerUrl);
       
 	        trackers.put(url_str, ts);
 
@@ -329,6 +331,7 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
       	}
       	
       	try{ 
+      		nextScrapeCheckOn = SystemTime.getCurrentTime() + delay;
       		Thread.sleep(delay); 
       		
       	}catch(Exception e){
@@ -504,5 +507,9 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
 			
 			writer.exdent();
 		}
+	}
+	
+	public long getNextScrapeCheckOn() {
+		return nextScrapeCheckOn;
 	}
 }
