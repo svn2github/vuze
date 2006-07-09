@@ -278,25 +278,27 @@ public class TableCellImpl
     		debug("Setting SortValue to text;");
   	}
   	
-  	if (isInvisibleAndCanRefresh()) {
-  		if (bDebug) {
-  			debug("setText ignored: invisible");
-  		}
-  		return false;
-  	}
 
-		if (bDebug) {
-			debug("setText: " + text);
-		}
-  	
+// Slower than setText(..)!
+//  	if (isInvisibleAndCanRefresh()) {
+//  		if (bDebug) {
+//  			debug("setText ignored: invisible");
+//  		}
+//  		return false;
+//  	}
+
     if (bufferedTableItem.setText(text) && !bSortValueIsText)
     	bChanged = true;
+
+		if (bDebug) {
+			debug("setText (" + bChanged + ") : " + text);
+		}
 
   	return bChanged;
   }
   
   private boolean isInvisibleAndCanRefresh() {
-  	return !tableRow.isVisible()
+  	return !isShown()
 				&& (refreshListeners != null || tableColumn.hasCellRefreshListener());
   }
   
@@ -626,7 +628,7 @@ public class TableCellImpl
   	valid = false;
 
   	if (bDebug)
-  		debug("Invalidate Cell;" + bMustRefresh + "; Visible?" + tableRow.isVisible());
+  		debug("Invalidate Cell;" + bMustRefresh);
 
   	if (bMustRefresh)
   		this.bMustRefresh = true;
@@ -637,7 +639,7 @@ public class TableCellImpl
   }
   
   public void refresh(boolean bDoGraphics) {
-  	refresh(bDoGraphics, tableRow.isVisible());
+  	refresh(bDoGraphics, isShown());
   }
 
   private boolean bInRefresh = false;
@@ -645,8 +647,12 @@ public class TableCellImpl
     if (refreshErrLoopCount > 2)
       return;
     int iErrCount = tableColumn.getConsecutiveErrCount();
-    if (iErrCount > 10)
+    if (iErrCount > 10) {
+    	refreshErrLoopCount = 3;
       return;
+    }
+    
+    boolean bVisible = bRowVisible ? isShown() : false;
     
     if (bInRefresh) {
     	// Skip a Refresh call when being called from within refresh.
@@ -659,23 +665,24 @@ public class TableCellImpl
   	bInRefresh = true;
 
     // See bIsUpToDate variable comments
-    if (bRowVisible && !bIsUpToDate) {
+    if (bVisible && !bIsUpToDate) {
     	if (bDebug)
     		debug("Setting Invalid because visible & not up to date");
     	valid = false;
     	bIsUpToDate = true;
-    } else if (!bRowVisible && bIsUpToDate) {
+    } else if (!bVisible && bIsUpToDate) {
     	bIsUpToDate = false;
     }
 
     try {
-    	if (bDebug)
+    	if (bDebug) {
     		debug("Cell Valid?" + valid + "; Visible?" + tableRow.isVisible() + "/" + bufferedTableItem.isShown());
+    	}
       int iInterval = tableColumn.getRefreshInterval();
     	if (iInterval == TableColumnCore.INTERVAL_INVALID_ONLY && !valid
     			&& !bMustRefresh && bSortValueIsText && sortValue != null
 					&& tableColumn.getType() == TableColumnCore.TYPE_TEXT_ONLY) {
-    		if (bRowVisible) {
+    		if (bVisible) {
 	      	if (bDebug)
 	      		debug("fast refresh: setText");
 	    		setText((String)sortValue);
@@ -684,7 +691,7 @@ public class TableCellImpl
     	} else if ((iInterval == TableColumnCore.INTERVAL_LIVE ||
           (iInterval == TableColumnCore.INTERVAL_GRAPHIC && bDoGraphics) ||
           (iInterval > 0 && (loopFactor % iInterval) == 0) ||
-          !valid || bMustRefresh) && bufferedTableItem.isShown()) 
+          !valid || bMustRefresh)) 
       {
       	boolean bWasValid = isValid();
 
@@ -887,7 +894,9 @@ public class TableCellImpl
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				System.out.println(SystemTime.getCurrentTime() + ": r"
-						+ tableRow.getIndex() + "; " + s);
+						+ tableRow.getIndex() + "c" + tableColumn.getPosition()
+						+ "r.v?" + ((tableRow.isVisible() ? "Y":"N"))
+						+ ";" + s);
 			}
 		}, true);
 	}
