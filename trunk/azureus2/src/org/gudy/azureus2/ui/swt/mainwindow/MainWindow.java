@@ -165,7 +165,7 @@ MainWindow
 	    
 	    this.events = events;
 	    
-	    display.asyncExec(this);
+			display.asyncExec(this);
 	    
   	}catch( AzureusCoreException e ){
   		
@@ -206,6 +206,7 @@ MainWindow
   public void runSupport() {
     FormData formData;
     try{
+			globalManager.loadExistingTorrentsNow(null, true);
        
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
     
@@ -622,8 +623,6 @@ MainWindow
 			}
 		}
 
-		globalManager.loadExistingTorrentsNow(null, true);
-		
 		COConfigurationManager.addAndFireParameterListener("Show Download Basket",
 				this);
 
