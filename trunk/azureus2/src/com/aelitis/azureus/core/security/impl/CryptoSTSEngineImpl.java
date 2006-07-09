@@ -23,6 +23,9 @@
 package com.aelitis.azureus.core.security.impl;
 
 import java.nio.ByteBuffer;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -54,7 +57,7 @@ CryptoSTSEngineImpl
 	private PublicKey 	remotePubKey;
 	private byte[] 		sharedSecret;
 	
-	private JCEECDHKeyAgreement ecDH;
+	private InternalDH	ecDH;
 	
 	/**
 	 * 
@@ -75,7 +78,7 @@ CryptoSTSEngineImpl
 		ephemeralKeyPair = handler.createKeys();
 		
 		try{
-			ecDH = new JCEECDHKeyAgreement.DH();
+			ecDH = new InternalDH();
 			
 			//ecDH = KeyAgreement.getInstance("ECDH", "BC");
 			
@@ -399,6 +402,40 @@ CryptoSTSEngineImpl
 		}catch( Throwable e ){
 			
 			throw( new CryptoManagerException( "Failed to put byte[]", e ));
+		}
+	}
+	
+	class 
+	InternalDH 
+		extends JCEECDHKeyAgreement.DH
+	{
+			// we use this class to obtain compatability with BC
+		
+		public void
+		init(
+			Key		key )
+
+			throws InvalidKeyException, InvalidAlgorithmParameterException
+		{
+			engineInit( key, null );
+		}
+
+		public Key
+		doPhase(
+			Key		key,
+			boolean	lastPhase )
+
+			throws InvalidKeyException, IllegalStateException
+		{
+			return( engineDoPhase( key, lastPhase ));
+		}
+
+		public byte[] 
+		generateSecret() 
+		
+			throws IllegalStateException
+		{
+			return( engineGenerateSecret());
 		}
 	}
 }

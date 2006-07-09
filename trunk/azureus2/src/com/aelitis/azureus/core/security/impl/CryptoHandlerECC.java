@@ -23,16 +23,22 @@
 package com.aelitis.azureus.core.security.impl;
 
 import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.Signature;
+import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.KeySpec;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.interfaces.ECPrivateKey;
@@ -215,11 +221,11 @@ CryptoHandlerECC
 	 
 			IESParameterSpec param = new IESParameterSpec(ECIES_D, ECIES_E, 128);
 		
-			JCEIESCipher	cipher = new JCEIESCipher.ECIES();
+			InternalECIES	cipher = new InternalECIES();
 	
-			cipher.engineInit( Cipher.ENCRYPT_MODE, key_spec, param, null ); 
+			cipher.internalEngineInit( Cipher.ENCRYPT_MODE, key_spec, param, null ); 
 		
-			return( cipher.engineDoFinal(data, 0, data.length ));
+			return( cipher.internalEngineDoFinal(data, 0, data.length ));
 			
 		}catch( CryptoManagerException e ){
 			
@@ -267,11 +273,11 @@ CryptoHandlerECC
 	 	
 			IESParameterSpec param = new IESParameterSpec(ECIES_D, ECIES_E, 128);
 		
-			JCEIESCipher	cipher = new JCEIESCipher.ECIES();
+			InternalECIES	cipher = new InternalECIES();
 	
-			cipher.engineInit( Cipher.DECRYPT_MODE, key_spec, param, null ); 
+			cipher.internalEngineInit( Cipher.DECRYPT_MODE, key_spec, param, null ); 
 		
-			return( cipher.engineDoFinal(data, 0, data.length ));
+			return( cipher.internalEngineDoFinal(data, 0, data.length ));
 			
 		}catch( CryptoManagerException e ){
 			
@@ -706,4 +712,34 @@ CryptoHandlerECC
 			throw( new CryptoManagerException( "Failed to decode private key" ));
 		}
 	}	
+	
+	
+	class InternalECIES 
+		extends JCEIESCipher.ECIES
+	{
+			// we use this class to obtain compatability with BC
+
+		public void 
+		internalEngineInit(
+			int                     opmode,
+			Key                     key,
+			AlgorithmParameterSpec  params,
+			SecureRandom            random ) 
+		
+			throws InvalidKeyException, InvalidAlgorithmParameterException
+		{
+			engineInit(opmode, key, params, random);
+		}
+
+		protected byte[] 
+		internalEngineDoFinal(
+			byte[]  input,
+			int     inputOffset,
+			int     inputLen ) 
+		
+			throws IllegalBlockSizeException, BadPaddingException
+		{
+			return engineDoFinal(input, inputOffset, inputLen);
+		}
+	}
 }
