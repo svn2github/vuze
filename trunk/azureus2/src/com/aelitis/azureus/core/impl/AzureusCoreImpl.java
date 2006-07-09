@@ -298,7 +298,7 @@ AzureusCoreImpl
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Loading of Plugins complete"));
 
-		global_manager = GlobalManagerFactory.create(this);
+		global_manager = GlobalManagerFactory.create(this, 30000);
 
 		for (int i = 0; i < lifecycle_listeners.size(); i++) {
 

@@ -287,7 +287,8 @@ public class GlobalManagerImpl
 
   public 
   GlobalManagerImpl(final
-  		AzureusCoreListener listener)
+  		AzureusCoreListener listener,
+  		long existingTorrentLoadDelay)
   {
     //Debug.dumpThreadsLoop("Active threads");
   	
@@ -306,11 +307,14 @@ public class GlobalManagerImpl
     // Wait at least a few seconds before loading existing torrents.
     // typically the UI will call loadExistingTorrents before this runs
     // This is here in case the UI is stupid or forgets
-    loadTorrentsDelay = new DelayedEvent(10000, new AERunnable() {
-    	public void runSupport() {
-    		loadExistingTorrentsNow(listener, false); // already async
-    	}
-    });
+    if (existingTorrentLoadDelay > 0) {
+			loadTorrentsDelay = new DelayedEvent(existingTorrentLoadDelay,
+					new AERunnable() {
+						public void runSupport() {
+							loadExistingTorrentsNow(listener, false); // already async
+						}
+					});
+		}
 
     if (listener != null)
       listener.reportCurrentTask(MessageText.getString("splash.initializeGM"));
@@ -449,17 +453,19 @@ public class GlobalManagerImpl
 		if (listener != null)
 			listener.reportCurrentTask(MessageText.getString("splash.loadingTorrents"));
 
-		//System.out.println("load via " + Debug.getCompressedStackTrace());
+    final Map map = FileUtil.readResilientConfigFile("downloads.config");
+    
+		System.out.println(SystemTime.getCurrentTime() + ": load via " + Debug.getCompressedStackTrace());
 		if (async) {
 			AEThread thread = new AEThread("load torrents", true) {
 				public void runSupport() {
-					loadDownloads(listener);
+					loadDownloads(map, listener);
 				}
 			};
 			thread.setPriority(3);
 			thread.start();
 		} else {
-			loadDownloads(listener);
+			loadDownloads(map, listener);
 		}
 	}
 
@@ -1327,13 +1333,11 @@ public class GlobalManagerImpl
   
   
   
-  private void loadDownloads(AzureusCoreListener listener) 
+  private void loadDownloads(Map map, AzureusCoreListener listener) 
   {
   	int triggerOnCount = 2;
     ArrayList downloadsAdded = new ArrayList();
   	try{
-       Map map = FileUtil.readResilientConfigFile("downloads.config");
-      
       boolean debug = Boolean.getBoolean("debug");
  
       Iterator iter = null;
@@ -1435,7 +1439,10 @@ public class GlobalManagerImpl
 
 		  boolean	has_ever_been_started = seconds_downloading != null && seconds_downloading.longValue() > 0;
 		  
-      saved_download_manager_state.put( new HashWrapper(torrent_hash), mDownload );
+					if (torrent_hash != null) {
+						saved_download_manager_state.put(new HashWrapper(torrent_hash),
+								mDownload);
+					}
           
           	// for non-persistent downloads the state will be picked up if the download is re-added
           	// it won't get saved unless it is picked up, hence dead data is dropped as required
@@ -1517,6 +1524,7 @@ public class GlobalManagerImpl
   }
   
   private void triggerAddListener(List downloadsToAdd) {
+		System.out.println(SystemTime.getCurrentTime() + ": trigger " + downloadsToAdd.size());
 		try {
 			managers_mon.enter();
 			List listenersCopy = listeners.getListenersCopy();
@@ -1557,6 +1565,13 @@ public class GlobalManagerImpl
 	  
   	try{
   		managers_mon.enter();
+  		
+	    Collections.sort(managers_cow, new Comparator () {
+        public final int compare (Object a, Object b) {
+        	return ((DownloadManager) a).getPosition()
+							- ((DownloadManager) b).getPosition();
+        }
+      });
   	
       if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "Saving Download List ("

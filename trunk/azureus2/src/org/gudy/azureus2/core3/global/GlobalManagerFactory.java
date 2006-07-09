@@ -36,12 +36,26 @@ GlobalManagerFactory
 	create(
        AzureusCoreListener 	listener)
 	{
-		return( new GlobalManagerImpl( listener));
+		return( new GlobalManagerImpl( listener, 0 ));
 	}
   
 	public static GlobalManager
 	create()
 	{
-		return( new GlobalManagerImpl( null ));
+		return( new GlobalManagerImpl( null, 0 ));
+	}
+
+	public static GlobalManager
+	create(
+       AzureusCoreListener 	listener,
+       long existingTorrentLoadDelay)
+	{
+		return( new GlobalManagerImpl( listener, existingTorrentLoadDelay ));
+	}
+  
+	public static GlobalManager
+	create(long existingTorrentLoadDelay)
+	{
+		return( new GlobalManagerImpl( null, existingTorrentLoadDelay ));
 	}
 }
