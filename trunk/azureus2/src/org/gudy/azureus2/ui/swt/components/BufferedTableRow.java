@@ -472,7 +472,15 @@ BufferedTableRow
    * @return success level
    */
   public boolean setTableItem(int newIndex, boolean bCopyFromOld) {
-  	TableItem newRow = table.getItem(newIndex); 
+  	TableItem newRow;
+  	try {
+  		newRow = table.getItem(newIndex);
+  	} catch (Throwable e) {
+  		System.out.println("setTableItem(" + newIndex + ", " + bCopyFromOld + ")");
+  		e.printStackTrace();
+  		return false;
+  	}
+
   	if (newRow != null && !newRow.isDisposed()) {
   		// This is temporary for SWT 3212, because there are cases where
   		// it says it isn't disposed, when it really almost is
@@ -492,6 +500,10 @@ BufferedTableRow
   	}
 
   	if (newRow != null) {
+  		// this essentially disables the "SD" logic.  I don't think
+  		// we need it any more, so let's try..
+  		newRow.setData("SD", "1");
+
   		if (newRow.getParent() != table)
   			return false;
 
