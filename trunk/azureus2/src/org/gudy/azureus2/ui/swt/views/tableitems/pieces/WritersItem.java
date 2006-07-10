@@ -46,6 +46,7 @@ public class WritersItem
     PEPiece piece = (PEPiece)cell.getDataSource();
     String[] writers = piece.getWriters();
     StringBuffer sb = new StringBuffer();
+    int writer_count = 0;
 
     Map map = new HashMap();
     String last_writer = null;
@@ -62,9 +63,10 @@ public class WritersItem
 
         if (writers[i] != null) {
           String value = (String)map.get(writers[i]);
-          if (value == null)
+          if (value == null) {
             value = Integer.toString(i);
-          else
+            writers[writer_count++] = writers[i];
+          } else
             value += "," + i;
           map.put(writers[i], value);
         }
@@ -75,8 +77,8 @@ public class WritersItem
     if (end_range != 0)
       map.put(last_writer, (String)map.get(last_writer) + "-" + end_range);
 
-    for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
-			String writer =(String)iter.next();
+    for (int i = 0 ; i < writer_count ; i++) {
+			String writer = writers[i];
 			if (sb.length() != 0)
 				sb.append(";");
 			sb.append(writer);
