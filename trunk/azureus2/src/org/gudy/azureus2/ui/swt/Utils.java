@@ -847,5 +847,9 @@ public class Utils {
 		
 		return formData;
 	}
+	
+	public static int pixelsToPoint(int pixels, int dpi) {
+    return (pixels * 72) / dpi;
+	}
 }
 
