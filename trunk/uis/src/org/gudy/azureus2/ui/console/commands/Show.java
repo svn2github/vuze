@@ -443,31 +443,29 @@ public class Show extends IConsoleCommand {
 			out.println("  Not available");
 		
 		out.println("- Files Info -");
-		DiskManager dim = dm.getDiskManager();
-		if (dim != null) {
-			DiskManagerFileInfo files[] = dim.getFiles();
-			if (files != null) {
-				for (int i = 0; i < files.length; i++) {
-					out.print(((i < 9) ? "   " : "  ") + Integer.toString(i+1) + " (");
-					String tmp = ">";
-					if (files[i].isPriority())
-						tmp = "+";
-					if (files[i].isSkipped())
-						tmp = "!";
-					out.print(tmp + ") ");
-					if (files[i] != null) {
-						long fLen = files[i].getLength();
-						if (fLen > 0) {
-							DecimalFormat df = new DecimalFormat("000.0%");
-							out.print(df.format(files[i].getDownloaded() * 1.0 / fLen));
-							out.println("\t" + files[i].getFile(true).getName());
-						} else
-							out.println("Info not available.");
+		DiskManagerFileInfo files[] = dm.getDiskManagerFileInfo();
+		if (files != null) {
+			for (int i = 0; i < files.length; i++) {
+				out.print(((i < 9) ? "   " : "  ") + Integer.toString(i + 1)
+						+ " (");
+				String tmp = ">";
+				if (files[i].isPriority())
+					tmp = "+";
+				if (files[i].isSkipped())
+					tmp = "!";
+				out.print(tmp + ") ");
+				if (files[i] != null) {
+					long fLen = files[i].getLength();
+					if (fLen > 0) {
+						DecimalFormat df = new DecimalFormat("000.0%");
+						out.print(df.format(files[i].getDownloaded() * 1.0
+								/ fLen));
+						out.println("\t" + files[i].getFile(true).getName());
 					} else
 						out.println("Info not available.");
-				}
-			} else
-				out.println("  Info not available.");
+				} else
+					out.println("Info not available.");
+			}
 		} else
 			out.println("  Info not available.");
 		out.println("> -----");

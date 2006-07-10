@@ -22,11 +22,11 @@
 
 package org.gudy.azureus2.ui.console.commands;
 
+import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
-import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.console.ConsoleInput;
@@ -38,29 +38,47 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 public class Priority extends OptionsConsoleCommand {
 
 	public Priority() {
-		super(new String []{ "prio"} );
-		//getOptions().addOption(new Option("d", "delete", false, "delete the specified alias"));
+		super(new String []{ "prio" } );
 	}
 
 	public String getCommandDescriptions() {
-		//return "alias [-d] [aliasname] [arguments...]\tadd/modify/delete aliases. use with no argument to show existing aliases";
-		return "prio [#torrent] [#file|range(i.e. 1-2,5)|all] [normal|high|dnd]";
+		return "prio [#torrent] [#file|range(i.e. 1-2,5)|all] [normal|high|dnd|del]";
 	}
 
+	public void printHelp(PrintStream out, List args) {
+		out.println("> -----");
+		out.println("Usage: prio [torrent] [file(s)] [priority]");
+		out.println("Options:");
+		out.println("\t[torrent]\tThe torrent number from 'show torrents'");
+		out.println("\t[file(s)] is one of:");
+		out.println("\t\t\t#file:\tthe file number from 'show [#torrent]',");
+		out.println("\t\t\trange:\ta range of file numbers, i.e. 1-3 or 1-10,12-15 or 1,3,5-8 ,");
+		out.println("\t\t\tall:\t 'all' applies priority to all files of the torrent");
+		out.println("\t[priority] is one of:");
+		out.println("\t\t\tnormal\tNormal priority");
+		out.println("\t\t\thigh  \tHigh priority");
+		out.println("\t\t\tdnd   \tDo not download (skip)");
+		out.println("\t\t\tdel   \tDo not download & delete file");
+		out.println("> -----");
+	}
+	
 	private static final int NORMAL=1;
 	private static final int HIGH=2;
 	private static final int DONOTDOWNLOAD=3;
-	private static final String[] priostr = { "Normal", "High", "DoNotDownload" };
+	private static final int DELETE=4;
+	private static final String[] priostr = { "Normal", "High", "DoNotDownload", "Delete" };
 	
 	private int newprio;
 	
 	public void execute(String commandName, ConsoleInput console, CommandLine commandLine) {
 
 		String tnumstr, fnumstr, newpriostr;
+		int tnumber;
 		DiskManagerFileInfo[] files;
 		String[] sections;
 		List args = commandLine.getArgList();
 		LinkedList fs,fe;
+		DownloadManager dm;
 		
 		if( args.isEmpty() )
 		{
@@ -83,16 +101,17 @@ public class Priority extends OptionsConsoleCommand {
 		}
 		
 		try {
-			int tnumber = Integer.parseInt(tnumstr);
+			tnumber = Integer.parseInt(tnumstr);
 			if ((tnumber == 0) || (tnumber > console.torrents.size())) {
 				console.out.println("> Command 'prio': Torrent #" + tnumber + " unknown.");
 				return;
 			}
-			DownloadManager dm = (DownloadManager) console.torrents.get(tnumber - 1);
-			DiskManager diskm = dm.getDiskManager();
-			files = diskm.getFiles();
+
+			dm = (DownloadManager) console.torrents.get(tnumber - 1);
+			files = dm.getDiskManagerFileInfo();
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			console.out.println("> Command 'prio': Torrent # '" + tnumstr + "' unknown.");
 			return;
 		}
@@ -111,6 +130,8 @@ public class Priority extends OptionsConsoleCommand {
 			newprio = HIGH;
 		} else if (newpriostr.equalsIgnoreCase("dnd")) {
 			newprio = DONOTDOWNLOAD;
+		} else if (newpriostr.equalsIgnoreCase("del")) {
+			newprio = DELETE;
 		} else {
 			console.out.println("> Command 'prio': unknown priority "
 					+ newpriostr);
@@ -121,7 +142,7 @@ public class Priority extends OptionsConsoleCommand {
 			sections = new String[1];
 			sections[0] = "1-"+files.length;
 		} else
-			sections = fnumstr.split(" *, *");
+			sections = fnumstr.split(",");
 		
 		fs = new LinkedList();
 		fe = new LinkedList();
@@ -146,12 +167,23 @@ public class Priority extends OptionsConsoleCommand {
 				fs.add(new Integer(start - 1));
 				fe.add(new Integer(end - 1));
 			} catch (Exception e) {
-				console.out.println("> Command 'prio': File # '" + fnumstr
+				console.out.println("> Command 'prio': File # '" + sections[i]
 						+ "' unknown.");
 				return;
 			}
 		}
 		
+//		console.out.println("DM was " + dm.getState());
+		if ((newprio == DELETE) && (dm.getState() != DownloadManager.STATE_STOPPED)) {
+			try {
+				dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
+			} catch (Exception e) {
+				console.out.println("Failed to stop torrent " + tnumber);
+				return;
+			}
+		}
+		
+//		console.out.println("DM is " + dm.getState());
 		int nummod = 0;
 		while (fs.size() > 0) {
 			start = ((Integer) fs.removeFirst()).intValue();
@@ -169,9 +201,27 @@ public class Priority extends OptionsConsoleCommand {
 				} else if (newprio == DONOTDOWNLOAD) {
 					files[i].setPriority(false);
 					files[i].setSkipped(true);
+				} else if (newprio == DELETE) {
+					if (files[i].setStorageType(DiskManagerFileInfo.ST_COMPACT)) {
+						files[i].setPriority(false);
+						files[i].setSkipped(true);
+					} else {
+						console.out.println("> Command 'prio': Failed to delete file " + (i+1));
+						nummod--;
+					}
 				}
 			}
 		}
+		if ((newprio == DELETE) && (dm.getState() == DownloadManager.STATE_STOPPED)) {
+			try {
+				dm.stopIt( DownloadManager.STATE_QUEUED, false, false );
+			} catch (Exception e) {
+				console.out.println("Failed to restart torrent " + tnumber);
+				return;
+			}
+		}
+
+//		console.out.println("DM is again " + dm.getState());
 		
 		console.out.println(nummod + " file(s) priority set to " + priostr[newprio-1]);
 	}
