@@ -26,7 +26,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Table;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
@@ -144,6 +144,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
     Rectangle bounds = getBoundsForCanvas();
     //In case item isn't displayed bounds is null
     if (bounds == null || image == null || image.isDisposed()) {
+      //System.out.println(row.getIndex() + " nb");
       return;
     }
     
@@ -156,13 +157,17 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
     Rectangle imageBounds = image.getBounds();
     
     if (imageBounds.width <= 0 || imageBounds.height <= 0 || bounds.width <= 0
-				|| bounds.height <= 0)
+				|| bounds.height <= 0) {
+      //System.out.println(row.getIndex() + " < 0");
     	return;
+    }
 
     Rectangle tableBounds = table.getClientArea();
     if (bounds.y + bounds.height - tableBounds.y < table.getHeaderHeight()
 				|| bounds.y > tableBounds.height) {
-    	//System.out.println("doPnt#" + row.getIndex()+": "+String.valueOf(bounds.y + bounds.height)+"<"+tableBounds.y);
+//    	System.out.println("doPnt#" + row.getIndex() + ": "
+//					+ (bounds.y + bounds.height - tableBounds.y) + "<" + tableBounds.y
+//					+ " || " + bounds.y + " > " + tableBounds.height);
       return;
     }
     
@@ -221,8 +226,8 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
     if (clipping.y + clipping.height > iMaxY)
       clipping.height = iMaxY - clipping.y + 1;
 
-    //debugOut("doPaint() clipping="+clipping, false);
     if (clipping.width <= 0 || clipping.height <= 0) {
+      //System.out.println(row.getIndex() + " clipping="+clipping + ";" + iMinY + ";" + iMaxY + ";tca=" + tableBounds);
       return;
     }
 
@@ -251,22 +256,12 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
       }
     }
 
-    // Instead of using gc.setClipping, we calculate the source and dest bounds
-    // There are too many bugs in the SWT clipping code, and they differ from
-    // platform to platform, version to version
-    int width = Math.min(clipping.width, imageBounds.width);
-    int height = Math.min(clipping.height, imageBounds.height);
-    
-    try {
-	    gc.drawImage(image, clipping.x - bounds.x, clipping.y - bounds.y, width,
-					height, clipping.x, clipping.y, width, height);
-    } catch (Throwable t) {
-      System.err.println("doPnt#" + row.getIndex() + ":" + gc + ";"
-      		+ (ourGC ? "" : "!") + "ourGC;clp:" + gc.getClipping() + ";bnds:"
-      		+ bounds + ";imgBnds=" + imageBounds + ";ca=" + table.getClientArea()
-      		+ ";clp=" + clipping);
-    }
+    Point srcStart = new Point(clipping.x - bounds.x, clipping.y - bounds.y); 
+    Rectangle dstRect = new Rectangle(clipping.x, clipping.y, 
+    		imageBounds.width - srcStart.x, imageBounds.height - srcStart.y);
 
+    Utils.drawImage(gc, image, srcStart, dstRect, clipping, 0, 0, false);
+    
     if (ourGC) {
       gc.dispose();
     }

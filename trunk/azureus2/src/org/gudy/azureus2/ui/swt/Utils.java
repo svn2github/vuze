@@ -673,10 +673,14 @@ public class Utils {
 		if (!table.isVisible())
 			return -1;
 		
-		if (Constants.isOSX)
+		if (Constants.isOSX) {
+			// +1 to first calculation, since start row may only be partially 
+			// displayed.  This may result in cases where bottom is one beyond
+			// the visible area, but since getItem(Point) is so slow..
 			return Math.min(iTopIndex
 					+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / 
-							table.getItemHeight()), table.getItemCount() - 1);
+							table.getItemHeight()) + 1, table.getItemCount() - 1);
+		}
 
 		// getItem will return null if clientArea's height is smaller than
 		// header height.
@@ -850,6 +854,68 @@ public class Utils {
 	
 	public static int pixelsToPoint(int pixels, int dpi) {
     return (pixels * 72) / dpi;
+	}
+
+	public static boolean drawImage(GC gc, Image image, Rectangle dstRect,
+			Rectangle clipping, int hOffset, int vOffset, boolean clearArea)
+	{
+		return drawImage(gc, image, new Point(0, 0), dstRect, clipping, hOffset,
+				vOffset, clearArea);
+	}
+
+	public static boolean drawImage(GC gc, Image image, Rectangle dstRect,
+			Rectangle clipping, int hOffset, int vOffset)
+	{
+		return drawImage(gc, image, new Point(0, 0), dstRect, clipping, hOffset,
+				vOffset, false);
+	}
+
+	public static boolean drawImage(GC gc, Image image, Point srcStart,
+			Rectangle dstRect, Rectangle clipping, int hOffset, int vOffset,
+			boolean clearArea)
+	{
+		Rectangle srcRect;
+		Point dstAdj;
+
+		if (clipping == null) {
+			dstAdj = new Point(0, 0);
+			srcRect = new Rectangle(srcStart.x, srcStart.y, dstRect.width,
+					dstRect.height);
+		} else {
+			if (!dstRect.intersects(clipping)) {
+				return false;
+			}
+
+			dstAdj = new Point(Math.max(0, clipping.x - dstRect.x), Math.max(0,
+					clipping.y - dstRect.y));
+
+			srcRect = new Rectangle(0, 0, 0, 0);
+			srcRect.x = srcStart.x + dstAdj.x;
+			srcRect.y = srcStart.y + dstAdj.y;
+			srcRect.width = Math.min(dstRect.width - dstAdj.x, clipping.x
+					+ clipping.width - dstRect.x);
+			srcRect.height = Math.min(dstRect.height - dstAdj.y, clipping.y
+					+ clipping.height - dstRect.y);
+		}
+
+		if (!srcRect.isEmpty()) {
+			try {
+				if (clearArea) {
+					gc.fillRectangle(dstRect.x + dstAdj.x + hOffset, dstRect.y + dstAdj.y
+							+ vOffset, srcRect.width, srcRect.height);
+				}
+				gc.drawImage(image, srcRect.x, srcRect.y, srcRect.width,
+						srcRect.height, dstRect.x + dstAdj.x + hOffset, dstRect.y
+								+ dstAdj.y + vOffset, srcRect.width, srcRect.height);
+			} catch (Exception e) {
+				System.out.println("drawImage: " + e.getMessage() + ": " + image + ", " + srcRect
+						+ ", " + (dstRect.x + dstAdj.y + hOffset) + ","
+						+ (dstRect.y + dstAdj.y + vOffset) + "," + srcRect.width + ","
+						+ srcRect.height + "; imageBounds = " + image.getBounds());
+			}
+		}
+
+		return true;
 	}
 }
 
