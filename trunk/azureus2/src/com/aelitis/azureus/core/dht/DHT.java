@@ -180,6 +180,9 @@ DHT
 		boolean		full_wait );
 
 	public void
+	destroy();
+	
+	public void
 	setLogging(
 		boolean	on );
 

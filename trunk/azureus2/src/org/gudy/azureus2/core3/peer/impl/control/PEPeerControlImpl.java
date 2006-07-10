@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.peer.impl.control;
 
 
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -42,6 +43,9 @@ import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.control.*;
+import com.aelitis.azureus.core.peermanager.nat.PeerNATInitiator;
+import com.aelitis.azureus.core.peermanager.nat.PeerNATTraversalAdapter;
+import com.aelitis.azureus.core.peermanager.nat.PeerNATTraverser;
 import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.*;
 import com.aelitis.azureus.core.peermanager.unchoker.*;
@@ -59,7 +63,7 @@ import com.aelitis.azureus.core.peermanager.unchoker.*;
 public class 
 PEPeerControlImpl
 	extends LogRelation
-	implements 	PEPeerControl, ParameterListener, DiskManagerWriteRequestListener, PeerControlInstance,
+	implements 	PEPeerControl, ParameterListener, DiskManagerWriteRequestListener, PeerControlInstance, PeerNATInitiator,
 		DiskManagerCheckRequestListener, IPFilterListener
 {
 	private static final LogIDs LOGID = LogIDs.PEER;
@@ -145,6 +149,24 @@ PEPeerControlImpl
 	private long			last_eta;
 	private long			last_eta_calculation;
 	
+	private static final int UDP_FALLBACK_MAX			= 32;
+	private static final int MAX_UDP_TRAVERSAL_COUNT	= 3;
+	private static final int MAX_UDP_CONNECTIONS		= 10;
+	
+	private Map	udp_fallbacks = 
+		new LinkedHashMap(UDP_FALLBACK_MAX,0.75f,true)
+		{
+			protected boolean 
+			removeEldestEntry(
+		   		Map.Entry eldest) 
+			{
+				return size() > UDP_FALLBACK_MAX;
+			}
+		};	
+		
+	private int udp_traversal_count;
+		
+		
 	private final LimitedRateGroup upload_limited_rate_group = new LimitedRateGroup() {
 		public int getRateLimitBytesPerSecond() {
       		return adapter.getUploadRateLimitBytesPerSecond();
@@ -247,6 +269,8 @@ PEPeerControlImpl
 
 		checkFinished(true);
 
+		PeerNATTraverser.getSingleton().register( this );
+		
 		PeerControlSchedulerFactory.getSingleton().register(this);
 
 		lastNeededUndonePieceChange =Long.MIN_VALUE;
@@ -260,6 +284,8 @@ PEPeerControlImpl
 		is_running =false;
 
 		PeerControlSchedulerFactory.getSingleton().unregister(this);
+
+		PeerNATTraverser.getSingleton().unregister( this );
 
 		peer_database =null;
 
@@ -654,7 +680,7 @@ PEPeerControlImpl
 		}
 		
 		//start the connection
-		final PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, tcp_port, udp_port, use_tcp, require_crypto );
+		PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, tcp_port, udp_port, use_tcp, require_crypto );
 		
 		addToPeerTransports( real );
 		return null;
@@ -1694,6 +1720,14 @@ PEPeerControlImpl
 		try{
 			peer_transports_mon.enter();
 			
+				// if it is already disconnected (synchronous failure during connect
+				// for example) don't add it
+			
+			if ( peer.getPeerState() == PEPeer.DISCONNECTED ){
+				
+				return;
+			}
+			
 			if( peer_transports_cow.contains( peer ) ){
 				Debug.out( "Transport added twice" );
 				return;  //we do not want to close it
@@ -1737,18 +1771,24 @@ PEPeerControlImpl
 //	the peer calls this method itself in closeConnection() to notify this manager
 	public void peerConnectionClosed( PEPeerTransport peer, boolean connect_failed ) {
 		boolean	connection_found = false;
-		
-		if ( connect_failed && peer.isTCP() && peer.getUDPListenPort() != 0 ){
-		
-				// candidate for a fallback UDP connection attempt
 			
-			// System.out.println( "UDP candidate: " + peer.getIp() + ":" + peer.getUDPListenPort());
-		}
-		
-		
 		try{
 			peer_transports_mon.enter();
+		
+			int	udp_port = peer.getUDPListenPort();
 			
+			if ( connect_failed && peer.isTCP() && udp_port != 0 ){
+				
+					// candidate for a fallback UDP connection attempt
+							
+				String	ip = peer.getIp();
+				
+				String	key = ip + ":" + udp_port;
+				
+				udp_fallbacks.put( key, peer.getPeerItemIdentity());
+			}
+		
+	
 			if( peer_transports_cow.contains( peer )) {
 				
 				final ArrayList new_peer_transports = new ArrayList( peer_transports_cow );
@@ -2476,6 +2516,8 @@ PEPeerControlImpl
 			
 			int num_waiting_establishments = 0;
 			
+			int udp_connections = 0;
+			
 			for( int i=0; i < peer_transports.size(); i++ ) {
 				final PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
 				
@@ -2484,6 +2526,11 @@ PEPeerControlImpl
 				if( state == PEPeerTransport.CONNECTION_PENDING || state == PEPeerTransport.CONNECTION_CONNECTING ) {
 					num_waiting_establishments++;
 				}
+				
+				if ( !transport.isTCP()){
+					
+					udp_connections++;
+				}
 			}
 			
 			//pass from storage to connector
@@ -2491,7 +2538,7 @@ PEPeerControlImpl
 			
 			if( allowed < 0 || allowed > 1000 )  allowed = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
 			
-      if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
+			if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
 				final int free = getMaxConnections() / 20;  //leave 5%
 				allowed = allowed - free;
 			}
@@ -2503,52 +2550,58 @@ PEPeerControlImpl
 					num_waiting_establishments += wanted - allowed;
 				}
 				
-        //load stored peer-infos to be established
-        while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {        	
-        	if( peer_database == null || !is_running )  break;        	
-       
-        	final PeerItem item = peer_database.getNextOptimisticConnectPeer();
-        	
-        	if( item == null || !is_running )  break;
+				int	remaining = allowed;
+				
+				//load stored peer-infos to be established
+				while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {        	
+					if( peer_database == null || !is_running )  break;        	
 
-        	final PeerItem self = peer_database.getSelfPeer();
-        	if( self != null && self.equals( item ) ) {
-        		continue;
-        	}
-        	
-        	if( !isAlreadyConnected( item ) ) {
-        		final String source = PeerItem.convertSourceString( item.getSource() );
+					final PeerItem item = peer_database.getNextOptimisticConnectPeer();
 
-        		final boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
-        		
-        		if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), true, use_crypto ) == null) {
-        			num_waiting_establishments++;
-        		}
-        	}          
-        }
-      }
-    }
+					if( item == null || !is_running )  break;
+
+					final PeerItem self = peer_database.getSelfPeer();
+					if( self != null && self.equals( item ) ) {
+						continue;
+					}
+
+					if( !isAlreadyConnected( item ) ) {
+						final String source = PeerItem.convertSourceString( item.getSource() );
+
+						final boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
+
+						if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), true, use_crypto ) == null) {
+							num_waiting_establishments++;
+							remaining--;
+						}
+					}          
+				}
+				
+				if ( 	remaining > 0 &&
+						udp_connections < MAX_UDP_CONNECTIONS &&
+						num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ){
+					
+					doUDPConnectionChecks( remaining );
+				}
+			}
+		}
     
 		//every 5 seconds
 		if ( mainloop_loop_count % MAINLOOP_FIVE_SECOND_INTERVAL == 0 ) {
 			final ArrayList peer_transports = peer_transports_cow;
-			
+
 			for( int i=0; i < peer_transports.size(); i++ ) {
 				final PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
-				
+
 				//check for timeouts
 				if( transport.doTimeoutChecks() )  continue;
-				
+
 				//keep-alive check
 				transport.doKeepAliveCheck();
-				
+
 				//speed tuning check
 				transport.doPerformanceTuningCheck();
 			}
-			
-			//update storage capacity
-			int allowed = getMaxNewConnectionsAllowed();
-			if( allowed == -1 )  allowed = 100;
 		}
 		
 		// every 10 seconds check for connected + banned peers
@@ -2583,6 +2636,88 @@ PEPeerControlImpl
 		}
 	}
     
+	private void
+	doUDPConnectionChecks(
+		int		number )
+	{
+		try{
+			peer_transports_mon.enter();
+			
+			if ( udp_fallbacks.size() == 0 ){
+				
+				return;
+			}
+			
+			int	avail = MAX_UDP_TRAVERSAL_COUNT - udp_traversal_count;
+			
+			int	to_do = Math.min( number, avail );
+
+			Iterator	it = udp_fallbacks.values().iterator();
+		
+			while( to_do > 0 && it.hasNext()){
+			
+				to_do--;
+				
+				final PeerItem	peer_item = (PeerItem)it.next();
+			
+				it.remove();
+			
+				PeerNATTraverser.getSingleton().create(
+						this,
+						new InetSocketAddress( peer_item.getAddressString(), peer_item.getUDPPort() ),
+						new PeerNATTraversalAdapter()
+						{
+							private boolean	done;
+							
+							public void
+							success(
+								InetSocketAddress	target )
+							{
+								complete();
+								
+								makeNewOutgoingConnection( 
+										PeerItem.convertSourceString(peer_item.getSource()),
+										target.getAddress().getHostAddress(),
+										peer_item.getTCPPort(),
+										target.getPort(),
+										false,
+										true );
+							}
+							
+							public void
+							failed()
+							{
+								complete();
+							}
+						
+							protected void
+							complete()
+							{
+								try{
+									peer_transports_mon.enter();
+
+									if ( !done ){
+									
+										done = true;
+										
+										udp_traversal_count--;
+									}
+									
+								}finally{
+									
+									peer_transports_mon.exit();
+								}
+							}
+						});
+				
+				udp_traversal_count++;
+			}
+		}finally{
+			
+			peer_transports_mon.exit();
+		}
+	}
+	
     public boolean doOptimisticDisconnect()
     {
 		final ArrayList peer_transports = peer_transports_cow;

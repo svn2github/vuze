@@ -553,6 +553,19 @@ Test
 							
 							e.printStackTrace();
 						}
+					}else if ( command == 'q' ){
+						
+						try{
+							int	index = Integer.parseInt( rhs );
+					
+							dht = dhts[index];
+	
+							dht.destroy();
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
 					}else if ( command == 't' ){
 						
 						try{
@@ -761,7 +774,11 @@ Test
 							
 							DHTNATPuncherImpl	puncher = (DHTNATPuncherImpl)dhts[0].getNATPuncher();
 
-							Map client_data = puncher.punch( dhts[2].getTransport().getLocalContact());
+							Map	originator_data = new HashMap();
+							
+							originator_data.put( "hello", "mum" );
+							
+							Map client_data = puncher.punch( dhts[2].getTransport().getLocalContact(), originator_data);
 							
 							System.out.println( "   punch client data: " + client_data );
 						}
@@ -1054,8 +1071,12 @@ Test
 	*/
 	
 	public Map
-	getClientData()
+	getClientData(
+		InetSocketAddress	originator,
+		Map					originator_data )
 	{
+		System.out.println( "getClientData - " + originator_data + "/" + originator );
+
 		Map	res = new HashMap();
 		
 		res.put( "udp_data_port", new Long( 1234 ));

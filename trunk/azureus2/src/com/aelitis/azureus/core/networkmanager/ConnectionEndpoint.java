@@ -94,7 +94,23 @@ ConnectionEndpoint
 		byte[] 				shared_secret,
 		ConnectListener 	listener )
 	{
-		final Transport transport = protocols[0].connectOutbound( connect_with_crypto, allow_fallback, shared_secret, listener );
+		ProtocolEndpoint	protocol = protocols[0];
+		
+		final Transport transport;
+		
+		if ( 	NetworkManager.TCP_OUTGOING_DISABLE && 
+				protocol.getType() == ProtocolEndpoint.PROTOCOL_TCP ){
+			
+			listener.connectAttemptStarted();
+			
+			listener.connectFailure( new Exception( "TCP outbound disabled" ));
+			
+			transport = null;
+			
+		}else{
+			
+			transport = protocol.connectOutbound( connect_with_crypto, allow_fallback, shared_secret, listener );
+		}
 		
 		return( 
 			new ConnectionAttempt()
@@ -102,7 +118,10 @@ ConnectionEndpoint
 				public void 
 				abandon() 
 				{
-					transport.close( "Connection attempt abandoned" );
+					if ( transport != null ){
+						
+						transport.close( "Connection attempt abandoned" );
+					}
 				}
 			});
 	}  

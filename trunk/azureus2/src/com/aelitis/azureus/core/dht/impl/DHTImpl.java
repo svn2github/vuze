@@ -288,6 +288,12 @@ DHTImpl
 	}
 	
 	public void
+	destroy()
+	{
+		nat_puncher.destroy();
+	}
+	
+	public void
 	exportState(
 		DataOutputStream	os,
 		int					max )

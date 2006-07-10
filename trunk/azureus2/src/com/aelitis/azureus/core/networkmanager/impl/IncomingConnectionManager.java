@@ -253,6 +253,19 @@ IncomingConnectionManager
 		    return;
 		}
 		 
+		if ( NetworkManager.TCP_INCOMING_DISABLE ) {
+			
+			if ( Logger.isEnabled()){
+			
+		    	Logger.log(new LogEvent(LOGID, "Incoming TCP connection from [" + transport_helper.getAddress() +
+		    				 "] dropped disabled for testing"));
+			}
+			
+			transport_helper.close( "TCP incoming disabled" );
+		      
+		    return;
+		}
+		 
 	   	// note that the filter may have some data internally queued in it after the crypto handshake decode
 		// (in particular the BT header). However, there should be some data right behind it that will trigger
 		// a read-select below, thus giving prompt access to the queued data

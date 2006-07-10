@@ -299,8 +299,12 @@ Test
 	}
 	
 	public Map
-	getClientData()
+	getClientData(
+		InetSocketAddress	originator,
+		Map					originator_data )
 	{
+		System.out.println( "getClientData - " + originator_data + "/" + originator );	
+
 		Map	res = new HashMap();
 		
 		res.put( "udp_data_port", new Long( 1234 ));

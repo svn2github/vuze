@@ -157,7 +157,16 @@ public class ConfigSectionConnectionEncryption implements UISWTConfigSection {
 		gridData.horizontalSpan = 2;
 		fallback_incoming.setLayoutData(gridData);
 		
-		Control[] encryption_controls = {	min_level.getControl(), lmin, lcryptofb, fallback_outgoing.getControl(), fallback_incoming.getControl() };
+		BooleanParameter use_crypto_port = new BooleanParameter(gCrypto, "network.transport.encrypted.use.crypto.port", false, CFG_PREFIX + "use_crypto_port");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		use_crypto_port.setLayoutData(gridData);
+
+		fallback_incoming.setAdditionalActionPerformer(
+				new ChangeSelectionActionPerformer(
+						use_crypto_port.getControls(), true ));
+		
+		Control[] encryption_controls = {	min_level.getControl(), lmin, lcryptofb, fallback_outgoing.getControl(), fallback_incoming.getControl(), use_crypto_port.getControl() };
 		require.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(encryption_controls));
 		
 		///////////////////////   

@@ -232,6 +232,15 @@ ThreadPool
 		}
 	}
 	
+	public int
+	getQueueSize()
+	{
+		synchronized( this ){
+			
+			return( task_queue.size());
+		}
+	}
+	
 	public boolean
 	isQueued(
 		AERunnable	task )

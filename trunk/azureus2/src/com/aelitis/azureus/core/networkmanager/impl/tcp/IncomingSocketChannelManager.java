@@ -51,9 +51,7 @@ public class IncomingSocketChannelManager
   private int tcp_listen_port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
   private int so_rcvbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
   private String bind_address = COConfigurationManager.getStringParameter( "Bind IP" );
-  
-  private long last_timeout_check_time = SystemTime.getCurrentTime();
-  
+    
   private VirtualServerChannelSelector server_selector = null;
   
   private IncomingConnectionManager	incoming_manager = IncomingConnectionManager.getSingleton();

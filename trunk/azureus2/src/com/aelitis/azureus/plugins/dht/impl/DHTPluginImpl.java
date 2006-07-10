@@ -988,6 +988,8 @@ outer:
 	closedownInitiated()
 	{
 		storage_manager.exportContacts( dht );
+		
+		dht.destroy();
 	}
 
 	public boolean

@@ -49,12 +49,13 @@ import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerFactory;
+import com.aelitis.azureus.core.nat.NATTraverser;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.download.session.TorrentSessionManager;
+import com.aelitis.azureus.core.peermanager.nat.PeerNATTraverser;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
-import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerFactory;
@@ -70,7 +71,7 @@ public class
 AzureusCoreImpl 
 	implements 	AzureusCore, AzureusCoreListener
 {
-  private final static LogIDs LOGID = LogIDs.CORE;
+	private final static LogIDs LOGID = LogIDs.CORE;
 	protected static AzureusCore		singleton;
 	protected static AEMonitor			class_mon	= new AEMonitor( "AzureusCore:class" );
 	
@@ -121,6 +122,7 @@ AzureusCoreImpl
 	private AZInstanceManager	instance_manager;
 	private SpeedManager		speed_manager;
 	private CryptoManager		crypto_manager;
+	private NATTraverser		nat_traverser;
 	
 	private boolean				started;
 	private boolean				stopped;
@@ -172,7 +174,7 @@ AzureusCoreImpl
 		
 		PeerManager.getSingleton();
         
-        TorrentSessionManager.getSingleton().init();
+	    TorrentSessionManager.getSingleton().init();
     
 		pi = PluginInitializer.getSingleton(this,this);
 		
@@ -255,6 +257,10 @@ AzureusCoreImpl
 							}
 						}
 					});
+		
+		nat_traverser = new NATTraverser( this );
+		
+		PeerNATTraverser.initialise( this );
 	}
 	
 	public LocaleUtil
@@ -854,6 +860,12 @@ AzureusCoreImpl
 	getCryptoManager()
 	{
 		return( crypto_manager );
+	}
+	
+	public NATTraverser
+	getNATTraverser()
+	{
+		return( nat_traverser );
 	}
 	
 	public void 

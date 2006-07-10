@@ -51,6 +51,7 @@ import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
 
@@ -145,20 +146,7 @@ DHTPlugin
 	
 	private List				listeners	= new ArrayList();
 	
-	private DHTNATPuncherAdapter	nat_adapter = 
-		new DHTNATPuncherAdapter()
-		{
-			public Map
-			getClientData()
-			{
-				Map	res = new HashMap();
-				
-				res.put( "udp_data_port", new Long( UDPNetworkManager.getSingleton().getUDPListeningPortNumber()));
-				res.put( "tcp_data_port", new Long( TCPNetworkManager.getSingleton().getTCPListeningPortNumber()));
-				
-				return( res );
-			}
-		};
+
 		
 	public void
 	initialize(
@@ -372,7 +360,11 @@ DHTPlugin
 
 											}else if ( lhs.equals( "punch" )){
 
-												dht.getNATPuncher().punch( transport.getLocalContact());
+												Map	originator_data = new HashMap();
+												
+												originator_data.put( "hello", "mum" );
+
+												dht.getNATPuncher().punch( transport.getLocalContact(), originator_data );
 												
 											}else if ( lhs.equals( "stats" )){
 												
@@ -757,7 +749,7 @@ DHTPlugin
 								
 								DHTPluginImpl plug = new DHTPluginImpl(
 												plugin_interface,
-												nat_adapter,
+												AzureusCoreFactory.getSingleton().getNATTraverser(),
 												DHTTransportUDP.PROTOCOL_VERSION_MAIN,
 												DHT.NW_MAIN,
 												override_ip,
@@ -773,7 +765,7 @@ DHTPlugin
 								
 								plugins.add( new DHTPluginImpl(
 										plugin_interface,
-										nat_adapter,
+										AzureusCoreFactory.getSingleton().getNATTraverser(),
 										DHTTransportUDP.PROTOCOL_VERSION_CVS,
 										DHT.NW_CVS,
 										override_ip,

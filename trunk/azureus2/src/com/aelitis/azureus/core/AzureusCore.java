@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.plugins.*;
 
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
+import com.aelitis.azureus.core.nat.NATTraverser;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 
@@ -130,6 +131,9 @@ AzureusCore
 	
 	public CryptoManager
 	getCryptoManager();
+	
+	public NATTraverser
+	getNATTraverser();
 	
 	public void
 	addLifecycleListener(

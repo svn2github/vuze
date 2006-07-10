@@ -43,6 +43,10 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  *
  */
 public class NetworkManager {
+	
+  public static final boolean TCP_INCOMING_DISABLE	= false;	// for testing !!!!
+  public static final boolean TCP_OUTGOING_DISABLE	= false;	// for testing !!!!
+  
   public static final int UNLIMITED_RATE = 1024 * 1024 * 100; //100 mbyte/s
   
   private static final NetworkManager instance = new NetworkManager();

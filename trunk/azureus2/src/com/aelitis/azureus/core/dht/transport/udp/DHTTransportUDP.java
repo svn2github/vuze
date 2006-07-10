@@ -80,7 +80,7 @@ DHTTransportUDP
 
 	public static final byte VENDOR_ID_ME			= VENDOR_ID_AELITIS;
 
-	public DHTTransportContact
+	public DHTTransportUDPContact
 	importContact(
 		InetSocketAddress	address,
 		byte				protocol_version )

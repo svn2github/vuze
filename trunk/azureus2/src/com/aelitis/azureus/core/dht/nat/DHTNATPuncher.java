@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.dht.nat;
 
+import java.net.InetSocketAddress;
 import java.util.Map;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -31,6 +32,9 @@ DHTNATPuncher
 {
 	public void
 	start();
+	
+	public void
+	destroy();
 	
 		/**
 		 * We're trying to run a rendezvous
@@ -50,7 +54,20 @@ DHTNATPuncher
 	
 	public Map
 	punch(
-		DHTTransportContact	target );
+		DHTTransportContact	target,
+		Map					client_data );
+	
+		/**
+		 * 
+		 * @param target		input/output parameter for target of traversal
+		 * @param client_data
+		 * @return
+		 */
+	
+	public Map
+	punch(
+		InetSocketAddress[]	target,
+		Map					client_data );
 	
 		/**
 		 * @param target

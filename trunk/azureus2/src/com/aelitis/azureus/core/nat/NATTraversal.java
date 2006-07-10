@@ -1,5 +1,5 @@
 /*
- * Created on 04-Jun-2006
+ * Created on 10 Jul 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -20,16 +20,14 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.nat;
-
-import java.net.InetSocketAddress;
-import java.util.Map;
+package com.aelitis.azureus.core.nat;
 
 public interface 
-DHTNATPuncherAdapter 
+NATTraversal 
 {
-	public Map
-	getClientData(
-		InetSocketAddress	originator,
-		Map					originator_client_data );
+	public void
+	cancel();
+	
+	public boolean
+	isCancelled();
 }

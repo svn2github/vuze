@@ -390,7 +390,9 @@ TRTrackerBTAnnouncerImpl
 			port += "&supportcrypto=1"; 
   		}
  		  
- 		if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE && !NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED ){
+ 		if ( 	NetworkManager.REQUIRE_CRYPTO_HANDSHAKE &&
+ 				(!NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED) &&
+ 				COConfigurationManager.getBooleanParameter( "network.transport.encrypted.use.crypto.port" )){
  			
  			port += "&port=0&cryptoport=" + tcp_port_num;
  			

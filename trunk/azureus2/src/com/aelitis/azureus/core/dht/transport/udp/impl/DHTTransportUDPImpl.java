@@ -900,7 +900,7 @@ DHTTransportUDPImpl
 		return( contact );
 	}
 	
-	public DHTTransportContact
+	public DHTTransportUDPContact
 	importContact(
 		InetSocketAddress	_address,
 		byte				_protocol_version )
