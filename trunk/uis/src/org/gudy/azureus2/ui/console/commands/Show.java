@@ -315,7 +315,7 @@ public class Show extends IConsoleCommand {
 			case 'p':
 				return Integer.toString(dm.getNbPeers());	
 			case 'v':
-				return Integer.toString(dm.getStats().getMaxUploads());
+				return Integer.toString(dm.getMaxUploads());
 			case 'I':
 				int downloadSpeed = dm.getStats().getDownloadRateLimitBytesPerSecond();
 				if( downloadSpeed <= 0 )

@@ -165,7 +165,7 @@ public class Hack extends TorrentCommand
 				return false;
 			}
 			int newSlots = Math.max(-1, Integer.parseInt((String) args.get(0)));
-			dm.getStats().setMaxUploads(newSlots);
+			dm.setMaxUploads(newSlots);
 			return true;
 		}
 	}
