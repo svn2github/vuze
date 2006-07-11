@@ -37,6 +37,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -64,7 +65,9 @@ public class Utils {
 
 	private static final boolean DIRECT_SETCHECKED = !Constants.isOSX
 			|| SWT.getVersion() >= 3212;
-  
+
+	public static final boolean SWT32 = SWT.getVersion() >= 3200;
+			
   public static void disposeComposite(Composite composite,boolean disposeSelf) {
     if(composite == null || composite.isDisposed())
       return;
@@ -916,6 +919,26 @@ public class Utils {
 		}
 
 		return true;
+	}
+
+	/**
+	 * @param area
+	 * @param event id
+	 * @param listener
+	 */
+	public static void addListenerAndChildren(Composite area, int event,
+			Listener listener)
+	{
+		area.addListener(event, listener);
+		Control[] children = area.getChildren();
+		for (int i = 0; i < children.length; i++) {
+			Control child = children[i];
+			if (child instanceof Composite) {
+				addListenerAndChildren((Composite)child, event, listener);
+			} else {
+				child.addListener(event, listener);
+			}
+		}
 	}
 }
 
