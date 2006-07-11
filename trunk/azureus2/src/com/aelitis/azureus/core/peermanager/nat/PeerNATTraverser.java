@@ -88,7 +88,7 @@ PeerNATTraverser
 	{
 		nat_traverser = core.getNATTraverser();
 		
-		nat_traverser.registerHandler( NATTraverser.TRAVERSE_REASON_PEER_DATA, this );
+		nat_traverser.registerHandler( this );
 		
 		SimpleTimer.addPeriodicEvent(
 			TIMER_PERIOD,
@@ -156,6 +156,18 @@ PeerNATTraverser
 					}	
 				}
 			});
+	}
+	
+	public int
+	getType()
+	{
+		return(  NATTraverser.TRAVERSE_REASON_PEER_DATA );
+	}
+	
+	public String
+	getName()
+	{
+		return( "Peer Traversal" );
 	}
 	
 	public void
@@ -332,11 +344,11 @@ PeerNATTraverser
 					
 					traversal = 
 						nat_traverser.attemptTraversal(
-							 NATTraverser.TRAVERSE_REASON_PEER_DATA,
-							 target,
-							 null,
-							 false,
-							 this );
+							PeerNATTraverser.this,
+							target,
+							null,
+							false,
+							this );
 				}
 			}
 		}

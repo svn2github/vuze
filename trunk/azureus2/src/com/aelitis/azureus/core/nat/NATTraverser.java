@@ -35,8 +35,6 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
-import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 public class 
@@ -63,18 +61,17 @@ NATTraverser
 	
 	public void
 	registerHandler(
-		int						type,
 		NATTraversalHandler		handler )
 	{
 		synchronized( handlers ){
 			
-			handlers.put( new Integer(type), handler );
+			handlers.put( new Integer(handler.getType()), handler );
 		}
 	}
 	
 	public NATTraversal
 	attemptTraversal(
-		final int						type,
+		final NATTraversalHandler		handler,
 		final InetSocketAddress			target,
 		final Map						request,
 		boolean							sync,
@@ -100,7 +97,7 @@ NATTraverser
 			
 		if ( sync ){
 			
-			syncTraverse( type, target, request, listener );
+			syncTraverse( handler, target, request, listener );
 			
 		}else{
 			
@@ -124,7 +121,7 @@ NATTraverser
 								
 							}else{
 								
-								syncTraverse( type, target, request, listener );
+								syncTraverse( handler, target, request, listener );
 							}
 						}
 					});
@@ -136,12 +133,13 @@ NATTraverser
 	
 	protected void
 	syncTraverse(
-		int						type,
+		NATTraversalHandler		handler,
 		InetSocketAddress		target,
 		Map						request,
 		NATTraversalObserver	listener )
 	{
 		try{
+			int	type = handler.getType();
 			
 			synchronized( this ){
 				
@@ -180,7 +178,7 @@ NATTraverser
 			
 			InetSocketAddress[]	target_a = { target };
 			
-			Map	reply = puncher.punch( target_a, request );
+			Map	reply = puncher.punch( handler.getName(), target_a, request );
 			
 			if ( reply == null ){
 				

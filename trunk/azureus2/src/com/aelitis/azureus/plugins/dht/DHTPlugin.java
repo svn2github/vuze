@@ -364,7 +364,7 @@ DHTPlugin
 												
 												originator_data.put( "hello", "mum" );
 
-												dht.getNATPuncher().punch( transport.getLocalContact(), originator_data );
+												dht.getNATPuncher().punch( "Test", transport.getLocalContact(), originator_data );
 												
 											}else if ( lhs.equals( "stats" )){
 												

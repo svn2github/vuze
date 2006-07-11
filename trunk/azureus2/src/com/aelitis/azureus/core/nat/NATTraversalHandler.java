@@ -28,6 +28,12 @@ import java.util.Map;
 public interface
 NATTraversalHandler 
 {
+	public int
+	getType();
+	
+	public String
+	getName();
+	
 	public Map
 	process(
 		InetSocketAddress	originator,

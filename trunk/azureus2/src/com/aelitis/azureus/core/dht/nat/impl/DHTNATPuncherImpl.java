@@ -1760,6 +1760,7 @@ DHTNATPuncherImpl
 	
 	public Map
 	punch(
+		String				reason,
 		InetSocketAddress[]	target,
 		Map					originator_client_data )
 	{
@@ -1768,7 +1769,7 @@ DHTNATPuncherImpl
 
 			DHTTransportUDPContact contact = transport.importContact( target[0], transport.getProtocolVersion());
 			
-			Map	result = punch( contact, originator_client_data );
+			Map	result = punch( reason, contact, originator_client_data );
 			
 			target[0] = contact.getTransportAddress();
 			
@@ -1784,13 +1785,14 @@ DHTNATPuncherImpl
 	
 	public Map
 	punch(
+		String				reason,
 		DHTTransportContact	_target,
 		Map					originator_client_data )
 	{
 		DHTTransportUDPContact	target = (DHTTransportUDPContact)_target;
 		
 		try{
-			DHTTransportContact rendezvous = getRendezvous( target );
+			DHTTransportContact rendezvous = getRendezvous( reason, target );
 			
 			if ( rendezvous == null ){
 				
@@ -1831,6 +1833,7 @@ DHTNATPuncherImpl
 	
 	protected DHTTransportContact
 	getRendezvous(
+		String				reason,
 		DHTTransportContact	target )
 	{
 		DHTTransportContact	explicit = (DHTTransportContact)explicit_rendezvous_map.get( target.getAddress());
@@ -1847,7 +1850,7 @@ DHTNATPuncherImpl
 		final Semaphore sem = plugin_interface.getUtilities().getSemaphore();
 		
 		dht.get( 	key, 
-					"DHTNatPuncher: lookup for '" + target.getString() + "'",
+					reason + ": lookup for '" + target.getString() + "'",
 					(byte)0,
 					1,
 					RENDEZVOUS_LOOKUP_TIMEOUT,

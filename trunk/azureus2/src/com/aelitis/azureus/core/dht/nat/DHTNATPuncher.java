@@ -54,6 +54,7 @@ DHTNATPuncher
 	
 	public Map
 	punch(
+		String				reason,
 		DHTTransportContact	target,
 		Map					client_data );
 	
@@ -66,6 +67,7 @@ DHTNATPuncher
 	
 	public Map
 	punch(
+		String				reason,
 		InetSocketAddress[]	target,
 		Map					client_data );
 	
