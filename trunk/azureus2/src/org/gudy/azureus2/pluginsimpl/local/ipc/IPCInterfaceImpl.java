@@ -24,7 +24,6 @@ package org.gudy.azureus2.pluginsimpl.local.ipc;
 
 import java.lang.reflect.Method;
 
-import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
@@ -35,10 +34,10 @@ import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 public class IPCInterfaceImpl implements IPCInterface {
 
-	Plugin target;
+	Object target;
 
 
-	public IPCInterfaceImpl ( Plugin _target ) {
+	public IPCInterfaceImpl ( Object _target ) {
 		target = _target;
 	}
 

@@ -23,6 +23,8 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.Random;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 
@@ -78,8 +80,10 @@ public class RandomUtils {
 	public static int 
 	generateRandomNetworkListenPort() 
 	{
-		int	existing_tcp	= TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
-		int existing_udp	= UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
+			// DON'T use NetworkManager methods to get the ports here else startup can hang
+		
+		int	existing_tcp	= COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+		int existing_udp	= COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
 		
 		while( true ){
 			int min 	= LISTEN_PORT_MIN;
