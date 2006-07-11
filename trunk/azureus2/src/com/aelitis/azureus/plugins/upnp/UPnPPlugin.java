@@ -77,6 +77,8 @@ UPnPPlugin
 	private NatPMPUPnP	nat_pmp_upnp;
 	
 	private BooleanParameter	natpmp_enable_param;
+	private StringParameter		nat_pmp_router;
+	
 	private BooleanParameter 	upnp_enable_param;
 	
 	private BooleanParameter	alert_success_param;
@@ -170,6 +172,8 @@ UPnPPlugin
 		natpmp_enable_param = 
 			natpmp_config.addBooleanParameter2( "natpmp.enable", "natpmp.enable", false );
 		
+		nat_pmp_router = 	natpmp_config.addStringParameter2( "natpmp.routeraddress", "natpmp.routeraddress", "" );
+		
 		natpmp_enable_param.addListener(
 			new ParameterListener()
 			{
@@ -180,6 +184,8 @@ UPnPPlugin
 					setNATPMPEnableState();
 				}
 			});
+		
+		natpmp_enable_param.addEnabledOnSelection( nat_pmp_router );
 		
 			// UPNP
 		
@@ -1184,6 +1190,12 @@ UPnPPlugin
 							NatPMPDeviceFactory.getSingleton(
 								new NATPMPDeviceAdapter()
 								{
+									public String 
+									getRouterAddress() 
+									{
+										return( nat_pmp_router.getValue());
+									}
+									
 									public void
 									log(
 										String	str )

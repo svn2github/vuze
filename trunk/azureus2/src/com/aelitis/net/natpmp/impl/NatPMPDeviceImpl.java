@@ -103,6 +103,7 @@ public class NatPMPDeviceImpl implements NatPMPDevice
     static final int NATResultUnsupportedOp = 5;  // Unsupported opcode
     
     /* Instance specific globals */
+    String		current_router_address	= "?";
     InetAddress hostInet;        // Our address
     InetAddress natPriInet;      // NAT's private (interal) address      
     InetAddress natPubInet;      // NAT's public address
@@ -126,15 +127,44 @@ public class NatPMPDeviceImpl implements NatPMPDevice
         return NatPMPDeviceSingletonRef;
     }
     
-    private NatPMPDeviceImpl(NATPMPDeviceAdapter _adapter) throws Exception {
-    	adapter	= _adapter;
-        hostInet = InetAddress.getLocalHost();
+    private 
+    NatPMPDeviceImpl(
+    	NATPMPDeviceAdapter _adapter) 
+    	
+    	throws Exception 
+    {
+    	adapter		= _adapter;
+        hostInet 	= InetAddress.getLocalHost();
         
-        String natAddr = convertHost2RouterAddress(hostInet);
+        checkRouterAddress();
+    }
+    
+    protected void
+    checkRouterAddress()
+    
+    	throws Exception
+    {
+    	String	natAddr = adapter.getRouterAddress().trim();
+        
+        if ( natAddr.length() == 0 ){
+        
+        	natAddr = convertHost2RouterAddress(hostInet);
+        }
+        
+        if ( natAddr.equals( current_router_address )){
+        	
+        	return;
+        }
+        
+        current_router_address = natAddr;
+        
         log("Using Router IP: " + natAddr);
+        
         natPriInet = InetAddress.getByName(natAddr);
+        
         networkInterface = NetworkInterface.getByInetAddress( natPriInet );
     }
+    
     
     /**
      * Send a request and wait for reply 
@@ -190,6 +220,8 @@ public class NatPMPDeviceImpl implements NatPMPDevice
      **/     
     public boolean connect() throws Exception {
 
+   		checkRouterAddress();
+    	
     	try{
 	        // Send NAT request to find out if it is PMP happy
 	        byte reqBuf[] = {NATMAP_VER, NATOp_AddrRequest};

@@ -25,6 +25,9 @@ package com.aelitis.net.natpmp;
 public interface 
 NATPMPDeviceAdapter
 {
+	public String
+	getRouterAddress();
+	
 	public void
 	log(
 		String	str );
