@@ -537,7 +537,7 @@ MainWindow
 			// attach the UI to plugins
 			// Must be done before initializing views, since plugins may register
 			// table columns and other objects
-			uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
+			uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core, this);
 
 			showMyTorrents();
 
@@ -1624,5 +1624,9 @@ MainWindow
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void bringToFront() {
+		setVisible(true);
 	}
 }

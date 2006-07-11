@@ -49,4 +49,9 @@ public interface UIFunctions
 	 */
 	ConfigView showConfig();
 
+	/**
+	 * 
+	 */
+	void bringToFront();
+
 }

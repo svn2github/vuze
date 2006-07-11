@@ -45,6 +45,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -75,6 +76,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.UIFunctions;
 
 public class 
 UISWTInstanceImpl
@@ -90,13 +92,17 @@ UISWTInstanceImpl
 	private Map	plugin_map	= new WeakHashMap();
 	
 	private boolean bUIAttaching;
+
+	private final UIFunctions uiFunctions;
 	
 	
 	public 
 	UISWTInstanceImpl(
-		AzureusCore		_core )
+		AzureusCore		_core,
+		UIFunctions _uiFunctions )
 	{
 		core		= _core;
+		uiFunctions = _uiFunctions;
 		
 		try{
 			UIManager	ui_manager = core.getPluginManager().getDefaultPluginInterface().getUIManager();
@@ -166,42 +172,45 @@ UISWTInstanceImpl
 			}
 			case UIManagerEvent.ET_OPEN_TORRENT_VIA_URL:
 			{
-				Display	display = MainWindow.getWindow().getDisplay();
-				
-				display.syncExec(
-						new AERunnable()
-						{
-							public void
-							runSupport()
-							{
-								Object[]	params = (Object[])data;
-								
-								URL		target 			= (URL)params[0];
-								URL		referrer		= (URL)params[1];
-								boolean	auto_download	= ((Boolean)params[2]).booleanValue();
-								
-									// programmatic request to add a torrent, make sure az is visible
-								
-			            		if( !COConfigurationManager.getBooleanParameter( "add_torrents_silently" ) ) {
-			            			
-			            			MainWindow.getWindow().setVisible( true );
-			            		}
-			            		
-								if ( auto_download ){
-									
-									new FileDownloadWindow(
-											core,
-											MainWindow.getWindow().getShell(),
-											target.toString(), referrer==null?null:referrer.toString());
-								}else{
-									
-										// TODO: handle referrer?
-									
-									TorrentOpener.openTorrent( target.toString());
-								}
+				Display display = SWTThread.getInstance().getDisplay();
+
+				display.syncExec(new AERunnable() {
+					public void runSupport() {
+						Object[] params = (Object[]) data;
+
+						URL target = (URL) params[0];
+						URL referrer = (URL) params[1];
+						boolean auto_download = ((Boolean) params[2]).booleanValue();
+
+						MainWindow window = MainWindow.getWindow();
+
+						// programmatic request to add a torrent, make sure az is visible
+
+						if (!COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
+							uiFunctions.bringToFront();
+						}
+
+						if (auto_download) {
+							Shell shell = null;
+							if (window == null) {
+								shell = Utils.findAnyShell();
+							} else {
+								shell = window.getShell();
 							}
-						});
-				
+
+							if (shell != null) {
+								new FileDownloadWindow(core, shell, target.toString(),
+										referrer == null ? null : referrer.toString());
+							}
+						} else {
+
+							// TODO: handle referrer?
+
+							TorrentOpener.openTorrent(target.toString());
+						}
+					}
+				});
+
 				break;
 			}
 			case UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED:

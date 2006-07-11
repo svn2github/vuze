@@ -940,5 +940,23 @@ public class Utils {
 			}
 		}
 	}
+	
+	public static Shell findAnyShell() {
+		Display current = Display.getCurrent();
+		if (current == null) {
+			return null;
+		}
+		Shell shell = current.getActiveShell();
+		if (shell != null) {
+			return shell;
+		}
+		
+		Shell[] shells = current.getShells();
+		if (shells.length == 0) {
+			return null;
+		}
+		
+		return shells[0];
+	}
 }
 
