@@ -38,8 +38,8 @@ public class IPCInterfaceImpl implements IPCInterface {
 	Plugin target;
 
 
-	public IPCInterfaceImpl ( Plugin target ) {
-		this.target = target;
+	public IPCInterfaceImpl ( Plugin _target ) {
+		target = _target;
 	}
 
 	public Object invoke( String methodName, Object[] params )
@@ -67,7 +67,54 @@ public class IPCInterfaceImpl implements IPCInterface {
 				} else
 					paramTypes[i] = params[i].getClass();
 			}
-			Method mtd = target.getClass().getMethod(methodName,paramTypes);
+			
+			Method mtd	= null;
+			
+			try{
+				mtd = target.getClass().getMethod(methodName,paramTypes);
+				
+			}catch( NoSuchMethodException e ){
+				
+				Method[]	methods = target.getClass().getMethods();
+				
+				for (int i=0;i<methods.length;i++){
+					
+					Method	method = methods[i];
+					
+					Class[] method_params = method.getParameterTypes();
+					
+					if ( method_params.length == paramTypes.length ){
+						
+						boolean	ok = true;
+						
+						for (int j=0;j<method_params.length;j++){
+							
+							Class	declared 	= method_params[j];
+							Class	supplied	= paramTypes[j];
+							
+							if ( !declared.isAssignableFrom( supplied )){
+						
+								ok	= false;
+								
+								break;
+							}
+						}
+						
+						if ( ok ){
+							
+							mtd = method;
+							
+							break;
+						}
+					}
+				}
+				
+				if ( mtd == null ){
+					
+					throw( e );
+				}
+			}
+			
 			return mtd.invoke(target, params);
 		} catch (Exception e) {
 			throw new IPCException(e);
