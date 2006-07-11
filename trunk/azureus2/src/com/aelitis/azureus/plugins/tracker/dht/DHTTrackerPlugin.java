@@ -1114,6 +1114,7 @@ DHTTrackerPlugin
 								List	addresses 	= new ArrayList();
 								List	ports		= new ArrayList();
 								List	udp_ports	= new ArrayList();
+								List	is_seeds	= new ArrayList();
 								List	flags		= new ArrayList();
 								
 								int		seed_count;
@@ -1185,7 +1186,11 @@ DHTTrackerPlugin
 												
 												leecher_count++;
 												
+												is_seeds.add( new Boolean( false ));
+
 											}else{
+												
+												is_seeds.add( new Boolean( true ));
 												
 												seed_count++;
 											}
@@ -1217,8 +1222,9 @@ DHTTrackerPlugin
 								
 									decreaseActive(dl);
 									
-									final DownloadAnnounceResultPeer[]	peers = new
-										DownloadAnnounceResultPeer[addresses.size()];
+									int	peers_found = addresses.size();
+									
+									List	peers_for_announce = new ArrayList();
 									
 										// scale min and max based on number of active torrents
 										// we don't want more than a few announces a minute
@@ -1231,7 +1237,7 @@ DHTTrackerPlugin
 									
 									announce_min = Math.min( announce_min, ANNOUNCE_MAX );
 									
-									final long	retry = announce_min + peers.length*(ANNOUNCE_MAX-announce_min)/NUM_WANT;
+									final long	retry = announce_min + peers_found*(ANNOUNCE_MAX-announce_min)/NUM_WANT;
 																		
 									try{
 										this_mon.enter();
@@ -1246,11 +1252,20 @@ DHTTrackerPlugin
 										this_mon.exit();
 									}
 									
-									for (int i=0;i<peers.length;i++){
+									boolean	we_are_seeding = dl.getState() == Download.ST_SEEDING;
+									
+									for (int i=0;i<addresses.size();i++){
+										
+											// when we are seeding ignore seeds
+										
+										if ( we_are_seeding && ((Boolean)is_seeds.get(i)).booleanValue()){
+											
+											continue;
+										}
 										
 										final int f_i = i;
 										
-										peers[i] = 
+										peers_for_announce.add(
 											new DownloadAnnounceResultPeer()
 											{
 												public String
@@ -1301,13 +1316,17 @@ DHTTrackerPlugin
 													
 													return( protocol );
 												}
-											};
+											});
 										
 									}
 																	
 									if ( 	dl.getState() == Download.ST_DOWNLOADING ||
 											dl.getState() == Download.ST_SEEDING ){
 									
+										final DownloadAnnounceResultPeer[]	peers = new DownloadAnnounceResultPeer[peers_for_announce.size()];
+										
+										peers_for_announce.toArray( peers );
+										
 										dl.setAnnounceResult(
 												new DownloadAnnounceResult()
 												{
@@ -1328,8 +1347,7 @@ DHTTrackerPlugin
 													{
 														return( peers.length);
 													}
-													
-												
+															
 													public int
 													getSeedCount()
 													{
