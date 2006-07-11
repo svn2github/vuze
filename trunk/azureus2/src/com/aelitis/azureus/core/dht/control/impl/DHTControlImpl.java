@@ -68,6 +68,9 @@ DHTControlImpl
 	
 	private static final int RANDOM_QUERY_PERIOD			= 5*60*1000;
 	
+	private static final int INTEGRATION_TIME_MAX			= 15*1000;
+	
+		
 	private DHTControlAdapter		adapter;
 	private DHTTransport			transport;
 	private DHTTransportContact		local_contact;
@@ -663,7 +666,7 @@ DHTControlImpl
 			start	= now;
 		}
 		
-		long	remaining = 30*1000 - ( now - start );
+		long	remaining = INTEGRATION_TIME_MAX - ( now - start );
 
 		if ( remaining > 0 && !full_wait ){
 			
