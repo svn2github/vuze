@@ -27,19 +27,7 @@ package org.gudy.azureus2.core3.download;
  */
 public interface 
 DownloadManagerStats 
-{
-	public int
-	getMaxUploads();
-	
-		/**
-		 * Returns the max uploads depending on whether the download is seeding and it has a separate
-		 * rate for this
-		 * @return
-		 */
-	
-	public int
-	getEffectiveMaxUploads();
-	
+{	
   /** Find out percentage done of current state
    * Use getDownloadCompleted() if you wish to find out a torrents download completion level
    *
@@ -164,10 +152,6 @@ DownloadManagerStats
 
 	public long 
 	getSecondsOnlySeeding();
-
-	public void
-	setMaxUploads(
-		int		max );
 	
 	public void
 	setCompleted(

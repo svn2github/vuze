@@ -42,7 +42,6 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
@@ -343,6 +342,7 @@ DownloadManagerStateImpl
 	addListeners()
 	{
 		COConfigurationManager.addParameterListener( "Max.Peer.Connections.Per.Torrent", this );
+		COConfigurationManager.addParameterListener( "Max Uploads", this );
 		COConfigurationManager.addParameterListener( "Max Uploads Seeding", this );
 		COConfigurationManager.addParameterListener( "enable.seedingonly.maxuploads", this );
 	}
@@ -351,6 +351,7 @@ DownloadManagerStateImpl
 	removeListeners()
 	{
 		COConfigurationManager.removeParameterListener( "Max.Peer.Connections.Per.Torrent", this );
+		COConfigurationManager.removeParameterListener( "Max Uploads", this );
 		COConfigurationManager.removeParameterListener( "Max Uploads Seeding", this );
 		COConfigurationManager.removeParameterListener( "enable.seedingonly.maxuploads", this );
 	}
@@ -627,6 +628,35 @@ DownloadManagerStateImpl
 		return(( value & flag ) != 0 );
 	}
 	
+	public void
+	setParameterDefault(
+		String	name )
+	{
+		try{
+			this_mon.enter();
+		
+			Object	value = parameters.get( name );
+			
+			if ( value == null ){
+		
+				return;
+			}
+				
+				// gotta clone here otherwise we update the underlying  map and the setMapAttribute code
+				// doesn't think it has changed
+		
+			parameters	= new HashMap( parameters );
+			
+			parameters.remove( name );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+
+		setMapAttribute( AT_PARAMETERS, parameters );
+	}
+	
 	public long
 	getLongParameter(
 		String	name )
@@ -645,9 +675,13 @@ DownloadManagerStateImpl
 					Debug.out( "Unknown parameter '" + name + "' - must be defined in DownloadManagerState" );
 				
 					return( 0 );
+					
 				}else{
 					
 						// default overrides
+					
+						// **** note - id you add to these make sure you extend the parameter listeners
+						// registered as well (see addParameterListeners)
 					
 					if ( name == PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED ){
 						
@@ -659,6 +693,13 @@ DownloadManagerStateImpl
 					}else if ( name == PARAM_MAX_UPLOADS_WHEN_SEEDING ){
 						
 						int	def = COConfigurationManager.getIntParameter( "Max Uploads Seeding" );
+						
+						value = new Integer( def );
+						
+						
+					}else if ( name == PARAM_MAX_UPLOADS ){
+						
+						int	def = COConfigurationManager.getIntParameter("Max Uploads" );
 						
 						value = new Integer( def );
 						
@@ -1846,6 +1887,12 @@ DownloadManagerStateImpl
 			long		flag )
 		{
 			return( false );
+		}
+		
+		public void
+		setParameterDefault(
+			String	name )
+		{
 		}
 		
 		public long

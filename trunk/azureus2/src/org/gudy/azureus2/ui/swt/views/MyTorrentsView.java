@@ -1810,7 +1810,7 @@ public class MyTorrentsView
             MenuItem item = (MenuItem)event.widget;
             if (item != null) {
               int value = ((Long)item.getData("MaxUploads")).intValue();
-              dm.getStats().setMaxUploads(value);
+              dm.setMaxUploads(value);
             }
           } // run
         }); // listener

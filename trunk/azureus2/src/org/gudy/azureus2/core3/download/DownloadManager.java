@@ -362,6 +362,19 @@ DownloadManager
 
     public int getSeedingRank();
 
+    public void setMaxUploads( int max_slots );
+    
+    public int getMaxUploads();
+    
+	/**
+	 * Returns the max uploads depending on whether the download is seeding and it has a separate
+	 * rate for this
+	 * @return
+	 */
+
+	public int
+	getEffectiveMaxUploads();
+
         /**
          * returns the currently in force upload speed limit which may vary from the stats. value
          * as this gives the fixed per-torrent limit

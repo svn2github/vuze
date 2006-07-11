@@ -207,6 +207,19 @@ GenericIntParameter
   	}
   }
   
+  public void
+  setValue(
+  	int		value,
+  	boolean	force_adapter_set )
+  {
+    setValue( value );
+	  
+	if ( force_adapter_set ){
+		
+		adapter.setIntValue( sParamName, value );
+	}
+  }
+  
   public int
   getValue()
   {

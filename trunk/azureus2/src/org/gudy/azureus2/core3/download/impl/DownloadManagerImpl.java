@@ -372,6 +372,7 @@ DownloadManagerImpl
 	private byte[]	dl_identity;
     private int 	dl_identity_hashcode;
 
+    private int		max_uploads;
     private int		max_connections;
     private int		max_uploads_when_seeding;
     private boolean	max_uploads_when_seeding_enabled;
@@ -420,8 +421,6 @@ DownloadManagerImpl
 		stats = new DownloadManagerStatsImpl( this );
   	
 		controller	= new DownloadManagerController( this );
-
-		stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads") );
 	 	
 		torrentFileName = _torrentFileName;
 		
@@ -842,6 +841,7 @@ DownloadManagerImpl
 	readParameters()
 	{
 		max_connections						= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_PEERS );
+		max_uploads						 	= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS );
 		max_uploads_when_seeding_enabled 	= getDownloadState().getBooleanParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED );
 		max_uploads_when_seeding 			= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING );
 		max_upload_when_busy_bps			= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOAD_WHEN_BUSY ) * 1024;
@@ -864,6 +864,32 @@ DownloadManagerImpl
 	getMaxUploadsWhenSeeding()
 	{
 		return( max_uploads_when_seeding );
+	}
+	
+	public int
+	getMaxUploads()
+	{
+		return( max_uploads );
+	}
+	
+	public void
+	setMaxUploads(
+		int	max )
+	{
+		download_manager_state.setIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS, max );
+	}
+	
+	public int
+	getEffectiveMaxUploads()
+	{
+		if ( isMaxUploadsWhenSeedingEnabled() && getState() == DownloadManager.STATE_SEEDING ){
+			
+			return( getMaxUploadsWhenSeeding());
+			
+		}else{
+			
+			return( max_uploads );
+		}
 	}
 	
 	public int

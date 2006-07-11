@@ -981,6 +981,21 @@ Test
 			return null;
 		}
 
+		public int getEffectiveMaxUploads() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+		
+		public int getMaxUploads() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+		
+		public void setMaxUploads(int max_slots) {
+			// TODO Auto-generated method stub
+			
+		}
+		
 		public int getEffectiveUploadRateLimitBytesPerSecond() {
 		
 			return 0;

@@ -36,9 +36,7 @@ DownloadManagerStatsImpl
 	implements DownloadManagerStats
 {
 	private DownloadManagerImpl	download_manager;
-	
-	private int maxUploads 			= 4;
-	
+		
 		//Completed (used for auto-starting purposes)
 		
 	private int completed;
@@ -214,33 +212,6 @@ DownloadManagerStatsImpl
   
 	public void setDownloadCompleted(int _completed) {
 		downloadCompleted = _completed;
-	}
-
-
-	/**
-	 * @return
-	 */
-	public int getMaxUploads() {
-	  return maxUploads;
-	}
-
-	public int
-	getEffectiveMaxUploads()
-	{
-		if ( download_manager.isMaxUploadsWhenSeedingEnabled() && download_manager.getState() == DownloadManager.STATE_SEEDING ){
-			
-			return( download_manager.getMaxUploadsWhenSeeding());
-			
-		}else{
-			
-			return( maxUploads );
-		}
-	}
-	/**
-	 * @param i
-	 */
-	public void setMaxUploads(int i) {
-	  maxUploads = i;
 	}
 
 	public String getElapsedTime() {

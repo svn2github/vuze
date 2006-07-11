@@ -134,6 +134,13 @@ GenericBooleanParameter
   	setSelected( selected, false );
   }
   
+  public void
+  setValue(
+	boolean	b )
+  {
+	  setSelected( b );
+  }
+  
   protected void
   setSelected(
   	boolean	selected,

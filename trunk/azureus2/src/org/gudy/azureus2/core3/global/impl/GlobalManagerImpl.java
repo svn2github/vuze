@@ -657,8 +657,7 @@ public class GlobalManagerImpl
         		// once the state's been used we remove it
         	
         	saved_download_manager_state.remove( hashwrapper );
-        	
-	        int nbUploads = ((Long) save_download_state.get("uploads")).intValue();
+        		        
 	        int maxDL = save_download_state.get("maxdl")==null?0:((Long) save_download_state.get("maxdl")).intValue();
 	        int maxUL = save_download_state.get("maxul")==null?0:((Long) save_download_state.get("maxul")).intValue();
 	        
@@ -669,7 +668,16 @@ public class GlobalManagerImpl
 	        Long lHashFailsCount = (Long) save_download_state.get("hashfails");	// old method, number of fails
 	        Long lHashFailsBytes = (Long) save_download_state.get("hashfailbytes");	// new method, bytes failed
 	
-	        dm_stats.setMaxUploads(nbUploads);
+	        Long nbUploads = (Long)save_download_state.get("uploads");	// migrated to downloadstate in 2403
+
+	        if ( nbUploads != null ){
+	        		// migrate anything other than the default value of 4
+	        	int	maxUploads = nbUploads.intValue();
+	        	if ( maxUploads != 4 ){
+	        		download_manager.setMaxUploads( maxUploads );
+	        	}
+	        }
+	        
 	        dm_stats.setDownloadRateLimitBytesPerSecond( maxDL );
 	        dm_stats.setUploadRateLimitBytesPerSecond( maxUL );
 	        
@@ -1600,7 +1608,7 @@ public class GlobalManagerImpl
 		      dmMap.put("torrent", dm.getTorrentFileName());
 		      dmMap.put("save_dir", save_loc.getParent());
 		      dmMap.put("save_file", save_loc.getName());
-		      dmMap.put("uploads", new Long(dm_stats.getMaxUploads()));
+		
 		      dmMap.put("maxdl", new Long( dm_stats.getDownloadRateLimitBytesPerSecond() ));
 		      dmMap.put("maxul", new Long( dm_stats.getUploadRateLimitBytesPerSecond() ));
 		      

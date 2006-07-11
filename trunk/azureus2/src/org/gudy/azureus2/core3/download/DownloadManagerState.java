@@ -54,6 +54,7 @@ DownloadManagerState
 	
 	
 	public static final String	PARAM_MAX_PEERS							= "max.peers";
+	public static final String	PARAM_MAX_UPLOADS						= "max.uploads";
 	public static final String	PARAM_MAX_UPLOADS_WHEN_SEEDING			= "max.uploads.when.seeding";
 	public static final String	PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED	= "max.uploads.when.seeding.enabled";
 	public static final String	PARAM_STATS_COUNTED						= "stats.counted";
@@ -62,6 +63,7 @@ DownloadManagerState
 	
 	public static Object[][] PARAMETERS = {
 		{ PARAM_MAX_PEERS,							new Integer( 0 ) },
+		{ PARAM_MAX_UPLOADS,						new Long( 4 ) },
 		{ PARAM_MAX_UPLOADS_WHEN_SEEDING, 			new Integer( 4 ) },
 		{ PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED, 	new Boolean( false ) },
 		{ PARAM_STATS_COUNTED, 						new Boolean( false ) },
@@ -87,6 +89,15 @@ DownloadManagerState
 	public boolean
 	getFlag(
 		long		flag );
+	
+		/**
+		 * Reset to default value
+		 * @param name
+		 */
+	
+	public void
+	setParameterDefault(
+		String	name );
 	
 	public int
 	getIntParameter(
