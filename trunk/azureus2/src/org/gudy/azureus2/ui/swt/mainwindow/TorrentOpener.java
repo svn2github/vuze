@@ -257,11 +257,14 @@ public class TorrentOpener {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 		  	MainWindow mainWindow = MainWindow.getWindow();
-				if (mainWindow == null)
-					return;
+				Shell shell = null;
+				if (mainWindow == null) {
+					shell = Utils.findAnyShell();
+				} else {
+					shell = mainWindow.getShell();
+				}
 
-				Shell shell = mainWindow.getShell();
-				GlobalManager gm = mainWindow.getGlobalManager();
+				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		  	if (shell == null || shell.isDisposed() || gm == null)
 		  		return;
 
