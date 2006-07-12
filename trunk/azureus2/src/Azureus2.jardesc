@@ -118,6 +118,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.extseed.impl.getright"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.removerules"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.speedmanager"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.nat"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.jce.interfaces"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.extseed.impl.webseed"/>
@@ -337,6 +338,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.console"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.importtorrent.wizard"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.download.session"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.nat"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.associations"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.util.protocol.i2p"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.tables"/>

@@ -66,7 +66,7 @@ AEMonSem
 	static{
 		if ( DEBUG ){
 			
-				// add know and validated exceptions 
+				// add known and validated exceptions 
 			
 			debug_recursions.add( "ResourceDownloader" );		// known tree recursion
 			debug_recursions.add( "ConnectionPool:CP" );		// known tree recursion
@@ -384,7 +384,7 @@ AEMonSem
 						
 					}else{
 						
-						if ( 	( !existing_name_entry.owning_class.getName().equals( class_name )) ||
+						if ( 	( !existing_name_entry.class_name.equals( class_name )) ||
 								existing_name_entry.line_number != line_number ){
 							
 							Debug.out( new Exception("Duplicate AEMonSem name '" + name + "'"));
@@ -514,7 +514,10 @@ AEMonSem
 								
 					if ( debug_traces.get(trace_key) == null ){
 					
-						String	thread_name	= Thread.currentThread().getName();
+						Thread	thread = Thread.currentThread();
+						
+						String	thread_name	= thread.getName() + "[" + thread.hashCode() + "]";
+						
 						String	stack_trace	= Debug.getStackTrace(true, false);
 						
 						Iterator	it = debug_traces.keySet().iterator();
@@ -528,6 +531,14 @@ AEMonSem
 							String	old_thread_name	= data[0];
 							String	old_trace		= data[1];
 							
+								// if identical thread then we can ignore this as
+								// it can't happen concurrently
+						
+							if ( thread_name.equals( old_thread_name )){
+
+								continue;
+							}
+						
 								// find the earliest occurrence of a common monitor - no point in searching
 								// beyond it
 								//    e.g.  a -> b -> c -> g
@@ -685,7 +696,7 @@ AEMonSem
 	protected static class
 	monSemData
 	{
-		protected Class			owning_class;
+		protected String		class_name;
 		protected int			line_number;
 		
 		
@@ -694,14 +705,7 @@ AEMonSem
 			String			_class_name,
 			int				_line_number )
 		{			
-			try{
-				owning_class	= Class.forName( _class_name );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-			}
-			
+			class_name		= _class_name;
 			line_number		= _line_number;
 		}
 	}
