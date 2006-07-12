@@ -316,7 +316,7 @@ public class GlobalManagerImpl
 					});
 		} else {
 			// run sync
-			loadExistingTorrentsNow(listener, false);
+			loadDownloads(listener);
 		}
 
     if (listener != null)
@@ -453,22 +453,17 @@ public class GlobalManagerImpl
 		}
 		loadTorrentsDelay = null;
 
-		if (listener != null)
-			listener.reportCurrentTask(MessageText.getString("splash.loadingTorrents"));
-
-    final Map map = FileUtil.readResilientConfigFile("downloads.config");
-    
 		//System.out.println(SystemTime.getCurrentTime() + ": load via " + Debug.getCompressedStackTrace());
 		if (async) {
 			AEThread thread = new AEThread("load torrents", true) {
 				public void runSupport() {
-					loadDownloads(map, listener);
+					loadDownloads(listener);
 				}
 			};
 			thread.setPriority(3);
 			thread.start();
 		} else {
-			loadDownloads(map, listener);
+			loadDownloads(listener);
 		}
 	}
 
@@ -1344,11 +1339,16 @@ public class GlobalManagerImpl
   
   
   
-  private void loadDownloads(Map map, AzureusCoreListener listener) 
+  private void loadDownloads(AzureusCoreListener listener) 
   {
   	int triggerOnCount = 2;
     ArrayList downloadsAdded = new ArrayList();
   	try{
+  		if (listener != null)
+  			listener.reportCurrentTask(MessageText.getString("splash.loadingTorrents"));
+
+      Map map = FileUtil.readResilientConfigFile("downloads.config");
+      
       boolean debug = Boolean.getBoolean("debug");
  
       Iterator iter = null;
