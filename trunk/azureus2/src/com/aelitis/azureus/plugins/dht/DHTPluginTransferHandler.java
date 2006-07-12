@@ -30,6 +30,9 @@ package com.aelitis.azureus.plugins.dht;
 public interface 
 DHTPluginTransferHandler 
 {
+	public String
+	getName();
+	
 	public byte[]
 	handleRead(
 		DHTPluginContact	originator,

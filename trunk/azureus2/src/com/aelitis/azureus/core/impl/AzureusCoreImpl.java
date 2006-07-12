@@ -256,6 +256,13 @@ AzureusCoreImpl
 								COConfigurationManager.setParameter( key, k_per_second );
 							}
 						}
+						
+						public void
+						setCurrentDownloadLimit(
+							int		bytes_per_second )
+						{
+							COConfigurationManager.setParameter( TransferSpeedValidator.getDownloadParameter(), bytes_per_second/1024 );
+						}
 					});
 		
 		nat_traverser = new NATTraverser( this );

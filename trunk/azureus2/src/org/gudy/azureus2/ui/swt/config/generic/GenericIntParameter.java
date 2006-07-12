@@ -187,6 +187,12 @@ GenericIntParameter
       }
   }
 
+  public String
+  getName()
+  {
+	  return( sParamName );
+  }
+  
   public void
   setValue(
   	int		value )
@@ -224,6 +230,19 @@ GenericIntParameter
   getValue()
   {
   	return(adapter.getIntValue(sParamName, iDefaultValue));
+  }
+  
+  public void
+  resetToDefault()
+  {
+	  if ( adapter.resetIntDefault(sParamName)){
+		  
+		  setValue(adapter.getIntValue(sParamName));
+		  
+	  }else{
+	 
+		  setValue( getValue());
+	  }
   }
   
   public void setLayoutData(Object layoutData) {

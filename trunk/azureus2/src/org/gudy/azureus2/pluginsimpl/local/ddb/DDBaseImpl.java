@@ -475,10 +475,18 @@ DDBaseImpl
 		
 		transfer_map.put( type_key, handler );
 		
+		final String	handler_name = type==torrent_transfer?"Torrent Transfer":"Plugin Defined";
+		
 		getDHT().registerHandler(
 			type_key.getHash(),
 			new DHTPluginTransferHandler()
 			{
+				public String
+				getName()
+				{
+					return( handler_name );
+				}
+				
 				public byte[]
 				handleRead(
 					DHTPluginContact	originator,

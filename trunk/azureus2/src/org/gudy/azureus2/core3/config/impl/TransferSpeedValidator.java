@@ -159,6 +159,12 @@ public final class TransferSpeedValidator
       	}
     }
     
+    public static String
+    getDownloadParameter()
+    {
+    	return( DOWNLOAD_CONFIGKEY );
+    }
+    
     public static boolean
     isAutoUploadAvailable(
     	AzureusCore	core )

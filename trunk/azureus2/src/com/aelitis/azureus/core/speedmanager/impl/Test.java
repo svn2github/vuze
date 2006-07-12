@@ -178,6 +178,12 @@ Test
 		upload_limit	= bytes_per_second;
 	}
 
+	public void
+	setCurrentDownloadLimit(
+		int		bytes_per_second )
+	{
+	}
+
 	public int
 	getCurrentUploadLimit()
 	{

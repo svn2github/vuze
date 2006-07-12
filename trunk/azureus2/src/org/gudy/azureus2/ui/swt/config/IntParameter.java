@@ -22,6 +22,7 @@ package org.gudy.azureus2.ui.swt.config;
 
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Composite;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
 
 /**
@@ -79,12 +80,18 @@ IntParameter
   {
   	delegate.setMaximumValue( value );
   }
-
+  
   public void
   setValue(
   	int		value )
   {
 	  delegate.setValue( value );
+  }
+  
+  public void
+  resetToDefault()
+  {
+	  delegate.resetToDefault();
   }
   
   public int

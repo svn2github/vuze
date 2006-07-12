@@ -928,6 +928,12 @@ Test
 			th_key,
 			new DHTTransportTransferHandler()
 			{
+				public String
+				getName()
+				{
+					return( "test" );
+				}
+				
 				public byte[]
 				handleRead(
 					DHTTransportContact	originator,

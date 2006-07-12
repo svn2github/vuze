@@ -913,6 +913,12 @@ outer:
 				handler_key,
 				new DHTTransportTransferHandler()
 				{
+					public String
+					getName()
+					{
+						return( handler.getName());
+					}
+					
 					public byte[]
 					handleRead(
 						DHTTransportContact	originator,

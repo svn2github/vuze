@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Average;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -2017,6 +2018,8 @@ DHTTransportUDPImpl
 		byte[]						handler_key,
 		DHTTransportTransferHandler	handler )
 	{
+		logger.log( "Transfer handler (" + handler.getName() + ") registered for key '" + ByteFormatter.encodeString( handler_key ));
+		
 		transfer_handlers.put( 
 			new HashWrapper( handler_key ), 
 			new transferHandlerInterceptor(
@@ -2041,7 +2044,7 @@ DHTTransportUDPImpl
 		
 		if ( handler == null ){
 			
-			logger.log( "No transfer handler registered for key" );
+			logger.log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
 			
 			throw( new DHTTransportException( "No transfer handler registered" ));
 		}
@@ -3513,6 +3516,12 @@ DHTTransportUDPImpl
 			DHTTransportTransferHandler		_handler )
 		{
 			handler	= _handler;
+		}
+		
+		public String
+		getName()
+		{
+			return( handler.getName());
 		}
 		
 		public byte[]

@@ -128,19 +128,23 @@ public class ConfigurationDefaults {
     def.put( "Max Upload Speed KBs", new Long(0));
     def.put( "Max Upload Speed Seeding KBs", new Long(0) );
     def.put( "enable.seedingonly.upload.rate", FALSE );
+    
     def.put( "Auto Upload Speed Enabled", FALSE );
     def.put( "Auto Upload Speed Seeding Enabled", FALSE );
+    def.put( "AutoSpeed Available", FALSE );	// informative read-only parameter
+    def.put( "AutoSpeed Min Upload KBs", new Long(0) );
+    def.put( "AutoSpeed Max Upload KBs", new Long(0) );
+    def.put( "AutoSpeed Max Increment KBs", new Long(5));
+    def.put( "AutoSpeed Max Decrement KBs", new Long(5));
+    def.put( "AutoSpeed Choking Ping Millis", new Long(1000) );
+    def.put( "AutoSpeed Download Adj Enable", FALSE );
+    def.put( "AutoSpeed Download Adj Ratio", "1.0" );
+    def.put( "AutoSpeed Latency Factor", new Long(50));
     def.put( "Auto Upload Speed Debug Enabled", FALSE );
     
     def.put( "LAN Speed Enabled", TRUE );
     def.put( "Max LAN Download Speed KBs", new Long(0) );
     def.put( "Max LAN Upload Speed KBs", new Long(0) );
-    
-    def.put( "AutoSpeed Available", FALSE );	// informative read-only parameter
-    def.put( "AutoSpeed Min Upload KBs", new Long(0) );
-    def.put( "AutoSpeed Max Upload KBs", new Long(0) );
-    def.put( "AutoSpeed Choking Ping Millis", new Long(1000) );
-
     
     def.put("Use Resume", TRUE);
     def.put("On Resume Recheck All", FALSE);

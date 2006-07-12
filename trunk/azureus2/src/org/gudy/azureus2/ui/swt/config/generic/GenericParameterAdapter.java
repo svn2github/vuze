@@ -49,6 +49,13 @@ GenericParameterAdapter
 	}
 	
 	public boolean
+	resetIntDefault(
+		String	key )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+	
+	public boolean
 	getBooleanValue(
 		String	key )
 	{

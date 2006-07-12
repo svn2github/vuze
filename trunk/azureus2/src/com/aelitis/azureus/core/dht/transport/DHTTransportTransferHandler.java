@@ -31,6 +31,9 @@ package com.aelitis.azureus.core.dht.transport;
 public interface 
 DHTTransportTransferHandler 
 {
+	public String
+	getName();
+	
 	public byte[]
 	handleRead(
 		DHTTransportContact	originator,

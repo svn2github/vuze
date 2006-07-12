@@ -204,6 +204,12 @@ DHTNATPuncherImpl
 			transfer_handler_key,
 			new DHTTransportTransferHandler()
 			{
+				public String
+				getName()
+				{
+					return( "NAT Traversal" );
+				}
+				
 				public byte[]
 	        	handleRead(
 	        		DHTTransportContact	originator,

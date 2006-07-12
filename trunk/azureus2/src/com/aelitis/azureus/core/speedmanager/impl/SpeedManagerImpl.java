@@ -60,19 +60,35 @@ SpeedManagerImpl
 	
 		// config items start
 	
-	private static final String	CONFIG_AVAIL		= "AutoSpeed Available";	// informative only
-	private static final String	CONFIG_MIN_UP		= "AutoSpeed Min Upload KBs";
-	private static final String	CONFIG_MAX_UP		= "AutoSpeed Max Upload KBs";
-	private static final String	CONFIG_CHOKE_PING	= "AutoSpeed Choking Ping Millis";
-	private static final String	CONFIG_DEBUG		= "Auto Upload Speed Debug Enabled";
+	private static final String	CONFIG_AVAIL			= "AutoSpeed Available";	// informative only
+	private static final String	CONFIG_MIN_UP			= "AutoSpeed Min Upload KBs";
+	private static final String	CONFIG_MAX_UP			= "AutoSpeed Max Upload KBs";
+	private static final String	CONFIG_MAX_INC			= "AutoSpeed Max Increment KBs";
+	private static final String	CONFIG_MAX_DEC			= "AutoSpeed Max Decrement KBs";
+	private static final String	CONFIG_CHOKE_PING		= "AutoSpeed Choking Ping Millis";
+	private static final String	CONFIG_DOWNADJ_ENABLE	= "AutoSpeed Download Adj Enable";
+	private static final String	CONFIG_DOWNADJ_RATIO	= "AutoSpeed Download Adj Ratio";
+	private static final String	CONFIG_LATENCY_FACTOR	= "AutoSpeed Latency Factor";
+	private static final String	CONFIG_DEBUG			= "Auto Upload Speed Debug Enabled";
 	
 	private static final String[]	CONFIG_PARAMS = {
-		CONFIG_MIN_UP, CONFIG_MAX_UP, CONFIG_CHOKE_PING, CONFIG_DEBUG };
+		CONFIG_MIN_UP, CONFIG_MAX_UP, 
+		CONFIG_MAX_INC, CONFIG_MAX_DEC,
+		CONFIG_CHOKE_PING, 
+		CONFIG_DOWNADJ_ENABLE,
+		CONFIG_DOWNADJ_RATIO,
+		CONFIG_LATENCY_FACTOR,
+		CONFIG_DEBUG };
 		
 	private static int					PING_CHOKE_TIME;
 	private static int					MIN_UP;
 	private static int					MAX_UP;
 	private static boolean				DEBUG;
+	private static boolean				ADJUST_DOWNLOAD_ENABLE;
+	private static float				ADJUST_DOWNLOAD_RATIO;
+	private static int					MAX_INCREMENT;
+	private static int					MAX_DECREMENT;
+	private static int					LATENCY_FACTOR;
 	
 	static{
 		COConfigurationManager.addAndFireParameterListeners(
@@ -86,7 +102,22 @@ SpeedManagerImpl
 						PING_CHOKE_TIME	= COConfigurationManager.getIntParameter( CONFIG_CHOKE_PING );
 						MIN_UP			= COConfigurationManager.getIntParameter( CONFIG_MIN_UP ) * 1024;
 						MAX_UP			= COConfigurationManager.getIntParameter( CONFIG_MAX_UP ) * 1024;
+						MAX_INCREMENT	= COConfigurationManager.getIntParameter( CONFIG_MAX_INC ) * 1024;
+						MAX_DECREMENT	= COConfigurationManager.getIntParameter( CONFIG_MAX_DEC ) * 1024;
+						ADJUST_DOWNLOAD_ENABLE	= COConfigurationManager.getBooleanParameter( CONFIG_DOWNADJ_ENABLE );
+						String	str 	= COConfigurationManager.getStringParameter( CONFIG_DOWNADJ_RATIO );
+						LATENCY_FACTOR	= COConfigurationManager.getIntParameter( CONFIG_LATENCY_FACTOR );
+
+						if ( LATENCY_FACTOR < 1 ){
+							LATENCY_FACTOR = 1;
+						}
+						
 						DEBUG			= COConfigurationManager.getBooleanParameter( CONFIG_DEBUG );
+						
+						try{
+							ADJUST_DOWNLOAD_RATIO = Float.parseFloat(str);
+						}catch( Throwable e ){
+						}
 					}
 				});
 		
@@ -486,9 +517,7 @@ SpeedManagerImpl
 				new_limit	= FORCED_MIN_SPEED;
 				
 			}else{
-			
-				int SOMETHING = 50;
-				
+							
 				int	short_up = (int)upload_short_average.getAverage();
 
 				int	choke_speed = (int)choke_speed_average.getAverage();
@@ -505,11 +534,11 @@ SpeedManagerImpl
 						diff = 100;
 					}
 					
-					int	increment = 1024 * ( diff / SOMETHING );
+					int	increment = 1024 * ( diff / LATENCY_FACTOR );
 										
 						// if we're close to the last choke-speed then decrease increments
 
-					int	max_inc	= 5*1024;
+					int	max_inc	= MAX_INCREMENT;
 					
 					if ( new_limit + 2*1024 > choke_speed ){
 						
@@ -534,9 +563,9 @@ SpeedManagerImpl
 					
 					direction = DECREASING;
 					
-					int decrement = 1024 * (( ping_average - (3*idle_average )) / SOMETHING );
+					int decrement = 1024 * (( ping_average - (3*idle_average )) / LATENCY_FACTOR );
 					
-					new_limit -= Math.min( decrement, 5*1024 );
+					new_limit -= Math.min( decrement, MAX_DECREMENT );
 					
 						// don't drop below the current protocol upload speed. This is to address
 						// the situation whereby it is downloading that is choking the line - killing
@@ -581,6 +610,13 @@ SpeedManagerImpl
 			new_limit = (( new_limit + 1023 )/1024) * 1024;
 			
 			adapter.setCurrentUploadLimit( new_limit );
+			
+			if ( ADJUST_DOWNLOAD_ENABLE && !( Float.isInfinite( ADJUST_DOWNLOAD_RATIO ) || Float.isNaN( ADJUST_DOWNLOAD_RATIO ))){
+				
+				int	dl_limit = (int)(new_limit * ADJUST_DOWNLOAD_RATIO);
+				
+				adapter.setCurrentDownloadLimit( dl_limit );
+			}
 		}
 	}
 	

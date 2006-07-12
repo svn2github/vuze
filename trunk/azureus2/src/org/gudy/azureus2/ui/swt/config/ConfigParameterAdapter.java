@@ -62,6 +62,18 @@ ConfigParameterAdapter
 	}
 	
 	public boolean
+	resetIntDefault(
+		String	key )
+	{
+		if ( COConfigurationManager.doesParameterDefaultExist( key )){
+			COConfigurationManager.removeParameter( key );
+			return( true );
+		}
+		
+		return( false );
+	}
+	
+	public boolean
 	getBooleanValue(
 		String	key )
 	{
