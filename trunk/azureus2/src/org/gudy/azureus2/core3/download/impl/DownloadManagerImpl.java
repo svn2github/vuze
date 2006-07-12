@@ -1091,6 +1091,8 @@ DownloadManagerImpl
 	destroy()
 	{
 		clearFileLinks();
+		
+		controller.destroy();
 	}
 	
 	public boolean 

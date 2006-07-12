@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.peermanager;
 
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -30,10 +31,13 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.networkmanager.NetworkManager.ByteMatcher;
+import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
 import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
 import com.aelitis.azureus.core.peermanager.download.TorrentDownloadFactory;
 import com.aelitis.azureus.core.peermanager.messaging.*;
@@ -43,16 +47,30 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
  *
  */
 public class PeerManager {
-	private static final LogIDs LOGID = LogIDs.PEER;
+  private static final LogIDs LOGID = LogIDs.PEER;
 
-	private static final boolean MUTLI_CONTROLLERS	= COConfigurationManager.getBooleanParameter( "peer.multiple.controllers.per.torrent.enable", false );
+  private static final boolean MUTLI_CONTROLLERS	= COConfigurationManager.getBooleanParameter( "peer.multiple.controllers.per.torrent.enable", false );
 	
   private static final PeerManager instance = new PeerManager();
 
-  private final HashMap legacy_managers = new HashMap();
+ 
+
+  /**
+   * Get the singleton instance of the peer manager.
+   * @return the peer manager
+   */
+  public static PeerManager getSingleton() {  return instance;  }
   
+
+  
+  
+  
+  private final HashMap active_legacy_managers 		= new HashMap();
+  private final HashMap registered_legacy_managers 	= new HashMap();
+   
   private final ByteBuffer legacy_handshake_header;
   
+  private final AEMonitor	managers_mon = new AEMonitor( "PeerManager:managers" );
   
 
   private PeerManager() {
@@ -62,33 +80,198 @@ public class PeerManager {
     legacy_handshake_header.flip();
     
     MessageManager.getSingleton().initialize();  //ensure it gets initialized
+    
+    NetworkManager.ByteMatcher matcher =
+    	new NetworkManager.ByteMatcher() 
+    {
+    	public int size() {  return 48;  }
+    	public int minSize() { return 20; }
+
+    	public Object
+    	matches( 
+    		InetSocketAddress	address,
+    		ByteBuffer 			to_compare, 
+    		int 				port ) 
+    	{ 
+
+    		if ( MUTLI_CONTROLLERS ){
+    			return( null );
+    		}
+
+    		int old_limit = to_compare.limit();
+    		int old_position = to_compare.position();
+
+    		to_compare.limit( old_position + 20 );
+
+    		PeerManagerRegistrationImpl	routing_data = null;
+    		
+    		if( to_compare.equals( legacy_handshake_header ) ) {  //compare header 
+    			to_compare.limit( old_position + 48 );
+    			to_compare.position( old_position + 28 );
+
+    			byte[]	hash = new byte[to_compare.remaining()];
+    			
+    			to_compare.get( hash );
+    			
+    			try{
+    				managers_mon.enter();
+    				  		
+    				routing_data = (PeerManagerRegistrationImpl)registered_legacy_managers.get( new HashWrapper( hash ));
+    				
+    			}finally{
+    				
+    				managers_mon.exit();
+    			}
+    		}
+
+    		//restore buffer structure
+    		to_compare.limit( old_limit );
+    		to_compare.position( old_position );
+
+    		if ( routing_data != null ){
+    			
+    			if ( !routing_data.getAdapter().activateRequest( address )){
+    				
+    				routing_data = null;
+    			}
+    		}
+    		return routing_data;
+    	}
+    	
+    	public Object 
+    	minMatches( 
+    		InetSocketAddress	address,
+    		ByteBuffer 			to_compare, 
+    		int 				port ) 
+    	{ 
+    		if ( MUTLI_CONTROLLERS ){
+    		
+    			return( null );
+    		}
+
+    		boolean matches = false;
+
+    		int old_limit = to_compare.limit();
+    		int old_position = to_compare.position();
+
+    		to_compare.limit( old_position + 20 );
+
+    		if( to_compare.equals( legacy_handshake_header ) ) { 
+    			matches = true;
+    		}
+
+    		//restore buffer structure
+    		to_compare.limit( old_limit );
+    		to_compare.position( old_position );
+
+    		return matches?"":null;
+    	}
+
+    	public byte[] 
+    	getSharedSecret()
+    	{
+    		return( null );	// registered manually above
+    	}
+    };
+    
+    // register for incoming connection routing
+    NetworkManager.getSingleton().requestIncomingConnectionRouting(
+        matcher,
+        new NetworkManager.RoutingListener() 
+        {
+        	public void 
+        	connectionRouted( NetworkConnection connection, Object routing_data ) 
+        	{
+        		PeerManagerRegistrationImpl	registration = (PeerManagerRegistrationImpl)routing_data;
+        		
+        		System.out.println( "default routing" );
+        		
+        		connection.close();
+        	}
+        	public boolean
+      	  	autoCryptoFallback()
+        	{
+        		return( false );
+        	}
+        	},
+        new MessageStreamFactory() {
+          public MessageStreamEncoder createEncoder() {  return new BTMessageEncoder();  }
+          public MessageStreamDecoder createDecoder() {  return new BTMessageDecoder();  }
+        },
+        true );
   }
   
+     
+  public PeerManagerRegistration
+  registerLegacyManager(
+	HashWrapper						hash,
+	PeerManagerRegistrationAdapter  adapter )
+  {
+	  try{
+		  managers_mon.enter();
+		  		
+		  if ( registered_legacy_managers.get( hash ) != null ){
+			  
+			  Debug.out( "manager already registered" );
+		  }
+		  		  
+		  IncomingConnectionManager.getSingleton().addSharedSecret( hash.getBytes());
+		  
+		  PeerManagerRegistration	registration = new PeerManagerRegistrationImpl( hash, adapter );
+		  
+		  registered_legacy_managers.put( hash, registration );
+		  
+		  return( registration );
+	  }finally{
+		  
+		  managers_mon.exit();
+	  }
+  }
   
-  
-  /**
-   * Get the singleton instance of the peer manager.
-   * @return the peer manager
-   */
-  public static PeerManager getSingleton() {  return instance;  }
-  
-    
-  
+  protected void
+  unregister(
+	PeerManagerRegistrationImpl  registration )
+  {
+	  try{
+		  managers_mon.enter();
+		  
+		  HashWrapper	hash = registration.getHash();
+		  		  
+		  IncomingConnectionManager.getSingleton().removeSharedSecret( hash.getBytes());
+		  
+		  if ( registered_legacy_managers.remove( hash ) == null ){
+			  
+			  Debug.out( "manager already deregistered" );
+		  }
+	  }finally{
+		  
+		  managers_mon.exit();
+	  }
+  }
   
   /**
    * Register legacy peer manager for incoming BT connections.
    * @param manager legacy controller
    */
-  public void registerLegacyManager( final PEPeerControl manager ) {
+  
+  protected void 
+  activateLegacyManager( 
+	final PEPeerControl manager ) 
+  {
     NetworkManager.ByteMatcher matcher = new NetworkManager.ByteMatcher() {
       public int size() {  return 48;  }
       public int minSize() { return 20; }
       
-      public boolean matches( ByteBuffer to_compare, int port ) { 
+      public Object 
+      matches( 
+    	InetSocketAddress	remote,
+    	ByteBuffer 			to_compare, 
+    	int 				port ) 
+      { 
     	
     	if ( MUTLI_CONTROLLERS ){
     		if ( port != manager.getPort()){
-    			return( false);
+    			return( null);
     		}
     	}
     	  
@@ -112,12 +295,18 @@ public class PeerManager {
         to_compare.limit( old_limit );
         to_compare.position( old_position );
         
-        return matches;
+        return matches?"":null;
       }
-      public boolean minMatches( ByteBuffer to_compare, int port ) { 
+      
+      public Object 
+      minMatches( 
+    	InetSocketAddress	address,
+    	ByteBuffer 			to_compare, 
+    	int 				port ) 
+      { 
     	  if ( MUTLI_CONTROLLERS ){
         	if ( port != manager.getPort()){
-        		return( false);
+        		return( null);
         	}
     	  }
     	  
@@ -136,15 +325,13 @@ public class PeerManager {
           to_compare.limit( old_limit );
           to_compare.position( old_position );
           
-          return matches;
+          return matches?"":null;
         }
       
       public byte[] 
       getSharedSecret()
       {
-    	  byte[] hash = manager.getTorrentHash();
-    	  
-    	  return( hash );
+    	  return( null );	// registered manually above
       }
     };
     
@@ -153,7 +340,7 @@ public class PeerManager {
     NetworkManager.getSingleton().requestIncomingConnectionRouting(
         matcher,
         new NetworkManager.RoutingListener() {
-          public void connectionRouted( NetworkConnection connection ) {
+          public void connectionRouted( NetworkConnection connection, Object routing_data ) {
             
             // make sure not already connected to the same IP address; allow
             // loopback connects for co-located proxy-based connections and
@@ -186,13 +373,21 @@ public class PeerManager {
         new MessageStreamFactory() {
           public MessageStreamEncoder createEncoder() {  return new BTMessageEncoder();  }
           public MessageStreamDecoder createDecoder() {  return new BTMessageDecoder();  }
-        }
-    );
+        },
+        false );
     
     TorrentDownload download = TorrentDownloadFactory.getSingleton().createDownload( manager );  //link legacy with new
     LegacyRegistration leg_reg = new LegacyRegistration( download, matcher );
     
-    legacy_managers.put( manager, leg_reg );
+	  try{
+		  managers_mon.enter();
+
+		  active_legacy_managers.put( manager, leg_reg );
+		  		  
+	  }finally{
+		  
+		  managers_mon.exit();
+	  }
   }
   
   
@@ -201,9 +396,12 @@ public class PeerManager {
    * Remove legacy peer manager registration.
    * @param manager legacy controller
    */
-  public void deregisterLegacyManager( final PEPeerControl manager ) {
+  protected void 
+  deactivateLegacyManager( 
+	final PEPeerControl manager ) 
+  {
     //remove incoming routing registration 
-    LegacyRegistration leg_reg = (LegacyRegistration)legacy_managers.remove( manager );
+    LegacyRegistration leg_reg = (LegacyRegistration)active_legacy_managers.remove( manager );
     if( leg_reg != null ) {
       NetworkManager.getSingleton().cancelIncomingConnectionRouting( leg_reg.byte_matcher );
       leg_reg.download.destroy();  //break legacy link
@@ -224,5 +422,53 @@ public class PeerManager {
       this.byte_matcher = m;
     }  
   }
-
+  
+  private class
+  PeerManagerRegistrationImpl
+  	implements PeerManagerRegistration
+  {
+	private HashWrapper 					hash;
+	private PeerManagerRegistrationAdapter	adapter;
+	
+	protected
+	PeerManagerRegistrationImpl(
+		HashWrapper						_hash,
+		PeerManagerRegistrationAdapter	_adapter )
+	{
+		hash	= _hash;
+		adapter	= _adapter;
+	}
+	
+	protected HashWrapper
+	getHash()
+	{
+		return( hash );
+	}
+	
+	protected PeerManagerRegistrationAdapter
+	getAdapter()
+	{
+		return( adapter );
+	}
+	
+	public void
+	activate(
+		PEPeerControl	peer_control )
+	{
+		PeerManager.this.activateLegacyManager( peer_control );	
+	}
+	
+	public void
+	deactivate(
+		PEPeerControl	peer_control )
+	{
+		PeerManager.this.deactivateLegacyManager( peer_control );	
+	}
+	
+	public void
+	unregister()
+	{
+		PeerManager.this.unregister( this );
+	}
+  }
 }

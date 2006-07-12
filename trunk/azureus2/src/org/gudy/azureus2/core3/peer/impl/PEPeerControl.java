@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.peer.impl;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.util.HashWrapper;
 
 
 public interface
@@ -58,7 +59,7 @@ PEPeerControl
 	public boolean
 	isPeerExchangeEnabled();
 	
-	public byte[]
+	public HashWrapper
 	getTorrentHash();
 	
 	public void addPeerTransport( PEPeerTransport transport );

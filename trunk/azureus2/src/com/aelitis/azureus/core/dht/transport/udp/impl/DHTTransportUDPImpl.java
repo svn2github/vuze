@@ -1584,7 +1584,7 @@ DHTTransportUDPImpl
 							try{								
 								if ( packet.getConnectionId() != connection_id ){
 									
-									throw( new Exception( "connection id mismatch" ));
+									throw( new Exception( "connection id mismatch: sender=" + from_address + ",packet=" + packet.getString()));
 								}
 								
 								contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());

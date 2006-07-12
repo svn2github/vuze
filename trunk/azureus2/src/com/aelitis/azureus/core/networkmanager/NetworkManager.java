@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.config.*;
@@ -240,19 +241,28 @@ public class NetworkManager {
    * @param listener for handling new inbound connections
    * @param factory to use for creating default stream encoder/decoders
    */
-  public void requestIncomingConnectionRouting( ByteMatcher matcher, final RoutingListener listener, final MessageStreamFactory factory ) {
+  public void 
+  requestIncomingConnectionRouting( 
+	ByteMatcher 				matcher, 
+	final RoutingListener 		listener, 
+	final MessageStreamFactory 	factory,
+	final boolean				is_default ) 
+  {
 	  IncomingConnectionManager.getSingleton().registerMatchBytes( matcher, new IncomingConnectionManager.MatchListener() {
       public boolean
       autoCryptoFallback()
       {
     	return( listener.autoCryptoFallback());
       }
-      public void connectionMatched( Transport	transport ) {
-        listener.connectionRouted( NetworkConnectionFactory.create( transport, factory.createEncoder(), factory.createDecoder() ) );
+      public void connectionMatched( Transport	transport, Object routing_data ) {
+        listener.connectionRouted( NetworkConnectionFactory.create( transport, factory.createEncoder(), factory.createDecoder() ), routing_data );
       }
+      public boolean isDefault() {
+    	return is_default;
+    }
     });
   }
-  
+ 
   
   /**
    * Cancel a request for inbound connection routing.
@@ -398,17 +408,18 @@ public class NetworkManager {
     
     /**
      * Check byte stream for match.
+     * @param address the originator of the connection
      * @param to_compare
-     * @return true if a match, false if not a match
+     * @return  return "routing data" in case of a match, null otherwise
      */
-    public boolean matches( ByteBuffer to_compare, int port );
+    public Object matches( InetSocketAddress address, ByteBuffer to_compare, int port );
     
     /**
      * Check for a minimum match
      * @param to_compare
-     * @return
+     * @return return "routing data" in case of a match, null otherwise
      */
-    public boolean minMatches( ByteBuffer to_compare, int port );
+    public Object minMatches( InetSocketAddress address, ByteBuffer to_compare, int port );
     
     /**
      * Returns true if this shared secret is recognised by the matcher
@@ -439,7 +450,7 @@ public class NetworkManager {
      * The given incoming connection has been accepted.
      * @param connection accepted
      */
-    public void connectionRouted( NetworkConnection connection );
+    public void connectionRouted( NetworkConnection connection, Object routing_data );
   }
   
 }

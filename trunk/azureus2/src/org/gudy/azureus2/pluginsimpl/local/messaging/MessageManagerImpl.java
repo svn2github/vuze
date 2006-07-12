@@ -191,9 +191,9 @@ public class MessageManagerImpl implements MessageManager {
 					return size(); 
 				}
 	
-				public boolean 
+				public Object 
 				matches( 
-					ByteBuffer to_compare, int port ) 
+					InetSocketAddress address, ByteBuffer to_compare, int port ) 
 				{             
 					int old_limit = to_compare.limit();
 					
@@ -203,15 +203,14 @@ public class MessageManagerImpl implements MessageManager {
 					
 					to_compare.limit( old_limit );  //restore buffer structure
 					
-					return matches;
+					return matches?"":null;
 				}
 				
-				public boolean 
+				public Object 
 				minMatches( 
-					ByteBuffer to_compare, 
-					int port ) 
+					InetSocketAddress address, ByteBuffer to_compare, int port ) 
 				{ 
-					return( matches( to_compare, port )); 
+					return( matches( address, to_compare, port )); 
 				} 
 				
 				public byte[] 
@@ -227,7 +226,7 @@ public class MessageManagerImpl implements MessageManager {
 				{
 					public void 
 					connectionRouted( 
-						final NetworkConnection connection ) 
+						final NetworkConnection connection, Object routing_data ) 
 					{  	
 						try{
 							ByteBuffer[]	skip_buffer = { ByteBuffer.allocate(type_bytes.length) };
@@ -256,8 +255,8 @@ public class MessageManagerImpl implements MessageManager {
 				new MessageStreamFactory() {
 					public MessageStreamEncoder createEncoder() {  return new GenericMessageEncoder();}
 					public MessageStreamDecoder createDecoder() {  return new GenericMessageDecoder(type, description);}
-				}
-		);
+				},
+				false );
 		
 	return( 
 		new GenericMessageRegistration()

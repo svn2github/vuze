@@ -210,7 +210,7 @@ public class IncomingSocketChannelManager
 	        public void newConnectionAccepted( final ServerSocketChannel server, final SocketChannel channel ) {
 	        	
 	        	//check for encrypted transport
-	  	      	TCPTransportHelper	helper = new TCPTransportHelper( channel );
+	  	      	final TCPTransportHelper	helper = new TCPTransportHelper( channel );
 
 	        	TransportCryptoManager.getSingleton().manageCrypto( helper, null, true, new TransportCryptoManager.HandshakeListener() {
 	        		public void handshakeSuccess( ProtocolDecoder decoder ) {
@@ -264,13 +264,15 @@ public class IncomingSocketChannelManager
 	    		matchPlainHeader(
 	    			ByteBuffer			buffer )
 	    		{
-	    			IncomingConnectionManager.MatchListener	match = incoming_manager.checkForMatch( server.socket().getLocalPort(), buffer, true );
+	    			Object[]	match_data = incoming_manager.checkForMatch( helper, server.socket().getLocalPort(), buffer, true );
 	    			
-	    			if ( match == null ){
+	    			if ( match_data == null ){
 	    				
 	    				return( TransportCryptoManager.HandshakeListener.MATCH_NONE );
 	    				
 	    			}else{
+	    				
+	    				IncomingConnectionManager.MatchListener match = (IncomingConnectionManager.MatchListener)match_data[0];
 	    				
 	    				if ( match.autoCryptoFallback()){
 	    					

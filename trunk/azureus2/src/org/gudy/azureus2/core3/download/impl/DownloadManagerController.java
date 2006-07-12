@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.download.impl;
 
 import java.io.File;
 import java.io.IOException; 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +49,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManagerFactory;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
@@ -56,10 +58,14 @@ import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
+import com.aelitis.azureus.core.peermanager.PeerManager;
+import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
+import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
+
 public class 
 DownloadManagerController 
 	extends LogRelation
-	implements PEPeerManagerAdapter
+	implements PEPeerManagerAdapter, PeerManagerRegistrationAdapter
 {
 	private static long skeleton_builds;
 	
@@ -131,6 +137,8 @@ DownloadManagerController
 	private fileInfoFacade[]		files_facade		= new fileInfoFacade[0];	// default before torrent avail
 	private boolean					cached_complete_excluding_dnd;
 	private boolean					cached_has_dnd_files;
+	
+	private PeerManagerRegistration	peer_manager_registration;
 	private PEPeerManager 			peer_manager;
 	
 	private String errorDetail;
@@ -169,6 +177,15 @@ DownloadManagerController
 		if ( getState() == DownloadManager.STATE_START_OF_DAY ){
 			
 			setState( initial_state, true );
+		}
+		
+	
+		try{
+			peer_manager_registration = PeerManager.getSingleton().registerLegacyManager( download_manager.getTorrent().getHashWrapper(), this );
+			
+		}catch( TOTorrentException e ){
+			
+			Debug.printStackTrace(e);
 		}
 	}
 
@@ -987,6 +1004,27 @@ DownloadManagerController
 		}
 	}  
 	 
+	protected void
+	destroy()
+	{
+		peer_manager_registration.unregister();
+	}
+	
+	public boolean
+	activateRequest(
+		InetSocketAddress	address )
+	{
+		// System.out.println( "Activate request for " + getDisplayName() + " from " + address );
+		
+		return( false );
+	}
+	
+	public PeerManagerRegistration
+	getPeerManagerRegistration()
+	{
+		return( peer_manager_registration );
+	}
+	
   	public boolean 
   	isForceStart() 
   	{

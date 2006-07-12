@@ -464,9 +464,9 @@ UDPConnectionManager
 					matchPlainHeader(
 							ByteBuffer			buffer )
 					{
-						IncomingConnectionManager.MatchListener	match = incoming_manager.checkForMatch( local_port, buffer, true );
+						Object[]	match_data = incoming_manager.checkForMatch( helper, local_port, buffer, true );
 	    			
-						if ( match == null ){
+						if ( match_data == null ){
 	    				
 							return( TransportCryptoManager.HandshakeListener.MATCH_NONE );
 	    				

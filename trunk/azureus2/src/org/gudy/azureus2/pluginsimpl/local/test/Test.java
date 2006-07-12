@@ -271,9 +271,9 @@ Test
 			InetSocketAddress	tcp_target = new InetSocketAddress( "127.0.0.1", 6881 );
 			InetSocketAddress	udp_target = new InetSocketAddress( "127.0.0.1", 6882 );
 			
-			GenericMessageEndpoint	endpoint = reg.createEndpoint( udp_target );
+			GenericMessageEndpoint	endpoint = reg.createEndpoint( tcp_target );
 			
-			endpoint.addUDP( udp_target );
+			endpoint.addTCP( tcp_target );
 			
 			for (int i=0;i<1;i++){
 				

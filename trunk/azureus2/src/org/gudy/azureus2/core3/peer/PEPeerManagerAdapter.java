@@ -25,6 +25,8 @@ package org.gudy.azureus2.core3.peer;
 import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 
+import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
+
 public interface 
 PEPeerManagerAdapter 
 {
@@ -113,6 +115,9 @@ PEPeerManagerAdapter
 	public void
 	dataBytesSent(
 		int	bytes, boolean LAN );
+	
+	public PeerManagerRegistration
+	getPeerManagerRegistration();
 	
 	public LogRelation
 	getLogRelation();

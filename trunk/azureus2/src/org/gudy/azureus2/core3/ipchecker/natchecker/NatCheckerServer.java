@@ -64,21 +64,21 @@ public class NatCheckerServer extends AEThread {
           public int size() {  return incoming_handshake.getBytes().length;  }
           public int minSize(){ return size(); }
         
-          public boolean matches( ByteBuffer to_compare, int port ) {             
+          public Object matches( InetSocketAddress address, ByteBuffer to_compare, int port ) {             
             int old_limit = to_compare.limit();
             to_compare.limit( to_compare.position() + size() );
             boolean matches = to_compare.equals( ByteBuffer.wrap( incoming_handshake.getBytes() ) );
             to_compare.limit( old_limit );  //restore buffer structure
-            return matches;
+            return matches?"":null;
           }
-          public boolean minMatches( ByteBuffer to_compare, int port ) { return( matches( to_compare, port )); } 
+          public Object minMatches( InetSocketAddress address, ByteBuffer to_compare, int port ) { return( matches( address, to_compare, port )); } 
           public byte[] getSharedSecret(){ return( null ); }
         };
         
         NetworkManager.getSingleton().requestIncomingConnectionRouting(
             matcher,
             new NetworkManager.RoutingListener() {
-              public void connectionRouted( NetworkConnection connection ) {
+              public void connectionRouted( NetworkConnection connection, Object routing_data ) {
   							if (Logger.isEnabled())
   								Logger.log(new LogEvent(LOGID, "Incoming connection from ["
   										+ connection + "] successfully routed to NAT CHECKER"));
@@ -105,8 +105,8 @@ public class NatCheckerServer extends AEThread {
             new MessageStreamFactory() {
               public MessageStreamEncoder createEncoder() {  return new AZMessageEncoder();  /* unused */}
               public MessageStreamDecoder createDecoder() {  return new AZMessageDecoder();  /* unused */}
-            }
-        );
+            },
+            false );
         
         valid = true;
   			if (Logger.isEnabled())

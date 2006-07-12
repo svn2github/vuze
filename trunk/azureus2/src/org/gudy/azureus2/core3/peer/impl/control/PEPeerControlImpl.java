@@ -260,7 +260,8 @@ PEPeerControlImpl
 		peer_database =PeerDatabaseFactory.createPeerDatabase();
 
 		// register as legacy controller
-		PeerManager.getSingleton().registerLegacyManager(this);
+	
+		adapter.getPeerManagerRegistration().activate( this );
 
 		// initial check on finished state - future checks are driven by piece check results
 
@@ -289,9 +290,10 @@ PEPeerControlImpl
 
 		peer_database =null;
 
-		// remove legacy controller registration
-		PeerManager.getSingleton().deregisterLegacyManager(this);
-
+		// remove legacy controller activation
+		
+		adapter.getPeerManagerRegistration().deactivate( this );
+		
 		closeAndRemoveAllPeers("download stopped", false);
 
 		// clear pieces
@@ -1384,11 +1386,11 @@ PEPeerControlImpl
 		return( this );
 	}
 	
-	public byte[]
+	public HashWrapper
 	getTorrentHash()
 	{
 		try{
-			return( disk_mgr.getTorrent().getHash());
+			return( disk_mgr.getTorrent().getHashWrapper());
 			
 		}catch( Throwable e ){
 			

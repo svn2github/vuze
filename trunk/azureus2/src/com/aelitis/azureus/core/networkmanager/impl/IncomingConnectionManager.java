@@ -94,9 +94,14 @@ IncomingConnectionManager
 		return( match_buffers_cow.isEmpty());
 	}
 	
-	public MatchListener 
+		// returns MatchListener,RoutingData if matched
+	
+	public Object[] 
 	checkForMatch( 
-		int	incoming_port, ByteBuffer to_check, boolean min_match ) 
+		TransportHelper	transport,
+		int				incoming_port, 
+		ByteBuffer 		to_check, 
+		boolean 		min_match ) 
 	{ 
 	       //remember original values for later restore
 	      int orig_position = to_check.position();
@@ -105,38 +110,56 @@ IncomingConnectionManager
 	      //rewind
 	      to_check.position( 0 );
 
-	      MatchListener listener = null;
-	           
-	      for( Iterator i = match_buffers_cow.entrySet().iterator(); i.hasNext(); ) {
-	        Map.Entry entry = (Map.Entry)i.next();
-	        NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)entry.getKey();
-	        
-	        if ( min_match ){
-	            if( orig_position < bm.minSize() ) {  //not enough bytes yet to compare
-	  	          continue;
-	  	        }
-	  	                
-	  	        if( bm.minMatches( to_check, incoming_port ) ) {  //match found!
-	  	          listener = (MatchListener)entry.getValue();
-	  	          break;
-	  	        }      	
-	        }else{
-		        if( orig_position < bm.size() ) {  //not enough bytes yet to compare
-		          continue;
+	      MatchListener listener 		= null;
+	      Object		routing_data 	= null;
+	      
+	      for (int loop=0;loop<2 && listener == null;loop++){
+	    	  
+	    	  boolean	use_default = loop == 1;
+	    	  
+		      for( Iterator i = match_buffers_cow.entrySet().iterator(); i.hasNext(); ) {
+		        Map.Entry entry = (Map.Entry)i.next();
+		        NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)entry.getKey();
+		        MatchListener this_listener = (MatchListener)entry.getValue();
+		        
+		        if (this_listener.isDefault() == use_default ){
+			        if ( min_match ){
+			            if( orig_position < bm.minSize() ) {  //not enough bytes yet to compare
+			  	          continue;
+			  	        }
+			  	                
+			            routing_data = bm.minMatches( transport.getAddress(), to_check, incoming_port );
+			            
+			            if ( routing_data != null ){
+			  	          listener = this_listener;
+			  	          break;
+			  	        }      	
+			        }else{
+				        if( orig_position < bm.size() ) {  //not enough bytes yet to compare
+				          continue;
+				        }
+				                
+				        routing_data = bm.matches( transport.getAddress(), to_check, incoming_port );
+				        
+				        if ( routing_data != null ){
+				          listener = this_listener;
+				          break;
+				        }
+			        }
 		        }
-		                
-		        if( bm.matches( to_check, incoming_port ) ) {  //match found!
-		          listener = (MatchListener)entry.getValue();
-		          break;
-		        }
-	        }
+		      }
 	      }
 
 	      //restore original values in case the checks changed them
 	      to_check.position( orig_position );
 	      to_check.limit( orig_limit );
 	      
-	      return listener;
+	      if ( listener == null ){
+	    	  
+	    	  return( null );
+	      }
+	      
+	      return( new Object[]{ listener, routing_data });
 	  }
 	  
 	  /**
@@ -168,12 +191,8 @@ IncomingConnectionManager
 	      
 	    	match_buffers_cow = new_match_buffers;
 	    
-	    	byte[]	secret = matcher.getSharedSecret();
+	    	addSharedSecret( matcher.getSharedSecret());
 	      
-	    	if ( secret != null ){
-	    	  
-	    		ProtocolDecoder.addSecret( secret );
-	    	}
 	    }finally {  
 	    	match_buffers_mon.exit();  
 	    }
@@ -206,15 +225,31 @@ IncomingConnectionManager
 	    
 	      match_buffers_cow = new_match_buffers;
 	      
-	      byte[]	secret = to_remove.getSharedSecret();
-	      
-	      if ( secret != null ){
-	    	  
-		      ProtocolDecoder.removeSecret( secret );
-	      }
+	      removeSharedSecret( to_remove.getSharedSecret());
+
 	    } finally {  match_buffers_mon.exit();  }  
 	} 
 	  
+	public void
+	addSharedSecret(
+		byte[]		secret )
+	{
+		if ( secret != null ){
+			
+			ProtocolDecoder.addSecret( secret );
+		}
+	}
+	
+	public void
+	removeSharedSecret(
+		byte[]		secret )
+	{
+		if ( secret != null ){
+			
+			ProtocolDecoder.removeSecret( secret );
+		}
+	}
+	
 	public int
 	getMaxMatchBufferSize()
 	{
@@ -431,9 +466,9 @@ IncomingConnectionManager
 
 				ic.last_read_time = SystemTime.getCurrentTime();
 
-				IncomingConnectionManager.MatchListener listener = checkForMatch( local_port, ic.buffer, false );
+				Object[] match_data = checkForMatch( transport_helper, local_port, ic.buffer, false );
 
-				if( listener == null ) {  //no match found
+				if( match_data == null ) {  //no match found
 					if( ic.buffer.position() >= getMaxMatchBufferSize()) { //we've already read in enough bytes to have compared against all potential match buffers
 						ic.buffer.flip();
 						if (Logger.isEnabled())
@@ -460,7 +495,8 @@ IncomingConnectionManager
 
 					transport.connectedInbound();
 					
-					listener.connectionMatched( transport );
+					IncomingConnectionManager.MatchListener listener = (IncomingConnectionManager.MatchListener)match_data[0];
+					listener.connectionMatched( transport, match_data[1] );
 				}
 				return( true );
 			}
@@ -531,6 +567,14 @@ IncomingConnectionManager
 		
 		public void 
 		connectionMatched( 
-			Transport	transport );
+			Transport	transport,
+			Object		routing_data );
+		
+		/**
+		 * Indicates whether or not this matcher should be invoked after non-default ones have failed
+		 * @return
+		 */
+		public boolean
+		isDefault();
 	}
 }
