@@ -304,7 +304,12 @@ AzureusCoreImpl
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Loading of Plugins complete"));
 
-		global_manager = GlobalManagerFactory.create(this, 30000);
+		// Disable async loading of existing torrents, because there are many things
+		// (like hosting) that require all the torrents to be loaded.  While we
+		// can write code for each of these cases to wait until the torrents are
+		// loaded, it's a pretty big job to find them all and fix all their quirks.
+		// Too big of a job for this late in the release stage.
+		global_manager = GlobalManagerFactory.create(this, 0);
 
 		for (int i = 0; i < lifecycle_listeners.size(); i++) {
 

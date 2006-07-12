@@ -314,6 +314,9 @@ public class GlobalManagerImpl
 							loadExistingTorrentsNow(listener, false); // already async
 						}
 					});
+		} else {
+			// run sync
+			loadExistingTorrentsNow(listener, false);
 		}
 
     if (listener != null)
