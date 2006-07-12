@@ -672,7 +672,12 @@ public class GlobalManagerImpl
 	        		// migrate anything other than the default value of 4
 	        	int	maxUploads = nbUploads.intValue();
 	        	if ( maxUploads != 4 ){
-	        		download_manager.setMaxUploads( maxUploads );
+	        			// hmm, can't currently remove maxuploads as it stops people regressing to earlier
+	        			// version. So currently we store maxuploads still and only overwrite the dm state
+	        			// value if the stored value is non-default and the state one is
+	        		if ( download_manager.getMaxUploads() == 4 ){
+	        			download_manager.setMaxUploads( maxUploads );
+	        		}
 	        	}
 	        }
 	        
@@ -1647,7 +1652,10 @@ public class GlobalManagerImpl
 	      dmMap.put("secondsDownloading", new Long(dm_stats.getSecondsDownloading()));
 	      dmMap.put("secondsOnlySeeding", new Long(dm_stats.getSecondsOnlySeeding()));
       
-	      dmMap.put( "creationTime", new Long( dm.getCreationTime()));
+	      	// although this has been migrated, keep storing it to allow regression for a while
+	      dmMap.put("uploads", new Long(dm.getMaxUploads()));
+	      
+	      dmMap.put("creationTime", new Long( dm.getCreationTime()));
 		      
 		      //save file priorities
  
