@@ -1540,7 +1540,6 @@ public class GlobalManagerImpl
   }
   
   private void triggerAddListener(List downloadsToAdd) {
-		System.out.println(SystemTime.getCurrentTime() + ": trigger " + downloadsToAdd.size());
 		try {
 			managers_mon.enter();
 			List listenersCopy = listeners.getListenersCopy();
