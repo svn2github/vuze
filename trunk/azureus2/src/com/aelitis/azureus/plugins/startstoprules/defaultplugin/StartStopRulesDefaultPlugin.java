@@ -402,12 +402,11 @@ public class StartStopRulesDefaultPlugin
 			// quick and dirty check: keep connection if scrape peer count is 0
 			// there's a (good?) chance we'll start in the next process cycle 
 	    DownloadScrapeResult sr = event.getDownload().getLastScrapeResult();
-	    if (sr.getScrapeStartTime() > 0) {
-	      int numPeers = sr.getNonSeedCount();
-	      if (numPeers == 0) {
-	      	return true;
-	      }
-	    }
+      int numPeers = sr.getNonSeedCount();
+      if (numPeers <= 0) {
+      	return true;
+      }
+
 			return false;
 		}
 	}
