@@ -189,6 +189,7 @@ public class ConfigurationDefaults {
     def.put("update.periodic",TRUE);
     def.put("update.opendialog",TRUE);
     def.put("Colors.progressBar.override", FALSE);
+    def.put("GUI_SWT_DisableAlertSliding", FALSE);
     
     
     def.put("Logger.Enabled", FALSE);  //logging in general
