@@ -93,9 +93,7 @@ public class PeerManager {
 									  idle_time += PENDING_TIMEOUT / 2;
 									  
 									  if ( idle_time >= 30*1000 ){
-										  
-										  System.out.println( "timer thread idle" );
-										  
+										  										  
 										  timer_thread = null;
 										  
 										  break;
@@ -288,7 +286,7 @@ public class PeerManager {
 		  PeerManagerRegistration	registration = new PeerManagerRegistrationImpl( hash, adapter );
 		  
 		  registered_legacy_managers.put( hash, registration );
-		  
+			  
 		  return( registration );
 	  }finally{
 		  
