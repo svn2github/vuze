@@ -26,7 +26,9 @@ public interface
 DownloadActivationListener 
 {
 		/**
-		 * A request has been made to activate the download.
+		 * A request has been made to activate the download. Not this is only fired on an increase in the
+		 * activation request count, not on a decrease. To get a current snapshot of this use the method
+		 * getActivationState in Download
 		 * @param event
 		 * @return return true if the download will be activated, false otherwise
 		 */

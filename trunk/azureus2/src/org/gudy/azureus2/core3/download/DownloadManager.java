@@ -492,6 +492,9 @@ DownloadManager
     removeDiskListener(
         DownloadManagerDiskListener listener );
 
+    public int
+    getActivationCount();
+    
     public void
     addActivationListener(
     	DownloadManagerActivationListener listener );

@@ -147,11 +147,12 @@ DownloadManagerController
 
 	private GlobalManagerStats		global_stats;
 	
-	private static final int			BLOOM_RECREATE				= 10*60*1000;
+	private static final int			ACTIVATION_REBUILD_TIME		= 10*60*1000;
 	private static final int			BLOOM_SIZE					= 64;
 	private volatile BloomFilter		activation_bloom;
-	private long						activation_bloom_create_time	= SystemTime.getCurrentTime();
-
+	private volatile long				activation_bloom_create_time	= SystemTime.getCurrentTime();
+	private volatile int				activation_count;
+	private volatile long				activation_count_time;
 	
 	
 	
@@ -1062,17 +1063,41 @@ DownloadManagerController
 				// we don't really care about the bloom filter filling up and giving false positives
 				// as activation events should be fairly rare
 			
-			if ( now < activation_bloom_create_time || now - activation_bloom_create_time > BLOOM_RECREATE ){
+			if ( now < activation_bloom_create_time || now - activation_bloom_create_time > ACTIVATION_REBUILD_TIME ){
 				
 				activation_bloom = BloomFilterFactory.createAddRemove4Bit( BLOOM_SIZE );
 				
 				activation_bloom_create_time	= now;
 			}
 			
-			return( download_manager.activateRequest( bloom.getEntryCount()));
+			activation_count = bloom.getEntryCount();
+			
+			activation_count_time = now;
+			
+			return( download_manager.activateRequest( activation_count ));
 		}
 		
 		return( false );
+	}
+	
+	public int
+	getActivationCount()
+	{
+			// in the absence of any new activations we persist the last count for the activation rebuild
+			// period
+		
+		long	now = SystemTime.getCurrentTime();
+
+		if ( now < activation_count_time ){
+			
+			activation_count_time = now;
+			
+		}else if ( now - activation_count_time > ACTIVATION_REBUILD_TIME ){
+			
+			activation_count = 0;
+		}
+
+		return( activation_count );
 	}
 	
 	public PeerManagerRegistration

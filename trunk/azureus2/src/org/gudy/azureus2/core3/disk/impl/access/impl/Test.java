@@ -491,6 +491,11 @@ Test
 			// TODO Auto-generated method stub
 			
 		}
+		
+		public int getActivationCount() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
 		public void
 		addPeerListener(
 			DownloadManagerPeerListener	listener )

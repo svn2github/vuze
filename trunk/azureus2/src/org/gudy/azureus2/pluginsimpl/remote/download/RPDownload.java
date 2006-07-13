@@ -901,6 +901,14 @@ RPDownload
 		notSupported();
 	}
     
+	public DownloadActivationEvent
+	getActivationState()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
 	public void
 	addActivationListener(
 		DownloadActivationListener		l )

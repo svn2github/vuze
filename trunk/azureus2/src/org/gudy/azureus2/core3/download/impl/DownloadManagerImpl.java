@@ -1925,6 +1925,12 @@ DownloadManagerImpl
 		return( false );
 	}
 	
+	public int
+	getActivationCount()
+	{
+		return( controller.getActivationCount());
+	}
+	
 	public String 
 	getTorrentComment() 
 	{

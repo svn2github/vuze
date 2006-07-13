@@ -503,6 +503,17 @@ Download
 	getLastScrapeResult();
 	
 	/**
+	 * Gives access to the current activation state. Note that we currently only fire the activation listener
+	 * on an increase in activation requirements. This method however gives the current view of the state
+	 * and takes into account decreases too
+	 * @return
+	 * @since 2.4.0.3
+	 */
+	
+	public DownloadActivationEvent
+	getActivationState();
+	
+	/**
 	 * Gives access to the download's statistics
 	 * @return
    *

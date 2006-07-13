@@ -75,26 +75,27 @@ DownloadImpl
 				DownloadManagerTrackerListener, DownloadManagerPeerListener,
 				DownloadManagerStateListener, DownloadManagerActivationListener
 {
-	protected DownloadManager		download_manager;
-	protected DownloadStatsImpl		download_stats;
+	private DownloadManager		download_manager;
+	private DownloadStatsImpl		download_stats;
 	
-	protected int		latest_state		= ST_STOPPED;
-	protected boolean 	latest_forcedStart;
+	private int		latest_state		= ST_STOPPED;
+	private boolean 	latest_forcedStart;
 	
-	protected DownloadAnnounceResultImpl	last_announce_result 	= new DownloadAnnounceResultImpl(this,null);
-	protected DownloadScrapeResultImpl		last_scrape_result		= new DownloadScrapeResultImpl( this, null );
+	private DownloadAnnounceResultImpl	last_announce_result 	= new DownloadAnnounceResultImpl(this,null);
+	private DownloadScrapeResultImpl		last_scrape_result		= new DownloadScrapeResultImpl( this, null );
 	
-	protected List		listeners 				= new ArrayList();
-	protected AEMonitor	listeners_mon			= new AEMonitor( "Download:L");
-	protected List		property_listeners		= new ArrayList();
-	protected List		tracker_listeners		= new ArrayList();
-	protected AEMonitor	tracker_listeners_mon	= new AEMonitor( "Download:TL");
-	protected List		removal_listeners 		= new ArrayList();
-	protected AEMonitor	removal_listeners_mon	= new AEMonitor( "Download:RL");
-	protected List		peer_listeners			= new ArrayList();
-	protected AEMonitor	peer_listeners_mon		= new AEMonitor( "Download:PL");
+	private List		listeners 				= new ArrayList();
+	private AEMonitor	listeners_mon			= new AEMonitor( "Download:L");
+	private List		property_listeners		= new ArrayList();
+	private List		tracker_listeners		= new ArrayList();
+	private AEMonitor	tracker_listeners_mon	= new AEMonitor( "Download:TL");
+	private List		removal_listeners 		= new ArrayList();
+	private AEMonitor	removal_listeners_mon	= new AEMonitor( "Download:RL");
+	private List		peer_listeners			= new ArrayList();
+	private AEMonitor	peer_listeners_mon		= new AEMonitor( "Download:PL");
 	
-	protected CopyOnWriteList	activation_listeners	= new CopyOnWriteList();
+	private CopyOnWriteList	activation_listeners	= new CopyOnWriteList();
+	private DownloadActivationEvent	activation_state;
 	
 	protected
 	DownloadImpl(
@@ -103,6 +104,22 @@ DownloadImpl
 		download_manager	= _dm;
 		download_stats		= new DownloadStatsImpl( download_manager );
 		
+		activation_state = 
+			new DownloadActivationEvent()
+			{
+				public Download
+				getDownload()
+				{
+					return( DownloadImpl.this );
+				}
+				
+				public int
+				getActivationCount()
+				{
+					return( download_manager.getActivationCount());
+				}
+			};
+			
 		download_manager.addListener( this );
 		
 		latest_forcedStart = download_manager.isForceStart();
@@ -1153,28 +1170,28 @@ DownloadImpl
 	activateRequest(
 		final int		count )
 	{
-		for (Iterator it=activation_listeners.iterator();it.hasNext();){
+		DownloadActivationEvent event = 
+			new DownloadActivationEvent()
+		{
+			public Download 
+			getDownload() 
+			{
+				return( DownloadImpl.this );
+			}
 			
-			DownloadActivationEvent	event = 
-				new DownloadActivationEvent()
-				{
-					public Download 
-					getDownload() 
-					{
-						return( DownloadImpl.this );
-					}
-					
-					public int
-					getActivationCount()
-					{
-						return( count );
-					}
-				};
+			public int
+			getActivationCount()
+			{
+				return( count );
+			}
+		};
+		
+		for (Iterator it=activation_listeners.iterator();it.hasNext();){	
 				
 			try{
 				DownloadActivationListener	listener = (DownloadActivationListener)it.next();
 				
-				if ( listener.activationRequested(event)){
+				if ( listener.activationRequested( event )){
 					
 					return( true );
 				}
@@ -1185,6 +1202,12 @@ DownloadImpl
 		}
 		
 		return( false );
+	}
+	
+	public DownloadActivationEvent
+	getActivationState()
+	{
+		return( activation_state );
 	}
 	
 	public void
