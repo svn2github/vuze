@@ -244,16 +244,16 @@ TRTrackerAnnouncerImpl
 					
 					//System.out.println( "recovered " + ip_address + ":" + port );
 
-					tracker_peer_cache.put( 
+					TRTrackerAnnouncerResponsePeerImpl	entry =
+						new TRTrackerAnnouncerResponsePeerImpl(
+							peer_source, 
+							peer_peer_id, 
 							peer_ip_address, 
-							new TRTrackerAnnouncerResponsePeerImpl(
-									peer_source, 
-									peer_peer_id, 
-									peer_ip_address, 
-									peer_tcp_port,
-									peer_udp_port,
-									protocol ));
+							peer_tcp_port,
+							peer_udp_port,
+							protocol );
 					
+					tracker_peer_cache.put( entry.getKey(), entry );
 				}
 				
 				return( tracker_peer_cache.size());
@@ -272,7 +272,7 @@ TRTrackerAnnouncerImpl
 
 	protected void
 	addToTrackerCache(
-		TRTrackerAnnouncerResponsePeer[]		peers )
+		TRTrackerAnnouncerResponsePeerImpl[]		peers )
 	{
 		if ( !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
 			
@@ -288,13 +288,13 @@ TRTrackerAnnouncerImpl
 			
 			for (int i=0;i<peers.length;i++){
 				
-				TRTrackerAnnouncerResponsePeer	peer = peers[i];
+				TRTrackerAnnouncerResponsePeerImpl	peer = peers[i];
 				
 					// remove and reinsert to maintain most recent last
 				
-				tracker_peer_cache.remove( peer.getAddress());
+				tracker_peer_cache.remove( peer.getKey());
 				
-				tracker_peer_cache.put( peer.getAddress(), peer );
+				tracker_peer_cache.put( peer.getKey(), peer );
 			}
 			
 			Iterator	it = tracker_peer_cache.keySet().iterator();
@@ -376,7 +376,7 @@ TRTrackerAnnouncerImpl
 				return( res );
 			}
 			
-			TRTrackerAnnouncerResponsePeer[]	res = new TRTrackerAnnouncerResponsePeer[num_want];
+			TRTrackerAnnouncerResponsePeerImpl[]	res = new TRTrackerAnnouncerResponsePeerImpl[num_want];
 			
 			Iterator	it = tracker_peer_cache.keySet().iterator();
 			
@@ -387,14 +387,14 @@ TRTrackerAnnouncerImpl
 				
 				String	key = (String)it.next();
 				
-				res[i] = (TRTrackerAnnouncerResponsePeer)tracker_peer_cache.get(key);
+				res[i] = (TRTrackerAnnouncerResponsePeerImpl)tracker_peer_cache.get(key);
 				
 				it.remove();
 			}
 			
 			for (int i=0;i<num_want;i++){
 				
-				tracker_peer_cache.put( res[i].getAddress(), res[i] );
+				tracker_peer_cache.put( res[i].getKey(), res[i] );
 			}
 			
 			if (Logger.isEnabled())

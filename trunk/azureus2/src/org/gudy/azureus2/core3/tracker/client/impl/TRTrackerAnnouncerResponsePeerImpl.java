@@ -87,4 +87,10 @@ TRTrackerAnnouncerResponsePeerImpl
 	{
 		return( crypto );
 	}
+	
+	protected String
+	getKey()
+	{
+		return( address + ":" + tcp_port );
+	}
 }

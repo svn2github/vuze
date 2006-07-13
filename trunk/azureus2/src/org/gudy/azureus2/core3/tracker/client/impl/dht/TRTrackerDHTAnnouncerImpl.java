@@ -260,7 +260,7 @@ TRTrackerDHTAnnouncerImpl
 		}else{
 			DownloadAnnounceResultPeer[]	ext_peers = result.getPeers();
 			
-			TRTrackerAnnouncerResponsePeer[] peers = new TRTrackerAnnouncerResponsePeer[ext_peers.length];
+			TRTrackerAnnouncerResponsePeerImpl[] peers = new TRTrackerAnnouncerResponsePeerImpl[ext_peers.length];
 				
 			for (int i=0;i<ext_peers.length;i++){
 				

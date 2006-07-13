@@ -2406,7 +2406,7 @@ TRTrackerBTAnnouncerImpl
 				    }
 				    
 				    
-					TRTrackerAnnouncerResponsePeer[] peers=new TRTrackerAnnouncerResponsePeer[valid_meta_peers.size()];
+					TRTrackerAnnouncerResponsePeerImpl[] peers=new TRTrackerAnnouncerResponsePeerImpl[valid_meta_peers.size()];
 					
 					valid_meta_peers.toArray(peers);
 					
@@ -2669,7 +2669,7 @@ TRTrackerBTAnnouncerImpl
 		}else{
 			DownloadAnnounceResultPeer[]	ext_peers = result.getPeers();
 			
-			TRTrackerAnnouncerResponsePeer[] peers = new TRTrackerAnnouncerResponsePeer[ext_peers.length];
+			TRTrackerAnnouncerResponsePeerImpl[] peers = new TRTrackerAnnouncerResponsePeerImpl[ext_peers.length];
 				
 			for (int i=0;i<ext_peers.length;i++){
 				
