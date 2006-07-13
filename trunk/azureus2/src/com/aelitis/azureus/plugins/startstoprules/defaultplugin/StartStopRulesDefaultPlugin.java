@@ -393,8 +393,8 @@ public class StartStopRulesDefaultPlugin
   private class StartStopDownloadActivationListener implements DownloadActivationListener
   {
 		public boolean activationRequested(DownloadActivationEvent event) {
-			System.out.println("StartStop: activation request: count = "
-					+ event.getActivationCount());
+			//System.out.println("StartStop: activation request: count = "
+			//		+ event.getActivationCount());
       DefaultRankCalculator dlData = (DefaultRankCalculator) downloadDataMap.get(event.getDownload());
 			// ok to be null
 			requestProcessCycle(dlData);
