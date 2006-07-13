@@ -392,14 +392,25 @@ public class StartStopRulesDefaultPlugin
 
   private class StartStopDownloadActivationListener implements DownloadActivationListener
   {
-	public boolean 
-	activationRequested(
-		DownloadActivationEvent event) 
-	{
-		System.out.println( "StartStop: activation request: count = " + event.getActivationCount());
-		return false;
-	}  
-  }
+		public boolean activationRequested(DownloadActivationEvent event) {
+			System.out.println("StartStop: activation request: count = "
+					+ event.getActivationCount());
+      DefaultRankCalculator dlData = (DefaultRankCalculator) downloadDataMap.get(event.getDownload());
+			// ok to be null
+			requestProcessCycle(dlData);
+			
+			// quick and dirty check: keep connection if scrape peer count is 0
+			// there's a (good?) chance we'll start in the next process cycle 
+	    DownloadScrapeResult sr = event.getDownload().getLastScrapeResult();
+	    if (sr.getScrapeStartTime() > 0) {
+	      int numPeers = sr.getNonSeedCount();
+	      if (numPeers == 0) {
+	      	return true;
+	      }
+	    }
+			return false;
+		}
+	}
   
   /* Create/Remove downloadData object when download gets added/removed.
    * RecalcSeedingRank & process if necessary.
@@ -1642,6 +1653,13 @@ public class StartStopRulesDefaultPlugin
       DownloadAnnounceResult ar = download.getLastAnnounceResult();
       if (ar != null && ar.getResponseType() == DownloadAnnounceResult.RT_SUCCESS)
         numPeers = ar.getNonSeedCount();
+      
+      if (numPeers == 0) {
+      	DownloadActivationEvent activationState = download.getActivationState();
+      	if (activationState != null) {
+      		numPeers = activationState.getActivationCount();
+      	}
+      }
     }
     return numPeers;
   }
