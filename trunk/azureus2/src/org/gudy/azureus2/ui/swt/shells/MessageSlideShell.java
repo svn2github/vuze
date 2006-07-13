@@ -32,6 +32,7 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -186,7 +187,7 @@ public class MessageSlideShell {
 		int shellWidth;
 		int style = SWT.ON_TOP;
 
-		boolean bDisableSliding = COConfigurationManager.getBooleanParameter("DisableAlertSliding");
+		boolean bDisableSliding = COConfigurationManager.getBooleanParameter("GUI_SWT_DisableAlertSliding");
 		if (bDisableSliding) {
 			bSlide = false;
 			style = SWT.NONE;
