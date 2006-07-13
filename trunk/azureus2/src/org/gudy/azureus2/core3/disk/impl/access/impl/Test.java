@@ -483,7 +483,14 @@ Test
 			DownloadManagerDiskListener	listener )
 		{
 		}
-		
+		public void addActivationListener(DownloadManagerActivationListener listener) {
+			// TODO Auto-generated method stub
+			
+		}
+		public void removeActivationListener(DownloadManagerActivationListener listener) {
+			// TODO Auto-generated method stub
+			
+		}
 		public void
 		addPeerListener(
 			DownloadManagerPeerListener	listener )

@@ -1,5 +1,5 @@
 /*
- * Created on 12 Jul 2006
+ * Created on 13 Jul 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -20,20 +20,12 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager;
-
-import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+package org.gudy.azureus2.core3.download;
 
 public interface 
-PeerManagerRegistration 
+DownloadManagerActivationListener 
 {
-	public void
-	activate(
-		PEPeerControl	peer_control );
-	
-	public void
-	deactivate();
-	
-	public void
-	unregister();
+	public boolean
+	activateRequest(
+		int		count );
 }

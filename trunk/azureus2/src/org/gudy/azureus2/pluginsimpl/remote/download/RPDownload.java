@@ -901,6 +901,19 @@ RPDownload
 		notSupported();
 	}
     
+	public void
+	addActivationListener(
+		DownloadActivationListener		l )
+	{
+		notSupported();
+	}
+	
+	public void
+	removeActivationListener(
+		DownloadActivationListener		l )
+	{
+		notSupported();
+	}
     
     public void setSessionAuthenticator( SessionAuthenticator auth ) {
       notSupported();  //TODO ?

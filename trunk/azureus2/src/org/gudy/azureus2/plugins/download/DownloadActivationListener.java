@@ -1,5 +1,5 @@
 /*
- * Created on 12 Jul 2006
+ * Created on 13 Jul 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -20,20 +20,18 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager;
-
-import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+package org.gudy.azureus2.plugins.download;
 
 public interface 
-PeerManagerRegistration 
+DownloadActivationListener 
 {
-	public void
-	activate(
-		PEPeerControl	peer_control );
+		/**
+		 * A request has been made to activate the download.
+		 * @param event
+		 * @return return true if the download will be activated, false otherwise
+		 */
 	
-	public void
-	deactivate();
-	
-	public void
-	unregister();
+	public boolean
+	activationRequested(
+		DownloadActivationEvent	event );
 }

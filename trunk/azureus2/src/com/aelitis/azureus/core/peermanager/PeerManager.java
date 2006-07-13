@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.networkmanager.NetworkManager.ByteMatcher;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
 import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
 import com.aelitis.azureus.core.peermanager.download.TorrentDownloadFactory;
@@ -48,8 +47,6 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
  */
 public class PeerManager {
   private static final LogIDs LOGID = LogIDs.PEER;
-
-  private static final boolean MUTLI_CONTROLLERS	= COConfigurationManager.getBooleanParameter( "peer.multiple.controllers.per.torrent.enable", false );
 	
   private static final PeerManager instance = new PeerManager();
 
@@ -62,10 +59,7 @@ public class PeerManager {
   public static PeerManager getSingleton() {  return instance;  }
   
 
-  
-  
-  
-  private final HashMap active_legacy_managers 		= new HashMap();
+   
   private final HashMap registered_legacy_managers 	= new HashMap();
    
   private final ByteBuffer legacy_handshake_header;
@@ -93,11 +87,6 @@ public class PeerManager {
     		ByteBuffer 			to_compare, 
     		int 				port ) 
     	{ 
-
-    		if ( MUTLI_CONTROLLERS ){
-    			return( null );
-    		}
-
     		int old_limit = to_compare.limit();
     		int old_position = to_compare.position();
 
@@ -130,9 +119,12 @@ public class PeerManager {
 
     		if ( routing_data != null ){
     			
-    			if ( !routing_data.getAdapter().activateRequest( address )){
+    			if ( !routing_data.isActive()){
+    			
+    				if ( !routing_data.getAdapter().activateRequest( address )){
     				
-    				routing_data = null;
+    					routing_data = null;
+    				}
     			}
     		}
     		return routing_data;
@@ -144,12 +136,7 @@ public class PeerManager {
     		ByteBuffer 			to_compare, 
     		int 				port ) 
     	{ 
-    		if ( MUTLI_CONTROLLERS ){
-    		
-    			return( null );
-    		}
-
-    		boolean matches = false;
+     		boolean matches = false;
 
     		int old_limit = to_compare.limit();
     		int old_position = to_compare.position();
@@ -160,7 +147,8 @@ public class PeerManager {
     			matches = true;
     		}
 
-    		//restore buffer structure
+    			//restore buffer structure
+    		
     		to_compare.limit( old_limit );
     		to_compare.position( old_position );
 
@@ -184,10 +172,41 @@ public class PeerManager {
         	{
         		PeerManagerRegistrationImpl	registration = (PeerManagerRegistrationImpl)routing_data;
         		
-        		System.out.println( "default routing" );
+        		PEPeerControl	peer_control = registration.getPeerControl();
         		
-        		connection.close();
+        		if ( peer_control == null ){
+        			
+        			System.out.println( "default routing" );
+        		
+        			connection.close();
+        			
+        		}else{
+	        			
+	                // make sure not already connected to the same IP address; allow
+	                // loopback connects for co-located proxy-based connections and
+	                // testing
+        			
+	                String address = connection.getEndpoint().getNotionalAddress().getAddress().getHostAddress();
+	                boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
+	                if( !same_allowed && PeerIdentityManager.containsIPAddress( peer_control.getPeerIdentityDataID(), address ) ){  
+	                	if (Logger.isEnabled())
+	    								Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+	    										"Incoming TCP connection from [" + connection
+	    												+ "] dropped as IP address already "
+	    												+ "connected for ["
+	    												+ peer_control.getDisplayName() + "]"));
+	                  connection.close();
+	                  return;
+	                }
+	                
+	                if (Logger.isEnabled())
+	    							Logger.log(new LogEvent(LOGID, "Incoming TCP connection from ["
+	    									+ connection + "] routed to legacy download ["
+	    									+ peer_control.getDisplayName() + "]"));
+	                peer_control.addPeerTransport( PEPeerTransportFactory.createTransport( peer_control, PEPeerSource.PS_INCOMING, connection ) );
+        		}
         	}
+        	
         	public boolean
       	  	autoCryptoFallback()
         	{
@@ -197,8 +216,7 @@ public class PeerManager {
         new MessageStreamFactory() {
           public MessageStreamEncoder createEncoder() {  return new BTMessageEncoder();  }
           public MessageStreamDecoder createDecoder() {  return new BTMessageDecoder();  }
-        },
-        true );
+        });
   }
   
      
@@ -248,187 +266,17 @@ public class PeerManager {
 		  managers_mon.exit();
 	  }
   }
-  
-  /**
-   * Register legacy peer manager for incoming BT connections.
-   * @param manager legacy controller
-   */
-  
-  protected void 
-  activateLegacyManager( 
-	final PEPeerControl manager ) 
-  {
-    NetworkManager.ByteMatcher matcher = new NetworkManager.ByteMatcher() {
-      public int size() {  return 48;  }
-      public int minSize() { return 20; }
-      
-      public Object 
-      matches( 
-    	InetSocketAddress	remote,
-    	ByteBuffer 			to_compare, 
-    	int 				port ) 
-      { 
-    	
-    	if ( MUTLI_CONTROLLERS ){
-    		if ( port != manager.getPort()){
-    			return( null);
-    		}
-    	}
-    	  
-        boolean matches = false;
-        
-        int old_limit = to_compare.limit();
-        int old_position = to_compare.position();
-        
-        to_compare.limit( old_position + 20 );
-        
-        if( to_compare.equals( legacy_handshake_header ) ) {  //compare header 
-          to_compare.limit( old_position + 48 );
-          to_compare.position( old_position + 28 );
-          
-          if( to_compare.equals( ByteBuffer.wrap( manager.getHash() ) ) ) {  //compare infohash
-            matches = true;
-          }
-        }
-        
-        //restore buffer structure
-        to_compare.limit( old_limit );
-        to_compare.position( old_position );
-        
-        return matches?"":null;
-      }
-      
-      public Object 
-      minMatches( 
-    	InetSocketAddress	address,
-    	ByteBuffer 			to_compare, 
-    	int 				port ) 
-      { 
-    	  if ( MUTLI_CONTROLLERS ){
-        	if ( port != manager.getPort()){
-        		return( null);
-        	}
-    	  }
-    	  
-          boolean matches = false;
-          
-          int old_limit = to_compare.limit();
-          int old_position = to_compare.position();
-          
-          to_compare.limit( old_position + 20 );
-          
-          if( to_compare.equals( legacy_handshake_header ) ) { 
-        	  matches = true;
-          }
-  
-          //restore buffer structure
-          to_compare.limit( old_limit );
-          to_compare.position( old_position );
-          
-          return matches?"":null;
-        }
-      
-      public byte[] 
-      getSharedSecret()
-      {
-    	  return( null );	// registered manually above
-      }
-    };
-    
-    
-    // register for incoming connection routing
-    NetworkManager.getSingleton().requestIncomingConnectionRouting(
-        matcher,
-        new NetworkManager.RoutingListener() {
-          public void connectionRouted( NetworkConnection connection, Object routing_data ) {
-            
-            // make sure not already connected to the same IP address; allow
-            // loopback connects for co-located proxy-based connections and
-            // testing
-            String address = connection.getEndpoint().getNotionalAddress().getAddress().getHostAddress();
-            boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
-            if( !same_allowed && PeerIdentityManager.containsIPAddress( manager.getPeerIdentityDataID(), address ) ){  
-            	if (Logger.isEnabled())
-								Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-										"Incoming TCP connection from [" + connection
-												+ "] dropped as IP address already "
-												+ "connected for ["
-												+ manager.getDisplayName() + "]"));
-              connection.close();
-              return;
-            }
-            
-            if (Logger.isEnabled())
-							Logger.log(new LogEvent(LOGID, "Incoming TCP connection from ["
-									+ connection + "] routed to legacy download ["
-									+ manager.getDisplayName() + "]"));
-            manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, PEPeerSource.PS_INCOMING, connection ) );
-          }
-          public boolean
-      	  autoCryptoFallback()
-          {
-        	  return( false );
-          }
-        },
-        new MessageStreamFactory() {
-          public MessageStreamEncoder createEncoder() {  return new BTMessageEncoder();  }
-          public MessageStreamDecoder createDecoder() {  return new BTMessageDecoder();  }
-        },
-        false );
-    
-    TorrentDownload download = TorrentDownloadFactory.getSingleton().createDownload( manager );  //link legacy with new
-    LegacyRegistration leg_reg = new LegacyRegistration( download, matcher );
-    
-	  try{
-		  managers_mon.enter();
-
-		  active_legacy_managers.put( manager, leg_reg );
-		  		  
-	  }finally{
-		  
-		  managers_mon.exit();
-	  }
-  }
-  
-  
-  
-  /**
-   * Remove legacy peer manager registration.
-   * @param manager legacy controller
-   */
-  protected void 
-  deactivateLegacyManager( 
-	final PEPeerControl manager ) 
-  {
-    //remove incoming routing registration 
-    LegacyRegistration leg_reg = (LegacyRegistration)active_legacy_managers.remove( manager );
-    if( leg_reg != null ) {
-      NetworkManager.getSingleton().cancelIncomingConnectionRouting( leg_reg.byte_matcher );
-      leg_reg.download.destroy();  //break legacy link
-    }
-    else {
-      Debug.out( "matcher == null" );
-    }
-  }
-  
-  
-  
-  private static class LegacyRegistration {
-    private final TorrentDownload download;
-    private final ByteMatcher byte_matcher;
-    
-    private LegacyRegistration( TorrentDownload d, ByteMatcher m ) {
-      this.download = d;
-      this.byte_matcher = m;
-    }  
-  }
-  
+ 
   private class
   PeerManagerRegistrationImpl
   	implements PeerManagerRegistration
   {
 	private HashWrapper 					hash;
 	private PeerManagerRegistrationAdapter	adapter;
+	
+	private TorrentDownload					download;
+	
+	private volatile PEPeerControl			peer_control;
 	
 	protected
 	PeerManagerRegistrationImpl(
@@ -451,18 +299,63 @@ public class PeerManager {
 		return( adapter );
 	}
 	
-	public void
-	activate(
-		PEPeerControl	peer_control )
+	protected PEPeerControl
+	getPeerControl()
 	{
-		PeerManager.this.activateLegacyManager( peer_control );	
+		return( peer_control );
+	}
+	
+	public boolean
+	isActive()
+	{
+		return( peer_control != null );
 	}
 	
 	public void
-	deactivate(
-		PEPeerControl	peer_control )
+	activate(
+		PEPeerControl	_peer_control )
 	{
-		PeerManager.this.deactivateLegacyManager( peer_control );	
+		  try{
+			  managers_mon.enter();
+
+			  peer_control = _peer_control;
+		
+			  if ( download != null ){
+				  
+				  Debug.out( "Already activated" );
+			  }
+			  
+			  download = TorrentDownloadFactory.getSingleton().createDownload( peer_control );  //link legacy with new
+			  
+		  }finally{
+			  
+			  managers_mon.exit();
+		  }
+	}
+	
+	public void
+	deactivate()
+	{
+		  try{
+			  managers_mon.enter();
+	      
+			  if ( download == null ){
+				  
+				  Debug.out( "Already deactivated" );
+				  
+			  }else{
+				  
+				  download.destroy();  //break legacy link
+			  
+				  download	= null;
+			  }
+			  
+			  peer_control = null;
+			  
+		  }finally{
+			  
+			  managers_mon.exit();
+		  }
 	}
 	
 	public void

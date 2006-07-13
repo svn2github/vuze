@@ -390,6 +390,17 @@ public class StartStopRulesDefaultPlugin
   	}
   }
 
+  private class StartStopDownloadActivationListener implements DownloadActivationListener
+  {
+	public boolean 
+	activationRequested(
+		DownloadActivationEvent event) 
+	{
+		System.out.println( "StartStop: activation request: count = " + event.getActivationCount());
+		return false;
+	}  
+  }
+  
   /* Create/Remove downloadData object when download gets added/removed.
    * RecalcSeedingRank & process if necessary.
    */
@@ -397,10 +408,12 @@ public class StartStopRulesDefaultPlugin
   {
     private DownloadTrackerListener download_tracker_listener;
     private DownloadListener        download_listener;
+    private DownloadActivationListener	download_activation_listener;
 
     public StartStopDMListener() {
       download_tracker_listener = new StartStopDMTrackerListener();
       download_listener = new StartStopDownloadListener();
+      download_activation_listener = new StartStopDownloadActivationListener();
     }
 
     public void downloadAdded( Download  download )
@@ -413,6 +426,7 @@ public class StartStopRulesDefaultPlugin
         downloadDataMap.put( download, dlData );
         download.addListener( download_listener );
         download.addTrackerListener( download_tracker_listener, false );
+        download.addActivationListener( download_activation_listener );
       }
 
       if (dlData != null) {
@@ -427,7 +441,8 @@ public class StartStopRulesDefaultPlugin
     {
       download.removeListener( download_listener );
       download.removeTrackerListener( download_tracker_listener );
-
+      download.removeActivationListener( download_activation_listener );
+      
       if (downloadDataMap.containsKey(download)) {
         downloadDataMap.remove(download);
       }

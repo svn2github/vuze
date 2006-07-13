@@ -292,7 +292,7 @@ PEPeerControlImpl
 
 		// remove legacy controller activation
 		
-		adapter.getPeerManagerRegistration().deactivate( this );
+		adapter.getPeerManagerRegistration().deactivate();
 		
 		closeAndRemoveAllPeers("download stopped", false);
 

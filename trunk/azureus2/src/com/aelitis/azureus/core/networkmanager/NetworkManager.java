@@ -245,8 +245,7 @@ public class NetworkManager {
   requestIncomingConnectionRouting( 
 	ByteMatcher 				matcher, 
 	final RoutingListener 		listener, 
-	final MessageStreamFactory 	factory,
-	final boolean				is_default ) 
+	final MessageStreamFactory 	factory )
   {
 	  IncomingConnectionManager.getSingleton().registerMatchBytes( matcher, new IncomingConnectionManager.MatchListener() {
       public boolean
@@ -257,9 +256,6 @@ public class NetworkManager {
       public void connectionMatched( Transport	transport, Object routing_data ) {
         listener.connectionRouted( NetworkConnectionFactory.create( transport, factory.createEncoder(), factory.createDecoder() ), routing_data );
       }
-      public boolean isDefault() {
-    	return is_default;
-    }
     });
   }
  

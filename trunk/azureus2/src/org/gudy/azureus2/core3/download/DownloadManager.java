@@ -493,6 +493,15 @@ DownloadManager
         DownloadManagerDiskListener listener );
 
     public void
+    addActivationListener(
+    	DownloadManagerActivationListener listener );
+
+    public void
+    removeActivationListener(
+    	DownloadManagerActivationListener listener );
+
+    
+    public void
     generateEvidence(
         IndentWriter        writer );
     

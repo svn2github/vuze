@@ -61,6 +61,8 @@ import org.gudy.azureus2.plugins.network.ConnectionManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 public class 
 DownloadManagerController 
@@ -144,6 +146,13 @@ DownloadManagerController
 	private String errorDetail;
 
 	private GlobalManagerStats		global_stats;
+	
+	private static final int			BLOOM_RECREATE				= 10*60*1000;
+	private static final int			BLOOM_SIZE					= 64;
+	private volatile BloomFilter		activation_bloom;
+	private long						activation_bloom_create_time	= SystemTime.getCurrentTime();
+
+	
 	
 	
 	protected
@@ -940,6 +949,13 @@ DownloadManagerController
 	    	
 	  			state_set_by_method = _state;
 	      	      
+	  			if ( state_set_by_method != DownloadManager.STATE_QUEUED ){
+	  				
+	  					// only maintain this while queued
+	  				
+	  				activation_bloom = null;
+	  			}
+	  			
 	  			if (state_set_by_method == DownloadManager.STATE_QUEUED ){
 	        
 	  				// pick up any errors regarding missing data for queued SEEDING torrents
@@ -1014,7 +1030,47 @@ DownloadManagerController
 	activateRequest(
 		InetSocketAddress	address )
 	{
-		// System.out.println( "Activate request for " + getDisplayName() + " from " + address );
+		if ( getState() == DownloadManager.STATE_QUEUED ){
+			
+			BloomFilter	bloom = activation_bloom;
+			
+			if ( bloom == null ){
+				
+				activation_bloom = bloom = BloomFilterFactory.createAddRemove4Bit( BLOOM_SIZE );
+			}
+			
+			byte[]	address_bytes = address.getAddress().getAddress();
+					
+			int	hit_count = bloom.add( address_bytes );
+			
+			if ( hit_count > 5 ){
+				
+				Logger.log(
+						new LogEvent(
+							this, 
+							LogIDs.CORE, 
+							LogEvent.LT_WARNING,
+							"Activate request for " + getDisplayName() + " from " + address + " denied as too many recently received" ));
+
+				return( false );
+			}
+			
+			Logger.log(new LogEvent(this, LogIDs.CORE, "Activate request for " + getDisplayName() + " from " + address ));
+
+			long	now = SystemTime.getCurrentTime();
+
+				// we don't really care about the bloom filter filling up and giving false positives
+				// as activation events should be fairly rare
+			
+			if ( now < activation_bloom_create_time || now - activation_bloom_create_time > BLOOM_RECREATE ){
+				
+				activation_bloom = BloomFilterFactory.createAddRemove4Bit( BLOOM_SIZE );
+				
+				activation_bloom_create_time	= now;
+			}
+			
+			return( download_manager.activateRequest( bloom.getEntryCount()));
+		}
 		
 		return( false );
 	}

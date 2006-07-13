@@ -50,6 +50,7 @@ import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * @author Olivier
@@ -356,6 +357,8 @@ DownloadManagerImpl
 		};
 		
 		
+	private CopyOnWriteList	activation_listeners = new CopyOnWriteList();
+	
 	private long						scrape_random_seed	= SystemTime.getCurrentTime();
 
 	private HashMap data;
@@ -1897,6 +1900,31 @@ DownloadManagerImpl
 		}
 	}
 	
+	protected boolean
+	activateRequest(
+		int		count )
+	{
+			// activation request for a queued torrent
+				
+		for (Iterator it = activation_listeners.iterator();it.hasNext();){
+			
+			DownloadManagerActivationListener	listener = (DownloadManagerActivationListener)it.next();
+			
+			try{
+				
+				if ( listener.activateRequest( count )){
+					
+					return( true );
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		return( false );
+	}
+	
 	public String 
 	getTorrentComment() 
 	{
@@ -2353,6 +2381,20 @@ DownloadManagerImpl
 		controller.removeDiskListener( listener );
 	}
   
+	public void
+    addActivationListener(
+    	DownloadManagerActivationListener listener )
+	{
+		activation_listeners.add( listener );
+	}
+
+    public void
+    removeActivationListener(
+    	DownloadManagerActivationListener listener )
+    {
+    	activation_listeners.remove( listener );
+    }
+    
 	public int 
 	getHealthStatus() 
 	{

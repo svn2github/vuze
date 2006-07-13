@@ -112,42 +112,35 @@ IncomingConnectionManager
 
 	      MatchListener listener 		= null;
 	      Object		routing_data 	= null;
-	      
-	      for (int loop=0;loop<2 && listener == null;loop++){
-	    	  
-	    	  boolean	use_default = loop == 1;
-	    	  
-		      for( Iterator i = match_buffers_cow.entrySet().iterator(); i.hasNext(); ) {
-		        Map.Entry entry = (Map.Entry)i.next();
-		        NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)entry.getKey();
-		        MatchListener this_listener = (MatchListener)entry.getValue();
-		        
-		        if (this_listener.isDefault() == use_default ){
-			        if ( min_match ){
-			            if( orig_position < bm.minSize() ) {  //not enough bytes yet to compare
-			  	          continue;
-			  	        }
-			  	                
-			            routing_data = bm.minMatches( transport.getAddress(), to_check, incoming_port );
-			            
-			            if ( routing_data != null ){
-			  	          listener = this_listener;
-			  	          break;
-			  	        }      	
-			        }else{
-				        if( orig_position < bm.size() ) {  //not enough bytes yet to compare
-				          continue;
-				        }
-				                
-				        routing_data = bm.matches( transport.getAddress(), to_check, incoming_port );
-				        
-				        if ( routing_data != null ){
-				          listener = this_listener;
-				          break;
-				        }
-			        }
+	      	    	  
+	      for( Iterator i = match_buffers_cow.entrySet().iterator(); i.hasNext(); ) {
+	        Map.Entry entry = (Map.Entry)i.next();
+	        NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)entry.getKey();
+	        MatchListener this_listener = (MatchListener)entry.getValue();
+	        
+	        if ( min_match ){
+	            if( orig_position < bm.minSize() ) {  //not enough bytes yet to compare
+	  	          continue;
+	  	        }
+	  	                
+	            routing_data = bm.minMatches( transport.getAddress(), to_check, incoming_port );
+	            
+	            if ( routing_data != null ){
+	  	          listener = this_listener;
+	  	          break;
+	  	        }      	
+	        }else{
+		        if( orig_position < bm.size() ) {  //not enough bytes yet to compare
+		          continue;
 		        }
-		      }
+		                
+		        routing_data = bm.matches( transport.getAddress(), to_check, incoming_port );
+		        
+		        if ( routing_data != null ){
+		          listener = this_listener;
+		          break;
+		        }
+	        }
 	      }
 
 	      //restore original values in case the checks changed them
@@ -569,12 +562,6 @@ IncomingConnectionManager
 		connectionMatched( 
 			Transport	transport,
 			Object		routing_data );
-		
-		/**
-		 * Indicates whether or not this matcher should be invoked after non-default ones have failed
-		 * @return
-		 */
-		public boolean
-		isDefault();
+
 	}
 }

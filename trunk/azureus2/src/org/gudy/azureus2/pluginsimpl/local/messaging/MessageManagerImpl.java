@@ -26,7 +26,6 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -36,17 +35,13 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
-import org.gudy.azureus2.plugins.network.ConnectionListener;
 import org.gudy.azureus2.plugins.peers.*;
 
-import com.aelitis.azureus.core.networkmanager.ConnectionAttempt;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageDecoder;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageEncoder;
 
 
 
@@ -255,8 +250,7 @@ public class MessageManagerImpl implements MessageManager {
 				new MessageStreamFactory() {
 					public MessageStreamEncoder createEncoder() {  return new GenericMessageEncoder();}
 					public MessageStreamDecoder createDecoder() {  return new GenericMessageDecoder(type, description);}
-				},
-				false );
+				});
 		
 	return( 
 		new GenericMessageRegistration()

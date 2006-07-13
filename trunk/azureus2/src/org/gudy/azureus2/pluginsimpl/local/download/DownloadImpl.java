@@ -48,6 +48,8 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadActivationEvent;
+import org.gudy.azureus2.plugins.download.DownloadActivationListener;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.download.DownloadPropertyListener;
@@ -64,12 +66,14 @@ import org.gudy.azureus2.plugins.download.session.SessionAuthenticator;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogRelation;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public class 
 DownloadImpl
 	extends LogRelation
 	implements 	Download, DownloadManagerListener, 
 				DownloadManagerTrackerListener, DownloadManagerPeerListener,
-				DownloadManagerStateListener
+				DownloadManagerStateListener, DownloadManagerActivationListener
 {
 	protected DownloadManager		download_manager;
 	protected DownloadStatsImpl		download_stats;
@@ -89,6 +93,8 @@ DownloadImpl
 	protected AEMonitor	removal_listeners_mon	= new AEMonitor( "Download:RL");
 	protected List		peer_listeners			= new ArrayList();
 	protected AEMonitor	peer_listeners_mon		= new AEMonitor( "Download:PL");
+	
+	protected CopyOnWriteList	activation_listeners	= new CopyOnWriteList();
 	
 	protected
 	DownloadImpl(
@@ -1142,6 +1148,84 @@ DownloadImpl
 			peer_listeners_mon.exit();
 		}
 	}
+	
+	public boolean
+	activateRequest(
+		final int		count )
+	{
+		for (Iterator it=activation_listeners.iterator();it.hasNext();){
+			
+			DownloadActivationEvent	event = 
+				new DownloadActivationEvent()
+				{
+					public Download 
+					getDownload() 
+					{
+						return( DownloadImpl.this );
+					}
+					
+					public int
+					getActivationCount()
+					{
+						return( count );
+					}
+				};
+				
+			try{
+				DownloadActivationListener	listener = (DownloadActivationListener)it.next();
+				
+				if ( listener.activationRequested(event)){
+					
+					return( true );
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		return( false );
+	}
+	
+	public void
+	addActivationListener(
+		DownloadActivationListener		l )
+	{
+		try{
+			peer_listeners_mon.enter();
+		
+			activation_listeners.add( l );
+			
+			if ( activation_listeners.size() == 1 ){
+				
+				download_manager.addActivationListener( this );
+			}
+		}finally{
+			
+			peer_listeners_mon.exit();
+		}
+	}
+	
+	public void
+	removeActivationListener(
+		DownloadActivationListener		l )
+	{
+		try{
+			peer_listeners_mon.enter();
+
+			activation_listeners.remove( l );
+			
+			if ( activation_listeners.size() == 0 ){
+				
+				download_manager.removeActivationListener( this );
+			}
+		}finally{
+			
+			peer_listeners_mon.exit();
+		}
+	}
+	
+	
 	
 	public void
 	peerManagerAdded(

@@ -736,6 +736,26 @@ Download
 	removeDownloadWillBeRemovedListener(
 		DownloadWillBeRemovedListener	l );
 	
+		/**
+		 * Add a listener that will be invoked when a request is made to activate a torrent
+		 * @param l
+		 * @since 2403
+		 */
+	
+	public void
+	addActivationListener(
+		DownloadActivationListener		l );
+	
+		/**
+		 * Remove a listener that will be invoked when a request is made to activate a torrent
+		 * @param l
+		 * @since 2403
+		 */
+	
+	public void
+	removeActivationListener(
+		DownloadActivationListener		l );
+	
 	/**
 	 * Adds a listener to the download that will be informed of 
 	 * @param l
