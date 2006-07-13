@@ -125,6 +125,13 @@ public class PeersItem extends CoreTableColumn implements
 				if (response != null)
 					sToolTip += "(" + response.getStatusString() + ")";
 			}
+			
+			int activationCount = dm.getActivationCount();
+			if (activationCount > 0) {
+				sToolTip += "\n"
+						+ MessageText.getString("PeerColumn.activationCount",
+								new String[] { "" + activationCount });
+			}
 			cell.setToolTip(sToolTip);
 		}
 	}
