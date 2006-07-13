@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.SystemTime;
+
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -98,9 +100,10 @@ public class TableRowImpl
     	if (columnsSorted[i] == null)
     		continue;
       //System.out.println(dataSource + ": " + tableColumns[i].getName() + ": " + tableColumns[i].getPosition());
-      mTableCells.put(columnsSorted[i].getName(), 
-                      new TableCellImpl(TableRowImpl.this, columnsSorted[i], 
-                                        bSkipFirstColumn ? i+1 : i));
+    	TableCellImpl cell = new TableCellImpl(TableRowImpl.this, columnsSorted[i], 
+          bSkipFirstColumn ? i+1 : i);
+      mTableCells.put(columnsSorted[i].getName(), cell);
+      //if (i == 10) cell.bDebug = true;
     }
   }
 
@@ -194,6 +197,8 @@ public class TableRowImpl
   	}
 
 		bSetNotUpToDateLastRefresh = false;
+		
+		//System.out.println(SystemTime.getCurrentTime() + "refresh " + getIndex());
 
     Iterator iter = mTableCells.values().iterator();
     while(iter.hasNext()) {
@@ -337,6 +342,10 @@ public class TableRowImpl
       if (cell != null)
         cell.invalidate(true);
     }
+	}
+	
+	public void repaint() {
+		super.invalidate();
 	}
 
 	public void setUpToDate(boolean upToDate) {

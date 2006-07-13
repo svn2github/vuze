@@ -191,15 +191,10 @@ public class TrayWindow implements GlobalManagerListener {
   }
 
   public void restore() {
-    if (!COConfigurationManager.getBooleanParameter("Password enabled", false)) {
-      if(!COConfigurationManager.getBooleanParameter("Show Download Basket", false))
-        minimized.setVisible(false);
-      main.setVisible(true);
-      moving = false;
-    }
-    else {
-      PasswordWindow.showPasswordWindow(MainWindow.getWindow().getDisplay());
-    }    
+    if(!COConfigurationManager.getBooleanParameter("Show Download Basket", false))
+      minimized.setVisible(false);
+    main.setVisible(true);
+    moving = false;
   }
 
   public void refresh() {

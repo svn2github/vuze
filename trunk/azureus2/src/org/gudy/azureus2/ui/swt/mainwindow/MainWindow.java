@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreException;
 import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
@@ -44,7 +45,6 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
-import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.ColorUtils;
@@ -53,7 +53,6 @@ import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
-import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
@@ -81,7 +80,7 @@ MainWindow
 	extends AERunnable
 	implements 	GlobalManagerListener, DownloadManagerListener, 
 				ParameterListener, IconBarEnabler, AEDiagnosticsEvidenceGenerator,
-				ObfusticateShell, UIFunctions
+				ObfusticateShell
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
   
@@ -140,6 +139,8 @@ MainWindow
   private UISWTInstanceImpl uiSWTInstanceImpl;
 
   private ArrayList events;
+
+	private UIFunctions uiFunctions;
 
   public
   MainWindow(
@@ -206,6 +207,12 @@ MainWindow
   public void runSupport() {
     FormData formData;
     try{
+    	uiFunctions = UIFunctionsManager.getUIFunctions();
+    	if (uiFunctions == null) {
+    		uiFunctions = new UIFunctionsImpl(this);
+    		UIFunctionsManager.setUIFunctions(uiFunctions);
+    	}
+    	
 			globalManager.loadExistingTorrentsNow(null, true);
        
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
@@ -316,7 +323,7 @@ MainWindow
 
 				mainStatusBar = new MainStatusBar();
 				Composite statusBar = mainStatusBar.initStatusBar(azureus_core,
-						globalManager, display, shell, this);
+						globalManager, display, shell);
 
 				controlAboveFolder = attachToTopOf;
 				controlBelowFolder = statusBar;
@@ -393,7 +400,7 @@ MainWindow
 		formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
 		folder.setLayoutData(formData);
 		
-    Tab.setFolder(folder);
+    Tab.initialize(this, folder);
     
     folder.getDisplay().addFilter(SWT.KeyDown, new Listener() {
 				public void handleEvent(Event event) {
@@ -537,7 +544,7 @@ MainWindow
 			// attach the UI to plugins
 			// Must be done before initializing views, since plugins may register
 			// table columns and other objects
-			uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core, this);
+			uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
 
 			showMyTorrents();
 
@@ -618,7 +625,7 @@ MainWindow
 			else {
 				if (bPassworded) {
 					minimizeToTray(null);
-					PasswordWindow.showPasswordWindow(display);
+					setVisible(true); // invokes password
 				}
 			}
 		}
@@ -728,16 +735,18 @@ MainWindow
     });
   }
 
-  public void
+  public boolean
   destroyRequest()
   {
 	  Logger.log(new LogEvent(LOGID, "MainWindow::destroyRequest"));
 
 	  if ( COConfigurationManager.getBooleanParameter("Password enabled", false )){
 		  
-	  	Logger.log(new LogEvent(LOGID, "    denied - password is enabled"));
-
-		  return;
+	  	if (!PasswordWindow.showPasswordWindow(display)) {
+		  	Logger.log(new LogEvent(LOGID, "    denied - password is enabled"));
+	
+			  return false;
+	  	}
 	  }
 	  
 	  Utils.execSWTThread(
@@ -749,6 +758,7 @@ MainWindow
 					dispose( false, false );
 				}
 			});
+	  return true;
   }
 
 	// globalmanagerlistener
@@ -836,19 +846,37 @@ MainWindow
     return shell;
   }
 
-  public void setVisible(boolean visible) {
-  	shell.setVisible(visible);
-    if (visible) {
-      if (downloadBasket != null)
-        downloadBasket.setVisible(false);
-      /*
-      if (trayIcon != null)
-        trayIcon.showIcon();
-      */
-      shell.forceActive();
-      shell.setMinimized(false);
-    }
-  }
+  public void setVisible(final boolean visible) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (visible) {
+					if (COConfigurationManager.getBooleanParameter("Password enabled",
+							false)) {
+						if (!PasswordWindow.showPasswordWindow(display)) {
+							shell.setVisible(false);
+							return;
+						}
+					}
+				}
+
+				shell.setVisible(visible);
+				if (visible) {
+					if (downloadBasket != null) {
+						downloadBasket.setVisible(false);
+						downloadBasket.setMoving(false);
+					}
+
+					/*
+					 if (trayIcon != null)
+					 trayIcon.showIcon();
+					 */
+					shell.forceActive();
+					shell.setMinimized(false);
+				}
+
+			}
+		});
+	}
 
   public boolean isVisible() {
     return shell.isVisible();
@@ -1042,13 +1070,6 @@ MainWindow
   
   public void 
   openPluginView(
-	PluginView view) 
-  {
-	  openPluginView( view, view.getPluginViewName());
-  }
-  
-  public void 
-  openPluginView(
 	UISWTPluginView view) 
   {
 	  openPluginView( view, view.getPluginViewName());
@@ -1131,19 +1152,19 @@ MainWindow
 		return (UISWTView[])views.toArray(new UISWTView[0]);
   }
 
-  protected void 
-  openPluginView(
-	AbstractIView 	view,
-	String			name )
-  {
-    Tab tab = (Tab) pluginTabs.get(name);
-    if(tab != null) {
-      tab.setFocus();
-    } else {
-      tab = new Tab(view);
-      pluginTabs.put(name,tab);         
-    }
-  }
+  protected void openPluginView(final AbstractIView view, final String name) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				Tab tab = (Tab) pluginTabs.get(name);
+				if (tab != null) {
+					tab.setFocus();
+				} else {
+					tab = new Tab(view);
+					pluginTabs.put(name, tab);
+				}
+			}
+		});
+	}
   
   public void 
   closePluginView( 
@@ -1268,12 +1289,15 @@ MainWindow
   }
   
 
-  public boolean showConfig(String id) {
+  protected boolean showConfig(String id) {
     if (config == null){
       config_view = new ConfigView( azureus_core );
       config = new Tab(config_view);
     }else{
       config.setFocus();
+    }
+    if (id == null) {
+    	return true;
     }
     return config_view.selectSection(id);
   }
@@ -1287,14 +1311,14 @@ MainWindow
       console.setFocus();
   }
   
-  public void showStats() {
+  protected void showStats() {
     if (stats_tab == null)
       stats_tab = new Tab(new StatsView(globalManager,azureus_core));
     else
       stats_tab.setFocus();
   }
 
-  public void showStatsDHT() {
+  protected void showStatsDHT() {
     if (stats_tab == null)
       stats_tab = new Tab(new StatsView(globalManager,azureus_core));
     else
@@ -1302,7 +1326,7 @@ MainWindow
 		((StatsView) stats_tab.getView()).showDHT();
   }
   
-  public void showStatsTransfers() {
+  protected void showStatsTransfers() {
     if (stats_tab == null)
       stats_tab = new Tab(new StatsView(globalManager,azureus_core));
     else
@@ -1626,7 +1650,4 @@ MainWindow
 		}
 	}
 	
-	public void bringToFront() {
-		setVisible(true);
-	}
 }

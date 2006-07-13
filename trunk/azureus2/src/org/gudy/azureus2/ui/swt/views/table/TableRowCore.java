@@ -130,4 +130,9 @@ public interface TableRowCore
 	 * @param bVisible
 	 */
 	void refresh(boolean bDoGraphics, boolean bVisible);
+
+	/**
+	 * 
+	 */
+	void repaint();
 }

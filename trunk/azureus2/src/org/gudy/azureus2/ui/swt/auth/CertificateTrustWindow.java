@@ -28,17 +28,21 @@ package org.gudy.azureus2.ui.swt.auth;
 
 import java.security.cert.X509Certificate;
 
-import org.gudy.azureus2.core3.security.*;
-
-import org.eclipse.swt.*;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.ui.swt.*;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
-
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.security.SECertificateListener;
+import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 
 public class 
@@ -56,7 +60,7 @@ CertificateTrustWindow
 		final String			resource,
 		final X509Certificate	cert )
 	{
-		final Display	display = MainWindow.getWindow().getDisplay();
+		final Display	display = SWTThread.getInstance().getDisplay();
 		
 		if ( display.isDisposed()){
 			

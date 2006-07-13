@@ -64,10 +64,12 @@ import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.update.*;
 
 /**
@@ -161,12 +163,12 @@ public class MainStatusBar {
 	 * @return composite holiding the statusbar
 	 */
 	public Composite initStatusBar(final AzureusCore core, final GlobalManager globalManager,
-			Display display, final Composite parent, final UIFunctions uiFunctions)
+			Display display, final Composite parent)
 	{
 		this.display = display;
 		this.globalManager = globalManager;
 		this.azureusCore = core;
-		this.uiFunctions = uiFunctions;
+		this.uiFunctions = UIFunctionsManager.getUIFunctions();
 
 		FormData formData;
 
@@ -374,9 +376,7 @@ public class MainStatusBar {
 
 		Listener lNAT = new Listener() {
 			public void handleEvent(Event e) {
-				ConfigView view = uiFunctions.showConfig();
-
-				view.selectSection(ConfigSectionConnection.class);
+				uiFunctions.showConfig(ConfigSection.SECTION_CONNECTION);
 
 				if (azureusCore.getPluginManager().getDefaultPluginInterface()
 						.getConnectionManager().getNATStatus() != ConnectionManager.NAT_OK) {

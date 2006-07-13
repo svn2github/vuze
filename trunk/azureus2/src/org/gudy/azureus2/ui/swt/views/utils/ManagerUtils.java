@@ -26,6 +26,8 @@ package org.gudy.azureus2.ui.swt.views.utils;
 import java.io.File;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
@@ -41,7 +43,6 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
  * @author Olivier
@@ -273,7 +274,7 @@ public class ManagerUtils {
 			public void
 			runSupport()
 			{
-       			MainWindow.getWindow().getGlobalManager().stopAllDownloads();
+       			AzureusCoreFactory.getSingleton().getGlobalManager().stopAllDownloads();
 			}
 			
 		}.start();
@@ -287,7 +288,7 @@ public class ManagerUtils {
     		public void
 			runSupport()
     		{
-    			MainWindow.getWindow().getGlobalManager().pauseDownloads();
+    			AzureusCoreFactory.getSingleton().getGlobalManager().pauseDownloads();
     		}
 		}.start();
   	}

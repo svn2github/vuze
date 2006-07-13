@@ -777,19 +777,10 @@ public class MyTorrentsView
 		itemBar.addListener(SWT.Selection, new SelectedTableRowsListener() {
 			public void run(TableRowCore row) {
 				DownloadManager dm = (DownloadManager) row.getDataSource(true);
-				try {
-					downloadBars_mon.enter();
-
-					if (downloadBars.containsKey(dm)) {
-						MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(dm);
-						mw.close();
-					} else {
-						MinimizedWindow mw = new MinimizedWindow(dm, cTablePanel.getShell());
-						downloadBars.put(dm, mw);
-					}
-				} finally {
-
-					downloadBars_mon.exit();
+				if (MinimizedWindow.isOpen(dm)) {
+					MinimizedWindow.close(dm);
+				} else {
+					new MinimizedWindow(dm, cTablePanel.getShell());
 				}
 			} // run
 		});
@@ -2608,19 +2599,6 @@ public class MyTorrentsView
 
 		new SendTorrentWizard(azureus_core, getTable().getDisplay(), torrents);
 	}
-
-
-
-  public void  removeDownloadBar(DownloadManager dm) {
-    try{
-    	downloadBars_mon.enter();
-    
-    	downloadBars.remove(dm);
-    }finally{
-    	
-    	downloadBars_mon.exit();
-    }
-  }
 
   private Category addCategory() {
     CategoryAdderWindow adderWindow = new CategoryAdderWindow(MainWindow.getWindow().getDisplay());

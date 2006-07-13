@@ -700,8 +700,9 @@ public class TableCellImpl
 
         tableColumn.invokeCellRefreshListeners(this);
         if (refreshListeners != null) {
-          for (int i = 0; i < refreshListeners.size(); i++)
+          for (int i = 0; i < refreshListeners.size(); i++) {
             ((TableCellRefreshListener)(refreshListeners.get(i))).refresh(this);
+          }
         }
 
         // Change to valid only if we weren't valid before the listener calls
@@ -888,6 +889,10 @@ public class TableCellImpl
   
 	public void setUpToDate(boolean upToDate) {
 		bIsUpToDate = upToDate;
+	}
+	
+	public boolean isUpToDate() {
+		return bIsUpToDate;
 	}
 	
 	private void debug(final String s) {

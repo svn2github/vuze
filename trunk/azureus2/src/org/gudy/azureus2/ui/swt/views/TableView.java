@@ -59,6 +59,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -582,6 +583,8 @@ public class TableView
     // XXX On linux (an other OSes?), changing the column indicator doesn't 
     //     work until the table is shown.  Since SWT.Show doesn't trigger,
     //     use the first paint trigger.
+    if (!Utils.SWT32_TABLEPAINT) {
+
     table.addPaintListener(new PaintListener() {
     	boolean first = true;
       public void paintControl(PaintEvent event) {
@@ -596,9 +599,24 @@ public class TableView
       	}
         if(event.width == 0 || event.height == 0) return;
         doPaint(event.gc);
+        visibleRowsChanged();
+        //System.out.println(event.x + "x" + event.y + "; " + event.width + "x" + event.height);
       }
     });
-    
+    }
+
+    if (Utils.SWT32_TABLEPAINT) {
+			table.addListener(SWT.PaintItem, new Listener() {
+				public void handleEvent(Event event) {
+					paintItem(event);
+				}
+			});
+			table.addListener(SWT.EraseItem, new Listener() {
+				public void handleEvent(Event event) {
+				}
+			});
+		}
+
     // Deselect rows if user clicks on a black spot (a spot with no row)
     table.addMouseListener(new MouseAdapter() {
     	private TableCellMouseEvent createMouseEvent(TableCellCore cell,
@@ -726,9 +744,6 @@ public class TableView
 
     table.addSelectionListener(new SelectionListener() {
       public void widgetSelected(SelectionEvent event) {
-      	// Refresh rows when top index has changed
-      	visibleRowsChanged();
-      		
       	if (tabViews == null && tabViews.size() == 0)
       		return;
 
@@ -768,13 +783,6 @@ public class TableView
 			}
     });
     
-    // Refresh rows when table has grown in height
-    table.addListener(SWT.Resize, new Listener() {
-      public void handleEvent(Event e) {
-      	visibleRowsChanged();
-      }
-    });
-
     // we are sent a SWT.Settings event when the language changes and
     // when System fonts/colors change.  In both cases, invalidate
     table.addListener(SWT.Settings, new Listener() {
@@ -790,6 +798,9 @@ public class TableView
 		  		// This is catch is temporary for SWT 3212, because there are cases where
 		  		// it says it isn't disposed, when it really almost is
 		  		try {
+		  			if (item.getData("SD") != null) {
+		  				return;
+		  			}
 						item.setData("SD", "1");
 		  		} catch (NullPointerException badSWT) {
 		  			return;
@@ -820,10 +831,9 @@ public class TableView
 					}
 					
 					// User made the row visible, they want satisfaction now!
-					if (row.setIconSize(ptIconSize))
-						visibleRowsChanged();
-					else
+					if (!row.setIconSize(ptIconSize)) {
 						row.refresh(true, true);
+					}
 
 					if (!Constants.isLinux) {
 						Utils.alternateRowBackground(item);
@@ -899,7 +909,6 @@ public class TableView
 					if (!table.isFocusControl()) {
 						table.setFocus();
 					}
-	      	visibleRowsChanged();
 				}
   		});
 		}
@@ -909,7 +918,72 @@ public class TableView
     initializeTableColumns(table);
   }
   
-  public void runDefaultAction() {
+  /**
+	 * @param event
+	 */
+	protected void paintItem(Event event) {
+		TableItem item = (TableItem) event.item;
+		if (item == null || item.isDisposed()) {
+			return;
+		}
+
+		TableRowCore row;
+		try {
+			row = (TableRowCore) item.getData("TableRow");
+		} catch (NullPointerException e) {
+			return;
+		}
+
+		Rectangle cellBounds = item.getBounds(event.index);
+		
+		cellBounds.x += 3;
+		cellBounds.width -= 6;
+		
+		try {
+			int iColumnNo = event.index;
+			
+			if (item.getImage(iColumnNo) != null) {
+				cellBounds.x += 18;
+				cellBounds.width -= 18;
+			}
+			
+			if (cellBounds.width <= 0 || cellBounds.height <= 0) {
+				return;
+			}
+
+			if (bSkipFirstColumn) {
+				if (iColumnNo == 0) {
+					return;
+				}
+				iColumnNo--;
+			}
+			
+			if (iColumnNo >= columnsOrdered.length) {
+				System.out.println(iColumnNo + " >= " + columnsOrdered.length);
+				return;
+			}
+			
+			TableCellCore cell = row.getTableCellCore(columnsOrdered[iColumnNo].getName());
+			
+			if (!cell.isUpToDate()) {
+				//System.out.println("R " + table.indexOf(item));
+				cell.refresh(true, true);
+				return;
+			}
+			
+			//System.out.println("PS " + table.indexOf(item) + ";" + cellBounds);
+			GCStringPrinter.printString(event.gc, cell.getText(),
+					cellBounds, true, true, columnsOrdered[iColumnNo].getSWTAlign());
+
+			if (cell.needsPainting()) {
+				cell.doPaint(event.gc);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void runDefaultAction() {
   	
   }
 
@@ -996,8 +1070,8 @@ public class TableView
       } catch (NoSuchMethodError e) {
       	// Ignore < SWT 3.1
       }
-      Messages.setLanguageText(column, tableColumns[i].getTitleLanguageKey());
       column.setAlignment(tableColumns[i].getSWTAlign());
+      Messages.setLanguageText(column, tableColumns[i].getTitleLanguageKey());
       column.setWidth(tableColumns[i].getWidth());
       column.setData("TableColumnCore", tableColumns[i]);
       column.setData("configName", "Table." + sTableID + "." + sName);
@@ -1657,8 +1731,6 @@ public class TableView
 			dataSourceToRow_mon.exit();
 		}
 
-		final int iSizeNow = dataSourceToRow.size();
-		
 		// Now, add to sortedRows which requires the SWT thread.
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -1727,11 +1799,11 @@ public class TableView
 
 							if (!bTableVirtual) {
 								row.createSWTRow();
-								row.setIconSize(ptIconSize);
 							} else {
 								table.setItemCount(sortedRows.size());
 								row.setTableItem(index);
 							}
+							row.setIconSize(ptIconSize);
 						} catch (Exception e) {
 							Logger.log(new LogEvent(LOGID, "Error adding a row to table "
 									+ sTableID, e));
@@ -1862,6 +1934,8 @@ public class TableView
 					item.delete();
 				}
 			}
+
+			fillRowGaps(false);
 			if (DEBUGADDREMOVE)
 				debug("<< Remove 1 row, noswt");
 		}
@@ -2831,7 +2905,6 @@ public class TableView
 						table.setTopIndex(iTopIndex);
 						table.setRedraw(true);
 					}
-					visibleRowsChanged();
 				}
 			}
 	
@@ -2896,12 +2969,16 @@ public class TableView
 	}
 
 	private void visibleRowsChanged() {
+		if (Utils.SWT32_TABLEPAINT) {
+			return;
+		}
+		
 		if (!table.isVisible()) {
 		  lastTopIndex = 0;
 		  lastBottomIndex = -1;
 		  return;
 		}
-		//System.out.println(SystemTime.getCurrentTime() + ": VRC");
+		//System.out.println(SystemTime.getCurrentTime() + ": VRC " + Debug.getCompressedStackTrace());
 		
 		int iTopIndex = table.getTopIndex();
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
@@ -2920,6 +2997,9 @@ public class TableView
 					for (int i = iTopIndex; i < tmpIndex && i < sortedRows.size(); i++) {
 						TableRowCore row = (TableRowCore) sortedRows.get(i);
 						row.refresh(true, true);
+						if (Constants.isOSX) {
+							row.repaint();
+						}
 					}
 				} finally {
 					sortedRows_mon.exit();
@@ -2948,6 +3028,9 @@ public class TableView
 							&& i < sortedRows.size(); i++) {
 						TableRowCore row = (TableRowCore) sortedRows.get(i);
 						row.refresh(true, true);
+						if (Constants.isOSX) {
+							row.repaint();
+						}
 					}
 				} finally {
 					sortedRows_mon.exit();

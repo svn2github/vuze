@@ -66,10 +66,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableColumnImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
@@ -77,6 +74,8 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 public class 
 UISWTInstanceImpl
@@ -93,16 +92,14 @@ UISWTInstanceImpl
 	
 	private boolean bUIAttaching;
 
-	private final UIFunctions uiFunctions;
+	private final UIFunctionsSWT uiFunctions;
 	
 	
-	public 
-	UISWTInstanceImpl(
-		AzureusCore		_core,
-		UIFunctions _uiFunctions )
-	{
+	public UISWTInstanceImpl(AzureusCore _core) {
 		core		= _core;
-		uiFunctions = _uiFunctions;
+		// Since this is a UI **SWT** Instance Implementor, it's assumed
+		// that the UI Functions are of UIFunctionsSWT 
+		uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
 		
 		try{
 			UIManager	ui_manager = core.getPluginManager().getDefaultPluginInterface().getUIManager();
@@ -182,8 +179,6 @@ UISWTInstanceImpl
 						URL referrer = (URL) params[1];
 						boolean auto_download = ((Boolean) params[2]).booleanValue();
 
-						MainWindow window = MainWindow.getWindow();
-
 						// programmatic request to add a torrent, make sure az is visible
 
 						if (!COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
@@ -191,13 +186,7 @@ UISWTInstanceImpl
 						}
 
 						if (auto_download) {
-							Shell shell = null;
-							if (window == null) {
-								shell = Utils.findAnyShell();
-							} else {
-								shell = window.getShell();
-							}
-
+							Shell shell = uiFunctions.getMainShell();
 							if (shell != null) {
 								new FileDownloadWindow(core, shell, target.toString(),
 										referrer == null ? null : referrer.toString());
@@ -318,10 +307,7 @@ UISWTInstanceImpl
 				if (!(data instanceof String))
 					break;
 
-		    final MainWindow window = MainWindow.getWindow();
-		    
-		    if ( window != null )
-		    	event.setResult(new Boolean(window.showConfig((String)data)));
+	    	event.setResult(new Boolean(uiFunctions.showConfig((String)data)));
 
 				break;
 			}
@@ -374,47 +360,24 @@ UISWTInstanceImpl
 	}
   
 
-	public void 
-	addView(
-		final UISWTPluginView view, 
-		boolean bAutoOpen )
-	{
-	  	try{
-		    final MainWindow window = MainWindow.getWindow();
-		    
-		    if ( window != null ){
-		    
-		      window.getMenu().addPluginView(view);
-		      
-		      if ( bAutoOpen ){
-		    	  
-		      	Utils.execSWTThread(new AERunnable() {
-		      		public void runSupport() {
-		      			window.openPluginView(view);
-		      		}
-		      	});
-		      }
-		    }
-	  	}catch( Throwable e ){
-	  		// SWT not available prolly
-	  	}
+	public void addView(final UISWTPluginView view, boolean bAutoOpen) {
+		try {
+			uiFunctions.addPluginView(view);
+			if (bAutoOpen) {
+				uiFunctions.openPluginView(view);
+			}
+		} catch (Throwable e) {
+			// SWT not available prolly
+		}
 	} 
   
 
-	public void
-	removeView(
-		UISWTPluginView		view )
-	{
-	  	try{
-		    final MainWindow window = MainWindow.getWindow();
-		    
-		    if ( window != null ){
-
-		    	window.getMenu().removePluginView( view );
-		    }
-	  	}catch( Throwable e ){
-	  		// SWT not available prolly
-	  	}
+	public void removeView(UISWTPluginView view) {
+		try {
+			uiFunctions.removePluginView(view);
+		} catch (Throwable e) {
+			// SWT not available prolly
+		}
 	}
 
 	public void
@@ -542,10 +505,7 @@ UISWTInstanceImpl
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					try {
-						final MainWindow window = MainWindow.getWindow();
-
-						if (window != null)
-							window.getMenu().addPluginView(sViewID, l);
+						uiFunctions.addPluginView(sViewID, l);
 					} catch (Throwable e) {
 						// SWT not available prolly
 					}

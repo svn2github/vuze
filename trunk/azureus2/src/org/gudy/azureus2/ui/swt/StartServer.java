@@ -30,11 +30,12 @@ import java.net.SocketException;
 import java.util.*;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 
@@ -200,7 +201,10 @@ StartServer
     		
 	  	    if ( arg.equalsIgnoreCase( "--closedown" )){
 	
-	  	    	MainWindow.getWindow().destroyRequest();
+	  	    	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+	  	    	if (uiFunctions != null) {
+	  	    		uiFunctions.requestShutdown();
+	  	    	}
 	  	    	
 	  	    	return;
 	  	    	
@@ -329,16 +333,10 @@ StartServer
   protected void 
   showMainWindow() 
   {
-    if(MainWindow.getWindow() != null) {
-      MainWindow.getWindow().getDisplay().asyncExec(new AERunnable(){
-        public void runSupport() {
-          if (!COConfigurationManager.getBooleanParameter("Password enabled",false) || MainWindow.getWindow().isVisible())          
-            MainWindow.getWindow().setVisible(true);
-          else
-            PasswordWindow.showPasswordWindow(MainWindow.getWindow().getDisplay());
-        }
-      });
-    }
+  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  	if (uiFunctions != null) {
+  		uiFunctions.bringToFront();
+  	}
   }
   
   public void stopIt() {

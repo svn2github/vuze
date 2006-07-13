@@ -732,7 +732,7 @@ DownloadManagerImpl
 				}
 			}catch( TOTorrentException e ){
 			
-				Debug.printStackTrace( e );
+				//Debug.printStackTrace( e );
 				       		 			
 				setFailed( TorrentUtils.exceptionToText( e ));
 	 			

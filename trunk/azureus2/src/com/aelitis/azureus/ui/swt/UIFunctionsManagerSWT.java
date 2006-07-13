@@ -1,5 +1,5 @@
 /*
- * Created on Jun 14, 2006 9:02:55 PM
+ * Created on Jul 13, 2006 12:28:36 PM
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -17,55 +17,23 @@
  * AELITIS, SAS au capital de 46,603.30 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
-package com.aelitis.azureus.ui;
+package com.aelitis.azureus.ui.swt;
 
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 /**
  * @author TuxPaper
- * @created Jun 14, 2006
+ * @created Jul 13, 2006
  *
  */
-public interface UIFunctions
+public class UIFunctionsManagerSWT extends UIFunctionsManager
 {
-
-	/**
-	 * Display the stats view
-	 */
-	void showStats();
-
-	/**
-	 * Display the Stats View -> Transfer subview
-	 */
-	void showStatsTransfers();
-
-	/**
-	 * Display the Stats View -> HHT subview
-	 */
-	void showStatsDHT();
-
-	/**
-	 * Display the config window
-	 * 
-	 * @param string Section to show.  null for root 
-	 * @return true: section was found
-	 */
-	boolean showConfig(String string);
-
-	/**
-	 * Bring main window to the front
-	 */
-	void bringToFront();
-
-	/**
-	 * Request the UI be shut down.
-	 * 
-	 * @return true - request granted, UI is being shut down
-	 *         false - request denied (example: password entry failed)
-	 */
-	boolean requestShutdown();
-
-	/**
-	 * Change/Refresh the language of the UI
-	 */
-	void refreshLanguage();
+	public static UIFunctionsSWT getUIFunctionsSWT() {
+		UIFunctions uiFunctions = getUIFunctions();
+		if (uiFunctions instanceof UIFunctionsSWT) {
+			return (UIFunctionsSWT)uiFunctions;
+		}
+		return null;
+	}
 }

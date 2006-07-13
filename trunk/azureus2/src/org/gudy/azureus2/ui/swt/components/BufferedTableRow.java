@@ -95,12 +95,19 @@ BufferedTableRow
 	public void createSWTRow() {
     item = new TableItem(table, SWT.NULL);
 		item.setData("TableRow", this);
-		setAlternatingBGColor();
+		setAlternatingBGColor(true);
 	}
 	
-	private void setAlternatingBGColor() {
-		if (Constants.isLinux || Constants.isSolaris || !isVisible())
+	private void setAlternatingBGColor(boolean bEvenIfNotVisible) {
+		if (Constants.isLinux || Constants.isSolaris)
 			return;
+			
+		if ((table.getStyle() & SWT.VIRTUAL) != 0 && !bEvenIfNotVisible
+				&& !isVisible()) {
+			return;
+		} else if (item == null) {
+			return;
+		}
 
 		if (alternatingColors == null || alternatingColors[1].isDisposed()) {
 			alternatingColors = new Color[] {
@@ -225,7 +232,7 @@ BufferedTableRow
 					} catch (NullPointerException badSWT) {
 					}
 
-		   		setAlternatingBGColor();
+		   		setAlternatingBGColor(true);
 		    	setIconSize(ptIconSize);
 					invalidate();
 				}
@@ -334,7 +341,7 @@ BufferedTableRow
 		return foreground_colors[index];
 	}
 	
-	public String
+	protected String
 	getText(
 		int		index )
 	{
@@ -494,7 +501,7 @@ BufferedTableRow
 
   	if (newRow == item) {
   		if (newRow == null || newRow.getData("TableRow") == this) {
-     		setAlternatingBGColor();
+     		setAlternatingBGColor(true);
   			return false;
   		}
   	}
@@ -502,7 +509,10 @@ BufferedTableRow
   	if (newRow != null) {
   		// this essentially disables the "SD" logic.  I don't think
   		// we need it any more, so let's try..
-  		newRow.setData("SD", "1");
+  		if (newRow.getData("SD") == null) {
+     		setAlternatingBGColor(true);
+  			newRow.setData("SD", "1");
+  		}
 
   		if (newRow.getParent() != table)
   			return false;

@@ -151,4 +151,9 @@ public interface TableCellCore
 	 * @param cursor_hand
 	 */
 	public void setCursorID(int cursorID);
+
+	/**
+	 * @return
+	 */
+	boolean isUpToDate();
 }

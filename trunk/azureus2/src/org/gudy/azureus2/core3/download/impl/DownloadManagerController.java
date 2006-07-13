@@ -147,6 +147,8 @@ DownloadManagerController
 
 	private GlobalManagerStats		global_stats;
 	
+	private boolean bInitialized = false;
+	
 	private static final int			ACTIVATION_REBUILD_TIME		= 10*60*1000;
 	private static final int			BLOOM_SIZE					= 64;
 	private volatile BloomFilter		activation_bloom;
@@ -173,16 +175,9 @@ DownloadManagerController
 	setInitialState(
 		int	initial_state )
 	{
-		fileInfoFacade[] new_files_facade	= new fileInfoFacade[download_manager.getTorrent()==null?0:download_manager.getTorrent().getFiles().length];
-		
-		for (int i=0;i<new_files_facade.length;i++){
-			
-			new_files_facade[i] = new fileInfoFacade();
-		}
-		
-		fixupFileInfo( new_files_facade );
-				
 			// only take note if there's been no errors
+		
+		bInitialized = true;
 		
 		if ( getState() == DownloadManager.STATE_START_OF_DAY ){
 			
@@ -191,7 +186,10 @@ DownloadManagerController
 		
 	
 		try{
-			peer_manager_registration = PeerManager.getSingleton().registerLegacyManager( download_manager.getTorrent().getHashWrapper(), this );
+			TOTorrent torrent = download_manager.getTorrent();
+			if (torrent != null) {
+				peer_manager_registration = PeerManager.getSingleton().registerLegacyManager( torrent.getHashWrapper(), this );
+			}
 			
 		}catch( TOTorrentException e ){
 			
@@ -380,7 +378,7 @@ DownloadManagerController
 			  						// good time to trigger minimum file info fixup as the disk manager's
 		  							// files are now in a good state
 
-			  					fixupFileInfo( files_facade );
+			  					makeSureFilesFacadeFilled(true);
 
 			  					stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 			  						
@@ -585,7 +583,7 @@ DownloadManagerController
   						
  	  					if ( newDMState == DiskManager.CHECKING ){
  	  					 
- 	  						fixupFileInfo( files_facade );
+ 	  						makeSureFilesFacadeFilled(true);
  	  					}
  	  					
   	  					if ( newDMState == DiskManager.READY || newDMState == DiskManager.FAULTY ){
@@ -964,12 +962,14 @@ DownloadManagerController
 	  			
 	  			if (state_set_by_method == DownloadManager.STATE_QUEUED ){
 	        
+
+	  				// don't pick up errors regarding missing data while queued. 
+	  				// We'll do that when the torrent starts.  Saves time at startup
 	  				// pick up any errors regarding missing data for queued SEEDING torrents
-	    	  
-	  				if (  download_manager.getAssumedComplete()){
-	    		  
-	  					call_filesExist	= true;
-	  				}
+//	  				if (  download_manager.getAssumedComplete()){
+//	    		  
+//	  					call_filesExist	= true;
+//	  				}
 	    	  
 	  			}else if ( state_set_by_method == DownloadManager.STATE_ERROR ){
 	      
@@ -1171,6 +1171,8 @@ DownloadManagerController
 			return dm.filesExist();
 		}
 
+		makeSureFilesFacadeFilled(false);
+
 		for (int i = 0; i < files_facade.length; i++) {
 			fileInfoFacade fileInfo = files_facade[i];
 			if (!fileInfo.isSkipped()) {
@@ -1195,16 +1197,42 @@ DownloadManagerController
 		return true;
 	}
 	
+	private void makeSureFilesFacadeFilled(boolean refresh) {
+		if (!bInitialized) {
+			// too early
+			return;
+		}
+
+		if (files_facade.length == 0) {
+			fileInfoFacade[] new_files_facade = new fileInfoFacade[download_manager.getTorrent() == null
+					? 0 : download_manager.getTorrent().getFiles().length];
+
+			for (int i = 0; i < new_files_facade.length; i++) {
+
+				new_files_facade[i] = new fileInfoFacade();
+			}
+			
+			files_facade = new_files_facade;
+
+			refresh = true;
+		}
+
+		if (refresh) {
+			fixupFileInfo(files_facade);
+		}
+	}
+	
    	public DiskManagerFileInfo[]
     getDiskManagerFileInfo()
    	{
+  		makeSureFilesFacadeFilled(true);
    		return( files_facade );
    	}
 	
 	protected void
 	fileInfoChanged()
 	{
-		fixupFileInfo( files_facade );
+		makeSureFilesFacadeFilled(true);
 	}
 	
 	protected void
@@ -1215,6 +1243,7 @@ DownloadManagerController
 		if (!cached_has_dnd_files && !file.isSkipped()){
 			return;
 		}
+		makeSureFilesFacadeFilled(false);
 		calculateCompleteness( files_facade );
 	}
 	

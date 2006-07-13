@@ -216,7 +216,6 @@ AESemaphore
 			int	x	= waiting;
 
 			for ( int i=0;i<x;i++ ){
-
 				release();
 			}
 		}

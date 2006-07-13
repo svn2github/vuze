@@ -27,21 +27,21 @@ package org.gudy.azureus2.ui.swt.auth;
  *
  */
 
-import org.gudy.azureus2.core3.security.*;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.logging.*;
-
-import org.eclipse.swt.*;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.ui.swt.*;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
-
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 
 public class 
@@ -56,7 +56,7 @@ CertificateCreatorWindow
 	public void
 	createCertificate()
 	{
-		final Display	display = MainWindow.getWindow().getDisplay();
+		final Display	display = SWTThread.getInstance().getDisplay();
 		
 		if ( display.isDisposed()){
 
@@ -95,9 +95,7 @@ CertificateCreatorWindow
 			
 			shell = new Shell (display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 			
-			if(! Constants.isOSX) {
-			  shell.setImage(ImageRepository.getImage("azureus"));
-			}
+			Utils.setShellIcon(shell);
 			Messages.setLanguageText(shell, "security.certcreate.title");
 			
 			GridLayout layout = new GridLayout();
@@ -150,7 +148,7 @@ CertificateCreatorWindow
 			      
 			strength_combo.select(1);
 			
-			Label label = new Label(shell,SWT.NULL);
+			new Label(shell,SWT.NULL);
 			      
 			// first + last name
 			

@@ -1348,6 +1348,7 @@ public class GlobalManagerImpl
   {
   	int triggerOnCount = 2;
     ArrayList downloadsAdded = new ArrayList();
+    long lastListenerUpdate = 0;
   	try{
   		if (listener != null)
   			listener.reportCurrentTask(MessageText.getString("splash.loadingTorrents"));
@@ -1384,12 +1385,8 @@ public class GlobalManagerImpl
           
           String fileName = new String((byte[]) mDownload.get("torrent"), Constants.DEFAULT_ENCODING);
           
-          if( listener != null && nbDownloads > 0 ){
-          	
-            listener.reportPercent(100 * currentDownload / nbDownloads);
-          }
-          
-          if(listener != null) {
+          if(listener != null &&  SystemTime.getCurrentTime() - lastListenerUpdate > 100) {
+          	lastListenerUpdate = SystemTime.getCurrentTime();
           	
             listener.reportCurrentTask(MessageText.getString("splash.loadingTorrent") 
                 + " " + currentDownload + " "

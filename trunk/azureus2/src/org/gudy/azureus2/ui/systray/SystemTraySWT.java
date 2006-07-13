@@ -33,6 +33,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.PasswordWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.SelectableSpeedMenu;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -160,7 +161,7 @@ public class SystemTraySWT {
     
     itemExit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
-        SystemTraySWT.this.mainWindow.dispose(false,false);
+        SystemTraySWT.this.mainWindow.destroyRequest();
       }
     });
     
@@ -333,10 +334,7 @@ public class SystemTraySWT {
 	}
 
   private void show() {
-    if (!COConfigurationManager.getBooleanParameter("Password enabled",false))          
-      mainWindow.setVisible(true);
-    else
-      PasswordWindow.showPasswordWindow(MainWindow.getWindow().getDisplay());
+    mainWindow.setVisible(true);
   }
   
   public Menu getMenu() {

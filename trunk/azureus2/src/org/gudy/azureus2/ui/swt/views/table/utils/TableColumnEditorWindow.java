@@ -31,8 +31,6 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
@@ -57,7 +55,6 @@ public class TableColumnEditorWindow {
   private boolean mousePressed;
   private TableItem selectedItem;
   private Point oldPoint;
-  private Image oldImage;
 
   /**
    * Default Constructor
@@ -175,6 +172,7 @@ public class TableColumnEditorWindow {
       public void handleEvent(Event e) {
       	if (e.detail != SWT.CHECK)
       		return;
+        mousePressed = false;
 				TableItem item = (TableItem) e.item;
 				int index = item.getParent().indexOf(item);
 				TableColumnCore tableColumn = (TableColumnCore)tableColumns.get(index);
@@ -227,11 +225,9 @@ public class TableColumnEditorWindow {
       public void mouseUp(MouseEvent e) {
         mousePressed = false;
         //1. Restore old image
-        if(oldPoint != null && oldImage != null) {
-          GC gc = new GC(table);
-          gc.drawImage(oldImage,oldPoint.x,oldPoint.y);
-          oldImage.dispose();
-          oldImage = null;
+        if(oldPoint != null) {
+        	table.redraw(oldPoint.x, oldPoint.y, shell.getSize().x,
+							oldPoint.y + 2, false);
           oldPoint = null;
         }
         Point p = new Point(e.x,e.y);
@@ -262,16 +258,13 @@ public class TableColumnEditorWindow {
         if (item == null)
           return;
 
-        GC gc = new GC(table);
         Rectangle bounds = item.getBounds(0);
         int selectedPosition = table.indexOf(selectedItem);
         int newPosition = table.indexOf(item);
 
-        //1. Restore old image
-        if(oldPoint != null && oldImage != null) {
-          gc.drawImage(oldImage,oldPoint.x,oldPoint.y);
-          oldImage.dispose();
-          oldImage = null;
+        //1. Restore old area
+        if(oldPoint != null) {
+        	table.redraw(oldPoint.x, oldPoint.y, bounds.width, oldPoint.y + 2, false);
           oldPoint = null;
         }            
         bounds.y += VerticalAligner.getTableAdjustVerticalBy(table);
@@ -279,14 +272,30 @@ public class TableColumnEditorWindow {
           oldPoint = new Point(bounds.x,bounds.y);
         else
           oldPoint = new Point(bounds.x,bounds.y+bounds.height);
-        //2. Store the image
-        oldImage = new Image(display,bounds.width,2);
-        gc.copyArea(oldImage,oldPoint.x,oldPoint.y);            
+
         //3. Draw a thick line
-        gc.setBackground(blue);
-        gc.fillRectangle(oldPoint.x,oldPoint.y,bounds.width,2);
+      	table.redraw(oldPoint.x, oldPoint.y, bounds.width, oldPoint.y + 2, false);
       }
     });
+    
+    table.addPaintListener(new PaintListener() {
+			public void paintControl(PaintEvent e) {
+				if (!mousePressed || selectedItem == null || oldPoint == null) {
+					return;
+				}
+				
+        Point p = new Point(e.x,e.y);
+        TableItem item = table.getItem(p);
+        if (item == null)
+          return;
+		
+        Rectangle bounds = item.getBounds(0);
+        GC gc = new GC(table);
+        gc.setBackground(blue);
+        gc.fillRectangle(oldPoint.x,oldPoint.y,bounds.width,2);
+        gc.dispose();
+			}
+		});
 
     shell.pack();
     Point p = shell.getSize();

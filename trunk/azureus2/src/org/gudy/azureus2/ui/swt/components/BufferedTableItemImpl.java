@@ -21,8 +21,11 @@
 
 package org.gudy.azureus2.ui.swt.components;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Table;
+
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier
@@ -30,12 +33,13 @@ import org.eclipse.swt.widgets.Table;
  */
 public abstract class BufferedTableItemImpl implements BufferedTableItem
 {
-
 	protected BufferedTableRow row;
 
 	private int position;
 
 	private Color ourFGColor = null;
+	
+	private String text = "";
 
 	public BufferedTableItemImpl(BufferedTableRow row, int position) {
 		this.row = row;
@@ -43,12 +47,33 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 	}
 
 	public String getText() {
+		if (Utils.SWT32_TABLEPAINT) {
+			return text;
+		}
+
 		if (position != -1)
 			return row.getText(position);
 		return "";
 	}
 
 	public boolean setText(String text) {
+		if (Utils.SWT32_TABLEPAINT) {
+			if (this.text.equals(text)) {
+				return false;
+			}
+	
+			this.text = (text == null) ? "" : text;
+			
+			Rectangle bounds = getBounds();
+			if (bounds != null) {
+				Table table = row.getTable();
+				Rectangle dirty = table.getClientArea().intersection(bounds);
+				table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
+			}
+			
+			return true;
+		}
+
 		if (position != -1)
 			return row.setText(position, text);
 		return false;

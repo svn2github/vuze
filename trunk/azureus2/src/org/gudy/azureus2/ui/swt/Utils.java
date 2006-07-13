@@ -66,7 +66,7 @@ public class Utils {
 	private static final boolean DIRECT_SETCHECKED = !Constants.isOSX
 			|| SWT.getVersion() >= 3212;
 
-	public static final boolean SWT32 = SWT.getVersion() >= 3200;
+	public static final boolean SWT32_TABLEPAINT = false; //SWT.getVersion() >= 3200;
 			
   public static void disposeComposite(Composite composite,boolean disposeSelf) {
     if(composite == null || composite.isDisposed())
@@ -670,19 +670,27 @@ public class Utils {
 	 * Bottom Index may be negative
 	 */ 
 	public static int getTableBottomIndex(Table table, int iTopIndex) {
-		// getItemHeight is slow on Linux, use getItem/getClientArea
+		// on Linux, getItemHeight is slow AND WRONG. so is getItem(x).getBounds().y 
 		// getItem(Point) is slow on OSX
-		
-		if (!table.isVisible())
+
+		int itemCount = table.getItemCount();
+		if (!table.isVisible() || iTopIndex >= itemCount)
 			return -1;
 		
 		if (Constants.isOSX) {
-			// +1 to first calculation, since start row may only be partially 
-			// displayed.  This may result in cases where bottom is one beyond
-			// the visible area, but since getItem(Point) is so slow..
-			return Math.min(iTopIndex
-					+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / 
-							table.getItemHeight()) + 1, table.getItemCount() - 1);
+			TableItem item = table.getItem(iTopIndex);
+			Rectangle bounds = item.getBounds();
+			Rectangle clientArea = table.getClientArea();
+
+			int itemHeight = table.getItemHeight();
+			int iBottomIndex = Math.min(iTopIndex
+					+ (clientArea.height + clientArea.y - bounds.y - 1) / itemHeight,
+					itemCount - 1);
+
+//			System.out.println(bounds + ";" + clientArea + ";" + itemHeight + ";bi="
+//					+ iBottomIndex + ";ti=" + iTopIndex + ";"
+//					+ (clientArea.height + clientArea.y - bounds.y - 1));
+			return iBottomIndex;
 		}
 
 		// getItem will return null if clientArea's height is smaller than
@@ -695,7 +703,7 @@ public class Utils {
 		TableItem bottomItem = table.getItem(new Point(2,
 				table.getClientArea().height - 1));
   	int iBottomIndex = (bottomItem != null) ? table.indexOf(bottomItem) :
-			table.getItemCount() - 1;
+			itemCount - 1;
   	return iBottomIndex;
 	}
 	

@@ -1,5 +1,5 @@
 /*
- * Created on Jun 14, 2006 9:02:55 PM
+ * Created on Jul 12, 2006 3:11:00 PM
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -17,55 +17,55 @@
  * AELITIS, SAS au capital de 46,603.30 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
-package com.aelitis.azureus.ui;
+package com.aelitis.azureus.ui.swt;
 
+import org.eclipse.swt.widgets.Shell;
+
+import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+
+import com.aelitis.azureus.ui.UIFunctions;
+
+import org.gudy.azureus2.plugins.PluginView;
 
 /**
  * @author TuxPaper
- * @created Jun 14, 2006
+ * @created Jul 12, 2006
  *
  */
-public interface UIFunctions
+public interface UIFunctionsSWT extends UIFunctions
 {
+	public Shell getMainShell();
 
 	/**
-	 * Display the stats view
+	 * @param view
 	 */
-	void showStats();
+	void addPluginView(PluginView view);
 
 	/**
-	 * Display the Stats View -> Transfer subview
+	 * @param view
 	 */
-	void showStatsTransfers();
+	void openPluginView(PluginView view);
 
 	/**
-	 * Display the Stats View -> HHT subview
+	 * @param view
 	 */
-	void showStatsDHT();
+	public void openPluginView(UISWTPluginView view);
 
 	/**
-	 * Display the config window
-	 * 
-	 * @param string Section to show.  null for root 
-	 * @return true: section was found
+	 * @param view
 	 */
-	boolean showConfig(String string);
+	void addPluginView(UISWTPluginView view);
 
 	/**
-	 * Bring main window to the front
+	 * @param view
 	 */
-	void bringToFront();
+	public void removePluginView(UISWTPluginView view);
+
 
 	/**
-	 * Request the UI be shut down.
-	 * 
-	 * @return true - request granted, UI is being shut down
-	 *         false - request denied (example: password entry failed)
+	 * @param viewID
+	 * @param l
 	 */
-	boolean requestShutdown();
-
-	/**
-	 * Change/Refresh the language of the UI
-	 */
-	void refreshLanguage();
+	void addPluginView(String viewID, UISWTViewEventListener l);
 }

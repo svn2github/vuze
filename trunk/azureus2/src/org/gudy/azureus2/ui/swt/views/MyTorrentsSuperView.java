@@ -188,7 +188,10 @@ public class MyTorrentsSuperView extends AbstractIView implements
     child1.addListener(SWT.Resize, new Listener() {
       public void handleEvent(Event e) {
         int[] weights = form.getWeights();
-        int iSashValue = weights[0] * 100 / (weights[0] + weights[1]);
+        int iSashValue = weights[0] * 10000 / (weights[0] + weights[1]);
+        if (iSashValue < 100) {
+        	iSashValue = 100;
+        }
         COConfigurationManager.setParameter("MyTorrents.SplitAt", iSashValue);
       }
     });
@@ -203,10 +206,14 @@ public class MyTorrentsSuperView extends AbstractIView implements
     child2.setLayout(layout);
     seedingview = new MyTorrentsView(azureus_core, true, tableCompleteItems);
     seedingview.initialize(child2);
-    int weight = COConfigurationManager.getIntParameter("MyTorrents.SplitAt", 30);
-    if (weight > 100)
-      weight = 100;
-    form.setWeights(new int[] {weight,100 - weight});
+    // More precision, times by 100
+    int weight = (int) (COConfigurationManager.getFloatParameter("MyTorrents.SplitAt"));
+		if (weight > 10000) {
+			weight = 10000;
+		} else if (weight < 100) {
+			weight *= 100;
+		}
+    form.setWeights(new int[] {weight,10000 - weight});
   }
 
   public void refresh() {
@@ -258,11 +265,6 @@ public class MyTorrentsSuperView extends AbstractIView implements
       currentView.itemActivated(itemKey);    
   }
   
-  public void removeDownloadBar(DownloadManager manager) {
-   torrentview.removeDownloadBar(manager);
-   seedingview.removeDownloadBar(manager);
-  }
-
   public void
   generateDiagnostics(
 	IndentWriter	writer )

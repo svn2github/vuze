@@ -10,11 +10,21 @@ FEATURE: Core | DND completion handled better [Parg,TuxPaper]
 FEATURE: Core | Added option for per-torrent max upload speed when upload busy [Parg]
 FEATURE: Core | Ranges allowed for port listing to ignore peers from. [TuxPaper]
 FEATURE: UI   | File pieces shown in files view [Parg]
+FEATURE: UI   | Ability to best guess folder you want to save torrent data to based on existing torrents [TuxPaper]
+FEATURE: UI   | Filter for Config Options [TuxPaper]
+FEATURE: UI   | "Help -> Generate Debug Info" to help us solve bugs [TuxPaper]
 
 CHANGE: Core  | Reduced starting many pieces instead of completing current ones [MjrTom]
 CHANGE: Core  | Further modifications to optimistic disconnect algorithm [MjrTom]
+CHANGE: Core  | Longer scrape delays: [TuxPaper]
+                 - 1 hr min for torrents in stopped state
+                 - 2 hrs min for torrents in error state
+                 - 3 hrs min when tracker sends no torrent info (no hash error)
+                 - As per usual, flags->min_request_interval will override next scrape time
+CHANGE: Core  | Asynchronous existing torrent loading at startup (makes startup feel faster) [TuxPaper]
 
 BUGFIX: Core  | Fix for pieces not completing due to too many snubbed peers [MjrTom]
+BUGFIX: Core  | Better handling of invalid peer/seed count from tracker [TuxPaper]
 
 
 2006.03.16 | Azureus 2.4.0.2

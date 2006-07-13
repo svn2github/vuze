@@ -22,8 +22,6 @@ package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
@@ -35,13 +33,14 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.eclipse.swt.widgets.ProgressBar;
 
+import java.util.Iterator;
 import java.util.Vector;
 /**
+ * DownloadBar + manager
+ * 
  * @author Olivier
  * 
  */
@@ -273,10 +272,6 @@ public class MinimizedWindow {
     itemClose.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         close();
-        MyTorrentsSuperView viewMyTorrents = (MyTorrentsSuperView) Tab.getView(MainWindow.getWindow().getMytorrents().getTabItem());
-        if(viewMyTorrents != null) {
-          viewMyTorrents.removeDownloadBar(MinimizedWindow.this.manager);
-        }
       }
     });
     
@@ -445,5 +440,30 @@ public class MinimizedWindow {
 
   public void setStucked(MinimizedWindow mw) {
     this.stucked = mw;
+  }
+  
+  public static void close(MinimizedWindow downloadBar) {
+  	if (downloadBar != null) {
+  		downloadBar.close();
+  	}
+  }
+
+  public static void close(DownloadManager dm) {
+  	for (Iterator iter = downloadBars.iterator(); iter.hasNext();) {
+			MinimizedWindow bar = (MinimizedWindow) iter.next();
+			if (bar.manager.equals(dm)) {
+				bar.close();
+			}
+		}
+  }
+  
+  public static boolean isOpen(DownloadManager dm) {
+  	for (Iterator iter = downloadBars.iterator(); iter.hasNext();) {
+			MinimizedWindow bar = (MinimizedWindow) iter.next();
+			if (bar.manager.equals(dm)) {
+				return true;
+			}
+		}
+  	return false;
   }
 }

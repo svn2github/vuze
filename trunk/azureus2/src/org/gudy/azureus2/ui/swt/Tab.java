@@ -75,6 +75,7 @@ public class Tab {
    // events
    private static List tabAddListeners;
    private static List tabRemoveListeners;
+	private static MainWindow mainwindow;
 
   static {
     tabs = new HashMap();
@@ -92,7 +93,7 @@ public class Tab {
   }
 
   public Tab(IView _view, boolean bFocus) {
-    this.useCustomTab = MainWindow.getWindow().isUseCustomTab();
+    this.useCustomTab = mainwindow.isUseCustomTab();
     this.view = _view;
     this.folder = _folder;
 
@@ -201,7 +202,7 @@ public class Tab {
 		}
     
     if (bFocus) {
-    	MainWindow.getWindow().refreshIconBar();
+    	mainwindow.refreshIconBar();
     	selectedItem = tabItem;
     }
 
@@ -482,8 +483,9 @@ public class Tab {
 
   //public static void setFolder(TabFolder folder) {
   //public static void setFolder(CTabFolder folder) {
-  public static void setFolder(Composite folder) {
-    _folder = folder;
+  public static void initialize(MainWindow mainwindow, Composite folder) {
+    Tab.mainwindow = mainwindow;
+		_folder = folder;
   }
 
   public static void 
@@ -502,13 +504,13 @@ public class Tab {
     if (view != null) {
         try {
           if(view instanceof PluginView) {
-            MainWindow.getWindow().removeActivePluginView(((PluginView)view).getPluginViewName());
+          	mainwindow.removeActivePluginView(((PluginView)view).getPluginViewName());
           }
           if(view instanceof UISWTPluginView) {
-              MainWindow.getWindow().removeActivePluginView(((UISWTPluginView)view).getPluginViewName());
+          	mainwindow.removeActivePluginView(((UISWTPluginView)view).getPluginViewName());
           }
           if(view instanceof UISWTView)
-            MainWindow.getWindow().removeActivePluginView(((UISWTView)view).getViewID());
+          	mainwindow.removeActivePluginView(((UISWTView)view).getViewID());
    
           view.delete();
         } catch (Exception e) {
@@ -516,7 +518,7 @@ public class Tab {
         }
 
         if (view instanceof MyTorrentsSuperView) {
-          MainWindow.getWindow().setMytorrents(null);
+        	mainwindow.setMytorrents(null);
           //TODO : There is a problem here on OSX when using Normal TABS
           /*  org.eclipse.swt.SWTException: Widget is disposed
                 at org.eclipse.swt.SWT.error(SWT.java:2691)
@@ -535,12 +537,12 @@ public class Tab {
           return;
         }
         if (view instanceof MyTrackerView) {
-          MainWindow.getWindow().setMyTracker(null);
+        	mainwindow.setMyTracker(null);
           item.dispose();
           return;
         }
         if (view instanceof MySharesView) {
-        	MainWindow.getWindow().setMyShares(null);
+        	mainwindow.setMyShares(null);
         	item.dispose();
         	return;
         }
@@ -587,10 +589,10 @@ public class Tab {
     try {
       if (localView != null) {
         if(localView instanceof PluginView) {
-          MainWindow.getWindow().removeActivePluginView(((PluginView)localView).getPluginViewName());
+        	mainwindow.removeActivePluginView(((PluginView)localView).getPluginViewName());
         }
         if(localView instanceof UISWTPluginView) {
-          MainWindow.getWindow().removeActivePluginView(((UISWTPluginView)localView).getPluginViewName());
+        	mainwindow.removeActivePluginView(((UISWTPluginView)localView).getPluginViewName());
         }
 
         localView.delete();

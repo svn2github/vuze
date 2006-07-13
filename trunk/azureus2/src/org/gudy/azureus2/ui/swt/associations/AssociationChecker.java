@@ -27,20 +27,25 @@ package org.gudy.azureus2.ui.swt.associations;
  *
  */
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.platform.*;
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
-import org.eclipse.swt.*;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
-
-import org.gudy.azureus2.ui.swt.*;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 public class 
 AssociationChecker 
@@ -79,7 +84,7 @@ AssociationChecker
 	{
 		platform	= _platform;
 		
-		display = MainWindow.getWindow().getDisplay();
+		display = SWTThread.getInstance().getDisplay();
 							
 		if ( display.isDisposed()){
 								

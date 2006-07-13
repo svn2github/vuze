@@ -44,6 +44,10 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+
 /**
  * 
  * +=====================================+
@@ -276,7 +280,18 @@ public class MessageSlideShell {
 				};
 
 		// Create shell & widgets
-		shell = new Shell(display, style);
+		if (bDisableSliding) {
+			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			if (uiFunctions != null) {
+				Shell mainShell = uiFunctions.getMainShell();
+				if (mainShell != null) {
+					shell = new Shell(mainShell, style);
+				}
+			}
+		}
+		if (shell == null) {
+			shell = new Shell(display, style);
+		}
 		if (USE_SWT32_BG_SET) {
 			try {
 				shell.setBackgroundMode(SWT.INHERIT_DEFAULT);

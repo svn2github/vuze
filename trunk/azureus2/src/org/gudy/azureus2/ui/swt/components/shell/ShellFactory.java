@@ -25,9 +25,11 @@ package org.gudy.azureus2.ui.swt.components.shell;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.graphics.Image;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainMenu;
 import org.gudy.azureus2.core3.util.Constants;
+
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * Facilitates the creation of SWT Shells with platform-specific additions.
@@ -97,21 +99,21 @@ public final class ShellFactory
      * @param toRegister A SWT Shell
      * @return The SWT Shell
      */
-    private static Shell getRegisteredShell(final Shell toRegister)
-    {
-        // register main menu
-        if(Constants.isOSX)
-        {
-            if(MainWindow.getWindow() == null)
-                throw new IllegalStateException("Main window is not initialized yet");
+	private static Shell getRegisteredShell(final Shell toRegister)
+	{
+		// register main menu
+		if (Constants.isOSX) {
+			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			if (uiFunctions == null)
+				throw new IllegalStateException("Main window is not initialized yet");
 
-            new MainMenu(toRegister);
-        }
+			new MainMenu(toRegister);
+		}
 
-        ShellManager.sharedManager().addWindow(toRegister);
+		ShellManager.sharedManager().addWindow(toRegister);
 
-        return toRegister;
-    }
+		return toRegister;
+	}
 
     /**
      * A shell that provides platform-specific behaviour in some methods in order to better suit the user experience

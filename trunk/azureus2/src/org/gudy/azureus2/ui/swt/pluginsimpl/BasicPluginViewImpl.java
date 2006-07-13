@@ -40,6 +40,9 @@ import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+
 
 /**
  * 
@@ -173,7 +176,10 @@ BasicPluginViewImpl
     	Messages.setLanguageText(btnConfig, "plugins.basicview.config");
     	btnConfig.addSelectionListener(new SelectionAdapter() {
     		public void widgetSelected(SelectionEvent e) {
-    			MainWindow.getWindow().showConfig(model.getConfigSectionID());
+       	 UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+      	 if (uiFunctions != null) {
+      		 uiFunctions.showConfig(model.getConfigSectionID());
+      	 }
     		}
     	});
     	btnConfig.setLayoutData(new GridData());

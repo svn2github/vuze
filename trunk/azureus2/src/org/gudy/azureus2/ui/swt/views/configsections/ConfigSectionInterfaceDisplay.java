@@ -198,8 +198,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 		label = new Label(cArea, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "guiUpdate");
-		int[] values = { 100, 250, 500, 1000, 2000, 5000 };
-		String[] labels = { "100 ms", "250 ms", "500 ms", "1 s", "2 s", "5 s" };
+		int[] values = { 100, 250, 500, 1000, 2000, 5000, 10000, 15000 };
+		String[] labels = { "100 ms", "250 ms", "500 ms", "1 s", "2 s", "5 s", "10 s", "15 s" };
 		new IntListParameter(cArea, "GUI Refresh", 1000, labels, values);
 
 		label = new Label(cArea, SWT.NULL);

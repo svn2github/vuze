@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -168,20 +167,11 @@ LocaleUtilSWT
     final LocaleUtilDecoderCandidate[] candidatesToChoose = (LocaleUtilDecoderCandidate[]) choosableCandidates.toArray(new LocaleUtilDecoderCandidate[choosableCandidates.size()]);
     final LocaleUtilDecoderCandidate[] selected_candidate = {null};
         
-    MainWindow window = MainWindow.getWindow();
-    
-    	// can get here if torrent already added in non-swt ui mode with dodgy encoding
-    
-    if ( window == null ){
-    	
-    	return( default_candidate );
-    }
-    
     // Run Synchronously, since we want the results
     Utils.execSWTThread(new AERunnable() {
       public void runSupport() {
       	try{
-        	showChoosableEncodingWindow(Display.getCurrent().getActiveShell(), 
+        	showChoosableEncodingWindow(Utils.findAnyShell(), 
         			candidatesToChoose,selected_candidate);
         	
       	}catch( Throwable e ){

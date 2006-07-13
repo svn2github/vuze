@@ -1,5 +1,5 @@
 /*
- * Created on Jun 14, 2006 9:02:55 PM
+ * Created on Jul 12, 2006 2:47:29 PM
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -19,53 +19,22 @@
  */
 package com.aelitis.azureus.ui;
 
-
 /**
  * @author TuxPaper
- * @created Jun 14, 2006
+ * @created Jul 12, 2006
  *
  */
-public interface UIFunctions
+public class UIFunctionsManager
 {
-
-	/**
-	 * Display the stats view
-	 */
-	void showStats();
-
-	/**
-	 * Display the Stats View -> Transfer subview
-	 */
-	void showStatsTransfers();
-
-	/**
-	 * Display the Stats View -> HHT subview
-	 */
-	void showStatsDHT();
-
-	/**
-	 * Display the config window
-	 * 
-	 * @param string Section to show.  null for root 
-	 * @return true: section was found
-	 */
-	boolean showConfig(String string);
-
-	/**
-	 * Bring main window to the front
-	 */
-	void bringToFront();
-
-	/**
-	 * Request the UI be shut down.
-	 * 
-	 * @return true - request granted, UI is being shut down
-	 *         false - request denied (example: password entry failed)
-	 */
-	boolean requestShutdown();
-
-	/**
-	 * Change/Refresh the language of the UI
-	 */
-	void refreshLanguage();
+	private static UIFunctions instance = null;
+	
+	public static UIFunctions getUIFunctions() {
+		return instance;
+	}
+	
+	public static void setUIFunctions(UIFunctions uiFunctions) {
+		instance = uiFunctions;
+	}
+	
+	// TODO: Listener to trigger when instance set
 }
