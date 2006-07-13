@@ -227,6 +227,9 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		new IntListParameter(cArea, "config.style.table.defaultSortOrder",
 				sortOrderLabels, sortOrderValues);
 
+
+		new BooleanParameter(cLook, "GUI_SWT_DisableAlertSliding", MSG_PREFIX
+				+ "disableAlertSliding");
 		return cLook;
 	}
 }
