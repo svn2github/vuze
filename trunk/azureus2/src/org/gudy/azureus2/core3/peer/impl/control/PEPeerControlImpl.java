@@ -259,10 +259,6 @@ PEPeerControlImpl
 
 		peer_database =PeerDatabaseFactory.createPeerDatabase();
 
-		// register as legacy controller
-	
-		adapter.getPeerManagerRegistration().activate( this );
-
 		// initial check on finished state - future checks are driven by piece check results
 
 		// Moved out of mainLoop() so that it runs immediately, possibly changing
@@ -277,7 +273,11 @@ PEPeerControlImpl
 		lastNeededUndonePieceChange =Long.MIN_VALUE;
 		_timeStarted =SystemTime.getCurrentTime();
 
-		is_running =true;
+		is_running = true;
+		
+			// activate after marked as running as we may synchronously add connections here due to pending activations
+		
+		adapter.getPeerManagerRegistration().activate( this );
 	}
 
 	public void stopAll()

@@ -32,8 +32,10 @@ import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
@@ -50,7 +52,85 @@ public class PeerManager {
 	
   private static final PeerManager instance = new PeerManager();
 
- 
+  private static final int	PENDING_TIMEOUT	= 10*1000;
+  
+  private static final AEMonitor	timer_mon = new AEMonitor( "PeerManager:timeouts" );
+  private static Thread	timer_thread;
+  private static Set	timer_targets = new HashSet();
+  
+  protected static void
+  registerForTimeouts(
+	PeerManagerRegistrationImpl		reg )
+  {
+	  try{
+		  timer_mon.enter();
+		  
+		  timer_targets.add( reg );
+		  
+		  if ( timer_thread == null ){
+			  
+			  	timer_thread = 
+				  new AEThread( "PeerManager:timeouts", true )
+				  {
+					  public void
+					  runSupport()
+					  {
+						  int	idle_time	= 0;
+						  
+						  while( true ){
+							  
+							  try{
+								  Thread.sleep( PENDING_TIMEOUT / 2 );
+								  
+							  }catch( Throwable e ){  
+							  }
+							  
+							  try{
+								  timer_mon.enter();
+
+								  if ( timer_targets.size() == 0 ){
+									  
+									  idle_time += PENDING_TIMEOUT / 2;
+									  
+									  if ( idle_time >= 30*1000 ){
+										  
+										  System.out.println( "timer thread idle" );
+										  
+										  timer_thread = null;
+										  
+										  break;
+									  }
+								  }else{
+									  
+									  idle_time = 0;
+									  
+									  Iterator	it = timer_targets.iterator();
+									  
+									  while( it.hasNext()){
+										  
+										  PeerManagerRegistrationImpl	registration = (PeerManagerRegistrationImpl)it.next();
+										  
+										  if ( !registration.timeoutCheck()){
+											  
+											  it.remove();
+										  }
+									  }
+								  }
+							  }finally{
+								  
+								  timer_mon.exit();
+							  }
+						  }
+					  }
+				  };
+				  
+				timer_thread.start();
+		  }
+	  }finally{
+		  
+		  timer_mon.exit();
+	  }
+  }
 
   /**
    * Get the singleton instance of the peer manager.
@@ -168,43 +248,13 @@ public class PeerManager {
         new NetworkManager.RoutingListener() 
         {
         	public void 
-        	connectionRouted( NetworkConnection connection, Object routing_data ) 
+        	connectionRouted( 
+        		NetworkConnection 	connection, 
+        		Object 				routing_data ) 
         	{
         		PeerManagerRegistrationImpl	registration = (PeerManagerRegistrationImpl)routing_data;
         		
-        		PEPeerControl	peer_control = registration.getPeerControl();
-        		
-        		if ( peer_control == null ){
-        			
-        			System.out.println( "default routing" );
-        		
-        			connection.close();
-        			
-        		}else{
-	        			
-	                // make sure not already connected to the same IP address; allow
-	                // loopback connects for co-located proxy-based connections and
-	                // testing
-        			
-	                String address = connection.getEndpoint().getNotionalAddress().getAddress().getHostAddress();
-	                boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
-	                if( !same_allowed && PeerIdentityManager.containsIPAddress( peer_control.getPeerIdentityDataID(), address ) ){  
-	                	if (Logger.isEnabled())
-	    								Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-	    										"Incoming TCP connection from [" + connection
-	    												+ "] dropped as IP address already "
-	    												+ "connected for ["
-	    												+ peer_control.getDisplayName() + "]"));
-	                  connection.close();
-	                  return;
-	                }
-	                
-	                if (Logger.isEnabled())
-	    							Logger.log(new LogEvent(LOGID, "Incoming TCP connection from ["
-	    									+ connection + "] routed to legacy download ["
-	    									+ peer_control.getDisplayName() + "]"));
-	                peer_control.addPeerTransport( PEPeerTransportFactory.createTransport( peer_control, PEPeerSource.PS_INCOMING, connection ) );
-        		}
+        		registration.route( connection );
         	}
         	
         	public boolean
@@ -246,26 +296,7 @@ public class PeerManager {
 	  }
   }
   
-  protected void
-  unregister(
-	PeerManagerRegistrationImpl  registration )
-  {
-	  try{
-		  managers_mon.enter();
-		  
-		  HashWrapper	hash = registration.getHash();
-		  		  
-		  IncomingConnectionManager.getSingleton().removeSharedSecret( hash.getBytes());
-		  
-		  if ( registered_legacy_managers.remove( hash ) == null ){
-			  
-			  Debug.out( "manager already deregistered" );
-		  }
-	  }finally{
-		  
-		  managers_mon.exit();
-	  }
-  }
+ 
  
   private class
   PeerManagerRegistrationImpl
@@ -276,7 +307,9 @@ public class PeerManager {
 	
 	private TorrentDownload					download;
 	
-	private volatile PEPeerControl			peer_control;
+	private volatile PEPeerControl			active_control;
+	
+	private List	pending_connections;
 	
 	protected
 	PeerManagerRegistrationImpl(
@@ -299,38 +332,50 @@ public class PeerManager {
 		return( adapter );
 	}
 	
-	protected PEPeerControl
-	getPeerControl()
-	{
-		return( peer_control );
-	}
-	
 	public boolean
 	isActive()
 	{
-		return( peer_control != null );
+		return( active_control != null );
 	}
 	
 	public void
 	activate(
-		PEPeerControl	_peer_control )
+		PEPeerControl	_active_control )
 	{
-		  try{
+		List	connections = null;
+		
+		try{
 			  managers_mon.enter();
 
-			  peer_control = _peer_control;
+			  active_control = _active_control;
 		
 			  if ( download != null ){
 				  
 				  Debug.out( "Already activated" );
 			  }
 			  
-			  download = TorrentDownloadFactory.getSingleton().createDownload( peer_control );  //link legacy with new
+			  download = TorrentDownloadFactory.getSingleton().createDownload( active_control );  //link legacy with new
 			  
-		  }finally{
+			  connections = pending_connections;
 			  
-			  managers_mon.exit();
-		  }
+			  pending_connections = null;
+			  
+		}finally{
+		  
+			managers_mon.exit();
+		}
+		
+		if ( connections != null ){
+			
+			for (int i=0;i<connections.size();i++){
+				
+				Object[]	entry = (Object[])connections.get(i);
+								
+				NetworkConnection	nc = (NetworkConnection)entry[0];
+				
+				route( _active_control, nc );
+			}
+		}
 	}
 	
 	public void
@@ -350,7 +395,26 @@ public class PeerManager {
 				  download	= null;
 			  }
 			  
-			  peer_control = null;
+			  active_control = null;
+			  
+			  if ( pending_connections != null ){
+				  
+				  for (int i=0;i<pending_connections.size();i++){
+					  
+					  Object[]	entry = (Object[])pending_connections.get(i);
+					  		
+					  NetworkConnection	connection = (NetworkConnection)entry[0];
+					                   	                                      
+		              if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+											"Incoming connection from [" + connection
+													+ "] closed due to deactivation" ));
+
+					  connection.close();
+				  }
+			  
+				  pending_connections = null;
+			  }
 			  
 		  }finally{
 			  
@@ -361,7 +425,172 @@ public class PeerManager {
 	public void
 	unregister()
 	{
-		PeerManager.this.unregister( this );
+	  try{
+		  managers_mon.enter();
+		  		
+		  if ( active_control != null ){
+			  
+			  Debug.out( "Not deactivated" );
+			  
+			  deactivate();
+		  }
+		  
+		  IncomingConnectionManager.getSingleton().removeSharedSecret( hash.getBytes());
+		  
+		  if ( registered_legacy_managers.remove( hash ) == null ){
+			  
+			  Debug.out( "manager already deregistered" );
+		  }
+	  }finally{
+		  
+		  managers_mon.exit();
+	  }
+	}
+	
+	protected void
+	route(
+		NetworkConnection 	connection )
+	{	
+		PEPeerControl	control;
+		
+		boolean	register_for_timeouts = false;
+		
+		try{
+			managers_mon.enter();
+
+			control = active_control;
+			
+			if ( control == null ){
+				
+					// not yet activated, queue connection for use on activation
+			
+				if ( pending_connections != null && pending_connections.size() > 10 ){
+					
+	            	if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+										"Incoming connection from [" + connection
+												+ "] dropped too many pending activations" ));
+					connection.close();
+					
+				}else{
+				
+					if ( pending_connections == null ){
+						
+						pending_connections = new ArrayList();
+					}
+										
+					pending_connections.add( new Object[]{ connection, new Long( SystemTime.getCurrentTime())});
+					
+					if ( pending_connections.size() == 1 ){
+						
+						register_for_timeouts	= true;
+					}
+				}
+			}	
+   		}finally{
+   		
+    		managers_mon.exit();
+   		}
+		
+   			// do this outside the monitor as the timeout code calls us back holding the timeout monitor
+   			// and we need to grab managers_mon inside this to run timeouts
+   		
+   		if ( register_for_timeouts ){
+   			
+			registerForTimeouts( this );
+   		}
+   		
+		if ( control != null ){
+    		
+			route( control, connection );
+   		}
+	}
+	
+	protected boolean
+	timeoutCheck()
+	{
+		try{
+			managers_mon.enter();
+
+			if ( pending_connections == null ){
+				
+				return( false );
+			}
+			
+			Iterator it = pending_connections.iterator();
+			
+			long	now = SystemTime.getCurrentTime();
+			
+			while( it.hasNext()){
+				
+				Object[]	entry = (Object[])it.next();
+				
+				long	start_time = ((Long)entry[1]).longValue();
+				
+				if ( now < start_time ){
+					
+					entry[1] = new Long( now );
+					
+				}else if ( now - start_time > PENDING_TIMEOUT ){
+					
+					it.remove();
+					
+					NetworkConnection	connection = (NetworkConnection)entry[0];
+                      
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+										"Incoming connection from [" + connection
+												+ "] closed due to activation timeout" ));
+
+					connection.close();		
+				}
+			}
+			
+			if ( pending_connections.size() == 0 ){
+				
+				pending_connections = null;
+			}
+			
+			return( pending_connections != null );
+			
+		}finally{
+			
+			managers_mon.exit();
+		}
+	}
+	
+	protected void
+	route(
+		PEPeerControl		control,	
+		NetworkConnection 	connection )
+	{
+	        // make sure not already connected to the same IP address; allow
+	        // loopback connects for co-located proxy-based connections and
+	        // testing
+		
+        String address = connection.getEndpoint().getNotionalAddress().getAddress().getHostAddress();
+        
+        boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
+        
+        if( !same_allowed && PeerIdentityManager.containsIPAddress( control.getPeerIdentityDataID(), address ) ){
+        	
+        	if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+									"Incoming connection from [" + connection
+											+ "] dropped as IP address already "
+											+ "connected for ["
+											+ control.getDisplayName() + "]"));
+        	connection.close();
+          
+        	return;
+        }
+        
+        if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "Incoming connection from ["
+								+ connection + "] routed to legacy download ["
+								+ control.getDisplayName() + "]"));
+        
+        control.addPeerTransport( PEPeerTransportFactory.createTransport( control, PEPeerSource.PS_INCOMING, connection ) );
 	}
   }
 }

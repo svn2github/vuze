@@ -955,6 +955,11 @@ DownloadManagerController
 	  					// only maintain this while queued
 	  				
 	  				activation_bloom = null;
+	  				
+	  				if ( state_set_by_method == DownloadManager.STATE_STOPPED ){
+	  				
+	  					activation_count = 0;
+	  				}
 	  			}
 	  			
 	  			if (state_set_by_method == DownloadManager.STATE_QUEUED ){
