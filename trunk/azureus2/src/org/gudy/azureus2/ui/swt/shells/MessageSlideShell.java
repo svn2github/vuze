@@ -30,6 +30,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -183,6 +184,13 @@ public class MessageSlideShell {
 			boolean bSlide) {
 		GridData gridData;
 		int shellWidth;
+		int style = SWT.ON_TOP;
+
+		boolean bDisableSliding = COConfigurationManager.getBooleanParameter("DisableAlertSliding");
+		if (bDisableSliding) {
+			bSlide = false;
+			style = SWT.NONE;
+		}
 
 		if (DEBUG)
 			System.out.println("create " + (bSlide ? "SlideIn" : "") + ";"
@@ -267,7 +275,6 @@ public class MessageSlideShell {
 				};
 
 		// Create shell & widgets
-		int style = SWT.ON_TOP;
 		shell = new Shell(display, style);
 		if (USE_SWT32_BG_SET) {
 			try {
@@ -600,22 +607,29 @@ public class MessageSlideShell {
 		} catch (Exception e) {
 			bounds = display.getClientArea();
 		}
+		
+		Rectangle endBounds;
+		if (bDisableSliding) {
+			endBounds = new Rectangle(((bounds.x + bounds.width) / 2)
+					- (bestSize.x / 2), ((bounds.y + bounds.height) / 2)
+					- (bestSize.y / 2), bestSize.x, bestSize.y);
+		} else {
+			int boundsX2 = bounds.x + bounds.width;
+			int boundsY2 = bounds.y + bounds.height;
+			endBounds = shell.computeTrim(boundsX2 - bestSize.x, boundsY2
+					- bestSize.y, bestSize.x, bestSize.y);
 
-		int boundsX2 = bounds.x + bounds.width;
-		int boundsY2 = bounds.y + bounds.height;
-		final Rectangle endBounds = shell.computeTrim(boundsX2 - bestSize.x,
-				boundsY2 - bestSize.y, bestSize.x, bestSize.y);
-
-		// bottom and right trim will be off the edge, calulate this trim
-		// and adjust it up and left (trim may not be the same size on all sides)
-		int diff = (endBounds.x + endBounds.width) - boundsX2;
-		if (diff >= 0)
-			endBounds.x -= diff + EDGE_GAP;
-		diff = (endBounds.y + endBounds.height) - boundsY2;
-		if (diff >= 0) {
-			endBounds.y -= diff + EDGE_GAP;
+			// bottom and right trim will be off the edge, calulate this trim
+			// and adjust it up and left (trim may not be the same size on all sides)
+			int diff = (endBounds.x + endBounds.width) - boundsX2;
+			if (diff >= 0)
+				endBounds.x -= diff + EDGE_GAP;
+			diff = (endBounds.y + endBounds.height) - boundsY2;
+			if (diff >= 0) {
+				endBounds.y -= diff + EDGE_GAP;
+			}
+			//System.out.println("best" + bestSize + ";mon" + bounds + ";end" + endBounds);
 		}
-		//System.out.println("best" + bestSize + ";mon" + bounds + ";end" + endBounds);
 
 		FormData data = new FormData(bestSize.x, bestSize.y);
 		cShell.setLayoutData(data);
@@ -643,6 +657,15 @@ public class MessageSlideShell {
 					} finally {
 						monitor.exit();
 					}
+				}
+			}
+		});
+
+		shell.addListener(SWT.Traverse, new Listener() {
+			public void handleEvent(Event event) {
+				if (event.detail == SWT.TRAVERSE_ESCAPE) {
+					disposeShell(shell);
+					event.doit = false;
 				}
 			}
 		});
