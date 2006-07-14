@@ -678,19 +678,26 @@ public class Utils {
 			return -1;
 		
 		if (Constants.isOSX) {
-			TableItem item = table.getItem(iTopIndex);
-			Rectangle bounds = item.getBounds();
-			Rectangle clientArea = table.getClientArea();
-
-			int itemHeight = table.getItemHeight();
-			int iBottomIndex = Math.min(iTopIndex
-					+ (clientArea.height + clientArea.y - bounds.y - 1) / itemHeight,
-					itemCount - 1);
-
-//			System.out.println(bounds + ";" + clientArea + ";" + itemHeight + ";bi="
-//					+ iBottomIndex + ";ti=" + iTopIndex + ";"
-//					+ (clientArea.height + clientArea.y - bounds.y - 1));
-			return iBottomIndex;
+			try {
+				TableItem item = table.getItem(iTopIndex);
+				Rectangle bounds = item.getBounds();
+				Rectangle clientArea = table.getClientArea();
+	
+				int itemHeight = table.getItemHeight();
+				int iBottomIndex = Math.min(iTopIndex
+						+ (clientArea.height + clientArea.y - bounds.y - 1) / itemHeight,
+						itemCount - 1);
+	
+	//			System.out.println(bounds + ";" + clientArea + ";" + itemHeight + ";bi="
+	//					+ iBottomIndex + ";ti=" + iTopIndex + ";"
+	//					+ (clientArea.height + clientArea.y - bounds.y - 1));
+				return iBottomIndex;
+			} catch (NoSuchMethodError e) {
+				// item.getBounds is 3.2
+				return Math.min(iTopIndex
+						+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / 
+								table.getItemHeight()) + 1, table.getItemCount() - 1);
+			}
 		}
 
 		// getItem will return null if clientArea's height is smaller than
