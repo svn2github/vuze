@@ -2240,7 +2240,7 @@ DHTTransportUDPImpl
 					
 					if ( handler == null ){
 						
-						logger.log( "No transfer handler registered for key" );
+						logger.log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
 						
 					}else{
 					
