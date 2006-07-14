@@ -1781,13 +1781,20 @@ PEPeerControlImpl
 			
 			if ( connect_failed && peer.isTCP() && udp_port != 0 ){
 				
-					// candidate for a fallback UDP connection attempt
-							
-				String	ip = peer.getIp();
+				PeerItem peer_item = peer.getPeerItemIdentity();
 				
-				String	key = ip + ":" + udp_port;
+				PeerItem self_item = peer_database.getSelfPeer();
 				
-				udp_fallbacks.put( key, peer.getPeerItemIdentity());
+				if ( self_item == null || !self_item.equals( peer_item )){
+
+						// candidate for a fallback UDP connection attempt
+								
+					String	ip = peer.getIp();
+					
+					String	key = ip + ":" + udp_port;
+					
+					udp_fallbacks.put( key, peer_item );
+				}
 			}
 		
 	
