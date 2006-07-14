@@ -28,10 +28,18 @@ import java.util.Map;
 public interface 
 NATTraversalObserver 
 {
+	public static final int	FT_NO_RENDEZVOUS	= 1;
+	public static final int	FT_QUEUE_FULL		= 2;
+	public static final int	FT_CANCELLED		= 3;
+	
 	public void
 	succeeded(
 		InetSocketAddress	target,
 		Map					reply );
+	
+	public void
+	failed(
+		int			failure_type );
 	
 	public void
 	failed(

@@ -84,6 +84,6 @@ DHTPluginContactImpl
 	public Map
 	openTunnel()
 	{
-		return( plugin.getDHT().getNATPuncher().punch(  "Tunnel", contact, null ));
+		return( plugin.getDHT().getNATPuncher().punch( "Tunnel", contact, null, null ));
 	}
 }

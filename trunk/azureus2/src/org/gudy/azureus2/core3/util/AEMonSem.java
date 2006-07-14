@@ -411,7 +411,16 @@ AEMonSem
 				
 			if ( stack.size() > 64 ){
 				
-				Debug.out( "**** Whoaaaaaa, AEMonSem debug stack is getting too large!!!! ****" );
+				StringBuffer	sb = new StringBuffer(1024);
+				
+				for (int i=0;i<stack.size();i++){
+					
+					AEMonSem	mon = (AEMonSem)stack.get(i);
+
+					sb.append( "$" + mon.name );
+				}
+				
+				Debug.out( "**** Whoaaaaaa, AEMonSem debug stack is getting too large!!!! **** " + sb );
 			}
 			
 			if ( !stack.isEmpty()){

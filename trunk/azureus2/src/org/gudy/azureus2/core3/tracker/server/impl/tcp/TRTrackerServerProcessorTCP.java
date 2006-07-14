@@ -265,6 +265,8 @@ TRTrackerServerProcessorTCP
 				byte		crypto_level 	= TRTrackerServerPeer.CRYPTO_NONE;
 				int			crypto_port		= 0;
 				int			udp_port		= 0;
+				boolean		stop_to_queue	= false;
+				String		scrape_flags	= null;
 				
 				String		real_ip_address		= client_address.getAddress().getHostAddress();
 				String		client_ip_address	= real_ip_address;
@@ -405,8 +407,20 @@ TRTrackerServerProcessorTCP
 					}else if ( lhs.equals( "cryptoport" )){
 
 						crypto_port = Integer.parseInt( rhs );
-					}
 						
+					}else if ( lhs.equals( "azq" )){
+					
+						stop_to_queue	= true;
+						
+						System.out.println( "stop to queue" );
+						
+					}else if ( lhs.equals( "azsf" )){
+					
+						scrape_flags = rhs;
+						
+						System.out.println( "scrape flags = " + scrape_flags );
+					}
+					
 					if ( p1 == -1 ){
 							
 						break;

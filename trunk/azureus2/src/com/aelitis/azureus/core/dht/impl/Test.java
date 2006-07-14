@@ -778,7 +778,7 @@ Test
 							
 							originator_data.put( "hello", "mum" );
 							
-							Map client_data = puncher.punch( "Test", dhts[2].getTransport().getLocalContact(), originator_data);
+							Map client_data = puncher.punch( "Test", dhts[2].getTransport().getLocalContact(), null, originator_data);
 							
 							System.out.println( "   punch client data: " + client_data );
 						}

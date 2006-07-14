@@ -47,6 +47,10 @@ PeerNATTraverser
 {
 	private static final LogIDs LOGID = LogIDs.PEER;
 	
+	private static final int	OUTCOME_SUCCESS				= 0;
+	private static final int	OUTCOME_FAILED_NO_REND		= 1;
+	private static final int	OUTCOME_FAILED_OTHER		= 2;
+	
 	private static PeerNATTraverser		singleton;
 	
 	public static void
@@ -79,8 +83,9 @@ PeerNATTraverser
 	
 	private Average	usage_average 		= Average.getInstance(USAGE_PERIOD,USAGE_DURATION_SECS);
 
-	private int		attempted_count	= 0;
-	private int		success_count	= 0;
+	private int		attempted_count			= 0;
+	private int		success_count			= 0;
+	private int		failed_no_rendezvous	= 0;
 	
 	public
 	PeerNATTraverser(
@@ -106,13 +111,15 @@ PeerNATTraverser
 
 						if ( ticks % STATS_TICK_COUNT == 0 ){
 							
+							String	msg = 
+								"NAT traversal stats: active=" +  active_requests.size() +
+								",pending=" + pending_requests.size() + ",attempted=" + attempted_count +
+								",no rendezvous=" + failed_no_rendezvous +",successful=" + success_count;
+
+							// System.out.println( msg );
+							
 					      	if (Logger.isEnabled()){
-								Logger.log(
-									new LogEvent(
-										LOGID,
-										"NAT traversal stats: active=" +  active_requests.size() +
-										",pending=" + pending_requests.size() + ",attempted=" + attempted_count +
-										",successful=" + success_count ));
+								Logger.log(	new LogEvent(LOGID,	msg ));
 				          	}
 						}
 
@@ -246,7 +253,7 @@ PeerNATTraverser
 	protected void
 	removeRequest(
 		PeerNATTraversal		request,
-		boolean					success )
+		int						outcome )
 	{
 		synchronized( initiators ){
 			
@@ -263,9 +270,13 @@ PeerNATTraverser
 			
 				usage_average.addValue( request.getTimeUsed());
 				
-				if ( success ){
+				if ( outcome == OUTCOME_SUCCESS ){
 					
 					success_count++;
+					
+				}else if ( outcome == OUTCOME_FAILED_NO_REND ){
+					
+					failed_no_rendezvous++;
 				}
 			}
 		}
@@ -358,7 +369,7 @@ PeerNATTraverser
 			InetSocketAddress	target,
 			Map					reply )
 		{
-			removeRequest( this, true );
+			removeRequest( this, OUTCOME_SUCCESS );
 			
         	if (Logger.isEnabled()){
 				Logger.log(
@@ -372,9 +383,18 @@ PeerNATTraverser
 		
 		public void
 		failed(
+			int			reason )
+		{
+			removeRequest( this, reason == NATTraversalObserver.FT_NO_RENDEZVOUS?OUTCOME_FAILED_NO_REND:OUTCOME_FAILED_OTHER );
+			
+			adapter.failed();
+		}
+		
+		public void
+		failed(
 			Throwable 	cause )
 		{
-			removeRequest( this, false );
+			removeRequest( this, OUTCOME_FAILED_OTHER );
 			
 			adapter.failed();
 		}
@@ -382,7 +402,7 @@ PeerNATTraverser
 		public void
 		disabled()
 		{
-			removeRequest( this, false );
+			removeRequest( this, OUTCOME_FAILED_OTHER );
 			
 			adapter.failed();
 		}
@@ -404,7 +424,7 @@ PeerNATTraverser
 			
 			if ( complete ){
 			
-				removeRequest( this, false );
+				removeRequest( this, OUTCOME_FAILED_OTHER );
 				
 			}else{
 				

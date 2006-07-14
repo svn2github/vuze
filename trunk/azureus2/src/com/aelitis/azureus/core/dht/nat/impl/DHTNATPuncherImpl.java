@@ -1766,16 +1766,17 @@ DHTNATPuncherImpl
 	
 	public Map
 	punch(
-		String				reason,
-		InetSocketAddress[]	target,
-		Map					originator_client_data )
+		String					reason,
+		InetSocketAddress[]		target,
+		DHTTransportContact[]	rendezvous_used,
+		Map						originator_client_data )
 	{
 		try{
 			DHTTransportUDP	transport = (DHTTransportUDP)dht.getTransport();
 
 			DHTTransportUDPContact contact = transport.importContact( target[0], transport.getProtocolVersion());
 			
-			Map	result = punch( reason, contact, originator_client_data );
+			Map	result = punch( reason, contact, rendezvous_used, originator_client_data );
 			
 			target[0] = contact.getTransportAddress();
 			
@@ -1791,14 +1792,20 @@ DHTNATPuncherImpl
 	
 	public Map
 	punch(
-		String				reason,
-		DHTTransportContact	_target,
-		Map					originator_client_data )
+		String					reason,
+		DHTTransportContact		_target,
+		DHTTransportContact[]	rendezvous_used,
+		Map						originator_client_data )
 	{
 		DHTTransportUDPContact	target = (DHTTransportUDPContact)_target;
 		
 		try{
 			DHTTransportContact rendezvous = getRendezvous( reason, target );
+			
+			if ( rendezvous_used != null && rendezvous_used.length > 0 ){
+				
+				rendezvous_used[0] = rendezvous;
+			}
 			
 			if ( rendezvous == null ){
 				

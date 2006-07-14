@@ -35,6 +35,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 public class 
@@ -105,7 +106,7 @@ NATTraverser
 				
 				Debug.out( "NATTraversal queue full" );
 				
-				listener.failed( new Exception( "queue full" ));
+				listener.failed( NATTraversalObserver.FT_QUEUE_FULL );
 				
 			}else{
 				
@@ -117,7 +118,7 @@ NATTraverser
 						{
 							if ( traversal.isCancelled()){
 								
-								listener.failed(new Exception( "Cancelled" ));
+								listener.failed( NATTraversalObserver.FT_CANCELLED );
 								
 							}else{
 								
@@ -178,11 +179,20 @@ NATTraverser
 			
 			InetSocketAddress[]	target_a = { target };
 			
-			Map	reply = puncher.punch( handler.getName(), target_a, request );
+			DHTTransportContact[]	rendezvous_used = {null};
+			
+			Map	reply = puncher.punch( handler.getName(), target_a, rendezvous_used, request );
 			
 			if ( reply == null ){
 				
-				listener.failed( new Exception( "NAT traversal failed" ));
+				if ( rendezvous_used[0] == null ){
+					
+					listener.failed( NATTraversalObserver.FT_NO_RENDEZVOUS );
+					
+				}else{
+					
+					listener.failed( new Exception( "NAT traversal failed" ));
+				}
 				
 			}else{
 				

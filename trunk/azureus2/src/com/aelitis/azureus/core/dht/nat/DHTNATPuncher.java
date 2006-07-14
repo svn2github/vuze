@@ -54,9 +54,10 @@ DHTNATPuncher
 	
 	public Map
 	punch(
-		String				reason,
-		DHTTransportContact	target,
-		Map					client_data );
+		String					reason,
+		DHTTransportContact		target,
+		DHTTransportContact[]	rendezvous_used,
+		Map						client_data );
 	
 		/**
 		 * 
@@ -67,9 +68,10 @@ DHTNATPuncher
 	
 	public Map
 	punch(
-		String				reason,
-		InetSocketAddress[]	target,
-		Map					client_data );
+		String					reason,
+		InetSocketAddress[]		target,
+		DHTTransportContact[]	rendezvous_used,
+		Map						client_data );
 	
 		/**
 		 * @param target
