@@ -123,7 +123,10 @@ public class PeerItem {
     if( this == obj )  return true;
     if( obj != null && obj instanceof PeerItem ) {
       PeerItem other = (PeerItem)obj;
-      if( this.tcp_port == other.tcp_port && Arrays.equals( this.address, other.address ) )  return true;
+      if( 	this.tcp_port == other.tcp_port &&
+    		this.udp_port == other.udp_port &&
+    		this.handshake == other.handshake &&
+    		Arrays.equals( this.address, other.address ) )  return true;
     }
     return false;
   }
