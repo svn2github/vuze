@@ -1424,6 +1424,7 @@ public class GlobalManagerImpl
           if(listener != null &&  SystemTime.getCurrentTime() - lastListenerUpdate > 100) {
           	lastListenerUpdate = SystemTime.getCurrentTime();
           	
+						listener.reportPercent(100 * currentDownload / nbDownloads);
             listener.reportCurrentTask(MessageText.getString("splash.loadingTorrent") 
                 + " " + currentDownload + " "
                 + MessageText.getString("splash.of") + " " + nbDownloads
