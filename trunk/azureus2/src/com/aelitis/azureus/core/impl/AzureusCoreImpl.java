@@ -316,6 +316,8 @@ AzureusCoreImpl
 		// can write code for each of these cases to wait until the torrents are
 		// loaded, it's a pretty big job to find them all and fix all their quirks.
 		// Too big of a job for this late in the release stage.
+		// Other example is the tracker plugin that is coded in a way where it must 
+		// always publish a complete rss feed
 		global_manager = GlobalManagerFactory.create(this, 0);
 
 		for (int i = 0; i < lifecycle_listeners.size(); i++) {
