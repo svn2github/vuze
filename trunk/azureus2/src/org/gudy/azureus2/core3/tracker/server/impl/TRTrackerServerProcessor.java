@@ -38,7 +38,7 @@ public abstract class
 TRTrackerServerProcessor 
 	extends ThreadPoolTask
 {
-	private static final boolean QUEUE_TEST	= true;
+	private static final boolean QUEUE_TEST	= false;
 	
 	static{
 		if ( QUEUE_TEST ){
