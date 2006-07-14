@@ -87,7 +87,7 @@ public class NetworkManager {
   										
     		new ParameterListener()	{
     			 public void  parameterChanged(	String ignore ) {
-    				 REQUIRE_CRYPTO_HANDSHAKE				      = COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
+    				 REQUIRE_CRYPTO_HANDSHAKE				= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
     				 INCOMING_HANDSHAKE_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.fallback.incoming");
     				 OUTGOING_HANDSHAKE_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.fallback.outgoing");
     				 

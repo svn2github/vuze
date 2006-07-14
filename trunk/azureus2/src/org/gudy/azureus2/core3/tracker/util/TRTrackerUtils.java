@@ -98,4 +98,10 @@ TRTrackerUtils
 	{
 		return( TRTrackerUtilsImpl.mergeResponseCache( map1, map2 ));
 	}
+	
+	public static String
+	getPortsForURL()
+	{
+		return( TRTrackerUtilsImpl.getPortsForURL());
+	}
 }

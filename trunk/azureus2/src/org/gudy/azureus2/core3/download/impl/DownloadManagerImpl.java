@@ -2277,7 +2277,8 @@ DownloadManagerImpl
   
   	protected void
   	informStopped(
-		PEPeerManager	pm )	// can be null if controller was already stopped....
+		PEPeerManager	pm,
+		boolean			for_queue )	// can be null if controller was already stopped....
   	{
   		if ( pm != null ){
 		  
@@ -2303,7 +2304,7 @@ DownloadManagerImpl
 		
  				download_manager_state.setTrackerResponseCache(	tracker_client.getTrackerResponseCache());
 			
- 				tracker_client.stop();
+ 				tracker_client.stop( for_queue );
  				
   				tracker_client.destroy();
 				

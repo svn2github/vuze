@@ -36,6 +36,10 @@ import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
+
 public class 
 TRTrackerUtilsImpl 
 {
@@ -54,6 +58,98 @@ TRTrackerUtilsImpl
 	
 	private static String		bind_ip;
 	
+	private static String		ports_for_url;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]
+			{	"Proxy.Data.Enable",
+				"Proxy.Data.SOCKS.inform",
+				"TCP.Announce.Port",
+				"network.transport.encrypted.use.crypto.port",
+				"network.transport.encrypted.require",
+				"network.transport.encrypted.fallback.incoming",
+				"TCP.Listen.Port",
+				"UDP.Listen.Port" },
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameterName )
+				{
+					boolean socks_peer_inform	= 	
+						COConfigurationManager.getBooleanParameter("Proxy.Data.Enable", false)&&
+						COConfigurationManager.getBooleanParameter("Proxy.Data.SOCKS.inform", true );
+					
+		  				// we currently don't support incoming connections when SOCKs proxying
+			  		
+			 		int	tcp_port_num;
+			 		int	udp_port_num;
+			 		  		
+			  		if ( socks_peer_inform ){
+			  			
+			  			tcp_port_num	= 0;
+			  			udp_port_num	= 0;
+			  		}else{
+			  		
+			 			tcp_port_num	= COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+			 			udp_port_num	= COConfigurationManager.getIntParameter( "UDP.Listen.Port" );		
+			  		}
+			  		
+			  		String portOverride = COConfigurationManager.getStringParameter("TCP.Announce.Port","");
+			  		
+			  		if(! portOverride.equals("")) {
+			  		  
+			  			try{
+			  				tcp_port_num = Integer.parseInt( portOverride );
+			  				
+			  			}catch( Throwable e ){
+			  				
+			  				Debug.printStackTrace(e);
+			  			}
+			  		}
+			  		  		
+			 		String port = "";
+			 		
+			 		boolean require_crypto = COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
+			 		
+			   		if ( require_crypto ){
+			  			
+			  			port += "&requirecrypto=1";
+			  			
+			  		}else{
+			  			
+						port += "&supportcrypto=1"; 
+			  		}
+			 		  
+			 		if ( 	require_crypto &&
+			 				(!COConfigurationManager.getBooleanParameter( "network.transport.encrypted.fallback.incoming") ) &&
+			 				COConfigurationManager.getBooleanParameter( "network.transport.encrypted.use.crypto.port" )){
+			 			
+			 			port += "&port=0&cryptoport=" + tcp_port_num;
+			 			
+			 		}else{
+			 
+			 			port += "&port=" + tcp_port_num;
+			 		}
+						
+					port += "&azudp=" + udp_port_num;
+			 		
+			  		  	//  BitComet extension for no incoming connections
+			  		
+			  		if ( tcp_port_num == 0 ){
+			  			
+			  			port += "&hide=1";
+			  		}	
+			  
+			  		ports_for_url = port;
+				}
+			});
+	}
+			           
+
+	
+
 	static{
 	
 		COConfigurationManager.addListener(
@@ -331,7 +427,6 @@ TRTrackerUtilsImpl
  		}
 	}
 	
-
 	public static Map
 	mergeResponseCache(
 		Map		map1,
@@ -339,4 +434,11 @@ TRTrackerUtilsImpl
 	{
 		return( TRTrackerBTAnnouncerImpl.mergeResponseCache( map1, map2 ));
 	}
+		
+ 	public static String
+	getPortsForURL()
+  	{
+
+  		return( ports_for_url );
+  	}
 }

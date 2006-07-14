@@ -241,7 +241,7 @@ TRTrackerScraperImpl
 		return( client_resolver.isNetworkEnabled( hash, url ));
 	}
 	
-	public String
+	public Object[]
 	getExtensions(
 		byte[]	hash )
 	{

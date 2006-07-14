@@ -66,9 +66,6 @@ PEPeerControl
 	
 	public int
 	getMaxConnections();
-	
-	public int
-	getPort();
     
     public boolean doOptimisticDisconnect();
     

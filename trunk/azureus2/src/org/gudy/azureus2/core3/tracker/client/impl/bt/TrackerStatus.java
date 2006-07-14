@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperClientResolver;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperImpl;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperResponseImpl;
@@ -90,7 +91,10 @@ public class TrackerStatus {
   
   private static ThreadPool	thread_pool = new ThreadPool( "TrackerStatus", 8, true );	// queue when full rather than block
   
-  private URL		tracker_url;
+  private static Map	az_trackers = COConfigurationManager.getMapParameter( "Tracker Client AZ Instances", new HashMap());
+  
+  private final URL		tracker_url;
+  private boolean		az_tracker;
   
   private String 	scrapeURL = null;
  
@@ -102,17 +106,23 @@ public class TrackerStatus {
   private boolean bSingleHashScrapes = false;
     
   protected AEMonitor hashes_mon 	= new AEMonitor( "TrackerStatus:hashes" );
-	private final TrackerChecker checker;
+  private final TrackerChecker checker;
 
   public 
   TrackerStatus(
-  	TrackerChecker checker, TRTrackerScraperImpl	_scraper, 
+  	TrackerChecker 			_checker, 
+  	TRTrackerScraperImpl	_scraper, 
 	URL 					_tracker_url ) 
   {    	
-  	this.checker = checker;
-		scraper		= _scraper;
+  	checker 	= _checker;
+	scraper		= _scraper;
     tracker_url	= _tracker_url;
     
+    synchronized( az_trackers ){
+    	
+    	az_tracker = az_trackers.containsKey( tracker_url.getHost() + ":" + tracker_url.getPort());
+    }
+       
     bSingleHashScrapes	= COConfigurationManager.getBooleanParameter( "Tracker Client Scrape Single Only" );
     
     String trackerUrl	= tracker_url.toString();
@@ -349,9 +359,10 @@ public class TrackerStatus {
 
 				String info_hash = "";
 
+				String flags = "";
+				
 				for (int i = 0; i < responses.size(); i++) {
-					TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses
-							.get(i);
+					TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses.get(i);
 
 					byte[] hash = response.getHash();
 
@@ -402,11 +413,20 @@ public class TrackerStatus {
 								new String(hash, Constants.BYTE_ENCODING),
 								Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 
-						String	extensions = scraper.getExtensions(hash);
+						Object[]	extensions = scraper.getExtensions(hash);
 						
 						if ( extensions != null ){
 							
-							info_hash += extensions; 
+							if ( extensions[0] != null ){
+								
+								info_hash += (String)extensions[0]; 
+							}
+							
+							flags += (Character)extensions[1];
+							
+						}else{
+							
+							flags += TRTrackerScraperClientResolver.FL_NONE;
 						}
 						
 						one_of_the_responses = response;
@@ -420,7 +440,18 @@ public class TrackerStatus {
 				// set context in case authentication dialog is required
 				TorrentUtils.setTLSTorrentHash(one_of_the_hashes);
 
-				URL reqUrl = new URL(scrapeURL + info_hash);
+				String	request = scrapeURL + info_hash;
+				
+				if ( az_tracker ){
+					
+					String	port_details = TRTrackerUtils.getPortsForURL();
+					
+					request += port_details;
+					
+					request += "&azsf=" + flags;
+				}
+				
+				URL reqUrl = new URL( request );
 
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID,
@@ -446,6 +477,44 @@ public class TrackerStatus {
 				}
 
 				Map map = BDecoder.decode(message.toByteArray());
+								
+				boolean	this_is_az_tracker = map.get( "aztracker" ) != null;
+				
+				if ( az_tracker != this_is_az_tracker ){
+						
+					az_tracker	= this_is_az_tracker;
+					
+					String	key = tracker_url.getHost() + ":" + tracker_url.getPort();
+							
+					synchronized( az_trackers ){
+						
+						boolean	changed = false;
+						
+						if ( az_trackers.get( key ) == null ){
+						
+							if ( az_tracker ){
+								
+								az_trackers.put( key, new Long( SystemTime.getCurrentTime()));
+								
+								changed	= true;
+							}
+						}else{
+							
+							if ( !az_tracker ){
+								
+								az_trackers.remove( key );
+								
+								changed = true;
+							}
+						}
+						
+						if ( changed ){
+							
+							COConfigurationManager.setParameter( "Tracker Client AZ Instances", az_trackers );
+						}
+					}
+				}
+				
 				Map mapFiles = map == null ? null : (Map) map.get("files");
 
 				if (Logger.isEnabled())

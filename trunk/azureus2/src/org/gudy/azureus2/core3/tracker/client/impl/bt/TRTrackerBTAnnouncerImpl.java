@@ -48,14 +48,13 @@ import org.gudy.azureus2.core3.peer.*;
 
 import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
+import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.tracker.util.impl.*;
 
 import org.gudy.azureus2.plugins.clientid.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
@@ -74,7 +73,6 @@ import com.aelitis.net.udp.uc.PRUDPPacketRequest;
 public class 
 TRTrackerBTAnnouncerImpl
 	extends TRTrackerAnnouncerImpl
-	implements ParameterListener
 {
 	
 		
@@ -110,6 +108,7 @@ TRTrackerBTAnnouncerImpl
     private long failure_time_last_updated = 0;
 	
 	private boolean			stopped;
+	private boolean			stopped_for_queue;
 	private boolean			completed;
 	private boolean			complete_reported	= false;
 	
@@ -142,28 +141,16 @@ TRTrackerBTAnnouncerImpl
 	private String tracker_id = "";
   
   
-  
-	private int			port_number;
-	private String 		port;
+ 
 	private String 		ip_override;
-	private int			port_override	= -1;
 	private String[]	peer_networks;
 		
 	private TRTrackerAnnouncerDataProvider 	announce_data_provider;
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerBTAnnouncer" );
 
-	private static final boolean	socks_peer_inform;
-
 	protected boolean	destroyed;
-	
-	
-	static{
-	 	socks_peer_inform	= 	
-	  		COConfigurationManager.getBooleanParameter("Proxy.Data.Enable", false)&&
-	 		COConfigurationManager.getBooleanParameter("Proxy.Data.SOCKS.inform", true );
-	 }
-	
+		
 
 
 	static final String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -239,11 +226,6 @@ TRTrackerBTAnnouncerImpl
 		
 		throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));	
 	}
-
-  
-	COConfigurationManager.addParameterListener("TCP.Announce.Port",this);
-	
-	setPorts();
 	   
 	timer_event_action =  
 		new TimerEventPerformer()
@@ -337,79 +319,6 @@ TRTrackerBTAnnouncerImpl
 			Logger.log(new LogEvent(torrent, LOGID,
 					"Tracker Announcer Created using url : " + trackerURLListToString()));
   }
-
-	
-  	protected void
-	setPorts()
-  	{
-   			// we currently don't support incoming connections when SOCKs proxying
-  		
- 		int	tcp_port_num;
- 		int	udp_port_num;
- 		  		
-  		if ( socks_peer_inform ){
-  			
-  			tcp_port_num	= 0;
-  			udp_port_num	= 0;
-  		}else{
-  		
- 			tcp_port_num	= TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
- 			udp_port_num	= UDPNetworkManager.getSingleton().getUDPListeningPortNumber();	  		
-  		}
-  		
- 		if ( port_override != -1 ){
- 			
- 			tcp_port_num = port_override;
- 			
- 		}else{
-
-	  		String portOverride = COConfigurationManager.getStringParameter("TCP.Announce.Port","");
-	  		
-	  		if(! portOverride.equals("")) {
-	  		  
-	  			try{
-	  				tcp_port_num = Integer.parseInt( portOverride );
-	  				
-	  			}catch( Throwable e ){
-	  				
-	  				Debug.printStackTrace(e);
-	  			}
-	  		}
- 		}
-  		  
- 		port_number	= tcp_port_num;
- 		
- 		port = "";
- 		
-   		if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ){
-  			
-  			port += "&requirecrypto=1";
-  			
-  		}else{
-  			
-			port += "&supportcrypto=1"; 
-  		}
- 		  
- 		if ( 	NetworkManager.REQUIRE_CRYPTO_HANDSHAKE &&
- 				(!NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED) &&
- 				COConfigurationManager.getBooleanParameter( "network.transport.encrypted.use.crypto.port" )){
- 			
- 			port += "&port=0&cryptoport=" + tcp_port_num;
- 			
- 		}else{
- 
- 			port += "&port=" + tcp_port_num;
- 		}
-			
-		port += "&azudp=" + udp_port_num;
- 		
-  		  	//  BitComet extension for no incoming connections
-  		
-  		if ( tcp_port_num == 0 ){
-  			
-  			port += "&hide=1";
-  		}		
-  	}
   	
 	protected long
 	getAdjustedSecsToWait()
@@ -620,10 +529,12 @@ TRTrackerBTAnnouncerImpl
 	}
 	
 	public void
-	stop()
+	stop(
+		boolean	for_queue )
 	{
-		stopped	= true;
-        		
+		stopped				= true;
+        stopped_for_queue	= for_queue;
+        
 		requestUpdate();
 	}
 	
@@ -1682,7 +1593,10 @@ TRTrackerBTAnnouncerImpl
   	
   	request.append(info_hash);
   	request.append(tracker_peer_id_str);
-  	request.append(port);
+  	
+	String	port_details = TRTrackerUtils.getPortsForURL();
+
+  	request.append(port_details);
   	request.append("&uploaded=").append(announce_data_provider.getTotalSent());
   	request.append("&downloaded=").append(announce_data_provider.getTotalReceived());
   	request.append("&left=").append(announce_data_provider.getRemaining());
@@ -1702,6 +1616,10 @@ TRTrackerBTAnnouncerImpl
     	
     	request.append("&numwant=0");
     	
+    	if ( stopped_for_queue ){
+    		
+    		request.append( "&azq=1" );
+    	}
     }else {
     	
       //calculate how many peers we should ask for
@@ -1952,29 +1870,6 @@ TRTrackerBTAnnouncerImpl
 	clearIPOverride()
 	{
 		ip_override = null;
-	}
-		
-	public void
-	setPortOverride(
-		int		port )
-	{
-		port_override	= port;
-		
-		setPorts();
-	}
-	
-	public void
-	clearPortOverride()
-	{
-		port_override	= -1;
-		
-		setPorts();
-	}
-	
-	public int
-	getPort()
-	{
-		return( port_number );
 	}
 	
 	private void 
@@ -2551,8 +2446,6 @@ TRTrackerBTAnnouncerImpl
 	destroy()
 	{       
 		destroyed	= true;
-
-		COConfigurationManager.removeParameterListener("TCP.Announce.Port",this);
 		
 		TRTrackerAnnouncerFactoryImpl.destroy( this );
 		
@@ -2706,11 +2599,4 @@ TRTrackerBTAnnouncerImpl
 		
 		listeners.dispatch( LDT_TRACKER_RESPONSE, response );
 	}
-  
-  // ParameterListener Implementation
-  public void parameterChanged(String parameterName) {
-    if("TCP.Announce.Port".equals(parameterName)) {
-      setPorts();
-    }
-  }
 }

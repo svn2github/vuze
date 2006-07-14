@@ -43,6 +43,7 @@ TRTrackerServerProcessorTCP
 	protected static final char		FF			= '\012';
 	protected static final String	NL			= "\015\012";
 
+	private static final String	lc_azureus_name = Constants.AZUREUS_NAME.toLowerCase();
 
 	protected static final byte[]	HTTP_RESPONSE_START = (
 		"HTTP/1.1 200 OK" + NL + 
@@ -452,7 +453,17 @@ TRTrackerServerProcessorTCP
 							crypto_level );
 				
 				root	= root_out[0];
+
+				if ( request_type == TRTrackerServerRequest.RT_SCRAPE ){
+					
+						// add in tracker type for az clients so they know this is an AZ tracker
+					
+					if ( lowercase_input_header.indexOf( lc_azureus_name ) != -1 ){
 				
+						root.put( "aztracker", new Long(1));
+					}
+				}
+
 					// only post-process if this isn't a cached entry
 				
 				if ( root.get( "_data" ) == null ){

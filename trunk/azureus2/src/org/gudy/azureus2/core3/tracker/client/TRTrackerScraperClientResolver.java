@@ -37,6 +37,14 @@ TRTrackerScraperClientResolver
 	public static final int	ST_QUEUED			= 3;	
 	public static final int	ST_OTHER			= 4;
 
+	public static final Character FL_NONE					= new Character( 'n' );
+	public static final Character FL_INCOMPLETE_STOPPED		= new Character( 's' );
+	public static final Character FL_INCOMPLETE_QUEUED		= new Character( 'q' );
+	public static final Character FL_INCOMPLETE_RUNNING		= new Character( 'r' );
+	public static final Character FL_COMPLETE_STOPPED		= new Character( 'S' );
+	public static final Character FL_COMPLETE_QUEUED		= new Character( 'Q' );
+	public static final Character FL_COMPLETE_RUNNING		= new Character( 'R' );
+	
 		/**
 		 * Gives access to a restricted set of states for this torrent from ST_ set
 		 * @param torrent_hash
@@ -52,7 +60,15 @@ TRTrackerScraperClientResolver
 		byte[]	hash,
 		URL		url );
 	
-	public String
+		/**
+		 * Two kinds of extensions: entry [0] = String (or null) that gets passed with the scrape verbotem after infohash
+		 * entry [1] = Character - status of download, aggregated into a single String passed with scrape
+		 * status flags are above FL_ values
+		 * @param hash
+		 * @return
+		 */
+	
+	public Object[]
 	getExtensions(
 		byte[]	hash );
 	

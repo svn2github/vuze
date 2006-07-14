@@ -770,7 +770,7 @@ DownloadManagerController
 					
 						// do this even if null as it also triggers tracker actions
 					
-					download_manager.informStopped( peer_manager );
+					download_manager.informStopped( peer_manager, stateAfterStopping==DownloadManager.STATE_QUEUED );
 						
 					peer_manager	= null;
 
@@ -1440,19 +1440,6 @@ DownloadManagerController
 	getMaxConnections()
 	{
 		return( download_manager.getMaxConnections());
-	}
-	
-	public int
-	getPort()
-	{
-		TRTrackerAnnouncer	announcer = download_manager.getTrackerClient();
-		
-		if ( announcer != null ){
-			
-			return( announcer.getPort());
-		}
-		
-		return(0);
 	}
 	
 	public boolean

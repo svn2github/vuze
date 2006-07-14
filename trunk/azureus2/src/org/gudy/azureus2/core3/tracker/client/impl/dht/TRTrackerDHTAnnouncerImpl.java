@@ -138,18 +138,7 @@ TRTrackerDHTAnnouncerImpl
 	clearIPOverride()
 	{
 	}
-		
-	public void
-	setPortOverride(
-		int		port )
-	{	
-	}
-	
-	public void
-	clearPortOverride()
-	{
-	}
-	
+			
 	public int
 	getPort()
 	{
@@ -199,7 +188,8 @@ TRTrackerDHTAnnouncerImpl
 	}
 	
 	public void
-	stop()
+	stop(
+		boolean	for_queue )
 	{
 		state	= TS_STOPPED;
 	}

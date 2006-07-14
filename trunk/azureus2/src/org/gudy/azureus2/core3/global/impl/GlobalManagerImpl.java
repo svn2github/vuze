@@ -382,18 +382,54 @@ public class GlobalManagerImpl
     			return( false );
     		}
     		
-    		public String
+    		public Object[]
     		getExtensions(
     			byte[]	hash )
     		{
      			DownloadManager	dm = getDownloadManager(hash);
     			
+     			Character	state;
+     			String		ext;
+     			
     			if ( dm == null ){
     				
-    				return( "" );
-    			} 	
+    				ext		= "";
+    	   			state	= TRTrackerScraperClientResolver.FL_NONE;
+    	   		  
+    			}else{
     			
-    			return( dm.getDownloadState().getTrackerClientExtensions());
+    				ext = dm.getDownloadState().getTrackerClientExtensions();
+    			
+    				if ( ext == null ){
+    					
+    					ext = "";
+    				}
+    				
+    				boolean	comp = dm.isDownloadComplete( false );
+    					   				
+    				int	dm_state = dm.getState();
+    				
+    					// treat anything not stopped or running as queued as we need to be "optimistic"
+    					// for torrents at the start-of-day
+    				
+    				if ( 	dm_state == DownloadManager.STATE_ERROR ||
+    						dm_state == DownloadManager.STATE_STOPPED ||
+    						( dm_state == DownloadManager.STATE_STOPPING && dm.getSubState() != DownloadManager.STATE_QUEUED )){
+    					
+       					state	= comp?TRTrackerScraperClientResolver.FL_COMPLETE_STOPPED:TRTrackerScraperClientResolver.FL_INCOMPLETE_STOPPED;
+       				 
+    				}else if (  dm_state == DownloadManager.STATE_DOWNLOADING ||
+    							dm_state == DownloadManager.STATE_SEEDING ){
+    					  
+      					state	= comp?TRTrackerScraperClientResolver.FL_COMPLETE_RUNNING:TRTrackerScraperClientResolver.FL_INCOMPLETE_RUNNING;
+      					    						
+    				}else{
+    				
+    					state	= comp?TRTrackerScraperClientResolver.FL_COMPLETE_QUEUED:TRTrackerScraperClientResolver.FL_INCOMPLETE_QUEUED;
+    				}
+    			}
+    			
+    			return( new Object[]{ ext, state });
     		}
     		
     		public boolean
