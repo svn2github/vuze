@@ -43,6 +43,9 @@ PEPeerManagerStatsImpl
 	private long hash_fail_bytes;
 	private long totalHave;
 
+	private int	last_data_received_seconds;
+	private int last_data_sent_seconds;
+	
 	private final Average data_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1s.
 	private final Average protocol_receive_speed = Average.getInstance(1000, 10);
   
@@ -83,6 +86,10 @@ PEPeerManagerStatsImpl
 	  total_data_bytes_received += length;
 	  data_receive_speed.addValue(length);
 	  
+	  if ( length > 0 ){
+		  last_data_received_seconds = (int)(SystemTime.getCurrentTime()/1000);
+	  }
+	  
 	  adapter.dataBytesReceived( length );
 	}
 
@@ -98,6 +105,10 @@ PEPeerManagerStatsImpl
 	  total_data_bytes_sent += length;
 	  data_send_speed.addValue(length);  
 	  
+	  if ( length > 0 ){
+		  last_data_sent_seconds = (int)(SystemTime.getCurrentTime()/1000);
+	  }
+
 	  adapter.dataBytesSent( length, LAN );
 	}
   
@@ -161,5 +172,41 @@ PEPeerManagerStatsImpl
 	getTotalAverage() 
 	{
 	  return( overallSpeed.getAverage() + getDataReceiveRate() );
+	}
+	
+	public int 
+	getTimeSinceLastDataReceivedInSeconds()
+	{ 
+		if ( last_data_received_seconds == 0 ){
+			
+			return( -1 );
+		}
+		
+		int	now = (int)(SystemTime.getCurrentTime()/1000);
+		
+		if ( now < last_data_received_seconds ){
+			
+			last_data_received_seconds	= now;
+		}
+		
+		return( now - last_data_received_seconds );
+	}
+	
+	public int 
+	getTimeSinceLastDataSentInSeconds()
+	{ 
+		if ( last_data_sent_seconds == 0 ){
+			
+			return( -1 );
+		}
+		
+		int	now = (int)(SystemTime.getCurrentTime()/1000);
+		
+		if ( now < last_data_sent_seconds ){
+			
+			last_data_sent_seconds	= now;
+		}
+		
+		return( now - last_data_sent_seconds );
 	}
 }

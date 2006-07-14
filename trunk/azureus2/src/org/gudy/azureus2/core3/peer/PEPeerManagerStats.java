@@ -53,5 +53,7 @@ PEPeerManagerStats
 
 	public long getTotalHashFailBytes();
 	public long getTotalDiscarded();
-
+	
+	public int getTimeSinceLastDataReceivedInSeconds();
+	public int getTimeSinceLastDataSentInSeconds();
 }
