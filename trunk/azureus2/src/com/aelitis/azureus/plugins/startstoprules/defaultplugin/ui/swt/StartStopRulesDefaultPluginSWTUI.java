@@ -26,13 +26,20 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.ui.swt.Utils;
+
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
@@ -55,10 +62,10 @@ public class StartStopRulesDefaultPluginSWTUI {
 
 	public static void openDebugWindow(final DefaultRankCalculator dlData) {
 		final Shell shell = new Shell(Display.getCurrent(), SWT.ON_TOP
-				| SWT.SHELL_TRIM | SWT.TOOL);
+				| SWT.SHELL_TRIM | SWT.TOOL | SWT.CLOSE);
 
 		GridLayout layout = new GridLayout();
-		layout.numColumns = 3;
+		layout.numColumns = 4;
 		GridData gd;
 		shell.setLayout(layout);
 
@@ -66,7 +73,7 @@ public class StartStopRulesDefaultPluginSWTUI {
 
 		final Text txtFP = new Text(shell, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL);
 		gd = new GridData(GridData.FILL_BOTH);
-		gd.horizontalSpan = 3;
+		gd.horizontalSpan = 4;
 		txtFP.setLayoutData(gd);
 
 		final Button btnAutoRefresh = new Button(shell, SWT.CHECK);
@@ -76,6 +83,17 @@ public class StartStopRulesDefaultPluginSWTUI {
 		final Button btnRefresh = new Button(shell, SWT.NONE);
 		btnRefresh.setLayoutData(new GridData());
 		btnRefresh.setText("Refresh");
+
+		final Button btnToClip = new Button(shell, SWT.NONE);
+		btnToClip.setLayoutData(new GridData());
+		btnToClip.setText("To Clipboard");
+		btnToClip.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+        new Clipboard(Display.getCurrent()).setContents(
+						new Object[] { txtFP.getText() },
+						new Transfer[] { TextTransfer.getInstance() });
+			}
+		});
 
 		final Label lbl = new Label(shell, SWT.NONE);
 		gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -99,7 +117,7 @@ public class StartStopRulesDefaultPluginSWTUI {
 				if (shell.isDisposed())
 					return;
 
-				shell.getDisplay().asyncExec(new Runnable() {
+				shell.getDisplay().syncExec(new Runnable() {
 					public void run() {
 						String s = formatString();
 						if (s.compareTo(lastText) != 0) {
@@ -128,6 +146,14 @@ public class StartStopRulesDefaultPluginSWTUI {
 				btnRefresh.setData("Pressing", "1");
 				task.run();
 				btnRefresh.setData("Pressing", null);
+			}
+		});
+		
+		shell.addTraverseListener(new TraverseListener() {
+			public void keyTraversed(TraverseEvent e) {
+				if (e.detail == SWT.TRAVERSE_ESCAPE) {
+					shell.dispose();
+				}
 			}
 		});
 
