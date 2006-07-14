@@ -513,9 +513,9 @@ TRTrackerServerProcessorUDP
 			processTrackerRequest( 
 				server, "", root_out, peer_out, 
 				request_type,
-				new byte[][]{ hash_bytes },
+				new byte[][]{ hash_bytes }, null,
 				peer_id, false, TRTrackerServerTorrentImpl.COMPACT_MODE_NONE, key, // currently no "no_peer_id" / "compact" in the packet and anyway they aren't returned / key
-				event,
+				event, false,
 				port,
 				0,
 				client_ip_address, client_ip_address,

@@ -50,11 +50,17 @@ TRTrackerServerTorrentImpl
 	
 	public static final boolean	USE_LIGHTWEIGHT_SEEDS	= true;
 
+	public static final int		MAX_IP_OVERRIDE_PEERS	= 64;
+		
 	public static final byte	COMPACT_MODE_NONE		= 0;
 	public static final byte	COMPACT_MODE_NORMAL		= 1;
 	public static final byte	COMPACT_MODE_AZ			= 2;
 	
-	
+	private static final int	QUEUED_PEERS_MAX_SWARM_SIZE	= 32;
+	private static final int	QUEUED_PEERS_MAX			= 32;
+	private static final int	QUEUED_PEERS_ADD_MAX		= 3;
+		
+		
 	private HashWrapper			hash;
 
 	private Map				peer_map 		= new HashMap();
@@ -68,6 +74,8 @@ TRTrackerServerTorrentImpl
 	
 	private int				seed_count;
 	private int				removed_count;
+	
+	private int				ip_override_count;
 	
 	private int				bad_NAT_count;	// calculated periodically
 	
@@ -86,6 +94,7 @@ TRTrackerServerTorrentImpl
 	private boolean			enabled;
 	
 	private boolean			map_size_diff_reported;
+	private boolean			ip_override_limit_exceeded_reported;
 	
 	private byte			duplicate_peer_checker_index	= 0;
 	private byte[]			duplicate_peer_checker			= new byte[0];
@@ -93,6 +102,8 @@ TRTrackerServerTorrentImpl
 	private URL[]			redirects;
 	
 	private boolean			caching_enabled	= true;
+	
+	private LinkedList		queued_peers;
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTorrent" );
 
@@ -265,7 +276,23 @@ TRTrackerServerTorrentImpl
 				}
 				
 				if ( event_type != TRTrackerServerTorrentPeerListener.ET_STOPPED ){			
+						
+					if ( ip_override && ip_override_count >= MAX_IP_OVERRIDE_PEERS && !loopback ){
+					
+							// bail out - the peer will still get an announce response but we don't
+							// want too many override peers on a torrent as these can be spoofed
+							// to cause trouble
+						
+						if ( !ip_override_limit_exceeded_reported ){
 							
+							ip_override_limit_exceeded_reported	= true;
+							
+							Debug.out( "Too many ip-override peers for " + ByteFormatter.encodeString( hash.getBytes()));
+						}
+						
+						return( null );
+					}
+					
 					peer = new TRTrackerServerPeerImpl( 
 									peer_id, 
 									tracker_key_hash_code, 
@@ -278,11 +305,42 @@ TRTrackerServerTorrentImpl
 									already_completed,
 									last_NAT_status );
 					
+					if ( ip_override ){
+						
+						ip_override_count++;
+					}
+					
 					peer_map.put( peer_id, peer );
 					
 					peer_list.add( peer );
 									
-					peer_reuse_map.put( reuse_key, peer );					
+					peer_reuse_map.put( reuse_key, peer );
+					
+					if ( queued_peers != null ){
+						
+						if ( peer_map.size() > QUEUED_PEERS_MAX_SWARM_SIZE ){
+						
+							queued_peers = null;
+							
+						}else{
+					
+								// peer has become active, remove the queued peer info
+							
+							Iterator	it = queued_peers.iterator();
+							
+							while( it.hasNext()){
+									
+								QueuedPeer	qp = (QueuedPeer)it.next();
+									
+								if ( qp.sameAs( peer )){
+										
+									it.remove();
+										
+									break;
+								}
+							}
+						}
+					}
 				}
 			}else{
 				
@@ -534,6 +592,97 @@ TRTrackerServerTorrentImpl
 			
 		}finally{
 			
+				// note we can bail out here through a return when there are too many IP overrides
+			
+			this_mon.exit();
+		}
+	}
+	
+	public void
+	peerQueued(
+		String		ip,
+		int			tcp_port,
+		int			udp_port,
+		byte		crypto_level,
+		int			timeout_secs )
+	{
+		// System.out.println( "peerQueued: " + ip + "/" + tcp_port + "/" + udp_port + "/" + crypto_level );
+		
+		if ( peer_map.size() >= QUEUED_PEERS_MAX_SWARM_SIZE || tcp_port == 0 ){
+			
+			return;
+		}
+		
+		try{
+			this_mon.enter();
+				
+			QueuedPeer	new_qp = new QueuedPeer( ip, tcp_port, udp_port, crypto_level, timeout_secs );
+		
+			String	reuse_key = new String( new_qp.getIP(), Constants.BYTE_ENCODING ) + ":" + tcp_port;
+
+				// if still active then drop it
+			
+			if ( peer_reuse_map.containsKey( reuse_key )){
+				
+				return;
+			}
+		
+			if ( queued_peers != null ){
+				
+				Iterator	it = queued_peers.iterator();
+				
+				while( it.hasNext()){
+					
+					QueuedPeer	qp = (QueuedPeer)it.next();
+					
+					if ( qp.sameAs( new_qp )){
+						
+						it.remove();
+						
+						queued_peers.add( new_qp );
+						
+						return;
+					}
+				}
+				
+				if ( queued_peers.size() >= QUEUED_PEERS_MAX ){
+					
+					QueuedPeer	oldest = null;
+					
+					it = queued_peers.iterator();
+					
+					while( it.hasNext()){
+						
+						QueuedPeer	qp = (QueuedPeer)it.next();
+						
+						if ( oldest == null ){
+							
+							oldest = qp;
+							
+						}else{
+							
+							if ( qp.getCreateTime() < oldest.getCreateTime()){
+								
+								oldest	= qp;
+							}
+						}
+					}
+					
+					queued_peers.remove( oldest );
+				}
+			}else{
+				
+				queued_peers = new LinkedList();
+			}
+			
+			queued_peers.addFirst( new_qp );
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			Debug.printStackTrace(e);
+			
+		}finally{
+			
 			this_mon.exit();
 		}
 	}
@@ -555,6 +704,11 @@ TRTrackerServerTorrentImpl
 		try{
 			this_mon.enter();
 		
+			if ( peer.isIPOverride()){
+				
+				ip_override_count--;
+			}
+			
 			stats.removeLeft( peer.getAmountLeft());
 			
 			if ( peer_map.size() != peer_reuse_map.size()){
@@ -1033,6 +1187,75 @@ TRTrackerServerTorrentImpl
 							}
 						}
 					}
+				}
+			}
+			
+			if ( 	include_seeds && 
+					!send_peer_ids &&
+					seed_count < 3 && 
+					queued_peers != null ){
+				
+				Iterator	it = queued_peers.iterator();
+								
+				List	added = new ArrayList( QUEUED_PEERS_ADD_MAX );
+				
+				while( it.hasNext() && num_want > rep_peers.size() && added.size() < QUEUED_PEERS_ADD_MAX ){
+					
+					QueuedPeer	peer = (QueuedPeer)it.next();
+												
+					if ( peer.isTimedOut( now )){
+										
+						it.remove();
+						
+					}else if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE && peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED ){
+							
+							// don't return "crypto required" peers to those that can't correctly connect to them
+							
+					}else{
+											
+						Map rep_peer = new HashMap(3);
+				
+						if ( compact_mode != COMPACT_MODE_NONE ){
+										
+							byte[]	peer_bytes = peer.getIPBytes();
+							
+							if ( peer_bytes == null ){
+								
+								continue;
+							}
+							
+							rep_peer.put( "ip", peer_bytes );
+								
+							if ( compact_mode == COMPACT_MODE_AZ ){
+									
+								rep_peer.put( "azudp", new Long( peer.getUDPPort()));
+							}
+								
+						}else{
+							
+							rep_peer.put( "ip", peer.getIP());
+						}
+							
+						rep_peer.put( "port", new Long( peer.getTCPPort()));
+							
+						if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
+								
+							rep_peer.put( "crypto_flag", new Long( peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED?1:0));
+						}
+							
+						// System.out.println( "added queued peer " + peer.getString());
+						
+						rep_peers.add( rep_peer );
+												
+						added.add( peer );
+						
+						it.remove();
+					}
+				}
+				
+				for (int i=0;i<added.size();i++){
+					
+					queued_peers.add( added.get(i));
 				}
 			}
 			
@@ -1651,6 +1874,121 @@ TRTrackerServerTorrentImpl
 		getNATStatus()
 		{
 			return( nat_status );
+		}
+	}
+	
+	protected static class
+	QueuedPeer
+	{
+		private short	tcp_port;
+		private short	udp_port;
+		private byte[]	ip;
+		private byte	crypto_level;
+		private int		create_time_secs;
+		private int		timeout_secs;
+		
+		protected
+		QueuedPeer(
+			String		ip_str,
+			int			_tcp_port,
+			int			_udp_port,
+			byte		_crypto_level,
+			int			_timeout_secs )
+		{
+			try{
+				ip = ip_str.getBytes( Constants.BYTE_ENCODING );
+				
+			}catch( UnsupportedEncodingException e  ){
+				
+				Debug.printStackTrace(e);
+			}
+			
+			tcp_port	= (short)_tcp_port;
+			udp_port	= (short)_udp_port;
+			crypto_level	= _crypto_level;
+			
+			create_time_secs 	= (int)SystemTime.getCurrentTime()/1000;
+			timeout_secs		= _timeout_secs * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER;
+		}
+		
+		protected boolean
+		sameAs(
+			TRTrackerServerPeerImpl	peer )
+		{
+			return( tcp_port == peer.getTCPPort() &&
+					Arrays.equals( ip, peer.getIPAsRead()));
+		}
+		
+		protected boolean
+		sameAs(
+			QueuedPeer	other )
+		{
+			return( tcp_port == other.tcp_port &&
+					Arrays.equals( ip,other.ip ));
+		}
+		
+		protected byte[]
+        getIP()
+		{
+			return( ip );
+		}
+		
+		protected byte[]
+		getIPBytes()
+		{
+			try{
+				return( HostNameToIPResolver.hostAddressToBytes( new String( ip, Constants.BYTE_ENCODING )));
+				
+			}catch( UnsupportedEncodingException e  ){
+				
+				Debug.printStackTrace(e);
+				
+				return( null );
+			}
+		}
+		
+		protected int
+		getTCPPort()
+		{
+			return( tcp_port & 0xffff );
+		}
+		
+		protected int
+		getUDPPort()
+		{
+			return( udp_port & 0xffff );
+		}
+		
+		protected byte
+		getCryptoLevel()
+		{
+			return( crypto_level );
+		}
+		
+		protected int
+		getCreateTime()
+		{
+			return( create_time_secs );
+		}
+		
+		protected boolean
+		isTimedOut(
+			long	now_millis )
+		{
+			int	now_secs = (int)(now_millis/1000);
+			
+			if ( now_secs < create_time_secs ){
+				
+				create_time_secs = now_secs;
+			}
+			
+			return( create_time_secs + timeout_secs > now_secs );
+		}
+		
+		protected String
+		getString()
+		{
+			return( new String(ip) + ":" + getTCPPort() + "/" + getUDPPort() + "/" + getCryptoLevel());
 		}
 	}
 }

@@ -38,6 +38,14 @@ public abstract class
 TRTrackerServerProcessor 
 	extends ThreadPoolTask
 {
+	private static final boolean QUEUE_TEST	= true;
+	
+	static{
+		if ( QUEUE_TEST ){
+			System.out.println( "**** TRTrackerServerProcessor::QUEUE_TEST ****" );
+		}
+	}
+	
 	protected TRTrackerServerImpl		server;
 	
 	protected TRTrackerServerTorrentImpl
@@ -48,11 +56,13 @@ TRTrackerServerProcessor
 		TRTrackerServerPeerImpl[]	peer_out,		// output
 		int							request_type,
 		byte[][]					hashes,
+		String						scrape_flags,
 		HashWrapper					peer_id,
 		boolean						no_peer_id,
 		byte						compact_mode,
 		String						key,
 		String						event,
+		boolean						stop_to_queue,
 		int							port,
 		int							udp_port,
 		String						real_ip_address,
@@ -161,10 +171,16 @@ TRTrackerServerProcessor
 				TRTrackerServerPeerImpl peer = 
 					torrent.peerContact( 	
 						request,
-						event, peer_id, port, udp_port, crypto_level, 
+						event, 
+						peer_id, port, udp_port, crypto_level, 
 						client_ip_address, ip_override, loopback, key,
 						uploaded, downloaded, left,
 						interval );
+				
+				if ( stop_to_queue && ( QUEUE_TEST || !( loopback || ip_override ))){
+					
+					torrent.peerQueued( client_ip_address, port, udp_port, crypto_level, (int)server.getScrapeRetryInterval( torrent ));
+				}
 				
 				HashMap	pre_map = new HashMap();
 				
@@ -200,6 +216,13 @@ TRTrackerServerProcessor
 				Map	files = new ByteEncodedKeyHashMap();
 				
 				root.put( "files", files );
+				
+				char[]	scrape_chars = scrape_flags==null?null:scrape_flags.toCharArray();
+				
+				if ( scrape_chars != null && scrape_chars.length != hashes.length ){
+					
+					scrape_chars	= null;
+				}
 				
 				for (int i=0;i<hashes.length;i++){
 					
@@ -242,6 +265,21 @@ TRTrackerServerProcessor
 						}
 					}
 					
+					long	interval = server.getScrapeRetryInterval( torrent );				
+					
+					if ( interval > max_interval ){
+						
+						max_interval	= interval;
+					}
+
+					if ( scrape_chars != null && ( QUEUE_TEST || !( loopback || ip_override ))){ 
+						
+						if ( scrape_chars[i] == 'Q' ){
+							
+							torrent.peerQueued(  client_ip_address, port, udp_port, crypto_level, (int)interval );
+						}
+					}
+					
 					if ( torrent.getRedirects() != null ){
 						
 						if ( hashes.length > 1 ){
@@ -251,13 +289,6 @@ TRTrackerServerProcessor
 							
 							continue;							
 						}
-					}
-					
-					long	interval = server.getScrapeRetryInterval( torrent );				
-				
-					if ( interval > max_interval ){
-						
-						max_interval	= interval;
 					}
 					
 					server.preProcess( new lightweightPeer(client_ip_address,port,peer_id), torrent, request_type, request, null );
@@ -283,6 +314,12 @@ TRTrackerServerProcessor
 				addScrapeInterval( max_interval, root );
 			}
 		}else{
+			
+			
+			if ( !TRTrackerServerImpl.isFullScrapeEnabled()){
+				
+				throw( new TRTrackerServerException( "Full scrape disabled" ));
+			}
 			
 			Map	files = new ByteEncodedKeyHashMap();
 				

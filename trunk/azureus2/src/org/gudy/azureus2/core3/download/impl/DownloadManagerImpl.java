@@ -2304,7 +2304,9 @@ DownloadManagerImpl
 		
  				download_manager_state.setTrackerResponseCache(	tracker_client.getTrackerResponseCache());
 			
- 				tracker_client.stop( for_queue );
+ 					// currently only report this for complete downloads...
+ 				
+ 				tracker_client.stop( for_queue && isDownloadComplete( false ));
  				
   				tracker_client.destroy();
 				

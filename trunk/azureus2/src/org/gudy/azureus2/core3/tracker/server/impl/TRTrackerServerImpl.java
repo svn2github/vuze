@@ -53,6 +53,7 @@ TRTrackerServerImpl
 	public static int		announce_cache_threshold	= TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD;
 	public static int		max_seed_retention			= 0;
 	public static int		seed_limit					= 0;
+	public static boolean	full_scrape_enable			= true;
 	
 	public static boolean	all_networks_permitted		= true;
 	public static String[]	permitted_networks			= {};
@@ -119,6 +120,9 @@ TRTrackerServerImpl
 		permitted_networks	= s_nets;
 		
 		all_networks_permitted = s_nets.length == AENetworkClassifier.AT_NETWORKS.length;
+		
+		full_scrape_enable = COConfigurationManager.getBooleanParameter( "Tracker Server Full Scrape Enable" );
+
 	}
 	
 	protected static boolean
@@ -161,6 +165,12 @@ TRTrackerServerImpl
 	getSeedLimit()
 	{
 		return( seed_limit );
+	}
+	
+	public static boolean
+	isFullScrapeEnabled()
+	{
+		return( full_scrape_enable );
 	}
 	
 	protected static boolean

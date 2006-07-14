@@ -91,8 +91,6 @@ public class TrackerStatus {
   
   private static ThreadPool	thread_pool = new ThreadPool( "TrackerStatus", 8, true );	// queue when full rather than block
   
-  private static Map	az_trackers = COConfigurationManager.getMapParameter( "Tracker Client AZ Instances", new HashMap());
-  
   private final URL		tracker_url;
   private boolean		az_tracker;
   
@@ -118,11 +116,8 @@ public class TrackerStatus {
 	scraper		= _scraper;
     tracker_url	= _tracker_url;
     
-    synchronized( az_trackers ){
-    	
-    	az_tracker = az_trackers.containsKey( tracker_url.getHost() + ":" + tracker_url.getPort());
-    }
-       
+    az_tracker = TRTrackerUtils.isAZTracker( tracker_url );
+    
     bSingleHashScrapes	= COConfigurationManager.getBooleanParameter( "Tracker Client Scrape Single Only" );
     
     String trackerUrl	= tracker_url.toString();
@@ -484,35 +479,7 @@ public class TrackerStatus {
 						
 					az_tracker	= this_is_az_tracker;
 					
-					String	key = tracker_url.getHost() + ":" + tracker_url.getPort();
-							
-					synchronized( az_trackers ){
-						
-						boolean	changed = false;
-						
-						if ( az_trackers.get( key ) == null ){
-						
-							if ( az_tracker ){
-								
-								az_trackers.put( key, new Long( SystemTime.getCurrentTime()));
-								
-								changed	= true;
-							}
-						}else{
-							
-							if ( !az_tracker ){
-								
-								az_trackers.remove( key );
-								
-								changed = true;
-							}
-						}
-						
-						if ( changed ){
-							
-							COConfigurationManager.setParameter( "Tracker Client AZ Instances", az_trackers );
-						}
-					}
+					TRTrackerUtils.setAZTracker( tracker_url, az_tracker );
 				}
 				
 				Map mapFiles = map == null ? null : (Map) map.get("files");

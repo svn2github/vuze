@@ -104,4 +104,19 @@ TRTrackerUtils
 	{
 		return( TRTrackerUtilsImpl.getPortsForURL());
 	}
+	
+	public static boolean
+ 	isAZTracker(
+ 		URL		tracker_url )
+	{
+		return( TRTrackerUtilsImpl.isAZTracker( tracker_url ));
+	}
+	
+	public static void
+ 	setAZTracker(
+ 		URL		tracker_url,
+ 		boolean	az )
+	{
+		TRTrackerUtilsImpl.setAZTracker( tracker_url, az );
+	}
 }

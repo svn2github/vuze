@@ -144,6 +144,13 @@ HostNameToIPResolver
 		}
 	}
 	
+	public static byte[]
+	hostAddressToBytes(
+		String		host )
+	{
+		return( textToNumericFormat( host ));
+	}
+	
 		// this has been copied from Inet4Address - need to change for IPv6
 	
 	final static int INADDRSZ	= 4;

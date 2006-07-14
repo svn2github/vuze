@@ -35,10 +35,8 @@ import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
-import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 
 public class 
 TRTrackerUtilsImpl 
@@ -147,7 +145,7 @@ TRTrackerUtilsImpl
 			});
 	}
 			           
-
+	private static Map	az_trackers = COConfigurationManager.getMapParameter( "Tracker Client AZ Instances", new HashMap());
 	
 
 	static{
@@ -441,4 +439,50 @@ TRTrackerUtilsImpl
 
   		return( ports_for_url );
   	}
+ 	
+ 	public static boolean
+ 	isAZTracker(
+ 		URL		tracker_url )
+ 	{
+ 	   synchronized( az_trackers ){
+ 	    	
+ 	    	return( az_trackers.containsKey( tracker_url.getHost() + ":" + tracker_url.getPort()));
+ 	    }
+ 	}
+ 	
+	public static void
+ 	setAZTracker(
+ 		URL		tracker_url,
+ 		boolean	az_tracker )
+	{
+		String	key = tracker_url.getHost() + ":" + tracker_url.getPort();
+		
+		synchronized( az_trackers ){
+			
+			boolean	changed = false;
+			
+			if ( az_trackers.get( key ) == null ){
+			
+				if ( az_tracker ){
+					
+					az_trackers.put( key, new Long( SystemTime.getCurrentTime()));
+					
+					changed	= true;
+				}
+			}else{
+				
+				if ( !az_tracker ){
+					
+					az_trackers.remove( key );
+					
+					changed = true;
+				}
+			}
+			
+			if ( changed ){
+				
+				COConfigurationManager.setParameter( "Tracker Client AZ Instances", az_trackers );
+			}
+		}
+	}
 }

@@ -350,6 +350,8 @@ public class ConfigurationDefaults {
     def.put( "Tracker Client Scrape Enable", TRUE);
     def.put( "Tracker Client Scrape Stopped Enable", TRUE);
     def.put( "Tracker Client Scrape Single Only", FALSE);
+    def.put( "Tracker Server Full Scrape Enable", TRUE );
+    
     
     def.put( "Network Selection Prompt", TRUE);
     def.put( "Network Selection Default.Public", TRUE);

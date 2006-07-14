@@ -411,14 +411,10 @@ TRTrackerServerProcessorTCP
 					}else if ( lhs.equals( "azq" )){
 					
 						stop_to_queue	= true;
-						
-						System.out.println( "stop to queue" );
-						
+												
 					}else if ( lhs.equals( "azsf" )){
 					
 						scrape_flags = rhs;
-						
-						System.out.println( "scrape flags = " + scrape_flags );
 					}
 					
 					if ( p1 == -1 ){
@@ -456,9 +452,9 @@ TRTrackerServerProcessorTCP
 							server, str,
 							root_out, peer_out,
 							request_type,
-							hashes,
+							hashes, scrape_flags,
 							peer_id, no_peer_id, compact_mode, key, 
-							event,
+							event, stop_to_queue,
 							tcp_port&0xffff, udp_port&0xffff,
 							real_ip_address,
 							client_ip_address,
