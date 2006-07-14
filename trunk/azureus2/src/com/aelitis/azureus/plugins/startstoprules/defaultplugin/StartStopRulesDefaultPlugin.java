@@ -446,7 +446,8 @@ public class StartStopRulesDefaultPlugin
       	requestProcessCycle(dlData);
         if (bDebugLog) 
           log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
-                  "somethingChanged: downloadAdded");
+                  "somethingChanged: downloadAdded, state: "
+									+ sStates.charAt(download.getState()));
       }
     }
 
@@ -954,6 +955,26 @@ public class StartStopRulesDefaultPlugin
 
 			now = SystemTime.getCurrentTime();
 
+			somethingChanged = false;
+			Object[] recalcArray = ranksToRecalc.toArray();
+			ranksToRecalc.clear();
+			for (int i = 0; i < recalcArray.length; i++) {
+				DefaultRankCalculator rankObj = (DefaultRankCalculator) recalcArray[i];
+				if (bDebugLog) {
+					long oldSR = rankObj.dl.getSeedingRank();
+					rankObj.recalcSeedingRank();
+					String s = "recalc seeding rank.  old/new=" + oldSR + "/"
+							+ rankObj.dl.getSeedingRank();
+					log.log(rankObj.dl.getTorrent(), LoggerChannel.LT_INFORMATION, s);
+				} else {
+					rankObj.recalcSeedingRank();
+				}
+			}
+			processTotalRecalcs += recalcArray.length;
+			if (recalcArray.length == 0) {
+				processTotalZeroRecalcs++;
+			}
+
 			// pull the data into a local array, so we don't have to lock/synchronize
 			DefaultRankCalculator[] dlDataArray;
 			dlDataArray = (DefaultRankCalculator[]) downloadDataMap.values().toArray(
@@ -977,18 +998,6 @@ public class StartStopRulesDefaultPlugin
 						"mxCdrs=" + totals.maxSeeders,
 						"tFP=" + totals.firstPriority,
 						"maxT=" + totals.maxTorrents };
-			}
-
-			somethingChanged = false;
-			Object[] recalcArray = ranksToRecalc.toArray();
-			ranksToRecalc.clear();
-			for (int i = 0; i < recalcArray.length; i++) {
-				DefaultRankCalculator rankObj = (DefaultRankCalculator) recalcArray[i];
-				rankObj.recalcSeedingRank();
-			}
-			processTotalRecalcs += recalcArray.length;
-			if (recalcArray.length == 0) {
-				processTotalZeroRecalcs++;
 			}
 
 			// Sort
