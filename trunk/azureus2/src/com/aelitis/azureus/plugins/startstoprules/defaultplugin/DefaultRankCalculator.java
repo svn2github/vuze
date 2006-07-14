@@ -144,7 +144,7 @@ public class DefaultRankCalculator implements Comparable {
 
 	private static int iFirstPrioritySeedingMinutes;
 
-	private static int iFirstPriorityDLMinutes;
+	private static int iFirstPriorityActiveMinutes;
 
 	private static long minTimeAlive;
 
@@ -246,7 +246,7 @@ public class DefaultRankCalculator implements Comparable {
 		iFirstPriorityType = cfg.getIntParameter(PREFIX + "iFirstPriority_Type");
 		iFirstPrioritySeedingMinutes = cfg.getIntParameter(PREFIX
 				+ "iFirstPriority_SeedingMinutes");
-		iFirstPriorityDLMinutes = cfg.getIntParameter(PREFIX
+		iFirstPriorityActiveMinutes = cfg.getIntParameter(PREFIX
 				+ "iFirstPriority_DLMinutes");
 		// Ignore FP
 		iFirstPriorityIgnoreSPRatio = cfg.getIntParameter(PREFIX
@@ -748,14 +748,15 @@ public class DefaultRankCalculator implements Comparable {
 			sExplainFP += "  Skipping Seeding Time check (user disabled)\n";
 		}
 
-		bLastMatched = (iFirstPriorityDLMinutes == 0);
+		bLastMatched = (iFirstPriorityActiveMinutes == 0);
 		if (!bLastMatched) {
-			long timeDLing = dl.getStats().getSecondsDownloading();
-			if (timeDLing >= 0) {
-				bLastMatched = (timeDLing < (iFirstPriorityDLMinutes * 60));
+			long timeActive = dl.getStats().getSecondsDownloading()
+					+ dl.getStats().getSecondsOnlySeeding();
+			if (timeActive >= 0) {
+				bLastMatched = (timeActive < (iFirstPriorityActiveMinutes * 60));
 				if (rules.bDebugLog)
-					sExplainFP += "  DLTime(" + timeDLing + ") < "
-							+ (iFirstPriorityDLMinutes * 60) + "=" + bLastMatched + "\n";
+					sExplainFP += "  ActiveTime(" + timeActive + ") < "
+							+ (iFirstPriorityActiveMinutes * 60) + "=" + bLastMatched + "\n";
 				if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
 					if (rules.bDebugLog)
 						sExplainFP += "..Not FP.  Exit Early\n";
