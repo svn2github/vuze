@@ -1225,7 +1225,8 @@ DownloadManagerController
    	public DiskManagerFileInfo[]
     getDiskManagerFileInfo()
    	{
-  		makeSureFilesFacadeFilled(true);
+  		makeSureFilesFacadeFilled(false);
+  		
    		return( files_facade );
    	}
 	
