@@ -277,8 +277,21 @@ TRHostExternalTorrent
 		String		name )
 	{
 		try{
+			Object	obj = additional_properties.get(name);
+
+			if ( obj == null ){
+				
+				return( null );
+			}
 			
-			return( new String((byte[])additional_properties.get(name),Constants.DEFAULT_ENCODING));
+			if ( !( obj instanceof byte[] )){
+				
+				Debug.out( "property '" + name + "' is not a byte[]: " + obj );
+				
+				return( null );
+			}
+			
+			return( new String((byte[])obj,Constants.DEFAULT_ENCODING));
 			
 		}catch( Throwable e ){
 			

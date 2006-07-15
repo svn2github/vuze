@@ -33,7 +33,11 @@ PluginEvent
 	public static final int	PEV_CONFIGURATION_WIZARD_COMPLETES		= 2;
 	public static final int	PEV_INITIALISATION_PROGRESS_TASK		= 3;
 	public static final int	PEV_INITIALISATION_PROGRESS_PERCENT		= 4;
-
+		/**
+		 * @since 2403
+		 */
+	public static final int	PEV_INITIAL_SHARING_COMPLETE			= 5;
+	
 		/**
 		 * Plugin specific events can be raised by a plugin to communicate with
 		 * other components. The event type must start from the number below

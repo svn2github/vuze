@@ -122,6 +122,10 @@ ShareHosterPlugin
 			Debug.printStackTrace( e );
 			
 			log.log( e );
+			
+		}finally{
+			
+			plugin_interface.getPluginManager().firePluginEvent( PluginEvent.PEV_INITIAL_SHARING_COMPLETE );
 		}
 	}
 	
