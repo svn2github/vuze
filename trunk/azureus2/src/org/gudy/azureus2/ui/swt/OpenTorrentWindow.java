@@ -605,8 +605,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					COConfigurationManager.save();
 				}
 
-				if (COConfigurationManager.getBooleanParameter("DefaultDir.AutoUpdate") &&
-						!COConfigurationManager.getBooleanParameter("Use default data dir"))
+				if (COConfigurationManager.getBooleanParameter("DefaultDir.AutoUpdate")
+						&& !COConfigurationManager.getBooleanParameter("Use default data dir"))
 					COConfigurationManager.setParameter(PARAM_DEFSAVEPATH, sDestDir);
 
 				openTorrents();
@@ -665,7 +665,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				}
 			}
 		};
-		
+
 		setPasteKeyListener(shell, pasteKeyListener);
 
 		Utils.createTorrentDropTarget(shell, false);
@@ -1612,27 +1612,54 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			return null;
 		}
 
-		// Check if torrent already exists in gm, and add if not
-		final DownloadManager existingDownload = (gm == null) ? null
-				: gm.getDownloadManager(torrent);
-		if (existingDownload == null) {
+		String sExistingName = null;
+		try {
+			HashWrapper hash = torrent.getHashWrapper();
+			if (hash != null) {
+				for (int i = 0; i < torrentList.size(); i++) {
+					try {
+						TorrentInfo existing = (TorrentInfo) torrentList.get(i);
+						if (existing.torrent.getHashWrapper().equals(hash)) {
+							sExistingName = existing.sOriginatingLocation;
+							break;
+						}
+					} catch (Exception e) {
+					}
+				}
+			}
+		} catch (Exception e) {
+		}
+
+		if (sExistingName == null) {
+			// Check if torrent already exists in gm, and add if not
+			DownloadManager existingDownload = (gm == null) ? null
+					: gm.getDownloadManager(torrent);
+			if (existingDownload != null) {
+				sExistingName = existingDownload.getDisplayName();
+			}
+		}
+
+		if (sExistingName == null) {
 			info = new TorrentInfo(torrentFile.getAbsolutePath(), torrent,
 					bDeleteFileOnCancel);
 			info.sOriginatingLocation = sOriginatingLocation;
 			torrentList.add(info);
+
 		} else {
+
+			final String sfExistingName = sExistingName;
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (shell == null)
 						new MessageSlideShell(Display.getCurrent(), SWT.ICON_ERROR,
 								"OpenTorrentWindow.mb.alreadyExists", null, new String[] {
 										sOriginatingLocation,
-										existingDownload.getDisplayName() });
+										sfExistingName });
 					else
 						Utils.openMessageBox(shell, SWT.OK,
 								"OpenTorrentWindow.mb.alreadyExists", new String[] {
 										sOriginatingLocation,
-										existingDownload.getDisplayName() });
+										sfExistingName });
 				}
 			});
 
@@ -1779,7 +1806,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				byte[] hash = null;
 				try {
 					hash = info.torrent.getHash();
-				} catch (TOTorrentException e1) {	}
+				} catch (TOTorrentException e1) {
+				}
 
 				DownloadManager dm = gm.addDownloadManager(info.sFileName, hash,
 						info.sDestDir, iStartMode, true,
@@ -1871,28 +1899,28 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				// likely) 
 				if (file.exists())
 					file.delete();
-				return;
-			}
 
-			if (shell != null && !shell.isDisposed()) {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						tableTorrents.setItemCount(torrentList.size());
-						tableTorrents.clearAll();
-
-						// select the one we just added
-						tableTorrents.select(torrentList.size() - 1);
-						// select doesn't notify listeners? Do it manually.
-						tableTorrents.notifyListeners(SWT.Selection, new Event());
-
-						resizeTables(1);
-					}
-				});
 			} else {
-				String saveSilentlyDir = getSaveSilentlyDir();
-				if (saveSilentlyDir != null) {
-					sDestDir = saveSilentlyDir;
-					openTorrents();
+				if (shell != null && !shell.isDisposed()) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							tableTorrents.setItemCount(torrentList.size());
+							tableTorrents.clearAll();
+
+							// select the one we just added
+							tableTorrents.select(torrentList.size() - 1);
+							// select doesn't notify listeners? Do it manually.
+							tableTorrents.notifyListeners(SWT.Selection, new Event());
+
+							resizeTables(1);
+						}
+					});
+				} else {
+					String saveSilentlyDir = getSaveSilentlyDir();
+					if (saveSilentlyDir != null) {
+						sDestDir = saveSilentlyDir;
+						openTorrents();
+					}
 				}
 			}
 
@@ -1991,7 +2019,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 						totalSegmentsLengths += l;
 					}
 				}
-				
+
 				int maxMatches = 0;
 				DownloadManager match = null;
 				for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
