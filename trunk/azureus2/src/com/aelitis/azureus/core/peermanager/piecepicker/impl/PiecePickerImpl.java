@@ -521,7 +521,7 @@ public class PiecePickerImpl
 		
 		final int uploadersSize =bestUploaders.size();
 
-		if ( uploadersSize ==0 ){
+		if ( uploadersSize == 0 ){
 			
 				// no usable peers, bail out early
 			return;
@@ -529,15 +529,15 @@ public class PiecePickerImpl
 		
 		checkEndGameMode();
 		
-		computeBasePriorities();
+		boolean	done_priorities = false;
 		
-		for (int i =0; i <uploadersSize; i++)
-		{
+		for (int i =0; i <uploadersSize; i++){
+
 			final PEPeerTransport pt =(PEPeerTransport) bestUploaders.get(i);
 			
 				// can we transfer something?
 			
-			if (pt.isDownloadPossible()){
+			if ( pt.isDownloadPossible()){
 			
 				int	peer_request_num = pt.getMaxNbRequests();
 				
@@ -566,8 +566,15 @@ public class PiecePickerImpl
 					// Only loop when 3/5 of the queue is empty, in order to make more consecutive requests,
 					// and improve cache efficiency
 				
-				if (pt.getNbRequests() <=(maxRequests *3) /5){
+				if ( pt.getNbRequests() <=(maxRequests *3) /5){
 				
+					if ( !done_priorities ){
+						
+						done_priorities	= true;
+						
+						computeBasePriorities();
+					}
+					
 					int	total_allocated = 0;
 					
 					try{
