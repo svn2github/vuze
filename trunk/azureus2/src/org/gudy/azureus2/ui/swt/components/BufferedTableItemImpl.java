@@ -21,7 +21,6 @@
 
 package org.gudy.azureus2.ui.swt.components;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Table;
 
@@ -159,16 +158,19 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 	}
 
 	public boolean isShown() {
-		if (position < 0) {
-			return false;
-		}
-		
-		Rectangle bounds = row.getBounds(position);
-		if (bounds == null) {
-			return false;
-		}
-
-		return row.getTable().getClientArea().intersects(bounds);
+		return true;
+// XXX Bounds check is almost always slower than any changes we
+//     are going to do to the column
+//		if (position < 0) {
+//			return false;
+//		}
+//		
+//		Rectangle bounds = row.getBounds(position);
+//		if (bounds == null) {
+//			return false;
+//		}
+//
+//		return row.getTable().getClientArea().intersects(bounds);
 	}
 
 	public boolean needsPainting() {

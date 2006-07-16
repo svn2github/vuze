@@ -23,7 +23,6 @@ package org.gudy.azureus2.ui.swt.views.table;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.TableItem;
 
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 
@@ -135,4 +134,15 @@ public interface TableRowCore
 	 * 
 	 */
 	void repaint();
+
+	/**
+	 * @param bEvenIfNotVisible
+	 */
+	void setAlternatingBGColor(boolean bEvenIfNotVisible);
+
+	/**
+	 * @param gc
+	 * @param b
+	 */
+	public void doPaint(GC gc, boolean bVisible);
 }

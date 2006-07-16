@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -195,7 +196,7 @@ public class TableRowImpl
     	}
   		return;
   	}
-
+    
 		bSetNotUpToDateLastRefresh = false;
 		
 		//System.out.println(SystemTime.getCurrentTime() + "refresh " + getIndex());
@@ -206,7 +207,11 @@ public class TableRowImpl
       item.refresh(bDoGraphics, bVisible);
     }
   }
-  
+
+  public void setAlternatingBGColor(boolean bEvenIfNotVisible) {
+  	super.setAlternatingBGColor(bEvenIfNotVisible);
+  }
+
   public void locationChanged(int iStartColumn) {
     if (bDisposed || !isVisible())
       return;
@@ -220,7 +225,11 @@ public class TableRowImpl
   }
 
   public void doPaint(GC gc) {
-    if (bDisposed || !isVisible())
+  	doPaint(gc, isVisible());
+  }
+
+  public void doPaint(GC gc, boolean bVisible) {
+    if (bDisposed || !bVisible)
       return;
 
     Iterator iter = mTableCells.values().iterator();
@@ -312,10 +321,10 @@ public class TableRowImpl
 
 	public boolean setTableItem(int newIndex) {
 		if (bDisposed) {
-			System.out.println("XXX setTI: bDisposed");
+			System.out.println("XXX setTI: bDisposed from " + Debug.getCompressedStackTrace());
 			return false;
 		}
-			
+
 		return setTableItem(newIndex, false);
 	}
 	
@@ -363,4 +372,5 @@ public class TableRowImpl
 	public String toString() {
 		return "TableRowImpl@" + Integer.toHexString(hashCode()) + "/#" + getIndex();
 	}
+
 }

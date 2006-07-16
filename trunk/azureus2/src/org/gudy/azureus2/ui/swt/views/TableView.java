@@ -54,7 +54,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
@@ -72,6 +71,9 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableStructureEventDispatcher;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
+
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
@@ -120,6 +122,8 @@ public class TableView
 	public final static boolean DEBUGADDREMOVE = false;
 	
 	/** Virtual Tables still a work in progress */
+	// Non-Virtual tables scroll faster with they keyboard
+	// Virtual tables don't flicker when updating a cell
 	private final static boolean DISABLEVIRTUAL = SWT.getVersion() < 3138;
 
 	private final static boolean COLUMN_CLICK_DELAY = Constants.isOSX
@@ -134,6 +138,8 @@ public class TableView
 	private static final String CFG_SORTDIRECTION = "config.style.table.defaultSortOrder";
 
 	private static final long IMMEDIATE_ADDREMOVE_DELAY = 80;
+
+	private static final long IMMEDIATE_ADDREMOVE_MAXDELAY = 3000;
 
   /** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
    * of the table this class is
@@ -189,6 +195,9 @@ public class TableView
   
   /** Sorting functions */
   protected TableRowComparator rowSorter;
+  /** TimeStamp of when last sorted all the rows was */
+	private long lLastSortedOn;
+
   /* position of mouse in table.  Used for context menu. */
   private int iMouseX = -1;
 
@@ -223,14 +232,14 @@ public class TableView
 	private ColumnMoveListener columnMoveListener = new ColumnMoveListener();
 	
 	/** Queue added datasources and add them on refresh */
-	private List dataSourcesToAdd = null;
+	private List dataSourcesToAdd = new ArrayList(4);
 	
 	/** Queue removed datasources and add them on refresh */
-	private List dataSourcesToRemove = null;
+	private List dataSourcesToRemove = new ArrayList(4);
 
 	private Timer timerProcessDataSources = new Timer("Process Data Sources");
 	private TimerEvent timerEventProcessDS;
-
+	
 	/** TabViews */
 	public boolean bEnableTabViews = false;
 	/** TabViews */
@@ -343,10 +352,18 @@ public class TableView
 		}
 
 		int iNumViews = coreTabViews == null ? 0 : coreTabViews.length;
-		UISWTInstanceImpl pluginUI = MainWindow.getWindow().getUISWTInstanceImpl();
-		Map pluginViews = pluginUI.getViewListeners(sTableID);
-		if (pluginViews != null)
-			iNumViews += pluginViews.size();
+
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		Map pluginViews = null;
+		if (uiFunctions != null) {
+			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+
+			if (pluginUI != null) {
+				pluginViews = pluginUI.getViewListeners(sTableID);
+				if (pluginViews != null)
+					iNumViews += pluginViews.size();
+			}
+		}
 
 		if (iNumViews == 0) {
 			tableComposite = createMainPanel(composite);
@@ -585,25 +602,26 @@ public class TableView
     //     use the first paint trigger.
     if (!Utils.SWT32_TABLEPAINT) {
 
-    table.addPaintListener(new PaintListener() {
-    	boolean first = true;
-      public void paintControl(PaintEvent event) {
-      	if (first) {
-  				changeColumnIndicator();
-  				// This fixes the scrollbar not being long enough on Win2k
-  				// There may be other methods to get it to refresh right, but
-  				// layout(true, true) didn't work.
-  				table.setRedraw(false);
-  				table.setRedraw(true);
-  				first = false;
-      	}
-        if(event.width == 0 || event.height == 0) return;
-        doPaint(event.gc);
-        visibleRowsChanged();
-        //System.out.println(event.x + "x" + event.y + "; " + event.width + "x" + event.height);
-      }
-    });
-    }
+			table.addPaintListener(new PaintListener() {
+				boolean first = true;
+
+				public void paintControl(PaintEvent event) {
+					if (first) {
+						changeColumnIndicator();
+						// This fixes the scrollbar not being long enough on Win2k
+						// There may be other methods to get it to refresh right, but
+						// layout(true, true) didn't work.
+						table.setRedraw(false);
+						table.setRedraw(true);
+						first = false;
+					}
+					if (event.width == 0 || event.height == 0)
+						return;
+					doPaint(event.gc);
+					visibleRowsChanged();
+				}
+			});
+		}
 
     if (Utils.SWT32_TABLEPAINT) {
 			table.addListener(SWT.PaintItem, new Listener() {
@@ -791,7 +809,9 @@ public class TableView
       }
     });
 
-    if (bTableVirtual)
+    // XXX Disabled.  We handle unset rows ourselves via table paints which
+    //     are more reliable.
+    if (bTableVirtual || false)
 	    table.addListener(SWT.SetData, new Listener() {
 	      public void handleEvent(Event e) {
 					final TableItem item = (TableItem) e.item;
@@ -1090,7 +1110,12 @@ public class TableView
 		boolean bSortAscending = configMan.getBooleanParameter(sTableID
 				+ ".sortAsc", iSortDirection == 1 ? false : true);
 
-		rowSorter = new TableRowComparator(sSortColumn, bSortAscending);
+    TableColumnManager tcManager = TableColumnManager.getInstance();
+    TableColumnCore tc = tcManager.getTableColumnCore(sTableID, sSortColumn);
+    if (tc == null) {
+    	tc = tableColumns[0];
+    }
+		rowSorter = new TableRowComparator(tc, bSortAscending);
 		changeColumnIndicator();
 		
     // Add move listener at the very end, so we don't get a bazillion useless 
@@ -1444,8 +1469,6 @@ public class TableView
 	    if(getComposite() == null || getComposite().isDisposed())
 	      return;
 	
-	    processDataSourceQueue();
-
 	    if (checkColumnWidthsEvery != 0 && 
 	        (loopFactor % checkColumnWidthsEvery) == 0) {
 	      TableColumn[] tableColumnsSWT = table.getColumns();
@@ -1468,8 +1491,12 @@ public class TableView
 	    final boolean bWillSort = bForceSort || (reOrderDelay != 0) && ((loopFactor % reOrderDelay) == 0); 
 	    //System.out.println("Refresh.. WillSort? " + bWillSort);
 	    
-			if (bWillSort)
+			if (bWillSort) {
+				if (bForceSort) {
+					rowSorter.getColumn().setLastSortValueChange(SystemTime.getCurrentTime());
+				}
 				sortColumn(true);
+			}
 	
 	    lTimeStart = System.currentTimeMillis();
 	    
@@ -1493,6 +1520,19 @@ public class TableView
   	}
   }
   
+  private void refreshVisibleRows() {
+    if (getComposite() == null || getComposite().isDisposed())
+      return;    
+    
+    runForVisibleRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+        row.setAlternatingBGColor(true);
+        row.refresh(false, true);
+      }
+    });
+  }
+  
+  
   /**
    * Process the queue of datasources to be added and removed
    *
@@ -1503,12 +1543,12 @@ public class TableView
 
 		try {
 			dataSourceToRow_mon.enter();
-			if (dataSourcesToAdd != null) {
+			if (dataSourcesToAdd.size() > 0) {
 				dataSourcesAdd = dataSourcesToAdd.toArray();
 				dataSourcesToAdd.clear();
 
 				// remove the ones we are going to add then delete
-				if (dataSourcesToRemove != null && dataSourcesToRemove.size() > 0) {
+				if (dataSourcesToRemove.size() > 0) {
 					for (int i = 0; i < dataSourcesAdd.length; i++)
 						if (dataSourcesToRemove.contains(dataSourcesAdd[i])) {
 							dataSourcesToRemove.remove(dataSourcesAdd[i]);
@@ -1519,7 +1559,7 @@ public class TableView
 				}
 			}
 
-			if (dataSourcesToRemove != null && dataSourcesToRemove.size() > 0) {
+			if (dataSourcesToRemove.size() > 0) {
 				dataSourcesRemove = dataSourcesToRemove.toArray();
 				if (DEBUGADDREMOVE && dataSourcesRemove.length > 1)
 					debug("Streamlining removing " + dataSourcesRemove.length + " rows");
@@ -1557,7 +1597,7 @@ public class TableView
     
     runForVisibleRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
-        row.doPaint(gc);
+        row.doPaint(gc, true);
       }
     });
   }
@@ -1633,16 +1673,8 @@ public class TableView
    * @param bImmediate Add immediately, or queue and add at next refresh
    */
   
-  public void addDataSource(Object dataSource, boolean bImmediate) {
-  	addDataSources(new Object[] { dataSource}, bImmediate );
-	}
-  
   public void addDataSource(Object dataSource) {
-  	addDataSources(new Object[] { dataSource}, false);
-	}
-
-  public void addDataSources(Object[] dataSources) {
-  	addDataSources(dataSources, false);
+  	addDataSources(new Object[] { dataSource});
 	}
 
   /**
@@ -1654,13 +1686,12 @@ public class TableView
    * @param dataSources
    * @param bImmediate Add immediately, or queue and add at next refresh
    */
-  public void addDataSources(final Object dataSources[],
-			boolean bImmediate) {
+  public void addDataSources(final Object dataSources[]) {
 
 		if (dataSources == null)
 			return;
 
-		if (bImmediate && IMMEDIATE_ADDREMOVE_DELAY == 0) {
+		if (IMMEDIATE_ADDREMOVE_DELAY == 0) {
 			reallyAddDataSources(dataSources);
 			return;
 		}
@@ -1668,14 +1699,13 @@ public class TableView
 		// In order to save time, we cache entries to be added and process them
 		// in a refresh cycle.  This is a huge benefit to tables that have
 		// many rows being added and removed in rapid succession
-		if (DEBUGADDREMOVE)
-			debug("Queueing " + dataSources.length + " dataSources to add");
 
 		try {
 			dataSourceToRow_mon.enter();
 
-			if (dataSourcesToAdd == null)
-				dataSourcesToAdd = new ArrayList(4);
+			if (DEBUGADDREMOVE)
+				debug("Queueing " + dataSources.length + " dataSources to add");
+
 			for (int i = 0; i < dataSources.length; i++) {
 				dataSourcesToAdd.add(dataSources[i]);
 			}
@@ -1684,22 +1714,43 @@ public class TableView
 			dataSourceToRow_mon.exit();
 		}
 
+		refreshenProcessDataSourcesTimer();
+  }
+		
+	private void refreshenProcessDataSourcesTimer() {
 		// Immediate not really immediate, just sooner than the next refresh cycle
-		if (bImmediate) {
-			if (timerEventProcessDS != null) {
-				timerEventProcessDS.cancel();
+		synchronized (timerProcessDataSources) {
+			if (timerEventProcessDS != null && !timerEventProcessDS.hasRun()) {
+				// Push timer forward, unless we've pushed it forward for over x seconds
+				long now = SystemTime.getCurrentTime();
+				if (now - timerEventProcessDS.getCreatedTime() < IMMEDIATE_ADDREMOVE_MAXDELAY) {
+					long lNextTime = now + IMMEDIATE_ADDREMOVE_DELAY;
+					timerProcessDataSources.adjustAllBy(lNextTime
+							- timerEventProcessDS.getWhen());
+				} else {
+					timerEventProcessDS.cancel();
+					timerEventProcessDS = null;
+					if (DEBUGADDREMOVE) {
+						debug("Over immediate delay limit, processing queue now");
+					}
+					
+					processDataSourceQueue();
+				}
+			} else {
+				timerEventProcessDS = timerProcessDataSources.addEvent(
+						SystemTime.getCurrentTime() + IMMEDIATE_ADDREMOVE_DELAY,
+						new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								timerEventProcessDS = null;
+								processDataSourceQueue();
+							}
+						});
 			}
-			timerEventProcessDS = timerProcessDataSources.addEvent(
-					SystemTime.getCurrentTime() + IMMEDIATE_ADDREMOVE_DELAY,
-					new TimerEventPerformer() {
-						public void perform(TimerEvent event) {
-							processDataSourceQueue();
-						}
-					});
 		}
 	}
   
-  private void reallyAddDataSources(final Object dataSources[]) {
+
+	private void reallyAddDataSources(final Object dataSources[]) {
   	
 		if (mainComposite == null || table == null || mainComposite.isDisposed()
 				|| table.isDisposed())
@@ -1711,10 +1762,27 @@ public class TableView
 		// Create row, and add to map immediately
 		try {
 			dataSourceToRow_mon.enter();
+			long lStartTime = SystemTime.getCurrentTime();
 
 			for (int i = 0; i < dataSources.length; i++) {
 				if (dataSources[i] == null)
 					continue;
+
+				if (SystemTime.getCurrentTime() - lStartTime > 500) {
+					int iNewSize = dataSources.length - i;
+					if (DEBUGADDREMOVE) {
+						debug("Breaking off adding datasources to map after "
+							+ i + " took " + (SystemTime.getCurrentTime() - lStartTime)
+							+ "ms; # remaining: " + iNewSize);
+					}
+					Object[] remainingDataSources = new Object[iNewSize];
+					Object[] doneDataSources = new Object[i];
+					System.arraycopy(dataSources, i, remainingDataSources, 0, iNewSize);
+					System.arraycopy(dataSources, 0, doneDataSources, 0, i);
+					addDataSourcesToSWT(doneDataSources);
+					reallyAddDataSources(remainingDataSources);
+					return;
+				}
 
 				if (dataSourceToRow.containsKey(dataSources[i])) {
 					dataSources[i] = null;
@@ -1730,15 +1798,31 @@ public class TableView
 		} finally {
 			dataSourceToRow_mon.exit();
 		}
+		
+		if (DEBUGADDREMOVE)
+			debug("--" + " Add " + dataSources.length + " rows;");
 
+		addDataSourcesToSWT(dataSources);
+	}
+	
+	private void addDataSourcesToSWT(final Object dataSources[]) {
 		// Now, add to sortedRows which requires the SWT thread.
-		Utils.execSWTThread(new AERunnable() {
+		// Don't use Utils.execSWTThread as we want to queue this even if we 
+		// wre on the SWT thread
+		table.getDisplay().asyncExec(new AERunnable() {
 			public void runSupport() {
 				if (table == null || table.isDisposed())
 					return;
 
 				try {
 					dataSourceToRow_mon.enter();
+					sortedRows_mon.enter();
+					
+					long lStartTime = SystemTime.getCurrentTime();
+
+//					if (bTableVirtual) {
+//						table.setItemCount(sortedRows.size() + dataSources.length);
+//					}
 
 					// add to sortedRows list in best position.  
 					// We need to be in the SWT thread because the rowSorter may end up
@@ -1748,10 +1832,25 @@ public class TableView
 						if (dataSource == null)
 							continue;
 
+						// If we've been processing on the SWT thread for too long,
+						// break off and allow SWT a breather to update.
+						if (SystemTime.getCurrentTime() - lStartTime > 1000) {
+							int iNewSize = dataSources.length - i;
+							if (DEBUGADDREMOVE) {
+								debug("Breaking off adding datasources to SWT after "
+									+ i + " took " + (SystemTime.getCurrentTime() - lStartTime)
+									+ "ms; # remaining: " + iNewSize);
+							}
+							Object[] remainingDataSources = new Object[iNewSize];
+							System.arraycopy(dataSources, i, remainingDataSources, 0, iNewSize);
+							addDataSourcesToSWT(remainingDataSources);
+							break;
+						}
+
 						TableRowImpl row = (TableRowImpl) dataSourceToRow.get(dataSource);
 						if (row == null)
 							continue;
-						TableCellCore cell = row.getTableCellCore(rowSorter.sColumnName);
+						TableCellCore cell = row.getTableCellCore(rowSorter.getColumnName());
 						if (cell != null) {
 							try {
 								cell.invalidate();
@@ -1763,22 +1862,19 @@ public class TableView
 						}
 
 						try {
-							sortedRows_mon.enter();
 							int index = 0;
 							if (sortedRows.size() > 0) {
 								// If we are >= to the last item, then just add it to the end
 								// instead of relying on binarySearch, which may return an item
 								// in the middle that also is equal.
-								TableRowCore lastRow = (TableRowCore) sortedRows.get(sortedRows
-										.size() - 1);
+								TableRowCore lastRow = (TableRowCore) sortedRows.get(sortedRows.size() - 1);
 								if (rowSorter.compare(row, lastRow) >= 0) {
 									index = sortedRows.size();
 									sortedRows.add(row);
 									if (DEBUGADDREMOVE)
 										debug("Adding new row to bottom");
 								} else {
-									index = Collections.binarySearch(sortedRows, row,
-											rowSorter);
+									index = Collections.binarySearch(sortedRows, row, rowSorter);
 									if (index < 0)
 										index = -1 * index - 1; // best guess
 
@@ -1786,7 +1882,7 @@ public class TableView
 										index = sortedRows.size();
 
 									if (DEBUGADDREMOVE)
-										debug("Adding new row at position " + index + " of " 
+										debug("Adding new row at position " + index + " of "
 												+ (sortedRows.size() - 1));
 									sortedRows.add(index, row);
 								}
@@ -1797,12 +1893,11 @@ public class TableView
 								sortedRows.add(row);
 							}
 
-							if (!bTableVirtual) {
-								row.createSWTRow();
-							} else {
-								table.setItemCount(sortedRows.size());
-								row.setTableItem(index);
-							}
+//							if (bTableVirtual) {
+//								row.setTableItem(index);
+//							} else {
+								row.createSWTRow(index);
+//							}
 							row.setIconSize(ptIconSize);
 						} catch (Exception e) {
 							Logger.log(new LogEvent(LOGID, "Error adding a row to table "
@@ -1813,29 +1908,32 @@ public class TableView
 							} catch (Exception e2) {
 								Debug.out(e2);
 							}
-						} finally {
-							sortedRows_mon.exit();
 						}
 					} // for dataSources
-					
+
+					// Sanity Check: Make sure # of rows in table and in array match
+					if (table.getItemCount() > sortedRows.size()) {
+						// This could happen if one of the datasources was null, or
+						// an error occured, or we exited early because things were talking
+						// to long
+						table.setItemCount(sortedRows.size());
+					}
 
 				} finally {
+					sortedRows_mon.exit();
 					dataSourceToRow_mon.exit();
 				}
 
 				fillRowGaps(false);
+				visibleRowsChanged();
 				if (DEBUGADDREMOVE)
-					debug("<<");
+					debug("<< " + sortedRows.size());
 			}
 		});
 	}
 
   public void removeDataSource(final Object dataSource) {
-  	removeDataSource(dataSource, false);
-  }
-  
-  public void removeDataSource(final Object dataSource, boolean bImmediate) {
-  	removeDataSources(new Object[] {dataSource}, bImmediate);
+  	removeDataSources(new Object[] { dataSource });
   }
   
   /** Remove the specified dataSource from the table.
@@ -1843,13 +1941,12 @@ public class TableView
    * @param dataSources data sources to be removed
    * @param bImmediate Remove immediately, or queue and remove at next refresh
    */
-  public void removeDataSources(final Object[] dataSources,
-			boolean bImmediate) {
+  public void removeDataSources(final Object[] dataSources) {
   	if (dataSources == null) {
   		return;
   	}
 
-		if (bImmediate && IMMEDIATE_ADDREMOVE_DELAY == 0) {
+		if (IMMEDIATE_ADDREMOVE_DELAY == 0) {
 			reallyAddDataSources(dataSources);
 			return;
 		}
@@ -1857,28 +1954,13 @@ public class TableView
 		try{
 			dataSourceToRow_mon.enter();	
 	
-  		if (dataSourcesToRemove == null)
-  			dataSourcesToRemove = new ArrayList(4);
   		for (int i = 0; i < dataSources.length; i++)
   			dataSourcesToRemove.add(dataSources[i]);
 		}finally{
 			dataSourceToRow_mon.exit();
 		}
 
-		// .size() not modifying the structure of List, so sync not needed
-		// Immediate not really immediate, just sooner than the next refresh cycle
-		if (bImmediate || dataSourcesToRemove.size() >= 20) {
-			if (timerEventProcessDS != null) {
-				timerEventProcessDS.cancel();
-			}
-			timerEventProcessDS = timerProcessDataSources.addEvent(
-					SystemTime.getCurrentTime() + IMMEDIATE_ADDREMOVE_DELAY,
-					new TimerEventPerformer() {
-						public void perform(TimerEvent event) {
-							processDataSourceQueue();
-						}
-					});
-		}
+		refreshenProcessDataSourcesTimer();
   }
   
   private void reallyRemoveDataSources(final Object[] dataSources) {
@@ -1892,6 +1974,9 @@ public class TableView
 					debug(">>> Remove rows.  Start");
 				
 				ArrayList itemsToRemove = new ArrayList();
+				int iTopIndex = table.getTopIndex();
+				int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+				boolean bRefresh = false;
 				
 				for (int i = 0; i < dataSources.length; i++) {
 					if (dataSources[i] == null)
@@ -1899,19 +1984,23 @@ public class TableView
 
 					// Must remove from map before deleted from gui
 					TableRowCore item = (TableRowCore) dataSourceToRow.remove(dataSources[i]);
+					if (!bRefresh) {
+						int index = item.getIndex();
+						bRefresh = index >= iTopIndex || index <= iBottomIndex;
+					}
 					if (item != null) {
 						itemsToRemove.add(item);
 						sortedRows.remove(item);
 					}
 				}
 
-				if (bTableVirtual && !table.isDisposed()) {
-					//table.setItemCount(dataSourceToRow.size());
-				}
-				
 				for (Iterator iter = itemsToRemove.iterator(); iter.hasNext();) {
 					TableRowCore item = (TableRowCore) iter.next();
 					item.delete();
+				}
+
+				if (bRefresh) {
+					refreshVisibleRows();
 				}
 
 				if (DEBUGADDREMOVE)
@@ -1965,11 +2054,8 @@ public class TableView
 			dataSourceToRow.clear();
 			sortedRows.clear();
 			
-			if (dataSourcesToAdd != null)
-				dataSourcesToAdd.clear();
-			
-			if (dataSourcesToRemove != null)
-				dataSourcesToRemove.clear();
+			dataSourcesToAdd.clear();
+			dataSourcesToRemove.clear();
 
 			if (DEBUGADDREMOVE)
 				debug("removeAll");
@@ -2721,12 +2807,12 @@ public class TableView
 	  try{
 		  dataSourceToRow_mon.enter();
 		  
-		  writer.println( "TableView: " + dataSourceToRow.size() + " datasources");
-		  writer.println("DataSources scheduled to Add: "
-					+ (dataSourcesToAdd == null ? 0 : dataSourcesToAdd.size()));
-			writer.println("DataSources scheduled to Remove: "
-					+ (dataSourcesToRemove == null ? 0 : dataSourcesToRemove.size()));
+		  writer.println("DataSources scheduled to Add/Remove: "
+					+ dataSourcesToAdd.size()
+					+ "/"
+					+ dataSourcesToRemove.size());
 		  
+		  writer.println( "TableView: " + dataSourceToRow.size() + " datasources");
 		  Iterator	it = dataSourceToRow.keySet().iterator();
 		  
 		  while( it.hasNext()){
@@ -2828,7 +2914,7 @@ public class TableView
 				if (bForceDataRefresh) {
 					for (Iterator iter = sortedRows.iterator(); iter.hasNext();) {
 						TableRowCore row = (TableRowCore) iter.next();
-						TableCellCore cell = row.getTableCellCore(rowSorter.sColumnName);
+						TableCellCore cell = row.getTableCellCore(rowSorter.getColumnName());
 						if (cell != null) {
 							cell.refresh();
 						}
@@ -2836,13 +2922,21 @@ public class TableView
 				}
 	
 				if (!bFillGapsOnly) {
-					Collections.sort(sortedRows, rowSorter);
-	
-					if (DEBUG_SORTER) {
-						long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
-						if (lTimeDiff > 150)
-							System.out.println("--- Build & Sort took " + lTimeDiff + "ms");
+					TableColumnCore tc = rowSorter.getColumn();
+					if (tc == null || tc.getLastSortValueChange() > lLastSortedOn) {
+						lLastSortedOn = SystemTime.getCurrentTime();
+						Collections.sort(sortedRows, rowSorter);
+						if (DEBUG_SORTER) {
+							long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
+							if (lTimeDiff > 150)
+								System.out.println("--- Build & Sort took " + lTimeDiff + "ms");
+						}
+					} else {
+						if (DEBUG_SORTER) {
+							System.out.println("Skipping sort :)");
+						}
 					}
+	
 				}
 	
 				if (bTableVirtual) {
@@ -2850,8 +2944,9 @@ public class TableView
 					// immediately where we refresh
 					for (int i = 0; i < sortedRows.size(); i++) {
 						TableRowCore row = (TableRowCore) sortedRows.get(i);
-						if (row.setTableItem(i))
+						if (row.setTableItem(i)) {
 							iNumMoves++;
+						}
 					}
 				} else {
 					for (int i = 0; i < sortedRows.size(); i++) {
@@ -2913,7 +3008,7 @@ public class TableView
 				if (lTimeDiff >= 500)
 					System.out.println("<<< Sort & Assign took " + lTimeDiff + "ms with "
 							+ iNumMoves + " rows (of " + sortedRows.size() + ") moved. "
-							+ focusedRow);
+							+ focusedRow + ";" + Debug.getCompressedStackTrace());
 			}
 		}finally{
 			sortColumn_mon.exit();
@@ -2921,23 +3016,23 @@ public class TableView
 	}
 
 	public void sortColumnReverse(TableColumnCore tableColumn) {
-		boolean bSameColumn = (rowSorter.sColumnName.equals(tableColumn.getName()));
+		boolean bSameColumn = (rowSorter.getColumnName().equals(tableColumn.getName()));
 		if (!bSameColumn) {
+			rowSorter.setColumn(tableColumn);
 			int iSortDirection = configMan.getIntParameter(CFG_SORTDIRECTION);
 			if (iSortDirection == 0) 
-				rowSorter.bAscending = true;
+				rowSorter.setAscending(true);
 			else if (iSortDirection == 1)
-				rowSorter.bAscending = false;
+				rowSorter.setAscending(false);
 			else
-				rowSorter.bAscending = !rowSorter.bAscending;
-			rowSorter.sColumnName = tableColumn.getName();
+				rowSorter.setAscending(!rowSorter.isAscending());
 
-			configMan.setParameter(sTableID + ".sortAsc", rowSorter.bAscending);
+			configMan.setParameter(sTableID + ".sortAsc", rowSorter.isAscending());
 			configMan.setParameter(sTableID + ".sortColumn",
-					rowSorter.sColumnName);
+					rowSorter.getColumnName());
 		} else {
-			rowSorter.bAscending = !rowSorter.bAscending;
-			configMan.setParameter(sTableID + ".sortAsc", rowSorter.bAscending);
+			rowSorter.setAscending(!rowSorter.isAscending());
+			configMan.setParameter(sTableID + ".sortAsc", rowSorter.isAscending());
 		}
 
 		changeColumnIndicator();
@@ -2955,8 +3050,8 @@ public class TableView
 			TableColumn[] tcs = table.getColumns();
 			for (int i = 0; i < tcs.length; i++) {
 				String sName = (String)tcs[i].getData("Name");
-				if (sName != null && sName.equals(rowSorter.sColumnName)) {
-					table.setSortDirection(rowSorter.bAscending ? SWT.UP : SWT.DOWN);
+				if (sName != null && sName.equals(rowSorter.getColumnName())) {
+					table.setSortDirection(rowSorter.isAscending() ? SWT.UP : SWT.DOWN);
 					table.setSortColumn(tcs[i]);
 					return;
 				}
@@ -2980,6 +3075,7 @@ public class TableView
 		}
 		//System.out.println(SystemTime.getCurrentTime() + ": VRC " + Debug.getCompressedStackTrace());
 		
+		boolean bTableUpdate = false;
 		int iTopIndex = table.getTopIndex();
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
@@ -2997,8 +3093,9 @@ public class TableView
 					for (int i = iTopIndex; i < tmpIndex && i < sortedRows.size(); i++) {
 						TableRowCore row = (TableRowCore) sortedRows.get(i);
 						row.refresh(true, true);
+						row.setAlternatingBGColor(true);
 						if (Constants.isOSX) {
-							row.repaint();
+							bTableUpdate = true;
 						}
 					}
 				} finally {
@@ -3028,8 +3125,9 @@ public class TableView
 							&& i < sortedRows.size(); i++) {
 						TableRowCore row = (TableRowCore) sortedRows.get(i);
 						row.refresh(true, true);
+						row.setAlternatingBGColor(true);
 						if (Constants.isOSX) {
-							row.repaint();
+							bTableUpdate = true;
 						}
 					}
 				} finally {
@@ -3038,6 +3136,10 @@ public class TableView
 			} else {
 				//System.out.println("Made B.Invisible " + (tmpIndex) + " to " + (iBottomIndex + 1));
 			}
+		}
+		
+		if (bTableUpdate) {
+			table.update();
 		}
 	}
 
@@ -3096,7 +3198,6 @@ public class TableView
 
 		IView view = getActiveSubView();
 		if (view instanceof ObfusticateImage) {
-			System.out.println(view.getFullTitle());
 			((ObfusticateImage)view).obfusticatedImage(image, shellOffset);
 		}
 		return image;

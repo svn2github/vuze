@@ -26,7 +26,12 @@ package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.util.Comparator;
 
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 
 /**
@@ -37,9 +42,12 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
  */
 public class TableRowComparator implements Comparator {
 	/** Name of column sort will use */
-	public String sColumnName;
+	private String sColumnName;
+	
+	private TableColumnCore tc;
+	
 	/** Order in which sort will use */
-	public boolean bAscending;
+	private boolean bAscending;
 	
 	/**
 	 * Default Constructor
@@ -47,11 +55,12 @@ public class TableRowComparator implements Comparator {
 	 * @param sSortColumnName
 	 * @param bAscending
 	 */
-	public TableRowComparator(String sSortColumnName, boolean bAscending) {
-		this.sColumnName = sSortColumnName;
+	public TableRowComparator(TableColumnCore tc, boolean bAscending) {
+		this.tc = tc;
+		this.sColumnName = tc.getName();
 		this.bAscending = bAscending;
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
@@ -95,5 +104,43 @@ public class TableRowComparator implements Comparator {
 			return 0;
 		}
 	}
+	
+	public void setColumn(TableColumnCore tc) {
+		if (tc == this.tc) {
+			return;
+		}
+		this.tc = tc;
+		tc.setLastSortValueChange(SystemTime.getCurrentTime());
+		sColumnName = tc.getName();
+	}
 
+	/**
+	 * @return Returns the columnName.
+	 */
+	public String getColumnName() {
+		return sColumnName;
+	}
+
+	public TableColumnCore getColumn() {
+		return tc;
+	}
+
+	/**
+	 * @param bAscending The bAscending to set.
+	 */
+	public void setAscending(boolean bAscending) {
+		if (this.bAscending == bAscending) {
+			return;
+		}
+		tc.setLastSortValueChange(SystemTime.getCurrentTime());
+		
+		this.bAscending = bAscending;
+	}
+
+	/**
+	 * @return Returns the bAscending.
+	 */
+	public boolean isAscending() {
+		return bAscending;
+	}
 }

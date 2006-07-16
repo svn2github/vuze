@@ -23,11 +23,14 @@
 package org.gudy.azureus2.ui.swt.views.table.utils;
 
 import java.util.*;
+
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
+
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -238,4 +241,36 @@ public class TableColumnManager {
     }
     COConfigurationManager.save();
   }
+
+	/**
+	 * @param writer
+	 */
+	public void generateDiagnostics(IndentWriter writer) {
+    try{
+     	items_mon.enter();
+     	
+     	writer.println("TableColumns");
+
+     	for (Iterator iter = items.keySet().iterator(); iter.hasNext();) {
+     		String sTableID = (String)iter.next();
+        Map mTypes = (Map)items.get(sTableID);
+
+        writer.indent();
+     		writer.println(sTableID + ": " + mTypes.size() + " columns:");
+     		
+     		writer.indent();
+       	for (Iterator iter2 = mTypes.values().iterator(); iter2.hasNext();) {
+       		TableColumnCore tc = (TableColumnCore)iter2.next();
+       		tc.generateDiagnostics(writer);
+       	}
+        writer.exdent();
+
+        writer.exdent();
+			}
+    } catch (Exception e) {
+    	e.printStackTrace();
+    } finally {
+    	items_mon.exit();
+    }
+	}
 }

@@ -313,6 +313,16 @@ public class TableCellImpl
   }
   
   public boolean setSortValue(Comparable valueToSort) {
+		if (tableColumn.isSortValueLive()) {
+			// objects that can't change aren't live
+			if (!(valueToSort instanceof Number) && !(valueToSort instanceof String)) {
+				tableColumn.setSortValueLive(true);
+			}
+		}
+		return _setSortValue(valueToSort);
+	}
+
+  private boolean _setSortValue(Comparable valueToSort) {
   	checkCellForSetting();
 
     if (sortValue == valueToSort)
@@ -329,6 +339,8 @@ public class TableCellImpl
   	if (bDebug)
   		debug("Setting SortValue to "
 					+ ((valueToSort == null) ? "null" : valueToSort.getClass().getName()));
+  	
+  	tableColumn.setLastSortValueChange(SystemTime.getCurrentTime());
     sortValue = valueToSort;
 
     return true;
@@ -341,7 +353,7 @@ public class TableCellImpl
 				&& ((Long) sortValue).longValue() == valueToSort)
 			return false;
 
-		return setSortValue(new Long(valueToSort));
+		return _setSortValue(new Long(valueToSort));
   }
   
   public boolean setSortValue( float valueToSort ) {
@@ -351,7 +363,7 @@ public class TableCellImpl
 				&& ((Float) sortValue).floatValue() == valueToSort)
 			return false;
 
-		return setSortValue(new Float(valueToSort));
+		return _setSortValue(new Float(valueToSort));
   }
 
   public Comparable getSortValue() {
@@ -698,12 +710,15 @@ public class TableCellImpl
       	if (bDebug)
       		debug("invoke refresh");
 
+      	long lTimeStart = SystemTime.getCurrentTime();
         tableColumn.invokeCellRefreshListeners(this);
         if (refreshListeners != null) {
           for (int i = 0; i < refreshListeners.size(); i++) {
             ((TableCellRefreshListener)(refreshListeners.get(i))).refresh(this);
           }
         }
+      	long lTimeEnd = SystemTime.getCurrentTime();
+      	tableColumn.addRefreshTime(lTimeEnd - lTimeStart);
 
         // Change to valid only if we weren't valid before the listener calls
         // This is in case the listeners set valid to false when it was true

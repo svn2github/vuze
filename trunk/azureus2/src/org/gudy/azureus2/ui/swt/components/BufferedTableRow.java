@@ -94,11 +94,15 @@ BufferedTableRow
 	 */
 	public void createSWTRow() {
     item = new TableItem(table, SWT.NULL);
-		item.setData("TableRow", this);
 		setAlternatingBGColor(true);
 	}
+
+	public void createSWTRow(int index) {
+    new TableItem(table, SWT.NULL);
+    setTableItem(index, false);
+	}
 	
-	private void setAlternatingBGColor(boolean bEvenIfNotVisible) {
+	public void setAlternatingBGColor(boolean bEvenIfNotVisible) {
 		if (Constants.isLinux || Constants.isSolaris)
 			return;
 			
@@ -501,19 +505,12 @@ BufferedTableRow
 
   	if (newRow == item) {
   		if (newRow == null || newRow.getData("TableRow") == this) {
-     		setAlternatingBGColor(true);
+     		setAlternatingBGColor(false);
   			return false;
   		}
   	}
 
   	if (newRow != null) {
-  		// this essentially disables the "SD" logic.  I don't think
-  		// we need it any more, so let's try..
-  		if (newRow.getData("SD") == null) {
-     		setAlternatingBGColor(true);
-  			newRow.setData("SD", "1");
-  		}
-
   		if (newRow.getParent() != table)
   			return false;
 
@@ -535,6 +532,13 @@ BufferedTableRow
 	        }
 	  		}
 	 		}
+
+  		// this essentially disables the "SD" logic.  I don't think
+  		// we need it any more, so let's try..
+  		if (newRow.getData("SD") == null) {
+     		setAlternatingBGColor(false);
+  			newRow.setData("SD", "1");
+  		}
 
 	    try {
 	    	newRow.setData("TableRow", this);

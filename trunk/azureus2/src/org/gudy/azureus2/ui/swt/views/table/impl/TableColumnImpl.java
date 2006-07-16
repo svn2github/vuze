@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 
@@ -28,6 +29,9 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.SystemTime;
+
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
@@ -49,9 +53,12 @@ public class TableColumnImpl
   private int iPosition;
   private int iWidth;
   private int iInterval;
+  private long lLastSortValueChange;
+  
   private String sTableID;
   private boolean bColumnAdded;
   private boolean bCoreDataSource;
+  
 	private ArrayList cellRefreshListeners;
 	private ArrayList cellAddedListeners;
 	private ArrayList cellDisposeListeners;
@@ -63,6 +70,11 @@ public class TableColumnImpl
   private boolean bObfusticateData;
   
   protected AEMonitor 		this_mon 	= new AEMonitor( "TableColumn" );
+	private boolean bSortValueLive;
+
+	private long lStatsRefreshTotalTime;
+	private long lStatsRefreshCount = 0;
+	private long lStatsRefreshZeroCount = 0;
 
 
   /** Create a column object for the specified table.
@@ -81,6 +93,7 @@ public class TableColumnImpl
     bCoreDataSource = false;
     iInterval = INTERVAL_INVALID_ONLY;
     iConsecutiveErrCount = 0;
+    lLastSortValueChange = 0;
   }
 
   public void initialize(int iAlignment, int iPosition, 
@@ -535,4 +548,67 @@ public class TableColumnImpl
 	public void setObfustication(boolean hideData) {
 		bObfusticateData = hideData;
 	}
+
+	public long getLastSortValueChange() {
+		if (bSortValueLive) {
+			return SystemTime.getCurrentTime();
+		}
+		return lLastSortValueChange;
+	}
+
+	public void setLastSortValueChange(long lastSortValueChange) {
+		lLastSortValueChange = lastSortValueChange;
+	}
+
+	public boolean isSortValueLive() {
+		return bSortValueLive;
+	}
+
+	public void setSortValueLive(boolean live) {
+//		if (live && !bSortValueLive) {
+//			System.out.println("Setting " + sTableID + ": " + sName + " to live sort value");
+//		}
+		bSortValueLive = live;
+	}
+
+	public void addRefreshTime(long ms) {
+		if (ms == 0) {
+			lStatsRefreshZeroCount++;
+		} else {
+			lStatsRefreshTotalTime += ms;
+			lStatsRefreshCount++;
+		}
+	}
+	
+  public void generateDiagnostics(IndentWriter writer) {
+		writer.println("Column " + sTableID + ":" + sName
+				+ (bSortValueLive ? " (Live Sort)" : ""));
+		try {
+			writer.indent();
+
+			if (lStatsRefreshCount > 0) {
+				writer.println("Avg refresh time (" + lStatsRefreshCount
+						+ " samples): " + (lStatsRefreshTotalTime / lStatsRefreshCount)
+						+ " (" + lStatsRefreshZeroCount
+						+ " zero ms refreshes not included)");
+			}
+			writer.println("Listeners: refresh=" + getListCountString(cellRefreshListeners) 
+					+ "; dispose=" + getListCountString(cellDisposeListeners)
+					+ "; mouse=" + getListCountString(cellMouseListeners)
+					+ "; added=" + getListCountString(cellAddedListeners)
+					+ "; tooltip=" + getListCountString(cellToolTipListeners));
+			
+			writer.println("lLastSortValueChange=" + lLastSortValueChange);
+		} catch (Exception e) {
+		} finally {
+			writer.exdent();
+		}
+	}
+  
+  private String getListCountString(List l) {
+  	if (l == null) {
+  		return "-0";
+  	}
+  	return "" + l.size();
+  }
 }
