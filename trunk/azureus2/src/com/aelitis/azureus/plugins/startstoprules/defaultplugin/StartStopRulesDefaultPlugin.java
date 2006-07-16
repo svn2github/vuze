@@ -168,13 +168,25 @@ public class StartStopRulesDefaultPlugin
 		changeCheckerTimer = new Timer("StartStopRules", 3, 4);
 
 		pi = _plugin_interface;
+		download_manager = pi.getDownloadManager();
 
 		pi.getPluginProperties().setProperty("plugin.version", "1.0");
 		pi.getPluginProperties().setProperty("plugin.name", "Start/Stop Rules");
 
 		pi.addListener(new PluginListener() {
 			public void initializationComplete() {
-				/* not implemented */
+				// CPU Intensive, delay until a little after all plugin initializations
+				// XXX Would be better if we could delay it until UI is done,
+				//     but there may be no UI..
+				new DelayedEvent(12000, new AERunnable() {
+					public void runSupport() {
+						download_manager.addListener(new StartStopDMListener());
+						changeCheckerTimer.addPeriodicEvent(CHECK_FOR_GROSS_CHANGE_PERIOD,
+								new ChangeCheckerTimerTask());
+						changeCheckerTimer.addPeriodicEvent(PROCESS_CHECK_PERIOD,
+								new ChangeFlagCheckerTask());
+					}
+				});
 			}
 
 			public void closedownInitiated() {
@@ -225,18 +237,6 @@ public class StartStopRulesDefaultPlugin
 			Debug.printStackTrace(e);
 		}
 		reloadConfigParams();
-
-		download_manager = pi.getDownloadManager();
-		// CPU Intensive, delay until after initialization
-		new DelayedEvent(4000, new AERunnable() {
-			public void runSupport() {
-				download_manager.addListener(new StartStopDMListener());
-				changeCheckerTimer.addPeriodicEvent(CHECK_FOR_GROSS_CHANGE_PERIOD,
-						new ChangeCheckerTimerTask());
-				changeCheckerTimer.addPeriodicEvent(PROCESS_CHECK_PERIOD,
-						new ChangeFlagCheckerTask());
-			}
-		});
 	}
   
   public static DefaultRankCalculator getRankCalculator(Download dl) {
