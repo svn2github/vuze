@@ -110,12 +110,8 @@ public class TorrentOpener {
   {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-		  	MainWindow mainWindow = MainWindow.getWindow();
-				if (mainWindow == null)
-					return;
-
-				final Shell shell = mainWindow.getShell();
-		  	if (shell == null || shell.isDisposed())
+				final Shell shell = Utils.findAnyShell();
+		  	if (shell == null)
 		  		return;
 
 				FileDialog fDialog = new FileDialog(shell, SWT.OPEN | SWT.MULTI);
@@ -253,20 +249,14 @@ public class TorrentOpener {
   }
 
   private static void openTorrentWindow(final String path,
-			final String[] torrents, final boolean bOverrideStartModeToStopped) {
+			final String[] torrents, final boolean bOverrideStartModeToStopped)
+	{
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-		  	MainWindow mainWindow = MainWindow.getWindow();
-				Shell shell = null;
-				if (mainWindow == null) {
-					shell = Utils.findAnyShell();
-				} else {
-					shell = mainWindow.getShell();
-				}
-
+				Shell shell = Utils.findAnyShell();
 				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-		  	if (shell == null || shell.isDisposed() || gm == null)
-		  		return;
+				if (shell == null || gm == null)
+					return;
 
 				OpenTorrentWindow.invoke(shell, gm, path, torrents,
 						bOverrideStartModeToStopped, false, false);

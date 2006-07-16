@@ -64,6 +64,7 @@ import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
@@ -148,7 +149,7 @@ MainWindow
 	Initializer 	_initializer,
 	ArrayList events) 
   { 
-  	try{
+		try{
   		if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "MainWindow start"));
 	    
@@ -206,6 +207,9 @@ MainWindow
   
   public void runSupport() {
     FormData formData;
+    final int NUM_TASKS = 8;
+    int iTaskNo = 0;
+    
     try{
     	uiFunctions = UIFunctionsManager.getUIFunctions();
     	if (uiFunctions == null) {
@@ -247,8 +251,10 @@ MainWindow
 				// register window
 				ShellManager.sharedManager().addWindow(shell);
 
+				
 				mainMenu = new MainMenu(this);
 
+		    
 				FormLayout mainLayout = new FormLayout();
 				mainLayout.marginHeight = 0;
 				mainLayout.marginWidth = 0;
@@ -311,6 +317,7 @@ MainWindow
 					}
 				});
 
+
 				// Separator between menu and icon bar
 				Label separator = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
 				formData = new FormData();
@@ -324,6 +331,7 @@ MainWindow
 				mainStatusBar = new MainStatusBar();
 				Composite statusBar = mainStatusBar.initStatusBar(azureus_core,
 						globalManager, display, shell);
+
 
 				controlAboveFolder = attachToTopOf;
 				controlBelowFolder = statusBar;
@@ -367,6 +375,7 @@ MainWindow
     	Logger.log(new LogEvent(LOGID, "Creating Icon Bar", e));
     }
 
+    
     if(!useCustomTab) {
       folder = new TabFolder(parent, SWT.V_SCROLL);
     } else {
@@ -516,6 +525,7 @@ MainWindow
       }
     }
 
+    
     if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Initializing GUI complete"));
    
@@ -546,16 +556,15 @@ MainWindow
 			// table columns and other objects
 			uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
 
+			if (azureus_core.getTrackerHost().getTorrents().length > 0) {
+				showMyTracker();
+			}
+
 			showMyTorrents();
 
 			//  share progress window
 
 			new ProgressWindow();
-
-			if (azureus_core.getTrackerHost().getTorrents().length > 0) {
-
-				showMyTracker();
-			}
 
 			if (COConfigurationManager.getBooleanParameter("Open Console", false)) {
 				showConsole();
@@ -577,12 +586,11 @@ MainWindow
 			updater.start();
 
 		} catch (Throwable e) {
-			System.out.println("Initialize Error");
 			Debug.printStackTrace(e);
 		}
 
     showMainWindow();
-  }
+}
   
 	private void showMainWindow() {
 		// No tray access on OSX yet
@@ -609,7 +617,7 @@ MainWindow
 		if (bEnableTray) {
 
 			try {
-				systemTraySWT = new SystemTraySWT(this);
+				systemTraySWT = new SystemTraySWT();
 
 			} catch (Throwable e) {
 
@@ -641,30 +649,45 @@ MainWindow
 	}
 
 
-  public void showMyTracker() {
+  protected void showMyTracker() {
   	if (my_tracker_tab == null) {
   		my_tracker_tab = new Tab(new MyTrackerView(azureus_core));
+  		my_tracker_tab.getView().getComposite().addDisposeListener(new DisposeListener() {
+      	public void widgetDisposed(DisposeEvent e) {
+      		my_tracker_tab = null;
+      	}
+      });
   	} else {
   		my_tracker_tab.setFocus();
   		refreshIconBar();
   	}
   }
   
-  public void 
+  protected void 
   showMyShares() 
   {
   	if (my_shares_tab == null) {
   		my_shares_tab = new Tab(new MySharesView(azureus_core));
+  		my_shares_tab.getView().getComposite().addDisposeListener(new DisposeListener() {
+      	public void widgetDisposed(DisposeEvent e) {
+      		my_shares_tab = null;
+      	}
+      });
   	} else {
   		my_shares_tab.setFocus();
   		refreshIconBar();
   	}
   }
   
-  public void showMyTorrents() {
+  protected void showMyTorrents() {
     if (mytorrents == null) {
     	MyTorrentsSuperView view = new MyTorrentsSuperView(azureus_core);
       mytorrents = new Tab(view);
+      mytorrents.getView().getComposite().addDisposeListener(new DisposeListener() {
+      	public void widgetDisposed(DisposeEvent e) {
+      		mytorrents = null;
+      	}
+      });
     } else {
       mytorrents.setFocus();
     }
@@ -709,7 +732,7 @@ MainWindow
   	}
   }
 
-  public void closeDownloadBars() {
+  protected void closeDownloadBars() {
     Utils.execSWTThread(new AERunnable() {
 
       public void runSupport() {
@@ -786,7 +809,7 @@ MainWindow
     created.addListener(this);
   }
 
-  public void openManagerView(DownloadManager downloadManager) {
+  protected void openManagerView(DownloadManager downloadManager) {
     try{
     	downloadViews_mon.enter();
     
@@ -805,7 +828,7 @@ MainWindow
     }
   }
 
-  public void removeManagerView(DownloadManager downloadManager) {
+  protected void removeManagerView(DownloadManager downloadManager) {
     try{
     	downloadViews_mon.enter();
       
@@ -979,46 +1002,6 @@ MainWindow
   /**
 	 * @return
 	 */
-  public Tab getConsole() {
-    return console;
-  }
-
-  /**
-	 * @return
-	 */
-  public Tab getMytorrents() {
-	return mytorrents;
-  }
-  
-  public Tab getMyTracker() {
-	return my_tracker_tab;
-  }
-
-  /**
-	 * @param tab
-	 */
-  public void setConsole(Tab tab) {
-    console = tab;
-  }
-
-  /**
-	 * @param tab
-	 */
-  public void setMytorrents(Tab tab) {
-	mytorrents = tab;
-  }
-  
-  public void setMyTracker(Tab tab) {
-  	my_tracker_tab = tab;
-  }
-  
-  public void setMyShares(Tab tab) {
-  	my_shares_tab = tab;
-  }
-  
-  /**
-	 * @return
-	 */
   public static MainWindow getWindow() {
     return window;
   }
@@ -1028,21 +1011,6 @@ MainWindow
 	 */
   public HashMap getDownloadBars() {
     return downloadBars;
-  }
-
-  /**
-	 * @param tab
-	 */
-  public void clearConfig() {
-    config 		= null;
-    config_view	= null;
-  }
-
-  /**
-   * @param tab
-   */
-  public void clearStats() {
-    stats_tab = null;
   }
 
   /**
@@ -1066,16 +1034,8 @@ MainWindow
   
   Map pluginTabs = new HashMap();
   
-
   
-  public void 
-  openPluginView(
-	UISWTPluginView view) 
-  {
-	  openPluginView( view, view.getPluginViewName());
-  }
-  
-  public void openPluginView(String sParentID, String sViewID, UISWTViewEventListener l,
+  protected void openPluginView(String sParentID, String sViewID, UISWTViewEventListener l,
 			Object dataSource, boolean bSetFocus) {
   	
   	UISWTViewImpl view = null;
@@ -1130,7 +1090,7 @@ MainWindow
    * 
    * @return open plugin views
    */
-  public UISWTView[] getPluginViews() {
+  protected UISWTView[] getPluginViews() {
   	Item[] items;
 
 		if (folder instanceof CTabFolder)
@@ -1166,7 +1126,7 @@ MainWindow
 		});
 	}
   
-  public void 
+  protected void 
   closePluginView( 
 	IView	view) 
   {
@@ -1278,10 +1238,16 @@ MainWindow
           close();
   }
 
-  public ConfigView showConfig() {
+  protected ConfigView showConfig() {
     if (config == null){
       config_view = new ConfigView( azureus_core );
       config = new Tab(config_view);
+      config_view.getComposite().addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					config = null;
+					config_view = null;
+				}
+			});
     }else{
       config.setFocus();
     }
@@ -1305,32 +1271,44 @@ MainWindow
 
   
   public void showConsole() {
-    if (console == null)
+    if (console == null) {
       console = new Tab(new LoggerView(events));
-    else
+      console.getView().getComposite().addDisposeListener(new DisposeListener() {
+      	public void widgetDisposed(DisposeEvent e) {
+      		console = null;
+      	}
+      });
+    } else {
       console.setFocus();
+    }
   }
   
   protected void showStats() {
-    if (stats_tab == null)
+    if (stats_tab == null) {
       stats_tab = new Tab(new StatsView(globalManager,azureus_core));
-    else
+      stats_tab.getView().getComposite().addDisposeListener(new DisposeListener() {
+      	public void widgetDisposed(DisposeEvent e) {
+					stats_tab = null;
+				}
+			});
+    } else {
       stats_tab.setFocus();
+    }
   }
 
   protected void showStatsDHT() {
-    if (stats_tab == null)
-      stats_tab = new Tab(new StatsView(globalManager,azureus_core));
-    else
-      stats_tab.setFocus();
+  	showStats();
+  	if (stats_tab == null) {
+  		return;
+  	}
 		((StatsView) stats_tab.getView()).showDHT();
   }
   
   protected void showStatsTransfers() {
-    if (stats_tab == null)
-      stats_tab = new Tab(new StatsView(globalManager,azureus_core));
-    else
-      stats_tab.setFocus();
+  	showStats();
+  	if (stats_tab == null) {
+  		return;
+  	}
 		((StatsView) stats_tab.getView()).showTransfers();
   }
 
@@ -1342,7 +1320,7 @@ MainWindow
 	    Messages.updateLanguageForControl(shell);
 	    
 	    if ( systemTraySWT != null ){
-	    	Messages.updateLanguageForControl(systemTraySWT.getMenu());
+	    	systemTraySWT.updateLanguage();
 	    }
 	    
 	  	if (mainStatusBar != null) {
@@ -1455,62 +1433,59 @@ MainWindow
 	generate(
 		IndentWriter		writer )
 	{
-		writer.println( "SWT UI" );
-		
-		try{
+		writer.println("SWT UI");
+
+		try {
 			writer.indent();
-		
-			writer.println( "SWT Version:" + SWT.getVersion() + "/" + SWT.getPlatform());
-			
-			writer.println( "MyTorrents" );
-		
-			try{
-				writer.indent();
 
-				Tab	t = mytorrents;
-				
-				if ( t != null ){
-					
-					t.generateDiagnostics( writer );
+			writer.println("SWT Version:" + SWT.getVersion() + "/"
+					+ SWT.getPlatform());
+
+			writer.println("MyTorrents");
+
+			Tab t = mytorrents;
+			if (t != null) {
+				try {
+					writer.indent();
+
+					t.generateDiagnostics(writer);
+				} finally {
+
+					writer.exdent();
 				}
-			}finally{
-				
-				writer.exdent();
+			}
+
+			t = my_tracker_tab;
+			if (t != null) {
+				writer.println("MyTracker");
+
+				try {
+					writer.indent();
+
+					t.generateDiagnostics(writer);
+				} finally {
+
+					writer.exdent();
+				}
+			}
+
+			t = my_shares_tab;
+			if (t != null) {
+				writer.println("MyShares");
+
+				try {
+					writer.indent();
+
+					t.generateDiagnostics(writer);
+				} finally {
+
+					writer.exdent();
+				}
 			}
 			
-			writer.println( "MyTracker" );
-			
-			try{
-				writer.indent();
+			TableColumnManager.getInstance().generateDiagnostics(writer);
+		} finally {
 
-				Tab	t = my_tracker_tab;
-				
-				if ( t != null ){
-					
-					t.generateDiagnostics( writer );
-				}
-			}finally{
-				
-				writer.exdent();
-			}
-			
-			writer.println( "MyShares" );
-			
-			try{
-				writer.indent();
-
-				Tab	t = my_shares_tab;
-				
-				if ( t != null ){
-					
-					t.generateDiagnostics( writer );
-				}
-			}finally{
-				
-				writer.exdent();
-			}
-		}finally{
-			
 			writer.exdent();
 		}
 	}
@@ -1536,7 +1511,7 @@ MainWindow
 	/**
 	 * @param string
 	 */
-	public void setStatusText(String string) {
+	protected void setStatusText(String string) {
 		// TODO Auto-generated method stub
 		if (mainStatusBar != null)
 			mainStatusBar.setStatusText(string);

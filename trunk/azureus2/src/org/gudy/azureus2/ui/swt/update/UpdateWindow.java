@@ -23,6 +23,9 @@
 package org.gudy.azureus2.ui.swt.update;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StyledText;
@@ -30,6 +33,7 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -160,8 +164,12 @@ UpdateWindow
     //Do not use ~SWT.CLOSE cause on some linux/GTK platform it
     //forces the window to be only 200x200
     //catch close event instead, and never do it
-    updateWindow = ShellFactory.createShell(MainWindow.getWindow().getShell(),
-				(SWT.DIALOG_TRIM | SWT.RESIZE));
+  	UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+  	if (uiFunctions != null) {
+			Shell mainShell = uiFunctions.getMainShell();
+			updateWindow = ShellFactory.createShell(mainShell, SWT.DIALOG_TRIM
+					| SWT.RESIZE);
+  	}
     
     updateWindow.addListener(SWT.Close,new Listener() {
       public void handleEvent(Event e) {

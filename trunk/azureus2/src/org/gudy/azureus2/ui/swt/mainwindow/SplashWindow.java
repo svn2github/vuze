@@ -107,13 +107,17 @@ public class SplashWindow implements AzureusCoreListener {
    * Should be called by the GUI thread
    */
   private void closeSplash() {    
-    if(initializer != null)
-      initializer.removeListener(this);
-    if(splash != null && !splash.isDisposed())
-      splash.dispose();
-    if(white != null && ! white.isDisposed())
-      white.dispose();
-    ImageRepository.unloadImage("azureus_splash");
+    Utils.execSWTThread(new AERunnable(){
+      public void runSupport() {
+		    if(initializer != null)
+		      initializer.removeListener(SplashWindow.this);
+		    if(splash != null && !splash.isDisposed())
+		      splash.dispose();
+		    if(white != null && ! white.isDisposed())
+		      white.dispose();
+		    ImageRepository.unloadImage("azureus_splash");
+      }
+    });
   }
   
   
@@ -144,6 +148,12 @@ public class SplashWindow implements AzureusCoreListener {
     if(display == null || display.isDisposed())
       return;
     
+    //OK Tricky way to close the splash window BUT ... sending a percent > 100 means closing
+    if (percent > 100) {
+      closeSplash();
+      return;
+    }
+
     //Post runnable to SWTThread
     Utils.execSWTThread(new AERunnable(){
       public void runSupport() {
@@ -151,11 +161,6 @@ public class SplashWindow implements AzureusCoreListener {
         if(percentDone == null || percentDone.isDisposed())
           return;
         percentDone.setSelection(percent);      
-        
-        //OK Tricky way to close the splash window BUT ... sending a percent > 100 means closing
-        if(percent > 100) {
-          closeSplash();
-        }
       }
     });
   }

@@ -50,6 +50,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * @author Olivier
@@ -957,21 +959,36 @@ public class Utils {
 	}
 	
 	public static Shell findAnyShell() {
+		// Pick the main shell if we can
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (uiFunctions != null) {
+			Shell shell = uiFunctions.getMainShell();
+			if (shell != null && shell.isDisposed()) {
+				return shell;
+			}
+		}
+
+		// Get active shell from current display if we can
 		Display current = Display.getCurrent();
 		if (current == null) {
 			return null;
 		}
 		Shell shell = current.getActiveShell();
-		if (shell != null) {
+		if (shell != null && !shell.isDisposed()) {
 			return shell;
 		}
 		
+		// Get first shell of current display if we can
 		Shell[] shells = current.getShells();
 		if (shells.length == 0) {
 			return null;
 		}
 		
-		return shells[0];
+		if (shells[0] != null && !shells[0].isDisposed()) {
+			return shells[0];
+		}
+		
+		return null;
 	}
 }
 

@@ -20,6 +20,8 @@
  
 package org.gudy.azureus2.ui.swt.views.table;
 
+import org.gudy.azureus2.core3.util.IndentWriter;
+
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
@@ -125,4 +127,29 @@ public interface TableColumnCore extends TableColumn {
 	 * @return
 	 */
 	boolean hasCellRefreshListener();
+	
+	/**
+	 * @return
+	 */
+	long getLastSortValueChange();
+	
+	/**
+	 * @param lastSortValueChange
+	 */
+	void setLastSortValueChange(long lastSortValueChange);
+
+	/**
+	 * @param live
+	 */
+	public void setSortValueLive(boolean live);
+	
+	public boolean isSortValueLive();
+	/**
+	 * @param ms
+	 */
+	public void addRefreshTime(long ms);
+	/**
+	 * @param writer
+	 */
+	void generateDiagnostics(IndentWriter writer);
 }

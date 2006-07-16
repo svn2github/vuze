@@ -24,12 +24,12 @@
 package org.gudy.azureus2.ui.swt.views.stats;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -41,7 +41,6 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 /**
@@ -126,7 +125,6 @@ public class ActivityView extends AbstractIView {
   }
   
   public void delete() {    
-    MainWindow.getWindow().clearStats();
     Utils.disposeComposite(panel);
     downSpeedGraphic.dispose();
     upSpeedGraphic.dispose();

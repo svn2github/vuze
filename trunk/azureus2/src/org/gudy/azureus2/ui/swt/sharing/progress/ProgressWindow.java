@@ -25,26 +25,29 @@ package org.gudy.azureus2.ui.swt.sharing.progress;
  * @author parg
  *
  */
-import org.eclipse.swt.*;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.animations.Animator;
-import org.gudy.azureus2.ui.swt.animations.shell.AnimableShell;
-import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
-import org.gudy.azureus2.ui.swt.shells.PopupShell;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.animations.Animator;
+import org.gudy.azureus2.ui.swt.animations.shell.AnimableShell;
+import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.shells.PopupShell;
 
-import org.gudy.azureus2.plugins.sharing.*;
-import org.gudy.azureus2.pluginsimpl.local.*;
+import org.gudy.azureus2.plugins.sharing.ShareException;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
+import org.gudy.azureus2.plugins.sharing.ShareManagerListener;
+import org.gudy.azureus2.plugins.sharing.ShareResource;
 
 public class 
 ProgressWindow
@@ -69,7 +72,7 @@ ProgressWindow
 		try{
 			share_manager	= PluginInitializer.getDefaultInterface().getShareManager();
 			
-			display = MainWindow.getWindow().getDisplay();
+			display = SWTThread.getInstance().getDisplay();
 			
 			if ( display.isDisposed()){
 				
@@ -216,7 +219,10 @@ ProgressWindow
       
       
             
-			shell.moveAbove( MainWindow.getWindow().getShell());
+			Shell otherShell = Utils.findAnyShell();
+			if (otherShell != null) {
+				shell.moveAbove(otherShell);
+			}
 			
 			if ( !shell.isVisible()){				
 				shell.setVisible(true);

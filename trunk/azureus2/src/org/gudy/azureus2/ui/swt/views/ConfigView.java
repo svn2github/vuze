@@ -37,20 +37,21 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
-
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
 
 import com.aelitis.azureus.core.AzureusCore;
+
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 
 /**
  * @author Olivier
@@ -728,7 +729,6 @@ public class ConfigView extends AbstractIView {
   }
 
   public void delete() {
-    MainWindow.getWindow().clearConfig();
     for (int i = 0; i < pluginSections.size(); i++)
       ((ConfigSection)pluginSections.get(i)).configSectionDelete();
     pluginSections.clear();

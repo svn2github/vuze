@@ -17,9 +17,12 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
+
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 import java.io.IOException;
 
@@ -100,17 +103,25 @@ public class CarbonUIEnhancer {
                HICommand command= new HICommand();
                OS.GetEventParameter(theEvent, OS.kEventParamDirectObject, OS.typeHICommand, null, HICommand.sizeof, null, command);
                switch (command.commandID) {
-               case kHICommandPreferences:
-                  MainWindow.getWindow().showConfig();
+               case kHICommandPreferences: {
+              	 UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+              	 if (uiFunctions != null) {
+              		 uiFunctions.showConfig(null);
+              	 }
                   return OS.noErr;
+               }
                case kHICommandAbout:
                  AboutWindow.show(display);
                  return OS.noErr;
-               case kHICommandRestart:
-                  MainWindow.getWindow().dispose(true,false);
+               case kHICommandRestart: {
+              	 UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+              	 if (uiFunctions != null) {
+              		 uiFunctions.dispose(true, false);
+              	 }
                   return OS.noErr;
+               }
                case kHICommandWizard:
-                  new ConfigureWizard(MainWindow.getWindow().getAzureusCore(), display);
+                  new ConfigureWizard(AzureusCoreFactory.getSingleton(), display);
                   return OS.noErr;
                case kHICommandNatTest:
                  new NatTestWindow();

@@ -35,6 +35,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
@@ -43,7 +44,6 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
  * @author TuxPaper
@@ -457,7 +457,6 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 	 * @see org.gudy.azureus2.ui.swt.IView#delete()
 	 */
 	public void delete() {
-		MainWindow.getWindow().setConsole(null);
 		Logger.removeListener(this);
 		if (consoleText != null && !consoleText.isDisposed())
 			consoleText.dispose();

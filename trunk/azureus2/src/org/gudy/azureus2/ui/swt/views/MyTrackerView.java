@@ -24,11 +24,18 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
-import com.aelitis.azureus.core.AzureusCore;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.URL;
+import java.util.Arrays;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.CategoryManagerListener;
@@ -40,26 +47,23 @@ import org.gudy.azureus2.core3.tracker.host.TRHostTorrentRemovalVetoException;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.plugins.sharing.ShareResource;
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytracker.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.URL;
-import java.util.Arrays;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 
 /**
@@ -130,8 +134,12 @@ MyTrackerView
         if (torrent == null)
           return;
 			  DownloadManager	dm = azureus_core.getGlobalManager().getDownloadManager(torrent.getTorrent());
-			  if (dm != null)
-				 	MainWindow.getWindow().openManagerView(dm);
+			  if (dm != null) {
+			  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+			  	if (uiFunctions != null) {
+			  		uiFunctions.openManagerView(dm);
+			  	}
+			  }
 		   }
 		 });	   
   }
@@ -277,7 +285,10 @@ MyTrackerView
 	   	}
 		
 		computePossibleActions();
-		MainWindow.getWindow().refreshIconBar();
+  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  	if (uiFunctions != null) {
+  		uiFunctions.refreshIconBar();
+  	}
 		
 		// Store values for columns that are calculate from peer information, so 
 		// that we only have to do one loop.  (As opposed to each cell doing a loop)
@@ -476,7 +487,7 @@ MyTrackerView
   public void 
   categoryAdded(Category category) 
   {
-  	MainWindow.getWindow().getDisplay().asyncExec(
+  	Utils.execSWTThread(
 	  		new AERunnable() 
 			{
 	  			public void 
@@ -491,7 +502,7 @@ MyTrackerView
   categoryRemoved(
   	Category category) 
   {
-  	MainWindow.getWindow().getDisplay().asyncExec(
+  	Utils.execSWTThread(
   		new AERunnable() 
 		{
   			public void 
@@ -504,7 +515,7 @@ MyTrackerView
 
   
   private void addCategory() {
-    CategoryAdderWindow adderWindow = new CategoryAdderWindow(MainWindow.getWindow().getDisplay());
+    CategoryAdderWindow adderWindow = new CategoryAdderWindow(SWTThread.getInstance().getDisplay());
     Category newCategory = adderWindow.getNewCategory();
     if (newCategory != null)
       assignSelectedToCategory(newCategory);

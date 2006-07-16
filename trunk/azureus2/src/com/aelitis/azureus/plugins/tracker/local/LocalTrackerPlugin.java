@@ -565,8 +565,10 @@ LocalTrackerPlugin
 
 				return;
 			}
-			
-			log.log( "Tracking " + download.getName());
+
+			if ( enabled.getValue()){
+				log.log( "Tracking " + download.getName());
+			}
 
 			downloads.put( download, new Long(0));
 			

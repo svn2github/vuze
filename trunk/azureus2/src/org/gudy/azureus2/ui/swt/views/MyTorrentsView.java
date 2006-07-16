@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,7 +66,6 @@ import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
@@ -80,6 +78,8 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.wizards.sendtorrent.SendTorrentWizard;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 /** Displays a list of torrents in a table view.
  *
@@ -125,9 +125,6 @@ public class MyTorrentsView
   int userMode;
   boolean isTrackerOn;
 
-  private Map downloadBars;
-  private AEMonitor				downloadBars_mon	= new AEMonitor( "MyTorrentsView:DL" );
-
   private Category currentCategory;
 
   // table item index, where the drag has started
@@ -161,7 +158,6 @@ public class MyTorrentsView
     this.globalManager 	= azureus_core.getGlobalManager();
     this.isSeedingView 	= isSeedingView;
 
-    downloadBars = MainWindow.getWindow().getDownloadBars();
     currentCategory = CategoryManager.getCategory(Category.TYPE_ALL);  
 	}
 
@@ -578,7 +574,10 @@ public class MyTorrentsView
 		    Utils.execSWTThread(new AERunnable() {
 			    public void runSupport() {
 			    	computePossibleActions();
-			      MainWindow.getWindow().refreshIconBar();  
+				  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+				  	if (uiFunctions != null) {
+				  		uiFunctions.refreshIconBar();
+				  	}
 			    }
 		    });    
 			}
@@ -590,8 +589,12 @@ public class MyTorrentsView
   
   public void runDefaultAction() {
     DownloadManager dm = (DownloadManager)getFirstSelectedDataSource();
-    if (dm != null)
-      MainWindow.getWindow().openManagerView(dm);
+    if (dm != null) {
+	  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+	  	if (uiFunctions != null) {
+	  		uiFunctions.openManagerView(dm);
+	  	}
+    }
   }
 
   public void fillTorrentMenu(final Menu menu) {
@@ -672,7 +675,7 @@ public class MyTorrentsView
 					changeUrl = false;
 				}
 
-				if (!downloadBars.containsKey(dm)) {
+				if (barsOpened && !MinimizedWindow.isOpen(dm)) {
 					barsOpened = false;
 				}
 
@@ -764,8 +767,10 @@ public class MyTorrentsView
 		Utils.setMenuItemImage(itemDetails, "details");
 		itemDetails.addListener(SWT.Selection, new SelectedTableRowsListener() {
 			public void run(TableRowCore row) {
-				MainWindow.getWindow().openManagerView(
-						(DownloadManager) row.getDataSource(true));
+		  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+		  	if (uiFunctions != null) {
+					uiFunctions.openManagerView((DownloadManager) row.getDataSource(true));
+				}
 			}
 		});
 		itemDetails.setEnabled(hasSelection);
@@ -950,7 +955,7 @@ public class MyTorrentsView
 				try {
 					newSpeed = (int) (Double.valueOf(sReturn).doubleValue() * 1024);
 				} catch (NumberFormatException er) {
-					MessageBox mb = new MessageBox(MainWindow.getWindow().getShell(),
+					MessageBox mb = new MessageBox(getComposite().getShell(),
 							SWT.ICON_ERROR | SWT.OK);
 					mb.setText(MessageText
 							.getString("MyTorrentsView.dialog.NumberError.title"));
@@ -1082,7 +1087,7 @@ public class MyTorrentsView
 				try {
 					newSpeed = (int) (Double.valueOf(sReturn).doubleValue() * 1024);
 				} catch (NumberFormatException er) {
-					MessageBox mb = new MessageBox(MainWindow.getWindow().getShell(),
+					MessageBox mb = new MessageBox(getComposite().getShell(),
 							SWT.ICON_ERROR | SWT.OK);
 					mb.setText(MessageText
 							.getString("MyTorrentsView.dialog.NumberError.title"));
@@ -1112,7 +1117,7 @@ public class MyTorrentsView
 						TRTrackerAnnouncer tc = ((DownloadManager) row.getDataSource(true))
 								.getTrackerClient();
 						if (tc != null)
-							new TrackerChangerWindow(MainWindow.getWindow().getDisplay(), tc);
+							new TrackerChangerWindow(getComposite().getDisplay(), tc);
 					}
 				});
 		itemChangeTracker.setEnabled(changeUrl);
@@ -1469,7 +1474,7 @@ public class MyTorrentsView
 					newPosition = size;
 
 				if (newPosition <= 0) {
-					MessageBox mb = new MessageBox(MainWindow.getWindow().getShell(),
+					MessageBox mb = new MessageBox(getComposite().getShell(),
 							SWT.ICON_ERROR | SWT.OK);
 					mb.setText(MessageText
 							.getString("MyTorrentsView.dialog.NumberError.title"));
@@ -1927,7 +1932,7 @@ public class MyTorrentsView
       int iOldPos = dm.getPosition();
       
       globalManager.moveTo(dm, iNewPos);
-      if (rowSorter.bAscending) {
+      if (rowSorter.isAscending()) {
         if (iOldPos > iNewPos)
           iNewPos++;
       } else {
@@ -1936,7 +1941,7 @@ public class MyTorrentsView
       }
     }
 
-    boolean bForceSort = rowSorter.sColumnName.equals("#");
+    boolean bForceSort = rowSorter.getColumnName().equals("#");
     columnInvalidate("#");
     refresh(bForceSort);
   }
@@ -1951,7 +1956,10 @@ public class MyTorrentsView
     isTrackerOn = TRTrackerUtils.isTrackerEnabled();
     
     computePossibleActions();
-    MainWindow.getWindow().refreshIconBar();
+  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  	if (uiFunctions != null) {
+  		uiFunctions.refreshIconBar();
+  	}
 
     super.refresh(bForceSort);
   }
@@ -2340,7 +2348,10 @@ public class MyTorrentsView
         ManagerUtils.host(azureus_core, (DownloadManager)row.getDataSource(true), cTablePanel);
       }
     });
-    MainWindow.getWindow().showMyTracker();
+  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  	if (uiFunctions != null) {
+  		uiFunctions.showMyTracker();
+  	}
   }
 
   private void publishSelectedTorrents() {
@@ -2349,7 +2360,10 @@ public class MyTorrentsView
         ManagerUtils.publish(azureus_core, (DownloadManager)row.getDataSource(true), cTablePanel);
       }
     });
-    MainWindow.getWindow().showMyTracker();
+  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  	if (uiFunctions != null) {
+  		uiFunctions.showMyTracker();
+  	}
   }
 
   private void runSelectedTorrents() {
@@ -2387,7 +2401,7 @@ public class MyTorrentsView
       }
     }
 
-    boolean bForceSort = rowSorter.sColumnName.equals("#");
+    boolean bForceSort = rowSorter.getColumnName().equals("#");
     columnInvalidate("#");
     refresh(bForceSort);
   }
@@ -2407,7 +2421,7 @@ public class MyTorrentsView
       }
     }
 
-    boolean bForceSort = rowSorter.sColumnName.equals("#");
+    boolean bForceSort = rowSorter.getColumnName().equals("#");
     columnInvalidate("#");
     refresh(bForceSort);
   }
@@ -2453,7 +2467,7 @@ public class MyTorrentsView
 			globalManager.moveTo(dm, newPositions[i]);
 		}
 
-		boolean bForceSort = rowSorter.sColumnName.equals("#");
+		boolean bForceSort = rowSorter.getColumnName().equals("#");
 		columnInvalidate("#");
 		refresh(bForceSort);
 	}
@@ -2474,7 +2488,7 @@ public class MyTorrentsView
       globalManager.moveTop(downloadManagers);
     else
       globalManager.moveEnd(downloadManagers);
-    if (rowSorter.sColumnName.equals("#")) {
+    if (rowSorter.getColumnName().equals("#")) {
       columnInvalidate("#");
       refresh(true);
     }
@@ -2601,7 +2615,7 @@ public class MyTorrentsView
 	}
 
   private Category addCategory() {
-    CategoryAdderWindow adderWindow = new CategoryAdderWindow(MainWindow.getWindow().getDisplay());
+    CategoryAdderWindow adderWindow = new CategoryAdderWindow(getComposite().getDisplay());
     Category newCategory = adderWindow.getNewCategory();
     if (newCategory != null)
       assignSelectedToCategory(newCategory);
@@ -2612,13 +2626,13 @@ public class MyTorrentsView
   public void downloadManagerAdded(Category category, final DownloadManager manager)
   {
   	if (isOurDownloadManager(manager)) {
-      addDataSource(manager, true);
+      addDataSource(manager);
     }
   }
 
   public void downloadManagerRemoved(Category category, DownloadManager removed)
   {
-    removeDataSource(removed, true);
+    removeDataSource(removed);
   }
 
 
@@ -2655,7 +2669,7 @@ public class MyTorrentsView
 			if (currentCategory == null
 					|| currentCategory.getType() == Category.TYPE_ALL) {
 
-				addDataSource(manager, true);
+				addDataSource(manager);
 
 			} else {
 
@@ -2667,18 +2681,18 @@ public class MyTorrentsView
 
 					if (catType == Category.TYPE_UNCATEGORIZED) {
 
-						addDataSource(manager, true);
+						addDataSource(manager);
 					}
 				} else {
 
 					if (currentCategory.getName().equals(manager_category.getName()))
 
-						addDataSource(manager, true);
+						addDataSource(manager);
 				}
 			}
 		} else if ((isSeedingView && !bCompleted) || (!isSeedingView && bCompleted)) {
 
-			removeDataSource(manager, true);
+			removeDataSource(manager);
 		}
 	}
 
@@ -2783,8 +2797,7 @@ public class MyTorrentsView
   public void downloadManagerRemoved( DownloadManager dm ) {
     dm.removeListener( this );
 
-    MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(dm);
-    if (mw != null) mw.close();
+    MinimizedWindow.close(dm);
 
     downloadManagerRemoved(null, dm);
   }
@@ -2823,19 +2836,15 @@ public class MyTorrentsView
     }
   }
 
-	public synchronized void addDataSources(Object[] dataSources, boolean bImmediate) {
-		super.addDataSources(dataSources, bImmediate);
-		if (bImmediate) {
-			updateTableLabel();
-		}
+	public synchronized void addDataSources(Object[] dataSources) {
+		super.addDataSources(dataSources);
+		updateTableLabel();
 	}
 
-	public synchronized void removeDataSources(Object[] dataSources, boolean bImmediate) {
-		super.removeDataSources(dataSources, bImmediate);
+	public synchronized void removeDataSources(Object[] dataSources) {
+		super.removeDataSources(dataSources);
 		
-		if (bImmediate) {
-			updateTableLabel();
-		}
+		updateTableLabel();
 	}
 	
 	public void processDataSourceQueue() {

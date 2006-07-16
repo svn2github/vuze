@@ -26,6 +26,9 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -48,7 +51,6 @@ import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.tableitems.myshares.CategoryItem;
@@ -131,7 +133,10 @@ MySharesView
 				 		
 				 		if ( Arrays.equals( share_hash, dm.getTorrent().getHash())){
 				 		
-						 	MainWindow.getWindow().openManagerView(dm);
+				 	  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+				 	  	if (uiFunctions != null) {
+				 	  		uiFunctions.openManagerView(dm);
+				 	  	}
 						 	
 						 	break;
 				 		}
@@ -236,7 +241,10 @@ MySharesView
 	  }
 		
 		computePossibleActions();
-		MainWindow.getWindow().refreshIconBar();
+	  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+ 	  	if (uiFunctions != null) {
+ 	  		uiFunctions.refreshIconBar();
+ 	  	}
 		
 		super.refresh(bForceSort);
 	}	 
@@ -298,7 +306,7 @@ MySharesView
 	  }
 	
 	  private void addCategory() {
-	    CategoryAdderWindow adderWindow = new CategoryAdderWindow(MainWindow.getWindow().getDisplay());
+	    CategoryAdderWindow adderWindow = new CategoryAdderWindow(getComposite().getDisplay());
 	    Category newCategory = adderWindow.getNewCategory();
 	    if (newCategory != null)
 	      assignSelectedToCategory(newCategory);
@@ -335,8 +343,6 @@ MySharesView
 	 	}catch( ShareException e ){
 	 		Debug.printStackTrace( e );
 	 	}
-	 	
-    MainWindow.getWindow().setMyShares(null);
   }
 
   private boolean start,stop,remove;

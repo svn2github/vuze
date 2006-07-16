@@ -40,27 +40,31 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
-import org.gudy.azureus2.core3.internat.*;
-import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.maketorrent.*;
-import org.gudy.azureus2.ui.swt.components.*;
+import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.components.BufferedTruncatedLabel;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
+import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
+import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 
 /**
  * View of General information on the torrent
@@ -588,7 +592,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     });
 
     if( Constants.isOSX ) {
-      Shell shell = MainWindow.getWindow().getShell();
+      Shell shell = genComposite.getShell();
       Point size = shell.getSize();
       shell.setSize(size.x-1,size.y-1);
       shell.setSize(size);

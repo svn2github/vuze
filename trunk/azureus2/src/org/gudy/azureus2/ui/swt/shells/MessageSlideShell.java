@@ -32,7 +32,6 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -41,10 +40,8 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -613,14 +610,21 @@ public class MessageSlideShell {
 			}
 		}
 
-		Rectangle bounds;
+		Rectangle bounds = null;
 		try {
-			MainWindow window = MainWindow.getWindow();
-			if (window == null)
+    	UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+    	if (uiFunctions != null) {
+				Shell mainShell = uiFunctions.getMainShell();
+				if (mainShell != null) {
+					bounds = mainShell.getMonitor().getClientArea();
+				}
+    	}
+    	if (bounds == null) {
 				bounds = shell.getMonitor().getClientArea();
-			else
-				bounds = window.getShell().getMonitor().getClientArea();
+    	}
 		} catch (Exception e) {
+		}
+		if (bounds == null) {
 			bounds = display.getClientArea();
 		}
 		

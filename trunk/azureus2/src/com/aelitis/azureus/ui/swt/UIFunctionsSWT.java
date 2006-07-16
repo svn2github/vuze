@@ -22,7 +22,11 @@ package com.aelitis.azureus.ui.swt;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
+import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.ui.UIFunctions;
 
@@ -68,4 +72,41 @@ public interface UIFunctionsSWT extends UIFunctions
 	 * @param l
 	 */
 	void addPluginView(String viewID, UISWTViewEventListener l);
+
+	/**
+	 * 
+	 */
+	public void closeDownloadBars();
+
+	/**
+	 * @return
+	 */
+	public UISWTInstanceImpl getSWTPluginInstanceImpl();
+
+	/**
+	 * @return
+	 */
+	public UISWTView[] getPluginViews();
+
+
+	/**
+	 * 
+	 * @param sParentID
+	 * @param sViewID
+	 * @param l
+	 * @param dataSource
+	 * @param bSetFocus
+	 */
+	public void openPluginView(String sParentID, String sViewID,
+			UISWTViewEventListener l, Object dataSource, boolean bSetFocus);
+
+	/**
+	 * @param viewID
+	 */
+	public void removePluginView(String viewID);
+
+	/**
+	 * @param impl
+	 */
+	public void closePluginView(IView view);
 }

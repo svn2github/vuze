@@ -24,18 +24,21 @@ package org.gudy.azureus2.ui.swt.pluginsinstaller;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.eclipse.swt.widgets.Display;
-import org.gudy.azureus2.core3.logging.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.wizard.Wizard;
+
+import com.aelitis.azureus.core.AzureusCore;
+
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.installer.InstallablePlugin;
 import org.gudy.azureus2.plugins.installer.PluginInstallerListener;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.wizard.Wizard;
-import com.aelitis.azureus.core.AzureusCore;
 
 /**
  * @author Olivier Chalouhi

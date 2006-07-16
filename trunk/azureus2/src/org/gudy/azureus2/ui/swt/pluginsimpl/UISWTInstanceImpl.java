@@ -22,20 +22,13 @@
 
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Frame;
-
-import java.awt.Panel;
+import java.awt.*;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
-
-
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
@@ -50,32 +43,28 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ui.UIException;
-import org.gudy.azureus2.plugins.ui.UIInstance;
-import org.gudy.azureus2.plugins.ui.UIInstanceFactory;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIManagerEvent;
-import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
-import org.gudy.azureus2.plugins.ui.UIRuntimeException;
-import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
-import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
-
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableColumnImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 
 public class 
 UISWTInstanceImpl
@@ -524,10 +513,10 @@ UISWTInstanceImpl
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					try {
-						final MainWindow window = MainWindow.getWindow();
-
-						if (window != null)
-							window.getMenu().removePluginViews(sViewID);
+						UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+						if (uiFunctions != null) {
+							uiFunctions.removePluginView(sViewID);
+						}
 					} catch (Throwable e) {
 						// SWT not available prolly
 					}
@@ -541,8 +530,10 @@ UISWTInstanceImpl
 			final UISWTViewEventListener l, final Object dataSource) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				MainWindow.getWindow().openPluginView(UISWTInstance.VIEW_MAIN, sViewID,
-						l, dataSource, !bUIAttaching);
+				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+				if (uiFunctions != null) {
+					uiFunctions.openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l, dataSource, !bUIAttaching);
+				}
 			}
 		});
 	}
@@ -550,10 +541,10 @@ UISWTInstanceImpl
 	public UISWTView[] getOpenViews(String sParentID) {
 		if (sParentID.equals(UISWTInstance.VIEW_MAIN)) {
 			try {
-				final MainWindow window = MainWindow.getWindow();
-	
-				if (window != null)
-					return 	window.getPluginViews();
+				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+				if (uiFunctions != null) {
+					return uiFunctions.getPluginViews();
+				}
 			} catch (Throwable e) {
 				// SWT not available prolly
 			}

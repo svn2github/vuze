@@ -23,20 +23,22 @@
 package org.gudy.azureus2.ui.swt.update;
 
 
-import com.aelitis.azureus.core.*;
-
 import org.eclipse.swt.SWT;
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.MessageBoxWindow;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-
 import org.gudy.azureus2.update.CoreUpdateChecker;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 import org.gudy.azureus2.plugins.update.*;
 
@@ -58,15 +60,14 @@ UpdateMonitor
 	
 	public static UpdateMonitor
 	getSingleton(
-		AzureusCore		core,
-		MainWindow		main_window )
+		AzureusCore		core )
 	{
 		try{
 			class_mon.enter();
 		
 			if ( singleton == null ){
 				
-				singleton = new UpdateMonitor( core, main_window );
+				singleton = new UpdateMonitor( core );
 			}
 			
 			return( singleton );
@@ -85,8 +86,7 @@ UpdateMonitor
 	
 	protected 
 	UpdateMonitor(
-		AzureusCore				_azureus_core ,
-		final MainWindow		_main_window )
+		AzureusCore				_azureus_core )
 	{
 		azureus_core	= _azureus_core;
 		
@@ -123,7 +123,7 @@ UpdateMonitor
 											SWT.YES | SWT.NO,
 											SWT.NULL,
 											false,
-											_main_window.getDisplay(), 
+											SWTThread.getInstance().getDisplay(),
 											MessageBoxWindow.ICON_WARNING,
 											MessageText.getString( "UpdateMonitor.messagebox.accept.unverified.title" ),
 											MessageText.getString( 
@@ -150,8 +150,7 @@ UpdateMonitor
 									public void
 									run()
 									{
-										Utils.openMessageBox(
-											_main_window.getShell(),
+										Utils.openMessageBox(Utils.findAnyShell(),
 											SWT.OK,
 											"UpdateMonitor.messagebox.verification.failed",
 											new String[]{ update.getName(), cause_str });
@@ -222,7 +221,10 @@ UpdateMonitor
 						runSupport()
 						{
 							if ( start_of_day ){
-                                MainWindow.getWindow().setStatusText("");
+						  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						  	if (uiFunctions != null) {
+						  		uiFunctions.setStatusText("");
+						  	}
 							}
 
 							CoreUpdateChecker.doUsageStats();
@@ -264,9 +266,11 @@ UpdateMonitor
 	    	current_update_instance.cancel();
 	    }
 	    
-		MainWindow mainWindow = MainWindow.getWindow();
-		
-	    mainWindow.setStatusText("MainWindow.status.checking ...");
+	  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+	  	if (uiFunctions != null) {
+	  		// XXX What kind of format is this!?
+	  		uiFunctions.setStatusText("MainWindow.status.checking ...");
+	  	}
 	    
 	    	// take this off this GUI thread in case it blocks for a while
 	    
@@ -301,8 +305,10 @@ UpdateMonitor
 		
 		boolean	update_action = instance.getType() == UpdateCheckInstance.UCI_UPDATE;
 		
-		MainWindow mainWindow = MainWindow.getWindow();
-		mainWindow.setStatusText("");
+		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+		if (uiFunctions != null) {
+			uiFunctions.setStatusText("");
+		}
 		
 	    Update[] us = instance.getUpdates();
 	   
@@ -376,9 +382,9 @@ UpdateMonitor
 	cancelled(
 		UpdateCheckInstance		instance )
 	{
-		MainWindow mainWindow = MainWindow.getWindow();
-
-		mainWindow.setStatusText("");
-
+		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+		if (uiFunctions != null) {
+			uiFunctions.setStatusText("");
+		}
 	}
 }

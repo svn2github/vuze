@@ -518,7 +518,6 @@ public class Tab {
         }
 
         if (view instanceof MyTorrentsSuperView) {
-        	mainwindow.setMytorrents(null);
           //TODO : There is a problem here on OSX when using Normal TABS
           /*  org.eclipse.swt.SWTException: Widget is disposed
                 at org.eclipse.swt.SWT.error(SWT.java:2691)
@@ -537,12 +536,10 @@ public class Tab {
           return;
         }
         if (view instanceof MyTrackerView) {
-        	mainwindow.setMyTracker(null);
           item.dispose();
           return;
         }
         if (view instanceof MySharesView) {
-        	mainwindow.setMyShares(null);
         	item.dispose();
         	return;
         }

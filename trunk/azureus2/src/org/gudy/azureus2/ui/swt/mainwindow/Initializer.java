@@ -116,7 +116,7 @@ Initializer
   handleStopRestart(
   	final boolean	restart )
   {
-  	if ( MainWindow.getWindow().getDisplay().getThread() == Thread.currentThread())
+  	if (Utils.isThisThreadSWT())
   		return( MainWindow.getWindow().dispose(restart,true));
 		
 		final AESemaphore			sem 	= new AESemaphore("SWTInit::stopRestartRequest");
@@ -222,6 +222,9 @@ Initializer
 	    			if ( comp instanceof GlobalManager ){
 	    				
 	    				gm	= (GlobalManager)comp;
+
+	    				nextTask();	    
+	    				reportCurrentTask(MessageText.getString("splash.initializePlugins"));
 	    			}
 	    		}
 	    		
@@ -241,7 +244,8 @@ Initializer
     		    
     		    Cursors.init();
     		    
-    		    MainWindow main_window = new MainWindow(core,Initializer.this,logEvents);
+    		    MainWindow main_window = new MainWindow(core, Initializer.this,
+							logEvents);
     		    
     		    if (finalLogListener != null)
     		    	Logger.removeListener(finalLogListener);
@@ -252,12 +256,13 @@ Initializer
 
 	    		    SWTUpdateChecker.initialize();
 	    		    
-	    		    UpdateMonitor.getSingleton( core, main_window );	// setup the update monitor
+	    		    UpdateMonitor.getSingleton( core );	// setup the update monitor
 	    			
 	    		    //Tell listeners that all is initialized :
 	    		    
 	    		    Alerts.initComplete();
 	    		    
+	    		    // 7th task: just for triggering a > 100% completion
 	    		    nextTask();
 	    		    
 	    		    
@@ -296,9 +301,6 @@ Initializer
 	    		}
 			});
 	    
-			nextTask();	    
-			reportCurrentTask(MessageText.getString("splash.initializePlugins"));
-
 	    azureus_core.start();
 
   	}catch( Throwable e ){

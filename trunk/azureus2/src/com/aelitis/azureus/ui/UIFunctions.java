@@ -19,6 +19,8 @@
  */
 package com.aelitis.azureus.ui;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
+
 
 /**
  * @author TuxPaper
@@ -32,7 +34,7 @@ public interface UIFunctions
 	 * Display the stats view
 	 */
 	void showStats();
-
+	
 	/**
 	 * Display the Stats View -> Transfer subview
 	 */
@@ -68,4 +70,31 @@ public interface UIFunctions
 	 * Change/Refresh the language of the UI
 	 */
 	void refreshLanguage();
+
+	/**
+	 * @param dm
+	 */
+	void openManagerView(DownloadManager dm);
+
+	/**
+	 * 
+	 */
+	void refreshIconBar();
+
+	/**
+	 * 
+	 */
+	void showMyTracker();
+
+	/**
+	 * @param manager
+	 */
+	void removeManagerView(DownloadManager dm);
+
+	/**
+	 * @param string
+	 */
+	void setStatusText(String string);
+
+  public boolean dispose(boolean for_restart, boolean close_already_in_progress);
 }

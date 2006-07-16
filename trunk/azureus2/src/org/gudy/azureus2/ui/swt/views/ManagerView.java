@@ -30,19 +30,13 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 
-import com.aelitis.azureus.core.*;
-import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
-import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -50,13 +44,20 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.wizards.sendtorrent.SendTorrentWizard;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+
+import org.gudy.azureus2.plugins.download.DownloadException;
 
 /**
  * Torrent download view, consisting of several information tabs
@@ -89,7 +90,10 @@ public class ManagerView extends AbstractIView implements
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
-    MainWindow.getWindow().removeManagerView(manager);
+  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  	if (uiFunctions != null) {
+  		uiFunctions.removeManagerView(manager);
+  	}
     manager.removeListener(this);
     
     if ( !folder.isDisposed()){
@@ -157,19 +161,22 @@ public class ManagerView extends AbstractIView implements
 			addSection(views[i], manager);
 
     // Call plugin listeners
-		UISWTInstanceImpl pluginUI = MainWindow.getWindow().getUISWTInstanceImpl();
-		Map pluginViews = pluginUI.getViewListeners(UISWTInstance.VIEW_MYTORRENTS);
-		if (pluginViews != null) {
-			String[] sNames = (String[])pluginViews.keySet().toArray(new String[0]);
-			for (int i = 0; i < sNames.length; i++) {
-				UISWTViewEventListener l = (UISWTViewEventListener)pluginViews.get(sNames[i]);
-				if (l != null) {
-					try {
-						UISWTViewImpl view = new UISWTViewImpl(
-								UISWTInstance.VIEW_MYTORRENTS, sNames[i], l);
-						addSection(view);
-					} catch (Exception e) {
-						// skip
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (uiFunctions != null) {
+			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+			Map pluginViews = pluginUI.getViewListeners(UISWTInstance.VIEW_MYTORRENTS);
+			if (pluginViews != null) {
+				String[] sNames = (String[]) pluginViews.keySet().toArray(new String[0]);
+				for (int i = 0; i < sNames.length; i++) {
+					UISWTViewEventListener l = (UISWTViewEventListener) pluginViews.get(sNames[i]);
+					if (l != null) {
+						try {
+							UISWTViewImpl view = new UISWTViewImpl(
+									UISWTInstance.VIEW_MYTORRENTS, sNames[i], l);
+							addSection(view);
+						} catch (Exception e) {
+							// skip
+						}
 					}
 				}
 			}
@@ -307,13 +314,19 @@ public class ManagerView extends AbstractIView implements
 		
 		if (itemKey.equals("host")) {
 			ManagerUtils.host(azureus_core, manager, folder);
-			MainWindow.getWindow().showMyTracker();
+			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+			if (uiFunctions != null) {
+				uiFunctions.showMyTracker();
+			}
 			return;
 		}
 		
 		if (itemKey.equals("publish")) {
 			ManagerUtils.publish(azureus_core, manager, folder);
-			MainWindow.getWindow().showMyTracker();
+			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+			if (uiFunctions != null) {
+				uiFunctions.showMyTracker();
+			}
 			return;
 		}
 		
@@ -373,7 +386,10 @@ public class ManagerView extends AbstractIView implements
       return;
     Utils.execSWTThread(new AERunnable() {
 	    public void runSupport() {
-	      MainWindow.getWindow().refreshIconBar();  
+				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+				if (uiFunctions != null) {
+					uiFunctions.refreshIconBar();
+				}
 	    }
     });    
   }

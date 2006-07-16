@@ -245,7 +245,7 @@ public class Messages {
         	TableColumn tc = ((TableColumn) widget);
         	if (SWTBUG_COLUMN && tc.getAlignment() == SWT.RIGHT) {
         		// this still sucks.. it bleeds the column text into the column to the left
-        		message += "  ";
+        		message = " " + message + "  ";
         	}
           tc.setText(message);
         } else if (widget instanceof Label)

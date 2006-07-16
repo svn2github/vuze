@@ -149,11 +149,11 @@ public class MainMenu {
       
       //The Main Menu
       menuBar = new Menu(parent, SWT.BAR);
-      parent.setMenuBar(menuBar);
 
       // one time disable conditions
       boolean notMainWindow = mainWindow != null && attachedShell != mainWindow.getShell();
       boolean isModal = new ShellIsModalPredicate().evaluate(attachedShell);
+
 
       //The File Menu
       MenuItem fileItem = new MenuItem(menuBar, SWT.CASCADE);
@@ -189,7 +189,6 @@ public class MainMenu {
       if(notMainWindow) {performOneTimeDisable(closeTabItem, false);}
       addCloseDetailsMenuItem(fileMenu);
       addCloseDownloadBarsToMenu(fileMenu);
-
 
 
       //No need for restart and exit on OS X
@@ -389,7 +388,7 @@ public class MainMenu {
           new UnInstallPluginWizard(core, display);
         }
       });
-
+      
       // standard items
       if(Constants.isOSX) {
           // Window menu
@@ -482,7 +481,7 @@ public class MainMenu {
         help_checkupdate.addListener(SWT.Selection, new Listener() {
         	public void handleEvent(Event e) {
         		mainWindow.getShell().setFocus();
-        		UpdateMonitor.getSingleton(core, mainWindow).performCheck(true);
+        		UpdateMonitor.getSingleton(core).performCheck(true);
         	}
         });
       }
@@ -535,6 +534,7 @@ public class MainMenu {
     } catch (Exception e) {
     	Logger.log(new LogEvent(LOGID, "Error while creating menu items", e));
     }
+    parent.setMenuBar(menuBar);
   }
 
 	private void addTransferMenu(final Shell parent, boolean modal, boolean notMainWindow)
@@ -631,27 +631,8 @@ public class MainMenu {
           indent(addStatisticsMenuItem(viewMenu));
       }
   }
-
-  public void
-  addPluginView(
-  	PluginView view)
-  {
-	  addPluginView( view, view.getPluginViewName());
-  }
   
-  /**
-   * Add a UISWTPluginView to the main view
-   * 
-   * @param view view to add
-   */
-  public void
-  addPluginView(
-  	UISWTPluginView view)
-  {
-	  addPluginView( view, view.getPluginViewName());
-  }
-
-  public void addPluginView(final String sViewID, final UISWTViewEventListener l) {
+  protected void addPluginView(final String sViewID, final UISWTViewEventListener l) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				String sResourceID = UISWTViewImpl.CFG_PREFIX + sViewID + ".title";
@@ -710,7 +691,7 @@ public class MainMenu {
 		});
 	}
   
-  public void removePluginViews(final String sViewID) {
+  protected void removePluginViews(final String sViewID) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				MenuItem[] items = pluginMenu.getItems();
@@ -772,19 +753,6 @@ public class MainMenu {
     });
   }
   
-  public void
-  removePluginView(
-  	PluginView view)
-  {
-	  removePluginView( view, view.getPluginViewName());
-  }
-  
-  public void
-  removePluginView(
-  	UISWTPluginView view)
-  {
-	  removePluginView( view, view.getPluginViewName());
-  }
   
   protected void
   removePluginView(
@@ -1144,7 +1112,7 @@ public class MainMenu {
   }
   
   
-  public void refreshLanguage() {
+  protected void refreshLanguage() {
     Utils.execSWTThread(new AERunnable() {
       public void runSupport() {
         if (display == null || display.isDisposed())

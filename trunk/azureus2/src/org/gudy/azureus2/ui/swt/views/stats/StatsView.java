@@ -27,6 +27,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
@@ -34,7 +35,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
@@ -243,8 +243,7 @@ public class StatsView extends AbstractIView {
   
   public void delete() {
     updateThread.stopIt();
-    MainWindow.getWindow().clearStats();    
-    
+
     //Don't ask me why, but without this an exception is thrown further
     // (in folder.dispose() )
     //TODO : Investigate to see if it's a platform (OSX-Carbon) BUG, and report to SWT team.
