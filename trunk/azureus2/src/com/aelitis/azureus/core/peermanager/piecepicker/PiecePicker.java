@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.peermanager.piecepicker;
 
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.IndentWriter;
 
@@ -42,7 +43,7 @@ public interface PiecePicker
     public long     getNeededUndonePieceChange();
     
 
-    public void     addHavePiece(final int pieceNumber);
+    public void     addHavePiece(PEPeer peer, int pieceNumber);
     
     /** This is called periodically by the peer control scheduler.
      * It should not normally be called by other methods.

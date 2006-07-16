@@ -1588,7 +1588,7 @@ PEPeerControlImpl
 	}
 	
 	public void havePiece(int pieceNumber, int pieceLength, PEPeer pcOrigin) {
-		piecePicker.addHavePiece(pieceNumber);
+		piecePicker.addHavePiece(pcOrigin, pieceNumber);
 		_stats.haveNewPiece(pieceLength);
 		
 		if(superSeedMode) {

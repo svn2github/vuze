@@ -183,6 +183,9 @@ PEPeer
 	
 	public int getUniqueAnnounce();
    
+	public int getConsecutiveNoRequestCount();
+	public void setConsecutiveNoRequestCount( int num );
+
   
   /** To retreive arbitrary objects against a peer. */
   public Object getData (String key);
@@ -226,6 +229,9 @@ PEPeer
    * Get the reserved piece for piece picking by this peer
    */
   public int getReservedPieceNumber();
+  
+  public int getIncomingRequestCount();
+  public int getOutgoingRequestCount();
   
   /**
    * get a list of piece numbers the peer has requested

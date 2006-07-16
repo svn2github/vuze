@@ -168,11 +168,9 @@ public class UnchokerUtilTest {
         public Connection getPluginConnection(){ return null; }
         public boolean supportsMessaging(){ return false;  }
         public Message[] getSupportedMessages(){ return null; }
-        public String getEncryption(){ return( "" ); };
+        public String getEncryption(){ return( "" ); }
         public int getReservedPieceNumber() { return -1; }
         public void setReservedPieceNumber(int pieceNumber) {}
-        public int getRarestPieceNumber() { return -1; }
-        public void setRarestPieceNumber(int pieceNumber) {}
 		public int[] getIncomingRequestedPieceNumbers() { return null; }
 		public int[] getOutgoingRequestedPieceNumbers() { return null; }
 		public int getPercentDoneOfCurrentIncomingRequest(){ return 0; }  
@@ -180,8 +178,16 @@ public class UnchokerUtilTest {
 		public long getTimeSinceConnectionEstablished(){ return 0; }
 		public int getLastPiece() { return -1; }
 		public void setLastPiece(int pieceNumber) {}
-		public boolean isAvailabilityAdded() {return false;};
-		public void clearAvailabilityAdded() {};
+		public int getConsecutiveNoRequestCount() {return 0; }
+		public void setConsecutiveNoRequestCount(int num) {}
+		public int getIncomingRequestCount() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+		public int getOutgoingRequestCount() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
       };
       
       peers.add( peer );

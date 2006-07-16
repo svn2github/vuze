@@ -84,7 +84,9 @@ public class PeersView
     new UpRatioItem(),
     new StateItem(),
     new ConnectedTimeItem(),
-    new PieceItem()
+    new PieceItem(),
+    new IncomingRequestCountItem(),
+    new OutgoingRequestCountItem(),
   };
   private DownloadManager manager;
 

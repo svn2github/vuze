@@ -135,6 +135,8 @@ PEPeerTransportProtocol
   
   private long connection_established_time = 0;
 
+  private int consecutive_no_request_count;
+  
   private boolean az_messaging_mode = false;
   private Message[] supported_messages = null;
   
@@ -1316,7 +1318,19 @@ PEPeerTransportProtocol
     return now -connection_established_time;
   }
   
+  public int 
+  getConsecutiveNoRequestCount()
+  {
+	 return( consecutive_no_request_count );
+  }
   
+  public void 
+  setConsecutiveNoRequestCount( 
+	int num )
+  {
+	  consecutive_no_request_count	= num;
+  }
+
   
   protected void decodeBTHandshake( BTHandshake handshake ) {
     PeerIdentityDataID  my_peer_data_id = manager.getPeerIdentityDataID();
@@ -2242,8 +2256,27 @@ PEPeerTransportProtocol
     reservedPiece = pieceNumber;
   }
   
+  public int 
+  getIncomingRequestCount()
+  {
+	  if ( outgoing_piece_message_handler == null ){
+		  return( 0 );
+	  }
+	  
+	  return outgoing_piece_message_handler.getRequestCount();
+  }
+  
+  public int 
+  getOutgoingRequestCount()
+  {
+	  return( getNbRequests());
+  }
+ 
   public int[] getIncomingRequestedPieceNumbers() {
-  	return outgoing_piece_message_handler.getRequestedPieceNumbers();
+	  if ( outgoing_piece_message_handler == null ){
+		  return( new int[0]);
+	  }
+	  return outgoing_piece_message_handler.getRequestedPieceNumbers();
   }
   
 	public int[] getOutgoingRequestedPieceNumbers() {

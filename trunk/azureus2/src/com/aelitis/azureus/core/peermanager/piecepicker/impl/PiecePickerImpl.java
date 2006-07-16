@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
 import com.aelitis.azureus.core.peermanager.piecepicker.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.unchoker.UnchokerUtil;
@@ -101,6 +102,10 @@ public class PiecePickerImpl
     /** event # of user settings controlling priority changes */
     protected static volatile long		paramPriorityChange =Long.MIN_VALUE;
 
+    private static final int	NO_REQUEST_BACKOFF_MAX_MILLIS	= 5*1000;
+    private static final int	NO_REQUEST_BACKOFF_MAX_LOOPS	= NO_REQUEST_BACKOFF_MAX_MILLIS / PeerControlScheduler.SCHEDULE_PERIOD_MILLIS;
+    
+    
 	private final DiskManager			diskManager;
 	private final PEPeerControl			peerControl;
 	
@@ -171,6 +176,8 @@ public class PiecePickerImpl
 	private long				lastShaperRecalcTime;
 	private CopyOnWriteList		priority_shapers = new CopyOnWriteList();
 	private int[]				priority_shaper_priorities;
+	
+	private int					allocate_request_loop_count;
 	
 	static
 	{
@@ -267,8 +274,9 @@ public class PiecePickerImpl
 	}
 	
 
-    public final void addHavePiece(final int pieceNumber)
+    public final void addHavePiece(final PEPeer peer, final int pieceNumber)
 	{
+    		// peer is null if called from disk-manager callback
 		try
 		{	availabilityMon.enter();
 			if ( availabilityAsynch == null ){
@@ -277,6 +285,13 @@ public class PiecePickerImpl
 			++availabilityAsynch[pieceNumber];
 			availabilityChange++;
 		} finally {availabilityMon.exit();}
+		
+			// if this is an interesting piece then clear any record of "no requests" so the peer gets
+			// scheduled next loop
+		
+		if ( peer != null && dmPieces[pieceNumber].isDownloadable()){
+			peer.setConsecutiveNoRequestCount(0);
+		}
 	}
 	
     /**
@@ -477,6 +492,8 @@ public class PiecePickerImpl
 			return;
 		}
 		
+		allocate_request_loop_count++;
+		
 		final List peers =peerControl.getPeers();
         final int peersSize =peers.size();
 
@@ -486,10 +503,19 @@ public class PiecePickerImpl
 		for (int i =0; i <peersSize; i++)
 		{
 			final PEPeerTransport peer =(PEPeerTransport) peers.get(i);
-			if (peer.isDownloadPossible())
-			{
-				final long upRate =peer.getStats().getSmoothDataReceiveRate();
-				UnchokerUtil.updateLargestValueFirstSort(upRate, upRates, peer, bestUploaders, 0);
+			
+			if (peer.isDownloadPossible()){
+			
+				int	no_req_count 	= peer.getConsecutiveNoRequestCount();
+	
+				if ( 	no_req_count == 0 || 
+						allocate_request_loop_count % ( no_req_count + 1 ) == 0 ){
+					
+					final long upRate =peer.getStats().getSmoothDataReceiveRate();
+					
+					UnchokerUtil.updateLargestValueFirstSort(upRate, upRates, peer, bestUploaders, 0);
+					
+				}
 			}
 		}
 		
@@ -507,15 +533,16 @@ public class PiecePickerImpl
 		
 		for (int i =0; i <uploadersSize; i++)
 		{
-			// get a connection
 			final PEPeerTransport pt =(PEPeerTransport) bestUploaders.get(i);
-			// can we transfer something?
+			
+				// can we transfer something?
+			
 			if (pt.isDownloadPossible()){
 			
 				int	peer_request_num = pt.getMaxNbRequests();
 				
-				// If request queue is too low, enqueue another request
-				int found =1;
+					// If request queue is too low, enqueue another request
+
 				int maxRequests;
                 
 				if ( peer_request_num != -1 ){
@@ -536,23 +563,64 @@ public class PiecePickerImpl
 	                    maxRequests =1;
 				}
 
-				// Only loop when 3/5 of the queue is empty, in order to make more consecutive requests,
-				// and improve cache efficiency
-				if (pt.getNbRequests() <=(maxRequests *3) /5)
-				{
+					// Only loop when 3/5 of the queue is empty, in order to make more consecutive requests,
+					// and improve cache efficiency
+				
+				if (pt.getNbRequests() <=(maxRequests *3) /5){
+				
+					int	total_allocated = 0;
+					
 					try{
 						boolean	peer_managing_requests = pt.requestAllocationStarts( startPriorities );
 					
-						while (found >0 &&pt.isDownloadPossible() &&pt.getNbRequests() <maxRequests)
-						{   // is there anything else to download?
-	                        if ( peer_managing_requests || !endGameMode )
-	                            found =findPieceToDownload(pt, maxRequests, (int)(upRates[i]/1024));
-	                        else
-	                            found =findPieceInEndGameMode(pt, maxRequests);
+						while ( pt.isDownloadPossible() && pt.getNbRequests() < maxRequests ){
+						
+								// is there anything else to download?
+							
+							int	allocated;
+							
+	                        if ( peer_managing_requests || !endGameMode ){
+	                        	
+	                        	allocated = findPieceToDownload(pt, maxRequests, (int)(upRates[i]/1024));
+	                            
+	                        }else{
+	                        	
+	                        	allocated = findPieceInEndGameMode(pt, maxRequests);
+	                        }
+	                        
+ 	                        if ( allocated == 0 ){	                		
+	                        	
+	                        	break;
+	                        	
+	                        }else{
+	                        	
+	                        	total_allocated += allocated;
+	                        }
 						}
 					}finally{
 						
 						pt.requestAllocationComplete();
+					}
+					
+					if ( total_allocated == 0 ){
+						
+							// there are various reasons that we might not allocate any requests to a peer
+							// such as them not having any pieces we're interested in. Keep track of the 
+							// number of consecutive "no requests" outcomes so we can reduce the scheduling
+							// frequency of such peers
+						
+						int	no_req_count = pt.getConsecutiveNoRequestCount();
+						
+						if ( no_req_count < NO_REQUEST_BACKOFF_MAX_LOOPS ){
+							
+							pt.setConsecutiveNoRequestCount( no_req_count + 2 );
+						}
+						
+                		// System.out.println( pt.getIp() + ": nb=" + pt.getNbRequests() + ",max=" + maxRequests + ",nrc=" + no_req_count +",loop=" + allocate_request_loop_count); 
+
+					}else{
+						
+						pt.setConsecutiveNoRequestCount( 0 );
 					}
 				}
 			}
@@ -1624,7 +1692,7 @@ public class PiecePickerImpl
 			final int pieceNumber =dmPiece.getPieceNumber();
 			if (dmPiece.isDone())
 			{
-				addHavePiece(pieceNumber);
+				addHavePiece(null,pieceNumber);
 				nbPiecesDone++;
                 if (nbPiecesDone >=nbPieces)
                     checkDownloadablePiece();

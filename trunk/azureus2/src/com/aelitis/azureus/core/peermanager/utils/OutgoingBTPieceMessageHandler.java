@@ -345,4 +345,9 @@ public class OutgoingBTPieceMessageHandler {
 		return trimmed;		
 	}
 	
+	public int
+	getRequestCount()
+	{
+		return( queued_messages.size()	+ loading_messages.size() + requests.size());
+	}
 }

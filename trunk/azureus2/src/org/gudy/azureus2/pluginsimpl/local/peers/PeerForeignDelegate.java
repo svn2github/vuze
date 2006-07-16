@@ -57,6 +57,7 @@ PeerForeignDelegate
 	private long	last_data_received_time =-1;
 	private long	last_data_message_received_time =-1;
 	private int		reserved_piece	= -1;
+	private int		consecutive_no_requests;
 	
 	private BitFlags	bit_flags;
 	
@@ -284,6 +285,19 @@ PeerForeignDelegate
   	{
   		return 0;
   	}
+
+  	 public int 
+  	 getConsecutiveNoRequestCount()
+  	 {
+  		 return( consecutive_no_requests );
+  	 }
+  	  
+  	 public void 
+  	 setConsecutiveNoRequestCount( 
+  		int num )
+  	 {
+  		 consecutive_no_requests = num;
+  	 }
 
 		// PEPeer stuff
 	
@@ -653,6 +667,17 @@ PeerForeignDelegate
 		return( new int[0] );
 	}
 
+	public int 
+	getIncomingRequestCount()
+	{
+		return( 0 );
+	}
+	
+	public int getOutgoingRequestCount()
+	{
+		return( foreign.getRequests().size());
+	}
+	 
 	public int[] 
 	getOutgoingRequestedPieceNumbers() 
 	{
