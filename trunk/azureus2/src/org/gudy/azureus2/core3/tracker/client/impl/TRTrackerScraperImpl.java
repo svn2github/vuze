@@ -202,7 +202,7 @@ TRTrackerScraperImpl
 	
 	public boolean
 	isTorrentDownloading(
-		byte[]		hash )
+		HashWrapper		hash )
 	{
 		if ( client_resolver == null ){
 			
@@ -216,7 +216,7 @@ TRTrackerScraperImpl
 	
 	public boolean
 	isTorrentRunning(
-		byte[]		hash )
+		HashWrapper		hash )
 	{
 		if ( client_resolver == null ){
 			
@@ -230,8 +230,8 @@ TRTrackerScraperImpl
 	
 	public boolean
 	isNetworkEnabled(
-		byte[]	hash,
-		URL		url )
+		HashWrapper	hash,
+		URL			url )
 	{
 		if ( client_resolver == null ){
 			
@@ -243,7 +243,7 @@ TRTrackerScraperImpl
 	
 	public Object[]
 	getExtensions(
-		byte[]	hash )
+		HashWrapper	hash )
 	{
 		if ( client_resolver == null ){
 			
@@ -255,9 +255,9 @@ TRTrackerScraperImpl
 	
 	public boolean
 	redirectTrackerUrl(
-		byte[]		hash,
-		URL			old_url,
-		URL			new_url )
+		HashWrapper		hash,
+		URL				old_url,
+		URL				new_url )
 	{
 		return( client_resolver.redirectTrackerUrl( hash, old_url, new_url ));
 	}

@@ -25,6 +25,7 @@ package org.gudy.azureus2.core3.tracker.client.impl.dht;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperResponseImpl;
+import org.gudy.azureus2.core3.util.HashWrapper;
 
 /**
  * @author parg
@@ -39,8 +40,8 @@ TRTrackerDHTScraperResponseImpl
 	
 	protected
 	TRTrackerDHTScraperResponseImpl(
-		byte[]		hash,
-		URL			_url )
+		HashWrapper		hash,
+		URL				_url )
 	{
 		super(hash );
 		

@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerImpl;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerResponseImpl;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerResponsePeerImpl;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
@@ -53,7 +54,7 @@ TRTrackerDHTAnnouncerImpl
 	extends TRTrackerAnnouncerImpl
 {
 	private TOTorrent		torrent;
-	private byte[]			torrent_hash;
+	private HashWrapper		torrent_hash;
 	private byte[]			data_peer_id;
 	
 	private String						tracker_status_str;
@@ -73,7 +74,7 @@ TRTrackerDHTAnnouncerImpl
 		torrent		= _torrent;
 		
 		try{
-			torrent_hash	= torrent.getHash();
+			torrent_hash	= torrent.getHashWrapper();
 			
 		}catch( TOTorrentException e ){
 			

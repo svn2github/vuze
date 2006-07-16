@@ -838,7 +838,7 @@ TorrentUtils
 	
 	public static void
 	setTLSTorrentHash(
-		byte[]		hash )
+		HashWrapper		hash )
 	{
 		((Map)tls.get()).put( "hash", hash );
 	}
@@ -846,28 +846,18 @@ TorrentUtils
 	public static TOTorrent
 	getTLSTorrent()
 	{
-		byte[]	hash = (byte[])((Map)tls.get()).get("hash");
+		HashWrapper	hash = (HashWrapper)((Map)tls.get()).get("hash");
 		
 		if ( hash != null ){
 			
 			try{
 				AzureusCore	core = AzureusCoreFactory.getSingleton();
 				
-				List	managers = core.getGlobalManager().getDownloadManagers();
+				DownloadManager dm = core.getGlobalManager().getDownloadManager( hash );
 				
-				for (int i=0;i<managers.size();i++){
-					
-					DownloadManager	dm = (DownloadManager)managers.get(i);
-					
-					TOTorrent	torrent = dm.getTorrent();
-					
-					if ( torrent != null ){
-						
-						if ( Arrays.equals(torrent.getHash(),hash)){
+				if ( dm != null ){
 							
-							return( torrent );
-						}
-					}
+					return( dm.getTorrent());
 				}
 			}catch( Throwable e ){
 				
@@ -1785,10 +1775,10 @@ TorrentUtils
 	 * @param hashBytes
 	 * @return
 	 */
-  public static DownloadManager getDownloadManager(byte[] hashBytes) {
+  public static DownloadManager getDownloadManager( HashWrapper	hash ) {
 		try {
 			return AzureusCoreFactory.getSingleton().getGlobalManager()
-					.getDownloadManager(hashBytes);
+					.getDownloadManager(hash);
 		} catch (Exception e) {
 			return null;
 		}

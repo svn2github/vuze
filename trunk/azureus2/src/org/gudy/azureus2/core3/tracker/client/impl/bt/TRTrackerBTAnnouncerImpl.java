@@ -123,7 +123,7 @@ TRTrackerBTAnnouncerImpl
      
   	private URL lastUsedUrl;
     
-  	private byte[]				torrent_hash;
+  	private HashWrapper			torrent_hash;
   	
 	private String	last_tracker_message;		// per torrent memory
 	
@@ -208,9 +208,9 @@ TRTrackerBTAnnouncerImpl
 	
 	try {
 	
-		torrent_hash = _torrent.getHash();
+		torrent_hash = _torrent.getHashWrapper();
 				
-		this.info_hash += URLEncoder.encode(new String(torrent_hash, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+		this.info_hash += URLEncoder.encode(new String(torrent_hash.getBytes(), Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
 		this.tracker_peer_id_str += URLEncoder.encode(new String(tracker_peer_id, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
@@ -1342,7 +1342,7 @@ TRTrackerBTAnnouncerImpl
 			 				}
 			 				
 			 				announce_request.setDetails(
-			 					torrent_hash,
+			 					torrent_hash.getBytes(),
 			 					tracker_peer_id,
 								getLongURLParam( url_str, "downloaded" ), 
 								event,
@@ -1395,7 +1395,7 @@ TRTrackerBTAnnouncerImpl
 			 				}
 			 				
 			 				announce_request.setDetails(
-			 					torrent_hash,
+			 					torrent_hash.getBytes(),
 			 					tracker_peer_id,
 								getLongURLParam( url_str, "downloaded" ), 
 								event,

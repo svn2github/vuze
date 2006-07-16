@@ -29,14 +29,15 @@ package org.gudy.azureus2.core3.tracker.client.impl;
 
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.HashWrapper;
 
 public abstract class 
 TRTrackerScraperResponseImpl 
   implements TRTrackerScraperResponse
 {
-	private byte[]  hash;
-	private int     seeds;
-	private int     peers;
+	private HashWrapper hash;
+	private int     	seeds;
+	private int    		peers;
   
   private long scrapeStartTime;
   private long nextScrapeStartTime;
@@ -47,14 +48,14 @@ TRTrackerScraperResponseImpl
 
   protected 
   TRTrackerScraperResponseImpl(                                     
-  		byte[] _hash ) 
+	  HashWrapper _hash ) 
   {
     this( _hash, -1, -1, -1);
   }
 
   protected 
   TRTrackerScraperResponseImpl(
-     byte[] _hash,
+	 HashWrapper _hash,
      int  _seeds, 
      int  _peers,
      long _scrapeStartTime)  
@@ -69,7 +70,7 @@ TRTrackerScraperResponseImpl
     nextScrapeStartTime = -1;
   }
 
-  public byte[] getHash() {
+  public HashWrapper getHash() {
     return hash;
   }
     
@@ -198,7 +199,7 @@ TRTrackerScraperResponseImpl
 	public String
 	getString()
 	{
-	  return( getURL() + ": " + ByteFormatter.encodeString(hash) +",seeds=" + seeds + ",peers=" + peers +",state="+status+
+	  return( getURL() + ": " + ByteFormatter.encodeString(hash.getBytes()) +",seeds=" + seeds + ",peers=" + peers +",state="+status+
 			  "/"+sStatus+",last="+last_status+"/"+sLastStatus+",start="+scrapeStartTime+",next="+nextScrapeStartTime);
 	}
 }

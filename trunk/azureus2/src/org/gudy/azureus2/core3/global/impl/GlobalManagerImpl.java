@@ -331,7 +331,7 @@ public class GlobalManagerImpl
 		{
     		public int
 			getStatus(
-				byte[]	torrent_hash )
+				HashWrapper	torrent_hash )
     		{
        			DownloadManager	dm = getDownloadManager(torrent_hash);
     			
@@ -357,8 +357,8 @@ public class GlobalManagerImpl
     		
     		public boolean
 			isNetworkEnabled(
-				byte[]	hash,
-				URL		url )
+				HashWrapper	hash,
+				URL			url )
     		{
        			DownloadManager	dm = getDownloadManager(hash);
     			
@@ -384,7 +384,7 @@ public class GlobalManagerImpl
     		
     		public Object[]
     		getExtensions(
-    			byte[]	hash )
+    			HashWrapper	hash )
     		{
      			DownloadManager	dm = getDownloadManager(hash);
     			
@@ -434,9 +434,9 @@ public class GlobalManagerImpl
     		
     		public boolean
     		redirectTrackerUrl(
-    			byte[]		hash,
-    			URL			old_url,
-    			URL			new_url )
+    			HashWrapper		hash,
+    			URL				old_url,
+    			URL				new_url )
     		{
        			DownloadManager	dm = getDownloadManager(hash);
        		 
@@ -452,9 +452,9 @@ public class GlobalManagerImpl
     trackerScraper.addListener(
     	new TRTrackerScraperListener() {
     		public void scrapeReceived(TRTrackerScraperResponse response) {
-    			byte[]	hash = response.getHash();
+    			HashWrapper	hash = response.getHash();
     			
-   				DownloadManager manager = (DownloadManager)manager_map.get(new HashWrapper(hash));
+   				DownloadManager manager = (DownloadManager)manager_map.get( hash );
    				if ( manager != null ) {
    					manager.setTrackerScrapeResponse( response );
     			}
@@ -932,18 +932,18 @@ public class GlobalManagerImpl
     
   public DownloadManager getDownloadManager(TOTorrent torrent) {
     try {
-      return getDownloadManager(torrent.getHash());
+      return getDownloadManager(torrent.getHashWrapper());
     } catch (TOTorrentException e) {
       return null;
     }
   }
 
   public DownloadManager 
-  getDownloadManager(byte[]	hash) 
+  getDownloadManager(HashWrapper	hw) 
   {
-      return (DownloadManager)manager_map.get(new HashWrapper(hash));
+      return (DownloadManager)manager_map.get( hw );
   }
-
+  
   public void 
   canDownloadManagerBeRemoved(
   	DownloadManager manager) 
@@ -1253,7 +1253,7 @@ public class GlobalManagerImpl
 		      	
 		        HashWrapper hash = (HashWrapper)data[0];
 		        
-		        DownloadManager this_manager = getDownloadManager( hash.getHash() );
+		        DownloadManager this_manager = getDownloadManager( hash );
 		      
 		        if ( this_manager == manager ){
 		        	
@@ -1303,7 +1303,7 @@ public class GlobalManagerImpl
 	        
 	        force = ((Boolean)data[1]).booleanValue();
 	        
-	        DownloadManager this_manager = getDownloadManager( hash.getHash() );
+	        DownloadManager this_manager = getDownloadManager( hash );
 	      
 	        if ( this_manager == manager ){
 	        	
@@ -1343,7 +1343,7 @@ public class GlobalManagerImpl
         HashWrapper hash = (HashWrapper)data[0];
         boolean		force = ((Boolean)data[1]).booleanValue();
         
-        DownloadManager manager = getDownloadManager( hash.getHash() );
+        DownloadManager manager = getDownloadManager( hash );
       
         if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
           
@@ -1366,7 +1366,7 @@ public class GlobalManagerImpl
       for( int i=0; i < paused_list.size(); i++ ) {  
       	Object[]	data = (Object[])paused_list.get(i);
         HashWrapper hash = (HashWrapper)data[0];
-        DownloadManager manager = getDownloadManager( hash.getHash() );
+        DownloadManager manager = getDownloadManager( hash );
       
         if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
           return true;

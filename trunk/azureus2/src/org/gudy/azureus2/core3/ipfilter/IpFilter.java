@@ -30,6 +30,7 @@ package org.gudy.azureus2.core3.ipfilter;
 
 import java.util.List;
 import java.io.File;
+import java.net.InetAddress;
 
 
 public interface 
@@ -70,6 +71,12 @@ IpFilter
 		String ipAddress, 
 		String torrent_name,
 		boolean	loggable );
+	
+	public boolean 
+	isInRange(
+		InetAddress 	ipAddress, 
+		String 			torrent_name,
+		boolean			loggable );
 	
 	public IpRange
 	createRange(

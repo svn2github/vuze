@@ -121,7 +121,7 @@ AddressUtils
 		byte is_lan_local = LAN_LOCAL_MAYBE;
 		
 		try {
-			is_lan_local = isLANLocalAddress( InetAddress.getByName( address ) );
+			is_lan_local = isLANLocalAddress( HostNameToIPResolver.syncResolve( address ));
 		}
 		catch( Throwable t ) {  t.printStackTrace();  }
 		

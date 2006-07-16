@@ -28,6 +28,7 @@ import com.aelitis.azureus.core.AzureusCoreListener;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.download.*;
 
 /**
@@ -126,7 +127,7 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 * @return The DownloadManager associted with the hash, or null if
 	 *          none found
 	 */
-	public DownloadManager getDownloadManager(byte[] hash);
+	public DownloadManager getDownloadManager(HashWrapper hash);
 
 	/**
 	 * Retrieve the Tracker Scraper management class

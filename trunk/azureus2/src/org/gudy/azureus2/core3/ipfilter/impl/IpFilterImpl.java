@@ -30,6 +30,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -449,6 +450,73 @@ IpFilterImpl
 	}
 	
   
+	public boolean 
+	isInRange(
+		InetAddress ipAddress, 
+		String 		torrent_name,
+		boolean		loggable ) 
+	{
+		//In all cases, block banned ip addresses
+		
+	  if(isBanned(ipAddress)){
+	  
+		  return true;
+	  }
+	  
+	  	// never bounce the local machine (peer guardian has a range that includes it!)
+	  
+	  if ( ipAddress.isLoopbackAddress() || ipAddress.isLinkLocalAddress() || ipAddress.isSiteLocalAddress()){
+	  	
+		  return( false );
+	  }
+	  
+	  //never block lan local addresses
+	  if( AddressUtils.isLANLocalAddress( ipAddress ) != AddressUtils.LAN_LOCAL_NO ) {
+	  	return false;
+	  }
+	  
+	  
+	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled",true)){
+		  
+	    return false;
+	  }
+	  
+	  boolean allow = COConfigurationManager.getBooleanParameter("Ip Filter Allow");
+	  
+	  IpRange	match = (IpRange)range_manager.isInRange( ipAddress );
+
+	  if(match != null) {
+		  
+	    if(!allow) {
+	    			  
+	      addBlockedIP( new BlockedIpImpl(ipAddress.getHostAddress(),match, torrent_name, loggable), loggable );
+	      
+	      if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Ip Blocked : "
+							+ ipAddress + ", in range : " + match));
+	      
+	      return true;
+	    }
+      
+	    return false;  
+	  }
+
+	
+	  if( allow ){  
+		  
+	    addBlockedIP( new BlockedIpImpl(ipAddress.getHostAddress(),null, torrent_name, loggable), loggable );
+	    
+	    if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Ip Blocked : "
+						+ ipAddress + ", not in any range"));
+	    
+	    return true;
+	  }
+	  
+	  return false;
+	}
+	
+	
   
   private void 
   addBlockedIP( 
@@ -476,6 +544,25 @@ IpFilterImpl
   
   
   
+	private boolean 
+	isBanned(
+		InetAddress ipAddress) 
+	{
+	  try{
+	  	class_mon.enter();
+	  
+		int	address = range_manager.addressToInt( ipAddress );
+		
+		Integer	i_address = new Integer( address );
+		
+	    return( bannedIps.get(i_address) != null );
+	    
+	  }finally{
+	  	
+	  	class_mon.exit();
+	  }
+	}
+	
 	private boolean 
 	isBanned(
 		String ipAddress) 

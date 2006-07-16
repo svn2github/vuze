@@ -1060,7 +1060,7 @@ DHTTransportUDPImpl
 			}
 			
 			if ( ip_filter.isInRange( 
-					contact.getTransportAddress().getAddress().getHostAddress(), "DHT",
+					contact.getTransportAddress().getAddress(), "DHT",
 					logger.isEnabled( DHTLogger.LT_IP_FILTER ))){
 				
 					// don't let an attacker deliberately fill up our filter so we start

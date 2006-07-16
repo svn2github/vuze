@@ -24,6 +24,8 @@ package org.gudy.azureus2.core3.tracker.client;
 
 import java.net.URL;
 
+import org.gudy.azureus2.core3.util.HashWrapper;
+
 /**
  * @author parg
  *
@@ -53,12 +55,12 @@ TRTrackerScraperClientResolver
 	
 	public int
 	getStatus(
-		byte[]	torrent_hash );
+		HashWrapper	torrent_hash );
 	
 	public boolean
 	isNetworkEnabled(
-		byte[]	hash,
-		URL		url );
+		HashWrapper	hash,
+		URL			url );
 	
 		/**
 		 * Two kinds of extensions: entry [0] = String (or null) that gets passed with the scrape verbotem after infohash
@@ -70,11 +72,11 @@ TRTrackerScraperClientResolver
 	
 	public Object[]
 	getExtensions(
-		byte[]	hash );
+		HashWrapper	hash );
 	
 	public boolean
 	redirectTrackerUrl(
-		byte[]		hash,
-		URL			old_url,
-		URL			new_url );
+		HashWrapper		hash,
+		URL				old_url,
+		URL				new_url );
 }

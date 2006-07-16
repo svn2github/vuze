@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.ipfilter.impl;
 
 import java.util.*;
 
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.gudy.azureus2.core3.ipfilter.IpRange;
@@ -89,6 +90,32 @@ IPAddressRangeManager
 	public Object
 	isInRange(
 		String	ip )
+	{
+		try{
+			this_mon.enter();
+			
+			long address_long = addressToInt( ip );
+			
+			if ( address_long < 0 ){
+				
+				address_long += 0x100000000L;
+			}
+			
+			Object res = isInRange( address_long );
+			
+			// LGLogger.log( "IPAddressRangeManager: checking '" + ip + "' against " + entries.size() + "/" + merged_entries.length + " -> " + res );
+			
+			return( res );
+						
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public Object
+	isInRange(
+		InetAddress	ip )
 	{
 		try{
 			this_mon.enter();
@@ -250,6 +277,13 @@ IPAddressRangeManager
 			
 			return( UnresolvableHostManager.getPseudoAddress( address ));
 		}
+	}
+	
+	protected int
+	addressToInt(
+		InetAddress	address )
+	{
+		return( PRHelpers.addressToInt( address ));
 	}
 	
 	protected void

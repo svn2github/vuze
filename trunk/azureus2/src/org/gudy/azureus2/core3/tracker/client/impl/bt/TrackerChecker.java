@@ -132,8 +132,6 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
       return( null );
     }
   
-    byte[] hashBytes = hash.getHash();
-
     TRTrackerScraperResponseImpl data = null;
 
     	// DON'T USE URL as a key in the trackers map, use the string version. If you
@@ -150,13 +148,13 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
     
         if ( ts != null ){
 	      
-	      data = ts.getHashData(hashBytes);
+	      data = ts.getHashData( hash );
 	      
 	      if (data == null) {
 	    	  
 	        //System.out.println("data == null: " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
 	    	  
-	        data = ts.addHash(hashBytes);
+	        data = ts.addHash(hash);
 	      }
 	    }else{
     
@@ -166,12 +164,12 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
       
 	        trackers.put(url_str, ts);
 
-        	data = ts.addHash(hashBytes);
+        	data = ts.addHash(hash);
 
 	        if( !ts.isTrackerScrapeUrlValid() ) {
   
 		      	if (Logger.isEnabled()){
-							Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hashBytes), LOGID,
+							Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
 									LogEvent.LT_ERROR, "Can't scrape using url '" + trackerUrl
 											+ "' as it doesn't end in " + "'/announce', skipping."));
 		      	}
@@ -235,7 +233,7 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
     }
     
     try {
-      byte[] hash = torrent.getHash();
+      HashWrapper hash = torrent.getHashWrapper();
     
       TrackerStatus matched_ts = null;
       
@@ -256,7 +254,7 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
 		      try{
 		    	  ts.getHashesMonitor().enter();
 
-		          if ( hashmap.get( new HashWrapper( hash )) != null ){
+		          if ( hashmap.get( hash ) != null ){
 		          	
 		        	matched_ts	= ts;
 		        	  

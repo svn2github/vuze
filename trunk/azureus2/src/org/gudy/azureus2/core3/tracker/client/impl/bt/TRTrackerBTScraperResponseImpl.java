@@ -27,6 +27,7 @@ import java.net.URL;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperResponseImpl;
+import org.gudy.azureus2.core3.util.HashWrapper;
 
 /**
  * @author parg
@@ -42,7 +43,7 @@ TRTrackerBTScraperResponseImpl
 	  protected 
 	  TRTrackerBTScraperResponseImpl(
 	  		TrackerStatus _ts,
-            byte[] _hash) 
+            HashWrapper _hash) 
 	  {
 	  	this(_ts, _hash, -1, -1, -1);
 	  }
@@ -50,7 +51,7 @@ TRTrackerBTScraperResponseImpl
 	  protected 
 	  TRTrackerBTScraperResponseImpl(
 	  		TrackerStatus _ts,
-            byte[] _hash,
+	  		HashWrapper _hash,
             int  _seeds, 
             int  _peers,
             long _scrapeStartTime)  

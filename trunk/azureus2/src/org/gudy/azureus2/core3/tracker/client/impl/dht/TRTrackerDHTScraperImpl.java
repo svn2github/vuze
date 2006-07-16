@@ -87,7 +87,7 @@ TRTrackerDHTScraperImpl
 			
 			try{
 				TRTrackerScraperResponseImpl resp = 
-					new TRTrackerDHTScraperResponseImpl( torrent.getHash(), result.getURL());
+					new TRTrackerDHTScraperResponseImpl( torrent.getHashWrapper(), result.getURL());
 							
 				resp.setSeedsPeers( result.getSeedCount(), result.getNonSeedCount());
 				

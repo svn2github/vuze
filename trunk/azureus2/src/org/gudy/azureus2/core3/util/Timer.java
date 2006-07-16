@@ -80,7 +80,7 @@ public class Timer
 		while( true ){
 			
 			try{
-				List	events_to_run = new ArrayList();
+				TimerEvent	event_to_run = null;
 				
 				synchronized(this){
 					
@@ -125,22 +125,20 @@ public class Timer
 						
 						if ( event.getWhen() <= now ){
 							
-							events_to_run.add( event );
+							event_to_run = event;
 							
 							it.remove();
+							
+							break;
 						}
 					}
 				}
 				
-				for (int i=0;i<events_to_run.size();i++){
+				if ( event_to_run != null ){
 					
-					// System.out.println( "firing event");
+					event_to_run.setHasRun();
 					
-					TimerEvent	ev = (TimerEvent)events_to_run.get(i);
-					
-					ev.setHasRun();
-					
-					thread_pool.run(ev.getRunnable());
+					thread_pool.run(event_to_run.getRunnable());
 				}
 				
 			}catch( Throwable e ){

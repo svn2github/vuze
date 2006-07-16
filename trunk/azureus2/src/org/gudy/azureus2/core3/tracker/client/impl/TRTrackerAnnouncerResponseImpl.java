@@ -25,16 +25,17 @@ import java.net.URL;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.util.HashWrapper;
 
 public class 
 TRTrackerAnnouncerResponseImpl
 	implements TRTrackerAnnouncerResponse 
 {
-	private URL			url;
-	private byte[]		hash;
-	private int			status;
-	private long		time_to_wait;
-	private String		failure_reason;
+	private URL				url;
+	private HashWrapper		hash;
+	private int				status;
+	private long			time_to_wait;
+	private String			failure_reason;
 	
 	protected TRTrackerAnnouncerResponsePeer[]	peers;
 	
@@ -42,10 +43,10 @@ TRTrackerAnnouncerResponseImpl
 	
 	public
 	TRTrackerAnnouncerResponseImpl(
-		URL		_url,
-		byte[]	_hash,
-		int		_status,
-		long	_time_to_wait  )
+		URL			_url,
+		HashWrapper	_hash,
+		int			_status,
+		long		_time_to_wait  )
 	{
 		url				= _url;
 		hash			= _hash;
@@ -55,11 +56,11 @@ TRTrackerAnnouncerResponseImpl
 	
 	public
 	TRTrackerAnnouncerResponseImpl(
-		URL		_url,
-		byte[]	_hash,
-		int		_status,
-		long	_time_to_wait,
-		String	_failure_reason )
+		URL			_url,
+		HashWrapper	_hash,
+		int			_status,
+		long		_time_to_wait,
+		String		_failure_reason )
 	{
 		url				= _url;
 		hash			= _hash;
@@ -71,7 +72,7 @@ TRTrackerAnnouncerResponseImpl
 	public
 	TRTrackerAnnouncerResponseImpl(
 		URL									_url,
-		byte[]								_hash,
+		HashWrapper							_hash,
 		int									_status,
 		long								_time_to_wait,
 		TRTrackerAnnouncerResponsePeer[]	_peers )
@@ -83,7 +84,7 @@ TRTrackerAnnouncerResponseImpl
 		peers			= _peers;
 	}
 	
-	public byte[]
+	public HashWrapper
 	getHash()
 	{
 		return( hash );

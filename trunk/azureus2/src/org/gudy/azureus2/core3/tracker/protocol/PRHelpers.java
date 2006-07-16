@@ -50,6 +50,20 @@ PRHelpers
 		return( resp );
 	}
 	
+	public static int
+	addressToInt(
+		InetAddress		i_address )
+	{
+		byte[]	bytes = i_address.getAddress();
+		
+		int	resp = (bytes[0]<<24)&0xff000000 | (bytes[1] << 16)&0x00ff0000 | (bytes[2] << 8)&0x0000ff00 | bytes[3]&0x000000ff;
+	
+		// System.out.println( "addressToInt: " + address + " -> " + Integer.toHexString(resp));
+		
+		return( resp );
+	}
+	
+	
 	public static String
 	intToAddress(
 		int		value )

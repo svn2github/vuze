@@ -178,21 +178,7 @@ public class TrackerStatus {
   	}
   }
 
-  protected TRTrackerScraperResponseImpl 
-  getHashData(
-	byte[] hash ) 
-  {
-  	try{
-  		hashes_mon.enter();
  
-  		TRTrackerScraperResponseImpl	res =  (TRTrackerScraperResponseImpl) hashes.get( new HashWrapper(hash));
-  		
-  		return( res );
-  	}finally{
-  		
-  		hashes_mon.exit();
-  	}
-  }
 
 
   protected void 
@@ -200,22 +186,14 @@ public class TrackerStatus {
 	HashWrapper hash, 
 	boolean force) 
   {
-    updateSingleHash(hash.getHash(), force, true);
-  }
-
-  protected void 
-  updateSingleHash(
-	byte[] hash, 
-	boolean force) 
-  {
     updateSingleHash(hash, force, true);
   }
 
   	protected void 
   	updateSingleHash(
-  		byte[] 	hash, 
-  		boolean force, 
-  		boolean async ) 
+  		HashWrapper 	hash, 
+  		boolean 		force, 
+  		boolean 		async ) 
   	{      
   		//LGLogger.log( "updateSingleHash():: force=" + force + ", async=" +async+ ", url=" +scrapeURL+ ", hash=" +ByteFormatter.nicePrint(hash, true) );
     
@@ -232,7 +210,7 @@ public class TrackerStatus {
   			try{
   				hashes_mon.enter();
    		
-	    		response = (TRTrackerScraperResponseImpl)hashes.get(new HashWrapper(hash));
+	    		response = (TRTrackerScraperResponseImpl)hashes.get( hash );
 		    
 	    		if (response == null) {
 	    			
@@ -274,7 +252,7 @@ public class TrackerStatus {
 			      	
 			        TRTrackerScraperResponseImpl r = (TRTrackerScraperResponseImpl)iterHashes.next();
 			        
-			        if (!Arrays.equals( r.getHash(), hash)) {
+			        if ( r.getHash().equals( hash )) {
 			        	
 			          long lTimeDiff = Math.abs(lMainNextScrapeStartTime - r.getNextScrapeStartTime());
 			          
@@ -347,7 +325,7 @@ public class TrackerStatus {
 				// if URL already includes a query component then just append our
 				// params
 
-				byte[] one_of_the_hashes = null;
+				HashWrapper one_of_the_hashes = null;
 				TRTrackerScraperResponseImpl one_of_the_responses = null;
 
 				char first_separator = scrapeURL.indexOf('?') == -1 ? '?' : '&';
@@ -359,7 +337,7 @@ public class TrackerStatus {
 				for (int i = 0; i < responses.size(); i++) {
 					TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses.get(i);
 
-					byte[] hash = response.getHash();
+					HashWrapper hash = response.getHash();
 
 					if (Logger.isEnabled())
 						Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
@@ -405,7 +383,7 @@ public class TrackerStatus {
 								+ "info_hash=";
 
 						info_hash += URLEncoder.encode(
-								new String(hash, Constants.BYTE_ENCODING),
+								new String(hash.getBytes(), Constants.BYTE_ENCODING),
 								Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 
 						Object[]	extensions = scraper.getExtensions(hash);
@@ -609,7 +587,7 @@ public class TrackerStatus {
 					// ByteFormatter.nicePrint( response.getHash(), true ) );
 
 					// retrieve the scrape data for the relevent infohash
-					Map scrapeMap = (Map) mapFiles.get(new String(response.getHash(),
+					Map scrapeMap = (Map) mapFiles.get(new String(response.getHash().getBytes(),
 							Constants.BYTE_ENCODING));
 
 					if (scrapeMap == null) {
@@ -680,7 +658,7 @@ public class TrackerStatus {
 						// make sure we dont use invalid replies
 						if (seeds < 0 || peers < 0) {
 							if (Logger.isEnabled()) {
-								byte[] hash = response.getHash();
+								HashWrapper hash = response.getHash();
 								Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash),
 										LOGID, "Invalid scrape response from '" + reqUrl
 												+ "': map = " + scrapeMap));
@@ -753,7 +731,7 @@ public class TrackerStatus {
 									
 									if ( scraper.redirectTrackerUrl( response.getHash(), tracker_url, new_url )){
 										
-										removeHash( new HashWrapper( response.getHash()));
+										removeHash( response.getHash());
 									}
 								}
 							}
@@ -822,7 +800,7 @@ public class TrackerStatus {
 							.get(i);
 
 					if (Logger.isEnabled()) {
-						byte[] hash = response.getHash();
+						HashWrapper hash = response.getHash();
 						Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
 								LogEvent.LT_ERROR, "Error from scrape interface " + scrapeURL
 										+ " : " + msg));
@@ -1011,7 +989,7 @@ public class TrackerStatus {
   scrapeUDP(
   	URL								reqUrl,
 	ByteArrayOutputStream			message,
-	byte[]							hash,
+	HashWrapper						hash,
 	TRTrackerScraperResponseImpl	current_response )
   
   		throws Exception
@@ -1039,7 +1017,7 @@ public class TrackerStatus {
 									
 		Map	file = new HashMap();
 			
-		byte[]	resp_hash = hash;
+		byte[]	resp_hash = hash.getBytes();
 		
 		// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
 	
@@ -1088,7 +1066,7 @@ public class TrackerStatus {
 					
 					long	my_connection = connect_reply.getConnectionId();
 					
-					PRUDPPacketRequestScrape scrape_request = new PRUDPPacketRequestScrape( my_connection, hash );
+					PRUDPPacketRequestScrape scrape_request = new PRUDPPacketRequestScrape( my_connection, hash.getBytes() );
 									
 					reply = handler.sendAndReceive( auth, scrape_request, destination );
 					
@@ -1163,7 +1141,7 @@ public class TrackerStatus {
 														
 							Map	file = new HashMap();
 								
-							byte[]	resp_hash = hash;
+							byte[]	resp_hash = hash.getBytes();
 							
 							// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
 						
@@ -1255,7 +1233,7 @@ public class TrackerStatus {
   }
   
 
-  protected TRTrackerScraperResponseImpl addHash(byte[] hash) {
+  protected TRTrackerScraperResponseImpl addHash(HashWrapper hash) {
     TRTrackerScraperResponseImpl response = new TRTrackerBTScraperResponseImpl(this, hash);
     if (scrapeURL == null)  {
       response.setStatus(TRTrackerScraperResponse.ST_ERROR,
@@ -1270,7 +1248,7 @@ public class TrackerStatus {
   	try{
   		hashes_mon.enter();
   	
-  		hashes.put(new HashWrapper(hash), response);
+  		hashes.put( hash, response);
       
   	}finally{
   		
