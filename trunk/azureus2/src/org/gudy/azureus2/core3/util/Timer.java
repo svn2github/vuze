@@ -181,6 +181,34 @@ public class Timer
 		}
 	}
 	
+	public void
+	adjustAllBy(
+		long	offset )
+	{
+		// fix up the timers
+
+		synchronized (this) {
+
+			// as we're adjusting all events by the same amount the ordering remains valid
+
+			Iterator it = events.iterator();
+
+			while (it.hasNext()) {
+
+				TimerEvent event = (TimerEvent) it.next();
+
+				long old_when = event.getWhen();
+				long new_when = old_when + offset;
+
+				// System.out.println( "    adjusted: " + old_when + " -> " + new_when );
+
+				event.setWhen(new_when);
+			}
+
+			notify();
+		}
+	}
+
 	public synchronized TimerEvent
 	addEvent(
 		long				when,
