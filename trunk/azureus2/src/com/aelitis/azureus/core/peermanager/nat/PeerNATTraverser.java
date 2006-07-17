@@ -90,7 +90,7 @@ PeerNATTraverser
 	private int		failed_no_rendezvous	= 0;
 	private int		failed_negative_bloom	= 0;
 	
-	private BloomFilter	negative_result_bloom;
+	private BloomFilter	negative_result_bloom = BloomFilterFactory.createAddOnly( BLOOM_SIZE );
 	
 	private static final int BLOOM_SIZE				= 4096;
 	private static final int BLOOM_REBUILD_PERIOD	= 5*60*1000;
@@ -122,13 +122,13 @@ PeerNATTraverser
 	
 						if ( ticks % BLOOM_REBUILD_TICKS == 0 ){
 							
-							int	size = negative_result_bloom==null?0:negative_result_bloom.getEntryCount();
+							int	size = negative_result_bloom.getEntryCount();
 							
 					      	if (Logger.isEnabled()){
 								Logger.log(	new LogEvent(LOGID,	"PeerNATTraverser: negative bloom size = " + size ));
 				          	}
 					      	
-							negative_result_bloom	= null;
+					      	negative_result_bloom = BloomFilterFactory.createAddOnly( BLOOM_SIZE );
 						}
 						
 						if ( ticks % STATS_TICK_COUNT == 0 ){
@@ -283,11 +283,6 @@ PeerNATTraverser
 		boolean	bad = false;
 		
 		synchronized( initiators ){
-			
-			if ( negative_result_bloom == null ){
-				
-				negative_result_bloom = BloomFilterFactory.createAddOnly( BLOOM_SIZE );
-			}
 						
 			if ( negative_result_bloom.contains( target.toString().getBytes() )){
 				
