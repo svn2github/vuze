@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.versioncheck;
 
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -379,6 +380,7 @@ public class VersionCheckClient {
     }
     catch( ClassNotFoundException e ) {  /* ignore */ }
     catch( NoClassDefFoundError er ) {  /* ignore */ }
+    catch( InvocationTargetException err ) {  /* ignore */ }
     catch( Throwable t ) {  t.printStackTrace();  }
     
     
