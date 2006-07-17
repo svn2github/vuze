@@ -1984,11 +1984,11 @@ public class TableView
 
 					// Must remove from map before deleted from gui
 					TableRowCore item = (TableRowCore) dataSourceToRow.remove(dataSources[i]);
-					if (!bRefresh) {
-						int index = item.getIndex();
-						bRefresh = index >= iTopIndex || index <= iBottomIndex;
-					}
 					if (item != null) {
+						if (!bRefresh) {
+							int index = item.getIndex();
+							bRefresh = index >= iTopIndex || index <= iBottomIndex;
+						}
 						itemsToRemove.add(item);
 						sortedRows.remove(item);
 					}
