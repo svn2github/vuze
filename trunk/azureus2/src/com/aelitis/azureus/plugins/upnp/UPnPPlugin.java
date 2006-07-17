@@ -107,30 +107,6 @@ UPnPPlugin
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Universal Plug and Play (UPnP)" );
 		
-		plugin_interface.addListener(
-			new PluginListener()
-			{
-				public void
-				initializationComplete()
-				{	
-				}
-				
-				public void
-				closedownInitiated()
-				{
-					if ( services.size() == 0 ){
-						
-						plugin_interface.getPluginconfig().setPluginParameter( "plugin.info", "" );
-					}
-				}
-				
-				public void
-				closedownComplete()
-				{
-					closeDown( true );
-				}
-			});
-		
 		log = plugin_interface.getLogger().getTimeStampedChannel("UPnP");
 
 		UIManager	ui_manager = plugin_interface.getUIManager();
@@ -283,7 +259,7 @@ UPnPPlugin
 		upnp_enable_param.addEnabledOnSelection( ignored_devices_list );
 		upnp_enable_param.addEnabledOnSelection( reset_param );
 
-		boolean	enabled = upnp_enable_param.getValue();
+		final boolean	enabled = upnp_enable_param.getValue();
 		
 		natpmp_enable_param.setEnabled( enabled );
 		
@@ -338,12 +314,35 @@ UPnPPlugin
 				}
 			});
 		
-		if ( enabled ){
-			
-			updateIgnoreList();
-			
-			startUp();			
-		}
+		plugin_interface.addListener(
+				new PluginListener()
+				{
+					public void
+					initializationComplete()
+					{	
+						if ( enabled ){
+							
+							updateIgnoreList();
+							
+							startUp();			
+						}
+					}
+					
+					public void
+					closedownInitiated()
+					{
+						if ( services.size() == 0 ){
+							
+							plugin_interface.getPluginconfig().setPluginParameter( "plugin.info", "" );
+						}
+					}
+					
+					public void
+					closedownComplete()
+					{
+						closeDown( true );
+					}
+				});
 	}
 	
 	protected void

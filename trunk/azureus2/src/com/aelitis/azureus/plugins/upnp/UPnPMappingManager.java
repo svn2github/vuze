@@ -30,11 +30,12 @@ package com.aelitis.azureus.plugins.upnp;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
-import com.aelitis.net.upnp.UPnPRootDevice;
 import com.aelitis.net.upnp.services.UPnPWANConnection;
 
 public class 
@@ -59,6 +60,8 @@ UPnPMappingManager
 	private List	mappings	= new ArrayList();
 	private List	listeners	= new ArrayList();
 	
+	private AsyncDispatcher	async_dispatcher = new AsyncDispatcher();
+	
 	protected
 	UPnPMappingManager(
 		UPnPPlugin		_plugin )
@@ -71,14 +74,16 @@ UPnPMappingManager
 			// with the UDP one, leaving the TCP one non-operational. Hack to try setting them
 			// in UDP -> TCP order to hopefully leave the more important one working :)
 		
-		addConfigPort( "upnp.mapping.dataport", false, "UDP.Listen.Port", true );
+		addConfigPort( "upnp.mapping.dataport", false, "UDP.Listen.Port.Enable", "UDP.Listen.Port" );
 		
 			// this is actually the UDP tracker client mapping, very badly named params...
 		
-		addConfigPort( "upnp.mapping.dataportudp", false, "Server Enable UDP", "UDP.Listen.Port" );
+		addConfigPort( "upnp.mapping.trackerclientudp", false, "Server Enable UDP", "UDP.NonData.Listen.Port" );
 
-		addConfigPort( "upnp.mapping.dataport", true, "TCP.Listen.Port", true );
+			// note that the dht plugin registers its own mapping
 		
+		
+		addConfigPort( "upnp.mapping.dataport", true, "TCP.Listen.Port.Enable", "TCP.Listen.Port" );
 
 			// tracker server TCP
 		
@@ -113,11 +118,28 @@ UPnPMappingManager
 				
 				UPnPMapping	map = maps[i];
 				
-				if ( map.isEnabled() && !map.isTCP()){
+				if ( map.isEnabled() && map.isTCP()){
 					
-					UPnPMapping	other = getMapping( true, map.getPort());
+					List	others = getMappingEx( false, map.getPort());
 					
-					if ( other != null && other.isEnabled()){
+					if ( others.size() == 0 ){
+						
+						continue;
+					}
+					
+					boolean	enabled = false;
+					
+					for (int j=0;j<others.size();j++){
+					
+						UPnPMapping	other = (UPnPMapping)others.get(j);
+						
+						if ( other.isEnabled()){
+							
+							enabled	= true;
+						}
+					}
+					
+					if ( enabled ){
 						
 						int	new_port_1;
 						int	new_port_2;
@@ -149,17 +171,38 @@ UPnPMappingManager
 							}
 						}
 						
+						String	others_str = "";
+						
+						for (int j=0;j<others.size();j++){
+						
+							UPnPMapping	other = (UPnPMapping)others.get(j);
+							
+							if ( other.isEnabled()){
+																
+								others_str += (others_str.length()==0?"":",") + other.getString( new_port_2 );
+							}
+						}
+						
 						plugin.logAlert( 
 								LoggerChannel.LT_WARNING,
 								"upnp.portchange.alert",
 								new String[]{ 
 										map.getString( new_port_1 ),
 										String.valueOf( map.getPort()),
-										other.getString( new_port_2 ),
-										String.valueOf(other.getPort())});
+										others_str,
+										String.valueOf( map.getPort())});
 
 						map.setPort( new_port_1 );
-						other.setPort( new_port_2 );
+						
+						for (int j=0;j<others.size();j++){
+							
+							UPnPMapping	other = (UPnPMapping)others.get(j);
+							
+							if ( other.isEnabled()){
+	
+								other.setPort( new_port_2 );
+							}
+						}
 						
 						save_config	= true;
 					}
@@ -177,8 +220,8 @@ UPnPMappingManager
 	addConfigPort(
 		String			name_resource,
 		boolean			tcp,
-		final String	int_param_name,
-		boolean			enabled )
+		boolean			enabled,
+		final String	int_param_name )
 	{
 		int	value = COConfigurationManager.getIntParameter(int_param_name);
 		
@@ -201,7 +244,7 @@ UPnPMappingManager
 					}
 				});
 		
-		COConfigurationManager.addParameterListener(
+		addConfigListener(
 				int_param_name,
 				new ParameterListener()
 				{
@@ -225,7 +268,7 @@ UPnPMappingManager
 	{
 		boolean	enabled = COConfigurationManager.getBooleanParameter(enabler_param_name);
 		
-		final UPnPMapping	mapping = addConfigPort( name_resource, tcp, int_param_name, enabled );
+		final UPnPMapping	mapping = addConfigPort( name_resource, tcp, enabled, int_param_name );
 		
 		mapping.addListener(
 				new UPnPMappingListener()
@@ -244,7 +287,7 @@ UPnPMappingManager
 					}
 				});
 		
-		COConfigurationManager.addParameterListener(
+		addConfigListener(
 				enabler_param_name,
 				new ParameterListener()
 				{
@@ -303,7 +346,7 @@ UPnPMappingManager
 					}
 				};
 				
-		COConfigurationManager.addParameterListener( string_param_name, l1 );
+		addConfigListener( string_param_name, l1 );
 				
 		ParameterListener	l2 = 
 				new ParameterListener()
@@ -323,7 +366,7 @@ UPnPMappingManager
 					}
 				};
 
-		COConfigurationManager.addParameterListener( enabler_param_name, l2 );
+		addConfigListener( enabler_param_name, l2 );
 
 
 		l1.parameterChanged( null );
@@ -400,6 +443,26 @@ UPnPMappingManager
 		return( null );
 	}
 	
+	public List
+	getMappingEx(
+		boolean	tcp,
+		int		port )
+	{
+		List	res = new ArrayList();
+		
+		for (int i=0;i<mappings.size();i++){
+			
+			UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
+			
+			if ( mapping.isTCP() == tcp && mapping.getPort() == port ){
+				
+				res.add( mapping );
+			}
+		}
+		
+		return( res );
+	}
+	
 	protected void
 	added(
 		UPnPMapping		mapping )
@@ -439,5 +502,31 @@ UPnPMappingManager
 			UPnPMappingManagerListener	l )
 	{
 		listeners.remove(l);
+	}
+	
+	protected void
+	addConfigListener(
+		final String				param,
+		final ParameterListener		listener )
+	{
+		COConfigurationManager.addParameterListener(
+			param,
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					async_dispatcher.dispatch(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								listener.parameterChanged( param );
+							}
+						});
+				}
+			});
 	}
 }

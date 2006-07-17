@@ -56,14 +56,12 @@ import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
 
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
-import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
@@ -157,7 +155,7 @@ DHTPlugin
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	PLUGIN_VERSION );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
 
-		dht_data_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
+		dht_data_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
 
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
 		
@@ -180,7 +178,7 @@ DHTPlugin
 					public void
 					configSaved()
 					{
-						int	new_dht_data_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
+						int	new_dht_data_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
 						
 						if ( new_dht_data_port != dht_data_port ){
 							

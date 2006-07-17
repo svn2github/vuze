@@ -40,6 +40,7 @@ AZPortClashHandler
 	
 	private int	last_warned_tcp;
 	private int	last_warned_udp;
+	private int	last_warned_udp2;
 	
 	protected
 	AZPortClashHandler(
@@ -66,7 +67,6 @@ AZPortClashHandler
 				other_ext.isLoopbackAddress() ||
 				my_ext.equals( other_ext )){
 		
-
 			String	warning = null;
 			
 			int	my_tcp = my_instance.getTCPListenPort();
@@ -78,14 +78,26 @@ AZPortClashHandler
 				last_warned_tcp	= my_tcp;
 			}
 			
-			int	my_udp = my_instance.getUDPListenPort();
+			int	my_udp 	= my_instance.getUDPListenPort();
+			int my_udp2	= my_instance.getUDPNonDataListenPort();
 			
-			if ( my_udp != 0 && my_udp != last_warned_udp && my_udp == instance.getUDPListenPort()){
+			int	other_udp 	= instance.getUDPListenPort();
+			int other_udp2	= instance.getUDPNonDataListenPort();
+			
+			if ( my_udp != 0 && my_udp != last_warned_udp && ( my_udp == other_udp || my_udp == other_udp2 )){
 				
 				warning = (warning==null?"":(warning + ", ")) + "UDP " + my_udp;
 				
 				last_warned_udp	= my_udp;
 			}
+			
+			if ( my_udp != my_udp2 && my_udp2 != 0 && my_udp2 != last_warned_udp2 && ( my_udp2 == other_udp || my_udp2 == other_udp2 )){
+				
+				warning = (warning==null?"":(warning + ", ")) + "UDP " + my_udp2;
+				
+				last_warned_udp2	= my_udp2;
+			}
+			
 			
 			if ( warning != null ){
 				

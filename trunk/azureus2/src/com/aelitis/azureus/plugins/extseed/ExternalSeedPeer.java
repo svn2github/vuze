@@ -322,8 +322,13 @@ ExternalSeedPeer
 	{
 		return( 0 );
 	}
+	
+	public int 
+	getUDPNonDataListenPort()
+	{
+		return( 0 );
+	}
   
- 
 	public int 
 	getPort()
 	{

@@ -75,6 +75,7 @@ PEPeerTransportProtocol
   private PeerItem peer_item_identity;
   private int tcp_listen_port = 0;
   private int udp_listen_port = 0;
+  private int udp_non_data_port = 0;
 	
   protected final PEPeerStats peer_stats;
   
@@ -287,7 +288,8 @@ PEPeerTransportProtocol
     port  = _tcp_port;
     tcp_listen_port = _tcp_port;
     udp_listen_port	= _udp_port;
-    
+    udp_non_data_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
+    	
     peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, _udp_port );  //this will be recreated upon az handshake decode
     
     incoming = false;
@@ -556,6 +558,7 @@ PEPeerTransportProtocol
     
     int local_tcp_port = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
     int local_udp_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
+    int local_udp2_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
        
     AZHandshake az_handshake = new AZHandshake(
         AZPeerIdentityManager.getAZPeerIdentity(),
@@ -563,6 +566,7 @@ PEPeerTransportProtocol
         Constants.AZUREUS_VERSION,
         local_tcp_port,
         local_udp_port,
+        local_udp2_port,
         avail_ids,
         avail_vers,
         NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ? AZHandshake.HANDSHAKE_TYPE_CRYPTO : AZHandshake.HANDSHAKE_TYPE_PLAIN );        
@@ -855,7 +859,7 @@ PEPeerTransportProtocol
   
   public int getTCPListenPort() {  return tcp_listen_port;  }
   public int getUDPListenPort() {  return udp_listen_port;  }
-  
+  public int getUDPNonDataListenPort() { return( udp_non_data_port ); }
   
   public String getClient() {  return client;  }
   
@@ -1521,6 +1525,7 @@ PEPeerTransportProtocol
     if( handshake.getTCPListenPort() > 0 ) {  //use the ports given in handshake
       tcp_listen_port = handshake.getTCPListenPort();
       udp_listen_port = handshake.getUDPListenPort();
+      udp_non_data_port = handshake.getUDPNonDataListenPort();
       final byte type = handshake.getHandshakeType() == AZHandshake.HANDSHAKE_TYPE_CRYPTO ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
       
       //remake the id using the peer's remote listen port instead of their random local port

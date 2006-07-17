@@ -1045,7 +1045,7 @@ public class TrackerStatus {
 			auth = SESecurityManager.getPasswordAuthentication( "UDP Tracker", reqUrl );
 		}		
 	
-		int port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
+		int port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
 		
 		PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( port );
 		

@@ -2657,7 +2657,30 @@ PEPeerControlImpl
 				return;
 			}
 			
-			int	avail = MAX_UDP_TRAVERSAL_COUNT - udp_traversal_count;
+			int max = MAX_UDP_TRAVERSAL_COUNT;
+			
+				// bigger the swarm, less chance of doing it
+			
+			if ( seeding_mode ){
+				
+				if ( _peers > 8 ){
+				
+					max = 0;
+					
+				}else{
+					
+					max = 1;
+				}
+			}else if ( _seeds > 8 ){
+				
+				max = 0;
+				
+			}else if ( _seeds > 4 ){
+				
+				max = 1;
+			}
+			
+			int	avail = max - udp_traversal_count;
 			
 			int	to_do = Math.min( number, avail );
 

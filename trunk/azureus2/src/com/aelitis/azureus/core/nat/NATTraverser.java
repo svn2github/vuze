@@ -208,9 +208,7 @@ NATTraverser
 	getClientData(
 		InetSocketAddress	originator,
 		Map					originator_data )
-	{
-		System.out.println( "DHTPlugin:punch - " + originator_data );
-		
+	{		
 		Long	type = (Long)originator_data.get( "_travreas" );
 		
 		if ( type != null ){

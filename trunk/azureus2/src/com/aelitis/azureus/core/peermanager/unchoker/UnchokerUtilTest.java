@@ -141,6 +141,7 @@ public class UnchokerUtilTest {
         public String getIPHostName(){ return null; }
         public int getTCPListenPort(){ return 0; }
         public int getUDPListenPort(){ return 0; }
+        public int getUDPNonDataListenPort() { return 0;}
         public BitFlags getAvailable(){ return null; }
         public boolean isPieceAvailable(int pieceNumber){ return false; }
         public boolean transferAvailable(){ return true; }

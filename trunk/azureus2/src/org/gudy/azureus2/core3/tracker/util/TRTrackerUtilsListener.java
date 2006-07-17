@@ -1,7 +1,7 @@
 /*
- * Created on 20-Dec-2005
+ * Created on 17 Jul 2006
  * Created by Paul Gardner
- * Copyright (C) 2005, 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,31 +20,11 @@
  *
  */
 
-package com.aelitis.azureus.core.instancemanager;
+package org.gudy.azureus2.core3.tracker.util;
 
-import java.net.InetAddress;
-
-public interface 
-AZInstance 
+public interface
+TRTrackerUtilsListener 
 {
-	public String
-	getID();
-	
-	public InetAddress
-	getInternalAddress();
-	
-	public InetAddress
-	getExternalAddress();
-	
-	public int
-	getTCPListenPort();
-	
-	public int
-	getUDPListenPort();
-	
-	public int
-	getUDPNonDataListenPort();
-	
-	public String
-	getString();
+	public void
+	announceDetailsChanged();
 }

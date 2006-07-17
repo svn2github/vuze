@@ -30,6 +30,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
+import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -596,6 +597,7 @@ DHTTrackerPlugin
 		checkDownloadForRegistration( result.getDownload(), false );
 	}
 	
+	
 	protected void
 	checkDownloadForRegistration(
 		Download		download,
@@ -805,21 +807,27 @@ DHTTrackerPlugin
 		
 		Iterator	it = rds.iterator();
 		
+		String	port_details = TRTrackerUtils.getPortsForURL();
+		
 		while( it.hasNext()){
 			
 			final Download	dl = (Download)it.next();
 			
-			Byte	existing_flags = (Byte)registered_downloads.get( dl );
+			RegistrationDetails	existing_reg = (RegistrationDetails)registered_downloads.get( dl );
 
 			byte	new_flags = dl.isComplete()?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING;
 				
-			if ( existing_flags == null || existing_flags.byteValue() != new_flags ){
+			if ( 	existing_reg == null ||
+					existing_reg.getFlags() != new_flags ||
+					!existing_reg.getPortDetails().equals( port_details )){
 				
-				log.log( "Registering download '" + dl.getName() + "' as " + (new_flags == DHTPlugin.FLAG_SEEDING?"Seeding":"Downloading"));
+				log.log((existing_reg==null?"Registering":"Re-registering") + " download '" + dl.getName() + "' as " + (new_flags == DHTPlugin.FLAG_SEEDING?"Seeding":"Downloading"));
 				
 				final 	long	start = SystemTime.getCurrentTime();
 				
-				registered_downloads.put( dl, new Byte( new_flags ));
+				RegistrationDetails	new_reg = new RegistrationDetails( port_details, new_flags );
+				
+				registered_downloads.put( dl, new_reg );
 				
 				try{ 
 					this_mon.enter();
@@ -831,20 +839,20 @@ DHTTrackerPlugin
 					this_mon.exit();
 				}
 				
-				int	port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
+				int	tcp_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 
 		 		String port_override = COConfigurationManager.getStringParameter("TCP.Announce.Port","");
 		 		
 		  		if( !port_override.equals("")){
 		 
 		  			try{
-		  				port	= Integer.parseInt( port_override );
+		  				tcp_port	= Integer.parseInt( port_override );
 		  				
 		  			}catch( Throwable e ){
 		  			}
 		  		}
 		  		
-		  		if ( port == 0 ){
+		  		if ( tcp_port == 0 ){
 		  			
 		  			log.log( "    port = 0, registration not performed" );
 		  			
@@ -891,16 +899,25 @@ DHTTrackerPlugin
 		  	    		}
 		  	    	}
 			  	    
-			  	    	// format is [ip_override:]port[;C]
+			  	    	// format is [ip_override:]tcp_port[;C][;udp_port]
 			  	    
 			  	    String	value_to_put = override_ip==null?"":(override_ip+":");
 			  	    
-			  	    value_to_put += port;
+			  	    value_to_put += tcp_port;
 			  	    	
 			  	    if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ){
 			  	    	
 			  	    	value_to_put += ";C";
 			  	    }
+			  	    
+					int	udp_port = plugin_interface.getPluginconfig().getIntParameter( "UDP.Listen.Port" );
+
+					int	dht_port = dht.getLocalAddress().getAddress().getPort();
+					
+					if ( udp_port != dht_port ){
+						
+						value_to_put += ";" + udp_port;
+					}
 			  	    
 			  	    // don't let a put block an announce as we don't want to be waiting for 
 			  	    // this at start of day to get a torrent running
@@ -1130,57 +1147,65 @@ DHTTrackerPlugin
 									DHTPluginContact	originator,
 									DHTPluginValue		value )
 								{
-									String	str_val = new String(value.getValue());
-											
-									int sep = str_val.indexOf(';');
+									try{										
+										String[]	tokens = new String(value.getValue()).split(";");
 									
-									String	flag = null;
-									
-									if ( sep != -1 ){
+										String	tcp_part = tokens[0].trim();
 										
-										flag = str_val.substring( sep+1 );
-
-										str_val = str_val.substring(0,sep);
-																				
-											// for future hacks we trim anything after a ';'
+										int	sep = tcp_part.indexOf(':');
 										
-										sep = flag.indexOf( ';' );
-										
-										if ( sep != -1 ){
-											
-											flag = flag.substring(0,sep);
-										}
-									}
-									
-									try{
-										sep = str_val.indexOf(':');
-									
 										String	ip_str		= null;
-										String	port_str;
+										String	tcp_port_str;
 										
 										if ( sep == -1 ){
 											
-											port_str = str_val;
+											tcp_port_str = tcp_part;
 											
 										}else{
 											
-											ip_str 		= str_val.substring( 0, sep );
-											
-											port_str	= str_val.substring( sep+1 );	
+											ip_str 			= tcp_part.substring( 0, sep );							
+											tcp_port_str	= tcp_part.substring( sep+1 );	
 										}
 										
-										int	port = Integer.parseInt( port_str );
+										int	tcp_port = Integer.parseInt( tcp_port_str );
 											
-										if ( port > 0 && port < 65536 ){
+										if ( tcp_port > 0 && tcp_port < 65536 ){
+
+											String	flag_str	= null;
+											int		udp_port	= -1;
 											
+											try{
+												for (int i=1;i<tokens.length;i++){
+												
+													String	token = tokens[i].trim();
+													
+													if ( token.length() > 0 ){
+														
+														if ( Character.isDigit( token.charAt( 0 ))){
+															
+															udp_port = Integer.parseInt( token );
+															
+															if ( udp_port <= 0 || udp_port >=65536 ){
+																
+																udp_port = -1;
+															}
+														}else{
+															
+															flag_str = token;
+														}
+													}
+												}
+											}catch( Throwable e ){
+											}
+										
 											addresses.add( 
 													ip_str==null?originator.getAddress().getAddress().getHostAddress():ip_str);
 											
-											ports.add( new Integer(port));
+											ports.add( new Integer( tcp_port ));
 											
-											udp_ports.add( new Integer( originator.getAddress().getPort()));
+											udp_ports.add( new Integer( udp_port==-1?originator.getAddress().getPort():udp_port));
 											
-											flags.add( flag );
+											flags.add( flag_str );
 											
 											if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
 												
@@ -1942,6 +1967,34 @@ DHTTrackerPlugin
 		}finally{
 			
 			this_mon.exit();
+		}
+	}
+	
+	protected static class
+	RegistrationDetails
+	{
+		private String	port_details;
+		private byte	flags;
+		
+		protected
+		RegistrationDetails(
+			String	_port_details,
+			byte	_flags )
+		{
+			port_details	= _port_details;
+			flags			= _flags;
+		}
+		
+		protected String
+		getPortDetails()
+		{
+			return( port_details );
+		}
+		
+		protected byte
+		getFlags()
+		{
+			return( flags );
 		}
 	}
 }

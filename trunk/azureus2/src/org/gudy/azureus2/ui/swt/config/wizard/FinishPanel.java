@@ -73,6 +73,7 @@ public class FinishPanel extends AbstractWizardPanel {
     COConfigurationManager.setParameter("max downloads",cfWizard.maxDownloads);
     COConfigurationManager.setParameter("TCP.Listen.Port",cfWizard.serverTCPListenPort);
     COConfigurationManager.setParameter("UDP.Listen.Port",cfWizard.serverTCPListenPort);
+    COConfigurationManager.setParameter("UDP.NonData.Listen.Port",cfWizard.serverTCPListenPort);
     //COConfigurationManager.setParameter("Low Port",cfWizard.serverMinPort);
 	//COConfigurationManager.setParameter("High Port",cfWizard.serverMaxPort);
 	//COConfigurationManager.setParameter("Server.shared.port",cfWizard.serverSharePort);

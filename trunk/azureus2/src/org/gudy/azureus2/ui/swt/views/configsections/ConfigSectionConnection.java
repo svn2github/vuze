@@ -45,6 +45,9 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 
 public class ConfigSectionConnection implements UISWTConfigSection {
+	
+	private static final String CFG_PREFIX = "ConfigView.section.connection.";
+	
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_ROOT;
 	}
@@ -137,6 +140,85 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 					}
 				}
 			});
+		
+			if ( userMode > 1 ){
+			
+				Composite cNonDataUDPArea = new Composite(cSection, SWT.NULL);
+				layout = new GridLayout();
+				layout.numColumns = 2;
+				layout.marginHeight = 0;
+				layout.marginWidth = 0;
+				cNonDataUDPArea.setLayout(layout);
+				gridData = new GridData(GridData.FILL_HORIZONTAL);
+				cNonDataUDPArea.setLayoutData(gridData);
+				
+				final BooleanParameter commonUDP = 
+					new BooleanParameter(cNonDataUDPArea, "UDP.NonData.Listen.Port.Same",	CFG_PREFIX + "nondata.udp.same");
+				gridData = new GridData();
+				gridData.horizontalIndent = 16;
+				commonUDP.setLayoutData( gridData );
+				
+				final IntParameter non_udp_listen = new IntParameter(cNonDataUDPArea, "UDP.NonData.Listen.Port", false );
+	
+				non_udp_listen.addChangeListener(
+					new ParameterChangeListener() 
+					{
+						public void parameterChanged(Parameter p, boolean caused_internally) {
+							int val = non_udp_listen.getValue();
+	
+							if (val == 6880 || val == 6881) {
+								val = 6881;
+								non_udp_listen.setValue(val);
+							}
+						}
+					});
+				
+				udp_listen.addChangeListener(
+						new ParameterChangeListener() 
+						{
+							public void parameterChanged(Parameter p, boolean caused_internally)
+							{
+								if ( commonUDP.isSelected()){
+									
+									int udp_listen_port = udp_listen.getValue();
+			
+									if ( udp_listen_port != 6880 ){
+										
+										COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", udp_listen_port );
+										
+										non_udp_listen.setValue( udp_listen_port );
+									}
+								}
+							}
+						});
+				gridData = new GridData();
+				gridData.widthHint = 40;
+				non_udp_listen.setLayoutData( gridData );
+	
+				commonUDP.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( non_udp_listen.getControls(), true ));
+				
+				commonUDP.addChangeListener(
+					new ParameterChangeListener() 
+					{
+						public void 
+						parameterChanged(
+							Parameter p, 
+							boolean caused_internally) 
+						{
+							if ( commonUDP.isSelected()){
+								
+								int	udp_listen_port = COConfigurationManager.getIntParameter("UDP.Listen.Port");
+								
+								if ( COConfigurationManager.getIntParameter("UDP.NonData.Listen.Port") != udp_listen_port ){
+									
+									COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", udp_listen_port );
+									
+									non_udp_listen.setValue( udp_listen_port );
+								}
+							}
+						}
+					});
+			}
 		}
 		
 		if (userMode < 2) {
@@ -148,7 +230,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 
 			final Label linkLabel = new Label(cSection, SWT.NULL);
 			linkLabel.setText(MessageText
-					.getString("ConfigView.section.connection.serverport.wiki"));
+					.getString(CFG_PREFIX + "serverport.wiki"));
 			linkLabel
 					.setData("http://azureus.aelitis.com/wiki/index.php?title=Why_ports_like_6881_are_no_good_choice");
 			linkLabel.setCursor(Cursors.handCursor);
@@ -171,7 +253,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 
 			Group peer_sources_group = new Group(cSection, SWT.NULL);
 			Messages.setLanguageText(peer_sources_group,
-					"ConfigView.section.connection.group.peersources");
+					CFG_PREFIX + "group.peersources");
 			GridLayout peer_sources_layout = new GridLayout();
 			peer_sources_group.setLayout(peer_sources_layout);
 
@@ -180,7 +262,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 
 			label = new Label(peer_sources_group, SWT.WRAP);
 			Messages.setLanguageText(label,
-					"ConfigView.section.connection.group.peersources.info");
+					CFG_PREFIX + "group.peersources.info");
 			gridData = new GridData();
 			label.setLayoutData(gridData);
 
@@ -189,7 +271,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 				String p = PEPeerSource.PS_SOURCES[i];
 
 				String config_name = "Peer Source Selection Default." + p;
-				String msg_text = "ConfigView.section.connection.peersource." + p;
+				String msg_text = CFG_PREFIX + "peersource." + p;
 
 				BooleanParameter peer_source = new BooleanParameter(peer_sources_group,
 						config_name, msg_text);
@@ -207,7 +289,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 
 				Group networks_group = new Group(cSection, SWT.NULL);
 				Messages.setLanguageText(networks_group,
-						"ConfigView.section.connection.group.networks");
+						CFG_PREFIX + "group.networks");
 				GridLayout networks_layout = new GridLayout();
 				networks_group.setLayout(networks_layout);
 
@@ -216,7 +298,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 
 				label = new Label(networks_group, SWT.NULL);
 				Messages.setLanguageText(label,
-						"ConfigView.section.connection.group.networks.info");
+						CFG_PREFIX + "group.networks.info");
 				gridData = new GridData();
 				label.setLayoutData(gridData);
 
@@ -225,7 +307,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 					String nn = AENetworkClassifier.AT_NETWORKS[i];
 
 					String config_name = "Network Selection Default." + nn;
-					String msg_text = "ConfigView.section.connection.networks." + nn;
+					String msg_text = CFG_PREFIX + "networks." + nn;
 
 					BooleanParameter network = new BooleanParameter(networks_group,
 							config_name, msg_text);
@@ -240,7 +322,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 
 				BooleanParameter network_prompt = new BooleanParameter(networks_group,
 						"Network Selection Prompt",
-						"ConfigView.section.connection.networks.prompt");
+						CFG_PREFIX + "networks.prompt");
 
 				gridData = new GridData();
 				network_prompt.setLayoutData(gridData);

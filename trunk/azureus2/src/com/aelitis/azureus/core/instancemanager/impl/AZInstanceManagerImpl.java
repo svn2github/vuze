@@ -155,8 +155,10 @@ AZInstanceManagerImpl
 	
 	private volatile Map			tcp_lan_to_ext	= new HashMap();
 	private volatile Map			udp_lan_to_ext	= new HashMap();
+	private volatile Map			udp2_lan_to_ext	= new HashMap();
 	private volatile Map			tcp_ext_to_lan	= new HashMap();
 	private volatile Map			udp_ext_to_lan	= new HashMap();
+	private volatile Map			udp2_ext_to_lan	= new HashMap();
 	
 	private volatile Set			lan_addresses	= new HashSet();
 	private volatile Set			ext_addresses	= new HashSet();
@@ -672,8 +674,9 @@ AZInstanceManagerImpl
 		InetAddress	external_address	= inst.getExternalAddress();
 		int			tcp					= inst.getTCPListenPort();
 		int			udp					= inst.getUDPListenPort();
+		int			udp2				= inst.getUDPNonDataListenPort();
 		
-		modifyAddresses( internal_address, external_address, tcp, udp, true );
+		modifyAddresses( internal_address, external_address, tcp, udp, udp2, true );
 	}
 	
 	protected void
@@ -684,10 +687,11 @@ AZInstanceManagerImpl
 		InetAddress	external_address	= inst.getExternalAddress();
 		int			tcp					= inst.getTCPListenPort();
 		int			udp					= inst.getUDPListenPort();
-		
+		int			udp2				= inst.getUDPNonDataListenPort();
+
 		for (int i=0;i<internal_addresses.size();i++){
 			
-			modifyAddresses( (InetAddress)internal_addresses.get(i), external_address, tcp, udp, false );
+			modifyAddresses( (InetAddress)internal_addresses.get(i), external_address, tcp, udp, udp2, false );
 		}
 	}
 	
@@ -697,6 +701,7 @@ AZInstanceManagerImpl
 		InetAddress		external_address,
 		int				tcp,
 		int				udp,
+		int				udp2,
 		boolean			add )	
 	{
 		if ( internal_address.isAnyLocalAddress()){
@@ -717,14 +722,18 @@ AZInstanceManagerImpl
 			InetSocketAddress	ext_tcp = new InetSocketAddress(external_address, tcp);
 			InetSocketAddress	int_udp = new InetSocketAddress(internal_address, udp);
 			InetSocketAddress	ext_udp = new InetSocketAddress(external_address, udp);
-			
+			InetSocketAddress	int_udp2 = new InetSocketAddress(internal_address, udp2);
+			InetSocketAddress	ext_udp2 = new InetSocketAddress(external_address, udp2);
+
 				// not the most efficient code in the world this... will need rev
 			
-			tcp_ext_to_lan = modifyAddress( tcp_ext_to_lan, ext_tcp, int_tcp, add );
-			tcp_lan_to_ext = modifyAddress( tcp_lan_to_ext, int_tcp, ext_tcp, add );
-			udp_ext_to_lan = modifyAddress( udp_ext_to_lan, ext_udp, int_udp, add );
-			udp_lan_to_ext = modifyAddress( udp_lan_to_ext, int_udp, ext_udp, add );
-	
+			tcp_ext_to_lan 	= modifyAddress( tcp_ext_to_lan, ext_tcp, int_tcp, add );
+			tcp_lan_to_ext 	= modifyAddress( tcp_lan_to_ext, int_tcp, ext_tcp, add );
+			udp_ext_to_lan 	= modifyAddress( udp_ext_to_lan, ext_udp, int_udp, add );
+			udp_lan_to_ext 	= modifyAddress( udp_lan_to_ext, int_udp, ext_udp, add );
+			udp2_ext_to_lan = modifyAddress( udp2_ext_to_lan, ext_udp2, int_udp2, add );
+			udp2_lan_to_ext = modifyAddress( udp2_lan_to_ext, int_udp2, ext_udp2, add );
+
 			if ( !lan_addresses.contains( internal_address )){
 				
 				Set	new_lan_addresses = new HashSet( lan_addresses );
@@ -787,9 +796,17 @@ AZInstanceManagerImpl
 	public InetSocketAddress
 	getLANAddress(
 		InetSocketAddress	external_address,
-		boolean				is_tcp )
+		int					address_type )
 	{
-		Map	map = is_tcp?tcp_ext_to_lan:udp_ext_to_lan;
+		Map	map;
+		
+		if ( address_type == AT_TCP ){
+			map = tcp_ext_to_lan;
+		}else if ( address_type == AT_UDP ){
+			map = udp_ext_to_lan;
+		}else{
+			map = udp2_ext_to_lan;
+		}
 		
 		if ( map.size() == 0 ){
 			
@@ -802,9 +819,17 @@ AZInstanceManagerImpl
 	public InetSocketAddress
 	getExternalAddress(
 		InetSocketAddress	lan_address,
-		boolean				is_tcp )
+		int					address_type )
 	{
-		Map	map = is_tcp?tcp_lan_to_ext:udp_lan_to_ext;
+		Map	map;
+		
+		if ( address_type == AT_TCP ){
+			map = tcp_lan_to_ext;
+		}else if ( address_type == AT_UDP ){
+			map = udp_lan_to_ext;
+		}else{
+			map = udp2_lan_to_ext;
+		}
 		
 		if ( map.size() == 0 ){
 			

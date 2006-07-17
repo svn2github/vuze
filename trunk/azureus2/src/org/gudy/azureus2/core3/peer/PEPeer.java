@@ -105,7 +105,12 @@ PEPeer
    */
   public int getUDPListenPort();
 
+  /**
+   * Get the UDP port this peer is listening on for non-data connections
+   * @return
+   */
   
+  public int getUDPNonDataListenPort();
   
 	public BitFlags getAvailable();
 	/**

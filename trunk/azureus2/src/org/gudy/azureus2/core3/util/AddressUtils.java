@@ -73,11 +73,11 @@ AddressUtils
 		
 		if ( ext_to_lan ){
 			
-			adjusted_address	= instance_manager.getLANAddress( address, false );
+			adjusted_address	= instance_manager.getLANAddress( address, AZInstanceManager.AT_UDP_NON_DATA );
 			
 		}else{
 
-			adjusted_address	= instance_manager.getExternalAddress( address, false );
+			adjusted_address	= instance_manager.getExternalAddress( address, AZInstanceManager.AT_UDP_NON_DATA );
 		}
 		
 		if ( adjusted_address == null ){

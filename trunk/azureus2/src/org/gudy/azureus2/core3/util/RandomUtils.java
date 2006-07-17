@@ -84,12 +84,13 @@ public class RandomUtils {
 		
 		int	existing_tcp	= COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
 		int existing_udp	= COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
+		int existing_udp2	= COConfigurationManager.getIntParameter( "UDP.NonData.Listen.Port" );
 		
 		while( true ){
 			int min 	= LISTEN_PORT_MIN;
 			int port 	= min + RANDOM.nextInt( LISTEN_PORT_MAX + 1 - min );
 			
-			if ( port != existing_tcp && port != existing_udp ){
+			if ( port != existing_tcp && port != existing_udp && port != existing_udp2){
 				
 				return port;
 			}

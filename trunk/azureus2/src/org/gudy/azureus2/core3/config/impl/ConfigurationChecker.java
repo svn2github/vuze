@@ -224,6 +224,7 @@ ConfigurationChecker
 	    		int	rand_port = RandomUtils.generateRandomNetworkListenPort();
 	    		COConfigurationManager.setParameter( "TCP.Listen.Port", rand_port );
 	    		COConfigurationManager.setParameter( "UDP.Listen.Port", rand_port );
+	    		COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", rand_port );
 	    		changed = true;
 	    		
 	    	}
@@ -267,6 +268,14 @@ ConfigurationChecker
 	    	}
 	    	
 	    	changed	= true;
+	    }
+	    
+	    	// reintroduce separate non-data UDP port yto separtate data from dht/UDP tracker
+	    
+	    if( !COConfigurationManager.doesParameterNonDefaultExist( "UDP.NonData.Listen.Port" ) ){
+	    	COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", COConfigurationManager.getIntParameter( "UDP.Listen.Port" ));
+	    	
+	    	changed = true;
 	    }
 	    
 	    // migrate to split tracker client/server key config

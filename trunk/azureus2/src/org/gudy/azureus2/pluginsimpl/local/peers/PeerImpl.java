@@ -157,7 +157,7 @@ PeerImpl
   
   public int getTCPListenPort() {  return delegate.getTCPListenPort();  }
   public int getUDPListenPort() {  return delegate.getUDPListenPort();  }
-  
+  public int getUDPNonDataListenPort() { return delegate.getUDPNonDataListenPort(); }
 	
 	public final boolean[] getAvailable()
 	{

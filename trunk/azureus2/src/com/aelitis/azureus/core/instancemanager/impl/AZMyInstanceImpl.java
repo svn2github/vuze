@@ -54,6 +54,7 @@ AZMyInstanceImpl
 	private InetAddress			internal_address;
 	private int					tcp_port;
 	private int					udp_port;
+	private int					udp_non_data_port;
 	
 	private long				last_force_read_ext;
 	private InetAddress			last_external_address;
@@ -117,8 +118,9 @@ AZMyInstanceImpl
 			}
 		}
 				
-		int	new_tcp_port = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
-		int	new_udp_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
+		int	new_tcp_port 			= TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
+		int	new_udp_port 			= UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
+		int new_udp_non_data_port	= UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
 		
 		boolean	same = true;
 		
@@ -126,12 +128,14 @@ AZMyInstanceImpl
 			
 			same = 	internal_address.equals( new_internal_address) &&
 					tcp_port == new_tcp_port &&
-					udp_port == new_udp_port;
+					udp_port == new_udp_port &&
+					udp_non_data_port == new_udp_non_data_port;
 		}
 		
 		internal_address 	= new_internal_address;
 		tcp_port			= new_tcp_port;
 		udp_port			= new_udp_port;
+		udp_non_data_port	= new_udp_non_data_port;
 		
 		if ( !same ){
 			
@@ -302,5 +306,11 @@ AZMyInstanceImpl
 	getUDPListenPort()
 	{
 		return( udp_port );
+	}
+	
+	public int 
+	getUDPNonDataListenPort() 
+	{
+		return( udp_non_data_port );
 	}
 }

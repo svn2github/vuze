@@ -31,6 +31,10 @@ import org.gudy.azureus2.plugins.download.Download;
 public interface 
 AZInstanceManager 
 {
+	public static final int	AT_TCP				= 1;
+	public static final int	AT_UDP				= 2;
+	public static final int	AT_UDP_NON_DATA		= 3;
+	
 	public void
 	initialize();
 	
@@ -50,12 +54,12 @@ AZInstanceManager
 	public InetSocketAddress
 	getLANAddress(
 		InetSocketAddress	external_address,
-		boolean				is_tcp );
+		int					address_type );
 	
 	public InetSocketAddress
 	getExternalAddress(
 		InetSocketAddress	lan_address,
-		boolean				is_tcp );
+		int					address_type );
 	
 	public boolean
 	isLANAddress(

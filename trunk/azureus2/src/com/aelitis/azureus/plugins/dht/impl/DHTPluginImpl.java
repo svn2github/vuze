@@ -504,7 +504,7 @@ outer:
 							
 							Peer	p = peers[j];
 							
-							int	peer_udp_port = p.getUDPListenPort();
+							int	peer_udp_port = p.getUDPNonDataListenPort();
 							
 							if ( peer_udp_port != 0 ){
 														

@@ -47,6 +47,8 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
+import org.gudy.azureus2.core3.tracker.util.TRTrackerUtilsListener;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCoreListener;
@@ -479,6 +481,19 @@ public class GlobalManagerImpl
     }
     
     torrent_folder_watcher = new TorrentFolderWatcher( this );
+    
+    TRTrackerUtils.addListener(
+    	new TRTrackerUtilsListener()
+    	{
+    		public void
+    		announceDetailsChanged()
+    		{	
+				Logger.log(new LogEvent(LOGID,
+						"Announce details have changed, updating trackers"));
+
+    			trackerAnnounceAll();
+    		}
+    	});
   }
   
   public void loadExistingTorrentsNow(final AzureusCoreListener listener,
@@ -2239,19 +2254,7 @@ public class GlobalManagerImpl
 						Logger.log(new LogEvent(LOGID,
 								"Network interfaces have changed, updating trackers"));
 						
-						List	managers = managers_cow;
-						
-						for (int i=0;i<managers.size();i++){
-							
-							DownloadManager	manager = (DownloadManager)managers.get(i);
-							
-							TRTrackerAnnouncer	anouncer = manager.getTrackerClient();
-							
-							if ( anouncer != null ){
-								
-								anouncer.update( true );
-							}
-						}
+						trackerAnnounceAll();
 					}else{
 						
 						Logger.log(new LogEvent(LOGID, "Network interfaces have changed, "
@@ -2269,6 +2272,24 @@ public class GlobalManagerImpl
 		}
 	}
 	 
+	protected void
+	trackerAnnounceAll()
+	{
+		List	managers = managers_cow;
+		
+		for (int i=0;i<managers.size();i++){
+			
+			DownloadManager	manager = (DownloadManager)managers.get(i);
+			
+			TRTrackerAnnouncer	announcer = manager.getTrackerClient();
+			
+			if ( announcer != null ){
+				
+				announcer.update( true );
+			}
+		}
+	}
+	
 	protected DownloadManagerInitialisationAdapter
 	getDMAdapter(
 		DownloadManagerInitialisationAdapter	adapter )

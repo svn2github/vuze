@@ -137,9 +137,9 @@ UPnPPluginService
 							
 							sm.addMapping( mapping  );
 							
-							if ( !sm.getLogged()){
+							if ( !sm.getLogged(mapping)){
 								
-								sm.setLogged();
+								sm.setLogged(mapping);
 								
 								log.log( "Mapping " + mapping.getString() + " already established" );
 							}
@@ -150,9 +150,9 @@ UPnPPluginService
 							
 							if ( !grab_ports.getValue() ){
 		
-								if ( !sm.getLogged()){
+								if ( !sm.getLogged(mapping)){
 									
-									sm.setLogged();
+									sm.setLogged(mapping);
 								
 									String	text = 
 										MessageText.getString( 
@@ -364,14 +364,15 @@ UPnPPluginService
 	protected class
 	serviceMapping
 	{
-		protected List			mappings	= new ArrayList();
+		private List		mappings	= new ArrayList();
 		
-		protected boolean		tcp;
-		protected int			port;
-		protected String		internal_host;
+		private boolean		tcp;
+		private int			port;
+		private String		internal_host;
 		
-		protected boolean		external;		// true -> not defined by us
-		protected boolean		logged;
+		private boolean		external;		// true -> not defined by us
+		
+		private List		logged_mappings = new ArrayList();
 		
 		protected
 		serviceMapping(
@@ -432,15 +433,20 @@ UPnPPluginService
 		}
 		
 		protected boolean
-		getLogged()
+		getLogged(
+			UPnPMapping	mapping )
 		{
-			return( logged );
+			return( logged_mappings.contains( mapping ));
 		}
 		
 		protected void
-		setLogged()
+		setLogged(
+			UPnPMapping	mapping )
 		{
-			logged	= true;
+			if ( !logged_mappings.contains( mapping )){
+				
+				logged_mappings.add( mapping );
+			}
 		}
 		
 		protected boolean

@@ -49,7 +49,6 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
-import org.gudy.azureus2.core3.tracker.util.impl.*;
 
 import org.gudy.azureus2.plugins.clientid.*;
 import org.gudy.azureus2.plugins.download.*;
@@ -1056,9 +1055,9 @@ TRTrackerBTAnnouncerImpl
  	
  		throws IOException
  	{ 		
- 		TRTrackerUtilsImpl.checkForBlacklistedURLs( reqUrl );
+ 		TRTrackerUtils.checkForBlacklistedURLs( reqUrl );
  		
- 		reqUrl = TRTrackerUtilsImpl.adjustURLForHosting( reqUrl );
+ 		reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
  		
  		reqUrl = AddressUtils.adjustURL( reqUrl );
  		
@@ -1266,7 +1265,7 @@ TRTrackerBTAnnouncerImpl
  	
  		throws IOException
  	{
- 		reqUrl = TRTrackerUtilsImpl.adjustURLForHosting( reqUrl );
+ 		reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
 
  		String	failure_reason = null;
 		
@@ -1278,7 +1277,7 @@ TRTrackerBTAnnouncerImpl
  				 auth = SESecurityManager.getPasswordAuthentication( UDP_REALM, reqUrl );
  			}
  						
- 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( UDPNetworkManager.getSingleton().getUDPListeningPortNumber() );
+ 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber());
  			
  			InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort()==-1?80:reqUrl.getPort());
  			

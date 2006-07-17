@@ -49,6 +49,8 @@ AZInstanceImpl
 		map.put( "tp", new Long( getTCPListenPort()));
 		
         map.put( "dp", new Long( getUDPListenPort()));
+        
+        map.put( "dp2", new Long( getUDPNonDataListenPort()));
 	}
 	
 	public String
@@ -62,6 +64,7 @@ AZInstanceImpl
 		}
 		
 		return( "id=" + id + ",int=" + getInternalAddress().getHostAddress() + ",ext=" + 
-				getExternalAddress().getHostAddress() +	",tcp=" + getTCPListenPort() + ",udp=" + getUDPListenPort() );
+				getExternalAddress().getHostAddress() +	",tcp=" + getTCPListenPort() + ",udp=" + getUDPListenPort() +
+				",udp2=" + getUDPNonDataListenPort());
 	}
 }

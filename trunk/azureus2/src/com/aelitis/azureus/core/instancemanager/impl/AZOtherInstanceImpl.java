@@ -44,6 +44,10 @@ AZOtherInstanceImpl
 		int		tcp			= ((Long)map.get("tp" )).intValue();
 		int		udp			= ((Long)map.get("dp" )).intValue();
 		
+		Long	l_udp_other = (Long)map.get("dp2" );
+		
+		int		udp_other	= l_udp_other==null?udp:l_udp_other.intValue();
+			
 		try{
 			if ( !int_ip.equals("0.0.0.0")){
 				
@@ -52,7 +56,7 @@ AZOtherInstanceImpl
 
 			InetAddress	external_address = InetAddress.getByName( ext_ip );
 			
-			return( new AZOtherInstanceImpl(id, internal_address, external_address, tcp, udp ));
+			return( new AZOtherInstanceImpl(id, internal_address, external_address, tcp, udp, udp_other ));
 			
 		}catch( Throwable e ){
 			
@@ -67,6 +71,7 @@ AZOtherInstanceImpl
 	private InetAddress				external_address;
 	private int						tcp_port;
 	private int						udp_port;
+	private int						udp_non_data_port;
 	
 	private long	alive_time;
 
@@ -77,7 +82,8 @@ AZOtherInstanceImpl
 		InetAddress				_internal_address,
 		InetAddress				_external_address,
 		int						_tcp_port,
-		int						_udp_port )
+		int						_udp_port,
+		int						_udp_non_data_port )
 	{
 		id					= _id;
 		
@@ -86,6 +92,7 @@ AZOtherInstanceImpl
 		external_address	= _external_address;
 		tcp_port			= _tcp_port;
 		udp_port			= _udp_port;
+		udp_non_data_port	= _udp_non_data_port;
 		
 		alive_time	= SystemTime.getCurrentTime();
 	}
@@ -158,6 +165,12 @@ AZOtherInstanceImpl
 	getUDPListenPort()
 	{
 		return( udp_port );
+	}
+	
+	public int 
+	getUDPNonDataListenPort() 
+	{
+		return( udp_non_data_port );
 	}
 	
 	protected long

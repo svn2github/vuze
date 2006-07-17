@@ -72,7 +72,8 @@ UDPNetworkManager
 	}
 	
 	private int udp_listen_port	= -1;
-
+	private int udp_non_data_listen_port = -1;
+	
 	private UDPConnectionManager	connection_manager;
 	
 	protected
@@ -111,6 +112,39 @@ UDPNetworkManager
 				   }
 			   });
 	   
+		COConfigurationManager.addAndFireParameterListener( 
+				   "UDP.NonData.Listen.Port", 
+				   new ParameterListener() 
+				   {
+					   public void 
+					   parameterChanged(String name) 
+					   {
+						   int port = COConfigurationManager.getIntParameter( name );
+						   
+						   if ( port == udp_non_data_listen_port ){
+							   
+							   return;
+						   }
+						   
+						   if ( port < 0 || port > 65535 || port == 6880 ) {
+							   
+						        String msg = "Invalid incoming UDP non-data listen port configured, " +port+ ". The port has been reset. Please check your config!";
+						        
+						        Debug.out( msg );
+						        
+						        Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg));
+						        
+						        udp_non_data_listen_port = RandomUtils.generateRandomNetworkListenPort();
+						        
+						        COConfigurationManager.setParameter( name, udp_non_data_listen_port );
+						        
+						    }else{
+						
+						    	udp_non_data_listen_port	= port;
+						    }
+					   }
+				   });
+		
 		connection_manager = new UDPConnectionManager( udp_listen_port );
 	}
 	
@@ -119,6 +153,12 @@ UDPNetworkManager
 	getUDPListeningPortNumber()
 	{
 		return( udp_listen_port );
+	}
+	
+	public int 
+	getUDPNonDataListeningPortNumber()
+	{
+		return( udp_non_data_listen_port );
 	}
 	
 	public UDPConnectionManager

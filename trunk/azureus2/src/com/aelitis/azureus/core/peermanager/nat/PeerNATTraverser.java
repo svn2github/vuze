@@ -40,6 +40,8 @@ import com.aelitis.azureus.core.nat.NATTraversal;
 import com.aelitis.azureus.core.nat.NATTraversalHandler;
 import com.aelitis.azureus.core.nat.NATTraversalObserver;
 import com.aelitis.azureus.core.nat.NATTraverser;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 public class 
 PeerNATTraverser 
@@ -86,6 +88,13 @@ PeerNATTraverser
 	private int		attempted_count			= 0;
 	private int		success_count			= 0;
 	private int		failed_no_rendezvous	= 0;
+	private int		failed_negative_bloom	= 0;
+	
+	private BloomFilter	negative_result_bloom;
+	
+	private static final int BLOOM_SIZE				= 4096;
+	private static final int BLOOM_REBUILD_PERIOD	= 5*60*1000;
+	private static final int BLOOM_REBUILD_TICKS	= BLOOM_REBUILD_PERIOD/TIMER_PERIOD;
 	
 	public
 	PeerNATTraverser(
@@ -106,15 +115,29 @@ PeerNATTraverser
 					TimerEvent	event )
 				{
 					ticks++;
-				
-					synchronized( initiators ){
 
+					List	to_run = null;
+					
+					synchronized( initiators ){
+	
+						if ( ticks % BLOOM_REBUILD_TICKS == 0 ){
+							
+							int	size = negative_result_bloom==null?0:negative_result_bloom.getEntryCount();
+							
+					      	if (Logger.isEnabled()){
+								Logger.log(	new LogEvent(LOGID,	"PeerNATTraverser: negative bloom size = " + size ));
+				          	}
+					      	
+							negative_result_bloom	= null;
+						}
+						
 						if ( ticks % STATS_TICK_COUNT == 0 ){
 							
 							String	msg = 
 								"NAT traversal stats: active=" +  active_requests.size() +
 								",pending=" + pending_requests.size() + ",attempted=" + attempted_count +
-								",no rendezvous=" + failed_no_rendezvous +",successful=" + success_count;
+								",no rendezvous=" + failed_no_rendezvous + ",negative bloom=" + failed_negative_bloom +
+								",successful=" + success_count;
 
 							// System.out.println( msg );
 							
@@ -146,7 +169,7 @@ PeerNATTraverser
 							if ( 	pending_requests.size() == 0 ||
 									active_requests.size() >= MAX_ACTIVE_REQUESTS ){
 								
-								return;
+								break;
 							}
 							
 							
@@ -156,11 +179,46 @@ PeerNATTraverser
 							
 							active_requests.add( traversal );
 							
-							traversal.run();
+							if ( to_run == null ){
+								
+								to_run = new ArrayList();
+							}
+							
+							to_run.add( traversal );
 							
 							attempted_count++;
 						}
 					}	
+					
+					if ( to_run != null ){
+						
+						for (int i=0;i<to_run.size();i++){
+							
+							PeerNATTraversal	traversal = (PeerNATTraversal)to_run.get(i);
+							
+							boolean	bad = false;
+							
+							synchronized( initiators ){
+							
+								if ( negative_result_bloom.contains( traversal.getTarget().toString().getBytes())){
+									
+									bad = true;
+									
+									failed_negative_bloom++;
+								}
+							}
+							
+							if ( bad ){
+								
+								removeRequest( traversal, OUTCOME_FAILED_OTHER );
+								
+								traversal.getAdapter().failed();
+							}else{
+								
+								traversal.run();
+							}
+						}
+					}
 				}
 			});
 	}
@@ -222,31 +280,55 @@ PeerNATTraverser
 		InetSocketAddress		target,
 		PeerNATTraversalAdapter	adapter )
 	{
+		boolean	bad = false;
+		
 		synchronized( initiators ){
 			
-			LinkedList	requests = (LinkedList)initiators.get( initiator );
+			if ( negative_result_bloom == null ){
 				
-			if ( requests == null ){
-
-				Debug.out( "initiator not found" );
-				
-				adapter.failed();
-				
-				return;
+				negative_result_bloom = BloomFilterFactory.createAddOnly( BLOOM_SIZE );
 			}
+						
+			if ( negative_result_bloom.contains( target.toString().getBytes() )){
+				
+				bad	= true;
+				
+				failed_negative_bloom++;
+			}
+		}
+		
+		if ( bad ){
 			
-			PeerNATTraversal	traversal = new PeerNATTraversal( initiator, target, adapter );
+			adapter.failed();
 			
-			requests.addLast( traversal );
+		}else{
+			
+			synchronized( initiators ){
+				
+				LinkedList	requests = (LinkedList)initiators.get( initiator );
 					
-			pending_requests.addLast( traversal );
-			
-          	if (Logger.isEnabled()){
-				Logger.log(
-					new LogEvent(
-						LOGID,
-						"created NAT traversal for " + initiator.getDisplayName() + "/" + target ));
-          	}
+				if ( requests == null ){
+	
+					Debug.out( "initiator not found" );
+					
+					adapter.failed();
+					
+					return;
+				}
+				
+				PeerNATTraversal	traversal = new PeerNATTraversal( initiator, target, adapter );
+				
+				requests.addLast( traversal );
+						
+				pending_requests.addLast( traversal );
+				
+	          	if (Logger.isEnabled()){
+					Logger.log(
+						new LogEvent(
+							LOGID,
+							"created NAT traversal for " + initiator.getDisplayName() + "/" + target ));
+	          	}
+			}
 		}
 	}
 	
@@ -274,9 +356,16 @@ PeerNATTraverser
 					
 					success_count++;
 					
-				}else if ( outcome == OUTCOME_FAILED_NO_REND ){
+				}else{
 					
-					failed_no_rendezvous++;
+					InetSocketAddress	target = request.getTarget();
+					
+					negative_result_bloom.add( target.toString().getBytes());
+					
+					if ( outcome == OUTCOME_FAILED_NO_REND ){
+					
+						failed_no_rendezvous++;
+					}
 				}
 			}
 		}
@@ -320,6 +409,18 @@ PeerNATTraverser
 		getInitiator()
 		{
 			return( initiator );
+		}
+		
+		protected InetSocketAddress
+		getTarget()
+		{
+			return( target );
+		}
+		
+		protected PeerNATTraversalAdapter
+		getAdapter()
+		{
+			return( adapter );
 		}
 		
 		protected long
@@ -380,6 +481,7 @@ PeerNATTraverser
         	
 			adapter.success( target );
 		}
+		
 		
 		public void
 		failed(

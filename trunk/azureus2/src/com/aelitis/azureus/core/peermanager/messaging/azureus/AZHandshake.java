@@ -54,6 +54,7 @@ public class AZHandshake implements AZMessage {
   private final byte[] avail_versions;
   private int tcp_port;
   private int udp_port;
+  private int udp_non_data_port;
   private final int handshake_type;
   
   
@@ -62,6 +63,7 @@ public class AZHandshake implements AZMessage {
                       String version,
                       int tcp_listen_port,
                       int udp_listen_port,
+                      int udp_non_data_listen_port,
                       String[] avail_msg_ids,
                       byte[] avail_msg_versions,
                       int _handshake_type ) {
@@ -73,6 +75,7 @@ public class AZHandshake implements AZMessage {
     this.avail_versions = avail_msg_versions;
     this.tcp_port = tcp_listen_port;
     this.udp_port = udp_listen_port;
+    this.udp_non_data_port = udp_non_data_listen_port;
     this.handshake_type = _handshake_type;
     
     //verify given port info is ok
@@ -85,6 +88,11 @@ public class AZHandshake implements AZMessage {
       Debug.out( "given UDP listen port is invalid: " +udp_port );
       udp_port = 0;
     }
+    
+    if( udp_non_data_port < 0 || udp_non_data_port > 65535 ) {
+        Debug.out( "given UDP non-data listen port is invalid: " +udp_non_data_port );
+        udp_non_data_port = 0;
+      }
   }
 
   
@@ -101,6 +109,7 @@ public class AZHandshake implements AZMessage {
   
   public int getTCPListenPort() {  return tcp_port;  }
   public int getUDPListenPort() {  return udp_port;  }
+  public int getUDPNonDataListenPort() {  return udp_non_data_port;  }
   
   public int getHandshakeType() {  return handshake_type;  }
   
@@ -125,7 +134,7 @@ public class AZHandshake implements AZMessage {
         msgs_desc += "[" +id+ ":" +ver+ "]";
       }
       description = getID()+ " from [" +ByteFormatter.nicePrint( identity, true )+ ", " +
-      							client+ " " +client_version+ ", TCP/UDP ports " +tcp_port+ "/" +udp_port+
+      							client+ " " +client_version+ ", TCP/UDP ports " +tcp_port+ "/" +udp_port+ "/" + udp_non_data_port +
       							", handshake " + (getHandshakeType() == HANDSHAKE_TYPE_PLAIN ? "plain" : "crypto") +
       							"] supports " +msgs_desc;
     }
@@ -144,6 +153,7 @@ public class AZHandshake implements AZMessage {
       payload_map.put( "version", client_version );
       payload_map.put( "tcp_port", new Long( tcp_port ) );
       payload_map.put( "udp_port", new Long( udp_port ) );
+      payload_map.put( "udp2_port", new Long( udp_non_data_port ) );
       payload_map.put( "handshake_type", new Long( handshake_type ) );
           
       //available message list
@@ -196,6 +206,11 @@ public class AZHandshake implements AZMessage {
       udp_lport = new Long( 0 );
     }
 
+    Long udp2_lport = (Long)root.get( "udp2_port" );
+    if( udp2_lport == null ) {  //old handshake
+      udp2_lport = udp_lport;
+    }
+    
     Long h_type = (Long)root.get( "handshake_type" );
     if( h_type == null ) {  //only 2307+ send type
     	h_type = new Long( HANDSHAKE_TYPE_PLAIN );
@@ -225,7 +240,7 @@ public class AZHandshake implements AZMessage {
       pos++;
     }
 
-    return new AZHandshake( id, name, version, tcp_lport.intValue(), udp_lport.intValue(), ids, vers, h_type.intValue() );
+    return new AZHandshake( id, name, version, tcp_lport.intValue(), udp_lport.intValue(), udp2_lport.intValue(), ids, vers, h_type.intValue() );
   }
   
   
