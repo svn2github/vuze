@@ -1084,13 +1084,17 @@ public class FileUtil {
 		File		from_file,
 		File		to_file )
     {
-    	if ( to_file.exists()){
-    		Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-					"renameFile: target file '" + to_file + "' already exists, failing"));
-    		
-    		return( false );
+        return renameFile(from_file, to_file, true);
     	}
     	
+
+    public static boolean
+    renameFile(
+        File        from_file,
+        File        to_file,
+        boolean     fail_on_existing_directory)
+    {
+
     	if ( !from_file.exists()){
     		Logger
 					.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
@@ -1100,6 +1104,15 @@ public class FileUtil {
     		return( false );
     	}
     	
+        /**
+         * If the destination exists, we only fail if requested.
+         */
+        if (to_file.exists() && (fail_on_existing_directory || from_file.isFile() || to_file.isFile())) {
+            Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+                    "renameFile: target file '" + to_file + "' already exists, failing"));
+
+            return( false );
+        }
     	File to_file_parent = to_file.getParentFile();
     	if (!to_file_parent.exists()) {to_file_parent.mkdirs();}
     	
@@ -1171,7 +1184,7 @@ public class FileUtil {
 
     			try{
     				
-    				if ( !renameFile( tf, ff )){
+                    if ( !renameFile( tf, ff, false )){
     					Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
 								"renameFile: recovery - failed to move file '" + tf.toString()
 										+ "' to '" + ff.toString() + "'"));

@@ -2743,7 +2743,7 @@ DownloadManagerImpl
 	            throw( new DownloadManagerException( "rename operation failed" ));
 	            
 		  }else{
-			  if ( FileUtil.renameFile( old_file, new_file )){
+			  if ( FileUtil.renameFile( old_file, new_file, false )){
 		  			  
 				  setTorrentSaveDir( new_parent_dir.toString());
 			  
