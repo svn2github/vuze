@@ -1828,7 +1828,6 @@ public class TableView
 	private void addDataSourcesToSWT(final Object dataSources[], boolean async) {
 		try {
 			if (async) {
-				System.out.println("x" + dataSources.length);
 				table.getDisplay().asyncExec(new AERunnable() {
 					public void runSupport() {
 						_addDataSourcesToSWT(dataSources);
@@ -1848,7 +1847,6 @@ public class TableView
 	}
 	
 	private void _addDataSourcesToSWT(final Object dataSources[]) {
-		System.out.println("y" + dataSources.length);
 		if (table == null || table.isDisposed()) {
 			bReallyAddingDataSources = false;
 			return;
@@ -1858,8 +1856,6 @@ public class TableView
 		try {
 			dataSourceToRow_mon.enter();
 			sortedRows_mon.enter();
-
-			System.out.println("z" + dataSources.length);
 
 			// purposefully not included in time check 
 			table.setItemCount(sortedRows.size() + dataSources.length);
