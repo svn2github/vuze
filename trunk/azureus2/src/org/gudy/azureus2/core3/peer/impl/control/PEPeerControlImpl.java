@@ -42,6 +42,7 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.control.*;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATInitiator;
@@ -596,7 +597,22 @@ PEPeerControlImpl
 		final PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, tcp_port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type, udp_port );
 		
 		if( !isAlreadyConnected( peer_item ) ) {
-			String fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, true, use_crypto );  //directly inject the the imported peer
+			
+			String fail_reason;
+			
+			if ( TCPNetworkManager.TCP_OUTGOING_ENABLED && tcp_port > 0){
+
+				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, true, use_crypto );  //directly inject the the imported peer
+				
+			}else if ( UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 ){
+				
+				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, false, use_crypto );  //directly inject the the imported peer
+
+			}else{
+			
+				fail_reason = "No usable protocol";
+			}
+		
 			if( fail_reason != null )  Debug.out( "injected peer was not added - " + fail_reason );
 		}
 	}
@@ -1780,7 +1796,7 @@ PEPeerControlImpl
 		
 			int	udp_port = peer.getUDPListenPort();
 			
-			if ( connect_failed && peer.isTCP() && udp_port != 0 ){
+			if ( connect_failed && peer.isTCP() && UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 ){
 				
 				PeerItem peer_item = peer.getPeerItemIdentity();
 				
@@ -2580,7 +2596,7 @@ PEPeerControlImpl
 
 						final boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
 
-						if ( TCPNetworkManager.TCP_OUTGOING_ENABLED ){
+						if ( TCPNetworkManager.TCP_OUTGOING_ENABLED && item.getTCPPort() > 0 ){
 							
 							if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), true, use_crypto ) == null) {
 								
@@ -2588,22 +2604,20 @@ PEPeerControlImpl
 								
 								remaining--;
 							}
-						}else{
-							
-							if ( item.getUDPPort() != 0 ){
+						}else if ( UDPNetworkManager.UDP_OUTGOING_ENABLED && item.getUDPPort() > 0 ){
 								
-								if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), false, use_crypto ) == null) {
+							if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), false, use_crypto ) == null) {
 									
-									num_waiting_establishments++;
+								num_waiting_establishments++;
 									
-									remaining--;
-								}
+								remaining--;
 							}
 						}
 					}          
 				}
 				
-				if ( 	remaining > 0 &&
+				if ( 	UDPNetworkManager.UDP_OUTGOING_ENABLED &&
+						remaining > 0 &&
 						udp_connections < MAX_UDP_CONNECTIONS &&
 						num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ){
 					
