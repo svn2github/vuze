@@ -69,6 +69,9 @@ DownloadManagerController
 	extends LogRelation
 	implements PEPeerManagerAdapter, PeerManagerRegistrationAdapter
 {
+	private static long STATE_FLAG_HASDND = 0x01;
+	private static long STATE_FLAG_COMPLETE_NO_DND = 0x02;
+	
 	private static long skeleton_builds;
 	
 		// DISK listeners
@@ -139,7 +142,7 @@ DownloadManagerController
 	private fileInfoFacade[]		files_facade		= new fileInfoFacade[0];	// default before torrent avail
 	private boolean					cached_complete_excluding_dnd;
 	private boolean					cached_has_dnd_files;
-	private boolean         cached_values_set = false;
+	private boolean         cached_values_set;
 	
 	private PeerManagerRegistration	peer_manager_registration;
 	private PEPeerManager 			peer_manager;
@@ -170,6 +173,8 @@ DownloadManagerController
 		global_stats = gm.getStats();
 		
 		stats	= (DownloadManagerStatsImpl)download_manager.getStats();
+
+		cached_values_set = false;
 	}
 	
 	protected void
@@ -195,6 +200,14 @@ DownloadManagerController
 		}catch( TOTorrentException e ){
 			
 			Debug.printStackTrace(e);
+		}
+
+		DownloadManagerState state = download_manager.getDownloadState();
+		if (state.parameterExists(DownloadManagerState.PARAM_DND_FLAGS)) {
+			long flags = state.getLongParameter(DownloadManagerState.PARAM_DND_FLAGS);
+			cached_complete_excluding_dnd = (flags & STATE_FLAG_COMPLETE_NO_DND) != 0;
+			cached_has_dnd_files = (flags & STATE_FLAG_HASDND) != 0;
+			cached_values_set = true;
 		}
 	}
 
@@ -1304,6 +1317,10 @@ DownloadManagerController
 		cached_complete_excluding_dnd = complete_exluding_dnd;
 		cached_has_dnd_files = has_dnd_files;
 		cached_values_set = true;
+		DownloadManagerState state = download_manager.getDownloadState();
+		long flags = (cached_complete_excluding_dnd ? STATE_FLAG_COMPLETE_NO_DND : 0) |
+								 (cached_has_dnd_files ? STATE_FLAG_HASDND : 0);
+		state.setLongParameter(DownloadManagerState.PARAM_DND_FLAGS, flags);
 	}
 	
 	/**
@@ -1984,22 +2001,5 @@ DownloadManagerController
 		} finally {
 			writer.exdent();
 		}
-	}
-
-	/**
-	 * @param hasDND
-	 * @param completeNoDND
-	 */
-	public void initCacheDNDinfo(boolean hasDND, boolean isCompleteNoDND) {
-		cached_complete_excluding_dnd = isCompleteNoDND;
-		cached_has_dnd_files = hasDND;
-		cached_values_set = true;
-	}
-	
-	public boolean getHasDND() {
-		if (!cached_values_set) {
-			makeSureFilesFacadeFilled(false);
-		}
-		return cached_has_dnd_files;
 	}
 }

@@ -510,15 +510,4 @@ DownloadManager
     
     public void downloadRemoved();
 
-		/**
-		 * @param hasDND
-		 * @param isCompleteNoDND
-		 */
-		public void initCacheDNDinfo(boolean hasDND, boolean isCompleteNoDND);
-
-		/**
-		 * @return
-		 */
-		boolean getHasDND();
-
 }

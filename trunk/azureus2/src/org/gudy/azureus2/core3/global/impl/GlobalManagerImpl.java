@@ -777,16 +777,6 @@ public class GlobalManagerImpl
 	          if (cat != null) download_manager.getDownloadState().setCategory(cat);
 	        }
 	        
-	        Long lIsCompleteNoDND = (Long) save_download_state.get("isCompleteNoDND");
-					Long lHasDND = (Long) save_download_state.get("hasDND");
-					if (lHasDND != null) {
-						boolean bHasDND = lHasDND.intValue() == 1;
-						boolean bIsCompleteNoDND = (lIsCompleteNoDND == null)
-								? dm_stats.getCompleted() == 1000 : lIsCompleteNoDND.intValue() == 1;
-								
-						download_manager.initCacheDNDinfo(bHasDND, bIsCompleteNoDND);
-					}
-	        
 	        download_manager.requestAssumedCompleteMode();
 	        
 	        if (lDownloaded != null && lUploaded != null) {
@@ -1724,9 +1714,6 @@ public class GlobalManagerImpl
 
           dmMap.put( "allocated", new Long( dm.isDataAlreadyAllocated() == true ? 1 : 0 ) );
 
-	        dmMap.put("isCompleteNoDND", new Long(dm.isDownloadComplete(false) ? 1 : 0));
-					dmMap.put("hasDND", new Long(dm.getHasDND() ? 1 : 0));
-          
 		      list.add(dmMap);
 	      }
 	   

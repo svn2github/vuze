@@ -3049,12 +3049,4 @@ DownloadManagerImpl
 	    	}
     	}
     }
-
-  public void initCacheDNDinfo(boolean hasDND, boolean isCompleteNoDND) {
-  	controller.initCacheDNDinfo(hasDND, isCompleteNoDND);
-  }
-
-	public boolean getHasDND() {
-		return controller.getHasDND();
-	}
 }

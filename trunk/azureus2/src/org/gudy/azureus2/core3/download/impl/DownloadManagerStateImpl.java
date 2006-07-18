@@ -628,6 +628,10 @@ DownloadManagerStateImpl
 		return(( value & flag ) != 0 );
 	}
 	
+	public boolean parameterExists(String name) {
+		return parameters.containsKey(name);
+	}
+	
 	public void
 	setParameterDefault(
 		String	name )
@@ -2110,5 +2114,10 @@ DownloadManagerStateImpl
 		{}
         public void setDisplayName(String name) {}
         public String getDisplayName() {return null;}
+
+				public boolean parameterExists(String name) {
+					// TODO Auto-generated method stub
+					return false;
+				}
 	}
 }

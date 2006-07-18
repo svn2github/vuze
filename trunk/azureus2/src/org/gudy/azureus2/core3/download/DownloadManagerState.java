@@ -61,6 +61,7 @@ DownloadManagerState
 	public static final String	PARAM_STATS_COUNTED						= "stats.counted";
 	public static final String	PARAM_DOWNLOAD_ADDED_TIME				= "stats.download.added.time";
 	public static final String	PARAM_MAX_UPLOAD_WHEN_BUSY				= "max.upload.when.busy";
+	public static final String  PARAM_DND_FLAGS						= "dndflags";
 	
 	public static Object[][] PARAMETERS = {
 		{ PARAM_MAX_PEERS,							new Integer( 0 ) },
@@ -70,6 +71,7 @@ DownloadManagerState
 		{ PARAM_STATS_COUNTED, 						new Boolean( false ) },
 		{ PARAM_DOWNLOAD_ADDED_TIME,				new Long( 0 ) },
 		{ PARAM_MAX_UPLOAD_WHEN_BUSY,				new Long( 0 ) },
+		{ PARAM_DND_FLAGS, new Long ( 0 ) },
 	};
 	
 	public TOTorrent
@@ -268,4 +270,10 @@ DownloadManagerState
 	public void
 	removeListener(
 		DownloadManagerStateListener	l );
+
+	/**
+	 * @param name
+	 * @return
+	 */
+	boolean parameterExists(String name);
 }
