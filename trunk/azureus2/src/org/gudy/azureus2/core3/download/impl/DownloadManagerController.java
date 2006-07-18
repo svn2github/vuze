@@ -139,6 +139,7 @@ DownloadManagerController
 	private fileInfoFacade[]		files_facade		= new fileInfoFacade[0];	// default before torrent avail
 	private boolean					cached_complete_excluding_dnd;
 	private boolean					cached_has_dnd_files;
+	private boolean         cached_values_set = false;
 	
 	private PeerManagerRegistration	peer_manager_registration;
 	private PEPeerManager 			peer_manager;
@@ -1260,6 +1261,10 @@ DownloadManagerController
 	protected void
 	filePriorityChanged(DiskManagerFileInfo file)
 	{
+		if (!cached_values_set) {
+			makeSureFilesFacadeFilled(false);
+		}
+
 		// no need to calculate completeness if there are no DND files and the
 		// file being changed is not DND
 		if (!cached_has_dnd_files && !file.isSkipped()){
@@ -1298,6 +1303,7 @@ DownloadManagerController
 
 		cached_complete_excluding_dnd = complete_exluding_dnd;
 		cached_has_dnd_files = has_dnd_files;
+		cached_values_set = true;
 	}
 	
 	/**
@@ -1307,6 +1313,10 @@ DownloadManagerController
 	 * @return completion state
 	 */
 	protected boolean isDownloadComplete(boolean bIncludeDND) {
+		if (!cached_values_set) {
+			makeSureFilesFacadeFilled(false);
+		}
+
 		// The calculate from stats doesn't take into consideration DND
 		// So, if we have no DND files, use calculation from stats, which
 		// remembers things like whether the file was once complete
@@ -1623,6 +1633,7 @@ DownloadManagerController
 		return( interfaces.toArray());
 	}
 	
+	/** XXX Don't call me, call makeSureFilesFacadeFilled() */
 	protected void
 	fixupFileInfo(
 		fileInfoFacade[]	info )
@@ -1973,5 +1984,22 @@ DownloadManagerController
 		} finally {
 			writer.exdent();
 		}
+	}
+
+	/**
+	 * @param hasDND
+	 * @param completeNoDND
+	 */
+	public void initCacheDNDinfo(boolean hasDND, boolean isCompleteNoDND) {
+		cached_complete_excluding_dnd = isCompleteNoDND;
+		cached_has_dnd_files = hasDND;
+		cached_values_set = true;
+	}
+	
+	public boolean getHasDND() {
+		if (!cached_values_set) {
+			makeSureFilesFacadeFilled(false);
+		}
+		return cached_has_dnd_files;
 	}
 }

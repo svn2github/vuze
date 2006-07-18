@@ -1017,6 +1017,16 @@ Test
 			// TODO Auto-generated method stub
 			return false;
 		}
+
+		public boolean getHasDND() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		public void initCacheDNDinfo(boolean hasDND, boolean isCompleteNoDND) {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 	
 	protected class
