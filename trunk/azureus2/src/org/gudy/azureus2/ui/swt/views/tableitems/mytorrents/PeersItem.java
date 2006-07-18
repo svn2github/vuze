@@ -91,16 +91,24 @@ public class PeersItem extends CoreTableColumn implements
 					}
 				}
 			}
+			
+			long totalPeers = lTotalPeers;
+			if (totalPeers <= 0) {
+				DownloadManager dm = (DownloadManager) cell.getDataSource();
+				if (dm != null) {
+					totalPeers = dm.getActivationCount();
+				}
+			}
 
 			long value = lConnectedPeers * 10000000;
-			if (lTotalPeers > 0)
-				value = value + lTotalPeers;
+			if (totalPeers > 0)
+				value = value + totalPeers;
 			if (!cell.setSortValue(value) && cell.isValid())
 				return;
 
 			String tmp = String.valueOf(lConnectedPeers);
-			if (lTotalPeers != -1)
-				tmp += " (" + lTotalPeers + ")";
+			if (totalPeers != -1)
+				tmp += " (" + totalPeers + ")";
 
 			cell.setText(tmp);
 		}

@@ -53,7 +53,16 @@ public class SeedToPeerRatioItem
       
       if( response != null && response.isValid() ) {
         seeds = Math.max( dm.getNbSeeds(), response.getSeeds() );
-        peers = Math.max( dm.getNbPeers(), response.getPeers() );
+        
+        int trackerPeerCount = response.getPeers();
+        peers = dm.getNbPeers();
+        if (peers == 0 || trackerPeerCount > peers) {
+        	if (trackerPeerCount <= 0) {
+          	peers = dm.getActivationCount();
+        	} else {
+        		peers = trackerPeerCount;
+        	}
+        }
       }
       else {
         seeds = dm.getNbSeeds();
