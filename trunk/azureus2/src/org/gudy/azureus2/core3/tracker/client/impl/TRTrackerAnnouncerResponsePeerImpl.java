@@ -93,4 +93,10 @@ TRTrackerAnnouncerResponsePeerImpl
 	{
 		return( address + ":" + tcp_port );
 	}
+	
+	public String
+	getString()
+	{
+		return( "ip=" + address + ",tcp_port=" + tcp_port + ",udp_port=" + udp_port + ",prot=" + crypto );
+	}
 }

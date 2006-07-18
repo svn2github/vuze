@@ -388,43 +388,48 @@ TRTrackerAnnouncerImpl
 		try{
 			tracker_peer_cache_mon.enter();
 	
+			TRTrackerAnnouncerResponsePeerImpl[]	res;
+			
 			if ( tracker_peer_cache.size() <= num_want ){
 				
-				TRTrackerAnnouncerResponsePeer[]	res = new TRTrackerAnnouncerResponsePeer[tracker_peer_cache.size()];
+				res = new TRTrackerAnnouncerResponsePeerImpl[tracker_peer_cache.size()];
 				
 				tracker_peer_cache.values().toArray( res );
 				
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(getTorrent(), LOGID,
-							"TRTrackerClient: returned " + res.length + " cached peers"));
-			    
-				return( res );
+			}else{
+			
+				res = new TRTrackerAnnouncerResponsePeerImpl[num_want];
+				
+				Iterator	it = tracker_peer_cache.keySet().iterator();
+				
+					// take 'em out and put them back in so we cycle through the peers
+					// over time
+				
+				for (int i=0;i<num_want;i++){
+					
+					String	key = (String)it.next();
+					
+					res[i] = (TRTrackerAnnouncerResponsePeerImpl)tracker_peer_cache.get(key);
+				
+					it.remove();
+				}
+				
+				for (int i=0;i<num_want;i++){
+					
+					tracker_peer_cache.put( res[i].getKey(), res[i] );
+				}
 			}
 			
-			TRTrackerAnnouncerResponsePeerImpl[]	res = new TRTrackerAnnouncerResponsePeerImpl[num_want];
+    		if (Logger.isEnabled()){
+    			
+    			for (int i=0;i<res.length;i++){
+						
+					Logger.log(new LogEvent(getTorrent(), LOGID, "CACHED PEER: " + res[i].getString()));
+    			}
 			
-			Iterator	it = tracker_peer_cache.keySet().iterator();
-			
-				// take 'em out and put them back in so we cycle through the peers
-				// over time
-			
-			for (int i=0;i<num_want;i++){
-				
-				String	key = (String)it.next();
-				
-				res[i] = (TRTrackerAnnouncerResponsePeerImpl)tracker_peer_cache.get(key);
-				
-				it.remove();
-			}
-			
-			for (int i=0;i<num_want;i++){
-				
-				tracker_peer_cache.put( res[i].getKey(), res[i] );
-			}
-			
-			if (Logger.isEnabled())
 				Logger.log(new LogEvent(getTorrent(), LOGID,
 						"TRTrackerClient: returned " + res.length + " cached peers"));
+    		}
 		    
 			return( res );
 			

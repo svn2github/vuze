@@ -2191,18 +2191,21 @@ TRTrackerBTAnnouncerImpl
 								
 								int		udp_port	= 0;
 								
+								TRTrackerAnnouncerResponsePeerImpl new_peer = 
+									new TRTrackerAnnouncerResponsePeerImpl( 
+										PEPeerSource.PS_BT_TRACKER, 
+										peer_peer_id, 
+										ip, 
+										peer_port,
+										udp_port,
+										protocol  );
+										
 								if (Logger.isEnabled())
 									Logger.log(new LogEvent(torrent, LOGID,
-											"NON-COMPACT PEER: ip=" + ip + ",port=" + peer_port + ",prot=" + protocol));
+											"NON-COMPACT PEER: " + new_peer.getString()));
 
-								valid_meta_peers.add(
-									new TRTrackerAnnouncerResponsePeerImpl( 
-											PEPeerSource.PS_BT_TRACKER, 
-											peer_peer_id, 
-											ip, 
-											peer_port,
-											udp_port,
-											protocol  ));
+								valid_meta_peers.add( new_peer );
+
 								
 							} 
 						}
@@ -2279,20 +2282,21 @@ TRTrackerBTAnnouncerImpl
 								}
 								
 				    			udp_port	= 0;
-				    		}
-				    		
-				    		if (Logger.isEnabled())
-									Logger.log(new LogEvent(torrent, LOGID, "COMPACT PEER: ip="
-											+ ip + ",tcp_port=" + tcp_port + ",udp_port=" + udp_port + ",prot=" + protocol ));
+				    		}		    		
 
-				    		valid_meta_peers.add(
+				    		TRTrackerAnnouncerResponsePeerImpl peer = 
 				    			new TRTrackerAnnouncerResponsePeerImpl( 
-				    					PEPeerSource.PS_BT_TRACKER, 
-				    					peer_peer_id, 
-				    					ip, 
-				    					tcp_port,
-				    					udp_port,
-				    					protocol ));    			
+			    					PEPeerSource.PS_BT_TRACKER, 
+			    					peer_peer_id, 
+			    					ip, 
+			    					tcp_port,
+			    					udp_port,
+			    					protocol );
+			    			
+				    		if (Logger.isEnabled())
+								Logger.log(new LogEvent(torrent, LOGID, "COMPACT PEER: " + peer.getString()));
+
+				    		valid_meta_peers.add( peer );
 				    	}
 				    }else{
 						
@@ -2567,10 +2571,6 @@ TRTrackerBTAnnouncerImpl
 				
 				DownloadAnnounceResultPeer	ext_peer = ext_peers[i];
 				
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(torrent, LOGID, "EXTERNAL PEER: ip="
-							+ ext_peer.getAddress() + ",port=" + ext_peer.getPort()+",prot=" + ext_peer.getProtocol()));
-
 				peers[i] = new TRTrackerAnnouncerResponsePeerImpl( 
 								ext_peer.getSource(),
 								ext_peer.getPeerID(),
@@ -2578,6 +2578,10 @@ TRTrackerBTAnnouncerImpl
 								ext_peer.getPort(),
 								ext_peer.getUDPPort(),
 								ext_peer.getProtocol());
+				
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(torrent, LOGID, "EXTERNAL PEER: " + peers[i].getString())); 
+
 			}
 			
 			addToTrackerCache( peers);
