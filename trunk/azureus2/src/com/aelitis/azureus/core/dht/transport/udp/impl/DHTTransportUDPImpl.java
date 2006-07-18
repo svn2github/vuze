@@ -940,7 +940,7 @@ DHTTransportUDPImpl
 		
 		request_handler.contactImported( contact );
 		
-		logger.log( "Imported contact " + contact.getString());
+		// logger.log( "Imported contact " + contact.getString());
 	}
 	
 	public void
