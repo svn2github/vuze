@@ -182,7 +182,16 @@ public class MyTorrentsView
     	currentCategory.addCategoryListener(this);
     }
     CategoryManager.addCategoryManagerListener(this);
-    globalManager.addListener(this);
+    globalManager.addListener(this, false);
+    Object[] dms = globalManager.getDownloadManagers().toArray();
+    for (int i = 0; i < dms.length; i++) {
+			DownloadManager dm = (DownloadManager) dms[i];
+			if (!isOurDownloadManager(dm)) {
+		    dm.addListener(this);
+				dms[i] = null;
+			}
+		}
+    addDataSources(dms);
   }
 
 

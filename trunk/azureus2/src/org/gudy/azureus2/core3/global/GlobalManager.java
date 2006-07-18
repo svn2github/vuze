@@ -350,4 +350,10 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 * @param listener
 	 */
 	void loadExistingTorrentsNow(AzureusCoreListener listener, boolean async);
+
+	/**
+	 * @param listener
+	 * @param trigger
+	 */
+	void addListener(GlobalManagerListener listener, boolean trigger);
 }

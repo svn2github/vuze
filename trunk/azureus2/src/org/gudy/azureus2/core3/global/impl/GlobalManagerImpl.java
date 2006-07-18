@@ -1994,6 +1994,14 @@ public class GlobalManagerImpl
 	addListener(
 		GlobalManagerListener	listener )
 	{
+ 		addListener(listener, true);
+	}
+
+ 	public void
+	addListener(
+		GlobalManagerListener	listener,
+		boolean trigger )
+	{
 		if ( isStopping ){
 				
 			listener.destroyed();
@@ -2001,6 +2009,10 @@ public class GlobalManagerImpl
 		}else{			
 							
 			listeners.addListener(listener);
+			
+			if (!trigger) {
+				return;
+			}
 
 			// Don't use Dispatch.. async is bad (esp for plugin initialization)
 			try{
