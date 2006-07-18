@@ -2768,13 +2768,22 @@ DownloadManagerImpl
 			  final HashSet files_to_move = new HashSet();
 			  DiskManagerFileInfo[] info_files = controller.getDiskManagerFileInfo();
 			  for (int i=0; i<info_files.length; i++) {
-				  File f = info_files[i].getFile(false);
+                                  File f = info_files[i].getFile(true);
 				  try {f = f.getCanonicalFile();}
 				  catch (IOException ioe) {/* Do nothing */}
 				  files_to_move.add(f);
 			  }
-			  FileFilter ff = new FileFilter() {
-				  public boolean accept(File f) {return files_to_move.contains(f);}
+              FileFilter ff = new FileFilter() {
+                  public boolean accept(File f) {
+                      /**
+                       * amc1: I think this call is unnecessary, since I think all
+                       * files should be canonical in the first place, but just in
+                       * case...
+                       */
+                      try {f = f.getCanonicalFile();}
+                      catch (IOException ioe) {}
+                      return files_to_move.contains(f);
+                  }
 			  };
 			  
 			  if ( FileUtil.renameFile( old_file, new_file, false, ff )){
