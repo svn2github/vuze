@@ -179,7 +179,8 @@ public class ConfigurationDefaults {
     def.put("Send Version Info",TRUE);
     def.put("Show Download Basket",FALSE);
     def.put("config.style.refreshMT",new Long(0));
-    def.put("Open Details", FALSE);    
+    def.put("Open Details", FALSE);
+    def.put("IconBar.enabled", TRUE);
     
     //default data location options
     def.put("Use default data dir", FALSE);	
