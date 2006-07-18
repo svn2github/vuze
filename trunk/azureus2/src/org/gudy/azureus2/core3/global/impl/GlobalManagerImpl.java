@@ -1010,7 +1010,12 @@ public class GlobalManagerImpl
     			Debug.printStackTrace( e );
     		}
     	}
-    	
+
+    	/**
+    	 * We need to call this before we call destroy, since we need
+    	 * some information stored in the DownloadManagerState object.
+    	 */
+    	manager.downloadRemoved();
     	manager.destroy();
     }finally{
     	
@@ -1020,7 +1025,7 @@ public class GlobalManagerImpl
     fixUpDownloadManagerPositions();
     listeners.dispatch( LDT_MANAGER_REMOVED, manager );
     manager.removeListener(this);
-    manager.downloadRemoved();
+    
     
     saveDownloads( false );
 
