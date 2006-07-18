@@ -625,6 +625,7 @@ public class MainMenu {
       indent(addMyTorrentsMenuItem(viewMenu));
       indent(addMyTrackerMenuItem(viewMenu));
       indent(addMySharesMenuItem(viewMenu));
+      indent(addViewToolbarMenuItem(viewMenu));
 
       if(Constants.isOSX) {
           indent(addConsoleMenuItem(viewMenu));
@@ -860,8 +861,12 @@ public class MainMenu {
 
     // individual menu items
 
-    private static final MenuItem addMenuItem(Menu menu, String localizationKey, Listener selListener) {
-      MenuItem item = new MenuItem(menu, SWT.NULL);
+  private static final MenuItem addMenuItem(Menu menu, String localizationKey, Listener selListener) {
+  	return addMenuItem(menu, SWT.NONE, localizationKey, selListener);
+  }
+
+  private static final MenuItem addMenuItem(Menu menu, int style, String localizationKey, Listener selListener) {
+      MenuItem item = new MenuItem(menu, style);
       Messages.setLanguageText(item, localizationKey);
       KeyBindings.setAccelerator(item, localizationKey);
       item.addListener(SWT.Selection, selListener);
@@ -897,14 +902,42 @@ public class MainMenu {
         });
     }
 
-    private MenuItem addMySharesMenuItem(Menu menu)
-    {
-        return addMenuItem(menu, "MainWindow.menu.view.myshares", new Listener() {
-            public void handleEvent(Event e) {
-            mainWindow.showMyShares();
-            }
-        });
-    }
+  private MenuItem addMySharesMenuItem(Menu menu)
+  {
+      return addMenuItem(menu, "MainWindow.menu.view.myshares", new Listener() {
+          public void handleEvent(Event e) {
+          mainWindow.showMyShares();
+          }
+      });
+  }
+  
+  private MenuItem addViewToolbarMenuItem(Menu menu)
+  {
+		final MenuItem item = addMenuItem(menu, SWT.CHECK,
+				"MainWindow.menu.view.iconbar",
+				new Listener() {
+					public void handleEvent(Event e) {
+						mainWindow.setIconBarEnabled(!mainWindow.getIconBarEnabled());
+					}
+				});
+
+		final ParameterListener listener = new ParameterListener() {
+			public void parameterChanged(String parameterName) {
+				item.setSelection(COConfigurationManager.getBooleanParameter(parameterName));
+			}
+		};
+
+		COConfigurationManager.addAndFireParameterListener("IconBar.enabled",
+				listener);
+		item.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				COConfigurationManager.removeParameterListener("IconBar.enabled",
+						listener);
+			}
+		});
+		return item;
+	}
+  
 
     private MenuItem addConsoleMenuItem(Menu menu) {
        return addMenuItem(menu, "MainWindow.menu.view.console", new Listener() {

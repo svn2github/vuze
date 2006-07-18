@@ -567,6 +567,9 @@ MainWindow
 
     showMainWindow();
 }
+	protected boolean getIconBarEnabled() {
+		return bIconBarEnabled;
+	}
   
 	protected void setIconBarEnabled(boolean enabled) {
 		if (enabled == bIconBarEnabled) {
