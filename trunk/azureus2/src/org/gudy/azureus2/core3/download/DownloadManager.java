@@ -507,7 +507,4 @@ DownloadManager
     public void
     generateEvidence(
         IndentWriter        writer );
-    
-    public void downloadRemoved();
-
 }

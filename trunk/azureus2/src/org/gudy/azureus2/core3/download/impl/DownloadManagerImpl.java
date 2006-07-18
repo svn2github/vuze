@@ -1092,14 +1092,6 @@ DownloadManagerImpl
 		}
 	}
 	
-	public void
-	destroy()
-	{
-		clearFileLinks();
-		
-		controller.destroy();
-	}
-	
 	public boolean 
 	filesExist() 
 	{
@@ -2768,22 +2760,13 @@ DownloadManagerImpl
 			  final HashSet files_to_move = new HashSet();
 			  DiskManagerFileInfo[] info_files = controller.getDiskManagerFileInfo();
 			  for (int i=0; i<info_files.length; i++) {
-                                  File f = info_files[i].getFile(true);
+				  File f = info_files[i].getFile(true);
 				  try {f = f.getCanonicalFile();}
 				  catch (IOException ioe) {/* Do nothing */}
 				  files_to_move.add(f);
 			  }
-              FileFilter ff = new FileFilter() {
-                  public boolean accept(File f) {
-                      /**
-                       * amc1: I think this call is unnecessary, since I think all
-                       * files should be canonical in the first place, but just in
-                       * case...
-                       */
-                      try {f = f.getCanonicalFile();}
-                      catch (IOException ioe) {}
-                      return files_to_move.contains(f);
-                  }
+			  FileFilter ff = new FileFilter() {
+				  public boolean accept(File f) {return files_to_move.contains(f);}
 			  };
 			  
 			  if ( FileUtil.renameFile( old_file, new_file, false, ff )){
@@ -3024,38 +3007,47 @@ DownloadManagerImpl
 		}
 	}
 
-    public void downloadRemoved() {
-    	// Data files don't exist, so we just don't do anything.
-    	if (!getSaveLocation().exists()) {return;}
-    	
-    	DiskManager dm = this.getDiskManager();
-    	if (dm != null) {
-    		dm.downloadRemoved();
-    		return;
-    	}
-    	    	
-    	DiskManagerImpl.MoveDownloadInfo mdi = DiskManagerImpl.getMoveDownloadInfoOnRemoval(this, this);
-    	if (mdi == null) {
-    		return;
-    	}
-    	
-    	boolean moved_files = false;
-    	try {
-    		this.moveDataFiles(new File(mdi.location));
-    		moved_files = true;
-    	}
-    	catch (Exception e) {
-    		Logger.log(new LogAlert(true, "Problem moving files to removed download directory", e));
-    	}
-    	
-    	// This code will silently fail if the torrent file doesn't exist.
-    	if (moved_files && mdi.move_torrent) {
-  		    try {
-	    		this.moveTorrentFile(new File(mdi.location));
+	public void
+	destroy()
+	{
+		try{
+	   	// Data files don't exist, so we just don't do anything.
+	    	if (!getSaveLocation().exists()) {return;}
+	    	
+	    	DiskManager dm = this.getDiskManager();
+	    	if (dm != null) {
+	    		dm.downloadRemoved();
+	    		return;
+	    	}
+	    	    	
+	    	DiskManagerImpl.MoveDownloadInfo mdi = DiskManagerImpl.getMoveDownloadInfoOnRemoval(this, this);
+	    	if (mdi == null) {
+	    		return;
+	    	}
+	    	
+	    	boolean moved_files = false;
+	    	try {
+	    		this.moveDataFiles(new File(mdi.location));
+	    		moved_files = true;
 	    	}
 	    	catch (Exception e) {
-	    		Logger.log(new LogAlert(true, "Problem moving torrent to removed download directory", e));
+	    		Logger.log(new LogAlert(true, "Problem moving files to removed download directory", e));
 	    	}
-    	}
-    }
+	    	
+	    	// This code will silently fail if the torrent file doesn't exist.
+	    	if (moved_files && mdi.move_torrent) {
+	  		    try {
+		    		this.moveTorrentFile(new File(mdi.location));
+		    	}
+		    	catch (Exception e) {
+		    		Logger.log(new LogAlert(true, "Problem moving torrent to removed download directory", e));
+		    	}
+	    	}
+		}finally{
+			
+			clearFileLinks();
+			
+			controller.destroy(); 
+		}
+	}
 }
