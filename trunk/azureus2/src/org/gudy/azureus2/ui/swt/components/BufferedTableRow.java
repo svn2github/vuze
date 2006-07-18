@@ -486,21 +486,16 @@ BufferedTableRow
   	TableItem newRow;
   	try {
   		newRow = table.getItem(newIndex);
+  	} catch (IllegalArgumentException er) {
+  		if (item == null || item.isDisposed()) {
+  			return false;
+  		}
+  		item = null;
+  		return true;
   	} catch (Throwable e) {
   		System.out.println("setTableItem(" + newIndex + ", " + bCopyFromOld + ")");
   		e.printStackTrace();
   		return false;
-  	}
-
-  	if (newRow != null && !newRow.isDisposed()) {
-  		// This is temporary for SWT 3212, because there are cases where
-  		// it says it isn't disposed, when it really almost is
-  		// Eclipse Bug 119207
-  		try {
-  			newRow.setData("Test", "");
-  		} catch (NullPointerException e) {
-  			return false;
-  		}
   	}
 
   	if (newRow == item) {
@@ -516,8 +511,7 @@ BufferedTableRow
 
 	    if (bCopyFromOld) {
 	      copyToItem(newRow);
-	    } else if ((table.getStyle() & SWT.VIRTUAL) > 0
-					&& newRow.getData("SD") != null) {
+	    } else if (newRow.getData("SD") != null) {
 	    	// clear causes too much flicker
 	    	//table.clear(table.indexOf(newRow));
 	  		newRow.setForeground(null);
@@ -531,14 +525,11 @@ BufferedTableRow
 	          /* Ignore for Pre 3.0 SWT.. */
 	        }
 	  		}
+	 		} else {
+	 			newRow.setData("SD", "1");
 	 		}
 
-  		// this essentially disables the "SD" logic.  I don't think
-  		// we need it any more, so let's try..
-  		if (newRow.getData("SD") == null) {
-     		setAlternatingBGColor(false);
-  			newRow.setData("SD", "1");
-  		}
+   		setAlternatingBGColor(false);
 
 	    try {
 	    	newRow.setData("TableRow", this);
@@ -555,6 +546,7 @@ BufferedTableRow
 	  foreground_colors	= new Color[0];
     foreground = null;
 
+    // unlink old item from tablerow
     if (item != null && !item.isDisposed() && item.getData("TableRow") == this)
     	item.setData("TableRow", null);
 

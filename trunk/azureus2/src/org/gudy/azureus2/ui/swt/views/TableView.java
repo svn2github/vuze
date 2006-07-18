@@ -123,8 +123,9 @@ public class TableView
 	
 	/** Virtual Tables still a work in progress */
 	// Non-Virtual tables scroll faster with they keyboard
-	// Virtual tables don't flicker when updating a cell
-	private final static boolean DISABLEVIRTUAL = SWT.getVersion() < 3138;
+	// Virtual tables don't flicker when updating a cell (Windows)
+	private final static boolean DISABLEVIRTUAL = !Constants.isWindows
+			|| SWT.getVersion() < 3138;
 
 	private final static boolean COLUMN_CLICK_DELAY = Constants.isOSX
 			&& SWT.getVersion() >= 3221 && SWT.getVersion() <= 3222;
@@ -1820,9 +1821,7 @@ public class TableView
 					
 					long lStartTime = SystemTime.getCurrentTime();
 
-//					if (bTableVirtual) {
-//						table.setItemCount(sortedRows.size() + dataSources.length);
-//					}
+					table.setItemCount(sortedRows.size() + dataSources.length);
 
 					// add to sortedRows list in best position.  
 					// We need to be in the SWT thread because the rowSorter may end up
@@ -1893,11 +1892,7 @@ public class TableView
 								sortedRows.add(row);
 							}
 
-//							if (bTableVirtual) {
-//								row.setTableItem(index);
-//							} else {
-								row.createSWTRow(index);
-//							}
+							row.setTableItem(index);
 							row.setIconSize(ptIconSize);
 						} catch (Exception e) {
 							Logger.log(new LogEvent(LOGID, "Error adding a row to table "
@@ -1970,6 +1965,10 @@ public class TableView
 
 		boolean ok = Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (table == null || table.isDisposed()) {
+					return;
+				}
+
 				if (DEBUGADDREMOVE)
 					debug(">>> Remove rows.  Start");
 				
@@ -1994,9 +1993,30 @@ public class TableView
 					}
 				}
 
+				// Remove the rows from SWT first.  On SWT 3.2, this currently has 
+				// zero perf gain, and a small perf gain on Windows.  However, in the
+				// future it may be optimized.
+				int[] swtRowsToRemove = new int[itemsToRemove.size()];
+				int count = 0;
 				for (Iterator iter = itemsToRemove.iterator(); iter.hasNext();) {
 					TableRowCore item = (TableRowCore) iter.next();
-					item.delete();
+					int index = item.getIndex();
+					if (index >= 0) {
+						swtRowsToRemove[count++] = index;
+					} else if (count != 0) {
+						// duplicate indexes will be only removed once
+						// this saves us from shrinking the array
+						swtRowsToRemove[count + 1] = swtRowsToRemove[count];
+						count++;
+					}
+				}
+				if (count > 0) {
+					table.remove(swtRowsToRemove);
+				}
+				
+				for (Iterator iter = itemsToRemove.iterator(); iter.hasNext();) {
+					TableRowCore item = (TableRowCore) iter.next();
+					item.delete(false);
 				}
 
 				if (bRefresh) {
@@ -2020,7 +2040,7 @@ public class TableView
 				dataSourceToRow.remove(dataSources[i]);
 				if (item != null) {
 					sortedRows.remove(item);
-					item.delete();
+					item.delete(true);
 				}
 			}
 
@@ -2043,7 +2063,7 @@ public class TableView
   			// Image Disposal handled by each cell
   			TableRowCore[] rows = getRows();
   			for (int i = 0; i < rows.length; i++)
-  				rows[i].delete();
+  				rows[i].delete(false);
   		}
   	});
 
@@ -2885,6 +2905,10 @@ public class TableView
 	private void _sortColumn(boolean bForceDataRefresh,
 			boolean bFillGapsOnly, boolean bFollowSelected) 
 	{
+		if (table == null || table.isDisposed()) {
+			return;
+		}
+
 		try{
 			sortColumn_mon.enter();
 		
@@ -2940,8 +2964,6 @@ public class TableView
 				}
 	
 				if (bTableVirtual) {
-					// No Refresh for virtual, OS will trigger a SWT.SetData almost 
-					// immediately where we refresh
 					for (int i = 0; i < sortedRows.size(); i++) {
 						TableRowCore row = (TableRowCore) sortedRows.get(i);
 						if (row.setTableItem(i)) {
@@ -2953,7 +2975,6 @@ public class TableView
 						TableRowCore row = (TableRowCore) sortedRows.get(i);
 						if (row.setTableItem(i)) {
 							iNumMoves++;
-							row.refresh(true);
 						}
 					}
 				}

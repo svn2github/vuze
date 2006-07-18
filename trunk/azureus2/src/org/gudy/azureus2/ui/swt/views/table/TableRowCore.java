@@ -39,8 +39,9 @@ public interface TableRowCore
 	/** Invalidates Row */
   public void invalidate();
 
-  /** Delete the row */
-  public void delete();
+  /** Delete the row 
+   * @param bDeleteSWTObject TODO*/
+  public void delete(boolean bDeleteSWTObject);
   
   /** Refresh all the cells in the row 
    *

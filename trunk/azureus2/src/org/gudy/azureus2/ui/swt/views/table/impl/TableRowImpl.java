@@ -146,7 +146,7 @@ public class TableRowImpl
   /* Start Core-Only functions */
   ///////////////////////////////
 
-  public void delete() {
+  public void delete(boolean bDeleteSWTObject) {
 		sortedDisposal_mon.enter();
 
 		try {
@@ -167,7 +167,9 @@ public class TableRowImpl
 				}
 			} finally {
 				// Dispose of row
-				dispose();
+				if (bDeleteSWTObject) {
+					dispose();
+				}
 			}
 
 			bDisposed = true;
