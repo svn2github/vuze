@@ -911,7 +911,15 @@ DownloadManagerStateImpl
 	{
 		setStringAttribute( AT_TRACKER_CLIENT_EXTENSIONS, value );
 	}
+    
+    public String getDisplayName() {
+    	return this.getStringAttribute(AT_DISPLAY_NAME);
+    }
 	
+    public void setDisplayName(String value) {
+    	this.setStringAttribute(AT_DISPLAY_NAME, value);
+    }
+    
 	public String[]
 	getNetworks()
 	{
@@ -2100,5 +2108,7 @@ DownloadManagerStateImpl
 		removeListener(
 			DownloadManagerStateListener	l )
 		{}
+        public void setDisplayName(String name) {}
+        public String getDisplayName() {return null;}
 	}
 }

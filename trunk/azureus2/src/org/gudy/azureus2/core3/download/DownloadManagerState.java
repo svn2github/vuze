@@ -48,6 +48,7 @@ DownloadManagerState
 	public static final String AT_FILE_DOWNLOADED			= "filedownloaded";
 	public static final String AT_FLAGS						= "flags";
 	public static final String AT_PARAMETERS				= "parameters";
+	public static final String AT_DISPLAY_NAME              = "displayname";
 	
 	public static final long FLAG_ONLY_EVER_SEEDED			= Download.FLAG_ONLY_EVER_SEEDED;
 	public static final long FLAG_SCAN_INCOMPLETE_PIECES	= Download.FLAG_SCAN_INCOMPLETE_PIECES;
@@ -152,6 +153,9 @@ DownloadManagerState
 	public void 
 	setCategory(
 		Category cat );
+	
+	public String getDisplayName();
+	public void setDisplayName(String name);
 	
 	public String
 	getTrackerClientExtensions();

@@ -25,8 +25,11 @@ package org.gudy.azureus2.ui.swt.views;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,6 +66,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow.TextEntrySubmissionListener;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -1592,6 +1596,26 @@ public class MyTorrentsView
 		itemCategory.setEnabled(hasSelection);
 
 		addCategorySubMenu();
+		
+		// Rename
+		final MenuItem itemRename = new MenuItem(menu, SWT.CASCADE);
+		Messages.setLanguageText(itemRename, "MyTorrentsView.menu.rename");
+		itemRename.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				  SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(getComposite().getDisplay(), "MyTorrentsView.menu.rename.enter.title", "MyTorrentsView.menu.rename.enter.message", ((DownloadManager)getFirstSelectedDataSource()).getDisplayName(), null);
+				  if (text_entry.wasDataSubmitted()) {
+					  String value = text_entry.getStoredString();
+					  final String value_to_set = (value.length() == 0) ? null : value; 
+					  MyTorrentsView.this.runForSelectedRows(new GroupTableRowRunner() {
+						  public void run(TableRowCore row) {
+							  ((DownloadManager)row.getDataSource(true)).getDownloadState().setDisplayName(value_to_set);
+					      }
+					  });
+				  }
+			}
+		});
+		
+
 
 		// ---
 		new MenuItem(menu, SWT.SEPARATOR);

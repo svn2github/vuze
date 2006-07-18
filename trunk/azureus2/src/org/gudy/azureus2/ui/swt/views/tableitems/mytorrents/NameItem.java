@@ -46,6 +46,7 @@ public class NameItem extends CoreTableColumn implements
 	public NameItem(String sTableID) {
 		super("name", POSITION_LAST, 250, sTableID);
 		setObfustication(true);
+		setRefreshInterval(INTERVAL_LIVE);
 		setType(TableColumn.TYPE_TEXT);
 	}
 

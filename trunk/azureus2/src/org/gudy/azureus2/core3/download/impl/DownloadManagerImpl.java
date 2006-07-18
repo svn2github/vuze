@@ -1116,6 +1116,11 @@ DownloadManagerImpl
 	public String 
 	getDisplayName() 
 	{
+		DownloadManagerState dms = this.getDownloadState();
+		if (dms != null) {
+			String result = dms.getDisplayName();
+			if (result != null) {return result;}
+		}
 		return( display_name );
 	}	
 	
