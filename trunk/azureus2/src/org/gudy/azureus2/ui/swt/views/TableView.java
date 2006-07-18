@@ -74,6 +74,7 @@ import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.sun.rsasign.bb;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
@@ -138,9 +139,9 @@ public class TableView
 
 	private static final String CFG_SORTDIRECTION = "config.style.table.defaultSortOrder";
 
-	private static final long IMMEDIATE_ADDREMOVE_DELAY = 80;
+	private static final long IMMEDIATE_ADDREMOVE_DELAY = 150;
 
-	private static final long IMMEDIATE_ADDREMOVE_MAXDELAY = 3000;
+	private static final long IMMEDIATE_ADDREMOVE_MAXDELAY = 1000;
 
   /** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
    * of the table this class is
@@ -240,7 +241,10 @@ public class TableView
 
 	private Timer timerProcessDataSources = new Timer("Process Data Sources");
 	private TimerEvent timerEventProcessDS;
-	
+
+	private boolean bReallyAddingDataSources = false;
+
+
 	/** TabViews */
 	public boolean bEnableTabViews = false;
 	/** TabViews */
@@ -1708,7 +1712,9 @@ public class TableView
 				debug("Queueing " + dataSources.length + " dataSources to add");
 
 			for (int i = 0; i < dataSources.length; i++) {
-				dataSourcesToAdd.add(dataSources[i]);
+				if (dataSources[i] != null) {
+					dataSourcesToAdd.add(dataSources[i]);
+				}
 			}
 		} finally {
 
@@ -1719,7 +1725,10 @@ public class TableView
   }
 		
 	private void refreshenProcessDataSourcesTimer() {
-		// Immediate not really immediate, just sooner than the next refresh cycle
+		if (bReallyAddingDataSources) {
+			return;
+		}
+
 		synchronized (timerProcessDataSources) {
 			if (timerEventProcessDS != null && !timerEventProcessDS.hasRun()) {
 				// Push timer forward, unless we've pushed it forward for over x seconds
@@ -1757,18 +1766,25 @@ public class TableView
 				|| table.isDisposed())
 			return;
 		
+		bReallyAddingDataSources = true;
 		if (DEBUGADDREMOVE)
 			debug(">>" + " Add " + dataSources.length + " rows;");
 
+		Object[] remainingDataSources = null;
+		Object[] doneDataSources = dataSources;
+		
 		// Create row, and add to map immediately
 		try {
 			dataSourceToRow_mon.enter();
+			
 			long lStartTime = SystemTime.getCurrentTime();
 
 			for (int i = 0; i < dataSources.length; i++) {
 				if (dataSources[i] == null)
 					continue;
 
+				// Break off and add the rows to the UI if we've taken too long to
+				// create them
 				if (SystemTime.getCurrentTime() - lStartTime > 500) {
 					int iNewSize = dataSources.length - i;
 					if (DEBUGADDREMOVE) {
@@ -1776,13 +1792,11 @@ public class TableView
 							+ i + " took " + (SystemTime.getCurrentTime() - lStartTime)
 							+ "ms; # remaining: " + iNewSize);
 					}
-					Object[] remainingDataSources = new Object[iNewSize];
-					Object[] doneDataSources = new Object[i];
+					remainingDataSources = new Object[iNewSize];
+					doneDataSources = new Object[i];
 					System.arraycopy(dataSources, i, remainingDataSources, 0, iNewSize);
 					System.arraycopy(dataSources, 0, doneDataSources, 0, i);
-					addDataSourcesToSWT(doneDataSources);
-					reallyAddDataSources(remainingDataSources);
-					return;
+					break;
 				}
 
 				if (dataSourceToRow.containsKey(dataSources[i])) {
@@ -1803,128 +1817,164 @@ public class TableView
 		if (DEBUGADDREMOVE)
 			debug("--" + " Add " + dataSources.length + " rows;");
 
-		addDataSourcesToSWT(dataSources);
+		if (remainingDataSources == null) {
+			addDataSourcesToSWT(doneDataSources, true);
+		} else {
+			addDataSourcesToSWT(doneDataSources, false);
+			reallyAddDataSources(remainingDataSources);
+		}
 	}
 	
-	private void addDataSourcesToSWT(final Object dataSources[]) {
-		// Now, add to sortedRows which requires the SWT thread.
-		// Don't use Utils.execSWTThread as we want to queue this even if we 
-		// wre on the SWT thread
-		table.getDisplay().asyncExec(new AERunnable() {
-			public void runSupport() {
-				if (table == null || table.isDisposed())
-					return;
-
-				try {
-					dataSourceToRow_mon.enter();
-					sortedRows_mon.enter();
-					
-					long lStartTime = SystemTime.getCurrentTime();
-
-					table.setItemCount(sortedRows.size() + dataSources.length);
-
-					// add to sortedRows list in best position.  
-					// We need to be in the SWT thread because the rowSorter may end up
-					// calling SWT objects.
-					for (int i = 0; i < dataSources.length; i++) {
-						Object dataSource = dataSources[i];
-						if (dataSource == null)
-							continue;
-
-						// If we've been processing on the SWT thread for too long,
-						// break off and allow SWT a breather to update.
-						if (SystemTime.getCurrentTime() - lStartTime > 1000) {
-							int iNewSize = dataSources.length - i;
-							if (DEBUGADDREMOVE) {
-								debug("Breaking off adding datasources to SWT after "
-									+ i + " took " + (SystemTime.getCurrentTime() - lStartTime)
-									+ "ms; # remaining: " + iNewSize);
-							}
-							Object[] remainingDataSources = new Object[iNewSize];
-							System.arraycopy(dataSources, i, remainingDataSources, 0, iNewSize);
-							addDataSourcesToSWT(remainingDataSources);
-							break;
-						}
-
-						TableRowImpl row = (TableRowImpl) dataSourceToRow.get(dataSource);
-						if (row == null)
-							continue;
-						TableCellCore cell = row.getTableCellCore(rowSorter.getColumnName());
-						if (cell != null) {
-							try {
-								cell.invalidate();
-								cell.refresh(true);
-							} catch (Exception e) {
-								Logger.log(new LogEvent(LOGID,
-										"Minor error adding a row to table " + sTableID, e));
-							}
-						}
-
-						try {
-							int index = 0;
-							if (sortedRows.size() > 0) {
-								// If we are >= to the last item, then just add it to the end
-								// instead of relying on binarySearch, which may return an item
-								// in the middle that also is equal.
-								TableRowCore lastRow = (TableRowCore) sortedRows.get(sortedRows.size() - 1);
-								if (rowSorter.compare(row, lastRow) >= 0) {
-									index = sortedRows.size();
-									sortedRows.add(row);
-									if (DEBUGADDREMOVE)
-										debug("Adding new row to bottom");
-								} else {
-									index = Collections.binarySearch(sortedRows, row, rowSorter);
-									if (index < 0)
-										index = -1 * index - 1; // best guess
-
-									if (index > sortedRows.size())
-										index = sortedRows.size();
-
-									if (DEBUGADDREMOVE)
-										debug("Adding new row at position " + index + " of "
-												+ (sortedRows.size() - 1));
-									sortedRows.add(index, row);
-								}
-							} else {
-								if (DEBUGADDREMOVE)
-									debug("Adding new row to bottom (1st Entry)");
-								index = sortedRows.size();
-								sortedRows.add(row);
-							}
-
-							row.setTableItem(index);
-							row.setIconSize(ptIconSize);
-						} catch (Exception e) {
-							Logger.log(new LogEvent(LOGID, "Error adding a row to table "
-									+ sTableID, e));
-							try {
-								if (!sortedRows.contains(row))
-									sortedRows.add(row);
-							} catch (Exception e2) {
-								Debug.out(e2);
-							}
-						}
-					} // for dataSources
-
-					// Sanity Check: Make sure # of rows in table and in array match
-					if (table.getItemCount() > sortedRows.size()) {
-						// This could happen if one of the datasources was null, or
-						// an error occured, or we exited early because things were talking
-						// to long
-						table.setItemCount(sortedRows.size());
+	private void addDataSourcesToSWT(final Object dataSources[], boolean async) {
+		try {
+			if (async) {
+				System.out.println("x" + dataSources.length);
+				table.getDisplay().asyncExec(new AERunnable() {
+					public void runSupport() {
+						_addDataSourcesToSWT(dataSources);
 					}
+				});
+			} else {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						_addDataSourcesToSWT(dataSources);
+					}
+				}, false);
+			}
+		} catch (Exception e) {
+			bReallyAddingDataSources = false;
+			e.printStackTrace();
+		}
+	}
+	
+	private void _addDataSourcesToSWT(final Object dataSources[]) {
+		System.out.println("y" + dataSources.length);
+		if (table == null || table.isDisposed()) {
+			bReallyAddingDataSources = false;
+			return;
+		}
 
-				} finally {
-					sortedRows_mon.exit();
-					dataSourceToRow_mon.exit();
+		boolean bBrokeEarly = false;
+		try {
+			dataSourceToRow_mon.enter();
+			sortedRows_mon.enter();
+
+			System.out.println("z" + dataSources.length);
+
+			// purposefully not included in time check 
+			table.setItemCount(sortedRows.size() + dataSources.length);
+
+			long lStartTime = SystemTime.getCurrentTime();
+
+			// add to sortedRows list in best position.  
+			// We need to be in the SWT thread because the rowSorter may end up
+			// calling SWT objects.
+			for (int i = 0; i < dataSources.length; i++) {
+				Object dataSource = dataSources[i];
+				if (dataSource == null)
+					continue;
+
+				// If we've been processing on the SWT thread for too long,
+				// break off and allow SWT a breather to update.
+				if (SystemTime.getCurrentTime() - lStartTime > 2000) {
+					int iNewSize = dataSources.length - i;
+					if (DEBUGADDREMOVE) {
+						debug("Breaking off adding datasources to SWT after " + i
+								+ " took " + (SystemTime.getCurrentTime() - lStartTime)
+								+ "ms; # remaining: " + iNewSize);
+					}
+					Object[] remainingDataSources = new Object[iNewSize];
+					System.arraycopy(dataSources, i, remainingDataSources, 0, iNewSize);
+					addDataSourcesToSWT(remainingDataSources, true);
+					bBrokeEarly = true;
+					break;
 				}
 
-				fillRowGaps(false);
-				visibleRowsChanged();
-				if (DEBUGADDREMOVE)
-					debug("<< " + sortedRows.size());
+				TableRowImpl row = (TableRowImpl) dataSourceToRow.get(dataSource);
+				if (row == null || row.getIndex() >= 0)
+					continue;
+				TableCellCore cell = row.getTableCellCore(rowSorter.getColumnName());
+				if (cell != null) {
+					try {
+						cell.invalidate();
+						cell.refresh(true);
+					} catch (Exception e) {
+						Logger.log(new LogEvent(LOGID, "Minor error adding a row to table "
+								+ sTableID, e));
+					}
+				}
+
+				try {
+					int index = 0;
+					if (sortedRows.size() > 0) {
+						// If we are >= to the last item, then just add it to the end
+						// instead of relying on binarySearch, which may return an item
+						// in the middle that also is equal.
+						TableRowCore lastRow = (TableRowCore) sortedRows.get(sortedRows.size() - 1);
+						if (rowSorter.compare(row, lastRow) >= 0) {
+							index = sortedRows.size();
+							sortedRows.add(row);
+							if (DEBUGADDREMOVE)
+								debug("Adding new row to bottom");
+						} else {
+							index = Collections.binarySearch(sortedRows, row, rowSorter);
+							if (index < 0)
+								index = -1 * index - 1; // best guess
+
+							if (index > sortedRows.size())
+								index = sortedRows.size();
+
+							if (DEBUGADDREMOVE)
+								debug("Adding new row at position " + index + " of "
+										+ (sortedRows.size() - 1));
+							sortedRows.add(index, row);
+						}
+					} else {
+						if (DEBUGADDREMOVE)
+							debug("Adding new row to bottom (1st Entry)");
+						index = sortedRows.size();
+						sortedRows.add(row);
+					}
+
+					row.setTableItem(index);
+					row.setIconSize(ptIconSize);
+				} catch (Exception e) {
+					Logger.log(new LogEvent(LOGID, "Error adding a row to table "
+							+ sTableID, e));
+					try {
+						if (!sortedRows.contains(row))
+							sortedRows.add(row);
+					} catch (Exception e2) {
+						Debug.out(e2);
+					}
+				}
+			} // for dataSources
+
+			// Sanity Check: Make sure # of rows in table and in array match
+			if (table.getItemCount() > sortedRows.size()) {
+				// This could happen if one of the datasources was null, or
+				// an error occured, or we exited early because things were talking
+				// to long
+				table.setItemCount(sortedRows.size());
 			}
-		});
+
+		} catch (Exception e) {
+			Logger.log(new LogEvent(LOGID, "Error while adding row to Table "
+					+ sTableID, e));
+		} finally {
+			sortedRows_mon.exit();
+			dataSourceToRow_mon.exit();
+
+			if (!bBrokeEarly) {
+				bReallyAddingDataSources = false;
+				refreshenProcessDataSourcesTimer();
+			}
+		}
+
+		fillRowGaps(false);
+		visibleRowsChanged();
+		if (DEBUGADDREMOVE)
+			debug("<< " + sortedRows.size());
 	}
 
   public void removeDataSource(final Object dataSource) {
@@ -2006,7 +2056,7 @@ public class TableView
 					} else if (count != 0) {
 						// duplicate indexes will be only removed once
 						// this saves us from shrinking the array
-						swtRowsToRemove[count + 1] = swtRowsToRemove[count];
+						swtRowsToRemove[count] = swtRowsToRemove[count - 1];
 						count++;
 					}
 				}
@@ -2055,18 +2105,6 @@ public class TableView
   public void removeAllTableRows() {
   	long lTimeStart = System.currentTimeMillis();
   	
-  	Utils.execSWTThread(new AERunnable() {
-  		public void runSupport() {
-  			if (table != null && !table.isDisposed())
-  				table.removeAll();
-
-  			// Image Disposal handled by each cell
-  			TableRowCore[] rows = getRows();
-  			for (int i = 0; i < rows.length; i++)
-  				rows[i].delete(false);
-  		}
-  	});
-
 		try {
 			dataSourceToRow_mon.enter();
 			sortedRows_mon.enter();
@@ -2085,6 +2123,18 @@ public class TableView
 			sortedRows_mon.exit();
 			dataSourceToRow_mon.exit();
 		}
+
+  	Utils.execSWTThread(new AERunnable() {
+  		public void runSupport() {
+  			if (table != null && !table.isDisposed())
+  				table.removeAll();
+
+  			// Image Disposal handled by each cell
+  			TableRowCore[] rows = getRows();
+  			for (int i = 0; i < rows.length; i++)
+  				rows[i].delete(false);
+  		}
+  	});
 
 		if (DEBUGADDREMOVE) {
 	    long lTimeDiff = (System.currentTimeMillis() - lTimeStart);

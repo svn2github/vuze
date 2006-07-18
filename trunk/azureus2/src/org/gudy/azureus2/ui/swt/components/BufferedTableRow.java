@@ -109,7 +109,12 @@ BufferedTableRow
 		if ((table.getStyle() & SWT.VIRTUAL) != 0 && !bEvenIfNotVisible
 				&& !isVisible()) {
 			return;
-		} else if (item == null) {
+		} else if (item == null || item.isDisposed()) {
+			return;
+		}
+
+		int index = table.indexOf(item);
+		if (index == -1) {
 			return;
 		}
 
@@ -119,7 +124,6 @@ BufferedTableRow
 					Colors.colorAltRow };
 		}
 
-		int index = table.indexOf(item);
 		Color newColor = alternatingColors[index % alternatingColors.length];
 		if (!newColor.equals(getBackground()))
 			item.setBackground(newColor);
