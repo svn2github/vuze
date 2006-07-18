@@ -190,8 +190,8 @@ public class MyTorrentsView
     Object[] dms = globalManager.getDownloadManagers().toArray();
     for (int i = 0; i < dms.length; i++) {
 			DownloadManager dm = (DownloadManager) dms[i];
+			dm.addListener(this);
 			if (!isOurDownloadManager(dm)) {
-		    dm.addListener(this);
 				dms[i] = null;
 			}
 		}
