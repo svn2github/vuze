@@ -30,4 +30,8 @@ PeerManagerRegistrationAdapter
 	public boolean
 	activateRequest(
 		InetSocketAddress		remote_address );
+	
+	public void
+	deactivateRequest(
+		InetSocketAddress		remote_address );
 }

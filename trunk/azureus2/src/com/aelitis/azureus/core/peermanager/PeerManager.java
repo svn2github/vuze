@@ -28,6 +28,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
@@ -43,6 +45,9 @@ import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
 import com.aelitis.azureus.core.peermanager.download.TorrentDownloadFactory;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 /**
  *
@@ -199,12 +204,28 @@ public class PeerManager {
     			
     			if ( !routing_data.isActive()){
     			
-    				if ( !routing_data.getAdapter().activateRequest( address )){
-    				
+    				if ( routing_data.isKnownSeed( address )){
+    					
+    					if (Logger.isEnabled()){
+    						Logger.log(new LogEvent(LOGID, "Activation request from " + address + " denied as known seed" ));
+    					}
+    					
     					routing_data = null;
+    					
+    				}else{
+    					
+    					if ( !routing_data.getAdapter().activateRequest( address )){
+ 
+    	  					if (Logger.isEnabled()){
+        						Logger.log(new LogEvent(LOGID, "Activation request from " + address + " denied by rules" ));
+        					}
+     
+    						routing_data = null;	
+    					}
     				}
     			}
     		}
+    		
     		return routing_data;
     	}
     	
@@ -309,6 +330,8 @@ public class PeerManager {
 	
 	private List	pending_connections;
 	
+	private BloomFilter		known_seeds;
+	
 	protected
 	PeerManagerRegistrationImpl(
 		HashWrapper						_hash,
@@ -371,7 +394,7 @@ public class PeerManager {
 								
 				NetworkConnection	nc = (NetworkConnection)entry[0];
 				
-				route( _active_control, nc );
+				route( _active_control, nc, true );
 			}
 		}
 	}
@@ -445,6 +468,49 @@ public class PeerManager {
 	  }
 	}
 	
+	protected boolean
+	isKnownSeed(
+		InetSocketAddress		address )
+	{
+		try{
+			managers_mon.enter();
+
+			if ( known_seeds == null ){
+				
+				return( false );
+			}
+			
+			return( known_seeds.contains( address.getAddress().getAddress()));
+			
+		}finally{
+			
+			managers_mon.exit();
+		}
+	}
+	
+	protected void
+	setKnownSeed(
+		InetSocketAddress		address )
+	{
+		try{
+			managers_mon.enter();
+
+			if ( known_seeds == null ){
+				
+				known_seeds = BloomFilterFactory.createAddOnly( 1024 );
+			}
+			
+				// can't include port as it will be a randomly allocated one in general. two people behind the
+				// same NAT will have to connect to each other using LAN peer finder 
+			
+			known_seeds.add( address.getAddress().getAddress() );
+			
+		}finally{
+			
+			managers_mon.exit();
+		}
+	}
+	
 	protected void
 	route(
 		NetworkConnection 	connection )
@@ -500,7 +566,7 @@ public class PeerManager {
    		
 		if ( control != null ){
     		
-			route( control, connection );
+			route( control, connection, false );
    		}
 	}
 	
@@ -559,18 +625,19 @@ public class PeerManager {
 	
 	protected void
 	route(
-		PEPeerControl		control,	
-		NetworkConnection 	connection )
+		PEPeerControl				control,	
+		final NetworkConnection 	connection,
+		boolean						is_activation )
 	{
 	        // make sure not already connected to the same IP address; allow
 	        // loopback connects for co-located proxy-based connections and
 	        // testing
 		
-        String address = connection.getEndpoint().getNotionalAddress().getAddress().getHostAddress();
+        String host_address = connection.getEndpoint().getNotionalAddress().getAddress().getHostAddress();
         
-        boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
+        boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || host_address.equals( "127.0.0.1" );
         
-        if( !same_allowed && PeerIdentityManager.containsIPAddress( control.getPeerIdentityDataID(), address ) ){
+        if( !same_allowed && PeerIdentityManager.containsIPAddress( control.getPeerIdentityDataID(), host_address ) ){
         	
         	if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
@@ -588,7 +655,42 @@ public class PeerManager {
 								+ connection + "] routed to legacy download ["
 								+ control.getDisplayName() + "]"));
         
-        control.addPeerTransport( PEPeerTransportFactory.createTransport( control, PEPeerSource.PS_INCOMING, connection ) );
+        PEPeerTransport	pt = PEPeerTransportFactory.createTransport( control, PEPeerSource.PS_INCOMING, connection );
+        
+        if ( is_activation ){
+        	
+        	pt.addListener( 
+        		new PEPeerListener()
+        		{
+        			public void 
+        			stateChanged(
+        				PEPeer 		peer, 
+        				int 		new_state )
+        			{
+        				if ( new_state == PEPeer.CLOSING ){
+        					
+        					if ( peer.isSeed()){
+        						
+        						InetSocketAddress	address = connection.getEndpoint().getNotionalAddress();
+        						
+        						setKnownSeed( address );
+        						
+        							// this is mainly to deal with seeds that incorrectly connect to us
+        						
+        						adapter.deactivateRequest( address );
+        					}	
+        				}
+        			}
+        			    
+        			public void sentBadChunk(PEPeer peer, int piece_num, int total_bad_chunks ){}
+  
+        			public void addAvailability(final PEPeer peer, final BitFlags peerHavePieces){}
+
+        			public void removeAvailability(final PEPeer peer, final BitFlags peerHavePieces){}	
+        		});
+        }
+        
+        control.addPeerTransport( pt );
 	}
   }
 }

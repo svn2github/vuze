@@ -1085,6 +1085,27 @@ DownloadManagerController
 		return( false );
 	}
 	
+	public void
+	deactivateRequest(
+		InetSocketAddress	address )
+	{
+		BloomFilter	bloom = activation_bloom;
+		
+		if ( bloom != null ){
+		
+			byte[]	address_bytes = address.getAddress().getAddress();
+
+			int	count = bloom.count( address_bytes);
+			
+			for (int i=0;i<count;i++){
+				
+				bloom.remove( address_bytes );
+			}
+			
+			activation_count = bloom.getEntryCount();
+		}
+	}
+	
 	public int
 	getActivationCount()
 	{
