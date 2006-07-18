@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
@@ -1821,6 +1822,23 @@ DownloadManagerStateImpl
 		listeners.remove(l);
 	}
 	
+	public void 
+	generateEvidence(
+		IndentWriter writer) 
+	{
+		writer.println( "DownloadManagerState" );
+		
+		try{
+			writer.indent();
+			
+			writer.println( "parameters=" + parameters );
+			
+		}finally{
+			
+			writer.exdent();
+		}
+	}
+	
 	protected static class
 	nullState
 		implements DownloadManagerState
@@ -2115,9 +2133,16 @@ DownloadManagerStateImpl
         public void setDisplayName(String name) {}
         public String getDisplayName() {return null;}
 
-				public boolean parameterExists(String name) {
-					// TODO Auto-generated method stub
-					return false;
-				}
+		public boolean parameterExists(String name) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+		
+		public void 
+		generateEvidence(
+			IndentWriter writer) 
+		{
+			writer.println( "DownloadManagerState: broken torrent" );
+		}
 	}
 }

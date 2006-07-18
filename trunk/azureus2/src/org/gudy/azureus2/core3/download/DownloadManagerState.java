@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.download.Download;
 
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
@@ -276,4 +277,6 @@ DownloadManagerState
 	 * @return
 	 */
 	boolean parameterExists(String name);
+	
+	public void generateEvidence(IndentWriter writer);
 }

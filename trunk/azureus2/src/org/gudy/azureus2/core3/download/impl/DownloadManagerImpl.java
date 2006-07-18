@@ -2985,7 +2985,8 @@ DownloadManagerImpl
 			if (sFlags.length() > 0) {
 				writer.println("Flags: " + sFlags);
 			}
-			
+
+			download_manager_state.generateEvidence( writer );
 
 			if (pm != null) {
 				pm.generateEvidence(writer);
