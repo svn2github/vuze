@@ -314,6 +314,31 @@ TRTrackerAnnouncerImpl
 		}
 	}
 
+	public void
+	removeFromTrackerResponseCache(
+		String		ip,
+		int			tcp_port )
+	{
+		try{
+			tracker_peer_cache_mon.enter();
+		
+				// create a fake peer so we can get the key
+			
+			TRTrackerAnnouncerResponsePeerImpl peer = 
+				new TRTrackerAnnouncerResponsePeerImpl( "", new byte[0], ip, tcp_port, 0, (short)0 );
+			
+			if ( tracker_peer_cache.remove( peer.getKey()) != null ){
+				
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent( getTorrent(), LOGID, "Explicit removal of peer cache for " + ip + ":" + tcp_port ));
+			}
+			
+		}finally{
+			
+			tracker_peer_cache_mon.exit();
+		}
+	}
+	
 	public static Map
 	mergeResponseCache(
 		Map		map1,

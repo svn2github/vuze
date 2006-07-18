@@ -120,6 +120,18 @@ TRTrackerAnnouncer
 	setTrackerResponseCache(
 		Map		map );
 	
+		/**
+		 * remove a specific entry from the cache if present
+		 * @param ip
+		 * @param tcp_port
+		 */
+	
+	public void
+	removeFromTrackerResponseCache(
+		String		ip,
+		int			tcp_port );
+	
+	
 	/**
 	 * This method forces all listeners to get an explicit "urlChanged" event to get them
 	 * to re-examine the tracker
