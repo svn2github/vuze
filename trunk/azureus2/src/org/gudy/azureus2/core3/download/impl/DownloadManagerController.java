@@ -1217,10 +1217,21 @@ DownloadManagerController
 						setFailed(MessageText.getString("DownloadManager.error.datamissing")
 								+ " " + file);
 						return false;
-					} else if (fileInfo.getLength() != file.length()) { // && file exists
-						setFailed(MessageText.getString("DownloadManager.error.badsize")
-								+ " " + file);
-						return false;
+						
+					} else if (fileInfo.getLength() < file.length()) { 
+						
+							// file may be incremental creation - don't complain if too small
+						
+							// don't bitch if the user is happy with this
+						
+						if ( !COConfigurationManager.getBooleanParameter("File.truncate.if.too.large")){
+							
+							setFailed(MessageText.getString("DownloadManager.error.badsize")
+									+ " " + file + "(" + fileInfo.getLength() + "/" + file.length() + ")");
+							
+							
+							return false;
+						}
 					}
 				} catch (Exception e) {
 					setFailed(e.getMessage());
