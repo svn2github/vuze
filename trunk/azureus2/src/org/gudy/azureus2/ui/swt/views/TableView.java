@@ -140,7 +140,7 @@ public class TableView
 
 	private static final long IMMEDIATE_ADDREMOVE_DELAY = 150;
 
-	private static final long IMMEDIATE_ADDREMOVE_MAXDELAY = 1000;
+	private static final long IMMEDIATE_ADDREMOVE_MAXDELAY = 2000;
 
   /** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
    * of the table this class is
@@ -1707,14 +1707,16 @@ public class TableView
 		try {
 			dataSourceToRow_mon.enter();
 
-			if (DEBUGADDREMOVE)
-				debug("Queueing " + dataSources.length + " dataSources to add");
-
 			for (int i = 0; i < dataSources.length; i++) {
 				if (dataSources[i] != null) {
 					dataSourcesToAdd.add(dataSources[i]);
 				}
 			}
+
+			if (DEBUGADDREMOVE)
+				debug("Queued " + dataSources.length
+						+ " dataSources to add.  Total Queued: " + dataSourcesToAdd.size());
+
 		} finally {
 
 			dataSourceToRow_mon.exit();
@@ -1814,7 +1816,7 @@ public class TableView
 		}
 		
 		if (DEBUGADDREMOVE)
-			debug("--" + " Add " + dataSources.length + " rows;");
+			debug("--" + " Add " + doneDataSources.length + " rows;");
 
 		if (remainingDataSources == null) {
 			addDataSourcesToSWT(doneDataSources, true);
@@ -1996,6 +1998,11 @@ public class TableView
 	
   		for (int i = 0; i < dataSources.length; i++)
   			dataSourcesToRemove.add(dataSources[i]);
+
+			if (DEBUGADDREMOVE)
+				debug("Queued " + dataSources.length
+						+ " dataSources to remove.  Total Queued: "
+						+ dataSourcesToRemove.size());
 		}finally{
 			dataSourceToRow_mon.exit();
 		}
