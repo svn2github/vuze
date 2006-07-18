@@ -26,6 +26,8 @@ package org.gudy.azureus2.core3.download.impl;
  */
  
 import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.net.*;
@@ -1116,7 +1118,7 @@ DownloadManagerImpl
 	{
 		return( display_name );
 	}	
-
+	
  	public String
 	getInternalName()
   	{
@@ -2743,7 +2745,21 @@ DownloadManagerImpl
 	            throw( new DownloadManagerException( "rename operation failed" ));
 	            
 		  }else{
-			  if ( FileUtil.renameFile( old_file, new_file, false )){
+			  
+			  // The files we move must be limited to those mentioned in the torrent.
+			  final HashSet files_to_move = new HashSet();
+			  DiskManagerFileInfo[] info_files = controller.getDiskManagerFileInfo();
+			  for (int i=0; i<info_files.length; i++) {
+				  File f = info_files[i].getFile(false);
+				  try {f = f.getCanonicalFile();}
+				  catch (IOException ioe) {/* Do nothing */}
+				  files_to_move.add(f);
+			  }
+			  FileFilter ff = new FileFilter() {
+				  public boolean accept(File f) {return files_to_move.contains(f);}
+			  };
+			  
+			  if ( FileUtil.renameFile( old_file, new_file, false, ff )){
 		  			  
 				  setTorrentSaveDir( new_parent_dir.toString());
 			  

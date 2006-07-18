@@ -1094,7 +1094,16 @@ public class FileUtil {
         File        to_file,
         boolean     fail_on_existing_directory)
     {
-
+    	return renameFile(from_file, to_file, fail_on_existing_directory, null);
+    }
+    
+    public static boolean renameFile(
+    	File        from_file,
+    	File        to_file,
+    	boolean     fail_on_existing_directory,
+    	FileFilter  file_filter
+    ) {
+    
     	if ( !from_file.exists()){
     		Logger
 					.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
@@ -1118,7 +1127,9 @@ public class FileUtil {
     	
     	if ( from_file.isDirectory()){
     		
-    		File[]	files = from_file.listFiles();
+    		File[] files = null;
+    		if (file_filter != null) {files = from_file.listFiles(file_filter);}
+    		else {files = from_file.listFiles();}
     		
     		if ( files == null ){
     			
@@ -1160,9 +1171,16 @@ public class FileUtil {
     			File[]	remaining = from_file.listFiles();
     			
     			if ( remaining != null && remaining.length > 0 ){
-    				Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+    				// This might be important or not. We'll make it a debug message if we had a filter,
+    				// or log it normally otherwise.
+    				if (file_filter == null) {
+    					Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
 							"renameFile: files remain in '" + from_file.toString()
 									+ "', not deleting"));
+    				}
+    				else {
+    					/* Should we log this? How should we log this? */
+    				}
    				 
     			}else{
     				
@@ -1184,7 +1202,7 @@ public class FileUtil {
 
     			try{
     				
-                    if ( !renameFile( tf, ff, false )){
+                    if ( !renameFile( tf, ff, fail_on_existing_directory )){
     					Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
 								"renameFile: recovery - failed to move file '" + tf.toString()
 										+ "' to '" + ff.toString() + "'"));
