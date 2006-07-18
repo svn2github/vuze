@@ -55,7 +55,6 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
-import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
@@ -142,6 +141,8 @@ MainWindow
   private ArrayList events;
 
 	private UIFunctions uiFunctions;
+
+	private boolean bIconBarEnabled = false;
 
   public
   MainWindow(
@@ -343,38 +344,6 @@ MainWindow
     } catch (Throwable e) {
     	Logger.log(new LogEvent(LOGID, "Drag and Drop not available", e));
     }
-    
-
-    
-    try {
-	    this.iconBar = new IconBar(parent);
-	    this.iconBar.setCurrentEnabler(this);
-	    
-	    formData = new FormData();
-	    if (attachToTopOf != null) {
-	    	formData.top = new FormAttachment(attachToTopOf);
-	    } else {
-		    formData.top = new FormAttachment(0, 0);
-	    }
-	    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
-	    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
-	    this.iconBar.setLayoutData(formData);
-
-	    attachToTopOf = iconBar.getCoolBar();
-
-	    Label separator = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL);
-	    
-	    formData = new FormData();
-	    formData.top = new FormAttachment(attachToTopOf);
-	    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-	    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
-	    separator.setLayoutData(formData);
-	    
-			controlAboveFolder = separator;
-    } catch (Exception e) {
-    	Logger.log(new LogEvent(LOGID, "Creating Icon Bar", e));
-    }
-
     
     if(!useCustomTab) {
       folder = new TabFolder(parent, SWT.V_SCROLL);
@@ -589,9 +558,64 @@ MainWindow
 			Debug.printStackTrace(e);
 		}
 
+    COConfigurationManager.addAndFireParameterListener("IconBar.enabled",
+				new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						setIconBarEnabled(COConfigurationManager.getBooleanParameter(parameterName));
+					}
+				});
+
     showMainWindow();
 }
   
+	protected void setIconBarEnabled(boolean enabled) {
+		if (enabled == bIconBarEnabled) {
+			return;
+		}
+		bIconBarEnabled  = enabled;
+		if (bIconBarEnabled) {
+	    try {
+		    iconBar = new IconBar(parent);
+		    iconBar.setCurrentEnabler(this);
+				Composite cIconBar = iconBar.getComposite();
+		    
+		    FormData folderLayoutData = (FormData)folder.getLayoutData();
+		    
+		    FormData formData = new FormData();
+		    if (folderLayoutData.top != null && folderLayoutData.top.control != null) {
+		    	formData.top = new FormAttachment(folderLayoutData.top.control);
+		    } else {
+			    formData.top = new FormAttachment(0, 0);
+		    }
+		    folderLayoutData.top = new FormAttachment(cIconBar);
+		    
+		    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
+		    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
+		    this.iconBar.setLayoutData(formData);
+
+	    } catch (Exception e) {
+	    	Logger.log(new LogEvent(LOGID, "Creating Icon Bar", e));
+	    }
+		} else if (iconBar != null) {
+	    try {
+		    FormData folderLayoutData = (FormData)folder.getLayoutData();
+		    FormData iconBarLayoutData = (FormData)iconBar.getComposite().getLayoutData();
+		    
+		    if (iconBarLayoutData.top != null && iconBarLayoutData.top.control != null) {
+		    	folderLayoutData.top = new FormAttachment(iconBarLayoutData.top.control);
+		    } else {
+		    	folderLayoutData.top = new FormAttachment(0, 0);
+		    }
+		    
+	    	iconBar.delete();
+		    iconBar = null;
+	    } catch (Exception e) {
+	    	Logger.log(new LogEvent(LOGID, "Removing Icon Bar", e));
+	    }
+		}
+		shell.layout();
+	}
+
 	private void showMainWindow() {
 		// No tray access on OSX yet
 		boolean bEnableTray = COConfigurationManager

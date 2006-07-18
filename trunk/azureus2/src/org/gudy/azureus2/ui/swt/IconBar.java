@@ -26,17 +26,8 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.CoolBar;
-import org.eclipse.swt.widgets.CoolItem;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.components.*;
@@ -52,18 +43,35 @@ public class IconBar {
   Map itemKeyToControl;
   
   IconBarEnabler currentEnabler;
+	private Composite cIconBar;
   
   public IconBar(Composite parent) {
     this.parent = parent;
+    cIconBar = new Composite(parent, SWT.NONE);
+    
+    GridLayout layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    layout.horizontalSpacing = 0;
+    layout.verticalSpacing = 0;
+    cIconBar.setLayout(layout);
+    
     this.itemKeyToControl = new HashMap();    
     	// 3.1 onwards the default is gradient-fill - the disabled icons' transparency no workies
     	// so disabled buttons look bad on the gradient-filled background
-    this.coolBar = new CoolBar(parent,Constants.isWindows?SWT.FLAT:SWT.NULL);
+    this.coolBar = new CoolBar(cIconBar,Constants.isWindows?SWT.FLAT:SWT.NULL);
     initBar();       
     this.coolBar.setLocked(true);
-  }
-  
-  public void setEnabled(String itemKey,boolean enabled) {
+    
+    coolBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    
+
+    Label separator = new Label(cIconBar, SWT.SEPARATOR | SWT.HORIZONTAL);
+    separator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    
+	}
+
+	public void setEnabled(String itemKey,boolean enabled) {
     BufferedToolItem BufferedToolItem = (BufferedToolItem) itemKeyToControl.get(itemKey);
     if(BufferedToolItem != null)
       BufferedToolItem.setEnabled(enabled);
@@ -153,7 +161,7 @@ public class IconBar {
   }
   
   public void setLayoutData(Object layoutData) {
-    coolBar.setLayoutData(layoutData);
+  	cIconBar.setLayoutData(layoutData);
   }
   
   public static void main(String args[]) {
@@ -176,8 +184,17 @@ public class IconBar {
     display.dispose ();        
   }
   
-  public CoolBar getCoolBar() {
-    return coolBar;
-  }
+	public Composite getComposite() {
+		return cIconBar;
+	}
+
+	/**
+	 * 
+	 */
+	public void delete() {
+		Utils.disposeComposite(cIconBar);
+		itemKeyToControl.clear();
+		currentEnabler = null;
+	}
 
 }

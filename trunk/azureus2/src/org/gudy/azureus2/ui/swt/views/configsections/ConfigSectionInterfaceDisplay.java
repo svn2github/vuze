@@ -90,6 +90,9 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		new BooleanParameter(cLook, "Show Download Basket", false, MSG_PREFIX
 				+ "showdownloadbasket");
 
+		new BooleanParameter(cLook, "IconBar.enabled", false, MSG_PREFIX
+				+ "showiconbar");
+
 		Composite cStatusBar = new Composite(cLook, SWT.NULL);
 		layout = new GridLayout();
 		layout.marginHeight = 0;
