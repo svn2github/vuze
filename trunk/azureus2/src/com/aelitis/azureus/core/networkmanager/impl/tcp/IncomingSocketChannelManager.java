@@ -75,6 +75,12 @@ public class IncomingSocketChannelManager
       }
     });
     
+    COConfigurationManager.addParameterListener( "TCP.Listen.Port.Enable", new ParameterListener() {
+        public void parameterChanged(String parameterName) {
+          restart();
+        }
+      });
+    
     //allow dynamic receive buffer size changes
     COConfigurationManager.addParameterListener( "network.tcp.socket.SO_RCVBUF", new ParameterListener() {
       public void parameterChanged(String parameterName) {
@@ -191,107 +197,113 @@ public class IncomingSocketChannelManager
           COConfigurationManager.setParameter( "TCP.Listen.Port", tcp_listen_port );
         }
  
-	    if( server_selector == null ) {
-	      InetSocketAddress address;
-	      try{
-	        if( bind_address.length() > 6 ) {
-	          address = new InetSocketAddress( InetAddress.getByName( bind_address ), tcp_listen_port );
-	        }
-	        else {
-	          address = new InetSocketAddress( tcp_listen_port );
-	        }
-	      }
-	      catch( UnknownHostException e ) {
-	        Debug.out( e );
-	        address = new InetSocketAddress( tcp_listen_port );
-	      }
-	      	      
-	      server_selector = VirtualServerChannelSelectorFactory.createTest( address, so_rcvbuf_size, new VirtualBlockingServerChannelSelector.SelectListener() {
-	        public void newConnectionAccepted( final ServerSocketChannel server, final SocketChannel channel ) {
-	        	
-	        	//check for encrypted transport
-	  	      	final TCPTransportHelper	helper = new TCPTransportHelper( channel );
-
-	        	TransportCryptoManager.getSingleton().manageCrypto( helper, null, true, new TransportCryptoManager.HandshakeListener() {
-	        		public void handshakeSuccess( ProtocolDecoder decoder ) {
-	        			process( server.socket().getLocalPort(), decoder.getFilter());
-	        		}
-
-	            public void 
-	            handshakeFailure( 
-	            	Throwable failure_msg ) 
-	            {
-	            	
-	            	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
-	            	
-	            	/*
-	            		// we can have problems with sockets stuck in a TIME_WAIT state if we just
-	            		// close an incoming channel - to clear things down properly the client needs
-	            		// to initiate the close. So what we do is send some random bytes to the client
-	            		// under the assumption this will cause them to close, and we delay our socket close
-	            		// for 10 seconds to give them a chance to do so.	            	
-	            		try{
-	            			Random	random = new Random();
-	            		
-	            			byte[]	random_bytes = new byte[68+random.nextInt(128-68)];
-	            		
-	            			random.nextBytes( random_bytes );
-	            		
-	            			channel.write( ByteBuffer.wrap( random_bytes ));
-	            		
-	            		}catch( Throwable e ){
-	            			// ignore anything here
-	            		}
-	            		NetworkManager.getSingleton().closeSocketChannel( channel, 10*1000 );
-	            	*/
-	            
-	            	TCPNetworkManager.getSingleton().closeSocketChannel( channel );
-	            }
-	            
-	        	public void
-	        	gotSecret(
-					byte[]				session_secret )
-	        	{
-	        	}
-	        	
-	    		public int
-	    		getMaximumPlainHeaderLength()
-	    		{
-	    			return( incoming_manager.getMaxMinMatchBufferSize());
-	    		}
-	    		
-	    		public int
-	    		matchPlainHeader(
-	    			ByteBuffer			buffer )
-	    		{
-	    			Object[]	match_data = incoming_manager.checkForMatch( helper, server.socket().getLocalPort(), buffer, true );
-	    			
-	    			if ( match_data == null ){
-	    				
-	    				return( TransportCryptoManager.HandshakeListener.MATCH_NONE );
-	    				
-	    			}else{
-	    				
-	    				IncomingConnectionManager.MatchListener match = (IncomingConnectionManager.MatchListener)match_data[0];
-	    				
-	    				if ( match.autoCryptoFallback()){
-	    					
-		    				return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_AUTO_FALLBACK );
-		    					
-	    				}else{
-	    					
-		    				return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_NO_AUTO_FALLBACK );
+        if ( COConfigurationManager.getBooleanParameter("TCP.Listen.Port.Enable")){
+        	
+		    if( server_selector == null ) {
+		      InetSocketAddress address;
+		      try{
+		        if( bind_address.length() > 6 ) {
+		          address = new InetSocketAddress( InetAddress.getByName( bind_address ), tcp_listen_port );
+		        }
+		        else {
+		          address = new InetSocketAddress( tcp_listen_port );
+		        }
+		      }
+		      catch( UnknownHostException e ) {
+		        Debug.out( e );
+		        address = new InetSocketAddress( tcp_listen_port );
+		      }
+		      	      
+		      server_selector = VirtualServerChannelSelectorFactory.createTest( address, so_rcvbuf_size, new VirtualBlockingServerChannelSelector.SelectListener() {
+		        public void newConnectionAccepted( final ServerSocketChannel server, final SocketChannel channel ) {
+		        	
+		        	//check for encrypted transport
+		  	      	final TCPTransportHelper	helper = new TCPTransportHelper( channel );
+	
+		        	TransportCryptoManager.getSingleton().manageCrypto( helper, null, true, new TransportCryptoManager.HandshakeListener() {
+		        		public void handshakeSuccess( ProtocolDecoder decoder ) {
+		        			process( server.socket().getLocalPort(), decoder.getFilter());
+		        		}
+	
+		            public void 
+		            handshakeFailure( 
+		            	Throwable failure_msg ) 
+		            {
+		            	
+		            	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
+		            	
+		            	/*
+		            		// we can have problems with sockets stuck in a TIME_WAIT state if we just
+		            		// close an incoming channel - to clear things down properly the client needs
+		            		// to initiate the close. So what we do is send some random bytes to the client
+		            		// under the assumption this will cause them to close, and we delay our socket close
+		            		// for 10 seconds to give them a chance to do so.	            	
+		            		try{
+		            			Random	random = new Random();
+		            		
+		            			byte[]	random_bytes = new byte[68+random.nextInt(128-68)];
+		            		
+		            			random.nextBytes( random_bytes );
+		            		
+		            			channel.write( ByteBuffer.wrap( random_bytes ));
+		            		
+		            		}catch( Throwable e ){
+		            			// ignore anything here
+		            		}
+		            		NetworkManager.getSingleton().closeSocketChannel( channel, 10*1000 );
+		            	*/
+		            
+		            	TCPNetworkManager.getSingleton().closeSocketChannel( channel );
+		            }
+		            
+		        	public void
+		        	gotSecret(
+						byte[]				session_secret )
+		        	{
+		        	}
+		        	
+		    		public int
+		    		getMaximumPlainHeaderLength()
+		    		{
+		    			return( incoming_manager.getMaxMinMatchBufferSize());
+		    		}
+		    		
+		    		public int
+		    		matchPlainHeader(
+		    			ByteBuffer			buffer )
+		    		{
+		    			Object[]	match_data = incoming_manager.checkForMatch( helper, server.socket().getLocalPort(), buffer, true );
+		    			
+		    			if ( match_data == null ){
 		    				
-	    				}
-	    			}
-	    		}
-	        	});
-	        	
-	        }
-	      });
-	      
-	      server_selector.start();
-	    }
+		    				return( TransportCryptoManager.HandshakeListener.MATCH_NONE );
+		    				
+		    			}else{
+		    				
+		    				IncomingConnectionManager.MatchListener match = (IncomingConnectionManager.MatchListener)match_data[0];
+		    				
+		    				if ( match.autoCryptoFallback()){
+		    					
+			    				return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_AUTO_FALLBACK );
+			    					
+		    				}else{
+		    					
+			    				return( TransportCryptoManager.HandshakeListener.MATCH_CRYPTO_NO_AUTO_FALLBACK );
+			    				
+		    				}
+		    			}
+		    		}
+		        	});
+		        	
+		        }
+		      });
+		      
+		      server_selector.start();
+		    }
+        }else{
+        
+        	Logger.log(new LogEvent(LOGID, "Not starting TCP listener on port " + tcp_listen_port + " as protocol disabled" ));
+        }
   	}finally{
   		
   		this_mon.exit();

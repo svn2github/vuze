@@ -272,24 +272,11 @@ IncomingConnectionManager
 			
 			if ( Logger.isEnabled()){
 			
-		    	Logger.log(new LogEvent(LOGID, "Incoming TCP connection from [" + transport_helper.getAddress() +
+		    	Logger.log(new LogEvent(LOGID, "Incoming connection from [" + transport_helper.getAddress() +
 		    				 "] dropped because zero routing handlers registered"));
 			}
 			
 			transport_helper.close( "No routing handler" );
-		      
-		    return;
-		}
-		 
-		if ( NetworkManager.TCP_INCOMING_DISABLE ) {
-			
-			if ( Logger.isEnabled()){
-			
-		    	Logger.log(new LogEvent(LOGID, "Incoming TCP connection from [" + transport_helper.getAddress() +
-		    				 "] dropped disabled for testing"));
-			}
-			
-			transport_helper.close( "TCP incoming disabled" );
 		      
 		    return;
 		}
@@ -366,7 +353,7 @@ IncomingConnectionManager
 				}
 				else if( now - ic.last_read_time > transport_helper.getReadTimeout()) {  
 					if (Logger.isEnabled())
-						Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
+						Logger.log(new LogEvent(LOGID, "Incoming connection ["
 								+ transport_helper.getAddress()
 								+ "] forcibly timed out due to socket read inactivity ["
 								+ ic.buffer.position() + " bytes read: "
@@ -381,7 +368,7 @@ IncomingConnectionManager
 				}
 				else if( now - ic.initial_connect_time > transport_helper.getConnectTimeout()) {  
 					if (Logger.isEnabled())
-						Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
+						Logger.log(new LogEvent(LOGID, "Incoming connection ["
 								+ transport_helper.getAddress()	+ "] forcibly timed out after "
 								+ "60sec due to socket inactivity"));
 					if( to_close == null )  to_close = new ArrayList();
@@ -467,7 +454,7 @@ IncomingConnectionManager
 						if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID,
 									LogEvent.LT_WARNING,
-									"Incoming TCP stream from [" + transport_helper.getAddress()
+									"Incoming stream from [" + transport_helper.getAddress()
 									+ "] does not match "
 									+ "any known byte pattern: "
 									+ ByteFormatter.nicePrint(ic.buffer.array())));
@@ -478,7 +465,7 @@ IncomingConnectionManager
 					ic.buffer.flip();
 					if (Logger.isEnabled())
 						Logger.log(new LogEvent(LOGID,
-								"Incoming TCP stream from [" + transport_helper.getAddress()
+								"Incoming stream from [" + transport_helper.getAddress()
 								+ "] recognized as "
 								+ "known byte pattern: "
 								+ ByteFormatter.nicePrint(ic.buffer.array())));
@@ -498,7 +485,7 @@ IncomingConnectionManager
 					if (Logger.isEnabled())
 						Logger.log(new LogEvent(LOGID,
 								LogEvent.LT_ERROR,
-								"Incoming TCP connection [" + transport_helper.getAddress()
+								"Incoming connection [" + transport_helper.getAddress()
 								+ "] socket read exception: "
 								+ t.getMessage()));
 				}
@@ -525,7 +512,7 @@ IncomingConnectionManager
 			IncomingConnection	ic = (IncomingConnection)attachment;
 			if (Logger.isEnabled()){
 				Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-						"Incoming TCP connection [" + transport_helper.getAddress()
+						"Incoming connection [" + transport_helper.getAddress()
 						+ "] socket select op failure: "
 						+ msg.getMessage()));
 			}

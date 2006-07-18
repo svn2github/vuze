@@ -125,7 +125,11 @@ PeerNATTraverser
 							int	size = negative_result_bloom.getEntryCount();
 							
 					      	if (Logger.isEnabled()){
-								Logger.log(	new LogEvent(LOGID,	"PeerNATTraverser: negative bloom size = " + size ));
+					      		
+					      		if ( size > 0 ){
+					      			
+					      			Logger.log(	new LogEvent(LOGID,	"PeerNATTraverser: negative bloom size = " + size ));
+					      		}
 				          	}
 					      	
 					      	negative_result_bloom = BloomFilterFactory.createAddOnly( BLOOM_SIZE );
@@ -171,8 +175,7 @@ PeerNATTraverser
 								
 								break;
 							}
-							
-							
+								
 								// TODO: prioritisation based on initiator connections etc?
 							
 							PeerNATTraversal traversal = (PeerNATTraversal)pending_requests.removeFirst();

@@ -72,6 +72,9 @@ UDPConnectionManager
 	public static final int	THREAD_LINGER_ON_IDLE_PERIOD	= 30*1000;
 	public static final int	DEAD_KEY_RETENTION_PERIOD		= 30*1000;
 	
+	public static final int STATS_TIME	= 60*1000;
+	public static final int	STATS_TICKS	= STATS_TIME / TIMER_TICK_MILLIS;
+	
 	private final Map	connection_sets 	= new HashMap();
 	private final Map	recently_dead_keys	= new HashMap();
 	
@@ -92,18 +95,23 @@ UDPConnectionManager
 	private long						incoming_bloom_create_time	= SystemTime.getCurrentTime();
 	private long						last_incoming;
 	
+
+	private int rate_limit_discard_packets;
+	private int	rate_limit_discard_bytes;
+	private int setup_discard_packets;
+	private int	setup_discard_bytes;
+	
 	
 	protected
-	UDPConnectionManager(
-		int		udp_port )
+	UDPConnectionManager()
 	{		
 		if ( LOOPBACK ){
 			
-			network_glue = new NetworkGlueLoopBack( this, udp_port );
+			network_glue = new NetworkGlueLoopBack( this );
 			
 		}else{
 			
-			network_glue = new NetworkGlueUDP( this, udp_port );
+			network_glue = new NetworkGlueUDP( this );
 		}
 	}
 	
@@ -270,7 +278,7 @@ UDPConnectionManager
 		}
 	}
 	
-	public boolean
+	public void
 	receive(
 		int					local_port,
 		InetSocketAddress	remote_address,
@@ -298,7 +306,10 @@ UDPConnectionManager
 				
 					if ( !rateLimitIncoming( remote_address )){
 						
-						return( false );
+						rate_limit_discard_packets++;
+						rate_limit_discard_bytes	+= data_length;
+						
+						return;
 					}
 					
 					connection_set = new UDPConnectionSet( this, key, current_selector, local_port, remote_address );
@@ -314,10 +325,15 @@ UDPConnectionManager
 					
 					if ( recently_dead_keys.get( key ) == null ){
 	
-						Debug.out( "Incoming UDP packet mismatch for connection establishment: " + key );
+						// we can get quite a lot of these if things get out of sync
+						
+						// Debug.out( "Incoming UDP packet mismatch for connection establishment: " + key );
 					}
 					
-					return( false );
+					setup_discard_packets++;
+					setup_discard_bytes	+= data_length;
+
+					return;
 				}
 			}
 		}
@@ -333,8 +349,6 @@ UDPConnectionManager
 			
 			connection_set.failed( e );
 		}
-		
-		return( true );
 	}
 	
 	protected synchronized boolean
@@ -529,6 +543,8 @@ UDPConnectionManager
 		{
 			new AEThread( "UDPConnectionManager:timer", true )
 			{
+				private int	tick_count;
+				
 				public void
 				runSupport()
 				{
@@ -542,43 +558,55 @@ UDPConnectionManager
 						}catch( Throwable e ){
 							
 						}
-								
+							
+						tick_count++;
+						
+						if ( tick_count % STATS_TICKS == 0 ){
+							
+							logStats();
+						}
+						
 						List	failed_sets = null;
 						
 						synchronized( connection_sets ){
-									
-							checkThreadDeath( connection_sets.size() > 0 );
 								
-							Iterator	it = connection_sets.values().iterator();
+							int	cs_size = connection_sets.size();
 							
-							while( it.hasNext()){
+							checkThreadDeath( cs_size > 0 );
 								
-								UDPConnectionSet	set = (UDPConnectionSet)it.next();
+							if ( cs_size > 0 ){
 								
-								try{
-									set.timerTick();
+								Iterator	it = connection_sets.values().iterator();
+								
+								while( it.hasNext()){
 									
-									if ( set.idleLimitExceeded()){
-																				
-										if (Logger.isEnabled()){
+									UDPConnectionSet	set = (UDPConnectionSet)it.next();
+									
+									try{
+										set.timerTick();
+										
+										if ( set.idleLimitExceeded()){
+																					
+											if (Logger.isEnabled()){
+												
+												Logger.log(new LogEvent(LOGID, "Idle limit exceeded for " + set.getName() + ", removing" ));
+											}
 											
-											Logger.log(new LogEvent(LOGID, "Idle limit exceeded for " + set.getName() + ", removing" ));
+											recently_dead_keys.put( set.getKey(), new Long( SystemTime.getCurrentTime()));
+											
+											it.remove();
+											
+											set.removed();
+										}
+									}catch( Throwable e ){
+										
+										if ( failed_sets == null ){
+											
+											failed_sets = new ArrayList();
 										}
 										
-										recently_dead_keys.put( set.getKey(), new Long( SystemTime.getCurrentTime()));
-										
-										it.remove();
-										
-										set.removed();
+										failed_sets.add( new Object[]{ set, e });
 									}
-								}catch( Throwable e ){
-									
-									if ( failed_sets == null ){
-										
-										failed_sets = new ArrayList();
-									}
-									
-									failed_sets.add( new Object[]{ set, e });
 								}
 							}
 						}
@@ -593,6 +621,8 @@ UDPConnectionManager
 							}
 						}
 					}
+					
+					logStats();
 				}
 			}.start();
 		}
@@ -601,6 +631,22 @@ UDPConnectionManager
 		destroy()
 		{
 			destroyed	= true;
+		}
+	}
+	
+	protected void 
+	logStats()
+	{
+		if (Logger.isEnabled()){
+			
+			long[]	nw_stats = network_glue.getStats();
+		
+			String	str = "UDPConnection stats: sent=" + nw_stats[0] + "/" + nw_stats[1] + ",received=" + nw_stats[2] + "/" + nw_stats[3];
+			
+			str += ", setup discards=" + setup_discard_packets + "/" + setup_discard_bytes;
+			str += ", rate discards=" + rate_limit_discard_packets + "/" + rate_limit_discard_bytes;
+			
+			Logger.log(new LogEvent(LOGID, str ));
 		}
 	}
 	

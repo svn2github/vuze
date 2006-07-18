@@ -92,7 +92,7 @@ ProtocolEndpointTCP
 		byte[] 				shared_secret,
 		ConnectListener 	listener )
 	{
-		Transport t = new TCPTransportImpl( this, connect_with_crypto, allow_fallback, shared_secret );
+		TCPTransportImpl t = new TCPTransportImpl( this, connect_with_crypto, allow_fallback, shared_secret );
 					
 		t.connectOutbound( listener );
 		

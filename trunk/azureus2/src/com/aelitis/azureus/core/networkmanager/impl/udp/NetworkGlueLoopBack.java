@@ -45,8 +45,7 @@ NetworkGlueLoopBack
 	
 	protected
 	NetworkGlueLoopBack(
-		NetworkGlueListener		_listener,
-		int						_udp_port )
+		NetworkGlueListener		_listener )
 	{
 		listener	= _listener;
 				
@@ -117,5 +116,11 @@ NetworkGlueLoopBack
 		}
 		
 		return( data.length );
+	}
+	
+	public long[]
+	getStats()
+	{
+		return( new long[]{ 0,0,0,0 });
 	}
 }

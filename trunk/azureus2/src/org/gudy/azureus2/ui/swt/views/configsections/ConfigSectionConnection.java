@@ -48,6 +48,8 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 	
 	private static final String CFG_PREFIX = "ConfigView.section.connection.";
 	
+	private static final boolean ENABLE_TCP_UDP_EXPERIMENTAL	= false;
+	
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_ROOT;
 	}
@@ -141,7 +143,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 				}
 			});
 		
-			if ( userMode > 1 ){
+			if ( ENABLE_TCP_UDP_EXPERIMENTAL && userMode > 1 ){
 			
 				Composite cNonDataUDPArea = new Composite(cSection, SWT.NULL);
 				layout = new GridLayout();
@@ -158,17 +160,17 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 				gridData.horizontalIndent = 16;
 				commonUDP.setLayoutData( gridData );
 				
-				final IntParameter non_udp_listen = new IntParameter(cNonDataUDPArea, "UDP.NonData.Listen.Port", false );
+				final IntParameter non_data_udp_listen = new IntParameter(cNonDataUDPArea, "UDP.NonData.Listen.Port", false );
 	
-				non_udp_listen.addChangeListener(
+				non_data_udp_listen.addChangeListener(
 					new ParameterChangeListener() 
 					{
 						public void parameterChanged(Parameter p, boolean caused_internally) {
-							int val = non_udp_listen.getValue();
+							int val = non_data_udp_listen.getValue();
 	
 							if (val == 6880 || val == 6881) {
 								val = 6881;
-								non_udp_listen.setValue(val);
+								non_data_udp_listen.setValue(val);
 							}
 						}
 					});
@@ -186,16 +188,17 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 										
 										COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", udp_listen_port );
 										
-										non_udp_listen.setValue( udp_listen_port );
+										non_data_udp_listen.setValue( udp_listen_port );
 									}
 								}
 							}
 						});
+				
 				gridData = new GridData();
 				gridData.widthHint = 40;
-				non_udp_listen.setLayoutData( gridData );
+				non_data_udp_listen.setLayoutData( gridData );
 	
-				commonUDP.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( non_udp_listen.getControls(), true ));
+				commonUDP.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( non_data_udp_listen.getControls(), true ));
 				
 				commonUDP.addChangeListener(
 					new ParameterChangeListener() 
@@ -213,11 +216,29 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 									
 									COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", udp_listen_port );
 									
-									non_udp_listen.setValue( udp_listen_port );
+									non_data_udp_listen.setValue( udp_listen_port );
 								}
 							}
 						}
 					});
+				
+				final BooleanParameter enable_tcp = 
+					new BooleanParameter(cNonDataUDPArea, "TCP.Listen.Port.Enable",	CFG_PREFIX + "tcp.enable");
+				gridData = new GridData();
+				enable_tcp.setLayoutData( gridData );
+				label = new Label(cNonDataUDPArea, SWT.NULL);
+				
+				final BooleanParameter enable_udp = 
+					new BooleanParameter(cNonDataUDPArea, "UDP.Listen.Port.Enable",	CFG_PREFIX + "udp.enable");
+				gridData = new GridData();
+				enable_udp.setLayoutData( gridData );
+				label = new Label(cNonDataUDPArea, SWT.NULL);
+				
+				enable_tcp.setAdditionalActionPerformer(
+						new ChangeSelectionActionPerformer( tcplisten ));
+				
+				enable_udp.setAdditionalActionPerformer(
+						new ChangeSelectionActionPerformer( udp_listen ));
 			}
 		}
 		

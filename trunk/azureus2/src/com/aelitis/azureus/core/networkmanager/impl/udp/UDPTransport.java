@@ -102,6 +102,13 @@ UDPTransport
 	connectOutbound(
 		final ConnectListener 	listener )
 	{
+		if ( !UDPNetworkManager.UDP_OUTGOING_ENABLED ){
+			
+			listener.connectFailure( new Throwable( "Outbound UDP connections disabled" ));
+			
+			return;
+		}
+		
 		if ( closed ){
 			
 			listener.connectFailure( new Throwable( "Connection already closed" ));

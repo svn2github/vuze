@@ -64,7 +64,10 @@ ProtocolDecoder
 							
 					     	if (Logger.isEnabled()){
 					     		
-				        		Logger.log(	new LogEvent(LOGID, "Active protocol decoders = " + decoders.size()));
+					     		if ( decoders.size() > 0 ){
+					     			
+					     			Logger.log(	new LogEvent(LOGID, "Active protocol decoders = " + decoders.size()));
+					     		}
 					     	}
 						}
 						

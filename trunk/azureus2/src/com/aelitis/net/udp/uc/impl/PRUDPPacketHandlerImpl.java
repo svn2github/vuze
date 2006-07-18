@@ -131,7 +131,7 @@ PRUDPPacketHandlerImpl
 	setPrimordialHandler(
 		PRUDPPrimordialHandler	handler )
 	{
-		if ( primordial_handler != null ){
+		if ( primordial_handler != null && handler != null ){
 			
 			Debug.out( "Primordial handler replaced!" );
 		}
@@ -226,9 +226,11 @@ PRUDPPacketHandlerImpl
 					
 					failed_accepts = 0;
 					
-					if ( primordial_handler != null ){
+					PRUDPPrimordialHandler prim_hand = primordial_handler;
+					
+					if ( prim_hand != null ){
 						
-						if ( primordial_handler.packetReceived( packet )){
+						if ( prim_hand.packetReceived( packet )){
 					
 								// primordial handlers get their own buffer as we can't guarantee
 								// that they don't need to hang onto the data

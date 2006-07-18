@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.control.*;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATInitiator;
@@ -2579,9 +2580,25 @@ PEPeerControlImpl
 
 						final boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
 
-						if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), true, use_crypto ) == null) {
-							num_waiting_establishments++;
-							remaining--;
+						if ( TCPNetworkManager.TCP_OUTGOING_ENABLED ){
+							
+							if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), true, use_crypto ) == null) {
+								
+								num_waiting_establishments++;
+								
+								remaining--;
+							}
+						}else{
+							
+							if ( item.getUDPPort() != 0 ){
+								
+								if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), false, use_crypto ) == null) {
+									
+									num_waiting_establishments++;
+									
+									remaining--;
+								}
+							}
 						}
 					}          
 				}

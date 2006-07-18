@@ -96,21 +96,7 @@ ConnectionEndpoint
 	{
 		ProtocolEndpoint	protocol = protocols[0];
 		
-		final Transport transport;
-		
-		if ( 	NetworkManager.TCP_OUTGOING_DISABLE && 
-				protocol.getType() == ProtocolEndpoint.PROTOCOL_TCP ){
-			
-			listener.connectAttemptStarted();
-			
-			listener.connectFailure( new Exception( "TCP outbound disabled" ));
-			
-			transport = null;
-			
-		}else{
-			
-			transport = protocol.connectOutbound( connect_with_crypto, allow_fallback, shared_secret, listener );
-		}
+		final Transport transport = protocol.connectOutbound( connect_with_crypto, allow_fallback, shared_secret, listener );
 		
 		return( 
 			new ConnectionAttempt()

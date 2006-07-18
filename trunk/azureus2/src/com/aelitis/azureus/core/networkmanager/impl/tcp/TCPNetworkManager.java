@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager.impl.tcp;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -41,6 +42,22 @@ TCPNetworkManager
 
 	public static TCPNetworkManager getSingleton(){ return( instance ); }
 
+	public static boolean TCP_INCOMING_ENABLED;
+	public static boolean TCP_OUTGOING_ENABLED;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+				"TCP.Listen.Port.Enable",
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String name )
+					{
+						TCP_INCOMING_ENABLED = TCP_OUTGOING_ENABLED = COConfigurationManager.getBooleanParameter( name );
+					}
+				});
+	}
 	
 	 /**
 	   * Get the configured TCP MSS (Maximum Segment Size) unit, i.e. the max (preferred) packet payload size.

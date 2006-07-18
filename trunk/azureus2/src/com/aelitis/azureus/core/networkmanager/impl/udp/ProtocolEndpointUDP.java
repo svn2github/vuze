@@ -91,7 +91,7 @@ ProtocolEndpointUDP
 		byte[] 				shared_secret,
 		ConnectListener 	listener )
 	{
-		Transport t = new UDPTransport( this, shared_secret );
+		UDPTransport t = new UDPTransport( this, shared_secret );
 		
 		t.connectOutbound( listener );
 		

@@ -35,4 +35,7 @@ NetworkGlue
 		byte[]				data )
 	
 		throws IOException;
+	
+	public long[]
+	getStats();
 }

@@ -136,6 +136,14 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
    * @param listener establishment failure/success listener
    */
   public void connectOutbound( final ConnectListener listener ) {
+	  
+	if ( !TCPNetworkManager.TCP_OUTGOING_ENABLED ){
+	
+		listener.connectFailure( new Throwable( "Outbound TCP connections disabled" ));
+		
+		return;
+	}
+	
     if( has_been_closed )  return;
     
     if( getFilter() != null ) {  //already connected

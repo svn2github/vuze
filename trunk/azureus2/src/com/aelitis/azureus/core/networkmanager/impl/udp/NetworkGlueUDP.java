@@ -28,14 +28,16 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 
-import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
-import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
 import com.aelitis.net.udp.uc.PRUDPPrimordialHandler;
 
@@ -44,40 +46,64 @@ NetworkGlueUDP
 	implements NetworkGlue, PRUDPPrimordialHandler
  
 {
+	private static final LogIDs LOGID = LogIDs.NET;
+	
 	private NetworkGlueListener		listener;
 
 	private PRUDPPacketHandler handler;
 	
-	private LinkedList	msg_queue	= new LinkedList();
+	private LinkedList	msg_queue			= new LinkedList();
 	private AESemaphore	msg_queue_sem		= new AESemaphore( "NetworkGlueUDP" );
 	private AESemaphore	msg_queue_slot_sem	= new AESemaphore( "NetworkGlueUDP", 128 );
 	
-
+	private long total_packets_received;
+	private long total_bytes_received;
+	private long total_packets_sent;
+	private long total_bytes_sent;
+	
 	protected
 	NetworkGlueUDP(
-		NetworkGlueListener		_listener,
-		int						_udp_port )
+		NetworkGlueListener		_listener )
 	{
 		listener	= _listener;
-				
-		handler = PRUDPPacketHandlerFactory.getHandler( _udp_port );
-
-		handler.setPrimordialHandler( this );
-		
-		COConfigurationManager.addListener(
-			new COConfigurationListener()
+						
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{ "UDP.Listen.Port", "UDP.Listen.Port.Enable" },
+			new ParameterListener()
 			{
 				public void
-				configurationSaved()
+				parameterChanged(
+					String	name )
 				{
-					int	port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
+					boolean	enabled = COConfigurationManager.getBooleanParameter( "UDP.Listen.Port.Enable" );
 					
-					if ( port != handler.getPort()){
+					if ( enabled ){
 						
-						handler = PRUDPPacketHandlerFactory.getHandler( port );
+						int	port = COConfigurationManager.getIntParameter( "UDP.Listen.Port" );				
+						
+						if ( handler == null || port != handler.getPort()){
+							
+							if ( handler != null ){
+								
+								Logger.log(new LogEvent(LOGID, "Deactivating UDP listener on port " + handler.getPort()));
 
-						handler.setPrimordialHandler( NetworkGlueUDP.this );
+								handler.setPrimordialHandler( null );
+							}
 
+							Logger.log(new LogEvent(LOGID, "Activating UDP listener on port " + port ));
+								
+							handler = PRUDPPacketHandlerFactory.getHandler( port );
+	
+							handler.setPrimordialHandler( NetworkGlueUDP.this );
+						}
+					}else{
+						
+						if ( handler != null ){
+							
+							Logger.log(new LogEvent(LOGID, "Deactivating UDP listener on port " + handler.getPort()));
+							
+							handler.setPrimordialHandler( null );
+						}
 					}
 				}
 			});
@@ -105,6 +131,9 @@ NetworkGlueUDP
 					
 					msg_queue_slot_sem.release();
 					
+					total_packets_sent++;
+					total_bytes_sent	+= data.length;
+					
 					try{
 						handler.primordialSend( data, target_address );
 						
@@ -127,7 +156,7 @@ NetworkGlueUDP
 								
 			byte[]	data = packet.getData();
 			
-				// first or third word must have something set in mask: 0xfffff800
+				// first and third word must have something set in mask: 0xfffff800
 			
 			if ( 	(	( data[0] & 0xff ) != 0 ||
 						( data[1] & 0xff ) != 0 ||
@@ -137,9 +166,18 @@ NetworkGlueUDP
 						( data[9] & 0xff ) != 0 ||
 						( data[10]& 0xf8 ) != 0 )){
 				
-				return( listener.receive( handler.getPort(), new InetSocketAddress( packet.getAddress(), packet.getPort()), packet.getData(), packet.getLength()));
+				total_packets_received++;
+				total_bytes_received += packet.getLength();
+				
+				listener.receive( handler.getPort(), new InetSocketAddress( packet.getAddress(), packet.getPort()), packet.getData(), packet.getLength());
+				
+					// consume this packet 
+				
+				return( true );
 			}
 		}
+		
+			// don't consume it, allow it to be passed on for further processing
 		
 		return( false );
 	}
@@ -162,5 +200,11 @@ NetworkGlueUDP
 		msg_queue_sem.release();
 		
 		return( data.length );
+	}
+	
+	public long[]
+	getStats()
+	{
+		return( new long[]{ total_packets_sent, total_bytes_sent, total_packets_received, total_bytes_received });
 	}
 }

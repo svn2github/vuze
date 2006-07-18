@@ -47,6 +47,23 @@ UDPNetworkManager
 	
 	private static int udp_mss_size;
 	
+	public static boolean UDP_INCOMING_ENABLED;
+	public static boolean UDP_OUTGOING_ENABLED;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+				"UDP.Listen.Port.Enable",
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String name )
+					{
+						UDP_INCOMING_ENABLED = UDP_OUTGOING_ENABLED = COConfigurationManager.getBooleanParameter( name );
+					}
+				});
+	}
+	
 	public static int getUdpMssSize() {  return udp_mss_size;  }
 
 	public static void
@@ -145,7 +162,7 @@ UDPNetworkManager
 					   }
 				   });
 		
-		connection_manager = new UDPConnectionManager( udp_listen_port );
+		connection_manager = new UDPConnectionManager();
 	}
 	
   
