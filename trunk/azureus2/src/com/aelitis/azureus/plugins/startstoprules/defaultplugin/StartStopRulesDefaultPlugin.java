@@ -499,8 +499,7 @@ public class StartStopRulesDefaultPlugin
         int iNumCDing = 0;
         for (int i = 0; i < dlDataArray.length; i++) {
           if (dlDataArray[i].changeChecker()) {
-          	requestProcessCycle(null);
-          	return;
+          	requestProcessCycle(dlDataArray[i]);
           }
 
           // Check DLs for change in activeness (speed threshold)

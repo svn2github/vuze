@@ -805,9 +805,11 @@ public class DefaultRankCalculator implements Comparable {
 			int shareRatio = dl.getStats().getShareRatio();
 			int numSeeds = rules.calcSeedsNoUs(dl);
 
-			if (iIgnoreShareRatio != 0 && shareRatio > iIgnoreShareRatio
-					&& numSeeds >= iIgnoreShareRatio_SeedStart && shareRatio != -1)
+			if (iIgnoreShareRatio != 0 && shareRatio >= iIgnoreShareRatio
+					&& (numSeeds >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl))
+					&& shareRatio != -1) {
 				return true;
+			}
 		}
 
 		/* READY downloads are usually waiting for a seeding torrent to
