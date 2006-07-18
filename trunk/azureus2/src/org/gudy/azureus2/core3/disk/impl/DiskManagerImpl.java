@@ -1580,7 +1580,7 @@ DiskManagerImpl
          * completed file path.
          */
         String move_only_in_default_param = (ending) ? "Move Only When In Default Save Dir" : "File.move.download.removed.only_in_default";
-        boolean move_only_in_default = COConfigurationManager.getBooleanParameter(move_only_in_default_param);
+        boolean move_only_in_default = COConfigurationManager.getBooleanParameter(move_only_in_default_param, true);
 
         String save_dir = dm.getSaveLocation().getParent();
 
