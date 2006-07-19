@@ -1043,7 +1043,10 @@ DownloadManagerController
 	protected void
 	destroy()
 	{
-		peer_manager_registration.unregister();
+		if ( peer_manager_registration != null ){
+			
+			peer_manager_registration.unregister();
+		}
 	}
 	
 	public boolean
