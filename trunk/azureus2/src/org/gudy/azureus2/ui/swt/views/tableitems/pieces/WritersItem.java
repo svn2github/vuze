@@ -44,16 +44,19 @@ public class WritersItem
 
   public void refresh(TableCell cell) {
     PEPiece piece = (PEPiece)cell.getDataSource();
-    String[] writers = piece.getWriters();
+    String[] core_writers = piece.getWriters();
+    String[] my_writers = new String[core_writers.length];
+    
     StringBuffer sb = new StringBuffer();
     int writer_count = 0;
 
     Map map = new HashMap();
     String last_writer = null;
     int end_range = 0;
-    for(int i = 0 ; i < writers.length ; i++) {
-      if (last_writer == writers[i]) { // if the writer is the same as before
-        if (writers[i] != null)        // and the block has been written
+    for(int i = 0 ; i < core_writers.length ; i++) {
+      String	this_writer = core_writers[i];
+      if (last_writer == this_writer ) { // if the writer is the same as before
+        if (this_writer != null)        // and the block has been written
           end_range = i;               // then keep tracking the range
       } else {                         // otherwise the writer is different
         if (end_range != 0) {          // if we were tracking a range, end the range
@@ -61,24 +64,24 @@ public class WritersItem
           end_range = 0;               // and stop tracking it
         }
 
-        if (writers[i] != null) {
-          String value = (String)map.get(writers[i]);
+        if (this_writer != null) {
+          String value = (String)map.get(this_writer);
           if (value == null) {
             value = Integer.toString(i);
-            writers[writer_count++] = writers[i];
+            my_writers[writer_count++] = this_writer;
           } else
             value += "," + i;
-          map.put(writers[i], value);
+          map.put(this_writer, value);
         }
       }
-      last_writer = writers[i];
+      last_writer = this_writer;
     }
     
     if (end_range != 0)
       map.put(last_writer, (String)map.get(last_writer) + "-" + end_range);
 
     for (int i = 0 ; i < writer_count ; i++) {
-			String writer = writers[i];
+			String writer = my_writers[i];
 			if (sb.length() != 0)
 				sb.append(";");
 			sb.append(writer);
