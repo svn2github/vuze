@@ -32,6 +32,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -119,26 +120,17 @@ public class Legend {
 
 			colorSet.setLayout(new RowLayout(SWT.HORIZONTAL));
 
-			final Label lblColor = new Label(colorSet, SWT.BORDER);
-			lblColor.setData("Index", new Integer(i));
-			lblColor.setBackground(blockColors[i]);
-			if ((Constants.isOSX || Constants.isLinux)
-					&& (SWT.getVersion() == 3221 || SWT.getVersion() == 3222)) {
-				// Temporary measure for background not be drawn
-				lblColor.addPaintListener(new PaintListener() {
-					public void paintControl(PaintEvent e) {
-						e.gc.setBackground(lblColor.getBackground());
-						e.gc.fillRectangle(e.x, e.y, e.width, e.height);
-					}
-				});
-			}
+			final Canvas cColor = new Canvas(colorSet, SWT.BORDER);
+			cColor.setData("Index", new Integer(i));
+			cColor.setBackground(blockColors[i]);
+
 			data = new RowData();
 			data.width = 20;
 			data.height = 10;
-			lblColor.setLayoutData(data);
-			lblColor.addMouseListener(new MouseAdapter() {
+			cColor.setLayoutData(data);
+			cColor.addMouseListener(new MouseAdapter() {
 				public void mouseUp(MouseEvent e) {
-					Integer iIndex = (Integer)lblColor.getData("Index");
+					Integer iIndex = (Integer)cColor.getData("Index");
 					if (iIndex == null)
 						return;
 					int index = iIndex.intValue();
@@ -182,7 +174,7 @@ public class Legend {
 											Color color = new Color(panel.getDisplay(), rgb);
 											disposeList.add(color);
 											blockColors[index] = color;
-											lblColor.setBackground(blockColors[index]);
+											cColor.setBackground(blockColors[index]);
 										}
 									});
 								}
@@ -194,7 +186,7 @@ public class Legend {
 											if (panel == null || panel.isDisposed())
 												return;
 											blockColors[index] = defaultColors[index];
-											lblColor.setBackground(blockColors[index]);
+											cColor.setBackground(blockColors[index]);
 										}
 									});
 								}
