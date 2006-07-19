@@ -985,6 +985,8 @@ PEPeerControlImpl
 						this_piece, 
 						new Integer( CHECK_REASON_SCAN ));	
 				
+				req.setLowPriority( true );
+				
 			   	if ( Logger.isEnabled()){
 			   		
 					Logger.log(
