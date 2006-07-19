@@ -119,6 +119,8 @@ RDResumeHandler
 				
 		DiskManagerRecheckInstance	recheck_inst = disk_manager.getRecheckScheduler().register( disk_manager, false );
 
+        final AESemaphore	 run_sem = new AESemaphore( "RDResumeHandler::checkAllPieces:runsem", 2 );
+
 		try{						
 			boolean resumeEnabled = use_fast_resume;
 			
@@ -309,7 +311,9 @@ RDResumeHandler
 							// if the resume data is invalid or explicit recheck needed
 						
 						if ( piece_state == PIECE_RECHECK_REQUIRED || !resumeValid ){
-												
+									
+							run_sem.reserve();
+							
 							while( !stopped ){
 									
 								if ( recheck_inst.getPermission()){
@@ -364,6 +368,8 @@ RDResumeHandler
 											protected void
 											complete()
 											{
+												run_sem.release();
+												
 												pending_checks_sem.release();
 											}
 										});
@@ -416,7 +422,9 @@ RDResumeHandler
 					// resume not enabled, recheck everything
 				
 				for (int i = 0; i < pieces.length; i++){
-					
+
+					run_sem.reserve();
+
 					while( ! stopped ){
 						
 						if ( recheck_inst.getPermission()){
@@ -469,6 +477,8 @@ RDResumeHandler
 									protected void
 									complete()
 									{
+										run_sem.release();
+
 										pending_checks_sem.release();
 									}
 								});
