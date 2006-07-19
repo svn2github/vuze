@@ -1,5 +1,5 @@
 /*
- * Created on Mar 20, 2006
+ * Created on Jul 15, 2006
  * Created by Alon Rohter
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -19,17 +19,38 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
-package com.aelitis.azureus.core.peermanager.unchoker;
+package com.aelitis.azureus.core.peermanager.uploadslots;
+
+
 
 /**
  * 
  */
-public class UnchokeProvider {
+public class UploadSlot {
+	
+	protected static final int TYPE_NORMAL		 = 0;
+	protected static final int TYPE_OPTIMISTIC = 1;
+	
+	private final int slot_type;
+	private long expire_round = 0;  //slot is expired by default
+	private UploadSession session;
+	
+	
+	
+	protected UploadSlot( int _slot_type ) {
+		this.slot_type = _slot_type;
+	}
+	
+	protected int getSlotType() {  return slot_type;  }
+	
+	
+	protected void setSession( UploadSession _session ) {  this.session = _session; }
+	protected UploadSession getSession() {  return session;  }
+	
+	protected void setExpireRound( long round ) {  this.expire_round = round;  }
+	protected long getExpireRound(){  return expire_round;  }
+	
 
-	
-	private final Unchoker downloading_unchoker = new DownloadingUnchoker();  //TODO make static?
-	private final Unchoker seeding_unchoker = new SeedingUnchoker();
-	
 	
 	
 	

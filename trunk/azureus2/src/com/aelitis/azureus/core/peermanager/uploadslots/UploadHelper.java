@@ -19,14 +19,14 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
-package com.aelitis.azureus.core.peermanager.unchoker;
+package com.aelitis.azureus.core.peermanager.uploadslots;
 
 import java.util.ArrayList;
 
 /**
  * 
  */
-public interface UnchokeHelper {
+public interface UploadHelper {
 	
 	public static final int PRIORITY_DISABLED = 0;
 	public static final int PRIORITY_LOWEST   = 1;
@@ -44,7 +44,7 @@ public interface UnchokeHelper {
 	
 	
 	/**
-	 * Get all (PEPeer) peers for this download. 
+	 * Get all (PEPeerTransport) peers for this download. 
 	 * @return non-mutable list of peers 
 	 */
 	public ArrayList getAllPeers();
