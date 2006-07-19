@@ -111,7 +111,9 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
   public void makeTorrent() {
   	NewTorrentWizard _wizard = (NewTorrentWizard)wizard;
   	
-    if(_wizard.tracker_type == NewTorrentWizard.TT_EXTERNAL ){
+  	int	tracker_type = _wizard.getTrackerType();
+  	
+    if( tracker_type == NewTorrentWizard.TT_EXTERNAL ){
     	
       TrackersUtil.getInstance().addTracker(_wizard.trackerURL);
     }
@@ -150,7 +152,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       	torrent = c.create();
       }
       
-      if ( _wizard.tracker_type == NewTorrentWizard.TT_DECENTRAL ){
+      if ( tracker_type == NewTorrentWizard.TT_DECENTRAL ){
       	
       	TorrentUtils.setDecentralised( torrent );
       }
@@ -219,7 +221,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 						true,	// for seeding
 						null );	// no adapter required
                 
-                if ( ((NewTorrentWizard)wizard).autoHost &&  ((NewTorrentWizard)wizard).tracker_type != NewTorrentWizard.TT_EXTERNAL ){
+                if ( ((NewTorrentWizard)wizard).autoHost &&  ((NewTorrentWizard)wizard).getTrackerType() != NewTorrentWizard.TT_EXTERNAL ){
                 	
                 	try{
                 		((NewTorrentWizard)wizard).getAzureusCore().getTrackerHost().hostTorrent( torrent, true, false );
@@ -235,11 +237,18 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 	  }
 	}
     catch (Exception e) {
-      if ( 	e instanceof TOTorrentException && 
-      		((TOTorrentException)e).getReason() == TOTorrentException.RT_CANCELLED ){
+      if ( e instanceof TOTorrentException ){
+    	  
+    	  TOTorrentException	te = (TOTorrentException)e;
+    	  
+    	  if ( te.getReason() == TOTorrentException.RT_CANCELLED ){
       	
-      		//expected failure, don't log exception
-     	
+      			//expected failure, don't log exception
+    	  }else{
+    		  
+    		  reportCurrentTask(MessageText.getString("wizard.operationfailed"));
+    	      reportCurrentTask( TorrentUtils.exceptionToText( te, true ));
+    	  }
       }else{
       	Debug.printStackTrace( e );
         reportCurrentTask(MessageText.getString("wizard.operationfailed"));

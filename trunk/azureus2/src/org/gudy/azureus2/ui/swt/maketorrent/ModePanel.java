@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -62,6 +61,7 @@ public class ModePanel extends AbstractWizardPanel {
 	 * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#show()
 	 */
   public void show() {
+	final NewTorrentWizard wizard = (NewTorrentWizard)this.wizard;
     wizard.setTitle(MessageText.getString("wizard.mode"));
     wizard.setCurrentInfo(MessageText.getString("wizard.singlefile.help"));
     Composite rootPanel = wizard.getPanel();
@@ -130,9 +130,9 @@ public class ModePanel extends AbstractWizardPanel {
       btnLocalTracker.setEnabled(false);
       localTrackerValue.setEnabled(true);
       
-      if (((NewTorrentWizard) wizard).tracker_type == NewTorrentWizard.TT_LOCAL ){
+      if ( wizard.getTrackerType() == NewTorrentWizard.TT_LOCAL ){
       	
-      	((NewTorrentWizard) wizard).tracker_type = NewTorrentWizard.TT_EXTERNAL;
+      	wizard.setTrackerType( NewTorrentWizard.TT_EXTERNAL );
       }
 
       gridData = new GridData();
@@ -141,9 +141,19 @@ public class ModePanel extends AbstractWizardPanel {
     
     localTrackerValue.setLayoutData(gridData);
 
-    if (((NewTorrentWizard) wizard).tracker_type == NewTorrentWizard.TT_LOCAL) {
+    int	tracker_type = wizard.getTrackerType();
+    
+    if (tracker_type == NewTorrentWizard.TT_LOCAL) {
     	
       setTrackerUrl(localTrackerUrl[0]);
+      
+    }else if ( tracker_type == NewTorrentWizard.TT_EXTERNAL ){
+    	
+      setTrackerUrl( NewTorrentWizard.TT_EXTERNAL_DEFAULT );
+      
+    }else{
+    	
+      setTrackerUrl( NewTorrentWizard.TT_DECENTRAL_DEFAULT );
     }
 
     //Line:
@@ -160,8 +170,6 @@ public class ModePanel extends AbstractWizardPanel {
 
     final Label labelExternalAnnounce = new Label(panel, SWT.NULL);
     Messages.setLanguageText(labelExternalAnnounce, "wizard.announceUrl");
-
-    int	tracker_type = ((NewTorrentWizard) wizard).tracker_type;
     
     btnLocalTracker.setSelection(tracker_type==NewTorrentWizard.TT_LOCAL);
     if(showLocal) localTrackerValue.setEnabled(tracker_type==NewTorrentWizard.TT_LOCAL);
@@ -226,19 +234,14 @@ public class ModePanel extends AbstractWizardPanel {
     
     updateTrackerURL();
     
-    tracker.setEnabled(((NewTorrentWizard) wizard).tracker_type == NewTorrentWizard.TT_EXTERNAL );
+    tracker.setEnabled( tracker_type == NewTorrentWizard.TT_EXTERNAL );
     
     new Label(panel,SWT.NULL);
 
-    // add another panel due to control oversize issues
-    panel = new Composite(rootPanel, SWT.NO_RADIO_GROUP);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-    panel.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 4;
-    panel.setLayout(layout);
-    
     // O decentral tracking
+    // has to be on same no-radio-group panel otherwise weird things happen regarding selection of
+    // "external tracker" button *even if* we set it up so that "dht tracker" should be selected....
+    
     final Button btnDHTTracker = new Button(panel, SWT.RADIO);
     Messages.setLanguageText(btnDHTTracker, "wizard.tracker.dht");
     gridData = new GridData();
@@ -246,7 +249,16 @@ public class ModePanel extends AbstractWizardPanel {
     btnDHTTracker.setLayoutData(gridData);
     
     btnDHTTracker.setSelection(tracker_type==NewTorrentWizard.TT_DECENTRAL);
+
     
+    // add another panel due to control oversize issues
+    panel = new Composite(rootPanel, SWT.NO_RADIO_GROUP);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
+    panel.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 4;
+    panel.setLayout(layout);
+        
     //Line:
     // ------------------------------
     
@@ -271,7 +283,7 @@ public class ModePanel extends AbstractWizardPanel {
     });
     btnMultiTracker.setSelection(((NewTorrentWizard) wizard).useMultiTracker);
     
-    btnMultiTracker.setEnabled(((NewTorrentWizard) wizard).tracker_type != NewTorrentWizard.TT_DECENTRAL);
+    btnMultiTracker.setEnabled( tracker_type != NewTorrentWizard.TT_DECENTRAL);
     
     //Line:
     // include hashes for other networks (
@@ -355,7 +367,7 @@ public class ModePanel extends AbstractWizardPanel {
 	
     btnLocalTracker.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
-        ((NewTorrentWizard) wizard).tracker_type = NewTorrentWizard.TT_LOCAL;
+        wizard.setTrackerType( NewTorrentWizard.TT_LOCAL );
         setTrackerUrl(localTrackerUrl[0]);
         updateTrackerURL();
         btnExternalTracker.setSelection(false);
@@ -372,8 +384,8 @@ public class ModePanel extends AbstractWizardPanel {
 
     btnExternalTracker.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
-        ((NewTorrentWizard) wizard).tracker_type = NewTorrentWizard.TT_EXTERNAL;
-        setTrackerUrl(tracker.getText());
+        wizard.setTrackerType( NewTorrentWizard.TT_EXTERNAL );
+        setTrackerUrl( NewTorrentWizard.TT_EXTERNAL_DEFAULT );
         updateTrackerURL();
         btnLocalTracker.setSelection(false);
         btnExternalTracker.setSelection(true);
@@ -389,8 +401,8 @@ public class ModePanel extends AbstractWizardPanel {
     
     btnDHTTracker.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0) {
-          ((NewTorrentWizard) wizard).tracker_type = NewTorrentWizard.TT_DECENTRAL;
-          setTrackerUrl( TorrentUtils.getDecentralisedEmptyURL().toString());
+          wizard.setTrackerType( NewTorrentWizard.TT_DECENTRAL );
+          setTrackerUrl( NewTorrentWizard.TT_DECENTRAL_DEFAULT );
           updateTrackerURL();
           btnLocalTracker.setSelection(false);
           btnExternalTracker.setSelection(false);
@@ -455,7 +467,7 @@ public class ModePanel extends AbstractWizardPanel {
     if(Constants.isOSX) {
       //In case we're not using the localTracker, refresh the
       //Tracker URL from the Combo text
-      if( ((NewTorrentWizard) wizard).tracker_type == NewTorrentWizard.TT_EXTERNAL ){
+      if( ((NewTorrentWizard) wizard).getTrackerType() == NewTorrentWizard.TT_EXTERNAL ){
         setTrackerUrl(tracker.getText());
       }
     }

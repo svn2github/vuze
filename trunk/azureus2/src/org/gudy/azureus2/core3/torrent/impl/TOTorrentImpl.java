@@ -136,15 +136,44 @@ TOTorrentImpl
 		try{
 			File parent = output_file.getParentFile();
 			
-			if ( parent == null ){
+			if ( parent == null || ( parent.exists() && !parent.isDirectory())){
 				
-				throw( new Exception( "Path '" + output_file + "' is invalid" ));
+				throw( new TOTorrentException( "Path '" + output_file + "' is invalid", TOTorrentException.RT_WRITE_FAILS ));
 			}
 			
-			parent.mkdirs();
+			if ( !parent.exists()){
+				
+				if ( !parent.mkdirs()){
+				
+					throw( new TOTorrentException( "Failed to create directory '" + parent + "'", TOTorrentException.RT_WRITE_FAILS ));
+				}
+			}
 			
-            File temp = new File( parent, output_file.getName() + ".saving");
-              
+			File temp = new File( parent, output_file.getName() + ".saving");
+            
+			if ( temp.exists()){
+				
+				if ( !temp.delete()){
+					
+					throw( new TOTorrentException( "Insufficient permissions to delete '" + temp + "'", TOTorrentException.RT_WRITE_FAILS ));
+				}
+			}else{
+				
+				boolean	ok = false;
+				
+				try{
+					ok = temp.createNewFile();
+					
+				}catch( Throwable e ){
+				}
+				
+				if ( !ok ){
+					
+					throw( new TOTorrentException( "Insufficient permissions to write '" + temp + "'", TOTorrentException.RT_WRITE_FAILS ));
+
+				}
+			}
+			
             bos = new BufferedOutputStream( new FileOutputStream( temp, false ), 8192 );
 			
             bos.write( res );
@@ -166,7 +195,11 @@ TOTorrentImpl
                 
                 temp.renameTo( output_file );
             }
-             							
+             	
+		}catch( TOTorrentException e ){
+			
+			throw( e );
+			
 		}catch( Throwable e){
 							
 			throw( new TOTorrentException( 	"TOTorrent::serialise: fails '" + e.toString() + "'",

@@ -276,7 +276,7 @@ public class SavePathPanel extends AbstractWizardPanel {
         public void handleEvent(Event event) {
           _wizard.autoOpen = bAutoOpen.getSelection();
           
-          bAutoHost.setEnabled( _wizard.autoOpen && _wizard.tracker_type != NewTorrentWizard.TT_EXTERNAL );
+          bAutoHost.setEnabled( _wizard.autoOpen && _wizard.getTrackerType() != NewTorrentWizard.TT_EXTERNAL );
         }
       });
     
@@ -315,7 +315,7 @@ public class SavePathPanel extends AbstractWizardPanel {
         }
       });
 
-    if ( _wizard.tracker_type == NewTorrentWizard.TT_DECENTRAL ){
+    if ( _wizard.getTrackerType() == NewTorrentWizard.TT_DECENTRAL ){
 
 		bAllowDHT.setEnabled( false );
 		bPrivateTorrent.setEnabled( false );

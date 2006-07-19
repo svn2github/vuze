@@ -421,7 +421,16 @@ TorrentUtils
 		
 		if ( verbose ){
 			
-			errorDetail += "(" + e.getMessage() + ")";
+			String	msg = e.getMessage();
+			
+			if ( msg == null ){
+				
+				errorDetail += "(" + e.toString() + ")";
+				
+			}else if ( !errorDetail.equals( msg )){
+				
+				errorDetail += "(" + e.getMessage() + ")";
+			}
 		}
 		
 		return( errorDetail );

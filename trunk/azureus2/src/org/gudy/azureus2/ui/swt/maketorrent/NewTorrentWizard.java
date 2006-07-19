@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Listener;
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
@@ -50,10 +51,17 @@ public class
 NewTorrentWizard 
 	extends Wizard 
 {
-
-	static String	default_open_dir 	= COConfigurationManager.getStringParameter( "CreateTorrent.default.open", "" );
-	static String	default_save_dir 	= COConfigurationManager.getStringParameter( "CreateTorrent.default.save", "" );
-	static String	comment 			= COConfigurationManager.getStringParameter( "CreateTorrent.default.comment", "" );
+	static final int	TT_LOCAL		= 1;
+	static final int	TT_EXTERNAL		= 2;
+	static final int	TT_DECENTRAL	= 3;
+	  
+	static final String	TT_EXTERNAL_DEFAULT 	= "http://";
+	static final String	TT_DECENTRAL_DEFAULT	= TorrentUtils.getDecentralisedEmptyURL().toString();
+	
+	private static String	default_open_dir 	= COConfigurationManager.getStringParameter( "CreateTorrent.default.open", "" );
+	private static String	default_save_dir 	= COConfigurationManager.getStringParameter( "CreateTorrent.default.save", "" );
+	private static String	comment 			= COConfigurationManager.getStringParameter( "CreateTorrent.default.comment", "" );
+	private static int 		tracker_type 		= COConfigurationManager.getIntParameter( "CreateTorrent.default.trackertype", TT_LOCAL );
 
 	static{
 			// default the default to the "save torrents to" location
@@ -70,13 +78,8 @@ NewTorrentWizard
   String directoryPath = "";
   String savePath = "";
   
-  static final int	TT_LOCAL		= 1;
-  static final int	TT_EXTERNAL		= 2;
-  static final int	TT_DECENTRAL	= 3;
-  
-  int tracker_type = TT_LOCAL;
-  
-  String trackerURL = "http://";
+    
+  String trackerURL = TT_EXTERNAL_DEFAULT;
   
   boolean computed_piece_size = true;
   long	  manual_piece_size;
@@ -84,7 +87,7 @@ NewTorrentWizard
   boolean 			useMultiTracker = false;
   
   private boolean 	addOtherHashes	= 	COConfigurationManager.getBooleanParameter( "CreateTorrent.default.addhashes", false );
-
+  
   
   String multiTrackerConfig = "";
   List trackers = new ArrayList();
@@ -117,6 +120,21 @@ NewTorrentWizard
     
   }
 
+  protected int
+  getTrackerType()
+  {
+   	return( tracker_type );
+  }
+  
+  protected void
+  setTrackerType(
+	int	type )
+  {
+	tracker_type = type;
+
+	COConfigurationManager.setParameter( "CreateTorrent.default.trackertype", tracker_type );
+  }
+ 
   protected String
   getDefaultOpenDir()
   {
