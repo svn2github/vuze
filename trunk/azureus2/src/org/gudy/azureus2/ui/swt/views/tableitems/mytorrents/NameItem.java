@@ -25,9 +25,11 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.Image;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -42,6 +44,17 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class NameItem extends CoreTableColumn implements
 		TableCellRefreshListener, ObfusticateCellText {
+	private static boolean bShowIcon;
+
+	static {
+		COConfigurationManager.addAndFireParameterListener(
+				"NameColumn.showProgramIcon", new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						bShowIcon = COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon");
+					}
+				});
+	}
+	
 	/** Default Constructor */
 	public NameItem(String sTableID) {
 		super("name", POSITION_LAST, 250, sTableID);
@@ -60,7 +73,7 @@ public class NameItem extends CoreTableColumn implements
 
 		//setText returns true only if the text is updated
 		if (cell.setText(name) || !cell.isValid()) {
-			if (dm != null) {
+			if (dm != null && bShowIcon) {
 				// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
 				Image icon = ImageRepository.getPathIcon(dm.getSaveLocation()
 						.toString());

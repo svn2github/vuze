@@ -195,6 +195,7 @@ public class ConfigurationDefaults {
     def.put("update.opendialog",TRUE);
     def.put("Colors.progressBar.override", FALSE);
     def.put("GUI_SWT_DisableAlertSliding", FALSE);
+    def.put("NameColumn.showProgramIcon", TRUE);
     
     
     def.put("Logger.Enabled", FALSE);  //logging in general

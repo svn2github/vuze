@@ -233,6 +233,9 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 		new BooleanParameter(cLook, "GUI_SWT_DisableAlertSliding", MSG_PREFIX
 				+ "disableAlertSliding");
+
+		new BooleanParameter(cLook, "NameColumn.showProgramIcon", MSG_PREFIX
+				+ "showProgramIcon");
 		return cLook;
 	}
 }
