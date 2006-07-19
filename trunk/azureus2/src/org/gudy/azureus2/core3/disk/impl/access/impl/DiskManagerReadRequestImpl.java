@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
  */
 public class 
 DiskManagerReadRequestImpl
+	extends DiskManagerRequestImpl
 	implements DiskManagerReadRequest
 {
   //60 secs of expiration for any request.
@@ -71,6 +72,12 @@ DiskManagerReadRequestImpl
     hashcode = pieceNumber + offset + length;
   }
   
+	protected String
+	getName()
+	{
+		return( "Read: " + pieceNumber + ",off=" + offset +",len=" + length + ",fl=" + flush + ",uc=" + use_cache );
+	}
+	
   /**
    * Method to determine if a Request has expired
    * @return true if the request is expired

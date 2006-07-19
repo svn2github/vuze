@@ -23,7 +23,8 @@
 package org.gudy.azureus2.core3.disk;
 
 public interface 
-DiskManagerCheckRequest 
+DiskManagerCheckRequest
+	extends DiskManagerRequest
 {
 	public int
 	getPieceNumber();

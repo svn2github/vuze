@@ -337,6 +337,8 @@ DMCheckerImpl
 			// everything comes through here - the interceptor listener maintains the piece state and
 			// does logging
 		
+		request.requestStarts();
+		
 		enqueueCheckRequestSupport( 
 				request, 
 				new DiskManagerCheckRequestListener() 
@@ -345,7 +347,9 @@ DMCheckerImpl
 					checkCompleted( 
 						DiskManagerCheckRequest 	request,
 						boolean						passed )
-					{
+					{						
+						request.requestEnds( true );
+
 						try{		
 							int	piece_number	= request.getPieceNumber();
 							
@@ -385,6 +389,9 @@ DMCheckerImpl
 					checkCancelled(
 						DiskManagerCheckRequest		request )
 					{
+						
+						request.requestEnds( false );
+
 							// don't explicitly mark a piece as failed if we get a cancellation as the 
 							// existing state will suffice. Either we're rechecking because it is bad
 							// already (in which case it won't be done, or we're doing a recheck-on-complete
@@ -395,14 +402,16 @@ DMCheckerImpl
 						if (Logger.isEnabled()){							
 							Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_WARNING, 
 											"Piece " + request.getPieceNumber() + " hash check cancelled."));
-						}				
+						}	
 					}
 					
 					public void 
 					checkFailed( 
 						DiskManagerCheckRequest 	request, 
 						Throwable		 			cause )
-					{
+					{						
+						request.requestEnds( false );
+
 						try{						
 							disk_manager.getPiece(request.getPieceNumber()).setDone( false );
 							
@@ -414,7 +423,7 @@ DMCheckerImpl
 								Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_WARNING, 
 												"Piece " + request.getPieceNumber() + " failed hash check - " + Debug.getNestedExceptionMessage( cause )));
 							}
-						}						
+						}
 					}
 				}, read_flush );
 	}  

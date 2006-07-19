@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerCheckRequest;
 
 public class 
 DiskManagerCheckRequestImpl 
+	extends DiskManagerRequestImpl
 	implements DiskManagerCheckRequest
 {
 	private int		piece_number;
@@ -40,6 +41,12 @@ DiskManagerCheckRequestImpl
 	{
 		piece_number	= _piece_number;
 		user_data		= _user_data;
+	}
+	
+	protected String
+	getName()
+	{
+		return( "Check: " + piece_number + ",lp=" + low_priority + ",ah=" + ad_hoc );
 	}
 	
 	public int 

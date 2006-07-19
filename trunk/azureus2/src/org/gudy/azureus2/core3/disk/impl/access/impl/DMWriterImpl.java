@@ -275,9 +275,34 @@ DMWriterImpl
 	public void 
 	writeBlock(
 		DiskManagerWriteRequest					request,				
-		final DiskManagerWriteRequestListener	listener ) 
+		final DiskManagerWriteRequestListener	_listener ) 
 
-	{	
+	{
+		request.requestStarts();
+		
+		final DiskManagerWriteRequestListener	listener = 
+			new DiskManagerWriteRequestListener()
+			{
+				public void 
+				writeCompleted( 
+					DiskManagerWriteRequest 	request )
+				{					
+					request.requestEnds( true );
+
+					_listener.writeCompleted( request );
+				}
+				  
+				public void 
+				writeFailed( 
+					DiskManagerWriteRequest 	request, 
+					Throwable		 			cause )
+				{					
+					request.requestEnds( false );
+
+					_listener.writeFailed( request, cause );
+				}
+			};
+		
 		try{
 			int					pieceNumber	= request.getPieceNumber();
 			DirectByteBuffer	buffer		= request.getBuffer();

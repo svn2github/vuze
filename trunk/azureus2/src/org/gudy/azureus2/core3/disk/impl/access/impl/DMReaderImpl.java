@@ -173,9 +173,34 @@ DMReaderImpl
 	public void 
 	readBlock(
 		final DiskManagerReadRequest			request,
-		final DiskManagerReadRequestListener	listener )
+		final DiskManagerReadRequestListener	_listener )
 	{
+		request.requestStarts();
+		
+		final DiskManagerReadRequestListener	listener = 
+			new DiskManagerReadRequestListener()
+			{
+			  public void 
+			  readCompleted( 
+			  		DiskManagerReadRequest 	request, 
+					DirectByteBuffer 		data )
+			  {				  
+				  request.requestEnds( true );
 
+				  _listener.readCompleted( request, data );
+			  }
+			  
+			  public void 
+			  readFailed( 
+			  		DiskManagerReadRequest 	request, 
+					Throwable		 		cause )
+			  { 
+				  request.requestEnds( false );
+
+				  _listener.readFailed( request, cause );
+			  }
+			};
+			
 		DirectByteBuffer buffer	= null;
 		
 		try{

@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 public class 
 DiskManagerWriteRequestImpl
+	extends DiskManagerRequestImpl
 	implements DiskManagerWriteRequest
 {  
 	private int 				pieceNumber;
@@ -46,6 +47,12 @@ DiskManagerWriteRequestImpl
 	    offset 		= _offset;
 	    buffer		= _buffer;
 	    user_data	=_user_data;
+	}
+	
+	protected String
+	getName()
+	{
+		return( "Write: " + pieceNumber + ",off=" + offset +",len=" + buffer.remaining( DirectByteBuffer.SS_DW ));
 	}
 	
 	public int 

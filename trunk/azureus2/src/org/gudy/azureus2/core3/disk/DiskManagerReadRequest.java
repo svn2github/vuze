@@ -33,7 +33,7 @@ import org.gudy.azureus2.plugins.peers.PeerReadRequest;
  */
 public interface 
 DiskManagerReadRequest
-	extends PeerReadRequest
+	extends PeerReadRequest, DiskManagerRequest
 {  
   
 	/**
