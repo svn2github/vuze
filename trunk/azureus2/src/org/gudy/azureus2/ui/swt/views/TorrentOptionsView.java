@@ -47,6 +47,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.generic.GenericBooleanParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
@@ -315,36 +316,45 @@ TorrentOptionsView
 			
 			if ( attribute_name.equals( DownloadManagerState.AT_PARAMETERS )){
 				
-				Iterator	it = ds_parameters.entrySet().iterator();
-				
-				while( it.hasNext()){
-					
-					Map.Entry	entry = (Map.Entry)it.next();
-					
-					String	key 	= (String)entry.getKey();
-					Object	param 	= entry.getValue();
-					
-					if ( param instanceof GenericIntParameter ){
-					
-						GenericIntParameter	int_param = (GenericIntParameter)param;
-						
-						int	value = manager.getDownloadState().getIntParameter( key );
-						
-						int_param.setValue( value );
-						
-					}else if ( param instanceof GenericBooleanParameter ){
-						
-						GenericBooleanParameter	bool_param = (GenericBooleanParameter)param;
-						
-						boolean	value = manager.getDownloadState().getBooleanParameter( key );
-						
-						bool_param.setValue( value );
-						
-					}else{
-						
-						Debug.out( "Unknown parameter type: " + param.getClass());
-					}
-				}
+				Utils.execSWTThread(
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							Iterator	it = ds_parameters.entrySet().iterator();
+							
+							while( it.hasNext()){
+								
+								Map.Entry	entry = (Map.Entry)it.next();
+								
+								String	key 	= (String)entry.getKey();
+								Object	param 	= entry.getValue();
+								
+								if ( param instanceof GenericIntParameter ){
+								
+									GenericIntParameter	int_param = (GenericIntParameter)param;
+									
+									int	value = manager.getDownloadState().getIntParameter( key );
+									
+									int_param.setValue( value );
+									
+								}else if ( param instanceof GenericBooleanParameter ){
+									
+									GenericBooleanParameter	bool_param = (GenericBooleanParameter)param;
+									
+									boolean	value = manager.getDownloadState().getBooleanParameter( key );
+									
+									bool_param.setValue( value );
+									
+								}else{
+									
+									Debug.out( "Unknown parameter type: " + param.getClass());
+								}
+							}
+						}
+					},
+					true );
 			}
 		}
 	}
