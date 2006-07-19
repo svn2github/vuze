@@ -21,6 +21,7 @@
 
 package org.gudy.azureus2.core3.util;
 
+
 /**
  * @author parg
  *
@@ -99,18 +100,91 @@ ED2KHasher
 	public byte[]
 	getDigest()
 	{
-		if ( block_hasher == null ){
-			
-			return( current_hasher.getDigest());
-			
-		}else{
+			// data that is a multiple of BLOCK_SIZE needs to have a null MD4 hash appended
 		
-			if ( current_bytes > 0 ){
+		if ( current_bytes == BLOCK_SIZE ){
+			
+			if ( block_hasher == null ){
 				
-				block_hasher.update( current_hasher.getDigest());
+				block_hasher = new MD4Hasher();
 			}
 			
+			block_hasher.update( current_hasher.getDigest());
+			
+			current_hasher = new MD4Hasher();
+		}
+			
+		if ( block_hasher == null ){
+				
+			return( current_hasher.getDigest());
+				
+		}else{
+			
+			if ( current_bytes > 0 ){
+					
+				block_hasher.update( current_hasher.getDigest());
+			}
+				
 			return( block_hasher.getDigest());
 		}
 	}
+	
+	/*
+	 
+	public static void
+	main(
+		String[]	args )
+	{
+		SESecurityManager.initialise();
+
+		ED2KHasher	hasher = new ED2KHasher();
+		
+		try{
+			FileInputStream	fis = new FileInputStream( "C:\\temp\\dat.txt");
+		
+			byte[]	buffer = new byte[1024*1024];
+			
+			while( true ){
+			
+				int	len = fis.read( buffer );
+				
+				if ( len <= 0 ){
+					
+					break;
+				}
+				
+				hasher.update( buffer, 0, len );
+				
+			}
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	
+		byte[]	bah = new byte[BLOCK_SIZE];
+		
+		Arrays.fill( bah, (byte)'a' );
+		
+		hasher.update( bah );		
+
+		
+		
+		
+		try{
+			FileOutputStream	fos = new FileOutputStream( "C:\\temp\\data.txt" );
+			
+			fos.write( bah );
+			
+			fos.close();
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+		
+		
+		System.out.println( "hash=" + ByteFormatter.encodeString( hasher.getDigest()));
+	}
+	*/
+
 }
