@@ -717,6 +717,7 @@ public class PEPieceImpl
 		downloaded[blockNumber] =false;
 		requested[blockNumber] =null;
 		fully_downloaded = false;
+		writers[blockNumber] = null;
 		dmPiece.reDownloadBlock(blockNumber);
 	}
 
