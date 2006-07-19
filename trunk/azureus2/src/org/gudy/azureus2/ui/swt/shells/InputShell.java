@@ -45,16 +45,26 @@ public class InputShell {
 	private String sLabelKey;
 	private String[] p1;
 	private String textValue;
+	private boolean bMultiLine;
 
 	public InputShell(String sTitleKey, String sLabelKey) {
-		this(sTitleKey, null, sLabelKey, null);
+		this(sTitleKey, null, sLabelKey, null, false);
+	}
+	
+	public InputShell(String sTitleKey, String sLabelKey, boolean bMultiLine) {
+		this(sTitleKey, null, sLabelKey, null, bMultiLine);
 	}
 
 	public InputShell(String sTitleKey, String[] p0, String sLabelKey, String[] p1) {
+		this(sTitleKey, p1, sLabelKey, p1, false);
+	}
+
+	public InputShell(String sTitleKey, String[] p0, String sLabelKey, String[] p1, boolean bMultiLine) {
 		this.sTitleKey = sTitleKey;
 		this.p0 = p0;
 		this.sLabelKey = sLabelKey;
 		this.p1 = p1;
+		this.bMultiLine = bMultiLine;
 		
 		this.setTextValue("");
 	}
@@ -64,7 +74,8 @@ public class InputShell {
 		if (display == null)
 			return null;
 
-		final Shell shell = ShellFactory.createShell(display.getActiveShell());
+		final Shell shell = ShellFactory.createShell(display.getActiveShell(),
+				SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
 		Messages.setLanguageText(shell, sTitleKey, p0);
     Utils.setShellIcon(shell);
 
@@ -77,9 +88,16 @@ public class InputShell {
 		gridData.widthHint = 200;
 		label.setLayoutData(gridData);
 
-		final Text text = new Text(shell, SWT.BORDER);
-		gridData = new GridData();
+		int style = SWT.BORDER;
+		if (bMultiLine) {
+			style |= SWT.MULTI;
+		}
+		final Text text = new Text(shell, style);
+		gridData = new GridData(GridData.FILL_BOTH);
 		gridData.widthHint = 300;
+		if (bMultiLine) {
+			gridData.heightHint = 100;
+		}
 		text.setLayoutData(gridData);
 		text.setText(textValue);
 		text.selectAll();
@@ -88,8 +106,10 @@ public class InputShell {
 		layout = new GridLayout();
 		layout.numColumns = 3;
 		panel.setLayout(layout);
-		gridData = new GridData();
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
+		gridData.horizontalAlignment = SWT.CENTER;
+		gridData.verticalAlignment = SWT.BOTTOM;
 		panel.setLayoutData(gridData);
 		Button ok = new Button(panel, SWT.PUSH);
 		ok.setText(MessageText.getString("Button.ok"));
@@ -154,5 +174,13 @@ public class InputShell {
 	
 	public void setLabelParameters(String[] p1) {
 		this.p1 = p1;
+	}
+
+	public boolean isMultiLine() {
+		return bMultiLine;
+	}
+
+	public void setMultiLine(boolean multiLine) {
+		bMultiLine = multiLine;
 	}
 }
