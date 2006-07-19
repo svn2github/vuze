@@ -19,6 +19,7 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -267,5 +268,12 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 	public boolean dispose(boolean for_restart, boolean close_already_in_progress)
 	{
 		return mainwindow.dispose(for_restart, close_already_in_progress);
+	}
+	
+	public Menu getMenu(int id) {
+		if (mainwindow.getMenu() != null) {
+			return mainwindow.getMenu().getMenu(id);
+		}
+		return null;
 	}
 }

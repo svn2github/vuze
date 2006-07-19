@@ -24,6 +24,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
@@ -99,10 +100,13 @@ public class Messages {
         
         // XXX We could (should?) send this event for all widget types
         // XXX Would it better to have a custom event type?
-        Event event = new Event();
-        event.type = SWT.Settings;
-        event.widget = widget;
-        widget.notifyListeners(SWT.Settings, event);
+        if (SWT.getVersion() > 3200) {
+	        Event event = new Event();
+	    		// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
+	        event.type = SWT.Settings;
+	        event.widget = widget;
+	        widget.notifyListeners(SWT.Settings, event);
+        }
       }
       else if (widget instanceof Tree) {
         Tree tree = (Tree) widget;

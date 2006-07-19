@@ -628,6 +628,7 @@ public class TableView
 		}
 
     if (Utils.SWT32_TABLEPAINT) {
+  		// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
 			table.addListener(SWT.PaintItem, new Listener() {
 				public void handleEvent(Event event) {
 					paintItem(event);
@@ -807,11 +808,13 @@ public class TableView
     
     // we are sent a SWT.Settings event when the language changes and
     // when System fonts/colors change.  In both cases, invalidate
-    table.addListener(SWT.Settings, new Listener() {
-      public void handleEvent(Event e) {
-      	tableInvalidate();
-      }
-    });
+    if (SWT.getVersion() > 3200) {
+	    table.addListener(SWT.Settings, new Listener() {
+	      public void handleEvent(Event e) {
+	      	tableInvalidate();
+	      }
+	    });
+    }
 
     // XXX Disabled.  We handle unset rows ourselves via table paints which
     //     are more reliable.
@@ -958,12 +961,14 @@ public class TableView
 			return;
 		}
 
+		// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
 		Rectangle cellBounds = item.getBounds(event.index);
 		
 		cellBounds.x += 3;
 		cellBounds.width -= 6;
 		
 		try {
+			// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
 			int iColumnNo = event.index;
 			
 			if (item.getImage(iColumnNo) != null) {

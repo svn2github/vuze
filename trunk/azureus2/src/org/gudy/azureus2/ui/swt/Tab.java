@@ -137,15 +137,23 @@ public class Tab {
 			public void handleEvent(Event event) {
 				IView view = null;
 				Composite parent = (Composite)event.widget;
+				IView oldView = getView(selectedItem);
+				if (oldView instanceof IViewExtension) {
+					((IViewExtension)oldView).viewDeactivated();
+				}
+				
 				while (parent != null && !parent.isDisposed() && view == null) {
 					if (parent instanceof CTabFolder) {
 						CTabFolder folder = (CTabFolder)parent;
-						view = getView(folder.getSelection());
+						selectedItem = folder.getSelection();
+						view = getView(selectedItem);
 					} else if (parent instanceof TabFolder) {
 						TabFolder folder = (TabFolder)parent;
 						TabItem[] selection = folder.getSelection();
-						if (selection.length > 0)
-							view = getView(selection[0]);
+						if (selection.length > 0) {
+							selectedItem = selection[0];
+							view = getView(selectedItem);
+						}
 					}
 					
 					if (view == null)
@@ -153,6 +161,9 @@ public class Tab {
 				}
 				
 				if (view != null) {
+					if (view instanceof IViewExtension) {
+						((IViewExtension)view).viewActivated();
+					}
 					view.refresh();
 				}
 			}

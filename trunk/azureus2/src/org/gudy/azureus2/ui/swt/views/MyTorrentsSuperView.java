@@ -27,6 +27,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -46,7 +47,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
  */
 
 public class MyTorrentsSuperView extends AbstractIView implements
-		ObfusticateImage
+		ObfusticateImage, IViewExtension
 {
   private AzureusCore	azureus_core;
   
@@ -251,6 +252,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
     return null;
   }
 
+  // IconBarEnabler
   public boolean isEnabled(String itemKey) {
     IView currentView = getCurrentView();
     if (currentView != null)
@@ -259,6 +261,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
       return false;
   }
   
+  // IconBarEnabler
   public void itemActivated(String itemKey) {
     IView currentView = getCurrentView();
     if (currentView != null)
@@ -308,5 +311,23 @@ public class MyTorrentsSuperView extends AbstractIView implements
 		torrentview.obfusticatedImage(image, shellOffset);
 		seedingview.obfusticatedImage(image, shellOffset);
 		return image;
+	}
+
+	public Menu getPrivateMenu() {
+		return null;
+	}
+
+	public void viewActivated() {
+    IView currentView = getCurrentView();
+    if (currentView instanceof IViewExtension) {
+    	((IViewExtension)currentView).viewActivated();
+    }
+	}
+
+	public void viewDeactivated() {
+    IView currentView = getCurrentView();
+    if (currentView instanceof IViewExtension) {
+    	((IViewExtension)currentView).viewDeactivated();
+    }
 	}
 }

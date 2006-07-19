@@ -294,6 +294,8 @@ public class MessageSlideShell {
 				shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
 			} catch (NoSuchMethodError e) {
 				// Ignore
+			} catch (NoSuchFieldError e2) {
+				// ignore
 			}
 		}
 		Utils.setShellIcon(shell);

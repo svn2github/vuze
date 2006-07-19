@@ -19,8 +19,10 @@
  */
 package com.aelitis.azureus.ui.swt;
 
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.ui.swt.mainwindow.MainMenu;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
@@ -39,6 +41,9 @@ import org.gudy.azureus2.plugins.PluginView;
  */
 public interface UIFunctionsSWT extends UIFunctions
 {
+	public static int MAIN_MENU_BAR = MainMenu.MENU_BAR;
+	public static int MAIN_MENU_TRANSFER = MainMenu.MENU_TRANSFER;
+	
 	public Shell getMainShell();
 
 	/**
@@ -109,4 +114,6 @@ public interface UIFunctionsSWT extends UIFunctions
 	 * @param impl
 	 */
 	public void closePluginView(IView view);
+	
+	public Menu getMenu(int id);
 }

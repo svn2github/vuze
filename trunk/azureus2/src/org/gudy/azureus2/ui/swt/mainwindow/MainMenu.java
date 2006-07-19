@@ -78,6 +78,9 @@ import com.aelitis.azureus.core.AzureusCore;
  * @author James Yeh Accessibility: Changes to allow better validation and unified menu bar state
  */
 public class MainMenu {
+	public static int MENU_BAR = 0;
+	public static int MENU_TRANSFER = 1;
+	
 	private static boolean ENABLE_TUX = true;
 	
 	private static final LogIDs LOGID = LogIDs.GUI;
@@ -91,6 +94,7 @@ public class MainMenu {
   private MenuItem menu_plugin;
   private Menu pluginMenu;
   private Menu pluginLogsMenu;
+  private Menu transferMenu;
   
   private AzureusCore core;
 
@@ -543,28 +547,28 @@ public class MainMenu {
 
       MenuItem downloadItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(downloadItem, "MainWindow.menu.transfers"); //$NON-NLS-1$
-      Menu downloadMenu = new Menu(parent, SWT.DROP_DOWN);
-      downloadItem.setMenu(downloadMenu);
+      transferMenu = new Menu(parent, SWT.DROP_DOWN);
+      downloadItem.setMenu(transferMenu);
       if(modal) {performOneTimeDisable(downloadItem, true);}
 
 
 
         // new MenuItem(fileMenu,SWT.SEPARATOR);
 
-      final MenuItem itemStartAll = new MenuItem(downloadMenu,SWT.NULL);
+      final MenuItem itemStartAll = new MenuItem(transferMenu,SWT.NULL);
       KeyBindings.setAccelerator(itemStartAll, "MainWindow.menu.transfers.startalltransfers");
       Messages.setLanguageText(itemStartAll,"MainWindow.menu.transfers.startalltransfers");
 
-      final MenuItem itemStopAll = new MenuItem(downloadMenu,SWT.NULL);
+      final MenuItem itemStopAll = new MenuItem(transferMenu,SWT.NULL);
       KeyBindings.setAccelerator(itemStopAll, "MainWindow.menu.transfers.stopalltransfers");
       Messages.setLanguageText(itemStopAll,"MainWindow.menu.transfers.stopalltransfers");
 
-      final MenuItem itemPause = new MenuItem(downloadMenu,SWT.NULL);
+      final MenuItem itemPause = new MenuItem(transferMenu,SWT.NULL);
       KeyBindings.setAccelerator(itemPause, "MainWindow.menu.transfers.pausetransfers");
       Messages.setLanguageText(itemPause,"MainWindow.menu.transfers.pausetransfers");
       if(notMainWindow) {performOneTimeDisable(itemPause, true);}
 
-      final MenuItem itemResume = new MenuItem(downloadMenu,SWT.NULL);
+      final MenuItem itemResume = new MenuItem(transferMenu,SWT.NULL);
       KeyBindings.setAccelerator(itemResume, "MainWindow.menu.transfers.resumetransfers");
       Messages.setLanguageText(itemResume,"MainWindow.menu.transfers.resumetransfers");
       if(notMainWindow) {performOneTimeDisable(itemResume, true);}
@@ -595,7 +599,7 @@ public class MainMenu {
         }
       });
 
-      downloadMenu.addMenuListener(
+      transferMenu.addMenuListener(
           new MenuListener() {
                 public void
                 menuShown(MenuEvent menu)
@@ -1198,6 +1202,16 @@ public class MainMenu {
           }
       }
   }
+
+	public Menu getMenu(int id) {
+		if (id == MENU_BAR) {
+			return menuBar;
+		}
+		if (id == MENU_TRANSFER) {
+			return transferMenu;
+		}
+		return null;
+	}
 }
 
 
