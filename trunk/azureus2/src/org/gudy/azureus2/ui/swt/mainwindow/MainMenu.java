@@ -81,8 +81,6 @@ public class MainMenu {
 	public static int MENU_BAR = 0;
 	public static int MENU_TRANSFER = 1;
 	
-	private static boolean ENABLE_TUX = true;
-	
 	private static final LogIDs LOGID = LogIDs.GUI;
 
   private Display display;
@@ -500,16 +498,14 @@ public class MainMenu {
         }
       });
       
-      if (ENABLE_TUX) {
-	      new MenuItem(helpMenu,SWT.SEPARATOR);
-	      MenuItem help_debug = new MenuItem(helpMenu, SWT.NULL);
-	      Messages.setLanguageText(help_debug, "MainWindow.menu.help.debug");
-	      help_debug.addListener(SWT.Selection, new Listener() {
-	        public void handleEvent(Event e) {
-	        	UIDebugGenerator.generate();
-	        }
-	      });
-      }
+      new MenuItem(helpMenu,SWT.SEPARATOR);
+      MenuItem help_debug = new MenuItem(helpMenu, SWT.NULL);
+      Messages.setLanguageText(help_debug, "MainWindow.menu.help.debug");
+      help_debug.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+        	UIDebugGenerator.generate();
+        }
+      });
       
       /*
       new MenuItem(helpMenu,SWT.SEPARATOR);
