@@ -73,6 +73,15 @@ TOTorrentFactory
 	{
 		return( new TOTorrentDeserialiseImpl( is ));
 	}
+    
+    public static TOTorrent
+    deserialiseFromBEncodedByteArray(
+        byte[]      bytes )
+        
+        throws TOTorrentException
+    {
+        return( new TOTorrentDeserialiseImpl( bytes ));
+    }
 	
 	public static TOTorrent
 	deserialiseFromMap(
