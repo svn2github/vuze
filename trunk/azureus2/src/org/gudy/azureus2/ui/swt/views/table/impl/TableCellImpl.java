@@ -274,6 +274,7 @@ public class TableCellImpl
   	if (bSortValueIsText && !text.equals(sortValue)) {
   		bChanged = true;
   		sortValue = text;
+    	tableColumn.setLastSortValueChange(SystemTime.getCurrentTime());
     	if (bDebug)
     		debug("Setting SortValue to text;");
   	}
