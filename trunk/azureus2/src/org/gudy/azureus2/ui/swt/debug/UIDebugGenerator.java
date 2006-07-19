@@ -27,7 +27,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -39,6 +38,8 @@ import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.InputShell;
 
 /**
  * @author TuxPaper
@@ -54,8 +55,8 @@ public class UIDebugGenerator
 		}
 
 		// make sure display is up to date
-		if (!display.readAndDispatch())
-			display.sleep();
+		while (display.readAndDispatch()) {
+		}
 
 		Shell[] shells = display.getShells();
 		if (shells == null || shells.length == 0) {
@@ -65,6 +66,14 @@ public class UIDebugGenerator
 		File path = new File(SystemProperties.getUserPath(), "debug");
 		if (!path.isDirectory()) {
 			path.mkdir();
+		} else {
+			try {
+				File[] files = path.listFiles();
+				for (int i = 0; i < files.length; i++) {
+					files[i].delete();
+				}
+			} catch (Exception e) {
+			}
 		}
 
 		for (int i = 0; i < shells.length; i++) {
@@ -99,6 +108,24 @@ public class UIDebugGenerator
 				}
 			} catch (Exception e) {
 				Logger.log(new LogEvent(LogIDs.GUI, "Creating Obfusticated Image", e));
+			}
+		}
+
+		InputShell inputShell = new InputShell("UIDebugGenerator.messageask.title",
+				"UIDebugGenerator.messageask.text", true);
+		String message = inputShell.open();
+		if (message != null) {
+			try {
+				File fUserMessage = new File(path, "usermessage.txt");
+				FileWriter fw;
+				fw = new FileWriter(fUserMessage);
+	
+				fw.write(message);
+	
+				fw.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 
@@ -168,12 +195,11 @@ public class UIDebugGenerator
 			out.close();
 
 			if (outFile.exists()) {
-				MessageBox box = new MessageBox(Display.getCurrent().getActiveShell());
-				box.setText("Debug Info Generated");
-				box.setMessage("Please send the file '" + outFile
-						+ " to az-bugreports@azureus-inc.com\n\n"
-						+ "Click Ok to open a window to this file.");
-				if (box.open() == SWT.OK) {
+				int result = Utils.openMessageBox(Utils.findAnyShell(), SWT.OK
+						| SWT.CANCEL | SWT.ICON_INFORMATION | SWT.APPLICATION_MODAL,
+						"UIDebugGenerator.complete", new String[] { outFile.toString() });
+
+				if (result == SWT.OK) {
 					try {
 						PlatformManagerFactory.getPlatformManager().showFile(
 								outFile.getAbsolutePath());
