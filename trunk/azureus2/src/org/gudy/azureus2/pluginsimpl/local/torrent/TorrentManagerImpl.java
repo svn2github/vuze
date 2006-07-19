@@ -38,6 +38,8 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public class 
 TorrentManagerImpl 
 	implements TorrentManager, TOTorrentProgressListener
@@ -231,6 +233,103 @@ TorrentManagerImpl
 			
 			throw( new TorrentException( "TorrentManager::createFromDataFile Fails", e ));
 		}	
+	}
+	
+	public TorrentCreator
+	createFromDataFileEx(
+		File					data,
+		URL						announce_url,
+		boolean					include_other_hashes )
+	
+		throws TorrentException
+	{
+		try{
+			final TOTorrentCreator c = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( data, announce_url, include_other_hashes);
+
+			return(
+				new TorrentCreator()
+				{
+					private CopyOnWriteList	listeners = new CopyOnWriteList();
+					
+					public void
+					start()
+					{
+						c.addListener( 
+							new TOTorrentProgressListener()
+							{
+								public void
+								reportProgress(
+									int		percent_complete )
+								{
+									for (Iterator it=listeners.iterator();it.hasNext();){
+										
+										((TorrentCreatorListener)it.next()).reportPercentageDone( percent_complete );
+									}
+								}
+									
+								public void
+								reportCurrentTask(
+									String	task_description )
+								{
+									for (Iterator it=listeners.iterator();it.hasNext();){
+										
+										((TorrentCreatorListener)it.next()).reportActivity( task_description );
+									}
+								}
+							});
+						
+						new AEThread( "TorrentManager::create", true )
+						{
+							public void
+							runSupport()
+							{
+								try{
+									TOTorrent	t = c.create();
+									
+									Torrent	torrent = new TorrentImpl( plugin_interface, t );
+									
+									for (Iterator it=listeners.iterator();it.hasNext();){
+										
+										((TorrentCreatorListener)it.next()).complete( torrent );
+									}
+
+								}catch( TOTorrentException e ){
+								
+									for (Iterator it=listeners.iterator();it.hasNext();){
+										
+										((TorrentCreatorListener)it.next()).failed( new TorrentException( e ));
+									}
+
+								}
+							}
+						}.start();
+					}
+					
+					public void
+					cancel()
+					{
+						c.cancel();
+					}
+					
+					public void
+					addListener(
+						TorrentCreatorListener listener )
+					{
+						listeners.add( listener );
+					}
+					
+					public void
+					removeListener(
+						TorrentCreatorListener listener )
+					{
+						listeners.remove( listener );
+					}
+				});
+			
+		}catch( TOTorrentException e ){
+			
+			throw( new TorrentException( "TorrentManager::createFromDataFile Fails", e ));
+		}
 	}
 	
 	public TorrentAttribute[]
