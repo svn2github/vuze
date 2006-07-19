@@ -122,12 +122,16 @@ public class Legend {
 
 			final Canvas cColor = new Canvas(colorSet, SWT.BORDER);
 			cColor.setData("Index", new Integer(i));
-			cColor.setBackground(blockColors[i]);
+			// XXX Use paint instead of setBackgrond, because OSX does translucent
+			// crap
+			cColor.addPaintListener(new PaintListener() {
+				public void paintControl(PaintEvent e) {
+					int i = ((Integer)cColor.getData("Index")).intValue();
+					e.gc.setBackground(blockColors[i]);
+					e.gc.fillRectangle(e.x, e.y, e.width, e.height);
+				}
+			});
 
-			data = new RowData();
-			data.width = 20;
-			data.height = 10;
-			cColor.setLayoutData(data);
 			cColor.addMouseListener(new MouseAdapter() {
 				public void mouseUp(MouseEvent e) {
 					Integer iIndex = (Integer)cColor.getData("Index");
@@ -148,9 +152,14 @@ public class Legend {
 				}
 			});
 
-			BufferedLabel lblDesc = new BufferedLabel(colorSet, SWT.NULL);
-			Messages.setLanguageText(lblDesc.getWidget(), keys[i]);
+			Label lblDesc = new Label(colorSet, SWT.NULL);
+			Messages.setLanguageText(lblDesc, keys[i]);
 
+			data = new RowData();
+			data.width = 20;
+			data.height = lblDesc.computeSize(SWT.DEFAULT, SWT.DEFAULT).y - 3;
+			cColor.setLayoutData(data);
+			
 			// If color changes, update our legend
 			config.addParameterListener(keys[i], new ParameterListener() {
 				public void parameterChanged(String parameterName) {
@@ -174,7 +183,7 @@ public class Legend {
 											Color color = new Color(panel.getDisplay(), rgb);
 											disposeList.add(color);
 											blockColors[index] = color;
-											cColor.setBackground(blockColors[index]);
+											cColor.redraw();
 										}
 									});
 								}
@@ -186,7 +195,7 @@ public class Legend {
 											if (panel == null || panel.isDisposed())
 												return;
 											blockColors[index] = defaultColors[index];
-											cColor.setBackground(blockColors[index]);
+											cColor.redraw();
 										}
 									});
 								}
