@@ -786,6 +786,14 @@ DownloadManagerImpl
 				
 			}else{
 				
+				
+					// make up something vaguely sensible for save location if we haven't got one
+			
+				if ( torrent_save_file == null ){
+				
+					torrent_save_location = new File( torrent_save_dir );
+				}
+				
 					// make sure we know what networks to use for this download
 				
 				if ( download_manager_state.getNetworks().length == 0 ){
