@@ -314,7 +314,7 @@ public class TableCellImpl
   }
   
   public boolean setSortValue(Comparable valueToSort) {
-		if (tableColumn.isSortValueLive()) {
+		if (!tableColumn.isSortValueLive()) {
 			// objects that can't change aren't live
 			if (!(valueToSort instanceof Number) && !(valueToSort instanceof String)) {
 				tableColumn.setSortValueLive(true);
