@@ -25,11 +25,11 @@ package org.gudy.azureus2.plugins.torrent;
 public interface 
 TorrentCreatorListener 
 {
-	public int
+	public void
 	reportPercentageDone(
 		int		percent );
 	
-	public String
+	public void
 	reportActivity(
 		String	activity );
 	
