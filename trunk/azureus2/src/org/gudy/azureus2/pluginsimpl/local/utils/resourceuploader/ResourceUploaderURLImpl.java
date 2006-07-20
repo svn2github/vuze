@@ -288,4 +288,9 @@ ResourceUploaderURLImpl
 		boolean		success )
 	{		
 	}
+	
+	public void
+	clearPasswords()
+	{
+	}
 }

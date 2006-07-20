@@ -48,16 +48,98 @@ public class
 AuthenticatorWindow 
 	implements SEPasswordListener
 {
+	private static final String	CONFIG_PARAM = "swt.auth.persistent.cache";
+	
 	protected Map	auth_cache = new HashMap();
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "AuthWind" );
-	
+		
 	public
 	AuthenticatorWindow()
 	{
 		SESecurityManager.addPasswordListener( this );
 		
 		// System.out.println( "AuthenticatorWindow");
+		
+		Map	cache = COConfigurationManager.getMapParameter( CONFIG_PARAM, new HashMap());
+		
+		try{
+			Iterator	it = cache.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry entry	= (Map.Entry)it.next();
+				
+				String	key 	= (String)entry.getKey();
+				Map		value 	= (Map)entry.getValue();
+				
+				String	user = new String((byte[])value.get( "user" ), "UTF-8" );
+				char[]	pw	 = new String((byte[])value.get( "pw" ), "UTF-8" ).toCharArray();
+				
+				auth_cache.put( key, new authCache(	key, new PasswordAuthentication( user, pw ), true ));
+			}
+		
+		}catch( Throwable e ){
+			
+			COConfigurationManager.setParameter( CONFIG_PARAM, new HashMap());
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	protected void
+	saveAuthCache()
+	{
+		try{
+			this_mon.enter();
+	
+			HashMap	map = new HashMap();
+
+			Iterator	it = auth_cache.values().iterator();
+			
+			while( it.hasNext()){
+				
+				authCache	value 	= (authCache)it.next();
+				
+				if ( value.isPersistent()){
+					
+					try{
+						HashMap	entry_map = new HashMap();
+						
+						entry_map.put( "user", value.getAuth().getUserName().getBytes( "UTF-8" ));
+						entry_map.put( "pw", new String(value.getAuth().getPassword()).getBytes( "UTF-8" ));
+						
+						map.put( value.getKey(), entry_map );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			}
+			
+			COConfigurationManager.setParameter( CONFIG_PARAM, map );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public void
+	clearPasswords()
+	{
+		try{
+			this_mon.enter();
+
+			auth_cache = new HashMap();
+			
+			saveAuthCache();
+			
+		}finally{
+			
+			this_mon.exit();
+		}	
 	}
 	
 	public PasswordAuthentication
@@ -194,7 +276,14 @@ AuthenticatorWindow
 								
 				PasswordAuthentication auth =  new PasswordAuthentication( res[0], res[1].toCharArray());
 				
-				auth_cache.put( auth_key, new authCache( auth ));
+				boolean	save_pw = res[2].equals("true");
+				
+				boolean	old_entry_existed = auth_cache.put( auth_key, new authCache( auth_key, auth, save_pw )) != null;
+				
+				if ( save_pw || old_entry_existed ){
+					
+					saveAuthCache();
+				}
 				
 				return( auth );
 			}	
@@ -254,23 +343,25 @@ AuthenticatorWindow
 		
 		String	user 	= dialog[0].getUsername();
 		String	pw		= dialog[0].getPassword();
+		String	persist	= dialog[0].savePassword()?"true":"false";
 		
 		if ( user == null ){
 			
 			return( null );
 		}
 		
-		return( new String[]{ user, pw == null?"":pw });
+		return( new String[]{ user, pw == null?"":pw, persist });
 	}
 	
 	protected class
 	authDialog
 	{
-		protected Shell			shell;
-		protected AESemaphore	sem;
+		private Shell			shell;
+		private AESemaphore	sem;
 		
-		protected String		username;
-		protected String		password;
+		private String		username;
+		private String		password;
+		private	boolean		persist;
 		
 		protected
 		authDialog(
@@ -384,6 +475,24 @@ AuthenticatorWindow
 				 password = password_value.getText();
 			   }});
 			   
+			// persist
+			
+			Label blank_label = new Label(shell,SWT.NULL);
+			gridData = new GridData(GridData.FILL_BOTH);
+			gridData.horizontalSpan = 1;
+			blank_label.setLayoutData(gridData);
+			
+		    final Button checkBox = new Button(shell, SWT.CHECK);
+		    checkBox.setText(MessageText.getString( "authenticator.savepassword" ));
+			gridData = new GridData(GridData.FILL_BOTH);
+			gridData.horizontalSpan = 2;
+			checkBox.setLayoutData(gridData);
+			checkBox.addListener(SWT.Selection,new Listener() {
+		  		public void handleEvent(Event e) {
+			 		persist = checkBox.getSelection();
+		   		}
+			 });
+			
 			// line
 			
 			Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -474,20 +583,44 @@ AuthenticatorWindow
 	 	{
 	 		return( password );
 	 	}
+	 	
+	 	protected boolean
+	 	savePassword()
+	 	{
+	 		return( persist );
+	 	}
 	}
 	
 	protected class
 	authCache
 	{
-		protected PasswordAuthentication	auth;
-		protected int						life = 5;
-		protected boolean					succeeded;
+		private String					key;
+		private PasswordAuthentication	auth;
+		private boolean					persist;
+		private int						life = 5;
+		private boolean					succeeded;
 		
 		protected
 		authCache(
-			PasswordAuthentication		_auth )
+			String						_key,
+			PasswordAuthentication		_auth,
+			boolean						_persist )
 		{
+			key			= _key;
 			auth		= _auth;
+			persist		= _persist;
+		}
+		
+		protected String
+		getKey()
+		{
+			return( key );
+		}
+		
+		protected boolean
+		isPersistent()
+		{
+			return( persist );
 		}
 		
 		protected void
@@ -499,6 +632,13 @@ AuthenticatorWindow
 				succeeded	= true;
 				
 			}else{
+				
+				if ( persist ){
+					
+					persist	= false;
+					
+					saveAuthCache();
+				}
 				
 				if ( !succeeded ){
 					
@@ -520,6 +660,13 @@ AuthenticatorWindow
 			if ( life >= 0 ){
 				
 				return( auth );
+			}
+			
+			if ( persist ){
+				
+				persist	= false;
+				
+				saveAuthCache();
 			}
 			
 			return( null );

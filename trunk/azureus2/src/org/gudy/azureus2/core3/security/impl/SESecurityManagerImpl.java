@@ -40,6 +40,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public class 
 SESecurityManagerImpl 
 {
@@ -78,8 +80,8 @@ SESecurityManagerImpl
 	protected String	keystore_name;
 	protected String	truststore_name;
 	
-	protected List	certificate_listeners 	= new ArrayList();
-	protected List	password_listeners 		= new ArrayList();
+	protected List				certificate_listeners 	= new ArrayList();
+	protected CopyOnWriteList	password_listeners 		= new CopyOnWriteList();
 	
 	protected Map	password_handlers		= new HashMap();
 	
@@ -824,28 +826,29 @@ SESecurityManagerImpl
 		
 		if ( handler != null ){
 			
-			return(((SEPasswordListener)handler[0]).getAuthentication( realm, (URL)handler[1] ));
-		}
-		
-		List	listeners_ref;
-		
-		try{
-			this_mon.enter();
-			
-			listeners_ref = new ArrayList( password_listeners );
-			
-		}finally{
-			
-			this_mon.exit();
-		}
-		
-		for (int i=0;i<listeners_ref.size();i++){
-			
-			PasswordAuthentication res = ((SEPasswordListener)listeners_ref.get(i)).getAuthentication( realm, tracker );
-			
-			if ( res != null ){
+			try{
+				return(((SEPasswordListener)handler[0]).getAuthentication( realm, (URL)handler[1] ));
 				
-				return( res );
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		Iterator	it = password_listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				PasswordAuthentication res = ((SEPasswordListener)it.next()).getAuthentication( realm, tracker );
+				
+				if ( res != null ){
+					
+					return( res );
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
 			}
 		}
 		
@@ -858,9 +861,11 @@ SESecurityManagerImpl
 		URL			tracker,
 		boolean		success )
 	{
-		for (int i=0;i<password_listeners.size();i++){
+		Iterator	it = password_listeners.iterator();
+		
+		while( it.hasNext()){
 			
-			((SEPasswordListener)password_listeners.get(i)).setAuthenticationOutcome( realm, tracker, success );
+			((SEPasswordListener)it.next()).setAuthenticationOutcome( realm, tracker, success );
 		}
 	}
 		
@@ -891,6 +896,23 @@ SESecurityManagerImpl
 		}finally{
 			
 			this_mon.exit();
+		}
+	}
+	
+	public void
+	clearPasswords()
+	{
+		Iterator	it = password_listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{				
+				((SEPasswordListener)it.next()).clearPasswords();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	

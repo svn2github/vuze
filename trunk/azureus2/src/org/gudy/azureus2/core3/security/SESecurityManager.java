@@ -160,6 +160,12 @@ SESecurityManager
 	}
 	
 	public static void
+	clearPasswords()
+	{
+		SESecurityManagerImpl.getSingleton().clearPasswords();
+	}
+	
+	public static void
 	addPasswordHandler(
 		URL						url,
 		SEPasswordListener		l )

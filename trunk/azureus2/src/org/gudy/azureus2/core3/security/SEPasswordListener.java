@@ -43,4 +43,7 @@ SEPasswordListener
 		String		realm,
 		URL			tracker,
 		boolean		success );
+	
+	public void
+	clearPasswords();
 }

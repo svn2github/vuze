@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -153,7 +154,27 @@ ConfigSectionSecurity
 	    });
 	    
 	   
+	    	// row
 	    
+	    Label pw_label = new Label(gSecurity, SWT.NULL );
+	    Messages.setLanguageText(pw_label, "ConfigView.section.security.clearpasswords");
+
+	    Button pw_button = new Button(gSecurity, SWT.PUSH);
+
+	    Messages.setLanguageText(pw_button, "ConfigView.section.security.clearpasswords.button");
+
+	    pw_button.addListener(SWT.Selection, 
+	    		new Listener() 
+				{
+			        public void 
+					handleEvent(Event event) 
+			        {
+			        	SESecurityManager.clearPasswords();
+			        }
+			    });
+	    
+	    new Label(gSecurity, SWT.NULL );
+	
 	    return gSecurity;
 	  }
 	}

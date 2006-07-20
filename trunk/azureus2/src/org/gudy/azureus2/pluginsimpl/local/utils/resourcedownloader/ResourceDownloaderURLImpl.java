@@ -654,6 +654,10 @@ ResourceDownloaderURLImpl
 		URL			tracker,
 		boolean		success )
 	{
-		
+	}
+	
+	public void
+	clearPasswords()
+	{
 	}
 }

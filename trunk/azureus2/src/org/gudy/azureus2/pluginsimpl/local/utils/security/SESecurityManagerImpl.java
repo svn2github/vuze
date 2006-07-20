@@ -33,7 +33,6 @@ import java.util.Map;
 
 import javax.net.ssl.SSLSocketFactory;
 
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 /**
@@ -119,6 +118,11 @@ SESecurityManagerImpl
 					boolean		success )
 				{
 					listener.setAuthenticationOutcome( realm, tracker, success );
+				}
+				
+				public void
+				clearPasswords()
+				{
 				}
 			};
 			
