@@ -181,7 +181,11 @@ public final class KeyBindings
         if(Constants.isLinux)
             return ".linux";
         else if(Constants.isSolaris)
-            return ".solaris";
+          return ".solaris";
+        else if(Constants.isUnix)
+          return ".unix";
+        else if(Constants.isFreeBSD)
+          return ".freebsd";
         else if(Constants.isOSX)
             return ".mac";
         else if(Constants.isWindows)

@@ -146,6 +146,18 @@ UtilitiesImpl
 	}
 	
 	public boolean
+	isUnix()
+	{
+		return( Constants.isUnix );
+	}
+
+	public boolean
+	isFreeBSD()
+	{
+		return( Constants.isFreeBSD );
+	}
+
+	public boolean
 	isSolaris()
 	{
 		return( Constants.isSolaris );

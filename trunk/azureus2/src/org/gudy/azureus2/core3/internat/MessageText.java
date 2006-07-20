@@ -259,7 +259,11 @@ public class MessageText {
     if(Constants.isOSX)
         return "._mac";
     else if(Constants.isLinux)
-        return "._linux";
+      return "._linux";
+    else if(Constants.isUnix)
+      return "._unix";
+    else if(Constants.isFreeBSD)
+      return "._freebsd";
     else if(Constants.isSolaris)
         return "._solaris";
      else if(Constants.isWindows)

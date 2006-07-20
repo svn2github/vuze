@@ -126,7 +126,7 @@ AzureusRestarterImpl
 	  		restart_properties.put( "app_name", SystemProperties.getApplicationName());
 	  		restart_properties.put( "app_entry", SystemProperties.getApplicationEntryPoint());
 	  		
-	  		if ( System.getProperty( "azureus.nativelauncher" ) != null || isOSX() ){
+	  		if ( System.getProperty( "azureus.nativelauncher" ) != null || Constants.isOSX ){
 	  			//NOTE: new 2306 osx bundle now sets azureus.nativelauncher=1, but older bundles dont
 	  			
 	  			try{
@@ -225,24 +225,6 @@ AzureusRestarterImpl
 	    }
 	}
 	
-	private boolean
-	isOSX()
-	{
-		return( Constants.isOSX );
-	}
-	
-	private boolean
-	isLinux()
-	{
-		return( Constants.isLinux );
-	}
-
-	private boolean
-	isSolaris()
-	{
-		return( Constants.isSolaris );
-	}
-	
   
   // ****************** This code is copied into Restarter / Updater so make changes there too !!!
   
@@ -256,11 +238,11 @@ AzureusRestarterImpl
     String[]  properties,
     String[]  parameters ) 
   {
-    if(isOSX()){
+    if(Constants.isOSX){
     	
     	restartAzureus_OSX(log,mainClass,properties,parameters);
     	
-    }else if( isLinux() || isSolaris() ){
+    }else if( Constants.isUnix ){
     	
     	restartAzureus_Unix(log,mainClass,properties,parameters);
       

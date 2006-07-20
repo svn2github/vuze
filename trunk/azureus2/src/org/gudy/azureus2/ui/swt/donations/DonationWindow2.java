@@ -117,7 +117,7 @@ public class DonationWindow2 {
     tempFont = shell.getFont();
     fontDataMain = tempFont.getFontData();
     
-    boolean isMacLinux = Constants.isOSX || Constants.isLinux || Constants.isSolaris;    
+    boolean isMacLinux = Constants.isOSX || Constants.isUnix;    
     
     for(int i=0 ; i < fontDataMain.length ; i++) {
       if(!isMacLinux)

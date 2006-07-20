@@ -65,6 +65,25 @@ Utilities
 	public boolean
 	isOSX();
 	
+
+	/**
+	 * @return Whether the OS is a unix flavor (linux, bsd, aix, etc)
+	 * 
+	 * @since 2.4.0.3
+	 */
+	boolean isUnix();
+
+	/**
+	 * @return Whether the OS is FreeBSD
+	 * 
+	 * @note Up to at least v2.4.0.2, the FreeBSD port has identified itself
+	 *       to azureus as Linux and not FreeBSD
+	 * 
+	 * @since 2.4.0.3
+	 */
+	boolean isFreeBSD();
+	
+
 	public InputStream
 	getImageAsStream(
 		String	image_name );
