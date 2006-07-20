@@ -70,7 +70,7 @@ Constants
   
   public static final String  OSName = System.getProperty("os.name");
   
-  public static final boolean isOSX				= OSName.toLowerCase().startsWith("Mac OS");
+  public static final boolean isOSX				= OSName.toLowerCase().startsWith("mac os");
   public static final boolean isLinux			= OSName.equalsIgnoreCase("Linux");
   public static final boolean isSolaris			= OSName.equalsIgnoreCase("SunOS");
   public static final boolean isFreeBSD			= OSName.equalsIgnoreCase("FreeBSD");
