@@ -103,7 +103,7 @@ BufferedTableRow
 	}
 	
 	public void setAlternatingBGColor(boolean bEvenIfNotVisible) {
-		if (Constants.isLinux || Constants.isSolaris)
+		if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR)
 			return;
 			
 		if ((table.getStyle() & SWT.VIRTUAL) != 0 && !bEvenIfNotVisible

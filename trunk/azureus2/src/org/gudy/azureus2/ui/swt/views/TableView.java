@@ -593,7 +593,7 @@ public class TableView
     iTableStyle = table.getStyle();
     bTableVirtual = (iTableStyle & SWT.VIRTUAL) != 0;
 
-    table.setLinesVisible(Constants.isLinux || Constants.isSolaris);
+    table.setLinesVisible(Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR);
     table.setMenu(menu);
     table.setData("Name", sTableID);
     table.setData("TableView", this);
@@ -862,7 +862,7 @@ public class TableView
 						row.refresh(true, true);
 					}
 
-					if (!Constants.isLinux) {
+					if (!Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR) {
 						Utils.alternateRowBackground(item);
 						// Bug, background color doesn't fully draw in SetData
 						Rectangle r = item.getBounds(0);

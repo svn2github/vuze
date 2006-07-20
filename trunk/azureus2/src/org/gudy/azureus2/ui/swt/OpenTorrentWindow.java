@@ -79,7 +79,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 	/** Don't allow disabling of downloading for files smaller than this */
 	private final static int MIN_NODOWNLOAD_SIZE = 1024 * 1024;
 
-	private final static int MIN_BUTTON_HEIGHT = Constants.isLinux ? -1 : 24;
+	private final static int MIN_BUTTON_HEIGHT = Utils.isGTK ? -1 : 24;
 
 	private final static String PARAM_DEFSAVEPATH = "Default save path";
 

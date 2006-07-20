@@ -58,12 +58,15 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  * 
  */
 public class Utils {
+  public static final boolean isGTK	= SWT.getPlatform().equals("gtk");
+
 	/** Some platforms expand the last column to fit the remaining width of
 	 * the table.
 	 */
-	public static final boolean LAST_TABLECOLUMN_EXPANDS = Constants.isLinux;
-
-  public static final boolean isGTK	= SWT.getPlatform().equals("gtk");
+	public static final boolean LAST_TABLECOLUMN_EXPANDS = isGTK;
+	
+	/** GTK already handles alternating background for tables */
+	public static final boolean TABLE_GRIDLINE_IS_ALTERNATING_COLOR = isGTK;
 
 	private static final boolean DIRECT_SETCHECKED = !Constants.isOSX
 			|| SWT.getVersion() >= 3212;
@@ -444,8 +447,7 @@ public class Utils {
   } // class
 
   public static void alternateRowBackground(TableItem item) {
-  	// On linux, table lines are actually alternating background colors
-  	if (Constants.isLinux) {
+  	if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR) {
   		if (!item.getParent().getLinesVisible())
   			item.getParent().setLinesVisible(true);
   		return;
@@ -465,8 +467,7 @@ public class Utils {
   	if (table == null || table.isDisposed())
   		return;
 
-  	// On linux, table lines are actually alternating background colors
-  	if (Constants.isLinux) {
+  	if (Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR) {
   		if (!table.getLinesVisible())
   			table.setLinesVisible(true);
   		return;
