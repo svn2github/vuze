@@ -79,7 +79,7 @@ Constants
   public static final boolean isWindowsME		= OSName.equalsIgnoreCase("Windows ME");
   public static final boolean isWindows9598ME	= isWindows95 || isWindows98 || isWindowsME;
 
-  public static final boolean isWindows	= !(isOSX || isLinux || isSolaris); 
+  public static final boolean isWindows	= OSName.toLowerCase().startsWith("windows"); 
  
   public static final String	JAVA_VERSION = System.getProperty("java.version");
   
