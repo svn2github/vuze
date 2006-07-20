@@ -162,7 +162,7 @@ public class AZPeerExchange implements AZMessage {
 
       buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map, DirectByteBuffer.AL_MSG_AZ_PEX );
 
-      if( buffer.remaining( bss ) > 1000 )  System.out.println( "Generated AZPeerExchange size = " +buffer.remaining( bss )+ " bytes" );
+      if( buffer.remaining( bss ) > 2000 )  System.out.println( "Generated AZPeerExchange size = " +buffer.remaining( bss )+ " bytes" );
     }
     
     return new DirectByteBuffer[]{ buffer };
@@ -170,7 +170,7 @@ public class AZPeerExchange implements AZMessage {
   
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {
-    if( data.remaining( bss ) > 1000 )  System.out.println( "Received PEX msg byte size = " +data.remaining( bss ) );
+    if( data.remaining( bss ) > 2000 )  System.out.println( "Received PEX msg byte size = " +data.remaining( bss ) );
     
     Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 10, getID() );
 
