@@ -682,7 +682,15 @@ PEPeerControlImpl
 		
 		//make sure we need a new connection
 		final int needed = getMaxNewConnectionsAllowed();
-		if( needed == 0 )  return "Too many connections";
+		
+		if( needed == 0 ){
+			
+			if ( 	peer_source != PEPeerSource.PS_PLUGIN ||
+					!doOptimisticDisconnect( AddressUtils.isLANLocalAddress( address ) != AddressUtils.LAN_LOCAL_NO)){
+			
+				return "Too many connections";
+			}
+		}
 		
 		//make sure not already connected to the same IP address; allow loopback connects for co-located proxy-based connections and testing
 		final boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
@@ -2662,7 +2670,7 @@ PEPeerControlImpl
 			//if we're at our connection limit, time out the least-useful
 			//one so we can establish a possibly-better new connection
 			if( getMaxNewConnectionsAllowed() == 0 ) {  //we've reached limit        
-                doOptimisticDisconnect();
+                doOptimisticDisconnect( false );
 			}
 		}
 		
@@ -2783,11 +2791,16 @@ PEPeerControlImpl
 		}
 	}
 	
-    public boolean doOptimisticDisconnect()
+    public boolean doOptimisticDisconnect( boolean	pending_lan_local_peer )
     {
 		final ArrayList peer_transports = peer_transports_cow;
-        PEPeerTransport max_transport = null;
-        long max_time = 0;
+	    PEPeerTransport max_transport 			= null;
+	    PEPeerTransport max_non_lan_transport 	= null;
+	 
+	    long max_time 			= 0;
+        long max_non_lan_time	= 0;
+        
+        int	lan_peer_count	= 0;
         
         for( int i=0; i < peer_transports.size(); i++ ) {
             final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
@@ -2826,6 +2839,18 @@ PEPeerControlImpl
                 
                 if( !peer.isIncoming() )
                     peerTestTime = peerTestTime * 2;   //prefer to drop a local connection, to make room for more remotes
+    
+                if ( peer.isLANLocal()){
+                	
+                	lan_peer_count++;
+                	
+                }else{
+
+	                if( peerTestTime > max_non_lan_time ) {
+	                	max_non_lan_time = peerTestTime;
+	                    max_non_lan_transport = peer;
+	                }
+                }
                 
                 if( peerTestTime > max_time ) {
                     max_time = peerTestTime;
@@ -2834,10 +2859,33 @@ PEPeerControlImpl
             }
         }
         
-        if( max_transport != null && max_time > 5 *60*1000 ) {  //ensure a 5 min minimum test time
-            closeAndRemovePeer( max_transport, "timed out by doOptimisticDisconnect()", true );
-            return true;
+        	// don't boot lan peers if we can help it (unless we have a few of them)
+        
+        if ( max_transport != null ){
+        	
+        	final int LAN_PEER_MAX	= 4;
+        	
+        	if ( max_transport.isLANLocal() && lan_peer_count < LAN_PEER_MAX && max_non_lan_transport != null ){
+        		
+        			// override lan local max with non-lan local max
+        		
+        		max_transport	= max_non_lan_transport;
+        		max_time		= max_non_lan_time;
+        	}
+        
+	        if( max_transport != null && max_time > 5 *60*1000 ) {  //ensure a 5 min minimum test time
+	            closeAndRemovePeer( max_transport, "timed out by doOptimisticDisconnect()", true );
+	            return true;
+	        }
+        
+	        	// kick worst peers to accomodate lan peer
+	        
+	        if ( pending_lan_local_peer && lan_peer_count < LAN_PEER_MAX ){
+	            closeAndRemovePeer( max_transport, "making space for LAN peer in doOptimisticDisconnect()", true );
+	            return true;
+	        }
         }
+        
         return false;
     }
 	

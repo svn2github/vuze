@@ -67,7 +67,9 @@ PEPeerControl
 	public int
 	getMaxConnections();
     
-    public boolean doOptimisticDisconnect();
+    public boolean 
+    doOptimisticDisconnect(
+    	boolean pending_lan_local_peer );
     
 	public int getNbActivePieces();
 

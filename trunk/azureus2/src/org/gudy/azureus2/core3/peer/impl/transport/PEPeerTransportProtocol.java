@@ -1405,7 +1405,7 @@ PEPeerTransportProtocol
 
     //make sure we haven't reached our connection limit
     final int maxAllowed = manager.getMaxNewConnectionsAllowed();
-    if (maxAllowed ==0 &&!manager.doOptimisticDisconnect())
+    if (maxAllowed ==0 &&!manager.doOptimisticDisconnect( isLANLocal()))
     {
         final String msg = "too many existing peer connections [p" +
             PeerIdentityManager.getIdentityCount( my_peer_data_id )
