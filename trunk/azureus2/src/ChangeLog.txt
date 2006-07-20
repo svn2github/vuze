@@ -10,6 +10,11 @@ FEATURE: Core | DND completion handled better [Parg,TuxPaper]
 FEATURE: Core | Added option for per-torrent max upload speed when upload busy [Parg]
 FEATURE: Core | Ranges allowed for port listing to ignore peers from. [TuxPaper]
 FEATURE: Core | Added option to move completed download on removal [amc1]
+FEATURE: Core | Signed updates for increased security [Parg]
+FEATURE: Core | UDP fallback on connection fail [Parg]
+FEATURE: Core | Support for initial crypto tracker spec [Parg]
+FEATURE: Core | Faster queued torrent startup [Parg]
+FEATURE: Core | Option to disable tracker support for full-scrape [Parg]
 
 FEATURE: UI   | File pieces shown in files view [Parg]
 FEATURE: UI   | Ability to best guess folder you want to save torrent data to based on existing torrents [TuxPaper]
@@ -17,6 +22,11 @@ FEATURE: UI   | Filter for Config Options [TuxPaper]
 FEATURE: UI   | "Help -> Generate Debug Info" to help us solve bugs [TuxPaper]
 FEATURE: UI   | Ability to customise the speed intervals for download / upload speed menus [amc1]
 FEATURE: UI   | Ability to rename the displayed title of a download [amc1]
+FEATURE: UI   | "date added", "idle up", "idle down", "req in", "req out" colmns added to MyTorrents [Parg]
+FEATURE: UI   | manual file recheck order [Parg]
+FEATURE: UI   | Option to remember passwords [Parg]
+
+FEATURE: Plug | Simple NAT-PMP implementation [Marc Colosimo]
 
 CHANGE: Core  | Reduced starting many pieces instead of completing current ones [MjrTom]
 CHANGE: Core  | Further modifications to optimistic disconnect algorithm [MjrTom]
@@ -26,10 +36,19 @@ CHANGE: Core  | Longer scrape delays: [TuxPaper]
                  - 3 hrs min when tracker sends no torrent info (no hash error)
                  - As per usual, flags->min_request_interval will override next scrape time
 CHANGE: Core  | Asynchronous existing torrent loading at startup (makes startup feel faster) [TuxPaper]
+CHANGE: Core  | Disk read cache disabled by default [Parg]
+CHANGE: UI    | More time periods in folder-rescan list [Parg]
+
+CHANGE: Plug  | Use UPnP to read external IP address if possible [Parg]
+
 
 BUGFIX: Core  | Fix for pieces not completing due to too many snubbed peers [MjrTom]
 BUGFIX: Core  | Better handling of invalid peer/seed count from tracker [TuxPaper]
+BUGFIX: Core  | ed2k hash wrong on block boundaries [Parg]
+BUGFIX: Core  | upload slot default now applied correctly (was fixed at torrent add time) [Parg]
 
+BUGFIX: UI    | speed graphics failing on high speeds [Parg]
+BUGFIX: UI    | Per-torrent options view now synced with global defaults and has "reset" button [Parg]
 
 2006.03.16 | Azureus 2.4.0.2
 
