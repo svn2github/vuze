@@ -60,7 +60,7 @@ LocalTrackerPlugin
 	private static final String	PLUGIN_NAME	= "LAN Peer Finder";
 	private static final String PLUGIN_CONFIGSECTION_ID = "Plugin.localtracker.name";
 	
-	private static final long	ANNOUNCE_PERIOD		= 20*60*1000;
+	private static final long	ANNOUNCE_PERIOD		= 5*60*1000;
 	private static final long	RE_ANNOUNCE_PERIOD	= 1*60*1000;
 	
 	private PluginInterface		plugin_interface;
