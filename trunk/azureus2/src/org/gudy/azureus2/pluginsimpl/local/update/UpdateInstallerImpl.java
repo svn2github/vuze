@@ -48,13 +48,22 @@ UpdateInstallerImpl
 	
 	protected static AEMonitor	class_mon 	= new AEMonitor( "UpdateInstaller:class" );
 
-	protected File	install_dir;
+	private UpdateManager	manager;
+	private File			install_dir;
+	
+	protected
+	UpdateInstallerImpl(
+		UpdateManager	_manager )
+	{
+		manager	= _manager;
+	}
 	
 	protected static void
-	checkForFailedInstalls()
+	checkForFailedInstalls(
+		UpdateManager	manager )
 	{
 		try{
-			File	update_dir = new File( getUserDirSupport() + File.separator + UPDATE_DIR );
+			File	update_dir = new File( manager.getUserDir() + File.separator + UPDATE_DIR );
 			
 			File[]	dirs = update_dir.listFiles();
 			
@@ -160,33 +169,13 @@ UpdateInstallerImpl
 	public String
 	getInstallDir()
 	{
-		String	str = SystemProperties.getApplicationPath();
-		
-		if ( str.endsWith(File.separator)){
-			
-			str = str.substring(0,str.length()-1);
-		}
-		
-		return( str );
+		return( manager.getInstallDir());
 	}
 		
 	public String
 	getUserDir()
 	{
-		return( getUserDirSupport());
-	}
-	
-	protected static String
-	getUserDirSupport()
-	{
-		String	str = SystemProperties.getUserPath();
-	
-		if ( str.endsWith(File.separator)){
-			
-			str = str.substring(0,str.length()-1);
-		}
-		
-		return( str );	
+		return( manager.getUserDir());
 	}
 	
 	public void

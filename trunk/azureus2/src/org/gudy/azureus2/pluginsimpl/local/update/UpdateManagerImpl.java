@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.util.AEVerifier;
 import org.gudy.azureus2.core3.util.AEVerifierException;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.update.*;
 
@@ -87,7 +88,7 @@ UpdateManagerImpl
 	{
 		azureus_core	= _azureus_core;
 		
-		UpdateInstallerImpl.checkForFailedInstalls();
+		UpdateInstallerImpl.checkForFailedInstalls( this );
 		
 			// cause the platform manager to register any updateable components
 		
@@ -193,6 +194,32 @@ UpdateManagerImpl
 		installers.toArray( res );
 		
 		return( res );
+	}
+	
+	public String
+	getInstallDir()
+	{
+		String	str = SystemProperties.getApplicationPath();
+		
+		if ( str.endsWith(File.separator)){
+			
+			str = str.substring(0,str.length()-1);
+		}
+		
+		return( str );
+	}
+		
+	public String
+	getUserDir()
+	{
+		String	str = SystemProperties.getUserPath();
+		
+		if ( str.endsWith(File.separator)){
+			
+			str = str.substring(0,str.length()-1);
+		}
+		
+		return( str );	
 	}
 	
 	public void

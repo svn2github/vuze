@@ -124,6 +124,10 @@ public class SWTVersionGetter {
   public int getLatestVersion() {
     return latestVersion;
   }
+  
+  public int getCurrentVersion() {
+	    return currentVersion;
+  }
   /**
    * @return Returns the platform.
    */

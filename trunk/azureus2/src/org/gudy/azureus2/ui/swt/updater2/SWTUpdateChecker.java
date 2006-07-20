@@ -31,9 +31,13 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.eclipse.swt.SWT;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.update.UpdatableComponent;
 import org.gudy.azureus2.plugins.update.Update;
@@ -52,8 +56,10 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
  */
 public class SWTUpdateChecker implements UpdatableComponent
 {
-	private static final LogIDs LOGID = LogIDs.GUI;
+  private static final LogIDs LOGID = LogIDs.GUI;
 
+  private static final String     OSX_APP = "/" + SystemProperties.getApplicationName() + ".app";
+  
   public static void
   initialize()
   {
@@ -67,9 +73,96 @@ public class SWTUpdateChecker implements UpdatableComponent
   	try{
 	    SWTVersionGetter versionGetter = new SWTVersionGetter( checker );
 	    
-	    if( versionGetter.needsUpdate() && System.getProperty("azureus.skipSWTcheck") == null ) {
-        
-        String[] mirrors = versionGetter.getMirrors();
+     	boolean	update_required  = 	versionGetter.needsUpdate() && 
+     								System.getProperty("azureus.skipSWTcheck") == null ;
+    	
+	    if ( update_required ){
+        	    
+	       	int	update_prevented_version = COConfigurationManager.getIntParameter( "swt.update.prevented.version", -1 );
+
+	    	try{
+		        URL	swt_url = SWT.class.getClassLoader().getResource("org/eclipse/swt/SWT.class");
+		        
+		        if ( swt_url != null ){
+		        	
+		        	String	url_str = swt_url.toExternalForm();
+	
+		        	if ( url_str.startsWith("jar:file:")){
+	
+		        		File jar_file = FileUtil.getJarFileFromURL(url_str);
+		        		
+		        		String	expected_location;
+		        		
+		        	    if ( Constants.isOSX ){
+		        	        	  
+		        	    	expected_location = checker.getCheckInstance().getManager().getInstallDir() + OSX_APP + "/Contents/Resources/Java";
+		        	            
+		        	    }else{ 
+		        	        	  
+		        	    	expected_location = checker.getCheckInstance().getManager().getInstallDir();
+		        	    }
+		        	    
+		        	    File	expected_dir = new File( expected_location );
+		        	    
+		        	    File	jar_file_dir = jar_file.getParentFile();
+		        	    
+		        	    	// sanity check
+		        	    
+		        	    if ( expected_dir.exists() && jar_file_dir.exists() ){
+		        	    	
+		        	    	expected_dir	= expected_dir.getCanonicalFile();
+		        	    	jar_file_dir	= jar_file_dir.getCanonicalFile();
+		        	    	
+		        	    	if ( expected_dir.equals( jar_file_dir )){
+		        	    	
+		        	    			// everything looks ok
+		        	    		
+		        	    		if ( update_prevented_version != -1 ){
+		        	    			
+		        	    			update_prevented_version	= -1;
+		        	    			
+			        	    		COConfigurationManager.setParameter( "swt.update.prevented.version", update_prevented_version );
+		        	    		}
+		        	    	}else{
+		        	    		
+		        		    	if ( update_prevented_version != versionGetter.getCurrentVersion()){
+			        		    		
+			        	    		String	alert = 
+			        	    			MessageText.getString( 
+			        	    					"swt.alert.cant.update", 
+			        	    					new String[]{
+				        	    					String.valueOf( versionGetter.getCurrentVersion()),
+				        	    					String.valueOf( versionGetter.getLatestVersion()),
+			        	    						jar_file_dir.toString(), 
+			        	    						expected_dir.toString()});
+			        	    		
+			        	     		Logger.log(	new LogAlert(LogAlert.UNREPEATABLE, LogEvent.LT_ERROR, alert ));
+			        						
+			        	     		update_prevented_version = versionGetter.getCurrentVersion();
+			        	     		
+			        	    		COConfigurationManager.setParameter( "swt.update.prevented.version", update_prevented_version );
+		        		    	}
+		        	    	}
+		        	    }
+		        	}
+		        }
+	    	}catch( Throwable e ){
+		    	
+		    	Debug.printStackTrace(e);		    	
+	    	}
+	    
+		    if ( update_prevented_version == versionGetter.getCurrentVersion()){
+			
+		    	Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "SWT update aborted due to previously reported issues regarding its install location" ));
+		    			
+				checker.failed();
+				
+				checker.getCheckInstance().cancel();
+				
+				return;
+		    }
+	    	    	 
+	      String[] mirrors = versionGetter.getMirrors();
 	      
 	      ResourceDownloader swtDownloader = null;
 	      
@@ -143,9 +236,7 @@ public class SWTUpdateChecker implements UpdatableComponent
 	  data = update.verifyData( data, true );
    	
 	  rd.reportActivity( "Data verified successfully" );
-	  
-      String	osx_app = "/" + SystemProperties.getApplicationName() + ".app";
-        
+	         
       UpdateInstaller installer = checker.createInstaller();
       
       zip = new ZipInputStream(data);
@@ -164,7 +255,7 @@ public class SWTUpdateChecker implements UpdatableComponent
           
           if ( Constants.isOSX ){
         	  
-            installer.addMoveAction(name,installer.getInstallDir() + osx_app + "/Contents/Resources/Java/" + name);
+            installer.addMoveAction(name,installer.getInstallDir() + OSX_APP + "/Contents/Resources/Java/" + name);
             
           }else{ 
         	  
@@ -176,7 +267,7 @@ public class SWTUpdateChecker implements UpdatableComponent
         	
           installer.addResource(name,zip,false);
           
-          installer.addMoveAction(name,installer.getInstallDir() + osx_app + "/Contents/Resources/Java/dll/" + name);
+          installer.addMoveAction(name,installer.getInstallDir() + OSX_APP + "/Contents/Resources/Java/dll/" + name);
           
         }else if ( name.equals("java_swt")){
         	
@@ -184,9 +275,9 @@ public class SWTUpdateChecker implements UpdatableComponent
         	   
           installer.addResource(name,zip,false);
           
-          installer.addMoveAction(name,installer.getInstallDir() + osx_app + "/Contents/MacOS/" + name);
+          installer.addMoveAction(name,installer.getInstallDir() + OSX_APP + "/Contents/MacOS/" + name);
           
-          installer.addChangeRightsAction("755",installer.getInstallDir() + osx_app + "/Contents/MacOS/" + name);
+          installer.addChangeRightsAction("755",installer.getInstallDir() + OSX_APP + "/Contents/MacOS/" + name);
           
         }else if( name.endsWith( ".dll" ) || name.endsWith( ".so" ) || name.indexOf( ".so." ) != -1 ) {
         	

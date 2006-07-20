@@ -87,6 +87,12 @@ UpdateManager
 		
 		throws UpdateException;
 	
+	public String
+	getInstallDir();
+	
+	public String
+	getUserDir();
+	
 		/**
 		 * returns the currently declared installers, if any
 		 * @return
