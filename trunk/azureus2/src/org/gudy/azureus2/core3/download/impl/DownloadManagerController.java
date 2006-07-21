@@ -794,8 +794,6 @@ DownloadManagerController
 						stats.setCompleted(stats.getCompleted());
 						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 			      
-						dm.saveState();
-
 					  		// we don't want to update the torrent if we're seeding
 					  
 						if ( !download_manager.getAssumedComplete()){

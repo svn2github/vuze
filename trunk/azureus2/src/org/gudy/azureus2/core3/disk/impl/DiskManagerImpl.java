@@ -485,6 +485,11 @@ DiskManagerImpl
 
                 resume_handler.stop( closing );
 
+                	// at least save the current stats to download state  - they'll be persisted later
+                	// when the "real" stop gets through
+                
+                saveState( false );
+                
                 return;
             }
 
@@ -2329,7 +2334,8 @@ DiskManagerImpl
   protected static void
   storeFileDownloaded(
     DownloadManager         download_manager,
-    DiskManagerFileInfo[]   files )
+    DiskManagerFileInfo[]   files,
+    boolean					persist )
   {
       DownloadManagerState  state = download_manager.getDownloadState();
 
@@ -2346,7 +2352,10 @@ DiskManagerImpl
 
       state.setMapAttribute( DownloadManagerState.AT_FILE_DOWNLOADED, details );
 
-      state.save();
+      if ( persist ){
+    	  
+    	  state.save();
+      }
   }
 
   protected static void
@@ -2385,9 +2394,16 @@ DiskManagerImpl
   public void
   saveState()
   {
+	  saveState( true );
+  }
+  
+  protected void
+  saveState(
+	boolean	persist )
+  {
       if ( files != null ){
 
-        storeFileDownloaded( download_manager, files );
+        storeFileDownloaded( download_manager, files, persist );
 
         storeFilePriorities();
     }
@@ -2840,7 +2856,7 @@ DiskManagerImpl
                                             downloaded = 0;
                                         }
 
-                                        storeFileDownloaded( download_manager, res );
+                                        storeFileDownloaded( download_manager, res, true );
                                     }
                                 }
 
