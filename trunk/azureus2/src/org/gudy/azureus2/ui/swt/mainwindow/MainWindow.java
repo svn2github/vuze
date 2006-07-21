@@ -673,6 +673,8 @@ MainWindow
 		// check file associations   
 		AssociationChecker.checkAssociations();
 		DonationWindow2.checkForDonationPopup();
+
+    azureus_core.triggerLifeCycleComponentCreated(uiFunctions);
 	}
 
 

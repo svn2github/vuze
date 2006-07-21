@@ -150,4 +150,9 @@ AzureusCore
 	public void
 	removeListener(
 		AzureusCoreListener	l );
+
+	/**
+	 * @param component
+	 */
+	void triggerLifeCycleComponentCreated(AzureusCoreComponent component);
 }

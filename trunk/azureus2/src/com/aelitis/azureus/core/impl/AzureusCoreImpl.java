@@ -320,17 +320,7 @@ AzureusCoreImpl
 		// always publish a complete rss feed
 		global_manager = GlobalManagerFactory.create(this, 0);
 
-		for (int i = 0; i < lifecycle_listeners.size(); i++) {
-
-			try{
-				((AzureusCoreLifecycleListener) lifecycle_listeners.get(i))
-					.componentCreated(this, global_manager);
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
-		}
+		triggerLifeCycleComponentCreated(global_manager);
 
 		pi.initialisePlugins();
 
@@ -436,6 +426,20 @@ AzureusCoreImpl
 	   });	
 	   
 	   checkBadNatives();
+	}
+	
+	public void triggerLifeCycleComponentCreated(AzureusCoreComponent component) {
+		for (int i = 0; i < lifecycle_listeners.size(); i++) {
+
+			try{
+				((AzureusCoreLifecycleListener) lifecycle_listeners.get(i))
+					.componentCreated(this, component);
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
   
 	protected void

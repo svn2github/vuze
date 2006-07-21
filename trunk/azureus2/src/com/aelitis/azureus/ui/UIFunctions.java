@@ -21,13 +21,15 @@ package com.aelitis.azureus.ui;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 
+import com.aelitis.azureus.core.AzureusCoreComponent;
+
 
 /**
  * @author TuxPaper
  * @created Jun 14, 2006
  *
  */
-public interface UIFunctions
+public interface UIFunctions extends AzureusCoreComponent
 {
 
 	/**

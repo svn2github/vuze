@@ -45,8 +45,9 @@ import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * @author Olivier Chalouhi
@@ -60,6 +61,10 @@ public class TorrentOpener {
 	 */
 	public static void openTorrent(String torrentFile) {
 		openTorrentWindow(null, new String[] { torrentFile }, false);
+	}
+	
+	public static void openTorrents(String[] torrentFiles) {
+		openTorrentWindow(null, torrentFiles, false);
 	}
   
 	/**
@@ -254,9 +259,28 @@ public class TorrentOpener {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				Shell shell = Utils.findAnyShell();
-				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-				if (shell == null || gm == null)
+				AzureusCore core = AzureusCoreFactory.getSingleton();
+				GlobalManager gm = null;
+				try {
+					gm = core.getGlobalManager();
+				} catch (AzureusCoreException e) {
+				}
+
+				if (gm == null) {
+					core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
+						public void componentCreated(AzureusCore core, AzureusCoreComponent component) {
+							if (component instanceof UIFunctionsSWT) {
+								openTorrentWindow(path, torrents, bOverrideStartModeToStopped);
+							}
+						}
+					});
 					return;
+				}
+
+				if (shell == null) {
+					Debug.out("openTorrentWindow().. no shell");
+					return;
+				}
 
 				OpenTorrentWindow.invoke(shell, gm, path, torrents,
 						bOverrideStartModeToStopped, false, false);
