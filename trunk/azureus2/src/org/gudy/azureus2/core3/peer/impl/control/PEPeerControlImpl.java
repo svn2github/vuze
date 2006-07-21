@@ -43,7 +43,6 @@ import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
-import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.control.*;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATInitiator;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATTraversalAdapter;
