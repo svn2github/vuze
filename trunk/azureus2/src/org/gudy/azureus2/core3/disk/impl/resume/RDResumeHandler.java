@@ -80,10 +80,11 @@ RDResumeHandler
 	private DiskManagerImpl		disk_manager;
 	private DMChecker			checker;
 		
-	private boolean				started;
-	private boolean				stopped;
-	private boolean				stopped_for_close;
-	private int					stopped_mid_check_position	= -1;
+	private volatile boolean	started;
+	private volatile boolean	stopped;
+	private volatile boolean	stopped_for_close;
+	private volatile int		stopped_mid_check_position	= -1;
+	private volatile boolean	recheck_in_progress;
 	
 
 	public 
@@ -124,382 +125,389 @@ RDResumeHandler
 
         final AESemaphore	 run_sem = new AESemaphore( "RDResumeHandler::checkAllPieces:runsem", 2 );
 
-		try{						
-			boolean resumeEnabled = use_fast_resume;
-			
-				//disable fast resume if a new file was created
-			
-			if ( newfiles ){
-				
-				resumeEnabled = false;
-			}
-			
+		try{
 			boolean	resume_data_complete = false;
 			
-			
-			final AESemaphore	pending_checks_sem 	= new AESemaphore( "RD:PendingChecks" );
-			int					pending_check_num	= 0;
-
-			DiskManagerPiece[]	pieces	= disk_manager.getPieces();
-			
-			if ( resumeEnabled ){
+			try{
+				recheck_in_progress	= true;
 				
-				boolean resumeValid = false;
+				boolean resumeEnabled = use_fast_resume;
 				
-				byte[] resume_pieces = null;
+					//disable fast resume if a new file was created
 				
-				Map partialPieces = null;
-				
-				Map	resume_data = getResumeData();							
-				
-				if ( resume_data != null ){
+				if ( newfiles ){
 					
-					try {
+					resumeEnabled = false;
+				}
+				
+				
+				final AESemaphore	pending_checks_sem 	= new AESemaphore( "RD:PendingChecks" );
+				int					pending_check_num	= 0;
+	
+				DiskManagerPiece[]	pieces	= disk_manager.getPieces();
+				
+				if ( resumeEnabled ){
+					
+					boolean resumeValid = false;
+					
+					byte[] resume_pieces = null;
+					
+					Map partialPieces = null;
+					
+					Map	resume_data = getResumeData();							
+					
+					if ( resume_data != null ){
 						
-						resume_pieces = (byte[])resume_data.get("resume data");
-						
-						if ( resume_pieces != null ){
+						try {
 							
-							if ( resume_pieces.length != pieces.length ){
+							resume_pieces = (byte[])resume_data.get("resume data");
 							
-								Debug.out( "Resume data array length mismatch: " + resume_pieces.length + "/" + pieces.length );
+							if ( resume_pieces != null ){
 								
-								resume_pieces	= null;
+								if ( resume_pieces.length != pieces.length ){
+								
+									Debug.out( "Resume data array length mismatch: " + resume_pieces.length + "/" + pieces.length );
+									
+									resume_pieces	= null;
+								}
+							}
+							
+							partialPieces = (Map)resume_data.get("blocks");
+							
+							resumeValid = ((Long)resume_data.get("valid")).intValue() == 1;
+							
+								// if the torrent download is complete we don't need to invalidate the
+								// resume data
+							
+							if ( isTorrentResumeDataComplete( disk_manager.getDownloadManager(), resume_data )){
+								
+								resume_data_complete	= true;
+										
+							}else{
+								
+									// set it so that if we crash the NOT_DONE pieces will be
+									// rechecked
+								
+								resume_data.put("valid", new Long(0));
+								
+								saveResumeData( resume_data );
+							}
+							
+						}catch(Exception ignore){
+							
+							// ignore.printStackTrace();
+						}	
+					}
+									
+					if ( resume_pieces == null ){
+						
+						resumeValid	= false;
+						
+						resume_pieces	= new byte[pieces.length];
+						
+						Arrays.fill( resume_pieces, PIECE_RECHECK_REQUIRED );
+					}
+					
+						// calculate the current file sizes up front for performance reasons
+					
+					DiskManagerFileInfo[]	files = disk_manager.getFiles();
+					
+					Map	file_sizes = new HashMap();
+					
+					for (int i=0;i<files.length;i++){
+						
+						try{
+							Long	len = new Long(((DiskManagerFileInfoImpl)files[i]).getCacheFile().getLength());
+						
+							file_sizes.put( files[i], len );
+							
+						}catch( CacheFileManagerException e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+		
+					boolean	recheck_all	= use_fast_resume_recheck_all;
+					
+					if ( !recheck_all ){
+						
+							// override if not much left undone
+						
+						long	total_not_done = 0;
+						
+						int	piece_size = disk_manager.getPieceLength();
+						
+						for (int i = 0; i < pieces.length; i++){
+							
+							if ( resume_pieces[i] != PIECE_DONE ){
+								
+								total_not_done	+= piece_size;
 							}
 						}
 						
-						partialPieces = (Map)resume_data.get("blocks");
-						
-						resumeValid = ((Long)resume_data.get("valid")).intValue() == 1;
-						
-							// if the torrent download is complete we don't need to invalidate the
-							// resume data
-						
-						if ( isTorrentResumeDataComplete( disk_manager.getDownloadManager(), resume_data )){
+						if ( total_not_done < 64*1024*1024 ){
 							
-							resume_data_complete	= true;
-									
-						}else{
-							
-								// set it so that if we crash the NOT_DONE pieces will be
-								// rechecked
-							
-							resume_data.put("valid", new Long(0));
-							
-							saveResumeData( resume_data );
+							recheck_all	= true;
 						}
-						
-					}catch(Exception ignore){
-						
-						// ignore.printStackTrace();
-					}	
-				}
-								
-				if ( resume_pieces == null ){
-					
-					resumeValid	= false;
-					
-					resume_pieces	= new byte[pieces.length];
-					
-					Arrays.fill( resume_pieces, PIECE_RECHECK_REQUIRED );
-				}
-				
-					// calculate the current file sizes up front for performance reasons
-				
-				DiskManagerFileInfo[]	files = disk_manager.getFiles();
-				
-				Map	file_sizes = new HashMap();
-				
-				for (int i=0;i<files.length;i++){
-					
-					try{
-						Long	len = new Long(((DiskManagerFileInfoImpl)files[i]).getCacheFile().getLength());
-					
-						file_sizes.put( files[i], len );
-						
-					}catch( CacheFileManagerException e ){
-						
-						Debug.printStackTrace(e);
 					}
-				}
-	
-				boolean	recheck_all	= use_fast_resume_recheck_all;
-				
-				if ( !recheck_all ){
-					
-						// override if not much left undone
-					
-					long	total_not_done = 0;
-					
-					int	piece_size = disk_manager.getPieceLength();
 					
 					for (int i = 0; i < pieces.length; i++){
 						
-						if ( resume_pieces[i] != PIECE_DONE ){
-							
-							total_not_done	+= piece_size;
-						}
-					}
-					
-					if ( total_not_done < 64*1024*1024 ){
+						DiskManagerPiece	dm_piece	= pieces[i];
 						
-						recheck_all	= true;
-					}
-				}
-				
-				for (int i = 0; i < pieces.length; i++){
-					
-					DiskManagerPiece	dm_piece	= pieces[i];
-					
-					disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNbPieces() );
-					
-					byte	piece_state = resume_pieces[i];
-					
-						// valid resume data means that the resume array correctly represents
-						// the state of pieces on disk, be they done or not
-					
-					if ( piece_state == PIECE_DONE ){
-					
-							// at least check that file sizes are OK for this piece to be valid
+						disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNbPieces() );
 						
-						DMPieceList list = disk_manager.getPieceList(i);
+						byte	piece_state = resume_pieces[i];
 						
-						for (int j=0;j<list.size();j++){
+							// valid resume data means that the resume array correctly represents
+							// the state of pieces on disk, be they done or not
+						
+						if ( piece_state == PIECE_DONE ){
+						
+								// at least check that file sizes are OK for this piece to be valid
 							
-							DMPieceMapEntry	entry = list.get(j);
+							DMPieceList list = disk_manager.getPieceList(i);
 							
-							Long	file_size 		= (Long)file_sizes.get(entry.getFile());
-							
-							if ( file_size == null ){
+							for (int j=0;j<list.size();j++){
 								
-								piece_state	= PIECE_NOT_DONE;
+								DMPieceMapEntry	entry = list.get(j);
 								
-								if (Logger.isEnabled())
-									Logger.log(new LogEvent(disk_manager, LOGID,
-											LogEvent.LT_WARNING, "Piece #" + i
-													+ ": file is missing, " + "fails re-check."));
-
-								break;
-							}
-							
-							long	expected_size 	= entry.getOffset() + entry.getLength();
-							
-							if ( file_size.longValue() < expected_size ){
+								Long	file_size 		= (Long)file_sizes.get(entry.getFile());
 								
-								piece_state	= PIECE_NOT_DONE;
-								
-								if (Logger.isEnabled())
-									Logger.log(new LogEvent(disk_manager, LOGID,
-											LogEvent.LT_WARNING, "Piece #" + i
-													+ ": file is too small, fails re-check. File size = "
-													+ file_size + ", piece needs " + expected_size));
-
-								break;
-							}
-						}
-					}
-					
-					if ( piece_state == PIECE_DONE ){
-						
-						dm_piece.setDone( true );
-						
-					}else if ( piece_state == PIECE_NOT_DONE && !recheck_all ){
-						
-							// if the piece isn't done and we haven't been asked to recheck all pieces
-							// on restart (only started pieces) then just set as not done 
-																	
-					}else{
-						
-							// We only need to recheck pieces that are marked as not-ok
-							// if the resume data is invalid or explicit recheck needed
-						
-						if ( piece_state == PIECE_RECHECK_REQUIRED || !resumeValid ){
+								if ( file_size == null ){
 									
-							run_sem.reserve();
-							
-							while( !stopped ){
+									piece_state	= PIECE_NOT_DONE;
 									
-								if ( recheck_inst.getPermission()){
+									if (Logger.isEnabled())
+										Logger.log(new LogEvent(disk_manager, LOGID,
+												LogEvent.LT_WARNING, "Piece #" + i
+														+ ": file is missing, " + "fails re-check."));
+	
+									break;
+								}
+								
+								long	expected_size 	= entry.getOffset() + entry.getLength();
+								
+								if ( file_size.longValue() < expected_size ){
 									
+									piece_state	= PIECE_NOT_DONE;
+									
+									if (Logger.isEnabled())
+										Logger.log(new LogEvent(disk_manager, LOGID,
+												LogEvent.LT_WARNING, "Piece #" + i
+														+ ": file is too small, fails re-check. File size = "
+														+ file_size + ", piece needs " + expected_size));
+	
 									break;
 								}
 							}
+						}
+						
+						if ( piece_state == PIECE_DONE ){
 							
-							if ( stopped ){
+							dm_piece.setDone( true );
+							
+						}else if ( piece_state == PIECE_NOT_DONE && !recheck_all ){
+							
+								// if the piece isn't done and we haven't been asked to recheck all pieces
+								// on restart (only started pieces) then just set as not done 
+																		
+						}else{
+							
+								// We only need to recheck pieces that are marked as not-ok
+								// if the resume data is invalid or explicit recheck needed
+							
+							if ( piece_state == PIECE_RECHECK_REQUIRED || !resumeValid ){
+										
+								run_sem.reserve();
 								
-									// we only flag as stopped mid-check if the stop action has prevented
-									// a hash check from occurring
+								while( !stopped ){
+										
+									if ( recheck_inst.getPermission()){
+										
+										break;
+									}
+								}
 								
-								stopped_mid_check_position	= i;
-								
-								break;
-								
-							}else{
-								
-								try{	
-									DiskManagerCheckRequest	request = disk_manager.createCheckRequest( i, null );
+								if ( stopped ){
 									
-									request.setLowPriority( true );
+										// we only flag as stopped mid-check if the stop action has prevented
+										// a hash check from occurring
 									
-									checker.enqueueCheckRequest(
-										request,
-										new DiskManagerCheckRequestListener()
-										{
-											public void 
-											checkCompleted( 
-												DiskManagerCheckRequest 	request,
-												boolean						passed )
+									stopped_mid_check_position	= i;
+									
+									break;
+									
+								}else{
+									
+									try{	
+										DiskManagerCheckRequest	request = disk_manager.createCheckRequest( i, null );
+										
+										request.setLowPriority( true );
+										
+										checker.enqueueCheckRequest(
+											request,
+											new DiskManagerCheckRequestListener()
 											{
-												complete();
-											}
-											 
-											public void
-											checkCancelled(
-												DiskManagerCheckRequest		request )
-											{
-												complete();
-											}
-											
-											public void 
-											checkFailed( 
-												DiskManagerCheckRequest 	request, 
-												Throwable		 			cause )
-											{
-												complete();
-											}
-											
-											protected void
-											complete()
-											{
-												run_sem.release();
+												public void 
+												checkCompleted( 
+													DiskManagerCheckRequest 	request,
+													boolean						passed )
+												{
+													complete();
+												}
+												 
+												public void
+												checkCancelled(
+													DiskManagerCheckRequest		request )
+												{
+													complete();
+												}
 												
-												pending_checks_sem.release();
-											}
-										});
+												public void 
+												checkFailed( 
+													DiskManagerCheckRequest 	request, 
+													Throwable		 			cause )
+												{
+													complete();
+												}
+												
+												protected void
+												complete()
+												{
+													run_sem.release();
+													
+													pending_checks_sem.release();
+												}
+											});
+										
+										pending_check_num++;
+										
+									}catch( Throwable e ){
 									
-									pending_check_num++;
-									
-								}catch( Throwable e ){
-								
-									Debug.printStackTrace(e);
+										Debug.printStackTrace(e);
+									}
 								}
 							}
 						}
 					}
-				}
-				
-				while( pending_check_num > 0 ){
 					
-					pending_checks_sem.reserve();
+					while( pending_check_num > 0 ){
+						
+						pending_checks_sem.reserve();
+						
+						pending_check_num--;
+					}
 					
-					pending_check_num--;
-				}
-				
-				if ( partialPieces != null ){
-														
-					Iterator iter = partialPieces.entrySet().iterator();
-					
-					while (iter.hasNext()) {
+					if ( partialPieces != null ){
+															
+						Iterator iter = partialPieces.entrySet().iterator();
 						
-						Map.Entry key = (Map.Entry)iter.next();
-						
-						int pieceNumber = Integer.parseInt((String)key.getKey());
+						while (iter.hasNext()) {
 							
-						DiskManagerPiece	dm_piece = pieces[ pieceNumber ];
-						
-						if ( !dm_piece.isDone()){
+							Map.Entry key = (Map.Entry)iter.next();
 							
-							List blocks = (List)partialPieces.get(key.getKey());
-							
-							Iterator iterBlock = blocks.iterator();
-							
-							while (iterBlock.hasNext()) {
+							int pieceNumber = Integer.parseInt((String)key.getKey());
 								
-								dm_piece.setWritten(((Long)iterBlock.next()).intValue());
+							DiskManagerPiece	dm_piece = pieces[ pieceNumber ];
+							
+							if ( !dm_piece.isDone()){
+								
+								List blocks = (List)partialPieces.get(key.getKey());
+								
+								Iterator iterBlock = blocks.iterator();
+								
+								while (iterBlock.hasNext()) {
+									
+									dm_piece.setWritten(((Long)iterBlock.next()).intValue());
+								}
 							}
 						}
 					}
-				}
-			}else{
-				
-					// resume not enabled, recheck everything
-				
-				for (int i = 0; i < pieces.length; i++){
-
-					run_sem.reserve();
-
-					while( ! stopped ){
+				}else{
+					
+						// resume not enabled, recheck everything
+					
+					for (int i = 0; i < pieces.length; i++){
+	
+						run_sem.reserve();
+	
+						while( ! stopped ){
+							
+							if ( recheck_inst.getPermission()){
+								
+								break;
+							}
+						}
 						
-						if ( recheck_inst.getPermission()){
+						if ( stopped ){
+							
+							stopped_mid_check_position	= i;
 							
 							break;
 						}
-					}
-					
-					if ( stopped ){
-						
-						stopped_mid_check_position	= i;
-						
-						break;
-					}
+											
+						disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNbPieces() );						
+							
+						try{
+							DiskManagerCheckRequest	request = disk_manager.createCheckRequest( i, null );
+							
+							request.setLowPriority( true );
+	
+							checker.enqueueCheckRequest(
+									request, 
+									new DiskManagerCheckRequestListener()
+									{
+										public void 
+										checkCompleted( 
+											DiskManagerCheckRequest 	request,
+											boolean						passed )
+										{
+											complete();
+										}
+										 
+										public void
+										checkCancelled(
+											DiskManagerCheckRequest		request )
+										{
+											complete();
+										}
 										
-					disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNbPieces() );						
+										public void 
+										checkFailed( 
+											DiskManagerCheckRequest 	request, 
+											Throwable		 			cause )
+										{
+											complete();
+										}
+										
+										protected void
+										complete()
+										{
+											run_sem.release();
+	
+											pending_checks_sem.release();
+										}
+									});
+							
+							pending_check_num++;
+							
+						}catch( Throwable e ){
 						
-					try{
-						DiskManagerCheckRequest	request = disk_manager.createCheckRequest( i, null );
-						
-						request.setLowPriority( true );
-
-						checker.enqueueCheckRequest(
-								request, 
-								new DiskManagerCheckRequestListener()
-								{
-									public void 
-									checkCompleted( 
-										DiskManagerCheckRequest 	request,
-										boolean						passed )
-									{
-										complete();
-									}
-									 
-									public void
-									checkCancelled(
-										DiskManagerCheckRequest		request )
-									{
-										complete();
-									}
-									
-									public void 
-									checkFailed( 
-										DiskManagerCheckRequest 	request, 
-										Throwable		 			cause )
-									{
-										complete();
-									}
-									
-									protected void
-									complete()
-									{
-										run_sem.release();
-
-										pending_checks_sem.release();
-									}
-								});
-						
-						pending_check_num++;
-						
-					}catch( Throwable e ){
+							Debug.printStackTrace(e);
+						}
+					}
 					
-						Debug.printStackTrace(e);
+					while( pending_check_num > 0 ){
+						
+						pending_checks_sem.reserve();
+						
+						pending_check_num--;
 					}
 				}
+			}finally{
 				
-				while( pending_check_num > 0 ){
-					
-					pending_checks_sem.reserve();
-					
-					pending_check_num--;
-				}
+				recheck_in_progress	= false;
 			}
 			
 				//dump the newly built resume data to the disk/torrent
@@ -535,7 +543,20 @@ RDResumeHandler
 		boolean interim_save ) 	// data is marked as "invalid" if this is true to enable checking on pieces on crash restart
 	
 		throws Exception
-	{		
+	{	
+		if ( recheck_in_progress && interim_save ){
+		
+				// while we are rechecking it is important that an interim save doesn't come
+				// along and overwite the persisted resume data. This is because should we crash 
+				// while rechecking we need the persisted state to be unchanged so that on 
+				// restart the rechecking occurs again
+			
+				// a non-interim save means that the user has decided to stop the  download (or some
+				// other such significant event) so we just persist the current state
+			
+			return;
+		}
+		
 			// if file caching is enabled then this is an important time to ensure that the cache is
 			// flushed as we are going to record details about the accuracy of written data.
 			// First build the resume map from the data (as updates can still be goin on)
@@ -547,7 +568,8 @@ RDResumeHandler
 		
 		if ( !use_fast_resume ){
 			
-				// flush cache even if resume disable
+				// flush cache even if resume disable as this is a good point to ensure that data
+				// is persisted anyway
 			
 			for (int i=0;i<files.length;i++){
 				
