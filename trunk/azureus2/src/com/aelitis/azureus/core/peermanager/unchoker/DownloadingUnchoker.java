@@ -163,10 +163,11 @@ public class DownloadingUnchoker implements Unchoker {
         //we're here because the given optimistic peer is already "best", but is choked still,
         //which means it will continually get picked by the getNextOptimisticPeer() method,
         //and we'll loop forever if there are no other peers to choose from
-        peer.sendUnChoke();  //send unchoke immediately, so it won't get picked optimistically anymore
+        //peer.sendUnChoke();  //send unchoke immediately, so it won't get picked optimistically anymore
+      	all_peers.remove( peer );  //remove from all_peers list, so it won't get picked optimistically anymore    //TODO
       }
     }
-    
+      
 
     //update chokes
     for( Iterator it = unchokes.iterator(); it.hasNext(); ) {

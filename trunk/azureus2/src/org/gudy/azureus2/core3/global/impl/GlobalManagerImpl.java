@@ -53,6 +53,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCoreListener;
 import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
+import com.aelitis.azureus.core.peermanager.uploadslots.UploadSlotManager;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 import org.gudy.azureus2.plugins.network.ConnectionManager;
@@ -212,7 +213,7 @@ public class GlobalManagerImpl
 
     public void 
 	runSupport() 
-    {
+    {    	
       while ( true ){
 
       	try{
@@ -262,6 +263,11 @@ public class GlobalManagerImpl
 	        		manager.startDownload();
 	           }
 	        }
+	        
+	        
+	        //run global upload slot manager process
+	        UploadSlotManager.getSingleton().process();
+	        
 
       	}catch( Throwable e ){
       		
@@ -481,6 +487,7 @@ public class GlobalManagerImpl
     }
     
     torrent_folder_watcher = new TorrentFolderWatcher( this );
+    
     
     TRTrackerUtils.addListener(
     	new TRTrackerUtilsListener()

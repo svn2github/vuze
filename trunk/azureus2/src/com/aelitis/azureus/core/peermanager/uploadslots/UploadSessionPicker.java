@@ -41,7 +41,7 @@ public class UploadSessionPicker {
 	private final LinkedList helpers = new LinkedList();
 	
 	
-	private final DownloadingUnchoker down_unchoker = new DownloadingUnchoker();  //TODO extract only the code actually used
+	private final DownloadingUnchoker down_unchoker = new DownloadingUnchoker();  //TODO extract only the code actually used?
 	
 
 	protected UploadSessionPicker() {
@@ -59,7 +59,7 @@ public class UploadSessionPicker {
 			//the higher the priority, the more optimistic unchoke chances they get
 			for( int i=0; i < priority; i++ ) {
 				insertHelper( helper );
-			}
+			}			
 		}
 		finally {  next_optimistics_mon.exit();  }
 	}
@@ -112,40 +112,54 @@ public class UploadSessionPicker {
 	}
 	
 	
-	
-	private UploadHelper getNextOptimisticHelper() {
-		try {  next_optimistics_mon.enter();
-			UploadHelper helper = (UploadHelper)next_optimistics.removeFirst();
-			next_optimistics.addLast( helper );
-			return helper;
-		}
-		finally {  next_optimistics_mon.exit();  }
-	}
-	
-	
+
 	
 	
 	//this picks both downloading and seeding sessions
 	protected UploadSession pickNextOptimisticSession() {
-		UploadHelper helper = getNextOptimisticHelper();		
 		
-		PEPeerTransport peer;
+		try {  next_optimistics_mon.enter();		
 		
-		if( helper.isSeeding() ) {
-			peer = UnchokerUtil.getNextOptimisticPeer( helper.getAllPeers(), false, false );  //TODO use simple FIFO RR for seeding picks
+			HashMap failed_helpers = null;
+		
+			int loops_allowed = next_optimistics.size();
+			
+			while( loops_allowed > 0 ) {
+				
+				UploadHelper helper = (UploadHelper)next_optimistics.removeFirst();  //take from front
+	
+				next_optimistics.addLast( helper );   //add back at end
+				
+				if( failed_helpers == null || !failed_helpers.containsKey( helper ) ) {   //pre-emptive check to see if we've already tried this helper
+					
+					PEPeerTransport peer;
+					
+					if( helper.isSeeding() ) {
+						peer = UnchokerUtil.getNextOptimisticPeer( helper.getAllPeers(), false, false );  //TODO use simple FIFO RR for seeding picks
+					}
+					else {
+						peer = UnchokerUtil.getNextOptimisticPeer( helper.getAllPeers(), true, true );
+					}
+					
+					if( peer == null )  {  //no peers from this helper to unchoke
+						
+						if( failed_helpers == null )  failed_helpers = new HashMap();   //lazy alloc
+						
+						failed_helpers.put( helper, null );  //remember this helper in case we get it again in another loop round
+					}
+					else {   //found an optimistic peer!
+						
+						return new UploadSession( peer, helper.isSeeding() ? UploadSession.TYPE_SEED : UploadSession.TYPE_DOWNLOAD );						
+					}
+				}
+				
+				loops_allowed--;
+			}
+			
+			return null;  //no optimistic peer found
+			
 		}
-		else {
-			peer = UnchokerUtil.getNextOptimisticPeer( helper.getAllPeers(), true, true );
-		}
-		
-		if( peer == null ) {
-			Debug.outNoStack( "peer == null" );
-			return null;
-		}
-		
-		UploadSession session = new UploadSession( peer, helper.isSeeding() ? UploadSession.TYPE_SEED : UploadSession.TYPE_DOWNLOAD );
-		
-		return session;
+		finally {  next_optimistics_mon.exit();  }
 	}
 	
 	
@@ -176,10 +190,7 @@ public class UploadSessionPicker {
 		
 		ArrayList all_peers = globalGetAllDownloadPeers();
 		
-		if( all_peers.isEmpty() ) {
-			Debug.outNoStack( "all_peers.isEmpty()" );
-			return null;
-		}
+		if( all_peers.isEmpty() ) 	return new LinkedList();
 		
 		down_unchoker.calculateUnchokes( max_sessions, all_peers, false );  //TODO extract only the code actually used
 		
@@ -190,8 +201,7 @@ public class UploadSessionPicker {
 		}
 		
 		if( best.isEmpty() ) {
-			Debug.outNoStack( "best.isEmpty()" );
-			return null;
+			return new LinkedList();
 		}
 		
 		

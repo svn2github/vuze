@@ -59,16 +59,18 @@ public class UploadSession {
 	
 
 	protected boolean isSameSession( UploadSession session ) {
+		if( session == null )  return false;
 		return this.peer == session.peer;
 	}
 	
 	
 	protected String getStatsTrace() {
+		String n = peer.getManager().getDisplayName();
 		String t = session_type == TYPE_DOWNLOAD ? "DOWNLOADING" : "SEEDING";		
-		String p = " : " +peer.getClient()+ " " +peer.getIp()+ ":" +peer.getPort();		
-		String s = " : " +DisplayFormatters.formatByteCountToKiBEtcPerSec( peer.getStats().getDataReceiveRate() )+
-							  ", " +DisplayFormatters.formatByteCountToKiBEtcPerSec( peer.getStats().getDataSendRate() );		
-		return t + p + s;
+		String p = " : [" +peer.getClient()+ "] " +peer.getIp()+ " :" +peer.getPort();		
+		String s = " || (D: " +DisplayFormatters.formatByteCountToKiBEtcPerSec( peer.getStats().getDataReceiveRate() )+
+							  ") (U: " +DisplayFormatters.formatByteCountToKiBEtcPerSec( peer.getStats().getDataSendRate() )+ ")";		
+		return "[" +n+ "] " + t + p + s;
 	}
 	
 	

@@ -51,6 +51,8 @@ import com.aelitis.azureus.core.peermanager.nat.PeerNATTraverser;
 import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.*;
 import com.aelitis.azureus.core.peermanager.unchoker.*;
+import com.aelitis.azureus.core.peermanager.uploadslots.UploadHelper;
+import com.aelitis.azureus.core.peermanager.uploadslots.UploadSlotManager;
 
 /**
  * manages all peer transports for a torrent
@@ -141,7 +143,28 @@ PEPeerControlImpl
 
     private Map                 user_data;
 
-	private Unchoker		unchoker;
+	
+    
+    
+    
+  private Unchoker unchoker;
+  
+	private final UploadHelper upload_helper = new UploadHelper() {		
+		public int getPriority() {			
+			return UploadHelper.PRIORITY_NORMAL;  //TODO also must call UploadSlotManager.getSingleton().updateHelper( upload_helper ); on priority change
+		}
+		
+		public ArrayList getAllPeers() {
+			ArrayList peer_transports = peer_transports_cow;
+			return peer_transports;
+		}		
+	
+		public boolean isSeeding() {
+			return seeding_mode;
+		}		
+	};
+	
+	
 	
 	private PeerDatabase	peer_database;
 	
@@ -271,7 +294,9 @@ PEPeerControlImpl
 		PeerNATTraverser.getSingleton().register( this );
 		
 		PeerControlSchedulerFactory.getSingleton().register(this);
-
+		
+		UploadSlotManager.getSingleton().registerHelper( upload_helper );
+		
 		lastNeededUndonePieceChange =Long.MIN_VALUE;
 		_timeStarted =SystemTime.getCurrentTime();
 
@@ -286,6 +311,9 @@ PEPeerControlImpl
 	{
 		is_running =false;
 
+		
+		UploadSlotManager.getSingleton().deregisterHelper( upload_helper );
+		
 		PeerControlSchedulerFactory.getSingleton().unregister(this);
 
 		PeerNATTraverser.getSingleton().unregister( this );
@@ -1268,48 +1296,51 @@ PEPeerControlImpl
 			
 			// logic below is either 1 second or 10 secondly, bail out early id neither
 		
-		if( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL != 0 ) { 
-			return;
-		}
+		if( !UploadSlotManager.AUTO_SLOT_ENABLE ) {		 //manual per-torrent unchoke slot mode
+		
+			if( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL != 0 ) { 
+				return;
+			}
 
-		final int max_to_unchoke = adapter.getMaxUploads();  //how many simultaneous uploads we should consider
-		final ArrayList peer_transports = peer_transports_cow;
+			final int max_to_unchoke = adapter.getMaxUploads();  //how many simultaneous uploads we should consider
+			final ArrayList peer_transports = peer_transports_cow;
 		
-		//determine proper unchoker
-		if( seeding_mode ) {
-			if( unchoker == null || !(unchoker instanceof SeedingUnchoker) ) {
-				unchoker = new SeedingUnchoker();
-			}
-		}
-		else {
-			if( unchoker == null || !(unchoker instanceof DownloadingUnchoker) ) {
-				unchoker = new DownloadingUnchoker();
-			}
-		}
-		
-		
-		//do main choke/unchoke update every 10 secs
-		if( mainloop_loop_count % MAINLOOP_TEN_SECOND_INTERVAL == 0 ) {
-			
-			final boolean refresh = mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0;
-			
-			unchoker.calculateUnchokes( max_to_unchoke, peer_transports, refresh );
-			
-			UnchokerUtil.performChokes( unchoker.getChokes(), unchoker.getUnchokes() );
-		}
-		else if( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ) {  //do quick unchoke check every 1 sec
-			
-			final ArrayList peers_to_unchoke = unchoker.getImmediateUnchokes( max_to_unchoke, peer_transports );
-			
-			//ensure that lan-local peers always get unchoked
-			for( Iterator it=peer_transports.iterator();it.hasNext();) {
-				final PEPeerTransport peer = (PEPeerTransport)it.next();				
-				if( peer.isLANLocal() ) {
-					peers_to_unchoke.add( peer );
+			//determine proper unchoker
+			if( seeding_mode ) {
+				if( unchoker == null || !(unchoker instanceof SeedingUnchoker) ) {
+					unchoker = new SeedingUnchoker();
 				}
 			}
+			else {
+				if( unchoker == null || !(unchoker instanceof DownloadingUnchoker) ) {
+					unchoker = new DownloadingUnchoker();
+				}
+			}
+			
+			//do main choke/unchoke update every 10 secs
+			if( mainloop_loop_count % MAINLOOP_TEN_SECOND_INTERVAL == 0 ) {
+			
+				final boolean refresh = mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0;
+			
+				unchoker.calculateUnchokes( max_to_unchoke, peer_transports, refresh );
+			
+				UnchokerUtil.performChokes( unchoker.getChokes(), unchoker.getUnchokes() );
+			}
+			else if( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ) {  //do quick unchoke check every 1 sec
+			
+				final ArrayList peers_to_unchoke = unchoker.getImmediateUnchokes( max_to_unchoke, peer_transports );
+			
+				//ensure that lan-local peers always get unchoked   //TODO
+				for( Iterator it=peer_transports.iterator();it.hasNext();) {
+					final PEPeerTransport peer = (PEPeerTransport)it.next();				
+					if( peer.isLANLocal() ) {
+						peers_to_unchoke.add( peer );
+					}
+				}
 						
-			UnchokerUtil.performChokes( null, peers_to_unchoke );
+				UnchokerUtil.performChokes( null, peers_to_unchoke );
+			}
+		
 		}
 		
 	}
