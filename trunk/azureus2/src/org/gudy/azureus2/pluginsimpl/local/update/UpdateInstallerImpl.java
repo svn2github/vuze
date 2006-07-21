@@ -51,13 +51,6 @@ UpdateInstallerImpl
 	private UpdateManager	manager;
 	private File			install_dir;
 	
-	protected
-	UpdateInstallerImpl(
-		UpdateManager	_manager )
-	{
-		manager	= _manager;
-	}
-	
 	protected static void
 	checkForFailedInstalls(
 		UpdateManager	manager )
@@ -98,10 +91,13 @@ UpdateInstallerImpl
 	}
 	
 	protected
-	UpdateInstallerImpl()
+	UpdateInstallerImpl(
+		UpdateManager	_manager )
 	
 		throws UpdateException
 	{
+		manager	= _manager;
+		
 		try{
 			class_mon.enter();
 			

@@ -179,7 +179,7 @@ UpdateManagerImpl
 		
 		throws UpdateException
 	{
-		UpdateInstaller	installer = new UpdateInstallerImpl();
+		UpdateInstaller	installer = new UpdateInstallerImpl( this );
 		
 		installers.add( installer );
 		
