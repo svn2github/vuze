@@ -83,8 +83,12 @@ RDResumeHandler
 	private volatile boolean	started;
 	private volatile boolean	stopped;
 	private volatile boolean	stopped_for_close;
-	private volatile int		stopped_mid_check_position	= -1;
-	private volatile boolean	recheck_in_progress;
+	
+	private volatile boolean	check_in_progress;
+	private volatile boolean	check_resume_was_valid;
+	private volatile boolean	check_is_full_check;
+	private volatile boolean	check_interrupted;
+	private volatile int		check_position;
 	
 
 	public 
@@ -111,8 +115,14 @@ RDResumeHandler
 	stop(
 		boolean	closing )
 	{	
-		stopped				= true;
 		stopped_for_close	= stopped_for_close | closing;	// can get in here > once during close
+
+		if ( check_in_progress ){
+			
+			check_interrupted	= true;
+		}
+		
+		stopped				= true;
 	}
 	
 	public void 
@@ -129,7 +139,7 @@ RDResumeHandler
 			boolean	resume_data_complete = false;
 			
 			try{
-				recheck_in_progress	= true;
+				check_in_progress	= true;
 				
 				boolean resumeEnabled = use_fast_resume;
 				
@@ -201,12 +211,16 @@ RDResumeHandler
 									
 					if ( resume_pieces == null ){
 						
+						check_is_full_check	= true;
+						
 						resumeValid	= false;
 						
 						resume_pieces	= new byte[pieces.length];
 						
 						Arrays.fill( resume_pieces, PIECE_RECHECK_REQUIRED );
 					}
+					
+					check_resume_was_valid = resumeValid;
 					
 						// calculate the current file sizes up front for performance reasons
 					
@@ -251,7 +265,38 @@ RDResumeHandler
 						}
 					}
 					
+					if (Logger.isEnabled()){
+
+						int	total_not_done	= 0;
+						int	total_done		= 0;
+						int total_started	= 0;
+						int	total_recheck	= 0;
+						
+						for (int i = 0; i < pieces.length; i++){
+							
+							byte	piece_state = resume_pieces[i];
+
+							if ( piece_state == PIECE_NOT_DONE ){
+								total_not_done++;
+							}else if ( piece_state == PIECE_DONE ){
+								total_done++;
+							}else if ( piece_state == PIECE_STARTED ){
+								total_started++;
+							}else{
+								total_recheck++;
+							}
+						}
+						
+						String	str = "valid=" + resumeValid + ",not done=" + total_not_done + ",done=" + total_done + 
+										",started=" + total_started + ",recheck=" + total_recheck + ",rc all=" + recheck_all +
+										",full=" + check_is_full_check;
+						
+						Logger.log(new LogEvent(disk_manager, LOGID, str ));
+					}
+
 					for (int i = 0; i < pieces.length; i++){
+						
+						check_position	= i;
 						
 						DiskManagerPiece	dm_piece	= pieces[i];
 						
@@ -330,12 +375,7 @@ RDResumeHandler
 								}
 								
 								if ( stopped ){
-									
-										// we only flag as stopped mid-check if the stop action has prevented
-										// a hash check from occurring
-									
-									stopped_mid_check_position	= i;
-									
+																		
 									break;
 									
 								}else{
@@ -430,6 +470,8 @@ RDResumeHandler
 					
 					for (int i = 0; i < pieces.length; i++){
 	
+						check_position	= i;
+						
 						run_sem.reserve();
 	
 						while( ! stopped ){
@@ -441,9 +483,7 @@ RDResumeHandler
 						}
 						
 						if ( stopped ){
-							
-							stopped_mid_check_position	= i;
-							
+														
 							break;
 						}
 											
@@ -507,7 +547,7 @@ RDResumeHandler
 				}
 			}finally{
 				
-				recheck_in_progress	= false;
+				check_in_progress	= false;
 			}
 			
 				//dump the newly built resume data to the disk/torrent
@@ -544,7 +584,7 @@ RDResumeHandler
 	
 		throws Exception
 	{	
-		if ( recheck_in_progress && interim_save ){
+		if ( check_in_progress && interim_save ){
 		
 				// while we are rechecking it is important that an interim save doesn't come
 				// along and overwite the persisted resume data. This is because should we crash 
@@ -594,7 +634,7 @@ RDResumeHandler
 				// if we are terminating due to az closure and this has interrupted a recheck then
 				// make sure that the recheck continues appropriately on restart
 			
-			if ( stopped_for_close && stopped_mid_check_position != -1 && i >= stopped_mid_check_position ){
+			if ( stopped_for_close && check_interrupted && check_is_full_check && i >= check_position ){
 				
 				resume_pieces[i] = PIECE_RECHECK_REQUIRED;
 				
@@ -667,9 +707,21 @@ RDResumeHandler
 		
 		resume_data.put("blocks", partialPieces);
 		
-		long lValid = 0;
+		long lValid;
 		
-		if ( !( interim_save || stopped_mid_check_position != -1 )){
+		if ( check_interrupted ){
+			
+				// set validity to what it was before the check started
+			
+			lValid = check_resume_was_valid?1:0;
+			
+		}else if ( interim_save ){
+		
+				// set invalid so that not-done pieces get rechecked on startup 
+			
+			lValid = 0;
+			
+		}else{
 			
 			lValid = 1;
 		}

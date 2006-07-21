@@ -1108,7 +1108,7 @@ public class GlobalManagerImpl
   
   saveDownloads( true );
   
-  stopAllDownloads();
+  stopAllDownloads( true );
 
   if ( stats_writer != null ){
   	
