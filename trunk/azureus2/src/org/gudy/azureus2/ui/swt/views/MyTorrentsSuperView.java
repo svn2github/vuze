@@ -214,6 +214,13 @@ public class MyTorrentsSuperView extends AbstractIView implements
 		} else if (weight < 100) {
 			weight *= 100;
 		}
+		
+		// Min/max of 1%/99%
+		if (weight < 100) {
+			weight = 100;
+		} else if (weight > 9000) {
+			weight = 9000;
+		}
     form.setWeights(new int[] {weight,10000 - weight});
   }
 
