@@ -133,13 +133,11 @@ public class UploadSlotManager {
 					slot.setExpireRound( current_round + EXPIRE_OPTIMISTIC );  //set the new expire time
 				}
 				else {   //normal					
-					if( best_sessions.isEmpty() ) {  //no download mode peers, must be only seeding				
-						session = pickOptSession();
-						if( session == null )  continue;
-					}
-					else {
-						session = (UploadSession)best_sessions.removeFirst();
-						//TODO check if this session is already in a slot somewhere
+					session = getNextBestSession( best_sessions );  //get the next "best" session
+					
+					if( session == null ) {  //no download mode peers, must be only seeding; or all best are already slotted						
+						session = pickOptSession();   //just pick the next optimistic
+						if( session == null )  continue;   //no optimistic either
 					}
 					
 					slot.setSession( session );  //place the session in the slot
@@ -177,6 +175,23 @@ public class UploadSlotManager {
 		
 		printSlotStats();		
 	}
+	
+	
+	
+	private UploadSession getNextBestSession( LinkedList best ) {
+		while( !best.isEmpty() ) {
+			UploadSession session = (UploadSession)best.removeFirst();   //get next
+			
+			if( !isAlreadySlotted( session ) ) {   //found an unslotted session
+				return session;
+			}			
+			
+			return getNextBestSession( best );			//oops, already been slotted, try again
+		}
+		
+		return null;
+	}
+	
 	
 	
 	
