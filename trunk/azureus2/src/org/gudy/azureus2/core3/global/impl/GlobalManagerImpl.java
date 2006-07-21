@@ -262,12 +262,7 @@ public class GlobalManagerImpl
             	
 	        		manager.startDownload();
 	           }
-	        }
-	        
-	        
-	        //run global upload slot manager process
-	        UploadSlotManager.getSingleton().process();
-	        
+	        }        
 
       	}catch( Throwable e ){
       		
