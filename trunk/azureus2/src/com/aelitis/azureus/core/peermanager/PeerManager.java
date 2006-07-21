@@ -188,8 +188,12 @@ public class PeerManager {
     			try{
     				managers_mon.enter();
     				  		
-    				routing_data = (PeerManagerRegistrationImpl)registered_legacy_managers.get( new HashWrapper( hash ));
-    				
+       				List	registrations = (List)registered_legacy_managers.get( new HashWrapper( hash ));
+       				
+       				if ( registrations != null ){
+       					
+       					routing_data = (PeerManagerRegistrationImpl)registrations.get(0);
+       				}
     			}finally{
     				
     				managers_mon.exit();
@@ -297,17 +301,24 @@ public class PeerManager {
 	  try{
 		  managers_mon.enter();
 		  		
-		  if ( registered_legacy_managers.get( hash ) != null ){
+		  	// normally we only get a max of 1 of these. However, due to DownloadManager crazyness
+		  	// we can get an extra one when adding a download that already exists...
+		  
+		  List	registrations = (List)registered_legacy_managers.get( hash );
 			  
-			  Debug.out( "manager already registered" );
-		  }
+		  if ( registrations == null ){
+			  
+			  registrations = new ArrayList(1);
+			  
+			  registered_legacy_managers.put( hash, registrations );
 		  		  
-		  IncomingConnectionManager.getSingleton().addSharedSecret( hash.getBytes());
+			  IncomingConnectionManager.getSingleton().addSharedSecret( hash.getBytes());
+		  }
 		  
 		  PeerManagerRegistration	registration = new PeerManagerRegistrationImpl( hash, adapter );
+		    
+		  registrations.add( registration );
 		  
-		  registered_legacy_managers.put( hash, registration );
-			  
 		  return( registration );
 	  }finally{
 		  
@@ -456,11 +467,26 @@ public class PeerManager {
 			  deactivate();
 		  }
 		  
-		  IncomingConnectionManager.getSingleton().removeSharedSecret( hash.getBytes());
+		  List	registrations = (List)registered_legacy_managers.get( hash );
 		  
-		  if ( registered_legacy_managers.remove( hash ) == null ){
+		  if ( registrations == null ){
 			  
 			  Debug.out( "manager already deregistered" );
+			  
+		  }else{
+			  
+			  if ( registrations.remove( this )){
+				
+				  if ( registrations.size() == 0 ){
+					  
+					  IncomingConnectionManager.getSingleton().removeSharedSecret( hash.getBytes());
+					  
+					  registered_legacy_managers.remove( hash );
+				  }
+			  }else{
+			
+				  Debug.out( "manager already deregistered" );
+			  }
 		  }
 	  }finally{
 		  

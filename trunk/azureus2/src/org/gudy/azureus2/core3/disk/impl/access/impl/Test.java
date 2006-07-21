@@ -301,7 +301,7 @@ Test
 		}
 		
 		public void
-		destroy()
+		destroy( boolean is_duplicate )
 		{
 		}
 		

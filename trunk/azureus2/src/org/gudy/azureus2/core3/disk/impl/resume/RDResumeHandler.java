@@ -82,7 +82,8 @@ RDResumeHandler
 		
 	private boolean				started;
 	private boolean				stopped;
-	private boolean				bStoppedMidCheck;
+	private boolean				stopped_for_close;
+	private int					stopped_mid_check_position	= -1;
 	
 
 	public 
@@ -106,9 +107,11 @@ RDResumeHandler
 	}
 	
 	public void
-	stop()
+	stop(
+		boolean	closing )
 	{	
-		stopped	= true;
+		stopped				= true;
+		stopped_for_close	= stopped_for_close | closing;	// can get in here > once during close
 	}
 	
 	public void 
@@ -327,7 +330,7 @@ RDResumeHandler
 									// we only flag as stopped mid-check if the stop action has prevented
 									// a hash check from occurring
 								
-								bStoppedMidCheck	= true;
+								stopped_mid_check_position	= i;
 								
 								break;
 								
@@ -435,7 +438,7 @@ RDResumeHandler
 					
 					if ( stopped ){
 						
-						bStoppedMidCheck = true;
+						stopped_mid_check_position	= i;
 						
 						break;
 					}
@@ -566,7 +569,14 @@ RDResumeHandler
 	  	
 			DiskManagerPiece piece = pieces[i];
 
-		  	if ( piece.isDone()){
+				// if we are terminating due to az closure and this has interrupted a recheck then
+				// make sure that the recheck continues appropriately on restart
+			
+			if ( stopped_for_close && stopped_mid_check_position != -1 && i >= stopped_mid_check_position ){
+				
+				resume_pieces[i] = PIECE_RECHECK_REQUIRED;
+				
+			}else if ( piece.isDone()){
 		  		
 				resume_pieces[i] = PIECE_DONE;
 		  		
@@ -637,7 +647,7 @@ RDResumeHandler
 		
 		long lValid = 0;
 		
-		if ( !( interim_save || bStoppedMidCheck )){
+		if ( !( interim_save || stopped_mid_check_position != -1 )){
 			
 			lValid = 1;
 		}
@@ -706,8 +716,6 @@ RDResumeHandler
 		resume_map.put( "data", resume_data );
 		
 		download_manager_state.setResumeData( resume_map );
-		
-		download_manager_state.save();
 	}
 	
 	

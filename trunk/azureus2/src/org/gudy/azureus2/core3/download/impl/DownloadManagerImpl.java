@@ -3017,46 +3017,56 @@ DownloadManagerImpl
 	}
 
 	public void
-	destroy()
+	destroy(
+		boolean	is_duplicate )
 	{
-		try{
-	   	// Data files don't exist, so we just don't do anything.
-	    	if (!getSaveLocation().exists()) {return;}
-	    	
-	    	DiskManager dm = this.getDiskManager();
-	    	if (dm != null) {
-	    		dm.downloadRemoved();
-	    		return;
-	    	}
-	    	    	
-	    	DiskManagerImpl.MoveDownloadInfo mdi = DiskManagerImpl.getMoveDownloadInfoOnRemoval(this, this);
-	    	if (mdi == null) {
-	    		return;
-	    	}
-	    	
-	    	boolean moved_files = false;
-	    	try {
-	    		this.moveDataFiles(new File(mdi.location));
-	    		moved_files = true;
-	    	}
-	    	catch (Exception e) {
-	    		Logger.log(new LogAlert(true, "Problem moving files to removed download directory", e));
-	    	}
-	    	
-	    	// This code will silently fail if the torrent file doesn't exist.
-	    	if (moved_files && mdi.move_torrent) {
-	  		    try {
-		    		this.moveTorrentFile(new File(mdi.location));
+		if ( is_duplicate ){
+	
+				// minimal tear-down
+			
+			controller.destroy();
+			
+		}else{
+		
+			try{
+		   	// Data files don't exist, so we just don't do anything.
+		    	if (!getSaveLocation().exists()) {return;}
+		    	
+		    	DiskManager dm = this.getDiskManager();
+		    	if (dm != null) {
+		    		dm.downloadRemoved();
+		    		return;
+		    	}
+		    	    	
+		    	DiskManagerImpl.MoveDownloadInfo mdi = DiskManagerImpl.getMoveDownloadInfoOnRemoval(this, this);
+		    	if (mdi == null) {
+		    		return;
+		    	}
+		    	
+		    	boolean moved_files = false;
+		    	try {
+		    		this.moveDataFiles(new File(mdi.location));
+		    		moved_files = true;
 		    	}
 		    	catch (Exception e) {
-		    		Logger.log(new LogAlert(true, "Problem moving torrent to removed download directory", e));
+		    		Logger.log(new LogAlert(true, "Problem moving files to removed download directory", e));
 		    	}
-	    	}
-		}finally{
-			
-			clearFileLinks();
-			
-			controller.destroy(); 
+		    	
+		    	// This code will silently fail if the torrent file doesn't exist.
+		    	if (moved_files && mdi.move_torrent) {
+		  		    try {
+			    		this.moveTorrentFile(new File(mdi.location));
+			    	}
+			    	catch (Exception e) {
+			    		Logger.log(new LogAlert(true, "Problem moving torrent to removed download directory", e));
+			    	}
+		    	}
+			}finally{
+				
+				clearFileLinks();
+				
+				controller.destroy(); 
+			}
 		}
 	}
 }

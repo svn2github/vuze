@@ -489,6 +489,10 @@ DownloadManagerStateImpl
 			
 			this_mon.exit();
 		}
+		
+			// we need to ensure this is persisted now as it has implications regarding crash restarts etc
+	
+		save();
 	}
 	
 	public TOTorrent

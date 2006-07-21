@@ -360,7 +360,7 @@ DiskManagerImpl
 
                         if ( stop_required ){
 
-                            DiskManagerImpl.this.stop();
+                            DiskManagerImpl.this.stop( false );
                         }
                     }
                 };
@@ -454,7 +454,8 @@ DiskManagerImpl
     }
 
     public void
-    stop()
+    stop(
+    	boolean	closing )
     {
         try{
             start_stop_mon.enter();
@@ -482,7 +483,7 @@ DiskManagerImpl
 
                 reader.stop();
 
-                resume_handler.stop();
+                resume_handler.stop( closing );
 
                 return;
             }
@@ -504,7 +505,7 @@ DiskManagerImpl
 
         reader.stop();
 
-        resume_handler.stop();
+        resume_handler.stop( closing );
 
         if ( files != null ){
 
@@ -1261,7 +1262,7 @@ DiskManagerImpl
 
                 setState( DiskManager.FAULTY );
 
-                DiskManagerImpl.this.stop();
+                DiskManagerImpl.this.stop( false );
             }
         }.start();
 
@@ -1291,7 +1292,7 @@ DiskManagerImpl
 
                 setState( DiskManager.FAULTY );
 
-                DiskManagerImpl.this.stop();
+                DiskManagerImpl.this.stop( false );
 
                 RDResumeHandler.recheckFile( download_manager, file );
             }

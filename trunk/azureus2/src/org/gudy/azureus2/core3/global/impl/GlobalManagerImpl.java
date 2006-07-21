@@ -689,7 +689,9 @@ public class GlobalManagerImpl
         if (existing_index != -1) {
         	
         	DownloadManager existing = (DownloadManager)managers_cow.get(existing_index);
-                	        	
+                	
+        	download_manager.destroy( true );
+        	
         	return( existing );
         }
                 
@@ -1023,7 +1025,7 @@ public class GlobalManagerImpl
     	managers_mon.exit();
     }
 	
-	manager.destroy();
+	manager.destroy( false );
 	
     fixUpDownloadManagerPositions();
     
@@ -1121,6 +1123,10 @@ public class GlobalManagerImpl
   }
 
   public void stopAllDownloads() {
+	  stopAllDownloads(false);
+  }
+  
+  protected void stopAllDownloads(boolean for_close ) {
     for (Iterator iter = managers_cow.iterator(); iter.hasNext();) {
       DownloadManager manager = (DownloadManager) iter.next();
       
@@ -1129,7 +1135,7 @@ public class GlobalManagerImpl
       if( state != DownloadManager.STATE_STOPPED &&
           state != DownloadManager.STATE_STOPPING ) {
         
-        manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
+        manager.stopIt( for_close?DownloadManager.STATE_CLOSED:DownloadManager.STATE_STOPPED, false, false );
       }
     }
   }

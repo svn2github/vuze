@@ -55,7 +55,8 @@ DiskManager
 	start();
 	
 	public void
-	stop();
+	stop(
+		boolean	closing );
 	
 	/**
 	  * @return whether all files exist and sizes match

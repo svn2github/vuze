@@ -211,16 +211,6 @@ DownloadManagerController
 		}
 	}
 
-	public void setStateDownloading() {
-		if (getState() == DownloadManager.STATE_SEEDING) {
-			setState(DownloadManager.STATE_DOWNLOADING, true);
-		} else if (getState() != DownloadManager.STATE_DOWNLOADING) {
-			Logger.log(new LogEvent(this, LogIDs.CORE, LogEvent.LT_WARNING,
-					"Trying to set state to downloading when state is not seeding"));
-		}
-	}
-	
-
 	public void 
 	startDownload(
 		TRTrackerAnnouncer	tracker_client ) 
@@ -281,7 +271,7 @@ DownloadManagerController
 	
 		}
 		
-			// make sure it is started beore making it "visible"
+			// make sure it is started before making it "visible"
 		
 		final PEPeerManager temp = PEPeerManagerFactory.create( tracker_client.getPeerId(), this, dm );
 		
@@ -502,7 +492,7 @@ DownloadManagerController
 				
 					// we shouldn't get here but try to recover the situation
 				
-				old_dm.stop();
+				old_dm.stop( false );
 				
 				setDiskManager( null );
 			}
@@ -619,7 +609,7 @@ DownloadManagerController
 	  	  								
 	  	  								if ( dm != null ){
 	  	  									  					  		
-	  	  									dm.stop();
+	  	  									dm.stop( false );
 		  							
 	  	  									only_seeding	= dm.getRemainingExcludingDND() == 0;
 	  	  									
@@ -665,7 +655,7 @@ DownloadManagerController
   	  								
   	  								if ( dm != null ){
 
-  	  									dm.stop();
+  	  									dm.stop( false );
 		  					
   	  									setDiskManager( null );
 		  						
@@ -711,10 +701,19 @@ DownloadManagerController
   
 	public void 
 	stopIt(
-		final int 			_stateAfterStopping, 
+		int 				_stateAfterStopping, 
 		final boolean 		remove_torrent, 
 		final boolean 		remove_data )
 	{	  
+		boolean closing = _stateAfterStopping == DownloadManager.STATE_CLOSED;
+		
+		if ( closing ){
+			
+			_stateAfterStopping = DownloadManager.STATE_STOPPED;
+		}
+		
+		final int stateAfterStopping	= _stateAfterStopping;
+		
 		try{
 			this_mon.enter();
 		
@@ -770,9 +769,7 @@ DownloadManagerController
 					
 				});
 						
-			try{
-				int	stateAfterStopping = _stateAfterStopping;
-				
+			try{				
 				try{
 		  								
 					if ( peer_manager != null ){
@@ -792,7 +789,7 @@ DownloadManagerController
 					
 					if ( dm != null ){
 						
-						dm.stop();
+						dm.stop( closing );
 
 						stats.setCompleted(stats.getCompleted());
 						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
@@ -858,7 +855,19 @@ DownloadManagerController
   	{
   		setState(DownloadManager.STATE_FINISHING, true);
   	}
-  
+
+	public void 
+	setStateDownloading() 
+	{	
+		if (getState() == DownloadManager.STATE_SEEDING) {
+			setState(DownloadManager.STATE_DOWNLOADING, true);
+		} else if (getState() != DownloadManager.STATE_DOWNLOADING) {
+			Logger.log(new LogEvent(this, LogIDs.CORE, LogEvent.LT_WARNING,
+					"Trying to set state to downloading when state is not seeding"));
+		}
+	}
+	
+
   	public void
   	setStateSeeding(
   		boolean	never_downloaded )
@@ -1046,6 +1055,8 @@ DownloadManagerController
 		if ( peer_manager_registration != null ){
 			
 			peer_manager_registration.unregister();
+			
+			peer_manager_registration	= null;
 		}
 	}
 	

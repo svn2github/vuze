@@ -54,7 +54,9 @@ DownloadManager
 
     // Stopped: can't be automatically started
 
-    public static final int STATE_STOPPED = 70;
+    public static final int STATE_STOPPED 	= 70;
+    public static final int STATE_CLOSED	= 71;	// download never *has* this state, just used to inform 
+    												// when stopping for az closedown
 
     // Queued: Same as stopped, except can be automatically started
 
@@ -442,12 +444,12 @@ DownloadManager
 
         /**
          * Indicates that the download manager is no longer needed
-         *
+         * @param is_duplicate indicates whether this dm is being destroyed because it is a duplicate 
          */
 
     public void
-    destroy();
-
+    destroy(
+    	boolean	is_duplicate );
 
     public PEPiece[]
     getCurrentPieces();
