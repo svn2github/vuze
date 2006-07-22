@@ -41,7 +41,7 @@ public class UploadSlotManager {
 	private static final int EXPIRE_SEED				= 6;   //6 rounds = 60sec upload
 	
 	
-	public static boolean AUTO_SLOT_ENABLE = true;	//TODO
+	public static boolean AUTO_SLOT_ENABLE = false;	//TODO
 	
 	
 	
