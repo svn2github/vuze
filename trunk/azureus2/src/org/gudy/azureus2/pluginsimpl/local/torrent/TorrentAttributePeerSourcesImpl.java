@@ -27,61 +27,18 @@ package org.gudy.azureus2.pluginsimpl.local.torrent;
  *
  */
 
-import java.util.*;
-
-import org.gudy.azureus2.plugins.torrent.*;
-
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 
-public class 
-TorrentAttributePeerSourcesImpl
-	implements TorrentAttribute
-{
-	private List	listeners = new ArrayList();
+public class TorrentAttributePeerSourcesImpl extends BaseTorrentAttributeImpl {
+
+	protected TorrentAttributePeerSourcesImpl() {}
 	
-	protected
-	TorrentAttributePeerSourcesImpl()
-	{
+	public String getName()	{
+		return TA_PEER_SOURCES;
 	}
 	
-	public String
-	getName()
-	{
-		return( TA_PEER_SOURCES );
+	public String[]	getDefinedValues() {
+		return PEPeerSource.PS_SOURCES;
 	}
 	
-	public String[]
-	getDefinedValues()
-	{
-		return( PEPeerSource.PS_SOURCES );
-	}
-	
-	public void
-	addDefinedValue(
-		String		name )
-	{
-		throw( new RuntimeException( "not supported" ));
-	}
-	
-	
-	public void
-	removeDefinedValue(
-		String		name )
-	{
-		throw( new RuntimeException( "not supported" ));
-	}
-	
-	public void
-	addTorrentAttributeListener(
-		TorrentAttributeListener	l )
-	{
-		listeners.add( l );
-	}
-	
-	public void
-	removeTorrentAttributeListener(
-		TorrentAttributeListener	l )
-	{
-		listeners.remove( l );
-	}
 }

@@ -31,58 +31,20 @@ import java.util.*;
 
 import org.gudy.azureus2.plugins.torrent.*;
 
-public class 
-TorrentAttributePluginImpl
-	implements TorrentAttribute
-{
+public class TorrentAttributePluginImpl extends BaseTorrentAttributeImpl {
+
 	private String	name;
-	private List	listeners = new ArrayList();
 	
-	protected
-	TorrentAttributePluginImpl(
-		String		_name )
-	{
-		name	= _name;
+	protected TorrentAttributePluginImpl(String	_name) {
+		this.name = _name;
 	}
 
-	public String
-	getName()
-	{
-		return( name );
+	public String getName() {
+		return this.name;
 	}
 	
-	public String[]
-	getDefinedValues()
-	{
-		throw( new RuntimeException( "not supported" ));
+	public String[] getDefinedValues() {
+		throw new RuntimeException("not supported");
 	}
-	
-	public void
-	addDefinedValue(
-		String		name )
-	{
-		throw( new RuntimeException( "not supported" ));
-	}
-	
-	
-	public void
-	removeDefinedValue(
-		String		name )
-	{
-		throw( new RuntimeException( "not supported" ));
-	}
-	
-	public void
-	addTorrentAttributeListener(
-		TorrentAttributeListener	l )
-	{
-		listeners.add( l );
-	}
-	
-	public void
-	removeTorrentAttributeListener(
-		TorrentAttributeListener	l )
-	{
-		listeners.remove( l );
-	}
+
 }

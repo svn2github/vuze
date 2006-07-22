@@ -27,20 +27,18 @@ package org.gudy.azureus2.pluginsimpl.local.torrent;
  *
  */
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 import org.gudy.azureus2.core3.category.*;
-import org.gudy.azureus2.core3.util.Debug;
 
-public class 
-TorrentAttributeCategoryImpl
-	implements TorrentAttribute
-{
-	private List	listeners = new ArrayList();
-	
+
+public class TorrentAttributeCategoryImpl extends BaseTorrentAttributeImpl {
+
 	protected
 	TorrentAttributeCategoryImpl()
 	{
@@ -73,16 +71,7 @@ TorrentAttributeCategoryImpl
 								}
 							};
 							
-						for (int i=0;i<listeners.size();i++){
-							
-							try{
-								((TorrentAttributeListener)listeners.get(i)).event( ev );
-								
-							}catch( Throwable e ){
-								
-								Debug.printStackTrace(e);
-							}
-						}
+							TorrentAttributeCategoryImpl.this.notifyListeners(ev);
 					}
 						
 					public void
@@ -111,16 +100,8 @@ TorrentAttributeCategoryImpl
 								}
 							};
 							
-						for (int i=0;i<listeners.size();i++){
-							
-							try{
-								((TorrentAttributeListener)listeners.get(i)).event( ev );
-								
-							}catch( Throwable e ){
-								
-								Debug.printStackTrace(e);
-							}
-						}					}
+							TorrentAttributeCategoryImpl.this.notifyListeners(ev);
+					}
 				});
 	}
 	
@@ -177,18 +158,5 @@ TorrentAttributeCategoryImpl
 			CategoryManager.removeCategory( cat );
 		}
 	}
-	
-	public void
-	addTorrentAttributeListener(
-		TorrentAttributeListener	l )
-	{
-		listeners.add( l );
-	}
-	
-	public void
-	removeTorrentAttributeListener(
-		TorrentAttributeListener	l )
-	{
-		listeners.remove( l );
-	}
+
 }

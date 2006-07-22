@@ -27,59 +27,12 @@ package org.gudy.azureus2.pluginsimpl.local.torrent;
  *
  */
 
-import java.util.*;
+public class TorrentAttributeTrackerClientExtImpl extends BaseTorrentAttributeImpl {
 
-import org.gudy.azureus2.plugins.torrent.*;
-
-public class 
-TorrentAttributeTrackerClientExtImpl
-	implements TorrentAttribute
-{
-	private List	listeners = new ArrayList();
+	protected TorrentAttributeTrackerClientExtImpl() {}
 	
-	protected
-	TorrentAttributeTrackerClientExtImpl()
-	{
+	public String getName() {
+		return TA_TRACKER_CLIENT_EXTENSIONS;
 	}
 	
-	public String
-	getName()
-	{
-		return( TA_TRACKER_CLIENT_EXTENSIONS );
-	}
-	
-	public String[]
-	getDefinedValues()
-	{
-		return( new String[0] );
-	}
-	
-	public void
-	addDefinedValue(
-		String		name )
-	{
-		throw( new RuntimeException( "not supported" ));
-	}
-	
-	
-	public void
-	removeDefinedValue(
-		String		name )
-	{
-		throw( new RuntimeException( "not supported" ));
-	}
-	
-	public void
-	addTorrentAttributeListener(
-		TorrentAttributeListener	l )
-	{
-		listeners.add( l );
-	}
-	
-	public void
-	removeTorrentAttributeListener(
-		TorrentAttributeListener	l )
-	{
-		listeners.remove( l );
-	}
 }

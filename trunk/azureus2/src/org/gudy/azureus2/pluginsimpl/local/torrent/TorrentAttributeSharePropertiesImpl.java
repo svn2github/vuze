@@ -27,59 +27,12 @@ package org.gudy.azureus2.pluginsimpl.local.torrent;
  *
  */
 
-import java.util.*;
+public class TorrentAttributeSharePropertiesImpl extends BaseTorrentAttributeImpl {
 
-import org.gudy.azureus2.plugins.torrent.*;
+	protected TorrentAttributeSharePropertiesImpl() {}
+	
+	public String getName() {
+		return TA_SHARE_PROPERTIES;
+	}
 
-public class 
-TorrentAttributeSharePropertiesImpl
-	implements TorrentAttribute
-{
-	private List	listeners = new ArrayList();
-	
-	protected
-	TorrentAttributeSharePropertiesImpl()
-	{
-	}
-	
-	public String
-	getName()
-	{
-		return( TA_SHARE_PROPERTIES );
-	}
-	
-	public String[]
-	getDefinedValues()
-	{
-		return( new String[0] );
-	}
-	
-	public void
-	addDefinedValue(
-		String		name )
-	{
-		throw( new RuntimeException( "not supported" ));
-	}
-	
-	
-	public void
-	removeDefinedValue(
-		String		name )
-	{
-		throw( new RuntimeException( "not supported" ));
-	}
-	
-	public void
-	addTorrentAttributeListener(
-		TorrentAttributeListener	l )
-	{
-		listeners.add( l );
-	}
-	
-	public void
-	removeTorrentAttributeListener(
-		TorrentAttributeListener	l )
-	{
-		listeners.remove( l );
-	}
 }

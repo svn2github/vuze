@@ -27,61 +27,18 @@ package org.gudy.azureus2.pluginsimpl.local.torrent;
  *
  */
 
-import java.util.*;
-
-import org.gudy.azureus2.plugins.torrent.*;
-
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 
-public class 
-TorrentAttributeNetworksImpl
-	implements TorrentAttribute
-{
-	private List	listeners = new ArrayList();
+public class TorrentAttributeNetworksImpl extends BaseTorrentAttributeImpl {
 	
-	protected
-	TorrentAttributeNetworksImpl()
-	{
+	protected TorrentAttributeNetworksImpl() {}
+	
+	public String getName()	{
+		return TA_NETWORKS;
 	}
 	
-	public String
-	getName()
-	{
-		return( TA_NETWORKS );
+	public String[]	getDefinedValues() {
+		return AENetworkClassifier.AT_NETWORKS;
 	}
 	
-	public String[]
-	getDefinedValues()
-	{
-		return( AENetworkClassifier.AT_NETWORKS );
-	}
-	
-	public void
-	addDefinedValue(
-		String		name )
-	{
-		throw( new RuntimeException( "not supported" ));
-	}
-	
-	
-	public void
-	removeDefinedValue(
-		String		name )
-	{
-		throw( new RuntimeException( "not supported" ));
-	}
-	
-	public void
-	addTorrentAttributeListener(
-		TorrentAttributeListener	l )
-	{
-		listeners.add( l );
-	}
-	
-	public void
-	removeTorrentAttributeListener(
-		TorrentAttributeListener	l )
-	{
-		listeners.remove( l );
-	}
 }
