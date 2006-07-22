@@ -23,14 +23,23 @@
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
 
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Simple;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
@@ -73,6 +82,17 @@ DDBaseTTTorrent
 	private boolean				crypto_tested;
 	private boolean				crypto_available;
 	
+	private Map	data_cache = 
+		new LinkedHashMap(5,0.75f,true)
+		{
+			protected boolean 
+			removeEldestEntry(
+		   		Map.Entry eldest) 
+			{
+				return size() > 5;
+			}
+		};
+		
 	protected
 	DDBaseTTTorrent(
 		AzureusCore		_azureus_core,
@@ -169,6 +189,21 @@ DDBaseTTTorrent
 			
 			ddb.log( msg );
 			
+			HashWrapper	hw = new HashWrapper( torrent.getHash());
+			
+			synchronized( data_cache ){
+				
+				Object[]	data = (Object[])data_cache.get( hw );
+				
+				if ( data != null ){
+										
+					data[1] = new Long( SystemTime.getCurrentTime());
+					
+					return( ddb.createValue((byte[])data[0]));
+				}
+			}
+			
+			
 			torrent = torrent.removeAdditionalProperties();
 			
 				// when clients get a torrent from the DHT they take on
@@ -185,6 +220,48 @@ DDBaseTTTorrent
 				return( null );
 			}
 			
+			synchronized( data_cache ){
+
+				if ( data_cache.size() == 0 ){
+					
+					final TimerEventPeriodic[]pe = { null };
+					
+					pe[0] = SimpleTimer.addPeriodicEvent(
+						30*1000,
+						new TimerEventPerformer()
+						{
+							public void
+							perform(
+								TimerEvent	event )
+							{								
+								long now = SystemTime.getCurrentTime();
+								
+								synchronized( data_cache ){
+
+									Iterator	it = data_cache.values().iterator();
+									
+									while( it.hasNext()){
+										
+										long	time = ((Long)((Object[])it.next())[1]).longValue();
+								
+										if ( now < time || now - time > 120*1000 ){
+											
+											it.remove();
+										}
+									}
+									
+									if ( data_cache.size() == 0 ){
+										
+										pe[0].cancel();
+									}
+								}
+							}	
+						});
+				}
+				
+				data_cache.put( hw, new Object[]{ data, new Long( SystemTime.getCurrentTime())});
+			}
+				
 			return( ddb.createValue( data ));
 			
 		}catch( Throwable e ){
