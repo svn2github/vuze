@@ -546,6 +546,10 @@ DownloadImpl
 	}else if ( attribute.getName() == TorrentAttribute.TA_PEER_SOURCES ){
   		
 		return( DownloadManagerState.AT_PEER_SOURCES );
+
+	}else if ( attribute.getName() == TorrentAttribute.TA_DISPLAY_NAME ){
+  		
+		return( DownloadManagerState.AT_DISPLAY_NAME );
 		
 	}else if ( attribute.getName() == TorrentAttribute.TA_SHARE_PROPERTIES ){
   		
@@ -584,6 +588,10 @@ DownloadImpl
 	}else if ( name.equals( DownloadManagerState.AT_TRACKER_CLIENT_EXTENSIONS )){
   		
 		return( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_TRACKER_CLIENT_EXTENSIONS ));
+	
+	}else if ( name.equals ( DownloadManagerState.AT_DISPLAY_NAME)){
+		
+		return ( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_DISPLAY_NAME ));
 		
 	}else if ( name.startsWith( "Plugin." )){
   		
