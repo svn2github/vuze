@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.update.sf.impl2;
 
 import java.util.*;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.io.InputStream;
 
 import org.gudy.azureus2.platform.PlatformManager;
@@ -54,11 +55,21 @@ SFPluginDetailsLoaderImpl
 
 	private static final String	site_prefix = "http://azureus.sourceforge.net/";
 	
-	private static final String	base_url_params;
+	private static String	base_url_params;
 	
 	static{
 		
 		base_url_params = "version=" + Constants.AZUREUS_VERSION + "&app=" + SystemProperties.getApplicationName();
+		
+		try{
+			base_url_params += "&os=" + URLEncoder.encode(System.getProperty( "os.name"),"UTF-8" );
+			
+			base_url_params += "&arch=" + URLEncoder.encode(System.getProperty( "os.arch"),"UTF-8" );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
 	}
 	
 	private static String	page_url 	= site_prefix + "update/pluginlist3.php?type=&" + base_url_params;
