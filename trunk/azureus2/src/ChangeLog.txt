@@ -25,8 +25,10 @@ FEATURE: UI   | Ability to rename the displayed title of a download [amc1]
 FEATURE: UI   | "date added", "idle up", "idle down", "req in", "req out" colmns added to MyTorrents [Parg]
 FEATURE: UI   | manual file recheck order [Parg]
 FEATURE: UI   | Option to remember passwords [Parg]
+FEATURE: UI   | OSX: Open .torrent files into Azureus via Finder/Desktop/etc [TuxPaper]
 
 FEATURE: Plug | Simple NAT-PMP implementation [Marc Colosimo]
+
 
 CHANGE: Core  | Reduced starting many pieces instead of completing current ones [MjrTom]
 CHANGE: Core  | Further modifications to optimistic disconnect algorithm [MjrTom]
@@ -37,7 +39,11 @@ CHANGE: Core  | Longer scrape delays: [TuxPaper]
                  - As per usual, flags->min_request_interval will override next scrape time
 CHANGE: Core  | Asynchronous existing torrent loading at startup (makes startup feel faster) [TuxPaper]
 CHANGE: Core  | Disk read cache disabled by default [Parg]
+CHANGE: Core  | Better detection of unix OSes (Linux, FreeBSD, Solaris, etc) and custom ports that do not conform to our install structure [TuxPaper,parg]
+
 CHANGE: UI    | More time periods in folder-rescan list [Parg]
+CHANGE: UI    | Option to hide toolbar [TuxPaper]
+CHANGE: UI    | Option to disable program icon for name column (may speed up OSX users) [TuxPaper]
 
 CHANGE: Plug  | Use UPnP to read external IP address if possible [Parg]
 
@@ -46,9 +52,13 @@ BUGFIX: Core  | Fix for pieces not completing due to too many snubbed peers [Mjr
 BUGFIX: Core  | Better handling of invalid peer/seed count from tracker [TuxPaper]
 BUGFIX: Core  | ed2k hash wrong on block boundaries [Parg]
 BUGFIX: Core  | upload slot default now applied correctly (was fixed at torrent add time) [Parg]
+BUGFIX: Core  | Various seeding rules fixes, mostly related to Seed:Peer ratio, 1st Priority, or 'None' ranking mode [TuxPaper]
 
 BUGFIX: UI    | speed graphics failing on high speeds [Parg]
 BUGFIX: UI    | Per-torrent options view now synced with global defaults and has "reset" button [Parg]
+
+
+
 
 2006.03.16 | Azureus 2.4.0.2
 
