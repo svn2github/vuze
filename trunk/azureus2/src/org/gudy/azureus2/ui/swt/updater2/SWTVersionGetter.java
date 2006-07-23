@@ -22,13 +22,19 @@
  */
 package org.gudy.azureus2.ui.swt.updater2;
 
-import java.util.*;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
+
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.plugins.update.UpdateChecker;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
+
+import org.gudy.azureus2.plugins.update.UpdateChecker;
 
 
 /**
@@ -51,6 +57,19 @@ public class SWTVersionGetter {
   {
     this.platform 		= SWT.getPlatform();
     this.currentVersion = SWT.getVersion();
+    
+
+    /**
+     * Hack to make users re-download swt package which is hacked to include
+     * our osx platform jnilib. 
+     */
+    if (currentVersion == 3232 && Constants.isOSX) {
+			PlatformManager p_man = PlatformManagerFactory.getPlatformManager();
+			if (p_man != null
+					&& !p_man.hasCapability(PlatformManagerCapabilities.GetVersion)) {
+				currentVersion = 3231;
+			}
+		}
     
     /* hack no longer needed as most (all?) CVS users will have rolled back by now and
      * we're shipping with 3.1.1

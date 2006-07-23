@@ -2,6 +2,8 @@
 #include <jni.h>
 #include <AEDataModel.h>
 
+#define VERSION "1.01"
+
 /**
  * AEDesc code from SWT, os_structs.c
  * Copyright (c) 2000, 2006 IBM Corporation and others.
@@ -57,4 +59,14 @@ fail:
 	if (result && lpresult) setAEDescFields(env, result, lpresult);
 
 	return rc;
+}
+
+JNIEXPORT jstring JNICALL 
+Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getVersion(
+	JNIEnv		*env,
+	jclass		cla )
+{
+	jstring	result =(*env)->NewStringUTF(env, (char *)VERSION);
+
+	return( result );
 }

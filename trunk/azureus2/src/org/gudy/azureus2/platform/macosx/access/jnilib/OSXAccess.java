@@ -30,14 +30,23 @@ import org.gudy.azureus2.core3.util.Debug;
  */
 public class OSXAccess
 {
+	private static boolean bLoaded = false;
+
 	static {
 		try {
 			System.loadLibrary ("OSXAccess");
 			System.out.println("OSXAccess Load complete!");
+			bLoaded = true;
 		} catch (UnsatisfiedLinkError e1) {
 			Debug.out("Could not find libOSXAccess.jnilib");
 		}
 	}
 
 	public static final native int AEGetParamDesc(int theAppleEvent, int theAEKeyword, int desiredType, AEDesc result);
+
+	public static final native String getVersion();
+	
+	public static boolean isLoaded() {
+		return bLoaded;
+	}
 }

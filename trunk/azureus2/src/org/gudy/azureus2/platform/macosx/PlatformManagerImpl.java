@@ -29,6 +29,8 @@ import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerListener;
+import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
+
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import java.io.BufferedReader;
@@ -107,6 +109,10 @@ public class PlatformManagerImpl implements PlatformManager
         capabilitySet.add(PlatformManagerCapabilities.GetUserDataDirectory);
         capabilitySet.add(PlatformManagerCapabilities.UseNativeScripting);
         capabilitySet.add(PlatformManagerCapabilities.PlaySystemAlert);
+        
+        if (OSXAccess.isLoaded()) {
+	        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
+        }
     }
 
     /**
@@ -122,7 +128,11 @@ public class PlatformManagerImpl implements PlatformManager
      */
     public String getVersion() throws PlatformManagerException
     {
+    	if (!OSXAccess.isLoaded()) {
         throw new PlatformManagerException("Unsupported capability called on platform manager");
+    	}
+    	
+    	return OSXAccess.getVersion();
     }
 
     /**
