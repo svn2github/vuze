@@ -129,8 +129,29 @@ DMWriterImpl
 		
 			// wait for writes
 		
+		long	log_time 		= SystemTime.getCurrentTime();
+		
 		for (int i=0;i<write_wait;i++){
 			
+			long	now = SystemTime.getCurrentTime();
+
+			if ( now < log_time ){
+				
+				log_time = now;
+				
+			}else{
+				
+				if ( now - log_time > 1000 ){
+					
+					log_time	= now;
+					
+					if ( Logger.isEnabled()){
+						
+						Logger.log(new LogEvent(disk_manager, LOGID, "Waiting for writes to complete - " + (write_wait-i) + " remaining" ));
+					}
+				}
+			}
+					
 			async_write_sem.reserve();
 		}	
 	}

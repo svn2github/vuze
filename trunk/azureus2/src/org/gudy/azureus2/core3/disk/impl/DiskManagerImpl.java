@@ -58,7 +58,7 @@ import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 public class
 DiskManagerImpl
     extends LogRelation
-    implements DiskManagerHelper, DMReaderAdapter
+    implements DiskManagerHelper
 {
     private static final LogIDs LOGID = LogIDs.DISK;
 

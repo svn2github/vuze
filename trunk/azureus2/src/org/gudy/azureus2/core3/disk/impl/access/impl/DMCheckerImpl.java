@@ -146,16 +146,58 @@ DMCheckerImpl
 			this_mon.exit();
 		}		
 	
+		long	log_time 		= SystemTime.getCurrentTime();
+		
 			// wait for reads
 		
 		for (int i=0;i<read_wait;i++){
 			
+			long	now = SystemTime.getCurrentTime();
+
+			if ( now < log_time ){
+				
+				log_time = now;
+				
+			}else{
+								
+				if ( now - log_time > 1000 ){
+					
+					log_time	= now;
+					
+					if ( Logger.isEnabled()){
+						
+						Logger.log(new LogEvent(disk_manager, LOGID, "Waiting for check-reads to complete - " + (read_wait-i) + " remaining" ));
+					}
+				}
+			}
+			
 			async_read_sem.reserve();
 		}
 		
+		log_time 		= SystemTime.getCurrentTime();
+
 			// wait for checks
 		
 		for (int i=0;i<check_wait;i++){
+			
+			long	now = SystemTime.getCurrentTime();
+
+			if ( now < log_time ){
+				
+				log_time = now;
+				
+			}else{
+								
+				if ( now - log_time > 1000 ){
+					
+					log_time	= now;
+					
+					if ( Logger.isEnabled()){
+						
+						Logger.log(new LogEvent(disk_manager, LOGID, "Waiting for checks to complete - " + (read_wait-i) + " remaining" ));
+					}
+				}
+			}
 			
 			async_check_sem.reserve();
 		}

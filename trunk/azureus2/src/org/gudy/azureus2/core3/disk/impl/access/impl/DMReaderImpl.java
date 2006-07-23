@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
@@ -47,7 +48,7 @@ DMReaderImpl
 {
 	private static final LogIDs LOGID = LogIDs.DISK;
 
-	private DMReaderAdapter			adapter;
+	private DiskManagerHelper		disk_manager;
 	private DiskAccessController	disk_access;	
 
 	private int						async_reads;
@@ -60,11 +61,11 @@ DMReaderImpl
 	
 	public
 	DMReaderImpl(
-		DMReaderAdapter		_adapter )
+		DiskManagerHelper		_disk_manager )
 	{
-		adapter			= _adapter;
+		disk_manager	= _disk_manager;
 		
-		disk_access		= adapter.getDiskAccessController();
+		disk_access		= disk_manager.getDiskAccessController();
 	}
 	
 	public void
@@ -113,7 +114,28 @@ DMReaderImpl
 			this_mon.exit();
 		}
 		
+		long	log_time 		= SystemTime.getCurrentTime();
+
 		for (int i=0;i<read_wait;i++){
+			
+			long	now = SystemTime.getCurrentTime();
+
+			if ( now < log_time ){
+				
+				log_time = now;
+				
+			}else{
+				
+				if ( now - log_time > 1000 ){
+					
+					log_time	= now;
+					
+					if ( Logger.isEnabled()){
+						
+						Logger.log(new LogEvent(disk_manager, LOGID, "Waiting for reads to complete - " + (read_wait-i) + " remaining" ));
+					}
+				}
+			}
 			
 			async_read_sem.reserve();
 		}
@@ -220,7 +242,7 @@ DMReaderImpl
 			int	pieceNumber	= request.getPieceNumber();
 			int	offset		= request.getOffset();
 			
-			DMPieceList pieceList = adapter.getPieceList(pieceNumber);
+			DMPieceList pieceList = disk_manager.getPieceList(pieceNumber);
 	
 				// temporary fix for bug 784306
 			
@@ -365,7 +387,7 @@ DMReaderImpl
 				buffer.returnToPool();
 			}
 			
-			adapter.setFailed( "Disk read error - " + Debug.getNestedExceptionMessage(e));
+			disk_manager.setFailed( "Disk read error - " + Debug.getNestedExceptionMessage(e));
 			
 			Debug.printStackTrace( e );
 			
@@ -548,7 +570,7 @@ DMReaderImpl
 		{
 			buffer.returnToPool();
 			
-			adapter.setFailed( "Disk read error - " + Debug.getNestedExceptionMessage(cause));
+			disk_manager.setFailed( "Disk read error - " + Debug.getNestedExceptionMessage(cause));
 			
 			Debug.printStackTrace( cause );
 			

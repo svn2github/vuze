@@ -35,7 +35,7 @@ DMAccessFactory
 {
 	public static DMReader
 	createReader(
-		DMReaderAdapter	adapter )
+		DiskManagerHelper	adapter )
 	{
 		return( new DMReaderImpl( adapter ));
 	}
