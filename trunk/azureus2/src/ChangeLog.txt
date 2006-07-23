@@ -39,7 +39,7 @@ CHANGE: Core  | Longer scrape delays: [TuxPaper]
                  - As per usual, flags->min_request_interval will override next scrape time
 CHANGE: Core  | Asynchronous existing torrent loading at startup (makes startup feel faster) [TuxPaper]
 CHANGE: Core  | Disk read cache disabled by default [Parg]
-CHANGE: Core  | Better detection of unix OSes (Linux, FreeBSD, Solaris, etc) and custom ports that do not conform to our install structure [TuxPaper,parg]
+CHANGE: Core  | Better detection of unix OSes (Linux, FreeBSD, Solaris, etc) and custom ports that do not conform to our install structure [TuxPaper,Parg]
 
 CHANGE: UI    | More time periods in folder-rescan list [Parg]
 CHANGE: UI    | Option to hide toolbar [TuxPaper]
