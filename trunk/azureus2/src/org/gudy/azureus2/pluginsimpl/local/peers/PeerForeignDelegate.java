@@ -719,4 +719,11 @@ PeerForeignDelegate
 	public void clearAvailabilityAdded() {};
 	
 	public PEPeerTransport reconnect(){ return null; }
+	
+	public void
+	generateEvidence(
+		IndentWriter	writer )
+	{
+		writer.println( "delegate: ip=" + getIp() + ",tcp=" + getTCPListenPort()+",udp="+getUDPListenPort()+",foreign=" + foreign );
+	}
 }

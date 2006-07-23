@@ -3176,5 +3176,34 @@ PEPeerControlImpl
 			
 			piecePicker.generateEvidence( writer );
 		}
+		
+		try{
+			peer_transports_mon.enter();
+			
+			writer.indent();
+		
+			writer.println( "Peers: total = " + peer_transports_cow.size()); 
+
+			try{
+				writer.indent();
+				
+				Iterator it = peer_transports_cow.iterator();
+				
+				while( it.hasNext()){
+				
+					PEPeerTransport	peer = (PEPeerTransport)it.next();
+					
+					peer.generateEvidence( writer );
+				}
+			}finally{
+				
+				writer.exdent();
+			}
+		}finally{
+			
+			peer_transports_mon.exit();
+			
+			writer.exdent();
+		}
 	}
 }

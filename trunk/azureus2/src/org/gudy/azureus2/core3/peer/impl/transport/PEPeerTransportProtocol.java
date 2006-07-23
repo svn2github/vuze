@@ -907,7 +907,8 @@ PEPeerTransportProtocol
 	  if (peerHavePieces !=null)
 		  return peerHavePieces.flags[pieceNumber];
 	  return false;
-  };
+  }
+  
   public boolean isChokingMe() {  return choked_by_other_peer;  }
   public boolean isChokedByMe() {  return choking_other_peer;  }
   /**
@@ -1772,8 +1773,6 @@ PEPeerTransportProtocol
 		  return;
 	  }
 
-	  final PEPiece pePiece =manager.getPiece(pieceNumber);
-
 	  final DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, offset, length );
 	  boolean piece_error = true;
 
@@ -2407,4 +2406,22 @@ PEPeerTransportProtocol
 			return( null );
 		}
 	}
+	
+	public void
+	generateEvidence(
+		IndentWriter	writer )
+	{
+		writer.println( 
+			"ip=" + getIp() + ",in=" + isIncoming() + ",port=" + getPort() + ",cli=" + client + ",tcp=" + getTCPListenPort() + ",udp=" + getUDPListenPort() + 
+				",oudp=" + getUDPNonDataListenPort() + ",p_state=" + getPeerState() + ",c_state=" + getConnectionState() + ",seed=" + seed + ",pex=" + peer_exchange_supported + ",closing=" + closing );
+		writer.println( "    choked=" + choked_by_other_peer + ",choking=" + choking_other_peer + ",unchoke_time=" + unchokedTime + ", unchoke_total=" + unchokedTimeTotal + ",is_opt=" + is_optimistic_unchoke ); 
+		writer.println( "    interested=" + interested_in_other_peer + ",interesting=" + other_peer_interested_in_me + ",snubbed=" + snubbed );
+		writer.println( "    lp=" + _lastPiece + ",up=" + uniquePiece + ",rp=" + reservedPiece );
+		writer.println( 
+			"    last_sent=" + last_message_sent_time + "/" + last_data_message_sent_time + 
+				",last_recv=" + last_message_received_time + "/" + last_data_message_received_time + "/" + last_good_data_time );
+		writer.println( "    conn_at=" + connection_established_time + ",cons_no_reqs=" + consecutive_no_request_count +
+				",discard=" + requests_discarded + "/" + requests_discarded_endgame + ",recov=" + requests_recovered + ",comp=" + requests_completed );
+
+	}	
 }
