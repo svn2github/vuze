@@ -143,16 +143,10 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 						timeMap.put("SysTray", new Long(System.currentTimeMillis()));
 
 					try {
-						mainWindow.downloadBars_mon.enter();
-
-						Iterator iter = mainWindow.downloadBars.values().iterator();
-						while (iter.hasNext()) {
-							MinimizedWindow mw = (MinimizedWindow) iter.next();
-							mw.refresh();
-						}
-					} finally {
-
-						mainWindow.downloadBars_mon.exit();
+						MinimizedWindow.refreshAll();
+					} catch (Exception e) {
+						Logger.log(new LogEvent(LOGID,
+								"Error while trying to update DL Bars", e));
 					}
 
 					if (DEBUG_TIMER) {

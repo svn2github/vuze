@@ -121,10 +121,6 @@ MainWindow
   private HashMap downloadViews;
   private AEMonitor	downloadViews_mon			= new AEMonitor( "MainWindow:dlviews" );
 
-  HashMap 	downloadBars;
-  AEMonitor	downloadBars_mon			= new AEMonitor( "MainWindow:dlbars" );
-
-     
   private Tab 	mytorrents;
   private Tab 	my_tracker_tab;
   private Tab 	my_shares_tab;
@@ -208,8 +204,6 @@ MainWindow
   
   public void runSupport() {
     FormData formData;
-    final int NUM_TASKS = 8;
-    int iTaskNo = 0;
     
     try{
     	uiFunctions = UIFunctionsManager.getUIFunctions();
@@ -231,7 +225,6 @@ MainWindow
     config = null;
     config_view = null;
     downloadViews = new HashMap();
-    downloadBars = new HashMap();
     
     Control attachToTopOf = null;
     Control controlAboveFolder = null;
@@ -734,16 +727,8 @@ MainWindow
     }
     if (downloadBasket != null)
       downloadBasket.setVisible(true);
-    try{
-    	downloadBars_mon.enter();
-      Iterator iter = downloadBars.values().iterator();
-      while (iter.hasNext()) {
-        MinimizedWindow mw = (MinimizedWindow) iter.next();
-        mw.setVisible(true);
-      }
-    }finally{
-    	downloadBars_mon.exit();
-    }
+
+    MinimizedWindow.setAllVisible(true);
   }
   
   private void
@@ -759,32 +744,6 @@ MainWindow
   			((TabFolder)folder).update();
   		}
   	}
-  }
-
-  protected void closeDownloadBars() {
-    Utils.execSWTThread(new AERunnable() {
-
-      public void runSupport() {
-        if (display == null || display.isDisposed())
-          return;
-
-        try{
-        	downloadBars_mon.enter();
-        
-          Iterator iter = downloadBars.keySet().iterator();
-          while (iter.hasNext()) {
-            DownloadManager dm = (DownloadManager) iter.next();
-            MinimizedWindow mw = (MinimizedWindow) downloadBars.get(dm);
-            mw.close();
-            iter.remove();
-          }
-        }finally{
-        	
-        	downloadBars_mon.exit();
-        }
-      }
-
-    });
   }
 
   public boolean
@@ -1033,13 +992,6 @@ MainWindow
 	 */
   public static MainWindow getWindow() {
     return window;
-  }
-
-  /**
-	 * @return
-	 */
-  public HashMap getDownloadBars() {
-    return downloadBars;
   }
 
   /**
@@ -1430,18 +1382,10 @@ MainWindow
               }
               
               if (COConfigurationManager.getBooleanParameter("Open Bar", false)) {
-                try{
-                	downloadBars_mon.enter();
-                
-                	if(downloadBars.get(manager) == null) {
-                	  MinimizedWindow mw = new MinimizedWindow(manager, shell);
-                	
-                	  downloadBars.put(manager, mw);
-                	}
-                }finally{
-                	
-                	downloadBars_mon.exit();
-                }
+              	MinimizedWindow mw = MinimizedWindow.get(manager);
+              	if (mw == null) {
+              	  new MinimizedWindow(manager, shell);
+              	}
               }
             }
           });

@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -183,7 +184,7 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 	public void closeDownloadBars() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				mainwindow.closeDownloadBars();
+				MinimizedWindow.closeAll();
 			}
 		});
 	}
@@ -269,7 +270,7 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 	{
 		return mainwindow.dispose(for_restart, close_already_in_progress);
 	}
-	
+
 	public Menu getMenu(int id) {
 		if (mainwindow.getMenu() != null) {
 			return mainwindow.getMenu().getMenu(id);

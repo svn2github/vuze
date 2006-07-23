@@ -29,6 +29,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -54,6 +55,7 @@ public class MinimizedWindow {
   private Rectangle screen;
 
   private static final Vector downloadBars = new Vector();
+  private static final AEMonitor downloadBars_mon = new AEMonitor("DLBars");
   private static final ShellManager shellManager = new ShellManager();
 
   private int xPressed, yPressed;
@@ -287,8 +289,15 @@ public class MinimizedWindow {
     splashUp.setMenu(menu);
     splashTime.setMenu(menu);
     
-    
-    downloadBars.add(this);        
+
+    try {
+    	downloadBars_mon.enter();
+
+      downloadBars.add(this);
+    } finally {
+    	downloadBars_mon.exit();
+    }
+    refresh();
     splash.setVisible(true);
     
     
@@ -348,6 +357,9 @@ public class MinimizedWindow {
     if (currentLoc.y > screen.height - height - 10)
       currentLoc.y = screen.height - height;
 
+    try {
+    	downloadBars_mon.enter();
+
     if (downloadBars.size() > 1) {
       for (int i = 0; i < downloadBars.size(); i++) {
         MinimizedWindow downloadBar = (MinimizedWindow) downloadBars.get(i);
@@ -369,6 +381,9 @@ public class MinimizedWindow {
             downloadBar.setStucked(null);
         }
       }
+    }
+    } finally {
+    	downloadBars_mon.exit();
     }
 
     splash.setLocation(currentLoc);
@@ -405,7 +420,13 @@ public class MinimizedWindow {
        }); 
       }
     }
-    downloadBars.remove(this);
+    try {
+    	downloadBars_mon.enter();
+
+    	downloadBars.remove(this);
+    } finally {
+    	downloadBars_mon.exit();
+    }
   }
 
 
@@ -449,21 +470,80 @@ public class MinimizedWindow {
   }
 
   public static void close(DownloadManager dm) {
-  	for (Iterator iter = downloadBars.iterator(); iter.hasNext();) {
-			MinimizedWindow bar = (MinimizedWindow) iter.next();
+		Object[] bars = downloadBars.toArray();
+		for (int i = 0; i < bars.length; i++) {
+			MinimizedWindow bar = (MinimizedWindow) bars[i];
 			if (bar.manager.equals(dm)) {
 				bar.close();
 			}
 		}
-  }
-  
-  public static boolean isOpen(DownloadManager dm) {
-  	for (Iterator iter = downloadBars.iterator(); iter.hasNext();) {
-			MinimizedWindow bar = (MinimizedWindow) iter.next();
-			if (bar.manager.equals(dm)) {
-				return true;
-			}
+	}
+
+	public static void closeAll() {
+		Object[] bars = downloadBars.toArray();
+		for (int i = 0; i < bars.length; i++) {
+			MinimizedWindow bar = (MinimizedWindow) bars[i];
+			bar.close();
 		}
-  	return false;
-  }
+	}
+
+	public static boolean isOpen(DownloadManager dm) {
+		try {
+			downloadBars_mon.enter();
+
+			for (Iterator iter = downloadBars.iterator(); iter.hasNext();) {
+				MinimizedWindow bar = (MinimizedWindow) iter.next();
+				if (bar.manager.equals(dm)) {
+					return true;
+				}
+			}
+		} finally {
+			downloadBars_mon.exit();
+		}
+		return false;
+	}
+
+	public static MinimizedWindow get(DownloadManager dm) {
+		try {
+			downloadBars_mon.enter();
+
+			for (Iterator iter = downloadBars.iterator(); iter.hasNext();) {
+				MinimizedWindow bar = (MinimizedWindow) iter.next();
+				if (bar.manager.equals(dm)) {
+					return bar;
+				}
+			}
+		} finally {
+			downloadBars_mon.exit();
+		}
+		return null;
+	}
+
+	public static boolean refreshAll() {
+		try {
+			downloadBars_mon.enter();
+
+			for (Iterator iter = downloadBars.iterator(); iter.hasNext();) {
+				MinimizedWindow bar = (MinimizedWindow) iter.next();
+				bar.refresh();
+			}
+		} finally {
+			downloadBars_mon.exit();
+		}
+		return false;
+	}
+
+	public static boolean setAllVisible(boolean visible) {
+		try {
+			downloadBars_mon.enter();
+
+			for (Iterator iter = downloadBars.iterator(); iter.hasNext();) {
+				MinimizedWindow bar = (MinimizedWindow) iter.next();
+				bar.setVisible(visible);
+			}
+		} finally {
+			downloadBars_mon.exit();
+		}
+		return false;
+	}
 }

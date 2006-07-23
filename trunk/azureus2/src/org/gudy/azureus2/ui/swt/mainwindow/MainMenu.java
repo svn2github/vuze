@@ -40,7 +40,6 @@ import org.gudy.azureus2.core3.predicate.Predicable;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
@@ -53,7 +52,6 @@ import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
@@ -1107,7 +1105,7 @@ public class MainMenu {
   public MenuItem addCloseDownloadBarsToMenu(Menu menu) {
     final MenuItem item = addMenuItem(menu, "MainWindow.menu.closealldownloadbars", new Listener() {
       public void handleEvent(Event e) {
-        mainWindow.closeDownloadBars();
+      	MinimizedWindow.closeAll();
       }
     });
 
