@@ -875,9 +875,20 @@ PEPeerControlImpl
 						
 							if ( now - pe_piece.getLastDownloadTime(now) > 60*1000 ){
 							
-								Debug.out( "Fully downloaded piece stalled pending write, resetting p_piece " + i );
+									// people with *very* slow disk writes can trigger this (I've been talking to a user
+									// with a SAN that has .5 second write latencies when checking a file at the same time
+									// this means that when dowloading > 32K/sec things start backing up). Eventually the
+									// write controller will start blocking the network thread to prevent unlimited
+									// queueing but until that time we need to handle this situation slightly better)
+								
+									// if there are any outstanding writes for this piece then leave it alone
+								
+								if ( !disk_mgr.hasOutstandingWriteRequestForPiece( i )){
+									
+									Debug.out( "Fully downloaded piece stalled pending write, resetting p_piece " + i );
 															
-								pe_piece.reset();
+									pe_piece.reset();
+								}
 							}
 						}
 					}

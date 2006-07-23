@@ -55,4 +55,8 @@ DMWriter
 	writeBlock(
 		DiskManagerWriteRequest			request,
 		DiskManagerWriteRequestListener	listener );
+	
+	public boolean
+	hasOutstandingWriteRequestForPiece(
+		int		piece_number );
 }

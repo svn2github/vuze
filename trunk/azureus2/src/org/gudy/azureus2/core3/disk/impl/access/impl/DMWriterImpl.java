@@ -22,8 +22,7 @@
 
 package org.gudy.azureus2.core3.disk.impl.access.impl;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
@@ -57,7 +56,8 @@ DMWriterImpl
 	private DiskAccessController	disk_access;
 		
 	private int				async_writes;
-	private AESemaphore		async_write_sem 		= new AESemaphore("DMWriter::asyncWrite");
+	private Set				write_requests		= new HashSet();
+	private AESemaphore		async_write_sem 	= new AESemaphore("DMWriter::asyncWrite");
 
 	private boolean	started;
 	
@@ -292,10 +292,36 @@ DMWriterImpl
 		return( new DiskManagerWriteRequestImpl( pieceNumber, offset, buffer, user_data ));
 	}	
 	
+	public boolean
+	hasOutstandingWriteRequestForPiece(
+		int		piece_number )
+	{
+		try{
+			this_mon.enter();
+
+			Iterator	it = write_requests.iterator();
+			
+			while( it.hasNext()){
+				
+				DiskManagerWriteRequest	request = (DiskManagerWriteRequest)it.next();
+				
+				if ( request.getPieceNumber() == piece_number ){
+					
+					return( true );
+				}
+			}
+			
+			return( false );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
 	
 	public void 
 	writeBlock(
-		DiskManagerWriteRequest					request,				
+		final DiskManagerWriteRequest			request,				
 		final DiskManagerWriteRequestListener	_listener ) 
 
 	{
@@ -460,6 +486,11 @@ DMWriterImpl
 								
 								async_writes--;
 								  
+								if ( !write_requests.remove( request )){
+									
+									Debug.out( "request not found" );
+								}
+								
 								if ( stopped ){
 									  
 									async_write_sem.release();
@@ -485,6 +516,8 @@ DMWriterImpl
 					}else{
 					
 						async_writes++;
+						
+						write_requests.add( request );
 					}
 					
 				}finally{

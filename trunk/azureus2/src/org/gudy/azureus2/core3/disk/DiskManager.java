@@ -93,6 +93,10 @@ DiskManager
 		DiskManagerWriteRequest			request,
 		DiskManagerWriteRequestListener	listener );
 
+	public boolean
+	hasOutstandingWriteRequestForPiece(
+		int		piece_number );
+	
 	public DiskManagerReadRequest
 	createReadRequest(
 		int pieceNumber,

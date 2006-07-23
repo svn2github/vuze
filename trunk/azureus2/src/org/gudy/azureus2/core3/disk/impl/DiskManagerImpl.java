@@ -1385,6 +1385,12 @@ DiskManagerImpl
         writer.writeBlock( request, listener );
     }
 
+	public boolean
+	hasOutstandingWriteRequestForPiece(
+		int		piece_number )
+	{
+		return( writer.hasOutstandingWriteRequestForPiece( piece_number ));
+	}
 
     public boolean
     checkBlockConsistency(
