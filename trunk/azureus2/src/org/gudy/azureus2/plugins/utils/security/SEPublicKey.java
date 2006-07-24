@@ -32,4 +32,17 @@ SEPublicKey
 	
 	public byte[]
 	encodePublicKey();
+
+		/**
+		 * Overridden to perform equality based on public key
+		 * @param other
+		 * @return
+		 */
+	
+	public boolean
+	equals(
+		Object	other );
+	
+	public int
+	hashCode();
 }

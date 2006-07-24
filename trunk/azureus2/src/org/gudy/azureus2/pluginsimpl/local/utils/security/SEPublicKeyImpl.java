@@ -22,6 +22,9 @@
 
 package org.gudy.azureus2.pluginsimpl.local.utils.security;
 
+import java.util.Arrays;
+
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
 
 public class 
@@ -43,6 +46,7 @@ SEPublicKeyImpl
 	
 	private int		type;
 	private byte[]	encoded;
+	private int		hashcode;
 	
 	protected
 	SEPublicKeyImpl(
@@ -51,6 +55,7 @@ SEPublicKeyImpl
 	{
 		type		= _type;
 		encoded		= _encoded;
+		hashcode	= new HashWrapper( encoded ).hashCode();
 	}
 	
 	public int
@@ -69,5 +74,25 @@ SEPublicKeyImpl
 		System.arraycopy( encoded, 0, res, 1, encoded.length );
 		
 		return( res );
+	}
+	
+	public boolean
+	equals(
+		Object	other )
+	{
+		if ( other instanceof SEPublicKeyImpl ){
+			
+			return( Arrays.equals( encoded, ((SEPublicKeyImpl)other).encoded ));
+			
+		}else{
+			
+			return( false );
+		}
+	}
+	
+	public int
+	hashCode()
+	{
+		return( hashcode );
 	}
 }
