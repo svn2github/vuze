@@ -1,5 +1,6 @@
 package org.gudy.azureus2.ui.swt.components.shell;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Event;
@@ -8,6 +9,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import java.util.*;
 
@@ -86,6 +88,11 @@ public class ShellManager
             		Logger.log(new LogEvent(LogIDs.GUI, "removeWindow", e));
             	}
             }
+        });
+        shell.addListener(SWT.Show, new Listener() {
+        	public void handleEvent(Event event) {
+        		Utils.verifyShellRect(shell, false);
+        	}
         });
     }
 
