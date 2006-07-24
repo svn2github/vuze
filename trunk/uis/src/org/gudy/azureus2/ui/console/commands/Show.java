@@ -74,11 +74,12 @@ public class Show extends IConsoleCommand {
 		out.println("<#>\t\t\t\tFurther info on a single torrent. Run 'show torrents' first for the number.");
 		out.println("options\t\t\to\tShow list of options for 'set' (also available by 'set' without parameters).");
 		out.println("files\t\t\tf\tShow list of files found from the 'add -f' command (also available by 'add -l')");
-		out.println("torrents [options]\tt\tShow list of torrents. torrent options mayb be any (or none) of:");
+		out.println("dht\t\t\td\tShow distributed database statistics");
+		out.println("torrents [opts] [expr]\tt\tShow list of torrents. torrent options may be any (or none) of:");
 		out.println("\t\tactive\t\ta\tShow only active torrents.");
 		out.println("\t\tcomplete\tc\tShow only complete torrents.");
 		out.println("\t\tincomplete\ti\tShow only incomplete torrents.");
-		out.println("dht\t\t\td\tShow distributed database statistics");
+		out.println("\te.g. show t a *Az* - shows all active torrents with 'Az' occurring in their name." );
 		out.println("> -----");
 	}
 
