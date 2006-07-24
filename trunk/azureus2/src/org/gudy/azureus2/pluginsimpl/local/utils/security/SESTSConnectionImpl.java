@@ -53,6 +53,7 @@ import org.gudy.azureus2.pluginsimpl.local.messaging.GenericMessageConnectionImp
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.security.CryptoManagerException;
 import com.aelitis.azureus.core.security.CryptoSTSEngine;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
@@ -109,22 +110,29 @@ SESTSConnectionImpl
 	
 	protected
 	SESTSConnectionImpl(
-		AzureusCore					_core,
-		GenericMessageConnection	_connection,
-		SEPublicKey					_my_public_key,
-		SEPublicKeyLocator			_key_locator,
-		String						_reason,
-		int							_block_crypto )
+		AzureusCore						_core,
+		GenericMessageConnectionImpl	_connection,
+		SEPublicKey						_my_public_key,
+		SEPublicKeyLocator				_key_locator,
+		String							_reason,
+		int								_block_crypto )
 	
 		throws Exception
 	{
 		core			= _core;
-		connection		= (GenericMessageConnectionImpl)_connection;
+		connection		= _connection;
 		my_public_key	= _my_public_key;
 		key_locator		= _key_locator;
 		reason			= _reason;
 		block_crypto	= _block_crypto;
-				
+
+		if ( connection.isIncoming()){
+			
+			rateLimit( connection.getEndpoint().getNotionalAddress());
+		}
+		
+		sts_engine	= core.getCryptoManager().getECCHandler().getSTSEngine( reason );
+		
 		connection.addListener(
 			new GenericMessageConnectionListener()
 			{
@@ -157,22 +165,6 @@ SESTSConnectionImpl
 			});
 	}
 	
-	protected void
-	getSTSEngine(
-		boolean	incoming )
-	
-		throws Exception
-	{
-		if ( sts_engine == null ){
-			
-			if ( incoming ){
-				
-				rateLimit( connection.getEndpoint().getNotionalAddress());
-			}
-			
-			sts_engine	= core.getCryptoManager().getECCHandler().getSTSEngine( reason );
-		}
-	}
 	
 	protected static void
 	rateLimit(
@@ -209,7 +201,7 @@ SESTSConnectionImpl
 	     		
 	     		Debug.out( "STS: too many recent connection attempts from " + originator );
 	     		
-				throw( new IOException( "Too many recent connection attempts (phe)"));
+				throw( new IOException( "Too many recent connection attempts (sts)"));
 			}
 			
 			long	since_last = now - last_incoming_sts_create;
@@ -244,7 +236,28 @@ SESTSConnectionImpl
 	
 		throws MessageException
 	{
-		connection.connect();
+		if ( connection.isIncoming()){
+
+			connection.connect();
+
+		}else{
+			
+			try{
+				ByteBuffer	buffer = ByteBuffer.allocate( 32*1024 );
+						
+				sts_engine.getKeys( buffer );
+						
+				buffer.flip();
+				
+				sent_keys = true;
+				
+				connection.connect( buffer );
+				
+			}catch( CryptoManagerException	e ){
+				
+				throw( new MessageException( "Failed to get initial keys", e ));
+			}
+		}
 	}
 	
 	protected void
@@ -280,7 +293,6 @@ SESTSConnectionImpl
 					forward	= true;
 					
 				}else{
-					getSTSEngine( true );
 					
 						// basic sts flow:
 						//   a -> puba -> b
@@ -367,35 +379,38 @@ SESTSConnectionImpl
 							
 						setupBlockCrypto();
 						
-						byte[]	pending_bytes = pending_message.toByteArray();
-						
-						int	pending_size = pending_bytes.length;
-						
-						if ( outgoing_cipher != null ){
+						if ( pending_message != null ){
 							
-							pending_size =  (( pending_size + AES_KEY_SIZE_BYTES -1 )/AES_KEY_SIZE_BYTES)*AES_KEY_SIZE_BYTES;
+							byte[]	pending_bytes = pending_message.toByteArray();
 							
-							if ( pending_size == 0 ){
-								
-								pending_size = AES_KEY_SIZE_BYTES;
-							}
-						}
-						
-						if ( out_buffer.remaining() >= pending_size ){
+							int	pending_size = pending_bytes.length;
 							
 							if ( outgoing_cipher != null ){
 								
+								pending_size =  (( pending_size + AES_KEY_SIZE_BYTES -1 )/AES_KEY_SIZE_BYTES)*AES_KEY_SIZE_BYTES;
 								
-								out_buffer.put( outgoing_cipher.doFinal( pending_bytes ));
-								
-							}else{
-							
-								out_buffer.put( pending_bytes );
+								if ( pending_size == 0 ){
+									
+									pending_size = AES_KEY_SIZE_BYTES;
+								}
 							}
 							
-								// don't deallocate the pending message, the original caller does this
-							
-							pending_message	= null;
+							if ( out_buffer.remaining() >= pending_size ){
+								
+								if ( outgoing_cipher != null ){
+									
+									
+									out_buffer.put( outgoing_cipher.doFinal( pending_bytes ));
+									
+								}else{
+								
+									out_buffer.put( pending_bytes );
+								}
+								
+									// don't deallocate the pending message, the original caller does this
+																
+								pending_message	= null;
+							}
 						}
 						
 						crypto_completed	= true;
@@ -531,70 +546,45 @@ SESTSConnectionImpl
 		}
 		
 		try{
-			PooledByteBuffer	crypto_message	= null;
-						
-			synchronized( this ){
-								
-				if ( !sent_keys ){
-					
-						// protocol optimisation requires initiator to send first message...
-						// this can be fixed up if needed 
-					
-					if ( connection.isIncoming()){
-						
-						throw( new MessageException( "Only the initiator of a connection can send the first message" ));
-					}
-					
-					getSTSEngine( false );
-					
-					sent_keys	= true;
-					
-					ByteBuffer	buffer = ByteBuffer.allocate( 32*1024 );
-							
-					sts_engine.getKeys( buffer );
-							
-					buffer.flip();
-							
-					crypto_message = new PooledByteBufferImpl( new DirectByteBuffer(buffer ));
-							
-					pending_message = message;
-				}
-			}
-			
-			if ( crypto_message != null ){
-				
-				connection.send( crypto_message );
-			}
-			
-			crypto_complete.reserve();
-			
-				// crypto message != null -> message has been marked as pending for send during crypto
-			
-			if ( crypto_message == null ){
+			if ( crypto_complete.isReleasedForever()){
 				
 				sendContent( message );
 				
 			}else{
 				
-					// if the pending message couldn't be piggy backed it'll still be allocated
-				
-				boolean	send_it = false;
+					// not complete, stash the message so it has a chance of being piggybacked on
+					// the crypto protocol exchange
 				
 				synchronized( this ){
-
-					if ( pending_message != null ){
+					
+					if ( pending_message == null ){
 						
-						pending_message	= null;
-						
-						send_it	= true;
+						pending_message = message;
 					}
 				}
+			}
+			
+			crypto_complete.reserve();
+						
+				// if the pending message couldn't be piggy backed it'll still be allocated
 				
-				if ( send_it ){
+			boolean	send_it = false;
+				
+			synchronized( this ){
+
+				if ( pending_message == message ){
 					
-					sendContent( message );
+					pending_message	= null;
+					
+					send_it	= true;
 				}
 			}
+			
+			if ( send_it ){
+				
+				sendContent( message );
+			}
+
 		}catch( Throwable e ){
 			
 			setFailed();

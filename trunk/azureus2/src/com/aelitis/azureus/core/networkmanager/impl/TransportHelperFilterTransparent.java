@@ -52,9 +52,15 @@ TransportHelperFilterTransparent
 	}
 	
 	public boolean
-	isFlushed()
+	hasBufferedWrite()
 	{
-		return( true );
+		return( false );
+	}
+	
+	public boolean 
+	hasBufferedRead() 
+	{
+		return( read_insert != null && read_insert.remaining() > 0 );
 	}
 	
 	public long 

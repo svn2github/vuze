@@ -220,8 +220,8 @@ public class IncomingSocketChannelManager
 		        	//check for encrypted transport
 		  	      	final TCPTransportHelper	helper = new TCPTransportHelper( channel );
 	
-		        	TransportCryptoManager.getSingleton().manageCrypto( helper, null, true, new TransportCryptoManager.HandshakeListener() {
-		        		public void handshakeSuccess( ProtocolDecoder decoder ) {
+		        	TransportCryptoManager.getSingleton().manageCrypto( helper, null, true, null, new TransportCryptoManager.HandshakeListener() {
+		        		public void handshakeSuccess( ProtocolDecoder decoder, ByteBuffer remaining_initial_data ) {
 		        			process( server.socket().getLocalPort(), decoder.getFilter());
 		        		}
 	

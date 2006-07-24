@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.pluginsimpl.local.network;
 
+import java.nio.ByteBuffer;
+
 import org.gudy.azureus2.plugins.network.*;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
@@ -50,7 +52,7 @@ public class ConnectionImpl implements Connection {
     core_connection.connect( new com.aelitis.azureus.core.networkmanager.NetworkConnection.ConnectionListener() {
       public void connectStarted() { listener.connectStarted();  }
       
-      public void connectSuccess() { listener.connectSuccess();  }
+      public void connectSuccess( ByteBuffer remaining_initial_data) { listener.connectSuccess();  }
       
       public void connectFailure( Throwable failure_msg ) {  listener.connectFailure( failure_msg );  }
       public void exceptionThrown( Throwable error ) {  listener.exceptionThrown( error );  }

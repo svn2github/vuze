@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
@@ -90,11 +91,12 @@ ProtocolEndpointTCP
 		boolean				connect_with_crypto, 
 		boolean 			allow_fallback, 
 		byte[] 				shared_secret,
+		ByteBuffer			initial_data,
 		ConnectListener 	listener )
 	{
 		TCPTransportImpl t = new TCPTransportImpl( this, connect_with_crypto, allow_fallback, shared_secret );
 					
-		t.connectOutbound( listener );
+		t.connectOutbound( initial_data, listener );
 		
 		return( t );
 	}

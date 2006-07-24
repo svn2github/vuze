@@ -47,6 +47,7 @@ ProtocolDecoderInitial
 	private TransportHelper	transport;
 
 	private byte[]		shared_secret;
+	private ByteBuffer	initial_data;
 	private ByteBuffer	decode_buffer; 
 	private int			decode_read;
 	
@@ -63,6 +64,7 @@ ProtocolDecoderInitial
 		TransportHelper				_transport,
 		byte[]						_shared_secret,
 		boolean						_outgoing,
+		ByteBuffer					_initial_data,
 		ProtocolDecoderAdapter		_adapter )
 	
 		throws IOException
@@ -71,6 +73,7 @@ ProtocolDecoderInitial
 		
 		transport		= _transport;
 		shared_secret	= _shared_secret;
+		initial_data	= _initial_data;
 		adapter			= _adapter;
 		
 		final TransportHelperFilterTransparent transparent_filter = new TransportHelperFilterTransparent( transport, false );
@@ -139,7 +142,7 @@ ProtocolDecoderInitial
 								
 								transparent_filter.insertRead( decode_buffer );
 								
-								complete();
+								complete( initial_data );
 								
 							}else{
 								
@@ -189,11 +192,12 @@ ProtocolDecoderInitial
 			{
 				public void
 				decodeComplete(
-					ProtocolDecoder	decoder )	
+					ProtocolDecoder	decoder,
+					ByteBuffer		remaining_initial_data )	
 				{
 					filter = decoder.getFilter();
 					
-					complete();
+					complete( remaining_initial_data );
 				}
 				
 				public void
@@ -225,7 +229,7 @@ ProtocolDecoderInitial
 				}
 			};
 		
-		phe_decoder = new ProtocolDecoderPHE( transport, shared_secret, buffer, phe_adapter );
+		phe_decoder = new ProtocolDecoderPHE( transport, shared_secret, buffer, initial_data, phe_adapter );
 	}
 	
 	public boolean
@@ -302,13 +306,14 @@ ProtocolDecoderInitial
 	}
 	
 	protected void
-	complete()
+	complete(
+		ByteBuffer	remaining_initial_data )
 	{
 		if ( !processing_complete ){
 			
 			processing_complete	= true;
 			
-			adapter.decodeComplete( this );
+			adapter.decodeComplete( this, remaining_initial_data );
 		}
 	}
 	

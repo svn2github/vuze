@@ -305,7 +305,7 @@ ProtocolDecoderPHE
 	private byte[]			shared_secret;
 	private byte[]			secret_bytes;
 	
-	private static final int	OUTBOUND_IA	= 0;
+	private ByteBuffer		initial_data_out; 
 	
 	private int				initial_data_out_len;
 	private int				initial_data_in_len;
@@ -341,6 +341,7 @@ ProtocolDecoderPHE
 		TransportHelper				_transport,
 		byte[]						_shared_secret,
 		ByteBuffer					_header,
+		ByteBuffer					_initial_data,
 		ProtocolDecoderAdapter		_adapter )
 	
 		throws IOException
@@ -352,9 +353,10 @@ ProtocolDecoderPHE
 			throw( new IOException( "PHE crypto broken" ));
 		}
 		
-		transport		= _transport;
-		shared_secret	= _shared_secret;
-		adapter			= _adapter;
+		transport			= _transport;
+		shared_secret		= _shared_secret;
+		initial_data_out	= _initial_data;
+		adapter				= _adapter;
 		
 		if ( shared_secret == null ){
 			
@@ -365,7 +367,7 @@ ProtocolDecoderPHE
 		
 		if ( outbound ){
 			
-			initial_data_out_len	= OUTBOUND_IA;
+			initial_data_out_len	= initial_data_out==null?0:initial_data_out.remaining();
 		}
 		
 		my_supported_protocols = SUPPORTED_PROTOCOLS;
@@ -654,7 +656,7 @@ ProtocolDecoderPHE
 					 new TransportHelperFilterStreamCipher( transport, read_cipher,	write_cipher ),
 					 filter,
 					 initial_data_in_len,
-					 initial_data_out_len );
+					 0 );	// any initial data out is dealt with entirely during cryto phase
 		}
 		
 		handshake_complete	= true;
@@ -818,7 +820,7 @@ ProtocolDecoderPHE
 
 						byte[]	padding_c = getZeroPadding(pad_max);
 						
-						write_buffer = ByteBuffer.allocate( padding_a.length + 20 + 20 + ( VC.length + 4 + 2 + padding_c.length + 2 ));
+						write_buffer = ByteBuffer.allocate( padding_a.length + 20 + 20 + ( VC.length + 4 + 2 + padding_c.length + 2 ) + initial_data_out_len );
 						
 						write_buffer.put( padding_a );
 						
@@ -867,7 +869,20 @@ ProtocolDecoderPHE
 						write_buffer.put( write_cipher.update( padding_c ));
 						
 						write_buffer.put( write_cipher.update( new byte[]{ (byte)(initial_data_out_len>>8),(byte)initial_data_out_len }));
-												
+								
+						if ( initial_data_out_len > 0 ){
+						
+							int	save_pos = initial_data_out.position();
+							
+							write_cipher.update( initial_data_out, write_buffer );
+							
+								// reset in case buffer needs to be used again by caller
+							
+							initial_data_out.position( save_pos );
+							
+							initial_data_out = null;
+						}
+						
 						write_buffer.flip();
 					}
 					
@@ -1908,7 +1923,7 @@ ProtocolDecoderPHE
 
 		processing_complete	= true;
 		
-		adapter.decodeComplete( this );	
+		adapter.decodeComplete( this, initial_data_out );	
 	}
 	
 	protected void

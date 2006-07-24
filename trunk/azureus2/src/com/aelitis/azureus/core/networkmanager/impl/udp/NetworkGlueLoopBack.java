@@ -35,7 +35,7 @@ NetworkGlueLoopBack
 	implements NetworkGlue
  
 {
-	private int latency			= 2500;
+	private int latency			= 0;
 	
 	private NetworkGlueListener		listener;
 	

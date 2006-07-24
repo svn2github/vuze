@@ -135,7 +135,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
    * @param address remote peer address to connect to
    * @param listener establishment failure/success listener
    */
-  public void connectOutbound( final ConnectListener listener ) {
+  public void connectOutbound( final ByteBuffer initial_data, final ConnectListener listener ) {
 	  
 	if ( !TCPNetworkManager.TCP_OUTGOING_ENABLED ){
 	
@@ -148,7 +148,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     
     if( getFilter() != null ) {  //already connected
       Debug.out( "socket_channel != null" );
-      listener.connectSuccess( this );
+      listener.connectSuccess( this, initial_data );
       return;
     }
     
@@ -188,7 +188,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
           new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
             public void connectSuccess() {
             	Logger.log(new LogEvent(LOGID, "Proxy [" +description+ "] login successful." ));
-              handleCrypto( address, channel, listener );
+              handleCrypto( address, channel, initial_data, listener );
             }
             
             public void connectFailure( Throwable failure_msg ) {
@@ -198,7 +198,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
           });
         }
         else {  //direct connection established, notify
-        	handleCrypto( address, channel, listener );
+        	handleCrypto( address, channel, initial_data, listener );
         }
       }
 
@@ -218,12 +218,12 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     
   
   
-  protected void handleCrypto( final InetSocketAddress address, final SocketChannel channel, final ConnectListener listener ) {  	
+  protected void handleCrypto( final InetSocketAddress address, final SocketChannel channel, final ByteBuffer initial_data, final ConnectListener listener ) {  	
   	if( connect_with_crypto ) {
     	//attempt encrypted transport
   		TransportHelper	helper = new TCPTransportHelper( channel );
-    	TransportCryptoManager.getSingleton().manageCrypto( helper, shared_secret, false, new TransportCryptoManager.HandshakeListener() {
-    		public void handshakeSuccess( ProtocolDecoder decoder ) {    			
+    	TransportCryptoManager.getSingleton().manageCrypto( helper, shared_secret, false, initial_data, new TransportCryptoManager.HandshakeListener() {
+    		public void handshakeSuccess( ProtocolDecoder decoder, ByteBuffer remaining_initial_data ) {    			
     			//System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" ); 
     			TransportHelperFilter filter = decoder.getFilter();
     			setFilter( filter ); 
@@ -233,7 +233,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     			
     			connectedOutbound();
           
-    			listener.connectSuccess( TCPTransportImpl.this );
+    			listener.connectSuccess( TCPTransportImpl.this, remaining_initial_data );
     		}
 
     		public void handshakeFailure( Throwable failure_msg ) {        	
@@ -244,7 +244,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         		TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
         		close( "Handshake failure and retry" );
         		has_been_closed = false;
-        		connectOutbound( listener );
+        		connectOutbound( initial_data, listener );
         	}
         	else {
         		TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
@@ -284,7 +284,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 		
 		connectedOutbound();
 		
-    	listener.connectSuccess( this );
+    	listener.connectSuccess( this, initial_data );
   	}
   }
   

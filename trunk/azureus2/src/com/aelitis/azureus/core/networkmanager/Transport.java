@@ -124,6 +124,7 @@ public interface Transport {
    */
   public void
   connectOutbound(
+		ByteBuffer			initial_data,
 		ConnectListener 	listener );
    
   /**
@@ -153,7 +154,7 @@ public interface Transport {
      * The connection attempt succeeded.
      * The connection is now established.
      */
-    public void connectSuccess(Transport	transport) ;
+    public void connectSuccess(Transport	transport, ByteBuffer remaining_initial_data );
     
     /**
      * The connection attempt failed.

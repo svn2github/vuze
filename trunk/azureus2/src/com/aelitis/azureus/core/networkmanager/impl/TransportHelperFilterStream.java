@@ -47,9 +47,15 @@ TransportHelperFilterStream
 	}
 	
 	public boolean
-	isFlushed()
+	hasBufferedWrite()
 	{
-		return( write_buffer_pending_db == null && write_buffer_pending_byte == null );
+		return( write_buffer_pending_db != null || write_buffer_pending_byte != null );
+	}
+	
+	public boolean 
+	hasBufferedRead() 
+	{
+		return false;
 	}
 	
 	public TransportHelper

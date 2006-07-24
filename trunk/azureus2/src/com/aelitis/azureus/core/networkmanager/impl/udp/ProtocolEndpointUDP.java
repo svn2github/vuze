@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.networkmanager.impl.udp;
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
@@ -89,11 +90,12 @@ ProtocolEndpointUDP
 		boolean				connect_with_crypto, 
 		boolean 			allow_fallback, 
 		byte[] 				shared_secret,
+		ByteBuffer			initial_data,
 		ConnectListener 	listener )
 	{
 		UDPTransport t = new UDPTransport( this, shared_secret );
 		
-		t.connectOutbound( listener );
+		t.connectOutbound( initial_data, listener );
 		
 		return( t );
 	}

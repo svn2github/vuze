@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
+import java.nio.ByteBuffer;
+
 import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
 
 public interface 
@@ -45,6 +47,7 @@ ProtocolEndpoint
 		boolean				connect_with_crypto, 
 		boolean 			allow_fallback, 
 		byte[] 				shared_secret,
+		ByteBuffer			initial_data,
 		ConnectListener 	listener );
 	
 	public String

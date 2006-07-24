@@ -44,7 +44,8 @@ ProtocolDecoderAdapter
 	
 	public void
 	decodeComplete(
-		ProtocolDecoder		decoder );
+		ProtocolDecoder		decoder,
+		ByteBuffer			remaining_initial_data );
 	
 	public void
 	decodeFailed(

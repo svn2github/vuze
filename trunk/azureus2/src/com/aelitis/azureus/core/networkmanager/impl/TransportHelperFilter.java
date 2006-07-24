@@ -45,7 +45,10 @@ TransportHelperFilter
 		throws IOException;
 	
 	public boolean
-	isFlushed();
+	hasBufferedWrite();
+	
+	public boolean
+	hasBufferedRead();
 	
 	public TransportHelper
 	getHelper();

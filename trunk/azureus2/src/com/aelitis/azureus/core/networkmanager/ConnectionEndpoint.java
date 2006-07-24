@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.networkmanager;
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
 
@@ -92,11 +93,12 @@ ConnectionEndpoint
 		boolean				connect_with_crypto, 
 		boolean 			allow_fallback, 
 		byte[] 				shared_secret,
+		ByteBuffer			initial_data,
 		ConnectListener 	listener )
 	{
 		ProtocolEndpoint	protocol = protocols[0];
 		
-		final Transport transport = protocol.connectOutbound( connect_with_crypto, allow_fallback, shared_secret, listener );
+		final Transport transport = protocol.connectOutbound( connect_with_crypto, allow_fallback, shared_secret, initial_data, listener );
 		
 		return( 
 			new ConnectionAttempt()

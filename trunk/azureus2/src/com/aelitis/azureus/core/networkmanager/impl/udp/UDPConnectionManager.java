@@ -50,8 +50,9 @@ UDPConnectionManager
 	implements NetworkGlueListener
 {
 	private static final LogIDs LOGID = LogIDs.NET;
-	private static final boolean LOOPBACK	= false;
-
+	private static final boolean 	LOOPBACK	= false;
+	private static final boolean	FORCE_LOG	= false;
+	
 	private static boolean	LOG = false;
 	
 	static{
@@ -63,7 +64,7 @@ UDPConnectionManager
 					parameterChanged(
 						String name )
 					{
-						LOG = COConfigurationManager.getBooleanParameter( name );
+						LOG = FORCE_LOG || COConfigurationManager.getBooleanParameter( name );
 					}
 				});
 	}
@@ -431,11 +432,13 @@ UDPConnectionManager
 				helper, 
 				null, 
 				true, 
+				null,
 				new TransportCryptoManager.HandshakeListener() 
 				{
 					public void 
 					handshakeSuccess( 
-						ProtocolDecoder	decoder ) 
+						ProtocolDecoder	decoder,
+						ByteBuffer		remaining_initial_data ) 
 					{
 						TransportHelperFilter	filter = decoder.getFilter();
 						
@@ -661,6 +664,11 @@ UDPConnectionManager
 		String				str )
 	{
 		if ( LOG ){
+			
+			if ( FORCE_LOG ){
+				
+				System.out.println( str );
+			}
 			
 			if (Logger.isEnabled()){
 				

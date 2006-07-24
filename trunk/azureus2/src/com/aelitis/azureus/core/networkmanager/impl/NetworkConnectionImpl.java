@@ -23,6 +23,8 @@
 package com.aelitis.azureus.core.networkmanager.impl;
 
 
+import java.nio.ByteBuffer;
+
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -105,13 +107,17 @@ public class NetworkConnectionImpl implements NetworkConnection {
   }
   
   public void connect( ConnectionListener listener ) {
+	  connect( null, listener );
+  }
+  
+  public void connect( ByteBuffer initial_outbound_data, ConnectionListener listener ) {
     this.connection_listener = listener;
     
     if( is_connected ){
     	
       connection_listener.connectStarted();
       
-      connection_listener.connectSuccess();
+      connection_listener.connectSuccess( initial_outbound_data );
       
       return;
     }
@@ -130,16 +136,17 @@ public class NetworkConnectionImpl implements NetworkConnection {
     			connect_with_crypto, 
     			allow_fallback, 
     			shared_secret, 
+    			initial_outbound_data,
     			new Transport.ConnectListener() {
 			      public void connectAttemptStarted() {
 			        connection_listener.connectStarted();
 			      }
 			      
-			      public void connectSuccess( Transport	_transport ) {
+			      public void connectSuccess( Transport	_transport, ByteBuffer remaining_initial_data ) {
 			        is_connected = true;
 			        transport	= _transport;
 			        outgoing_message_queue.setTransport( transport );
-			        connection_listener.connectSuccess();
+			        connection_listener.connectSuccess( remaining_initial_data );
 			        connection_attempt	= null;
 			      }
 			      

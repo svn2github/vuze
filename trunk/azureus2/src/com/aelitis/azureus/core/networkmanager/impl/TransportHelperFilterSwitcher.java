@@ -114,7 +114,7 @@ TransportHelperFilterSwitcher
 					// writer may have data buffered up pending next write call - if so then
 					// we need to get out now
 				
-				if ( !current_writer.isFlushed()){
+				if ( current_writer.hasBufferedWrite()){
 					
 					return( total_written );
 				}
@@ -205,11 +205,17 @@ TransportHelperFilterSwitcher
 	}
 	
 	public boolean
-	isFlushed()
+	hasBufferedWrite()
 	{
-		return( current_writer.isFlushed());
+		return( current_writer.hasBufferedWrite());
 	}
 
+	public boolean 
+	hasBufferedRead() 
+	{
+		return( current_reader.hasBufferedRead());
+	}
+	
 	public TransportHelper
 	getHelper()
 	{

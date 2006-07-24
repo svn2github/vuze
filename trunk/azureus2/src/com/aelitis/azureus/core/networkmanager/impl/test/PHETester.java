@@ -109,11 +109,13 @@ PHETester
 						helper, 
 						null,
 						false,
+						null,
 						new ProtocolDecoderAdapter()
 						{
 							public void
 							decodeComplete(
-								ProtocolDecoder	decoder )
+								ProtocolDecoder	decoder,
+								ByteBuffer		remaining_initial_data )
 							{
 								System.out.println( "incoming decode complete: " +  decoder.getFilter().getName());
 																
@@ -259,11 +261,13 @@ PHETester
 						helper,
 						shared_secret,
 						true,
+						null,
 						new ProtocolDecoderAdapter()
 						{
 							public void
 							decodeComplete(
-								ProtocolDecoder	decoder )
+								ProtocolDecoder	decoder,
+								ByteBuffer		remaining_initial_data )
 							{
 								System.out.println( "outgoing decode complete: " +  decoder.getFilter().getName());
 															

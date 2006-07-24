@@ -22,6 +22,7 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
@@ -229,7 +230,7 @@ PEPeerTransportProtocol
         connection_state = PEPeerTransport.CONNECTION_CONNECTING;
       }
       
-      public final void connectSuccess() {  //will be called immediately
+      public final void connectSuccess( ByteBuffer remaining_initial_data ) {  //will be called immediately
       	if (Logger.isEnabled())
 					Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
 							"In: Established incoming connection"));
@@ -336,7 +337,7 @@ PEPeerTransportProtocol
         connection_state = PEPeerTransport.CONNECTION_CONNECTING;
       }
  
-      public final void connectSuccess() {
+      public final void connectSuccess( ByteBuffer remaining_initial_data ) {
         if( closing ) {
           //Debug.out( "PEPeerTransportProtocol::connectSuccess() called when closing." );
           return;

@@ -41,6 +41,7 @@ public class TransportCryptoManager {
 		TransportHelper				transport,
 		byte[]						shared_secret,
 		boolean 					is_incoming, 
+		ByteBuffer					initial_data,
 		final HandshakeListener 	listener ) 
 	{						
 			try{
@@ -48,6 +49,7 @@ public class TransportCryptoManager {
 						transport, 
 						shared_secret,
 						!is_incoming,
+						initial_data,
 						new ProtocolDecoderAdapter()
 						{
 							public int
@@ -72,9 +74,10 @@ public class TransportCryptoManager {
 							
 							public void
 							decodeComplete(
-								ProtocolDecoder	decoder )
+								ProtocolDecoder	decoder,
+								ByteBuffer		remaining_initial_data )
 							{
-								listener.handshakeSuccess( decoder );
+								listener.handshakeSuccess( decoder, remaining_initial_data );
 							}
 							
 							public void
@@ -100,7 +103,7 @@ public class TransportCryptoManager {
 		public static final int MATCH_CRYPTO_NO_AUTO_FALLBACK	= ProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK;
 		public static final int MATCH_CRYPTO_AUTO_FALLBACK		= ProtocolDecoderAdapter.MATCH_CRYPTO_AUTO_FALLBACK;
 		
-		public void handshakeSuccess( ProtocolDecoder decoder );
+		public void handshakeSuccess( ProtocolDecoder decoder, ByteBuffer remaining_initial_data );
 
 		public void handshakeFailure( Throwable failure_msg );
 		

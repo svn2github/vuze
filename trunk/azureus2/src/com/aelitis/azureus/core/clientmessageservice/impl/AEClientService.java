@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.clientmessageservice.impl;
 
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Map;
@@ -103,10 +104,10 @@ public class AEClientService implements ClientMessageService {
 	   
     final AESemaphore connect_block = new AESemaphore( "AEClientService:C" );
     
-    ce.connectOutbound( false, false, null, new Transport.ConnectListener() {  //NOTE: async operation!
+    ce.connectOutbound( false, false, null, null, new Transport.ConnectListener() {  //NOTE: async operation!
     	public void connectAttemptStarted() {  /*nothing*/ }
       
-    	public void connectSuccess(Transport transport) {
+    	public void connectSuccess(Transport transport, ByteBuffer remaining_initial_data ){
     		conn = new ClientConnection((TCPTransportImpl)transport );
     		connect_block.release();       
     	}

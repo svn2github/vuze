@@ -503,10 +503,7 @@ UDPTransportHelper
        		
     		fireReadSelect();
       		fireWriteSelect();
-      		
-    		cancelReadSelects();
-    		cancelWriteSelects();
-     	}
+      	}
     	
     	connection.closeSupport( reason );
     }

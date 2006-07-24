@@ -187,7 +187,7 @@ Test
 			final SEPublicKey	my_key = sec_man.getPublicKey( SEPublicKey.KEY_TYPE_ECC_192, "test" );
 
 			final int	stream_crypto 	= MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED;
-			final boolean	use_sts		= true;
+			final boolean	use_sts		= false;
 			final int	block_crypto 	= SESecurityManager.BLOCK_ENCRYPTION_AES;
 			
 			GenericMessageRegistration	reg = 
@@ -255,6 +255,8 @@ Test
 										
 											throws MessageException
 										{
+											System.out.println( "Responder connection error:" );
+
 											error.printStackTrace();
 										}	
 									});
@@ -275,7 +277,7 @@ Test
 			
 			endpoint.addTCP( tcp_target );
 			
-			for (int i=0;i<1;i++){
+			for (int i=0;i<1000;i++){
 				
 				System.out.println( "Test: initiating connection" );
 				
@@ -330,7 +332,7 @@ Test
 						{
 							System.out.println( "receive: " + message.toByteArray().length );
 							
-							
+							/*
 							try{
 								Thread.sleep(50000);
 							}catch( Throwable e ){
@@ -342,9 +344,9 @@ Test
 							
 							
 							connection.send( reply );
+							*/
 							
-							
-							// connection.close();
+							connection.close();
 							
 							sem.release();
 						}
@@ -356,6 +358,8 @@ Test
 						
 							throws MessageException
 						{
+							System.out.println( "Initiator connection error:" );
+							
 							error.printStackTrace();
 						}
 					});
@@ -365,7 +369,7 @@ Test
 				
 				sem.reserve();
 				
-				Thread.sleep( 60*1000 );
+				Thread.sleep( 1000 );
 			}
 			
 		}catch( Throwable e ){

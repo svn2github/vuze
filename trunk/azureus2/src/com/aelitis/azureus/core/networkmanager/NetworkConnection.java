@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
+import java.nio.ByteBuffer;
+
 
 /**
  * Represents a managed network connection, over which messages can be sent and received. 
@@ -43,7 +45,8 @@ public interface NetworkConnection {
    */
   public void connect( ConnectionListener listener );
 
-  
+  public void connect( ByteBuffer initial_outbound_data, ConnectionListener listener );
+
   /**
    * Close and shutdown this connection.
    */
@@ -120,7 +123,7 @@ public interface NetworkConnection {
      * The connection is now established.
      * NOTE: Called only during initial connect attempt.
      */
-    public void connectSuccess();
+    public void connectSuccess( ByteBuffer remaining_initial_data );
     
     /**
      * The connection attempt failed.

@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
@@ -38,6 +39,7 @@ import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 public class 
@@ -83,7 +85,8 @@ GenericMessageConnectionImpl
 					}
 	
 					public void 
-					connectSuccess()
+					connectSuccess(
+						ByteBuffer remaining_initial_data )
 					{
 						connected	= true;
 					}
@@ -142,6 +145,13 @@ GenericMessageConnectionImpl
 	public void
 	connect()
 	{
+		connect( null );
+	}
+	
+	public void
+	connect(
+		ByteBuffer	upper_initial_data )
+	{
 		if ( connected ){
 			
 			return;
@@ -156,7 +166,37 @@ GenericMessageConnectionImpl
 				stream_crypto != MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED, 	// allow fallback
 				shared_secret );
 		
+		ByteBuffer	initial_data = ByteBuffer.wrap( msg_id.getBytes());
+		
+		if ( upper_initial_data != null ){
+		
+			GenericMessage	gm = new GenericMessage( msg_id, msg_desc, new DirectByteBuffer( upper_initial_data ));
+			
+			DirectByteBuffer[]	payload = new GenericMessageEncoder().encodeMessage( gm ).getRawData();
+			
+			int	size = initial_data.remaining();
+			
+			for (int i=0;i<payload.length;i++){
+				
+				size += payload[i].remaining( DirectByteBuffer.SS_MSG );
+			}
+			
+			ByteBuffer	temp = ByteBuffer.allocate( size );
+			
+			temp.put( initial_data );
+			
+			for (int i=0;i<payload.length;i++){
+			
+				temp.put( payload[i].getBuffer( DirectByteBuffer.SS_MSG ));
+			}
+			
+			temp.rewind();
+			
+			initial_data = temp;
+		}
+				
 		connection.connect(
+				initial_data,
 				new NetworkConnection.ConnectionListener()
 				{
 					public void 
@@ -165,12 +205,20 @@ GenericMessageConnectionImpl
 					}
 	
 					public void 
-					connectSuccess()
+					connectSuccess(
+						ByteBuffer remaining_initial_data )
 					{
 						connected	= true;
-						
+											
 						try{
-							connection.getTransport().write(new ByteBuffer[]{ ByteBuffer.wrap( msg_id.getBytes())}, 0, 1 );
+							if ( remaining_initial_data != null && remaining_initial_data.hasRemaining()){
+								
+								connection.getTransport().write(new ByteBuffer[]{ remaining_initial_data }, 0, 1 );
+								
+								if ( remaining_initial_data.hasRemaining()){
+									System.out.println( "****" );
+								}
+							}
 									
 							startProcessing();
 							
@@ -213,7 +261,7 @@ GenericMessageConnectionImpl
 	    				Message 	_message )
 	    			{
 	    				GenericMessage	message = (GenericMessage)_message;
-	    				
+	    					    				
 	    				for (int i=0;i<listeners.size();i++){
 	    					
 	    					PooledByteBuffer	buffer = new PooledByteBufferImpl(message.getPayload());
@@ -245,6 +293,52 @@ GenericMessageConnectionImpl
 	    				int byte_count )
 	    			{	
 	    			}
+	    		});
+	    
+	    connection.getOutgoingMessageQueue().registerQueueListener( 
+	    		new OutgoingMessageQueue.MessageQueueListener() 
+	    		{
+	    			public boolean 
+	    			messageAdded( 
+	    				Message message )
+	    			{
+	    				//System.out.println( "    added" );
+	    				
+	    				return( true );
+	    			}
+	    			    
+	    			public void 
+	    			messageQueued( 
+	    				Message message )
+	    			{
+	    				//System.out.println( "    queued" );
+	    			}
+	    			    
+	   			    public void 
+	   			    messageRemoved( 
+	   			    	Message message )
+	   			    {
+	   			    	//System.out.println( "    removed" );
+	   			    }
+	    			    
+		    		public void 
+		    		messageSent( 
+		    			Message message )
+		    		{
+		    			//System.out.println( "    sent" );
+		    		}
+	    			    
+	    			public void 
+	    			protocolBytesSent( 
+	    				int byte_count )
+	    			{
+	    			}
+	
+	  			    public void 
+	  			    dataBytesSent( 
+	  			    	int byte_count )
+	  			    {  			    	
+	  			    }
 	    		});
 	    
 	    connection.startMessageProcessing( this, this );

@@ -100,6 +100,7 @@ UDPTransport
 	
 	public void
 	connectOutbound(
+		ByteBuffer				initial_data,
 		final ConnectListener 	listener )
 	{
 		if ( !UDPNetworkManager.UDP_OUTGOING_ENABLED ){
@@ -140,11 +141,13 @@ UDPTransport
 	    			helper, 
 	    			shared_secret, 
 	    			false, 
+	    			initial_data,
 	    			new TransportCryptoManager.HandshakeListener() 
 	    			{
 	    				public void 
 	    				handshakeSuccess( 
-	    					ProtocolDecoder	decoder )
+	    					ProtocolDecoder	decoder,
+	    					ByteBuffer		remaining_initial_data )
 	    				{
 	    					TransportHelperFilter	filter = decoder.getFilter();
 	    					
@@ -166,7 +169,7 @@ UDPTransport
 			    		   			
 			    		   			connectedOutbound();
 			    		   			
-			    		   			listener.connectSuccess( UDPTransport.this );
+			    		   			listener.connectSuccess( UDPTransport.this, remaining_initial_data );
 		    					}
 	    					}catch( Throwable e ){
 	    						

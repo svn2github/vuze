@@ -78,6 +78,8 @@ TransportImpl
 		if ( bytes_already_read != null && bytes_already_read.hasRemaining()){
 
 			data_already_read	= bytes_already_read;
+			
+			is_ready_for_read = true;
 		}
 	}
 
@@ -322,6 +324,13 @@ TransportImpl
 			Debug.out( "ERROR: registerSelectHandling():: filter == null" );
 			return;
 		}
+
+		if ( filter.hasBufferedRead()){
+			
+			is_ready_for_read = true;
+		}
+		
+		is_ready_for_write = true;
 
 		TransportHelper	helper = filter.getHelper();
 		
