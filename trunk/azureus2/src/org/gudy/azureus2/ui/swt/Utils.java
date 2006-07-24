@@ -994,7 +994,7 @@ public class Utils {
 			Rectangle bounds = shell.getDisplay().getBounds();
 			bMetricsOk = shell.getBounds().intersects(bounds);
 		}
-		if (!bMetricsOk) {
+		if (!bMetricsOk && bAdjustIfInvalid) {
 			centreWindow(shell);
 		}
 		return bMetricsOk;
