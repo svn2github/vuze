@@ -134,7 +134,14 @@ UTTimerImpl
 					}catch( Throwable e ){
 					}
 					
-					res.perform( ext_performer );
+					try {
+						res.perform( ext_performer );
+					} catch (Throwable e) {
+						Debug.out("Plugin '" + plugin_interface.getPluginName() + " ("
+							+ plugin_interface.getPluginID() + " "
+							+ plugin_interface.getPluginVersion()
+							+ ") caused an error while processing a timer event", e);
+					}
 				}
 			};
 			
