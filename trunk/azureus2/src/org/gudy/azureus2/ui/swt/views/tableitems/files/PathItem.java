@@ -44,14 +44,44 @@ public class PathItem
 
   public void refresh(TableCell cell) {
     DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
-    String path = "";
+    cell.setText(determinePath(fileInfo));
+  }
+  
+  private static String determinePath(DiskManagerFileInfo fileInfo) {
     
-    if( fileInfo != null ) {
-    	
-      if ( FilesView.show_full_path || fileInfo.getLink() != null ){ 
+    if( fileInfo == null ) {
+    	return "";
+    }
+    
+    /**
+     * Simple torrents always have a forward slash, since the path
+     * will always be relative to the download location.
+     */
+    if (fileInfo.getDownloadManager().getTorrent().isSimpleTorrent()) {
+    	return "/"; // Should this be File.separator?
+    }
+
+   	boolean has_link = fileInfo.getLink() != null;
+   	boolean show_full_path = FilesView.show_full_path;
+   	
+   	File dl_save_path_file = fileInfo.getDownloadManager().getAbsoluteSaveLocation();
+   	String dl_save_path = dl_save_path_file.getPath() + File.separator;
+
+   	File file = fileInfo.getFile(true);
+   	
+   	/**
+   	 * Figure out whether we should show the full path anyway.
+   	 * We'll do this if the path is relative to he current
+   	 * download save path.
+   	 */
+   	//  
+   	if (has_link && !show_full_path) {
+   		show_full_path = !file.getAbsolutePath().startsWith(dl_save_path);
+   	}
+   	String path = "";
+  	
+    if (show_full_path) { 
     	  
-    	  File file = fileInfo.getFile(true);
-    	     
 	      try {
 	          path = file.getParentFile().getCanonicalPath();
 	      }
@@ -63,22 +93,29 @@ public class PathItem
 	    	  
 	    	  path += File.separator;
 	      }
-      }else{
- 
-    	  path = fileInfo.getTorrentFile().getRelativePath();
+	      
+    }else{
+    	
+    	path = file.getAbsolutePath().substring(dl_save_path.length());
+    	if (path.length() == 0) {
+    		path = "/";
+    	}
+    	else {
+    		if (path.charAt(0) == File.separatorChar) {
+    			path = path.substring(1);
+    		}
+    		int	pos = path.lastIndexOf(File.separator);
     	  
-    	  int	pos = path.lastIndexOf(File.separator);
-    	  
-    	  if (pos > 0 ){
-    		  
-    		  path = File.separator + path.substring( 0, pos );
-    	  }else{
-    		  
-    		  path = File.separator;
-    	  }
+    		if (pos > 0 ) {
+    			path = File.separator + path.substring( 0, pos );
+    		}
+    		else {
+    			path = File.separator;
+    		}
       }
     }
     
-    cell.setText( path );
+    return path;
   }
+  
 }
