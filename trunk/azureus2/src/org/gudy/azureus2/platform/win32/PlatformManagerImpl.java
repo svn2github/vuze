@@ -434,7 +434,7 @@ PlatformManagerImpl
 			
 			unregisterAdditionalFileType( OLD_MAIN_ASS0C, ".torrent" );
 			
-			registerAdditionalFileType( NEW_MAIN_ASSOC, "BitTorrent File", ".torrent", "application/x-bittorrent" );
+			registerAdditionalFileType( NEW_MAIN_ASSOC, "Azureus Torrent", ".torrent", "application/x-bittorrent" );
 		}
 		
 		boolean	reg = isAdditionalFileTypeRegistered( NEW_MAIN_ASSOC, ".torrent" );
@@ -443,7 +443,7 @@ PlatformManagerImpl
 		
 		if ( !reg && !COConfigurationManager.getBooleanParameter( "platform.win32.autoregdone", false )){
 			
-			registerAdditionalFileType( NEW_MAIN_ASSOC, "BitTorrent File", ".torrent", "application/x-bittorrent" );
+			registerAdditionalFileType( NEW_MAIN_ASSOC, "Azureus Torrent", ".torrent", "application/x-bittorrent" );
 
 			COConfigurationManager.setParameter( "platform.win32.autoregdone", true );
 			
@@ -569,7 +569,7 @@ PlatformManagerImpl
 	{
 		registerMagnet();
 		
-		registerAdditionalFileType( NEW_MAIN_ASSOC, "BitTorrent File", ".torrent", "application/x-bittorrent" );
+		registerAdditionalFileType( NEW_MAIN_ASSOC, "Azureus Torrent", ".torrent", "application/x-bittorrent" );
 	}
 	
 	protected void
@@ -578,7 +578,7 @@ PlatformManagerImpl
 		try{
 			registerAdditionalFileType( 
 				"Magnet", 
-				"Magnet File", 
+				"Magnet URI", 
 				".magnet", 
 				"application/x-magnet",
 				true );
