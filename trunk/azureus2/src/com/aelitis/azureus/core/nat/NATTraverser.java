@@ -157,7 +157,10 @@ NATTraverser
 							
 							DHT[]	dhts = dht_plugin.getDHTs();
 
-							puncher = dhts[dhts.length-1].getNATPuncher();
+							if ( dhts.length > 0 ){
+								
+								puncher = dhts[0].getNATPuncher();
+							}
 						}
 					}
 				}
