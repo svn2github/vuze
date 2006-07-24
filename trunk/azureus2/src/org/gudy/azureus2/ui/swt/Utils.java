@@ -773,25 +773,9 @@ public class Utils {
 				if (i == 4) {
 					Rectangle shellBounds = new Rectangle(values[0], values[1],
 							values[2], values[3]);
-					boolean bMetricsOk;
-					try {
-						bMetricsOk = false;
-						Point ptTopLeft = new Point(values[0], values[1]);
-
-						Monitor[] monitors = shell.getDisplay().getMonitors();
-						for (int j = 0; j < monitors.length && !bMetricsOk; j++) {
-							Rectangle bounds = monitors[j].getBounds();
-							bMetricsOk = bounds.contains(ptTopLeft);
-						}
-					} catch (NoSuchMethodError e) {
-						Rectangle bounds = shell.getDisplay().getBounds();
-						bMetricsOk = shellBounds.intersects(bounds);
-					}
-
-					if (bMetricsOk) {
-						shell.setBounds(shellBounds);
-						bDidResize = true;
-					}
+					shell.setBounds(shellBounds);
+					verifyShellRect(shell, true);
+					bDidResize = true;
 				}
 			} catch (Exception e) {
 			}
@@ -990,6 +974,30 @@ public class Utils {
 		}
 		
 		return null;
+	}
+
+	/**
+	 * @param listener
+	 */
+	public static boolean verifyShellRect(Shell shell, boolean bAdjustIfInvalid) {
+		boolean bMetricsOk;
+		try {
+			bMetricsOk = false;
+			Point ptTopLeft = shell.getLocation();
+
+			Monitor[] monitors = shell.getDisplay().getMonitors();
+			for (int j = 0; j < monitors.length && !bMetricsOk; j++) {
+				Rectangle bounds = monitors[j].getBounds();
+				bMetricsOk = bounds.contains(ptTopLeft);
+			}
+		} catch (NoSuchMethodError e) {
+			Rectangle bounds = shell.getDisplay().getBounds();
+			bMetricsOk = shell.getBounds().intersects(bounds);
+		}
+		if (!bMetricsOk) {
+			centreWindow(shell);
+		}
+		return bMetricsOk;
 	}
 }
 
