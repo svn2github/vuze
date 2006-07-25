@@ -228,10 +228,19 @@ public class MessageManagerImpl implements MessageManager {
 							
 							connection.getTransport().read( skip_buffer, 0, 1 );
 
-							if ( !handler.accept( new GenericMessageConnectionImpl( type, description, stream_crypto, shared_secret, connection ))){
+							if ( skip_buffer[0].remaining() != 0 ){
+								
+								Debug.out( "incomplete read" );
+							}
+							
+							GenericMessageConnectionImpl new_connection = new GenericMessageConnectionImpl( type, description, stream_crypto, shared_secret, connection );
+							
+							if ( !handler.accept( new_connection )){
 								
 								connection.close();
 							}
+							
+							new_connection.accepted();
 							
 						}catch( Throwable e ){
 							

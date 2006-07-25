@@ -109,7 +109,11 @@ GenericMessageConnectionImpl
 						connection.close();
 					}
 				});
-		
+	}
+	
+	protected void
+	accepted()
+	{
 		startProcessing();
 	}
 	
@@ -194,7 +198,7 @@ GenericMessageConnectionImpl
 			
 			initial_data = temp;
 		}
-				
+						
 		connection.connect(
 				initial_data,
 				new NetworkConnection.ConnectionListener()
@@ -209,7 +213,7 @@ GenericMessageConnectionImpl
 						ByteBuffer remaining_initial_data )
 					{
 						connected	= true;
-											
+														
 						try{
 							if ( remaining_initial_data != null && remaining_initial_data.hasRemaining()){
 								
@@ -220,9 +224,9 @@ GenericMessageConnectionImpl
 								}
 							}
 									
-							startProcessing();
-							
 							reportConnected();
+							
+							startProcessing();
 
 						}catch( Throwable e ){
 							
@@ -261,7 +265,9 @@ GenericMessageConnectionImpl
 	    				Message 	_message )
 	    			{
 	    				GenericMessage	message = (GenericMessage)_message;
-	    					    				
+	    						   
+	    				boolean	handled = false;
+	    				
 	    				for (int i=0;i<listeners.size();i++){
 	    					
 	    					PooledByteBuffer	buffer = new PooledByteBufferImpl(message.getPayload());
@@ -271,12 +277,19 @@ GenericMessageConnectionImpl
 	    								GenericMessageConnectionImpl.this,
 	    								buffer );
 	    						
+	    						handled = true;
+	    						
 	    					}catch( Throwable f ){
 	    						
 	    						buffer.returnToPool();
 	    						
 	    						Debug.printStackTrace(f);
 	    					}
+	    				}
+	    				
+	    				if ( !handled ){
+	    					
+	    					Debug.out( "GenericMessage: incoming message not handled" );
 	    				}
 	    				
 	    				return( true );

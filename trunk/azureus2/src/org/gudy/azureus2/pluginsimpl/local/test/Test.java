@@ -187,7 +187,7 @@ Test
 			final SEPublicKey	my_key = sec_man.getPublicKey( SEPublicKey.KEY_TYPE_ECC_192, "test" );
 
 			final int	stream_crypto 	= MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED;
-			final boolean	use_sts		= false;
+			final boolean	use_sts		= true;
 			final int	block_crypto 	= SESecurityManager.BLOCK_ENCRYPTION_AES;
 			
 			GenericMessageRegistration	reg = 
@@ -262,6 +262,8 @@ Test
 									});
 								
 							}catch( Throwable e ){
+								
+								connection.close();
 								
 								e.printStackTrace();
 							}

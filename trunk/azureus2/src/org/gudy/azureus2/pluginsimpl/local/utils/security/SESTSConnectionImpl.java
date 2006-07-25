@@ -639,6 +639,8 @@ SESTSConnectionImpl
 			
 			if ( block_crypto != SESecurityManager.BLOCK_ENCRYPTION_NONE ){
 				
+				connection.close();
+				
 				throw( new MessageException( "Crypto isn't setup" ));
 			}
 		
