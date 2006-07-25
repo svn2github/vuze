@@ -174,7 +174,7 @@ GenericMessageConnectionImpl
 		
 		if ( upper_initial_data != null ){
 		
-			GenericMessage	gm = new GenericMessage( msg_id, msg_desc, new DirectByteBuffer( upper_initial_data ));
+			GenericMessage	gm = new GenericMessage( msg_id, msg_desc, new DirectByteBuffer( upper_initial_data ), false );
 			
 			DirectByteBuffer[]	payload = new GenericMessageEncoder().encodeMessage( gm ).getRawData();
 			
@@ -215,15 +215,15 @@ GenericMessageConnectionImpl
 						connected	= true;
 														
 						try{
-							if ( remaining_initial_data != null && remaining_initial_data.hasRemaining()){
-								
-								connection.getTransport().write(new ByteBuffer[]{ remaining_initial_data }, 0, 1 );
-								
-								if ( remaining_initial_data.hasRemaining()){
-									System.out.println( "****" );
-								}
-							}
-									
+						    
+						    if ( remaining_initial_data != null && remaining_initial_data.remaining() > 0){
+						    	
+						    		// queue as a *raw* message as already encoded
+						    	
+								connection.getOutgoingMessageQueue().addMessage( 
+										new GenericMessage(  msg_id, msg_desc, new DirectByteBuffer( remaining_initial_data ), true), false );
+						    }
+						    
 							reportConnected();
 							
 							startProcessing();
@@ -315,7 +315,7 @@ GenericMessageConnectionImpl
 	    			messageAdded( 
 	    				Message message )
 	    			{
-	    				//System.out.println( "    added" );
+	    				//System.out.println( "    added: " + message );
 	    				
 	    				return( true );
 	    			}
@@ -324,21 +324,21 @@ GenericMessageConnectionImpl
 	    			messageQueued( 
 	    				Message message )
 	    			{
-	    				//System.out.println( "    queued" );
+	    				//System.out.println( "    queued: " + message );
 	    			}
 	    			    
 	   			    public void 
 	   			    messageRemoved( 
 	   			    	Message message )
 	   			    {
-	   			    	//System.out.println( "    removed" );
+	   			    	//System.out.println( "    removed: " + message );
 	   			    }
 	    			    
 		    		public void 
 		    		messageSent( 
 		    			Message message )
 		    		{
-		    			//System.out.println( "    sent" );
+		    			//System.out.println( "    sent: " + message );
 		    		}
 	    			    
 	    			public void 
@@ -372,7 +372,7 @@ GenericMessageConnectionImpl
 		
 		try{
 			connection.getOutgoingMessageQueue().addMessage( 
-					new GenericMessage( msg_id, msg_desc, impl.getBuffer()), false );
+					new GenericMessage( msg_id, msg_desc, impl.getBuffer(), false ), false );
 			
 		}catch( Throwable e ){
 			

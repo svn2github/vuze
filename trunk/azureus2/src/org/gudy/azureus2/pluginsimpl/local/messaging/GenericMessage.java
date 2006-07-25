@@ -35,17 +35,25 @@ GenericMessage
 
 	private final String 	id;
 	private final String	desc;
-	
+	private final boolean	already_encoded;
 	
 	protected
 	GenericMessage(
 		String				_id,
 		String				_desc,
-		DirectByteBuffer	_buffer )
+		DirectByteBuffer	_buffer,
+		boolean				_already_encoded )
 	{
-		id		= _id;
-		desc	= _desc;
-		buffer	= _buffer;
+		id				= _id;
+		desc			= _desc;
+		buffer			= _buffer;
+		already_encoded	= _already_encoded;
+	}
+	
+	protected boolean
+	isAlreadyEncoded()
+	{
+		return( already_encoded );
 	}
 	
 	public String getID()

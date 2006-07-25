@@ -42,18 +42,31 @@ GenericMessageEncoder
 		
 		DirectByteBuffer	payload = message.getPayload();
 		
-		DirectByteBuffer 	header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_EXTERNAL, 4 );
-		
-		header.putInt( DirectByteBuffer.SS_MSG, payload.remaining( DirectByteBuffer.SS_MSG ));
-		
-		header.flip( DirectByteBuffer.SS_MSG );
-		
-		return( 
-			new RawMessageImpl( 
-				message, 
-				new DirectByteBuffer[]{ header, payload }, 
-				RawMessage.PRIORITY_NORMAL, 
-				true,	// send immediately 
-				new Message[0] ));
+		if ( message.isAlreadyEncoded()){
+			
+			return( 
+					new RawMessageImpl( 
+						message, 
+						new DirectByteBuffer[]{ payload }, 
+						RawMessage.PRIORITY_NORMAL, 
+						true,	// send immediately 
+						new Message[0] ));
+			
+		}else{
+			
+			DirectByteBuffer 	header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_EXTERNAL, 4 );
+			
+			header.putInt( DirectByteBuffer.SS_MSG, payload.remaining( DirectByteBuffer.SS_MSG ));
+			
+			header.flip( DirectByteBuffer.SS_MSG );
+			
+			return( 
+				new RawMessageImpl( 
+					message, 
+					new DirectByteBuffer[]{ header, payload }, 
+					RawMessage.PRIORITY_NORMAL, 
+					true,	// send immediately 
+					new Message[0] ));
+		}
 	}
 }

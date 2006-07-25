@@ -120,7 +120,7 @@ GenericMessageDecoder
 				
 				payload_buffer.flip();
 				
-				messages.add( new GenericMessage( msg_type, msg_desc, new DirectByteBuffer(payload_buffer )));
+				messages.add( new GenericMessage( msg_type, msg_desc, new DirectByteBuffer( payload_buffer ), false ));
 				
 				buffers[1]	= null;
 			}
