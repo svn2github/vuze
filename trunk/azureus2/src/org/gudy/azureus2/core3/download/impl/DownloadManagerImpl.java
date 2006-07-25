@@ -1078,10 +1078,6 @@ DownloadManagerImpl
 		String to_loc_to_use = FileUtil.translateMoveFilePath(old_path, new_path, to_loc);
 		if (to_loc_to_use == null) {to_loc_to_use = to_loc;}
 		
-		System.out.println("from_loc=" + from_loc);
-		System.out.println("from_loc_to_use=" + from_loc_to_use);
-		System.out.println("to_loc=" + to_loc);
-		System.out.println("to_loc_to_use=" + to_loc_to_use);
 		download_manager_state.setFileLink(new File(from_loc), null);
 		download_manager_state.setFileLink(new File(from_loc_to_use), new File(to_loc_to_use));
 		
