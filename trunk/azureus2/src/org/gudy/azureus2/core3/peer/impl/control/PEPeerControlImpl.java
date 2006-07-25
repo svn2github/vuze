@@ -165,7 +165,7 @@ PEPeerControlImpl
 	
 	
 	
-	private PeerDatabase	peer_database;
+	private PeerDatabase	peer_database = PeerDatabaseFactory.createPeerDatabase();
 	
 	private int				next_rescan_piece		= -1;
 	private long			rescan_piece_time		= -1;
@@ -281,8 +281,6 @@ PEPeerControlImpl
 			initialiseSuperSeedMode();
 		}
 
-		peer_database =PeerDatabaseFactory.createPeerDatabase();
-
 		// initial check on finished state - future checks are driven by piece check results
 
 		// Moved out of mainLoop() so that it runs immediately, possibly changing
@@ -317,9 +315,7 @@ PEPeerControlImpl
 
 		PeerNATTraverser.getSingleton().unregister( this );
 
-		peer_database =null;
-
-		// remove legacy controller activation
+			// remove legacy controller activation
 		
 		adapter.getPeerManagerRegistration().deactivate();
 		
@@ -1847,7 +1843,7 @@ PEPeerControlImpl
 		
 			int	udp_port = peer.getUDPListenPort();
 			
-			if ( connect_failed && peer.isTCP() && UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 ){
+			if ( is_running && connect_failed && peer.isTCP() && UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 ){
 				
 				PeerItem peer_item = peer.getPeerItemIdentity();
 				
@@ -2631,7 +2627,7 @@ PEPeerControlImpl
 				
 				//load stored peer-infos to be established
 				while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {        	
-					if( peer_database == null || !is_running )  break;        	
+					if( !is_running )  break;        	
 
 					final PeerItem item = peer_database.getNextOptimisticConnectPeer();
 
@@ -2932,7 +2928,7 @@ PEPeerControlImpl
 	
 	
 	public PeerExchangerItem createPeerExchangeConnection( final PEPeerTransport base_peer ) {
-		if( peer_database != null && base_peer.getTCPListenPort() > 0 ) {  //only accept peers whose remote port is known
+		if( base_peer.getTCPListenPort() > 0 ) {  //only accept peers whose remote port is known
 			final PeerItem peer = 
 				PeerItemFactory.createPeerItem( base_peer.getIp(),
 												base_peer.getTCPListenPort(),
@@ -2961,7 +2957,7 @@ PEPeerControlImpl
 	
 	
 	public void peerVerifiedAsSelf( PEPeerTransport self ) {
-		if( peer_database != null && self.getTCPListenPort() > 0 ) {  //only accept self if remote port is known
+		if( self.getTCPListenPort() > 0 ) {  //only accept self if remote port is known
 			final PeerItem peer = PeerItemFactory.createPeerItem( self.getIp(), self.getTCPListenPort(),
 				PeerItem.convertSourceID( self.getPeerSource() ), self.getPeerItemIdentity().getHandshakeType(), self.getUDPListenPort());
 			peer_database.setSelfPeer( peer );
