@@ -144,7 +144,7 @@ TransportImpl
 	{
 		read_waiter = waiter;
 	
-		return is_ready_for_read;  
+		return is_ready_for_read || data_already_read != null || filter.hasBufferedRead();  
 	}
 	    
 	protected boolean
@@ -324,14 +324,7 @@ TransportImpl
 			Debug.out( "ERROR: registerSelectHandling():: filter == null" );
 			return;
 		}
-
-		if ( filter.hasBufferedRead()){
-			
-			is_ready_for_read = true;
-		}
-		
-		is_ready_for_write = true;
-
+	
 		TransportHelper	helper = filter.getHelper();
 		
 		//read selection
@@ -357,7 +350,6 @@ TransportImpl
 		        }
 			},
 			null );
-
 
 		helper.registerForWriteSelects(
 				new TransportHelper.selectListener()
