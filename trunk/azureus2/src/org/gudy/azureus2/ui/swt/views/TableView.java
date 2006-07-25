@@ -711,8 +711,11 @@ public class TableView
           Point pMousePosition = new Point(e.x, e.y);
           if (rTableArea.contains(pMousePosition)) {
           	int[] columnOrder = table.getColumnOrder();
-						TableItem ti = table.getItem(columnOrder[table.getItemCount() - 1]);
-            Rectangle cellBounds = ti.getBounds(columnOrder[table.getColumnCount() - 1]);
+          	if (columnOrder.length == 0) {
+          		return;
+          	}
+						TableItem ti = table.getItem(columnOrder[columnOrder.length - 1]);
+            Rectangle cellBounds = ti.getBounds(columnOrder[columnOrder.length - 1]);
             // OSX returns 0 size if the cell is not on screen (sometimes? all the time?)
             if (cellBounds.width <= 0 || cellBounds.height <= 0)
               return;
