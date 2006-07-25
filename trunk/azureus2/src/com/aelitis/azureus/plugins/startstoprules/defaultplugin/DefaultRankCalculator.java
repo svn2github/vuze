@@ -690,12 +690,15 @@ public class DefaultRankCalculator implements Comparable {
 			return false;
 		}
 		
+		int numPeers = rules.calcPeersNoUs(dl);
+		int numSeeds = rules.calcSeedsNoUs(dl);
+
 		// FP while our content doesn't have another seed
 		if (dl.getState() == Download.ST_SEEDING) {
 			Map contentMap = dl.getMapAttribute(rules.torrentAttributeContent);
 			if (contentMap != null && contentMap.containsKey("ourContent")) {
 				if (((Long) contentMap.get("ourContent")).longValue() == 1) {
-					if (dl.getStats().getAvailability() < 2) {
+					if (dl.getStats().getAvailability() < 2 && numSeeds == 0) {
 						return true;
 					}
 				}
@@ -703,8 +706,6 @@ public class DefaultRankCalculator implements Comparable {
 		}
 
 		// FP doesn't apply when S:P >= set SPratio (SPratio = 0 means ignore)
-		int numPeers = rules.calcPeersNoUs(dl);
-		int numSeeds = rules.calcSeedsNoUs(dl);
 		if (numPeers > 0 && numSeeds > 0
 				&& (numSeeds / numPeers) >= iFirstPriorityIgnoreSPRatio
 				&& iFirstPriorityIgnoreSPRatio != 0) {

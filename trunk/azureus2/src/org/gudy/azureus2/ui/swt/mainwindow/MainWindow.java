@@ -43,8 +43,11 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.download.Download;
+
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.ColorUtils;
@@ -978,7 +981,17 @@ MainWindow
 			if (dm.getState() == DownloadManager.STATE_SEEDING
 					&& dm.getDownloadState().isOurContent()
 					&& dm.getStats().getAvailability() < 2) {
-				listUnfinished.add(dm);
+				TRTrackerScraperResponse scrape = dm.getTrackerScrapeResponse();
+				int numSeeds = scrape.getSeeds();
+	      long seedingStartedOn = dm.getStats().getTimeStartedSeeding();
+	      if ((numSeeds > 0) &&
+	          (seedingStartedOn > 0) &&
+	          (scrape.getScrapeStartTime() > seedingStartedOn))
+	        numSeeds--;
+	      
+	      if (numSeeds == 0) {
+	      	listUnfinished.add(dm);
+	      }
 			}
 		}
 		

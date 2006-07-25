@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
@@ -45,6 +46,7 @@ import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 /**
@@ -254,11 +256,21 @@ public class ManagerUtils {
 				stopme = action == SWT.YES;
 			} else if (dm.getDownloadState().isOurContent()
 					&& dm.getStats().getAvailability() < 2) {
-				int result = Utils.openMessageBox(panel.getShell(), SWT.YES | SWT.NO,
-						"Content.alert.notuploaded", new String[] {
-								dm.getDisplayName(),
-								MessageText.getString("Content.alert.notuploaded.stop") });
-				stopme = result == SWT.YES;
+				TRTrackerScraperResponse scrape = dm.getTrackerScrapeResponse();
+				int numSeeds = scrape.getSeeds();
+	      long seedingStartedOn = dm.getStats().getTimeStartedSeeding();
+	      if ((numSeeds > 0) &&
+	          (seedingStartedOn > 0) &&
+	          (scrape.getScrapeStartTime() > seedingStartedOn))
+	        numSeeds--;
+	      
+	      if (numSeeds == 0) {
+					int result = Utils.openMessageBox(panel.getShell(), SWT.YES | SWT.NO,
+							"Content.alert.notuploaded", new String[] {
+									dm.getDisplayName(),
+									MessageText.getString("Content.alert.notuploaded.stop") });
+					stopme = result == SWT.YES;
+	      }
 			}
 		}
 		
