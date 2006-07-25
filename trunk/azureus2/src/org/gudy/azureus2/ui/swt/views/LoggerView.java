@@ -458,8 +458,8 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 	 */
 	public void delete() {
 		Logger.removeListener(this);
-		if (consoleText != null && !consoleText.isDisposed())
-			consoleText.dispose();
+		if (panel != null && !panel.isDisposed())
+			panel.dispose();
 		Colors.getInstance().removeColorsChangedListener(this);
 	}
 
