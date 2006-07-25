@@ -1148,7 +1148,7 @@ public class FileUtil {
 				File	tf = new File( to_file, ff.getName());
 
     			try{
-     				if ( renameFile( ff, tf )){
+     				if ( renameFile( ff, tf, fail_on_existing_directory, file_filter )){
     					
     					last_ok++;
     					
@@ -1180,6 +1180,7 @@ public class FileUtil {
     				}
     				else {
     					/* Should we log this? How should we log this? */
+    					return true;
     				}
    				 
     			}else{
@@ -1201,8 +1202,8 @@ public class FileUtil {
 				File	tf = new File( to_file, ff.getName());
 
     			try{
-    				
-                    if ( !renameFile( tf, ff, fail_on_existing_directory )){
+    				// null - We don't want to use the file filter, it only refers to source paths.
+                    if ( !renameFile( tf, ff, false, null )){
     					Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
 								"renameFile: recovery - failed to move file '" + tf.toString()
 										+ "' to '" + ff.toString() + "'"));
