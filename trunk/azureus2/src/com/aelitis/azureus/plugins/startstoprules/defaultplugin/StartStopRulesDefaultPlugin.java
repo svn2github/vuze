@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
@@ -154,6 +155,8 @@ public class StartStopRulesDefaultPlugin
   private TableContextMenuItem debugMenuItem = null;
   
   private boolean bSWTUI = false;
+  
+  TorrentAttribute torrentAttributeContent = null;
 
   public void initialize(PluginInterface _plugin_interface) {
 		if (bAlreadyInitialized) {
@@ -168,6 +171,7 @@ public class StartStopRulesDefaultPlugin
 		changeCheckerTimer = new Timer("StartStopRules", 3, 4);
 
 		pi = _plugin_interface;
+		torrentAttributeContent = pi.getTorrentManager().getPluginAttribute(TorrentAttribute.TA_CONTENT_MAP);		
 		download_manager = pi.getDownloadManager();
 
 		pi.getPluginProperties().setProperty("plugin.version", "1.0");

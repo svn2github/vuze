@@ -548,8 +548,12 @@ DownloadImpl
 		return( DownloadManagerState.AT_PEER_SOURCES );
 
 	}else if ( attribute.getName() == TorrentAttribute.TA_DISPLAY_NAME ){
-  		
+		
 		return( DownloadManagerState.AT_DISPLAY_NAME );
+		
+	}else if ( attribute.getName() == TorrentAttribute.TA_CONTENT_MAP ){
+		
+		return( DownloadManagerState.AT_CONTENT_MAP );
 		
 	}else if ( attribute.getName() == TorrentAttribute.TA_SHARE_PROPERTIES ){
   		
@@ -593,6 +597,10 @@ DownloadImpl
 		
 		return ( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_DISPLAY_NAME ));
 		
+	}else if ( name.equals ( DownloadManagerState.AT_CONTENT_MAP)){
+		
+		return ( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_CONTENT_MAP ));
+
 	}else if ( name.startsWith( "Plugin." )){
   		
 		return( TorrentManagerImpl.getSingleton().getAttribute( name ));

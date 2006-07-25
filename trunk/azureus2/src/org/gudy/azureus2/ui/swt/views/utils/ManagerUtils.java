@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
@@ -42,6 +43,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.ui.swt.Utils;
+
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 /**
@@ -223,33 +226,46 @@ public class ManagerUtils {
 		Composite panel,
 		int stateAfterStopped ) 
   {
-  	
-    if (	dm != null && 
-    		dm.getState() != DownloadManager.STATE_STOPPED &&
-			dm.getState() != DownloadManager.STATE_STOPPING && 
-			dm.getState() != stateAfterStopped) {
-    	
-      if (dm.getState() == DownloadManager.STATE_SEEDING
-          && dm.getStats().getShareRatio() >= 0
-          && dm.getStats().getShareRatio() < 1000
-          && COConfigurationManager.getBooleanParameter("Alert on close", true)) {
-        MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
-        mb.setText(MessageText.getString("seedmore.title"));
-        mb.setMessage(
-            MessageText.getString("seedmore.shareratio")
-            + (dm.getStats().getShareRatio() / 10)
-            + "%.\n"
-            + MessageText.getString("seedmore.uploadmore"));
-        int action = mb.open();
-        if (action == SWT.YES){
-        	asyncStop( dm, stateAfterStopped );
-        }
-      }else {
-  
-      	asyncStop( dm, stateAfterStopped );
-      }
-    }
-  }
+		if (dm == null) {
+			return;
+		}
+
+		int state = dm.getState();
+
+		if (state == DownloadManager.STATE_STOPPED
+				|| state == DownloadManager.STATE_STOPPING
+				|| state == stateAfterStopped) {
+			return;
+		}
+
+		boolean stopme = true;
+		if (state == DownloadManager.STATE_SEEDING) {
+
+			if (dm.getStats().getShareRatio() >= 0
+					&& dm.getStats().getShareRatio() < 1000
+					&& COConfigurationManager.getBooleanParameter("Alert on close", true)) {
+				MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING
+						| SWT.YES | SWT.NO);
+				mb.setText(MessageText.getString("seedmore.title"));
+				mb.setMessage(MessageText.getString("seedmore.shareratio")
+						+ (dm.getStats().getShareRatio() / 10) + "%.\n"
+						+ MessageText.getString("seedmore.uploadmore"));
+				int action = mb.open();
+				stopme = action == SWT.YES;
+			} else if (dm.getDownloadState().isOurContent()
+					&& dm.getStats().getAvailability() < 2) {
+				int result = Utils.openMessageBox(panel.getShell(), SWT.YES | SWT.NO,
+						"Content.alert.notuploaded", new String[] {
+								dm.getDisplayName(),
+								MessageText.getString("Content.alert.notuploaded.stop") });
+				stopme = result == SWT.YES;
+			}
+		}
+		
+		if (stopme) {
+			asyncStop(dm, stateAfterStopped);
+		}
+	}
   
   	public static void
 	asyncStop(

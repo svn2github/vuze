@@ -901,6 +901,10 @@ MainWindow
     if(COConfigurationManager.getBooleanParameter("confirmationOnExit", false) && !getExitConfirmation(for_restart))
       return false;
     
+    if (canClose()) {
+    	return false;
+    }
+    
     if(systemTraySWT != null) {
       systemTraySWT.dispose();
     }
@@ -964,6 +968,51 @@ MainWindow
   }
 
   /**
+	 * @return
+	 */
+	private boolean canClose() {
+		ArrayList listUnfinished = new ArrayList();
+		Object[] dms = globalManager.getDownloadManagers().toArray();
+		for (int i = 0; i < dms.length; i++) {
+			DownloadManager dm = (DownloadManager) dms[i];
+			if (dm.getState() == DownloadManager.STATE_SEEDING
+					&& dm.getDownloadState().isOurContent()
+					&& dm.getStats().getAvailability() < 2) {
+				listUnfinished.add(dm);
+			}
+		}
+		
+		if (listUnfinished.size() > 0) {
+			int result;
+			if (listUnfinished.size() == 1) {
+				result = Utils.openMessageBox(shell, SWT.YES | SWT.NO,
+						"Content.alert.notuploaded", new String[] {
+								((DownloadManager)listUnfinished.get(0)).getDisplayName(),
+								MessageText.getString("Content.alert.notuploaded.quit") });
+			} else {
+				String sList = "";
+				for (int i = 0; i < listUnfinished.size() && i < 5; i++) {
+					DownloadManager dm = ((DownloadManager)listUnfinished.get(i));
+					if (sList != "") {
+						sList += "\n";
+					}
+					sList += dm.getDisplayName();
+				}
+				result = Utils.openMessageBox(shell, SWT.YES | SWT.NO,
+						"Content.alert.notuploaded.multi", new String[] {
+								"" + listUnfinished.size(),
+								MessageText.getString("Content.alert.notuploaded.quit"),
+								sList });
+			}
+			if (result != SWT.YES) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	/**
    * @return true, if the user choosed OK in the exit dialog
    *
    * @author Rene Leonhardt

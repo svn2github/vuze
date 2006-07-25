@@ -1244,6 +1244,14 @@ DownloadManagerStateImpl
 		return( res );
 	}
 	
+	public boolean isOurContent() {
+		Map map = getMapAttribute(AT_CONTENT_MAP);
+		if (map == null || !map.containsKey("ourContent")) {
+			return false;
+		}
+		return ((Long)map.get("ourContent")).longValue() != 0;
+	}
+	
 		// general stuff
 	
 	
@@ -2147,6 +2155,11 @@ DownloadManagerStateImpl
 			IndentWriter writer) 
 		{
 			writer.println( "DownloadManagerState: broken torrent" );
+		}
+
+		public boolean isOurContent() {
+			// TODO Auto-generated method stub
+			return false;
 		}
 	}
 }

@@ -36,6 +36,7 @@ TorrentAttribute
 	public static final String	TA_TRACKER_CLIENT_EXTENSIONS	= "TrackerClientExtensions";
 	public static final String	TA_SHARE_PROPERTIES				= "ShareProperties";	// private=true/false;dht_backup=true/false
 	public static final String  TA_DISPLAY_NAME                 = "DisplayName";
+	public static final String  TA_CONTENT_MAP                 = "ContentMap";
 	
 
 	public String

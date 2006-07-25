@@ -19,6 +19,8 @@
  */
 package com.aelitis.azureus.plugins.startstoprules.defaultplugin;
 
+import java.util.Map;
+
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -686,6 +688,18 @@ public class DefaultRankCalculator implements Comparable {
 			if (rules.bDebugLog)
 				sExplainFP += "Not FP: Download not complete\n";
 			return false;
+		}
+		
+		// FP while our content doesn't have another seed
+		if (dl.getState() == Download.ST_SEEDING) {
+			Map contentMap = dl.getMapAttribute(rules.torrentAttributeContent);
+			if (contentMap != null && contentMap.containsKey("ourContent")) {
+				if (((Long) contentMap.get("ourContent")).longValue() == 1) {
+					if (dl.getStats().getAvailability() < 2) {
+						return true;
+					}
+				}
+			}
 		}
 
 		// FP doesn't apply when S:P >= set SPratio (SPratio = 0 means ignore)
