@@ -1865,9 +1865,7 @@ public class MyTorrentsView
     dragSource.addDragListener(new DragSourceAdapter() {
       public void dragStart(DragSourceEvent event) {
         Table table = getTable();
-        if (table.getSelectionCount() != 0 &&
-           table.getSelectionCount() != table.getItemCount())
-        {
+        if (table.getSelectionCount() != 0) {
           event.doit = true;
         	//System.out.println("DragStart"); 
           drag_drop_line_start = table.getSelectionIndex();
