@@ -922,6 +922,8 @@ Test
 		{
 		}
 		
+		public void renameDownload(String name){}
+		
 		 
 		public void
 		moveTorrentFile(

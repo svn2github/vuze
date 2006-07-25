@@ -15,6 +15,7 @@ FEATURE: Core | UDP fallback on connection fail [Parg]
 FEATURE: Core | Support for initial crypto tracker spec [Parg]
 FEATURE: Core | Faster queued torrent startup [Parg]
 FEATURE: Core | Option to disable tracker support for full-scrape [Parg]
+FEATURE: Core | Added ability to rename the directory save name for a multi-file torrent [amc1]
 
 FEATURE: UI   | File pieces shown in files view [Parg]
 FEATURE: UI   | Ability to best guess folder you want to save torrent data to based on existing torrents [TuxPaper]

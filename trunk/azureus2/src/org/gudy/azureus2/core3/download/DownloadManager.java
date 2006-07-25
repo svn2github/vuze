@@ -397,6 +397,17 @@ DownloadManager
         File    new_parent_dir )
 
         throws DownloadManagerException;
+    
+    /**
+     * Rename the download - this means the name of the file being downloaded (for single
+     * file torrents), or the name of the directory holding the files (in a multi-file torrent).
+     * 
+     * This does not alter the displayed name of the download.
+     * 
+     * @param new_name
+     * @throws DownloadManagerException
+     */
+    public void renameDownload(String new_name) throws DownloadManagerException;
 
         /**
          * Move torrent file to new location. Download must be stopped/error

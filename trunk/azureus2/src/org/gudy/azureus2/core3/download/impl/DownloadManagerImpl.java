@@ -283,6 +283,9 @@ DownloadManagerImpl
 	private String	display_name	= "";
 	private String	internal_name	= "";
 	
+	//	 Used by setTorrentSaveDir and renameDownload.
+	private String  temporary_new_save_path_name = null;
+	
 		// for simple torrents this refers to the torrent file itself. For non-simple it refers to the
 		// folder containing the torrent's files
 	
@@ -1025,6 +1028,67 @@ DownloadManagerImpl
 		download_manager_state.clearFileLinks();
 	}
 	
+	protected void updateFileLinks(File old_save_path, File new_save_path) {
+		try {old_save_path = old_save_path.getCanonicalFile();}
+		catch (IOException ioe) {old_save_path = old_save_path.getAbsoluteFile();}
+		try {new_save_path = new_save_path.getCanonicalFile();}
+		catch (IOException ioe) {new_save_path = new_save_path.getAbsoluteFile();}
+		
+		String old_path = old_save_path.getPath();
+		String new_path = new_save_path.getPath();
+		
+		CaseSensitiveFileMap links = download_manager_state.getFileLinks();
+		Iterator it = links.keySetIterator();
+		
+		while(it.hasNext()){
+			File	from 	= (File)it.next();
+			File	to		= (File)links.get(from);
+			String  from_s  = (from == null) ? null : from.getAbsolutePath();
+			String  to_s    = (to == null) ? null : to.getAbsolutePath();
+		
+			try {
+				updateFileLink(old_path, new_path, from_s, to_s);
+			}
+			catch (Exception e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	// old_path -> Full location of old torrent (inclusive of save name)
+	// from_loc -> Old unmodified location of file within torrent.
+	// to_loc -> Old modified location of file (where the link points to).
+	//
+	// We have to update from_loc and to_loc.
+	// We should always be modifying from_loc. Only modify to_loc if it sits within
+	// the old path.
+	protected void updateFileLink(String old_path, String new_path, String from_loc, String to_loc) {
+		
+		if (to_loc == null) return;
+		if (this.torrent.isSimpleTorrent()) {
+			if (!old_path.equals(from_loc)) {throw new RuntimeException("assert failure: old_path=" + old_path + ", from_loc=" + from_loc);}
+			download_manager_state.setFileLink(new File(old_path), null );
+			download_manager_state.setFileLink(new File(new_path), new File(new_path)); // Or should the second bit be null?
+			return;
+		}
+			
+		String from_loc_to_use = FileUtil.translateMoveFilePath(old_path, new_path, from_loc);
+		if (from_loc_to_use == null) return;
+		
+		String to_loc_to_use = FileUtil.translateMoveFilePath(old_path, new_path, to_loc);
+		if (to_loc_to_use == null) {to_loc_to_use = to_loc;}
+		
+		System.out.println("from_loc=" + from_loc);
+		System.out.println("from_loc_to_use=" + from_loc_to_use);
+		System.out.println("to_loc=" + to_loc);
+		System.out.println("to_loc_to_use=" + to_loc_to_use);
+		download_manager_state.setFileLink(new File(from_loc), null);
+		download_manager_state.setFileLink(new File(from_loc_to_use), new File(to_loc_to_use));
+		
+	}
+	
+	// Superceded by updateFileLinks(String, String).
+	/*
 	protected void
 	updateFileLinks(
 		String		_old_dir,
@@ -1037,7 +1101,6 @@ DownloadManagerImpl
 			String	old_save_dir 	= _old_save_dir.getCanonicalPath();
 			
 			CaseSensitiveFileMap	links = download_manager_state.getFileLinks();
-			
 			Iterator	it = links.keySetIterator();
 			
 			while( it.hasNext()){
@@ -1048,6 +1111,7 @@ DownloadManagerImpl
 				if ( to == null ){
 					
 					continue;
+					
 				}
 				
 				String	from_str = from.getCanonicalPath();
@@ -1099,6 +1163,7 @@ DownloadManagerImpl
 			Debug.printStackTrace(e);
 		}
 	}
+	*/
 	
 	public boolean 
 	filesExist() 
@@ -1661,24 +1726,26 @@ DownloadManagerImpl
 	setTorrentSaveDir(
 		String 	new_dir ) 
 	{
-		File	old_location = torrent_save_location;
 		
-		String	old_dir = old_location.getParent();
+		String dl_name = this.temporary_new_save_path_name;
+		if (dl_name == null) {dl_name = this.getAbsoluteSaveLocation().getName();}
+
+		File old_location = torrent_save_location;
+		File new_location = new File(new_dir, dl_name);
 		
-		if ( new_dir.equals( old_dir )){
-			
+		if (new_location.equals(old_location)){
 			return;
 		}
-		
+
   		// assumption here is that the caller really knows what they are doing. You can't
   		// just change this willy nilly, it must be synchronised with reality. For example,
   		// the disk-manager calls it after moving files on completing
   		// The UI can call it as long as the torrent is stopped.
   		// Calling it while a download is active will in general result in unpredictable behaviour!
  
-		updateFileLinks( old_dir, new_dir, torrent.isSimpleTorrent()?old_location.getParentFile():old_location );
+		updateFileLinks( old_location, new_location);
 
-		torrent_save_location = new File( new_dir, old_location.getName());
+		torrent_save_location = new_location;
 
 		try{
 			torrent_save_location = torrent_save_location.getCanonicalFile();
@@ -2696,19 +2763,39 @@ DownloadManagerImpl
   
   	throws DownloadManagerException
   {
+	  this.moveDataFiles(new_parent_dir, false);
+  }
+  
+  public void renameDownload(String new_name) throws DownloadManagerException {
+	  new_name = FileUtil.convertOSSpecificChars(new_name);
+	  this.temporary_new_save_path_name = new_name;
+	  try {this.moveDataFiles(new File(new_name), true);}
+	  finally {this.temporary_new_save_path_name = null;}
+  }
+  
+  /**
+   * destination_is_rename:
+   *    If false, then this is the new parent directory.
+   *    If true, then this is the new name of the file.
+   */ 
+  public void moveDataFiles(final File destination, boolean destination_is_rename) throws DownloadManagerException {
+	  
 	  if ( !isPersistent()){
 		  
 		  throw( new DownloadManagerException( "Download is not persistent" ));
 	  }
 	  		  
 			// old file will be a "file" for simple torrents, a dir for non-simple
-		  
+
+	  File new_parent_dir = (destination_is_rename) ? null : destination;
+	  String new_filename = (destination_is_rename) ? destination.getName() : null;
+	  
 	  File	old_file = getSaveLocation();
 		  
 	  try{
 		  old_file = old_file.getCanonicalFile();
 			  
-		  new_parent_dir = new_parent_dir.getCanonicalFile();
+		  if (!destination_is_rename) {new_parent_dir = new_parent_dir.getCanonicalFile();}
 			  
 	  }catch( Throwable e ){
 			  
@@ -2716,11 +2803,15 @@ DownloadManagerImpl
 			  
 		  throw( new DownloadManagerException( "Failed to get canonical paths", e ));
 	  }
-		  
-	  if ( new_parent_dir.equals( old_file.getParentFile())){
-			  
+
+	  File current_save_location = old_file;
+	  File new_save_location = new File(
+			  (new_parent_dir == null) ? old_file.getParentFile() : new_parent_dir,
+			  (new_filename == null) ? old_file.getName() : new_filename
+	  );
+	  
+	  if (current_save_location.equals(new_save_location)) {
 		  	// null operation
-		  
 		  return;
 	  }
 
@@ -2732,29 +2823,27 @@ DownloadManagerImpl
 				  
 		  	// files not created yet
 				  
-			  new_parent_dir.mkdirs();
+			  new_save_location.getParentFile().mkdirs();
 				  
-			  setTorrentSaveDir( new_parent_dir.toString());
+			  setTorrentSaveDir(new_save_location.getParent().toString());
 			  
 			  return;
 		  }
 			  
-		  File new_file = new File( new_parent_dir, old_file.getName());
-			 
 		  try{
-			  new_file	= new_file.getCanonicalFile();
+			  new_save_location	= new_save_location.getCanonicalFile();
 			  
 		  }catch( Throwable e ){
 			  
 			  Debug.printStackTrace(e);
 		  }
 		  
-		  if ( old_file.equals( new_file )){
-		  
+		  if ( old_file.equals( new_save_location )){
+			  
 			  // nothing to do
 			  
 		  }else if ((	!torrent.isSimpleTorrent()) &&
-				  		new_file.getPath().startsWith( old_file.getPath())){
+				  new_save_location.getPath().startsWith( old_file.getPath())){
 		    		
 	            Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
 						LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
@@ -2777,9 +2866,9 @@ DownloadManagerImpl
 				  public boolean accept(File f) {return files_to_move.contains(f);}
 			  };
 			  
-			  if ( FileUtil.renameFile( old_file, new_file, false, ff )){
+			  if ( FileUtil.renameFile( old_file, new_save_location, false, ff )){
 		  			  
-				  setTorrentSaveDir( new_parent_dir.toString());
+				  setTorrentSaveDir( new_save_location.getParentFile().toString());
 			  
 			  }else{
 				  
@@ -2787,8 +2876,7 @@ DownloadManagerImpl
 			  }
 		  }
 	  }else{
-		  
-		  dm.moveDataFiles( new_parent_dir );
+		  dm.moveDataFiles( new_save_location.getParentFile() );
 	  }
   }
   

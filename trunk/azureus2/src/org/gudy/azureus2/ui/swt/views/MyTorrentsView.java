@@ -1596,26 +1596,84 @@ public class MyTorrentsView
 		itemCategory.setEnabled(hasSelection);
 
 		addCategorySubMenu();
-		
-		// Rename
-		final MenuItem itemRename = new MenuItem(menu, SWT.CASCADE);
-		Messages.setLanguageText(itemRename, "MyTorrentsView.menu.rename");
-		itemRename.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				  SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(getComposite().getDisplay(), "MyTorrentsView.menu.rename.enter.title", "MyTorrentsView.menu.rename.enter.message", ((DownloadManager)getFirstSelectedDataSource()).getDisplayName(), null);
-				  if (text_entry.wasDataSubmitted()) {
-					  String value = text_entry.getStoredString();
-					  final String value_to_set = (value.length() == 0) ? null : value; 
-					  MyTorrentsView.this.runForSelectedRows(new GroupTableRowRunner() {
-						  public void run(TableRowCore row) {
-							  ((DownloadManager)row.getDataSource(true)).getDownloadState().setDisplayName(value_to_set);
-					      }
-					  });
-				  }
-			}
-		});
-		
 
+        // Rename
+        final MenuItem itemRename = new MenuItem(menu, SWT.CASCADE);
+        Messages.setLanguageText(itemRename, "MyTorrentsView.menu.rename");
+        itemRename.setEnabled(hasSelection);
+        
+        final Menu menuRename = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+        itemRename.setMenu(menuRename);
+        
+        DownloadManager first_selected = ((DownloadManager)this.getFirstSelectedDataSource());
+        
+        // Rename -> Displayed Name
+        final MenuItem itemRenameDisplayed = new MenuItem(menuRename, SWT.CASCADE);
+        Messages.setLanguageText(itemRenameDisplayed, "MyTorrentsView.menu.rename.displayed");
+        itemRenameDisplayed.setEnabled(hasSelection);
+        if (itemRenameDisplayed.isEnabled()) {
+        	itemRenameDisplayed.setData("suggested_text", first_selected.getDisplayName());
+        	itemRenameDisplayed.setData("display_name", Boolean.valueOf(true));
+        	itemRenameDisplayed.setData("save_name", Boolean.valueOf(false));
+        	itemRenameDisplayed.setData("msg_key", "displayed");
+        }
+        
+        // Rename -> Save Name
+        final MenuItem itemRenameSavePath = new MenuItem(menuRename, SWT.CASCADE);
+        Messages.setLanguageText(itemRenameSavePath, "MyTorrentsView.menu.rename.save_path");
+        itemRenameSavePath.setEnabled(fileMove && dms.length == 1);
+        if (itemRenameSavePath.isEnabled()) {
+        	itemRenameSavePath.setData("suggested_text", first_selected.getAbsoluteSaveLocation().getName());
+        	itemRenameSavePath.setData("display_name", Boolean.valueOf(false));
+        	itemRenameSavePath.setData("save_name", Boolean.valueOf(true));
+        	itemRenameSavePath.setData("msg_key", "save_path");
+        }
+
+        
+        // Rename -> Both
+        final MenuItem itemRenameBoth = new MenuItem(menuRename, SWT.CASCADE);
+        Messages.setLanguageText(itemRenameBoth, "MyTorrentsView.menu.rename.displayed_and_save_path");
+        itemRenameBoth.setEnabled(fileMove && dms.length == 1);
+        if (itemRenameBoth.isEnabled()) {
+        	itemRenameBoth.setData("suggested_text", first_selected.getAbsoluteSaveLocation().getName());
+        	itemRenameBoth.setData("display_name", Boolean.valueOf(true));
+        	itemRenameBoth.setData("save_name", Boolean.valueOf(true));
+        	itemRenameBoth.setData("msg_key", "displayed_and_save_path");
+        }
+
+        Listener rename_listener = new Listener() {
+        	public void handleEvent(Event event) {
+        		MenuItem mi = (MenuItem)event.widget;
+        		String suggested = (String)mi.getData("suggested_text");
+        		final boolean change_displayed_name = ((Boolean)mi.getData("display_name")).booleanValue();
+        		final boolean change_save_name = ((Boolean)mi.getData("save_name")).booleanValue();
+        		String msg_key_prefix = "MyTorrentsView.menu.rename." + (String)mi.getData("msg_key") + ".enter.";
+        		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(getComposite().getDisplay(), msg_key_prefix + "title", msg_key_prefix + "message", suggested, null);
+        		if (text_entry.wasDataSubmitted()) {
+        			String value = text_entry.getStoredString();
+        			final String value_to_set = (value.length() == 0) ? null : value;
+        			MyTorrentsView.this.runForSelectedRows(new GroupTableRowRunner() {
+                        public void run(TableRowCore row) {
+                        	DownloadManager dm = (DownloadManager)row.getDataSource(true);
+                        	if (change_displayed_name) {
+                        		dm.getDownloadState().setDisplayName(value_to_set);
+                        	}
+                            if (change_save_name) {
+                            	try {dm.renameDownload((value_to_set==null) ? dm.getDisplayName() : value_to_set);}
+                            	catch (Exception e) {
+                                    Logger.log(new LogAlert(LogAlert.REPEATABLE,
+                                            "Download data rename operation failed", e));
+                            	}
+                            }
+                        }
+                    });
+        		}
+        	}
+        };
+        
+        itemRenameDisplayed.addListener(SWT.Selection, rename_listener);
+        itemRenameSavePath.addListener(SWT.Selection, rename_listener);
+        itemRenameBoth.addListener(SWT.Selection, rename_listener);
 
 		// ---
 		new MenuItem(menu, SWT.SEPARATOR);
