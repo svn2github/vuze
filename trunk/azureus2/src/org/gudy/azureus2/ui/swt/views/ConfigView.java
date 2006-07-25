@@ -362,6 +362,12 @@ public class ConfigView extends AbstractIView {
           sc.setExpandVertical(true);
           sc.setLayoutData(new GridData(GridData.FILL_BOTH));
       		sc.getVerticalBar().setIncrement(16);
+      		sc.addListener(SWT.Resize, new Listener() {
+      			public void handleEvent(Event event) {
+      				ScrolledComposite sc = (ScrolledComposite)event.widget;
+      	  		sc.getVerticalBar().setPageIncrement(sc.getSize().y);
+      			}
+      		});
           
           if(i == 0) {
             Composite c;
@@ -591,6 +597,12 @@ public class ConfigView extends AbstractIView {
     sc.setExpandVertical(true);
     sc.setLayoutData(new GridData(GridData.FILL_BOTH));
 		sc.getVerticalBar().setIncrement(16);
+		sc.addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event event) {
+				ScrolledComposite sc = (ScrolledComposite)event.widget;
+	  		sc.getVerticalBar().setPageIncrement(sc.getSize().y);
+			}
+		});
 
     Composite cConfigSection = new Composite(sc, SWT.NULL);
     
