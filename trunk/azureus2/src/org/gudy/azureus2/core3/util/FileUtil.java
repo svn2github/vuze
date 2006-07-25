@@ -1359,4 +1359,12 @@ public class FileUtil {
 			return( file.delete());
 		}
 	}
+	
+	public static String translateMoveFilePath(String old_root, String new_root, String file_to_move) {
+		if (!file_to_move.startsWith(old_root)) {return null;}
+		String file_suffix = file_to_move.substring(old_root.length());
+		if (new_root.endsWith(File.separator)) {new_root = new_root.substring(0, new_root.length()-1);}
+		if (file_suffix.startsWith(File.separator)) {file_suffix = file_suffix.substring(1);}
+		return new_root + File.separator + file_suffix;
+	}
 }
