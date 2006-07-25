@@ -130,7 +130,7 @@ public class UploadSlotManager {
 		ArrayList to_stop = new ArrayList();
 		
 		//get a list of the best sessions, peers who are uploading to us in download mode
-		LinkedList best_sessions = picker.pickBestDownloadSessions( slots.length );
+		LinkedList best_sessions = picker.pickBestDownloadSessions( slots.length );  //TODO pick more than slots.length?
 		
 		//go through all currently expired slots and pick sessions for next round
 		for( int i=0; i < slots.length; i++ ) {

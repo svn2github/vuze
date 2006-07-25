@@ -26,7 +26,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.unchoker.*;
 
 
 
@@ -40,9 +39,9 @@ public class UploadSessionPicker {
 	
 	private final LinkedList helpers = new LinkedList();
 	
-	
-	private final DownloadingUnchoker down_unchoker = new DownloadingUnchoker();  //TODO extract only the code actually used?
-	
+	private final DownloadingRanker down_ranker = new DownloadingRanker();
+	private final SeedingRanker seed_ranker = new SeedingRanker();
+
 
 	protected UploadSessionPicker() {
 		/*nothing*/
@@ -71,7 +70,7 @@ public class UploadSessionPicker {
 			helpers.remove( helper );
 		
 			boolean rem = next_optimistics.removeAll( Collections.singleton( helper ) );		
-			if( !rem ) Debug.out( "!rem" );  //TODO
+			if( !rem ) Debug.out( "!rem" );
 		}
 		finally {  next_optimistics_mon.exit();  }
 	}
@@ -120,7 +119,7 @@ public class UploadSessionPicker {
 		
 		try {  next_optimistics_mon.enter();		
 		
-			HashMap failed_helpers = null;
+			HashSet failed_helpers = null;
 		
 			int loops_allowed = next_optimistics.size();
 			
@@ -130,22 +129,22 @@ public class UploadSessionPicker {
 	
 				next_optimistics.addLast( helper );   //add back at end
 				
-				if( failed_helpers == null || !failed_helpers.containsKey( helper ) ) {   //pre-emptive check to see if we've already tried this helper
+				if( failed_helpers == null || !failed_helpers.contains( helper ) ) {   //pre-emptive check to see if we've already tried this helper
 					
 					PEPeerTransport peer;
 					
 					if( helper.isSeeding() ) {
-						peer = UnchokerUtil.getNextOptimisticPeer( helper.getAllPeers(), false, false );  //TODO use simple FIFO RR for seeding picks
+						peer = seed_ranker.getNextOptimisticPeer( helper.getAllPeers() );
 					}
 					else {
-						peer = UnchokerUtil.getNextOptimisticPeer( helper.getAllPeers(), true, true );
+						peer = down_ranker.getNextOptimisticPeer( helper.getAllPeers() );						
 					}
 					
 					if( peer == null )  {  //no peers from this helper to unchoke
 						
-						if( failed_helpers == null )  failed_helpers = new HashMap();   //lazy alloc
+						if( failed_helpers == null )  failed_helpers = new HashSet();   //lazy alloc
 						
-						failed_helpers.put( helper, null );  //remember this helper in case we get it again in another loop round
+						failed_helpers.add( helper );  //remember this helper in case we get it again in another loop round
 					}
 					else {   //found an optimistic peer!
 						
@@ -186,15 +185,13 @@ public class UploadSessionPicker {
 	
 	//this picks downloading sessions only
 	protected LinkedList pickBestDownloadSessions( int max_sessions ) {
-		//TODO use download priority in best calculation?
+		//TODO factor download priority into best calculation?
 		
 		ArrayList all_peers = globalGetAllDownloadPeers();
 		
-		if( all_peers.isEmpty() ) 	return new LinkedList();
+		if( all_peers.isEmpty() )  return new LinkedList();
 		
-		down_unchoker.calculateUnchokes( max_sessions, all_peers, false );  //TODO extract only the code actually used
-		
-		ArrayList best = down_unchoker.getUnchokes();
+		ArrayList best = down_ranker.rankPeers( max_sessions, all_peers );
 		
 		if( best.size() != max_sessions ) {
 			Debug.outNoStack( "best.size()[" +best.size()+ "] != max_sessions[" +max_sessions+ "]" );
