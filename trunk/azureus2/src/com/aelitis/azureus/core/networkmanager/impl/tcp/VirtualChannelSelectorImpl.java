@@ -26,8 +26,6 @@ import java.nio.channels.*;
 import java.nio.channels.spi.AbstractSelectableChannel;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -166,22 +164,11 @@ public class VirtualChannelSelectorImpl {
     
     
     
-    
-
-
-    public void 
-	register( 
-		AbstractSelectableChannel 								channel, 
-		VirtualChannelSelector.VirtualAbstractSelectorListener listener, 
-		Object attachment ) 
-    {
-    	addRegOrCancel( new RegistrationData( channel, listener, attachment ));
-    }
-    
-
-
-    
+   
+     
     public void pauseSelects( AbstractSelectableChannel channel ) {
+      
+      //System.out.println( "pauseSelects: " + channel + " - " + Debug.getCompressedStackTrace() );
       
       if( channel == null ) {
         return;
@@ -208,6 +195,7 @@ public class VirtualChannelSelectorImpl {
 
     
     public void resumeSelects( AbstractSelectableChannel channel ) {
+      //System.out.println( "resumeSelects: " + channel + " - " + Debug.getCompressedStackTrace() );
       if( channel == null ) {
         Debug.printStackTrace( new Exception( "resumeSelects():: channel == null" ) );
         return;
@@ -236,30 +224,58 @@ public class VirtualChannelSelectorImpl {
     
     public void 
 	cancel( 
-			AbstractSelectableChannel channel ) 
+		AbstractSelectableChannel channel ) 
     {
-      pauseSelects( channel );
-    	addRegOrCancel( channel ); 
+      //System.out.println( "cancel: " + channel + " - " + Debug.getCompressedStackTrace() );
+    				 
+    	if ( destroyed ){
+    		    		
+    		// don't worry too much about cancels
+    	}
+    	
+    	try{
+    		register_cancel_list_mon.enter();
+      	   		
+    			// ensure that there's only one operation outstanding for a given channel
+    			// at any one time (the latest operation requested )
+    		
+    		for (Iterator it = register_cancel_list.iterator();it.hasNext();){
+    			
+    			Object	obj = it.next();
+    			  		   				
+    			if ( 	channel == obj ||
+    					(	obj instanceof RegistrationData &&
+    								((RegistrationData)obj).channel == channel )){
+    					
+    						// remove existing cancel or register
+    					   				
+    				it.remove();
+    				
+    				break;
+    			}
+    		}
+    		   	
+			pauseSelects((AbstractSelectableChannel)channel );
+			
+  			register_cancel_list.add( channel );
+    		
+    	}finally{
+    		
+    		register_cancel_list_mon.exit();
+    	}
     }
-   
     
     
     
-    
-    
-    private void 
-    addRegOrCancel( 
-    	Object	obj_to_add ) 
+    public void 
+	register( 
+		AbstractSelectableChannel 								channel, 
+		VirtualChannelSelector.VirtualAbstractSelectorListener 	listener, 
+		Object 													attachment ) 
     {
     	if ( destroyed ){
-    		
-    		if ( obj_to_add instanceof AbstractSelectableChannel ){
-    		
-    				// don't worry too much about cancels
-    		}else{
-    			
-    			Debug.out( "addRegOrCancel called after selector destroyed" );
-    		}
+     			
+   			Debug.out( "register called after selector destroyed" );
     	}
     	
     	try{
@@ -272,39 +288,19 @@ public class VirtualChannelSelectorImpl {
     			
     			Object	obj = it.next();
     			
-    			boolean	remove_it	= false;
-    		
-    			if ( obj_to_add instanceof AbstractSelectableChannel ){
-    				
-    				if ( obj_to_add == obj ||
-    						(	obj instanceof RegistrationData &&
-    								((RegistrationData)obj).channel == obj_to_add )){
-    					
-    					// remove existing cancel or register
-    					remove_it = true;
-     				}
-    				
-    			}else{
-    				
-    				RegistrationData	rd = (RegistrationData)obj_to_add;
-    				
-    				if ( rd.channel == obj ||
-       						(	obj instanceof RegistrationData &&
-    								((RegistrationData)obj).channel == rd.channel )){
- 						
-    					remove_it = true;
-    				}
-    			}
-    			
-    			if ( remove_it ){
-    				
-    				it.remove();
-    				
-    				break;
+				if ( channel == obj ||
+   						(	obj instanceof RegistrationData &&
+								((RegistrationData)obj).channel == channel )){
+				
+					it.remove();
+				
+					break;
     			}
     		}
-    		   			
-  			register_cancel_list.add( obj_to_add );
+				
+			paused_states.remove( channel );
+			
+  			register_cancel_list.add( new RegistrationData( channel, listener, attachment ));
     		
     	}finally{
     		
