@@ -62,14 +62,14 @@ public class SimpleTextEntryWindow {
 	    	Messages.setLanguageText(label, message_key);
 	    }
 	    GridData gridData = new GridData();
-	    gridData.widthHint = 300;
+	    gridData.widthHint = 330;
 	    label.setLayoutData(gridData);
 
 	    if ((message_key != null) && MessageText.keyExists(message_key + ".2")) {
 	    	label = new Label(shell, SWT.NONE);
     		Messages.setLanguageText(label, message_key + ".2");
 	    	gridData = new GridData();
-	    	gridData.widthHint = 300;
+	    	gridData.widthHint = 330;
 	    	label.setLayoutData(gridData);
 	    }
 	    
@@ -79,7 +79,7 @@ public class SimpleTextEntryWindow {
 	    	text_entry.selectAll();
 	    }
 	    gridData = new GridData();
-	    gridData.widthHint = 300;
+	    gridData.widthHint = 330;
 	    text_entry.setLayoutData(gridData);
 
 	    Composite panel = new Composite(shell, SWT.NULL);
