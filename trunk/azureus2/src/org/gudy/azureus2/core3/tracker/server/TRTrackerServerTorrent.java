@@ -74,4 +74,7 @@ TRTrackerServerTorrent
 	public void
 	removePeerListener(
 		TRTrackerServerTorrentPeerListener	l );
+	
+	public String
+	getString();
 }

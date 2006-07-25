@@ -1991,4 +1991,26 @@ TRTrackerServerTorrentImpl
 			return( new String(ip) + ":" + getTCPPort() + "/" + getUDPPort() + "/" + getCryptoLevel());
 		}
 	}
+	
+	public String
+	getString()
+	{
+		String	redirect;
+		
+		if ( redirects == null ){
+			
+			redirect = "none";
+			
+		}else{
+			
+			redirect	= "";
+				
+			for (int i=0;i<redirects.length;i++){
+				
+				redirect += (i==0?"":",") + redirects[i];
+			}
+		}
+		
+		return( "seeds=" + getSeedCount() + ",leechers=" + getLeecherCount() + ", redirect=" + redirect );
+	}
 }
