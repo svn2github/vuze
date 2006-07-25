@@ -714,7 +714,7 @@ public class TableView
           	if (columnOrder.length == 0) {
           		return;
           	}
-						TableItem ti = table.getItem(columnOrder[columnOrder.length - 1]);
+          	TableItem ti = table.getItem(table.getItemCount() - 1);
             Rectangle cellBounds = ti.getBounds(columnOrder[columnOrder.length - 1]);
             // OSX returns 0 size if the cell is not on screen (sometimes? all the time?)
             if (cellBounds.width <= 0 || cellBounds.height <= 0)
