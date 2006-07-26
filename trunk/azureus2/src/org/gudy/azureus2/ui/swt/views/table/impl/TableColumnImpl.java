@@ -193,6 +193,22 @@ public class TableColumnImpl
   	}
   }
 
+  public List getCellRefreshListeners(){
+ 	try{
+  		this_mon.enter();
+  
+  		if (cellRefreshListeners == null){
+  			return( new ArrayList(0));
+  		}
+  	
+		return( new ArrayList( cellRefreshListeners ));
+			
+  	}finally{
+  		
+  		this_mon.exit();
+  	} 
+  }
+  
   public void removeCellRefreshListener(TableCellRefreshListener listener) {
   	try{
   		this_mon.enter();
@@ -233,6 +249,22 @@ public class TableColumnImpl
   	}
   }
 
+  public List getCellAddedListeners(){
+ 	try{
+  		this_mon.enter();
+  
+  		if (cellAddedListeners == null){
+  			return( new ArrayList(0));
+  		}
+  	
+		return( new ArrayList( cellAddedListeners ));
+			
+  	}finally{
+  		
+  		this_mon.exit();
+  	} 
+  }
+  
   public void removeCellAddedListener(TableCellAddedListener listener) {
   	try{
   		this_mon.enter();

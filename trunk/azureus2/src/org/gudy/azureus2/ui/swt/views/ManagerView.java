@@ -154,8 +154,8 @@ public class ManagerView extends AbstractIView implements
 	  	}
 
 	  IView views[] = { new GeneralView(), new PeersView(),
-				new PeersGraphicView(), new PiecesView(), new FilesView(), new TorrentOptionsView( manager ),
-				new LoggerView() };
+				new PeersGraphicView(), new PiecesView(), new FilesView(), new TorrentInfoView( manager ),
+				new TorrentOptionsView( manager ), new LoggerView() };
 
 		for (int i = 0; i < views.length; i++)
 			addSection(views[i], manager);

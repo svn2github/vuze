@@ -20,6 +20,8 @@
  
 package org.gudy.azureus2.ui.swt.views.table;
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.util.IndentWriter;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
@@ -70,12 +72,16 @@ public interface TableColumnCore extends TableColumn {
    */
   public void invokeCellRefreshListeners(TableCellCore cell);
 
+  public List getCellRefreshListeners();
+  
   /** Send a cellAdded trigger to all listeners stored in TableColumn
    *
    * @param cell the cell is being added
    */
   public void invokeCellAddedListeners(TableCellCore cell);
 
+  public List getCellAddedListeners();
+  
   /** Send a dispose trigger to all listeners stored in TableColumn
    *
    * @param cell the cell is being disposed
