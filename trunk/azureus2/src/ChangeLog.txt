@@ -27,6 +27,7 @@ FEATURE: UI   | "date added", "idle up", "idle down", "req in", "req out" colmns
 FEATURE: UI   | manual file recheck order [Parg]
 FEATURE: UI   | Option to remember passwords [Parg]
 FEATURE: UI   | OSX: Open .torrent files into Azureus via Finder/Desktop/etc [TuxPaper]
+FEATURE: UI   | Option to send popup message when download of a torrent (or individual file) has completed [amc1]
 
 FEATURE: Plug | Simple NAT-PMP implementation [Marc Colosimo]
 

@@ -289,6 +289,8 @@ public class ConfigurationDefaults {
     def.put( "File.save.peers.enable", TRUE );
     def.put( "File.strict.locking", TRUE );
     def.put( "Move Deleted Data To Recycle Bin", TRUE);
+    def.put( "Popup Download Finished", FALSE);
+    def.put( "Popup File Finished", FALSE);
     
     //default torrent directory option
     def.put( "Save Torrent Files", TRUE );

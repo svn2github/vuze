@@ -30,11 +30,14 @@ import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -64,7 +67,7 @@ UserAlerts
 				public void
 				downloadComplete(DownloadManager manager)
 				{
-					activityFinished( true );
+					activityFinished(true, manager.getDisplayName());
 				}
 			}; 
 		
@@ -99,7 +102,7 @@ UserAlerts
 					if ( 	old_mode == DiskManagerFileInfo.WRITE &&
 							new_mode == DiskManagerFileInfo.READ ){
 						
-						activityFinished( false );
+						activityFinished(false, file.getFile(true).getName());
 					}
 				
 					/*
@@ -156,9 +159,7 @@ UserAlerts
 			}); 			
      }
 
-  	protected void
-  	activityFinished(
-  		boolean		download )
+  	protected void activityFinished(boolean	download, String item_name)
   	{
   		final String sound_enabler;
   		final String sound_file;
@@ -167,22 +168,36 @@ UserAlerts
   		final String speech_enabler;
   		final String speech_text;
   		
+  		final String popup_enabler;
+  		final String popup_def_text;
+  		
   		if ( download ){
 	 		sound_enabler 	= "Play Download Finished";
 	  		sound_file		= "Play Download Finished File";
 	  		
 	  		speech_enabler 	= "Play Download Finished Announcement";
 	  		speech_text		= "Play Download Finished Announcement Text";
+	  		
+	  		popup_enabler   = "Popup Download Finished";
+	  		popup_def_text  = "popup.download.finished";
   		}else{
 	 		sound_enabler 	= "Play File Finished";
 	  		sound_file		= "Play File Finished File";
 	  		
 	  		speech_enabler 	= "Play File Finished Announcement";
 	  		speech_text		= "Play File Finished Announcement Text";
+	  		
+	  		popup_enabler   = "Popup File Finished";
+	  		popup_def_text  = "popup.file.finished";
   		}
   		
   		try{
   			this_mon.enter();
+  			
+  			if (COConfigurationManager.getBooleanParameter(popup_enabler)) {
+  				String popup_text = MessageText.getString(popup_def_text, new String[]{item_name});
+  				Logger.log(new LogAlert(true, LogAlert.AT_INFORMATION, popup_text));
+  			}
 
             if(Constants.isOSX) { // OS X cannot concurrently use SWT and AWT
                 new AEThread("DownloadSound") {

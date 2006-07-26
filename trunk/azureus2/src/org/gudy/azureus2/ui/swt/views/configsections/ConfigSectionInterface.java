@@ -397,6 +397,26 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		cArea.setLayout(layout);
 		cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
+		BooleanParameter popup_dl_completed = new BooleanParameter(cArea,
+				"Popup Download Finished", false, LBLKEY_PREFIX + "popupdownloadfinished");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		popup_dl_completed.setLayoutData(gridData);
+		
+		BooleanParameter popup_file_completed = new BooleanParameter(cArea,
+				"Popup File Finished", false, LBLKEY_PREFIX + "popupfilefinished");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		popup_file_completed.setLayoutData(gridData);
+		
+		cArea = new Composite(cDisplay, SWT.NULL);
+		layout = new GridLayout();
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.numColumns = 2;
+		cArea.setLayout(layout);
+		cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
 		if (!Constants.isOSX) {
 
 			BooleanParameter confirm = new BooleanParameter(cArea,
