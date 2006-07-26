@@ -938,4 +938,8 @@ RPDownload
 		public void addTrackerListener(DownloadTrackerListener l, boolean immediateTrigger) {
 			notSupported();
 		}
+		
+		public void renameDownload(String new_name) {
+			notSupported();
+		}
 }

@@ -613,12 +613,24 @@ Download
 		 * @param new_parent_dir
 		 * @throws DownloadException
 		 */
-  	
   	public void
   	moveTorrentFile(
   		File	new_parent_dir ) 
   	
   		throws DownloadException;
+
+  	/**
+  	 * Renames the file (for a single file torrent) or directory (for a multi file torrent) where the
+  	 * download is being saved to. The download must be in a state to move the data files to a new location
+  	 * (see {@link #moveDataFiles(File)}).
+  	 * 
+  	 * This will not rename the displayed name for the torrent - if you wish to do that, you must do it via
+  	 * the {@link org.gudy.azureus2.plugins.torrent.TorrentAttribute TorrentAttribute} class.
+  	 * 
+  	 * @param name New name for the download.
+  	 * @see #moveDataFiles(File)
+  	 */
+  	public void renameDownload(String name) throws DownloadException;
   	
   		/**
   		 * return the current peer manager for the download. 

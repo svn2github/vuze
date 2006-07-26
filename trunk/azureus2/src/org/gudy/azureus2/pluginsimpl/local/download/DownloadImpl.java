@@ -1421,6 +1421,13 @@ DownloadImpl
  			throw( new DownloadException("move operation failed", e ));
  		}
   	}
+	
+	public void renameDownload(String new_name) throws DownloadException {
+		try {download_manager.renameDownload(new_name);}
+		catch (DownloadManagerException e) {
+			throw new DownloadException("rename operation failed", e);
+		}
+	}
   	
   	public void
   	moveTorrentFile(
