@@ -251,6 +251,7 @@ public class TransferStatsView extends AbstractIView {
   }
   public void delete() {
     Utils.disposeComposite(generalPanel);
+    pingGraph.dispose();
   }
 
   public String getFullTitle() {
