@@ -2116,24 +2116,26 @@ public class TableView
   public void removeAllTableRows() {
   	long lTimeStart = System.currentTimeMillis();
   	
-		try {
-			dataSourceToRow_mon.enter();
-			sortedRows_mon.enter();
+  	final TableRowCore[] rows = getRows();
+  	
+	try {
+		dataSourceToRow_mon.enter();
+		sortedRows_mon.enter();
 
-			dataSourceToRow.clear();
-			sortedRows.clear();
-			
-			dataSourcesToAdd.clear();
-			dataSourcesToRemove.clear();
+		dataSourceToRow.clear();
+		sortedRows.clear();
+		
+		dataSourcesToAdd.clear();
+		dataSourcesToRemove.clear();
 
-			if (DEBUGADDREMOVE)
-				debug("removeAll");
+		if (DEBUGADDREMOVE)
+			debug("removeAll");
 
-		} finally {
+	} finally {
 
-			sortedRows_mon.exit();
-			dataSourceToRow_mon.exit();
-		}
+		sortedRows_mon.exit();
+		dataSourceToRow_mon.exit();
+	}
 
   	Utils.execSWTThread(new AERunnable() {
   		public void runSupport() {
@@ -2141,7 +2143,7 @@ public class TableView
   				table.removeAll();
 
   			// Image Disposal handled by each cell
-  			TableRowCore[] rows = getRows();
+ 
   			for (int i = 0; i < rows.length; i++)
   				rows[i].delete(false);
   		}
