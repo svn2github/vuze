@@ -60,7 +60,6 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
@@ -377,11 +376,14 @@ TorrentInfoView
 	{
 		super.delete();
 		
-		for (int i=0;i<cells.length;i++){
+		if ( cells != null ){
 			
-			ExternalCell	cell = cells[i];
-			
-			cell.dispose();
+			for (int i=0;i<cells.length;i++){
+				
+				ExternalCell	cell = cells[i];
+				
+				cell.dispose();
+			}
 		}
 	}
 	
