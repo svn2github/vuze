@@ -144,7 +144,7 @@ TransportImpl
 	{
 		read_waiter = waiter;
 	
-		return is_ready_for_read || data_already_read != null || filter.hasBufferedRead();  
+		return is_ready_for_read || data_already_read != null || ( filter != null && filter.hasBufferedRead());  
 	}
 	    
 	protected boolean
