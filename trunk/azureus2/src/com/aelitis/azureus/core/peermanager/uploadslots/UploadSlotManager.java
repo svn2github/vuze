@@ -130,7 +130,10 @@ public class UploadSlotManager {
 		ArrayList to_stop = new ArrayList();
 		
 		//get a list of the best sessions, peers who are uploading to us in download mode
-		LinkedList best_sessions = picker.pickBestDownloadSessions( slots.length );  //TODO pick more than slots.length?
+		LinkedList best_sessions = picker.pickBestDownloadSessions( slots.length );
+		
+		int best_size = best_sessions.size();
+		
 		
 		//go through all currently expired slots and pick sessions for next round
 		for( int i=0; i < slots.length; i++ ) {
@@ -164,6 +167,11 @@ public class UploadSlotManager {
 				}
 				else {   //normal					
 					session = getNextBestSession( best_sessions );  //get the next "best" session
+					
+					if( session == null && best_size == slots.length ) {
+						Debug.out( "session == null && best_size == slots.length" );
+					}
+					
 					
 					if( session == null ) {  //no download mode peers, must be only seeding; or all best are already slotted						
 						session = pickOptSession();   //just pick the next optimistic
@@ -208,13 +216,23 @@ public class UploadSlotManager {
 	
 	
 	
+	int count = 0;
+	
 	private UploadSession getNextBestSession( LinkedList best ) {
-		while( !best.isEmpty() ) {
+		count++;
+		System.out.print( "getNextBestSession [" +count+"] best.size=" +best.size()+ "  " );
+		
+		if( !best.isEmpty() ) {
 			UploadSession session = (UploadSession)best.removeFirst();   //get next
 			
 			if( !isAlreadySlotted( session ) ) {   //found an unslotted session
+				
+				System.out.println( "OK found session [" +session.getStatsTrace()+ "]" );
+				
 				return session;
 			}			
+			
+			System.out.println( "FAIL already-slotted session [" +session.getStatsTrace()+ "]" );
 			
 			return getNextBestSession( best );			//oops, already been slotted, try again
 		}
@@ -225,15 +243,20 @@ public class UploadSlotManager {
 	
 	
 	
-	private UploadSession pickOptSession() {
+	private UploadSession pickOptSession() {		
 		
-		UploadSession session = picker.pickNextOptimisticSession();
+		int max = picker.getHelperCount();  //max number of sessions the picker will return before it loops back 'round
 		
-		if( session == null )  return null;   //no sessions to pick
+		for( int i=0; i < max; i++ ) {   //make sure we don't loop
+			
+			UploadSession session = picker.pickNextOptimisticSession();
+			
+			if( session != null && !isAlreadySlotted( session ) ) {
+				return session;  //found!
+			}	
+		}
 		
-		if( !isAlreadySlotted( session ) )  return session;
-		
-		return pickOptSession();  //oops, we already picked this session for a slot, so pick another
+		return null;  //no optimistic sessions
 	}
 	
 	

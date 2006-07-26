@@ -113,6 +113,14 @@ public class UploadSessionPicker {
 	
 
 	
+	protected int getHelperCount() {
+		try {  next_optimistics_mon.enter();
+			return next_optimistics.size();
+		}
+		finally {  next_optimistics_mon.exit();  }
+	}
+	
+	
 	
 	//this picks both downloading and seeding sessions
 	protected UploadSession pickNextOptimisticSession() {
