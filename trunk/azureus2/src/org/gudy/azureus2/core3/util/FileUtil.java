@@ -255,13 +255,12 @@ public class FileUtil {
   		if ( Constants.isWindows ){
   			
   				//  this rule originally from DiskManager
-  		
+
+	 		// The definitive list of characters permitted for Windows is defined here:
+	 		// http://support.microsoft.com/kb/q120138/
+  			String not_allowed = "\\/:?*<>"; 
   		 	for (int i=0;i<chars.length;i++){
-  		 		
-  		 		char	c = chars[i];
-  		 		
-  		  		if ( c == '\\' || c == '/' || c == ':' || c == '?' || c == '*' ){
-  		  			
+  		 		if (not_allowed.indexOf(chars[i]) != -1) {
   		  			chars[i] = '_';
   		  		}
   		  	}
