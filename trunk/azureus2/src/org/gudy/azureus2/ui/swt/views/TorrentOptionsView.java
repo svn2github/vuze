@@ -74,6 +74,7 @@ TorrentOptionsView
 	private Map	ds_parameters 		= new HashMap();
 	
 	private Composite 			panel;
+	private Font 				headerFont;
 	
 	protected
 	TorrentOptionsView(
@@ -117,7 +118,7 @@ TorrentOptionsView
 		fontData[0].setStyle(SWT.BOLD);
 		int fontHeight = (int)(fontData[0].getHeight() * 1.2);
 		fontData[0].setHeight(fontHeight);
-		Font headerFont = new Font(d, fontData);
+		headerFont = new Font(d, fontData);
 		lHeader.setFont(headerFont);
 		lHeader.setText( " " + MessageText.getString( "authenticator.torrent" ) + " : " + manager.getDisplayName().replaceAll("&", "&&"));
 		gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
@@ -381,6 +382,11 @@ TorrentOptionsView
 	delete()
 	{
 		super.delete();
+		
+		if ( headerFont != null ){
+			
+			headerFont.dispose();
+		}
 		
 		manager.getDownloadState().removeListener( this );
 	}

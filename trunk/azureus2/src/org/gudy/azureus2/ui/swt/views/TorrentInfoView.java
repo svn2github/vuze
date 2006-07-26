@@ -80,6 +80,7 @@ TorrentInfoView
 	
 	private Composite 		outer_panel;
 	
+	private Font 			headerFont;
 	private ExternalCell[]	cells;
 	
 	private ExternalRow		external_row = new ExternalRow();
@@ -146,7 +147,7 @@ TorrentInfoView
 		fontData[0].setStyle(SWT.BOLD);
 		int fontHeight = (int)(fontData[0].getHeight() * 1.2);
 		fontData[0].setHeight(fontHeight);
-		Font headerFont = new Font(d, fontData);
+		headerFont = new Font(d, fontData);
 		lHeader.setFont(headerFont);
 		lHeader.setText( " " + MessageText.getString( "authenticator.torrent" ) + " : " + download_manager.getDisplayName().replaceAll("&", "&&"));
 		gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
@@ -375,6 +376,11 @@ TorrentInfoView
 	delete()
 	{
 		super.delete();
+		
+		if ( headerFont != null ){
+			
+			headerFont.dispose();
+		}
 		
 		if ( cells != null ){
 			
@@ -749,6 +755,8 @@ TorrentInfoView
 					Debug.printStackTrace(e);
 				}
 			}
+			
+			column.invokeCellDisposeListeners( this );
 		}
 
 		public void 
