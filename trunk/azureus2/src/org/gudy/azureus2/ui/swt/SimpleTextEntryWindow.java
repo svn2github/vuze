@@ -129,6 +129,15 @@ public class SimpleTextEntryWindow {
 	      });
 
 	    shell.setDefaultButton(ok);
+	    
+		shell.addListener(SWT.Traverse, new Listener() {	
+			public void handleEvent(Event e) {
+				if ( e.character == SWT.ESC){
+					shell.dispose();
+				}
+			}
+		});
+		
 	    shell.pack();
 	    Utils.createURLDropTarget(shell, text_entry);
 	    Utils.centreWindow(shell);
