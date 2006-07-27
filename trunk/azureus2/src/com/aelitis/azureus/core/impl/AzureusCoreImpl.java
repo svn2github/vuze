@@ -995,15 +995,12 @@ AzureusCoreImpl
 
 		for (int i=0;i<operation_listeners.size();i++){
 			
-			try{
-				if (((AzureusCoreOperationListener)operation_listeners.get(i)).operationCreated( op )){
-					
-					f_task[0] = null;
-				}
+				// don't catch exceptions here as we want errors from task execution to propagate
+				// back to the invoker
+			
+			if (((AzureusCoreOperationListener)operation_listeners.get(i)).operationCreated( op )){
 				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
+				f_task[0] = null;
 			}
 		}
 		
