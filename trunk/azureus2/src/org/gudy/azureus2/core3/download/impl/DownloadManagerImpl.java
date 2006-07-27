@@ -51,6 +51,10 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreOperation;
+import com.aelitis.azureus.core.AzureusCoreOperationTask;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -2774,8 +2778,51 @@ DownloadManagerImpl
    *    If false, then this is the new parent directory.
    *    If true, then this is the new name of the file.
    */ 
-  public void moveDataFiles(final File destination, boolean destination_is_rename) throws DownloadManagerException {
-	  
+  
+  public void 
+  moveDataFiles(
+	final File 		destination, 
+	final boolean 	destination_is_rename) 
+  
+  	throws DownloadManagerException 
+  {
+	  try{
+		  FileUtil.runAsTask(
+				new AzureusCoreOperationTask()
+				{
+					public void 
+					run(
+						AzureusCoreOperation operation) 
+					{
+						try{
+							moveDataFilesSupport( destination, destination_is_rename );
+							
+						}catch( DownloadManagerException e ){
+							
+							throw( new RuntimeException( e ));
+						}
+					}
+				});
+	  }catch( RuntimeException e ){
+		  
+		  Throwable cause = e.getCause();
+		  
+		  if ( cause instanceof DownloadManagerException ){
+			  
+			  throw((DownloadManagerException)cause);
+		  }
+		  
+		  throw( e );
+	  }
+  }
+  
+  private void 
+  moveDataFilesSupport(
+	final File destination, 
+	boolean destination_is_rename) 
+  
+  	throws DownloadManagerException 
+  	{
 	  if ( !isPersistent()){
 		  
 		  throw( new DownloadManagerException( "Download is not persistent" ));

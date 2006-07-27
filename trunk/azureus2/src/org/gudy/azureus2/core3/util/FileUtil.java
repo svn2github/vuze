@@ -33,6 +33,11 @@ import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreOperation;
+import com.aelitis.azureus.core.AzureusCoreOperationTask;
+
 /**
  * File utility class.
  */
@@ -1366,5 +1371,14 @@ public class FileUtil {
 		if (new_root.endsWith(File.separator)) {new_root = new_root.substring(0, new_root.length()-1);}
 		if (file_suffix.startsWith(File.separator)) {file_suffix = file_suffix.substring(1);}
 		return new_root + File.separator + file_suffix;
+	}
+	
+	public static void
+	runAsTask(
+		AzureusCoreOperationTask	task )
+	{
+		AzureusCore	core = AzureusCoreFactory.getSingleton();
+		
+		core.createOperation( AzureusCoreOperation.OP_FILE_MOVE, task );
 	}
 }

@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
 import org.gudy.azureus2.ui.swt.auth.CertificateTrustWindow;
 import org.gudy.azureus2.ui.swt.networks.SWTNetworkSelection;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
+import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
@@ -193,6 +194,8 @@ Initializer
 	    }
 	    final ILogEventListener finalLogListener = logListener;
 
+	    ProgressWindow.register( azureus_core );
+	    
 	    new SWTNetworkSelection();
 	    
 	    new AuthenticatorWindow();

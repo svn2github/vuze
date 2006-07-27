@@ -129,6 +129,7 @@ AzureusCoreImpl
 	private boolean				stopped;
 	private List				listeners				= new ArrayList();
 	private List				lifecycle_listeners		= new ArrayList();
+	private List				operation_listeners		= new ArrayList();
 	
 	private AESemaphore			stopping_sem	= new AESemaphore( "AzureusCore::stopping" );
 	
@@ -910,13 +911,19 @@ AzureusCoreImpl
 	createOperation(
 		final int		type )
 	{
-		return(
+		AzureusCoreOperation	op =
 			new AzureusCoreOperation()
 			{
 				public int
 				getOperationType()
 				{
 					return( type );
+				}
+				
+				public AzureusCoreOperationTask 
+				getTask() 
+				{
+					return null;
 				}
 				
 				public void 
@@ -932,7 +939,80 @@ AzureusCoreImpl
 				{
 					AzureusCoreImpl.this.reportPercent( this, percent );
 				}
-			});
+			};
+			
+		for (int i=0;i<operation_listeners.size();i++){
+			
+			try{
+				((AzureusCoreOperationListener)operation_listeners.get(i)).operationCreated( op );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		return( op );
+	}
+	
+	public void
+	createOperation(
+		final int					type,
+		AzureusCoreOperationTask	task )
+	{
+		final AzureusCoreOperationTask[] f_task = { task };
+		
+		AzureusCoreOperation	op =
+				new AzureusCoreOperation()
+				{
+					public int
+					getOperationType()
+					{
+						return( type );
+					}
+					
+					public AzureusCoreOperationTask 
+					getTask() 
+					{
+						return( f_task[0] );
+					}
+					
+					public void 
+					reportCurrentTask(
+						String task )
+					{
+						AzureusCoreImpl.this.reportCurrentTask( this, task );
+					}
+					  
+					public void 
+					reportPercent(
+						int percent )
+					{
+						AzureusCoreImpl.this.reportPercent( this, percent );
+					}
+				};
+				
+
+		for (int i=0;i<operation_listeners.size();i++){
+			
+			try{
+				if (((AzureusCoreOperationListener)operation_listeners.get(i)).operationCreated( op )){
+					
+					f_task[0] = null;
+				}
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+			// nobody volunteeered to run it for us, we'd better do it
+		
+		if ( f_task[0] != null ){
+			
+			task.run( op );
+		}
 	}
 	
 	protected void 
@@ -1005,5 +1085,19 @@ AzureusCoreImpl
 		AzureusCoreListener	l )
 	{
 		listeners.remove( l );
+	}
+	
+	public void
+	addOperationListener(
+		AzureusCoreOperationListener	l )
+	{
+		operation_listeners.add(l);
+	}
+	
+	public void
+	removeOperationListener(
+		AzureusCoreOperationListener	l )
+	{
+		operation_listeners.remove(l);
 	}
 }

@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.MessageBoxWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -41,6 +42,9 @@ import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+
+import com.aelitis.azureus.core.AzureusCoreOperation;
+import com.aelitis.azureus.core.AzureusCoreOperationTask;
 
 /**
  * @author Olivier
@@ -266,7 +270,7 @@ public class FilesView
 				
 				TableRowCore	row = rows[i];
 				
-				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
+				final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
 	
 				FileDialog fDialog = new FileDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
 				
@@ -287,7 +291,7 @@ public class FilesView
 						paused = manager.pause();
 					}
 						
-    				File	target = new File( res );
+    				final File	target = new File( res );
         	  
     				boolean	ok = false;
         	  
@@ -322,7 +326,23 @@ public class FilesView
         	  
     				if ( ok ){
         		  
-    					if ( !fileInfo.setLink( target )){
+    						// this behaviour should be put further down in the core but I'd rather not
+    						// do so close to release :(
+    					
+    					final boolean[] result = { false };
+    					
+    					FileUtil.runAsTask(
+								new AzureusCoreOperationTask()
+								{
+									public void 
+									run(
+										AzureusCoreOperation operation) 
+									{
+										result[0] = fileInfo.setLink( target );
+									}
+								});
+
+    					if ( !result[0]){
     						
     						MessageBox mb = new MessageBox(getComposite().getShell(),SWT.ICON_ERROR | SWT.OK );
     					    

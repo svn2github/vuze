@@ -23,22 +23,15 @@
 package com.aelitis.azureus.core;
 
 public interface 
-AzureusCoreOperation 
+AzureusCoreOperationListener 
 {
-	public static final int	OP_INITIALISATION	= 1;
-	public static final int	OP_FILE_MOVE		= 2;
+		/**
+		 * 
+		 * @param operation
+		 * @return true if the listener has taken responsibility for running an operation task
+		 */
 	
-	public int
-	getOperationType();
-	
-	public AzureusCoreOperationTask
-	getTask();
-	
-	public void 
-	reportCurrentTask(
-		String currentTask );
-	  
-	public void 
-	reportPercent(
-		int percent );
+	public boolean
+	operationCreated(
+		AzureusCoreOperation	operation );
 }

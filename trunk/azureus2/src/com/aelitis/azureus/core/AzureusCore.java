@@ -140,6 +140,11 @@ AzureusCore
 		int		type );
 	
 	public void
+	createOperation(
+		int							type,
+		AzureusCoreOperationTask	task );
+
+	public void
 	addLifecycleListener(
 		AzureusCoreLifecycleListener	l );
 	
@@ -155,6 +160,14 @@ AzureusCore
 	removeListener(
 		AzureusCoreListener	l );
 
+	public void
+	addOperationListener(
+		AzureusCoreOperationListener	l );
+	
+	public void
+	removeOperationListener(
+		AzureusCoreOperationListener	l );
+	
 	/**
 	 * @param component
 	 */
