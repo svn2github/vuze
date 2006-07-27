@@ -28,6 +28,7 @@ FEATURE: UI   | manual file recheck order [Parg]
 FEATURE: UI   | Option to remember passwords [Parg]
 FEATURE: UI   | OSX: Open .torrent files into Azureus via Finder/Desktop/etc [TuxPaper]
 FEATURE: UI   | Option to send popup message when download of a torrent (or individual file) has completed [amc1]
+FEATURE: UI   | Torrent-info panel added to show MyTorrent's column attributes in a single place. Torrent encoding moved from General tab to here [Parg]
 
 FEATURE: Plug | Simple NAT-PMP implementation [Marc Colosimo]
 
