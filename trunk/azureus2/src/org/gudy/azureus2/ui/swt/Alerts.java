@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -109,13 +110,22 @@ public class Alerts {
   		stopping_alert_count++;
   	}
   	
+  	final String message2;
+  	if (message != null && COConfigurationManager.getBooleanParameter("Show Timestamp For Alerts")) {
+  		message2 = "[" + DisplayFormatters.formatDateShort(SystemTime.getCurrentTime()) + "] " + message;
+  	}
+  	else {
+  		message2 = message;
+  	}
+  	
 	display.asyncExec( 
 	  	new AERunnable() 
 	  	{
 	  	  	public void 
 	  	  	runSupport()
 	  	  	{
-	  	      new MessageSlideShell(display, type, title, message==null?"":message, details);
+	  	  		// Here is where we would add time stamps.
+	  	      new MessageSlideShell(display, type, title, message2==null?"":message2, details);
 	  	  	}
 	  	});
    }

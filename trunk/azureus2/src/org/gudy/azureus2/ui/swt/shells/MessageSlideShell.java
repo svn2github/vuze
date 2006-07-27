@@ -120,7 +120,7 @@ public class MessageSlideShell {
 
 	/** paused state of auto-close delay */
 	private boolean bDelayPaused = false;
-
+	
 	/** List of SWT objects needing disposal */
 	private ArrayList disposeList = new ArrayList();
 
@@ -258,7 +258,7 @@ public class MessageSlideShell {
 				imgIcon = null;
 				break;
 		}
-
+		
 		// if there's a link, or the info is non-information,
 		// disable timer and mouse watching
 		bDelayPaused = UrlUtils.parseHTMLforURL(popupParams.text) != null
@@ -831,10 +831,11 @@ public class MessageSlideShell {
 
 				int delayLeft = COConfigurationManager
 						.getIntParameter("Message Popup Autoclose in Seconds") * 1000;
+				final boolean autohide = (delayLeft != 0);
 
 				long lastDelaySecs = 0;
 				int lastNumPopups = -1;
-				while ((bDelayPaused || delayLeft > 0) && !shell.isDisposed()) {
+				while ((!autohide || bDelayPaused || delayLeft > 0) && !shell.isDisposed()) {
 					int delayPausedOfs = (bDelayPaused ? 1 : 0);
 					final long delaySecs = Math.round(delayLeft / 1000.0)
 							+ delayPausedOfs;
@@ -850,7 +851,7 @@ public class MessageSlideShell {
 									return;
 
 								lblCloseIn.setRedraw(false);
-								if (!bDelayPaused)
+								if (!bDelayPaused && autohide)
 									sText += MessageText.getString("popup.closing.in",
 											new String[] { String.valueOf(delaySecs) });
 

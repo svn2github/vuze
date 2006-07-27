@@ -291,6 +291,7 @@ public class ConfigurationDefaults {
     def.put( "Move Deleted Data To Recycle Bin", TRUE);
     def.put( "Popup Download Finished", FALSE);
     def.put( "Popup File Finished", FALSE);
+    def.put( "Show Timestamp For Alerts", FALSE);
     
     //default torrent directory option
     def.put( "Save Torrent Files", TRUE );
