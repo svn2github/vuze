@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -149,9 +150,21 @@ ProgressWindow
 			}
 		}finally{
 			
-			if ( shell != null && !shell.isDisposed()){
+				// bit of boiler plate in case something fails in the dispatch loop
 			
-				shell.dispose();
+			synchronized( this ){
+				
+				task_complete = true;
+			}
+			
+			try{
+				if ( shell != null && !shell.isDisposed()){
+				
+					shell.dispose();
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
 			}
 		}
 		
