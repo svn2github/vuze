@@ -63,6 +63,7 @@ public class GenericRPAttributes {
             map.put("scrape_result",   dload.getLastScrapeResult());
             map.put("position",        dload.getPosition());
             map.put("force_start",     dload.isForceStart());
+            map.put("name",            dload.getName());
         }
 
         else if (obj_class == DownloadAnnounceResult.class) {
@@ -198,6 +199,7 @@ public class GenericRPAttributes {
         attributes.put("scrape_result",   DownloadScrapeResult.class);
         attributes.put("position",        int.class);
         attributes.put("force_start",     boolean.class);
+        attributes.put("name",            String.class);
         class_definitions.put(plugin_class, attributes);
 
         attributes = new HashMap();
