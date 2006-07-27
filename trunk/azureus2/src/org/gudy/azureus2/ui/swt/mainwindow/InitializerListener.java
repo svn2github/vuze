@@ -1,7 +1,7 @@
 /*
- * Created on 14-Jul-2004
+ * Created on 27 Jul 2006
  * Created by Paul Gardner
- * Copyright (C) 2004, 2005, 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,23 +20,16 @@
  *
  */
 
-package com.aelitis.azureus.core;
-
-/**
- * @author parg
- *
- */
+package org.gudy.azureus2.ui.swt.mainwindow;
 
 public interface 
-AzureusCoreListener 
-{	
+InitializerListener 
+{
 	public void 
 	reportCurrentTask(
-		AzureusCoreOperation	operation,
-		String 					currentTask );
+		String currentTask );
 	  
 	public void 
 	reportPercent(
-		AzureusCoreOperation	operation,
-		int 					percent );
+		int percent );
 }

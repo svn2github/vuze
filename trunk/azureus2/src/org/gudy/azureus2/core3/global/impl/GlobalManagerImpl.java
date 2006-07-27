@@ -51,7 +51,6 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtilsListener;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.AzureusCoreListener;
 import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
 import com.aelitis.azureus.core.peermanager.uploadslots.UploadSlotManager;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -290,7 +289,7 @@ public class GlobalManagerImpl
 
   public 
   GlobalManagerImpl(final
-  		AzureusCoreListener listener,
+  		GlobalMangerProgressListener listener,
   		long existingTorrentLoadDelay)
   {
     //Debug.dumpThreadsLoop("Active threads");
@@ -498,7 +497,7 @@ public class GlobalManagerImpl
     	});
   }
   
-  public void loadExistingTorrentsNow(final AzureusCoreListener listener,
+  public void loadExistingTorrentsNow(final GlobalMangerProgressListener listener,
 			boolean async)
 	{
 		if (loadTorrentsDelay == null) {
@@ -1405,7 +1404,7 @@ public class GlobalManagerImpl
   
   
   
-  private void loadDownloads(AzureusCoreListener listener) 
+  private void loadDownloads(GlobalMangerProgressListener listener) 
   {
   	int triggerOnCount = 2;
     ArrayList downloadsAdded = new ArrayList();

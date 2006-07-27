@@ -308,7 +308,7 @@ Initializer
   	} 
   }
   
-  public void addListener(AzureusCoreListener listener){
+  public void addListener(InitializerListener listener){
     try{
     	listeners_mon.enter();
     	
@@ -319,7 +319,7 @@ Initializer
     }
   }
   
-  public void removeListener(AzureusCoreListener listener) {
+  public void removeListener(InitializerListener listener) {
     try{
     	listeners_mon.enter();
 		
@@ -330,14 +330,33 @@ Initializer
     }
   }
   
-  // AzureusCoreListener
+  public void 
+  reportCurrentTask(
+	AzureusCoreOperation	operation,
+	String 					currentTask )
+  {
+	  if ( operation.getOperationType() == AzureusCoreOperation.OP_INITIALISATION ){
+		  reportCurrentTask( currentTask );
+	  }
+  }
+	  
+  public void 
+  reportPercent(
+	AzureusCoreOperation	operation,
+	int 					percent )
+  {
+	  if ( operation.getOperationType() == AzureusCoreOperation.OP_INITIALISATION ){
+		  reportPercent( percent );
+	  }
+  }
+  
   public void reportCurrentTask(String currentTaskString) {
      try{
      	listeners_mon.enter();
      
 	    Iterator iter = listeners.iterator();
 	    while(iter.hasNext()) {
-	    	AzureusCoreListener listener = (AzureusCoreListener) iter.next();
+	    	InitializerListener listener = (InitializerListener) iter.next();
 	      listener.reportCurrentTask(currentTaskString);
 	    }
     }finally{
@@ -354,7 +373,7 @@ Initializer
     
 	    Iterator iter = listeners.iterator();
 	    while(iter.hasNext()) {
-	    	AzureusCoreListener listener = (AzureusCoreListener) iter.next();
+	    	InitializerListener listener = (InitializerListener) iter.next();
 	      listener.reportPercent(overallPercent);
 	    }
 

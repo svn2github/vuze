@@ -135,6 +135,10 @@ AzureusCore
 	public NATTraverser
 	getNATTraverser();
 	
+	public AzureusCoreOperation
+	createOperation(
+		int		type );
+	
 	public void
 	addLifecycleListener(
 		AzureusCoreLifecycleListener	l );

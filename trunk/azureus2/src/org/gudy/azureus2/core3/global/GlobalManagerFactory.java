@@ -27,16 +27,16 @@ package org.gudy.azureus2.core3.global;
  */
 
 import org.gudy.azureus2.core3.global.impl.*;
-import com.aelitis.azureus.core.AzureusCoreListener;
+
 
 public class 
 GlobalManagerFactory 
 {
 	public static GlobalManager
 	create(
-       AzureusCoreListener 	listener)
+		GlobalMangerProgressListener 	operation )
 	{
-		return( new GlobalManagerImpl( listener, 0 ));
+		return( new GlobalManagerImpl( operation, 0 ));
 	}
   
 	public static GlobalManager
@@ -47,10 +47,10 @@ GlobalManagerFactory
 
 	public static GlobalManager
 	create(
-       AzureusCoreListener 	listener,
-       long existingTorrentLoadDelay)
+		GlobalMangerProgressListener 	operation,
+		long existingTorrentLoadDelay)
 	{
-		return( new GlobalManagerImpl( listener, existingTorrentLoadDelay ));
+		return( new GlobalManagerImpl( operation, existingTorrentLoadDelay ));
 	}
   
 	public static GlobalManager

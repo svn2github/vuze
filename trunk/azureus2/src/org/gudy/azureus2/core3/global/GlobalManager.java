@@ -24,7 +24,6 @@ package org.gudy.azureus2.core3.global;
 import java.util.List;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
-import com.aelitis.azureus.core.AzureusCoreListener;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -349,7 +348,7 @@ public interface GlobalManager extends AzureusCoreComponent {
 	/**
 	 * @param listener
 	 */
-	void loadExistingTorrentsNow(AzureusCoreListener listener, boolean async);
+	void loadExistingTorrentsNow(GlobalMangerProgressListener listener, boolean async);
 
 	/**
 	 * @param listener

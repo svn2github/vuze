@@ -30,17 +30,15 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 
-import com.aelitis.azureus.core.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * The initial Splash Screen shown while azureus loads 
  */
-public class SplashWindow implements AzureusCoreListener {
+public class SplashWindow implements InitializerListener {
   
   Display display;
   Initializer initializer;

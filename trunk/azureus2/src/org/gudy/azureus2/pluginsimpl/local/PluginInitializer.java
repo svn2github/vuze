@@ -181,7 +181,7 @@ PluginInitializer
 
   private static List		registration_queue 	= new ArrayList();
    
-  private AzureusCoreListener listener;
+  private AzureusCoreOperation core_operation;
   
   private AzureusCore		azureus_core;
   
@@ -201,14 +201,14 @@ PluginInitializer
   public static PluginInitializer
   getSingleton(
   	AzureusCore		 		azureus_core,
-  	AzureusCoreListener 	listener )
+  	AzureusCoreOperation 	core_operation )
   {
   	try{
   		class_mon.enter();
   	
 	  	if ( singleton == null ){
 	  		
-	  		singleton = new PluginInitializer( azureus_core, listener );
+	  		singleton = new PluginInitializer( azureus_core, core_operation );
 	  	}
 	 	
 	  	return( singleton );
@@ -276,8 +276,8 @@ PluginInitializer
   
   protected 
   PluginInitializer(
-  	AzureusCore 		_azureus_core,
-  	AzureusCoreListener	_listener) 
+  	AzureusCore 			_azureus_core,
+  	AzureusCoreOperation	_core_operation ) 
   {
   	azureus_core	= _azureus_core;
   	
@@ -300,7 +300,7 @@ PluginInitializer
 	    		}
 			});
   	
-    listener 	= _listener;
+  	core_operation 	= _core_operation;
     
     UpdateManagerImpl.getSingleton( azureus_core );	// initialise the update manager
        
@@ -355,8 +355,8 @@ PluginInitializer
 	    if (Logger.isEnabled())
 	    	Logger.log(new LogEvent(LOGID, "Loading built-in plugins"));
 	    
-	    if (listener != null) {
-	    	listener.reportCurrentTask(MessageText.getString("splash.plugin")
+	    if (core_operation != null) {
+	    	core_operation.reportCurrentTask(MessageText.getString("splash.plugin")
 	    			+ MessageText.getString("ConfigView.pluginlist.column.type.builtIn"));
 	    }
 
@@ -529,9 +529,9 @@ PluginInitializer
 				Logger.log(new LogEvent(LOGID, "Loading plugin "
 						+ pluginsDirectory[i].getName()));
 
-	    if(listener != null) {
+	    if(core_operation != null) {
   	      	
-	      listener.reportCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
+	    	core_operation.reportCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
 	    }
 	      
 	    try{
@@ -548,9 +548,9 @@ PluginInitializer
 	      		// already handled
 	      }
 	      
-	      if( listener != null ){
+	      if( core_operation != null ){
 	      	
-	        listener.reportPercent( (100 * (i + plugin_offset)) / plugin_total );
+	    	  core_operation.reportPercent( (100 * (i + plugin_offset)) / plugin_total );
 	      }
 	    }
     } 
@@ -957,8 +957,8 @@ PluginInitializer
 						Logger.log(new LogEvent(LOGID, "Initializing plugin '"
 								+ plugin_interface.getPluginName() + "'"));
 
-					if (listener != null) {
-						listener.reportCurrentTask(MessageText
+					if (core_operation != null) {
+						core_operation.reportCurrentTask(MessageText
 								.getString("splash.plugin.init")
 								+ plugin_interface.getPluginName());
 					}
@@ -974,8 +974,8 @@ PluginInitializer
 			} catch (PluginException e) {
 				// already handled
 			} finally {
-				if (listener != null) {
-					listener.reportPercent((100 * (i + 1)) / loaded_pi_list.size());
+				if (core_operation != null) {
+					core_operation.reportPercent((100 * (i + 1)) / loaded_pi_list.size());
 				}
 			}
 		}
@@ -1142,7 +1142,7 @@ PluginInitializer
   		return;
   	}
   	
-    if( listener != null ){
+    if( core_operation != null ){
 	      	
     	String	plugin_name;
 		
@@ -1162,7 +1162,7 @@ PluginInitializer
 			plugin_name = plugin_config_key;
 		}
     	
-        listener.reportCurrentTask(MessageText.getString("splash.plugin.init") + plugin_name );
+		core_operation.reportCurrentTask(MessageText.getString("splash.plugin.init") + plugin_name );
     }
     
   	try{
