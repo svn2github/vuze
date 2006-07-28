@@ -172,6 +172,8 @@ AZInstanceManagerImpl
 	
 	private AEMonitor	this_mon = new AEMonitor( "AZInstanceManager" );
 
+	private boolean		closing;
+	
 	protected
 	AZInstanceManagerImpl(
 		AzureusCore	_core )
@@ -202,6 +204,8 @@ AZInstanceManagerImpl
 					stopping(
 						AzureusCore		core )
 					{
+						closing	= true;
+						
 						sendByeBye();
 					}
 				});
@@ -268,6 +272,12 @@ AZInstanceManagerImpl
 	isInitialized()
 	{
 		return( initial_search_sem.isReleasedForever());
+	}
+	
+	protected boolean
+	isClosing()
+	{
+		return( closing );
 	}
 	
 	protected void

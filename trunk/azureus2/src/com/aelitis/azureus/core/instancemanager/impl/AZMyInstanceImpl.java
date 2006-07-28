@@ -146,9 +146,30 @@ AZMyInstanceImpl
 	protected InetAddress
 	readExternalAddress()
 	{
+		InetAddress	 external_address = null;
+
+			// no point in kicking off any queries if we're closing
+		
+		if ( manager.isClosing()){
+			
+			external_address	= last_external_address;
+			
+			if ( external_address == null ){
+				
+				try{
+					external_address = InetAddress.getByName("127.0.0.1");
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+			
+			return( external_address );
+		}
+		
 	    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
         
-		InetAddress	 external_address = null;
 		
 	    DHTPlugin dht = null;
 	    
