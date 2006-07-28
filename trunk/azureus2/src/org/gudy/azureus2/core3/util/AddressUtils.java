@@ -94,9 +94,25 @@ AddressUtils
 	
 	public static byte
 	isLANLocalAddress(
+		InetSocketAddress	socket_address )
+	{
+		InetAddress address = socket_address.getAddress();
+		
+		return( isLANLocalAddress( address ));
+	}
+	
+	public static byte
+	isLANLocalAddress(
 		InetAddress	address )
 
 	{
+			// if someone passes us an unresolved address then handle sensibly
+		
+		if ( address == null ){
+			
+			return( LAN_LOCAL_NO );
+		}
+		
 		if ( instance_manager == null ){
 			
 			try{
@@ -117,13 +133,19 @@ AddressUtils
 	}
 	
 	
-	public static byte isLANLocalAddress( String address ) {
+	public static byte 
+	isLANLocalAddress( 
+		String address ) 
+	{
 		byte is_lan_local = LAN_LOCAL_MAYBE;
 		
 		try {
 			is_lan_local = isLANLocalAddress( HostNameToIPResolver.syncResolve( address ));
+			
+		}catch( Throwable t ){
+			
+			t.printStackTrace();  
 		}
-		catch( Throwable t ) {  t.printStackTrace();  }
 		
 		return is_lan_local;
 	}

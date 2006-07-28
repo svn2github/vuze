@@ -843,6 +843,11 @@ AZInstanceManagerImpl
 	isLANAddress(
 		InetAddress			address )
 	{
+		if ( address == null ){
+			
+			return( false );
+		}
+		
 		String	sp = socks_proxy;
 		
 		if ( sp != null ){

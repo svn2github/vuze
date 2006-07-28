@@ -242,7 +242,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
 	public boolean isLANLocal() {
 		if ( is_lan_local == AddressUtils.LAN_LOCAL_MAYBE ){
 			
-			is_lan_local = AddressUtils.isLANLocalAddress( connection_endpoint.getNotionalAddress().getAddress());
+			is_lan_local = AddressUtils.isLANLocalAddress( connection_endpoint.getNotionalAddress());
 		}
 		return( is_lan_local == AddressUtils.LAN_LOCAL_YES );
 	}
