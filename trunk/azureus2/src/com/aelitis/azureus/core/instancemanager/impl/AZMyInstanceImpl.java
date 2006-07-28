@@ -46,6 +46,7 @@ AZMyInstanceImpl
 	extends AZInstanceImpl
 {
 	public static final long	FORCE_READ_EXT_MIN	= 8*60*60*1000;
+	public static final long	UPNP_READ_MIN		= 5*60*1000;
 	
 	private AzureusCore				core;
 	private AZInstanceManagerImpl	manager;
@@ -55,6 +56,8 @@ AZMyInstanceImpl
 	private int					tcp_port;
 	private int					udp_port;
 	private int					udp_non_data_port;
+	
+	private long				last_upnp_read;
 	
 	private long				last_force_read_ext;
 	private InetAddress			last_external_address;
@@ -227,31 +230,54 @@ AZMyInstanceImpl
 			}catch( Throwable e ){
 			}
 		}
-	    
-			// try upnp
+		
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( last_force_read_ext > now ){
+			
+			last_force_read_ext	= now;
+		}
+		
+		boolean	ok_to_try_ext = now - last_force_read_ext > FORCE_READ_EXT_MIN;
+		
+	    	// try upnp - limit frequency unless external read is possible in which
+			// case we try upnp first
+			// currently we only use UPnP to validate our current external address, not
+			// to deduce new ones (as for example there may be multiple upnp devices and
+			// we don't know which one to believe
 	   
 		if ( external_address == null && last_external_address != null ){
 			
-			try{
-			    PluginInterface upnp_pi = core.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
-		        			    
-			    if ( upnp_pi != null ){
-		    	
-			    	UPnPPlugin upnp = (UPnPPlugin)upnp_pi.getPlugin();
+			if ( last_upnp_read > now ){
+				
+				last_upnp_read = now;
+			}
+			
+			if ( now - last_upnp_read > UPNP_READ_MIN || ok_to_try_ext ){
+				
+				last_upnp_read	= now;
+				
+				try{
+				    PluginInterface upnp_pi = core.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+			        			    
+				    if ( upnp_pi != null ){
 			    	
-			    	String[]	addresses = upnp.getExternalIPAddresses();
-			    	
-			    	for (int i=0;i<addresses.length;i++){
-			    		
-			    		if ( addresses[i].equals( last_external_address.getHostAddress())){
-			    			
-			    			external_address = last_external_address; 
-			    			
-			    			break;
-			    		}
-			    	}
-			    }
-			}catch( Throwable e ){
+				    	UPnPPlugin upnp = (UPnPPlugin)upnp_pi.getPlugin();
+				    	
+				    	String[]	addresses = upnp.getExternalIPAddresses();
+				    	
+				    	for (int i=0;i<addresses.length;i++){
+				    		
+				    		if ( addresses[i].equals( last_external_address.getHostAddress())){
+				    			
+				    			external_address = last_external_address; 
+				    			
+				    			break;
+				    		}
+				    	}
+				    }
+				}catch( Throwable e ){
+				}
 			}
 		}
 		
@@ -259,14 +285,7 @@ AZMyInstanceImpl
 			
 				// force read it
 			
-			long	now = SystemTime.getCurrentTime();
-			
-			if ( last_force_read_ext > now ){
-				
-				last_force_read_ext	= now;
-			}
-			
-			if ( now - last_force_read_ext > FORCE_READ_EXT_MIN ){
+			if ( ok_to_try_ext ){
 				
 				last_force_read_ext	= now;
 				
