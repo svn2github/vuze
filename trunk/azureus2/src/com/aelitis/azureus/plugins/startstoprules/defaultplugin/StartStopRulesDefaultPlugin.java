@@ -27,7 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.util.Timer;
+
 
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginConfig;
@@ -109,7 +109,6 @@ public class StartStopRulesDefaultPlugin
   private DownloadManager     download_manager;
   protected LoggerChannel     log;
 
-  private Timer               changeCheckerTimer;
   /** Used only for RANK_TIMED. Recalculate ranks on a timer */
   private RecalcSeedingRanksTask recalcSeedingRanksTask;
 
@@ -168,7 +167,6 @@ public class StartStopRulesDefaultPlugin
 		AEDiagnostics.addEvidenceGenerator(this);
 
 		startedOn = SystemTime.getCurrentTime();
-		changeCheckerTimer = new Timer("StartStopRules", 3, 4);
 
 		pi = _plugin_interface;
 		torrentAttributeContent = pi.getTorrentManager().getPluginAttribute(TorrentAttribute.TA_CONTENT_MAP);		
@@ -185,9 +183,9 @@ public class StartStopRulesDefaultPlugin
 				new DelayedEvent(12000, new AERunnable() {
 					public void runSupport() {
 						download_manager.addListener(new StartStopDMListener());
-						changeCheckerTimer.addPeriodicEvent(CHECK_FOR_GROSS_CHANGE_PERIOD,
+						SimpleTimer.addPeriodicEvent(CHECK_FOR_GROSS_CHANGE_PERIOD,
 								new ChangeCheckerTimerTask());
-						changeCheckerTimer.addPeriodicEvent(PROCESS_CHECK_PERIOD,
+						SimpleTimer.addPeriodicEvent(PROCESS_CHECK_PERIOD,
 								new ChangeFlagCheckerTask());
 					}
 				});
@@ -576,7 +574,7 @@ public class StartStopRulesDefaultPlugin
 	      if (iRankType == RANK_TIMED) {
 	        if (recalcSeedingRanksTask == null) {
 	          recalcSeedingRanksTask = new RecalcSeedingRanksTask();
-	          changeCheckerTimer.addPeriodicEvent(1000, recalcSeedingRanksTask);
+	          SimpleTimer.addPeriodicEvent(1000, recalcSeedingRanksTask);
 	        }
 	      } else if (recalcSeedingRanksTask != null) {
 	        recalcSeedingRanksTask.cancel();

@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -118,9 +119,9 @@ DHTDBImpl
 		cache_republish_interval		= _cache_republish_interval;
 		logger							= _logger;
 				
-		Timer	op_timer = new Timer("DHT:originalRepublisher");
 		
-		op_timer.addPeriodicEvent(
+		
+		SimpleTimer.addPeriodicEvent(
 			original_republish_interval,
 			new TimerEventPerformer()
 			{
@@ -145,9 +146,7 @@ DHTDBImpl
 				// random skew here so that cache refresh isn't very synchronised, as the optimisations
 				// regarding non-republising benefit from this 
 			
-		Timer	cp_timer = new Timer("DHT:cacheRepublisher");
-
-		cp_timer.addPeriodicEvent(
+		SimpleTimer.addPeriodicEvent(
 				cache_republish_interval + 10000 - (int)(Math.random()*20000),
 				new TimerEventPerformer()
 				{
@@ -184,9 +183,9 @@ DHTDBImpl
 					}
 				});
 		
-		Timer	rb_timer = new Timer("DHT:bloomRebuilder");
-
-		rb_timer.addPeriodicEvent(
+	
+		
+		SimpleTimer.addPeriodicEvent(
 				IP_BLOOM_FILTER_REBUILD_PERIOD,
 				new TimerEventPerformer()
 				{

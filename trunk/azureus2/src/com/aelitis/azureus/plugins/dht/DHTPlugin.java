@@ -610,7 +610,7 @@ DHTPlugin
 		final int sample_frequency		= 60*1000;
 		final int sample_stats_ticks	= 15;	// every 15 mins
 
-		plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
+		plugin_interface.getUtilities().createTimer("DHTStats", true ).addPeriodicEvent(
 				sample_frequency,
 				new UTTimerEventPerformer()
 				{
@@ -728,7 +728,7 @@ DHTPlugin
 		final String			override_ip )
 	{
 		Thread t = 
-			new AEThread( "DHDPlugin.init" )
+			new AEThread( "DHTPlugin.init" )
 			{
 				public void
 				runSupport()

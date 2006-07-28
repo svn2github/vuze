@@ -24,12 +24,8 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.*;
 
 public abstract class 
 ProtocolDecoder 
@@ -43,59 +39,55 @@ ProtocolDecoder
 	
 	private static AEMonitor	class_mon 	= new AEMonitor( "TCPProtocolDecoder:class" );
 	
+	private static int	loop = 0;
+	
+	
 	static{
-		new AEThread("TCPProtocolDecoder:timer", true )
-		{
-			public void
-			runSupport()
-			{
-				int	loop = 0;
-				
-				while( true ){
-					
-					loop++;
-					
-					long	now = SystemTime.getCurrentTime();
-					
-					try{
-						class_mon.enter();
-					
-						if ( loop % LOG_TICKS == 0 ){
-							
-					     	if (Logger.isEnabled()){
-					     		
-					     		if ( decoders.size() > 0 ){
-					     			
-					     			Logger.log(	new LogEvent(LOGID, "Active protocol decoders = " + decoders.size()));
-					     		}
-					     	}
-						}
-						
-						Iterator	it = decoders.iterator();
-						
-						while( it.hasNext()){
-							
-							ProtocolDecoder	decoder = (ProtocolDecoder)it.next();
-							
-							if ( decoder.isComplete( now )){
-								
-								it.remove();
-							}
-						}
-						
-					}finally{
-						
-						class_mon.exit();
-					}
-					
-					try{
-						Thread.sleep( TIMEOUT_CHECK );
-						
-					}catch( Throwable e ){
-					}
-				}
-			}
-		}.start();
+		
+		SimpleTimer.addPeriodicEvent(
+        5000,
+        new TimerEventPerformer() {
+          public void perform( TimerEvent ev ) {
+       
+          	loop++;
+  					
+  					long	now = SystemTime.getCurrentTime();
+  					
+  					try{
+  						class_mon.enter();
+  					
+  						if ( loop % LOG_TICKS == 0 ){
+  							
+  					     	if (Logger.isEnabled()){
+  					     		
+  					     		if ( decoders.size() > 0 ){
+  					     			
+  					     			Logger.log(	new LogEvent(LOGID, "Active protocol decoders = " + decoders.size()));
+  					     		}
+  					     	}
+  						}
+  						
+  						Iterator	it = decoders.iterator();
+  						
+  						while( it.hasNext()){
+  							
+  							ProtocolDecoder	decoder = (ProtocolDecoder)it.next();
+  							
+  							if ( decoder.isComplete( now )){
+  								
+  								it.remove();
+  							}
+  						}
+  						
+  					}finally{
+  						
+  						class_mon.exit();
+  					}
+          }
+        }
+     );
+		
+		
 	}
 	
 	protected

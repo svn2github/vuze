@@ -98,8 +98,6 @@ DirectByteBufferPool
 	}
 	
 	private static final long[]			slice_use_count 	= new long[SLICE_ENTRY_SIZES.length];
-	  
-	private final Timer compactionTimer;
   
 	private final Map handed_out	= new IdentityHashMap();	// for debugging (ByteBuffer has .equals defined on contents, hence IdentityHashMap)
 	
@@ -142,8 +140,7 @@ DirectByteBufferPool
 	    }
 	    
 	    //initiate periodic timer to check free memory usage
-	    compactionTimer = new Timer("BufferPool Checker");
-	    compactionTimer.addPeriodicEvent(
+	    SimpleTimer.addPeriodicEvent(
 	        COMPACTION_CHECK_PERIOD,
 	        new TimerEventPerformer() {
 	          public void perform( TimerEvent ev ) {

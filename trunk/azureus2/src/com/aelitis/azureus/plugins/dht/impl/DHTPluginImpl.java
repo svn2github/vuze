@@ -232,7 +232,7 @@ DHTPluginImpl
 			
 			storage_manager.importContacts( dht );
 			
-			plugin_interface.getUtilities().createTimer( "DHTExport" ).addPeriodicEvent(
+			plugin_interface.getUtilities().createTimer( "DHTExport", true ).addPeriodicEvent(
 					10*60*1000,
 					new UTTimerEventPerformer()
 					{

@@ -27,8 +27,7 @@ import java.io.StringWriter;
 import java.net.InetAddress;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.SystemTime;
+
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadListener;
@@ -46,6 +45,8 @@ import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.Monitor;
+import org.gudy.azureus2.plugins.utils.UTTimerEvent;
+import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
@@ -77,6 +78,8 @@ LocalTrackerPlugin
 	private BooleanParameter	enabled;
 	
 	private long				plugin_start_time;
+	
+	private long current_time;
 	
 	
 	private LoggerChannel 		log;
@@ -188,15 +191,12 @@ LocalTrackerPlugin
 			// az initalisation if the version server is unavailable and it tries
 			// to use the DHT which is pending completion of this init...
 		
-		new AEThread( "azlocalplugin:init", true)
-		{
-			public void
-			runSupport()
-			{
+		plugin_interface.getUtilities().createThread( "azlocalplugin:init", new Runnable() {
+			public void run() {
 				processSubNets( subnets.getValue(),include_wellknown.getValue() );
 				processAutoAdd( autoadd.getValue());
 			}
-		}.start();
+		});
 	}
 	
 	public void
@@ -309,56 +309,65 @@ LocalTrackerPlugin
 			try{
 					// initial small delay to let things stabilise
 				
-				Thread.sleep( 15*1000 );
+				Thread.sleep( 15*1000 ); 
 				
 			}catch( Throwable e ){
 			}
 		}
 				
-		while( true ){
-	
-			now = plugin_interface.getUtilities().getCurrentSystemTime();
+		
+		plugin_interface.getUtilities().createTimer( "LanPeerFinder:Tracker", true ).addPeriodicEvent(
+				30*1000,
+				new UTTimerEventPerformer() {
+					
+					public void perform( UTTimerEvent	event ) {
+						
+						current_time = plugin_interface.getUtilities().getCurrentSystemTime();
 
-			try{
-				
-				List	todo = new ArrayList();
-				
-				try{
-					mon.enter();
-					
-					Iterator	it = downloads.entrySet().iterator();
-					
-					while( it.hasNext()){
-						
-						Map.Entry	entry = (Map.Entry)it.next();
-						
-						Download	dl 		= (Download)entry.getKey();
-						long		when	= ((Long)entry.getValue()).longValue();
-						
-						if ( when > now || now - when > ANNOUNCE_PERIOD ){
+						try{
 							
-							todo.add( dl );
-						}
-					}
+							List	todo = new ArrayList();
+							
+							try{
+								mon.enter();
+								
+								Iterator	it = downloads.entrySet().iterator();
+								
+								while( it.hasNext()){
+									
+									Map.Entry	entry = (Map.Entry)it.next();
+									
+									Download	dl 		= (Download)entry.getKey();
+									long		when	= ((Long)entry.getValue()).longValue();
+									
+									if ( when > current_time || current_time - when > ANNOUNCE_PERIOD ){
+										
+										todo.add( dl );
+									}
+								}
 
-				}finally{
-					
-					mon.exit();
-				}
-				
-				for (int i=0;i<todo.size();i++){
-				
-					track((Download)todo.get(i));
-				}
-				
-				Thread.sleep(30*1000);
-				
-			}catch( Throwable e ){
-				
-				log.log(e);
-			}
-		}
+							}finally{
+								
+								mon.exit();
+							}
+							
+							for (int i=0;i<todo.size();i++){
+							
+								track((Download)todo.get(i));
+							}
+							
+						}catch( Throwable e ){
+							
+							log.log(e);
+						}
+						
+					}
+		
+				});
+		
 	}
+	
+	
 	
 	protected void
 	track(
@@ -457,7 +466,7 @@ LocalTrackerPlugin
 				
 		boolean	is_seed = tracked_inst.isSeed();
 		
-		long	now		= SystemTime.getCurrentTime();
+		long	now		= plugin_interface.getUtilities().getCurrentSystemTime();
 		
 		boolean	skip 	= false;
 		

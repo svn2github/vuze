@@ -36,7 +36,7 @@ SimpleTimer
 		 * time as there is a limited thread pool to service it 
 		 */
 	
-	protected static final Timer	timer = new Timer("Simple Timer",8);
+	protected static final Timer	timer = new Timer("Simple Timer",32);
 	
 	public static TimerEvent
 	addEvent(

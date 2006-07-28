@@ -106,7 +106,7 @@ RunEverythingPlugin
 		
 		plugin_interface.getDownloadManager().addListener( this );
 		
-		plugin_interface.getUtilities().createTimer("DownloadRules").addPeriodicEvent(
+		plugin_interface.getUtilities().createTimer("DownloadRules", true ).addPeriodicEvent(
 			10000,
 			new UTTimerEventPerformer()
 			{

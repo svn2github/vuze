@@ -58,7 +58,8 @@ public class IncomingSocketChannelManager
   
   protected AEMonitor	this_mon	= new AEMonitor( "IncomingSocketChannelManager" );
 
-    
+  int listen_fail_count = 0;
+  
   
   /**
    * Create manager and begin accepting and routing new connections.
@@ -112,14 +113,13 @@ public class IncomingSocketChannelManager
     	//run a daemon thread to poll listen port for connectivity
     	//it seems that sometimes under OSX that listen server sockets sometimes stop accepting incoming connections for some unknown reason
     	//this checker tests to make sure the listen socket is still accepting connections, and if not, recreates the socket
-    	AEThread checker = new AEThread( "ServerSocketChecker" ){
-    		public void runSupport() {
-    			try{  Thread.sleep( 60*1000 );  }catch( Throwable t){ t.printStackTrace(); }
-    		
-    			int fail_count = 0;
-    		
-    			while( true ) {			
-    				if( server_selector != null && server_selector.isRunning() ) { //ensure it's actually running
+    
+    SimpleTimer.addPeriodicEvent(
+    		60*1000,
+        new TimerEventPerformer() {
+          public void perform( TimerEvent ev ) {
+       
+          	if( server_selector != null && server_selector.isRunning() ) { //ensure it's actually running
     					
     					long accept_idle = SystemTime.getCurrentTime() - server_selector.getTimeOfLastAccept();
  
@@ -135,7 +135,7 @@ public class IncomingSocketChannelManager
       						Socket sock = new Socket( inet_address, tcp_listen_port, inet_address, 0 );
 
       						sock.close();
-      						fail_count = 0;
+      						listen_fail_count = 0;
       					}
       					catch( Throwable t ) {
       						
@@ -143,33 +143,30 @@ public class IncomingSocketChannelManager
       						try {
       							Socket sock = new Socket( InetAddress.getByName( "127.0.0.1" ), tcp_listen_port );      							
       							sock.close();
-      							fail_count = 0;
+      							listen_fail_count = 0;
       						}
       						catch( Throwable x ) {
-      							fail_count++;
-        						Debug.out( new Date()+ ": listen port on [" +inet_address+ ": " +tcp_listen_port+ "] seems CLOSED [" +fail_count+ "x]" );
+      							listen_fail_count++;
+        						Debug.out( new Date()+ ": listen port on [" +inet_address+ ": " +tcp_listen_port+ "] seems CLOSED [" +listen_fail_count+ "x]" );
         				
-        						if( fail_count > 4 ) {
+        						if( listen_fail_count > 4 ) {
         							String error = t.getMessage() == null ? "<null>" : t.getMessage();
         							String msg = "Listen server socket on [" +inet_address+ ": " +tcp_listen_port+ "] does not appear to be accepting inbound connections.\n[" +error+ "]\nAuto-repairing listen service....\n";
         							Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING, msg));
         							restart();
-        							fail_count = 0;
+        							listen_fail_count = 0;
         						}
       						}
       					}
     					}
     					else {  //it's recently accepted an inbound connection
-    						fail_count = 0;
+    						listen_fail_count = 0;
     					}
     				}
-    			
-    				try{  Thread.sleep( 60*1000 );  }catch( Throwable t){ t.printStackTrace(); }
-    			}
-    		}
-    	};
-    	checker.setDaemon( true );
-    	checker.start(); 
+
+          }
+        }
+     );
     
   }
   

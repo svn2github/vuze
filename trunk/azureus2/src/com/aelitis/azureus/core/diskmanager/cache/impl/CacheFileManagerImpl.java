@@ -99,6 +99,10 @@ CacheFileManagerImpl
 	
 	protected AEMonitor			this_mon	= new AEMonitor( "CacheFileManager" );
 	
+	private long	cleaner_ticks	= CACHE_CLEANER_TICKS;
+	
+	
+	
 	public
 	CacheFileManagerImpl()
 	{
@@ -154,19 +158,9 @@ CacheFileManagerImpl
 		
 		stats = new CacheFileManagerStatsImpl( this );
 		
-		AEThread	t = 
-			new AEThread( "CacheStatsAndCleaner")
-			{
-				public void
-				runSupport()
-				{
-					cacheStatsAndCleaner();
-				}
-			};
-				
-		t.setDaemon(true);
-			
-		t.start();
+
+		cacheStatsAndCleaner();
+		
 
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "DiskCache: enabled = " + cache_enabled
@@ -421,111 +415,105 @@ CacheFileManagerImpl
 	protected void
 	cacheStatsAndCleaner()
 	{
-		long	cleaner_ticks	= CACHE_CLEANER_TICKS;
+			
+		SimpleTimer.addPeriodicEvent(
+				STATS_UPDATE_FREQUENCY,
+        new TimerEventPerformer() {
+          public void perform( TimerEvent ev ) {
+      			
+      			stats.update();      			
+      			
+      			// System.out.println( "cache file count = " + cache_files.size());
+      								
+      			Iterator	cf_it = cache_files.keySet().iterator();
+      			
+      			while(cf_it.hasNext()){
+      				
+      				((CacheFileWithCache)cf_it.next()).updateStats();
+      			}
+      			
+      			if ( --cleaner_ticks == 0 ){
+      				
+      				cleaner_ticks	= CACHE_CLEANER_TICKS;
+      				
+      				final Set	dirty_files	= new HashSet();
+      	
+      				final long	oldest	=SystemTime.getCurrentTime() - DIRTY_CACHE_WRITE_MAX_AGE;
+      				
+      				try{
+      					this_mon.enter();
+      			
+      					if ( updated_cache_files != null ){
+      						
+      						cache_files	= updated_cache_files;
+      							
+      						updated_cache_files	= null;
+      					}
+
+      					if ( cache_entries.size() > 0 ){
+      						
+      						Iterator it = cache_entries.keySet().iterator();
+      						
+      						while( it.hasNext()){
+      							
+      							CacheEntry	entry = (CacheEntry)it.next();
+      								
+      							// System.out.println( "oldest entry = " + ( now - entry.getLastUsed()));
+      							
+      							if ( entry.isDirty()){
+      								
+      								dirty_files.add( entry.getFile());
+      							}
+      						}
+      					}
+      					
+      					// System.out.println( "cache file = " + cache_files.size() + ", torrent map = " + torrent_to_cache_file_map.size());
+      					
+      				}finally{
+      					
+      					this_mon.exit();
+      				}
+      				
+      				Iterator	it = dirty_files.iterator();
+      				
+      				while( it.hasNext()){
+      					
+      					CacheFileWithCache	file = (CacheFileWithCache)it.next();
+
+      					try{
+      						
+      						TOTorrentFile	tf = file.getTorrentFile();
+      						
+      						long	min_flush_size	= -1;
+      						
+      						if ( tf != null ){
+      							
+      							min_flush_size	= tf.getTorrent().getPieceLength();
+      							
+      						}
+      						
+      						file.flushOldDirtyData( oldest, min_flush_size );
+      						
+      					}catch( CacheFileManagerException e ){
+      						
+      						file.setPendingException( e );
+      						
+      							// if this fails then the error should reoccur on a "proper"
+      							// flush later and be reported
+      						
+      						Debug.printStackTrace( e );
+      						
+      					}catch( Throwable e ){
+      						
+      						Debug.printStackTrace( e );
+      					}
+      				}
+      			}
+      			
+          }
+        }
+     );
 		
-		while( true ){
-			
-			try{
-			
-				Thread.sleep( STATS_UPDATE_FREQUENCY );
-				
-			}catch( InterruptedException e ){
-				
-				Debug.printStackTrace( e );
-				
-				break;
-			}
-			
-			stats.update();
-			
-			
-			// System.out.println( "cache file count = " + cache_files.size());
-								
-			Iterator	cf_it = cache_files.keySet().iterator();
-			
-			while(cf_it.hasNext()){
-				
-				((CacheFileWithCache)cf_it.next()).updateStats();
-			}
-			
-			if ( --cleaner_ticks == 0 ){
-				
-				cleaner_ticks	= CACHE_CLEANER_TICKS;
-				
-				final Set	dirty_files	= new HashSet();
-	
-				final long	oldest	=SystemTime.getCurrentTime() - DIRTY_CACHE_WRITE_MAX_AGE;
-				
-				try{
-					this_mon.enter();
-			
-					if ( updated_cache_files != null ){
-						
-						cache_files	= updated_cache_files;
-							
-						updated_cache_files	= null;
-					}
-
-					if ( cache_entries.size() > 0 ){
-						
-						Iterator it = cache_entries.keySet().iterator();
-						
-						while( it.hasNext()){
-							
-							CacheEntry	entry = (CacheEntry)it.next();
-								
-							// System.out.println( "oldest entry = " + ( now - entry.getLastUsed()));
-							
-							if ( entry.isDirty()){
-								
-								dirty_files.add( entry.getFile());
-							}
-						}
-					}
-					
-					// System.out.println( "cache file = " + cache_files.size() + ", torrent map = " + torrent_to_cache_file_map.size());
-					
-				}finally{
-					
-					this_mon.exit();
-				}
-				
-				Iterator	it = dirty_files.iterator();
-				
-				while( it.hasNext()){
-					
-					CacheFileWithCache	file = (CacheFileWithCache)it.next();
-
-					try{
-						
-						TOTorrentFile	tf = file.getTorrentFile();
-						
-						long	min_flush_size	= -1;
-						
-						if ( tf != null ){
-							
-							min_flush_size	= tf.getTorrent().getPieceLength();
-							
-						}
-						
-						file.flushOldDirtyData( oldest, min_flush_size );
-						
-					}catch( CacheFileManagerException e ){
-						
-						file.setPendingException( e );
-						
-							// if this fails then the error should reoccur on a "proper"
-							// flush later and be reported
-						
-						Debug.printStackTrace( e );
-						
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace( e );
-					}
-				}
-			}
-		}
 	}
 	
 		// must be called when the cachefileimpl is synchronised to ensure that the file's

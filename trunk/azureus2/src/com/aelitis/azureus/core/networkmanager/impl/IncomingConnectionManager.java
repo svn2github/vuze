@@ -24,19 +24,10 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.Transport;
@@ -66,24 +57,17 @@ IncomingConnectionManager
 	
 	protected
 	IncomingConnectionManager()
-	{
-		new AEThread( "IncomingConMan:timeout", true )
-		{
-			public void
-			runSupport()
-			{
-				while( true ){
-					
-					try{
-						Thread.sleep( 5000 );
-						
-					}catch( Throwable e ){
-					}
-					
-					doTimeoutChecks();
-			    }
-			}
-		}.start();
+	{		
+		
+		SimpleTimer.addPeriodicEvent( 
+				5000,
+        new TimerEventPerformer() {
+          public void perform( TimerEvent ev ) {
+       
+          	doTimeoutChecks();
+          }
+        }
+     );
 	}
 
     

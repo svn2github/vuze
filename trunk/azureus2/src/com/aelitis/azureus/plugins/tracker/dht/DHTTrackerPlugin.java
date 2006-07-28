@@ -546,7 +546,7 @@ DHTTrackerPlugin
 					}
 				});
 		
-		plugin_interface.getUtilities().createTimer("DHT Tracker").addPeriodicEvent(
+		plugin_interface.getUtilities().createTimer("DHT Tracker", true ).addPeriodicEvent(
 			15000,
 			new UTTimerEventPerformer()
 			{

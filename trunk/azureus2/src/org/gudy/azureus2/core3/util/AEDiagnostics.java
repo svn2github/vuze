@@ -113,8 +113,7 @@ AEDiagnostics
 
 			boolean	was_tidy	= COConfigurationManager.getBooleanParameter( CONFIG_KEY );
 			
-			Timer cleanTimer = new Timer("Clean Log Dir");
-			cleanTimer.addEvent(SystemTime.getCurrentTime() + 60000
+			SimpleTimer.addEvent(SystemTime.getCurrentTime() + 60000
 					+ (int) (Math.random() * 15000), new TimerEventPerformer() {
 				public void perform(TimerEvent event) {
 					cleanOldLogs();

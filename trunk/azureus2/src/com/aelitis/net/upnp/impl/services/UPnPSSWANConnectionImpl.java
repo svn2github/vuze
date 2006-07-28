@@ -24,10 +24,7 @@ package com.aelitis.net.upnp.impl.services;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 
 
 import com.aelitis.net.upnp.*;
@@ -50,17 +47,13 @@ UPnPSSWANConnectionImpl
 	private static List			services	= new ArrayList();
 	
 	static{
-		AEThread	t = 
-			new AEThread( "UPnPSSWANConnection:mappingChecker" )
-			{
-				public void
-				runSupport()
-				{
-					while( true ){
-						
-						try{
-							Thread.sleep( 10*60*1000 );
-							
+		
+		SimpleTimer.addPeriodicEvent(
+				10*60*1000,
+        new TimerEventPerformer() {
+          public void perform( TimerEvent ev ) {
+       
+          	try{							
 							List	to_check = new ArrayList();
 							
 							try{
@@ -101,13 +94,10 @@ UPnPSSWANConnectionImpl
 							
 							Debug.printStackTrace(e);
 						}
-					}
-				}
-			};
+          }
+        }
+     );
 		
-		t.setDaemon( true );
-		
-		t.start();
 	}
 	
 	private UPnPServiceImpl		service;

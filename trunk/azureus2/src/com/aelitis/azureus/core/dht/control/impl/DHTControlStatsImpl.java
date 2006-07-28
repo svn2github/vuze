@@ -22,11 +22,7 @@
 
 package com.aelitis.azureus.core.dht.control.impl;
 
-import org.gudy.azureus2.core3.util.Average;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Timer;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.dht.control.DHTControlStats;
 import com.aelitis.azureus.core.dht.db.DHTDBStats;
@@ -66,9 +62,7 @@ DHTControlStatsImpl
 		
 		router_snapshot		= control.getRouter().getStats().getStats();
 		
-		Timer	timer = new Timer("DHTControl:stats");
-				
-		timer.addPeriodicEvent(
+		SimpleTimer.addPeriodicEvent(
 			UPDATE_INTERVAL,
 			new TimerEventPerformer()
 			{
