@@ -24,6 +24,9 @@ package com.aelitis.azureus.core.peermanager.messaging.azureus;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.*;
@@ -36,6 +39,8 @@ import com.aelitis.azureus.core.peermanager.peerdb.*;
  * AZ peer exchange message.
  */
 public class AZPeerExchange implements AZMessage {
+  private static final LogIDs LOGID = LogIDs.NET;
+
   private static final byte bss = DirectByteBuffer.SS_MSG;
 
   private DirectByteBuffer buffer = null;
@@ -89,10 +94,21 @@ public class AZPeerExchange implements AZMessage {
 
     List raw_peers = (List)root_map.get( key_name );
     if( raw_peers != null ) {
+      int	peer_num = raw_peers.size();
       byte[] handshake_types = (byte[])root_map.get( key_name + "_HST" );
       byte[] udp_ports = (byte[])root_map.get( key_name + "_UDP" ); // 2403 B55+
       int pos = 0;
-    	
+    
+      if ( handshake_types != null && handshake_types.length != peer_num ){
+    	  handshake_types = null;
+    	  Logger.log(new LogEvent( LOGID, LogEvent.LT_WARNING,"PEX: invalid handshake types received" ));
+      }
+      
+      if ( udp_ports != null && udp_ports.length != peer_num ){
+    	  udp_ports = null;
+       	  Logger.log(new LogEvent( LOGID, LogEvent.LT_WARNING,"PEX: invalid udp ports received" ));	 
+      }
+      
       for( Iterator it = raw_peers.iterator(); it.hasNext(); ) {
         byte[] full_address = (byte[])it.next();
         
@@ -104,8 +120,12 @@ public class AZPeerExchange implements AZMessage {
         if ( udp_ports != null ){
         	udp_port = ((udp_ports[pos*2]<<8)&0xff00) + (udp_ports[pos*2+1]&0xff);
         }
-        PeerItem peer = PeerItemFactory.createPeerItem( full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE, type, udp_port );
-        peers.add( peer );
+        try{
+        	PeerItem peer = PeerItemFactory.createPeerItem( full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE, type, udp_port );
+        	peers.add( peer );
+        }catch( Exception t ){
+            Logger.log(new LogEvent( LOGID, LogEvent.LT_WARNING,"PEX: invalid peer eceived" ));	 
+        }
         pos++;
       }
     }

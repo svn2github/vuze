@@ -67,7 +67,10 @@ public class PeerItem {
   }
   
 
-  protected PeerItem( byte[] _serialization, byte _source, byte _handshake, int _udp_port ) {
+  protected PeerItem( byte[] _serialization, byte _source, byte _handshake, int _udp_port ) throws Exception{
+	if ( _serialization.length < 6 || _serialization.length > 32){
+		throw( new Exception( "PeerItem: invalid serialisation length - " + _serialization.length ));
+	}
     //extract address and port
     address = new byte[ _serialization.length -2 ];
     System.arraycopy( _serialization, 0, address, 0, _serialization.length -2 );
