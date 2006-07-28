@@ -124,7 +124,7 @@ public class AZPeerExchange implements AZMessage {
         	PeerItem peer = PeerItemFactory.createPeerItem( full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE, type, udp_port );
         	peers.add( peer );
         }catch( Exception t ){
-            Logger.log(new LogEvent( LOGID, LogEvent.LT_WARNING,"PEX: invalid peer eceived" ));	 
+            Logger.log(new LogEvent( LOGID, LogEvent.LT_WARNING,"PEX: invalid peer received" ));	 
         }
         pos++;
       }
