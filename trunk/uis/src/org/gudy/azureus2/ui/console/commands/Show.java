@@ -145,8 +145,6 @@ public class Show extends IConsoleCommand {
 								
 				DownloadManager dm = (DownloadManager) torrent.next();
 								
-				shown_torrents.add( dm );
-
 				DownloadManagerStats stats = dm.getStats();
 
 				boolean bDownloadCompleted = stats.getDownloadCompleted(false) == 1000;
@@ -158,6 +156,9 @@ public class Show extends IConsoleCommand {
 				}
 
 				if (bCanShow) {
+					
+					shown_torrents.add( dm );
+
 					try {
 						ps = dm.getPeerManager().getStats();
 					} catch (Exception e) {
