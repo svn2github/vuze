@@ -12,6 +12,7 @@ package org.gudy.azureus2.ui.console.commands;
 
 import java.io.PrintStream;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -112,7 +113,6 @@ public class Show extends IConsoleCommand {
 			int connectedSeeds = 0;
 			int connectedPeers = 0;
 			PEPeerManagerStats ps;
-			int nrTorrent = 0;
 			boolean bShowOnlyActive = false;
 			boolean bShowOnlyComplete = false;
 			boolean bShowOnlyIncomplete = false;
@@ -139,9 +139,14 @@ public class Show extends IConsoleCommand {
 			else
 				torrent = ci.torrents.iterator();
 			
+			List shown_torrents = new ArrayList();
+
 			while (torrent.hasNext()) {
-				nrTorrent++;
+								
 				DownloadManager dm = (DownloadManager) torrent.next();
+								
+				shown_torrents.add( dm );
+
 				DownloadManagerStats stats = dm.getStats();
 
 				boolean bDownloadCompleted = stats.getDownloadCompleted(false) == 1000;
@@ -165,11 +170,15 @@ public class Show extends IConsoleCommand {
 						connectedSeeds += dm.getNbSeeds();
 						connectedPeers += dm.getNbPeers();
 					}				
-					ci.out.print(((nrTorrent < 10) ? " " : "") + nrTorrent + " ");
+					ci.out.print(((shown_torrents.size() < 10) ? " " : "") + shown_torrents.size() + " ");
 					ci.out.println(getTorrentSummary(dm));
 					ci.out.println();
 				}
 			}
+			
+			ci.torrents.clear();
+			ci.torrents.addAll( shown_torrents );
+			
 			ci.out.println("Total Speed (down/up): " + DisplayFormatters.formatByteCountToKiBEtcPerSec(ci.gm.getStats().getDataReceiveRate() + ci.gm.getStats().getProtocolReceiveRate() ) + " / " + DisplayFormatters.formatByteCountToKiBEtcPerSec(ci.gm.getStats().getDataSendRate() + ci.gm.getStats().getProtocolSendRate() ));
 
 			ci.out.println("Transferred Volume (down/up/discarded): " + DisplayFormatters.formatByteCountToKiBEtc(totalReceived) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalSent) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded));
