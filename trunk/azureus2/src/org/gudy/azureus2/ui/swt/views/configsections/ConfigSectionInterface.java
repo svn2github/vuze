@@ -408,7 +408,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		popup_file_completed.setLayoutData(gridData);
-		
+
 		cArea = new Composite(cDisplay, SWT.NULL);
 		layout = new GridLayout();
 		layout.marginHeight = 0;
@@ -426,6 +426,30 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 			gridData.horizontalSpan = 2;
 			confirm.setLayoutData(gridData);
 		}
+		
+		cArea = new Composite(cDisplay, SWT.NULL);
+		layout = new GridLayout();
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.numColumns = 2;
+		cArea.setLayout(layout);
+		cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		// Timestamps for popup alerts.
+		BooleanParameter show_alert_timestamps = new BooleanParameter(cArea,
+				"Show Timestamp For Alerts", false, LBLKEY_PREFIX + "popup.timestamp");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		show_alert_timestamps.setLayoutData(gridData);
+		
+		// Auto-hide popup setting.
+		label = new Label(cArea, SWT.NULL);
+		Messages.setLanguageText(label, LBLKEY_PREFIX + "popup.autohide");
+		IntParameter auto_hide_alert = new IntParameter(cArea, "Message Popup Autoclose in Seconds", 0, 86400, true, false);
+		gridData = new GridData();
+		gridData.horizontalSpan = 1;
+		gridData.widthHint = 30;
+		auto_hide_alert.setLayoutData(gridData);
 
 		BooleanParameter confirm_removal = new BooleanParameter(cArea,
 				"confirm_torrent_removal", KEY_PREFIX + "confirm_torrent_removal");
