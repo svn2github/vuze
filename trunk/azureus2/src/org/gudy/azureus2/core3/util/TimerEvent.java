@@ -82,6 +82,12 @@ TimerEvent
 		return( this );
 	}
 	
+	protected TimerEventPerformer
+	getPerformer()
+	{
+		return( performer );
+	}
+	
 	public void
 	runSupport()
 	{
@@ -133,6 +139,21 @@ TimerEvent
 		}else{
 			
 			return((int)res);
+		}
+	}
+	
+	protected String
+	getString()
+	{
+		if ( performer instanceof TimerEventPeriodic ){
+
+			TimerEventPeriodic	tep = (TimerEventPeriodic)performer;
+			
+			return( "when=" + getWhen() + ",run=" + hasRun() + ", can=" + isCancelled() + "/" + tep.isCancelled() + ",freq=" + tep.getFrequency() + ",target=" + tep.getPerformer());
+
+		}else{
+			
+			return( "when=" + getWhen() + ",run=" + hasRun() + ", can=" + isCancelled() + ",target=" + getPerformer());
 		}
 	}
 }

@@ -51,6 +51,24 @@ TimerEventPeriodic
 		
 	}
 	
+	protected TimerEventPerformer
+	getPerformer()
+	{
+		return( performer );
+	}
+	
+	protected long
+	getFrequency()
+	{
+		return( frequency );
+	}
+	
+	protected boolean
+	isCancelled()
+	{
+		return( cancelled );
+	}
+	
 	public void
 	perform(
 		TimerEvent	event )
@@ -85,5 +103,23 @@ TimerEventPeriodic
 			
 			cancelled	= true;
 		}
+	}
+	
+	protected String
+	getString()
+	{
+		TimerEvent ce = current_event;
+		
+		String	ev_data;
+		
+		if ( ce == null ){
+			
+			ev_data = "?";
+		}else{
+			
+			ev_data = "when=" + ce.getWhen() + ",run=" + ce.hasRun() + ", can=" + ce.isCancelled();
+		}
+		
+		return( ev_data  + ",freq=" + getFrequency() + ",target=" + getPerformer());
 	}
 }

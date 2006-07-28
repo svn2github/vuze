@@ -36,7 +36,17 @@ SimpleTimer
 		 * time as there is a limited thread pool to service it 
 		 */
 	
-	protected static final Timer	timer = new Timer("Simple Timer",32);
+	protected static final Timer	timer;
+	
+	static{
+		timer = new Timer("Simple Timer",32);
+		
+		timer.setIndestructable();
+		
+		timer.setWarnWhenFull();
+		
+		// timer.setLogging(true);
+	}
 	
 	public static TimerEvent
 	addEvent(

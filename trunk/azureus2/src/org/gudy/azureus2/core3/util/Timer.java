@@ -32,13 +32,17 @@ public class Timer
 	extends 	AERunnable
 	implements	SystemTime.consumer
 {	
-	protected ThreadPool	thread_pool;
+	private ThreadPool	thread_pool;
 		
-	protected Set	events = new TreeSet();
+	private Set	events = new TreeSet();
 		
-	protected long	unique_id_next	= 0;
+	private long	unique_id_next	= 0;
 	
-	protected volatile boolean	destroyed;
+	private volatile boolean	destroyed;
+	private boolean				indestructable;
+	
+	private boolean		log;
+	private int			max_events_logged;
 	
 	public
 	Timer(
@@ -72,6 +76,25 @@ public class Timer
 		t.setPriority(thread_priority);
 			
 		t.start();
+	}
+	
+	public void
+	setIndestructable()
+	{
+		indestructable	= true;
+	}
+	
+	public void
+	setLogging(
+		boolean	_log )
+	{
+		log	= _log;
+	}
+	
+	public void
+	setWarnWhenFull()
+	{
+		thread_pool.setWarnWhenFull();
 	}
 	
 	public void
@@ -227,6 +250,21 @@ public class Timer
 		
 		events.add( event );
 		
+		if ( log ){
+			
+			if ( !(performer instanceof TimerEventPerformer )){
+				
+				System.out.println( "Timer '" + thread_pool.getName() + "' - added " + event.getString());
+			}
+					
+			if ( events.size() > max_events_logged ){
+		
+				max_events_logged = events.size();
+				
+				System.out.println( "Timer '" + thread_pool.getName() + "' - events = " + max_events_logged );
+			}
+		}
+		
 		// System.out.println( "event added (" + when + ") - queue = " + events.size());
 				
 		notify();
@@ -240,7 +278,12 @@ public class Timer
 		TimerEventPerformer	performer )
 	{
 		TimerEventPeriodic periodic_performer = new TimerEventPeriodic( this, frequency, performer );
-				
+			
+		if ( log ){
+						
+			System.out.println( "Timer '" + thread_pool.getName() + "' - added " + periodic_performer.getString());
+		}
+		
 		return( periodic_performer );
 	}
 	
@@ -261,11 +304,24 @@ public class Timer
 	public synchronized void
 	destroy()
 	{
-		destroyed	= true;
-		
-		notify();
-		
-		SystemTime.unregisterClockChangeListener( this );
+		if ( indestructable ){
+			
+			Debug.out( "Attempt to destroy indestructable timer '" + getName() + "'" );
+			
+		}else{
+			
+			destroyed	= true;
+			
+			notify();
+			
+			SystemTime.unregisterClockChangeListener( this );
+		}
+	}
+	
+	public String
+	getName()
+	{
+		return( thread_pool.getName());
 	}
 	
 	public synchronized void
@@ -279,7 +335,7 @@ public class Timer
 			
 			TimerEvent	ev = (TimerEvent)it.next();
 			
-			System.out.println( "\t" + ev + ": when = " + ev.getWhen() + ", run = " + ev.hasRun() + ", can = " + ev.isCancelled());
+			System.out.println( "\t" + ev.getString());
 		}
 	}
 }

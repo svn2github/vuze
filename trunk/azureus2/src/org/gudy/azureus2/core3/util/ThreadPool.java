@@ -71,6 +71,7 @@ ThreadPool
 	
 	
 	private String	name;
+	private int		max_size;
 	private int		thread_name_index	= 1;
 	
 	private long	execution_limit;
@@ -82,6 +83,8 @@ ThreadPool
 	
 	private AESemaphore	thread_sem;
 	
+	private boolean		warn_when_full;
+
 	public
 	ThreadPool(
 		String	_name,
@@ -97,6 +100,7 @@ ThreadPool
 		boolean	_queue_when_full )
 	{
 		name			= _name;
+		max_size		= _max_size;
 		queue_when_full	= _queue_when_full;
 		
 		thread_sem = new AESemaphore( "ThreadPool::" + name, _max_size );
@@ -106,6 +110,18 @@ ThreadPool
 		busy		= new ArrayList( _max_size );
 	}
 
+	public void
+	setWarnWhenFull()
+	{
+		warn_when_full	= true;
+	}
+	
+	public int
+	getMaxThreads()
+	{
+		return( max_size );
+	}
+	
 	public void
 	setExecutionLimit(
 		long		millis )
@@ -148,6 +164,8 @@ ThreadPool
 	
 						// do a blocking reserve here, not recursive 
 					
+					checkWarning();
+					
 					thread_sem.reserve();
 	
 				}else{
@@ -188,6 +206,8 @@ ThreadPool
 			
 				allocated_worker	= null;
 			
+				checkWarning();
+				
 				if ( high_priority ){
 					
 					task_queue.add( 0, runnable );
@@ -219,6 +239,16 @@ ThreadPool
 		return( queue_when_full?null:allocated_worker );
 	}
 	
+	protected void
+	checkWarning()
+	{
+		if ( warn_when_full ){
+			
+			Debug.out( "Thread pool '" + getName() + "' is full" );
+			
+			warn_when_full	= false;
+		}
+	}
 	public AERunnable[]
 	getQueuedTasks()
 	{
