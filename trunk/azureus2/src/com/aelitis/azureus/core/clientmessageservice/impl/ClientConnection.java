@@ -58,7 +58,6 @@ public class ClientConnection {
 	private boolean	closed;
 	
 	private boolean	last_write_made_progress;
-	
 	private String debug_string = "<>";
 	
 	
@@ -270,6 +269,12 @@ public class ClientConnection {
   
   public String getDebugString() {  return debug_string;  }
   
-  
-  
+  public void
+  setMaximumMessageSize(
+		int	max_bytes )
+  {
+	  if ( decoder != null ){
+			decoder.setMaximumMessageSize( max_bytes );
+	  }
+  } 
 }

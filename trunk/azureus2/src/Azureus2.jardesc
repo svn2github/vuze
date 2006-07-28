@@ -247,6 +247,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.torrent"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.installer"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.networkmanager"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.progress"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.client"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.download.session.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.tracker"/>

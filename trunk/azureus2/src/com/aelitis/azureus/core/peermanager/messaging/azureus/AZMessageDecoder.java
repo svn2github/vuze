@@ -67,11 +67,18 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   
   private boolean last_read_made_progress;
   
+  private int	maximum_message_size = MAX_MESSAGE_LENGTH;
+  
   public AZMessageDecoder() {
     /*nothing*/
   }
   
-  
+  public void
+  setMaximumMessageSize(
+	int	max_bytes )
+  {
+	  maximum_message_size	= max_bytes;
+  }
   
   public int performStreamDecode( Transport transport, int max_bytes ) throws IOException {
     protocol_bytes_last_read = 0;
@@ -329,8 +336,8 @@ public class AZMessageDecoder implements MessageStreamDecoder {
         
         length_buffer.position( SS, 0 );  //reset it for next length read      
 
-        if( message_length < MIN_MESSAGE_LENGTH || message_length > MAX_MESSAGE_LENGTH ) {
-          throw new IOException( "Invalid message length given for AZ message decode: " + message_length );
+        if( message_length < MIN_MESSAGE_LENGTH || message_length > maximum_message_size ) {
+          throw new IOException( "Invalid message length given for AZ message decode: " + message_length + " (max=" + maximum_message_size + ")" );
         }
         
         payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_AZ_PAYLOAD, message_length );
