@@ -160,6 +160,8 @@ TRHostImpl
 						{
 							private int	tick_count = 0;
 							
+							private Set	failed_ports = new HashSet();
+							
 							public void
 							runSupport()
 							{
@@ -206,7 +208,16 @@ TRHostImpl
 													
 												}catch( Throwable e ){
 											
-													Debug.printStackTrace( e );
+													Integer port_i = new Integer(port);
+													
+													if ( !failed_ports.contains(port_i)){
+														
+														failed_ports.add( port_i );
+														
+														Logger.log(
+																new LogEvent(LOGID,
+																"Tracker Host: failed to start server", e));
+													}
 												}
 											}
 										}
@@ -540,11 +551,8 @@ TRHostImpl
 					server.addListener( this );
 							
 				}catch( TRTrackerServerException e ){
-						
-					Logger.log(new LogEvent(LOGID,
-							"Tracker Host: failed to start server", e));
-		
-					throw( new TRHostException( e.getMessage()));
+								
+					throw( new TRHostException( "startServer failed", e ));
 				}
 			}
 			

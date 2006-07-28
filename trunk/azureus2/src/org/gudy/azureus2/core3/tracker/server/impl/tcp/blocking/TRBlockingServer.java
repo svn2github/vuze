@@ -177,11 +177,8 @@ TRBlockingServer
 					Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
 							LogAlert.AT_ERROR, "Tracker.alert.listenfail"), new String[] { ""
 							+ getPort() });
-					
-					Logger.log(new LogEvent(LOGID,
-							"TRTrackerServer: listener failed on port " + getPort(), e)); 
-				  
-					throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
+									  
+					throw( new TRTrackerServerException( "TRTrackerServer: accept fails", e ));
 				}			
 			}
 		}finally{
