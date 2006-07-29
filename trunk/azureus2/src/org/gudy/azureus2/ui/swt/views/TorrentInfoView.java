@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
+import java.net.URL;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
@@ -43,6 +44,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.download.Download;
@@ -174,6 +177,55 @@ TorrentInfoView
 		
 		label.setLayoutData( gridData );
 		label.setText(torrent==null?"":LocaleTorrentUtil.getCurrentTorrentEncoding( torrent ));
+		
+			// trackers
+		
+		label = new Label(gTorrentInfo, SWT.NULL);
+		gridData = new GridData();
+		label.setLayoutData( gridData );
+		label.setText( MessageText.getString( "MyTrackerView.tracker" ) + ": " );
+
+		String	trackers = "";
+		
+		TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
+		
+		TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
+		
+		List	tracker_list = new ArrayList();
+		
+		URL	url = torrent.getAnnounceURL();
+		
+		tracker_list.add( url.getHost() + (url.getPort()==-1?"":(":"+url.getPort())));
+			
+		for (int i=0;i<sets.length;i++){
+									
+			TOTorrentAnnounceURLSet	set = sets[i];
+			
+			URL[]	urls = set.getAnnounceURLs();
+			
+			for (int j=0;j<urls.length;j++){
+			
+				url = urls[j];
+				
+				String	str = url.getHost() + (url.getPort()==-1?"":(":"+url.getPort()));
+				
+				if ( !tracker_list.contains(str )){
+					
+					tracker_list.add(str);
+				}
+			}
+		}
+			
+		for (int i=0;i<tracker_list.size();i++){
+			
+			trackers += (i==0?"":", ") + tracker_list.get(i);
+		}
+		
+		label = new Label(gTorrentInfo, SWT.NULL);
+		gridData = new GridData();
+		label.setLayoutData( gridData );
+		label.setText( trackers );
+
 		
 			// columns
 				 
