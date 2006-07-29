@@ -46,6 +46,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.download.Download;
@@ -187,38 +189,75 @@ TorrentInfoView
 
 		String	trackers = "";
 		
-		TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
-		
-		TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
-		
-		List	tracker_list = new ArrayList();
-		
-		URL	url = torrent.getAnnounceURL();
-		
-		tracker_list.add( url.getHost() + (url.getPort()==-1?"":(":"+url.getPort())));
+		if ( torrent != null ){
 			
-		for (int i=0;i<sets.length;i++){
-									
-			TOTorrentAnnounceURLSet	set = sets[i];
+			TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
 			
-			URL[]	urls = set.getAnnounceURLs();
+			TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
 			
-			for (int j=0;j<urls.length;j++){
+			List	tracker_list = new ArrayList();
 			
-				url = urls[j];
+			URL	url = torrent.getAnnounceURL();
+			
+			tracker_list.add( url.getHost() + (url.getPort()==-1?"":(":"+url.getPort())));
 				
-				String	str = url.getHost() + (url.getPort()==-1?"":(":"+url.getPort()));
+			for (int i=0;i<sets.length;i++){
+										
+				TOTorrentAnnounceURLSet	set = sets[i];
 				
-				if ( !tracker_list.contains(str )){
+				URL[]	urls = set.getAnnounceURLs();
+				
+				for (int j=0;j<urls.length;j++){
+				
+					url = urls[j];
 					
-					tracker_list.add(str);
+					String	str = url.getHost() + (url.getPort()==-1?"":(":"+url.getPort()));
+					
+					if ( !tracker_list.contains(str )){
+						
+						tracker_list.add(str);
+					}
 				}
 			}
-		}
+				
+			TRTrackerAnnouncer announcer = download_manager.getTrackerClient();
 			
-		for (int i=0;i<tracker_list.size();i++){
+			URL	active_url = null;
 			
-			trackers += (i==0?"":", ") + tracker_list.get(i);
+			if ( announcer != null ){
+				
+				active_url = announcer.getTrackerUrl();
+				
+			}else{
+				
+				TRTrackerScraperResponse scrape = download_manager.getTrackerScrapeResponse();
+				
+				if ( scrape != null ){
+					
+					active_url = scrape.getURL();
+				}
+			}
+			
+			if ( active_url == null ){
+				
+				active_url = torrent.getAnnounceURL();
+			}
+			
+			trackers = active_url.getHost() + (active_url.getPort()==-1?"":(":"+active_url.getPort()));
+		
+			tracker_list.remove( trackers );
+			
+			if ( tracker_list.size() > 0 ){
+				
+				trackers += " (";
+				
+				for (int i=0;i<tracker_list.size();i++){
+					
+					trackers += (i==0?"":", ") + tracker_list.get(i);
+				}
+				
+				trackers += ")";
+			}
 		}
 		
 		label = new Label(gTorrentInfo, SWT.NULL);
@@ -397,12 +436,15 @@ TorrentInfoView
 	public void
 	refresh()
 	{
-		for (int i=0;i<cells.length;i++){
+		if ( cells != null ){
 			
-			ExternalCell	cell = cells[i];
-			
-			cell.refresh();
-		}	
+			for (int i=0;i<cells.length;i++){
+				
+				ExternalCell	cell = cells[i];
+				
+				cell.refresh();
+			}
+		}
 	}
 
 	
