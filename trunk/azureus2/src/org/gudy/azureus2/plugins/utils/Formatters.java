@@ -65,6 +65,17 @@ Formatters
 	formatTimeFromSeconds(
 		long		seconds );
 	
+	
+	/**
+	 * Format seconds remaining into an ETA value.
+	 * @param seconds
+	 * @return
+	 * @since 2.4.0.3
+	 */
+	public String formatETAFromSeconds( long seconds );
+	
+	
+	
 	public byte[]
 	bEncode(
 		Map	map )

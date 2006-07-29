@@ -95,6 +95,12 @@ FormattersImpl
 		return( DisplayFormatters.formatTime( seconds*1000 ));
 	}
 	
+	
+	public String formatETAFromSeconds( long seconds ) {
+		return TimeFormatter.format( seconds );
+	}
+	
+	
 	public byte[]
 	bEncode(
 		Map	map )
