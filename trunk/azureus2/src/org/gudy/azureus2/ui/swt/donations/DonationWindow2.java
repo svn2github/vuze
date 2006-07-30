@@ -367,6 +367,8 @@ public class DonationWindow2 {
       radioDonate.setSelection(true);    
       
       
+      //allow OK from the start
+      ok.setEnabled(true);
       
       ok.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event evt) {          
