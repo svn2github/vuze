@@ -88,7 +88,7 @@ public class UploadSlotManager {
 			});
 		}
 		else {
-			System.out.println( "AUTO UPLOAD SLOT *DISABLED*" );
+			//System.out.println( "AUTO UPLOAD SLOT *DISABLED*" );
 		}
 	}
 	

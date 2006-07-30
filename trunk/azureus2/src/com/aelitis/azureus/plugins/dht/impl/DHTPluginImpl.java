@@ -198,7 +198,7 @@ DHTPluginImpl
 				
 					// reduce network usage
 				
-				System.out.println( "CVS DHT cache republish interval modified" );
+				//System.out.println( "CVS DHT cache republish interval modified" );
 
 				props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 1*60*60*1000 ));
 			}
