@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.util.Constants;
 
 public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 	private final static String MSG_PREFIX = "ConfigView.section.style.";
+	private final static String LBLKEY_PREFIX = "ConfigView.label.";
 
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_INTERFACE;
@@ -231,8 +232,27 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				sortOrderLabels, sortOrderValues);
 
 
-		new BooleanParameter(cLook, "GUI_SWT_DisableAlertSliding", MSG_PREFIX
+		BooleanParameter disable_sliding = new BooleanParameter(cArea, "GUI_SWT_DisableAlertSliding", MSG_PREFIX
 				+ "disableAlertSliding");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		disable_sliding.setLayoutData(gridData);
+
+		// Timestamps for popup alerts.
+		BooleanParameter show_alert_timestamps = new BooleanParameter(cArea,
+				"Show Timestamp For Alerts", false, LBLKEY_PREFIX + "popup.timestamp");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		show_alert_timestamps.setLayoutData(gridData);
+		
+		// Auto-hide popup setting.
+		label = new Label(cArea, SWT.NULL);
+		Messages.setLanguageText(label, LBLKEY_PREFIX + "popup.autohide");
+		IntParameter auto_hide_alert = new IntParameter(cArea, "Message Popup Autoclose in Seconds", 0, 86400, true, false);
+		gridData = new GridData();
+		gridData.horizontalSpan = 1;
+		gridData.widthHint = 30;
+		auto_hide_alert.setLayoutData(gridData);
 
 		new BooleanParameter(cLook, "NameColumn.showProgramIcon", MSG_PREFIX
 				+ "showProgramIcon");
