@@ -370,7 +370,8 @@ ThreadPool
 		
 		private AESemaphore my_sem = new AESemaphore("TPWorker");
 		
-		private AERunnable	runnable;
+		private volatile AERunnable	runnable;
+		
 		private long		run_start_time;
 		private int			warn_count;
 		
