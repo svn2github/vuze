@@ -21,7 +21,8 @@ $
   Más en el registro de cambios (changelog).
   
   No olvides comprobar los complementos - http://azureus.sourceforge.net/plugin_list.php
-  
+    New remote control plugin - AzSMRC
+    
 !1.4 Mejoras en el rendimiento y arreglo de fallos
  Arreglos Notables:
     El Buscador de Pares en la LAN recuerda más eficientemente a los pares; identificación explícita del par LAN.

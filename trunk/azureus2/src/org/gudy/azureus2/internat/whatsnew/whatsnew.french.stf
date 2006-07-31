@@ -21,7 +21,8 @@ $
   More in the changelog.
   
   Don't forget to check the plugins - http://azureus.sourceforge.net/plugin_list.php
-  
+     New remote control plugin - AzSMRC
+     
 !1.4 Bug fixes and performance improvements
  Notable fixes:
     LAN Peer Finder retains peers more effectively; explicit LAN peer identification.
