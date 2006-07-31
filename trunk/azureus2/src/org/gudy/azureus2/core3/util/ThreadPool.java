@@ -28,17 +28,37 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+
 public class 
 ThreadPool 
 {
-	protected static final int	IDLE_LINGER_TIME	= 10000;
+	private static final int	IDLE_LINGER_TIME	= 10000;
 	
-	protected static final boolean	LOG_WARNINGS	= false;
-	protected static final int		WARN_TIME		= 10000;
+	private static final boolean	LOG_WARNINGS	= false;
+	private static final int		WARN_TIME		= 10000;
 	
-	protected static List		busy_pools			= new ArrayList();
-	protected static boolean	busy_pool_timer_set	= false;
+	private static List		busy_pools			= new ArrayList();
+	private static boolean	busy_pool_timer_set	= false;
 	
+	private static boolean	debug_thread_pool;
+	private static boolean	debug_thread_pool_log_on;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{ "debug.threadpool.log.enable", "debug.threadpool.debug.trace" },
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					debug_thread_pool 			= COConfigurationManager.getBooleanParameter( "debug.threadpool.log.enable", false );
+					debug_thread_pool_log_on 	= COConfigurationManager.getBooleanParameter( "debug.threadpool.debug.trace", false );
+				}
+			});
+	}
 	
 	private static ThreadLocal		tls	= 
 		new ThreadLocal()
@@ -88,9 +108,9 @@ ThreadPool
 	public
 	ThreadPool(
 		String	_name,
-		int		max_size )
+		int		_max_size )
 	{
-		this( _name, max_size, false );
+		this( _name, _max_size, false );
 	}
 	
 	public
@@ -220,7 +240,7 @@ ThreadPool
 				
 				if ( thread_pool.isEmpty()){
 							
-					allocated_worker = new threadPoolWorker( this );	
+					allocated_worker = new threadPoolWorker();	
 		
 				}else{
 									
@@ -315,6 +335,11 @@ ThreadPool
 	{
 		synchronized( ThreadPool.this ){
 		
+			if ( debug_thread_pool_log_on ){
+				
+				System.out.println( "ThreadPool '" + getName() + "'/" + thread_name_index + ": max=" + max_size + ",sem=" + thread_sem.getValue() + ",pool=" + thread_pool.size() + ",busy=" + busy.size() + ",queue=" + task_queue.size());
+			}
+			
 			long	now = SystemTime.getCurrentTime();
 			
 			for (int i=0;i<busy.size();i++){
@@ -363,7 +388,6 @@ ThreadPool
 	public class
 	threadPoolWorker
 	{
-		private ThreadPool	owner;
 		private String	worker_name;
 		
 		private Thread	worker_thread;
@@ -378,11 +402,8 @@ ThreadPool
 		private String	state	= "<none>";
 		
 		protected
-		threadPoolWorker(
-			ThreadPool	_owner )
-		{
-			owner	= _owner;
-			
+		threadPoolWorker()
+		{			
 			worker_name = name + "[" + (thread_name_index++) +  "]";
 			
 			worker_thread = new AEThread( worker_name )
@@ -428,28 +449,31 @@ outer:
 												
 												synchronized( busy_pools ){
 													
-													busy_pools.add( ThreadPool.this );
-													
-													if  ( !busy_pool_timer_set ){
+													if ( !busy_pools.contains( ThreadPool.this  )){
 														
-															// we have to defer this action rather
-															// than running as a static initialiser
-															// due to the dependency between
-															// ThreadPool, Timer and ThreadPool again
+														busy_pools.add( ThreadPool.this );
 														
-														busy_pool_timer_set	= true;
-														
-														SimpleTimer.addPeriodicEvent(
-																WARN_TIME,
-																new TimerEventPerformer()
-																{
-																	public void
-																	perform(
-																		TimerEvent	event )
+														if  ( !busy_pool_timer_set ){
+															
+																// we have to defer this action rather
+																// than running as a static initialiser
+																// due to the dependency between
+																// ThreadPool, Timer and ThreadPool again
+															
+															busy_pool_timer_set	= true;
+															
+															SimpleTimer.addPeriodicEvent(
+																	WARN_TIME,
+																	new TimerEventPerformer()
 																	{
-																		checkAllTimeouts();
-																	}
-																});
+																		public void
+																		perform(
+																			TimerEvent	event )
+																		{
+																			checkAllTimeouts();
+																		}
+																	});
+														}
 													}
 												}
 											}
@@ -490,7 +514,10 @@ outer:
 											
 											busy.remove( threadPoolWorker.this );
 											
-											if ( busy.size() == 0 ){
+												// if debug is on we leave the pool registered so that we
+												// can trace on the timeout events
+											
+											if ( busy.size() == 0 && !debug_thread_pool ){
 												
 												synchronized( busy_pools ){
 												
@@ -518,7 +545,12 @@ outer:
 								if ( !time_to_die ){
 									
 									synchronized( ThreadPool.this ){
-															
+											
+										if ( thread_pool.contains( threadPoolWorker.this )){
+											
+											Debug.out( "Thread pool already contains worker!" );
+										}
+										
 										thread_pool.push( threadPoolWorker.this );
 									}
 								
@@ -558,13 +590,18 @@ outer:
 		protected ThreadPool
 		getOwner()
 		{
-			return( owner );
+			return( ThreadPool.this );
 		}
 		
 		protected void
 		run(
 			AERunnable	_runnable )
 		{
+			if ( runnable != null ){
+				
+				Debug.out( "Runnable already set" );
+			}
+			
 			runnable	= _runnable;
 			
 			my_sem.release();
