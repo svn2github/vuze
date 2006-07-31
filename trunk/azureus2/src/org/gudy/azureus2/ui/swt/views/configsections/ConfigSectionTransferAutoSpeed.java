@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -77,6 +78,12 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		linfo.setLayoutData(gridData);
+		
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		LinkLabel linkLabel = new LinkLabel(cSection, gridData, "ConfigView.label.please.visit.here",
+				"http://azureus.aelitis.com/wiki/index.php/Auto_Speed");
+
 		
 		String[]	units = { DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB )};
 
