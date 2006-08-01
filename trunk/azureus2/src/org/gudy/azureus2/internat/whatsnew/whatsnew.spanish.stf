@@ -12,16 +12,16 @@ $
 
 !1.3 Otras nuevas características
   OSX: Abrir archivos .torrent en Azureus via Finder/Escritorio/etc.
-  'No descargar' archivos es manejado más consistentemente con respecto al completado de la descarga.
+  Los archivos 'No descargar' se manejan más consistentemente con respecto a completar la descarga.
   Renombrado de las carpetas de descarga.
   Mover los archivos de datos al quitar el torrent desde Azureus.
-  Actualizaciones y complementos firmadas para mejorar la seguridad.
+  Actualizaciones y complementos firmados para mejorar la seguridad.
   Mejoras en el Interfaz - más información: fecha de añadido, tiempos desocupado, nueva vista de info, vista de partes del archivo; más opciones por-torrent.
   Generador de información para Depuración.
+  Nuevo complemento de control remoto - AzSMRC
   Más en el registro de cambios (changelog).
   
   No olvides comprobar los complementos - http://azureus.sourceforge.net/plugin_list.php
-    New remote control plugin - AzSMRC
     
 !1.4 Mejoras en el rendimiento y arreglo de fallos
  Arreglos Notables:
