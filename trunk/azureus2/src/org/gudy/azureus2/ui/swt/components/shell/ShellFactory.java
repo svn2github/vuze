@@ -193,5 +193,17 @@ public final class ShellFactory
             if(!Constants.isOSX)
                 super.setImages(images);
         }
+        
+        public void open() {
+    			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+    			if (uiFunctions != null){
+    				Shell mainShell = uiFunctions.getMainShell();
+    				if (mainShell != null && mainShell.getMinimized()) {
+    					uiFunctions.bringToFront();
+    				}
+    			}
+
+        	super.open();
+        }
     }
 }

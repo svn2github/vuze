@@ -863,7 +863,7 @@ MainWindow
   public void setVisible(final boolean visible) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (visible) {
+				if (visible && !shell.getVisible()) {
 					if (COConfigurationManager.getBooleanParameter("Password enabled",
 							false)) {
 						if (!PasswordWindow.showPasswordWindow(display)) {
