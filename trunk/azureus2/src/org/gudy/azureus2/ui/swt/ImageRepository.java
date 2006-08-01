@@ -102,7 +102,6 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/info.gif", "info");
 		addPath("org/gudy/azureus2/ui/icons/warning.gif", "warning");
 		addPath("org/gudy/azureus2/ui/icons/subitem.gif", "subitem");
-		addPath("org/gudy/azureus2/ui/icons/working.gif", "working");
 
 		//ToolBar Icons
 
@@ -153,6 +152,7 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/smallx.png", "smallx");
 		addPath("org/gudy/azureus2/ui/icons/smallx-gray.png", "smallx-gray");
 		addPath("org/gudy/azureus2/ui/icons/sendto-small.png", "sendto-small");
+		addPath("org/gudy/azureus2/ui/icons/working.gif", "working");
 	}
 
   private static void addPath(String path, String id) {
@@ -229,6 +229,22 @@ public class ImageRepository {
   		return onlyOneImage;
   	}
     return getImage(name,true);
+  }
+  
+  public static InputStream
+  getImageAsStream(
+	 String	name )
+  {
+	  String path = (String) imagesToPath.get(name);
+
+	  if ( path == null ){
+		  
+		  System.out.println( "ImageRepository: Unknown image name '" + name  + "'" );
+		  
+		  return( null );
+	  }
+	  
+	  return( ImageRepository.class.getClassLoader().getResourceAsStream( path ));
   }
   
   private static Image getImage(String name,boolean allowLoading) {

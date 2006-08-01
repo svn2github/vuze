@@ -22,13 +22,23 @@
 
 package org.gudy.azureus2.ui.swt.progress;
 
-import org.eclipse.swt.*;
+import java.io.InputStream;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -42,7 +52,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationListener;
-
 
 public class 
 ProgressWindow 
@@ -203,85 +212,174 @@ ProgressWindow
 				});
 		
 		GridLayout layout = new GridLayout();
+		layout.numColumns = 2;
 		shell.setLayout(layout);
+
+		InputStream	is = ImageRepository.getImageAsStream( "working" );
 		
-		final Display display = shell.getDisplay();
+		if ( is == null ){
+			
+			new Label( shell, SWT.NULL );
+			
+		}else{
+			
+			final ImageLoader loader = new ImageLoader();
+			
+			final Color	background = shell.getBackground();
+
+		    loader.load( is );
+		    		    
+		    final Canvas	canvas =
+		    	new Canvas( shell, SWT.NULL )
+		    	{
+		    		public Point computeSize(int wHint, int hHint,boolean changed )
+		    		{
+		    			return( new Point(loader.logicalScreenWidth,loader.logicalScreenWidth));
+		    		}
+		    	};
+		    			    		    
+		    final GC canvas_gc = new GC( canvas );
+
+	        new AEThread("GifAnim", true )
+	        {
+	        	private Image	image;
+	        	private boolean useGIFBackground;
+	        	
+	        	public void 
+	        	runSupport()
+	        	{
+	        		Display display = shell.getDisplay();  
+	        	
+	        		ImageData[]	image_data = loader.data;
+	        		
+	        			/* Create an off-screen image to draw on, and fill it with the shell background. */
+	        		
+	        		Image offScreenImage = new Image(display, loader.logicalScreenWidth, loader.logicalScreenHeight);
+	        		
+	        		GC offScreenImageGC = new GC(offScreenImage);
+	        		
+	        		offScreenImageGC.setBackground(background);
+	        		
+	        		offScreenImageGC.fillRectangle(0, 0, loader.logicalScreenWidth, loader.logicalScreenHeight);
+
+	        		try{
+	        				/* Create the first image and draw it on the off-screen image. */
+	        			
+	        			int imageDataIndex = 0;
+	        			
+	        			ImageData imageData = image_data[imageDataIndex];
+	        			
+	        			if (image != null && !image.isDisposed()) image.dispose();
+	        			
+	        			image = new Image(display, imageData);
+	        			
+	        			offScreenImageGC.drawImage(
+	        					image,
+	        					0,
+	        					0,
+	        					imageData.width,
+	        					imageData.height,
+	        					imageData.x,
+	        					imageData.y,
+	        					imageData.width,
+	        					imageData.height);
+
+		        			/* Now loop through the images, creating and drawing each one
+		        			 * on the off-screen image before drawing it on the shell. */
+		        			
+	        			int repeatCount = loader.repeatCount;
+	        			
+	        			while ( !task_complete && loader.repeatCount == 0 || repeatCount > 0) {
+	        				
+	        				switch (imageData.disposalMethod){
+	        				
+		        				case SWT.DM_FILL_BACKGROUND:
+		        					
+		        						/* Fill with the background color before drawing. */
+		        					
+		        					Color bgColor = null;
+		        					
+		        					if (useGIFBackground && loader.backgroundPixel != -1) {
+		        						
+		        						bgColor = new Color(display, imageData.palette.getRGB(loader.backgroundPixel));
+		        					}
+		        					
+		        					offScreenImageGC.setBackground(bgColor != null ? bgColor : background);
+		        					
+		        					offScreenImageGC.fillRectangle(imageData.x, imageData.y, imageData.width, imageData.height);
+		        					
+		        					if (bgColor != null) bgColor.dispose();
+		        					
+		        					break;
+		        					
+		        				case SWT.DM_FILL_PREVIOUS:
+		        					
+		        						/* Restore the previous image before drawing. */
+		        					
+		        					offScreenImageGC.drawImage(
+		        							image,
+		        							0,
+		        							0,
+		        							imageData.width,
+		        							imageData.height,
+		        							imageData.x,
+		        							imageData.y,
+		        							imageData.width,
+		        							imageData.height);
+		        					break;
+	        				}
+
+	        				imageDataIndex = (imageDataIndex + 1) % image_data.length;
+	        				
+	        				imageData = image_data[imageDataIndex];
+	        				
+	        				image.dispose();
+	        				
+	        				image = new Image(display, imageData);
+	        				
+	        				offScreenImageGC.drawImage(
+	        						image,
+	        						0,
+	        						0,
+	        						imageData.width,
+	        						imageData.height,
+	        						imageData.x,
+	        						imageData.y,
+	        						imageData.width,
+	        						imageData.height);
+
+	        					/* Draw the off-screen image to the shell. */
+	        				
+	        				canvas_gc.drawImage(offScreenImage, 0, 0);
+
+	        					/* Sleep for the specified delay time (adding commonly-used slow-down fudge factors). */
+	        				
+	        				try {
+	        					int ms = imageData.delayTime * 10;
+	        					if (ms < 20) ms += 30;
+	        					if (ms < 30) ms += 10;
+	        					
+	        					Thread.sleep(ms);
+	        				} catch (InterruptedException e) {
+	        				}
+
+	        					/* If we have just drawn the last image, decrement the repeat count and start again. */
+	        				
+	        				if (imageDataIndex == image_data.length - 1) repeatCount--;
+	        			}
+	        		} catch (SWTException ex) {
+	        			ex.printStackTrace();
+	        		} finally {
+	        			if (offScreenImage != null && !offScreenImage.isDisposed()) offScreenImage.dispose();
+	        			if (offScreenImageGC != null && !offScreenImageGC.isDisposed()) offScreenImageGC.dispose();
+	        			if (image != null && !image.isDisposed()) image.dispose();
+	        		}
+	        	}
+	        }.start();
+		}
 		
-		try{
-		    final ImageLoader loader = new ImageLoader();
-		    
-		    System.out.println("Image: " + "org/gudy/azureus2/ui/icons/working.gif");
-		    
-		    loader.load("org/gudy/azureus2/ui/icons/working.gif");
-		    final Canvas canvas = new Canvas(shell,SWT.NONE);
-		    final Image image = new Image(display,loader.data[0]);
-		    final int[] imageNumber = {0};
-		    //imageNumber[0];
-		    final GC gc = new GC(image);
-		    canvas.addPaintListener(new PaintListener(){
-		      public void paintControl(PaintEvent event){
-		     event.gc.drawImage(image,0,0);
-		      }
-		    });
-
-		    
-		    Thread thread = new Thread(){
-		        public void run(){
-		          long currentTime = System.currentTimeMillis();
-		          int delayTime = loader.data[imageNumber[0]].delayTime;
-		       while(currentTime + delayTime * 10 > System.currentTimeMillis()){
-		            // Wait till the delay time has passed
-		          }
-		          display.asyncExec(new Runnable(){
-		            public void run(){
-		              // Increase the variable holding the frame number
-		              imageNumber[0] = imageNumber[0] == loader.data.length-1 ? 0 : imageNumber[0]+1;
-		              // Draw the new data onto the image
-		           ImageData nextFrameData = loader.data[imageNumber[0]];
-		              Image frameImage = new Image(display,nextFrameData);
-		           gc.drawImage(frameImage,nextFrameData.x,nextFrameData.y);
-		           frameImage.dispose();
-		              canvas.redraw();
-		            }
-		          });
-		        }
-		      };
-
-		      
-			
-	/*		Label label = new Label(shell, SWT.NONE);
-			label.setBackgroundImage(image);
-			GridData gridData = new GridData();
-			gridData.horizontalSpan = 1;
-			label.setLayoutData(gridData);
-
-*/			Label label = new Label(shell, SWT.NONE);
-			label.setText(MessageText.getString( "progress.window.msg.filemove" ));
-			GridData gridData = new GridData();
-			gridData.horizontalSpan = 1;
-			label.setLayoutData(gridData);
-			
-/*			Browser b = new Browser(shell, SWT.FILL);
-			b.setText("<span style=\"font-size: 8pt\"><img src=\"org/gudy/azureus2/ui/icons/working.gif\">" + 
-							MessageText.getString( "progress.window.msg.filemove" ) + 
-							"</span>");
-			GridData g = new GridData();
-			g.horizontalSpan = 2;
-			b.setLayoutData(g);
-*/			
-
-			shell.pack();
-			
-			Utils.centreWindow( shell );
-
-			shell.open();
-			thread.start();
-			}
-		    catch(Exception e){
-		    	e.printStackTrace();
-		    }
-
-/*		Label label = new Label(shell, SWT.NONE);
+		
+		Label label = new Label(shell, SWT.NONE);
 		label.setText(MessageText.getString( "progress.window.msg.filemove" ));
 		GridData gridData = new GridData();
 		label.setLayoutData(gridData);
@@ -290,6 +388,6 @@ ProgressWindow
 		
 		Utils.centreWindow( shell );
 
-		shell.open();*/
+		shell.open();
 	}
 }
