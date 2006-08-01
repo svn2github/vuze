@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.ui.swt.mainwindow.MainMenu;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.core3.util.Constants;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -39,6 +40,25 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  */
 public final class ShellFactory
 {
+	public static Shell createMainShell( int styles )
+	{
+		Display	display = null;
+		
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+
+		if ( uiFunctions != null ){
+			
+			display = uiFunctions.getMainShell().getDisplay();
+		}
+		
+		if ( display == null ){
+			
+			display = SWTThread.getInstance().getDisplay();
+		}
+		
+		return( createShell( display, styles ));
+	}
+	
     /**
      * <p>Creates a shell</p>
      * <p>For platforms that use a unified menu bar, the shell's menu bar is set to the main window's menu bar</p>

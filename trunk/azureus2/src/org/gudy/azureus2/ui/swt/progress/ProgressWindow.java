@@ -27,6 +27,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -41,6 +42,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationListener;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 public class 
 ProgressWindow 
@@ -118,7 +121,9 @@ ProgressWindow
 			public void 
 			runSupport()
 			{
-				try{					
+				try{	
+					// Thread.sleep(10000);
+					
 					operation.getTask().run( operation );
 					
 				}catch( RuntimeException e ){
@@ -176,12 +181,9 @@ ProgressWindow
 	
 	protected void
 	showDialog()
-	{
-		final Display display = SWTThread.getInstance().getDisplay();
-		
-		shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(
-				display, 
-				( SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL ) & ~SWT.CLOSE );
+	{	
+		shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createMainShell(
+				( SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL ));
 
 		shell.setText( MessageText.getString( "progress.window.title" ));
 
@@ -189,6 +191,18 @@ ProgressWindow
 			shell.setImage(ImageRepository.getImage("azureus"));
 		}
 
+		shell.addListener( 
+				SWT.Close, 
+				new Listener()
+				{
+					public void 
+					handleEvent(
+						org.eclipse.swt.widgets.Event event)
+					{
+						event.doit = false;
+					}
+				});
+		
 		GridLayout layout = new GridLayout();
 		shell.setLayout(layout);
 
