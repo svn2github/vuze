@@ -84,14 +84,9 @@ DHTUDPPacketReply
 		
 			// the target might be at a higher protocol version that us, so trim back if necessary
 			// as we obviously can't talk a higher version than what we are!
-			// this *should* have already been done when we received the corresponding request
-			// packet as it modified the originator version accordingly. However, do it here
-			// just in case
 	
 		if ( protocol_version > _transport.getProtocolVersion()){
-			
-			Debug.out( "Trimming protocol version" );
-			
+						
 			protocol_version = _transport.getProtocolVersion();
 		}
 		

@@ -134,14 +134,6 @@ DHTUDPPacketRequest
 			
 			originator_version = is.readByte();
 			
-				// if the originator is a higher version than us then we can't do anything sensible
-				// working at their version (e.g. we can't reply to them using that version). 
-				// Therefore trim their perceived version back to something we can deal with
-
-			if ( originator_version > getTransport().getProtocolVersion() ){
-				
-				originator_version = getTransport().getProtocolVersion();
-			}
 		}else{
 			
 				// this should be set correctly in the post-deserialise code, however default

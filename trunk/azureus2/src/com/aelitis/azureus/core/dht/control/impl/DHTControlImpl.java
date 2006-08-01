@@ -2058,7 +2058,7 @@ DHTControlImpl
 	{
 		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 		
-		DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact.getID())+ ", keys = " + keys.length );
+		DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact )+ ", keys = " + keys.length );
 
 		byte[]	diverse_res = new byte[ keys.length];
 
