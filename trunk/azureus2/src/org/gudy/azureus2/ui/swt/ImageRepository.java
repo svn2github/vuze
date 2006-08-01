@@ -102,6 +102,7 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/info.gif", "info");
 		addPath("org/gudy/azureus2/ui/icons/warning.gif", "warning");
 		addPath("org/gudy/azureus2/ui/icons/subitem.gif", "subitem");
+		addPath("org/gudy/azureus2/ui/icons/working.gif", "working");
 
 		//ToolBar Icons
 

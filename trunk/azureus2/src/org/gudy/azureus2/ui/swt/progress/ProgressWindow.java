@@ -22,13 +22,13 @@
 
 package org.gudy.azureus2.ui.swt.progress;
 
-import org.eclipse.swt.SWT;
+import org.eclipse.swt.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -42,8 +42,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationListener;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+
 
 public class 
 ProgressWindow 
@@ -205,8 +204,84 @@ ProgressWindow
 		
 		GridLayout layout = new GridLayout();
 		shell.setLayout(layout);
+		
+		final Display display = shell.getDisplay();
+		
+		try{
+		    final ImageLoader loader = new ImageLoader();
+		    
+		    System.out.println("Image: " + "org/gudy/azureus2/ui/icons/working.gif");
+		    
+		    loader.load("org/gudy/azureus2/ui/icons/working.gif");
+		    final Canvas canvas = new Canvas(shell,SWT.NONE);
+		    final Image image = new Image(display,loader.data[0]);
+		    final int[] imageNumber = {0};
+		    //imageNumber[0];
+		    final GC gc = new GC(image);
+		    canvas.addPaintListener(new PaintListener(){
+		      public void paintControl(PaintEvent event){
+		     event.gc.drawImage(image,0,0);
+		      }
+		    });
 
-		Label label = new Label(shell, SWT.NONE);
+		    
+		    Thread thread = new Thread(){
+		        public void run(){
+		          long currentTime = System.currentTimeMillis();
+		          int delayTime = loader.data[imageNumber[0]].delayTime;
+		       while(currentTime + delayTime * 10 > System.currentTimeMillis()){
+		            // Wait till the delay time has passed
+		          }
+		          display.asyncExec(new Runnable(){
+		            public void run(){
+		              // Increase the variable holding the frame number
+		              imageNumber[0] = imageNumber[0] == loader.data.length-1 ? 0 : imageNumber[0]+1;
+		              // Draw the new data onto the image
+		           ImageData nextFrameData = loader.data[imageNumber[0]];
+		              Image frameImage = new Image(display,nextFrameData);
+		           gc.drawImage(frameImage,nextFrameData.x,nextFrameData.y);
+		           frameImage.dispose();
+		              canvas.redraw();
+		            }
+		          });
+		        }
+		      };
+
+		      
+			
+	/*		Label label = new Label(shell, SWT.NONE);
+			label.setBackgroundImage(image);
+			GridData gridData = new GridData();
+			gridData.horizontalSpan = 1;
+			label.setLayoutData(gridData);
+
+*/			Label label = new Label(shell, SWT.NONE);
+			label.setText(MessageText.getString( "progress.window.msg.filemove" ));
+			GridData gridData = new GridData();
+			gridData.horizontalSpan = 1;
+			label.setLayoutData(gridData);
+			
+/*			Browser b = new Browser(shell, SWT.FILL);
+			b.setText("<span style=\"font-size: 8pt\"><img src=\"org/gudy/azureus2/ui/icons/working.gif\">" + 
+							MessageText.getString( "progress.window.msg.filemove" ) + 
+							"</span>");
+			GridData g = new GridData();
+			g.horizontalSpan = 2;
+			b.setLayoutData(g);
+*/			
+
+			shell.pack();
+			
+			Utils.centreWindow( shell );
+
+			shell.open();
+			thread.start();
+			}
+		    catch(Exception e){
+		    	e.printStackTrace();
+		    }
+
+/*		Label label = new Label(shell, SWT.NONE);
 		label.setText(MessageText.getString( "progress.window.msg.filemove" ));
 		GridData gridData = new GridData();
 		label.setLayoutData(gridData);
@@ -215,6 +290,6 @@ ProgressWindow
 		
 		Utils.centreWindow( shell );
 
-		shell.open();
+		shell.open();*/
 	}
 }
