@@ -205,7 +205,8 @@ TRTrackerServerTorrentImpl
 			
 			TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get( peer_id );
 	
-			boolean		new_peer 			= false;
+			boolean		new_peer 				= false;
+			boolean		peer_already_removed	= false;
 			
 			boolean		already_completed	= false;
 			long		last_contact_time	= 0;
@@ -369,6 +370,8 @@ TRTrackerServerTorrentImpl
 					
 					removePeer( peer, event_type );
 					
+					peer_already_removed	= true;
+					
 				}else{
 					
 						// IP may have changed - update if required
@@ -418,12 +421,18 @@ TRTrackerServerTorrentImpl
 			
 			if ( peer != null ){
 				
-				try{
-					peerEvent( peer, event_type );
+					// if the peer has already been removed above then it will have reported the
+					// event already
+				
+				if ( !peer_already_removed ){
 					
-				}catch( TRTrackerServerException	e ){
-					
-					deferred_failure = e;
+					try{
+						peerEvent( peer, event_type );
+						
+					}catch( TRTrackerServerException	e ){
+						
+						deferred_failure = e;
+					}
 				}
 
 				peer.setTimeout( now, new_timeout );
@@ -505,7 +514,10 @@ TRTrackerServerTorrentImpl
 				
 				if ( seed_limit != 0 && seed_count > seed_limit && !loopback ){
 					
-					removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TOO_MANY_PEERS );
+					if ( !peer_already_removed ){
+						
+						removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TOO_MANY_PEERS );
+					}
 					
 						// this is picked up by AZ client removal rules and causes the torrent to
 						// be removed
@@ -576,7 +588,7 @@ TRTrackerServerTorrentImpl
 			
 			if ( deferred_failure != null ){
 			
-				if ( peer != null ){
+				if ( peer != null && !peer_already_removed ){
 					
 					removePeer( peer, TRTrackerServerTorrentPeerListener.ET_FAILED );
 				}
