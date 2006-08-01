@@ -1347,11 +1347,31 @@ public class MyTorrentsView
 							try {
 								File target = new File(path);
 	
+								if ( target.exists()){
+									
+									MessageBox mb = new MessageBox(getComposite().getShell(),SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+									
+									mb.setText(MessageText.getString("exportTorrentWizard.process.outputfileexists.title"));
+									
+									mb.setMessage(MessageText.getString("exportTorrentWizard.process.outputfileexists.message"));
+									
+									int result = mb.open();
+								
+									if( result == SWT.NO ){
+										
+										return;
+									}
+									
+									if ( !target.delete()){
+										
+										throw( new Exception( "Failed to delete file" ));
+									}
+								}
+								
 								// first copy the torrent - DON'T use "writeTorrent" as this amends the
 								// "filename" field in the torrent
 	
-								TorrentUtils.copyToFile(dm.getDownloadState().getTorrent(),
-										target);
+								TorrentUtils.copyToFile(dm.getDownloadState().getTorrent(),	target);
 	
 								// now remove the non-standard entries
 	
