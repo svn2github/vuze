@@ -138,9 +138,9 @@ public class ConfigurationDefaults {
     def.put( "AutoSpeed Available", FALSE );	// informative read-only parameter
     def.put( "AutoSpeed Min Upload KBs", new Long(0) );
     def.put( "AutoSpeed Max Upload KBs", new Long(0) );
-    def.put( "AutoSpeed Max Increment KBs", new Long(5));
-    def.put( "AutoSpeed Max Decrement KBs", new Long(5));
-    def.put( "AutoSpeed Choking Ping Millis", new Long(1000) );
+    def.put( "AutoSpeed Max Increment KBs", new Long(1));
+    def.put( "AutoSpeed Max Decrement KBs", new Long(4));
+    def.put( "AutoSpeed Choking Ping Millis", new Long(500) );
     def.put( "AutoSpeed Download Adj Enable", FALSE );
     def.put( "AutoSpeed Download Adj Ratio", "1.0" );
     def.put( "AutoSpeed Latency Factor", new Long(50));
