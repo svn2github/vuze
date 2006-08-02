@@ -63,7 +63,40 @@ HostNameToIPResolver
 			throw( new HostNameToIPResolverException( "non-DNS name '" + host + "'", true ));
 		}
 		
-		return( InetAddress.getByName( host));	
+			// handle any raw addresses up front
+		
+		byte[]	bytes = textToNumericFormat( host );
+
+		if ( bytes != null ){
+			
+			return( InetAddress.getByAddress( bytes ));
+		}
+		
+			// filter out partially complete raw addresses by applying the basic rule in ftp://ftp.is.co.za/rfc/rfc3696.txt
+			// at least one dot + not all numeric
+		
+		char[]	chars = host.toCharArray();
+		
+		boolean	resolve = false;
+		
+		for (int i=0;i<chars.length;i++){
+			
+			if ( !( chars[i] == '.' || Character.isDigit(chars[i]))){
+				
+				resolve	= true;
+				
+				break;
+			}
+		}
+		
+		if ( resolve ){
+			
+			return( InetAddress.getByName( host));
+			
+		}else{
+						
+			throw( new UnknownHostException( "Host '" + host + "' doesn't obey minimal validation rules"));
+		}
 	}
 	
 	public static void
