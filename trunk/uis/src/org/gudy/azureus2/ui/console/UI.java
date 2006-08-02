@@ -84,6 +84,16 @@ UI
     }
   }
   
+  public void openRemoteTorrent(String url) {
+	  if (console != null) {
+		  console.downloadRemoteTorrent(url);
+		  return;
+	  }
+	  System.out.println( "Downloading torrent from url: " + url );
+      TorrentDownloaderFactory.downloadManaged(url);
+      return; 
+  }
+  
   public void openTorrent(String fileName) {
   	if( console != null )
   	{
@@ -162,7 +172,7 @@ UI
 			}
 			case UIManagerEvent.ET_OPEN_TORRENT_VIA_URL:				// data is Object[]{URL,URL,Boolean} - { torrent_url, referrer url, auto_download}
 			{
-				openTorrent(((URL)((Object[])data)[0]).toExternalForm());
+				openRemoteTorrent(((URL)((Object[])data)[0]).toExternalForm());
 				
 				break;
 			}
