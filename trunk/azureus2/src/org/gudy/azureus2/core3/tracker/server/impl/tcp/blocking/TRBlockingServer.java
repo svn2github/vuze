@@ -63,6 +63,8 @@ TRBlockingServer
 		
 		try{
 			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+			String tr_bind_ip = COConfigurationManager.getStringParameter("Bind IP for Tracker", "");
+			if (tr_bind_ip.length() >= 7) {bind_ip = tr_bind_ip;}
 	
 			if ( _ssl ){
 				
