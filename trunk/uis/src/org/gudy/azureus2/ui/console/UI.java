@@ -10,11 +10,22 @@
 
 package org.gudy.azureus2.ui.console;
 
+
+import java.io.File;
+import java.net.URL;
+
 import org.apache.log4j.Logger;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIException;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIInstanceFactory;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.console.multiuser.UserManager;
@@ -24,7 +35,11 @@ import org.gudy.azureus2.ui.console.multiuser.commands.UserCommand;
  *
  * @author  Tobias Minich
  */
-public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implements IUserInterface {
+public class 
+UI 
+	extends org.gudy.azureus2.ui.common.UITemplateHeadless 
+	implements IUserInterface, UIInstanceFactory, UIInstance, UIManagerEventListener
+{
   
   private ConsoleInput console = null;
   
@@ -43,14 +58,26 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   
   public void startUI() {
     super.startUI();
+    PluginInterface pi = UIConst.getAzureusCore().getPluginManager().getDefaultPluginInterface();
+    
+    UIManager	ui_manager = pi.getUIManager();
+    
+    ui_manager.addUIEventListener( this );
+    
+    try{
+    	ui_manager.attachUI( this );
+    }catch( UIException e ){
+    	e.printStackTrace();
+    }
     TorrentDownloaderFactory.initManager(UIConst.getGlobalManager(), true, true, COConfigurationManager.getStringParameter("Default save path") );
+    
     if ((!isStarted()) || (console == null) || (!console.isAlive())) {
 //      ConsoleInput.printconsolehelp(System.out);
       System.out.println();
       console = new ConsoleInput("Main", UIConst.getAzureusCore(), System.in, System.out, Boolean.TRUE);
       if( System.getProperty("azureus.console.multiuser") != null)
       {
-    	  UserManager manager = UserManager.getInstance(UIConst.getAzureusCore().getPluginManager().getDefaultPluginInterface());
+    	  UserManager manager = UserManager.getInstance(pi);
     	  console.registerCommand(new UserCommand(manager));
       }
       console.printconsolehelp();
@@ -94,4 +121,102 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
     }
   }
   
+	public UIInstance
+	getInstance(
+		PluginInterface		plugin_interface )
+	{
+		return( this );
+	}
+
+	public void
+	detach()
+	
+		throws UIException
+	{
+	}
+	
+	public boolean
+	eventOccurred(
+		UIManagerEvent	event )
+	{
+		Object	data = event.getData();
+		
+		switch( event.getType()){
+		
+			case UIManagerEvent.ET_SHOW_TEXT_MESSAGE:					// data is String[] - title, message, text
+			{
+				String[]	bits = (String[])data;
+				
+				for (int i=0;i<bits.length;i++){
+				
+					console.out.println( bits[i] );
+				}
+				
+				break;
+			}
+			case UIManagerEvent.ET_OPEN_TORRENT_VIA_FILE:				// data is File
+			{
+				openTorrent(((File)data).toString());
+				
+				break;
+			}
+			case UIManagerEvent.ET_OPEN_TORRENT_VIA_URL:				// data is Object[]{URL,URL,Boolean} - { torrent_url, referrer url, auto_download}
+			{
+				openTorrent(((URL)((Object[])data)[0]).toExternalForm());
+				
+				break;
+			}
+			case UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED:			// data is PluginViewModel (or subtype)
+			{
+				break;
+			}
+			case UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED:		// data is PluginConfigModel (or subtype)
+			{
+				break;
+			}
+			case UIManagerEvent.ET_COPY_TO_CLIPBOARD:					// data is String
+			{
+				break;
+			}
+			case UIManagerEvent.ET_PLUGIN_VIEW_MODEL_DESTROYED:		// data is PluginViewModel (or subtype)
+			{
+				break;
+			}
+			case UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_DESTROYED:		// data is PluginConfigModel (or subtype)
+			{
+				break;
+			}
+			case UIManagerEvent.ET_OPEN_URL:							// data is URL
+			{
+				break;
+			}
+			case UIManagerEvent.ET_CREATE_TABLE_COLUMN:				// data is String[] - table_id, cell_id: result is TableColumn
+			{
+					// need to return a dummy TableColumn as a result?
+				
+				return( false );
+
+			}
+			case UIManagerEvent.ET_ADD_TABLE_COLUMN:					// data is TableColumn previously created
+			{
+				break;
+			}
+			case UIManagerEvent.ET_ADD_TABLE_CONTEXT_MENU_ITEM:		// data is TableContextMenuItem
+			{
+				break;
+			}
+			case UIManagerEvent.ET_SHOW_CONFIG_SECTION:				// data is String - section id
+			{
+				event.setResult(new Boolean(false));
+				
+				break;
+			}
+			default:
+			{
+				console.out.println( "Unrecognised UI event '" + event.getType() + "'" );
+			}
+		}
+		
+		return( true );
+	}
 }
