@@ -27,7 +27,6 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -41,6 +40,8 @@ import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 /**
  * @author Olivier
@@ -49,7 +50,6 @@ import org.gudy.azureus2.ui.swt.Messages;
 public class IpFilterEditor {
 
   AzureusCore	azureus_core;
-  Display display;
   Table table;
   
   IpRange range;
@@ -59,12 +59,11 @@ public class IpFilterEditor {
   public 
   IpFilterEditor(
   		AzureusCore		_azureus_core,
-  		Display 		display,
+  		Shell parent,
 		Table 			_table, 
 		final IpRange _range) 
   {
   	azureus_core	= _azureus_core;
-    this.display = display;
     this.table = _table;
     this.range = _range;
     if (range == null) {
@@ -72,7 +71,7 @@ public class IpFilterEditor {
       range = azureus_core.getIpFilterManager().getIPFilter().createRange(false);
     }
 
-    final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    final Shell shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     Messages.setLanguageText(shell,"ConfigView.section.ipfilter.editFilter");
     if(! Constants.isOSX) {
       shell.setImage(ImageRepository.getImage("ipfilter"));
@@ -107,6 +106,7 @@ public class IpFilterEditor {
 
     final Button ok = new Button(shell, SWT.PUSH);
     Messages.setLanguageText(ok, "Button.ok");
+    shell.setDefaultButton(ok);
 
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
@@ -173,6 +173,7 @@ public class IpFilterEditor {
     }
 
     shell.pack();
+    Utils.centerWindowRelativeTo(shell, parent);
     shell.open();
   }
 

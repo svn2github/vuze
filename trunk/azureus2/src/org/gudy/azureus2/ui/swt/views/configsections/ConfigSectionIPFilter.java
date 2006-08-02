@@ -272,7 +272,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     table.setHeaderVisible(true);
 
     gridData = new GridData(GridData.FILL_BOTH);
-    gridData.heightHint = 200;
+    gridData.heightHint = table.getHeaderHeight() * 2;
 		gridData.widthHint = 200;
     table.setLayoutData(gridData);
 
@@ -402,13 +402,13 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
   }
 
   public void editRange(IpRange range) {
-    new IpFilterEditor(azureus_core,table.getDisplay(), table, range);
+    new IpFilterEditor(azureus_core,table.getShell(), table, range);
     noChange = false;
     //refresh();
   }
 
   public void addRange() {
-    new IpFilterEditor(azureus_core,table.getDisplay(), table, null);
+    new IpFilterEditor(azureus_core,table.getShell(), table, null);
     //noChange = false;
     //refresh();
   }
