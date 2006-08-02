@@ -38,6 +38,11 @@ PluginEvent
 		 */
 	public static final int	PEV_INITIAL_SHARING_COMPLETE			= 5;
 	
+	/**
+	 * @since 2403
+	 */
+	public static final int	PEV_INITIALISATION_UI_COMPLETES	= 6;
+
 		/**
 		 * Plugin specific events can be raised by a plugin to communicate with
 		 * other components. The event type must start from the number below

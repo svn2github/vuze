@@ -671,6 +671,8 @@ MainWindow
 		DonationWindow2.checkForDonationPopup();
 
     azureus_core.triggerLifeCycleComponentCreated(uiFunctions);
+		azureus_core.getPluginManager().firePluginEvent(
+				PluginEvent.PEV_INITIALISATION_UI_COMPLETES);
 	}
 
 
