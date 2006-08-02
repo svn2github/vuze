@@ -374,25 +374,25 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 			return;
 		}
 
-		img = new Image(peerInfoCanvas.getDisplay(), bounds.width, bounds.height);
+		DiskManagerPiece[] dm_pieces = null;
+
+		PEPeerManager pm = peer.getManager();
+
+		DiskManager dm = pm.getDiskManager();
+
+		dm_pieces = dm.getPieces();
+
+		int iNumCols = bounds.width / BLOCK_SIZE;
+		int iNeededHeight = (((dm.getNbPieces() - 1) / iNumCols) + 1)
+				* BLOCK_SIZE;
+		sc.setMinHeight(iNeededHeight);
+
+		img = new Image(peerInfoCanvas.getDisplay(), bounds.width, iNeededHeight);
 		GC gcImg = new GC(img);
 
 		try {
 			gcImg.setBackground(peerInfoCanvas.getBackground());
-			gcImg.fillRectangle(0, 0, bounds.width, bounds.height);
-
-			DiskManagerPiece[] dm_pieces = null;
-
-			PEPeerManager pm = peer.getManager();
-
-			DiskManager dm = pm.getDiskManager();
-
-			dm_pieces = dm.getPieces();
-
-			int iNumCols = bounds.width / BLOCK_SIZE;
-			int iNeededHeight = (((dm.getNbPieces() - 1) / iNumCols) + 1)
-					* BLOCK_SIZE;
-			sc.setMinHeight(iNeededHeight);
+			gcImg.fillRectangle(0, 0, bounds.width, iNeededHeight);
 
 			int[] availability = pm == null ? null : pm.getAvailability();
 
