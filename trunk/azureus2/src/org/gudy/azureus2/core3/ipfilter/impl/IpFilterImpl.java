@@ -126,7 +126,6 @@ IpFilterImpl
 	
 		throws Exception
 	{
-		if (true) return;
 		try{
 			class_mon.enter();
 		
