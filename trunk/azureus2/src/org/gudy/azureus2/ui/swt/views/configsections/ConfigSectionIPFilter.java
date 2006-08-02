@@ -139,6 +139,8 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
   public Composite configSectionCreate(final Composite parent) {
     GridData gridData;
 
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
+
     final IpFilterManager ipFilterManager = azureus_core.getIpFilterManager();
     filter = ipFilterManager.getIPFilter();
     
@@ -191,10 +193,10 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     	// row persist banning
     
 	gridData = new GridData();
-	
-    BooleanParameter persist_bad_data_banning = new BooleanParameter(gFilter, "Ip Filter Banning Persistent",true);
-    persist_bad_data_banning.setLayoutData( gridData );
-    Messages.setLanguageText(persist_bad_data_banning.getControl(), "ConfigView.section.ipfilter.persistblocking");
+
+  BooleanParameter persist_bad_data_banning = new BooleanParameter(gFilter, "Ip Filter Banning Persistent",true);
+  persist_bad_data_banning.setLayoutData( gridData );
+  Messages.setLanguageText(persist_bad_data_banning.getControl(), "ConfigView.section.ipfilter.persistblocking");
 
     	// row block bad + group ban
     
@@ -204,6 +206,16 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 	enable_bad_data_banning.setLayoutData( gridData );
     Messages.setLanguageText(enable_bad_data_banning.getControl(), "ConfigView.section.ipfilter.enablebanning");
 
+  	// description scratch file
+		if (userMode > 0) {
+			gridData = new GridData();
+			BooleanParameter enableDesc = new BooleanParameter(gFilter,
+					"Ip Filter Enable Description Cache", true);
+			enableDesc.setLayoutData(gridData);
+			Messages.setLanguageText(enableDesc.getControl(),
+					"ConfigView.section.ipfilter.enable.descriptionCache");
+		}
+      
     	// block banning
 
     Composite cLine = new Composite(gFilter, SWT.NULL);

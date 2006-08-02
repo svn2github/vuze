@@ -31,18 +31,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.RandomAccess;
 
-import org.gudy.azureus2.core3.ipfilter.*;
-import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.ipfilter.BadIps;
+import org.gudy.azureus2.core3.ipfilter.IpFilter;
+import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
+import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 public class 
 IpFilterManagerImpl
-	implements IpFilterManager
+	implements IpFilterManager, ParameterListener
 {
 	protected static IpFilterManagerImpl		singleton	= new IpFilterManagerImpl();
 
@@ -52,16 +52,8 @@ IpFilterManagerImpl
 	 * 
 	 */
 	public IpFilterManagerImpl() {
-		File fDescriptions = FileUtil.getUserFile("ipfilter.cache");
-		try {
-			if (fDescriptions.exists()) {
-				fDescriptions.delete();
-			}
-			rafDescriptions = new RandomAccessFile(fDescriptions, "rw");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		COConfigurationManager.addAndFireParameterListener(
+				"Ip Filter Enable Description Cache", this);
 	}
 	
 	public Object addDecription(IpRange range, byte[] description) {
@@ -159,5 +151,27 @@ IpFilterManagerImpl
 	getBadIps()
 	{
 		return (BadIpsImpl.getInstance());
+	}
+
+	public void parameterChanged(String parameterName) {
+		boolean enable = COConfigurationManager.getBooleanParameter(parameterName);
+		if (enable && rafDescriptions == null) {
+			File fDescriptions = FileUtil.getUserFile("ipfilter.cache");
+			try {
+				if (fDescriptions.exists()) {
+					fDescriptions.delete();
+				}
+				rafDescriptions = new RandomAccessFile(fDescriptions, "rw");
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else if (!enable && rafDescriptions != null) {
+			try {
+				rafDescriptions.close();
+			} catch (IOException e) {
+			}
+			rafDescriptions = null;
+		}
 	}
 }
