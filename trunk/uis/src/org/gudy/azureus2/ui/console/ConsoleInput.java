@@ -205,6 +205,14 @@ public class ConsoleInput extends Thread {
 	{
 		downloadTorrent(fileName, getDefaultSaveDirectory());
 	}
+	
+	/**
+	 * downloads the remote torrent file. once we have downloaded the .torrent file, we
+	 * pass the data to the downloadTorrent() method for further processing
+	 */
+	public void downloadRemoteTorrent(String url) {
+		downloadRemoteTorrent(url, getDefaultSaveDirectory());
+	}
 
 	/**
 	 * instantiates each of the plugin commands and registers t
