@@ -1093,7 +1093,7 @@ public class MainMenu {
   }
 
     private MenuItem addBlockedIPsMenuItem(Menu menu) {
-      return addMenuItem(menu, "ConfigView.section.ipfilter.list.title", new Listener() {
+      return addMenuItem(menu, "MainWindow.menu.view.IPFilter", new Listener() {
           public void handleEvent(Event event) {
               if(MainWindow.isAlreadyDead) {return;}
 
