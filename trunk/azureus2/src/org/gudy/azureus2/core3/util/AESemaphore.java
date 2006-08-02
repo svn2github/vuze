@@ -60,7 +60,10 @@ AESemaphore
 	public void
 	reserve()
 	{
-		reserve(0);
+		if ( !reserve(0)){
+			
+			Debug.out( "AESemaphore: reserve completed without acquire [" + getString() + "]" );
+		}
 	}
 	
 	public boolean
@@ -147,6 +150,13 @@ AESemaphore
 					
 					if ( total_reserve == total_release ){
 							
+							// here we have timed out on the wait without acquiring
+						
+						if ( millis == 0 ){
+							
+							Debug.out( "AESemaphore: wait outcome inconsistent [" + getString() + "]" );
+						}
+						
 						waiting--;
 						
 						return( 0 );
@@ -185,6 +195,7 @@ AESemaphore
 	{
 		try{
 			synchronized(this){
+				
 				//System.out.println( name + "::release");
 	
 				total_release++;
@@ -247,6 +258,15 @@ AESemaphore
 		synchronized(this){
 
 			return( dont_wait - waiting );
+		}
+	}
+	
+	public String
+	getString()
+	{
+		synchronized(this){
+
+			return( "value=" + dont_wait + ",waiting=" + waiting + ",res=" + total_reserve + ",rel=" + total_release );
 		}
 	}
 }

@@ -337,7 +337,7 @@ ThreadPool
 		
 			if ( debug_thread_pool_log_on ){
 				
-				System.out.println( "ThreadPool '" + getName() + "'/" + thread_name_index + ": max=" + max_size + ",sem=" + thread_sem.getValue() + ",pool=" + thread_pool.size() + ",busy=" + busy.size() + ",queue=" + task_queue.size());
+				System.out.println( "ThreadPool '" + getName() + "'/" + thread_name_index + ": max=" + max_size + ",sem=[" + thread_sem.getString() + "],pool=" + thread_pool.size() + ",busy=" + busy.size() + ",queue=" + task_queue.size());
 			}
 			
 			long	now = SystemTime.getCurrentTime();
