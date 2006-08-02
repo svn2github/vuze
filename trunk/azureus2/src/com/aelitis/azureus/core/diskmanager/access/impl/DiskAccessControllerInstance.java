@@ -498,7 +498,32 @@ DiskAccessControllerInstance
 					}
 					
 					try{
-						wait();
+						int	spurious_count = 0;
+						
+						while( true ){
+							
+							wait();
+						
+							if ( released ){
+								
+								break;
+								
+							}else{
+								
+								spurious_count++;
+
+								if ( spurious_count > 1024 ){
+								
+									Debug.out( "DAC::mutableInteger: spurious wakeup limit exceeded" );
+									
+									throw( new RuntimeException( "die die die" ));
+									
+								}else{
+								
+									Debug.out("DAC::mutableInteger: spurious wakeup, ignoring" );
+								}	
+							}
+						}
 						
 					}catch( InterruptedException e ){
 						

@@ -33,8 +33,11 @@ public class
 AEMonitor 
 	extends AEMonSem
 {
-	protected int			dont_wait	= 1;
-	protected int			nests		= 0;
+	private int			dont_wait		= 1;
+	private int			nests			= 0;
+	private int			total_reserve	= 0;
+	private int			total_release	= 1;
+
 	protected Thread		owner;
 	protected Thread		last_waiter;
 	
@@ -77,8 +80,37 @@ AEMonitor
 							// System.out.println( "AEMonitor: " + name + " contended" );
 						}
 						
-						wait();
-
+							// we can get spurious wakeups (see Object javadoc) so we need to guard against
+							// their possibility
+						
+						int	spurious_count	= 0;
+						
+						while( true ){
+							
+							wait();
+							
+							if ( total_reserve == total_release ){
+								
+								spurious_count++;
+	
+								if ( spurious_count > 1024 ){
+								
+									Debug.out( "AEMonitor: spurious wakeup limit exceeded" );
+									
+									throw( new Throwable( "die die die" ));
+									
+								}else{
+								
+									Debug.out("AEMonitor: spurious wakeup, ignoring" );
+								}					
+							}else{
+								
+								break;
+							}
+						}
+						
+						total_reserve++;
+						
 					}catch( Throwable e ){
 
 							// we know here that someone's got a finally clause to do the
@@ -97,6 +129,8 @@ AEMonitor
 						last_waiter = null;
 					}
 				}else{
+					
+					total_reserve++;
 					
 					dont_wait--;
 				}
@@ -127,6 +161,8 @@ AEMonitor
 				}else{
 					
 					owner	= null;
+					
+					total_release++;
 					
 					if ( waiting != 0 ){
 

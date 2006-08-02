@@ -141,9 +141,38 @@ AESemaphore
 
 					if ( millis == 0 ){
 						
-						wait();
+							// we can get spurious wakeups (see Object javadoc) so we need to guard against
+							// their possibility
 						
+						int	spurious_count	= 0;
+						
+						while( true ){
+							
+							wait();
+							
+							if ( total_reserve == total_release ){
+								
+								spurious_count++;
+
+								if ( spurious_count > 1024 ){
+								
+									Debug.out( "AESemaphore: spurious wakeup limit exceeded" );
+									
+									throw( new Throwable( "die die die" ));
+									
+								}else{
+								
+									Debug.out("AESemaphore: spurious wakeup, ignoring" );
+								}					
+							}else{
+								
+								break;
+							}
+						}
 					}else{
+						
+							// we don't hugely care about spurious wakeups here, it'll just appear
+							// as a failed reservation a bit early
 						
 						wait(millis);
 					}
@@ -151,11 +180,6 @@ AESemaphore
 					if ( total_reserve == total_release ){
 							
 							// here we have timed out on the wait without acquiring
-						
-						if ( millis == 0 ){
-							
-							Debug.out( "AESemaphore: wait outcome inconsistent [" + getString() + "]" );
-						}
 						
 						waiting--;
 						
