@@ -1270,12 +1270,10 @@ DownloadManagerController
 				new_files_facade[i] = new fileInfoFacade();
 			}
 			
-			files_facade = new_files_facade;
-
-			refresh = true;
-		}
-
-		if (refresh) {
+			// no need to set files_facade, it gets set to new_files_facade in
+			// fixup
+			fixupFileInfo(new_files_facade);
+		} else if (refresh) {
 			fixupFileInfo(files_facade);
 		}
 	}
