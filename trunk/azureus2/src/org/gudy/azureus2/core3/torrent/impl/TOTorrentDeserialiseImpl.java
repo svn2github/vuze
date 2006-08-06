@@ -277,7 +277,13 @@ TOTorrentDeserialiseImpl
 	
 					got_announce_list	= true;
 					
-					List	announce_list = (List)meta_data.get( TK_ANNOUNCE_LIST );
+					List	announce_list = null;
+					
+					Object	ann_list = meta_data.get( TK_ANNOUNCE_LIST );
+					
+					if( ann_list instanceof List ) {   //some malformed torrents have this key as a zero-sized string instead of a zero-sized list
+						announce_list = (List)ann_list;
+					}
 					
 					if ( announce_list != null && announce_list.size() > 0 ){
             
