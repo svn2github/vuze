@@ -83,6 +83,7 @@ DownloadImpl
 	
 	private DownloadAnnounceResultImpl	last_announce_result 	= new DownloadAnnounceResultImpl(this,null);
 	private DownloadScrapeResultImpl		last_scrape_result		= new DownloadScrapeResultImpl( this, null );
+    private TorrentImpl torrent = null;
 	
 	private List		listeners 				= new ArrayList();
 	private AEMonitor	listeners_mon			= new AEMonitor( "Download:L");
@@ -267,21 +268,17 @@ DownloadImpl
 		return globalManager.getIndexOf(download_manager);
 	}
 	
-	public Torrent
-	getTorrent()
-	{
-		TOTorrent	torrent = download_manager.getTorrent();
-		
-		if ( torrent == null ){
-			
-			return( null );
-			
-		}else{
-			
-			return( new TorrentImpl( torrent ));
-		}
-	}
-
+    public Torrent
+    getTorrent()
+    {
+    	if (this.torrent != null) {return this.torrent;}
+    	
+        TOTorrent torrent = download_manager.getTorrent();
+        if (torrent == null) {return null;}
+        this.torrent = new TorrentImpl(torrent);
+        return this.torrent;
+    }
+    
 	public void
 	initialize()
 	
