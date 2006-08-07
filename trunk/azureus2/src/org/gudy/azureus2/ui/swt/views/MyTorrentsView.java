@@ -196,6 +196,7 @@ public class MyTorrentsView
 			}
 		}
     addDataSources(dms);
+    processDataSourceQueue();
   }
 
 

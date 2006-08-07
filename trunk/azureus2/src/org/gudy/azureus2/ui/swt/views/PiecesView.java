@@ -155,6 +155,7 @@ public class PiecesView
 			return;
 		
 		addDataSources(dataSources);
+  	processDataSourceQueue();
 	}
 
 	public void initializeTable(Table table) {

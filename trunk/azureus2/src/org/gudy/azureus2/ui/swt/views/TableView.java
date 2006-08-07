@@ -1716,14 +1716,17 @@ public class TableView
 		try {
 			dataSourceToRow_mon.enter();
 
+			int count = 0;
+
 			for (int i = 0; i < dataSources.length; i++) {
-				if (dataSources[i] != null) {
+				if (dataSources[i] != null && !dataSourcesToAdd.contains(dataSources[i])) {
+					count++;
 					dataSourcesToAdd.add(dataSources[i]);
 				}
 			}
 
 			if (DEBUGADDREMOVE)
-				debug("Queued " + dataSources.length
+				debug("Queued " + count + " of " + dataSources.length
 						+ " dataSources to add.  Total Queued: " + dataSourcesToAdd.size());
 
 		} finally {
@@ -1830,13 +1833,25 @@ public class TableView
 		if (remainingDataSources == null) {
 			addDataSourcesToSWT(doneDataSources, true);
 		} else {
-			addDataSourcesToSWT(doneDataSources, false);
-			reallyAddDataSources(remainingDataSources);
+			final Object[] fDoneDataSources = doneDataSources;
+			final Object[] fRemainingDataSources = remainingDataSources;
+			// wrap both calls in a SWT thread so that continuation of adding 
+			// remaining datasources will be on SWT thread.  OSX has horrible handling
+			// of switching to SWT thread.
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					addDataSourcesToSWT(fDoneDataSources, false);
+					reallyAddDataSources(fRemainingDataSources);
+				}
+			}, false);
 		}
 	}
 	
 	private void addDataSourcesToSWT(final Object dataSources[], boolean async) {
 		try {
+			if (DEBUGADDREMOVE)
+				debug("--" + " Add " + dataSources.length + " rows to SWT " + (async ? " async " : " NOW"));
+
 			if (async) {
 				table.getDisplay().asyncExec(new AERunnable() {
 					public void runSupport() {
@@ -1866,6 +1881,9 @@ public class TableView
 		try {
 			dataSourceToRow_mon.enter();
 			sortedRows_mon.enter();
+
+			if (DEBUGADDREMOVE)
+				debug("--" + " Add " + dataSources.length + " rows to SWT");
 
 			// purposefully not included in time check 
 			table.setItemCount(sortedRows.size() + dataSources.length);

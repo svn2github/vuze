@@ -548,22 +548,27 @@ public class FilesView
   	if (refreshing)
   		return;
 
-  	refreshing = true;
-    if(getComposite() == null || getComposite().isDisposed())
-      return;
-
-    removeInvalidFileItems();
-
-    DiskManagerFileInfo files[] = getFileInfo();
+  	try {
+	  	refreshing = true;
+	    if(getComposite() == null || getComposite().isDisposed())
+	      return;
 	
-    if (files != null && getTable().getItemCount() != files.length && files.length > 0) {
-	    Object filesCopy[] = new Object[files.length]; 
-	    System.arraycopy(files, 0, filesCopy, 0, files.length);
-    	addDataSources(filesCopy);
-    }
-    
-    super.refresh(bForceSort);
-    refreshing = false;
+	    removeInvalidFileItems();
+	
+	    DiskManagerFileInfo files[] = getFileInfo();
+		
+	    if (files != null && getTable().getItemCount() != files.length && files.length > 0) {
+		    Object filesCopy[] = new Object[files.length]; 
+		    System.arraycopy(files, 0, filesCopy, 0, files.length);
+
+		    addDataSources(filesCopy);
+		    processDataSourceQueue();
+	    }
+	    
+	    super.refresh(bForceSort);
+  	} finally {
+  		refreshing = false;
+  	}
   }
   
   private void removeInvalidFileItems() {

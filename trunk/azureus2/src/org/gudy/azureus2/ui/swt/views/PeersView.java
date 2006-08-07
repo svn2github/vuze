@@ -220,5 +220,6 @@ public class PeersView
 			return;
 		
 		addDataSources(dataSources);
+		processDataSourceQueue();
 	}
 }
