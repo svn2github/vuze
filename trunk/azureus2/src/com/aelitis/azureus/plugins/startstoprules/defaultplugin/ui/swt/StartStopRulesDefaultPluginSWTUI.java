@@ -77,8 +77,8 @@ public class StartStopRulesDefaultPluginSWTUI {
 		final Button btnToClip = new Button(shell, SWT.NONE);
 		btnToClip.setLayoutData(new GridData());
 		btnToClip.setText("To Clipboard");
-		btnToClip.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
+		btnToClip.addListener(SWT.MouseUp, new Listener() {
+			public void handleEvent(Event event) {
         new Clipboard(Display.getCurrent()).setContents(
 						new Object[] { txtFP.getText() },
 						new Transfer[] { TextTransfer.getInstance() });
@@ -123,16 +123,16 @@ public class StartStopRulesDefaultPluginSWTUI {
 				});
 			}
 		};
-		btnAutoRefresh.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
+		btnAutoRefresh.addListener(SWT.MouseUp, new Listener() {
+			public void handleEvent(Event event) {
 				if (btnAutoRefresh.getSelection())
 					lbl.setText("");
 				task.run();
 			}
 		});
 
-		btnRefresh.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
+		btnRefresh.addListener(SWT.MouseUp, new Listener() {
+			public void handleEvent(Event event) {
 				btnRefresh.setData("Pressing", "1");
 				task.run();
 				btnRefresh.setData("Pressing", null);
