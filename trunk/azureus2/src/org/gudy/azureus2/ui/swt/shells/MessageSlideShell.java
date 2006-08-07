@@ -337,7 +337,7 @@ public class MessageSlideShell {
 		Messages.setLanguageText(btnDetails, "popup.error.details");
 		gridData = new GridData();
 		btnDetails.setLayoutData(gridData);
-		btnDetails.addListener(SWT.Selection, new Listener() {
+		btnDetails.addListener(SWT.MouseUp, new Listener() {
 			public void handleEvent(Event arg0) {
 				try {
 					boolean bShow = btnDetails.getSelection();

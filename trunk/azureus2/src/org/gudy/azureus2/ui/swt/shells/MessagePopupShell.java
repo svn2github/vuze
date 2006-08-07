@@ -220,7 +220,7 @@ public class MessagePopupShell implements AnimableShell {
     	formData.bottom  = new FormAttachment(100,-5);
     	btnHideAll.setLayoutData(formData);
     	
-    	btnHideAll.addListener(SWT.Selection, new Listener() {
+    	btnHideAll.addListener(SWT.MouseUp, new Listener() {
     		public void handleEvent(Event event) {
           btnHide.setEnabled(false);
           btnDetails.setEnabled(false);
@@ -246,7 +246,7 @@ public class MessagePopupShell implements AnimableShell {
     shell.layout();
     shell.setTabList(new Control[] {btnDetails, btnHide});
 
-    btnHide.addListener(SWT.Selection,new Listener() {
+    btnHide.addListener(SWT.MouseUp, new Listener() {
       public void handleEvent(Event arg0) {
           btnHide.setEnabled(false);
           btnDetails.setEnabled(false);
@@ -254,7 +254,7 @@ public class MessagePopupShell implements AnimableShell {
       }
     });
     
-    btnDetails.addListener(SWT.Selection,new Listener() {
+    btnDetails.addListener(SWT.MouseUp, new Listener() {
       public void handleEvent(Event arg0) {
        detailsShell.setVisible(btnDetails.getSelection());
       }
