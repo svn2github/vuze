@@ -498,7 +498,12 @@ DMCheckerImpl
 			DMPieceList pieceList = disk_manager.getPieceList(pieceNumber);
 
 			try{
-				boolean	all_compact = true;
+					// there are other comments in the code about the existence of 0 length piece lists
+					// just in case these still occur for who knows what reason ensure that a 0 length list
+					// causes the code to carry on and do the check (i.e. it is no worse that before this
+					// optimisation was added...)
+				
+				boolean	all_compact = pieceList.size() > 0;
 				
 				for (int i = 0; i < pieceList.size(); i++) {
 					
@@ -523,7 +528,7 @@ DMCheckerImpl
 				
 				if ( all_compact ){
 				
-					System.out.println( "Piece " + pieceNumber + " is all compact, failing hash check" );
+						// System.out.println( "Piece " + pieceNumber + " is all compact, failing hash check" );
 					
 					listener.checkCompleted( request, false );
 					
