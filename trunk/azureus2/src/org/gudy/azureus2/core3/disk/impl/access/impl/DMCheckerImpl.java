@@ -25,6 +25,7 @@ package org.gudy.azureus2.core3.disk.impl.access.impl;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerRecheckInstance;
 import org.gudy.azureus2.core3.disk.impl.access.DMChecker;
@@ -32,6 +33,8 @@ import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
+
+import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
 
 /**
  * @author parg
@@ -486,20 +489,47 @@ DMCheckerImpl
 				// quick check that the files that make up this piece are at least big enough
 				// to warrant reading the data to check
 			
+				// also, if the piece is entirely compact then we can immediately
+				// fail as we don't actually have any data for the piece (or can assume we don't)
+				// we relax this a bit to catch pieces that are part of compact files with less than
+				// three pieces as it is possible that these were once complete and have all their bits
+				// living in retained compact areas
+			
 			DMPieceList pieceList = disk_manager.getPieceList(pieceNumber);
 
 			try{
+				boolean	all_compact = true;
+				
 				for (int i = 0; i < pieceList.size(); i++) {
 					
 					DMPieceMapEntry piece_entry = pieceList.get(i);
 						
-					if ( piece_entry.getFile().getCacheFile().compareLength( piece_entry.getOffset()) < 0 ){
+					DiskManagerFileInfoImpl	file_info = piece_entry.getFile();
+					
+					CacheFile	cache_file = file_info.getCacheFile();
+					
+					if ( cache_file.compareLength( piece_entry.getOffset()) < 0 ){
 							
 						listener.checkCompleted( request, false );
 						
 						return;
 					}
+					
+					if ( all_compact && ( cache_file.getStorageType() != CacheFile.CT_COMPACT || file_info.getNbPieces() <= 2 )){
+						
+						all_compact = false;
+					}
 				}
+				
+				if ( all_compact ){
+				
+					System.out.println( "Piece " + pieceNumber + " is all compact, failing hash check" );
+					
+					listener.checkCompleted( request, false );
+					
+					return;
+				}
+				
 			}catch( Throwable e ){
 			
 					// we can fail here if the disk manager has been stopped as the cache file length access may be being
