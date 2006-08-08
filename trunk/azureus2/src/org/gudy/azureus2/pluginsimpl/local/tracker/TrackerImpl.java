@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  *
  */
 
+import java.net.InetAddress;
 import java.net.URL;
 import java.util.*;
 
@@ -186,7 +187,7 @@ TrackerImpl
 	
 		throws TrackerException
 	{
-		return( new TrackerWebContextImpl( this, null, port, protocol ));
+		return( new TrackerWebContextImpl( this, null, port, protocol, null ));
 	}
 	
 	public TrackerWebContext
@@ -197,8 +198,20 @@ TrackerImpl
 	
 		throws TrackerException
 	{
-		return( new TrackerWebContextImpl( this, name, port, protocol ));
+		return( new TrackerWebContextImpl( this, name, port, protocol, null ));
 	}
+	
+	public TrackerWebContext
+    createWebContext(
+    	String		name,
+    	int			port,
+		int			protocol,
+		InetAddress	bind_ip )
+    
+    	throws TrackerException
+    {
+		return( new TrackerWebContextImpl( this, name, port, protocol, bind_ip ));
+    }
 	
 	public void
 	torrentAdded(

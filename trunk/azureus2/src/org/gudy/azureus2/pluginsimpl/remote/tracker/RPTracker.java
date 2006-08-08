@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.remote.tracker;
  */
 
 
+import java.net.InetAddress;
 import java.net.URL;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -216,6 +217,20 @@ RPTracker
     	String	name,
     	int		port,
 		int		protocol )
+    
+    	throws TrackerException
+	{	
+    	notSupported();
+		
+		return( null );
+	}
+    
+    public TrackerWebContext
+    createWebContext(
+    	String		name,
+    	int			port,
+		int			protocol,
+		InetAddress	bind_ip )
     
     	throws TrackerException
 	{	

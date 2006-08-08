@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  */
 
 import java.util.*;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -49,7 +50,8 @@ TrackerWebContextImpl
 		TrackerImpl	_tracker,
 		String		name,
 		int			port,
-		int			protocol )
+		int			protocol,
+		InetAddress	bind_ip )
 	
 		throws TrackerException
 	{
@@ -59,11 +61,11 @@ TrackerWebContextImpl
 			
 			if ( protocol == Tracker.PR_HTTP ){
 				
-				server = TRTrackerServerFactory.create( name, TRTrackerServerFactory.PR_TCP, port, false, false );
+				server = TRTrackerServerFactory.create( name, TRTrackerServerFactory.PR_TCP, port, bind_ip, false, false );
 				
 			}else{
 				
-				server = TRTrackerServerFactory.createSSL( name, TRTrackerServerFactory.PR_TCP, port, false, false );
+				server = TRTrackerServerFactory.createSSL( name, TRTrackerServerFactory.PR_TCP, port, bind_ip, false, false );
 			}
 			
 			server.addListener( this );

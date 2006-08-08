@@ -22,6 +22,8 @@
 package org.gudy.azureus2.core3.tracker.server;
 
 
+import java.net.InetAddress;
+
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 
 public class 
@@ -40,7 +42,7 @@ TRTrackerServerFactory
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( null, protocol, port, false, apply_ip_filter, main_tracker ));
+		return( TRTrackerServerFactoryImpl.create( null, protocol, port, null, false, apply_ip_filter, main_tracker ));
 	}
 	
 	public static TRTrackerServer
@@ -52,7 +54,7 @@ TRTrackerServerFactory
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( null, protocol, port, true, apply_ip_filter, main_tracker ));
+		return( TRTrackerServerFactoryImpl.create( null, protocol, port, null, true, apply_ip_filter, main_tracker ));
 	}
 	
 	public static TRTrackerServer
@@ -65,7 +67,7 @@ TRTrackerServerFactory
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( name, protocol, port, false, apply_ip_filter, main_tracker ));
+		return( TRTrackerServerFactoryImpl.create( name, protocol, port, null, false, apply_ip_filter, main_tracker ));
 	}
 	
 	public static TRTrackerServer
@@ -78,7 +80,36 @@ TRTrackerServerFactory
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( name, protocol, port, true, apply_ip_filter, main_tracker ));
+		return( TRTrackerServerFactoryImpl.create( name, protocol, port, null, true, apply_ip_filter, main_tracker ));
+	}
+	
+	
+	public static TRTrackerServer
+	create(
+		String		name,
+		int			protocol,
+		int			port,
+		InetAddress	bind_ip,
+		boolean		apply_ip_filter,
+		boolean		main_tracker )
+		
+		throws TRTrackerServerException
+	{
+		return( TRTrackerServerFactoryImpl.create( name, protocol, port, bind_ip, false, apply_ip_filter, main_tracker ));
+	}
+	
+	public static TRTrackerServer
+	createSSL(
+		String		name,
+		int			protocol,
+		int			port,
+		InetAddress	bind_ip,
+		boolean 	apply_ip_filter,
+		boolean		main_tracker )
+		
+		throws TRTrackerServerException
+	{
+		return( TRTrackerServerFactoryImpl.create( name, protocol, port, bind_ip, true, apply_ip_filter, main_tracker ));
 	}
 	
 	public static void

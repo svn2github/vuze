@@ -52,6 +52,7 @@ TRBlockingServer
 	TRBlockingServer(
 		String		_name,
 		int			_port,
+		InetAddress	_bind_ip,
 		boolean		_ssl,
 		boolean		_apply_ip_filter )
 		
@@ -67,6 +68,11 @@ TRBlockingServer
 			if (tr_bind_ip.length() >= 7) {bind_ip = tr_bind_ip;}
 	
 			if ( _ssl ){
+				
+				if ( _port == 0 ){
+					
+					throw( new TRTrackerServerException( "port of 0 not currently supported for SSL"));
+				}
 				
 				try { 	      
 					SSLServerSocketFactory factory = SESecurityManager.getSSLServerSocketFactory();
@@ -142,13 +148,24 @@ TRBlockingServer
 				try{
 					ServerSocket ss;
 					
-					if ( bind_ip.length() < 7 ){
+					int	port = getPort();
+					
+					if ( _bind_ip != null ){
+					
+						ss = new ServerSocket(  port, 1024, _bind_ip );
+
+					}else if ( bind_ip.length() < 7 ){
 						
-						ss = new ServerSocket(  getPort(), 1024 );
+						ss = new ServerSocket(  port, 1024 );
 						
 					}else{
 						
-						ss = new ServerSocket(  getPort(), 1024, InetAddress.getByName(bind_ip));
+						ss = new ServerSocket(  port, 1024, InetAddress.getByName(bind_ip));
+					}
+					
+					if ( port == 0 ){
+						
+						setPort( ss.getLocalPort());
 					}
 					
 					ss.setReuseAddress(true);

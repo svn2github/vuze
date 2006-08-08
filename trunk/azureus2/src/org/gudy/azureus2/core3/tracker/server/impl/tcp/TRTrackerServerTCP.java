@@ -276,6 +276,13 @@ TRTrackerServerTCP
 		return( port );
 	}
 	
+	protected void
+	setPort(
+		int		_port )
+	{
+		port	= _port;
+	}
+	
 	public String
 	getHost()
 	{

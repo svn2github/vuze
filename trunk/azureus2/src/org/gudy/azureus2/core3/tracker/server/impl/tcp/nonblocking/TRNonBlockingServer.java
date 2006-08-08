@@ -81,6 +81,7 @@ TRNonBlockingServer
 	TRNonBlockingServer(
 		String		_name,
 		int			_port,
+		InetAddress	_bind_ip,
 		boolean		_apply_ip_filter )
 		
 		throws TRTrackerServerException
@@ -89,22 +90,34 @@ TRNonBlockingServer
 		
 		boolean	ok = false;
 		
+		if ( _port == 0 ){
+			
+			throw( new TRTrackerServerException( "port of 0 not currently supported"));
+		}
+		
 		try{
 			InetSocketAddress	address;
 			
-			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+			if ( _bind_ip == null ){
+				
+				String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+		
+				if ( bind_ip.length() < 7 ){
+					
+					address = new InetSocketAddress( _port );
+					
+				}else{
 	
-			if ( bind_ip.length() < 7 ){
-				
-				address = new InetSocketAddress( _port );
-				
+					address = new InetSocketAddress( InetAddress.getByName( bind_ip ), _port );			
+				}
 			}else{
-
-				address = new InetSocketAddress( InetAddress.getByName( bind_ip ), _port );			
+				
+				address = new InetSocketAddress(  _bind_ip, _port );	
 			}
 			
 			VirtualServerChannelSelector accept_server = VirtualServerChannelSelectorFactory.createBlocking( address, 0, this );
 
+			
 			accept_server.start();
 		      
 			AEThread	read_thread = 

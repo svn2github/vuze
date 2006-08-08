@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
  *
  */
 
+import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -48,6 +49,7 @@ TRTrackerServerFactoryImpl
 		String		name,
 		int			protocol,
 		int			port,
+		InetAddress	bind_ip,
 		boolean		ssl,
 		boolean		apply_ip_filter,
 		boolean		main_tracker )
@@ -63,10 +65,10 @@ TRTrackerServerFactoryImpl
 				
 				if ( COConfigurationManager.getBooleanParameter( "Tracker TCP NonBlocking" ) && main_tracker && !ssl ){
 					
-					server = new TRNonBlockingServer( name, port, apply_ip_filter );
+					server = new TRNonBlockingServer( name, port, bind_ip, apply_ip_filter );
 				}else{
 					
-					server = new TRBlockingServer( name, port, ssl, apply_ip_filter );
+					server = new TRBlockingServer( name, port, bind_ip, ssl, apply_ip_filter );
 				}
 				
 			}else if ( protocol == TRTrackerServerFactory.PR_UDP ){

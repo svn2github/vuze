@@ -26,6 +26,8 @@ package org.gudy.azureus2.plugins.tracker;
  *
  */
 
+import java.net.InetAddress;
+
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebContext;
 
@@ -85,6 +87,25 @@ Tracker
     	String	name,
     	int		port,
 		int		protocol )
+    
+    	throws TrackerException;
+    
+    	/**
+    	 * Creates a new context bound to the supplied ip
+    	 * @param name
+    	 * @param port
+    	 * @param protocol
+    	 * @param bind_ip
+    	 * @return
+    	 * @throws TrackerException
+    	 */
+    
+    public TrackerWebContext
+    createWebContext(
+    	String		name,
+    	int			port,
+		int			protocol,
+		InetAddress	bind_ip )
     
     	throws TrackerException;
     
