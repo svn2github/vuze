@@ -30,7 +30,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
-import org.gudy.azureus2.ui.swt.views.ConfigView;
+import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -90,10 +90,6 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 				}
 			}
 		});
-	}
-
-	public ConfigView showConfig() {
-		return mainwindow.showConfig();
 	}
 
 	public void showStats() {
@@ -174,9 +170,7 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 	public void refreshLanguage() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (mainwindow.getMenu() != null) {
-					mainwindow.getMenu().refreshLanguage();
-				}
+				mainwindow.setSelectedLanguageItem();
 			}
 		});
 	}
@@ -276,5 +270,45 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 			return mainwindow.getMenu().getMenu(id);
 		}
 		return null;
+	}
+
+	public void closePluginViews(final String sViewID) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				mainwindow.closePluginViews(sViewID);
+			}
+		});
+	}
+
+	public void openPluginView(final AbstractIView view, final String name) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				mainwindow.openPluginView(view, name);
+			}
+		});
+	}
+
+	public void showMyShares() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				mainwindow.showMyShares();
+			}
+		});
+	}
+
+	public void showMyTorrents() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				mainwindow.showMyTorrents();
+			}
+		});
+	}
+
+	public void showConsole() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				mainwindow.showConsole();
+			}
+		});
 	}
 }

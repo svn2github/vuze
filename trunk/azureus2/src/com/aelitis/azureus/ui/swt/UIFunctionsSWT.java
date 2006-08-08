@@ -28,6 +28,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
+import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.ui.UIFunctions;
@@ -104,6 +105,8 @@ public interface UIFunctionsSWT extends UIFunctions
 	 */
 	public void openPluginView(String sParentID, String sViewID,
 			UISWTViewEventListener l, Object dataSource, boolean bSetFocus);
+	
+	public void openPluginView(final AbstractIView view, final String name);
 
 	/**
 	 * @param viewID
@@ -114,6 +117,8 @@ public interface UIFunctionsSWT extends UIFunctions
 	 * @param impl
 	 */
 	public void closePluginView(IView view);
+	
+	public void closePluginViews(String sViewID);
 	
 	public Menu getMenu(int id);
 }

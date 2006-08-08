@@ -26,6 +26,8 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreException;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
@@ -46,7 +48,6 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
-import org.gudy.azureus2.plugins.download.Download;
 
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
@@ -139,7 +140,7 @@ MainWindow
 
   private ArrayList events;
 
-	private UIFunctions uiFunctions;
+	private UIFunctionsSWT uiFunctions;
 
 	private boolean bIconBarEnabled = false;
 
@@ -174,7 +175,14 @@ MainWindow
   		Debug.printStackTrace( e );
   	}
   }
-  
+
+  /**
+   * runSupport() MUST BE CALLED TO FINISH INITIALIZATION
+   * @param _azureus_core
+   * @param _initializer
+   * @param shell
+   * @param parent
+   */
   public MainWindow(AzureusCore _azureus_core, Initializer _initializer,
 			Shell shell, Composite parent) {
 		this.shell = shell;
@@ -196,9 +204,6 @@ MainWindow
 
 			window = this;
 
-  		runSupport();
-			//display.asyncExec(this);
-
 		} catch (AzureusCoreException e) {
 
 			Debug.printStackTrace(e);
@@ -209,10 +214,12 @@ MainWindow
     FormData formData;
     
     try{
-    	uiFunctions = UIFunctionsManager.getUIFunctions();
+    	uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
     	if (uiFunctions == null) {
     		uiFunctions = new UIFunctionsImpl(this);
     		UIFunctionsManager.setUIFunctions(uiFunctions);
+    	} else {
+    		uiFunctions = new UIFunctionsImpl(this);
     	}
     	
 			globalManager.loadExistingTorrentsNow(null, true);
@@ -572,6 +579,7 @@ MainWindow
 			return;
 		}
 		bIconBarEnabled  = enabled;
+		COConfigurationManager.setParameter("IconBar.enabled", bIconBarEnabled);
 		if (bIconBarEnabled) {
 	    try {
 		    iconBar = new IconBar(parent);
@@ -1105,7 +1113,7 @@ MainWindow
    * 
    * @param sViewID
    */
-  public void closePluginViews(String sViewID) {
+  protected void closePluginViews(String sViewID) {
   	Item[] items;
 
 		if (folder instanceof CTabFolder)
@@ -1388,6 +1396,10 @@ MainWindow
 	  	if (mainStatusBar != null) {
 	  		mainStatusBar.updateStatusText();
   		}
+	  	
+	  	if (mainMenu != null) {
+	  		mainMenu.updateMenuText(mainMenu.getMenu(MainMenu.MENU_BAR));
+	  	}
   	}finally{
   		
   		this_mon.exit();
@@ -1659,5 +1671,8 @@ MainWindow
 			e.printStackTrace();
 		}
 	}
-	
+
+	public UIFunctionsSWT getUIFunctions() {
+		return uiFunctions;
+	}
 }

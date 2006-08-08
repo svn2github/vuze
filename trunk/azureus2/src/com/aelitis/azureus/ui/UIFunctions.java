@@ -28,6 +28,8 @@ import com.aelitis.azureus.core.AzureusCoreComponent;
  * @author TuxPaper
  * @created Jun 14, 2006
  *
+ *
+ * TODO: Replace showXxxx(..) with showView(ID, ..) + ID Constants
  */
 public interface UIFunctions extends AzureusCoreComponent
 {
@@ -89,6 +91,16 @@ public interface UIFunctions extends AzureusCoreComponent
 	void showMyTracker();
 
 	/**
+	 * 
+	 */
+	void showMyShares();
+
+	/**
+	 * 
+	 */
+	void showMyTorrents();
+
+	/**
 	 * @param manager
 	 */
 	void removeManagerView(DownloadManager dm);
@@ -98,5 +110,10 @@ public interface UIFunctions extends AzureusCoreComponent
 	 */
 	void setStatusText(String string);
 
-  public boolean dispose(boolean for_restart, boolean close_already_in_progress);
+  boolean dispose(boolean for_restart, boolean close_already_in_progress);
+
+	/**
+	 * 
+	 */
+	void showConsole();
 }

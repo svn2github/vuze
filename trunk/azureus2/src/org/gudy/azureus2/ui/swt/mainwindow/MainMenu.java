@@ -70,6 +70,11 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * @author Olivier Chalouhi
@@ -144,7 +149,7 @@ public class MainMenu {
   private void buildMenu(final Shell parent) {
     try {
     	if (core == null) {
-    		core = mainWindow.getAzureusCore();
+    		core = AzureusCoreFactory.getSingleton();
     	}
       
       //The Main Menu
@@ -201,10 +206,9 @@ public class MainMenu {
         file_restart.addListener(SWT.Selection, new Listener() {
 
         public void handleEvent(Event event) {
-
-            MainWindow.getWindow().dispose(true,false);
-         }
-        });
+						UIFunctionsManagerSWT.getUIFunctionsSWT().dispose(true, false);
+					}
+				});
 
         final MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
         if(!COConfigurationManager.getBooleanParameter("Enable System Tray") || !COConfigurationManager.getBooleanParameter("Close To Tray")) {
@@ -214,7 +218,7 @@ public class MainMenu {
         
         file_exit.addListener(SWT.Selection, new Listener() {
           public void handleEvent(Event e) {
-            mainWindow.dispose(false,false);
+          	UIFunctionsManagerSWT.getUIFunctionsSWT().dispose(false, false);
           }
         });
 
@@ -347,10 +351,13 @@ public class MainMenu {
             KeyBindings.setAccelerator(view_config, "MainWindow.menu.view.configuration");
             Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
             view_config.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event e) {
-            	mainWindow.showConfig();
-            }
-            });
+					public void handleEvent(Event e) {
+						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						if (uiFunctions != null) {
+							uiFunctions.showConfig(null);
+						}
+					}
+				});
 
             if(isModal) {performOneTimeDisable(menu_tools, true);}
       }
@@ -480,7 +487,10 @@ public class MainMenu {
         Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
         help_checkupdate.addListener(SWT.Selection, new Listener() {
         	public void handleEvent(Event e) {
-        		mainWindow.getShell().setFocus();
+        		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+        		if (uiFunctions != null) {
+        			uiFunctions.bringToFront();
+        		}
         		UpdateMonitor.getSingleton(core).performCheck(true);
         	}
         });
@@ -569,7 +579,7 @@ public class MainMenu {
 
       itemStartAll.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0) {
-            mainWindow.getGlobalManager().startAllDownloads();
+        	core.getGlobalManager().startAllDownloads();
         }
       });
 
@@ -589,7 +599,7 @@ public class MainMenu {
       itemResume.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0)
         {
-          mainWindow.getGlobalManager().resumeDownloads();
+          core.getGlobalManager().resumeDownloads();
         }
       });
 
@@ -598,9 +608,9 @@ public class MainMenu {
                 public void
                 menuShown(MenuEvent menu)
                 {
-                    itemPause.setEnabled( mainWindow.getGlobalManager().canPauseDownloads() );
+                    itemPause.setEnabled( core.getGlobalManager().canPauseDownloads() );
 
-                    itemResume.setEnabled( mainWindow.getGlobalManager().canResumeDownloads() );
+                    itemResume.setEnabled( core.getGlobalManager().canResumeDownloads() );
                 }
 
                 public void
@@ -681,8 +691,11 @@ public class MainMenu {
 
 				item.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event e) {
-						mainWindow.openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l,
-								null, true);
+						UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+						if (uiFunctions != null) {
+							uiFunctions.openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l,
+									null, true);
+						}
 					}
 				});
 				menu_plugin.setEnabled(true);
@@ -707,7 +720,10 @@ public class MainMenu {
 						items[i].dispose();
 					}
 				}
-  			mainWindow.closePluginViews(sViewID);
+				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+				if (uiFunctions != null) {
+  				uiFunctions.closePluginViews(sViewID);
+				}
 			}
 		});
   }
@@ -744,7 +760,10 @@ public class MainMenu {
         item.setText( name );
         item.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
-            mainWindow.openPluginView(view,name);
+    				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+    				if (uiFunctions != null) {
+      				uiFunctions.openPluginView(view, name);
+    				}
           }
         });
         menu_plugin.setEnabled(true);
@@ -778,7 +797,10 @@ public class MainMenu {
       			
       			item.dispose();
       			
-      			mainWindow.closePluginView( view );
+    				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+    				if (uiFunctions != null) {
+      				uiFunctions.closePluginView(view);
+    				}
       			
       		}else{
       			others = true;
@@ -886,7 +908,10 @@ public class MainMenu {
   private MenuItem addMyTorrentsMenuItem(Menu menu) {
       return addMenuItem(menu, "MainWindow.menu.view.mytorrents", new Listener() {
         public void handleEvent(Event e) {
-          mainWindow.showMyTorrents();
+        	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  				if (uiFunctions != null) {
+    				uiFunctions.showMyTorrents();
+  				}
         }
       });
   }
@@ -895,7 +920,10 @@ public class MainMenu {
     {
         return addMenuItem(menu, "MainWindow.menu.view.mytracker", new Listener() {
           public void handleEvent(Event e) {
-            mainWindow.showMyTracker();
+          	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+    				if (uiFunctions != null) {
+      				uiFunctions.showMyTracker();
+    				}
           }
         });
     }
@@ -904,7 +932,10 @@ public class MainMenu {
   {
       return addMenuItem(menu, "MainWindow.menu.view.myshares", new Listener() {
           public void handleEvent(Event e) {
-          mainWindow.showMyShares();
+          	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+    				if (uiFunctions != null) {
+      				uiFunctions.showMyShares();
+    				}
           }
       });
   }
@@ -940,7 +971,10 @@ public class MainMenu {
     private MenuItem addConsoleMenuItem(Menu menu) {
        return addMenuItem(menu, "MainWindow.menu.view.console", new Listener() {
           public void handleEvent(Event e) {
-            mainWindow.showConsole();
+          	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						if (uiFunctions != null) {
+							uiFunctions.showConsole();
+						}
           }
         });
     }
@@ -948,7 +982,10 @@ public class MainMenu {
     private MenuItem addStatisticsMenuItem(Menu menu) {
        return addMenuItem(menu, "MainWindow.menu.view.stats", new Listener() {
           public void handleEvent(Event e) {
-            mainWindow.showStats();
+          	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						if (uiFunctions != null) {
+							uiFunctions.showStats();
+						}
           }
         });
     }
@@ -1143,20 +1180,6 @@ public class MainMenu {
   }
   
   
-  protected void refreshLanguage() {
-    Utils.execSWTThread(new AERunnable() {
-      public void runSupport() {
-        if (display == null || display.isDisposed())
-          return;
-
-        updateMenuText(menuBar);
-        mainWindow.setSelectedLanguageItem(); 
-      }
-    });
-  }
-  
-
-
   private static void setHandlerForShellManager(MenuItem item, final ShellManager mgr, final Listener evtHandler)
   {
       mgr.addWindowAddedListener(evtHandler);

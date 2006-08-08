@@ -143,6 +143,7 @@ public class SWTThread {
         // specific ones should terminate us before disposing of the window...)
         
         app.stopIt( false, false );
+        terminated = true;
       }
 
       try {
