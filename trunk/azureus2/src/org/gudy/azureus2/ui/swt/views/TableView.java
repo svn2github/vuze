@@ -119,7 +119,7 @@ public class TableView
 	private final static LogIDs LOGID = LogIDs.GUI;
 	
 	/** Helpfull output when trying to debug add/removal of rows */
-	public final static boolean DEBUGADDREMOVE = false;
+	public final static boolean DEBUGADDREMOVE = true;
 	
 	/** Virtual Tables still a work in progress */
 	// Non-Virtual tables scroll faster with they keyboard
@@ -141,6 +141,10 @@ public class TableView
 	private static final long IMMEDIATE_ADDREMOVE_DELAY = 150;
 
 	private static final long IMMEDIATE_ADDREMOVE_MAXDELAY = 2000;
+	
+	private static final long BREAKOFF_ADDTOMAP = 3000;
+	
+	private static final long BREAKOFF_ADDROWSTOSWT = 4000;
 
   /** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
    * of the table this class is
@@ -1798,7 +1802,7 @@ public class TableView
 
 				// Break off and add the rows to the UI if we've taken too long to
 				// create them
-				if (SystemTime.getCurrentTime() - lStartTime > 500) {
+				if (SystemTime.getCurrentTime() - lStartTime > BREAKOFF_ADDTOMAP) {
 					int iNewSize = dataSources.length - i;
 					if (DEBUGADDREMOVE) {
 						debug("Breaking off adding datasources to map after "
@@ -1900,7 +1904,7 @@ public class TableView
 
 				// If we've been processing on the SWT thread for too long,
 				// break off and allow SWT a breather to update.
-				if (SystemTime.getCurrentTime() - lStartTime > 2000) {
+				if (SystemTime.getCurrentTime() - lStartTime > BREAKOFF_ADDROWSTOSWT) {
 					int iNewSize = dataSources.length - i;
 					if (DEBUGADDREMOVE) {
 						debug("Breaking off adding datasources to SWT after " + i
