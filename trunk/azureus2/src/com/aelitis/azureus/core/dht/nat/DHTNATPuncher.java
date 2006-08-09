@@ -82,4 +82,10 @@ DHTNATPuncher
 	setRendezvous(
 		DHTTransportContact		target,
 		DHTTransportContact		rendezvous );
+	
+	public Map
+	sendMessage(
+		InetSocketAddress	rendezvous,
+		InetSocketAddress	target,
+		Map					message );
 }

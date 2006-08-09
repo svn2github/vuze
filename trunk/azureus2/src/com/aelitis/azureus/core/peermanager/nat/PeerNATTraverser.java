@@ -465,6 +465,7 @@ PeerNATTraverser
 		
 		public void
 		succeeded(
+			InetSocketAddress	rendezvous,
 			InetSocketAddress	target,
 			Map					reply )
 		{

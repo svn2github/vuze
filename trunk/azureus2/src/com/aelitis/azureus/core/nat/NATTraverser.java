@@ -42,7 +42,8 @@ public class
 NATTraverser 
 	implements DHTNATPuncherAdapter
 {
-	public static final int	TRAVERSE_REASON_PEER_DATA	= 1;
+	public static final int	TRAVERSE_REASON_PEER_DATA			= 1;
+	public static final int	TRAVERSE_REASON_GENERIC_MESSAGING	= 2;
 	
 	private static final int	MAX_QUEUE_SIZE	= 128;
 	
@@ -159,7 +160,7 @@ NATTraverser
 
 							if ( dhts.length > 0 ){
 								
-								puncher = dhts[0].getNATPuncher();
+								puncher = dhts[dhts.length-1].getNATPuncher();
 							}
 						}
 					}
@@ -199,12 +200,38 @@ NATTraverser
 				
 			}else{
 				
-				listener.succeeded( target_a[0], reply );
+				listener.succeeded( rendezvous_used[0].getAddress(), target_a[0], reply );
 			}
 		}catch( Throwable e ){
 			
 			listener.failed( e );
 		}
+	}
+	
+	public Map
+	sendMessage(
+		NATTraversalHandler		handler,
+		InetSocketAddress		rendezvous,
+		InetSocketAddress		target,
+		Map						message )
+	
+		throws NATTraversalException
+	{
+		if ( puncher == null ){
+			
+			throw( new NATTraversalException( "Puncher unavailable" ));
+		}
+		
+		message.put( "_travreas", new Long( handler.getType()));
+
+		Map	reply = puncher.sendMessage( rendezvous, target, message );
+		
+		if ( reply == null ){
+			
+			throw( new NATTraversalException( "Send message failed" ));
+		}
+		
+		return( reply );
 	}
 	
 	public Map

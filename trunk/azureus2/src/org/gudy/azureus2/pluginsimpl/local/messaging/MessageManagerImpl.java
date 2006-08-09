@@ -37,6 +37,9 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
 import org.gudy.azureus2.plugins.peers.*;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.nat.NATTraversalHandler;
+import com.aelitis.azureus.core.nat.NATTraverser;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
@@ -48,9 +51,9 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
 /**
  *
  */
-public class MessageManagerImpl implements MessageManager {
+public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
   
-  private static final MessageManagerImpl instance = new MessageManagerImpl();
+  private static MessageManagerImpl instance;
   
   private final HashMap compat_checks = new HashMap();
   
@@ -114,13 +117,31 @@ public class MessageManagerImpl implements MessageManager {
   
   
   
-  public static MessageManagerImpl getSingleton() {  return instance;  }
-  
-  
-  private MessageManagerImpl() {
-    /*nothing*/
+  public static synchronized MessageManagerImpl 
+  getSingleton(AzureusCore core) 
+  {
+	  if ( instance == null ){
+		  
+		  instance = new MessageManagerImpl( core );
+	  }
+		  
+	  return instance;
   }
   
+  private AzureusCore	core;
+  
+  private MessageManagerImpl(AzureusCore _core ) {
+  
+	  core	= _core;
+	  
+	  core.getNATTraverser().registerHandler( this );
+  }
+  
+  public NATTraverser
+  getNATTraverser()
+  {
+	  return( core.getNATTraverser());
+  }
   
   public void registerMessageType( Message message ) throws MessageException {
     try {
@@ -233,7 +254,13 @@ public class MessageManagerImpl implements MessageManager {
 								Debug.out( "incomplete read" );
 							}
 							
-							GenericMessageConnectionImpl new_connection = new GenericMessageConnectionImpl( type, description, stream_crypto, shared_secret, connection );
+							GenericMessageEndpointImpl endpoint		= new GenericMessageEndpointImpl( connection.getEndpoint());
+							
+							GenericMessageConnectionDirect direct_connection = new GenericMessageConnectionDirect( type, description, endpoint, stream_crypto, shared_secret );
+							
+							GenericMessageConnectionImpl new_connection = new GenericMessageConnectionImpl( MessageManagerImpl.this, direct_connection );
+					
+							direct_connection.connect( connection );
 							
 							if ( !handler.accept( new_connection )){
 								
@@ -277,7 +304,7 @@ public class MessageManagerImpl implements MessageManager {
 			
 				throws MessageException
 			{
-				return( new GenericMessageConnectionImpl( type, description, endpoint, stream_crypto, shared_secret ));
+				return( new GenericMessageConnectionImpl( MessageManagerImpl.this, type, description, (GenericMessageEndpointImpl)endpoint, stream_crypto, shared_secret ));
 			}
 			
 			public void
@@ -287,4 +314,33 @@ public class MessageManagerImpl implements MessageManager {
 			}
 		});
   }
+  
+  	/* NATTraversalHandler methods
+  	 */
+  
+	public int
+	getType()
+	{
+		return( NATTraverser.TRAVERSE_REASON_GENERIC_MESSAGING );
+	}
+	
+	public String
+	getName()
+	{
+		return( "Generic Messaging" );
+	}
+	
+	public Map
+	process(
+		InetSocketAddress	originator,
+		Map					data )
+	{
+		System.out.println( "MessageManager::NATTraversal::process: " + originator + "/" + data );
+		
+		HashMap	reply = new HashMap();
+		
+		reply.put( "mook", "meek" );
+		
+		return( reply );
+	}
 }

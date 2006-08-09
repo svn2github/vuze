@@ -1319,7 +1319,8 @@ DHTNATPuncherImpl
 	sendPunch(
 		DHTTransportContact 			rendezvous,
 		final DHTTransportUDPContact	target,
-		Map								originator_client_data )
+		Map								originator_client_data,
+		boolean							no_tunnel )
 	{		
 		AESemaphore	wait_sem 	= new AESemaphore( "DHTNatPuncher::sendPunch" );
 		Object[]	wait_data 	= new Object[]{ target, wait_sem, new Integer(0)};
@@ -1344,9 +1345,14 @@ DHTNATPuncherImpl
 			
 			if ( originator_client_data != null ){
 				
+				if ( no_tunnel ){
+					
+					originator_client_data.put( "_notunnel", new Long(0));
+				}
+				
 				request.put( "client_data", originator_client_data );
 			}
-			
+	
 			Map response = sendRequest( rendezvous, request );
 			
 			if ( response == null ){
@@ -1382,45 +1388,48 @@ DHTNATPuncherImpl
 						}
 					}	
 					
-						// ping the target a few times to try and establish a tunnel
-										
-					UTTimerEvent	event = 
-						timer.addPeriodicEvent(
-								3000,
-								new UTTimerEventPerformer()
-								{
-									private int	pings = 1;
-									
-									public void
-									perform(
-										UTTimerEvent		event )
+					if ( !no_tunnel ){
+						
+							// ping the target a few times to try and establish a tunnel
+											
+						UTTimerEvent	event = 
+							timer.addPeriodicEvent(
+									3000,
+									new UTTimerEventPerformer()
 									{
-										if ( pings > 3 ){
-											
-											event.cancel();
+										private int	pings = 1;
 										
-											return;
-										}
-									
-										pings++;
+										public void
+										perform(
+											UTTimerEvent		event )
+										{
+											if ( pings > 3 ){
+												
+												event.cancel();
 											
-										if ( sendTunnelOutbound( target )){
-											
-											event.cancel();
+												return;
+											}
+										
+											pings++;
+												
+											if ( sendTunnelOutbound( target )){
+												
+												event.cancel();
+											}
 										}
-									}
-								});
+									});
+							
+						if ( sendTunnelOutbound( target )){
+							
+							event.cancel();
+						}
 						
-					if ( sendTunnelOutbound( target )){
+							// give the other end a few seconds to kick off some tunnel events to us
 						
-						event.cancel();
-					}
-					
-						// give the other end a few seconds to kick off some tunnel events to us
-					
-					if ( wait_sem.reserve(10000)){
-						
-						event.cancel();
+						if ( wait_sem.reserve(10000)){
+							
+							event.cancel();
+						}
 					}
 											
 						// routers often fiddle with the port when not mapped so we need to grab the right one to use
@@ -1625,45 +1634,58 @@ DHTNATPuncherImpl
 				
 				Map	originator_client_data  = (Map)request.get( "client_data" );
 				
+				boolean	no_tunnel = false;
+				
 				if ( originator_client_data == null ){
 					
 					originator_client_data = new HashMap();
+					
+				}else{
+					
+					no_tunnel = originator_client_data.get( "_notunnel" ) != null;
 				}
-				
-				log( "Received connect request from " + target.getString());
-				
-					// ping the origin a few times to try and establish a tunnel
 								
-				UTTimerEvent event = 
-					timer.addPeriodicEvent(
-							3000,
-							new UTTimerEventPerformer()
-							{
-								private int pings = 1;
-								
-								public void
-								perform(
-									UTTimerEvent		ev )
-								{
-									if ( pings > 3 ){
-										
-										ev.cancel();
-										
-										return;
-									}
-										
-									pings++;
+				if ( no_tunnel ){
+					
+					log( "Received message from " + target.getString());
+
+				}else{
+					
+					log( "Received connect request from " + target.getString());
+
+						// ping the origin a few times to try and establish a tunnel
 									
-									if ( sendTunnelInbound( target )){
+					UTTimerEvent event = 
+						timer.addPeriodicEvent(
+								3000,
+								new UTTimerEventPerformer()
+								{
+									private int pings = 1;
+									
+									public void
+									perform(
+										UTTimerEvent		ev )
+									{
+										if ( pings > 3 ){
+											
+											ev.cancel();
+											
+											return;
+										}
+											
+										pings++;
 										
-										ev.cancel();
+										if ( sendTunnelInbound( target )){
+											
+											ev.cancel();
+										}
 									}
-								}
-							});
-					
-				if ( sendTunnelInbound( target )){
-					
-					event.cancel();
+								});
+						
+					if ( sendTunnelInbound( target )){
+						
+						event.cancel();
+					}
 				}
 				
 				Map client_data = adapter.getClientData( target.getTransportAddress(), originator_client_data );
@@ -1817,7 +1839,7 @@ DHTNATPuncherImpl
 				return( null );
 			}
 			
-			Map	target_client_data = sendPunch( rendezvous, target, originator_client_data );
+			Map	target_client_data = sendPunch( rendezvous, target, originator_client_data, false );
 			
 			if ( target_client_data != null ){
 				
@@ -1835,6 +1857,31 @@ DHTNATPuncherImpl
 
 		return( null );
 	}
+	
+	public Map
+	sendMessage(
+		InetSocketAddress		rendezvous,
+		InetSocketAddress		target,
+		Map						message )
+	{
+		try{
+			DHTTransportUDP	transport = (DHTTransportUDP)dht.getTransport();
+
+			DHTTransportUDPContact rend_contact 	= transport.importContact( rendezvous, transport.getProtocolVersion());
+			DHTTransportUDPContact target_contact 	= transport.importContact( target, transport.getProtocolVersion());
+						
+			Map	result = sendPunch( rend_contact, target_contact, message, true );
+
+			return( result );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
+	}
+	
 	
 	public void
 	setRendezvous(
@@ -2012,6 +2059,10 @@ DHTNATPuncherImpl
 	log(
 		String	str )
 	{
+		if ( TRACE ){
+			System.out.println( str );
+		}
+		
 		logger.log( "NATPuncher: " + str );
 	}
 	
@@ -2019,6 +2070,10 @@ DHTNATPuncherImpl
 	log(
 		Throwable 	e )
 	{
+		if ( TRACE ){
+			e.printStackTrace();
+		}
+		
 		logger.log( "NATPuncher: error occurred" );
 		
 		logger.log(e);

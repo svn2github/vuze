@@ -272,113 +272,133 @@ Test
 						}
 					});
 			
-			InetSocketAddress	tcp_target = new InetSocketAddress( "127.0.0.1", 6881 );
-			InetSocketAddress	udp_target = new InetSocketAddress( "127.0.0.1", 6882 );
+			InetSocketAddress	tcp_target = new InetSocketAddress( "127.0.0.1", 		6889 );
+			InetSocketAddress	udp_target = new InetSocketAddress( "212.159.18.92", 	6881 );
 			
 			GenericMessageEndpoint	endpoint = reg.createEndpoint( tcp_target );
 			
 			endpoint.addTCP( tcp_target );
+			endpoint.addUDP( udp_target );
 			
-			for (int i=0;i<1000;i++){
+			while( true ){
 				
-				System.out.println( "Test: initiating connection" );
-				
-				final AESemaphore	sem = new AESemaphore( "wait!" );
-				
-				GenericMessageConnection	con = reg.createConnection( endpoint );
-				
-				if ( use_sts ){
-					
-					con = sec_man.getSTSConnection( 
-						con, my_key,
-						new SEPublicKeyLocator()
-						{
-							public boolean
-							accept(
-								SEPublicKey	other_key )
+				try{
+					for (int i=0;i<1000;i++){
+						
+						System.out.println( "Test: initiating connection" );
+						
+						final AESemaphore	sem = new AESemaphore( "wait!" );
+						
+						GenericMessageConnection	con = reg.createConnection( endpoint );
+						
+						if ( use_sts ){
+							
+							con = sec_man.getSTSConnection( 
+								con, my_key,
+								new SEPublicKeyLocator()
+								{
+									public boolean
+									accept(
+										SEPublicKey	other_key )
+									{
+										System.out.println( "acceptKey" );
+										
+										return( true );
+									}
+								},
+								"test", block_crypto );
+						}
+						
+						con.addListener(
+							new GenericMessageConnectionListener()
 							{
-								System.out.println( "acceptKey" );
+								public void
+								connected(
+									GenericMessageConnection	connection )
+								{
+									System.out.println( "connected" );
+									
+									PooledByteBuffer	data = plugin_interface.getUtilities().allocatePooledByteBuffer( "1234".getBytes());
+									
+									try{
+										connection.send( data );
+										
+									}catch( Throwable e ){
+										
+										e.printStackTrace();
+									}
+								}
 								
-								return( true );
-							}
-						},
-						"test", block_crypto );
-				}
-				
-				con.addListener(
-					new GenericMessageConnectionListener()
-					{
-						public void
-						connected(
-							GenericMessageConnection	connection )
-						{
-							System.out.println( "connected" );
-							
-							PooledByteBuffer	data = plugin_interface.getUtilities().allocatePooledByteBuffer( "1234".getBytes());
-							
-							try{
-								connection.send( data );
+								public void
+								receive(
+									GenericMessageConnection	connection,
+									PooledByteBuffer			message )
 								
-							}catch( Throwable e ){
+									throws MessageException
+								{
+									System.out.println( "receive: " + message.toByteArray().length );
+									
+									/*
+									try{
+										Thread.sleep(50000);
+									}catch( Throwable e ){
+										
+									}
 								
-								e.printStackTrace();
-							}
-						}
-						
-						public void
-						receive(
-							GenericMessageConnection	connection,
-							PooledByteBuffer			message )
-						
-							throws MessageException
-						{
-							System.out.println( "receive: " + message.toByteArray().length );
-							
-							/*
-							try{
-								Thread.sleep(50000);
-							}catch( Throwable e ){
+									PooledByteBuffer	reply = 
+										plugin_interface.getUtilities().allocatePooledByteBuffer( new byte[16*1024]);
+									
+									
+									connection.send( reply );
+									*/
+									
+									connection.close();
+									
+									sem.release();
+								}
 								
-							}
+								public void
+								failed(
+									GenericMessageConnection	connection,
+									Throwable 					error )
+								
+									throws MessageException
+								{
+									System.out.println( "Initiator connection error:" );
+									
+									error.printStackTrace();
+									
+									sem.release();
+								}
+							});
 						
-							PooledByteBuffer	reply = 
-								plugin_interface.getUtilities().allocatePooledByteBuffer( new byte[16*1024]);
-							
-							
-							connection.send( reply );
-							*/
-							
-							connection.close();
-							
-							sem.release();
-						}
-						
-						public void
-						failed(
-							GenericMessageConnection	connection,
-							Throwable 					error )
-						
-							throws MessageException
-						{
-							System.out.println( "Initiator connection error:" );
-							
-							error.printStackTrace();
-						}
-					});
-				
-	
-				con.connect();
-				
-				sem.reserve();
-				
-				Thread.sleep( 1000 );
-			}
 			
+						con.connect();
+						
+						sem.reserve();
+						
+						Thread.sleep( 1000 );
+					}
+				
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+					
+					try{
+						System.out.println( "Sleeping before retrying" );
+						
+						Thread.sleep( 30000 );
+						
+					}catch( Throwable f ){
+					}
+				}
+			}
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
 		}
 	}
+	
 	protected void
 	testLinks()
 	{

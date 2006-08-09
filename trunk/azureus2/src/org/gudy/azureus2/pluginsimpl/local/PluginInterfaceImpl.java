@@ -553,7 +553,7 @@ PluginInterfaceImpl
    }
    
    public MessageManager getMessageManager() {
-     return MessageManagerImpl.getSingleton();
+     return MessageManagerImpl.getSingleton( initialiser.getAzureusCore() );
    }
    
    

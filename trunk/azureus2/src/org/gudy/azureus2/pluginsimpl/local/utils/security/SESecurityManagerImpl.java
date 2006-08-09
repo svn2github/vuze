@@ -46,6 +46,7 @@ import org.gudy.azureus2.plugins.utils.security.CertificateListener;
 import org.gudy.azureus2.plugins.utils.security.PasswordListener;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
+import org.gudy.azureus2.pluginsimpl.local.messaging.GenericMessageConnectionDirect;
 import org.gudy.azureus2.pluginsimpl.local.messaging.GenericMessageConnectionImpl;
 
 import com.aelitis.azureus.core.AzureusCore;

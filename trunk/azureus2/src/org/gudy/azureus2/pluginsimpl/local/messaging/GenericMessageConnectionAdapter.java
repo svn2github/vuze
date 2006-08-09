@@ -1,5 +1,5 @@
 /*
- * Created on 10 Jul 2006
+ * Created on 9 Aug 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -20,32 +20,53 @@
  *
  */
 
-package com.aelitis.azureus.core.nat;
+package org.gudy.azureus2.pluginsimpl.local.messaging;
 
-import java.net.InetSocketAddress;
-import java.util.Map;
+import java.nio.ByteBuffer;
+
+import org.gudy.azureus2.plugins.messaging.MessageException;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 
 public interface 
-NATTraversalObserver 
+GenericMessageConnectionAdapter 
 {
-	public static final int	FT_NO_RENDEZVOUS	= 1;
-	public static final int	FT_QUEUE_FULL		= 2;
-	public static final int	FT_CANCELLED		= 3;
+	public void
+	setOwner(
+		GenericMessageConnectionImpl	_owner );
+	
+	public GenericMessageEndpoint
+	getEndpoint();
 	
 	public void
-	succeeded(
-		InetSocketAddress	rendezvous,
-		InetSocketAddress	target,
-		Map					reply );
+	connect(
+		ByteBuffer			initial_data,
+		ConnectionListener	listener )
+	
+		throws MessageException;
 	
 	public void
-	failed(
-		int			failure_type );
+	accepted();
 	
 	public void
-	failed(
-		Throwable 	cause );
+	send(
+		PooledByteBuffer			message )
+	
+		throws MessageException;
 	
 	public void
-	disabled();
+	close()
+	
+		throws MessageException;
+	
+	public interface
+	ConnectionListener
+	{
+		public void
+		connectSuccess();
+		
+		public void 
+		connectFailure( 
+			Throwable failure_msg );
+	}
 }

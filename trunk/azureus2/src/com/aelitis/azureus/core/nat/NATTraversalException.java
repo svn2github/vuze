@@ -1,5 +1,5 @@
 /*
- * Created on 10 Jul 2006
+ * Created on 9 Aug 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -22,30 +22,14 @@
 
 package com.aelitis.azureus.core.nat;
 
-import java.net.InetSocketAddress;
-import java.util.Map;
-
-public interface 
-NATTraversalObserver 
+public class
+NATTraversalException
+	extends Exception
 {
-	public static final int	FT_NO_RENDEZVOUS	= 1;
-	public static final int	FT_QUEUE_FULL		= 2;
-	public static final int	FT_CANCELLED		= 3;
-	
-	public void
-	succeeded(
-		InetSocketAddress	rendezvous,
-		InetSocketAddress	target,
-		Map					reply );
-	
-	public void
-	failed(
-		int			failure_type );
-	
-	public void
-	failed(
-		Throwable 	cause );
-	
-	public void
-	disabled();
+	public 
+	NATTraversalException(
+		String		str )
+	{
+		super( str );
+	}
 }
