@@ -168,7 +168,11 @@ public class GlobalManagerImpl
 	private volatile boolean 	needsSaving = false;
   
 	private boolean seeding_only_mode = false;
-  
+	private FrequencyLimitedDispatcher	check_seeding_only_state_dispatcher = 
+		new FrequencyLimitedDispatcher(
+			new AERunnable(){ public void runSupport(){ checkSeedingOnlyStateSupport(); }}, 5000 );
+	
+	
 	private int 	nat_status				= ConnectionManager.NAT_UNKNOWN;
 	private boolean	nat_status_probably_ok;
 	
@@ -2089,6 +2093,12 @@ public class GlobalManagerImpl
   
   protected void
   checkSeedingOnlyState()
+  {
+	check_seeding_only_state_dispatcher.dispatch();  
+  }
+  
+  protected void
+  checkSeedingOnlyStateSupport()
   {
     boolean seeding = false;
     	
