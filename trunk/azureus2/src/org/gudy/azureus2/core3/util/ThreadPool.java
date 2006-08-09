@@ -103,6 +103,7 @@ ThreadPool
 	
 	private AESemaphore	thread_sem;
 	
+	private int			thread_priority	= Thread.NORM_PRIORITY;
 	private boolean		warn_when_full;
 
 	public
@@ -140,6 +141,13 @@ ThreadPool
 	getMaxThreads()
 	{
 		return( max_size );
+	}
+	
+	public void
+	setThreadPriority(
+		int	_priority )
+	{
+		thread_priority	= _priority;
 	}
 	
 	public void
@@ -411,6 +419,11 @@ ThreadPool
 					public void 
 					runSupport()
 					{
+						if ( thread_priority != Thread.NORM_PRIORITY ){
+							
+							setPriority( thread_priority );
+						}
+						
 						tls.set( threadPoolWorker.this );
 						
 						boolean	time_to_die = false;

@@ -88,6 +88,12 @@ DiskManagerImpl
     private static DiskManagerRecheckScheduler      recheck_scheduler       = new DiskManagerRecheckScheduler();
     private static DiskManagerAllocationScheduler   allocation_scheduler    = new DiskManagerAllocationScheduler();
 
+    private static ThreadPool	start_pool = new ThreadPool( "DiskManager:start", 64, true );
+    
+    static{
+    	start_pool.setThreadPriority( Thread.MIN_PRIORITY );
+    }
+    
     private static AEMonitor    cache_read_mon  = new AEMonitor( "DiskManager:cacheRead" );
 
     private boolean used    = false;
@@ -324,9 +330,9 @@ DiskManagerImpl
             started     = true;
             starting    = true;
 
-            Thread init =
-                new AEThread("DiskManager:start")
-                {
+            start_pool.run(
+            	new AERunnable()
+            	{
                     public void
                     runSupport()
                     {
@@ -363,11 +369,7 @@ DiskManagerImpl
                             DiskManagerImpl.this.stop( false );
                         }
                     }
-                };
-
-            init.setPriority(Thread.MIN_PRIORITY);
-
-            init.start();
+                });
 
         }finally{
 

@@ -52,34 +52,28 @@ DiskManagerAllocationScheduler
 	protected boolean
 	getPermission(
 		DiskManagerHelper	instance )
-	{
-		boolean	result 	= false;
-		int		delay	= 250;
-		
+	{		
 		try{
 			instance_mon.enter();
 
 			if ( instances.get(0) == instance ){
 					
-				delay	= 0;
-	            result	= true;
+				return( true );
 			}
 			
-			if ( delay > 0 ){
-				
-				try{
-					Thread.sleep( delay );
-					
-				}catch( Throwable e ){
-					
-				}
-			}
 		}finally{
 			
 			instance_mon.exit();
 		}
+					
+		try{
+			Thread.sleep( 250 );
+				
+		}catch( Throwable e ){
+				
+		}
 		
-		return( result );
+		return( false );
 	}
 	
 	protected void
