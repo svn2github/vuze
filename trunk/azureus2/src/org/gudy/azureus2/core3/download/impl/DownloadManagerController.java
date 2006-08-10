@@ -138,6 +138,7 @@ DownloadManagerController
 		// access implications we've given it a silly name
 	
 	private volatile DiskManager 			disk_manager_use_accessors;
+	private DiskManagerListener				disk_manager_listener_use_accessors;
 	
 	private fileInfoFacade[]		files_facade		= new fileInfoFacade[0];	// default before torrent avail
 	private boolean					cached_complete_excluding_dnd;
@@ -494,7 +495,7 @@ DownloadManagerController
 				
 				old_dm.stop( false );
 				
-				setDiskManager( null );
+				setDiskManager( null, null );
 			}
 		
 			errorDetail	= "";
@@ -503,10 +504,8 @@ DownloadManagerController
 				  		
 		  	DiskManager dm = DiskManagerFactory.create( download_manager.getTorrent(), download_manager);
 	  	      
-	  	  	setDiskManager( dm );
-	  	  		
-	  	  	dm.addListener( listener );
-	  	  	
+	  	  	setDiskManager( dm, listener );
+	  	  			  	  	
 		}finally{
 			
 			this_mon.exit();
@@ -615,7 +614,7 @@ DownloadManagerController
 	  	  									
 	  	  									update_only_seeding	= true;
 	  	  								
-	  		  	  							setDiskManager( null );
+	  		  	  							setDiskManager( null, null );
 		  							
 		  							
 	  		  	  							if ( start_state == DownloadManager.STATE_ERROR ){
@@ -657,7 +656,7 @@ DownloadManagerController
 
   	  									dm.stop( false );
 		  					
-  	  									setDiskManager( null );
+  	  									setDiskManager( null, null );
 		  						
   	  									setFailed( dm.getErrorMessage());	 
   	  								}
@@ -801,7 +800,7 @@ DownloadManagerController
 							download_manager.getDownloadState().save();
 						}			  					  
 					  							  
-						setDiskManager( null );
+						setDiskManager( null, null );
 					}
 				
 				 }finally{
@@ -1409,15 +1408,29 @@ DownloadManagerController
 	
  	protected void
   	setDiskManager(
-  		DiskManager	new_disk_manager )
+  		DiskManager			new_disk_manager,
+  		DiskManagerListener	new_disk_manager_listener )
   	{
- 	 	try{
+  	 	try{
 	  		disk_listeners_mon.enter();
 	  		
 	  		DiskManager	old_disk_manager = disk_manager_use_accessors;
 	  		
-	  		disk_manager_use_accessors	= new_disk_manager;
-
+	  			// remove any old listeners in case the diskmanager is still running async
+	  		
+	  		if ( old_disk_manager != null && disk_manager_listener_use_accessors != null ){
+	  			
+	  			old_disk_manager.removeListener( disk_manager_listener_use_accessors );
+	  		}
+	  		
+	  		disk_manager_use_accessors			= new_disk_manager;
+	  		disk_manager_listener_use_accessors	= new_disk_manager_listener;
+	  		
+			if ( new_disk_manager != null ){
+	 			
+	 			new_disk_manager.addListener( new_disk_manager_listener );
+	 		}
+	  		
 	  			// whether going from none->active or the other way, indicate that the file info
 	  			// has changed
 	  		
