@@ -31,6 +31,21 @@ AsyncDispatcher
 	private LinkedList	queue 		= new LinkedList();
 	private AESemaphore	queue_sem 	= new AESemaphore( "AsyncDispatcher" );
 	
+	private int quiesce_after_millis;
+	
+	public
+	AsyncDispatcher()
+	{
+		this( 10000 );
+	}
+	
+	public
+	AsyncDispatcher(
+		int	_quiesce_after_millis )
+	{
+		quiesce_after_millis	= _quiesce_after_millis;
+	}
+	
 	public void
 	dispatch(
 		AERunnable	target )
@@ -49,7 +64,7 @@ AsyncDispatcher
 						{
 							while( true ){
 								
-								queue_sem.reserve( 10000 );
+								queue_sem.reserve( quiesce_after_millis );
 								
 								AERunnable	to_run = null;
 								

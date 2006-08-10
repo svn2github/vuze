@@ -130,6 +130,8 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
   
   private AzureusCore	core;
   
+  private Map			message_handlers = new HashMap();
+  
   private MessageManagerImpl(AzureusCore _core ) {
   
 	  core	= _core;
@@ -192,6 +194,11 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 	
 	final byte[]	shared_secret = new SHA1Simple().calculateHash( type_bytes );
 		
+	synchronized( message_handlers ){
+		
+		message_handlers.put( type, handler );
+	}
+	
 	final NetworkManager.ByteMatcher matcher = 
 			new NetworkManager.ByteMatcher()
 			{
@@ -255,19 +262,27 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 							}
 							
 							GenericMessageEndpointImpl endpoint		= new GenericMessageEndpointImpl( connection.getEndpoint());
-							
-							GenericMessageConnectionDirect direct_connection = new GenericMessageConnectionDirect( type, description, endpoint, stream_crypto, shared_secret );
-							
+
+							GenericMessageConnectionDirect direct_connection = 
+								GenericMessageConnectionDirect.receive( 
+										endpoint, 
+										type, 
+										description,
+										stream_crypto,
+										shared_secret );
+								
 							GenericMessageConnectionImpl new_connection = new GenericMessageConnectionImpl( MessageManagerImpl.this, direct_connection );
-					
+
 							direct_connection.connect( connection );
 							
-							if ( !handler.accept( new_connection )){
+							if ( handler.accept( new_connection )){
+								
+								new_connection.accepted();
+
+							}else{
 								
 								connection.close();
-							}
-							
-							new_connection.accepted();
+							}	
 							
 						}catch( Throwable e ){
 							
@@ -311,8 +326,24 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 			cancel()
 			{
 				NetworkManager.getSingleton().cancelIncomingConnectionRouting( matcher );
+				
+				synchronized( message_handlers ){
+					
+					message_handlers.remove( type );
+				}
 			}
 		});
+  }
+  
+  
+  protected GenericMessageHandler
+  getHandler(
+		 String	type )
+  {
+		synchronized( message_handlers ){
+
+			return((GenericMessageHandler)message_handlers.get( type ));
+		}
   }
   
   	/* NATTraversalHandler methods
@@ -333,14 +364,8 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 	public Map
 	process(
 		InetSocketAddress	originator,
-		Map					data )
+		Map					message )
 	{
-		System.out.println( "MessageManager::NATTraversal::process: " + originator + "/" + data );
-		
-		HashMap	reply = new HashMap();
-		
-		reply.put( "mook", "meek" );
-		
-		return( reply );
+		return( GenericMessageConnectionIndirect.receive( this, originator, message ));
 	}
 }

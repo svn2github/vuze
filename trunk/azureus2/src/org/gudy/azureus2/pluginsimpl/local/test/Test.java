@@ -243,7 +243,9 @@ Test
 										{
 											System.out.println( "receive: " + message.toByteArray().length );
 											
-											PooledByteBuffer	reply = plugin_interface.getUtilities().allocatePooledByteBuffer( new byte[32*1024]);
+											PooledByteBuffer	reply = 
+												plugin_interface.getUtilities().allocatePooledByteBuffer( 
+														new byte[connection.getMaximumMessageSize()]);
 											
 											connection.send( reply );
 										}
@@ -272,7 +274,7 @@ Test
 						}
 					});
 			
-			InetSocketAddress	tcp_target = new InetSocketAddress( "127.0.0.1", 		6889 );
+			InetSocketAddress	tcp_target = new InetSocketAddress( "127.0.0.1", 		6881 );
 			InetSocketAddress	udp_target = new InetSocketAddress( "212.159.18.92", 	6881 );
 			
 			GenericMessageEndpoint	endpoint = reg.createEndpoint( tcp_target );
@@ -338,19 +340,22 @@ Test
 								{
 									System.out.println( "receive: " + message.toByteArray().length );
 									
-									/*
+									
 									try{
-										Thread.sleep(50000);
+										Thread.sleep(30000);
 									}catch( Throwable e ){
 										
 									}
 								
+									/*
 									PooledByteBuffer	reply = 
 										plugin_interface.getUtilities().allocatePooledByteBuffer( new byte[16*1024]);
 									
 									
 									connection.send( reply );
 									*/
+									
+									System.out.println( "closing connection" );
 									
 									connection.close();
 									

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListener;
@@ -37,7 +38,6 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.nat.NATTraversalObserver;
 import com.aelitis.azureus.core.nat.NATTraverser;
 
@@ -45,6 +45,14 @@ public class
 GenericMessageConnectionImpl
 	implements GenericMessageConnection
 {
+	private static final boolean TEST_TUNNEL	= false;
+	
+	static{
+		if ( TEST_TUNNEL ){
+			System.out.println( "**** GenericMessageConnection:test tunnel ****" );
+		}
+	}
+	
 	private MessageManagerImpl					message_manager;
 	
 	private String								msg_id;
@@ -95,6 +103,12 @@ GenericMessageConnectionImpl
 	getEndpoint()
 	{
 		return( endpoint==null?delegate.getEndpoint():endpoint);
+	}
+	
+	public int
+	getMaximumMessageSize()
+	{
+		return( delegate==null?GenericMessageConnectionIndirect.MAX_MESSAGE_SIZE:delegate.getMaximumMessageSize());
 	}
 	
 	public boolean
@@ -200,13 +214,13 @@ GenericMessageConnectionImpl
 	{
 		System.out.println( "UDP connection attempt (nat=" + nat_traversal + ")" );
 
-		GenericMessageEndpointImpl	gen_udp = new GenericMessageEndpointImpl( endpoint.getNotionalAddress());
+		final GenericMessageEndpointImpl	gen_udp = new GenericMessageEndpointImpl( endpoint.getNotionalAddress());
 		
 		gen_udp.addUDP( udp_ep );
 		
-		final GenericMessageConnectionDirect udp_delegate = new GenericMessageConnectionDirect( msg_id, msg_desc, gen_udp, stream_crypto, shared_secret );
+		final GenericMessageConnectionAdapter udp_delegate = new GenericMessageConnectionDirect( msg_id, msg_desc, gen_udp, stream_crypto, shared_secret );
 		
-		udp_delegate.setOwner( GenericMessageConnectionImpl.this );
+		udp_delegate.setOwner( this );
 		
 		if ( nat_traversal ){
 			
@@ -223,45 +237,40 @@ GenericMessageConnectionImpl
 					{
 						public void
 						succeeded(
-							InetSocketAddress	rendezvous,
-							InetSocketAddress	target,
-							Map					reply )
+							final InetSocketAddress	rendezvous,
+							final InetSocketAddress	target,
+							Map						reply )
 						{
-							try{
-								Map	message = new HashMap();
+							if ( TEST_TUNNEL ){
 								
-								message.put( "fred", "bill" );
+								initial_data.rewind();
 								
-								Map msg_reply = nat_traverser.sendMessage( message_manager, rendezvous, target, message );
+								connectTunnel( initial_data, gen_udp, rendezvous, target );
 								
-								System.out.println( "reply=" + msg_reply );
-								
-							}catch( Throwable e ){
-								
-								e.printStackTrace();
-							}
+							}else{
+							
+								udp_delegate.connect( 
+										initial_data,
+										new GenericMessageConnectionAdapter.ConnectionListener()
+										{
+											public void
+											connectSuccess()
+											{
+												delegate = udp_delegate;
+												
+												reportConnected();
+											}
+											
+											public void 
+											connectFailure( 
+												Throwable failure_msg )
+											{
+												initial_data.rewind();
 
-							udp_delegate.connect( 
-									initial_data,
-									new GenericMessageConnectionAdapter.ConnectionListener()
-									{
-										public void
-										connectSuccess()
-										{
-											delegate = udp_delegate;
-											
-											reportConnected();
-										}
-										
-										public void 
-										connectFailure( 
-											Throwable failure_msg )
-										{
-												// TODO: attempt to establish connection through rendezvous 
-											
-											reportFailed( failure_msg );
-										}
-									});
+												connectTunnel( initial_data, gen_udp, rendezvous, target );
+											}
+										});
+							}
 						}
 						
 						public void
@@ -310,6 +319,38 @@ GenericMessageConnectionImpl
 		}
 	}
 	
+	protected void
+	connectTunnel(
+		ByteBuffer				initial_data,
+		GenericMessageEndpoint	ep,
+		InetSocketAddress		rendezvous,
+		InetSocketAddress		target )
+	{
+		final GenericMessageConnectionIndirect tunnel_delegate = 
+			new GenericMessageConnectionIndirect( message_manager, msg_id, msg_desc, ep, rendezvous, target );
+		
+		tunnel_delegate.setOwner( this );
+		
+		tunnel_delegate.connect( 
+				initial_data,
+				new GenericMessageConnectionAdapter.ConnectionListener()
+				{
+					public void
+					connectSuccess()
+					{
+						delegate = tunnel_delegate;
+						
+						reportConnected();
+					}
+					
+					public void 
+					connectFailure( 
+						Throwable failure_msg )
+					{
+						reportFailed( failure_msg );
+					}
+				});
+	}
 	
 		/**
 		 * Incoming connection has been accepted
@@ -328,6 +369,13 @@ GenericMessageConnectionImpl
 	
 		throws MessageException
 	{
+		int	size = ((PooledByteBufferImpl)message).getBuffer().remaining( DirectByteBuffer.SS_EXTERNAL );
+		
+		if ( size > getMaximumMessageSize()){
+			
+			throw( new MessageException( "Message is too large: supplied is " + size + ", maximum is " + getMaximumMessageSize()));
+		}
+		
 		delegate.send( message );
 	}
 	

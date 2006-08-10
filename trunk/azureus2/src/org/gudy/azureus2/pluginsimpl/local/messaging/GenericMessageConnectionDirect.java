@@ -23,14 +23,10 @@
 package org.gudy.azureus2.pluginsimpl.local.messaging;
 
 import java.nio.ByteBuffer;
-import java.util.*;
 
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
-import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
-import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnectionListener;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
@@ -45,7 +41,22 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
 public class 
 GenericMessageConnectionDirect 
 	implements GenericMessageConnectionAdapter, LimitedRateGroup
-{
+{	
+	public static final int MAX_MESSAGE_SIZE	= GenericMessageDecoder.MAX_MESSAGE_LENGTH;
+
+	protected static GenericMessageConnectionDirect
+	receive(
+		GenericMessageEndpointImpl	endpoint,
+		String				msg_id,
+		String				msg_desc,
+		int					stream_crypto,
+		byte[]				shared_secret )
+	{		
+		GenericMessageConnectionDirect direct_connection = new GenericMessageConnectionDirect( msg_id, msg_desc, endpoint, stream_crypto, shared_secret );
+		
+		return( direct_connection );
+	}
+	
 	private GenericMessageConnectionImpl	owner;
 	
 	private String						msg_id;
@@ -57,6 +68,7 @@ GenericMessageConnectionDirect
 	
 	private boolean	connected;
 		
+
 		
 	protected 
 	GenericMessageConnectionDirect(
@@ -78,6 +90,12 @@ GenericMessageConnectionDirect
 		GenericMessageConnectionImpl	_owner )
 	{
 		owner	= _owner;
+	}
+	
+	public int
+	getMaximumMessageSize()
+	{
+		return( MAX_MESSAGE_SIZE );
 	}
 	
 		/**

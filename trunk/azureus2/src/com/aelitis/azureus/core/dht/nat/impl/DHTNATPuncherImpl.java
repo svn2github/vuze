@@ -103,13 +103,13 @@ DHTNATPuncherImpl
 	private Formatters			formatters;
 	private UTTimer				timer;
 	
-	private static final long	REPUBLISH_TIME_MIN 			= 5*60*1000;
-	private static final long	TRANSFER_TIMEOUT			= 30*1000;
-	private static final long	RENDEZVOUS_LOOKUP_TIMEOUT	= 30*1000;
-	private static final long	TUNNEL_TIMEOUT				= 3*1000;
+	private static final int	REPUBLISH_TIME_MIN 			= 5*60*1000;
+	private static final int	TRANSFER_TIMEOUT			= 30*1000;
+	private static final int	RENDEZVOUS_LOOKUP_TIMEOUT	= 30*1000;
+	private static final int	TUNNEL_TIMEOUT				= 3*1000;
 
 	private static final int	RENDEZVOUS_SERVER_MAX			= 8;
-	private static final long	RENDEZVOUS_SERVER_TIMEOUT 		= 5*60*1000;
+	private static final int	RENDEZVOUS_SERVER_TIMEOUT 		= 5*60*1000;
 	private static final int	RENDEZVOUS_CLIENT_PING_PERIOD	= 50*1000;		// some routers only hold tunnel for 60s
 	private static final int	RENDEZVOUS_PING_FAIL_LIMIT		= 4;			// if you make this < 2 change code below!
 	
@@ -682,7 +682,7 @@ DHTNATPuncherImpl
 
       							dht.put(
       									getPublishKey( latest_local ),
-      									"DHTNatPuncher: publish",
+      									"NAT Traversal: rendezvous publish",
       									encodePublishValue( latest_target ),
       									DHT.FLAG_SINGLE_VALUE,
       									new DHTOperationListener()
@@ -853,7 +853,8 @@ DHTNATPuncherImpl
 	protected byte[]
 	sendRequest(
 		DHTTransportContact		target,
-		byte[]					data )
+		byte[]					data,
+		int						timeout )
 	{
 		try{
 			return(
@@ -881,7 +882,7 @@ DHTNATPuncherImpl
 					target,
 					transfer_handler_key,
 					data,
-					TRANSFER_TIMEOUT ));
+					timeout ));
 				
 		}catch( DHTTransportException e ){
 			
@@ -918,10 +919,11 @@ DHTNATPuncherImpl
 	protected Map
 	sendRequest(
 		DHTTransportContact		target,
-		Map						data )
+		Map						data,
+		int						timeout )
 	{
 		try{
-			byte[]	res = sendRequest( target, formatters.bEncode( data ));
+			byte[]	res = sendRequest( target, formatters.bEncode( data ), timeout );
 			
 			if ( res == null ){
 				
@@ -1084,7 +1086,7 @@ DHTNATPuncherImpl
 			
 			request.put("type", new Long( RT_BIND_REQUEST ));
 			
-			Map response = sendRequest( target, request );
+			Map response = sendRequest( target, request, TRANSFER_TIMEOUT );
 			
 			if ( response == null ){
 				
@@ -1205,7 +1207,7 @@ DHTNATPuncherImpl
 			
 			request.put("type", new Long( RT_CLOSE_REQUEST ));
 			
-			Map response = sendRequest( target, request );
+			Map response = sendRequest( target, request, TRANSFER_TIMEOUT );
 			
 			if ( response == null ){
 				
@@ -1270,7 +1272,7 @@ DHTNATPuncherImpl
 			
 			request.put("type", new Long( RT_QUERY_REQUEST ));
 			
-			Map response = sendRequest( target, request );
+			Map response = sendRequest( target, request, TRANSFER_TIMEOUT );
 			
 			if ( response == null ){
 				
@@ -1347,13 +1349,17 @@ DHTNATPuncherImpl
 				
 				if ( no_tunnel ){
 					
-					originator_client_data.put( "_notunnel", new Long(0));
+					originator_client_data.put( "_notunnel", new Long(1));
 				}
 				
 				request.put( "client_data", originator_client_data );
 			}
 	
-			Map response = sendRequest( rendezvous, request );
+				// for a message payload (i.e. no_tunnel) we double the initiator timeout to give
+				// more chance for reasonable size messages to get through as they have to go through
+				// 2 xfer processes
+			
+			Map response = sendRequest( rendezvous, request, no_tunnel?TRANSFER_TIMEOUT*2:TRANSFER_TIMEOUT );
 			
 			if ( response == null ){
 				
@@ -1364,7 +1370,7 @@ DHTNATPuncherImpl
 				
 				int	result = ((Long)response.get("ok")).intValue();
 
-				trace( "received punch reply: " + (result==0?"failed":"ok" ));
+				trace( "received " + ( no_tunnel?"message":"punch") + " reply: " + (result==0?"failed":"ok" ));
 				
 				if ( result == 1 ){
 					
@@ -1556,7 +1562,7 @@ DHTNATPuncherImpl
 				request.put( "client_data", originator_client_data );
 			}
 			
-			Map response = sendRequest( target, request );
+			Map response = sendRequest( target, request, TRANSFER_TIMEOUT );
 			
 			if ( response == null ){
 				

@@ -231,6 +231,19 @@ SESTSConnectionImpl
 		return( connection.getEndpoint());
 	}
 	
+	public int
+	getMaximumMessageSize()
+	{
+		int	max = connection.getMaximumMessageSize();
+		
+		if ( outgoing_cipher != null ){
+			
+			max -= outgoing_cipher.getBlockSize();
+		}
+		
+		return( max );
+	}
+	
 	public void
 	connect()
 	

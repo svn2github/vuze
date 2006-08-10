@@ -47,6 +47,9 @@ GenericMessageConnection
 	
 		throws MessageException;
 	
+	public int
+	getMaximumMessageSize();
+	
 	public void
 	addListener(
 		GenericMessageConnectionListener		listener );

@@ -38,12 +38,13 @@ GenericMessageConnectionAdapter
 	public GenericMessageEndpoint
 	getEndpoint();
 	
+	public int
+	getMaximumMessageSize();
+	
 	public void
 	connect(
 		ByteBuffer			initial_data,
-		ConnectionListener	listener )
-	
-		throws MessageException;
+		ConnectionListener	listener );
 	
 	public void
 	accepted();
