@@ -336,7 +336,23 @@ DiskManagerImpl
                     public void
                     runSupport()
                     {
-                        try{
+                        try{                       	
+                        		// now we use a limited pool to manage disk manager starts there
+                        		// is an increased possibility of us being stopped before starting
+                        		// handle this situation better by avoiding an un-necessary "startSupport"
+                        	
+                            try{
+                                start_stop_mon.enter();
+
+	                        	if ( stopping ){
+	                        		
+	                        		throw( new Exception( "Stopped during startup" ));
+	                        	}
+                            }finally{
+
+                                start_stop_mon.exit();
+                            }
+                            
                             startSupport();
 
                         }catch( Throwable e ){
