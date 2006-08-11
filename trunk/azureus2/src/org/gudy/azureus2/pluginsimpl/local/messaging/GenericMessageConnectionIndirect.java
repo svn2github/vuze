@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.messaging;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -78,6 +79,9 @@ GenericMessageConnectionIndirect
 	private static final int KEEP_ALIVE_CHECK_TICKS	= KEEP_ALIVE_CHECK_PERIOD / TICK_PERIOD;
 	private static final int STATS_TICKS			= STATS_PERIOD / TICK_PERIOD;
 	
+	private static final int MAX_REMOTE_CONNECTIONS			= 1024;
+	private static final int MAX_REMOTE_CONNECTIONS_PER_IP	= 32;
+	
 	private static long	connection_id_next	= new Random().nextLong();
 	
 	
@@ -124,7 +128,7 @@ GenericMessageConnectionIndirect
 							
 							if  ( local_total + remote_total > 0 ){
 								
-								log( "local=" + local_total + ",remote=" + remote_total  );
+								log( "local=" + local_total + " [" + getLocalConnectionStatus() + "], remote=" + remote_total + " [" + getRemoteConnectionStatus() + "]" );
 							}
 						}
 					}
@@ -224,6 +228,34 @@ GenericMessageConnectionIndirect
 
 				synchronized( remote_connections ){
 					
+					if ( remote_connections.size() >= MAX_REMOTE_CONNECTIONS ){
+						
+						Debug.out( "Maximum remote connections exceeded - request from " + originator + " denied [" + getRemoteConnectionStatus() + "]" );
+						
+						return( null );
+					}
+					
+					int	num_from_this_ip = 0;
+									
+					Iterator	it = remote_connections.values().iterator();
+					
+					while( it.hasNext()){
+						
+						GenericMessageConnectionIndirect con = (GenericMessageConnectionIndirect)it.next();
+						
+						if ( con.getEndpoint().getNotionalAddress().getAddress().equals( originator.getAddress())){
+							
+							num_from_this_ip++;
+						}
+					}
+					
+					if ( num_from_this_ip >= MAX_REMOTE_CONNECTIONS_PER_IP ){
+						
+						Debug.out( "Maximum remote connections per-ip exceeded - request from " + originator + " denied [" + getRemoteConnectionStatus() + "]" );
+						
+						return( null );
+
+					}
 					con_id = new Long( connection_id_next++ );
 				}
 				
@@ -329,7 +361,64 @@ GenericMessageConnectionIndirect
 		}
 	}
 	
-
+	protected static String
+	getRemoteConnectionStatus()
+	{
+		return( getConnectionStatus( remote_connections ));
+	}
+	
+	protected static String
+	getLocalConnectionStatus()
+	{
+		return( getConnectionStatus( local_connections ));
+	}
+	
+	protected static String
+	getConnectionStatus(
+		Map		connections )
+	{
+		Map totals = new HashMap();	
+	
+		synchronized( connections ){
+			
+			Iterator	it = connections.values().iterator();
+			
+			while( it.hasNext()){
+				
+				GenericMessageConnectionIndirect con = (GenericMessageConnectionIndirect)it.next();
+	
+				InetAddress	originator = con.getEndpoint().getNotionalAddress().getAddress();
+				
+				Integer	i = (Integer)totals.get( originator );
+				
+				if ( i == null ){
+					
+					i = new Integer(1);
+					
+				}else{
+					
+					i = new Integer(i.intValue() + 1 );
+				}
+				
+				totals.put( originator, i );
+			}
+		}
+		
+		String	str = "";
+		
+		Iterator it = totals.entrySet().iterator();
+		
+		while( it.hasNext()){
+			
+			Map.Entry entry = (Map.Entry)it.next();
+			
+			str += (str.length()==0?"":",") + entry.getKey() + ":" + entry.getValue();
+		}
+		
+		return( str );
+	}
+	
+	
 	
 	
 	private MessageManagerImpl			message_manager;
