@@ -66,8 +66,9 @@ GenericMessageConnectionDirect
 	private GenericMessageEndpointImpl	endpoint;
 	private NetworkConnection			connection;
 	
-	private boolean	connected;
-		
+	private volatile boolean	connected;
+	private volatile boolean	closed;
+	
 
 		
 	protected 
@@ -371,7 +372,12 @@ GenericMessageConnectionDirect
 			throw( new MessageException( "not connected" ));
 		}	
 		
-		connection.close();
+		if ( !closed ){
+	
+			closed	= true;
+			
+			connection.close();
+		}
 	}
 	
 	public int 

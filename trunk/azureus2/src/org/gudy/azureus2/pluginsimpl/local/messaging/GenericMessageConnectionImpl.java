@@ -66,7 +66,10 @@ GenericMessageConnectionImpl
 	byte[]										shared_secret;
 	
 	private boolean								incoming;
-	private GenericMessageConnectionAdapter		delegate;
+	
+	private volatile GenericMessageConnectionAdapter		delegate;
+	private volatile boolean								closed;
+	private volatile boolean								connecting;
 	
 	private List	listeners	= new ArrayList();
 
@@ -142,6 +145,23 @@ GenericMessageConnectionImpl
 	
 		throws MessageException
 	{
+		if ( incoming ){
+			
+			throw( new MessageException( "Already connected" ));
+		}
+		
+		if ( connecting ){
+			
+			throw( new MessageException( "Connect already performed" ));
+		}
+		
+		connecting	= true;
+		
+		if ( closed ){
+			
+			throw( new MessageException( "Connection has been closed" ));
+		}
+		
 		InetSocketAddress	tcp_ep = endpoint.getTCP();
 				
 		if ( tcp_ep != null ){
@@ -189,7 +209,20 @@ GenericMessageConnectionImpl
 					{
 						delegate = tcp_delegate;
 						
-						reportConnected();
+						if ( closed ){
+							
+							try{
+								delegate.close();
+								
+							}catch( Throwable e ){
+							}
+							
+							reportFailed( new MessageException( "Connection has been closed" ));
+
+						}else{
+							
+							reportConnected();
+						}
 					}
 					
 					public void 
@@ -249,35 +282,55 @@ GenericMessageConnectionImpl
 							final InetSocketAddress	target,
 							Map						reply )
 						{
-							if ( TEST_TUNNEL ){
-								
-								initial_data.rewind();
-								
-								connectTunnel( initial_data, gen_udp, rendezvous, target );
-								
-							}else{
-							
-								udp_delegate.connect( 
-										initial_data,
-										new GenericMessageConnectionAdapter.ConnectionListener()
-										{
-											public void
-											connectSuccess()
-											{
-												delegate = udp_delegate;
-												
-												reportConnected();
-											}
-											
-											public void 
-											connectFailure( 
-												Throwable failure_msg )
-											{
-												initial_data.rewind();
+							if ( closed ){
+															
+								reportFailed( new MessageException( "Connection has been closed" ));
 
-												connectTunnel( initial_data, gen_udp, rendezvous, target );
-											}
-										});
+							}else{
+								
+								if ( TEST_TUNNEL ){
+									
+									initial_data.rewind();
+									
+									connectTunnel( initial_data, gen_udp, rendezvous, target );
+									
+								}else{
+								
+									udp_delegate.connect( 
+											initial_data,
+											new GenericMessageConnectionAdapter.ConnectionListener()
+											{
+												public void
+												connectSuccess()
+												{
+													delegate = udp_delegate;
+													
+													if ( closed ){
+														
+														try{
+															delegate.close();
+															
+														}catch( Throwable e ){													
+														}
+														
+														reportFailed( new MessageException( "Connection has been closed" ));
+														
+													}else{
+														
+														reportConnected();
+													}												
+												}
+												
+												public void 
+												connectFailure( 
+													Throwable failure_msg )
+												{
+													initial_data.rewind();
+	
+													connectTunnel( initial_data, gen_udp, rendezvous, target );
+												}
+											});
+								}
 							}
 						}
 						
@@ -312,7 +365,20 @@ GenericMessageConnectionImpl
 						{
 							delegate = udp_delegate;
 							
-							reportConnected();
+							if ( closed ){
+								
+								try{
+									delegate.close();
+									
+								}catch( Throwable e ){	
+								}
+								
+								reportFailed( new MessageException( "Connection has been closed" ));
+
+							}else{
+								
+								reportConnected();
+							}
 						}
 						
 						public void 
@@ -336,8 +402,8 @@ GenericMessageConnectionImpl
 	{
 		if ( TRACE ){
 			System.out.println( "Tunnel connection attempt to " + target + " (rendezvous=" + rendezvous + ")" );
-
 		}
+		
 		final GenericMessageConnectionIndirect tunnel_delegate = 
 			new GenericMessageConnectionIndirect( message_manager, msg_id, msg_desc, ep, rendezvous, target );
 		
@@ -352,7 +418,21 @@ GenericMessageConnectionImpl
 					{
 						delegate = tunnel_delegate;
 						
-						reportConnected();
+						if ( closed ){
+							
+							try{
+								delegate.close();
+								
+							}catch( Throwable e ){
+								
+							}
+							
+							reportFailed( new MessageException( "Connection has been closed" ));
+
+						}else{
+							
+							reportConnected();
+						}
 					}
 					
 					public void 
@@ -425,7 +505,12 @@ GenericMessageConnectionImpl
 	
 		throws MessageException
 	{
-		delegate.close();
+		closed	= true;
+		
+		if ( delegate != null ){
+			
+			delegate.close();
+		}
 	}
 	
 	protected void
