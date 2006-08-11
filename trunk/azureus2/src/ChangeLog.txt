@@ -61,6 +61,7 @@ BUGFIX: Core  | Various seeding rules fixes, mostly related to Seed:Peer ratio, 
 
 BUGFIX: UI    | speed graphics failing on high speeds [Parg]
 BUGFIX: UI    | Per-torrent options view now synced with global defaults and has "reset" button [Parg]
+BUGFIX: UI    | Slide-in alert message not closeable (GTK+ users) [TuxPaper]
 
 
 
