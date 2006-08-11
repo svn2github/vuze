@@ -657,7 +657,7 @@ DHTControlImpl
 		
 		long	start = SystemTime.getCurrentTime();
 		
-		sem.reserve();
+		sem.reserve( INTEGRATION_TIME_MAX );
 		
 		long	now = SystemTime.getCurrentTime();
 		
@@ -668,9 +668,9 @@ DHTControlImpl
 		
 		long	remaining = INTEGRATION_TIME_MAX - ( now - start );
 
-		if ( remaining > 0 && !full_wait ){
+		if ( remaining > 500 && !full_wait ){
 			
-			logger.log( "Initial integration completed, waiting " + remaining + " for second phase to start" );
+			logger.log( "Initial integration completed, waiting " + remaining + " ms for second phase to start" );
 			
 			try{
 				Thread.sleep( remaining );
