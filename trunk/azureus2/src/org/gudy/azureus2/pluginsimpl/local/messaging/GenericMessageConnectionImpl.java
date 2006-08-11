@@ -50,7 +50,7 @@ GenericMessageConnectionImpl
 	
 	static{
 		if ( TEST_TUNNEL ){
-			System.out.println( "**** GenericMessageConnection: TEST_TUNNEL set ****" );
+			System.out.println( "**** GenericMessageConnection: TEST_TUNNEL on ****" );
 		}
 		if ( TRACE ){
 			System.out.println( "**** GenericMessageConnection: TRACE on **** " );
@@ -202,7 +202,7 @@ GenericMessageConnectionImpl
 							
 							initial_data.rewind();
 							
-							connectUDP( initial_data, udp_ep, true );
+							connectUDP( initial_data, udp_ep, false );
 							
 						}else{
 							
@@ -230,7 +230,7 @@ GenericMessageConnectionImpl
 		
 		udp_delegate.setOwner( this );
 		
-		if ( nat_traversal ){
+		if ( nat_traversal || TEST_TUNNEL ){
 			
 			final NATTraverser	nat_traverser = message_manager.getNATTraverser();
 			

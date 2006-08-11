@@ -26,6 +26,9 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
@@ -48,6 +51,8 @@ public class
 GenericMessageConnectionIndirect 
 	implements GenericMessageConnectionAdapter
 {
+	private static final LogIDs LOGID = LogIDs.NET;
+
 	private static final boolean	TRACE	= false;
 	
 	static{
@@ -64,9 +69,17 @@ GenericMessageConnectionIndirect
 	private static final int MESSAGE_TYPE_DATA			= 3;
 	private static final int MESSAGE_TYPE_DISCONNECT	= 4;
 	
-	private static final int KEEP_ALIVE_PERIOD	= 10000;
+	private static final int TICK_PERIOD 				= 5000;
+
+	private static final int KEEP_ALIVE_CHECK_PERIOD	= 5000;
+	private static final int KEEP_ALIVE_MIN				= 10000;
+	private static final int STATS_PERIOD				= 60000; 
+
+	private static final int KEEP_ALIVE_CHECK_TICKS	= KEEP_ALIVE_CHECK_PERIOD / TICK_PERIOD;
+	private static final int STATS_TICKS			= STATS_PERIOD / TICK_PERIOD;
 	
 	private static long	connection_id_next	= new Random().nextLong();
+	
 	
 	private static Map	local_connections 	= new HashMap();
 	private static Map	remote_connections 	= new HashMap();
@@ -79,58 +92,89 @@ GenericMessageConnectionIndirect
 			//     1) to check for dead connections (send keepalive/check timeouts)
 			//     2) the connection is one-sided so if the responder sends an unsolicited message it 
 			//        is queued and only picked up on a periodic ping by the initiator
-		
+				
 		SimpleTimer.addPeriodicEvent(
-			KEEP_ALIVE_PERIOD/2,
+			TICK_PERIOD,
 			new TimerEventPerformer()
-			{				
+			{		
+				private int	tick_count = 0;
+				
 				public void
 				perform(
 					TimerEvent	event )
 				{
-					synchronized( local_connections ){
+					tick_count++;
 					
-						Iterator	it = local_connections.values().iterator();
+					if ( tick_count % STATS_TICKS == 0 ){
+					
+						int	local_total;
+						int remote_total;
 						
-						while( it.hasNext()){
-							
-							final GenericMessageConnectionIndirect con = (GenericMessageConnectionIndirect)it.next();
-							
-							if ( con.prepareForKeepAlive( false )){
+						if ( Logger.isEnabled()){
+	
+							synchronized( local_connections ){
+	
+								local_total = local_connections.size();
+							}
 								
-								keep_alive_pool.run(
-									new AERunnable()
-									{
-										public void
-										runSupport()
-										{
-											con.keepAlive();
-										}
-									});
+							synchronized( remote_connections ){
+	
+								remote_total = remote_connections.size();
+							}
+							
+							if  ( local_total + remote_total > 0 ){
+								
+								log( "local=" + local_total + ",remote=" + remote_total  );
 							}
 						}
 					}
-					
-					long	now = SystemTime.getCurrentTime();
-					
-					synchronized( remote_connections ){
+
+					if ( tick_count % KEEP_ALIVE_CHECK_TICKS == 0 ){
+												
+						synchronized( local_connections ){
 						
-						Iterator	it = remote_connections.values().iterator();
-						
-						while( it.hasNext()){
+							Iterator	it = local_connections.values().iterator();
 							
-							GenericMessageConnectionIndirect con = (GenericMessageConnectionIndirect)it.next();
-					
-							long	last_receive = con.getLastMessageReceivedTime();
-							
-							if ( now - last_receive > KEEP_ALIVE_PERIOD * 3 ){
+							while( it.hasNext()){
 								
-								try{
-									con.close( new Throwable( "Timeout" ));
+								final GenericMessageConnectionIndirect con = (GenericMessageConnectionIndirect)it.next();
+								
+								if ( con.prepareForKeepAlive( false )){
 									
-								}catch( Throwable e ){
+									keep_alive_pool.run(
+										new AERunnable()
+										{
+											public void
+											runSupport()
+											{
+												con.keepAlive();
+											}
+										});
+								}
+							}
+						}
+						
+						long	now = SystemTime.getCurrentTime();
+						
+						synchronized( remote_connections ){
+							
+							Iterator	it = remote_connections.values().iterator();
+							
+							while( it.hasNext()){
+								
+								GenericMessageConnectionIndirect con = (GenericMessageConnectionIndirect)it.next();
+						
+								long	last_receive = con.getLastMessageReceivedTime();
+								
+								if ( now - last_receive > KEEP_ALIVE_MIN * 3 ){
 									
-									Debug.printStackTrace(e);
+									try{
+										con.close( new Throwable( "Timeout" ));
+										
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
+									}
 								}
 							}
 						}
@@ -329,6 +373,8 @@ GenericMessageConnectionIndirect
 		target			= _target;
 		
 		nat_traverser = message_manager.getNATTraverser();
+		
+		log( "outgoing connection to " + endpoint.getNotionalAddress());
 	}
 	
 	protected 
@@ -354,6 +400,8 @@ GenericMessageConnectionIndirect
 		if ( TRACE ){
 			trace( "inbound connect from " + endpoint.getNotionalAddress());
 		}
+		
+		log( "incoming connection from " + endpoint.getNotionalAddress());
 	}
 	
 	public void
@@ -688,6 +736,8 @@ GenericMessageConnectionIndirect
 			}
 		}
 		
+		log( "connection to " + endpoint.getNotionalAddress() + " closed" + (close_cause==null?"":(" (" + close_cause + ")")));
+		
 		try{
 			closed	= true;
 			
@@ -746,7 +796,7 @@ GenericMessageConnectionIndirect
 		
 		long	now = SystemTime.getCurrentTime();
 		
-		if ( force || now < last_message_sent || now - last_message_sent > KEEP_ALIVE_PERIOD ){
+		if ( force || now < last_message_sent || now - last_message_sent > KEEP_ALIVE_MIN ){
 			
 			keep_alive_in_progress = true;
 		
@@ -770,6 +820,16 @@ GenericMessageConnectionIndirect
 		}finally{
 			
 			keep_alive_in_progress	= false;
+		}
+	}
+	
+	protected static void
+	log(
+		String	str )
+	{
+		if ( Logger.isEnabled()){
+
+			Logger.log(new LogEvent(LOGID, "GenericMessaging (indirect):" + str ));
 		}
 	}
 	
