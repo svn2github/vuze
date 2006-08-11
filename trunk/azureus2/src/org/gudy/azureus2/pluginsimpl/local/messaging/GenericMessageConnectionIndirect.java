@@ -29,6 +29,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -47,6 +48,15 @@ public class
 GenericMessageConnectionIndirect 
 	implements GenericMessageConnectionAdapter
 {
+	private static final boolean	TRACE	= false;
+	
+	static{
+
+		if ( TRACE ){
+			System.out.println( "**** GenericMessageConnectionIndirect: TRACE on **** " );
+		}
+	}
+	
 	public static final int MAX_MESSAGE_SIZE	= 32*1024; 
 		
 	private static final int MESSAGE_TYPE_CONNECT		= 1;
@@ -66,7 +76,7 @@ GenericMessageConnectionIndirect
 	static{
 		
 			// there are two reasons for timers
-			//     1) to check for dead connections (i.e. keepalive)
+			//     1) to check for dead connections (send keepalive/check timeouts)
 			//     2) the connection is one-sided so if the responder sends an unsolicited message it 
 			//        is queued and only picked up on a periodic ping by the initiator
 		
@@ -86,7 +96,7 @@ GenericMessageConnectionIndirect
 							
 							final GenericMessageConnectionIndirect con = (GenericMessageConnectionIndirect)it.next();
 							
-							if ( con.prepareForKeepAlive()){
+							if ( con.prepareForKeepAlive( false )){
 								
 								keep_alive_pool.run(
 									new AERunnable()
@@ -100,8 +110,32 @@ GenericMessageConnectionIndirect
 							}
 						}
 					}
+					
+					long	now = SystemTime.getCurrentTime();
+					
+					synchronized( remote_connections ){
+						
+						Iterator	it = remote_connections.values().iterator();
+						
+						while( it.hasNext()){
+							
+							GenericMessageConnectionIndirect con = (GenericMessageConnectionIndirect)it.next();
+					
+							long	last_receive = con.getLastMessageReceivedTime();
+							
+							if ( now - last_receive > KEEP_ALIVE_PERIOD * 3 ){
+								
+								try{
+									con.close( new Throwable( "Timeout" ));
+									
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+							}
+						}
+					}
 				}
-				
 			});
 	}
 	
@@ -111,8 +145,9 @@ GenericMessageConnectionIndirect
 		InetSocketAddress		originator,
 		Map						message )
 	{
-		System.out.println( "GenericMessageConnectionIndirect::receive: " + originator + "/" + message );
-		
+		if (TRACE ){
+			System.out.println( "receive:" + originator + "/" + message );
+		}
 			// if this purely a NAT traversal request then bail out 
 		
 		if ( !message.containsKey( "type" )){
@@ -213,6 +248,11 @@ GenericMessageConnectionIndirect
 				
 				reply.put( "type", new Long( MESSAGE_TYPE_DATA ));
 				reply.put( "data", replies );	
+								
+				if ( indirect_connection.receiveIncomplete()){
+					
+					reply.put( "more_data", new Long(1));
+				}
 			}
 			
 			return( reply );
@@ -233,7 +273,7 @@ GenericMessageConnectionIndirect
 			if ( indirect_connection != null ){
 				
 				try{
-					indirect_connection.close( true );
+					indirect_connection.close( new Throwable( "Remote closed connection" ) );
 					
 				}catch( Throwable e ){
 					
@@ -267,6 +307,7 @@ GenericMessageConnectionIndirect
 	private AESemaphore	send_queue_sem	= new AESemaphore( "GenericMessageConnectionIndirect:sendq" );
 	
 	private volatile long		last_message_sent;
+	private volatile long		last_message_received;
 	private volatile boolean	keep_alive_in_progress;
 	
 	protected 
@@ -307,6 +348,12 @@ GenericMessageConnectionIndirect
 		connection_id	= _connection_id;
 		
 		incoming		= true;
+		
+		last_message_received	= SystemTime.getCurrentTime();
+		
+		if ( TRACE ){
+			trace( "inbound connect from " + endpoint.getNotionalAddress());
+		}
 	}
 	
 	public void
@@ -322,6 +369,19 @@ GenericMessageConnectionIndirect
 		return( MAX_MESSAGE_SIZE );
 	}
 	
+	public long
+	getLastMessageReceivedTime()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now < last_message_received ){
+			
+			last_message_received = now;
+		}
+		
+		return( last_message_received );
+	}
+	
 	public GenericMessageEndpoint
 	getEndpoint()
 	{
@@ -333,6 +393,10 @@ GenericMessageConnectionIndirect
 		ByteBuffer			initial_data,
 		ConnectionListener	listener )
 	{
+		if ( TRACE ){
+			trace( "outbound connect to " + endpoint.getNotionalAddress());
+		}
+		
 		try{
 			Map	message = new HashMap();
 			
@@ -411,6 +475,12 @@ GenericMessageConnectionIndirect
 	
 		throws MessageException
 	{
+		byte[]	bytes = pbb.toByteArray();
+		
+		if ( TRACE ){
+			trace( "send " +  bytes.length );
+		}
+		
 		if ( incoming ){
 			
 			synchronized( send_queue ){
@@ -420,9 +490,7 @@ GenericMessageConnectionIndirect
 					throw( new MessageException( "Send queue limit exceeded" ));
 				}
 				
-				System.out.println( "  added entry to send queue, rem = " + send_queue.size());
-
-				send_queue.add( pbb.toByteArray());
+				send_queue.add( bytes );
 			}
 			
 			send_queue_sem.release();
@@ -431,7 +499,7 @@ GenericMessageConnectionIndirect
 						
 			List	messages = new ArrayList();
 			
-			messages.add( pbb.toByteArray());
+			messages.add( bytes );
 			
 			send( messages );
 		}
@@ -441,6 +509,10 @@ GenericMessageConnectionIndirect
 	send(
 		List	messages )
 	{
+		if ( TRACE ){
+			trace( "    send " + messages );
+		}
+		
 		try{
 			Map	message = new HashMap();
 			
@@ -473,6 +545,37 @@ GenericMessageConnectionIndirect
 						owner.receive( new GenericMessage(msg_id, msg_desc, new DirectByteBuffer(ByteBuffer.wrap((byte[])replies.get(i))), false ));
 					}
 					
+						// if there's more data queued force a keep alive to pick it up but delay 
+						// a little to give the rendezvous a breather
+					
+					if ( reply.get( "more_data" ) != null ){
+						
+						if ( TRACE ){
+							trace( "    received 'more to come'" );
+						}
+						
+						new DelayedEvent(
+							500,
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									if ( prepareForKeepAlive( true )){
+										
+										keep_alive_pool.run(
+												new AERunnable()
+												{
+													public void
+													runSupport()
+													{
+														GenericMessageConnectionIndirect.this.keepAlive();
+													}
+												});
+									}
+								}
+							});
+					}
 				}else if ( reply_type == MESSAGE_TYPE_DISCONNECT ){
 					
 					owner.reportFailed( new Throwable( "Disconnected" ));
@@ -488,8 +591,11 @@ GenericMessageConnectionIndirect
 	receive(
 		List		messages )
 	{
-		System.out.println( "receive: " + messages );
+		if ( TRACE ){	
+			trace( "receive: " + messages );
+		}
 		
+		last_message_received	= SystemTime.getCurrentTime();
 		
 		for (int i=0;i<messages.size();i++){
 			
@@ -510,11 +616,28 @@ GenericMessageConnectionIndirect
 			}catch( Throwable e ){
 			}
 			
+			int	max 	= getMaximumMessageSize();
+			int	total 	= 0;
+			
 			synchronized( send_queue ){
 				
 				while( send_queue.size() > 0 ){
-									
+						
+					byte[]	data = (byte[])send_queue.getFirst();
+					
+					if ( total > 0 && total + data.length > max ){
+												
+						break;
+					}
+					
 					reply.add( send_queue.removeFirst());
+					
+					total += data.length;
+				}
+				
+				
+				if ( TRACE ){
+					trace( "    messages returned = " + reply.size() + " (" + total + "), more=" + (send_queue.size() > 0 ));
 				}
 			}
 			
@@ -529,23 +652,40 @@ GenericMessageConnectionIndirect
 		return( reply );
 	}
 	
+	protected boolean
+	receiveIncomplete()
+	{
+		synchronized( send_queue ){
+
+			return( send_queue.size() > 0 );
+		}
+	}
+	
 	public void
 	close()
 	
 		throws MessageException
 	{
-		close( false );
+		close( null );
 	}
 	
 	protected void
 	close(
-		boolean	remote_closed )
+		Throwable	close_cause )
 	
 		throws MessageException
 	{
 		if ( closed ){
 			
 			return;
+		}
+		
+		if ( TRACE ){
+			if ( close_cause == null ){
+				trace( "close[local]" );
+			}else{
+				trace( "close[" + close_cause.getMessage() + "]" );
+			}
 		}
 		
 		try{
@@ -582,9 +722,9 @@ GenericMessageConnectionIndirect
 			}
 		}finally{
 			
-			if ( remote_closed ){
+			if ( close_cause != null ){
 				
-				owner.reportFailed( new Throwable( "Remote closed connection" ));
+				owner.reportFailed( close_cause );
 			}
 		}
 	}
@@ -596,7 +736,8 @@ GenericMessageConnectionIndirect
 	}
 	
 	protected boolean
-	prepareForKeepAlive()
+	prepareForKeepAlive(
+		boolean	force )
 	{
 		if ( keep_alive_in_progress ){
 			
@@ -605,7 +746,7 @@ GenericMessageConnectionIndirect
 		
 		long	now = SystemTime.getCurrentTime();
 		
-		if ( now < last_message_sent || now - last_message_sent > KEEP_ALIVE_PERIOD ){
+		if ( force || now < last_message_sent || now - last_message_sent > KEEP_ALIVE_PERIOD ){
 			
 			keep_alive_in_progress = true;
 		
@@ -618,6 +759,10 @@ GenericMessageConnectionIndirect
 	protected void
 	keepAlive()
 	{
+		if (TRACE ){
+			trace( "keepAlive" );
+		}
+		
 		try{
 			
 			send( new ArrayList());
@@ -625,6 +770,15 @@ GenericMessageConnectionIndirect
 		}finally{
 			
 			keep_alive_in_progress	= false;
+		}
+	}
+	
+	protected void
+	trace(
+		String	str ) 
+	{
+		if ( TRACE ){
+			System.out.println( "GMCI[" +(incoming?"R":"L") + "/" + connection_id + "] " + str );
 		}
 	}
 }

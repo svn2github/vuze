@@ -45,11 +45,15 @@ public class
 GenericMessageConnectionImpl
 	implements GenericMessageConnection
 {
+	private static final boolean TRACE			= false;
 	private static final boolean TEST_TUNNEL	= false;
 	
 	static{
 		if ( TEST_TUNNEL ){
-			System.out.println( "**** GenericMessageConnection:test tunnel ****" );
+			System.out.println( "**** GenericMessageConnection: TEST_TUNNEL set ****" );
+		}
+		if ( TRACE ){
+			System.out.println( "**** GenericMessageConnection: TRACE on **** " );
 		}
 	}
 	
@@ -164,7 +168,9 @@ GenericMessageConnectionImpl
 		final ByteBuffer		initial_data,
 		InetSocketAddress		tcp_ep )
 	{
-		System.out.println( "TCP connection attempt" );
+		if ( TRACE ){
+			System.out.println( "TCP connection attempt to " + tcp_ep  );
+		}
 		
 		GenericMessageEndpointImpl	gen_tcp = new GenericMessageEndpointImpl( endpoint.getNotionalAddress());
 		
@@ -212,7 +218,9 @@ GenericMessageConnectionImpl
 		final InetSocketAddress		udp_ep,
 		boolean						nat_traversal )
 	{
-		System.out.println( "UDP connection attempt (nat=" + nat_traversal + ")" );
+		if ( TRACE ){
+			System.out.println( "UDP connection attempt to " + udp_ep + " (nat=" + nat_traversal + ")" );
+		}
 
 		final GenericMessageEndpointImpl	gen_udp = new GenericMessageEndpointImpl( endpoint.getNotionalAddress());
 		
@@ -326,6 +334,10 @@ GenericMessageConnectionImpl
 		InetSocketAddress		rendezvous,
 		InetSocketAddress		target )
 	{
+		if ( TRACE ){
+			System.out.println( "Tunnel connection attempt to " + target + " (rendezvous=" + rendezvous + ")" );
+
+		}
 		final GenericMessageConnectionIndirect tunnel_delegate = 
 			new GenericMessageConnectionIndirect( message_manager, msg_id, msg_desc, ep, rendezvous, target );
 		

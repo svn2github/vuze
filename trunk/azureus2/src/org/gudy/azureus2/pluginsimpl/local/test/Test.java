@@ -274,7 +274,7 @@ Test
 						}
 					});
 			
-			InetSocketAddress	tcp_target = new InetSocketAddress( "127.0.0.1", 		6881 );
+			InetSocketAddress	tcp_target = new InetSocketAddress( "127.0.0.1", 		6889 );
 			InetSocketAddress	udp_target = new InetSocketAddress( "212.159.18.92", 	6881 );
 			
 			GenericMessageEndpoint	endpoint = reg.createEndpoint( tcp_target );
