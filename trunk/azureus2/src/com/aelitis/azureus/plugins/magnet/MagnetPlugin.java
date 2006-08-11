@@ -47,7 +47,6 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
@@ -99,12 +98,17 @@ MagnetPlugin
 					
 					String	cb_data = "magnet:?xt=urn:btih:" + Base32.encode( torrent.getHash());
 
-					if ( torrent.isPrivate()){
+					// removed this as well - nothing wrong with allowing magnet copy
+					// for private torrents - they still can't be tracked if you don't
+					// have permission
+					
+					
+					/*if ( torrent.isPrivate()){
 						
 						cb_data = getMessageText( "private_torrent" );
 						
 					}else if ( torrent.isDecentralised()){
-							
+					*/	
 						// ok
 						
 						/* relaxed this as we allow such torrents to be downloaded via magnet links
@@ -136,7 +140,7 @@ MagnetPlugin
 						
 						cb_data = getMessageText( "decentral_backup_disabled" );
 						*/
-					}
+					// }
 					
 					// System.out.println( "MagnetPlugin: export = " + url );
 					
