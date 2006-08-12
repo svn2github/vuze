@@ -392,7 +392,15 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-		flush();
+		FMFileManagerException	flush_exception = null;
+		
+		try{
+			flush();
+			
+		}catch( FMFileManagerException e ){
+		
+			flush_exception = e;
+		}
 		
 		if ( raf == null ){
 			
@@ -404,25 +412,29 @@ FMFileImpl
 				
 				deleteDirs();
 			}
-			
-			return;
+		}else{
+		
+			try{			
+				raf.close();
+								
+			}catch( Throwable e ){
+				
+				throw( new FMFileManagerException("close fails", e ));
+				
+			}finally{
+				  	  
+				raf	= null;
+				
+				if ( explicit ){
+					
+					releaseFile();
+				}
+			}
 		}
 		
-		try{			
-			raf.close();
+		if ( flush_exception != null ){
 			
-		}catch( Throwable e ){
-			
-			throw( new FMFileManagerException("close fails", e ));
-			
-		}finally{
-			  	  
-			raf	= null;
-			
-			if ( explicit ){
-				
-				releaseFile();
-			}
+			throw( flush_exception );
 		}
 	}
 	
