@@ -190,7 +190,7 @@ UPnPImpl
 		
 					log( "UPnP: root discovered: usn=" + usn + ", location=" + location + ", ni=" + network_interface.getName() + ",local=" + local_address.toString() );
 					
-					final List	listeners;
+					List	listeners;
 					
 					try{
 						rd_listeners_mon.enter();
@@ -223,7 +223,9 @@ UPnPImpl
 							rd_listeners_mon.enter();
 							
 							root_locations.put( usn, new_root_device );
-										
+								
+							listeners = new ArrayList( rd_listeners );
+
 						}finally{
 							
 							rd_listeners_mon.exit();
@@ -282,8 +284,7 @@ UPnPImpl
 						rd_listeners_mon.enter();
 			
 						root_device = (UPnPRootDeviceImpl)root_locations.remove( usn );
-	
-						
+				
 					}finally{
 						
 						rd_listeners_mon.exit();
@@ -815,8 +816,14 @@ UPnPImpl
 		
 		for (int i=0;i<old_locations.size();i++){
 			
+			UPnPRootDevice	device = (UPnPRootDevice)old_locations.get(i);
+			
 			try{
-				l.rootDeviceFound(((UPnPRootDevice)old_locations.get(i)));
+				
+				if ( l.deviceDiscovered( device.getUSN(), device.getLocation())){
+					
+					l.rootDeviceFound(device);
+				}
 				
 			}catch( Throwable e ){
 				
@@ -829,7 +836,15 @@ UPnPImpl
 	removeRootDeviceListener(
 		UPnPListener	l )
 	{
-		rd_listeners.remove( l );
+		try{
+			this_mon.enter();
+
+			rd_listeners.remove( l );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public static void
