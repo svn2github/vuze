@@ -815,7 +815,13 @@ UPnPImpl
 		
 		for (int i=0;i<old_locations.size();i++){
 			
-			l.rootDeviceFound(((UPnPRootDevice)old_locations.get(i)));
+			try{
+				l.rootDeviceFound(((UPnPRootDevice)old_locations.get(i)));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 		
