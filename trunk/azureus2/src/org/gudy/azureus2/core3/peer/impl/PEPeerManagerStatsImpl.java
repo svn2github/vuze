@@ -41,7 +41,6 @@ PEPeerManagerStatsImpl
 	  
 	private long totalDiscarded;
 	private long hash_fail_bytes;
-	private long totalHave;
 
 	private int	last_data_received_seconds;
 	private int last_data_sent_seconds;
@@ -121,7 +120,6 @@ PEPeerManagerStatsImpl
   
 
 	public void haveNewPiece(int pieceLength) {
-	  totalHave += pieceLength;
 	  overallSpeed.addValue(pieceLength);
 	}
 
