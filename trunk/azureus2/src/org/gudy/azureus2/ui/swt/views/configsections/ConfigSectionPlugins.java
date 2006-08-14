@@ -289,13 +289,29 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 
 		String sep = System.getProperty("file.separator");
 
-		String sUserPluginDir = FileUtil.getUserFile("plugins").toString();
-
+		File fUserPluginDir = FileUtil.getUserFile("plugins");
+		
+		String sUserPluginDir;
+		
+		try{
+			sUserPluginDir = fUserPluginDir.getCanonicalPath();
+		}catch( Throwable e ){
+			sUserPluginDir = fUserPluginDir.toString();
+		}
+		
 		if (!sUserPluginDir.endsWith(sep)) {
 			sUserPluginDir += sep;
 		}
 
-		String sAppPluginDir = FileUtil.getApplicationFile("plugins").toString();
+		File fAppPluginDir = FileUtil.getApplicationFile("plugins");
+		
+		String sAppPluginDir;
+		
+		try{
+			sAppPluginDir = fAppPluginDir.getCanonicalPath();
+		}catch( Throwable e ){
+			sAppPluginDir = fAppPluginDir.toString();
+		}
 
 		if (!sAppPluginDir.endsWith(sep)) {
 			sAppPluginDir += sep;
