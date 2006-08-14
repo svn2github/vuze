@@ -611,7 +611,7 @@ PlatformManagerImpl
 		throws PlatformManagerException
 	{
 		// 	WriteRegStr HKCR ".torrent" "" "Azureus"
-		// 	WriteRegStr HKCR "Azureus" "" "BitTorrent File"
+		// 	WriteRegStr HKCR "Azureus" "" "Azureus Torrent"
 		// 	WriteRegStr HKCR "Azureus\shell" "" "open"
 		// 	WriteRegStr HKCR "Azureus\DefaultIcon" "" $INSTDIR\Azureus.exe,1
 		// 	WriteRegStr HKCR "Azureus\shell\open\command" "" '"$INSTDIR\Azureus.exe" "%1"'
