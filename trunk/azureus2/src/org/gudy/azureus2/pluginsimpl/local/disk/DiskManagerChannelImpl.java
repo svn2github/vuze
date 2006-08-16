@@ -399,6 +399,67 @@ DiskManagerChannelImpl
 			request_length	= _length;
 		}
 		
+		public long
+		getRemaining()
+		{
+			synchronized( data_written ){
+
+				return( request_length - (current_position - request_offset ));
+			}
+		}
+		
+		public long
+		getAvailableBytes()
+		{
+			synchronized( data_written ){
+
+				Iterator	it = data_written.iterator();
+				
+					// may not have been compacted to we need to aggregate contigous entry lengths 
+				
+				dataEntry	last_entry 	= null;
+				
+				while( it.hasNext()){
+					
+					dataEntry	entry = (dataEntry)it.next();
+					
+					long	entry_offset = entry.getOffset();
+					long	entry_length = entry.getLength();
+
+					if ( last_entry == null ){
+						
+						if ( entry_offset > current_position ){
+							
+							break;
+						}
+						
+						if ( entry_offset <= current_position && current_position < entry_offset + entry_length ){
+
+							last_entry = entry;
+						}
+					}else{
+	
+						if ( last_entry.getOffset() + last_entry.getLength() == entry.getOffset()){
+							
+							last_entry = entry;
+							
+						}else{
+							
+							break;
+						}
+					}	
+				}
+					
+				if ( last_entry == null ){
+					
+					return( 0 );
+					
+				}else{
+					
+					return( last_entry.getOffset() + last_entry.getLength() - current_position );
+				}
+			}
+		}
 		
 		public void
 		run()

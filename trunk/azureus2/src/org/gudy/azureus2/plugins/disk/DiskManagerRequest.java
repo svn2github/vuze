@@ -39,6 +39,12 @@ DiskManagerRequest
 	setLength(
 		long		length );
 	
+	public long
+	getAvailableBytes();
+	
+	public long
+	getRemaining();
+	
 	public void
 	run();
 	
