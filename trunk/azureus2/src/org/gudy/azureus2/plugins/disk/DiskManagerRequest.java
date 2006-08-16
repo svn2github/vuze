@@ -39,8 +39,19 @@ DiskManagerRequest
 	setLength(
 		long		length );
 	
+		/**
+		 * Get the number of bytes available for immediate reading from the request given its current
+		 * position. If this information is not known (download not running) then -1 is returned
+		 * @return
+		 */
+	
 	public long
 	getAvailableBytes();
+	
+		/**
+		 * Get the number of bytes remaining to be read for the request
+		 * @return
+		 */
 	
 	public long
 	getRemaining();

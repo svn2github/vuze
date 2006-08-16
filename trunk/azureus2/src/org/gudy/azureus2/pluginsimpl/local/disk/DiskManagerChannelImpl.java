@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
@@ -411,6 +412,22 @@ DiskManagerChannelImpl
 		public long
 		getAvailableBytes()
 		{
+			if ( plugin_file.getDownloaded() == plugin_file.getLength()){
+				
+				return( getRemaining());
+			}
+			
+			int	download_state = download.getState();
+			
+				// if the file is incomplete and the download isn't running then we don't have a view
+				// of what's available or not (to do this we'd need to add stuff to access resume data) 
+			
+			if ( 	download_state != Download.ST_DOWNLOADING &&
+					download_state != Download.ST_SEEDING ){
+				
+				return( -1 );
+			}
+			
 			synchronized( data_written ){
 
 				Iterator	it = data_written.iterator();
