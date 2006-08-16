@@ -384,9 +384,9 @@ DownloadManagerImpl
 	private byte[]	dl_identity;
     private int 	dl_identity_hashcode;
 
-    private int		max_uploads;
+    private int		max_uploads	= DownloadManagerState.MIN_MAX_UPLOADS;
     private int		max_connections;
-    private int		max_uploads_when_seeding;
+    private int		max_uploads_when_seeding	= DownloadManagerState.MIN_MAX_UPLOADS;
     private boolean	max_uploads_when_seeding_enabled;
     
     private int		max_upload_when_busy_bps;
@@ -866,6 +866,8 @@ DownloadManagerImpl
 		max_uploads_when_seeding 			= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING );
 		max_upload_when_busy_bps			= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOAD_WHEN_BUSY ) * 1024;
 
+		max_uploads = Math.max( max_uploads, DownloadManagerState.MIN_MAX_UPLOADS );
+		max_uploads_when_seeding = Math.max( max_uploads_when_seeding, DownloadManagerState.MIN_MAX_UPLOADS );
 	}
 	
 	protected int

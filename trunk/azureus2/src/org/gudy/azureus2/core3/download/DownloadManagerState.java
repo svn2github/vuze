@@ -63,12 +63,15 @@ DownloadManagerState
 	public static final String	PARAM_STATS_COUNTED						= "stats.counted";
 	public static final String	PARAM_DOWNLOAD_ADDED_TIME				= "stats.download.added.time";
 	public static final String	PARAM_MAX_UPLOAD_WHEN_BUSY				= "max.upload.when.busy";
-	public static final String  PARAM_DND_FLAGS						= "dndflags";
+	public static final String  PARAM_DND_FLAGS							= "dndflags";
+	
+	public static final int DEFAULT_MAX_UPLOADS	= 4;
+	public static final int MIN_MAX_UPLOADS		= 2;
 	
 	public static Object[][] PARAMETERS = {
 		{ PARAM_MAX_PEERS,							new Integer( 0 ) },
-		{ PARAM_MAX_UPLOADS,						new Long( 4 ) },
-		{ PARAM_MAX_UPLOADS_WHEN_SEEDING, 			new Integer( 4 ) },
+		{ PARAM_MAX_UPLOADS,						new Long( DEFAULT_MAX_UPLOADS ) },
+		{ PARAM_MAX_UPLOADS_WHEN_SEEDING, 			new Integer( DEFAULT_MAX_UPLOADS ) },
 		{ PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED, 	new Boolean( false ) },
 		{ PARAM_STATS_COUNTED, 						new Boolean( false ) },
 		{ PARAM_DOWNLOAD_ADDED_TIME,				new Long( 0 ) },
