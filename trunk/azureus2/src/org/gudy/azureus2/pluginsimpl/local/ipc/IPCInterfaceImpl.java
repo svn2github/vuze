@@ -82,7 +82,7 @@ public class IPCInterfaceImpl implements IPCInterface {
 					
 					Class[] method_params = method.getParameterTypes();
 					
-					if ( method_params.length == paramTypes.length ){
+					if ( method.getName().equals( methodName ) && method_params.length == paramTypes.length ){
 						
 						boolean	ok = true;
 						
