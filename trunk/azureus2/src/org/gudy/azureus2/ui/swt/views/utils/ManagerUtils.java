@@ -88,7 +88,11 @@ public class ManagerUtils {
 			}
 		}
 
-		Program.launch(f.toString()); // default launcher
+		if (f.isDirectory()) {
+			Program.launch(f.toString()); // default launcher
+		} else {
+			Program.launch(f.getParent().toString());
+		}
 	}
   
   public static boolean isStartable(DownloadManager dm) {
