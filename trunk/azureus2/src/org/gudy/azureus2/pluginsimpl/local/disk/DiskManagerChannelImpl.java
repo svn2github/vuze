@@ -55,6 +55,8 @@ DiskManagerChannelImpl
 	
 	private static final int COMPACT_DELAY	= 32;
 	
+	private static final int MAX_READ_CHUNK	= 64*1024;
+	
 	private static final Comparator comparator = new
 		Comparator()
 		{
@@ -480,9 +482,7 @@ DiskManagerChannelImpl
 		
 		public void
 		run()
-		{
-			int	max_chunk = 65536;
-			
+		{			
 			long	rem = request_length;
 			
 			long	pos = request_offset;
@@ -516,7 +516,7 @@ DiskManagerChannelImpl
 							
 							if ( available > 0 ){
 								
-								len = (int)( available<max_chunk?available:max_chunk);
+								len = (int)( available<MAX_READ_CHUNK?available:MAX_READ_CHUNK);
 								
 								break;
 							}
