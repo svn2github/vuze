@@ -127,6 +127,8 @@ TransportImpl
 	writeFailed(
 		Throwable	msg )
 	{
+		msg.fillInStackTrace();
+		
 		write_select_failure = msg;
 	
 		is_ready_for_write = true;  //set to true so that the next write attempt will throw an exception
@@ -169,6 +171,8 @@ TransportImpl
 	readFailed(
 		Throwable	msg )
 	{
+		msg.fillInStackTrace();	// msg picked up on another thread - make sure trace is available
+
 		read_select_failure = msg;
 	
 		is_ready_for_read = true;  //set to true so that the next read attempt will throw an exception
