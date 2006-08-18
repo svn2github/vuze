@@ -42,13 +42,30 @@ public class Set extends IConsoleCommand {
 	}
 	
 	public String getCommandDescriptions() {
-		return("set [parameter] [value]\t\t+\tSet a configuration parameter. The whitespaceless notation has to be used. If value is omitted, the current setting is shown. Parameter may be a wildcard to narrow results");
+		return("set [options] [parameter] [value]\t\t+\tSet a configuration parameter. The whitespaceless notation has to be used. If value is omitted, the current setting is shown. Parameter may be a wildcard to narrow results");
+	}
+	public void printHelp(PrintStream out, List args) {
+		out.println("> -----");
+		out.println("'set' options: ");
+		out.println("\t-export\t\tPrints all the options with non-defaut values.");
 	}
 	
 	public void execute(String commandName,ConsoleInput ci, List args) {
+		
+		boolean		non_defaults = false;
+		
+		Iterator	it = args.iterator();
+		
+		while( it.hasNext()){
+			String	arg = (String)it.next();
+			if ( arg.equals( "-export" )){
+				non_defaults = true;
+				it.remove();
+			}
+		}
 		if( args.isEmpty() )
 		{
-			displayOptions(ci.out, new StringPattern("*"));
+			displayOptions(ci.out, new StringPattern("*"), non_defaults );
 			return;
 		}
 		String external_name = (String) args.get(0);
@@ -68,7 +85,7 @@ public class Set extends IConsoleCommand {
 				StringPattern sp = new StringPattern(internal_name);
 				if( sp.hasWildcard() )
 				{
-					displayOptions(ci.out, sp);
+					displayOptions(ci.out, sp, non_defaults);
 				}
 				else
 				{
@@ -80,7 +97,7 @@ public class Set extends IConsoleCommand {
 					}
 					param = Parameter.get(internal_name,external_name);
 					
-					ci.out.println( param.toString() );					
+					ci.out.println( param.getString( false ) );					
 				}
 				break;
 			case 2:
@@ -156,7 +173,7 @@ public class Set extends IConsoleCommand {
 		}
 	}
 
-	private void displayOptions(PrintStream out, StringPattern sp)
+	private void displayOptions(PrintStream out, StringPattern sp, boolean non_defaults)
 	{
 		sp.setIgnoreCase(true);
 		Iterator I = COConfigurationManager.getAllowedParameters().iterator();
@@ -177,8 +194,15 @@ public class Set extends IConsoleCommand {
 			}
 			if( sp.matches(external_name) )
 			{
-				Parameter param = Parameter.get( internal_name, external_name );			
-				srt.add( param.toString() );
+				Parameter param = Parameter.get( internal_name, external_name );
+				
+				if ( non_defaults ){
+					if ( !param.isDefault()){
+						
+						srt.add( param.getString( true ));
+					}
+				}
+				srt.add( param.getString( false ));
 			}
 		}
 		I = srt.iterator();
@@ -300,10 +324,26 @@ public class Set extends IConsoleCommand {
 					return "unknown";
 			}
 		}	
-		public String toString()
+		
+		public boolean
+		isDefault()
+		{
+			return( !isSet );
+		}
+		
+		public String 
+		getString(
+			boolean	set_format )
 		{
 			if( isSet ){
-				return "> " + ename + ": " + value + " [" + getType() + "]";				
+				if ( set_format ){
+					
+					return( "set " + quoteIfNeeded( ename ) + " " + quoteIfNeeded(value.toString()) + " " + getType());
+					
+				}else{
+					
+					return "> " + ename + ": " + value + " [" + getType() + "]";
+				}
 			}else{
 				if ( def == null ){
 					
@@ -313,6 +353,18 @@ public class Set extends IConsoleCommand {
 					return "> " + ename + " is not set. [" + getType() + ", default: " + def + "]";
 				}
 			}
+		}
+		
+		protected String
+		quoteIfNeeded(
+			String	str )
+		{
+			if ( str.indexOf(' ') == -1 ){
+				
+				return( str );
+			}
+			
+			return( "\"" + str + "\"" );
 		}
 	}
 }
