@@ -192,10 +192,17 @@ public class AZMessageDecoder implements MessageStreamDecoder {
       payload_buffer = null;
     }
  
-    for( int i=0; i < messages_last_read.size(); i++ ) {
-      Message msg = (Message)messages_last_read.get( i );
-      msg.destroy();
+    try{
+	    for( int i=0; i < messages_last_read.size(); i++ ) {
+	      Message msg = (Message)messages_last_read.get( i );
+	      msg.destroy();
+	    }
+    }catch( ArrayIndexOutOfBoundsException e ){
+    	// as access to messages_last_read isn't synchronized we can get this error if we destroy the
+    	// decoder in parallel with messages being removed. We don't really want to synchornized access
+    	// to this so we'll take the hit here
     }
+    
     messages_last_read.clear();
     
     //return unused;
