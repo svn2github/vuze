@@ -356,7 +356,6 @@ PEPeerTransportProtocol
         
       public final void exceptionThrown( Throwable error ) {
         if( error.getMessage() == null ) {
-          error.printStackTrace();
           Debug.out( "error.getMessage() == null", error );
         }
         
