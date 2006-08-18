@@ -396,9 +396,9 @@ ThreadPool
 	public class
 	threadPoolWorker
 	{
-		private String	worker_name;
+		private final String	worker_name;
 		
-		private Thread	worker_thread;
+		private final Thread	worker_thread;
 		
 		private AESemaphore my_sem = new AESemaphore("TPWorker");
 		
@@ -496,12 +496,24 @@ outer:
 										
 											ThreadPoolTask	tpt = (ThreadPoolTask)runnable;
 											
+											String	task_name = tpt.getName();
+																
 											try{
+												if ( task_name != null ){
+													
+													setName( worker_name + "{" + task_name + "}" );
+												}
+							
 												tpt.taskStarted();
 												
 												runnable.run();
 												
 											}finally{
+												
+												if ( task_name != null ){
+													
+													setName( worker_name );
+												}
 												
 												tpt.taskCompleted();
 											}

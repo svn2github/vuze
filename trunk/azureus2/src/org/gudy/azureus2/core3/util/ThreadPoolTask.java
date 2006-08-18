@@ -46,6 +46,12 @@ ThreadPoolTask
 		return( worker.getState());
 	}
 	
+	public String
+	getName()
+	{
+		return( null );
+	}
+	
 	public abstract void
 	interruptTask();
 	
