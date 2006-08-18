@@ -197,12 +197,15 @@ public class Set extends IConsoleCommand {
 				Parameter param = Parameter.get( internal_name, external_name );
 				
 				if ( non_defaults ){
+					
 					if ( !param.isDefault()){
 						
 						srt.add( param.getString( true ));
 					}
+				}else{
+					
+					srt.add( param.getString( false ));
 				}
-				srt.add( param.getString( false ));
 			}
 		}
 		I = srt.iterator();
