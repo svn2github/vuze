@@ -30,10 +30,26 @@ public class
 GlobalManagerDownloadRemovalVetoException
 	extends Exception
 {
+	
+	private boolean silent;
+	
+	public
+	GlobalManagerDownloadRemovalVetoException(
+		String		str,
+		boolean silent)
+	{
+		super( str );
+		this.silent = silent;
+	}
+	
 	public
 	GlobalManagerDownloadRemovalVetoException(
 		String		str )
 	{
-		super( str );
+		this( str, false );
+	}
+	
+	public boolean isSilent() {
+		return silent;
 	}
 }

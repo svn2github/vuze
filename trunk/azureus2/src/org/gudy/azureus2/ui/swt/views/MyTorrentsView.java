@@ -2410,7 +2410,9 @@ public class MyTorrentsView
 		        dm.getGlobalManager().removeDownloadManager( dm );
 		      }
 		      catch (GlobalManagerDownloadRemovalVetoException f) {
-		        Alerts.showErrorMessageBoxUsingResourceString("globalmanager.download.remove.veto", f);
+		    	  if(!f.isSilent()) {
+		    		  Alerts.showErrorMessageBoxUsingResourceString("globalmanager.download.remove.veto", f);
+		    	  }
 		      }
 		      catch (Exception ex) {
 		        Debug.printStackTrace( ex );

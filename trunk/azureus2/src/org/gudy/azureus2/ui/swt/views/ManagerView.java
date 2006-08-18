@@ -353,8 +353,11 @@ public class ManagerView extends AbstractIView implements
 
 					} catch (GlobalManagerDownloadRemovalVetoException e) {
 
-						Alerts.showErrorMessageBoxUsingResourceString(
-								"globalmanager.download.remove.veto", e);
+						if(!e.isSilent()) {
+							Alerts.showErrorMessageBoxUsingResourceString(
+									"globalmanager.download.remove.veto", e);	
+						}
+						
 					}
 				}
 			}.start();

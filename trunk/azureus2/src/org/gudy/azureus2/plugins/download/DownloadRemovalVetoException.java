@@ -31,10 +31,25 @@ public class
 DownloadRemovalVetoException
 	extends Exception
 {
+	
+	private boolean silent;
+	
+	public DownloadRemovalVetoException(
+			String str,
+			boolean silent)
+	{
+		super(str);
+		this.silent = silent;
+	}
+	
 	public
 	DownloadRemovalVetoException(
 		String	str )
 	{
-		super(str);
+		this(str,false);
+	}
+	
+	public boolean isSilent() {
+		return silent;
 	}
 }

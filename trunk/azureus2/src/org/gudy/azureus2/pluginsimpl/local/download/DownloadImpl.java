@@ -681,7 +681,7 @@ DownloadImpl
 				
 			}catch( GlobalManagerDownloadRemovalVetoException e ){
 				
-				throw( new DownloadRemovalVetoException( e.getMessage()));
+				throw( new DownloadRemovalVetoException( e.getMessage(),e.isSilent()));
 			}
 			
 		}else{
