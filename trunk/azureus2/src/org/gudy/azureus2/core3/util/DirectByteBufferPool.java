@@ -141,6 +141,7 @@ DirectByteBufferPool
 	    
 	    //initiate periodic timer to check free memory usage
 	    SimpleTimer.addPeriodicEvent(
+	    	"DirectBB:compact",
 	        COMPACTION_CHECK_PERIOD,
 	        new TimerEventPerformer() {
 	          public void perform( TimerEvent ev ) {

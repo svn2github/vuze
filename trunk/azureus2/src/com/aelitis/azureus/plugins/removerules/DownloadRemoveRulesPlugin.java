@@ -99,6 +99,7 @@ DownloadRemoveRulesPlugin
 			config.addBooleanParameter2( "download.removerules.updatetorrents", "download.removerules.updatetorrents", true );
 
 		new DelayedEvent(
+				"DownloadRemovalRules",
 				INITIAL_DELAY,
 				new AERunnable()
 				{

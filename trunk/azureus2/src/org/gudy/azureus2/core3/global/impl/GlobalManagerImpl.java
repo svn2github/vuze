@@ -314,7 +314,7 @@ public class GlobalManagerImpl
     // typically the UI will call loadExistingTorrents before this runs
     // This is here in case the UI is stupid or forgets
     if (existingTorrentLoadDelay > 0) {
-			loadTorrentsDelay = new DelayedEvent(existingTorrentLoadDelay,
+			loadTorrentsDelay = new DelayedEvent("GM:tld", existingTorrentLoadDelay,
 					new AERunnable() {
 						public void runSupport() {
 							loadExistingTorrentsNow(listener, false); // already async

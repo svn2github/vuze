@@ -65,6 +65,7 @@ FrequencyLimitedDispatcher
 											
 					delay_event = 
 						new DelayedEvent(
+							"FreqLimDisp",
 							delay,
 							new AERunnable()
 							{

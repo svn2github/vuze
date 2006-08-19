@@ -1276,6 +1276,7 @@ TorrentUtils
 	
 	static{
 		SimpleTimer.addPeriodicEvent(
+			"TorrentUtils:pieceDiscard",
 			PIECE_HASH_TIMEOUT/2,
 			new TimerEventPerformer()
 			{

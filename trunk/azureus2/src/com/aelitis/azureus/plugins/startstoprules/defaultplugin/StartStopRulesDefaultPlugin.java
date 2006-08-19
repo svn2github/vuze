@@ -180,12 +180,12 @@ public class StartStopRulesDefaultPlugin
 				// CPU Intensive, delay until a little after all plugin initializations
 				// XXX Would be better if we could delay it until UI is done,
 				//     but there may be no UI..
-				new DelayedEvent(12000, new AERunnable() {
+				new DelayedEvent("StartStop:initComp", 12000, new AERunnable() {
 					public void runSupport() {
 						download_manager.addListener(new StartStopDMListener());
-						SimpleTimer.addPeriodicEvent(CHECK_FOR_GROSS_CHANGE_PERIOD,
+						SimpleTimer.addPeriodicEvent("StartStop:gross", CHECK_FOR_GROSS_CHANGE_PERIOD,
 								new ChangeCheckerTimerTask());
-						SimpleTimer.addPeriodicEvent(PROCESS_CHECK_PERIOD,
+						SimpleTimer.addPeriodicEvent("StartStop:check", PROCESS_CHECK_PERIOD,
 								new ChangeFlagCheckerTask());
 					}
 				});
@@ -574,7 +574,7 @@ public class StartStopRulesDefaultPlugin
 	      if (iRankType == RANK_TIMED) {
 	        if (recalcSeedingRanksTask == null) {
 	          recalcSeedingRanksTask = new RecalcSeedingRanksTask();
-	          SimpleTimer.addPeriodicEvent(1000, recalcSeedingRanksTask);
+	          SimpleTimer.addPeriodicEvent("StartStop:recalcSR", 1000, recalcSeedingRanksTask);
 	        }
 	      } else if (recalcSeedingRanksTask != null) {
 	        recalcSeedingRanksTask.cancel();

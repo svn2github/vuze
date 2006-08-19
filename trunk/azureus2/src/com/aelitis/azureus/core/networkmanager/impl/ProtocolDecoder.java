@@ -45,6 +45,7 @@ ProtocolDecoder
 	static{
 		
 		SimpleTimer.addPeriodicEvent(
+		"ProtocolDecoder:timeouts",
         5000,
         new TimerEventPerformer() {
           public void perform( TimerEvent ev ) {

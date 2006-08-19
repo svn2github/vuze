@@ -62,6 +62,7 @@ NatPMPUPnPImpl
 	start()
 	{
 		SimpleTimer.addPeriodicEvent(
+			"NATPMP:search",
 			60*1000,
 			new TimerEventPerformer()
 			{

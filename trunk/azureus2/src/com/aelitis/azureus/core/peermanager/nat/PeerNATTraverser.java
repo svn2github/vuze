@@ -105,6 +105,7 @@ PeerNATTraverser
 		nat_traverser.registerHandler( this );
 		
 		SimpleTimer.addPeriodicEvent(
+			"PeerNAT:stats",
 			TIMER_PERIOD,
 			new TimerEventPerformer()
 			{

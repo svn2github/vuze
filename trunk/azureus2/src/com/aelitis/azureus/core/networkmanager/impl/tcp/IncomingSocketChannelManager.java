@@ -115,7 +115,8 @@ public class IncomingSocketChannelManager
     	//this checker tests to make sure the listen socket is still accepting connections, and if not, recreates the socket
     
     SimpleTimer.addPeriodicEvent(
-    		60*1000,
+    	"IncomingSocketChannelManager:concheck",
+    	60*1000,
         new TimerEventPerformer() {
           public void perform( TimerEvent ev ) {
        

@@ -122,6 +122,7 @@ DHTDBImpl
 		
 		
 		SimpleTimer.addPeriodicEvent(
+			"DHTDB:op",
 			original_republish_interval,
 			new TimerEventPerformer()
 			{
@@ -147,6 +148,7 @@ DHTDBImpl
 				// regarding non-republising benefit from this 
 			
 		SimpleTimer.addPeriodicEvent(
+				"DHTDB:cp",
 				cache_republish_interval + 10000 - (int)(Math.random()*20000),
 				new TimerEventPerformer()
 				{
@@ -186,6 +188,7 @@ DHTDBImpl
 	
 		
 		SimpleTimer.addPeriodicEvent(
+				"DHTDB:bloom",
 				IP_BLOOM_FILTER_REBUILD_PERIOD,
 				new TimerEventPerformer()
 				{

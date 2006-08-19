@@ -29,12 +29,13 @@ public class
 TimerEventPeriodic
 	implements TimerEventPerformer
 {
-	protected Timer					timer;
-	protected long					frequency;
-	protected TimerEventPerformer	performer;
+	private Timer					timer;
+	private long					frequency;
+	private TimerEventPerformer	performer;
 	
-	protected TimerEvent			current_event;
-	protected boolean				cancelled;
+	private String				name;
+	private TimerEvent			current_event;
+	private boolean				cancelled;
 	
 	protected
 	TimerEventPeriodic(
@@ -48,7 +49,21 @@ TimerEventPeriodic
 		
 		current_event = timer.addEvent( 	SystemTime.getCurrentTime()+ frequency,
 											this );
+	}
+	
+	public void
+	setName(
+		String	_name )
+	{
+		name	= _name;
 		
+		synchronized( this ){
+			
+			if ( current_event != null ){
+				
+				current_event.setName( name );
+			}
+		}
 	}
 	
 	protected TimerEventPerformer
@@ -89,6 +104,11 @@ TimerEventPeriodic
 				
 					current_event = timer.addEvent( 	SystemTime.getCurrentTime()+ frequency,
 														this );
+					
+					if ( name != null ){
+						
+						current_event.setName( name );
+					}
 				}
 			}
 		}
@@ -120,6 +140,6 @@ TimerEventPeriodic
 			ev_data = "when=" + ce.getWhen() + ",run=" + ce.hasRun() + ", can=" + ce.isCancelled();
 		}
 		
-		return( ev_data  + ",freq=" + getFrequency() + ",target=" + getPerformer());
+		return( ev_data  + ",freq=" + getFrequency() + ",target=" + getPerformer() + (name==null?"":(",name=" + name )));
 	}
 }

@@ -28,18 +28,20 @@ package org.gudy.azureus2.core3.util;
 
 public class 
 TimerEvent
-	extends		AERunnable
+	extends		ThreadPoolTask
 	implements 	Comparable
 {
-	protected Timer					timer;
-	protected long					created;
-	protected long					when;
-	protected TimerEventPerformer	performer;
+	private String					name;
 	
-	protected boolean		cancelled;
-	protected boolean		has_run;
+	private Timer					timer;
+	private long					created;
+	private long					when;
+	private TimerEventPerformer	performer;
 	
-	protected long			unique_id	= 1;
+	private boolean		cancelled;
+	private boolean		has_run;
+	
+	private long			unique_id	= 1;
 	
 	protected
 	TimerEvent(
@@ -57,6 +59,19 @@ TimerEvent
 		created 	= _created;
 	}
 		
+	public void
+	setName(
+		String		_name )
+	{
+		name	= _name;
+	}
+	
+	public String
+	getName()
+	{
+		return( name );
+	}
+	
 	public long
 	getCreatedTime()
 	{
@@ -142,6 +157,11 @@ TimerEvent
 		}
 	}
 	
+	public void 
+	interruptTask() 
+	{
+	}
+	
 	protected String
 	getString()
 	{
@@ -153,7 +173,7 @@ TimerEvent
 
 		}else{
 			
-			return( "when=" + getWhen() + ",run=" + hasRun() + ", can=" + isCancelled() + ",target=" + getPerformer());
+			return( "when=" + getWhen() + ",run=" + hasRun() + ", can=" + isCancelled() + ",target=" + getPerformer() + (name==null?"":",name=" + name ));
 		}
 	}
 }

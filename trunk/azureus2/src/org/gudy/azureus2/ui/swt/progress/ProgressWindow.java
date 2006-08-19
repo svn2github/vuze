@@ -93,6 +93,7 @@ ProgressWindow
 		final RuntimeException[] error = {null};
 		
 		new DelayedEvent( 
+				"ProgWin",
 				1000,
 				new AERunnable()
 				{

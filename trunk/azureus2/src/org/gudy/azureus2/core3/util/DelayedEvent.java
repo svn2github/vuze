@@ -31,10 +31,13 @@ DelayedEvent
 {
 	public
 	DelayedEvent(
+		String				name,
 		long				delay_millis,
 		final AERunnable	target )
 	{		
-		SimpleTimer.addEvent( SystemTime.getCurrentTime() + delay_millis,
+		SimpleTimer.addEvent(
+						name,
+						SystemTime.getCurrentTime() + delay_millis,
 						new TimerEventPerformer()
 						{
 							public void

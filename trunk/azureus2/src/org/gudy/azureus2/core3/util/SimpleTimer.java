@@ -50,17 +50,27 @@ SimpleTimer
 	
 	public static TimerEvent
 	addEvent(
+		String				name,
 		long				when,
 		TimerEventPerformer	performer )
 	{
-		return(timer.addEvent( when, performer ));
+		TimerEvent	res = timer.addEvent( when, performer );
+		
+		res.setName( name );
+		
+		return( res );
 	}
 	
 	public static TimerEventPeriodic
 	addPeriodicEvent(
+		String				name,
 		long				frequency,
 		TimerEventPerformer	performer )
 	{
-		return( timer.addPeriodicEvent( frequency, performer ));
+		TimerEventPeriodic	res = timer.addPeriodicEvent( frequency, performer );
+		
+		res.setName( name );
+		
+		return( res );
 	}
 }

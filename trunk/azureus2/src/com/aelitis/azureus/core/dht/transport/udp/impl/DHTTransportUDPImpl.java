@@ -239,6 +239,7 @@ DHTTransportUDPImpl
 		createPacketHandler();
 		
 		SimpleTimer.addPeriodicEvent(
+			"DHTUDP:stats",
 			STATS_PERIOD,
 			new TimerEventPerformer()
 			{

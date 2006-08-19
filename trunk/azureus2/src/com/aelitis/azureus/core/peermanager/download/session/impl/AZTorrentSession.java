@@ -195,7 +195,7 @@ public class AZTorrentSession implements TorrentSession {
       peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( syn, false );
       
       //set a timeout timer in case the other peer forgets to send an ACK or END reply
-      syn_timeout_timer = SimpleTimer.addEvent( SystemTime.getCurrentTime() + 60*1000, new TimerEventPerformer() {
+      syn_timeout_timer = SimpleTimer.addEvent( "AZTorrentSession:SynTImer", SystemTime.getCurrentTime() + 60*1000, new TimerEventPerformer() {
         public void  perform( TimerEvent  event ) {
           end( "No session ACK received after 60sec, request timed out.", true );
         }

@@ -98,6 +98,7 @@ GenericMessageConnectionIndirect
 			//        is queued and only picked up on a periodic ping by the initiator
 				
 		SimpleTimer.addPeriodicEvent(
+			"DDBTorrent:timeout2",
 			TICK_PERIOD,
 			new TimerEventPerformer()
 			{		
@@ -692,6 +693,7 @@ GenericMessageConnectionIndirect
 						}
 						
 						new DelayedEvent(
+							"GenMsg:kap",
 							500,
 							new AERunnable()
 							{

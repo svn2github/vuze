@@ -63,6 +63,7 @@ DHTControlStatsImpl
 		router_snapshot		= control.getRouter().getStats().getStats();
 		
 		SimpleTimer.addPeriodicEvent(
+			"DHTCS:update",
 			UPDATE_INTERVAL,
 			new TimerEventPerformer()
 			{

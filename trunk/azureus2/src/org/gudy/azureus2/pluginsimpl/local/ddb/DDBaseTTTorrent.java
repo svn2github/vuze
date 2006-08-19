@@ -227,6 +227,7 @@ DDBaseTTTorrent
 					final TimerEventPeriodic[]pe = { null };
 					
 					pe[0] = SimpleTimer.addPeriodicEvent(
+						"DDBTorrent:timeout",
 						30*1000,
 						new TimerEventPerformer()
 						{

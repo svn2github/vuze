@@ -160,6 +160,7 @@ UpdateMonitor
 	  			});
 	  	
 	    SimpleTimer.addPeriodicEvent( 
+	    		"UpdateMon:autocheck",
 	            AUTO_UPDATE_CHECK_PERIOD,
 	            new TimerEventPerformer()
 	            {
@@ -174,6 +175,7 @@ UpdateMonitor
 	    	// wait a bit before starting check to give rest of AZ time to initialise 
 	    
 		new DelayedEvent(
+				"UpdateMon:wait",
 				2500,
 				new AERunnable()
 				{
@@ -214,6 +216,7 @@ UpdateMonitor
 		}else{
 
 			new DelayedEvent(
+					"UpdateMon:wait2",
 					5000,
 					new AERunnable()
 					{

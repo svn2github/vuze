@@ -49,6 +49,7 @@ UPnPSSWANConnectionImpl
 	static{
 		
 		SimpleTimer.addPeriodicEvent(
+				"UPnPSSWAN:checker",
 				10*60*1000,
         new TimerEventPerformer() {
           public void perform( TimerEvent ev ) {

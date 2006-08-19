@@ -476,6 +476,7 @@ outer:
 															busy_pool_timer_set	= true;
 															
 															SimpleTimer.addPeriodicEvent(
+																	"ThreadPool:timeout",
 																	WARN_TIME,
 																	new TimerEventPerformer()
 																	{

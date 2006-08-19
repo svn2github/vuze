@@ -96,7 +96,7 @@ UTTimerImpl
 			
 		if ( timer == null ){
 			
-			res.setEvent( SimpleTimer.addEvent( when, performer ));
+			res.setEvent( SimpleTimer.addEvent( "Plugin:" + ext_performer.getClass(), when, performer ));
 			
 		}else{
 			
@@ -147,7 +147,7 @@ UTTimerImpl
 			
 		if ( timer == null ){
 			
-			res.setEvent( SimpleTimer.addPeriodicEvent( periodic_millis, performer ));
+			res.setEvent( SimpleTimer.addPeriodicEvent( "Plugin:" + ext_performer.getClass(), periodic_millis, performer ));
 			
 		}else{
 			

@@ -417,6 +417,7 @@ CacheFileManagerImpl
 	{
 			
 		SimpleTimer.addPeriodicEvent(
+				"CacehFile:stats",
 				STATS_UPDATE_FREQUENCY,
         new TimerEventPerformer() {
           public void perform( TimerEvent ev ) {

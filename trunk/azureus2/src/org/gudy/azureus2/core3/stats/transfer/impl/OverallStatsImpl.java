@@ -210,7 +210,7 @@ OverallStatsImpl
     Map 	stats = load();
     validateAndLoadValues(stats);
 
-    SimpleTimer.addPeriodicEvent(STATS_PERIOD,this);
+    SimpleTimer.addPeriodicEvent("OverallStats", STATS_PERIOD,this);
   }
   
 	public int getAverageDownloadSpeed() {

@@ -211,6 +211,7 @@ AZInstanceManagerImpl
 				});
 			
 			SimpleTimer.addPeriodicEvent(
+				"InstManager:timeouts",
 				ALIVE_PERIOD,
 				new TimerEventPerformer()
 				{

@@ -603,6 +603,7 @@ DHTNATPuncherImpl
 	{
 		
 		SimpleTimer.addPeriodicEvent(
+				"DHTNAT:cp",
 				RENDEZVOUS_CLIENT_PING_PERIOD,
         new TimerEventPerformer() {
           public void perform( TimerEvent ev ) {

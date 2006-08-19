@@ -60,6 +60,7 @@ IncomingConnectionManager
 	{		
 		
 		SimpleTimer.addPeriodicEvent( 
+				"IncomingConnectionManager:timeouts",
 				5000,
         new TimerEventPerformer() {
           public void perform( TimerEvent ev ) {

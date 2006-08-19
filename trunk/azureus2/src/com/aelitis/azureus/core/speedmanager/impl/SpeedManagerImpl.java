@@ -302,6 +302,7 @@ SpeedManagerImpl
 				});
 		
 		SimpleTimer.addPeriodicEvent(
+			"SpeedManager:stats",
 			TICK_PERIOD,
 			new TimerEventPerformer()
 			{
