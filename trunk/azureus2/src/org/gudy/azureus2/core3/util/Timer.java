@@ -161,6 +161,8 @@ public class Timer
 					
 					event_to_run.setHasRun();
 					
+					// System.out.println( "running: " + event_to_run.getString() );
+					
 					thread_pool.run(event_to_run.getRunnable());
 				}
 				
@@ -242,11 +244,35 @@ public class Timer
 	
 	public synchronized TimerEvent
 	addEvent(
+		String				name,
+		long				when,
+		TimerEventPerformer	performer )
+	{
+		return( addEvent( name, SystemTime.getCurrentTime(), when, performer ));
+	}
+	
+	public synchronized TimerEvent
+	addEvent(
+		long				creation_time,
+		long				when,
+		TimerEventPerformer	performer )
+	{
+		return( addEvent( null, creation_time, when, performer ));
+	}
+	
+	public synchronized TimerEvent
+	addEvent(
+		String				name,
 		long				creation_time,
 		long				when,
 		TimerEventPerformer	performer )
 	{
 		TimerEvent	event = new TimerEvent( this, unique_id_next++, creation_time, when, performer );
+		
+		if ( name != null ){
+			
+			event.setName( name );
+		}
 		
 		events.add( event );
 		
@@ -277,8 +303,22 @@ public class Timer
 		long				frequency,
 		TimerEventPerformer	performer )
 	{
+		return( addPeriodicEvent( null, frequency, performer ));
+	}
+	
+	public synchronized TimerEventPeriodic
+	addPeriodicEvent(
+		String				name,
+		long				frequency,
+		TimerEventPerformer	performer )
+	{
 		TimerEventPeriodic periodic_performer = new TimerEventPeriodic( this, frequency, performer );
+		
+		if ( name != null ){
 			
+			periodic_performer.setName( name );
+		}
+		
 		if ( log ){
 						
 			System.out.println( "Timer '" + thread_pool.getName() + "' - added " + periodic_performer.getString());

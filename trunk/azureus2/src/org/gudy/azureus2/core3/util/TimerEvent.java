@@ -169,7 +169,7 @@ TimerEvent
 
 			TimerEventPeriodic	tep = (TimerEventPeriodic)performer;
 			
-			return( "when=" + getWhen() + ",run=" + hasRun() + ", can=" + isCancelled() + "/" + tep.isCancelled() + ",freq=" + tep.getFrequency() + ",target=" + tep.getPerformer());
+			return( "when=" + getWhen() + ",run=" + hasRun() + ", can=" + isCancelled() + "/" + tep.isCancelled() + ",freq=" + tep.getFrequency() + ",target=" + tep.getPerformer()+ (name==null?"":",name=" + name ));
 
 		}else{
 			

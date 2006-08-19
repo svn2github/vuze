@@ -100,7 +100,7 @@ UTTimerImpl
 			
 		}else{
 			
-			res.setEvent( timer.addEvent( when, performer ));
+			res.setEvent( timer.addEvent( "Plugin:" + ext_performer.getClass(), when, performer ));
 		
 		}
 			
@@ -151,7 +151,7 @@ UTTimerImpl
 			
 		}else{
 			
-			res.setEvent( timer.addPeriodicEvent( periodic_millis, performer ));
+			res.setEvent( timer.addPeriodicEvent( "Plugin:" + ext_performer.getClass(), periodic_millis, performer ));
 		
 		}
 			

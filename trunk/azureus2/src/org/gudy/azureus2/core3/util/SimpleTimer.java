@@ -54,10 +54,8 @@ SimpleTimer
 		long				when,
 		TimerEventPerformer	performer )
 	{
-		TimerEvent	res = timer.addEvent( when, performer );
-		
-		res.setName( name );
-		
+		TimerEvent	res = timer.addEvent( name, when, performer );
+				
 		return( res );
 	}
 	
@@ -67,10 +65,8 @@ SimpleTimer
 		long				frequency,
 		TimerEventPerformer	performer )
 	{
-		TimerEventPeriodic	res = timer.addPeriodicEvent( frequency, performer );
-		
-		res.setName( name );
-		
+		TimerEventPeriodic	res = timer.addPeriodicEvent( name, frequency, performer );
+				
 		return( res );
 	}
 }
