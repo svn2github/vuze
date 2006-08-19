@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableColumnImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
@@ -551,6 +552,12 @@ UISWTInstanceImpl
 		}
 		return new UISWTView[0];
 	}
+	
+	public int promptUser(String title, String text, String[] options,
+			int defaultOption) {
+		return MessageBoxShell.open(uiFunctions.getMainShell(), title, text,
+				options, defaultOption);
+	}
 
 	// Core Functions
 	// ==============
@@ -654,6 +661,11 @@ UISWTInstanceImpl
 		removeView(UISWTAWTPluginView view)
 		{
 			delegate.removeView( view );
+		}
+		
+		public int promptUser(String title, String text, String[] options,
+				int defaultOption) {
+			return delegate.promptUser(title, text, options, defaultOption);
 		}
 	}
 }

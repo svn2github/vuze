@@ -23,15 +23,27 @@
 package org.gudy.azureus2.plugins.ui;
 
 /**
- * This interface represents a UI running on the core (e.g. the SWT UI). The actual implementation of
- * this will support UI-specific operations - you need to cast this to the appropriate type to access
- * them.
- * This is to allow "native" UI plugin access - for example a plugin that directly accesses SWT functionality
- * would do it via this object (it'll be an instance of 
- * 	org.gudy.azureus2.ui.swt.plugins.UISWTInstance )
+ * This interface represents a UI running on the core (e.g. the SWT UI). 
+ * The actual implementation of this will support UI-specific operations - 
+ * you need to cast this to the appropriate type to access them.
+ * 
+ * This is to allow "native" UI plugin access - for example a plugin that 
+ * directly accesses SWT functionality would do it via this object (it'll be 
+ * an instance of org.gudy.azureus2.ui.swt.plugins.UISWTInstance )
  */
 
 public interface 
 UIInstance 
 {
+	/**
+	 * Prompts the user with a title, text, and a series of options.  The options
+	 * are typically displayed as buttons.
+	 * 
+	 * @param title
+	 * @param text
+	 * @param options
+	 * @return Index of option chosen, -1 if cancelled or error
+	 */
+	public int promptUser(String title, String text, String[] options,
+			int defaultOption);
 }
