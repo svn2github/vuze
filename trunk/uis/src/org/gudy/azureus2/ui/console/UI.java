@@ -229,4 +229,26 @@ UI
 		
 		return( true );
 	}
+	
+	public int promptUser(String title, String text, String[] options,
+			int defaultOption) {
+		console.out.println("Prompt: " + title);
+		console.out.println(text);
+
+		String sOptions = "Options: ";
+		for (int i = 0; i < options.length; i++) {
+			if (i != 0) {
+				sOptions += ", ";
+			}
+			sOptions += "[" + i + "]" + options[i];
+		}
+		
+		console.out.println(sOptions);
+		
+		console.out.println("WARNING: Option [" + defaultOption + 
+				"] automatically selected. " +
+				"Console UI devs need to implement this function!");
+
+		return defaultOption;
+	}
 }
