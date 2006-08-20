@@ -106,7 +106,7 @@ public class UserManager
 	 */
 	public void addUser(UserProfile user)
 	{
-		usersMap.put( user.getUsername() , user );
+		usersMap.put( user.getUsername().toLowerCase(), user );
 	}
 	
 	public Collection getUsers( )
@@ -134,7 +134,7 @@ public class UserManager
 		UserManagerConfig managerConfig = (UserManagerConfig)decoder.readObject();
 		for (Iterator iter = managerConfig.getUsers().iterator(); iter.hasNext();) {
 			UserProfile user = (UserProfile) iter.next();
-			usersMap.put(user.getUsername(), user);
+			usersMap.put(user.getUsername().toLowerCase(), user);
 		}
 		System.out.println("UserManager: registered " + usersMap.size() + " users");
 		decoder.close();
@@ -230,6 +230,6 @@ public class UserManager
 	 */
 	public void deleteUser(String userName) 
 	{
-		usersMap.remove(userName);
+		usersMap.remove(userName.toLowerCase());
 	}
 }
