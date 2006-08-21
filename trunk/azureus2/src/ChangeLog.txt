@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 -----------------
 
-2006.0x.xx | Azureus 2.4.0.3
+2006.08.21 | Azureus 2.5.0.0
 
 FEATURE: Core | Reduced CPU usage, especially in some unusual conditions [MjrTom]
 FEATURE: Core | Explicit local subnet and peer injection option for Lan Peer Finder [Parg]
