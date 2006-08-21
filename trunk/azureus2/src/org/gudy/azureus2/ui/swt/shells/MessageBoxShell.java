@@ -23,6 +23,8 @@ public class MessageBoxShell {
 
 	private final static int MIN_SIZE_Y = 200;
 
+	private final static int MAX_SIZE_X = 500;
+
 	public static int open(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption) {
 		final int[] result = new int[1];
@@ -46,6 +48,7 @@ public class MessageBoxShell {
 
 		final Shell shell = new Shell(parent, SWT.DIALOG_TRIM
 				| SWT.APPLICATION_MODAL);
+		shell.setText(title);
 		GridLayout gridLayout = new GridLayout();
 		shell.setLayout(gridLayout);
 
@@ -146,7 +149,11 @@ public class MessageBoxShell {
 		if (size.x < MIN_SIZE_X) {
 			size.x = MIN_SIZE_X;
 			shell.setSize(size);
+		} else if (size.x > MAX_SIZE_X) {
+			size = shell.computeSize(MAX_SIZE_X, SWT.DEFAULT);
+			shell.setSize(size);
 		}
+
 		if (size.y < MIN_SIZE_Y) {
 			size.y = MIN_SIZE_Y;
 			shell.setSize(size);
@@ -170,7 +177,9 @@ public class MessageBoxShell {
 		System.out.println(open(
 				shell,
 				"Title",
-				"Test\nA <A HREF=\"Link\">link</A> for <A HREF=\"http://moo.com\">you</a>",
+				"Test\n"
+						+ "THis is a very long line that tests whether the box gets really wide which is something we don't want.\n"
+						+ "A <A HREF=\"Link\">link</A> for <A HREF=\"http://moo.com\">you</a>",
 				new String[] { "Okay", "Cancy", "Maybe" }, 1));
 	}
 }
