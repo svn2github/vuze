@@ -148,6 +148,8 @@ public class MessageBoxShell {
 			for (int i = 0; i < buttons.length; i++) {
 				Point size = swtButtons[i].computeSize(buttonWidth, SWT.DEFAULT);
 				swtButtons[i].setSize(size);
+				formData = (FormData)swtButtons[i].getLayoutData();
+				formData.width = buttonWidth;
 			}
 		}
 
@@ -197,6 +199,6 @@ public class MessageBoxShell {
 				"Test\n"
 						+ "THis is a very long line that tests whether the box gets really wide which is something we don't want.\n"
 						+ "A <A HREF=\"Link\">link</A> for <A HREF=\"http://moo.com\">you</a>",
-				new String[] { "Okay", "Cancy", "Maybe" }, 1));
+				new String[] { "Okay", "Cancyyyyyy", "Maybe" }, 1));
 	}
 }
