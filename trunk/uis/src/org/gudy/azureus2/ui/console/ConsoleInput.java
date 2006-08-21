@@ -11,6 +11,7 @@
 
 package org.gudy.azureus2.ui.console;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,6 +32,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Vector;
 
+import org.apache.log4j.Appender;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.varia.DenyAllFilter;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -81,7 +87,6 @@ public class ConsoleInput extends Thread {
 
 	private static final String ALIASES_CONFIG_FILE = "console.aliases.properties";
 	public final AzureusCore azureus_core;
-	public final GlobalManager gm;
 	public final PrintStream out;
 	public final List torrents = new ArrayList();
 	public File[] adds = null;
@@ -132,8 +137,7 @@ public class ConsoleInput extends Thread {
 		super("Console Input: " + con);
 		this.out = _out;
 		this.azureus_core	= _azureus_core;
-		this.userProfile = profile;
-		this.gm  			= _azureus_core.getGlobalManager();
+		this.userProfile 	= profile;
 		this.controlling = _controlling.booleanValue();
 		this.br = new CommandReader(_in);
 		
@@ -145,6 +149,33 @@ public class ConsoleInput extends Thread {
 		System.out.println( "ConsoleInput: starting..." );
 		start();
 		System.out.println( "ConsoleInput: started OK" );
+	}
+	
+		/**
+		 * Simple constructor to allow other components to use the console commands such as "set"
+		 * @param con
+		 * @param _azureus_core
+		 * @param _out
+		 */
+	
+	public ConsoleInput(AzureusCore _azureus_core, PrintStream _out )
+	{
+		super( "" );
+		this.out = _out;
+		this.azureus_core	= _azureus_core;
+		this.userProfile 	= UserProfile.DEFAULT_USER_PROFILE;
+		this.controlling 	= false;
+		this.br 			= new CommandReader( new InputStreamReader( new ByteArrayInputStream(new byte[0])));
+				
+		if (Logger.getRootLogger().getAppender("ConsoleAppender")==null) {
+	      Appender app;
+	      app = new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN));
+	      app.setName("ConsoleAppender");
+	      app.addFilter( new DenyAllFilter() );  //'log off' by default
+	      Logger.getRootLogger().addAppender(app);
+	    }
+		
+		initialise();
 	}
 
 	protected void initialise() {
@@ -170,7 +201,7 @@ public class ConsoleInput extends Thread {
 	 */
 	public void downloadTorrent( String filename, String outputDir )
 	{
-		DownloadManager manager = gm.addDownloadManager(filename, outputDir);
+		DownloadManager manager = azureus_core.getGlobalManager().addDownloadManager(filename, outputDir);
 		manager.getDownloadState().setAttribute(DownloadManagerState.AT_USER, getUserProfile().getUsername());
 	}
 	
@@ -236,7 +267,7 @@ public class ConsoleInput extends Thread {
 	protected void
 	registerAlertHandler()
 	{
-		Logger.addListener(new ILogAlertListener() {
+		org.gudy.azureus2.core3.logging.Logger.addListener(new ILogAlertListener() {
 			private java.util.Set	history = Collections.synchronizedSet( new HashSet());
 			
 			public void alertRaised(LogAlert alert) {
@@ -708,5 +739,11 @@ public class ConsoleInput extends Thread {
 		
 		checker.start();
 		
+	}
+	
+	public GlobalManager
+	getGlobalManager()
+	{
+		return( azureus_core.getGlobalManager());
 	}
 }

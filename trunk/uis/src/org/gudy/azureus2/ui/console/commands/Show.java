@@ -23,6 +23,7 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
@@ -98,7 +99,7 @@ public class Show extends IConsoleCommand {
 		} else if (subCommand.equalsIgnoreCase("torrents") || subCommand.equalsIgnoreCase("t")) {
 			ci.out.println("> -----");
 			ci.torrents.clear();
-			ci.torrents.addAll(ci.gm.getDownloadManagers());
+			ci.torrents.addAll(ci.getGlobalManager().getDownloadManagers());
 			Collections.sort(ci.torrents, new TorrentComparator());
 
 			if (ci.torrents.isEmpty()) {
@@ -180,7 +181,9 @@ public class Show extends IConsoleCommand {
 			ci.torrents.clear();
 			ci.torrents.addAll( shown_torrents );
 			
-			ci.out.println("Total Speed (down/up): " + DisplayFormatters.formatByteCountToKiBEtcPerSec(ci.gm.getStats().getDataReceiveRate() + ci.gm.getStats().getProtocolReceiveRate() ) + " / " + DisplayFormatters.formatByteCountToKiBEtcPerSec(ci.gm.getStats().getDataSendRate() + ci.gm.getStats().getProtocolSendRate() ));
+			GlobalManager	gm = ci.getGlobalManager();
+			
+			ci.out.println("Total Speed (down/up): " + DisplayFormatters.formatByteCountToKiBEtcPerSec(gm.getStats().getDataReceiveRate() + gm.getStats().getProtocolReceiveRate() ) + " / " + DisplayFormatters.formatByteCountToKiBEtcPerSec(gm.getStats().getDataSendRate() + gm.getStats().getProtocolSendRate() ));
 
 			ci.out.println("Transferred Volume (down/up/discarded): " + DisplayFormatters.formatByteCountToKiBEtc(totalReceived) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalSent) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded));
 			ci.out.println("Total Connected Peers (seeds/peers): " + Integer.toString(connectedSeeds) + " / " + Integer.toString(connectedPeers));

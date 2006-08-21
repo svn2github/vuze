@@ -86,7 +86,7 @@ public abstract class TorrentCommand extends IConsoleCommand {
 						}
 					} else if ("hash".equalsIgnoreCase(subcommand)) {
 						String hash = (String) args.remove(0); 
-						List torrents = ci.gm.getDownloadManagers();
+						List torrents = ci.getGlobalManager().getDownloadManagers();
 						boolean foundit = false;
 						if (!torrents.isEmpty()) {
 							Iterator torrent = torrents.iterator();

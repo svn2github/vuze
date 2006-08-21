@@ -70,14 +70,14 @@ public class Move extends IConsoleCommand {
 		GlobalManager	gm = dm.getGlobalManager();
 
 		if (moveto) {
-			ci.gm.moveTo(dm, nmoveto - 1);
-			ci.gm.fixUpDownloadManagerPositions();
+			gm.moveTo(dm, nmoveto - 1);
+			gm.fixUpDownloadManagerPositions();
 			ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to #" + Integer.toString(nmoveto) + ".");
 		} else if (ncommand > 0) {
 			if (gm.isMoveableUp(dm)) {
 				while (gm.isMoveableUp(dm))
 					gm.moveUp(dm);
-				ci.gm.fixUpDownloadManagerPositions();
+				gm.fixUpDownloadManagerPositions();
 				ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to top.");
 			} else {
 				ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") already at top.");
@@ -86,7 +86,7 @@ public class Move extends IConsoleCommand {
 			if (gm.isMoveableDown(dm)) {
 				while (gm.isMoveableDown(dm))
 					gm.moveDown(dm);
-				ci.gm.fixUpDownloadManagerPositions();
+				gm.fixUpDownloadManagerPositions();
 				ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to bottom.");
 			} else {
 				ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") already at bottom.");
