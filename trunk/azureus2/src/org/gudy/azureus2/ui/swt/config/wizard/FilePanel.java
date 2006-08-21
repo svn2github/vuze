@@ -117,6 +117,9 @@ public class FilePanel extends AbstractWizardPanel {
     
     textPath.setText(((ConfigureWizard)wizard).torrentPath);
     
+    /* during config we really shouldn't be confusing the user with questions about fast resume
+     * It is extremely unlikely anyone will want to turn it off anyway
+     
     label = new Label(panel, SWT.WRAP);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
@@ -135,7 +138,7 @@ public class FilePanel extends AbstractWizardPanel {
         ((ConfigureWizard)wizard).fastResume = fastResume.getSelection();
       }
     });
-
+	*/
   }
   
   public IWizardPanel getFinishPanel() {

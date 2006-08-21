@@ -51,7 +51,7 @@ public class ConfigureWizard extends Wizard {
   //boolean serverSharePort = true;
   //Files / Torrents
   String torrentPath;
-  boolean fastResume = true;
+ // boolean fastResume = true;
   
   boolean completed = false;
  

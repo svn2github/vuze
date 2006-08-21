@@ -78,7 +78,7 @@ public class FinishPanel extends AbstractWizardPanel {
 	//COConfigurationManager.setParameter("High Port",cfWizard.serverMaxPort);
 	//COConfigurationManager.setParameter("Server.shared.port",cfWizard.serverSharePort);
     COConfigurationManager.setParameter("General_sDefaultTorrent_Directory",cfWizard.torrentPath);
-    COConfigurationManager.setParameter("Use Resume",cfWizard.fastResume);
+    //COConfigurationManager.setParameter("Use Resume",cfWizard.fastResume);
     COConfigurationManager.setParameter("Wizard Completed",true);
     COConfigurationManager.save();
     wizard.switchToClose();
