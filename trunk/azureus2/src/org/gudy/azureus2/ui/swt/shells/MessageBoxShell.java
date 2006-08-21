@@ -116,8 +116,11 @@ public class MessageBoxShell {
 
 		};
 
+		int buttonWidth = 0;
+		Button[] swtButtons = new Button[buttons.length];
 		for (int i = 0; i < buttons.length; i++) {
 			Button button = new Button(cButtons, SWT.PUSH);
+			swtButtons[i] = button;
 			button.setData(new Integer(i));
 			button.setText(buttons[i]);
 			button.addListener(SWT.Selection, buttonListener);
@@ -128,12 +131,24 @@ public class MessageBoxShell {
 			}
 
 			button.setLayoutData(formData);
+			
+			Point size = button.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			if (size.x > buttonWidth) {
+				buttonWidth = size.x;
+			}
 
 			if (i == defaultOption) {
 				shell.setDefaultButton(button);
 			}
 
 			lastButton = button;
+		}
+		
+		if (buttonWidth > 0) {
+			for (int i = 0; i < buttons.length; i++) {
+				Point size = swtButtons[i].computeSize(buttonWidth, SWT.DEFAULT);
+				swtButtons[i].setSize(size);
+			}
 		}
 
 		shell.addTraverseListener(new TraverseListener() {
@@ -158,6 +173,8 @@ public class MessageBoxShell {
 			size.y = MIN_SIZE_Y;
 			shell.setSize(size);
 		}
+		
+		Utils.centerWindowRelativeTo(shell, parent);
 		shell.open();
 
 		while (!shell.isDisposed()) {
