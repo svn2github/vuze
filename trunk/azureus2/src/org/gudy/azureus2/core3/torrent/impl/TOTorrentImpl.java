@@ -174,11 +174,15 @@ TOTorrentImpl
 				}
 			}
 			
-            bos = new BufferedOutputStream( new FileOutputStream( temp, false ), 8192 );
+            FileOutputStream fos = new FileOutputStream( temp, false );
+			
+            bos = new BufferedOutputStream( fos, 8192 );
 			
             bos.write( res );
 			
             bos.flush();
+			
+            fos.getFD().sync();
             
             bos.close();
             

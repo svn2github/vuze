@@ -380,9 +380,11 @@ public class FileUtil {
 		    
 		    try{
 		    	byte[] encoded_data = BEncoder.encode(data);
-		    	baos = new BufferedOutputStream( new FileOutputStream( temp, false ), 8192 );
+		    	FileOutputStream tempOS = new FileOutputStream( temp, false );
+		    	baos = new BufferedOutputStream( tempOS, 8192 );
 		    	baos.write( encoded_data );
 		    	baos.flush();
+		    	tempOS.getFD().sync();
 	        baos.close();
 	        baos = null;
 	           

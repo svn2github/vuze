@@ -202,9 +202,15 @@ DHTPluginStorageManager
 			boolean	ok = false;
 			
 			try{
-				dos = new DataOutputStream( new FileOutputStream( saving ));
+				FileOutputStream fos = new FileOutputStream( saving );
+					
+				dos = new DataOutputStream(fos);
 					
 				dht.exportState( dos, 32 );
+					
+				dos.flush();
+					
+				fos.getFD().sync();
 			
 				ok	= true;
 				
@@ -409,6 +415,10 @@ DHTPluginStorageManager
 					os = new FileOutputStream( saving );
 						
 					os.write( data );
+				
+					os.flush();
+				
+					os.getFD().sync();
 				
 					os.close();
 				

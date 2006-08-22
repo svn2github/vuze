@@ -191,9 +191,9 @@ public class CategoryManagerImpl  {
 
          //write the data out
         fos = new FileOutputStream(newFile);
-         fos.getChannel().force(true);
         fos.write(torrentData);
          fos.flush();
+         fos.getFD().sync();
 
           //close the output stream
          fos.close();
