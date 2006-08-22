@@ -821,6 +821,8 @@ TRTrackerBTAnnouncerImpl
   {
   	TRTrackerAnnouncerResponseImpl	last_failure_resp = null;
 	
+  	String	skip_host = null;
+  	
   outer:
   	
 	for (int i = 0 ; i < trackerUrlLists.size() ; i++) {
@@ -830,6 +832,19 @@ TRTrackerBTAnnouncerImpl
 		for (int j = 0 ; j < urls.size() ; j++) {
 			
 		  URL original_url = (URL)urls.get(j);
+		  
+		  if ( skip_host != null && skip_host.equals( original_url.getHost())){
+			  
+			if (Logger.isEnabled())
+					Logger.log(
+						new LogEvent(
+							torrent, 
+							LOGID, 
+							LogEvent.LT_WARNING,
+							"Tracker Announcer is ignoring '" + original_url + "' as already received overloaded response from this host" ));
+
+			continue;
+		  }
 		  
 		  lastUsedUrl = original_url;
 		   
@@ -846,8 +861,10 @@ TRTrackerBTAnnouncerImpl
 		  	lastUsedUrl = tracker_url[0];	// url may have redirected, use this value as it will be correct
 		  	
 			TRTrackerAnnouncerResponseImpl resp = decodeTrackerResponse( lastUsedUrl, result_bytes );
-			  	    	
-		    if ( resp.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
+			  
+			int	resp_status = resp.getStatus();
+			
+		    if ( resp_status == TRTrackerAnnouncerResponse.ST_ONLINE ){
 					
 		    	try{
 		    			// tracker looks ok, make any redirection permanent
@@ -881,9 +898,29 @@ TRTrackerBTAnnouncerImpl
 	            		
 	            return( resp );
 	            
-			 }
+			 }else  if ( resp_status == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR ){
+				
+			 	last_failure_resp = resp;	
+
+			 	String	reason = resp.getAdditionalInfo();
+			 	
+			 		// avoid re-hitting a host with multiple ports if reporting overloaded. This is
+			 		// particularly "interesting" when reporting the "completed" event and we get a
+			 		// "overloaded" response - when we hit another port we record the event twice
+			 		// as the tracker has discarded this peer and therefore doesn't know to ignore the
+			 		// second "completed" event...
+			 	
+			 	if ( reason != null && 
+			 			( 	reason.indexOf( "too many seeds" ) != -1 ||
+			 				reason.indexOf( "too many peers" ) != -1 )){
+			 				
+			 		skip_host	= original_url.getHost();
+			 	}
+			 				
+			 }else{
 			  			  	
-		 	last_failure_resp = resp;	
+				 last_failure_resp = resp;
+			 }
 			 
 		  }catch( MalformedURLException e ){
 		  	
