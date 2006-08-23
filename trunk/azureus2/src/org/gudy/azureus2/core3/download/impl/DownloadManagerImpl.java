@@ -51,8 +51,6 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
@@ -3135,13 +3133,15 @@ DownloadManagerImpl
 			}
 			
 			if (persistent) {
-				sFlags += "peristent; ";
+				sFlags += "persistent; ";
 			}
 			
 			if (sFlags.length() > 0) {
 				writer.println("Flags: " + sFlags);
 			}
 
+			stats.generateEvidence( writer );
+			
 			download_manager_state.generateEvidence( writer );
 
 			if (pm != null) {

@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.download.impl;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.disk.*;
 
@@ -507,5 +508,26 @@ DownloadManagerStatsImpl
 		saved_hashfails				= _saved_hashfails;
 		saved_SecondsDownloading	= _saved_SecondsDownloading;
 		saved_SecondsOnlySeeding	= _saved_SecondsOnlySeeding;
+	}
+	
+	protected void 
+	generateEvidence(
+		IndentWriter writer) 
+	{
+		writer.println( "DownloadManagerStats" );
+		
+		try{
+			writer.indent();
+			
+			writer.println( 
+				"recv_d=" + getTotalDataBytesReceived() + ",recv_p=" + getTotalProtocolBytesReceived() + ",recv_g=" + getTotalGoodDataBytesReceived() + 
+				",sent_d=" + getTotalDataBytesSent() + ",sent_p=" + getTotalProtocolBytesSent() + 
+				",discard=" + getDiscarded() + ",hash_fails=" + getHashFailCount() + "/" + getHashFailBytes() +
+				",comp=" + completed + ",dl_comp=" + downloadCompleted );
+			
+		}finally{
+			
+			writer.exdent();
+		}
 	}
 }
