@@ -133,12 +133,12 @@ public class AboutWindow {
 
     final String[][] link =
       { { "homepage", "sourceforge", "sourceforgedownloads", "bugreports", "forumdiscussion", "wiki" }, {
-          Constants.SF_WEB_SITE,
+          Constants.GETAZUREUS_WEB_SITE,
           "http://sourceforge.net/projects/azureus/",
           "http://sourceforge.net/project/showfiles.php?group_id=84122",
           "http://sourceforge.net/tracker/?atid=575154&group_id=84122&func=browse",
           "http://sourceforge.net/forum/?group_id=84122",
-          Constants.AELITIS_WEB_SITE + "wiki/" }
+          Constants.AZUREUS_WIKI }
     };
   
     for (int i = 0; i < link[0].length; i++) {

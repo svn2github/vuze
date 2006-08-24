@@ -137,7 +137,7 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
 			new String[]{ 
     			DisplayFormatters.formatByteCountToKiBEtc(mb_32),
     			DisplayFormatters.formatByteCountToKiBEtc(max_mem_bytes),
-				Constants.AELITIS_WEB_SITE + "wiki/"
+				Constants.AZUREUS_WIKI
 			});
     
     if(userMode > 0) {
