@@ -92,6 +92,17 @@ Torrent
 	public String
 	getEncoding();
 	
+	public void
+	setEncoding(
+		String		encoding)
+	
+		throws TorrentEncodingException;
+	
+	public void
+	setDefaultEncoding()
+	
+		throws TorrentEncodingException;
+	
 		/**
 		 * Access to top-level properties in the torrent
 		 * @param name

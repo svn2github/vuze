@@ -288,7 +288,7 @@ TorrentManagerImpl
 							runSupport()
 							{
 								try{
-									TOTorrent	t = c.create();
+									TOTorrent	t = c.create();									
 									
 									Torrent	torrent = new TorrentImpl( plugin_interface, t );
 									

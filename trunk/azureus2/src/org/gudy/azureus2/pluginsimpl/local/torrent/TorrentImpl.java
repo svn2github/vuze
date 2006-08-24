@@ -308,6 +308,20 @@ TorrentImpl
 		return( Constants.DEFAULT_ENCODING );
 	}
 	
+	public void
+	setEncoding(String encoding)throws TorrentEncodingException {		
+		try {
+			LocaleTorrentUtil.setTorrentEncoding(torrent, encoding);
+		} catch(LocaleUtilEncodingException e) {
+			throw new TorrentEncodingException("Failed to set the encoding",e);
+		}
+	}
+	
+	public void
+	setDefaultEncoding() throws TorrentEncodingException {
+		setEncoding(Constants.DEFAULT_ENCODING);
+	}
+	
 	protected String
 	decode(
 		byte[]		data )

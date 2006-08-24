@@ -265,6 +265,18 @@ RPTorrent
 		return( null );
 	}
 	
+	public void
+	setEncoding(String encoding)
+	{
+		notSupported();
+	}
+	
+	public void
+	setDefaultEncoding()
+	{
+		notSupported();
+	}
+	
 	public TorrentFile[]
 	getFiles()
 	{
