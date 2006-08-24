@@ -95,7 +95,7 @@ DHTTrackerPlugin
 	private static final int	INTERESTING_AVAIL_MAX		= 8;	// won't pub if more
 	private static final int	INTERESTING_PUB_MAX_DEFAULT	= 30;	// limit on pubs
 	
-	private static final boolean	TRACK_NORMAL_DEFAULT	= true;
+	private static final boolean	TRACK_NORMAL_DEFAULT	= false;
 	
 	private static final int	NUM_WANT			= 30;	// Limit to ensure replies fit in 1 packet
 
