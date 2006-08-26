@@ -424,7 +424,7 @@ public class ConfigurationDefaults {
     def.put( "Confirm Data Delete", TRUE );
     def.put( "Password Confirm", null );
     def.put( "Auto Update", TRUE );
-    def.put( "Alert on close", TRUE );
+    def.put( "Alert on close", FALSE );
     def.put( "diskmanager.friendly.hashchecking", FALSE );
     def.put( "diskmanager.hashchecking.smallestfirst", TRUE );    
     def.put( "Default Start Torrents Stopped", FALSE);
