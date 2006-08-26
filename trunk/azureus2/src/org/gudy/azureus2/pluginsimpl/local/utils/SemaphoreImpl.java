@@ -72,4 +72,10 @@ SemaphoreImpl
 	{
 		sem.release();
 	}
+	
+	public void
+	releaseAllWaiters() {
+		sem.releaseAllWaiters();
+	}
+	
 }

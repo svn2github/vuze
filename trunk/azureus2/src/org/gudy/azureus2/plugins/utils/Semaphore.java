@@ -46,4 +46,8 @@ Semaphore
 	
 	public void
 	release();
+	
+	public void
+	releaseAllWaiters();
+	
 }
