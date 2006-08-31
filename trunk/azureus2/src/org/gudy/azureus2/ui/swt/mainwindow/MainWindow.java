@@ -363,6 +363,14 @@ MainWindow
               fg.dispose();
           }
       });
+      
+      ((CTabFolder)folder).addCTabFolder2Listener(new CTabFolder2Adapter() {
+      	public void close(CTabFolderEvent event) {
+      		if (!Tab.closed((Item)event.item)) {
+      			event.doit = false;
+      		}
+      	}
+      });
     }    
     
 		formData = new FormData();
@@ -463,6 +471,9 @@ MainWindow
       //} catch (NoClassDefFoundError e) {
         ((CTabFolder)folder).addCTabFolderListener(new CTabFolderAdapter() {          
           public void itemClosed(CTabFolderEvent event) {
+          	if (!event.doit) {
+          		return;
+          	}
             Tab.closed((CTabItem) event.item);
             event.doit = true;
             ((CTabItem) event.item).dispose();

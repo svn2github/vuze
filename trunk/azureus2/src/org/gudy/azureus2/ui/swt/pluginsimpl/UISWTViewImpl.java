@@ -129,6 +129,14 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 		}
 	}
 
+	private boolean triggerEvent2(int eventType, Object data) {
+		try {
+			return eventListener.eventOccurred(new UISWTViewEventImpl(this, eventType, data));
+		} catch (Throwable t) {
+			throw (new UIRuntimeException("UISWTView.triggerEvent:: ViewID="
+					+ sViewID + "; EventID=" + eventType + "; data=" + data, t));
+		}
+	}
 	
 	public void setTitle(String title) {
 		sTitle = title;
@@ -252,5 +260,9 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	// Core Functions
 	public String getParentID() {
 		return sParentID;
+	}
+	
+	public boolean requestClose() {
+		return triggerEvent2(UISWTViewEvent.TYPE_CLOSE, null);
 	}
 }

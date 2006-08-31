@@ -112,6 +112,15 @@ public interface UISWTViewEvent {
 	public static final int TYPE_DESTROY = 7;
 
 	/**
+	 * Triggered when the parent view is about to be closed
+	 * <p>
+	 * Return false to abort close
+	 * 
+	 * @since 2.5.0.1
+	 */
+	public static final int TYPE_CLOSE = 8;
+
+	/**
 	 * Get the type.
 	 * 
 	 * @return The TYPE_* constant for this event

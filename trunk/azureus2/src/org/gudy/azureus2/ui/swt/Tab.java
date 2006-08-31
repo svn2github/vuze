@@ -44,6 +44,7 @@ import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.*;
 
 /**
@@ -394,7 +395,7 @@ public class Tab {
     
     for (int i = 0; i < tab_items.length; i++) {
     	
-        closed(tab_items[i]);
+        closed(tab_items[i], true);
       }
   }
 
@@ -499,10 +500,22 @@ public class Tab {
 		_folder = folder;
   }
 
-  public static void 
+  public static boolean 
   closed(Item item) 
   {
-    IView view = null;
+  	return closed(item, false);
+  }
+  
+  public static boolean 
+  closed(Item item, boolean bForceClose) 
+  {
+    IView view = (IView) tabs.get(item);
+    if (!bForceClose && view instanceof UISWTViewImpl) {
+    	if (!((UISWTViewImpl)view).requestClose()) {
+    		return false;
+    	}
+    }
+
     try{
     	class_mon.enter();
     	
@@ -544,15 +557,15 @@ public class Tab {
           //Tried to add a if(! item.isDisposed()) but it's not fixing it
           //Need to investigate...
           item.dispose();
-          return;
+          return true;
         }
         if (view instanceof MyTrackerView) {
           item.dispose();
-          return;
+          return true;
         }
         if (view instanceof MySharesView) {
         	item.dispose();
-        	return;
+          return true;
         }
       }
       try {
@@ -570,6 +583,7 @@ public class Tab {
       catch (Exception e) {
       	Debug.printStackTrace( e );
       }
+      return true;
   }
 
   public void setFocus() {
@@ -589,6 +603,12 @@ public class Tab {
     	class_mon.enter();
       
       localView = (IView) tabs.get(tabItem);
+
+      if (localView instanceof UISWTViewImpl) {
+				if (!((UISWTViewImpl) localView).requestClose())
+					return;
+			}
+
       tabs.remove(tabItem);
     }finally{
     
