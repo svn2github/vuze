@@ -42,6 +42,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
@@ -159,7 +160,15 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 	private static final AzureusCore core;
 
+	private Label dataFileTableLabel;
+
 	static {
+		if (!AzureusCoreFactory.isCoreAvailable()) {
+			// This should be only called in test mode
+			AzureusCore core2 = AzureusCoreFactory.create();
+			core2.start();
+		}
+
 		core = AzureusCoreFactory.getSingleton();
 	}
 
@@ -175,8 +184,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 	 */
 	public synchronized static final void invoke(Shell parent, GlobalManager gm,
 			String sPathOfFilesToOpen, String[] sFilesToOpen,
-			boolean bDefaultStopped, boolean bForSeeding, boolean bPopupOpenURL)
-	{
+			boolean bDefaultStopped, boolean bForSeeding, boolean bPopupOpenURL) {
 
 		String saveSilentlyDir = null;
 
@@ -228,14 +236,12 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 	 * @param gm
 	 */
 	public synchronized static final void invoke(final Shell parent,
-			GlobalManager gm)
-	{
+			GlobalManager gm) {
 		invoke(parent, gm, null, null, false, false, false);
 	}
 
 	public synchronized static final void invokeURLPopup(final Shell parent,
-			GlobalManager gm)
-	{
+			GlobalManager gm) {
 		invoke(parent, gm, null, null, false, false, true);
 	}
 
@@ -952,6 +958,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 				dataFileTable.setItemCount(dataFiles.size());
 				dataFileTable.clearAll();
+				updateSize();
 				resizeTables(2);
 			}
 		});
@@ -1255,6 +1262,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		dataFileTable.addSelectionListener(new SelectionAdapter() {
 
 			public void widgetSelected(SelectionEvent event) {
+				System.out.println("Select");
+
 				if (event.detail == SWT.CHECK) {
 					TableItem item = (TableItem) event.item;
 					int index = dataFileTable.indexOf(item);
@@ -1265,6 +1274,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 						item.setChecked(true);
 					else
 						file.bDownload = item.getChecked();
+
+					updateSize();
 				}
 			}
 
@@ -1287,7 +1298,17 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			}
 		});
 
-		Composite cButtons = new Composite(cArea, SWT.NONE);
+		Composite cBottomArea = new Composite(cArea, SWT.NONE);
+		GridLayout gLayout = new GridLayout();
+		gLayout.marginHeight = 0;
+		gLayout.marginWidth = 0;
+		gLayout.numColumns = 2;
+		cBottomArea.setLayout(gLayout);
+
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		cBottomArea.setLayoutData(gridData);
+
+		Composite cButtons = new Composite(cBottomArea, SWT.NONE);
 		RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
 		rLayout.marginBottom = 0;
 		rLayout.marginLeft = 0;
@@ -1332,6 +1353,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				dataFileTable.clearAll();
 			}
 		});
+
+		dataFileTableLabel = new Label(cBottomArea, SWT.NONE);
+		dataFileTableLabel.setAlignment(SWT.RIGHT);
+		gridData = new GridData(GridData.FILL_BOTH);
+		dataFileTableLabel.setLayoutData(gridData);
 	}
 
 	/**
@@ -1546,8 +1572,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 	}
 
 	private TorrentInfo addTorrent(String sFileName,
-			final String sOriginatingLocation)
-	{
+			final String sOriginatingLocation) {
 		TorrentInfo info = null;
 		TOTorrent torrent = null;
 		File torrentFile;
@@ -2202,15 +2227,44 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		return (sDefDir == "") ? null : sDefDir;
 	}
 
+	private void updateSize() {
+		long totalSize = 0;
+		long checkedSize = 0;
+
+		for (int i = 0; i < dataFiles.size(); i++) {
+			TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(i);
+
+			totalSize += file.lSize;
+
+			if (file.bDownload) {
+				checkedSize += file.lSize;
+			}
+		}
+		
+		if (totalSize == 0) {
+			dataFileTableLabel.setText("");
+		} else {
+			dataFileTableLabel.setText(MessageText.getString(
+					"OpenTorrentWindow.filesInfo", new String[] {
+							DisplayFormatters.formatByteCountToKiBEtc(checkedSize),
+							DisplayFormatters.formatByteCountToKiBEtc(totalSize) }));
+		}
+		dataFileTableLabel.getParent().layout(true);
+		dataFileTableLabel.update();
+	}
+
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
 
 		ImageRepository.loadImages(display);
 
-		OpenTorrentWindow window = new OpenTorrentWindow(null, null, true);
-		while (!window.bClosed) {
+		invoke(null, core.getGlobalManager());
+		//OpenTorrentWindow window = new OpenTorrentWindow(null, null, true);
+		while (stOpenTorrentWindow != null && !stOpenTorrentWindow.bClosed) {
 			if (!display.readAndDispatch())
 				display.sleep();
 		}
+
+		core.stop();
 	}
 }
