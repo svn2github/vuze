@@ -767,8 +767,6 @@ public class Utils {
 			try {
 				while (st.hasMoreTokens() && i < 4) {
 					values[i++] = Integer.valueOf(st.nextToken()).intValue();
-					if (values[i - 1] < 0)
-						values[i - 1] = 0;
 				}
 				if (i == 4) {
 					Rectangle shellBounds = new Rectangle(values[0], values[1],
