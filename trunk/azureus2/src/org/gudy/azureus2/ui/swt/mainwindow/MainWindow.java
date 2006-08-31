@@ -532,7 +532,9 @@ MainWindow
 				showMyTracker();
 			}
 
-			showMyTorrents();
+			if (COConfigurationManager.getBooleanParameter("Open MyTorrents", true)) {
+				showMyTorrents();
+			}
 
 			//  share progress window
 

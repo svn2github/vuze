@@ -63,6 +63,12 @@ PluginConfigImpl
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_NEW_SEEDS_START_AT_TOP, 			CORE_PARAM_BOOLEAN_NEW_SEEDS_START_AT_TOP );
 		external_to_internal_key_map.put( CORE_PARAM_STRING_LOCAL_BIND_IP, 						"Bind IP" );
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_FRIENDLY_HASH_CHECKING, 			"diskmanager.friendly.hashchecking" );
+		
+		// Note: Not in PluginConfig.java because it's an UI option and
+		//       not applicable to all UIs
+		// TODO: Add a smarter way
+		external_to_internal_key_map.put( "Open MyTorrents", "Open MyTorrents" );
+		external_to_internal_key_map.put( "IconBar.enabled", "IconBar.enabled" );
 	}
 
 	private PluginInterface	plugin_interface;

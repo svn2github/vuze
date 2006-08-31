@@ -197,6 +197,7 @@ public class ConfigurationDefaults {
     def.put("Colors.progressBar.override", FALSE);
     def.put("GUI_SWT_DisableAlertSliding", FALSE);
     def.put("NameColumn.showProgramIcon", TRUE);
+    def.put("Open MyTorrents",TRUE);
     
     
     def.put("Logger.Enabled", FALSE);  //logging in general
