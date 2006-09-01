@@ -2189,15 +2189,15 @@ public class TableView
   /* ParameterListener Implementation */
 
   public void parameterChanged(String parameterName) {
-    if (parameterName.equals("Graphics Update")) {
+    if (parameterName == null || parameterName.equals("Graphics Update")) {
       graphicsUpdate = configMan.getIntParameter("Graphics Update");
       return;
     }
-    if (parameterName.equals("ReOrder Delay")) {
+    if (parameterName == null || parameterName.equals("ReOrder Delay")) {
     	reOrderDelay = configMan.getIntParameter("ReOrder Delay");
     	return;
     }
-    if (parameterName.startsWith("Color")) {
+    if (parameterName == null || parameterName.startsWith("Color")) {
       tableInvalidate();
     }
   }

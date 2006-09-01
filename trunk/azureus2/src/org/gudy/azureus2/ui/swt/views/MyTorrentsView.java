@@ -139,6 +139,7 @@ public class MyTorrentsView
   private String sLastSearch = "";
   private long lLastSearchTime;
   private boolean bRegexSearch = false;
+	private boolean bDNDalwaysIncomplete;
 
   /**
    * Initialize
@@ -179,8 +180,10 @@ public class MyTorrentsView
 
     createDragDrop();
 
-    COConfigurationManager.addParameterListener("Confirm Data Delete", this);
-    COConfigurationManager.addAndFireParameterListener("User Mode", this);
+    COConfigurationManager.addAndFireParameterListeners(new String[] {
+				"DND Always In Incomplete",
+				"Confirm Data Delete",
+				"User Mode" }, this);
 
     if (currentCategory != null) {
     	currentCategory.addCategoryListener(this);
@@ -551,7 +554,7 @@ public class MyTorrentsView
   		return false;
   	}
 
-		boolean bCompleted = dm.isDownloadComplete(false);
+		boolean bCompleted =  dm.isDownloadComplete(bDNDalwaysIncomplete);
 		boolean bOurs = (bCompleted && isSeedingView)
 				|| (!bCompleted && !isSeedingView);
 		
@@ -2611,10 +2614,21 @@ public class MyTorrentsView
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
-    super.parameterChanged(parameterName);
-    confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete", true);
-    userMode = COConfigurationManager.getIntParameter("User Mode");
-  }
+		super.parameterChanged(parameterName);
+		if (parameterName == null || parameterName.equals("Confirm Data Delete")) {
+			confirmDataDelete = COConfigurationManager.getBooleanParameter(
+					"Confirm Data Delete", true);
+		}
+
+		if (parameterName == null || parameterName.equals("User Mode")) {
+			userMode = COConfigurationManager.getIntParameter("User Mode");
+		}
+
+		if (parameterName == null
+				|| parameterName.equals("DND Always In Incomplete")) {
+			bDNDalwaysIncomplete = COConfigurationManager.getBooleanParameter("DND Always In Incomplete");
+		}
+	}
 
   private boolean top,bottom,up,down,run,host,publish,start,stop,remove;
 

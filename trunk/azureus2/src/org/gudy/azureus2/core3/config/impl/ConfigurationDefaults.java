@@ -169,7 +169,7 @@ public class ConfigurationDefaults {
     def.put("Use Super Seeding",FALSE);
 
         
-    /** SWT GUI Settings **/
+    // SWT GUI Settings
     
     def.put("User Mode", new Long(0));
     
@@ -198,8 +198,10 @@ public class ConfigurationDefaults {
     def.put("GUI_SWT_DisableAlertSliding", FALSE);
     def.put("NameColumn.showProgramIcon", TRUE);
     def.put("Open MyTorrents",TRUE);
+    def.put("DND Always In Incomplete", FALSE);
     
     
+    // Logging
     def.put("Logger.Enabled", FALSE);  //logging in general
     def.put("Logging Enable", FALSE);  //file logging
     def.put("Logging Dir", "");

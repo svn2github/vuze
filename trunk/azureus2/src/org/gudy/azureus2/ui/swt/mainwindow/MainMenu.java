@@ -28,6 +28,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -417,6 +418,10 @@ public class MainMenu {
           appendWindowMenuItems(windowMenu);
 
       }
+      
+      if (Constants.isCVSVersion()) {
+      	addDebugMenu(menuBar);
+      }
 
       //The Help Menu
       MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
@@ -544,6 +549,57 @@ public class MainMenu {
     }
     parent.setMenuBar(menuBar);
   }
+
+	private void addDebugMenu(Menu menu) {
+		MenuItem item;
+
+		item = new MenuItem(menu, SWT.CASCADE);
+		item.setText("Debug");
+		Menu menuDebug = new Menu(menu.getParent(), SWT.DROP_DOWN);
+		item.setMenu(menuDebug);
+
+		item = new MenuItem(menuDebug, SWT.CASCADE);
+		item.setText("ScreenSize");
+		Menu menuSS = new Menu(menu.getParent(), SWT.DROP_DOWN);
+		item.setMenu(menuSS);
+		
+		item = new MenuItem(menuSS, SWT.NONE);
+		item.setText("640x400");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				mainWindow.getShell().setSize(640, 400);
+			}
+		});
+
+	
+		item = new MenuItem(menuSS, SWT.NONE);
+		item.setText("800x560");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				mainWindow.getShell().setSize(850, 560);
+			}
+		});
+
+	
+		item = new MenuItem(menuSS, SWT.NONE);
+		item.setText("1024x700");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				mainWindow.getShell().setSize(1024, 700);
+			}
+		});
+
+	
+		item = new MenuItem(menuSS, SWT.NONE);
+		item.setText("1280x980");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				mainWindow.getShell().setSize(1280, 980);
+			}
+		});
+
+	
+	}
 
 	private void addTransferMenu(final Shell parent, boolean modal, boolean notMainWindow)
   {

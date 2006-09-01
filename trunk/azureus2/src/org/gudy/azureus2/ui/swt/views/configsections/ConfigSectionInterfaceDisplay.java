@@ -256,6 +256,10 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 		new BooleanParameter(cLook, "NameColumn.showProgramIcon", MSG_PREFIX
 				+ "showProgramIcon");
+
+		new BooleanParameter(cLook, "DND Always In Incomplete", MSG_PREFIX
+				+ "DNDalwaysInIncomplete");
+
 		return cLook;
 	}
 }
