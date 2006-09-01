@@ -145,13 +145,12 @@ public class ManagerView extends AbstractIView implements
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
-    
-	  	if (folder == null) {
-	    folder = new TabFolder(composite, SWT.LEFT);
-	    folder.setBackground(Colors.background);
-	  	} else {
-	  	  System.out.println("ManagerView::initialize : folder isn't null !!!");
-	  	}
+
+  	if (folder == null) {
+			folder = new TabFolder(composite, SWT.LEFT);
+		} else {
+			System.out.println("ManagerView::initialize : folder isn't null !!!");
+		}
 
 	  IView views[] = { new GeneralView(), new PeersView(),
 				new PeersGraphicView(), new PiecesView(), new FilesView(), new TorrentInfoView( manager ),
