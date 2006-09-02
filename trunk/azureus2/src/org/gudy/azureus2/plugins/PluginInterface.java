@@ -145,7 +145,15 @@ public interface PluginInterface {
 	 */
 	
 	public void removeConfigSection( ConfigSection section );
-	
+
+  /**
+   * 
+   * @return List of ConfigSections for this plugin
+   * 
+   * @since 2.5.0.1
+   */
+	ConfigSection[] getConfigSections();
+
   /**
    * Gives access to the tracker functionality
    * @return The tracker

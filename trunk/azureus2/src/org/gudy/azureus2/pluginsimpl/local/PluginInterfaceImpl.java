@@ -101,6 +101,7 @@ PluginInterfaceImpl
   private Logger				logger;
   private IPCInterface			ipc_interface;
   private List					children		= new ArrayList();
+  private List configSections = new ArrayList();
   
   public 
   PluginInterfaceImpl(
@@ -180,12 +181,19 @@ PluginInterfaceImpl
   public void addConfigSection(ConfigSection section)
   {
   	ConfigSectionRepository.getInstance().addConfigSection(section);
+  	configSections.add(section);
   }
 
   public void removeConfigSection(ConfigSection section)
   {
   	ConfigSectionRepository.getInstance().removeConfigSection(section);
+  	configSections.remove(section);
   }
+  
+  public ConfigSection[] getConfigSections() {
+  	return (ConfigSection[]) configSections.toArray();
+  }
+  
   /**
    * @deprecated
    */

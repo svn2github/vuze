@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
+import org.gudy.azureus2.plugins.ui.model.PluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
@@ -76,6 +77,7 @@ UIManagerImpl
 	protected String				key_prefix;
 	
 	protected TableManager			table_manager;
+	protected List configModels = new ArrayList();
 	
 	public
 	UIManagerImpl(
@@ -151,6 +153,7 @@ UIManagerImpl
 		String		section_name )
 	{
 		final BasicPluginConfigModel	model = new BasicPluginConfigModelImpl( this, parent_section, section_name );
+		configModels.add(model);
 		
 		fireEvent( UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED, model );
 		
@@ -161,7 +164,12 @@ UIManagerImpl
 	destroy(
 		final BasicPluginConfigModel		model )
 	{
+		configModels.remove(model);
 		fireEvent( UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_DESTROYED, model );
+	}
+
+	public PluginConfigModel[] getPluginConfigModels() {
+		return (PluginConfigModel[]) configModels.toArray();
 	}
 	
 	public void

@@ -86,6 +86,13 @@ UIManager
 		String		section_name );
 
 	/**
+	 * 
+	 * @return
+	 * @since 2.5.0.1
+	 */
+	public PluginConfigModel[] getPluginConfigModels();
+
+	/**
 	 * Creates a basic plugin view model and adds it to the plugin in one step.
 	 * view is placed inside the plugins section of the configuration page.
 	 * 
