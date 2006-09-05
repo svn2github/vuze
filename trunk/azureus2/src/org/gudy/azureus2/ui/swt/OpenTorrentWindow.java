@@ -1310,6 +1310,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 		Composite cButtons = new Composite(cBottomArea, SWT.NONE);
 		RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
+		rLayout.wrap = false;
 		rLayout.marginBottom = 0;
 		rLayout.marginLeft = 0;
 		rLayout.marginRight = 0;
@@ -1323,9 +1324,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				dataFileTable.selectAll();
 			}
 		});
-
-		Utils.setGridData(cButtons, GridData.FILL_HORIZONTAL, btnSelectAll,
-				MIN_BUTTON_HEIGHT);
 
 		Button btnMarkSelected = new Button(cButtons, SWT.PUSH);
 		Messages.setLanguageText(btnMarkSelected, "Button.markSelected");
@@ -1354,7 +1352,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			}
 		});
 
-		dataFileTableLabel = new Label(cBottomArea, SWT.NONE);
+		dataFileTableLabel = new Label(cBottomArea, SWT.WRAP);
 		dataFileTableLabel.setAlignment(SWT.RIGHT);
 		gridData = new GridData(GridData.FILL_BOTH);
 		dataFileTableLabel.setLayoutData(gridData);
@@ -2240,7 +2238,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				checkedSize += file.lSize;
 			}
 		}
-		
+
 		if (totalSize == 0) {
 			dataFileTableLabel.setText("");
 		} else {
@@ -2249,8 +2247,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 							DisplayFormatters.formatByteCountToKiBEtc(checkedSize),
 							DisplayFormatters.formatByteCountToKiBEtc(totalSize) }));
 		}
-		dataFileTableLabel.getParent().layout(true);
 		dataFileTableLabel.update();
+		dataFileTableLabel.getParent().getParent().layout(true, true);
 	}
 
 	public static void main(String[] args) {
