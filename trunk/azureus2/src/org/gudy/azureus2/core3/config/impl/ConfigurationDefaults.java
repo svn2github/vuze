@@ -287,6 +287,7 @@ public class ConfigurationDefaults {
     def.put( "Move Completed When Done", FALSE );
     def.put( "Completed Files Directory", "" );
     def.put( "Zero New", FALSE );
+    def.put( "XFS Allocation", FALSE );
     def.put( "Move Only When In Default Save Dir", TRUE );
     def.put( "Copy And Delete Data Rather Than Move", FALSE);
     def.put( "Move Torrent When Done", TRUE );

@@ -907,7 +907,34 @@ DiskManagerImpl
 
                                 //fully allocate
 
-                            if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
+                            if( COConfigurationManager.getBooleanParameter("XFS Allocation") ) {
+                                fileInfo.getCacheFile().setLength( target_length );
+                                String[] cmd = {"/usr/sbin/xfs_io","-c", "resvsp 0 " + target_length, data_file.getAbsolutePath()};
+                                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                                byte[] buffer = new byte[1024];
+                                try {
+	                                Process p = Runtime.getRuntime().exec(cmd);
+	                                for (int count = p.getErrorStream().read(buffer); count > 0; count = p.getErrorStream().read(buffer)) {
+	                                   os.write(buffer, 0, count);
+	                                }
+	                                os.close();
+	                                p.waitFor();
+                                } catch (IOException e) {
+                                	String message = MessageText.getString("xfs.allocation.xfs_io.not.found", new String[] {e.getMessage()});
+                                	Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, message));
+                                }
+                                if (os.size() > 0) {
+                                	String message = os.toString().trim();
+                                	if (message.endsWith("is not on an XFS filesystem")) {
+                                		Logger.log(new LogEvent(LogIDs.DISK, "XFS file allocation impossible because \"" + data_file.getAbsolutePath()
+                                				+ "\" is not on an XFS filesystem. Original error reported by xfs_io : \"" + message + "\""));
+                                	} else {
+                                		throw new IOException(message);
+                                	}
+                                }
+
+                                allocated += target_length;
+                            } else if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
 
                                 if ( !writer.zeroFile( fileInfo, target_length )) {
 

@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -145,6 +146,15 @@ public class ConfigSectionFile implements UISWTConfigSection {
 
     ////////////////////
     
+    if( userMode > 0 && !Constants.isWindows ) {
+    	BooleanParameter xfsAllocation = 
+    		new BooleanParameter(gFile, "XFS Allocation", false,
+                                    "ConfigView.label.xfs.allocation");
+    	gridData = new GridData();
+    	gridData.horizontalSpan = 2;
+    	xfsAllocation.setLayoutData(gridData);
+    }
+
     BooleanParameter zeroNew = null;
     
     if( userMode > 0 ) {
