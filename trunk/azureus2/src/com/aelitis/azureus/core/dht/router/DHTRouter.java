@@ -112,6 +112,10 @@ DHTRouter
 	recordLookup(
 		byte[]	node_id );
 	
+	public boolean
+	requestPing(
+		byte[]	node_id );
+	
 	public void
 	refreshIdleLeaves(
 		long	idle_max );

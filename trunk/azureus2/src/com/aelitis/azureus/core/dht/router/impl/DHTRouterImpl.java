@@ -1008,6 +1008,24 @@ DHTRouterImpl
 		}
 	}
 	
+	public boolean
+	requestPing(
+		byte[]		node_id )
+	{
+		Object[] res = findContactSupport( node_id );
+	
+		DHTRouterContactImpl	contact = (DHTRouterContactImpl)res[1];
+		
+		if ( contact != null ){
+			
+			adapter.requestPing( contact );
+			
+			return( true );
+		}
+		
+		return( false );
+	}
+	
 	protected void
 	requestPing(
 		DHTRouterContactImpl	contact )
