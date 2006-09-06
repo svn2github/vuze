@@ -169,7 +169,7 @@ UIManagerImpl
 	}
 
 	public PluginConfigModel[] getPluginConfigModels() {
-		return (PluginConfigModel[]) configModels.toArray();
+		return (PluginConfigModel[]) configModels.toArray(new PluginConfigModel[0]);
 	}
 	
 	public void

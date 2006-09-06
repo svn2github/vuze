@@ -191,7 +191,7 @@ PluginInterfaceImpl
   }
   
   public ConfigSection[] getConfigSections() {
-  	return (ConfigSection[]) configSections.toArray();
+  	return (ConfigSection[]) configSections.toArray(new ConfigSection[0]);
   }
   
   /**
