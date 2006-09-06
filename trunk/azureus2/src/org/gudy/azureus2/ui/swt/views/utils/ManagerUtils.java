@@ -32,9 +32,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
@@ -44,6 +47,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -281,6 +285,66 @@ public class ManagerUtils {
 		if (stopme) {
 			asyncStop(dm, stateAfterStopped);
 		}
+	}
+  
+  public static void
+  remove(final DownloadManager dm, Shell shell,
+			final boolean bDeleteTorrent, final boolean bDeleteData) {
+		if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
+
+			MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES | SWT.NO);
+
+			mb.setText(MessageText.getString("deletedata.title"));
+
+			mb.setMessage(MessageText.getString("deletetorrent.message1")
+					+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
+					+ MessageText.getString("deletetorrent.message2"));
+
+			if (mb.open() == SWT.NO) {
+				return;
+			}
+		}
+
+		boolean confirmDataDelete = COConfigurationManager.getBooleanParameter(
+				"Confirm Data Delete", true);
+
+		int choice;
+		if (confirmDataDelete && bDeleteData) {
+			String path = dm.getSaveLocation().toString();
+
+			MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES | SWT.NO);
+
+			mb.setText(MessageText.getString("deletedata.title"));
+
+			mb.setMessage(MessageText.getString("deletedata.message1")
+					+ dm.getDisplayName() + " :\n" + path
+					+ MessageText.getString("deletedata.message2"));
+
+			choice = mb.open();
+		} else {
+			choice = SWT.YES;
+		}
+
+		if (choice == SWT.YES) {
+			new AEThread("asyncStop", true) {
+				public void runSupport() {
+
+					try {
+						dm.stopIt(DownloadManager.STATE_STOPPED, bDeleteTorrent,
+								bDeleteData);
+						dm.getGlobalManager().removeDownloadManager(dm);
+					} catch (GlobalManagerDownloadRemovalVetoException f) {
+						if (!f.isSilent()) {
+							Alerts.showErrorMessageBoxUsingResourceString(
+									"globalmanager.download.remove.veto", f);
+						}
+					} catch (Exception ex) {
+						Debug.printStackTrace(ex);
+					}
+				}
+			}.start();
+		}
+
 	}
   
   	public static void

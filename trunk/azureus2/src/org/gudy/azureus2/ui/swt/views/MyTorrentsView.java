@@ -2366,63 +2366,7 @@ public class MyTorrentsView
   }
 
   private void removeTorrent(final DownloadManager dm, final boolean bDeleteTorrent, final boolean bDeleteData) {
-    
-    if( COConfigurationManager.getBooleanParameter( "confirm_torrent_removal" ) ) {
-    	
-      MessageBox mb = new MessageBox(cTablePanel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
-      
-      mb.setText(MessageText.getString("deletedata.title"));
-      
-      mb.setMessage(MessageText.getString("deletetorrent.message1")
-            + dm.getDisplayName() + " :\n"
-            + dm.getTorrentFileName()
-            + MessageText.getString("deletetorrent.message2"));
-      
-      if( mb.open() == SWT.NO ) {
-        return;
-      }
-    }
-    
-    int choice;
-    if (confirmDataDelete && bDeleteData) {
-      String path = dm.getSaveLocation().toString();
-      
-      MessageBox mb = new MessageBox(cTablePanel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
-      
-      mb.setText(MessageText.getString("deletedata.title"));
-      
-      mb.setMessage(MessageText.getString("deletedata.message1")
-          + dm.getDisplayName() + " :\n"
-          + path
-          + MessageText.getString("deletedata.message2"));
-
-      choice = mb.open();
-    } else {
-      choice = SWT.YES;
-    }
-
-    if (choice == SWT.YES) {
-      	new AEThread( "asyncStop", true )
-		{
-    		public void
-			runSupport()
-    		{
-
-		      try {
-		        dm.stopIt( DownloadManager.STATE_STOPPED, bDeleteTorrent, bDeleteData );
-		        dm.getGlobalManager().removeDownloadManager( dm );
-		      }
-		      catch (GlobalManagerDownloadRemovalVetoException f) {
-		    	  if(!f.isSilent()) {
-		    		  Alerts.showErrorMessageBoxUsingResourceString("globalmanager.download.remove.veto", f);
-		    	  }
-		      }
-		      catch (Exception ex) {
-		        Debug.printStackTrace( ex );
-		      }
-    		}
-		}.start();
-    }
+  	ManagerUtils.remove(dm, cTablePanel.getShell(), bDeleteTorrent, bDeleteData);
   }
 
   private void removeSelectedTorrents() {
