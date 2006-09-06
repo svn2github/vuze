@@ -136,7 +136,7 @@ MainWindow
   
   protected AEMonitor	this_mon			= new AEMonitor( "MainWindow" );
 
-  private UISWTInstanceImpl uiSWTInstanceImpl;
+  private UISWTInstanceImpl uiSWTInstanceImpl = null;
 
   private ArrayList events;
 
@@ -184,7 +184,7 @@ MainWindow
    * @param parent
    */
   public MainWindow(AzureusCore _azureus_core, Initializer _initializer,
-			Shell shell, Composite parent) {
+			Shell shell, Composite parent, UISWTInstanceImpl swtinstance) {
 		this.shell = shell;
 		this.parent = parent;
 
@@ -537,7 +537,9 @@ MainWindow
 			// attach the UI to plugins
 			// Must be done before initializing views, since plugins may register
 			// table columns and other objects
-			uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
+			if (uiSWTInstanceImpl != null) {
+				uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
+			}
 
 			if (azureus_core.getTrackerHost().getTorrents().length > 0) {
 				showMyTracker();
