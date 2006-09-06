@@ -16,6 +16,10 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
+/**
+ * A messagebox that allows you config the button
+ * 
+ */
 public class MessageBoxShell {
 	private final static String REGEX_URLHTML = "<A HREF=\"(.+?)\">(.+?)</A>";
 

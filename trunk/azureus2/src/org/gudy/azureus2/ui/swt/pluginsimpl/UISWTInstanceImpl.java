@@ -526,6 +526,31 @@ UISWTInstanceImpl
 		}
 		subViews.remove(sViewID);
 	}
+	
+	public boolean openView(final String sParentID, final String sViewID,
+			final Object dataSource) {
+		Map subViews = (Map) views.get(sParentID);
+		if (subViews == null) {
+			return false;
+		}
+
+		final UISWTViewEventListener l = (UISWTViewEventListener) subViews.get(sViewID);
+		if (l == null) {
+			return false;
+		}
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+				if (uiFunctions != null) {
+					uiFunctions.openPluginView(sParentID, sViewID, l, dataSource,
+							!bUIAttaching);
+				}
+			}
+		});
+
+		return true;
+	}
 
 	public void openMainView(final String sViewID,
 			final UISWTViewEventListener l, final Object dataSource) {
@@ -666,6 +691,10 @@ UISWTInstanceImpl
 		public int promptUser(String title, String text, String[] options,
 				int defaultOption) {
 			return delegate.promptUser(title, text, options, defaultOption);
+		}
+
+		public boolean openView(String sParentID, String sViewID, Object dataSource) {
+			return delegate.openView(sParentID, sViewID, dataSource);
 		}
 	}
 }

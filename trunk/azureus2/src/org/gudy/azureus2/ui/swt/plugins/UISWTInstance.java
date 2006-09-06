@@ -107,6 +107,18 @@ public interface UISWTInstance extends UIInstance {
 	 */
 	public void addView(String sParentID, String sViewID, UISWTViewEventListener l);
 
+	/**
+	 * Open a previously added view
+	 * 
+	 * @param sParentID ParentID of the view to be shown
+	 * @param sViewID id of the view to be shown
+	 * @param dataSource any data you need to pass the view
+	 * @return success level
+	 * 
+	 * @since 2.5.0.1
+	 */
+	public boolean openView(String sParentID, String sViewID, Object dataSource);
+	
 	/** 
 	 * Create and open a view in the main window immediately.  If you are calling
 	 * this from {@link org.gudy.azureus2.plugins.ui.UIManagerListener#UIAttached(UIInstance)},
