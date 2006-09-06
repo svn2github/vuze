@@ -537,7 +537,7 @@ MainWindow
 			// attach the UI to plugins
 			// Must be done before initializing views, since plugins may register
 			// table columns and other objects
-			if (uiSWTInstanceImpl != null) {
+			if (uiSWTInstanceImpl == null) {
 				uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
 			}
 
