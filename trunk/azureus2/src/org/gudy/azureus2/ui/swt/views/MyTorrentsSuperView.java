@@ -215,9 +215,9 @@ public class MyTorrentsSuperView extends AbstractIView implements
 			weight *= 100;
 		}
 		
-		// Min/max of 1%/99%
-		if (weight < 100) {
-			weight = 100;
+		// Min/max of 5%/95%
+		if (weight < 500) {
+			weight = 500;
 		} else if (weight > 9000) {
 			weight = 9000;
 		}
