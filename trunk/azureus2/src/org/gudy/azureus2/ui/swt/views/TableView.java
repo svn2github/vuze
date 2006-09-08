@@ -1036,17 +1036,27 @@ public class TableView
   	
     // Pre 3.0RC1 SWT on OSX doesn't call this!! :(
     ControlListener resizeListener = new ControlAdapter() {
+      // Bug: getClientArea() eventually calls back to controlResized,
+    	//      creating a loop until a stack overflow
+      private boolean bInFunction = false;
+
       public void controlResized(ControlEvent e) {
         TableColumn column = (TableColumn) e.widget;
-        if (column == null || column.isDisposed())
+        if (column == null || column.isDisposed() || bInFunction)
           return;
-
-        TableColumnCore tc = (TableColumnCore)column.getData("TableColumnCore");
-        if (tc != null)
-          tc.setWidth(column.getWidth());
-
-        int columnNumber = table.indexOf(column);
-        locationChanged(columnNumber);
+        
+        try {
+	        bInFunction = true;
+	
+	        TableColumnCore tc = (TableColumnCore)column.getData("TableColumnCore");
+	        if (tc != null)
+	          tc.setWidth(column.getWidth());
+	
+	        int columnNumber = table.indexOf(column);
+	        locationChanged(columnNumber);
+        } finally {
+        	bInFunction = false;
+        }
       }
     };
 
@@ -1596,10 +1606,10 @@ public class TableView
 			reallyRemoveDataSources(dataSourcesRemove);
 		}
 	}
-  
+
   private void locationChanged(final int iStartColumn) {
     if (getComposite() == null || getComposite().isDisposed())
-      return;    
+			return;    
     
     runForAllRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
