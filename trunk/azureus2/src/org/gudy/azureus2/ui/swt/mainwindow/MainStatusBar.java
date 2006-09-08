@@ -55,8 +55,6 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.update.UpdateProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
-import org.gudy.azureus2.ui.swt.views.ConfigView;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionConnection;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -706,8 +704,10 @@ public class MainStatusBar {
 				+ "/"
 				+ numberFormat.format(azureusCore.getIpFilterManager().getBadIps()
 						.getNbBadIps()));
-		ipBlocked.setToolTipText(DisplayFormatters.formatDateShort(ip_filter.getLastUpdateTime())
-				+ "\n" + MessageText.getString("MainWindow.IPs.tooltip"));
+		ipBlocked.setToolTipText(MessageText.getString(
+				"MainWindow.IPs.tooltip",
+				new String[] { DisplayFormatters.formatDateShort(ip_filter.getLastUpdateTime())
+				}));
 
 		// SR status section
 

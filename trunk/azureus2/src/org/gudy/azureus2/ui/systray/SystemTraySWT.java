@@ -26,6 +26,7 @@ import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -254,17 +255,21 @@ public class SystemTraySWT
 		}
 
 		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		GlobalManagerStats stats = gm.getStats();
 
 		toolTip.append(seeding_text).append(downloading_text).append("\n");
 		toolTip.append(MessageText.getString("ConfigView.download.abbreviated")).append(
 				" ");
-		toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(gm.getStats().getDataReceiveRate()
-				+ gm.getStats().getProtocolReceiveRate()));
+
+		toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
+				stats.getDataReceiveRate(), stats.getProtocolReceiveRate()));
+		
 		toolTip.append(", ").append(
 				MessageText.getString("ConfigView.upload.abbreviated")).append(" ");
-		toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(gm.getStats().getDataSendRate()
-				+ gm.getStats().getProtocolSendRate()));
-
+		toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
+				stats.getDataSendRate(), stats.getProtocolSendRate()));
+		
+		
 		trayItem.setToolTipText(toolTip.toString());
 
 		//Why should we refresh the image? it never changes ...

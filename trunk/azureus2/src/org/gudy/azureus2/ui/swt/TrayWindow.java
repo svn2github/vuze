@@ -215,9 +215,11 @@ public class TrayWindow implements GlobalManagerListener {
         toolTip.append(" -- C: ");
         toolTip.append(completed);
         toolTip.append(", D : ");
-        toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()));
-        toolTip.append(", U : ");
-        toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()));
+				toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
+						stats.getDataReceiveRate(), stats.getProtocolReceiveRate()));
+				toolTip.append(", U : ");
+				toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
+						stats.getDataSendRate(), stats.getProtocolSendRate()));
         separator = "\n"; //$NON-NLS-1$
       }
     }finally{
