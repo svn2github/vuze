@@ -86,11 +86,19 @@ TrackerWebContextImpl
 	getURLs()
 	{
 		try{
-			return( 
-				new URL[]{ 
-						new URL(
-							(server.isSSL()?"https":"http") + "://" + 
-							server.getHost() + ":" + server.getPort() + "/" )});
+			URL	url = new URL((server.isSSL()?"https":"http") + "://" +	server.getHost() + ":" + server.getPort() + "/" );
+				
+				// quick fix for badly specified host whereby a valid URL is constructed but the port lost. For example, if#
+				// someone has entered http://1.2.3.4 as the host
+			
+			if ( url.getPort() != server.getPort()){
+				
+				Debug.out( "Invalid URL '" + url + "' - check tracker configuration" );
+				
+				url = new URL( "http://i.am.invalid:" + server.getPort() + "/" );
+			}
+			
+			return(	new URL[]{ url });
 			
 		}catch( MalformedURLException e ){
 			
