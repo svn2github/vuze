@@ -716,6 +716,8 @@ public class ConfigView extends AbstractIView {
 
     save.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
+      	// wrap the save in an asyncExec in hopes that FocusOut gets 
+      	// called on OSX in the mean time (for Text widgets)
       	event.widget.getDisplay().asyncExec(new AERunnable() {
       		public void runSupport() {
             COConfigurationManager.setParameter("updated", 1); //$NON-NLS-1$
