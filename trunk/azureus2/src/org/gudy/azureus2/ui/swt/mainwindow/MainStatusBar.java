@@ -706,8 +706,8 @@ public class MainStatusBar {
 				+ "/"
 				+ numberFormat.format(azureusCore.getIpFilterManager().getBadIps()
 						.getNbBadIps()));
-		ipBlocked.setToolTipText(DisplayFormatters.formatDateShort(ip_filter
-				.getLastUpdateTime()));
+		ipBlocked.setToolTipText(DisplayFormatters.formatDateShort(ip_filter.getLastUpdateTime())
+				+ "\n" + MessageText.getString("MainWindow.IPs.tooltip"));
 
 		// SR status section
 
