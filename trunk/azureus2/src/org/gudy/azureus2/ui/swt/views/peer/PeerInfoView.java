@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.Plugin;
@@ -222,16 +223,6 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 		sc.setLayout(layout);
 		gridData = new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1);
 		sc.setLayoutData(gridData);
-		sc.addListener(SWT.Resize, new Listener() {
-			public void handleEvent(Event e) {
-				if (img != null) {
-					int iOldColCount = img.getBounds().width / BLOCK_SIZE;
-					int iNewColCount = peerInfoCanvas.getClientArea().width / BLOCK_SIZE;
-					if (iOldColCount != iNewColCount)
-						refreshInfoCanvas();
-				}
-			}
-		});
 		sc.getVerticalBar().setIncrement(BLOCK_SIZE);
 
 		peerInfoCanvas = new Canvas(sc, SWT.NO_REDRAW_RESIZE | SWT.NO_BACKGROUND);
@@ -243,7 +234,7 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 					return;
 				try {
 					Rectangle bounds = (img == null) ? null : img.getBounds();
-					if (bounds == null || e.x > bounds.width || e.y > bounds.height) {
+					if (bounds == null) {
 						e.gc.fillRectangle(e.x, e.y, e.width, e.height);
 					} else {
 						if (e.x + e.width > bounds.width)
@@ -253,8 +244,10 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 							e.gc.fillRectangle(e.x, bounds.height, e.width, e.y + e.height
 									- bounds.height + 1);
 
-						e.gc.drawImage(img, e.x, e.y, e.width, e.height, e.x, e.y, e.width,
-								e.height);
+						int width = Math.min(e.width, bounds.width - e.x);
+						int height = Math.min(e.height, bounds.height - e.y);
+						e.gc.drawImage(img, e.x, e.y, width, height, e.x, e.y, width,
+								height);
 					}
 				} catch (Exception ex) {
 				}
@@ -265,6 +258,23 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 			}
 		};
 		peerInfoCanvas.addListener(SWT.KeyDown, doNothingListener);
+
+		peerInfoCanvas.addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event e) {
+				// wrap in asyncexec because sc.setMinWidth (called later) doesn't work
+				// too well inside a resize (the canvas won't size isn't always updated)
+				e.widget.getDisplay().asyncExec(new AERunnable() {
+					public void runSupport() {
+						if (img != null) {
+							int iOldColCount = img.getBounds().width / BLOCK_SIZE;
+							int iNewColCount = peerInfoCanvas.getClientArea().width / BLOCK_SIZE;
+							if (iOldColCount != iNewColCount)
+								refreshInfoCanvas();
+						}
+					}
+				});
+			}
+		});
 
 		sc.setContent(peerInfoCanvas);
 
@@ -348,6 +358,7 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 	}
 
 	protected void refreshInfoCanvas() {
+		peerInfoCanvas.layout(true);
 		Rectangle bounds = peerInfoCanvas.getClientArea();
 		if (bounds.width <= 0 || bounds.height <= 0)
 			return;
@@ -385,8 +396,12 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 		int iNumCols = bounds.width / BLOCK_SIZE;
 		int iNeededHeight = (((dm.getNbPieces() - 1) / iNumCols) + 1)
 				* BLOCK_SIZE;
-		sc.setMinHeight(iNeededHeight);
-
+		if (sc.getMinHeight() != iNeededHeight) {
+			sc.setMinHeight(iNeededHeight);
+			sc.layout(true, true);
+			bounds = peerInfoCanvas.getClientArea();
+		}
+		
 		img = new Image(peerInfoCanvas.getDisplay(), bounds.width, iNeededHeight);
 		GC gcImg = new GC(img);
 
@@ -534,9 +549,7 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 			gcImg.dispose();
 		}
 
-		GC gc = new GC(peerInfoCanvas);
-		gc.drawImage(img, 0, 0);
-		gc.dispose();
+		peerInfoCanvas.redraw();
 	}
 
 	/* (non-Javadoc)

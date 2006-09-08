@@ -34,6 +34,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -42,6 +43,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.ui.swt.components.Legend;
@@ -171,16 +173,6 @@ public class FileInfoView extends AbstractIView {
 		sc.setLayout(layout);
 		gridData = new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1);
 		sc.setLayoutData(gridData);
-		sc.addListener(SWT.Resize, new Listener() {
-			public void handleEvent(Event e) {
-				if (img != null) {
-					int iOldColCount = img.getBounds().width / BLOCK_SIZE;
-					int iNewColCount = fileInfoCanvas.getClientArea().width / BLOCK_SIZE;
-					if (iOldColCount != iNewColCount)
-						refreshInfoCanvas();
-				}
-			}
-		});
 
 		fileInfoCanvas = new Canvas(sc, SWT.NO_REDRAW_RESIZE | SWT.NO_BACKGROUND);
 		gridData = new GridData(GridData.FILL, SWT.DEFAULT, true, false);
@@ -191,7 +183,7 @@ public class FileInfoView extends AbstractIView {
 					return;
 				try {
 					Rectangle bounds = (img == null) ? null : img.getBounds();
-					if (bounds == null || e.x > bounds.width || e.y > bounds.height) {
+					if (bounds == null) {
 						e.gc.fillRectangle(e.x, e.y, e.width, e.height);
 					} else {
 						if (e.x + e.width > bounds.width)
@@ -201,8 +193,10 @@ public class FileInfoView extends AbstractIView {
 							e.gc.fillRectangle(e.x, bounds.height, e.width, e.y + e.height
 									- bounds.height + 1);
 
-						e.gc.drawImage(img, e.x, e.y, e.width, e.height, e.x, e.y, e.width,
-								e.height);
+						int width = Math.min(e.width, bounds.width - e.x);
+						int height = Math.min(e.height, bounds.height - e.y);
+						e.gc.drawImage(img, e.x, e.y, width, height, e.x, e.y, width,
+								height);
 					}
 				} catch (Exception ex) {
 				}
@@ -219,7 +213,30 @@ public class FileInfoView extends AbstractIView {
 					showPieceDetails( event.x, event.y );
 				}
 			});
-		
+
+		Listener doNothingListener = new Listener() {
+			public void handleEvent(Event event) {
+			}
+		};
+		fileInfoCanvas.addListener(SWT.KeyDown, doNothingListener);
+
+		fileInfoCanvas.addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event e) {
+				// wrap in asyncexec because sc.setMinWidth (called later) doesn't work
+				// too well inside a resize (the canvas won't size isn't always updated)
+				e.widget.getDisplay().asyncExec(new AERunnable() {
+					public void runSupport() {
+						if (img != null) {
+							int iOldColCount = img.getBounds().width / BLOCK_SIZE;
+							int iNewColCount = fileInfoCanvas.getClientArea().width / BLOCK_SIZE;
+							if (iOldColCount != iNewColCount)
+								refreshInfoCanvas();
+						}
+					}
+				});
+			}
+		});
+
 		sc.setContent(fileInfoCanvas);
 
 		Composite legend = 
@@ -358,7 +375,19 @@ public class FileInfoView extends AbstractIView {
 			return;
 		}
 
-		img = new Image(fileInfoCanvas.getDisplay(), bounds.width, bounds.height);
+		int	first_piece = file.getFirstPieceNumber();
+		int	num_pieces	= file.getNbPieces();
+		
+		int iNumCols = bounds.width / BLOCK_SIZE;
+		int iNeededHeight = (((num_pieces - 1) / iNumCols) + 1)
+				* BLOCK_SIZE;
+		if (sc.getMinHeight() != iNeededHeight) {
+			sc.setMinHeight(iNeededHeight);
+			sc.layout(true, true);
+			bounds = fileInfoCanvas.getClientArea();
+		}
+
+		img = new Image(fileInfoCanvas.getDisplay(), bounds.width, iNeededHeight);
 		GC gcImg = new GC(img);
 
 		try {
@@ -368,15 +397,6 @@ public class FileInfoView extends AbstractIView {
 
 			DiskManagerPiece[] 	dm_pieces = disk_manager.getPieces();
 			PEPiece[]			pe_pieces = peer_manager.getPieces();
-			
-			int	first_piece = file.getFirstPieceNumber();
-			int	num_pieces	= file.getNbPieces();
-			
-			int iNumCols = bounds.width / BLOCK_SIZE;
-			int iNeededHeight = (((num_pieces - 1) / iNumCols) + 1)
-					* BLOCK_SIZE;
-			sc.setMinHeight(iNeededHeight);
-
 
 			int iRow = 0;
 			int iCol = 0;
@@ -425,9 +445,7 @@ public class FileInfoView extends AbstractIView {
 			gcImg.dispose();
 		}
 
-		GC gc = new GC(fileInfoCanvas);
-		gc.drawImage(img, 0, 0);
-		gc.dispose();
+		fileInfoCanvas.redraw();
 	}
 
 	/* (non-Javadoc)
