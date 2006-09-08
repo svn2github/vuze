@@ -47,9 +47,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 public class ConfigSectionConnection implements UISWTConfigSection {
 	
 	private static final String CFG_PREFIX = "ConfigView.section.connection.";
-	
-	private static final boolean ENABLE_TCP_UDP_EXPERIMENTAL	= false;
-	
+		
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_ROOT;
 	}
@@ -115,6 +113,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 				if ( !separate_ports ){
 					
 					COConfigurationManager.setParameter( "UDP.Listen.Port", val );
+					COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", val );
 				}
 			}
 		});
@@ -132,6 +131,8 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			gridData.widthHint = 40;
 			udp_listen.setLayoutData(gridData);
 
+			final boolean MULTI_UDP = COConfigurationManager.ENABLE_MULTIPLE_UDP_PORTS && userMode > 1;
+			
 			udp_listen.addChangeListener(new ParameterChangeListener() {
 				public void parameterChanged(Parameter p, boolean caused_internally) {
 					int val = udp_listen.getValue();
@@ -140,10 +141,15 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 						val = 6881;
 						udp_listen.setValue(val);
 					}
+					
+					if ( !MULTI_UDP ){
+						
+						COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", val );
+					}
 				}
 			});
 		
-			if ( ENABLE_TCP_UDP_EXPERIMENTAL && userMode > 1 ){
+			if ( MULTI_UDP ){
 			
 				Composite cNonDataUDPArea = new Composite(cSection, SWT.NULL);
 				layout = new GridLayout();

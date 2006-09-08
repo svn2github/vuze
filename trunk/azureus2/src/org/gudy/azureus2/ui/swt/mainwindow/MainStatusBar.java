@@ -832,10 +832,13 @@ public class MainStatusBar {
 		int dht_status = (dhtPlugin == null) ? DHTPlugin.STATUS_DISABLED
 				: dhtPlugin.getStatus();
 		long dht_count = -1;
+		boolean	reachable = false;
 		if (dht_status == DHTPlugin.STATUS_RUNNING) {
 			DHT[] dhts = dhtPlugin.getDHTs();
 
-			if (dhts.length > 0 && dhts[0].getTransport().isReachable()) {
+			reachable = dhts.length > 0 && dhts[0].getTransport().isReachable();
+			
+			if ( reachable ){
 				dht_count = dhts[0].getControl().getStats().getEstimatedDHTSize();
 			}
 		}
@@ -843,7 +846,7 @@ public class MainStatusBar {
 		if (lastDHTstatus != dht_status || lastDHTcount != dht_count) {
 			switch (dht_status) {
 				case DHTPlugin.STATUS_RUNNING:
-					if (dht_count > 100 * 1000) { //release dht has at least a half million users
+					if ( reachable ){
 						dhtStatus.setImage(ImageRepository.getImage("greenled"));
 						dhtStatus.setToolTipText(MessageText
 								.getString("MainWindow.dht.status.tooltip"));

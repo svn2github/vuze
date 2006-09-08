@@ -278,6 +278,21 @@ ConfigurationChecker
 	    	changed = true;
 	    }
 	    
+	    	// fix up broken config when multi-udp not enabled but values differ
+	    
+	    if ( !COConfigurationManager.ENABLE_MULTIPLE_UDP_PORTS ){
+	    	
+	    	int	udp1 = COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
+	    	int	udp2 = COConfigurationManager.getIntParameter( "UDP.NonData.Listen.Port" );
+	    	
+	    	if ( udp1 != udp2 ){
+	    		
+		    	COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", udp1 );
+		    	
+		    	changed = true;
+	    	}
+	    }
+	    
 	    // migrate to split tracker client/server key config
 	    
 	    if ( !COConfigurationManager.doesParameterDefaultExist( "Tracker Key Enable Client")){

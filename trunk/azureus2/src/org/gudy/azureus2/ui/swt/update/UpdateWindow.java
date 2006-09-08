@@ -407,6 +407,7 @@ UpdateWindow
   public void show() {
     if(updateWindow == null || updateWindow.isDisposed())
       return;
+    Utils.centreWindow( updateWindow );
     updateWindow.open();
     updateWindow.forceActive();       
   }

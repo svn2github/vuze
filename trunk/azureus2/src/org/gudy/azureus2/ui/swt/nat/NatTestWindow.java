@@ -205,6 +205,8 @@ public class NatTestWindow {
         	COConfigurationManager.setParameter("UDP.NonData.Listen.Port",serverTCPListenPort);
         }
 
+        COConfigurationManager.save();
+        
         shell.close();
       }
     });
