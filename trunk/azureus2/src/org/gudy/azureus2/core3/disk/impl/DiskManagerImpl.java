@@ -358,6 +358,8 @@ DiskManagerImpl
                         }catch( Throwable e ){
 
                             errorMessage = Debug.getNestedExceptionMessage(e) + " (start)";
+                            
+                            Debug.printStackTrace(e);
 
                             setState( FAULTY );
 
