@@ -485,7 +485,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				checkSeedingMode();
 
 				File file = new File(sDestDir);
-				System.out.println(file.isDirectory());
 				if (!file.isDirectory()) {
 					cmbDataDir.setBackground(Colors.colorErrorBG);
 				} else {
