@@ -396,12 +396,12 @@ PluginInstallerImpl
 													
 													FileUtil.recursiveDelete( new File( plugin_dir ));
 												
-												}else{
-																
-													UpdateInstaller installer = checker.createInstaller();
-													
-													installer.addRemoveAction( new File( plugin_dir ).getCanonicalPath());
 												}
+																
+												UpdateInstaller installer = checker.createInstaller();
+													
+												installer.addRemoveAction( new File( plugin_dir ).getCanonicalPath());
+											
 												
 											}catch( Throwable e ){
 												
