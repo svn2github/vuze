@@ -167,6 +167,9 @@ public class SWTThread {
   
   public void terminate() {
     terminated = true;
+    // must dispose here in case another window has take over the
+    // readAndDispatch/sleep loop
+    display.dispose();
   }
   
   public Display getDisplay() {
