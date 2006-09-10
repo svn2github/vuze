@@ -483,6 +483,16 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				tableTorrents.clearAll();
 
 				checkSeedingMode();
+
+				File file = new File(sDestDir);
+				System.out.println(file.isDirectory());
+				if (!file.isDirectory()) {
+					cmbDataDir.setBackground(Colors.colorErrorBG);
+				} else {
+					cmbDataDir.setBackground(null);
+				}
+				cmbDataDir.redraw();
+				cmbDataDir.update();
 			}
 		});
 
@@ -522,6 +532,13 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 				if (sSavePath != null) {
 					cmbDataDir.setText(sSavePath);
+				}
+
+				File file = new File(sDestDir);
+				if (!file.isDirectory()) {
+					cmbDataDir.setBackground(Colors.colorErrorBG);
+				} else {
+					cmbDataDir.setBackground(null);
 				}
 			}
 		});
