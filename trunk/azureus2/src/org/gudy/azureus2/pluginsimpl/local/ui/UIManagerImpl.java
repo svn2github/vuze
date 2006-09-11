@@ -29,14 +29,15 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.ui.UIException;
-import org.gudy.azureus2.plugins.ui.UIInstance;
-import org.gudy.azureus2.plugins.ui.UIInstanceFactory;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIManagerEvent;
-import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
-import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginConfigModelImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginViewModelImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableManagerImpl;
+
+import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
@@ -44,11 +45,6 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.model.PluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginConfigModelImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginViewModelImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableManagerImpl;
-import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 
 
@@ -69,6 +65,7 @@ UIManagerImpl
 	protected static List		ui_event_listeners	= new ArrayList();
 	protected static List		ui_factories		= new ArrayList();
 	protected static List		ui_event_history	= new ArrayList();
+	protected static List configModels = new ArrayList();
 	
 	
 	protected PluginInterface		pi;
@@ -77,7 +74,6 @@ UIManagerImpl
 	protected String				key_prefix;
 	
 	protected TableManager			table_manager;
-	protected List configModels = new ArrayList();
 	
 	public
 	UIManagerImpl(
