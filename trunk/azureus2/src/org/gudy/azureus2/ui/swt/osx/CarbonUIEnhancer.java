@@ -9,7 +9,8 @@
  *******************************************************************************/
 package org.gudy.azureus2.ui.swt.osx;
 
-import org.eclipse.swt.SWT;
+import java.io.IOException;
+
 import org.eclipse.swt.internal.Callback;
 import org.eclipse.swt.internal.carbon.*;
 import org.eclipse.swt.widgets.Display;
@@ -17,19 +18,14 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
-import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-
-import java.io.IOException;
-import java.util.logging.Logger;
 
 //import com.apple.eawt.*; //Application and ApplicationAdapter
 
@@ -45,6 +41,8 @@ public class CarbonUIEnhancer {
    private static final int kCoreEventClass = ('a'<<24) + ('e'<<16) + ('v'<<8) + 't';
    private static final int kAEOpenDocuments = ('o'<<24) + ('d'<<16) + ('o'<<8) + 'c';
    private static final int kURLEventClass = ('G'<<24) + ('U'<<16) + ('R'<<8) + 'L';
+
+   private static final int typeText = ('T'<<24) + ('E'<<16) + ('X'<<8) + 'T';
 
    private static final String RESOURCE_BUNDLE= "org.eclipse.ui.carbon.Messages"; //$NON-NLS-1$
    private static String fgAboutActionName;
@@ -88,7 +86,7 @@ public class CarbonUIEnhancer {
 			return;
 		}
 
-		result = OS.AEInstallEventHandler(kCoreEventClass, kURLEventClass,
+		result = OS.AEInstallEventHandler(kURLEventClass, kURLEventClass,
 				openDocProc, 0, false);
 
 		if (result != OS.noErr) {
@@ -99,7 +97,7 @@ public class CarbonUIEnhancer {
 		int appTarget = OS.GetApplicationEventTarget();
 		Callback appleEventCallback = new Callback(this, "appleEventProc", 3);
 		int appleEventProc = appleEventCallback.getAddress();
-		int[] mask3 = new int[] { OS.kEventClassAppleEvent, OS.kEventAppleEvent, };
+		int[] mask3 = new int[] { OS.kEventClassAppleEvent, OS.kEventAppleEvent, kURLEventClass, };
 		result = OS.InstallEventHandler(appTarget, appleEventProc,
 				mask3.length / 2, mask3, 0, null);
 		if (result != OS.noErr) {
@@ -256,7 +254,7 @@ public class CarbonUIEnhancer {
 //		int eventKind = OS.GetEventKind(theEvent);
 
 //		System.out.println("appleEventProc " + OSXtoString(eventClass) + ";"
-//				+ OSXtoString(eventKind) + ";" + OSXtoString(theEvent) + ";"
+//				+ OS.GetEventKind(theEvent) + ";" + OSXtoString(theEvent) + ";"
 //				+ OSXtoString(userData));
 
 		// Process teh odoc event
@@ -266,10 +264,11 @@ public class CarbonUIEnhancer {
 					null, 4, null, aeEventID) != OS.noErr) {
 				return OS.eventNotHandledErr;
 			}
-			//System.out.println("EventID = " + OSXtoString(aeEventID[0]));
-			if (aeEventID[0] != kAEOpenDocuments) {
+//			System.out.println("EventID = " + OSXtoString(aeEventID[0]));
+			if (aeEventID[0] != kAEOpenDocuments && aeEventID[0] != kURLEventClass) {
 				return OS.eventNotHandledErr;
 			}
+
 			EventRecord eventRecord = new EventRecord();
 			OS.ConvertEventRefToEventRecord(theEvent, eventRecord);
 			OS.AEProcessAppleEvent(eventRecord);
@@ -292,7 +291,6 @@ public class CarbonUIEnhancer {
 
   final static Object target = new Object() {
 		int openDocProc(int theAppleEvent, int reply, int handlerRefcon) {
-			System.out.println("OpenDocProc");
 			AEDesc aeDesc = new AEDesc();
 			EventRecord eventRecord = new EventRecord();
 			OS.ConvertEventRefToEventRecord(theAppleEvent, eventRecord);
@@ -335,7 +333,13 @@ public class CarbonUIEnhancer {
 						fileNames[i] = new String (buffer);
 					}
 
-					System.out.println("Name" + fileNames[i]);
+					if (OS.AEGetNthPtr(aeDesc, i + 1, typeText, aeKeyword, typeCode,
+							dataPtr, maximumSize, actualSize) == OS.noErr) {
+						byte [] urlRef = new byte [actualSize [0]];
+						OS.memcpy (urlRef, dataPtr, actualSize [0]);
+						fileNames[i] = new String(urlRef);
+					}
+
 					//System.out.println(fileNames[i]);
 				}
 
