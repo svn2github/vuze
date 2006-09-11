@@ -9,6 +9,7 @@
  *******************************************************************************/
 package org.gudy.azureus2.ui.swt.osx;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.internal.Callback;
 import org.eclipse.swt.internal.carbon.*;
 import org.eclipse.swt.widgets.Display;
@@ -16,7 +17,9 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
@@ -26,6 +29,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 //import com.apple.eawt.*; //Application and ApplicationAdapter
 
@@ -279,6 +283,7 @@ public class CarbonUIEnhancer {
 
   final static Object target = new Object() {
 		int openDocProc(int theAppleEvent, int reply, int handlerRefcon) {
+			System.out.println("OpenDocProc");
 			AEDesc aeDesc = new AEDesc();
 			EventRecord eventRecord = new EventRecord();
 			OS.ConvertEventRefToEventRecord(theAppleEvent, eventRecord);
@@ -321,6 +326,7 @@ public class CarbonUIEnhancer {
 						fileNames[i] = new String (buffer);
 					}
 
+					System.out.println("Name" + fileNames[i]);
 					//System.out.println(fileNames[i]);
 				}
 
