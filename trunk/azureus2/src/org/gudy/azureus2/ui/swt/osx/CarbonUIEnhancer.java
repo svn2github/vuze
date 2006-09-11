@@ -44,6 +44,7 @@ public class CarbonUIEnhancer {
    private static final int typeAEList = ('l'<<24) + ('i'<<16) + ('s'<<8) + 't';
    private static final int kCoreEventClass = ('a'<<24) + ('e'<<16) + ('v'<<8) + 't';
    private static final int kAEOpenDocuments = ('o'<<24) + ('d'<<16) + ('o'<<8) + 'c';
+   private static final int kURLEventClass = ('G'<<24) + ('U'<<16) + ('R'<<8) + 'L';
 
    private static final String RESOURCE_BUNDLE= "org.eclipse.ui.carbon.Messages"; //$NON-NLS-1$
    private static String fgAboutActionName;
@@ -80,6 +81,14 @@ public class CarbonUIEnhancer {
 
 		int result;
 		result = OS.AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments,
+				openDocProc, 0, false);
+
+		if (result != OS.noErr) {
+			Debug.out("OSX: Could Install OpenDocs Event Handler. Error: " + result);
+			return;
+		}
+
+		result = OS.AEInstallEventHandler(kCoreEventClass, kURLEventClass,
 				openDocProc, 0, false);
 
 		if (result != OS.noErr) {
