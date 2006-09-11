@@ -124,8 +124,8 @@ TRHostConfigImpl
 								torrent = TorrentUtils.readFromFile( file, true, true );
 								
 							}catch( Throwable e ){
-								
-								Debug.printStackTrace( e );
+								// torrent might have been deleted, don't barf out errors
+								// Debug.printStackTrace( e );
 							}
 						}
 					}

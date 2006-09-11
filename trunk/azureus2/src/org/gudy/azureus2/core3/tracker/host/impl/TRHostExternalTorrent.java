@@ -112,6 +112,12 @@ TRHostExternalTorrent
 		return( null );
 	}
 	
+	public boolean
+	isCreated()
+	{
+		return( false );
+	}
+	
 	public URL
 	getAnnounceURL()
 	{

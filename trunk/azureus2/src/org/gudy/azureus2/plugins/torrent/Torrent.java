@@ -207,6 +207,14 @@ Torrent
 	setPrivate(
 		boolean	priv );
 	
+		/**
+		 * @since 2501
+		 * @return
+		 */
+	
+	public boolean
+	wasCreatedByUs();
+	
 		/** 
 		 * Gets the magnet URI for the torrent - throws exception if not available
 		 * @return

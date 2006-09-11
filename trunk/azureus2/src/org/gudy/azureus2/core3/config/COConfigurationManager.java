@@ -276,6 +276,17 @@ COConfigurationManager
 		ConfigurationManager.getInstance().save();
 	}
 	
+		/**
+		 * Mark as needing a save but not immediately - use when potentially needing a large number of saves that aren't
+		 * absolutely required to be immediately persisted
+		 */
+	
+	public static void
+	setDirty()
+	{
+		ConfigurationManager.getInstance().setDirty();
+	}
+	
 	public static void
 	addListener(
 		COConfigurationListener		listener )

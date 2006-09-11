@@ -21,7 +21,6 @@
 package org.gudy.azureus2.core3.config.impl;
 
 import java.io.*;
-import java.io.IOException;
 import java.util.*;
 
 
@@ -41,7 +40,8 @@ ConfigurationManager
   private static ConfigurationManager 	config_temp = null;
   private static ConfigurationManager 	config 		= null;
   private static AEMonitor				class_mon	= new AEMonitor( "ConfigMan:class" );
-  
+ 
+		  
   private Map propertiesMap;	// leave this NULL - it picks up errors caused by initialisation sequence errors
   
   private List		listeners 			= new ArrayList();
@@ -49,6 +49,17 @@ ConfigurationManager
   
   private AEMonitor	this_mon	= new AEMonitor( "ConfigMan");
   
+  private static FrequencyLimitedDispatcher dirty_dispatcher = 
+	  new FrequencyLimitedDispatcher(
+			  new AERunnable()
+			  {
+				  public void
+				  runSupport()
+				  {
+					  COConfigurationManager.save();
+				  }
+			  },
+			  30*1000 );
  
   public static ConfigurationManager getInstance() {
   	try{
@@ -240,6 +251,12 @@ ConfigurationManager
     save("azureus.config");
   }
   
+	public void
+	setDirty()
+	{
+		dirty_dispatcher.dispatch();
+	}
+	
   public boolean getBooleanParameter(String parameter, boolean defaultValue) {
     int defaultInt = defaultValue ? 1 : 0;
     int result = getIntParameter(parameter, defaultInt);

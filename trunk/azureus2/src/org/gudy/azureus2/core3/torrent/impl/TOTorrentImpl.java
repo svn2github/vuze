@@ -83,6 +83,9 @@ TOTorrentImpl
 	private Map					additional_properties 		= new HashMap();
 	private Map					additional_info_properties	= new HashMap();
 	
+	private boolean				created;
+	private boolean				serialising;
+	
 	protected AEMonitor this_mon 	= new AEMonitor( "TOTorrent" );
 
 	/** 
@@ -106,6 +109,8 @@ TOTorrentImpl
 		
 		throws TOTorrentException
 	{
+		created	= true;
+		
 		try{
 		
 			torrent_name		= _torrent_name.getBytes( Constants.DEFAULT_ENCODING );
@@ -128,7 +133,15 @@ TOTorrentImpl
 		final File		output_file )
 	
 		throws TOTorrentException
-	{		
+	{	
+			// we have to defer marking as created until some kind of persisting occurs as we don't know that the info-hash is "permanent" until#
+			// this point (external code can set info-hash internal properties between create + complete )
+		
+		if ( created ){
+			
+			TorrentUtils.addCreatedTorrent( this );
+		}
+		
 		byte[]	res = serialiseToByteArray();
 						
         BufferedOutputStream bos = null;
@@ -229,6 +242,11 @@ TOTorrentImpl
 	
 		throws TOTorrentException
 	{
+		if ( created ){
+			
+			TorrentUtils.addCreatedTorrent( this );
+		}
+		
 		Map	root = serialiseToMap();
 			
 		try{
@@ -248,6 +266,21 @@ TOTorrentImpl
 	
 		throws TOTorrentException
 	{		
+			// protect against recursion when getting the hash 
+		
+		if ( created && !serialising ){
+			
+			try{
+				serialising	= true;	// not thread safe but we can live without the hassle of using TLS or whatever
+					
+				TorrentUtils.addCreatedTorrent( this );
+				
+			}finally{
+				
+				serialising = false;
+			}
+		}
+		
 		Map	root = new HashMap();
 		
 		writeStringToMetaData( root, TK_ANNOUNCE, announce_url.toString());
@@ -417,6 +450,11 @@ TOTorrentImpl
 		  
 	  throws TOTorrentException
 	{
+		if ( created ){
+			
+			TorrentUtils.addCreatedTorrent( this );
+		}
+		
 		TOTorrentXMLSerialiser	serialiser = new TOTorrentXMLSerialiser( this );
 		
 		serialiser.serialiseToFile( file );
@@ -535,6 +573,12 @@ TOTorrentImpl
 	getCreatedBy()
 	{
 		return( created_by );
+	}
+	
+	public boolean
+	isCreated()
+	{
+		return( created );
 	}
 	
 	public byte[]

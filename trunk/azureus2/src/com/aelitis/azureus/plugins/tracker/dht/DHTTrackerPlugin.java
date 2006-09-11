@@ -88,9 +88,11 @@ DHTTrackerPlugin
 	private static final int	ANNOUNCE_MIN_DEFAULT		= 2*60*1000;
 	private static final int	ANNOUNCE_MAX				= 60*60*1000;
 	
-	private static final int	INTERESTING_CHECK_PERIOD	= 4*60*60*1000;
-	private static final int	INTERESTING_INIT_RAND		=   30*60*1000;
-	private static final int	INTERESTING_INIT_MIN		=    5*60*1000;
+	private static final int	INTERESTING_CHECK_PERIOD		= 4*60*60*1000;
+	private static final int	INTERESTING_INIT_RAND_OURS		=    5*60*1000;
+	private static final int	INTERESTING_INIT_MIN_OURS		=    2*60*1000;
+	private static final int	INTERESTING_INIT_RAND_OTHERS	=   30*60*1000;
+	private static final int	INTERESTING_INIT_MIN_OTHERS		=    5*60*1000;
 
 	private static final int	INTERESTING_AVAIL_MAX		= 8;	// won't pub if more
 	private static final int	INTERESTING_PUB_MAX_DEFAULT	= 30;	// limit on pubs
@@ -99,6 +101,8 @@ DHTTrackerPlugin
 	
 	private static final int	NUM_WANT			= 30;	// Limit to ensure replies fit in 1 packet
 
+	private static final long	start_time = SystemTime.getCurrentTime();
+	
 	private static URL	DEFAULT_URL;
 	
 	static{
@@ -497,14 +501,34 @@ DHTTrackerPlugin
 							
 							if ( public_net && !torrent.isPrivate()){
 	
+								boolean	our_download =  torrent.wasCreatedByUs();
+
+								long	delay;
+								
+								if ( our_download ){
+									
+									if ( download.getCreationTime() > start_time ){
+										
+										delay = 0;
+									
+									}else{
+									
+										delay = plugin_interface.getUtilities().getCurrentSystemTime() + 
+												INTERESTING_INIT_MIN_OURS + 
+												random.nextInt( INTERESTING_INIT_RAND_OURS );
+
+									}
+								}else{
+									
+									delay = plugin_interface.getUtilities().getCurrentSystemTime() + 
+												INTERESTING_INIT_MIN_OTHERS + 
+												random.nextInt( INTERESTING_INIT_RAND_OTHERS );
+								}
+								
 								try{
 									this_mon.enter();
 						
-									interesting_downloads.put( 
-											download,
-											new Long( 	plugin_interface.getUtilities().getCurrentSystemTime() + 
-														INTERESTING_INIT_MIN + 
-														random.nextInt( INTERESTING_INIT_RAND )));
+									interesting_downloads.put( download, new Long( delay ));
 									
 								}finally{
 									
@@ -560,7 +584,7 @@ DHTTrackerPlugin
 					
 					processRegistrations();
 					
-					if ( ticks%4==0 ){
+					if ( ticks == 2 || ticks%4==0 ){
 						
 						processNonRegistrations();
 					}
@@ -769,7 +793,7 @@ DHTTrackerPlugin
 						interesting_downloads.put( 
 								download,
 								new Long( 	plugin_interface.getUtilities().getCurrentSystemTime() + 
-											INTERESTING_INIT_MIN ));
+											INTERESTING_INIT_MIN_OTHERS ));
 
 					}else{
 						
@@ -1552,16 +1576,6 @@ DHTTrackerPlugin
 	protected void
 	processNonRegistrations()
 	{
-		if ( !dht.isReachable()){
-			
-			return;
-		}
-		
-		if ( interesting_pub_max > 0 && interesting_published > interesting_pub_max ){
-			
-			return;
-		}
-		
 		Download	ready_download = null;
 	
 		long	now = plugin_interface.getUtilities().getCurrentSystemTime();
@@ -1575,13 +1589,35 @@ DHTTrackerPlugin
 				
 				Download	download = (Download)it.next();
 				
+				Torrent	torrent = download.getTorrent();
+				
+				if ( torrent == null ){
+					
+					continue;
+				}
+				
 				if ( !running_downloads.contains( download)){
 					
-					DownloadScrapeResult	scrape = download.getLastScrapeResult();
+					boolean	force =  torrent.wasCreatedByUs();
 					
-					if ( scrape.getSeedCount() + scrape.getNonSeedCount() > NUM_WANT ){
+					if ( !force ){
 						
-						continue;
+						if ( !dht.isReachable()){
+							
+							continue;
+						}
+						
+						if ( interesting_pub_max > 0 && interesting_published > interesting_pub_max ){
+							
+							continue;
+						}
+						
+						DownloadScrapeResult	scrape = download.getLastScrapeResult();
+						
+						if ( scrape.getSeedCount() + scrape.getNonSeedCount() > NUM_WANT ){
+							
+							continue;
+						}
 					}
 					
 					long	target = ((Long)interesting_downloads.get( download )).longValue();

@@ -177,6 +177,14 @@ RPTorrent
 		return( false );
 	}
 	
+	public boolean
+	wasCreatedByUs()
+	{
+		notSupported();
+		
+		return( false );
+	}
+	
 	public void
 	setPrivate(
 		boolean	priv )

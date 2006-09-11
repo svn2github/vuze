@@ -83,6 +83,9 @@ TOTorrent
 	public byte[]
 	getCreatedBy();
 	
+	public boolean
+	isCreated();
+	
 	/**
 	 * A torrent must have a URL that identifies the tracker. This method returns it. However
 	 * an extension to this exists to allow multiple trackers, and their backups, to be defined.

@@ -1023,6 +1023,16 @@ public class GlobalManagerImpl
     	managers_mon.exit();
     }
 	
+    	// when we remove a download manager from Azureus this is the time to remove it from the record of
+    	// created torrents if present
+    
+    TOTorrent	torrent = manager.getTorrent();
+    
+    if ( torrent != null ){
+    	
+    	TorrentUtils.removeCreatedTorrent( torrent );
+    }
+    
 	manager.destroy( false );
 	
     fixUpDownloadManagerPositions();

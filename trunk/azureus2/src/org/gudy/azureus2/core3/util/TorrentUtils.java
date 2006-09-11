@@ -49,7 +49,8 @@ TorrentUtils
 	private static final String		TORRENT_AZ_PROP_DHT_BACKUP_ENABLE		= "dht_backup_enable";
 	private static final String		TORRENT_AZ_PROP_DHT_BACKUP_REQUESTED	= "dht_backup_requested";
 	
-	private static final Set	torrent_az_reserved_properties = new HashSet();
+	private static final List	created_torrents;
+	private static final Set	created_torrents_set;
 	
 	private static ThreadLocal		tls	= 
 		new ThreadLocal()
@@ -73,6 +74,17 @@ TorrentUtils
 								parameterName, false);
 					}
 				});
+		
+		created_torrents = COConfigurationManager.getListParameter( "my.created.torrents", new ArrayList());
+		
+		created_torrents_set	= new HashSet();
+		
+		Iterator	it = created_torrents.iterator();
+		
+		while( it.hasNext()){
+			
+			created_torrents_set.add( new HashWrapper((byte[])it.next()));
+		}
 	}
 
 	public static TOTorrent
@@ -1367,6 +1379,12 @@ TorrentUtils
 			return( delegate.getCreatedBy());
 		}
 		
+		public boolean
+		isCreated()
+		{
+			return( delegate.isCreated());
+		}
+		
 		public URL
 		getAnnounceURL()
 		{
@@ -1880,5 +1898,104 @@ TorrentUtils
 	  } catch (Throwable e) {
 	    return false;
 	  }
+	}
+	
+	public static void
+	addCreatedTorrent(
+		TOTorrent		torrent )
+	{
+		synchronized( created_torrents ){
+			
+			try{
+				byte[]	hash = torrent.getHash();
+				
+				//System.out.println( "addCreated:" + new String(torrent.getName()) + "/" + ByteFormatter.encodeString( hash ));
+				
+				if ( created_torrents.size() == 0 ){
+					
+					COConfigurationManager.setParameter( "my.created.torrents", created_torrents );
+				}
+				
+				HashWrapper	hw = new HashWrapper( hash );
+				
+				if ( !created_torrents_set.contains( hw )){
+					
+					created_torrents.add( hash );
+				
+					created_torrents_set.add( hw );
+				
+					COConfigurationManager.setDirty();
+				}
+			}catch( TOTorrentException e ){
+				
+			}
+		}
+	}
+	
+	public static void
+	removeCreatedTorrent(
+		TOTorrent		torrent )
+	{
+		synchronized( created_torrents ){
+
+			try{
+				HashWrapper	hw = torrent.getHashWrapper();
+				
+				byte[]		hash	= hw.getBytes();
+				
+				//System.out.println( "removeCreated:" + new String(torrent.getName()) + "/" + ByteFormatter.encodeString( hash ));
+
+				Iterator	it = created_torrents.iterator();
+				
+				while( it.hasNext()){
+					
+					byte[]	h = (byte[])it.next();
+					
+					if ( Arrays.equals( hash, h )){
+						
+						it.remove();
+					}
+				}
+				
+				COConfigurationManager.setDirty();
+
+				created_torrents_set.remove( hw );
+				
+			}catch( TOTorrentException e ){
+				
+			}
+		}
+	}
+	
+	public static boolean
+	isCreatedTorrent(
+		TOTorrent		torrent )
+	{
+		synchronized( created_torrents ){
+
+			try{
+				HashWrapper	hw = torrent.getHashWrapper();
+				
+				boolean	res = created_torrents_set.contains( hw );
+				
+					// if we don't have a persistent record of creation, check the non-persisted version
+				
+				if ( !res ){
+					
+					res = torrent.isCreated();
+				}
+				
+				// System.out.println( "isCreated:" + new String(torrent.getName()) + "/" + ByteFormatter.encodeString( hw.getBytes()) + " -> " + res );
+
+				return( res );
+				
+			}catch( TOTorrentException e ){
+				
+				Debug.printStackTrace(e);
+				
+				return( false );
+				
+			}
+		}
 	}
 }

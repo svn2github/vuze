@@ -147,6 +147,12 @@ TorrentImpl
 		TorrentUtils.setPrivate( torrent, priv );
 	}
 	
+	public boolean
+	wasCreatedByUs()
+	{
+		return( TorrentUtils.isCreatedTorrent( torrent ));
+	}
+	
 	public URL
 	getMagnetURI()
 	
