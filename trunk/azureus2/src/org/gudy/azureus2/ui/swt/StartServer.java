@@ -30,8 +30,10 @@ import java.net.SocketException;
 import java.util.*;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.impl.AzureusCoreSingleInstanceClient;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -47,7 +49,7 @@ public class
 StartServer
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
-  public static final String ACCESS_STRING = "Azureus Start Server Access";
+
   private ServerSocket socket;
   private int state;
 
@@ -88,11 +90,15 @@ StartServer
         azureus_core.addLifecycleListener(
 		    	new AzureusCoreLifecycleAdapter()
 				{
-		    		public void
-					started(
-						AzureusCore		core )
-		    		{
-		    			openQueuedTorrents( azureus_core );
+					public void
+					componentCreated(
+						AzureusCore 			core, 
+						AzureusCoreComponent	component) 
+					{
+						if ( component instanceof UIFunctionsSWT ){
+		    			
+							openQueuedTorrents( azureus_core );
+						}
 		    		}
 				});
         
@@ -139,7 +145,7 @@ StartServer
             if(st.countTokens() > 1) {
             	String args[] = new String[st.countTokens() - 1];
             	String checker = st.nextToken();
-            	if(checker.equals(ACCESS_STRING)) {
+            	if(checker.equals(AzureusCoreSingleInstanceClient.ACCESS_STRING)) {
                 	
             		String debug_str = "";
                   	
@@ -222,7 +228,48 @@ StartServer
   	    
         String file_name = arg;
         
-        if( file_name.toUpperCase().startsWith( "HTTP:" ) || file_name.toUpperCase().startsWith( "MAGNET:" ) ) {
+        File file = new File(file_name);
+        
+        if ( !file.exists() && !isURI( file_name )){
+        	
+        		// handle hex info hashes
+	        
+	        if ( file_name.length() == 40 ){
+	        
+	        	byte[]	hash = null;
+	        	
+	        	try{
+	        		hash = ByteFormatter.decodeString( file_name );
+	        		
+	        	}catch( Throwable e ){
+	        	}
+	        	
+	        	if ( hash != null && hash.length == 20 ){
+	        		
+	        		file_name = "magnet:?xt=urn:btih:" + Base32.encode( hash );
+	        	}
+	        }
+	        
+	        	// handle base32 info hash
+	       
+	        if ( file_name.length() == 32 ){
+	            
+	        	byte[]	hash = null;
+	        	
+	        	try{
+	        		hash = Base32.decode( file_name );
+	        		
+	        	}catch( Throwable e ){
+	        	}
+	        	
+	        	if ( hash != null && hash.length == 20 ){
+	        		
+	        		file_name = "magnet:?xt=urn:btih:" +file_name;
+	        	}
+	        }
+        }
+        
+        if ( isURI( file_name )) {
         	
         	if (Logger.isEnabled())
 						Logger.log(new LogEvent(LOGID, "StartServer: args[" + i
@@ -231,7 +278,7 @@ StartServer
         }else{
 
             try {
-              File file = new File(file_name);
+              
 
               if (!file.exists()) {
 
@@ -272,6 +319,15 @@ StartServer
         	handleFile( azureus_core, file_name, open );
         }
       }
+  }
+  
+  protected boolean
+  isURI(
+	String	file_name )
+  {
+      String file_name_lower = file_name.toLowerCase();
+      
+	  return( file_name_lower.startsWith( "http:" ) || file_name_lower.startsWith( "https:" ) || file_name_lower.startsWith( "magnet:" ));
   }
   
   protected void

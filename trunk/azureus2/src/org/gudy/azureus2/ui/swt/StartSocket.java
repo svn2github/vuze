@@ -29,6 +29,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.impl.AzureusCoreSingleInstanceClient;
+
 
 public class StartSocket {
 	private static final LogIDs LOGID = LogIDs.GUI;
@@ -54,9 +56,11 @@ public class StartSocket {
        	
     		sck = new Socket("127.0.0.1", 6880);
          
+    			// NOTE - this formatting is also used by AzureusCoreSingleInstanceClient and other org.gudy.azureus2.ui.common.Main.StartSocket
+    		
     		pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream(),Constants.DEFAULT_ENCODING));
          
-    		StringBuffer buffer = new StringBuffer(StartServer.ACCESS_STRING + ";args;");
+    		StringBuffer buffer = new StringBuffer(AzureusCoreSingleInstanceClient.ACCESS_STRING + ";args;");
          
     		for(int i = 0 ; i < args.length ; i++) {
     			String arg = args[i].replaceAll("&","&&").replaceAll(";","&;");
