@@ -86,6 +86,12 @@ PluginConfigImpl
 		key = _key + ".";
 	}
 
+	public boolean
+	isNewInstall()
+	{
+		return( COConfigurationManager.isNewInstall());
+	}
+	
 	public String
 	getPluginConfigKeyPrefix()
 	{

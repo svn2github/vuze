@@ -308,6 +308,9 @@ PluginConfig
   getPluginParameter(
   	String		key );
   
+  public boolean
+  isNewInstall();
+  
   /**
    * make sure you save it after making changes!
    *
