@@ -69,6 +69,8 @@ PluginConfigImpl
 		// TODO: Add a smarter way
 		external_to_internal_key_map.put( "Open MyTorrents", "Open MyTorrents" );
 		external_to_internal_key_map.put( "IconBar.enabled", "IconBar.enabled" );
+		external_to_internal_key_map.put( "Wizard Completed", "Wizard Completed" );
+		external_to_internal_key_map.put( "welcome.version.lastshown", "welcome.version.lastshown" );
 	}
 
 	private PluginInterface	plugin_interface;
