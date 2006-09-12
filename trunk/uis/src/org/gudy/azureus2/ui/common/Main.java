@@ -19,11 +19,9 @@ import java.net.Socket;
 
 import java.text.SimpleDateFormat;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.commons.cli.CommandLine;
@@ -41,6 +39,7 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.varia.DenyAllFilter;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.impl.AzureusCoreSingleInstanceClient;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.common.IUserInterface;
@@ -357,9 +356,11 @@ public class Main {
       try {
         System.out.println("StartSocket: passing startup args to already-running process.");
         
+		// NOTE - this formatting is also used by AzureusCoreSingleInstanceClient and other org.gudy.azureus2.ui.swt.StartSocket
+        
         sck = new Socket("127.0.0.1",6880);
         pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream()));
-        StringBuffer buffer = new StringBuffer(StartServer.ACCESS_STRING+";args;");
+        StringBuffer buffer = new StringBuffer(AzureusCoreSingleInstanceClient.ACCESS_STRING+";args;");
         for(int i = 0 ; i < args.length ; i++) {
           String arg = args[i].replaceAll("&","&&").replaceAll(";","&;");
           buffer.append(arg);

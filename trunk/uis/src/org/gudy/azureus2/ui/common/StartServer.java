@@ -16,13 +16,13 @@ import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
 
+import com.aelitis.azureus.core.impl.AzureusCoreSingleInstanceClient;
+
 /**
  * @author Olivier
  * 
  */
 public class StartServer extends Thread {
-
-  public static final String ACCESS_STRING = "Azureus Start Server Access";
 
   private ServerSocket socket;
   private int state;
@@ -64,7 +64,7 @@ public class StartServer extends Thread {
             if (argsList.size() > 1 )
             {
               String checker = (String) argsList.remove(0);
-              if (checker.equals(ACCESS_STRING)) {
+              if (checker.equals(AzureusCoreSingleInstanceClient.ACCESS_STRING)) {
                 if (argsList.get(0).equals("args")) {
                   argsList.remove(0);                  
                   String newargs[] = new String[argsList.size()];
