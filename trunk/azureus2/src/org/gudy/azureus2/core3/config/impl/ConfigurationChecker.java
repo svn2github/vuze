@@ -52,7 +52,8 @@ ConfigurationChecker
   private static boolean system_properties_set	= false;
   
   private static boolean checked 				= false;
-   
+  private static boolean new_install			= false;
+  
   private static AEMonitor	class_mon	= new AEMonitor( "ConfigChecker");
   
   
@@ -176,6 +177,8 @@ ConfigurationChecker
 	    	// if the user hadn't explicitly set a value then we want to stick with true
 	    
 	    if ( last_version.length() == 0 ){  //this is a virgin installation, i.e. first time running, called only once ever
+	    	
+	    	new_install	= true;
 	    	
 	    		// "last version" introduced at same time as the default save dir problem
 	    		// which was the release after 2.2.0.0
@@ -448,7 +451,11 @@ ConfigurationChecker
   	}
   }
   
-  
+	public static final boolean
+	isNewInstall()
+	{
+		return( new_install );
+	}
   
   public static void main(String args[]) {
     Integer obj = new Integer(1);

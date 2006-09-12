@@ -116,6 +116,12 @@ COConfigurationManager
 		ConfigurationManager.getInstance(data);
 	}
 
+	public static final boolean
+	isNewInstall()
+	{
+		return( ConfigurationManager.getInstance().isNewInstall());
+	}
+	
 	public static String
 	getStringParameter(
 		String		_name )
