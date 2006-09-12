@@ -257,7 +257,7 @@ ConfigurationManager
 		dirty_dispatcher.dispatch();
 	}
 	
-	public static final boolean
+	public boolean
 	isNewInstall()
 	{
 		return( ConfigurationChecker.isNewInstall());
