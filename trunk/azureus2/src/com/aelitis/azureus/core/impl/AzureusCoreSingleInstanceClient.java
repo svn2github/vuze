@@ -40,6 +40,9 @@ AzureusCoreSingleInstanceClient
 {
 	public static final String ACCESS_STRING = "Azureus Start Server Access";
 	
+	private static final int CONNECT_TIMEOUT	= 500;
+	private static final int READ_TIMEOUT		= 5000;
+	
 	public boolean
 	sendArgs(
 		String[]	args,
@@ -51,14 +54,14 @@ AzureusCoreSingleInstanceClient
 		
 		while( true ){
 			
-			long	now = System.currentTimeMillis();
+			long	connect_start = System.currentTimeMillis();
 			
-			if ( now < start ){
+			if ( connect_start < start ){
 				
-				start  = now;
+				start  = connect_start;
 			}
 			
-			if ( now - start > max_millis_to_wait ){
+			if ( connect_start - start > max_millis_to_wait ){
 				
 				return( false );
 			}
@@ -68,9 +71,9 @@ AzureusCoreSingleInstanceClient
 			try{
 				sock = new Socket();
 				
-				sock.connect( new InetSocketAddress( "127.0.0.1", 6880 ), 500 );
+				sock.connect( new InetSocketAddress( "127.0.0.1", 6880 ), CONNECT_TIMEOUT );
 				
-				sock.setSoTimeout( 5000 );
+				sock.setSoTimeout( READ_TIMEOUT );
 				
 		   		PrintWriter pw = new PrintWriter(new OutputStreamWriter(sock.getOutputStream(),"UTF-8"));
 		   	 
@@ -93,14 +96,30 @@ AzureusCoreSingleInstanceClient
 	    		
 			}catch( Throwable e ){
 				
+				long connect_end = System.currentTimeMillis();
+				
+				long time_taken = connect_end - connect_start;
+				
+				if ( time_taken < CONNECT_TIMEOUT ){
+				
+					try{
+						Thread.sleep( CONNECT_TIMEOUT - time_taken );
+						
+					}catch( Throwable f ){
+					}
+				}
 			}finally{
 				
 				try{
-					sock.close();
-					
+					if ( sock != null ){
+						
+						sock.close();
+					}
 				}catch( Throwable e ){
 				}
 			}
+			
+	
 		}
 	}
 	
