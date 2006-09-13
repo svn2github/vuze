@@ -597,6 +597,21 @@ DownloadManagerImpl
 					res_l.add( dl );
 				}
 			}
+			
+			if ( res_l.size() < downloads.size()){
+				
+					// now add in any external downloads 
+				
+				for (int i=0;i<downloads.size();i++){
+					
+					Download	download = (Download)downloads.get(i);
+			
+					if ( !res_l.contains( download )){
+						
+						res_l.add( download );
+					}
+				}
+			}
 		}finally{
 			
 			listeners_mon.exit();
@@ -801,5 +816,82 @@ DownloadManagerImpl
 		}finally{
 			listeners_mon.exit();
 		}	
+	}
+	
+	public void
+	addExternalDownload(
+		Download	download )
+	{
+		List			listeners_ref 	= null;
+		
+		try{
+			listeners_mon.enter();
+			
+			if ( downloads.contains( download )){
+	
+				return;
+			}
+	
+			downloads.add( download );
+								
+			listeners_ref = listeners;
+			
+		}finally{
+			
+			listeners_mon.exit();
+		}
+					
+		for (int i=0;i<listeners_ref.size();i++){
+				
+			try{
+				((DownloadManagerListener)listeners_ref.get(i)).downloadAdded( download );
+				
+			}catch( Throwable e ){
+					
+				Debug.printStackTrace( e );
+			}
+		}
+	}
+	
+	public void
+	removeExternalDownload(
+		Download	download )
+	{
+		List			listeners_ref 	= null;
+		
+		try{
+			listeners_mon.enter();
+			
+			if ( !downloads.contains( download )){
+	
+				return;
+			}
+	
+			downloads.remove( download );
+								
+			listeners_ref = listeners;
+			
+		}finally{
+			
+			listeners_mon.exit();
+		}
+					
+		for (int i=0;i<listeners_ref.size();i++){
+				
+			try{
+				((DownloadManagerListener)listeners_ref.get(i)).downloadRemoved( download );
+				
+			}catch( Throwable e ){
+					
+				Debug.printStackTrace( e );
+			}
+		}
+	}
+	
+	public boolean
+	isExteralDownload(
+		Download	download )
+	{
+		return( !( download instanceof DownloadImpl ));
 	}
 }
