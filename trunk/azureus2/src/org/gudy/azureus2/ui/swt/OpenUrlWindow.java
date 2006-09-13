@@ -38,6 +38,7 @@ import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 /**
@@ -195,7 +196,16 @@ OpenUrlWindow
       	COConfigurationManager.setParameter( CONFIG_REFERRER_DEFAULT, last_referrer );
       	COConfigurationManager.save();
       	
-        new FileDownloadWindow(azureus_core,parent,url.getText(), last_referrer, listener );
+      	String	url_str = url.getText();
+      	
+      	url_str = UrlUtils.parseHTMLforURL( url_str );
+      	
+      	if ( url_str == null ){
+      		
+      		url_str = url.getText();
+      	}
+      	
+        new FileDownloadWindow(azureus_core,parent,url_str, last_referrer, listener );
         shell.dispose();
       }
     }); 

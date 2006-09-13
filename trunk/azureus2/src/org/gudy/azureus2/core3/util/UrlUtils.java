@@ -107,6 +107,11 @@ public class UrlUtils
 			return "magnet:?xt=urn:btih:" + Base32.encode(infohash);
 		}
 
+		// accept raw hash of 32 base-32 chars
+		if (accept_magnets && text.matches("^[a-zA-Z2-7]{32}$")) {
+			return "magnet:?xt=urn:btih:" + text;
+		}
+		
 		return null;
 	}
 
