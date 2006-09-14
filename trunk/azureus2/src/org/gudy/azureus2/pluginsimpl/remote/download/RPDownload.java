@@ -448,6 +448,18 @@ RPDownload
 		return( false );
 	}
 	
+	public void
+	pause()
+	{
+		notSupported();
+	}
+	
+	public void
+	resume()
+	{
+		notSupported();
+	}
+	
 	public int
 	getPriority()
 	{

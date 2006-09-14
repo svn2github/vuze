@@ -398,6 +398,18 @@ DownloadImpl
 		return( download_manager.isPaused());
 	}
 	
+	public void
+	pause()
+	{
+		download_manager.pause();
+	}
+	
+	public void
+	resume()
+	{
+		download_manager.resume();
+	}
+	
 	public int
 	getPosition()
 	{

@@ -301,6 +301,22 @@ Download
 	public boolean
 	isPaused();
 	
+	/**
+	 * Pause the download
+	 * @since 2501
+	 */
+	
+	public void
+	pause();
+	
+	/**
+	 * Resume the download if paused
+	 * @since 2501
+	 */
+	
+	public void
+	resume();
+	
 	/** Returns the name of the torrent.  Similar to Torrent.getName() and is usefull
    * if getTorrent() returns null and you still need the name.
    * @return name of the torrent
