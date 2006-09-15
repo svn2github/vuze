@@ -41,7 +41,8 @@ TRTrackerServerTorrentPeerListener
 	eventOccurred(
 		TRTrackerServerTorrent	torrent,
 		TRTrackerServerPeer		peer,
-		int						event )
+		int						event,
+		String					url_parameters )
 	
 		throws TRTrackerServerException;
 }

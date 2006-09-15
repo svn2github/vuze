@@ -52,6 +52,8 @@ TRTrackerServerPeerImpl
 	private long		last_contact_time;
 	private boolean		download_completed;
 	
+	private Object		user_data;
+	
 	protected
 	TRTrackerServerPeerImpl(
 		HashWrapper	_peer_id,
@@ -334,6 +336,65 @@ TRTrackerServerPeerImpl
 	isSeed()
 	{
 		return( amount_left == 0 );
+	}
+	
+	public void
+	setUserData(
+		Object		key,
+		Object		data )
+	{
+		if ( user_data == null ){
+			
+			user_data = new Object[]{ key, data };
+			
+		}else if ( user_data instanceof Object[]){
+			
+			Object[]	x = (Object[])user_data;
+			
+			if ( x[0] == key ){
+				
+				x[1] = data;
+				
+			}else{
+				
+				HashMap	map = new HashMap();
+				
+				user_data = map;
+				
+				map.put( x[0], x[1] );
+				
+				map.put( key, data );
+			}
+		}else{
+			
+			((Map)user_data).put( key, data );
+		}
+	}
+	
+	public Object
+	getUserData(
+		Object		key )
+	{
+		if ( user_data == null ){
+			
+			return( null );
+			
+		}else if( user_data instanceof Object[]){
+			
+			Object[]	x = (Object[])user_data;
+			
+			if ( x[0] == key ){
+				
+				return( x[1] );
+				
+			}else{
+				
+				return( null );
+			}
+		}else{
+			
+			return(((Map)user_data).get(key));
+		}
 	}
 	
 	protected String

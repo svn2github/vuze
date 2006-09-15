@@ -459,5 +459,19 @@ TRTrackerServerProcessor
 		{
 			return( peer_id );
 		}
+		
+		public void
+		setUserData(
+			Object		key,
+			Object		data )
+		{
+		}
+		
+		public Object
+		getUserData(
+			Object		key )
+		{
+			return( null );
+		}
 	}
 }

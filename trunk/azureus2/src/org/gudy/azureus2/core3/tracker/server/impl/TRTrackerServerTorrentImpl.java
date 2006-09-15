@@ -249,7 +249,7 @@ TRTrackerServerTorrentImpl
 					
 					already_completed	= old_peer.getDownloadCompleted();
 					
-					removePeer( old_peer,  TRTrackerServerTorrentPeerListener.ET_REPLACED );
+					removePeer( old_peer,  TRTrackerServerTorrentPeerListener.ET_REPLACED, null );
 					
 					lightweight_seed_map.remove( old_peer.getPeerId());
 					
@@ -368,7 +368,7 @@ TRTrackerServerTorrentImpl
 				
 				if ( event_type == TRTrackerServerTorrentPeerListener.ET_STOPPED ){
 					
-					removePeer( peer, event_type );
+					removePeer( peer, event_type, url_parameters );
 					
 					peer_already_removed	= true;
 					
@@ -400,7 +400,7 @@ TRTrackerServerTorrentImpl
 						
 						if ( old_peer != null ){
 						
-							removePeer( old_peer, TRTrackerServerTorrentPeerListener.ET_REPLACED );
+							removePeer( old_peer, TRTrackerServerTorrentPeerListener.ET_REPLACED, null );
 						}
 	
 							// now swap the keys
@@ -427,7 +427,7 @@ TRTrackerServerTorrentImpl
 				if ( !peer_already_removed ){
 					
 					try{
-						peerEvent( peer, event_type );
+						peerEvent( peer, event_type, url_parameters );
 						
 					}catch( TRTrackerServerException	e ){
 						
@@ -516,7 +516,7 @@ TRTrackerServerTorrentImpl
 					
 					if ( !peer_already_removed ){
 						
-						removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TOO_MANY_PEERS );
+						removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TOO_MANY_PEERS, null );
 					}
 					
 						// this is picked up by AZ client removal rules and causes the torrent to
@@ -562,7 +562,7 @@ TRTrackerServerTorrentImpl
 															this_peer.getNATStatus()));
 										}
 										
-										removePeer( this_peer, i, TRTrackerServerTorrentPeerListener.ET_TOO_MANY_PEERS );
+										removePeer( this_peer, i, TRTrackerServerTorrentPeerListener.ET_TOO_MANY_PEERS, null );
 			
 										if ( --to_remove == 0 ){
 											
@@ -590,7 +590,7 @@ TRTrackerServerTorrentImpl
 			
 				if ( peer != null && !peer_already_removed ){
 					
-					removePeer( peer, TRTrackerServerTorrentPeerListener.ET_FAILED );
+					removePeer( peer, TRTrackerServerTorrentPeerListener.ET_FAILED, url_parameters );
 				}
 				
 				throw( deferred_failure );
@@ -702,16 +702,18 @@ TRTrackerServerTorrentImpl
 	protected void
 	removePeer(
 		TRTrackerServerPeerImpl	peer,
-		int						reason )
+		int						reason,
+		String					url_parameters )
 	{
-		removePeer( peer, -1, reason );
+		removePeer( peer, -1, reason, url_parameters );
 	}
 		
 	protected void
 	removePeer(
 		TRTrackerServerPeerImpl	peer,
 		int						peer_list_index,
-		int						reason )	// -1 if not known
+		int						reason,
+		String					url_parameters )	// -1 if not known
 	{
 		try{
 			this_mon.enter();
@@ -742,7 +744,7 @@ TRTrackerServerTorrentImpl
 				}else{
 					
 					try{
-						peerEvent( peer, reason );
+						peerEvent( peer, reason, url_parameters );
 						
 					}catch( TRTrackerServerException e ){
 						// ignore during peer removal
@@ -934,7 +936,7 @@ TRTrackerServerTorrentImpl
 										
 								// System.out.println( "removing timed out client '" + peer.getString());
 							
-							removePeer( peer, i, TRTrackerServerTorrentPeerListener.ET_TIMEOUT );									
+							removePeer( peer, i, TRTrackerServerTorrentPeerListener.ET_TIMEOUT, null );									
 							
 						}else if ( peer.getTCPPort() == 0 ){
 							
@@ -1047,7 +1049,7 @@ TRTrackerServerTorrentImpl
 										
 									}else if ( now > peer.getTimeout()){
 										
-										removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TIMEOUT );
+										removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TIMEOUT, null );
 										
 										peer_removed	= true;
 										
@@ -1146,7 +1148,7 @@ TRTrackerServerTorrentImpl
 							
 							if ( now > peer.getTimeout()){
 								
-								removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TIMEOUT );
+								removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TIMEOUT, null );
 								
 							}else if ( peer.getTCPPort() == 0 ){
 								
@@ -1469,7 +1471,7 @@ TRTrackerServerTorrentImpl
 					
 					if ( now > peer.getTimeout()){
 						
-						removePeer( peer, i, TRTrackerServerTorrentPeerListener.ET_TIMEOUT );
+						removePeer( peer, i, TRTrackerServerTorrentPeerListener.ET_TIMEOUT, null );
 						
 					}else{
 						
@@ -1725,7 +1727,8 @@ TRTrackerServerTorrentImpl
 	protected void
 	peerEvent(
 		TRTrackerServerPeer		peer,
-		int						event )
+		int						event,
+		String					url_parameters )
 	
 		throws TRTrackerServerException
 	{
@@ -1734,7 +1737,7 @@ TRTrackerServerTorrentImpl
 			for (int i=0;i<peer_listeners.size();i++){
 				
 				try{
-					((TRTrackerServerTorrentPeerListener)peer_listeners.get(i)).eventOccurred( this, peer, event );
+					((TRTrackerServerTorrentPeerListener)peer_listeners.get(i)).eventOccurred( this, peer, event, url_parameters );
 					
 				}catch( TRTrackerServerException e ){
 					
