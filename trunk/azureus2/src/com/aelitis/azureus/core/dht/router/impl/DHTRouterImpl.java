@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -55,7 +54,7 @@ public class
 DHTRouterImpl
 	implements DHTRouter
 {
-	private static final int	SMALLEST_SUBTREE_MAX_EXCESS	= 1024;
+	private static final int	SMALLEST_SUBTREE_MAX_EXCESS	= 10*1024;
 	
 	private int		K;
 	private int		B;
