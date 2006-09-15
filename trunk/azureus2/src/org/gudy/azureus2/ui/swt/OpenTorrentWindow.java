@@ -1766,8 +1766,13 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					try {
 						TorrentInfo existing = (TorrentInfo) torrentList.get(i);
 						if (existing.torrent.getHashWrapper().equals(hash)) {
-							sExistingName = existing.sOriginatingLocation;
-							break;
+							//sExistingName = existing.sOriginatingLocation;
+							
+							// Exit without warning when it already exists in list
+							if (bDeleteFileOnCancel)
+								torrentFile.delete();
+
+							return null;
 						}
 					} catch (Exception e) {
 					}
