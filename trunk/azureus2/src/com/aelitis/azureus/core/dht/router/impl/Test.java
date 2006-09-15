@@ -43,13 +43,30 @@ Test
 	main(
 		String[]	args )
 	{
-		simpleTest();
+		randomTest();
 	}
 	
 	protected static void
 	simpleTest()
 	{
 		DHTRouter	router = DHTRouterFactory.create( 1, 1,1,  new byte[]{ 0 }, null, com.aelitis.azureus.core.dht.impl.Test.getLogger());
+		
+		router.setAdapter( 
+			new DHTRouterAdapter()
+			{
+				public void requestAdd(DHTRouterContact contact) {
+					// TODO Auto-generated method stub
+					
+				}
+				public void requestLookup(byte[] id, String description) {
+					// TODO Auto-generated method stub
+					
+				}
+				public void requestPing(DHTRouterContact contact) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
 		
 		byte[][]	node_ids ={ 
 				{ toByte( "11111111" ) },		
@@ -74,30 +91,31 @@ Test
 	{
 		DHTRouter	router = DHTRouterFactory.create( 20, 5, 5, getSHA1(), null, com.aelitis.azureus.core.dht.impl.Test.getLogger());
 		
-		for (int i=0;i<100000;i++){
+		router.setAdapter( 
+				new DHTRouterAdapter()
+				{
+					public void requestAdd(DHTRouterContact contact) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void requestLookup(byte[] id, String description) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void requestPing(DHTRouterContact contact) {
+						// TODO Auto-generated method stub
+						
+					}
+				});
+		
+		for (int i=0;i<1000000;i++){
 			
 			byte[]	id = getSHA1();
 			
 			DHTRouterContact cont = router.contactKnown( id, null);
-			
-			DHTRouterContact res = router.findContact( id );
-			
-			if ( cont != res ){
-				
-				Debug.out( "whoops" );
-			}
 		}
 		
-		byte[]	search = getSHA1();
-		
-		List	l = router.findClosestContacts( search, false );
-		
-		System.out.println( "search: " + ByteFormatter.nicePrint( search ));
-		
-		for (int i=0;i<l.size();i++){
-			
-			System.out.println( "    -> " + ByteFormatter.nicePrint(((DHTRouterContact)l.get(i)).getID()));
-		}
+		router.print();
 	}
 	
 	protected static long next_sha1_seed = 0;

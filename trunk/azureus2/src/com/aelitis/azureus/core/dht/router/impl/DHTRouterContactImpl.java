@@ -59,7 +59,10 @@ DHTRouterContactImpl
 		attachment		= _attachment;
 		has_been_alive	= _has_been_alive;
 		
-		attachment.setRouterContact( this );
+		if ( attachment != null ){
+			
+			attachment.setRouterContact( this );
+		}
 		
 		is_bucket_entry = false;
 	}
