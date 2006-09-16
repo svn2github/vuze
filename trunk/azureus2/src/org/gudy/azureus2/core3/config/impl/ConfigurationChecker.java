@@ -296,6 +296,29 @@ ConfigurationChecker
 	    	}
 	    }
 	    
+	    int	tcp_port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+	    
+	    	// reset invalid ports - single-instance socket port and (small) magnet uri listener port range
+	    
+	    if ( tcp_port == 6880 || ( tcp_port >= 45100 && tcp_port <= 45103 )){
+	    
+	    	int	new_tcp_port	=  RandomUtils.generateRandomNetworkListenPort();
+	    	
+	    	COConfigurationManager.setParameter( "TCP.Listen.Port", new_tcp_port );
+	    	
+	    	if ( COConfigurationManager.getIntParameter( "UDP.Listen.Port" ) == tcp_port ){
+	    		
+	    		COConfigurationManager.setParameter( "UDP.Listen.Port", new_tcp_port );
+	    	}
+	    	
+	    	if ( COConfigurationManager.getIntParameter( "UDP.NonData.Listen.Port" ) == tcp_port ){
+	    		
+	    		COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", new_tcp_port );
+	    	}
+	    	
+	    	changed = true;
+	    }
+	    
 	    // migrate to split tracker client/server key config
 	    
 	    if ( !COConfigurationManager.doesParameterDefaultExist( "Tracker Key Enable Client")){

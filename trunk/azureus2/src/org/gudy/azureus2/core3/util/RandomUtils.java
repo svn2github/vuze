@@ -90,6 +90,13 @@ public class RandomUtils {
 			int min 	= LISTEN_PORT_MIN;
 			int port 	= min + RANDOM.nextInt( LISTEN_PORT_MAX + 1 - min );
 			
+				// skip magnet ports
+			
+			if ( port >= 45100 && port <= 45110 ){
+				
+				continue;
+			}
+			
 			if ( port != existing_tcp && port != existing_udp && port != existing_udp2){
 				
 				return port;
