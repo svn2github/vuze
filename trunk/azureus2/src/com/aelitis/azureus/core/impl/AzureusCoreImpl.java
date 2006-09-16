@@ -152,6 +152,10 @@ AzureusCoreImpl
     
 		AEThread.setOurThread();
 		
+			// set up a backwards pointer from config -> app dir so we can derive one from the other. It'll get saved on closedown, no need to do so now
+				
+		COConfigurationManager.setParameter( "azureus.application.directory", SystemProperties.getApplicationPath());
+		
 		crypto_manager = CryptoManagerFactory.getSingleton();
 		
 		PlatformManagerFactory.getPlatformManager().addListener(
