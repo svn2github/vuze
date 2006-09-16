@@ -601,6 +601,13 @@ AzureusCoreImpl
 				
 				Logger.log(new LogEvent(LOGID, "Core not started"));
 				
+					// might have been marked dirty due to core being created to allow functions to be used but never started...
+				
+				if ( AEDiagnostics.isDirty()){
+					
+					AEDiagnostics.markClean();
+				}
+				
 				stopping_sem.releaseForever();
 				
 				return;

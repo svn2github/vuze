@@ -366,6 +366,12 @@ AEDiagnostics
 		}
 	}
 
+	public static boolean
+	isDirty()
+	{
+		return( COConfigurationManager.getBooleanParameter( CONFIG_KEY ));
+	}
+	
 	public static void
 	markClean()
 	{
