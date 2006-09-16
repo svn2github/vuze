@@ -1567,7 +1567,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		for (int i = 0; i < lines.length; i++) {
 			String line = lines[i].trim();
 			if (line.startsWith("\"") && line.endsWith("\"")) {
-				line = line.substring(1, line.length() - 2);
+				if ( line.length() < 3 ){
+					line = "";
+				}else{
+					line = line.substring(1, line.length() - 2);
+				}
 			}
 
 			boolean ok;
