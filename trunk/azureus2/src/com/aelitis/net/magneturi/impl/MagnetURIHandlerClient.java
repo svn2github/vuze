@@ -68,7 +68,7 @@ MagnetURIHandlerClient
 					
 					PrintWriter	pw = new PrintWriter( sock.getOutputStream());
 					
-					pw.println( "GET /download/" + magnet_uri + NL + NL );
+					pw.println( "GET /select/" + magnet_uri + NL + NL );
 					
 					pw.flush();
 					

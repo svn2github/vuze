@@ -382,11 +382,20 @@ MagnetURIHandlerImpl
 					
 				try{
 				
-					URL	magnet = new URL( "magnet:?xt=" + urn );
-				
+					URL	url;
+					
+					if ( urn.startsWith( "http:") || urn.startsWith( "https:" )){
+						
+						url = new URL( urn );
+						
+					}else{
+						
+						url = new URL( "magnet:?xt=" + urn );
+					}
+					
 					for (int i=0;i<listeners.size();i++){
 						
-						if (((MagnetURIHandlerListener)listeners.get(i)).download( magnet )){
+						if (((MagnetURIHandlerListener)listeners.get(i)).download( url )){
 							
 							ok = true;
 							
