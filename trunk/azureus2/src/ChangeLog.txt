@@ -3,6 +3,14 @@ AZUREUS CHANGELOG
 
 2006.0x.xx | Azureus 2.5.0.1
 
+FEATURE: UI   | Option to show complete downloads with incomplete "do not download" files in the download area [TuxPaper]
+
+CHANGE: Core  | Improve the "presence" handling for torrents created by ourselves [Parg]
+CHANGE: UI    | Open torrent windows now always has OK button enabled with warning message if pressed when in invalid state [TuxPaper]
+
+BUGFIX: Core  | If clipboard has just a " or "" in it the open-torrents dialog won't open [Parg]
+BUGFIX: Core  | Setting of UDP port not working [Parg]
+BUGFIX: UI    | Fix painting issues in pieces+files view [TuxPaper]
 
 
 2006.08.21 | Azureus 2.5.0.0
