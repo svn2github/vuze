@@ -182,7 +182,10 @@ BEncoder
        		write(baos,Constants.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
             baos.write(':');
             write(baos,bb);
-        }   
+        }else{
+        	
+        	throw( new IOException( "Unsupported entry type: " + object.getClass()));
+        }
     }
     
     protected void
