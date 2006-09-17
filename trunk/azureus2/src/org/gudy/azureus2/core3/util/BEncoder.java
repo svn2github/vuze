@@ -182,10 +182,17 @@ BEncoder
        		write(baos,Constants.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
             baos.write(':');
             write(baos,bb);
-        }else{
+            
+       }else if ( object == null ){
+    	   
+    	   	// ideally we'd bork here but I don't want to run the risk of breaking existing stuff so just log
+    	   
+    	   Debug.out( "Attempt to encode a null value" );
+    	   
+       }else{
         	
-        	throw( new IOException( "Unsupported entry type: " + object.getClass()));
-        }
+    	   Debug.out( "Attempt to encode an unsupported entry type: " + object.getClass());
+       }
     }
     
     protected void
