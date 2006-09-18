@@ -3100,7 +3100,6 @@ public class TableView
 				for (int i = 0; i < selectedRows.length; i++) {
 					int index = selectedRows[i].getIndex();
 					int iNewPos = (selectedRows[i] == focusedRow) ? 0 : pos++;
-					System.out.println("index: " + index + ";" + iNewPos);
 					newSelectedRowIndices[iNewPos] = index;
 					if (Arrays.binarySearch(selectedRowIndices, index) >= 0)
 						numSame++;
