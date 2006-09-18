@@ -1,0 +1,101 @@
+$ 
+$    Vítejte v Azureovi 2.3.0.6
+$ 
+
++1. Co je nového v Azureovi 2.3.0.6
+
+ Toto je další velké vydání s opravou mnoha chyb, které také obsahuje rùzná vylepšení jako napøíklad:
+ 
+    Lepší blokování uživatelù, kteøí posílají špatná data
+    Alternativní ovládání odesílání dat pøi distribuci
+    Pøejmenovávání a pøesmìrovávání stahovaných souborù
+    Lepší hlášení stavù internetové ochrany/firewallu
+    NAT traversal pro magnet downloady
+    Podpora Javy 5.0 pro operaèní systém OSX
+    Opravy chyb
+    
+    Poznámka: Nový Windows launcher exe možná bude požadovat pro soubor "Azureus.exe" povolení pøístupu na Internet ve Vašem firewallu.
+    
+    Kompletní seznam zmìn najdete na: 'http://azureus.sourceforge.net/changelog.php?version=2.3.0.6'
+
+    Pro porovnání s minulou verzí se podívejte i na: 'http://azureus.sourceforge.net/changelog.php?version=2.3.0.4'.
+    
++2. Co je nového v Azureovi 2.3.0.2
+
+ Tato verze primárnì opravuje chyby a zlepšuje výkon programu. Nejzajímavìjší novinky jsou:
+ 
+    Znovuobnovená kompatibilita JDK 1.4 (Java Development Kit) s operaèním systémem Windows
+    Zlepšená kontrola bootstrapu distribuované databáze a zmìny IP adresy
+    Snížení využívání pamìti
+    Redukováno použití vlákna pro neèinné torrenty
+    Vylepšeno propojení managementu pro dlouhodobé pøipojení a výmìnu mezi klienty
+    Konzole uživatelského rozhraní nyní podporuje varování a kontrolování novì vydaných aktualizací
+ 
+    Kompletní seznam zmìn najdete na: 'http://azureus.sourceforge.net/changelog.php?version=2.3.0.2'
+    
++3. Co je nového v Azureovi 2.3.0.0
+
+!3.1 Distrubuovaná databáze
+ Azureus nyní má distribuovanou, decentralizovanou databázi, která se dá použít pro tracking decentralizovaných torrentù. Toto umožòuje fungování torrentù bez trackeru a torrentù udržovaných pøímo swarmy, kde se tracker stal nedostupným, nebo kde byl torrent z trackeru odstranìn.
+ Je zde použit protokol UDP (User Datagram Protocol), takže pokud máte internetovou ochranu (firewall) nebo router, pak budete potøebovat otevøít a nasmìrovat (naforwardovat) UDP port stejnì tak, jak jste to udìlali pro TCP (Transmission Control Protocol), abyste mohli stahovat data.
+ 
+*3.1.1 Magnetické odkazy
+ Pro torrenty, které jsou trackovány decentralizovanì mùže Azureus exportovat "magnetický odkaz" (Magnet Link). Ten pochází z formy "magnet:?xt=urn:btih:..." a mùže být použit pro stažení torrentu z distribuované databáze pøes položku v menu 'Otevøít->URL'
+ 
+!3.2 Rozšíøený protokol
+ Azureus nyní podporuje rozšíøený inter-klientský protokol zpráv, který je zamìøený na to, aby mohly pluginy používat pøipojení vytvoøené Azureem a tak pøidávaly na funkènosti programu. Vývojáøi ostatních klientù si mohou prohlédnout specifikace pro tento protokol zde: 'http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol'. Vývojáøi pluginù si mohou ovìøit javadocs pluginu, aby zjistili, jak jej používat.
+  Z tohoto rozšíøení mají prospìch napøíklad JPC a chatovací IRC doplòek.
+
+!3.3 JPC
+ Joltid Peer Cache (JPC) je nyní integrován do Azurea. Uživatelé, jejichž poskytovatel internetových služeb toto podporuje, by nyní mìli být schopni rychlejších stahování a zároveò by tím mìli snížit poskytovateli náklady na provoz internetového pøipojení. Doplnìk (Plugin) JPC je bezpeèný v tom, že Váš internetový poskytvatel nebude vìdìt, co stahujete a tak Vás takto nemùže špehovat. JPC doplnìk se dá vypnout v 'Nástroje > Nastavení > Doplòky (Pluginy) > JPC'.
+  
+!3.4 Nové doplòky
+ Distribuovaná databáze a rozšíøený protokol nám umožnil vyvinout nìkteré nové doplòky. Azureus Vám je nebude instalovat automaticky, ale doporuèujeme všem uživatelùm, kteøí by mohli mít zájem, aby si tyto doplòky nainstalovali v 'Doplòky (Pluginy) > Instalaèní prùvodce'.
+ 
+*3.4.1 Chat
+ Tento doplnìk vytvoøí diskuzní kanál pro každý torrent, který stahujete. Každý kanál je nezávislý a Vy máte naprostou volnost v tom, o èem chcete diskutovat. Tento doplnìk využívá rozšíøeného protokolu. Vývojáøi ostatních klientù, kteøí chtìjí fuknènì zahrnout chatovací doplnìk i do jejich klientù jsou vítáni a mohou se podívat na velmi jednoduchý doplòkem používaný protokol zde: 'http://azureus.aelitis.com/wiki/index.php/ChatPlugin'.
+ Mùžete také vytvoøit nebo se pøipojit na libovolný kanál vepsáním jeho jména v nastavení pluginu. Toto bude mít efekt vytvoøení "virtuálního" torrentu bez distributorù (seeds), což umožní pøipojit se k ostatním uživatelùm a diskutovat. "Virtuální" torrenty využívají distribuovanou databázi stejnì tak jako jejich tracker, takže i když mùžete tento doplnìk používat bez distribuované databáze, virtuální kanály bez ní schopni používat nebudete.
+ 
+*3.4.2 Hodnocení a komentáøe
+ Tento doplnìk Vám umožní zhlédnout hodnocení torrentu a komentáøe ostatních uživatelù. Stejnì tak mùžete torrent hodnotit a okomentovat Vy sám (kliknìte pravým myšítkem na vybraný torrent v seznamu "Moje Torrenty" a pak vyberte "Ratings & Comments"). Tento doplnìk používá distribuovanou databázi, takže ji budete muset mít fuknèní a aktivovanou, aby hodnocení s komentáøi plnì fungovalo.
+ 
+
++4. Aktualizaèní rady
+
+!4.1 Java 5.0
+ Azureus je napsát v programovacím jazyku Java a požaduje Java Runtime. Doporuèujeme verzi Java 5.0 (též známá jako Java 1.5), protože má vyšší výkon a spolehlivost než pøedchozí verze - prosím aktualizujte si Javu pokud to potøebujete.
+ Torrenty s aktualizovanou Javou najdete zde: 'http://azureus.sourceforge.net/download.php'
+ Stáhnìte si tu pro Váš operaèní systém, zavøete Azurea, spuste stažený soubor a poté Azureus restartujte.
+ Uživatelé Windows XP budou muset jít do 'Nástroje > Nastavení > Rozhraní > Zobrazení' a tam zkontrolovat, zda mají zaškrtnutou položku "Povolit XP styl".
+
+!4.2 NOD32
+ NOD32 (http://www.nod32.com/) je antivirový program, který je znám svými problémy s Azureem (zpùsobuje 100% využití procesoru).
+ Podívejte se na: 'http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect'
+ 
+
++5. Bìžné problémy
+
+!5.1 NAT "chyba"
+ NAT znamená "Network Address Translation". "NAT/Firewall Test" v Azureovi Vám poví, zda jste nebo nejste pøímo pøipojeníschopný pro klienty na internetu. Budete získávat lepší rychlosti a pøipojíte se k více klientùm, pokud JSTE pøipojeníschopný.
+ Prosím nekontaktujte nás se žádostmi o vyøešení NAT problémù, protože na internetu jsou o NAT spousty zdrojù a informací. Nejprve si prosím proètìte:
+ - 'http://azureus.aelitis.com/wiki/index.php/PortForwarding'
+ - 'http://www.portforward.com'
+ 
+
+!5.2 Padání Azurea
+ Pokud Azureus nechtìnì padá (ukonèuje se), nejpravdìpodobnìjším dùvodem je problém s jednou ze síových souèástí (karta, ovladaèe, operaèní systém). Vysoce Vám doporuèujeme aktualizovat všechny síové souèásti, které mohou mít s Azureem souvislost. Pokud toto nepomùže, pak je dùvod pravdìpodobnì ten, že Váš systém nedokáže udržet tak velký poèet pøipojení s ostatními klienty.
+ Zkuste snížit maximální poèet pøipojení v Azureovi ('Nástroje > Nastavení > Pøenos > Maximum pøipojení na torrent) a vyzkoušejte nízkou hodnotu jako napøíklad 30 klientù.
+
+!5.3 Podpora
+ Pøedtím než budete kontaktovat náš tým technické podpory, prosím zkuste si ovìøit, zda Váš problém již není vyøešen na nìkterém z následujících odkazù:
+ - Oficiální webová stránka : 'http://azureus.sourceforge.net/'
+ - Oficiální Wiki : 'http://azureus.aelitis.com/wiki/'
+ - Oficiální IRC chatovací kanál : '#azureus-users on irc.freenode.net'
+ - Oficiální SourceForge fóra : 'http://sourceforge.net/forum/?group_id=84122'
+ - POKUD (a pouze POKUD) nemùžete vyøešit Váš problém po vyzkoušení VŠECH tìchto metod, mùžete nám napsat e-mail na: 'azureus@gmail.com'
+
+
++6. Kompletní seznam zmìn
+
+	Kompletní seznam zmìn najdete na: 'http://azureus.sourceforge.net/changelog.php?version=2.3.0.0'
+	
