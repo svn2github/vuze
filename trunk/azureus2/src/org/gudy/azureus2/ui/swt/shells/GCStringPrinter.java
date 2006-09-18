@@ -20,9 +20,12 @@
  */
 package org.gudy.azureus2.ui.swt.shells;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.StringTokenizer;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Point;
@@ -65,10 +68,12 @@ public class GCStringPrinter
 	// and lines overflow printArea.  In that case it may chop off the last 
 	// displayed word plus the 2 last characters of the previous word and append
 	// a ".."
-	// 2) Doesn't properly vertically center multi-line
+	// 2) Doesn't properly handle multi-line text with SWT.BOTTOM
 	private static boolean _printString(GC gc, String string,
 			Rectangle printArea, boolean skipClip, boolean fullLinesOnly, int flags)
 	{
+		ArrayList lines = new ArrayList();
+		
 		if (printArea.isEmpty()) {
 			return false;
 		}
@@ -134,7 +139,8 @@ public class GCStringPrinter
 								outputLine.replace(outputLine.length() - 1,
 										outputLine.length(), "..");
 							}
-							drawLine(gc, outputLine, flags, rectDraw);
+							//drawLine(gc, outputLine, flags, rectDraw);
+							lines.add(outputLine.toString());
 							outputLine.setLength(0);
 
 							if (!wrap) {
@@ -162,7 +168,8 @@ public class GCStringPrinter
 								outputLine.replace(outputLine.length() - 1,
 										outputLine.length(), "..");
 							}
-							drawLine(gc, outputLine, flags, rectDraw);
+							//drawLine(gc, outputLine, flags, rectDraw);
+							lines.add(outputLine.toString());
 							outputLine.setLength(0);
 							if (!wrap) {
 								return false;
@@ -189,7 +196,8 @@ public class GCStringPrinter
 				if (!wrap && stLine.hasMoreElements()) {
 					outputLine.replace(outputLine.length() - 1, outputLine.length(), "..");
 				}
-				drawLine(gc, outputLine, flags, rectDraw);
+				//drawLine(gc, outputLine, flags, rectDraw);
+				lines.add(outputLine.toString());
 				outputLine.setLength(0);
 				if (!wrap) {
 					return stLine.hasMoreElements();
@@ -198,6 +206,32 @@ public class GCStringPrinter
 		} finally {
 			if (!skipClip) {
 				gc.setClipping(oldClipping);
+			}
+			
+			if (lines.size() > 0) {
+				String fullText = null;
+				for (Iterator iter = lines.iterator(); iter.hasNext();) {
+					String text = (String) iter.next();
+					if (fullText == null) {
+						fullText = text;
+					} else {
+						fullText += "\n" + text;
+					}
+				}
+				
+				Point size = gc.textExtent(fullText);
+				
+				if ((flags & (SWT.BOTTOM)) != 0) {
+					rectDraw.y = rectDraw.y + rectDraw.height - size.y;
+				} else if ((flags & SWT.TOP) == 0) {
+					// center vert
+					rectDraw.y = rectDraw.y + (rectDraw.height - size.y) / 2;
+				}
+	
+				for (Iterator iter = lines.iterator(); iter.hasNext();) {
+					String text = (String) iter.next();
+					drawLine(gc, text, flags, rectDraw);
+				}
 			}
 		}
 
@@ -210,27 +244,21 @@ public class GCStringPrinter
 	 * @param flags
 	 * @param printArea
 	 */
-	private static void drawLine(GC gc, StringBuffer outputLine, int flags,
+	private static void drawLine(GC gc, String outputLine, int flags,
 			Rectangle printArea)
 	{
 		String sOutputLine = outputLine.toString();
 		Point drawSize = gc.textExtent(sOutputLine);
 		int x0;
 		if ((flags & SWT.RIGHT) > 0) {
-			x0 = printArea.x + printArea.width - drawSize.x;
+			x0 = printArea.x + printArea.width - drawSize.x + 2;
 		} else if ((flags & SWT.CENTER) > 0) {
 			x0 = printArea.x + (printArea.width - drawSize.x) / 2;
 		} else {
 			x0 = printArea.x;
 		}
 
-		int y0;
-		if ((flags & (SWT.TOP | SWT.BOTTOM)) == 0) {
-			// center vert
-			y0 = printArea.y + (printArea.height - drawSize.y) / 2;
-		} else {
-			y0 = printArea.y;
-		}
+		int y0 = printArea.y;
 
 		gc.drawText(sOutputLine, x0, y0, true);
 		printArea.y += drawSize.y;
@@ -256,91 +284,157 @@ public class GCStringPrinter
 				int y = 0;
 
 				GC gc = new GC(shell);
-
+				
+				Color colorBox = gc.getDevice().getSystemColor(SWT.COLOR_YELLOW);
+				Color colorText = gc.getDevice().getSystemColor(SWT.COLOR_BLACK);
+				
+				gc.setForeground(colorBox);
+				gc.drawRectangle(x, y, 100, 19);
+				gc.setForeground(colorText);
 				printString(
 						gc,
-						"This is a test of the string printer averlongwordthisisyesindeed you rule",
+						"Right Wrap, Skip Clip, Full Only. test of the string printer averlongwordthisisyesindeed",
 						new Rectangle(x, y, 100, 19), true, true, SWT.RIGHT | SWT.WRAP);
 
 				x += 110;
+				gc.setForeground(colorBox);
+				gc.drawRectangle(x, y, 100, 19);
+				gc.setForeground(colorText);
 				printString(
 						gc,
-						"This is a test of the string printer averlongwordthisisyesindeed you rule",
+						"Left Wrap, No Skip Clip, Full Only. test of the string printer averlongwordthisisyesindeed",
 						new Rectangle(x, y, 100, 19), true, false, SWT.LEFT | SWT.WRAP);
 
 				x += 110;
+				gc.setForeground(colorBox);
+				gc.drawRectangle(x, y, 100, 19);
+				gc.setForeground(colorText);
 				printString(
 						gc,
-						"This is a test of the string printer averlongwordthisisyesindeed you rule",
+						"Center Wrap, No Skip Clip, Full Only. test of the string printer averlongwordthisisyesindeed",
 						new Rectangle(x, y, 100, 19), true, false, SWT.CENTER | SWT.WRAP);
 
 				x = 0;
 				y += 50;
+				gc.setForeground(colorBox);
+				gc.drawRectangle(x, y, 100, 50);
+				gc.setForeground(colorText);
 				printString(
 						gc,
-						"FLO is a test of the string printer averlongwordthisisyesindeed you rule",
+						"Right Wrap, Skip Clip, Full Only. is a test of the string printer averlongwordthisisyesindeed",
 						new Rectangle(x, y, 100, 50), true, true, SWT.RIGHT | SWT.WRAP);
 
 				x += 110;
+				gc.setForeground(colorBox);
+				gc.drawRectangle(x, y, 100, 50);
+				gc.setForeground(colorText);
 				printString(
 						gc,
-						"This is a test of the string printer averlongwordthisisyesindeed you rule",
+						"Left Wrap, Skip Skip, Partial Lines. test of the string printer averlongwordthisisyesindeed",
 						new Rectangle(x, y, 100, 50), true, false, SWT.LEFT | SWT.WRAP);
 
 				x += 110;
+				gc.setForeground(colorBox);
+				gc.drawRectangle(x, y, 100, 50);
+				gc.setForeground(colorText);
 				printString(
 						gc,
-						"This is a test of the string printer averlongwordthisisyesindeed you rule",
+						"CENTER Wrap, Skip Clip, Partial Lines. test of the string printer averlongwordthisisyesindeed",
 						new Rectangle(x, y, 100, 50), true, false, SWT.CENTER | SWT.WRAP);
 
 				x = 0;
 				y += 100;
+				gc.setForeground(colorBox);
+				gc.drawRectangle(x, y, 100, 50);
+				gc.setForeground(colorText);
 				printString(
 						gc,
-						"This is a test of the string printer averlongwordthisisyesindeed you rule",
+						"Right, Skip Clip, Full Only. test of the string printer averlongwordthisisyesindeed",
 						new Rectangle(x, y, 100, 50), true, true, SWT.RIGHT);
 
 				x += 110;
+				gc.setForeground(colorBox);
+				gc.drawRectangle(x, y, 100, 50);
+				gc.setForeground(colorText);
 				printString(
 						event.gc,
-						"This is a test of the string printer averlongwordthisisyesindeed you rule",
+						"Left, Skip Clip, Partial Lines. test of the string printer averlongwordthisisyesindeed",
 						new Rectangle(x, y, 100, 50), true, false, SWT.LEFT);
 
 				x += 110;
+				gc.setForeground(colorBox);
+				gc.drawRectangle(x, y, 100, 50);
+				gc.setForeground(colorText);
 				printString(
 						gc,
-						"This is a test of the string printer averlongwordthisisyesindeed you rule",
+						"Center, Skip Clip, Partial Lines. test of the string printer averlongwordthisisyesindeed",
 						new Rectangle(x, y, 100, 50), true, false, SWT.CENTER);
 
 				x = 0;
 				y += 100;
+				gc.setForeground(colorBox);
 				gc.drawRectangle(x, y, 100, 100);
+				gc.setForeground(colorText);
 				x += 1;
 				y += 1;
-				printString(gc, "Hello", new Rectangle(x, y, 98, 98), true, true,
+				printString(gc, "CHello", new Rectangle(x, y, 98, 98), true, true,
 						SWT.CENTER);
 
 				x += 110;
+				gc.setForeground(colorBox);
 				gc.drawRectangle(x, y, 100, 100);
+				gc.setForeground(colorText);
 				x += 1;
 				y += 1;
-				printString(gc, "Hello", new Rectangle(x, y, 98, 98), true, true,
+				printString(gc, "CTHello", new Rectangle(x, y, 98, 98), true, true,
 						SWT.CENTER | SWT.TOP);
 
 				x += 110;
+				gc.setForeground(colorBox);
 				gc.drawRectangle(x, y, 100, 100);
+				gc.setForeground(colorText);
 				x += 1;
 				y += 1;
-				printString(gc, "Hello", new Rectangle(x, y, 98, 98), true, true,
+				printString(gc, "THello", new Rectangle(x, y, 98, 98), true, true,
 						SWT.TOP);
 
 				x += 110;
+				gc.setForeground(colorBox);
 				gc.drawRectangle(x, y, 50, 50);
+				gc.setForeground(colorText);
 				x += 1;
 				y += 1;
-				printString(gc, "Hello There", new Rectangle(x, y, 48, 48), true, true,
+				printString(gc, "NHello There", new Rectangle(x, y, 48, 48), true, true,
 						SWT.NONE);
 
+				x = 0;
+				y += 100;
+				gc.setForeground(colorBox);
+				gc.drawRectangle(x, y, 50, 50);
+				gc.setForeground(colorText);
+				x += 1;
+				y += 1;
+				printString(gc, "WHello There", new Rectangle(x, y, 48, 48), true, false,
+						SWT.WRAP);
+
+				x += 110;
+				gc.setForeground(colorBox);
+				gc.drawRectangle(x, y, 50, 50);
+				gc.setForeground(colorText);
+				x += 1;
+				y += 1;
+				printString(gc, "BHello There", new Rectangle(x, y, 48, 48), true, true,
+						SWT.BOTTOM);
+
+				x += 110;
+				gc.setForeground(colorBox);
+				gc.drawRectangle(x, y, 50, 50);
+				gc.setForeground(colorText);
+				x += 1;
+				y += 1;
+				printString(gc, "BHello There", new Rectangle(x, y, 48, 48), true, false,
+						SWT.BOTTOM);
+				
 				gc.dispose();
 			}
 		});
