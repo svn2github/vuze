@@ -1974,7 +1974,9 @@ public class TableView
 						sortedRows.add(row);
 					}
 
-					row.setTableItem(index);
+					// XXX Don't set table item here, it will mess up selected rows
+					//     handling (which is handled in fillRowGaps called later on)
+					//row.setTableItem(index);
 					row.setIconSize(ptIconSize);
 				} catch (Exception e) {
 					Logger.log(new LogEvent(LOGID, "Error adding a row to table "
@@ -3097,7 +3099,9 @@ public class TableView
 				Arrays.sort(selectedRowIndices);
 				for (int i = 0; i < selectedRows.length; i++) {
 					int index = selectedRows[i].getIndex();
-					newSelectedRowIndices[(selectedRows[i] == focusedRow) ? 0 : pos++] = index;
+					int iNewPos = (selectedRows[i] == focusedRow) ? 0 : pos++;
+					System.out.println("index: " + index + ";" + iNewPos);
+					newSelectedRowIndices[iNewPos] = index;
 					if (Arrays.binarySearch(selectedRowIndices, index) >= 0)
 						numSame++;
 				}
