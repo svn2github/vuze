@@ -112,6 +112,28 @@ public class UrlUtils
 			return "magnet:?xt=urn:btih:" + text;
 		}
 		
+		// javascript:loadOrAlert('WVOPRHRPFSCLAW7UWHCXCH7QNQIU6TWG')
+
+		// accept raw hash of 32 base-32 chars, with garbage around it
+		if (accept_magnets) {
+			Pattern pattern = Pattern.compile("[^a-zA-Z2-7][a-zA-Z2-7]{32}[^a-zA-Z2-7]");
+			Matcher matcher = pattern.matcher(text);
+			if (matcher.find()) {
+				String hash = text.substring(matcher.start() + 1, matcher.start() + 33);
+				return "magnet:?xt=urn:btih:" + hash;
+			}
+
+			pattern = Pattern.compile("[^a-fA-F0-9][a-fA-F0-9]{40}[^a-fA-F0-9]");
+			matcher = pattern.matcher(text);
+			if (matcher.find()) {
+				String hash = text.substring(matcher.start() + 1, matcher.start() + 41);
+				// convert from HEX to raw bytes
+				byte[] infohash = ByteFormatter.decodeString(hash.toUpperCase());
+				// convert to BASE32
+				return "magnet:?xt=urn:btih:" + Base32.encode(infohash);
+			}
+		}
+
 		return null;
 	}
 
