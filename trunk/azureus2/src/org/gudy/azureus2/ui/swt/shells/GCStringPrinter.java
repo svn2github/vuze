@@ -251,7 +251,7 @@ public class GCStringPrinter
 		Point drawSize = gc.textExtent(sOutputLine);
 		int x0;
 		if ((flags & SWT.RIGHT) > 0) {
-			x0 = printArea.x + printArea.width - drawSize.x + 2;
+			x0 = printArea.x + printArea.width - drawSize.x;
 		} else if ((flags & SWT.CENTER) > 0) {
 			x0 = printArea.x + (printArea.width - drawSize.x) / 2;
 		} else {
