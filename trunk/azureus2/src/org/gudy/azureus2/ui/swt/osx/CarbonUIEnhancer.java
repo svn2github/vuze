@@ -52,7 +52,7 @@ public class CarbonUIEnhancer {
 
    public CarbonUIEnhancer() {
       if (fgAboutActionName == null) {
-         fgAboutActionName = MessageText.getString("MainWindow.menu.help.about");
+         fgAboutActionName = MessageText.getString("MainWindow.menu.help.about").replaceAll("&", "");
       }
       if(fgWizardActionName == null) {
           fgWizardActionName = MessageText.getString("MainWindow.menu.file.configure").replaceAll("&", "");
