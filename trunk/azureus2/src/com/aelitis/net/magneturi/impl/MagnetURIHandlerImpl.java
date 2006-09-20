@@ -334,6 +334,12 @@ MagnetURIHandlerImpl
 			
 			return( true );
 			
+		}else if ( get.startsWith( "/azversion" )){
+
+			writeReply( os, "text/plain", Constants.AZUREUS_VERSION );
+			
+			return( true );
+			
 		}else if ( 	get.startsWith( "/magnet10/options.js?" ) ||
 					get.startsWith( "/magnet10/default.js?" )){
 		
