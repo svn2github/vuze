@@ -213,6 +213,10 @@ public class Messages {
   
 
   private static void updateLanguageFromData(Widget widget,String[] params) {
+  	if (widget == null || widget.isDisposed()) {
+  		return;
+  	}
+
       if (widget.getData() != null) {
         String key = null;
         try {
@@ -278,11 +282,18 @@ public class Messages {
   }
 
   public static void setLanguageTooltip(Widget widget, String key) {
-    widget.setData(key);
+  	if (widget == null || widget.isDisposed()) {
+  		return;
+  	}
+
+  	widget.setData(key);
     updateTooltipLanguageFromData(widget);
   }
 
   public static void updateTooltipLanguageFromData(Widget widget) {
+  	if (widget == null || widget.isDisposed()) {
+  		return;
+  	}
 		if (widget.getData() != null) {
 			String sToolTip = MessageText.getString((String) widget.getData());
 			if (widget instanceof CLabel)
