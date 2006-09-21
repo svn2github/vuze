@@ -133,7 +133,11 @@ public class MainMenu {
   public void setMainWindow(MainWindow mainWindow) {
     this.mainWindow = mainWindow;
   }
-  
+
+	public void linkMenuBar(Shell parent) {
+		parent.setMenuBar(menuBar);
+	}
+
   public void createMenu(AzureusCore core, Shell shell) {
     this.display = SWTThread.getInstance().getDisplay();
     attachedShell = shell;
