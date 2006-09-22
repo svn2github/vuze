@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.PausableAverage;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
@@ -45,12 +47,14 @@ import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
-import com.aelitis.azureus.core.peermanager.piecepicker.PiecePiecerPriorityShaper;
+import com.aelitis.azureus.core.peermanager.piecepicker.PieceRTAProvider;
 
 public class 
 DiskManagerChannelImpl 
-	implements DiskManagerChannel, DiskManagerFileInfoListener, DownloadManagerPeerListener, PiecePiecerPriorityShaper
+	implements DiskManagerChannel, DiskManagerFileInfoListener, DownloadManagerPeerListener, PieceRTAProvider
 {
+	private static final int		BUFFER_SECS = 10;
+	
 	private static final boolean	TRACE = false;
 	
 	private static final int COMPACT_DELAY	= 32;
@@ -112,16 +116,14 @@ DiskManagerChannelImpl
 
 	private long	file_offset_in_torrent;
 	private long	piece_size;
-	
-	private static final int	PIECES_TO_BUFFER_MIN	= 10;
-	
-	private Average	byte_rate = Average.getInstance( 1000, 20 );
+		
+	private PausableAverage	byte_rate = PausableAverage.getPausableInstance( 1000, 20 );
 	
 	private long	current_position;
-	private int		pieces_to_buffer	= PIECES_TO_BUFFER_MIN;
 	
 	private PEPeerManager	peer_manager;
-	private int[]	priority_offsets;
+	
+	private long[]	rtas;
 	
 	private int		channel_id;
 	
@@ -146,7 +148,7 @@ DiskManagerChannelImpl
 		
 		TOTorrentFile[]	tfs = torrent.getFiles();
 
-		priority_offsets	= new int[torrent.getNumberOfPieces()];
+		rtas	= new long[torrent.getNumberOfPieces()];
 		
 		core_file.getDownloadManager().addPeerListener(this);
 			
@@ -278,7 +280,7 @@ DiskManagerChannelImpl
 	{
 		peer_manager = manager;
 		
-		manager.getPiecePicker().addPriorityShaper( this );
+		manager.getPiecePicker().addRTAProvider( this );
 	}
 	
 	public void
@@ -287,7 +289,7 @@ DiskManagerChannelImpl
 	{
 		peer_manager = null;
 		
-		manager.getPiecePicker().removePriorityShaper( this );
+		manager.getPiecePicker().removeRTAProvider( this );
 	}
 	
 	public void
@@ -315,22 +317,48 @@ DiskManagerChannelImpl
 	}
 
 	       	
-   	public int[]
-   	updatePriorityOffsets(
+   	public long[]
+   	updateRTAs(
    		PiecePicker		picker )
    	{
    		long	overall_pos = current_position + file_offset_in_torrent;
    		
    		int	first_piece = (int)( overall_pos / piece_size );
    		
-   		Arrays.fill( priority_offsets, 0 );
-   		   		
-   		for (int i=first_piece;i<first_piece+pieces_to_buffer&&i<priority_offsets.length;i++){
+   		long	rate = byte_rate.getAverage();
+   		
+   		long	buffer_bytes = BUFFER_SECS * rate;
+   		
+   		int	pieces_to_buffer = (int)( buffer_bytes / piece_size );
+   		
+   		if ( pieces_to_buffer < 2 ){
    			
-   			priority_offsets[i]	= 1000000 - ((i-first_piece)*10000);
+   			pieces_to_buffer = 2;
    		}
    		
-   		return( priority_offsets );
+   		int	millis_per_piece = BUFFER_SECS*1000/pieces_to_buffer; 
+   			
+   		int	delays = 0;
+   		
+   		System.out.println( "rate = " + rate + ", buffer_bytes = " + buffer_bytes + ", pieces = " + pieces_to_buffer + ", millis_per_piece = " + millis_per_piece );
+   		
+   		for (int i=0;i<pieces_to_buffer;i++){
+   		
+   			System.out.println( "delays: " + ( first_piece + i ) + " - " + delays );
+   			
+   			delays += millis_per_piece;
+   		}
+   		
+   		Arrays.fill( rtas, 0 );
+   		 
+   		long	now = SystemTime.getCurrentTime();
+   		
+   		for (int i=first_piece;i<first_piece+pieces_to_buffer&&i<rtas.length;i++){
+   			
+   			rtas[i]	= now + ( i * millis_per_piece );
+   		}
+   		
+   		return( rtas );
    	}
    	
 	public void
@@ -342,7 +370,7 @@ DiskManagerChannelImpl
 		
 		if ( peer_manager != null ){
 			
-			peer_manager.getPiecePicker().removePriorityShaper( this );
+			peer_manager.getPiecePicker().removeRTAProvider( this );
 		}
 		
 		boolean	stop_force_start = false;
@@ -540,23 +568,31 @@ DiskManagerChannelImpl
 							current_position = pos;
 						}
 					}else{
-						
-						inform( new event( pos ));
-						
-						synchronized( data_written ){
-							
-							waiters.add( wait_sem );
-						}
-						
+
 						try{
-							wait_sem.reserve();
-							
-						}finally{
+							byte_rate.pause();
+	
+							inform( new event( pos ));
 							
 							synchronized( data_written ){
 								
-								waiters.remove( wait_sem );
+								waiters.add( wait_sem );
 							}
+							
+							try{
+	
+								wait_sem.reserve();
+								
+							}finally{
+								
+								synchronized( data_written ){
+									
+									waiters.remove( wait_sem );
+								}
+							}
+						}finally{
+							
+							byte_rate.resume();
 						}
 					}
 				}

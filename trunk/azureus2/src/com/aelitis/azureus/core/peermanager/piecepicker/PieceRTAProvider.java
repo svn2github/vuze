@@ -23,9 +23,9 @@
 package com.aelitis.azureus.core.peermanager.piecepicker;
 
 public interface 
-PiecePiecerPriorityShaper 
+PieceRTAProvider 
 {
-	public int[]
-	updatePriorityOffsets(
+	public long[]
+	updateRTAs(
 		PiecePicker		picker );
 }

@@ -78,14 +78,22 @@ PEPeerTransport
    * @param pieceNumber
    * @param pieceOffset
    * @param pieceLength
-   * @return true if the piece is really requested
+   * @return request if actually requested, null otherwise
    */
-	public boolean 
+	public DiskManagerReadRequest 
 	request(
 		int pieceNumber, 
 		int pieceOffset, 
 		int pieceLength );
 
+	/**
+	 * Returns the index of this request in the peer's queue or -1 if not found
+	 * @return
+	 */
+	
+	public int
+	getRequestIndex(
+		DiskManagerReadRequest request );
   
   /**
    * Close the peer connection

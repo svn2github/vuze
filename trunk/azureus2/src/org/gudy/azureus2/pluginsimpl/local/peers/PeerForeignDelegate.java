@@ -119,15 +119,31 @@ PeerForeignDelegate
    * @param pieceLength
    * @return true is the piece is really requested
    */
-	public boolean 
+	public DiskManagerReadRequest 
 	request(
 		int pieceNumber, 
 		int pieceOffset, 
 		int pieceLength )
 	{
-		return( foreign.addRequest( manager.getDelegate().getDiskManager().createReadRequest( pieceNumber, pieceOffset, pieceLength )));
-	}
+		DiskManagerReadRequest	request = manager.getDelegate().getDiskManager().createReadRequest( pieceNumber, pieceOffset, pieceLength );
 		
+		if ( foreign.addRequest( request )){
+			
+			return( request );
+			
+		}else{
+			
+			return( null );
+		}
+	}
+	
+	public int
+	getRequestIndex(
+		DiskManagerReadRequest request )
+	{
+		return( foreign.getRequests().indexOf( request ));
+	}
+	
 	protected  void
 	dataReceived()
 	{

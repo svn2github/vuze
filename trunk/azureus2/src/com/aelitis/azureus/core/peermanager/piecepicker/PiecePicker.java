@@ -72,12 +72,12 @@ public interface PiecePicker
 	public void		removeFromEndGameModeChunks(final int pieceNumber, final int offset);
 	
 	public void
-	addPriorityShaper(
-		PiecePiecerPriorityShaper		shaper );
+	addRTAProvider(
+		PieceRTAProvider		shaper );
 	
 	public void
-	removePriorityShaper(
-		PiecePiecerPriorityShaper		shaper );
+	removeRTAProvider(
+		PieceRTAProvider		shaper );
 	
 	public void
 	generateEvidence(

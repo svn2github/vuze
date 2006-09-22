@@ -81,8 +81,10 @@ PEPiece
 
 	public boolean		hasUnrequestedBlock();
 	public int[]		getAndMarkBlocks(PEPeer peer, int nbWanted);
-	public int[]		getAndMarkRealTimeBlocks(PEPeer peer, int nbWanted, int peerSpeedKBSec, int peerRequestCount);
-	public boolean		hasRealTimeBlock( PEPeer peer, int peerSpeedKBSec );
+	
+	public void 		getAndMarkBlock(PEPeer peer, int index);
+	public Object		getRealTimeData();
+	public void			setRealTimeData( Object	o );
 	
 	public boolean		setRequested(PEPeer peer, int blockNumber);
 	public void			clearRequested(int blocNumber);

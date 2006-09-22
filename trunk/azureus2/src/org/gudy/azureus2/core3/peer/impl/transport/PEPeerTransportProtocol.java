@@ -648,11 +648,11 @@ PEPeerTransportProtocol
 	}
 
 
-    public boolean request(final int pieceNumber, final int pieceOffset, final int pieceLength) {
+    public DiskManagerReadRequest request(final int pieceNumber, final int pieceOffset, final int pieceLength) {
         final DiskManagerReadRequest request =manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
         if (current_peer_state != TRANSFERING) {
             manager.requestCanceled(request);
-            return false;
+            return null;
         }
         boolean added =false;
         try{
@@ -680,12 +680,26 @@ PEPeerTransportProtocol
             }finally{
                 recent_outgoing_requests_mon.exit();
             }
-            return true;
+            return request;
         }
-        return false;
+        return null;
   }
 
-
+	public int
+	getRequestIndex(
+		DiskManagerReadRequest request )
+	{
+		try{
+			requested_mon.enter();
+            
+			return( requested.indexOf( request ));
+			
+		}finally{
+			
+			requested_mon.exit();
+		}
+	}
+	
     public void sendCancel( DiskManagerReadRequest request ) {
   	if ( current_peer_state != TRANSFERING ) return;
 		if ( hasBeenRequested( request ) ) {

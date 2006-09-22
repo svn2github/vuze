@@ -65,8 +65,8 @@ public class PEPieceImpl
     private int             speed;      //slower peers dont slow down fast pieces too much
     
     private int             resumePriority;
-    
-    private Object			realTimeData;	// Object[] - int[] peer speed, long[] - request time
+      
+    private Object			real_time_data;
     
 	// experimental class level lock
 	protected static final AEMonitor 	class_mon	= new AEMonitor( "PEPiece:class");
@@ -330,148 +330,15 @@ public class PEPieceImpl
 		}
 		return new int[] {-1, 0};
 	}
-
-	public boolean
-	hasRealTimeBlock( PEPeer peer, int peerSpeedKBSec )
-	{
-		if ( hasUnrequestedBlock()){
-			
-			return( true );
-		}
-		
-		long	now = SystemTime.getCurrentTime();
-        final boolean[] written =dmPiece.getWritten();
-		final String ip =peer.getIp();
-
-		if ( realTimeData == null ){
-			realTimeData = new Object[]{ new int[nbBlocks], new long[nbBlocks]};
-		}
-
-		int[]	speeds 			= (int[])((Object[])realTimeData)[0];
-		long[]	target_times 	= (long[])((Object[])realTimeData)[1];
-		
-		for (int i =0; i <nbBlocks; i++){
-			
-			if (	!downloaded[i] &&
-					requested[i] != null &&
-					!requested[i].equals( ip ) &&
-					(written ==null ||!written[i])){
-										
-				int		block_speed = speeds[i];
-				long	target_time	= target_times[i];
-				
-					// set a minuimum speed to avoid / 0s
-				
-				if ( peerSpeedKBSec == 0 ){
-					peerSpeedKBSec = 1;
-				}
-				
-				if ( peerSpeedKBSec > block_speed || ( target_time > 0 && now > target_time )){
-					
-					return( true );
-				}
-			}
-		}
-		
-		return( false );
-	}
 	
-		/**
-		 * Allocates firstly unrequested blocks and then requested blocks again
-		 * @param peer
-		 * @param nbWanted
-		 * @return
-		 */
-	public int[] getAndMarkRealTimeBlocks(PEPeer peer, int nbWanted, int peerSpeedKBSec, int peerRequestCount )
+	public void getAndMarkBlock(PEPeer peer, int index )
 	{
-		final String ip =peer.getIp();
-        final boolean[] written =dmPiece.getWritten();
-
-
-        int[]	result 	= new int[nbBlocks];
-        int		pos		= 0;
-        
-        try{
-			// scan piece to find first free block
+		requested[index] = peer.getIp();
+		
+		if ( getNbUnrequested() <= 0 ){
 			
-			for (int i =0; i <nbBlocks; i++){
-	
-				if (	!downloaded[i] &&
-						requested[i] ==null &&
-						(written ==null ||!written[i])){
-					
-					requested[i] 	= ip;
-					result[pos++] 	= i;
-					
-					if ( pos == nbWanted ){
-						return( result );
-					}
-				}
-			}
-			
-			if ( pos < nbBlocks ){
-				
-					// now do the requested ones (but not those we requested above or already requested)
-				
-				long	now = SystemTime.getCurrentTime();
-				
-				if ( realTimeData == null ){
-					realTimeData = new Object[]{ new int[nbBlocks], new long[nbBlocks]};
-				}
-
-				int[]	speeds 			= (int[])((Object[])realTimeData)[0];
-				long[]	target_times 	= (long[])((Object[])realTimeData)[1];
-				
-				for (int i =0; i <nbBlocks; i++){
-					
-					if (	!downloaded[i] &&
-							requested[i] != null &&
-							!requested[i].equals( ip ) &&
-							(written ==null ||!written[i])){
-												
-						int		block_speed = speeds[i];
-						long	target_time	= target_times[i];
-						
-							// set a minuimum speed to avoid / 0s
-						
-						if ( peerSpeedKBSec == 0 ){
-							peerSpeedKBSec = 1;
-						}
-						
-						if ( peerSpeedKBSec > block_speed || ( target_time > 0 && now > target_time )){
-							
-							long	duration = ( DiskManager.BLOCK_SIZE_KB * 1000 * (peerRequestCount+1))/peerSpeedKBSec;
-							
-							duration = duration * 2;	// bit of slack
-							
-							duration = Math.max( duration, 2*PeerControlScheduler.SCHEDULE_PERIOD_MILLIS );
-							
-							// System.out.println( "Requesting " + getPieceNumber() + "/" + i + ",os=" + speeds[i] + ",ns=" + peerSpeedKBSec + ",du=" + duration + ", pe=" + ip );
-									
-							speeds[i] 		= peerSpeedKBSec;
-
-							target_times[i]	= now + duration;
-							
-							requested[i] 	= ip;
-							result[pos++] 	= i;
-							
-							if ( pos == nbWanted ){
-								return( result );
-							}
-						}
-					}
-				}
-			}
-			
-			return( result );
-			
-        }finally{
-        	
-        	if ( pos < result.length ){
-        		
-        		result[pos] = -1;
-        	}
-        }
+			setRequested();
+		}
 	}
 	
     public int getNbRequests()
@@ -640,9 +507,22 @@ public class PEPieceImpl
 		fully_downloaded = false;
 		time_last_download = 0;
 		reservedBy =null;
-		realTimeData=null;
+		real_time_data=null;
 	}
 
+	public Object
+	getRealTimeData()
+	{
+		return( real_time_data );
+	}
+	
+	public void
+	setRealTimeData(
+		Object	o )
+	{
+		real_time_data = o;
+	}
+	
 	protected void addWrite(PEPieceWriteImpl write) {
 		try{
 			class_mon.enter();
