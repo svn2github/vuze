@@ -344,6 +344,10 @@ UDPConnectionManager
 			
 			connection_set.receive( data, data_length );
 			
+		}catch( IOException e ){
+			
+			connection_set.failed( e );
+			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
