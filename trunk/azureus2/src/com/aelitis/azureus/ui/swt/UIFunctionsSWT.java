@@ -23,11 +23,11 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.ui.swt.mainwindow.MainMenu;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
@@ -43,8 +43,9 @@ import org.gudy.azureus2.plugins.PluginView;
 public interface UIFunctionsSWT extends UIFunctions
 {
 	public static int MAIN_MENU_BAR = MainMenu.MENU_BAR;
+
 	public static int MAIN_MENU_TRANSFER = MainMenu.MENU_TRANSFER;
-	
+
 	public Shell getMainShell();
 
 	/**
@@ -72,7 +73,6 @@ public interface UIFunctionsSWT extends UIFunctions
 	 */
 	public void removePluginView(UISWTPluginView view);
 
-
 	/**
 	 * @param viewID
 	 * @param l
@@ -94,7 +94,6 @@ public interface UIFunctionsSWT extends UIFunctions
 	 */
 	public UISWTView[] getPluginViews();
 
-
 	/**
 	 * 
 	 * @param sParentID
@@ -105,7 +104,7 @@ public interface UIFunctionsSWT extends UIFunctions
 	 */
 	public void openPluginView(String sParentID, String sViewID,
 			UISWTViewEventListener l, Object dataSource, boolean bSetFocus);
-	
+
 	public void openPluginView(final AbstractIView view, final String name);
 
 	/**
@@ -117,8 +116,10 @@ public interface UIFunctionsSWT extends UIFunctions
 	 * @param impl
 	 */
 	public void closePluginView(IView view);
-	
+
 	public void closePluginViews(String sViewID);
-	
+
 	public Menu getMenu(int id);
+
+	public UISWTInstance getUISWTInstance();
 }

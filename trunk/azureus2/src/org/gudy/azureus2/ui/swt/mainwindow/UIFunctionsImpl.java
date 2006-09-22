@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
@@ -310,5 +311,9 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 				mainwindow.showConsole();
 			}
 		});
+	}
+	
+	public UISWTInstance getUISWTInstance() {
+		return mainwindow.getUISWTInstanceImpl();
 	}
 }
