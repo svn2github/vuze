@@ -565,9 +565,23 @@ public class MyTorrentsView
 
 		if (bOurs && sLastSearch.length() > 0) {
 			try {
-				String name = dm.getDisplayName();
-				String s = bRegexSearch ? sLastSearch : "\\Q"
-						+ sLastSearch.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
+				String[][] names = {	{"", 		dm.getDisplayName()},
+												{"t:", 	dm.getTorrent().getAnnounceURL().getHost()},
+												{"st:", 	"" + dm.getState()}
+											};
+				
+				String name = names[0][1];
+				String tmpSearch = sLastSearch;
+				
+				for(int i = 0; i < names.length; i++){
+					if (tmpSearch.startsWith(names[i][0])) {
+						tmpSearch = tmpSearch.substring(names[i][0].length());
+						name = names[i][1];
+					}
+				}
+				
+				String s = bRegexSearch ? tmpSearch : "\\Q"
+						+ tmpSearch.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
 				Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
 
 				if (!pattern.matcher(name).find())
