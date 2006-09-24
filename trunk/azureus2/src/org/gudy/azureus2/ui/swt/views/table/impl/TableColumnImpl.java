@@ -142,7 +142,7 @@ public class TableColumnImpl
     if (width == iWidth || width < 0)
       return;
     iWidth = width;
-
+    
     if (bColumnAdded && iPosition != POSITION_INVISIBLE) {
       TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
       tsed.columnSizeChanged(this);
@@ -519,27 +519,38 @@ public class TableColumnImpl
   }
   
   public String getTitleLanguageKey() {
-  	try{
-  		this_mon.enter();
-  
-	    if (sTitleLanguageKey == null) {
-	      sTitleLanguageKey = sTableID + ".column." + sName;
-	      if (!MessageText.keyExists(sTitleLanguageKey)) {
-	        // Support "Old Style" language keys, which have a prefix of TableID + "View."
-	        // Also, "MySeeders" is actually stored in "MyTorrents"..
-	        String sKeyPrefix = (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE) 
-	                             ? TableManager.TABLE_MYTORRENTS_INCOMPLETE
-	                             : sTableID) + "View.";
-	        if (MessageText.keyExists(sKeyPrefix + sName))
-	          sTitleLanguageKey = sKeyPrefix + sName;
-	      }
-	    }
-	    return sTitleLanguageKey;
-  	}finally{
-  		
-  		this_mon.exit();
-  	}
-  }
+		try {
+			this_mon.enter();
+
+			if (sTitleLanguageKey == null) {
+				sTitleLanguageKey = sTableID + ".column." + sName;
+				if (MessageText.keyExists(sTitleLanguageKey)) {
+					return sTitleLanguageKey;
+				}
+
+				String sKeyPrefix;
+				// Try a generic one of "TableColumn." + columnid
+				sKeyPrefix = "TableColumn.header.";
+				if (MessageText.keyExists(sKeyPrefix + sName)) {
+					sTitleLanguageKey = sKeyPrefix + sName;
+					return sTitleLanguageKey;
+				}
+
+				// Support "Old Style" language keys, which have a prefix of TableID + "View."
+				// Also, "MySeeders" is actually stored in "MyTorrents"..
+				sKeyPrefix = (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE)
+						? TableManager.TABLE_MYTORRENTS_INCOMPLETE : sTableID)
+						+ "View.";
+				if (MessageText.keyExists(sKeyPrefix + sName)) {
+					sTitleLanguageKey = sKeyPrefix + sName;
+				}
+			}
+			return sTitleLanguageKey;
+		} finally {
+
+			this_mon.exit();
+		}
+	}
 
   public int getConsecutiveErrCount() {
     return iConsecutiveErrCount;
@@ -642,5 +653,9 @@ public class TableColumnImpl
   		return "-0";
   	}
   	return "" + l.size();
+  }
+  
+  public void setTableID(String tableID) {
+  	sTableID = tableID;
   }
 }
