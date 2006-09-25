@@ -156,8 +156,12 @@ public class NatPanel extends AbstractWizardPanel {
     });
     textServerTCPListen.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event e) {
-        final int TCPListenPort = Integer.parseInt(textServerTCPListen.getText());
-        ((ConfigureWizard) wizard).serverTCPListenPort = TCPListenPort;
+      	try {
+	        final int TCPListenPort = Integer.parseInt(textServerTCPListen.getText());
+	        ((ConfigureWizard) wizard).serverTCPListenPort = TCPListenPort;
+      	} catch (NumberFormatException ex) {
+      		// ignore
+      	}
       }
     });
 
