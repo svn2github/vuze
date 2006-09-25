@@ -1,0 +1,144 @@
+$
+$ Dobrodosli kod Azureusa 2.5.0.0
+$ 
+
++1. Staje novo kod Azureusa 2.5.0.0 
+
+!1.1 Posalji Prijatelju
+            Novi protocol koji olaksaje slanje linka prijatelju ili ubacivanje u web
+            stranicu (na primjer Blog). 
+
+!1.2 Automatska upload brzina
+            Ova kontraola odobraje vasoj upload brzini da bude zavisna od vase
+            internet konekcije kao da pingujete druge ljude ove prosirene database. 
+
+!1.3  Druge Nove opcije
+            OSX: Otvoriti torrent fajl u Azureus preko Finder/Desktop/itd.
+            'Nemoj downloadisati' fajle su sada bolje organizovane sa respektom
+            kolikije procenat vec skinut.
+            Promjeniti imena od download foldera.
+            Micanje od data fajla na torrent izbrisavanje od Azureusa.
+            Potpisani obnovljeni fajlovi i pluginsi za poboljsanu sigurnost.
+            Obnavljanje Interfejsa – vise informacije: datum dodavanja, nista ne 
+            dogodeno vremena, novi info pogled, dio fajla pogled, vise per-torrent 
+            opcija.
+            Los code generator. 
+            Vise informacije u ChangeLog. 
+            
+            Nemojte zaboraviti da cekirate plugine – http://azureus.sourceforge.net/plugin_list.php
+            Novi odaljeni kontrolni plugin – AzSMRC 
+
+!1.4  Poboljsavanje programa
+
+	Novi fiksovi:
+            LAN Peer Finder nade ostale ljude puno bolje; i bolje ih indentificira.
+            Reducirano koristenje procesora kada se vise ljudi konektira. 
+
+	Citav ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.0 
+ 
+
++2.  Sta ima novo kod Azureus 2.4.0.0 
+
+!2.1 Enkriptirani transfer fajla
+	Podrska za enkriptirane fajle izmedu Azureusa i drugih compatible programa.
+	Ovo dodaje jos jedan level od sigurnosti fajla and moze pomoci protiv internet kompanija koje blokiraju downloadiranje ovakih fajla. 
+
+!2.2  Velika Brzina prebacaja fajla preko LAN
+	Mnogo kopija od Azureusa koje rade na istom networku pomaze poboljsanje izmedu direktnih konekcija izmeduse. 
+
+!2.3  Poboljsan algoritam downlodiranja
+	Algoritam koji je koristen za gledanje kojih fajla da skine od kojeg korisnika  bio je ponovo obnovljen da poboljsa ponasanje i brzinu. 
+
+!2.4 Webseed Podrska
+	Obicna webseed podrska je ukljucena. Webseed ce samo biti koristen kada je od downloada mnozina manje od 1.0. 
+
+!2.5  Ostalo 
+	Drugi ostalih interfejsa poboljsanja.
+	Poboljsanje brzine.
+	Bug pogravljeni. 
+
+	Citav ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.4.0.0  
+
+	Pogledaj http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 i 2.3.0.2 za ostale promjene. 
+
++3  Sta ima novo kod Azureusa 2.3.0.0 
+
+!3.1 Distribucirana Database
+	Azureus sada ima distribuciranu, decentraliziranu database koja moze biti koristena da pronade decentralizirane torrente. Ovo odobraje obadvoje "bez trackera" torrente i maintains grupe gdje je tracker nestao ili gdje je torrent bio skinut sa trackera.
+	Koristi UDP protocol, ako imate vatreni zid/router, onda morate da otvorite UDP port na isti nacin kao sto ste TCP port za downloadiranje fajla. 
+
+!3.1.1  Magnetni Linkovi
+	Za torrente koji su trazene bez zentralne base, Azureus moze da exportira "Magnetske Linkove". To ovako izgleda "magnet:?xt=urn:btih….." i moze biti koristeno za download torrenta sa distribucirane database preko "open->url" menjua. 
+
+!3.2  Poboljsani Protokol
+	Azureus sada suportira poboljsani medusobni-klient za slanje poruka, koji je uperen da dozvoli pluginsima da koriste konekcije napravljene kod Azuriesa da dodaje bolje funkcije programu. Drugi developeri klienta mogu da vide spesifikacije za za ovaj protokol na stranici http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol. Developeri plugina mogu cekirati java dokumente da vide kako mogu to iskoristiti.
+	Primjer, JPC i Chat plugini mogu koristiti ovu poruku ekstenziju. 
+ 
+
+!3.3 JPC
+
+	Joltid Peer Cache (JPC) je sada integrisan u Azureus. Za korisnike cij internet provajder ovo podrzaje, JPC trebao bih da dozvoli brze downloade, dok pomaze internet provajderu da reducira svoj racun bandwidtha. JPC plugin je siguran u tom putu da vas internet provajder nece znati sta vi uopste downloadirate, i nemoze koristiti to da spijunira na vas. Taj JPC plugin moze biti ugase preko Tools > Options > Plugins > JPC. 
+ 
+
+!3.4  Ubaceni Plugins
+
+	Distribucirana database i poboljsani protocol dopustaju nama da izmislimo nove plugins. Mi necemo ih automaticki instalirati za vas, ali preporucujemo za sve korisnike koji su zainteresovani da ih instaliraju poreko Plugins > Installation Wizard Menu. 
+ 
+
+!3.4.1 Chat
+
+	Ovaj plugin ce napraviti kanal za diskusiju za svaki torrent koji vi downloadirate. Svaki kanal je samoustavljen, i vi ste slobodni da diskutirate sta god hocete u tom kanalu. Ovaj plugin koristi poboljsani protokol. Developeri drugih klijenata mogu da implemntiraju funkciju ovog chata u svoje klijente, i mogu da pogledaju u ovaj vrlo obicni protokol koji je koristen i opisan ovdje : http://azureus.aelitis.com/wiki/index.php/ChatPlugin.
+
+	Vi mozete isto napraviti ili uci na arbitrirani kanal kada ukucate njegovo ime u pluginu. Ovo ce vam omoguciti da napravite "virtualni" torrent, bez ikakvih seeda, samo da bi drugi korisnici mogli uci da chatujete. Virtualni torrenti koriste distribucirane database kao njihov tracker, tako da mozete koristiti taj chat plugin bez distribuciranih databases, vi necete moci koristiti taj virtualni kanal ako ugasite distribucirane databases. 
+
+*3.4.2   Ocjene i Komenti
+
+	Ovaj plugin ce vam odobriti da vidite ocjene i komente od drugih korisnika, kao sto mozete da ocjenite i dodate svoj koment na torrente. (Desni klik na torrent u "My Torrents" onda izaberite "ratings and comments". Ovaj plugin koristi distribuciranu database, tako dam orate imati tu distribucirtanu database upaljenu. 
+ 
+
++4. Preporuka za upgrade 
+
+!4.1  Java  5.0
+
+	Azureus je pisan u Javi i treba mu Java runtime. Me preporucujemo Java 5.0 (isto znato kao 1.5) zato sto ima bolji performance i bolju dependenciju – molimo vas poboljsajte to ako mozete. Nacete torrente da obnovite Java ovdje : http://azureus.sourceforge.net/download.php
+
+	Downloadirajte tacan za vas system, zatvorite Azureus, onda otvorite downloadirani fajl, onda restartujte Azureus.
+
+	WinXP korisnici mora ce da idu na Tools > Options > Interface > Display, i recekiraju "Enable XP Style" opciju. 
+ 
+
+!4.2 NOD32
+
+	NOD32 (http://nod32.com/) je jedan antivirus koji je poznat da ima probleme za Azureusom, stim je procesor koristen 100%. Pogledajte http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect 
+ 
+
++5.  Poznati Problemi 
+
+!5.1 NAT "error"
+
+	NAT znaci "Network Address Translation". NAT testovi u Azureus kazu dali moze ili ne drugi korisnici da se konektuju sa tobom na internetu. Dobices bolje brzine ako se mogu sa tobom da konektuju.
+
+	Molimo vas nemojte nas kontaktirati sa problemima NAT-a, posto ima dovoljno pomocnih stranica na internetu o tome. Prvo cekirajte:
+
+    * http://azureus.aelitis.com/wiki/index.php/PortForwarding
+    * http://www.portforward.com
+
+ 
+
+!5.2  Azureus Neradi
+
+	Ako vas Azureus neradi, najveca sansa je da imate problema sa vasim networkom (karta, drajveri, OS). Me strogo preporucujemo da downloadirate sve obnovljene fajle oko networka. Ako to ne pomogne, onda je da vas system nemoze da podnese toliko konekcija sa drugim klijentima.
+
+	Smanjite broj konekcija u Azureusu (Tools >Options > Transfer > Maximum number of connections per torrent / globally), pokusajte manji broj kao podjednom 30.  
+ 
+
+!5.3  Podrska
+
+	Prije nego sto kontaktirate nas podrsni tim, budite sigurni da cekirate ove stranice:
+
+    * Oficijalna webstranica : http://azureus.sourceforge.net
+    * Oficijalna Wiki : http://azureus.aelitis.com/wiki
+    * Oficijalni IRC kanal : #azureus-users na irc.freenode.net
+    * Oficijalni SF Forum : http://sourceforge.net/forum/?group_id=84122
+    * AKO (i samo AKO) nemozete da rijesite problem posle sve ovih stranica, onda mozete nas kontakritati na azureus@gmail.com
+
