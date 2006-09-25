@@ -2621,7 +2621,7 @@ public class TableView
 	/** 
 	 * Used with {@link TableView#runForSelectedRows}
 	 */
-	public abstract class GroupTableRowRunner {
+	public static abstract class GroupTableRowRunner {
 		/** Code to run 
 		 * @param row TableRowCore to run code against
 		 */

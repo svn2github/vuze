@@ -158,4 +158,6 @@ public interface TableColumnCore extends TableColumn {
 	 * @param writer
 	 */
 	void generateDiagnostics(IndentWriter writer);
+
+  void setTableID(String tableID);
 }
