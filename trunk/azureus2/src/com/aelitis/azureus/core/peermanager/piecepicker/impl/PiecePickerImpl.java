@@ -532,9 +532,7 @@ public class PiecePickerImpl
 		boolean	done_priorities = false;
 
 		if ( priorityRTAexists ){
-			
-			System.out.println( "Priority rta" );
-			
+						
 			LinkedList	block_time_order_peers = new LinkedList();
 			
 			block_time_order_peers.addAll( bestUploaders );
@@ -1035,66 +1033,95 @@ public class PiecePickerImpl
                 	
                 		// check the blocks to see if any are now lagging behind their ETA given current peer speed
                 	
-                  	PEPeerTransport[]			allocated_peers = rtd.getBlockPeers();
-                  	DiskManagerReadRequest[]	peer_requests	= rtd.getRequests();
-                  	                	
-                	for (int j=0;j<allocated_peers.length;j++){
+                  	List[]	peer_requests = rtd.getRequests();
+                  	
+                	for (int j=0;j<peer_requests.length;j++){
                 		
-                		PEPeerTransport	ap = allocated_peers[j];
-                		
-                		boolean	interesting_block	= false;
-                		
-                		if ( ap == null ){
-                		
-                			interesting_block	= true;
+                		if ( pePiece.isDownloaded( j ) || pePiece.isWritten( j )){
                 			
-                		}else{
+                				// this block is already downloaded, ignore
                 			
-                			DiskManagerReadRequest	request = peer_requests[j];
-                			
-                			if ( ap.getPeerState() != PEPeer.TRANSFERING || request == null ){
-                				
-                				allocated_peers[j] = null;
-                				
-                				interesting_block	= true;
-                				
-                			}else{
-                				
-                				int	index = ap.getRequestIndex( request );
-                				
-                				if ( index == -1 ){
-                					
-                					allocated_peers[j] 		= null;
-                					peer_requests[j]		= null;
-                					
-                				}else{
-                					
-	                				long upRate = ap.getStats().getSmoothDataReceiveRate();
-	                				
-	                				if ( upRate < 1 ){
-	                					
-	                					upRate = 1;
-	                				}
-	                				
-	                				int	next_block_bytes = ( index + 1 ) * DiskManager.BLOCK_SIZE;
-	                				
-	                				long	new_eta = now + (( next_block_bytes * 1000 ) / upRate );
-	                				
-	                					// looks like its lagging...
-	                				
-	                				if ( new_eta > piece_rta ){
-	                					
-	                					interesting_block = true;
-	                				}
-                				}
-                			}
+                			continue;
                 		}
                 		
-                		if ( interesting_block ){
-                			                       		
-                        	piece_min_rta_time 	= piece_rta;
-                        	piece_min_rta_index = i;
-                        	piece_min_rta_block = j;
+                		List	block_peer_requests = peer_requests[j];
+                		
+                  	    
+                      	long best_eta = Long.MAX_VALUE;
+                      	
+                      	boolean	pt_already_present  = false;
+                      	
+                			// tidy up existing request data
+                		
+                		Iterator	it = block_peer_requests.iterator();
+                			
+                		while( it.hasNext()){
+                			
+                			RealTimePeerRequest	pr = (RealTimePeerRequest)it.next();
+                			
+                			PEPeerTransport	this_pt = pr.getPeer();
+                			
+                			if ( this_pt.getPeerState() != PEPeer.TRANSFERING ){
+                			
+                					// peer's dead
+                				
+                				it.remove();
+                				
+                				continue;
+                				
+                			}
+                			
+                			DiskManagerReadRequest	this_request = pr.getRequest();
+                			
+                			int	request_index = this_pt.getRequestIndex( this_request );
+                			
+                			if ( request_index == -1 ){
+                				
+                					// request's gone
+                				
+                				it.remove();
+                				
+                				continue;
+                			}
+                			
+                			if ( this_pt == pt ){
+                				
+                				pt_already_present	= true;
+                				
+                				break;
+                			}
+                			
+            				long upRate = this_pt.getStats().getSmoothDataReceiveRate();
+            				
+            				if ( upRate < 1 ){
+            					
+            					upRate = 1;
+            				}
+            				
+            				int	next_block_bytes = ( request_index + 1 ) * DiskManager.BLOCK_SIZE;
+            				
+            				long	this_peer_eta = now + (( next_block_bytes * 1000 ) / upRate );
+
+            				best_eta = Math.min( best_eta, this_peer_eta );
+                		}
+  
+                			// if we've not already requested this piece
+                		
+                		if ( !pt_already_present ){
+  
+                				// and there are no outstanding requests or outstanding requests are lagging
+                			
+                			if ( block_peer_requests.size() == 0 || best_eta > piece_rta ){
+                		
+                					// if this piece has higher priority that existing highest, set markers
+                				
+                				if ( piece_rta < piece_min_rta_time ){
+               			                       		
+		                        	piece_min_rta_time 	= piece_rta;
+		                        	piece_min_rta_index = i;
+		                        	piece_min_rta_block = j;
+                				}
+                			}
                 		}
                 	}
                 }
@@ -1138,10 +1165,10 @@ public class PiecePickerImpl
 	
     		if ( request != null ){
     			
-       	   		rtd.getBlockPeers()[piece_min_rta_block] 	= pt;
+    			System.out.println( "RT Request: " + piece_min_rta_index + "/" + piece_min_rta_block + " -> " + pt.getIp());
+    			
+       	   		rtd.getRequests()[piece_min_rta_block].add( new RealTimePeerRequest( pt, request ));
        	   		
-       	   		rtd.getRequests()[piece_min_rta_block] 		= request;   	        		
-
 				pt.setLastPiece(piece_min_rta_index);
 				
 				pePiece.setLastRequestedPeerSpeed( peerSpeed );
@@ -1242,7 +1269,6 @@ public class PiecePickerImpl
         int         startMaxPriority =Integer.MIN_VALUE;
         int         startMinAvail =Integer.MAX_VALUE;
         boolean     startIsRarest =false;
-        boolean		startIsRealtime = false;
         
         int         priority;   // aggregate priority of piece under inspection (start priority or resume priority for pieces to be resumed)
         int         avail =0;   // the swarm-wide availability level of the piece under inspection
@@ -1279,7 +1305,7 @@ public class PiecePickerImpl
                     
                			// if we are considering realtime pieces then don't bother with non-realtime ones
                     
-                    if (( pePiece == null || pePiece.isRequestable()) && !startIsRealtime){
+                    if (( pePiece == null || pePiece.isRequestable())){
                     
                    			// if this priority exceeds the priority-override threshold then  we override rarity
                     	
@@ -1543,6 +1569,8 @@ public class PiecePickerImpl
         // only flick into end-game mode if < trigger size left
         if (active_pieces *diskManager.getPieceLength() <=END_GAME_MODE_SIZE_TRIGGER)
         {
+            endGameModeChunks =new ArrayList();
+
             timeEndGameModeEntered =now;
             endGameMode =true;
             computeEndGameModeChunks();
@@ -1555,9 +1583,7 @@ public class PiecePickerImpl
     
     private final void computeEndGameModeChunks()
     {
-        endGameModeChunks =new ArrayList();
-        try
-        {
+        try{
             endGameModeChunks_mon.enter();
 
             for (int i =0; i <nbPieces; i++ )
@@ -1734,7 +1760,10 @@ public class PiecePickerImpl
 					
 					PEPiece	piece = pePieces[i];
 					
-					piece.setRealTimeData(null);
+					if ( piece != null ){
+						
+						piece.setRealTimeData(null);
+					}
 				}
 				
 				piece_rtas = null;
@@ -1762,7 +1791,14 @@ public class PiecePickerImpl
 					
 					if ( rta > 0 ){
 						
-						piece_rtas[j] = Math.min( piece_rtas[j], rta );
+						if ( piece_rtas[j] == 0 ){
+							
+							piece_rtas[j] = rta;
+							
+						}else{
+							
+							piece_rtas[j] = Math.min( piece_rtas[j], rta );
+						}
 						
 						has_rta	= true;
 					}
@@ -2018,8 +2054,7 @@ public class PiecePickerImpl
 	protected class
 	RealTimeData
 	{
-      	private PEPeerTransport[]			allocated_peers;
-      	private DiskManagerReadRequest[]	peer_requests;
+      	private List[]	peer_requests;
       	
       	protected
       	RealTimeData(
@@ -2027,20 +2062,45 @@ public class PiecePickerImpl
       	{
       		int	nb = piece.getNbBlocks();
       		
-      		allocated_peers 	= new PEPeerTransport[nb];
-      		peer_requests		= new DiskManagerReadRequest[nb];
+      		peer_requests 	= new List[nb];
+      		
+      		for (int i=0;i<peer_requests.length;i++){
+      			peer_requests[i] = new ArrayList(1);
+      		}
       	}
       	
-      	public final PEPeerTransport[]
-      	getBlockPeers()
-      	{
-      		return( allocated_peers );
-      	}
-      	
-      	public final DiskManagerReadRequest[]
+      	public final List[]
       	getRequests()
       	{
       		return( peer_requests );
       	}
+	}
+	
+	protected class
+	RealTimePeerRequest
+	{
+		private PEPeerTransport			peer;
+		private DiskManagerReadRequest	request;
+		
+		protected
+		RealTimePeerRequest(
+			PEPeerTransport			_peer,
+			DiskManagerReadRequest	_request )
+		{
+			peer		= _peer;
+			request		= _request;
+		}
+		
+		protected PEPeerTransport
+		getPeer()
+		{
+			return( peer );
+		}
+		
+		protected DiskManagerReadRequest
+		getRequest()
+		{
+			return( request );
+		}
 	}
 }

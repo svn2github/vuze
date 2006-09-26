@@ -658,6 +658,10 @@ public class PEPieceImpl
         return dmPiece.isWritten();
     }
     
+    public boolean isWritten( int block)
+    {
+        return dmPiece.isWritten( block );
+    }
 	public int getPieceNumber()
 	{
 		return dmPiece.getPieceNumber();

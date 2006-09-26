@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.PausableAverage;
@@ -53,7 +52,8 @@ public class
 DiskManagerChannelImpl 
 	implements DiskManagerChannel, DiskManagerFileInfoListener, DownloadManagerPeerListener, PieceRTAProvider
 {
-	private static final int		BUFFER_SECS = 10;
+	private static final int		BUFFER_SECS 			= 30;
+	private static final int		MIN_PIECES_TO_BUFFER	= 3;
 	
 	private static final boolean	TRACE = false;
 	
@@ -331,9 +331,9 @@ DiskManagerChannelImpl
    		
    		int	pieces_to_buffer = (int)( buffer_bytes / piece_size );
    		
-   		if ( pieces_to_buffer < 2 ){
+   		if ( pieces_to_buffer < MIN_PIECES_TO_BUFFER ){
    			
-   			pieces_to_buffer = 2;
+   			pieces_to_buffer = MIN_PIECES_TO_BUFFER;
    		}
    		
    		int	millis_per_piece = BUFFER_SECS*1000/pieces_to_buffer; 

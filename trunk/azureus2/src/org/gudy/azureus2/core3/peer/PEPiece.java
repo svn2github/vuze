@@ -122,6 +122,7 @@ PEPiece
 	public String[] 	getWriters();
 	public void			setWritten(PEPeer peer, int blockNumber);
 	public boolean 		isWritten();
+	public boolean 		isWritten( int blockNumber);
 	
 	public int 			getSpeed();
 	public void			setSpeed(int speed);
