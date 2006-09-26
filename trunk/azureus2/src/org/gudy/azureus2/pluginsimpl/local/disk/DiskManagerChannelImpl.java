@@ -331,23 +331,19 @@ DiskManagerChannelImpl
    		
    		int	pieces_to_buffer = (int)( buffer_bytes / piece_size );
    		
+   		if ( pieces_to_buffer < 1 ){
+   			
+   			pieces_to_buffer	= 1;
+   		}
+   		
+   		int	millis_per_piece = BUFFER_SECS*1000/pieces_to_buffer; 
+
    		if ( pieces_to_buffer < MIN_PIECES_TO_BUFFER ){
    			
    			pieces_to_buffer = MIN_PIECES_TO_BUFFER;
    		}
-   		
-   		int	millis_per_piece = BUFFER_SECS*1000/pieces_to_buffer; 
-   			
-   		int	delays = 0;
-   		
+   		   		
    		System.out.println( "rate = " + rate + ", buffer_bytes = " + buffer_bytes + ", pieces = " + pieces_to_buffer + ", millis_per_piece = " + millis_per_piece );
-   		
-   		for (int i=0;i<pieces_to_buffer;i++){
-   		
-   			System.out.println( "delays: " + ( first_piece + i ) + " - " + delays );
-   			
-   			delays += millis_per_piece;
-   		}
    		
    		Arrays.fill( rtas, 0 );
    		 
@@ -355,7 +351,7 @@ DiskManagerChannelImpl
    		
    		for (int i=first_piece;i<first_piece+pieces_to_buffer&&i<rtas.length;i++){
    			
-   			rtas[i]	= now + ( i * millis_per_piece );
+   			rtas[i]	= now + (( i - first_piece ) * millis_per_piece );
    		}
    		
    		return( rtas );
