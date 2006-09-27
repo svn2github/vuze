@@ -34,6 +34,8 @@ import java.net.URLClassLoader;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Arbeiten
@@ -49,6 +51,8 @@ public class MessageText {
   private static Map pluginLocalizationPaths = new HashMap();
   private static ResourceBundle RESOURCE_BUNDLE;
   private static Set			platform_specific_keys	= new HashSet();
+	private static final Pattern PAT_PARAM_ALPHA = Pattern.compile("\\{([^0-9].+?)\\}");
+
 
   private static int bundle_fail_count	= 0;
   
@@ -164,7 +168,7 @@ public class MessageText {
  
   public static boolean keyExists(String key) {
     try {
-      RESOURCE_BUNDLE.getString(key);
+    	getResourceBundleString(key);
       return true;
     } catch (MissingResourceException e) {
       return false;
@@ -202,7 +206,7 @@ public class MessageText {
     
 	  try {
       
-		  return RESOURCE_BUNDLE.getString( target_key );
+		  return getResourceBundleString( target_key );
     
 	  }catch (MissingResourceException e) {
 		  
@@ -226,8 +230,8 @@ public class MessageText {
 
 	  try {
 	 
-		  return RESOURCE_BUNDLE.getString( target_key );
-		  
+		  return getResourceBundleString( target_key );
+
 	  } catch (MissingResourceException e) {
 		  
 	      return getPlatformNeutralString(key);
@@ -236,7 +240,7 @@ public class MessageText {
 
   public static String getPlatformNeutralString(String key) {
     try {
-      return RESOURCE_BUNDLE.getString(key);
+      return getResourceBundleString(key);
     } catch (MissingResourceException e) {
       return '!' + key + '!';
     }
@@ -244,11 +248,37 @@ public class MessageText {
 
   public static String getPlatformNeutralString(String key, String sDefault) {
     try {
-      return RESOURCE_BUNDLE.getString(key);
+      return getResourceBundleString(key);
     } catch (MissingResourceException e) {
       return sDefault;
     }
   }
+  
+  private static String getResourceBundleString(String key) {
+  	if (key == null) {
+  		return "";
+  	}
+
+		String value = RESOURCE_BUNDLE.getString(key);
+
+		// Replace {*} with a lookup of *
+		if (value != null && value.indexOf('}') > 0) {
+			Matcher matcher = PAT_PARAM_ALPHA.matcher(value);
+			while (matcher.find()) {
+				key = matcher.group(1);
+		    try {
+		    	String text = getResourceBundleString(key);
+					if (text != null) {
+						value = value.replaceAll("\\Q{" + key + "}\\E", text);
+					}
+		    } catch (MissingResourceException e) {
+		    	// ignore error
+		    }
+			}
+		}
+
+		return value;
+	}
 
   /**
    * Gets the localization key suffix for the running platform
