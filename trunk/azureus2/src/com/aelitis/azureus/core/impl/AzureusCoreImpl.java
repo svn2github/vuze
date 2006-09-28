@@ -476,7 +476,7 @@ AzureusCoreImpl
 				p_man.hasCapability( PlatformManagerCapabilities.TestNativeAvailability )){
 		
 	
-			String[]	dlls = { "niphk", "nvappfilter", "netdog", "vlsp", "imon", "sarah", "MxAVLsp", "mclsp" };
+			String[]	dlls = { "niphk", "nvappfilter", "netdog", "vlsp", "imon", "sarah", "MxAVLsp", "mclsp", "radhslib" };
 			
 			for (int i=0;i<dlls.length;i++){
 				
