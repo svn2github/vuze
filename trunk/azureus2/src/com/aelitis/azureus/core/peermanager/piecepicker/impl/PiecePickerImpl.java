@@ -47,6 +47,8 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 public class PiecePickerImpl
 	implements PiecePicker
 {
+	private static final boolean	LOG_RTA	= false;
+	
 	private static final LogIDs LOGID = LogIDs.PIECES;
 
     /** min ms for recalculating availability - reducing this has serious ramifications */
@@ -549,16 +551,19 @@ public class PiecePickerImpl
 						PEPeerTransport pt1	= (PEPeerTransport)arg1;
 						PEPeerTransport pt2	= (PEPeerTransport)arg2;
 						
-						return( getNextBlockETA( pt1 ) - getNextBlockETA( pt2 ));
-					};
+						return( getNextBlockETAFromNow( pt1 ) - getNextBlockETAFromNow( pt2 ));
+					}
 				});		
 
+			
+			PEPeerTransport	best_uploader = (PEPeerTransport)bestUploaders.get(0);
+			
 				// give priority pieces the first look-in
 				// we need to sort by how quickly the peer can get a block, not just its base speed
 			
 			boolean	allocated_request = true;
 			
-			while( allocated_request ){
+			while( allocated_request && priorityRTAexists ){
 				
 				allocated_request = false;
 				
@@ -586,7 +591,8 @@ public class PiecePickerImpl
 						maxRequests = peer_request_num;
 							
 					}else{
-						if (pt.isSnubbed()){
+						
+						if ( pt.isSnubbed()){
 			                
 							it.remove();
 							
@@ -601,17 +607,30 @@ public class PiecePickerImpl
 			            }
 					}
 	
-					if ( !done_priorities ){
-								
-						done_priorities	= true;
-								
-						computeBasePriorities();
-					}
-	
-					if ( findRTAPieceToDownload( pt )){
+					if ( pt.getNbRequests() <= maxRequests ){
 						
-						allocated_request = true;
+						if ( !done_priorities ){
+							
+							done_priorities	= true;
+									
+							computeBasePriorities();
+							
+							if ( !priorityRTAexists ){
+								
+									// might have stopped RTA as this is calculated in computeBasePriorities
+								
+								break;
+							}
+						}
+				
+						if ( findRTAPieceToDownload( pt, pt == best_uploader )){
 						
+							allocated_request = true;
+							
+						}else{
+							
+							it.remove();
+						}
 					}else{
 						
 						it.remove();
@@ -680,7 +699,7 @@ public class PiecePickerImpl
 							
 	                        if ( peer_managing_requests || !endGameMode ){
 	                        	
-	                        	allocated = findPieceToDownload(pt, maxRequests, (int)(upRates[i]/1024));
+	                        	allocated = findPieceToDownload(pt, maxRequests );
 	                            
 	                        }else{
 	                        	
@@ -728,10 +747,10 @@ public class PiecePickerImpl
 	
 	
 	protected int
-	getNextBlockETA(
+	getNextBlockETAFromNow(
 		PEPeerTransport	pt )
 	{
-		long upRate = pt.getStats().getSmoothDataReceiveRate();
+		long upRate = pt.getStats().getDataReceiveRate();
 		
 		if ( upRate < 1 ){
 			
@@ -904,9 +923,9 @@ public class PiecePickerImpl
 	 * @param pt the PEPeerTransport we're working on
 	 * @return int # of blocks that were requested (0 if no requests were made)
 	 */
-	protected final int findPieceToDownload(PEPeerTransport pt, final int nbWanted, final int smoothPeerSpeedKBSec)
+	protected final int findPieceToDownload(PEPeerTransport pt, final int nbWanted)
 	{
-		final int pieceNumber =getRequestCandidate(pt,smoothPeerSpeedKBSec);
+		final int pieceNumber =getRequestCandidate(pt);
 		if (pieceNumber <0)
         {   // probaly should have found something since chose to try; probably not interested anymore
             // (or maybe Needed but not Done pieces are otherwise not requestable)
@@ -967,7 +986,8 @@ public class PiecePickerImpl
 	
 	protected final boolean 
 	findRTAPieceToDownload(
-		PEPeerTransport pt )
+		PEPeerTransport pt,
+		boolean			best_uploader )
 	{
 		if ( pt == null || pt.getPeerState() != PEPeer.TRANSFERING ){
 			
@@ -992,14 +1012,18 @@ public class PiecePickerImpl
         
         long	now = SystemTime.getCurrentTime();
         
-        for ( int i=startI; i <=endI; i++){
+        long	my_next_block_eta = now + getNextBlockETAFromNow( pt );
         
-            	// is the piece available from this peer?
-        	
+        for ( int i=startI; i <=endI; i++){
+               	
         	long piece_rta = piece_rtas[i];
         	
             if ( peerHavePieces.flags[i] && startPriorities[i] == PRIORITY_REALTIME && piece_rta > 0 ){
   
+            	if ( LOG_RTA ){
+            		System.out.println( "findPiece: " + i + "/" + (piece_rta - now));
+            	}
+            	
                 final DiskManagerPiece dmPiece =dmPieces[i];
 
                 if ( !dmPiece.isDownloadable()){
@@ -1018,10 +1042,28 @@ public class PiecePickerImpl
                 
                 if ( piece_rta >= piece_min_rta_time  ){
                 	
+                   	if ( LOG_RTA ){
+                		System.out.println( "    less urgent" );
+                	}
                 		// piece is less urgent than an already found one
                 
+            	
+                }else if ( my_next_block_eta > piece_rta && !best_uploader ){
+                	
+            		// only allocate if we have a chance of getting this block in time or we're
+            		// the best uploader we've got
+                	
+                  	if ( LOG_RTA ){
+                		System.out.println( "    we're not fast enough" );
+                	}
+                	
                 }else if ( pePiece == null || ( realtime_data = pePiece.getRealTimeData()) == null ){
                     	
+                 		
+                   	if ( LOG_RTA ){
+                		System.out.println( "    alloc new" );
+                	}
+
                    		// no real-time block allocated yet
                 	               		
                 	piece_min_rta_time 	= piece_rta;
@@ -1037,6 +1079,10 @@ public class PiecePickerImpl
                   	
                 	for (int j=0;j<peer_requests.length;j++){
                 		
+                       	if ( LOG_RTA ){
+                    		System.out.println( "    block " + j );
+                    	}
+
                 		if ( pePiece.isDownloaded( j ) || pePiece.isWritten( j )){
                 			
                 				// this block is already downloaded, ignore
@@ -1063,6 +1109,10 @@ public class PiecePickerImpl
                 			
                 			if ( this_pt.getPeerState() != PEPeer.TRANSFERING ){
                 			
+                               	if ( LOG_RTA ){
+                            		System.out.println( "        peer dead" );
+                            	}
+
                 					// peer's dead
                 				
                 				it.remove();
@@ -1077,6 +1127,10 @@ public class PiecePickerImpl
                 			
                 			if ( request_index == -1 ){
                 				
+                               	if ( LOG_RTA ){
+                            		System.out.println( "        request lost" );
+                            	}
+
                 					// request's gone
                 				
                 				it.remove();
@@ -1086,23 +1140,32 @@ public class PiecePickerImpl
                 			
                 			if ( this_pt == pt ){
                 				
+                             	if ( LOG_RTA ){
+                            		System.out.println( "        already req" );
+                            	}
+
                 				pt_already_present	= true;
                 				
                 				break;
                 			}
                 			
-            				long upRate = this_pt.getStats().getSmoothDataReceiveRate();
+            				long this_up_bps = this_pt.getStats().getDataReceiveRate();
             				
-            				if ( upRate < 1 ){
+            				if ( this_up_bps < 1 ){
             					
-            					upRate = 1;
+            					this_up_bps = 1;
             				}
             				
             				int	next_block_bytes = ( request_index + 1 ) * DiskManager.BLOCK_SIZE;
             				
-            				long	this_peer_eta = now + (( next_block_bytes * 1000 ) / upRate );
+            				long	this_peer_eta = now + (( next_block_bytes * 1000 ) / this_up_bps );
 
             				best_eta = Math.min( best_eta, this_peer_eta );
+            				
+                         	if ( LOG_RTA ){
+                        		System.out.println( "        best_eta = " + ( best_eta - now ));
+                        	}
+
                 		}
   
                 			// if we've not already requested this piece
@@ -1110,16 +1173,39 @@ public class PiecePickerImpl
                 		if ( !pt_already_present ){
   
                 				// and there are no outstanding requests or outstanding requests are lagging
-                			
-                			if ( block_peer_requests.size() == 0 || best_eta > piece_rta ){
-                		
-                					// if this piece has higher priority that existing highest, set markers
-                				
-                				if ( piece_rta < piece_min_rta_time ){
-               			                       		
+                			               			
+                			if ( block_peer_requests.size() == 0 ){
+            				          			                
+                              	if ( LOG_RTA ){
+                            		System.out.println( "            block has no requests and is better rta" );
+                            	}
+
+	                        	piece_min_rta_time 	= piece_rta;
+	                        	piece_min_rta_index = i;
+	                        	piece_min_rta_block = j;
+                 				
+	                        	break;	// earlier blocks always have priority
+	                        	
+                			}else if ( best_eta > piece_rta ){
+                				               				
+                             	if ( LOG_RTA ){
+                            		System.out.println( "        block is lagging" );
+                            	}
+
+                             		// if we can do better than existing best effort allocate
+                             	
+                             	if ( my_next_block_eta < best_eta ){
+                             		
+                             	               				              			                
+                                  	if ( LOG_RTA ){
+                                		System.out.println( "            I can do better!" );
+                                	}
+
 		                        	piece_min_rta_time 	= piece_rta;
 		                        	piece_min_rta_index = i;
 		                        	piece_min_rta_block = j;
+		                        	
+		                        	break;	// earlier blocks always have priority
                 				}
                 			}
                 		}
@@ -1165,10 +1251,15 @@ public class PiecePickerImpl
 	
     		if ( request != null ){
     			
-    			System.out.println( "RT Request: " + piece_min_rta_index + "/" + piece_min_rta_block + " -> " + pt.getIp());
+    			List	real_time_requests = rtd.getRequests()[piece_min_rta_block];
     			
-       	   		rtd.getRequests()[piece_min_rta_block].add( new RealTimePeerRequest( pt, request ));
-       	   		
+    			real_time_requests.add( new RealTimePeerRequest( pt, request ));
+
+    			if ( LOG_RTA ){
+    				
+    				System.out.println( "RT Request: " + piece_min_rta_index + "/" + piece_min_rta_block + " -> " + pt.getIp() + "[tot=" + real_time_requests.size() + "]" );
+    			}
+    			       	   		
 				pt.setLastPiece(piece_min_rta_index);
 				
 				pePiece.setLastRequestedPeerSpeed( peerSpeed );
@@ -1201,7 +1292,7 @@ public class PiecePickerImpl
      * 
      * @return int with pieceNumberto be requested or -1 if no request could be found
      */
-    private final int getRequestCandidate(final PEPeerTransport pt,final int smoothPeerSpeedKBSec)
+    private final int getRequestCandidate(final PEPeerTransport pt )
     {
         if (pt ==null ||pt.getPeerState() !=PEPeer.TRANSFERING)
             return -1;

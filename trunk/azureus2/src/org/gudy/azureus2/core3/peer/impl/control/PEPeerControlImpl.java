@@ -1950,7 +1950,10 @@ PEPeerControlImpl
 	{
 		pePieces[pieceNumber] =(PEPieceImpl)piece;
 		nbPiecesActive++;
-		adapter.addPiece(piece);
+		if ( is_running ){
+				// deal with possible piece addition by scheduler loop after closdown started
+			adapter.addPiece(piece);
+		}
 	}
 	
     /** Sends messages to listeners that the piece is no longer active.  All closing

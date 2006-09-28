@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.PausableAverage;
@@ -117,7 +118,7 @@ DiskManagerChannelImpl
 	private long	file_offset_in_torrent;
 	private long	piece_size;
 		
-	private PausableAverage	byte_rate = PausableAverage.getPausableInstance( 1000, 20 );
+	private Average	byte_rate = Average.getInstance( 1000, 20 );
 	
 	private long	current_position;
 	
@@ -343,7 +344,7 @@ DiskManagerChannelImpl
    			pieces_to_buffer = MIN_PIECES_TO_BUFFER;
    		}
    		   		
-   		System.out.println( "rate = " + rate + ", buffer_bytes = " + buffer_bytes + ", pieces = " + pieces_to_buffer + ", millis_per_piece = " + millis_per_piece );
+   		// System.out.println( "rate = " + rate + ", buffer_bytes = " + buffer_bytes + ", pieces = " + pieces_to_buffer + ", millis_per_piece = " + millis_per_piece );
    		
    		Arrays.fill( rtas, 0 );
    		 
@@ -564,31 +565,24 @@ DiskManagerChannelImpl
 							current_position = pos;
 						}
 					}else{
-
-						try{
-							byte_rate.pause();
 	
-							inform( new event( pos ));
+						inform( new event( pos ));
+						
+						synchronized( data_written ){
+							
+							waiters.add( wait_sem );
+						}
+						
+						try{
+
+							wait_sem.reserve();
+							
+						}finally{
 							
 							synchronized( data_written ){
 								
-								waiters.add( wait_sem );
+								waiters.remove( wait_sem );
 							}
-							
-							try{
-	
-								wait_sem.reserve();
-								
-							}finally{
-								
-								synchronized( data_written ){
-									
-									waiters.remove( wait_sem );
-								}
-							}
-						}finally{
-							
-							byte_rate.resume();
 						}
 					}
 				}

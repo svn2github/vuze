@@ -55,6 +55,21 @@ PausableAverage
 		super( _refreshRate, _period );
 	}
 	
+	public void
+	addValue(
+		long	value )
+	{		
+		super.addValue( value );
+	}
+	
+	public long
+	getAverage()
+	{
+		long	average = super.getAverage();
+		
+		return( average );
+	}
+	
 	protected long
 	getEffectiveTime()
 	{
