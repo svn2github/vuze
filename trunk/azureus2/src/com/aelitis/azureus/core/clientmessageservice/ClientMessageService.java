@@ -51,5 +51,11 @@ public interface ClientMessageService {
 	 * Drop and closedown the connection with the server.
 	 */
 	public void close();
-
+	
+	/**
+	 * Override the default max message size
+	 * @param max_bytes
+	 */
+	public void
+	setMaximumMessageSize( int max_bytes );
 }

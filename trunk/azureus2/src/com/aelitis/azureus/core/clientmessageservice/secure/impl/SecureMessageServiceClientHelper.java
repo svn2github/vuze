@@ -177,4 +177,10 @@ SecureMessageServiceClientHelper
 	{
 		delegate.close();
 	}
+	
+	public void
+	setMaximumMessageSize( int max_bytes )
+	{
+		delegate.setMaximumMessageSize( max_bytes );
+	}
 }

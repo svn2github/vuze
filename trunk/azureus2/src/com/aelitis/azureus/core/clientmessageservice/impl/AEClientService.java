@@ -47,7 +47,7 @@ public class AEClientService implements ClientMessageService {
 	private final int port;
 	private final String msg_type_id;
 	private final int timeout_secs;
-	
+	private int max_message_bytes	= -1;
 	private ClientConnection conn;
 	
 	private final AESemaphore read_block = new AESemaphore( "AEClientService:R" );
@@ -109,6 +109,9 @@ public class AEClientService implements ClientMessageService {
       
     	public void connectSuccess(Transport transport, ByteBuffer remaining_initial_data ){
     		conn = new ClientConnection((TCPTransportImpl)transport );
+    		if ( max_message_bytes != -1 ){
+    			conn.setMaximumMessageSize( max_message_bytes );
+    		}
     		connect_block.release();       
     	}
      
@@ -206,5 +209,9 @@ public class AEClientService implements ClientMessageService {
 		rw_service.destroy();
 	}
 	
-	
+	public void
+	setMaximumMessageSize( int max_bytes )
+	{
+		max_message_bytes	= max_bytes;
+	}
 }
