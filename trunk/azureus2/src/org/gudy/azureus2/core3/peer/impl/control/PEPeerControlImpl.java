@@ -252,7 +252,7 @@ PEPeerControlImpl
             final DiskManagerPiece dmPiece =dm_pieces[i];
             if (!dmPiece.isDone() &&dmPiece.getNbWritten() >0)
             {
-                addPiece(new PEPieceImpl(this, dmPiece, 0), i);
+                addPiece(new PEPieceImpl(this, dmPiece, 0), i, true );
             }
         }
 
@@ -288,10 +288,6 @@ PEPeerControlImpl
 
 		checkFinished(true);
 
-		PeerNATTraverser.getSingleton().register( this );
-		
-		PeerControlSchedulerFactory.getSingleton().register(this);
-		
 		UploadSlotManager.getSingleton().registerHelper( upload_helper );
 		
 		lastNeededUndonePieceChange =Long.MIN_VALUE;
@@ -302,13 +298,16 @@ PEPeerControlImpl
 			// activate after marked as running as we may synchronously add connections here due to pending activations
 		
 		adapter.getPeerManagerRegistration().activate( this );
+		
+		PeerNATTraverser.getSingleton().register( this );
+		
+		PeerControlSchedulerFactory.getSingleton().register(this);
 	}
 
 	public void stopAll()
 	{
-		is_running =false;
+		is_running = false;
 
-		
 		UploadSlotManager.getSingleton().deregisterHelper( upload_helper );
 		
 		PeerControlSchedulerFactory.getSingleton().unregister(this);
@@ -1948,9 +1947,14 @@ PEPeerControlImpl
 	 */
 	public void addPiece(final PEPiece piece, final int pieceNumber)
 	{
+		addPiece( piece, pieceNumber, false );
+	}
+	
+	protected void addPiece(final PEPiece piece, final int pieceNumber, final boolean force_add )
+	{
 		pePieces[pieceNumber] =(PEPieceImpl)piece;
 		nbPiecesActive++;
-		if ( is_running ){
+		if ( is_running || force_add ){
 				// deal with possible piece addition by scheduler loop after closdown started
 			adapter.addPiece(piece);
 		}
