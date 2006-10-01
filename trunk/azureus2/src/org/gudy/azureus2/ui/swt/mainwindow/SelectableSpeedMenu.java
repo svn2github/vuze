@@ -26,9 +26,11 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 
@@ -56,7 +58,13 @@ public class SelectableSpeedMenu {
         final boolean unlim = (maxBandwidth == 0);
         if(maxBandwidth == 0 && !up_menu )
         {
+      		GlobalManagerStats stats = globalManager.getStats();
+      		int dataReceive = stats.getDataReceiveRate();
+      		if (dataReceive < 1024) {
             maxBandwidth = 275;
+      		} else {
+      			maxBandwidth = dataReceive / 1024;      			
+      		}
         }
         
         boolean	auto = false;
