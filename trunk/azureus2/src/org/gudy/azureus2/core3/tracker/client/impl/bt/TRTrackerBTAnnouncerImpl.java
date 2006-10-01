@@ -2069,18 +2069,47 @@ TRTrackerBTAnnouncerImpl
 					try {
 						time_to_wait = ((Long) metaData.get("interval")).longValue();
 
+						Long raw_min_interval = (Long) metaData.get("min interval");
+
+						if (Logger.isEnabled()) {
+							Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_INFORMATION,
+									"Received from announce: 'interval' = " + time_to_wait
+											+ "; 'min interval' = " + raw_min_interval));
+						}
+
 						// guard against crazy return values
 						if (time_to_wait < 0 || time_to_wait > 0xffffffffL) {
 							time_to_wait = 0xffffffffL;
 						}
 
-						Long raw_min_interval = (Long) metaData.get("min interval");
 						if (raw_min_interval != null) {
 							min_interval = raw_min_interval.longValue();
 
 							// ignore useless values
 							// Note: Many trackers set min_interval and interval the same.
-							if (min_interval < 1 || min_interval > time_to_wait) {
+							if (min_interval < 1) {
+								if (Logger.isEnabled()) {
+									Logger.log(new LogEvent(
+											torrent,
+											LOGID,
+											LogEvent.LT_INFORMATION,
+											"Tracker being silly and "
+													+ "returning a 'min interval' of less than 1 second ("
+													+ min_interval + ")"));
+								}
+								min_interval = 0;
+							} else if (min_interval > time_to_wait) {
+								if (Logger.isEnabled()) {
+									Logger.log(new LogEvent(
+											torrent,
+											LOGID,
+											LogEvent.LT_INFORMATION,
+											"Tracker being silly and "
+													+ "returning a 'min interval' ("
+													+ min_interval
+													+ ") greater than recommended announce 'interval'"
+													+ " (" + time_to_wait + ")"));
+								}
 								min_interval = 0;
 							}
 						}
