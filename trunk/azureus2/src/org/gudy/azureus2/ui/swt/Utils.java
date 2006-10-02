@@ -997,5 +997,26 @@ public class Utils {
 		}
 		return bMetricsOk;
 	}
+
+	/**
+	 * Relayout all composites up from control until there's enough room for the
+	 * control to fit
+	 * 
+	 * @param control Control that had it's sized changed and needs more room
+	 */
+	public static void relayout(Control control) {
+		Point size = control.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+		Composite parent = control.getParent();
+		while (parent != null) {
+			parent.layout(true);
+			Point newSize = control.getSize();
+			
+			if (newSize.y >= size.y && newSize.x >= size.x) {
+				break;
+			}
+			
+			parent = parent.getParent();
+		} 
+	}
 }
 
