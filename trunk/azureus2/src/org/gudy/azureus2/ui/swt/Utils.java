@@ -1005,6 +1005,10 @@ public class Utils {
 	 * @param control Control that had it's sized changed and needs more room
 	 */
 	public static void relayout(Control control) {
+		if (control == null || control.isDisposed()) {
+			return;
+		}
+
 		Point size = control.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
 		Composite parent = control.getParent();
 		while (parent != null) {
