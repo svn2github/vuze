@@ -58,6 +58,8 @@ TRTrackerServerImpl
 	public static boolean	all_networks_permitted		= true;
 	public static String[]	permitted_networks			= {};
 	
+	public static String	redirect_on_not_found		= "";
+	
 		// torrent map is static across all protocol servers
 	
 	private static Map		torrent_map = new HashMap(); 
@@ -123,6 +125,7 @@ TRTrackerServerImpl
 		
 		full_scrape_enable = COConfigurationManager.getBooleanParameter( "Tracker Server Full Scrape Enable" );
 
+		redirect_on_not_found = COConfigurationManager.getStringParameter( "Tracker Server Not Found Redirect" ).trim();
 	}
 	
 	protected static boolean

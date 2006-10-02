@@ -133,30 +133,43 @@ TRTrackerServerProcessorTCP
 				
 				}else{
 					
+					String	redirect = TRTrackerServerImpl.redirect_on_not_found;
+					
 					if ( announce_and_scrape_only ){
 						
-						throw( new Exception( "Tracker only supports announce and scrape functions" ));
-					}
-					
-					setTaskState( "external request" );
-
-					disable_timeouts	= true;
-					
-						// check non-tracker authentication
+						if ( redirect.length() == 0 ){
+							
+							throw( new Exception( "Tracker only supports announce and scrape functions" ));
+						}
+					}else{
 						
-					String user = doAuthentication( url_path, input_header, os, false );
-					
-					if ( user == null ){
+						setTaskState( "external request" );
+	
+						disable_timeouts	= true;
 						
-						return;
+							// check non-tracker authentication
+							
+						String user = doAuthentication( url_path, input_header, os, false );
+						
+						if ( user == null ){
+							
+							return;
+						}
+						
+						if ( handleExternalRequest( client_address, user, str, input_header, is, os )){
+						
+							return;
+						}
 					}
 					
-					if ( handleExternalRequest( client_address, user, str, input_header, is, os )){
-					
-						return;
+					if ( redirect.length() > 0 ){
+						
+						os.write( ("HTTP/1.1 301 Moved Permanently" + NL + "Location: " + redirect + NL + NL).getBytes() );
+						
+					}else{
+						
+						os.write( ("HTTP/1.1 404 Not Found" + NL + NL ).getBytes() );
 					}
-					
-					os.write( ("HTTP/1.1 404 Not Found\r\n\r\n").getBytes() );
 					
 					os.flush();
 
