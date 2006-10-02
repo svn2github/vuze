@@ -241,6 +241,12 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 				{ 
 					return( shared_secret ); 
 				}
+				
+			   	public int 
+				getSpecificPort()
+				{
+					return( -1 );
+				}
 			};
 			
 	NetworkManager.getSingleton().requestIncomingConnectionRouting(

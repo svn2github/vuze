@@ -73,6 +73,8 @@ public class NatCheckerServer extends AEThread {
           }
           public Object minMatches( InetSocketAddress address, ByteBuffer to_compare, int port ) { return( matches( address, to_compare, port )); } 
           public byte[] getSharedSecret(){ return( null ); }
+  	   	  public int getSpecificPort(){return( -1 );
+		}
         };
         
         NetworkManager.getSingleton().requestIncomingConnectionRouting(

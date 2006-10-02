@@ -90,6 +90,11 @@ public class OutgoingMessageQueue {
     this.stream_encoder = stream_encoder;
   }
   
+  public MessageStreamEncoder
+  getEncoder()
+  {
+	  return( stream_encoder );
+  }
   
   /**
    * Get the percentage of the current message that has already been sent out.

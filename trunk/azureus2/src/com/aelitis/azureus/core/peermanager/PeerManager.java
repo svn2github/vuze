@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
@@ -263,6 +265,12 @@ public class PeerManager {
     	{
     		return( null );	// registered manually above
     	}
+    	
+	   	public int 
+		getSpecificPort()
+		{
+			return( -1 );
+		}
     };
     
     // register for incoming connection routing
@@ -292,15 +300,77 @@ public class PeerManager {
         });
   }
   
+  	public PeerManagerRegistration
+  	manualMatchHash(
+  		InetSocketAddress	address,
+  		byte[]				hash )
+  	{			
+  		PeerManagerRegistrationImpl	routing_data = null;
+	  
+  		try{
+  			
+  			managers_mon.enter();
+				  		
+  			List	registrations = (List)registered_legacy_managers.get( new HashWrapper( hash ));
+   				
+  			if ( registrations != null ){
+   					
+  				routing_data = (PeerManagerRegistrationImpl)registrations.get(0);
+   			}
+		}finally{
+			
+			managers_mon.exit();
+		}
+		
+		if ( routing_data != null ){
+			
+			if ( !routing_data.isActive()){
+			
+				if ( routing_data.isKnownSeed( address )){
+					
+					if (Logger.isEnabled()){
+						Logger.log(new LogEvent(LOGID, "Activation request from " + address + " denied as known seed" ));
+					}
+					
+					routing_data = null;
+					
+				}else{
+					
+					if ( !routing_data.getAdapter().activateRequest( address )){
+
+	  					if (Logger.isEnabled()){
+    						Logger.log(new LogEvent(LOGID, "Activation request from " + address + " denied by rules" ));
+    					}
+ 
+						routing_data = null;	
+					}
+				}
+			}
+		}
+		
+		return routing_data;
+  	}	
      
+  	public void
+  	manualRoute(
+  		PeerManagerRegistration	_registration,
+  		NetworkConnection		_connection )
+  	{
+   		PeerManagerRegistrationImpl	registration = (PeerManagerRegistrationImpl)_registration;
+		
+		registration.route( _connection );
+  	}
+  	
   public PeerManagerRegistration
   registerLegacyManager(
-	HashWrapper						hash,
+	TOTorrent						torrent,
 	PeerManagerRegistrationAdapter  adapter )
   {
 	  try{
 		  managers_mon.enter();
-		  		
+		  
+		  HashWrapper	hash = torrent.getHashWrapper();
+		 
 		  	// normally we only get a max of 1 of these. However, due to DownloadManager crazyness
 		  	// we can get an extra one when adding a download that already exists...
 		  
@@ -315,11 +385,18 @@ public class PeerManager {
 			  IncomingConnectionManager.getSingleton().addSharedSecret( hash.getBytes());
 		  }
 		  
-		  PeerManagerRegistration	registration = new PeerManagerRegistrationImpl( hash, adapter );
+		  PeerManagerRegistration	registration = new PeerManagerRegistrationImpl( torrent, hash, adapter );
 		    
 		  registrations.add( registration );
 		  
 		  return( registration );
+		  
+	  }catch( TOTorrentException e ){
+		  
+		  Debug.printStackTrace(e);
+		  
+		  return( null );
+		  
 	  }finally{
 		  
 		  managers_mon.exit();
@@ -333,6 +410,7 @@ public class PeerManager {
   	implements PeerManagerRegistration
   {
 	private HashWrapper 					hash;
+	private TOTorrent	 					torrent;
 	private PeerManagerRegistrationAdapter	adapter;
 	
 	private TorrentDownload					download;
@@ -345,11 +423,19 @@ public class PeerManager {
 	
 	protected
 	PeerManagerRegistrationImpl(
+		TOTorrent						_torrent,
 		HashWrapper						_hash,
 		PeerManagerRegistrationAdapter	_adapter )
 	{
+		torrent	= _torrent;
 		hash	= _hash;
 		adapter	= _adapter;
+	}
+	
+	public TOTorrent
+	getTorrent()
+	{
+		return( torrent );
 	}
 	
 	protected HashWrapper

@@ -85,6 +85,8 @@ UPnPMappingManager
 		
 		addConfigPort( "upnp.mapping.dataport", true, "TCP.Listen.Port.Enable", "TCP.Listen.Port" );
 
+		addConfigPort( "upnp.mapping.dataport", true, "HTTP.Data.Listen.Port.Enable", "HTTP.Data.Listen.Port" );
+
 			// tracker server TCP
 		
 		addConfigPort( "upnp.mapping.tcptrackerport", true, "Tracker Port Enable", "Tracker Port" );

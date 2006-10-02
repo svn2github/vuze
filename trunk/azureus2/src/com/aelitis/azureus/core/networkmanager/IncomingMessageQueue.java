@@ -66,7 +66,11 @@ public class IncomingMessageQueue {
     stream_decoder.resumeDecoding();
   }
   
-  
+  public MessageStreamDecoder
+  getDecoder()
+  {
+	  return( stream_decoder );
+  }
   
   /**
    * Get the percentage of the current message that has already been received.

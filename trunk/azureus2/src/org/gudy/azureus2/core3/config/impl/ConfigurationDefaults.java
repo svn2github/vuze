@@ -109,12 +109,16 @@ public class ConfigurationDefaults {
 
     def.put("Override Ip", "");
     def.put("Enable incremental file creation", FALSE);
+    
     def.put("TCP.Listen.Port", new Long( 6881 ));
     def.put("TCP.Listen.Port.Enable", TRUE );
     def.put("UDP.Listen.Port", new Long( 6881 ));
     def.put("UDP.Listen.Port.Enable", TRUE );
     def.put("UDP.NonData.Listen.Port", new Long( 6881 ));	// two effective enablers for this, dht + tracker udp client
     def.put("UDP.NonData.Listen.Port.Same", TRUE );			// control over whether non-data and data udp port are the same
+    def.put( "HTTP.Data.Listen.Port", new Long( 80 ));
+    def.put( "HTTP.Data.Listen.Port.Enable", FALSE );
+    
     def.put("max active torrents", new Long(4));
     def.put("max downloads", new Long(4));
     def.put("Newly Seeding Torrents Get First Priority", TRUE);

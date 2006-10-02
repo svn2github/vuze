@@ -23,10 +23,14 @@
 package com.aelitis.azureus.core.peermanager;
 
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 
 public interface 
 PeerManagerRegistration 
 {
+	public TOTorrent
+	getTorrent();
+	
 	public void
 	activate(
 		PEPeerControl	peer_control );

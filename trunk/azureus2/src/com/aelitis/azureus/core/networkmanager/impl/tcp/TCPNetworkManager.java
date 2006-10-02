@@ -108,14 +108,9 @@ TCPNetworkManager
 
 
 	  private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();
-	  private final IncomingSocketChannelManager incoming_socketchannel_manager = new IncomingSocketChannelManager();
-
-	 /**
-	   * Get the manager for new incoming socket channel connections.
-	   * @return manager
-	   */
-	  public IncomingSocketChannelManager getIncomingSocketChannelManager() {  return incoming_socketchannel_manager;  }
 	  
+	  private final IncomingSocketChannelManager incoming_socketchannel_manager = 
+		  new IncomingSocketChannelManager( "TCP.Listen.Port", "TCP.Listen.Port.Enable" );	  
 
 	  /**
 	   * Get the socket channel connect / disconnect manager.

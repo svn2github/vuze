@@ -192,17 +192,13 @@ DownloadManagerController
 		}
 		
 	
-		try{
-			TOTorrent torrent = download_manager.getTorrent();
-			if (torrent != null) {
-				peer_manager_registration = PeerManager.getSingleton().registerLegacyManager( torrent.getHashWrapper(), this );
-			}
-			
-		}catch( TOTorrentException e ){
-			
-			Debug.printStackTrace(e);
-		}
+		TOTorrent torrent = download_manager.getTorrent();
 
+		if (torrent != null) {
+			
+			peer_manager_registration = PeerManager.getSingleton().registerLegacyManager( torrent, this );
+		}
+			
 		DownloadManagerState state = download_manager.getDownloadState();
 		if (state.parameterExists(DownloadManagerState.PARAM_DND_FLAGS)) {
 			long flags = state.getLongParameter(DownloadManagerState.PARAM_DND_FLAGS);

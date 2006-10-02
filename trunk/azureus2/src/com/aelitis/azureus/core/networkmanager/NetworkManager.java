@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.impl.*;
+import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
@@ -145,7 +146,6 @@ public class NetworkManager {
   
   
   private NetworkManager() {
-    /* nothing */    
   }
   
   public static int getMinMssSize() {  return Math.min( TCPNetworkManager.getTcpMssSize(), UDPNetworkManager.getUdpMssSize()); }
@@ -196,6 +196,8 @@ public class NetworkManager {
   
   
   public void initialize() {
+	HTTPNetworkManager.getSingleton();  
+	   
     AzureusCoreFactory.getSingleton().getGlobalManager().addListener( new GlobalManagerListener() {
       public void downloadManagerAdded( DownloadManager dm ){}
       public void downloadManagerRemoved( DownloadManager dm ){}
@@ -420,6 +422,8 @@ public class NetworkManager {
      * @return
      */
     public byte[] getSharedSecret();
+    
+    public int getSpecificPort();
   }
   
   

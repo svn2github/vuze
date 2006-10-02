@@ -47,8 +47,11 @@ public class IncomingSocketChannelManager
 {
   private static final LogIDs LOGID = LogIDs.NWMAN;
 
-     
-  private int tcp_listen_port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+  private final String	port_config_key;
+  private final String	port_enable_config_key;
+  
+  private int tcp_listen_port;
+  
   private int so_rcvbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
   private String bind_address = COConfigurationManager.getStringParameter( "Bind IP" );
     
@@ -64,11 +67,17 @@ public class IncomingSocketChannelManager
   /**
    * Create manager and begin accepting and routing new connections.
    */
-  public IncomingSocketChannelManager() {    
+  public IncomingSocketChannelManager( String _port_config_key, String _port_enable_config_key ) {
+	  
+	port_config_key 		= _port_config_key;
+	port_enable_config_key	= _port_enable_config_key;
+	
+	tcp_listen_port = COConfigurationManager.getIntParameter( port_config_key );
+
     //allow dynamic port number changes
-    COConfigurationManager.addParameterListener( "TCP.Listen.Port", new ParameterListener() {
+    COConfigurationManager.addParameterListener( port_config_key, new ParameterListener() {
       public void parameterChanged(String parameterName) {
-        int port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+        int port = COConfigurationManager.getIntParameter( port_config_key );
         if( port != tcp_listen_port ) {
         	tcp_listen_port = port;
           restart();
@@ -76,7 +85,7 @@ public class IncomingSocketChannelManager
       }
     });
     
-    COConfigurationManager.addParameterListener( "TCP.Listen.Port.Enable", new ParameterListener() {
+    COConfigurationManager.addParameterListener( port_enable_config_key, new ParameterListener() {
         public void parameterChanged(String parameterName) {
           restart();
         }
@@ -192,10 +201,10 @@ public class IncomingSocketChannelManager
           Debug.out( msg );
           Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg));
           tcp_listen_port = RandomUtils.generateRandomNetworkListenPort();
-          COConfigurationManager.setParameter( "TCP.Listen.Port", tcp_listen_port );
+          COConfigurationManager.setParameter( port_config_key, tcp_listen_port );
         }
  
-        if ( COConfigurationManager.getBooleanParameter("TCP.Listen.Port.Enable")){
+        if ( COConfigurationManager.getBooleanParameter(port_enable_config_key)){
         	
 		    if( server_selector == null ) {
 		      InetSocketAddress address;

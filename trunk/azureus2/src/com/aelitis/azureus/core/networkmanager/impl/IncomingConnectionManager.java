@@ -103,6 +103,13 @@ IncomingConnectionManager
 	        NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)entry.getKey();
 	        MatchListener this_listener = (MatchListener)entry.getValue();
 	        
+	        int	specific_port = bm.getSpecificPort();
+	        
+	        if ( specific_port != -1 && specific_port != incoming_port ){
+	        	
+	        	continue;
+	        }
+	        
 	        if ( min_match ){
 	            if( orig_position < bm.minSize() ) {  //not enough bytes yet to compare
 	  	          continue;
