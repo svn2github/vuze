@@ -635,7 +635,7 @@ MainWindow
 	    	Logger.log(new LogEvent(LOGID, "Removing Icon Bar", e));
 	    }
 		}
-		shell.layout();
+		shell.layout(true, true);
 	}
 
 	private void showMainWindow() {
