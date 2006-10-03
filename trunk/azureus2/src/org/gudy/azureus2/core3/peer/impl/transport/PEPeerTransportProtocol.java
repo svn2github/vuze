@@ -201,13 +201,18 @@ PEPeerTransportProtocol
   
   
   //INCOMING
-  public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, NetworkConnection _connection ) {
-    manager = _manager;
+  public 
+  PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, NetworkConnection _connection ) {
+    manager 		= _manager;
+    peer_source		= _peer_source;
+    connection 		= _connection;
+
+    incoming = true;
+    
     diskManager =manager.getDiskManager();
     piecePicker =manager.getPiecePicker();
     nbPieces =diskManager.getNbPieces();
     
-    peer_source	= _peer_source;
     
     InetSocketAddress notional_address = _connection.getEndpoint().getNotionalAddress();
     
@@ -216,52 +221,63 @@ PEPeerTransportProtocol
     
     peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, 0 );  //this will be recreated upon az handshake decode
     
-    incoming = true;
-    connection = _connection;
     plugin_connection = new ConnectionImpl(connection);
     
     peer_stats = manager.createPeerStats();
 
     changePeerState( PEPeer.CONNECTING );
-    
-    //"fake" a connect request to register our listener
-    connection.connect( new NetworkConnection.ConnectionListener() {
-      public final void connectStarted() {
-        connection_state = PEPeerTransport.CONNECTION_CONNECTING;
-      }
-      
-      public final void connectSuccess( ByteBuffer remaining_initial_data ) {  //will be called immediately
-      	if (Logger.isEnabled())
-					Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
-							"In: Established incoming connection"));
-        initializeConnection();
-        
-        /*
-         * Waiting until we've received the initiating-end's full handshake, before sending back our own,
-         * really should be the "proper" behavior.  However, classic BT trackers running NAT checking will
-         * only send the first 48 bytes (up to infohash) of the peer handshake, skipping peerid, which means
-         * we'll never get their complete handshake, and thus never reply, which causes the NAT check to fail.
-         * So, we need to send our handshake earlier, after we've verified the infohash.
-         * NOTE:
-         * This code makes the assumption that the inbound infohash has already been validated,
-         * as we don't check their handshake fully before sending our own.
-         */
-        sendBTHandshake();
-      }
-      
-      public final void connectFailure( Throwable failure_msg ) {  //should never happen
-        Debug.out( "ERROR: incoming connect failure: ", failure_msg );
-        closeConnectionInternally( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage());
-      }
-      
-      public final void exceptionThrown( Throwable error ) {
-        if( error.getMessage() == null ) {
-          Debug.out( error );
-        }
-        
-        closeConnectionInternally( "connection exception: " + error.getMessage());
-      }
-    });
+  }
+  
+  public void
+  start()
+  {
+	  	// split out connection initiation from constructor so we can get access to the peer transport
+	  	// before message processing starts
+	  
+	if ( incoming ){
+		
+			//"fake" a connect request to register our listener
+		
+	    connection.connect( new NetworkConnection.ConnectionListener() {
+	      public final void connectStarted() {
+	        connection_state = PEPeerTransport.CONNECTION_CONNECTING;
+	      }
+	      
+	      public final void connectSuccess( ByteBuffer remaining_initial_data ) {  //will be called immediately
+	      	if (Logger.isEnabled())
+						Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
+								"In: Established incoming connection"));
+	        initializeConnection();
+	        
+	        /*
+	         * Waiting until we've received the initiating-end's full handshake, before sending back our own,
+	         * really should be the "proper" behavior.  However, classic BT trackers running NAT checking will
+	         * only send the first 48 bytes (up to infohash) of the peer handshake, skipping peerid, which means
+	         * we'll never get their complete handshake, and thus never reply, which causes the NAT check to fail.
+	         * So, we need to send our handshake earlier, after we've verified the infohash.
+	         * NOTE:
+	         * This code makes the assumption that the inbound infohash has already been validated,
+	         * as we don't check their handshake fully before sending our own.
+	         */
+	        sendBTHandshake();
+	      }
+	      
+	      public final void connectFailure( Throwable failure_msg ) {  //should never happen
+	        Debug.out( "ERROR: incoming connect failure: ", failure_msg );
+	        closeConnectionInternally( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage());
+	      }
+	      
+	      public final void exceptionThrown( Throwable error ) {
+	        if( error.getMessage() == null ) {
+	          Debug.out( error );
+	        }
+	        
+	        closeConnectionInternally( "connection exception: " + error.getMessage());
+	      }
+	    });
+	}else{
+		// not pulled out startup from outbound connections yet...
+	}
   }
   
   
@@ -735,8 +751,10 @@ PEPeerTransportProtocol
     
     //System.out.println( "["+(System.currentTimeMillis()/1000)+"] " +connection + " unchoked");
     
+    choking_other_peer = false;	// set this first as with pseudo peers we can effectively synchronously act
+    							// on the unchoke advice and we don't want that borking with choked still set
+    
     connection.getOutgoingMessageQueue().addMessage( new BTUnchoke(), false );
-    choking_other_peer = false;
   }
 
 

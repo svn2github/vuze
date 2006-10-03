@@ -1,5 +1,5 @@
 /*
- * Created on 12 Jul 2006
+ * Created on 3 Oct 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -15,25 +15,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SAS au capital de 46,603.30 euros
+ * AELITIS, SAS au capital de 63.529,40 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
 package com.aelitis.azureus.core.peermanager;
 
-import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 
 public interface 
-PeerManagerRegistration 
+PeerManagerRoutingListener 
 {
 	public void
-	activate(
-		PEPeerControl	peer_control );
-	
-	public void
-	deactivate();
-	
-	public void
-	unregister();
+	routed(
+		PEPeerTransport	peer );
 }

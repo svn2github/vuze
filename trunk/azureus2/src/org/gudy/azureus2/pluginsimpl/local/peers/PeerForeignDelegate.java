@@ -76,6 +76,12 @@ PeerForeignDelegate
 		foreign		= _foreign;
 	}
 	
+	public void
+	start()
+	{
+		// should never be called
+		Debug.out( "eh?" );
+	}
 	
     /**
      * Should never be called

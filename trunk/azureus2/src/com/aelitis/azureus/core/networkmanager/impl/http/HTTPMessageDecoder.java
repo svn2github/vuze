@@ -26,12 +26,16 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTPiece;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTBitfield;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTRequest;
 
 public class 
@@ -41,22 +45,26 @@ HTTPMessageDecoder
 	private static final int 	MAX_HEADER	= 1024;
 	private static final String	NL			= "\r\n";
 
-	private TOTorrent				torrent;
+	private HTTPNetworkConnection	http_connection;
 	
 	private volatile boolean		paused;
 	private volatile boolean		destroyed;
 	
-	private StringBuffer	header = new StringBuffer();
+	private boolean			sent_handshake	= false;
+	
+	private StringBuffer	header_so_far = new StringBuffer();
 	
 	private List			messages = new ArrayList();
 	
 	private int				protocol_bytes_read;
 	
+	private byte[]	peer_id	= PeerUtils.createPeerID();
+	
 	public void
-	setTorrent(
-		TOTorrent		_torrent )
+	setConnection(
+		HTTPNetworkConnection	_http_connection )
 	{
-		torrent	= _torrent;
+		http_connection	= _http_connection;
 	}
 	
 	public int
@@ -66,6 +74,17 @@ HTTPMessageDecoder
 	
 		throws IOException
 	{
+			// before we start message processing we should have had the connection bound
+		
+		if ( http_connection == null ){
+			
+			Debug.out( "connection not yet assigned" );
+			
+			throw( new IOException( "Internal error - connection not yet assigned" ));
+		}
+		
+		System.out.println( "performStreamDecode" );
+		
 		protocol_bytes_read	= 0;
 		
 		int	rem = max_bytes;
@@ -91,22 +110,22 @@ HTTPMessageDecoder
 			
 			char	c = (char)(bytes[0]&0xff);
 			
-			header.append( c );
+			header_so_far.append( c );
 			
-			if ( header.length() > MAX_HEADER ){
+			if ( header_so_far.length() > MAX_HEADER ){
 				
 				throw( new IOException( "HTTP header exceeded maximum of " + MAX_HEADER ));
 			}
 			
 			if ( c == '\n' ){
 				
-				String	header_str = header.toString();
+				String	header_str = header_so_far.toString();
 				
 				if ( header_str.endsWith( NL + NL )){
 					
 					receiveHeader( header_str );
 				
-					header.setLength(0);
+					header_so_far.setLength(0);
 				}
 			}
 		}
@@ -163,22 +182,31 @@ HTTPMessageDecoder
 			throw( new IOException( "Piece number not specified" ));
 		}
 		
-		long	total_size	= torrent.getSize();
-		long	piece_size 	= torrent.getPieceLength();
-		int		pieces 		= torrent.getNumberOfPieces();
+		PEPeerControl	control = http_connection.getPeer().getControl();
 		
-		int	this_piece_size;
+		int	this_piece_size = control.getPieceLength( piece );
 		
-		if ( piece == pieces - 1 ){
+		if ( !sent_handshake ){
 			
-			this_piece_size = (int)(total_size - ((long)(pieces - 1) * (long)piece_size));
+			sent_handshake	= true;
 			
-		}else{
+			messages.add( new BTHandshake( control.getHash(), peer_id, false ));
 			
-			this_piece_size = (int)piece_size;
+			byte[]	bits = new byte[(control.getPieces().length +7) /8];
+			
+			DirectByteBuffer buffer = new DirectByteBuffer( ByteBuffer.wrap( bits ));
+			
+			messages.add( new BTBitfield( buffer ));
 		}
 		
-		messages.add( new BTRequest( piece, 0, this_piece_size ));
+		http_connection.addRequest( new BTRequest( piece, 0, this_piece_size ));
+	}
+	
+	protected void
+	addRequest(
+		BTRequest	request )
+	{
+		messages.add( request );
 	}
 	
 	public Message[] 
@@ -223,7 +251,10 @@ HTTPMessageDecoder
 	public void 
 	resumeDecoding()
 	{
-		paused	= false;
+		if ( !destroyed ){
+			
+			paused	= false;
+		}
 	}
 	  
 	public ByteBuffer 

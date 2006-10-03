@@ -45,7 +45,9 @@ public class ByteFormatter
   public static String nicePrint(byte[] data) {
     return( nicePrint( data, false ));
   }
-  
+  public static String nicePrint(byte[] data, int max){
+	    return( nicePrint( data, false, max ));
+	  }
   
   public static String nicePrint( ByteBuffer data ) {
     byte[] raw = new byte[ data.limit() ];
@@ -58,11 +60,19 @@ public class ByteFormatter
   }
   
   
-    
   public static String 
   nicePrint(
   	byte[] data, 
 	boolean tight) 
+  {
+	  return( nicePrint( data, tight, 1024 ));
+  }
+  
+  public static String 
+  nicePrint(
+  	byte[] data, 
+	boolean tight,
+	int		max_length )
   {
 		if (data == null) {
 			return "";
@@ -70,9 +80,8 @@ public class ByteFormatter
 
 		int dataLength = data.length;
 
-		// Arbitrary limit
-		if (dataLength > 1024) {
-			dataLength = 1024;
+		if (dataLength > max_length) {
+			dataLength = max_length;
 		}
 
 		int size = dataLength * 2;
@@ -98,7 +107,7 @@ public class ByteFormatter
 		}
 
 		try {
-			return new String(out);
+			return new String(out) + (data.length > max_length?"...":"");
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
 		}

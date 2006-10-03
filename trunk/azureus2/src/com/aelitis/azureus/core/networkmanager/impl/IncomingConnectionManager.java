@@ -449,7 +449,7 @@ IncomingConnectionManager
 									"Incoming stream from [" + transport_helper.getAddress()
 									+ "] does not match "
 									+ "any known byte pattern: "
-									+ ByteFormatter.nicePrint(ic.buffer.array())));
+									+ ByteFormatter.nicePrint(ic.buffer.array(), 128)));
 						removeConnection( ic, true );
 					}
 				}
@@ -460,7 +460,7 @@ IncomingConnectionManager
 								"Incoming stream from [" + transport_helper.getAddress()
 								+ "] recognized as "
 								+ "known byte pattern: "
-								+ ByteFormatter.nicePrint(ic.buffer.array())));
+								+ ByteFormatter.nicePrint(ic.buffer.array(), 64)));
 					removeConnection( ic, false );
 
 					transport.setAlreadyRead( ic.buffer );

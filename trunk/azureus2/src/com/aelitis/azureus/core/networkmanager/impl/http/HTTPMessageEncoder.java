@@ -37,6 +37,15 @@ public class
 HTTPMessageEncoder
 	implements MessageStreamEncoder
 {
+	private HTTPNetworkConnection	http_connection;
+	
+	public void
+	setConnection(
+		HTTPNetworkConnection	_http_connection )
+	{
+		http_connection	= _http_connection;
+	}
+	
 	public RawMessage 
 	encodeMessage( 
 		Message message )
@@ -45,30 +54,29 @@ HTTPMessageEncoder
 		
 		System.out.println( "encodeMessage: " + message.getID());
 		
-		if ( id.equals( BTMessage.ID_BT_PIECE )){
+		if ( id.equals( BTMessage.ID_BT_CHOKE )){
+			
+			http_connection.choke();
+		
+		}else if ( id.equals( BTMessage.ID_BT_UNCHOKE )){
+			
+			http_connection.unchoke();
+
+		}else if ( id.equals( BTMessage.ID_BT_PIECE )){
 			
 			BTPiece	piece = (BTPiece)message;
 			
-				// TODO: order?
-			
-			DirectByteBuffer	data = piece.getPieceData();
-			
-			return( 
-					new RawMessageImpl( 
-							message, 
-							new DirectByteBuffer[]{ data },
-							RawMessage.PRIORITY_HIGH, 
-							true, 
-							new Message[0] ));
-		}else{
-			
-			return( 
-				new RawMessageImpl( 
-						message, 
-						new DirectByteBuffer[]{ new DirectByteBuffer( ByteBuffer.allocate(0))},
-						RawMessage.PRIORITY_HIGH, 
-						true, 
-						new Message[0] ));
+			return( http_connection.addPiece( message, piece ));
 		}
+			
+			// drop the message
+		
+		return( 
+			new RawMessageImpl( 
+					message, 
+					new DirectByteBuffer[]{ new DirectByteBuffer( ByteBuffer.allocate(0))},
+					RawMessage.PRIORITY_HIGH, 
+					true, 
+					new Message[0] ));
 	}
 }

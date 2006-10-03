@@ -167,6 +167,12 @@ TransportImpl
 		}
 	}
 	  
+	public void
+	setReadyForRead()
+	{
+		readyForRead( true );
+	}
+	
 	protected void
 	readFailed(
 		Throwable	msg )

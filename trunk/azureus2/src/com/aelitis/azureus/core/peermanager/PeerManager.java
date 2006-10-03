@@ -33,8 +33,6 @@ import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
@@ -285,7 +283,7 @@ public class PeerManager {
         	{
         		PeerManagerRegistrationImpl	registration = (PeerManagerRegistrationImpl)routing_data;
         		
-        		registration.route( connection );
+        		registration.route( connection, null );
         	}
         	
         	public boolean
@@ -353,24 +351,23 @@ public class PeerManager {
      
   	public void
   	manualRoute(
-  		PeerManagerRegistration	_registration,
-  		NetworkConnection		_connection )
+  		PeerManagerRegistration		_registration,
+  		NetworkConnection			_connection,
+  		PeerManagerRoutingListener	_listener )
   	{
    		PeerManagerRegistrationImpl	registration = (PeerManagerRegistrationImpl)_registration;
 		
-		registration.route( _connection );
+		registration.route( _connection, _listener );
   	}
   	
   public PeerManagerRegistration
   registerLegacyManager(
-	TOTorrent						torrent,
+	HashWrapper						hash,
 	PeerManagerRegistrationAdapter  adapter )
   {
 	  try{
 		  managers_mon.enter();
-		  
-		  HashWrapper	hash = torrent.getHashWrapper();
-		 
+		  		 
 		  	// normally we only get a max of 1 of these. However, due to DownloadManager crazyness
 		  	// we can get an extra one when adding a download that already exists...
 		  
@@ -385,17 +382,11 @@ public class PeerManager {
 			  IncomingConnectionManager.getSingleton().addSharedSecret( hash.getBytes());
 		  }
 		  
-		  PeerManagerRegistration	registration = new PeerManagerRegistrationImpl( torrent, hash, adapter );
+		  PeerManagerRegistration	registration = new PeerManagerRegistrationImpl( hash, adapter );
 		    
 		  registrations.add( registration );
 		  
 		  return( registration );
-		  
-	  }catch( TOTorrentException e ){
-		  
-		  Debug.printStackTrace(e);
-		  
-		  return( null );
 		  
 	  }finally{
 		  
@@ -410,7 +401,6 @@ public class PeerManager {
   	implements PeerManagerRegistration
   {
 	private HashWrapper 					hash;
-	private TOTorrent	 					torrent;
 	private PeerManagerRegistrationAdapter	adapter;
 	
 	private TorrentDownload					download;
@@ -423,19 +413,11 @@ public class PeerManager {
 	
 	protected
 	PeerManagerRegistrationImpl(
-		TOTorrent						_torrent,
 		HashWrapper						_hash,
 		PeerManagerRegistrationAdapter	_adapter )
 	{
-		torrent	= _torrent;
 		hash	= _hash;
 		adapter	= _adapter;
-	}
-	
-	public TOTorrent
-	getTorrent()
-	{
-		return( torrent );
 	}
 	
 	protected HashWrapper
@@ -491,7 +473,9 @@ public class PeerManager {
 								
 				NetworkConnection	nc = (NetworkConnection)entry[0];
 				
-				route( _active_control, nc, true );
+				PeerManagerRoutingListener	listener = (PeerManagerRoutingListener)entry[2];
+				
+				route( _active_control, nc, true, listener );
 			}
 		}
 	}
@@ -625,7 +609,8 @@ public class PeerManager {
 	
 	protected void
 	route(
-		NetworkConnection 	connection )
+		NetworkConnection 			connection,
+		PeerManagerRoutingListener	listener )
 	{	
 		PEPeerControl	control;
 		
@@ -655,7 +640,7 @@ public class PeerManager {
 						pending_connections = new ArrayList();
 					}
 										
-					pending_connections.add( new Object[]{ connection, new Long( SystemTime.getCurrentTime())});
+					pending_connections.add( new Object[]{ connection, new Long( SystemTime.getCurrentTime()), listener });
 					
 					if ( pending_connections.size() == 1 ){
 						
@@ -678,7 +663,7 @@ public class PeerManager {
    		
 		if ( control != null ){
     		
-			route( control, connection, false );
+			route( control, connection, false, listener );
    		}
 	}
 	
@@ -739,7 +724,8 @@ public class PeerManager {
 	route(
 		PEPeerControl				control,	
 		final NetworkConnection 	connection,
-		boolean						is_activation )
+		boolean						is_activation,
+		PeerManagerRoutingListener	listener )
 	{
 	        // make sure not already connected to the same IP address; allow
 	        // loopback connects for co-located proxy-based connections and
@@ -768,6 +754,19 @@ public class PeerManager {
 								+ control.getDisplayName() + "]"));
         
         PEPeerTransport	pt = PEPeerTransportFactory.createTransport( control, PEPeerSource.PS_INCOMING, connection );
+        
+        if ( listener != null ){
+        	
+        	try{
+        		listener.routed( pt );
+        		
+        	}catch( Throwable e ){
+        		
+        		Debug.printStackTrace(e);
+        	}
+        }
+       
+        pt.start();
         
         if ( is_activation ){
         	

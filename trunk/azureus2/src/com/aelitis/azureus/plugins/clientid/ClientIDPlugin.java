@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.clientid;
 
 import java.util.Properties;
 
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
@@ -52,7 +53,7 @@ ClientIDPlugin
 					Torrent		torrent,
 					boolean		for_tracker )
 				{
-					return( createPeerID());
+					return( PeerUtils.createPeerID());
 				}
 							
 				public void
@@ -113,26 +114,5 @@ ClientIDPlugin
 		properties.put( ClientIDGenerator.PR_USER_AGENT, agent );
 	}
 	
-	static final String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-	public static byte[]
-	createPeerID()
-	{
-		byte[] peerId = new byte[20];
-	
-		byte[] version = Constants.VERSION_ID;
-    
-		for (int i = 0; i < 8; i++) {
-			peerId[i] = version[i];
-		}
-    
-	 	for (int i = 8; i < 20; i++) {
-		  int pos = (int) ( Math.random() * chars.length());
-		  peerId[i] = (byte)chars.charAt(pos);
-		}
-	 	
-		// System.out.println( "generated new peer id:" + ByteFormatter.nicePrint(peerId));
-
-	 	return( peerId );
-	}
 }

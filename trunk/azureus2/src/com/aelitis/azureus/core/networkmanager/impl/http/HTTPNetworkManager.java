@@ -24,13 +24,12 @@ package com.aelitis.azureus.core.networkmanager.impl.http;
 
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
@@ -38,6 +37,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.IncomingSocketChannelManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
+import com.aelitis.azureus.core.peermanager.PeerManagerRoutingListener;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
@@ -187,23 +187,27 @@ HTTPNetworkManager
 	        {
 	        	public void 
 	        	connectionRouted( 
-	        		NetworkConnection 	_connection, 
+	        		final NetworkConnection 	connection, 
 	        		Object 				_routing_data ) 
 	        	{
 	        		PeerManagerRegistration	routing_data = (PeerManagerRegistration)_routing_data;
 	        		
    					if (Logger.isEnabled()){
-						Logger.log(new LogEvent(LOGID, "HTTP connection from " + _connection.getEndpoint().getNotionalAddress() + " routed successfully" ));
-					}
-
-   					HTTPMessageDecoder	decoder	= (HTTPMessageDecoder)_connection.getIncomingMessageQueue().getDecoder();
-   					HTTPMessageEncoder	encoder = (HTTPMessageEncoder)_connection.getOutgoingMessageQueue().getEncoder();
-   					
-   					TOTorrent	torrent = routing_data.getTorrent();
-   				
-   					decoder.setTorrent( torrent );
-   					
-	        		PeerManager.getSingleton().manualRoute( routing_data, _connection );
+						Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " routed successfully" ));
+   					}   					
+   					   					
+	        		PeerManager.getSingleton().manualRoute(
+	        				routing_data, 
+	        				connection,
+	        				new PeerManagerRoutingListener()
+	        				{
+	        					public void
+	        					routed(
+	        						PEPeerTransport		peer )
+	        					{
+	        	  					new HTTPNetworkConnection( connection, peer );
+	        					}
+	        				});
 	        	}
 	        	
 	        	public boolean

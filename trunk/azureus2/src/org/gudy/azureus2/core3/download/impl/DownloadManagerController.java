@@ -196,7 +196,13 @@ DownloadManagerController
 
 		if (torrent != null) {
 			
-			peer_manager_registration = PeerManager.getSingleton().registerLegacyManager( torrent, this );
+			try{
+				peer_manager_registration = PeerManager.getSingleton().registerLegacyManager( torrent.getHashWrapper(), this );
+				
+			}catch( TOTorrentException e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 			
 		DownloadManagerState state = download_manager.getDownloadState();

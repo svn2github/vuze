@@ -43,7 +43,12 @@ PEPeerTransport
   public static final int CONNECTION_WAITING_FOR_HANDSHAKE  = 2;
   public static final int CONNECTION_FULLY_ESTABLISHED      = 4;
   
-
+  		/**
+  		 * Start message processing for the peer
+  		 */
+  
+  	public void
+  	start();
   	
 	public void
 	sendChoke();

@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.Constants;
 
 
 /**
@@ -164,5 +165,28 @@ public class PeerUtils {
 		int		port )
 	{
 		return( ignore_peer_ports.contains( "" + port ));
+	}
+	
+	static final String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+	public static byte[]
+	createPeerID()
+	{
+		byte[] peerId = new byte[20];
+	
+		byte[] version = Constants.VERSION_ID;
+    
+		for (int i = 0; i < 8; i++) {
+			peerId[i] = version[i];
+		}
+    
+	 	for (int i = 8; i < 20; i++) {
+		  int pos = (int) ( Math.random() * chars.length());
+		  peerId[i] = (byte)chars.charAt(pos);
+		}
+	 	
+		// System.out.println( "generated new peer id:" + ByteFormatter.nicePrint(peerId));
+
+	 	return( peerId );
 	}
 }

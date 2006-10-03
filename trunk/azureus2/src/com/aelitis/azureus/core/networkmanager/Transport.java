@@ -79,6 +79,11 @@ public interface Transport {
    */
   public boolean isReadyForRead( EventWaiter waiter );
     
+  /**
+   * fake a wakeup so that a read cycle is attempted
+   */
+  
+  public void setReadyForRead();
   
   /**
    * Write data to the transport from the given buffers.
