@@ -148,19 +148,45 @@ TOTorrentImpl
 						
 		try{
 			File parent = output_file.getParentFile();
-			
-			if ( parent == null || ( parent.exists() && !parent.isDirectory())){
-				
-				throw( new TOTorrentException( "Path '" + output_file + "' is invalid", TOTorrentException.RT_WRITE_FAILS ));
+			if (parent == null) {
+				throw new TOTorrentException( "Path '" + output_file + "' is invalid", TOTorrentException.RT_WRITE_FAILS);
 			}
 			
-			if ( !parent.exists()){
+			// We would expect this to be normally true most of the time.
+			if (!parent.isDirectory()) {
 				
-				if ( !parent.mkdirs()){
+				// Try to create a directory.
+				boolean dir_created = parent.mkdirs();
 				
-					throw( new TOTorrentException( "Failed to create directory '" + parent + "'", TOTorrentException.RT_WRITE_FAILS ));
-				}
-			}
+				// Something strange going on...
+				if (!dir_created) {
+					
+					// Does it exist already?
+					if (parent.exists()) {
+						
+						// And it really isn't a directory?
+						if (!parent.isDirectory()) {
+							
+							// How strange.
+							throw new TOTorrentException( "Path '" + output_file + "' is invalid", TOTorrentException.RT_WRITE_FAILS);
+							
+						}
+						
+						// It is a directory which does exist. But we tested for that earlier. Perhaps it has been created in the
+						// meantime.
+						else {
+							/* do nothing */
+						}
+					}
+					
+					// It doesn't exist, and we couldn't create it.
+					else {
+						throw new TOTorrentException( "Failed to create directory '" + parent + "'", TOTorrentException.RT_WRITE_FAILS );
+					}
+				} // end if (!dir_created)
+				
+			} // end if (!parent.isDirectory)
+			
 			
 			File temp = new File( parent, output_file.getName() + ".saving");
             
@@ -204,12 +230,7 @@ TOTorrentImpl
               //only use newly saved file if it got this far, i.e. it was written successfully
             
             if ( temp.length() > 1L ) {
-            	
-                if ( output_file.exists() ) {
-                	
-                	output_file.delete();
-                }
-                
+            	output_file.delete(); // Will fail silently if it doesn't exist.
                 temp.renameTo( output_file );
             }
              	

@@ -271,16 +271,18 @@ AEDiagnostics
 			
 			File	log_file	= getLogFile( logger );
 			
-			if ( log_file.exists() && log_file.length() >= MAX_FILE_SIZE ){
+			/**
+			 *  log_file.length will return 0 if the file doesn't exist, so we don't need
+			 *  to explicitly check for its existence.
+			 */
+			if ( log_file.length() >= MAX_FILE_SIZE ){
 				
 				logger.setFirstFile(!logger.isFirstFile());
 				
 				log_file	= getLogFile( logger );
 			
-				if ( log_file.exists()){
-					
-					log_file.delete();
-				}
+				// If the file doesn't exist, this will just return false.
+				log_file.delete();
 			}
 			
 			Calendar now = GregorianCalendar.getInstance();

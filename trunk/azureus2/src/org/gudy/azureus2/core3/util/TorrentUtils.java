@@ -234,11 +234,8 @@ TorrentUtils
 	    		
 	    		try{
 	    			
-	    			if (torrent_file_bak.exists()){
-	    				
-	    				torrent_file_bak.delete();
-	    			}
-	    			
+	    			// Will return false if it cannot be deleted (including if the file doesn't exist). 
+	    			torrent_file_bak.delete();
 	    			torrent_file.renameTo(torrent_file_bak);
 	    			
 	    		}catch( SecurityException e){
