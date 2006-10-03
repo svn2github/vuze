@@ -63,20 +63,10 @@ HTTPMessageEncoder
 			http_connection.unchoke();
 
 		}else if ( id.equals( BTMessage.ID_BT_PIECE )){
-			
-			BTPiece	piece = (BTPiece)message;
-			
-			return( http_connection.addPiece( message, piece ));
+						
+			return( http_connection.encodePiece( message ));
 		}
 			
-			// drop the message
-		
-		return( 
-			new RawMessageImpl( 
-					message, 
-					new DirectByteBuffer[]{ new DirectByteBuffer( ByteBuffer.allocate(0))},
-					RawMessage.PRIORITY_HIGH, 
-					true, 
-					new Message[0] ));
+		return( http_connection.getEmptyRawMessage( message ));
 	}
 }

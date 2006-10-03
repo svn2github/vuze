@@ -26,17 +26,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
-import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTBitfield;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTRequest;
 
 public class 
 HTTPMessageDecoder 
@@ -50,16 +44,12 @@ HTTPMessageDecoder
 	private volatile boolean		paused;
 	private volatile boolean		destroyed;
 	
-	private boolean			sent_handshake	= false;
-	
 	private StringBuffer	header_so_far = new StringBuffer();
 	
 	private List			messages = new ArrayList();
 	
 	private int				protocol_bytes_read;
-	
-	private byte[]	peer_id	= PeerUtils.createPeerID();
-	
+		
 	public void
 	setConnection(
 		HTTPNetworkConnection	_http_connection )
@@ -123,7 +113,7 @@ HTTPMessageDecoder
 				
 				if ( header_str.endsWith( NL + NL )){
 					
-					receiveHeader( header_str );
+					http_connection.decodeHeader( header_str );
 				
 					header_so_far.setLength(0);
 				}
@@ -133,80 +123,13 @@ HTTPMessageDecoder
 		return( max_bytes - rem );
 	}
 	  
-	protected void
-	receiveHeader(
-		String		header )
-	
-		throws IOException
-	{
-		System.out.println( "got header: " + header );
-		
-		int	pos = header.indexOf( NL );
-		
-		String	line = header.substring(4,pos);
-		
-		pos = line.lastIndexOf( ' ' );
-		
-		String	url = line.substring( 0, pos ).trim();
-		
-		StringTokenizer	tok = new StringTokenizer( url, "&" );
-		
-		int	piece = -1;
-		
-		while( tok.hasMoreElements()){
-			
-			String	token = tok.nextToken();
-			
-			pos = token.indexOf('=');
-			
-			if ( pos != -1 ){
-				
-				String	lhs = token.substring(0,pos).toLowerCase();
-				String	rhs = token.substring(pos+1);
-				
-				if ( lhs.equals( "piece" )){
-					
-					try{
-						piece = Integer.parseInt( rhs );
-						
-					}catch( Throwable e ){
-						
-						throw( new IOException( "Invalid piece number '" + rhs +"'" ));
-					}
-				}
-			}
-		}
-		
-		if ( piece == -1 ){
-			
-			throw( new IOException( "Piece number not specified" ));
-		}
-		
-		PEPeerControl	control = http_connection.getPeer().getControl();
-		
-		int	this_piece_size = control.getPieceLength( piece );
-		
-		if ( !sent_handshake ){
-			
-			sent_handshake	= true;
-			
-			messages.add( new BTHandshake( control.getHash(), peer_id, false ));
-			
-			byte[]	bits = new byte[(control.getPieces().length +7) /8];
-			
-			DirectByteBuffer buffer = new DirectByteBuffer( ByteBuffer.wrap( bits ));
-			
-			messages.add( new BTBitfield( buffer ));
-		}
-		
-		http_connection.addRequest( new BTRequest( piece, 0, this_piece_size ));
-	}
+
 	
 	protected void
-	addRequest(
-		BTRequest	request )
+	addMessage(
+		Message		message )
 	{
-		messages.add( request );
+		messages.add( message );
 	}
 	
 	public Message[] 
@@ -262,6 +185,8 @@ HTTPMessageDecoder
 	{
 		paused		= true;
 		destroyed	= true;
+		
+		http_connection.destroy();
 		
 	    try{
 
