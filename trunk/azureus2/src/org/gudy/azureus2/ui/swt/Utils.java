@@ -1013,14 +1013,18 @@ public class Utils {
 		Composite parent = control.getParent();
 		while (parent != null) {
 			parent.layout(true);
+			parent = parent.getParent();
+
 			Point newSize = control.getSize();
 			
 			if (newSize.y >= size.y && newSize.x >= size.x) {
 				break;
 			}
-			
-			parent = parent.getParent();
-		} 
+		}
+		
+		if (parent != null) {
+			parent.layout();
+		}
 	}
 }
 
