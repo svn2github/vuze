@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
@@ -47,6 +49,23 @@ HTTPNetworkConnection
 {
 	private static final String	NL			= "\r\n";
 
+	private static int        max_read_block_size;
+
+	static{
+	
+	    ParameterListener param_listener = new ParameterListener() {
+	            public void
+	            parameterChanged(
+	                String  str )
+	            {
+	                max_read_block_size = COConfigurationManager.getIntParameter( "BT Request Max Block Size" );
+	            }
+	    };
+	
+	    COConfigurationManager.addAndFireParameterListener( "BT Request Max Block Size", param_listener);
+	}
+	
+	
 	private NetworkConnection	connection;
 	private PEPeerTransport		peer;
 	
@@ -241,9 +260,22 @@ HTTPNetworkConnection
 			int[]	range = (int[])ranges.get(i);
 			
 			int	start 	= range[0];
-			int end		= range[1];
+			int end		= range[1]+1;	// not inclusive
 			
-			addRequest( new BTRequest( piece, start, ( end - start ) + 1 ), i==0, total_length );
+				// we need to fragment into max-read chunks
+			
+			for (int j=start;j<end;j+=max_read_block_size ){
+				
+				int	this_start 	= j;
+				int this_end	= j + max_read_block_size;
+				
+				if ( this_end > end ){
+					
+					this_end	= end;
+				}
+			
+				addRequest( new BTRequest( piece, this_start, this_end - this_start ), i==0&&j==start, total_length );
+			}
 		}
 	}
 	
