@@ -42,6 +42,7 @@ import com.aelitis.azureus.core.nat.NATTraversalHandler;
 import com.aelitis.azureus.core.nat.NATTraverser;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
@@ -216,7 +217,7 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 	
 				public Object 
 				matches( 
-					InetSocketAddress address, ByteBuffer to_compare, int port ) 
+					TransportHelper transport, ByteBuffer to_compare, int port ) 
 				{             
 					int old_limit = to_compare.limit();
 					
@@ -231,9 +232,9 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 				
 				public Object 
 				minMatches( 
-					InetSocketAddress address, ByteBuffer to_compare, int port ) 
+					TransportHelper transport, ByteBuffer to_compare, int port ) 
 				{ 
-					return( matches( address, to_compare, port )); 
+					return( matches( transport, to_compare, port )); 
 				} 
 				
 				public byte[] 

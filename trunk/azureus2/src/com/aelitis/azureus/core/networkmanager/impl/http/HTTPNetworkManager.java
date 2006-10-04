@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.IncomingSocketChannelManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
@@ -78,10 +79,12 @@ HTTPNetworkManager
 
 		    	public Object
 		    	matches( 
-		    		InetSocketAddress	address,
+		    		TransportHelper		transport,
 		    		ByteBuffer 			to_compare, 
 		    		int 				port ) 
 		    	{ 
+		    		InetSocketAddress	address = transport.getAddress();
+		    		
 		    		int old_limit 		= to_compare.limit();
 		    		int old_position 	= to_compare.position();
 
@@ -168,8 +171,8 @@ HTTPNetworkManager
 		   					if (Logger.isEnabled()){
 	    						Logger.log(new LogEvent(LOGID, "HTTP decode from " + address + " failed: no match for " + url ));
 	    					}
-
-				    		return( null );
+		   					
+				    		return( new Object[]{ transport, "wibble wobble" });
 				    		
 			    		}catch( Throwable e ){
 			    			
@@ -190,7 +193,7 @@ HTTPNetworkManager
 		    	
 		    	public Object 
 		    	minMatches( 
-		    		InetSocketAddress	address,
+		    		TransportHelper		transport,
 		    		ByteBuffer 			to_compare, 
 		    		int 				port ) 
 		    	{ 
@@ -230,6 +233,15 @@ HTTPNetworkManager
 	        		Object 						_routing_data ) 
 	        	{
 	        		Object[]	x = (Object[])_routing_data;
+	        		
+	        		if ( x[0] instanceof TransportHelper ){
+	        			
+	        				// routed on failure
+	        			
+	        			writeReply(connection, (TransportHelper)x[0], (String)x[1]);
+	        			
+	        			return;
+	        		}
 	        		
 	        		final String					url 			= (String)x[0];
 	        		final PeerManagerRegistration	routing_data 	= (PeerManagerRegistration)x[1];
@@ -272,5 +284,94 @@ HTTPNetworkManager
 	          public MessageStreamEncoder createEncoder() {  return new HTTPMessageEncoder();  }
 	          public MessageStreamDecoder createDecoder() {  return new HTTPMessageDecoder();  }
 	        });
+	}
+	
+	protected void
+	writeReply(
+		final NetworkConnection		connection,
+		final TransportHelper		transport,
+		final String				data )
+	{
+		byte[]	bytes = data.getBytes();
+				
+		final ByteBuffer bb = ByteBuffer.wrap( bytes );
+		
+		try{
+			transport.write( bb, false );
+			
+			if ( bb.remaining() > 0 ){
+				
+				transport.registerForWriteSelects(
+					new TransportHelper.selectListener()
+					{
+					  	public boolean 
+				    	selectSuccess(
+				    		TransportHelper	helper, 
+				    		Object 			attachment )
+					  	{
+					  		try{
+					  			int written = helper.write( bb, false );
+					  			
+					  			if ( bb.remaining() > 0 ){
+					  			
+					  				helper.registerForWriteSelects( this, null );
+					  				
+					  			}else{
+					  				
+				  					if (Logger.isEnabled()){
+										Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " closed with error '" + data + "'" ));
+				   					}   					
+
+									connection.close();
+					  			}
+					  			
+					  			return( written > 0 );
+					  			
+					  		}catch( Throwable e ){
+					  			
+					  			helper.cancelWriteSelects();
+					  			
+			  					if (Logger.isEnabled()){
+									Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " failed to write error '" + data + "'" ));
+			   					}   					
+
+					  			connection.close();
+					  			
+					  			return( false );
+					  		}
+					  	}
+
+				        public void 
+				        selectFailure(
+				        	TransportHelper	helper,
+				        	Object 			attachment, 
+				        	Throwable 		msg)
+				        {
+				        	helper.cancelWriteSelects();
+				        	
+		  					if (Logger.isEnabled()){
+								Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " failed to write error '" + data + "'" ));
+		   					}   					
+
+				        	connection.close();
+				        }
+					},
+					null );
+			}else{
+
+				if (Logger.isEnabled()){
+					Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " closed with error '" + data + "'" ));
+   				}   					
+
+				connection.close();
+			}
+		}catch( Throwable e ){
+			
+			if (Logger.isEnabled()){
+				Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " failed to write error '" + data + "'" ));
+			}   					
+
+			connection.close();
+		}
 	}
 }

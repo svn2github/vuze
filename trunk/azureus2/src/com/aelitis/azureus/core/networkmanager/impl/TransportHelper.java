@@ -124,4 +124,13 @@ TransportHelper
         	Object 			attachment, 
         	Throwable 		msg);
     }
+    
+    public void
+    setUserData(
+    	Object	key,
+    	Object	data );
+    
+    public Object
+    getUserData(
+    	Object	key );
 }

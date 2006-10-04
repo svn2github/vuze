@@ -407,14 +407,14 @@ public class NetworkManager {
      * @param to_compare
      * @return  return "routing data" in case of a match, null otherwise
      */
-    public Object matches( InetSocketAddress address, ByteBuffer to_compare, int port );
+    public Object matches( TransportHelper transport, ByteBuffer to_compare, int port );
     
     /**
      * Check for a minimum match
      * @param to_compare
      * @return return "routing data" in case of a match, null otherwise
      */
-    public Object minMatches( InetSocketAddress address, ByteBuffer to_compare, int port );
+    public Object minMatches( TransportHelper transport, ByteBuffer to_compare, int port );
     
     /**
      * Returns true if this shared secret is recognised by the matcher

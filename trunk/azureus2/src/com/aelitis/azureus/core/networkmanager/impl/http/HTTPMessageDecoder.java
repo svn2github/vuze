@@ -186,7 +186,10 @@ HTTPMessageDecoder
 		paused		= true;
 		destroyed	= true;
 		
-		http_connection.destroy();
+		if ( http_connection != null ){
+		
+			http_connection.destroy();
+		}
 		
 	    try{
 

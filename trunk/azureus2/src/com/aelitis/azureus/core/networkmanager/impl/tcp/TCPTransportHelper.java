@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
@@ -50,6 +51,8 @@ TCPTransportHelper
 
 	private	final SocketChannel	channel;
 		
+	private Map	user_data;
+	
 	public TCPTransportHelper( SocketChannel _channel ) {
 		channel = _channel;
 	}
@@ -307,4 +310,29 @@ TCPTransportHelper
   
   public SocketChannel getSocketChannel(){  return channel; }
 	
+  public synchronized void
+  setUserData(
+  	Object	key,
+  	Object	data )
+  {
+	  if ( user_data == null ){
+		  
+		  user_data = new HashMap();
+	  }
+	  
+	  user_data.put( key, data );
+  }
+  
+  public synchronized Object
+  getUserData(
+  	Object	key )
+  {
+	  if ( user_data == null ){
+
+		  return(null);
+		  
+	  }
+	  
+	  return( user_data.get( key ));
+  }
 }

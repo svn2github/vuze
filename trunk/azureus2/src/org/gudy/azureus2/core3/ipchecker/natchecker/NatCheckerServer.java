@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 
@@ -64,14 +65,14 @@ public class NatCheckerServer extends AEThread {
           public int size() {  return incoming_handshake.getBytes().length;  }
           public int minSize(){ return size(); }
         
-          public Object matches( InetSocketAddress address, ByteBuffer to_compare, int port ) {             
+          public Object matches( TransportHelper transport, ByteBuffer to_compare, int port ) {             
             int old_limit = to_compare.limit();
             to_compare.limit( to_compare.position() + size() );
             boolean matches = to_compare.equals( ByteBuffer.wrap( incoming_handshake.getBytes() ) );
             to_compare.limit( old_limit );  //restore buffer structure
             return matches?"":null;
           }
-          public Object minMatches( InetSocketAddress address, ByteBuffer to_compare, int port ) { return( matches( address, to_compare, port )); } 
+          public Object minMatches( TransportHelper transport, ByteBuffer to_compare, int port ) { return( matches( transport, to_compare, port )); } 
           public byte[] getSharedSecret(){ return( null ); }
   	   	  public int getSpecificPort(){return( -1 );
 		}

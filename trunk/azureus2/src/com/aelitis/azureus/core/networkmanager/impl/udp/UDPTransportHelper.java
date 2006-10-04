@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.networkmanager.impl.udp;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -59,6 +61,8 @@ UDPTransportHelper
 	
 	private ByteBuffer			pending_partial_write;
 		
+	private Map	user_data;
+	
 	protected
 	UDPTransportHelper(
 		UDPConnectionManager	_manager,
@@ -517,5 +521,31 @@ UDPTransportHelper
 	   		
 	   		fireWriteSelect();
 	   	}
+	}
+	
+	public synchronized void
+	setUserData(
+			Object	key,
+			Object	data )
+	{
+		if ( user_data == null ){
+
+			user_data = new HashMap();
+		}
+
+		user_data.put( key, data );
+	}
+
+	public synchronized Object
+	getUserData(
+			Object	key )
+	{
+		if ( user_data == null ){
+
+			return(null);
+
+		}
+
+		return( user_data.get( key ));
 	}
 }

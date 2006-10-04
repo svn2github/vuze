@@ -115,7 +115,7 @@ IncomingConnectionManager
 	  	          continue;
 	  	        }
 	  	                
-	            routing_data = bm.minMatches( transport.getAddress(), to_check, incoming_port );
+	            routing_data = bm.minMatches( transport, to_check, incoming_port );
 	            
 	            if ( routing_data != null ){
 	  	          listener = this_listener;
@@ -126,7 +126,7 @@ IncomingConnectionManager
 		          continue;
 		        }
 		                
-		        routing_data = bm.matches( transport.getAddress(), to_check, incoming_port );
+		        routing_data = bm.matches( transport, to_check, incoming_port );
 		        
 		        if ( routing_data != null ){
 		          listener = this_listener;

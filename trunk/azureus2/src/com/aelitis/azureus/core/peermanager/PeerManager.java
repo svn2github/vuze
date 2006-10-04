@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
 import com.aelitis.azureus.core.peermanager.download.TorrentDownloadFactory;
 import com.aelitis.azureus.core.peermanager.messaging.*;
@@ -166,10 +167,12 @@ public class PeerManager {
 
     	public Object
     	matches( 
-    		InetSocketAddress	address,
+    		TransportHelper		transport,
     		ByteBuffer 			to_compare, 
     		int 				port ) 
     	{ 
+    		InetSocketAddress	address = transport.getAddress();
+    		
     		int old_limit = to_compare.limit();
     		int old_position = to_compare.position();
 
@@ -235,7 +238,7 @@ public class PeerManager {
     	
     	public Object 
     	minMatches( 
-    		InetSocketAddress	address,
+    		TransportHelper		transport,
     		ByteBuffer 			to_compare, 
     		int 				port ) 
     	{ 
