@@ -31,7 +31,6 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
@@ -44,10 +43,12 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTPiece;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTRequest;
 
-public class 
+public abstract class 
 HTTPNetworkConnection 
 {
-	private static final String	NL			= "\r\n";
+	private static final int	MAX_OUTSTANDING_BT_REQUESTS	= 16;
+	
+	protected static final String	NL			= "\r\n";
 
 	private static int        max_read_block_size;
 
@@ -78,6 +79,7 @@ HTTPNetworkConnection
 
 	private boolean	choked	= true;
 	
+	private List	http_requests			= new ArrayList();
 	private List	choked_requests 		= new ArrayList();
 	private List	outstanding_requests 	= new ArrayList();
 	
@@ -102,6 +104,11 @@ HTTPNetworkConnection
 	getPeer()
 	{
 		return( peer );
+	}
+	protected PEPeerControl
+	getPeerControl()
+	{
+		return( peer.getControl());
 	}
 	
 	protected void
@@ -138,109 +145,23 @@ HTTPNetworkConnection
 		}
 	}
 	
-	protected void
+	protected abstract void
 	decodeHeader(
 		String		header )
 	
+		throws IOException;
+
+	protected abstract String
+	encodeHeader(
+		httpRequest	request );
+	
+	protected void
+	addRequest(
+		httpRequest		request )
+	
 		throws IOException
 	{
-		System.out.println( "got header: " + header );
-		
-		int	pos = header.indexOf( NL );
-		
-		String	line = header.substring(4,pos);
-		
-		pos = line.lastIndexOf( ' ' );
-		
-		String	url = line.substring( 0, pos ).trim();
-		
-		StringTokenizer	tok = new StringTokenizer( url, "&" );
-		
-		int		piece 	= -1;
-		List	ranges 	= new ArrayList();
-		
-		while( tok.hasMoreElements()){
-			
-			String	token = tok.nextToken();
-			
-			pos = token.indexOf('=');
-			
-			if ( pos != -1 ){
-				
-				String	lhs = token.substring(0,pos).toLowerCase();
-				String	rhs = token.substring(pos+1);
-				
-				if ( lhs.equals( "piece" )){
-					
-					try{
-						piece = Integer.parseInt( rhs );
-						
-					}catch( Throwable e ){
-						
-						throw( new IOException( "Invalid piece number '" + rhs +"'" ));
-					}
-				}else if ( lhs.equals( "ranges" )){
-					
-					StringTokenizer	range_tok = new StringTokenizer( rhs, "," );
-					
-					while( range_tok.hasMoreTokens()){
-						
-						String	range = range_tok.nextToken();
-						
-						int	sep = range.indexOf( '-' );
-						
-						if ( sep == -1 ){
-							
-							throw( new IOException( "Invalid range specification '" + rhs + "'" ));
-						}
-						
-						try{
-							ranges.add( 
-									new int[]{ 
-										Integer.parseInt( range.substring(0,sep)), 
-										Integer.parseInt( range.substring( sep+1 ))});
-							
-						}catch( Throwable e ){
-							
-							throw( new IOException( "Invalid range specification '" + rhs + "'" ));
-						}
-					}
-				}
-			}
-		}
-		
-		if ( piece == -1 ){
-			
-			throw( new IOException( "Piece number not specified" ));
-		}
-		
-		PEPeerControl	control = peer.getControl();
-		
-		int	this_piece_size = control.getPieceLength( piece );
-		
-		if ( ranges.size() == 0 ){
-			
-			ranges.add( new int[]{ 0, this_piece_size-1});
-		}
-		
-		long	total_length = 0;
-		
-		for (int i=0;i<ranges.size();i++){
-			
-			int[]	range = (int[])ranges.get(i);
-			
-			int	start 	= range[0];
-			int end		= range[1];
-			
-			if ( 	start < 0 || start >= this_piece_size ||
-					end < 0 || end >= this_piece_size ||
-					start > end ){
-				
-				throw( new IOException( "Invalid range specification '" + start + "-" + end + "'" ));
-			}
-			
-			total_length += ( end - start ) + 1;
-		}
+		PEPeerControl	control = getPeerControl();
 		
 		if ( !sent_handshake ){
 			
@@ -255,35 +176,77 @@ HTTPNetworkConnection
 			decoder.addMessage( new BTBitfield( buffer ));
 		}
 		
-		for (int i=0;i<ranges.size();i++){
-			
-			int[]	range = (int[])ranges.get(i);
-			
-			int	start 	= range[0];
-			int end		= range[1]+1;	// not inclusive
-			
-				// we need to fragment into max-read chunks
-			
-			for (int j=start;j<end;j+=max_read_block_size ){
+		synchronized( outstanding_requests ){
+
+			http_requests.add( request );
+		}
+		
+		submitBTRequests();
+	}
+	
+	protected void
+	submitBTRequests()
+	
+		throws IOException
+	{
+		PEPeerControl	control = getPeerControl();
+
+		long	piece_size = control.getPieceLength(0);
+	
+		synchronized( outstanding_requests ){
+
+			while( outstanding_requests.size() < MAX_OUTSTANDING_BT_REQUESTS && http_requests.size() > 0 ){
 				
-				int	this_start 	= j;
-				int this_end	= j + max_read_block_size;
+				httpRequest	http_request = (httpRequest)http_requests.get(0);
 				
-				if ( this_end > end ){
+				long[]	offsets	= http_request.getOffsets();
+				long[]	lengths	= http_request.getLengths();
+				
+				int	index	= http_request.getIndex();
+				
+				long	offset 	= offsets[index];
+				long	length	= lengths[index];
+				
+				int		this_piece_number 	= (int)(offset / piece_size);
+				int		this_piece_size		= control.getPieceLength( this_piece_number );
+				
+				int		offset_in_piece 	= (int)( offset - ( this_piece_number * piece_size ));
+				
+				int		space_this_piece 	= this_piece_size - offset_in_piece;
+				
+				int		request_size = (int)Math.min( length, space_this_piece );
+				
+				request_size = Math.min( request_size, max_read_block_size );
+				
+				addBTRequest( 
+					new BTRequest( 
+							this_piece_number, 
+							offset_in_piece, 
+							request_size ),
+					http_request );
 					
-					this_end	= end;
+				if ( request_size == length ){
+					
+					if ( index == offsets.length - 1 ){
+						
+						http_requests.remove(0);
+						
+					}else{
+						
+						http_request.setIndex( index+1 );
+					}
+				}else{
+					offsets[index] += request_size;
+					lengths[index] -= request_size;
 				}
-			
-				addRequest( new BTRequest( piece, this_start, this_end - this_start ), i==0&&j==start, total_length );
 			}
 		}
 	}
 	
 	protected void
-	addRequest(
+	addBTRequest(
 		BTRequest		request,
-		boolean			is_first,
-		long			total_length )
+		httpRequest		http_request )
 	
 		throws IOException
 	{
@@ -294,7 +257,7 @@ HTTPNetworkConnection
 				throw( new IOException( "HTTP connection destroyed" ));
 			}
 			
-			outstanding_requests.add( new pendingRequest( request, is_first, total_length ));
+			outstanding_requests.add( new pendingRequest( request, http_request ));
 			
 			if ( choked ){
 					
@@ -335,7 +298,7 @@ HTTPNetworkConnection
 				pendingRequest	req = (pendingRequest)outstanding_requests.get(i);
 				
 				if ( 	req.getPieceNumber() == piece.getPieceNumber() &&
-						req.getStart() == piece.getPieceOffset() &&
+						req.getStart() 	== piece.getPieceOffset() &&
 						req.getLength() == piece.getPieceData().remaining( DirectByteBuffer.SS_NET )){
 		
 					if ( req.getBTPiece() == null ){
@@ -383,24 +346,29 @@ HTTPNetworkConnection
 			return( getEmptyRawMessage( message ));
 		}
 		
+		try{
+			submitBTRequests();
+			
+		}catch( IOException e ){
+			
+		}
+		
 		pendingRequest req	= (pendingRequest)ready_requests.get(0);
 		
 		DirectByteBuffer[]	buffers;
 		int					buffer_index	= 0;
 		
-		if ( req.isFirst()){
+		httpRequest	http_request = req.getHTTPRequest();
 		
+		if ( !http_request.hasSentFirstReply()){
+		
+			http_request.setSentFirstReply();
+			
 			buffers = new DirectByteBuffer[ ready_requests.size() + 1 ];
 			
-			byte[]	http_header = (
-					"HTTP/1.1 200 OK" + NL + 
-					"Content-Type: application/octet-stream" + NL +
-					"Server: " + Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
-					"Connection: close" + NL +
-					"Content-Length: " + req.getTotalLength() + NL +
-					NL ).getBytes();
+			String	header = encodeHeader( http_request );
 			
-			buffers[buffer_index++] = new DirectByteBuffer( ByteBuffer.wrap( http_header ));
+			buffers[buffer_index++] = new DirectByteBuffer( ByteBuffer.wrap( header.getBytes()));
 			
 		}else{
 			
@@ -414,8 +382,7 @@ HTTPNetworkConnection
 			buffers[buffer_index++] = req.getBTPiece().getPieceData();
 		}
 		
-		return( 
-				new RawMessageImpl( 
+		return(	new RawMessageImpl( 
 						message, 
 						buffers,
 						RawMessage.PRIORITY_HIGH, 
@@ -469,41 +436,94 @@ HTTPNetworkConnection
 	}
 	
 	protected class
-	pendingRequest
+	httpRequest
 	{
-		private int	piece;
-		private int	start;
-		private int	length;
+		private long[]	offsets;
+		private long[]	lengths;
 		
-		private boolean	is_first;
+		private int		index;
 		private long	total_length;
-		
-		private BTPiece	bt_piece;
+		private boolean	sent_first_reply;
 		
 		protected
-		pendingRequest(
-			BTRequest		request,
-			boolean			_is_first,
-			long			_total_length )
+		httpRequest(
+			long[]		_offsets,
+			long[]		_lengths )
 		{
-			piece	= request.getPieceNumber();
-			start	= request.getPieceOffset();
-			length	= request.getLength();
+			offsets	= _offsets;
+			lengths	= _lengths;
 			
-			is_first		= _is_first;
-			total_length	= _total_length;
+			for (int i=0;i<lengths.length;i++){
+				
+				total_length += lengths[i];
+			}
 		}
 		
 		protected boolean
-		isFirst()
+		hasSentFirstReply()
 		{
-			return( is_first );
+			return( sent_first_reply );
+		}
+		
+		protected void
+		setSentFirstReply()
+		{
+			sent_first_reply	= true;
+		}
+		
+		protected long[]
+		getOffsets()
+		{
+			return( offsets );
+		}
+		
+		protected long[]
+   		getLengths()
+   		{
+   			return( lengths );
+   		}
+		
+		protected int
+		getIndex()
+		{
+			return( index );
+		}
+		
+		protected void
+		setIndex(
+			int	_index )
+		{
+			index = _index;
 		}
 		
 		protected long
 		getTotalLength()
 		{
 			return( total_length );
+		}
+	}
+	
+	protected class
+	pendingRequest
+	{
+		private int	piece;
+		private int	start;
+		private int	length;
+				
+		private httpRequest	http_request;
+		
+		private BTPiece	bt_piece;
+		
+		protected
+		pendingRequest(
+			BTRequest		_request,
+			httpRequest		_http_request )
+		{
+			piece	= _request.getPieceNumber();
+			start	= _request.getPieceOffset();
+			length	= _request.getLength();
+			
+			http_request	= _http_request;
 		}
 		
 		protected int
@@ -522,6 +542,12 @@ HTTPNetworkConnection
 		getLength()
 		{
 			return( length );
+		}
+		
+		protected httpRequest
+		getHTTPRequest()
+		{
+			return( http_request );
 		}
 		
 		protected BTPiece

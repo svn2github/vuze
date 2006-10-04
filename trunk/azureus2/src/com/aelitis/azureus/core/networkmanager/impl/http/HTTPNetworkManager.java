@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -45,6 +44,8 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
 public class 
 HTTPNetworkManager 
 {
+	private static final String	NL			= "\r\n";
+
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
 	private static final HTTPNetworkManager instance = new HTTPNetworkManager();
@@ -96,40 +97,78 @@ HTTPNetworkManager
 			    			return( null );
 			    		}
 			    		
-			    		byte[]	line = new byte[to_compare.remaining()];
+			    		byte[]	line_bytes = new byte[to_compare.remaining()];
 			    		
-			    		to_compare.get( line );
+			    		to_compare.get( line_bytes );
 			    		
 			    		try{
-				    		String	str = new String( line, "ISO-8859-1" );
+			    				// format is GET url HTTPblah
+			    			
+				    		String	url = new String( line_bytes, "ISO-8859-1" );
 				    		
-				    		System.out.println( address + " - matches: " + str );
-			
-				    		int	ws_pos = str.indexOf( "/webseed?info_hash=" );
+				    		int	space = url.indexOf(' ');
+				    		
+				    		if ( space == -1 ){
+				    			
+				    			return( null );
+				    		}
+				    		
+				    		url = url.substring( space + 1 );
+				    		
+				    		int	end_line_pos = url.indexOf( NL );
+				    		
+				    		if ( end_line_pos == -1 ){
+				    			
+				    			return( null );
+				    		}
+				    		
+				    		url = url.substring( 0, end_line_pos );
+				    		
+				    		int	end_url_pos = url.lastIndexOf( ' ' );
+				    		
+				    		if ( end_url_pos == -1 ){
+				    			
+				    			return( null );
+				    		}
+				    		
+				    		url = url.substring( 0, end_url_pos ).trim();
+				    		
+				    		int	ws_pos = url.indexOf( "?info_hash=" );
 				    		
 				    		if ( ws_pos != -1 ){
+				    							    			
+				    			int	hash_start = ws_pos + 11;
 				    			
-				    			System.out.println( "web seed" );
+				    			int	hash_end = url.indexOf( '&', ws_pos );
 				    			
-				    			int	hash_start = ws_pos + 19;
+				    			String	hash_str;
 				    			
-				    			int	hash_end = str.indexOf( '&', ws_pos );
+				    			if ( hash_end == -1 ){
+				    				
+				    				hash_str = url.substring( hash_start );
+				    				
+				    			}else{
+				    				
+				    				hash_str = url.substring( hash_start, hash_end );
+				    			}
 				    			
 				    			if ( hash_end != -1 ){
 				    				
-				    				byte[]	hash = URLDecoder.decode( str.substring(hash_start,hash_end), "ISO-8859-1" ).getBytes( "ISO-8859-1" );
-				    				
-				    				System.out.println( "    hash " + ByteFormatter.encodeString( hash ));
-				    				
+				    				byte[]	hash = URLDecoder.decode( hash_str, "ISO-8859-1" ).getBytes( "ISO-8859-1" );
+				    								    				
 				    				PeerManagerRegistration reg_data = PeerManager.getSingleton().manualMatchHash( address, hash );
 				    				
 				    				if ( reg_data != null ){
 				    					
-				    					return( reg_data );
+				    					return( new Object[]{ url, reg_data });
 				    				}
 				    			}
 				    		}
 			    		
+		   					if (Logger.isEnabled()){
+	    						Logger.log(new LogEvent(LOGID, "HTTP decode from " + address + " failed: no match for " + url ));
+	    					}
+
 				    		return( null );
 				    		
 			    		}catch( Throwable e ){
@@ -188,12 +227,15 @@ HTTPNetworkManager
 	        	public void 
 	        	connectionRouted( 
 	        		final NetworkConnection 	connection, 
-	        		Object 				_routing_data ) 
+	        		Object 						_routing_data ) 
 	        	{
-	        		PeerManagerRegistration	routing_data = (PeerManagerRegistration)_routing_data;
+	        		Object[]	x = (Object[])_routing_data;
+	        		
+	        		final String					url 			= (String)x[0];
+	        		final PeerManagerRegistration	routing_data 	= (PeerManagerRegistration)x[1];
 	        		
    					if (Logger.isEnabled()){
-						Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " routed successfully" ));
+						Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " routed successfully on '" + url + "'" ));
    					}   					
    					   					
 	        		PeerManager.getSingleton().manualRoute(
@@ -205,7 +247,17 @@ HTTPNetworkManager
 	        					routed(
 	        						PEPeerTransport		peer )
 	        					{
-	        	  					new HTTPNetworkConnection( connection, peer );
+	        						if ( url.indexOf( "/webseed" ) != -1 ){
+	        							
+	        							new HTTPNetworkConnectionWebSeed( connection, peer );
+	        							
+	        						}else if ( url.indexOf( "/ping" ) != -1 ){
+	        			
+	        			
+	        						}else{
+	        							
+	        							connection.close();
+	        						}
 	        					}
 	        				});
 	        	}
