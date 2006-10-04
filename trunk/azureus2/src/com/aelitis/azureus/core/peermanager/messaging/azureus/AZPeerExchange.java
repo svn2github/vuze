@@ -100,13 +100,13 @@ public class AZPeerExchange implements AZMessage {
       int pos = 0;
     
       if ( handshake_types != null && handshake_types.length != peer_num ){
-    	  handshake_types = null;
-    	  Logger.log(new LogEvent( LOGID, LogEvent.LT_WARNING,"PEX: invalid handshake types received" ));
+     	  Logger.log(new LogEvent( LOGID, LogEvent.LT_WARNING,"PEX: invalid handshake types received: peers=" + peer_num + ",handshakes=" + handshake_types.length ));
+       	  handshake_types = null;
       }
       
       if ( udp_ports != null && udp_ports.length != peer_num ){
+       	  Logger.log(new LogEvent( LOGID, LogEvent.LT_WARNING,"PEX: invalid udp ports received: peers=" + peer_num + ",udp_ports=" + udp_ports.length ));
     	  udp_ports = null;
-       	  Logger.log(new LogEvent( LOGID, LogEvent.LT_WARNING,"PEX: invalid udp ports received" ));	 
       }
       
       for( Iterator it = raw_peers.iterator(); it.hasNext(); ) {
