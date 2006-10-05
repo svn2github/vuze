@@ -35,8 +35,15 @@ public interface
 DownloadManager 
 {
 	/**
-	 * add a torrent from a file. This will prompt the user for download location etc. if required
-	 * This is an async operation so no Download returned
+	 * Add a torrent from a file. This may prompt the user for a download location etc. if required.
+	 * This is an async operation, so no Download is returned.
+	 * 
+	 * If you want to force a download to be added without prompting the user, you should create a
+	 * Torrent object first, and then use an alternative addDownload method.
+	 * 
+	 * @see #addDownload(Torrent)
+	 * @see #addDownload(Torrent, File, File)
+	 * @see org.gudy.azureus2.plugins.torrent.TorrentManager#createFromBEncodedFile(File) TorrentManager.createFromBEncodedFile
 	 * @param torrent_file
 	 * @throws DownloadException
    *
@@ -92,9 +99,11 @@ DownloadManager
 		final URL 	referer);
 	
 	/**
-	 * add a torrent from a "Torrent" object. The default torrent file and data locations will be
-	 * used if defined - exception if they're not 
+	 * Add a torrent from a "Torrent" object. The default torrent file and data locations will be
+	 * used if defined - a DownloadException will be thrown if they're not. You can explicitly set
+	 * these values by using the {@link #addDownload(Torrent, File, File) addDownload(Torrent, File, File)} method. 
 	 * @param torrent
+	 * @see #addDownload(Torrent, File, File)
 	 * @return
    *
    * @since 2.0.8.0
