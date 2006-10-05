@@ -950,9 +950,13 @@ TorrentInfoView
 		}
 
 		public Color 
-		getForeground()
+		getForegroundSWT()
 		{
 			return( null );
+		}
+		
+		public int[] getForeground() {
+			return new int[3];
 		}
 
 		/**

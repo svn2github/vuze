@@ -135,7 +135,7 @@ public interface TableCellCore
 	/**
 	 * @return
 	 */
-	Color getForeground();
+	Color getForegroundSWT();
 
 	/**
 	 * @return

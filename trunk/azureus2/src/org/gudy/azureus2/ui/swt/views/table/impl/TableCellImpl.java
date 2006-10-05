@@ -239,11 +239,23 @@ public class TableCellImpl
     return valid;
   }
   
-  public Color getForeground() {
+  public Color getForegroundSWT() {
   	checkCellForSetting();
 
     return bufferedTableItem.getForeground();
   }
+  
+  // @see org.gudy.azureus2.plugins.ui.tables.TableCell#getForeground()
+  public int[] getForeground() {
+		Color color = bufferedTableItem.getForeground();
+
+		if (color == null) {
+			return new int[3];
+		}
+
+		return new int[] { color.getRed(), color.getGreen(), color.getBlue()
+		};
+	}
   
   public boolean setForeground(Color color) {
   	checkCellForSetting();

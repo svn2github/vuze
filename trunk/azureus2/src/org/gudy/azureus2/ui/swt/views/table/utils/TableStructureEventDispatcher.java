@@ -112,7 +112,7 @@ public class TableStructureEventDispatcher implements ITableStructureModificatio
   public void columnSizeChanged(TableColumnCore tableColumn) {
    try{
    		listeners_mon.enter();
-   
+
      Iterator iter = listeners.iterator();
      while(iter.hasNext()) {
        ITableStructureModificationListener listener = (ITableStructureModificationListener) iter.next();

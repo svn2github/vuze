@@ -110,6 +110,15 @@ public interface TableCell {
    *         False - Color was already set.
    */
   boolean setForeground(int red, int green, int blue);
+  
+  /**
+   * Get the foreground color of the cell
+   * 
+   * @return array containing red, green, and blue color
+   * 
+   * @since 2.5.0.1
+   */
+  int[] getForeground();
 
   /** Sets a Comparable object that column sorting will act on.  If you never 
    * call setSortValue, your column will be sorted by the cell's text.
