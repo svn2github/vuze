@@ -245,7 +245,11 @@ public class ConnectDisconnectManager {
         msg += "\n channel=<null>";
       }
       
-      Debug.out( msg, t );
+      if ( t instanceof UnresolvedAddressException ){
+    	  Debug.outNoStack( msg );
+      }else{
+    	  Debug.out( msg, t );
+      }
       
       
       if( request.channel != null ) {
