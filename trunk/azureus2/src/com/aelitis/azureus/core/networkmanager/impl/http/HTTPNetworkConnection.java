@@ -28,24 +28,33 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
 import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.networkmanager.impl.RawMessageImpl;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTBitfield;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHave;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTInterested;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTPiece;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTRequest;
 
 public abstract class 
 HTTPNetworkConnection 
 {
+	protected static final LogIDs LOGID = LogIDs.NWMAN;
+
 	private static final int	MAX_OUTSTANDING_BT_REQUESTS	= 16;
 	
 	protected static final String	NL			= "\r\n";
@@ -66,9 +75,10 @@ HTTPNetworkConnection
 	    COConfigurationManager.addAndFireParameterListener( "BT Request Max Block Size", param_listener);
 	}
 	
-	
+	private HTTPNetworkManager	manager;
 	private NetworkConnection	connection;
 	private PEPeerTransport		peer;
+	private String				url;
 	
 	private HTTPMessageDecoder	decoder;
 	private HTTPMessageEncoder	encoder;
@@ -83,21 +93,56 @@ HTTPNetworkConnection
 	private List	choked_requests 		= new ArrayList();
 	private List	outstanding_requests 	= new ArrayList();
 	
+	private BitSet	piece_map	= new BitSet();
+	
 	private boolean	destroyed;
 	
 	protected
 	HTTPNetworkConnection(
+		HTTPNetworkManager		_manager,
 		NetworkConnection		_connection,
-		PEPeerTransport			_peer )
+		PEPeerTransport			_peer,
+		String					_url )
 	{
+		manager		= _manager;
 		connection	= _connection;
 		peer		= _peer;
+		url			= _url;
 		
 		decoder	= (HTTPMessageDecoder)connection.getIncomingMessageQueue().getDecoder();
 		encoder = (HTTPMessageEncoder)connection.getOutgoingMessageQueue().getEncoder();
 
 		decoder.setConnection( this );
 		encoder.setConnection( this );
+	}
+	
+	protected boolean
+	isSeed()
+	{
+		if ( !peer.getControl().isSeeding()){
+			
+			if (Logger.isEnabled()){
+				Logger.log(new LogEvent(peer,LOGID, "Download is not seeding" ));
+			}   	
+			
+			sendAndClose( manager.getNotFound());
+			
+			return( false );
+		}
+		
+		return( true );
+	}
+	
+	protected HTTPNetworkManager
+	getManager()
+	{
+		return( manager );
+	}
+	
+	protected NetworkConnection
+	getConnection()
+	{
+		return( connection );
 	}
 	
 	protected PEPeerTransport
@@ -111,38 +156,54 @@ HTTPNetworkConnection
 		return( peer.getControl());
 	}
 	
-	protected void
-	choke()
+	protected RawMessage
+	encodeChoke()
 	{
 		synchronized( outstanding_requests ){
 			
 			choked	= true;
 		}
+		
+		return( null );
 	}
 	
-	protected void
-	unchoke()
-	{
-		boolean	wakeup = false;
-		
+	protected RawMessage
+	encodeUnchoke()
+	{		
 		synchronized( outstanding_requests ){
 			
 			choked	= false;
 			
 			for (int i=0;i<choked_requests.size();i++){
-				
-				wakeup = true;
-				
+								
 				decoder.addMessage((BTRequest)choked_requests.get(i));
 			}
 			
 			choked_requests.clear();
 		}
 		
-		if ( wakeup ){
-			
-			connection.getTransport().setReadyForRead();
-		}
+		return( null );
+	}
+	
+	protected RawMessage
+	encodeBitField()
+	{
+		decoder.addMessage( new BTInterested());
+		
+		return( null );
+	}
+	
+	protected void
+	readWakeup()
+	{
+		connection.getTransport().setReadyForRead();
+	}
+
+	protected RawMessage
+	encodeHandShake(
+		Message	message )
+	{
+		return( null );
 	}
 	
 	protected abstract void
@@ -151,9 +212,17 @@ HTTPNetworkConnection
 	
 		throws IOException;
 
-	protected abstract String
+	protected String
 	encodeHeader(
-		httpRequest	request );
+		httpRequest	request )
+	{
+		return(	"HTTP/1.1 " + (request.isPartialContent()?"206 Partial Content":"200 OK" ) + NL + 
+				"Content-Type: application/octet-stream" + NL +
+				"Server: " + Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
+				"Connection: close" + NL +
+				"Content-Length: " + request.getTotalLength() + NL +
+				NL );
+	}
 	
 	protected void
 	addRequest(
@@ -360,26 +429,42 @@ HTTPNetworkConnection
 		
 		httpRequest	http_request = req.getHTTPRequest();
 		
+		buffers = new DirectByteBuffer[ ready_requests.size() + 1 ];
+
 		if ( !http_request.hasSentFirstReply()){
 		
 			http_request.setSentFirstReply();
-			
-			buffers = new DirectByteBuffer[ ready_requests.size() + 1 ];
-			
+						
 			String	header = encodeHeader( http_request );
 			
 			buffers[buffer_index++] = new DirectByteBuffer( ByteBuffer.wrap( header.getBytes()));
 			
 		}else{
 			
-			buffers = new DirectByteBuffer[ ready_requests.size()];
+				// we have to do this as core code assumes buffer entry 0 is protocol
+			
+			buffers[buffer_index++] = new DirectByteBuffer( ByteBuffer.allocate(0));
 		}
 		
 		for (int i=0;i<ready_requests.size();i++){
 			
 			req	= (pendingRequest)ready_requests.get(i);
 
-			buffers[buffer_index++] = req.getBTPiece().getPieceData();
+			BTPiece	this_piece = req.getBTPiece();
+			
+			int	piece_number = this_piece.getPieceNumber();
+			
+			if ( !piece_map.get( piece_number )){
+				
+					// kinda crappy as it triggers on first block of piece, however better
+					// than nothing
+				
+				piece_map.set( piece_number );
+				
+				decoder.addMessage( new BTHave( piece_number ));
+			}
+			
+			buffers[buffer_index++] = this_piece.getPieceData();
 		}
 		
 		return(	new RawMessageImpl( 
@@ -422,6 +507,14 @@ HTTPNetworkConnection
 		}
 	}
 	
+	protected void
+	log(
+		String	str )
+	{
+		if (Logger.isEnabled()){
+			Logger.log(new LogEvent( getPeer(),LOGID, str));
+		}   
+	}
 	protected RawMessage
 	getEmptyRawMessage(
 		Message	message )
@@ -435,11 +528,66 @@ HTTPNetworkConnection
 					new Message[0] ));
 	}
 	
+	protected void
+	sendAndClose(
+		String		data )
+	{
+		final Message	http_message = new HTTPMessage( data );
+		
+		getConnection().getOutgoingMessageQueue().registerQueueListener(
+			new OutgoingMessageQueue.MessageQueueListener()
+			{
+				public boolean 
+				messageAdded( 
+					Message message )
+				{	
+					return( true );
+				}
+				   
+				public void 
+				messageQueued( 
+					Message message )
+				{			
+				}
+				    
+				public void 
+				messageRemoved( 
+					Message message )
+				{
+				}
+				    
+				public void 
+				messageSent( 
+					Message message )
+				{
+					if ( message == http_message ){
+						
+						getConnection().close();
+					}
+				}
+				    
+			    public void 
+			    protocolBytesSent( 
+			    	int byte_count )
+			    {	
+			    }
+				 
+			    public void 
+			    dataBytesSent( 
+			    	int byte_count )
+			    {	
+			    }
+			});
+		
+		getConnection().getOutgoingMessageQueue().addMessage( http_message, false );
+	}
+	
 	protected class
 	httpRequest
 	{
 		private long[]	offsets;
 		private long[]	lengths;
+		private boolean	partial_content;
 		
 		private int		index;
 		private long	total_length;
@@ -448,15 +596,23 @@ HTTPNetworkConnection
 		protected
 		httpRequest(
 			long[]		_offsets,
-			long[]		_lengths )
+			long[]		_lengths,
+			boolean		_partial_content )
 		{
 			offsets	= _offsets;
 			lengths	= _lengths;
+			partial_content	= _partial_content;
 			
 			for (int i=0;i<lengths.length;i++){
 				
 				total_length += lengths[i];
 			}
+		}
+		
+		protected boolean
+		isPartialContent()
+		{
+			return( partial_content );
 		}
 		
 		protected boolean

@@ -39,10 +39,12 @@ HTTPNetworkConnectionWebSeed
 {
 	protected
 	HTTPNetworkConnectionWebSeed(
+		HTTPNetworkManager		_manager,
 		NetworkConnection		_connection,
-		PEPeerTransport			_peer )
+		PEPeerTransport			_peer,
+		String					_url )
 	{
-		super( _connection, _peer );
+		super( _manager, _connection, _peer, _url );
 	}
 	
 	protected void
@@ -51,7 +53,10 @@ HTTPNetworkConnectionWebSeed
 	
 		throws IOException
 	{
-		System.out.println( "got header: " + header );
+		if ( !isSeed()){
+			
+			return;
+		}
 		
 		int	pos = header.indexOf( NL );
 		
@@ -153,18 +158,6 @@ HTTPNetworkConnectionWebSeed
 			lengths[i]	= ( end - start ) + 1; 
 		}
 		
-		addRequest( new httpRequest( offsets, lengths ));
-	}
-	
-	protected String
-	encodeHeader(
-		httpRequest	request )
-	{
-		return(	"HTTP/1.1 200 OK" + NL + 
-				"Content-Type: application/octet-stream" + NL +
-				"Server: " + Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
-				"Connection: close" + NL +
-				"Content-Length: " + request.getTotalLength() + NL +
-				NL );
+		addRequest( new httpRequest( offsets, lengths, false ));
 	}
 }

@@ -95,7 +95,7 @@ HTTPNetworkManager
 			    		
 			    			// note duplication of this in min-matches below
 			    		
-			    		if (head[0] != 'G' || head[1] != 'E' || head[2] != 'T' ){
+			    		if ( head[0] != 'G' || head[1] != 'E' || head[2] != 'T' ){
 			    			
 			    			return( null );
 			    		}
@@ -135,6 +135,13 @@ HTTPNetworkManager
 				    		}
 				    		
 				    		url = url.substring( 0, end_url_pos ).trim();
+				    						    		
+				    		if ( url.indexOf( "/index.html") != -1 ){
+				    			
+					    		return( new Object[]{ transport, getIndexPage() });
+				    		}
+
+				    		String	hash_str = null;
 				    		
 				    		int	ws_pos = url.indexOf( "?info_hash=" );
 				    		
@@ -143,9 +150,7 @@ HTTPNetworkManager
 				    			int	hash_start = ws_pos + 11;
 				    			
 				    			int	hash_end = url.indexOf( '&', ws_pos );
-				    			
-				    			String	hash_str;
-				    			
+				    							    			
 				    			if ( hash_end == -1 ){
 				    				
 				    				hash_str = url.substring( hash_start );
@@ -154,25 +159,40 @@ HTTPNetworkManager
 				    				
 				    				hash_str = url.substring( hash_start, hash_end );
 				    			}
-				    			
-				    			if ( hash_end != -1 ){
-				    				
-				    				byte[]	hash = URLDecoder.decode( hash_str, "ISO-8859-1" ).getBytes( "ISO-8859-1" );
-				    								    				
-				    				PeerManagerRegistration reg_data = PeerManager.getSingleton().manualMatchHash( address, hash );
-				    				
-				    				if ( reg_data != null ){
-				    					
-				    					return( new Object[]{ url, reg_data });
-				    				}
-				    			}
-				    		}
+				    		}else{
 			    		
+					    		ws_pos = url.indexOf( "/files/" );
+					    		
+					    		if ( ws_pos != -1 ){
+					    							    			
+					    			int	hash_start = ws_pos + 7;
+	
+					    			int	hash_end = url.indexOf('/', hash_start );
+					    			
+					    			if ( hash_end != -1 ){
+					    				
+					    				hash_str = url.substring( hash_start, hash_end );
+					    			}
+					    		}
+				    		}
+				    		
+				    		if ( hash_str != null ){
+			    				
+			    				byte[]	hash = URLDecoder.decode( hash_str, "ISO-8859-1" ).getBytes( "ISO-8859-1" );
+			    								    				
+			    				PeerManagerRegistration reg_data = PeerManager.getSingleton().manualMatchHash( address, hash );
+			    				
+			    				if ( reg_data != null ){
+			    					
+			    					return( new Object[]{ url, reg_data });
+			    				}
+				    		}
+				    		
 		   					if (Logger.isEnabled()){
 	    						Logger.log(new LogEvent(LOGID, "HTTP decode from " + address + " failed: no match for " + url ));
 	    					}
 		   					
-				    		return( new Object[]{ transport, "wibble wobble" });
+				    		return( new Object[]{ transport, getNotFound() });
 				    		
 			    		}catch( Throwable e ){
 			    			
@@ -261,11 +281,12 @@ HTTPNetworkManager
 	        					{
 	        						if ( url.indexOf( "/webseed" ) != -1 ){
 	        							
-	        							new HTTPNetworkConnectionWebSeed( connection, peer );
+	        							new HTTPNetworkConnectionWebSeed( HTTPNetworkManager.this, connection, peer, url );
 	        							
-	        						}else if ( url.indexOf( "/ping" ) != -1 ){
-	        			
-	        			
+	        						}else if ( url.indexOf( "/files/" ) != -1 ){
+
+	        							new HTTPNetworkConnectionFile( HTTPNetworkManager.this, connection, peer, url );
+	        							
 	        						}else{
 	        							
 	        							connection.close();
@@ -285,6 +306,34 @@ HTTPNetworkManager
 	          public MessageStreamDecoder createDecoder() {  return new HTTPMessageDecoder();  }
 	        });
 	}
+	
+	protected String
+	getIndexPage()
+	{
+		return( "HTTP/1.1 200 OK" + NL + 
+				"Connection: Close" + NL +
+				"Content-Length: 0" + NL +
+				NL );
+	}
+	
+	protected String
+	getNotFound()
+	{
+		return( "HTTP/1.1 404 Not Found" + NL +
+				"Connection: Close" + NL +
+				"Content-Length: 0" + NL +
+				NL );
+	}
+	
+	protected String
+	getRangeNotSatisfiable()
+	{
+		return( "HTTP/1.1 416 Not Satisfiable" + NL +
+				"Connection: Close" + NL +
+				"Content-Length: 0" + NL +
+				NL );
+	}
+	
 	
 	protected void
 	writeReply(

@@ -1279,6 +1279,11 @@ Test
 	  	return( false );
 	}
 
+	  public boolean
+	  isSeeding()
+	  {
+		  return( false );
+	  }
 	  
 	  public boolean
 	  isSuperSeedMode()

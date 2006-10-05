@@ -2405,6 +2405,11 @@ PEPeerControlImpl
   	}
   }
 	
+  	public boolean
+  	isSeeding()
+  	{
+  		return( seeding_mode );
+  	}
 	
 	public boolean isSuperSeedMode() {
 		return superSeedMode;

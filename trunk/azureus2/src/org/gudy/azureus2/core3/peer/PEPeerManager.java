@@ -124,6 +124,9 @@ PEPeerManager
   public boolean needsMD5CheckOnCompletion(int pieceNumber);
   
   public boolean
+  isSeeding();
+  
+  public boolean
   isSuperSeedMode();
   
   public int getNbRemoteConnections();

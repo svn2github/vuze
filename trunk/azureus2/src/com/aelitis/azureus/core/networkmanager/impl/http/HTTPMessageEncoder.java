@@ -22,16 +22,10 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.http;
 
-import java.nio.ByteBuffer;
-
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
-
 import com.aelitis.azureus.core.networkmanager.RawMessage;
-import com.aelitis.azureus.core.networkmanager.impl.RawMessageImpl;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessage;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTPiece;
 
 public class 
 HTTPMessageEncoder
@@ -52,21 +46,40 @@ HTTPMessageEncoder
 	{
 		String	id = message.getID();
 		
-		System.out.println( "encodeMessage: " + message.getID());
+		// System.out.println( "encodeMessage: " + message.getID());
 		
-		if ( id.equals( BTMessage.ID_BT_CHOKE )){
+		RawMessage	raw_message = null;
+		
+		if ( id.equals( BTMessage.ID_BT_HANDSHAKE )){
+		
+			raw_message = http_connection.encodeHandShake( message );
 			
-			http_connection.choke();
+		}else if ( id.equals( BTMessage.ID_BT_CHOKE )){
+			
+			raw_message = http_connection.encodeChoke();
 		
 		}else if ( id.equals( BTMessage.ID_BT_UNCHOKE )){
 			
-			http_connection.unchoke();
+			raw_message = http_connection.encodeUnchoke();
+
+		}else if ( id.equals( BTMessage.ID_BT_BITFIELD)){
+			
+			raw_message = http_connection.encodeBitField();
 
 		}else if ( id.equals( BTMessage.ID_BT_PIECE )){
 						
-			return( http_connection.encodePiece( message ));
+			raw_message = http_connection.encodePiece( message );
+			
+		}else if ( id.equals( HTTPMessage.MSG_ID )){
+
+			raw_message = ((HTTPMessage)message).encode( message );
 		}
 			
-		return( http_connection.getEmptyRawMessage( message ));
+		if ( raw_message == null ){
+			
+			raw_message = http_connection.getEmptyRawMessage( message );
+		}
+		
+		return( raw_message );
 	}
 }

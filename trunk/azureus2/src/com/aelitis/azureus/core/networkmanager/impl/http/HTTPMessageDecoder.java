@@ -73,7 +73,7 @@ HTTPMessageDecoder
 			throw( new IOException( "Internal error - connection not yet assigned" ));
 		}
 		
-		System.out.println( "performStreamDecode" );
+		// System.out.println( "performStreamDecode" );
 		
 		protocol_bytes_read	= 0;
 		
@@ -129,22 +129,30 @@ HTTPMessageDecoder
 	addMessage(
 		Message		message )
 	{
-		messages.add( message );
+		synchronized( messages ){
+			
+			messages.add( message );
+		}
+		
+		http_connection.readWakeup();
 	}
 	
 	public Message[] 
 	removeDecodedMessages()
 	{
-		if ( messages.isEmpty()){
+		synchronized( messages ){
 			
-			return null;
+			if ( messages.isEmpty()){
+				
+				return null;
+			}
+			    
+			Message[] msgs = (Message[])messages.toArray( new Message[messages.size()] );
+			
+			messages.clear();
+			    
+			return( msgs );
 		}
-		    
-		Message[] msgs = (Message[])messages.toArray( new Message[messages.size()] );
-		
-		messages.clear();
-		    
-		return( msgs );
 	}
 	  
 	public int 

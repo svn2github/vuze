@@ -528,7 +528,10 @@ public class OutgoingMessageQueue {
       queue_mon.exit();
     }
     
-    if( data_written + protocol_written > 0 ) {
+    	// we can have messages that end up getting serialised as 0 bytes (for http
+    	// connections for example) - we still need to notify them of being sent...
+    
+    if( data_written + protocol_written > 0 || messages_sent != null ) {
       if( manual_listener_notify ) {
         
         if( data_written > 0 ) {  //data bytes notify
