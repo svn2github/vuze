@@ -239,6 +239,8 @@ HTTPNetworkConnectionFile
 			log( "Failed to find file '" + target_str + "'" );
 
 			sendAndClose( getManager().getNotFound());
+			
+			return;
 		}
 		
 		long	file_length = target_file.getLength();
