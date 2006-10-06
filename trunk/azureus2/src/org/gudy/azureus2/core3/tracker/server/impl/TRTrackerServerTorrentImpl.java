@@ -55,6 +55,7 @@ TRTrackerServerTorrentImpl
 	public static final byte	COMPACT_MODE_NONE		= 0;
 	public static final byte	COMPACT_MODE_NORMAL		= 1;
 	public static final byte	COMPACT_MODE_AZ			= 2;
+	public static final byte	COMPACT_MODE_AZ_2		= 3;
 	
 	private static final int	QUEUED_PEERS_MAX_SWARM_SIZE	= 32;
 	private static final int	QUEUED_PEERS_MAX			= 32;
@@ -966,7 +967,7 @@ TRTrackerServerTorrentImpl
 								
 								rep_peer.put( "ip", peer_bytes );
 								
-								if ( compact_mode == COMPACT_MODE_AZ ){
+								if ( compact_mode >= COMPACT_MODE_AZ ){
 									
 									rep_peer.put( "azudp", new Long( peer.getUDPPort()));
 								}
@@ -1097,7 +1098,7 @@ TRTrackerServerTorrentImpl
 													
 													rep_peer.put( "ip", peer_bytes );
 													
-													if ( compact_mode == COMPACT_MODE_AZ ){
+													if ( compact_mode >= COMPACT_MODE_AZ ){
 														
 														rep_peer.put( "azudp", new Long( peer.getUDPPort()));
 													}
@@ -1181,7 +1182,7 @@ TRTrackerServerTorrentImpl
 									
 									rep_peer.put( "ip", peer_bytes );
 									
-									if ( compact_mode == COMPACT_MODE_AZ ){
+									if ( compact_mode >= COMPACT_MODE_AZ ){
 										
 										rep_peer.put( "azudp", new Long( peer.getUDPPort()));
 									}
@@ -1240,7 +1241,7 @@ TRTrackerServerTorrentImpl
 							
 							rep_peer.put( "ip", peer_bytes );
 								
-							if ( compact_mode == COMPACT_MODE_AZ ){
+							if ( compact_mode >= COMPACT_MODE_AZ ){
 									
 								rep_peer.put( "azudp", new Long( peer.getUDPPort()));
 							}
@@ -1312,6 +1313,46 @@ TRTrackerServerTorrentImpl
 				root.put( "peers", compact_peers );
 				
 				root.put( "azcompact", new Long(1));
+				
+			}else if ( compact_mode == COMPACT_MODE_AZ_2 ){
+					
+				List	compact_peers = new ArrayList( num_peers_returned );
+				
+				for ( int i=0;i<num_peers_returned;i++){
+					
+					Map	rep_peer = (Map)rep_peers.get(i);
+					
+					Map	peer = new HashMap();
+					
+					compact_peers.add( peer );
+					
+					byte[] 	ip 				= (byte[])rep_peer.get( "ip" );
+					
+					peer.put( "i", ip );
+					
+					int		tcp_port		= ((Long)rep_peer.get( "port" )).intValue();
+					
+					peer.put( "t", new byte[]{ (byte)(tcp_port>>8), (byte)(tcp_port&0xff) });
+					
+					int		udp_port		= ((Long)rep_peer.get( "azudp" )).intValue();
+					
+					if ( udp_port != 0 ){
+						
+						peer.put( "u", new byte[]{ (byte)(udp_port>>8), (byte)(udp_port&0xff) });
+					}
+					
+					Long	crypto_flag_l	= (Long)rep_peer.get( "crypto_flag" );
+					byte	crypto_flag		= crypto_flag_l==null?0:crypto_flag_l.byteValue();
+					
+					if ( crypto_flag != 0 ){
+						
+						peer.put( "c", new byte[]{ crypto_flag } );
+					}
+				}
+									
+				root.put( "peers", compact_peers );
+				
+				root.put( "azcompact", new Long(2));
 				
 			}else{
 				

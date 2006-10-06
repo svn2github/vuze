@@ -75,7 +75,9 @@ TRTrackerUtils
 				"network.transport.encrypted.require",
 				"network.transport.encrypted.fallback.incoming",
 				"TCP.Listen.Port",
-				"UDP.Listen.Port" },
+				"UDP.Listen.Port",
+				"HTTP.Data.Listen.Port",
+				"HTTP.Data.Listen.Port.Enable" },
 			new ParameterListener()
 			{
 				public void 
@@ -147,7 +149,14 @@ TRTrackerUtils
 			  			port += "&hide=1";
 			  		}	
 			  
-			  		if ( ports_for_url != null && !ports_for_url.equals( port )){
+			  		String	az_port = "";
+			  		
+			  		if ( COConfigurationManager.getBooleanParameter( "HTTP.Data.Listen.Port.Enable" )){
+			  			
+			  			port += "&azhttp=" + COConfigurationManager.getIntParameter( "HTTP.Data.Listen.Port" );
+			  		}
+			  		
+			  		if ( ports_for_url != null && ( !ports_for_url.equals( port ))){
 			  			
 			  			synchronized( listeners ){
 			  				
@@ -191,7 +200,7 @@ TRTrackerUtils
 			  			}
 			  		}
 			  		
-			  		ports_for_url = port;
+			  		ports_for_url 			= port;
 				}
 			});
 	}
@@ -493,7 +502,6 @@ TRTrackerUtils
  	public static String
 	getPortsForURL()
   	{
-
   		return( ports_for_url );
   	}
  	

@@ -278,6 +278,8 @@ TRTrackerServerProcessorTCP
 				byte		crypto_level 	= TRTrackerServerPeer.CRYPTO_NONE;
 				int			crypto_port		= 0;
 				int			udp_port		= 0;
+				int			http_port		= 0;
+				int			az_ver			= 0;
 				boolean		stop_to_queue	= false;
 				String		scrape_flags	= null;
 				
@@ -404,8 +406,18 @@ TRTrackerServerProcessorTCP
 						
 						udp_port 	= Integer.parseInt( rhs );
 						
+							// implicit compact mode for 2500 indicated by presence of udp port
+						
 						compact_mode = TRTrackerServerTorrentImpl.COMPACT_MODE_AZ;
 						
+					}else if ( lhs.equals( "azhttp" )){
+						
+						http_port 	= Integer.parseInt( rhs );
+
+					}else if ( lhs.equals( "azver" )){
+						
+						az_ver 	= Integer.parseInt( rhs );
+												
 					}else if ( lhs.equals( "supportcrypto" )){
 						
 						if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE ){
@@ -455,6 +467,14 @@ TRTrackerServerProcessorTCP
 				}else if ( hash != null ){
 					
 					hashes = new byte[][]{ hash };
+				}
+				
+					// >= so that if this tracker is "old" and sees a version 3+ it replies with the
+					// best it can - version 2
+				
+				if ( az_ver >= 2 ){
+					
+					compact_mode = TRTrackerServerTorrentImpl.COMPACT_MODE_AZ_2;
 				}
 				
 				Map[]						root_out = new Map[1];

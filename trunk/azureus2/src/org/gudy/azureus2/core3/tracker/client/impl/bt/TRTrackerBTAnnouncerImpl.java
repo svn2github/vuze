@@ -1795,6 +1795,8 @@ TRTrackerBTAnnouncerImpl
 		request.append( ext );
 	}
 	
+	request.append( "&azver=" + TRTrackerAnnouncer.AZ_TRACKER_VERSION );
+	
     return new URL( request.toString());
   }
 
@@ -2173,11 +2175,85 @@ TRTrackerBTAnnouncerImpl
 						
 				    Object	meta_peers_peek = metaData.get( "peers" );
 				    
-				    	// list for non-compact returns
 				    
-				    if ( meta_peers_peek instanceof List ){
+			    	Long	az_compact_l 	= (Long)metaData.get( "azcompact" );
+			    	long	az_compact		= az_compact_l==null?0:az_compact_l.longValue();
+
+			    	if ( az_compact == 2 ){
+			    		
+			    			// latest return to dictionary based data 
+			    		
+						List meta_peers = (List)meta_peers_peek;
+	 					 
+						int peers_length = meta_peers.size();
+
+						for ( int i = 0; i < peers_length; i++ ){
+						 	
+							Map peer = (Map) meta_peers.get(i);
+							   	
+							try{
+								byte[]		ip_bytes = (byte[])peer.get("i");
+	
+					    		int	ip1 = 0xff & ip_bytes[0];
+					    		int	ip2 = 0xff & ip_bytes[1];
+					    		int	ip3 = 0xff & ip_bytes[2];
+					    		int	ip4 = 0xff & ip_bytes[3];
+	
+					    		String	ip 			= ip1 + "." + ip2 + "." + ip3 + "." + ip4;
+					    		
+					    		byte[]	tcp_bytes	= (byte[])peer.get("t");
+					    		
+					    		int		tcp_port 	= ((tcp_bytes[0]&0xff) << 8 ) + (tcp_bytes[1]&0xff );
+	                
+					    		byte[]	peer_peer_id = getAnonymousPeerId( ip, tcp_port );
+	
+					    		int		udp_port 	= 0;
+					    		
+					    		byte[]	udp_bytes = (byte[])peer.get("u");
+								
+					    		if ( udp_bytes != null ){
+					    			
+						    		udp_port	= ((udp_bytes[0]&0xff) << 8 ) + (udp_bytes[1]&0xff );
+					    		}
+					    		
+					    		short	protocol = DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
+					    		
+					    		byte[]	protocol_bytes = (byte[])peer.get("c");
+					    		
+					    		if ( protocol_bytes != null ){
+					    			
+					    			protocol = (protocol_bytes[0]&0x01)==0?DownloadAnnounceResultPeer.PROTOCOL_NORMAL:DownloadAnnounceResultPeer.PROTOCOL_CRYPT;
+					    		}
+					    		
+								TRTrackerAnnouncerResponsePeerImpl new_peer = 
+									new TRTrackerAnnouncerResponsePeerImpl( 
+										PEPeerSource.PS_BT_TRACKER, 
+										peer_peer_id, 
+										ip, 
+										tcp_port,
+										udp_port,
+										protocol  );
+										
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(torrent, LOGID,
+											"AZ2-COMPACT PEER: " + new_peer.getString()));
+	
+								valid_meta_peers.add( new_peer );
+								
+							}catch( Throwable e ){
+								
+				    			if (Logger.isEnabled())
+				    				Logger.log(
+				    					new LogEvent(
+				    						torrent, LOGID, LogEvent.LT_ERROR,
+				    						"Invalid az2 peer received: " + peer ));
+							}
+						}
+						
+			    	}else if ( meta_peers_peek instanceof List ){
 				    	
-				    	
+				    		// old style non-compact
+			    		
 						List meta_peers = (List)meta_peers_peek;
 						 					 
 							//for every peer
@@ -2282,9 +2358,7 @@ TRTrackerBTAnnouncerImpl
 				    
 				    	byte[]	meta_peers = (byte[])meta_peers_peek;
 				    					    	
-				    	boolean	az_compact = metaData.get( "azcompact" ) != null;
-				    	
-				    	int	entry_size = az_compact?9:6;
+				    	int	entry_size = az_compact==1?9:6;
 				    	
 				    	if ( crypto_flags != null && meta_peers.length/entry_size != crypto_flags.length ){
 							
@@ -2324,7 +2398,7 @@ TRTrackerBTAnnouncerImpl
 				    		short 	protocol;
 				    		int		udp_port;
 				    		
-				    		if ( az_compact ){
+				    		if ( az_compact == 1 ){
 				    			
 					    		int	upo1 = 0xFF & meta_peers[i+6];
 					    		int	upo2 = 0xFF & meta_peers[i+7];
