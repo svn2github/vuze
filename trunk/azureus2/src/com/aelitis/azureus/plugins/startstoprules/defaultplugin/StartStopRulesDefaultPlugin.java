@@ -756,6 +756,8 @@ public class StartStopRulesDefaultPlugin
 		int stalledSeeders = 0;
 
 		int stalledFPSeeders = 0;
+		
+		int forcedActive = 0;
 
 		/**
 		 * Indicate whether it's ok to start seeding.
@@ -849,6 +851,10 @@ public class StartStopRulesDefaultPlugin
 					}
 
 					if (dlData.getActivelySeeding()) {
+						if (dlData.isForceActive()) {
+							forcedActive++;
+						}
+
 						activelyCDing++;
 						if (download.isForceStart()) {
 							forcedSeeding++;
@@ -1129,8 +1135,8 @@ public class StartStopRulesDefaultPlugin
 		if (totals.maxActive == 0) {
 			maxDLs = maxDownloads;
 		} else {
-			DLmax = totals.stalledFPSeeders + totals.maxActive - totals.firstPriority
-					- totals.forcedSeedingNonFP;
+			DLmax = totals.stalledFPSeeders + totals.forcedActive + totals.maxActive
+					- totals.firstPriority - totals.forcedSeedingNonFP;
 			maxDLs = (DLmax <= 0) ? 0 : maxDownloads - DLmax <= 0 ? maxDownloads
 					: DLmax;
 		}
@@ -1175,7 +1181,11 @@ public class StartStopRulesDefaultPlugin
 				try {
 					if (bDebugLog) {
 						String s = "   stopAndQueue: " + vars.numWaitingOrDLing
-								+ " waiting or downloading, when limit is " + maxDownloads;
+								+ " waiting or downloading, when limit is " + maxDLs + "("
+								+ maxDownloads + ")";
+						if (vars.higherDLtoStart) {
+							s += " and higher DL is starting";
+						}
 						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 						dlData.sTrace += s + "\n";
 					}

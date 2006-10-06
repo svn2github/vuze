@@ -314,6 +314,11 @@ public class DefaultRankCalculator implements Comparable {
 	public Download getDownloadObject() {
 		return dl;
 	}
+	
+	public boolean isForceActive() {
+		DownloadStats stats = dl.getStats();
+		return System.currentTimeMillis() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR;
+	}
 
 	/**
 	 * Retrieves whether the torrent is "actively" downloading
