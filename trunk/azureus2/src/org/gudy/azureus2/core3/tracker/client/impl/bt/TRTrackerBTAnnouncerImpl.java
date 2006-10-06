@@ -2213,7 +2213,23 @@ TRTrackerBTAnnouncerImpl
 								
 					    		if ( udp_bytes != null ){
 					    			
-						    		udp_port	= ((udp_bytes[0]&0xff) << 8 ) + (udp_bytes[1]&0xff );
+					    			if ( udp_bytes.length == 0 ){
+					    				
+					    				udp_port = tcp_port;
+					    				
+					    			}else{
+					    				
+					    				udp_port	= ((udp_bytes[0]&0xff) << 8 ) + (udp_bytes[1]&0xff );
+					    			}
+					    		}
+					    		
+					    		int	http_port = 0;
+					    		
+					    		byte[]	http_bytes = (byte[])peer.get("h");
+
+					    		if ( http_bytes != null ){
+					    			
+					    			http_port	= ((http_bytes[0]&0xff) << 8 ) + (http_bytes[1]&0xff );
 					    		}
 					    		
 					    		short	protocol = DownloadAnnounceResultPeer.PROTOCOL_NORMAL;

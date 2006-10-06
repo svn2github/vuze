@@ -148,9 +148,7 @@ TRTrackerUtils
 			  			
 			  			port += "&hide=1";
 			  		}	
-			  
-			  		String	az_port = "";
-			  		
+			  			  		
 			  		if ( COConfigurationManager.getBooleanParameter( "HTTP.Data.Listen.Port.Enable" )){
 			  			
 			  			port += "&azhttp=" + COConfigurationManager.getIntParameter( "HTTP.Data.Listen.Port" );

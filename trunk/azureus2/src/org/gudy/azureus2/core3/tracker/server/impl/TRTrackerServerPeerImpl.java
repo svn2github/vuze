@@ -38,6 +38,7 @@ TRTrackerServerPeerImpl
 	private boolean		ip_override;
 	private short		tcp_port;
 	private short		udp_port;
+	private short		http_port;
 	private byte		crypto_level;
 	private String		ip_str;
 	private byte[]		ip_bytes;
@@ -62,6 +63,7 @@ TRTrackerServerPeerImpl
 		boolean		_ip_override,
 		int			_tcp_port,
 		int			_udp_port,
+		int			_http_port,
 		byte		_crypto_level,
 		long		_last_contact_time,
 		boolean		_download_completed,
@@ -73,6 +75,7 @@ TRTrackerServerPeerImpl
 		ip_override			= _ip_override;
 		tcp_port			= (short)_tcp_port;
 		udp_port			= (short)_udp_port;
+		http_port			= (short)_http_port;
 		crypto_level		= _crypto_level;
 		last_contact_time	= _last_contact_time;
 		download_completed	= _download_completed;
@@ -86,9 +89,11 @@ TRTrackerServerPeerImpl
 		byte[]		_ip,
 		int			_port,
 		int			_udp_port,
+		int			_http_port,
 		byte		_crypto_level )
 	{
 		udp_port		= (short)_udp_port;
+		http_port		= (short)_http_port;
 		crypto_level	= _crypto_level;
 		
 		boolean	res	= false;
@@ -279,6 +284,12 @@ TRTrackerServerPeerImpl
 	getUDPPort()
 	{
 		return( udp_port&0xffff );
+	}
+	
+	protected int
+	getHTTPPort()
+	{
+		return( http_port&0xffff );
 	}
 	
 	protected byte

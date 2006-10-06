@@ -517,7 +517,7 @@ TRTrackerServerProcessorUDP
 				peer_id, false, TRTrackerServerTorrentImpl.COMPACT_MODE_NONE, key, // currently no "no_peer_id" / "compact" in the packet and anyway they aren't returned / key
 				event, false,
 				port,
-				0,
+				0, 0,
 				client_ip_address, client_ip_address,
 				downloaded, uploaded, left,
 				num_want,

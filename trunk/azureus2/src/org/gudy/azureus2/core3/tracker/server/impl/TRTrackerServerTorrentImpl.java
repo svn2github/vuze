@@ -139,6 +139,7 @@ TRTrackerServerTorrentImpl
 		HashWrapper	peer_id,
 		int			tcp_port,
 		int			udp_port,
+		int			http_port,
 		byte		crypto_level,
 		String		ip_address,
 		boolean		ip_override,
@@ -302,6 +303,7 @@ TRTrackerServerTorrentImpl
 									ip_override,
 									tcp_port,
 									udp_port,
+									http_port,
 									crypto_level,
 									last_contact_time,
 									already_completed,
@@ -384,7 +386,7 @@ TRTrackerServerTorrentImpl
 					byte[]	old_ip 		= peer.getIPAsRead();
 					int		old_port	= peer.getTCPPort();
 					
-					if ( peer.checkForIPOrPortChange( ip_address_bytes, tcp_port, udp_port, crypto_level )){
+					if ( peer.checkForIPOrPortChange( ip_address_bytes, tcp_port, udp_port, http_port, crypto_level )){
 						
 							// same peer id so same port
 						
@@ -616,6 +618,7 @@ TRTrackerServerTorrentImpl
 		String		ip,
 		int			tcp_port,
 		int			udp_port,
+		int			http_port,
 		byte		crypto_level,
 		int			timeout_secs )
 	{
@@ -629,7 +632,7 @@ TRTrackerServerTorrentImpl
 		try{
 			this_mon.enter();
 				
-			QueuedPeer	new_qp = new QueuedPeer( ip, tcp_port, udp_port, crypto_level, timeout_secs );
+			QueuedPeer	new_qp = new QueuedPeer( ip, tcp_port, udp_port, http_port, crypto_level, timeout_secs );
 		
 			String	reuse_key = new String( new_qp.getIP(), Constants.BYTE_ENCODING ) + ":" + tcp_port;
 
@@ -970,6 +973,7 @@ TRTrackerServerTorrentImpl
 								if ( compact_mode >= COMPACT_MODE_AZ ){
 									
 									rep_peer.put( "azudp", new Long( peer.getUDPPort()));
+									rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
 								}
 								
 							}else{
@@ -1101,6 +1105,7 @@ TRTrackerServerTorrentImpl
 													if ( compact_mode >= COMPACT_MODE_AZ ){
 														
 														rep_peer.put( "azudp", new Long( peer.getUDPPort()));
+														rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
 													}
 												}else{
 													
@@ -1185,6 +1190,7 @@ TRTrackerServerTorrentImpl
 									if ( compact_mode >= COMPACT_MODE_AZ ){
 										
 										rep_peer.put( "azudp", new Long( peer.getUDPPort()));
+										rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
 									}
 								}else{
 									rep_peer.put( "ip", peer.getIPAsRead() );
@@ -1244,6 +1250,7 @@ TRTrackerServerTorrentImpl
 							if ( compact_mode >= COMPACT_MODE_AZ ){
 									
 								rep_peer.put( "azudp", new Long( peer.getUDPPort()));
+								rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
 							}
 								
 						}else{
@@ -1338,7 +1345,26 @@ TRTrackerServerTorrentImpl
 					
 					if ( udp_port != 0 ){
 						
-						peer.put( "u", new byte[]{ (byte)(udp_port>>8), (byte)(udp_port&0xff) });
+						if ( udp_port == tcp_port ){
+							
+							peer.put( "u", new byte[0] );
+							
+						}else{
+							
+							peer.put( "u", new byte[]{ (byte)(udp_port>>8), (byte)(udp_port&0xff) });
+						}
+					}
+					
+					Long	http_port_l	= (Long)rep_peer.get( "azhttp" );
+					
+					if ( http_port_l != null ){
+						
+						int	http_port = http_port_l.intValue();
+						
+						if ( http_port != 0 ){
+							
+							peer.put( "h", new byte[]{ (byte)(http_port>>8), (byte)(http_port&0xff) });
+						}
 					}
 					
 					Long	crypto_flag_l	= (Long)rep_peer.get( "crypto_flag" );
@@ -1938,6 +1964,7 @@ TRTrackerServerTorrentImpl
 	{
 		private short	tcp_port;
 		private short	udp_port;
+		private short	http_port;
 		private byte[]	ip;
 		private byte	crypto_level;
 		private int		create_time_secs;
@@ -1948,6 +1975,7 @@ TRTrackerServerTorrentImpl
 			String		ip_str,
 			int			_tcp_port,
 			int			_udp_port,
+			int			_http_port,
 			byte		_crypto_level,
 			int			_timeout_secs )
 		{
@@ -1961,6 +1989,7 @@ TRTrackerServerTorrentImpl
 			
 			tcp_port	= (short)_tcp_port;
 			udp_port	= (short)_udp_port;
+			http_port	= (short)_http_port;
 			crypto_level	= _crypto_level;
 			
 			create_time_secs 	= (int)SystemTime.getCurrentTime()/1000;
@@ -2013,6 +2042,12 @@ TRTrackerServerTorrentImpl
 		getUDPPort()
 		{
 			return( udp_port & 0xffff );
+		}
+		
+		protected int
+		getHTTPPort()
+		{
+			return( http_port & 0xffff );
 		}
 		
 		protected byte

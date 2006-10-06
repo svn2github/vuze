@@ -488,7 +488,7 @@ TRTrackerServerProcessorTCP
 							hashes, scrape_flags,
 							peer_id, no_peer_id, compact_mode, key, 
 							event, stop_to_queue,
-							tcp_port&0xffff, udp_port&0xffff,
+							tcp_port&0xffff, udp_port&0xffff, http_port&0xffff,
 							real_ip_address,
 							client_ip_address,
 							downloaded, uploaded, left,

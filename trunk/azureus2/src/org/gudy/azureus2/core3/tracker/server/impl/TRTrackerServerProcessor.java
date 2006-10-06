@@ -65,6 +65,7 @@ TRTrackerServerProcessor
 		boolean						stop_to_queue,
 		int							port,
 		int							udp_port,
+		int							http_port,
 		String						real_ip_address,
 		String						client_ip_address,
 		long						downloaded,
@@ -172,14 +173,14 @@ TRTrackerServerProcessor
 					torrent.peerContact( 	
 						request,
 						event, 
-						peer_id, port, udp_port, crypto_level, 
+						peer_id, port, udp_port, http_port, crypto_level, 
 						client_ip_address, ip_override, loopback, key,
 						uploaded, downloaded, left,
 						interval );
 				
 				if ( stop_to_queue && ( QUEUE_TEST || !( loopback || ip_override ))){
 					
-					torrent.peerQueued( client_ip_address, port, udp_port, crypto_level, (int)server.getScrapeRetryInterval( torrent ));
+					torrent.peerQueued( client_ip_address, port, udp_port, http_port, crypto_level, (int)server.getScrapeRetryInterval( torrent ));
 				}
 				
 				HashMap	pre_map = new HashMap();
@@ -276,7 +277,7 @@ TRTrackerServerProcessor
 						
 						if ( scrape_chars[i] == 'Q' ){
 							
-							torrent.peerQueued(  client_ip_address, port, udp_port, crypto_level, (int)interval );
+							torrent.peerQueued(  client_ip_address, port, udp_port, http_port, crypto_level, (int)interval );
 						}
 					}
 					
