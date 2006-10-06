@@ -68,12 +68,7 @@ PieceMapperImpl
 		
 		piece_count		= torrent.getNumberOfPieces();
 		
-		TOTorrentFile[]	files = torrent.getFiles();
-		
-		for (int i=0;i<files.length;i++){
-			
-			total_length	+= files[i].getLength();
-		}
+		total_length	= torrent.getSize();
 		
 		last_piece_length  	= (int) (total_length - ((long) (piece_count - 1) * (long)piece_length));
 	}
@@ -106,7 +101,7 @@ PieceMapperImpl
 		TOTorrentFile			torrent_file, 
 		String					fileName )
 	{
-		btFileList.add(new PieceMapperImpl.fileInfo(torrent_file,"", fileName, total_length ));
+		btFileList.add(new PieceMapperImpl.fileInfo(torrent_file,"", fileName ));
 	}
 	
 	protected void 
@@ -145,8 +140,6 @@ PieceMapperImpl
 	
 		throws UnsupportedEncodingException
 	{
-		long fileLength  = torrent_file.getLength();
-
 		//build the path
         
 		byte[][]	path_components = torrent_file.getPathComponents();
@@ -180,8 +173,7 @@ PieceMapperImpl
 			new fileInfo(
 				torrent_file,
 				pathBuffer.toString(),
-				last_comp,
-				fileLength));
+				last_comp ));
 	}
 	
 	
@@ -344,23 +336,20 @@ PieceMapperImpl
 		private TOTorrentFile				torrent_file;
 		private String 						path;
 		private String 						name;
-		private long 						length;
 
 		public 
 		fileInfo(
 			TOTorrentFile	_torrent_file,
 			String 			_path, 
-			String 			_name, 
-			long 			_length) 
+			String 			_name )
 		{
 			torrent_file	= _torrent_file;
 			path			= _path;
-			length 			= _length;
 			name 			= _name;
 		}
 		
 		public long getLength() {
-			return length;
+			return torrent_file.getLength();
 		}
 		public File
 		getDataFile()

@@ -823,8 +823,6 @@ DiskManagerImpl
                     }
                 }
 
-                fileInfo.setLength(target_length);
-
                 fileInfo.setDownloaded(0);
 
                 if ( cache_file.exists() ){

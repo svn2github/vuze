@@ -50,7 +50,6 @@ DiskManagerFileInfoImpl
   private CacheFile		cache_file;
   
   private String 		extension;
-  private long 			length;
   private long 			downloaded;
   private int 			firstPieceNumber = -1;
   private int 			nbPieces = 0;
@@ -302,7 +301,7 @@ DiskManagerFileInfoImpl
    * @return
    */
   public long getLength() {
-	return length;
+	return torrent_file.getLength();
   }
 
 	public int	
@@ -338,13 +337,6 @@ DiskManagerFileInfoImpl
    */
   public void setFirstPieceNumber(int i) {
 	firstPieceNumber = i;
-  }
-
-  /**
-   * @param l
-   */
-  public void setLength(long l) {
-	length = l >= 0L ? l : 0L;
   }
 
 
