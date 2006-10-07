@@ -81,7 +81,7 @@ HashWrapper
   	return( hash_code );
   }
   
-  public String toString() {
+  public String toBase32String() {
   	return Base32.encode(hash);
   }
 }
