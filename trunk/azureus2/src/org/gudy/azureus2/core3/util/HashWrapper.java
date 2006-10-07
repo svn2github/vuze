@@ -80,4 +80,8 @@ HashWrapper
   {
   	return( hash_code );
   }
+  
+  public String toString() {
+  	return Base32.encode(hash);
+  }
 }
