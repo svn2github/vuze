@@ -116,4 +116,12 @@ public interface UIFunctions extends AzureusCoreComponent
 	 * 
 	 */
 	void showConsole();
+
+	/**
+	 * @param url
+	 * @param w
+	 * @param h
+	 * @param allowResize 
+	 */
+	void viewURL(String url, int w, int h, boolean allowResize);
 }
