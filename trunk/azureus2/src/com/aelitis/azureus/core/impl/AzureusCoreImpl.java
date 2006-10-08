@@ -436,7 +436,12 @@ AzureusCoreImpl
 	        		}
 	        	}
 	       }.start();
-           
+       
+	   if ( COConfigurationManager.getBooleanParameter( "Resume Downloads On Start" )){
+	   
+		   global_manager.resumeDownloads();
+	   }
+	   
        //late inits
 	   NetworkManager.getSingleton().initialize(); 
           

@@ -1114,10 +1114,23 @@ public class GlobalManagerImpl
 	
   checker.stopIt();
   
-  saveDownloads( true );
-  
-  stopAllDownloads( true );
+  if ( COConfigurationManager.getBooleanParameter("Pause Downloads On Exit" )){
+	  
+	  pauseDownloads( true );
+	  
+	  	// do this before save-downloads so paused state gets saved
+	  
+	  stopAllDownloads( true );
+	  
+	  saveDownloads( true );
 
+  }else{
+  
+	  saveDownloads( true );
+  
+	  stopAllDownloads( true );
+  }
+ 
   if ( stats_writer != null ){
   	
   	stats_writer.destroy();
@@ -1213,6 +1226,13 @@ public class GlobalManagerImpl
   public void 
   pauseDownloads() 
   {
+	  pauseDownloads( false );
+  }
+  
+  protected void 
+  pauseDownloads(
+	boolean	tag_only )
+  {
     for( Iterator i = managers_cow.iterator(); i.hasNext(); ) {
       DownloadManager manager = (DownloadManager)i.next();
       
@@ -1242,7 +1262,10 @@ public class GlobalManagerImpl
 	    		paused_list_mon.exit();  
 	    	}
 	    	
-        	manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
+	    	if ( !tag_only ){
+	    		
+	    		manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
+	    	}
   
         }catch( TOTorrentException e ) {
         	Debug.printStackTrace( e );  

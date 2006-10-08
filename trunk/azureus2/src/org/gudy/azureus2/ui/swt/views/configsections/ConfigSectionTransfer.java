@@ -363,9 +363,20 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			StringParameter ignore_ports = new StringParameter(cMiniArea,
 					"Ignore.peer.ports", "0");
 			ignore_ports.setLayoutData(gridData);
-
-		} //end usermode>0
-
+	
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			BooleanParameter pauseOnExit = new BooleanParameter(cSection,
+					"Pause Downloads On Exit", false, "ConfigView.label.pause.downloads.on.exit");
+			pauseOnExit.setLayoutData(gridData);
+	
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			BooleanParameter resumeOnStart = new BooleanParameter(cSection,
+					"Resume Downloads On Start", false, "ConfigView.label.resume.downloads.on.start");
+			resumeOnStart.setLayoutData(gridData);
+		}
+		
 		return cSection;
 	}
 }

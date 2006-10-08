@@ -171,7 +171,8 @@ public class ConfigurationDefaults {
     def.put("Ip Filter Enable Description Cache", TRUE);
     def.put("Allow Same IP Peers",FALSE);
     def.put("Use Super Seeding",FALSE);
-
+    def.put("Pause Downloads On Exit", FALSE );
+    def.put("Resume Downloads On Start", FALSE );
         
     // SWT GUI Settings
     
