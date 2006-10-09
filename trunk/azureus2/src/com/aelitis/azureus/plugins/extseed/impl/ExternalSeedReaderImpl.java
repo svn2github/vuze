@@ -772,4 +772,29 @@ ExternalSeedReaderImpl
 	{
 		listeners.remove( l );
 	}
+	
+	protected int
+	getIntParam(
+		Map			map,
+		String		name,
+		int			def )
+	{
+		Object	obj = map.get(name);
+		
+		if ( obj instanceof Long ){
+			
+			return(((Long)obj).intValue());
+		}
+		
+		return( def );
+	}
+	
+	protected boolean
+	getBooleanParam(
+		Map			map,
+		String		name,
+		boolean		def )
+	{
+		return( getIntParam( map, name, def?1:0) != 0 );
+	}
 }

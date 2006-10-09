@@ -88,6 +88,11 @@ ExternalSeedReaderFactoryWebSeed
 
 				List	readers = new ArrayList();
 				
+				Object	_params = config.get( "httpseeds-params" );
+				
+				Map	params = _params instanceof Map?(Map)_params:new HashMap();
+				
+
 				for (int i=0;i<urls.size();i++){
 					
 					try{
@@ -99,7 +104,7 @@ ExternalSeedReaderFactoryWebSeed
 						
 						if ( protocol.equals( "http" )){
 							
-							readers.add( new ExternalSeedReaderWebSeed(plugin,torrent, url));
+							readers.add( new ExternalSeedReaderWebSeed( plugin, torrent, url, params ));
 							
 						}else{
 							

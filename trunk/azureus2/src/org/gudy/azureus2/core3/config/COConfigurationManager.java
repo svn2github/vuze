@@ -144,6 +144,12 @@ COConfigurationManager
 	}
 
 	public static boolean
+	verifyParameter(String parameter, String value) 
+	{
+		return ConfigurationManager.getInstance().verifyParameter( parameter, value );
+	}
+	
+	public static boolean
 	getBooleanParameter(
 		String		_name )
 	{
@@ -416,4 +422,13 @@ COConfigurationManager
   public static boolean removeParameter(String parameter) {
 		return ConfigurationManager.getInstance().removeParameter(parameter);
 	}
+  
+  public interface
+  ParameterVerifier
+  {
+	  public boolean
+	  verify(
+		String	parameter,
+		Object	value );
+  }
 }

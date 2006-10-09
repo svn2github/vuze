@@ -472,6 +472,8 @@ ConfigurationChecker
   		
   		class_mon.exit();
   	}
+  	
+  	ConfigurationDefaults.getInstance().runVerifiers();
   }
   
 	public static final boolean

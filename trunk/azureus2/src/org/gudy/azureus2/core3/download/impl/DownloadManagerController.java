@@ -26,7 +26,9 @@ import java.io.File;
 import java.io.IOException; 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
@@ -58,11 +60,13 @@ import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 
 public class 
 DownloadManagerController 
@@ -73,6 +77,29 @@ DownloadManagerController
 	private static long STATE_FLAG_COMPLETE_NO_DND = 0x02;
 	
 	private static long skeleton_builds;
+	
+	private static ExternalSeedPlugin	ext_seed_plugin;
+	private static boolean				ext_seed_plugin_tried;
+	
+	private static ExternalSeedPlugin
+	getExternalSeedPlugin()
+	{
+		if ( !ext_seed_plugin_tried ){
+			
+			ext_seed_plugin_tried	= true;
+			
+			try {
+				ext_seed_plugin = (ExternalSeedPlugin)AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(
+						ExternalSeedPlugin.class).getPlugin();
+	
+			}catch (Throwable e){
+	
+				Debug.printStackTrace( e );
+			}
+		}
+		
+		return( ext_seed_plugin );
+	}
 	
 		// DISK listeners
 	
@@ -1647,6 +1674,40 @@ DownloadManagerController
 		if ( global_stats != null ){
 			
 			global_stats.dataBytesSent( bytes, LAN );
+		}
+	}
+	
+	public void
+	addHTTPSeed(
+		String	address,
+		int		port )
+	{
+		ExternalSeedPlugin	plugin = getExternalSeedPlugin();
+
+		try{
+			if ( plugin != null ){
+				
+				Map config = new HashMap();
+	
+				List urls = new ArrayList();
+				
+				String	seed_url = "http://" + address + ":" + port + "/webseed";
+				
+				urls.add( seed_url.getBytes());
+	
+				config.put("httpseeds", urls);
+	
+				Map params = new HashMap();
+	
+				params.put("supports_503", new Long(0));
+	
+				config.put("httpseeds-params", params);
+	
+				plugin.addSeed( org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl.getDownloadStatic( download_manager ), config);
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
 		}
 	}
 	

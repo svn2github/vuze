@@ -25,6 +25,7 @@ package com.aelitis.azureus.plugins.extseed.impl.webseed;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.peers.Peer;
@@ -49,16 +50,21 @@ ExternalSeedReaderWebSeed
 	private int			port;
 	private String		url_prefix;
 	
+	private boolean	supports_503;
+	
 	private int		reconnect_delay	= RECONNECT_DEFAULT;
 	
 	protected
 	ExternalSeedReaderWebSeed(
 		ExternalSeedPlugin 		_plugin,
 		Torrent					_torrent,	
-		URL						_url )
+		URL						_url,
+		Map						_params )
 	{
 		super( _plugin, _torrent );
-		
+
+		supports_503		= getBooleanParam( _params, "supports_503", true );
+
 		url		= _url;
 		
 		ip		= url.getHost();
@@ -204,13 +210,25 @@ ExternalSeedReaderWebSeed
 		long	piece_end	= piece_start + request.getLength()-1;
 			
 		String	str = url_prefix + "&piece=" + piece + "&ranges=" + piece_start + "-" + piece_end;
-		
+				
 		reconnect_delay	= RECONNECT_DEFAULT;
 		
 		try{
 			ExternalSeedHTTPDownloader	http_downloader = new ExternalSeedHTTPDownloader( new URL( str ), getUserAgent());
 
-			http_downloader.downloadSocket( request.getLength(), request );
+				// unfortunately using HttpURLConnection it isn't possible to read the 503 response as per
+				// protocol - however, for az http web seeds we don't uses 503 anyway so we cna use URLCon. The
+				// main benefit here is we also get http proxying which we don't get with our direct socket
+				// support...
+			
+			if ( supports_503 ){
+				
+				http_downloader.downloadSocket( request.getLength(), request );
+
+			}else{
+				
+				http_downloader.download( request.getLength(), request );
+			}			
 			
 			if ( http_downloader.getLastResponse() == 503 ){
 				

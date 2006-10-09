@@ -162,7 +162,8 @@ public class PeerManager {
     NetworkManager.ByteMatcher matcher =
     	new NetworkManager.ByteMatcher() 
     {
-    	public int size() {  return 48;  }
+		public int matchThisSizeOrBigger(){	return( 48 );}
+    	public int maxSize() {  return 48;  }
     	public int minSize() { return 20; }
 
     	public Object

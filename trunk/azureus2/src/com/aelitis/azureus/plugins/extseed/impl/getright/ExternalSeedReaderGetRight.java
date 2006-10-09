@@ -72,7 +72,6 @@ ExternalSeedReaderGetRight
 		
 		int target_request_size	= getIntParam( _params, "req_size", TARGET_REQUEST_SIZE_DEFAULT );
 		
-		
 		if ( valid_until > 0 ){
 			
 			valid_until += getSystemTime();
@@ -110,22 +109,6 @@ ExternalSeedReaderGetRight
 		}
 		
 		return( false );
-	}
-	
-	protected int
-	getIntParam(
-		Map			map,
-		String		name,
-		int			def )
-	{
-		Object	obj = map.get(name);
-		
-		if ( obj instanceof Long ){
-			
-			return(((Long)obj).intValue());
-		}
-		
-		return( def );
 	}
 	
 	public String

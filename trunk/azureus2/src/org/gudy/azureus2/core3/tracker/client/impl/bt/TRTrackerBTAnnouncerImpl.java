@@ -2248,6 +2248,7 @@ TRTrackerBTAnnouncerImpl
 										ip, 
 										tcp_port,
 										udp_port,
+										http_port,
 										protocol  );
 										
 								if (Logger.isEnabled())
@@ -2348,6 +2349,7 @@ TRTrackerBTAnnouncerImpl
 								}
 								
 								int		udp_port	= 0;
+								int		http_port	= 0;
 								
 								TRTrackerAnnouncerResponsePeerImpl new_peer = 
 									new TRTrackerAnnouncerResponsePeerImpl( 
@@ -2356,6 +2358,7 @@ TRTrackerBTAnnouncerImpl
 										ip, 
 										peer_port,
 										udp_port,
+										http_port,
 										protocol  );
 										
 								if (Logger.isEnabled())
@@ -2440,6 +2443,8 @@ TRTrackerBTAnnouncerImpl
 				    			udp_port	= 0;
 				    		}		    		
 
+				    		int	http_port = 0;
+				    		
 				    		TRTrackerAnnouncerResponsePeerImpl peer = 
 				    			new TRTrackerAnnouncerResponsePeerImpl( 
 			    					PEPeerSource.PS_BT_TRACKER, 
@@ -2447,6 +2452,7 @@ TRTrackerBTAnnouncerImpl
 			    					ip, 
 			    					tcp_port,
 			    					udp_port,
+			    					http_port,
 			    					protocol );
 			    			
 				    		if (Logger.isEnabled())
@@ -2727,12 +2733,15 @@ TRTrackerBTAnnouncerImpl
 				
 				DownloadAnnounceResultPeer	ext_peer = ext_peers[i];
 				
+				int	http_port	= 0;
+				
 				peers[i] = new TRTrackerAnnouncerResponsePeerImpl( 
 								ext_peer.getSource(),
 								ext_peer.getPeerID(),
 								ext_peer.getAddress(), 
 								ext_peer.getPort(),
 								ext_peer.getUDPPort(),
+								http_port,
 								ext_peer.getProtocol());
 				
 				if (Logger.isEnabled())

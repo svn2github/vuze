@@ -147,6 +147,11 @@ TRTrackerAnnouncerImpl
 				if ( udp_port != 0 ){
 					entry.put( "udpport", new Long( udp_port));
 				}
+				int	http_port = peer.getHTTPPort();
+				if ( http_port != 0 ){
+					entry.put( "httpport", new Long( http_port));
+				}
+				
 				entry.put( "prot", new Long(peer.getProtocol()));
 				
 				peers.add( entry );
@@ -241,6 +246,9 @@ TRTrackerAnnouncerImpl
 					short	protocol		= l_protocol==null?DownloadAnnounceResultPeer.PROTOCOL_NORMAL:l_protocol.shortValue();
 					Long	l_udp_port		= (Long)peer.get("udpport");
 					int		peer_udp_port	= l_udp_port==null?0:l_udp_port.intValue();
+					Long	l_http_port		= (Long)peer.get("httpport");
+					int		peer_http_port	= l_http_port==null?0:l_http_port.intValue();
+
 					
 					//System.out.println( "recovered " + ip_address + ":" + port );
 
@@ -251,6 +259,7 @@ TRTrackerAnnouncerImpl
 							peer_ip_address, 
 							peer_tcp_port,
 							peer_udp_port,
+							peer_http_port,
 							protocol );
 					
 					tracker_peer_cache.put( entry.getKey(), entry );
@@ -325,7 +334,7 @@ TRTrackerAnnouncerImpl
 				// create a fake peer so we can get the key
 			
 			TRTrackerAnnouncerResponsePeerImpl peer = 
-				new TRTrackerAnnouncerResponsePeerImpl( "", new byte[0], ip, tcp_port, 0, (short)0 );
+				new TRTrackerAnnouncerResponsePeerImpl( "", new byte[0], ip, tcp_port, 0, 0, (short)0 );
 			
 			if ( tracker_peer_cache.remove( peer.getKey()) != null ){
 				

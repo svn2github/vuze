@@ -27,4 +27,6 @@ public interface
 TRTrackerAnnouncerResponsePeer
 	extends DownloadAnnounceResultPeer
 {
+	public int
+	getHTTPPort();
 }

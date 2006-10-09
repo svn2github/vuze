@@ -677,6 +677,13 @@ PEPeerControlImpl
 				final PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), type, peer.getUDPPort());
 				peer_database.addDiscoveredPeer( item );
 			}
+			
+			int	http_port = peer.getHTTPPort();
+			
+			if ( http_port != 0 ){
+				
+				adapter.addHTTPSeed( peer.getAddress(), http_port );
+			}
 		}
 	}
 	

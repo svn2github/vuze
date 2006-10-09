@@ -116,6 +116,11 @@ PEPeerManagerAdapter
 	public PeerManagerRegistration
 	getPeerManagerRegistration();
 	
+	public void
+	addHTTPSeed(
+		String	address,
+		int		port );
+	
 	public LogRelation
 	getLogRelation();
 }

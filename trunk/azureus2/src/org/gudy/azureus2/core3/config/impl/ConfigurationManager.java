@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager.ParameterVerifier;
 
 /**
  * A singleton used to store configuration into a bencoded file.
@@ -485,6 +486,43 @@ ConfigurationManager
     return setParameter(parameter, stringToBytes(defaultValue));
   }
 
+  public boolean 
+  verifyParameter(
+	String parameter, 
+	String value )
+  {
+	  List verifiers = ConfigurationDefaults.getInstance().getVerifiers(parameter);
+	  
+	  if ( verifiers != null ){
+		  try{
+			  for (int i=0;i<verifiers.size();i++){
+
+				  ParameterVerifier	verifier = (ParameterVerifier)verifiers.get(i);
+
+				  if ( verifier != null ){
+					  
+					  try{
+						  if ( !verifier.verify(parameter,value)){
+							  
+							  return( false );
+						  }
+					  }catch( Throwable e ){
+						  
+						  Debug.printStackTrace( e );
+					  }
+				  }
+			  }
+		  }catch( Throwable e ){
+
+			  // we're not synchronized so possible but unlikely error here
+
+			  Debug.printStackTrace( e );
+		  }
+	  }  
+	  
+	  return( true );
+  }
+  
 	public boolean setRGBParameter(String parameter, int red, int green, int blue) {
     boolean bAnyChanged = false;
     bAnyChanged |= setParameter(parameter + ".red", red);

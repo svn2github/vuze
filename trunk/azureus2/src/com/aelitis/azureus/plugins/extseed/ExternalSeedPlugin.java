@@ -216,8 +216,12 @@ ExternalSeedPlugin
 	protected void
 	addPeers(
 		final Download	download,
-		final List		peers )
+		List			_peers )
 	{
+		final List peers = new ArrayList();
+		
+		peers.addAll( _peers );
+	
 		if ( peers.size() > 0 ){
 			
 			boolean	add_listener = false;
@@ -236,9 +240,11 @@ ExternalSeedPlugin
 					download_map.put( download, existing_peers );
 				}
 	
-				for (int i=0;i<peers.size();i++){
+				Iterator	it = peers.iterator();
 					
-					ExternalSeedPeer	peer = (ExternalSeedPeer)peers.get(i);
+				while( it.hasNext()){
+					
+					ExternalSeedPeer	peer = (ExternalSeedPeer)it.next();
 					
 					boolean	skip = false;
 					
@@ -254,7 +260,11 @@ ExternalSeedPlugin
 						}
 					}
 
-					if ( !skip ){
+					if ( skip ){
+						
+						it.remove();
+						
+					}else{
 						
 						existing_peers.add( peer );
 					}
@@ -297,6 +307,22 @@ ExternalSeedPlugin
 							}
 						}
 					});
+			}else{
+				
+				PeerManager	existing_pm = download.getPeerManager();
+				
+				if ( existing_pm != null ){
+					
+					for (int i=0;i<peers.size();i++){
+						
+						ExternalSeedPeer	peer = (ExternalSeedPeer)peers.get(i);
+
+						if ( peer.getManager() == null ){
+							
+							peer.setManager( existing_pm );
+						}
+					}
+				}
 			}
 		}
 	}

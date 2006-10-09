@@ -203,8 +203,14 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 	final NetworkManager.ByteMatcher matcher = 
 			new NetworkManager.ByteMatcher()
 			{
+				public int
+				matchThisSizeOrBigger()
+				{
+					return( maxSize());
+				}
+				
 				public int 
-				size() 
+				maxSize() 
 				{  
 					return type_bytes.length;  
 				}
@@ -212,7 +218,7 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 				public int 
 				minSize()
 				{ 
-					return size(); 
+					return maxSize(); 
 				}
 	
 				public Object 
@@ -221,7 +227,7 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 				{             
 					int old_limit = to_compare.limit();
 					
-					to_compare.limit( to_compare.position() + size() );
+					to_compare.limit( to_compare.position() + maxSize() );
 					
 					boolean matches = to_compare.equals( ByteBuffer.wrap( type_bytes ) );
 					

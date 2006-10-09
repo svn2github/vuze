@@ -388,11 +388,21 @@ public class NetworkManager {
    * Byte stream match filter for routing.
    */
   public interface ByteMatcher {
+	  
+	/**
+	 * Number of bytes of buffer at or beyond which the "match" method will be called to test for a match
+	 * @return
+	 */
+	  
+	public int matchThisSizeOrBigger();
+	
     /**
-     * Get the number of bytes this matcher requires.
+     * Get the max number of bytes this matcher requires. If it fails with this (or more) bytes then
+     * the connection will be dropped
      * @return size in bytes
      */
-    public int size();
+	
+    public int maxSize();
     
     /**
      * Get the minimum number of bytes required to determine if this matcher applies

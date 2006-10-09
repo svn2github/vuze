@@ -62,12 +62,13 @@ public class NatCheckerServer extends AEThread {
         //so register for incoming connection routing
         
         matcher = new NetworkManager.ByteMatcher() {
-          public int size() {  return incoming_handshake.getBytes().length;  }
-          public int minSize(){ return size(); }
+		  public int matchThisSizeOrBigger(){ return( maxSize()); }
+          public int maxSize() {  return incoming_handshake.getBytes().length;  }
+          public int minSize(){ return maxSize(); }
         
           public Object matches( TransportHelper transport, ByteBuffer to_compare, int port ) {             
             int old_limit = to_compare.limit();
-            to_compare.limit( to_compare.position() + size() );
+            to_compare.limit( to_compare.position() + maxSize() );
             boolean matches = to_compare.equals( ByteBuffer.wrap( incoming_handshake.getBytes() ) );
             to_compare.limit( old_limit );  //restore buffer structure
             return matches?"":null;

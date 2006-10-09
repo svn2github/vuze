@@ -261,12 +261,15 @@ TRTrackerDHTAnnouncerImpl
 					Logger.log(new LogEvent(torrent, LOGID, "EXTERNAL PEER DHT: ip="
 							+ ext_peer.getAddress() + ",port=" + ext_peer.getPort() +",prot=" + ext_peer.getProtocol()));
 
+				int	http_port	= 0;
+				
 				peers[i] = new TRTrackerAnnouncerResponsePeerImpl( 
 									ext_peer.getSource(),
 									ext_peer.getPeerID(),
 									ext_peer.getAddress(), 
 									ext_peer.getPort(),
 									ext_peer.getUDPPort(),
+									http_port,
 									ext_peer.getProtocol());
 			}
 			

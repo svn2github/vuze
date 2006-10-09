@@ -122,7 +122,7 @@ IncomingConnectionManager
 	  	          break;
 	  	        }      	
 	        }else{
-		        if( orig_position < bm.size() ) {  //not enough bytes yet to compare
+		        if( orig_position < bm.matchThisSizeOrBigger() ) {  //not enough bytes yet to compare
 		          continue;
 		        }
 		                
@@ -162,8 +162,8 @@ IncomingConnectionManager
 	{
 	    try {  match_buffers_mon.enter();
 	    
-	    	if( matcher.size() > max_match_buffer_size ) {
-	    		max_match_buffer_size = matcher.size();
+	    	if( matcher.maxSize() > max_match_buffer_size ) {
+	    		max_match_buffer_size = matcher.maxSize();
 	    	}
 
 	    	if ( matcher.minSize() > max_min_match_buffer_size ){
@@ -198,12 +198,12 @@ IncomingConnectionManager
 	    
 	      new_match_buffers.remove( to_remove );
 	    
-	      if( to_remove.size() == max_match_buffer_size ) { //recalc longest buffer if necessary
+	      if( to_remove.maxSize() == max_match_buffer_size ) { //recalc longest buffer if necessary
 	        max_match_buffer_size = 0;
 	        for( Iterator i = new_match_buffers.keySet().iterator(); i.hasNext(); ) {
 	          NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)i.next();
-	          if( bm.size() > max_match_buffer_size ) {
-	            max_match_buffer_size = bm.size();
+	          if( bm.maxSize() > max_match_buffer_size ) {
+	            max_match_buffer_size = bm.maxSize();
 	          }
 	        }
 	      }

@@ -31,11 +31,16 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -79,6 +84,8 @@ public class ConfigurationDefaults {
   public String def_String = "";
   public byte[] def_bytes = null;
   
+  private Hashtable parameter_verifiers	= new Hashtable();
+
   public static ConfigurationDefaults 
   getInstance() 
   {
@@ -339,7 +346,8 @@ public class ConfigurationDefaults {
     def.put( "Tracker Port SSL Backups", "" );
     def.put( "Tracker Port Force External", FALSE );
     def.put( "Tracker Host Add Our Announce URLs", TRUE );
-    def.put( "Tracker IP", "" );
+    def_put( "Tracker IP", "", new IPVerifier());
+    
     def.put( "Tracker Port UDP Enable", FALSE );
     def.put( "Tracker Port UDP Version", new Long(2) );
     def.put( "Tracker Send Peer IDs", TRUE );
@@ -484,6 +492,26 @@ public class ConfigurationDefaults {
    
   }
   
+  protected void
+  def_put(
+	String										key,
+	String										key_def,
+	COConfigurationManager.ParameterVerifier	verifier )
+  {
+	  def.put( key, key_def );
+	  
+	  List	l = (List)parameter_verifiers.get( key );
+	  
+	  if ( l == null ){
+		  
+		  l = new ArrayList(1);
+		  
+		  parameter_verifiers.put( key, l );
+	  }
+	  
+	  l.add( verifier );
+  }
+  
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {
     if (def.containsKey(p)) {
       Object o = def.get(p);
@@ -552,5 +580,89 @@ public class ConfigurationDefaults {
 	 String	key )
   {
 	return( def.get( key ));  
+  }
+  
+  public List
+  getVerifiers(
+	 String	key )
+  {
+	  return((List)parameter_verifiers.get( key ));
+  }
+  
+  protected void
+  runVerifiers()
+  {
+	  Iterator	it = parameter_verifiers.entrySet().iterator();
+	  
+	  while( it.hasNext()){
+		  
+		  Map.Entry	entry =(Map.Entry)it.next();
+		  
+		  String	key 		= (String)entry.getKey();
+		  List		verifiers 	= (List)entry.getValue();
+		  
+		  for (int i=0;i<verifiers.size();i++){
+			  
+			  COConfigurationManager.ParameterVerifier	verifier = (COConfigurationManager.ParameterVerifier)verifiers.get(i);
+			  
+			  Object	val_def = getDefaultValueAsObject( key );
+			  Object	val;
+			  
+			  if ( val_def == null ){
+				  
+				  continue;
+			  }
+			  
+			  if ( val_def instanceof String ){
+				
+				  val = COConfigurationManager.getStringParameter( key );
+				  
+			  }else{
+				  
+				  Debug.out( "Unsupported verifier type for parameter '" + key + "' - " + val_def );
+				  
+				  continue;
+			  }
+			  
+			  if ( val == null ){
+				  
+				  continue;
+			  }
+			  
+			  if ( !verifier.verify( key, val )){
+				  
+				  Debug.out( "Parameter '" + key + "', value '" + val +"' failed verification - setting back to default '" + val_def + "'" );
+				  
+				  COConfigurationManager.removeParameter( key );
+			  }
+		  }
+	  }
+  }
+  
+  protected class
+  IPVerifier
+  	implements COConfigurationManager.ParameterVerifier
+  {
+	  public boolean
+	  verify(
+		String	parameter,
+		Object	_value )
+	  {
+		  String	value = (String)_value;
+		  
+		  for (int i=0;i<value.length();i++){
+			  
+			  char	c = value.charAt(i);
+			  
+			  if ( Character.isLetterOrDigit( c ) || c == '.' ){
+				  
+			  }else{
+				  
+				  return( false );
+			  }
+		  }
+		  
+		  return( true );
+	  }
   }
 }

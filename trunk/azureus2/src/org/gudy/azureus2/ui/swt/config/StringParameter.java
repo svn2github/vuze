@@ -46,6 +46,11 @@ public class StringParameter extends Parameter{
     inputField = new Text(composite, SWT.BORDER);
     String value = COConfigurationManager.getStringParameter(name, defaultValue);
     inputField.setText(value);
+    inputField.addListener(SWT.Verify, new Listener() {
+        public void handleEvent(Event e) {
+          e.doit = COConfigurationManager.verifyParameter(name, e.text );
+        }
+    });
     inputField.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event event) {
         COConfigurationManager.setParameter(name, inputField.getText());

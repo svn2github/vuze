@@ -33,6 +33,7 @@ TRTrackerAnnouncerResponsePeerImpl
 	private String		address;
 	private int			tcp_port;
 	private int			udp_port;
+	private int			http_port;
 	private short		crypto;
 	
 	public
@@ -42,6 +43,7 @@ TRTrackerAnnouncerResponsePeerImpl
 		String		_address,
 		int			_tcp_port,
 		int			_udp_port,
+		int			_http_port,
 		short		_crypto )
 	{
 		source		= _source;
@@ -49,6 +51,7 @@ TRTrackerAnnouncerResponsePeerImpl
 		address		= _address;
 		tcp_port	= _tcp_port;
 		udp_port	= _udp_port;
+		http_port	= _http_port;
 		crypto		= _crypto;
 	}
 	
@@ -80,6 +83,12 @@ TRTrackerAnnouncerResponsePeerImpl
 	getUDPPort()
 	{
 		return( udp_port );
+	}
+	
+	public int
+	getHTTPPort()
+	{
+		return( http_port );
 	}
 	
 	public short

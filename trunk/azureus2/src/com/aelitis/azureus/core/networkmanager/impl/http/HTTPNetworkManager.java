@@ -74,8 +74,10 @@ HTTPNetworkManager
 		NetworkManager.ByteMatcher matcher =
 		   	new NetworkManager.ByteMatcher() 
 		    {
-		    	public int size() {  return 256;  }
-		    	public int minSize() { return 3; }
+				public int matchThisSizeOrBigger(){	return( 4 + 1 + 11 ); } // GET ' ' <url of 1> ' HTTP/1.1<cr><nl>'
+				
+		    	public int maxSize() { return 256; }	// max GET <url> size - boiler plate plus small url plus hash
+		    	public int minSize() { return 3; }		// enough to match GET
 
 		    	public Object
 		    	matches( 
@@ -105,7 +107,7 @@ HTTPNetworkManager
 			    		to_compare.get( line_bytes );
 			    		
 			    		try{
-			    				// format is GET url HTTPblah
+			    				// format is GET url HTTP/1.1<NL>
 			    			
 				    		String	url = new String( line_bytes, "ISO-8859-1" );
 				    		
@@ -116,44 +118,34 @@ HTTPNetworkManager
 				    			return( null );
 				    		}
 				    		
-				    		url = url.substring( space + 1 );
+				    			// note that we don't insist on a full URL here, just the start of one
 				    		
-				    		int	end_line_pos = url.indexOf( NL );
-				    		
-				    		if ( end_line_pos == -1 ){
-				    			
-				    			return( null );
-				    		}
-				    		
-				    		url = url.substring( 0, end_line_pos );
-				    		
-				    		int	end_url_pos = url.lastIndexOf( ' ' );
-				    		
-				    		if ( end_url_pos == -1 ){
-				    			
-				    			return( null );
-				    		}
-				    		
-				    		url = url.substring( 0, end_url_pos ).trim();
-				    						    		
+				    		url = url.substring( space + 1 ).trim();
+				    						    						    		
 				    		if ( url.indexOf( "/index.html") != -1 ){
 				    			
 					    		return( new Object[]{ transport, getIndexPage() });
+					    		
+				    		}else if ( url.indexOf( "/test503.html" ) != -1 ){
+				    			
+					    		return( new Object[]{ transport, getTest503()});
 				    		}
 
 				    		String	hash_str = null;
 				    		
-				    		int	ws_pos = url.indexOf( "?info_hash=" );
+				    		int	hash_pos = url.indexOf( "?info_hash=" );
 				    		
-				    		if ( ws_pos != -1 ){
+				    		if ( hash_pos != -1 ){
 				    							    			
-				    			int	hash_start = ws_pos + 11;
+				    			int	hash_start = hash_pos + 11;
 				    			
-				    			int	hash_end = url.indexOf( '&', ws_pos );
+				    			int	hash_end = url.indexOf( '&', hash_pos );
 				    							    			
 				    			if ( hash_end == -1 ){
 				    				
-				    				hash_str = url.substring( hash_start );
+				    					// not read the end yet
+				    				
+				    				return( null );
 				    				
 				    			}else{
 				    				
@@ -161,15 +153,21 @@ HTTPNetworkManager
 				    			}
 				    		}else{
 			    		
-					    		ws_pos = url.indexOf( "/files/" );
+				    			hash_pos = url.indexOf( "/files/" );
 					    		
-					    		if ( ws_pos != -1 ){
+					    		if ( hash_pos != -1 ){
 					    							    			
-					    			int	hash_start = ws_pos + 7;
+					    			int	hash_start = hash_pos + 7;
 	
 					    			int	hash_end = url.indexOf('/', hash_start );
 					    			
-					    			if ( hash_end != -1 ){
+					    			if ( hash_end == -1 ){
+					    				
+					    					// not read the end of the hash yet
+					    				
+					    				return( null );
+					    				
+					    			}else{
 					    				
 					    				hash_str = url.substring( hash_start, hash_end );
 					    			}
@@ -314,6 +312,16 @@ HTTPNetworkManager
 				"Connection: Close" + NL +
 				"Content-Length: 0" + NL +
 				NL );
+	}
+	
+	protected String
+	getTest503()
+	{
+		return( "HTTP/1.1 503 Service Unavailable" + NL + 
+				"Connection: Close" + NL +
+				"Content-Length: 4" + NL +
+				NL + 
+				"1234" );
 	}
 	
 	protected String

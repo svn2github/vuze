@@ -22,12 +22,9 @@
 
 package com.aelitis.azureus.plugins.extseed.util;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URL;
@@ -211,37 +208,35 @@ ExternalSeedHTTPDownloader
 	{
 		Socket	socket	= null;
 		
-		try{
-			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-			
-			PrintWriter	pw = new  PrintWriter( baos );
-					
-			pw.print( "GET " + url.getPath() + "?" + url.getQuery() + " HTTP/1.0" + NL );
-			pw.print( "Host: " + url.getHost() + (url.getPort()==-1?"":":" + url.getPort()) + NL );	// TODO: HTTPS
-			pw.print( "Accept: */*" + NL );
-			pw.print( "Connection: Keep-Alive" + NL );
-			pw.print( "User-Agent: " + user_agent + NL );
+		try{				
+			String	output_header = 
+				"GET " + url.getPath() + "?" + url.getQuery() + " HTTP/1.1" + NL +
+				"Host: " + url.getHost() + (url.getPort()==-1?"":( ":" + url.getPort())) + NL +
+				"Accept: */*" + NL +
+				"Connection: Keep-Alive" + NL +
+				"User-Agent: " + user_agent + NL;
 		
 			for (int i=0;i<prop_names.length;i++){
 				
-				pw.print( prop_names[i] + ":" + prop_values[i] + NL );
+				output_header += prop_names[i] + ":" + prop_values[i] + NL;
 			}
 			
-			pw.print( NL );
-			pw.flush();
+			output_header += NL;
+			
+			System.out.println( "header: " + output_header );
 			
 			socket = new Socket(  url.getHost(), url.getPort()==-1?url.getDefaultPort():url.getPort());
 			
 			OutputStream	os = socket.getOutputStream();
 			
-			os.write( baos.toByteArray());
+			os.write( output_header.getBytes( "ISO-8859-1" ));
 			
 			os.flush();
 			
-			InputStream is = new BufferedInputStream( socket.getInputStream());
+			InputStream is = socket.getInputStream();
 			
 			try{
-				String	header = "";
+				String	input_header = "";
 				
 				while( true ){
 					
@@ -254,9 +249,9 @@ ExternalSeedHTTPDownloader
 						throw( new IOException( "input too short reading header" ));
 					}
 					
-					header	+= (char)buffer[0];
+					input_header	+= (char)buffer[0];
 					
-					if ( header.endsWith(NL+NL)){
+					if ( input_header.endsWith(NL+NL)){
 					
 						break;
 					}
@@ -264,14 +259,14 @@ ExternalSeedHTTPDownloader
 								
 				// HTTP/1.1 403 Forbidden
 				
-				int	line_end = header.indexOf(NL);
+				int	line_end = input_header.indexOf(NL);
 				
 				if ( line_end == -1 ){
 					
 					throw( new IOException( "header too short" ));
 				}
 				
-				String	first_line = header.substring(0,line_end);
+				String	first_line = input_header.substring(0,line_end);
 				
 				StringTokenizer	tok = new StringTokenizer(first_line, " " );
 				

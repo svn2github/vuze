@@ -29,7 +29,6 @@ import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
-import org.gudy.azureus2.core3.util.Constants;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 
