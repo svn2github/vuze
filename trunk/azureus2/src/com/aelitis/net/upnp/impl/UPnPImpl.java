@@ -458,19 +458,85 @@ UPnPImpl
 	
 		throws UPnPException
 	{
-		ResourceDownloaderFactory rdf = adapter.getResourceDownloaderFactory();
-		
-		ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( url ), 3 );
-		
-		rd.addListener( this );
-		
 		try{
-			InputStream	data = rd.download();
+			if ( forceDirect()){
 			
-			return( parseXML( data ));
-			
+				Socket	socket = new Socket(url.getHost(), url.getPort());
+				
+				try{
+					PrintWriter	pw = new PrintWriter(new OutputStreamWriter( socket.getOutputStream(), "UTF8" ));
+				
+					String	url_target = url.toString();
+					
+					int	p1 	= url_target.indexOf( "://" ) + 3;
+					p1		= url_target.indexOf( "/", p1 );
+					
+					url_target = url_target.substring( p1 );
+					
+					pw.print( "GET " + url_target + " HTTP/1.1" + NL );
+					pw.print( "User-Agent: Azureus (UPnP/1.0)" + NL );
+					pw.print( "Host: " + url.getHost() + NL );
+					pw.print( "Connection: Close" + NL );
+					pw.print( "Pragma: no-cache" + NL + NL );
+						
+					pw.flush();
+					
+					InputStream	is = socket.getInputStream();
+									
+					String	reply_header = "";
+					
+					while(true){
+						
+						byte[]	buffer = new byte[1];
+						
+						if ( is.read( buffer ) <= 0 ){
+							
+							throw( new IOException( "Premature end of input stream" ));
+						}
+						
+						reply_header += (char)buffer[0];
+						
+						if ( reply_header.endsWith( NL+NL )){
+							
+							break;
+						}
+					}
+					
+					p1 = reply_header.indexOf( NL );
+					
+					String	first_line = reply_header.substring( 0, p1 ).trim();
+					
+					if ( first_line.indexOf( "200" ) == -1 ){
+						
+						throw( new IOException( "HTTP request failed:" + first_line ));
+					}
+					
+					return( parseXML( is ));
+					
+				}finally{
+					
+					try{
+						socket.close();
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			}else{
+				ResourceDownloaderFactory rdf = adapter.getResourceDownloaderFactory();
+				
+				ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( url ), 3 );
+				
+				rd.addListener( this );
+				
+				InputStream	data = rd.download();
+					
+				return( parseXML( data ));
+	
+			}
 		}catch( Throwable e ){
-			
+				
 			adapter.log( e );
 
 			if (e instanceof UPnPException ){
@@ -482,6 +548,20 @@ UPnPImpl
 		}	
 	}
 	
+	protected boolean
+	forceDirect()
+	{
+		String	http_proxy 	= System.getProperty( "http.proxyHost" );
+		String	socks_proxy = System.getProperty( "socksProxyHost" );
+
+			// extremely unlikely we want to proxy upnp requests
+		
+		boolean force_direct = 	( http_proxy != null && http_proxy.trim().length() > 0 ) ||
+								( socks_proxy != null && socks_proxy.trim().length() > 0 );
+
+		return( force_direct );
+	}
+	
 	public SimpleXMLParserDocument
 	performSOAPRequest(
 		UPnPService		service,
@@ -491,8 +571,8 @@ UPnPImpl
 		throws SimpleXMLParserDocumentException, UPnPException, IOException
 	{
 		SimpleXMLParserDocument	res;
-		
-		if ( service.getDirectInvocations()){
+				
+		if ( service.getDirectInvocations() || forceDirect()){
 			
 			res = performSOAPRequest( service, soap_action, request, false );
 
@@ -594,59 +674,71 @@ UPnPImpl
 	
 			Socket	socket = new Socket(control.getHost(), control.getPort());
 			
-			PrintWriter	pw = new PrintWriter(new OutputStreamWriter( socket.getOutputStream(), "UTF8" ));
-		
-			String	url_target = control.toString();
+			try{
+				PrintWriter	pw = new PrintWriter(new OutputStreamWriter( socket.getOutputStream(), "UTF8" ));
 			
-			int	p1 	= url_target.indexOf( "://" ) + 3;
-			p1		= url_target.indexOf( "/", p1 );
-			
-			url_target = url_target.substring( p1 );
-			
-			pw.print( "POST " + url_target + " HTTP/1.1" + NL );
-			pw.print( "Content-Type: text/xml; charset=\"utf-8\"" + NL );
-			pw.print( "SOAPAction: \"" + soap_action + "\"" + NL );
-			pw.print( "User-Agent: Azureus (UPnP/1.0)" + NL );
-			pw.print( "Host: " + control.getHost() + NL );
-			pw.print( "Content-Length: " + request.getBytes( "UTF8" ).length + NL );
-			pw.print( "Connection: Keep-Alive" + NL );
-			pw.print( "Pragma: no-cache" + NL + NL );
-
-			pw.print( request );
-			
-			pw.flush();
-			
-			InputStream	is = socket.getInputStream();
-			
-			String	reply_header = "";
-			
-			while(true){
+				String	url_target = control.toString();
 				
-				byte[]	buffer = new byte[1];
+				int	p1 	= url_target.indexOf( "://" ) + 3;
+				p1		= url_target.indexOf( "/", p1 );
 				
-				if ( is.read( buffer ) <= 0 ){
+				url_target = url_target.substring( p1 );
+				
+				pw.print( "POST " + url_target + " HTTP/1.1" + NL );
+				pw.print( "Content-Type: text/xml; charset=\"utf-8\"" + NL );
+				pw.print( "SOAPAction: \"" + soap_action + "\"" + NL );
+				pw.print( "User-Agent: Azureus (UPnP/1.0)" + NL );
+				pw.print( "Host: " + control.getHost() + NL );
+				pw.print( "Content-Length: " + request.getBytes( "UTF8" ).length + NL );
+				pw.print( "Connection: Keep-Alive" + NL );
+				pw.print( "Pragma: no-cache" + NL + NL );
+	
+				pw.print( request );
+				
+				pw.flush();
+				
+				InputStream	is = socket.getInputStream();
+				
+				String	reply_header = "";
+				
+				while(true){
 					
-					throw( new IOException( "Premature end of input stream" ));
+					byte[]	buffer = new byte[1];
+					
+					if ( is.read( buffer ) <= 0 ){
+						
+						throw( new IOException( "Premature end of input stream" ));
+					}
+					
+					reply_header += (char)buffer[0];
+					
+					if ( reply_header.endsWith( NL+NL )){
+						
+						break;
+					}
 				}
 				
-				reply_header += (char)buffer[0];
+				p1 = reply_header.indexOf( NL );
 				
-				if ( reply_header.endsWith( NL+NL )){
+				String	first_line = reply_header.substring( 0, p1 ).trim();
+				
+				if ( first_line.indexOf( "200" ) == -1 ){
 					
-					break;
+					throw( new IOException( "HTTP request failed:" + first_line ));
+				}
+				
+				return( parseXML( is ));
+				
+			}finally{
+				
+				try{
+					socket.close();
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
 				}
 			}
-			
-			p1 = reply_header.indexOf( NL );
-			
-			String	first_line = reply_header.substring( 0, p1 ).trim();
-			
-			if ( first_line.indexOf( "200" ) == -1 ){
-				
-				throw( new IOException( "HTTP request failed:" + first_line ));
-			}
-			
-			return( parseXML( is ));
 		}
 	}
 	
