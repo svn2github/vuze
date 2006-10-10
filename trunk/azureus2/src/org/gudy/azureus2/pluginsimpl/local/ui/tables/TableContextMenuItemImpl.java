@@ -169,16 +169,16 @@ public class TableContextMenuItemImpl
     listeners.remove(l);
   }
   
-  public TableContextMenuItem getParent() {
+  public MenuItem getParent() {
 	  return this.parent;
   }
   
-  public TableContextMenuItem[] getItems() {
+  public MenuItem[] getItems() {
 	  if (this.style != MenuItem.STYLE_MENU) {return null;}
 	  return (TableContextMenuItem[])this.children.toArray(new TableContextMenuItem[this.children.size()]);
   }
   
-  public TableContextMenuItem getItem(String key) {
+  public MenuItem getItem(String key) {
 	  if (this.style != MenuItem.STYLE_MENU) {return null;}
 	  java.util.Iterator itr = this.children.iterator();
 	  TableContextMenuItem result = null;

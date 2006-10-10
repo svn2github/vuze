@@ -1250,7 +1250,7 @@ public class TableView
     }
   }
   
-  private void addTableContextMenuItems(TableContextMenuItem[] items, Menu parent, boolean prev_was_separator, boolean enable_items) {
+  private void addTableContextMenuItems(org.gudy.azureus2.plugins.ui.menus.MenuItem[] items, Menu parent, boolean prev_was_separator, boolean enable_items) {
 	for (int i = 0; i < items.length; i++) {
 		final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl) items[i];
 
@@ -1263,7 +1263,7 @@ public class TableView
 		// Do we have any children? If so, we override any manually defined
 		// style.
 		boolean is_container = false;
-		TableContextMenuItem [] child_items = contextMenuItem.getItems();
+		org.gudy.azureus2.plugins.ui.menus.MenuItem [] child_items = contextMenuItem.getItems();
 		
 		if (style == TableContextMenuItem.STYLE_MENU) {
 			swt_style = SWT.CASCADE;
