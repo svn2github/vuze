@@ -87,10 +87,13 @@ UISWTInstanceImpl
 	
 	public UISWTInstanceImpl(AzureusCore _core) {
 		core		= _core;
+
 		// Since this is a UI **SWT** Instance Implementor, it's assumed
 		// that the UI Functions are of UIFunctionsSWT 
 		uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
-		
+	}
+	
+	public void init() {
 		try{
 			UIManager	ui_manager = core.getPluginManager().getDefaultPluginInterface().getUIManager();
 			
