@@ -347,7 +347,8 @@ public class MessageSlideShell {
 						detailsShell.setLayout(new FillLayout());
 						StyledText textDetails = new StyledText(detailsShell, SWT.READ_ONLY
 								| SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
-						textDetails.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+						textDetails.setBackground(display.getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+						textDetails.setForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 						textDetails.setWordWrap(true);
 						textDetails.setText(sDetails);
 						detailsShell.layout();
