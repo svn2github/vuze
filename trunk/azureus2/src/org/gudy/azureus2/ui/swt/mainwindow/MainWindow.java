@@ -540,7 +540,6 @@ MainWindow
 			// Must be done before initializing views, since plugins may register
 			// table columns and other objects
 			if (uiSWTInstanceImpl == null) {
-				System.out.println("===========================================YOUSUCK" + Debug.getCompressedStackTrace());
 				uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
 				uiSWTInstanceImpl.init();
 			}
