@@ -620,7 +620,8 @@ TRTrackerServerTorrentImpl
 		int			udp_port,
 		int			http_port,
 		byte		crypto_level,
-		int			timeout_secs )
+		int			timeout_secs,
+		boolean		seed )
 	{
 		// System.out.println( "peerQueued: " + ip + "/" + tcp_port + "/" + udp_port + "/" + crypto_level );
 		
@@ -632,7 +633,7 @@ TRTrackerServerTorrentImpl
 		try{
 			this_mon.enter();
 				
-			QueuedPeer	new_qp = new QueuedPeer( ip, tcp_port, udp_port, http_port, crypto_level, timeout_secs );
+			QueuedPeer	new_qp = new QueuedPeer( ip, tcp_port, udp_port, http_port, crypto_level, timeout_secs, seed );
 		
 			String	reuse_key = new String( new_qp.getIP(), Constants.BYTE_ENCODING ) + ":" + tcp_port;
 
@@ -973,7 +974,10 @@ TRTrackerServerTorrentImpl
 								if ( compact_mode >= COMPACT_MODE_AZ ){
 									
 									rep_peer.put( "azudp", new Long( peer.getUDPPort()));
-									rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+									
+									if ( peer.isSeed()){
+										rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+									}
 								}
 								
 							}else{
@@ -1105,7 +1109,10 @@ TRTrackerServerTorrentImpl
 													if ( compact_mode >= COMPACT_MODE_AZ ){
 														
 														rep_peer.put( "azudp", new Long( peer.getUDPPort()));
-														rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+														
+														if ( peer.isSeed()){
+															rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+														}
 													}
 												}else{
 													
@@ -1190,7 +1197,10 @@ TRTrackerServerTorrentImpl
 									if ( compact_mode >= COMPACT_MODE_AZ ){
 										
 										rep_peer.put( "azudp", new Long( peer.getUDPPort()));
-										rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+										
+										if ( peer.isSeed()){
+											rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+										}
 									}
 								}else{
 									rep_peer.put( "ip", peer.getIPAsRead() );
@@ -1250,7 +1260,10 @@ TRTrackerServerTorrentImpl
 							if ( compact_mode >= COMPACT_MODE_AZ ){
 									
 								rep_peer.put( "azudp", new Long( peer.getUDPPort()));
-								rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+								
+								if ( peer.isSeed()){
+									rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+								}
 							}
 								
 						}else{
@@ -1969,6 +1982,7 @@ TRTrackerServerTorrentImpl
 		private byte	crypto_level;
 		private int		create_time_secs;
 		private int		timeout_secs;
+		private boolean	seed;
 		
 		protected
 		QueuedPeer(
@@ -1977,7 +1991,8 @@ TRTrackerServerTorrentImpl
 			int			_udp_port,
 			int			_http_port,
 			byte		_crypto_level,
-			int			_timeout_secs )
+			int			_timeout_secs,
+			boolean		_seed )
 		{
 			try{
 				ip = ip_str.getBytes( Constants.BYTE_ENCODING );
@@ -1991,6 +2006,7 @@ TRTrackerServerTorrentImpl
 			udp_port	= (short)_udp_port;
 			http_port	= (short)_http_port;
 			crypto_level	= _crypto_level;
+			seed			= _seed;
 			
 			create_time_secs 	= (int)SystemTime.getCurrentTime()/1000;
 			timeout_secs		= _timeout_secs * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER;
@@ -2016,6 +2032,12 @@ TRTrackerServerTorrentImpl
         getIP()
 		{
 			return( ip );
+		}
+		
+		protected boolean
+		isSeed()
+		{
+			return( seed );
 		}
 		
 		protected byte[]

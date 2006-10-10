@@ -180,7 +180,7 @@ TRTrackerServerProcessor
 				
 				if ( stop_to_queue && ( QUEUE_TEST || !( loopback || ip_override ))){
 					
-					torrent.peerQueued( client_ip_address, port, udp_port, http_port, crypto_level, (int)server.getScrapeRetryInterval( torrent ));
+					torrent.peerQueued( client_ip_address, port, udp_port, http_port, crypto_level, (int)server.getScrapeRetryInterval( torrent ), left==0);
 				}
 				
 				HashMap	pre_map = new HashMap();
@@ -275,9 +275,11 @@ TRTrackerServerProcessor
 
 					if ( scrape_chars != null && ( QUEUE_TEST || !( loopback || ip_override ))){ 
 						
+							// note, 'Q' is complete+queued so we set seed true below
+						
 						if ( scrape_chars[i] == 'Q' ){
 							
-							torrent.peerQueued(  client_ip_address, port, udp_port, http_port, crypto_level, (int)interval );
+							torrent.peerQueued(  client_ip_address, port, udp_port, http_port, crypto_level, (int)interval, true );
 						}
 					}
 					

@@ -77,6 +77,7 @@ TRTrackerUtils
 				"TCP.Listen.Port",
 				"UDP.Listen.Port",
 				"HTTP.Data.Listen.Port",
+				"HTTP.Data.Listen.Port.Override",
 				"HTTP.Data.Listen.Port.Enable" },
 			new ParameterListener()
 			{
@@ -151,7 +152,14 @@ TRTrackerUtils
 			  			  		
 			  		if ( COConfigurationManager.getBooleanParameter( "HTTP.Data.Listen.Port.Enable" )){
 			  			
-			  			port += "&azhttp=" + COConfigurationManager.getIntParameter( "HTTP.Data.Listen.Port" );
+			  			int	http_port = COConfigurationManager.getIntParameter( "HTTP.Data.Listen.Port.Override" );
+			  			
+			  			if ( http_port == 0 ){
+			  				
+			  				http_port = COConfigurationManager.getIntParameter( "HTTP.Data.Listen.Port" );
+			  			}
+			  			
+			  			port += "&azhttp=" + http_port;
 			  		}
 			  		
 			  		if ( ports_for_url != null && ( !ports_for_url.equals( port ))){
