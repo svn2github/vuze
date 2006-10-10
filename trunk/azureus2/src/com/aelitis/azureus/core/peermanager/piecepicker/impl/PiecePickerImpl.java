@@ -563,79 +563,80 @@ public class PiecePickerImpl
 			
 			boolean	allocated_request = true;
 			
-			while( allocated_request && priorityRTAexists ){
-				
-				allocated_request = false;
-				
-				Iterator	it = block_time_order_peers.iterator();
-				
-				while( it.hasNext()){
-	
-					final PEPeerTransport pt =(PEPeerTransport)it.next();
-	
-					if ( !pt.isDownloadPossible()){
-						
-						it.remove();
-						
-						continue;
-					}
-						
-					int	peer_request_num = pt.getMaxNbRequests();
-						
-						// If request queue is too low, enqueue another request
-	
-					int maxRequests;
-		                
-					if ( peer_request_num != -1 ){
+			Set	allocations_started	= new HashSet();
+			
+			try{
+				while( allocated_request && priorityRTAexists ){
+					
+					allocated_request = false;
+					
+					Iterator	it = block_time_order_peers.iterator();
+					
+					while( it.hasNext()){
+		
+						final PEPeerTransport pt =(PEPeerTransport)it.next();
+		
+						if ( !pt.isDownloadPossible() || pt.isSnubbed()){
 							
-						maxRequests = peer_request_num;
-							
-					}else{
-						
-						if ( pt.isSnubbed()){
-			                
 							it.remove();
 							
 							continue;
-			            }
+						}
+	
+							// ignore request number advice from peers in RTA mode, we gotta do what we can
 			                
-			            maxRequests = REQUESTS_MIN +(int)( pt.getStats().getDataReceiveRate() /SLOPE_REQUESTS );
+			            int maxRequests = REQUESTS_MIN +(int)( pt.getStats().getDataReceiveRate() /SLOPE_REQUESTS );
 			                    
 			            if ( maxRequests > REQUESTS_MAX || maxRequests < 0 ){
 			                		
 			            	maxRequests = REQUESTS_MAX;
 			            }
-					}
-	
-					if ( pt.getNbRequests() <= maxRequests ){
-						
-						if ( !done_priorities ){
+		
+						if ( pt.getNbRequests() <= maxRequests ){
 							
-							done_priorities	= true;
+							if ( !done_priorities ){
+								
+								done_priorities	= true;
+										
+								computeBasePriorities();
+								
+								if ( !priorityRTAexists ){
 									
-							computeBasePriorities();
-							
-							if ( !priorityRTAexists ){
-								
-									// might have stopped RTA as this is calculated in computeBasePriorities
-								
-								break;
+										// might have stopped RTA as this is calculated in computeBasePriorities
+									
+									break;
+								}
 							}
-						}
-				
-						if ( findRTAPieceToDownload( pt, pt == best_uploader )){
-						
-							allocated_request = true;
+					
+							if ( !allocations_started.contains( pt )){
+								
+								pt.requestAllocationStarts( startPriorities );
+								
+								allocations_started.add( pt );
+							}
 							
+							if ( findRTAPieceToDownload( pt, pt == best_uploader )){
+							
+								allocated_request = true;
+								
+							}else{
+								
+								it.remove();
+							}
 						}else{
 							
 							it.remove();
 						}
-					}else{
-						
-						it.remove();
 					}
-				}	
+				}
+			}finally{
+					
+				Iterator	it = allocations_started.iterator();
+				
+				while( it.hasNext()){
+					
+					((PEPeerTransport)it.next()).requestAllocationComplete();
+				}
 			}
 		}
 		

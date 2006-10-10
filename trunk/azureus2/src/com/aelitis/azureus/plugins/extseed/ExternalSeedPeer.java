@@ -60,6 +60,8 @@ ExternalSeedPeer
 	private List					listenerList;
 	private Monitor					listenerListMon;
 		
+	private boolean					doing_allocations;
+	
 	protected
 	ExternalSeedPeer(
 		ExternalSeedPlugin		_plugin,
@@ -496,6 +498,13 @@ ExternalSeedPeer
 	requestAllocationStarts(
 		int[]	base_priorities )
 	{
+		if ( doing_allocations ){
+			
+			Debug.out( "recursive allocations" );
+		}
+		
+		doing_allocations	= true;
+		
 		if ( request_list.size() != 0 ){
 			
 			Debug.out( "req list must be empty" );
@@ -517,12 +526,19 @@ ExternalSeedPeer
 		reader.addRequests( request_list );
 		
 		request_list.clear();
+		
+		doing_allocations	= false;
 	}
 	
 	public boolean 
 	addRequest(
 		PeerReadRequest	request )
 	{		
+		if ( !doing_allocations ){
+			
+			Debug.out( "request added when not in allocation phase" );
+		}
+		
 		request_list.add( request );
 		
 		return( true );
