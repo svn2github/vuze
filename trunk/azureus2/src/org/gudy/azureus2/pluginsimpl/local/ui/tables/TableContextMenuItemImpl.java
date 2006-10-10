@@ -21,6 +21,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.tables;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -39,9 +40,21 @@ public class TableContextMenuItemImpl
   private List 	listeners 		= new ArrayList();
   private List	fill_listeners	= new ArrayList();
   
+  private List  children        = new ArrayList();
+  private TableContextMenuItemImpl parent = null;
+  
+  private String display_text = null;
+  
   public TableContextMenuItemImpl(String tableID, String key) {
     sTableID = tableID;
     sName = key;
+  }
+  
+  public TableContextMenuItemImpl(TableContextMenuItemImpl ti, String key) {
+	  this.parent = ti;
+	  this.parent.addChildMenuItem(this);
+	  this.sTableID = this.parent.getTableID();
+	  this.sName = key;
   }
 
   public String getTableID() {
@@ -62,6 +75,9 @@ public class TableContextMenuItemImpl
 	setStyle(
 		int		_style )
 	{
+		if (this.style == TableContextMenuItem.STYLE_MENU && _style != TableContextMenuItem.STYLE_MENU) {
+			throw new RuntimeException("cannot revert menu style MenuItem object to another style");
+		}
 		style	= _style;
 	}
 	
@@ -140,7 +156,6 @@ public class TableContextMenuItemImpl
     	try{
     		((MenuItemListener)(listeners.get(i))).selected(this, row);
     	}catch( Throwable e ){
-    		
     		Debug.printStackTrace(e);
     	}
     }
@@ -153,4 +168,41 @@ public class TableContextMenuItemImpl
   public void removeListener(MenuItemListener l) {
     listeners.remove(l);
   }
+  
+  public TableContextMenuItem getParent() {
+	  return this.parent;
+  }
+  
+  public TableContextMenuItem[] getItems() {
+	  if (this.style != MenuItem.STYLE_MENU) {return null;}
+	  return (TableContextMenuItem[])this.children.toArray(new TableContextMenuItem[this.children.size()]);
+  }
+  
+  public TableContextMenuItem getItem(String key) {
+	  if (this.style != MenuItem.STYLE_MENU) {return null;}
+	  java.util.Iterator itr = this.children.iterator();
+	  TableContextMenuItem result = null;
+	  while (itr.hasNext()) {
+		  result = (TableContextMenuItem)itr.next();
+		  if (key.equals(result.getResourceKey())) {
+			  return result;
+		  }
+	  }
+	  return null;
+  }
+  
+  private void addChildMenuItem(TableContextMenuItem child) {
+	  if (this.style != MenuItem.STYLE_MENU) {throw new RuntimeException("cannot add to non-container MenuItem");}
+	  this.children.add(child);
+  }
+  
+  public String getText() {
+	  if (this.display_text == null) {return MessageText.getString(this.getResourceKey());}
+	  return this.display_text;
+  }
+  
+  public void setText(String text) {
+	  this.display_text = text;
+  }
+  
 }

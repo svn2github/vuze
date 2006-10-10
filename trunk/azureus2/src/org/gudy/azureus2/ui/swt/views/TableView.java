@@ -1239,90 +1239,109 @@ public class TableView
     itemThisColumn.setMenu(menuThisColumn);
 
     // Add Plugin Context menus..
- 		boolean	enable_items = table != null && table.getSelection().length > 0;
+ 	boolean	enable_items = table != null && table.getSelection().length > 0;
     
     TableContextMenuItem[] items = TableContextMenuManager.getInstance()
 				.getAllAsArray(sTableID);
 		if (items.length > 0) {
 			new MenuItem(menu, SWT.SEPARATOR);
+			addTableContextMenuItems(items, menu, true, enable_items);
 
-			boolean prev_was_separator = true;
-
-			for (int i = 0; i < items.length; i++) {
-				final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl) items[i];
-
-				final int style = contextMenuItem.getStyle();
-
-				final int swt_style;
-
-				boolean this_is_separator = false;
-
-				if (style == TableContextMenuItem.STYLE_PUSH) {
-					swt_style = SWT.PUSH;
-				} else if (style == TableContextMenuItem.STYLE_CHECK) {
-					swt_style = SWT.CHECK;
-				} else if (style == TableContextMenuItem.STYLE_RADIO) {
-					swt_style = SWT.RADIO;
-				} else if (style == TableContextMenuItem.STYLE_SEPARATOR) {
-					this_is_separator = true;
-					swt_style = SWT.SEPARATOR;
-				} else {
-					swt_style = SWT.PUSH;
-				}
-
-				// skip contiguous separators
-
-				if (prev_was_separator && this_is_separator) {
-					continue;
-				}
-
-				// skip trailing separator
-
-				if (this_is_separator && i == items.length - 1) {
-					continue;
-				}
-
-				prev_was_separator = this_is_separator;
-
-				final MenuItem menuItem = new MenuItem(menu, swt_style);
-
-				if (swt_style == SWT.SEPARATOR) {
-					continue;
-				}
-
-				Messages.setLanguageText(menuItem, contextMenuItem.getResourceKey());
-
-				menuItem.addListener(SWT.Selection, new SelectedTableRowsListener() {
-					public void run(TableRowCore row) {
-						if (swt_style == SWT.CHECK || swt_style == SWT.RADIO) {
-
-							contextMenuItem.setData(new Boolean(menuItem.getSelection()));
-						}
-
-						contextMenuItem.invokeListeners(row);
-					}
-				});
-
-				if (enable_items) {
-					contextMenuItem.invokeMenuWillBeShownListeners(getSelectedRows());
-
-					if (style == TableContextMenuItem.STYLE_CHECK
-							|| style == TableContextMenuItem.STYLE_RADIO) {
-
-						menuItem.setSelection(((Boolean) contextMenuItem.getData())
-								.booleanValue());
-					}
-				}
-
-				Graphic g = contextMenuItem.getGraphic();
-				if (g instanceof UISWTGraphic) {
-					Utils.setMenuItemImage(menuItem, ((UISWTGraphic) g).getImage());
-				}
-
-				menuItem.setEnabled(enable_items && contextMenuItem.isEnabled());
-			}
     }
   }
+  
+  private void addTableContextMenuItems(TableContextMenuItem[] items, Menu parent, boolean prev_was_separator, boolean enable_items) {
+	for (int i = 0; i < items.length; i++) {
+		final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl) items[i];
+
+		final int style = contextMenuItem.getStyle();
+
+		final int swt_style;
+
+		boolean this_is_separator = false;
+
+		// Do we have any children? If so, we override any manually defined
+		// style.
+		boolean is_container = false;
+		TableContextMenuItem [] child_items = contextMenuItem.getItems();
+		
+		if (style == TableContextMenuItem.STYLE_MENU) {
+			swt_style = SWT.CASCADE;
+			is_container = true;
+		}
+		else if (style == TableContextMenuItem.STYLE_PUSH) {
+			swt_style = SWT.PUSH;
+		} else if (style == TableContextMenuItem.STYLE_CHECK) {
+			swt_style = SWT.CHECK;
+		} else if (style == TableContextMenuItem.STYLE_RADIO) {
+			swt_style = SWT.RADIO;
+		} else if (style == TableContextMenuItem.STYLE_SEPARATOR) {
+			this_is_separator = true;
+			swt_style = SWT.SEPARATOR;
+		} else {
+			swt_style = SWT.PUSH;
+		}
+
+		// skip contiguous separators
+
+		if (prev_was_separator && this_is_separator) {
+			continue;
+		}
+
+		// skip trailing separator
+
+		if (this_is_separator && i == items.length - 1) {
+			continue;
+		}
+
+		prev_was_separator = this_is_separator;
+		
+		final MenuItem menuItem = new MenuItem(parent, swt_style);
+
+		if (swt_style == SWT.SEPARATOR) {
+			continue;
+		}
+		
+		String custom_title = contextMenuItem.getText();
+		menuItem.setText(custom_title);
+
+		menuItem.addListener(SWT.Selection, new SelectedTableRowsListener() {
+			public void run(TableRowCore row) {
+				if (swt_style == SWT.CHECK || swt_style == SWT.RADIO) {
+
+					contextMenuItem.setData(new Boolean(menuItem.getSelection()));
+				}
+
+				contextMenuItem.invokeListeners(row);
+			}
+		});
+		
+		if (is_container) {
+			Menu this_menu = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+			menuItem.setMenu(this_menu);
+			this.addTableContextMenuItems(child_items, this_menu, false, enable_items);
+		}
+
+		if (enable_items) {
+			contextMenuItem.invokeMenuWillBeShownListeners(getSelectedRows());
+
+			if (style == TableContextMenuItem.STYLE_CHECK
+					|| style == TableContextMenuItem.STYLE_RADIO) {
+
+				menuItem.setSelection(((Boolean) contextMenuItem.getData())
+						.booleanValue());
+			}
+		}
+
+		Graphic g = contextMenuItem.getGraphic();
+		if (g instanceof UISWTGraphic) {
+			Utils.setMenuItemImage(menuItem, ((UISWTGraphic) g).getImage());
+		}
+ 
+		menuItem.setEnabled(enable_items && contextMenuItem.isEnabled());
+
+	}
+ }
   
   /**
    * SubMenu for column specific tasks. 

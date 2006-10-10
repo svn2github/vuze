@@ -38,6 +38,7 @@ UIManagerEvent
 	public static final int ET_ADD_TABLE_COLUMN					= 11;		// data is TableColumn previously created
 	public static final int ET_ADD_TABLE_CONTEXT_MENU_ITEM		= 12;		// data is TableContextMenuItem
 	public static final int ET_SHOW_CONFIG_SECTION		= 13;		// data is String - section id
+	public static final int ET_ADD_TABLE_CONTEXT_SUBMENU_ITEM		= 14;		// data is TableContextMenuItem[] - child, parent
 
 	public int
 	getType();

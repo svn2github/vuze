@@ -83,6 +83,17 @@ public interface TableManager
    */
   public TableContextMenuItem addContextMenuItem(String tableID, String resourceKey);
 
+  /** Adds a Context Menu item as a sub-item of the given menu item. 
+  *
+  * @param parent The MenuItem to add this new item to. The parent MenuItem must have its
+  *               style attribute to be set to "menu".
+  * @param resourceKey ID of the context menu, which is also used to retrieve
+  *                    the textual name from the plugin language file.
+  *
+  * @return a newly created menu item existing inside the given menu item.
+  */
+  public TableContextMenuItem addContextMenuItem(TableContextMenuItem parent, String resourceKey);
+
   /** Future Implementations:
   public TableContextMenuItem addContextMenuItem(String tableID, String resourceKey,
                                                  String parentKey);

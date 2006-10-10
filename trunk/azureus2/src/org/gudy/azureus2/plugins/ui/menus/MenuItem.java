@@ -54,20 +54,17 @@ public interface MenuItem
 	
 	public static final int STYLE_SEPARATOR			= 4;
 	
+	   /**
+	    * menu containing submenu items
+	    */
+	public static final int STYLE_MENU              = 5;
+	
   /** Retrieve the resource key ("name") of this menu item
    *
    * @return resource key for this menu
    */
 	public String
 	getResourceKey();
-	
-	/** Retrieve the parent menu's resource key.
-	 *
-	 * @return parent menu's resource key, or null if no parent
-	 *
-	public Menu
-	getParent();
-   */
 	
 		/**
 		 * Get the type of the menu item
@@ -160,4 +157,41 @@ public interface MenuItem
 	public void
 	removeListener(
 		MenuItemListener	l );
+
+	/** 
+	 * Retrieve the parent MenuItem.
+	 *
+	 * @return parent menu object, or null if no parent
+	 */
+	public MenuItem
+	getParent();
+
+	
+	/**
+	 * Get all child items currently associated with this MenuItem.
+	 * 
+	 * @return An array of items (if this object has the menu style
+	 * associated) or null otherwise.
+	 */
+	public MenuItem[] getItems();
+	
+	/**
+	 * Get the child item with the given resource key.
+	 * 
+	 * @return The child MenuItem object which has the resource key
+	 * specified, or null otherwise.
+	 */
+	public MenuItem getItem(String key_id);
+	
+	/**
+	 * Gets the text to display for this menu item.
+	 */
+	public String getText();
+	
+	/**
+	 * Sets the text to display for this menu item. You can also
+	 * pass null to revert back to the default behaviour.
+	 */
+	public void setText(String text);
+
 }

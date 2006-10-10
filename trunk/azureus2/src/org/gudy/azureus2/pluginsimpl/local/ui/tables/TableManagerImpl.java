@@ -29,6 +29,7 @@ import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -74,6 +75,20 @@ TableManagerImpl
 		
 			throw( new UIRuntimeException( "table column must have been created via createColumn" ));
 		}
+	}
+	
+	public TableContextMenuItem addContextMenuItem(
+			TableContextMenuItem parent,
+			String resourceKey) {
+		if (!(parent instanceof TableContextMenuItemImpl)) {
+			throw new UIRuntimeException("parent must have been created by addContextMenuItem");
+		}
+		if (parent.getStyle() != TableContextMenuItemImpl.STYLE_MENU) {
+			throw new UIRuntimeException("parent menu item must have the menu style associated");
+		}
+		TableContextMenuItemImpl item = new TableContextMenuItemImpl((TableContextMenuItemImpl)parent, resourceKey);
+		UIManagerImpl.fireEvent( UIManagerEvent.ET_ADD_TABLE_CONTEXT_SUBMENU_ITEM, item );
+		return item;
 	}
   
 	public TableContextMenuItem 
@@ -477,6 +492,8 @@ TableManagerImpl
 		  	
 		  	private List 	listeners 		= new ArrayList();
 		  	private List	fill_listeners	= new ArrayList();
+		  	
+		  	private String   display_text  = null;
 	  	  
 	  		protected
 	  		TableContextMenuItemDelegate(
@@ -628,6 +645,36 @@ TableManagerImpl
 	  				delegate.removeListener( listener );
 	  			}
 	  		}
+	  		
+	  		public MenuItem[] getItems() {
+	  			if (delegate == null) {
+	  				if (this.getStyle() == TableContextMenuItem.STYLE_MENU) {
+	  					return new TableContextMenuItem[0];
+	  				}
+	  				return null;
+	  			}
+	  			return delegate.getItems();
+	  		}
+	  		
+	  		public String getText() {
+	  			return (delegate == null) ? this.display_text : delegate.getText();
+	  		}
+	  		
+	  		public void setText(String text) {
+	  			if (delegate == null) {this.display_text = text;}
+	  			else {delegate.setText(text);}
+	  		}
+	  		
+	  		public MenuItem getParent() {
+	  			if (delegate == null) {return null;}
+	  			return delegate.getParent();
+	  		}
+	  		
+	  		public MenuItem getItem(String key) {
+	  			if (delegate == null) {return null;}
+	  			return delegate.getItem(key);
+	  		}
+	  		
 	  	}
   	}
 }
