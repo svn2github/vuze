@@ -317,7 +317,7 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 		return mainwindow.getUISWTInstanceImpl();
 	}
 	
-	public void viewURL(String url, int w, int h, boolean bAllowResize) {
+	public void viewURL(String url, String target, int w, int h, boolean bAllowResize) {
 		// do me
 	}
 }
