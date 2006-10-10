@@ -286,9 +286,16 @@ ExternalSeedPlugin
 							Download		download,
 							PeerManager		peer_manager )
 						{
-							for (int i=0;i<peers.size();i++){
+							List	existing_peers = getPeers();
+	
+							if ( existing_peers== null ){
 								
-								ExternalSeedPeer	peer = (ExternalSeedPeer)peers.get(i);
+								return;
+							}
+							
+							for (int i=0;i<existing_peers.size();i++){
+								
+								ExternalSeedPeer	peer = (ExternalSeedPeer)existing_peers.get(i);
 								
 								peer.setManager( peer_manager );
 							}
@@ -299,15 +306,48 @@ ExternalSeedPlugin
 							Download		download,
 							PeerManager		peer_manager )
 						{
-							for (int i=0;i<peers.size();i++){
-	
-								ExternalSeedPeer	peer = (ExternalSeedPeer)peers.get(i);
+							List	existing_peers = getPeers();
 							
+							if ( existing_peers== null ){
+								
+								return;
+							}
+							
+							for (int i=0;i<existing_peers.size();i++){
+								
+								ExternalSeedPeer	peer = (ExternalSeedPeer)existing_peers.get(i);
+								
 								peer.setManager( null );
 							}
 						}
+						
+						protected List
+						getPeers()
+						{
+							List	existing_peers = null;
+							
+							try{
+								download_mon.enter();
+								
+								List	temp = (List)download_map.get( download );
+								
+								if ( temp != null ){
+									
+									existing_peers = new ArrayList( temp.size());
+									
+									existing_peers.addAll( temp );
+								}
+							}finally{
+								
+								download_mon.exit();
+							}
+							
+							return( existing_peers );
+						}
 					});
 			}else{
+				
+					// fix up newly added peers to current peer manager
 				
 				PeerManager	existing_pm = download.getPeerManager();
 				
