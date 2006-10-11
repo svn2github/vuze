@@ -89,6 +89,8 @@ HTTPNetworkConnectionFile
 		
 		List	ranges = new ArrayList();
 		
+		boolean	keep_alive	= false;
+		
 		for (int i=1;i<chars.length;i++){
 			
 			if ( chars[i-1] == '\r' && chars[i] == '\n' ){
@@ -226,6 +228,10 @@ HTTPNetworkConnectionFile
 								return;
 							}
 						}
+					}else if ( line.indexOf( "keep-alive" ) != -1 ){
+						
+						keep_alive	= true;
+						
 					}
 				}
 			}
@@ -274,6 +280,6 @@ HTTPNetworkConnectionFile
 			lengths[i]	= ( end - start ) + 1; 
 		}
 		
-		addRequest( new httpRequest( offsets, lengths, partial_content ));	
+		addRequest( new httpRequest( offsets, lengths, partial_content, keep_alive ));	
 	}
 }

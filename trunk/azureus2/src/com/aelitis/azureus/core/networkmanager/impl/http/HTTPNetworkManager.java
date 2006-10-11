@@ -182,7 +182,13 @@ HTTPNetworkManager
 			    				
 			    				if ( reg_data != null ){
 			    					
-			    					return( new Object[]{ url, reg_data });
+			    						// trim back URL as it currently has header in it too
+			    					
+			    					int	pos = url.indexOf( ' ' );
+			    					
+			    					String	trimmed = pos==-1?url:url.substring(0,pos);
+			    					
+			    					return( new Object[]{ trimmed, reg_data });
 			    				}
 				    		}
 				    		

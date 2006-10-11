@@ -219,7 +219,8 @@ HTTPNetworkConnection
 		return(	"HTTP/1.1 " + (request.isPartialContent()?"206 Partial Content":"200 OK" ) + NL + 
 				"Content-Type: application/octet-stream" + NL +
 				"Server: " + Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
-				"Connection: close" + NL +
+				"Connection: " + ( request.keepAlive()?"Keep-Alive":"Close" ) + NL +
+				(request.keepAlive()?("Keep-Alive: timeout=30" + NL) :"" ) +
 				"Content-Length: " + request.getTotalLength() + NL +
 				NL );
 	}
@@ -593,15 +594,19 @@ HTTPNetworkConnection
 		private long	total_length;
 		private boolean	sent_first_reply;
 		
+		private boolean	keep_alive;
+		
 		protected
 		httpRequest(
 			long[]		_offsets,
 			long[]		_lengths,
-			boolean		_partial_content )
+			boolean		_partial_content,
+			boolean		_keep_alive )
 		{
 			offsets	= _offsets;
 			lengths	= _lengths;
 			partial_content	= _partial_content;
+			keep_alive		= _keep_alive;
 			
 			for (int i=0;i<lengths.length;i++){
 				
@@ -656,6 +661,12 @@ HTTPNetworkConnection
 		getTotalLength()
 		{
 			return( total_length );
+		}
+		
+		protected boolean
+		keepAlive()
+		{
+			return( keep_alive );
 		}
 	}
 	

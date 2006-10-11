@@ -125,6 +125,8 @@ HTTPNetworkConnectionWebSeed
 			throw( new IOException( "Piece number not specified" ));
 		}
 		
+		boolean	keep_alive = header.toLowerCase().indexOf( "keep-alive" ) != -1;
+		
 		PEPeerControl	control = getPeerControl();
 		
 		int	this_piece_size = control.getPieceLength( piece );
@@ -157,6 +159,6 @@ HTTPNetworkConnectionWebSeed
 			lengths[i]	= ( end - start ) + 1; 
 		}
 		
-		addRequest( new httpRequest( offsets, lengths, false ));
+		addRequest( new httpRequest( offsets, lengths, false, keep_alive ));
 	}
 }
