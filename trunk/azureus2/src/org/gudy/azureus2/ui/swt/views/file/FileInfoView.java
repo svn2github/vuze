@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 
@@ -221,9 +222,27 @@ public class FileInfoView extends AbstractIView {
 		fileInfoCanvas.addListener(SWT.KeyDown, doNothingListener);
 
 		fileInfoCanvas.addListener(SWT.Resize, new Listener() {
+			
 			public void handleEvent(Event e) {
-				// wrap in asyncexec because sc.setMinWidth (called later) doesn't work
-				// too well inside a resize (the canvas won't size isn't always updated)
+				
+					// wrap in asyncexec because sc.setMinWidth (called later) doesn't work
+					// too well inside a resize (the canvas won't size isn't always updated)
+
+				SWTThread.getInstance().limitFrequencyAsyncExec(
+					this,
+					e.widget.getDisplay(),
+					new AERunnable() {
+						public void runSupport() {
+							if (img != null) {
+								int iOldColCount = img.getBounds().width / BLOCK_SIZE;
+								int iNewColCount = fileInfoCanvas.getClientArea().width / BLOCK_SIZE;
+								if (iOldColCount != iNewColCount)
+									refreshInfoCanvas();
+							}
+						}
+					});
+			
+				/*
 				e.widget.getDisplay().asyncExec(new AERunnable() {
 					public void runSupport() {
 						if (img != null) {
@@ -234,6 +253,7 @@ public class FileInfoView extends AbstractIView {
 						}
 					}
 				});
+				*/
 			}
 		});
 

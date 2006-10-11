@@ -21,6 +21,7 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import java.util.*;
 import java.lang.reflect.Constructor;
 
 import org.eclipse.swt.SWT;
@@ -30,6 +31,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 
 import com.aelitis.azureus.ui.IUIIntializer;
@@ -38,6 +40,7 @@ import com.aelitis.azureus.ui.IUIIntializer;
  * The main SWT Thread, the only one that should run any GUI code.
  */
 public class SWTThread {
+  private static final int	FREQ_PER_SEC_LIMIT = 10;
   
   private static SWTThread instance;
   
@@ -67,7 +70,9 @@ public class SWTThread {
   private boolean sleak;
   private boolean terminated;
   private Thread runner;
-	private final IUIIntializer initializer;
+  private final IUIIntializer initializer;
+  
+  private Map	freq_map = new HashMap();
   
   private 
   SWTThread(
@@ -182,5 +187,61 @@ public class SWTThread {
 
 	public IUIIntializer getInitializer() {
 		return initializer;
+	}
+	
+	public void
+	limitFrequencyAsyncExec(
+		Object		owner,
+		Display		display,
+		AERunnable	target )
+	{
+		if ( display.isDisposed()){
+			
+			return;
+		}
+		
+		int	now = (int)( SystemTime.getCurrentTime()/1000 );
+		
+		boolean	do_it	= true;
+		
+		synchronized( freq_map ){
+			
+			if ( freq_map.size() > 1024 ){
+				
+				Debug.out( "Frequency map is overloaded - check your logic!!!!" );
+				
+			}else{
+				
+				int[]	data = (int[])freq_map.get( owner );
+			
+				if ( data == null ){
+					
+					data = new int[]{ now, 0 };
+					
+					freq_map.put( owner, data );
+				}
+				
+				if ( data[0] == now ){
+					
+					data[1]++;
+					
+					if ( data[1] > FREQ_PER_SEC_LIMIT ){
+						
+						do_it	= false;
+						
+						Debug.out( "SWT frequency limit exceeded for " + owner.getClass());
+					}
+				}else{
+					
+					data[0] = now;
+					data[1] = 1;
+				}
+			}
+		}
+		
+		if ( do_it ){
+			
+			display.asyncExec( target );
+		}
 	}
 }
