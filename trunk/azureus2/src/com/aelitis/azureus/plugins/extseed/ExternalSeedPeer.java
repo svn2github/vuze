@@ -292,6 +292,18 @@ ExternalSeedPeer
 				
 				connection_mon.exit();
 			}
+			
+			if ( reader.isTransient() && reader.isPermanentlyUnavailable()){
+				
+				try{
+					
+					plugin.removePeer( man.getDownload(), this );
+					
+				}catch( Throwable e ){
+					
+					plugin.log( "Failed to remove peer", e );
+				}
+			}
 		}
 	}
 	
@@ -740,6 +752,12 @@ ExternalSeedPeer
 	{
 		return( new HashMap());
 	}	
+	
+	public String
+	getName()
+	{
+		return( reader.getName());
+	}
 	
 	public void
 	setUserData(

@@ -61,10 +61,10 @@ ExternalSeedReaderWebSeed
 		URL						_url,
 		Map						_params )
 	{
-		super( _plugin, _torrent );
+		super( _plugin, _torrent, _params );
 
 		supports_503		= getBooleanParam( _params, "supports_503", true );
-
+		
 		url		= _url;
 		
 		ip		= url.getHost();
@@ -223,11 +223,11 @@ ExternalSeedReaderWebSeed
 			
 			if ( supports_503 ){
 				
-				http_downloader.downloadSocket( request.getLength(), request );
+				http_downloader.downloadSocket( request.getLength(), request, isTransient() );
 
 			}else{
 				
-				http_downloader.download( request.getLength(), request );
+				http_downloader.download( request.getLength(), request, isTransient() );
 			}			
 			
 			if ( http_downloader.getLastResponse() == 503 ){

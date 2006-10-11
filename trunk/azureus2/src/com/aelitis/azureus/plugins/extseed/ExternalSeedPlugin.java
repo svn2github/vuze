@@ -181,7 +181,7 @@ ExternalSeedPlugin
 		
 		addPeers( download, peers );
 	}
-	
+		
 	public void
 	addSeed(
 		Download	download,
@@ -266,6 +266,9 @@ ExternalSeedPlugin
 						
 					}else{
 						
+						log( download.getName() + " found seed " + peer.getName());
+						
+
 						existing_peers.add( peer );
 					}
 				}
@@ -367,6 +370,29 @@ ExternalSeedPlugin
 		}
 	}
 	
+	protected void
+	removePeer(
+		Download			download,
+		ExternalSeedPeer	peer )
+	{
+		try{
+			download_mon.enter();
+		
+			List	existing_peers = (List)download_map.get( download );
+
+			if ( existing_peers != null ){
+				
+				if ( existing_peers.remove( peer )){
+					
+					log( download.getName() + " removed seed " + peer.getName());
+				}
+			}
+		}finally{
+			
+			download_mon.exit();
+		}
+	}
+
 	public void
 	downloadRemoved(
 		Download	download )
@@ -387,6 +413,14 @@ ExternalSeedPlugin
 		String		str )
 	{
 		log.log( str );
+	}
+	
+	public void
+	log(
+		String		str,
+		Throwable 	e )
+	{
+		log.log( str, e );
 	}
 	
 	public PluginInterface

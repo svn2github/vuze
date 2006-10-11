@@ -100,8 +100,6 @@ ExternalSeedReaderFactoryWebSeed
 						
 						String	protocol = url.getProtocol().toLowerCase();
 						
-						plugin.log( download.getName() + ": WS found seed: " + url );
-						
 						if ( protocol.equals( "http" )){
 							
 							readers.add( new ExternalSeedReaderWebSeed( plugin, torrent, url, params ));

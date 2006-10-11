@@ -56,25 +56,27 @@ ExternalSeedHTTPDownloader
 	public void
 	download(
 		int									length,
-		ExternalSeedHTTPDownloaderListener	listener )
+		ExternalSeedHTTPDownloaderListener	listener,
+		boolean								con_fail_is_perm_fail )
 	
 		throws ExternalSeedException
 	{
-		download( new String[0], new String[0], length, listener );
+		download( new String[0], new String[0], length, listener, con_fail_is_perm_fail );
 	}
 	
 	public void
 	downloadRange(
 		long								offset,
 		int									length,
-		ExternalSeedHTTPDownloaderListener	listener )
+		ExternalSeedHTTPDownloaderListener	listener,
+		boolean								con_fail_is_perm_fail )
 	
 		throws ExternalSeedException
 	{
-		download( 
-					new String[]{ "Range" }, new String[]{ "bytes=" + offset + "-" + (offset+length-1)},
+		download( 	new String[]{ "Range" }, new String[]{ "bytes=" + offset + "-" + (offset+length-1)},
 					length,
-					listener );
+					listener,
+					con_fail_is_perm_fail );
 	}
 	
 	public void
@@ -82,10 +84,15 @@ ExternalSeedHTTPDownloader
 		String[]							prop_names,
 		String[]							prop_values,
 		int									length,
-		ExternalSeedHTTPDownloaderListener	listener )
+		ExternalSeedHTTPDownloaderListener	listener,
+		boolean								con_fail_is_perm_fail )
 	
 		throws ExternalSeedException
 	{
+		boolean	connected = false;
+		
+		InputStream	is	= null;
+		
 		try{
 			HttpURLConnection	connection = (HttpURLConnection)url.openConnection();
 			
@@ -97,76 +104,74 @@ ExternalSeedHTTPDownloader
 				connection.setRequestProperty( prop_names[i], prop_values[i] );
 			}
 			
+			connection.connect();
+			
+			connected	= true;
+			
 			int	response = connection.getResponseCode();
 			
+			is = connection.getInputStream();
+
 			last_response	= response;
 			
 			if ( 	response == HttpURLConnection.HTTP_ACCEPTED || 
 					response == HttpURLConnection.HTTP_OK ||
 					response == HttpURLConnection.HTTP_PARTIAL ){
 								
-				InputStream	is = connection.getInputStream();
+				int	pos = 0;
 				
-				try{
-					int	pos = 0;
+				byte[]	buffer 		= null;
+				int		buffer_pos	= 0;
+
+				while( pos < length ){
 					
-					byte[]	buffer 		= null;
-					int		buffer_pos	= 0;
+					if ( buffer == null ){
+						
+						buffer = listener.getBuffer();
+					}
 
-					while( pos < length ){
+					int	len = is.read( buffer, buffer_pos, buffer.length-buffer_pos );
+					
+					if ( len < 0 ){
 						
-						if ( buffer == null ){
-							
-							buffer = listener.getBuffer();
-						}
-
-						int	len = is.read( buffer, buffer_pos, buffer.length-buffer_pos );
-						
-						if ( len < 0 ){
-							
-							break;
-						}
-						
-						pos	+= len;
-						
-						buffer_pos	+= len;
-						
-						if ( buffer_pos == buffer.length ){
-							
-							listener.done();
-							
-							buffer		= null;
-							buffer_pos	= 0;
-						}
+						break;
 					}
 					
-					if ( pos != length ){
+					pos	+= len;
+					
+					buffer_pos	+= len;
+					
+					if ( buffer_pos == buffer.length ){
 						
-						String	log_str;
+						listener.done();
 						
-						if ( buffer == null ){
-							
-							log_str = "No buffer assigned";
-							
-						}else{
-							
-							log_str =  new String( buffer, 0, length );
-							
-							if ( log_str.length() > 64 ){
-								
-								log_str = log_str.substring( 0, 64 );
-							}
-						}
-						
-						throw( new ExternalSeedException("Connection failed: data too short - " + length + "/" + pos + " [" + log_str + "]" ));
+						buffer		= null;
+						buffer_pos	= 0;
 					}
-					
-					// System.out.println( "download length: " + pos );
-					
-				}finally{
-					
-					is.close();
 				}
+				
+				if ( pos != length ){
+					
+					String	log_str;
+					
+					if ( buffer == null ){
+						
+						log_str = "No buffer assigned";
+						
+					}else{
+						
+						log_str =  new String( buffer, 0, length );
+						
+						if ( log_str.length() > 64 ){
+							
+							log_str = log_str.substring( 0, 64 );
+						}
+					}
+					
+					throw( new ExternalSeedException("Connection failed: data too short - " + length + "/" + pos + " [" + log_str + "]" ));
+				}
+				
+				// System.out.println( "download length: " + pos );
 				
 			}else{
 				
@@ -176,6 +181,20 @@ ExternalSeedHTTPDownloader
 				
 				throw( error );
 			}
+		}catch( IOException e ){
+			
+			if ( con_fail_is_perm_fail && !connected ){
+				
+				ExternalSeedException	error = new ExternalSeedException("Connection failed: " + e.getMessage());
+				
+				error.setPermanentFailure( true );
+				
+				throw( error );
+
+			}else{
+				
+				throw( new ExternalSeedException("Connection failed", e ));
+			}
 		}catch( Throwable e ){
 			
 			if ( e instanceof ExternalSeedException ){
@@ -184,17 +203,30 @@ ExternalSeedHTTPDownloader
 			}
 			
 			throw( new ExternalSeedException("Connection failed", e ));
+			
+		}finally{
+			
+			if ( is != null ){
+				
+				try{
+					is.close();
+					
+				}catch( Throwable e ){
+					
+				}
+			}
 		}
 	}
 	
 	public void
 	downloadSocket(
 		int									length,
-		ExternalSeedHTTPDownloaderListener	listener )
+		ExternalSeedHTTPDownloaderListener	listener,
+		boolean								con_fail_is_perm_fail )
 	        	
 	    throws ExternalSeedException
 	{
-		downloadSocket( new String[0], new String[0], length, listener );
+		downloadSocket( new String[0], new String[0], length, listener, con_fail_is_perm_fail );
 	}
 	
 	public void
@@ -202,11 +234,14 @@ ExternalSeedHTTPDownloader
 		String[]							prop_names,
 		String[]							prop_values,
 		int									length,
-		ExternalSeedHTTPDownloaderListener	listener )
+		ExternalSeedHTTPDownloaderListener	listener,
+		boolean								con_fail_is_perm_fail )
 	
 		throws ExternalSeedException
 	{
 		Socket	socket	= null;
+		
+		boolean	connected = false;
 		
 		try{				
 			String	output_header = 
@@ -226,6 +261,8 @@ ExternalSeedHTTPDownloader
 			System.out.println( "header: " + output_header );
 			
 			socket = new Socket(  url.getHost(), url.getPort()==-1?url.getDefaultPort():url.getPort());
+			
+			connected	= true;
 			
 			OutputStream	os = socket.getOutputStream();
 			
@@ -372,6 +409,20 @@ ExternalSeedHTTPDownloader
 				is.close();
 			}
 			
+		}catch( IOException e ){
+			
+			if ( con_fail_is_perm_fail && !connected ){
+				
+				ExternalSeedException	error = new ExternalSeedException("Connection failed: " + e.getMessage());
+				
+				error.setPermanentFailure( true );
+				
+				throw( error );
+
+			}else{
+				
+				throw( new ExternalSeedException("Connection failed", e ));
+			}
 		}catch( Throwable e ){
 			
 			if ( e instanceof ExternalSeedException ){

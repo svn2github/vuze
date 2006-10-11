@@ -56,7 +56,7 @@ ExternalSeedReaderGetRight
 	private int			min_speed;
 	private long		valid_until;
 	private int			piece_group_size;
-	
+		
 	protected
 	ExternalSeedReaderGetRight(
 		ExternalSeedPlugin 		_plugin,
@@ -64,7 +64,7 @@ ExternalSeedReaderGetRight
 		URL						_url,
 		Map						_params )
 	{
-		super( _plugin, _torrent );
+		super( _plugin, _torrent, _params );
 				
 		min_availability 	= getIntParam( _params, "min_avail", 1 );	// default is avail based
 		min_speed			= getIntParam( _params, "min_speed", 0 );
@@ -272,6 +272,7 @@ ExternalSeedReaderGetRight
 		http_downloader.downloadRange( 
 						request.getStartPieceNumber() * piece_size + request.getStartPieceOffset(), 
 						request.getLength(),
-						request );
+						request,
+						isTransient());
 	}
 }

@@ -1699,7 +1699,8 @@ DownloadManagerController
 	
 				Map params = new HashMap();
 	
-				params.put("supports_503", new Long(0));
+				params.put( "supports_503", new Long(0));
+				params.put( "transient", new Long(1));
 	
 				config.put("httpseeds-params", params);
 	

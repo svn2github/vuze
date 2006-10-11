@@ -97,9 +97,7 @@ ExternalSeedReaderFactoryGetRight
 						URL	url = new URL(new String((byte[])urls.get(i)));
 						
 						String	protocol = url.getProtocol().toLowerCase();
-						
-						plugin.log( download.getName() + ": GR found seed: " + url );
-						
+												
 						if ( protocol.equals( "http" )){
 							
 							readers.add( new ExternalSeedReaderGetRight(plugin, download.getTorrent(), url, params ));

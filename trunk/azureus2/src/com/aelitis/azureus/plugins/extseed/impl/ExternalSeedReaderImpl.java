@@ -70,17 +70,21 @@ ExternalSeedReaderImpl
 	
 	private int[]		priority_offsets;
 	
-
+	private boolean		transient_seed;
+	
 	private List	listeners	= new ArrayList();
 	
 	protected
 	ExternalSeedReaderImpl(
 		ExternalSeedPlugin 		_plugin,
-		Torrent					_torrent )	
+		Torrent					_torrent,
+		Map						_params )
 	{
 		plugin	= _plugin;
 		torrent	= _torrent;
 		
+		transient_seed		= getBooleanParam( _params, "transient", false );
+
 		requests_mon	= plugin.getPluginInterface().getUtilities().getMonitor();
 		request_sem		= plugin.getPluginInterface().getUtilities().getSemaphore();
 		
@@ -115,6 +119,12 @@ ExternalSeedReaderImpl
 	getStatus()
 	{
 		return( status );
+	}
+	
+	public boolean
+	isTransient()
+	{
+		return( transient_seed );
 	}
 	
 	protected void

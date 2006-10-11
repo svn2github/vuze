@@ -27,7 +27,6 @@ import java.util.List;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
-import org.gudy.azureus2.plugins.peers.Piece;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
 public interface 
@@ -41,6 +40,11 @@ ExternalSeedReader
 	
 	public String
 	getStatus();
+	
+		// transient peers are moved from the download on failure
+	
+	public boolean
+	isTransient();
 	
 	public boolean
 	isPermanentlyUnavailable();
