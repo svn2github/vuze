@@ -123,6 +123,7 @@ public interface UIFunctions extends AzureusCoreComponent
 	 * @param w
 	 * @param h
 	 * @param allowResize 
+	 * @return success level
 	 */
-	void viewURL(String url, String target, int w, int h, boolean allowResize);
+	boolean viewURL(String url, String target, int w, int h, boolean allowResize);
 }
