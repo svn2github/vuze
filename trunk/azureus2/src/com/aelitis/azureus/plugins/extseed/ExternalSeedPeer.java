@@ -407,27 +407,50 @@ ExternalSeedPeer
 	public boolean 
 	isSnubbed()
 	{
-		return snubbed !=0;
+		if ( snubbed != 0 ){
+			
+				// mindless snubbing control - if we have no outstanding requests then we
+				// drop the snubbed status :)
+			
+			if ( reader.getRequestCount() == 0 ){
+				
+				snubbed = 0;
+			}
+		}
+		
+		return( snubbed != 0 );
 	}
  
-	public long	getSnubbedTime()
+	public long	
+	getSnubbedTime()
 	{
-		if (snubbed ==0)
+		if ( !isSnubbed()){
+			
 			return 0;
-		final long now =plugin.getPluginInterface().getUtilities().getCurrentSystemTime();
-		if (now <snubbed)
-			snubbed =now -26;	// odds are ...
-		return now -snubbed;
+		}
+		
+		final long now = plugin.getPluginInterface().getUtilities().getCurrentSystemTime();
+		
+		if ( now < snubbed ){
+			
+			snubbed = now - 26;	// odds are ...
+		}
+		
+		return now - snubbed;
 	}
  
 	public void 
 	setSnubbed( 
 		boolean b)
 	{
-		if (!b)
-			snubbed =0;
-		else if (snubbed ==0)
-			snubbed =plugin.getPluginInterface().getUtilities().getCurrentSystemTime();
+		if (!b){
+			
+			snubbed = 0;
+			
+		}else if ( snubbed == 0 ){
+			
+			snubbed = plugin.getPluginInterface().getUtilities().getCurrentSystemTime();
+		}
 	}
 	
 	public boolean 

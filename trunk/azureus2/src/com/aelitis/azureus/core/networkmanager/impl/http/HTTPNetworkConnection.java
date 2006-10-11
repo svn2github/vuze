@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.networkmanager.impl.http;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -37,6 +38,10 @@ import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
@@ -75,6 +80,123 @@ HTTPNetworkConnection
 	    COConfigurationManager.addAndFireParameterListener( "BT Request Max Block Size", param_listener);
 	}
 	
+	private static final int	TIMEOUT_CHECK_PERIOD			= 15*1000;
+	private static final int	DEAD_CONNECTION_TIMEOUT_PERIOD	= 30*1000;
+	private static final int	MAX_CON_PER_ENDPOINT			= 5*1000;
+
+	private static Map	http_connection_map = new HashMap();
+	
+	static{
+		SimpleTimer.addPeriodicEvent(
+			"HTTPNetworkConnection:timer",
+			TIMEOUT_CHECK_PERIOD,
+			new TimerEventPerformer()
+			{
+				public void 
+				perform(
+					TimerEvent event ) 
+				{
+					synchronized( http_connection_map ){
+						
+						boolean	 check = true;
+						
+						while( check ){
+							
+							check = false;
+	
+							Iterator	it = http_connection_map.entrySet().iterator();
+							
+							while( it.hasNext()){
+								
+								Map.Entry	entry = (Map.Entry)it.next();
+								
+								networkConnectionKey	key = (networkConnectionKey)entry.getKey();
+								
+								List	connections = (List)entry.getValue();
+								
+								String	times = "";
+								
+								for (int i=0;i<connections.size();i++){
+									
+									HTTPNetworkConnection	connection = (HTTPNetworkConnection)connections.get(i);
+								
+									times += (i==0?"":",") + connection.getTimeSinceLastActivity();
+								}
+								
+								System.out.println( "HTTPNC: " + key.getName() + " -> " + connections.size() + " - " + times );
+								
+								if ( checkConnections( connections )){
+									
+										// might have a concurrent mod to the iterator
+									
+									if ( !http_connection_map.containsKey( key )){
+										
+										check	= true;
+										
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+			});
+	}
+	
+	protected static boolean
+	checkConnections(
+		List	connections )
+	{
+		boolean	some_closed = false;
+				
+		HTTPNetworkConnection	oldest 			= null;
+		long					oldest_time		= -1;
+		
+		Iterator	it = connections.iterator();
+			
+		List	timed_out = new ArrayList();
+		
+		while( it.hasNext()){
+			
+			HTTPNetworkConnection	connection = (HTTPNetworkConnection)it.next();
+		
+			long	time = connection.getTimeSinceLastActivity();
+		
+			if ( time > DEAD_CONNECTION_TIMEOUT_PERIOD ){
+				
+				if ( connection.getRequestCount() == 0 ){
+																
+					timed_out.add( connection );
+					
+					continue;
+				}
+			}
+						
+			if ( time > oldest_time && !connection.isClosing()){
+					
+				oldest_time		= time;
+					
+				oldest	= connection;
+			}
+		}
+		
+		for (int i=0;i<timed_out.size();i++){
+			
+			((HTTPNetworkConnection)timed_out.get(i)).close( "Timeout" );
+			
+			some_closed	= true;
+		}
+		
+		if ( connections.size() - timed_out.size() > MAX_CON_PER_ENDPOINT ){
+			
+			oldest.close( "Too many connections from initiator");
+				
+			some_closed	= true;
+		}
+		
+		return( some_closed );
+	}
+	
 	private HTTPNetworkManager	manager;
 	private NetworkConnection	connection;
 	private PEPeerTransport		peer;
@@ -95,6 +217,11 @@ HTTPNetworkConnection
 	
 	private BitSet	piece_map	= new BitSet();
 	
+	private long	last_http_activity_time;
+	
+	private networkConnectionKey	network_connection_key;
+	
+	private boolean	closing;
 	private boolean	destroyed;
 	
 	protected
@@ -109,9 +236,32 @@ HTTPNetworkConnection
 		peer		= _peer;
 		url			= _url;
 		
+		network_connection_key = new networkConnectionKey();
+			
+		last_http_activity_time	= SystemTime.getCurrentTime();
+		
 		decoder	= (HTTPMessageDecoder)connection.getIncomingMessageQueue().getDecoder();
 		encoder = (HTTPMessageEncoder)connection.getOutgoingMessageQueue().getEncoder();
 
+		synchronized( http_connection_map ){
+						
+			List	connections = (List)http_connection_map.get( network_connection_key );
+			
+			if ( connections == null ){
+				
+				connections = new ArrayList();
+				
+				http_connection_map.put( network_connection_key, connections );
+			}
+			
+			connections.add( this );
+			
+			if ( connections.size() > MAX_CON_PER_ENDPOINT ){
+				
+				checkConnections( connections );
+			}
+		}
+		
 		decoder.setConnection( this );
 		encoder.setConnection( this );
 	}
@@ -216,13 +366,16 @@ HTTPNetworkConnection
 	encodeHeader(
 		httpRequest	request )
 	{
-		return(	"HTTP/1.1 " + (request.isPartialContent()?"206 Partial Content":"200 OK" ) + NL + 
+		String	res = 
+			"HTTP/1.1 " + (request.isPartialContent()?"206 Partial Content":"200 OK" ) + NL + 
 				"Content-Type: application/octet-stream" + NL +
 				"Server: " + Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
 				"Connection: " + ( request.keepAlive()?"Keep-Alive":"Close" ) + NL +
 				(request.keepAlive()?("Keep-Alive: timeout=30" + NL) :"" ) +
 				"Content-Length: " + request.getTotalLength() + NL +
-				NL );
+				NL;
+							
+		return( res );
 	}
 	
 	protected void
@@ -231,6 +384,8 @@ HTTPNetworkConnection
 	
 		throws IOException
 	{
+		last_http_activity_time	= SystemTime.getCurrentTime();
+		
 		PEPeerControl	control = getPeerControl();
 		
 		if ( !sent_handshake ){
@@ -350,6 +505,8 @@ HTTPNetworkConnection
 	encodePiece(
 		Message		message )
 	{
+		last_http_activity_time	= SystemTime.getCurrentTime();
+		
 		BTPiece	piece = (BTPiece)message;
 		
 		List	ready_requests = new ArrayList();
@@ -476,9 +633,48 @@ HTTPNetworkConnection
 						new Message[0] ));
 	}
 	
+	protected int
+	getRequestCount()
+	{
+		synchronized( outstanding_requests ){
+
+			return( http_requests.size());
+		}
+	}
+	
+	protected boolean
+	isClosing()
+	{
+		return( closing );
+	}
+	
+	protected void
+	close(
+		String	reason )
+	{
+		closing	= true;
+		
+		peer.getControl().removePeer( peer );
+	}
+	
 	protected void
 	destroy()
 	{
+		synchronized( http_connection_map ){
+
+			List	connections = (List)http_connection_map.get( network_connection_key );
+			
+			if ( connections != null ){
+				
+				connections.remove( this );
+				
+				if ( connections.size() == 0 ){
+					
+					http_connection_map.remove( network_connection_key );
+				}
+			}
+		}
+		
 		synchronized( outstanding_requests ){
 
 			destroyed	= true;
@@ -508,6 +704,19 @@ HTTPNetworkConnection
 		}
 	}
 	
+	protected long
+	getTimeSinceLastActivity()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now < last_http_activity_time ){
+			
+			last_http_activity_time = now;
+		}
+		
+		return( now - last_http_activity_time );
+	}
+	
 	protected void
 	log(
 		String	str )
@@ -516,6 +725,7 @@ HTTPNetworkConnection
 			Logger.log(new LogEvent( getPeer(),LOGID, str));
 		}   
 	}
+	
 	protected RawMessage
 	getEmptyRawMessage(
 		Message	message )
@@ -563,7 +773,7 @@ HTTPNetworkConnection
 				{
 					if ( message == http_message ){
 						
-						getConnection().close();
+						close( "Close after message send complete" );
 					}
 				}
 				    
@@ -607,6 +817,12 @@ HTTPNetworkConnection
 			lengths	= _lengths;
 			partial_content	= _partial_content;
 			keep_alive		= _keep_alive;
+			
+			String	str ="";
+			for (int i=0;i<lengths.length;i++){	
+				str += (i==0?"":",") +"[" + offsets[i] + "/" + lengths[i] + "]";
+			}
+			System.out.println( network_connection_key.getName() + ": requested " + str + ",part=" + partial_content +",ka=" + keep_alive );
 			
 			for (int i=0;i<lengths.length;i++){
 				
@@ -728,6 +944,44 @@ HTTPNetworkConnection
 			BTPiece	_bt_piece )
 		{
 			bt_piece	= _bt_piece;
+		}
+	}
+	
+	protected class
+	networkConnectionKey
+	{
+		public boolean 
+		equals(Object obj) 
+		{
+			networkConnectionKey	other = (networkConnectionKey)obj;
+			
+			return( Arrays.equals( getAddress(), other.getAddress()) &&
+					Arrays.equals(getHash(),other.getHash()));	
+		}
+			
+		protected String
+		getName()
+		{
+			return( peer.getControl().getDisplayName() + ": " + connection.getEndpoint().getNotionalAddress().getAddress().getHostAddress());
+		}
+		
+		protected byte[]
+		getAddress()
+		{
+			return( connection.getEndpoint().getNotionalAddress().getAddress().getAddress());
+		}
+		
+		protected byte[]
+		getHash()
+		{
+			return( peer.getControl().getHash());
+		}
+		
+		public int 
+		hashCode() 
+		{
+			return( peer.getControl().hashCode());
+
 		}
 	}
 }

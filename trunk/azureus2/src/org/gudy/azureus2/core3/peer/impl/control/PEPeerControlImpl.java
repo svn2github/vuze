@@ -508,14 +508,22 @@ PEPeerControlImpl
 	removePeer(
 		PEPeer	_transport )
 	{
+		removePeer( _transport, "remove peer" );
+	}
+	
+	public void
+	removePeer(
+		PEPeer	_transport,
+		String	reason )
+	{
 		if ( !( _transport instanceof PEPeerTransport )){
 			
 			throw( new RuntimeException("invalid class"));
 		}
 		
-		final PEPeerTransport	transport = (PEPeerTransport)_transport;
+		PEPeerTransport	transport = (PEPeerTransport)_transport;
 		
-		closeAndRemovePeer( transport, "remove peer", true );
+		closeAndRemovePeer( transport, reason, true );
 	}
 
   private void closeAndRemovePeer( PEPeerTransport peer, String reason, boolean log_if_not_found ) {

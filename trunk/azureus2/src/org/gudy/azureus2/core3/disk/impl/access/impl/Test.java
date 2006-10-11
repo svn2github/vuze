@@ -1369,6 +1369,13 @@ Test
 		{	
 		}
 		
+		public void
+		removePeer(
+			PEPeer	peer,
+			String	reason )
+		{	
+		}
+		
 		public void 
 		peerAdded(PEPeer pc)
 		{	

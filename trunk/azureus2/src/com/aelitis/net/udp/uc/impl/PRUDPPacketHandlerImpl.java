@@ -628,6 +628,8 @@ PRUDPPacketHandlerImpl
 		}
 		
 		try{
+			checkTargetAddress( destination_address );
+			
 			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			
 			DataOutputStream os = new DataOutputStream( baos );
@@ -918,6 +920,8 @@ PRUDPPacketHandlerImpl
 		}
 		
 		try{
+			checkTargetAddress( destination_address );
+			
 			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			
 			DataOutputStream os = new DataOutputStream( baos );
@@ -949,6 +953,18 @@ PRUDPPacketHandlerImpl
 			Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "PRUDPPacketHandler: send to " + destination_address + " failed: " + Debug.getNestedExceptionMessage(e)));
 			
 			throw( new PRUDPPacketHandlerException( "PRUDPPacketHandler:send failed", e ));
+		}
+	}
+	
+	protected void
+	checkTargetAddress(
+		InetSocketAddress	address )
+	
+		throws IOException
+	{
+		if ( address.getPort() == 0 ){
+			
+			throw( new IOException( "Invalid port - 0" ));
 		}
 	}
 	
@@ -995,6 +1011,8 @@ PRUDPPacketHandlerImpl
 		throws PRUDPPacketHandlerException
 	{
 		try{
+			checkTargetAddress( target );
+			
 			DatagramPacket dg_packet = new DatagramPacket(buffer, buffer.length, target );
 			
 			// System.out.println( "Outgoing to " + dg_packet.getAddress());	

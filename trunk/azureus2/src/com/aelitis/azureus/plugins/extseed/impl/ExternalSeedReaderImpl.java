@@ -63,7 +63,6 @@ ExternalSeedReaderImpl
 	private volatile PeerManager		current_manager;
 		
 	private List			requests		= new LinkedList();
-	private volatile int	request_count;
 	private Thread			request_thread;
 	private Semaphore		request_sem;
 	private Monitor			requests_mon;
@@ -331,9 +330,7 @@ ExternalSeedReaderImpl
 							}else{
 								
 								selected_requests.add( request );
-								
-								request_count--;
-								
+																
 								if ( i > 0 ){
 								
 										// we've only got the sem for the first request, catch up for subsequent
@@ -598,9 +595,7 @@ ExternalSeedReaderImpl
 
 				request_sem.release();
 			}
-			
-			request_count	= requests.size();
-			
+						
 			if ( request_thread == null ){
 				
 				plugin.getPluginInterface().getUtilities().createThread(
@@ -631,8 +626,6 @@ ExternalSeedReaderImpl
 			if ( requests.contains( request ) && !request.isCancelled()){
 				
 				request.cancel();
-			
-				request_count--;
 			}
 			
 		}finally{
@@ -654,8 +647,6 @@ ExternalSeedReaderImpl
 				if ( !request.isCancelled()){
 	
 					request.cancel();
-				
-					request_count--;
 				}
 			}			
 		}finally{
@@ -667,7 +658,15 @@ ExternalSeedReaderImpl
 	public int
 	getRequestCount()
 	{
-		return( request_count );
+		try{
+			requests_mon.enter();
+
+			return( requests.size());
+			
+		}finally{
+			
+			requests_mon.exit();
+		}	
 	}
 	
 	public List

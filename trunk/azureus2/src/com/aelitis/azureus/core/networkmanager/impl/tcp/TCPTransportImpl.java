@@ -371,6 +371,9 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
       
       setFilter( null );
     }
+    
+    	// 
+    setReadyForRead();
   }
      
   

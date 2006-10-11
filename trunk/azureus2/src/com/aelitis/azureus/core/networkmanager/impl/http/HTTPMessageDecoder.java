@@ -55,6 +55,11 @@ HTTPMessageDecoder
 		HTTPNetworkConnection	_http_connection )
 	{
 		http_connection	= _http_connection;
+		
+		if ( destroyed ){
+			
+			http_connection.destroy();
+		}
 	}
 	
 	public int
