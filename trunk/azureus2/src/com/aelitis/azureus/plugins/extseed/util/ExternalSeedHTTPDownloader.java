@@ -213,7 +213,7 @@ ExternalSeedHTTPDownloader
 				"GET " + url.getPath() + "?" + url.getQuery() + " HTTP/1.1" + NL +
 				"Host: " + url.getHost() + (url.getPort()==-1?"":( ":" + url.getPort())) + NL +
 				"Accept: */*" + NL +
-				"Connection: Keep-Alive" + NL +
+				"Connection: Close" + NL +	// if we want to support keep-alive we'll need to implement a socket cache etc.
 				"User-Agent: " + user_agent + NL;
 		
 			for (int i=0;i<prop_names.length;i++){
