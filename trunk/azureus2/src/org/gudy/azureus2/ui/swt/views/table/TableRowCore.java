@@ -116,8 +116,6 @@ public interface TableRowCore
 	 * @return false - already linked to that item at that index
 	 */
 	public boolean setTableItem(int newIndex);
-	
-  public boolean isSelected();
 
   public void setSelected(boolean bSelected);
   

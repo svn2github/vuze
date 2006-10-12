@@ -70,4 +70,11 @@ public interface TableRow {
    * @return TableCell object related to this row and the column specified
    */
   TableCell getTableCell(String sColumnName);
+  
+  /**
+   * Retrieve whether the row is selected by the user
+   * 
+   * @return selection status
+   */
+  boolean isSelected();
 }
