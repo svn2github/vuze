@@ -70,76 +70,9 @@ Main
 	      return;
 	    }
 	    
-	    boolean	closedown	= false;
 	    
-	    for (int i=0;i<args.length;i++){
+	    if ( processParams(args, startServer) ){
 	
-	    	String	arg = args[i];
-	    	
-	    	if ( arg.equalsIgnoreCase( "--closedown" )){
-	    		
-	    		closedown	= true;
-	    		
-	    		break;
-	    	}
-		        // Sometimes Windows use filename in 8.3 form and cannot
-		        // match .torrent extension. To solve this, canonical path
-		        // is used to get back the long form
-		    	
-	        String filename = arg;
-            
-            if( filename.toUpperCase().startsWith( "HTTP:" ) || 
-            		filename.toUpperCase().startsWith( "HTTPS:" ) || 
-            		filename.toUpperCase().startsWith( "MAGNET:" ) ) {
-          		Logger.log(new LogEvent(LOGID, "Main::main: args[" + i
-          				+ "] handling as a URI: " + filename));
-              continue;  //URIs cannot be checked as a .torrent file
-            }            
-	        
-	        try{
-	        	File	file = new File(filename);
-	        	
-	        	if ( !file.exists()){
-	        		
-	        		throw( new Exception("File not found" ));
-	        	}
-	        	
-	        	args[i] = file.getCanonicalPath();
-	          	
-	        	if (Logger.isEnabled())
-	        		Logger.log(new LogEvent(LOGID, "Main::main: args[" + i
-	        				+ "] exists = " + new File(filename).exists()));
-	          
-	        }catch( Throwable e ){
-	        	Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-							"Failed to access torrent file '" + filename
-									+ "'. Ensure sufficient temporary "
-									+ "file space available (check browser cache usage)."));
-	        }
-	    }
-	    
-	    
-	    boolean another_instance = startServer.getState() != StartServer.STATE_LISTENING;
-	    
-	    if( another_instance ) {  //looks like there's already a process listening on 127.0.0.1:6880
-	    	//attempt to pass args to existing instance
-	    	StartSocket ss = new StartSocket(args);
-	    	
-	    	if( !ss.sendArgs() ) {  //arg passing attempt failed, so start core anyway
-	    		another_instance = false;
-	    		String msg = "There appears to be another program process already listening on socket [127.0.0.1: 6880].\nLoading of torrents via command line parameter will fail until this is fixed.";
-	    		System.out.println( msg );
-	    		Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_WARNING, msg));
-	    	}
-	    }
-	    
-	    if ( !another_instance ){
-	
-	    	if ( closedown ){
-	    			// closedown request and no instance running
-	    		return;
-	    	}
-	    	
 	    	AzureusCore		core = AzureusCoreFactory.create();
 	    	
 	    	startServer.pollForConnections(core);
@@ -153,7 +86,92 @@ Main
   	}
   }
   
-  public static void main(String args[]) 
+  
+  
+  /**
+	 * @param args
+	 * @return whether to init the core
+	 */
+	public static boolean processParams(String[] args, StartServer startServer) {
+    boolean	closedown	= false;
+    
+    for (int i=0;i<args.length;i++){
+
+    	String	arg = args[i];
+    	
+    	if ( arg.equalsIgnoreCase( "--closedown" )){
+    		
+    		closedown	= true;
+    		
+    		break;
+    	}
+	        // Sometimes Windows use filename in 8.3 form and cannot
+	        // match .torrent extension. To solve this, canonical path
+	        // is used to get back the long form
+	    	
+        String filename = arg;
+          
+          if( filename.toUpperCase().startsWith( "HTTP:" ) || 
+          		filename.toUpperCase().startsWith( "HTTPS:" ) || 
+          		filename.toUpperCase().startsWith( "MAGNET:" ) ) {
+        		Logger.log(new LogEvent(LOGID, "Main::main: args[" + i
+        				+ "] handling as a URI: " + filename));
+            continue;  //URIs cannot be checked as a .torrent file
+          }            
+        
+        try{
+        	File	file = new File(filename);
+        	
+        	if ( !file.exists()){
+        		
+        		throw( new Exception("File not found" ));
+        	}
+        	
+        	args[i] = file.getCanonicalPath();
+          	
+        	if (Logger.isEnabled())
+        		Logger.log(new LogEvent(LOGID, "Main::main: args[" + i
+        				+ "] exists = " + new File(filename).exists()));
+          
+        }catch( Throwable e ){
+        	Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+						"Failed to access torrent file '" + filename
+								+ "'. Ensure sufficient temporary "
+								+ "file space available (check browser cache usage)."));
+        }
+
+    }
+    
+    
+    boolean another_instance = startServer.getState() != StartServer.STATE_LISTENING;
+    
+    if( another_instance ) {  //looks like there's already a process listening on 127.0.0.1:6880
+    	//attempt to pass args to existing instance
+    	StartSocket ss = new StartSocket(args);
+    	
+    	if( !ss.sendArgs() ) {  //arg passing attempt failed, so start core anyway
+    		another_instance = false;
+    		String msg = "There appears to be another program process already listening on socket [127.0.0.1: 6880].\nLoading of torrents via command line parameter will fail until this is fixed.";
+    		System.out.println( msg );
+    		Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_WARNING, msg));
+    	}
+    }
+    
+    if ( !another_instance ){
+    	
+    	if ( closedown ){
+    			// closedown request and no instance running
+    		return false;
+    	}
+    	
+    	return true;
+    }
+    return false;
+	}
+
+
+
+	public static void main(String args[]) 
   { 	
   	//Debug.dumpThreads("Entry threads");
  
