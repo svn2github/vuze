@@ -576,6 +576,8 @@ ExternalSeedPeer
 		
 		request_list.add( request );
 		
+		snubbed = 0;
+		
 		return( true );
 	}
 

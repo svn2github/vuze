@@ -92,8 +92,12 @@ ExternalSeedHTTPDownloader
 		boolean	connected = false;
 		
 		InputStream	is	= null;
+				
+		String	outcome = "";
 		
 		try{
+			// System.out.println( "Connecting to " + url + ": " + Thread.currentThread().getId());
+
 			HttpURLConnection	connection = (HttpURLConnection)url.openConnection();
 			
 			connection.setRequestProperty( "Connection", "Keep-Alive" );
@@ -168,14 +172,20 @@ ExternalSeedHTTPDownloader
 						}
 					}
 					
-					throw( new ExternalSeedException("Connection failed: data too short - " + length + "/" + pos + " [" + log_str + "]" ));
+					outcome = "Connection failed: data too short - " + length + "/" + pos + " [" + log_str + "]";
+					
+					throw( new ExternalSeedException( outcome ));
 				}
+				
+				outcome = "read " + pos + " bytes";
 				
 				// System.out.println( "download length: " + pos );
 				
 			}else{
 				
-				ExternalSeedException	error = new ExternalSeedException("Connection failed: " + connection.getResponseMessage());
+				outcome = "Connection failed: " + connection.getResponseMessage();
+				
+				ExternalSeedException	error = new ExternalSeedException( outcome );
 				
 				error.setPermanentFailure( true );
 				
@@ -185,7 +195,9 @@ ExternalSeedHTTPDownloader
 			
 			if ( con_fail_is_perm_fail && !connected ){
 				
-				ExternalSeedException	error = new ExternalSeedException("Connection failed: " + e.getMessage());
+				outcome = "Connection failed: " + e.getMessage();
+				
+				ExternalSeedException	error = new ExternalSeedException( outcome );
 				
 				error.setPermanentFailure( true );
 				
@@ -193,7 +205,9 @@ ExternalSeedHTTPDownloader
 
 			}else{
 				
-				throw( new ExternalSeedException("Connection failed", e ));
+				outcome = "Connection failed" + e.toString();
+				
+				throw( new ExternalSeedException( outcome, e ));
 			}
 		}catch( Throwable e ){
 			
@@ -202,10 +216,14 @@ ExternalSeedHTTPDownloader
 				throw((ExternalSeedException)e);
 			}
 			
+			outcome = "Connection failed" + e.toString();
+			
 			throw( new ExternalSeedException("Connection failed", e ));
 			
 		}finally{
 			
+			// System.out.println( "Done to " + url + ": " + Thread.currentThread().getId() + ", outcome=" + outcome );
+
 			if ( is != null ){
 				
 				try{
