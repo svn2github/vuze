@@ -1657,20 +1657,22 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			if (sTorrentFilenames[i] == null || sTorrentFilenames[i] == "")
 				continue;
 
-			// Process URL
-			String sURL = UrlUtils.parseTextForURL(sTorrentFilenames[i], true);
-			if (sURL != null) {
-				if (COConfigurationManager.getBooleanParameter("Add URL Silently"))
-					new FileDownloadWindow(core, shellForChildren, sURL, null, this);
-				else
-					new OpenUrlWindow(core, shellForChildren, sURL, null, this);
-				numAdded++;
-				continue;
-			}
-
 			// Process File
 			String sFileName = ((sTorrentFilePath == null) ? "" : sTorrentFilePath)
 					+ sTorrentFilenames[i];
+
+			if (!new File(sFileName).exists()) {
+				// Process URL
+				String sURL = UrlUtils.parseTextForURL(sTorrentFilenames[i], true);
+				if (sURL != null) {
+					if (COConfigurationManager.getBooleanParameter("Add URL Silently"))
+						new FileDownloadWindow(core, shellForChildren, sURL, null, this);
+					else
+						new OpenUrlWindow(core, shellForChildren, sURL, null, this);
+					numAdded++;
+					continue;
+				}
+			}
 
 			if (addTorrent(sFileName, sFileName) != null)
 				numAdded++;
