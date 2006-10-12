@@ -1428,6 +1428,10 @@ MainWindow
     return mainMenu;
   }
   
+  public void setMenu(MainMenu menu) {
+  	mainMenu = menu;
+  }
+  
   
     
   /**
