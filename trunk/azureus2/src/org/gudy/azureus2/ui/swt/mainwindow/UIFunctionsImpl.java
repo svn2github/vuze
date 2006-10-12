@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -70,6 +71,8 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 			public void runSupport() {
 				if (mainwindow.getMenu() != null) {
 					mainwindow.getMenu().addPluginView(view, view.getPluginViewName());
+				} else {
+					Debug.out("No menu to addPluginView to");
 				}
 			}
 		});
@@ -126,6 +129,8 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 			public void runSupport() {
 				if (mainwindow.getMenu() != null) {
 					mainwindow.getMenu().addPluginView(view, view.getPluginViewName());
+				} else {
+					Debug.out("No menu to addPluginView to");
 				}
 			}
 		});
@@ -159,6 +164,8 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 			public void runSupport() {
 				if (mainwindow.getMenu() != null) {
 					mainwindow.getMenu().addPluginView(viewID, l);
+				} else {
+					Debug.out("No menu to addPluginView to");
 				}
 			}
 		});
