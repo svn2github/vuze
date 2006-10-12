@@ -84,6 +84,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 public class MainMenu {
 	public static int MENU_BAR = 0;
 	public static int MENU_TRANSFER = 1;
+	public static int MENU_VIEW = 2;
 	
 	private static final LogIDs LOGID = LogIDs.GUI;
 
@@ -97,6 +98,7 @@ public class MainMenu {
   private Menu pluginMenu;
   private Menu pluginLogsMenu;
   private Menu transferMenu;
+  private Menu viewMenu;
   
   private AzureusCore core;
 
@@ -118,7 +120,7 @@ public class MainMenu {
           this.display = SWTThread.getInstance().getDisplay();
           attachedShell = shell;
 
-          buildMenu(shell);
+          buildMenu(shell, true);
       }
   }
 
@@ -127,7 +129,7 @@ public class MainMenu {
     this.display = SWTThread.getInstance().getDisplay();
     attachedShell = mainWindow.getShell();
 
-    buildMenu(mainWindow.getShell());
+    buildMenu(mainWindow.getShell(), true);
   }
   
   public void setMainWindow(MainWindow mainWindow) {
@@ -143,7 +145,7 @@ public class MainMenu {
     attachedShell = shell;
 
     this.core = core;
-    buildMenu(shell);
+    buildMenu(shell, false);
   }
 
   /**
@@ -151,7 +153,7 @@ public class MainMenu {
    * @param locales
    * @param parent
    */
-  private void buildMenu(final Shell parent) {
+  private void buildMenu(final Shell parent, boolean linkToParent) {
     try {
     	if (core == null) {
     		core = AzureusCoreFactory.getSingleton();
@@ -551,7 +553,10 @@ public class MainMenu {
     } catch (Exception e) {
     	Logger.log(new LogEvent(LOGID, "Error while creating menu items", e));
     }
-    parent.setMenuBar(menuBar);
+    
+    if (linkToParent) {
+    	parent.setMenuBar(menuBar);
+    }
   }
 
 	private void addDebugMenu(Menu menu) {
@@ -685,7 +690,7 @@ public class MainMenu {
       // ******** The View Menu
       MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(viewItem, "MainWindow.menu.view"); //$NON-NLS-1$
-      Menu viewMenu = new Menu(parent, SWT.DROP_DOWN);
+      viewMenu = new Menu(parent, SWT.DROP_DOWN);
       viewItem.setMenu(viewMenu);
       if(notMainWindow) {performOneTimeDisable(viewItem, true);}
 
@@ -794,7 +799,6 @@ public class MainMenu {
   	final AbstractIView 	view,
   	final String			name )
   {
-
   	Utils.execSWTThread(new AERunnable() {
       public void runSupport()
       {
@@ -1287,6 +1291,10 @@ public class MainMenu {
 		if (id == MENU_TRANSFER) {
 			return transferMenu;
 		}
+		if (id == MENU_VIEW) {
+			return viewMenu;
+		}
+
 		return null;
 	}
 }
