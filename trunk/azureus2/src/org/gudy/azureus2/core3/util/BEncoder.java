@@ -191,7 +191,7 @@ BEncoder
     	   
        }else{
         	
-    	   Debug.out( "Attempt to encode an unsupported entry type: " + object.getClass());
+    	   Debug.out( "Attempt to encode an unsupported entry type: " + object.getClass() + ";value=" + object);
        }
     }
     
