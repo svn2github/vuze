@@ -432,7 +432,7 @@ public class Debug {
 			
 			String	stack = baos.toString();
 					    
-			diagLoggerLogAndOut("  " + stack, true );			
+			diagLoggerLogAndOut("  " + stack, true );
 		}catch( Throwable ignore ){
 			
 			e.printStackTrace();

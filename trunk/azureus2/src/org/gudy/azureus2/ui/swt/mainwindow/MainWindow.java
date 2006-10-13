@@ -144,6 +144,8 @@ MainWindow
 
 	private boolean bIconBarEnabled = false;
 
+	private boolean bShowMainWindow;
+
   public
   MainWindow(
   	AzureusCore		_azureus_core,
@@ -187,6 +189,7 @@ MainWindow
 			Shell shell, Composite parent, UISWTInstanceImpl swtinstance) {
 		this.shell = shell;
 		this.parent = parent;
+  	bShowMainWindow = true;
 
 		try {
 			if (Logger.isEnabled())
@@ -211,6 +214,10 @@ MainWindow
 			Debug.printStackTrace(e);
 		}
 	}
+  
+  public void setShowMainWindow(boolean b) {
+  	bShowMainWindow = b;
+  }
   
   public void runSupport() {
     FormData formData;
@@ -642,6 +649,10 @@ MainWindow
 	}
 
 	private void showMainWindow() {
+		if (!bShowMainWindow) {
+			return;
+		}
+
 		// No tray access on OSX yet
 		boolean bEnableTray = COConfigurationManager
 				.getBooleanParameter("Enable System Tray")

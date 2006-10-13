@@ -213,4 +213,14 @@ public class WelcomeWindow {
     if(blue  != null && !blue.isDisposed() )  blue.dispose();
     shell.dispose();
   }
+  
+  public static void main(String[] args) {
+		new WelcomeWindow();
+		Display display = Display.getDefault();
+		while (true) {
+			if (!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
+	}
 }
