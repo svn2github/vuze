@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
+import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager;
@@ -473,6 +474,33 @@ PEPeerControlImpl
 		return( new ArrayList( peer_transports_cow ));
 	}
 	
+	public List
+	getPeers(
+		String	address )
+	{		
+		List	result = new ArrayList();
+	
+		Iterator	it = peer_transports_cow.iterator();
+			
+		while( it.hasNext()){
+			
+			PEPeerTransport	peer = (PEPeerTransport)it.next();
+			
+			if ( peer.getIp().equals( address )){
+				
+				result.add( peer );
+			}
+		}
+		
+		return( result );
+	}
+	
+	public PeerDescriptor[]
+	getPendingPeers(
+		String	address )
+	{
+		return((PeerDescriptor[])peer_database.getDiscoveredPeers());
+	}
 	
 	public void
 	addPeer(

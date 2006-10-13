@@ -25,6 +25,7 @@ package com.aelitis.azureus.plugins.extseed;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
@@ -38,6 +39,7 @@ ExternalSeedPeer
 {
 	private ExternalSeedPlugin		plugin;
 	
+	private Download				download;
 	private PeerManager				manager;
 	private PeerStats				stats;
 	private Map						user_data;
@@ -48,7 +50,7 @@ ExternalSeedPeer
 	
 	private byte[]					peer_id;
 	private boolean[]				available;
-	private boolean					availabilityAdded =false;
+	private boolean					availabilityAdded;
 	private long					snubbed;
 	private boolean					is_optimistic;
 	
@@ -65,10 +67,12 @@ ExternalSeedPeer
 	protected
 	ExternalSeedPeer(
 		ExternalSeedPlugin		_plugin,
+		Download				_download,
 		ExternalSeedReader		_reader )
 	{
-		plugin	= _plugin;
-		reader	= _reader;
+		plugin		= _plugin;
+		download	= _download;
+		reader		= _reader;
 				
 		connection_mon	= plugin.getPluginInterface().getUtilities().getMonitor();
 		
@@ -130,6 +134,12 @@ ExternalSeedPeer
 		return( manager );
 	}
 	
+	protected Download
+	getDownload()
+	{
+		return( download );
+	}
+	
 	protected void 
 	setState(
 		int newState )
@@ -184,25 +194,30 @@ ExternalSeedPeer
 
 		manager.addPeer( this );
 		
-		setState(Peer.TRANSFERING);
-
-		try{
-			listenerListMon.enter();
-
-			if ( availabilityAdded ){
-				
-				Debug.out( "availabililty already added" );
-				
-			}else{
-				
-				availabilityAdded	= true;
-
-				fireEvent( PeerEvent.ET_ADD_AVAILABILITY, getAvailable());				
-			}
+			// we can get synchronously disconnected - e.g. IP filter rules
 		
-		}finally{
+		if ( peer_added ){
 			
-			listenerListMon.exit();
+			setState(Peer.TRANSFERING);
+	
+			try{
+				listenerListMon.enter();
+	
+				if ( availabilityAdded ){
+					
+					Debug.out( "availabililty already added" );
+					
+				}else{
+					
+					availabilityAdded	= true;
+	
+					fireEvent( PeerEvent.ET_ADD_AVAILABILITY, getAvailable());				
+				}
+			
+			}finally{
+				
+				listenerListMon.exit();
+			}
 		}
 	}
 	
@@ -295,14 +310,7 @@ ExternalSeedPeer
 			
 			if ( reader.isTransient() && reader.isPermanentlyUnavailable()){
 				
-				try{
-					
-					plugin.removePeer( man.getDownload(), this );
-					
-				}catch( Throwable e ){
-					
-					plugin.log( "Failed to remove peer", e );
-				}
+				plugin.removePeer( this );
 			}
 		}
 	}
@@ -603,23 +611,27 @@ ExternalSeedPeer
 			
 			peer_added	= false;
 			
+			try{
+				listenerListMon.enter();
+				
+				if ( availabilityAdded ){
+								
+					availabilityAdded	= false;
+	
+					fireEvent( PeerEvent.ET_REMOVE_AVAILABILITY, getAvailable());
+				}
+			}finally{
+				
+				listenerListMon.exit();
+			}
 		}finally{
 			
 			connection_mon.exit();
 		}
 		
-		try{
-			listenerListMon.enter();
-			
-			if ( availabilityAdded ){
+		if ( reader.isTransient()){
 							
-				availabilityAdded	= false;
-
-				fireEvent( PeerEvent.ET_REMOVE_AVAILABILITY, getAvailable());
-			}
-		}finally{
-			
-			listenerListMon.exit();
+			plugin.removePeer( this );
 		}
 	}
 	

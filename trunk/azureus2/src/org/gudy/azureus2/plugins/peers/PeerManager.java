@@ -76,6 +76,26 @@ PeerManager
 	public Peer[]
 	getPeers();
 	
+		/**
+		 * returns the peers for the given address
+		 * @param address
+		 * @return
+		 */
+	
+	public Peer[]
+	getPeers(
+		String		address );
+	
+		/**
+		 * returns the pending connections to the given address
+		 * @param address
+		 * @return
+		 */
+	
+	public PeerDescriptor[]
+	getPendingPeers(
+		String		address );
+	
 	public DiskManager
 	getDiskManager();
 	

@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
@@ -45,6 +46,9 @@ public abstract class
 ExternalSeedReaderImpl 
 	implements ExternalSeedReader
 {
+	protected static final int	RECONNECT_DEFAULT = 30*1000;
+	
+
 	private ExternalSeedPlugin	plugin;
 	private Torrent				torrent;
 	
@@ -69,8 +73,14 @@ ExternalSeedReaderImpl
 	
 	private int[]		priority_offsets;
 	
+	private int			min_availability;
+	private int			min_speed;
+	private long		valid_until;
 	private boolean		transient_seed;
 	
+	private int			reconnect_delay	= RECONNECT_DEFAULT;
+	
+
 	private List	listeners	= new ArrayList();
 	
 	protected
@@ -81,6 +91,15 @@ ExternalSeedReaderImpl
 	{
 		plugin	= _plugin;
 		torrent	= _torrent;
+		
+		min_availability 	= getIntParam( _params, "min_avail", 1 );	// default is avail based
+		min_speed			= getIntParam( _params, "min_speed", 0 );
+		valid_until			= getIntParam( _params, "valid_ms", 0 );
+		
+		if ( valid_until > 0 ){
+			
+			valid_until += getSystemTime();
+		}
 		
 		transient_seed		= getBooleanParam( _params, "transient", false );
 
@@ -162,15 +181,172 @@ ExternalSeedReaderImpl
 		return( permanent_fail );
 	}
 	
-	protected abstract boolean
-	readyToActivate(
-		PeerManager		peer_manager,
-		Peer			peer );
+	protected void
+	setReconnectDelay(
+		int	delay )
+	{
+		reconnect_delay = delay;
+	}
 	
-	protected abstract boolean
+	protected boolean
+	readyToActivate(
+		PeerManager	peer_manager,
+		Peer		peer,
+		long		time_since_start )
+	{
+		boolean	early_days = time_since_start < 30000;
+		
+		try{
+
+				// first respect failure count 
+			
+			int	fail_count = getFailureCount();
+			
+			if ( fail_count > 0 ){
+				
+				int	delay	= reconnect_delay;
+				
+				for (int i=1;i<fail_count;i++){
+					
+					delay += delay;
+					
+					if ( delay > 30*60*1000 ){
+						
+						break;
+					}
+				}
+				
+				long	now = getSystemTime();
+				
+				long	last_fail = getLastFailTime();
+				
+				if ( last_fail < now && now - last_fail < delay ){
+					
+					return( false );
+				}
+			}
+	
+				// next obvious things like validity and the fact that we're complete
+			
+			if ( valid_until > 0 && getSystemTime() > valid_until ){
+				
+				return( false );
+			}
+			
+			if ( peer_manager.getDownload().getState() == Download.ST_SEEDING ){
+				
+				return( false );
+			}
+					
+				// now the more interesting stuff
+			
+			if ( transient_seed ){
+								
+				if ( peer_manager.getPeers( getIP()).length == 0 ){
+					
+					// check to see if we have pending connections to the same address 
+								
+					if ( peer_manager.getPendingPeers( getIP()).length == 0 ){
+						
+						log( getName() + ": activating as transient seed and nothing blocking it" );
+						
+						return( true );
+					}
+				}
+			}
+			
+				// availability and speed based stuff needs a little time before being applied
+			
+			if ( !early_days ){
+				
+				if ( min_availability > 0 ){
+										
+					float availability = peer_manager.getDownload().getStats().getAvailability();
+				
+					if ( availability < min_availability){
+					
+						log( getName() + ": activating as availability is poor" );
+						
+						return( true );
+					}
+				}
+					
+				if ( min_speed > 0 ){
+										
+					if ( peer_manager.getStats().getDownloadAverage() < min_speed ){
+						
+						log( getName() + ": activating as speed is slow" );
+						
+						return( true );
+					}
+				}	
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+		return( false );	
+	}
+	
+	protected boolean
 	readyToDeactivate(
-		PeerManager		peer_manager,
-		Peer			peer );
+		PeerManager	peer_manager,
+		Peer		peer )
+	{
+		try{
+				// obvious stuff first
+			
+			if ( valid_until > 0 && getSystemTime() > valid_until ){
+				
+				return( true );
+			}
+			
+			if ( peer_manager.getDownload().getState() == Download.ST_SEEDING ){
+				
+				return( true );
+			}
+		
+				// more interesting stuff
+			
+			if ( transient_seed ){
+				
+				return( false );
+			}
+			
+			if ( min_availability > 0 ){
+
+				float availability = peer_manager.getDownload().getStats().getAvailability();
+			
+				if ( availability >= min_availability + 1 ){
+				
+					log( getName() + ": deactivating as availability is good" );
+				
+					return( true );
+				}
+			}
+			
+			if ( min_speed > 0 ){
+				
+				long	my_speed 		= peer.getStats().getDownloadAverage();
+				
+				long	overall_speed 	= peer_manager.getStats().getDownloadAverage();
+				
+				if ( overall_speed - my_speed > 2 * min_speed ){
+					
+					log( getName() + ": deactivating as speed is good" );
+
+					return( true );
+				}
+				
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+		return( false );
+	}
 	
 	public boolean
 	checkActivation(
@@ -186,6 +362,9 @@ ExternalSeedReaderImpl
 				peer_manager_change_time	= now;
 			}
 			
+			long	time_since_started = now - peer_manager_change_time;
+			
+			
 			if ( peer_manager != null ){
 				
 				if ( active ){
@@ -198,7 +377,7 @@ ExternalSeedReaderImpl
 					
 					if ( !isPermanentlyUnavailable()){
 					
-						if ( now - peer_manager_change_time > 30000 && readyToActivate( peer_manager, peer )){
+						if ( readyToActivate( peer_manager, peer, time_since_started )){
 							
 							setActive( true );				
 						}

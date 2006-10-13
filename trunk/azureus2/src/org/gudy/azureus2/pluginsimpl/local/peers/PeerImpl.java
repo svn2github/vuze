@@ -54,7 +54,12 @@ PeerImpl
 	private HashMap peer_listeners;
   	
 
-	public
+		/**
+		 * don't use me, use PeerManagerImpl.getPeerForPEPeer
+		 * @param _delegate
+		 */
+	
+	protected
 	PeerImpl(
 		PEPeer	_delegate )
 	{

@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
+import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerStats;
@@ -1347,6 +1348,19 @@ Test
 			return( null );
 		}
 
+		public List
+		getPeers(
+			String	address )
+		{
+			return( null );
+		}
+		
+		public PeerDescriptor[]
+		getPendingPeers(
+			String	address )
+		{
+			return( null );
+		}
 		
 		public void
 		addPeer(

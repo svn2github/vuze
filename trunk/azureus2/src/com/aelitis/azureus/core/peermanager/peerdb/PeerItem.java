@@ -27,6 +27,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import org.gudy.azureus2.core3.peer.PEPeerSource;
+import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 
 
@@ -34,7 +35,7 @@ import org.gudy.azureus2.core3.peer.PEPeerSource;
  * Represents a peer item, unique by ip address + port combo.
  * NOTE: Overrides equals().
  */
-public class PeerItem {
+public class PeerItem implements PeerDescriptor {
   private final byte[] address;
   private final short udp_port;
   private final short tcp_port;
@@ -112,6 +113,11 @@ public class PeerItem {
     }
   }
   
+  public String
+  getIP()
+  {
+	  return( getAddressString());
+  }
   
   public int getTCPPort() {  return tcp_port&0xffff;  }
   

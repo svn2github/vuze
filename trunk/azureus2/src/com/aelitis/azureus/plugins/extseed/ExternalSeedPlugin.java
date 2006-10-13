@@ -115,7 +115,7 @@ ExternalSeedPlugin
 		plugin_interface.getDownloadManager().addListener( this );
 		
 		plugin_interface.getUtilities().createTimer( "ExternalPeerScheduler", true ).addPeriodicEvent(
-				15000,
+				5000,
 				new UTTimerEventPerformer()
 				{
 					public void
@@ -173,7 +173,7 @@ ExternalSeedPlugin
 				
 				ExternalSeedReader	reader = x[j];
 				
-				ExternalSeedPeer	peer = new ExternalSeedPeer( this, reader );
+				ExternalSeedPeer	peer = new ExternalSeedPeer( this, download, reader );
 				
 				peers.add( peer );
 			}
@@ -204,7 +204,7 @@ ExternalSeedPlugin
 				
 				ExternalSeedReader	reader = x[j];
 				
-				ExternalSeedPeer	peer = new ExternalSeedPeer( this, reader );
+				ExternalSeedPeer	peer = new ExternalSeedPeer( this, download, reader );
 				
 				peers.add( peer );
 			}
@@ -372,9 +372,10 @@ ExternalSeedPlugin
 	
 	protected void
 	removePeer(
-		Download			download,
 		ExternalSeedPeer	peer )
 	{
+		Download	download = peer.getDownload();
+		
 		try{
 			download_mon.enter();
 		

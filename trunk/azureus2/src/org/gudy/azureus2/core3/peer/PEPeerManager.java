@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.peer.util.PeerIdentityDataID;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerExchangerItem;
@@ -172,6 +173,14 @@ PEPeerManager
 	
 	public List
 	getPeers();
+	
+	public List
+	getPeers(
+		String	address );
+	
+	public PeerDescriptor[]
+	getPendingPeers(
+		String	address );
 	
 	public void
 	addPeer(

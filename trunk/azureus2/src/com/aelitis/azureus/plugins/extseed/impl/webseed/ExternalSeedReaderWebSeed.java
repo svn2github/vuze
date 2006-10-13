@@ -28,8 +28,6 @@ import java.net.URLEncoder;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.peers.Peer;
-import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
@@ -43,16 +41,12 @@ public class
 ExternalSeedReaderWebSeed
 	extends ExternalSeedReaderImpl
 {
-	private static final int	RECONNECT_DEFAULT = 30*1000;
-	
 	private URL			url;
 	private String		ip;
 	private int			port;
 	private String		url_prefix;
 	
 	private boolean	supports_503;
-	
-	private int		reconnect_delay	= RECONNECT_DEFAULT;
 	
 	protected
 	ExternalSeedReaderWebSeed(
@@ -115,76 +109,7 @@ ExternalSeedReaderWebSeed
 	{
 		return( port );
 	}
-	
-	protected boolean
-	readyToActivate(
-		PeerManager	peer_manager,
-		Peer		peer )
-	{
-		int	fail_count = getFailureCount();
-		
-		if ( fail_count > 0 ){
-			
-			int	delay	= reconnect_delay;
-			
-			for (int i=1;i<fail_count;i++){
-				
-				delay += delay;
-				
-				if ( delay > 30*60*1000 ){
-					
-					break;
-				}
-			}
-			
-			long	now = getSystemTime();
-			
-			long	last_fail = getLastFailTime();
-			
-			if ( last_fail < now && now - last_fail < delay ){
-				
-				return( false );
-			}
-		}
-		
-		try{
-			float availability = peer_manager.getDownload().getStats().getAvailability();
-			
-			if ( availability < 1.0 ){
-				
-				log( getName() + ": activating as availability is poor" );
-				
-				return( true );
-			}
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
-		}
-		
-		return( false );		
-	}
-	
-	protected boolean
-	readyToDeactivate(
-		PeerManager	peer_manager,
-		Peer		peer )
-	{
-		try{
-			float availability = peer_manager.getDownload().getStats().getAvailability();
-			
-			if ( availability >= 2.0 ){
-				
-				log( getName() + ": deactivating as availability is good" );
-				
-				return( true );
-			}
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
-		}
-		
-		return( false );
-	}
+
 	
 	protected int
 	getPieceGroupSize()
@@ -211,7 +136,7 @@ ExternalSeedReaderWebSeed
 			
 		String	str = url_prefix + "&piece=" + piece + "&ranges=" + piece_start + "-" + piece_end;
 				
-		reconnect_delay	= RECONNECT_DEFAULT;
+		setReconnectDelay( RECONNECT_DEFAULT );
 		
 		try{
 			ExternalSeedHTTPDownloader	http_downloader = new ExternalSeedHTTPDownloader( new URL( str ), getUserAgent());
@@ -234,7 +159,7 @@ ExternalSeedReaderWebSeed
 				
 				Integer	retry = new Integer( new String( http_downloader.getLast503ResponseData()));
 				
-				reconnect_delay = retry.intValue() * 1000;
+				setReconnectDelay( retry.intValue() * 1000 );
 				
 				throw( new ExternalSeedException( "Server temporarily unavailable, retrying in " + retry ));
 			}

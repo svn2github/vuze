@@ -44,6 +44,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.PeerImpl;
+import org.gudy.azureus2.pluginsimpl.local.peers.PeerManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.TableView;
@@ -272,7 +273,7 @@ public class TableRowImpl
     if (sTableID.equals(TableManager.TABLE_TORRENT_PEERS)) {
       PEPeer peer = (PEPeer)coreDataSource;
       if (peer != null)
-        pluginDataSource = new PeerImpl(peer);
+        pluginDataSource = PeerManagerImpl.getPeerForPEPeer( peer );
     }
 
     if (sTableID.equals(TableManager.TABLE_TORRENT_PIECES)) {

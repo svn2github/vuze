@@ -163,7 +163,19 @@ public class PeerDatabase {
     return self_peer;
   }
   
-  
+  public PeerItem[]
+  getDiscoveredPeers()
+  {
+	  try{  
+		  map_mon.enter();
+	  
+		  return((PeerItem[])discovered_peers.toArray( new PeerItem[discovered_peers.size()] ));
+		  
+	  }finally{  
+		
+		  map_mon.exit();  
+	  }
+  }
   
   /**
    * Get the next potential peer for optimistic connect.

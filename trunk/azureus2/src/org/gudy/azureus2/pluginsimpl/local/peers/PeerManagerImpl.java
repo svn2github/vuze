@@ -44,6 +44,8 @@ public class
 PeerManagerImpl
 	implements PeerManager
 {
+	private static final String	PEPEER_DATA_KEY	= PeerManagerImpl.class.getName();
+	
 	protected PEPeerManager	manager;
 	
 	protected static AEMonitor	pm_map_mon	= new AEMonitor( "PeerManager:Map" );
@@ -243,10 +245,38 @@ PeerManagerImpl
 		
 		for (int i=0;i<res.length;i++){
 			
-			res[i] = new PeerImpl((PEPeer)l.get(i));
+			res[i] = getPeerForPEPeer((PEPeer)l.get(i));
 		}
 		
 		return( res );
+	}
+	
+	public Peer[]
+	getPeers(
+		String		address )
+	{
+		List	l = manager.getPeers( address );
+		
+		Peer[]	res= new Peer[l.size()];
+		
+			// this is all a bit shagged as we should maintain the PEPeer -> Peer link rather
+			// than continually creating new PeerImpls...
+		
+		for (int i=0;i<res.length;i++){
+			
+			res[i] = getPeerForPEPeer((PEPeer)l.get(i));
+		}
+		
+		return( res );
+	}
+	
+
+	
+	public PeerDescriptor[]
+	getPendingPeers(
+		String		address )
+	{
+		return( manager.getPendingPeers( address ));
 	}
 	
 	public long
@@ -320,6 +350,21 @@ PeerManagerImpl
 		return( res );
 	}
 	
+	public static PeerImpl
+	getPeerForPEPeer(
+		PEPeer	pe_peer )
+	{
+		PeerImpl	peer = (PeerImpl)pe_peer.getData( PEPEER_DATA_KEY );
+		
+		if ( peer == null ){
+			
+			peer = new PeerImpl( pe_peer );
+			
+			pe_peer.setData( PEPEER_DATA_KEY, peer );
+		}
+		
+		return( peer );
+	}
 	
 	public void
 	addListener(
@@ -332,7 +377,7 @@ PeerManagerImpl
 			
       PEPeerManagerListener core_listener = new PEPeerManagerListener() {
         public void peerAdded( PEPeerManager manager, PEPeer peer ) {
-          PeerImpl pi = new PeerImpl( peer );
+          PeerImpl pi = getPeerForPEPeer( peer );
           peer_map.put( peer, pi );
           l.peerAdded( PeerManagerImpl.this, pi );
         }
