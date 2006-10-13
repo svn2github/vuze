@@ -621,6 +621,11 @@ public class MessageSlideShell {
 				if (mainShell != null) {
 					bounds = mainShell.getMonitor().getClientArea();
 				}
+    	} else {
+    		Shell shell = display.getActiveShell();
+				if (shell != null) {
+					bounds = shell.getMonitor().getClientArea();
+				}
     	}
     	if (bounds == null) {
 				bounds = shell.getMonitor().getClientArea();
@@ -983,9 +988,24 @@ public class MessageSlideShell {
 					switch (SlideShell.this.direction) {
 						case SWT.UP:
 						default:
-							Rectangle displayBounds;
+							shell.setLocation(endBounds.x, endBounds.y);
+							Rectangle displayBounds = null;
 							try {
-								displayBounds = shell.getMonitor().getBounds();
+								boolean ok = false;
+								Monitor[] monitors = shell.getDisplay().getMonitors();
+								for (int i = 0; i < monitors.length; i++) {
+									Monitor monitor = monitors[i];
+									displayBounds = monitor.getBounds();
+									int x = endBounds.x;
+									int y = endBounds.y;
+									if (displayBounds.contains(endBounds.x, endBounds.y)) {
+										ok = true;
+										break;
+									}
+								}
+								if (!ok) {
+									displayBounds = shell.getMonitor().getBounds();
+								}
 							} catch (Throwable t) {
 								displayBounds = shell.getDisplay().getBounds();
 							}
@@ -1143,7 +1163,26 @@ public class MessageSlideShell {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Display display = Display.getDefault();
+		final Display display = Display.getDefault();
+		
+		Shell shell = new Shell(display, SWT.DIALOG_TRIM);
+		shell.setLayout(new FillLayout());
+		Button btn = new Button(shell, SWT.PUSH);
+		btn.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				test(display);
+			}
+		});
+		shell.open();
+		
+		while (!shell.isDisposed()) {
+			if (!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
+	}
+	
+	public static void test(Display display) {
 
 		ImageRepository.loadImages(display);
 
