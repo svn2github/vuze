@@ -48,7 +48,11 @@ public class SplashWindow implements InitializerListener {
   ProgressBar percentDone;
   Color white;
   
-  
+
+  public SplashWindow(Display display) {
+  	this(display, null);
+  }
+
   private SplashWindow(Display display,Initializer initializer) {
     this.display = display;
     this.initializer = initializer;
@@ -85,7 +89,9 @@ public class SplashWindow implements InitializerListener {
     Utils.centreWindow(splash);
     splash.open();
     
-    initializer.addListener(this);
+    if (initializer != null) {
+    	initializer.addListener(this);
+    }
   }
   
   
@@ -104,7 +110,7 @@ public class SplashWindow implements InitializerListener {
   /*
    * Should be called by the GUI thread
    */
-  private void closeSplash() {    
+  public void closeSplash() {
     Utils.execSWTThread(new AERunnable(){
       public void runSupport() {
 		    if(initializer != null)
