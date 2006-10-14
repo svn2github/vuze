@@ -152,6 +152,7 @@ MainWindow
 	Initializer 	_initializer,
 	ArrayList events) 
   { 
+  	bShowMainWindow = true;
 		try{
   		if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "MainWindow start"));
