@@ -569,7 +569,8 @@ public class DefaultRankCalculator implements Comparable {
 				int state = dl.getState();
 				if (state == Download.ST_STOPPING || state == Download.ST_STOPPED
 						|| state == Download.ST_ERROR) {
-					sExplainSR += "  Download stopping, stopped or in error\n";
+					if (rules.bDebugLog)
+						sExplainSR += "  Download stopping, stopped or in error\n";
 					dl.setSeedingRank(SR_NOTQUEUED);
 					return SR_NOTQUEUED;
 				} else if (state == Download.ST_SEEDING || state == Download.ST_READY
@@ -639,7 +640,8 @@ public class DefaultRankCalculator implements Comparable {
 					}
 				}
 			} else {
-				sExplainSR += "  Can't calculate SR, no scrape results\n";
+				if (rules.bDebugLog)
+					sExplainSR += "  Can't calculate SR, no scrape results\n";
 			}
 
 			if (newSR < 0)
