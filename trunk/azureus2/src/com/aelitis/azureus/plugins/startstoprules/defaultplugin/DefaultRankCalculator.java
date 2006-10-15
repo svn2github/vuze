@@ -434,8 +434,7 @@ public class DefaultRankCalculator implements Comparable {
 		try {
 			downloadData_this_mon.enter();
 
-			if (rules.bDebugLog)
-				sExplainSR = "";
+			sExplainSR = "";
 
 			int oldSR = dl.getSeedingRank();
 			DownloadStats stats = dl.getStats();
@@ -446,7 +445,9 @@ public class DefaultRankCalculator implements Comparable {
 			if (!dl.isComplete()) {
 				newSR = SR_COMPLETE_STARTS_AT + (10000 - dl.getPosition());
 				dl.setSeedingRank(newSR);
-				sExplainSR += "  not complete. SetSR " + newSR + "\n";
+				if ( rules.bDebugLog ){
+					sExplainSR += "  not complete. SetSR " + newSR + "\n";
+				}
 				return newSR;
 			}
 
