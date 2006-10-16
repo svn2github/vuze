@@ -134,6 +134,8 @@ ExternalSeedHTTPDownloader
 						buffer = listener.getBuffer();
 					}
 
+					listener.setBufferPosition( buffer_pos );
+					
 					int	len = is.read( buffer, buffer_pos, buffer.length-buffer_pos );
 					
 					if ( len < 0 ){

@@ -775,7 +775,7 @@ ExternalSeedPeer
 	public int
 	getPercentDoneOfCurrentIncomingRequest()
 	{
-		return( 0 );
+		return( reader.getPercentDoneOfCurrentIncomingRequest());
 	}
 		  
 	public int

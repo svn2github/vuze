@@ -80,6 +80,7 @@ ExternalSeedReaderImpl
 	
 	private int			reconnect_delay	= RECONNECT_DEFAULT;
 	
+	private volatile ExternalSeedReaderRequest	current_request;
 
 	private List	listeners	= new ArrayList();
 	
@@ -541,6 +542,19 @@ ExternalSeedReaderImpl
 	}
 
 	public int
+	getPercentDoneOfCurrentIncomingRequest()
+	{
+		ExternalSeedReaderRequest	cr = current_request;
+		
+		if ( cr == null ){
+			
+			return( 0 );
+		}
+		
+		return( cr.getPercentDoneOfCurrentIncomingRequest());
+	}
+	
+	public int
 	getMaximumNumberOfRequests()
 	{
 		if ( getRequestCount() == 0 ){
@@ -718,6 +732,7 @@ ExternalSeedReaderImpl
 		ExternalSeedReaderRequest	request = new ExternalSeedReaderRequest( this, requests );
 		
 		try{
+			current_request = request;
 			
 			readData( request );
 													

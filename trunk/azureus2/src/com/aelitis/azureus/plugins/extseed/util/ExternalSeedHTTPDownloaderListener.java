@@ -33,5 +33,9 @@ ExternalSeedHTTPDownloaderListener
 		throws ExternalSeedException;
 	
 	public void
+	setBufferPosition(
+		int	position );
+	
+	public void
 	done();
 }

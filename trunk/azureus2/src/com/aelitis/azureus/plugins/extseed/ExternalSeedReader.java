@@ -98,6 +98,9 @@ ExternalSeedReader
 	public List
 	getRequests();
 	
+	public int
+	getPercentDoneOfCurrentIncomingRequest();
+	
 	public void
 	deactivate(
 		String	reason );

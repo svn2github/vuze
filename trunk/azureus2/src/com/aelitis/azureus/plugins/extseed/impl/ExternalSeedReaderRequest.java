@@ -45,6 +45,7 @@ ExternalSeedReaderRequest
 	private int					current_request_index = 0;
 	private PeerReadRequest		current_request;
 	private byte[]				current_buffer;
+	private int					current_position;
 	
 	protected 
 	ExternalSeedReaderRequest(
@@ -118,5 +119,26 @@ ExternalSeedReaderRequest
 
 			reader.informFailed( request );
 		}
+	}
+	
+	public void
+	setBufferPosition(
+		int	pos )
+	{
+		current_position	= pos;
+	}
+	
+	public int
+	getPercentDoneOfCurrentIncomingRequest()
+	{
+		PeerReadRequest	req = current_request;
+		
+		if ( req == null ){
+			
+			return( 0 );
+		}
+		
+		return(( 100 * current_position ) / req.getLength() );
+		
 	}
 }
