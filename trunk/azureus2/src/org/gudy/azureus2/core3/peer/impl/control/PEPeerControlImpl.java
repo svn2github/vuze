@@ -2992,7 +2992,11 @@ PEPeerControlImpl
 												base_peer.getUDPListenPort());
 			
 			return peer_database.registerPeerConnection( peer, new PeerExchangerItem.Helper(){
-				public boolean isSeed(){  return base_peer.isSeed();  }
+				public boolean 
+				isSeed()
+				{
+					return base_peer.isSeed();  
+				}
 			});
 		}
 		

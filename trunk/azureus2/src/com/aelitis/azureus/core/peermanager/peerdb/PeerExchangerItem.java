@@ -53,6 +53,7 @@ public class PeerExchangerItem {
   }
   
 
+  protected PeerItem getBasePeer(){ return base_peer; }
   
   protected Helper getHelper() {  return helper;  }
   
@@ -124,7 +125,11 @@ public class PeerExchangerItem {
     finally{  peers_mon.exit();  }
   }
   
-  
+  public void
+  seedStatusChanged()
+  {
+	  parent_db.seedStatusChanged( this );
+  }
 
   /**
    * Get the list of peer connections added since this method was last called.

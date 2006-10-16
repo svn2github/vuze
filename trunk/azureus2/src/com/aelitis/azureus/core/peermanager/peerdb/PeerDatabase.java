@@ -109,7 +109,36 @@ public class PeerDatabase {
     finally{  map_mon.exit();  }
   }
   
-
+  public void
+  seedStatusChanged(
+	  PeerExchangerItem	item )
+  {
+	  	// only bother with non-seed -> seed transitions, the opposite are too rate to bother with
+	  
+	  if ( item.getHelper().isSeed()){
+		 
+		  try{  
+			  map_mon.enter();
+		  
+			  for ( Iterator it = peer_connections.values().iterator(); it.hasNext(); ){
+				  		  
+				  PeerExchangerItem connection = (PeerExchangerItem)it.next();
+				  
+				  if ( connection != item && connection.getHelper().isSeed()){
+					  
+					  // System.out.println( "seedStatusChanged: dropping: originator= " + item.getBasePeer().getAddressString() + ",target=" + connection.getBasePeer().getAddressString());
+					  
+					  connection.notifyDropped( item.getBasePeer() );
+					  
+					  item.notifyDropped( connection.getBasePeer() );
+				  }
+			  }
+	      }finally{ 
+	    	  
+	    	  map_mon.exit();
+	      }
+	  }
+  }
   
   
   /**

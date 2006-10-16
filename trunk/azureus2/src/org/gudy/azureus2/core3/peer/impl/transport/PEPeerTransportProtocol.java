@@ -101,7 +101,7 @@ PEPeerTransportProtocol
   private volatile BitFlags	peerHavePieces =null; 
   private volatile boolean	availabilityAdded =false;
 
-  private boolean seed = false;
+  private boolean seed_set_by_accessor = false;
  
   private final boolean incoming;
   
@@ -658,9 +658,9 @@ PEPeerTransportProtocol
 	{
   		// seed implicitly means *something* to send (right?)
   		if (peerHavePieces !=null &&nbPieces >0)
-  			seed =(peerHavePieces.nbSet ==nbPieces);
+  			setSeed((peerHavePieces.nbSet ==nbPieces));
   		else
-  			seed =false;
+  			setSeed(false);
 	}
 
 
@@ -784,7 +784,7 @@ PEPeerTransportProtocol
         boolean is_interesting =false;
 		if (piecePicker.hasDownloadablePiece())
 		{   // there is a piece worth being interested in
-			if (!seed)
+			if (!isSeed())
 			{   // check individually if don't have all
 				for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++ )
 				{
@@ -809,6 +809,7 @@ PEPeerTransportProtocol
 	 * Checks if a particular piece makes us interested in the peer
 	 * @param pieceNumber the piece number that has been received
 	 */
+	/*
 	private void checkInterested(int pieceNumber)
 	{
 		if (closing)
@@ -821,7 +822,8 @@ PEPeerTransportProtocol
 			interested_in_other_peer =true;
         }
 	}
-
+	*/
+	
   /**
 	 * Private method to send the bitfield.
 	 */
@@ -952,7 +954,22 @@ PEPeerTransportProtocol
    * @return true if the peer is interested in what we're offering
    */
   public boolean isInterested() {  return other_peer_interested_in_me;  }
-  public boolean isSeed() {  return seed;  }
+  public boolean isSeed() {  return seed_set_by_accessor;  }
+  private void
+  setSeed(
+	boolean	s )
+  {
+	  if ( seed_set_by_accessor != s ){
+		  
+		  seed_set_by_accessor	= s;
+		  
+		  if ( peer_exchange_item != null && s){
+			  
+			  peer_exchange_item.seedStatusChanged();
+		  }
+	  }
+  }
+  
   public boolean isSnubbed() {  return snubbed !=0;  }
 
 	public long getSnubbedTime()
@@ -1683,7 +1700,7 @@ PEPeerTransportProtocol
   protected void decodeInterested( BTInterested interested ) {
       interested.destroy();
       // Don't allow known seeds to be interested in us
-      other_peer_interested_in_me =!seed;
+      other_peer_interested_in_me =!isSeed();
   }
   
   
@@ -1729,7 +1746,7 @@ PEPeerTransportProtocol
             manager.havePiece(pieceNumber, pieceLength, this);
 
             checkSeed(); // maybe a seed using lazy bitfield, or suddenly became a seed;
-            other_peer_interested_in_me &=!seed;	// never consider seeds interested
+            other_peer_interested_in_me &=!isSeed();	// never consider seeds interested
 
             peer_stats.hasNewPiece(pieceLength);
         }
@@ -2446,7 +2463,7 @@ PEPeerTransportProtocol
 	{
 		writer.println( 
 			"ip=" + getIp() + ",in=" + isIncoming() + ",port=" + getPort() + ",cli=" + client + ",tcp=" + getTCPListenPort() + ",udp=" + getUDPListenPort() + 
-				",oudp=" + getUDPNonDataListenPort() + ",p_state=" + getPeerState() + ",c_state=" + getConnectionState() + ",seed=" + seed + ",pex=" + peer_exchange_supported + ",closing=" + closing );
+				",oudp=" + getUDPNonDataListenPort() + ",p_state=" + getPeerState() + ",c_state=" + getConnectionState() + ",seed=" + isSeed() + ",pex=" + peer_exchange_supported + ",closing=" + closing );
 		writer.println( "    choked=" + choked_by_other_peer + ",choking=" + choking_other_peer + ",unchoke_time=" + unchokedTime + ", unchoke_total=" + unchokedTimeTotal + ",is_opt=" + is_optimistic_unchoke ); 
 		writer.println( "    interested=" + interested_in_other_peer + ",interesting=" + other_peer_interested_in_me + ",snubbed=" + snubbed );
 		writer.println( "    lp=" + _lastPiece + ",up=" + uniquePiece + ",rp=" + reservedPiece );
