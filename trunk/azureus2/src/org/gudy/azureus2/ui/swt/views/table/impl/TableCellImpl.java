@@ -85,6 +85,7 @@ public class TableCellImpl
   private int loopFactor;
   private Object oToolTip;
 	private int iCursorID = -1;
+	private Graphic graphic = null;
   
   /**
    * For refreshing, this flag manages whether the row is actually up to date.
@@ -437,6 +438,7 @@ public class TableCellImpl
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return false;
 
+    graphic = null;
     return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(img);
   }
 
@@ -445,6 +447,8 @@ public class TableCellImpl
 
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return false;
+
+    graphic = img;
 
     if (img == null)
       return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(null);
@@ -463,6 +467,10 @@ public class TableCellImpl
   }
 
   public Graphic getGraphic() {
+  	if (graphic != null) {
+  		return graphic;
+  	}
+
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return null;
     Image img = ((BufferedGraphicTableItem)bufferedTableItem).getGraphic();
@@ -790,6 +798,7 @@ public class TableCellImpl
   		return;
 
     bufferedTableItem.setImage(img);
+    graphic = null;
   }
 
   public boolean needsPainting() {
