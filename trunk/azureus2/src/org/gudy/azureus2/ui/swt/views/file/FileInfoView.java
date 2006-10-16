@@ -283,8 +283,9 @@ public class FileInfoView extends AbstractIView {
 
 	public void fillFileInfoSection() {
 		if (imageLabel.getImage() != null) {
-			imageLabel.getImage().dispose();
+			Image image = imageLabel.getImage();
 			imageLabel.setImage(null);
+			image.dispose();
 		}
 
 		topLabel.setText( "" );
@@ -480,8 +481,9 @@ public class FileInfoView extends AbstractIView {
 	 */
 	public void delete() {
 		if (!imageLabel.isDisposed() && imageLabel.getImage() != null) {
-			imageLabel.getImage().dispose();
+			Image image = imageLabel.getImage();
 			imageLabel.setImage(null);
+			image.dispose();
 		}
 
 		if (img != null && !img.isDisposed()) {

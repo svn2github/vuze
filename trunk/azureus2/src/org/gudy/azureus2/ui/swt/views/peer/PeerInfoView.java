@@ -300,8 +300,9 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 
 	public void fillPeerInfoSection() {
 		if (imageLabel.getImage() != null) {
-			imageLabel.getImage().dispose();
+			Image image = imageLabel.getImage();
 			imageLabel.setImage(null);
+			image.dispose();
 		}
 
 		if (peer == null) {
@@ -564,8 +565,9 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 	 */
 	public void delete() {
 		if (!imageLabel.isDisposed() && imageLabel.getImage() != null) {
-			imageLabel.getImage().dispose();
+			Image image = imageLabel.getImage();
 			imageLabel.setImage(null);
+			image.dispose();
 		}
 
 		if (img != null && !img.isDisposed()) {
