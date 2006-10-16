@@ -43,7 +43,7 @@ ThreadPoolTask
 	public String
 	getTaskState()
 	{
-		return( worker.getState());
+		return( worker == null ? "" : worker.getState());
 	}
 	
 	public String
