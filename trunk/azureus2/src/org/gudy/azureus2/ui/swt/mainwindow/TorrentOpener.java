@@ -31,6 +31,7 @@ import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -46,7 +47,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 
 import com.aelitis.azureus.core.*;
-import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
@@ -133,7 +133,34 @@ public class TorrentOpener {
 			}
 		});
   }
-  
+
+  public static void openTorrentSimple() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				final Shell shell = Utils.findAnyShell();
+				if (shell == null)
+					return;
+
+				FileDialog fDialog = new FileDialog(shell, SWT.OPEN | SWT.MULTI);
+				fDialog.setFilterPath(getFilterPathTorrent());
+				fDialog.setFilterExtensions(new String[] {
+						"*.torrent",
+						"*.tor",
+						Constants.FILE_WILDCARD });
+				fDialog.setFilterNames(new String[] {
+						"*.torrent",
+						"*.tor",
+						Constants.FILE_WILDCARD });
+				fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file"));
+				String path = setFilterPathTorrent(fDialog.open());
+				if (path == null)
+					return;
+
+				openTorrentWindow(path, fDialog.getFileNames(), false);
+			}
+		});
+	}
+
   public static void openDroppedTorrents(AzureusCore azureus_core,
 			DropTargetEvent event, boolean bAllowShareAdd) {
 		if (event.data == null)
