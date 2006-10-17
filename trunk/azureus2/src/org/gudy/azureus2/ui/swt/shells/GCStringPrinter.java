@@ -72,6 +72,10 @@ public class GCStringPrinter
 	private static boolean _printString(GC gc, String string,
 			Rectangle printArea, boolean skipClip, boolean fullLinesOnly, int flags)
 	{
+		if (string == null) {
+			return false;
+		}
+
 		ArrayList lines = new ArrayList();
 		
 		if (printArea.isEmpty()) {
