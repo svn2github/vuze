@@ -349,6 +349,11 @@ public class TableCellImpl
 	      // cell wasn't created at the time of setting)
 	      setText((String)sortValue);
     }
+    
+    if ((valueToSort instanceof String) && (sortValue instanceof String)
+				&& sortValue.equals(valueToSort)) {
+			return false;
+		}
 
   	if (bDebug)
   		debug("Setting SortValue to "
