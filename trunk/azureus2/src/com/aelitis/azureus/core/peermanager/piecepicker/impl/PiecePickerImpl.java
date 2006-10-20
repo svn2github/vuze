@@ -63,6 +63,8 @@ public class PiecePickerImpl
 	private static final int PRIORITY_W_FIRSTLAST	=1300;
     /** min # pieces in file for first/last prioritization */
     private static final long FIRST_PIECE_MIN_NB	=4;
+    /** number of pieces for first pieces prioritization */
+    private static final int FIRST_PIECE_RANGE_PERCENT= 10;
     /** user sets file as "High" */
     private static final int PRIORITY_W_FILE		=1000;
     /** Additional boost for more completed High priority */
@@ -830,8 +832,10 @@ public class PiecePickerImpl
                         // TODO: should prioritize ~10% from edges of file
                         if (firstPiecePriorityL &&fileInfo.getNbPieces() >FIRST_PIECE_MIN_NB)
                         {
-                            if (i ==fileInfo.getFirstPieceNumber() ||i ==fileInfo.getLastPieceNumber())
-                                priority +=PRIORITY_W_FIRSTLAST;
+                        	int lastFirstPiece = fileInfo.getFirstPieceNumber() + FIRST_PIECE_RANGE_PERCENT * (fileInfo.getLastPieceNumber() - fileInfo.getFirstPieceNumber()) / 100;
+                            if ( (i >=fileInfo.getFirstPieceNumber() && i<= lastFirstPiece )
+                            		|| i ==fileInfo.getLastPieceNumber() )
+                                priority +=PRIORITY_W_FIRSTLAST + 10 * (lastFirstPiece - i) ;
                         }
                         // if the file is high-priority
                         // startPriority +=(1000 *fileInfo.getPriority()) /255;
