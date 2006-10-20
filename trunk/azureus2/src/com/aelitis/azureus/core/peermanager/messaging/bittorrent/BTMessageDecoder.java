@@ -64,8 +64,14 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private int data_bytes_last_read = 0; 
   private int percent_complete = -1;
   
+  private static final boolean	DEBUG_DESTROYER = true;
+  static{
+	  if ( DEBUG_DESTROYER ){
+		  System.out.println( "**** BTMessageDecoder: destroyer debug on ****" );
+	  }
+  }
   
-  
+  private volatile Throwable destroyer_stack;
   
   
   public BTMessageDecoder() {
@@ -83,6 +89,9 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     while( bytes_remaining > 0 ) {  
       if( destroyed ) {
         Debug.out( "BT decoder already destroyed: " +transport.getDescription() );
+        if ( destroyer_stack != null ){
+        	Debug.out("Destroyer stack", destroyer_stack );
+        }
         break;
       }
 
@@ -150,6 +159,10 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     is_paused = true;
     destroyed = true;
 
+    if ( DEBUG_DESTROYER ){
+    	destroyer_stack = new Exception().fillInStackTrace();
+    }
+    
     int lbuff_read = 0;
     int pbuff_read = 0;
     length_buffer.limit( SS, 4 );
