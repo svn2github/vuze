@@ -833,9 +833,14 @@ public class PiecePickerImpl
                         if (firstPiecePriorityL &&fileInfo.getNbPieces() >FIRST_PIECE_MIN_NB)
                         {
                         	int lastFirstPiece = fileInfo.getFirstPieceNumber() + FIRST_PIECE_RANGE_PERCENT * (fileInfo.getLastPieceNumber() - fileInfo.getFirstPieceNumber()) / 100;
-                            if ( (i >=fileInfo.getFirstPieceNumber() && i<= lastFirstPiece )
-                            		|| i ==fileInfo.getLastPieceNumber() )
+                            
+                        	if ( (i >=fileInfo.getFirstPieceNumber() && i<= lastFirstPiece ) ) {
                                 priority +=PRIORITY_W_FIRSTLAST + 10 * (lastFirstPiece - i) ;
+                            }
+                            
+                            if( i ==fileInfo.getLastPieceNumber() ) {
+                            	priority +=PRIORITY_W_FIRSTLAST;
+                            }
                         }
                         // if the file is high-priority
                         // startPriority +=(1000 *fileInfo.getPriority()) /255;
