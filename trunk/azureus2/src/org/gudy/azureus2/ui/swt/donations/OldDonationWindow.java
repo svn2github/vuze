@@ -55,7 +55,7 @@ import org.gudy.azureus2.core3.util.*;
  * @author Olivier
  * 
  */
-public class DonationWindow2 {
+public class OldDonationWindow {
 
   
   
@@ -88,7 +88,7 @@ public class DonationWindow2 {
   private static final int DONATIONS_ASK_AFTER = 168;
   private static final AEMonitor	class_mon	= new AEMonitor( "DonationWindow:class");
   
-  public DonationWindow2(Display display) {
+  public OldDonationWindow(Display display) {
       this.display = display;   
       stats = StatsFactory.getStats();
       
@@ -469,7 +469,7 @@ public class DonationWindow2 {
 	    	Utils.execSWTThread(new AERunnable() {
 	      public void runSupport() {
 	      	if(display != null && !display.isDisposed())
-	         new DonationWindow2(display).show();    
+	         new OldDonationWindow(display).show();    
 	      }
 	     });
 	    }          

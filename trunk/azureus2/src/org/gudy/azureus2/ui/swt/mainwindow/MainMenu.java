@@ -45,7 +45,6 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
-import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
@@ -58,10 +57,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
-import org.gudy.azureus2.ui.swt.predicate.shell.ShellCanMaximizePredicate;
-import org.gudy.azureus2.ui.swt.predicate.shell.ShellCanMinimizePredicate;
-import org.gudy.azureus2.ui.swt.predicate.shell.ShellIsMinimizedPredicate;
-import org.gudy.azureus2.ui.swt.predicate.shell.ShellIsModalPredicate;
+import org.gudy.azureus2.ui.swt.predicate.shell.*;
 import org.gudy.azureus2.ui.swt.predicate.shellmanager.AllManagedShellsAreMinimizedPredicate;
 import org.gudy.azureus2.ui.swt.predicate.shellmanager.ShellManagerIsEmptyPredicate;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
@@ -507,16 +503,6 @@ public class MainMenu {
         });
       }
 
-      MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
-      Messages.setLanguageText(help_donate, "MainWindow.menu.help.donate"); //$NON-NLS-1$
-      help_donate.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          new DonationWindow2(display).show();
-          //String donationString = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR";
-          //Program.launch(donationString);
-        }
-      });
-      
       new MenuItem(helpMenu,SWT.SEPARATOR);
       MenuItem help_debug = new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_debug, "MainWindow.menu.help.debug");
