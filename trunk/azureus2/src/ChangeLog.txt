@@ -3,14 +3,20 @@ AZUREUS CHANGELOG
 
 2006.0x.xx | Azureus 2.5.0.1
 
+FEATURE: UI   | Total file size added to Open Torrent Window [TuxPaper]
 FEATURE: UI   | Option to show complete downloads with incomplete "do not download" files in the download area [TuxPaper]
 
 CHANGE: Core  | Improve the "presence" handling for torrents created by ourselves [Parg]
 CHANGE: UI    | Open torrent windows now always has OK button enabled with warning message if pressed when in invalid state [TuxPaper]
+CHANGE: UI    | Remove nag/donation window [TuxPaper]
 
 BUGFIX: Core  | If clipboard has just a " or "" in it the open-torrents dialog won't open [Parg]
 BUGFIX: Core  | Setting of UDP port not working [Parg]
-BUGFIX: UI    | Fix painting issues in pieces+files view [TuxPaper]
+BUGFIX: Core  | Less flipping of downloads from queued <--> downloading during the time a FP seed is forced active [TuxPaper}
+BUGFIX: Core  | Fix memory leak causing slow, but eventual OOM and slow down of Azureus [Parg]
+BUGFIX: UI    | Fix (some) painting issues in pieces+files view [TuxPaper]
+BUGFIX: UI    | Fix to allow negative values for Multi-monitor window positions [TuxPaper]
+
 
 
 2006.08.21 | Azureus 2.5.0.0
