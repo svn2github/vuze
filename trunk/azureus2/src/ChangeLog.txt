@@ -9,6 +9,7 @@ FEATURE: UI   | Option to show complete downloads with incomplete "do not downlo
 CHANGE: Core  | Improve the "presence" handling for torrents created by ourselves [Parg]
 CHANGE: UI    | Open torrent windows now always has OK button enabled with warning message if pressed when in invalid state [TuxPaper]
 CHANGE: UI    | Remove nag/donation window [TuxPaper]
+CHANGE: UI    | Differentiate between libTorrent (Rakshasa) and libtorrent (Rasterbar) [TuxPaper]
 
 BUGFIX: Core  | If clipboard has just a " or "" in it the open-torrents dialog won't open [Parg]
 BUGFIX: Core  | Setting of UDP port not working [Parg]
