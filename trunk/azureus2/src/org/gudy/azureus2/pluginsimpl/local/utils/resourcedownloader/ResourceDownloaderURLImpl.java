@@ -453,6 +453,7 @@ ResourceDownloaderURLImpl
 								throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 							}
 								
+							boolean gzip = false;
 							try{
 								this_mon.enter();
 								
@@ -460,7 +461,7 @@ ResourceDownloaderURLImpl
 								
 								String encoding = con.getHeaderField( "content-encoding");
 				 				
-				 				boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
+				 				gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
 				 								 				
 				 				if ( gzip ){
 				 									 					
@@ -480,7 +481,16 @@ ResourceDownloaderURLImpl
 								
 									// unfortunately not all servers set content length
 								
-								int size = con.getContentLength();					
+								/* From Apache's mod_deflate doc:
+								 * http://httpd.apache.org/docs/2.0/mod/mod_deflate.html
+										Note on Content-Length
+
+										If you evaluate the request body yourself, don't trust the
+										Content-Length header! The Content-Length header reflects 
+										the length of the incoming data from the client and not the
+										byte count of the decompressed data stream.
+								 */
+								int size = gzip ? -1 : con.getContentLength();					
 								
 								baos = size>0?new ByteArrayOutputStream(size):new ByteArrayOutputStream();
 								
