@@ -531,6 +531,7 @@ BufferedTableRow
 	  		}
 	 		} else {
 	 			newRow.setData("SD", "1");
+	 			setIconSize(ptIconSize);
 	 		}
 
    		setAlternatingBGColor(false);
