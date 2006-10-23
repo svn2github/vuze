@@ -58,8 +58,8 @@ public class BTPeerIDByteDecoder {
     try {
       if( (decoded = decodeAzStyle( peerID, "AZ", "Azureus" )) != null ) return decoded;      
       if( (decoded = decodeAzStyle( peerID, "BC", "BitComet" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "LT", "libtorrent" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "lt", "libtorrent" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "LT", "libtorrent (Rasterbar)" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "lt", "libTorrent (Rakshasa)" )) != null ) return decoded;
 //      if( (decoded = decodeAzStyle( peerID, "AR", "Arctic Torrent" )) != null ) return decoded; //based on libtorrent but same peerid for different versions
       if( (decoded = decodeAzStyle( peerID, "TS", "TorrentStorm" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "MT", "MoonlightTorrent" )) != null ) return decoded;
@@ -353,59 +353,67 @@ public class BTPeerIDByteDecoder {
   
   
   
-  private static String decodeAzStyle( byte[] id, String ident, String name ) {
-    try {
-      if( (id[0] == (byte)45) && (id[7] == (byte)45) ) {
-        String decoded = new String( id, 1, 2, Constants.BYTE_ENCODING );
-        if( decoded.equals( ident ) ) {
-          if( ident.equals( "BC" ) ) {
-          	// 4.56
-        	  String v2 = new String( id, 4, 1, Constants.BYTE_ENCODING );
-        	  String v3 = new String( id, 5, 1, Constants.BYTE_ENCODING );
-        	  String v4 = new String( id, 6, 1, Constants.BYTE_ENCODING );
-        	  return name + " " + v2 + "." + v3 + v4;
-          }
-          if( ident.equals( "KT") ) {
-          	// 3.4.5=[RD].6
-        	  String v2 = new String( id, 3, 1, Constants.BYTE_ENCODING );
-              String v3 = new String( id, 4, 1, Constants.BYTE_ENCODING );
-              String v4 = new String( id, 5, 1, Constants.BYTE_ENCODING );
-              String v5 = new String( id, 6, 1, Constants.BYTE_ENCODING );
-              return name + " " + v2 + "." + v3 + ( v4.equals("R") ? (" RC" + v5) : ( v4.equals("D") ? " Dev":"" ) );
-          }
-          if( ident.equals( "UT") ) {
-          	// 3.4.5
-        	  String v2 = new String( id, 3, 1, Constants.BYTE_ENCODING );
-              String v3 = new String( id, 4, 1, Constants.BYTE_ENCODING );
-              String v4 = new String( id, 5, 1, Constants.BYTE_ENCODING );
-              return name + " " + v2 + "." + v3 + "." + v4;
-          }
-          if( ident.equals( "TR") || ident.equals( "CD") ) {
-          	// 34.56
-        	  	String v2 = new String( id, 3, 2, Constants.BYTE_ENCODING );
-              String v3 = new String( id, 5, 2, Constants.BYTE_ENCODING );
-              return name + " " + Integer.parseInt(v2) + "." + Integer.parseInt(v3);
-          }
-          if( ident.equals( "BR" ) ){
-        	// 3.4(56)
-        	  String v2 = new String( id, 3, 1, Constants.BYTE_ENCODING );
-        	  String v3 = new String( id, 4, 1, Constants.BYTE_ENCODING );
-        	  String v4 = new String( id, 5, 2, Constants.BYTE_ENCODING );
-        	  return name + " " + Integer.parseInt(v2) + "." + Integer.parseInt(v3) + "(" + Integer.parseInt(v4) +")";
-          }
-          
-          String v1 = new String( id, 3, 1, Constants.BYTE_ENCODING );
-          String v2 = new String( id, 4, 1, Constants.BYTE_ENCODING );
-          String v3 = new String( id, 5, 1, Constants.BYTE_ENCODING );
-          String v4 = new String( id, 6, 1, Constants.BYTE_ENCODING );
-          return name + " " + v1 + "." + v2 + "." + v3 + "." + v4;
-        }
-      }
-    }
-    catch( Exception e ) {  return null;  }
-    return null;
-  }
-  
+  private static String decodeAzStyle(byte[] id, String ident, String name) {
+		try {
+			if ((id[0] == (byte) 45) && (id[7] == (byte) 45)) {
+				String decoded = new String(id, 1, 2, Constants.BYTE_ENCODING);
+				if (decoded.equals(ident)) {
+					if (ident.equals("BC")) {
+						// 4.56
+						String v2 = parseVersionNumber(id, 4);
+						String v3 = parseVersionNumber(id, 5);
+						String v4 = parseVersionNumber(id, 6);
+						return name + " " + v2 + "." + v3 + v4;
+					}
+					if (ident.equals("KT")) {
+						// 3.4.5=[RD].6
+						String v2 = parseVersionNumber(id, 3);
+						String v3 = parseVersionNumber(id, 4);
+						String v4 = new String(id, 5, 1, Constants.BYTE_ENCODING);
+						String v5 = parseVersionNumber(id, 6);
+						return name
+								+ " "
+								+ v2
+								+ "."
+								+ v3
+								+ (v4.equals("R") ? (" RC" + v5) : (v4.equals("D") ? " Dev"
+										: ""));
+					}
+					if (ident.equals("UT")) {
+						// 3.4.5
+						String v2 = parseVersionNumber(id, 3);
+						String v3 = parseVersionNumber(id, 4);
+						String v4 = parseVersionNumber(id, 5);
+						return name + " " + v2 + "." + v3 + "." + v4;
+					}
+					if (ident.equals("TR") || ident.equals("CD")) {
+						// 34.56
+						String v2 = new String(id, 3, 2, Constants.BYTE_ENCODING);
+						String v3 = new String(id, 5, 2, Constants.BYTE_ENCODING);
+						return name + " " + Integer.parseInt(v2) + "."
+								+ Integer.parseInt(v3);
+					}
+					if (ident.equals("BR")) {
+						// 3.4(56)
+						String v2 = parseVersionNumber(id, 3);
+						String v3 = parseVersionNumber(id, 4);
+						String v4 = new String(id, 5, 2, Constants.BYTE_ENCODING);
+						return name + " " + v2 + "." + v3 + "(" + Integer.parseInt(v4)
+								+ ")";
+					}
+
+					String v1 = parseVersionNumber(id, 3);
+					String v2 = parseVersionNumber(id, 4);
+					String v3 = parseVersionNumber(id, 5);
+					String v4 = parseVersionNumber(id, 6);
+					return name + " " + v1 + "." + v2 + "." + v3 + "." + v4;
+				}
+			}
+		} catch (Exception e) {
+			return null;
+		}
+		return null;
+	}
   
   private static String decodeTornadoStyle( byte[] id, String ident, String name ) {
     try {
@@ -511,4 +519,15 @@ public class BTPeerIDByteDecoder {
     
     return( sPeerID );
   }
+  
+  public static String parseVersionNumber(byte[] byteArray, int pos) {
+		try {
+			return ""
+					+ Integer.parseInt(new String(byteArray, pos, 1,
+							Constants.BYTE_ENCODING), 16);
+		} catch (Exception e) {
+		}
+
+		return "" + byteArray[pos];
+	}
 }
