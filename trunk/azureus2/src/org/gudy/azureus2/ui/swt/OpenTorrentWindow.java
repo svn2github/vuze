@@ -105,7 +105,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		"seeding"
 	};
 
-	private final static String[] queueLocations = { "first", "last"
+	private final static String[] queueLocations = {
+		"first",
+		"last"
 	};
 
 	/** Only one window, since it can handle multiple torrents */
@@ -642,7 +644,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		resizeTables(3);
 		shell.open();
 
-		cSaveTo.setFocus();
+		if (cSaveTo != null && !cSaveTo.isDisposed()) {
+			cSaveTo.setFocus();
+		}
 	}
 
 	protected void okPressed() {
@@ -885,8 +889,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 	 * @param keyListener
 	 */
 	private void setPasteKeyListener(Control c, KeyListener keyListener) {
-		if (!(c instanceof Text || c instanceof Combo))
+		if (!(c instanceof Text) && !(c instanceof Combo)
+				&& !(c instanceof Composite) || (c instanceof Table)) {
 			c.addKeyListener(keyListener);
+		}
 		if (c instanceof Composite) {
 			Control[] controls = ((Composite) c).getChildren();
 			for (int i = 0; i < controls.length; i++) {
@@ -1295,8 +1301,12 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				tableTorrents.clearAll();
-				dataFileTable.clearAll();
+				if (tableTorrents != null && !tableTorrents.isDisposed()) {
+					tableTorrents.clearAll();
+				}
+				if (dataFileTable != null && !dataFileTable.isDisposed()) {
+					dataFileTable.clearAll();
+				}
 			}
 		});
 	}
@@ -1550,7 +1560,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		// no use checking the whole clipboard (which may be megabytes)
 		final int MAX_CONSECUTIVE_NONTORRENT_LINES = 100;
 
-		final String[] splitters = { "\r\n", "\n", "\r", "\t"
+		final String[] splitters = {
+			"\r\n",
+			"\n",
+			"\r",
+			"\t"
 		};
 
 		for (int i = 0; i < splitters.length; i++)
@@ -1567,9 +1581,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		for (int i = 0; i < lines.length; i++) {
 			String line = lines[i].trim();
 			if (line.startsWith("\"") && line.endsWith("\"")) {
-				if ( line.length() < 3 ){
+				if (line.length() < 3) {
 					line = "";
-				}else{
+				} else {
 					line = line.substring(1, line.length() - 2);
 				}
 			}
@@ -1747,7 +1761,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					if (shell == null)
 						new MessageSlideShell(Display.getCurrent(), SWT.ICON_ERROR,
 								"OpenTorrentWindow.mb.openError", Debug.getStackTrace(e),
-								new String[] { sOriginatingLocation, e.getMessage()
+								new String[] {
+									sOriginatingLocation,
+									e.getMessage()
 								});
 					else
 						Utils.openMessageBox(shell, SWT.OK,
@@ -1773,7 +1789,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 						TorrentInfo existing = (TorrentInfo) torrentList.get(i);
 						if (existing.torrent.getHashWrapper().equals(hash)) {
 							//sExistingName = existing.sOriginatingLocation;
-							
+
 							// Exit without warning when it already exists in list
 							if (bDeleteFileOnCancel)
 								torrentFile.delete();
@@ -1839,7 +1855,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 	private void resizeTables(int which) {
 		try {
 			TableColumn[] tcs;
-			if ((which & 1) > 0) {
+			if ((which & 1) > 0 && tableTorrents != null
+					&& !tableTorrents.isDisposed()) {
 				tcs = tableTorrents.getColumns();
 				int newSize = tableTorrents.getClientArea().width - 20;
 				int iLength = tcs.length;
@@ -1859,7 +1876,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			}
 
 			// Adjust only first column
-			if ((which & 2) > 0) {
+			if ((which & 2) > 0 && dataFileTable != null
+					&& !dataFileTable.isDisposed()) {
 				tcs = dataFileTable.getColumns();
 				int newSize = dataFileTable.getClientArea().width - 20;
 				int iLength = tcs.length;
@@ -1956,11 +1974,15 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				if (shell == null)
 					new MessageSlideShell(Display.getCurrent(), SWT.ICON_ERROR,
 							"OpenTorrentWindow.mb.openError", Debug.getStackTrace(e),
-							new String[] { info.sOriginatingLocation, e.getMessage()
+							new String[] {
+								info.sOriginatingLocation,
+								e.getMessage()
 							});
 				else
 					Utils.openMessageBox(shell, SWT.OK, "OpenTorrentWindow.mb.openError",
-							new String[] { info.sOriginatingLocation, e.getMessage()
+							new String[] {
+								info.sOriginatingLocation,
+								e.getMessage()
 							});
 			}
 		}
