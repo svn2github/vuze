@@ -179,7 +179,7 @@ public class PeerIdentityManager {
         dataMap.put( data_id, peerMap );
       }
            
-      PeerIdentity old = (PeerIdentity)peerMap.put( peerID, ip );
+      String old = (String)peerMap.put( peerID, ip );
       if( old == null ) {
         totalIDs++;
         
@@ -207,7 +207,7 @@ public class PeerIdentityManager {
       if( peerMap != null ) {
         PeerIdentity peerID = new PeerIdentity( peer_id, local_port );
                
-        Object old = peerMap.remove( peerID );
+        String old = (String)peerMap.remove( peerID );
         if( old != null ) {
           totalIDs--;
         }else{
