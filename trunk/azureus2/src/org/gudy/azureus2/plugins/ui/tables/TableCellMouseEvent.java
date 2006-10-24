@@ -74,8 +74,8 @@ public class TableCellMouseEvent {
 	public int y;
 
 	/**
-	 * Which button was pressed.  1 = first button, 2 = second button, 
-	 * 3 = third button (typically middle) 
+	 * Which button was pressed.  1 = first button (left),
+	 * 2 = second button (middle), 3 = third button (right) 
 	 *  
 	 * @since 2.3.0.7
 	 */
