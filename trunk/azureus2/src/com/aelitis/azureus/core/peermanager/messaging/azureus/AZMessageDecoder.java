@@ -88,7 +88,9 @@ public class AZMessageDecoder implements MessageStreamDecoder {
     
     while( bytes_remaining > 0 ) {
       if( destroyed ) {
-        Debug.out( "AZ decoder already destroyed: " +transport.getDescription() );
+         //destruction currently isn't thread safe so one thread can destroy the decoder (e.g. when closing a connection)
+         //while the read-controller is still actively processing the us 
+        //Debug.out( "AZ decoder already destroyed: " +transport.getDescription() );
         break;
       }
 

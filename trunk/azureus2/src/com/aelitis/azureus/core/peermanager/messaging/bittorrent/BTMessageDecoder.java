@@ -82,9 +82,9 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       if( destroyed ) {
         
     	  	// destruction currently isn't thread safe so one thread can destroy the decoder (e.g. when closing a connection)
-    	  	// while the read-controller is still actively processing the us
-    	  
-    	  throw( new IOException( "BTMessageDecoder already destroyed" ));
+    	  	// while the read-controller is still actively processing the us    	  
+         //throw( new IOException( "BTMessageDecoder already destroyed" ));
+         break;
       }
 
       if( is_paused ) {
