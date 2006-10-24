@@ -1026,5 +1026,19 @@ public class Utils {
 			parent.layout();
 		}
 	}
+
+	/**
+	 * 
+	 */
+	public static void beep() {
+		execSWTThread(new AERunnable() {
+			public void runSupport() {
+				Display display = Display.getDefault();
+				if (display != null) {
+					display.beep();
+				}
+			}
+		});
+	}
 }
 
