@@ -58,6 +58,8 @@ ResourceDownloaderURLImpl
 	
 	protected boolean		download_initiated;
 	protected long			size		 	= -2;	// -1 -> unknown
+
+	private final String postData;
 	
 	public 
 	ResourceDownloaderURLImpl(
@@ -85,6 +87,28 @@ ResourceDownloaderURLImpl
 		String						_user_name,
 		String						_password )
 	{
+		this(_parent, _url, null, _auth_supplied, _user_name, _password);
+	}
+	
+	/**
+	 * 
+	 * @param _parent
+	 * @param _url
+	 * @param _data if null, GET will be used, otherwise POST will be used with
+	 *              the data supplied
+	 * @param _auth_supplied
+	 * @param _user_name
+	 * @param _password
+	 */
+	public 
+	ResourceDownloaderURLImpl(
+		ResourceDownloaderBaseImpl	_parent,
+		URL							_url,
+		String _data,
+		boolean						_auth_supplied,
+		String						_user_name,
+		String						_password )
+	{
 		super( _parent );
 		
 		/*
@@ -99,6 +123,7 @@ ResourceDownloaderURLImpl
 		*/
 		
 		original_url	= _url;
+		postData = _data;
 		auth_supplied	= _auth_supplied;
 		user_name		= _user_name;
 		password		= _password;
@@ -297,7 +322,7 @@ ResourceDownloaderURLImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{
-		ResourceDownloaderURLImpl c = new ResourceDownloaderURLImpl( parent, original_url, auth_supplied, user_name, password );
+		ResourceDownloaderURLImpl c = new ResourceDownloaderURLImpl( parent, original_url, postData, auth_supplied, user_name, password );
 		
 		c.setSize( size );
 		
@@ -437,13 +462,21 @@ ResourceDownloaderURLImpl
 								con = (HttpURLConnection) url.openConnection();
 				  	
 							}
-				  
+							
 							con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
 				  
 					 		con.setRequestProperty( "Connection", "close" );
 
 							con.addRequestProperty( "Accept-Encoding", "gzip" );
 							 
+							if (postData != null) {
+								con.setDoOutput(true);
+								con.setRequestMethod("POST");
+								OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
+								wr.write(postData);
+								wr.flush();
+							}
+
 							con.connect();
 				
 							int response = con.getResponseCode();

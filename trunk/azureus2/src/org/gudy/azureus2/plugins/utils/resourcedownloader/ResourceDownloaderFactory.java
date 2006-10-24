@@ -181,4 +181,11 @@ ResourceDownloaderFactory
 	public ResourceDownloader
 	getSuffixBasedDownloader(
 		ResourceDownloader			downloader );
+
+		/**
+		 * @param url
+		 * @param postData
+		 * @return
+		 */
+		ResourceDownloader create(URL url, String postData);
 }

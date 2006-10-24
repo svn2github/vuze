@@ -66,6 +66,14 @@ ResourceDownloaderFactoryImpl
 	public ResourceDownloader
 	create(
 		URL		url,
+		String postData)
+	{
+		return new ResourceDownloaderURLImpl(null, url, postData, false, null, null);
+	}
+	
+	public ResourceDownloader
+	create(
+		URL		url,
 		String	user_name,
 		String	password )
 	{
