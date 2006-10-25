@@ -153,7 +153,7 @@ TimerEvent
 			
 		}else{
 			
-			return((int)res);
+			return res < 0 ? -1 : 1;
 		}
 	}
 	
