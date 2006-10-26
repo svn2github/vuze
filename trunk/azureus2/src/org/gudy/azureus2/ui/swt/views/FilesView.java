@@ -68,7 +68,8 @@ public class FilesView
     new ProgressGraphItem(),
     new ModeItem(),
     new PriorityItem(),
-    new StorageTypeItem()
+    new StorageTypeItem(),
+    new FileExtensionItem(), 
   };
   
   private DownloadManager manager = null;
