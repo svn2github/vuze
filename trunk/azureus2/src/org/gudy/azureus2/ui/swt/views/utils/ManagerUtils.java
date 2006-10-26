@@ -25,9 +25,6 @@ package org.gudy.azureus2.ui.swt.views.utils;
 
 import java.io.File;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
@@ -36,21 +33,21 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Utils;
 
-import org.gudy.azureus2.plugins.download.Download;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 /**
@@ -61,8 +58,16 @@ public class ManagerUtils {
   
   public static void run(DownloadManager dm) {
     if(dm != null) {
-      Program.launch(dm.getSaveLocation().toString());
+    	launch(dm.getSaveLocation().toString());
     }
+  }
+  
+  private static void launch(String sFile) {
+  	if (Constants.isOSX) {
+      Program.launch("file://" + UrlUtils.encode(sFile));
+  	} else {
+  		Program.launch(sFile);
+  	}
   }
 
  /**
@@ -93,9 +98,9 @@ public class ManagerUtils {
 		}
 
 		if (f.isDirectory()) {
-			Program.launch(f.toString()); // default launcher
+			launch(f.toString()); // default launcher
 		} else {
-			Program.launch(f.getParent().toString());
+			launch(f.getParent().toString());
 		}
 	}
   
