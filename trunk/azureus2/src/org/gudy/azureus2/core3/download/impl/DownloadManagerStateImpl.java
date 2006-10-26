@@ -929,6 +929,14 @@ DownloadManagerStateImpl
     	this.setStringAttribute(AT_DISPLAY_NAME, value);
     }
     
+    public String getUserComment() {
+    	return this.getStringAttribute(AT_USER_COMMENT);
+    }
+    
+    public void setUserComment(String value) {
+    	this.setStringAttribute(AT_USER_COMMENT, value);
+    }
+    
 	public String[]
 	getNetworks()
 	{
@@ -2144,6 +2152,9 @@ DownloadManagerStateImpl
 		{}
         public void setDisplayName(String name) {}
         public String getDisplayName() {return null;}
+
+        public void setUserComment(String name) {}
+        public String getUserComment() {return null;}
 
 		public boolean parameterExists(String name) {
 			// TODO Auto-generated method stub

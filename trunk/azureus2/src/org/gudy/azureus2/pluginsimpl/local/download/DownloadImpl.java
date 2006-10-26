@@ -560,6 +560,10 @@ DownloadImpl
 		
 		return( DownloadManagerState.AT_DISPLAY_NAME );
 		
+	}else if ( attribute.getName() == TorrentAttribute.TA_USER_COMMENT ){
+		
+		return( DownloadManagerState.AT_USER_COMMENT );		
+		
 	}else if ( attribute.getName() == TorrentAttribute.TA_CONTENT_MAP ){
 		
 		return( DownloadManagerState.AT_CONTENT_MAP );
@@ -605,6 +609,10 @@ DownloadImpl
 	}else if ( name.equals ( DownloadManagerState.AT_DISPLAY_NAME)){
 		
 		return ( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_DISPLAY_NAME ));
+		
+	}else if ( name.equals ( DownloadManagerState.AT_USER_COMMENT)){
+		
+		return ( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_USER_COMMENT ));
 		
 	}else if ( name.equals ( DownloadManagerState.AT_CONTENT_MAP)){
 		

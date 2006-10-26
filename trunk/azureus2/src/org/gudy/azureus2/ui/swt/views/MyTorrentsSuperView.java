@@ -78,6 +78,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
     new RemainingItem(),
     new PiecesItem(),
     new CompletionItem(),
+    new CommentItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new MaxUploadsItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new TotalSpeedItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new FilesDoneItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
@@ -118,6 +119,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
     new UpSpeedLimitItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     
     // Initially Invisible
+    new CommentItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new MaxUploadsItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new TotalSpeedItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new FilesDoneItem(TableManager.TABLE_MYTORRENTS_COMPLETE),

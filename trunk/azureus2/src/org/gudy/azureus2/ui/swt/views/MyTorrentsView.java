@@ -1678,7 +1678,7 @@ public class MyTorrentsView
         	itemRenameBoth.setData("save_name", Boolean.valueOf(true));
         	itemRenameBoth.setData("msg_key", "displayed_and_save_path");
         }
-
+        
         Listener rename_listener = new Listener() {
         	public void handleEvent(Event event) {
         		MenuItem mi = (MenuItem)event.widget;
@@ -1713,6 +1713,34 @@ public class MyTorrentsView
         itemRenameSavePath.addListener(SWT.Selection, rename_listener);
         itemRenameBoth.addListener(SWT.Selection, rename_listener);
 
+        // Edit Comment
+        final MenuItem itemEditComment = new MenuItem(menu, SWT.CASCADE);
+        Messages.setLanguageText(itemEditComment, "MyTorrentsView.menu.edit_comment");
+        itemEditComment.setEnabled(fileMove && dms.length == 1);
+        if (itemEditComment.isEnabled()) {
+        	itemEditComment.setData("suggested_text", first_selected.getDownloadState().getUserComment());
+        }
+        
+        Listener edit_comment_listener = new Listener() {
+        	public void handleEvent(Event event) {
+        		MenuItem mi = (MenuItem)event.widget;
+        		String suggested = (String)mi.getData("suggested_text");
+        		String msg_key_prefix = "MyTorrentsView.menu.edit_comment.enter.";
+        		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(getComposite().getDisplay(), msg_key_prefix + "title", msg_key_prefix + "message", suggested, null);
+        		if (text_entry.wasDataSubmitted()) {
+        			String value = text_entry.getStoredString();
+        			final String value_to_set = (value.length() == 0) ? null : value;
+        			MyTorrentsView.this.runForSelectedRows(new GroupTableRowRunner() {
+                        public void run(TableRowCore row) {
+                        	((DownloadManager)row.getDataSource(true)).getDownloadState().setUserComment(value_to_set);
+                        }
+                    });
+        		}
+        	}
+        };  
+        
+        itemEditComment.addListener(SWT.Selection, edit_comment_listener);
+        
 		// ---
 		new MenuItem(menu, SWT.SEPARATOR);
 

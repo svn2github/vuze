@@ -118,6 +118,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
   BufferedLabel pieceSize;
   Control lblComment;
   BufferedLabel creation_date;
+  BufferedLabel user_comment;
   BufferedLabel hashFails;
   BufferedLabel shareRatio;
   Button		updateButton;
@@ -554,7 +555,14 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     label = new Label(gInfo, SWT.LEFT);
     
     	// row
-    
+
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.user_comment"); //$NON-NLS-1$
+    user_comment = new BufferedLabel(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    user_comment.setLayoutData(gridData);
+
     label = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     label.setLayoutData(gridData);
@@ -726,7 +734,8 @@ public class GeneralView extends AbstractIView implements ParameterListener,
       manager.getNbPieces(),
       manager.getPieceLength(),
       manager.getTorrentComment(),
-      DisplayFormatters.formatDate(manager.getTorrentCreationDate()*1000));
+      DisplayFormatters.formatDate(manager.getTorrentCreationDate()*1000),
+      manager.getDownloadState().getUserComment());
     
     
     //A special layout, for OS X and Linux, on which for some unknown reason
@@ -1154,7 +1163,8 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     final int _pieceNumber,
     final String _pieceLength,
     final String _comment,
-	final String _creation_date) {
+	final String _creation_date,
+	final String _user_comment) {
 		if (display == null || display.isDisposed())
 			return;
 		Utils.execSWTThread(new AERunnable() {
@@ -1192,6 +1202,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 				}
 
 				creation_date.setText(_creation_date);
+				user_comment.setText(_user_comment);
 			}
 		});
 	}

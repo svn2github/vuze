@@ -50,6 +50,7 @@ DownloadManagerState
 	public static final String AT_FLAGS						= "flags";
 	public static final String AT_PARAMETERS				= "parameters";
 	public static final String AT_DISPLAY_NAME              = "displayname";
+	public static final String AT_USER_COMMENT              = "comment";
 	public static final String AT_CONTENT_MAP = "contentmap";
 	
 	public static final long FLAG_ONLY_EVER_SEEDED			= Download.FLAG_ONLY_EVER_SEEDED;
@@ -163,6 +164,9 @@ DownloadManagerState
 	
 	public String getDisplayName();
 	public void setDisplayName(String name);
+	
+	public String getUserComment();
+	public void setUserComment(String name);
 	
 	public String
 	getTrackerClientExtensions();
