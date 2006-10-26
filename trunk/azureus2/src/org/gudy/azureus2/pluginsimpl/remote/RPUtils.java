@@ -176,6 +176,13 @@ public class RPUtils {
             result = getPluginAPIInterfacesForClass(interfaces[i], l);
             if (result != null) {return result;}
         }
+        
+        Class superclass = c.getSuperclass();
+        if (superclass != null) {
+        	result = getPluginAPIInterfacesForClass(superclass, l);
+        	if (result != null) {return result;}
+        }
+        
         return null;
     }
 
