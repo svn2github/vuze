@@ -2503,9 +2503,13 @@ public class TableView
 		TableRowCore[] rows = new TableRowCore[size];
 		int pos = 0;
 		for (int i = iTopIndex; i <= iBottomIndex; i++) {
-			TableRowCore row = (TableRowCore) table.getItem(i).getData("TableRow");
-			if (row != null)
-				rows[pos++] = row;
+			TableItem item = table.getItem(i);
+			if (item != null && !item.isDisposed()) {
+				TableRowCore row = (TableRowCore) item.getData("TableRow");
+				if (row != null) {
+					rows[pos++] = row;
+				}
+			}
 		}
 		
 		if (pos <= rows.length) {
