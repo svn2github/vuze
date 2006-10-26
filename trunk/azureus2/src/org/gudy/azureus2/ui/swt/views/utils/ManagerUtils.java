@@ -64,7 +64,7 @@ public class ManagerUtils {
   
   private static void launch(String sFile) {
   	if (Constants.isOSX) {
-      Program.launch("file://" + UrlUtils.encode(sFile));
+      Program.launch("file://" + sFile.replaceAll(" ", "%20"));
   	} else {
   		Program.launch(sFile);
   	}
