@@ -856,7 +856,11 @@ public class Utils {
 	}
 	
 	public static int pixelsToPoint(int pixels, int dpi) {
-    return (pixels * 72) / dpi;
+    return (int) Math.round((pixels * 72.0) / dpi);
+	}
+	
+	public static int pixelsToPoint(double pixels, int dpi) {
+    return (int) Math.round((pixels * 72.0) / dpi);
 	}
 
 	public static boolean drawImage(GC gc, Image image, Rectangle dstRect,
