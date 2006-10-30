@@ -194,7 +194,7 @@ public class ConfigSectionQueue implements UISWTConfigSection {
     
     gridData = new GridData();
     gridData.horizontalSpan = 4;
-    new BooleanParameter(gMainTab, "Alert on close", true,
+    new BooleanParameter(gMainTab, "Alert on close", false,
                          "ConfigView.label.showpopuponclose").setLayoutData(gridData);
 
     	//row 

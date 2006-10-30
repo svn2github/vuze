@@ -258,7 +258,7 @@ public class ManagerUtils {
 
 			if (dm.getStats().getShareRatio() >= 0
 					&& dm.getStats().getShareRatio() < 1000
-					&& COConfigurationManager.getBooleanParameter("Alert on close", true)) {
+					&& COConfigurationManager.getBooleanParameter("Alert on close", false)) {
 				MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING
 						| SWT.YES | SWT.NO);
 				mb.setText(MessageText.getString("seedmore.title"));
