@@ -282,7 +282,7 @@ public class MainStatusBar {
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
 						srStatus.setVisible(COConfigurationManager.getBooleanParameter(
-								parameterName, true));
+								parameterName, false));
 						statusBar.layout();
 					}
 				});
@@ -303,6 +303,7 @@ public class MainStatusBar {
 		dhtStatus.setText("");
 		dhtStatus.setToolTipText(MessageText
 				.getString("MainWindow.dht.status.tooltip"));
+	
 
 		COConfigurationManager.addAndFireParameterListener("Status Area Show DDB",
 				new ParameterListener() {
@@ -320,6 +321,18 @@ public class MainStatusBar {
 				BlockedIpsWindow.showBlockedIps(azureusCore, parent.getShell());
 			}
 		});
+		
+		
+		COConfigurationManager.addAndFireParameterListener("Status Area Show IPF",
+				new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						ipBlocked.setVisible(COConfigurationManager.getBooleanParameter( parameterName, false));
+						statusBar.layout();
+					}
+				});
+		
+		
+		
 
 		statusDown = new CLabelPadding(statusBar, borderFlag);
 		statusDown.setImage(ImageRepository.getImage("down"));
@@ -829,23 +842,27 @@ public class MainStatusBar {
 		}
 
 		// DHT Status Section
-		int dht_status = (dhtPlugin == null) ? DHTPlugin.STATUS_DISABLED
-				: dhtPlugin.getStatus();
+		int dht_status = (dhtPlugin == null) ? DHTPlugin.STATUS_DISABLED 	: dhtPlugin.getStatus();
 		long dht_count = -1;
-		boolean	reachable = false;
+		//boolean	reachable = false;
 		if (dht_status == DHTPlugin.STATUS_RUNNING) {
 			DHT[] dhts = dhtPlugin.getDHTs();
 
-			reachable = dhts.length > 0 && dhts[0].getTransport().isReachable();
+			//reachable = dhts.length > 0 && dhts[0].getTransport().isReachable();
 			
-			if ( reachable ){
+			//if ( reachable ){
 				dht_count = dhts[0].getControl().getStats().getEstimatedDHTSize();
-			}
+			//}
 		}
 
 		if (lastDHTstatus != dht_status || lastDHTcount != dht_count) {
 			switch (dht_status) {
 				case DHTPlugin.STATUS_RUNNING:
+					
+					dhtStatus.setToolTipText(MessageText.getString("MainWindow.dht.status.tooltip"));
+					dhtStatus.setText(MessageText.getString("MainWindow.dht.status.users").replaceAll("%1", numberFormat.format(dht_count)));
+					
+					/*
 					if ( reachable ){
 						dhtStatus.setImage(ImageRepository.getImage("greenled"));
 						dhtStatus.setToolTipText(MessageText
@@ -858,24 +875,22 @@ public class MainStatusBar {
 						dhtStatus.setText(MessageText
 								.getString("MainWindow.dht.status.unreachable"));
 					}
+					*/
 					break;
 
 				case DHTPlugin.STATUS_DISABLED:
-					dhtStatus.setImage(ImageRepository.getImage("grayled"));
-					dhtStatus.setText(MessageText
-							.getString("MainWindow.dht.status.disabled"));
+					//dhtStatus.setImage(ImageRepository.getImage("grayled"));
+					dhtStatus.setText(MessageText.getString("MainWindow.dht.status.disabled"));
 					break;
 
 				case DHTPlugin.STATUS_INITALISING:
-					dhtStatus.setImage(ImageRepository.getImage("yellowled"));
-					dhtStatus.setText(MessageText
-							.getString("MainWindow.dht.status.initializing"));
+					//dhtStatus.setImage(ImageRepository.getImage("yellowled"));
+					dhtStatus.setText(MessageText.getString("MainWindow.dht.status.initializing"));
 					break;
 
 				case DHTPlugin.STATUS_FAILED:
-					dhtStatus.setImage(ImageRepository.getImage("redled"));
-					dhtStatus.setText(MessageText
-							.getString("MainWindow.dht.status.failed"));
+					//dhtStatus.setImage(ImageRepository.getImage("redled"));
+					dhtStatus.setText(MessageText.getString("MainWindow.dht.status.failed"));
 					break;
 
 				default:
