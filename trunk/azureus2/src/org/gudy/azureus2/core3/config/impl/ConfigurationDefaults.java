@@ -145,14 +145,14 @@ public class ConfigurationDefaults {
     def.put( "Max Upload Speed Seeding KBs", new Long(0) );
     def.put( "enable.seedingonly.upload.rate", FALSE );
     
-    def.put( "Auto Upload Speed Enabled", FALSE );
+    def.put( "Auto Upload Speed Enabled", TRUE );
     def.put( "Auto Upload Speed Seeding Enabled", FALSE );
     def.put( "AutoSpeed Available", FALSE );	// informative read-only parameter
     def.put( "AutoSpeed Min Upload KBs", new Long(0) );
     def.put( "AutoSpeed Max Upload KBs", new Long(0) );
     def.put( "AutoSpeed Max Increment KBs", new Long(1));
     def.put( "AutoSpeed Max Decrement KBs", new Long(4));
-    def.put( "AutoSpeed Choking Ping Millis", new Long(500) );
+    def.put( "AutoSpeed Choking Ping Millis", new Long(200) );
     def.put( "AutoSpeed Download Adj Enable", FALSE );
     def.put( "AutoSpeed Download Adj Ratio", "1.0" );
     def.put( "AutoSpeed Latency Factor", new Long(50));
@@ -418,8 +418,8 @@ public class ConfigurationDefaults {
     def.put( "Password", null );
     def.put( "Save detail views column widths", FALSE );
     def.put( "config.interface.checkassoc", TRUE );
-    def.put( "Wizard Completed", FALSE );
-    def.put( "donations.donated", FALSE );
+    def.put( "Wizard Completed", TRUE );
+    def.put( "donations.donated", TRUE );
     def.put( "donations.lastVersion", "" );
     def.put( "donations.nextAskTime", new Long(0) );
     def.put( "Color Scheme.red", new Long(0) );
@@ -436,10 +436,10 @@ public class ConfigurationDefaults {
     def.put( "confirmationOnExit", FALSE );
     def.put( "locale", Locale.getDefault().toString() );
     def.put( "locale.set.complete.count", new Long(0));
-    def.put( "Add URL Silently", FALSE );
+    def.put( "Add URL Silently", TRUE );
     def.put( "config.style.dropdiraction", "1" );
     def.put( "MyTorrents.SplitAt", new Long(30) );
-    def.put( "Confirm Data Delete", TRUE );
+    def.put( "Confirm Data Delete", TRUE );  //TODO
     def.put( "Password Confirm", null );
     def.put( "Auto Update", TRUE );
     def.put( "Alert on close", FALSE );
@@ -470,7 +470,7 @@ public class ConfigurationDefaults {
     def.put( "network.tcp.socket.SO_RCVBUF", new Long(0) );
     def.put( "network.tcp.socket.IPTOS", "" );
     def.put( "confirm_torrent_removal", FALSE );
-    def.put( "add_torrents_silently", FALSE );
+    def.put( "add_torrents_silently", TRUE );
     def.put( "enable_small_osx_fonts", TRUE );
     def.put( "Message Popup Autoclose in Seconds", new Long(15));
     def.put( "Play Download Finished Announcement", FALSE);
@@ -492,6 +492,8 @@ public class ConfigurationDefaults {
     def.put( "network.bind.local.port", new Long(0) );
    
   }
+  
+  
   
   protected void
   def_put(
