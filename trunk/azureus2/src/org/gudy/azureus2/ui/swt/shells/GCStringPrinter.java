@@ -124,20 +124,26 @@ public class GCStringPrinter
 						// check if word is longer than our print area, and split it
 						Point ptWordSize = gc.stringExtent(word + " ");
 						while (ptWordSize.x > printArea.width && word.length() > 1) {
-							int endIndex = word.length() - 1;
+							int endIndex = word.length();
 							do {
 								endIndex--;
 								ptWordSize = gc.stringExtent(word.substring(0, endIndex) + " ");
-							} while (endIndex > 3
+							} while (endIndex > 0
 									&& ptWordSize.x + iLineLength > printArea.width);
 							// append part that will fit
 							height += ptWordSize.y;
 							if (fullLinesOnly && height > printArea.height) {
 								return false;
 							}
-							if (outputLine.length() > 0) {
+
+							if (endIndex > 0 && outputLine.length() > 0) {
 								outputLine.append(space);
 							}
+							
+							if (endIndex == 0 && outputLine.length() == 0) {
+								endIndex = 1;
+							}
+
 							outputLine.append(word.substring(0, endIndex));
 							if (!wrap) {
 								outputLine.replace(outputLine.length() - 1,
@@ -297,7 +303,7 @@ public class GCStringPrinter
 				gc.setForeground(colorText);
 				printString(
 						gc,
-						"Right Wrap, Skip Clip, Full Only. test of the string printer averlongwordthisisyesindeed",
+						"Rüegg RÃ¼e \u0627\u0644 Right Wrap, Skip Clip, Full Only. test of the string printer averlongwordthisisyesindeed",
 						new Rectangle(x, y, 100, 19), true, true, SWT.RIGHT | SWT.WRAP);
 
 				x += 110;
