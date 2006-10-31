@@ -458,11 +458,15 @@ TOTorrentDeserialiseImpl
 			
 			Long simple_file_length = (Long)info.get( TK_LENGTH );
 			
+			long	total_length = 0;
+			
 			if ( simple_file_length != null ){
 			
 				setSimpleTorrent( true );
 				
-				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, simple_file_length.longValue(), new byte[][]{getName()})});
+				total_length = simple_file_length.longValue();
+				
+				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, total_length, new byte[][]{getName()})});
 				
 			}else{
 				
@@ -477,6 +481,8 @@ TOTorrentDeserialiseImpl
 					Map	file_map = (Map)meta_files.get(i);
 					
 					long	len = ((Long)file_map.get( TK_LENGTH )).longValue();
+					
+					total_length += len;
 					
 					List	paths = (List)file_map.get( TK_PATH );
 						
@@ -510,12 +516,39 @@ TOTorrentDeserialiseImpl
 				
 				setFiles( files );
 			}
-											 
-			setPieceLength( ((Long)info.get( TK_PIECE_LENGTH )).longValue());
+							
+			long	piece_length = ((Long)info.get( TK_PIECE_LENGTH )).longValue();
+			
+			if ( piece_length <= 0 ){
+				
+				throw( new TOTorrentException( "Decode fails, piece-length is invalid",
+						TOTorrentException.RT_DECODE_FAILS ));
+			}
+			
+			setPieceLength( piece_length );
 						
 			byte[]	flat_pieces = (byte[])info.get( TK_PIECES );
 			
-			byte[][]pieces = new byte[flat_pieces.length/20][20];
+				// work out how many pieces we require for the torrent
+			
+			int	pieces_required = (int)((total_length + (piece_length-1)) / piece_length);
+			
+			int		pieces_supplied = flat_pieces.length/20;
+			
+			if ( pieces_supplied < pieces_required ){
+				
+				throw( new TOTorrentException( "Decode fails, insufficient pieces supplied",
+						TOTorrentException.RT_DECODE_FAILS ));
+			}
+			
+			if ( pieces_supplied > pieces_required ){
+				
+				Debug.out( "Torrent '" + new String( getName()) + "' has too many pieces (required=" + pieces_required + ",supplied=" + pieces_supplied + ") - ignoring excess" );
+				
+				pieces_supplied	= pieces_required;
+			}
+
+			byte[][]pieces = new byte[pieces_supplied][20];
 			
 			for (int i=0;i<pieces.length;i++){
 				
