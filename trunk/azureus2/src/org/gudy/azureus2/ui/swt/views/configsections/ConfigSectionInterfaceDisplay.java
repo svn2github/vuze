@@ -105,7 +105,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		label = new Label(cStatusBar, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "status");
 		new BooleanParameter(cStatusBar, "Status Area Show SR", false, MSG_PREFIX	+ "status.show_sr");
-		new BooleanParameter(cStatusBar, "Status Area Show NAT", true, MSG_PREFIX + "status.show_nat");
+		new BooleanParameter(cStatusBar, "Status Area Show NAT", false, MSG_PREFIX + "status.show_nat");
 		new BooleanParameter(cStatusBar, "Status Area Show DDB", true, MSG_PREFIX + "status.show_ddb");
 
 		new BooleanParameter(cStatusBar, "Status Area Show IPF", false, MSG_PREFIX + "status.show_ipf");

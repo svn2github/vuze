@@ -294,7 +294,7 @@ public class MainStatusBar {
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
 						natStatus.setVisible(COConfigurationManager.getBooleanParameter(
-								parameterName, true));
+								parameterName, false));
 						statusBar.layout();
 					}
 				});
