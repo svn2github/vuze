@@ -46,7 +46,7 @@ public class TorrentForceStart extends TorrentCommand {
 	}
 
 	public String getCommandDescriptions() {
-		return("forcestart (<torrentoptions>)\tr\tStart torrent ignoring other limits/rules.");
+		return("forcestart (<torrentoptions>)\t\tStart torrent ignoring other limits/rules.");
 	}
 
 }

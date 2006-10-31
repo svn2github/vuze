@@ -71,7 +71,7 @@ public class TorrentPublish extends TorrentCommand {
 	}
 
 	public String getCommandDescriptions() {
-		return("publish (<torrentoptions>)\t\th\tPublish or stop publishing torrent(s).");
+		return("publish (<torrentoptions>)\t\tPublish or stop publishing torrent(s).");
 	}
 
 }

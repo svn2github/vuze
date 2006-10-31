@@ -73,7 +73,7 @@ public class TorrentHost extends TorrentCommand {
 	}
 
 	public String getCommandDescriptions() {
-		return("host (<torrentoptions>)\t\th\tHost or stop hosting torrent(s).");
+		return("host (<torrentoptions>)\t\t\tHost or stop hosting torrent(s).");
 	}
 
 }
