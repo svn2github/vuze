@@ -257,6 +257,22 @@ AEDiagnostics
 		return( logger );
 	}
 
+	public static void
+	logWithStack(
+		String	logger_name,
+		String	str )
+	{
+		log( logger_name, str + ": " + Debug.getCompressedStackTrace());
+	}
+	
+	public static void
+	log(
+		String	logger_name,
+		String	str )
+	{
+		getLogger( logger_name ).log( str );
+	}
+	
 	protected static synchronized void
 	log(
 		AEDiagnosticsLogger		logger,
