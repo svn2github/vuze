@@ -48,7 +48,7 @@ import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelper;
 public class 
 PHETester 
 {
-	private final VirtualChannelSelector connect_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_CONNECT, true );
+	private final VirtualChannelSelector connect_selector = new VirtualChannelSelector( "PHETester", VirtualChannelSelector.OP_CONNECT, true );
 	 
 	private byte[]	TEST_HEADER	= "TestHeader".getBytes();
 	

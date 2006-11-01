@@ -57,8 +57,8 @@ TRNonBlockingServer
 	
 	private static final int CLOSE_DELAY			= 5*1000;
 	
-	private final VirtualChannelSelector read_selector	 	= new VirtualChannelSelector( VirtualChannelSelector.OP_READ, false );
-	private final VirtualChannelSelector write_selector 	= new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
+	private final VirtualChannelSelector read_selector;
+	private final VirtualChannelSelector write_selector;
 	
 	private 	  List			connections_to_close 		= new ArrayList();
 	
@@ -88,6 +88,9 @@ TRNonBlockingServer
 	{
 		super( _name, _port, false, _apply_ip_filter );
 		
+		read_selector	 	= new VirtualChannelSelector( _name + ":" + _port, VirtualChannelSelector.OP_READ, false );
+		write_selector 		= new VirtualChannelSelector( _name + ":" + _port, VirtualChannelSelector.OP_WRITE, true );
+
 		boolean	ok = false;
 		
 		if ( _port == 0 ){

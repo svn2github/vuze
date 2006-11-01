@@ -103,8 +103,8 @@ TCPNetworkManager
 	    write_selector_thread.start();	    
 	}
 	
-	  private final VirtualChannelSelector read_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_READ, true );
-	  private final VirtualChannelSelector write_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
+	  private final VirtualChannelSelector read_selector = new VirtualChannelSelector( "TCP network manager", VirtualChannelSelector.OP_READ, true );
+	  private final VirtualChannelSelector write_selector = new VirtualChannelSelector( "TCP network manager", VirtualChannelSelector.OP_WRITE, true );
 
 
 	  private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();

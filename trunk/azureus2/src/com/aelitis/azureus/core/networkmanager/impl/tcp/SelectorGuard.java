@@ -61,6 +61,11 @@ public class SelectorGuard {
     this.listener = _listener;
   }
   
+  public String
+  getType()
+  {
+	  return( type );
+  }
   
   /**
    * Run this method right before the select() operation to

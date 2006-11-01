@@ -36,8 +36,8 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.AZGenericMapPayloa
  */
 public class NonBlockingReadWriteService {
 	
-  private final VirtualChannelSelector read_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_READ, false );
-  private final VirtualChannelSelector write_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
+  private final VirtualChannelSelector read_selector;
+  private final VirtualChannelSelector write_selector;
   
   private final ArrayList connections = new ArrayList();
   private final AEMonitor connections_mon = new AEMonitor( "connections" );
@@ -59,6 +59,9 @@ public class NonBlockingReadWriteService {
 	public NonBlockingReadWriteService( String _service_name, int timeout, int close_delay, ServiceListener _listener ) {
 		this.service_name = _service_name;
 		this.listener = _listener;
+
+		read_selector = new VirtualChannelSelector( service_name, VirtualChannelSelector.OP_READ, false );
+		write_selector = new VirtualChannelSelector( service_name, VirtualChannelSelector.OP_WRITE, true );
 
 		if( timeout < TIMEOUT_CHECK_INTERVAL_MS /1000 )  timeout = TIMEOUT_CHECK_INTERVAL_MS /1000;
 		this.activity_timeout_period_ms = timeout *1000;

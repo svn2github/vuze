@@ -50,7 +50,7 @@ VirtualAcceptSelector
 	private static final LogIDs LOGID = LogIDs.NWMAN;
   
 	private final VirtualChannelSelector accept_selector = 
-						new VirtualChannelSelector( VirtualChannelSelector.OP_ACCEPT, false );
+						new VirtualChannelSelector( "Accepter", VirtualChannelSelector.OP_ACCEPT, false );
 
 	protected
 	VirtualAcceptSelector()

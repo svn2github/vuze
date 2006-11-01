@@ -46,6 +46,7 @@ public class VirtualChannelSelector {
   
   private static final int MAX_SAFEMODE_SELECTORS = 100;
   
+  private String		name;
 
   private VirtualChannelSelectorImpl selector_impl;
   
@@ -66,7 +67,8 @@ public class VirtualChannelSelector {
    * @param interest_op operation set of OP_CONNECT, OP_ACCEPT, OP_READ, or OP_WRITE
    * @param pause_after_select whether or not to auto-disable interest op after select  
    */
-  public VirtualChannelSelector( int interest_op, boolean pause_after_select ) { 
+  public VirtualChannelSelector( String name, int interest_op, boolean pause_after_select ) { 
+	this.name = name;
     this.op = interest_op;
     this.pause = pause_after_select;
     
@@ -81,7 +83,11 @@ public class VirtualChannelSelector {
     }
   }
 
-  
+  public String
+  getName()
+  {
+	  return( name );
+  }
   
   private void initSafeMode() {
     if (Logger.isEnabled())

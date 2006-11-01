@@ -73,7 +73,7 @@ public class ConnectDisconnectManager {
   private static final int CONNECT_ATTEMPT_STALL_TIME = 3*1000;  //3sec
   private static final boolean SHOW_CONNECT_STATS = false;
   
-  private final VirtualChannelSelector connect_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_CONNECT, true );
+  private final VirtualChannelSelector connect_selector = new VirtualChannelSelector( "Connect/Disconnect Manager", VirtualChannelSelector.OP_CONNECT, true );
   
   private final LinkedList new_requests = new LinkedList();
   private final ArrayList canceled_requests = new ArrayList();

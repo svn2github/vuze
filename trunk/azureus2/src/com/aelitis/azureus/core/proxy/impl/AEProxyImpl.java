@@ -57,9 +57,9 @@ AEProxyImpl
 	private long				read_timeout;
 	private AEProxyHandler	proxy_handler;
 	
-	private VirtualChannelSelector	read_selector	 = new VirtualChannelSelector( VirtualChannelSelector.OP_READ, false );
-	private VirtualChannelSelector	connect_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_CONNECT, true );
-	private VirtualChannelSelector	write_selector	 = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
+	private VirtualChannelSelector	read_selector;
+	private VirtualChannelSelector	connect_selector;
+	private VirtualChannelSelector	write_selector;
 	
 	private List				processors = new ArrayList();
 	private final HashMap write_select_regs = new HashMap();
@@ -79,6 +79,12 @@ AEProxyImpl
 		connect_timeout		= _connect_timeout;
 		read_timeout		= _read_timeout;
 		proxy_handler		= _proxy_handler;
+		
+		String	name = "Proxy:" + port;
+		
+		read_selector	 = new VirtualChannelSelector( name, VirtualChannelSelector.OP_READ, false );
+		connect_selector = new VirtualChannelSelector( name, VirtualChannelSelector.OP_CONNECT, true );
+		write_selector	 = new VirtualChannelSelector( name, VirtualChannelSelector.OP_WRITE, true );
 		
 		try{
 			

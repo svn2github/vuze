@@ -38,6 +38,8 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
  */
 public class VirtualChannelSelectorImpl {
 	
+	private static final LogIDs LOGID = LogIDs.NWMAN;
+
 	/*
 	static boolean	rm_trace 	= false;
 	static boolean	rm_test_fix = false;
@@ -128,6 +130,8 @@ public class VirtualChannelSelectorImpl {
       
       try {
         sel = Selector.open();
+        
+        Logger.log(new LogEvent(LOGID, "Selector created for '" + parent.getName() + "'," + selector_guard.getType()));
       }
       catch (Throwable t) {
         Debug.out( "ERROR: caught exception on Selector.open()", t );
@@ -139,6 +143,9 @@ public class VirtualChannelSelectorImpl {
         while( fail_count < 10 ) {
           try {
             sel = Selector.open();
+            
+            Logger.log(new LogEvent(LOGID, "Selector created for '" + parent.getName() + "'," + selector_guard.getType()));
+            
             break;
           }
           catch( Throwable f ) {
@@ -651,6 +658,8 @@ public class VirtualChannelSelectorImpl {
       
       try{
         selector.close();
+        
+        Logger.log(new LogEvent(LOGID, "Selector destroyed for '" + parent.getName() + "'," + selector_guard.getType()));
       }
       catch( Throwable t ) { t.printStackTrace(); }
     }
