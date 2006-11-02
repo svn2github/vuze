@@ -114,19 +114,27 @@ public class UIDebugGenerator
 		InputShell inputShell = new InputShell("UIDebugGenerator.messageask.title",
 				"UIDebugGenerator.messageask.text", true);
 		String message = inputShell.open();
-		if (message != null) {
-			try {
-				File fUserMessage = new File(path, "usermessage.txt");
-				FileWriter fw;
-				fw = new FileWriter(fUserMessage);
-	
-				fw.write(message);
-	
-				fw.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		if (inputShell.isCanceled()) {
+			return;
+		} 
+
+		if (message == null || message.length() == 0) {
+			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK,
+					"UIDebugGenerator.message.cancel", (String[]) null);
+			return;
+		}
+
+		try {
+			File fUserMessage = new File(path, "usermessage.txt");
+			FileWriter fw;
+			fw = new FileWriter(fUserMessage);
+
+			fw.write(message);
+
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		try {
