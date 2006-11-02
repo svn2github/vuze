@@ -31,6 +31,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.OutgoingMessageQueueImpl;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportImpl;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TransportEndpointTCP;
@@ -74,7 +75,7 @@ public class ClientConnection {
 				
 		light_transport = pe.connectLightWeight( channel );
 		
-		out_queue = new OutgoingMessageQueue( encoder );
+		out_queue = new OutgoingMessageQueueImpl( encoder );
 		out_queue.setTransport( light_transport );
 		last_activity_time = System.currentTimeMillis();
 	}

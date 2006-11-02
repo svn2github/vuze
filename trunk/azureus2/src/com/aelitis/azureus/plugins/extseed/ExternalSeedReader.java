@@ -99,6 +99,10 @@ ExternalSeedReader
 	getRequests();
 	
 	public int
+	readBytes(
+		int	max );
+	
+	public int
 	getPercentDoneOfCurrentIncomingRequest();
 	
 	public void

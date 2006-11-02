@@ -38,6 +38,8 @@ import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 
+import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
@@ -52,6 +54,8 @@ PeerForeignDelegate
 
 	private PeerManagerImpl		manager;
 	private Peer				foreign;
+	
+	private NetworkConnectionBase	network_connection;
 	
 	private long	create_time		= SystemTime.getCurrentTime();
 	private long	last_data_received_time =-1;
@@ -74,6 +78,14 @@ PeerForeignDelegate
 	{
 		manager		= _manager;
 		foreign		= _foreign;
+		
+		PEPeerManager pm = manager.getDelegate();
+		
+		network_connection = new PeerForeignNetworkConnection( foreign );
+				
+		NetworkManager.getSingleton().startTransferProcessing( network_connection, pm.getUploadLimitedRateGroup(), pm.getDownloadLimitedRateGroup() );
+		
+		NetworkManager.getSingleton().upgradeTransferProcessing( network_connection );
 	}
 	
 	public void
@@ -81,6 +93,12 @@ PeerForeignDelegate
 	{
 		// should never be called
 		Debug.out( "eh?" );
+	}
+	
+	protected void
+	closed()
+	{
+		NetworkManager.getSingleton().stopTransferProcessing( network_connection );
 	}
 	
     /**

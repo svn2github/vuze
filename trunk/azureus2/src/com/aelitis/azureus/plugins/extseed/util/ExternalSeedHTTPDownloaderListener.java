@@ -36,6 +36,15 @@ ExternalSeedHTTPDownloaderListener
 	setBufferPosition(
 		int	position );
 	
+	public int
+	getPermittedBytes()
+	
+		throws ExternalSeedException;
+	
+	public void
+	reportBytesRead(
+		int		num );
+	
 	public void
 	done();
 }

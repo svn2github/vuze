@@ -81,7 +81,7 @@ PeerManagerImpl
 
 	private final DiskManagerPiece[]	dm_pieces;
 	private final PEPiece[]				pe_pieces;
-	private pieceFacade[]	piece_facades;
+	private pieceFacade[]				piece_facades;
 	
 	protected
 	PeerManagerImpl(
@@ -91,6 +91,31 @@ PeerManagerImpl
 		
 		dm_pieces	= _manager.getDiskManager().getPieces();
 		pe_pieces	= _manager.getPieces();
+		
+		manager.addListener(
+			new PEPeerManagerListener()
+			{
+				 public void
+				 peerAdded(
+					PEPeerManager	manager, 
+					PEPeer 			peer )
+				 {
+					 
+				 }
+				 
+				 public void 
+				 peerRemoved( 
+					PEPeerManager 	manager, 
+					PEPeer 			peer )
+				 {
+					 PeerImpl	dele = getPeerForPEPeer( peer );
+					 
+					 if ( dele != null ){
+						 
+						 dele.closed();
+					 }
+				 }
+			});
 	}
 
 	public PEPeerManager

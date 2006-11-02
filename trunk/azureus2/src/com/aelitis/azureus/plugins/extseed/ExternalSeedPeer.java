@@ -259,7 +259,8 @@ ExternalSeedPeer
 			try{
 				man.requestComplete( request, data, this );
 					
-				stats.received( request.getLength());
+				// moved to the rate-limiting code for more accurate stats
+				// stats.received( request.getLength());
 				
 			}catch( Throwable e ){
 				
@@ -770,6 +771,27 @@ ExternalSeedPeer
 	getSupportedMessages()
 	{
 		return( new Message[0] );
+	}
+	
+	public int
+	readBytes(
+		int	max )
+	{
+		int	res = reader.readBytes( max );
+		
+		if ( res > 0 ){
+			
+			stats.received( res );
+		}
+		
+		return( res );
+	}
+	
+	public int
+	writeBytes(
+		int	max )
+	{
+		throw( new RuntimeException( "Not supported" ));
 	}
 	
 	public int

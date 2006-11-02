@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.extseed.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
@@ -71,6 +72,8 @@ ExternalSeedReaderImpl
 	private Semaphore		request_sem;
 	private Monitor			requests_mon;
 	
+	private ExternalSeedReaderRequest	active_read_request;
+	
 	private int[]		priority_offsets;
 	
 	private int			min_availability;
@@ -84,6 +87,10 @@ ExternalSeedReaderImpl
 
 	private List	listeners	= new ArrayList();
 	
+	private AESemaphore			rate_sem = new AESemaphore( "ExternalSeedReaderRequest" );
+	private int					rate_bytes_read;
+	private int					rate_bytes_permitted;
+
 	protected
 	ExternalSeedReaderImpl(
 		ExternalSeedPlugin 		_plugin,
@@ -541,6 +548,89 @@ ExternalSeedReaderImpl
 		}
 	}
 
+		/**
+		 * Rate handling 
+		 */
+	
+	public int
+	readBytes(
+		int		max )
+	{
+			// permission to read a bunch of bytes
+		
+			// we're out of step here due to multiple threads so we have to report what
+			// has already happened and prepare for what will
+		
+		int	res = 0;
+		
+		synchronized( rate_sem ){
+			
+			if ( rate_bytes_read > 0 ){
+				
+				res = rate_bytes_read;
+				
+				if ( res > max ){
+					
+					res = max;
+				}
+				
+				rate_bytes_read -= res;
+			}
+			
+			int	rem = max - res;
+			
+			if ( rem > rate_bytes_permitted ){
+				
+				if ( rate_bytes_permitted == 0 ){
+					
+					rate_sem.release();
+				}
+				
+				rate_bytes_permitted = rem;
+			}
+		}
+		
+		return( res );
+	}
+	
+	public int
+	getPermittedBytes()
+	
+		throws ExternalSeedException
+	{
+		synchronized( rate_sem ){
+			
+			if ( rate_bytes_permitted > 0 ){
+				
+				return( rate_bytes_permitted );
+			}
+		}
+		
+		if ( !rate_sem.reserve( 1000 )){
+			
+			return( 1 );	// one byte a sec to check for connection liveness
+		}
+		
+		return( rate_bytes_permitted );
+	}
+	
+	public void
+	reportBytesRead(
+		int		num )
+	{
+		synchronized( rate_sem ){
+			
+			rate_bytes_read += num;
+			
+			rate_bytes_permitted -= num;
+			
+			if ( rate_bytes_permitted < 0 ){
+				
+				rate_bytes_permitted = 0;
+			}
+		}
+	}
+	
 	public int
 	getPercentDoneOfCurrentIncomingRequest()
 	{
@@ -731,6 +821,8 @@ ExternalSeedReaderImpl
 				
 		ExternalSeedReaderRequest	request = new ExternalSeedReaderRequest( this, requests );
 		
+		active_read_request = request;
+		
 		try{
 			current_request = request;
 			
@@ -756,6 +848,8 @@ ExternalSeedReaderImpl
 			request.failed();
 			
 		}finally{
+			
+			active_read_request = null;
 			
 			if ( ok ){
 				
@@ -842,7 +936,12 @@ ExternalSeedReaderImpl
 	
 					request.cancel();
 				}
-			}			
+			}	
+			
+			if ( active_read_request != null ){
+				
+				active_read_request.cancel();
+			}
 		}finally{
 			
 			requests_mon.exit();

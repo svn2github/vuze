@@ -54,5 +54,11 @@ NetworkConnectionBase
 	 
 	public int
 	getMssSize();
-		  
+		 
+	 /**
+	   * Is the connection within the local LAN network.
+	   * @return true if within LAN, false of outside the LAN segment
+	   */
+
+	public boolean isLANLocal();
 }

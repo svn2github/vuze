@@ -50,7 +50,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
   private byte		is_lan_local	= AddressUtils.LAN_LOCAL_MAYBE;
 
   private final OutgoingMessageQueue outgoing_message_queue;
-  private final IncomingMessageQueue incoming_message_queue;
+  private final IncomingMessageQueueImpl incoming_message_queue;
   
   private Transport	transport;
   
@@ -77,8 +77,8 @@ public class NetworkConnectionImpl implements NetworkConnection {
     
     
     is_connected = false;
-    outgoing_message_queue = new OutgoingMessageQueue( encoder );
-    incoming_message_queue = new IncomingMessageQueue( decoder, this );
+    outgoing_message_queue = new OutgoingMessageQueueImpl( encoder );
+    incoming_message_queue = new IncomingMessageQueueImpl( decoder, this );
   }
   
   
@@ -94,9 +94,9 @@ public class NetworkConnectionImpl implements NetworkConnection {
     transport = _transport;
     connection_endpoint = transport.getTransportEndpoint().getProtocolEndpoint().getConnectionEndpoint();
     is_connected = true;
-    outgoing_message_queue = new OutgoingMessageQueue( encoder );
+    outgoing_message_queue = new OutgoingMessageQueueImpl( encoder );
     outgoing_message_queue.setTransport( transport );
-    incoming_message_queue = new IncomingMessageQueue( decoder, this );
+    incoming_message_queue = new IncomingMessageQueueImpl( decoder, this );
   }
   
 

@@ -110,6 +110,20 @@ ExternalSeedReaderRequest
 		reader.informComplete( current_request, current_buffer );
 	}
 	
+	protected void
+	cancel()
+	{
+		for (int i=0;i<requests.size();i++){
+			
+			PeerReadRequest	req = (PeerReadRequest)requests.get(i);
+
+			if ( !req.isCancelled()){
+				
+				req.cancel();
+			}
+		}
+	}
+	
 	public void
 	failed()
 	{
@@ -140,5 +154,32 @@ ExternalSeedReaderRequest
 		
 		return(( 100 * current_position ) / req.getLength() );
 		
+	}
+	
+	public int
+	getPermittedBytes()
+	
+		throws ExternalSeedException
+	{
+		PeerReadRequest	req = current_request;
+		
+		if ( req == null ){
+			
+			req = (PeerReadRequest)requests.get(0);	
+		}
+		
+		if ( req.isCancelled()){
+			
+			throw( new ExternalSeedException( "Request cancelled" ));
+		}
+		
+		return( reader.getPermittedBytes());
+	}
+	
+	public void
+	reportBytesRead(
+		int		num )
+	{
+		reader.reportBytesRead( num );
 	}
 }

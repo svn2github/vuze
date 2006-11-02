@@ -318,7 +318,7 @@ public class NetworkManager {
    * @param upload_group upload rate limit group
    * @param download_group download rate limit group
    */
-  public void startTransferProcessing( NetworkConnection peer_connection, LimitedRateGroup upload_group, LimitedRateGroup download_group ) {
+  public void startTransferProcessing( NetworkConnectionBase peer_connection, LimitedRateGroup upload_group, LimitedRateGroup download_group ) {
   	if( peer_connection.isLANLocal() && lan_rate_enabled ) {
   		lan_upload_processor.registerPeerConnection( peer_connection, unlimited_rate_group );
   		lan_download_processor.registerPeerConnection( peer_connection, unlimited_rate_group );
@@ -334,7 +334,7 @@ public class NetworkManager {
    * Cancel network upload and download handling for the given connection.
    * @param peer_connection to cancel
    */
-  public void stopTransferProcessing( NetworkConnection peer_connection ) {
+  public void stopTransferProcessing( NetworkConnectionBase peer_connection ) {
   	if( lan_upload_processor.isRegistered( peer_connection )) {
   		lan_upload_processor.deregisterPeerConnection( peer_connection );
   		lan_download_processor.deregisterPeerConnection( peer_connection );
@@ -350,7 +350,7 @@ public class NetworkManager {
    * Upgrade the given connection to high-speed network transfer handling.
    * @param peer_connection to upgrade
    */
-  public void upgradeTransferProcessing( NetworkConnection peer_connection ) {
+  public void upgradeTransferProcessing( NetworkConnectionBase peer_connection ) {
 	  if( lan_upload_processor.isRegistered( peer_connection )) {
   		lan_upload_processor.upgradePeerConnection( peer_connection );
   		lan_download_processor.upgradePeerConnection( peer_connection );
@@ -365,7 +365,7 @@ public class NetworkManager {
    * Downgrade the given connection back to a normal-speed network transfer handling.
    * @param peer_connection to downgrade
    */
-  public void downgradeTransferProcessing( NetworkConnection peer_connection ) {
+  public void downgradeTransferProcessing( NetworkConnectionBase peer_connection ) {
 	  if( lan_upload_processor.isRegistered( peer_connection )) {
   		lan_upload_processor.downgradePeerConnection( peer_connection );
   		lan_download_processor.downgradePeerConnection( peer_connection );

@@ -53,33 +53,33 @@ Peer
 	public byte[] getId();
   
   
-  /**
-   * Get the peer's local TCP connection port.
-   * @return local port
-   */
+	/**
+	 * Get the peer's local TCP connection port.
+	 * @return local port
+	 */
+	
 	public String getIp();
-  
-  
-  /**
-   * Get the TCP port this peer is listening for incoming connections on.
-   * @return TCP port, or 0 if port is unknown
-   */
-  public int getTCPListenPort();
-  
-  /**
-   * Get the UDP port this peer is listening for incoming connections on.
-   * @return UDP port, or 0 if port is unknown
-   */
-  public int getUDPListenPort();
-  
-  /**
-   * Get the UDP port this peer is listening on for non-data connections
-   * @return
-   */
-  
-  public int
-  getUDPNonDataListenPort();
-  
+
+	/**
+	 * Get the TCP port this peer is listening for incoming connections on.
+	 * @return TCP port, or 0 if port is unknown
+	 */
+	public int getTCPListenPort();
+
+	/**
+	 * Get the UDP port this peer is listening for incoming connections on.
+	 * @return UDP port, or 0 if port is unknown
+	 */
+	public int getUDPListenPort();
+
+	/**
+	 * Get the UDP port this peer is listening on for non-data connections
+	 * @return
+	 */
+
+	public int
+	getUDPNonDataListenPort();
+
 	public int getPort();
 	
 	public boolean[] getAvailable();
@@ -91,6 +91,21 @@ Peer
    
 	public boolean
 	isTransferAvailable();
+	
+		/**
+		 * Rate control - gives the maximum number of bytes that can be read from this
+		 * connection at this time and returns the actual number read
+		 * @param max
+		 * @return
+		 */
+	
+	public int
+	readBytes(
+		int	max );
+	
+	public int
+	writeBytes(
+		int	max );
 	
 	/**
 	 * This is much list isTransferAvailable(), except is more comprehensive.

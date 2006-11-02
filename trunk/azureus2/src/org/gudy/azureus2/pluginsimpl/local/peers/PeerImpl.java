@@ -337,6 +337,29 @@ PeerImpl
 	}
 	
 	public int
+	readBytes(
+		int	max )
+	{
+		throw( new RuntimeException( "not supported"));
+	}
+	
+	public int
+	writeBytes(
+		int	max )
+	{
+		throw( new RuntimeException( "not supported"));
+	}
+	
+	protected void
+	closed()
+	{
+		if ( delegate instanceof PeerForeignDelegate ){
+			
+			((PeerForeignDelegate)delegate).closed();
+		}
+	}
+	
+	public int
 	getPercentDoneOfCurrentIncomingRequest()
 	{
 		return( delegate.getPercentDoneOfCurrentIncomingRequest());

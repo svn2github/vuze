@@ -79,7 +79,7 @@ public class MultiPeerUploader implements RateControlledEntity {
           long wait_time = current_time - peer_data.last_message_added_time;
           
           if( wait_time > FLUSH_WAIT_TIME || wait_time < 0 ) {  //time to force flush
-        	  NetworkConnectionBase conn = (NetworkConnection)entry.getKey();
+        	  NetworkConnectionBase conn = (NetworkConnectionBase)entry.getKey();
             
             if( conn.getOutgoingMessageQueue().getTotalSize() > 0 ) { //has data to flush
               conn.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener

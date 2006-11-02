@@ -136,12 +136,23 @@ ExternalSeedHTTPDownloader
 
 					listener.setBufferPosition( buffer_pos );
 					
-					int	len = is.read( buffer, buffer_pos, buffer.length-buffer_pos );
+					int	to_read = buffer.length-buffer_pos;
+					
+					int	permitted = listener.getPermittedBytes();
+					
+					if ( permitted < to_read ){
+						
+						to_read	= permitted;
+					}
+					
+					int	len = is.read( buffer, buffer_pos, to_read );
 					
 					if ( len < 0 ){
 						
 						break;
 					}
+					
+					listener.reportBytesRead( len );
 					
 					pos	+= len;
 					
@@ -351,12 +362,23 @@ ExternalSeedHTTPDownloader
 							buffer = listener.getBuffer();
 						}
 						
-						int	len = is.read( buffer, buffer_pos, buffer.length-buffer_pos );
+						int	to_read = buffer.length-buffer_pos;
+						
+						int	permitted = listener.getPermittedBytes();
+						
+						if ( permitted < to_read ){
+							
+							to_read	= permitted;
+						}
+						
+						int	len = is.read( buffer, buffer_pos, to_read );
 						
 						if ( len < 0 ){
 							
 							break;
 						}
+						
+						listener.reportBytesRead( len );
 						
 						pos	+= len;
 						
