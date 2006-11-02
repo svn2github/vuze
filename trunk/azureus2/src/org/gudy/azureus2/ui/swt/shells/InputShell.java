@@ -46,6 +46,7 @@ public class InputShell {
 	private String[] p1;
 	private String textValue;
 	private boolean bMultiLine;
+	private boolean bIsCanceled;
 
 	public InputShell(String sTitleKey, String sLabelKey) {
 		this(sTitleKey, null, sLabelKey, null, false);
@@ -65,6 +66,7 @@ public class InputShell {
 		this.sLabelKey = sLabelKey;
 		this.p1 = p1;
 		this.bMultiLine = bMultiLine;
+		this.bIsCanceled = true;
 		
 		this.setTextValue("");
 	}
@@ -124,6 +126,7 @@ public class InputShell {
 			public void handleEvent(Event event) {
 				try {
 					setTextValue(text.getText());
+					bIsCanceled = false;
 					shell.dispose();
 				} catch (Exception e) {
 					Debug.printStackTrace(e);
@@ -182,5 +185,9 @@ public class InputShell {
 
 	public void setMultiLine(boolean multiLine) {
 		bMultiLine = multiLine;
+	}
+	
+	public boolean isCanceled() {
+		return bIsCanceled;
 	}
 }
