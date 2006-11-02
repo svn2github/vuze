@@ -348,6 +348,10 @@ public class MessageText {
   {
   	String	res = getString(key);
   	
+  	if (params == null) {
+  		return res;
+  	}
+  	
   	for(int i=0;i<params.length;i++){
   		
   		String	from_str 	= "%" + (i+1);
