@@ -544,8 +544,6 @@ TOTorrentDeserialiseImpl
 			if ( pieces_supplied > pieces_required ){
 				
 				Debug.out( "Torrent '" + new String( getName()) + "' has too many pieces (required=" + pieces_required + ",supplied=" + pieces_supplied + ") - ignoring excess" );
-				
-				pieces_supplied	= pieces_required;
 			}
 
 			byte[][]pieces = new byte[pieces_supplied][20];

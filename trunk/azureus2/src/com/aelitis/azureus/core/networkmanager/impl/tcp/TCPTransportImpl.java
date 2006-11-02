@@ -231,13 +231,11 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     		      Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + filter.getName()));
     			}
     			
-    			connectedOutbound();
-          
-    			listener.connectSuccess( TCPTransportImpl.this, remaining_initial_data );
-    		}
+    			connectedOutbound( remaining_initial_data, listener );         
+     		}
 
     		public void handshakeFailure( Throwable failure_msg ) {        	
-        	if( fallback_allowed && NetworkManager.OUTGOING_HANDSHAKE_FALLBACK_ALLOWED ) {        		
+        	if( fallback_allowed && NetworkManager.OUTGOING_HANDSHAKE_FALLBACK_ALLOWED && !has_been_closed ) {        		
         		if( Logger.isEnabled() ) Logger.log(new LogEvent(LOGID, description+ " | crypto handshake failure [" +failure_msg.getMessage()+ "], attempting non-crypto fallback." ));
         		connect_with_crypto = false;
         		fallback_count++;
@@ -282,9 +280,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 		  Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + getFilter().getName() + ", fallback = " + (fallback_count==0?"no":"yes" )));
 		}
 		
-		connectedOutbound();
-		
-    	listener.connectSuccess( this, initial_data );
+		connectedOutbound( initial_data, listener ); 
   	}
   }
   
@@ -343,7 +339,32 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     transport_mode = mode;
   }
   
- 
+  protected void
+  connectedOutbound(
+	  ByteBuffer			remaining_initial_data,
+	  ConnectListener		listener )
+  {
+	  if ( has_been_closed ){
+		
+		TransportHelperFilter	filter = getFilter();
+
+	    if ( filter != null ){
+	 
+	      filter.getHelper().close( "Connection closed" );
+	      
+	      setFilter( null );
+	    }
+     		
+    	listener.connectFailure( new Throwable( "Connection closed" ));
+
+	  }else{
+		
+		connectedOutbound();
+		  
+		listener.connectSuccess( this, remaining_initial_data );
+	  }
+  }
+  
   /**
    * Get the transport's speed mode.
    * @return current mode
@@ -365,16 +386,16 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 
 	TransportHelperFilter	filter = getFilter();
 
-    if( filter != null ){
+    if ( filter != null ){
  
       filter.getHelper().close( reason );
       
       setFilter( null );
     }
     
-    	// 
+    	// we need to set it ready for reading so that the other scheduling thread wakes up
+    	// and discovers that this connection has been closed
+    
     setReadyForRead();
   }
-     
-  
 }

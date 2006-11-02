@@ -44,6 +44,7 @@ public class VirtualChannelSelector {
 
   private boolean SAFE_SELECTOR_MODE_ENABLED = COConfigurationManager.getBooleanParameter( "network.tcp.enable_safe_selector_mode" );
   
+  private static final int MAX_CHANNELS_PER_SAFE_SELECTOR	= 60;
   private static final int MAX_SAFEMODE_SELECTORS = 100;
   
   private String		name;
@@ -123,14 +124,38 @@ public class VirtualChannelSelector {
   protected void registerSupport( AbstractSelectableChannel channel, VirtualAbstractSelectorListener listener, Object attachment ) {
     if( SAFE_SELECTOR_MODE_ENABLED ) {
       try{  selectors_mon.enter();
+      	//System.out.println( "register - " + channel.hashCode()  + " - " + Debug.getCompressedStackTrace());
         for( Iterator it = selectors.entrySet().iterator(); it.hasNext(); ) {
           Map.Entry entry = (Map.Entry)it.next();          
           VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)entry.getKey();
           ArrayList channels = (ArrayList)entry.getValue();
           
-          if( channels.size() < 60 ) {  //there's room in the current selector
+          if( channels.size() >= MAX_CHANNELS_PER_SAFE_SELECTOR ) { 
+        	  
+         	  // it seems that we have a bug somewhere where a selector is being registered
+        	  // but not cancelled on close. As an interim fix scan channels and remove any
+        	  // closed ones
+        	  
+        	  Iterator	chan_it = channels.iterator();
+        	  
+        	  while( chan_it.hasNext()){
+        		  
+        		  AbstractSelectableChannel	chan = (AbstractSelectableChannel)chan_it.next();
+        		  
+        		  if ( !chan.isOpen()){
+        			  
+        			  Debug.out( "Selector '" + getName() + "' - removing orphaned safe channel registration" );
+        			  
+        			  chan_it.remove();
+        		  }
+        	  }
+          }
+          
+          if( channels.size() < MAX_CHANNELS_PER_SAFE_SELECTOR ) {  //there's room in the current selector  
+
             sel.register( channel, listener, attachment );
             channels.add( channel );
+            
             return;
           }
         }
@@ -175,6 +200,7 @@ public class VirtualChannelSelector {
   public void pauseSelects( AbstractSelectableChannel channel ) {
     if( SAFE_SELECTOR_MODE_ENABLED ) {
       try{  selectors_mon.enter();
+      	//System.out.println( "pause - " + channel.hashCode() + " - " + Debug.getCompressedStackTrace());
         for( Iterator it = selectors.entrySet().iterator(); it.hasNext(); ) {
           Map.Entry entry = (Map.Entry)it.next();          
           VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)entry.getKey();
@@ -204,6 +230,7 @@ public class VirtualChannelSelector {
   public void resumeSelects( AbstractSelectableChannel channel ) {
     if( SAFE_SELECTOR_MODE_ENABLED ) {
       try{  selectors_mon.enter();
+      	//System.out.println( "resume - " + channel.hashCode() + " - " + Debug.getCompressedStackTrace());
         for( Iterator it = selectors.entrySet().iterator(); it.hasNext(); ) {
           Map.Entry entry = (Map.Entry)it.next();          
           VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)entry.getKey();
@@ -233,6 +260,7 @@ public class VirtualChannelSelector {
   public void cancel( AbstractSelectableChannel channel ) {
     if( SAFE_SELECTOR_MODE_ENABLED ) {
       try{  selectors_mon.enter();
+      	//System.out.println( "cancel - " + channel.hashCode()  + " - " + Debug.getCompressedStackTrace());
         for( Iterator it = selectors.entrySet().iterator(); it.hasNext(); ) {
           Map.Entry entry = (Map.Entry)it.next();          
           VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)entry.getKey();
@@ -291,8 +319,12 @@ public class VirtualChannelSelector {
 		    	 
 		        VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)it.next();
 		        
-		       sel.destroy();
+		        sel.destroy();
 		     }
+		     
+		     selectors.clear();
+		     selectors_keyset_cow = new HashSet();
+		     
 		 }finally{
 			 selectors_mon.exit();
 		 }

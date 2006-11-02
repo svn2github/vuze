@@ -26,7 +26,9 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 
-import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
+
 
 
 
@@ -82,7 +84,7 @@ public class TransferProcessor {
    * @param connection to register
    * @param group rate limit group
    */
-  public void registerPeerConnection( NetworkConnection connection, LimitedRateGroup group ) {
+  public void registerPeerConnection( NetworkConnectionBase connection, LimitedRateGroup group ) {
     final ConnectionData conn_data = new ConnectionData();
 
     try {  connections_mon.enter();
@@ -105,7 +107,7 @@ public class TransferProcessor {
     main_controller.registerPeerConnection( connection );
   }
   
-  public boolean isRegistered( NetworkConnection connection ){
+  public boolean isRegistered( NetworkConnectionBase connection ){
     try{ connections_mon.enter();
       return( connections.containsKey( connection ));
     }
@@ -116,7 +118,7 @@ public class TransferProcessor {
    * Cancel upload handling for the given peer connection.
    * @param connection to cancel
    */
-  public void deregisterPeerConnection( NetworkConnection connection ) {
+  public void deregisterPeerConnection( NetworkConnectionBase connection ) {
     try{ connections_mon.enter();
       ConnectionData conn_data = (ConnectionData)connections.remove( connection );
       
@@ -143,7 +145,7 @@ public class TransferProcessor {
    * Upgrade the given connection to a high-speed transfer handler.
    * @param connection to upgrade
    */
-  public void upgradePeerConnection( final NetworkConnection connection ) {
+  public void upgradePeerConnection( final NetworkConnectionBase connection ) {
     ConnectionData connection_data = null;
     
     try{ connections_mon.enter();
@@ -192,7 +194,7 @@ public class TransferProcessor {
    * Downgrade the given connection back to a normal-speed transfer handler.
    * @param connection to downgrade
    */
-  public void downgradePeerConnection( NetworkConnection connection ) {
+  public void downgradePeerConnection( NetworkConnectionBase connection ) {
     ConnectionData conn_data = null;
     
     try{ connections_mon.enter();

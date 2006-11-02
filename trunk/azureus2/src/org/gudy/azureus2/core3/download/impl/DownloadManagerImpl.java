@@ -532,6 +532,10 @@ DownloadManagerImpl
 						 
 					 torrent	= null;	// prevent this download from being used
 					 
+					 	// set up some kinda default else things don't work wel...
+					 
+					 torrent_save_location = new File( torrent_save_dir, torrentFileName );
+					 
 					 throw( new NoStackException( "Download identity changed - please remove and re-add the download" ));
 				 }
 				 

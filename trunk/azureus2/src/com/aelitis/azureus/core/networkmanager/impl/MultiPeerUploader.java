@@ -79,7 +79,7 @@ public class MultiPeerUploader implements RateControlledEntity {
           long wait_time = current_time - peer_data.last_message_added_time;
           
           if( wait_time > FLUSH_WAIT_TIME || wait_time < 0 ) {  //time to force flush
-            NetworkConnection conn = (NetworkConnection)entry.getKey();
+        	  NetworkConnectionBase conn = (NetworkConnection)entry.getKey();
             
             if( conn.getOutgoingMessageQueue().getTotalSize() > 0 ) { //has data to flush
               conn.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener
@@ -113,7 +113,7 @@ public class MultiPeerUploader implements RateControlledEntity {
       //remove and cancel all connections in waiting list    
       for( Iterator i = waiting_connections.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry entry = (Map.Entry)i.next();
-        NetworkConnection conn = (NetworkConnection)entry.getKey();
+        NetworkConnectionBase conn = (NetworkConnectionBase)entry.getKey();
         PeerData data = (PeerData)entry.getValue();
         conn.getOutgoingMessageQueue().cancelQueueListener( data.queue_listener );
       }
@@ -134,8 +134,8 @@ public class MultiPeerUploader implements RateControlledEntity {
    * Add the given connection to be managed by this upload entity.
    * @param peer_connection to be write managed
    */
-  public void addPeerConnection( NetworkConnection peer_connection ) {
-    int mss_size = peer_connection.getTransport().getMssSize();
+  public void addPeerConnection( NetworkConnectionBase peer_connection ) {
+    int mss_size = peer_connection.getMssSize();
     boolean has_urgent_data = peer_connection.getOutgoingMessageQueue().hasUrgentMessage();
     int num_bytes_ready = peer_connection.getOutgoingMessageQueue().getTotalSize();
     
@@ -153,7 +153,7 @@ public class MultiPeerUploader implements RateControlledEntity {
    * @param peer_connection to be removed
    * @return true if the connection was found and removed, false if not removed
    */
-  public boolean removePeerConnection( NetworkConnection peer_connection ) {
+  public boolean removePeerConnection( NetworkConnectionBase peer_connection ) {
     try {
       lists_lock.enter();
       
@@ -180,7 +180,7 @@ public class MultiPeerUploader implements RateControlledEntity {
   
 
   //connections with less than a packet's worth of data
-  private void addToWaitingList( final NetworkConnection conn ) {
+  private void addToWaitingList( final NetworkConnectionBase conn ) {
     final PeerData peer_data = new PeerData();
     
     OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
@@ -235,7 +235,7 @@ public class MultiPeerUploader implements RateControlledEntity {
   
   
   //connections ready to write
-  private void addToReadyList( final NetworkConnection conn ) {
+  private void addToReadyList( final NetworkConnectionBase conn ) {
     try {
       lists_lock.enter();
       
@@ -265,9 +265,9 @@ public class MultiPeerUploader implements RateControlledEntity {
       int num_unusable_connections = 0;
       
       while( num_bytes_remaining > 0 && num_unusable_connections < ready_connections.size() ) {
-        NetworkConnection conn = (NetworkConnection)ready_connections.removeFirst();
+    	NetworkConnectionBase conn = (NetworkConnectionBase)ready_connections.removeFirst();
         
-        if( !conn.getTransport().isReadyForWrite( waiter ) ) {  //not yet ready for writing
+        if( !conn.getTransportBase().isReadyForWrite( waiter ) ) {  //not yet ready for writing
           ready_connections.addLast( conn );  //re-add to end as currently unusable
           num_unusable_connections++;
           continue;  //move on to the next connection
@@ -316,7 +316,7 @@ public class MultiPeerUploader implements RateControlledEntity {
                     e.getMessage().indexOf( "Broken pipe" ) == -1 &&
                     e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
                   
-                  System.out.println( "MP: write exception [" +conn.getTransport().getDescription()+ "]: " +e.getMessage() );
+                  System.out.println( "MP: write exception [" +conn.getTransportBase().getDescription()+ "]: " +e.getMessage() );
                 }
               }
             }
@@ -340,14 +340,14 @@ public class MultiPeerUploader implements RateControlledEntity {
     
     //manual queue listener notifications
     for( int i=0; i < manual_notifications.size(); i++ ) {
-      NetworkConnection conn = (NetworkConnection)manual_notifications.get( i );
+      NetworkConnectionBase conn = (NetworkConnectionBase)manual_notifications.get( i );
       conn.getOutgoingMessageQueue().doListenerNotifications();
     }
     
     //exception notifications
     for( Iterator i = connections_to_notify_of_exception.entrySet().iterator(); i.hasNext(); ) {
       Map.Entry entry = (Map.Entry)i.next();
-      NetworkConnection conn = (NetworkConnection)entry.getKey();
+      NetworkConnectionBase conn = (NetworkConnectionBase)entry.getKey();
       Throwable exception = (Throwable)entry.getValue();
       conn.notifyOfException( exception );
     }

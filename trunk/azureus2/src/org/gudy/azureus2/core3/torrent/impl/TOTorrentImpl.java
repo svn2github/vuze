@@ -68,8 +68,8 @@ TOTorrentImpl
 	private TOTorrentAnnounceURLGroupImpl	announce_group = new TOTorrentAnnounceURLGroupImpl(this);
 	
 	private long		piece_length;
-	private int			number_of_pieces;
 	private byte[][]	pieces;
+	private int			number_of_pieces;
 	
 	private byte[]		torrent_hash;
 	private HashWrapper	torrent_hash_wrapper;
@@ -738,6 +738,16 @@ TOTorrentImpl
 	public int
 	getNumberOfPieces()
 	{
+			// to support buggy torrents with extraneous pieces (they seem to exist) we calculate
+			// the required number of pieces rather than the using the actual. Note that we 
+			// can't adjust the pieces array itself as this results in incorrect torrent hashes
+			// being derived later after a save + restore
+		
+		if ( number_of_pieces == 0 ){
+		
+			number_of_pieces = (int)((getSize() + (piece_length-1)) / piece_length );
+		}
+		
 		return( number_of_pieces );
 	}
 	
@@ -752,11 +762,6 @@ TOTorrentImpl
 		byte[][]	_pieces )
 	{
 		pieces = _pieces;
-		
-		if ( pieces != null ){
-			
-			number_of_pieces = pieces.length;
-		}
 	}
 	
 	public TOTorrentFile[]

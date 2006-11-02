@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
 
 
 /**
@@ -34,10 +35,10 @@ import com.aelitis.azureus.core.networkmanager.NetworkConnection;
  */
 public class SinglePeerUploader implements RateControlledEntity {
   
-  private final NetworkConnection connection;
+  private final NetworkConnectionBase connection;
   private final RateHandler rate_handler;
   
-  public SinglePeerUploader( NetworkConnection connection, RateHandler rate_handler ) {
+  public SinglePeerUploader( NetworkConnectionBase connection, RateHandler rate_handler ) {
     this.connection = connection;
     this.rate_handler = rate_handler;
   }
@@ -46,7 +47,7 @@ public class SinglePeerUploader implements RateControlledEntity {
 ////////////////RateControlledWriteEntity implementation ////////////////////
   
   public boolean canProcess(EventWaiter waiter) {
-    if( !connection.getTransport().isReadyForWrite(waiter) )  {
+    if( !connection.getTransportBase().isReadyForWrite(waiter) )  {
       return false;  //underlying transport not ready
     }
     if( connection.getOutgoingMessageQueue().getTotalSize() < 1 ) {
@@ -59,7 +60,7 @@ public class SinglePeerUploader implements RateControlledEntity {
   }
   
   public boolean doProcessing(EventWaiter waiter) {
-    if( !connection.getTransport().isReadyForWrite(waiter) )  {
+    if( !connection.getTransportBase().isReadyForWrite(waiter) )  {
       Debug.out("dW:not ready");
       return false;
     }
@@ -96,7 +97,7 @@ public class SinglePeerUploader implements RateControlledEntity {
               e.getMessage().indexOf( "Broken pipe" ) == -1 &&
               e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
             
-            System.out.println( "SP: write exception [" +connection.getTransport().getDescription()+ "]: " +e.getMessage() );
+            System.out.println( "SP: write exception [" +connection.getTransportBase().getDescription()+ "]: " +e.getMessage() );
           }
         }
       }

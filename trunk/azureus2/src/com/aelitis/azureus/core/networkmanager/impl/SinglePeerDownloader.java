@@ -33,11 +33,11 @@ import com.aelitis.azureus.core.networkmanager.*;
  */
 public class SinglePeerDownloader implements RateControlledEntity {
   
-  private final NetworkConnection connection;
+  private final NetworkConnectionBase connection;
   private final RateHandler rate_handler;
   
   
-  public SinglePeerDownloader( NetworkConnection connection, RateHandler rate_handler ) {
+  public SinglePeerDownloader( NetworkConnectionBase connection, RateHandler rate_handler ) {
     this.connection = connection;
     this.rate_handler = rate_handler;
   }
@@ -45,7 +45,7 @@ public class SinglePeerDownloader implements RateControlledEntity {
   
 
   public boolean canProcess( EventWaiter waiter ) {
-    if( !connection.getTransport().isReadyForRead( waiter ) )  {
+    if( !connection.getTransportBase().isReadyForRead( waiter ) )  {
       return false;  //underlying transport not ready
     }
     if( rate_handler.getCurrentNumBytesAllowed() < 1 ) {
@@ -56,7 +56,7 @@ public class SinglePeerDownloader implements RateControlledEntity {
   
   
   public boolean doProcessing( EventWaiter waiter ) {
-    if( !connection.getTransport().isReadyForRead(waiter) )  {
+    if( !connection.getTransportBase().isReadyForRead(waiter) )  {
       return false;
     }
     
@@ -86,7 +86,7 @@ public class SinglePeerDownloader implements RateControlledEntity {
               e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
               e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
             
-            System.out.println( "SP: read exception [" +connection.getTransport().getDescription()+ "]: " +e.getMessage() );
+            System.out.println( "SP: read exception [" +connection.getTransportBase().getDescription()+ "]: " +e.getMessage() );
           }
         }
       }

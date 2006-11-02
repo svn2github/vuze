@@ -28,7 +28,10 @@ import java.nio.ByteBuffer;
 /**
  * Represents a peer Transport connection (eg. a network socket).
  */
-public interface Transport {
+public interface 
+Transport 
+	extends TransportBase
+{
 	
   public static final int TRANSPORT_MODE_NORMAL = 0;
   public static final int TRANSPORT_MODE_FAST   = 1;
@@ -48,37 +51,14 @@ public interface Transport {
    * Get the socket channel used by the transport.
    * @return the socket channel
    */
-  public TransportEndpoint getTransportEndpoint();
-  
-  
-  /**
-   * Get a textual description for this transport.
-   * @return description
-   */
-  public String getDescription();
-  
+  public TransportEndpoint getTransportEndpoint();  
   
   /**
    * Return a textual description of the encryption for this transport
    * @return
    */
   public String getEncryption();
-  
-  /**
-   * Is the transport ready to write,
-   * i.e. will a write request result in >0 bytes written.
-   * @return true if the transport is write ready, false if not yet ready
-   */
-  public boolean isReadyForWrite( EventWaiter waiter );
-  
-  
-  /**
-   * Is the transport ready to read,
-   * i.e. will a read request result in >0 bytes read.
-   * @return true if the transport is read ready, false if not yet ready
-   */
-  public boolean isReadyForRead( EventWaiter waiter );
-    
+      
   /**
    * fake a wakeup so that a read cycle is attempted
    */

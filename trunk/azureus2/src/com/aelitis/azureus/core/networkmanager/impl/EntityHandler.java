@@ -69,7 +69,7 @@ public class EntityHandler {
    * Register a peer connection for management by the handler.
    * @param connection to add to the global pool
    */
-  public void registerPeerConnection( NetworkConnection connection ) {
+  public void registerPeerConnection( NetworkConnectionBase connection ) {
     try {  lock.enter();
       if( !global_registered ) {
         if( handler_type == TransferProcessor.TYPE_UPLOAD ) {
@@ -97,7 +97,7 @@ public class EntityHandler {
    * Remove a peer connection from the entity handler.
    * @param connection to cancel
    */
-  public void cancelPeerConnection( NetworkConnection connection ) {
+  public void cancelPeerConnection( NetworkConnectionBase connection ) {
     if( handler_type == TransferProcessor.TYPE_UPLOAD ) {
       if( !global_uploader.removePeerConnection( connection ) ) {  //if not found in the pool entity
         SinglePeerUploader upload_entity = (SinglePeerUploader)upgraded_connections.remove( connection );  //check for it in the upgraded list
@@ -123,7 +123,7 @@ public class EntityHandler {
    * @param connection to upgrade from global management
    * @param handler individual connection rate handler
    */
-  public void upgradePeerConnection( NetworkConnection connection, RateHandler handler ) {   
+  public void upgradePeerConnection( NetworkConnectionBase connection, RateHandler handler ) {   
     try {  lock.enter();
       if( handler_type == TransferProcessor.TYPE_UPLOAD ) {
         SinglePeerUploader upload_entity = new SinglePeerUploader( connection, handler );
@@ -150,7 +150,7 @@ public class EntityHandler {
    * Downgrade (return) a peer connection back into the general pool.
    * @param connection to downgrade back into the global entity
    */
-  public void downgradePeerConnection( NetworkConnection connection ) {
+  public void downgradePeerConnection( NetworkConnectionBase connection ) {
     try {  lock.enter();
       if( handler_type == TransferProcessor.TYPE_UPLOAD ) {
         SinglePeerUploader upload_entity = (SinglePeerUploader)upgraded_connections.remove( connection );  //remove from the upgraded list  

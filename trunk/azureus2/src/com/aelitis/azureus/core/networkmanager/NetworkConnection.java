@@ -28,14 +28,14 @@ import java.nio.ByteBuffer;
 /**
  * Represents a managed network connection, over which messages can be sent and received. 
  */
-public interface NetworkConnection {
+public interface
+NetworkConnection
+	extends NetworkConnectionBase
+{
   
 	public ConnectionEndpoint
 	getEndpoint();
   
-	public int
-	getMssSize();
-	  
   /**
    * Connect this connection's transport, i.e. establish the network connection.
    * If this connection is already established (from an incoming connection for example),
@@ -51,28 +51,6 @@ public interface NetworkConnection {
    * Close and shutdown this connection.
    */
   public void close();
-  
-  
-  /**
-   * Inform connection of a thrown exception.
-   * @param error exception
-   */
-  public void notifyOfException( Throwable error );
-  
-
-  
-  /**
-   * Get the connection's outgoing message queue.
-   * @return outbound message queue
-   */
-  public OutgoingMessageQueue getOutgoingMessageQueue();
-  
-  
-  /**
-   * Get the connection's incoming message queue.
-   * @return inbound message queue
-   */
-  public IncomingMessageQueue getIncomingMessageQueue();
   
   
   /**

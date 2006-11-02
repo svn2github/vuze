@@ -56,7 +56,7 @@ public class MultiPeerDownloader implements RateControlledEntity {
    * Add the given connection to the downloader.
    * @param connection to add
    */
-  public void addPeerConnection( NetworkConnection connection ) {
+  public void addPeerConnection( NetworkConnectionBase connection ) {
     try {  connections_mon.enter();
       //copy-on-write
       ArrayList conn_new = new ArrayList( connections_cow.size() + 1 );
@@ -73,7 +73,7 @@ public class MultiPeerDownloader implements RateControlledEntity {
    * @param connection to remove
    * @return true if the connection was found and removed, false if not removed
    */
-  public boolean removePeerConnection( NetworkConnection connection ) {
+  public boolean removePeerConnection( NetworkConnectionBase connection ) {
     try {  connections_mon.enter();
       //copy-on-write
       ArrayList conn_new = new ArrayList( connections_cow );
@@ -108,11 +108,11 @@ public class MultiPeerDownloader implements RateControlledEntity {
     while( num_bytes_remaining > 0 && num_checked < connections.size() ) {
       next_position = next_position >= connections.size() ? 0 : next_position;  //make circular
       
-      NetworkConnection connection = (NetworkConnection)connections.get( next_position );
+      NetworkConnectionBase connection = (NetworkConnectionBase)connections.get( next_position );
       next_position++;
       num_checked++;
       
-      if( connection.getTransport().isReadyForRead( waiter ) ) {
+      if( connection.getTransportBase().isReadyForRead( waiter ) ) {
     	int	mss = connection.getMssSize();
         int allowed = num_bytes_remaining > mss ? mss : num_bytes_remaining;
           
@@ -133,7 +133,7 @@ public class MultiPeerDownloader implements RateControlledEntity {
                   e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
                   e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
                   
-                System.out.println( "MP: read exception [" +connection.getTransport().getDescription()+ "]: " +e.getMessage() );
+                System.out.println( "MP: read exception [" +connection.getTransportBase().getDescription()+ "]: " +e.getMessage() );
               }
             }
           }

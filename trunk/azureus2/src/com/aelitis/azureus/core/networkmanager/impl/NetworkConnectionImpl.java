@@ -216,6 +216,8 @@ public class NetworkConnectionImpl implements NetworkConnection {
 
   public Transport getTransport() {  return transport;  }
   
+  public TransportBase getTransportBase() {  return transport;  }
+  
   public int
   getMssSize()
   {
