@@ -134,14 +134,6 @@ TCPNetworkManager
 	   */
 	  public VirtualChannelSelector getWriteSelector() {  return write_selector;  }
 	  
-	  /**
-	   * Asynchronously close the given socket channel.
-	   * @param channel to close
-	   */
-	  public void closeSocketChannel( SocketChannel channel ) {
-	    connect_disconnect_manager.closeConnection( channel );
-	  }
-	 	  
 	  
 	  /**
 	   * Get port that the TCP server socket is listening for incoming connections on.

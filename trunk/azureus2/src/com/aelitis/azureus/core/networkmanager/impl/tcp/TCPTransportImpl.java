@@ -188,12 +188,12 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
           new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
             public void connectSuccess() {
             	Logger.log(new LogEvent(LOGID, "Proxy [" +description+ "] login successful." ));
-              handleCrypto( address, channel, initial_data, listener );
+            	handleCrypto( address, channel, initial_data, listener );
             }
             
             public void connectFailure( Throwable failure_msg ) {
-            	TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
-              listener.connectFailure( failure_msg );
+            	close( "Proxy login failed" );
+            	listener.connectFailure( failure_msg );
             }
           });
         }
@@ -221,7 +221,8 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
   protected void handleCrypto( final InetSocketAddress address, final SocketChannel channel, final ByteBuffer initial_data, final ConnectListener listener ) {  	
   	if( connect_with_crypto ) {
     	//attempt encrypted transport
-  		TransportHelper	helper = new TCPTransportHelper( channel );
+  		
+  		final TransportHelper	helper = new TCPTransportHelper( channel );
     	TransportCryptoManager.getSingleton().manageCrypto( helper, shared_secret, false, initial_data, new TransportCryptoManager.HandshakeListener() {
     		public void handshakeSuccess( ProtocolDecoder decoder, ByteBuffer remaining_initial_data ) {    			
     			//System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" ); 
@@ -239,13 +240,12 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         		if( Logger.isEnabled() ) Logger.log(new LogEvent(LOGID, description+ " | crypto handshake failure [" +failure_msg.getMessage()+ "], attempting non-crypto fallback." ));
         		connect_with_crypto = false;
         		fallback_count++;
-        		TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
-        		close( "Handshake failure and retry" );
+         		close( helper, "Handshake failure and retry" );
         		has_been_closed = false;
         		connectOutbound( initial_data, listener );
         	}
         	else {
-        		TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
+        		close( helper, "Handshake failure" );
         		listener.connectFailure( failure_msg );
         	}
         }
@@ -371,6 +371,16 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
    */
   public int getTransportMode() {  return transport_mode;  }
     
+  protected void
+  close(
+	TransportHelper		helper,
+	String				reason )
+  {
+	 helper.close( reason );
+	 
+	 close( reason );
+  }
+  
   /**
    * Close the transport connection.
    */

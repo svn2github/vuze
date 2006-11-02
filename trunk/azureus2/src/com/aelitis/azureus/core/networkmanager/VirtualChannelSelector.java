@@ -42,7 +42,9 @@ public class VirtualChannelSelector {
   public static final int OP_READ   = SelectionKey.OP_READ;
   public static final int OP_WRITE  = SelectionKey.OP_WRITE;
 
-  private boolean SAFE_SELECTOR_MODE_ENABLED = COConfigurationManager.getBooleanParameter( "network.tcp.enable_safe_selector_mode" );
+  private boolean SAFE_SELECTOR_MODE_ENABLED = TEST_SAFE_MODE || COConfigurationManager.getBooleanParameter( "network.tcp.enable_safe_selector_mode" );
+  
+  private static final boolean TEST_SAFE_MODE	= false;
   
   private static final int MAX_CHANNELS_PER_SAFE_SELECTOR	= 60;
   private static final int MAX_SAFEMODE_SELECTORS = 100;
@@ -130,7 +132,7 @@ public class VirtualChannelSelector {
           VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)entry.getKey();
           ArrayList channels = (ArrayList)entry.getValue();
           
-          if( channels.size() >= MAX_CHANNELS_PER_SAFE_SELECTOR ) { 
+          if( channels.size() >= ( TEST_SAFE_MODE?0:MAX_CHANNELS_PER_SAFE_SELECTOR )) { 
         	  
          	  // it seems that we have a bug somewhere where a selector is being registered
         	  // but not cancelled on close. As an interim fix scan channels and remove any

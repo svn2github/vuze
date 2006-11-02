@@ -260,7 +260,7 @@ public class IncomingSocketChannelManager
 		            		NetworkManager.getSingleton().closeSocketChannel( channel, 10*1000 );
 		            	*/
 		            
-		            	TCPNetworkManager.getSingleton().closeSocketChannel( channel );
+		            	helper.close( "Handshake failure: " + Debug.getNestedExceptionMessage( failure_msg ));
 		            }
 		            
 		        	public void
