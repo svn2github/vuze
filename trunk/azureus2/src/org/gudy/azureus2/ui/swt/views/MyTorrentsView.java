@@ -1716,7 +1716,7 @@ public class MyTorrentsView
         // Edit Comment
         final MenuItem itemEditComment = new MenuItem(menu, SWT.CASCADE);
         Messages.setLanguageText(itemEditComment, "MyTorrentsView.menu.edit_comment");
-        itemEditComment.setEnabled(fileMove && dms.length == 1);
+        itemEditComment.setEnabled(dms.length > 0);
         if (itemEditComment.isEnabled()) {
         	itemEditComment.setData("suggested_text", first_selected.getDownloadState().getUserComment());
         }
@@ -1734,7 +1734,7 @@ public class MyTorrentsView
                         public void run(TableRowCore row) {
                         	((DownloadManager)row.getDataSource(true)).getDownloadState().setUserComment(value_to_set);
                         }
-                    });
+        			});
         		}
         	}
         };  
