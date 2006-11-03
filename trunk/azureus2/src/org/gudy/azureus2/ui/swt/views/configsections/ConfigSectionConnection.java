@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
@@ -276,6 +277,58 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 		}
 
 		if (userMode > 0) {
+			/////////////////////// HTTP ///////////////////
+
+			Group http_group = new Group(cSection, SWT.NULL);
+			
+			Messages.setLanguageText(http_group,CFG_PREFIX + "group.http");
+			
+			GridLayout http_layout = new GridLayout();
+			
+			http_layout.numColumns = 2;
+
+			http_group.setLayout(http_layout);
+
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			http_group.setLayoutData(gridData);
+
+			label = new Label(http_group, SWT.WRAP);
+			Messages.setLanguageText(label, CFG_PREFIX + "group.http.info");
+
+			new LinkLabel(
+					http_group, 
+					"ConfigView.label.please.visit.here",
+					"http://azureus.aelitis.com/wiki/index.php?title=HTTP_Seeding");
+
+			final BooleanParameter enable_http = 
+				new BooleanParameter(http_group, "HTTP.Data.Listen.Port.Enable", CFG_PREFIX + "http.enable");
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			enable_http.setLayoutData( gridData );
+
+			label = new Label(http_group, SWT.NULL);
+			Messages.setLanguageText(label, CFG_PREFIX + "http.port" );
+
+			IntParameter http_port = new IntParameter(http_group, "HTTP.Data.Listen.Port", false );
+
+			gridData = new GridData();
+			gridData.widthHint = 40;
+			http_port.setLayoutData( gridData );
+
+			label = new Label(http_group, SWT.NULL);
+			Messages.setLanguageText(label, CFG_PREFIX + "http.portoverride" );
+
+			IntParameter http_port_override = new IntParameter(http_group, "HTTP.Data.Listen.Port.Override", false );
+
+			gridData = new GridData();
+			gridData.widthHint = 40;
+			http_port_override.setLayoutData( gridData );
+
+			enable_http.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( http_port ));
+			enable_http.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( http_port_override ));
+		}
+		
+		if (userMode > 0) {
 			/////////////////////// PEER SOURCES GROUP ///////////////////
 
 			Group peer_sources_group = new Group(cSection, SWT.NULL);
@@ -284,7 +337,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			GridLayout peer_sources_layout = new GridLayout();
 			peer_sources_group.setLayout(peer_sources_layout);
 
-			gridData = new GridData();
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			peer_sources_group.setLayoutData(gridData);
 
 			label = new Label(peer_sources_group, SWT.WRAP);
@@ -320,7 +373,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 				GridLayout networks_layout = new GridLayout();
 				networks_group.setLayout(networks_layout);
 
-				gridData = new GridData();
+				gridData = new GridData(GridData.FILL_HORIZONTAL);
 				networks_group.setLayoutData(gridData);
 
 				label = new Label(networks_group, SWT.NULL);

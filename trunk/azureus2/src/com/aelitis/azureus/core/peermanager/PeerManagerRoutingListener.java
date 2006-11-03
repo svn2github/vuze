@@ -27,7 +27,13 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 public interface 
 PeerManagerRoutingListener 
 {
-	public void
+		/**
+		 * Returns true if the routing has been accepted by the listener
+		 * @param peer
+		 * @return
+		 */
+
+	public boolean
 	routed(
 		PEPeerTransport	peer );
 }

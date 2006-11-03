@@ -761,12 +761,24 @@ public class PeerManager {
         
         if ( listener != null ){
         	
+        	boolean	ok = false;
+        	
         	try{
-        		listener.routed( pt );
+        		if ( listener.routed( pt )){
+        			
+        			ok	= true;
+        		}
         		
         	}catch( Throwable e ){
         		
         		Debug.printStackTrace(e);
+        	}
+        	
+        	if ( !ok ){
+        		     
+        		connection.close();
+        		
+        		return;
         	}
         }
        

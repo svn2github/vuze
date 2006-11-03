@@ -23,7 +23,6 @@
 package com.aelitis.azureus.core.networkmanager.impl.http;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -114,6 +113,7 @@ HTTPNetworkConnection
 								
 								List	connections = (List)entry.getValue();
 								
+								/*
 								String	times = "";
 								
 								for (int i=0;i<connections.size();i++){
@@ -124,6 +124,7 @@ HTTPNetworkConnection
 								}
 								
 								System.out.println( "HTTPNC: " + key.getName() + " -> " + connections.size() + " - " + times );
+								*/
 								
 								if ( checkConnections( connections )){
 									
@@ -818,11 +819,13 @@ HTTPNetworkConnection
 			partial_content	= _partial_content;
 			keep_alive		= _keep_alive;
 			
+			/*
 			String	str ="";
 			for (int i=0;i<lengths.length;i++){	
 				str += (i==0?"":",") +"[" + offsets[i] + "/" + lengths[i] + "]";
 			}
 			System.out.println( network_connection_key.getName() + ": requested " + str + ",part=" + partial_content +",ka=" + keep_alive );
+			*/
 			
 			for (int i=0;i<lengths.length;i++){
 				

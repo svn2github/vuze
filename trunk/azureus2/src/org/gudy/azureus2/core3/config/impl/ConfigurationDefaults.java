@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
@@ -123,7 +124,7 @@ public class ConfigurationDefaults {
     def.put("UDP.Listen.Port.Enable", TRUE );
     def.put("UDP.NonData.Listen.Port", new Long( 6881 ));	// two effective enablers for this, dht + tracker udp client
     def.put("UDP.NonData.Listen.Port.Same", TRUE );			// control over whether non-data and data udp port are the same
-    def.put("HTTP.Data.Listen.Port", new Long( 80 ));
+    def.put("HTTP.Data.Listen.Port", new Long( Constants.isWindows?80:8080 ));
     def.put("HTTP.Data.Listen.Port.Override", new Long( 0 ));
     def.put("HTTP.Data.Listen.Port.Enable", FALSE );
     

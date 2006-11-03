@@ -279,7 +279,7 @@ HTTPNetworkManager
 	        				connection,
 	        				new PeerManagerRoutingListener()
 	        				{
-	        					public void
+	        					public boolean
 	        					routed(
 	        						PEPeerTransport		peer )
 	        					{
@@ -287,14 +287,16 @@ HTTPNetworkManager
 	        							
 	        							new HTTPNetworkConnectionWebSeed( HTTPNetworkManager.this, connection, peer, url );
 	        							
+	        							return( true );
+	        							
 	        						}else if ( url.indexOf( "/files/" ) != -1 ){
 
 	        							new HTTPNetworkConnectionFile( HTTPNetworkManager.this, connection, peer, url );
 	        							
-	        						}else{
-	        							
-	        							connection.close();
+	        							return( true );
 	        						}
+	        						
+	        						return( false );
 	        					}
 	        				});
 	        	}
