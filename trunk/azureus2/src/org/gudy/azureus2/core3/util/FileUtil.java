@@ -50,6 +50,22 @@ public class FileUtil {
   private static List		reserved_file_handles 	= new ArrayList();
   private static AEMonitor	class_mon				= new AEMonitor( "FileUtil:class" );
 
+  public static boolean isAncestorOf(File parent, File child) {
+	  parent = canonise(parent);
+	  child = canonise(child);
+	  if (parent.equals(child)) {return true;}
+	  String parent_s = parent.getPath();
+	  String child_s = child.getPath();
+	  if (parent_s.charAt(parent_s.length()-1) != File.separatorChar) {
+		  parent_s += File.separatorChar;
+	  }
+	  return child_s.startsWith(parent_s);
+  }
+  
+  public static File canonise(File file) {
+	  try {return file.getCanonicalFile();}
+	  catch (IOException ioe) {return file;}
+  }
   
   public static String getCanonicalFileName(String filename) {
     // Sometimes Windows use filename in 8.3 form and cannot
