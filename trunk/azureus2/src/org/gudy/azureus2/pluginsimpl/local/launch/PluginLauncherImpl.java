@@ -548,9 +548,9 @@ PluginLauncherImpl
     
       			URL[]	new_urls = new URL[old.length+1];
       			
-      			System.arraycopy( old, 0, new_urls, 0, old.length );
+      			System.arraycopy( old, 0, new_urls, 1, old.length );
       			
-      			new_urls[new_urls.length-1]= f.toURL();
+      			new_urls[0]= f.toURL();
       			
       			classLoader = new URLClassLoader(
       								new_urls,
