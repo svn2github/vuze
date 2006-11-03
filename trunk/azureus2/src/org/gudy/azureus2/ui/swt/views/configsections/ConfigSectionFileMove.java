@@ -90,7 +90,13 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 			gridData.horizontalSpan = 2;
 			copyDontMove.setLayoutData(gridData);
 		}
-
+		
+		BooleanParameter subdirIsDefault = new BooleanParameter(gFile,
+				"File.move.subdir_is_default", "ConfigView.label.subdir_is_in_default");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		subdirIsDefault.setLayoutData(gridData);
+		
 		return gFile;
 	}
 
