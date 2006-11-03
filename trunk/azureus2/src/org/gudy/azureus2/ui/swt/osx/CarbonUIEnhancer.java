@@ -11,13 +11,16 @@ package org.gudy.azureus2.ui.swt.osx;
 
 import java.io.IOException;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.internal.Callback;
 import org.eclipse.swt.internal.carbon.*;
-import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -67,13 +70,40 @@ public class CarbonUIEnhancer {
       registerTorrentFile();
    }
    
-   
+   public static void registerToolbarToggle(Shell shell) {
+		final Callback toolbarToggleCB = new Callback(target, "toolbarToggle", 3);
+		int toolbarToggle = toolbarToggleCB.getAddress();
+		if (toolbarToggle == 0) {
+			Debug.out("OSX: Could not find callback 'toolbarToggle'");
+			toolbarToggleCB.dispose();
+			return;
+		}
+
+		shell.getDisplay().disposeExec(new Runnable() {
+			public void run() {
+				toolbarToggleCB.dispose();
+			}
+		});
+
+		//	 add the button to the window trim
+		int windowHandle = OS.GetControlOwner(shell.handle);
+		OS.ChangeWindowAttributes(windowHandle, OS.kWindowToolbarButtonAttribute, 0);
+
+		int[] mask = new int[] {
+			OS.kEventClassWindow,
+			OS.kEventWindowToolbarSwitchMode
+		};
+		// register the handler with the OS
+		OS.InstallEventHandler(OS.GetApplicationEventTarget(), toolbarToggle,
+				mask.length / 2, mask, 0, null);
+	}
 
    private void registerTorrentFile() {
 		Callback openDocCallback = new Callback(target, "openDocProc", 3);
 		int openDocProc = openDocCallback.getAddress();
 		if (openDocProc == 0) {
 			Debug.out("OSX: Could not find Callback 'openDocProc'");
+			openDocCallback.dispose();
 			return;
 		}
 
@@ -305,7 +335,7 @@ public class CarbonUIEnhancer {
 				Debug.out("OSX: AEGetParamDesc not available.  Can't open sent file");
 				return OS.noErr;
 			}
-			
+
 			int[] count = new int[1];
 			OS.AECountItems(aeDesc, count);
 			//System.out.println("COUNT: " + count[0]);
@@ -319,24 +349,25 @@ public class CarbonUIEnhancer {
 				for (int i = 0; i < count[0]; i++) {
 					if (OS.AEGetNthPtr(aeDesc, i + 1, OS.typeFSRef, aeKeyword, typeCode,
 							dataPtr, maximumSize, actualSize) == OS.noErr) {
-						byte [] fsRef = new byte [actualSize [0]];
-						OS.memcpy (fsRef, dataPtr, actualSize [0]);
-						int dirUrl = OS.CFURLCreateFromFSRef (OS.kCFAllocatorDefault, fsRef);
-						int dirString = OS.CFURLCopyFileSystemPath(dirUrl, OS.kCFURLPOSIXPathStyle);
-						OS.CFRelease (dirUrl);						
-						int length = OS.CFStringGetLength (dirString);
-						char[] buffer= new char [length];
-						CFRange range = new CFRange ();
+						byte[] fsRef = new byte[actualSize[0]];
+						OS.memcpy(fsRef, dataPtr, actualSize[0]);
+						int dirUrl = OS.CFURLCreateFromFSRef(OS.kCFAllocatorDefault, fsRef);
+						int dirString = OS.CFURLCopyFileSystemPath(dirUrl,
+								OS.kCFURLPOSIXPathStyle);
+						OS.CFRelease(dirUrl);
+						int length = OS.CFStringGetLength(dirString);
+						char[] buffer = new char[length];
+						CFRange range = new CFRange();
 						range.length = length;
-						OS.CFStringGetCharacters (dirString, range, buffer);
-						OS.CFRelease (dirString);
-						fileNames[i] = new String (buffer);
+						OS.CFStringGetCharacters(dirString, range, buffer);
+						OS.CFRelease(dirString);
+						fileNames[i] = new String(buffer);
 					}
 
 					if (OS.AEGetNthPtr(aeDesc, i + 1, typeText, aeKeyword, typeCode,
 							dataPtr, maximumSize, actualSize) == OS.noErr) {
-						byte [] urlRef = new byte [actualSize [0]];
-						OS.memcpy (urlRef, dataPtr, actualSize [0]);
+						byte[] urlRef = new byte[actualSize[0]];
+						OS.memcpy(urlRef, dataPtr, actualSize[0]);
 						fileNames[i] = new String(urlRef);
 					}
 
@@ -345,7 +376,50 @@ public class CarbonUIEnhancer {
 
 				TorrentOpener.openTorrents(fileNames);
 			}
-			
+
+			return OS.noErr;
+		}
+
+		int toolbarToggle(int nextHandler, int theEvent, int userData) {
+			int eventKind = OS.GetEventKind(theEvent);
+			if (eventKind != OS.kEventWindowToolbarSwitchMode) {
+				return OS.eventNotHandledErr;
+			}
+
+			int[] theWindow = new int[1];
+			OS.GetEventParameter(theEvent, OS.kEventParamDirectObject,
+					OS.typeWindowRef, null, 4, null, theWindow);
+
+			int[] theRoot = new int[1];
+			OS.GetRootControl(theWindow[0], theRoot);
+			final Widget widget = Display.getCurrent().findWidget(theRoot[0]);
+
+			if (!(widget instanceof Shell)) {
+				return OS.eventNotHandledErr;
+			}
+			final Shell shellAffected = (Shell) widget;
+
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					int type;
+					Long l = (Long) shellAffected.getData("OSX.ToolBarToggle");
+					if (l == null || l.longValue() == 0) {
+						type = SWT.Collapse;
+					} else {
+						type = SWT.Expand;
+					}
+
+					Event event = new Event();
+					event.type = type;
+					event.display = widget.getDisplay();
+					event.widget = widget;
+					shellAffected.notifyListeners(type, event);
+
+					shellAffected.setData("OSX.ToolBarToggle", new Long(
+							type == SWT.Collapse ? 1 : 0));
+				}
+			});
+
 			return OS.noErr;
 		}
 	};
