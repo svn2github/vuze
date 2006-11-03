@@ -76,8 +76,6 @@ public class FileInfoView extends AbstractIView {
 
 	private Label topLabel;
 
-	private Label imageLabel;
-
 	// More delay for this view because of high workload
 	private int graphicsUpdate = COConfigurationManager
 			.getIntParameter("Graphics Update") * 2;
@@ -154,10 +152,7 @@ public class FileInfoView extends AbstractIView {
 		gridData = new GridData(GridData.FILL, GridData.FILL, true, true);
 		fileInfoComposite.setLayoutData(gridData);
 
-		imageLabel = new Label(fileInfoComposite, SWT.NULL);
-		gridData = new GridData();
-
-		imageLabel.setLayoutData(gridData);
+		new Label(fileInfoComposite, SWT.NULL).setLayoutData(new GridData());
 
 		topLabel = new Label(fileInfoComposite, SWT.NULL);
 		gridData = new GridData(SWT.FILL, SWT.DEFAULT, false, false);
@@ -282,12 +277,6 @@ public class FileInfoView extends AbstractIView {
 	}
 
 	public void fillFileInfoSection() {
-		if (imageLabel.getImage() != null) {
-			Image image = imageLabel.getImage();
-			imageLabel.setImage(null);
-			image.dispose();
-		}
-
 		topLabel.setText( "" );
 		
 		refreshInfoCanvas();
@@ -480,12 +469,6 @@ public class FileInfoView extends AbstractIView {
 	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#delete()
 	 */
 	public void delete() {
-		if (!imageLabel.isDisposed() && imageLabel.getImage() != null) {
-			Image image = imageLabel.getImage();
-			imageLabel.setImage(null);
-			image.dispose();
-		}
-
 		if (img != null && !img.isDisposed()) {
 			img.dispose();
 			img = null;
