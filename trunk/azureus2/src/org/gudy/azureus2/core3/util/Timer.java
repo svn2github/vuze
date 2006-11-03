@@ -91,6 +91,10 @@ public class Timer
 		log	= _log;
 	}
 	
+	public boolean getLogging() {
+		return log;
+	}
+	
 	public void
 	setWarnWhenFull()
 	{
@@ -126,7 +130,7 @@ public class Timer
 						long	delay = next_event.getWhen() - now;
 						
 						if ( delay > 0 ){
-						
+							
 							// System.out.println( "waiting for " + delay );
 							
 							this.wait(delay);
@@ -161,7 +165,9 @@ public class Timer
 					
 					event_to_run.setHasRun();
 					
-					// System.out.println( "running: " + event_to_run.getString() );
+					if (log) {
+						System.out.println( "running: " + event_to_run.getString() );
+					}
 					
 					thread_pool.run(event_to_run.getRunnable());
 				}
