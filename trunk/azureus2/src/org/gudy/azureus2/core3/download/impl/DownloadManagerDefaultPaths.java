@@ -54,6 +54,7 @@ public class DownloadManagerDefaultPaths {
 		source = new SourceSpecification();
 		source.setBoolean("default dir", "Move Only When In Default Save Dir");
 		source.setBoolean("default subdir", SUBDIR_PARAM);
+		source.setBoolean("persistent only", true);
 		source.setBoolean(STATE_INCOMPLETE, false);
 		source.setBoolean(STATE_COMPLETE_DND, false);
 		source.setBoolean(STATE_COMPLETE, true); // Only handle fully complete downloads at moment.
@@ -74,6 +75,7 @@ public class DownloadManagerDefaultPaths {
 		source = new SourceSpecification();
 		source.setBoolean("default dir", "File.move.download.removed.only_in_default");
 		source.setBoolean("default subdir", SUBDIR_PARAM);
+		source.setBoolean("persistent only", true);
 		source.setBoolean(STATE_INCOMPLETE, false);
 		source.setBoolean(STATE_COMPLETE_DND, "File.move.download.removed.move_partial");
 		source.setBoolean(STATE_COMPLETE, true);
@@ -91,7 +93,7 @@ public class DownloadManagerDefaultPaths {
 		DEFAULT_DIRS[2] = dest;
 
 	    /**
-	     * Next - updating the current path (incomplete dl's first)
+	     * Next - updating the current path (complete dl's first)
 	     * 
 	     * We instantiate the "update incomplete download" source first, and then
 	     * we instantiate the "update complete download", but when we process, we
@@ -104,14 +106,6 @@ public class DownloadManagerDefaultPaths {
 	     * Complete downloads apply to this bit, just in case the "move on completion"
 	     * section isn't active.
 	     */
-
-		/**
-		 * Now to deal with completed downloads.
-		 *
-		 * We are choosing to update existing completed downloads - so they must exist inside
-		 * the default directory. We don't care about downloads which have just turned complete,
-		 * they won't be handled by "update".
-		 */
 		source = new SourceSpecification();
 		source.updateSettings(COMPLETION_DETAILS[0].source.getSettings());
 		source.setBoolean("default dir", true);
@@ -124,6 +118,7 @@ public class DownloadManagerDefaultPaths {
 		source = new SourceSpecification();
 		source.setBoolean("default dir", true); // Must be in default directory to update.
 		source.setBoolean("default subdir", SUBDIR_PARAM);
+		source.setBoolean("persistent only", true);
 		source.setBoolean(STATE_INCOMPLETE, true);
 		source.setBoolean(STATE_COMPLETE_DND, true);
 		source.setBoolean(STATE_COMPLETE, true);
@@ -149,6 +144,7 @@ public class DownloadManagerDefaultPaths {
 		    source = new SourceSpecification();
 		    source.updateSettings(mi.source.getSettings());
 		    source.setBoolean("default dir", false);
+		    source.setBoolean("persistent only", false);
 		    UPDATE_FOR_LOGIC_DETAILS[i] = new MovementInformation(source,
 		        mi.target, mi.transfer, mi.title.replace("Update", "Calculate path for"));
 	    }
@@ -304,6 +300,9 @@ public class DownloadManagerDefaultPaths {
     private static class SourceSpecification extends ParameterHelper {
 
 		public boolean matchesDownload(DownloadManager dm, LogRelation lr, ContextDescriptor context) {
+			if (this.getBoolean("persistent only") && !dm.isPersistent()) {
+				logWarn(describe(dm, context) + " is not persistent.", lr);
+			}
 			if (this.getBoolean("default dir")) {
 				logInfo("Checking if " + describe(dm, context) + " is inside default dirs.", lr);
 				File[] default_dirs = getDefaultDirs(lr);
