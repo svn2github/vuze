@@ -146,7 +146,7 @@ public class DownloadManagerDefaultPaths {
 		    source.setBoolean("default dir", false);
 		    source.setBoolean("persistent only", false);
 		    UPDATE_FOR_LOGIC_DETAILS[i] = new MovementInformation(source,
-		        mi.target, mi.transfer, mi.title.replace("Update", "Calculate path for"));
+		        mi.target, mi.transfer, mi.title.replaceAll("Update", "Calculate path for"));
 	    }
 
     }
