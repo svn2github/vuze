@@ -335,7 +335,10 @@ UpdateWindow
   
   public void dispose() {
     updateWindow.dispose();
-    MainWindow.getWindow().setUpdateNeeded(null);
+    MainWindow window = MainWindow.getWindow();
+    if (window != null) {
+    	MainWindow.getWindow().setUpdateNeeded(null);
+    }
   }
   
   public void addUpdate(final Update update) {
