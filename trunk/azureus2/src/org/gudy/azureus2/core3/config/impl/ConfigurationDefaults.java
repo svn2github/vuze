@@ -298,13 +298,9 @@ public class ConfigurationDefaults {
     def.put( "Watch Torrent Folder Path", "" );
     def.put( "Prioritize First Piece", FALSE );
     def.put( "Use Lazy Bitfield", FALSE );
-    def.put( "Move Completed When Done", FALSE );
-    def.put( "Completed Files Directory", "" );
     def.put( "Zero New", FALSE );
     def.put( "XFS Allocation", FALSE );
-    def.put( "Move Only When In Default Save Dir", TRUE );
     def.put( "Copy And Delete Data Rather Than Move", FALSE);
-    def.put( "Move Torrent When Done", TRUE );
     def.put( "File.save.peers.enable", TRUE );
     def.put( "File.strict.locking", TRUE );
     def.put( "Move Deleted Data To Recycle Bin", TRUE);
@@ -491,7 +487,21 @@ public class ConfigurationDefaults {
     def.put( "network.transport.encrypted.use.crypto.port", FALSE );
     
     def.put( "network.bind.local.port", new Long(0) );
-   
+    
+    // Move on completion settings.
+    def.put( "Move Completed When Done", FALSE );
+    def.put( "Completed Files Directory", "" );
+    def.put( "Move Only When In Default Save Dir", TRUE );
+    def.put( "Move Torrent When Done", TRUE );
+    def.put( "File.move.subdir_is_default", FALSE );
+    
+    // Move on removal settings.
+    def.put( "File.move.download.removed.enabled", FALSE );
+    def.put( "File.move.download.removed.path", "" );
+    def.put( "File.move.download.removed.only_in_default", TRUE );
+    def.put( "File.move.download.removed.move_torrent", TRUE );
+    def.put( "File.move.download.removed.move_partial", FALSE );
+
   }
   
   
