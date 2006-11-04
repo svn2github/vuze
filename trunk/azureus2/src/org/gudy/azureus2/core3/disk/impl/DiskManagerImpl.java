@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.*;
 import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerDefaultPaths;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -1561,138 +1562,6 @@ DiskManagerImpl
         resume_handler.saveResumeData( interim_save );
     }
 
-  /**
-   * Moves files to the CompletedFiles directory.
-   * Returns a string path to the new torrent file.
-   */
-
-    public static class MoveDownloadInfo {
-        public String location = null;
-        public boolean move_torrent = false;
-    }
-
-    public static MoveDownloadInfo getMoveDownloadInfoOnCompletion(
-        DownloadManager dm, LogRelation log_object) {
-        return getMoveDownloadInfo(false, dm, log_object);
-    }
-
-    public static MoveDownloadInfo getMoveDownloadInfoOnRemoval(
-        DownloadManager dm, LogRelation log_object) {
-        return getMoveDownloadInfo(true, dm, log_object);
-    }
-
-    private static MoveDownloadInfo getMoveDownloadInfo(
-        final boolean removing, final DownloadManager dm,
-        final LogRelation log_object) {
-    	
-        // We don't move non-persistent files as these aren't managed by us.
-        if (!dm.isPersistent()) {return null;}
-        final boolean ending = !removing; // Just a friendly alias.
-
-        /**
-         *  We currently only move removed torrents when they are complete. So we must either
-         *  be complete, or we must be complete excluding DND files, if that option has been
-         *  enabled.
-         */
-        if (removing) {
-            if (dm.isDownloadComplete(true)) {
-                /* This is OK. */
-            }
-            else if (!dm.isDownloadComplete(false)) {
-                // Download is not complete in any form.
-                return null;
-            }
-            else {
-                // Download is complete, but only all non-DND files.
-                if (!COConfigurationManager.getBooleanParameter("File.move.download.removed.move_partial", false)) {
-                    return null;
-                }
-            }
-        }
-
-        /**
-         * Is the automatic moving of files enabled?
-         */
-        String move_when_done_param = (ending) ? "Move Completed When Done" : "File.move.download.removed.enabled";
-        boolean move_when_done = COConfigurationManager.getBooleanParameter(move_when_done_param, false);
-        if (!move_when_done) {
-        	return null;
-        }
-
-        /**
-         * Do we have a path to move to?
-         */
-        String move_path_param = (ending) ? "Completed Files Directory" : "File.move.download.removed.path";
-        String move_path = COConfigurationManager.getStringParameter(move_path_param, "");
-        if (move_path.length() == 0) {
-        	return null;
-        }
-
-        /**
-         * Do we only move if the files are in the default directory?
-         *
-         * If we are trying to move a completed download, then we only check
-         * the default save path directory. If we are checking a removed
-         * download, then we either check the default save path, or the
-         * completed file path.
-         */
-        String move_only_in_default_param = (ending) ? "Move Only When In Default Save Dir" : "File.move.download.removed.only_in_default";
-        boolean move_only_in_default = COConfigurationManager.getBooleanParameter(move_only_in_default_param, true);
-
-        String save_dir = dm.getSaveLocation().getParent();
-
-        if (move_only_in_default) {
-            boolean use_completed_dir = removing;
-            String[] params_to_check = (use_completed_dir) ?
-            		new String[] {"Completed Files Directory", "Default save path"} :
-            		new String[] {"Default save path"};
-            
-            String dir_to_check = null;
-            boolean dir_matches = false;
-            for (int i=0; i<params_to_check.length; i++) {
-            	dir_to_check = COConfigurationManager.getStringParameter(params_to_check[i]);
-
-	            /**
-	             * Canonicalise is as the rpath is canonicalised so links have been
-	             * followed etc.
-	             */
-	            try{
-	            	dir_to_check = new File(dir_to_check).getCanonicalPath();
-	            }
-	
-	            // XXX: Shouldn't we restrict the types of exception we catch?
-	            catch(Throwable e){Debug.printStackTrace(e);}
-	            
-	            if (save_dir.equals(dir_to_check)) {
-	            	dir_matches = true;
-	            	break;
-	            }
-	            
-            }
-            
-            if (!dir_matches) {
-                if (Logger.isEnabled()) {
-                    String log_message = "Not moving-on-" +
-                    ((removing) ? "remove" : "complete") + " since data is" +
-                    " not within " + use_completed_dir;
-
-                    Logger.log(new LogEvent(
-                        log_object, LOGID, LogEvent.LT_WARNING, log_message));
-                }
-                return null;
-            }
-        }
-
-        String move_torrent_param = (ending) ? "Move Torrent When Done" : "File.move.download.removed.move_torrent";
-        boolean move_torrent = COConfigurationManager.getBooleanParameter(move_torrent_param, true);
-
-        // Debug.out("Moving data files: " + save_dir + " -> " + move_path);
-        MoveDownloadInfo result = new MoveDownloadInfo();
-        result.location = move_path;
-        result.move_torrent = move_torrent;
-        return result;
-    }
-
     public void downloadEnded() {
         moveDownloadFilesWhenEndedOrRemoved(false, true);
     }
@@ -1717,12 +1586,18 @@ DiskManagerImpl
             this.alreadyMoved = true;
         }
 
-        MoveDownloadInfo mdi = getMoveDownloadInfo(removing, this.download_manager, this);
-
-        if (mdi == null) {return false;}
+        DownloadManagerDefaultPaths.TransferDetails move_details;
+        if (removing) {
+        	move_details = DownloadManagerDefaultPaths.onRemoval(this.download_manager);
+        }
+        else {
+        	move_details = DownloadManagerDefaultPaths.onCompletion(this.download_manager);
+        }
+        
+        if (move_details == null) {return false;}
 
         //Debug.out("Moving data files: -> " + mdi.location);
-        moveFiles(mdi.location, mdi.move_torrent && torrent_file_exists, true);
+        moveFiles(move_details.transfer_destination.getPath(), move_details.move_torrent && torrent_file_exists, true);
         return true;
 
       }

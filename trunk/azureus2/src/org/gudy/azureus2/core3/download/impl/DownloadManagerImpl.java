@@ -3190,14 +3190,15 @@ DownloadManagerImpl
 		    		return;
 		    	}
 		    	    	
-		    	DiskManagerImpl.MoveDownloadInfo mdi = DiskManagerImpl.getMoveDownloadInfoOnRemoval(this, this);
-		    	if (mdi == null) {
+		    	DownloadManagerDefaultPaths.TransferDetails move_details;
+		    	move_details = DownloadManagerDefaultPaths.onRemoval(this);
+		    	if (move_details == null) {
 		    		return;
 		    	}
 		    	
 		    	boolean moved_files = false;
 		    	try {
-		    		this.moveDataFiles(new File(mdi.location));
+		    		this.moveDataFiles(move_details.transfer_destination);
 		    		moved_files = true;
 		    	}
 		    	catch (Exception e) {
@@ -3205,9 +3206,9 @@ DownloadManagerImpl
 		    	}
 		    	
 		    	// This code will silently fail if the torrent file doesn't exist.
-		    	if (moved_files && mdi.move_torrent) {
+		    	if (moved_files && move_details.move_torrent) {
 		  		    try {
-			    		this.moveTorrentFile(new File(mdi.location));
+			    		this.moveTorrentFile(move_details.transfer_destination);
 			    	}
 			    	catch (Exception e) {
 			    		Logger.log(new LogAlert(true, "Problem moving torrent to removed download directory", e));
