@@ -146,7 +146,7 @@ public class ConfigurationDefaults {
     def.put( "Max Upload Speed Seeding KBs", new Long(0) );
     def.put( "enable.seedingonly.upload.rate", FALSE );
     
-    def.put( "Auto Upload Speed Enabled", TRUE );
+    def.put( "Auto Upload Speed Enabled", FALSE );
     def.put( "Auto Upload Speed Seeding Enabled", FALSE );
     def.put( "AutoSpeed Available", FALSE );	// informative read-only parameter
     def.put( "AutoSpeed Min Upload KBs", new Long(0) );
@@ -187,32 +187,13 @@ public class ConfigurationDefaults {
     
     def.put("User Mode", new Long(0));
     
-    def.put("useCustomTab",TRUE);    
-    def.put("GUI Refresh",new Long(1000));
-    def.put("Graphics Update",new Long(4));
-    def.put("ReOrder Delay",new Long(0));
-    def.put("Send Version Info",TRUE);
-    def.put("Show Download Basket",FALSE);
-    def.put("config.style.refreshMT",new Long(0));
-    def.put("Open Details", FALSE);
-    def.put("IconBar.enabled", TRUE);
-    
     //default data location options
     def.put("Use default data dir", FALSE);	
     def.put("Default save path", "" );
-    def.put("DefaultDir.BestGuess", TRUE);
-    def.put("DefaultDir.AutoUpdate", TRUE);
     
-    def.put("GUI_SWT_bFancyTab", TRUE);
-    def.put("GUI_SWT_bAlternateTablePainting", FALSE);
     def.put("update.start",TRUE);
     def.put("update.periodic",TRUE);
     def.put("update.opendialog",TRUE);
-    def.put("Colors.progressBar.override", FALSE);
-    def.put("GUI_SWT_DisableAlertSliding", FALSE);
-    def.put("NameColumn.showProgramIcon", TRUE);
-    def.put("Open MyTorrents",TRUE);
-    def.put("DND Always In Incomplete", FALSE);
     
     
     // Logging
@@ -290,8 +271,6 @@ public class ConfigurationDefaults {
     def.put( "ID", "" );
     def.put( "Play Download Finished", FALSE );
     def.put( "Play Download Finished File", "" );
-    def.put( "Close To Tray", TRUE );
-    def.put( "Minimize To Tray", FALSE );
     def.put( "Watch Torrent Folder", FALSE );
     def.put( "Watch Torrent Folder Interval", new Long(1) );
     def.put( "Start Watched Torrents Stopped", FALSE );
@@ -413,30 +392,11 @@ public class ConfigurationDefaults {
     def.put( "File.Decoder.ShowAll", FALSE);
     def.put( "Password enabled", FALSE );
     def.put( "Password", null );
-    def.put( "Save detail views column widths", FALSE );
     def.put( "config.interface.checkassoc", TRUE );
-    def.put( "Wizard Completed", TRUE );
-    def.put( "donations.donated", TRUE );
-    def.put( "donations.lastVersion", "" );
-    def.put( "donations.nextAskTime", new Long(0) );
-    def.put( "Color Scheme.red", new Long(0) );
-    def.put( "Color Scheme.green", new Long(128) );
-    def.put( "Color Scheme.blue", new Long(255) );
-    def.put( "Show Splash", TRUE );
-    def.put( "window.maximized", TRUE );
-    def.put( "window.rectangle", "" );
-    def.put( "Open Console", FALSE );
-    def.put( "Open Config", FALSE );
-    def.put( "Open Stats On Start", FALSE);
-    def.put( "Start Minimized", FALSE );
-    def.put( "Open Bar", FALSE );
     def.put( "confirmationOnExit", FALSE );
     def.put( "locale", Locale.getDefault().toString() );
     def.put( "locale.set.complete.count", new Long(0));
-    def.put( "Add URL Silently", TRUE );
-    def.put( "config.style.dropdiraction", "1" );
-    def.put( "MyTorrents.SplitAt", new Long(30) );
-    def.put( "Confirm Data Delete", TRUE );  //TODO
+    def.put( "Confirm Data Delete", TRUE );
     def.put( "Password Confirm", null );
     def.put( "Auto Update", TRUE );
     def.put( "Alert on close", FALSE );
@@ -467,9 +427,8 @@ public class ConfigurationDefaults {
     def.put( "network.tcp.socket.SO_RCVBUF", new Long(0) );
     def.put( "network.tcp.socket.IPTOS", "" );
     def.put( "confirm_torrent_removal", FALSE );
-    def.put( "add_torrents_silently", TRUE );
+    def.put( "add_torrents_silently", FALSE );
     def.put( "enable_small_osx_fonts", TRUE );
-    def.put( "Message Popup Autoclose in Seconds", new Long(15));
     def.put( "Play Download Finished Announcement", FALSE);
     def.put( "Play Download Finished Announcement Text", "Download Complete");
     def.put( "Play File Finished", FALSE );
@@ -503,8 +462,6 @@ public class ConfigurationDefaults {
     def.put( "File.move.download.removed.move_partial", FALSE );
 
   }
-  
-  
   
   protected void
   def_put(

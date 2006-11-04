@@ -104,11 +104,10 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 		label = new Label(cStatusBar, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "status");
-		new BooleanParameter(cStatusBar, "Status Area Show SR", false, MSG_PREFIX	+ "status.show_sr");
-		new BooleanParameter(cStatusBar, "Status Area Show NAT", false, MSG_PREFIX + "status.show_nat");
-		new BooleanParameter(cStatusBar, "Status Area Show DDB", true, MSG_PREFIX + "status.show_ddb");
-
-		new BooleanParameter(cStatusBar, "Status Area Show IPF", false, MSG_PREFIX + "status.show_ipf");
+		new BooleanParameter(cStatusBar, "Status Area Show SR", MSG_PREFIX	+ "status.show_sr");
+		new BooleanParameter(cStatusBar, "Status Area Show NAT",  MSG_PREFIX + "status.show_nat");
+		new BooleanParameter(cStatusBar, "Status Area Show DDB", MSG_PREFIX + "status.show_ddb");
+		new BooleanParameter(cStatusBar, "Status Area Show IPF", MSG_PREFIX + "status.show_ipf");
 		
 		new BooleanParameter(cLook, "Add URL Silently", true, MSG_PREFIX	+ "addurlsilently");
 		new BooleanParameter(cLook, "add_torrents_silently", true, "ConfigView.section.interface.display.add_torrents_silently");

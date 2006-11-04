@@ -99,21 +99,21 @@ COConfigurationManager
 		}
 	}
 	
-	public static void
+	public static ConfigurationManager
 	initialise()
 	{
 		preInitialise();
 		
-		ConfigurationManager.getInstance();
+		return ConfigurationManager.getInstance();
 	}
 	
-	public static void
+	public static ConfigurationManager
 	initialiseFromMap(
 		Map		data )
 	{
 		preInitialise();
 		
-		ConfigurationManager.getInstance(data);
+		return ConfigurationManager.getInstance(data);
 	}
 
 	public static final boolean

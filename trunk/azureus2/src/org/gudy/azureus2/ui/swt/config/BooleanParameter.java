@@ -41,14 +41,23 @@ public class BooleanParameter extends Parameter{
          textKey, null);
   }
 
+  /**
+   * @deprecated defaultValue should be set via ConfigurationDefaults, not passed by the caller 
+   */
   public BooleanParameter(Composite composite, final String name, boolean defaultValue, String textKey) {
 	  delegate = new GenericBooleanParameter( config_adapter, composite,name,defaultValue,textKey,null);
   }
 
+  /**
+   * @deprecated defaultValue should be set via ConfigurationDefaults, not passed by the caller 
+   */
   public BooleanParameter(Composite composite, final String name, boolean defaultValue) {
 	  delegate = new GenericBooleanParameter( config_adapter, composite,name,defaultValue,null,null);
   }
   
+  /**
+   * @deprecated defaultValue should be set via ConfigurationDefaults, not passed by the caller 
+   */
   public 
   BooleanParameter(
   		Composite composite, 

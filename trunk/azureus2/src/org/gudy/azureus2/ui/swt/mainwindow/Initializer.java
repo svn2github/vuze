@@ -26,6 +26,7 @@ import com.aelitis.azureus.ui.IUIIntializer;
 
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
@@ -34,11 +35,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
-import org.gudy.azureus2.ui.swt.Alerts;
-import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.LocaleUtilSWT;
-import org.gudy.azureus2.ui.swt.StartServer;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
 import org.gudy.azureus2.ui.swt.auth.CertificateTrustWindow;
 import org.gudy.azureus2.ui.swt.networks.SWTNetworkSelection;
@@ -166,7 +163,9 @@ Initializer
 	    new LocaleUtilSWT( azureus_core );
 
 			Display display = SWTThread.getInstance().getDisplay();
-	    
+
+			UIConfigDefaultsSWT.initialize();
+			
 	    //The splash window, if displayed will need some images. 
 	    ImageRepository.loadImagesForSplashWindow(display);
 	    
