@@ -312,8 +312,14 @@ public class XMLRequestProcessor2 {
     protected void serialiseObject(Object obj, int original_modifier_filter, XMLElement container) {
         int modifier_filter = original_modifier_filter & (~(Modifier.TRANSIENT | Modifier.STATIC));
 
-        Class cla = obj.getClass();
-        debug_out("Serialising object of type \"" + RPUtils.getName(cla) + "\"");
+        Class cla = null;
+        if (obj != null) {
+        	cla = obj.getClass();
+        }
+        
+        String cla_name = (cla == null) ? "null" : RPUtils.getName(cla);
+        
+        debug_out("Serialising object of type \"" + cla_name + "\"");
         String value = XMLSerialisationUtils.serialise(obj, cla);
         if (value != null) {
             debug_out("Value was easily serialised into a string format.");

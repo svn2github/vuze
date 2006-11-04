@@ -41,6 +41,8 @@ import org.gudy.azureus2.pluginsimpl.remote.rpexceptions.*;
 public class XMLSerialisationUtils {
 
     public static String serialise(Object o, Class c) {
+    	if (o == null) {return "";}
+    	
         Boolean simple_class = (Boolean)simple_class_mapping.get(c);
 
         // Unsupported type.
