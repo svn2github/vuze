@@ -1461,6 +1461,10 @@ DownloadImpl
  		}  	
  	}
   	
+  	public File[] calculateDefaultPaths(boolean for_moving) {
+  		return download_manager.calculateDefaultPaths(for_moving);
+  	}
+  	
  	public void
 	requestTrackerAnnounce()
  	{

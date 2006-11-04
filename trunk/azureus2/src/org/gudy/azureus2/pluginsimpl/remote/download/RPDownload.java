@@ -954,4 +954,9 @@ RPDownload
 		public void renameDownload(String new_name) {
 			notSupported();
 		}
+		
+		public File[] calculateDefaultPaths(boolean for_moving) {
+			notSupported();
+			return null;
+		}
 }

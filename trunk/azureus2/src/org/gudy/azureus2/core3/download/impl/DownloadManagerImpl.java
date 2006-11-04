@@ -3002,6 +3002,10 @@ DownloadManagerImpl
 	  }  
   }
   
+  public File[] calculateDefaultPaths(boolean for_moving) {
+	  return DownloadManagerDefaultPaths.getDefaultSavePaths(this, for_moving);
+  }
+  
   private byte[]
   getIdentity()
   {
