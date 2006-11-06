@@ -156,6 +156,9 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getBooleanParameter( _name ));
 	}
 	
+	/**
+	 * @deprecated You should set ConfigurationDefaults, and use {@link #getBooleanParameter(String)} 
+	 */
 	public static boolean
 	getBooleanParameter(
 		String		_name,

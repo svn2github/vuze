@@ -282,7 +282,7 @@ public class MainStatusBar {
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
 						srStatus.setVisible(COConfigurationManager.getBooleanParameter(
-								parameterName, false));
+								parameterName));
 						statusBar.layout();
 					}
 				});
@@ -294,7 +294,7 @@ public class MainStatusBar {
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
 						natStatus.setVisible(COConfigurationManager.getBooleanParameter(
-								parameterName, false));
+								parameterName));
 						statusBar.layout();
 					}
 				});
@@ -309,7 +309,7 @@ public class MainStatusBar {
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
 						dhtStatus.setVisible(COConfigurationManager.getBooleanParameter(
-								parameterName, true));
+								parameterName));
 						statusBar.layout();
 					}
 				});
@@ -326,7 +326,7 @@ public class MainStatusBar {
 		COConfigurationManager.addAndFireParameterListener("Status Area Show IPF",
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
-						ipBlocked.setVisible(COConfigurationManager.getBooleanParameter( parameterName, false));
+						ipBlocked.setVisible(COConfigurationManager.getBooleanParameter( parameterName));
 						statusBar.layout();
 					}
 				});
@@ -856,6 +856,7 @@ public class MainStatusBar {
 		}
 
 		if (lastDHTstatus != dht_status || lastDHTcount != dht_count) {
+			Image img = ImageRepository.getImage("sb_count");
 			switch (dht_status) {
 				case DHTPlugin.STATUS_RUNNING:
 					
@@ -894,10 +895,11 @@ public class MainStatusBar {
 					break;
 
 				default:
-					dhtStatus.setImage(null);
+					img = null;
 					break;
 			}
 
+			dhtStatus.setImage(img);
 			lastDHTstatus = dht_status;
 			lastDHTcount = dht_count;
 		}
