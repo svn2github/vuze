@@ -1182,6 +1182,9 @@ public class TableView
     	boolean bShown = false;
     	
 			public void menuHidden(MenuEvent e) {
+				AEDiagnosticsLogger	diag_logger	= AEDiagnostics.getLogger( "filemenu" );
+				diag_logger.log("menuHidden " + sTableID);
+
 				bShown = false;
 
 				if (Constants.isOSX)
@@ -1202,6 +1205,9 @@ public class TableView
 			}
 
 			public void menuShown(MenuEvent e) {
+				AEDiagnosticsLogger	diag_logger	= AEDiagnostics.getLogger( "filemenu" );
+				diag_logger.log("menuShown " + sTableID);
+
 				MenuItem[] items = menu.getItems();
 				for (int i = 0; i < items.length; i++)
 					items[i].dispose();
