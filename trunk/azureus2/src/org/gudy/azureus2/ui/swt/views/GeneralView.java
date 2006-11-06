@@ -508,7 +508,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 						if ((pos = url.indexOf("/announce")) != -1) {
 							url = url.substring(0, pos + 1);
 						}
-						Program.launch(url);
+						Utils.launch(url);
 					}
 				}
 			}
@@ -572,7 +572,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     	lblComment = new Link(gInfo, SWT.LEFT | SWT.WRAP);
     	((Link)lblComment).addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
-					Program.launch(e.text);
+					Utils.launch(e.text);
 				}
 			});
     } catch (Throwable e) {

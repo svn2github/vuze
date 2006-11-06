@@ -717,12 +717,21 @@ public class Utils {
   	return iBottomIndex;
 	}
 	
-	public static void
-	openURL(
-		String		url )
-	{
-		Program.launch( url );
-	}
+  public static void launch(String sFile) {
+  	if (sFile == null) {
+  		return;
+  	}
+
+  	if (UrlUtils.isURL(sFile) || sFile.startsWith("mailto:")) {
+  		Program.launch(sFile);
+  	} else {
+  	if (Constants.isOSX) {
+      Program.launch("file://" + sFile.replaceAll(" ", "%20"));
+  	} else {
+  		Program.launch(sFile);
+  	}
+  	}
+  }
 	
 	/**
 	 * Sets the checkbox in a Virtual Table while inside a SWT.SetData listener

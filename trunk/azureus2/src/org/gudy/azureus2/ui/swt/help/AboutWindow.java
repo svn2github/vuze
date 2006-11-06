@@ -152,10 +152,10 @@ public class AboutWindow {
       linkLabel.setLayoutData(gridData);
       linkLabel.addMouseListener(new MouseAdapter() {
         public void mouseDoubleClick(MouseEvent arg0) {
-          Program.launch((String) ((CLabel) arg0.widget).getData());
+        	Utils.launch((String) ((CLabel) arg0.widget).getData());
         }
         public void mouseDown(MouseEvent arg0) {
-          Program.launch((String) ((CLabel) arg0.widget).getData());
+        	Utils.launch((String) ((CLabel) arg0.widget).getData());
         }
       });
     }

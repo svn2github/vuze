@@ -44,6 +44,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 
 public class ConfigSectionConnection implements UISWTConfigSection {
 	
@@ -267,11 +268,11 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			linkLabel.setLayoutData(gridData);
 			linkLabel.addMouseListener(new MouseAdapter() {
 				public void mouseDoubleClick(MouseEvent arg0) {
-					Program.launch((String) ((Label) arg0.widget).getData());
+					Utils.launch((String) ((Label) arg0.widget).getData());
 				}
 
 				public void mouseDown(MouseEvent arg0) {
-					Program.launch((String) ((Label) arg0.widget).getData());
+					Utils.launch((String) ((Label) arg0.widget).getData());
 				}
 			});
 		}

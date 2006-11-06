@@ -26,11 +26,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.gudy.azureus2.core3.internat.MessageText;
+
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 
@@ -61,10 +61,10 @@ LinkLabel
 	    linkLabel.setLayoutData( gridData );
 	    linkLabel.addMouseListener(new MouseAdapter() {
 	      public void mouseDoubleClick(MouseEvent arg0) {
-	        Program.launch((String) ((Label) arg0.widget).getData());
+	      	Utils.launch((String) ((Label) arg0.widget).getData());
 	      }
 	      public void mouseUp(MouseEvent arg0) {
-	        Program.launch((String) ((Label) arg0.widget).getData());
+	      	Utils.launch((String) ((Label) arg0.widget).getData());
 	      }
 	    });
 	}

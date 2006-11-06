@@ -72,7 +72,7 @@ public class MessageBoxShell {
 					if (e.text.endsWith(".torrent"))
 						TorrentOpener.openTorrent(e.text);
 					else
-						Program.launch(e.text);
+						Utils.launch(e.text);
 				}
 			});
 

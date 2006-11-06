@@ -378,7 +378,7 @@ public class MainStatusBar {
 				if (ratio < 900) {
 
 					Utils
-							.openURL(Constants.AZUREUS_WIKI + "Share_Ratio");
+							.launch(Constants.AZUREUS_WIKI + "Share_Ratio");
 				}
 			}
 		};
@@ -392,7 +392,7 @@ public class MainStatusBar {
 				if (azureusCore.getPluginManager().getDefaultPluginInterface()
 						.getConnectionManager().getNATStatus() != ConnectionManager.NAT_OK) {
 					Utils
-							.openURL(Constants.AZUREUS_WIKI + "NAT_problem");
+							.launch(Constants.AZUREUS_WIKI + "NAT_problem");
 				}
 			}
 		};

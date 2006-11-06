@@ -338,12 +338,12 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 						|| _sUserPluginDir.endsWith("\\plugins\\")) {
 					File f = new File(_sUserPluginDir);
 					if (f.exists() && f.isDirectory()) {
-						Program.launch(_sUserPluginDir);
+						Utils.launch(_sUserPluginDir);
 					} else {
 						String azureusDir = _sUserPluginDir.substring(0, _sUserPluginDir
 								.length() - 9);
 						System.out.println(azureusDir);
-						Program.launch(azureusDir);
+						Utils.launch(azureusDir);
 					}
 				}
 			}
@@ -370,12 +370,12 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 						|| _sAppPluginDir.endsWith("\\plugins\\")) {
 					File f = new File(_sAppPluginDir);
 					if (f.exists() && f.isDirectory()) {
-						Program.launch(_sAppPluginDir);
+						Utils.launch(_sAppPluginDir);
 					} else {
 						String azureusDir = _sAppPluginDir.substring(0, _sAppPluginDir
 								.length() - 9);
 						System.out.println(azureusDir);
-						Program.launch(azureusDir);
+						Utils.launch(azureusDir);
 					}
 				}
 			}

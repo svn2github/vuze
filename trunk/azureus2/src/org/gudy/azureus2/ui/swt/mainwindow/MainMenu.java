@@ -463,7 +463,7 @@ public class MainMenu {
       Messages.setLanguageText(help_new, "MainWindow.menu.help.whatsnew"); //$NON-NLS-1$
       help_new.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
-          Program.launch("http://azureus.sourceforge.net/changelog.php?version=" + Constants.AZUREUS_VERSION);
+        	Utils.launch("http://azureus.sourceforge.net/changelog.php?version=" + Constants.AZUREUS_VERSION);
         }
       });
 
@@ -472,7 +472,7 @@ public class MainMenu {
       help_faq.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
           String faqString = Constants.AZUREUS_WIKI;
-          Program.launch(faqString);
+          Utils.launch(faqString);
         }
       });
 
@@ -482,7 +482,7 @@ public class MainMenu {
       help_plugin.addListener(SWT.Selection, new Listener() {
           public void handleEvent(Event e) {
             String pluginString = "http://azureus.sourceforge.net/plugin_list.php";
-            Program.launch(pluginString);
+            Utils.launch(pluginString);
           }
         });
       

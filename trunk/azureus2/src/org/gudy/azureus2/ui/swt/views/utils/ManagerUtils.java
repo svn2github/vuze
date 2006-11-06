@@ -58,18 +58,10 @@ public class ManagerUtils {
   
   public static void run(DownloadManager dm) {
     if(dm != null) {
-    	launch(dm.getSaveLocation().toString());
+    	Utils.launch(dm.getSaveLocation().toString());
     }
   }
   
-  private static void launch(String sFile) {
-  	if (Constants.isOSX) {
-      Program.launch("file://" + sFile.replaceAll(" ", "%20"));
-  	} else {
-  		Program.launch(sFile);
-  	}
-  }
-
  /**
   * Opens the parent folder of dm's path
   * @param dm DownloadManager instance
@@ -98,9 +90,9 @@ public class ManagerUtils {
 		}
 
 		if (f.isDirectory()) {
-			launch(f.toString()); // default launcher
+			Utils.launch(f.toString()); // default launcher
 		} else {
-			launch(f.getParent().toString());
+			Utils.launch(f.getParent().toString());
 		}
 	}
   

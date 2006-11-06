@@ -258,7 +258,7 @@ UISWTInstanceImpl
 			}
 			case UIManagerEvent.ET_OPEN_URL:
 			{
-				Program.launch(((URL)data).toExternalForm());
+				Utils.launch(((URL)data).toExternalForm());
 				
 				break;
 			}

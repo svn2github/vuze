@@ -104,7 +104,7 @@ public class FilesView
 		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) getFirstSelectedDataSource();
 		if (fileInfo != null
 				&& fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
-			Program.launch(fileInfo.getFile(true).toString());
+			Utils.launch(fileInfo.getFile(true).toString());
 	}
 
 	public void fillMenu(final Menu menu) {
@@ -246,8 +246,9 @@ public class FilesView
     itemOpen.addListener(SWT.Selection, new SelectedTableRowsListener() {
       public void run(TableRowCore row) {
         DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
-        if (fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
-          Program.launch(fileInfo.getFile(true).toString());
+        if (fileInfo.getAccessMode() == DiskManagerFileInfo.READ) {
+        	Utils.launch(fileInfo.getFile(true).toString());
+        }
       }
     });
     

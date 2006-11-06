@@ -44,6 +44,7 @@ import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
@@ -253,10 +254,10 @@ ConfigSectionTrackerServer
     ssl_faq_label.setForeground(Colors.blue);
     ssl_faq_label.addMouseListener(new MouseAdapter() {
        public void mouseDoubleClick(MouseEvent arg0) {
-         Program.launch(linkFAQ);
+      	 Utils.launch(linkFAQ);
        }
        public void mouseDown(MouseEvent arg0) {
-         Program.launch(linkFAQ);
+      	 Utils.launch(linkFAQ);
        }
     });
     

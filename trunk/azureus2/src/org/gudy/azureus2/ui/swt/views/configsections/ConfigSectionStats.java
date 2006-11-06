@@ -42,6 +42,7 @@ import org.eclipse.swt.program.Program;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
@@ -161,10 +162,10 @@ public class ConfigSectionStats implements UISWTConfigSection {
     lxslDetails.setForeground(Colors.blue);
     lxslDetails.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
-        Program.launch(linkFAQ);
+      	Utils.launch(linkFAQ);
       }
       public void mouseDown(MouseEvent arg0) {
-        Program.launch(linkFAQ);
+      	Utils.launch(linkFAQ);
       }
     });
     controls[7] = lxslDetails;

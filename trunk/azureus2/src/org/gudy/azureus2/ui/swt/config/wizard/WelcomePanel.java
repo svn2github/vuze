@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
@@ -134,7 +135,7 @@ public class WelcomePanel extends AbstractWizardPanel {
 	labl.setText(text[0]);
 	labl.addListener (SWT.Selection, new Listener () {
 		public void handleEvent(Event event) {
-			Program.launch(event.text);
+			Utils.launch(event.text);
 		}
 	});
 	
@@ -159,10 +160,10 @@ public class WelcomePanel extends AbstractWizardPanel {
 	    linkLabel.setLayoutData( gridData );
 	    linkLabel.addMouseListener(new MouseAdapter() {
 	      public void mouseDoubleClick(MouseEvent arg0) {
-	        Program.launch((String) ((Label) arg0.widget).getData());
+	      	Utils.launch((String) ((Label) arg0.widget).getData());
 	      }
 	      public void mouseUp(MouseEvent arg0) {
-	        Program.launch((String) ((Label) arg0.widget).getData());
+	      	Utils.launch((String) ((Label) arg0.widget).getData());
 	      }
 	    });
 	    
@@ -176,10 +177,10 @@ public class WelcomePanel extends AbstractWizardPanel {
 	    linkLabel1.setLayoutData( gridData );
 	    linkLabel1.addMouseListener(new MouseAdapter() {
 	      public void mouseDoubleClick(MouseEvent arg0) {
-	        Program.launch((String) ((Label) arg0.widget).getData());
+	      	Utils.launch((String) ((Label) arg0.widget).getData());
 	      }
 	      public void mouseUp(MouseEvent arg0) {
-	        Program.launch((String) ((Label) arg0.widget).getData());
+	      	Utils.launch((String) ((Label) arg0.widget).getData());
 	      }
 	    });
 

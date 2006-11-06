@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerFactory;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -93,10 +94,10 @@ public class ChooseServicePanel extends AbstractWizardPanel {
     serviceUrl.setCursor(handCursor);
     serviceUrl.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
-        Program.launch((String) ((Label) arg0.widget).getText());
+      	Utils.launch((String) ((Label) arg0.widget).getText());
       }
       public void mouseDown(MouseEvent arg0) {
-        Program.launch((String) ((Label) arg0.widget).getText());
+      	Utils.launch((String) ((Label) arg0.widget).getText());
       }
     });
     

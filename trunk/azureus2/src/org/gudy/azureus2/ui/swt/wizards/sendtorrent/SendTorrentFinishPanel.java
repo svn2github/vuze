@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -194,7 +195,7 @@ public class SendTorrentFinishPanel extends AbstractWizardPanel
 					//ClipboardCopy.copyToClipBoard("mailto:?subject="
 					//		+ UrlUtils.encode(subject) + "&body=" + UrlUtils.encode(body));
 
-					Program.launch("mailto:?subject=" + UrlUtils.encode(subject)
+					Utils.launch("mailto:?subject=" + UrlUtils.encode(subject)
 							+ "&body=" + UrlUtils.encode(body));
 				}
 			});

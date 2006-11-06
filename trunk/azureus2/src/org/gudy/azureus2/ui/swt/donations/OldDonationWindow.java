@@ -393,7 +393,7 @@ public class OldDonationWindow {
   
   private void handleChoice() {
     if(radioDonate.getSelection()) {
-      Program.launch(donationUrl);
+    	Utils.launch(donationUrl);
     }
     if(radioAlready.getSelection()) {
       thanks();
