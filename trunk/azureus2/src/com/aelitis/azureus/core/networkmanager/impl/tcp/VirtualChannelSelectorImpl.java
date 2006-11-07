@@ -84,6 +84,11 @@ public class VirtualChannelSelectorImpl {
     private volatile boolean	destroyed;
     
     
+    private static final int WRITE_SELECTOR_DEBUG_CHECK_PERIOD	= 5000;
+    private static final int WRITE_SELECTOR_DEBUG_MAX_TIME		= 10000;
+    
+    private long last_write_select_debug;
+    
     public VirtualChannelSelectorImpl( VirtualChannelSelector _parent, int _interest_op, boolean _pause_after_select ) {	
       this.parent = _parent;
       INTEREST_OP = _interest_op;
@@ -493,7 +498,25 @@ public class VirtualChannelSelectorImpl {
       int	progress_made_key_count	= 0;
       int	total_key_count			= 0;
       
-      //notification of ready keys via listener callback
+      long	now = SystemTime.getCurrentTime();
+      
+      	//notification of ready keys via listener callback
+      
+      	// debug handling for channels stuck pending write select for long periods
+      
+      Set	non_selected_keys = null;
+      
+      if ( INTEREST_OP == VirtualChannelSelector.OP_WRITE ){
+    	  
+    	  if ( 	now < last_write_select_debug ||
+    			now - last_write_select_debug > WRITE_SELECTOR_DEBUG_CHECK_PERIOD ){
+    		  
+    		  last_write_select_debug = now;
+    		  
+    		  non_selected_keys = new HashSet( selector.keys());
+    	  }
+      }
+      
       for( Iterator i = selector.selectedKeys().iterator(); i.hasNext(); ) {
     	  
     	total_key_count++;
@@ -502,6 +525,12 @@ public class VirtualChannelSelectorImpl {
         i.remove();
         RegistrationData data = (RegistrationData)key.attachment();
 
+        if ( non_selected_keys != null ){
+        	
+        	non_selected_keys.remove( key );
+        }
+        
+        data.last_select_success_time = now;
         // int	rm_type;
         
         if( key.isValid() ) {
@@ -580,6 +609,32 @@ public class VirtualChannelSelectorImpl {
           }
           */
       }
+      
+      if ( non_selected_keys != null ){
+    	  
+    	  for( Iterator i = non_selected_keys.iterator(); i.hasNext(); ) {
+    	    	     	    	
+    		  SelectionKey key = (SelectionKey)i.next();
+    	    
+    	      RegistrationData data = (RegistrationData)key.attachment();
+ 
+    	      long	stall_time = now - data.last_select_success_time;
+    	      
+    	      if ( stall_time < 0 ){
+    	    	  
+    	    	  data.last_select_success_time	= now;
+    	    	  
+    	      }else{
+    	    	  
+	    	      if ( stall_time > WRITE_SELECTOR_DEBUG_MAX_TIME ){
+	    	    	
+	    	    	  Logger.log(
+	    	    		new LogEvent(LOGID,LogEvent.LT_WARNING,"Write select for " + key.channel() + " stalled for " + stall_time ));
+	    	      }
+	    	  }
+    	  }
+      }
+    	  
         
       	// if any of the ready keys hasn't made any progress then enforce minimum sleep period to avoid
       	// spinning
@@ -672,12 +727,15 @@ public class VirtualChannelSelectorImpl {
         protected final VirtualChannelSelector.VirtualAbstractSelectorListener listener;
         protected final Object attachment;
         
-        protected int non_progress_count;
+        protected int 	non_progress_count;
+        protected long	last_select_success_time;
         
       	private RegistrationData( AbstractSelectableChannel _channel, VirtualChannelSelector.VirtualAbstractSelectorListener _listener, Object _attachment ) {
       		channel 		= _channel;
       		listener		= _listener;
       		attachment 		= _attachment;
+      		
+      		last_select_success_time	= SystemTime.getCurrentTime();
       	}
       }
           
