@@ -718,20 +718,21 @@ public class Utils {
 	}
 	
   public static void launch(String sFile) {
-  	if (sFile == null) {
-  		return;
-  	}
+		if (sFile == null) {
+			return;
+		}
 
-  	if (UrlUtils.isURL(sFile) || sFile.startsWith("mailto:")) {
-  		Program.launch(sFile);
-  	} else {
-  	if (Constants.isOSX) {
-      Program.launch("file://" + sFile.replaceAll(" ", "%20"));
-  	} else {
-  		Program.launch(sFile);
-  	}
-  	}
-  }
+		if (SWT.getVersion() >= 3315 || SWT.getVersion() < 3300
+				|| UrlUtils.isURL(sFile) || sFile.startsWith("mailto:")) {
+			Program.launch(sFile);
+		} else {
+			if (Constants.isOSX) {
+				Program.launch("file://" + sFile.replaceAll(" ", "%20"));
+			} else {
+				Program.launch(sFile);
+			}
+		}
+	}
 	
 	/**
 	 * Sets the checkbox in a Virtual Table while inside a SWT.SetData listener
