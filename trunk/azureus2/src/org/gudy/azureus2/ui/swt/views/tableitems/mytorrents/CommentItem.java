@@ -24,17 +24,28 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MenuItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
+import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
+import org.gudy.azureus2.ui.swt.views.TableView.GroupTableRowRunner;
+import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.wizards.sendtorrent.SendTorrentWizard;
 
-/** Display Category torrent belongs to.
+import com.aelitis.azureus.core.AzureusCoreFactory;
+
+/**
+ * User-editable comment for a download.
  *
- * @author TuxPaper
+ * @author amc1
  */
 public class CommentItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener
+       implements TableCellRefreshListener, TableCellMouseListener
 {
   /** Default Constructor */
   public CommentItem(String sTableID) {
@@ -49,4 +60,29 @@ public class CommentItem
     comment = dm.getDownloadState().getUserComment();
     cell.setText((comment == null) ? "" : comment);
   }
+  
+	public void cellMouseTrigger(TableCellMouseEvent event) {
+		DownloadManager dm = (DownloadManager) event.cell.getDataSource();
+		if (dm == null) {return;}
+		
+		/**
+         * XXX: This seems to prevent double clicks from opening up the
+         * general torrent view. It seems we have to do this for all mouse events,
+         * not just double-clicks. Is this alright to do?
+		 */ 
+		event.skipCoreFunctionality = true;
+		if (event.eventType != TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK) {return;}
+		
+		// Create dialog box.
+		String suggested = dm.getDownloadState().getUserComment(); 
+		String msg_key_prefix = "MyTorrentsView.menu.edit_comment.enter.";
+		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(Display.getCurrent(), msg_key_prefix + "title", msg_key_prefix + "message", suggested, null);
+		if (text_entry.wasDataSubmitted()) {
+			String value = text_entry.getStoredString();
+			String value_to_set = (value.length() == 0) ? null : value;
+			dm.getDownloadState().setUserComment(value_to_set);
+		}
+	}
+
+  
 }
