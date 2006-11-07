@@ -1792,6 +1792,15 @@ TRTrackerBTAnnouncerImpl
 	
 	if ( ext != null ){
 		
+			// sanitise it
+		
+		while ( ext.startsWith("&")){
+			
+			ext = ext.substring( 1 );
+		}
+		
+		request.append( "&" );
+		
 		request.append( ext );
 	}
 	
