@@ -59,7 +59,7 @@ public class VersionCheckClient {
 	
 	
   private static final String 	AZ_MSG_SERVER_ADDRESS 	= "version.aelitis.com";
-  private static final int 		AZ_MSG_SERVER_PORT 		= 27002;
+  private static final int 		AZ_MSG_SERVER_PORT 		= 27001;
   private static final String 	MESSAGE_TYPE_ID 		= "AZVER";
   
   private static final String 	HTTP_SERVER_ADDRESS 	= "version.aelitis.com";
