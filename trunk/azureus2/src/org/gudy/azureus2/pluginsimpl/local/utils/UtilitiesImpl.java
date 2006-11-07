@@ -761,4 +761,8 @@ UtilitiesImpl
 	public int compareVersions(String v1, String v2) {
 		return Constants.compareVersions( v1, v2 );
 	}
+	
+	public String normaliseFileName(String f_name) {
+		return FileUtil.convertOSSpecificChars(f_name);
+	}
 }

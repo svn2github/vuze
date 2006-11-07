@@ -266,6 +266,20 @@ Utilities
 	 * @since 2.3.0.7
 	 */
 	public int compareVersions(String v1, String v2);
+	
+	/**
+	 * Converts a file name so that all characters in the file name are
+	 * compatible with the underlying filesystem. This includes quote
+	 * characters, back and forwarded slashes, newline characters and so on.
+	 * 
+	 * <p>
+	 * 
+	 * Note - this is only intended for file names, rather than file paths.
+	 * 
+	 * @param f_name File name to convert.
+	 * @return Converted file name.
+	 */
+	public String normaliseFileName(String f_name);
 }
 
 
