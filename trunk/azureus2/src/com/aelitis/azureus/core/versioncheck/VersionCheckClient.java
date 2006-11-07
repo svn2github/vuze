@@ -23,7 +23,12 @@
 package com.aelitis.azureus.core.versioncheck;
 
 
+import java.io.BufferedInputStream;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -53,9 +58,15 @@ public class VersionCheckClient {
 	public static final String	REASON_RECOMMENDED_PLUGINS		= "rp";
 	
 	
-  private static final String SERVER_ADDRESS = "version.aelitis.com";
-  private static final int SERVER_PORT = 27001;
-  private static final String MESSAGE_TYPE_ID = "AZVER";
+  private static final String 	AZ_MSG_SERVER_ADDRESS 	= "version.aelitis.com";
+  private static final int 		AZ_MSG_SERVER_PORT 		= 27002;
+  private static final String 	MESSAGE_TYPE_ID 		= "AZVER";
+  
+  private static final String 	HTTP_SERVER_ADDRESS 	= "version.aelitis.com";
+  private static final int 		HTTP_SERVER_PORT 		= 2080;			// 80;
+
+  
+  
   private static final long		CACHE_PERIOD	= 5*60*1000;
   
   
@@ -84,14 +95,18 @@ public class VersionCheckClient {
    * @return reply data, possibly cached, if the server was already checked within the last minute
    */
   public Map getVersionCheckInfo( String reason ) {
-	  return( getVersionCheckInfo( reason, false ));
+	  return( getVersionCheckInfoSupport( reason, false, false, false ));
   }
 
-  public Map getVersionCheckInfo( String reason, boolean only_if_cached ) {
+  public Map getVersionCheckInfo( String reason, boolean force, boolean http_only ) {
+	  return( getVersionCheckInfoSupport( reason, false, force, http_only ));
+  }
+  protected Map getVersionCheckInfoSupport( String reason, boolean only_if_cached, boolean force, boolean http_only ) {
     try {  check_mon.enter();
     
       long time_diff = SystemTime.getCurrentTime() - last_check_time;
-      boolean force = time_diff > CACHE_PERIOD || time_diff < 0;
+     
+      force = force || time_diff > CACHE_PERIOD || time_diff < 0;
       
       if( last_check_data == null || last_check_data.size() == 0 || force ) {
     	  // if we've never checked before then we go ahead even if the "only_if_cached"
@@ -100,7 +115,7 @@ public class VersionCheckClient {
     		return( new HashMap() );
     	}
         try {
-          last_check_data = performVersionCheck( constructVersionCheckMessage( reason ) );
+          last_check_data = performVersionCheck( constructVersionCheckMessage( reason ), !http_only, true );
         }
         catch( Throwable t ) {
           t.printStackTrace();
@@ -135,7 +150,7 @@ public class VersionCheckClient {
   getExternalIpAddress(
 		boolean	only_if_cached )
   {
-    Map reply = getVersionCheckInfo( REASON_EXTERNAL_IP, only_if_cached );
+    Map reply = getVersionCheckInfoSupport( REASON_EXTERNAL_IP, only_if_cached, false, false );
     
     byte[] address = (byte[])reply.get( "source_ip_address" );
     if( address != null ) {
@@ -224,30 +239,51 @@ public class VersionCheckClient {
    * @return version reply
    * @throws Exception if the server check connection fails
    */
-  private Map performVersionCheck( Map data_to_send ) throws Exception {
-  	if (Logger.isEnabled())
-			Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
-					+ "version information from " + SERVER_ADDRESS + ":" + SERVER_PORT)); 
-    
-    ClientMessageService 	msg_service = null;
-    Map 					reply		= null;	
-    
-    try{
-	    msg_service = ClientMessageServiceClient.getServerService( SERVER_ADDRESS, SERVER_PORT, MESSAGE_TYPE_ID );
-	    
-	    msg_service.sendMessage( data_to_send );  //send our version message
+  private Map 
+  performVersionCheck( 
+	Map data_to_send,
+	boolean	use_az_message,
+	boolean	use_http ) 
+  
+  	throws Exception 
+  {
+	Exception 	error 	= null;
+	Map			reply	= null;
 	
-	    reply = msg_service.receiveMessage();  //get the server reply
-	    
-    }finally{
-    	
-    	if ( msg_service != null ){
-    		
-    		msg_service.close();
-    	}
-    }
-
-      if (Logger.isEnabled())
+	if ( use_az_message ){
+	
+		try{
+			reply = executeAZMessage( data_to_send );
+			
+			reply.put( "protocol_used", "AZMSG" );
+			
+		}catch( Exception e ){
+		
+			error = e;
+		}
+	}
+	
+	if ( reply == null && use_http ){
+		
+		try{
+			reply = executeHTTP( data_to_send );
+			
+			reply.put( "protocol_used", "HTTP" );
+			
+			error = null;
+			
+		}catch( Exception e ){
+		
+			error = e;
+			
+		}
+	}
+	if ( error != null ){
+		
+		throw( error );
+	}
+      
+	if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "VersionCheckClient server "
 						+ "version check successful. Received " + reply.size()
 						+ " reply keys."));
@@ -257,7 +293,67 @@ public class VersionCheckClient {
     return reply;
   }
   
+  private Map
+  executeAZMessage(
+	Map	data_to_send )
   
+  	throws Exception
+  {
+	  if (Logger.isEnabled())
+		  Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
+				  + "version information from " + AZ_MSG_SERVER_ADDRESS + ":" + AZ_MSG_SERVER_PORT)); 
+
+	  ClientMessageService 	msg_service = null;
+	  Map 					reply		= null;	
+
+	  try{
+		  msg_service = ClientMessageServiceClient.getServerService( AZ_MSG_SERVER_ADDRESS, AZ_MSG_SERVER_PORT, MESSAGE_TYPE_ID );
+
+		  msg_service.sendMessage( data_to_send );  //send our version message
+
+		  reply = msg_service.receiveMessage();  //get the server reply
+
+	  }finally{
+
+		  if ( msg_service != null ){
+
+			  msg_service.close();
+		  }
+	  }
+	  
+	  return( reply );
+  }
+  
+  private Map
+  executeHTTP(
+	Map	data_to_send )
+  
+  	throws Exception
+  {
+	  if (Logger.isEnabled())
+		  Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
+				  + "version information from " + HTTP_SERVER_ADDRESS + ":" + HTTP_SERVER_PORT)); 
+
+	  String	url_str = "http://" + HTTP_SERVER_ADDRESS + (HTTP_SERVER_PORT==80?"":(":" + HTTP_SERVER_PORT)) + "/version?";
+
+	  url_str += URLEncoder.encode( new String( BEncoder.encode( data_to_send ), "ISO-8859-1" ), "ISO-8859-1" );
+	  
+	  URL	url = new URL( url_str );
+	  
+	  HttpURLConnection	url_connection = (HttpURLConnection)url.openConnection();
+	  
+	  url_connection.connect();
+	  
+	  try{
+		  InputStream	is = url_connection.getInputStream();
+		  
+		  return( BDecoder.decode( new BufferedInputStream( is )));
+		  
+	  }finally{
+		  
+		  url_connection.disconnect();
+	  }
+  }
   
   /**
    * Construct the default version check message.
@@ -390,4 +486,10 @@ public class VersionCheckClient {
     return message;
   }
   
+  public static void
+  main(
+	String[]	args )
+  {
+	  System.out.println( "Response: " + getSingleton().getVersionCheckInfo( "test", true, true ));
+  }
 }
