@@ -57,6 +57,8 @@ TRNonBlockingServer
 	
 	private static final int CLOSE_DELAY			= 5*1000;
 	
+	private TRNonBlockingServerProcessorFactory	processor_factory;
+	
 	private final VirtualChannelSelector read_selector;
 	private final VirtualChannelSelector write_selector;
 	
@@ -79,14 +81,17 @@ TRNonBlockingServer
 
 	public
 	TRNonBlockingServer(
-		String		_name,
-		int			_port,
-		InetAddress	_bind_ip,
-		boolean		_apply_ip_filter )
+		String								_name,
+		int									_port,
+		InetAddress							_bind_ip,
+		boolean								_apply_ip_filter,
+		TRNonBlockingServerProcessorFactory	_processor_factory )
 		
 		throws TRTrackerServerException
 	{
 		super( _name, _port, false, _apply_ip_filter );
+		
+		processor_factory	= _processor_factory;
 		
 		read_selector	 	= new VirtualChannelSelector( _name + ":" + _port, VirtualChannelSelector.OP_READ, false );
 		write_selector 		= new VirtualChannelSelector( _name + ":" + _port, VirtualChannelSelector.OP_WRITE, true );
@@ -228,7 +233,7 @@ TRNonBlockingServer
 		ServerSocketChannel	server,
 		SocketChannel 		channel ) 
     {
-        final TRNonBlockingServerProcessor processor = new TRNonBlockingServerProcessor( this, channel );
+        final TRNonBlockingServerProcessor processor = processor_factory.create( this, channel );
         
         int	num_processors;
         

@@ -25,6 +25,8 @@ package org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -38,7 +40,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
  *
  */
 
-public class 
+public abstract class 
 TRNonBlockingServerProcessor 
 	extends TRTrackerServerProcessorTCP
 {
@@ -194,7 +196,7 @@ TRNonBlockingServerProcessor
 	
 			ByteArrayOutputStream	response = new ByteArrayOutputStream(1024);
 			
-			processRequest( request_header,
+			process( 		request_header,
 							request_header.toLowerCase(),
 							url, 
 							(InetSocketAddress)socket_channel.socket().getRemoteSocketAddress(),
@@ -214,6 +216,18 @@ TRNonBlockingServerProcessor
 			((TRNonBlockingServer)getServer()).readyToWrite( this );
 		}
 	}
+	
+	protected abstract void
+	process(
+		String				input_header,
+		String				lowercase_input_header,
+		String				url_path,
+		InetSocketAddress	client_address,
+		boolean				announce_and_scrape_only,
+		InputStream			is,
+		OutputStream		os )
+		
+		throws IOException;
 	
 	protected SocketChannel
 	getSocketChannel()

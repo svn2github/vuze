@@ -26,14 +26,22 @@ package org.gudy.azureus2.core3.tracker.server.impl;
  *
  */
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.nio.channels.SocketChannel;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.dht.TRTrackerServerDHT;
+import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerTCP;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.blocking.TRBlockingServer;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking.TRNonBlockingServer;
+import org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking.TRNonBlockingServerProcessor;
+import org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking.TRNonBlockingServerProcessorFactory;
 import org.gudy.azureus2.core3.tracker.server.impl.udp.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
@@ -65,7 +73,23 @@ TRTrackerServerFactoryImpl
 				
 				if ( COConfigurationManager.getBooleanParameter( "Tracker TCP NonBlocking" ) && main_tracker && !ssl ){
 					
-					server = new TRNonBlockingServer( name, port, bind_ip, apply_ip_filter );
+					server = 
+						new TRNonBlockingServer( 
+							name, 
+							port, 
+							bind_ip, 
+							apply_ip_filter,
+							new TRNonBlockingServerProcessorFactory()
+							{
+								public TRNonBlockingServerProcessor
+								create(	
+									TRTrackerServerTCP		_server,
+									SocketChannel			_socket )
+								{
+									return( new NonBlockingProcessor( _server, _socket ));
+
+								}
+							});
 				}else{
 					
 					server = new TRBlockingServer( name, port, bind_ip, ssl, apply_ip_filter );
@@ -131,6 +155,28 @@ TRTrackerServerFactoryImpl
 		}finally{
 			
 			class_mon.exit();
+		}
+	}
+	
+	protected static class
+	NonBlockingProcessor
+		extends TRNonBlockingServerProcessor
+	{
+		protected
+		NonBlockingProcessor(
+			TRTrackerServerTCP		_server,
+			SocketChannel			_socket )
+		{
+			super( _server, _socket );
+		}
+		
+		protected void 
+		process(
+			String input_header, String lowercase_input_header, String url_path, InetSocketAddress client_address, boolean announce_and_scrape_only, InputStream is, OutputStream os) 
+			throws IOException 
+		{
+	
+			processRequest(input_header, lowercase_input_header, url_path, client_address, announce_and_scrape_only, is, os );
 		}
 	}
 }
