@@ -941,12 +941,9 @@ MainWindow
   	boolean	for_restart,
 	boolean	close_already_in_progress ) 
   {
-    if(COConfigurationManager.getBooleanParameter("confirmationOnExit", false) && !getExitConfirmation(for_restart))
-      return false;
-    
-    if (canClose()) {
-    	return false;
-    }
+		if (!UIExitUtilsSWT.canClose(globalManager, for_restart)) {
+			return false;
+		}
     
     if(systemTraySWT != null) {
       systemTraySWT.dispose();
@@ -980,109 +977,10 @@ MainWindow
     COConfigurationManager.removeParameterListener( "Show Download Basket", this );
     COConfigurationManager.removeParameterListener( "GUI_SWT_bFancyTab", this );
     
-    
-    	// problem with closing down web start as AWT threads don't close properly
-	if ( SystemProperties.isJavaWebStartInstance()){    	
- 	
-		Thread close = new AEThread( "JWS Force Terminate")
-			{
-				public void
-				runSupport()
-				{
-					try{
-						Thread.sleep(2500);
-						
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace( e );
-					}
-					
-					SESecurityManager.exitVM(1);
-				}
-			};
-			
-		close.setDaemon(true);
-		
-		close.start();
-    	
-    }
+
+    UIExitUtilsSWT.uiShutdown();
     
     return true;
-  }
-
-  /**
-	 * @return
-	 */
-	private boolean canClose() {
-		ArrayList listUnfinished = new ArrayList();
-		Object[] dms = globalManager.getDownloadManagers().toArray();
-		for (int i = 0; i < dms.length; i++) {
-			DownloadManager dm = (DownloadManager) dms[i];
-			if (dm.getState() == DownloadManager.STATE_SEEDING
-					&& dm.getDownloadState().isOurContent()
-					&& dm.getStats().getAvailability() < 2) {
-				TRTrackerScraperResponse scrape = dm.getTrackerScrapeResponse();
-				int numSeeds = scrape.getSeeds();
-	      long seedingStartedOn = dm.getStats().getTimeStartedSeeding();
-	      if ((numSeeds > 0) &&
-	          (seedingStartedOn > 0) &&
-	          (scrape.getScrapeStartTime() > seedingStartedOn))
-	        numSeeds--;
-	      
-	      if (numSeeds == 0) {
-	      	listUnfinished.add(dm);
-	      }
-			}
-		}
-		
-		if (listUnfinished.size() > 0) {
-			int result;
-			if (listUnfinished.size() == 1) {
-				result = Utils.openMessageBox(shell, SWT.YES | SWT.NO,
-						"Content.alert.notuploaded", new String[] {
-								((DownloadManager)listUnfinished.get(0)).getDisplayName(),
-								MessageText.getString("Content.alert.notuploaded.quit") });
-			} else {
-				String sList = "";
-				for (int i = 0; i < listUnfinished.size() && i < 5; i++) {
-					DownloadManager dm = ((DownloadManager)listUnfinished.get(i));
-					if (sList != "") {
-						sList += "\n";
-					}
-					sList += dm.getDisplayName();
-				}
-				result = Utils.openMessageBox(shell, SWT.YES | SWT.NO,
-						"Content.alert.notuploaded.multi", new String[] {
-								"" + listUnfinished.size(),
-								MessageText.getString("Content.alert.notuploaded.quit"),
-								sList });
-			}
-			if (result != SWT.YES) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
-
-	/**
-   * @return true, if the user choosed OK in the exit dialog
-   *
-   * @author Rene Leonhardt
-   */
-  private boolean 
-  getExitConfirmation(
-  	boolean	for_restart) {
-    MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES | SWT.NO);
-    
-    mb.setText(MessageText.getString(
-    		for_restart?"MainWindow.dialog.restartconfirmation.title":"MainWindow.dialog.exitconfirmation.title"));
-    
-    mb.setMessage(MessageText.getString(
-    		for_restart?"MainWindow.dialog.restartconfirmation.text":"MainWindow.dialog.exitconfirmation.text"));
-    if(mb.open() == SWT.YES)
-      return true;
-    return false;
   }
 
   public GlobalManager getGlobalManager() {
