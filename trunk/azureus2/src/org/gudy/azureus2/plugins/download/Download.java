@@ -640,6 +640,8 @@ Download
   	 * download is being saved to. The download must be in a state to move the data files to a new location
   	 * (see {@link #moveDataFiles(File)}).
   	 * 
+  	 * <p>
+  	 * 
   	 * This will not rename the displayed name for the torrent - if you wish to do that, you must do it via
   	 * the {@link org.gudy.azureus2.plugins.torrent.TorrentAttribute TorrentAttribute} class.
   	 * 
@@ -870,14 +872,20 @@ Download
    * download's data files and torrent file, based on Azureus's rules regarding
    * default save paths, and move on completion rules.
    * 
+   * <p>
+   * 
    * This method takes one argument - <i>for_moving</i>. This essentially
    * indicates whether you are getting this information for purposes of just
    * finding where Azureus would store these files by default, or whether you
    * are considering moving the files from its current location.
    * 
+   * <p>
+   * 
    * If <i>for_moving</i> is <tt>false</tt>, this method will determine locations
    * for the download and the torrent file where Azureus would store them by
    * default (it may return the current paths used by this download). 
+   * 
+   * <p>
    * 
    * If <i>for_moving</i> is <tt>true</tt>, then this method will consider the
    * download's current location, and whether it is allowed to move it - you
@@ -886,6 +894,8 @@ Download
    * a download is complete, we consider whether we are allowed to move downloads
    * on completion, and whether that includes downloads outside the default save
    * directory.
+   * 
+   * <p>
    * 
    * In this case, the array may contain <tt>null</tt> indicating that the Azureus
    * doesn't believe that the download should be moved (based on the current rules
