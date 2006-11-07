@@ -51,6 +51,7 @@ DownloadManagerState
 	public static final String AT_PARAMETERS				= "parameters";
 	public static final String AT_DISPLAY_NAME              = "displayname";
 	public static final String AT_USER_COMMENT              = "comment";
+	public static final String AT_RELATIVE_SAVE_PATH        = "relativepath";
 	public static final String AT_CONTENT_MAP = "contentmap";
 	
 	public static final long FLAG_ONLY_EVER_SEEDED			= Download.FLAG_ONLY_EVER_SEEDED;
@@ -167,6 +168,9 @@ DownloadManagerState
 	
 	public String getUserComment();
 	public void setUserComment(String name);
+	
+	public String getRelativeSavePath();
+	public void setRelativeSavePath(String path);
 	
 	public String
 	getTrackerClientExtensions();

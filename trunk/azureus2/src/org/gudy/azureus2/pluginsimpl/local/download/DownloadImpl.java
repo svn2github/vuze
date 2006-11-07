@@ -562,7 +562,11 @@ DownloadImpl
 		
 	}else if ( attribute.getName() == TorrentAttribute.TA_USER_COMMENT ){
 		
-		return( DownloadManagerState.AT_USER_COMMENT );		
+		return( DownloadManagerState.AT_USER_COMMENT );	
+
+	}else if ( attribute.getName() == TorrentAttribute.TA_RELATIVE_SAVE_PATH ){
+		
+		return( DownloadManagerState.AT_RELATIVE_SAVE_PATH );	
 		
 	}else if ( attribute.getName() == TorrentAttribute.TA_CONTENT_MAP ){
 		
@@ -613,6 +617,10 @@ DownloadImpl
 	}else if ( name.equals ( DownloadManagerState.AT_USER_COMMENT)){
 		
 		return ( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_USER_COMMENT ));
+
+	}else if ( name.equals ( DownloadManagerState.AT_RELATIVE_SAVE_PATH)){
+		
+		return ( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_RELATIVE_SAVE_PATH ));
 		
 	}else if ( name.equals ( DownloadManagerState.AT_CONTENT_MAP)){
 		
@@ -1203,6 +1211,7 @@ DownloadImpl
 	activateRequest(
 		final int		count )
 	{
+		System.out.println(this.getName() + " - [" + count + "]");
 		DownloadActivationEvent event = 
 			new DownloadActivationEvent()
 		{

@@ -150,7 +150,51 @@ public class DownloadManagerDefaultPaths {
 	    }
 
     }
-
+    
+    private static String normaliseRelativePathPart(String name) {
+    	name = name.trim();
+    	if (name.length() == 0) {return "";}
+    	if (name.equals(".") || name.equals("..")) {
+    		return null;
+    	}
+    	return FileUtil.convertOSSpecificChars(name).trim();
+    }
+    
+    public static File normaliseRelativePath(File path) {
+    	if (path.isAbsolute()) {return null;}
+    	
+    	File parent = path.getParentFile();
+    	String child_name = normaliseRelativePathPart(path.getName());
+    	if (child_name == null) {
+    		return null;
+    	}
+    	
+    	//  Simple one-level path.
+    	if (parent == null) {
+    		return new File(child_name);
+    	}
+    	
+    	ArrayList parts = new ArrayList();
+    	parts.add(child_name);
+    	
+    	String filepart = null;
+    	while (parent != null) {
+    		filepart = normaliseRelativePathPart(parent.getName());
+    		if (filepart == null) {return null;}
+    		else if (filepart.length()==0) {/* continue */}
+    		else {parts.add(0, filepart);} 
+    		parent = parent.getParentFile();
+    	}
+    	
+    	StringBuffer sb = new StringBuffer((String)parts.get(0));
+    	for (int i=1; i<parts.size(); i++) {
+    		sb.append(File.separatorChar);
+    		sb.append(parts.get(i));
+    	}
+    	
+    	return new File(sb.toString());
+    }
+    	
     private static File[] getDefaultDirs(LogRelation lr) {
 		List results = new ArrayList();
 		File location = null;
@@ -360,7 +404,17 @@ public class DownloadManagerDefaultPaths {
 				logInfo("No explicit target for " + describe(dm, cd) + ".", lr);
 				return null;
 			}
-			return new File(FileUtil.getCanonicalFileName(location));
+		    
+		    File target = new File(FileUtil.getCanonicalFileName(location));
+		    String relative_path = dm.getDownloadState().getRelativeSavePath();
+		    if (relative_path != null && relative_path.length() > 0) {
+		    	logInfo("Consider relative save path: " + relative_path, lr);
+		    	
+		    	// Doesn't matter if File.separator is required or not, it seems to
+		    	// remove duplicate file separators.
+		    	target = new File(target.getPath() + File.separator + relative_path);
+		    }
+			return target;
 		}
 
 	}

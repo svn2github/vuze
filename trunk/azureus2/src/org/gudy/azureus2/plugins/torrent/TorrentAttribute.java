@@ -38,6 +38,7 @@ TorrentAttribute
 	public static final String  TA_DISPLAY_NAME                 = "DisplayName";
 	public static final String  TA_CONTENT_MAP                  = "ContentMap";
 	public static final String  TA_USER_COMMENT                 = "UserComment";
+	public static final String  TA_RELATIVE_SAVE_PATH           = "RelativePath";
 	
 
 	public String

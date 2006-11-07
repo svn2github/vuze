@@ -54,6 +54,7 @@ TorrentManagerImpl
 	private static TorrentAttribute	tr_ext_attribute = new TorrentAttributeTrackerClientExtImpl();
 	private static TorrentAttribute disp_name_attribute = new TorrentAttributeDisplayNameImpl();
 	private static TorrentAttribute comment_attribute = new TorrentAttributeUserCommentImpl();
+	private static TorrentAttribute relative_save_path_attribute = new TorrentAttributeRelativeSavePathImpl();
 	private static TorrentAttribute content_map_attribute = new TorrentAttributeContentMapImpl();
 	
 	private static Map	attribute_map = new HashMap();
@@ -66,6 +67,7 @@ TorrentManagerImpl
 		attribute_map.put( TorrentAttribute.TA_TRACKER_CLIENT_EXTENSIONS, tr_ext_attribute );
 		attribute_map.put( TorrentAttribute.TA_DISPLAY_NAME,            disp_name_attribute );
 		attribute_map.put( TorrentAttribute.TA_USER_COMMENT,            comment_attribute);
+		attribute_map.put( TorrentAttribute.TA_RELATIVE_SAVE_PATH,      relative_save_path_attribute);
 		attribute_map.put( TorrentAttribute.TA_CONTENT_MAP, content_map_attribute );
 	}
 	

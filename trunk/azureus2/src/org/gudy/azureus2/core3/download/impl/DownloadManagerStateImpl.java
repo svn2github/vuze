@@ -809,6 +809,7 @@ DownloadManagerStateImpl
 		String		name,
 		String		value )
 	{
+	
 		if ( name.equals( AT_CATEGORY )){
 			
 			if ( value == null ){
@@ -826,10 +827,18 @@ DownloadManagerStateImpl
 								
 				setCategory( cat );
 			}
-		}else{
-			
-			setStringAttribute( name, value );
+			return;
 		}
+		
+		if (name.equals(AT_RELATIVE_SAVE_PATH)) {
+			if (value.length() > 0) {
+				File relative_path_file = new File(value);
+				relative_path_file = DownloadManagerDefaultPaths.normaliseRelativePath(relative_path_file);
+				value = (relative_path_file == null) ? "" : relative_path_file.getPath();
+			}
+		}
+		
+		setStringAttribute( name, value );
 	}
 	
 	public String
@@ -936,6 +945,14 @@ DownloadManagerStateImpl
     public void setUserComment(String value) {
     	this.setStringAttribute(AT_USER_COMMENT, value);
     }
+    
+    public String getRelativeSavePath() {
+    	return this.getStringAttribute(AT_RELATIVE_SAVE_PATH);
+    }
+    
+	public void setRelativeSavePath(String path) {
+		this.setStringAttribute(AT_RELATIVE_SAVE_PATH, path);
+	}
     
 	public String[]
 	getNetworks()
@@ -2156,6 +2173,9 @@ DownloadManagerStateImpl
         public void setUserComment(String name) {}
         public String getUserComment() {return null;}
 
+        public void setRelativeSavePath(String name) {}
+        public String getRelativeSavePath() {return null;}
+        
 		public boolean parameterExists(String name) {
 			// TODO Auto-generated method stub
 			return false;
