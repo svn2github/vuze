@@ -406,8 +406,13 @@ public class DownloadManagerDefaultPaths {
 			}
 		    
 		    File target = new File(FileUtil.getCanonicalFileName(location));
-		    String relative_path = dm.getDownloadState().getRelativeSavePath();
-		    if (relative_path != null && relative_path.length() > 0) {
+		    String relative_path = null;
+          
+          if( dm != null && dm.getDownloadState() != null ) {
+             relative_path = dm.getDownloadState().getRelativeSavePath();
+          }
+		    
+          if (relative_path != null && relative_path.length() > 0) {
 		    	logInfo("Consider relative save path: " + relative_path, lr);
 		    	
 		    	// Doesn't matter if File.separator is required or not, it seems to
