@@ -116,6 +116,9 @@ public class BTPeerIDByteDecoder {
       
       if( (decoded = decodeSimpleStyle( peerID, 0, "10-------", "JVtorrent" )) != null ) return decoded;
 
+      if( (decoded = decodeSimpleStyle( peerID, 0, "LIME", "Limewire" )) != null ) return decoded;
+      
+      
       String burst = new String(peerID, 0, 5, Constants.BYTE_ENCODING);
       if( burst.equals( "Mbrst" ) ) {
         String major = new String(peerID, 5, 1, Constants.BYTE_ENCODING);
