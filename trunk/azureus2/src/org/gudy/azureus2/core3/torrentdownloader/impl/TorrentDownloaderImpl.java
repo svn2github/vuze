@@ -64,6 +64,9 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   private boolean cancel = false;
   private String filename, directoryname;
   private File file = null;
+  private byte[] buf = new byte[1020];
+  private int bufBytes = 0;
+  
 
   private AEMonitor this_mon 	= new AEMonitor( "TorrentDownloader" );
 
@@ -425,9 +428,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	        
 	        FileOutputStream fileout = new FileOutputStream(this.file, false);
 	        
-	        byte[] buf = new byte[1020];
-	        
-	        int read = 0;
+	        bufBytes = 0;
 	        
 	        int size = this.con.getContentLength();
 	        
@@ -439,9 +440,9 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	          }
 	          
 	          try {
-	            read = in.read(buf);
+	          	bufBytes = in.read(buf);
 	            
-	            this.readTotal += read;
+	            this.readTotal += bufBytes;
 	            
 	            if (size != 0){
 	              this.percentDone = (100 * this.readTotal) / size;
@@ -452,10 +453,10 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	          } catch (IOException e) {
 	          }
 	          
-	          if (read > 0){
-	            fileout.write(buf, 0, read);
+	          if (bufBytes > 0){
+	            fileout.write(buf, 0, bufBytes);
 	          }
-	        } while (read > 0);
+	        } while (bufBytes > 0);
 	        
 	        in.close();
 	        
@@ -620,4 +621,16 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     return this.readTotal;
   }
 
+  public byte[] getLastReadBytes() {
+  	if (bufBytes <= 0) {
+  		return new byte[0];
+  	}
+  	byte[] bytes = new byte[bufBytes];
+  	System.arraycopy(buf, 0, bytes, 0, bufBytes);
+  	return bytes;
+  }
+
+  public int getLastReadCount() {
+  	return bufBytes;
+  }
 }

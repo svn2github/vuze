@@ -2051,8 +2051,26 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				|| state == TorrentDownloader.STATE_ERROR
 				|| state == TorrentDownloader.STATE_DUPLICATE) {
 			downloaders.remove(inf);
-		} else
+		} else if (state == TorrentDownloader.STATE_DOWNLOADING) {
+			int count = inf.getLastReadCount();
+
+			if (inf.getTotalRead() == count && count > 0) {
+				final byte[] bytes = inf.getLastReadBytes();
+				if (bytes[0] != 'd') {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							Utils.openMessageBox(shellForChildren, SWT.OK,
+									"OpenTorrentWindow.mb.notTorrent",
+									new String[] { inf.getURL(), new String(bytes)
+									});
+						}
+					});
+					inf.cancel();
+				}
+			}
+		} else {
 			return;
+		}
 
 		checkSeedingMode();
 	}

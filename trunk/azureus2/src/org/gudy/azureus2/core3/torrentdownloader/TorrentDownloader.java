@@ -85,4 +85,12 @@ public interface TorrentDownloader {
      * Returns the URL downloaded from.
      */
     public String getURL();
+		/**
+		 * @return
+		 */
+		int getLastReadCount();
+		/**
+		 * @return
+		 */
+		byte[] getLastReadBytes();
 }
