@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 
 public class 
@@ -59,13 +61,13 @@ TRTrackerServerUDP
 		thread_pool = new ThreadPool( "TrackerServer:UDP:"+port, THREAD_POOL_SIZE );
 		
 		try{
-			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+			InetAddress bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
 			
 			InetSocketAddress	address;
 			
 			DatagramSocket	socket;
 			
-			if ( bind_ip.length() == 0 ){
+			if ( bind_ip == null ){
 				
 				address = new InetSocketAddress(InetAddress.getByName("127.0.0.1"),port);
 				
@@ -73,7 +75,7 @@ TRTrackerServerUDP
 				
 			}else{
 				
-				address = new InetSocketAddress(InetAddress.getByName(bind_ip), port);
+				address = new InetSocketAddress( bind_ip, port);
 
 				socket = new DatagramSocket(address);
 			}

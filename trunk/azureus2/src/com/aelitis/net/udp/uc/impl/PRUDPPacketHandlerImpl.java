@@ -34,6 +34,9 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
@@ -175,107 +178,156 @@ PRUDPPacketHandlerImpl
 	receiveLoop(
 		AESemaphore	init_sem )
 	{
-		try{
-			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
-			
-			InetSocketAddress	address;
-			
-			if ( bind_ip.length() == 0 ){
-				
-				address = new InetSocketAddress("127.0.0.1",port);
-				
-				socket = new DatagramSocket( port );
-				
-			}else{
-				
-				address = new InetSocketAddress(InetAddress.getByName(bind_ip), port);
-				
-				socket = new DatagramSocket( address );		
-			}
-					
-			socket.setReuseAddress(true);
-			
-			socket.setSoTimeout( PRUDPPacket.DEFAULT_UDP_TIMEOUT );
-			
-			init_sem.release();
-			
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(LOGID,
-						"PRUDPPacketReceiver: receiver established on port " + port)); 
+		boolean	failed	= false;
 	
-			byte[] buffer = null;
-			
-			long	successful_accepts 	= 0;
-			long	failed_accepts		= 0;
-			
-			while(true){
-				
-				try{
-					
-					if ( buffer == null ){
-						
-						buffer = new byte[PRUDPPacket.MAX_PACKET_SIZE];
-					}
-
-					DatagramPacket packet = new DatagramPacket( buffer, buffer.length, address );
-					
-					socket.receive( packet );
-					
-					long	receive_time = SystemTime.getCurrentTime();
-					
-					successful_accepts++;
-					
-					failed_accepts = 0;
-					
-					PRUDPPrimordialHandler prim_hand = primordial_handler;
-					
-					if ( prim_hand != null ){
-						
-						if ( prim_hand.packetReceived( packet )){
-					
-								// primordial handlers get their own buffer as we can't guarantee
-								// that they don't need to hang onto the data
-							
-							buffer	= null;
-							
-							stats.primordialPacketReceived( packet.getLength());
-						}
-					}
-					
-					if ( buffer != null ){
-						
-						process( packet, receive_time );
-					}
-				
-				}catch( SocketTimeoutException e ){
-										
-				}catch( Throwable e ){
-						
-					failed_accepts++;
-					
-					if (Logger.isEnabled())
-						Logger.log(new LogEvent(LOGID,
-								"PRUDPPacketReceiver: receive failed on port " + port, e)); 
-
-					if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){						
+		final boolean[]	bind_ip_changed = { false };
 		
-						Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-								LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
-								"" + port, "UDP" });
-										
-							// break, sometimes get a screaming loop. e.g.
-						/*
-						[2:01:55]  DEBUG::Tue Dec 07 02:01:55 EST 2004
-						[2:01:55]    java.net.SocketException: Socket operation on nonsocket: timeout in datagram socket peek
-						[2:01:55]  	at java.net.PlainDatagramSocketImpl.peekData(Native Method)
-						[2:01:55]  	at java.net.DatagramSocket.receive(Unknown Source)
-						[2:01:55]  	at org.gudy.azureus2.core3.tracker.server.impl.udp.TRTrackerServerUDP.recvLoop(TRTrackerServerUDP.java:118)
-						[2:01:55]  	at org.gudy.azureus2.core3.tracker.server.impl.udp.TRTrackerServerUDP$1.runSupport(TRTrackerServerUDP.java:90)
-						[2:01:55]  	at org.gudy.azureus2.core3.util.AEThread.run(AEThread.java:45)
-						*/
+		NetworkAdminPropertyChangeListener prop_listener = 
+			new NetworkAdminPropertyChangeListener()
+	    	{
+	    		public void
+	    		propertyChanged(
+	    			String		property )
+	    		{
+	    			if ( property == NetworkAdmin.PR_DEFAULT_BIND_ADDRESS ){
+	    				
+	    				bind_ip_changed[0] = true;
+	    			}
+	    		}
+	    	};
+    	
+	    NetworkAdmin.getSingleton().addPropertyChangeListener( prop_listener );
+
+		try{
+				// outter loop picks up bind-ip changes
+			
+			while( !failed ){
+				
+				if ( socket != null ){
+					
+					try{
+						socket.close();
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+				
+				InetAddress bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
+				
+				InetSocketAddress	address;
+				
+				DatagramSocket	new_socket;
+				
+				if ( bind_ip == null ){
+					
+					address = new InetSocketAddress("127.0.0.1",port);
+					
+					new_socket = new DatagramSocket( port );
+					
+				}else{
+					
+					address = new InetSocketAddress( bind_ip, port );
+					
+					new_socket = new DatagramSocket( address );		
+				}
+						
+				new_socket.setReuseAddress(true);
+				
+				new_socket.setSoTimeout( PRUDPPacket.DEFAULT_UDP_TIMEOUT );
+				
+					// only make the socket public once fully configured
+								
+				socket = new_socket;
+				
+				init_sem.release();
+				
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID,
+							"PRUDPPacketReceiver: receiver established on port " + port + (bind_ip==null?"":(", bound to " + bind_ip )))); 
+		
+				byte[] buffer = null;
+				
+				long	successful_accepts 	= 0;
+				long	failed_accepts		= 0;
+				
+				while( !failed ){
+					
+					if ( bind_ip_changed[0] ){
+						
+						bind_ip_changed[0] = false;
 						
 						break;
-					}					
+					}
+					
+					try{
+						
+						if ( buffer == null ){
+							
+							buffer = new byte[PRUDPPacket.MAX_PACKET_SIZE];
+						}
+	
+						DatagramPacket packet = new DatagramPacket( buffer, buffer.length, address );
+						
+						socket.receive( packet );
+						
+						long	receive_time = SystemTime.getCurrentTime();
+						
+						successful_accepts++;
+						
+						failed_accepts = 0;
+						
+						PRUDPPrimordialHandler prim_hand = primordial_handler;
+						
+						if ( prim_hand != null ){
+							
+							if ( prim_hand.packetReceived( packet )){
+						
+									// primordial handlers get their own buffer as we can't guarantee
+									// that they don't need to hang onto the data
+								
+								buffer	= null;
+								
+								stats.primordialPacketReceived( packet.getLength());
+							}
+						}
+						
+						if ( buffer != null ){
+							
+							process( packet, receive_time );
+						}
+					
+					}catch( SocketTimeoutException e ){
+											
+					}catch( Throwable e ){
+							
+						failed_accepts++;
+						
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID,
+									"PRUDPPacketReceiver: receive failed on port " + port, e)); 
+	
+						if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){						
+			
+							Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+									LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
+									"" + port, "UDP" });
+											
+								// break, sometimes get a screaming loop. e.g.
+							/*
+							[2:01:55]  DEBUG::Tue Dec 07 02:01:55 EST 2004
+							[2:01:55]    java.net.SocketException: Socket operation on nonsocket: timeout in datagram socket peek
+							[2:01:55]  	at java.net.PlainDatagramSocketImpl.peekData(Native Method)
+							[2:01:55]  	at java.net.DatagramSocket.receive(Unknown Source)
+							[2:01:55]  	at org.gudy.azureus2.core3.tracker.server.impl.udp.TRTrackerServerUDP.recvLoop(TRTrackerServerUDP.java:118)
+							[2:01:55]  	at org.gudy.azureus2.core3.tracker.server.impl.udp.TRTrackerServerUDP$1.runSupport(TRTrackerServerUDP.java:90)
+							[2:01:55]  	at org.gudy.azureus2.core3.util.AEThread.run(AEThread.java:45)
+							*/
+							
+							failed	= true;
+						}					
+					}
 				}
 			}
 		}catch( Throwable e ){
@@ -289,6 +341,8 @@ PRUDPPacketHandlerImpl
 		}finally{
 			
 			init_sem.release();
+			
+			NetworkAdmin.getSingleton().removePropertyChangeListener( prop_listener );
 		}
 	}
 	

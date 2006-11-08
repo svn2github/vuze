@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
@@ -53,7 +55,7 @@ public class IncomingSocketChannelManager
   private int tcp_listen_port;
   
   private int so_rcvbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
-  private String bind_address = COConfigurationManager.getStringParameter( "Bind IP" );
+  private InetAddress bind_address = NetworkAdmin.getSingleton().getDefaultBindAddress();
     
   private VirtualServerChannelSelector server_selector = null;
   
@@ -103,17 +105,33 @@ public class IncomingSocketChannelManager
     });
     
     //allow dynamic bind address changes
-    COConfigurationManager.addListener(
-    	new COConfigurationListener()
+    
+    NetworkAdmin.getSingleton().addPropertyChangeListener(
+    	new NetworkAdminPropertyChangeListener()
     	{
-    		public void configurationSaved() {
-	        String address = COConfigurationManager.getStringParameter( "Bind IP" );
-	        if( !address.equals( bind_address ) ) {
-	          bind_address = address;
-	          restart();
-	        }
-      }
-    });
+    		public void
+    		propertyChanged(
+    			String		property )
+    		{
+    			if ( property == NetworkAdmin.PR_DEFAULT_BIND_ADDRESS ){
+    			
+			        InetAddress address = NetworkAdmin.getSingleton().getDefaultBindAddress();
+			        
+			        if ( address == null && bind_address == null ){
+			        	
+			        	return;
+			        }
+			        
+			        if ( address == null || bind_address == null || !address.equals( bind_address )) {
+			        	
+			          bind_address = address;
+			          
+			          restart();
+			        }
+    			}
+    		}
+      });
+ 
     
     //start processing
     start();
@@ -208,18 +226,14 @@ public class IncomingSocketChannelManager
         	
 		    if( server_selector == null ) {
 		      InetSocketAddress address;
-		      try{
-		        if( bind_address.length() > 6 ) {
-		          address = new InetSocketAddress( InetAddress.getByName( bind_address ), tcp_listen_port );
-		        }
-		        else {
-		          address = new InetSocketAddress( tcp_listen_port );
-		        }
+
+		      if( bind_address != null ) {
+		        address = new InetSocketAddress( bind_address, tcp_listen_port );
 		      }
-		      catch( UnknownHostException e ) {
-		        Debug.out( e );
+		      else {
 		        address = new InetSocketAddress( tcp_listen_port );
 		      }
+
 		      	      
 		      server_selector = VirtualServerChannelSelectorFactory.createTest( address, so_rcvbuf_size, new VirtualBlockingServerChannelSelector.SelectListener() {
 		        public void newConnectionAccepted( final ServerSocketChannel server, final SocketChannel channel ) {

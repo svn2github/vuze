@@ -38,6 +38,9 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 
@@ -226,7 +229,23 @@ TRTrackerUtils
 				}
 			});
 		
+		NetworkAdmin.getSingleton().addPropertyChangeListener(
+		   	new NetworkAdminPropertyChangeListener()
+		   	{
+		   		public void
+		   		propertyChanged(
+		   			String		property )
+		   		{
+		   			if ( property == NetworkAdmin.PR_DEFAULT_BIND_ADDRESS ){
+		   				
+		   				readConfig();
+		   			}
+		   		}
+		   	});
+		 
 		readConfig();
+		
+	
 	}
 
 	static void
@@ -252,7 +271,16 @@ TRTrackerUtils
 		
 		override_map	= new_override_map;
 		
-		bind_ip 		= COConfigurationManager.getStringParameter("Bind IP", "");
+		InetAddress bad = NetworkAdmin.getSingleton().getDefaultBindAddress();
+		
+		if ( bad == null ){
+			
+			bind_ip = "";
+			
+		}else{
+		
+			bind_ip = bad.getHostAddress();
+		}
 	}
 	
 	public static boolean

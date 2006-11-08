@@ -31,7 +31,9 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 
 
@@ -173,10 +175,10 @@ public class ConnectDisconnectManager {
         	request.channel.socket().setReuseAddress( true );
         }
         
-        String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
-        if ( bindIP.length() > 6 ) {
+        InetAddress bindIP = NetworkAdmin.getSingleton().getDefaultBindAddress();
+        if ( bindIP != null ) {
         	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP));
-          request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), local_bind_port ) );
+          request.channel.socket().bind( new InetSocketAddress( bindIP, local_bind_port ) );
         }
         else if( local_bind_port > 0 ) {       
         	if (Logger.isEnabled()) Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local port #: " +local_bind_port));

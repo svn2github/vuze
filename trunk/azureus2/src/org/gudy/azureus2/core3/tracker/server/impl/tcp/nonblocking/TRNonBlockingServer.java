@@ -38,9 +38,11 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelectorFactory;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 /**
  * @author parg
@@ -108,15 +110,15 @@ TRNonBlockingServer
 			
 			if ( _bind_ip == null ){
 				
-				String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+				_bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
 		
-				if ( bind_ip.length() < 7 ){
+				if ( _bind_ip == null ){
 					
 					address = new InetSocketAddress( _port );
 					
 				}else{
 	
-					address = new InetSocketAddress( InetAddress.getByName( bind_ip ), _port );			
+					address = new InetSocketAddress( _bind_ip, _port );			
 				}
 			}else{
 				

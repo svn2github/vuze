@@ -45,6 +45,8 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+
 public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 
 	private final String CFG_PREFIX = "ConfigView.section.connection.advanced.";
@@ -117,27 +119,30 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 
 		
 		Label lmaxout = new Label(gSocket, SWT.NULL);
-    Messages.setLanguageText(lmaxout, "ConfigView.section.connection.network.max.simultaneous.connect.attempts");
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    lmaxout.setLayoutData( gridData );
+		Messages.setLanguageText(lmaxout, "ConfigView.section.connection.network.max.simultaneous.connect.attempts");
+		gridData = new GridData();
+		lmaxout.setLayoutData( gridData );
 
-    IntParameter max_connects = new IntParameter(gSocket, "network.max.simultaneous.connect.attempts", 1, 100, false, false );    
-    gridData = new GridData();
-    gridData.widthHint = 30;
+		IntParameter max_connects = new IntParameter(gSocket, "network.max.simultaneous.connect.attempts", 1, 100, false, false );    
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		gridData.widthHint = 30;
 		max_connects.setLayoutData(gridData);
-    
-    
-    Label lbind = new Label(gSocket, SWT.NULL);
-    Messages.setLanguageText(lbind, "ConfigView.label.bindip");
-    StringParameter bindip = new StringParameter(gSocket, "Bind IP", "");
-    gridData = new GridData();
-    gridData.widthHint = 100;
-    gridData.horizontalSpan = 2;
-    bindip.setLayoutData(gridData);
-	
-    
-    Label lpbind = new Label(gSocket, SWT.NULL);
+
+
+		Label lbind = new Label(gSocket, SWT.NULL);
+
+		Messages.setLanguageText(lbind, "ConfigView.label.bindip" );
+		StringParameter bindip = new StringParameter(gSocket, "Bind IP", "", false);
+		gridData = new GridData();
+		gridData.widthHint = 100;
+		bindip.setLayoutData(gridData);
+		Label lbind2 = new Label(gSocket, SWT.NULL);
+
+		Messages.setLanguageText(lbind2, "ConfigView.label.bindip.info", new String[]{ NetworkAdmin.getSingleton().getNetworkInterfacesAsString() });
+
+
+		Label lpbind = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lpbind, CFG_PREFIX + "bind_port");
 		final IntParameter port_bind = new IntParameter(gSocket, "network.bind.local.port", 0, 65535, true, false );
 		gridData = new GridData();

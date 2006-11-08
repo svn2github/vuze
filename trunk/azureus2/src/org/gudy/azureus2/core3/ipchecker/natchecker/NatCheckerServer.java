@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
@@ -118,25 +119,20 @@ public class NatCheckerServer extends AEThread {
       }
       else {  //different port than already listening on, start new listen server     	
         try {
-          String bind_ip  = COConfigurationManager.getStringParameter("Bind IP", "");
+        	InetAddress bind_ip  = NetworkAdmin.getSingleton().getDefaultBindAddress();
 
           server = new ServerSocket();  //unbound          
           server.setReuseAddress( true );  //set SO_REUSEADDR 
           
           InetSocketAddress address;
-  	      try{
-  	        if( bind_ip.length() > 6 ) {
-  	          address = new InetSocketAddress( InetAddress.getByName( bind_ip ), _port );
-  	        }
-  	        else {
-  	          address = new InetSocketAddress( _port );
-  	        }
-  	      }
-  	      catch( UnknownHostException e ) {
-  	        Debug.out( e );
-  	        address = new InetSocketAddress( _port );
-  	      }
-            	      
+
+          if( bind_ip != null ) {
+        	  address = new InetSocketAddress( bind_ip, _port );
+          }
+          else {
+        	  address = new InetSocketAddress( _port );
+          }
+       
   	      server.bind( address );
   	      
   	      if (Logger.isEnabled())	Logger.log(new LogEvent(LOGID, "NAT tester server socket bound to " +address ));

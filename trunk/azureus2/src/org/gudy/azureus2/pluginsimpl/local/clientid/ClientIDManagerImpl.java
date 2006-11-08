@@ -46,6 +46,9 @@ import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.clientid.ClientIDManager;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+
 /**
  * @author parg
  *
@@ -97,11 +100,11 @@ ClientIDManagerImpl
 			String	http_proxy 	= System.getProperty( "http.proxyHost" );
 			String	socks_proxy = System.getProperty( "socksProxyHost" );
 			
-		    String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
+		    InetAddress bindIP = NetworkAdmin.getSingleton().getDefaultBindAddress();
 		    
 	        if (	( http_proxy == null || http_proxy.trim().length() == 0 ) &&
 	        		( socks_proxy == null || socks_proxy.trim().length() == 0 ) &&
-	        		bindIP.length() > 6 ){
+	        		bindIP != null ){
 
 	        	int		ips = 0;
 	        	
@@ -463,11 +466,11 @@ ClientIDManagerImpl
 				
 				Socket	target = new Socket();
 				
-			    String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
+			    InetAddress bindIP = NetworkAdmin.getSingleton().getDefaultBindAddress();
 			    
-		        if ( bindIP.length() > 6 ){
+		        if ( bindIP != null ){
 		        	
-		        	target.bind( new InetSocketAddress( InetAddress.getByName( bindIP ), 0 ) );
+		        	target.bind( new InetSocketAddress( bindIP, 0 ) );
 		        }
 
 		        // System.out.println( "filtering " + target_host + ":" + target_port );

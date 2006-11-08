@@ -44,6 +44,9 @@ import org.gudy.azureus2.core3.security.*;
 
 import org.bouncycastle.util.encoders.Base64;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+
 public class 
 AuthenticatorWindow 
 	implements SEPasswordListener
@@ -214,19 +217,19 @@ AuthenticatorWindow
 	
 			String	tracker = protocol + "://" + host + ":" + port + "/";
 	
-			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+			InetAddress bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
 			
 			String	self_addr;
 	
 			// System.out.println( "auth req for " + realm + " - " + tracker );
 			
-			if ( bind_ip.length() < 7 ){
+			if ( bind_ip == null){
 		
 				self_addr = "127.0.0.1";
 		
 			}else{
 		
-				self_addr = bind_ip;
+				self_addr = bind_ip.getHostAddress();
 			}
 	
 				// when the tracker is connected to internally we don't want to prompt

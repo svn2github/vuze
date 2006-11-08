@@ -34,15 +34,20 @@ import org.gudy.azureus2.core3.config.*;
  */
 public class StringParameter extends Parameter{
 
-  String name;
-  Text inputField;
-
+  private String name;
+  private Text inputField;
+  private String defaultValue;
+  
   public StringParameter(Composite composite,final String name) {
     this(composite, name, COConfigurationManager.getStringParameter(name));
   }
 
   public StringParameter(Composite composite,final String name, String defaultValue) {
+	  this( composite, name, defaultValue, true );
+  }
+  public StringParameter(Composite composite,final String name, String defaultValue, boolean generateIntermediateEvents ) {
     this.name = name;
+    this.defaultValue = defaultValue;
     inputField = new Text(composite, SWT.BORDER);
     String value = COConfigurationManager.getStringParameter(name, defaultValue);
     inputField.setText(value);
@@ -51,19 +56,39 @@ public class StringParameter extends Parameter{
           e.doit = COConfigurationManager.verifyParameter(name, e.text );
         }
     });
-    inputField.addListener(SWT.Modify, new Listener() {
-      public void handleEvent(Event event) {
-        COConfigurationManager.setParameter(name, inputField.getText());
-        
-        if( change_listeners != null ) {
-          for (int i=0;i<change_listeners.size();i++){
-            ((ParameterChangeListener)change_listeners.get(i)).parameterChanged(StringParameter.this,false);
-          }
+    
+    if ( generateIntermediateEvents ){
+	    inputField.addListener(SWT.Modify, new Listener() {
+	      public void handleEvent(Event event) {
+	    	  checkValue();
+	      }
+	    });
+    }
+    
+    inputField.addListener(SWT.FocusOut, new Listener() {
+        public void handleEvent(Event event) {
+        	checkValue();
         }
-      }
     });
   }
 
+  protected void
+  checkValue()
+  {
+	  String	old_value = COConfigurationManager.getStringParameter( name, defaultValue );
+	  String	new_value = inputField.getText();
+	  
+	  if ( !old_value.equals( new_value )){
+	      COConfigurationManager.setParameter(name,new_value );
+	      
+	      if( change_listeners != null ) {
+	        for (int i=0;i<change_listeners.size();i++){
+	          ((ParameterChangeListener)change_listeners.get(i)).parameterChanged(StringParameter.this,false);
+	        }
+	      }
+	  }
+  }
+  
   public void setLayoutData(Object layoutData) {
     inputField.setLayoutData(layoutData);
   }

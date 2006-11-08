@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
@@ -99,18 +101,7 @@ AZMyInstanceImpl
 	readConfig(
 		boolean	first_time )
 	{
-		InetAddress	new_internal_address	= null;
-		
-		String internal_address_str = COConfigurationManager.getStringParameter("Bind IP");
-		
-		if ( internal_address_str.length() >= 7 ){
-		
-			try{
-				new_internal_address = InetAddress.getByName( internal_address_str );
-				
-			}catch( Throwable e ){			
-			}
-		}
+		InetAddress	new_internal_address	= NetworkAdmin.getSingleton().getDefaultBindAddress();
 		
 		if ( new_internal_address == null ){
 			

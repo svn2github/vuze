@@ -32,6 +32,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.proxy.AEProxyConnection;
 import com.aelitis.azureus.core.proxy.socks.*;
 
@@ -157,11 +159,11 @@ AESocksProxyPlugableConnectionDefault
 			
 			target_channel = SocketChannel.open();
 			
-		    String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
+		    InetAddress bindIP = NetworkAdmin.getSingleton().getDefaultBindAddress();
 		    
-	        if ( bindIP.length() > 6 ){
+	        if ( bindIP != null ){
 	        	
-	        	target_channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), 0 ) );
+	        	target_channel.socket().bind( new InetSocketAddress( bindIP, 0 ) );
 	        }
 	        
 	        target_channel.configureBlocking( false );

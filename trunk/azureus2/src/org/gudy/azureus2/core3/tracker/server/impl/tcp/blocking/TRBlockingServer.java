@@ -35,6 +35,10 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerException;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerTCP;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Debug;
+
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 
 /**
@@ -63,9 +67,21 @@ TRBlockingServer
 		boolean	ok = false;
 		
 		try{
-			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+			InetAddress bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
+			
 			String tr_bind_ip = COConfigurationManager.getStringParameter("Bind IP for Tracker", "");
-			if (tr_bind_ip.length() >= 7) {bind_ip = tr_bind_ip;}
+			
+			if ( tr_bind_ip.length() >= 7 ){
+			
+				try{
+				
+					bind_ip = InetAddress.getByName(tr_bind_ip);
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
 	
 			if ( _ssl ){
 				
@@ -84,13 +100,13 @@ TRBlockingServer
 					}else{
 						SSLServerSocket ssl_server_socket;
 						
-						if ( bind_ip.length() < 7 ){
+						if ( bind_ip == null ){
 							
 							ssl_server_socket = (SSLServerSocket)factory.createServerSocket( getPort(), 128 );
 							
 						}else{
 							
-							ssl_server_socket = (SSLServerSocket)factory.createServerSocket(  getPort(), 128, InetAddress.getByName(bind_ip));
+							ssl_server_socket = (SSLServerSocket)factory.createServerSocket(  getPort(), 128, bind_ip );
 						}
 		
 						String cipherSuites[] = ssl_server_socket.getSupportedCipherSuites();
@@ -154,13 +170,13 @@ TRBlockingServer
 					
 						ss = new ServerSocket(  port, 1024, _bind_ip );
 
-					}else if ( bind_ip.length() < 7 ){
+					}else if ( bind_ip == null ){
 						
 						ss = new ServerSocket(  port, 1024 );
 						
 					}else{
 						
-						ss = new ServerSocket(  port, 1024, InetAddress.getByName(bind_ip));
+						ss = new ServerSocket(  port, 1024, bind_ip );
 					}
 					
 					if ( port == 0 ){
