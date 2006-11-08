@@ -81,22 +81,28 @@ public class UrlUtils
 			textLower = text;
 		}
 		int max = accept_magnets ? prefixes.length : MAGNETURL_STARTS_AT;
+		int end = -1;
+		int start = textLower.length();
+		String strURL = null;
 		for (int i = 0; i < max; i++) {
-			final int begin = textLower.indexOf(prefixes[i]);
-			if (begin >= 0) {
-				final int end = text.indexOf("\n", begin + prefixes[i].length());
-				final String stringURL = (end >= 0) ? text.substring(begin, end - 1)
-						: text.substring(begin);
+			final int testBegin = textLower.indexOf(prefixes[i]);
+			if (testBegin >= 0 && testBegin < start) {
+				end = text.indexOf("\n", testBegin + prefixes[i].length());
+				String strURLTest = (end >= 0) ? text.substring(testBegin, end - 1)
+						: text.substring(testBegin);
 				try {
-					URL parsedURL = new URL(stringURL);
-					return parsedURL.toExternalForm();
+					URL parsedURL = new URL(strURLTest);
+					strURL = parsedURL.toExternalForm();
 				} catch (MalformedURLException e1) {
 					e1.printStackTrace();
 					if (i >= MAGNETURL_STARTS_AT) {
-						return stringURL;
+						strURL = strURLTest;
 					}
 				}
 			}
+		}
+		if (strURL != null) {
+			return strURL;
 		}
 
 		// accept raw hash of 40 hex chars
@@ -170,11 +176,13 @@ public class UrlUtils
 				"magnet%3A%3Fxt=urn:btih:26",
 				"magnet%3A//%3Fmooo",
 				"magnet:?xt=urn:btih:" + Base32.encode(infohash),
-				"aaaaaaaaaabbbbbbbbbbccccccccccdddddddddd" };
+				"aaaaaaaaaabbbbbbbbbbccccccccccdddddddddd",
+				"magnet:?dn=OpenOffice.org_2.0.3_Win32Intel_install.exe&xt=urn:sha1:PEMIGLKMNFI4HZ4CCHZNPKZJNMAAORKN&xt=urn:tree:tiger:JMIJVWHCQUX47YYH7O4XIBCORNU2KYKHBBC6DHA&xt=urn:ed2k:1c0804541f34b6583a383bb8f2cec682&xl=96793015&xs=http://mirror.switch.ch/ftp/mirror/OpenOffice/stable/2.0.3/OOo_2.0.3_Win32Intel_install.exe"
+				};
 		for (int i = 0; i < test.length; i++) {
-			System.out.println(test[i] + " -> " + URLDecoder.decode(test[i]));
-			System.out.println(test[i] + " -> " + isURL(test[i]));
-			System.out.println(test[i] + " -> " + parseTextForURL(test[i], true));
+			System.out.println("decode: " + test[i] + " -> " + URLDecoder.decode(test[i]));
+			System.out.println("isURL: " + test[i] + " -> " + isURL(test[i]));
+			System.out.println("parse: " + test[i] + " -> " + parseTextForURL(test[i], true));
 		}
 
 	}
