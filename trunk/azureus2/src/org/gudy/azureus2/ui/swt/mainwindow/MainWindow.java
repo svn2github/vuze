@@ -941,6 +941,10 @@ MainWindow
   	boolean	for_restart,
 	boolean	close_already_in_progress ) 
   {
+  	if (isAlreadyDead) {
+  		return true;
+  	}
+
 		if (!UIExitUtilsSWT.canClose(globalManager, for_restart)) {
 			return false;
 		}
