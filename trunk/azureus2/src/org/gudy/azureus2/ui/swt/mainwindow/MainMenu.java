@@ -73,6 +73,9 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
+
 /**
  * @author Olivier Chalouhi
  * @author James Yeh Accessibility: Changes to allow better validation and unified menu bar state
@@ -498,7 +501,22 @@ public class MainMenu {
         		if (uiFunctions != null) {
         			uiFunctions.bringToFront();
         		}
-        		UpdateMonitor.getSingleton(core).performCheck(true);
+        		UpdateMonitor.getSingleton(core).performCheck(true, new UpdateCheckInstanceListener() {
+        			public void cancelled(UpdateCheckInstance instance) {
+        			}
+        			
+        			public void complete(UpdateCheckInstance instance) {
+        				if (instance.getUpdates().length == 0) {
+        					Utils.execSWTThread(new AERunnable() {
+        						public void runSupport() {
+            					Utils.openMessageBox(parent,
+													SWT.ICON_INFORMATION | SWT.OK,
+													"window.update.noupdates", (String[]) null);
+        						}
+        					});
+        				}
+        			}
+        		});
         	}
         });
       }

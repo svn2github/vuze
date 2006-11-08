@@ -239,6 +239,12 @@ UpdateMonitor
 	public void
 	performCheck(final boolean bForce)
 	{
+		performCheck(bForce, null);
+	}
+
+	public void
+	performCheck(final boolean bForce, final UpdateCheckInstanceListener l)
+	{
 		if ( SystemProperties.isJavaWebStartInstance()){
 			
 				// just in case we get here somehome!
@@ -290,6 +296,9 @@ UpdateMonitor
 			    				bForce ? UpdateCheckInstance.UCI_INSTALL : UpdateCheckInstance.UCI_UPDATE,
 			  					"update.instance.update" );
 			  	
+			    		if (l != null) {
+			    			current_update_instance.addListener(l);
+			    		}
 			    		current_update_instance.start();
 			    	}
 				};
