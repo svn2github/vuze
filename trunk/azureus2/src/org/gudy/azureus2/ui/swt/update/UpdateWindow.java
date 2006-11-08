@@ -385,7 +385,9 @@ UpdateWindow
         	
         }else{
         	
-          MainWindow.getWindow().setUpdateNeeded(UpdateWindow.this);
+        	if (MainWindow.getWindow() != null) {
+        		MainWindow.getWindow().setUpdateNeeded(UpdateWindow.this);
+        	}
         }
       }
     });
@@ -596,17 +598,22 @@ UpdateWindow
   
   private void finishUpdate(boolean restartNow) {
     //When completing, remove the link in mainWindow :
-    MainWindow.getWindow().setUpdateNeeded(null);
+  	if (MainWindow.getWindow() != null) {
+  		MainWindow.getWindow().setUpdateNeeded(null);
+  	}
     
     //If restart is required, then restart
     if( restartRequired && restartNow) {
     	// this HAS to be done this way around else the restart inherits
     	// the 6880 port listen. However, this is a general problem....
-    	
-      if ( !MainWindow.getWindow().dispose(true,false)){
-           	
+    	UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+    	if (uiFunctions != null) {
+    		if (!uiFunctions.dispose(true, false)) {
+        	updateWindow.dispose(); 
+    		}
+    	} else {
       	updateWindow.dispose(); 
-      }
+    	}
     }else{
     	
       updateWindow.dispose();      
