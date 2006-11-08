@@ -64,7 +64,14 @@ public class Debug {
   {
     diagLoggerLogAndOut("DEBUG::"+ new Date(SystemTime.getCurrentTime()).toString() + "  " + str, stderr );
   }
-  
+
+  public static void
+  outDiagLoggerOnly(
+  	String		str)
+  {
+    diagLoggerLog(str);
+  }
+
   /**
    * Prints out the given debug message to System.out,
    * prefixed by the calling class name, method and
@@ -455,7 +462,11 @@ public class Debug {
 			return "";
 		}
 	}
-	
+
+	private static void diagLoggerLog(String str) {
+		diag_logger.log(str);
+	}
+
 	private static void
 	diagLoggerLogAndOut(
 		String	str,
