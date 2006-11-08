@@ -194,6 +194,12 @@ public class LoggerImpl {
 		if (bLogToStdOut && psOldOut != null)
 			psOldOut.println(event.text);
 
+		if (event.entryType == LogEvent.LT_ERROR) {
+			Debug.outDiagLoggerOnly("[" + event.logID + "] " + event.text);
+			if (psOldErr != null && event.logID != LogIDs.STDERR) {
+				psOldErr.println("[" + event.logID + "] " + event.text);
+			}
+		}
 		if (bEventLoggingEnabled)
 			for (int i = 0; i < logListeners.size(); i++) {
 				try {
