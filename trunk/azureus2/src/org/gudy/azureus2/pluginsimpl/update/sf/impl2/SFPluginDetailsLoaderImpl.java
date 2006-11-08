@@ -175,20 +175,25 @@ SFPluginDetailsLoaderImpl
 					}
 				}
 				
-				String	version 	= (String)bits.get(0);
-				String	cvs_version = (String)bits.get(1);
-				String	name		= (String)bits.get(2);
-				String	category	= "";
-				
-				if ( bits.size() > 3 ){
-					
-					category = (String)bits.get(3);
+				if (bits.size() == 0) {
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+							"SF loadPluginList failed for plugin '" + plugin_id
+									+ "'.  Details array is 0."));
+				} else {
+					String version = (String) bits.get(0);
+					String cvs_version = (String) bits.get(1);
+					String name = (String) bits.get(2);
+					String category = "";
+
+					if (bits.size() > 3) {
+						category = (String) bits.get(3);
+					}
+
+					plugin_ids.add(plugin_id);
+
+					plugin_map.put(plugin_id.toLowerCase(), new SFPluginDetailsImpl(this,
+							plugin_id, version, cvs_version, name, category));
 				}
-				
-				plugin_ids.add( plugin_id );
-				
-				plugin_map.put(plugin_id.toLowerCase(), 
-				               new SFPluginDetailsImpl( this, plugin_id, version, cvs_version, name, category ));
 			}
 			
 			plugin_ids_loaded	= true;
