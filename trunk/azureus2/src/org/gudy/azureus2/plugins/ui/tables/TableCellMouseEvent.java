@@ -91,7 +91,12 @@ public class TableCellMouseEvent {
 	public int keyboardState;
 
 	/**
-	 * Not implemented
+	 * Setting this value to true will prevent Azureus from running it's
+	 * core functionality (if any) for the mouse event.
+	 * 
+	 * For example, by default the double click in My Torrents goes to
+	 * the details view.  If your plugin remaps double click to do a different
+	 * function, set skipCoreFunctionality = true.
 	 */
 	public boolean skipCoreFunctionality;
 }
