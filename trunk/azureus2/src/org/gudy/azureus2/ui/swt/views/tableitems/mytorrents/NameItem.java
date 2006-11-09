@@ -24,18 +24,21 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /** Torrent name cell for My Torrents.
  *
@@ -43,7 +46,8 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
 public class NameItem extends CoreTableColumn implements
-		TableCellRefreshListener, ObfusticateCellText {
+		TableCellRefreshListener, ObfusticateCellText, TableCellDisposeListener
+{
 	private static boolean bShowIcon;
 
 	static {
@@ -54,7 +58,7 @@ public class NameItem extends CoreTableColumn implements
 					}
 				});
 	}
-	
+
 	/** Default Constructor */
 	public NameItem(String sTableID) {
 		super("name", POSITION_LAST, 250, sTableID);
@@ -74,12 +78,36 @@ public class NameItem extends CoreTableColumn implements
 		//setText returns true only if the text is updated
 		if (cell.setText(name) || !cell.isValid()) {
 			if (dm != null && bShowIcon) {
-				// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
-				Image icon = ImageRepository.getPathIcon(dm.getSaveLocation()
-						.toString());
-				// cheat for core, since we really know it's a TabeCellImpl and want to
-				// use those special functions not available to Plugins
-				((TableCellCore) cell).setImage(icon);
+				DiskManagerFileInfo[] fileInfo = dm.getDiskManagerFileInfo();
+				if (fileInfo.length > 0) {
+					int idxBiggest = 0;
+					long lBiggest = fileInfo[0].getLength();
+					for (int i = 1; i < fileInfo.length; i++) {
+						if (fileInfo[i].getLength() > lBiggest) {
+							lBiggest = fileInfo[i].getLength();
+							idxBiggest = i;
+						}
+					}
+					String path = fileInfo[idxBiggest].getFile(true).getPath();
+					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
+					Image icon = ImageRepository.getPathIcon(path);
+
+					if (Constants.isWindows) {
+						// recomposite to avoid artifacts - transparency mask does not work
+						final Image dstImage = new Image(Display.getCurrent(),
+								icon.getBounds().width, icon.getBounds().height);
+						GC gc = new GC(dstImage);
+						gc.drawImage(icon, 0, 0);
+						gc.dispose();
+						icon = dstImage;
+					}
+
+					// cheat for core, since we really know it's a TabeCellImpl and want to
+					// use those special functions not available to Plugins
+					((TableCellCore) cell).setImage(icon);
+				} else {
+					((TableCellCore) cell).setImage(null);
+				}
 			}
 		}
 	}
@@ -94,9 +122,18 @@ public class NameItem extends CoreTableColumn implements
 				name = name.substring(i + 1);
 			}
 		}
-		
+
 		if (name == null)
 			name = "";
 		return name;
+	}
+
+	public void dispose(TableCell cell) {
+		if (bShowIcon && Constants.isWindows) {
+			final Image img = ((TableCellCore) cell).getGraphicSWT();
+			if (img != null && !img.isDisposed()) {
+				img.dispose();
+			}
+		}
 	}
 }

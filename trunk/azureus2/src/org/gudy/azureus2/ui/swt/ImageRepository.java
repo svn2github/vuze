@@ -301,13 +301,17 @@ public class ImageRepository {
   	return getImage("folder", true);
   }
 
+	public static Image getPathIcon(final String path) {
+		return getPathIcon(path, false);
+	}
+
     /**
 	 * <p>Gets a small-sized iconic representation of the file or directory at the path</p>
 	 * <p>For most platforms, the icon is a 16x16 image; weak-referencing caching is used to avoid abundant reallocation.</p>
 	 * @param path Absolute path to the file or directory
 	 * @return The image
 	 */
-	public static Image getPathIcon(final String path) {
+	public static Image getPathIcon(final String path, boolean bBig) {
 		if (path == null)
 			return null;
 
@@ -348,6 +352,8 @@ public class ImageRepository {
 					}
 				}
 			}
+			
+			key += bBig ? "-big" : "";
 
 			// this method mostly deals with incoming torrent files, so there's less concern for
 			// custom icons (unless user sets a custom icon in a later session)
@@ -370,7 +376,7 @@ public class ImageRepository {
 						method = sfClass.getMethod("getIcon", new Class[] { Boolean.TYPE });
 						if (method != null) {
 							awtImage = (java.awt.Image) method.invoke(sfInstance,
-									new Object[] { new Boolean(false) });
+									new Object[] { new Boolean(bBig) });
 						}
 					}
 				}
@@ -382,17 +388,6 @@ public class ImageRepository {
         final ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
 
         image = new Image(null, inStream);
-
-        if (Constants.isWindows) {
-					// recomposite to avoid artifacts - transparency mask does not work
-					final Image dstImage = new Image(Display.getCurrent(), image
-							.getBounds().width, image.getBounds().height);
-					GC gc = new GC(dstImage);
-					gc.drawImage(image, 0, 0);
-					gc.dispose();
-					image.dispose();
-					image = dstImage;
-				}
 
 				registry.put(key, image);
 
