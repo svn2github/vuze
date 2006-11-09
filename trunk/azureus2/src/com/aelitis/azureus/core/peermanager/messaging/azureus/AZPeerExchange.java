@@ -104,7 +104,7 @@ public class AZPeerExchange implements AZMessage {
        	  handshake_types = null;
       }
       
-      if ( udp_ports != null && udp_ports.length != peer_num ){
+      if ( udp_ports != null && udp_ports.length != peer_num*2 ){
        	  Logger.log(new LogEvent( LOGID, LogEvent.LT_WARNING,"PEX: invalid udp ports received: peers=" + peer_num + ",udp_ports=" + udp_ports.length ));
     	  udp_ports = null;
       }
