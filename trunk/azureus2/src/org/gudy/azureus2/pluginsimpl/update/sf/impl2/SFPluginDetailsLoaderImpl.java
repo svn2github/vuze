@@ -175,10 +175,10 @@ SFPluginDetailsLoaderImpl
 					}
 				}
 				
-				if (bits.size() == 0) {
+				if (bits.size() < 3) {
 					Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
 							"SF loadPluginList failed for plugin '" + plugin_id
-									+ "'.  Details array is 0."));
+									+ "'.  Details array is " + bits.size() + " (3 min)"));
 				} else {
 					String version = (String) bits.get(0);
 					String cvs_version = (String) bits.get(1);
