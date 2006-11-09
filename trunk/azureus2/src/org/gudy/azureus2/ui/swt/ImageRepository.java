@@ -62,6 +62,11 @@ public class ImageRepository {
   }
 
   public static void loadImages(Display display) {
+	  
+	  	if(Constants.isOSX) {
+	  		addPath("org/gudy/azureus2/ui/icons/az3_osx_tray_white.png", "azureus_white");
+	    	addPath("org/gudy/azureus2/ui/icons/az3_osx_tray.png", "azureus_grey");
+	  	}
 		addPath("org/gudy/azureus2/ui/icons/a32.png", "azureus32");
 		addPath("org/gudy/azureus2/ui/icons/a64.png", "azureus64");
 		addPath("org/gudy/azureus2/ui/icons/a128.png", "azureus128");
