@@ -84,8 +84,8 @@ public class VirtualChannelSelectorImpl {
     private volatile boolean	destroyed;
     
     
-    private static final int WRITE_SELECTOR_DEBUG_CHECK_PERIOD	= 5000;
-    private static final int WRITE_SELECTOR_DEBUG_MAX_TIME		= 10000;
+    private static final int WRITE_SELECTOR_DEBUG_CHECK_PERIOD	= 10000;
+    private static final int WRITE_SELECTOR_DEBUG_MAX_TIME		= 20000;
     
     private long last_write_select_debug;
     
@@ -629,7 +629,34 @@ public class VirtualChannelSelectorImpl {
 	    	      if ( stall_time > WRITE_SELECTOR_DEBUG_MAX_TIME ){
 	    	    	
 	    	    	  Logger.log(
-	    	    		new LogEvent(LOGID,LogEvent.LT_WARNING,"Write select for " + key.channel() + " stalled for " + stall_time ));
+	    	    		new LogEvent(LOGID,LogEvent.LT_WARNING,"Write select for " + key.channel() + " stalled for " + stall_time ));	    	  
+	    	    	  
+	    	    	  	// hack - trigger a dummy write select to see if things are still OK
+	    	    	  
+	    	          if( key.isValid() ) {
+	    	        	  
+	    	        	  if ((key.interestOps() & INTEREST_OP) == 0 ) { 
+
+	    	        	  }else{            
+
+	    	        		  if( pause_after_select ) { 
+
+	    	        			  key.interestOps( key.interestOps() & ~INTEREST_OP );
+	    	        		  }
+
+	    	        		  	// this is a dummy select, trash the non-progress counter as it
+	    	        		  	// will be invalid 
+	    	        		  
+	    	        		  parent.selectSuccess( data.listener, data.channel, data.attachment );
+
+	    	        		  data.non_progress_count = 0;
+	    	        	  }
+	    	          }else{
+
+	    	        	  key.cancel();
+
+	    	        	  parent.selectFailure( data.listener, data.channel, data.attachment, new Throwable( "key is invalid" ) );
+	    	          }
 	    	      }
 	    	  }
     	  }
