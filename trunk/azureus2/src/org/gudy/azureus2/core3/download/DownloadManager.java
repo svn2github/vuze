@@ -505,6 +505,14 @@ DownloadManager
     public PEPeer[]
     getCurrentPeers();
 
+    	/**
+    	 * Gives the download an opportunity to schedule seeding mode piece rechecks if desired
+    	 * @return true if a piece has been rechecked
+    	 */
+    
+	public boolean
+	seedPieceRecheck();
+	
     public void
     addListener(
             DownloadManagerListener listener );

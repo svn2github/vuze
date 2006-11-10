@@ -1759,7 +1759,7 @@ PEPeerTransportProtocol
     final int length = request.getLength();
     request.destroy();  
     
-    if( !manager.checkBlock( number, offset, length ) ) {
+    if( !manager.validateReadRequest( number, offset, length ) ) {
       closeConnectionInternally( "request for piece #" + number + ":" + offset + "->" + (offset + length -1) + " is an invalid request" );
       return;
     }
@@ -1810,7 +1810,7 @@ PEPeerTransportProtocol
 		  }
 	  };
 
-	  if( !manager.checkBlock( pieceNumber, offset, payload ) ) {
+	  if( !manager.validatePieceReply( pieceNumber, offset, payload ) ) {
 		  peer_stats.bytesDiscarded( length );
 		  manager.discarded( length );
 		  requests_discarded++;

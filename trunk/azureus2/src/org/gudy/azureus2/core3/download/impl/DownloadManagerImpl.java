@@ -3006,6 +3006,19 @@ DownloadManagerImpl
 	  return DownloadManagerDefaultPaths.getDefaultSavePaths(this, for_moving);
   }
   
+  public boolean
+  seedPieceRecheck()
+  {
+	  PEPeerManager pm = controller.getPeerManager();
+	  
+	  if ( pm != null ){
+		  
+		  return( pm.seedPieceRecheck());
+	  }
+	  
+	  return( false );
+  }
+  
   private byte[]
   getIdentity()
   {

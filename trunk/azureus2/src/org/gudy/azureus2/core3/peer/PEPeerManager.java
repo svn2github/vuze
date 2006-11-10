@@ -130,6 +130,9 @@ PEPeerManager
   public boolean
   isSuperSeedMode();
   
+  public boolean
+  seedPieceRecheck();
+  
   public int getNbRemoteConnections();
   
   public long getLastRemoteConnectionTime();
@@ -230,7 +233,7 @@ PEPeerManager
 		DiskManagerReadRequest	item );
 		
 	public boolean 
-	checkBlock(
+	validatePieceReply(
 		int 		pieceNumber, 
 		int 		offset, 
 		DirectByteBuffer 	data );

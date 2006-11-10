@@ -52,7 +52,6 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtilsListener;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
-import com.aelitis.azureus.core.peermanager.uploadslots.UploadSlotManager;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 import org.gudy.azureus2.plugins.network.ConnectionManager;
@@ -154,6 +153,8 @@ public class GlobalManagerImpl
   
 	private Map							saved_download_manager_state	= new HashMap();
 	
+	private int							next_seed_piece_recheck_index;
+	
 	private TorrentFolderWatcher torrent_folder_watcher;
   
 	private ArrayList paused_list = new ArrayList();
@@ -197,6 +198,7 @@ public class GlobalManagerImpl
     private int saveResumeLoopCount = 5*60*1000 / waitTime;
     private int netCheckLoopCount	= 60*1000 / waitTime;
     private int natCheckLoopCount	= 30*1000 / waitTime;
+    private int seedPieceCheckCount	= 30*1000 / waitTime;
            
     private AESemaphore	run_sem = new AESemaphore( "GM:Checker:run");
     
@@ -245,6 +247,11 @@ public class GlobalManagerImpl
 		        checkSeedingOnlyState();
 	        }
 	        	
+	        if ((loopFactor % seedPieceCheckCount == 0)) {
+
+	        	seedPieceRecheck();
+	        }
+	        
 	        for (Iterator it=managers_cow.iterator();it.hasNext();) {
           	
 	        	DownloadManager manager = (DownloadManager)it.next();
@@ -2352,6 +2359,63 @@ public class GlobalManagerImpl
 				announcer.update( true );
 			}
 		}
+	}
+	
+	protected void
+	seedPieceRecheck()
+	{
+		List	managers = managers_cow;
+		
+		if ( next_seed_piece_recheck_index >= managers.size()){
+			
+			next_seed_piece_recheck_index	= 0;
+		}
+		
+		for (int i=next_seed_piece_recheck_index;i<managers.size();i++){
+			
+			DownloadManager manager = (DownloadManager)managers.get(i);
+			
+			if ( seedPieceRecheck( manager )){
+				
+				next_seed_piece_recheck_index = i+1;
+				
+				if ( next_seed_piece_recheck_index >= managers.size()){
+					
+					next_seed_piece_recheck_index	= 0;
+				}
+				
+				return;
+			}
+		}
+		
+		for (int i=0;i<next_seed_piece_recheck_index;i++){
+			
+			DownloadManager manager = (DownloadManager)managers.get(i);
+			
+			if ( seedPieceRecheck( manager )){
+				
+				next_seed_piece_recheck_index = i+1;
+				
+				if ( next_seed_piece_recheck_index >= managers.size()){
+					
+					next_seed_piece_recheck_index	= 0;
+				}
+				
+				return;
+			}
+		}
+	}
+
+	protected boolean
+	seedPieceRecheck(
+		DownloadManager	manager )
+	{
+		if ( manager.getState() != DownloadManager.STATE_SEEDING ){
+			
+			return( false );
+		}
+		
+		return( manager.seedPieceRecheck());
 	}
 	
 	protected DownloadManagerInitialisationAdapter

@@ -37,7 +37,7 @@ PEPeerControl
 	extends PEPeerManager
 {
 	public boolean 
-	checkBlock(
+	validateReadRequest(
 		int pieceNumber, 
 		int offset, 
 		int length );

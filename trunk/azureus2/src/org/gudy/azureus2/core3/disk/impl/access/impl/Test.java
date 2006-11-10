@@ -382,7 +382,12 @@ Test
 		{
 			
 		}
-			
+		
+		public boolean
+		seedPieceRecheck()
+		{
+			return( false );
+		}
 		
     public void stopIt(final int _stateAfterStopping, final boolean remove_torrent, final boolean remove_data ) {
       
@@ -1081,6 +1086,12 @@ Test
 			
 		}
     
+		  public boolean
+		  seedPieceRecheck()
+		  {
+			  return( false );
+		  }
+		  
     public void peerConnectionClosed( PEPeerTransport peer, boolean connect_failed ) {
       
     }
@@ -1426,7 +1437,7 @@ Test
 
 			
 		public boolean 
-		checkBlock(
+		validatePieceReply(
 			int 		pieceNumber, 
 			int 		offset, 
 			DirectByteBuffer 	data )

@@ -170,6 +170,7 @@ public class ConfigurationDefaults {
     def.put("Stop Ratio", new Float(0));
     def.put("Stop Peers Ratio", new Long(0));
     def.put("Disconnect Seed", TRUE);
+    def.put("Seeding Piece Check Recheck Enable", TRUE );
     def.put("priorityExtensions", "");
     def.put("priorityExtensionsIgnoreCase", FALSE);
     def.put("Ip Filter Enabled", TRUE);

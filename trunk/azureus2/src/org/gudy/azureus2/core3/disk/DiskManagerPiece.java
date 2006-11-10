@@ -42,6 +42,9 @@ DiskManagerPiece
 	public int			getNbBlocks();
 	public int			getBlockSize( int block_index );
 
+	public short		getReadCount();
+	public void			setReadCount(short c);
+
 	public boolean		calcNeeded();
 	public void			clearNeeded();
 	

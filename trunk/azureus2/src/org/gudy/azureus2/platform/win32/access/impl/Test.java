@@ -118,7 +118,7 @@ Test
 			
 			AEWin32AccessImpl.getSingleton( false ).traceRoute(
 					InetAddress.getByName( "192.168.1.143" ),
-					InetAddress.getByName( "www.ibm.com"),
+					InetAddress.getByName( "www.google.com"),
 					new PlatformManagerPingCallback()
 					{
 						public boolean

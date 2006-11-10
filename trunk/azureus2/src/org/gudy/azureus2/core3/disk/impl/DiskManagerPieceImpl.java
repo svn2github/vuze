@@ -74,6 +74,8 @@ public class DiskManagerPieceImpl
 	 * are updated in a non-thread-safe manner so a 'done' field is maintained seperatly.  Synchronizing
 	 * access to statusFlags or done would cause a tremendous performance hit.
 	 */
+    private short		read_count;
+    
     private boolean		done;
     
 	protected DiskManagerPieceImpl(final DiskManagerImpl _disk_manager, final int pieceIndex)
@@ -112,6 +114,19 @@ public class DiskManagerPieceImpl
 	public int getNbBlocks()
 	{
 		return nbBlocks;
+	}
+	
+	public short
+	getReadCount()
+	{
+		return( read_count );
+	}
+	
+	public void
+	setReadCount(
+		short	c )
+	{
+		read_count	= c;
 	}
 	
     public int getBlockSize(final int blockNumber)

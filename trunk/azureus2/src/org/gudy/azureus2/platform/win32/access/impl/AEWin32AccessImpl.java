@@ -33,7 +33,6 @@ import java.util.*;
 
 // don't use any core stuff in here as we need this access stub to be able to run in isolation
 
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.platform.win32.access.*;
 
@@ -420,6 +419,9 @@ AEWin32AccessImpl
 					
 				time = Integer.parseInt( tok.nextToken().trim());
 
+				boolean is_udp = Integer.parseInt( tok.nextToken().trim()) == 1;
+				
+				// System.out.println( "udp = " + is_udp );
 			}else{
 				
 				address = null;

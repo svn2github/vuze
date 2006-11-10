@@ -74,11 +74,15 @@ PEPeerControlImpl
   
 	private static final int	WARNINGS_LIMIT = 2;
 	
-	private static final int	CHECK_REASON_DOWNLOADED		= 1;
-	private static final int	CHECK_REASON_COMPLETE		= 2;
-	private static final int	CHECK_REASON_SCAN			= 3;
+	private static final int	CHECK_REASON_DOWNLOADED			= 1;
+	private static final int	CHECK_REASON_COMPLETE			= 2;
+	private static final int	CHECK_REASON_SCAN				= 3;
+	private static final int	CHECK_REASON_SEEDING_CHECK		= 4;
 
-	private static boolean disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);
+	private static final int	SEED_CHECK_WAIT_MARKER	= 65526;
+
+	private static boolean disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed");
+	private static boolean enable_seeding_piece_rechecks = COConfigurationManager.getBooleanParameter("Seeding Piece Check Recheck Enable");
 	
 	private static IpFilter ip_filter = IpFilterManagerFactory.getSingleton().getIPFilter();
     
@@ -141,13 +145,9 @@ PEPeerControlImpl
 
 	private long		ip_filter_last_update_time;
 
-    private Map                 user_data;
-
-	
+    private Map                 user_data;    
     
-    
-    
-  private Unchoker unchoker;
+    private Unchoker unchoker;
   
 	private final UploadHelper upload_helper = new UploadHelper() {		
 		public int getPriority() {			
@@ -163,7 +163,6 @@ PEPeerControlImpl
 			return seeding_mode;
 		}		
 	};
-	
 	
 	
 	private PeerDatabase	peer_database = PeerDatabaseFactory.createPeerDatabase();
@@ -1680,11 +1679,36 @@ PEPeerControlImpl
 		return dm_pieces[piece_number].isWritten(offset /DiskManager.BLOCK_SIZE);
 	}
 
-	public boolean checkBlock(int pieceNumber, int offset, int length) {
-		return disk_mgr.checkBlockConsistency(pieceNumber, offset, length);
+	public boolean 
+	validateReadRequest(
+		int pieceNumber, 
+		int offset, 
+		int length) 
+	{
+		if ( disk_mgr.checkBlockConsistency(pieceNumber, offset, length)){
+			
+			if ( enable_seeding_piece_rechecks && isSeeding()){
+				
+				DiskManagerPiece	dm_piece = dm_pieces[pieceNumber];
+				
+				int	read_count = dm_piece.getReadCount()&0xffff;
+				
+				if ( read_count < SEED_CHECK_WAIT_MARKER - 1 ){
+					
+					read_count++;
+										
+					dm_piece.setReadCount((short)read_count );
+				}
+			}
+			
+			return( true );
+		}else{
+			
+			return( false );
+		}
 	}
 
-	public boolean checkBlock(int pieceNumber, int offset, DirectByteBuffer data) {
+	public boolean validatePieceReply(int pieceNumber, int offset, DirectByteBuffer data) {
 		return disk_mgr.checkBlockConsistency(pieceNumber, offset, data);
 	}
 	
@@ -2138,8 +2162,8 @@ PEPeerControlImpl
 
 			// passed = 1, failed = 0, cancelled = 2
 
-			if (check_type ==CHECK_REASON_COMPLETE)
-			{ // this is a recheck, so don't send HAVE msgs
+			if (check_type ==CHECK_REASON_COMPLETE){
+			 // this is a recheck, so don't send HAVE msgs
 				if (outcome ==0)
 				{
 					// piece failed; restart the download afresh
@@ -2151,6 +2175,24 @@ PEPeerControlImpl
 						adapter.restartDownload();
 					}
 				}
+				return;
+				
+			}else if ( check_type == CHECK_REASON_SEEDING_CHECK ){
+				
+				if ( outcome == 0 ){
+					
+					Debug.out("Piece #" +pieceNumber +" failed recheck while seeding. Re-downloading...");
+
+                   	Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR, "Download '" + getDisplayName() + "': piece " + pieceNumber + " has been corrupted, re-downloading" ));
+                    
+					if ( !restart_initiated ){
+						
+						restart_initiated = true;
+						
+						adapter.restartDownload();
+					}
+				}
+				
 				return;
 			}
 
@@ -2371,8 +2413,89 @@ PEPeerControlImpl
 		return( disk_mgr.createReadRequest( pieceNumber, offset, length ));
 	}
 	
-	
+	public boolean
+	seedPieceRecheck()
+	{
+		if ( !( enable_seeding_piece_rechecks || isSeeding())){
+			
+			return( false );
+		}
+		
+		int	max_reads 		= 0;
+		int	max_reads_index = 0;
+		
+		for (int i=0;i<dm_pieces.length;i++){
+			
+			int	num = dm_pieces[i].getReadCount()&0xffff;
+			
+			if ( num > SEED_CHECK_WAIT_MARKER ){
+				
+					// recently been checked, skip for a while
+				
+				num--;
+				
+				if ( num == SEED_CHECK_WAIT_MARKER ){
+										
+					num = 0;
+				}
+				
+				dm_pieces[i].setReadCount((short)num);
+				
+			}else{
+				
+				if ( num > max_reads ){
+					
+					max_reads 		= num;
+					max_reads_index = i;
+				}
+			}
+		}
+		
+		if ( max_reads > 0 ){
+						
+			DiskManagerPiece	dm_piece = dm_pieces[ max_reads_index ];
+			
+				// if the piece has been read 3 times (well, assuming each block is read once,
+				// which is obviously wrong, but...)
+			
+			if ( max_reads >= dm_piece.getNbBlocks() * 3 ){
+				
+				DiskManagerCheckRequest	req = disk_mgr.createCheckRequest( max_reads_index, new Integer( CHECK_REASON_SEEDING_CHECK ) );
+				
+				req.setAdHoc( true );
+				
+				req.setLowPriority( true );
+				
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(disk_mgr.getTorrent(), LOGID,
+							"Rechecking piece " + max_reads_index + " while seeding as most active"));
 
+				disk_mgr.enqueueCheckRequest( req, this );
+				
+				dm_piece.setReadCount((short)65535);
+				
+					// clear out existing, non delayed pieces so we start counting piece activity
+					// again
+				
+				for (int i=0;i<dm_pieces.length;i++){
+
+					if ( i != max_reads_index ){
+						
+						int	num = dm_pieces[i].getReadCount()&0xffff;
+						
+						if ( num < SEED_CHECK_WAIT_MARKER ){
+							
+							dm_pieces[i].setReadCount((short)0 );
+						}
+					}
+				}
+				
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
 	
 	public void
 	addListener(
