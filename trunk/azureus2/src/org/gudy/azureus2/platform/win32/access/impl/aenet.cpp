@@ -366,7 +366,7 @@ traceRouteReportResult(
 {
 	char	buffer[1024];
 
-	sprintf( buffer, "%d, %ld, %d", ttl, address, time );
+	sprintf( buffer, "% d, %ld, %d", ttl, address, time );
 
 	return( traceRouteReport( env, callback, buffer ));
 }
