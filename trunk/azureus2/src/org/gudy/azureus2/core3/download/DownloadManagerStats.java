@@ -92,7 +92,8 @@ DownloadManagerStats
   
 	public long getTotalProtocolBytesSent();
 	
-  
+	public long getRemaining();
+	
 	public long
 	getDiscarded();
   	

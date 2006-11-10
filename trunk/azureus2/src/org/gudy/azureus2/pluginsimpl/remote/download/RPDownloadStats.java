@@ -176,6 +176,14 @@ RPDownloadStats
 	}
 	
 	public long
+	getRemaining()
+	{
+		notSupported();
+		
+		return( 0 );
+	}
+	
+	public long
 	getDiscarded()
 	{
 		notSupported();

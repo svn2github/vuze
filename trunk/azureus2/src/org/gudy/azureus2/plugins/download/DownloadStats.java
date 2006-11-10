@@ -131,6 +131,14 @@ DownloadStats
 	getDownloaded();
 	
 	/**
+	 * Gives number of bytes remaining
+	 * @return
+	 */
+	
+	public long
+	getRemaining();
+	
+	/**
 	 * Gives the number of bytes uploaded
 	 * @return
    *

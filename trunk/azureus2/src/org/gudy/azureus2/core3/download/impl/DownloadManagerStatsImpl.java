@@ -316,6 +316,22 @@ DownloadManagerStatsImpl
 	}
  
 	public long 
+	getRemaining()
+	{
+		DiskManager disk_manager = download_manager.getDiskManager();
+		
+	    if ( disk_manager == null ){
+	    	
+	    	return download_manager.getSize() - 
+		             ((long)getCompleted() * download_manager.getSize() / 1000L);
+		
+	    }else{
+		     
+	    	return disk_manager.getRemainingExcludingDND();
+		}
+	}
+	
+	public long 
 	getDiscarded()
 	{
 		PEPeerManager	pm = download_manager.getPeerManager();

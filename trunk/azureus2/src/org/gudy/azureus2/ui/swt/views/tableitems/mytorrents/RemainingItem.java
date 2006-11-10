@@ -25,7 +25,6 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -67,13 +66,6 @@ public class RemainingItem
     if (manager == null)
       return 0;
 
-    DiskManager dm = manager.getDiskManager();
-    bLastValueEstimate = (dm == null);
-    if (bLastValueEstimate) {
-      return manager.getSize() - 
-             ((long)manager.getStats().getCompleted() * manager.getSize() / 1000L);
-    } else {
-      return dm.getRemainingExcludingDND();
-    }
+   return( manager.getStats().getRemaining());
   }
 }

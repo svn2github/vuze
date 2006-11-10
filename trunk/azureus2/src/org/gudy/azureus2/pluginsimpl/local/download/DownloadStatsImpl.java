@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.download;
  *
  */
 
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -93,6 +94,12 @@ DownloadStatsImpl
 	getDownloaded()
 	{
 		return( dm_stats.getTotalDataBytesReceived());
+	}
+	
+	public long
+	getRemaining()
+	{
+		return( dm_stats.getRemaining());
 	}
 	
 	public long
