@@ -208,4 +208,22 @@ AEWin32AccessInterface
 		String	name )
 	
 		throws AEWin32AccessException;
+	
+	/*
+	public static native void
+	ping(
+		String		address )
+	
+		throws AEWin32AccessException;
+	*/
+	
+	public static native void
+	traceRoute(
+		int						trace_id,
+		int						source_address,
+		int						target_address,
+		int						pice_mode,
+		AEWin32AccessCallback	callback )
+	
+		throws AEWin32AccessException;
 }

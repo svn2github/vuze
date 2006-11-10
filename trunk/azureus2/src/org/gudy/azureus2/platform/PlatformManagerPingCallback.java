@@ -1,5 +1,5 @@
 /*
- * Created on 26-Jan-2006
+ * Created on 1 Nov 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -15,23 +15,29 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SAS au capital de 46,603.30 euros
+ * AELITIS, SAS au capital de 63.529,40 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
-package org.gudy.azureus2.platform.win32.access.impl;
+
+package org.gudy.azureus2.platform;
+
+import java.net.InetAddress;
 
 public interface 
-AEWin32AccessCallback 
+PlatformManagerPingCallback 
 {
-	public long
-	windowsMessage(
-		int		msg,
-		int		param1,
-		long	param2 );
+		/**
+		 * @param distance
+		 * @param address	null -> timeout
+		 * @param millis  elapsed time for successful op
+		 * @return true -> continue (where destination not reached)
+		 */
 	
-	public long
-	generalMessage(
-		String	msg );
+	public boolean
+	reportNode(
+		int				distance,
+		InetAddress		address,
+		int				millis );
 }

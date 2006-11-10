@@ -20,6 +20,7 @@ extern "C" {
 #undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_ENDSESSION
 #define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_ENDSESSION 22L
 /* Inaccessible static: enabled */
+/* Inaccessible static: enabled_set */
 /* Inaccessible static: cb */
 /*
  * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
@@ -124,6 +125,14 @@ JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32
  */
 JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_testNativeAvailability
   (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
+ * Method:    traceRoute
+ * Signature: (IIIILorg/gudy/azureus2/platform/win32/access/impl/AEWin32AccessCallback;)V
+ */
+JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_traceRoute
+  (JNIEnv *, jclass, jint, jint, jint, jint, jobject);
 
 #ifdef __cplusplus
 }

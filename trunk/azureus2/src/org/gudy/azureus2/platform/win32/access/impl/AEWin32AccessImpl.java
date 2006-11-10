@@ -27,10 +27,14 @@ package org.gudy.azureus2.platform.win32.access.impl;
  *
  */
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 
 // don't use any core stuff in here as we need this access stub to be able to run in isolation
 
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.platform.win32.access.*;
 
 public class 
@@ -53,6 +57,8 @@ AEWin32AccessImpl
 	
 	private boolean	fully_initialise;
 	
+	private int	trace_id_next = new Random().nextInt();
+
 	private List	listeners = new ArrayList();
 	
 	protected
@@ -91,6 +97,13 @@ AEWin32AccessImpl
 		}
 		
 		return( -1 );
+	}
+	
+	public long
+	generalMessage(
+		String	str )
+	{	
+		return( 0 );
 	}
 	
 	public String
@@ -274,6 +287,82 @@ AEWin32AccessImpl
 	}
 	
 	public void
+	traceRoute(
+		InetAddress								source_address,
+		InetAddress								target_address,
+		final PlatformManagerPingCallback		callback )
+	
+		throws AEWin32AccessException
+	{
+		traceRoute( source_address, target_address, false, callback );
+	}
+	
+	public void
+	ping(
+		InetAddress								source_address,
+		InetAddress								target_address,
+		final PlatformManagerPingCallback		callback )
+	
+		throws AEWin32AccessException
+	{
+		traceRoute( source_address, target_address, true, callback );
+	}
+	
+	protected void
+	traceRoute(
+		InetAddress						source_address,
+		InetAddress						target_address,
+		boolean							ping_mode,
+		PlatformManagerPingCallback		callback )
+	
+		throws AEWin32AccessException
+	{
+		int	trace_id;
+		
+		synchronized( this ){
+			
+			trace_id = trace_id_next++;
+		}
+		
+		AEWin32AccessCallback	cb = new traceRouteCallback( ping_mode, callback );
+	
+		AEWin32AccessInterface.traceRoute(
+				trace_id,
+				addressToInt( source_address ),
+				addressToInt( target_address ),
+				ping_mode?1:0,
+				cb );
+	}
+	
+	private int
+	addressToInt(
+		InetAddress	address )
+	{
+		byte[]	bytes = address.getAddress();
+		
+		int	resp = (bytes[0]<<24)&0xff000000 | (bytes[1] << 16)&0x00ff0000 | (bytes[2] << 8)&0x0000ff00 | bytes[3]&0x000000ff;
+			
+		return( resp );
+	}
+	
+	private InetAddress
+	intToAddress(
+		int		address )
+	{
+		byte[]	bytes = { (byte)(address>>24), (byte)(address>>16),(byte)(address>>8),(byte)address };
+		
+		try{
+			InetAddress	res = InetAddress.getByAddress(bytes);
+						
+			return( res );
+			
+		}catch( UnknownHostException e ){
+				
+			return( null );
+		}
+	}
+	
+	public void
     addListener(
     	AEWin32AccessListener		listener )
     {
@@ -286,4 +375,57 @@ AEWin32AccessImpl
     {
     	listeners.remove( listener );
     }
+    
+    protected class
+    traceRouteCallback
+    	implements AEWin32AccessCallback
+	{
+    	private boolean							ping_mode;
+    	private PlatformManagerPingCallback		cb;
+	
+    	protected 
+    	traceRouteCallback(
+    		boolean							_ping_mode,
+    		PlatformManagerPingCallback		_cb )
+    	{
+    		ping_mode	= _ping_mode;
+    		cb			= _cb;
+    	}
+	
+		public long
+		windowsMessage(
+			int		msg,
+			int		param1,
+			long	param2 )
+		{
+			return(0);
+		}
+		
+		public long
+		generalMessage(
+			String	msg )
+		{
+			StringTokenizer	tok = new StringTokenizer( msg, "," );
+			
+			int	ttl 	= Integer.parseInt( tok.nextToken().trim());
+			int	time 	= -1;
+			
+			InetAddress	address;
+			
+			if ( tok.hasMoreTokens()){
+				
+				int	i_addr = Integer.parseInt( tok.nextToken().trim());
+				
+				address = intToAddress( i_addr );
+					
+				time = Integer.parseInt( tok.nextToken().trim());
+
+			}else{
+				
+				address = null;
+			}
+						
+			return( cb.reportNode( ping_mode?-1:ttl, address, time )?1:0 );
+		}  	
+	}
 }

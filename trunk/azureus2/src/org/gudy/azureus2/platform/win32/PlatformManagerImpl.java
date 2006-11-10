@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerListener;
+import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.platform.win32.access.AEWin32Access;
 import org.gudy.azureus2.platform.win32.access.AEWin32AccessListener;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
@@ -43,6 +44,7 @@ import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.*;
 
 
@@ -163,18 +165,24 @@ PlatformManagerImpl
 	        capabilitySet.add(PlatformManagerCapabilities.SetTCPTOSEnabled);
 	        
 	        
-	        if ( 	Constants.compareVersions( access.getVersion(), "1.11" ) >= 0 &&
+	        if ( Constants.compareVersions( access.getVersion(), "1.11" ) >= 0 &&
 	        		!Constants.isWindows9598ME ){
 	        	
 	            capabilitySet.add(PlatformManagerCapabilities.CopyFilePermissions);
 	            
 	        }
 	        
-	        if ( 	Constants.compareVersions( access.getVersion(), "1.12" ) >= 0 ){
+	        if ( Constants.compareVersions( access.getVersion(), "1.12" ) >= 0 ){
 	        	
 	            capabilitySet.add(PlatformManagerCapabilities.TestNativeAvailability);
 	        }
 	        
+	        if ( Constants.compareVersions( access.getVersion(), "1.2" ) >= 0 ){
+	        	
+	            capabilitySet.add(PlatformManagerCapabilities.TraceRouteAvailability);
+	            capabilitySet.add(PlatformManagerCapabilities.PingAvailability);
+	        }
+
     	}else{
     		
     			// disabled -> only available capability is that to get the version
@@ -830,6 +838,50 @@ PlatformManagerImpl
 			
 			throw( new PlatformManagerException( "Failed to test availability", e ));
 		}
+	}
+	
+	public void
+	traceRoute(
+		InetAddress							interface_address,
+		InetAddress							target,
+		PlatformManagerPingCallback	callback )
+	
+		throws PlatformManagerException
+	{
+		if ( !hasCapability( PlatformManagerCapabilities.TraceRouteAvailability )){
+			
+			throw new PlatformManagerException("Unsupported capability called on platform manager");
+		}
+		
+		try{
+			access.traceRoute( interface_address, target, callback );
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "Failed to trace route", e ));
+		}	
+	}
+	
+	public void
+	ping(
+		InetAddress							interface_address,
+		InetAddress							target,
+		PlatformManagerPingCallback			callback )
+	
+		throws PlatformManagerException
+	{
+		if ( !hasCapability( PlatformManagerCapabilities.PingAvailability )){
+			
+			throw new PlatformManagerException("Unsupported capability called on platform manager");
+		}
+		
+		try{
+			access.ping( interface_address, target, callback );
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "Failed to trace route", e ));
+		}	
 	}
 	
     /**

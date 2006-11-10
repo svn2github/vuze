@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.platform;
 
+import java.net.InetAddress;
+
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 /**
@@ -99,6 +101,22 @@ PlatformManager
 	public boolean
 	testNativeAvailability(
 		String	name )
+	
+		throws PlatformManagerException;
+	
+	public void
+	traceRoute(
+		InetAddress						interface_address,
+		InetAddress						target,
+		PlatformManagerPingCallback		callback )
+	
+		throws PlatformManagerException;
+	
+	public void
+	ping(
+		InetAddress						interface_address,
+		InetAddress						target,
+		PlatformManagerPingCallback		callback )
 	
 		throws PlatformManagerException;
 	

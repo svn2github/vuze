@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerListener;
+import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
 
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
@@ -37,6 +38,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.text.MessageFormat;
 import java.util.HashSet;
 
@@ -639,6 +641,28 @@ public class PlatformManagerImpl implements PlatformManager
 	    throw new PlatformManagerException("Unsupported capability called on platform manager");		
 	}
     
+	public void
+	traceRoute(
+		InetAddress							interface_address,
+		InetAddress							target,
+		PlatformManagerPingCallback			callback )
+	
+		throws PlatformManagerException
+	{
+	    throw new PlatformManagerException("Unsupported capability called on platform manager");		
+	}
+	
+	public void
+	ping(
+		InetAddress							interface_address,
+		InetAddress							target,
+		PlatformManagerPingCallback			callback )
+	
+		throws PlatformManagerException
+	{
+	    throw new PlatformManagerException("Unsupported capability called on platform manager");		
+	}
+	
     public void
     addListener(
     	PlatformManagerListener		listener )

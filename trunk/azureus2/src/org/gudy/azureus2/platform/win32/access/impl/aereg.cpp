@@ -34,9 +34,9 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.12"
+#define VERSION "1.2"
 
-
+ 
 HMODULE	application_module;
 bool	non_unicode			= false;
 
@@ -446,7 +446,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_getModu
 {
 	WCHAR	buffer[2048];
 
-	if ( !GetModuleFileName(application_module, buffer, sizeof( buffer ))){
+	if ( !GetModuleFileNameW(application_module, buffer, sizeof( buffer ))){
 
 
 		throwException( env, "getModuleName", "GetModuleFileName fails" );
@@ -516,7 +516,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_readStr
 
 					WCHAR	expanded_value[2048];
 
-					ExpandEnvironmentStrings((const WCHAR*)value, expanded_value, sizeof( expanded_value ));
+					ExpandEnvironmentStringsW((const WCHAR*)value, expanded_value, sizeof( expanded_value ));
 			
 					result = env->NewString(expanded_value,wcslen(expanded_value));
 
@@ -822,7 +822,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createP
 {
 	WCHAR		command_line[16000];
 
-	STARTUPINFO				start_info;
+	STARTUPINFOW			start_info;
 	PROCESS_INFORMATION		proc_info;
 
 	if ( !jstringToCharsW( env, _command_line, command_line, sizeof( command_line ))){

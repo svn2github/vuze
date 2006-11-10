@@ -22,6 +22,10 @@
 
 package org.gudy.azureus2.platform.win32.access;
 
+import java.net.InetAddress;
+
+import org.gudy.azureus2.platform.PlatformManagerPingCallback;
+
 /**
  * @author parg
  *
@@ -140,6 +144,22 @@ AEWin32Access
 	testNativeAvailability(
 		String	name )
 		
+		throws AEWin32AccessException;
+	
+	public void
+	traceRoute(
+		InetAddress							source_address,
+		InetAddress							target_address,
+		PlatformManagerPingCallback	callback )
+	
+		throws AEWin32AccessException;
+	
+	public void
+	ping(
+		InetAddress							source_address,
+		InetAddress							target_address,
+		PlatformManagerPingCallback	callback )
+	
 		throws AEWin32AccessException;
 	
 	public void

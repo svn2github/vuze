@@ -27,10 +27,9 @@ package org.gudy.azureus2.platform.win32.access.impl;
  *
  */
 
-import java.io.*;
+import java.net.InetAddress;
 
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.platform.win32.access.*;
+import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 
 public class 
 Test 
@@ -114,7 +113,27 @@ Test
 			}
 		*/
 			
-			AEWin32AccessInterface.copyPermission( "C:\\temp\\fred", "C:\\temp\\bill" );
+			//AEWin32AccessInterface.copyPermission( "C:\\temp\\fred", "C:\\temp\\bill" );
+			
+			
+			AEWin32AccessImpl.getSingleton( false ).traceRoute(
+					InetAddress.getByName( "192.168.1.143" ),
+					InetAddress.getByName( "www.ibm.com"),
+					new PlatformManagerPingCallback()
+					{
+						public boolean
+						reportNode(
+							int				distance,
+							InetAddress		address,
+							int				millis )
+						{
+							System.out.println( distance + ": " + address + " - " + millis );
+							
+							return( true );
+						}
+					});
+			
+			// AEWin32AccessInterface.ping( "www.google.com" );
 			
 		}catch( Throwable e ){
 			

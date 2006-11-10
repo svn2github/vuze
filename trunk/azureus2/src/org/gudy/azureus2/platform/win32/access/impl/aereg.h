@@ -18,7 +18,24 @@ public:
 	// TODO: add your methods here.
 };
 
-extern AEREG_API int nAereg;
+#include <jni.h>
 
-AEREG_API int fnAereg(void);
+extern void
+throwException(
+	JNIEnv*			env,
+	char*			operation,
+	char*			message );
 
+extern void
+throwException(
+	JNIEnv*			env,
+	char*			operation,
+	char*			message,
+	int				error_code );
+
+extern bool
+jstringToCharsA(
+	JNIEnv		*env,
+	jstring		jstr,
+	char		*chars,
+	int			chars_len );
