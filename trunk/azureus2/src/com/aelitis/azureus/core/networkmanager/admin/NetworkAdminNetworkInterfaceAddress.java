@@ -25,36 +25,17 @@ package com.aelitis.azureus.core.networkmanager.admin;
 
 import java.net.InetAddress;
 
-import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminImpl;
-
-public abstract class 
-NetworkAdmin 
+public interface
+NetworkAdminNetworkInterfaceAddress 
 {
-	private static final NetworkAdmin	singleton = new NetworkAdminImpl();
+	public InetAddress
+	getAddress();
 	
-	public static final String PR_NETWORK_INTERFACES	= "Network Interfaces";
-	public static final String PR_DEFAULT_BIND_ADDRESS	= "Default Bind IP";
+	public NetworkAdminNode[]
+	getRoute(
+		InetAddress					target,
+		int							max_millis,
+		NetworkAdminRouteListener	listener )
 	
-	public static NetworkAdmin
-	getSingleton()
-	{
-		return( singleton );
-	}
-	
-	public abstract InetAddress
-	getDefaultBindAddress();
-	
-	public abstract String
-	getNetworkInterfacesAsString();
-	
-	public abstract NetworkAdminNetworkInterface[]
-	getInterfaces();
-	
-	public abstract void
-	addPropertyChangeListener(
-		NetworkAdminPropertyChangeListener	listener );
-	
-	public abstract void
-	removePropertyChangeListener(
-		NetworkAdminPropertyChangeListener	listener );
+		throws NetworkAdminException;
 }

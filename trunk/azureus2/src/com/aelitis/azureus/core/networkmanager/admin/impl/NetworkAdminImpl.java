@@ -25,9 +25,11 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -37,11 +39,22 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.platform.PlatformManagerPingCallback;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterface;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNode;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminRouteListener;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -54,7 +67,7 @@ NetworkAdminImpl
 	private InetAddress	old_bind_ip;
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
-	
+		
 	public
 	NetworkAdminImpl()
 	{
@@ -303,6 +316,34 @@ NetworkAdminImpl
 		}
 	}
 	
+	public NetworkAdminNetworkInterface[]
+	getInterfaces()
+	{
+		Set	interfaces = old_network_interfaces;
+		
+		if ( interfaces == null ){
+			
+			return( new NetworkAdminNetworkInterface[0] );
+		}
+		
+		NetworkAdminNetworkInterface[]	res = new NetworkAdminNetworkInterface[interfaces.size()];
+		
+		Iterator	it = interfaces.iterator();
+		
+		String	str = "";
+		
+		int	pos = 0;
+		
+		while( it.hasNext()){
+			
+			NetworkInterface ni = (NetworkInterface)it.next();
+
+			res[pos++] = new networkInterface( ni );
+		}
+		
+		return( res );
+	}
+
 	public void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener )
@@ -315,5 +356,198 @@ NetworkAdminImpl
 		NetworkAdminPropertyChangeListener	listener )
 	{
 		listeners.remove( listener );
+	}
+	
+	protected class
+	networkInterface
+		implements NetworkAdminNetworkInterface
+	{
+		private NetworkInterface		ni;
+		
+		protected
+		networkInterface(
+			NetworkInterface	_ni )
+		{
+			ni	= _ni;
+		}
+		
+		public String
+		getDisplayName()
+		{
+			return( ni.getDisplayName());
+		}
+		
+		public String
+		getName()
+		{
+			return( ni.getName());
+		}
+		
+		public NetworkAdminNetworkInterfaceAddress[]
+		getAddresses()
+		{
+				// BAH NetworkInterface has lots of goodies but is 1.6
+			
+			Enumeration	e = ni.getInetAddresses();
+		
+			List	addresses = new ArrayList();
+			
+			while( e.hasMoreElements()){
+				
+				addresses.add( new networkAddress((InetAddress)e.nextElement()));
+			}
+	
+			return((NetworkAdminNetworkInterfaceAddress[])addresses.toArray( new NetworkAdminNetworkInterfaceAddress[addresses.size()]));
+		}
+	
+		protected class
+		networkAddress
+			implements NetworkAdminNetworkInterfaceAddress
+		{
+			private InetAddress		address;
+			
+			protected
+			networkAddress(
+				InetAddress	_address )
+			{
+				address = _address;
+			}
+			
+			public InetAddress
+			getAddress()
+			{
+				return( address );
+			}
+			
+			public NetworkAdminNode[]
+			getRoute(
+				InetAddress						target,
+				final int						max_millis,
+				final NetworkAdminRouteListener	listener )
+			
+				throws NetworkAdminException
+			{
+				PlatformManager	pm = PlatformManagerFactory.getPlatformManager();
+					
+				if ( !pm.hasCapability( PlatformManagerCapabilities.TraceRouteAvailability )){
+					
+					throw( new NetworkAdminException( "No trace-route capability on platform" ));
+				}
+				
+				final List	nodes = new ArrayList();
+				
+				try{
+					pm.traceRoute( 
+						address,
+						target,
+						new PlatformManagerPingCallback()
+						{
+							private long	start_time = SystemTime.getCurrentTime();
+							
+							public boolean
+							reportNode(
+								int				distance,
+								InetAddress		address,
+								int				millis )
+							{
+								boolean	timeout	= false;
+								
+								if ( max_millis >= 0 ){
+												
+									long	now = SystemTime.getCurrentTime();
+									
+									if ( now < start_time ){
+										
+										start_time = now;
+									}
+									
+									if ( now - start_time >= max_millis ){
+										
+										timeout = true;
+									}
+								}
+								
+								NetworkAdminNode	node = null;
+								
+								if ( address != null ){
+									
+									node = new networkNode( address, distance, millis );
+									
+									nodes.add( node );
+								}
+								
+								boolean	result;
+								
+								if ( listener == null ){
+									
+									result = true;
+									
+								}else{
+
+									if ( node == null ){
+										
+										result = listener.timeout( distance );
+										
+									}else{
+										
+										result =  listener.foundNode( node, distance, millis );
+									}
+								}
+								
+								return( result && !timeout );
+							}
+						});
+				}catch( PlatformManagerException e ){
+					
+					throw( new NetworkAdminException( "trace-route failed", e ));
+				}
+				
+				return((NetworkAdminNode[])nodes.toArray( new NetworkAdminNode[nodes.size()]));
+			}
+			
+			protected class
+			networkNode
+				implements NetworkAdminNode
+			{
+				private InetAddress	address;
+				private int			distance;
+				private int			rtt;
+				
+				protected
+				networkNode(
+					InetAddress		_address,
+					int				_distance,
+					int				_millis )
+				{
+					address		= _address;
+					distance	= _distance;
+					rtt			= _millis;
+				}
+				
+				public int
+				getType()
+				{
+					return( NT_PRIVATE );
+				}
+				
+				public InetAddress
+				getAddress()
+				{
+					return( address );
+				}
+				
+				public int
+				getDistance()
+				{
+					return( distance );
+				}
+				
+				public int
+				getRTT()
+				{
+					return( rtt );
+				}
+			}
+		}
 	}
 }
