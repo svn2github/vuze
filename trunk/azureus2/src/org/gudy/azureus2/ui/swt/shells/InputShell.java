@@ -34,43 +34,52 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThreadAlreadyInstanciatedException;
 
 /**
  * @author TuxPaper
  *
  */
-public class InputShell {
+public class InputShell
+{
 	private String sTitleKey;
+
 	private String[] p0;
+
 	private String sLabelKey;
+
 	private String[] p1;
+
 	private String textValue;
+
 	private boolean bMultiLine;
+
 	private boolean bIsCanceled;
 
 	public InputShell(String sTitleKey, String sLabelKey) {
 		this(sTitleKey, null, sLabelKey, null, false);
 	}
-	
+
 	public InputShell(String sTitleKey, String sLabelKey, boolean bMultiLine) {
 		this(sTitleKey, null, sLabelKey, null, bMultiLine);
 	}
 
 	public InputShell(String sTitleKey, String[] p0, String sLabelKey, String[] p1) {
-		this(sTitleKey, p1, sLabelKey, p1, false);
+		this(sTitleKey, p0, sLabelKey, p1, false);
 	}
 
-	public InputShell(String sTitleKey, String[] p0, String sLabelKey, String[] p1, boolean bMultiLine) {
+	public InputShell(String sTitleKey, String[] p0, String sLabelKey,
+			String[] p1, boolean bMultiLine) {
 		this.sTitleKey = sTitleKey;
 		this.p0 = p0;
 		this.sLabelKey = sLabelKey;
 		this.p1 = p1;
 		this.bMultiLine = bMultiLine;
 		this.bIsCanceled = true;
-		
+
 		this.setTextValue("");
 	}
-	
+
 	public String open() {
 		final Display display = SWTThread.getInstance().getDisplay();
 		if (display == null)
@@ -79,15 +88,14 @@ public class InputShell {
 		final Shell shell = ShellFactory.createShell(display.getActiveShell(),
 				SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
 		Messages.setLanguageText(shell, sTitleKey, p0);
-    Utils.setShellIcon(shell);
+		Utils.setShellIcon(shell);
 
-    GridLayout layout = new GridLayout();
+		GridLayout layout = new GridLayout();
 		shell.setLayout(layout);
 
 		Label label = new Label(shell, SWT.WRAP);
 		Messages.setLanguageText(label, sLabelKey, p1);
 		GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.widthHint = 200;
 		label.setLayoutData(gridData);
 
 		int style = SWT.BORDER;
@@ -95,7 +103,7 @@ public class InputShell {
 			style |= SWT.MULTI;
 		}
 		final Text text = new Text(shell, style);
-		gridData = new GridData(GridData.FILL_BOTH);
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.widthHint = 300;
 		if (bMultiLine) {
 			gridData.heightHint = 100;
@@ -120,9 +128,6 @@ public class InputShell {
 		ok.setLayoutData(gridData);
 		shell.setDefaultButton(ok);
 		ok.addListener(SWT.Selection, new Listener() {
-			/* (non-Javadoc)
-			 * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-			 */
 			public void handleEvent(Event event) {
 				try {
 					setTextValue(text.getText());
@@ -140,9 +145,6 @@ public class InputShell {
 		gridData.widthHint = 70;
 		cancel.setLayoutData(gridData);
 		cancel.addListener(SWT.Selection, new Listener() {
-			/* (non-Javadoc)
-			 * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-			 */
 			public void handleEvent(Event event) {
 				shell.dispose();
 			}
@@ -157,7 +159,7 @@ public class InputShell {
 		while (!shell.isDisposed())
 			if (!display.readAndDispatch())
 				display.sleep();
-		
+
 		return getTextValue();
 	}
 
@@ -174,7 +176,7 @@ public class InputShell {
 	public String getTextValue() {
 		return textValue;
 	}
-	
+
 	public void setLabelParameters(String[] p1) {
 		this.p1 = p1;
 	}
@@ -186,8 +188,25 @@ public class InputShell {
 	public void setMultiLine(boolean multiLine) {
 		bMultiLine = multiLine;
 	}
-	
+
 	public boolean isCanceled() {
 		return bIsCanceled;
+	}
+
+	public static void main(String[] args) {
+		try {
+			new Display();
+			SWTThread.createInstance(null);
+			InputShell shell = new InputShell("MyTorrentsView.dialog.setSpeed.title",
+					new String[] { "111111111111"
+					}, "MyTorrentsView.dialog.setNumber.text", new String[] {
+						"222222",
+						"3333333333"
+					});
+			shell.open();
+		} catch (SWTThreadAlreadyInstanciatedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
