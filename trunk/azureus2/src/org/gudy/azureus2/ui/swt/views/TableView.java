@@ -1326,7 +1326,7 @@ public class TableView
 			this.addTableContextMenuItems(child_items, this_menu, false, enable_items);
 		}
 
-		if (enable_items) { q 
+		if (enable_items) {
 			contextMenuItem.invokeMenuWillBeShownListeners(getSelectedRows());
 
 			if (style == TableContextMenuItem.STYLE_CHECK
