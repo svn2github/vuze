@@ -65,24 +65,23 @@ public class CommentItem
 		DownloadManager dm = (DownloadManager) event.cell.getDataSource();
 		if (dm == null) {return;}
 		
-		/**
-         * XXX: This seems to prevent double clicks from opening up the
-         * general torrent view. It seems we have to do this for all mouse events,
-         * not just double-clicks. Is this alright to do?
-		 */ 
 		event.skipCoreFunctionality = true;
 		if (event.eventType != TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK) {return;}
 		
 		// Create dialog box.
 		String suggested = dm.getDownloadState().getUserComment(); 
 		String msg_key_prefix = "MyTorrentsView.menu.edit_comment.enter.";
-		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(Display.getCurrent(), msg_key_prefix + "title", msg_key_prefix + "message", suggested, null);
-		if (text_entry.wasDataSubmitted()) {
-			String value = text_entry.getStoredString();
+		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(Display.getCurrent());
+		text_entry.setTitle(msg_key_prefix + "title");
+		text_entry.setMessage(msg_key_prefix + "message");
+		text_entry.setPreenteredText(suggested, false);
+		text_entry.prompt();
+		if (text_entry.hasSubmittedInput()) {
+			String value = text_entry.getSubmittedInput();
 			String value_to_set = (value.length() == 0) ? null : value;
 			dm.getDownloadState().setUserComment(value_to_set);
 		}
-	}
+	}	
 
   
 }

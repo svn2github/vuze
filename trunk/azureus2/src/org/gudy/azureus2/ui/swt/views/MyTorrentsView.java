@@ -66,7 +66,6 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
-import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow.TextEntrySubmissionListener;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -1686,9 +1685,13 @@ public class MyTorrentsView
         		final boolean change_displayed_name = ((Boolean)mi.getData("display_name")).booleanValue();
         		final boolean change_save_name = ((Boolean)mi.getData("save_name")).booleanValue();
         		String msg_key_prefix = "MyTorrentsView.menu.rename." + (String)mi.getData("msg_key") + ".enter.";
-        		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(getComposite().getDisplay(), msg_key_prefix + "title", msg_key_prefix + "message", suggested, null);
-        		if (text_entry.wasDataSubmitted()) {
-        			String value = text_entry.getStoredString();
+        		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(getComposite().getDisplay());
+        		text_entry.setTitle(msg_key_prefix + "title");
+        		text_entry.setMessages(new String[]{msg_key_prefix + "message", msg_key_prefix + "message.2"});
+        		text_entry.setPreenteredText(suggested, false);
+        		text_entry.prompt();
+        		if (text_entry.hasSubmittedInput()) {
+        			String value = text_entry.getSubmittedInput();
         			final String value_to_set = (value.length() == 0) ? null : value;
         			MyTorrentsView.this.runForSelectedRows(new GroupTableRowRunner() {
                         public void run(TableRowCore row) {
@@ -1726,9 +1729,13 @@ public class MyTorrentsView
         		MenuItem mi = (MenuItem)event.widget;
         		String suggested = (String)mi.getData("suggested_text");
         		String msg_key_prefix = "MyTorrentsView.menu.edit_comment.enter.";
-        		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(getComposite().getDisplay(), msg_key_prefix + "title", msg_key_prefix + "message", suggested, null);
-        		if (text_entry.wasDataSubmitted()) {
-        			String value = text_entry.getStoredString();
+        		SimpleTextEntryWindow text_entry = new SimpleTextEntryWindow(getComposite().getDisplay());
+        		text_entry.setTitle(msg_key_prefix + "title");
+        		text_entry.setMessage(msg_key_prefix + "message");
+        		text_entry.setPreenteredText(suggested, false);
+        		text_entry.prompt();
+        		if (text_entry.hasSubmittedInput()) {
+        			String value = text_entry.getSubmittedInput();
         			final String value_to_set = (value.length() == 0) ? null : value;
         			MyTorrentsView.this.runForSelectedRows(new GroupTableRowRunner() {
                         public void run(TableRowCore row) {
