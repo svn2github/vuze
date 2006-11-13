@@ -46,4 +46,12 @@ UIInstance
 	 */
 	public int promptUser(String title, String text, String[] options,
 			int defaultOption);
+	
+	/**
+	 * Creates a {@link UIInputReceiver} instance to allow a plugin to request
+	 * text input from the user. Some interfaces may not allow or support the
+	 * ability for a plugin to request text input from a user, in which case
+	 * they will return <code>null</code> for this method.
+	 */
+	public UIInputReceiver getInputReceiver();
 }
