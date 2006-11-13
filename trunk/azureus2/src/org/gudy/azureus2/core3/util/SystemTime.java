@@ -212,6 +212,11 @@ public class SystemTime {
     return( instance.getApproximateTime());
   }
   
+  public static long
+  getOffsetTime(long offsetMS) {
+  	return instance.getApproximateTime() + offsetMS;
+  }
+  
   public static void
   registerConsumer(
 	consumer	c )
