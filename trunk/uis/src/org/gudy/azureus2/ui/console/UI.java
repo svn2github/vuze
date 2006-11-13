@@ -21,6 +21,7 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIException;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIInstanceFactory;
 import org.gudy.azureus2.plugins.ui.UIManager;
@@ -250,5 +251,10 @@ UI
 				"Console UI devs need to implement this function!");
 
 		return defaultOption;
+	}
+	
+	/** Not yet supported. **/
+	public UIInputReceiver getInputReceiver() {
+		return null;
 	}
 }
