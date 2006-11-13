@@ -1308,9 +1308,6 @@ public class TableView
 			continue;
 		}
 		
-		String custom_title = contextMenuItem.getText();
-		menuItem.setText(custom_title);
-
 		menuItem.addListener(SWT.Selection, new SelectedTableRowsListener() {
 			public void run(TableRowCore row) {
 				if (swt_style == SWT.CHECK || swt_style == SWT.RADIO) {
@@ -1329,7 +1326,7 @@ public class TableView
 			this.addTableContextMenuItems(child_items, this_menu, false, enable_items);
 		}
 
-		if (enable_items) {
+		if (enable_items) { q 
 			contextMenuItem.invokeMenuWillBeShownListeners(getSelectedRows());
 
 			if (style == TableContextMenuItem.STYLE_CHECK
@@ -1339,6 +1336,9 @@ public class TableView
 						.booleanValue());
 			}
 		}
+		
+		String custom_title = contextMenuItem.getText();
+		menuItem.setText(custom_title);
 
 		Graphic g = contextMenuItem.getGraphic();
 		if (g instanceof UISWTGraphic) {
