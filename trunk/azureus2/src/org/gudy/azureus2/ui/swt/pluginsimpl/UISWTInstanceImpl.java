@@ -594,6 +594,11 @@ UISWTInstanceImpl
 		return (Map)views.get(sParentID);
 	}
 	
+	public UIInputReceiver getInputReceiver() {
+		return null;
+		//return new org.gudy.azureus2.ui.swt.SimpleTextEntryWindow(getDisplay());
+	}
+	
 	
 	protected static class
 	instanceWrapper
@@ -698,6 +703,10 @@ UISWTInstanceImpl
 
 		public boolean openView(String sParentID, String sViewID, Object dataSource) {
 			return delegate.openView(sParentID, sViewID, dataSource);
+		}
+		
+		public UIInputReceiver getInputReceiver() {
+			return delegate.getInputReceiver();
 		}
 	}
 }
