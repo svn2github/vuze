@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
@@ -595,8 +596,7 @@ UISWTInstanceImpl
 	}
 	
 	public UIInputReceiver getInputReceiver() {
-		return null;
-		//return new org.gudy.azureus2.ui.swt.SimpleTextEntryWindow(getDisplay());
+		return new SimpleTextEntryWindow(getDisplay());
 	}
 	
 	
