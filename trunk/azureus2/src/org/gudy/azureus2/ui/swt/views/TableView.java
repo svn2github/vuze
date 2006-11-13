@@ -1314,8 +1314,9 @@ public class TableView
 		menuItem.addListener(SWT.Selection, new SelectedTableRowsListener() {
 			public void run(TableRowCore row) {
 				if (swt_style == SWT.CHECK || swt_style == SWT.RADIO) {
-
-					contextMenuItem.setData(new Boolean(menuItem.getSelection()));
+					if (!menuItem.isDisposed()) {
+						contextMenuItem.setData(new Boolean(menuItem.getSelection()));
+					}
 				}
 
 				contextMenuItem.invokeListeners(row);
