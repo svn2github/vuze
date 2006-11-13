@@ -36,6 +36,7 @@ import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncherFactory;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterFactory;
@@ -70,6 +71,8 @@ DHTImpl
 		storage_adapter	= _storage_adapter;
 		nat_adapter		= _nat_adapter;
 		logger			= _logger;
+		
+		DHTNetworkPositionManager.initialise( storage_adapter );
 		
 		DHTLog.setLogger( logger );
 		
@@ -291,6 +294,8 @@ DHTImpl
 	destroy()
 	{
 		nat_puncher.destroy();
+		
+		DHTNetworkPositionManager.destroy( storage_adapter );
 	}
 	
 	public void

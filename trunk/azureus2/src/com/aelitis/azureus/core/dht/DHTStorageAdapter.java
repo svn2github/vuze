@@ -122,4 +122,13 @@ DHTStorageAdapter
 	public byte[]
 	getKeyForKeyBlock(
 		byte[]	request );
+	
+	public void
+	setStorageForKey(
+		String	key,
+		byte[]	data );
+	
+	public byte[]
+	getStorageForKey(
+		String	key );
 }

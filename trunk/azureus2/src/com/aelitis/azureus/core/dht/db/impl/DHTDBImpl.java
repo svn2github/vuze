@@ -1846,5 +1846,20 @@ DHTDBImpl
 		{
 			return( delegate.getKeyForKeyBlock( request ));
 		}
+		
+		public void
+		setStorageForKey(
+			String	key,
+			byte[]	data )
+		{
+			delegate.setStorageForKey( key, data );
+		}
+		
+		public byte[]
+		getStorageForKey(
+			String	key )
+		{
+			return( delegate.getStorageForKey(key));
+		}
 	}
 }

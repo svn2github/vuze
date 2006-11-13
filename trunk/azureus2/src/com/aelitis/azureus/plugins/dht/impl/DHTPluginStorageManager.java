@@ -1470,6 +1470,43 @@ DHTPluginStorageManager
 		}
 	}
 	
+	public void
+	setStorageForKey(
+		String	key,
+		byte[]	data )
+	{
+		try{
+			storage_mon.enter();
+			
+			Map	map = readMapFromFile( "general" );
+			
+			map.put( key, data );
+			
+			writeMapToFile( map, "general" );
+			
+		}finally{
+			
+			storage_mon.exit();
+		}
+	}
+	
+	public byte[]
+	getStorageForKey(
+		String	key )
+	{
+		try{
+			storage_mon.enter();
+			
+			Map	map = readMapFromFile( "general" );
+			
+			return((byte[])map.get( key ));
+			
+		}finally{
+			
+			storage_mon.exit();
+		}
+	}
+	
 	protected static class
 	keyBlock
 		implements DHTStorageBlock

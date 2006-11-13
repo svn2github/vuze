@@ -22,12 +22,15 @@
 
 package com.aelitis.azureus.core.dht.netcoords;
 
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 
 public class 
@@ -35,12 +38,90 @@ DHTNetworkPositionManager
 {
 	private static DHTNetworkPositionProvider[]	providers = new DHTNetworkPositionProvider[0];
 	
+	private static DHTStorageAdapter	storage_adapter = null;
+	
+	public static void
+	initialise(
+		DHTStorageAdapter		adapter )
+	{
+		synchronized( providers ){
+			
+			if ( storage_adapter == null ){
+				
+				storage_adapter	= adapter;
+				
+				for (int i=0;i<providers.length;i++){
+				
+					DHTNetworkPositionProvider	provider = providers[i];
+
+					startUp( provider );
+				}
+			}
+		}
+	}
+	
+	private static void
+	startUp(
+		DHTNetworkPositionProvider	provider )
+	{
+		byte[] data = storage_adapter.getStorageForKey( "NPP:" + provider.getPositionType());
+		
+		if ( data == null ){
+			
+			data = new byte[0];
+		}
+		
+		try{
+			provider.startUp( new DataInputStream( new ByteArrayInputStream( data )));
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
+	}
+	
+	public static void
+	destroy(
+		DHTStorageAdapter		adapter )
+	{
+		synchronized( providers ){
+			
+			if ( storage_adapter == adapter ){
+
+				for (int i=0;i<providers.length;i++){
+
+					try{
+						DHTNetworkPositionProvider	provider = providers[i];
+						
+						ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+						
+						DataOutputStream	dos = new DataOutputStream( baos );
+						
+						provider.shutDown( dos );
+						
+						dos.flush();
+						
+						byte[]	data = baos.toByteArray();
+						
+						storage_adapter.setStorageForKey( "NPP:" + provider.getPositionType(), data );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace( e );
+					}
+				}
+				
+				storage_adapter	= null;
+			}
+		}
+	}
+	
 	public static DHTNetworkPositionProviderInstance
 	registerProvider(
 		final DHTNetworkPositionProvider	provider )
 	{
 		synchronized( providers ){
-			
+	
 			DHTNetworkPositionProvider[]	p = new DHTNetworkPositionProvider[providers.length + 1 ];
 			
 			System.arraycopy( providers, 0, p, 0, providers.length );
@@ -48,6 +129,11 @@ DHTNetworkPositionManager
 			p[providers.length] = provider;
 			
 			providers	= p;
+			
+			if ( storage_adapter != null ){
+			
+				startUp( provider );
+			}
 		}
 		
 		return( new DHTNetworkPositionProviderInstance()

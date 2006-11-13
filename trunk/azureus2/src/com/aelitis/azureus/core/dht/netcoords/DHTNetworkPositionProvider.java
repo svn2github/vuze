@@ -48,4 +48,12 @@ DHTNetworkPositionProvider
 		DataOutputStream	os )
 	
 		throws IOException;
+	
+	public void
+	startUp(
+		DataInputStream		is );
+	
+	public void
+	shutDown(
+		DataOutputStream	os );
 }
