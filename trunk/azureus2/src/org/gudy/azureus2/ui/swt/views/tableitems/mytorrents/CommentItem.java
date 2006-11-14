@@ -67,6 +67,11 @@ public class CommentItem
 		
 		event.skipCoreFunctionality = true;
 		if (event.eventType != TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK) {return;}
+		openEditCommentWindow(dm);
+	}
+	
+	/* Package private - used by CommentIconItem too. */
+	static void openEditCommentWindow(DownloadManager dm) {
 		
 		// Create dialog box.
 		String suggested = dm.getDownloadState().getUserComment(); 
