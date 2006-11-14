@@ -216,6 +216,14 @@ public class VirtualChannelSelectorImpl {
       SelectionKey key = channel.keyFor( selector );
       
       if( key != null && key.isValid() ) {
+    	  	// if we're resuming a non-interested key then reset the metrics
+    	  
+    	if (( key.interestOps() & INTEREST_OP ) == 0 ){
+     	   RegistrationData data = (RegistrationData)key.attachment();
+
+     	   data.last_select_success_time 	= SystemTime.getCurrentTime();
+     	   data.non_progress_count			= 0;
+    	}
         key.interestOps( key.interestOps() | INTEREST_OP );
       }
       else {  //channel not (yet?) registered
@@ -618,6 +626,11 @@ public class VirtualChannelSelectorImpl {
     	    
     	      RegistrationData data = (RegistrationData)key.attachment();
  
+        	  if (( key.interestOps() & INTEREST_OP) == 0 ) { 
+
+        		  continue;
+        	  }
+        	  
     	      long	stall_time = now - data.last_select_success_time;
     	      
     	      if ( stall_time < 0 ){
@@ -634,23 +647,16 @@ public class VirtualChannelSelectorImpl {
 	    	    	  	// hack - trigger a dummy write select to see if things are still OK
 	    	    	  
 	    	          if( key.isValid() ) {
-	    	        	  
-	    	        	  if ((key.interestOps() & INTEREST_OP) == 0 ) { 
+    	        	  
+    	        		  if( pause_after_select ) { 
 
-	    	        	  }else{            
+    	        			  key.interestOps( key.interestOps() & ~INTEREST_OP );
+    	        		  }
+    	        		  
+    	        		  if ( parent.selectSuccess( data.listener, data.channel, data.attachment )){
 
-	    	        		  if( pause_after_select ) { 
-
-	    	        			  key.interestOps( key.interestOps() & ~INTEREST_OP );
-	    	        		  }
-
-	    	        		  	// this is a dummy select, trash the non-progress counter as it
-	    	        		  	// will be invalid 
-	    	        		  
-	    	        		  parent.selectSuccess( data.listener, data.channel, data.attachment );
-
-	    	        		  data.non_progress_count = 0;
-	    	        	  }
+    	        			  data.non_progress_count = 0;
+    	        		  }
 	    	          }else{
 
 	    	        	  key.cancel();
