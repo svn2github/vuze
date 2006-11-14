@@ -53,5 +53,9 @@ PRUDPPacketTracker
 
 	public static final long	INITIAL_CONNECTION_ID	= 0x41727101980L;
 	
+	// see VersionCheckClientUDPCodecs for more actions
+	
+	// see DHTUDPPacketHelper for more actions
+	
 
 }

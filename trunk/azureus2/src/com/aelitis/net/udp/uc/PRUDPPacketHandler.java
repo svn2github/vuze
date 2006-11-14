@@ -113,6 +113,10 @@ PRUDPPacketHandler
 		int		receive_delay,
 		int		queued_request_timeout );
 	
+	public void
+	setExplicitBindAddress(
+		InetAddress	address );
+	
 	public PRUDPPacketHandlerStats
 	getStats();
 }

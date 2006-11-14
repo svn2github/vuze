@@ -45,4 +45,11 @@ PRUDPPacketHandlerFactory
 	{
 		return( PRUDPPacketHandlerFactoryImpl.getHandler( port, handler ));
 	}
+	
+	public static PRUDPReleasablePacketHandler 
+	getReleasableHandler(
+		int		port )
+	{
+		return( PRUDPPacketHandlerFactoryImpl.getReleasableHandler( port, null ));
+	}
 }
