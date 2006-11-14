@@ -24,9 +24,16 @@ package com.aelitis.azureus.core.versioncheck;
 
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
@@ -40,6 +47,9 @@ import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.clientmessageservice.*;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
+import com.aelitis.net.udp.uc.PRUDPReleasablePacketHandler;
 
 
 
@@ -65,10 +75,19 @@ public class VersionCheckClient {
   private static final String 	HTTP_SERVER_ADDRESS 	= "version.aelitis.com";
   private static final int 		HTTP_SERVER_PORT 		= 2080;			// 80;
 
-  
+  private static final String 	TCP_SERVER_ADDRESS 		= "version.aelitis.com";
+  private static final int 		TCP_SERVER_PORT 		= 2080;			// 80;
+
+  private static final String 	UDP_SERVER_ADDRESS 		= "version.aelitis.com";
+  private static final int 		UDP_SERVER_PORT 		= 2080;			// 80;
+
   
   private static final long		CACHE_PERIOD	= 5*60*1000;
   
+  
+  static{
+	  VersionCheckClientUDPCodecs.registerCodecs();
+  }
   
   private static final VersionCheckClient instance = new VersionCheckClient();
   private Map last_check_data = null;
@@ -95,13 +114,16 @@ public class VersionCheckClient {
    * @return reply data, possibly cached, if the server was already checked within the last minute
    */
   public Map getVersionCheckInfo( String reason ) {
-	  return( getVersionCheckInfoSupport( reason, false, false, false ));
+	  return( getVersionCheckInfoSupport( reason, false, false ));
   }
 
-  public Map getVersionCheckInfo( String reason, boolean force, boolean http_only ) {
-	  return( getVersionCheckInfoSupport( reason, false, force, http_only ));
-  }
-  protected Map getVersionCheckInfoSupport( String reason, boolean only_if_cached, boolean force, boolean http_only ) {
+ 
+  protected Map 
+  getVersionCheckInfoSupport( 
+		  String 	reason, 
+		  boolean 	only_if_cached, 
+		  boolean 	force )
+  {
     try {  check_mon.enter();
     
       long time_diff = SystemTime.getCurrentTime() - last_check_time;
@@ -115,7 +137,7 @@ public class VersionCheckClient {
     		return( new HashMap() );
     	}
         try {
-          last_check_data = performVersionCheck( constructVersionCheckMessage( reason ), !http_only, true );
+          last_check_data = performVersionCheck( constructVersionCheckMessage( reason ), true, true );
         }
         catch( Throwable t ) {
           t.printStackTrace();
@@ -150,7 +172,7 @@ public class VersionCheckClient {
   getExternalIpAddress(
 		boolean	only_if_cached )
   {
-    Map reply = getVersionCheckInfoSupport( REASON_EXTERNAL_IP, only_if_cached, false, false );
+    Map reply = getVersionCheckInfoSupport( REASON_EXTERNAL_IP, only_if_cached, false );
     
     byte[] address = (byte[])reply.get( "source_ip_address" );
     if( address != null ) {
@@ -241,7 +263,7 @@ public class VersionCheckClient {
    */
   private Map 
   performVersionCheck( 
-	Map data_to_send,
+	Map 	data_to_send,
 	boolean	use_az_message,
 	boolean	use_http ) 
   
@@ -332,7 +354,7 @@ public class VersionCheckClient {
   {
 	  if (Logger.isEnabled())
 		  Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
-				  + "version information from " + HTTP_SERVER_ADDRESS + ":" + HTTP_SERVER_PORT)); 
+				  + "version information from " + HTTP_SERVER_ADDRESS + ":" + HTTP_SERVER_PORT + " via HTTP" )); 
 
 	  String	url_str = "http://" + HTTP_SERVER_ADDRESS + (HTTP_SERVER_PORT==80?"":(":" + HTTP_SERVER_PORT)) + "/version?";
 
@@ -353,6 +375,175 @@ public class VersionCheckClient {
 		  
 		  url_connection.disconnect();
 	  }
+  }
+  
+  private Map
+  executeTCP(
+	Map				data_to_send,
+	InetAddress		bind_ip,
+	int				bind_port )
+  
+  	throws Exception
+  {
+	  if (Logger.isEnabled())
+		  Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
+				  + "version information from " + TCP_SERVER_ADDRESS + ":" + TCP_SERVER_PORT + " via TCP" )); 
+
+	  String	get_str = "GET /version?";
+
+	  get_str += URLEncoder.encode( new String( BEncoder.encode( data_to_send ), "ISO-8859-1" ), "ISO-8859-1" );
+	  
+	  get_str +=" HTTP/1.1" + "\015\012" + "\015\012";
+	  
+	  Socket	socket = null;
+	  
+	  try{
+		  socket = new Socket();
+		 
+		  if ( bind_ip != null ){
+			  
+			  socket.bind( new InetSocketAddress( bind_ip, bind_port ));
+			  
+		  }else if ( bind_port != 0 ){
+			  
+			  socket.bind( new InetSocketAddress( bind_port ));
+		  }
+		  
+		  socket.setSoTimeout( 10000 );
+		
+		  socket.connect( new InetSocketAddress( TCP_SERVER_ADDRESS, TCP_SERVER_PORT ), 10000 );
+		  
+		  OutputStream	os = socket.getOutputStream();
+		  
+		  os.write( get_str.getBytes( "ISO-8859-1" ));
+		  
+		  os.flush();
+		  
+		  InputStream	is = socket.getInputStream();
+		  
+		  ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+		  		
+		  byte[]	buffer = new byte[1024];
+
+		  int	total_len = 0;
+		  
+		  while( true ){
+			  
+			  int	len = is.read( buffer );
+			  
+			  if ( len <= 0 ){
+				  
+				  break;
+			  }
+			  
+			  total_len += len;
+			  
+			  if ( total_len > 16000 ){
+				  
+				  throw( new IOException( "reply too large" ));
+			  }
+			  
+			  baos.write( buffer, 0, len );
+		  }
+		  
+		  byte[]	reply = baos.toByteArray();
+		  
+		  for (int i=3;i<reply.length;i++){
+			  
+			  if ( 	reply[i-3]== (byte)'\015' &&
+					reply[i-2]== (byte)'\012' &&
+					reply[i-1]== (byte)'\015' &&
+					reply[i-0]== (byte)'\012' ){
+			  		  
+				return( BDecoder.decode( new BufferedInputStream( new ByteArrayInputStream( reply, i+1, reply.length - (i+1 )))));
+			  }
+		  }
+		  
+		  throw( new Exception( "Invalid reply: " + new String( reply )));
+		  
+	  }finally{
+		  
+		  if ( socket != null ){
+			  
+			  try{
+				  socket.close();
+				  
+			  }catch( Throwable e ){
+				  
+			  }
+		  }
+	  }
+  }
+  
+  private Map
+  executeUDP(
+	Map				data_to_send,
+	InetAddress		bind_ip,
+	int				bind_port )
+  
+  	throws Exception
+  {
+	  PRUDPReleasablePacketHandler handler = PRUDPPacketHandlerFactory.getReleasableHandler( bind_port );
+	  	  
+	  PRUDPPacketHandler	packet_handler = handler.getHandler();
+	  
+	  try{
+		  packet_handler.setExplicitBindAddress( bind_ip );	  
+		  
+		  VersionCheckClientUDPRequest	request = new VersionCheckClientUDPRequest(1234);
+		  
+		  request.setPayload( data_to_send );
+		  
+		  VersionCheckClientUDPReply reply = (VersionCheckClientUDPReply)packet_handler.sendAndReceive( null, request, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ));
+
+		  return( reply.getPayload());
+		  
+	  }finally{
+		 
+		  packet_handler.setExplicitBindAddress( null );
+
+		  handler.release();
+	  }
+  }
+  
+  public InetAddress
+  getExternalIpAddressHTTP()
+  
+  	throws Exception
+  {
+	  Map reply = executeHTTP( new HashMap());
+	  
+	  byte[] address = (byte[])reply.get( "source_ip_address" );
+	  
+	  return( InetAddress.getByName( new String( address )));
+  }
+  
+  public InetAddress
+  getExternalIpAddressTCP(
+	InetAddress	 	bind_ip,
+	int				bind_port )
+  
+  	throws Exception
+  {
+	  Map reply = executeTCP( new HashMap(), bind_ip, bind_port );
+	  
+	  byte[] address = (byte[])reply.get( "source_ip_address" );
+	  
+	  return( InetAddress.getByName( new String( address )));
+  }
+  
+  public InetAddress
+  getExternalIpAddressUDP(
+	InetAddress	 	bind_ip,
+	int				bind_port )
+  
+  	throws Exception
+  {
+	  Map reply = executeUDP( new HashMap(), bind_ip, bind_port );
+	  
+	  byte[] address = (byte[])reply.get( "source_ip_address" );
+	  
+	  return( InetAddress.getByName( new String( address )));
   }
   
   /**
@@ -490,6 +681,13 @@ public class VersionCheckClient {
   main(
 	String[]	args )
   {
-	  System.out.println( "Response: " + getSingleton().getVersionCheckInfo( "test", true, true ));
+	  try{
+		  COConfigurationManager.initialise();
+		  
+		  System.out.println( "Response: " + getSingleton().executeUDP( new HashMap(), null, 9999 ));
+		  
+	  }catch( Throwable e){
+		  e.printStackTrace();
+	  }
   }
 }

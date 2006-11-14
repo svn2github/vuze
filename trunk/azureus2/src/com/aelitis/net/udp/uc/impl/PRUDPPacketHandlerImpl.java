@@ -30,11 +30,9 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
-import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.net.udp.uc.PRUDPPacket;
@@ -94,13 +92,28 @@ PRUDPPacketHandlerImpl
 	private long		total_replies;
 	private long		last_error_report;
 	
+	private AEMonitor	bind_address_mon	= new AEMonitor( "PRUDPPH:bind" );
+
+	private InetAddress				default_bind_ip;
+	private InetAddress				explicit_bind_ip;
+	
+	private volatile InetAddress				current_bind_ip;
+	private volatile InetAddress				target_bind_ip;
+	
+	private volatile boolean		failed;
+	private volatile boolean		destroyed;
+	private AESemaphore destroy_sem = new AESemaphore("PRUDPPacketHandler:destroy");
+
+	
 	protected
 	PRUDPPacketHandlerImpl(
 		int		_port )
 	{
 		port		= _port;
 		
-		final AESemaphore init_sem = new AESemaphore("PRUDPPacketHandler");
+		target_bind_ip = default_bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
+		
+		final AESemaphore init_sem = new AESemaphore("PRUDPPacketHandler:init");
 		
 		Thread t = new AEThread( "PRUDPPacketReciever:".concat(String.valueOf(port)))
 			{
@@ -115,7 +128,10 @@ PRUDPPacketHandlerImpl
 		
 		t.start();
 		
-		SimpleTimer.addPeriodicEvent(
+		final TimerEventPeriodic[]	f_ev = {null};
+		
+		TimerEventPeriodic ev = 
+			SimpleTimer.addPeriodicEvent(
 				"PRUDP:timeouts",
 				5000,
 				new TimerEventPerformer()
@@ -124,9 +140,15 @@ PRUDPPacketHandlerImpl
 					perform(
 						TimerEvent	event )
 					{
+						if ( destroyed && f_ev[0] != null ){
+							
+							f_ev[0].cancel();
+						}
 						checkTimeouts();
 					}
 				});
+		
+		f_ev[0] = ev;
 		
 		init_sem.reserve();
 	}
@@ -175,13 +197,78 @@ PRUDPPacketHandlerImpl
 	}
 	
 	protected void
+	setDefaultBindAddress(
+		InetAddress	address )
+	{
+		try{
+			bind_address_mon.enter();
+			
+			default_bind_ip	= address;
+			
+			calcBind();
+			
+		}finally{
+			
+			bind_address_mon.exit();
+		}
+	}
+	
+	public void
+	setExplicitBindAddress(
+		InetAddress	address )
+	{
+		try{
+			bind_address_mon.enter();
+			
+			explicit_bind_ip	= address;
+			
+			calcBind();
+			
+		}finally{
+			
+			bind_address_mon.exit();
+		}
+		
+		int	loops = 0;
+		
+		while( current_bind_ip != target_bind_ip && !(failed || destroyed)){
+			
+			if ( loops >= 100 ){
+				
+				Debug.out( "Giving up on wait for bind ip change to take effect" );
+				
+				break;
+			}
+			
+			try{
+				Thread.sleep(50);
+				
+				loops++;
+				
+			}catch( Throwable e ){
+				
+				break;
+			}
+		}
+	}
+	
+	protected void
+	calcBind()
+	{
+		if ( explicit_bind_ip != null ){
+			
+			target_bind_ip = explicit_bind_ip;
+			
+		}else{
+			
+			target_bind_ip = default_bind_ip;
+		}
+	}
+	
+	protected void
 	receiveLoop(
 		AESemaphore	init_sem )
 	{
-		boolean	failed	= false;
-	
-		final boolean[]	bind_ip_changed = { false };
-		
 		NetworkAdminPropertyChangeListener prop_listener = 
 			new NetworkAdminPropertyChangeListener()
 	    	{
@@ -191,7 +278,7 @@ PRUDPPacketHandlerImpl
 	    		{
 	    			if ( property == NetworkAdmin.PR_DEFAULT_BIND_ADDRESS ){
 	    				
-	    				bind_ip_changed[0] = true;
+	    				setDefaultBindAddress( NetworkAdmin.getSingleton().getDefaultBindAddress());
 	    			}
 	    		}
 	    	};
@@ -201,7 +288,7 @@ PRUDPPacketHandlerImpl
 		try{
 				// outter loop picks up bind-ip changes
 			
-			while( !failed ){
+			while( !( failed || destroyed )){
 				
 				if ( socket != null ){
 					
@@ -213,14 +300,12 @@ PRUDPPacketHandlerImpl
 						Debug.printStackTrace(e);
 					}
 				}
-				
-				InetAddress bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
-				
+								
 				InetSocketAddress	address;
 				
 				DatagramSocket	new_socket;
 				
-				if ( bind_ip == null ){
+				if ( target_bind_ip == null ){
 					
 					address = new InetSocketAddress("127.0.0.1",port);
 					
@@ -228,35 +313,37 @@ PRUDPPacketHandlerImpl
 					
 				}else{
 					
-					address = new InetSocketAddress( bind_ip, port );
+					address = new InetSocketAddress( target_bind_ip, port );
 					
 					new_socket = new DatagramSocket( address );		
 				}
 						
 				new_socket.setReuseAddress(true);
 				
-				new_socket.setSoTimeout( PRUDPPacket.DEFAULT_UDP_TIMEOUT );
+					// short timeout on receive so that we can interrupt a receive fairly quickly
+				
+				new_socket.setSoTimeout( 1000 );
 				
 					// only make the socket public once fully configured
 								
 				socket = new_socket;
 				
+				current_bind_ip	= target_bind_ip;
+								
 				init_sem.release();
 				
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID,
-							"PRUDPPacketReceiver: receiver established on port " + port + (bind_ip==null?"":(", bound to " + bind_ip )))); 
+							"PRUDPPacketReceiver: receiver established on port " + port + (current_bind_ip==null?"":(", bound to " + current_bind_ip )))); 
 		
 				byte[] buffer = null;
 				
 				long	successful_accepts 	= 0;
 				long	failed_accepts		= 0;
 				
-				while( !failed ){
+				while( !( failed || destroyed )){
 					
-					if ( bind_ip_changed[0] ){
-						
-						bind_ip_changed[0] = false;
+					if ( current_bind_ip != target_bind_ip ){
 						
 						break;
 					}
@@ -341,6 +428,19 @@ PRUDPPacketHandlerImpl
 		}finally{
 			
 			init_sem.release();
+			
+			destroy_sem.releaseForever();
+			
+			if ( socket != null ){
+				
+				try{
+					socket.close();
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
 			
 			NetworkAdmin.getSingleton().removePropertyChangeListener( prop_listener );
 		}
@@ -1014,11 +1114,11 @@ PRUDPPacketHandlerImpl
 	checkTargetAddress(
 		InetSocketAddress	address )
 	
-		throws IOException
+		throws PRUDPPacketHandlerException
 	{
 		if ( address.getPort() == 0 ){
 			
-			throw( new IOException( "Invalid port - 0" ));
+			throw( new PRUDPPacketHandlerException( "Invalid port - 0" ));
 		}
 	}
 	
@@ -1090,5 +1190,13 @@ PRUDPPacketHandlerImpl
 	getStats()
 	{
 		return( stats );
+	}
+	
+	protected void
+	destroy()
+	{
+		destroyed	= true;
+		
+		destroy_sem.reserve();
 	}
 }

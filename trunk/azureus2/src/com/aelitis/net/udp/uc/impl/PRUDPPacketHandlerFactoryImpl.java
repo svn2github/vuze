@@ -29,8 +29,10 @@ package com.aelitis.net.udp.uc.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPReleasablePacketHandler;
 import com.aelitis.net.udp.uc.PRUDPRequestHandler;
 
 public class 
@@ -38,6 +40,7 @@ PRUDPPacketHandlerFactoryImpl
 {
 	protected static 			Map	receiver_map = new HashMap();
 	protected static AEMonitor	class_mon	= new AEMonitor( "PRUDPPHF" );
+	protected static 			Map	releasable_map = new HashMap();
 
 
 	public static PRUDPPacketHandler
@@ -73,5 +76,104 @@ PRUDPPacketHandlerFactoryImpl
 			
 			class_mon.exit();
 		}
-	}		
+	}	
+	
+	public static PRUDPReleasablePacketHandler
+	getReleasableHandler(
+		int						port,
+		PRUDPRequestHandler		request_handler)
+	{
+		final Integer	f_port = new Integer( port );
+		
+		try{
+			class_mon.enter();
+		
+			PRUDPPacketHandlerImpl	receiver = (PRUDPPacketHandlerImpl)receiver_map.get( f_port );
+			
+			if ( receiver == null ){
+				
+				receiver = new PRUDPPacketHandlerImpl( port );
+				
+				receiver_map.put( f_port, receiver );
+			}
+			
+				// only set the incoming request handler if one has been specified. This is important when
+				// the port is shared (e.g. default udp tracker and dht) and only one usage has need to handle
+				// unsolicited inbound requests as we don't want the tracker null handler to erase the dht's
+				// one
+			
+			if ( request_handler != null ){
+				
+				receiver.setRequestHandler( request_handler );
+			}
+			
+			final PRUDPPacketHandlerImpl f_receiver = receiver;
+			
+			final PRUDPReleasablePacketHandler rel = 
+				new PRUDPReleasablePacketHandler()
+				{
+					public PRUDPPacketHandler
+					getHandler()
+					{
+						return( f_receiver );
+					}
+					
+					public void
+					release()
+					{
+						try{
+							class_mon.enter();
+							
+							List l = (List)releasable_map.get( f_port );
+							
+							if ( l == null ){
+								
+								Debug.out( "hmm" );
+								
+							}else{
+								
+								if ( !l.remove( this )){
+									
+									Debug.out( "hmm" );
+									
+								}else{
+									
+									if ( l.size() == 0 ){
+										
+										f_receiver.destroy();
+										
+										releasable_map.remove( f_port );
+									}
+								}
+							}
+						}finally{
+							
+							class_mon.exit();
+						}
+					}
+				};
+			
+			List l = (List)releasable_map.get( f_port );
+			
+			if ( l == null ){
+				
+				l = new ArrayList();
+				
+				releasable_map.put( f_port, l );
+			}
+			
+			l.add( rel );
+
+			if ( l.size() > 1024 ){
+				
+				Debug.out( "things going wrong here" );
+			}
+			
+			return( rel );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
 }

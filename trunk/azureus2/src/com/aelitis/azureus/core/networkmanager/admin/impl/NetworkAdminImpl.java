@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -358,6 +359,29 @@ NetworkAdminImpl
 		listeners.remove( listener );
 	}
 	
+	
+	public void 
+	generateDiagnostics(
+		IndentWriter iw )
+	{
+		NetworkAdminNetworkInterface[] interfaces = getInterfaces();
+		
+		for (int i=0;i<interfaces.length;i++){
+			
+			networkInterface	interf = (networkInterface)interfaces[i];
+			
+			iw.indent();
+			
+			try{
+				
+				interf.generateDiagnostics( iw );
+			}finally{
+				
+				iw.exdent();
+			}
+		}
+	}
+	
 	protected class
 	networkInterface
 		implements NetworkAdminNetworkInterface
@@ -400,6 +424,32 @@ NetworkAdminImpl
 			return((NetworkAdminNetworkInterfaceAddress[])addresses.toArray( new NetworkAdminNetworkInterfaceAddress[addresses.size()]));
 		}
 	
+		public void 
+		generateDiagnostics(
+			IndentWriter iw )
+		{
+			iw.println( getDisplayName() + "/" + getName());
+			
+			NetworkAdminNetworkInterfaceAddress[] addresses = getAddresses();
+			
+			for (int i=0;i<addresses.length;i++){
+				
+				networkAddress	addr = (networkAddress)addresses[i];
+				
+				iw.indent();
+				
+				try{
+					
+					addr.generateDiagnostics( iw );
+					
+				}finally{
+					
+					iw.exdent();
+				}
+			}
+		}
+		
+
 		protected class
 		networkAddress
 			implements NetworkAdminNetworkInterfaceAddress
@@ -419,6 +469,12 @@ NetworkAdminImpl
 				return( address );
 			}
 			
+			public boolean
+			isLoopback()
+			{
+				return( address.isLoopbackAddress());
+			}
+						
 			public NetworkAdminNode[]
 			getRoute(
 				InetAddress						target,
@@ -505,6 +561,43 @@ NetworkAdminImpl
 				return((NetworkAdminNode[])nodes.toArray( new NetworkAdminNode[nodes.size()]));
 			}
 			
+			public void 
+			generateDiagnostics(
+				IndentWriter iw )
+			{
+				iw.println( "" + getAddress());
+				
+				try{
+					iw.println( "  Trace route" );
+					
+					iw.indent();
+					
+					if ( isLoopback()){
+						
+						iw.println( "Loopback - ignoring" );
+						
+					}else{
+						
+						try{
+							NetworkAdminNode[] nodes = getRoute( InetAddress.getByName("www.google.com"), 30000, null );
+							
+							for (int i=0;i<nodes.length;i++){
+								
+								networkNode	node = (networkNode)nodes[i];
+																
+								iw.println( node.getString());
+							}
+						}catch( Throwable e ){
+							
+							iw.println( "Can't resolve host for route trace - " + e.getMessage());
+						}
+					}
+				}finally{
+					
+					iw.exdent();
+				}
+			}
+			
 			protected class
 			networkNode
 				implements NetworkAdminNode
@@ -524,18 +617,18 @@ NetworkAdminImpl
 					rtt			= _millis;
 				}
 				
-				public int
-				getType()
-				{
-					return( NT_PRIVATE );
-				}
-				
 				public InetAddress
 				getAddress()
 				{
 					return( address );
 				}
 				
+				public boolean
+				isLocalAddress()
+				{
+					return( address.isLinkLocalAddress() ||	address.isSiteLocalAddress()); 
+				}
+
 				public int
 				getDistance()
 				{
@@ -546,6 +639,19 @@ NetworkAdminImpl
 				getRTT()
 				{
 					return( rtt );
+				}
+				
+				protected String
+				getString()
+				{
+					if ( address == null ){
+						
+						return( "" + distance );
+						
+					}else{
+					
+						return( distance + "," + address + "[local=" + isLocalAddress() + "]," + rtt );
+					}
 				}
 			}
 		}

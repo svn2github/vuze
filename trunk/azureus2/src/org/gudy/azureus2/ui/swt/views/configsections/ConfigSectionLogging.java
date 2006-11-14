@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.logging.impl.FileLogging;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -51,6 +52,9 @@ import org.gudy.azureus2.ui.swt.config.IntListParameter;
 import org.gudy.azureus2.ui.swt.config.StringParameter;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterface;
 
 public class ConfigSectionLogging implements UISWTConfigSection {
   private static final LogIDs LOGID = LogIDs.GUI;
@@ -262,6 +266,43 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     udp_transport.setLayoutData(gridData);
+    
+		// network diagnostics
+	
+	Label generate_net_info = new Label(gLogging, SWT.NULL);
+
+	generate_net_info.setText( "Generate network info" );
+	
+	Button generate_net_button = new Button(gLogging, SWT.PUSH);
+
+	generate_net_button.setText( "Go!" );
+	
+	generate_net_button.addListener(
+			SWT.Selection, 
+			new Listener() 
+			{
+				public void 
+				handleEvent(Event event) 
+				{
+					StringWriter sw = new StringWriter();
+					
+					PrintWriter	pw = new PrintWriter( sw );
+							
+					IndentWriter iw = new IndentWriter( pw );
+					
+					NetworkAdmin admin = NetworkAdmin.getSingleton();
+					
+					admin.generateDiagnostics( iw );
+					
+					pw.close();
+					
+					String	info = sw.toString();
+					
+					ClipboardCopy.copyToClipBoard( info );
+
+					Logger.log( new LogEvent(LOGID, "Network Info:\n" + info));
+				}
+			});
     
 		// diagnostics
 	

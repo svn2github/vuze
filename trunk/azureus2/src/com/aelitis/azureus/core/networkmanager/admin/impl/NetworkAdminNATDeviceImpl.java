@@ -21,24 +21,10 @@
  */
 
 
-package com.aelitis.azureus.core.networkmanager.admin;
+package com.aelitis.azureus.core.networkmanager.admin.impl;
 
-import java.net.InetAddress;
-
-public interface
-NetworkAdminNetworkInterfaceAddress 
+public class 
+NetworkAdminNATDeviceImpl 
 {
-	public InetAddress
-	getAddress();
-	
-	public boolean
-	isLoopback();
-		
-	public NetworkAdminNode[]
-	getRoute(
-		InetAddress					target,
-		int							max_millis,
-		NetworkAdminRouteListener	listener )
-	
-		throws NetworkAdminException;
+
 }

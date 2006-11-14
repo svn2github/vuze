@@ -21,46 +21,32 @@
  */
 
 
-package com.aelitis.azureus.core.networkmanager.admin;
+package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.net.InetAddress;
 
-import org.gudy.azureus2.core3.util.IndentWriter;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
-import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminImpl;
-
-public abstract class 
-NetworkAdmin 
+public class 
+NetworkAdminUDPTester 
 {
-	private static final NetworkAdmin	singleton = new NetworkAdminImpl();
+	public InetAddress
+	testOutbound(
+		InetAddress		bind_ip,
+		int				bind_port )
 	
-	public static final String PR_NETWORK_INTERFACES	= "Network Interfaces";
-	public static final String PR_DEFAULT_BIND_ADDRESS	= "Default Bind IP";
-	
-	public static NetworkAdmin
-	getSingleton()
+		throws Exception
 	{
-		return( singleton );
+		return( VersionCheckClient.getSingleton().getExternalIpAddressUDP(bind_ip, bind_port));
 	}
 	
-	public abstract InetAddress
-	getDefaultBindAddress();
+	public InetAddress
+	testInbound(			
+		InetAddress		bind_ip,
+		int				bind_port )
 	
-	public abstract String
-	getNetworkInterfacesAsString();
-	
-	public abstract NetworkAdminNetworkInterface[]
-	getInterfaces();
-	
-	public abstract void
-	addPropertyChangeListener(
-		NetworkAdminPropertyChangeListener	listener );
-	
-	public abstract void
-	removePropertyChangeListener(
-		NetworkAdminPropertyChangeListener	listener );
-	
-	public abstract void
-	generateDiagnostics(
-		IndentWriter		iw );
+		throws Exception
+	{
+		throw( new Exception( "not imp" ));
+	}
 }

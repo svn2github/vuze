@@ -27,15 +27,13 @@ import java.net.InetAddress;
 
 public interface 
 NetworkAdminNode 
-{
-	public static final int	NT_PRIVATE	= 0;
-	
-	public int
-	getType();
-	
+{	
 	public InetAddress
 	getAddress();
-	
+
+	public boolean
+	isLocalAddress();
+
 	public int
 	getDistance();
 	
