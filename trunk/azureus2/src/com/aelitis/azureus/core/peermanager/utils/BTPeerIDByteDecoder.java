@@ -99,6 +99,7 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeSimpleStyle( peerID, 5, "Azureus", "Azureus 2.0.3.2" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "-G3", "G3 Torrent" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "-AR", "Arctic Torrent" )) != null ) return decoded; //no way to know the version (see above)
+      if( (decoded = decodeSimpleStyle( peerID, 0, "-BF", "Bitflu" )) != null ) return decoded; //no way to know the version (see above)
       if( (decoded = decodeSimpleStyle( peerID, 4, "btfans", "SimpleBT" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "btuga", "BTugaXP" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 5, "BTuga", "BTugaXP" )) != null ) return decoded;
