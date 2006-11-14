@@ -1480,7 +1480,7 @@ DiskManagerImpl
 	    int offset,
 	    int length )
 	{
-		return( DiskManagerUtils.checkBlockConsistency(this,pieceNumber, offset, length));
+		return( DiskManagerUtil.checkBlockConsistency(this,pieceNumber, offset, length));
 	}
 	
     public void
