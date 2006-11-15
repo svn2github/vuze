@@ -35,9 +35,29 @@ TorrentAttribute
 	public static final String	TA_PEER_SOURCES					= "PeerSources";
 	public static final String	TA_TRACKER_CLIENT_EXTENSIONS	= "TrackerClientExtensions";
 	public static final String	TA_SHARE_PROPERTIES				= "ShareProperties";	// private=true/false;dht_backup=true/false
-	public static final String  TA_DISPLAY_NAME                 = "DisplayName";
 	public static final String  TA_CONTENT_MAP                  = "ContentMap";
+	
+	/**
+	 * Controls the displayed name of a download.
+	 * 
+	 * @since 2.5.0.0
+	 */
+	public static final String  TA_DISPLAY_NAME                 = "DisplayName";
+
+	/**
+	 * The user-defined comment for a download.
+	 * 
+	 * @since 2.5.0.1
+	 */
 	public static final String  TA_USER_COMMENT                 = "UserComment";
+	
+	/**
+	 * Defines a relative file path for this download - this attribute is used
+	 * when moving downloads for completion or removal - this path is relative
+	 * to the default download directories.
+	 * 
+	 * @since 2.5.0.1
+	 */
 	public static final String  TA_RELATIVE_SAVE_PATH           = "RelativePath";
 	
 
