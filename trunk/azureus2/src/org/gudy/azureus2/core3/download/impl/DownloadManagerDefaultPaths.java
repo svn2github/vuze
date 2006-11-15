@@ -364,7 +364,7 @@ public class DownloadManagerDefaultPaths {
 			String current_state = getStateDescriptor(dm);
 			boolean can_move = this.getBoolean(current_state);
 			String log_message = describe(dm, context) + " is " +
-			    ((can_move) ? "" : "not") + " in an appropriate state (is " +
+			    ((can_move) ? "" : "not ") + "in an appropriate state (is " +
 			    "currently \"" + current_state + "\").";
 			if (!can_move) {
 				logWarn(log_message, lr);
