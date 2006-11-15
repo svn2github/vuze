@@ -205,7 +205,7 @@ UPnPPlugin
 				parameterChanged(
 					Parameter	param )
 				{
-					upnp.reset();
+					UPnPPlugin.this.refreshMappings();
 				}
 			});
 
@@ -429,7 +429,7 @@ UPnPPlugin
 			
 				// already started up, must have been re-enabled
 			
-			upnp.reset();
+			refreshMappings();
 			
 			return;
 		}
@@ -1230,5 +1230,12 @@ UPnPPlugin
 					resource, params );
 
 		log.logAlertRepeatable( type, text );
+	}
+	
+	/**
+	 * Provided for use by other plugins.
+	 */
+	public void refreshMappings() {
+		this.upnp.reset();
 	}
 }
