@@ -34,28 +34,37 @@ public interface IPCInterface {
 	 * This function allows direct method calls to the plugin
 	 * using Java Reflection API.
 	 * 
-	 * Primitives like int, boolean need to be wrappen in their
-	 * Objects (int -> Integer).
+	 * Primitives like <code>int</code>, <code>boolean</code> need to be wrapped in their
+	 * Objects (int -> Integer).</p>
 	 * 
 	 * Results will be returned as Object and can be classcasted.
 	 * 
-	 * WARNING: only call Methods that use Java or Azureus Classes
+	 * <p>
+	 * 
+	 * <b>WARNING</b>: only call Methods that use Java or Azureus Classes
 	 * 			the use of custom classes may cause problems.
 	 * 
-	 * Example:
+	 * <p>
+	 * 
+	 * Examples:
+	 * <p>
 	 * 
 	 * 1.
 	 * Plugin has method
-	 * int add (int x, int y);
+	 * <code>int add (int x, int y);</code>
 	 * 
+	 * <pre>
 	 * int result = ((Integer)invoke ("add", new Object[] {Integer.valueOf(10),Integer.valueOf(5)}).intValue();
 	 * //result (15)
+	 * </pre>
 	 * 
-	 * 2.
-	 * String randomize (String x);
+	 * 2. Plugin has method
+	 * <code>String randomize (String x);</code>
 	 * 
+	 * <pre>
 	 * String result = (String)invoke("randomize", new Object[]{"foobar"});
 	 * //result ("bfaoro")
+	 * </pre>
 	 * 
 	 * 
 	 * @param methodName the name of the Methods to be called
