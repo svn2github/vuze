@@ -420,4 +420,11 @@ RPPluginConfig
 		{
 			notSupported();
 		}
+
+		// @see org.gudy.azureus2.plugins.PluginConfig#setPluginConfigKeyPrefix(java.lang.String)
+		
+		public void setPluginConfigKeyPrefix(String _key) {
+			// TODO Auto-generated method stub
+			
+		}
 }

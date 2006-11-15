@@ -334,4 +334,11 @@ PluginConfig
 	public void
 	addListener(
 		PluginConfigListener	l );
+
+	/**
+	 * @param _key
+	 * 
+	 * @since 2.5.0.1
+	 */
+	public void setPluginConfigKeyPrefix(String _key);
 }

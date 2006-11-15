@@ -98,6 +98,10 @@ PluginConfigImpl
 		return( key );
 	}
 	
+	public void setPluginConfigKeyPrefix(String _key) {
+		key = _key;
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getStringParameter(java.lang.String)
 	 */
