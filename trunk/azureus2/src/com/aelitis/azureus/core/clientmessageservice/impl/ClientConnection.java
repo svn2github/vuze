@@ -61,6 +61,7 @@ public class ClientConnection {
 	private boolean	last_write_made_progress;
 	private String debug_string = "<>";
 	
+	private Throwable	closing_reason;
 	
 	/**
 	 * Create a new connection based on an incoming socket.
@@ -123,25 +124,26 @@ public class ClientConnection {
 		finally{ msg_mon.exit(); }
 		
 		out_queue.registerQueueListener( new OutgoingMessageQueue.MessageQueueListener() {
-			public boolean messageAdded( Message message ){  return true;  }
-	    public void messageQueued( Message message ){}
-	    public void messageRemoved( Message message ){}
-	    public void protocolBytesSent( int byte_count ){}
-	    public void dataBytesSent( int byte_count ){}
-	    
-	    public void messageSent( Message message ){
-	    	if( message.equals( msg ) ) {
-	    		try{  msg_mon.enter();
-	  				sending_msgs.remove( client_msg );
-	    		}
-	    		finally{ msg_mon.exit(); }
-	    		
-	    		client_msg.getHandler().sendAttemptCompleted( client_msg, true );
-	    	}
-	    }	    
-		});
-		
+				public boolean messageAdded( Message message ){  return true;  }
+		    public void messageQueued( Message message ){}
+		    public void messageRemoved( Message message ){}
+		    public void protocolBytesSent( int byte_count ){}
+		    public void dataBytesSent( int byte_count ){}
+		    
+		    public void messageSent( Message message ){
+		    	if( message.equals( msg ) ) {
+		    		try{  msg_mon.enter();
+		  				sending_msgs.remove( client_msg );
+		    		}
+		    		finally{ msg_mon.exit(); }
+		    		
+		    		client_msg.reportComplete();
+		    	}
+		    }	    
+			});
+			
 		out_queue.addMessage( msg, false );
+
 	}
 	
 	
@@ -165,7 +167,7 @@ public class ClientConnection {
 	//}
 	
 	
-	public void close() {
+	public void close( Throwable reason ) {
 		ClientMessage[] messages = null;
 		
 		try{  msg_mon.enter();
@@ -180,9 +182,12 @@ public class ClientConnection {
 		finally{ msg_mon.exit(); }
 	
 		if( messages != null ) {
+			if ( reason == null ){
+				reason = new Exception( "Connection closed" );
+			}
 			for( int i=0; i < messages.length; i++ ) {
 				ClientMessage msg = messages[i];
-				msg.getHandler().sendAttemptCompleted( msg, false );
+				msg.reportFailed( reason );
 			}
 		}
 	
@@ -229,6 +234,19 @@ public class ClientConnection {
    * Reset the last activity time to the current time.
    */
   public void resetLastActivityTime() {  last_activity_time = System.currentTimeMillis();  }
+  
+  public void
+  setClosingReason(
+		  Throwable	r )
+  {
+	  closing_reason = r;
+  }
+  
+  public Throwable
+  getClosingReason()
+  {
+	  return( closing_reason );
+  }
   
   public Object
   getUserData(

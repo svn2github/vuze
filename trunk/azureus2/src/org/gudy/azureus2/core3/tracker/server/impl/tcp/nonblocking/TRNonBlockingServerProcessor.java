@@ -246,6 +246,13 @@ TRNonBlockingServerProcessor
 	{
 	}
 	
+		// overridden if subclass is interested in failures, so don't remove!
+	
+	protected void
+	failed()
+	{	
+	}
+	
 	protected void
 	completed()
 	{

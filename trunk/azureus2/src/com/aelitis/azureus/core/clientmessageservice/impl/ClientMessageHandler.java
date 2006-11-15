@@ -45,6 +45,8 @@ public interface ClientMessageHandler {
 	 * @param message sent
 	 * @param success true if reply send was successful, false if reply send failed
 	 */
-	public void sendAttemptCompleted( ClientMessage message, boolean success );
+	public void sendAttemptCompleted( ClientMessage message );
+	
+	public void sendAttemptFailed( ClientMessage message, Throwable error );
 	
 }

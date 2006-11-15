@@ -693,7 +693,7 @@ public class VersionCheckClient {
 	  try{
 		  COConfigurationManager.initialise();
 		  
-		  System.out.println( "Response: " + getSingleton().executeUDP( new HashMap(), null, 9999 ));
+		  System.out.println( "Response: " + getSingleton().executeAZMessage(new HashMap()));
 		  
 	  }catch( Throwable e){
 		  e.printStackTrace();

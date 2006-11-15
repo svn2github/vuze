@@ -364,6 +364,8 @@ TRNonBlockingServer
 	
 	            		}else if( write_result < 0 ) {  //a write error occured
 
+	            			processor.failed();
+	            			
 	            			removeAndCloseConnection( processor );
 	            		}
 	            		

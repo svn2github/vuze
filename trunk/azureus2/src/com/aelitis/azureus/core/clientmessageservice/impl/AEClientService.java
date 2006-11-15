@@ -82,8 +82,8 @@ public class AEClientService implements ClientMessageService {
 				read_block.release();
 			}
 			
-			public void connectionError( ClientConnection connection ) {
-				error = new IOException( "connection error" );
+			public void connectionError( ClientConnection connection, Throwable msg ) {
+				error = msg;
 				read_block.releaseForever();
 				write_block.releaseForever();
 			}
@@ -155,8 +155,11 @@ public class AEClientService implements ClientMessageService {
 				Debug.out( "ERROR: should never be called" );
 			}
 
-			public void sendAttemptCompleted( ClientMessage message, boolean success ) {
-				if( !success )  error = new IOException( "message send attempt failed" );
+			public void sendAttemptCompleted( ClientMessage message ){
+				write_block.release();
+			}
+			public void sendAttemptFailed( ClientMessage message, Throwable cause) {
+				error = cause;
 				write_block.release();
 			}
 		});
@@ -204,7 +207,7 @@ public class AEClientService implements ClientMessageService {
 	public void close() {
 		if( conn != null ) {
 			rw_service.removeClientConnection( conn );
-			conn.close();
+			conn.close( new Exception( "Connection closed" ));
 		}
 		rw_service.destroy();
 	}

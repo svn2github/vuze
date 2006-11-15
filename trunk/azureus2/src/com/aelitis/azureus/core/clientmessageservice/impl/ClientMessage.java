@@ -36,6 +36,7 @@ public class ClientMessage {
 	private final Map payload;
 	private ClientMessageHandler handler;
 	
+	private boolean outcome_reported;
 	
 	public ClientMessage( String msg_id, ClientConnection _client, Map msg_payload, ClientMessageHandler _handler ) {
 		this.message_id = msg_id;
@@ -55,4 +56,34 @@ public class ClientMessage {
 	
 	public void setHandler( ClientMessageHandler new_handler ) {  this.handler = new_handler;  }
 
+	public void
+	reportComplete()
+	{
+		synchronized( this ){
+			if ( outcome_reported ){
+				
+				return;
+			}
+			
+			outcome_reported	= true;
+		}
+		
+		handler.sendAttemptCompleted( this );
+	}
+	
+	public void
+	reportFailed(
+		Throwable 	error )
+	{
+		synchronized( this ){
+			if ( outcome_reported ){
+				
+				return;
+			}
+			
+			outcome_reported	= true;
+		}
+		
+		handler.sendAttemptFailed( this, error );
+	}
 }

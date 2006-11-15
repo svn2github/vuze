@@ -179,7 +179,7 @@ public class NonBlockingReadWriteService {
       			System.out.println( "[" +new Date()+ "] Connection read error [" +sc.socket().getInetAddress()+ "] [" +client.getDebugString()+ "]: " +t.getMessage() );
       		}
       		
-      		listener.connectionError( client );
+      		listener.connectionError( client, t );
       		return( false );
       	}
       }
@@ -189,7 +189,7 @@ public class NonBlockingReadWriteService {
     	  if ( !destroyed ){
     		  msg.printStackTrace();
     	  }
-        listener.connectionError( client );
+        listener.connectionError( client, msg );
       }
     };
     
@@ -208,7 +208,7 @@ public class NonBlockingReadWriteService {
       	}
       	catch( Throwable t ) {
           System.out.println( "[" +new Date()+ "] Connection write error [" +sc.socket().getInetAddress()+ "] [" +client.getDebugString()+ "]: " +t.getMessage() );
-          listener.connectionError( client );
+          listener.connectionError( client, t );
           return( false );
       	}
       }
@@ -217,7 +217,7 @@ public class NonBlockingReadWriteService {
         if ( !destroyed ){
         	msg.printStackTrace();
         }
-        listener.connectionError( client );
+        listener.connectionError( client, msg );
       }
     };
 
@@ -257,8 +257,8 @@ public class NonBlockingReadWriteService {
       
       for( int i=0; i < timed_out.size(); i++ ) {  
         ClientConnection vconn = (ClientConnection)timed_out.get( i );
-        System.out.println( "[" +new Date()+ "] Connection timed out [" +vconn.getSocketChannel().socket().getInetAddress()+ "]: [" +vconn.getDebugString()+ "]" );
-        listener.connectionError( vconn );
+        // don't change the exception text - it is used elsewhere
+        listener.connectionError( vconn, new Exception( "Timeout" ));
       }
       
       last_timeout_check_time = System.currentTimeMillis();
@@ -281,7 +281,7 @@ public class NonBlockingReadWriteService {
 		
 		if( !still_connected ) {
 			System.out.println( "[" +new Date()+ "] Connection message send error [connection no longer connected]: " +vconn.getDebugString()+ "]" );
-			message.getHandler().sendAttemptCompleted( message, false );
+			message.reportFailed( new Exception("No longer connected" ));
 			//listener.connectionError( vconn ); //no need to call this, as there is no connection to remove
       return;
 		}
@@ -300,7 +300,7 @@ public class NonBlockingReadWriteService {
 
 		public void messageReceived( ClientMessage message );
 		
-		public void connectionError( ClientConnection connection );
+		public void connectionError( ClientConnection connection, Throwable error );
 		
 	}
 	
