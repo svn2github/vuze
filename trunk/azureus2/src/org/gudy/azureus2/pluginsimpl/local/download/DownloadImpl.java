@@ -496,6 +496,13 @@ DownloadImpl
 	  	return( null );
   }
   
+  public void setListAttribute(TorrentAttribute attribute, String[] value) {
+	  String name = convertAttribute(attribute);
+	  if (name != null) {
+		  download_manager.getDownloadState().setListAttribute(name, value);
+	  }
+  }
+  
   public void
   setMapAttribute(
 	TorrentAttribute		attribute,
@@ -534,6 +541,51 @@ DownloadImpl
 
   		download_manager.getDownloadState().setAttribute( name, value );
   	}
+  }
+  
+  public boolean hasAttribute(TorrentAttribute attribute) {
+	  String name = convertAttribute(attribute);
+	  if (name == null) {return false;}
+	  return download_manager.getDownloadState().hasAttribute(name);
+  }
+  
+  public boolean getBooleanAttribute(TorrentAttribute attribute) {
+	  String name = convertAttribute(attribute);
+	  if (name == null) {return false;} // Default value
+	  return download_manager.getDownloadState().getBooleanAttribute(name);
+  }
+  
+  public void setBooleanAttribute(TorrentAttribute attribute, boolean value) {
+	  String name = convertAttribute(attribute);
+	  if (name != null) {
+		  download_manager.getDownloadState().setBooleanAttribute(name, value);
+	  }
+  }
+
+  public int getIntAttribute(TorrentAttribute attribute) {
+	  String name = convertAttribute(attribute);
+	  if (name == null) {return 0;} // Default value
+	  return download_manager.getDownloadState().getIntAttribute(name);
+  }
+  
+  public void setIntAttribute(TorrentAttribute attribute, int value) {
+	  String name = convertAttribute(attribute);
+	  if (name != null) {
+		  download_manager.getDownloadState().setIntAttribute(name, value);
+	  }
+  }
+  
+  public long getLongAttribute(TorrentAttribute attribute) {
+	  String name = convertAttribute(attribute);
+	  if (name == null) {return 0L;} // Default value
+	  return download_manager.getDownloadState().getLongAttribute(name);
+  }
+  
+  public void setLongAttribute(TorrentAttribute attribute, long value) {
+	  String name = convertAttribute(attribute);
+	  if (name != null) {
+		  download_manager.getDownloadState().setLongAttribute(name, value);
+	  }
   }
   
   protected String

@@ -959,4 +959,13 @@ RPDownload
 			notSupported();
 			return null;
 		}
+		
+	public boolean getBooleanAttribute(TorrentAttribute ta) {notSupported(); return false;}
+	public int getIntAttribute(TorrentAttribute ta) {notSupported(); return 0;}
+	public long getLongAttribute(TorrentAttribute ta) {notSupported(); return 0L;}
+	public boolean hasAttribute(TorrentAttribute ta) {notSupported(); return false;}
+	public void setBooleanAttribute(TorrentAttribute ta, boolean value) {notSupported();}
+	public void setIntAttribute(TorrentAttribute ta, int value) {notSupported();}
+	public void setListAttribute(TorrentAttribute ta, String[] value) {notSupported();}
+	public void setLongAttribute(TorrentAttribute ta, long value) {notSupported();}
 }

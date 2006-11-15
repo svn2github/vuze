@@ -242,34 +242,21 @@ DownloadManagerState
 	 */
 	boolean isOurContent();
 	
-		// general access
-	
-	public void
-	setAttribute(
-		String		name,		// make sure you use an AT_ value defined above
-		String		value );
-	
-	public String
-	getAttribute(
-		String		name );		// make sure you use an AT_ value defined above
-
-	public void
-	setMapAttribute(
-		String		name,
-		Map			value );
-	
-	public Map
-	getMapAttribute(
-		String		name );
-	
-	public void
-	setListAttribute(
-		String		name,
-		String[]	values );
-	
-	public String[]
-	getListAttribute(
-		String		name );
+	// General access - make sure you use an AT_ value defined above when calling
+	// these methods.
+	public void setAttribute(String	name, String value);
+	public String getAttribute(String name);
+	public void	setMapAttribute(String name, Map value);
+	public Map getMapAttribute(String name);
+	public void	setListAttribute(String	name, String[] values);
+	public String[]	getListAttribute(String	name);
+	public void setIntAttribute(String name, int value);
+	public int getIntAttribute(String name);
+	public void setLongAttribute(String name, long value);
+	public long getLongAttribute(String name);
+	public void setBooleanAttribute(String name, boolean value);
+	public boolean getBooleanAttribute(String name);	
+	public boolean hasAttribute(String name);
 	
 	public void
 	save();

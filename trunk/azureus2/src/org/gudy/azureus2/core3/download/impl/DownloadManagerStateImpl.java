@@ -1386,7 +1386,7 @@ DownloadManagerStateImpl
 		}
 	}
 	
-	protected long
+	public long
 	getLongAttribute(
 		String	attribute_name )
 	{
@@ -1417,7 +1417,7 @@ DownloadManagerStateImpl
 		}
 	}
 	
-	protected void
+	public void
 	setLongAttribute(
 		final String	attribute_name,
 		final long		attribute_value )
@@ -1737,6 +1737,30 @@ DownloadManagerStateImpl
 			informWritten( attribute_name );
 		}
 	}
+
+	public boolean hasAttribute(String name) {
+		Map attribute_map = this.torrent.getAdditionalMapProperty(ATTRIBUTE_KEY);
+		if (attribute_map == null) {return false;}
+		return attribute_map.containsKey(name);
+	}
+	
+	// These methods just use long attributes to store data into.
+	public void setIntAttribute(String name, int value) {
+		setLongAttribute(name, value);
+	}
+	
+	public int getIntAttribute(String name) {
+		return (int)getLongAttribute(name);
+	}
+	
+	public void setBooleanAttribute(String name, boolean value) {
+		setLongAttribute(name, (value ? 1 : 0));
+	}
+	
+	public boolean getBooleanAttribute(String name) {
+		return getLongAttribute(name) != 0;
+	}
+
 	
 	public static DownloadManagerState
 	getDownloadState(
@@ -1880,6 +1904,7 @@ DownloadManagerStateImpl
 	nullState
 		implements DownloadManagerState
 	{
+		
 		protected DownloadManager		download_manager;
 		
 		protected
@@ -2057,6 +2082,14 @@ DownloadManagerStateImpl
 		{
 			return( null );
 		}
+		
+		public boolean hasAttribute(String name) {return false;}
+		public int getIntAttribute(String name) {return 0;}
+		public long getLongAttribute(String name) {return 0L;}
+		public boolean getBooleanAttribute(String name) {return false;}
+		public void setIntAttribute(String name, int value) {}
+		public void setLongAttribute(String name, long value) {}
+		public void setBooleanAttribute(String name, boolean value) {}
 		
 		public Category 
 		getCategory()

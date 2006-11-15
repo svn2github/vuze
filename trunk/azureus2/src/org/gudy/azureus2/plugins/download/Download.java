@@ -109,7 +109,7 @@ Download
 	
 	public static final long FLAG_ONLY_EVER_SEEDED			= 0x00000001;
 	public static final long FLAG_SCAN_INCOMPLETE_PIECES	= 0x00000002;
-
+	
 	/** get state from above ST_ set
    * @return ST_ constant
    *
@@ -363,6 +363,14 @@ Download
   /**
    * 
    * @param attribute
+   * @param value
+   * @since 2.5.0.1
+   */
+  public void setListAttribute(TorrentAttribute attribute, String[] value);
+  
+  /**
+   * 
+   * @param attribute
    * @param value		must be bencodable - key is string, value is Map, List, Long or byte[]
    */
   
@@ -374,6 +382,45 @@ Download
   public Map
   getMapAttribute(
 	TorrentAttribute		attribute );
+  
+  /**
+   * Gets the value of the given attribute from the download. If no value is
+   * set, then <code>0</code> will be returned.  
+   */
+  public int getIntAttribute(TorrentAttribute attribute);
+  
+  /**
+   * Sets an integer attribute on this download.
+   */
+  public void setIntAttribute(TorrentAttribute attribute, int value);
+
+  /**
+   * Gets the value of the given attribute from the download. If no value is
+   * set, then <code>0</code> will be returned.  
+   */
+  public long getLongAttribute(TorrentAttribute attribute);
+  
+  /**
+   * Sets a long attribute on this download.
+   */
+  public void setLongAttribute(TorrentAttribute attribute, long value);
+
+  /**
+   * Gets the value of the given attribute from the download. If no value is
+   * set, then <code>false</code> will be returned.  
+   */
+  public boolean getBooleanAttribute(TorrentAttribute attribute);
+  
+  /**
+   * Sets a boolean attribute on this download.
+   */
+  public void setBooleanAttribute(TorrentAttribute attribute, boolean value);
+  
+  /**
+   * Returns <code>true</code> if the download has an explicit value stored for
+   * the given attribute.
+   */
+  public boolean hasAttribute(TorrentAttribute attribute);
   
   /** Returns the name of the Category
    *
