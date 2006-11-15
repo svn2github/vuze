@@ -22,7 +22,8 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
-import java.nio.channels.SocketChannel;
+
+import java.net.InetAddress;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -112,6 +113,13 @@ TCPNetworkManager
 	  private final IncomingSocketChannelManager incoming_socketchannel_manager = 
 		  new IncomingSocketChannelManager( "TCP.Listen.Port", "TCP.Listen.Port.Enable" );	  
 
+	  public void
+	  setExplicitBindAddress(
+		InetAddress	address )
+	  {
+		  incoming_socketchannel_manager.setExplicitBindAddress( address );
+	  }
+	  
 	  /**
 	   * Get the socket channel connect / disconnect manager.
 	   * @return connect manager

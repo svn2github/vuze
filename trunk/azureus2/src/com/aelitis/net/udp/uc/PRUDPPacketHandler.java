@@ -72,6 +72,15 @@ PRUDPPacketHandler
 	
 		throws PRUDPPacketHandlerException;
 	
+	public PRUDPPacket
+	sendAndReceive(
+		PasswordAuthentication		auth,
+		PRUDPPacket					request_packet,
+		InetSocketAddress			destination_address,
+		long						timeout_millis )
+	
+		throws PRUDPPacketHandlerException;
+	
 		/**
 		 * Send only
 		 * @param request_packet

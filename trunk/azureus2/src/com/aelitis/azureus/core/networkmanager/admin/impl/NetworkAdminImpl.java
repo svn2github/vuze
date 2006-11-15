@@ -55,7 +55,11 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfac
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterface;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNode;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProtocol;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminRouteListener;
+import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -330,9 +334,7 @@ NetworkAdminImpl
 		NetworkAdminNetworkInterface[]	res = new NetworkAdminNetworkInterface[interfaces.size()];
 		
 		Iterator	it = interfaces.iterator();
-		
-		String	str = "";
-		
+				
 		int	pos = 0;
 		
 		while( it.hasNext()){
@@ -345,6 +347,36 @@ NetworkAdminImpl
 		return( res );
 	}
 
+	public NetworkAdminProtocol[]
+ 	getOutboundProtocols()
+	{
+			// TODO: tidy up
+		
+		NetworkAdminProtocol[]	res = 
+			{
+				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_HTTP, 0 ),
+				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_TCP, 0 ),
+				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_UDP, 0 ),
+			};
+		      
+		return( res );
+	}
+ 	
+ 	public NetworkAdminProtocol[]
+ 	getInboundProtocols()
+ 	{
+ 			// 	 TODO: tidy up
+ 		
+		NetworkAdminProtocol[]	res = 
+			{
+				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_HTTP, HTTPNetworkManager.getSingleton().getHTTPListeningPortNumber()),
+				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_TCP, TCPNetworkManager.getSingleton().getTCPListeningPortNumber()),
+				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_UDP, UDPNetworkManager.getSingleton().getUDPListeningPortNumber()),
+			};
+	      
+	return( res );
+ 	}
+	                                 	
 	public void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener )
@@ -559,6 +591,13 @@ NetworkAdminImpl
 				}
 				
 				return((NetworkAdminNode[])nodes.toArray( new NetworkAdminNode[nodes.size()]));
+			}
+			
+			public boolean
+			testProtocol(
+				NetworkAdminProtocol	protocol )
+			{
+				return( protocol.test( null ));
 			}
 			
 			public void 

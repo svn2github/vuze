@@ -29,6 +29,7 @@ import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 public class 
 NetworkAdminTCPTester 
+	implements NetworkAdminProtocolTester
 {
 	public InetAddress
 	testOutbound(

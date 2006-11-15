@@ -487,16 +487,25 @@ public class VersionCheckClient {
 	  	  
 	  PRUDPPacketHandler	packet_handler = handler.getHandler();
 	  
+	  long timeout = 10000;
+	  
+	  long	connection_id = new Random().nextLong();
+	  
 	  try{
 		  packet_handler.setExplicitBindAddress( bind_ip );	  
 		  
-		  VersionCheckClientUDPRequest	request = new VersionCheckClientUDPRequest(1234);
+		  for (int i=0;i<3;i++){
+			  
+			  VersionCheckClientUDPRequest	request = new VersionCheckClientUDPRequest( connection_id++ );
+			  
+			  request.setPayload( data_to_send );
+			  
+			  VersionCheckClientUDPReply reply = (VersionCheckClientUDPReply)packet_handler.sendAndReceive( null, request, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), timeout );
+	
+			  return( reply.getPayload());
+		  }
 		  
-		  request.setPayload( data_to_send );
-		  
-		  VersionCheckClientUDPReply reply = (VersionCheckClientUDPReply)packet_handler.sendAndReceive( null, request, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ));
-
-		  return( reply.getPayload());
+		  throw( new Exception( "Timeout" ));
 		  
 	  }finally{
 		 

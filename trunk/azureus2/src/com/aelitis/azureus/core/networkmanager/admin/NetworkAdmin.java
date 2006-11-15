@@ -52,6 +52,12 @@ NetworkAdmin
 	public abstract NetworkAdminNetworkInterface[]
 	getInterfaces();
 	
+	public abstract NetworkAdminProtocol[]
+	getOutboundProtocols();
+	
+	public abstract NetworkAdminProtocol[]
+	getInboundProtocols();
+	
 	public abstract void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener );

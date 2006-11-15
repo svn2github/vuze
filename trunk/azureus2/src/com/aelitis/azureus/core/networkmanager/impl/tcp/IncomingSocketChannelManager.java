@@ -55,8 +55,10 @@ public class IncomingSocketChannelManager
   private int tcp_listen_port;
   
   private int so_rcvbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
-  private InetAddress bind_address = NetworkAdmin.getSingleton().getDefaultBindAddress();
-    
+  
+  private InetAddress default_bind_address = NetworkAdmin.getSingleton().getDefaultBindAddress();
+  private InetAddress explicit_bind_address;
+     
   private VirtualServerChannelSelector server_selector = null;
   
   private IncomingConnectionManager	incoming_manager = IncomingConnectionManager.getSingleton();
@@ -117,16 +119,16 @@ public class IncomingSocketChannelManager
     			
 			        InetAddress address = NetworkAdmin.getSingleton().getDefaultBindAddress();
 			        
-			        if ( address == null && bind_address == null ){
+			        if ( address == null && default_bind_address == null ){
 			        	
 			        	return;
 			        }
 			        
-			        if ( address == null || bind_address == null || !address.equals( bind_address )) {
+			        if ( address == null || default_bind_address == null || !address.equals( default_bind_address )) {
 			        	
-			          bind_address = address;
+			        	default_bind_address = address;
 			          
-			          restart();
+			        	restart();
 			        }
     			}
     		}
@@ -206,7 +208,14 @@ public class IncomingSocketChannelManager
    */
   public int getTCPListeningPortNumber() {  return tcp_listen_port;  }  
   
-
+  public void 
+  setExplicitBindAddress(
+	InetAddress	address )
+  {
+	  explicit_bind_address = address;
+	  
+	  restart();
+  }
 
   
   
@@ -227,6 +236,13 @@ public class IncomingSocketChannelManager
 		    if( server_selector == null ) {
 		      InetSocketAddress address;
 
+		      InetAddress	bind_address = explicit_bind_address;
+		      
+		      if ( bind_address == null ){
+		    	  
+		    	  bind_address = default_bind_address;
+		      }
+		      
 		      if( bind_address != null ) {
 		        address = new InetSocketAddress( bind_address, tcp_listen_port );
 		      }

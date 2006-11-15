@@ -38,26 +38,31 @@ import com.aelitis.net.udp.uc.PRUDPRequestHandler;
 public class 
 PRUDPPacketHandlerFactoryImpl 
 {
-	protected static 			Map	receiver_map = new HashMap();
-	protected static AEMonitor	class_mon	= new AEMonitor( "PRUDPPHF" );
-	protected static 			Map	releasable_map = new HashMap();
-
+	private static Map			receiver_map = new HashMap();
+	private static AEMonitor	class_mon	= new AEMonitor( "PRUDPPHF" );
+	private static Map			releasable_map = new HashMap();
+	private static Set			non_releasable_set = new HashSet();
+	
 
 	public static PRUDPPacketHandler
 	getHandler(
 		int						port,
 		PRUDPRequestHandler		request_handler)
 	{
+		final Integer	f_port = new Integer( port );
+
 		try{
 			class_mon.enter();
 		
-			PRUDPPacketHandlerImpl	receiver = (PRUDPPacketHandlerImpl)receiver_map.get(new Integer(port));
+			non_releasable_set.add( f_port );
+			
+			PRUDPPacketHandlerImpl	receiver = (PRUDPPacketHandlerImpl)receiver_map.get( f_port );
 			
 			if ( receiver == null ){
 				
 				receiver = new PRUDPPacketHandlerImpl( port );
 				
-				receiver_map.put( new Integer(port), receiver );
+				receiver_map.put( f_port, receiver );
 			}
 			
 				// only set the incoming request handler if one has been specified. This is important when
@@ -140,7 +145,10 @@ PRUDPPacketHandlerFactoryImpl
 									
 									if ( l.size() == 0 ){
 										
-										f_receiver.destroy();
+										if ( !non_releasable_set.contains( f_port )){
+										
+											f_receiver.destroy();
+										}
 										
 										releasable_map.remove( f_port );
 									}

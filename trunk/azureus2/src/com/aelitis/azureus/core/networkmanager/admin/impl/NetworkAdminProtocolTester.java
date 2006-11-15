@@ -25,34 +25,21 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.net.InetAddress;
 
-import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
-public class 
-NetworkAdminHTTPTester 
-	implements NetworkAdminProtocolTester
+public interface 
+NetworkAdminProtocolTester 
 {
 	public InetAddress
 	testOutbound(
 		InetAddress		bind_ip,
 		int				bind_port )
 	
-		throws Exception
-	{
-		if ( bind_ip != null || bind_port != 0 ){
-			
-			throw( new Exception("HTTP tester doesn't support local bind options"));
-		}
-		
-		return( VersionCheckClient.getSingleton().getExternalIpAddressHTTP());
-	}
+		throws Exception;
 	
 	public InetAddress
 	testInbound(			
 		InetAddress		bind_ip,
 		int				bind_port )
 	
-		throws Exception
-	{
-		throw( new Exception( "not imp" ));
-	}
+		throws Exception;
 }

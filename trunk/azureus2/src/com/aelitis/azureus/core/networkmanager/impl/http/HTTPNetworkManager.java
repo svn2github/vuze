@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.http;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
@@ -313,6 +314,19 @@ HTTPNetworkManager
 	        });
 	}
 	
+	public int
+	getHTTPListeningPortNumber()
+	{
+		return( http_incoming_manager.getTCPListeningPortNumber());
+	}
+	
+	public void
+	setExplicitBindAddress(
+			InetAddress	address )
+	{
+		http_incoming_manager.setExplicitBindAddress( address );
+	}
+	  
 	protected String
 	getIndexPage()
 	{

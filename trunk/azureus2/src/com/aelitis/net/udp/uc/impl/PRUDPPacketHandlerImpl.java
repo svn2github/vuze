@@ -746,8 +746,20 @@ PRUDPPacketHandlerImpl
 	
 		throws PRUDPPacketHandlerException
 	{
+		return( sendAndReceive( auth, request_packet, destination_address, PRUDPPacket.DEFAULT_UDP_TIMEOUT ));
+	}
+	
+	public PRUDPPacket
+	sendAndReceive(
+		PasswordAuthentication	auth,
+		PRUDPPacket				request_packet,
+		InetSocketAddress		destination_address,
+		long					timeout )
+	
+		throws PRUDPPacketHandlerException
+	{
 		PRUDPPacketHandlerRequestImpl	request = 
-			sendAndReceive( auth, request_packet,destination_address, null, PRUDPPacket.DEFAULT_UDP_TIMEOUT, PRUDPPacketHandler.PRIORITY_MEDIUM );
+			sendAndReceive( auth, request_packet, destination_address, null, timeout, PRUDPPacketHandler.PRIORITY_MEDIUM );
 		
 		return( request.getReply());
 	}
