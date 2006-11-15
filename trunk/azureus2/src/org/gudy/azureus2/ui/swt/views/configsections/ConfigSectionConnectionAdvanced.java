@@ -123,7 +123,8 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData = new GridData();
 		lmaxout.setLayoutData( gridData );
 
-		IntParameter max_connects = new IntParameter(gSocket, "network.max.simultaneous.connect.attempts", 1, 100, false, false );    
+		IntParameter max_connects = new IntParameter(gSocket,
+				"network.max.simultaneous.connect.attempts", 1, 100);    
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		gridData.widthHint = 30;
@@ -144,7 +145,8 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 
 		Label lpbind = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lpbind, CFG_PREFIX + "bind_port");
-		final IntParameter port_bind = new IntParameter(gSocket, "network.bind.local.port", 0, 65535, true, false );
+		final IntParameter port_bind = new IntParameter(gSocket,
+				"network.bind.local.port", 0, 65535);
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		gridData.horizontalSpan = 2;
@@ -189,7 +191,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 
 
 		//do simple input verification, and registry key setting for TOS field
-		IPTOS.addChangeListener(new ParameterChangeListener() {
+		IPTOS.addChangeListener(new ParameterChangeAdapter() {
 
 			final Color obg = IPTOS.getControl().getBackground();
 

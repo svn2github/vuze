@@ -84,7 +84,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		gridData = new GridData();
 		gridData.widthHint = 35;
 		final IntParameter paramMaxUploadSpeed = new IntParameter(cSection,
-				"Max Upload Speed KBs", 1, -1, true, true);
+				"Max Upload Speed KBs", 0, -1);
 		paramMaxUploadSpeed.setLayoutData(gridData);
 
 		//  max upload speed when seeding
@@ -115,8 +115,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		gridData = new GridData();
 		gridData.widthHint = 35;
 		IntParameter paramMaxUploadSpeedSeeding = new IntParameter(
-				cMaxUploadSpeedOptionsArea, "Max Upload Speed Seeding KBs", 1, -1, true,
-				false);
+				cMaxUploadSpeedOptionsArea, "Max Upload Speed Seeding KBs", 0, -1);
 		paramMaxUploadSpeedSeeding.setLayoutData(gridData);
 		enable_seeding_rate
 				.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
@@ -158,9 +157,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 
 			gridData = new GridData();
 			gridData.widthHint = 35;
-			new IntParameter(
-					 cSection,
-					 "max.uploads.when.busy.inc.min.secs", 0, -1, true, false).setLayoutData(gridData);
+			new IntParameter(cSection, "max.uploads.when.busy.inc.min.secs", 0, -1).setLayoutData(gridData);
 		}
 		
 		// max download speed
@@ -172,11 +169,11 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		gridData = new GridData();
 		gridData.widthHint = 35;
 		final IntParameter paramMaxDownSpeed = new IntParameter(cSection,
-				"Max Download Speed KBs", 0, -1, true, true);
+				"Max Download Speed KBs", 0, -1);
 		paramMaxDownSpeed.setLayoutData(gridData);
 
 		// max upload/download limit dependencies
-		paramMaxUploadSpeed.addChangeListener(new ParameterChangeListener() {
+		paramMaxUploadSpeed.addChangeListener(new ParameterChangeAdapter() {
 			public void parameterChanged(Parameter p, boolean internal) {
 				int up_val = paramMaxUploadSpeed.getValue();
 				int down_val = paramMaxDownSpeed.getValue();
@@ -198,7 +195,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			}
 		});
 
-		paramMaxDownSpeed.addChangeListener(new ParameterChangeListener() {
+		paramMaxDownSpeed.addChangeListener(new ParameterChangeAdapter() {
 			public void parameterChanged(Parameter p, boolean internal) {
 				int up_val = paramMaxUploadSpeed.getValue();
 				int down_val = paramMaxDownSpeed.getValue();
@@ -233,7 +230,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			gridData = new GridData();
 			gridData.widthHint = 35;
 			IntParameter paramMaxUploads = new IntParameter(cSection, "Max Uploads",
-					2, -1, false, false);
+					2, -1);
 			paramMaxUploads.setLayoutData(gridData);
 
 				// max uploads when seeding
@@ -264,8 +261,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			gridData = new GridData();
 			gridData.widthHint = 35;
 			IntParameter paramMaxUploadsSeeding = new IntParameter(
-					cMaxUploadsOptionsArea, "Max Uploads Seeding", 2, -1, false,
-					false);
+					cMaxUploadsOptionsArea, "Max Uploads Seeding", 2, -1);
 			paramMaxUploadsSeeding.setLayoutData(gridData);
 			enable_seeding_uploads
 					.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(

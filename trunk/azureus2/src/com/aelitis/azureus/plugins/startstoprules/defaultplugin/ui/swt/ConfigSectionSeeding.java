@@ -32,8 +32,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -82,12 +84,12 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    new BooleanParameter(cSeeding, "Disconnect Seed", true,
+    new BooleanParameter(cSeeding, "Disconnect Seed",
                          "ConfigView.label.disconnetseed").setLayoutData(gridData);
 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    new BooleanParameter(cSeeding, "Use Super Seeding", false,
+    new BooleanParameter(cSeeding, "Use Super Seeding",
                          "ConfigView.label.userSuperSeeding").setLayoutData(gridData);
 
     gridData = new GridData();
@@ -115,9 +117,8 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
 
     gridData = new GridData();
     gridData.widthHint = 20;
-    IntParameter paramFakeFullCopy = new IntParameter(cArea, "StartStopManager_iNumPeersAsFullCopy");
+    final IntParameter paramFakeFullCopy = new IntParameter(cArea, "StartStopManager_iNumPeersAsFullCopy");
     paramFakeFullCopy.setLayoutData(gridData);
-    final Text txtFakeFullCopy = (Text)paramFakeFullCopy.getControl();
 
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.peers");
@@ -154,20 +155,25 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
     final int iNumPeersAsFullCopy = COConfigurationManager.getIntParameter("StartStopManager_iNumPeersAsFullCopy");
     controlsSetEnabled(cFullCopyOptionsArea.getChildren(), iNumPeersAsFullCopy != 0);
 
+    paramFakeFullCopy.addChangeListener(new ParameterChangeAdapter() {
+			public void parameterChanged(Parameter p, boolean caused_internally) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						try {
+							int value = paramFakeFullCopy.getValue();
+							boolean enabled = (value != 0);
+							if (cFullCopyOptionsArea.getEnabled() != enabled) {
+								cFullCopyOptionsArea.setEnabled(enabled);
+								controlsSetEnabled(cFullCopyOptionsArea.getChildren(), enabled);
+							}
+						} catch (Exception e) {
+						}
+					}
+				});
+			}
+		});
     paramFakeFullCopy.getControl().addListener(SWT.Modify, new Listener() {
         public void handleEvent(Event event) {
-          try {
-            Text control = (Text)event.widget;
-            if (control.getEnabled()) {
-              int value = Integer.parseInt(control.getText());
-              boolean enabled = (value != 0);
-              if (cFullCopyOptionsArea.getEnabled() != enabled) {
-                cFullCopyOptionsArea.setEnabled(enabled);
-                controlsSetEnabled(cFullCopyOptionsArea.getChildren(), enabled);
-              }
-            }
-          }
-          catch (Exception e) {}
         }
     });
 

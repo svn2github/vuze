@@ -207,7 +207,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		gridData = new GridData();
 		gridData.widthHint = 15;
 		IntParameter graphicUpdate = new IntParameter(cArea, "Graphics Update", 1,
-				-1, false, false);
+				-1);
 		graphicUpdate.setLayoutData(gridData);
 
 		label = new Label(cArea, SWT.NULL);
@@ -244,7 +244,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		// Auto-hide popup setting.
 		label = new Label(cArea, SWT.NULL);
 		Messages.setLanguageText(label, LBLKEY_PREFIX + "popup.autohide");
-		IntParameter auto_hide_alert = new IntParameter(cArea, "Message Popup Autoclose in Seconds", 0, 86400, true, false);
+		IntParameter auto_hide_alert = new IntParameter(cArea,
+				"Message Popup Autoclose in Seconds", 0, 86400);
 		gridData = new GridData();
 		gridData.horizontalSpan = 1;
 		gridData.widthHint = 30;

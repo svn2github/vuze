@@ -23,235 +23,192 @@
 package org.gudy.azureus2.ui.swt.config.generic;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 
-public class 
-GenericIntParameter 
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Utils;
+
+public class GenericIntParameter
 {
-  GenericParameterAdapter	adapter;
-	
-  Text inputField;
-  int iMinValue = 0;
-  int iMaxValue = -1;
-  int iDefaultValue;
-  String sParamName;
-  boolean allowZero = false;
-  boolean generateIntermediateEvents = true;
+	private static boolean DEBUG = false;
 
-  boolean value_is_changing_internally;
-    
-  public GenericIntParameter(GenericParameterAdapter adapter, Composite composite, final String name) {
-    iDefaultValue = adapter.getIntValue(name);
-    initialize(adapter,composite,name);
-  }
+	private GenericParameterAdapter adapter;
 
-  public GenericIntParameter(GenericParameterAdapter adapter, Composite composite, final String name, boolean generateIntermediateEvents ){
-	    iDefaultValue = adapter.getIntValue(name);
-	    this.generateIntermediateEvents = generateIntermediateEvents;
-	    initialize(adapter,composite,name);
-  }
-  public GenericIntParameter(GenericParameterAdapter adapter, Composite composite, final String name, int defaultValue) {
-    iDefaultValue = defaultValue;
-    initialize(adapter,composite, name);
-  }
-  
-  
-  public GenericIntParameter(GenericParameterAdapter adapter, Composite composite, final String name, int defaultValue,boolean generateIntermediateEvents) {
-    iDefaultValue = defaultValue;
-    this.generateIntermediateEvents = generateIntermediateEvents;
-    initialize(adapter,composite, name);
-  }
-  
-  
-  public GenericIntParameter(
-		  GenericParameterAdapter adapter, 
-		  Composite composite,
-		  String name,
-          int minValue,
-          int maxValue,
-          boolean allowZero,
-          boolean generateIntermediateEvents ) {
-    iDefaultValue = adapter.getIntValue(name);
-    iMinValue = minValue;
-    iMaxValue = maxValue;
-    this.allowZero = allowZero;
-    this.generateIntermediateEvents = generateIntermediateEvents;
-    initialize(adapter,composite,name);
-  }
-  
-    
-  public void initialize(GenericParameterAdapter _adapter,Composite composite, String name) {
-	adapter = _adapter;
-    sParamName = name;
+	private int iMinValue = 0;
 
-    inputField = new Text(composite, SWT.BORDER);
-    int value = adapter.getIntValue(name, iDefaultValue);
-    inputField.setText(String.valueOf(value));
-    inputField.addListener(SWT.Verify, new Listener() {
-      public void handleEvent(Event e) {
-        String text = e.text;
-        char[] chars = new char[text.length()];
-        text.getChars(0, chars.length, chars, 0);
-        for (int i = 0; i < chars.length; i++) {
-          if (!('0' <= chars[i] && chars[i] <= '9')) {
-            e.doit = false;
-            return;
-          }
-        }
-      }
-    });
+	private int iMaxValue = -1;
 
-    if(generateIntermediateEvents) {
-      inputField.addListener(SWT.Modify, new Listener() {
-        public void handleEvent(Event event) {
-        	checkValue();
-        }
-      });
-    }
+	private int iDefaultValue;
 
-    
-    inputField.addListener(SWT.FocusOut, new Listener() {
-      public void handleEvent(Event event) {
-      	checkValue();
-      }
-    });
-  }
-  
-  public void
-  setAllowZero(
-  	boolean		allow )
-  {
-  	allowZero	= allow;
-  }
-  
-  public void
-  setMinimumValue(
-  	int		value )
-  {
-  	iMinValue	= value;
-  }
-  public void
-  setMaximumValue(
-  	int		value )
-  {
-  	iMaxValue	= value;
-  }
-  
-  protected void
-  checkValue()
- {
-    try{
-    	int	old_val = adapter.getIntValue( sParamName, -1 );
-    	
-        int new_val = Integer.parseInt(inputField.getText());
-        
-        int	original_new_val	= new_val;
-               
-        if (new_val < iMinValue) {
-          if (!(allowZero && new_val == 0)) {
-          	new_val = iMinValue;
-          }
-        }
-        
-        if (new_val > iMaxValue) {
-          if (iMaxValue > -1) {
-            new_val = iMaxValue;
-          }
-        }
-        
-        if ( new_val == old_val ){
-        	
-        	if ( new_val != original_new_val ){
-        		
-        		inputField.setText(String.valueOf(new_val));
-        	}
-        	
-        }else{
-        	adapter.setIntValue(sParamName, new_val);
-        	
-        	if ( new_val != original_new_val ){
-        		
-        		inputField.setText(String.valueOf(new_val));
-        	}
-        	
-        	adapter.informChanged( value_is_changing_internally );
-        }
-      }
-      catch (Exception e) {
-        inputField.setText( String.valueOf( iMinValue ) );
-        adapter.setIntValue( sParamName, iMinValue );
-      }
-  }
+	private String sParamName;
 
-  public String
-  getName()
-  {
-	  return( sParamName );
-  }
-  
-  public void
-  setValue(
-  	int		value )
-  {
-	String	str_val = String.valueOf( value );
-	  
-  	if ( getValue() != value || !str_val.equals( inputField.getText())){
-  		
-	  	try{
-	  		value_is_changing_internally	= true;
-	  		
-	  		inputField.setText( str_val );
-	  		
-	  	}finally{
-	  		
-	 		value_is_changing_internally	= false;
-	  	}
-  	}
-  }
-  
-  public void
-  setValue(
-  	int		value,
-  	boolean	force_adapter_set )
-  {
-    setValue( value );
-	  
-	if ( force_adapter_set ){
-		
-		adapter.setIntValue( sParamName, value );
+	private boolean bGenerateIntermediateEvents = false;
+
+	private boolean bTriggerOnFocusOut = false;
+
+	private Spinner spinner;
+
+	private TimerEvent timedSaveEvent = null;
+
+	private TimerEventPerformer timerEventSave;
+
+	public GenericIntParameter(GenericParameterAdapter adapter,
+			Composite composite, final String name) {
+		iDefaultValue = adapter.getIntValue(name);
+		initialize(adapter, composite, name);
 	}
-  }
-  
-  public int
-  getValue()
-  {
-  	return(adapter.getIntValue(sParamName, iDefaultValue));
-  }
-  
-  public void
-  resetToDefault()
-  {
-	  if ( adapter.resetIntDefault(sParamName)){
-		  
-		  setValue(adapter.getIntValue(sParamName));
-		  
-	  }else{
-	 
-		  setValue( getValue());
-	  }
-  }
-  
-  public void setLayoutData(Object layoutData) {
-    inputField.setLayoutData(layoutData);
-  }
-  
-  public Control
-  getControl()
-  {
-  	return( inputField );
-  }
+
+	/** @deprecated */
+	public GenericIntParameter(GenericParameterAdapter adapter,
+			Composite composite, final String name, int defaultValue) {
+		iDefaultValue = defaultValue;
+		initialize(adapter, composite, name);
+	}
+
+	public GenericIntParameter(GenericParameterAdapter adapter,
+			Composite composite, String name, int minValue, int maxValue) {
+		iDefaultValue = adapter.getIntValue(name);
+		iMinValue = minValue;
+		iMaxValue = maxValue;
+		initialize(adapter, composite, name);
+	}
+
+	public void initialize(GenericParameterAdapter _adapter, Composite composite,
+			String name) {
+		adapter = _adapter;
+		sParamName = name;
+
+		timerEventSave = new TimerEventPerformer() {
+			public void perform(TimerEvent event) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						adapter.setIntValue(sParamName, spinner.getSelection());
+					}
+				});
+			}
+		};
+
+		int value = adapter.getIntValue(name, iDefaultValue);
+
+		spinner = new Spinner(composite, SWT.BORDER);
+		setMinimumValue(iMinValue);
+		setMaximumValue(iMaxValue);
+		spinner.setSelection(value);
+
+		spinner.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				if (bGenerateIntermediateEvents) {
+					adapter.setIntValue(sParamName, spinner.getSelection());
+				} else {
+					bTriggerOnFocusOut = true;
+					cancelTimedSaveEvent();
+
+					if (DEBUG) {
+						debug("create timeSaveEvent");
+					}
+					timedSaveEvent = SimpleTimer.addEvent("IntParam Saver",
+							SystemTime.getOffsetTime(750), timerEventSave);
+				}
+			}
+		});
+
+		spinner.addListener(SWT.FocusOut, new Listener() {
+			public void handleEvent(Event event) {
+				if (bTriggerOnFocusOut) {
+					if (DEBUG) {
+						debug("focus out setIntValue/trigger");
+					}
+					cancelTimedSaveEvent();
+					adapter.setIntValue(sParamName, spinner.getSelection());
+				}
+			}
+		});
+	}
+
+	private void cancelTimedSaveEvent() {
+		if (timedSaveEvent != null
+				&& (!timedSaveEvent.hasRun() || !timedSaveEvent.isCancelled())) {
+			if (DEBUG) {
+				debug("cancel timeSaveEvent");
+			}
+			timedSaveEvent.cancel();
+		}
+	}
+
+	/**
+	 * @param string
+	 */
+	private void debug(String string) {
+		System.out.println("[GenericIntParameter:" + sParamName + "] " + string);
+	}
+
+	public void setMinimumValue(int value) {
+		iMinValue = value;
+		if (iMinValue > 0 && getValue() < iMinValue) {
+			setValue(iMinValue);
+		}
+		spinner.setMinimum(value);
+	}
+
+	public void setMaximumValue(int value) {
+		iMaxValue = value;
+		if (iMaxValue != -1 && getValue() > iMaxValue) {
+			setValue(iMaxValue);
+		}
+		spinner.setMaximum(iMaxValue == -1 ? Integer.MAX_VALUE : iMaxValue);
+	}
+
+	public String getName() {
+		return (sParamName);
+	}
+
+	public void setValue(int value) {
+		if (!spinner.isDisposed()) {
+  		if (spinner.getSelection() != value) {
+  			if (DEBUG) {
+  				debug("spinner.setSelection(" + value + ")");
+  			}
+  			spinner.setSelection(value);
+  		}
+  		adapter.setIntValue(sParamName, spinner.getSelection());
+		} else {
+  		adapter.setIntValue(sParamName, value);
+		}
+	}
+
+	public void setValue(int value, boolean force_adapter_set) {
+		if (force_adapter_set) {
+			setValue(value);
+		} else if (spinner.getSelection() != value) {
+			spinner.setSelection(value);
+		}
+	}
+
+	public int getValue() {
+		return (adapter.getIntValue(sParamName, iDefaultValue));
+	}
+
+	public void resetToDefault() {
+		if (adapter.resetIntDefault(sParamName)) {
+			setValue(adapter.getIntValue(sParamName));
+		} else {
+			setValue(getValue());
+		}
+	}
+
+	public void setLayoutData(Object layoutData) {
+		spinner.setLayoutData(layoutData);
+	}
+
+	public Control getControl() {
+		return spinner;
+	}
+
+	public boolean isGeneratingIntermediateEvents() {
+		return bGenerateIntermediateEvents;
+	}
+
+	public void setGenerateIntermediateEvents(boolean generateIntermediateEvents) {
+		bGenerateIntermediateEvents = generateIntermediateEvents;
+	}
 }

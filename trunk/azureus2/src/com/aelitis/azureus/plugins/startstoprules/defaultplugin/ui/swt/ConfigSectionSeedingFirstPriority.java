@@ -21,20 +21,20 @@
 package com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.config.BooleanParameter;
+import org.gudy.azureus2.ui.swt.config.IntListParameter;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
-import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 
 /** First Priority Specific options.
  * @author TuxPaper
@@ -204,7 +204,7 @@ public class ConfigSectionSeedingFirstPriority implements UISWTConfigSection {
 
 	//	 Ignore 0 Peers
     new BooleanParameter(cIgnoreFP,
-                         "StartStopManager_bFirstPriority_ignore0Peer", false, 
+                         "StartStopManager_bFirstPriority_ignore0Peer", 
                          "ConfigView.label.seeding.firstPriority.ignore0Peer");
 	
 	//	 row

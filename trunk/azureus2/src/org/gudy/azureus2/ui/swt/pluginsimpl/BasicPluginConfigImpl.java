@@ -235,12 +235,8 @@ BasicPluginConfigImpl
 				
 			}else if ( param instanceof IntParameterImpl ){
 						
-				swt_param = 
-					new IntParameter(
-						current_composite, 
-						key, 
-						((IntParameterImpl)param).getDefaultValue(),
-						false );	// don't want intermediate values
+				swt_param = new IntParameter(current_composite, key,
+						((IntParameterImpl) param).getDefaultValue());
 				
 				param.addListener(
 						new ParameterListener()
@@ -330,7 +326,7 @@ BasicPluginConfigImpl
 				}
 				
 				swt_param.addChangeListener(
-						new ParameterChangeListener()
+						new ParameterChangeAdapter()
 						{
 							public void
 							parameterChanged(

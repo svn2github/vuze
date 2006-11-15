@@ -37,12 +37,16 @@ public abstract class
 Parameter 
 	implements IParameter
 {
-	protected ConfigParameterAdapter	config_adapter = new ConfigParameterAdapter( this );
+	protected ConfigParameterAdapter config_adapter;
 	
 	protected  List	change_listeners;
 	
 	private static AEMonitor	class_mon	= new AEMonitor( "Parameter:class" );
 
+	public Parameter(String sConfigID) {
+		config_adapter = new ConfigParameterAdapter( this, sConfigID );
+	}
+	
 	public Control[]
 	getControls()
 	{

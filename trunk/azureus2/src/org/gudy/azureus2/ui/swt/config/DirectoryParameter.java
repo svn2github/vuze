@@ -51,6 +51,7 @@ DirectoryParameter
 		String			name,
 		String			defaultValue )
 	{  
+  	super(name);
 	  	controls = new Control[2];
 	           	    
 	    final org.gudy.azureus2.ui.swt.config.StringParameter sp =

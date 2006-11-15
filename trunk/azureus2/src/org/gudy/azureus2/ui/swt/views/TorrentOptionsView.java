@@ -144,7 +144,8 @@ TorrentOptionsView
 		label.setLayoutData( gridData );
 		label.setText(k_unit + " " + MessageText.getString( "GeneralView.label.maxuploadspeed.tooltip" ));
 
-		GenericIntParameter	max_upload = new GenericIntParameter( adhoc_param_adapter, gTorrentOptions, MAX_UPLOAD, false );
+		GenericIntParameter max_upload = new GenericIntParameter(
+				adhoc_param_adapter, gTorrentOptions, MAX_UPLOAD);
 		adhoc_parameters.put( MAX_UPLOAD, max_upload );
 		gridData = new GridData();
 		gridData.widthHint = 40;
@@ -159,8 +160,9 @@ TorrentOptionsView
 			label.setLayoutData( gridData );
 			Messages.setLanguageText(label, TEXT_PREFIX + "max.uploads.when.busy");
 			
-			GenericIntParameter	max_upload_when_busy = 
-				new GenericIntParameter( ds_param_adapter, gTorrentOptions, DownloadManagerState.PARAM_MAX_UPLOAD_WHEN_BUSY, false );
+			GenericIntParameter max_upload_when_busy = new GenericIntParameter(
+					ds_param_adapter, gTorrentOptions,
+					DownloadManagerState.PARAM_MAX_UPLOAD_WHEN_BUSY);
 			ds_parameters.put( DownloadManagerState.PARAM_MAX_UPLOAD_WHEN_BUSY, max_upload_when_busy );
 			gridData = new GridData();
 			gridData.widthHint = 40;
@@ -174,7 +176,8 @@ TorrentOptionsView
 		label.setLayoutData( gridData );
 		label.setText(k_unit + " " + MessageText.getString( "GeneralView.label.maxdownloadspeed.tooltip" ));
 	     
-		GenericIntParameter	max_download = new GenericIntParameter( adhoc_param_adapter, gTorrentOptions, MAX_DOWNLOAD, false );
+		GenericIntParameter max_download = new GenericIntParameter(
+				adhoc_param_adapter, gTorrentOptions, MAX_DOWNLOAD);
 		adhoc_parameters.put( MAX_DOWNLOAD, max_download );
 		gridData = new GridData();
 		gridData.widthHint = 40;
@@ -188,8 +191,9 @@ TorrentOptionsView
 			label.setLayoutData( gridData );
 			Messages.setLanguageText(label, TEXT_PREFIX + "max.uploads" );
 			
-			GenericIntParameter	max_uploads = 
-				new GenericIntParameter( ds_param_adapter, gTorrentOptions, DownloadManagerState.PARAM_MAX_UPLOADS, false );
+			GenericIntParameter max_uploads = new GenericIntParameter(
+					ds_param_adapter, gTorrentOptions,
+					DownloadManagerState.PARAM_MAX_UPLOADS);
 			ds_parameters.put( DownloadManagerState.PARAM_MAX_UPLOADS, max_uploads );
 			max_uploads.setMinimumValue(2);
 			gridData = new GridData();
@@ -228,10 +232,9 @@ TorrentOptionsView
 			max_uploads_when_seeding_enabled.setLayoutData( gridData );
 			
 	
-			GenericIntParameter	max_uploads_when_seeding = 
-				new GenericIntParameter(
-						ds_param_adapter, cMaxUploadsOptionsArea, 
-						DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING, false );
+			GenericIntParameter max_uploads_when_seeding = new GenericIntParameter(
+					ds_param_adapter, cMaxUploadsOptionsArea,
+					DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING);
 			ds_parameters.put( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING, max_uploads_when_seeding );
 			gridData = new GridData();
 			gridData.widthHint = 40;
@@ -248,8 +251,8 @@ TorrentOptionsView
 			label.setLayoutData( gridData );
 			Messages.setLanguageText(label, TEXT_PREFIX + "max.peers");
 			
-			GenericIntParameter	max_peers = 
-				new GenericIntParameter( ds_param_adapter, gTorrentOptions, DownloadManagerState.PARAM_MAX_PEERS, false );
+			GenericIntParameter max_peers = new GenericIntParameter(ds_param_adapter,
+					gTorrentOptions, DownloadManagerState.PARAM_MAX_PEERS);
 			ds_parameters.put( DownloadManagerState.PARAM_MAX_PEERS, max_peers );
 			gridData = new GridData();
 			gridData.widthHint = 40;

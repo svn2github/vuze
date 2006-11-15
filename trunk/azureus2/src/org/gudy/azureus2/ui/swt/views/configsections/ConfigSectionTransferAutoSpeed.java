@@ -91,7 +91,8 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 		
 		Label llmux = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText( llmux, CFG_PREFIX + "minupload", units );
-		IntParameter min_upload = new IntParameter( cSection, "AutoSpeed Min Upload KBs", false );
+		IntParameter min_upload = new IntParameter(cSection,
+				"AutoSpeed Min Upload KBs");
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		min_upload.setLayoutData(gridData);
@@ -100,7 +101,8 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 		
 		Label llmdx = new Label(cSection, SWT.NULL);
 		Messages.setLanguageText( llmdx, CFG_PREFIX + "maxupload", units );
-		IntParameter max_upload = new IntParameter( cSection, "AutoSpeed Max Upload KBs", false );
+		IntParameter max_upload = new IntParameter(cSection,
+				"AutoSpeed Max Upload KBs");
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		max_upload.setLayoutData(gridData);
@@ -153,7 +155,8 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 			Label label = new Label(cSection, SWT.NULL);
 			Messages.setLanguageText( label, CFG_PREFIX + "maxinc", units );
 			
-			final IntParameter max_increase = new IntParameter( cSection, "AutoSpeed Max Increment KBs", false );
+			final IntParameter max_increase = new IntParameter(cSection,
+					"AutoSpeed Max Increment KBs");
 			gridData = new GridData();
 			gridData.widthHint = 40;
 			max_increase.setLayoutData(gridData);
@@ -163,7 +166,8 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 			label = new Label(cSection, SWT.NULL);
 			Messages.setLanguageText( label, CFG_PREFIX + "maxdec", units );
 			
-			final IntParameter max_decrease = new IntParameter( cSection, "AutoSpeed Max Decrement KBs", false );
+			final IntParameter max_decrease = new IntParameter(cSection,
+					"AutoSpeed Max Decrement KBs");
 			gridData = new GridData();
 			gridData.widthHint = 40;
 			max_decrease.setLayoutData(gridData);
@@ -174,7 +178,8 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 			label = new Label(cSection, SWT.NULL);
 			Messages.setLanguageText( label, CFG_PREFIX + "chokeping" );
 
-			final IntParameter choke_ping = new IntParameter( cSection, "AutoSpeed Choking Ping Millis", false );
+			final IntParameter choke_ping = new IntParameter(cSection,
+					"AutoSpeed Choking Ping Millis");
 			gridData = new GridData();
 			gridData.widthHint = 40;
 			choke_ping.setLayoutData(gridData);
@@ -184,7 +189,8 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 			label = new Label(cSection, SWT.NULL);
 			Messages.setLanguageText( label, CFG_PREFIX + "latencyfactor" );
 
-			final IntParameter latency_factor = new IntParameter( cSection, "AutoSpeed Latency Factor", 1, Integer.MAX_VALUE, false, false );
+			final IntParameter latency_factor = new IntParameter(cSection,
+					"AutoSpeed Latency Factor", 1, Integer.MAX_VALUE);
 			gridData = new GridData();
 			gridData.widthHint = 40;
 			latency_factor.setLayoutData(gridData);

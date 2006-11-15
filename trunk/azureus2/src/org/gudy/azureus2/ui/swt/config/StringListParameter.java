@@ -87,6 +87,7 @@ public class StringListParameter extends Parameter {
 	public StringListParameter(Composite composite, String _name,
 			String defaultValue, final String labels[], final String values[],
 			final boolean bUseCombo) {
+  	super(_name);
     this.name = _name;
     this.default_value = defaultValue;
     

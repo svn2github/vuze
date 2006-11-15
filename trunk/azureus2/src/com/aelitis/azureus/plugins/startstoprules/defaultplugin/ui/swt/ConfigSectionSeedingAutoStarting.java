@@ -21,24 +21,16 @@
 package com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 

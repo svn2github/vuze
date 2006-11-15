@@ -33,10 +33,12 @@ public class BooleanParameter extends Parameter{
   protected GenericBooleanParameter	delegate;
   
   public BooleanParameter(Composite composite, final String name) {
+  	super(name);
 	  delegate = new GenericBooleanParameter( config_adapter, composite,name,COConfigurationManager.getBooleanParameter(name),null,null);
   }
 
   public BooleanParameter(Composite composite, final String name, String textKey) {
+  	super(name);
 	  delegate = new GenericBooleanParameter( config_adapter, composite, name, COConfigurationManager.getBooleanParameter(name),
          textKey, null);
   }
@@ -45,6 +47,7 @@ public class BooleanParameter extends Parameter{
    * @deprecated defaultValue should be set via ConfigurationDefaults, not passed by the caller 
    */
   public BooleanParameter(Composite composite, final String name, boolean defaultValue, String textKey) {
+  	super(name);
 	  delegate = new GenericBooleanParameter( config_adapter, composite,name,defaultValue,textKey,null);
   }
 
@@ -52,6 +55,7 @@ public class BooleanParameter extends Parameter{
    * @deprecated defaultValue should be set via ConfigurationDefaults, not passed by the caller 
    */
   public BooleanParameter(Composite composite, final String name, boolean defaultValue) {
+  	super(name);
 	  delegate = new GenericBooleanParameter( config_adapter, composite,name,defaultValue,null,null);
   }
   
@@ -66,6 +70,7 @@ public class BooleanParameter extends Parameter{
         String textKey,
         IAdditionalActionPerformer actionPerformer) 
   {
+  	super(_name);
 	  delegate = new GenericBooleanParameter( config_adapter, composite, _name, _defaultValue, textKey, actionPerformer );
   }
 

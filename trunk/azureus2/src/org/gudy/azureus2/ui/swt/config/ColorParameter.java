@@ -51,6 +51,7 @@ public class ColorParameter extends Parameter implements ParameterListener {
   public ColorParameter(final Composite composite,
                         final String name,
                         int r, int g, int b) {
+  	super(name);
     sParamName = name;
     colorChooser = new Button(composite,SWT.PUSH);
     final int rV = COConfigurationManager.getIntParameter(name+".red",r);

@@ -46,6 +46,7 @@ public class RadioParameter extends Parameter{
 
   public RadioParameter(Composite composite, final String sConfigName, final int iButtonValue,
                         IAdditionalActionPerformer actionPerformer) {
+  	super(sConfigName);
     if ( actionPerformer != null ){
       performers.add( actionPerformer );
     }

@@ -44,6 +44,7 @@ ButtonParameter
   	Composite composite,
 	final String name_resource ) 
   {
+  	super(name_resource);
     button = new Button( composite, SWT.PUSH );
     
     Messages.setLanguageText(button, name_resource);

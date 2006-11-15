@@ -50,6 +50,7 @@ LinkParameter
   	Composite composite,
 	final String name_resource) 
   {
+  	super(name_resource);
     link_label = new Label(composite, SWT.NULL);
     Messages.setLanguageText(link_label, name_resource);
     link_label.setCursor(Cursors.handCursor);

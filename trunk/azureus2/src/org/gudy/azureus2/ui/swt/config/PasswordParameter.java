@@ -57,6 +57,7 @@ PasswordParameter
 	final String 	name,
 	final int		encoding ) 
   {
+  	super(name);
     this.name = name;
     inputField = new Text(composite, SWT.BORDER);
     inputField.setEchoChar('*');

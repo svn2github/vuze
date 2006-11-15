@@ -44,12 +44,9 @@ public class IntListParameter extends Parameter {
     this(composite, name, COConfigurationManager.getIntParameter(name), labels, values);
   }
 
-  public IntListParameter(
-    Composite composite,
-    final String name,
-    int defaultValue,
-    final String labels[],
-    final int values[]) {
+  public IntListParameter(Composite composite, final String name,
+			int defaultValue, final String labels[], final int values[]) {
+		super(name);
       if(labels.length != values.length)
         return;
       int value = COConfigurationManager.getIntParameter(name,defaultValue);

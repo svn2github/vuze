@@ -181,7 +181,8 @@ ConfigSectionTrackerServer
         new BooleanParameter(gMainTab, "Tracker Port Enable", false, 
                              CFG_PREFIX + "tracker.port");
 
-    IntParameter tracker_port = new IntParameter(gMainTab, "Tracker Port", TRHost.DEFAULT_PORT, false );
+    IntParameter tracker_port = new IntParameter(gMainTab, "Tracker Port",
+					TRHost.DEFAULT_PORT);
 
     gridData = new GridData();
     gridData.widthHint = 50;
@@ -210,8 +211,8 @@ ConfigSectionTrackerServer
         new BooleanParameter(gMainTab, "Tracker Port SSL Enable", false,
                              CFG_PREFIX + "tracker.sslport");
 
-    IntParameter tracker_port_ssl = 
-        new IntParameter(gMainTab, "Tracker Port SSL", TRHost.DEFAULT_PORT_SSL, false);
+    IntParameter tracker_port_ssl = new IntParameter(gMainTab,
+					"Tracker Port SSL", TRHost.DEFAULT_PORT_SSL);
     gridData = new GridData();
     gridData.widthHint = 50;
     tracker_port_ssl.setLayoutData( gridData );

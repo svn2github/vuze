@@ -179,7 +179,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     Messages.setLanguageText(deny.getControl(), "ConfigView.section.ipfilter.allow");
   
     deny.addChangeListener(
-    	new ParameterChangeListener()
+    	new ParameterChangeAdapter()
 		{
     		public void
     		parameterChanged(

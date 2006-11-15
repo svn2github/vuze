@@ -34,9 +34,7 @@ import org.eclipse.swt.widgets.List;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.config.Parameter;
-import org.gudy.azureus2.ui.swt.config.ParameterChangeListener;
-import org.gudy.azureus2.ui.swt.config.StringListParameter;
+import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import com.aelitis.azureus.ui.UIFunctions;
@@ -109,7 +107,7 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
     if (iUsingLocale >= 0)
     	((List)locale_param.getControl()).select(iUsingLocale);
     
-    locale_param.addChangeListener( new ParameterChangeListener() {
+    locale_param.addChangeListener( new ParameterChangeAdapter() {
       public void parameterChanged( Parameter p, boolean caused_internally ) {
 				MessageText.loadBundle();
         DisplayFormatters.setUnits();

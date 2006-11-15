@@ -46,6 +46,7 @@ public class StringParameter extends Parameter{
 	  this( composite, name, defaultValue, true );
   }
   public StringParameter(Composite composite,final String name, String defaultValue, boolean generateIntermediateEvents ) {
+  	super(name);
     this.name = name;
     this.defaultValue = defaultValue;
     inputField = new Text(composite, SWT.BORDER);

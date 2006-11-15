@@ -98,24 +98,22 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 		label.setLayoutData(gridData);
 
 		final IntParameter tcplisten = new IntParameter(cMiniArea,
-				"TCP.Listen.Port", 1, 65535, false, false);
+				"TCP.Listen.Port", 1, 65535);
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		tcplisten.setLayoutData(gridData);
 
-		tcplisten.addChangeListener(new ParameterChangeListener() {
-			public void parameterChanged(Parameter p, boolean caused_internally) {
-				int val = tcplisten.getValue();
-
-				if (val == 6880 || val == 6881) {
-					val = 6881;
-					tcplisten.setValue(val);
+		tcplisten.addChangeListener(new ParameterChangeAdapter() {
+			public void intParameterChanging(Parameter p, int toValue) {
+				if (toValue == 6880 || toValue == 6881) {
+					toValue = 6881;
+					tcplisten.setValue(toValue);
 				}
-				
-				if ( !separate_ports ){
-					
-					COConfigurationManager.setParameter( "UDP.Listen.Port", val );
-					COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", val );
+
+				if (!separate_ports) {
+					COConfigurationManager.setParameter("UDP.Listen.Port", toValue);
+					COConfigurationManager.setParameter("UDP.NonData.Listen.Port",
+							toValue);
 				}
 			}
 		});
@@ -128,25 +126,23 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			label.setLayoutData(gridData);
 
 			final IntParameter udp_listen = new IntParameter(cMiniArea,
-					"UDP.Listen.Port", 1, 65535, false, false);
+					"UDP.Listen.Port", 1, 65535);
 			gridData = new GridData();
 			gridData.widthHint = 40;
 			udp_listen.setLayoutData(gridData);
 
 			final boolean MULTI_UDP = COConfigurationManager.ENABLE_MULTIPLE_UDP_PORTS && userMode > 1;
 			
-			udp_listen.addChangeListener(new ParameterChangeListener() {
-				public void parameterChanged(Parameter p, boolean caused_internally) {
-					int val = udp_listen.getValue();
-
-					if (val == 6880 || val == 6881) {
-						val = 6881;
-						udp_listen.setValue(val);
+			udp_listen.addChangeListener(new ParameterChangeAdapter() {
+				public void intParameterChanging(Parameter p, int toValue) {
+					if (toValue == 6880 || toValue == 6881) {
+						toValue = 6881;
+						udp_listen.setValue(toValue);
 					}
-					
-					if ( !MULTI_UDP ){
-						
-						COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", val );
+
+					if (!MULTI_UDP) {
+						COConfigurationManager.setParameter("UDP.NonData.Listen.Port",
+								toValue);
 					}
 				}
 			});
@@ -168,23 +164,22 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 				gridData.horizontalIndent = 16;
 				commonUDP.setLayoutData( gridData );
 				
-				final IntParameter non_data_udp_listen = new IntParameter(cNonDataUDPArea, "UDP.NonData.Listen.Port", false );
+				final IntParameter non_data_udp_listen = new IntParameter(
+						cNonDataUDPArea, "UDP.NonData.Listen.Port");
 	
 				non_data_udp_listen.addChangeListener(
-					new ParameterChangeListener() 
+					new ParameterChangeAdapter() 
 					{
-						public void parameterChanged(Parameter p, boolean caused_internally) {
-							int val = non_data_udp_listen.getValue();
-	
-							if (val == 6880 || val == 6881) {
-								val = 6881;
-								non_data_udp_listen.setValue(val);
+						public void intParameterChanging(Parameter p, int toValue) {
+							if (toValue == 6880 || toValue == 6881) {
+								toValue = 6881;
+								non_data_udp_listen.setValue(toValue);
 							}
 						}
 					});
 				
 				udp_listen.addChangeListener(
-						new ParameterChangeListener() 
+						new ParameterChangeAdapter() 
 						{
 							public void parameterChanged(Parameter p, boolean caused_internally)
 							{
@@ -209,7 +204,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 				commonUDP.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( non_data_udp_listen.getControls(), true ));
 				
 				commonUDP.addChangeListener(
-					new ParameterChangeListener() 
+					new ParameterChangeAdapter() 
 					{
 						public void 
 						parameterChanged(
@@ -310,7 +305,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			label = new Label(http_group, SWT.NULL);
 			Messages.setLanguageText(label, CFG_PREFIX + "http.port" );
 
-			IntParameter http_port = new IntParameter(http_group, "HTTP.Data.Listen.Port", false );
+			IntParameter http_port = new IntParameter(http_group, "HTTP.Data.Listen.Port");
 
 			gridData = new GridData();
 			gridData.widthHint = 40;
@@ -319,7 +314,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			label = new Label(http_group, SWT.NULL);
 			Messages.setLanguageText(label, CFG_PREFIX + "http.portoverride" );
 
-			IntParameter http_port_override = new IntParameter(http_group, "HTTP.Data.Listen.Port.Override", false );
+			IntParameter http_port_override = new IntParameter(http_group, "HTTP.Data.Listen.Port.Override");
 
 			gridData = new GridData();
 			gridData.widthHint = 40;

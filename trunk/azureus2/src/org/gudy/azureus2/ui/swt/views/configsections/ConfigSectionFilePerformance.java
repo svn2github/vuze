@@ -118,10 +118,9 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
 				"ConfigView.section.file.perf.cache.size",
 				new String[] {
     		DisplayFormatters.getUnitBase10(DisplayFormatters.UNIT_MB) });
-    IntParameter cache_size = new IntParameter(cSection, "diskmanager.perf.cache.size" );
-    cache_size.setAllowZero(false);
-    cache_size.setMinimumValue(1);
-    cache_size.setMaximumValue(COConfigurationManager.CONFIG_CACHE_SIZE_MAX_MB );
+    IntParameter cache_size = new IntParameter(cSection,
+				"diskmanager.perf.cache.size", 1,
+				COConfigurationManager.CONFIG_CACHE_SIZE_MAX_MB);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     gridData.widthHint = 30;
     cache_size.setLayoutData( gridData );
@@ -153,7 +152,6 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     		"ConfigView.section.file.perf.cache.notsmallerthan",
     		new String[] { DisplayFormatters.getUnitBase10(DisplayFormatters.UNIT_KB) });
     IntParameter cache_not_smaller_than= new IntParameter(cSection, "diskmanager.perf.cache.notsmallerthan" );
-    cache_not_smaller_than.setAllowZero(false);
     cache_not_smaller_than.setMinimumValue(0);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     gridData.widthHint = 30;
