@@ -707,7 +707,7 @@ public class ConfigView extends AbstractIView {
 
   private void initSaveButton() {
     GridData gridData;
-    Button save = new Button(cConfig, SWT.PUSH);
+    final Button save = new Button(cConfig, SWT.PUSH);
     Messages.setLanguageText(save, "ConfigView.button.save"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     gridData.horizontalSpan = 2;
@@ -716,19 +716,15 @@ public class ConfigView extends AbstractIView {
 
     save.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
-      	// wrap the save in an asyncExec in hopes that FocusOut gets 
-      	// called on OSX in the mean time (for Text widgets)
-      	event.widget.getDisplay().asyncExec(new AERunnable() {
-      		public void runSupport() {
-            COConfigurationManager.setParameter("updated", 1); //$NON-NLS-1$
-            COConfigurationManager.save();
+				// force focusout on osx
+				save.setFocus();
+				COConfigurationManager.setParameter("updated", 1);
+				COConfigurationManager.save();
 
-            for (int i = 0; i < pluginSections.size(); i++)
-              ((ConfigSection)pluginSections.get(i)).configSectionSave();
-      		}
-      	});
-      }
-    });
+				for (int i = 0; i < pluginSections.size(); i++)
+					((ConfigSection) pluginSections.get(i)).configSectionSave();
+			}
+		});
   }
 
   /* (non-Javadoc)
