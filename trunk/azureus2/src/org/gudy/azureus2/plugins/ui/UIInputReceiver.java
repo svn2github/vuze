@@ -39,8 +39,8 @@ package org.gudy.azureus2.plugins.ui;
  * 
  * <p>
  * 
- * The {@link #hasSubmittedText} and {@link #getSubmittedText} can then be
- * invoked to retrieve the input (if the user has submitted any).
+ * The {@link #hasSubmittedText()} and {@link #getSubmittedText()} methods can then
+ * be invoked to retrieve the input (if the user has submitted any).
  * 
  * <p>
  * 
@@ -136,7 +136,7 @@ public interface UIInputReceiver {
 	 * A flag should be passed indicating whether the pre-entered text
 	 * is being entered as a suggestion for a value, or whether it is
 	 * an old value being currently stored. Some interfaces may choose
-	 * to differentitate between the two. 
+	 * to differentiate between the two. 
 	 * 
 	 * @param text The text to pre-enter.
 	 * @param as_suggested <tt>true</tt> if the value is a suggested
@@ -146,7 +146,7 @@ public interface UIInputReceiver {
 	
 	/**
 	 * Indicates whether to allow multi-line input.
-	 * Default behaviour is to not allow multi-lines.
+	 * Default behaviour is to not allow multiple lines.
 	 */
 	public void setMultiLine(boolean multiline);
 	
@@ -170,7 +170,7 @@ public interface UIInputReceiver {
 	 * By default, there is no input validator associated with a
 	 * UIInputReceiver, meaning all input is allowed.
 	 * 
-	 * @see {UIInputValidator}
+	 * @see UIInputValidator
 	 */
 	public void setInputValidator(UIInputValidator validator);
 	
