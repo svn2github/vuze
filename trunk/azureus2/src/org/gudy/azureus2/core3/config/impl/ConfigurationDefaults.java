@@ -24,27 +24,15 @@
 
 package org.gudy.azureus2.core3.config.impl;
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemProperties;
-
-import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import org.gudy.azureus2.core3.util.*;
 
 
 /**
@@ -210,37 +198,6 @@ public class ConfigurationDefaults {
     def.put("Logging Enable UDP Transport", FALSE); 
 
     
-    
-    // Start/Stop Automation Stuff
-    def.put("StartStopManager_iNumPeersAsFullCopy", new Long(0));
-    def.put("StartStopManager_iFakeFullCopySeedStart", new Long(1));
-    def.put("StartStopManager_iMinPeersToBoostNoSeeds", new Long(1));
-    def.put("StartStopManager_iMinSpeedForActiveDL", new Long(512));
-    def.put("StartStopManager_iMinSpeedForActiveSeeding", new Long(512));
-    def.put("StartStopManager_iRankType", new Long(com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.RANK_SPRATIO));
-    def.put("StartStopManager_iRankTypeSeedFallback", new Long(0));
-    def.put("StartStopManager_bAutoReposition", FALSE);
-    def.put("StartStopManager_iMinSeedingTime", new Long(60*3));
-    def.put("StartStopManager_bIgnore0Peers", TRUE);
-    def.put("StartStopManager_iIgnoreSeedCount", new Long(0));
-    def.put("StartStopManager_bPreferLargerSwarms", TRUE);
-    def.put("StartStopManager_bDebugLog", FALSE);
-    def.put("StartStopManager_iFirstPriority_Type", new Long(DefaultRankCalculator.FIRSTPRIORITY_ANY));
-    def.put("StartStopManager_iFirstPriority_ShareRatio", new Long(500));
-    def.put("StartStopManager_iFirstPriority_SeedingMinutes", new Long(0));
-    def.put("StartStopManager_iFirstPriority_DLMinutes", new Long(0));
-    def.put("StartStopManager_bAutoStart0Peers", FALSE);
-	// for ignore FP rules
-	def.put("StartStopManager_iFirstPriority_ignoreSPRatio", new Long(0));
-	def.put("StartStopManager_bFirstPriority_ignore0Peer", FALSE);
-    // for "Stop Peers Ratio" ignore rule
-    def.put("StartStopManager_iIgnoreRatioPeersSeedStart", new Long(0));
-    // for "Stop Ratio" ignore rule
-    def.put("StartStopManager_iIgnoreShareRatioSeedStart", new Long(0));
-    def.put("StartStopManager_bNewSeedsMoveTop", TRUE);
-    def.put("StartStopManager_iAddForSeedingDLCopyCount", new Long(1));
-    def.put("StartStopManager_iMaxActiveTorrentsWhenSeeding", new Long(0));
-    def.put("StartStopManager_bMaxActiveTorrentsWhenSeedingEnabled", FALSE);
     
     	//tracker proxy defaults
     def.put( "Enable.Proxy", FALSE );
