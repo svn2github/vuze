@@ -613,9 +613,12 @@ public class FileUtil {
 	  					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
 								"Load of '" + file_name + "' fails, no usable file or backup"));
 	  				}else{
-	  					if (Logger.isEnabled())
-								Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Load of '"
-										+ file_name + "' fails, file not found"));
+	  					// drop this log, it doesn't really help to inform about the failure to 
+	  					// find a .saving file
+	  					
+	  					//if (Logger.isEnabled())
+						//		Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Load of '"
+						//				+ file_name + "' fails, file not found"));
 					
 	  				}
   				}
