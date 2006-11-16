@@ -71,7 +71,7 @@ DownloadManagerStateImpl
 		
 		if ( !ACTIVE_DIR.exists()){
 			
-			ACTIVE_DIR.mkdirs();
+			FileUtil.mkdirs(ACTIVE_DIR);
 		}
 	}
 	

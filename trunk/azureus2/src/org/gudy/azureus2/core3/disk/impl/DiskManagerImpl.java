@@ -1751,7 +1751,7 @@ DiskManagerImpl
                     return false;
                 }
 
-                destDir.mkdirs();
+                FileUtil.mkdirs(destDir);
             }
         }
 

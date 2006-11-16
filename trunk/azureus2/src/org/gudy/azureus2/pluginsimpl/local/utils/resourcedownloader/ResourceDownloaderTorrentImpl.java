@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
@@ -288,7 +289,7 @@ ResourceDownloaderTorrentImpl
 			
 			if ( download_dir != null && !download_dir.exists()){
 				
-				download_dir.mkdirs();
+				FileUtil.mkdirs(download_dir);
 			}
 			
 			final File	data_dir		= download_dir==null?torrent_file.getParentFile():download_dir;

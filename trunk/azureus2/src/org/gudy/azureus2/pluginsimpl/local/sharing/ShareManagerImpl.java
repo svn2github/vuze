@@ -126,7 +126,7 @@ ShareManagerImpl
 					
 					share_dir = FileUtil.getUserFile( TORRENT_STORE );
 					
-					share_dir.mkdirs();
+					FileUtil.mkdirs(share_dir);
 									
 					config = new ShareConfigImpl();
 					
@@ -319,7 +319,7 @@ ShareManagerImpl
 			
 			if ( !cache_dir.exists()){
 				
-				cache_dir.mkdirs();
+				FileUtil.mkdirs(cache_dir);
 			}
 			
 			if ( cache_dir.listFiles().length < MAX_FILES_PER_DIR ){

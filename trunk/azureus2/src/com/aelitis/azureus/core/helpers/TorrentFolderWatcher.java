@@ -153,8 +153,9 @@ public class TorrentFolderWatcher {
 			if (folder_path != null && folder_path.length() > 0) {
 				folder = new File(folder_path);
 				if (!folder.isDirectory()) {
-					if (!folder.exists())
-						folder.mkdirs();
+					if (!folder.exists()) {
+						FileUtil.mkdirs(folder);
+					}
 					if (!folder.isDirectory()) {
 						if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
@@ -183,7 +184,7 @@ public class TorrentFolderWatcher {
 			}
 
 			File f = new File(data_save_path);
-			f.mkdirs(); // Will return false if it already exists.
+			FileUtil.mkdirs(f); // Will return false if it already exists.
 
 			// if we are saving torrents to the same location as we import them from
 			// then we can't assume that its safe to delete the torrent after import! 

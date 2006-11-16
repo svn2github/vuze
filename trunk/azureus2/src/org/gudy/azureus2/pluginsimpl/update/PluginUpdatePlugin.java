@@ -1084,7 +1084,7 @@ PluginUpdatePlugin
 										
 										if ( !skip_file ){
 											
-											final_target.getParentFile().mkdirs();
+											FileUtil.mkdirs(final_target.getParentFile());
 										
 											entry_os = new FileOutputStream( final_target );
 										}

@@ -506,7 +506,7 @@ PluginInitializer
     
     if ( !pluginDirectory.exists() ){
     	
-      pluginDirectory.mkdirs();
+    	FileUtil.mkdirs(pluginDirectory);
     }
     
     if( pluginDirectory.isDirectory()){

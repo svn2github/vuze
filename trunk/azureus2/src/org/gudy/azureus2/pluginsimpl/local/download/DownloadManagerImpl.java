@@ -353,7 +353,7 @@ DownloadManagerImpl
 		    
 		    data_location = new File(data_dir); 
 		    
-		    data_location.mkdirs();
+		    FileUtil.mkdirs(data_location);
 		}
 
 		byte[] hash = null;

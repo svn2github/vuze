@@ -522,7 +522,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					File f = new File(sDefPath);
 
 					if (!f.exists()) {
-						f.mkdirs();
+						FileUtil.mkdirs(f);
 					}
 				}
 

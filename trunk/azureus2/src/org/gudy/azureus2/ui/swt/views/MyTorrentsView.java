@@ -63,6 +63,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -2387,7 +2388,7 @@ public class MyTorrentsView
 	    File	f = new File(sDefPath);
 	    
 	    if ( !f.exists()){
-	    	f.mkdirs();
+	    	FileUtil.mkdirs(f);
 	    }
     }
     

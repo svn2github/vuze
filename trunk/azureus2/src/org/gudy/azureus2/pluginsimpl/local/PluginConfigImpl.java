@@ -25,6 +25,8 @@ import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.FileUtil;
+
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginConfigListener;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -363,7 +365,7 @@ PluginConfigImpl
 		}
 	
 		
-		file.mkdirs();
+		FileUtil.mkdirs(file);
 		
 		return( new File( file, name ));
 	}

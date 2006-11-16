@@ -25,6 +25,8 @@ package org.gudy.azureus2.core3.util;
 import java.io.*;
 import java.net.URI;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
@@ -1016,7 +1018,7 @@ public class FileUtil {
     		
     		File	new_parent = new File( to_parent_dir, from_file_or_dir.getName());
     		
-    		new_parent.mkdirs();
+    		FileUtil.mkdirs(new_parent);
     		
     		for (int i=0;i<files.length;i++){
     			
@@ -1148,7 +1150,7 @@ public class FileUtil {
             return( false );
         }
     	File to_file_parent = to_file.getParentFile();
-    	if (!to_file_parent.exists()) {to_file_parent.mkdirs();}
+    	if (!to_file_parent.exists()) {FileUtil.mkdirs(to_file_parent);}
     	
     	if ( from_file.isDirectory()){
     		
@@ -1401,5 +1403,22 @@ public class FileUtil {
 		AzureusCore	core = AzureusCoreFactory.getSingleton();
 		
 		core.createOperation( AzureusCoreOperation.OP_FILE_MOVE, task );
+	}
+	
+	public static boolean mkdirs(File f) {
+		if (Constants.isOSX) {
+			Pattern pat = Pattern.compile("^(/Volumes/[^/]+)");
+			Matcher matcher = pat.matcher(f.getParent());
+			if (matcher.find()) {
+				String sVolume = matcher.group();
+				File fVolume = new File(sVolume);
+				if (!fVolume.isDirectory()) {
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, sVolume
+							+ " is not mounted or not available."));
+					return false;
+				}
+			}
+		}
+		return f.mkdirs();
 	}
 }

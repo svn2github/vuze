@@ -121,7 +121,10 @@ FMFileAccessCompact
 			
 			if ( !control_file.exists()){
 				
-				control_file.getParentFile().mkdirs();
+				if (!FileUtil.mkdirs(control_file)) {
+					throw new FMFileManagerException("Directory creation failed: "
+							+ control_file);
+				}
 			
 				write_required	= true;
 				

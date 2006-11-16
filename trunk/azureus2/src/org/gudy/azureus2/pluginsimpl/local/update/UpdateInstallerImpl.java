@@ -112,7 +112,7 @@ UpdateInstallerImpl
 								
 				if ( !try_dir.exists()){
 					
-					if ( !try_dir.mkdirs()){
+					if ( !FileUtil.mkdirs(try_dir)){
 		
 						throw( new UpdateException( "Failed to create a temporary installation dir"));
 					}

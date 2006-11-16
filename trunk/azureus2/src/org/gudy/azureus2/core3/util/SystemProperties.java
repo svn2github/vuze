@@ -150,7 +150,7 @@ public class SystemProperties {
 	      File dir = new File( temp_user_path );
 		  
 	      if (!dir.exists()) {
-	        dir.mkdirs();
+	      	FileUtil.mkdirs(dir);
 	      }
 		  
 	      if (Logger.isEnabled())
@@ -242,7 +242,7 @@ public class SystemProperties {
 	    //if the directory doesn't already exist, create it
 	    File dir = new File( temp_user_path );
 	    if (!dir.exists()) {
-	      dir.mkdirs();
+	    	FileUtil.mkdirs(dir);
 	    }
 	    
 	    return temp_user_path;

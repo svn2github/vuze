@@ -32,6 +32,7 @@ import java.util.Properties;
 
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.Download;
@@ -413,7 +414,7 @@ DHTPluginImpl
 			dir = new File( dir, "net" + network );
 		}
 		
-		dir.mkdirs();
+		FileUtil.mkdirs(dir);
 		
 		return( dir );
 	}

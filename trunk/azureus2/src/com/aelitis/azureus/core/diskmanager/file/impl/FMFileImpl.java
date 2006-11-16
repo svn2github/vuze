@@ -713,7 +713,7 @@ FMFileImpl
 			created_dirs_leaf	= target;
 			created_dirs		= new ArrayList();
 			
-			if ( parent.mkdirs()){
+			if (FileUtil.mkdirs(parent)){
 			
 				created_dirs_leaf	= target;
 				created_dirs		= new_dirs;

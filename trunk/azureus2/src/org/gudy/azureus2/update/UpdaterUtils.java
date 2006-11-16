@@ -87,7 +87,7 @@ public class UpdaterUtils
 
 			File shared_updater_plugin = new File(shared_plugin_dir, PLUGIN_ID);
 
-			shared_updater_plugin.mkdirs();
+			FileUtil.mkdirs(shared_updater_plugin);
 
 			File props = new File(shared_updater_plugin, "plugin.properties");
 

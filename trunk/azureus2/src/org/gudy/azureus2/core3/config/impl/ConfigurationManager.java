@@ -433,9 +433,10 @@ ConfigurationManager
     
     if( dir.length() > 0 ) {
       File temp = new File(dir);
-      if (!temp.exists())
-        temp.mkdirs();
-      else if (!temp.isDirectory()) {
+      if (!temp.exists()) {
+      	FileUtil.mkdirs(temp);
+      }
+      if (!temp.isDirectory()) {
         throw new IOException("Configuration error. This is not a directory: " + dir);
       }
     }

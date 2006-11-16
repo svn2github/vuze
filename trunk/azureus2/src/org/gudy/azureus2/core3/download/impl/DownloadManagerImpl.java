@@ -2870,7 +2870,7 @@ DownloadManagerImpl
 				  
 		  	// files not created yet
 				  
-			  new_save_location.getParentFile().mkdirs();
+		  	FileUtil.mkdirs(new_save_location.getParentFile());
 				  
 			  setTorrentSaveDir(new_save_location.getParent().toString());
 			  

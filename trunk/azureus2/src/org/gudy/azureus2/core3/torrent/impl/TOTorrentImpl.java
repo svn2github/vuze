@@ -156,7 +156,7 @@ TOTorrentImpl
 			if (!parent.isDirectory()) {
 				
 				// Try to create a directory.
-				boolean dir_created = parent.mkdirs();
+				boolean dir_created = FileUtil.mkdirs(parent);
 				
 				// Something strange going on...
 				if (!dir_created) {

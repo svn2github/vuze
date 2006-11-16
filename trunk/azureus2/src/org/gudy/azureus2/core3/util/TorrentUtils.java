@@ -1774,7 +1774,7 @@ TorrentUtils
 			}
 		}
 
-		torrentDir.mkdirs();
+		FileUtil.mkdirs(torrentDir);
 
 		File fDest = new File(torrentDir, f.getName().replaceAll("%20", "."));
 		if (fDest.equals(f)) {

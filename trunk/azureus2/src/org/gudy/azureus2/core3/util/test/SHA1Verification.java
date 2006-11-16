@@ -28,6 +28,7 @@ import java.nio.channels.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SHA1;
 import java.security.MessageDigest;
 
@@ -52,7 +53,7 @@ public class SHA1Verification {
       long[] sizes = { 0, 1, 50000000 };
     
       File testdir = new File( dirname );
-      testdir.mkdirs();
+      FileUtil.mkdirs(testdir);
    
 
       
