@@ -30,7 +30,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 public class GenericIntParameter
 {
-	private static boolean DEBUG = false;
+	private static boolean DEBUG = true;
 
 	private GenericParameterAdapter adapter;
 
@@ -82,6 +82,9 @@ public class GenericIntParameter
 			public void perform(TimerEvent event) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
+						if (DEBUG) {
+							debug("setIntValue to " + spinner.getSelection() + " via timeEventSave");
+						}
 						adapter.setIntValue(sParamName, spinner.getSelection());
 					}
 				});
