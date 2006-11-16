@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.security;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.security.impl.CryptoManagerImpl;
 
 public class 
@@ -30,6 +32,14 @@ CryptoManagerFactory
 	public static CryptoManager
 	getSingleton()
 	{
-		return( CryptoManagerImpl.getSingleton());
+		try{
+			return( CryptoManagerImpl.getSingleton());
+			
+		}catch( Throwable e ){
+			
+			Debug.out( "Failed to create crypto manager", e );
+			
+			return( null );
+		}
 	}
 }
