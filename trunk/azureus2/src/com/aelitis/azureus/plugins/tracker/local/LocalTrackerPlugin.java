@@ -173,8 +173,6 @@ LocalTrackerPlugin
 		
 		instance_manager.addListener( this );
 		
-		plugin_interface.getDownloadManager().addListener( this );
-		
 		plugin_interface.getPluginconfig().addListener(
 				new PluginConfigListener()
 				{
@@ -193,8 +191,17 @@ LocalTrackerPlugin
 		
 		plugin_interface.getUtilities().createThread( "azlocalplugin:init", new Runnable() {
 			public void run() {
+					// we're in no hurry to complete this
+				
+				Thread.currentThread().setPriority( Thread.MIN_PRIORITY );
+				
 				processSubNets( subnets.getValue(),include_wellknown.getValue() );
 				processAutoAdd( autoadd.getValue());
+				
+					// take this off the main thread to reduce initialisation delay if we
+					// have a lot of torrents
+				
+				plugin_interface.getDownloadManager().addListener( LocalTrackerPlugin.this );
 			}
 		});
 	}
