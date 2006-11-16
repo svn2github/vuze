@@ -968,4 +968,5 @@ RPDownload
 	public void setIntAttribute(TorrentAttribute ta, int value) {notSupported();}
 	public void setListAttribute(TorrentAttribute ta, String[] value) {notSupported();}
 	public void setLongAttribute(TorrentAttribute ta, long value) {notSupported();}
+	public void setFlag(long flag, boolean set) {notSupported();}
 }
