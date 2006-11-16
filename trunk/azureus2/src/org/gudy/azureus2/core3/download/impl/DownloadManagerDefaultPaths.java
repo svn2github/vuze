@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 public class DownloadManagerDefaultPaths {
@@ -55,6 +55,8 @@ public class DownloadManagerDefaultPaths {
 		source.setBoolean("default dir", "Move Only When In Default Save Dir");
 		source.setBoolean("default subdir", SUBDIR_PARAM);
 		source.setBoolean("persistent only", true);
+		source.setBoolean("check exclusion flag", true);
+		source.setBoolean("check completion flag", true);
 		source.setBoolean(STATE_INCOMPLETE, false);
 		source.setBoolean(STATE_COMPLETE_DND, false);
 		source.setBoolean(STATE_COMPLETE, true); // Only handle fully complete downloads at moment.
@@ -76,6 +78,8 @@ public class DownloadManagerDefaultPaths {
 		source.setBoolean("default dir", "File.move.download.removed.only_in_default");
 		source.setBoolean("default subdir", SUBDIR_PARAM);
 		source.setBoolean("persistent only", true);
+		source.setBoolean("check exclusion flag", true);
+		source.setBoolean("check completion flag", false);
 		source.setBoolean(STATE_INCOMPLETE, false);
 		source.setBoolean(STATE_COMPLETE_DND, "File.move.download.removed.move_partial");
 		source.setBoolean(STATE_COMPLETE, true);
@@ -119,6 +123,8 @@ public class DownloadManagerDefaultPaths {
 		source.setBoolean("default dir", true); // Must be in default directory to update.
 		source.setBoolean("default subdir", SUBDIR_PARAM);
 		source.setBoolean("persistent only", true);
+		source.setBoolean("check exclusion flag", true);
+		source.setBoolean("check completion flag", false);
 		source.setBoolean(STATE_INCOMPLETE, true);
 		source.setBoolean(STATE_COMPLETE_DND, true);
 		source.setBoolean(STATE_COMPLETE, true);
@@ -145,6 +151,7 @@ public class DownloadManagerDefaultPaths {
 		    source.updateSettings(mi.source.getSettings());
 		    source.setBoolean("default dir", false);
 		    source.setBoolean("persistent only", false);
+		    source.setBoolean("check exclusion flag", false);
 		    UPDATE_FOR_LOGIC_DETAILS[i] = new MovementInformation(source,
 		        mi.target, mi.transfer, mi.title.replaceAll("Update", "Calculate path for"));
 	    }
@@ -346,7 +353,19 @@ public class DownloadManagerDefaultPaths {
 		public boolean matchesDownload(DownloadManager dm, LogRelation lr, ContextDescriptor context) {
 			if (this.getBoolean("persistent only") && !dm.isPersistent()) {
 				logWarn(describe(dm, context) + " is not persistent.", lr);
+				return false;
 			}
+			
+			if (this.getBoolean("check exclusion flag") && dm.getDownloadState().getFlag(DownloadManagerState.FLAG_DISABLE_AUTO_FILE_MOVE)) {
+				logWarn(describe(dm, context) + " has exclusion flag set.", lr);
+				return false;
+			}
+			
+			if (this.getBoolean("check completion flag") && dm.getDownloadState().getFlag(DownloadManagerState.FLAG_MOVE_ON_COMPLETION_DONE)) {
+				logInfo(describe(dm, context) + " has completion flag set.", lr);
+				return false;
+			}
+			
 			if (this.getBoolean("default dir")) {
 				logInfo("Checking if " + describe(dm, context) + " is inside default dirs.", lr);
 				File[] default_dirs = getDefaultDirs(lr);
@@ -439,8 +458,18 @@ public class DownloadManagerDefaultPaths {
 
 	}
 
-	public static TransferDetails onCompletion(DownloadManager dm) {
-		return determinePaths(dm, COMPLETION_DETAILS);
+	public static TransferDetails onCompletion(DownloadManager dm, boolean set_on_completion_flag) {
+		TransferDetails td = determinePaths(dm, COMPLETION_DETAILS);
+		
+		// Not sure what we should do if we don't have any transfer details w.r.t the
+		// completion flag. I think we probably should - we only want to consider the
+		// settings once - when completion has actually occurred.
+		if (set_on_completion_flag) {
+			LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
+			logInfo("Setting completion flag on " + describe(dm, null) + ", may have been set before.", lr);
+			dm.getDownloadState().setFlag(DownloadManagerState.FLAG_MOVE_ON_COMPLETION_DONE, true);
+		}
+		return td;
 	}
 
 	public static TransferDetails onRemoval(DownloadManager dm) {
