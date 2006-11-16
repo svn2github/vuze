@@ -1521,7 +1521,7 @@ DiskManagerImpl
         	move_details = DownloadManagerDefaultPaths.onRemoval(this.download_manager);
         }
         else {
-        	move_details = DownloadManagerDefaultPaths.onCompletion(this.download_manager);
+        	move_details = DownloadManagerDefaultPaths.onCompletion(this.download_manager, true);
         }
         
         if (move_details == null) {return false;}
