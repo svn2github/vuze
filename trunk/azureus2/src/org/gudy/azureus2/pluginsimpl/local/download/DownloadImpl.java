@@ -261,6 +261,10 @@ DownloadImpl
 		return( download_manager.getDownloadState().getFlag( flag ));
 	}
 	
+	public void setFlag(long flag, boolean set) {
+		download_manager.getDownloadState().setFlag(flag, set);
+	}
+	
 	public int
 	getIndex()
 	{
