@@ -110,6 +110,23 @@ Download
 	public static final long FLAG_ONLY_EVER_SEEDED			= 0x00000001;
 	public static final long FLAG_SCAN_INCOMPLETE_PIECES	= 0x00000002;
 	
+	/**
+	 * Flag value - if set, it prevents any of the "move on completion" or
+	 * "move on removal" rules taking place.
+	 * 
+	 * @since 2.5.0.1
+	 */
+	public static final long FLAG_DISABLE_AUTO_FILE_MOVE   = 0x00000004;
+
+    /**
+     * Flag value - if set, then it means this download has been considered
+     * for "move on completion", and it should not be considered again for
+     * it. This value is more for internal use rather than plugin use.
+     * 
+     * @since 2.5.0.1
+     */
+    public static final long FLAG_MOVE_ON_COMPLETION_DONE  = 0x00000008;
+	
 	/** get state from above ST_ set
    * @return ST_ constant
    *
@@ -142,9 +159,17 @@ Download
 		 * @return
 		 */
 	
-	public boolean
-	getFlag(
-		long		flag );
+	public boolean getFlag(long	flag);
+	
+	/**
+	 * Set the flag value.
+	 * 
+	 * @since 2.5.0.1
+	 * @param flag FLAG value from above
+	 * @param set <code>true</code> to enable the flag, <code>false</code> to disable it.
+	 */
+	public void setFlag(long flag, boolean set);
+
 	
 	/**
 	 * Index of download. {@link #getPosition()}
@@ -654,6 +679,14 @@ Download
 	public boolean
  	isChecking();
 	
+	/**
+	 * This returns the full save path for the download. If the download is a simple torrent,
+	 * this will be the full path of the file being downloaded. If the download is a multiple
+	 * file torrent, this will be the path to the directory containing all the files in the
+	 * torrent.
+	 * 
+	 * @return Full save path for this download.
+	 */
   	public String
 	getSavePath();
   	
