@@ -305,9 +305,12 @@ ResourceDownloaderTorrentImpl
 				download = download_manager.addNonPersistentDownload( new TorrentImpl(torrent_holder[0]), torrent_file, data_dir );
 			}
 			
-			download.setPosition(1);				
+			download.setPosition(1);		
 			
 			download.setForceStart( true );
+			
+			// Prevents any move-on-completion or move-on-removal behaviour happening.
+			download.setFlag(Download.FLAG_DISABLE_AUTO_FILE_MOVE, true);
 			
 			download_manager.addListener(
 				new DownloadManagerListener()
@@ -411,47 +414,14 @@ ResourceDownloaderTorrentImpl
 		File		torrent_file,
 		File		data_dir )
 	{
-		reportActivity( "Torrent download complete" );
+		reportActivity("Torrent download complete");
 		
-			// assumption is that this is a SIMPLE torrent
-		
-			// unfortunately by the time we get here the data might have been
-			// moved via the "move on complete" options
-		
-		File	target_file = 
+		// assumption is that this is a SIMPLE torrent
+		File target_file = 
 			new File( data_dir,	new String(torrent_holder[0].getFiles()[0].getPathComponents()[0]));
-		
-		if ( !target_file.exists()){
-	
-			if ( COConfigurationManager.getBooleanParameter("Move Completed When Done", false)){
-				
-				File	moved_target_file = 
-					new File( 
-							COConfigurationManager.getStringParameter("Completed Files Directory", ""),
-							new String(torrent_holder[0].getFiles()[0].getPathComponents()[0]));
-				
-					// hmm, explicit target location and its moved, copy it back :)
-				
-				try{
-					if ( download_dir != null && moved_target_file.exists()){
-						
-						FileUtil.copyFile( moved_target_file, target_file );
-					}
 					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
-				
-					// carry on and use the moved one 
-				
-				target_file	= moved_target_file;
-			}
-			
 			if ( !target_file.exists()){
 
-					// not sure why we don't just use the save path and avoid all the crap above
-				
 				File	actual_target_file = new File(download.getSavePath());
 				
 				try{
@@ -467,7 +437,6 @@ ResourceDownloaderTorrentImpl
 				
 				target_file	= actual_target_file;
 			}
-		}
 
 		try{
 			if ( !target_file.exists()){
