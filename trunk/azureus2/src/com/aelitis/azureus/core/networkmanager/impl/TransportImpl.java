@@ -53,7 +53,7 @@ TransportImpl
 	{
 	}
 	
-	protected void
+	public void
 	setFilter(
 		TransportHelperFilter	_filter )
 	{

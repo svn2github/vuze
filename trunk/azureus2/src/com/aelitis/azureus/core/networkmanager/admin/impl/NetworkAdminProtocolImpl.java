@@ -57,7 +57,7 @@ NetworkAdminProtocolImpl
 		return( port );
 	}
 	
-	public boolean
+	public InetAddress
 	test(
 		NetworkAdminNetworkInterfaceAddress	address )
 	{
@@ -90,13 +90,30 @@ NetworkAdminProtocolImpl
 				res = tester.testInbound( a, 0 );
 			}
 			
-			return( true );
+			return( res );
 			
 		}catch( Throwable e){
 			
 			e.printStackTrace();
 			
-			return( false );
+			return( null );
+		}
+	}
+	
+	public String
+	getName()
+	{
+		if ( type == PT_HTTP ){
+			
+			return( "HTTP" );
+			
+		}else if ( type == PT_TCP ){
+			
+			return( "TCP" );
+
+		}else{
+			
+			return( "UDP" );
 		}
 	}
 }

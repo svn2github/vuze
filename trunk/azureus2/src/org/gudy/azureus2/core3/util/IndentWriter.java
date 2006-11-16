@@ -32,6 +32,8 @@ IndentWriter
 	private PrintWriter		pw;
 	private String			indent	= "";
 	
+	private boolean			force;
+	
 	public
 	IndentWriter(
 		PrintWriter	_pw )
@@ -44,6 +46,11 @@ IndentWriter
 		String	str )
 	{
 		pw.println( indent + str );
+		
+		if ( force ){
+			
+			pw.flush();
+		}
 	}
 	
 	public void
@@ -59,5 +66,18 @@ IndentWriter
 			
 			indent = indent.substring(INDENT_STRING.length());
 		}
+	}
+	
+	public void
+	setForce(
+		boolean	b )
+	{
+		force	= b;
+	}
+	
+	public void
+	close()
+	{
+		pw.close();
 	}
 }

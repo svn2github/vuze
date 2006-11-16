@@ -23,6 +23,18 @@
 
 package com.aelitis.azureus.core.networkmanager.admin;
 
-public interface NetworkAdminSocksProxy {
-
+public interface 
+NetworkAdminSocksProxy 
+{
+	public String
+	getHost();
+	
+	public String
+	getPort();
+	
+	public String
+	getUser();
+	
+	public String
+	getVersion();
 }

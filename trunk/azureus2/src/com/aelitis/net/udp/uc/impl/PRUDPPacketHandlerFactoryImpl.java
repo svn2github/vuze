@@ -148,6 +148,8 @@ PRUDPPacketHandlerFactoryImpl
 										if ( !non_releasable_set.contains( f_port )){
 										
 											f_receiver.destroy();
+											
+											receiver_map.remove( f_port );
 										}
 										
 										releasable_map.remove( f_port );

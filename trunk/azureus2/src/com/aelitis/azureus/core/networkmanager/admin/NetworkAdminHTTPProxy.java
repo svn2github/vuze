@@ -26,5 +26,21 @@ package com.aelitis.azureus.core.networkmanager.admin;
 public interface 
 NetworkAdminHTTPProxy 
 {
+	public String
+	getHTTPHost();
+	
+	public String
+	getHTTPPort();
+	
+	public String
+	getHTTPSHost();
+	
+	public String
+	getHTTPSPort();
 
+	public String
+	getUser();
+	
+	public String[]
+	getNonProxyHosts();
 }

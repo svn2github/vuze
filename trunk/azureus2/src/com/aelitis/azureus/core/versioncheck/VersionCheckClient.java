@@ -72,14 +72,14 @@ public class VersionCheckClient {
   private static final int 		AZ_MSG_SERVER_PORT 		= 27001;
   private static final String 	MESSAGE_TYPE_ID 		= "AZVER";
   
-  private static final String 	HTTP_SERVER_ADDRESS 	= "version.aelitis.com";
-  private static final int 		HTTP_SERVER_PORT 		= 2080;			// 80;
+  public static final String 	HTTP_SERVER_ADDRESS 	= "version.aelitis.com";
+  public static final int 		HTTP_SERVER_PORT 		= 2080;			// 80;
 
-  private static final String 	TCP_SERVER_ADDRESS 		= "version.aelitis.com";
-  private static final int 		TCP_SERVER_PORT 		= 2080;			// 80;
+  public static final String 	TCP_SERVER_ADDRESS 		= "version.aelitis.com";
+  public static final int 		TCP_SERVER_PORT 		= 2080;			// 80;
 
-  private static final String 	UDP_SERVER_ADDRESS 		= "version.aelitis.com";
-  private static final int 		UDP_SERVER_PORT 		= 2080;			// 80;
+  public static final String 	UDP_SERVER_ADDRESS 		= "version.aelitis.com";
+  public static final int 		UDP_SERVER_PORT 		= 2080;			// 80;
 
   
   private static final long		CACHE_PERIOD	= 5*60*1000;

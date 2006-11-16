@@ -23,6 +23,8 @@
 
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
@@ -51,12 +53,15 @@ import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminHTTPProxy;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNATDevice;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterface;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNode;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProtocol;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminRouteListener;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
@@ -374,9 +379,48 @@ NetworkAdminImpl
 				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_UDP, UDPNetworkManager.getSingleton().getUDPListeningPortNumber()),
 			};
 	      
-	return( res );
+		return( res );
  	}
-	                                 	
+ 	
+	public InetAddress
+	testProtocol(
+		NetworkAdminProtocol	protocol )
+	{
+		return( protocol.test( null ));
+	}
+	   
+	public NetworkAdminSocksProxy
+	getSocksProxy()
+	{
+		NetworkAdminSocksProxyImpl	res = new NetworkAdminSocksProxyImpl();
+		
+		if ( !res.isConfigured()){
+		
+			res	= null;
+		}
+		
+		return( res );
+	}
+	
+	public NetworkAdminHTTPProxy
+	getHTTPProxy()
+	{
+		NetworkAdminHTTPProxyImpl	res = new NetworkAdminHTTPProxyImpl();
+		
+		if ( !res.isConfigured()){
+		
+			res	= null;
+		}
+		
+		return( res );
+	}
+	
+	public NetworkAdminNATDevice[]
+	getNATDevices()
+	{
+		return( new NetworkAdminNATDevice[0] );
+	}
+	
 	public void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener )
@@ -411,6 +455,28 @@ NetworkAdminImpl
 				
 				iw.exdent();
 			}
+		}
+		
+		iw.println( "Outbound protocols: default routing" );
+		
+		NetworkAdminProtocol[]	protocols = getOutboundProtocols();
+		
+		for (int i=0;i<protocols.length;i++){
+			
+			NetworkAdminProtocol	protocol = protocols[i];
+			
+			iw.println( "    " + protocol.getName() + " - " + testProtocol( protocol ));
+		}
+		
+		iw.println( "Inbound protocols: default routing" );
+		
+		protocols = getInboundProtocols();
+		
+		for (int i=0;i<protocols.length;i++){
+			
+			NetworkAdminProtocol	protocol = protocols[i];
+			
+			iw.println( "    " + protocol.getName() + " - " + testProtocol( protocol ));
 		}
 	}
 	
@@ -593,11 +659,11 @@ NetworkAdminImpl
 				return((NetworkAdminNode[])nodes.toArray( new NetworkAdminNode[nodes.size()]));
 			}
 			
-			public boolean
+			public InetAddress
 			testProtocol(
 				NetworkAdminProtocol	protocol )
 			{
-				return( protocol.test( null ));
+				return( protocol.test( this ));
 			}
 			
 			public void 
@@ -629,6 +695,17 @@ NetworkAdminImpl
 						}catch( Throwable e ){
 							
 							iw.println( "Can't resolve host for route trace - " + e.getMessage());
+						}
+												
+						iw.println( "Outbound protocols: bound" );
+						
+						NetworkAdminProtocol[]	protocols = getOutboundProtocols();
+						
+						for (int i=0;i<protocols.length;i++){
+							
+							NetworkAdminProtocol	protocol = protocols[i];
+							
+							iw.println( "    " + protocol.getName() + " - " + testProtocol( protocol ));
 						}
 					}
 				}finally{
@@ -694,5 +771,16 @@ NetworkAdminImpl
 				}
 			}
 		}
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		IndentWriter iw = new IndentWriter( new PrintWriter( System.out ));
+		
+		iw.setForce( true );
+		
+		getSingleton().generateDiagnostics( iw );
 	}
 }

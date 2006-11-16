@@ -23,8 +23,17 @@
 
 package com.aelitis.azureus.core.networkmanager.admin;
 
+import java.net.InetAddress;
+
 public interface 
 NetworkAdminNATDevice 
 {
-
+	public String
+	getName();
+	
+	public InetAddress
+	getAddress();
+	
+	public int
+	getPort();
 }

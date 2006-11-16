@@ -58,6 +58,19 @@ NetworkAdmin
 	public abstract NetworkAdminProtocol[]
 	getInboundProtocols();
 	
+	public abstract InetAddress
+	testProtocol(
+		NetworkAdminProtocol	protocol );
+	
+	public abstract NetworkAdminSocksProxy
+	getSocksProxy();
+	
+	public abstract NetworkAdminHTTPProxy
+	getHTTPProxy();
+	
+	public abstract NetworkAdminNATDevice[]
+	getNATDevices();
+	
 	public abstract void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener );

@@ -23,6 +23,8 @@
 
 package com.aelitis.azureus.core.networkmanager.admin;
 
+import java.net.InetAddress;
+
 public interface 
 NetworkAdminProtocol
 {
@@ -36,7 +38,10 @@ NetworkAdminProtocol
 	public int 
 	getPort();
 	
-	public boolean
+	public InetAddress
 	test(
 		NetworkAdminNetworkInterfaceAddress	address );
+	
+	public String
+	getName();
 }
