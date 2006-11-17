@@ -21,6 +21,8 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
@@ -101,6 +103,15 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    		text_entry.selectAll();
 	    	}
 	    }
+	    
+	    // TAB will take them out of the text entry box.
+	    text_entry.addTraverseListener(new TraverseListener() {
+	    	public void keyTraversed(TraverseEvent e) {
+	    		if (e.detail == SWT.TRAVERSE_TAB_NEXT || e.detail == SWT.TRAVERSE_TAB_PREVIOUS) {
+	    			e.doit = true;
+	    		}
+	    	}
+	    });
 	    
 	    // Default behaviour - single mode results in default height of 1 line,
 	    // multiple lines has default height of 3.
