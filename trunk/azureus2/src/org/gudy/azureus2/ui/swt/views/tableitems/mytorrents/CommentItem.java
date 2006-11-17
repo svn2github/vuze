@@ -58,6 +58,7 @@ public class CommentItem
     String comment = null;
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     comment = dm.getDownloadState().getUserComment();
+    comment = comment.replace('\r', ' ').replace('\n', ' ');
     cell.setText((comment == null) ? "" : comment);
   }
   
@@ -80,6 +81,7 @@ public class CommentItem
 		text_entry.setTitle(msg_key_prefix + "title");
 		text_entry.setMessage(msg_key_prefix + "message");
 		text_entry.setPreenteredText(suggested, false);
+		text_entry.setMultiLine(true);
 		text_entry.prompt();
 		if (text_entry.hasSubmittedInput()) {
 			String value = text_entry.getSubmittedInput();
