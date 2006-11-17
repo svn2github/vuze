@@ -44,7 +44,9 @@ public class GenericIntParameter
 
 	private boolean bGenerateIntermediateEvents = false;
 
-	private boolean bTriggerOnFocusOut = false;
+	// OSX doesn't send selection events while typing, so we need to trigger save
+	// on focus out
+	private boolean bTriggerOnFocusOut = Constants.isOSX;
 
 	private Spinner spinner;
 
@@ -114,12 +116,25 @@ public class GenericIntParameter
 				}
 			}
 		});
+		
+		
+		/*
+		 * Primarily for OSX, since it doesn't validate or trigger selection
+		 * while typing numbers.
+		 * 
+		 * Force into next tab, which will result in a selection
+		 */
+		spinner.addListener(SWT.Dispose, new Listener() {
+			public void handleEvent(Event event) {
+				spinner.traverse(SWT.TRAVERSE_TAB_NEXT);
+			}
+		});
 
 		spinner.addListener(SWT.FocusOut, new Listener() {
 			public void handleEvent(Event event) {
 				if (bTriggerOnFocusOut) {
 					if (DEBUG) {
-						debug("focus out setIntValue/trigger");
+						debug("focus out setIntValue(" + spinner.getSelection() + "/trigger");
 					}
 					cancelTimedSaveEvent();
 					adapter.setIntValue(sParamName, spinner.getSelection());
@@ -173,6 +188,9 @@ public class GenericIntParameter
   			}
   			spinner.setSelection(value);
   		}
+			if (DEBUG) {
+				debug("setIntValue to " + spinner.getSelection() + " via setValue(int)");
+			}
   		adapter.setIntValue(sParamName, spinner.getSelection());
 		} else {
   		adapter.setIntValue(sParamName, value);
