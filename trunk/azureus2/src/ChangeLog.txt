@@ -3,10 +3,12 @@ AZUREUS CHANGELOG
 
 2006.0x.xx | Azureus 2.5.0.1
 
+FEATURE: Core | Minimum # of Simultaneous Active Downloads (ie. always have at least x torrents downloading) [TuxPaper]
 FEATURE: UI   | Total file size added to Open Torrent Window [TuxPaper]
 FEATURE: UI   | Option to show complete downloads with incomplete "do not download" files in the download area [TuxPaper]
 FEATURE: UI   | Added custom user comment field [amc1]
 FEATURE: UI   | Added file extension column in files view [amc1]
+FEATURE: UI   | Spinners for config field that take numbers [TuxPaper]
 FEATURE: Plug | Plugins can now create submenus. [amc1]
 FEATURE: Plug | Added code to allow plugins to get text input from a user in non-UI specific way. [amc1]
 FEATURE: Plug | Plugins now have better support to organise file data within default save directories. [amc1]
@@ -18,8 +20,9 @@ CHANGE: UI    | Differentiate between libTorrent (Rakshasa) and libtorrent (Rast
 
 BUGFIX: Core  | If clipboard has just a " or "" in it the open-torrents dialog won't open [Parg]
 BUGFIX: Core  | Setting of UDP port not working [Parg]
-BUGFIX: Core  | Less flipping of downloads from queued <--> downloading during the time a FP seed is forced active [TuxPaper}
+BUGFIX: Core  | Less flipping of downloads from queued <--> downloading during the time a FP seed is forced active [TuxPaper]
 BUGFIX: Core  | Fix memory leak causing slow, but eventual OOM and slow down of Azureus [Parg]
+BUGFIX: Core  | OSX: Handle volume not mounted on startup by erroring instead of creating a directory in /Volumes [TuxPaper]
 BUGFIX: UI    | Fix (some) painting issues in pieces+files view [TuxPaper]
 BUGFIX: UI    | Fix to allow negative values for Multi-monitor window positions [TuxPaper]
 
