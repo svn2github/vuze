@@ -1153,6 +1153,20 @@ UPnPPlugin
 		return((String[])res.toArray( new String[res.size()]));
 	}
 	
+	public UPnPPluginService[]
+	getServices()
+	{
+		try{
+			this_mon.enter();
+						
+			return((UPnPPluginService[])services.toArray( new UPnPPluginService[services.size()] ));
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
 		// for external use, e.g. webui
 	
 	public UPnPMapping

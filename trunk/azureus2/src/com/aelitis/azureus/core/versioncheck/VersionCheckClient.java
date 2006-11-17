@@ -29,6 +29,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -377,6 +378,31 @@ public class VersionCheckClient {
 	  }
   }
   
+  public String
+  getHTTPGetString(
+	boolean	for_proxy )
+  {
+	  return( getHTTPGetString( new HashMap(), for_proxy));
+  }
+  
+  private String
+  getHTTPGetString(
+	Map		content,
+	boolean	for_proxy )
+  {
+	  String	get_str = "GET " + (for_proxy?("http://" + HTTP_SERVER_ADDRESS + ":" + HTTP_SERVER_PORT ):"") +"/version?";
+
+	  try{
+		  get_str += URLEncoder.encode( new String( BEncoder.encode( content ), "ISO-8859-1" ), "ISO-8859-1" );
+		  
+	  }catch( Throwable e ){ 
+	  }
+	  
+	  get_str +=" HTTP/1.1" + "\015\012" + "\015\012";
+	 
+	  return( get_str );
+  }
+  
   private Map
   executeTCP(
 	Map				data_to_send,
@@ -389,11 +415,7 @@ public class VersionCheckClient {
 		  Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
 				  + "version information from " + TCP_SERVER_ADDRESS + ":" + TCP_SERVER_PORT + " via TCP" )); 
 
-	  String	get_str = "GET /version?";
-
-	  get_str += URLEncoder.encode( new String( BEncoder.encode( data_to_send ), "ISO-8859-1" ), "ISO-8859-1" );
-	  
-	  get_str +=" HTTP/1.1" + "\015\012" + "\015\012";
+	  String	get_str = getHTTPGetString( data_to_send, false );
 	  
 	  Socket	socket = null;
 	  

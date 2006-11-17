@@ -27,6 +27,7 @@ package com.aelitis.azureus.plugins.upnp;
  *
  */
 
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.internat.*;
@@ -67,6 +68,45 @@ UPnPPluginService
 		for (int i=0;i<_ports.length;i++){
 
 			service_mappings.add( new serviceMapping( _ports[i]));
+		}
+	}
+	
+	public String
+	getName()
+	{
+		return( connection.getGenericService().getDevice().getFriendlyName());
+	}
+	
+	public String
+	getAddress()
+	{
+		return( connection.getGenericService().getDevice().getRootDevice().getLocation().getHost());
+	}
+	
+	public int
+	getPort()
+	{
+		URL	url = connection.getGenericService().getDevice().getRootDevice().getLocation();
+		
+		int	port = url.getPort();
+		
+		if ( port == -1 ){
+			
+			port = url.getDefaultPort();
+		}
+		
+		return( port );
+	}
+	
+	public String
+	getExternalAddress()
+	{
+		try{
+			return( connection.getExternalIPAddress());
+			
+		}catch( Throwable e ){
+			
+			return( null );
 		}
 	}
 	

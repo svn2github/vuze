@@ -36,4 +36,7 @@ NetworkAdminNATDevice
 	
 	public int
 	getPort();
+	
+	public InetAddress
+	getExternalAddress();
 }

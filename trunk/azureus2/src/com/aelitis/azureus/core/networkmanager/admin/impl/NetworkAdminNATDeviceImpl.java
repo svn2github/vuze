@@ -23,8 +23,65 @@
 
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
+import java.net.InetAddress;
+
+import org.gudy.azureus2.core3.util.Debug;
+
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNATDevice;
+import com.aelitis.azureus.plugins.upnp.UPnPPluginService;
+
 public class 
 NetworkAdminNATDeviceImpl 
+	implements NetworkAdminNATDevice
 {
-
+	protected UPnPPluginService		service;
+	
+	protected
+	NetworkAdminNATDeviceImpl(
+			UPnPPluginService		_service )
+	{
+		service	= _service;
+	}
+	
+	public String
+	getName()
+	{
+		return( service.getName());
+	}
+	
+	public InetAddress
+	getAddress()
+	{
+		try{
+			
+			return( InetAddress.getByName(service.getAddress()));
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
+	}
+	
+	public int
+	getPort()
+	{
+		return( service.getPort());
+	}
+	
+	public InetAddress
+	getExternalAddress()
+	{
+		try{
+			
+			return( InetAddress.getByName(service.getExternalAddress()));
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
+	}
 }

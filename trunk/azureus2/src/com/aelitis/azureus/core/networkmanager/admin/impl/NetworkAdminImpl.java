@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -53,8 +54,10 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminHTTPProxy;
@@ -72,6 +75,8 @@ import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.proxy.socks.AESocksProxy;
 import com.aelitis.azureus.core.proxy.socks.AESocksProxyFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
+import com.aelitis.azureus.plugins.upnp.UPnPPluginService;
 
 public class 
 NetworkAdminImpl
@@ -424,7 +429,29 @@ NetworkAdminImpl
 	public NetworkAdminNATDevice[]
 	getNATDevices()
 	{
-		return( new NetworkAdminNATDevice[0] );
+		List	devices = new ArrayList();
+		
+		try{
+	
+		    PluginInterface upnp_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+		    
+		    if ( upnp_pi != null ){
+	    	
+		    	UPnPPlugin upnp = (UPnPPlugin)upnp_pi.getPlugin();
+		    	
+		    	UPnPPluginService[]	services = upnp.getServices();
+		    	
+		    	for (int i=0;i<services.length;i++){
+		    		
+		    		devices.add( new NetworkAdminNATDeviceImpl( services[i] ));
+		    	}
+		    }
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
+		
+		return((NetworkAdminNATDevice[])devices.toArray(new NetworkAdminNATDevice[devices.size()]));
 	}
 	
 	public void
@@ -446,6 +473,30 @@ NetworkAdminImpl
 	generateDiagnostics(
 		IndentWriter iw )
 	{
+		NetworkAdminHTTPProxy	proxy = getHTTPProxy();
+		
+		if ( proxy == null ){
+			
+			iw.println( "HTTP proxy: none" );
+			
+		}else{
+			
+			iw.println( "HTTP proxy: " + proxy.getName());
+			
+			try{
+				
+				NetworkAdminHTTPProxy.Details details = proxy.getDetails();
+				
+				iw.println( "    name: " + details.getServerName());
+				iw.println( "    resp: " + details.getResponse());
+				iw.println( "    auth: " + details.getAuthenticationType());
+				
+			}catch( NetworkAdminException e ){
+				
+				iw.println( "    failed: " + e.getLocalizedMessage());
+			}
+		}
+		
 		NetworkAdminSocksProxy	socks = getSocksProxy();
 		
 		if ( socks == null ){
@@ -472,6 +523,17 @@ NetworkAdminImpl
 				
 				iw.println( "    failed: " + e.getLocalizedMessage());
 			}
+		}
+		
+		NetworkAdminNATDevice[]	nat_devices = getNATDevices();
+		
+		iw.println( "NAT Devices: " + nat_devices.length );
+		
+		for (int i=0;i<nat_devices.length;i++){
+			
+			NetworkAdminNATDevice	device = nat_devices[i];
+			
+			iw.println( "    " + device.getName());
 		}
 		
 		NetworkAdminNetworkInterface[] interfaces = getInterfaces();
@@ -812,7 +874,7 @@ NetworkAdminImpl
 		String[]	args )
 	{
 		boolean	TEST_SOCKS_PROXY 	= false;
-		boolean	TEST_HTTP_PROXY		= true;
+		boolean	TEST_HTTP_PROXY		= false;
 		
 		try{
 			if ( TEST_SOCKS_PROXY ){
@@ -831,11 +893,7 @@ NetworkAdminImpl
 			    System.setProperty("http.proxyPort", "3128" );
 			    System.setProperty("https.proxyHost", "localhost" );
 			    System.setProperty("https.proxyPort", "3128" );
-			    
-			    byte[]	test = new byte[16];
-			    
-			    System.out.println( "base 64: " + new String( Base64.encode( ByteFormatter.decodeString( "4e544c4d53535000020000000000000000000000020200000123456789abcdef" ) )));
-			    
+			    			    
 				Authenticator.setDefault(
 						new Authenticator()
 						{

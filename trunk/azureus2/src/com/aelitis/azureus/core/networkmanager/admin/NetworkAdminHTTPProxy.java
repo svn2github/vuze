@@ -27,6 +27,9 @@ public interface
 NetworkAdminHTTPProxy 
 {
 	public String
+	getName();
+	
+	public String
 	getHTTPHost();
 	
 	public String
@@ -43,4 +46,22 @@ NetworkAdminHTTPProxy
 	
 	public String[]
 	getNonProxyHosts();
+	
+	public Details
+	getDetails()
+	
+		throws NetworkAdminException;
+	
+	interface 
+	Details
+	{
+		public String
+		getServerName();
+		
+		public String
+		getResponse();
+		
+		public String
+		getAuthenticationType();
+	}
 }
