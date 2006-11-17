@@ -283,7 +283,7 @@ public class Utils {
 		
 		// On Windows, dropping on children moves up to parent
 		// On OSX, each child needs it's own drop.
-		if (Constants.isWindows || Constants.isOSX)
+		if (Constants.isWindows)
 			return;
 
 		Control[] children = composite.getChildren();
