@@ -44,10 +44,10 @@ public class ProxyLoginHandler {
   private static final int	READ_NOT_DONE		= 1;
   private static final int	READ_NO_PROGRESS	= 2;
 	
-  public static final InetSocketAddress SOCKS_SERVER_ADDRESS;
-  private static final String socks_version;
-  private static String socks_user;
-  private static final String socks_password;
+  public static final InetSocketAddress DEFAULT_SOCKS_SERVER_ADDRESS;
+  private static final String default_socks_version;
+  private static String default_socks_user;
+  private static final String default_socks_password;
   
 
   static {
@@ -55,18 +55,24 @@ public class ProxyLoginHandler {
     String socks_host = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Host" : "Proxy.Data.Host" );
     int socks_port = 0;
     try{
-      socks_port = Integer.parseInt( COConfigurationManager.getStringParameter( socks_same ? "Proxy.Port" : "Proxy.Data.Port" ) );
-    }
-    catch( Throwable e ){  Debug.printStackTrace(e);  }
+      String socks_port_str = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Port" : "Proxy.Data.Port" );
+
+      socks_port_str = socks_port_str.trim();
+      
+      if ( socks_port_str.length() > 0 ){
+    	  
+    	  socks_port = Integer.parseInt( COConfigurationManager.getStringParameter( socks_same ? "Proxy.Port" : "Proxy.Data.Port" ) );
+      }
+    }catch( Throwable e ){  Debug.printStackTrace(e);  }
     
-    SOCKS_SERVER_ADDRESS = new InetSocketAddress( socks_host, socks_port );
+    DEFAULT_SOCKS_SERVER_ADDRESS = new InetSocketAddress( socks_host, socks_port );
     
-    socks_version = COConfigurationManager.getStringParameter( "Proxy.Data.SOCKS.version" );
-    socks_user  = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Username" : "Proxy.Data.Username" );
-    if ( socks_user.trim().equalsIgnoreCase("<none>")){
-    	socks_user = "";
+    default_socks_version = COConfigurationManager.getStringParameter( "Proxy.Data.SOCKS.version" );
+    default_socks_user  = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Username" : "Proxy.Data.Username" );
+    if ( default_socks_user.trim().equalsIgnoreCase("<none>")){
+    	default_socks_user = "";
     }
-    socks_password = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Password" : "Proxy.Data.Password" );
+    default_socks_password = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Password" : "Proxy.Data.Password" );
   }
   
   
@@ -80,7 +86,9 @@ public class ProxyLoginHandler {
   
   private long read_start_time = 0;
   
-
+  private final String socks_version;
+  private final String socks_user;
+  private final String socks_password;
   
   /**
    * Do proxy login.
@@ -88,10 +96,31 @@ public class ProxyLoginHandler {
    * @param remote_address address to proxy to
    * @param listener for proxy login success or faulure
    */
-  public ProxyLoginHandler( TCPTransportImpl _proxy_connection, InetSocketAddress _remote_address, ProxyListener listener ) {
-    this.proxy_connection = _proxy_connection;
-    this.remote_address = _remote_address;
-    this.proxy_listener = listener;
+  
+  public 
+  ProxyLoginHandler( 
+	TCPTransportImpl 	proxy_connection, 
+	InetSocketAddress	remote_address, 
+	ProxyListener 		listener ) 
+  {
+	  this( proxy_connection, remote_address, listener, default_socks_version, default_socks_user, default_socks_password );
+  }
+  
+  public 
+  ProxyLoginHandler( 
+	TCPTransportImpl 	_proxy_connection, 
+	InetSocketAddress	_remote_address, 
+	ProxyListener 		_listener,
+	String				_socks_version,
+	String				_socks_user,
+	String				_socks_password )
+  {
+    proxy_connection 	= _proxy_connection;
+    remote_address 		= _remote_address;
+    proxy_listener 		= _listener;
+    socks_version		= _socks_version;
+    socks_user			= _socks_user;
+    socks_password		= _socks_password;
        
     if ( remote_address.isUnresolved() || remote_address.getAddress() == null ){
       // deal with long "hostnames" that we get for, e.g., I2P destinations

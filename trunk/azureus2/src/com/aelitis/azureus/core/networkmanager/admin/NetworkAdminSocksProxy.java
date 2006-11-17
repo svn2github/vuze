@@ -27,6 +27,9 @@ public interface
 NetworkAdminSocksProxy 
 {
 	public String
+	getName();
+	
+	public String
 	getHost();
 	
 	public String
@@ -35,6 +38,8 @@ NetworkAdminSocksProxy
 	public String
 	getUser();
 	
-	public String
-	getVersion();
+	public String[]
+	getVersionsSupported()
+	
+		throws NetworkAdminException;
 }

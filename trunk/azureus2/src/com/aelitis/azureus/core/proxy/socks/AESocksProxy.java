@@ -63,4 +63,8 @@ AESocksProxy
 	
 	public String
 	getNextSOCKSProxyVersion();
+	
+	public void
+	setAllowExternalConnections(
+		boolean	permit );
 }

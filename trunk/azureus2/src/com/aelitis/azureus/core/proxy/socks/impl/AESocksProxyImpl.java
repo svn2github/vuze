@@ -48,8 +48,7 @@ AESocksProxyImpl
 		int										_port,
 		long									_ct,
 		long									_rt,
-		AESocksProxyPlugableConnectionFactory	_connection_factory )
-	
+		AESocksProxyPlugableConnectionFactory	_connection_factory )	
 		throws AEProxyException
 	{
 		connection_factory	= _connection_factory;
@@ -106,5 +105,12 @@ AESocksProxyImpl
 	getNextSOCKSProxyVersion()
 	{
 		return( proxy_chain_version );
+	}
+	
+	public void
+	setAllowExternalConnections(
+		boolean	permit )
+	{
+		proxy.setAllowExternalConnections( permit );
 	}
 }

@@ -362,11 +362,12 @@ traceRouteReportResult(
 	jobject			callback,
 	int				ttl,
 	unsigned long	address,
-	int				time )
+	int				time,
+	bool			udp )
 {
 	char	buffer[1024];
 
-	sprintf( buffer, "% d, %ld, %d", ttl, address, time );
+	sprintf( buffer, "%d, %ld, %d, %d", ttl, address, time, udp?1:0 );
 
 	return( traceRouteReport( env, callback, buffer ));
 }
@@ -528,7 +529,12 @@ traceRoute(
 							continue;
 						}
 
-						traceRouteReportResult( env, callback, ttl, ntohl( from.sin_addr.s_addr ), elapsed_time );
+						traceRouteReportResult( env, callback, ttl, ntohl( from.sin_addr.s_addr ), elapsed_time, false );
+
+						if ( ping_mode ){
+
+							use_udp = false;
+						}
 
 						complete = true;
 
@@ -560,6 +566,8 @@ traceRoute(
 						continue;
 					}
 
+					bool	reply_was_udp;
+
 					if ( old_ip->protocol == IPPROTO_ICMP ){
 
 						icmp_probe_packet*	probe = (icmp_probe_packet *)(receive_buffer + ip_len + sizeof( icmp_header ));
@@ -570,6 +578,9 @@ traceRoute(
 
 							continue;
 						}
+
+						reply_was_udp = false;
+
 					}else{
 					
 						udp_probe_packet*	probe = (udp_probe_packet *)(receive_buffer + ip_len + sizeof( icmp_header ));
@@ -580,6 +591,8 @@ traceRoute(
 
 							continue;
 						}
+
+						reply_was_udp = true;
 					}
 
 					probe_successful = true;
@@ -607,7 +620,19 @@ traceRoute(
 						}		   
 					}
 
-					if ( !traceRouteReportResult( env, callback, ttl, ntohl( from.sin_addr.s_addr ), elapsed_time )){
+					if ( ping_mode ){
+
+						if ( reply_was_udp ){
+
+							use_icmp = false;
+
+						}else{
+
+							use_udp = false;
+						}
+					}
+
+					if ( !traceRouteReportResult( env, callback, ttl, ntohl( from.sin_addr.s_addr ), elapsed_time, reply_was_udp )){
 
 						return;
 					}

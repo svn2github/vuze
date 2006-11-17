@@ -24,9 +24,10 @@
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.net.Authenticator;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.PasswordAuthentication;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -34,12 +35,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -65,6 +69,8 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
+import com.aelitis.azureus.core.proxy.socks.AESocksProxy;
+import com.aelitis.azureus.core.proxy.socks.AESocksProxyFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -440,6 +446,34 @@ NetworkAdminImpl
 	generateDiagnostics(
 		IndentWriter iw )
 	{
+		NetworkAdminSocksProxy	socks = getSocksProxy();
+		
+		if ( socks == null ){
+			
+			iw.println( "Socks proxy: none" );
+			
+		}else{
+			
+			iw.println( "Socks proxy: " + socks.getName());
+			
+			try{
+				String[] versions = socks.getVersionsSupported();
+				
+				String	str = "";
+				
+				for (int i=0;i<versions.length;i++){
+					
+					str += (i==0?"":",") + versions[i];
+				}
+				
+				iw.println( "   version: " + str );
+				
+			}catch( NetworkAdminException e ){
+				
+				iw.println( "    failed: " + e.getLocalizedMessage());
+			}
+		}
+		
 		NetworkAdminNetworkInterface[] interfaces = getInterfaces();
 		
 		for (int i=0;i<interfaces.length;i++){
@@ -777,10 +811,54 @@ NetworkAdminImpl
 	main(
 		String[]	args )
 	{
-		IndentWriter iw = new IndentWriter( new PrintWriter( System.out ));
+		boolean	TEST_SOCKS_PROXY 	= false;
+		boolean	TEST_HTTP_PROXY		= true;
 		
-		iw.setForce( true );
-		
-		getSingleton().generateDiagnostics( iw );
+		try{
+			if ( TEST_SOCKS_PROXY ){
+				
+				AESocksProxy proxy = AESocksProxyFactory.create( 4567, 10000, 10000 );
+				
+				proxy.setAllowExternalConnections( true );
+				
+				System.setProperty( "socksProxyHost", "localhost" );
+				System.setProperty( "socksProxyPort", "4567" );
+			}
+			
+			if ( TEST_HTTP_PROXY ){
+			   
+				System.setProperty("http.proxyHost", "localhost" );
+			    System.setProperty("http.proxyPort", "3128" );
+			    System.setProperty("https.proxyHost", "localhost" );
+			    System.setProperty("https.proxyPort", "3128" );
+			    
+			    byte[]	test = new byte[16];
+			    
+			    System.out.println( "base 64: " + new String( Base64.encode( ByteFormatter.decodeString( "4e544c4d53535000020000000000000000000000020200000123456789abcdef" ) )));
+			    
+				Authenticator.setDefault(
+						new Authenticator()
+						{
+							protected AEMonitor	auth_mon = new AEMonitor( "SESecurityManager:auth");
+							
+							protected PasswordAuthentication
+							getPasswordAuthentication()
+							{
+								return( new PasswordAuthentication( "fred", "bill".toCharArray()));
+							}
+						});
+
+			}
+			
+			IndentWriter iw = new IndentWriter( new PrintWriter( System.out ));
+			
+			iw.setForce( true );
+			
+			getSingleton().generateDiagnostics( iw );
+			
+		}catch( Throwable e){
+			
+			e.printStackTrace();
+		}
 	}
 }

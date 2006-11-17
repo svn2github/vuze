@@ -26,11 +26,12 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
+import java.util.*;
 
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.AESemaphore;
 
+
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
@@ -70,6 +71,12 @@ NetworkAdminSocksProxyImpl
 	}
 	
 	public String
+	getName()
+	{
+		return( host + ":" + port );
+	}
+	
+	public String
 	getHost()
 	{
 		return( host );
@@ -87,9 +94,46 @@ NetworkAdminSocksProxyImpl
 		return( user );
 	}
 	
-	public String
-	getVersion()
+	public String[]
+	getVersionsSupported()
+	
+		throws NetworkAdminException
 	{
+		List	versions = new ArrayList();
+		
+		if ( testVersion( "v4" )){
+			
+			versions.add( "4" );
+		}
+		
+		if ( testVersion( "v4a" )){
+			
+			versions.add( "4a" );
+		}
+		
+		if ( testVersion( "5" )){
+			
+			versions.add( "5" );
+		}
+	
+		return((String[])versions.toArray( new String[versions.size()]));
+	}
+	
+	protected boolean
+	testVersion(
+		final String	version )
+	
+		throws NetworkAdminException
+	{
+		final int RES_CONNECT_FAILED	= 0;
+		final int RES_SOCKS_FAILED		= 1;
+		final int RES_OK				= 3;
+
+		final AESemaphore	sem = new AESemaphore( "NetworkAdminSocksProxy:test" );
+		
+		final int[]	result = { RES_CONNECT_FAILED };
+		final Throwable[]	error = { null };
+		
 		try{
 			InetSocketAddress		socks_address = new InetSocketAddress( InetAddress.getByName( host ), Integer.parseInt(port));
 			
@@ -122,6 +166,10 @@ NetworkAdminSocksProxyImpl
 								connectSuccess() 
 								{
 									transport.close( "Done" );
+									
+									result[0] 	= RES_OK;
+
+									sem.release();
 								}
 	
 								public void 
@@ -129,26 +177,58 @@ NetworkAdminSocksProxyImpl
 									Throwable failure_msg ) 
 								{
 									transport.close( "Proxy login failed" );
+									
+									result[0] 	= RES_SOCKS_FAILED;
+									error[0]	= failure_msg;
+									
+									sem.release();
 								}
-							});
+							},
+							version,
+							user,
+							password );
 				}
 	
 				public void 
 				connectFailure( 
 					Throwable failure_msg ) 
 				{
-		
+					result[0] 	= RES_CONNECT_FAILED;
+					error[0]	= failure_msg;
+					
+					sem.release();
 				}
 			};
 	
 			TCPNetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection(
 					socks_address, connect_listener );
-			
+						
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			result[0] 	= RES_CONNECT_FAILED;
+			error[0]	= e;
+			
+			sem.release();
 		}
 		
-		return( null );
+		if ( !sem.reserve(10000)){
+			
+			result[0] 	= RES_CONNECT_FAILED;
+			error[0] 	= new Exception( "Timeout" );
+		}
+		
+		if ( result[0] == RES_OK ){
+			
+			return( true );
+		}
+		
+		if ( result[0] == RES_CONNECT_FAILED ){
+			
+			throw( new NetworkAdminException( "Connection failed", error[0] ));
+		}
+		
+		error[0].printStackTrace();
+		
+		return( false );
 	}
 }

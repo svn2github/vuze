@@ -32,4 +32,8 @@ AEProxy
 {
 	public int
 	getPort();
+	
+	public void
+	setAllowExternalConnections(
+		boolean	permit );
 }

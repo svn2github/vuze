@@ -64,6 +64,8 @@ AEProxyImpl
 	private List				processors = new ArrayList();
 	private final HashMap write_select_regs = new HashMap();
 	
+	private boolean				allow_external_access;
+	
 	private AEMonitor			this_mon	= new AEMonitor( "AEProxyImpl" );
 	
 	public 
@@ -71,14 +73,13 @@ AEProxyImpl
 		int				_port,
 		long			_connect_timeout,
 		long			_read_timeout,
-		AEProxyHandler	_proxy_handler )
-	
+		AEProxyHandler	_proxy_handler )	
 		throws AEProxyException
 	{
-		port				= _port;
-		connect_timeout		= _connect_timeout;
-		read_timeout		= _read_timeout;
-		proxy_handler		= _proxy_handler;
+		port					= _port;
+		connect_timeout			= _connect_timeout;
+		read_timeout			= _read_timeout;
+		proxy_handler			= _proxy_handler;
 		
 		String	name = "Proxy:" + port;
 		
@@ -175,6 +176,13 @@ AEProxyImpl
 		}			
 	}	
 	
+	public void
+	setAllowExternalConnections(
+		boolean	permit )
+	{
+		allow_external_access = permit;
+	}
+	
 	protected void
 	acceptLoop(
 		ServerSocketChannel	ssc )
@@ -189,7 +197,7 @@ AEProxyImpl
 						
 				successfull_accepts++;
 				
-				if ( !socket_channel.socket().getInetAddress().isLoopbackAddress()){
+				if ( !( allow_external_access || socket_channel.socket().getInetAddress().isLoopbackAddress())){
 					
 					if (Logger.isEnabled())
 						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
@@ -198,31 +206,32 @@ AEProxyImpl
 										+ "' - closed as not local"));
 				
 					socket_channel.close();
-				}
-						
-				socket_channel.configureBlocking(false);
-
-				AEProxyConnectionImpl processor = new AEProxyConnectionImpl(this, socket_channel, proxy_handler);
-				
-				if ( !processor.isClosed()){
 					
-					try{
-						this_mon.enter();
+				}else{
+						
+					socket_channel.configureBlocking(false);
+	
+					AEProxyConnectionImpl processor = new AEProxyConnectionImpl(this, socket_channel, proxy_handler);
 					
-						processors.add( processor );
-		
-						if (Logger.isEnabled())
-							Logger.log(new LogEvent(LOGID, "AEProxy: active processors = "
-									+ processors.size()));
+					if ( !processor.isClosed()){
 						
-					}finally{
+						try{
+							this_mon.enter();
 						
-						this_mon.exit();
+							processors.add( processor );
+			
+							if (Logger.isEnabled())
+								Logger.log(new LogEvent(LOGID, "AEProxy: active processors = "
+										+ processors.size()));
+							
+						}finally{
+							
+							this_mon.exit();
+						}
+						
+						read_selector.register( socket_channel, this, processor );
 					}
-					
-					read_selector.register( socket_channel, this, processor );
 				}
-				
 			}catch( Throwable e ){
 				
 				failed_accepts++;

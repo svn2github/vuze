@@ -210,7 +210,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     
     connect_request_key = connect_listener;
     
-    InetSocketAddress to_connect = use_proxy ? ProxyLoginHandler.SOCKS_SERVER_ADDRESS : address;
+    InetSocketAddress to_connect = use_proxy ? ProxyLoginHandler.DEFAULT_SOCKS_SERVER_ADDRESS : address;
     
     TCPNetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( to_connect, connect_listener );
   }

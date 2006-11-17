@@ -450,7 +450,7 @@ public class BDecoder {
   main(
 	 String[]	args )
   {	  
-	  print( 	new File( "C:\\Temp\\8565658FA6C187A602A5360A69F11933624DD9B5.dat.bak" ),
+	  print( 	new File( "C:\\Temp\\test2.torrent" ),
 			  	new File( "C:\\Temp\\bdecoder.log" ));
   }
 }
