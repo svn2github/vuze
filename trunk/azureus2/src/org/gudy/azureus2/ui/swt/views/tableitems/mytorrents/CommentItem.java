@@ -58,7 +58,9 @@ public class CommentItem
     String comment = null;
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     comment = dm.getDownloadState().getUserComment();
-    comment = comment.replace('\r', ' ').replace('\n', ' ');
+    if (comment != null) {
+    	comment = comment.replace('\r', ' ').replace('\n', ' ');
+    }
     cell.setText((comment == null) ? "" : comment);
   }
   
