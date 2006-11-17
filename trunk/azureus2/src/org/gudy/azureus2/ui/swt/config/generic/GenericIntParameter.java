@@ -30,7 +30,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 public class GenericIntParameter
 {
-	private static boolean DEBUG = true;
+	private static boolean DEBUG = false;
 
 	private GenericParameterAdapter adapter;
 
@@ -85,7 +85,8 @@ public class GenericIntParameter
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						if (DEBUG) {
-							debug("setIntValue to " + spinner.getSelection() + " via timeEventSave");
+							debug("setIntValue to " + spinner.getSelection()
+									+ " via timeEventSave");
 						}
 						adapter.setIntValue(sParamName, spinner.getSelection());
 					}
@@ -116,8 +117,7 @@ public class GenericIntParameter
 				}
 			}
 		});
-		
-		
+
 		/*
 		 * Primarily for OSX, since it doesn't validate or trigger selection
 		 * while typing numbers.
@@ -134,7 +134,8 @@ public class GenericIntParameter
 			public void handleEvent(Event event) {
 				if (bTriggerOnFocusOut) {
 					if (DEBUG) {
-						debug("focus out setIntValue(" + spinner.getSelection() + "/trigger");
+						debug("focus out setIntValue(" + spinner.getSelection()
+								+ "/trigger");
 					}
 					cancelTimedSaveEvent();
 					adapter.setIntValue(sParamName, spinner.getSelection());
@@ -182,18 +183,18 @@ public class GenericIntParameter
 
 	public void setValue(int value) {
 		if (!spinner.isDisposed()) {
-  		if (spinner.getSelection() != value) {
-  			if (DEBUG) {
-  				debug("spinner.setSelection(" + value + ")");
-  			}
-  			spinner.setSelection(value);
-  		}
+			if (spinner.getSelection() != value) {
+				if (DEBUG) {
+					debug("spinner.setSelection(" + value + ")");
+				}
+				spinner.setSelection(value);
+			}
 			if (DEBUG) {
 				debug("setIntValue to " + spinner.getSelection() + " via setValue(int)");
 			}
-  		adapter.setIntValue(sParamName, spinner.getSelection());
+			adapter.setIntValue(sParamName, spinner.getSelection());
 		} else {
-  		adapter.setIntValue(sParamName, value);
+			adapter.setIntValue(sParamName, value);
 		}
 	}
 
