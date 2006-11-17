@@ -675,6 +675,9 @@ public class TableView
     	}
 
     	public void mouseUp(MouseEvent e) {
+				AEDiagnosticsLogger	diag_logger	= AEDiagnostics.getLogger( "filemenu" );
+				diag_logger.log("mouseUp " + sTableID);
+
     		TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellCore cell = getTableCell(e.x, e.y);
 				if (cell != null && tc != null) {
@@ -688,6 +691,9 @@ public class TableView
     	}
 
       public void mouseDown(MouseEvent e) {
+				AEDiagnosticsLogger	diag_logger	= AEDiagnostics.getLogger( "filemenu" );
+				diag_logger.log("mouseDown " + sTableID);
+
     		TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellCore cell = getTableCell(e.x, e.y);
 				if (cell != null && tc != null) {
