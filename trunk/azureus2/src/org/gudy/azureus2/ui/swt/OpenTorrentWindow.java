@@ -80,7 +80,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 	/** Don't allow disabling of downloading for files smaller than this */
 	private final static int MIN_NODOWNLOAD_SIZE = 1024 * 1024;
 
-	private final static int MIN_BUTTON_HEIGHT = Utils.isGTK ? -1 : 24;
+	private final static int MIN_BUTTON_HEIGHT = Constants.isWindows ? 24 : -1;
 
 	private final static String PARAM_DEFSAVEPATH = "Default save path";
 
@@ -545,8 +545,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		});
 
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		if (Constants.isOSX)
-			gridData.heightHint = cSaveTo.computeSize(SWT.DEFAULT, SWT.DEFAULT).y - 9;
 		cSaveTo.setLayoutData(gridData);
 
 		// File List
@@ -1461,6 +1459,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					file.bDownload = true;
 				}
 				dataFileTable.clearAll();
+				updateSize();
 			}
 		});
 
@@ -1475,6 +1474,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 						file.bDownload = false;
 				}
 				dataFileTable.clearAll();
+				updateSize();
 			}
 		});
 
