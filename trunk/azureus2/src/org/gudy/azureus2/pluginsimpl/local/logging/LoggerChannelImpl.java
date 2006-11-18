@@ -176,7 +176,6 @@ LoggerChannelImpl
 	public void log(Object relatedTo, int log_type, String data) {
 		log(new Object[] { relatedTo }, log_type, data);
 	}
-
 	
 	public void log(Throwable error)
   {
@@ -206,6 +205,15 @@ LoggerChannelImpl
 	public void log(Object relatedTo, String str, Throwable error) {
 		log(new Object[] { relatedTo }, str, error);
 	}
+	
+	public void log(Object[] relatedTo, String data) {
+		log(relatedTo, LT_INFORMATION, data);
+	}
+
+	public void log(Object relatedTo, String data) {
+		log(relatedTo, LT_INFORMATION, data);
+	}
+
 
 	// Alert Functions
 	// ===============

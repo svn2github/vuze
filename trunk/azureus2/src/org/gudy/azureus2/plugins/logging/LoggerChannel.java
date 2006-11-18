@@ -157,7 +157,28 @@ public interface LoggerChannel {
 	 * @since 2.3.0.7
 	 */
 	public void log(Object[] relatedTo, String data, Throwable error);
+	
+	/**
+	 * Log an error against a list of objects with implicit type {@link #LT_INFORMATION}
+	 * 
+	 * @param relatedTo a list of what this log is related to (ex. Peer, Torrent,
+	 *                   Download, Object)
+	 * @param data text to log
+	 * @since 2.5.0.1
+	 */
+	public void log(Object[] relatedTo, String data);
 
+	/**
+	 * Log an error against an object with implicit type {@link #LT_INFORMATION}
+	 * 
+	 * @param relatedTo What this log is related to (ex. Peer, Torrent,
+	 *         Download, Object, etc)
+	 * @param data text to log
+	 * 
+	 * @since 2.5.0.1
+	 */
+	public void log(Object relatedTo, String data);
+	
 	/**
 	 * raise an alert to the user, if UI present
 	 * Note that messages shown to the user are filtered on unique message content
