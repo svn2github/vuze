@@ -185,6 +185,8 @@ public class PiecePickerImpl
 	
 	private int					allocate_request_loop_count;
 	
+	private CopyOnWriteList		listeners = new CopyOnWriteList();
+	
 	static
 	{
 		class ParameterListenerImpl
@@ -832,15 +834,19 @@ public class PiecePickerImpl
                         // TODO: should prioritize ~10% from edges of file
                         if (firstPiecePriorityL &&fileInfo.getNbPieces() >FIRST_PIECE_MIN_NB)
                         {
+                        	/* backed out for the moment - reverting to old first/last piece only
                         	int lastFirstPiece = fileInfo.getFirstPieceNumber() + FIRST_PIECE_RANGE_PERCENT * (fileInfo.getLastPieceNumber() - fileInfo.getFirstPieceNumber()) / 100;
                             
                         	if ( (i >=fileInfo.getFirstPieceNumber() && i<= lastFirstPiece ) ) {
                                 priority +=PRIORITY_W_FIRSTLAST + 10 * (lastFirstPiece - i) ;
                             }
                             
-                            if( i ==fileInfo.getLastPieceNumber() ) {
+                             if( i ==fileInfo.getLastPieceNumber() ) {
                             	priority +=PRIORITY_W_FIRSTLAST;
                             }
+                            */
+                             if (i == fileInfo.getFirstPieceNumber() ||i == fileInfo.getLastPieceNumber())
+                                 priority +=PRIORITY_W_FIRSTLAST;
                         }
                         // if the file is high-priority
                         // startPriority +=(1000 *fileInfo.getPriority()) /255;
@@ -1886,6 +1892,11 @@ public class PiecePickerImpl
 				
 				final long[]	offsets = shaper.updateRTAs( this );
 				
+				if ( offsets == null ){
+					
+					continue;
+				}
+				
 				for (int j=0;j<offsets.length;j++){
 					
 					long rta = offsets[j];
@@ -1915,6 +1926,19 @@ public class PiecePickerImpl
 		PieceRTAProvider		provider )
 	{
 		rta_providers.add( provider );
+		
+		Iterator	it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((PiecePickerListener)it.next()).providerAdded( provider );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 	
 	public void
@@ -1922,6 +1946,46 @@ public class PiecePickerImpl
 		PieceRTAProvider		provider )
 	{
 		rta_providers.remove( provider );
+		
+		Iterator	it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((PiecePickerListener)it.next()).providerRemoved( provider );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public List
+	getRTAProviders()
+	{
+		return( rta_providers.getList());
+	}
+	
+	public void 
+	addListener(
+		PiecePickerListener		listener )
+	{
+		listeners.add( listener );
+		
+		Iterator	it = rta_providers.iterator();
+		
+		while( it.hasNext()){
+		
+			listener.providerAdded((PieceRTAProvider)it.next());
+		}
+	}
+	
+	public void 
+	removeListener(
+		PiecePickerListener		listener )
+	{
+		listeners.remove( listener );
 	}
 	
 	/**

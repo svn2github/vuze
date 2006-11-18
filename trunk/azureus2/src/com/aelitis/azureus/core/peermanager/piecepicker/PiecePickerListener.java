@@ -1,5 +1,5 @@
 /*
- * Created on 12 May 2006
+ * Created on 1 Nov 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -15,23 +15,22 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SAS au capital de 46,603.30 euros
+ * AELITIS, SAS au capital de 63.529,40 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
+
 package com.aelitis.azureus.core.peermanager.piecepicker;
 
 public interface 
-PieceRTAProvider 
+PiecePickerListener 
 {
-	public long[]
-	updateRTAs(
-		PiecePicker		picker );
+	public void
+	providerAdded(
+		PieceRTAProvider	provider );
 	
-	public long
-	getCurrentPosition();
-	
-	public long
-	getBlockingPosition();
+	public void
+	providerRemoved(
+		PieceRTAProvider	provider );
 }

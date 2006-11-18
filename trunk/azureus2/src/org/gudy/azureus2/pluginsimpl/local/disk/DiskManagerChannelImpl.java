@@ -35,7 +35,6 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
-import org.gudy.azureus2.core3.util.PausableAverage;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
@@ -121,6 +120,7 @@ DiskManagerChannelImpl
 	private Average	byte_rate = Average.getInstance( 1000, 20 );
 	
 	private long	current_position;
+	private request	current_request;
 	
 	private PEPeerManager	peer_manager;
 	
@@ -195,7 +195,9 @@ DiskManagerChannelImpl
 			}
 		}
 		
-		return( new request());
+		current_request = new request();
+		
+		return( current_request );
 	}
 	
 	public void
@@ -316,7 +318,6 @@ DiskManagerChannelImpl
 		PEPiece		piece )
 	{
 	}
-
 	       	
    	public long[]
    	updateRTAs(
@@ -358,6 +359,25 @@ DiskManagerChannelImpl
    		return( rtas );
    	}
    	
+	public long
+	getCurrentPosition()
+	{
+		return( current_position );
+	}
+	
+	public long
+	getBlockingPosition()
+	{
+		request r = current_request;
+		
+		if ( r == null ){
+			
+			return( current_position );
+		}
+		
+		return( current_position + r.getAvailableBytes());
+	}
+	
 	public void
 	destroy()
 	{

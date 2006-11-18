@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.peermanager.piecepicker;
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.IndentWriter;
@@ -79,6 +81,17 @@ public interface PiecePicker
 	removeRTAProvider(
 		PieceRTAProvider		shaper );
 	
+	public List
+	getRTAProviders();
+	
+	public void 
+	addListener(
+		PiecePickerListener		listener );
+	
+	public void 
+	removeListener(
+		PiecePickerListener		listener );
+
 	public void
 	generateEvidence(
 		IndentWriter	writer );
