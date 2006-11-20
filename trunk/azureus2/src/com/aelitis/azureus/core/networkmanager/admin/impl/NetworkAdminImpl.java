@@ -483,6 +483,8 @@ NetworkAdminImpl
 	generateDiagnostics(
 		IndentWriter iw )
 	{
+		Set	public_addresses = new HashSet();
+		
 		NetworkAdminHTTPProxy	proxy = getHTTPProxy();
 		
 		if ( proxy == null ){
@@ -543,23 +545,52 @@ NetworkAdminImpl
 			
 			NetworkAdminNATDevice	device = nat_devices[i];
 			
-			iw.println( "    " + device.getName());
+			iw.println( "    " + device.getName() + ",address=" + device.getAddress().getHostAddress() + ":" + device.getPort() + ",ext=" + device.getExternalAddress());
+			
+			public_addresses.add( device.getExternalAddress());
 		}
 		
 		NetworkAdminNetworkInterface[] interfaces = getInterfaces();
 		
-		for (int i=0;i<interfaces.length;i++){
+		if ( interfaces.length > 0 ){
 			
-			networkInterface	interf = (networkInterface)interfaces[i];
-			
-			iw.indent();
-			
-			try{
+			if ( interfaces.length > 1 || interfaces[0].getAddresses().length > 1 ){
 				
-				interf.generateDiagnostics( iw );
-			}finally{
+				for (int i=0;i<interfaces.length;i++){
+					
+					networkInterface	interf = (networkInterface)interfaces[i];
+					
+					iw.indent();
+					
+					try{
+						
+						interf.generateDiagnostics( iw, public_addresses );
+						
+					}finally{
+						
+						iw.exdent();
+					}
+				}
+			}else{
 				
-				iw.exdent();
+				if ( interfaces[0].getAddresses().length > 0 ){
+					
+					networkInterface.networkAddress address = (networkInterface.networkAddress)interfaces[0].getAddresses()[0];
+					
+					try{
+						NetworkAdminNode[] nodes = address.getRoute( InetAddress.getByName("www.google.com"), 30000, null );
+						
+						for (int i=0;i<nodes.length;i++){
+							
+							networkInterface.networkAddress.networkNode	node = (networkInterface.networkAddress.networkNode)nodes[i];
+															
+							iw.println( node.getString());
+						}
+					}catch( Throwable e ){
+						
+						iw.println( "Can't resolve host for route trace - " + e.getMessage());
+					}
+				}
 			}
 		}
 		
@@ -571,7 +602,14 @@ NetworkAdminImpl
 			
 			NetworkAdminProtocol	protocol = protocols[i];
 			
-			iw.println( "    " + protocol.getName() + " - " + testProtocol( protocol ));
+			InetAddress	ext_addr = testProtocol( protocol );
+			
+			if ( ext_addr != null ){
+			
+				public_addresses.add( ext_addr );
+			}
+			
+			iw.println( "    " + protocol.getName() + " - " + ext_addr );
 		}
 		
 		iw.println( "Inbound protocols: default routing" );
@@ -582,7 +620,33 @@ NetworkAdminImpl
 			
 			NetworkAdminProtocol	protocol = protocols[i];
 			
-			iw.println( "    " + protocol.getName() + " - " + testProtocol( protocol ));
+			InetAddress	ext_addr = testProtocol( protocol );
+
+			if ( ext_addr != null ){
+				
+				public_addresses.add( ext_addr );
+			}
+
+			iw.println( "    " + protocol.getName() + " - " + ext_addr );
+		}
+		
+		Iterator	it = public_addresses.iterator();
+		
+		iw.println( "Public Addresses" );
+		
+		while( it.hasNext()){
+			
+			InetAddress	pub_address = (InetAddress)it.next();
+			
+			try{
+				NetworkAdminASNLookup	res = lookupASN( pub_address );
+				
+				iw.println( "    " + pub_address.getHostAddress() + " -> " + res.getAS() + "/" + res.getASName());
+				
+			}catch( Throwable e ){
+				
+				iw.println( "    " + pub_address.getHostAddress() + " -> " + e.getMessage());
+			}
 		}
 	}
 	
@@ -630,7 +694,8 @@ NetworkAdminImpl
 	
 		public void 
 		generateDiagnostics(
-			IndentWriter iw )
+			IndentWriter 	iw,
+			Set				public_addresses )
 		{
 			iw.println( getDisplayName() + "/" + getName());
 			
@@ -644,7 +709,7 @@ NetworkAdminImpl
 				
 				try{
 					
-					addr.generateDiagnostics( iw );
+					addr.generateDiagnostics( iw, public_addresses );
 					
 				}finally{
 					
@@ -774,7 +839,8 @@ NetworkAdminImpl
 			
 			public void 
 			generateDiagnostics(
-				IndentWriter iw )
+				IndentWriter 	iw,
+				Set				public_addresses )
 			{
 				iw.println( "" + getAddress());
 				
@@ -811,7 +877,32 @@ NetworkAdminImpl
 							
 							NetworkAdminProtocol	protocol = protocols[i];
 							
-							iw.println( "    " + protocol.getName() + " - " + testProtocol( protocol ));
+							InetAddress	res = testProtocol( protocol );
+							
+							if ( res != null ){
+								
+								public_addresses.add( res );
+							}
+							
+							iw.println( "    " + protocol.getName() + " - " + res );
+						}
+						
+						iw.println( "Inbound protocols: bound" );
+						
+						protocols = getInboundProtocols();
+						
+						for (int i=0;i<protocols.length;i++){
+							
+							NetworkAdminProtocol	protocol = protocols[i];
+							
+							InetAddress	res = testProtocol( protocol );
+							
+							if ( res != null ){
+								
+								public_addresses.add( res );
+							}
+							
+							iw.println( "    " + protocol.getName() + " - " + res );
 						}
 					}
 				}finally{
