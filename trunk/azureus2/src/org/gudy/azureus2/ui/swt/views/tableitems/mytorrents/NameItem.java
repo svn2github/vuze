@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -93,11 +94,21 @@ public class NameItem extends CoreTableColumn implements
 					Image icon = ImageRepository.getPathIcon(path);
 
 					if (Constants.isWindows) {
+						Rectangle iconBounds = icon.getBounds();
 						// recomposite to avoid artifacts - transparency mask does not work
 						final Image dstImage = new Image(Display.getCurrent(),
-								icon.getBounds().width, icon.getBounds().height);
+								iconBounds.width, iconBounds.height);
 						GC gc = new GC(dstImage);
 						gc.drawImage(icon, 0, 0);
+						if (fileInfo.length > 1) {
+							Image imgFolder = ImageRepository.getImage("foldersmall");
+							Rectangle folderBounds = imgFolder.getBounds();
+							gc.drawImage(imgFolder, folderBounds.x, folderBounds.y,
+									folderBounds.width, folderBounds.height, iconBounds.width
+											- folderBounds.width, iconBounds.height
+											- folderBounds.height, folderBounds.width,
+									folderBounds.height);
+						}
 						gc.dispose();
 						icon = dstImage;
 					}
