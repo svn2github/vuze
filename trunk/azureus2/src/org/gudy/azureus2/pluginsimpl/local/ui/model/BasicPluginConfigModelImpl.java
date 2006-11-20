@@ -218,6 +218,26 @@ BasicPluginConfigModelImpl
 		return( res );	
 	}
 	
+	public org.gudy.azureus2.plugins.ui.config.FileParameter
+	addFileParameter2(
+			String 		key,
+			String 		resource_name,
+			String 		defaultValue ) {
+		return addFileParameter2(key, resource_name, defaultValue, null);
+	}
+
+	public org.gudy.azureus2.plugins.ui.config.FileParameter
+	addFileParameter2(
+			String 		key,
+			String 		resource_name,
+			String 		defaultValue,
+		    String[]    file_extensions) {
+		FileParameter res = new FileParameter(pi.getPluginconfig(), key_prefix + key, resource_name, defaultValue, file_extensions);
+		parameters.add(res);
+		return res;
+	}
+	
+	
 	public LabelParameter
 	addLabelParameter2(
 		String		resource_name )

@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 
@@ -65,19 +66,17 @@ DirectoryParameter
 	    controls[0].setLayoutData(gridData);
 	    
 	    Button browse = new Button(pluginGroup, SWT.PUSH);
-	    Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
+	    Image imgOpenFolder = ImageRepository.getImage(getBrowseImageResource());
 	    browse.setImage(imgOpenFolder);
 	    imgOpenFolder.setBackground(browse.getBackground());
 	    browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
 
 	    browse.addListener(SWT.Selection, new Listener() {
 	      public void handleEvent(Event event) {
-	        DirectoryDialog dialog = new DirectoryDialog(pluginGroup.getShell(), SWT.APPLICATION_MODAL);
-	        dialog.setFilterPath(sp.getValue());        
-	        String path = dialog.open();
-	        if (path != null) {
-	          sp.setValue(path);
-	        }
+	    	  String path = DirectoryParameter.this.openDialog(pluginGroup.getShell(), sp.getValue());
+	    	  if (path != null) {
+	    		  sp.setValue(path);
+	    	  }
 	      }
 	    });
 	    controls[1] = browse;
@@ -99,5 +98,15 @@ DirectoryParameter
 	getControls()
 	{
 	    return controls;
+	}
+	
+	protected String getBrowseImageResource() {
+		return "openFolderButton";
+	}
+	
+	protected String openDialog(Shell shell, String old_value) {
+        DirectoryDialog dialog = new DirectoryDialog(shell, SWT.APPLICATION_MODAL);
+        dialog.setFilterPath(old_value);        
+        return dialog.open();
 	}
 }

@@ -28,6 +28,7 @@ package org.gudy.azureus2.plugins.ui.model;
  */
 
 import org.gudy.azureus2.plugins.ui.config.*;
+import org.gudy.azureus2.plugins.ui.config.FileParameter;
 
 public interface 
 BasicPluginConfigModel 
@@ -182,6 +183,36 @@ BasicPluginConfigModel
 		String 		key,
 		String 		resource_name,
 		String	 	defaultValue );
+	
+	/**
+	 * 
+	 * @param key
+	 * @param resource_name
+	 * @param defaultValue
+	 * @return
+	 * @since 2.5.0.1
+	 */
+	public FileParameter
+	addFileParameter2(
+		String 		key,
+		String 		resource_name,
+		String	 	defaultValue );
+	
+	/**
+	 * 
+	 * @param key
+	 * @param resource_name
+	 * @param defaultValue
+	 * @param file_extensions Allowed list of file extensions.
+	 * @return
+	 * @since 2.5.0.1
+	 */
+	public FileParameter
+	addFileParameter2(
+		String 		key,
+		String 		resource_name,
+		String	 	defaultValue,
+		String[]    file_extensions);
 	
 	/**
 	 * 

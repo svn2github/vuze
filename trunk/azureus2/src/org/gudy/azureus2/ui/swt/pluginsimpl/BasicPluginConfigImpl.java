@@ -294,7 +294,7 @@ BasicPluginConfigImpl
 				
 				swt_param.setLayoutData( gridData );
 				
-			}else if ( param instanceof DirectoryParameterImpl ){
+			}else if ( param instanceof DirectoryParameterImpl || param instanceof org.gudy.azureus2.pluginsimpl.local.ui.config.FileParameter){
 				
 				Composite area = new Composite(current_composite, SWT.NULL);
 
@@ -308,10 +308,16 @@ BasicPluginConfigImpl
 				layout.marginHeight = 0;
 				layout.marginWidth 	= 0;
 				
-				area.setLayout(layout);				
+				area.setLayout(layout);
 				
-				swt_param = new DirectoryParameter(area, key, ((DirectoryParameterImpl)param).getDefaultValue());
-		
+				if (param instanceof DirectoryParameterImpl) {
+					swt_param = new DirectoryParameter(area, key, ((DirectoryParameterImpl)param).getDefaultValue());
+				}
+				else {
+					org.gudy.azureus2.pluginsimpl.local.ui.config.FileParameter fp = (org.gudy.azureus2.pluginsimpl.local.ui.config.FileParameter)param;
+					swt_param = new org.gudy.azureus2.ui.swt.config.FileParameter(area, key, fp.getDefaultValue(), fp.getFileExtensions());
+				}
+				
 			}else if ( param instanceof ActionParameterImpl ){
 				
 				ActionParameterImpl	_param = (ActionParameterImpl)param;
