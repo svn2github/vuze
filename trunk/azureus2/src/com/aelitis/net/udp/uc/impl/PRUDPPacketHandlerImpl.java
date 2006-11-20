@@ -1114,6 +1114,10 @@ PRUDPPacketHandlerImpl
 			
 				// this is a reply to a request, no time delays considered here 
 			
+		}catch( PRUDPPacketHandlerException e ){
+			
+			throw( e );
+			
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
