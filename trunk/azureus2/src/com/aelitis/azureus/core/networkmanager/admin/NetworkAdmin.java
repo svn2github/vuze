@@ -27,6 +27,7 @@ import java.net.InetAddress;
 
 import org.gudy.azureus2.core3.util.IndentWriter;
 
+import com.aelitis.azureus.core.networkmanager.NetworkAdminASNLookup;
 import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminImpl;
 
 public abstract class 
@@ -70,6 +71,12 @@ NetworkAdmin
 	
 	public abstract NetworkAdminNATDevice[]
 	getNATDevices();
+	
+	public abstract NetworkAdminASNLookup
+	lookupASN(
+		InetAddress		address )
+	
+		throws NetworkAdminException;
 	
 	public abstract void
 	addPropertyChangeListener(

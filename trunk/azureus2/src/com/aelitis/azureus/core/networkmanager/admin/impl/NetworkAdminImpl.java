@@ -58,6 +58,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.NetworkAdminASNLookup;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminHTTPProxy;
@@ -452,6 +453,15 @@ NetworkAdminImpl
 		}
 		
 		return((NetworkAdminNATDevice[])devices.toArray(new NetworkAdminNATDevice[devices.size()]));
+	}
+	
+	public NetworkAdminASNLookup
+	lookupASN(
+		InetAddress		address )
+	
+		throws NetworkAdminException
+	{
+		return( new NetworkAdminASNLookupImpl( address ));
 	}
 	
 	public void
