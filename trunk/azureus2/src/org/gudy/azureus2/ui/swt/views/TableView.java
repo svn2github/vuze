@@ -695,16 +695,21 @@ public class TableView
 				diag_logger.log("mouseDown " + sTableID);
 
     		TableColumnCore tc = getTableColumnByOffset(e.x);
+				diag_logger.log("mouseDown " + sTableID + ";1");
 				TableCellCore cell = getTableCell(e.x, e.y);
+				diag_logger.log("mouseDown " + sTableID + ";2;" + cell + ";" + tc);
 				if (cell != null && tc != null) {
 	      	if (e.button == 2 && e.stateMask == SWT.CONTROL) {
 	      		((TableCellImpl)cell).bDebug = !((TableCellImpl)cell).bDebug;
 	      		System.out.println("Set debug for " + cell + " to "
 								+ ((TableCellImpl) cell).bDebug);
 	      	}
+					diag_logger.log("mouseDown " + sTableID + ";3");
 					TableCellMouseEvent event = createMouseEvent(cell, e,
 							TableCellMouseEvent.EVENT_MOUSEDOWN);
+					diag_logger.log("mouseDown " + sTableID + ";4");
 					tc.invokeCellMouseListeners(event);
+					diag_logger.log("mouseDown " + sTableID + ";5");
 					cell.invokeMouseListeners(event);
 					if (event.skipCoreFunctionality)
 						lCancelSelectionTriggeredOn = System.currentTimeMillis();
@@ -712,23 +717,30 @@ public class TableView
 
         iMouseX = e.x;
         try {
+  				diag_logger.log("mouseDown " + sTableID + ";6;" + table.getItemCount());
           if (table.getItemCount() <= 0)
             return;
 
           // skip if outside client area (ie. scrollbars)
           Rectangle rTableArea = table.getClientArea();
+  				diag_logger.log("mouseDown " + sTableID + ";7;" + rTableArea);
           //System.out.println("Mouse="+iMouseX+"x"+e.y+";TableArea="+rTableArea);
           Point pMousePosition = new Point(e.x, e.y);
           if (rTableArea.contains(pMousePosition)) {
+    				diag_logger.log("mouseDown " + sTableID + ";8");
           	int[] columnOrder = table.getColumnOrder();
           	if (columnOrder.length == 0) {
           		return;
           	}
+    				diag_logger.log("mouseDown " + sTableID + ";9");
           	TableItem ti = table.getItem(table.getItemCount() - 1);
+    				diag_logger.log("mouseDown " + sTableID + ";10");
             Rectangle cellBounds = ti.getBounds(columnOrder[columnOrder.length - 1]);
+    				diag_logger.log("mouseDown " + sTableID + ";11;" + cellBounds);
             // OSX returns 0 size if the cell is not on screen (sometimes? all the time?)
             if (cellBounds.width <= 0 || cellBounds.height <= 0)
               return;
+    				diag_logger.log("mouseDown " + sTableID + ";12;" + e);
             //System.out.println("cellbounds="+cellBounds);
             if (e.x > cellBounds.x + cellBounds.width ||
                 e.y > cellBounds.y + cellBounds.height) {
@@ -758,24 +770,28 @@ public class TableView
       public void mouseMove(MouseEvent e) {
         // XXX this may not be needed if all platforms process mouseDown
         //     before the menu
-        iMouseX = e.x;
-        
-				TableCellCore cell = getTableCell(e.x, e.y);
-				int iCursorID = -1;
-				if (cell != lastCell) {
-					iCursorID = cell.getCursorID();
-					cell = lastCell;
-				}
-
-				if (iCursorID != lastCursorID) {
-					lastCursorID = iCursorID;
-
-					if (iCursorID >= 0) {
-						table.setCursor(table.getDisplay().getSystemCursor(iCursorID));
-					} else {
-						table.setCursor(null);
-					}
-				}
+      	try {
+          iMouseX = e.x;
+          
+  				TableCellCore cell = getTableCell(e.x, e.y);
+  				int iCursorID = -1;
+  				if (cell != lastCell) {
+  					iCursorID = cell.getCursorID();
+  					cell = lastCell;
+  				}
+  
+  				if (iCursorID != lastCursorID) {
+  					lastCursorID = iCursorID;
+  
+  					if (iCursorID >= 0) {
+  						table.setCursor(table.getDisplay().getSystemCursor(iCursorID));
+  					} else {
+  						table.setCursor(null);
+  					}
+  				}
+      	} catch (Exception ex) {
+      		Debug.out(ex);
+      	}
       }
     });
 
