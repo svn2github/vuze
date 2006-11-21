@@ -550,6 +550,8 @@ NetworkAdminImpl
 			public_addresses.add( device.getExternalAddress());
 		}
 		
+		iw.println( "Interfaces" );
+		
 		NetworkAdminNetworkInterface[] interfaces = getInterfaces();
 		
 		if ( interfaces.length > 0 ){

@@ -64,7 +64,7 @@ public class PiecePickerImpl
     /** min # pieces in file for first/last prioritization */
     private static final long FIRST_PIECE_MIN_NB	=4;
     /** number of pieces for first pieces prioritization */
-    private static final int FIRST_PIECE_RANGE_PERCENT= 10;
+    // private static final int FIRST_PIECE_RANGE_PERCENT= 10;
     /** user sets file as "High" */
     private static final int PRIORITY_W_FILE		=1000;
     /** Additional boost for more completed High priority */
@@ -101,8 +101,8 @@ public class PiecePickerImpl
 	private static final long END_GAME_MODE_SIZE_TRIGGER	=20 *1024 *1024;
 	private static final long END_GAME_MODE_TIMEOUT			=60 *END_GAME_MODE_SIZE_TRIGGER /16384;
 	
-	protected static volatile boolean	firstPiecePriority	=COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
-	protected static volatile boolean	completionPriority	=COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
+	protected static volatile boolean	firstPiecePriority	=COConfigurationManager.getBooleanParameter("Prioritize First Piece" );
+	protected static volatile boolean	completionPriority	=COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files");
     /** event # of user settings controlling priority changes */
     protected static volatile long		paramPriorityChange =Long.MIN_VALUE;
 
@@ -179,10 +179,12 @@ public class PiecePickerImpl
 	/** The list of chunks needing to be downloaded (the mechanism change when entering end-game mode) */
 	private List 				endGameModeChunks;
 	
-	private long				lastRTARecalcTime;
+	private long				lastProviderRecalcTime;
 	private CopyOnWriteList		rta_providers = new CopyOnWriteList();
-	private long[]				piece_rtas;
-	
+	private long[]				provider_piece_rtas;
+	private CopyOnWriteList		priority_providers = new CopyOnWriteList();
+	private long[]				provider_piece_priorities;
+
 	private int					allocate_request_loop_count;
 	
 	private CopyOnWriteList		listeners = new CopyOnWriteList();
@@ -196,11 +198,11 @@ public class PiecePickerImpl
 			{
 				if (parameterName.equals("Prioritize Most Completed Files"))
 				{
-					completionPriority =COConfigurationManager.getBooleanParameter(parameterName, false);
+					completionPriority =COConfigurationManager.getBooleanParameter(parameterName);
 					paramPriorityChange++;	// this is a user's priority change event
 				} else if (parameterName.equals("Prioritize First Piece"))
 				{
-					firstPiecePriority =COConfigurationManager.getBooleanParameter(parameterName, false);
+					firstPiecePriority =COConfigurationManager.getBooleanParameter(parameterName);
 					paramPriorityChange++;	// this is a user's priority change event
 			    }
 		    }
@@ -441,6 +443,11 @@ public class PiecePickerImpl
 	    return newAvailability;
 	}
 	
+	public int
+	getNumberOfPieces()
+	{
+		return( nbPieces );
+	}
 	
 	public final int[] getAvailability()
 	{
@@ -777,11 +784,11 @@ public class PiecePickerImpl
     {
         final long now = SystemTime.getCurrentTime();
                   
-        if ( now < lastRTARecalcTime || now - lastRTARecalcTime > 1000 ){
+        if ( now < lastProviderRecalcTime || now - lastProviderRecalcTime > 1000 ){
         	
-        	lastRTARecalcTime = now;
+        	lastProviderRecalcTime = now;
         	
-        	priorityRTAexists = computePieceRTAs();
+        	priorityRTAexists = computeProviderPriorities();
         }
         
         if ( !priorityRTAexists ){
@@ -880,15 +887,18 @@ public class PiecePickerImpl
                             startPriority +=nbConnects /avail;
                     }
                     
-                    if ( piece_rtas != null ){
+                    if ( provider_piece_rtas != null ){
                     	
-                    	if ( piece_rtas[i] > 0 ){
+                    	if ( provider_piece_rtas[i] > 0 ){
                     		
                     		startPriority 	= PRIORITY_REALTIME;
                     	}
+                    }else if ( provider_piece_priorities != null ){
+                    	
+                    	startPriority += provider_piece_priorities[i];
                     }
-                } else
-                {
+                }else{
+                	
                     dmPiece.clearNeeded();
                 }
                 
@@ -1032,7 +1042,7 @@ public class PiecePickerImpl
         
         for ( int i=startI; i <=endI; i++){
                	
-        	long piece_rta = piece_rtas[i];
+        	long piece_rta = provider_piece_rtas[i];
         	
             if ( peerHavePieces.flags[i] && startPriorities[i] == PRIORITY_REALTIME && piece_rta > 0 ){
   
@@ -1853,13 +1863,52 @@ public class PiecePickerImpl
 	}
 	
 	private boolean
-	computePieceRTAs()
+	computeProviderPriorities()
 	{
-		List	list = rta_providers.getList();
-		
-		if ( rta_providers.size() == 0 ){
+		List	p_ps = priority_providers.getList();
+
+		if ( p_ps.size() == 0 ){
 			
-			if ( piece_rtas != null ){
+			if ( provider_piece_priorities != null ){
+				
+				paramPriorityChange++;
+				
+				provider_piece_priorities = null;
+			}
+		}else{
+			
+			paramPriorityChange++;
+			
+			provider_piece_priorities = new long[nbPieces];
+
+			for (int i=0;i<p_ps.size();i++){
+				
+				PiecePriorityProvider	shaper = (PiecePriorityProvider)p_ps.get(i);
+				
+				final long[] priorities = shaper.updatePriorities( this );
+				
+				if ( priorities == null ){
+					
+					continue;
+				}
+				
+				for (int j=0;j<priorities.length;j++){
+					
+					long priority = priorities[j];
+
+					if ( priority != 0 ){
+						
+						provider_piece_priorities[j] += priority;
+					}
+				}
+			}
+		}
+		
+		List	rta_ps = rta_providers.getList();
+		
+		if ( rta_ps.size() == 0 ){
+			
+			if ( provider_piece_rtas != null ){
 			
 					// coming out of real-time mode - clear down 
 				
@@ -1873,7 +1922,7 @@ public class PiecePickerImpl
 					}
 				}
 				
-				piece_rtas = null;
+				provider_piece_rtas = null;
 			}
 			
 			return( false );
@@ -1884,11 +1933,11 @@ public class PiecePickerImpl
 			
 				// prolly more efficient to reallocate than reset to 0
 			
-			piece_rtas = new long[nbPieces];
+			provider_piece_rtas = new long[nbPieces];
 			
-			for (int i=0;i<list.size();i++){
+			for (int i=0;i<rta_ps.size();i++){
 				
-				PieceRTAProvider	shaper = (PieceRTAProvider)list.get(i);
+				PieceRTAProvider	shaper = (PieceRTAProvider)rta_ps.get(i);
 				
 				final long[]	offsets = shaper.updateRTAs( this );
 				
@@ -1903,13 +1952,13 @@ public class PiecePickerImpl
 					
 					if ( rta > 0 ){
 						
-						if ( piece_rtas[j] == 0 ){
+						if ( provider_piece_rtas[j] == 0 ){
 							
-							piece_rtas[j] = rta;
+							provider_piece_rtas[j] = rta;
 							
 						}else{
 							
-							piece_rtas[j] = Math.min( piece_rtas[j], rta );
+							provider_piece_rtas[j] = Math.min( provider_piece_rtas[j], rta );
 						}
 						
 						has_rta	= true;
@@ -1963,6 +2012,52 @@ public class PiecePickerImpl
 	
 	public List
 	getRTAProviders()
+	{
+		return( rta_providers.getList());
+	}
+	
+	public void
+	addPriorityProvider(
+		PiecePriorityProvider		provider )
+	{
+		priority_providers.add( provider );
+		
+		Iterator	it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((PiecePickerListener)it.next()).providerAdded( provider );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public void
+	removePriorityProvider(
+		PiecePriorityProvider		provider )
+	{
+		priority_providers.remove( provider );
+		
+		Iterator	it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((PiecePickerListener)it.next()).providerRemoved( provider );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public List
+	getPriorityProviders()
 	{
 		return( rta_providers.getList());
 	}

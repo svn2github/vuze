@@ -235,6 +235,7 @@ public class ConfigurationDefaults {
     def.put( "Start Watched Torrents Stopped", FALSE );
     def.put( "Watch Torrent Folder Path", "" );
     def.put( "Prioritize First Piece", FALSE );
+    def.put( "Prioritize Most Completed Files", FALSE );
     def.put( "Use Lazy Bitfield", FALSE );
     def.put( "Zero New", FALSE );
     def.put( "XFS Allocation", FALSE );

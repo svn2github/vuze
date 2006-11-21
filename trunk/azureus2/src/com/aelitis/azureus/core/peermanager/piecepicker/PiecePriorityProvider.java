@@ -24,21 +24,9 @@
 package com.aelitis.azureus.core.peermanager.piecepicker;
 
 public interface 
-PiecePickerListener 
+PiecePriorityProvider 
 {
-	public void
-	providerAdded(
-		PieceRTAProvider	provider );
-	
-	public void
-	providerRemoved(
-		PieceRTAProvider	provider );
-	
-	public void
-	providerAdded(
-		PiecePriorityProvider	provider );
-	
-	public void
-	providerRemoved(
-		PiecePriorityProvider	provider );
+	public long[]
+	updatePriorities(
+		PiecePicker		picker );
 }

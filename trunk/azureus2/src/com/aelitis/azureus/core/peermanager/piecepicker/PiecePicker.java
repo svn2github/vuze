@@ -73,6 +73,9 @@ public interface PiecePicker
 	public void 	addEndGameBlocks(final PEPiece pePiece);
 	public void		removeFromEndGameModeChunks(final int pieceNumber, final int offset);
 	
+	public int
+	getNumberOfPieces();
+	
 	public void
 	addRTAProvider(
 		PieceRTAProvider		shaper );
@@ -83,6 +86,17 @@ public interface PiecePicker
 	
 	public List
 	getRTAProviders();
+	
+	public void
+	addPriorityProvider(
+		PiecePriorityProvider		shaper );
+	
+	public void
+	removePriorityProvider(
+		PiecePriorityProvider		shaper );
+	
+	public List
+	getPriorityProviders();
 	
 	public void 
 	addListener(
