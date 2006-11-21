@@ -420,9 +420,16 @@ public class TableCellImpl
   }
 
   public int getWidth() {
-    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
-      return -1;
-    Point pt = ((BufferedGraphicTableItem)bufferedTableItem).getSize();
+  	Point pt = null;
+  	
+    if (bufferedTableItem instanceof BufferedGraphicTableItem) {
+    	pt = ((BufferedGraphicTableItem)bufferedTableItem).getSize();
+    } else {
+    	Rectangle bounds = bufferedTableItem.getBounds();
+    	if (bounds != null) {
+    		pt = new Point(bounds.width, bounds.height);
+    	}
+    }
     if (pt == null)
       return -1;
     return pt.x;
