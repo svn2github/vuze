@@ -131,7 +131,6 @@ public class IconBar {
     createBufferedToolItem(toolBar,SWT.PUSH,"open","cb_open_no_default","iconBar.open.tooltip");
     // XXX TuxPaper: Remove images (open, open_url, open_folder) from CVS and ImageRepository
     createBufferedToolItem(toolBar,SWT.PUSH,"new","cb_new","iconBar.new.tooltip");
-    createBufferedToolItem(toolBar,SWT.PUSH,"send","cb_send","iconBar.sendTorrent.tooltip");
     toolBar.pack(); 
     Point p = toolBar.getSize();
     coolItem.setControl(toolBar);

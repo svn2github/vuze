@@ -129,7 +129,6 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/toolbar/remove.gif", "cb_remove");
 		addPath("org/gudy/azureus2/ui/icons/toolbar/host.gif", "cb_host");
 		addPath("org/gudy/azureus2/ui/icons/toolbar/publish.gif", "cb_publish");
-		addPath("org/gudy/azureus2/ui/icons/toolbar/sendto.png", "cb_send");
 
 		//Status icons
 		addPath("org/gudy/azureus2/ui/icons/status/ok.gif", "st_ok");
@@ -159,7 +158,6 @@ public class ImageRepository {
 
 		addPath("org/gudy/azureus2/ui/icons/smallx.png", "smallx");
 		addPath("org/gudy/azureus2/ui/icons/smallx-gray.png", "smallx-gray");
-		addPath("org/gudy/azureus2/ui/icons/sendto-small.png", "sendto-small");
 		addPath("org/gudy/azureus2/ui/icons/working.gif", "working");
 	}
 

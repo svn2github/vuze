@@ -23,29 +23,19 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-import org.gudy.azureus2.core3.category.Category;
-import org.gudy.azureus2.core3.category.CategoryListener;
-import org.gudy.azureus2.core3.category.CategoryManager;
-import org.gudy.azureus2.core3.category.CategoryManagerListener;
+
+import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -53,7 +43,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
@@ -63,8 +52,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
-
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
@@ -79,11 +66,12 @@ import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
-import org.gudy.azureus2.ui.swt.wizards.sendtorrent.SendTorrentWizard;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /** Displays a list of torrents in a table view.
  *
@@ -848,16 +836,6 @@ public class MyTorrentsView
 		});
 		itemExplore.setEnabled(hasSelection);
 
-		// Send
-		final MenuItem itemSend = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemSend, "MyTorrentsView.menu.sendTorrent");
-		itemSend.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				openSendTorrentWizForSelected();
-			}
-		});
-		itemSend.setEnabled(hasSelection);
-		
 		// === advanced menu ===
 
 		final MenuItem itemAdvanced = new MenuItem(menu, SWT.CASCADE);
@@ -2669,8 +2647,6 @@ public class MyTorrentsView
       return up;
     if(itemKey.equals("down"))
       return down;
-    if(itemKey.equals("send"))
-      return run;
     return false;
   }
 
@@ -2715,25 +2691,8 @@ public class MyTorrentsView
       removeSelectedTorrents();
       return;
     }
-
-		if (itemKey.equals("send")) {
-			openSendTorrentWizForSelected();
-			return;
-		}
   }
   
-  public void openSendTorrentWizForSelected() {
-		Object[] dms = getSelectedDataSources();
-		TOTorrent[] torrents = new TOTorrent[dms.length];
-		for (int i = 0; i < torrents.length; i++) {
-			if (dms[i] instanceof DownloadManager) {
-				torrents[i] = ((DownloadManager) dms[i]).getTorrent();
-			}
-		}
-
-		new SendTorrentWizard(azureus_core, getTable().getDisplay(), torrents);
-	}
-
   private Category addCategory() {
     CategoryAdderWindow adderWindow = new CategoryAdderWindow(getComposite().getDisplay());
     Category newCategory = adderWindow.getNewCategory();

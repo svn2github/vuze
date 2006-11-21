@@ -35,7 +35,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Alerts;
@@ -43,13 +42,11 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
-import org.gudy.azureus2.ui.swt.wizards.sendtorrent.SendTorrentWizard;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -289,9 +286,6 @@ public class ManagerView extends AbstractIView implements
 		if (itemKey.equals("remove"))
 			return true;
 		
-		if (itemKey.equals("send"))
-			return true;
-		
 		return false;
 	}
 
@@ -360,11 +354,6 @@ public class ManagerView extends AbstractIView implements
 					}
 				}
 			}.start();
-		}
-
-		if (itemKey.equals("send")) {
-			new SendTorrentWizard(azureus_core, folder.getDisplay(),
-					new TOTorrent[] { manager.getTorrent() });
 		}
 	}
   

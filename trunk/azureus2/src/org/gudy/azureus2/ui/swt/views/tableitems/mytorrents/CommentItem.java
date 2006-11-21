@@ -34,7 +34,6 @@ import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.TableView.GroupTableRowRunner;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-import org.gudy.azureus2.ui.swt.wizards.sendtorrent.SendTorrentWizard;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 
