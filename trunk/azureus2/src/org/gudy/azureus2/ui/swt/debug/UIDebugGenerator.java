@@ -34,9 +34,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.logging.impl.FileLogging;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
-import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
@@ -79,12 +77,16 @@ public class UIDebugGenerator
 		for (int i = 0; i < shells.length; i++) {
 			try {
 				Shell shell = shells[i];
-				Image image;
+				Image image = null;
 
 				if (shell.getData("class") instanceof ObfusticateShell) {
 					ObfusticateShell shellClass = (ObfusticateShell) shell.getData("class");
 
-					image = shellClass.generateObfusticatedImage();
+					try {
+						image = shellClass.generateObfusticatedImage();
+					} catch (Exception e) {
+						Debug.out("Obfusticating shell " + shell, e);
+					}
 				} else {
 
 					Rectangle clientArea = shell.getClientArea();
