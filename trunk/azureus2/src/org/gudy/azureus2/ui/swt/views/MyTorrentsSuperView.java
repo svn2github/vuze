@@ -317,8 +317,12 @@ public class MyTorrentsSuperView extends AbstractIView implements
   }
 
 	public Image obfusticatedImage(Image image, Point shellOffset) {
-		torrentview.obfusticatedImage(image, shellOffset);
-		seedingview.obfusticatedImage(image, shellOffset);
+		if (torrentview != null) {
+			torrentview.obfusticatedImage(image, shellOffset);
+		}
+		if (seedingview != null) {
+			seedingview.obfusticatedImage(image, shellOffset);
+		}
 		return image;
 	}
 
