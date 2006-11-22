@@ -43,7 +43,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
   
   private boolean connect_with_crypto;
   private boolean allow_fallback;
-  private byte[] shared_secret;
+  private byte[][] shared_secrets;
   
   private ConnectionListener connection_listener;
   private boolean 	is_connected;
@@ -68,12 +68,12 @@ public class NetworkConnectionImpl implements NetworkConnection {
   public NetworkConnectionImpl( 
 		  		ConnectionEndpoint _target, MessageStreamEncoder encoder, 
 		  		MessageStreamDecoder decoder, boolean _connect_with_crypto, boolean _allow_fallback,
-		  		byte[] _shared_secret ) 
+		  		byte[][] _shared_secrets ) 
   {
 	connection_endpoint	= _target;
     connect_with_crypto	= _connect_with_crypto;
     allow_fallback = _allow_fallback;
-    shared_secret = _shared_secret;
+    shared_secrets = _shared_secrets;
     
     
     is_connected = false;
@@ -135,7 +135,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
     	connection_endpoint.connectOutbound( 
     			connect_with_crypto, 
     			allow_fallback, 
-    			shared_secret, 
+    			shared_secrets, 
     			initial_outbound_data,
     			new Transport.ConnectListener() {
 			      public void connectAttemptStarted() {

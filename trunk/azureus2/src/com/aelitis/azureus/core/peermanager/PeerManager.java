@@ -262,8 +262,8 @@ public class PeerManager {
     		return matches?"":null;
     	}
 
-    	public byte[] 
-    	getSharedSecret()
+    	public byte[][] 
+    	getSharedSecrets()
     	{
     		return( null );	// registered manually above
     	}
@@ -383,7 +383,7 @@ public class PeerManager {
 			  
 			  registered_legacy_managers.put( hash, registrations );
 		  		  
-			  IncomingConnectionManager.getSingleton().addSharedSecret( hash.getBytes());
+			  IncomingConnectionManager.getSingleton().addSharedSecrets( new byte[][]{ hash.getBytes() });
 		  }
 		  
 		  PeerManagerRegistration	registration = new PeerManagerRegistrationImpl( hash, adapter );
@@ -422,12 +422,6 @@ public class PeerManager {
 	{
 		hash	= _hash;
 		adapter	= _adapter;
-	}
-	
-	protected HashWrapper
-	getHash()
-	{
-		return( hash );
 	}
 	
 	protected PeerManagerRegistrationAdapter
@@ -553,7 +547,7 @@ public class PeerManager {
 				
 				  if ( registrations.size() == 0 ){
 					  
-					  IncomingConnectionManager.getSingleton().removeSharedSecret( hash.getBytes());
+					  IncomingConnectionManager.getSingleton().removeSharedSecrets( new byte[][]{ hash.getBytes()});
 					  
 					  registered_legacy_managers.remove( hash );
 				  }

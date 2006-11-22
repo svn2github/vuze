@@ -342,7 +342,14 @@ PEPeerTransportProtocol
     
     connection_endpoint.addProtocol( pe );
     
-    connection = NetworkManager.getSingleton().createConnection( connection_endpoint, new BTMessageEncoder(), new BTMessageDecoder(), use_crypto, !require_crypto_handshake, manager.getTorrentHash().getBytes());
+    connection = 
+    	NetworkManager.getSingleton().createConnection(
+    			connection_endpoint, 
+    			new BTMessageEncoder(), 
+    			new BTMessageDecoder(), 
+    			use_crypto, 
+    			!require_crypto_handshake, 
+    			new byte[][]{ manager.getTorrentHash().getBytes()});
     
     plugin_connection = new ConnectionImpl(connection);
     

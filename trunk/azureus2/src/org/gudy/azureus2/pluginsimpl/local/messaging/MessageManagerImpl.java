@@ -193,7 +193,7 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 	final String	type 		= "AEGEN:" + _type;
 	final byte[]	type_bytes 	= type.getBytes();
 	
-	final byte[]	shared_secret = new SHA1Simple().calculateHash( type_bytes );
+	final byte[][]	shared_secrets = new byte[][]{ new SHA1Simple().calculateHash( type_bytes ) };
 		
 	synchronized( message_handlers ){
 		
@@ -243,10 +243,10 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 					return( matches( transport, to_compare, port )); 
 				} 
 				
-				public byte[] 
-				getSharedSecret()
+				public byte[][] 
+				getSharedSecrets()
 				{ 
-					return( shared_secret ); 
+					return( shared_secrets ); 
 				}
 				
 			   	public int 
@@ -282,7 +282,7 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 										type, 
 										description,
 										stream_crypto,
-										shared_secret );
+										shared_secrets );
 								
 							GenericMessageConnectionImpl new_connection = new GenericMessageConnectionImpl( MessageManagerImpl.this, direct_connection );
 
@@ -332,7 +332,7 @@ public class MessageManagerImpl implements MessageManager, NATTraversalHandler {
 			
 				throws MessageException
 			{
-				return( new GenericMessageConnectionImpl( MessageManagerImpl.this, type, description, (GenericMessageEndpointImpl)endpoint, stream_crypto, shared_secret ));
+				return( new GenericMessageConnectionImpl( MessageManagerImpl.this, type, description, (GenericMessageEndpointImpl)endpoint, stream_crypto, shared_secrets ));
 			}
 			
 			public void

@@ -90,11 +90,11 @@ ProtocolEndpointTCP
 	connectOutbound(
 		boolean				connect_with_crypto, 
 		boolean 			allow_fallback, 
-		byte[] 				shared_secret,
+		byte[][]			shared_secrets,
 		ByteBuffer			initial_data,
 		ConnectListener 	listener )
 	{
-		TCPTransportImpl t = new TCPTransportImpl( this, connect_with_crypto, allow_fallback, shared_secret );
+		TCPTransportImpl t = new TCPTransportImpl( this, connect_with_crypto, allow_fallback, shared_secrets );
 					
 		t.connectOutbound( initial_data, listener );
 		

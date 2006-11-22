@@ -75,7 +75,7 @@ public class NatCheckerServer extends AEThread {
             return matches?"":null;
           }
           public Object minMatches( TransportHelper transport, ByteBuffer to_compare, int port ) { return( matches( transport, to_compare, port )); } 
-          public byte[] getSharedSecret(){ return( null ); }
+          public byte[][] getSharedSecrets(){ return( null ); }
   	   	  public int getSpecificPort(){return( -1 );
 		}
         };

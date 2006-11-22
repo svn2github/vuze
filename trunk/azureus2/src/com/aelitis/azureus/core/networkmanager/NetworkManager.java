@@ -228,8 +228,8 @@ public class NetworkManager {
    * @param decoder default message stream decoder to use for the incoming queue
    * @return a new connection
    */
-  public NetworkConnection createConnection( ConnectionEndpoint	target, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto, boolean allow_fallback, byte[] shared_secret ) { 
-    return NetworkConnectionFactory.create( target, encoder, decoder, connect_with_crypto, allow_fallback, shared_secret );
+  public NetworkConnection createConnection( ConnectionEndpoint	target, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto, boolean allow_fallback, byte[][] shared_secrets ) { 
+    return NetworkConnectionFactory.create( target, encoder, decoder, connect_with_crypto, allow_fallback, shared_secrets );
   }
   
   
@@ -426,12 +426,7 @@ public class NetworkManager {
      */
     public Object minMatches( TransportHelper transport, ByteBuffer to_compare, int port );
     
-    /**
-     * Returns true if this shared secret is recognised by the matcher
-     * @param shared_secret
-     * @return
-     */
-    public byte[] getSharedSecret();
+    public byte[][] getSharedSecrets();
     
     public int getSpecificPort();
   }

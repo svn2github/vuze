@@ -234,8 +234,8 @@ HTTPNetworkManager
 		    		return( "" );
 		    	}
 
-		    	public byte[] 
-		    	getSharedSecret()
+		    	public byte[][] 
+		    	getSharedSecrets()
 		    	{
 		    		return( null );	
 		    	}

@@ -176,7 +176,7 @@ IncomingConnectionManager
 	      
 	    	match_buffers_cow = new_match_buffers;
 	    
-	    	addSharedSecret( matcher.getSharedSecret());
+	    	addSharedSecrets( matcher.getSharedSecrets());
 	      
 	    }finally {  
 	    	match_buffers_mon.exit();  
@@ -210,28 +210,28 @@ IncomingConnectionManager
 	    
 	      match_buffers_cow = new_match_buffers;
 	      
-	      removeSharedSecret( to_remove.getSharedSecret());
+	      removeSharedSecrets( to_remove.getSharedSecrets());
 
 	    } finally {  match_buffers_mon.exit();  }  
 	} 
 	  
 	public void
-	addSharedSecret(
-		byte[]		secret )
+	addSharedSecrets(
+		byte[][]		secrets )
 	{
-		if ( secret != null ){
+		if ( secrets != null ){
 			
-			ProtocolDecoder.addSecret( secret );
+			ProtocolDecoder.addSecrets( secrets );
 		}
 	}
 	
 	public void
-	removeSharedSecret(
-		byte[]		secret )
+	removeSharedSecrets(
+		byte[][]		secrets )
 	{
-		if ( secret != null ){
+		if ( secrets != null ){
 			
-			ProtocolDecoder.removeSecret( secret );
+			ProtocolDecoder.removeSecrets( secrets );
 		}
 	}
 	

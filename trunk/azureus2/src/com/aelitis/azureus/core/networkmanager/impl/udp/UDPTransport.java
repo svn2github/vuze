@@ -42,7 +42,7 @@ UDPTransport
 	private static final LogIDs LOGID = LogIDs.NET;
 	
 	private ProtocolEndpointUDP		endpoint;
-	private byte[]					shared_secret;
+	private byte[][]				shared_secrets;
 	
 	private int transport_mode = TRANSPORT_MODE_NORMAL;
 	
@@ -51,10 +51,10 @@ UDPTransport
 	protected
 	UDPTransport(
 		ProtocolEndpointUDP		_endpoint,
-		byte[]					_shared_secret )
+		byte[][]				_shared_secrets )
 	{
 		endpoint		= _endpoint;
-		shared_secret	= _shared_secret;
+		shared_secrets	= _shared_secrets;
 	}
 
 	protected
@@ -139,7 +139,7 @@ UDPTransport
 			
 	    	TransportCryptoManager.getSingleton().manageCrypto( 
 	    			helper, 
-	    			shared_secret, 
+	    			shared_secrets, 
 	    			false, 
 	    			initial_data,
 	    			new TransportCryptoManager.HandshakeListener() 

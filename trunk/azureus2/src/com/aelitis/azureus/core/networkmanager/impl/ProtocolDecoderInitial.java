@@ -46,7 +46,7 @@ ProtocolDecoderInitial
 	
 	private TransportHelper	transport;
 
-	private byte[]		shared_secret;
+	private byte[][]	shared_secrets;
 	private ByteBuffer	initial_data;
 	private ByteBuffer	decode_buffer; 
 	private int			decode_read;
@@ -62,7 +62,7 @@ ProtocolDecoderInitial
 	public
 	ProtocolDecoderInitial(
 		TransportHelper				_transport,
-		byte[]						_shared_secret,
+		byte[][]					_shared_secrets,
 		boolean						_outgoing,
 		ByteBuffer					_initial_data,
 		ProtocolDecoderAdapter		_adapter )
@@ -72,7 +72,7 @@ ProtocolDecoderInitial
 		super( true );
 		
 		transport		= _transport;
-		shared_secret	= _shared_secret;
+		shared_secrets	= _shared_secrets;
 		initial_data	= _initial_data;
 		adapter			= _adapter;
 		
@@ -229,7 +229,7 @@ ProtocolDecoderInitial
 				}
 			};
 		
-		phe_decoder = new ProtocolDecoderPHE( transport, shared_secret, buffer, initial_data, phe_adapter );
+		phe_decoder = new ProtocolDecoderPHE( transport, shared_secrets, buffer, initial_data, phe_adapter );
 	}
 	
 	public boolean

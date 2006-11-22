@@ -63,7 +63,7 @@ GenericMessageConnectionImpl
 	private String								msg_desc;
 	private GenericMessageEndpointImpl			endpoint;
 	private int									stream_crypto;
-	byte[]										shared_secret;
+	byte[][]									shared_secrets;
 	
 	private boolean								incoming;
 	
@@ -94,14 +94,14 @@ GenericMessageConnectionImpl
 		String						_msg_desc,
 		GenericMessageEndpointImpl	_endpoint,
 		int							_stream_crypto,
-		byte[]						_shared_secret )
+		byte[][]					_shared_secrets )
 	{
 		message_manager	= _message_manager;
 		msg_id			= _msg_id;
 		msg_desc		= _msg_desc;
 		endpoint		= _endpoint;
 		stream_crypto	= _stream_crypto;
-		shared_secret	= _shared_secret;
+		shared_secrets	= _shared_secrets;
 		
 		incoming	= false;
 	}
@@ -196,7 +196,7 @@ GenericMessageConnectionImpl
 		
 		gen_tcp.addTCP( tcp_ep );
 		
-		final GenericMessageConnectionDirect tcp_delegate = new GenericMessageConnectionDirect( msg_id, msg_desc, gen_tcp, stream_crypto, shared_secret );
+		final GenericMessageConnectionDirect tcp_delegate = new GenericMessageConnectionDirect( msg_id, msg_desc, gen_tcp, stream_crypto, shared_secrets );
 			
 		tcp_delegate.setOwner( this );
 
@@ -259,7 +259,7 @@ GenericMessageConnectionImpl
 		
 		gen_udp.addUDP( udp_ep );
 		
-		final GenericMessageConnectionAdapter udp_delegate = new GenericMessageConnectionDirect( msg_id, msg_desc, gen_udp, stream_crypto, shared_secret );
+		final GenericMessageConnectionAdapter udp_delegate = new GenericMessageConnectionDirect( msg_id, msg_desc, gen_udp, stream_crypto, shared_secrets );
 		
 		udp_delegate.setOwner( this );
 		

@@ -50,9 +50,9 @@ GenericMessageConnectionDirect
 		String				msg_id,
 		String				msg_desc,
 		int					stream_crypto,
-		byte[]				shared_secret )
+		byte[][]			shared_secrets )
 	{		
-		GenericMessageConnectionDirect direct_connection = new GenericMessageConnectionDirect( msg_id, msg_desc, endpoint, stream_crypto, shared_secret );
+		GenericMessageConnectionDirect direct_connection = new GenericMessageConnectionDirect( msg_id, msg_desc, endpoint, stream_crypto, shared_secrets );
 		
 		return( direct_connection );
 	}
@@ -62,7 +62,7 @@ GenericMessageConnectionDirect
 	private String						msg_id;
 	private String						msg_desc;
 	private int							stream_crypto;
-	private byte[]						shared_secret;
+	private byte[][]					shared_secrets;
 	private GenericMessageEndpointImpl	endpoint;
 	private NetworkConnection			connection;
 	
@@ -77,13 +77,13 @@ GenericMessageConnectionDirect
 		String						_msg_desc,
 		GenericMessageEndpointImpl	_endpoint,
 		int							_stream_crypto,
-		byte[]						_shared_secret )
+		byte[][]					_shared_secrets )
 	{
 		msg_id			= _msg_id;
 		msg_desc		= _msg_desc;
 		endpoint		= _endpoint;
 		stream_crypto	= _stream_crypto;
-		shared_secret	= _shared_secret;
+		shared_secrets	= _shared_secrets;
 	}
 	
 	public void
@@ -174,7 +174,7 @@ GenericMessageConnectionDirect
 				new GenericMessageDecoder( msg_id, msg_desc ),
 				stream_crypto != MessageManager.STREAM_ENCRYPTION_NONE, 			// use crypto
 				stream_crypto != MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED, 	// allow fallback
-				shared_secret );
+				shared_secrets );
 		
 		ByteBuffer	initial_data = ByteBuffer.wrap( msg_id.getBytes());
 		

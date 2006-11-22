@@ -58,7 +58,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
   public volatile boolean has_been_closed = false;
     
   private boolean 	connect_with_crypto;
-  private byte[]	shared_secret;
+  private byte[][]	shared_secrets;
   private int		fallback_count;
   private final boolean fallback_allowed;
 
@@ -71,12 +71,12 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 	ProtocolEndpointTCP endpoint, 
 	boolean use_crypto, 
 	boolean allow_fallback, 
-	byte[] _shared_secret ) 
+	byte[][] _shared_secrets ) 
   {
 	protocol_endpoint = endpoint;  
     is_inbound_connection = false;
     connect_with_crypto = use_crypto;
-    shared_secret		= _shared_secret;
+    shared_secrets		= _shared_secrets;
     fallback_allowed  = allow_fallback;
   }
   
@@ -223,7 +223,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     	//attempt encrypted transport
   		
   		final TransportHelper	helper = new TCPTransportHelper( channel );
-    	TransportCryptoManager.getSingleton().manageCrypto( helper, shared_secret, false, initial_data, new TransportCryptoManager.HandshakeListener() {
+    	TransportCryptoManager.getSingleton().manageCrypto( helper, shared_secrets, false, initial_data, new TransportCryptoManager.HandshakeListener() {
     		public void handshakeSuccess( ProtocolDecoder decoder, ByteBuffer remaining_initial_data ) {    			
     			//System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" ); 
     			TransportHelperFilter filter = decoder.getFilter();

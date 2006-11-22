@@ -92,13 +92,13 @@ ConnectionEndpoint
 	connectOutbound(
 		boolean				connect_with_crypto, 
 		boolean 			allow_fallback, 
-		byte[] 				shared_secret,
+		byte[][]			shared_secrets,
 		ByteBuffer			initial_data,
 		ConnectListener 	listener )
 	{
 		ProtocolEndpoint	protocol = protocols[0];
 		
-		final Transport transport = protocol.connectOutbound( connect_with_crypto, allow_fallback, shared_secret, initial_data, listener );
+		final Transport transport = protocol.connectOutbound( connect_with_crypto, allow_fallback, shared_secrets, initial_data, listener );
 		
 		return( 
 			new ConnectionAttempt()

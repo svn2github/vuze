@@ -39,7 +39,7 @@ public class TransportCryptoManager {
 	public void 
 	manageCrypto( 
 		TransportHelper				transport,
-		byte[]						shared_secret,
+		byte[][]					shared_secrets,
 		boolean 					is_incoming, 
 		ByteBuffer					initial_data,
 		final HandshakeListener 	listener ) 
@@ -47,7 +47,7 @@ public class TransportCryptoManager {
 			try{
 				new ProtocolDecoderInitial( 
 						transport, 
-						shared_secret,
+						shared_secrets,
 						!is_incoming,
 						initial_data,
 						new ProtocolDecoderAdapter()

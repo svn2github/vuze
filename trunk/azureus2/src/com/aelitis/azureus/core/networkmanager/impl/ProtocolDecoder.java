@@ -117,16 +117,16 @@ ProtocolDecoder
 	getFilter();
 	
 	public static void
-	addSecret(
-		byte[]		secret )
+	addSecrets(
+		byte[][]		secrets )
 	{
-		ProtocolDecoderPHE.addSecretSupport( secret );
+		ProtocolDecoderPHE.addSecretsSupport( secrets );
 	}
 	
 	public static void
-	removeSecret(
-		byte[]		secret )
+	removeSecrets(
+		byte[][]		secrets )
 	{
-		ProtocolDecoderPHE.removeSecretSupport( secret );
+		ProtocolDecoderPHE.removeSecretsSupport( secrets );
 	}
 }

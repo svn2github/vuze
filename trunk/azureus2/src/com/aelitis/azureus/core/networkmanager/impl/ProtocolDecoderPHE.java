@@ -127,7 +127,7 @@ ProtocolDecoderPHE
     
 	private static final Random	random = new SecureRandom();
 	
-	private static Map	shared_secrets	= new HashMap();
+	private static Map	global_shared_secrets	= new HashMap();
 	
 	static{
 		try{
@@ -196,36 +196,42 @@ ProtocolDecoderPHE
 	}
 	
 	public static void
-	addSecretSupport(
-		byte[]		secret )
+	addSecretsSupport(
+		byte[][]		secrets )
 	{
-		SHA1Hasher hasher = new SHA1Hasher();
-   		
-   		hasher.update( REQ2_IV );
-   		hasher.update( secret );
-   		
-   		byte[]	encoded = hasher.getDigest();
-		                  	
-		synchronized( shared_secrets ){
+		for (int i=0;i<secrets.length;i++){
 			
-			shared_secrets.put( new HashWrapper( encoded ), secret );
+			SHA1Hasher hasher = new SHA1Hasher();
+	   		
+	   		hasher.update( REQ2_IV );
+	   		hasher.update( secrets[i] );
+	   		
+	   		byte[]	encoded = hasher.getDigest();
+			                  	
+			synchronized( global_shared_secrets ){
+				
+				global_shared_secrets.put( new HashWrapper( encoded ), secrets[i] );
+			}
 		}
 	}
 	
 	public static void
-	removeSecretSupport(
-		byte[]		secret )
+	removeSecretsSupport(
+		byte[][]		secrets )
 	{
-		SHA1Hasher hasher = new SHA1Hasher();
-   		
-   		hasher.update( REQ2_IV );
-   		hasher.update( secret );
-   		
-   		byte[]	encoded = hasher.getDigest();
-		                  	
-		synchronized( shared_secrets ){
-			
-			shared_secrets.remove( new HashWrapper( encoded ));
+		for (int i=0;i<secrets.length;i++){
+
+			SHA1Hasher hasher = new SHA1Hasher();
+	   		
+	   		hasher.update( REQ2_IV );
+	   		hasher.update( secrets[i] );
+	   		
+	   		byte[]	encoded = hasher.getDigest();
+			                  	
+			synchronized( global_shared_secrets ){
+				
+				global_shared_secrets.remove( new HashWrapper( encoded ));
+			}
 		}
 	}
 	
@@ -339,7 +345,7 @@ ProtocolDecoderPHE
 	public 
 	ProtocolDecoderPHE(
 		TransportHelper				_transport,
-		byte[]						_shared_secret,
+		byte[][]					_shared_secrets,	
 		ByteBuffer					_header,
 		ByteBuffer					_initial_data,
 		ProtocolDecoderAdapter		_adapter )
@@ -354,13 +360,16 @@ ProtocolDecoderPHE
 		}
 		
 		transport			= _transport;
-		shared_secret		= _shared_secret;
 		initial_data_out	= _initial_data;
 		adapter				= _adapter;
 		
-		if ( shared_secret == null ){
+		if ( _shared_secrets == null ){
 			
 			shared_secret	= new byte[0];
+			
+		}else{
+			
+			shared_secret	= _shared_secrets[0];
 		}
 		
 		outbound	= _header == null;
@@ -985,9 +994,9 @@ ProtocolDecoderPHE
 								decode[i] ^= sha1[i];
 							}
 							
-							synchronized( shared_secrets ){
+							synchronized( global_shared_secrets ){
 								
-								shared_secret	= (byte[])shared_secrets.get( new HashWrapper( decode ));
+								shared_secret	= (byte[])global_shared_secrets.get( new HashWrapper( decode ));
 							}
 							
 							if ( shared_secret == null ){

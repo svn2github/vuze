@@ -38,8 +38,8 @@ public class NetworkConnectionFactory {
    * @param decoder
    * @return outbound connection
    */
-  protected static NetworkConnection create( ConnectionEndpoint	target, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto, boolean allow_fallback, byte[] shared_secret ) {
-    return new NetworkConnectionImpl( target, encoder, decoder, connect_with_crypto, allow_fallback, shared_secret );
+  protected static NetworkConnection create( ConnectionEndpoint	target, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto, boolean allow_fallback, byte[][] shared_secrets ) {
+    return new NetworkConnectionImpl( target, encoder, decoder, connect_with_crypto, allow_fallback, shared_secrets );
   }
 
   

@@ -46,7 +46,7 @@ ProtocolEndpoint
 	connectOutbound(
 		boolean				connect_with_crypto, 
 		boolean 			allow_fallback, 
-		byte[] 				shared_secret,
+		byte[][]			shared_secrets,
 		ByteBuffer			initial_data,
 		ConnectListener 	listener );
 	
