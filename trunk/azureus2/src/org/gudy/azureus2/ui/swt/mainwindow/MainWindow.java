@@ -1536,7 +1536,11 @@ MainWindow
 
 		if (currentView instanceof ObfusticateImage) {
 			Point ofs = shell.toDisplay(clientArea.x, clientArea.y);
-			((ObfusticateImage)currentView).obfusticatedImage(image, ofs);
+			try {
+				((ObfusticateImage)currentView).obfusticatedImage(image, ofs);
+			} catch (Exception e) {
+				Debug.out("Obfusticating " + currentView, e);
+			}
 		}
 
 		for (int i = 0; i < allViews.length; i++) {
