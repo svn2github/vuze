@@ -154,6 +154,12 @@ TRTrackerAnnouncerImpl
 				
 				entry.put( "prot", new Long(peer.getProtocol()));
 				
+				byte	az_ver = peer.getAZVersion();
+				
+				if ( az_ver != TRTrackerAnnouncer.AZ_TRACKER_VERSION_1 ){
+					entry.put( "azver", new Long( az_ver ));
+				}
+				
 				peers.add( entry );
 			}
 		
@@ -248,8 +254,9 @@ TRTrackerAnnouncerImpl
 					int		peer_udp_port	= l_udp_port==null?0:l_udp_port.intValue();
 					Long	l_http_port		= (Long)peer.get("httpport");
 					int		peer_http_port	= l_http_port==null?0:l_http_port.intValue();
-
-					
+					Long	l_az_ver		= (Long)peer.get("azver");
+					byte	az_ver			= l_az_ver==null?TRTrackerAnnouncer.AZ_TRACKER_VERSION_1:l_az_ver.byteValue();
+				
 					//System.out.println( "recovered " + ip_address + ":" + port );
 
 					TRTrackerAnnouncerResponsePeerImpl	entry =
@@ -260,7 +267,8 @@ TRTrackerAnnouncerImpl
 							peer_tcp_port,
 							peer_udp_port,
 							peer_http_port,
-							protocol );
+							protocol,
+							az_ver );
 					
 					tracker_peer_cache.put( entry.getKey(), entry );
 				}
@@ -334,7 +342,7 @@ TRTrackerAnnouncerImpl
 				// create a fake peer so we can get the key
 			
 			TRTrackerAnnouncerResponsePeerImpl peer = 
-				new TRTrackerAnnouncerResponsePeerImpl( "", new byte[0], ip, tcp_port, 0, 0, (short)0 );
+				new TRTrackerAnnouncerResponsePeerImpl( "", new byte[0], ip, tcp_port, 0, 0, (short)0, (byte)0 );
 			
 			if ( tracker_peer_cache.remove( peer.getKey()) != null ){
 				

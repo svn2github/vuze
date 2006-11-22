@@ -42,6 +42,9 @@ public class PeerItemFactory {
   public static final byte HANDSHAKE_TYPE_PLAIN  = 0;
   public static final byte HANDSHAKE_TYPE_CRYPTO = 1;
   
+  public static final byte	CRYPTO_LEVEL_1			= 1;
+  public static final byte	CRYPTO_LEVEL_2			= 2;
+  public static final byte	CRYPTO_LEVEL_CURRENT	= CRYPTO_LEVEL_2;
   
   
   private static final WeakHashMap peer_items = new WeakHashMap();
@@ -56,8 +59,8 @@ public class PeerItemFactory {
    * @param source this peer info was obtained from
    * @return peer
    */
-  public static PeerItem createPeerItem( String address, int tcp_port, byte source, byte handshake_type, int udp_port ) {
-    return getLightweight( new PeerItem( address, tcp_port, source, handshake_type, udp_port ) );
+  public static PeerItem createPeerItem( String address, int tcp_port, byte source, byte handshake_type, int udp_port, byte crypto_level ) {
+    return getLightweight( new PeerItem( address, tcp_port, source, handshake_type, udp_port, crypto_level ) );
   }
   
   /**

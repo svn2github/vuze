@@ -55,9 +55,10 @@ PEPeerTransportFactory
 		int 				tcp_port,
 		int					udp_port,
 		boolean				use_tcp,
-		boolean 			require_crypto_handshake )
+		boolean 			require_crypto_handshake,
+		byte				crypto_level )
 	{
-    return new PEPeerTransportProtocol( control, peer_source, ip, tcp_port, udp_port, use_tcp, require_crypto_handshake );    
+		return new PEPeerTransportProtocol( control, peer_source, ip, tcp_port, udp_port, use_tcp, require_crypto_handshake, crypto_level );    
 	}
   
   

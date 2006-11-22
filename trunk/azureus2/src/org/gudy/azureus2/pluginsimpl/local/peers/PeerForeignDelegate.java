@@ -238,7 +238,8 @@ PeerForeignDelegate
 				foreign.getTCPListenPort(), 
 				PeerItemFactory.PEER_SOURCE_PLUGIN, 
 				PeerItemFactory.HANDSHAKE_TYPE_PLAIN,
-				foreign.getUDPListenPort());
+				foreign.getUDPListenPort(),
+				PeerItemFactory.CRYPTO_LEVEL_1 );
 	}
   
   

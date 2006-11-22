@@ -651,7 +651,9 @@ PEPeerControlImpl
 		boolean use_crypto ) 
 	{
 		final byte type = use_crypto ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
-		final PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, tcp_port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type, udp_port );
+		final PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, tcp_port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type, udp_port, PeerItemFactory.CRYPTO_LEVEL_1 );
+		
+		byte	crypto_level = PeerItemFactory.CRYPTO_LEVEL_1;
 		
 		if( !isAlreadyConnected( peer_item ) ) {
 			
@@ -659,11 +661,11 @@ PEPeerControlImpl
 			
 			if ( TCPNetworkManager.TCP_OUTGOING_ENABLED && tcp_port > 0){
 
-				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, true, use_crypto );  //directly inject the the imported peer
+				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, true, use_crypto, crypto_level );  //directly inject the the imported peer
 				
 			}else if ( UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 ){
 				
-				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, false, use_crypto );  //directly inject the the imported peer
+				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, false, use_crypto, crypto_level );  //directly inject the the imported peer
 
 			}else{
 			
@@ -708,8 +710,12 @@ PEPeerControlImpl
 			if( already_connected )  continue;
 			
 			if( peer_database != null ) {				
-				final byte type = peer.getProtocol() == DownloadAnnounceResultPeer.PROTOCOL_CRYPT ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
-				final PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), type, peer.getUDPPort());
+				byte type = peer.getProtocol() == DownloadAnnounceResultPeer.PROTOCOL_CRYPT ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
+				
+				byte crypto_level = peer.getAZVersion() < TRTrackerAnnouncer.AZ_TRACKER_VERSION_3?PeerItemFactory.CRYPTO_LEVEL_1:PeerItemFactory.CRYPTO_LEVEL_2;
+				
+				PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), type, peer.getUDPPort(), crypto_level );
+				
 				peer_database.addDiscoveredPeer( item );
 			}
 			
@@ -736,7 +742,8 @@ PEPeerControlImpl
 		int 		tcp_port,
 		int			udp_port,
 		boolean		use_tcp,
-		boolean 	require_crypto ) 
+		boolean 	require_crypto,
+		byte		crypto_level ) 
 	{    
 		//make sure this connection isn't filtered
    
@@ -771,7 +778,7 @@ PEPeerControlImpl
 		}
 		
 		//start the connection
-		PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, tcp_port, udp_port, use_tcp, require_crypto );
+		PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, tcp_port, udp_port, use_tcp, require_crypto, crypto_level );
 		
 		addToPeerTransports( real );
 		return null;
@@ -2816,7 +2823,7 @@ PEPeerControlImpl
 
 						if ( TCPNetworkManager.TCP_OUTGOING_ENABLED && item.getTCPPort() > 0 ){
 							
-							if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), true, use_crypto ) == null) {
+							if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), true, use_crypto, item.getCryptoLevel()) == null) {
 								
 								num_waiting_establishments++;
 								
@@ -2824,7 +2831,7 @@ PEPeerControlImpl
 							}
 						}else if ( UDPNetworkManager.UDP_OUTGOING_ENABLED && item.getUDPPort() > 0 ){
 								
-							if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), false, use_crypto ) == null) {
+							if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), false, use_crypto, item.getCryptoLevel() ) == null) {
 									
 								num_waiting_establishments++;
 									
@@ -2962,7 +2969,8 @@ PEPeerControlImpl
 										peer_item.getTCPPort(),
 										target.getPort(),
 										false,
-										true );
+										true,
+										peer_item.getCryptoLevel());
 							}
 							
 							public void
@@ -3105,7 +3113,8 @@ PEPeerControlImpl
 												base_peer.getTCPListenPort(),
 												PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE,
 												base_peer.getPeerItemIdentity().getHandshakeType(),
-												base_peer.getUDPListenPort());
+												base_peer.getUDPListenPort(),
+												PeerItemFactory.CRYPTO_LEVEL_1 );
 			
 			return peer_database.registerPeerConnection( peer, new PeerExchangerItem.Helper(){
 				public boolean 
@@ -3134,7 +3143,7 @@ PEPeerControlImpl
 	public void peerVerifiedAsSelf( PEPeerTransport self ) {
 		if( self.getTCPListenPort() > 0 ) {  //only accept self if remote port is known
 			final PeerItem peer = PeerItemFactory.createPeerItem( self.getIp(), self.getTCPListenPort(),
-				PeerItem.convertSourceID( self.getPeerSource() ), self.getPeerItemIdentity().getHandshakeType(), self.getUDPListenPort());
+				PeerItem.convertSourceID( self.getPeerSource() ), self.getPeerItemIdentity().getHandshakeType(), self.getUDPListenPort(),PeerItemFactory.CRYPTO_LEVEL_CURRENT );
 			peer_database.setSelfPeer( peer );
 		}
 	}

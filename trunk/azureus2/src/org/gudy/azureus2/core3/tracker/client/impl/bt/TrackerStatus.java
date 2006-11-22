@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperClientResolver;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperImpl;
@@ -420,7 +421,7 @@ public class TrackerStatus {
 					
 					request += port_details;
 					
-					request += "&azsf=" + flags;
+					request += "&azsf=" + flags + "&azver=" + TRTrackerAnnouncer.AZ_TRACKER_VERSION_CURRENT;
 				}
 				
 				URL reqUrl = new URL( request );

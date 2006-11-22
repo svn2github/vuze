@@ -42,8 +42,9 @@ public class PeerItem implements PeerDescriptor {
   private final byte source;
   private final int hashcode;
   private final byte handshake;
+  private final byte crypto_level;
   
-  protected PeerItem( String _address, int _tcp_port, byte _source, byte _handshake, int _udp_port ) {
+  protected PeerItem( String _address, int _tcp_port, byte _source, byte _handshake, int _udp_port, byte _crypto_level ) {
     byte[] raw;
     try{
       //see if we can resolve the address into a compact raw IPv4/6 byte array (4 or 16 bytes)
@@ -61,6 +62,7 @@ public class PeerItem implements PeerDescriptor {
     source = _source;
     hashcode = new String( address ).hashCode() + tcp_port;
     handshake = _handshake;
+    crypto_level = _crypto_level;
     
     if( address.length != 4 ) {
       System.out.println( "PeerItem OUT: address byte size=" +address.length);
@@ -84,7 +86,7 @@ public class PeerItem implements PeerDescriptor {
     hashcode = new String( address ).hashCode() + tcp_port;
     handshake = _handshake;
     udp_port = (short)_udp_port;
-    
+    crypto_level = PeerItemFactory.CRYPTO_LEVEL_1;	// TODO: serialise this...
     if( address.length > 15 ) {
       System.out.println( "PeerItem IN: address byte size=" +address.length);
     }
@@ -127,7 +129,8 @@ public class PeerItem implements PeerDescriptor {
 
   public byte getHandshakeType() {  return handshake;  }
   
-
+  public byte getCryptoLevel() { return crypto_level; }
+  
   public boolean equals( Object obj ) {
     if( this == obj )  return true;
     if( obj != null && obj instanceof PeerItem ) {

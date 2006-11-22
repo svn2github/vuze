@@ -493,7 +493,8 @@ TRTrackerServerProcessorTCP
 							client_ip_address,
 							downloaded, uploaded, left,
 							num_want,
-							crypto_level );
+							crypto_level,
+							(byte)az_ver );
 				
 				root	= root_out[0];
 

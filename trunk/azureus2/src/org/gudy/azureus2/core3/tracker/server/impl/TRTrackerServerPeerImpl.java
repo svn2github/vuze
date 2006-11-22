@@ -40,6 +40,7 @@ TRTrackerServerPeerImpl
 	private short		udp_port;
 	private short		http_port;
 	private byte		crypto_level;
+	private byte		az_ver;
 	private String		ip_str;
 	private byte[]		ip_bytes;
 	private byte		NAT_status	= NAT_CHECK_UNKNOWN;
@@ -65,6 +66,7 @@ TRTrackerServerPeerImpl
 		int			_udp_port,
 		int			_http_port,
 		byte		_crypto_level,
+		byte		_az_ver,
 		long		_last_contact_time,
 		boolean		_download_completed,
 		byte		_last_nat_status )
@@ -77,6 +79,7 @@ TRTrackerServerPeerImpl
 		udp_port			= (short)_udp_port;
 		http_port			= (short)_http_port;
 		crypto_level		= _crypto_level;
+		az_ver				= _az_ver;
 		last_contact_time	= _last_contact_time;
 		download_completed	= _download_completed;
 		NAT_status			= _last_nat_status;	
@@ -90,11 +93,13 @@ TRTrackerServerPeerImpl
 		int			_port,
 		int			_udp_port,
 		int			_http_port,
-		byte		_crypto_level )
+		byte		_crypto_level,
+		byte		_az_ver )
 	{
 		udp_port		= (short)_udp_port;
 		http_port		= (short)_http_port;
 		crypto_level	= _crypto_level;
+		az_ver			= _az_ver;
 		
 		boolean	res	= false;
 		
@@ -296,6 +301,12 @@ TRTrackerServerPeerImpl
 	getCryptoLevel()
 	{
 		return( crypto_level );
+	}
+	
+	protected byte
+	getAZVer()
+	{
+		return( az_ver );
 	}
 	
 	protected void

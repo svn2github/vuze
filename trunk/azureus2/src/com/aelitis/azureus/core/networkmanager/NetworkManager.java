@@ -47,10 +47,7 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
 public class NetworkManager {
 	  
   public static final int UNLIMITED_RATE = 1024 * 1024 * 100; //100 mbyte/s
-  
-  public static final int CRYPTO_LEVEL_1	= 1;
-  public static final int CRYPTO_LEVEL_2	= 2;
-  
+    
   private static final NetworkManager instance = new NetworkManager();
 
   private static int max_download_rate_bps;

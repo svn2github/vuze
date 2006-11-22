@@ -78,6 +78,8 @@ PEPeerTransportProtocol
   private int udp_listen_port = 0;
   private int udp_non_data_port = 0;
 	
+  private byte	crypto_level;
+  
   protected final PEPeerStats peer_stats;
   
   private final ArrayList requested = new ArrayList();
@@ -219,7 +221,7 @@ PEPeerTransportProtocol
     ip    = notional_address.getAddress().getHostAddress();
     port  = notional_address.getPort();
     
-    peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, 0 );  //this will be recreated upon az handshake decode
+    peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, 0, PeerItemFactory.CRYPTO_LEVEL_1 );  //this will be recreated upon az handshake decode
     
     plugin_connection = new ConnectionImpl(connection);
     
@@ -292,7 +294,8 @@ PEPeerTransportProtocol
 		int 			_tcp_port, 
 		int 			_udp_port,
 		boolean			_use_tcp,
-		boolean 		require_crypto_handshake ) 
+		boolean 		_require_crypto_handshake,
+		byte			_crypto_level ) 
   {
     manager = _manager;
     diskManager =manager.getDiskManager();
@@ -305,9 +308,11 @@ PEPeerTransportProtocol
     port  = _tcp_port;
     tcp_listen_port = _tcp_port;
     udp_listen_port	= _udp_port;
+    crypto_level	= _crypto_level;
+    
     udp_non_data_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
     	
-    peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, _udp_port );  //this will be recreated upon az handshake decode
+    peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, _udp_port, crypto_level );  //this will be recreated upon az handshake decode
     
     incoming = false;
     
@@ -318,7 +323,7 @@ PEPeerTransportProtocol
       return;
     }
 
-    boolean use_crypto = require_crypto_handshake || NetworkManager.REQUIRE_CRYPTO_HANDSHAKE;  //either peer specific or global pref
+    boolean use_crypto = _require_crypto_handshake || NetworkManager.REQUIRE_CRYPTO_HANDSHAKE;  //either peer specific or global pref
     
     if( isLANLocal() )  use_crypto = false;  //dont bother with PHE for lan peers
     
@@ -341,17 +346,15 @@ PEPeerTransportProtocol
     ConnectionEndpoint connection_endpoint	= new ConnectionEndpoint( endpoint_address );
     
     connection_endpoint.addProtocol( pe );
-    
-    int crypto_level = NetworkManager.CRYPTO_LEVEL_1;
-    
+       
     connection = 
     	NetworkManager.getSingleton().createConnection(
     			connection_endpoint, 
     			new BTMessageEncoder(), 
     			new BTMessageDecoder(), 
     			use_crypto, 
-    			!require_crypto_handshake, 
-    			manager.getSecrets( crypto_level ));
+    			!_require_crypto_handshake, 
+    			manager.getSecrets( _crypto_level ));
     
     plugin_connection = new ConnectionImpl(connection);
     
@@ -1589,7 +1592,7 @@ PEPeerTransportProtocol
       final byte type = handshake.getHandshakeType() == AZHandshake.HANDSHAKE_TYPE_CRYPTO ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
       
       //remake the id using the peer's remote listen port instead of their random local port
-      peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( peer_source ), type, udp_listen_port );
+      peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( peer_source ), type, udp_listen_port, crypto_level );
     }
 
     //find mutually available message types
@@ -2456,7 +2459,8 @@ PEPeerTransportProtocol
 							getTCPListenPort(), 
 							getUDPListenPort(),
 							use_tcp,
-							use_crypto );
+							use_crypto,
+							crypto_level );
 			
 			return( new_conn );
 			

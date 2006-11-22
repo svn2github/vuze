@@ -141,6 +141,7 @@ TRTrackerServerTorrentImpl
 		int			udp_port,
 		int			http_port,
 		byte		crypto_level,
+		byte		az_ver,
 		String		ip_address,
 		boolean		ip_override,
 		boolean		loopback,
@@ -305,6 +306,7 @@ TRTrackerServerTorrentImpl
 									udp_port,
 									http_port,
 									crypto_level,
+									az_ver,
 									last_contact_time,
 									already_completed,
 									last_NAT_status );
@@ -386,7 +388,7 @@ TRTrackerServerTorrentImpl
 					byte[]	old_ip 		= peer.getIPAsRead();
 					int		old_port	= peer.getTCPPort();
 					
-					if ( peer.checkForIPOrPortChange( ip_address_bytes, tcp_port, udp_port, http_port, crypto_level )){
+					if ( peer.checkForIPOrPortChange( ip_address_bytes, tcp_port, udp_port, http_port, crypto_level, az_ver )){
 						
 							// same peer id so same port
 						
@@ -620,6 +622,7 @@ TRTrackerServerTorrentImpl
 		int			udp_port,
 		int			http_port,
 		byte		crypto_level,
+		byte		az_ver,
 		int			timeout_secs,
 		boolean		seed )
 	{
@@ -633,7 +636,7 @@ TRTrackerServerTorrentImpl
 		try{
 			this_mon.enter();
 				
-			QueuedPeer	new_qp = new QueuedPeer( ip, tcp_port, udp_port, http_port, crypto_level, timeout_secs, seed );
+			QueuedPeer	new_qp = new QueuedPeer( ip, tcp_port, udp_port, http_port, crypto_level, az_ver, timeout_secs, seed );
 		
 			String	reuse_key = new String( new_qp.getIP(), Constants.BYTE_ENCODING ) + ":" + tcp_port;
 
@@ -973,9 +976,12 @@ TRTrackerServerTorrentImpl
 								
 								if ( compact_mode >= COMPACT_MODE_AZ ){
 									
+									rep_peer.put( "azver", new Long( peer.getAZVer()));
+									
 									rep_peer.put( "azudp", new Long( peer.getUDPPort()));
 									
 									if ( peer.isSeed()){
+										
 										rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
 									}
 								}
@@ -1108,9 +1114,12 @@ TRTrackerServerTorrentImpl
 													
 													if ( compact_mode >= COMPACT_MODE_AZ ){
 														
+														rep_peer.put( "azver", new Long( peer.getAZVer()));
+														
 														rep_peer.put( "azudp", new Long( peer.getUDPPort()));
 														
 														if ( peer.isSeed()){
+															
 															rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
 														}
 													}
@@ -1196,9 +1205,12 @@ TRTrackerServerTorrentImpl
 									
 									if ( compact_mode >= COMPACT_MODE_AZ ){
 										
+										rep_peer.put( "azver", new Long( peer.getAZVer()));
+										
 										rep_peer.put( "azudp", new Long( peer.getUDPPort()));
 										
 										if ( peer.isSeed()){
+											
 											rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
 										}
 									}
@@ -1259,9 +1271,12 @@ TRTrackerServerTorrentImpl
 								
 							if ( compact_mode >= COMPACT_MODE_AZ ){
 									
+								rep_peer.put( "azver", new Long( peer.getAZVer()));
+								
 								rep_peer.put( "azudp", new Long( peer.getUDPPort()));
 								
 								if ( peer.isSeed()){
+									
 									rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
 								}
 							}
@@ -1386,6 +1401,14 @@ TRTrackerServerTorrentImpl
 					if ( crypto_flag != 0 ){
 						
 						peer.put( "c", new byte[]{ crypto_flag } );
+					}
+					
+					Long	az_ver_l	= (Long)rep_peer.get( "azver" );
+					byte	az_ver		= az_ver_l==null?0:az_ver_l.byteValue();
+					
+					if ( az_ver != 0 ){
+						
+						peer.put( "v", new Long(az_ver));
 					}
 				}
 									
@@ -1980,6 +2003,7 @@ TRTrackerServerTorrentImpl
 		private short	http_port;
 		private byte[]	ip;
 		private byte	crypto_level;
+		private byte	az_ver;
 		private int		create_time_secs;
 		private int		timeout_secs;
 		private boolean	seed;
@@ -1991,6 +2015,7 @@ TRTrackerServerTorrentImpl
 			int			_udp_port,
 			int			_http_port,
 			byte		_crypto_level,
+			byte		_az_ver,
 			int			_timeout_secs,
 			boolean		_seed )
 		{
@@ -2006,6 +2031,7 @@ TRTrackerServerTorrentImpl
 			udp_port	= (short)_udp_port;
 			http_port	= (short)_http_port;
 			crypto_level	= _crypto_level;
+			az_ver			= _az_ver;
 			seed			= _seed;
 			
 			create_time_secs 	= (int)SystemTime.getCurrentTime()/1000;
@@ -2076,6 +2102,12 @@ TRTrackerServerTorrentImpl
 		getCryptoLevel()
 		{
 			return( crypto_level );
+		}
+		
+		protected byte
+		getAZVer()
+		{
+			return( az_ver );
 		}
 		
 		protected int

@@ -35,6 +35,7 @@ TRTrackerAnnouncerResponsePeerImpl
 	private int			udp_port;
 	private int			http_port;
 	private short		crypto;
+	private byte		az_version;
 	
 	public
 	TRTrackerAnnouncerResponsePeerImpl(
@@ -44,7 +45,8 @@ TRTrackerAnnouncerResponsePeerImpl
 		int			_tcp_port,
 		int			_udp_port,
 		int			_http_port,
-		short		_crypto )
+		short		_crypto,
+		byte		_az_version )
 	{
 		source		= _source;
 		peer_id		= _peer_id;
@@ -53,6 +55,7 @@ TRTrackerAnnouncerResponsePeerImpl
 		udp_port	= _udp_port;
 		http_port	= _http_port;
 		crypto		= _crypto;
+		az_version	= _az_version;
 	}
 	
 	public String
@@ -97,6 +100,12 @@ TRTrackerAnnouncerResponsePeerImpl
 		return( crypto );
 	}
 	
+	public byte
+	getAZVersion()
+	{
+		return( az_version );
+	}
+	
 	protected String
 	getKey()
 	{
@@ -106,6 +115,6 @@ TRTrackerAnnouncerResponsePeerImpl
 	public String
 	getString()
 	{
-		return( "ip=" + address + ",tcp_port=" + tcp_port + ",udp_port=" + udp_port + ",prot=" + crypto );
+		return( "ip=" + address + ",tcp_port=" + tcp_port + ",udp_port=" + udp_port + ",prot=" + crypto + ",ver=" + az_version );
 	}
 }

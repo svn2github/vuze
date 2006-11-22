@@ -30,10 +30,14 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 public interface 
 TRTrackerAnnouncer 
 {
-		// 2 - supports azcompact
-		// 3 - supports experimental alternative secret for crypto
+		
+		
 	
-	public final static int AZ_TRACKER_VERSION	= 3;
+	public final static byte AZ_TRACKER_VERSION_1	= 1;	// anything before 2 ;)
+	public final static byte AZ_TRACKER_VERSION_2	= 2;	// supports azcompact
+	public final static byte AZ_TRACKER_VERSION_3	= 3;	// supports experimental alternative secret for crypto
+	
+	public final static byte AZ_TRACKER_VERSION_CURRENT	= AZ_TRACKER_VERSION_3;
 	
 	public static final int REFRESH_MINIMUM_SECS		= 60;
 	public static final int DEFAULT_PEERS_TO_CACHE		= 512;

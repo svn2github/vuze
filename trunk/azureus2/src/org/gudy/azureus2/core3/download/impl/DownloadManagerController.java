@@ -66,6 +66,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
@@ -1130,7 +1131,7 @@ DownloadManagerController
 		try{
 			byte[]	secret;
 			
-			if ( crypto_level == NetworkManager.CRYPTO_LEVEL_1 ){
+			if ( crypto_level == PeerItemFactory.CRYPTO_LEVEL_1 ){
 				
 				secret = torrent.getHash();
 				

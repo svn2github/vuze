@@ -29,4 +29,7 @@ TRTrackerAnnouncerResponsePeer
 {
 	public int
 	getHTTPPort();
+	
+	public byte
+	getAZVersion();
 }

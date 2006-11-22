@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
@@ -261,7 +262,8 @@ TRTrackerDHTAnnouncerImpl
 					Logger.log(new LogEvent(torrent, LOGID, "EXTERNAL PEER DHT: ip="
 							+ ext_peer.getAddress() + ",port=" + ext_peer.getPort() +",prot=" + ext_peer.getProtocol()));
 
-				int	http_port	= 0;
+				int		http_port	= 0;
+				byte	az_version 	= TRTrackerAnnouncer.AZ_TRACKER_VERSION_1;
 				
 				peers[i] = new TRTrackerAnnouncerResponsePeerImpl( 
 									ext_peer.getSource(),
@@ -270,7 +272,8 @@ TRTrackerDHTAnnouncerImpl
 									ext_peer.getPort(),
 									ext_peer.getUDPPort(),
 									http_port,
-									ext_peer.getProtocol());
+									ext_peer.getProtocol(),
+									az_version );
 			}
 			
 			addToTrackerCache( peers);
