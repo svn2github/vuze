@@ -123,9 +123,11 @@ TableManagerImpl
 		
 		private List	cell_added_listeners	= new ArrayList();
 		private List	cell_dispose_listeners	= new ArrayList();
+		private List    cell_mouse_listeners    = new ArrayList();
 		private List	cell_refresh_listeners	= new ArrayList();
 		private List	cell_tooltip_listeners	= new ArrayList();
 		private List	context_memu_items		= new ArrayList();
+		private List    general_listeners       = new ArrayList(); // used by addListeners
 		
   		protected
   		TableColumnDelegate(
@@ -175,6 +177,14 @@ TableManagerImpl
   			
   				for (int i=0;i<cell_tooltip_listeners.size();i++){
   					delegate.addCellToolTipListener((TableCellToolTipListener)cell_tooltip_listeners.get(i));
+  				}
+
+  				for (int i=0;i<cell_mouse_listeners.size();i++){
+  					delegate.addCellMouseListener((TableCellMouseListener)cell_mouse_listeners.get(i));
+  				}
+  				
+  				for (int i=0;i<general_listeners.size();i++){
+  					delegate.addListeners(general_listeners.get(i));
   				}
   				
   				for (int i=0;i<context_memu_items.size();i++){
@@ -453,20 +463,28 @@ TableManagerImpl
 		} 
   	
 		public void addCellMouseListener(TableCellMouseListener listener) {
-			if (delegate != null)
-				delegate.addCellMouseListener(listener);
+			if ( delegate == null ){
+				cell_mouse_listeners.add( listener );
+			}else{
+				delegate.addCellMouseListener( listener );
+			}
 		}
 
 		public void removeCellMouseListener(TableCellMouseListener listener) {
-			if (delegate != null)
-				delegate.removeCellMouseListener(listener);
+			if ( delegate == null ){
+				cell_mouse_listeners.remove( listener );
+			}else{
+				delegate.removeCellMouseListener( listener );
+			}
 		}
 
 		public void addListeners(Object listenerObject) {
-			if (delegate != null)
-				delegate.addListeners(listenerObject);
+			if ( delegate == null ){
+				general_listeners.add( listenerObject );
+			}else{
+				delegate.addListeners( listenerObject );
+			}
 		}
-
 
 		public boolean isObfusticated() {
 			return delegate == null ? false : delegate.isObfusticated();
