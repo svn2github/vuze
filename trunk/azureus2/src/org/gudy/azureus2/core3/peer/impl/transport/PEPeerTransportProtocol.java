@@ -342,6 +342,8 @@ PEPeerTransportProtocol
     
     connection_endpoint.addProtocol( pe );
     
+    int crypto_level = NetworkManager.CRYPTO_LEVEL_1;
+    
     connection = 
     	NetworkManager.getSingleton().createConnection(
     			connection_endpoint, 
@@ -349,7 +351,7 @@ PEPeerTransportProtocol
     			new BTMessageDecoder(), 
     			use_crypto, 
     			!require_crypto_handshake, 
-    			new byte[][]{ manager.getTorrentHash().getBytes()});
+    			manager.getSecrets( crypto_level ));
     
     plugin_connection = new ConnectionImpl(connection);
     

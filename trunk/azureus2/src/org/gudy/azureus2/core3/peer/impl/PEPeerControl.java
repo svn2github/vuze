@@ -59,8 +59,9 @@ PEPeerControl
 	public boolean
 	isPeerExchangeEnabled();
 	
-	public HashWrapper
-	getTorrentHash();
+	public byte[][]
+	getSecrets(
+		int	crypto_level );
 	
 	public void addPeerTransport( PEPeerTransport transport );
 	

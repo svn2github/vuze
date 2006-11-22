@@ -121,6 +121,10 @@ PEPeerManagerAdapter
 		String	address,
 		int		port );
 	
+	public byte[][]
+	getSecrets(
+		int	crypto_level );
+	
 	public LogRelation
 	getLogRelation();
 }

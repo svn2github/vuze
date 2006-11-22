@@ -1491,18 +1491,11 @@ PEPeerControlImpl
 		return( this );
 	}
 	
-	public HashWrapper
-	getTorrentHash()
+	public byte[][]
+  	getSecrets(
+  		int	crypto_level )
 	{
-		try{
-			return( disk_mgr.getTorrent().getHashWrapper());
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
-			
-			return( null );
-		}
+		return( adapter.getSecrets( crypto_level ));
 	}
 	
 //	get the hash value

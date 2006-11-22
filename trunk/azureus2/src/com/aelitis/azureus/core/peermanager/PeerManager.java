@@ -377,13 +377,15 @@ public class PeerManager {
 		  
 		  List	registrations = (List)registered_legacy_managers.get( hash );
 			  
+		  byte[][]	secrets = adapter.getSecrets();
+		  
 		  if ( registrations == null ){
 			  
 			  registrations = new ArrayList(1);
 			  
 			  registered_legacy_managers.put( hash, registrations );
 		  		  
-			  IncomingConnectionManager.getSingleton().addSharedSecrets( new byte[][]{ hash.getBytes() });
+			  IncomingConnectionManager.getSingleton().addSharedSecrets( secrets );
 		  }
 		  
 		  PeerManagerRegistration	registration = new PeerManagerRegistrationImpl( hash, adapter );
@@ -547,7 +549,7 @@ public class PeerManager {
 				
 				  if ( registrations.size() == 0 ){
 					  
-					  IncomingConnectionManager.getSingleton().removeSharedSecrets( new byte[][]{ hash.getBytes()});
+					  IncomingConnectionManager.getSingleton().removeSharedSecrets( adapter.getSecrets());
 					  
 					  registered_legacy_managers.remove( hash );
 				  }

@@ -66,6 +66,14 @@ public class
 AZInstanceManagerImpl 
 	implements AZInstanceManager, MCGroupAdapter
 {
+	private static final boolean DISABLE_LAN_LOCAL_STUFF	= false;
+	
+	static{
+		if ( DISABLE_LAN_LOCAL_STUFF ){
+			System.out.println( "**** LAN LOCAL STUFF DISABLED ****" );
+		}
+	}
+	
 	private static final LogIDs LOGID = LogIDs.NET;
 	
 	private String				MC_GROUP_ADDRESS 	= "239.255.067.250";	// 239.255.000.000-239.255.255.255 
@@ -854,6 +862,11 @@ AZInstanceManagerImpl
 	isLANAddress(
 		InetAddress			address )
 	{
+		if ( DISABLE_LAN_LOCAL_STUFF ){
+			
+			return( false );
+		}
+		
 		if ( address == null ){
 			
 			return( false );

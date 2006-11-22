@@ -345,7 +345,7 @@ ProtocolDecoderPHE
 	public 
 	ProtocolDecoderPHE(
 		TransportHelper				_transport,
-		byte[][]					_shared_secrets,	
+		byte[][]					_shared_secrets,
 		ByteBuffer					_header,
 		ByteBuffer					_initial_data,
 		ProtocolDecoderAdapter		_adapter )
@@ -363,13 +363,22 @@ ProtocolDecoderPHE
 		initial_data_out	= _initial_data;
 		adapter				= _adapter;
 		
-		if ( _shared_secrets == null ){
+		if ( _shared_secrets == null || _shared_secrets.length == 0 ){
 			
 			shared_secret	= new byte[0];
 			
 		}else{
 			
-			shared_secret	= _shared_secrets[0];
+			if ( _shared_secrets.length == 1 ){
+			
+				shared_secret	= _shared_secrets[0];
+
+			}else{
+			
+				shared_secret	= _shared_secrets[random.nextInt( _shared_secrets.length )];
+			}
+
+			// System.out.println( "outbound - using crypto secret " + ByteFormatter.encodeString( shared_secret ));     
 		}
 		
 		outbound	= _header == null;
@@ -1004,6 +1013,8 @@ ProtocolDecoderPHE
 								throw( new IOException( "No matching shared secret" ));
 							}
 							
+							// System.out.println( "inbound - using crypto secret " + ByteFormatter.encodeString( shared_secret ));
+
 							setupCrypto();
 							
 							byte[]	crypted = new byte[VC.length + 4 + 2];

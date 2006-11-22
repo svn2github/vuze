@@ -27,6 +27,9 @@ import java.net.InetSocketAddress;
 public interface 
 PeerManagerRegistrationAdapter 
 {
+	public byte[][]
+	getSecrets();
+	
 	public boolean
 	activateRequest(
 		InetSocketAddress		remote_address );

@@ -52,7 +52,8 @@ DownloadManagerState
 	public static final String AT_DISPLAY_NAME              = "displayname";
 	public static final String AT_USER_COMMENT              = "comment";
 	public static final String AT_RELATIVE_SAVE_PATH        = "relativepath";
-	public static final String AT_CONTENT_MAP = "contentmap";
+	public static final String AT_CONTENT_MAP 				= "contentmap";
+	public static final String AT_SECRETS				 	= "secrets";
 	
 	public static final long FLAG_ONLY_EVER_SEEDED			= Download.FLAG_ONLY_EVER_SEEDED;
 	public static final long FLAG_SCAN_INCOMPLETE_PIECES	= Download.FLAG_SCAN_INCOMPLETE_PIECES;

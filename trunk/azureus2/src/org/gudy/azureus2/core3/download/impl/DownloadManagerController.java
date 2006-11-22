@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +62,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
@@ -1084,6 +1086,90 @@ DownloadManagerController
 			
 			peer_manager_registration	= null;
 		}
+	}
+	
+		// secrets for inbound connections, support all
+	
+	public byte[][]
+	getSecrets()
+	{
+		TOTorrent	torrent = download_manager.getTorrent();
+				
+		try{
+			byte[]	secret1 = torrent.getHash();
+			
+			try{
+				
+				byte[]	secret2	 = getSecret2( torrent );
+			
+				return( new byte[][]{ secret1, secret2 });
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+				
+				return( new byte[][]{ secret1 } );
+			}
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+			
+			return( new byte[0][] );
+		}
+	}
+	
+		// secrets for outbound connections, based on level of target
+	
+	public byte[][]
+  	getSecrets(
+  		int	crypto_level )
+	{
+		TOTorrent	torrent = download_manager.getTorrent();
+
+		try{
+			byte[]	secret;
+			
+			if ( crypto_level == NetworkManager.CRYPTO_LEVEL_1 ){
+				
+				secret = torrent.getHash();
+				
+			}else{
+				
+				secret = getSecret2( torrent );
+			}
+			
+			return( new byte[][]{ secret });
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+			
+			return( new byte[0][] );
+		}
+	}
+	
+	protected byte[]
+	getSecret2(
+		TOTorrent	torrent )
+	
+		throws TOTorrentException
+	{
+		Map	secrets_map = download_manager.getDownloadState().getMapAttribute( DownloadManagerState.AT_SECRETS );
+		
+		if ( secrets_map == null ){
+			
+			secrets_map = new HashMap();
+		}
+		
+		if ( secrets_map.size() == 0 ){
+		
+			secrets_map.put( "p1", torrent.getPieces()[0] );
+				
+			download_manager.getDownloadState().setMapAttribute( DownloadManagerState.AT_SECRETS, secrets_map );
+		}
+		
+		return((byte[])secrets_map.get( "p1" ));
 	}
 	
 	public boolean
