@@ -20,6 +20,7 @@
  
 package org.gudy.azureus2.ui.swt.views.table;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.gudy.azureus2.core3.util.IndentWriter;
@@ -36,7 +37,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
  * @future split out SWT functions to TableColumnSWTCore and move TableColumnCore
  *         out of swt package.
  */
-public interface TableColumnCore extends TableColumn {
+public interface TableColumnCore extends TableColumn, Comparator {
   /** Set the internal flag specifying whether the column has been added to the
    * TableColumnManager.  Some functions can not be run after a column has been
    * added.
@@ -160,4 +161,12 @@ public interface TableColumnCore extends TableColumn {
 	void generateDiagnostics(IndentWriter writer);
 
   void setTableID(String tableID);
+	/**
+	 * @return
+	 */
+	boolean isSortAscending();
+	/**
+	 * @param bAscending
+	 */
+	void setSortAscending(boolean bAscending);
 }

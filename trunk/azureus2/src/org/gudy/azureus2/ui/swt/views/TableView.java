@@ -25,18 +25,12 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabFolder2Adapter;
-import org.eclipse.swt.custom.CTabFolderEvent;
-import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.*;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
@@ -59,17 +53,10 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableRowComparator;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableRowImpl;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableStructureEventDispatcher;
+import org.gudy.azureus2.ui.swt.views.table.utils.*;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -199,7 +186,7 @@ public class TableView
   private AEMonitor sortColumn_mon 	= new AEMonitor( "TableView:sC" );
   
   /** Sorting functions */
-  protected TableRowComparator rowSorter;
+  protected TableColumnCore sortColumn;
   /** TimeStamp of when last sorted all the rows was */
 	private long lLastSortedOn;
 
@@ -760,6 +747,7 @@ public class TableView
           System.out.println("MouseDownError");
           Debug.printStackTrace( ex );
         }
+				diag_logger.log("mouseDown " + sTableID + ";13;");
       }
     });
     
@@ -1164,7 +1152,8 @@ public class TableView
     if (tc == null) {
     	tc = tableColumns[0];
     }
-		rowSorter = new TableRowComparator(tc, bSortAscending);
+		sortColumn = tc;
+		sortColumn.setSortAscending(bSortAscending);
 		changeColumnIndicator();
 		
     // Add move listener at the very end, so we don't get a bazillion useless 
@@ -1568,7 +1557,7 @@ public class TableView
 	    
 			if (bWillSort) {
 				if (bForceSort) {
-					rowSorter.getColumn().setLastSortValueChange(SystemTime.getCurrentTime());
+					sortColumn.setLastSortValueChange(SystemTime.getCurrentTime());
 				}
 				sortColumn(true);
 			}
@@ -1979,14 +1968,16 @@ public class TableView
 				TableRowImpl row = (TableRowImpl) dataSourceToRow.get(dataSource);
 				if (row == null || row.getIndex() >= 0)
 					continue;
-				TableCellCore cell = row.getTableCellCore(rowSorter.getColumnName());
-				if (cell != null) {
-					try {
-						cell.invalidate();
-						cell.refresh(true);
-					} catch (Exception e) {
-						Logger.log(new LogEvent(LOGID, "Minor error adding a row to table "
-								+ sTableID, e));
+				if (sortColumn != null) {
+					TableCellCore cell = row.getTableCellCore(sortColumn.getName());
+					if (cell != null) {
+						try {
+							cell.invalidate();
+							cell.refresh(true);
+						} catch (Exception e) {
+							Logger.log(new LogEvent(LOGID,
+									"Minor error adding a row to table " + sTableID, e));
+						}
 					}
 				}
 
@@ -1997,13 +1988,13 @@ public class TableView
 						// instead of relying on binarySearch, which may return an item
 						// in the middle that also is equal.
 						TableRowCore lastRow = (TableRowCore) sortedRows.get(sortedRows.size() - 1);
-						if (rowSorter.compare(row, lastRow) >= 0) {
+						if (sortColumn.compare(row, lastRow) >= 0) {
 							index = sortedRows.size();
 							sortedRows.add(row);
 							if (DEBUGADDREMOVE)
 								debug("Adding new row to bottom");
 						} else {
-							index = Collections.binarySearch(sortedRows, row, rowSorter);
+							index = Collections.binarySearch(sortedRows, row, sortColumn);
 							if (index < 0)
 								index = -1 * index - 1; // best guess
 
@@ -3083,33 +3074,33 @@ public class TableView
 	
 			try {
 				sortedRows_mon.enter();
-	
-				if (bForceDataRefresh) {
+
+				if (bForceDataRefresh && sortColumn != null) {
+					String sColumnID = sortColumn.getName();
 					for (Iterator iter = sortedRows.iterator(); iter.hasNext();) {
 						TableRowCore row = (TableRowCore) iter.next();
-						TableCellCore cell = row.getTableCellCore(rowSorter.getColumnName());
+						TableCellCore cell = row.getTableCellCore(sColumnID);
 						if (cell != null) {
 							cell.refresh();
 						}
 					}
 				}
-	
+
 				if (!bFillGapsOnly) {
-					TableColumnCore tc = rowSorter.getColumn();
-					if (tc == null || tc.getLastSortValueChange() > lLastSortedOn) {
+					if (sortColumn != null && sortColumn.getLastSortValueChange() > lLastSortedOn) {
 						lLastSortedOn = SystemTime.getCurrentTime();
-						Collections.sort(sortedRows, rowSorter);
+						Collections.sort(sortedRows, sortColumn);
 						if (DEBUG_SORTER) {
 							long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
 							if (lTimeDiff > 150)
-								System.out.println("--- Build & Sort took " + lTimeDiff + "ms");
+								System.out.println("--- Build & Sort took " + lTimeDiff
+										+ "ms");
 						}
 					} else {
 						if (DEBUG_SORTER) {
 							System.out.println("Skipping sort :)");
 						}
 					}
-	
 				}
 	
 				if (bTableVirtual) {
@@ -3186,24 +3177,25 @@ public class TableView
 		}
 	}
 
-	public void sortColumnReverse(TableColumnCore tableColumn) {
-		boolean bSameColumn = (rowSorter.getColumnName().equals(tableColumn.getName()));
+	public void sortColumnReverse(TableColumnCore sorter) {
+		boolean bSameColumn = sortColumn.equals(sorter);
 		if (!bSameColumn) {
-			rowSorter.setColumn(tableColumn);
+			sortColumn = sorter;
 			int iSortDirection = configMan.getIntParameter(CFG_SORTDIRECTION);
-			if (iSortDirection == 0) 
-				rowSorter.setAscending(true);
+			if (iSortDirection == 0)
+				sortColumn.setSortAscending(true);
 			else if (iSortDirection == 1)
-				rowSorter.setAscending(false);
+				sortColumn.setSortAscending(false);
 			else
-				rowSorter.setAscending(!rowSorter.isAscending());
+				sortColumn.setSortAscending(!sortColumn.isSortAscending());
 
-			configMan.setParameter(sTableID + ".sortAsc", rowSorter.isAscending());
-			configMan.setParameter(sTableID + ".sortColumn",
-					rowSorter.getColumnName());
+			configMan.setParameter(sTableID + ".sortAsc",
+					sortColumn.isSortAscending());
+			configMan.setParameter(sTableID + ".sortColumn", sortColumn.getName());
 		} else {
-			rowSorter.setAscending(!rowSorter.isAscending());
-			configMan.setParameter(sTableID + ".sortAsc", rowSorter.isAscending());
+			sortColumn.setSortAscending(!sortColumn.isSortAscending());
+			configMan.setParameter(sTableID + ".sortAsc",
+					sortColumn.isSortAscending());
 		}
 
 		changeColumnIndicator();
@@ -3221,8 +3213,8 @@ public class TableView
 			TableColumn[] tcs = table.getColumns();
 			for (int i = 0; i < tcs.length; i++) {
 				String sName = (String)tcs[i].getData("Name");
-				if (sName != null && sName.equals(rowSorter.getColumnName())) {
-					table.setSortDirection(rowSorter.isAscending() ? SWT.UP : SWT.DOWN);
+				if (sName != null && sName.equals(sortColumn.getName())) {
+					table.setSortDirection(sortColumn.isSortAscending() ? SWT.UP : SWT.DOWN);
 					table.setSortColumn(tcs[i]);
 					return;
 				}
@@ -3369,7 +3361,11 @@ public class TableView
 
 		IView view = getActiveSubView();
 		if (view instanceof ObfusticateImage) {
-			((ObfusticateImage)view).obfusticatedImage(image, shellOffset);
+			try {
+				((ObfusticateImage)view).obfusticatedImage(image, shellOffset);
+			} catch (Exception e) {
+				Debug.out("Obfusticating " + view, e);
+			}
 		}
 		return image;
 	}

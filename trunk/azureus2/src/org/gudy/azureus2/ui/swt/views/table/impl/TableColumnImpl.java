@@ -27,17 +27,15 @@ import org.eclipse.swt.SWT;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.core3.util.SystemTime;
-
-import org.gudy.azureus2.plugins.ui.UIRuntimeException;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableStructureEventDispatcher;
+
+import org.gudy.azureus2.plugins.ui.UIRuntimeException;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 
 /** Table Column definition and modification routines.
@@ -75,6 +73,7 @@ public class TableColumnImpl
 	private long lStatsRefreshTotalTime;
 	private long lStatsRefreshCount = 0;
 	private long lStatsRefreshZeroCount = 0;
+	private boolean bSortAscending;
 
 
   /** Create a column object for the specified table.
@@ -658,4 +657,71 @@ public class TableColumnImpl
   public void setTableID(String tableID) {
   	sTableID = tableID;
   }
+
+	public int compare(Object arg0, Object arg1) {
+		TableCellCore cell0 = ((TableRowCore)arg0).getTableCellCore(sName);
+		TableCellCore cell1 = ((TableRowCore)arg1).getTableCellCore(sName);
+		
+		Comparable c0 = (cell0 == null) ? "" : cell0.getSortValue();
+		Comparable c1 = (cell1 == null) ? "" : cell1.getSortValue();
+		
+		try {
+			boolean c0isString = c0 instanceof String; 
+			boolean c1isString = c1 instanceof String; 
+			if (c0isString && c1isString) {
+				if (bSortAscending)
+					return ((String)c0).compareToIgnoreCase((String)c1);
+
+				return ((String)c1).compareToIgnoreCase((String)c0);
+			}
+			
+			if (bSortAscending) {
+				if (c0isString && !c1isString) {
+					return -1;
+				}
+				return c0.compareTo(c1);
+			}
+			
+			if (c1isString && !c0isString) {
+				return 1;
+			}
+			
+			if (c1 == null) {
+				c1 = "";
+			}
+			if (c0 == null) {
+				c0 = "";
+			}
+			return c1.compareTo(c0);
+		} catch (ClassCastException e) {
+			System.err.println("Can't compare " + c0.getClass().getName()
+					+ "(" + c0.toString() + ") from row #" 
+					+ cell0.getTableRowCore().getIndex() + " to "
+					+ c1.getClass().getName()
+					+ "(" + c1.toString() + ") from row #"
+					+ cell1.getTableRowCore().getIndex() 
+					+ " while sorting column " + sName);
+			e.printStackTrace();
+			return 0;
+		}
+	}
+
+	/**
+	 * @param bAscending The bAscending to set.
+	 */
+	public void setSortAscending(boolean bAscending) {
+		if (this.bSortAscending == bAscending) {
+			return;
+		}
+		setLastSortValueChange(SystemTime.getCurrentTime());
+		
+		this.bSortAscending = bAscending;
+	}
+
+	/**
+	 * @return Returns the bAscending.
+	 */
+	public boolean isSortAscending() {
+		return bSortAscending;
+	}
 }

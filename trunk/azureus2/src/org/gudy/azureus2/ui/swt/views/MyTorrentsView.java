@@ -122,8 +122,6 @@ public class MyTorrentsView
   // table item index, where the drag has started
   private int drag_drop_line_start = -1;
 
-  private boolean confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete", true);
-  
   private String sLastSearch = "";
   private long lLastSearchTime;
   private boolean bRegexSearch = false;
@@ -625,13 +623,12 @@ public class MyTorrentsView
 		// Enable/Disable Logic
 
 
-		boolean moveUp, moveDown, bChangeDir;
-		moveUp = moveDown = bChangeDir = hasSelection;
+		boolean bChangeDir = hasSelection;
 
 		boolean start, stop, changeUrl, barsOpened, forceStart;
-		boolean forceStartEnabled, recheck, manualUpdate, changeSpeed, fileMove, fileRescan;
+		boolean forceStartEnabled, recheck, manualUpdate, fileMove, fileRescan;
 
-		changeUrl = barsOpened = manualUpdate = changeSpeed = fileMove = fileRescan = true;
+		changeUrl = barsOpened = manualUpdate = fileMove = fileRescan = true;
 		forceStart = forceStartEnabled = recheck = start = stop = false;
 
 		boolean upSpeedDisabled = false;
@@ -650,8 +647,6 @@ public class MyTorrentsView
 		boolean	allStopped			= true;
 		
 		if (hasSelection) {
-			bChangeDir = true;
-
 			for (int i = 0; i < dms.length; i++) {
 				DownloadManager dm = (DownloadManager) dms[i];
 
@@ -684,8 +679,6 @@ public class MyTorrentsView
 					}
 					totalDownSpeed += maxdl;
 
-				} catch (NullPointerException ex) {
-					changeSpeed = false;
 				} catch (Exception ex) {
 					Debug.printStackTrace(ex);
 				}
@@ -714,14 +707,6 @@ public class MyTorrentsView
 				allStopped &= stopped;
 					
 				fileMove = fileMove && stopped && dm.isPersistent();
-
-				if (!dm.getGlobalManager().isMoveableDown(dm)) {
-					moveDown = false;
-				}
-
-				if (!dm.getGlobalManager().isMoveableUp(dm)) {
-					moveUp = false;
-				}
 
 				if (userMode > 1) {
 					TRTrackerAnnouncer trackerClient = dm.getTrackerClient();
@@ -2073,7 +2058,7 @@ public class MyTorrentsView
       int iOldPos = dm.getPosition();
       
       globalManager.moveTo(dm, iNewPos);
-      if (rowSorter.isAscending()) {
+      if (sortColumn.isSortAscending()) {
         if (iOldPos > iNewPos)
           iNewPos++;
       } else {
@@ -2082,7 +2067,7 @@ public class MyTorrentsView
       }
     }
 
-    boolean bForceSort = rowSorter.getColumnName().equals("#");
+    boolean bForceSort = sortColumn.getName().equals("#");
     columnInvalidate("#");
     refresh(bForceSort);
   }
@@ -2488,7 +2473,7 @@ public class MyTorrentsView
       }
     }
 
-    boolean bForceSort = rowSorter.getColumnName().equals("#");
+    boolean bForceSort = sortColumn.getName().equals("#");
     columnInvalidate("#");
     refresh(bForceSort);
   }
@@ -2508,7 +2493,7 @@ public class MyTorrentsView
       }
     }
 
-    boolean bForceSort = rowSorter.getColumnName().equals("#");
+    boolean bForceSort = sortColumn.getName().equals("#");
     columnInvalidate("#");
     refresh(bForceSort);
   }
@@ -2554,7 +2539,7 @@ public class MyTorrentsView
 			globalManager.moveTo(dm, newPositions[i]);
 		}
 
-		boolean bForceSort = rowSorter.getColumnName().equals("#");
+		boolean bForceSort = sortColumn.getName().equals("#");
 		columnInvalidate("#");
 		refresh(bForceSort);
 	}
@@ -2575,7 +2560,7 @@ public class MyTorrentsView
       globalManager.moveTop(downloadManagers);
     else
       globalManager.moveEnd(downloadManagers);
-    if (rowSorter.getColumnName().equals("#")) {
+    if (sortColumn.getName().equals("#")) {
       columnInvalidate("#");
       refresh(true);
     }
@@ -2587,10 +2572,6 @@ public class MyTorrentsView
    */
   public void parameterChanged(String parameterName) {
 		super.parameterChanged(parameterName);
-		if (parameterName == null || parameterName.equals("Confirm Data Delete")) {
-			confirmDataDelete = COConfigurationManager.getBooleanParameter(
-					"Confirm Data Delete", true);
-		}
 
 		if (parameterName == null || parameterName.equals("User Mode")) {
 			userMode = COConfigurationManager.getIntParameter("User Mode");
