@@ -126,6 +126,18 @@ public class Average {
    * @return the current Average computed.
    */
   public long getAverage() {
+	  return( getSum() / period );
+  }
+  
+  public double getDoubleAverage() {
+	  return( (double)getSum() / period );
+  }
+  
+  public String getDoubleAverageAsString( int precision ) {
+	  return( DisplayFormatters.formatDecimal( getDoubleAverage(), precision ));
+  }
+  
+  protected final long getSum() {
     //We get the current timeFactor
     long timeFactor = getEffectiveTime() / refreshRate;
     //We first update the buffer
@@ -142,7 +154,7 @@ public class Average {
     }
 
     //We return the sum divided by the period
-    return(sum / period);
+    return(sum);
   }
   
   protected long
