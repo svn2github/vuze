@@ -12,6 +12,7 @@ FEATURE: UI   | Spinners for config field that take numbers [TuxPaper]
 FEATURE: Plug | Plugins can now create submenus. [amc1]
 FEATURE: Plug | Added code to allow plugins to get text input from a user in non-UI specific way. [amc1]
 FEATURE: Plug | Plugins now have better support to organise file data within default save directories. [amc1]
+FEATURE: Core | Added method to XFS specific allocation of new files [Greg]
 
 CHANGE: Core  | Improve the "presence" handling for torrents created by ourselves [Parg]
 CHANGE: UI    | Open torrent windows now always has OK button enabled with warning message if pressed when in invalid state [TuxPaper]
