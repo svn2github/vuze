@@ -107,7 +107,19 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
    * Get the socket channel used by the transport.
    * @return the socket channel
    */
-  public SocketChannel getSocketChannel() {  return ((TCPTransportHelper)getFilter().getHelper()).getSocketChannel();  }
+  public SocketChannel getSocketChannel() {  
+  	TransportHelperFilter filter = getFilter();
+  	if (filter == null) {
+  		return null;
+  	}
+  	
+  	TCPTransportHelper helper = (TCPTransportHelper)filter.getHelper();
+  	if (helper == null) {
+  		return null;
+  	}
+
+  	return helper.getSocketChannel();  
+  }
   
   public TransportEndpoint
   getTransportEndpoint()
