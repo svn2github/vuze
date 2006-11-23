@@ -413,7 +413,11 @@ public class ManagerView extends AbstractIView implements
 	public Image obfusticatedImage(Image image, Point shellOffset) {
 		IView view = getActiveView();
 		if (view instanceof ObfusticateImage) {
-			((ObfusticateImage)view).obfusticatedImage(image, shellOffset);
+			try {
+				((ObfusticateImage)view).obfusticatedImage(image, shellOffset);
+			} catch (Exception e) {
+				Debug.out("Obfusticating " + view, e);
+			}
 		}
 		return image;
 	}
