@@ -29,7 +29,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -48,6 +47,8 @@ import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.clientmessageservice.*;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASNLookup;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
 import com.aelitis.net.udp.uc.PRUDPReleasablePacketHandler;
@@ -336,6 +337,8 @@ public class VersionCheckClient {
 
 		  reply = msg_service.receiveMessage();  //get the server reply
 
+		  preProcessReply( reply );
+		  
 	  }finally{
 
 		  if ( msg_service != null ){
@@ -370,7 +373,11 @@ public class VersionCheckClient {
 	  try{
 		  InputStream	is = url_connection.getInputStream();
 		  
-		  return( BDecoder.decode( new BufferedInputStream( is )));
+		  Map	reply = BDecoder.decode( new BufferedInputStream( is ));
+		  
+		  preProcessReply( reply );
+
+		  return( reply );
 		  
 	  }finally{
 		  
@@ -468,20 +475,24 @@ public class VersionCheckClient {
 			  baos.write( buffer, 0, len );
 		  }
 		  
-		  byte[]	reply = baos.toByteArray();
+		  byte[]	reply_bytes = baos.toByteArray();
 		  
-		  for (int i=3;i<reply.length;i++){
+		  for (int i=3;i<reply_bytes.length;i++){
 			  
-			  if ( 	reply[i-3]== (byte)'\015' &&
-					reply[i-2]== (byte)'\012' &&
-					reply[i-1]== (byte)'\015' &&
-					reply[i-0]== (byte)'\012' ){
+			  if ( 		reply_bytes[i-3]== (byte)'\015' &&
+					  	reply_bytes[i-2]== (byte)'\012' &&
+					  	reply_bytes[i-1]== (byte)'\015' &&
+					  	reply_bytes[i-0]== (byte)'\012' ){
 			  		  
-				return( BDecoder.decode( new BufferedInputStream( new ByteArrayInputStream( reply, i+1, reply.length - (i+1 )))));
+				  Map reply = BDecoder.decode( new BufferedInputStream( new ByteArrayInputStream( reply_bytes, i+1, reply_bytes.length - (i+1 ))));
+				  
+				  preProcessReply( reply );
+
+				  return( reply );
 			  }
 		  }
 		  
-		  throw( new Exception( "Invalid reply: " + new String( reply )));
+		  throw( new Exception( "Invalid reply: " + new String( reply_bytes )));
 		  
 	  }finally{
 		  
@@ -518,13 +529,17 @@ public class VersionCheckClient {
 		  
 		  for (int i=0;i<3;i++){
 			  
-			  VersionCheckClientUDPRequest	request = new VersionCheckClientUDPRequest( connection_id++ );
+			  VersionCheckClientUDPRequest	request_packet = new VersionCheckClientUDPRequest( connection_id++ );
 			  
-			  request.setPayload( data_to_send );
+			  request_packet.setPayload( data_to_send );
 			  
-			  VersionCheckClientUDPReply reply = (VersionCheckClientUDPReply)packet_handler.sendAndReceive( null, request, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), timeout );
+			  VersionCheckClientUDPReply reply_packet = (VersionCheckClientUDPReply)packet_handler.sendAndReceive( null, request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), timeout );
 	
-			  return( reply.getPayload());
+			  Map	reply = reply_packet.getPayload();
+			  
+			  preProcessReply( reply );
+			  
+			  return( reply );
 		  }
 		  
 		  throw( new Exception( "Timeout" ));
@@ -535,6 +550,29 @@ public class VersionCheckClient {
 
 		  handler.release();
 	  }
+  }
+  
+  protected void
+  preProcessReply(
+	Map		reply )
+  {
+	 if ( COConfigurationManager.isNewInstall()){
+		 
+		 try{
+			 byte[] address = (byte[])reply.get( "source_ip_address" );
+			  
+			 InetAddress	ip = InetAddress.getByName( new String( address ));
+		 
+			 	// TODO: only attempt this once... 
+			 
+			 NetworkAdminASNLookup	asn = NetworkAdmin.getSingleton().lookupASN( ip );
+			 
+			 System.out.println( asn.getString());
+			 
+		 }catch( Throwable e ){
+			 
+		 }
+	 }
   }
   
   public InetAddress

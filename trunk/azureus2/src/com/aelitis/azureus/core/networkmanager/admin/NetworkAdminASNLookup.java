@@ -21,7 +21,9 @@
  */
 
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.admin;
+
+import java.net.InetAddress;
 
 public interface 
 NetworkAdminASNLookup
@@ -31,4 +33,16 @@ NetworkAdminASNLookup
 	
 	public String
 	getASName();
+	
+	public String
+	getBGPPrefix();
+	
+	public InetAddress
+	getBGPStartAddress();
+	
+	public InetAddress
+	getBGPEndAddress();
+	
+	public String
+	getString();
 }
