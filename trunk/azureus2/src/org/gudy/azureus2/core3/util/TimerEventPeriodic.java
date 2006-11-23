@@ -102,13 +102,9 @@ TimerEventPeriodic
 				
 				if ( !cancelled ){
 				
-					current_event = timer.addEvent( 	SystemTime.getCurrentTime()+ frequency,
+					current_event = timer.addEvent(name, SystemTime.getCurrentTime()+ frequency,
 														this );
 					
-					if ( name != null ){
-						
-						current_event.setName( name );
-					}
 				}
 			}
 		}
