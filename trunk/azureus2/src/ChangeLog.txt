@@ -24,8 +24,10 @@ BUGFIX: Core  | Setting of UDP port not working [Parg]
 BUGFIX: Core  | Less flipping of downloads from queued <--> downloading during the time a FP seed is forced active [TuxPaper]
 BUGFIX: Core  | Fix memory leak causing slow, but eventual OOM and slow down of Azureus [Parg]
 BUGFIX: Core  | OSX: Handle volume not mounted on startup by erroring instead of creating a directory in /Volumes [TuxPaper]
+BUGFIX: Core  | Fix to stop already complete downloads being moved by "move-on-completion" rules [amc1]
 BUGFIX: UI    | Fix (some) painting issues in pieces+files view [TuxPaper]
 BUGFIX: UI    | Fix to allow negative values for Multi-monitor window positions [TuxPaper]
+BUGFIX: Plug  | Fixed bug where some listeners for table columns were not registered properly. [amc1]
 
 
 

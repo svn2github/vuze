@@ -678,6 +678,9 @@ DownloadManagerImpl
 				 	if ( for_seeding ){
 				 		
 				 		DiskManagerFactory.setTorrentResumeDataNearlyComplete(download_manager_state);
+				 		
+				 		// Prevent download being considered for on-completion moving - it's considered complete anyway.
+				 		download_manager_state.setFlag(DownloadManagerState.FLAG_MOVE_ON_COMPLETION_DONE, true);
 	
 				 	}else{
 				 		

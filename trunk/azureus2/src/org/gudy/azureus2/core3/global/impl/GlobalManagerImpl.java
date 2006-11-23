@@ -914,6 +914,17 @@ public class GlobalManagerImpl
         		Debug.printStackTrace( e );
         	}
         }
+        
+        // Old completed downloads should have their "considered for move on completion"
+        // flag set, to prevent them being moved.
+        if (COConfigurationManager.getBooleanParameter("Set Completion Flag For Completed Downloads On Start")) {
+
+        	// We only want to know about truly complete downloads, since we aren't able to move partially complete
+        	// ones yet.
+        	if (download_manager.isDownloadComplete(true)) {
+        		download_manager.getDownloadState().setFlag(DownloadManagerState.FLAG_MOVE_ON_COMPLETION_DONE, true);
+        	}
+        }
 
         if (notifyListeners) {
         	listeners.dispatch( LDT_MANAGER_ADDED, download_manager );
@@ -1594,6 +1605,11 @@ public class GlobalManagerImpl
 									"One download may not have been added to the list.", e));
         }
       }
+      
+      // This is set to true by default, but once the downloads have been loaded, we have no reason to ever
+      // to do this check again - we only want to do it once to upgrade the state of existing downloads
+      // created before this code was around.
+      COConfigurationManager.setParameter("Set Completion Flag For Completed Downloads On Start", false);
       
       //load pause/resume state
       ArrayList pause_data = (ArrayList)map.get( "pause_data" );

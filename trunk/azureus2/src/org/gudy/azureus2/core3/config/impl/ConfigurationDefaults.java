@@ -414,6 +414,10 @@ public class ConfigurationDefaults {
     def.put( "Move Torrent When Done", TRUE );
     def.put( "File.move.subdir_is_default", FALSE );
     
+    // This gets permanently set by GlobalManagerImpl to false once Azureus has initialised.
+    // This is intended to be used once as part of an upgrade.
+    def.put( "Set Completion Flag For Completed Downloads On Start", TRUE );
+    
     // Move on removal settings.
     def.put( "File.move.download.removed.enabled", FALSE );
     def.put( "File.move.download.removed.path", "" );
