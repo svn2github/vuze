@@ -101,7 +101,12 @@ PluginConfigImpl
 	}
 	
 	public void setPluginConfigKeyPrefix(String _key) {
-		key = _key;
+		if (_key.length() > 0 || plugin_interface.isBuiltIn()) {
+			key = _key;
+		} else {
+			throw (new RuntimeException("Can't set Plugin Config Key Prefix to '"
+					+ _key + "'"));
+		}
 	}
 	
 	/* (non-Javadoc)
