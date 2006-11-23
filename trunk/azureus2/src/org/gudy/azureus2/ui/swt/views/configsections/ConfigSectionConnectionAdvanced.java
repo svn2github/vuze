@@ -114,7 +114,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 		gSocket.setLayoutData(gridData);
 		GridLayout glayout = new GridLayout();
-		glayout.numColumns = 3;
+		glayout.numColumns = 2;
 		gSocket.setLayout(glayout);
 
 		
@@ -126,7 +126,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		IntParameter max_connects = new IntParameter(gSocket,
 				"network.max.simultaneous.connect.attempts", 1, 100);    
 		gridData = new GridData();
-		gridData.horizontalSpan = 2;
 		gridData.widthHint = 30;
 		max_connects.setLayoutData(gridData);
 
@@ -138,9 +137,15 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData = new GridData();
 		gridData.widthHint = 100;
 		bindip.setLayoutData(gridData);
-		Label lbind2 = new Label(gSocket, SWT.NULL);
 
-		Messages.setLanguageText(lbind2, "ConfigView.label.bindip.info", new String[]{ NetworkAdmin.getSingleton().getNetworkInterfacesAsString() });
+		Label lbind2 = new Label(gSocket, SWT.NULL);
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 2;
+		lbind2.setLayoutData(gridData);
+		Messages.setLanguageText(
+				lbind2,
+				"ConfigView.label.bindip.info",
+				new String[] { NetworkAdmin.getSingleton().getNetworkInterfacesAsString() });
 
 
 		Label lpbind = new Label(gSocket, SWT.NULL);
@@ -149,7 +154,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 				"network.bind.local.port", 0, 65535);
 		gridData = new GridData();
 		gridData.widthHint = 40;
-		gridData.horizontalSpan = 2;
 		port_bind.setLayoutData(gridData);
 		
 		
@@ -159,7 +163,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		mtu_size.setMaximumValue(512 * 1024);
 		gridData = new GridData();
 		gridData.widthHint = 40;
-		gridData.horizontalSpan = 2;
 		mtu_size.setLayoutData(gridData);
 
 
@@ -168,7 +171,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		final IntParameter SO_SNDBUF = new IntParameter(gSocket,	"network.tcp.socket.SO_SNDBUF");
 		gridData = new GridData();
 		gridData.widthHint = 40;
-		gridData.horizontalSpan = 2;
 		SO_SNDBUF.setLayoutData(gridData);
 
 
@@ -177,7 +179,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		final IntParameter SO_RCVBUF = new IntParameter(gSocket,	"network.tcp.socket.SO_RCVBUF");
 		gridData = new GridData();
 		gridData.widthHint = 40;
-		gridData.horizontalSpan = 2;
 		SO_RCVBUF.setLayoutData(gridData);
 		
 
@@ -186,7 +187,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		final StringParameter IPTOS = new StringParameter(gSocket,	"network.tcp.socket.IPTOS");
 		gridData = new GridData();
 		gridData.widthHint = 30;
-		gridData.horizontalSpan = 2;
 		IPTOS.setLayoutData(gridData);
 
 
