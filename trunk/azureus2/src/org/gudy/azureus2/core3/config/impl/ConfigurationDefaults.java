@@ -472,6 +472,10 @@ public class ConfigurationDefaults {
       throw new ConfigurationParameterNotFoundException(p);
   }
   
+  public boolean hasParameter(String p) {
+	  return def.containsKey(p);
+  }
+  
   /**
    * Returns the default value as an object (String, Long, Float, Boolean)
    *  

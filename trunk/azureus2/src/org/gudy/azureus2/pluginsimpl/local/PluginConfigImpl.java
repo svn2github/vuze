@@ -69,10 +69,16 @@ PluginConfigImpl
 		// Note: Not in PluginConfig.java because it's an UI option and
 		//       not applicable to all UIs
 		// TODO: Add a smarter way
-		external_to_internal_key_map.put( "Open MyTorrents", "Open MyTorrents" );
-		external_to_internal_key_map.put( "IconBar.enabled", "IconBar.enabled" );
-		external_to_internal_key_map.put( "Wizard Completed", "Wizard Completed" );
-		external_to_internal_key_map.put( "welcome.version.lastshown", "welcome.version.lastshown" );
+		
+		// Following parameters can be set directly (we don't have an alias for these values).
+		String[] passthrough_params = new String[] {
+				"Open MyTorrents", "IconBar.enabled", "Wizard Completed",
+				"welcome.version.lastshown", "Set Completion Flag For Completed Downloads On Start",
+		};
+		
+		for (int i=0; i<passthrough_params.length; i++) {
+			external_to_internal_key_map.put(passthrough_params[i], passthrough_params[i]);
+		}
 	}
 
 	private PluginInterface	plugin_interface;
@@ -389,4 +395,17 @@ PluginConfigImpl
 				}
 			});
 	}
+	
+	public boolean hasParameter(String param_name) {
+		// Don't see any reason why a plugin should care whether it is looking
+		// at a system default setting or not, so we'll do an implicit check.
+		return COConfigurationManager.hasParameter(param_name, false);
+	}
+	
+	public boolean hasPluginParameter(String param_name) {
+		// We should not have default settings for plugins in configuration
+		// defaults, so we don't bother doing an implicit check.
+		return COConfigurationManager.hasParameter(this.key + param_name, true);
+	}
+	
 }

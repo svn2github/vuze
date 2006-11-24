@@ -285,6 +285,17 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getMapParameter( parameter, def ));
 	}
 	
+	  /**
+	   * Returns true if a parameter with the given name exists.
+	   * @param key The name of the parameter to check.
+	   * @param explicit If <tt>true</tt>, we only check for a value which is
+	   *     definitely stored explicitly, <tt>false</tt> means that we'll also
+	   *     check against configuration defaults too.  
+	   */
+	public static boolean hasParameter(String parameter, boolean explicit) {
+		return ConfigurationManager.getInstance().hasParameter(parameter, explicit);
+	}
+	
 	public static void
 	save()
 	{

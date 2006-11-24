@@ -427,4 +427,7 @@ RPPluginConfig
 			// TODO Auto-generated method stub
 			
 		}
+		
+		public boolean hasParameter(String x) {notSupported(); return false;}
+		public boolean hasPluginParameter(String x) {notSupported(); return false;}
 }

@@ -486,6 +486,26 @@ ConfigurationManager
   public boolean setParameter(String parameter, String defaultValue) {
     return setParameter(parameter, stringToBytes(defaultValue));
   }
+  
+  /**
+   * Returns true if a parameter with the given name exists.
+   * @param key The name of the parameter to check.
+   * @param explicit If <tt>true</tt>, we only check for a value which is
+   *     definitely stored explicitly, <tt>false</tt> means that we'll also
+   *     check against configuration defaults too.  
+   */
+  public boolean hasParameter(String key, boolean explicit) {
+	  
+	  // We have an explicit value set.
+	  if (propertiesMap.containsKey(key)) {return true;}
+	  
+	  // We have a default value set.
+	  if ((!explicit) && ConfigurationDefaults.getInstance().hasParameter(key)) {
+		  return true;
+	  }
+	  
+	  return false;
+  }
 
   public boolean 
   verifyParameter(

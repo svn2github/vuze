@@ -331,6 +331,20 @@ PluginConfig
 	getPluginUserFile(
 		String	name );
 	
+	  /**
+	   * Returns true if a core parameter with the given name exists.
+	   * @param key The name of the parameter to check.
+	   * @since 2.5.0.2  
+	   */
+	public boolean hasParameter(String param_name);
+
+	  /**
+	   * Returns true if a plugin parameter with the given name exists.
+	   * @param key The name of the parameter to check.
+	   * @since 2.5.0.2  
+	   */
+	public boolean hasPluginParameter(String param_name);
+	
 	public void
 	addListener(
 		PluginConfigListener	l );
