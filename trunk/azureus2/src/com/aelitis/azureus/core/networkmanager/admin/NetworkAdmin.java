@@ -77,6 +77,13 @@ NetworkAdmin
 	
 		throws NetworkAdminException;
 	
+	public abstract boolean
+	matchesCIDR(
+		String		cidr,
+		InetAddress	address )
+	
+		throws NetworkAdminException;
+	
 	public abstract void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener );

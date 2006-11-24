@@ -464,6 +464,16 @@ NetworkAdminImpl
 		return( new NetworkAdminASNLookupImpl( address ));
 	}
 	
+	public boolean
+	matchesCIDR(
+		String		cidr,
+		InetAddress	address )
+	
+		throws NetworkAdminException
+	{
+		return( NetworkAdminASNLookupImpl.matchesCIDR( cidr, address ));
+	}
+	
 	public void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener )

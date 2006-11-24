@@ -68,6 +68,7 @@ public class VersionCheckClient {
 	public static final String	REASON_DHT_ENABLE_ALLOWED		= "de";
 	public static final String	REASON_EXTERNAL_IP				= "ip";
 	public static final String	REASON_RECOMMENDED_PLUGINS		= "rp";
+	public static final String	REASON_SECONDARY_CHECK			= "sc";
 	
 	
   private static final String 	AZ_MSG_SERVER_ADDRESS 	= "version.aelitis.com";
@@ -85,6 +86,7 @@ public class VersionCheckClient {
 
   
   private static final long		CACHE_PERIOD	= 5*60*1000;
+  private static boolean secondary_check_done;
   
   
   static{
@@ -556,18 +558,80 @@ public class VersionCheckClient {
   preProcessReply(
 	Map		reply )
   {
-	 if ( COConfigurationManager.isNewInstall()){
+	  	// two cases where we automatically attempt to resolve the ASN (to minimise load on ASN
+	  	// provider)
+	  	// 1) new installs
+	  	// 2) where we have an asn and public IP has changed outside of prefix range
+	 
+	 final long ASN_MIN_CHECK = 7*24*60*60*1000L;
+		 
+	 boolean	check_asn 	= false;
+	 boolean	new_install = COConfigurationManager.isNewInstall();
+	 
+	 long now = SystemTime.getCurrentTime();
+	 
+	 String	bgp_prefix = null;
+	 
+	 if ( new_install ){
+		 
+		 check_asn	= true;
+		 
+	 }else{
+		 
+		 bgp_prefix	= COConfigurationManager.getStringParameter( "ASN BGP", null );
+		 
+		 long	asn_check_time = COConfigurationManager.getLongParameter( "ASN Autocheck Performed Time" );
+		 		 
+		 if ( 	bgp_prefix != null && 
+				now < asn_check_time || now - asn_check_time > ASN_MIN_CHECK ){
+			 			 
+			 check_asn = true;
+		 }
+	 }
+	 
+	 if ( check_asn ){
 		 
 		 try{
 			 byte[] address = (byte[])reply.get( "source_ip_address" );
 			  
 			 InetAddress	ip = InetAddress.getByName( new String( address ));
-		 
-			 	// TODO: only attempt this once... 
+		 		
+			 if ( bgp_prefix != null ){
+				 
+				 	// if we've got a prefix only recheck if outside existing range
+				 
+				 if ( NetworkAdmin.getSingleton().matchesCIDR( bgp_prefix, ip )){
+					 
+					 check_asn = false;
+				 }
+			 }
 			 
-			 NetworkAdminASNLookup	asn = NetworkAdmin.getSingleton().lookupASN( ip );
+			 if ( check_asn ){
 			 
-			 System.out.println( asn.getString());
+				 COConfigurationManager.setParameter( "ASN Autocheck Performed Time", now );
+	
+				 NetworkAdminASNLookup	asn = NetworkAdmin.getSingleton().lookupASN( ip );
+				 				 
+				 COConfigurationManager.setParameter( "ASN AS", 	asn.getAS());
+				 COConfigurationManager.setParameter( "ASN ASN", 	asn.getASName());
+				 COConfigurationManager.setParameter( "ASN BGP", 	asn.getBGPPrefix());
+				 
+				 	// kick off a secondary version check to communicate the new information
+				 
+				 if ( !secondary_check_done ){
+					 
+					 secondary_check_done	= true;
+					 
+					 new AEThread( "Secondary version check", true )
+					 {
+						 public void
+						 runSupport()
+						 {
+							 getVersionCheckInfoSupport( REASON_SECONDARY_CHECK, false, true );
+						 }
+					 }.start();
+				 }
+			 }
 			 
 		 }catch( Throwable e ){
 			 
@@ -676,6 +740,25 @@ public class VersionCheckClient {
 	      message.put( "total_bytes_uploaded", new Long( total_bytes_uploaded ) );
 	      message.put( "total_uptime", new Long( total_uptime ) );
 	      message.put( "dlstats", stats.getDownloadStats());
+      }
+      
+      String	as = COConfigurationManager.getStringParameter( "ASN AS", null );
+      
+      if ( as != null ){
+    	
+    	  message.put( "ip_as", as );
+      }
+      
+      String	asn = COConfigurationManager.getStringParameter( "ASN ASN", null );
+      
+      if ( asn != null ){
+    	
+    	  if ( asn.length() > 32 ){
+    		  
+    		  asn = asn.substring( 0, 32 );
+    	  }
+    	  
+    	  message.put( "ip_asn", asn );
       }
       
       if ( AzureusCoreFactory.isCoreAvailable()){

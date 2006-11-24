@@ -63,6 +63,12 @@ PRHelpers
 		return( resp );
 	}
 	
+	public static long
+	addressToLong(
+		InetAddress		i_address )
+	{
+		return(((long)addressToInt( i_address ))&0xffffffffL);
+	}
 	
 	public static String
 	intToAddress(

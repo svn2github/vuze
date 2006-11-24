@@ -59,15 +59,20 @@ import org.gudy.azureus2.core3.util.*;
  */
 
 public class ConfigurationDefaults {
-  private static final Long FALSE	= new Long(0);
-  private static final Long TRUE	= new Long(1);
   
+  private static final Long ZERO	= new Long(0);
+  private static final Long ONE		= new Long(1);
+
+  private static final Long FALSE	= ZERO;
+  private static final Long TRUE	= ONE;
+
   private static ConfigurationDefaults configdefaults;
   private static AEMonitor				class_mon	= new AEMonitor( "ConfigDef");
   
   private HashMap def = null;
   
   public int def_int = 0;
+  public long def_long = 0;
   public float def_float = 0;
   public int def_boolean = 0;
   public String def_String = "";
@@ -113,12 +118,12 @@ public class ConfigurationDefaults {
     def.put("UDP.NonData.Listen.Port", new Long( 6881 ));	// two effective enablers for this, dht + tracker udp client
     def.put("UDP.NonData.Listen.Port.Same", TRUE );			// control over whether non-data and data udp port are the same
     def.put("HTTP.Data.Listen.Port", new Long( Constants.isWindows?80:8080 ));
-    def.put("HTTP.Data.Listen.Port.Override", new Long( 0 ));
+    def.put("HTTP.Data.Listen.Port.Override", ZERO);
     def.put("HTTP.Data.Listen.Port.Enable", FALSE );
     
     def.put("max active torrents", new Long(4));
     def.put("max downloads", new Long(4));
-    def.put("min downloads", new Long(1));
+    def.put("min downloads", ONE);
     def.put("Newly Seeding Torrents Get First Priority", TRUE);
     def.put("Max.Peer.Connections.Per.Torrent", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT));
     def.put("Max.Peer.Connections.Total", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL));
@@ -130,17 +135,17 @@ public class ConfigurationDefaults {
     def.put( "Max Uploads Seeding", new Long(4));
     def.put( "enable.seedingonly.maxuploads", FALSE );
     def.put( "max.uploads.when.busy.inc.min.secs", new Long( 30 ));
-    def.put( "Max Download Speed KBs", new Long(0) );
-    def.put( "Max Upload Speed KBs", new Long(0));
-    def.put( "Max Upload Speed Seeding KBs", new Long(0) );
+    def.put( "Max Download Speed KBs", ZERO );
+    def.put( "Max Upload Speed KBs", ZERO);
+    def.put( "Max Upload Speed Seeding KBs", ZERO );
     def.put( "enable.seedingonly.upload.rate", FALSE );
     
     def.put( "Auto Upload Speed Enabled", FALSE );
     def.put( "Auto Upload Speed Seeding Enabled", FALSE );
     def.put( "AutoSpeed Available", FALSE );	// informative read-only parameter
-    def.put( "AutoSpeed Min Upload KBs", new Long(0) );
-    def.put( "AutoSpeed Max Upload KBs", new Long(0) );
-    def.put( "AutoSpeed Max Increment KBs", new Long(1));
+    def.put( "AutoSpeed Min Upload KBs", ZERO );
+    def.put( "AutoSpeed Max Upload KBs", ZERO );
+    def.put( "AutoSpeed Max Increment KBs", ONE);
     def.put( "AutoSpeed Max Decrement KBs", new Long(4));
     def.put( "AutoSpeed Choking Ping Millis", new Long(200) );
     def.put( "AutoSpeed Download Adj Enable", FALSE );
@@ -148,16 +153,19 @@ public class ConfigurationDefaults {
     def.put( "AutoSpeed Latency Factor", new Long(50));
     def.put( "Auto Upload Speed Debug Enabled", FALSE );
     
+    def.put( "ASN Autocheck Performed Time", ZERO );
+
+    
     def.put( "LAN Speed Enabled", TRUE );
-    def.put( "Max LAN Download Speed KBs", new Long(0) );
-    def.put( "Max LAN Upload Speed KBs", new Long(0) );
+    def.put( "Max LAN Download Speed KBs", ZERO );
+    def.put( "Max LAN Upload Speed KBs", ZERO );
     
     def.put("Use Resume", TRUE);
     def.put("On Resume Recheck All", FALSE);
     def.put("Save Resume Interval", new Long(5));
     def.put("Check Pieces on Completion", TRUE);
     def.put("Stop Ratio", new Float(0));
-    def.put("Stop Peers Ratio", new Long(0));
+    def.put("Stop Peers Ratio", ZERO);
     def.put("Disconnect Seed", TRUE);
     def.put("Seeding Piece Check Recheck Enable", TRUE );
     def.put("priorityExtensions", "");
@@ -175,7 +183,7 @@ public class ConfigurationDefaults {
         
     // SWT GUI Settings
     
-    def.put("User Mode", new Long(0));
+    def.put("User Mode", ZERO);
     
     //default data location options
     def.put("Use default data dir", FALSE);	
@@ -231,7 +239,7 @@ public class ConfigurationDefaults {
     def.put( "Play Download Finished", FALSE );
     def.put( "Play Download Finished File", "" );
     def.put( "Watch Torrent Folder", FALSE );
-    def.put( "Watch Torrent Folder Interval", new Long(1) );
+    def.put( "Watch Torrent Folder Interval", ONE );
     def.put( "Start Watched Torrents Stopped", FALSE );
     def.put( "Watch Torrent Folder Path", "" );
     def.put( "Prioritize First Piece", FALSE );
@@ -304,10 +312,10 @@ public class ConfigurationDefaults {
     def.put( "Tracker Poll Inc Per", new Long( TRTrackerServer.DEFAULT_INC_PER ) );
     def.put( "Tracker NAT Check Enable", TRUE);
     def.put( "Tracker NAT Check Timeout", new Long(TRTrackerServer.DEFAULT_NAT_CHECK_SECS));
-    def.put( "Tracker Max Seeds Retained", new Long( 0 ) );
-    def.put( "Tracker Max Seeds", new Long( 0 ) );
+    def.put( "Tracker Max Seeds Retained", ZERO );
+    def.put( "Tracker Max Seeds", ZERO );
     def.put( "Tracker Max GET Time", new Long(20));
-    def.put( "Tracker Max POST Time Multiplier", new Long(1));
+    def.put( "Tracker Max POST Time Multiplier", ONE);
     def.put( "Tracker Max Threads", new Long( 48 ));
     def.put( "Tracker TCP NonBlocking", FALSE);
     def.put( "Tracker TCP NonBlocking Conc Max", new Long(2048));
@@ -355,7 +363,7 @@ public class ConfigurationDefaults {
     def.put( "config.interface.checkassoc", TRUE );
     def.put( "confirmationOnExit", FALSE );
     def.put( "locale", Locale.getDefault().toString() );
-    def.put( "locale.set.complete.count", new Long(0));
+    def.put( "locale.set.complete.count", ZERO);
     def.put( "Confirm Data Delete", TRUE );
     def.put( "Password Confirm", null );
     def.put( "Auto Update", TRUE );
@@ -377,14 +385,14 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.perf.cache.flushpieces", TRUE);
     def.put( "File.truncate.if.too.large", FALSE);
     def.put( "Enable System Tray", TRUE);
-    def.put( "config.style.table.defaultSortOrder", new Long(0));
+    def.put( "config.style.table.defaultSortOrder", ZERO);
     def.put( "Ignore.peer.ports", "0" );
     def.put( "Security.JAR.tools.dir", "" );
     def.put( "network.max.simultaneous.connect.attempts", new Long( 8 ));
     def.put( "network.tcp.mtu.size", new Long(1500) );
     def.put( "network.udp.mtu.size", new Long(1500) );
-    def.put( "network.tcp.socket.SO_SNDBUF", new Long(0) );
-    def.put( "network.tcp.socket.SO_RCVBUF", new Long(0) );
+    def.put( "network.tcp.socket.SO_SNDBUF", ZERO );
+    def.put( "network.tcp.socket.SO_RCVBUF", ZERO );
     def.put( "network.tcp.socket.IPTOS", "" );
     def.put( "confirm_torrent_removal", FALSE );
     def.put( "add_torrents_silently", FALSE );
@@ -405,7 +413,7 @@ public class ConfigurationDefaults {
     def.put( "network.transport.encrypted.fallback.incoming", FALSE );
     def.put( "network.transport.encrypted.use.crypto.port", FALSE );
     
-    def.put( "network.bind.local.port", new Long(0) );
+    def.put( "network.bind.local.port", ZERO );
     
     // Move on completion settings.
     def.put( "Move Completed When Done", FALSE );
@@ -464,7 +472,13 @@ public class ConfigurationDefaults {
     else
       throw new ConfigurationParameterNotFoundException(p);
   }
-
+  public long getLongParameter(String p) throws ConfigurationParameterNotFoundException {
+    if (def.containsKey(p))
+      return ((Long) def.get(p)).longValue();
+    else
+      throw new ConfigurationParameterNotFoundException(p);
+  }
+  
   public float getFloatParameter(String p) throws ConfigurationParameterNotFoundException {
     if (def.containsKey(p))
       return ((Float) def.get(p)).floatValue();

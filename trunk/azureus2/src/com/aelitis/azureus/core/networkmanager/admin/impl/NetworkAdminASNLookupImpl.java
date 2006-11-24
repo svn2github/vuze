@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -221,17 +222,33 @@ NetworkAdminASNLookupImpl
 			
 			return( null );
 		}
-		
-		int	pos = bgp_prefix.indexOf('/');
+	
+		try{
+			return( getCIDRStartAddress( bgp_prefix ));
+			
+		}catch( NetworkAdminException e ){
+			
+			Debug.out(e);
+			
+			return( null );
+		}
+	}
+	
+	protected static InetAddress
+	getCIDRStartAddress(
+		String	cidr )
+	
+		throws NetworkAdminException
+	{
+	
+		int	pos = cidr.indexOf('/');
 		
 		try{
-			return( InetAddress.getByName( bgp_prefix.substring(0,pos)));
+			return( InetAddress.getByName( cidr.substring(0,pos)));
 			
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace(e);
-			
-			return( null );
+			throw( new NetworkAdminException( "Parse failure", e ));
 		}
 	}
 	
@@ -243,12 +260,30 @@ NetworkAdminASNLookupImpl
 			return( null );
 		}
 		
-		int	pos = bgp_prefix.indexOf('/');
+		try{
+			return( getCIDREndAddress( bgp_prefix ));
+			
+		}catch( NetworkAdminException e ){
+			
+			Debug.out(e);
+			
+			return( null );
+		}
+	}
+	
+	public static InetAddress
+	getCIDREndAddress(
+		String	cidr )
+	
+		throws NetworkAdminException
+	{
+
+		int	pos = cidr.indexOf('/');
 		
 		try{
-			InetAddress	start = InetAddress.getByName( bgp_prefix.substring(0,pos));
+			InetAddress	start = InetAddress.getByName( cidr.substring(0,pos));
 			
-			int	cidr_mask = Integer.parseInt( bgp_prefix.substring( pos+1 ));
+			int	cidr_mask = Integer.parseInt( cidr.substring( pos+1 ));
 			
 			int	rev_mask = 0;
 			
@@ -269,12 +304,27 @@ NetworkAdminASNLookupImpl
 			
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace(e);
-			
-			return( null );
+			throw( new NetworkAdminException( "Parse failure", e ));
 		}		
 	}
 	
+	protected static boolean
+	matchesCIDR(
+		String		cidr,
+		InetAddress	address )
+	
+		throws NetworkAdminException
+	{
+		InetAddress	start	= getCIDRStartAddress( cidr );
+		InetAddress	end		= getCIDREndAddress( cidr );
+		
+		long	l_start = PRHelpers.addressToLong( start );
+		long	l_end	= PRHelpers.addressToLong( end );
+		
+		long	test = PRHelpers.addressToLong( address );
+		
+		return( test >= l_start && test <= l_end );
+	}
 	
 	public String
 	getString()
@@ -287,9 +337,15 @@ NetworkAdminASNLookupImpl
 		String[]	args )
 	{
 		try{
+			/*
 			NetworkAdminASNLookupImpl lookup = new NetworkAdminASNLookupImpl( InetAddress.getByName( "64.71.8.82" ));
 			
 			System.out.println( lookup.getString());
+			*/
+			
+			InetAddress	test = InetAddress.getByName( "255.71.15.1" );
+			
+			System.out.println( test + " -> " + matchesCIDR( "255.71.0.0/20", test ));
 			
 		}catch( Throwable e ){
 			

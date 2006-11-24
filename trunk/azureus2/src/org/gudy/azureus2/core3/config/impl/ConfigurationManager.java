@@ -285,7 +285,7 @@ ConfigurationManager
     return setParameter(parameter, value ? 1 : 0);
   }
   
-  private Long getIntParameterRaw(String parameter) {
+  private Long getLongParameterRaw(String parameter) {
     try {
       return (Long) propertiesMap.get(parameter);
     } catch (Exception e) {
@@ -295,7 +295,7 @@ ConfigurationManager
   }
   
   public int getIntParameter(String parameter, int defaultValue) {
-    Long tempValue = getIntParameterRaw(parameter);
+    Long tempValue = getLongParameterRaw(parameter);
     return tempValue != null ? tempValue.intValue() : defaultValue;
   }
   
@@ -310,6 +310,22 @@ ConfigurationManager
     return result;
   }
   
+  public long getLongParameter(String parameter, long defaultValue) {
+    Long tempValue = getLongParameterRaw(parameter);
+    return tempValue != null ? tempValue.longValue() : defaultValue;
+  }
+  
+  public long getLongParameter(String parameter) {
+  	ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+  	long result;
+    try {
+      result = getLongParameter(parameter, def.getLongParameter(parameter));
+    } catch (ConfigurationParameterNotFoundException e) {
+      result = getLongParameter(parameter, def.def_long);
+    }
+    return result;
+  }
+	  
   private byte[] getByteParameterRaw(String parameter) {
     return (byte[]) propertiesMap.get(parameter);
   }
@@ -478,6 +494,11 @@ ConfigurationManager
     return notifyParameterListenersIfChanged(parameter, newValue, oldValue);
   }
   
+  public boolean setParameter(String parameter, long defaultValue) {
+	    Long newValue = new Long(defaultValue);
+	    Long oldValue = (Long) propertiesMap.put(parameter, newValue);
+	    return notifyParameterListenersIfChanged(parameter, newValue, oldValue);
+  }
   public boolean setParameter(String parameter, byte[] defaultValue) {
     byte[] oldValue = (byte[]) propertiesMap.put(parameter, defaultValue);
     return notifyParameterListenersIfChanged(parameter, defaultValue, oldValue);

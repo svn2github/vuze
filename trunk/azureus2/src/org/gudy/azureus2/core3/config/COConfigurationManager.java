@@ -194,6 +194,19 @@ COConfigurationManager
 		return ConfigurationManager.getInstance().setParameter( parameter, value );
 	}
 	
+	public static boolean 
+	setParameter(String parameter, long value) 
+	{
+		return ConfigurationManager.getInstance().setParameter( parameter, value );
+	}
+	
+	public static long
+	getLongParameter(
+		String		_name )
+	{
+		return( ConfigurationManager.getInstance().getLongParameter( _name ));
+	}
+	
 	public static byte[]
 	getByteParameter(
 		String		_name,
