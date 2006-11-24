@@ -39,6 +39,7 @@ import java.net.URLEncoder;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.transfer.*;
 import org.gudy.azureus2.core3.util.*;
@@ -636,6 +637,39 @@ public class VersionCheckClient {
 		 }catch( Throwable e ){
 			 
 		 }
+	 }
+	 
+	 Long	as_advice = (Long)reply.get( "as_advice" );
+	 
+	 if ( as_advice != null ){
+		 
+	     String	asn = COConfigurationManager.getStringParameter( "ASN ASN", null );
+
+	     if ( asn != null ){
+	    	
+			 long	advice = as_advice.longValue();
+			 
+			 if ( advice == 1 ){
+			
+				 	// require crypto
+				 
+				 boolean	done = COConfigurationManager.getBooleanParameter( "ASN Advice Followed", false );
+				 
+				 if ( !done ){
+					 
+					 COConfigurationManager.setParameter( "ASN Advice Followed", true );
+					 
+					 COConfigurationManager.setParameter( "network.transport.encrypted.require", true );
+					 
+					 String	msg = 
+						 MessageText.getString(
+								"crypto.alert.as.warning",
+								new String[]{ asn });
+					 
+					 Logger.log( new LogAlert( false, LogAlert.AT_WARNING, msg ));
+				 }
+			 }
+	     }
 	 }
   }
   
