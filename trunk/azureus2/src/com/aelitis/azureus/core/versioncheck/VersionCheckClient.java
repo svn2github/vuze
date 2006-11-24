@@ -653,11 +653,11 @@ public class VersionCheckClient {
 			
 				 	// require crypto
 				 
-				 boolean	done = COConfigurationManager.getBooleanParameter( "ASN Advice Followed", false );
+				 String	done_asn = COConfigurationManager.getStringParameter( "ASN Advice Followed", "" );
 				 
-				 if ( !done ){
+				 if ( !done_asn.equals( asn )){
 					 
-					 COConfigurationManager.setParameter( "ASN Advice Followed", true );
+					 COConfigurationManager.setParameter( "ASN Advice Followed", asn );
 					 
 					 COConfigurationManager.setParameter( "network.transport.encrypted.require", true );
 					 
