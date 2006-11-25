@@ -175,8 +175,9 @@ public class SelectableSpeedMenu {
 	                    if(items[i] == event.widget)
 	                    {
 	                        items[i].setSelection(true);
-	                        final int cValue = ((Integer)new TransferSpeedValidator(configKey, items[i].getData("maxkb")).getValue()).intValue();
-	                        COConfigurationManager.setParameter(configKey, cValue);
+	                        
+	                        	// turn off auto speed first as this will revert the upload limit to
+	                        	// what it was before it was turned on
 	                        
 	                        if ( up_menu ){
 	                            
@@ -186,6 +187,10 @@ public class SelectableSpeedMenu {
 	                        	COConfigurationManager.setParameter( configAutoKey, false );
 	                        }
 	                        
+	                        final int cValue = ((Integer)new TransferSpeedValidator(configKey, items[i].getData("maxkb")).getValue()).intValue();
+	                        COConfigurationManager.setParameter(configKey, cValue);
+	                        
+
 	                        COConfigurationManager.save();
 	                    }
 	                    else {

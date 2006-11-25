@@ -265,6 +265,12 @@ AzureusCoreImpl
 							}
 						}
 						
+						public int
+						getCurrentDownloadLimit()
+						{
+							return( COConfigurationManager.getIntParameter( TransferSpeedValidator.getDownloadParameter()) * 1024 );
+						}
+						
 						public void
 						setCurrentDownloadLimit(
 							int		bytes_per_second )
