@@ -603,11 +603,13 @@ public class ConfigurationDefaults {
 	  {
 		  String	value = (String)_value;
 		  
+		  	// see http://www.faqs.org/rfcs/rfc3696.html
+		  
 		  for (int i=0;i<value.length();i++){
 			  
 			  char	c = value.charAt(i);
 			  
-			  if ( Character.isLetterOrDigit( c ) || c == '.' ){
+			  if ( Character.isLetterOrDigit( c ) || c == '.' || c == '-' ){
 				  
 			  }else{
 				  
