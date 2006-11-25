@@ -193,6 +193,8 @@ AzureusCoreImpl
 					this,
 					new SpeedManagerAdapter()
 					{
+						private boolean setting_limits;
+						
 						public int
 						getCurrentProtocolUploadSpeed()
 						{
@@ -234,6 +236,7 @@ AzureusCoreImpl
 							if ( k_per_second == 0 ){
 								
 								bytes_per_second = Integer.MAX_VALUE;
+								
 							}else{
 								
 								bytes_per_second = k_per_second*1024;
@@ -276,6 +279,58 @@ AzureusCoreImpl
 							int		bytes_per_second )
 						{
 							COConfigurationManager.setParameter( TransferSpeedValidator.getDownloadParameter(), bytes_per_second/1024 );
+						}
+						
+						public Object
+						getLimits()
+						{
+							String up_key 	= TransferSpeedValidator.getActiveUploadParameter( global_manager );
+							String down_key	= TransferSpeedValidator.getDownloadParameter();
+							
+							return( 
+								new Object[]{
+									up_key,
+									new Integer( COConfigurationManager.getIntParameter( up_key )),
+									down_key,
+									new Integer( COConfigurationManager.getIntParameter( down_key )),
+								});
+						}
+						
+						public void
+						setLimits(
+							Object		limits,
+							boolean		do_up,
+							boolean		do_down )
+						{
+							if ( limits == null ){
+								
+								return;
+							}
+							try{
+								if ( setting_limits ){
+									
+									return;
+								}
+							
+								setting_limits	= true;
+							
+								Object[]	bits = (Object[])limits;
+								
+								if ( do_up ){
+									
+									COConfigurationManager.setParameter((String)bits[0], ((Integer)bits[1]).intValue());
+								}
+								
+								if ( do_down ){
+									
+									COConfigurationManager.setParameter((String)bits[2], ((Integer)bits[3]).intValue());
+								}
+								
+							}finally{
+								
+								setting_limits	= false;
+								
+							}
 						}
 					});
 		

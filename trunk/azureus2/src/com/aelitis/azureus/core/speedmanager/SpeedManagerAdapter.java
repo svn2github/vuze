@@ -44,4 +44,13 @@ SpeedManagerAdapter
 	public void
 	setCurrentDownloadLimit(
 		int		bytes_per_second );
+	
+	public Object
+	getLimits();
+	
+	public void
+	setLimits(
+		Object		limits,
+		boolean		do_up,
+		boolean		do_down );
 }

@@ -174,8 +174,7 @@ SpeedManagerImpl
 	private volatile int				replacement_contacts;
 	private SpeedManagerPingSource[]	contacts_array	= new SpeedManagerPingSource[0];
 	
-	private int original_download_limit	= -1;
-	private int original_upload_limit	= -1;
+	private Object	original_limits;
 	
 	protected void
 	reset()
@@ -677,8 +676,7 @@ SpeedManagerImpl
 			
 			if ( _enabled ){
 				
-				original_upload_limit 	= adapter.getCurrentUploadLimit();
-				original_download_limit	= adapter.getCurrentDownloadLimit();
+				original_limits	= adapter.getLimits();
 			}
 			
 			reset();
@@ -691,16 +689,8 @@ SpeedManagerImpl
 			}
 			
 			if ( !enabled ){
-				
-				if (  original_upload_limit >= 0 ){
-					
-					adapter.setCurrentUploadLimit( original_upload_limit );
-				}
-				
-				if (  original_download_limit >= 0 && ADJUST_DOWNLOAD_ENABLE ){
-					
-					adapter.setCurrentDownloadLimit( original_download_limit );
-				}
+									
+				adapter.setLimits( original_limits, true, ADJUST_DOWNLOAD_ENABLE );
 			}
 		}
 	}

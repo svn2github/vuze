@@ -196,6 +196,20 @@ Test
 		return( upload_limit );
 	}
 	
+	public Object
+	getLimits()
+	{
+		return( null );
+	}
+	
+	public void
+	setLimits(
+		Object		limits,
+		boolean		do_up,
+		boolean		do_down )
+	{
+		
+	}
 	protected void
 	setManualUploadLimit(
 		int		bytes_per_second )
