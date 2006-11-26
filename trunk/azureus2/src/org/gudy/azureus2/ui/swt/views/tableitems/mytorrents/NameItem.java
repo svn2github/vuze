@@ -112,7 +112,6 @@ public class NameItem extends CoreTableColumn implements
 												- folderBounds.height, folderBounds.width,
 										folderBounds.height);
 							}
-							gc.drawLine(0, 0, 5, 0);
 						} finally {
 							gc.dispose();
 						}
