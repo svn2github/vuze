@@ -94,7 +94,7 @@ public class NameItem extends CoreTableColumn implements
 
 				// cheat for core, since we really know it's a TabeCellImpl and want to use
 				// those special functions not available to Plugins
-				((TableCellCore) cell).setImage(icon);
+				((TableCellCore) cell).setIcon(icon);
 			}
 		}
 	}

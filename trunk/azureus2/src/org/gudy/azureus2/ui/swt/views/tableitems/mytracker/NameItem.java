@@ -92,7 +92,7 @@ public class NameItem extends CoreTableColumn implements
 
 					Image icon = ImageRepository.getFolderImage();
 
-					((TableCellCore) cell).setImage(icon);
+					((TableCellCore) cell).setIcon(icon);
 
 				} else {
 
@@ -117,7 +117,7 @@ public class NameItem extends CoreTableColumn implements
 
 					// cheat for core, since we really know it's a TabeCellImpl and want to use
 					// those special functions not available to Plugins
-					((TableCellCore) cell).setImage(icon);
+					((TableCellCore) cell).setIcon(icon);
 				}
 			}
 		}

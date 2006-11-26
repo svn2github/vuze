@@ -94,30 +94,39 @@ public class NameItem extends CoreTableColumn implements
 					Image icon = ImageRepository.getPathIcon(path);
 
 					if (Constants.isWindows) {
+						disposeCellIcon(cell);
+
 						Rectangle iconBounds = icon.getBounds();
 						// recomposite to avoid artifacts - transparency mask does not work
 						final Image dstImage = new Image(Display.getCurrent(),
 								iconBounds.width, iconBounds.height);
 						GC gc = new GC(dstImage);
-						gc.drawImage(icon, 0, 0);
-						if (fileInfo.length > 1) {
-							Image imgFolder = ImageRepository.getImage("foldersmall");
-							Rectangle folderBounds = imgFolder.getBounds();
-							gc.drawImage(imgFolder, folderBounds.x, folderBounds.y,
-									folderBounds.width, folderBounds.height, iconBounds.width
-											- folderBounds.width, iconBounds.height
-											- folderBounds.height, folderBounds.width,
-									folderBounds.height);
+						try {
+							gc.drawImage(icon, 0, 0);
+							if (fileInfo.length > 1) {
+								Image imgFolder = ImageRepository.getImage("foldersmall");
+								Rectangle folderBounds = imgFolder.getBounds();
+								gc.drawImage(imgFolder, folderBounds.x, folderBounds.y,
+										folderBounds.width, folderBounds.height, iconBounds.width
+												- folderBounds.width, iconBounds.height
+												- folderBounds.height, folderBounds.width,
+										folderBounds.height);
+							}
+							gc.drawLine(0, 0, 5, 0);
+						} finally {
+							gc.dispose();
 						}
-						gc.dispose();
 						icon = dstImage;
 					}
 
 					// cheat for core, since we really know it's a TabeCellImpl and want to
 					// use those special functions not available to Plugins
-					((TableCellCore) cell).setImage(icon);
+					((TableCellCore) cell).setIcon(icon);
 				} else {
-					((TableCellCore) cell).setImage(null);
+					if (Constants.isWindows) {
+						disposeCellIcon(cell);
+					}
+					((TableCellCore) cell).setIcon(null);
 				}
 			}
 		}
@@ -141,10 +150,14 @@ public class NameItem extends CoreTableColumn implements
 
 	public void dispose(TableCell cell) {
 		if (bShowIcon && Constants.isWindows) {
-			final Image img = ((TableCellCore) cell).getGraphicSWT();
-			if (img != null && !img.isDisposed()) {
-				img.dispose();
-			}
+			disposeCellIcon(cell);
+		}
+	}
+
+	private void disposeCellIcon(TableCell cell) {
+		final Image img = ((TableCellCore) cell).getIcon();
+		if (img != null && !img.isDisposed()) {
+			img.dispose();
 		}
 	}
 }

@@ -704,12 +704,12 @@ TorrentInfoView
 			
 			if (img instanceof GraphicSWT){
 				Image imgSWT = ((GraphicSWT)img).getImage();
-				setImage( imgSWT );
+				setIcon( imgSWT );
 			}
 
 			if (img instanceof UISWTGraphic){
 				Image imgSWT = ((UISWTGraphic)img).getImage();
-				setImage( imgSWT );
+				setIcon( imgSWT );
 			}
 			    
 			return( true );
@@ -854,7 +854,7 @@ TorrentInfoView
 		}
 
 		public void 
-		setImage(
+		setIcon(
 			Image img)
 		{
 			if ( label != null && !label.isDisposed()){
@@ -866,6 +866,13 @@ TorrentInfoView
 					label.setImage( img );
 				}
 			}
+		}
+		
+		public Image getIcon() {
+			if ( label != null && !label.isDisposed()){
+				return label.getImage();
+			}
+			return null;
 		}
 
 		public boolean 
@@ -908,7 +915,7 @@ TorrentInfoView
 		setGraphic(
 			Image img)
 		{
-			setImage( img );
+			setIcon( img );
 			
 			return( true );
 		}

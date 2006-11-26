@@ -37,7 +37,9 @@ public interface BufferedTableItem
 
 	public abstract boolean setText(String text);
 
-	public abstract void setImage(Image img);
+	public abstract Image getIcon();
+
+	public abstract void setIcon(Image img);
 
 	public abstract void setRowForeground(Color color);
 

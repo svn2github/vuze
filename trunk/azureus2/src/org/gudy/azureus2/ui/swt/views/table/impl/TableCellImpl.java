@@ -805,12 +805,16 @@ public class TableCellImpl
     sortValue = null;
   }
   
-  public void setImage(Image img) {
+  public void setIcon(Image img) {
   	if (isInvisibleAndCanRefresh())
   		return;
 
-    bufferedTableItem.setImage(img);
+    bufferedTableItem.setIcon(img);
     graphic = null;
+  }
+  
+  public Image getIcon() {
+  	return bufferedTableItem.getIcon();
   }
 
   public boolean needsPainting() {

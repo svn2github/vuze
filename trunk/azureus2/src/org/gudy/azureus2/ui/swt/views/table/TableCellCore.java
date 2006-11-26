@@ -84,11 +84,16 @@ public interface TableCellCore
   /** dispose of the cell */
   public void dispose();
   
-  /** Set the cell's image
+	/**
+	 * @return
+	 */
+	Image getIcon();
+
+  /** Set the cell's icon
    *
-   * @param img Cell's new image
+   * @param img Cell's new icon
    */
-  public void setImage(Image img);
+  public void setIcon(Image img);
 
   /** Retrieve whether the cell need any paint calls (graphic)
    *

@@ -78,9 +78,17 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		return false;
 	}
 
-	public void setImage(Image img) {
+	public void setIcon(Image img) {
 		if (position != -1)
 			row.setImage(position, img);
+	}
+
+	public Image getIcon() {
+		if (position != -1) {
+			return row.getImage(position);
+		}
+
+		return null;
 	}
 
 	public void setRowForeground(Color color) {

@@ -207,6 +207,13 @@ BufferedTableRow
 		
 		item.setImage( index, new_image );	
 	}
+	
+	public Image getImage(int index) {
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
+			return null;
+		
+		return item.getImage(index);
+	}
 
 	/**
 	 * Checks if the widget is valid
