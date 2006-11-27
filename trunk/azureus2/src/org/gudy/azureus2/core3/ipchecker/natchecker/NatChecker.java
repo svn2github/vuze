@@ -49,22 +49,36 @@ public class NatChecker {
   public static final int NAT_KO = 2;
   public static final int NAT_UNABLE = 3;
   
-  private static final String[] urls = {
-      Constants.AELITIS_WEB_SITE + "natcheck.php"       
-  };
-
-  public static int 
-  test(
-  		AzureusCore	azureus_core,
-		int port) 
+ 
+  private int		result;
+  private String	fail_reason;
+  
+  public 
+  NatChecker(
+  	AzureusCore		azureus_core,
+	int 			port) 
   {	
     String check = "azureus_rand_" + String.valueOf( (int)(Math.random() * 100000) );
     
     NatCheckerServer server = new NatCheckerServer( port, check );
     
-    if( !server.isValid() )  return NAT_UNABLE;
+    if( !server.isValid() ){
+    	
+    	result = NAT_UNABLE;
+    	
+    	fail_reason	= "Can't initialise server";
+    	
+    	return;
+    }
     
-    if( port < 0 || port > 65535 || port == 6880 )  return NAT_UNABLE;
+    if ( port < 0 || port > 65535 || port == 6880 ){
+    	
+    	result = NAT_UNABLE;
+    	
+    	fail_reason	= "Invalid port";
+    	
+    	return;
+    }
     
 
     //do UPnP if necessary
@@ -78,7 +92,7 @@ public class NatChecker {
 
       UPnPMapping mapping = upnp.getMapping( true, port );
 
-      if( mapping == null ) {
+      if ( mapping == null ) {
 
         new_mapping = upnp.addMapping( "NAT Tester", true, port, true );
 
@@ -99,7 +113,7 @@ public class NatChecker {
     try {
       server.start();
       
-      String urlStr = urls[ 0 ] + "?port=" + String.valueOf( port ) + "&check=" + check;
+      String urlStr = Constants.NAT_TEST_SERVER + "?port=" + String.valueOf( port ) + "&check=" + check;
       URL url = new URL( urlStr );
       HttpURLConnection con = (HttpURLConnection)url.openConnection();
       con.connect();
@@ -117,24 +131,30 @@ public class NatChecker {
       }
       
       Map map = BDecoder.decode( message.toByteArray() );
-      int result = ((Long)map.get( "result" )).intValue();
+      int reply_result = ((Long)map.get( "result" )).intValue();
       
-      switch( result ) {
+      switch( reply_result ) {
         case 0 :
           byte[] reason = (byte[])map.get( "reason" );
           if( reason != null ) {
           	Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
 								"NAT CHECK FAILED: " + new String(reason)));
           }
-          return NAT_KO;
+          result = NAT_KO;
+          fail_reason = reason==null?"Unknown":new String(reason);
+          break;
         case 1 :
-          return NAT_OK;
+          result = NAT_OK;
+          break;
         default :
-          return NAT_UNABLE;
+          result = NAT_UNABLE;
+          fail_reason = "Invalid response";
+          break;
       }
     }
     catch (Exception e) {
-      return NAT_UNABLE;
+    	result = NAT_UNABLE;
+    	fail_reason = "Error: " + Debug.getNestedExceptionMessage( e );
     }
     finally {
 
@@ -147,4 +167,15 @@ public class NatChecker {
     }
   }
   
+  public int
+  getResult()
+  {
+	  return( result );
+  }
+  
+  public String
+  getFailReason()
+  {
+	  return( fail_reason );
+  }
 }

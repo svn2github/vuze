@@ -23,6 +23,8 @@ package org.gudy.azureus2.core3.ipchecker.natchecker;
 
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -83,24 +85,64 @@ public class NatCheckerServer extends AEThread {
         NetworkManager.getSingleton().requestIncomingConnectionRouting(
             matcher,
             new NetworkManager.RoutingListener() {
-              public void connectionRouted( NetworkConnection connection, Object routing_data ) {
-  							if (Logger.isEnabled())
-  								Logger.log(new LogEvent(LOGID, "Incoming connection from ["
-  										+ connection + "] successfully routed to NAT CHECKER"));
-                
-                try{
-                  ByteBuffer msg = ByteBuffer.wrap( check.getBytes() );
-                  while( msg.hasRemaining() ) {
-                    connection.getTransport().write( new ByteBuffer[]{ msg }, 0, 1 );
-                    Thread.sleep( 20 );
-                  }
-                }
-                catch( Throwable t ) {
-                  Debug.out( "Nat check write failed", t );
-                }
-                
-                connection.close();
+              public void 
+              connectionRouted( 
+            	NetworkConnection 	connection, 
+            	Object 				routing_data ) 
+              {
+            	  if (Logger.isEnabled())
+            		  Logger.log(new LogEvent(LOGID, "Incoming connection from ["
+            				  + connection + "] successfully routed to NAT CHECKER"));
+
+            	  try{
+            		  Map	map = new HashMap();
+
+            		  map.put( "check", _check );
+
+            		  byte[]	map_bytes = BEncoder.encode( map );
+
+            		  ByteBuffer msg = ByteBuffer.allocate( 4 + map_bytes.length );
+
+            		  msg.putInt( map_bytes.length );
+            		  msg.put( map_bytes );
+
+            		  msg.flip();
+
+            		  Transport transport = connection.getTransport();
+
+            		  long	start = SystemTime.getCurrentTime();
+
+            		  while( msg.hasRemaining()){
+
+            			  transport.write( new ByteBuffer[]{ msg }, 0, 1 );
+
+            			  if ( msg.hasRemaining()){
+
+            				  long now = SystemTime.getCurrentTime();
+
+            				  if ( now < start ){
+
+            					  start = now;
+
+            				  }else{
+
+            					  if ( now - start > 30000 ){
+
+            						  throw( new Exception( "Timeout" ));
+            					  }
+            				  }
+
+            				  Thread.sleep( 50 );
+            			  }
+            		  }
+            	  }catch( Throwable t ) {
+            		
+            		  Debug.out( "Nat check write failed", t );
+            	  }
+
+            	  connection.close();
               }
+              
               public boolean
           	  autoCryptoFallback()
               {

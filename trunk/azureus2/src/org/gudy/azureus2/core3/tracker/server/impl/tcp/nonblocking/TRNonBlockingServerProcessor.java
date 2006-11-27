@@ -187,47 +187,62 @@ TRNonBlockingServerProcessor
 	public void
 	runSupport()
 	{
+		boolean	async = false;
+		
 		try{
 			String	url = request_header.substring(4).trim();
 			
 			int	pos = url.indexOf( " " );
 									
 			url = url.substring(0,pos);
-	
-			ByteArrayOutputStream	response = new ByteArrayOutputStream(1024);
-			
-			process( 		request_header,
+				
+			ByteArrayOutputStream	response = 
+				process( 		request_header,
 							request_header.toLowerCase(),
 							url, 
 							(InetSocketAddress)socket_channel.socket().getRemoteSocketAddress(),
 							true,
-							new ByteArrayInputStream(new byte[0]),
-							response );
+							new ByteArrayInputStream(new byte[0]));
 			
-			// System.out.println( "write: " + System.currentTimeMillis());
-			
-			write_buffer = ByteBuffer.wrap( response.toByteArray());
-			
+			if ( response == null ){
+				
+				async = true;
+				
+			}else{
+				
+				write_buffer = ByteBuffer.wrap( response.toByteArray());
+			}
 		}catch( Throwable e ){
 			
 			
 		}finally{
 			
-			((TRNonBlockingServer)getServer()).readyToWrite( this );
+			if ( !async ){
+				
+				((TRNonBlockingServer)getServer()).readyToWrite( this );
+			}
 		}
 	}
 	
-	protected abstract void
+	protected abstract ByteArrayOutputStream
 	process(
 		String				input_header,
 		String				lowercase_input_header,
 		String				url_path,
 		InetSocketAddress	client_address,
 		boolean				announce_and_scrape_only,
-		InputStream			is,
-		OutputStream		os )
-		
+		InputStream			is )
+	
 		throws IOException;
+	
+	protected void
+	asyncProcessComplete(
+		ByteArrayOutputStream	response )
+	{
+		write_buffer = ByteBuffer.wrap( response.toByteArray());
+	
+		((TRNonBlockingServer)getServer()).readyToWrite( this );
+	}
 	
 	protected SocketChannel
 	getSocketChannel()

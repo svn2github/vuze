@@ -372,11 +372,24 @@ public class ConnectDisconnectManager {
       if( waiting_time > CONNECT_ATTEMPT_TIMEOUT ) {
         i.remove();
 
-        connect_selector.cancel( request.channel );
+        SocketChannel channel = request.channel;
+        
+        connect_selector.cancel( channel );
 
-        closeConnection( request.channel );
+        closeConnection( channel );
 
-        request.listener.connectFailure( new Throwable( "Connection attempt aborted: timed out after " +CONNECT_ATTEMPT_TIMEOUT/1000+ "sec" ) );
+        InetSocketAddress	address = request.address;
+                
+        String target = address.getHostName();
+        
+        if ( target == null ){
+        	
+        	target = "unknown";
+        }
+        
+        target += ":" + address.getPort();
+        
+        request.listener.connectFailure( new Throwable( "Connection attempt to " + target + " aborted: timed out after " +CONNECT_ATTEMPT_TIMEOUT/1000+ "sec" ) );
       }
       else if( waiting_time >= CONNECT_ATTEMPT_STALL_TIME ) {
         num_stalled_requests++;

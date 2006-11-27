@@ -26,9 +26,9 @@ package org.gudy.azureus2.core3.tracker.server.impl;
  *
  */
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
@@ -150,7 +150,7 @@ TRTrackerServerFactoryImpl
 		try{
 			class_mon.enter();
 		
-			TRTrackerServerFactoryImpl.removeListener( l );
+			listeners.remove( l );
 			
 		}finally{
 			
@@ -170,13 +170,16 @@ TRTrackerServerFactoryImpl
 			super( _server, _socket );
 		}
 		
-		protected void 
+		protected ByteArrayOutputStream 
 		process(
-			String input_header, String lowercase_input_header, String url_path, InetSocketAddress client_address, boolean announce_and_scrape_only, InputStream is, OutputStream os) 
+			String input_header, String lowercase_input_header, String url_path, InetSocketAddress client_address, boolean announce_and_scrape_only, InputStream is) 
 			throws IOException 
 		{
-	
+			ByteArrayOutputStream	os = new ByteArrayOutputStream( 1024 );
+			
 			processRequest(input_header, lowercase_input_header, url_path, client_address, announce_and_scrape_only, is, os );
+			
+			return( os );
 		}
 	}
 }

@@ -64,9 +64,15 @@ NetworkAdminASNLookupImpl
 	
 		throws NetworkAdminException
 	{
-		//lookupDNS( address );
-		
-		lookupTCP( address );
+		try{
+			lookupTCP( address );
+			
+		}catch( NetworkAdminException e ){
+			
+				// fallback to dns - won't get as name but better than nothing
+			
+			lookupDNS( address );
+		}
 	}
 	
 	protected void

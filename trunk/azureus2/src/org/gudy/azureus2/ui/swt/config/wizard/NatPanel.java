@@ -75,17 +75,17 @@ public class NatPanel extends AbstractWizardPanel {
       //if (lowPort <= highPort && (highPort-lowPort < 10)) {
         //for (int port = lowPort; port <= highPort && bContinue; port++) {
           printMessage(MessageText.getString("configureWizard.nat.testing") + " " + TCPListenPort + " ... ");
-          int portResult = NatChecker.test(wizard.getAzureusCore(), TCPListenPort);
-          switch (portResult) {
+          NatChecker checker = new NatChecker(wizard.getAzureusCore(), TCPListenPort);
+          switch (checker.getResult()) {
             case NatChecker.NAT_OK :
               printMessage(MessageText.getString("configureWizard.nat.ok") + "\n");
               break;
             case NatChecker.NAT_KO :
-              printMessage(MessageText.getString("configureWizard.nat.ko") + "\n");
+              printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + " - " + checker.getFailReason()+".\n");
               bContinue = false;
               break;
             default :
-              printMessage(MessageText.getString("configureWizard.nat.unable") + "\n");
+              printMessage( "\n" + MessageText.getString("configureWizard.nat.unable") + ". \n(" + checker.getFailReason()+").\n");
               break;
           }
         //}
@@ -227,7 +227,7 @@ public class NatPanel extends AbstractWizardPanel {
     bCancel.setLayoutData(gridData);
     bCancel.setEnabled(false);
 
-    textResults = new StyledText(panel, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+    textResults = new StyledText(panel, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP );
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.heightHint = 70;
     gridData.horizontalSpan = 4;

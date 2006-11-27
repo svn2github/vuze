@@ -68,17 +68,17 @@ public class NatTestWindow {
 
     public void runSupport() {
           printMessage(MessageText.getString("configureWizard.nat.testing") + " " + TCPListenPort + " ... ");
-          int portResult = NatChecker.test(AzureusCoreFactory.getSingleton(), TCPListenPort);          
-          switch (portResult) {
-            case NatChecker.NAT_OK :
-              printMessage(MessageText.getString("configureWizard.nat.ok") + "\n");
-              break;
-            case NatChecker.NAT_KO :
-              printMessage(MessageText.getString("configureWizard.nat.ko") + "\n");
-              break;
-            default :
-              printMessage(MessageText.getString("configureWizard.nat.unable") + "\n");
-              break;
+          NatChecker checker = new NatChecker(AzureusCoreFactory.getSingleton(), TCPListenPort);          
+          switch (checker.getResult()) {
+          case NatChecker.NAT_OK :
+            printMessage(MessageText.getString("configureWizard.nat.ok") + "\n");
+            break;
+          case NatChecker.NAT_KO :
+            printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + " - " + checker.getFailReason()+".\n");
+            break;
+          default :
+            printMessage( "\n" + MessageText.getString("configureWizard.nat.unable") + ". \n(" + checker.getFailReason()+").\n");
+            break;
           }     
           display.asyncExec(new AERunnable()  {
             public void runSupport() {
@@ -159,7 +159,7 @@ public class NatTestWindow {
     gridData.widthHint = 70;
     bTest.setLayoutData(gridData);
 
-    textResults = new StyledText(panel, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+    textResults = new StyledText(panel, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP );
     gridData = new GridData();
     gridData.widthHint = 400;
     gridData.heightHint = 100;
