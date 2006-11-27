@@ -480,8 +480,15 @@ public class ConsoleInput extends Thread {
 			try {
 				if ( !ci.controlling ){
 					
-					ci.out.close();
+						// we never want to close System.out - could be remote command exec
+					
+					if ( ci.out != System.out ){
 						
+						ci.out.println( "Logged out" );
+						
+						ci.out.close();
+					}
+					
 					ci.br.close();
 				}
 				

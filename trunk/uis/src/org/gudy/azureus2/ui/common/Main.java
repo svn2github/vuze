@@ -132,14 +132,15 @@ public class Main {
        		
        		return;
        	}
+       	 
+       		// don't create core until we know we really need it
        	
-    	core = AzureusCoreFactory.create();
-
- 
     	if( mi ){
     		
     		System.out.println( "MULTI_INSTANCE enabled" );
     		
+    	   	core = AzureusCoreFactory.create();
+
     		processArgs(args, core, commands);
     		
     		return;
@@ -150,11 +151,14 @@ public class Main {
 	    if ((start == null) || (start.getServerState()==StartServer.STATE_FAULTY)) {
 	    	
 	 
-	    	new StartSocket(commands==null?new String[0]:commands.getArgs());
+	    	new StartSocket( args );
 	    	
 	    }else{
 	    	
 	   
+	      core = AzureusCoreFactory.create();
+
+
 	      start.start();
 	      
 	      processArgs(args, core, commands);
@@ -302,7 +306,11 @@ public class Main {
       Constructor conConsoleInput =null;
       try {
       	clConsoleInput = Class.forName("org.gudy.azureus2.ui.console.ConsoleInput");
+      	
+      		// change this and you'll need to change the parameters below....
+      	
       	Class params[] = {String.class, AzureusCore.class, Reader.class, PrintStream.class, Boolean.class};
+      	
       	conConsoleInput=clConsoleInput.getConstructor(params);
       } catch (Exception e) {
       	e.printStackTrace();
@@ -325,7 +333,7 @@ public class Main {
       	if (conConsoleInput != null) {
 	        String comm = commands.getOptionValue('c');
 	        comm+="\nlogout\n";
-	        Object params[] = {commands.getOptionValue('c'), UIConst.getGlobalManager(), new StringReader(comm), System.out, Boolean.FALSE};
+	        Object params[] = {commands.getOptionValue('c'), UIConst.getAzureusCore(), new StringReader(comm), System.out, Boolean.FALSE};
 	        try {
 	        	conConsoleInput.newInstance(params);
 	        } catch (Exception e) {
