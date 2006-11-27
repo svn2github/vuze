@@ -119,30 +119,43 @@ PluginConfigImpl
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getStringParameter(java.lang.String)
 	 */
 	public String getStringParameter(String name) {
-		return COConfigurationManager.getStringParameter(mapKeyName(name));
+		return COConfigurationManager.getStringParameter(mapKeyName(name, false));
 	}
 
     public String getStringParameter(String name, String _default )
 	{
-		return COConfigurationManager.getStringParameter(mapKeyName(name), _default);
+		return COConfigurationManager.getStringParameter(mapKeyName(name, false), _default);
     }
 
 	public float getFloatParameter(String name) {
-		return COConfigurationManager.getFloatParameter(mapKeyName(name));
+		return COConfigurationManager.getFloatParameter(mapKeyName(name, false));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getIntParameter(java.lang.String)
 	 */
 	public int getIntParameter(String name) {
-		return COConfigurationManager.getIntParameter(mapKeyName(name));
+		return COConfigurationManager.getIntParameter(mapKeyName(name, false));
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getIntParameter(java.lang.String)
 	 */
 	public int getIntParameter(String name, int default_value) {
-		return COConfigurationManager.getIntParameter(mapKeyName(name), default_value);
+		return COConfigurationManager.getIntParameter(mapKeyName(name, false), default_value);
+	}
+	
+	private String mapKeyName(String key, boolean for_set) {
+		String result = (String)external_to_internal_key_map.get(key);
+		if (result == null) {
+			if (for_set) {
+				throw new RuntimeException("No permission to set the value of core parameter: " + key);
+			}
+			else {
+				return key;
+			}
+		}
+		return result;
 	}
 
 	public void
@@ -150,25 +163,18 @@ PluginConfigImpl
 	  	String	key, 
 		int		value )
 	{
-		String	target_key = (String)external_to_internal_key_map.get( key );
-		
-		if ( target_key == null ){
-			
-			throw( new RuntimeException("Invalid code int parameter (" + key + ")"));
-		}
-		
-		COConfigurationManager.setParameter( target_key, value );
+		COConfigurationManager.setParameter(mapKeyName(key, true), value );
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getBooleanParameter(java.lang.String)
 	 */
 	public boolean getBooleanParameter(String name) {
-		return COConfigurationManager.getBooleanParameter(mapKeyName(name));
+		return COConfigurationManager.getBooleanParameter(mapKeyName(name, false));
 	}
 	
 	public boolean getBooleanParameter(String name, boolean _default) {
-		return COConfigurationManager.getBooleanParameter(mapKeyName(name), _default);
+		return COConfigurationManager.getBooleanParameter(mapKeyName(name, false), _default);
 	}
 	
 	public void
@@ -176,19 +182,12 @@ PluginConfigImpl
 	  	String		key, 
 		boolean		value )
 	{
-		String	target_key = (String)external_to_internal_key_map.get( key );
-		
-		if ( target_key == null ){
-			
-			throw( new RuntimeException("Invalid code int parameter (" + key + ")"));
-		}
-		
-		COConfigurationManager.setParameter( target_key, value );
+		COConfigurationManager.setParameter( mapKeyName(key, true), value );
 	}
 	
     public byte[] getByteParameter(String name, byte[] _default )
     {
-		return COConfigurationManager.getByteParameter(mapKeyName(name), _default);
+		return COConfigurationManager.getByteParameter(mapKeyName(name, false), _default);
     }
 
 	/* (non-Javadoc)
@@ -309,7 +308,7 @@ PluginConfigImpl
 	getParameter(
 		String		key )
 	{
-		return( new ConfigParameterImpl( mapKeyName(key)));
+		return( new ConfigParameterImpl( mapKeyName(key, false)));
 	}
 	
 	public ConfigParameter
@@ -324,21 +323,7 @@ PluginConfigImpl
 	{
 		COConfigurationManager.save();
 	}
-	
-	protected String
-	mapKeyName(
-		String	key )
-	{
-		String	k = (String)external_to_internal_key_map.get(key);
 		
-		if ( k != null ){
-			
-			return( k );
-		}
-		
-		return( key );
-	}
-	
 	public File
 	getPluginUserFile(
 		String	name )
