@@ -108,22 +108,14 @@ public class FilesView
 	}
 
 	public void fillMenu(final Menu menu) {
-		AEDiagnosticsLogger	diag_logger	= AEDiagnostics.getLogger( "filemenu" );
-		diag_logger.log("FilesView.fillMenu Start");
-		
-
 		Object[] infos = getSelectedDataSources();
 		boolean hasSelection = (infos.length > 0);
-
-		diag_logger.log("FilesView.fillMenu Phase 1");
 
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemOpen, "FilesView.menu.open");
     Utils.setMenuItemImage(itemOpen, "run");
     // Invoke open on enter, double click
     menu.setDefaultItem(itemOpen);
-
-		diag_logger.log("FilesView.fillMenu Phase 2");
 
 		// Explore  (Copied from MyTorrentsView)
 		final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
@@ -139,8 +131,6 @@ public class FilesView
 			}
 		});
 		itemExplore.setEnabled(hasSelection);
-
-		diag_logger.log("FilesView.fillMenu Phase 3");
 
     final MenuItem itemRename = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemRename, "FilesView.menu.rename");
@@ -167,11 +157,7 @@ public class FilesView
     itemDelete.setData("Priority", new Integer(3));
     Messages.setLanguageText(itemDelete, "wizard.multitracker.delete");	// lazy but we're near release
 
-		diag_logger.log("FilesView.fillMenu Phase 4");
-
     new MenuItem(menu, SWT.SEPARATOR);
-
-		diag_logger.log("FilesView.fillMenu Phase 5 (call super)");
 
     super.fillMenu(menu);
 
@@ -179,8 +165,6 @@ public class FilesView
 			itemOpen.setEnabled(false);
 			itemPriority.setEnabled(false);
 			itemRename.setEnabled(false);
-			diag_logger.log("FilesView.fillMenu No Selection, early return");
-
 			return;
 		}
 
@@ -190,8 +174,6 @@ public class FilesView
 		boolean	all_priority		= true;
 		boolean	all_not_priority	= true;
 		
-		diag_logger.log("FilesView.fillMenu; processing " + infos.length + " files");
-
 		for (int i = 0; i < infos.length; i++) {
 
 			DiskManagerFileInfo file_info = (DiskManagerFileInfo) infos[i];
@@ -224,8 +206,6 @@ public class FilesView
 			}
 		}
 
-		diag_logger.log("FilesView.fillMenu; done processing " + infos.length + " files");
-
 		// we can only open files if they are read-only
 
 		itemOpen.setEnabled(open);
@@ -252,8 +232,6 @@ public class FilesView
       }
     });
     
-		diag_logger.log("FilesView.fillMenu Phase 6");
-
     itemRename.addListener(
     	SWT.Selection, 
     	new Listener() 
@@ -272,14 +250,10 @@ public class FilesView
 			}
     };
 
-		diag_logger.log("FilesView.fillMenu Phase 7");
-
     itemHigh.addListener(SWT.Selection, priorityListener); 
     itemLow.addListener(SWT.Selection, priorityListener);
     itemSkipped.addListener(SWT.Selection, priorityListener); 
     itemDelete.addListener(SWT.Selection, priorityListener);
-
-		diag_logger.log("FilesView.fillMenu; exit\n");
 	}
   
 	protected void
