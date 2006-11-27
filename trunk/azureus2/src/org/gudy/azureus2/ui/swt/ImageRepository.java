@@ -305,6 +305,20 @@ public class ImageRepository {
   {
   	return getImage("folder", true);
   }
+  
+    // Helper method for getPathIcon.
+    private static Image preparePathIcon(Image image) {
+		if (Constants.isWindows) {
+			// recomposite to avoid artifacts - transparency mask does not work
+			final Image dstImage = new Image(Display.getCurrent(),
+					image.getBounds().width, image.getBounds().height);
+			GC gc = new GC(dstImage);
+			gc.drawImage(image, 0, 0);
+			gc.dispose();
+			image = dstImage;
+		}
+		return image;
+    }
 
 	public static Image getPathIcon(final String path) {
 		return getPathIcon(path, false);
@@ -394,7 +408,7 @@ public class ImageRepository {
 
         image = new Image(null, inStream);
 
-				registry.put(key, image);
+				registry.put(key, preparePathIcon(image));
 
 				return image;
 			}
@@ -415,8 +429,11 @@ public class ImageRepository {
 
 		if (extIndex == -1)
 			return getFolderImage();
-
-		return getIconFromProgram(Program.findProgram(path.substring(extIndex)));
+		
+		String key = path.substring(extIndex);
+		Image result = getIconFromProgram(Program.findProgram(key));
+		registry.put(key, preparePathIcon(result));
+		return result;
 	}
 
     /**
