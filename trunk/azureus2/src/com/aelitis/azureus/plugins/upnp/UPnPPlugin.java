@@ -1086,6 +1086,8 @@ UPnPPlugin
 		
 			mappings.remove( mapping );
 			
+			log.log( "Mapping request removed: " + mapping.getString());
+
 			for (int j=0;j<services.size();j++){
 				
 				UPnPPluginService	service = (UPnPPluginService)services.get(j);

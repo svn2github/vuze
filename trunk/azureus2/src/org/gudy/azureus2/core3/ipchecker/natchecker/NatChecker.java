@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 import com.aelitis.azureus.core.*;
@@ -123,11 +124,39 @@ public class NatChecker {
       
       byte[] data = new byte[ 1024 ];
       
-      int nbRead = 0;
-      while( nbRead >= 0 ) {
-        nbRead = is.read( data );
-        if( nbRead >= 0 ) message.write( data, 0, nbRead );
-        Thread.sleep( 20 );
+      int	expected_length = -1;
+            
+      while( true ){
+    	  
+        int	len = is.read( data );
+        
+        if ( len <= 0 ){
+        	
+        	break;
+        }
+        
+        message.write( data, 0, len );
+        
+        if ( expected_length == -1 && message.size() >= 4 ){
+        	
+        	byte[]	bytes = message.toByteArray();
+        	
+        	ByteBuffer	bb = ByteBuffer.wrap( bytes );
+        	
+        	expected_length = bb.getInt();
+        	
+        	message = new ByteArrayOutputStream();
+        	
+        	if ( bytes.length > 4 ){
+        		
+        		message.write( bytes, 4, bytes.length - 4 );
+        	}
+        }
+        
+        if ( expected_length != -1 && message.size() == expected_length ){
+        	
+        	break;
+        }
       }
       
       Map map = BDecoder.decode( message.toByteArray() );
@@ -157,13 +186,14 @@ public class NatChecker {
     	fail_reason = "Error: " + Debug.getNestedExceptionMessage( e );
     }
     finally {
-
+    	
+      server.stopIt();
+      
       if( new_mapping != null ) {
 
         new_mapping.destroy();
       }
 
-      server.stopIt();
     }
   }
   

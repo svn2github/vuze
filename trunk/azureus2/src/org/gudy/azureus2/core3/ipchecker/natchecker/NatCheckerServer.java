@@ -21,6 +21,7 @@
  
 package org.gudy.azureus2.core3.ipchecker.natchecker;
 
+import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -49,7 +50,7 @@ public class NatCheckerServer extends AEThread {
     private final String check;
     private ServerSocket server;
     private boolean valid = false;    
-    private boolean bContinue = true;
+    private volatile boolean bContinue = true;
     private final boolean use_incoming_router;
     private NetworkManager.ByteMatcher matcher;
     
@@ -95,18 +96,7 @@ public class NatCheckerServer extends AEThread {
             				  + connection + "] successfully routed to NAT CHECKER"));
 
             	  try{
-            		  Map	map = new HashMap();
-
-            		  map.put( "check", _check );
-
-            		  byte[]	map_bytes = BEncoder.encode( map );
-
-            		  ByteBuffer msg = ByteBuffer.allocate( 4 + map_bytes.length );
-
-            		  msg.putInt( map_bytes.length );
-            		  msg.put( map_bytes );
-
-            		  msg.flip();
+            		  ByteBuffer	msg = getMessage();
 
             		  Transport transport = connection.getTransport();
 
@@ -185,7 +175,26 @@ public class NatCheckerServer extends AEThread {
       }
     }
     
+    protected ByteBuffer
+    getMessage()
     
+    	throws IOException
+    {
+		  Map	map = new HashMap();
+
+		  map.put( "check", check );
+
+		  byte[]	map_bytes = BEncoder.encode( map );
+
+		  ByteBuffer msg = ByteBuffer.allocate( 4 + map_bytes.length );
+
+		  msg.putInt( map_bytes.length );
+		  msg.put( map_bytes );
+
+		  msg.flip();
+		  
+		  return( msg );
+    }
     
     public void runSupport() {
       while(bContinue) {
@@ -197,8 +206,10 @@ public class NatCheckerServer extends AEThread {
           else {
             //listen for accept
           	Socket sck = server.accept();
-          	sck.getOutputStream().write( check.getBytes() );
-            sck.close();
+          	
+          	sck.getOutputStream().write( getMessage().array());
+          	
+          	sck.close();
           }
         } catch(Exception e) {
         	//Debug.printStackTrace(e);
