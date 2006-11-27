@@ -30,9 +30,13 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+
+import javax.naming.*;
+import javax.naming.directory.*;
 
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import org.gudy.azureus2.core3.util.Debug;
@@ -60,6 +64,8 @@ NetworkAdminASNLookupImpl
 	
 		throws NetworkAdminException
 	{
+		//lookupDNS( address );
+		
 		lookupTCP( address );
 	}
 	
@@ -119,74 +125,9 @@ NetworkAdminASNLookupImpl
 					
 					result += new String( buffer, 0, len );
 				}
-				
-				StringTokenizer	lines = new StringTokenizer( result, "\n" );
 
-				int	line_number = 0;
-				
-				List	keywords = new ArrayList();
-				
-				Map	map = new HashMap();
-				
-				while( lines.hasMoreTokens()){
-					
-					String	line = lines.nextToken().trim();
-					
-					line_number++;
-					
-					if ( line_number > 2 ){
-						
-						break;
-					}
-					
-					StringTokenizer	tok = new StringTokenizer( line, "|" );
-				
-					int	token_number = 0;
-					
-					while( tok.hasMoreTokens()){
-						
-						String	token = tok.nextToken().trim();
-						
-						if ( line_number == 1 ){
-							
-							keywords.add( token.toLowerCase());
-							
-						}else{
-							
-							if ( token_number >= keywords.size()){
-								
-								break;
-								
-							}else{
-								
-								String	kw = (String)keywords.get( token_number );
-	
-								map.put( kw, token );
-							}
-						}
-						
-						token_number++;
-					}
-				}
-				
-				as 			= (String)map.get( "as" );
-				asn 		= (String)map.get( "as name" );
-				bgp_prefix	= (String)map.get( "bgp prefix" );
-				
-				if ( bgp_prefix != null ){
-					
-					int	pos = bgp_prefix.indexOf(' ');
-					
-					if ( pos != -1 ){
-						
-						bgp_prefix = bgp_prefix.substring(pos+1).trim();
-					}
-					
-					if ( bgp_prefix.indexOf('/') == -1 ){
-						
-						bgp_prefix = null;
-					}
-				}
+				processResult( result );
+
 			}finally{
 				
 				socket.close();
@@ -195,6 +136,146 @@ NetworkAdminASNLookupImpl
 			
 			throw( new NetworkAdminException( "whois connection failed", e ));
 		}	
+	}
+	
+	protected void
+	lookupDNS(
+		InetAddress		address )
+	
+		throws NetworkAdminException
+	{
+		byte[]	bytes = address.getAddress();
+		
+		String	target	= "origin.asn.cymru.com";
+		
+		for (int i=0;i<4;i++){
+			
+			target =  ( bytes[i] & 0xff ) + "." + target;
+		}
+		
+		DirContext context = null;
+		
+		try{
+			Hashtable env = new Hashtable();
+			
+			env.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
+			
+			context = new InitialDirContext(env);
+			
+			Attributes attrs = context.getAttributes( target, new String[]{ "TXT" });
+			
+			NamingEnumeration n_enum = attrs.getAll();
+
+			while( n_enum.hasMoreElements()){
+				
+				Attribute	attr =  (Attribute)n_enum.next();
+
+				NamingEnumeration n_enum2 = attr.getAll();
+				
+				while( n_enum2.hasMoreElements()){
+				
+					String attribute = (String)n_enum2.nextElement();
+
+					if ( attribute != null ){
+					
+							// "33544 | 64.71.0.0/20 | US | arin | 2006-05-04"
+												
+						processResult( 
+								"AS | BGP Prefix | CC | Reg | Date | AS Name" + "\n" + 
+								attribute + " | n/a" );
+						
+						return;
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			throw( new NetworkAdminException( "DNS query failed", e ));
+			
+		}finally{
+			
+			if ( context != null ){
+				
+				try{
+					context.close();
+					
+				}catch( Throwable e ){
+				}
+			}
+		}
+	}
+		
+	protected void
+	processResult(
+		String		result )
+	{
+		StringTokenizer	lines = new StringTokenizer( result, "\n" );
+
+		int	line_number = 0;
+		
+		List	keywords = new ArrayList();
+		
+		Map	map = new HashMap();
+		
+		while( lines.hasMoreTokens()){
+			
+			String	line = lines.nextToken().trim();
+			
+			line_number++;
+			
+			if ( line_number > 2 ){
+				
+				break;
+			}
+			
+			StringTokenizer	tok = new StringTokenizer( line, "|" );
+		
+			int	token_number = 0;
+			
+			while( tok.hasMoreTokens()){
+				
+				String	token = tok.nextToken().trim();
+				
+				if ( line_number == 1 ){
+					
+					keywords.add( token.toLowerCase());
+					
+				}else{
+					
+					if ( token_number >= keywords.size()){
+						
+						break;
+						
+					}else{
+						
+						String	kw = (String)keywords.get( token_number );
+
+						map.put( kw, token );
+					}
+				}
+				
+				token_number++;
+			}
+		}
+		
+		as 			= (String)map.get( "as" );
+		asn 		= (String)map.get( "as name" );
+		bgp_prefix	= (String)map.get( "bgp prefix" );
+		
+		if ( bgp_prefix != null ){
+			
+			int	pos = bgp_prefix.indexOf(' ');
+			
+			if ( pos != -1 ){
+				
+				bgp_prefix = bgp_prefix.substring(pos+1).trim();
+			}
+			
+			if ( bgp_prefix.indexOf('/') == -1 ){
+				
+				bgp_prefix = null;
+			}
+		}
 	}
 	
 	public String
@@ -337,16 +418,17 @@ NetworkAdminASNLookupImpl
 		String[]	args )
 	{
 		try{
-			/*
+			
 			NetworkAdminASNLookupImpl lookup = new NetworkAdminASNLookupImpl( InetAddress.getByName( "64.71.8.82" ));
 			
 			System.out.println( lookup.getString());
-			*/
 			
+			
+			/*
 			InetAddress	test = InetAddress.getByName( "255.71.15.1" );
 			
 			System.out.println( test + " -> " + matchesCIDR( "255.71.0.0/20", test ));
-			
+			*/
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
