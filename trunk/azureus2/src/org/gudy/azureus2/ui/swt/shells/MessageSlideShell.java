@@ -601,6 +601,9 @@ public class MessageSlideShell {
 
 							e.gc.drawImage(imgTransparent, 0, 0, e.width, e.height, e.x, e.y,
 									e.width, e.height);
+							
+							img.dispose();
+							imgTransparent.dispose();
 						} finally {
 							alreadyPainting = false;
 						}
