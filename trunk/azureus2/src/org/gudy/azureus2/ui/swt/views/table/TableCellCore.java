@@ -71,7 +71,14 @@ public interface TableCellCore
    */
   public void refresh();
   
-  /**
+	/**
+	 * @param bDoGraphics
+	 * @param bRowVisible
+	 * @param bCellVisible
+	 */
+	void refresh(boolean bDoGraphics, boolean bRowVisible, boolean bCellVisible);
+
+	/**
    * Refresh the cell.  This method overide takes a bRowVisible paramater in
    * order to reduce the number of calls to TableRow.isVisible() in cases where
    * multiple cells on the same row are being refreshed.

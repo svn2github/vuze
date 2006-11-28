@@ -837,6 +837,14 @@ TorrentInfoView
 		}
 
 		public void 
+		refresh(
+			boolean bDoGraphics, 
+			boolean bRowVisible,
+			boolean bCellVisible)
+		{
+		}
+
+		public void 
 		dispose()
 		{
 			for (int i=0;i<dispose_listeners.size();i++){

@@ -687,8 +687,14 @@ public class TableCellImpl
   	refresh(bDoGraphics, isShown());
   }
 
-  private boolean bInRefresh = false;
   public void refresh(boolean bDoGraphics, boolean bRowVisible) {
+  	refresh(bDoGraphics, bRowVisible, isShown());
+  }
+
+  private boolean bInRefresh = false;
+  public void refresh(boolean bDoGraphics, boolean bRowVisible,
+			boolean bCellVisible)
+	{
     if (refreshErrLoopCount > 2)
       return;
     int iErrCount = tableColumn.getConsecutiveErrCount();
@@ -696,8 +702,6 @@ public class TableCellImpl
     	refreshErrLoopCount = 3;
       return;
     }
-    
-    boolean bVisible = bRowVisible ? isShown() : false;
     
     if (bInRefresh) {
     	// Skip a Refresh call when being called from within refresh.
@@ -710,12 +714,12 @@ public class TableCellImpl
   	bInRefresh = true;
 
     // See bIsUpToDate variable comments
-    if (bVisible && !bIsUpToDate) {
+    if (bCellVisible && !bIsUpToDate) {
     	if (bDebug)
     		debug("Setting Invalid because visible & not up to date");
     	valid = false;
     	bIsUpToDate = true;
-    } else if (!bVisible && bIsUpToDate) {
+    } else if (!bCellVisible && bIsUpToDate) {
     	bIsUpToDate = false;
     }
 
@@ -727,7 +731,7 @@ public class TableCellImpl
     	if (iInterval == TableColumnCore.INTERVAL_INVALID_ONLY && !valid
     			&& !bMustRefresh && bSortValueIsText && sortValue != null
 					&& tableColumn.getType() == TableColumnCore.TYPE_TEXT_ONLY) {
-    		if (bVisible) {
+    		if (bCellVisible) {
 	      	if (bDebug)
 	      		debug("fast refresh: setText");
 	    		setText((String)sortValue);
