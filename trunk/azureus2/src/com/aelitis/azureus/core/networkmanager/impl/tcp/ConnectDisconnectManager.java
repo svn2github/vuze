@@ -369,7 +369,7 @@ public class ConnectDisconnectManager {
     for (Iterator i =pending_attempts.keySet().iterator(); i.hasNext();) {
       final ConnectionRequest request =(ConnectionRequest) i.next();
       final long waiting_time =now -request.connect_start_time;
-      if( waiting_time > CONNECT_ATTEMPT_TIMEOUT ) {
+      if( waiting_time > request.connect_timeout ) {
         i.remove();
 
         SocketChannel channel = request.channel;
@@ -377,19 +377,23 @@ public class ConnectDisconnectManager {
         connect_selector.cancel( channel );
 
         closeConnection( channel );
-
-        InetSocketAddress	address = request.address;
-                
-        String target = address.getHostName();
+              
+        InetSocketAddress	sock_address = request.address;
         
-        if ( target == null ){
+       	InetAddress a = sock_address.getAddress();
         	
-        	target = "unknown";
+       	String	target;
+       	
+       	if ( a != null ){
+        		
+        	target = a.getHostAddress() + ":" + sock_address.getPort();
+        		
+        }else{
+        		
+        	target = sock_address.toString();
         }
-        
-        target += ":" + address.getPort();
-        
-        request.listener.connectFailure( new Throwable( "Connection attempt to " + target + " aborted: timed out after " +CONNECT_ATTEMPT_TIMEOUT/1000+ "sec" ) );
+               
+        request.listener.connectFailure( new Throwable( "Connection attempt to " + target + " aborted: timed out after " + request.connect_timeout/1000+ "sec" ) );
       }
       else if( waiting_time >= CONNECT_ATTEMPT_STALL_TIME ) {
         num_stalled_requests++;
@@ -473,22 +477,25 @@ public class ConnectDisconnectManager {
    * @param address remote ip+port to connect to
    * @param listener to receive notification of connect attempt success/failure
    */
-  public void requestNewConnection( InetSocketAddress address, ConnectListener listener ) {    
-    ConnectionRequest cr = new ConnectionRequest( address, listener );
-    try{
-      new_canceled_mon.enter();
-    
-      //insert at a random position because new connections are usually added in 50-peer
-      //chunks, i.e. from a tracker announce reply, and we want to evenly distribute the
-      //connect attempts if there are multiple torrents running
-      int insert_pos = random.nextInt( new_requests.size() + 1 );
-      new_requests.add( insert_pos, cr );
-    }finally{
-    	
-      new_canceled_mon.exit();
-    }
+  public void requestNewConnection( InetSocketAddress address, ConnectListener listener ) {   
+	  requestNewConnection( address, listener, CONNECT_ATTEMPT_TIMEOUT );
   }
   
+  public void requestNewConnection( InetSocketAddress address, ConnectListener listener, long connect_timeout ) {    
+	   ConnectionRequest cr = new ConnectionRequest( address, listener, connect_timeout );
+	    try{
+	      new_canceled_mon.enter();
+	    
+	      //insert at a random position because new connections are usually added in 50-peer
+	      //chunks, i.e. from a tracker announce reply, and we want to evenly distribute the
+	      //connect attempts if there are multiple torrents running
+	      int insert_pos = random.nextInt( new_requests.size() + 1 );
+	      new_requests.add( insert_pos, cr );
+	    }finally{
+	    	
+	      new_canceled_mon.exit();
+	    }
+  }
   
   /**
    * Close the given connection.
@@ -556,11 +563,14 @@ public class ConnectDisconnectManager {
     private final ConnectListener listener;
     private final long request_start_time;
     private long connect_start_time;
+    private final long connect_timeout;
     private SocketChannel channel;
-    
-    private ConnectionRequest( InetSocketAddress _address, ConnectListener _listener ) {
+        
+    private ConnectionRequest( InetSocketAddress _address, ConnectListener _listener, long _connect_timeout  ) {
+
       address = _address;
       listener = _listener;
+      connect_timeout	= _connect_timeout;
       request_start_time = SystemTime.getCurrentTime();
     }
   }
