@@ -318,6 +318,10 @@ PluginConfigImpl
 		return( new ConfigParameterImpl( this.key+key ));
 	}
 	
+	public boolean removePluginParameter(String key) {
+		return COConfigurationManager.removeParameter(this.key + key);
+	}
+	
 	public void
 	save()
 	{

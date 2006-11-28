@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.config.*;
 
 public interface 
@@ -289,6 +290,14 @@ PluginConfig
    */
   
   public void setPluginParameter(String key,byte[] value);
+  
+	/**
+	 * Removes the plugin parameter with the given name.
+	 * 
+	 * @param key Name of the parameter.
+	 * @return <tt>true</tt> if the parameter was found and removed.
+	 */
+	public boolean removePluginParameter(String key);
 
   /**
    * @return the prefix used when storing configuration values in the config file for

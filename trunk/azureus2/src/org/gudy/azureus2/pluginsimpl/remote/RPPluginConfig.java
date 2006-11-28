@@ -430,4 +430,5 @@ RPPluginConfig
 		
 		public boolean hasParameter(String x) {notSupported(); return false;}
 		public boolean hasPluginParameter(String x) {notSupported(); return false;}
+		public boolean removePluginParameter(String x) {notSupported(); return false;}
 }
