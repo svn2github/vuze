@@ -1762,6 +1762,12 @@ DownloadManagerImpl
 			torrent_save_location = torrent_save_location.getAbsoluteFile();
 		}
 		
+		Logger.log(new LogEvent(this, LogIDs.CORE, "Torrent save directory changing from \"" + old_location.getPath() + "\" to \"" + new_location.getPath()));
+
+		// Trying to fix a problem where downloads are being moved into the program
+		// directory on my machine, and I don't know why...
+		Debug.out("Torrent save directory changing from \"" + old_location.getPath() + "\" to \"" + new_location.getPath());
+		
 		controller.fileInfoChanged();
 	}
 
