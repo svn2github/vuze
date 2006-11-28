@@ -114,7 +114,7 @@ public class NatChecker {
     try {
       server.start();
       
-      String urlStr = Constants.NAT_TEST_SERVER + "?port=" + String.valueOf( port ) + "&check=" + check;
+      String urlStr = Constants.NAT_TEST_SERVER + "nattest?port=" + String.valueOf( port ) + "&check=" + check;
       URL url = new URL( urlStr );
       HttpURLConnection con = (HttpURLConnection)url.openConnection();
       con.connect();
