@@ -80,6 +80,16 @@ public class NameItem extends CoreTableColumn implements
 				} else {
 					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
 					icon = ImageRepository.getPathIcon(fileInfo.getFile(true).getPath());
+
+					if (Constants.isWindows) {
+						// recomposite to avoid artifacts - transparency mask does not work
+						final Image dstImage = new Image(Display.getCurrent(),
+								icon.getBounds().width, icon.getBounds().height);
+						GC gc = new GC(dstImage);
+						gc.drawImage(icon, 0, 0);
+						gc.dispose();
+						icon = dstImage;
+					}
 				}
 
 				// cheat for core, since we really know it's a TabeCellImpl and want to use
@@ -99,20 +109,11 @@ public class NameItem extends CoreTableColumn implements
 	}
 
 	public void dispose(TableCell cell) {
-		// We no longer try to dispose the icon, because it is shared - this
-		// block may need to be reinstated if we create a new image.
-		//
-		// Note - I'm not entirely sure this code works - tests that I did
-		// earlier seemed to show that getGraphicSWT was returning null,
-		// because the underlying objects had cleared up references (though
-		// did not do any disposing) before this code got called!
-		/*
 		if (bShowIcon && Constants.isWindows) {
-			final Image img = ((TableCellCore) cell).getGraphicSWT();
+			final Image img = ((TableCellCore) cell).getIcon();
 			if (img != null && !img.isDisposed()) {
 				img.dispose();
 			}
 		}
-		*/
 	}
 }

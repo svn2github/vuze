@@ -139,7 +139,7 @@ public class NameItem extends CoreTableColumn implements
 
 	public void dispose(TableCell cell) {
 		if (bShowIcon && Constants.isWindows) {
-			final Image img = ((TableCellCore) cell).getGraphicSWT();
+			final Image img = ((TableCellCore) cell).getIcon();
 			Image icon = ImageRepository.getFolderImage();
 			if (img != null && !img.isDisposed() && !img.equals(icon)) {
 				img.dispose();
