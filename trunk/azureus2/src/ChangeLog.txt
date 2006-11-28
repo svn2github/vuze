@@ -27,6 +27,7 @@ BUGFIX: Core  | OSX: Handle volume not mounted on startup by erroring instead of
 BUGFIX: Core  | Fix to stop already complete downloads being moved by "move-on-completion" rules [amc1]
 BUGFIX: UI    | Fix (some) painting issues in pieces+files view [TuxPaper]
 BUGFIX: UI    | Fix to allow negative values for Multi-monitor window positions [TuxPaper]
+BUGFIX: UI    | Fixed memory leak in "Mr Slidey" code [amc1]
 BUGFIX: Plug  | Fixed bug where some listeners for table columns were not registered properly. [amc1]
 
 
