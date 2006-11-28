@@ -395,13 +395,15 @@ HTTPNetworkManager
 			try{
 				byte[]	bytes = BEncoder.encode( response );
 			
-				String	resp = new String( bytes, "ISO-8859-1" );
+				byte[]	length = new byte[4];
 				
+				ByteBuffer.wrap( length ).putInt( bytes.length );
+								
 				return( "HTTP/1.1 200 OK" + NL + 
 						"Connection: Close" + NL +
-						"Content-Length: " + resp.length()+ NL +
+						"Content-Length: " + ( bytes.length + 4 )+ NL +
 						NL + 
-						resp );
+						new String( length, "ISO-8859-1" ) + new String( bytes, "ISO-8859-1" ) );
 				
 			}catch( Throwable e ){
 			}
@@ -481,7 +483,7 @@ HTTPNetworkManager
 					  			}else{
 					  				
 				  					if (Logger.isEnabled()){
-										Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " closed with error '" + data + "'" ));
+										Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " closed" ));
 				   					}   					
 
 									connection.close();
@@ -522,7 +524,7 @@ HTTPNetworkManager
 			}else{
 
 				if (Logger.isEnabled()){
-					Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " closed with error '" + data + "'" ));
+					Logger.log(new LogEvent(LOGID, "HTTP connection from " + connection.getEndpoint().getNotionalAddress() + " closed" ));
    				}   					
 
 				connection.close();
