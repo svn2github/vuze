@@ -22,15 +22,21 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.http;
 
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
+import java.nio.charset.UnsupportedCharsetException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.util.BEncoder;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -122,11 +128,17 @@ HTTPNetworkManager
 				    			// note that we don't insist on a full URL here, just the start of one
 				    		
 				    		url = url.substring( space + 1 ).trim();
-				    						    						    		
+				    				
 				    		if ( url.indexOf( "/index.html") != -1 ){
 				    			
 					    		return( new Object[]{ transport, getIndexPage() });
 					    		
+				    		}else if ( url.indexOf( "/ping.html") != -1 ){
+					    			
+				    				// ping is used for inbound HTTP port checking
+				    			
+						    	return( new Object[]{ transport, getPingPage( url ) });
+
 				    		}else if ( url.indexOf( "/test503.html" ) != -1 ){
 				    			
 					    		return( new Object[]{ transport, getTest503()});
@@ -337,6 +349,69 @@ HTTPNetworkManager
 	}
 	
 	protected String
+	getPingPage(
+		String	url )
+	{
+		int	pos = url.indexOf( ' ' );
+
+		if ( pos != -1 ){
+			
+			url = url.substring( 0, pos );
+		}
+		
+		pos = url.indexOf( '?' );
+		
+		Map	response = new HashMap();
+		
+		boolean	ok = false;
+		
+		if ( pos != -1 ){
+			
+			StringTokenizer tok = new StringTokenizer(url.substring(pos+1), "&");
+			
+			while( tok.hasMoreTokens()){
+				
+				String	token = tok.nextToken();
+				
+				pos	= token.indexOf('=');
+				
+				if ( pos != -1 ){
+					
+					String	lhs = token.substring(0,pos);
+					String	rhs = token.substring(pos+1);
+					
+					if ( lhs.equals( "check" )){
+						
+						response.put( "check", rhs );
+						
+						ok = true;
+					}
+				}
+			}
+		}
+		
+		if ( ok ){
+			
+			try{
+				byte[]	bytes = BEncoder.encode( response );
+			
+				String	resp = new String( bytes, "ISO-8859-1" );
+				
+				return( "HTTP/1.1 200 OK" + NL + 
+						"Connection: Close" + NL +
+						"Content-Length: " + resp.length()+ NL +
+						NL + 
+						resp );
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		return( getNotFound());
+
+	}
+
+	protected String
 	getTest503()
 	{
 		return( "HTTP/1.1 503 Service Unavailable" + NL + 
@@ -371,7 +446,15 @@ HTTPNetworkManager
 		final TransportHelper		transport,
 		final String				data )
 	{
-		byte[]	bytes = data.getBytes();
+		byte[]	bytes;
+		
+		try{
+			bytes = data.getBytes( "ISO-8859-1" );
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			bytes = data.getBytes();
+		}
 				
 		final ByteBuffer bb = ByteBuffer.wrap( bytes );
 		
