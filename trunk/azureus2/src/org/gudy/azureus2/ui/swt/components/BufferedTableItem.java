@@ -55,6 +55,11 @@ public interface BufferedTableItem
 
 	public abstract void dispose();
 
+	/**
+	 * Is the cell currently shown on the screen?
+	 * 
+	 * @return
+	 */
 	public abstract boolean isShown();
 
 	public abstract boolean needsPainting();

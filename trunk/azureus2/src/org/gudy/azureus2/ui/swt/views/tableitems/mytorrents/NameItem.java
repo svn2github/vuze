@@ -156,6 +156,7 @@ public class NameItem extends CoreTableColumn implements
 	private void disposeCellIcon(TableCell cell) {
 		final Image img = ((TableCellCore) cell).getIcon();
 		if (img != null && !img.isDisposed()) {
+			((TableCellCore) cell).setIcon(null);
 			img.dispose();
 		}
 	}

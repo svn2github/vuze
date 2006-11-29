@@ -142,6 +142,7 @@ public class NameItem extends CoreTableColumn implements
 			final Image img = ((TableCellCore) cell).getIcon();
 			Image icon = ImageRepository.getFolderImage();
 			if (img != null && !img.isDisposed() && !img.equals(icon)) {
+				((TableCellCore) cell).setIcon(null);
 				img.dispose();
 			}
 		}
