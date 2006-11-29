@@ -20,11 +20,19 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.win32.OS;
+import org.eclipse.swt.internal.win32.TCHAR;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -264,38 +272,64 @@ public class ImageRepository {
     return result;
   }
 
+  public static Image getIconFromExtension(String ext) {
+  	return getIconFromExtension(ext, false);
+  }
+
   /**
      * Gets an image for a file associated with a given program
      *
      * @param program the Program
      */
-  public static Image getIconFromProgram(Program program) {
-    Image image = null;
+  public static Image getIconFromExtension(String ext, boolean bBig) {
+		Image image = null;
 
-    try{
-    	image =(Image) images.get(program);
+		try {
+			image = (Image) images.get(ext);
 
-	    if (image == null) {
-	      if (program != null) {
+			if (image == null) {
+					ImageData imageData = null;
 
-	        ImageData imageData = program.getImageData();
-	        if (imageData != null) {
-	          image = new Image(null, imageData);
-	          images.put(program, image);
-	        }
-	      }
-	    }
-    }catch( Throwable e ){
-    	// seen exceptions thrown here, due to images.get failing in Program.hashCode
-    	// ignore and use default icon
-    }
+					if (Constants.isWindows && bBig) {
+						try {
 
-    if (image == null) {
-      image = getImage("folder", true);
-    }
-    return image;
-  }
+							Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.win32.Win32UIEnhancer");
 
+							Method method = ehancerClass.getMethod("getBigImageData",
+									new Class[] { String.class
+									});
+							imageData = (ImageData) method.invoke(null,
+									new Object[] { ext
+									});
+							
+						} catch (Exception e) {
+							Debug.printStackTrace(e);
+						}
+					}
+
+					if (imageData == null) {
+						Program program = Program.findProgram(ext);
+						if (program != null) {
+							imageData = program.getImageData();
+						}
+					}
+
+					if (imageData != null) {
+						image = new Image(null, imageData);
+						images.put(ext + (bBig ? "-big" : ""), image);
+					}
+			}
+		} catch (Throwable e) {
+			// seen exceptions thrown here, due to images.get failing in Program.hashCode
+			// ignore and use default icon
+		}
+
+		if (image == null) {
+			image = getImage("folder", true);
+		}
+		return image;
+	}
+  
   /**
    * @deprecated Does not account for custom or native folder icons
    * @see ImageRepository#getPathIcon(String)
@@ -346,7 +380,7 @@ public class ImageRepository {
 					key = ext;
 
 					if (doNotUseAWTIcon)
-						return getIconFromProgram(Program.findProgram(ext));
+						return getIconFromExtension(ext, bBig);
 
 					// case-insensitive file systems
 					for (int i = 0; i < noCacheExtList.length; i++) {
@@ -365,8 +399,10 @@ public class ImageRepository {
 
 			// other platforms - try sun.awt
 			Image image = (Image) registry.get(key);
-			if (image != null)
+			if (image != null) {
 				return image;
+			}
+			
 
 			java.awt.Image awtImage = null;
 			
@@ -401,22 +437,16 @@ public class ImageRepository {
 		} catch (Exception e) {
 			//Debug.printStackTrace(e);
 		}
-
+		
 		// Possible scenario: Method call before file creation
 		final int fileSepIndex = path.lastIndexOf(File.separator);
-		if (fileSepIndex == path.length() - 1)
+		final int fileDotIndex = path.lastIndexOf('.');
+		if (fileSepIndex == path.length() - 1 || fileDotIndex == -1
+				|| fileSepIndex > fileDotIndex) {
 			return getFolderImage();
+		}
 
-		final int extIndex;
-		if (fileSepIndex == -1)
-			extIndex = path.indexOf('.');
-		else
-			extIndex = path.substring(fileSepIndex).indexOf('.');
-
-		if (extIndex == -1)
-			return getFolderImage();
-
-		return getIconFromProgram(Program.findProgram(path.substring(extIndex)));
+		return getIconFromExtension(path.substring(fileDotIndex), bBig);
 	}
 
     /**
@@ -514,4 +544,30 @@ public class ImageRepository {
       
       return key;
     }
+    
+    public static void main(String[] args) {
+			Display display = new Display();
+			Shell shell = new Shell(display, SWT.SHELL_TRIM);
+			shell.setLayout(new FillLayout(SWT.VERTICAL));
+			
+			final Label label = new Label(shell, SWT.BORDER);
+			
+			final Text text = new Text(shell, SWT.BORDER);
+			text.addModifyListener(new ModifyListener() {
+			
+				public void modifyText(ModifyEvent e) {
+					Image pathIcon = getPathIcon(text.getText(), false);
+					label.setImage(pathIcon);
+				}
+			});
+			
+			
+			shell.open();
+			
+			while (!shell.isDisposed()) {
+				if (!display.readAndDispatch()) {
+					display.sleep();
+				}
+			}
+		}
 }

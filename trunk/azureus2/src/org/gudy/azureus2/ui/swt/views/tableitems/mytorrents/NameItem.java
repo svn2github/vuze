@@ -98,17 +98,29 @@ public class NameItem extends CoreTableColumn implements
 
 						Rectangle iconBounds = icon.getBounds();
 						// recomposite to avoid artifacts - transparency mask does not work
+						
+						int cellHeight = cell.getHeight();
+						if (cellHeight < 20) {
+							cellHeight = 16;
+						}
+
 						final Image dstImage = new Image(Display.getCurrent(),
-								iconBounds.width, iconBounds.height);
+								cellHeight, cellHeight);
 						GC gc = new GC(dstImage);
 						try {
-							gc.drawImage(icon, 0, 0);
+							// for drawing alpha
+							gc.setAdvanced(true);
+						} catch (Exception e) {
+						}
+						try {
+							gc.drawImage(icon, 0, 0, iconBounds.width, iconBounds.height, 0,
+									0, cellHeight, cellHeight);
 							if (fileInfo.length > 1) {
 								Image imgFolder = ImageRepository.getImage("foldersmall");
 								Rectangle folderBounds = imgFolder.getBounds();
 								gc.drawImage(imgFolder, folderBounds.x, folderBounds.y,
-										folderBounds.width, folderBounds.height, iconBounds.width
-												- folderBounds.width, iconBounds.height
+										folderBounds.width, folderBounds.height, cellHeight
+												- folderBounds.width, cellHeight
 												- folderBounds.height, folderBounds.width,
 										folderBounds.height);
 							}

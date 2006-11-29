@@ -101,9 +101,8 @@ public class NameItem extends CoreTableColumn implements
 					if (sep < 0)
 						sep = 0;
 
-					name = name.substring(sep);
-					Program program = Program.findProgram(name);
-					Image icon = ImageRepository.getIconFromProgram(program);
+					String ext = name.substring(sep);
+					Image icon = ImageRepository.getIconFromExtension(ext);
 
 					if (Constants.isWindows) {
 						// recomposite to avoid artifacts - transparency mask does not work
