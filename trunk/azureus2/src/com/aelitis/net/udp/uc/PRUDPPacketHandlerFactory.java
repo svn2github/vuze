@@ -26,6 +26,8 @@ package com.aelitis.net.udp.uc;
  *
  */
 
+import java.net.InetAddress;
+
 import com.aelitis.net.udp.uc.impl.PRUDPPacketHandlerFactoryImpl;
 
 public class 
@@ -43,7 +45,16 @@ PRUDPPacketHandlerFactory
 		int						port,
 		PRUDPRequestHandler		handler )
 	{
-		return( PRUDPPacketHandlerFactoryImpl.getHandler( port, handler ));
+		return( PRUDPPacketHandlerFactoryImpl.getHandler( port, null, handler ));
+	}
+	
+	public static PRUDPPacketHandler 
+	getHandler(
+		int						port,
+		InetAddress				bind_ip,
+		PRUDPRequestHandler		handler )
+	{
+		return( PRUDPPacketHandlerFactoryImpl.getHandler( port, bind_ip, handler ));
 	}
 	
 	public static PRUDPReleasablePacketHandler 

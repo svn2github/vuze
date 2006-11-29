@@ -25,12 +25,25 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.net.InetAddress;
 
+import org.gudy.azureus2.core3.ipchecker.natchecker.NatChecker;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 public class 
 NetworkAdminTCPTester 
 	implements NetworkAdminProtocolTester
 {
+	private AzureusCore		core;
+	
+	protected
+	NetworkAdminTCPTester(
+		AzureusCore		_core )
+	{
+		core	= _core;
+	}
+	
 	public InetAddress
 	testOutbound(
 		InetAddress		bind_ip,
@@ -46,8 +59,17 @@ NetworkAdminTCPTester
 		InetAddress		bind_ip,
 		int				local_port )
 	
-		throws Exception
+		throws NetworkAdminException
 	{
-		throw( new Exception( "not imp" ));
+		NatChecker	checker = new NatChecker( core, bind_ip, local_port, false );
+		
+		if ( checker.getResult() == NatChecker.NAT_OK ){
+			
+			return( checker.getExternalAddress());
+			
+		}else{
+			
+			throw( new NetworkAdminException( "NAT check failed: " + checker.getFailReason()));
+		}
 	}
 }

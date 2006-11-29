@@ -85,7 +85,7 @@ NetworkAdminProtocolImpl
 			
 		}else if ( type == PT_TCP ){
 			
-			tester = new NetworkAdminTCPTester();
+			tester = new NetworkAdminTCPTester( core );
 
 		}else{
 			

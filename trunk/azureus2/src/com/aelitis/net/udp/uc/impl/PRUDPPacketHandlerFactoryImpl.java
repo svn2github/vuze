@@ -26,6 +26,7 @@ package com.aelitis.net.udp.uc.impl;
  *
  */
 
+import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -47,6 +48,7 @@ PRUDPPacketHandlerFactoryImpl
 	public static PRUDPPacketHandler
 	getHandler(
 		int						port,
+		InetAddress				bind_ip,
 		PRUDPRequestHandler		request_handler)
 	{
 		final Integer	f_port = new Integer( port );
@@ -60,7 +62,7 @@ PRUDPPacketHandlerFactoryImpl
 			
 			if ( receiver == null ){
 				
-				receiver = new PRUDPPacketHandlerImpl( port );
+				receiver = new PRUDPPacketHandlerImpl( port, bind_ip );
 				
 				receiver_map.put( f_port, receiver );
 			}
@@ -97,7 +99,7 @@ PRUDPPacketHandlerFactoryImpl
 			
 			if ( receiver == null ){
 				
-				receiver = new PRUDPPacketHandlerImpl( port );
+				receiver = new PRUDPPacketHandlerImpl( port, null );
 				
 				receiver_map.put( f_port, receiver );
 			}

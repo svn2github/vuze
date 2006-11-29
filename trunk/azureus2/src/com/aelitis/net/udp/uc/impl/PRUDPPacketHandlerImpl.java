@@ -107,11 +107,15 @@ PRUDPPacketHandlerImpl
 	
 	protected
 	PRUDPPacketHandlerImpl(
-		int		_port )
+		int				_port,
+		InetAddress		_bind_ip )
 	{
-		port		= _port;
+		port				= _port;
+		explicit_bind_ip	= _bind_ip;
 		
-		target_bind_ip = default_bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
+		default_bind_ip = NetworkAdmin.getSingleton().getDefaultBindAddress();
+		
+		calcBind();
 		
 		final AESemaphore init_sem = new AESemaphore("PRUDPPacketHandler:init");
 		
