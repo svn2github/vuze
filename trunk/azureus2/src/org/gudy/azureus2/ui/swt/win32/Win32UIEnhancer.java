@@ -30,6 +30,8 @@ import org.eclipse.swt.internal.win32.TCHAR;
  * @author TuxPaper
  * @created Nov 29, 2006
  *
+ * Note: You can safely exclude this class from the build path.
+ * All calls to this class use (or at least should use) reflection
  */
 public class Win32UIEnhancer
 {
