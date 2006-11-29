@@ -39,6 +39,8 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 	private Color ourFGColor = null;
 	
 	private String text = "";
+	
+	private Image icon = null;
 
 	public BufferedTableItemImpl(BufferedTableRow row, int position) {
 		this.row = row;
@@ -79,13 +81,16 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 	}
 
 	public void setIcon(Image img) {
-		if (position != -1)
+		if (position != -1) {
 			row.setImage(position, img);
+			icon = img;
+		}
 	}
 
 	public Image getIcon() {
 		if (position != -1) {
-			return row.getImage(position);
+			Image image = row.getImage(position);
+			return (image != null) ? image : icon;
 		}
 
 		return null;
