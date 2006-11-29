@@ -35,7 +35,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogAlert;
@@ -43,7 +42,6 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -421,9 +419,9 @@ NetworkAdminImpl
  		
 		NetworkAdminProtocol[]	res = 
 			{
+				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_UDP, UDPNetworkManager.getSingleton().getUDPListeningPortNumber()),
 				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_HTTP, HTTPNetworkManager.getSingleton().getHTTPListeningPortNumber()),
 				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_TCP, TCPNetworkManager.getSingleton().getTCPListeningPortNumber()),
-				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_UDP, UDPNetworkManager.getSingleton().getUDPListeningPortNumber()),
 			};
 	      
 		return( res );
@@ -643,27 +641,9 @@ NetworkAdminImpl
 		}
 		*/
 		
-		iw.println( "Outbound protocols: default routing" );
-		
-		NetworkAdminProtocol[]	protocols = getOutboundProtocols();
-		
-		for (int i=0;i<protocols.length;i++){
-			
-			NetworkAdminProtocol	protocol = protocols[i];
-			
-			InetAddress	ext_addr = testProtocol( protocol );
-			
-			if ( ext_addr != null ){
-			
-				public_addresses.add( ext_addr );
-			}
-			
-			iw.println( "    " + protocol.getName() + " - " + ext_addr );
-		}
-		
 		iw.println( "Inbound protocols: default routing" );
 		
-		protocols = getInboundProtocols();
+		NetworkAdminProtocol[]	protocols = getInboundProtocols();
 		
 		for (int i=0;i<protocols.length;i++){
 			
@@ -676,6 +656,24 @@ NetworkAdminImpl
 				public_addresses.add( ext_addr );
 			}
 
+			iw.println( "    " + protocol.getName() + " - " + ext_addr );
+		}
+		
+		iw.println( "Outbound protocols: default routing" );
+		
+		protocols = getOutboundProtocols();
+		
+		for (int i=0;i<protocols.length;i++){
+			
+			NetworkAdminProtocol	protocol = protocols[i];
+			
+			InetAddress	ext_addr = testProtocol( protocol );
+			
+			if ( ext_addr != null ){
+			
+				public_addresses.add( ext_addr );
+			}
+			
 			iw.println( "    " + protocol.getName() + " - " + ext_addr );
 		}
 		

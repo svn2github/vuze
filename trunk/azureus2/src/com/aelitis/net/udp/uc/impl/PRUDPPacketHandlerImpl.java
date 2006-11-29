@@ -104,6 +104,7 @@ PRUDPPacketHandlerImpl
 	private volatile boolean		destroyed;
 	private AESemaphore destroy_sem = new AESemaphore("PRUDPPacketHandler:destroy");
 
+	private Throwable 	init_error;
 	
 	protected
 	PRUDPPacketHandlerImpl(
@@ -416,12 +417,17 @@ PRUDPPacketHandlerImpl
 							[2:01:55]  	at org.gudy.azureus2.core3.util.AEThread.run(AEThread.java:45)
 							*/
 							
+							init_error	= e;
+							
 							failed	= true;
 						}					
 					}
 				}
 			}
 		}catch( Throwable e ){
+			
+			init_error	= e;
+			
 			Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
 					LogAlert.AT_ERROR, "Tracker.alert.listenfail"), new String[] { "UDP:"
 					+ port });
@@ -794,6 +800,11 @@ PRUDPPacketHandlerImpl
 	{
 		if ( socket == null ){
 			
+			if ( init_error != null ){
+				
+				throw( new PRUDPPacketHandlerException( "Transport unavailable", init_error ));
+			}
+		
 			throw( new PRUDPPacketHandlerException( "Transport unavailable" ));
 		}
 		
@@ -1085,6 +1096,11 @@ PRUDPPacketHandlerImpl
 		throws PRUDPPacketHandlerException
 	{
 		if ( socket == null ){
+			
+			if ( init_error != null ){
+				
+				throw( new PRUDPPacketHandlerException( "Transport unavailable", init_error ));
+			}
 			
 			throw( new PRUDPPacketHandlerException( "Transport unavailable" ));
 		}

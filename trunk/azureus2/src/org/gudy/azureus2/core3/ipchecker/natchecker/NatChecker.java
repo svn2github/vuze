@@ -142,7 +142,7 @@ public class NatChecker {
     try {
       server.start();
       
-      String urlStr = Constants.NAT_TEST_SERVER + (http_test?"httptest":"nattest") + "?port=" + String.valueOf( port ) + "&check=" + check;
+      String urlStr = Constants.NAT_TEST_SERVER_HTTP + (http_test?"httptest":"nattest") + "?port=" + String.valueOf( port ) + "&check=" + check;
            
       if ( upnp_str != null ){
     	

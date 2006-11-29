@@ -525,14 +525,19 @@ public class VersionCheckClient {
 	  
 	  long timeout = 10000;
 	  
-	  long	connection_id = new Random().nextLong();
+	  Random random = new Random();
 	  
 	  try{
 		  packet_handler.setExplicitBindAddress( bind_ip );	  
 		  
 		  for (int i=0;i<3;i++){
 			  
-			  VersionCheckClientUDPRequest	request_packet = new VersionCheckClientUDPRequest( connection_id++ );
+			  	// connection ids for requests must always have their msb set...
+			  	// apart from the original darn udp tracker spec....
+			  
+			  long connection_id = 0x8000000000000000L | random.nextLong();
+			  
+			  VersionCheckClientUDPRequest	request_packet = new VersionCheckClientUDPRequest( connection_id );
 			  
 			  request_packet.setPayload( data_to_send );
 			  

@@ -56,7 +56,14 @@ VersionCheckClientUDPRequest
 	{
 		super( VersionCheckClientUDPCodecs.ACT_VERSION_REQUEST, connection_id, trans_id );
 		
-		byte[]	bytes = new byte[8192];
+		short	len = is.readShort();
+		
+		if ( len <= 0 ){
+			
+			throw( new IOException( "invalid length" ));
+		}
+		
+		byte[]	bytes = new byte[len];
 		
 		is.read( bytes );
 		
@@ -71,7 +78,11 @@ VersionCheckClientUDPRequest
 	{
 		super.serialise(os);
 		
-		os.write( BEncoder.encode( payload ));
+		byte[]	bytes = BEncoder.encode( payload );
+		
+		os.writeShort( (short)bytes.length );
+		
+		os.write( bytes );
 	}
 	
 	public Map

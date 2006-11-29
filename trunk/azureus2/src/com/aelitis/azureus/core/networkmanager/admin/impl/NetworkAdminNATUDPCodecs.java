@@ -42,6 +42,10 @@ NetworkAdminNATUDPCodecs
 	
 	private static boolean	registered	= false;
 	
+	static{
+		registerCodecs();
+	}
+	
 	public static void
 	registerCodecs()
 	{
@@ -98,7 +102,7 @@ NetworkAdminNATUDPCodecs
 					throws IOException
 				{
 					switch( action ){
-						case ACT_NAT_REPLY:
+						case ACT_NAT_REQUEST:
 						{
 							return( new NetworkAdminNATUDPRequest(is, connection_id, transaction_id ));
 						}
@@ -112,7 +116,7 @@ NetworkAdminNATUDPCodecs
 
 		Map	request_decoders = new HashMap();
 		
-		request_decoders.put( new Integer( ACT_NAT_REPLY ), request_decoder );
+		request_decoders.put( new Integer( ACT_NAT_REQUEST ), request_decoder );
 		
 		PRUDPPacketRequest.registerDecoders( request_decoders );
 	}

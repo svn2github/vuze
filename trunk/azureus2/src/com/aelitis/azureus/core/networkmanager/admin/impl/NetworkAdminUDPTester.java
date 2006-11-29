@@ -24,13 +24,25 @@
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.*;
+
+import org.gudy.azureus2.core3.util.Constants;
+
+
 
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
+import com.aelitis.net.udp.uc.PRUDPReleasablePacketHandler;
 
 public class 
 NetworkAdminUDPTester 
 	implements NetworkAdminProtocolTester
 {
+	public static final String 	UDP_SERVER_ADDRESS	= Constants.NAT_TEST_SERVER;
+	public static final int		UDP_SERVER_PORT		= 2081;
+	
 	public InetAddress
 	testOutbound(
 		InetAddress		bind_ip,
@@ -48,6 +60,44 @@ NetworkAdminUDPTester
 	
 		throws Exception
 	{
-		throw( new Exception( "not imp" ));
+		  PRUDPReleasablePacketHandler handler = PRUDPPacketHandlerFactory.getReleasableHandler( bind_port );
+	  	  
+		  PRUDPPacketHandler	packet_handler = handler.getHandler();
+		  
+		  long timeout = 20000;
+		  		  
+		  HashMap	data_to_send = new HashMap();
+		  
+		  Random 	random = new Random();
+		  
+		  try{
+			  packet_handler.setExplicitBindAddress( bind_ip );	  
+			  
+			  for (int i=0;i<3;i++){
+				  
+				  	// connection ids for requests must always have their msb set...
+				  	// apart from the original darn udp tracker spec....
+				  
+				  long connection_id = 0x8000000000000000L | random.nextLong();
+
+				  NetworkAdminNATUDPRequest	request_packet = new NetworkAdminNATUDPRequest( connection_id );
+				  
+				  request_packet.setPayload( data_to_send );
+				  
+				  NetworkAdminNATUDPReply reply_packet = (NetworkAdminNATUDPReply)packet_handler.sendAndReceive( null, request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), timeout );
+		
+				  Map	reply = reply_packet.getPayload();
+				  
+				  System.out.println( "reply: " + reply );
+			  }
+			  
+			  throw( new Exception( "Timeout" ));
+			  
+		  }finally{
+			 
+			  packet_handler.setExplicitBindAddress( null );
+
+			  handler.release();
+		  }
 	}
 }
