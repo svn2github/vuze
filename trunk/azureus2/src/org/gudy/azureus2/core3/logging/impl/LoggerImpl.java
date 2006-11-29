@@ -195,7 +195,10 @@ public class LoggerImpl {
 			psOldOut.println(event.text);
 
 		if (event.entryType == LogEvent.LT_ERROR) {
-			Debug.outDiagLoggerOnly("[" + event.logID + "] " + event.text);
+			if ( AEDiagnostics.isStartupComplete()){
+					// more recursive horrors here if we try and log too early
+				Debug.outDiagLoggerOnly("[" + event.logID + "] " + event.text);
+			}
 			if (psOldErr != null && event.logID != LogIDs.STDERR) {
 				psOldErr.println("[" + event.logID + "] " + event.text);
 			}

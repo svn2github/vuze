@@ -89,6 +89,8 @@ AEDiagnostics
 	private static File	debug_save_dir;
 	
 	private static boolean	started_up;
+	private static boolean	startup_complete;
+	
 	private static Map		loggers	= new HashMap();
 	private static boolean	loggers_enabled;
 	
@@ -170,6 +172,8 @@ AEDiagnostics
 			}
 		}finally{
 			
+			startup_complete	= true;
+			
 			if ( DEBUG_THREADS ){
 				// pull in the JDK1.5 monitoring stuff if present
 				
@@ -217,6 +221,12 @@ AEDiagnostics
 		}
 	}
 
+	public static boolean
+	isStartupComplete()
+	{
+		return( startup_complete );
+	}
+	
 	public static synchronized AEDiagnosticsLogger
 	getLogger(
 		String		name )
