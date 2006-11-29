@@ -1666,6 +1666,11 @@ public class TableView
     configMan.removeParameterListener("Graphics Update", this);
     Colors.getInstance().removeColorsChangedListener(this);
 
+    if (timerProcessDataSources != null) {
+    	timerProcessDataSources.destroy();
+    	timerProcessDataSources = null;
+    }
+
     //oldSelectedItems =  null;
     super.delete();
   }
