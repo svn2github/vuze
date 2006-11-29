@@ -74,9 +74,14 @@ UPnPPluginService
 	public String
 	getName()
 	{
-		return( connection.getGenericService().getDevice().getFriendlyName());
+		return( connection.getGenericService().getDevice().getRootDevice().getDevice().getFriendlyName());
 	}
 	
+	public String
+	getInfo()
+	{
+		return( connection.getGenericService().getDevice().getRootDevice().getInfo());
+	}
 	public String
 	getAddress()
 	{

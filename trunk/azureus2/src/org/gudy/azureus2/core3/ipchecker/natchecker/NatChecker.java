@@ -125,11 +125,16 @@ public class NatChecker {
       
       UPnPPluginService[]	services = upnp.getServices();
       
-      for (int i=0;i<services.length;i++){
+      if ( services.length > 0 ){
     	  
-    	  UPnPPluginService service = services[i];
-    	  
-    	  upnp_str += (i==0?"":",") + service.getName();
+    	  upnp_str = "";
+      
+	      for (int i=0;i<services.length;i++){
+	    	  
+	    	  UPnPPluginService service = services[i];
+	    	  
+	    	  upnp_str += (i==0?"":",") + service.getInfo();
+	      }
       }
     }
 
