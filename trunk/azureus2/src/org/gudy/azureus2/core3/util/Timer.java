@@ -26,12 +26,17 @@ package org.gudy.azureus2.core3.util;
  *
  */
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 
 public class Timer
 	extends 	AERunnable
 	implements	SystemTime.consumer
-{	
+{
+	private static boolean DEBUG_TIMERS = true;
+	private static ArrayList timers = null;
+	private static AEMonitor timers_mon = new AEMonitor("timers list");
+	
 	private ThreadPool	thread_pool;
 		
 	private Set	events = new TreeSet();
@@ -65,6 +70,19 @@ public class Timer
 		int		thread_pool_size,
 		int		thread_priority )
 	{
+		if (DEBUG_TIMERS) {
+			try {
+				timers_mon.enter();
+				if (timers == null) {
+					timers = new ArrayList();
+					AEDiagnostics.addEvidenceGenerator(new evidenceGenerator()); 
+				}
+				timers.add(new WeakReference(this));
+			} finally {
+				timers_mon.exit();
+			}
+		}
+
 		thread_pool = new ThreadPool(name,thread_pool_size);
 	
 		SystemTime.registerClockChangeListener( this );
@@ -362,6 +380,22 @@ public class Timer
 			
 			SystemTime.unregisterClockChangeListener( this );
 		}
+
+		if (DEBUG_TIMERS) {
+			try {
+				timers_mon.enter();
+				// crappy
+				for (Iterator iter = timers.iterator(); iter.hasNext();) {
+					WeakReference timerRef = (WeakReference) iter.next();
+					Object timer = timerRef.get();
+					if (timer == null || timer == this) {
+						iter.remove();
+					}
+				}
+			} finally {
+				timers_mon.exit();
+			}
+		}
 	}
 	
 	public String
@@ -382,6 +416,55 @@ public class Timer
 			TimerEvent	ev = (TimerEvent)it.next();
 			
 			System.out.println( "\t" + ev.getString());
+		}
+	}
+
+	private class 
+	evidenceGenerator implements AEDiagnosticsEvidenceGenerator
+	{
+		public void generate(IndentWriter writer) {
+			if (!DEBUG_TIMERS) {
+				return;
+			}
+
+			ArrayList lines = new ArrayList();
+			int count = 0;
+			try {
+				try {
+					timers_mon.enter();
+					// crappy
+					for (Iterator iter = timers.iterator(); iter.hasNext();) {
+						WeakReference timerRef = (WeakReference) iter.next();
+						Timer timer = (Timer) timerRef.get();
+						if (timer == null) {
+							iter.remove();
+						} else {
+							count++;
+							lines.add(timer.thread_pool.getName() + ", "
+									+ timer.events.size() + " events:");
+
+							Iterator it = timer.events.iterator();
+							while (it.hasNext()) {
+								TimerEvent ev = (TimerEvent) it.next();
+
+								lines.add("  " + ev.getString());
+							}
+						}
+					}
+				} finally {
+					timers_mon.exit();
+				}
+
+				writer.println("Timers: " + count);
+				writer.indent();
+				for (Iterator iter = lines.iterator(); iter.hasNext();) {
+					String line = (String) iter.next();
+					writer.println(line);
+				}
+				writer.exdent();
+			} catch (Exception e) {
+				writer.println(e.toString());
+			}
 		}
 	}
 }
