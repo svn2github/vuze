@@ -33,6 +33,7 @@ import java.util.Map;
 import com.aelitis.azureus.core.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Constants;
@@ -137,7 +138,7 @@ public class NatChecker {
       server.start();
       
       String urlStr = Constants.NAT_TEST_SERVER + (http_test?"httptest":"nattest") + "?port=" + String.valueOf( port ) + "&check=" + check;
-      
+           
       if ( upnp_str != null ){
     	
     	  urlStr += "&upnp=" + URLEncoder.encode( upnp_str, "UTF8" );
@@ -151,6 +152,8 @@ public class NatChecker {
       	  urlStr += "&as=" + URLEncoder.encode( as, "UTF8" );
       	  urlStr += "&asn=" + URLEncoder.encode( asn, "UTF8" );
       }
+      
+      urlStr += "&locale=" + MessageText.getCurrentLocale().toString();
       
       URL url = new URL( urlStr );
       HttpURLConnection con = (HttpURLConnection)url.openConnection();
@@ -207,7 +210,7 @@ public class NatChecker {
 								"NAT CHECK FAILED: " + new String(reason)));
           }
           result = NAT_KO;
-          fail_reason = reason==null?"Unknown":new String(reason);
+          fail_reason = reason==null?"Unknown":new String(reason, "UTF8");
           break;
         case 1 :
           result = NAT_OK;
