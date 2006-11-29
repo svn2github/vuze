@@ -41,6 +41,8 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+
 /**
  * @author Olivier
  * 
@@ -75,7 +77,7 @@ public class NatPanel extends AbstractWizardPanel {
       //if (lowPort <= highPort && (highPort-lowPort < 10)) {
         //for (int port = lowPort; port <= highPort && bContinue; port++) {
           printMessage(MessageText.getString("configureWizard.nat.testing") + " " + TCPListenPort + " ... ");
-          NatChecker checker = new NatChecker(wizard.getAzureusCore(), TCPListenPort);
+          NatChecker checker = new NatChecker(wizard.getAzureusCore(), NetworkAdmin.getSingleton().getDefaultBindAddress(), TCPListenPort, false );
           switch (checker.getResult()) {
             case NatChecker.NAT_OK :
               printMessage(MessageText.getString("configureWizard.nat.ok") + "\n");

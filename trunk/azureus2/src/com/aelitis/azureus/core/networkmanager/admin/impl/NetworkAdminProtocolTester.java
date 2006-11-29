@@ -39,7 +39,7 @@ NetworkAdminProtocolTester
 	public InetAddress
 	testInbound(			
 		InetAddress		bind_ip,
-		int				bind_port )
+		int				local_port )
 	
 		throws Exception;
 }

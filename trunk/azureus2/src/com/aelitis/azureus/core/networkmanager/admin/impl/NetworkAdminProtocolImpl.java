@@ -26,6 +26,7 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.net.InetAddress;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProtocol;
 
@@ -33,14 +34,27 @@ public class
 NetworkAdminProtocolImpl 
 	implements NetworkAdminProtocol
 {
+	private AzureusCore		core;
 	private int				type;
 	private int				port;
 	
 	protected 
 	NetworkAdminProtocolImpl(
+		AzureusCore	_core,
+		int			_type )
+	{
+		core		= _core;
+		type		= _type;
+		port		= -1;
+	}
+	
+	protected 
+	NetworkAdminProtocolImpl(
+		AzureusCore	_core,
 		int			_type,
 		int			_port )
 	{
+		core		= _core;
 		type		= _type;
 		port		= _port;
 	}
@@ -61,13 +75,13 @@ NetworkAdminProtocolImpl
 	test(
 		NetworkAdminNetworkInterfaceAddress	address )
 	{
-		InetAddress a = address==null?null:address.getAddress();
+		InetAddress bind_ip = address==null?null:address.getAddress();
 		
 		NetworkAdminProtocolTester	tester;
 		
 		if ( type == PT_HTTP ){
 			
-			tester = new NetworkAdminHTTPTester();
+			tester = new NetworkAdminHTTPTester( core );
 			
 		}else if ( type == PT_TCP ){
 			
@@ -83,11 +97,11 @@ NetworkAdminProtocolImpl
 			
 			if ( port <= 0 ){
 				
-				res = tester.testOutbound( a, 0 );
+				res = tester.testOutbound( bind_ip, 0 );
 				
 			}else{
 				
-				res = tester.testInbound( a, 0 );
+				res = tester.testInbound( bind_ip, port );
 			}
 			
 			return( res );

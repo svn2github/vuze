@@ -325,6 +325,12 @@ HTTPNetworkManager
 	        });
 	}
 	
+	public boolean
+	isHTTPListenerEnabled()
+	{
+		return( http_incoming_manager.isEnabled());
+	}
+	
 	public int
 	getHTTPListeningPortNumber()
 	{
@@ -333,11 +339,24 @@ HTTPNetworkManager
 	
 	public void
 	setExplicitBindAddress(
-			InetAddress	address )
+		InetAddress	address )
 	{
 		http_incoming_manager.setExplicitBindAddress( address );
 	}
-	  
+	
+	public void
+	clearExplicitBindAddress()
+	{
+		http_incoming_manager.clearExplicitBindAddress();
+	}
+	
+	public boolean
+	isEffectiveBindAddress(
+		InetAddress		address )
+	{
+		return( http_incoming_manager.isEffectiveBindAddress( address ));
+	}
+	
 	protected String
 	getIndexPage()
 	{

@@ -45,6 +45,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 public class NatTestWindow {
   
@@ -68,7 +69,7 @@ public class NatTestWindow {
 
     public void runSupport() {
           printMessage(MessageText.getString("configureWizard.nat.testing") + " " + TCPListenPort + " ... ");
-          NatChecker checker = new NatChecker(AzureusCoreFactory.getSingleton(), TCPListenPort);          
+          NatChecker checker = new NatChecker(AzureusCoreFactory.getSingleton(), NetworkAdmin.getSingleton().getDefaultBindAddress(), TCPListenPort, false);          
           switch (checker.getResult()) {
           case NatChecker.NAT_OK :
             printMessage(MessageText.getString("configureWizard.nat.ok") + "\n");

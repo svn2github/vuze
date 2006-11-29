@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.ipchecker.natchecker;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -51,26 +52,18 @@ public class NatChecker {
   public static final int NAT_UNABLE = 3;
   
  
-  private int		result;
-  private String	fail_reason;
+  private int			result;
+  private String		fail_reason;
+  private InetAddress	ip_address;
   
   public 
   NatChecker(
   	AzureusCore		azureus_core,
-	int 			port) 
+	InetAddress		bind_ip,
+	int 			port,
+	boolean			http_test )
   {	
     String check = "azureus_rand_" + String.valueOf( (int)(Math.random() * 100000) );
-    
-    NatCheckerServer server = new NatCheckerServer( port, check );
-    
-    if( !server.isValid() ){
-    	
-    	result = NAT_UNABLE;
-    	
-    	fail_reason	= "Can't initialise server";
-    	
-    	return;
-    }
     
     if ( port < 0 || port > 65535 || port == 6880 ){
     	
@@ -80,6 +73,22 @@ public class NatChecker {
     	
     	return;
     }
+    
+    NatCheckerServer server;
+    
+    try{
+    	server = new NatCheckerServer( bind_ip, port, check, http_test );
+    
+    }catch( Throwable e ){
+    	
+    	result = NAT_UNABLE;
+    	
+    	fail_reason	= "Can't initialise server: " + Debug.getNestedExceptionMessage(e);
+    	
+    	return;
+    }
+    
+  
     
 
     //do UPnP if necessary
@@ -114,7 +123,7 @@ public class NatChecker {
     try {
       server.start();
       
-      String urlStr = Constants.NAT_TEST_SERVER + "nattest?port=" + String.valueOf( port ) + "&check=" + check;
+      String urlStr = Constants.NAT_TEST_SERVER + (http_test?"httptest":"nattest") + "?port=" + String.valueOf( port ) + "&check=" + check;
       URL url = new URL( urlStr );
       HttpURLConnection con = (HttpURLConnection)url.openConnection();
       con.connect();
@@ -180,6 +189,18 @@ public class NatChecker {
           fail_reason = "Invalid response";
           break;
       }
+      
+      byte[]	ip_bytes = (byte[])map.get( "ip_address" );
+      
+      if ( ip_bytes != null ){
+    	  
+    	  try{
+    		  ip_address = InetAddress.getByAddress( ip_bytes );
+    		  
+    	  }catch( Throwable e ){
+    		  
+    	  }
+      }
     }
     catch (Exception e) {
     	result = NAT_UNABLE;
@@ -201,6 +222,12 @@ public class NatChecker {
   getResult()
   {
 	  return( result );
+  }
+  
+  public InetAddress
+  getExternalAddress()
+  {
+	  return( ip_address );
   }
   
   public String

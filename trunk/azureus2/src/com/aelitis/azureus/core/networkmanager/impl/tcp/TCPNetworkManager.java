@@ -120,6 +120,18 @@ TCPNetworkManager
 		  incoming_socketchannel_manager.setExplicitBindAddress( address );
 	  }
 	  
+	  public void
+	  clearExplicitBindAddress()
+	  {
+		  incoming_socketchannel_manager.clearExplicitBindAddress();
+	  }
+	  
+		public boolean
+		isEffectiveBindAddress(
+			InetAddress		address )
+		{
+			return( incoming_socketchannel_manager.isEffectiveBindAddress( address ));
+		}
 	  /**
 	   * Get the socket channel connect / disconnect manager.
 	   * @return connect manager
@@ -142,6 +154,12 @@ TCPNetworkManager
 	   */
 	  public VirtualChannelSelector getWriteSelector() {  return write_selector;  }
 	  
+	  
+	  public boolean
+	  isTCPListenerEnabled()
+	  {
+		  return( incoming_socketchannel_manager.isEnabled());
+	  }
 	  
 	  /**
 	   * Get port that the TCP server socket is listening for incoming connections on.

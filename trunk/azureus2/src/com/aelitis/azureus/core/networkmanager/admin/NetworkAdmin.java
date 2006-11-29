@@ -32,14 +32,19 @@ import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminImpl;
 public abstract class 
 NetworkAdmin 
 {
-	private static final NetworkAdmin	singleton = new NetworkAdminImpl();
+	private static NetworkAdmin	singleton;
 	
 	public static final String PR_NETWORK_INTERFACES	= "Network Interfaces";
 	public static final String PR_DEFAULT_BIND_ADDRESS	= "Default Bind IP";
 	
-	public static NetworkAdmin
+	public static synchronized NetworkAdmin
 	getSingleton()
 	{
+		if ( singleton == null ){
+			
+			singleton = new NetworkAdminImpl();
+		}
+		
 		return( singleton );
 	}
 	

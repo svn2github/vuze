@@ -57,6 +57,7 @@ import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASNLookup;
@@ -89,6 +90,35 @@ NetworkAdminImpl
 	private InetAddress	old_bind_ip;
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
+		
+	private NetworkAdminRouteListener
+		trace_route_listener = new NetworkAdminRouteListener()
+		{
+			private int	node_count = 0;
+			
+			public boolean
+			foundNode(
+				NetworkAdminNode	node,
+				int					distance,
+				int					rtt )
+			{
+				node_count++;
+				
+				return( true );
+			}
+			
+			public boolean
+			timeout(
+				int					distance )
+			{
+				if ( distance == 3 && node_count == 0 ){
+					
+					return( false );
+				}
+				
+				return( true );
+			}
+		};
 		
 	public
 	NetworkAdminImpl()
@@ -367,13 +397,16 @@ NetworkAdminImpl
 	public NetworkAdminProtocol[]
  	getOutboundProtocols()
 	{
+		AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
+		
+
 			// TODO: tidy up
 		
 		NetworkAdminProtocol[]	res = 
 			{
-				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_HTTP, 0 ),
-				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_TCP, 0 ),
-				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_UDP, 0 ),
+				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_HTTP ),
+				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_TCP ),
+				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_UDP ),
 			};
 		      
 		return( res );
@@ -382,13 +415,15 @@ NetworkAdminImpl
  	public NetworkAdminProtocol[]
  	getInboundProtocols()
  	{
+		AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
+
  			// 	 TODO: tidy up
  		
 		NetworkAdminProtocol[]	res = 
 			{
-				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_HTTP, HTTPNetworkManager.getSingleton().getHTTPListeningPortNumber()),
-				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_TCP, TCPNetworkManager.getSingleton().getTCPListeningPortNumber()),
-				new NetworkAdminProtocolImpl( NetworkAdminProtocol.PT_UDP, UDPNetworkManager.getSingleton().getUDPListeningPortNumber()),
+				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_HTTP, HTTPNetworkManager.getSingleton().getHTTPListeningPortNumber()),
+				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_TCP, TCPNetworkManager.getSingleton().getTCPListeningPortNumber()),
+				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_UDP, UDPNetworkManager.getSingleton().getUDPListeningPortNumber()),
 			};
 	      
 		return( res );
@@ -562,6 +597,7 @@ NetworkAdminImpl
 		
 		iw.println( "Interfaces" );
 		
+		/*
 		NetworkAdminNetworkInterface[] interfaces = getInterfaces();
 		
 		if ( interfaces.length > 0 ){
@@ -590,7 +626,7 @@ NetworkAdminImpl
 					networkInterface.networkAddress address = (networkInterface.networkAddress)interfaces[0].getAddresses()[0];
 					
 					try{
-						NetworkAdminNode[] nodes = address.getRoute( InetAddress.getByName("www.google.com"), 30000, null );
+						NetworkAdminNode[] nodes = address.getRoute( InetAddress.getByName("www.google.com"), 30000, trace_route_listener  );
 						
 						for (int i=0;i<nodes.length;i++){
 							
@@ -605,6 +641,7 @@ NetworkAdminImpl
 				}
 			}
 		}
+		*/
 		
 		iw.println( "Outbound protocols: default routing" );
 		
@@ -868,7 +905,7 @@ NetworkAdminImpl
 					}else{
 						
 						try{
-							NetworkAdminNode[] nodes = getRoute( InetAddress.getByName("www.google.com"), 30000, null );
+							NetworkAdminNode[] nodes = getRoute( InetAddress.getByName("www.google.com"), 30000, trace_route_listener );
 							
 							for (int i=0;i<nodes.length;i++){
 								
@@ -1024,6 +1061,10 @@ NetworkAdminImpl
 			IndentWriter iw = new IndentWriter( new PrintWriter( System.out ));
 			
 			iw.setForce( true );
+			
+			COConfigurationManager.initialise();
+			
+			AzureusCoreFactory.create();
 			
 			getSingleton().generateDiagnostics( iw );
 			

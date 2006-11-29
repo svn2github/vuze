@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
+import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 
@@ -44,124 +46,185 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
  *
  */
 public class NatCheckerServer extends AEThread {
-		private static final LogIDs LOGID = LogIDs.NET;
+	private static final LogIDs LOGID = LogIDs.NET;
     private static final String incoming_handshake = "NATCHECK_HANDSHAKE";
   
-    private final String check;
+    private final InetAddress	bind_ip;
+    private boolean				bind_ip_set;
+    private final String 		check;
+    private final boolean		http_test;
+    
     private ServerSocket server;
-    private boolean valid = false;    
+ 
     private volatile boolean bContinue = true;
     private final boolean use_incoming_router;
     private NetworkManager.ByteMatcher matcher;
     
     
-    public NatCheckerServer(int _port, final String _check) {     
+    public 
+    NatCheckerServer(
+    	InetAddress 	_bind_ip, 
+    	int 			_port,  
+    	String 			_check, 
+    	boolean 		_http_test )
+    
+    	throws Exception
+    {     
       super("Nat Checker Server");
       
-      this.check = _check;
-      use_incoming_router = _port == COConfigurationManager.getIntParameter("TCP.Listen.Port");
+      bind_ip		= _bind_ip;
+      check		 	= _check;
+      http_test		= _http_test;
       
-      if( use_incoming_router ) {
-        //test port and currently-configured listening port are the same,
-        //so register for incoming connection routing
-        
-        matcher = new NetworkManager.ByteMatcher() {
-		  public int matchThisSizeOrBigger(){ return( maxSize()); }
-          public int maxSize() {  return incoming_handshake.getBytes().length;  }
-          public int minSize(){ return maxSize(); }
-        
-          public Object matches( TransportHelper transport, ByteBuffer to_compare, int port ) {             
-            int old_limit = to_compare.limit();
-            to_compare.limit( to_compare.position() + maxSize() );
-            boolean matches = to_compare.equals( ByteBuffer.wrap( incoming_handshake.getBytes() ) );
-            to_compare.limit( old_limit );  //restore buffer structure
-            return matches?"":null;
-          }
-          public Object minMatches( TransportHelper transport, ByteBuffer to_compare, int port ) { return( matches( transport, to_compare, port )); } 
-          public byte[][] getSharedSecrets(){ return( null ); }
-  	   	  public int getSpecificPort(){return( -1 );
-		}
-        };
-        
-        NetworkManager.getSingleton().requestIncomingConnectionRouting(
-            matcher,
-            new NetworkManager.RoutingListener() {
-              public void 
-              connectionRouted( 
-            	NetworkConnection 	connection, 
-            	Object 				routing_data ) 
-              {
-            	  if (Logger.isEnabled())
-            		  Logger.log(new LogEvent(LOGID, "Incoming connection from ["
-            				  + connection + "] successfully routed to NAT CHECKER"));
+      if ( http_test ){
+    	  
+    	  HTTPNetworkManager	net_man = HTTPNetworkManager.getSingleton();
+    	  
+    	  if ( net_man.isHTTPListenerEnabled()){
+       	  
+    		  use_incoming_router = _port == net_man.getHTTPListeningPortNumber();
+    		  
+    	  }else{
+    		  
+    		  use_incoming_router = false;
+    	  }
+ 
+    	  if ( use_incoming_router ){
+    		  
+    		  if ( !net_man.isEffectiveBindAddress( bind_ip )){
+    			  
+    			  net_man.setExplicitBindAddress( bind_ip );
+    			  
+    			  bind_ip_set	= true;
+    		  }
+    	  }
+      }else{
+    	
+    	  TCPNetworkManager	net_man = TCPNetworkManager.getSingleton();
 
-            	  try{
-            		  ByteBuffer	msg = getMessage();
-
-            		  Transport transport = connection.getTransport();
-
-            		  long	start = SystemTime.getCurrentTime();
-
-            		  while( msg.hasRemaining()){
-
-            			  transport.write( new ByteBuffer[]{ msg }, 0, 1 );
-
-            			  if ( msg.hasRemaining()){
-
-            				  long now = SystemTime.getCurrentTime();
-
-            				  if ( now < start ){
-
-            					  start = now;
-
-            				  }else{
-
-            					  if ( now - start > 30000 ){
-
-            						  throw( new Exception( "Timeout" ));
-            					  }
-            				  }
-
-            				  Thread.sleep( 50 );
-            			  }
-            		  }
-            	  }catch( Throwable t ) {
-            		
-            		  Debug.out( "Nat check write failed", t );
-            	  }
-
-            	  connection.close();
-              }
-              
-              public boolean
-          	  autoCryptoFallback()
-              {
-            	  return( true );
-              }
-            },
-            new MessageStreamFactory() {
-              public MessageStreamEncoder createEncoder() {  return new AZMessageEncoder();  /* unused */}
-              public MessageStreamDecoder createDecoder() {  return new AZMessageDecoder();  /* unused */}
-            });
-        
-        valid = true;
-  			if (Logger.isEnabled())
+      	  if ( net_man.isTCPListenerEnabled()){
+           	  
+    		  use_incoming_router = _port == net_man.getTCPListeningPortNumber();
+    		  
+    	  }else{
+    		  
+    		  use_incoming_router = false;
+    	  }  
+      	  
+	      if ( use_incoming_router ) {
+	 
+ 		 	if ( !net_man.isEffectiveBindAddress( bind_ip )){
+    			  
+    			  net_man.setExplicitBindAddress( bind_ip );
+    			  
+    			  bind_ip_set	= true;
+    		  }
+ 		  
+	    	  	//test port and currently-configured listening port are the same,
+	    	  	//so register for incoming connection routing
+	        
+	        matcher = new NetworkManager.ByteMatcher() {
+			  public int matchThisSizeOrBigger(){ return( maxSize()); }
+	          public int maxSize() {  return incoming_handshake.getBytes().length;  }
+	          public int minSize(){ return maxSize(); }
+	        
+	          public Object matches( TransportHelper transport, ByteBuffer to_compare, int port ) {             
+	            int old_limit = to_compare.limit();
+	            to_compare.limit( to_compare.position() + maxSize() );
+	            boolean matches = to_compare.equals( ByteBuffer.wrap( incoming_handshake.getBytes() ) );
+	            to_compare.limit( old_limit );  //restore buffer structure
+	            return matches?"":null;
+	          }
+	          public Object minMatches( TransportHelper transport, ByteBuffer to_compare, int port ) { return( matches( transport, to_compare, port )); } 
+	          public byte[][] getSharedSecrets(){ return( null ); }
+	  	   	  public int getSpecificPort(){return( -1 );
+			}
+	        };
+	        
+	        NetworkManager.getSingleton().requestIncomingConnectionRouting(
+	            matcher,
+	            new NetworkManager.RoutingListener() {
+	              public void 
+	              connectionRouted( 
+	            	NetworkConnection 	connection, 
+	            	Object 				routing_data ) 
+	              {
+	            	  if (Logger.isEnabled())
+	            		  Logger.log(new LogEvent(LOGID, "Incoming connection from ["
+	            				  + connection + "] successfully routed to NAT CHECKER"));
+	
+	            	  try{
+	            		  ByteBuffer	msg = getMessage();
+	
+	            		  Transport transport = connection.getTransport();
+	
+	            		  long	start = SystemTime.getCurrentTime();
+	
+	            		  while( msg.hasRemaining()){
+	
+	            			  transport.write( new ByteBuffer[]{ msg }, 0, 1 );
+	
+	            			  if ( msg.hasRemaining()){
+	
+	            				  long now = SystemTime.getCurrentTime();
+	
+	            				  if ( now < start ){
+	
+	            					  start = now;
+	
+	            				  }else{
+	
+	            					  if ( now - start > 30000 ){
+	
+	            						  throw( new Exception( "Timeout" ));
+	            					  }
+	            				  }
+	
+	            				  Thread.sleep( 50 );
+	            			  }
+	            		  }
+	            	  }catch( Throwable t ) {
+	            		
+	            		  Debug.out( "Nat check write failed", t );
+	            	  }
+	
+	            	  connection.close();
+	              }
+	              
+	              public boolean
+	          	  autoCryptoFallback()
+	              {
+	            	  return( true );
+	              }
+	            },
+	            new MessageStreamFactory() {
+	              public MessageStreamEncoder createEncoder() {  return new AZMessageEncoder();  /* unused */}
+	              public MessageStreamDecoder createDecoder() {  return new AZMessageDecoder();  /* unused */}
+	            });
+	      }
+          		
+	      if (Logger.isEnabled())
   				Logger.log(new LogEvent(LOGID, "NAT tester using central routing for "
   						+ "server socket"));
       }
-      else {  //different port than already listening on, start new listen server     	
-        try {
-        	InetAddress bind_ip  = NetworkAdmin.getSingleton().getDefaultBindAddress();
-
+      
+      if ( !use_incoming_router ){
+     
+    	  //different port than already listening on, start new listen server
+    	  
+        try{
+ 
           server = new ServerSocket();  //unbound          
           server.setReuseAddress( true );  //set SO_REUSEADDR 
           
           InetSocketAddress address;
 
           if( bind_ip != null ) {
+        	  
         	  address = new InetSocketAddress( bind_ip, _port );
-          }
-          else {
+        	  
+          }else {
+        	  
         	  address = new InetSocketAddress( _port );
           }
        
@@ -169,9 +232,13 @@ public class NatCheckerServer extends AEThread {
   	      
   	      if (Logger.isEnabled())	Logger.log(new LogEvent(LOGID, "NAT tester server socket bound to " +address ));
           
-          valid = true;
+ 
+        }catch(Exception e) { 
+        	
+        	Logger.log(new LogEvent(LOGID, "NAT tester failed to setup listener socket", e ));
+        	
+        	throw( e );   
         }
-        catch(Exception e) {  valid = false;  }      
       }
     }
     
@@ -218,18 +285,26 @@ public class NatCheckerServer extends AEThread {
       }
     }
       
-    
-    
-    public boolean isValid() {
-      return this.valid;
-    }
-    
-    
     public void stopIt() {
       bContinue = false;
       
       if( use_incoming_router ) {
-        NetworkManager.getSingleton().cancelIncomingConnectionRouting( matcher );
+    	  
+    	  if ( http_test ){
+    		  
+    		  if ( bind_ip_set ){
+    			  
+    			  HTTPNetworkManager.getSingleton().clearExplicitBindAddress();
+    		  }
+    	  }else{
+    		  
+    		  NetworkManager.getSingleton().cancelIncomingConnectionRouting( matcher );
+    		  
+    		  if ( bind_ip_set ){
+    			  
+    			  TCPNetworkManager.getSingleton().clearExplicitBindAddress();
+    		  }
+    	  }
       }
       else if( server != null ) {
         try {

@@ -56,9 +56,10 @@ public class IncomingSocketChannelManager
   
   private int so_rcvbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
   
-  private InetAddress default_bind_address = NetworkAdmin.getSingleton().getDefaultBindAddress();
-  private InetAddress explicit_bind_address;
-     
+  private InetAddress 	default_bind_address = NetworkAdmin.getSingleton().getDefaultBindAddress();
+  private InetAddress 	explicit_bind_address;
+  private boolean		explicit_bind_address_set;
+  
   private VirtualServerChannelSelector server_selector = null;
   
   private IncomingConnectionManager	incoming_manager = IncomingConnectionManager.getSingleton();
@@ -200,7 +201,11 @@ public class IncomingSocketChannelManager
     
   }
   
-  
+  public boolean
+  isEnabled()
+  {
+	  return( COConfigurationManager.getBooleanParameter(port_enable_config_key ));
+  }
   
   /**
    * Get port that the TCP server socket is listening for incoming connections on.
@@ -212,12 +217,52 @@ public class IncomingSocketChannelManager
   setExplicitBindAddress(
 	InetAddress	address )
   {
-	  explicit_bind_address = address;
+	  explicit_bind_address 	= address;
+	  explicit_bind_address_set	= true;
 	  
 	  restart();
   }
 
+  public void 
+  clearExplicitBindAddress()
+  {
+	  explicit_bind_address		= null;
+	  explicit_bind_address_set	= false;
+	  
+	  restart();
+  }
   
+  protected InetAddress
+  getEffectiveBindAddress()
+  {
+	  if ( explicit_bind_address_set ){
+		  
+		  return( explicit_bind_address );
+		  
+	  }else{
+		  
+		  return( default_bind_address );
+      }
+  }
+  
+  public boolean
+  isEffectiveBindAddress(
+	InetAddress	address )
+  {
+	  InetAddress	effective = getEffectiveBindAddress();
+	  
+	  if ( address == null && effective == null ){
+		  
+		  return( true );
+	  }
+	  
+	  if ( address == null || effective == null ){
+		  
+		  return( false );
+	  }
+	  
+	  return( address.equals( effective ));
+  }
   
   private void start() {
   	try{
@@ -236,12 +281,7 @@ public class IncomingSocketChannelManager
 		    if( server_selector == null ) {
 		      InetSocketAddress address;
 
-		      InetAddress	bind_address = explicit_bind_address;
-		      
-		      if ( bind_address == null ){
-		    	  
-		    	  bind_address = default_bind_address;
-		      }
+		      InetAddress	bind_address = getEffectiveBindAddress();
 		      
 		      if( bind_address != null ) {
 		        address = new InetSocketAddress( bind_address, tcp_listen_port );
