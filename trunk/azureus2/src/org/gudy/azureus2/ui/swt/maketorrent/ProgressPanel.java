@@ -247,7 +247,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
     	  }else{
     		  
     		  reportCurrentTask(MessageText.getString("wizard.operationfailed"));
-    	      reportCurrentTask( TorrentUtils.exceptionToText( te, true ));
+    	      reportCurrentTask( TorrentUtils.exceptionToText( te ));
     	  }
       }else{
       	Debug.printStackTrace( e );

@@ -56,7 +56,7 @@ public class NatChecker {
   
  
   private int			result;
-  private String		fail_reason;
+  private String		additional_info	= "";
   private InetAddress	ip_address;
   
   public 
@@ -72,7 +72,7 @@ public class NatChecker {
     	
     	result = NAT_UNABLE;
     	
-    	fail_reason	= "Invalid port";
+    	additional_info	= "Invalid port";
     	
     	return;
     }
@@ -86,7 +86,7 @@ public class NatChecker {
     	
     	result = NAT_UNABLE;
     	
-    	fail_reason	= "Can't initialise server: " + Debug.getNestedExceptionMessage(e);
+    	additional_info	= "Can't initialise server: " + Debug.getNestedExceptionMessage(e);
     	
     	return;
     }
@@ -208,22 +208,29 @@ public class NatChecker {
       int reply_result = ((Long)map.get( "result" )).intValue();
       
       switch( reply_result ) {
-        case 0 :
+        case 0 :{
           byte[] reason = (byte[])map.get( "reason" );
           if( reason != null ) {
           	Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
 								"NAT CHECK FAILED: " + new String(reason)));
           }
           result = NAT_KO;
-          fail_reason = reason==null?"Unknown":new String(reason, "UTF8");
+          additional_info = reason==null?"Unknown":new String(reason, "UTF8");
           break;
-        case 1 :
+        }
+        case 1 :{
           result = NAT_OK;
+          byte[] reply = (byte[])map.get( "reply" );
+          if( reply != null ) {
+        	  additional_info = new String(reply, "UTF8");
+          }
           break;
-        default :
+        }
+        default :{
           result = NAT_UNABLE;
-          fail_reason = "Invalid response";
+          additional_info = "Invalid response";
           break;
+        }
       }
       
       byte[]	ip_bytes = (byte[])map.get( "ip_address" );
@@ -240,7 +247,7 @@ public class NatChecker {
     }
     catch (Exception e) {
     	result = NAT_UNABLE;
-    	fail_reason = "Error: " + Debug.getNestedExceptionMessage( e );
+    	additional_info = "Error: " + Debug.getNestedExceptionMessage( e );
     }
     finally {
     	
@@ -267,8 +274,8 @@ public class NatChecker {
   }
   
   public String
-  getFailReason()
+  getAdditionalInfo()
   {
-	  return( fail_reason );
+	  return( additional_info );
   }
 }

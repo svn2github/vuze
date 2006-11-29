@@ -39,16 +39,22 @@ TOTorrentDeserialiseImpl
 		File		file )
 		
 		throws TOTorrentException
-	{		
+	{	
+		if ( !file.exists()){
+			throw( new TOTorrentException( 	"Torrent file '" + file.toString() + "' does not exist",
+					TOTorrentException.RT_FILE_NOT_FOUND ));
+
+		}
+		
 		if(!file.isFile()) {
 			
-			throw( new TOTorrentException( 	"TOTorrentDeserialise: Torrent must be a file ('" + file.getName() + "')",
+			throw( new TOTorrentException( 	"Torrent must be a file ('" + file.toString() + "')",
 											TOTorrentException.RT_FILE_NOT_FOUND ));
 		}
 
 		if ( file.length() == 0 ){
 		
-			throw( new TOTorrentException( 	"TOTorrentDeserialise: Torrent is zero length ('" + file.getName() + "')",
+			throw( new TOTorrentException( 	"Torrent is zero length ('" + file.toString() + "')",
 											TOTorrentException.RT_ZERO_LENGTH ));
 			
 		}
@@ -64,9 +70,9 @@ TOTorrentDeserialiseImpl
 	
 			construct( fis );
 	
-		}catch( IOException e ){
+		}catch( Throwable e ){
 			
-			throw( new TOTorrentException( "TOTorrentDeserialise: IO exception reading torrent '" + e.toString()+ "'",
+			throw( new TOTorrentException( "Error reading torrent file '" + file.toString() + " - " + Debug.getNestedExceptionMessage(e),
 											TOTorrentException.RT_READ_FAILS ));
 			
 		}finally{
@@ -185,9 +191,9 @@ TOTorrentDeserialiseImpl
 			
 				metaInfo.write(buf, 0, nbRead);
 			}
-		}catch( IOException e ){
+		}catch( Throwable e ){
 			
-			throw( new TOTorrentException( "TOTorrentDeserialise: IO exception reading torrent '" + e.toString()+ "'",
+			throw( new TOTorrentException( "Error reading torrent: " + Debug.getNestedExceptionMessage(e),
 											TOTorrentException.RT_READ_FAILS ));
 		}
 		
@@ -209,7 +215,7 @@ TOTorrentDeserialiseImpl
 			
 		}catch( IOException e ){
 			
-			throw( new TOTorrentException( 	"IO Error: " + e.getMessage(),
+			throw( new TOTorrentException( 	"Error reading torrent: " + Debug.getNestedExceptionMessage(e),
 											TOTorrentException.RT_DECODE_FAILS, e ));
 		}
 	}
@@ -386,7 +392,7 @@ TOTorrentDeserialiseImpl
 						}
 					}catch( Exception e ){
 						
-						System.out.println( "TOTorrentDeserialise: creation_date extraction fails, ignoring");
+						System.out.println( "creation_date extraction fails, ignoring");
 					}
 									
 				}else if ( key.equalsIgnoreCase( TK_INFO )){

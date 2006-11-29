@@ -80,14 +80,15 @@ public class NatPanel extends AbstractWizardPanel {
           NatChecker checker = new NatChecker(wizard.getAzureusCore(), NetworkAdmin.getSingleton().getDefaultBindAddress(), TCPListenPort, false );
           switch (checker.getResult()) {
             case NatChecker.NAT_OK :
-              printMessage(MessageText.getString("configureWizard.nat.ok") + "\n");
+              String	additional_info = checker.getAdditionalInfo();
+              printMessage(MessageText.getString("configureWizard.nat.ok") + "\n" + additional_info );
               break;
             case NatChecker.NAT_KO :
-              printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + " - " + checker.getFailReason()+".\n");
+              printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + " - " + checker.getAdditionalInfo()+".\n");
               bContinue = false;
               break;
             default :
-              printMessage( "\n" + MessageText.getString("configureWizard.nat.unable") + ". \n(" + checker.getFailReason()+").\n");
+              printMessage( "\n" + MessageText.getString("configureWizard.nat.unable") + ". \n(" + checker.getAdditionalInfo()+").\n");
               break;
           }
         //}

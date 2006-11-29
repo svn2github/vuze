@@ -374,72 +374,57 @@ TorrentUtils
 		
 		return( true );
 	}
-	
+		
 	public static String
 	exceptionToText(
 		TOTorrentException	e )
 	{
-		return( exceptionToText( e, false ));
-	}
-	
-	public static String
-	exceptionToText(
-		TOTorrentException	e,
-		boolean				verbose )
-	{
 		String	errorDetail;
 		
 		int	reason = e.getReason();
-  			
+  					
 		if ( reason == TOTorrentException.RT_FILE_NOT_FOUND ){
  	     	        		 		
-			errorDetail = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
-	        		
+			errorDetail = MessageText.getString("DownloadManager.error.filenotfound" );
+	        				
 		}else if ( reason == TOTorrentException.RT_ZERO_LENGTH ){
 	     
-			errorDetail = MessageText.getString("DownloadManager.error.fileempty"); //$NON-NLS-1$
-	        
+			errorDetail = MessageText.getString("DownloadManager.error.fileempty");
+	        			
 		}else if ( reason == TOTorrentException.RT_TOO_BIG ){
 	 	     		
-			errorDetail = MessageText.getString("DownloadManager.error.filetoobig"); //$NON-NLS-1$
+			errorDetail = MessageText.getString("DownloadManager.error.filetoobig");
 			        
 		}else if ( reason == TOTorrentException.RT_DECODE_FAILS ){
 	 
-			errorDetail = MessageText.getString("DownloadManager.error.filewithouttorrentinfo" ) + " (" + e.getMessage() + ")"; 
-	 		        
+			errorDetail = MessageText.getString("DownloadManager.error.filewithouttorrentinfo" );
+	 		  			
 		}else if ( reason == TOTorrentException.RT_UNSUPPORTED_ENCODING ){
 	 	     		
-			errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
-					
+			errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding");
+							
 		}else if ( reason == TOTorrentException.RT_READ_FAILS ){
 	
-			errorDetail = MessageText.getString("DownloadManager.error.ioerror"); //$NON-NLS-1$
+			errorDetail = MessageText.getString("DownloadManager.error.ioerror");
 					
 		}else if ( reason == TOTorrentException.RT_HASH_FAILS ){
 			
-			errorDetail = MessageText.getString("DownloadManager.error.sha1"); //$NON-NLS-1$
+			errorDetail = MessageText.getString("DownloadManager.error.sha1");
 					
 		}else if ( reason == TOTorrentException.RT_CANCELLED ){
 			
 			errorDetail = MessageText.getString("DownloadManager.error.operationcancancelled");
-			
+						
 		}else{
 	 	     
-			errorDetail = e.getMessage();
+			errorDetail = Debug.getNestedExceptionMessage(e);
 		}
-		
-		if ( verbose ){
-			
-			String	msg = e.getMessage();
-			
-			if ( msg == null ){
+					
+		String	msg = Debug.getNestedExceptionMessage(e);
 				
-				errorDetail += "(" + e.toString() + ")";
+		if ( !errorDetail.contains( msg )){
 				
-			}else if ( !errorDetail.equals( msg )){
-				
-				errorDetail += "(" + e.getMessage() + ")";
-			}
+			errorDetail += "(" + msg + ")";
 		}
 		
 		return( errorDetail );

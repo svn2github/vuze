@@ -72,13 +72,13 @@ public class NatTestWindow {
           NatChecker checker = new NatChecker(AzureusCoreFactory.getSingleton(), NetworkAdmin.getSingleton().getDefaultBindAddress(), TCPListenPort, false);          
           switch (checker.getResult()) {
           case NatChecker.NAT_OK :
-            printMessage(MessageText.getString("configureWizard.nat.ok") + "\n");
+            printMessage(MessageText.getString("configureWizard.nat.ok") + "\n" + checker.getAdditionalInfo());
             break;
           case NatChecker.NAT_KO :
-            printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + " - " + checker.getFailReason()+".\n");
+            printMessage( "\n" + MessageText.getString("configureWizard.nat.ko") + " - " + checker.getAdditionalInfo()+".\n");
             break;
           default :
-            printMessage( "\n" + MessageText.getString("configureWizard.nat.unable") + ". \n(" + checker.getFailReason()+").\n");
+            printMessage( "\n" + MessageText.getString("configureWizard.nat.unable") + ". \n(" + checker.getAdditionalInfo()+").\n");
             break;
           }     
           display.asyncExec(new AERunnable()  {

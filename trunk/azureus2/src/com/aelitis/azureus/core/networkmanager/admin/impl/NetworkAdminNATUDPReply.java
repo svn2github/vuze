@@ -23,53 +23,74 @@
 
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
-import java.net.InetAddress;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Map;
 
-import org.gudy.azureus2.core3.ipchecker.natchecker.NatChecker;
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.BEncoder;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
-import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
+
+
+import com.aelitis.net.udp.uc.PRUDPPacketReply;
 
 public class 
-NetworkAdminTCPTester 
-	implements NetworkAdminProtocolTester
+NetworkAdminNATUDPReply 
+	extends PRUDPPacketReply
 {
-	private AzureusCore		core;
+	private Map	payload;
+	
+	public
+	NetworkAdminNATUDPReply(
+		int			trans_id )
+	{
+		super( NetworkAdminNATUDPCodecs.ACT_NAT_REPLY, trans_id );
+	}
 	
 	protected
-	NetworkAdminTCPTester(
-		AzureusCore		_core )
+	NetworkAdminNATUDPReply(
+		DataInputStream		is,
+		int					trans_id )
+	
+		throws IOException
 	{
-		core	= _core;
-	}
-	
-	public InetAddress
-	testOutbound(
-		InetAddress		bind_ip,
-		int				bind_port )
-	
-		throws Exception
-	{
-		return( VersionCheckClient.getSingleton().getExternalIpAddressTCP(bind_ip, bind_port));
-	}
-	
-	public InetAddress
-	testInbound(			
-		InetAddress		bind_ip,
-		int				local_port )
-	
-		throws NetworkAdminException
-	{
-		NatChecker	checker = new NatChecker( core, bind_ip, local_port, false );
+		super( NetworkAdminNATUDPCodecs.ACT_NAT_REPLY, trans_id );
 		
-		if ( checker.getResult() == NatChecker.NAT_OK ){
-			
-			return( checker.getExternalAddress());
-			
-		}else{
-			
-			throw( new NetworkAdminException( "NAT check failed: " + checker.getAdditionalInfo()));
-		}
+		byte[]	bytes = new byte[8192];
+		
+		is.read( bytes );
+		
+		payload = BDecoder.decode( bytes );
+	}
+	
+	public void
+	serialise(
+		DataOutputStream	os )
+	
+		throws IOException
+	{
+		super.serialise(os);
+		
+		os.write( BEncoder.encode( payload ));
+	}
+	
+	public Map
+	getPayload()
+	{
+		return( payload );
+	}
+	
+	public void
+	setPayload(
+		Map		_payload )
+	{
+		payload	= _payload;
+	}
+	
+	public String
+	getString()
+	{
+		return( super.getString());
 	}
 }

@@ -28,9 +28,11 @@ package com.aelitis.net.udp.uc;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 public abstract class 
 PRUDPPacketRequest
@@ -52,6 +54,18 @@ PRUDPPacketRequest
 			class_mon.enter();
 		
 			Map	new_decoders = new HashMap( packet_decoders );
+			
+			Iterator	it = _decoders.keySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Integer action = (Integer)it.next();
+				
+				if ( packet_decoders.containsKey( action )){
+					
+					Debug.out( "Duplicate codec! " + action );
+				}
+			}
 			
 			new_decoders.putAll( _decoders );
 			

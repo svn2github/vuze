@@ -158,7 +158,7 @@ ImportTorrentWizard
 					
 					error_title 	= MessageText.getString("importTorrentWizard.process.torrentfail.title");
 				
-					error_detail	= TorrentUtils.exceptionToText( e, true ); 
+					error_detail	= TorrentUtils.exceptionToText( e ); 
 				}
 			}catch( TOTorrentException e ){
 				
@@ -166,7 +166,7 @@ ImportTorrentWizard
 				
 				error_title 	= MessageText.getString("importTorrentWizard.process.importfail.title");
 				
-				error_detail	= TorrentUtils.exceptionToText( e, true ); 
+				error_detail	= TorrentUtils.exceptionToText( e ); 
 			}
 			
 		}catch( Throwable e ){

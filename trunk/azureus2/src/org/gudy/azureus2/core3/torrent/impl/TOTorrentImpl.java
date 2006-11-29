@@ -123,7 +123,7 @@ TOTorrentImpl
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			throw( new TOTorrentException( 	"TOTorrent: unsupported encoding for '" + _torrent_name + "'",
+			throw( new TOTorrentException( 	"Unsupported encoding for '" + _torrent_name + "'",
 											TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
 	}
@@ -240,8 +240,8 @@ TOTorrentImpl
 			
 		}catch( Throwable e){
 							
-			throw( new TOTorrentException( 	"TOTorrent::serialise: fails '" + e.toString() + "'",
-															TOTorrentException.RT_WRITE_FAILS ));
+			throw( new TOTorrentException( 	"Failed to serialise torrent: " + Debug.getNestedExceptionMessage(e),
+											TOTorrentException.RT_WRITE_FAILS ));
 							
 		}finally{
 							
@@ -276,7 +276,7 @@ TOTorrentImpl
 		}catch( IOException e ){
 
 			throw( 	new TOTorrentException( 	
-							"TOTorrent::serialiseToByteArray: fails '" + e.toString() + "'",
+							"Failed to serialise torrent: " + Debug.getNestedExceptionMessage(e),
 							TOTorrentException.RT_WRITE_FAILS ));
 			
 		}
@@ -663,7 +663,7 @@ TOTorrentImpl
 			
 		}catch( Throwable e ){
 				
-			throw( new TOTorrentException( 	"TOTorrent::setHashFromInfo: fails '" + e.toString() + "'",
+			throw( new TOTorrentException( 	"Failed to calculate hash: " + Debug.getNestedExceptionMessage(e),
 											TOTorrentException.RT_HASH_FAILS ));
 		}
 	}
@@ -1023,7 +1023,7 @@ TOTorrentImpl
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			throw( new TOTorrentException( 	"TOTorrentDeserialise: unsupported encoding for '" + value + "'",
+			throw( new TOTorrentException( 	"Unsupported encoding for '" + value + "'",
 											TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
 	}
@@ -1051,7 +1051,7 @@ TOTorrentImpl
 			
 		}catch( UnsupportedEncodingException e ){
 			
-			throw( new TOTorrentException( 	"TOTorrent::writeStringToMetaData: unsupported encoding for '" + value + "'",
+			throw( new TOTorrentException( 	"Unsupported encoding for '" + value + "'",
 											TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
 	}

@@ -1,7 +1,7 @@
 /*
- * Created on 21-Jan-2005
+ * Created on 1 Nov 2006
  * Created by Paul Gardner
- * Copyright (C) 2004, 2005, 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,15 +15,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SAS au capital de 46,603.30 euros
+ * AELITIS, SAS au capital de 63.529,40 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
-package org.gudy.azureus2.core3.tracker.protocol.udp;
 
-import java.io.*;
-import java.util.*;
+package com.aelitis.azureus.core.networkmanager.admin.impl;
+
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketReply;
@@ -31,15 +34,12 @@ import com.aelitis.net.udp.uc.PRUDPPacketReplyDecoder;
 import com.aelitis.net.udp.uc.PRUDPPacketRequest;
 import com.aelitis.net.udp.uc.PRUDPPacketRequestDecoder;
 
-
-/**
- * @author parg
- *
- */
-
 public class 
-PRUDPTrackerCodecs 
+NetworkAdminNATUDPCodecs 
 {
+	public static final int ACT_NAT_REQUEST	= 40;
+	public static final int ACT_NAT_REPLY	= 41;
+	
 	private static boolean	registered	= false;
 	
 	public static void
@@ -66,29 +66,9 @@ PRUDPTrackerCodecs
 				{
 					switch( action ){
 					
-						case PRUDPPacketTracker.ACT_REPLY_CONNECT:
+						case ACT_NAT_REPLY:
 						{
-							return( new PRUDPPacketReplyConnect(is, transaction_id));
-						}
-						case PRUDPPacketTracker.ACT_REPLY_ANNOUNCE:
-						{
-							if ( PRUDPPacketTracker.VERSION == 1 ){
-								return( new PRUDPPacketReplyAnnounce(is, transaction_id));
-							}else{
-								return( new PRUDPPacketReplyAnnounce2(is, transaction_id));			
-							}
-						}
-						case PRUDPPacketTracker.ACT_REPLY_SCRAPE:
-						{
-							if ( PRUDPPacketTracker.VERSION == 1 ){
-								return( new PRUDPPacketReplyScrape(is, transaction_id));
-							}else{
-								return( new PRUDPPacketReplyScrape2(is, transaction_id));				
-							}
-						}
-						case PRUDPPacketTracker.ACT_REPLY_ERROR:
-						{
-							return( new PRUDPPacketReplyError(is, transaction_id));
+							return( new NetworkAdminNATUDPReply(is, transaction_id ));
 						}
 						default:
 						{
@@ -100,10 +80,7 @@ PRUDPTrackerCodecs
 					
 		Map	reply_decoders = new HashMap();
 		
-		reply_decoders.put( new Integer( PRUDPPacketTracker.ACT_REPLY_CONNECT ), reply_decoder );
-		reply_decoders.put( new Integer( PRUDPPacketTracker.ACT_REPLY_ANNOUNCE ), reply_decoder );
-		reply_decoders.put( new Integer( PRUDPPacketTracker.ACT_REPLY_SCRAPE ), reply_decoder );
-		reply_decoders.put( new Integer( PRUDPPacketTracker.ACT_REPLY_ERROR ), reply_decoder );
+		reply_decoders.put( new Integer( ACT_NAT_REPLY ), reply_decoder );
 		
 		PRUDPPacketReply.registerDecoders( reply_decoders );
 		
@@ -121,21 +98,9 @@ PRUDPTrackerCodecs
 					throws IOException
 				{
 					switch( action ){
-						case PRUDPPacketTracker.ACT_REQUEST_CONNECT:
+						case ACT_NAT_REPLY:
 						{
-							return( new PRUDPPacketRequestConnect(is, connection_id,transaction_id));
-						}
-						case PRUDPPacketTracker.ACT_REQUEST_ANNOUNCE:
-						{
-							if ( PRUDPPacketTracker.VERSION == 1 ){
-								return( new PRUDPPacketRequestAnnounce(is, connection_id,transaction_id));
-							}else{
-								return( new PRUDPPacketRequestAnnounce2(is, connection_id,transaction_id));				
-							}
-						}
-						case PRUDPPacketTracker.ACT_REQUEST_SCRAPE:
-						{
-							return( new PRUDPPacketRequestScrape(is, connection_id,transaction_id));
+							return( new NetworkAdminNATUDPRequest(is, connection_id, transaction_id ));
 						}
 						default:
 						{
@@ -147,11 +112,8 @@ PRUDPTrackerCodecs
 
 		Map	request_decoders = new HashMap();
 		
-		request_decoders.put( new Integer( PRUDPPacketTracker.ACT_REQUEST_CONNECT ), request_decoder );
-		request_decoders.put( new Integer( PRUDPPacketTracker.ACT_REQUEST_ANNOUNCE ), request_decoder );
-		request_decoders.put( new Integer( PRUDPPacketTracker.ACT_REQUEST_SCRAPE ), request_decoder );
+		request_decoders.put( new Integer( ACT_NAT_REPLY ), request_decoder );
 		
 		PRUDPPacketRequest.registerDecoders( request_decoders );
-
 	}
 }

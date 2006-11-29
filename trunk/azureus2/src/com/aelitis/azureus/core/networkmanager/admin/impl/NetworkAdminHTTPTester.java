@@ -80,7 +80,7 @@ NetworkAdminHTTPTester
 			
 		}else{
 			
-			throw( new NetworkAdminException( "NAT check failed: " + checker.getFailReason()));
+			throw( new NetworkAdminException( "NAT check failed: " + checker.getAdditionalInfo()));
 		}
 	}
 }
