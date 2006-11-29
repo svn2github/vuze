@@ -141,9 +141,11 @@ public class NameItem extends CoreTableColumn implements
 		if (bShowIcon && Constants.isWindows) {
 			final Image img = ((TableCellCore) cell).getIcon();
 			Image icon = ImageRepository.getFolderImage();
-			if (img != null && !img.isDisposed() && !img.equals(icon)) {
+			if (img != null && !img.equals(icon)) {
 				((TableCellCore) cell).setIcon(null);
-				img.dispose();
+				if (!img.isDisposed()) {
+					img.dispose();
+				}
 			}
 		}
 	}

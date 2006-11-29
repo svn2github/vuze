@@ -125,7 +125,6 @@ public class NameItem extends CoreTableColumn implements
 					if (Constants.isWindows) {
 						disposeCellIcon(cell);
 					}
-					((TableCellCore) cell).setIcon(null);
 				}
 			}
 		}
@@ -155,9 +154,11 @@ public class NameItem extends CoreTableColumn implements
 
 	private void disposeCellIcon(TableCell cell) {
 		final Image img = ((TableCellCore) cell).getIcon();
-		if (img != null && !img.isDisposed()) {
+		if (img != null) {
 			((TableCellCore) cell).setIcon(null);
-			img.dispose();
+			if (!img.isDisposed()) {
+				img.dispose();
+			}
 		}
 	}
 }
