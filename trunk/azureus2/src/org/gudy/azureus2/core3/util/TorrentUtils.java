@@ -424,7 +424,7 @@ TorrentUtils
 				
 		if ( !errorDetail.contains( msg )){
 				
-			errorDetail += "(" + msg + ")";
+			errorDetail += " (" + msg + ")";
 		}
 		
 		return( errorDetail );
