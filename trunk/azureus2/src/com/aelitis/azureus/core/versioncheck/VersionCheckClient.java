@@ -787,9 +787,9 @@ public class VersionCheckClient {
       
       if ( asn != null ){
     	
-    	  if ( asn.length() > 32 ){
+    	  if ( asn.length() > 64 ){
     		  
-    		  asn = asn.substring( 0, 32 );
+    		  asn = asn.substring( 0, 64 );
     	  }
     	  
     	  message.put( "ip_asn", asn );
