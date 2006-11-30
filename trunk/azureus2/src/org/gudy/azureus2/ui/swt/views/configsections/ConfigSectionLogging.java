@@ -261,14 +261,16 @@ public class ConfigSectionLogging implements UISWTConfigSection {
         }
     );
 
-    
+    /*
     BooleanParameter udp_transport = new BooleanParameter(gLogging, "Logging Enable UDP Transport", CFG_PREFIX + "udptransport");
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     udp_transport.setLayoutData(gridData);
+    */
     
 		// network diagnostics
 	
+    /*
 	Label generate_net_info = new Label(gLogging, SWT.NULL);
 
 	generate_net_info.setText( "Generate network info" );
@@ -305,7 +307,8 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 			});
     
 		// diagnostics
-	
+	*/
+    
 	Label generate_info = new Label(gLogging, SWT.NULL);
 
 	Messages.setLanguageText(generate_info, CFG_PREFIX + "generatediagnostics.info");
