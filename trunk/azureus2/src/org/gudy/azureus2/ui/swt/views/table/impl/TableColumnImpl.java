@@ -674,25 +674,20 @@ public class TableColumnImpl
 
 				return ((String)c1).compareToIgnoreCase((String)c0);
 			}
-			
-			if (bSortAscending) {
-				if (c0isString && !c1isString) {
-					return -1;
-				}
-				return c0.compareTo(c1);
+		
+			int val;
+			if (c0isString && !c1isString) {
+				val = -1;
+			} else if (c1isString && !c0isString) {
+				val = 1;
+			} else if (c1 == null) {
+				val = 1;
+			} else if (c0 == null) {
+				val = -1;
+			} else {
+				val = c1.compareTo(c0);
 			}
-			
-			if (c1isString && !c0isString) {
-				return 1;
-			}
-			
-			if (c1 == null) {
-				c1 = "";
-			}
-			if (c0 == null) {
-				c0 = "";
-			}
-			return c1.compareTo(c0);
+			return bSortAscending ? -val : val;
 		} catch (ClassCastException e) {
 			System.err.println("Can't compare " + c0.getClass().getName()
 					+ "(" + c0.toString() + ") from row #" 
