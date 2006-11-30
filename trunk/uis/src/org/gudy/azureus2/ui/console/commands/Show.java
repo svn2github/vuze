@@ -11,6 +11,7 @@
 package org.gudy.azureus2.ui.console.commands;
 
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +31,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.console.ConsoleInput;
@@ -40,6 +42,7 @@ import com.aelitis.azureus.core.dht.db.DHTDBStats;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.*;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 /**
@@ -77,6 +80,7 @@ public class Show extends IConsoleCommand {
 		out.println("options\t\t\to\tShow list of options for 'set' (also available by 'set' without parameters).");
 		out.println("files\t\t\tf\tShow list of files found from the 'add -f' command (also available by 'add -l')");
 		out.println("dht\t\t\td\tShow distributed database statistics");
+		out.println("nat\t\t\tn\tShow NAT status");
 		out.println("torrents [opts] [expr]\tt\tShow list of torrents. torrent options may be any (or none) of:");
 		out.println("\t\tactive\t\ta\tShow only active torrents.");
 		out.println("\t\tcomplete\tc\tShow only complete torrents.");
@@ -191,6 +195,14 @@ public class Show extends IConsoleCommand {
 		} else if (subCommand.equalsIgnoreCase("dht") || subCommand.equalsIgnoreCase("d")) {
 
 			showDHTStats( ci );
+		
+		} else if (subCommand.equalsIgnoreCase("nat") || subCommand.equalsIgnoreCase("n")) {
+
+			IndentWriter	iw = new IndentWriter( new PrintWriter( ci.out ));
+			
+			iw.setForce( true );
+			
+			NetworkAdmin.getSingleton().logNATStatus( iw );
 			
 		} else {
 			if ((ci.torrents == null) || (ci.torrents != null) && ci.torrents.isEmpty()) {
