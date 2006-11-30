@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.ipfilter.IPRange;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.plugins.peers.PeerStats;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -54,27 +55,55 @@ public class GenericRPAttributes {
             map.put("num_pieces",         dmfi.getNumPieces());
             map.put("is_priority",        dmfi.isPriority());
             map.put("is_skipped",         dmfi.isSkipped());
+            map.put("length",             dmfi.getLength());
+            map.put("link",               dmfi.getLink());            
+            map.put("is_deleted",         dmfi.isDeleted());
         }
         else if (obj_class == Download.class) {
             Download dload = (Download)object;
-            map.put("torrent",         dload.getTorrent());
-            map.put("stats",           dload.getStats());
-            map.put("announce_result", dload.getLastAnnounceResult());
-            map.put("scrape_result",   dload.getLastScrapeResult());
-            map.put("position",        dload.getPosition());
-            map.put("force_start",     dload.isForceStart());
-            map.put("name",            dload.getName());
-        }
-
+            map.put("torrent",             dload.getTorrent());
+            map.put("stats",               dload.getStats());
+            map.put("announce_result",     dload.getLastAnnounceResult());
+            map.put("scrape_result",       dload.getLastScrapeResult());
+            map.put("position",            dload.getPosition());
+            map.put("force_start",         dload.isForceStart());
+            map.put("name",                dload.getName());
+            map.put("creation_time",       dload.getCreationTime());
+            map.put("download_peer_id",    dload.getDownloadPeerId());
+            map.put("error_state_details", dload.getErrorStateDetails());
+            map.put("max_download_rate",   dload.getMaximumDownloadKBPerSecond());
+            map.put("max_upload_rate",     dload.getUploadRateLimitBytesPerSecond());
+            map.put("position",            dload.getPosition());
+            map.put("save_path",           dload.getSavePath());
+            map.put("seeding_rank",        dload.getSeedingRank());
+            map.put("state",               dload.getState());
+            map.put("sub_state",           dload.getSubState());
+            map.put("torrent_file",        dload.getTorrentFileName());
+            map.put("checking",            dload.isChecking());
+            map.put("complete",            dload.isComplete());
+            map.put("messaging_enabled",   dload.isMessagingEnabled());
+            map.put("paused",              dload.isPaused());
+            map.put("persistent",          dload.isPersistent());
+    	}
         else if (obj_class == DownloadAnnounceResult.class) {
-            DownloadAnnounceResult dsr = (DownloadAnnounceResult)object;
-            map.put("seed_count",     dsr.getSeedCount());
-            map.put("non_seed_count", dsr.getNonSeedCount());
+            DownloadAnnounceResult dar = (DownloadAnnounceResult)object;
+            map.put("seed_count",          dar.getSeedCount());
+            map.put("non_seed_count",      dar.getNonSeedCount());
+            map.put("error",               dar.getError());
+            map.put("reported_peer_count", dar.getReportedPeerCount());
+            map.put("response_type",       dar.getResponseType());
+            map.put("time_to_wait",        dar.getTimeToWait());
+            map.put("url",                 dar.getURL());
         }
         else if (obj_class == DownloadScrapeResult.class) {
             DownloadScrapeResult dsr = (DownloadScrapeResult)object;
-            map.put("seed_count",     dsr.getSeedCount());
-            map.put("non_seed_count", dsr.getNonSeedCount());
+            map.put("seed_count",      dsr.getSeedCount());
+            map.put("non_seed_count",  dsr.getNonSeedCount());
+            map.put("next_start_time", dsr.getNextScrapeStartTime());
+            map.put("response_type",   dsr.getResponseType());
+            map.put("start_time",      dsr.getScrapeStartTime());
+            map.put("status",          dsr.getStatus());
+            map.put("url",             dsr.getURL());
         }
         else if (obj_class == DownloadStats.class) {
             DownloadStats stats = (DownloadStats)object;
@@ -91,6 +120,18 @@ public class GenericRPAttributes {
             map.put("share_ratio",             stats.getShareRatio());
             map.put("availability",            stats.getAvailability());
             map.put("health",                  stats.getHealth());
+            map.put("discarded",               stats.getDiscarded());
+            map.put("elapsed_time",            stats.getElapsedTime());
+            map.put("hash_fails",              stats.getHashFails());
+            map.put("seconds_downloading",     stats.getSecondsDownloading());
+            map.put("seconds_only_seeding",    stats.getSecondsOnlySeeding());
+            map.put("download_directory",      stats.getDownloadDirectory());
+            map.put("target_file_or_dir",      stats.getTargetFileOrDir());
+            map.put("time_started",            stats.getTimeStarted());
+            map.put("time_started_seeding",    stats.getTimeStartedSeeding());
+            map.put("total_average",           stats.getTotalAverage());
+            map.put("tracker_status",          stats.getTrackerStatus());
+            map.put("remaining",               stats.getRemaining());
         }
         else if (obj_class == IPFilter.class) {
             IPFilter filter = (IPFilter)object;
@@ -110,10 +151,38 @@ public class GenericRPAttributes {
         	map.put("enabled", lc.isEnabled());
         }
         else if (obj_class == Peer.class) {
-        	Peer peer = (Peer)object;
-        	map.put("ip",   peer.getIp());
-        	map.put("port", peer.getPort());
+            Peer peer = (Peer)object;
+            map.put("stats",              peer.getStats());
+            map.put("ip",                 peer.getIp());
+            map.put("port",               peer.getPort());
+            map.put("client",             peer.getClient());
+            map.put("id",                 peer.getId());
+            map.put("percent_done",       peer.getPercentDoneInThousandNotation());
+            map.put("snubbed_time",       peer.getSnubbedTime());
+            map.put("state",              peer.getState());
+            map.put("choked",             peer.isChoked());
+            map.put("choking",            peer.isChoking());
+            map.put("download_possible",  peer.isDownloadPossible());
+            map.put("incoming",           peer.isIncoming());
+            map.put("interested",         peer.isInterested());
+            map.put("interesting",        peer.isInteresting());
+            map.put("optimistic_unchoke", peer.isOptimisticUnchoke());
+            map.put("seed",               peer.isSeed());
+            map.put("snubbed",            peer.isSnubbed());
+            map.put("transfer_available", peer.isTransferAvailable());
         }
+        else if (obj_class == PeerStats.class) {
+            PeerStats stats = (PeerStats)object;
+            map.put("download_average",                  stats.getDownloadAverage());
+            map.put("reception",                         stats.getReception());
+            map.put("statistic_sent_average",            stats.getStatisticSentAverage());
+            map.put("time_since_connection_established", stats.getTimeSinceConnectionEstablished());
+            map.put("total_average",                     stats.getTotalAverage());
+            map.put("total_discarded",                   stats.getTotalDiscarded());
+            map.put("total_received",                    stats.getTotalReceived());
+            map.put("total_sent",                        stats.getTotalSent());
+            map.put("upload_average",                    stats.getUploadAverage());
+         }
         else if (obj_class == PluginConfig.class) {
             PluginConfig pconfig = (PluginConfig)object;
             String[] property_names = new String[] {
@@ -145,9 +214,16 @@ public class GenericRPAttributes {
         }
         else if (obj_class == Torrent.class) {
             Torrent torrent = (Torrent)object;
-            map.put("name", torrent.getName());
-            map.put("size", torrent.getSize());
-            map.put("hash", torrent.getHash());
+            map.put("name",          torrent.getName());
+            map.put("size",          torrent.getSize());
+            map.put("hash",          torrent.getHash());
+            map.put("comment",       torrent.getComment());
+            map.put("created_by",    torrent.getCreatedBy());
+            map.put("creation_date", torrent.getCreationDate());
+            map.put("encoding",      torrent.getEncoding());
+            map.put("piece_count",   torrent.getPieceCount());
+            map.put("piece_size",    torrent.getPieceSize());
+            map.put("private",       torrent.isPrivate());
         }
         else if (obj_class == TrackerTorrent.class) {
             TrackerTorrent ttobject = (TrackerTorrent)object;
@@ -189,30 +265,59 @@ public class GenericRPAttributes {
         attributes.put("num_pieces",         int.class);
         attributes.put("is_priority",        boolean.class);
         attributes.put("is_skipped",         boolean.class);
+        attributes.put("length",             long.class);
+        attributes.put("link",               File.class);        
+        attributes.put("is_deleted",         boolean.class);
         class_definitions.put(plugin_class, attributes);
 
         attributes = new HashMap();
         plugin_class = Download.class;
-        attributes.put("torrent",         Torrent.class);
-        attributes.put("stats",           DownloadStats.class);
-        attributes.put("announce_result", DownloadAnnounceResult.class);
-        attributes.put("scrape_result",   DownloadScrapeResult.class);
-        attributes.put("position",        int.class);
-        attributes.put("force_start",     boolean.class);
-        attributes.put("name",            String.class);
+        attributes.put("torrent",             Torrent.class);
+        attributes.put("stats",               DownloadStats.class);
+        attributes.put("announce_result",     DownloadAnnounceResult.class);
+        attributes.put("scrape_result",       DownloadScrapeResult.class);
+        attributes.put("position",            int.class);
+        attributes.put("force_start",         boolean.class);
+        attributes.put("name",                String.class);
+        attributes.put("creation_time",       long.class);
+        attributes.put("download_peer_id",    byte[].class);
+        attributes.put("error_state_details", String.class);
+        attributes.put("max_download_rate",   int.class);
+        attributes.put("max_upload_rate",     int.class);
+        attributes.put("position",            int.class);
+        attributes.put("save_path",           String.class);
+        attributes.put("seeding_rank",        int.class);
+        attributes.put("state",               int.class);
+        attributes.put("sub_state",           int.class);
+        attributes.put("torrent_file",        String.class);
+        attributes.put("checking",            boolean.class);
+        attributes.put("complete",            boolean.class);
+        attributes.put("messaging_enabled",   boolean.class);
+        attributes.put("paused",              boolean.class);
+        attributes.put("persistent",          boolean.class);
         class_definitions.put(plugin_class, attributes);
 
         attributes = new HashMap();
         plugin_class = DownloadAnnounceResult.class;
-        attributes.put("seed_count",      int.class);
-        attributes.put("non_seed_count",  int.class);
+        attributes.put("seed_count",          int.class);
+        attributes.put("non_seed_count",      int.class);
+        attributes.put("error",               String.class);
+        attributes.put("reported_peer_count", int.class);
+        attributes.put("response_type",       int.class);
+        attributes.put("time_to_wait",        long.class);
+        attributes.put("url",                 URL.class);
         class_definitions.put(plugin_class, attributes);
 
-        /**
-         * DownloadScrapeResult has the same attributes as
-         * DownloadAnnounceResult, so we'll just reuse the mapping.
-         */
-        class_definitions.put(DownloadScrapeResult.class, attributes);
+        attributes = new HashMap();
+        plugin_class = DownloadScrapeResult.class;
+        attributes.put("seed_count",      int.class);
+        attributes.put("non_seed_count",  int.class);
+        attributes.put("next_start_time", long.class);
+        attributes.put("response_type",   int.class);
+        attributes.put("start_time",      long.class);
+        attributes.put("status",          String.class);
+        attributes.put("url",             URL.class);
+        class_definitions.put(plugin_class, attributes);
 
         attributes = new HashMap();
         plugin_class = DownloadStats.class;
@@ -229,6 +334,18 @@ public class GenericRPAttributes {
         attributes.put("share_ratio",             int.class);
         attributes.put("availability",            float.class);
         attributes.put("health",                  int.class);
+        attributes.put("discarded",               long.class);
+        attributes.put("elapsed_time",            String.class);
+        attributes.put("hash_fails",              long.class);
+        attributes.put("seconds_downloading",     long.class);
+        attributes.put("seconds_only_seeding",    long.class);
+        attributes.put("download_directory",      String.class);
+        attributes.put("target_file_or_dir",      String.class);
+        attributes.put("time_started",            long.class);
+        attributes.put("time_started_seeding",    long.class);
+        attributes.put("total_average",           long.class);
+        attributes.put("tracker_status",          String.class);
+        attributes.put("remaining",               long.class);
         class_definitions.put(plugin_class, attributes);
 
         attributes = new HashMap();
@@ -253,8 +370,37 @@ public class GenericRPAttributes {
         
         attributes = new HashMap();
         plugin_class = Peer.class;
-        attributes.put("ip",   String.class);
-        attributes.put("port", int.class);
+        attributes.put("stats",              PeerStats.class);
+        attributes.put("ip"  ,               String.class);
+        attributes.put("port",               int.class);
+        attributes.put("client",             String.class);
+        attributes.put("id",                 byte[].class);
+        attributes.put("percent_done",       int.class);
+        attributes.put("snubbed_time",       long.class);
+        attributes.put("state",              int.class);
+        attributes.put("choked",             boolean.class);
+        attributes.put("choking",            boolean.class);
+        attributes.put("download_possible",  boolean.class);
+        attributes.put("incoming",           boolean.class);
+        attributes.put("interested",         boolean.class);
+        attributes.put("interesting",        boolean.class);
+        attributes.put("optimistic_unchoke", boolean.class);
+        attributes.put("seed",               boolean.class);
+        attributes.put("snubbed",            boolean.class);
+        attributes.put("transfer_available", boolean.class);
+        class_definitions.put(plugin_class, attributes);
+
+        attributes = new HashMap();
+        plugin_class = PeerStats.class;
+        attributes.put("download_average",                  int.class);
+        attributes.put("reception",                         int.class);
+        attributes.put("statistic_sent_average",            int.class);
+        attributes.put("time_since_connection_established", long.class);
+        attributes.put("total_average",                     int.class);
+        attributes.put("total_discarded",                   long.class);
+        attributes.put("total_received",                    long.class);
+        attributes.put("total_sent",                        long.class);
+        attributes.put("upload_average",                    int.class);
         class_definitions.put(plugin_class, attributes);
         
         attributes = new HashMap();
@@ -296,9 +442,16 @@ public class GenericRPAttributes {
 
         attributes = new HashMap();
         plugin_class = Torrent.class;
-        attributes.put("name", String.class);
-        attributes.put("size", long.class);
-        attributes.put("hash", new byte[0].getClass());
+        attributes.put("name",          String.class);
+        attributes.put("size",          long.class);
+        attributes.put("hash",          new byte[0].getClass());
+        attributes.put("comment",       String.class);
+        attributes.put("created_by",    String.class);
+        attributes.put("creation_date", long.class);
+        attributes.put("encoding",      String.class);
+        attributes.put("piece_count",   long.class);
+        attributes.put("piece_size",    long.class);
+        attributes.put("private",       boolean.class);
         class_definitions.put(plugin_class, attributes);
 
         attributes = new HashMap();
