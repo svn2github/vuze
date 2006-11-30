@@ -84,6 +84,9 @@ public class GenericIntParameter
 			public void perform(TimerEvent event) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
+						if (spinner.isDisposed()) {
+							return;
+						}
 						if (DEBUG) {
 							debug("setIntValue to " + spinner.getSelection()
 									+ " via timeEventSave");
@@ -103,14 +106,14 @@ public class GenericIntParameter
 
 		spinner.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				if (bGenerateIntermediateEvents) {
+				if (bGenerateIntermediateEvents || !spinner.isFocusControl()) {
 					adapter.setIntValue(sParamName, spinner.getSelection());
 				} else {
 					bTriggerOnFocusOut = true;
 					cancelTimedSaveEvent();
 
 					if (DEBUG) {
-						debug("create timeSaveEvent");
+						debug("create timeSaveEvent (" + spinner.getSelection() + ") ");
 					}
 					timedSaveEvent = SimpleTimer.addEvent("IntParam Saver",
 							SystemTime.getOffsetTime(750), timerEventSave);
@@ -126,7 +129,12 @@ public class GenericIntParameter
 		 */
 		spinner.addListener(SWT.Dispose, new Listener() {
 			public void handleEvent(Event event) {
-				spinner.traverse(SWT.TRAVERSE_TAB_NEXT);
+				if (spinner.isFocusControl()) {
+					if (DEBUG) {
+						debug("next");
+					}
+					spinner.traverse(SWT.TRAVERSE_TAB_NEXT);
+				}
 			}
 		});
 
