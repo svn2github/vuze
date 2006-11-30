@@ -40,7 +40,9 @@ NetworkAdminProtocol
 	
 	public InetAddress
 	test(
-		NetworkAdminNetworkInterfaceAddress	address );
+		NetworkAdminNetworkInterfaceAddress	address )
+	
+		throws NetworkAdminException;
 	
 	public String
 	getName();

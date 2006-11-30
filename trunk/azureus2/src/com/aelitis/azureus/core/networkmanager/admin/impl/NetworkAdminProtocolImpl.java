@@ -27,6 +27,7 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 import java.net.InetAddress;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProtocol;
 
@@ -74,6 +75,8 @@ NetworkAdminProtocolImpl
 	public InetAddress
 	test(
 		NetworkAdminNetworkInterfaceAddress	address )
+	
+		throws NetworkAdminException
 	{
 		InetAddress bind_ip = address==null?null:address.getAddress();
 		
@@ -92,42 +95,45 @@ NetworkAdminProtocolImpl
 			tester = new NetworkAdminUDPTester();
 		}
 		
-		try{
-			InetAddress	res;
+		InetAddress	res;
+		
+		if ( port <= 0 ){
 			
-			if ( port <= 0 ){
-				
-				res = tester.testOutbound( bind_ip, 0 );
-				
-			}else{
-				
-				res = tester.testInbound( bind_ip, port );
-			}
+			res = tester.testOutbound( bind_ip, 0 );
 			
-			return( res );
+		}else{
 			
-		}catch( Throwable e){
-			
-			e.printStackTrace();
-			
-			return( null );
+			res = tester.testInbound( bind_ip, port );
 		}
+		
+		return( res );
 	}
 	
 	public String
 	getName()
 	{
+		String	res;
+		
 		if ( type == PT_HTTP ){
 			
-			return( "HTTP" );
+			res = "HTTP";
 			
 		}else if ( type == PT_TCP ){
 			
-			return( "TCP" );
+			res = "TCP";
 
 		}else{
 			
-			return( "UDP" );
+			res = "UDP";
+		}
+		
+		if ( port == -1 ){
+			
+			return( res + " outbound" );
+			
+		}else{
+			
+			return( res + " port " + port + " inbound" );
 		}
 	}
 }

@@ -49,9 +49,15 @@ NetworkAdminTCPTester
 		InetAddress		bind_ip,
 		int				bind_port )
 	
-		throws Exception
+		throws NetworkAdminException
 	{
-		return( VersionCheckClient.getSingleton().getExternalIpAddressTCP(bind_ip, bind_port));
+		try{
+			return( VersionCheckClient.getSingleton().getExternalIpAddressTCP(bind_ip, bind_port));
+			
+		}catch( Throwable e ){
+			
+			throw( new NetworkAdminException( "Outbound check failed", e ));
+		}
 	}
 	
 	public InetAddress

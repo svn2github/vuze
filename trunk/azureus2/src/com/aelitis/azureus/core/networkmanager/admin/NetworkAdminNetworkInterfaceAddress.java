@@ -44,5 +44,7 @@ NetworkAdminNetworkInterfaceAddress
 	
 	public abstract InetAddress
 	testProtocol(
-		NetworkAdminProtocol	protocol );
+		NetworkAdminProtocol	protocol )
+	
+		throws NetworkAdminException;
 }

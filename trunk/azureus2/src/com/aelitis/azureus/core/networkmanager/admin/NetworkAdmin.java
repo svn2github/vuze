@@ -65,7 +65,9 @@ NetworkAdmin
 	
 	public abstract InetAddress
 	testProtocol(
-		NetworkAdminProtocol	protocol );
+		NetworkAdminProtocol	protocol )
+	
+		throws NetworkAdminException;
 	
 	public abstract NetworkAdminSocksProxy
 	getSocksProxy();
@@ -96,6 +98,10 @@ NetworkAdmin
 	public abstract void
 	removePropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener );
+	
+	public abstract void
+	logNATStatus(
+		IndentWriter		iw );
 	
 	public abstract void
 	generateDiagnostics(

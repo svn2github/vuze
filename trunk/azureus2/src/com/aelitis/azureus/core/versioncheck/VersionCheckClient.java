@@ -523,31 +523,46 @@ public class VersionCheckClient {
 	  	  
 	  PRUDPPacketHandler	packet_handler = handler.getHandler();
 	  
-	  long timeout = 10000;
+	  long timeout = 5;
 	  
 	  Random random = new Random();
 	  
 	  try{
+		  Exception	last_error = null;
+		  
 		  packet_handler.setExplicitBindAddress( bind_ip );	  
 		  
 		  for (int i=0;i<3;i++){
 			  
-			  	// connection ids for requests must always have their msb set...
-			  	// apart from the original darn udp tracker spec....
+			  try{
+				  	// connection ids for requests must always have their msb set...
+				  	// apart from the original darn udp tracker spec....
+				  
+				  long connection_id = 0x8000000000000000L | random.nextLong();
+				  
+				  VersionCheckClientUDPRequest	request_packet = new VersionCheckClientUDPRequest( connection_id );
+				  
+				  request_packet.setPayload( data_to_send );
+				  
+				  VersionCheckClientUDPReply reply_packet = (VersionCheckClientUDPReply)packet_handler.sendAndReceive( null, request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), timeout );
+		
+				  Map	reply = reply_packet.getPayload();
+				  
+				  preProcessReply( reply );
+				  
+				  return( reply );
+				  
+			  }catch( Exception e){
+				  
+				  last_error	= e;
+				  
+				  timeout = timeout * 2;
+			  }
+		  }
+		  
+		  if ( last_error != null ){
 			  
-			  long connection_id = 0x8000000000000000L | random.nextLong();
-			  
-			  VersionCheckClientUDPRequest	request_packet = new VersionCheckClientUDPRequest( connection_id );
-			  
-			  request_packet.setPayload( data_to_send );
-			  
-			  VersionCheckClientUDPReply reply_packet = (VersionCheckClientUDPReply)packet_handler.sendAndReceive( null, request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), timeout );
-	
-			  Map	reply = reply_packet.getPayload();
-			  
-			  preProcessReply( reply );
-			  
-			  return( reply );
+			  throw( last_error );
 		  }
 		  
 		  throw( new Exception( "Timeout" ));

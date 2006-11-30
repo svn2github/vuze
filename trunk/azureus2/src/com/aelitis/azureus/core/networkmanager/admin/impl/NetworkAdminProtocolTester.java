@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.net.InetAddress;
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
+
 
 public interface 
 NetworkAdminProtocolTester 
@@ -34,12 +36,12 @@ NetworkAdminProtocolTester
 		InetAddress		bind_ip,
 		int				bind_port )
 	
-		throws Exception;
+		throws NetworkAdminException;
 	
 	public InetAddress
 	testInbound(			
 		InetAddress		bind_ip,
 		int				local_port )
 	
-		throws Exception;
+		throws NetworkAdminException;
 }

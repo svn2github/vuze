@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.Constants;
 
 
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
@@ -48,9 +49,15 @@ NetworkAdminUDPTester
 		InetAddress		bind_ip,
 		int				bind_port )
 	
-		throws Exception
+		throws NetworkAdminException
 	{
-		return( VersionCheckClient.getSingleton().getExternalIpAddressUDP(bind_ip, bind_port));
+		try{
+			return( VersionCheckClient.getSingleton().getExternalIpAddressUDP(bind_ip, bind_port));
+			
+		}catch( Throwable e ){
+		
+			throw( new NetworkAdminException( "Outbound check failed", e ));
+		}
 	}
 	
 	public InetAddress
@@ -58,13 +65,13 @@ NetworkAdminUDPTester
 		InetAddress		bind_ip,
 		int				bind_port )
 	
-		throws Exception
+		throws NetworkAdminException
 	{
 		  PRUDPReleasablePacketHandler handler = PRUDPPacketHandlerFactory.getReleasableHandler( bind_port );
 	  	  
 		  PRUDPPacketHandler	packet_handler = handler.getHandler();
 		  
-		  long timeout = 20000;
+		  long timeout = 5000;
 		  		  
 		  HashMap	data_to_send = new HashMap();
 		  
@@ -73,26 +80,57 @@ NetworkAdminUDPTester
 		  try{
 			  packet_handler.setExplicitBindAddress( bind_ip );	  
 			  
+			  Throwable last_error = null;
+			  
 			  for (int i=0;i<3;i++){
 				  
-				  	// connection ids for requests must always have their msb set...
-				  	// apart from the original darn udp tracker spec....
-				  
-				  long connection_id = 0x8000000000000000L | random.nextLong();
-
-				  NetworkAdminNATUDPRequest	request_packet = new NetworkAdminNATUDPRequest( connection_id );
-				  
-				  request_packet.setPayload( data_to_send );
-				  
-				  NetworkAdminNATUDPReply reply_packet = (NetworkAdminNATUDPReply)packet_handler.sendAndReceive( null, request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), timeout );
-		
-				  Map	reply = reply_packet.getPayload();
-				  
-				  System.out.println( "reply: " + reply );
+				  try{
+					  
+					  	// connection ids for requests must always have their msb set...
+					  	// apart from the original darn udp tracker spec....
+					  
+					  long connection_id = 0x8000000000000000L | random.nextLong();
+	
+					  NetworkAdminNATUDPRequest	request_packet = new NetworkAdminNATUDPRequest( connection_id );
+					  
+					  request_packet.setPayload( data_to_send );
+					  
+					  NetworkAdminNATUDPReply reply_packet = (NetworkAdminNATUDPReply)packet_handler.sendAndReceive( null, request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), timeout );
+			
+					  Map	reply = reply_packet.getPayload();
+					  
+					  byte[]	ip_bytes = (byte[])reply.get( "ip_address" );
+					  
+					  if ( ip_bytes == null ){
+						  
+						  throw( new NetworkAdminException( "IP address missing in reply" ));
+					  }
+					  
+					  return( InetAddress.getByAddress( ip_bytes ));
+					  
+				  }catch( Throwable e){
+					  
+					  last_error	= e;
+					  
+					  timeout = timeout * 2;
+				  }
 			  }
 			  
-			  throw( new Exception( "Timeout" ));
+			  if ( last_error != null ){
+				  
+				  throw( last_error );
+			  }
 			  
+			  throw( new NetworkAdminException( "Timeout" ));
+			  
+		  }catch( NetworkAdminException e ){
+			  
+			  throw( e );
+			  
+		  }catch( Throwable e ){
+			  
+				throw( new NetworkAdminException( "Inbound check failed", e ));
+
 		  }finally{
 			 
 			  packet_handler.setExplicitBindAddress( null );

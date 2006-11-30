@@ -396,10 +396,7 @@ NetworkAdminImpl
  	getOutboundProtocols()
 	{
 		AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
-		
-
-			// TODO: tidy up
-		
+				
 		NetworkAdminProtocol[]	res = 
 			{
 				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_HTTP ),
@@ -415,21 +412,66 @@ NetworkAdminImpl
  	{
 		AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
 
- 			// 	 TODO: tidy up
- 		
-		NetworkAdminProtocol[]	res = 
-			{
-				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_UDP, UDPNetworkManager.getSingleton().getUDPListeningPortNumber()),
-				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_HTTP, HTTPNetworkManager.getSingleton().getHTTPListeningPortNumber()),
-				new NetworkAdminProtocolImpl( azureus_core, NetworkAdminProtocol.PT_TCP, TCPNetworkManager.getSingleton().getTCPListeningPortNumber()),
-			};
+		List	protocols = new ArrayList();
+		
+		TCPNetworkManager	tcp_manager = TCPNetworkManager.getSingleton();
+		
+		if ( tcp_manager.isTCPListenerEnabled()){
+			
+			protocols.add( 
+					new NetworkAdminProtocolImpl( 
+							azureus_core, 
+							NetworkAdminProtocol.PT_TCP, 
+							tcp_manager.getTCPListeningPortNumber()));
+		}
+
+		UDPNetworkManager	udp_manager = UDPNetworkManager.getSingleton();
+		
+		int	done_udp = -1;
+		
+		if ( udp_manager.isUDPListenerEnabled()){
+			
+			protocols.add( 
+					new NetworkAdminProtocolImpl( 
+							azureus_core, 
+							NetworkAdminProtocol.PT_UDP, 
+							done_udp = udp_manager.getUDPListeningPortNumber()));
+		}
+		
+		if ( udp_manager.isUDPNonDataListenerEnabled()){
+
+			int	port = udp_manager.getUDPNonDataListeningPortNumber();
+			
+			if ( port != done_udp ){
+				
+				protocols.add( 
+						new NetworkAdminProtocolImpl( 
+								azureus_core, 
+								NetworkAdminProtocol.PT_UDP, 
+								done_udp = udp_manager.getUDPNonDataListeningPortNumber()));
+	
+			}
+		}
+		
+		HTTPNetworkManager	http_manager = HTTPNetworkManager.getSingleton();
+		
+		if ( http_manager.isHTTPListenerEnabled()){
+			
+			protocols.add( 
+					new NetworkAdminProtocolImpl( 
+							azureus_core, 
+							NetworkAdminProtocol.PT_HTTP, 
+							http_manager.getHTTPListeningPortNumber()));
+		}
 	      
-		return( res );
+		return((NetworkAdminProtocol[])protocols.toArray( new NetworkAdminProtocol[protocols.size()]));
  	}
  	
 	public InetAddress
 	testProtocol(
 		NetworkAdminProtocol	protocol )
+	
+		throws NetworkAdminException
 	{
 		return( protocol.test( null ));
 	}
@@ -649,14 +691,20 @@ NetworkAdminImpl
 			
 			NetworkAdminProtocol	protocol = protocols[i];
 			
-			InetAddress	ext_addr = testProtocol( protocol );
-
-			if ( ext_addr != null ){
+			try{
+				InetAddress	ext_addr = testProtocol( protocol );
+	
+				if ( ext_addr != null ){
+					
+					public_addresses.add( ext_addr );
+				}
+	
+				iw.println( "    " + protocol.getName() + " - " + ext_addr );
 				
-				public_addresses.add( ext_addr );
+			}catch( NetworkAdminException e ){
+				
+				iw.println( "    " + protocol.getName() + " - " + Debug.getNestedExceptionMessage(e));
 			}
-
-			iw.println( "    " + protocol.getName() + " - " + ext_addr );
 		}
 		
 		iw.println( "Outbound protocols: default routing" );
@@ -667,14 +715,21 @@ NetworkAdminImpl
 			
 			NetworkAdminProtocol	protocol = protocols[i];
 			
-			InetAddress	ext_addr = testProtocol( protocol );
-			
-			if ( ext_addr != null ){
-			
-				public_addresses.add( ext_addr );
+			try{
+
+				InetAddress	ext_addr = testProtocol( protocol );
+				
+				if ( ext_addr != null ){
+				
+					public_addresses.add( ext_addr );
+				}
+				
+				iw.println( "    " + protocol.getName() + " - " + ext_addr );
+				
+			}catch( NetworkAdminException e ){
+				
+				iw.println( "    " + protocol.getName() + " - " + Debug.getNestedExceptionMessage(e));
 			}
-			
-			iw.println( "    " + protocol.getName() + " - " + ext_addr );
 		}
 		
 		Iterator	it = public_addresses.iterator();
@@ -692,7 +747,7 @@ NetworkAdminImpl
 				
 			}catch( Throwable e ){
 				
-				iw.println( "    " + pub_address.getHostAddress() + " -> " + e.getMessage());
+				iw.println( "    " + pub_address.getHostAddress() + " -> " + Debug.getNestedExceptionMessage(e));
 			}
 		}
 	}
@@ -880,6 +935,8 @@ NetworkAdminImpl
 			public InetAddress
 			testProtocol(
 				NetworkAdminProtocol	protocol )
+			
+				throws NetworkAdminException
 			{
 				return( protocol.test( this ));
 			}
@@ -924,14 +981,20 @@ NetworkAdminImpl
 							
 							NetworkAdminProtocol	protocol = protocols[i];
 							
-							InetAddress	res = testProtocol( protocol );
-							
-							if ( res != null ){
+							try{
+								InetAddress	res = testProtocol( protocol );
 								
-								public_addresses.add( res );
+								if ( res != null ){
+									
+									public_addresses.add( res );
+								}
+								
+								iw.println( "    " + protocol.getName() + " - " + res );
+								
+							}catch( NetworkAdminException e ){
+								
+								iw.println( "    " + protocol.getName() + " - " + Debug.getNestedExceptionMessage(e));
 							}
-							
-							iw.println( "    " + protocol.getName() + " - " + res );
 						}
 						
 						iw.println( "Inbound protocols: bound" );
@@ -942,14 +1005,20 @@ NetworkAdminImpl
 							
 							NetworkAdminProtocol	protocol = protocols[i];
 							
-							InetAddress	res = testProtocol( protocol );
-							
-							if ( res != null ){
+							try{
+								InetAddress	res = testProtocol( protocol );
 								
-								public_addresses.add( res );
+								if ( res != null ){
+									
+									public_addresses.add( res );
+								}
+								
+								iw.println( "    " + protocol.getName() + " - " + res );
+								
+							}catch( NetworkAdminException e ){
+								
+								iw.println( "    " + protocol.getName() + " - " + Debug.getNestedExceptionMessage(e));
 							}
-							
-							iw.println( "    " + protocol.getName() + " - " + res );
 						}
 					}
 				}finally{
@@ -1015,6 +1084,36 @@ NetworkAdminImpl
 				}
 			}
 		}
+	}
+	
+	protected void
+	generateDiagnostics(
+		IndentWriter			iw,
+		NetworkAdminProtocol[]	protocols )
+	{
+		for (int i=0;i<protocols.length;i++){
+			
+			NetworkAdminProtocol	protocol = protocols[i];
+			
+			iw.println( "Testing " + protocol.getName());
+			
+			try{
+				InetAddress	ext_addr = testProtocol( protocol );
+	
+				iw.println( "    -> OK, public address=" + ext_addr );
+				
+			}catch( NetworkAdminException e ){
+				
+				iw.println( "    -> Failed: " + Debug.getNestedExceptionMessage(e));
+			}
+		}
+	}
+	
+	public void
+	logNATStatus(
+		IndentWriter		iw )
+	{
+		generateDiagnostics( iw, getInboundProtocols());
 	}
 	
 	public static void

@@ -165,11 +165,22 @@ UDPNetworkManager
 		connection_manager = new UDPConnectionManager();
 	}
 	
+	public boolean
+	isUDPListenerEnabled()
+	{
+		return( UDP_INCOMING_ENABLED );
+	}
   
 	public int 
 	getUDPListeningPortNumber()
 	{
 		return( udp_listen_port );
+	}
+	
+	public boolean
+	isUDPNonDataListenerEnabled()
+	{
+		return( UDP_INCOMING_ENABLED );
 	}
 	
 	public int 
