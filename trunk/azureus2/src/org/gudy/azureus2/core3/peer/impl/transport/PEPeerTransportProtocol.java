@@ -225,7 +225,7 @@ PEPeerTransportProtocol
     
     plugin_connection = new ConnectionImpl(connection);
     
-    peer_stats = manager.createPeerStats();
+    peer_stats = manager.createPeerStats( this );
 
     changePeerState( PEPeer.CONNECTING );
   }
@@ -316,7 +316,7 @@ PEPeerTransportProtocol
     
     incoming = false;
     
-    peer_stats = manager.createPeerStats();
+    peer_stats = manager.createPeerStats( this );
     
     if( port < 0 || port > 65535 ) {
       closeConnectionInternally( "given remote port is invalid: " + port );
@@ -1824,7 +1824,7 @@ PEPeerTransportProtocol
 
 	  if( !manager.validatePieceReply( pieceNumber, offset, payload ) ) {
 		  peer_stats.bytesDiscarded( length );
-		  manager.discarded( length );
+		  manager.discarded( this, length );
 		  requests_discarded++;
 		  printRequestStats();
 		  piece.destroy();
@@ -1845,7 +1845,7 @@ PEPeerTransportProtocol
 
 		  if( manager.isWritten( pieceNumber, offset ) ) {  //oops, looks like this block has already been written
 			  peer_stats.bytesDiscarded( length );
-			  manager.discarded( length );
+			  manager.discarded( this, length );
 
 			  if( manager.isInEndGameMode() ) {  //we're probably in end-game mode then
 				  if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
@@ -1910,7 +1910,7 @@ PEPeerTransportProtocol
 				  System.out.println( "[" +client+ "]" +error_msg + "but expired piece block discarded as never requested." );
 
 				  peer_stats.bytesDiscarded( length );
-				  manager.discarded( length );
+				  manager.discarded( this, length );
 				  requests_discarded++;
 				  printRequestStats();
 				  if (Logger.isEnabled())
@@ -1921,7 +1921,7 @@ PEPeerTransportProtocol
 		  }
 		  else {
 			  peer_stats.bytesDiscarded( length );
-			  manager.discarded( length );
+			  manager.discarded( this, length );
 			  requests_discarded++;
 			  printRequestStats();
 			  if (Logger.isEnabled())
@@ -2053,7 +2053,7 @@ PEPeerTransportProtocol
       public final void protocolBytesReceived( int byte_count ) {
         //update stats
         peer_stats.protocolBytesReceived( byte_count );
-        manager.protocolBytesReceived( byte_count );
+        manager.protocolBytesReceived( PEPeerTransportProtocol.this, byte_count );
       }
       
       public final void dataBytesReceived( int byte_count ) {
@@ -2064,7 +2064,7 @@ PEPeerTransportProtocol
           //update stats
           peer_stats.dataBytesReceived( byte_count );
           
-          manager.dataBytesReceived( byte_count );
+          manager.dataBytesReceived( PEPeerTransportProtocol.this, byte_count );
       }
     });
     
@@ -2103,13 +2103,13 @@ PEPeerTransportProtocol
       public final void protocolBytesSent( int byte_count ) {
         //update stats
         peer_stats.protocolBytesSent( byte_count );
-        manager.protocolBytesSent( byte_count, isLANLocal());
+        manager.protocolBytesSent( PEPeerTransportProtocol.this, byte_count );
       }
         
       public final void dataBytesSent( int byte_count ) {
         //update stats
         peer_stats.dataBytesSent( byte_count );
-        manager.dataBytesSent( byte_count, isLANLocal());
+        manager.dataBytesSent( PEPeerTransportProtocol.this, byte_count );
       }
     });
 

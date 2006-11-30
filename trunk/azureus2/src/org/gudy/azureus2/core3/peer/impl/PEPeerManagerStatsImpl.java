@@ -62,10 +62,10 @@ PEPeerManagerStatsImpl
 		adapter	= _manager.getAdapter();
 	}
   
-	public void discarded(int length) {
+	public void discarded(PEPeer peer, int length) {
 	  this.totalDiscarded += length;
 	  
-	  adapter.discarded( length );
+	  adapter.discarded( peer, length );
 	}
 
 	public void
@@ -81,7 +81,7 @@ PEPeerManagerStatsImpl
 		return( hash_fail_bytes );
 	}
 	
-	public void dataBytesReceived(int length) {
+	public void dataBytesReceived( PEPeer peer, int length) {
 	  total_data_bytes_received += length;
 	  data_receive_speed.addValue(length);
 	  
@@ -89,18 +89,18 @@ PEPeerManagerStatsImpl
 		  last_data_received_seconds = (int)(SystemTime.getCurrentTime()/1000);
 	  }
 	  
-	  adapter.dataBytesReceived( length );
+	  adapter.dataBytesReceived( peer, length );
 	}
 
-  public void protocolBytesReceived(int length) {
+  public void protocolBytesReceived(PEPeer peer, int length) {
     total_protocol_bytes_received += length;
     protocol_receive_speed.addValue(length);
     
-    adapter.protocolBytesReceived( length );
+    adapter.protocolBytesReceived( peer, length );
   }
   
   
-	public void dataBytesSent(int length, boolean LAN) {
+	public void dataBytesSent(PEPeer peer, int length ) {
 	  total_data_bytes_sent += length;
 	  data_send_speed.addValue(length);  
 	  
@@ -108,14 +108,14 @@ PEPeerManagerStatsImpl
 		  last_data_sent_seconds = (int)(SystemTime.getCurrentTime()/1000);
 	  }
 
-	  adapter.dataBytesSent( length, LAN );
+	  adapter.dataBytesSent( peer, length );
 	}
   
-  public void protocolBytesSent(int length, boolean LAN) {
+  public void protocolBytesSent(PEPeer peer, int length) {
     total_protocol_bytes_sent += length;
     protocol_send_speed.addValue(length);
     
- 	adapter.protocolBytesSent( length, LAN );
+ 	adapter.protocolBytesSent( peer, length );
   }
   
 

@@ -1067,8 +1067,8 @@ Test
 	 	{
 	 		return( null );
 	 	}
-    public LimitedRateGroup getUploadLimitedRateGroup() {  return null;  }
-    public LimitedRateGroup getDownloadLimitedRateGroup() {  return null;  }
+	    public LimitedRateGroup getUploadLimitedRateGroup() {  return null;  }
+	    public LimitedRateGroup getDownloadLimitedRateGroup() {  return null;  }
     
 		public void
 		start()
@@ -1076,31 +1076,31 @@ Test
 			
 		}
 			
-    public PeerExchangerItem createPeerExchangeConnection( PEPeerTransport base_peer ) {  return null;  }
-    
-    public void peerVerifiedAsSelf( PEPeerTransport self ){}
-    
+	    public PeerExchangerItem createPeerExchangeConnection( PEPeerTransport base_peer ) {  return null;  }
+	    
+	    public void peerVerifiedAsSelf( PEPeerTransport self ){}
+	    
 		public void
 		stopAll()
 		{
 			
 		}
     
-		  public boolean
-		  seedPieceRecheck()
-		  {
-			  return( false );
-		  }
+		public boolean
+		seedPieceRecheck()
+		{
+			return( false );
+		}
 		  
-    public void peerConnectionClosed( PEPeerTransport peer, boolean connect_failed ) {
-      
-    }
-    
-    public boolean isInEndGameMode() {  return false;  }
-    
-			
-    public int getAverageCompletionInThousandNotation(){  return 0;  }
-    
+	    public void peerConnectionClosed( PEPeerTransport peer, boolean connect_failed ) {
+	      
+	    }
+	    
+	    public boolean isInEndGameMode() {  return false;  }
+	    
+				
+	    public int getAverageCompletionInThousandNotation(){  return 0;  }
+	    
 		public byte[]
 		getHash()
 		{
@@ -1199,7 +1199,6 @@ Test
 		processTrackerResponse(
 			TRTrackerAnnouncerResponse	response )
 		{
-			
 		}
 
 			
@@ -1222,7 +1221,6 @@ Test
 	  
 		public void setNbHashFails(int fails)
 		{
-			
 		}
 
 
@@ -1231,18 +1229,16 @@ Test
 			return( 0 );
 		}
 
-
-	  public int getPieceLength(int pieceNumber)
+		public int getPieceLength(int pieceNumber)
 		{
-	  	return( 0 );
-	}
+			return( 0 );
+		}
 
 			
 		public long getRemaining()
 		{
 			return( 0 );
 		}
-
 
 		public int getDownloadPriority()
 		{
@@ -1278,80 +1274,78 @@ Test
 		public void
 		addListener(
 			PEPeerManagerListener	l )
-		{
-			
+		{		
 		}
 
 			
 		public void
 		removeListener(
 			PEPeerManagerListener	l )
-		{
-			
+		{	
 		}
 
 	  
-	  public boolean needsMD5CheckOnCompletion(int pieceNumber)
+		public boolean needsMD5CheckOnCompletion(int pieceNumber)
 		{
-	  	return( false );
-	}
+			return( false );
+		}
 
-	  public boolean
-	  isSeeding()
-	  {
-		  return( false );
-	  }
-	  
-	  public boolean
-	  isSuperSeedMode()
+		public boolean
+		isSeeding()
 		{
-	  	return( false );
-	}
+			return( false );
+		}
+
+		public boolean
+		isSuperSeedMode()
+		{
+			return( false );
+		}
 
 	  
-	  public int getNbRemoteConnections()
+		public int getNbRemoteConnections()
 		{
-	  	return( 0 );
-	}
+			return( 0 );
+		}
 
-	  public long getLastRemoteConnectionTime()
-	  {
-		  return(0);
-	  }
-	  
-	  public int getMaxNewConnectionsAllowed()
+		public long getLastRemoteConnectionTime()
 		{
-	  	return( 0 );
-	}
+			return(0);
+		}
+
+		public int getMaxNewConnectionsAllowed()
+		{
+			return( 0 );
+		}
+		
 		public void
 		dataBytesReceived(
+			PEPeer 	peer,
 			int		l )
-		{
-			
+		{	
 		}
 
 		
 		public void
 		dataBytesSent(
-			int		l, boolean LAN )
-		{
-			
+			PEPeer 	peer,
+			int		l )
+		{			
 		}
 
-    public void protocolBytesSent( int length, boolean LAN ) {}
-    
-    public void protocolBytesReceived( int length ) {}
-		
+		public void protocolBytesSent( PEPeer peer, int length ) {}
+
+		public void protocolBytesReceived( PEPeer peer, int length ) {}
+
 		public void
 		discarded(
-			int		l )
+			PEPeer peer, int		l )
 		{
-			
 		}
 
 		
 		public PEPeerStats
-		createPeerStats()
+		createPeerStats( PEPeer owner )
 		{
 			return( null );
 		}

@@ -105,31 +105,8 @@ public class UnchokerUtilTest {
       final int bytes_received = RandomUtils.nextInt( BYTE_RANGE );
       final int bytes_sent = RandomUtils.nextInt( BYTE_RANGE );
       
-      final PEPeerStats stats = new PEPeerStats() {
-        public void dataBytesSent( int num_bytes ){}
-        public void protocolBytesSent( int num_bytes ){}
-        public void dataBytesReceived( int num_bytes ){}
-        public void protocolBytesReceived( int num_bytes ){}
-        public void bytesDiscarded( int num_bytes ){}
-        public void hasNewPiece( int piece_size ){}
-        public void statisticalSentPiece( int piece_size ){}
-        
-        public long getDataReceiveRate(){  return 0;  }
-        public long getProtocolReceiveRate(){  return 0;  }
-        public long getTotalDataBytesReceived(){  return bytes_received;  }
-        public long getTotalProtocolBytesReceived(){  return 0;  }
-        public long getDataSendRate(){  return 0;  }
-        public long getProtocolSendRate(){  return 0;  }
-        public long getTotalDataBytesSent(){  return bytes_sent;  }
-        public long getTotalProtocolBytesSent(){  return 0;  }
-        public long getSmoothDataReceiveRate(){  return 0;  }
-        public long getTotalBytesDiscarded(){  return 0;  }
-        public long getEstimatedDownloadRateOfPeer(){  return 0;  }
-        public long getEstimatedUploadRateOfPeer(){  return 0;  }
-        public long getTotalBytesDownloadedByPeer(){  return 0;  }
-      };
-      
-      PEPeer peer = new PEPeer() {
+      final PEPeerStats[] f_stats = { null };
+      final PEPeer peer = new PEPeer() {
         public void addListener( PEPeerListener listener ){}
         public void removeListener( PEPeerListener listener ){}
         public int getPeerState(){  return PEPeer.TRANSFERING;  }
@@ -154,7 +131,7 @@ public class UnchokerUtilTest {
         public boolean isSeed(){ return false;  }
         public boolean isSnubbed(){ return false;  }
         public long getSnubbedTime() { return 0; }
-        public PEPeerStats getStats(){  return stats;  }
+        public PEPeerStats getStats(){  return f_stats[0];  }
         public boolean isIncoming(){ return false;  }
         public int getPercentDoneInThousandNotation(){ return 0; }
         public String getClient(){ return null; }
@@ -189,8 +166,38 @@ public class UnchokerUtilTest {
 			// TODO Auto-generated method stub
 			return 0;
 		}
+		public boolean isLANLocal() {
+			// TODO Auto-generated method stub
+			return false;
+		}
       };
       
+     f_stats[0] = new PEPeerStats() {
+    	public PEPeer getPeer() {
+    		  return( peer );
+    	}
+        public void dataBytesSent( int num_bytes ){}
+        public void protocolBytesSent( int num_bytes ){}
+        public void dataBytesReceived( int num_bytes ){}
+        public void protocolBytesReceived( int num_bytes ){}
+        public void bytesDiscarded( int num_bytes ){}
+        public void hasNewPiece( int piece_size ){}
+        public void statisticalSentPiece( int piece_size ){}
+        
+        public long getDataReceiveRate(){  return 0;  }
+        public long getProtocolReceiveRate(){  return 0;  }
+        public long getTotalDataBytesReceived(){  return bytes_received;  }
+        public long getTotalProtocolBytesReceived(){  return 0;  }
+        public long getDataSendRate(){  return 0;  }
+        public long getProtocolSendRate(){  return 0;  }
+        public long getTotalDataBytesSent(){  return bytes_sent;  }
+        public long getTotalProtocolBytesSent(){  return 0;  }
+        public long getSmoothDataReceiveRate(){  return 0;  }
+        public long getTotalBytesDiscarded(){  return 0;  }
+        public long getEstimatedDownloadRateOfPeer(){  return 0;  }
+        public long getEstimatedUploadRateOfPeer(){  return 0;  }
+        public long getTotalBytesDownloadedByPeer(){  return 0;  }
+      };
       peers.add( peer );
     }
     

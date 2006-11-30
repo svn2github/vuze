@@ -33,7 +33,8 @@ public class
 PEPeerStatsImpl 
 	implements PEPeerStats
 {
-  
+	private PEPeer	owner;
+	
     private long total_data_bytes_received = 0;
     private long total_protocol_bytes_received = 0;
 
@@ -54,11 +55,16 @@ PEPeerStatsImpl
     private long total_bytes_downloaded = 0;
 
 
-	  public PEPeerStatsImpl() {
-	    /* nothing */
+	  public PEPeerStatsImpl( PEPeer _owner ) {
+		  owner = _owner;
 	  }
   
-
+	  public PEPeer
+	  getPeer()
+	  {
+		  return( owner );
+	  }
+	  
     public void dataBytesSent( int num_bytes ) {
       total_data_bytes_sent += num_bytes;
       data_send_speed.addValue( num_bytes );

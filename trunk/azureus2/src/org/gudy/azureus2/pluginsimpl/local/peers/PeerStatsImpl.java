@@ -103,7 +103,7 @@ PeerStatsImpl
 	{
 		delegate.dataBytesReceived( bytes );
 		
-		manager.dataBytesReceived( bytes );
+		manager.dataBytesReceived( delegate.getPeer(), bytes );
 	}
 	
 	public void
@@ -112,7 +112,7 @@ PeerStatsImpl
 	{
 		delegate.bytesDiscarded( bytes );
 		
-		manager.discarded( bytes );
+		manager.discarded( delegate.getPeer(), bytes );
 	}
 	
 	public long

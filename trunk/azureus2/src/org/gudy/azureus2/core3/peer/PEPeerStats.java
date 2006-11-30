@@ -29,7 +29,8 @@
 public interface 
 PEPeerStats 
 {   
-
+  public PEPeer getPeer();
+  
   ////// SET METHODS ///////
   /**
    * The given number of data (payload) bytes have been sent to the peer.

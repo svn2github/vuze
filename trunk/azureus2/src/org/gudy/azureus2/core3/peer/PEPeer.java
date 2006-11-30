@@ -269,4 +269,7 @@ PEPeer
 	public void setLastPiece(int i);
 	public int getLastPiece();
 	
+	public boolean
+	isLANLocal();
+	
 }

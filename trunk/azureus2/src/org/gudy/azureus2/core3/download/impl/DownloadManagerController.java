@@ -1714,7 +1714,8 @@ DownloadManagerController
 	
 	public void
 	discarded(
-		int	bytes )
+		PEPeer		peer,
+		int			bytes )
 	{
 		if ( global_stats != null ){
 			
@@ -1724,7 +1725,8 @@ DownloadManagerController
 	
 	public void
 	protocolBytesReceived(
-		int	bytes )
+		PEPeer		peer,
+		int			bytes )
 	{
 		if ( global_stats != null ){
 			
@@ -1734,7 +1736,8 @@ DownloadManagerController
 	
 	public void
 	dataBytesReceived(
-		int	bytes )
+		PEPeer		peer,
+		int			bytes )
 	{
 		if ( global_stats != null ){
 			
@@ -1744,23 +1747,23 @@ DownloadManagerController
 	
 	public void
 	protocolBytesSent(
-		int		bytes,
-		boolean	LAN )
+		PEPeer		peer,
+		int			bytes )
 	{
 		if ( global_stats != null ){
 			
-			global_stats.protocolBytesSent( bytes, LAN );
+			global_stats.protocolBytesSent( bytes, peer.isLANLocal());
 		}
 	}
 	
 	public void
 	dataBytesSent(
-		int		bytes,
-		boolean	LAN )
+		PEPeer		peer,
+		int			bytes )
 	{
 		if ( global_stats != null ){
 			
-			global_stats.dataBytesSent( bytes, LAN );
+			global_stats.dataBytesSent( bytes, peer.isLANLocal());
 		}
 	}
 	

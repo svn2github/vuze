@@ -179,7 +179,9 @@ PeerManagerImpl
 	createPeerStats(
 		Peer	peer )
 	{
-		return( new PeerStatsImpl( this, peer, manager.createPeerStats()));
+		PEPeer	delegate = mapForeignPeer( peer );
+		
+		return( new PeerStatsImpl( this, peer, manager.createPeerStats( delegate )));
 	}
 	
 	

@@ -1527,37 +1527,37 @@ PEPeerControlImpl
 	}
 	
 	
-	public void discarded(int length) {
+	public void discarded(PEPeer peer, int length) {
 		if (length > 0){
-			_stats.discarded(length);
+			_stats.discarded(peer, length);
 		}
 	}
 	
-	public void dataBytesReceived(int length) {
+	public void dataBytesReceived(PEPeer peer, int length) {
 		if (length > 0) {
-			_stats.dataBytesReceived(length);
+			_stats.dataBytesReceived(peer,length);
 			
 			_averageReceptionSpeed.addValue(length);
 		}
 	}
 	
 	
-	public void protocolBytesReceived( int length ) {
+	public void protocolBytesReceived(PEPeer peer,  int length ) {
 		if (length > 0) {
-			_stats.protocolBytesReceived(length);
+			_stats.protocolBytesReceived(peer,length);
 		}
 	}
 	
-	public void dataBytesSent(int length, boolean LAN) {
+	public void dataBytesSent(PEPeer peer, int length) {
 		if (length > 0) {
-			_stats.dataBytesSent(length, LAN );
+			_stats.dataBytesSent(peer, length );
 		}
 	}
 	
 	
-	public void protocolBytesSent( int length, boolean LAN ) {
+	public void protocolBytesSent( PEPeer peer, int length ) {
 		if (length > 0) {
-			_stats.protocolBytesSent(length, LAN);
+			_stats.protocolBytesSent(peer,length);
 		}
 	}
 	
@@ -2398,9 +2398,10 @@ PEPeerControlImpl
 	}
 	    
 	public PEPeerStats
-	createPeerStats()
+	createPeerStats(
+		PEPeer	owner )
 	{
-		return( new PEPeerStatsImpl() );
+		return( new PEPeerStatsImpl( owner ));
 	}
 	
 	

@@ -95,23 +95,28 @@ PEPeerManagerAdapter
 	
 	public void
 	discarded(
-		int	bytes );
+		PEPeer		peer,
+		int			bytes );
 	
 	public void
 	protocolBytesReceived(
-		int	bytes );
+		PEPeer		peer,
+		int			bytes );
 	
 	public void
 	dataBytesReceived(
-		int	bytes );
+		PEPeer		peer,
+		int			bytes );
 	
 	public void
 	protocolBytesSent(
-		int	bytes, boolean LAN );
+		PEPeer		peer,
+		int			bytes );
 	
 	public void
 	dataBytesSent(
-		int	bytes, boolean LAN );
+		PEPeer		peer,
+		int			bytes );
 	
 	public PeerManagerRegistration
 	getPeerManagerRegistration();
