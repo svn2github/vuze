@@ -77,13 +77,13 @@ public class VersionCheckClient {
   private static final String 	MESSAGE_TYPE_ID 		= "AZVER";
   
   public static final String 	HTTP_SERVER_ADDRESS 	= "version.aelitis.com";
-  public static final int 		HTTP_SERVER_PORT 		= 2080;			// 80;
+  public static final int 		HTTP_SERVER_PORT 		= 80;
 
   public static final String 	TCP_SERVER_ADDRESS 		= "version.aelitis.com";
-  public static final int 		TCP_SERVER_PORT 		= 2080;			// 80;
+  public static final int 		TCP_SERVER_PORT 		= 80;
 
   public static final String 	UDP_SERVER_ADDRESS 		= "version.aelitis.com";
-  public static final int 		UDP_SERVER_PORT 		= 2080;			// 80;
+  public static final int 		UDP_SERVER_PORT 		= 2080;
 
   
   private static final long		CACHE_PERIOD	= 5*60*1000;
@@ -890,7 +890,9 @@ public class VersionCheckClient {
 	  try{
 		  COConfigurationManager.initialise();
 		  
-		  System.out.println( "Response: " + getSingleton().executeUDP(new HashMap(), null, 0));
+		  System.out.println( "UDP:  " + getSingleton().getExternalIpAddressUDP(null,0));
+		  System.out.println( "TCP:  " + getSingleton().getExternalIpAddressTCP(null,0));
+		  System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP());
 		  
 	  }catch( Throwable e){
 		  e.printStackTrace();
