@@ -42,7 +42,11 @@ NetworkAdminUDPTester
 	implements NetworkAdminProtocolTester
 {
 	public static final String 	UDP_SERVER_ADDRESS	= Constants.NAT_TEST_SERVER;
-	public static final int		UDP_SERVER_PORT		= 2081;
+	public static final int		UDP_SERVER_PORT		= 2081; // 2084;
+	
+	static{
+		NetworkAdminNATUDPCodecs.registerCodecs();
+	}
 	
 	public InetAddress
 	testOutbound(
@@ -106,6 +110,13 @@ NetworkAdminUDPTester
 						  throw( new NetworkAdminException( "IP address missing in reply" ));
 					  }
 					  
+				      byte[] reason = (byte[])reply.get( "reason" );
+				     
+				      if( reason != null ) {
+				        	
+				    	  throw( new NetworkAdminException( new String( reason, "UTF8")));
+				      }
+				      
 					  return( InetAddress.getByAddress( ip_bytes ));
 					  
 				  }catch( Throwable e){

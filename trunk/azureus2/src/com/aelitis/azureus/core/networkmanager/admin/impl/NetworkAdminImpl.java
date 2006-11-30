@@ -1163,7 +1163,7 @@ NetworkAdminImpl
 			
 			AzureusCoreFactory.create();
 			
-			getSingleton().generateDiagnostics( iw );
+			getSingleton().logNATStatus( iw );
 			
 		}catch( Throwable e){
 			
