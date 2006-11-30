@@ -25,9 +25,13 @@ import java.util.*;
 import java.lang.reflect.Constructor;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -131,13 +135,19 @@ public class SWTThread {
               display.sleep();
         }
         catch (Exception e) {
-        	// Must use printStackTrace() (no params) in order to get 
-        	// "cause of"'s stack trace in SWT < 3119
-        	if (SWT.getVersion() < 3119)
-        		e.printStackTrace();
-        	else
-        		Debug.printStackTrace(e);
-        }
+					if (Constants.isOSX && (e instanceof SWTException)
+							&& e.getMessage().equals("Device is disposed")) {
+						Logger.log(new LogEvent(LogIDs.GUI,
+								"Weird non-critical display disposal in readAndDispatch"));
+					} else {
+						// Must use printStackTrace() (no params) in order to get 
+						// "cause of"'s stack trace in SWT < 3119
+						if (SWT.getVersion() < 3119)
+							e.printStackTrace();
+						else
+							Debug.printStackTrace(e);
+					}
+				}
       }
       
      
