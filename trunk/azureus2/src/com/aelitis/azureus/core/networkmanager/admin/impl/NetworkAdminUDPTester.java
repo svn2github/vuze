@@ -80,60 +80,85 @@ NetworkAdminUDPTester
 		  HashMap	data_to_send = new HashMap();
 		  
 		  Random 	random = new Random();
+
+		  data_to_send.put( "id", new Long( random.nextLong()));		  
 		  
 		  try{
 			  packet_handler.setExplicitBindAddress( bind_ip );	  
 			  
 			  Throwable last_error = null;
+			  	  
+			  final int tries = 3;
 			  
-			  for (int i=0;i<3;i++){
+			  try{
+				  for (int i=0;i<tries;i++){
+					  
+					  data_to_send.put( "seq", new Long(i));
+					  
+					  try{
+						  
+						  	// connection ids for requests must always have their msb set...
+						  	// apart from the original darn udp tracker spec....
+						  
+						  long connection_id = 0x8000000000000000L | random.nextLong();
+		
+						  NetworkAdminNATUDPRequest	request_packet = new NetworkAdminNATUDPRequest( connection_id );
+						  
+						  request_packet.setPayload( data_to_send );
+						  						  
+						  NetworkAdminNATUDPReply reply_packet = (NetworkAdminNATUDPReply)packet_handler.sendAndReceive( null, request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), timeout );
+				
+						  Map	reply = reply_packet.getPayload();
+						  
+						  byte[]	ip_bytes = (byte[])reply.get( "ip_address" );
+						  
+						  if ( ip_bytes == null ){
+							  
+							  throw( new NetworkAdminException( "IP address missing in reply" ));
+						  }
+						  
+					      byte[] reason = (byte[])reply.get( "reason" );
+					     
+					      if ( reason != null ) {
+					        	
+					    	  throw( new NetworkAdminException( new String( reason, "UTF8")));
+					      }
+					      
+						  return( InetAddress.getByAddress( ip_bytes ));
+						  
+					  }catch( Throwable e){
+						  
+						  last_error	= e;
+						  
+						  timeout = timeout * 2;
+					  }
+				  }
+				  			  
+				  if ( last_error != null ){
+					 
+					  throw( last_error );
+				  }
+				  
+				  throw( new NetworkAdminException( "Timeout" ));
+			  
+			  }finally{
 				  
 				  try{
-					  
-					  	// connection ids for requests must always have their msb set...
-					  	// apart from the original darn udp tracker spec....
-					  
+					  data_to_send.put( "seq", new Long(99));
+
 					  long connection_id = 0x8000000000000000L | random.nextLong();
-	
+						
 					  NetworkAdminNATUDPRequest	request_packet = new NetworkAdminNATUDPRequest( connection_id );
 					  
 					  request_packet.setPayload( data_to_send );
 					  
-					  NetworkAdminNATUDPReply reply_packet = (NetworkAdminNATUDPReply)packet_handler.sendAndReceive( null, request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ), timeout );
-			
-					  Map	reply = reply_packet.getPayload();
-					  
-					  byte[]	ip_bytes = (byte[])reply.get( "ip_address" );
-					  
-					  if ( ip_bytes == null ){
+						  	// fire off one last packet in attempt to inform server of completion
 						  
-						  throw( new NetworkAdminException( "IP address missing in reply" ));
-					  }
+					  packet_handler.send( request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ));
 					  
-				      byte[] reason = (byte[])reply.get( "reason" );
-				     
-				      if( reason != null ) {
-				        	
-				    	  throw( new NetworkAdminException( new String( reason, "UTF8")));
-				      }
-				      
-					  return( InetAddress.getByAddress( ip_bytes ));
-					  
-				  }catch( Throwable e){
-					  
-					  last_error	= e;
-					  
-					  timeout = timeout * 2;
+				  }catch( Throwable e){  
 				  }
 			  }
-			  
-			  if ( last_error != null ){
-				  
-				  throw( last_error );
-			  }
-			  
-			  throw( new NetworkAdminException( "Timeout" ));
-			  
 		  }catch( NetworkAdminException e ){
 			  
 			  throw( e );
