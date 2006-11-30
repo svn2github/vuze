@@ -681,6 +681,9 @@ public class TableColumnImpl
 			} else if (c1isString && !c0isString) {
 				val = 1;
 			} else if (c1 == null) {
+				if (c0 == null) {
+					return 0;
+				}
 				val = 1;
 			} else if (c0 == null) {
 				val = -1;
