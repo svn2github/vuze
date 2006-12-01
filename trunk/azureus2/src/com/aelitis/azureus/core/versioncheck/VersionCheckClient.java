@@ -77,10 +77,10 @@ public class VersionCheckClient {
   private static final String 	MESSAGE_TYPE_ID 		= "AZVER";
   
   public static final String 	HTTP_SERVER_ADDRESS 	= "version.aelitis.com";
-  public static final int 		HTTP_SERVER_PORT 		= 80;
+  public static final int 		HTTP_SERVER_PORT 		= 2080;
 
   public static final String 	TCP_SERVER_ADDRESS 		= "version.aelitis.com";
-  public static final int 		TCP_SERVER_PORT 		= 80;
+  public static final int 		TCP_SERVER_PORT 		= 2080;
 
   public static final String 	UDP_SERVER_ADDRESS 		= "version.aelitis.com";
   public static final int 		UDP_SERVER_PORT 		= 2080;
