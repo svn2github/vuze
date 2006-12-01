@@ -29,30 +29,34 @@ package org.gudy.azureus2.pluginsimpl.local.download;
 import java.net.URL;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
+import org.gudy.azureus2.plugins.peers.PeerManager;
 
 public class 
 DownloadAnnounceResultImpl 
 	implements DownloadAnnounceResult
 {
-	protected DownloadImpl			download;
+	protected Download							download;
 	protected TRTrackerAnnouncerResponse		response;
 
-	protected
+		// public for psueudoDownload usage
+
+	public
 	DownloadAnnounceResultImpl(
-		DownloadImpl		_download,
+		Download					_download,
 		TRTrackerAnnouncerResponse	_response )
 	{
 		download	= _download;
 		response	= _response;
 	}
 	
-	protected void
+		// public for psueudoDownload usage
+	
+	public void
 	setContent(
 		TRTrackerAnnouncerResponse	_response )
 	{
@@ -93,11 +97,11 @@ DownloadAnnounceResultImpl
 	public int
 	getSeedCount()
 	{
-		PEPeerManager	pm = download.getDownload().getPeerManager();
+		PeerManager	pm = download.getPeerManager();
 				
 		if ( pm != null ){
 			
-			return( pm.getNbSeeds());
+			return( pm.getStats().getConnectedSeeds());
 		}
 		
 		return( 0 );
@@ -106,13 +110,13 @@ DownloadAnnounceResultImpl
 	public int
 	getNonSeedCount()
 	{
-		PEPeerManager	pm = download.getDownload().getPeerManager();
+		PeerManager	pm = download.getPeerManager();
 		
 		if ( pm != null ){
 			
-			return( pm.getNbPeers());
+			return( pm.getStats().getConnectedLeechers());
 		}
-	
+		
 		return( 0 );
 	}
 		
