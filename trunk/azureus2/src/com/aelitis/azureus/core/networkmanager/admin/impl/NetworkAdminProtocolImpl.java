@@ -92,7 +92,7 @@ NetworkAdminProtocolImpl
 
 		}else{
 			
-			tester = new NetworkAdminUDPTester();
+			tester = new NetworkAdminUDPTester( core );
 		}
 		
 		InetAddress	res;
