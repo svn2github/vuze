@@ -679,14 +679,17 @@ public class VersionCheckClient {
 					 
 					 COConfigurationManager.setParameter( "ASN Advice Followed", asn );
 					 
-					 COConfigurationManager.setParameter( "network.transport.encrypted.require", true );
+					 if ( !COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require" )){
+						 
+						 COConfigurationManager.setParameter( "network.transport.encrypted.require", true );
 					 
-					 String	msg = 
-						 MessageText.getString(
-								"crypto.alert.as.warning",
-								new String[]{ asn });
-					 
-					 Logger.log( new LogAlert( false, LogAlert.AT_WARNING, msg ));
+						 String	msg = 
+							 MessageText.getString(
+									"crypto.alert.as.warning",
+									new String[]{ asn });
+						 
+						 Logger.log( new LogAlert( false, LogAlert.AT_WARNING, msg ));
+					 }
 				 }
 			 }
 	     }
