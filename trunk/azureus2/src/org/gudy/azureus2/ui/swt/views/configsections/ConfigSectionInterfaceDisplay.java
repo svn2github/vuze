@@ -78,9 +78,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		layout.numColumns = 1;
 		cLook.setLayout(layout);
 
-		BooleanParameter bpCustomTab = new BooleanParameter(cLook, "useCustomTab",
-				true, MSG_PREFIX + "useCustomTabs");
-		Control cFancyTab = new BooleanParameter(cLook, "GUI_SWT_bFancyTab", true,
+		BooleanParameter bpCustomTab = new BooleanParameter(cLook, "useCustomTab", MSG_PREFIX + "useCustomTabs");
+		Control cFancyTab = new BooleanParameter(cLook, "GUI_SWT_bFancyTab", 
 				MSG_PREFIX + "useFancyTabs").getControl();
 
 		Control[] controls = { cFancyTab };
@@ -88,10 +87,10 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
 						controls));
 
-		new BooleanParameter(cLook, "Show Download Basket", false, MSG_PREFIX
+		new BooleanParameter(cLook, "Show Download Basket", MSG_PREFIX
 				+ "showdownloadbasket");
 
-		new BooleanParameter(cLook, "IconBar.enabled", false, MSG_PREFIX
+		new BooleanParameter(cLook, "IconBar.enabled", MSG_PREFIX
 				+ "showiconbar");
 
 		Composite cStatusBar = new Composite(cLook, SWT.NULL);
@@ -109,8 +108,8 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		new BooleanParameter(cStatusBar, "Status Area Show DDB", MSG_PREFIX + "status.show_ddb");
 		new BooleanParameter(cStatusBar, "Status Area Show IPF", MSG_PREFIX + "status.show_ipf");
 		
-		new BooleanParameter(cLook, "Add URL Silently", true, MSG_PREFIX	+ "addurlsilently");
-		new BooleanParameter(cLook, "add_torrents_silently", true, "ConfigView.section.interface.display.add_torrents_silently");
+		new BooleanParameter(cLook, "Add URL Silently", MSG_PREFIX	+ "addurlsilently");
+		new BooleanParameter(cLook, "add_torrents_silently", "ConfigView.section.interface.display.add_torrents_silently");
 
 		if (Constants.isWindowsXP) {
 			final Button enableXPStyle = new Button(cLook, SWT.CHECK);
@@ -226,30 +225,6 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				MessageText.getString(MSG_PREFIX + "defaultSortOrder.flip") };
 		new IntListParameter(cArea, "config.style.table.defaultSortOrder",
 				sortOrderLabels, sortOrderValues);
-
-
-		BooleanParameter disable_sliding = new BooleanParameter(cArea, "GUI_SWT_DisableAlertSliding", MSG_PREFIX
-				+ "disableAlertSliding");
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		disable_sliding.setLayoutData(gridData);
-
-		// Timestamps for popup alerts.
-		BooleanParameter show_alert_timestamps = new BooleanParameter(cArea,
-				"Show Timestamp For Alerts", false, LBLKEY_PREFIX + "popup.timestamp");
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		show_alert_timestamps.setLayoutData(gridData);
-		
-		// Auto-hide popup setting.
-		label = new Label(cArea, SWT.NULL);
-		Messages.setLanguageText(label, LBLKEY_PREFIX + "popup.autohide");
-		IntParameter auto_hide_alert = new IntParameter(cArea,
-				"Message Popup Autoclose in Seconds", 0, 86400);
-		gridData = new GridData();
-		gridData.horizontalSpan = 1;
-		gridData.widthHint = 30;
-		auto_hide_alert.setLayoutData(gridData);
 
 		new BooleanParameter(cLook, "NameColumn.showProgramIcon", MSG_PREFIX
 				+ "showProgramIcon");
