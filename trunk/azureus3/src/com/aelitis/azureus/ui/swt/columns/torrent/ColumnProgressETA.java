@@ -7,7 +7,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -376,7 +375,7 @@ public class ColumnProgressETA extends CoreTableColumn implements
 						Download pDL = (Download) ((TableRowCore) event.cell.getTableRow()).getDataSource(false);
 						TorrentListViewsUtils.playViaMediaServer(pDL);
 					}
-				} else if (areaStream.contains(event.x, event.y)) {
+				} else if (areaStream != null && areaStream.contains(event.x, event.y)) {
 					if (edm.getProgressiveMode()) {
 						edm.setProgressiveMode(false);
 					} else {
@@ -384,7 +383,7 @@ public class ColumnProgressETA extends CoreTableColumn implements
 						// existing progressive
 						Object[] dms = dm.getGlobalManager().getDownloadManagers().toArray();
 						for (int i = 0; i < dms.length; i++) {
-							DownloadManager dmCheck = (DownloadManager)dms[i];
+							DownloadManager dmCheck = (DownloadManager) dms[i];
 							if (!dmCheck.isDownloadComplete(false)) {
 								EnhancedDownloadManager edmCheck = getEDM(dmCheck);
 								if (edmCheck != null && edmCheck.getProgressiveMode()) {
