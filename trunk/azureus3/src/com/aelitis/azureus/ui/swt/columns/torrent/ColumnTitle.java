@@ -20,7 +20,11 @@
 
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
+import org.eclipse.swt.program.Program;
+
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -36,7 +40,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
  *
  */
 public class ColumnTitle extends CoreTableColumn implements
-		TableCellRefreshListener, ObfusticateCellText {
+		TableCellRefreshListener, ObfusticateCellText
+{
 
 	/** Default Constructor */
 	public ColumnTitle(String sTableID) {
@@ -54,12 +59,38 @@ public class ColumnTitle extends CoreTableColumn implements
 				name = dm.getDisplayName();
 			}
 		}
-		
-		if (name == null)
+		if (name == null) {
 			name = "";
+		}
 
-		//setText returns true only if the text is updated
-		if (cell.setText(name) || !cell.isValid()) {
+		if (cell.setSortValue(name) || !cell.isValid()) {
+			if (name.length() > 0) {
+				DiskManagerFileInfo[] fileInfo = dm.getDiskManagerFileInfo();
+				if (fileInfo.length > 0) {
+					int idxBiggest = 0;
+					long lBiggest = fileInfo[0].getLength();
+					for (int i = 1; i < fileInfo.length; i++) {
+						if (fileInfo[i].getLength() > lBiggest) {
+							lBiggest = fileInfo[i].getLength();
+							idxBiggest = i;
+						}
+					}
+					String fname = fileInfo[idxBiggest].getFile(true).getName();
+					int pos = fname.lastIndexOf('.');
+					if (pos >= 0) {
+						String ext = fname.substring(pos);
+						Program program = Program.findProgram(ext);
+						if (program != null) {
+							ext += " (" + program.getName() + ")";
+						}
+						name += "\n"
+								+ MessageText.getString("TableColumn.header.name.ext",
+										new String[] { ext
+										});
+					}
+				}
+			}
+			cell.setText(name);
 		}
 	}
 
@@ -73,7 +104,7 @@ public class ColumnTitle extends CoreTableColumn implements
 				name = name.substring(i + 1);
 			}
 		}
-		
+
 		if (name == null)
 			name = "";
 		return name;
