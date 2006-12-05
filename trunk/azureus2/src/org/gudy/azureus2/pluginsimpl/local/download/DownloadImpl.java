@@ -1530,6 +1530,10 @@ DownloadImpl
   		return download_manager.calculateDefaultPaths(for_moving);
   	}
   	
+  	public boolean isInDefaultSaveDir() {
+  		return download_manager.isInDefaultSaveDir();
+  	}
+  	
  	public void
 	requestTrackerAnnounce()
  	{

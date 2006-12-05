@@ -277,6 +277,14 @@ public class DownloadManagerDefaultPaths {
 		}
 		return null;
 	}
+	
+	public static boolean isInDefaultDownloadDir(DownloadManager dm) {
+		// We don't create this object properly, but just enough to get it
+		// to be usable.
+		SourceSpecification source = new SourceSpecification();
+		source.setBoolean("default subdir", SUBDIR_PARAM);
+		return source.checkDefaultDir(dm.getSaveLocation().getParentFile(), getDefaultDirs(null));
+	}
 
     public static class TransferDetails {
 		public File transfer_destination;
@@ -394,7 +402,7 @@ public class DownloadManagerDefaultPaths {
 			return true;
 		}
 		
-		private boolean checkDefaultDir(File location, File[] default_dirs) {
+		public boolean checkDefaultDir(File location, File[] default_dirs) {
 			location = FileUtil.canonise(location);
 			boolean subdir = this.getBoolean("default subdir");
 			for (int i=0; i<default_dirs.length; i++) {

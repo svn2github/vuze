@@ -991,5 +991,15 @@ Download
    *     containing the location for the download's torrent file.
    */
   public File[] calculateDefaultPaths(boolean for_moving);
+  
+  /**
+   * Returns <tt>true</tt> if the download is being saved to one of the default
+   * save directories.
+   * 
+   * @since 2.5.0.2
+   * @author amc1
+   */
+  public boolean isInDefaultSaveDir();
+
 
 }

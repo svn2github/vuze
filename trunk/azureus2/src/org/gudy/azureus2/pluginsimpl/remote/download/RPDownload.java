@@ -960,6 +960,8 @@ RPDownload
 			return null;
 		}
 		
+		public boolean isInDefaultSaveDir() {notSupported(); return false;}
+		
 	public boolean getBooleanAttribute(TorrentAttribute ta) {notSupported(); return false;}
 	public int getIntAttribute(TorrentAttribute ta) {notSupported(); return 0;}
 	public long getLongAttribute(TorrentAttribute ta) {notSupported(); return 0L;}

@@ -3020,6 +3020,10 @@ DownloadManagerImpl
 	  return DownloadManagerDefaultPaths.getDefaultSavePaths(this, for_moving);
   }
   
+  public boolean isInDefaultSaveDir() {
+	  return DownloadManagerDefaultPaths.isInDefaultDownloadDir(this);
+  }
+  
   public boolean
   seedPieceRecheck()
   {

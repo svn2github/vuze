@@ -942,6 +942,8 @@ Test
 			  return null;
 		}
 		
+		public boolean isInDefaultSaveDir() {return false;}
+		
 	  public Object getData (String key)
 	  {
 		  return( null );	
