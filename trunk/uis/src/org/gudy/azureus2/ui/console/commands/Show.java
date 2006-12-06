@@ -225,11 +225,20 @@ public class Show extends IConsoleCommand {
 			
 			Iterator	it = reply.entrySet().iterator();
 			
+			List	lines = new ArrayList();
+			
 			while( it.hasNext()){
 				
 				Map.Entry	entry = (Map.Entry)it.next();
 				
-				ci.out.println( entry.getKey() + " -> " + entry.getValue());
+				lines.add( entry.getKey() + " -> " + entry.getValue());
+			}
+			
+			Collections.sort( lines );
+			
+			for ( int i=0;i<lines.size();i++){
+				
+				ci.out.println( lines.get(i));
 			}
 			
 		} else {
