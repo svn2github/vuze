@@ -62,6 +62,8 @@ public class Sleak
 	Object[] objects = new Object[0];
 
 	Error[] errors = new Error[0];
+	
+	ArrayList oldNonResources = new ArrayList();
 
 	public void open() {
 		display = Display.getCurrent();
@@ -208,6 +210,7 @@ public class Sleak
 				buildObjectList(shell, nonResourceList);
 			}
 		}
+		oldNonResources = nonResourceList;
 		Object[] nonResources = nonResourceList.toArray();
 		int countNonResources = nonResources.length;
 
@@ -235,7 +238,9 @@ public class Sleak
 	 * @param list2
 	 */
 	private void buildObjectList(Control control, ArrayList list) {
-		list.add(control);
+		if (!oldNonResources.contains(control)) {
+			list.add(control);
+		}
 
 		if (control instanceof Composite) {
 			Composite c = (Composite) control;
@@ -280,6 +285,7 @@ public class Sleak
 		Object object = objects[index];
 		if (object instanceof Color) {
 			if (((Color) object).isDisposed()) {
+				gc.drawString("Color disposed", 0, 0);
 				return;
 			}
 			gc.setBackground((Color) object);
@@ -288,6 +294,7 @@ public class Sleak
 		}
 		if (object instanceof Cursor) {
 			if (((Cursor) object).isDisposed()) {
+				gc.drawString("Cursor disposed", 0, 0);
 				return;
 			}
 			canvas.setCursor((Cursor) object);
@@ -295,6 +302,7 @@ public class Sleak
 		}
 		if (object instanceof Font) {
 			if (((Font) object).isDisposed()) {
+				gc.drawString("Font disposed", 0, 0);
 				return;
 			}
 			gc.setFont((Font) object);
@@ -324,6 +332,7 @@ public class Sleak
 		//	}
 		if (object instanceof Image) {
 			if (((Image) object).isDisposed()) {
+				gc.drawString("Image disposed", 0, 0);
 				return;
 			}
 			gc.drawImage((Image) object, 0, 0);
@@ -367,6 +376,7 @@ public class Sleak
 	void refreshAll() {
 		oldObjects = new Object[0];
 		oldErrors = new Error[0];
+		oldNonResources = new ArrayList();
 		refreshDifference();
 		oldObjects = objects;
 		oldErrors = errors;
