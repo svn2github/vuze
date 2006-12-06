@@ -32,15 +32,29 @@ public class
 AzureusCoreStats 
 {
 	public static final String ST_ALL							= ".*";
+	
+		// DISK
+	
 	public static final String ST_DISK							= "disk\\.*";
 	public static final String ST_DISK_READ_QUEUE_LENGTH		= "disk.read.queue.length";		// Long
 	public static final String ST_DISK_READ_QUEUE_BYTES			= "disk.read.queue.bytes";		// Long
 	public static final String ST_DISK_READ_REQUEST_COUNT		= "disk.read.request.count";	// Long
 	public static final String ST_DISK_READ_REQUEST_SINGLE		= "disk.read.request.single";	// Long
 	public static final String ST_DISK_READ_REQUEST_MULTIPLE	= "disk.read.request.multiple";	// Long
+	public static final String ST_DISK_READ_REQUEST_BLOCKS		= "disk.read.request.blocks";	// Long
+	public static final String ST_DISK_READ_BYTES_TOTAL			= "disk.read.bytes.total";		// Long
+	public static final String ST_DISK_READ_BYTES_SINGLE		= "disk.read.bytes.single";		// Long
+	public static final String ST_DISK_READ_BYTES_MULTIPLE		= "disk.read.bytes.multiple";	// Long
+	
 	public static final String ST_DISK_WRITE_QUEUE_LENGTH		= "disk.write.queue.length";	// Long
 	public static final String ST_DISK_WRITE_QUEUE_BYTES		= "disk.write.queue.bytes";		// Long
 	public static final String ST_DISK_WRITE_REQUEST_COUNT		= "disk.write.request.count";	// Long
+	public static final String ST_DISK_WRITE_REQUEST_BLOCKS		= "disk.write.request.blocks";	// Long
+	public static final String ST_DISK_WRITE_BYTES_TOTAL		= "disk.write.bytes.total";		// Long
+	public static final String ST_DISK_WRITE_BYTES_SINGLE		= "disk.write.bytes.single";	// Long
+	public static final String ST_DISK_WRITE_BYTES_MULTIPLE		= "disk.write.bytes.multiple";	// Long
+
+		// NETWORK
 	
 	public static final String ST_NET_TCP_OUT_CONNECT_QUEUE_LENGTH		= "net.tcp.outbound.connect.queue.length";	// Long
 	public static final String ST_NET_TCP_OUT_PENDING_QUEUE_LENGTH		= "net.tcp.outbound.pending.queue.length";	// Long
@@ -54,9 +68,18 @@ AzureusCoreStats
 		ST_DISK_READ_REQUEST_COUNT,
 		ST_DISK_READ_REQUEST_SINGLE,
 		ST_DISK_READ_REQUEST_MULTIPLE,
+		ST_DISK_READ_REQUEST_BLOCKS,
+		ST_DISK_READ_BYTES_TOTAL,
+		ST_DISK_READ_BYTES_SINGLE,
+		ST_DISK_READ_BYTES_MULTIPLE,
+		
 		ST_DISK_WRITE_QUEUE_LENGTH,
 		ST_DISK_WRITE_QUEUE_BYTES,
 		ST_DISK_WRITE_REQUEST_COUNT,
+		ST_DISK_WRITE_REQUEST_BLOCKS,
+		ST_DISK_WRITE_BYTES_TOTAL,
+		ST_DISK_WRITE_BYTES_SINGLE,
+		ST_DISK_WRITE_BYTES_MULTIPLE,
 		
 		ST_NET_TCP_OUT_CONNECT_QUEUE_LENGTH,
 		ST_NET_TCP_OUT_PENDING_QUEUE_LENGTH,

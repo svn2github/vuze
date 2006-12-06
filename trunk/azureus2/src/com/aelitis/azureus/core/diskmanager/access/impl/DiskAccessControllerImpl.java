@@ -96,6 +96,27 @@ DiskAccessControllerImpl
 			values.put( AzureusCoreStats.ST_DISK_READ_REQUEST_MULTIPLE, new Long( read_dispatcher.getTotalAggregatedRequests()));
 		}
 		
+		if ( types.contains( AzureusCoreStats.ST_DISK_READ_REQUEST_BLOCKS )){
+			
+			values.put( AzureusCoreStats.ST_DISK_READ_REQUEST_BLOCKS, new Long( read_dispatcher.getBlockCount()));
+		}
+		
+		if ( types.contains( AzureusCoreStats.ST_DISK_READ_BYTES_TOTAL )){
+			
+			values.put( AzureusCoreStats.ST_DISK_READ_BYTES_TOTAL, new Long( read_dispatcher.getTotalBytes()));
+		}
+
+		if ( types.contains( AzureusCoreStats.ST_DISK_READ_BYTES_SINGLE )){
+			
+			values.put( AzureusCoreStats.ST_DISK_READ_BYTES_SINGLE, new Long( read_dispatcher.getTotalSingleBytes()));
+		}
+
+		if ( types.contains( AzureusCoreStats.ST_DISK_READ_BYTES_MULTIPLE )){
+			
+			values.put( AzureusCoreStats.ST_DISK_READ_BYTES_MULTIPLE, new Long( read_dispatcher.getTotalAggregatedBytes()));
+		}
+
+
 			// write
 		
 		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_QUEUE_LENGTH )){
@@ -111,6 +132,26 @@ DiskAccessControllerImpl
 		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_REQUEST_COUNT )){
 			
 			values.put( AzureusCoreStats.ST_DISK_WRITE_REQUEST_COUNT, new Long( write_dispatcher.getTotalRequests()));
+		}
+		
+		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_REQUEST_BLOCKS )){
+			
+			values.put( AzureusCoreStats.ST_DISK_WRITE_REQUEST_BLOCKS, new Long( write_dispatcher.getBlockCount()));
+		}
+		
+		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_BYTES_TOTAL )){
+			
+			values.put( AzureusCoreStats.ST_DISK_WRITE_BYTES_TOTAL, new Long( write_dispatcher.getTotalBytes()));
+		}
+
+		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_BYTES_SINGLE )){
+			
+			values.put( AzureusCoreStats.ST_DISK_WRITE_BYTES_SINGLE, new Long( write_dispatcher.getTotalSingleBytes()));
+		}
+
+		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_BYTES_MULTIPLE )){
+			
+			values.put( AzureusCoreStats.ST_DISK_WRITE_BYTES_MULTIPLE, new Long( write_dispatcher.getTotalAggregatedBytes()));
 		}
 	}
 	

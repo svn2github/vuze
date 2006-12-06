@@ -26,6 +26,9 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -55,6 +58,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterface;
+import com.aelitis.azureus.core.stats.AzureusCoreStats;
 
 public class ConfigSectionLogging implements UISWTConfigSection {
   private static final LogIDs LOGID = LogIDs.GUI;
@@ -270,7 +274,6 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     
 		// network diagnostics
 	
-    /*
 	Label generate_net_info = new Label(gLogging, SWT.NULL);
 
 	generate_net_info.setText( "Generate network info" );
@@ -306,8 +309,50 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 				}
 			});
     
+	// stats
+	
+	Label generate_stats_info = new Label(gLogging, SWT.NULL);
+
+	generate_stats_info.setText( "Generate stats info" );
+	
+	Button generate_stats_button = new Button(gLogging, SWT.PUSH);
+
+	generate_stats_button.setText( "Go!" );
+	
+	generate_stats_button.addListener(
+			SWT.Selection, 
+			new Listener() 
+			{
+				public void 
+				handleEvent(Event event) 
+				{
+					java.util.Set	types = new HashSet();
+					
+					types.add( AzureusCoreStats.ST_ALL );
+					
+					Map	reply = AzureusCoreStats.getStats( types );
+					
+					Iterator	it = reply.entrySet().iterator();
+					
+					StringBuffer buffer = new StringBuffer(16000);
+					
+					while( it.hasNext()){
+						
+						Map.Entry	entry = (Map.Entry)it.next();
+						
+						buffer.append( entry.getKey() + " -> " + entry.getValue() + "\r\n" );
+					}
+					
+					String	str = buffer.toString();
+					
+					ClipboardCopy.copyToClipBoard( str );
+
+					Logger.log( new LogEvent(LOGID, "Stats Info:\n" + str));
+				}
+			});
+	
 		// diagnostics
-	*/
+
     
 	Label generate_info = new Label(gLogging, SWT.NULL);
 

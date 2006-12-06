@@ -54,6 +54,10 @@ DiskAccessControllerInstance
 	private long			total_single_requests_made;
 	private long			total_aggregated_requests_made;
 	
+	private long			total_bytes;
+	private long			total_single_bytes;
+	private long			total_aggregated_bytes;
+	
 	private requestDispatcher[]	dispatchers;
 	
 	private long		last_check		= 0;	
@@ -97,6 +101,12 @@ DiskAccessControllerInstance
 	}
 	
 	protected long
+	getBlockCount()
+	{
+		return( max_mb_sem.getBlockCount());
+	}
+	
+	protected long
 	getQueueSize()
 	{
 		return( requests_queued );
@@ -124,6 +134,24 @@ DiskAccessControllerInstance
 	getTotalAggregatedRequests()
 	{
 		return( total_aggregated_requests_made );
+	}
+	
+	public long
+	getTotalBytes()
+	{
+		return( total_bytes );
+	}
+	
+	public long
+	getTotalSingleBytes()
+	{
+		return( total_single_bytes );
+	}
+	
+	public long
+	getTotalAggregatedBytes()
+	{
+		return( total_aggregated_bytes );
 	}
 	
 	protected void
@@ -305,6 +333,17 @@ DiskAccessControllerInstance
 				
 					// let recursive calls straight through
 				
+				synchronized( requests ){
+
+					total_requests++;
+					
+					total_single_requests_made++;
+					
+					total_bytes	+= request.getSize();
+					
+					total_single_bytes += request.getSize();
+				}
+				
 				try{
 					request.runRequest();
 					
@@ -320,6 +359,8 @@ DiskAccessControllerInstance
 				synchronized( requests ){
 					
 					total_requests++;
+					
+					total_bytes	+= request.getSize();
 					
 					requests.add( request );
 					
@@ -456,6 +497,8 @@ DiskAccessControllerInstance
 														
 													}finally{
 														
+														total_single_bytes += request.getSize();
+														
 														releaseSpaceAllowance( request );
 													}		
 												}else{
@@ -470,7 +513,11 @@ DiskAccessControllerInstance
 														
 														for (int i=0;i<requests.length;i++){
 															
-															releaseSpaceAllowance( requests[i] );
+															DiskAccessRequestImpl	r = requests[i];
+															
+															total_aggregated_bytes += r.getSize();
+															
+															releaseSpaceAllowance( r );
 														}
 													}		
 												}
@@ -527,11 +574,19 @@ DiskAccessControllerInstance
 		
 		private List	waiters = new LinkedList();
 		
+		private long	blocks;
+		
 		protected
 		groupSemaphore(
 			int	_value )
 		{
 			value	= _value;
+		}
+		
+		protected long
+		getBlockCount()
+		{
+			return( blocks );
 		}
 		
 		protected void
@@ -551,6 +606,8 @@ DiskAccessControllerInstance
 					return;
 					
 				}else{
+					
+					blocks++;
 					
 					wait = new mutableInteger( num - value );
 										
