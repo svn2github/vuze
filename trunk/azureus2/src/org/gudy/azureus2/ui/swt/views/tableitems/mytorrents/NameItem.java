@@ -83,7 +83,7 @@ public class NameItem extends CoreTableColumn implements
 				if (fileInfo.length > 0) {
 					int idxBiggest = 0;
 					long lBiggest = fileInfo[0].getLength();
-					for (int i = 1; i < fileInfo.length; i++) {
+					for (int i = 1; i < fileInfo.length && i < 10; i++) {
 						if (fileInfo[i].getLength() > lBiggest) {
 							lBiggest = fileInfo[i].getLength();
 							idxBiggest = i;
