@@ -1468,6 +1468,26 @@ CacheFileWithCache
 	
 	public void
 	read(
+		DirectByteBuffer[]	buffers,
+		long				position,
+		short				policy )
+	
+		throws CacheFileManagerException
+	{
+		for (int i=0;i<buffers.length;i++){
+			
+			DirectByteBuffer	buffer = buffers[i];
+			
+			int	len = buffer.remaining( DirectByteBuffer.SS_CACHE );
+			
+			read( buffer, position, policy );
+			
+			position += len;
+		}
+	}
+	
+	public void
+	read(
 		DirectByteBuffer	buffer,
 		long				position,
 		short				policy )

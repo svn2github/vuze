@@ -57,6 +57,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.ipchecker"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.net.upnp.impl.services"/>
         <file path="/azureus2/ChangeLog.txt"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.stats"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.ui.config"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.sharing"/>
@@ -71,6 +72,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.instancemanager.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.router.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.peermanager.download.session"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.wizards.sendtorrent"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.transport"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.peermanager.peerdb"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.router"/>
@@ -92,6 +94,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.net.upnp.impl.device"/>
         <javaElement handleIdentifier="=azdiag/&lt;com.aelitis.azureus.core.monitoring.thread"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.asn1"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.win32"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.proxy"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.util.protocol.udp"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.pluginsuninstaller"/>

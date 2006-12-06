@@ -22,7 +22,10 @@
 
 package com.aelitis.azureus.core.diskmanager.access.impl;
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessRequest;
@@ -31,7 +34,7 @@ import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
 
 public class 
 DiskAccessRequestImpl
-	extends AERunnable
+
 	implements DiskAccessRequest
 {
 	protected static final short	OP_READ				= 1;
@@ -75,8 +78,8 @@ DiskAccessRequestImpl
 		return( size );
 	}
 	
-	public void
-	runSupport()
+	protected void
+	runRequest()
 	{
 		if ( cancelled ){
 			
@@ -109,6 +112,78 @@ DiskAccessRequestImpl
 		}
 	}
 	
+	protected boolean
+	canBeAggregatedWith(
+		DiskAccessRequestImpl	other )
+	{
+		return( op == other.getOperation() && cache_policy == other.getCachePolicy());
+	}
+	
+	protected static void
+	runAggregated(
+		DiskAccessRequestImpl		base_request,
+		DiskAccessRequestImpl[]		requests )
+	{
+			// assumption - they are all for the same file, sequential offsets and aggregatable, not cancelled
+		
+		int			op 				= base_request.getOperation();
+
+		if ( op == OP_READ ){
+			
+			CacheFile	file 			= base_request.getFile();
+			long		offset			= base_request.getOffset();
+			short		cache_policy	= base_request.getCachePolicy();
+			
+			DirectByteBuffer[]	buffers = new DirectByteBuffer[requests.length];
+			
+			long	current_offset 	= offset;
+			long	total_size		= 0;
+			
+			for (int i=0;i<buffers.length;i++){
+			
+				DiskAccessRequestImpl	request = requests[i];
+				
+				if ( current_offset != request.getOffset()){
+					
+					Debug.out( "assert failed: requests not contiguous" );
+				}
+				
+				int	size = request.getSize();
+				
+				current_offset += size;
+				
+				total_size += size;
+				
+				buffers[i] = request.getBuffer();
+			}
+			
+			try{				
+				file.read( buffers, offset, cache_policy );
+				
+				for (int i=0;i<requests.length;i++){
+
+					DiskAccessRequestImpl	request = requests[i];
+					
+					request.getListener().requestComplete( request );
+				}
+			}catch( Throwable e ){
+				
+				for (int i=0;i<requests.length;i++){
+
+					DiskAccessRequestImpl	request = requests[i];
+					
+					request.getListener().requestFailed( request, e );
+				}			
+			}
+		}else{
+			
+			for (int i=0;i<requests.length;i++){
+				
+				requests[i].runRequest();
+			}
+		}
+	}
+	
 	public CacheFile
 	getFile()
 	{
@@ -131,5 +206,29 @@ DiskAccessRequestImpl
 	cancel()
 	{
 		cancelled	= true;
+	}
+	
+	public boolean
+	isCancelled()
+	{
+		return( cancelled );
+	}
+	
+	public short
+	getCachePolicy()
+	{
+		return( cache_policy );
+	}
+	
+	protected int
+	getOperation()
+	{
+		return( op );
+	}
+	
+	protected DiskAccessRequestListener
+	getListener()
+	{
+		return( listener );
 	}
 }

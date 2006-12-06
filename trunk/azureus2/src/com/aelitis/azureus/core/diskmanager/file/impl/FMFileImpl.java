@@ -465,11 +465,21 @@ FMFileImpl
 	protected void
 	readSupport(
 		DirectByteBuffer	buffer,
-		long				offset )
+		long				position )
 	
 		throws FMFileManagerException
 	{
-		file_access.read( raf, buffer, offset );
+		readSupport(new DirectByteBuffer[]{buffer}, position );
+	}
+	
+	protected void
+	readSupport(
+		DirectByteBuffer[]	buffers,
+		long				position )
+	
+		throws FMFileManagerException
+	{
+		file_access.read( raf, buffers, position );
 	}
 	
 	protected void

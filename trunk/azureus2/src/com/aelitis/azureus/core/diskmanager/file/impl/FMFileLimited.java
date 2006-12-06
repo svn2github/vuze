@@ -163,6 +163,26 @@ FMFileLimited
 	
 	public void
 	read(
+		DirectByteBuffer[]	buffers,
+		long				offset )
+	
+		throws FMFileManagerException
+	{
+		try{
+			this_mon.enter();
+		
+			ensureOpen( "FMFileLimited:read" );
+			
+			readSupport( buffers, offset );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public void
+	read(
 		DirectByteBuffer	buffer,
 		long		offset )
 	

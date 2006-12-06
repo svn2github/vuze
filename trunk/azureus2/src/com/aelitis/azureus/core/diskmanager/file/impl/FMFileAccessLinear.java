@@ -38,6 +38,9 @@ FMFileAccessLinear
 	private static final int 	WRITE_RETRY_LIMIT		= 10;
 	private static final int	WRITE_RETRY_DELAY		= 100;
 	
+	private static final int 	READ_RETRY_LIMIT		= 10;
+	private static final int	READ_RETRY_DELAY		= 100;
+	
 	private static final boolean	DEBUG			= true;
 	private static final boolean	DEBUG_VERBOSE	= false;
 
@@ -103,8 +106,6 @@ FMFileAccessLinear
 			throw( new FMFileManagerException( "read - file is closed"));
 		}
 
-		long lRemainingBeforeRead = buffer.remaining(DirectByteBuffer.SS_FILE);
-
 		try{
 			fc.position(offset);
 			
@@ -113,6 +114,93 @@ FMFileAccessLinear
 				buffer.read(DirectByteBuffer.SS_FILE,fc);
 			}
 			
+		}catch ( Exception e ){
+			
+			Debug.printStackTrace( e );
+			
+			throw( new FMFileManagerException( "read fails", e ));
+		}
+	}
+	
+	public void
+	read(
+		RandomAccessFile	raf,
+		DirectByteBuffer[]	buffers,
+		long				offset )
+	
+		throws FMFileManagerException
+	{
+		if ( raf == null ){
+			
+			throw new FMFileManagerException( "read: raf is null" );
+		}
+    
+		FileChannel fc = raf.getChannel();
+    		
+		if ( !fc.isOpen()){
+			
+			Debug.out("FileChannel is closed: " + owner.getName());
+			
+			throw( new FMFileManagerException( "read - file is closed"));
+		}
+		
+		try{			
+			fc.position(offset);
+			
+			ByteBuffer[]	bbs = new ByteBuffer[buffers.length];
+			
+			ByteBuffer	last_bb	= null;
+			
+			for (int i=0;i<bbs.length;i++){
+				
+				bbs[i] = buffers[i].getBuffer(DirectByteBuffer.SS_FILE);
+				
+				if ( bbs[i].position() != bbs[i].limit()){
+					
+					last_bb	= bbs[i];
+				}
+			}
+			
+			if ( last_bb != null ){
+									  
+				int		loop			= 0;
+				
+				while( last_bb.position() != last_bb.limit()){
+					
+					long	read = fc.read( bbs );
+										
+					if ( read > 0 ){
+						
+						loop	= 0;
+						
+					}else{
+					
+						loop++;
+						
+						if ( loop == READ_RETRY_LIMIT ){
+							
+							Debug.out( "FMFile::read: zero length read - abandoning" );
+						
+							throw( new FMFileManagerException( "read fails: retry limit exceeded"));
+							
+						}else{
+							
+							if ( DEBUG_VERBOSE ){
+								
+								Debug.out( "FMFile::read: zero length read - retrying" );
+							}
+							
+							try{
+								Thread.sleep( READ_RETRY_DELAY*loop );
+								
+							}catch( InterruptedException e ){
+								
+								throw( new FMFileManagerException( "read fails: interrupted" ));
+							}
+						}
+					}						
+				}
+			}
 		}catch ( Exception e ){
 			
 			Debug.printStackTrace( e );

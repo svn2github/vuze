@@ -135,6 +135,26 @@ FMFileUnlimited
 		}
 	}
 	
+	public void
+	read(
+		DirectByteBuffer[]	buffers,
+		long				offset )
+	
+		throws FMFileManagerException
+	{
+		try{
+			this_mon.enter();
+
+			ensureOpen( "FMFileUnlimited:read" );
+		
+			readSupport( buffers, offset );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
 	
 	public void
 	write(

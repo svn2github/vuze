@@ -97,6 +97,12 @@ FMFile
 	
 		throws FMFileManagerException;
 	
+	public void
+	read(
+		DirectByteBuffer[]	buffers,
+		long				offset )
+	
+		throws FMFileManagerException;
 	
 	public void
 	write(

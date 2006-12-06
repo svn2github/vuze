@@ -187,16 +187,39 @@ CacheFileWithoutCache
 	
 	public void
 	read(
+		DirectByteBuffer[]	buffers,
+		long				position,
+		short				policy )
+	
+		throws CacheFileManagerException
+	{
+		int	read_length	= 0;
+		
+		for (int i=0;i<buffers.length;i++){
+			
+			read_length += buffers[i].limit(DirectByteBuffer.SS_CACHE) - buffers[i].position(DirectByteBuffer.SS_CACHE);
+		}
+		
+		try{			
+			file.read( buffers, position );
+			
+			manager.fileBytesRead( read_length );
+
+		}catch( FMFileManagerException e ){
+				
+			manager.rethrow(this,e);
+		}
+	}
+	
+	public void
+	read(
 		DirectByteBuffer	buffer,
 		long				position,
 		short				policy )
 	
 		throws CacheFileManagerException
 	{
-		int	file_buffer_position	= buffer.position(DirectByteBuffer.SS_CACHE);
-		int	file_buffer_limit		= buffer.limit(DirectByteBuffer.SS_CACHE);
-		
-		int	read_length	= file_buffer_limit - file_buffer_position;
+		int	read_length	= buffer.limit(DirectByteBuffer.SS_CACHE) - buffer.position(DirectByteBuffer.SS_CACHE);
 
 		try{			
 			file.read( buffer, position );

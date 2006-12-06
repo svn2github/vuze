@@ -22,16 +22,21 @@
 
 package com.aelitis.azureus.core.diskmanager.access.impl;
 
+import java.util.*;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessRequest;
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessRequestListener;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
+import com.aelitis.azureus.core.stats.AzureusCoreStats;
+import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 
 public class 
 DiskAccessControllerImpl
-	implements DiskAccessController
+	implements DiskAccessController, AzureusCoreStatsProvider
 {
 	private	DiskAccessControllerInstance	read_dispatcher;
 	private	DiskAccessControllerInstance	write_dispatcher;
@@ -43,8 +48,70 @@ DiskAccessControllerImpl
 		int 	_max_write_threads,
 		int		_max_write_mb )
 	{		
-		read_dispatcher 	= new DiskAccessControllerInstance( "read", _max_read_threads, _max_read_mb );
-		write_dispatcher 	= new DiskAccessControllerInstance( "write", _max_write_threads, _max_write_mb );
+		boolean	enable_read_aggregation 	= COConfigurationManager.getBooleanParameter( "diskmanager.perf.read.aggregate.enable", false );
+		boolean	enable_write_aggregation 	= COConfigurationManager.getBooleanParameter( "diskmanager.perf.write.aggregate.enable", false );
+		
+		read_dispatcher 	= new DiskAccessControllerInstance( "read", enable_read_aggregation, _max_read_threads, _max_read_mb );
+		write_dispatcher 	= new DiskAccessControllerInstance( "write", enable_write_aggregation, _max_write_threads, _max_write_mb );
+		
+		Set	types = new HashSet();
+		
+		types.add( AzureusCoreStats.ST_DISK_READ_QUEUE_LENGTH );
+		
+		AzureusCoreStats.registerProvider(
+			types,
+			this );
+			
+	}
+	
+	public void
+	updateStats(
+		Set		types,
+		Map		values )
+	{
+			//read
+		
+		if ( types.contains( AzureusCoreStats.ST_DISK_READ_QUEUE_LENGTH )){
+			
+			values.put( AzureusCoreStats.ST_DISK_READ_QUEUE_LENGTH, new Long( read_dispatcher.getQueueSize()));
+		}
+		
+		if ( types.contains( AzureusCoreStats.ST_DISK_READ_QUEUE_BYTES )){
+			
+			values.put( AzureusCoreStats.ST_DISK_READ_QUEUE_BYTES, new Long( read_dispatcher.getQueuedBytes()));
+		}
+		
+		if ( types.contains( AzureusCoreStats.ST_DISK_READ_REQUEST_COUNT )){
+			
+			values.put( AzureusCoreStats.ST_DISK_READ_REQUEST_COUNT, new Long( read_dispatcher.getTotalRequests()));
+		}
+		
+		if ( types.contains( AzureusCoreStats.ST_DISK_READ_REQUEST_SINGLE )){
+			
+			values.put( AzureusCoreStats.ST_DISK_READ_REQUEST_SINGLE, new Long( read_dispatcher.getTotalSingleRequests()));
+		}
+		
+		if ( types.contains( AzureusCoreStats.ST_DISK_READ_REQUEST_MULTIPLE )){
+			
+			values.put( AzureusCoreStats.ST_DISK_READ_REQUEST_MULTIPLE, new Long( read_dispatcher.getTotalAggregatedRequests()));
+		}
+		
+			// write
+		
+		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_QUEUE_LENGTH )){
+			
+			values.put( AzureusCoreStats.ST_DISK_WRITE_QUEUE_LENGTH, new Long( write_dispatcher.getQueueSize()));
+		}
+		
+		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_QUEUE_BYTES )){
+			
+			values.put( AzureusCoreStats.ST_DISK_WRITE_QUEUE_BYTES, new Long( write_dispatcher.getQueuedBytes()));
+		}
+		
+		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_REQUEST_COUNT )){
+			
+			values.put( AzureusCoreStats.ST_DISK_WRITE_REQUEST_COUNT, new Long( write_dispatcher.getTotalRequests()));
+		}
 	}
 	
 	public DiskAccessRequest

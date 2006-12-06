@@ -106,6 +106,14 @@ CacheFile
 		throws CacheFileManagerException;
 	
 	public void
+	read(
+		DirectByteBuffer[]	buffers,
+		long				offset,
+		short				policy )
+	
+		throws CacheFileManagerException;
+
+	public void
 	write(
 		DirectByteBuffer	buffer,
 		long				position )

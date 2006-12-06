@@ -47,7 +47,7 @@ FMFileAccess
 	public void
 	read(
 		RandomAccessFile	raf,
-		DirectByteBuffer	buffer,
+		DirectByteBuffer[]	buffers,
 		long				offset )
 	
 		throws FMFileManagerException;
