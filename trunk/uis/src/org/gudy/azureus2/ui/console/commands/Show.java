@@ -17,8 +17,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -43,6 +45,7 @@ import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.stats.AzureusCoreStats;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 /**
@@ -81,6 +84,7 @@ public class Show extends IConsoleCommand {
 		out.println("files\t\t\tf\tShow list of files found from the 'add -f' command (also available by 'add -l')");
 		out.println("dht\t\t\td\tShow distributed database statistics");
 		out.println("nat\t\t\tn\tShow NAT status");
+		out.println("stats [pattern]\t\ts\tShow stats");
 		out.println("torrents [opts] [expr]\tt\tShow list of torrents. torrent options may be any (or none) of:");
 		out.println("\t\tactive\t\ta\tShow only active torrents.");
 		out.println("\t\tcomplete\tc\tShow only complete torrents.");
@@ -203,6 +207,30 @@ public class Show extends IConsoleCommand {
 			iw.setForce( true );
 			
 			NetworkAdmin.getSingleton().logNATStatus( iw );
+		
+		} else if (subCommand.equalsIgnoreCase("stats") || subCommand.equalsIgnoreCase("s")) {
+
+			String	pattern = AzureusCoreStats.ST_ALL;
+			
+			if( args.size() > 0 ){
+				
+				pattern = (String)args.get(0);
+			}
+		
+			java.util.Set	types = new HashSet();
+			
+			types.add( pattern );
+			
+			Map	reply = AzureusCoreStats.getStats( types );
+			
+			Iterator	it = reply.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				ci.out.println( entry.getKey() + " -> " + entry.getValue());
+			}
 			
 		} else {
 			if ((ci.torrents == null) || (ci.torrents != null) && ci.torrents.isEmpty()) {
