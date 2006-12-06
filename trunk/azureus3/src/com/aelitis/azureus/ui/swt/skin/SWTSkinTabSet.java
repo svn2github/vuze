@@ -11,7 +11,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author TuxPaper
@@ -106,58 +108,62 @@ public class SWTSkinTabSet
 		return false;
 	}
 
-	public void setActiveTab(SWTSkinObjectTab newTab) {
-		// Don't exit early if we are already on tab.  We want to be notified if
-		// the user clicks on the tab again (for example, for page refreshing)
-		if (!tabs.contains(newTab)) {
-			System.err.println("No contain in " + sID + ": " + newTab);
-			return;
-		}
-
-		String sOldID = activeTab == null ? "" : activeTab.getSkinObjectID();
-
-		SWTSkinObject[] objects = setTabVisible(newTab, true, null);
-		if (newTab != activeTab) {
-			if (activeTab != null) {
-				setTabVisible(activeTab, false, objects);
-			}
-
-			activeTab = newTab;
-		} else {
-			System.err.println("Already on tab " + newTab + " in " + sID);
-		}
-
-		String sConfigID = activeTab.getConfigID();
-		String sNewID = activeTab.getSkinObjectID();
-
-		SWTSkinObject parent = skin.getSkinObject(skinProperties.getStringValue(sConfigID
-				+ ".activate"));
-		if (parent != null) {
-			parent.getControl().setFocus();
-		}
-
-		if (org.gudy.azureus2.core3.util.Constants.isOSX) {
-			boolean bHasSkinBrowser = false;
-			SWTSkinObject[] activeWidgets = activeTab.getActiveWidgets();
-			for (int i = 0; i < activeWidgets.length; i++) {
-				SWTSkinObject skinObject = activeWidgets[i];
-				if (hasSkinBrowser(skinObject)) {
-					bHasSkinBrowser = true;
-					break;
+	public void setActiveTab(final SWTSkinObjectTab newTab) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				// Don't exit early if we are already on tab.  We want to be notified if
+				// the user clicks on the tab again (for example, for page refreshing)
+				if (!tabs.contains(newTab)) {
+					System.err.println("No contain in " + sID + ": " + newTab);
+					return;
 				}
-			}
 
-			if (bHasSkinBrowser) {
-				Shell shell = activeTab.getControl().getShell();
-				Point size = shell.getSize();
-				size.x -= 1;
-				shell.setSize(size);
-				size.x += 1;
-				shell.setSize(size);
-			}
-		}
+				String sOldID = activeTab == null ? "" : activeTab.getSkinObjectID();
 
-		triggerChangeListener(sOldID, sNewID);
+				SWTSkinObject[] objects = setTabVisible(newTab, true, null);
+				if (newTab != activeTab) {
+					if (activeTab != null) {
+						setTabVisible(activeTab, false, objects);
+					}
+
+					activeTab = newTab;
+				} else {
+					System.err.println("Already on tab " + newTab + " in " + sID);
+				}
+
+				String sConfigID = activeTab.getConfigID();
+				String sNewID = activeTab.getSkinObjectID();
+
+				SWTSkinObject parent = skin.getSkinObject(skinProperties.getStringValue(sConfigID
+						+ ".activate"));
+				if (parent != null) {
+					parent.getControl().setFocus();
+				}
+
+				if (org.gudy.azureus2.core3.util.Constants.isOSX) {
+					boolean bHasSkinBrowser = false;
+					SWTSkinObject[] activeWidgets = activeTab.getActiveWidgets();
+					for (int i = 0; i < activeWidgets.length; i++) {
+						SWTSkinObject skinObject = activeWidgets[i];
+						if (hasSkinBrowser(skinObject)) {
+							bHasSkinBrowser = true;
+							break;
+						}
+					}
+
+					if (bHasSkinBrowser) {
+						Shell shell = activeTab.getControl().getShell();
+						Point size = shell.getSize();
+						size.x -= 1;
+						shell.setSize(size);
+						size.x += 1;
+						shell.setSize(size);
+					}
+				}
+
+				triggerChangeListener(sOldID, sNewID);
+			}
+		});
 	}
 
 	private boolean hasSkinBrowser(SWTSkinObject skinObject) {
