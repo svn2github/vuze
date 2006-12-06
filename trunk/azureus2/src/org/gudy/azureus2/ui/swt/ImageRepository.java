@@ -285,7 +285,8 @@ public class ImageRepository {
 		Image image = null;
 
 		try {
-			image = (Image) images.get(ext);
+			String id = ext + (bBig ? "-big" : "");
+			image = (Image) images.get(id);
 
 			if (image == null) {
 					ImageData imageData = null;
@@ -316,7 +317,7 @@ public class ImageRepository {
 
 					if (imageData != null) {
 						image = new Image(null, imageData);
-						images.put(ext + (bBig ? "-big" : ""), image);
+						images.put(id, image);
 					}
 			}
 		} catch (Throwable e) {
