@@ -219,12 +219,17 @@ TRTrackerServerImpl
 	private COConfigurationListener		config_listener;
 	private boolean						destroyed;
 	
+	private boolean						is_ready;
+	
 	public
 	TRTrackerServerImpl(
-		String		_name )
+		String		_name,
+		boolean		_start_up_ready )
 	{
 		name		= _name==null?DEFAULT_NAME:_name;
-
+		is_ready	= _start_up_ready;
+		
+		
 		config_listener = 
 			new COConfigurationListener()
 			{
@@ -286,7 +291,18 @@ TRTrackerServerImpl
 		key_enabled = COConfigurationManager.getBooleanParameter("Tracker Key Enable Server");
 	}
 
-
+	public void
+	setReady()
+	{
+		is_ready	= true;
+	}
+	
+	public final boolean
+	isReady()
+	{
+		return( is_ready );
+	}
+	
 	public boolean
 	isWebPasswordEnabled()
 	{

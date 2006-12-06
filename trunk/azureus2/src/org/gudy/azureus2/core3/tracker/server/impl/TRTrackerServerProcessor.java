@@ -79,6 +79,11 @@ TRTrackerServerProcessor
 	{
 		server	= _server;
 			
+		if ( !server.isReady()){
+			
+			throw( new TRTrackerServerException( "Tracker initialising, please wait" ));
+		}
+		
 		boolean	ip_override = real_ip_address != client_ip_address;
 		
 		boolean	loopback	= TRTrackerUtils.isLoopback( real_ip_address );

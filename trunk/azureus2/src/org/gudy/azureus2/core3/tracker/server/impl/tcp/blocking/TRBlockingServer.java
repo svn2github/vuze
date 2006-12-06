@@ -58,11 +58,12 @@ TRBlockingServer
 		int			_port,
 		InetAddress	_bind_ip,
 		boolean		_ssl,
-		boolean		_apply_ip_filter )
+		boolean		_apply_ip_filter,
+		boolean		_start_up_ready )
 		
 		throws TRTrackerServerException
 	{
-		super( _name, _port, _ssl, _apply_ip_filter );
+		super( _name, _port, _ssl, _apply_ip_filter, _start_up_ready );
 		
 		boolean	ok = false;
 		

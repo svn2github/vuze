@@ -52,6 +52,9 @@ TRTrackerServer
 	public String
 	getHost();
 	
+	public void
+	setReady();
+	
 	public boolean
 	isSSL();
 		

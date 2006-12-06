@@ -51,9 +51,10 @@ TRTrackerServerUDP
 	public
 	TRTrackerServerUDP(
 		String	_name,
-		int		_port )
+		int		_port,
+		boolean	_start_up_ready )
 	{
-		super( _name );
+		super( _name, _start_up_ready );
 		
 		port		= _port;
 		

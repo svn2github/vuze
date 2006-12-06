@@ -90,7 +90,21 @@ TRNonBlockingServer
 		
 		throws TRTrackerServerException
 	{
-		super( _name, _port, false, _apply_ip_filter );
+		this( _name, _port, _bind_ip, _apply_ip_filter, true, _processor_factory );
+	}
+	
+	public
+	TRNonBlockingServer(
+		String								_name,
+		int									_port,
+		InetAddress							_bind_ip,
+		boolean								_apply_ip_filter,
+		boolean								_start_up_ready,
+		TRNonBlockingServerProcessorFactory	_processor_factory )
+		
+		throws TRTrackerServerException
+	{
+		super( _name, _port, false, _apply_ip_filter, _start_up_ready );
 		
 		processor_factory	= _processor_factory;
 		

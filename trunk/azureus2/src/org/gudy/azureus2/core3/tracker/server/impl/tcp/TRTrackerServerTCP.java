@@ -70,11 +70,12 @@ TRTrackerServerTCP
 		String		_name,
 		int			_port,
 		boolean		_ssl,
-		boolean		_apply_ip_filter )
+		boolean		_apply_ip_filter,
+		boolean		_start_up_ready )
 		
 		throws TRTrackerServerException
 	{
-		super( _name );
+		super( _name, _start_up_ready );
 		
 		port					= _port;
 		ssl						= _ssl;
