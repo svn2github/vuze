@@ -369,6 +369,12 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 		cArea.setLayout(layout);
 		cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
+		BooleanParameter popup_dl_added = new BooleanParameter(cArea,
+				"Popup Download Added", LBLKEY_PREFIX + "popupdownloadadded");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		popup_dl_added.setLayoutData(gridData);
+		
 		BooleanParameter popup_dl_completed = new BooleanParameter(cArea,
 				"Popup Download Finished", LBLKEY_PREFIX + "popupdownloadfinished");
 		gridData = new GridData();

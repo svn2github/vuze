@@ -57,6 +57,8 @@ UserAlerts
   	
     private AEMonitor	this_mon 	= new AEMonitor( "UserAlerts" );
     
+    private boolean startup = true;
+    
 	public 
 	UserAlerts(
 		GlobalManager	global_manager ) 
@@ -138,6 +140,16 @@ UserAlerts
 				public void 
 				downloadManagerAdded(DownloadManager manager) 
 				{
+					if (!startup) {
+  					boolean bPopup = COConfigurationManager.getBooleanParameter("Popup Download Added");
+  					if (bPopup) {
+  						String popup_text = MessageText.getString("popup.download.added",
+  								new String[] { manager.getDisplayName()
+  						});
+  						Logger.log(new LogAlert(true, LogAlert.AT_INFORMATION, popup_text));
+  					}
+					}
+					
 					manager.addListener( download_manager_listener );
 					
 					manager.addDiskListener( dm_disk_listener );
@@ -156,7 +168,8 @@ UserAlerts
 				{
 					tidyUp();
 				} 		
-			}); 			
+			}); 
+    	startup = false;
      }
 
   	protected void activityFinished(boolean	download, String item_name)
