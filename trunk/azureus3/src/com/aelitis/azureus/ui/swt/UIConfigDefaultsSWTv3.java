@@ -22,7 +22,9 @@ package com.aelitis.azureus.ui.swt;
 
 import java.io.File;
 
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
@@ -35,24 +37,55 @@ public class UIConfigDefaultsSWTv3
 {
 	public static void initialize() {
 		ConfigurationManager config = ConfigurationManager.getInstance();
-      
-      if( System.getProperty("FORCE_PROGRESSIVE", "" ).length() > 0 ) {  //TODO HACK FOR DEMO PURPOSES ONLY!
-         config.setParameter( "Prioritize First Piece", true );   
-         config.save();
-      }
-      
-		if (config.isNewInstall()) {
-			config.setParameter("Auto Upload Speed Enabled", true);
-			config.setParameter("Wizard Completed", true);
-			config.setParameter("Use default data dir", true);
-			config.setParameter("Add URL Silently", true);
-			config.setParameter("add_torrents_silently", true);
 
-			config.setParameter("Status Area Show SR", false);
-			config.setParameter("Status Area Show NAT", false);
-			config.setParameter("Status Area Show IPF", false);         
-         
-			config.setParameter("window.maximized", true);
+		if (System.getProperty("FORCE_PROGRESSIVE", "").length() > 0) { //TODO HACK FOR DEMO PURPOSES ONLY!
+			config.setParameter("Prioritize First Piece", true);
+			config.save();
+		}
+
+		// Up to az > 3.0.0.2, we did not store the original version the user starts
+		// on.
+		// However, we'd like to change the config defaults for AZ3 users while
+		// keeping az2 users at their present defaults.  To do this, we check
+		// default save path.  If it's userPath + "data", there's a very good
+		// chance the user started on az3.
+
+		String sFirstVersion = config.getStringParameter("First Recorded Version",
+				"");
+		
+		if (sFirstVersion == null || sFirstVersion.length() == 0) {
+			if (config.isNewInstall()) {
+				sFirstVersion = Constants.AZUREUS_VERSION;
+			} else {
+  			String userPath = SystemProperties.getUserPath();
+  			File f = new File(userPath, "data");
+  			String sDefSavePath = config.getStringParameter("Default save path");
+  			if (sDefSavePath != null && f.equals(new File(sDefSavePath))) {
+  				sFirstVersion = "3.0.0.0";
+  			} else {
+  				sFirstVersion = "2.5.0.0"; // guess
+  			}
+			}
+			config.setParameter("First Recorded Version", sFirstVersion);
+			config.save();
+		}
+
+		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0) {
+			ConfigurationDefaults defaults = ConfigurationDefaults.getInstance();
+
+			defaults.addParameter("Auto Upload Speed Enabled", true);
+			defaults.addParameter("Wizard Completed", true);
+			defaults.addParameter("Use default data dir", true);
+			defaults.addParameter("Add URL Silently", true);
+			defaults.addParameter("add_torrents_silently", true);
+			defaults.addParameter("Popup Download Finished", true);
+			defaults.addParameter("Popup Download Added", true);
+
+			defaults.addParameter("Status Area Show SR", false);
+			defaults.addParameter("Status Area Show NAT", false);
+			defaults.addParameter("Status Area Show IPF", false);
+
+			defaults.addParameter("window.maximized", true);
 
 			String userPath = SystemProperties.getUserPath();
 			File f = new File(userPath, "data");
