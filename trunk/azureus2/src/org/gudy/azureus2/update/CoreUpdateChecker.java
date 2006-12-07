@@ -41,7 +41,6 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-import org.gudy.azureus2.pluginsimpl.local.update.UpdateManagerImpl;
 
 import com.aelitis.azureus.core.versioncheck.*;
 
@@ -50,6 +49,18 @@ public class
 CoreUpdateChecker
 	implements Plugin, UpdatableComponent
 {
+		// test setting to grab the torrent from private location
+	
+	private static final boolean	UPDATE_FROM_AELITIS_TRACKER	= false;
+	
+	static{
+		if ( UPDATE_FROM_AELITIS_TRACKER ){
+			
+			System.err.println( "**** TEST MODE: Core Update loading from private location **** " );
+		}
+	}
+	
+	
 	public static final String	LATEST_VERSION_PROPERTY	= "latest_version";
 	public static final String	MESSAGE_PROPERTY		= "message";
 	
@@ -191,39 +202,47 @@ CoreUpdateChecker
 			final String	f_latest_version	= latest_version;
 			final String	f_latest_file_name	= latest_file_name;
 			
-
-			ResourceDownloader[]	primary_mirrors;
+			ResourceDownloader	top_downloader;
+			
+			if ( UPDATE_FROM_AELITIS_TRACKER ){
 				
-			primary_mirrors = getPrimaryDownloaders( latest_file_name );
-
-				// the download hierarchy is primary mirrors first (randomised alternate)
-				// then backup mirrors (randomised alternate)
-			
-				// we don't want to load the backup mirrors until the primary mirrors fail
-			
-			ResourceDownloader		random_primary_mirrors = rdf.getRandomDownloader( primary_mirrors );
-			
-			ResourceDownloader		backup_downloader =
-				rdf.create(
-					new ResourceDownloaderDelayedFactory()
-					{
-						public ResourceDownloader
-						create()
+				top_downloader = rdf.create( new URL( Constants.AELITIS_TORRENTS + latest_file_name ));
+				
+				top_downloader = rdf.getSuffixBasedDownloader( top_downloader );
+				
+			}else{
+				ResourceDownloader[]	primary_mirrors;
+					
+				primary_mirrors = getPrimaryDownloaders( latest_file_name );
+	
+					// the download hierarchy is primary mirrors first (randomised alternate)
+					// then backup mirrors (randomised alternate)
+				
+					// we don't want to load the backup mirrors until the primary mirrors fail
+				
+				ResourceDownloader		random_primary_mirrors = rdf.getRandomDownloader( primary_mirrors );
+				
+				ResourceDownloader		backup_downloader =
+					rdf.create(
+						new ResourceDownloaderDelayedFactory()
 						{
-							ResourceDownloader[]	backup_mirrors = getBackupDownloaders( f_latest_file_name );
-						
-							return( rdf.getRandomDownloader( backup_mirrors ));
-						}
-					});
-			
-			ResourceDownloader	top_downloader = 
-				rdf.getAlternateDownloader( 
-						new ResourceDownloader[]
+							public ResourceDownloader
+							create()
 							{
-								random_primary_mirrors,
-								backup_downloader,
-							});
-			
+								ResourceDownloader[]	backup_mirrors = getBackupDownloaders( f_latest_file_name );
+							
+								return( rdf.getRandomDownloader( backup_mirrors ));
+							}
+						});
+				
+				top_downloader = 
+					rdf.getAlternateDownloader( 
+							new ResourceDownloader[]
+								{
+									random_primary_mirrors,
+									backup_downloader,
+								});
+			}
 
 			top_downloader.addListener( rd_logger );
 			
