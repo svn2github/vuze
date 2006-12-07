@@ -31,6 +31,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.json.JSONString;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageListener;
 import com.aelitis.azureus.util.Constants;
@@ -177,12 +178,19 @@ public class BrowserContext extends ClientMessageContextImpl implements
 				// http://moo.com:8080/dr
 				// https://moo.com/dr
 				// https://moo.com:80/dr
-				String regex = "https?://"
-						+ Constants.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/"
-						+ Constants.URL_NAMESPACE.replaceAll("\\.", "\\\\.") + ".*";
-				if (!event.location.matches(regex)) {
+
+				String[] whitelist = PlatformConfigMessenger.getDomainWhitelist();
+				boolean ok = false;
+				for (int i = 0; i < whitelist.length; i++) {
+					if (event.location.matches(whitelist[i])) {
+						ok = true;
+						break;
+					}
+				}
+				if (!ok) {
 					debug("Canceling URL change to external: " + event.location
-							+ " (does not match " + regex);
+							+ " (does not match one of the " + whitelist.length
+							+ " whitelist entries)");
 					event.doit = false;
 				} else {
 					if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
