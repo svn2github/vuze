@@ -50,7 +50,7 @@ public class PlatformConfigMessenger
 		+ Constants.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/"
 		+ Constants.URL_NAMESPACE.replaceAll("\\.", "\\\\.") + ".*";
 	
-	private static String[] sDomainWhiteList = new String[] {
+	private static String[] sURLWhiteList = new String[] {
 		DEFAULT_WHITELIST
 	};
 
@@ -117,8 +117,8 @@ public class PlatformConfigMessenger
 					Object jsonReply) {
 				if (jsonReply instanceof JSONObject) {
 					JSONObject jsonObject = (JSONObject)jsonReply;
-					if (jsonObject.has("domain-whitelist")) {
-						JSONArray array = jsonObject.getJSONArray("domain-whitelist");
+					if (jsonObject.has("url-whitelist")) {
+						JSONArray array = jsonObject.getJSONArray("url-whitelist");
 						String[] sNewWhiteList = new String[array.length() + 1];
 						sNewWhiteList[0] = DEFAULT_WHITELIST;
 
@@ -126,7 +126,7 @@ public class PlatformConfigMessenger
 							String string = array.getString(i);
 							sNewWhiteList[i+1] = string;
 						}
-						sDomainWhiteList = sNewWhiteList;
+						sURLWhiteList = sNewWhiteList;
 					}
 				}
 			}
@@ -164,7 +164,7 @@ public class PlatformConfigMessenger
 		public void replyReceived(Map[] browseSections);
 	}
 	
-	public static String[] getDomainWhitelist() {
-		return sDomainWhiteList;
+	public static String[] getURLWhitelist() {
+		return sURLWhiteList;
 	}
 }

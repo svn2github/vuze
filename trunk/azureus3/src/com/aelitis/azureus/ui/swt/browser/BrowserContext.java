@@ -179,7 +179,7 @@ public class BrowserContext extends ClientMessageContextImpl implements
 				// https://moo.com/dr
 				// https://moo.com:80/dr
 
-				String[] whitelist = PlatformConfigMessenger.getDomainWhitelist();
+				String[] whitelist = PlatformConfigMessenger.getURLWhitelist();
 				boolean ok = false;
 				for (int i = 0; i < whitelist.length; i++) {
 					if (event.location.matches(whitelist[i])) {
