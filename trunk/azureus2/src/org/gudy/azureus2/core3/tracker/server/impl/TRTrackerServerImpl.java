@@ -196,7 +196,7 @@ TRTrackerServerImpl
 	
 	private int		current_min_poll_interval;
 	
-	private TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl();
+	private TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl( this );
 		
 	private String	name;
 	private boolean	web_password_enabled;
@@ -757,6 +757,12 @@ TRTrackerServerImpl
 			
 			class_mon.exit();
 		}
+	}
+	
+	public int
+	getTorrentCount()
+	{
+		return( torrent_map.size());
 	}
 	
 	public TRTrackerServerTorrentStats

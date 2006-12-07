@@ -32,8 +32,23 @@ public class
 TRTrackerServerStatsImpl
 	implements TRTrackerServerStats
 {
+	private TRTrackerServerImpl	server;
+	
 	protected long		bytes_in;
 	protected long		bytes_out;
+	
+	protected
+	TRTrackerServerStatsImpl(
+		TRTrackerServerImpl	_server )
+	{
+		server	= _server;
+	}
+	
+	public int
+	getTorrentCount()
+	{
+		return( server.getTorrentCount());
+	}
 	
 	public long
 	getBytesIn()
