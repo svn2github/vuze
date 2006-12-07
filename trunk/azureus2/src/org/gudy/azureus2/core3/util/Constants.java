@@ -67,7 +67,7 @@ Constants
     //      2.0.8.3_Bnn       // incremental build
   
   public static final String AZUREUS_NAME	  = "Azureus";
-  public static final String AZUREUS_VERSION  = "2.5.0.1_CVS";  //2.5.0.1_CVS
+  public static final String AZUREUS_VERSION  = "3.0.0.1_B2";  //2.5.0.1_CVS
   public static final byte[] VERSION_ID       = ("-" + "AZ" + "2501" + "-").getBytes();  //MUST be 8 chars long!
   
   
@@ -192,6 +192,9 @@ Constants
 			if ( version_2.startsWith("." )){
 				version_2 = "0" + version_2;
 			}
+
+			version_1 = version_1.replaceAll("[^0-9.]", ".");
+			version_2 = version_2.replaceAll("[^0-9.]", ".");
 			
 			StringTokenizer	tok1 = new StringTokenizer(version_1,".");
 			StringTokenizer	tok2 = new StringTokenizer(version_2,".");
@@ -232,5 +235,13 @@ Constants
 			
 			return( 0 );
 		}
+	}
+	
+	public static void main(String[] args) {
+		System.out.println(compareVersions("3.0.0.1", "3.0.0.0"));
+		System.out.println(compareVersions("3.0.0.0_B1", "3.0.0.0"));
+		System.out.println(compareVersions("3.0.0.0", "3.0.0.0_B1"));
+		System.out.println(compareVersions("3.0.0.0_B1", "3.0.0.0_B4"));
+		System.out.println(compareVersions("3.0.0.0..B1", "3.0.0.0_B4"));
 	}
 }
