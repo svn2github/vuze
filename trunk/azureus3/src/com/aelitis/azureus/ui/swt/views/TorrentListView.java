@@ -230,6 +230,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		_expandNameColumn();
 	}
 
+	// XXX Please get rid of me!  I suck and I am slow
 	public void regetDownloads() {
 		ListRow[] selectedRows = getSelectedRows();
 		final int[] rowIndexes = new int[selectedRows.length];
