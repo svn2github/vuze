@@ -42,8 +42,7 @@ public class SinglePeerUploader implements RateControlledEntity {
     this.connection = connection;
     this.rate_handler = rate_handler;
   }
-  
-  
+    
 ////////////////RateControlledWriteEntity implementation ////////////////////
   
   public boolean canProcess(EventWaiter waiter) {
@@ -116,6 +115,30 @@ public class SinglePeerUploader implements RateControlledEntity {
   
   public int getPriority() {
     return RateControlledEntity.PRIORITY_NORMAL;
+  }
+
+  public long
+  getBytesReadyToWrite()
+  {
+	  return( connection.getOutgoingMessageQueue().getTotalSize());
+  }
+  
+  public int
+  getConnectionCount()
+  {
+	  return( 1 );
+  }
+  
+  public int
+  getReadyConnectionCount(
+	EventWaiter	waiter )
+  {
+	  if ( connection.getTransportBase().isReadyForWrite(waiter)){
+		  
+		  return( 1 );
+	  }
+	  
+	  return( 0 );
   }
 
 /////////////////////////////////////////////////////////////////////////////

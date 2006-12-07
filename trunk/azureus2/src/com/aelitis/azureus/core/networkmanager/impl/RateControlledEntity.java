@@ -37,7 +37,7 @@ public interface RateControlledEntity {
    * Guaranteed scheduling of processing ops, with preference over normal-priority entities.
    */
   public static final int PRIORITY_HIGH   = 1;
-  
+    
   /**
    * Is ready for a processing op.
    * @return true if it can process >0 bytes, false if not ready
@@ -55,4 +55,18 @@ public interface RateControlledEntity {
    * @return priority
    */
   public int getPriority();
+  
+  	/**
+  	 * stats functions
+  	 * @return
+  	 */
+  
+  public long
+  getBytesReadyToWrite();
+  
+  public int
+  getConnectionCount();
+  
+  public int
+  getReadyConnectionCount( EventWaiter waiter );
 }

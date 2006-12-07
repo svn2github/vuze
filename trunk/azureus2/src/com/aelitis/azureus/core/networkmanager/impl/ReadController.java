@@ -23,25 +23,49 @@
 package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
+import com.aelitis.azureus.core.stats.AzureusCoreStats;
+import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 
 
 
 /**
  * Processes reads of read-entities and handles the read selector.
  */
-public class ReadController {
+public class ReadController implements AzureusCoreStatsProvider{
+	
+	private static int IDLE_SLEEP_TIME  = 50;
+	   
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"network.control.read.idle.time",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					IDLE_SLEEP_TIME 	= COConfigurationManager.getIntParameter( name );
+				}
+			});
+	}
+	
   private volatile ArrayList normal_priority_entities = new ArrayList();  //copied-on-write
   private volatile ArrayList high_priority_entities = new ArrayList();  //copied-on-write
   private final AEMonitor entities_mon = new AEMonitor( "ReadController:EM" );
   private int next_normal_position = 0;
   private int next_high_position = 0;
-  
-  private static final int IDLE_SLEEP_TIME = 50;
-  
+    
+  private long	wait_count;
+
   private EventWaiter 	read_waiter = new EventWaiter();
 
   
@@ -56,10 +80,55 @@ public class ReadController {
     read_processor_thread.setDaemon( true );
     read_processor_thread.setPriority( Thread.MAX_PRIORITY - 1 );
     read_processor_thread.start();
+    
+    Set	types = new HashSet();
+    
+    types.add( AzureusCoreStats.ST_NET_READ_CONTROL_WAIT_COUNT );
+    types.add( AzureusCoreStats.ST_NET_READ_CONTROL_ENTITY_COUNT );
+    types.add( AzureusCoreStats.ST_NET_READ_CONTROL_CON_COUNT );
+    types.add( AzureusCoreStats.ST_NET_READ_CONTROL_READY_CON_COUNT );
+    
+    AzureusCoreStats.registerProvider(
+    	types,
+    	this );
   }
   
+  public void
+  updateStats(
+		  Set		types,
+		  Map		values )
+  {
+	  if ( types.contains( AzureusCoreStats.ST_NET_READ_CONTROL_WAIT_COUNT )){
 
-  
+		  values.put( AzureusCoreStats.ST_NET_READ_CONTROL_WAIT_COUNT, new Long( wait_count  ));
+	  }
+	  
+	  if ( types.contains( AzureusCoreStats.ST_NET_READ_CONTROL_ENTITY_COUNT )){
+
+		  values.put( AzureusCoreStats.ST_NET_READ_CONTROL_ENTITY_COUNT, new Long( high_priority_entities.size() + normal_priority_entities.size()));
+	  }
+	  
+	  if ( 	types.contains( AzureusCoreStats.ST_NET_READ_CONTROL_CON_COUNT ) ||
+			types.contains( AzureusCoreStats.ST_NET_READ_CONTROL_READY_CON_COUNT )){
+		   
+		  ArrayList ref = normal_priority_entities;
+		    
+		  int	ready_connections	= 0;
+		  int	connections			= 0;
+		  
+		  for (int i=0;i<ref.size();i++){
+			  
+		      RateControlledEntity entity = (RateControlledEntity)ref.get( i );
+		      
+		      connections 		+= entity.getConnectionCount();
+		      
+		      ready_connections += entity.getReadyConnectionCount( read_waiter );
+		  }
+		  
+		  values.put( AzureusCoreStats.ST_NET_READ_CONTROL_CON_COUNT, new Long( connections ));
+		  values.put( AzureusCoreStats.ST_NET_READ_CONTROL_READY_CON_COUNT, new Long( ready_connections ));
+	  }
+  }
 
   
   
@@ -73,7 +142,9 @@ public class ReadController {
           check_high_first = false;
           if( !doHighPriorityRead() ) {
             if( !doNormalPriorityRead() ) {
-            	read_waiter.waitForEvent( IDLE_SLEEP_TIME ); 
+            	if ( read_waiter.waitForEvent( IDLE_SLEEP_TIME )){
+            		wait_count++;
+            	}
             }
           }
         }
@@ -81,7 +152,9 @@ public class ReadController {
           check_high_first = true;
           if( !doNormalPriorityRead() ) {
             if( !doHighPriorityRead() ) {
-            	read_waiter.waitForEvent( IDLE_SLEEP_TIME ); 
+            	if ( read_waiter.waitForEvent( IDLE_SLEEP_TIME )){
+            		wait_count++;
+            	}
             }
           }
         }

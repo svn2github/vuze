@@ -30,7 +30,7 @@ EventWaiter
 	private boolean	sleeping;
 	private boolean	wakeup_outstanding;
 	
-	public void
+	public boolean
 	waitForEvent(
 		long	timeout )
 	{
@@ -40,7 +40,7 @@ EventWaiter
 								
 				wakeup_outstanding	= false;
 				
-				return;
+				return( false );
 			}
 			
 			try{
@@ -56,6 +56,8 @@ EventWaiter
 				
 				sleeping	= false;
 			}
+			
+			return( true );
 		}
 	}
 	

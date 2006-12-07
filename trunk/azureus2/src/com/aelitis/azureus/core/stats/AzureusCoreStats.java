@@ -35,7 +35,7 @@ AzureusCoreStats
 	
 		// DISK
 	
-	public static final String ST_DISK							= "disk\\.*";
+	public static final String ST_DISK							= "disk.*";
 	public static final String ST_DISK_READ_QUEUE_LENGTH		= "disk.read.queue.length";		// Long
 	public static final String ST_DISK_READ_QUEUE_BYTES			= "disk.read.queue.bytes";		// Long
 	public static final String ST_DISK_READ_REQUEST_COUNT		= "disk.read.request.count";	// Long
@@ -56,6 +56,18 @@ AzureusCoreStats
 
 		// NETWORK
 	
+	public static final String ST_NET_WRITE_CONTROL_WAIT_COUNT			= "net.write.control.wait.count";		// Long
+	public static final String ST_NET_WRITE_CONTROL_ENTITY_COUNT		= "net.write.control.entity.count";	
+	public static final String ST_NET_WRITE_CONTROL_CON_COUNT			= "net.write.control.con.count";			// Long
+	public static final String ST_NET_WRITE_CONTROL_READY_CON_COUNT		= "net.write.control.ready.con.count";	// Long
+	public static final String ST_NET_WRITE_CONTROL_READY_BYTE_COUNT	= "net.write.control.ready.byte.count";	// Long
+
+	public static final String ST_NET_READ_CONTROL_WAIT_COUNT			= "net.read.control.wait.count";			// Long
+	public static final String ST_NET_READ_CONTROL_ENTITY_COUNT			= "net.read.control.entity.count";		// Long
+	public static final String ST_NET_READ_CONTROL_CON_COUNT			= "net.read.control.con.count";			// Long
+	public static final String ST_NET_READ_CONTROL_READY_CON_COUNT		= "net.read.control.ready.con.count";	// Long
+	
+
 	public static final String ST_NET_TCP_OUT_CONNECT_QUEUE_LENGTH		= "net.tcp.outbound.connect.queue.length";	// Long
 	public static final String ST_NET_TCP_OUT_PENDING_QUEUE_LENGTH		= "net.tcp.outbound.pending.queue.length";	// Long
 	public static final String ST_NET_TCP_OUT_CANCEL_QUEUE_LENGTH		= "net.tcp.outbound.cancel.queue.length";	// Long
@@ -81,6 +93,16 @@ AzureusCoreStats
 		ST_DISK_WRITE_BYTES_SINGLE,
 		ST_DISK_WRITE_BYTES_MULTIPLE,
 		
+		ST_NET_WRITE_CONTROL_WAIT_COUNT,
+		ST_NET_WRITE_CONTROL_ENTITY_COUNT,
+		ST_NET_WRITE_CONTROL_CON_COUNT,
+		ST_NET_WRITE_CONTROL_READY_CON_COUNT,
+		ST_NET_WRITE_CONTROL_READY_BYTE_COUNT,
+		ST_NET_READ_CONTROL_WAIT_COUNT,
+		ST_NET_READ_CONTROL_ENTITY_COUNT,
+		ST_NET_READ_CONTROL_CON_COUNT,
+		ST_NET_READ_CONTROL_READY_CON_COUNT,
+		
 		ST_NET_TCP_OUT_CONNECT_QUEUE_LENGTH,
 		ST_NET_TCP_OUT_PENDING_QUEUE_LENGTH,
 		ST_NET_TCP_OUT_CANCEL_QUEUE_LENGTH,
@@ -100,6 +122,11 @@ AzureusCoreStats
 		while( it.hasNext()){
 			
 			String	type = (String)it.next();
+			
+			if ( !type.endsWith("*")){
+				
+				type = type + ".*";
+			}
 			
 			Pattern pattern = Pattern.compile( type );
 						

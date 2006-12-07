@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
+import java.util.Iterator;
+
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -53,8 +55,7 @@ public class SinglePeerDownloader implements RateControlledEntity {
     }
     return true;
   }
-  
-  
+    
   public boolean doProcessing( EventWaiter waiter ) {
     if( !connection.getTransportBase().isReadyForRead(waiter) )  {
       return false;
@@ -109,5 +110,27 @@ public class SinglePeerDownloader implements RateControlledEntity {
     return RateControlledEntity.PRIORITY_NORMAL;
   }
 
+  public long
+  getBytesReadyToWrite()
+  {
+	  return( 0 );
+  }
   
+  public int
+  getConnectionCount()
+  {
+	  return( 1 );
+  }
+  
+  public int
+  getReadyConnectionCount(
+	EventWaiter	waiter )
+  {
+	  if ( connection.getTransportBase().isReadyForRead( waiter)){
+		  
+		  return( 1 );
+	  }
+	  
+	  return( 0 );
+  }
 }

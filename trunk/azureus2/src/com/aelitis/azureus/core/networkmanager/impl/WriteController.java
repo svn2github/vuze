@@ -24,24 +24,44 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
+import com.aelitis.azureus.core.stats.AzureusCoreStats;
+import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 
 
 /**
  * Processes writes of write-entities and handles the write selector.
  */
-public class WriteController {
+public class WriteController implements AzureusCoreStatsProvider{
   
+	private static int IDLE_SLEEP_TIME  = 50;
+	   
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"network.control.write.idle.time",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					IDLE_SLEEP_TIME 	= COConfigurationManager.getIntParameter( name );
+				}
+			});
+	}
+	
   private volatile ArrayList normal_priority_entities = new ArrayList();  //copied-on-write
   private volatile ArrayList high_priority_entities = new ArrayList();  //copied-on-write
   private final AEMonitor entities_mon = new AEMonitor( "WriteController:EM" );
   private int next_normal_position = 0;
   private int next_high_position = 0;
   
-  private static final int IDLE_SLEEP_TIME  = 50;
-   
+   private long	wait_count;
+  
   private EventWaiter 	write_waiter = new EventWaiter();
   
   /**
@@ -58,8 +78,61 @@ public class WriteController {
     write_processor_thread.setDaemon( true );
     write_processor_thread.setPriority( Thread.MAX_PRIORITY - 1 );
     write_processor_thread.start();
-  }
     
+    Set	types = new HashSet();
+    
+    types.add( AzureusCoreStats.ST_NET_WRITE_CONTROL_WAIT_COUNT );
+    types.add( AzureusCoreStats.ST_NET_WRITE_CONTROL_ENTITY_COUNT );
+    types.add( AzureusCoreStats.ST_NET_WRITE_CONTROL_CON_COUNT );
+    types.add( AzureusCoreStats.ST_NET_WRITE_CONTROL_READY_CON_COUNT );
+    types.add( AzureusCoreStats.ST_NET_WRITE_CONTROL_READY_BYTE_COUNT );
+       
+    AzureusCoreStats.registerProvider(
+    	types,
+    	this );
+  }
+  
+  public void
+  updateStats(
+		  Set		types,
+		  Map		values )
+  {
+	  if ( types.contains( AzureusCoreStats.ST_NET_WRITE_CONTROL_WAIT_COUNT )){
+
+		  values.put( AzureusCoreStats.ST_NET_WRITE_CONTROL_WAIT_COUNT, new Long( wait_count ));
+	  }
+	  
+	  if ( types.contains( AzureusCoreStats.ST_NET_WRITE_CONTROL_ENTITY_COUNT )){
+
+		  values.put( AzureusCoreStats.ST_NET_WRITE_CONTROL_ENTITY_COUNT, new Long( high_priority_entities.size() + normal_priority_entities.size()));
+	  }
+	  
+	  if ( 	types.contains( AzureusCoreStats.ST_NET_WRITE_CONTROL_CON_COUNT ) ||
+			types.contains( AzureusCoreStats.ST_NET_WRITE_CONTROL_READY_CON_COUNT ) ||
+			types.contains( AzureusCoreStats.ST_NET_WRITE_CONTROL_READY_BYTE_COUNT )){
+			   
+		  ArrayList ref = normal_priority_entities;
+		    
+		  long	ready_bytes			= 0;
+		  int	ready_connections	= 0;
+		  int	connections			= 0;
+		  
+		  for (int i=0;i<ref.size();i++){
+			  
+		      RateControlledEntity entity = (RateControlledEntity)ref.get( i );
+		      
+		      connections 		+= entity.getConnectionCount();
+		      
+		      ready_connections += entity.getReadyConnectionCount( write_waiter );
+		      
+		      ready_bytes		+= entity.getBytesReadyToWrite();
+		  }
+		  
+		  values.put( AzureusCoreStats.ST_NET_WRITE_CONTROL_CON_COUNT, new Long( connections ));
+		  values.put( AzureusCoreStats.ST_NET_WRITE_CONTROL_READY_CON_COUNT, new Long( ready_connections ));
+		  values.put( AzureusCoreStats.ST_NET_WRITE_CONTROL_READY_BYTE_COUNT, new Long( ready_bytes ));
+	  }
+  }
   
   private void writeProcessorLoop() {
     boolean check_high_first = true;
@@ -70,7 +143,9 @@ public class WriteController {
           check_high_first = false;
           if( !doHighPriorityWrite() ) {
             if( !doNormalPriorityWrite() ) {
-              write_waiter.waitForEvent( IDLE_SLEEP_TIME );
+              if ( write_waiter.waitForEvent( IDLE_SLEEP_TIME )){
+            	  wait_count++;
+              }
             }
           }
         }
@@ -78,7 +153,9 @@ public class WriteController {
           check_high_first = true;
           if( !doNormalPriorityWrite() ) {
             if( !doHighPriorityWrite() ) {
-            	write_waiter.waitForEvent( IDLE_SLEEP_TIME );
+            	if ( write_waiter.waitForEvent( IDLE_SLEEP_TIME )){
+            		wait_count++;
+            	}
             }
           }
         }

@@ -380,6 +380,76 @@ public class MultiPeerUploader implements RateControlledEntity {
     private long last_message_added_time;
   }
   
+  public long
+  getBytesReadyToWrite()
+  {
+	  long	total = 0;
+	  
+	  try {
+		  lists_lock.enter();
+
+		  for( Iterator i = waiting_connections.keySet().iterator(); i.hasNext(); ) {
+			 
+			  NetworkConnectionBase conn = (NetworkConnectionBase)i.next();
+			  
+			  total += conn.getOutgoingMessageQueue().getTotalSize();
+		  }
+		  
+		  for( Iterator i = ready_connections.iterator(); i.hasNext(); ) {
+				 
+			  NetworkConnectionBase conn = (NetworkConnectionBase)i.next();
+			  
+			  total += conn.getOutgoingMessageQueue().getTotalSize();
+		  }
+	  }finally{
+		  
+		  lists_lock.exit();
+	  }
+	  
+	  return( total );
+  }
+  
+  public int
+  getConnectionCount()
+  {
+	  return( waiting_connections.size() + ready_connections.size());
+  }
+  
+  public int
+  getReadyConnectionCount(
+	EventWaiter	waiter )
+  {
+	  int	total = 0;
+	  
+	  try {
+		  lists_lock.enter();
+
+		  for( Iterator i = waiting_connections.keySet().iterator(); i.hasNext(); ) {
+			 
+			  NetworkConnectionBase conn = (NetworkConnectionBase)i.next();
+			  
+			  if ( conn.getTransportBase().isReadyForWrite(waiter)){
+				  
+				  total++;
+			  }
+		  }
+		  
+		  for( Iterator i = ready_connections.iterator(); i.hasNext(); ) {
+				 
+			  NetworkConnectionBase conn = (NetworkConnectionBase)i.next();
+			  
+			  if ( conn.getTransportBase().isReadyForWrite(waiter)){
+				  
+				  total++;
+			  }
+		  }
+	  }finally{
+		  
+		  lists_lock.exit();
+	  }
+	  
+	  return( total );
+  }
   
   //////////////// RateControlledWriteEntity implementation ////////////////////
   

@@ -94,8 +94,36 @@ public class MultiPeerDownloader implements RateControlledEntity {
     return true;
   }
 
+  public long
+  getBytesReadyToWrite()
+  {
+	  return( 0 );
+  }
   
+  public int
+  getConnectionCount()
+  {
+	  return(connections_cow.size());
+  }
   
+  public int
+  getReadyConnectionCount(
+	EventWaiter	waiter )
+  {
+	  int	res = 0;
+	  
+	  for (Iterator it=connections_cow.iterator();it.hasNext();){
+	      
+	      NetworkConnectionBase connection = (NetworkConnectionBase)it.next();
+	      
+	      if ( connection.getTransportBase().isReadyForRead( waiter )){
+	    	  
+	    	  res++;
+	      }
+	  }
+	  
+	  return( res );
+  }
   
   public boolean doProcessing( EventWaiter waiter ) {
     int num_bytes_allowed = main_handler.getCurrentNumBytesAllowed();

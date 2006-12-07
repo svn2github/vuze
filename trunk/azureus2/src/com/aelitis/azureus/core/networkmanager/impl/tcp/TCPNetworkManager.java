@@ -35,7 +35,8 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 public class 
 TCPNetworkManager 
 {  
-	private static final int SELECT_LOOP_TIME = 25;
+	private static int WRITE_SELECT_LOOP_TIME 	= 25;
+	private static int READ_SELECT_LOOP_TIME	= 25;
 	
 	protected static int tcp_mss_size;
 	  
@@ -56,6 +57,19 @@ TCPNetworkManager
 						String name )
 					{
 						TCP_INCOMING_ENABLED = TCP_OUTGOING_ENABLED = COConfigurationManager.getBooleanParameter( name );
+					}
+				});
+		
+		COConfigurationManager.addAndFireParameterListeners(
+				new String[]{ "network.tcp.read.select.time", "network.tcp.write.select.time"  },
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String name )
+					{
+						WRITE_SELECT_LOOP_TIME 	= COConfigurationManager.getIntParameter(  "network.tcp.write.select.time" );
+						READ_SELECT_LOOP_TIME 	= COConfigurationManager.getIntParameter(  "network.tcp.read.select.time" );
 					}
 				});
 	}
@@ -170,7 +184,7 @@ TCPNetworkManager
 	  private void readSelectorLoop() {
 		    while( true ) {
 		      try {
-		        read_selector.select( SELECT_LOOP_TIME );
+		        read_selector.select( READ_SELECT_LOOP_TIME );
 		      }
 		      catch( Throwable t ) {
 		        Debug.out( "readSelectorLoop() EXCEPTION: ", t );
@@ -181,7 +195,7 @@ TCPNetworkManager
 	  private void writeSelectorLoop() {
 		    while( true ) {
 		      try {
-		        write_selector.select( SELECT_LOOP_TIME );
+		        write_selector.select( WRITE_SELECT_LOOP_TIME );
 		      }
 		      catch( Throwable t ) {
 		        Debug.out( "writeSelectorLoop() EXCEPTION: ", t );
