@@ -57,11 +57,24 @@ DiskAccessControllerImpl
 		Set	types = new HashSet();
 		
 		types.add( AzureusCoreStats.ST_DISK_READ_QUEUE_LENGTH );
+		types.add( AzureusCoreStats.ST_DISK_READ_QUEUE_BYTES );
+		types.add( AzureusCoreStats.ST_DISK_READ_REQUEST_COUNT );
+		types.add( AzureusCoreStats.ST_DISK_READ_REQUEST_SINGLE );
+		types.add( AzureusCoreStats.ST_DISK_READ_REQUEST_MULTIPLE );
+		types.add( AzureusCoreStats.ST_DISK_READ_REQUEST_BLOCKS );
+		types.add( AzureusCoreStats.ST_DISK_READ_BYTES_TOTAL );
+		types.add( AzureusCoreStats.ST_DISK_READ_BYTES_SINGLE );
+		types.add( AzureusCoreStats.ST_DISK_READ_BYTES_MULTIPLE );
 		
-		AzureusCoreStats.registerProvider(
-			types,
-			this );
-			
+		types.add( AzureusCoreStats.ST_DISK_WRITE_QUEUE_LENGTH );
+		types.add( AzureusCoreStats.ST_DISK_WRITE_QUEUE_BYTES );
+		types.add( AzureusCoreStats.ST_DISK_WRITE_REQUEST_COUNT );
+		types.add( AzureusCoreStats.ST_DISK_WRITE_REQUEST_BLOCKS );
+		types.add( AzureusCoreStats.ST_DISK_WRITE_BYTES_TOTAL );
+		types.add( AzureusCoreStats.ST_DISK_WRITE_BYTES_SINGLE );
+		types.add( AzureusCoreStats.ST_DISK_WRITE_BYTES_MULTIPLE );
+		
+		AzureusCoreStats.registerProvider( types, this );
 	}
 	
 	public void
@@ -115,7 +128,6 @@ DiskAccessControllerImpl
 			
 			values.put( AzureusCoreStats.ST_DISK_READ_BYTES_MULTIPLE, new Long( read_dispatcher.getTotalAggregatedBytes()));
 		}
-
 
 			// write
 		

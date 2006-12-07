@@ -26,7 +26,11 @@ package com.aelitis.azureus.core.stats;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 public class 
 AzureusCoreStats 
@@ -73,43 +77,61 @@ AzureusCoreStats
 	public static final String ST_NET_TCP_OUT_CANCEL_QUEUE_LENGTH		= "net.tcp.outbound.cancel.queue.length";	// Long
 	public static final String ST_NET_TCP_OUT_CLOSE_QUEUE_LENGTH		= "net.tcp.outbound.close.queue.length";	// Long
 
-	private static final String[] _ST_ALL = {
+	private static final Integer	POINT 		= new Integer(1);
+	private static final Integer	CUMULATIVE 	= new Integer(1);
+	
+	private static final Map		stats_types	= new HashMap();
+	
+	private static final Object[][] _ST_ALL = {
 		
-		ST_DISK_READ_QUEUE_LENGTH,
-		ST_DISK_READ_QUEUE_BYTES,
-		ST_DISK_READ_REQUEST_COUNT,
-		ST_DISK_READ_REQUEST_SINGLE,
-		ST_DISK_READ_REQUEST_MULTIPLE,
-		ST_DISK_READ_REQUEST_BLOCKS,
-		ST_DISK_READ_BYTES_TOTAL,
-		ST_DISK_READ_BYTES_SINGLE,
-		ST_DISK_READ_BYTES_MULTIPLE,
+		{ ST_DISK_READ_QUEUE_LENGTH,				POINT },
+		{ ST_DISK_READ_QUEUE_BYTES,					POINT },
+		{ ST_DISK_READ_REQUEST_COUNT,				CUMULATIVE },
+		{ ST_DISK_READ_REQUEST_SINGLE,				CUMULATIVE },
+		{ ST_DISK_READ_REQUEST_MULTIPLE,			CUMULATIVE },
+		{ ST_DISK_READ_REQUEST_BLOCKS,				CUMULATIVE },
+		{ ST_DISK_READ_BYTES_TOTAL,					CUMULATIVE },
+		{ ST_DISK_READ_BYTES_SINGLE,				CUMULATIVE },
+		{ ST_DISK_READ_BYTES_MULTIPLE,				CUMULATIVE },
 		
-		ST_DISK_WRITE_QUEUE_LENGTH,
-		ST_DISK_WRITE_QUEUE_BYTES,
-		ST_DISK_WRITE_REQUEST_COUNT,
-		ST_DISK_WRITE_REQUEST_BLOCKS,
-		ST_DISK_WRITE_BYTES_TOTAL,
-		ST_DISK_WRITE_BYTES_SINGLE,
-		ST_DISK_WRITE_BYTES_MULTIPLE,
+		{ ST_DISK_WRITE_QUEUE_LENGTH,				POINT },
+		{ ST_DISK_WRITE_QUEUE_BYTES,				POINT },
+		{ ST_DISK_WRITE_REQUEST_COUNT,				CUMULATIVE },
+		{ ST_DISK_WRITE_REQUEST_BLOCKS,				CUMULATIVE },
+		{ ST_DISK_WRITE_BYTES_TOTAL,				CUMULATIVE },
+		{ ST_DISK_WRITE_BYTES_SINGLE,				CUMULATIVE },
+		{ ST_DISK_WRITE_BYTES_MULTIPLE,				CUMULATIVE },
 		
-		ST_NET_WRITE_CONTROL_WAIT_COUNT,
-		ST_NET_WRITE_CONTROL_ENTITY_COUNT,
-		ST_NET_WRITE_CONTROL_CON_COUNT,
-		ST_NET_WRITE_CONTROL_READY_CON_COUNT,
-		ST_NET_WRITE_CONTROL_READY_BYTE_COUNT,
-		ST_NET_READ_CONTROL_WAIT_COUNT,
-		ST_NET_READ_CONTROL_ENTITY_COUNT,
-		ST_NET_READ_CONTROL_CON_COUNT,
-		ST_NET_READ_CONTROL_READY_CON_COUNT,
+		{ ST_NET_WRITE_CONTROL_WAIT_COUNT,			CUMULATIVE },
+		{ ST_NET_WRITE_CONTROL_ENTITY_COUNT,		POINT },
+		{ ST_NET_WRITE_CONTROL_CON_COUNT,			POINT },
+		{ ST_NET_WRITE_CONTROL_READY_CON_COUNT,		POINT },
+		{ ST_NET_WRITE_CONTROL_READY_BYTE_COUNT,	POINT },
+		{ ST_NET_READ_CONTROL_WAIT_COUNT,			CUMULATIVE },
+		{ ST_NET_READ_CONTROL_ENTITY_COUNT,			POINT },
+		{ ST_NET_READ_CONTROL_CON_COUNT,			POINT },
+		{ ST_NET_READ_CONTROL_READY_CON_COUNT,		POINT },
 		
-		ST_NET_TCP_OUT_CONNECT_QUEUE_LENGTH,
-		ST_NET_TCP_OUT_PENDING_QUEUE_LENGTH,
-		ST_NET_TCP_OUT_CANCEL_QUEUE_LENGTH,
-		ST_NET_TCP_OUT_CLOSE_QUEUE_LENGTH,
+		{ ST_NET_TCP_OUT_CONNECT_QUEUE_LENGTH,		POINT },
+		{ ST_NET_TCP_OUT_PENDING_QUEUE_LENGTH,		POINT },
+		{ ST_NET_TCP_OUT_CANCEL_QUEUE_LENGTH,		POINT },
+		{ ST_NET_TCP_OUT_CLOSE_QUEUE_LENGTH,		POINT },
 	};
 	
-	private static List	providers = new ArrayList();
+	static{
+		
+		for (int i=0;i<_ST_ALL.length;i++){
+			
+			stats_types.put( _ST_ALL[i][0], _ST_ALL[i][1] );
+		}
+	}
+	
+	private static final List	providers 	= new ArrayList();
+	
+	private static  Map	averages	= new HashMap();
+	
+	private static boolean 	enable_averages;
+	private static Timer	average_timer;
 	
 	public static Map
 	getStats(
@@ -132,7 +154,7 @@ AzureusCoreStats
 						
 			for (int i=0;i<_ST_ALL.length;i++){
 				
-				String	s = _ST_ALL[i];
+				String	s = (String)_ST_ALL[i][0];
 				
 				if ( pattern.matcher( s ).matches()){
 					
@@ -156,6 +178,31 @@ AzureusCoreStats
 			}
 		}
 		
+		Map	ave = averages;
+		
+		if ( ave != null ){
+			
+			it = result.keySet().iterator();
+			
+			Map	ave_results = new HashMap();
+			
+			while( it.hasNext()){
+								
+				String	key = (String)it.next();
+				
+				Object[]	a_entry = (Object[])ave.get( key );
+				
+				if ( a_entry != null ){
+					
+					Average	average = (Average)a_entry[0];
+					
+					ave_results.put( key + ".average", new Long( average.getAverage()));
+				}
+			}
+			
+			result.putAll( ave_results );
+		}
+		
 		return( result );
 	}
 	
@@ -168,5 +215,116 @@ AzureusCoreStats
 			
 			providers.add( new Object[]{ types, provider });
 		}
+	}
+	
+	public static synchronized void
+	setEnableAverages(
+		boolean		enabled )
+	{
+		if ( enabled == enable_averages ){
+			
+			return;
+		}
+		
+		enable_averages = enabled;
+		
+		if ( enabled ){
+			
+			if ( average_timer == null ){
+				
+				average_timer = new Timer( "AzureusCoreStats:average" );
+				
+				averages = new HashMap();
+				
+				average_timer.addPeriodicEvent(
+					1000,
+					new TimerEventPerformer()
+					{
+						private Map	ave = averages;
+
+						public void
+						perform(
+							TimerEvent	event )
+						{							
+							for (int i=0;i<providers.size();i++){
+								
+								Object[]	provider_entry = (Object[])providers.get(i);
+								
+								try{
+									Set						 types 		= (Set)provider_entry[0];
+									AzureusCoreStatsProvider provider 	= (AzureusCoreStatsProvider)provider_entry[1];
+									
+									Map	result = new HashMap();
+									
+									provider.updateStats( types, result );
+									
+									Iterator	it = result.entrySet().iterator();
+									
+									while( it.hasNext()){
+										
+										Map.Entry	entry = (Map.Entry)it.next();
+										
+										String	key 	= (String)entry.getKey();
+										Object	value 	= entry.getValue();
+										
+										if ( value instanceof Long ){
+											
+											long	last_value;
+											Average	a;
+											
+											Object[] a_entry = (Object[])ave.get( key );
+											
+											if ( a_entry == null ){
+			
+												a 			= Average.getInstance( 1000, 10 );
+												last_value	= 0;
+												
+												a_entry = new Object[]{ a, value };
+												
+												ave.put( key, a_entry );
+												
+											}else{
+												a			= (Average)a_entry[0];
+												last_value	= ((Long)a_entry[1]).longValue();
+											}
+											
+											if ( stats_types.get( key ) == CUMULATIVE ){
+											
+												a.addValue(((Long)value).longValue() - last_value);
+												
+											}else{
+												
+												a.addValue(((Long)value).longValue());
+
+											}
+											
+											a_entry[1] = value;
+										}
+									}
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+							}
+						}
+					});
+			}
+		}else{
+			
+			if ( average_timer != null ){
+				
+				average_timer.destroy();
+				
+				average_timer = null;
+				
+				averages	= null;
+			}
+		}
+	}
+	
+	public static boolean
+	getEnableAverages()
+	{
+		return( enable_averages );
 	}
 }
