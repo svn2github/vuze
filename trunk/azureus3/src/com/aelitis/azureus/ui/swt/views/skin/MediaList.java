@@ -101,13 +101,18 @@ public class MediaList extends SkinView
 				return true;
 			}
 
+			public void regetDownloads() {
+				// called when a download state changed (stupid)
+				//  No need to regetDownloads, as we get all downloads
+			}
+
 			public void updateUI() {
 				super.updateUI();
 
 				if (!skinDetailInfo.getControl().isVisible()) {
 					return;
 				}
-				
+
 				if (view.getSelectedRows().length != 1) {
 					updateDetailsInfo();
 				}
@@ -297,18 +302,23 @@ public class MediaList extends SkinView
 		if (rows.length == 0 || rows.length > 1) {
 			int completed = 0;
 			ListRow[] rowsUnsorted = view.getRowsUnsorted();
+
+			if (rowsUnsorted.length == 0) {
+				return;
+			}
+
 			int all = rowsUnsorted.length;
 			for (int i = 0; i < all; i++) {
 				ListRow row = rowsUnsorted[i];
-				DownloadManager dm = (DownloadManager)row.getDataSource(true);
+				DownloadManager dm = (DownloadManager) row.getDataSource(true);
 				if (dm != null) {
 					if (dm.isDownloadComplete(false)) {
 						completed++;
 					}
 				}
-				
+
 			}
-			
+
 			skinDetailInfo.setText(MessageText.getString(
 					"MainWindow.v3.myMedia.noneSelected", new String[] {
 						"" + all,
@@ -333,7 +343,7 @@ public class MediaList extends SkinView
 		}
 		skinDetailInfo.setText(sText);
 	}
-	
+
 	private void update() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -358,5 +368,5 @@ public class MediaList extends SkinView
 			}
 		});
 	}
-	
+
 }
