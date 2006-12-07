@@ -76,7 +76,9 @@ public class Constants
 
 	public static final String PLATFORM_PAGE = "/" + URL_NAMESPACE 	+ "/PublishNewContent.html";
 
-	
+
+	public static final boolean DIAG_TO_STDOUT = System.getProperty("DIAG_TO_STDOUT", "0").equals("1"); 
+
 	
 	public static void initialize(AzureusCore core) {
 		URL_SUFFIX = "azid=" + Base32.encode(core.getCryptoManager().getSecureID());
