@@ -180,6 +180,11 @@ public class MessageBoxShell
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
 							if (!shell.isDisposed()) {
+								boolean bDelayPaused = lblCloseIn.getData("DelayPaused") != null;
+								if (bDelayPaused) {
+									return;
+								}
+
 								long endOn = ((Long) lblCloseIn.getData("CloseOn")).longValue();
 								if (SystemTime.getCurrentTime() > endOn) {
 									result[0] = defaultOption;
@@ -190,7 +195,6 @@ public class MessageBoxShell
 									if (lblCloseIn == null || lblCloseIn.isDisposed())
 										return;
 
-									boolean bDelayPaused = lblCloseIn.getData("DelayPaused") != null;
 									if (!bDelayPaused) {
 										long delaySecs = (endOn - SystemTime.getCurrentTime()) / 1000;
 										sText = MessageText.getString("popup.closing.in",
@@ -212,6 +216,7 @@ public class MessageBoxShell
 				public void mouseEnter(MouseEvent e) {
 					lblCloseIn.setData("DelayPaused", "");
 					lEnterOn = SystemTime.getCurrentTime();
+					lblCloseIn.setText("");
 				}
 
 				public void mouseExit(MouseEvent e) {
