@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.SplashWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -178,6 +179,33 @@ public class MainWindow implements SWTSkinTabSetListener
 			Debug.out(e);
 		}
 
+		// Show a popup when user adds a download
+		if (skin != null && PlatformTorrentUtils.isContent(torrent)) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					SWTSkinTabSet tabSetMain = skin.getTabSet("maintabs");
+					if (tabSetMain != null
+							&& !tabSetMain.getActiveTab().getSkinObjectID().equals(
+									"maintabs.home")) {
+						Display current = Display.getCurrent();
+						// checking focusControl for null doesn't really work
+						// Preferably, we'd check to see if the app has the OS' focus
+						// and not display the popup when it doesn't
+						if (current != null && current.getFocusControl() != null
+								&& !MessageBoxShell.isOpen()) {
+							MessageBoxShell.open(
+									shell,
+									MessageText.getString("HomeReminder.title"),
+									MessageText.getString(
+											"HomeReminder.text",
+											new String[] { PlatformTorrentUtils.getContentTitle(torrent)
+											}), new String[] { MessageText.getString("Button.ok")
+									}, 0, "downloadinhome", false, 15000);
+						}
+					}
+				}
+			});
+		}
 		final String fHash = hash;
 
 		if (PlatformTorrentUtils.getUserRating(torrent) == -2) {
@@ -254,6 +282,7 @@ public class MainWindow implements SWTSkinTabSetListener
 		Utils.setShellIcon(shell);
 		Utils.linkShellMetricsToConfig(shell, "window");
 
+		PlatformConfigMessenger.login(5000);
 		setupUsageTracker();
 
 		splash.reportPercent(70);
@@ -709,7 +738,7 @@ public class MainWindow implements SWTSkinTabSetListener
 
 		skinObject = skin.getSkinObject("statusbar");
 		if (skinObject != null) {
-			Composite cArea = (Composite) skinObject.getControl();
+			final Composite cArea = (Composite) skinObject.getControl();
 
 			final MainStatusBar statusBar = new MainStatusBar();
 			Composite composite = statusBar.initStatusBar(core,
@@ -800,8 +829,8 @@ public class MainWindow implements SWTSkinTabSetListener
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(searchGo);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					String sSearchText = text.getText();
-					if (!sSearchText.equals(sDefault)) {
+					String sSearchText = text.getText().trim();
+					if (!sSearchText.equals(sDefault) && sSearchText.length() > 0) {
 						doSearch(sSearchText);
 					}
 				}
