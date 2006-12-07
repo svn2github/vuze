@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
@@ -44,6 +45,14 @@ public class PlatformConfigMessenger
 	public static final String SECTION_TYPE_BIGBROWSE = "browse";
 
 	public static final String SECTION_TYPE_MINIBROWSE = "minibrowse";
+	
+	private static String DEFAULT_WHITELIST = "https?://"
+		+ Constants.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/"
+		+ Constants.URL_NAMESPACE.replaceAll("\\.", "\\\\.") + ".*";
+	
+	private static String[] sDomainWhiteList = new String[] {
+		DEFAULT_WHITELIST
+	};
 
 	public static void getBrowseSections(String sectionType, long maxDelayMS,
 			final GetBrowseSectionsReplyListener replyListener) {
@@ -91,6 +100,44 @@ public class PlatformConfigMessenger
 
 		PlatformMessenger.queueMessage(message, listener);
 	}
+	
+	public static void login(long maxDelayMS) {
+		Object[] params = new Object[] {
+			"version",
+			org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
+			"locale",
+			Locale.getDefault().toString(),
+		};
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+				"login", params, maxDelayMS);
+
+		PlatformMessengerListener listener = new PlatformMessengerListener(){
+		
+			public void replyReceived(PlatformMessage message, String replyType,
+					Object jsonReply) {
+				if (jsonReply instanceof JSONObject) {
+					JSONObject jsonObject = (JSONObject)jsonReply;
+					if (jsonObject.has("domain-whitelist")) {
+						JSONArray array = jsonObject.getJSONArray("domain-whitelist");
+						String[] sNewWhiteList = new String[array.length() + 1];
+						sNewWhiteList[0] = DEFAULT_WHITELIST;
+
+						for (int i = 0; i < array.length(); i++) {
+							String string = array.getString(i);
+							sNewWhiteList[i+1] = string;
+						}
+						sDomainWhiteList = sNewWhiteList;
+					}
+				}
+			}
+		
+			public void messageSent(PlatformMessage message) {
+			}
+		
+		};
+		
+		PlatformMessenger.queueMessage(message, listener);
+	}
 
 	public static void sendUsageStats(Map stats, long timestamp, PlatformMessengerListener l) {
 		try {
@@ -115,5 +162,9 @@ public class PlatformConfigMessenger
 		public void messageSent();
 
 		public void replyReceived(Map[] browseSections);
+	}
+	
+	public static String[] getDomainWhitelist() {
+		return sDomainWhiteList;
 	}
 }
