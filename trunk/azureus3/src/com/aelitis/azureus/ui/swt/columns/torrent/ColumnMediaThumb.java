@@ -33,6 +33,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
+import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -62,7 +63,7 @@ public class ColumnMediaThumb extends CoreTableColumn implements
 	}
 
 	private class Cell implements TableCellRefreshListener,
-			TableCellDisposeListener
+			TableCellDisposeListener, TableCellVisibilityListener
 	{
 		TOTorrent torrent;
 
@@ -79,6 +80,10 @@ public class ColumnMediaThumb extends CoreTableColumn implements
 		}
 
 		public void refresh(TableCell cell) {
+			refresh(cell, false);
+		}
+
+		public void refresh(TableCell cell, boolean bForce) {
 			DownloadManager dm = (DownloadManager) cell.getDataSource();
 			TOTorrent newTorrent = dm.getTorrent();
 			long lastUpdated = PlatformTorrentUtils.getContentLastUpdated(newTorrent);
@@ -87,9 +92,13 @@ public class ColumnMediaThumb extends CoreTableColumn implements
 				lastUpdated = -1;
 			}
 
-			boolean bChanged = cell.setSortValue(lastUpdated);
+			boolean bChanged = cell.setSortValue(lastUpdated) || bForce;
 
 			if (newTorrent == torrent && !bChanged && cell.isValid()) {
+				return;
+			}
+
+			if (!bForce && !cell.isShown()) {
 				return;
 			}
 
@@ -174,6 +183,21 @@ public class ColumnMediaThumb extends CoreTableColumn implements
 				Utils.disposeSWTObjects(new Object[] { oldImage
 				});
 			}
+		}
+		
+		public void cellVisibilityChanged(TableCell cell, int visibility) {
+			if (visibility == TableCellVisibilityListener.VISIBILITY_HIDDEN) {
+				//log(cell, "whoo, save");
+				disposeOldImage(cell);
+			} else if (visibility == TableCellVisibilityListener.VISIBILITY_SHOWN) {
+				//log(cell, "whoo, draw");
+				refresh(cell, true);
+			}
+		}
+
+		private void log(TableCell cell, String s) {
+			System.out.println(((TableRowCore) cell.getTableRow()).getIndex() + ":"
+					+ System.currentTimeMillis() + ": " + s);
 		}
 	}
 

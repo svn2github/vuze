@@ -61,7 +61,8 @@ public class ColumnProgressETA extends CoreTableColumn implements
 	}
 
 	private class Cell implements TableCellRefreshListener,
-			TableCellDisposeListener, TableCellMouseListener
+			TableCellDisposeListener, TableCellMouseListener,
+			TableCellVisibilityListener
 	{
 		int lastPercentDone = 0;
 
@@ -80,13 +81,14 @@ public class ColumnProgressETA extends CoreTableColumn implements
 		}
 
 		public void dispose(TableCell cell) {
-			Image img = ((TableCellCore) cell).getGraphicSWT();
-			if (img != null && !img.isDisposed()) {
-				img.dispose();
-			}
+			disposeExisting(cell);
 		}
 
 		public void refresh(TableCell cell) {
+			refresh(cell, false);
+		}
+
+		private void refresh(TableCell cell, boolean bForce) {
 			DownloadManager dm = (DownloadManager) cell.getDataSource();
 			if (dm == null) {
 				return;
@@ -104,11 +106,15 @@ public class ColumnProgressETA extends CoreTableColumn implements
 			int percentDone = getPercentDone(cell);
 			long eta = getETA(cell);
 
-			long sortValue = eta * 100 + percentDone + getState(cell)
+			long sortValue = (percentDone << 58) + (eta << 4) + getState(cell)
 					+ (bCanBeProgressive ? 1 : 0);
 
-			if (!cell.setSortValue(sortValue) && cell.isValid()
+			if (!cell.setSortValue(sortValue) && !bForce && cell.isValid()
 					&& lastPercentDone == percentDone && lastETA == eta) {
+				return;
+			}
+
+			if (!bForce && !cell.isShown()) {
 				return;
 			}
 
@@ -161,6 +167,13 @@ public class ColumnProgressETA extends CoreTableColumn implements
 				bImageSizeChanged = imageBounds.width != newWidth
 						|| imageBounds.height != newHeight;
 			}
+
+			if (false) {
+				log(cell, "building: " + cell.isValid() + ";"
+						+ (lastPercentDone == percentDone) + ";" + (lastETA == eta)
+						+ "; oldimg=" + (image != null));
+			}
+
 			image = new Image(display, newWidth, newHeight);
 			imageBounds = image.getBounds();
 
@@ -283,13 +296,7 @@ public class ColumnProgressETA extends CoreTableColumn implements
 
 			gcImage.dispose();
 
-			Graphic oldGraphic = cell.getGraphic();
-			if (oldGraphic instanceof UISWTGraphic) {
-				Image oldImage = ((UISWTGraphic) oldGraphic).getImage();
-				if (oldImage != null && !oldImage.isDisposed()) {
-					oldImage.dispose();
-				}
-			}
+			disposeExisting(cell);
 
 			((TableCellCore) cell).setGraphic(image);
 		}
@@ -356,7 +363,7 @@ public class ColumnProgressETA extends CoreTableColumn implements
 			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP && bMouseDowned) {
 				// no rating if row isn't selected yet
 				if (!event.cell.getTableRow().isSelected()) {
-					System.out.println("not selected");
+					log(event.cell, "not selected");
 					return;
 				}
 
@@ -397,6 +404,34 @@ public class ColumnProgressETA extends CoreTableColumn implements
 				event.cell.invalidate();
 			}
 			bMouseDowned = false;
+		}
+
+		private void disposeExisting(TableCell cell) {
+			Graphic oldGraphic = cell.getGraphic();
+			//log(cell, oldGraphic);
+			if (oldGraphic instanceof UISWTGraphic) {
+				Image oldImage = ((UISWTGraphic) oldGraphic).getImage();
+				if (oldImage != null && !oldImage.isDisposed()) {
+					//log(cell, "dispose");
+					cell.setGraphic(null);
+					oldImage.dispose();
+				}
+			}
+		}
+
+		public void cellVisibilityChanged(TableCell cell, int visibility) {
+			if (visibility == TableCellVisibilityListener.VISIBILITY_HIDDEN) {
+				//log(cell, "whoo, save");
+				disposeExisting(cell);
+			} else if (visibility == TableCellVisibilityListener.VISIBILITY_SHOWN) {
+				//log(cell, "whoo, draw");
+				refresh(cell, true);
+			}
+		}
+
+		private void log(TableCell cell, String s) {
+			System.out.println(((TableRowCore) cell.getTableRow()).getIndex() + ":"
+					+ System.currentTimeMillis() + ": " + s);
 		}
 	}
 }
