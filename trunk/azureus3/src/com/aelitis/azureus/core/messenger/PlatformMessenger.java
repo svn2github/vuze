@@ -120,7 +120,9 @@ public class PlatformMessenger
 	private static void debug(String string) {
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.PMsgr");
 		diag_logger.log(string);
-		System.out.println(string);
+		if (Constants.DIAG_TO_STDOUT) {
+			System.out.println(string);
+		}
 	}
 
 	/**
@@ -195,7 +197,11 @@ public class PlatformMessenger
 						PlatformMessage message = (PlatformMessage) iter.next();
 						PlatformMessengerListener l = (PlatformMessengerListener) mapProcessing.get(message);
 						if (l != null) {
-							l.replyReceived(message, REPLY_EXCEPTION, e.toString());
+							try {
+								l.replyReceived(message, REPLY_EXCEPTION, e.toString());
+							} catch (Exception e2) {
+								Debug.out("Error while sending replyReceived", e2);
+							}
 						}
 					}
 				}
@@ -226,7 +232,11 @@ public class PlatformMessenger
 				PlatformMessage message = (PlatformMessage) iter.next();
 				PlatformMessengerListener l = (PlatformMessengerListener) mapProcessing.get(message);
 				if (l != null) {
-					l.replyReceived(message, REPLY_EXCEPTION, s);
+					try {
+						l.replyReceived(message, REPLY_EXCEPTION, s);
+					} catch (Exception e2) {
+						Debug.out("Error while sending replyReceived", e2);
+					}
 				}
 			}
 			return;
@@ -313,8 +323,12 @@ public class PlatformMessenger
 											queueMessage(fMessage, fListener);
 										} else {
 											if (fListener != null) {
-												fListener.replyReceived(fMessage, replySections[1],
-														fJSONReply);
+												try {
+													fListener.replyReceived(fMessage, replySections[1],
+															fJSONReply);
+												} catch (Exception e2) {
+													Debug.out("Error while sending replyReceived", e2);
+												}
 											}
 										}
 									}
@@ -332,8 +346,12 @@ public class PlatformMessenger
 											queueMessage(fMessage, fListener);
 										} else {
 											if (fListener != null) {
-												fListener.replyReceived(fMessage, replySections[1],
-														fJSONReply);
+												try {
+													fListener.replyReceived(fMessage, replySections[1],
+															fJSONReply);
+												} catch (Exception e2) {
+													Debug.out("Error while sending replyReceived", e2);
+												}
 											}
 										}
 									}
@@ -354,7 +372,11 @@ public class PlatformMessenger
 			}
 
 			if (listener != null) {
-				listener.replyReceived(message, replySections[1], jsonReply);
+				try {
+					listener.replyReceived(message, replySections[1], jsonReply);
+				} catch (Exception e2) {
+					Debug.out("Error while sending replyReceived", e2);
+				}
 			}
 		}
 		context.getMessageDispatcher().resetSequence();
