@@ -1,0 +1,16 @@
+AZUREUS v3 CHANGELOG
+-----------------
+
+2006.12.xx | Azureus 3.0.0.3
+
+FEATURE: Reminder that download is on Home tab when downloading from Browse tab
+FEATURE: File Type added to Name column, 2nd line
+
+CHANGE: Images disposed when not visible
+
+BUGFIX: Progress column sort order fixed
+BUGFIX: Disallow search for empty string
+
+Known Issues:
+- After 862 items in a list (Currently Downloading, Existing Downloads, 
+  Library), new items will stop displaying
