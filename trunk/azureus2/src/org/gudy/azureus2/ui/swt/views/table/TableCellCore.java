@@ -131,6 +131,7 @@ public interface TableCellCore
 
   public void invokeToolTipListeners(int type);
   public void invokeMouseListeners(TableCellMouseEvent event);
+	public void invokeVisibilityListeners(int visibility);
   
   public void setUpToDate(boolean upToDate);
 

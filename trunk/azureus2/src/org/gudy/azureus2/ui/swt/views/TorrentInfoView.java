@@ -1008,6 +1008,13 @@ TorrentInfoView
 		{
 			return 0;
 		}
+
+		// @see org.gudy.azureus2.ui.swt.views.table.TableCellCore#invokeVisibilityListeners(int)
+		
+		public void invokeVisibilityListeners(int visibility) {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 	
 	protected class

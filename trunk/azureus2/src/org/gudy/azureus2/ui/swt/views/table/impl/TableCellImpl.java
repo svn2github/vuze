@@ -26,10 +26,7 @@
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Locale;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
@@ -37,16 +34,10 @@ import org.eclipse.swt.graphics.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
-
-import org.gudy.azureus2.plugins.ui.Graphic;
-import org.gudy.azureus2.plugins.ui.UIRuntimeException;
-import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.*;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
@@ -55,6 +46,11 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+
+import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.UIRuntimeException;
+import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 
 /** TableCellImpl represents one cell in the table.  
@@ -78,6 +74,7 @@ public class TableCellImpl
   private ArrayList disposeListeners;
   private ArrayList tooltipListeners;
 	private ArrayList cellMouseListeners;
+	private ArrayList cellVisibilityListeners;
   private TableColumnCore tableColumn;
   private boolean valid;
   private int refreshErrLoopCount;
@@ -462,7 +459,9 @@ public class TableCellImpl
   }
 
   public boolean setGraphic(Graphic img) {
-  	checkCellForSetting();
+  	if (img != null){
+  		checkCellForSetting();
+  	}
 
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return false;
@@ -649,6 +648,35 @@ public class TableCellImpl
 		}
 	}
 
+
+	public void addVisibilityListener(TableCellVisibilityListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellVisibilityListeners == null)
+				cellVisibilityListeners = new ArrayList(1);
+
+			cellVisibilityListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void removeVisibilityListener(TableCellVisibilityListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellVisibilityListeners == null)
+				return;
+
+			cellVisibilityListeners.remove(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
 	public void addListeners(Object listenerObject) {
 		if (listenerObject instanceof TableCellDisposeListener)
 			addDisposeListener((TableCellDisposeListener)listenerObject);
@@ -661,6 +689,9 @@ public class TableCellImpl
 
 		if (listenerObject instanceof TableCellMouseListener)
 			addMouseListener((TableCellMouseListener)listenerObject);
+
+		if (listenerObject instanceof TableCellVisibilityListener)
+			addVisibilityListener((TableCellVisibilityListener)listenerObject);
 	}
 
 	/**
@@ -936,6 +967,22 @@ public class TableCellImpl
 						.get(i));
 
 				l.cellMouseTrigger(event);
+
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+
+  public void invokeVisibilityListeners(int visibility) {
+		if (cellVisibilityListeners == null)
+			return;
+
+		for (int i = 0; i < cellVisibilityListeners.size(); i++) {
+			try {
+				TableCellVisibilityListener l = (TableCellVisibilityListener) (cellVisibilityListeners.get(i));
+
+				l.cellVisibilityChanged(this, visibility);
 
 			} catch (Throwable e) {
 				Debug.printStackTrace(e);

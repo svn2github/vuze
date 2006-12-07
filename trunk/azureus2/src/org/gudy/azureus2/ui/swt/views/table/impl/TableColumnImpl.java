@@ -62,6 +62,7 @@ public class TableColumnImpl
 	private ArrayList cellDisposeListeners;
 	private ArrayList cellToolTipListeners;
 	private ArrayList cellMouseListeners;
+	private ArrayList cellVisibilityListeners;
 	private int iConsecutiveErrCount;
   private ArrayList menuItems;
 
@@ -362,7 +363,35 @@ public class TableColumnImpl
 		}
 	}
 
-  public void invalidateCells() {
+	public void addCellVisibilityListener(TableCellVisibilityListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellVisibilityListeners == null)
+				cellVisibilityListeners = new ArrayList(1);
+
+			cellVisibilityListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void removeCellVisibilityListener(TableCellVisibilityListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellVisibilityListeners == null)
+				return;
+
+			cellVisibilityListeners.remove(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void invalidateCells() {
     TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
     tsed.columnInvalidate(this);
   }
@@ -382,6 +411,9 @@ public class TableColumnImpl
 
 		if (listenerObject instanceof TableCellMouseListener)
 			addCellMouseListener((TableCellMouseListener)listenerObject);
+
+		if (listenerObject instanceof TableCellVisibilityListener)
+			addCellVisibilityListener((TableCellVisibilityListener)listenerObject);
 	}
 
   /* Start of not plugin public API functions */
@@ -491,6 +523,24 @@ public class TableColumnImpl
 			}
 		}
 	}
+
+  public void invokeCellVisibilityListeners(TableCellCore 
+  		cell, int visibility) {
+		if (cellVisibilityListeners == null)
+			return;
+
+		for (int i = 0; i < cellVisibilityListeners.size(); i++) {
+			try {
+				TableCellVisibilityListener l = (TableCellVisibilityListener) (cellVisibilityListeners.get(i));
+
+				l.cellVisibilityChanged(cell, visibility);
+
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+
 
   public void setPositionNoShift(int position) {
     iPosition = position;
@@ -637,6 +687,7 @@ public class TableColumnImpl
 			writer.println("Listeners: refresh=" + getListCountString(cellRefreshListeners) 
 					+ "; dispose=" + getListCountString(cellDisposeListeners)
 					+ "; mouse=" + getListCountString(cellMouseListeners)
+					+ "; vis=" + getListCountString(cellVisibilityListeners)
 					+ "; added=" + getListCountString(cellAddedListeners)
 					+ "; tooltip=" + getListCountString(cellToolTipListeners));
 			

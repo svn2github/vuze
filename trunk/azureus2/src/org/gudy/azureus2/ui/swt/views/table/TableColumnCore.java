@@ -92,6 +92,10 @@ public interface TableColumnCore extends TableColumn, Comparator {
   public void invokeCellToolTipListeners(TableCellCore cell, int type);
 
   public void invokeCellMouseListeners(TableCellMouseEvent event);
+	/**
+	 * @param visibility
+	 */
+	public void invokeCellVisibilityListeners(TableCellCore cell, int visibility);
 
 
   /** Sets the position of the column without adjusting the other columns.
