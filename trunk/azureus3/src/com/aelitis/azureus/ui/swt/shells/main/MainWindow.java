@@ -447,7 +447,7 @@ public class MainWindow implements SWTSkinTabSetListener
 		}
 
 		if (!SWTThread.getInstance().isTerminated()) {
-			SWTThread.getInstance().getInitializer().stopIt(false, false);
+			SWTThread.getInstance().getInitializer().stopIt(bForRestart, false);
 		}
 
 		mapTrackUsage_mon.enter();
