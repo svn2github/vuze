@@ -26,6 +26,10 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+
+import org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener;
 
 /**
  * @author TuxPaper
@@ -47,6 +51,10 @@ public class ListCell implements BufferedTableItem
 	protected final ListRow row;
 
 	private final int alignment;
+
+	private boolean bLastIsShown = false;
+
+	private TableCellCore cell;
 
 	public ListCell(ListRow row, int position, int alignment, Rectangle bounds) {
 		this.row = row;
@@ -119,8 +127,19 @@ public class ListCell implements BufferedTableItem
 	}
 
 	public boolean isShown() {
-		return isShowable()
+		boolean bIsShown = isShowable() && row.isVisible()
 				&& row.getComposite().getClientArea().intersects(bounds);
+		if (bIsShown != bLastIsShown) {
+			bLastIsShown = bIsShown;
+			if (cell != null) {
+				int mode = bIsShown ? TableCellVisibilityListener.VISIBILITY_SHOWN
+						: TableCellVisibilityListener.VISIBILITY_HIDDEN;
+				((TableColumnCore) cell.getTableColumn()).invokeCellVisibilityListeners(
+						cell, mode);
+				cell.invokeVisibilityListeners(mode);
+			}
+		}
+		return bIsShown;
 	}
 
 	public void locationChanged() {
@@ -197,6 +216,13 @@ public class ListCell implements BufferedTableItem
 
 	public ListRow getRow() {
 		return row;
+	}
+
+	/**
+	 * @param cell
+	 */
+	public void setTableCell(TableCellCore cell) {
+		this.cell = cell;
 	}
 
 }

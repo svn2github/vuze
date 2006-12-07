@@ -237,6 +237,7 @@ public class ListRow implements TableRowCore
 			//			cCell.setLayoutData(formData);
 
 			TableCellCore cell = new TableCellImpl(this, column, i, listCell);
+			listCell.setTableCell(cell);
 
 			mapTableCells.put(column.getName(), cell);
 			cell.refresh();
@@ -684,8 +685,23 @@ public class ListRow implements TableRowCore
 	}
 
 	public void setUpToDate(boolean upToDate) {
-		// TODO Auto-generated method stub
+  	if (bDisposed)
+  		return;
 
+    Iterator iter = mapTableCells.values().iterator();
+    while (iter.hasNext()) {
+      TableCellCore cell = (TableCellCore)iter.next();
+      if (cell != null) {
+      	boolean bOldUpToDate = cell.isUpToDate();
+      	if (bOldUpToDate != upToDate) {
+      		cell.setUpToDate(upToDate);
+      		
+      		// hack.. a call to ListCell.isShown will trigger Visibility Listener
+      		ListCell listcell = (ListCell)cell.getBufferedTableItem();
+      		listcell.isShown();
+      	}
+      }
+    }
 	}
 
 	public Object getDataSource() {
