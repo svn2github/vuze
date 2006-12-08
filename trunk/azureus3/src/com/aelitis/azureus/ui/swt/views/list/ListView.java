@@ -834,7 +834,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 		try {
 			ArrayList rowsToSelect = new ArrayList();
 			for (int i = 0; i < rows.length; i++) {
-				rowsToSelect.add(rows[0]);
+				rowsToSelect.add(rows[i]);
 			}
 			ListRow[] selectedRows = getSelectedRows();
 
