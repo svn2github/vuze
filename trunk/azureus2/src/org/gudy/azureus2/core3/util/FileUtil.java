@@ -1421,4 +1421,16 @@ public class FileUtil {
 		}
 		return f.mkdirs();
 	}
+	
+	public static String getExtension(String fName) {
+		String ext;
+		int idxDot = fName.lastIndexOf('.');
+		if (idxDot == -1) {
+			ext = "";
+		} else {
+			ext = fName.substring(idxDot + 1);
+		}
+		
+		return ext;
+	}
 }
