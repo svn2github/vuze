@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderManager;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -538,7 +539,7 @@ public class ConsoleInput extends Thread {
 				return true;
 			} catch (Exception e)
 			{
-				out.println("> Invoking Command '"+command+"' failed. Exception: "+e.getMessage());
+				out.println("> Invoking Command '"+command+"' failed. Exception: "+ Debug.getNestedExceptionMessage(e));
 				return false;
 			}
 		} else

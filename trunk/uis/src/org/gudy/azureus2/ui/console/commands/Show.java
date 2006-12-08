@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
@@ -31,7 +30,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -84,7 +82,7 @@ public class Show extends IConsoleCommand {
 		out.println("files\t\t\tf\tShow list of files found from the 'add -f' command (also available by 'add -l')");
 		out.println("dht\t\t\td\tShow distributed database statistics");
 		out.println("nat\t\t\tn\tShow NAT status");
-		out.println("stats [pattern]\t\ts\tShow stats");
+		out.println("stats [pattern] [on|off]\ts\tShow stats [with a given pattern] [turn averages on/off]");
 		out.println("torrents [opts] [expr]\tt\tShow list of torrents. torrent options may be any (or none) of:");
 		out.println("\t\tactive\t\ta\tShow only active torrents.");
 		out.println("\t\tcomplete\tc\tShow only complete torrents.");
@@ -215,8 +213,18 @@ public class Show extends IConsoleCommand {
 			if( args.size() > 0 ){
 				
 				pattern = (String)args.get(0);
+				
+				if ( pattern.equals("*")){
+					
+					pattern = ".*";
+				}
 			}
 		
+			if ( args.size() > 1 ){
+				
+				AzureusCoreStats.setEnableAverages(((String)args.get(1)).equalsIgnoreCase( "on" ));
+			}
+			
 			java.util.Set	types = new HashSet();
 			
 			types.add( pattern );
