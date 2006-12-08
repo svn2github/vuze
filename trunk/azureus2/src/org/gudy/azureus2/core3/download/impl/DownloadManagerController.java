@@ -1641,6 +1641,11 @@ DownloadManagerController
 		return( download_manager.getMaxConnections());
 	}
 	
+	public int
+	getMaxSeedConnections()
+	{
+		return( download_manager.getMaxSeedConnections());
+	}
 	public boolean
 	isAZMessagingEnabled()
 	{

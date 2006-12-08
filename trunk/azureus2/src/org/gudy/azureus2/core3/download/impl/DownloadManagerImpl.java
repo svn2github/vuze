@@ -384,6 +384,7 @@ DownloadManagerImpl
 
     private int		max_uploads	= DownloadManagerState.MIN_MAX_UPLOADS;
     private int		max_connections;
+    private int		max_seed_connections;
     private int		max_uploads_when_seeding	= DownloadManagerState.MIN_MAX_UPLOADS;
     private boolean	max_uploads_when_seeding_enabled;
     
@@ -866,6 +867,7 @@ DownloadManagerImpl
 	readParameters()
 	{
 		max_connections						= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_PEERS );
+		max_seed_connections				= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_SEEDS );
 		max_uploads						 	= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS );
 		max_uploads_when_seeding_enabled 	= getDownloadState().getBooleanParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED );
 		max_uploads_when_seeding 			= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING );
@@ -879,6 +881,12 @@ DownloadManagerImpl
 	getMaxConnections()
 	{
 		return( max_connections );
+	}
+	
+	protected int
+	getMaxSeedConnections()
+	{
+		return( max_seed_connections );
 	}
 	
 	protected boolean

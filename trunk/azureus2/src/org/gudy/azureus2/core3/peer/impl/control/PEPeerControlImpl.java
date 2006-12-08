@@ -2785,6 +2785,32 @@ PEPeerControlImpl
 				}
 			}
 			
+			int	allowed_seeds = getMaxSeedConnections();
+			
+			if ( allowed_seeds > 0 ){
+				
+				int	to_disconnect = _seeds - allowed_seeds;
+				
+				if ( to_disconnect > 0 ){
+					
+						// seeds are limited by people trying to get a reasonable upload by connecting
+						// to leechers where possible. disconnect seeds from end of list to prevent
+						// cycling of seeds
+					
+					for( int i=peer_transports.size()-1; i >= 0 && to_disconnect > 0; i-- ){
+						
+						final PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
+
+						if ( transport.isSeed()){
+
+							closeAndRemovePeer( transport, "Too many seeds", false );
+							
+							to_disconnect--;
+						}
+					}
+				}
+			}
+			
 			//pass from storage to connector
 			int allowed = getMaxNewConnectionsAllowed();
 			
@@ -3012,9 +3038,11 @@ PEPeerControlImpl
     {
 		final ArrayList peer_transports = peer_transports_cow;
 	    PEPeerTransport max_transport 			= null;
+	    PEPeerTransport max_seed_transport		= null;
 	    PEPeerTransport max_non_lan_transport 	= null;
 	 
 	    long max_time 			= 0;
+	    long max_seed_time 		= 0;
         long max_non_lan_time	= 0;
         
         int	lan_peer_count	= 0;
@@ -3026,12 +3054,10 @@ PEPeerControlImpl
                 final long timeSinceSentData =peer.getTimeSinceLastDataMessageSent();
                 
                 long peerTestTime = 0;
-                if( seeding_mode)
-                {
+                if( seeding_mode){
                     if( timeSinceSentData != -1 )
                         peerTestTime = timeSinceSentData;  //ensure we've sent them at least one data message to qualify for drop
-                } else
-                {
+                }else{
                     final long timeSinceGoodData =peer.getTimeSinceGoodDataReceived();
                     final long timeSinceConnection =peer.getTimeSinceConnectionEstablished();
 
@@ -3054,9 +3080,10 @@ PEPeerControlImpl
                     peerTestTime +=peer.getSnubbedTime();
                 }
                 
-                if( !peer.isIncoming() )
+                if( !peer.isIncoming() ){
                     peerTestTime = peerTestTime * 2;   //prefer to drop a local connection, to make room for more remotes
-    
+                }
+                
                 if ( peer.isLANLocal()){
                 	
                 	lan_peer_count++;
@@ -3072,6 +3099,14 @@ PEPeerControlImpl
                 if( peerTestTime > max_time ) {
                     max_time = peerTestTime;
                     max_transport = peer;
+                }
+                
+                if ( peer.isSeed()){
+                	
+                    if( peerTestTime > max_seed_time ) {
+                    	max_seed_time = peerTestTime;
+                        max_seed_transport = peer;
+                    }
                 }
             }
         }
@@ -3090,6 +3125,13 @@ PEPeerControlImpl
         		max_time		= max_non_lan_time;
         	}
         
+        		// if we have a seed limit, kick seeds in preference to non-seeds
+        	
+            if( getMaxSeedConnections() > 0 && max_seed_transport != null && max_time > 5*60*1000 ) {
+	            closeAndRemovePeer( max_seed_transport, "timed out by doOptimisticDisconnect()", true );
+	            return true;
+	        }
+            
 	        if( max_transport != null && max_time > 5 *60*1000 ) {  //ensure a 5 min minimum test time
 	            closeAndRemovePeer( max_transport, "timed out by doOptimisticDisconnect()", true );
 	            return true;
@@ -3195,6 +3237,12 @@ PEPeerControlImpl
 	getMaxConnections()
 	{
 		return( adapter.getMaxConnections());
+	}
+	
+	public int
+	getMaxSeedConnections()
+	{
+		return( adapter.getMaxSeedConnections());
 	}
 
 	public int

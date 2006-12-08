@@ -257,16 +257,29 @@ TorrentOptionsView
 			gridData = new GridData();
 			gridData.widthHint = 40;
 			max_peers.setLayoutData(gridData);
+	
+			label = new Label(gTorrentOptions, SWT.NULL);
+			gridData = new GridData();
+			label.setLayoutData( gridData );
+			Messages.setLanguageText(label, TEXT_PREFIX + "max.seeds" );
+			
+			GenericIntParameter max_seeds = new GenericIntParameter(
+					ds_param_adapter, gTorrentOptions,
+					DownloadManagerState.PARAM_MAX_SEEDS);
+			ds_parameters.put( DownloadManagerState.PARAM_MAX_SEEDS, max_seeds );
+			gridData = new GridData();
+			gridData.widthHint = 40;
+			max_seeds.setLayoutData(gridData);
 		}
 		
-	    Label cert_label = new Label(gTorrentOptions, SWT.NULL );
-	    Messages.setLanguageText(cert_label, TEXT_PREFIX + "reset.to.default");
+	    Label reset_label = new Label(gTorrentOptions, SWT.NULL );
+	    Messages.setLanguageText(reset_label, TEXT_PREFIX + "reset.to.default");
 
-	    Button cert_button = new Button(gTorrentOptions, SWT.PUSH);
+	    Button reset_button = new Button(gTorrentOptions, SWT.PUSH);
 
-	    Messages.setLanguageText(cert_button, TEXT_PREFIX + "reset.button" );
+	    Messages.setLanguageText(reset_button, TEXT_PREFIX + "reset.button" );
 
-	    cert_button.addListener(SWT.Selection, 
+	    reset_button.addListener(SWT.Selection, 
 	    		new Listener() 
 				{
 			        public void 

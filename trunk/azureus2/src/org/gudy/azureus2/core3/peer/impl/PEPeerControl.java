@@ -29,7 +29,6 @@ package org.gudy.azureus2.core3.peer.impl;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.util.HashWrapper;
 
 
 public interface

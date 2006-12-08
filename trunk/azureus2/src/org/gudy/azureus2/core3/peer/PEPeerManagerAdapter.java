@@ -45,6 +45,9 @@ PEPeerManagerAdapter
 	public int
 	getMaxConnections();
 	
+	public int
+	getMaxSeedConnections();
+	
 	public boolean
 	isAZMessagingEnabled();
 	
