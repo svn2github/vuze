@@ -89,7 +89,7 @@ UPnPPlugin
 	private StringParameter	selected_interfaces_param;
 	
 	private BooleanParameter	ignore_bad_devices;
-	private LabelParameter	ignored_devices_list;
+	private LabelParameter		ignored_devices_list;
 	
 	private List	mappings	= new ArrayList();
 	private List	services	= new ArrayList();
@@ -351,24 +351,27 @@ UPnPPlugin
 		try{
 			String	param = "";
 			
-			PluginConfig pc = plugin_interface.getPluginconfig();
+			if ( ignore_bad_devices.getValue()){
 
-			Map	ignored = pc.getPluginMapParameter( "upnp.device.ignorelist", new HashMap());
-			
-			Iterator	it = ignored.entrySet().iterator();
-			
-			while( it.hasNext()){
+				PluginConfig pc = plugin_interface.getPluginconfig();
+	
+				Map	ignored = pc.getPluginMapParameter( "upnp.device.ignorelist", new HashMap());
 				
-				Map.Entry	entry = (Map.Entry)it.next();
-							
-				Map	value = (Map)entry.getValue();
+				Iterator	it = ignored.entrySet().iterator();
 				
-				param += "\n    " + entry.getKey() + ": " + new String((byte[])value.get( "Location" ));
-			}
-			
-			if ( ignored.size() > 0 ){
+				while( it.hasNext()){
+					
+					Map.Entry	entry = (Map.Entry)it.next();
+								
+					Map	value = (Map)entry.getValue();
+					
+					param += "\n    " + entry.getKey() + ": " + new String((byte[])value.get( "Location" ));
+				}
 				
-				log.log( "Devices currently being ignored: " + param );
+				if ( ignored.size() > 0 ){
+					
+					log.log( "Devices currently being ignored: " + param );
+				}
 			}
 			
 			String	text = 
@@ -389,36 +392,41 @@ UPnPPlugin
 		String		USN,
 		URL			location )
 	{
-		try{
-			PluginConfig pc = plugin_interface.getPluginconfig();
-
-			Map	ignored = pc.getPluginMapParameter( "upnp.device.ignorelist", new HashMap());
+			// only take note of this if enabled to do so
+		
+		if ( ignore_bad_devices.getValue()){
+			
+			try{
+				PluginConfig pc = plugin_interface.getPluginconfig();
 	
-			Map	entry = (Map)ignored.get( USN );
-			
-			if ( entry == null ){
+				Map	ignored = pc.getPluginMapParameter( "upnp.device.ignorelist", new HashMap());
+		
+				Map	entry = (Map)ignored.get( USN );
 				
-				entry	= new HashMap();
+				if ( entry == null ){
+					
+					entry	= new HashMap();
+					
+					entry.put( "Location", location.toString().getBytes());
+					
+					ignored.put( USN, entry );
+					
+					pc.setPluginMapParameter( "upnp.device.ignorelist", ignored );
+					
+					updateIgnoreList();
+					
+					String	text = 
+						plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(
+							"upnp.ignorebaddevices.alert",
+							new String[]{ location.toString() });
+	
+					log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+	
+				}
+			}catch( Throwable e ){
 				
-				entry.put( "Location", location.toString().getBytes());
-				
-				ignored.put( USN, entry );
-				
-				pc.setPluginMapParameter( "upnp.device.ignorelist", ignored );
-				
-				updateIgnoreList();
-				
-				String	text = 
-					plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(
-						"upnp.ignorebaddevices.alert",
-						new String[]{ location.toString() });
-
-				log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
-
+				Debug.printStackTrace(e);
 			}
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
 		}
 	}
 	
