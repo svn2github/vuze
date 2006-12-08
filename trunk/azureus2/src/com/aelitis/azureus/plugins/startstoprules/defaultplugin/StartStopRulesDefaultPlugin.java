@@ -358,7 +358,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		// seeding subsection
 		configModel.addIntParameter2("StartStopManager_iAddForSeedingDLCopyCount",
 				"ConfigView.label.seeding.addForSeedingDLCopyCount", 1);
-    configModel.addIntParameter2("StartStopManager_iNumPeersAsFullCopy",
+		configModel.addIntParameter2("StartStopManager_iNumPeersAsFullCopy",
 				PREFIX_RES + "numPeersAsFullCopy", 0);
 		configModel.addIntParameter2("StartStopManager_iFakeFullCopySeedStart",
 				PREFIX_RES + "fakeFullCopySeedStart", 1);
@@ -804,7 +804,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		if (maxActive == 0) {
 			return 999999;
 		}
-		return maxActive - (iDLs < minDownloads ? minDownloads : iDLs);
+		return maxActive - iDLs;
 	}
 
 	protected int getMaxActive() {
@@ -1282,7 +1282,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			maxDLs = (DLmax <= 0) ? 0 : maxDownloads - DLmax <= 0 ? maxDownloads
 					: DLmax;
 		}
-		
+
 		if (maxDLs < minDownloads) {
 			maxDLs = minDownloads;
 		}
@@ -1538,7 +1538,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 			boolean bActivelySeeding = dlData.getActivelySeeding();
 			boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING)
-					&& (!isFP || (isFP && ((totals.maxActive != 0 && vars.numWaitingOrSeeding >= totals.maxActive))))
+					&& (!isFP || (isFP && ((totals.maxActive != 0 && vars.numWaitingOrSeeding >= totals.maxActive
+							- minDownloads))))
 					//&& (!isFP || (isFP && ((vars.numWaitingOrSeeding >= totals.maxSeeders) || (!bActivelySeeding && (vars.numWaitingOrSeeding + totals.totalStalledSeeders) >= totals.maxSeeders))) )
 					&& (!download.isForceStart());
 			int rank = download.getSeedingRank();
