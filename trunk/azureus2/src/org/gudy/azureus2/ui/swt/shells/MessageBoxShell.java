@@ -292,6 +292,7 @@ public class MessageBoxShell
 			}
 
 			if (i == defaultOption) {
+				button.setFocus();
 				shell.setDefaultButton(button);
 			}
 
