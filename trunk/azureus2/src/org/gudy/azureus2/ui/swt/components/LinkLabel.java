@@ -68,6 +68,13 @@ LinkLabel
 	 */
 	public static void makeLinkedLabel(Label label, String hyperlink) {
 		label.setData(hyperlink);
+		String tooltip = label.getToolTipText();
+		
+		// We only set a tooltip if one isn't set already and it isn't
+		// identical to the label text.
+		if (tooltip == null && !hyperlink.equals(label.getText())) {
+			label.setToolTipText(hyperlink);
+		}
 	    label.setCursor(Cursors.handCursor);
 	    label.setForeground(Colors.blue);
 	    label.addMouseListener(new MouseAdapter() {
