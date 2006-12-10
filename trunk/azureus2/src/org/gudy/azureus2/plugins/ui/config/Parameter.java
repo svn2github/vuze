@@ -24,7 +24,7 @@ package org.gudy.azureus2.plugins.ui.config;
 import org.gudy.azureus2.plugins.config.ConfigParameter;
 
 /**
- * represents a genric parameter description
+ * represents a generic parameter description
  * @author Olivier
  *
  */
