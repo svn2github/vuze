@@ -94,7 +94,8 @@ public class MyTorrentsView
 	private static final LogIDs LOGID = LogIDs.GUI;
 	private static final int ASYOUTYPE_MODE_FIND = 0;
 	private static final int ASYOUTYPE_MODE_FILTER = 1;
-	private static final int ASYOUTYPE_MODE = ASYOUTYPE_MODE_FILTER; 
+	private static final int ASYOUTYPE_MODE = ASYOUTYPE_MODE_FILTER;
+	private static final int ASYOUTYPE_UPDATEDELAY = 300;
 	
 	private AzureusCore		azureus_core;
 
@@ -122,6 +123,7 @@ public class MyTorrentsView
   // table item index, where the drag has started
   private int drag_drop_line_start = -1;
 
+	private TimerEvent searchUpdateEvent;
   private String sLastSearch = "";
   private long lLastSearchTime;
   private boolean bRegexSearch = false;
@@ -2331,7 +2333,17 @@ public class MyTorrentsView
 			lblX.setImage(img);
 		}
 
-		activateCategory(currentCategory);
+		if (searchUpdateEvent != null) {
+			searchUpdateEvent.cancel();
+		}
+		searchUpdateEvent = SimpleTimer.addEvent("SearchUpdate",
+				SystemTime.getOffsetTime(ASYOUTYPE_UPDATEDELAY),
+				new TimerEventPerformer() {
+					public void perform(TimerEvent event) {
+						searchUpdateEvent = null;
+						activateCategory(currentCategory);
+					}
+				});
 	}
 
 	public void keyReleased(KeyEvent e) {
