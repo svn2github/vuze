@@ -37,6 +37,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 public class 
 LinkLabel 
 {
+	
 	public
 	LinkLabel(
 		Composite	composite,
@@ -53,19 +54,30 @@ LinkLabel
 		String		resource,
 		String		link )
 	{
-	    final Label linkLabel = new Label(composite, SWT.NULL);
+	    Label linkLabel = new Label(composite, SWT.NULL);
 	    Messages.setLanguageText(linkLabel,resource);
-	    linkLabel.setData(link);
-	    linkLabel.setCursor(Cursors.handCursor);
-	    linkLabel.setForeground(Colors.blue);
 	    linkLabel.setLayoutData( gridData );
-	    linkLabel.addMouseListener(new MouseAdapter() {
+	    makeLinkedLabel(linkLabel, link);
+	}
+	
+	/**
+	 * Alters a given label to make it appear like a launchable
+	 * link. This should preferably be done after all other changes
+	 * have been performed on the label - especially the setting of
+	 * the label's text.
+	 */
+	public static void makeLinkedLabel(Label label, String hyperlink) {
+		label.setData(hyperlink);
+	    label.setCursor(Cursors.handCursor);
+	    label.setForeground(Colors.blue);
+	    label.addMouseListener(new MouseAdapter() {
 	      public void mouseDoubleClick(MouseEvent arg0) {
 	      	Utils.launch((String) ((Label) arg0.widget).getData());
 	      }
 	      public void mouseUp(MouseEvent arg0) {
 	      	Utils.launch((String) ((Label) arg0.widget).getData());
 	      }
-	    });
+	    });		
 	}
+	
 }

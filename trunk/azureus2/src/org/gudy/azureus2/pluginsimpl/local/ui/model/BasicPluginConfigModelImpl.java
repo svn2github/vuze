@@ -248,6 +248,13 @@ BasicPluginConfigModelImpl
 		
 		return( res );		
 	}
+	
+	public org.gudy.azureus2.plugins.ui.config.HyperlinkParameter
+	addHyperlinkParameter2(String resource_name, String url_location) {
+		HyperlinkParameterImpl res = new HyperlinkParameterImpl(pi.getPluginconfig(), key_prefix, resource_name, url_location);
+		parameters.add(res);
+		return res;
+	}
 
 	
 	public ActionParameter

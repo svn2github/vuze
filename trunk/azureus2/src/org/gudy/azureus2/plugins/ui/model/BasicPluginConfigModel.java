@@ -169,6 +169,11 @@ BasicPluginConfigModel
 	public LabelParameter
 	addLabelParameter2(
 		String 		resource_name );
+	
+	/**
+	 * @since 2.5.0.2
+	 */
+	public HyperlinkParameter addHyperlinkParameter2(String resource_name, String url_location);
 
 	/**
 	 * 

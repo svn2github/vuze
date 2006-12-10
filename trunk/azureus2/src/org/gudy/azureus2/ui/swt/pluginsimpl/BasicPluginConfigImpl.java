@@ -52,6 +52,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class 
@@ -181,17 +182,23 @@ BasicPluginConfigImpl
 					label_text.indexOf('\t') != -1 ||
 					!(param instanceof BooleanParameterImpl)) {
 				
-				label = new Label(current_composite, param instanceof LabelParameterImpl
-							? SWT.WRAP : SWT.NULL);
+				String hyperlink = null;
+				if (param instanceof HyperlinkParameterImpl) {
+					hyperlink = ((HyperlinkParameterImpl)param).getHyperlink();
+				}
+
+				label = new Label(current_composite, (param instanceof LabelParameterImpl) ? SWT.WRAP : SWT.NULL);
 	
-				if ( label_key == null ){
-					
+				if ( label_key == null ){	
 					label.setText( param.getLabelText());
-					
 				}else{
-					
 					Messages.setLanguageText(label, label_key );
 				}
+				
+				if (hyperlink != null) {
+					LinkLabel.makeLinkedLabel(label, hyperlink);
+				}
+				
 			}
 	
 			String	key = param.getKey();
