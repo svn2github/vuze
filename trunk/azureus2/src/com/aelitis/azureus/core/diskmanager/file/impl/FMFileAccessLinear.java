@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.diskmanager.file.impl;
 
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -202,6 +203,12 @@ FMFileAccessLinear
 				}
 			}
 		}catch ( Exception e ){
+			
+			try{
+				Debug.out( "Read failed: " + owner.getString() + ": raf open=" + raf.getChannel().isOpen() + ", len=" + raf.length() + ",off=" + offset );
+				
+			}catch( IOException f ){
+			}
 			
 			Debug.printStackTrace( e );
 			
