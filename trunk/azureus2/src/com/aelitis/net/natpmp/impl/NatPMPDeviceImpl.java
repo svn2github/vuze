@@ -48,6 +48,7 @@ package com.aelitis.net.natpmp.impl;
 
 import java.net.*;
 
+import com.aelitis.azureus.core.util.NetUtils;
 import com.aelitis.net.natpmp.NATPMPDeviceAdapter;
 import com.aelitis.net.natpmp.NatPMPDevice;
 
@@ -134,7 +135,7 @@ public class NatPMPDeviceImpl implements NatPMPDevice
     	throws Exception 
     {
     	adapter		= _adapter;
-        hostInet 	= InetAddress.getLocalHost();
+        hostInet 	= NetUtils.getLocalHost();
         
         checkRouterAddress();
     }

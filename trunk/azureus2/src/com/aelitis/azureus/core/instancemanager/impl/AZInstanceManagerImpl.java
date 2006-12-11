@@ -58,6 +58,7 @@ import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
 import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
+import com.aelitis.azureus.core.util.NetUtils;
 import com.aelitis.net.udp.mc.MCGroup;
 import com.aelitis.net.udp.mc.MCGroupAdapter;
 import com.aelitis.net.udp.mc.MCGroupFactory;
@@ -726,7 +727,7 @@ AZInstanceManagerImpl
 		if ( internal_address.isAnyLocalAddress()){
 			
 			try{
-				internal_address = InetAddress.getLocalHost();
+				internal_address = NetUtils.getLocalHost();
 				
 			}catch( Throwable e ){
 				
