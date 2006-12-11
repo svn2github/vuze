@@ -96,6 +96,8 @@ AEDiagnostics
 	
 	private static List		evidence_generators	= new ArrayList();
 	
+	private static boolean load_15_tried;
+	
 	public static synchronized void
 	startup()
 	{
@@ -174,17 +176,28 @@ AEDiagnostics
 			
 			startup_complete	= true;
 			
-			if ( DEBUG_THREADS ){
-				// pull in the JDK1.5 monitoring stuff if present
-				
-				try{
-					Class.forName( "com.aelitis.azureus.jdk15.Java15Initialiser" );
-						
-					// System.out.println( "**** AEThread debug on ****" );
+			load15Stuff();
+		}
+	}
 	
-				}catch( Throwable e ){
-				}
-			}
+	protected static void
+	load15Stuff()
+	{
+		if ( load_15_tried ){
+			
+			return;
+		}
+		
+		load_15_tried = true;
+		
+		// pull in the JDK1.5 monitoring stuff if present
+			
+		try{
+			Class.forName( "com.aelitis.azureus.jdk15.Java15Initialiser" );
+					
+			// System.out.println( "**** AEThread debug on ****" );
+
+		}catch( Throwable e ){
 		}
 	}
 	

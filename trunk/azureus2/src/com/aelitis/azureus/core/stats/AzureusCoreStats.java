@@ -163,20 +163,7 @@ AzureusCoreStats
 			}
 		}
 		
-		Map	result = new HashMap();
-		
-		for (int i=0;i<providers.size();i++){
-			
-			Object[]	entry = (Object[])providers.get(i);
-			
-			try{
-				((AzureusCoreStatsProvider)entry[1]).updateStats( expanded, result );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
-		}
+		Map	result = getStatsSupport( expanded );
 		
 		Map	ave = averages;
 		
@@ -201,6 +188,68 @@ AzureusCoreStats
 			}
 			
 			result.putAll( ave_results );
+		}
+		
+		return( result );
+	}
+	
+	protected static Map
+	getStatsSupport(
+		Set		types )
+	{
+		Map	result = new HashMap();
+		
+		for (int i=0;i<providers.size();i++){
+			
+			Object[]	provider_entry = (Object[])providers.get(i);
+			
+			Map	provider_result = new HashMap();
+
+			Set	target_types;
+			
+			if ( types == null ){
+				
+				target_types = (Set)provider_entry[0];
+			}else{
+			
+				target_types = types;
+			}
+			
+			try{
+				((AzureusCoreStatsProvider)provider_entry[1]).updateStats( target_types, provider_result );
+				
+				Iterator pit = provider_result.entrySet().iterator();
+				
+				while( pit.hasNext()){
+					
+					Map.Entry	pe = (Map.Entry)pit.next();
+					
+					String	key = (String)pe.getKey();
+					Object	obj	= pe.getValue();
+					
+					if ( obj instanceof Long ){
+						
+						Long	old = (Long)result.get(key);
+						
+						if ( old == null ){
+							
+							result.put( key, obj );
+							
+						}else{
+							
+							long	v = ((Long)obj).longValue();
+							
+							result.put( key, new Long( v + old.longValue()));
+						}
+					}else{
+						
+						result.put( key, obj );
+					}
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 		
 		return( result );
@@ -245,65 +294,50 @@ AzureusCoreStats
 						public void
 						perform(
 							TimerEvent	event )
-						{							
-							for (int i=0;i<providers.size();i++){
+						{
+							Map	stats = getStatsSupport( null );
+																
+							Iterator	it = stats.entrySet().iterator();
+							
+							while( it.hasNext()){
 								
-								Object[]	provider_entry = (Object[])providers.get(i);
+								Map.Entry	entry = (Map.Entry)it.next();
 								
-								try{
-									Set						 types 		= (Set)provider_entry[0];
-									AzureusCoreStatsProvider provider 	= (AzureusCoreStatsProvider)provider_entry[1];
+								String	key 	= (String)entry.getKey();
+								Object	value 	= entry.getValue();
+								
+								if ( value instanceof Long ){
 									
-									Map	result = new HashMap();
+									long	last_value;
+									Average	a;
 									
-									provider.updateStats( types, result );
+									Object[] a_entry = (Object[])ave.get( key );
 									
-									Iterator	it = result.entrySet().iterator();
-									
-									while( it.hasNext()){
+									if ( a_entry == null ){
+	
+										a 			= Average.getInstance( 1000, 10 );
+										last_value	= 0;
 										
-										Map.Entry	entry = (Map.Entry)it.next();
+										a_entry = new Object[]{ a, value };
 										
-										String	key 	= (String)entry.getKey();
-										Object	value 	= entry.getValue();
+										ave.put( key, a_entry );
 										
-										if ( value instanceof Long ){
-											
-											long	last_value;
-											Average	a;
-											
-											Object[] a_entry = (Object[])ave.get( key );
-											
-											if ( a_entry == null ){
-			
-												a 			= Average.getInstance( 1000, 10 );
-												last_value	= 0;
-												
-												a_entry = new Object[]{ a, value };
-												
-												ave.put( key, a_entry );
-												
-											}else{
-												a			= (Average)a_entry[0];
-												last_value	= ((Long)a_entry[1]).longValue();
-											}
-											
-											if ( stats_types.get( key ) == CUMULATIVE ){
-											
-												a.addValue(((Long)value).longValue() - last_value);
-												
-											}else{
-												
-												a.addValue(((Long)value).longValue());
-
-											}
-											
-											a_entry[1] = value;
-										}
+									}else{
+										a			= (Average)a_entry[0];
+										last_value	= ((Long)a_entry[1]).longValue();
 									}
-								}catch( Throwable e ){
 									
-									Debug.printStackTrace(e);
+									if ( stats_types.get( key ) == CUMULATIVE ){
+									
+										a.addValue(((Long)value).longValue() - last_value);
+										
+									}else{
+										
+										a.addValue(((Long)value).longValue());
+
+									}
+									
+									a_entry[1] = value;
 								}
 							}
 						}

@@ -50,10 +50,15 @@ public class SystemTime {
   private volatile List		consumer_list		= new ArrayList();
   private volatile List		clock_change_list	= new ArrayList();
   
+  private static highPrecisionCounter	high_precision_counter;
+  
+  private static long hpc_base_time;
+  private static long hpc_last_time;
+  
   private 
   SystemTime() 
   {
-    stepped_time = System.currentTimeMillis();
+	stepped_time = System.currentTimeMillis();
 
     updater = 
     	new Thread("SystemTime") 
@@ -281,6 +286,53 @@ public class SystemTime {
 	  public void
 	  consume(
 		long	time );
+  }
+  
+  public static long
+  getHighPrecisionCounter()
+  {
+	  if ( high_precision_counter == null ){
+		  
+		  AEDiagnostics.load15Stuff();
+		  
+		  synchronized( SystemTime.class ){
+			  
+			  long now = getCurrentTime();
+			  
+			  if ( now < hpc_last_time ){
+				  
+				  	// clock's gone back, by at least
+				  
+				  long	gone_back_by_at_least = hpc_last_time - now;
+				  
+				  	// all we can do is move the logical start time back too to ensure that our
+				  	// counter doesn't got backwards
+				  
+				  hpc_base_time -= gone_back_by_at_least;
+			  }
+			  
+			  hpc_last_time = now;
+			  
+			  return((now - hpc_base_time) * 1000000 );
+		  }
+	  }else{
+		  
+		  return( high_precision_counter.nanoTime());
+	  }
+  }
+  
+  public static void
+  registerHighPrecisionCounter(
+	  highPrecisionCounter	counter )
+  {
+	  high_precision_counter = counter;
+  }
+  
+  public interface
+  highPrecisionCounter
+  {
+	  public long
+	  nanoTime();
   }
   
   public static void
