@@ -61,6 +61,8 @@ DownloadManagerState
 	public static final long FLAG_MOVE_ON_COMPLETION_DONE   = Download.FLAG_MOVE_ON_COMPLETION_DONE;
 	
 	public static final String	PARAM_MAX_PEERS							= "max.peers";
+	public static final String	PARAM_MAX_PEERS_WHEN_SEEDING			= "max.peers.when.seeding";
+	public static final String	PARAM_MAX_PEERS_WHEN_SEEDING_ENABLED	= "max.peers.when.seeding.enabled";
 	public static final String	PARAM_MAX_SEEDS							= "max.seeds";
 	public static final String	PARAM_MAX_UPLOADS						= "max.uploads";
 	public static final String	PARAM_MAX_UPLOADS_WHEN_SEEDING			= "max.uploads.when.seeding";
@@ -75,6 +77,8 @@ DownloadManagerState
 	
 	public static Object[][] PARAMETERS = {
 		{ PARAM_MAX_PEERS,							new Integer( 0 ) },
+		{ PARAM_MAX_PEERS_WHEN_SEEDING,				new Integer( 0 ) },
+		{ PARAM_MAX_PEERS_WHEN_SEEDING_ENABLED,		new Boolean( false ) },
 		{ PARAM_MAX_SEEDS,							new Integer( 0 ) },
 		{ PARAM_MAX_UPLOADS,						new Long( DEFAULT_MAX_UPLOADS ) },
 		{ PARAM_MAX_UPLOADS_WHEN_SEEDING, 			new Integer( DEFAULT_MAX_UPLOADS ) },

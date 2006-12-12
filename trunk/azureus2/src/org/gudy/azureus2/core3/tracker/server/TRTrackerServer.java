@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.core3.tracker.server;
 
+import java.util.Set;
+
 import org.gudy.azureus2.core3.util.Constants;
 
 public interface 
@@ -90,6 +92,10 @@ TRTrackerServer
 
 	public TRTrackerServerStats
 	getStats();
+	
+	public void
+	setBiasedPeers(
+		Set		ips );
 	
 	public void
 	addListener(

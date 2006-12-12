@@ -1002,234 +1002,237 @@ TRTrackerServerTorrentImpl
 					}
 				}else{
 					
-					if ( num_want < total_peers*3 ){
-						
-						int	peer_list_size	= peer_list.size();
-				
-							// to avoid returning duplicates when doing the two-loop check
-							// for nat selection we maintain an array of markers
-						
-						if ( duplicate_peer_checker.length < peer_list_size ){
-							
-							duplicate_peer_checker	= new byte[peer_list_size*2];
-							
-							duplicate_peer_checker_index	= 1;
-							
-						}else if ( duplicate_peer_checker.length > (peer_list_size*2)){
-							
-							duplicate_peer_checker	= new byte[(3*peer_list_size)/2];
-							
-							duplicate_peer_checker_index	= 1;
-							
-						}else{
-							
-							duplicate_peer_checker_index++;
-							
-							if ( duplicate_peer_checker_index == 0 ){
-								
-								Arrays.fill( duplicate_peer_checker, (byte)0);
-								
-								duplicate_peer_checker_index	= 1;
-							}
-						}
-						
-						boolean	peer_removed	= false;
-								
-						try{
-								// got to suspend peer list compaction as we rely on the
-								// list staying the same size during processing below
-							
-							peer_list_compaction_suspended	= true;
-				
-								// too costly to randomise as below. use more efficient but slightly less accurate
-								// approach
-							
-								// two pass process if bad nat detection enabled
-						
-							int	added			= 0;
-							//int	bad_nat_added	= 0;
-	
-							for (int bad_nat_loop=TRTrackerServerNATChecker.getSingleton().isEnabled()?0:1;bad_nat_loop<2;bad_nat_loop++){
-		
-								int	limit 	= num_want*2;	// some entries we find might not be usable
-															// so in the limit search for more
-								
-								for (int i=0;i<limit && added < num_want;i++){
-									
-									int	index = random.nextInt(peer_list_size);
-									
-									TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(index);
+					int	peer_list_size	= peer_list.size();
+			
+						// to avoid returning duplicates when doing the two-loop check
+						// for nat selection we maintain an array of markers
 					
-									if ( peer == null ){
-										
-									}else if ( now > peer.getTimeout()){
-										
-										removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TIMEOUT, null );
-										
-										peer_removed	= true;
-										
-									}else if ( peer.getTCPPort() == 0 ){
-										
-											// a port of 0 means that the peer definitely can't accept incoming connections
-								
-									}else if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE && peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED ){
-										
-										// don't return "crypto required" peers to those that can't correctly connect to them
-
-									}else if ( include_seeds || !peer.isSeed()){
-								
-										boolean	bad_nat = peer.isNATStatusBad();
-										
-										if ( 	( bad_nat_loop == 0 && !bad_nat ) ||
-												( bad_nat_loop == 1 )){
-											
-											if ( duplicate_peer_checker[index] != duplicate_peer_checker_index ){
-												
-												duplicate_peer_checker[index] = duplicate_peer_checker_index;
-										
-												//if ( bad_nat ){
-												//	
-												//	bad_nat_added++;
-												//}
-												
-												added++;
-												
-												Map rep_peer = new HashMap(3);
-												
-												if ( send_peer_ids ){
-													
-													rep_peer.put( "peer id", peer.getPeerId().getHash());
-												}
-												
-												if ( compact_mode != COMPACT_MODE_NONE ){
-													
-													byte[]	peer_bytes = peer.getIPBytes();
-													
-													if ( peer_bytes == null ){
-																							
-														continue;
-													}
-													
-													rep_peer.put( "ip", peer_bytes );
-													
-													if ( compact_mode >= COMPACT_MODE_AZ ){
-														
-														rep_peer.put( "azver", new Long( peer.getAZVer()));
-														
-														rep_peer.put( "azudp", new Long( peer.getUDPPort()));
-														
-														if ( peer.isSeed()){
-															
-															rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
-														}
-													}
-												}else{
-													
-													rep_peer.put( "ip", peer.getIPAsRead() );
-												}
-												
-												rep_peer.put( "port", new Long( peer.getTCPPort()));	
-												
-												if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
-													
-													rep_peer.put( "crypto_flag", new Long( peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED?1:0));
-												}
-
-												rep_peers.add( rep_peer );
-											}
-										}
-									}
-								}
-							}
-							
-							// System.out.println( "num_want = " + num_want + ", added = " + added + ", bad_nat = " + bad_nat_added );
-							
-						}finally{
-								
-							peer_list_compaction_suspended	= false;
-								
-							if ( peer_removed ){
-									
-								checkForPeerListCompaction( false );
-							}
-						}
+					if ( duplicate_peer_checker.length < peer_list_size ){
+						
+						duplicate_peer_checker	= new byte[peer_list_size*2];
+						
+						duplicate_peer_checker_index	= 1;
+						
+					}else if ( duplicate_peer_checker.length > (peer_list_size*2)){
+						
+						duplicate_peer_checker	= new byte[(3*peer_list_size)/2];
+						
+						duplicate_peer_checker_index	= 1;
 						
 					}else{
 						
-							// randomly select the peers to return
+						duplicate_peer_checker_index++;
 						
-						LinkedList	peers = new LinkedList( peer_map.keySet());
-						
-						int	added = 0;
-						
-						while( added < num_want && peers.size() > 0 ){
+						if ( duplicate_peer_checker_index == 0 ){
 							
-							String	key = (String)peers.remove(random.nextInt(peers.size()));
-											
-							TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get(key);
+							Arrays.fill( duplicate_peer_checker, (byte)0);
 							
-							if ( now > peer.getTimeout()){
-								
-								removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TIMEOUT, null );
-								
-							}else if ( peer.getTCPPort() == 0 ){
-								
-									// a port of 0 means that the peer definitely can't accept incoming connections
-								
-							}else if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE && peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED ){
-								
-								// don't return "crypto required" peers to those that can't correctly connect to them
-
-							}else if ( include_seeds || !peer.isSeed()){
-								
-								added++;
-								
-								Map rep_peer = new HashMap(3);	// don't use TreeMap as default is "compact"
-																// so we never actually encode anyway
-								
-								if ( send_peer_ids ){
-									
-									rep_peer.put( "peer id", peer.getPeerId().getHash());
-								}
-								
-								if ( compact_mode != COMPACT_MODE_NONE ){
-									
-									byte[]	peer_bytes = peer.getIPBytes();
-									
-									if ( peer_bytes == null ){
-										
-										continue;
-									}
-									
-									rep_peer.put( "ip", peer_bytes );
-									
-									if ( compact_mode >= COMPACT_MODE_AZ ){
-										
-										rep_peer.put( "azver", new Long( peer.getAZVer()));
-										
-										rep_peer.put( "azudp", new Long( peer.getUDPPort()));
-										
-										if ( peer.isSeed()){
-											
-											rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
-										}
-									}
-								}else{
-									rep_peer.put( "ip", peer.getIPAsRead() );
-								}
-								
-								rep_peer.put( "port", new Long( peer.getTCPPort()));
-								
-								if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
-									
-									rep_peer.put( "crypto_flag", new Long( peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED?1:0));
-								}
-
-								rep_peers.add( rep_peer );
-							
-							}
+							duplicate_peer_checker_index	= 1;
 						}
 					}
+					
+					boolean	peer_removed	= false;
+							
+					try{
+							// got to suspend peer list compaction as we rely on the
+							// list staying the same size during processing below
+						
+						peer_list_compaction_suspended	= true;
+			
+							// too costly to randomise as below. use more efficient but slightly less accurate
+							// approach
+						
+							// two pass process if bad nat detection enabled
+					
+						int	added			= 0;
+						//int	bad_nat_added	= 0;
+
+						for (int bad_nat_loop=TRTrackerServerNATChecker.getSingleton().isEnabled()?0:1;bad_nat_loop<2;bad_nat_loop++){
+	
+							int	limit 	= num_want*2;	// some entries we find might not be usable
+														// so in the limit search for more
+							
+							if ( num_want*3 > total_peers ){
+								
+								limit++;
+							}
+							
+							for (int i=0;i<limit && added < num_want;i++){
+								
+								int	index = random.nextInt(peer_list_size);
+								
+								TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(index);
+				
+								if ( peer == null ){
+									
+								}else if ( now > peer.getTimeout()){
+									
+									removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TIMEOUT, null );
+									
+									peer_removed	= true;
+									
+								}else if ( peer.getTCPPort() == 0 ){
+									
+										// a port of 0 means that the peer definitely can't accept incoming connections
+							
+								}else if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE && peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED ){
+									
+									// don't return "crypto required" peers to those that can't correctly connect to them
+
+								}else if ( include_seeds || !peer.isSeed()){
+							
+									boolean	bad_nat = peer.isNATStatusBad();
+									
+									if ( 	( bad_nat_loop == 0 && !bad_nat ) ||
+											( bad_nat_loop == 1 )){
+										
+										if ( duplicate_peer_checker[index] != duplicate_peer_checker_index ){
+											
+											duplicate_peer_checker[index] = duplicate_peer_checker_index;
+									
+											//if ( bad_nat ){
+											//	
+											//	bad_nat_added++;
+											//}
+											
+											added++;
+											
+											Map rep_peer = new HashMap(3);
+											
+											if ( send_peer_ids ){
+												
+												rep_peer.put( "peer id", peer.getPeerId().getHash());
+											}
+											
+											if ( compact_mode != COMPACT_MODE_NONE ){
+												
+												byte[]	peer_bytes = peer.getIPBytes();
+												
+												if ( peer_bytes == null ){
+																						
+													continue;
+												}
+												
+												rep_peer.put( "ip", peer_bytes );
+												
+												if ( compact_mode >= COMPACT_MODE_AZ ){
+													
+													rep_peer.put( "azver", new Long( peer.getAZVer()));
+													
+													rep_peer.put( "azudp", new Long( peer.getUDPPort()));
+													
+													if ( peer.isSeed()){
+														
+														rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+													}
+												}
+											}else{
+												
+												rep_peer.put( "ip", peer.getIPAsRead() );
+											}
+											
+											rep_peer.put( "port", new Long( peer.getTCPPort()));	
+											
+											if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
+												
+												rep_peer.put( "crypto_flag", new Long( peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED?1:0));
+											}
+
+											rep_peers.add( rep_peer );
+										}
+									}
+								}
+							}
+						}
+						
+						// System.out.println( "num_want = " + num_want + ", added = " + added + ", bad_nat = " + bad_nat_added );
+						
+					}finally{
+							
+						peer_list_compaction_suspended	= false;
+							
+						if ( peer_removed ){
+								
+							checkForPeerListCompaction( false );
+						}
+					}
+				/*
+				}else{
+						// given up on this approach for the moment as too costly
+					 
+						// randomly select the peers to return
+					
+					LinkedList	peers = new LinkedList( peer_map.keySet());
+					
+					int	added = 0;
+					
+					while( added < num_want && peers.size() > 0 ){
+						
+						String	key = (String)peers.remove(random.nextInt(peers.size()));
+										
+						TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get(key);
+						
+						if ( now > peer.getTimeout()){
+							
+							removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TIMEOUT, null );
+							
+						}else if ( peer.getTCPPort() == 0 ){
+							
+								// a port of 0 means that the peer definitely can't accept incoming connections
+							
+						}else if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE && peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED ){
+							
+							// don't return "crypto required" peers to those that can't correctly connect to them
+
+						}else if ( include_seeds || !peer.isSeed()){
+							
+							added++;
+							
+							Map rep_peer = new HashMap(3);	// don't use TreeMap as default is "compact"
+															// so we never actually encode anyway
+							
+							if ( send_peer_ids ){
+								
+								rep_peer.put( "peer id", peer.getPeerId().getHash());
+							}
+							
+							if ( compact_mode != COMPACT_MODE_NONE ){
+								
+								byte[]	peer_bytes = peer.getIPBytes();
+								
+								if ( peer_bytes == null ){
+									
+									continue;
+								}
+								
+								rep_peer.put( "ip", peer_bytes );
+								
+								if ( compact_mode >= COMPACT_MODE_AZ ){
+									
+									rep_peer.put( "azver", new Long( peer.getAZVer()));
+									
+									rep_peer.put( "azudp", new Long( peer.getUDPPort()));
+									
+									if ( peer.isSeed()){
+										
+										rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+									}
+								}
+							}else{
+								rep_peer.put( "ip", peer.getIPAsRead() );
+							}
+							
+							rep_peer.put( "port", new Long( peer.getTCPPort()));
+							
+							if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
+								
+								rep_peer.put( "crypto_flag", new Long( peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED?1:0));
+							}
+
+							rep_peers.add( rep_peer );
+						
+						}
+					}*/
 				}
 			}
 			

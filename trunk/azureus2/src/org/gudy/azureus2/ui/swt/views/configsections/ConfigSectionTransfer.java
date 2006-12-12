@@ -268,19 +268,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 							paramMaxUploadsSeeding.getControl()));
 			
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
 			////
 
 			gridData = new GridData();
@@ -294,6 +281,44 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 					"Max.Peer.Connections.Per.Torrent");
 			paramMaxClients.setLayoutData(gridData);
 
+			
+			/////
+			
+				// max peers when seeding
+			
+			final Composite cMaxPeersOptionsArea = new Composite(cSection, SWT.NULL);
+			layout = new GridLayout();
+			layout.numColumns = 3;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			cMaxPeersOptionsArea.setLayout(layout);
+			gridData = new GridData();
+			gridData.horizontalIndent = 15;
+			gridData.horizontalSpan = 2;
+			cMaxPeersOptionsArea.setLayoutData(gridData);
+			label = new Label(cMaxPeersOptionsArea, SWT.NULL);
+			img = ImageRepository.getImage("subitem");
+			img.setBackground(label.getBackground());
+			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+			label.setLayoutData(gridData);
+			label.setImage(img);
+			
+			gridData = new GridData();
+			BooleanParameter enable_max_peers_seeding = new BooleanParameter(
+					cMaxPeersOptionsArea, "Max.Peer.Connections.Per.Torrent.When.Seeding.Enable", false,
+					"ConfigView.label.maxuploadsseeding");
+			enable_max_peers_seeding.setLayoutData(gridData);
+
+			gridData = new GridData();
+			gridData.widthHint = 35;
+			IntParameter paramMaxPeersSeeding = new IntParameter(
+					cMaxPeersOptionsArea, "Max.Peer.Connections.Per.Torrent.When.Seeding", 0, -1);
+			paramMaxPeersSeeding.setLayoutData(gridData);
+			enable_max_peers_seeding
+					.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+							paramMaxPeersSeeding.getControl()));
+	
+			
 			/////
 
 			gridData = new GridData();

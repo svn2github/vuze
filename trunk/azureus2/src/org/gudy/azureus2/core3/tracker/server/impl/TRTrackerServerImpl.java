@@ -303,6 +303,13 @@ TRTrackerServerImpl
 		return( is_ready );
 	}
 	
+	public void
+	setBiasedPeers(
+		Set		peers )
+	{
+		
+	}
+	
 	public boolean
 	isWebPasswordEnabled()
 	{

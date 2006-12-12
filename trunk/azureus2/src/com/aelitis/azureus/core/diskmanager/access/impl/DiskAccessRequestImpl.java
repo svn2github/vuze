@@ -22,9 +22,6 @@
 
 package com.aelitis.azureus.core.diskmanager.access.impl;
 
-import java.util.List;
-
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 

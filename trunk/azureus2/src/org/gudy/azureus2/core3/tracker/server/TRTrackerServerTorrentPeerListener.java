@@ -45,4 +45,8 @@ TRTrackerServerTorrentPeerListener
 		String					url_parameters )
 	
 		throws TRTrackerServerException;
+	
+	public int
+	getPeerBias(
+		String		ip );
 }

@@ -342,6 +342,8 @@ DownloadManagerStateImpl
 	protected void
 	addListeners()
 	{
+		COConfigurationManager.addParameterListener( "Max.Peer.Connections.Per.Torrent.When.Seeding", this );
+		COConfigurationManager.addParameterListener( "Max.Peer.Connections.Per.Torrent.When.Seeding.Enable", this );
 		COConfigurationManager.addParameterListener( "Max.Peer.Connections.Per.Torrent", this );
 		COConfigurationManager.addParameterListener( "Max Uploads", this );
 		COConfigurationManager.addParameterListener( "Max Uploads Seeding", this );
@@ -351,6 +353,8 @@ DownloadManagerStateImpl
 	protected void
 	removeListeners()
 	{
+		COConfigurationManager.removeParameterListener( "Max.Peer.Connections.Per.Torrent.When.Seeding", this );
+		COConfigurationManager.removeParameterListener( "Max.Peer.Connections.Per.Torrent.When.Seeding.Enable", this );
 		COConfigurationManager.removeParameterListener( "Max.Peer.Connections.Per.Torrent", this );
 		COConfigurationManager.removeParameterListener( "Max Uploads", this );
 		COConfigurationManager.removeParameterListener( "Max Uploads Seeding", this );
@@ -689,7 +693,7 @@ DownloadManagerStateImpl
 					
 						// default overrides
 					
-						// **** note - id you add to these make sure you extend the parameter listeners
+						// **** note - if you add to these make sure you extend the parameter listeners
 						// registered as well (see addParameterListeners)
 					
 					if ( name == PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED ){
@@ -704,8 +708,7 @@ DownloadManagerStateImpl
 						int	def = COConfigurationManager.getIntParameter( "Max Uploads Seeding" );
 						
 						value = new Integer( def );
-						
-						
+											
 					}else if ( name == PARAM_MAX_UPLOADS ){
 						
 						int	def = COConfigurationManager.getIntParameter("Max Uploads" );
@@ -715,6 +718,19 @@ DownloadManagerStateImpl
 					}else if ( name == PARAM_MAX_PEERS ){
 						
 						int	def = COConfigurationManager.getIntParameter( "Max.Peer.Connections.Per.Torrent" );
+						
+						value = new Integer( def );
+						
+					}else if ( name == PARAM_MAX_PEERS_WHEN_SEEDING_ENABLED ){
+						
+						if ( COConfigurationManager.getBooleanParameter( "Max.Peer.Connections.Per.Torrent.When.Seeding.Enable" )){
+								
+							value = new Boolean( true );
+						}
+
+					}else if ( name == PARAM_MAX_PEERS_WHEN_SEEDING ){
+						
+						int	def = COConfigurationManager.getIntParameter( "Max.Peer.Connections.Per.Torrent.When.Seeding" );
 						
 						value = new Integer( def );
 					}

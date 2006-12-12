@@ -49,6 +49,7 @@ AzureusCoreStats
 	public static final String ST_DISK_READ_BYTES_TOTAL			= "disk.read.bytes.total";		// Long
 	public static final String ST_DISK_READ_BYTES_SINGLE		= "disk.read.bytes.single";		// Long
 	public static final String ST_DISK_READ_BYTES_MULTIPLE		= "disk.read.bytes.multiple";	// Long
+	public static final String ST_DISK_READ_IO_TIME				= "disk.read.io.time";			// Long
 	
 	public static final String ST_DISK_WRITE_QUEUE_LENGTH		= "disk.write.queue.length";	// Long
 	public static final String ST_DISK_WRITE_QUEUE_BYTES		= "disk.write.queue.bytes";		// Long
@@ -57,6 +58,7 @@ AzureusCoreStats
 	public static final String ST_DISK_WRITE_BYTES_TOTAL		= "disk.write.bytes.total";		// Long
 	public static final String ST_DISK_WRITE_BYTES_SINGLE		= "disk.write.bytes.single";	// Long
 	public static final String ST_DISK_WRITE_BYTES_MULTIPLE		= "disk.write.bytes.multiple";	// Long
+	public static final String ST_DISK_WRITE_IO_TIME			= "disk.write.io.time";			// Long
 
 		// NETWORK
 	
@@ -93,7 +95,8 @@ AzureusCoreStats
 		{ ST_DISK_READ_BYTES_TOTAL,					CUMULATIVE },
 		{ ST_DISK_READ_BYTES_SINGLE,				CUMULATIVE },
 		{ ST_DISK_READ_BYTES_MULTIPLE,				CUMULATIVE },
-		
+		{ ST_DISK_READ_IO_TIME,						CUMULATIVE },
+				
 		{ ST_DISK_WRITE_QUEUE_LENGTH,				POINT },
 		{ ST_DISK_WRITE_QUEUE_BYTES,				POINT },
 		{ ST_DISK_WRITE_REQUEST_COUNT,				CUMULATIVE },
@@ -101,7 +104,8 @@ AzureusCoreStats
 		{ ST_DISK_WRITE_BYTES_TOTAL,				CUMULATIVE },
 		{ ST_DISK_WRITE_BYTES_SINGLE,				CUMULATIVE },
 		{ ST_DISK_WRITE_BYTES_MULTIPLE,				CUMULATIVE },
-		
+		{ ST_DISK_WRITE_IO_TIME,					CUMULATIVE },
+
 		{ ST_NET_WRITE_CONTROL_WAIT_COUNT,			CUMULATIVE },
 		{ ST_NET_WRITE_CONTROL_ENTITY_COUNT,		POINT },
 		{ ST_NET_WRITE_CONTROL_CON_COUNT,			POINT },

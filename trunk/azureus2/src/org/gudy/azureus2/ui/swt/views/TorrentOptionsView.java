@@ -227,7 +227,7 @@ TorrentOptionsView
 						cMaxUploadsOptionsArea, 
 						DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED,
 						false,
-						TEXT_PREFIX + "max.uploads.when.seeding.enable");
+						TEXT_PREFIX + "alternative.value.enable");
 			ds_parameters.put( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED, max_uploads_when_seeding_enabled );
 			max_uploads_when_seeding_enabled.setLayoutData( gridData );
 			
@@ -258,6 +258,52 @@ TorrentOptionsView
 			gridData.widthHint = 40;
 			max_peers.setLayoutData(gridData);
 	
+				// max peers when seeding
+			
+			final Composite cMaxPeersOptionsArea = new Composite(gTorrentOptions, SWT.NULL);
+			layout = new GridLayout();
+			layout.numColumns = 3;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			cMaxPeersOptionsArea.setLayout(layout);
+			gridData = new GridData();
+			gridData.horizontalIndent = 15;
+			gridData.horizontalSpan = 2;
+			cMaxPeersOptionsArea.setLayoutData(gridData);
+			
+			label = new Label(cMaxPeersOptionsArea, SWT.NULL);
+			img = ImageRepository.getImage("subitem");
+			img.setBackground(label.getBackground());
+			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+			label.setLayoutData(gridData);
+			label.setImage(img);
+	
+			gridData = new GridData();
+			GenericBooleanParameter	max_peers_when_seeding_enabled = 
+				new GenericBooleanParameter( 
+						ds_param_adapter, 
+						cMaxPeersOptionsArea, 
+						DownloadManagerState.PARAM_MAX_PEERS_WHEN_SEEDING_ENABLED,
+						false,
+						TEXT_PREFIX + "alternative.value.enable");
+			ds_parameters.put( DownloadManagerState.PARAM_MAX_PEERS_WHEN_SEEDING_ENABLED, max_peers_when_seeding_enabled );
+			max_peers_when_seeding_enabled.setLayoutData( gridData );
+			
+	
+			GenericIntParameter max_peers_when_seeding = new GenericIntParameter(
+					ds_param_adapter, cMaxPeersOptionsArea,
+					DownloadManagerState.PARAM_MAX_PEERS_WHEN_SEEDING);
+			ds_parameters.put( DownloadManagerState.PARAM_MAX_PEERS_WHEN_SEEDING, max_peers_when_seeding );
+			gridData = new GridData();
+			gridData.widthHint = 40;
+			max_peers_when_seeding.setLayoutData(gridData);
+			
+			max_peers_when_seeding_enabled.setAdditionalActionPerformer(
+					new ChangeSelectionActionPerformer( max_peers_when_seeding.getControl()));
+
+			
+				// max seeds
+			
 			label = new Label(gTorrentOptions, SWT.NULL);
 			gridData = new GridData();
 			label.setLayoutData( gridData );

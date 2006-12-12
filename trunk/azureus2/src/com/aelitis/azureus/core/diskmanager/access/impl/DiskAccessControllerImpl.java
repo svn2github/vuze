@@ -65,6 +65,7 @@ DiskAccessControllerImpl
 		types.add( AzureusCoreStats.ST_DISK_READ_BYTES_TOTAL );
 		types.add( AzureusCoreStats.ST_DISK_READ_BYTES_SINGLE );
 		types.add( AzureusCoreStats.ST_DISK_READ_BYTES_MULTIPLE );
+		types.add( AzureusCoreStats.ST_DISK_READ_IO_TIME );
 		
 		types.add( AzureusCoreStats.ST_DISK_WRITE_QUEUE_LENGTH );
 		types.add( AzureusCoreStats.ST_DISK_WRITE_QUEUE_BYTES );
@@ -73,7 +74,8 @@ DiskAccessControllerImpl
 		types.add( AzureusCoreStats.ST_DISK_WRITE_BYTES_TOTAL );
 		types.add( AzureusCoreStats.ST_DISK_WRITE_BYTES_SINGLE );
 		types.add( AzureusCoreStats.ST_DISK_WRITE_BYTES_MULTIPLE );
-		
+		types.add( AzureusCoreStats.ST_DISK_WRITE_IO_TIME );
+
 		AzureusCoreStats.registerProvider( types, this );
 	}
 	
@@ -129,6 +131,11 @@ DiskAccessControllerImpl
 			values.put( AzureusCoreStats.ST_DISK_READ_BYTES_MULTIPLE, new Long( read_dispatcher.getTotalAggregatedBytes()));
 		}
 
+		if ( types.contains( AzureusCoreStats.ST_DISK_READ_IO_TIME )){
+			
+			values.put( AzureusCoreStats.ST_DISK_READ_IO_TIME, new Long( read_dispatcher.getIOTime()));
+		}
+
 			// write
 		
 		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_QUEUE_LENGTH )){
@@ -164,6 +171,11 @@ DiskAccessControllerImpl
 		if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_BYTES_MULTIPLE )){
 			
 			values.put( AzureusCoreStats.ST_DISK_WRITE_BYTES_MULTIPLE, new Long( write_dispatcher.getTotalAggregatedBytes()));
+		}
+		
+	if ( types.contains( AzureusCoreStats.ST_DISK_WRITE_IO_TIME )){
+			
+			values.put( AzureusCoreStats.ST_DISK_WRITE_IO_TIME, new Long( write_dispatcher.getIOTime()));
 		}
 	}
 	

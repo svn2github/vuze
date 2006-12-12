@@ -125,7 +125,10 @@ public class ConfigurationDefaults {
     def.put("max downloads", new Long(4));
     def.put("min downloads", ONE);
     def.put("Newly Seeding Torrents Get First Priority", TRUE);
+    
     def.put("Max.Peer.Connections.Per.Torrent", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT));
+    def.put("Max.Peer.Connections.Per.Torrent.When.Seeding", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT));
+    def.put("Max.Peer.Connections.Per.Torrent.When.Seeding.Enable", FALSE );
     def.put("Max.Peer.Connections.Total", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL));
 
     def.put( "File Max Open", new Long(50));

@@ -384,6 +384,8 @@ DownloadManagerImpl
 
     private int		max_uploads	= DownloadManagerState.MIN_MAX_UPLOADS;
     private int		max_connections;
+    private int		max_connections_when_seeding;
+    private boolean	max_connections_when_seeding_enabled;
     private int		max_seed_connections;
     private int		max_uploads_when_seeding	= DownloadManagerState.MIN_MAX_UPLOADS;
     private boolean	max_uploads_when_seeding_enabled;
@@ -866,12 +868,14 @@ DownloadManagerImpl
 	protected void
 	readParameters()
 	{
-		max_connections						= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_PEERS );
-		max_seed_connections				= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_SEEDS );
-		max_uploads						 	= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS );
-		max_uploads_when_seeding_enabled 	= getDownloadState().getBooleanParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED );
-		max_uploads_when_seeding 			= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING );
-		max_upload_when_busy_bps			= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOAD_WHEN_BUSY ) * 1024;
+		max_connections							= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_PEERS );
+		max_connections_when_seeding_enabled	= getDownloadState().getBooleanParameter( DownloadManagerState.PARAM_MAX_PEERS_WHEN_SEEDING_ENABLED );
+		max_connections_when_seeding			= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_PEERS_WHEN_SEEDING );
+		max_seed_connections					= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_SEEDS );
+		max_uploads						 		= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS );
+		max_uploads_when_seeding_enabled 		= getDownloadState().getBooleanParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED );
+		max_uploads_when_seeding 				= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING );
+		max_upload_when_busy_bps				= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOAD_WHEN_BUSY ) * 1024;
 
 		max_uploads = Math.max( max_uploads, DownloadManagerState.MIN_MAX_UPLOADS );
 		max_uploads_when_seeding = Math.max( max_uploads_when_seeding, DownloadManagerState.MIN_MAX_UPLOADS );
@@ -881,6 +885,18 @@ DownloadManagerImpl
 	getMaxConnections()
 	{
 		return( max_connections );
+	}
+	
+	protected int
+	getMaxConnectionsWhenSeeding()
+	{
+		return( max_connections_when_seeding );
+	}
+	
+	protected boolean
+	isMaxConnectionsWhenSeedingEnabled()
+	{
+		return( max_connections_when_seeding_enabled );
 	}
 	
 	protected int

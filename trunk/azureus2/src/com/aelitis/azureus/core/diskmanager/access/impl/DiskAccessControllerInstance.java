@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
 
@@ -58,6 +59,8 @@ DiskAccessControllerInstance
 	private long			total_single_bytes;
 	private long			total_aggregated_bytes;
 	
+	private long			io_time;
+
 	private requestDispatcher[]	dispatchers;
 	
 	private long		last_check		= 0;	
@@ -152,6 +155,12 @@ DiskAccessControllerInstance
 	getTotalAggregatedBytes()
 	{
 		return( total_aggregated_bytes );
+	}
+	
+	public long
+	getIOTime()
+	{
+		return( io_time );
 	}
 	
 	protected void
@@ -317,7 +326,7 @@ DiskAccessControllerInstance
 		private AESemaphore	request_sem	= new AESemaphore("DiskAccessControllerInstance:requestDispatcher" );
 		
 		private long	last_request_time;
-		
+				
 		protected
 		requestDispatcher(
 			int	_index )
@@ -335,6 +344,8 @@ DiskAccessControllerInstance
 				
 				synchronized( requests ){
 
+						// stats not synced on the right object, but they're only stats...
+					
 					total_requests++;
 					
 					total_single_requests_made++;
@@ -490,6 +501,8 @@ DiskAccessControllerInstance
 											
 											try{
 												
+												long	io_start = SystemTime.getHighPrecisionCounter();
+												
 												if ( aggregated == null ){
 													
 													try{
@@ -497,6 +510,10 @@ DiskAccessControllerInstance
 														
 													}finally{
 														
+														long	io_end = SystemTime.getHighPrecisionCounter();
+
+														io_time += ( io_end - io_start );
+
 														total_single_bytes += request.getSize();
 														
 														releaseSpaceAllowance( request );
@@ -510,6 +527,10 @@ DiskAccessControllerInstance
 														DiskAccessRequestImpl.runAggregated( request, requests );
 														
 													}finally{
+														
+														long	io_end = SystemTime.getHighPrecisionCounter();
+
+														io_time += ( io_end - io_start );
 														
 														for (int i=0;i<requests.length;i++){
 															

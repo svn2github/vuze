@@ -906,6 +906,12 @@ DownloadManagerController
 		download_manager.downloadEnded( never_downloaded );
   	}
   
+  	public boolean
+  	isStateSeeding()
+  	{
+  		return( getState() == DownloadManager.STATE_SEEDING );
+  	}
+  	
   	protected void
   	setStateQueued()
   	{
@@ -1638,7 +1644,20 @@ DownloadManagerController
 	public int
 	getMaxConnections()
 	{
-		return( download_manager.getMaxConnections());
+		int	result;
+		
+		if ( download_manager.isMaxConnectionsWhenSeedingEnabled() && isStateSeeding()){
+			
+			result = download_manager.getMaxConnectionsWhenSeeding();
+			
+		}else{
+			
+			result = download_manager.getMaxConnections();
+		}
+		
+		System.out.println( download_manager.getDisplayName() + ":seeding limit = " + result );
+
+		return( result );
 	}
 	
 	public int
@@ -1646,6 +1665,7 @@ DownloadManagerController
 	{
 		return( download_manager.getMaxSeedConnections());
 	}
+	
 	public boolean
 	isAZMessagingEnabled()
 	{
