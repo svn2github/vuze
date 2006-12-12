@@ -1655,8 +1655,6 @@ DownloadManagerController
 			result = download_manager.getMaxConnections();
 		}
 		
-		System.out.println( download_manager.getDisplayName() + ":seeding limit = " + result );
-
 		return( result );
 	}
 	
