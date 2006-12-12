@@ -15,6 +15,7 @@ FEATURE: Plug | Plugins now have better support to organise file data within def
 FEATURE: Plug | Plugins can now easily add hyperlinks to config sections. [amc1]
 FEATURE: Core | Added method to XFS specific allocation of new files [Greg]
 FEATURE: Core | Added per-torrent max seeds parameter [Parg]
+FEATURE: Core | Added per-torrent max peers parameter [Parg]
 FEATURE: UI   | Console UI NAT test [Parg]
 
 CHANGE: Core  | Improve the "presence" handling for torrents created by ourselves [Parg]
