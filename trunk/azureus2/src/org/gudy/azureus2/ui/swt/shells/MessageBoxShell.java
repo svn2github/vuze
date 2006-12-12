@@ -80,6 +80,15 @@ public class MessageBoxShell
 			final String text, final String[] buttons, final int defaultOption,
 			final String rememberID, final boolean bRememberByDefault,
 			final int autoCloseInMS) {
+		return open(parent, title, text, buttons, defaultOption, rememberID,
+				MessageText.getString("MessageBoxWindow.rememberdecision"),
+				bRememberByDefault, autoCloseInMS);
+	}
+
+	public static int open(final Shell parent, final String title,
+			final String text, final String[] buttons, final int defaultOption,
+			final String rememberID, final String rememberText,
+			final boolean bRememberByDefault, final int autoCloseInMS) {
 
 		if (rememberID != null) {
 			int rememberedDecision = getRememberedDecision(rememberID);
@@ -97,7 +106,8 @@ public class MessageBoxShell
 			public void runSupport() {
 				MessageBoxShell messageBoxShell = new MessageBoxShell();
 				result[0] = messageBoxShell._open(parent, title, text, buttons,
-						defaultOption, rememberID, bRememberByDefault, autoCloseInMS);
+						defaultOption, rememberID, rememberText, bRememberByDefault,
+						autoCloseInMS);
 			}
 		}, false);
 
@@ -111,7 +121,7 @@ public class MessageBoxShell
 
 	private int _open(Shell parent, String title, String text, String[] buttons,
 			final int defaultOption, final String rememberID,
-			boolean bRememberByDefault, int autoCloseInMS) {
+			final String rememberText, boolean bRememberByDefault, int autoCloseInMS) {
 		MouseTrackAdapter mouseAdapter = null;
 		Display display = parent.getDisplay();
 		final int[] result = { -1
@@ -235,8 +245,7 @@ public class MessageBoxShell
 		Button checkRemember = null;
 		if (rememberID != null) {
 			checkRemember = new Button(shell, SWT.CHECK);
-			Messages.setLanguageText(checkRemember,
-					"MessageBoxWindow.rememberdecision");
+			checkRemember.setText(rememberText);
 			checkRemember.setSelection(bRememberByDefault);
 
 			checkRemember.addDisposeListener(new DisposeListener() {
@@ -384,6 +393,7 @@ public class MessageBoxShell
 					"Okay",
 					"Cancyyyyyy",
 					"Maybe"
-				}, 1, "test2", false, 15000));
+				}, 1, "test2",
+				MessageText.getString("MessageBoxWindow.nomoreprompting"), false, 15000));
 	}
 }
