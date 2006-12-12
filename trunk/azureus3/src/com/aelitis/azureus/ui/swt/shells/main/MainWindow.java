@@ -200,7 +200,9 @@ public class MainWindow implements SWTSkinTabSetListener
 											"HomeReminder.text",
 											new String[] { PlatformTorrentUtils.getContentTitle(torrent)
 											}), new String[] { MessageText.getString("Button.ok")
-									}, 0, "downloadinhome", false, 15000);
+									}, 0, "downloadinhome",
+									MessageText.getString("MessageBoxWindow.nomoreprompting"),
+									false, 15000);
 						}
 					}
 				}
