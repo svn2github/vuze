@@ -376,6 +376,11 @@ IpFilterImpl
 		String torrent_name,
 		boolean	loggable ) 
 	{
+		if ( !isEnabled()){
+			
+			return( false );
+		}
+		
 		//In all cases, block banned ip addresses
 		
 	  if(isBanned(ipAddress)){
@@ -455,6 +460,11 @@ IpFilterImpl
 		String 		torrent_name,
 		boolean		loggable ) 
 	{
+		if ( !isEnabled()){
+			
+			return( false );
+		}
+		
 		//In all cases, block banned ip addresses
 		
 	  if(isBanned(ipAddress)){
