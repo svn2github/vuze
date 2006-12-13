@@ -31,6 +31,8 @@ public class
 TRTrackerServerPeerImpl
 	implements TRTrackerServerPeer, HostNameToIPResolverListener, TRTrackerServerNatCheckerListener
 {	
+	private static final byte UNBIASED	= 101;
+	
 	private HashWrapper	peer_id;
 	private int			key_hash_code;
 	
@@ -53,6 +55,7 @@ TRTrackerServerPeerImpl
 	
 	private long		last_contact_time;
 	private boolean		download_completed;
+	private byte		bias	= UNBIASED;
 	
 	private Object		user_data;
 	
@@ -219,6 +222,39 @@ TRTrackerServerPeerImpl
 	setDownloadCompleted()
 	{
 		download_completed	= true;
+	}
+	
+	public void
+	setBias(
+		byte		_bias )
+	{
+			// valid bias values are -100 -> +100 : use 101 to denote unbiased state
+		
+		bias = _bias;
+	}
+	
+	public byte
+	getBias()
+	{
+		if ( bias == UNBIASED ){
+			
+			return( 0 );
+		}
+		
+		return( bias );
+	}
+	
+	public boolean
+	isBiased()
+	{
+		return( bias != UNBIASED );
+	}
+	
+	protected void
+	setBiased(
+		boolean	biased )
+	{
+		bias	= biased?0:UNBIASED;
 	}
 	
 	protected HashWrapper

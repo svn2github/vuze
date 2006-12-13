@@ -469,6 +469,24 @@ TRTrackerServerProcessor
 			return( peer_id );
 		}
 		
+		public boolean
+		isBiased()
+		{
+			return( false );
+		}
+		
+		public byte
+		getBias()
+		{
+			return( 0 );
+		}
+		
+		public void
+		setBias(
+			byte	bias )
+		{	
+		}
+		
 		public void
 		setUserData(
 			Object		key,

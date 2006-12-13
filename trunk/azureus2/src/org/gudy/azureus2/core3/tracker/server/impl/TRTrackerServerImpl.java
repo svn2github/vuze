@@ -219,6 +219,8 @@ TRTrackerServerImpl
 	private COConfigurationListener		config_listener;
 	private boolean						destroyed;
 	
+	private Set							biased_peers;
+	
 	private boolean						is_ready;
 	
 	public
@@ -307,7 +309,46 @@ TRTrackerServerImpl
 	setBiasedPeers(
 		Set		peers )
 	{
+		if ( biased_peers != null && peers.equals( biased_peers )){
+			
+			return;
+		}
 		
+		String	str = "";
+		
+		Iterator	it = peers.iterator();
+		
+		while( it.hasNext()){
+			
+			str += " " + it.next();
+		}
+		
+		System.out.println( "biased peers: " + str );
+		
+		try{
+			class_mon.enter();
+		
+			biased_peers = new HashSet( peers );
+			
+			Iterator	tit = torrent_map.values().iterator();
+			
+			while(tit.hasNext()){
+							
+				TRTrackerServerTorrentImpl	this_torrent = (TRTrackerServerTorrentImpl)tit.next();
+				
+				this_torrent.updateBiasedPeers( biased_peers );
+			}
+			
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
+	
+	protected Set
+	getBiasedPeers()
+	{
+		return( biased_peers );
 	}
 	
 	public boolean
@@ -684,7 +725,7 @@ TRTrackerServerImpl
 				
 				if ( entry == null ){
 				
-					entry = new TRTrackerServerTorrentImpl( hash, _enabled );
+					entry = new TRTrackerServerTorrentImpl( this, hash, _enabled );
 				
 					torrent_map.put( hash, entry );
 				}

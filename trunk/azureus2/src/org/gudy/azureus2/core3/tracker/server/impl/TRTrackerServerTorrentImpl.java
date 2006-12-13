@@ -62,6 +62,7 @@ TRTrackerServerTorrentImpl
 	private static final int	QUEUED_PEERS_ADD_MAX		= 3;
 		
 		
+	private TRTrackerServerImpl	server;
 	private HashWrapper			hash;
 
 	private Map				peer_map 		= new HashMap();
@@ -70,6 +71,8 @@ TRTrackerServerTorrentImpl
 	private List			peer_list		= new ArrayList();
 	private int				peer_list_hole_count;
 	private boolean			peer_list_compaction_suspended;
+	
+	private List			biased_peers			= null;
 	
 	private Map				lightweight_seed_map	= new HashMap();
 	
@@ -110,9 +113,11 @@ TRTrackerServerTorrentImpl
 
 	public
 	TRTrackerServerTorrentImpl(
+		TRTrackerServerImpl		_server,
 		HashWrapper				_hash,
 		boolean					_enabled )
 	{
+		server		= _server;
 		hash		= _hash;
 		enabled		= _enabled;
 		
@@ -321,6 +326,20 @@ TRTrackerServerTorrentImpl
 					peer_list.add( peer );
 									
 					peer_reuse_map.put( reuse_key, peer );
+					
+					Set	b = server.getBiasedPeers();
+					
+					if ( b != null && b.contains( peer.getIPRaw())){
+							
+						peer.setBiased( true );
+						
+						if ( biased_peers == null ){
+						
+							biased_peers = new ArrayList();
+						}
+						
+						biased_peers.add( peer );
+					}
 					
 					if ( queued_peers != null ){
 						
@@ -798,6 +817,11 @@ TRTrackerServerTorrentImpl
 				
 			}catch( UnsupportedEncodingException e ){
 			}	
+				
+			if ( biased_peers != null ){
+			
+				biased_peers.remove( peer );
+			}
 			
 			if ( peer.isSeed()){
 				
@@ -806,6 +830,48 @@ TRTrackerServerTorrentImpl
 			
 			removed_count++;
 			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	protected void
+	updateBiasedPeers(
+		Set	biased_peers_set )
+	{
+		try{
+			this_mon.enter();
+			
+			Iterator it = peer_list.iterator();
+			
+			if ( it.hasNext() && biased_peers == null ){
+				
+				biased_peers = new ArrayList();
+			}
+			
+			while( it.hasNext()){
+				
+				TRTrackerServerPeerImpl	this_peer = (TRTrackerServerPeerImpl)it.next();
+
+				if ( this_peer != null ){
+					
+					 boolean	biased = biased_peers_set.contains( this_peer.getIPRaw());
+					 
+					 this_peer.setBiased( biased );
+					 
+					 if ( biased ){
+						 
+						 if ( !biased_peers.contains( this_peer )){
+							 
+							 biased_peers.add( this_peer );
+						 }
+					 }else{
+						 
+						 biased_peers.remove( this_peer );
+					 }
+				}
+			}
 		}finally{
 			
 			this_mon.exit();
@@ -921,7 +987,7 @@ TRTrackerServerTorrentImpl
 			}
 			
 			
-			List	rep_peers = new ArrayList();
+			LinkedList	rep_peers = new LinkedList();
 			
 	
 			// System.out.println( "exportPeersToMap: num_want = " + num_want + ", max = " + max_peers );
@@ -955,7 +1021,28 @@ TRTrackerServerTorrentImpl
 							// don't return "crypto required" peers to those that can't correctly connect to them
 							
 						}else if ( include_seeds || !peer.isSeed()){
+								
+							if ( peer.isBiased()){
+								
+									// only interested in negative bias here to remove from result
+								
+								int	bias = peer.getBias();
+								
+								if ( bias < 0 ){
+
+									bias = -bias;
 											
+										// -100 -> always drop, -1 -> drop 1% of the time
+									
+									int rand = random.nextInt( 100 );
+									
+									if ( rand < bias ){
+										
+										continue;
+									}
+								}
+							}
+							
 							Map rep_peer = new HashMap(3);
 				
 							if ( send_peer_ids ){
@@ -997,7 +1084,14 @@ TRTrackerServerTorrentImpl
 								rep_peer.put( "crypto_flag", new Long( peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED?1:0));
 							}
 							
-							rep_peers.add( rep_peer );
+							if ( peer.isBiased()){
+								
+								rep_peers.addFirst( rep_peer );
+								
+							}else{
+								
+								rep_peers.addLast( rep_peer );
+							}
 						}
 					}
 				}else{
@@ -1059,13 +1153,49 @@ TRTrackerServerTorrentImpl
 							
 							for (int i=0;i<limit && added < num_want;i++){
 								
-								int	index = random.nextInt(peer_list_size);
+								int	peer_index;
 								
-								TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(index);
-				
-								if ( peer == null ){
+								TRTrackerServerPeerImpl	peer;
+								
+									// deal with bias up front
+								
+								if ( bad_nat_loop == 1 && biased_peers != null && i < biased_peers.size()){
 									
-								}else if ( now > peer.getTimeout()){
+									peer = (TRTrackerServerPeerImpl)biased_peers.get(i);
+																		
+									int	bias = peer.getBias();
+									
+									int rand = random.nextInt( 100 );
+
+									if ( bias < 0 ){
+																														
+										if ( rand < -bias ){
+											
+											continue;
+										}
+									}else{
+										
+										if ( rand > bias ){
+											
+											continue;
+										}
+									}
+									
+									peer_index = -1;	// don't know actual index and don't need to as biased peers processed separately
+									
+								}else{
+									
+									peer_index = random.nextInt(peer_list_size);
+									
+									peer = (TRTrackerServerPeerImpl)peer_list.get(peer_index);
+									
+									if ( peer == null || peer.isBiased()){
+										
+										continue;
+									}
+								}
+								
+								if ( now > peer.getTimeout()){
 									
 									removePeer( peer, TRTrackerServerTorrentPeerListener.ET_TIMEOUT, null );
 									
@@ -1086,9 +1216,12 @@ TRTrackerServerTorrentImpl
 									if ( 	( bad_nat_loop == 0 && !bad_nat ) ||
 											( bad_nat_loop == 1 )){
 										
-										if ( duplicate_peer_checker[index] != duplicate_peer_checker_index ){
+										if ( peer_index == -1 || duplicate_peer_checker[peer_index] != duplicate_peer_checker_index ){
 											
-											duplicate_peer_checker[index] = duplicate_peer_checker_index;
+											if ( peer_index != -1 ){
+												
+												duplicate_peer_checker[peer_index] = duplicate_peer_checker_index;
+											}
 									
 											//if ( bad_nat ){
 											//	
@@ -1138,7 +1271,14 @@ TRTrackerServerTorrentImpl
 												rep_peer.put( "crypto_flag", new Long( peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED?1:0));
 											}
 
-											rep_peers.add( rep_peer );
+											if ( peer.isBiased()){
+																							
+												rep_peers.addFirst( rep_peer );
+												
+											}else{
+											
+												rep_peers.addLast( rep_peer );
+											}
 										}
 									}
 								}
@@ -1298,7 +1438,7 @@ TRTrackerServerTorrentImpl
 							
 						// System.out.println( "added queued peer " + peer.getString());
 						
-						rep_peers.add( rep_peer );
+						rep_peers.addLast( rep_peer );
 												
 						added.add( peer );
 						
@@ -1319,15 +1459,18 @@ TRTrackerServerTorrentImpl
 				root.putAll( preprocess_map );
 			}
 			
-			int	num_peers_returned	= rep_peers.size();
+			int			num_peers_returned	= rep_peers.size();
+			Iterator	it					= rep_peers.iterator();
 			
 			if ( compact_mode == COMPACT_MODE_AZ ){
 
 				byte[]	compact_peers = new byte[num_peers_returned*9];
 				
-				for ( int i=0;i<num_peers_returned;i++){
+				int	index = 0;
+				
+				while( it.hasNext()){
 					
-					Map	rep_peer = (Map)rep_peers.get(i);
+					Map	rep_peer = (Map)it.next();
 					
 					byte[] 	ip 				= (byte[])rep_peer.get( "ip" );
 					int		tcp_port		= ((Long)rep_peer.get( "port" )).intValue();
@@ -1335,7 +1478,7 @@ TRTrackerServerTorrentImpl
 					Long	crypto_flag_l	= (Long)rep_peer.get( "crypto_flag" );
 					byte	crypto_flag		= crypto_flag_l==null?0:crypto_flag_l.byteValue();
 					
-					int	pos = i*9;
+					int	pos = index*9;
 					
 					System.arraycopy( ip, 0, compact_peers, pos, 4 );
 					
@@ -1346,6 +1489,8 @@ TRTrackerServerTorrentImpl
 					compact_peers[pos++] = (byte)(udp_port>>8);
 					compact_peers[pos++] = (byte)(udp_port&0xff);
 					compact_peers[pos++] = crypto_flag;
+					
+					index++;
 				}
 									
 				root.put( "peers", compact_peers );
@@ -1356,9 +1501,9 @@ TRTrackerServerTorrentImpl
 					
 				List	compact_peers = new ArrayList( num_peers_returned );
 				
-				for ( int i=0;i<num_peers_returned;i++){
+				while( it.hasNext()){
 					
-					Map	rep_peer = (Map)rep_peers.get(i);
+					Map	rep_peer = (Map)it.next();
 					
 					Map	peer = new HashMap();
 					
@@ -1431,15 +1576,17 @@ TRTrackerServerTorrentImpl
 				if ( compact_mode == COMPACT_MODE_NORMAL ){
 					
 					byte[]	compact_peers = new byte[num_peers_returned*6];
-								
-					for ( int i=0;i<num_peers_returned;i++){
 						
-						Map	rep_peer = (Map)rep_peers.get(i);
+					int	index = 0;
+					
+					while( it.hasNext()){
+						
+						Map	rep_peer = (Map)it.next();
 						
 						byte[] 	ip 		= (byte[])rep_peer.get( "ip" );
 						int		port	= ((Long)rep_peer.get( "port" )).intValue();
 						
-						int	pos = i*6;
+						int	pos = index*6;
 						
 						System.arraycopy( ip, 0, compact_peers, pos, 4 );
 						
@@ -1452,24 +1599,30 @@ TRTrackerServerTorrentImpl
 							
 							Long	crypto_flag = (Long)rep_peer.remove( "crypto_flag" );
 							
-							crypto_flags[i] = crypto_flag.byteValue();
+							crypto_flags[index] = crypto_flag.byteValue();
 						}
+						
+						index++;
 					}
 										
 					root.put( "peers", compact_peers );
 					
 				}else{
 					
-					for ( int i=0;i<num_peers_returned;i++){
+					int	index = 0;
+					
+					while( it.hasNext()){
 						
-						Map	rep_peer = (Map)rep_peers.get(i);
+						Map	rep_peer = (Map)it.next();
 											
 						if ( crypto_flags != null ){
 							
 							Long	crypto_flag = (Long)rep_peer.remove( "crypto_flag" );
 							
-							crypto_flags[i] = crypto_flag.byteValue();
+							crypto_flags[index] = crypto_flag.byteValue();
 						}
+						
+						index++;
 					}
 					
 					root.put( "peers", rep_peers );
