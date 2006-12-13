@@ -1423,14 +1423,13 @@ public class FileUtil {
 	}
 	
 	public static String getExtension(String fName) {
-		String ext;
-		int idxDot = fName.lastIndexOf('.');
-		if (idxDot == -1) {
-			ext = "";
-		} else {
-			ext = fName.substring(idxDot + 1);
+		final int fileSepIndex = fName.lastIndexOf(File.separator);
+		final int fileDotIndex = fName.lastIndexOf('.');
+		if (fileSepIndex == fName.length() - 1 || fileDotIndex == -1
+				|| fileSepIndex > fileDotIndex) {
+			return "";
 		}
 		
-		return ext;
+		return fName.substring(fileDotIndex);
 	}
 }
