@@ -735,9 +735,11 @@ public class TableColumnImpl
 				if (c0 == null) {
 					return 0;
 				}
-				val = 1;
+				// always place nulls at bottom
+				return -1;
 			} else if (c0 == null) {
-				val = -1;
+				// always place nulls at bottom
+				return 1;
 			} else {
 				val = c1.compareTo(c0);
 			}
