@@ -118,6 +118,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     
     Label lLocation = new Label(shell, SWT.WRAP);
     data = new FormData();
+    data.top= new FormAttachment(0, 0);
     data.left = new FormAttachment(lDownloading);
     data.right = new FormAttachment(100,0);
     lLocation.setLayoutData(data);
@@ -144,7 +145,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     data.right = new FormAttachment(100,0);
     progressBar.setLayoutData(data);
     
-    Label lStatus = new Label(shell, SWT.WRAP);
+    Label lStatus = new Label(shell, SWT.NONE);
     lStatus.setText(MessageText.getString("fileDownloadWindow.status"));
     
     data = new FormData();
@@ -221,6 +222,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
 	fixupSize();
 	
     shell.open();
+  	fixupSize();
     
     downloader = TorrentDownloaderFactory.create(this,url,referrer,dirName);
     downloader.start();
@@ -234,14 +236,13 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
   
   
   private void fixupSize() {
-  	Point p = shell.computeSize( SWT.DEFAULT, SWT.DEFAULT );
-  	
-  	if ( p.x > 600 ){
-  		p = shell.computeSize( 600, SWT.DEFAULT );
-  	}
+  	shell.update();
+    shell.layout(true, true);
+  	Point p = shell.computeSize(600, SWT.DEFAULT );
   	
   	if ( !shell.getSize().equals(p)){
   		
+  		p.y += 15;
         shell.setSize( p );
         
         Utils.centreWindow( shell );
@@ -296,10 +297,8 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
           		if(! retry.isDisposed())
           			retry.setEnabled(true); 
           	}
+            fixupSize();
         	}
-          
-          shell.layout();
-          fixupSize();
         }
       });
     }
