@@ -2027,7 +2027,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			MessageBoxShell boxShell = new MessageBoxShell(shellForChildren, 
 					MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
 					MessageText.getString("OpenTorrentWindow.mb.notTorrent.text", 
-							new String[] { inf.getURL() }),
+							new String[] { inf.getURL(), "" }),
 					new String[] { MessageText.getString("Button.ok") }, 0);
 			boxShell.setHtml(html);
 			boxShell.open();
