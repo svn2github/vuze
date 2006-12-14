@@ -66,9 +66,11 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   private File file = null;
   private byte[] buf = new byte[1020];
   private int bufBytes = 0;
+  private boolean deleteFileOnCancel = true;
   
 
   private AEMonitor this_mon 	= new AEMonitor( "TorrentDownloader" );
+	private int errCode;
 
   public TorrentDownloaderImpl() {
     super("Torrent Downloader");
@@ -109,12 +111,12 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
       this.file.delete();
   }
 
-  private void error(String err) {
+  private void error(int errCode, String err) {
   	try{
   		this_mon.enter();	// what's the point of this?
   	
   		this.state = STATE_ERROR;
-  		this.setError(err);
+  		this.setError(errCode, err);
   		this.cleanUpFile();
   		this.notifyListener();
   	}finally{
@@ -214,7 +216,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
       
       int response = this.con.getResponseCode();
       if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
-        this.error("Error on connect for '" + this.url.toString() + "': " + Integer.toString(response) + " " + this.con.getResponseMessage());
+        this.error(response, Integer.toString(response) + ": " + this.con.getResponseMessage());
         return;
       }
 
@@ -320,13 +322,13 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
       this.state = STATE_INIT;
       this.notifyListener();
     } catch (java.net.MalformedURLException e) {
-      this.error("Exception while parsing URL '" + url + "':" + e.getMessage());
+      this.error(0, "Exception while parsing URL '" + url + "':" + e.getMessage());
     } catch (java.net.UnknownHostException e) {
-      this.error("Exception while initializing download of '" + url + "': Unknown Host '" + e.getMessage() + "'");
+      this.error(0, "Exception while initializing download of '" + url + "': Unknown Host '" + e.getMessage() + "'");
     } catch (java.io.IOException ioe) {
-      this.error("I/O Exception while initializing download of '" + url + "':" + ioe.toString());
+      this.error(0, "I/O Exception while initializing download of '" + url + "':" + ioe.toString());
     } catch( Throwable e ){
-        this.error("Exception while initializing download of '" + url + "':" + e.toString());   	
+        this.error(0, "Exception while initializing download of '" + url + "':" + e.toString());   	
     }
     
     if ( this.state == STATE_ERROR ){
@@ -380,7 +382,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         							
         						}else{
         							
-        							error(s.substring(6));
+        							error(con.getResponseCode(), s.substring(6));
         						}
         						
         						changed_status	= true;
@@ -466,10 +468,12 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	        
 	        if (this.cancel) {
 	          this.state = STATE_CANCELLED;
-	          this.cleanUpFile();
+	          if (deleteFileOnCancel) {
+	          	this.cleanUpFile();
+	          }
 	        } else {
 	          if (this.readTotal <= 0) {
-	            this.error("No data contained in '" + this.url.toString() + "'");
+	            this.error(0, "No data contained in '" + this.url.toString() + "'");
 	            return;
 	          }
 	          
@@ -508,7 +512,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     		Debug.out("'" + this.directoryname + "' '" +  this.filename + "'", e);
     	}
       	
-        this.error("Exception while downloading '" + this.url.toString() + "':" + e.getMessage());
+        this.error(0, "Exception while downloading '" + this.url.toString() + "':" + e.getMessage());
       }
   }
 
@@ -559,9 +563,15 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     return this.error;
   }
 
-  public void setError(String err) {
+  public void setError(int errCode, String err) {
     this.error = err;
+    this.errCode = errCode;
   }
+  
+  public int getErrorCode() {
+  	return errCode;
+  }
+
   protected void
   setStatus(
   	String	str )
@@ -632,5 +642,13 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 
   public int getLastReadCount() {
   	return bufBytes;
+  }
+  
+  public void setDeleteFileOnCancel(boolean deleteFileOnCancel) {
+  	this.deleteFileOnCancel = deleteFileOnCancel;
+  }
+  
+  public boolean getDeleteFileOnCancel() {
+  	return deleteFileOnCancel;
   }
 }

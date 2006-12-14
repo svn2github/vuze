@@ -93,4 +93,12 @@ public interface TorrentDownloader {
 		 * @return
 		 */
 		byte[] getLastReadBytes();
+		/**
+		 * @return
+		 */
+		boolean getDeleteFileOnCancel();
+		/**
+		 * @param deleteFileOnCancel
+		 */
+		void setDeleteFileOnCancel(boolean deleteFileOnCancel);
 }
