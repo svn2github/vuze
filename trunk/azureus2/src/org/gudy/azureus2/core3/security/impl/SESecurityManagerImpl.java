@@ -197,6 +197,15 @@ SESecurityManagerImpl
 	protected void
 	installSecurityManager()
 	{
+		String	prop = System.getProperty( "azureus.security.manager.install", "1" );
+		
+		if ( prop.equals( "0" )){
+			
+			Debug.outNoStack( "Not installing security manager - disabled by system property" );
+			
+			return;
+		}
+		
 		try{
 			final SecurityManager	old_sec_man	= System.getSecurityManager();
 			
