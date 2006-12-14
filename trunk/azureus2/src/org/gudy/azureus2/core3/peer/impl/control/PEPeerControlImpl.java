@@ -2167,7 +2167,7 @@ PEPeerControlImpl
 				if (outcome ==0)
 				{
 					// piece failed; restart the download afresh
-					Debug.out("Piece #" +pieceNumber +" failed final re-check. Re-downloading...");
+					Debug.out(getDisplayName() + ": Piece #" +pieceNumber +" failed final re-check. Re-downloading...");
 
 					if (!restart_initiated)
 					{
@@ -2181,7 +2181,7 @@ PEPeerControlImpl
 				
 				if ( outcome == 0 ){
 					
-					Debug.out("Piece #" +pieceNumber +" failed recheck while seeding. Re-downloading...");
+					Debug.out(getDisplayName() + "Piece #" +pieceNumber +" failed recheck while seeding. Re-downloading...");
 
                    	Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR, "Download '" + getDisplayName() + "': piece " + pieceNumber + " has been corrupted, re-downloading" ));
                     
