@@ -24,9 +24,7 @@
 
 package org.gudy.azureus2.ui.swt;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -62,6 +60,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -1679,10 +1678,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				// Process URL
 				String sURL = UrlUtils.parseTextForURL(sTorrentFilenames[i], true);
 				if (sURL != null) {
-					if (COConfigurationManager.getBooleanParameter("Add URL Silently"))
+					if (COConfigurationManager.getBooleanParameter("Add URL Silently")) {
 						new FileDownloadWindow(core, shellForChildren, sURL, null, this);
-					else
+					} else {
 						new OpenUrlWindow(core, shellForChildren, sURL, null, this);
+					}
 					numAdded++;
 					continue;
 				}
@@ -2005,6 +2005,34 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 	// TorrentDownloaderCallBackInterface
 	public void TorrentDownloaderEvent(int state, final TorrentDownloader inf) {
 		// This method is run even if the window is closed.
+		if (!inf.getDeleteFileOnCancel() && (state == TorrentDownloader.STATE_CANCELLED
+				|| state == TorrentDownloader.STATE_ERROR
+				|| state == TorrentDownloader.STATE_DUPLICATE
+				|| state == TorrentDownloader.STATE_FINISHED)) {
+			if (!downloaders.contains(inf))
+				return;
+			downloaders.remove(inf);
+
+			File file = inf.getFile();
+			String html = null;
+			if (file.exists()) {
+				try {
+					html = FileUtil.readFileAsString(file, 16384);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			MessageBoxShell boxShell = new MessageBoxShell(shellForChildren, 
+					MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
+					MessageText.getString("OpenTorrentWindow.mb.notTorrent.text", 
+							new String[] { inf.getURL() }),
+					new String[] { MessageText.getString("Button.ok") }, 0);
+			boxShell.setHtml(html);
+			boxShell.open();
+
+			return;
+		}
 
 		if (state == TorrentDownloader.STATE_INIT) {
 			downloaders.add(inf);
@@ -2053,19 +2081,14 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			downloaders.remove(inf);
 		} else if (state == TorrentDownloader.STATE_DOWNLOADING) {
 			int count = inf.getLastReadCount();
-
-			if (inf.getTotalRead() == count && count > 0) {
+			int numRead = inf.getTotalRead();
+			
+			if (!inf.getDeleteFileOnCancel() && numRead >= 16384) {
+				inf.cancel();
+			} else if (numRead == count && count > 0) {
 				final byte[] bytes = inf.getLastReadBytes();
 				if (bytes[0] != 'd') {
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							Utils.openMessageBox(shellForChildren, SWT.OK,
-									"OpenTorrentWindow.mb.notTorrent",
-									new String[] { inf.getURL(), new String(bytes)
-									});
-						}
-					});
-					inf.cancel();
+					inf.setDeleteFileOnCancel(false);
 				}
 			}
 		} else {

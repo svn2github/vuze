@@ -20,28 +20,26 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Iterator;
+
+import javax.imageio.ImageIO;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.internal.win32.OS;
-import org.eclipse.swt.internal.win32.TCHAR;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.util.*;
+import org.gudy.azureus2.core3.util.FileUtil;
 
 /**
  * @author Olivier
@@ -163,6 +161,8 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/statusbar/status_warning.gif",
 				"sb_warning");
 		addPath("org/gudy/azureus2/ui/icons/statusbar/user_count.png", "sb_count");
+		addPath("org/gudy/azureus2/ui/icons/statusbar/speed_up.png", "speed_up");
+		addPath("org/gudy/azureus2/ui/icons/statusbar/speed_down.png", "speed_down");
 
 		addPath("org/gudy/azureus2/ui/icons/smallx.png", "smallx");
 		addPath("org/gudy/azureus2/ui/icons/smallx-gray.png", "smallx-gray");
@@ -316,7 +316,7 @@ public class ImageRepository {
 					}
 
 					if (imageData != null) {
-						image = new Image(null, imageData);
+						image = new Image(Display.getDefault(), imageData);
 						images.put(id, image);
 					}
 			}
@@ -355,8 +355,10 @@ public class ImageRepository {
 		if (path == null)
 			return null;
 
+		File file = null;
+		boolean bDeleteFile = false;
 		try {
-			final File file = new File(path);
+			file = new File(path);
 
 			// workaround for unsupported platforms
 			// notes:
@@ -405,6 +407,11 @@ public class ImageRepository {
 			}
 			
 
+			bDeleteFile = !file.exists();
+			if (bDeleteFile) {
+				file = File.createTempFile("AZ_", FileUtil.getExtension(path));
+			}
+
 			java.awt.Image awtImage = null;
 			
 			final Class sfClass = Class.forName("sun.awt.shell.ShellFolder");
@@ -429,7 +436,7 @@ public class ImageRepository {
         ImageIO.write((BufferedImage)awtImage, "png", outStream);
         final ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
 
-        image = new Image(null, inStream);
+        image = new Image(Display.getDefault(), inStream);
 
 				registry.put(key, image);
 
@@ -439,15 +446,17 @@ public class ImageRepository {
 			//Debug.printStackTrace(e);
 		}
 		
+		if (bDeleteFile && file != null && file.exists()) {
+			file.delete();
+		}
+
 		// Possible scenario: Method call before file creation
-		final int fileSepIndex = path.lastIndexOf(File.separator);
-		final int fileDotIndex = path.lastIndexOf('.');
-		if (fileSepIndex == path.length() - 1 || fileDotIndex == -1
-				|| fileSepIndex > fileDotIndex) {
+		String ext = FileUtil.getExtension(path);
+		if (ext.length() == 0) {
 			return getFolderImage();
 		}
 
-		return getIconFromExtension(path.substring(fileDotIndex), bBig);
+		return getIconFromExtension(ext, bBig);
 	}
 
     /**
