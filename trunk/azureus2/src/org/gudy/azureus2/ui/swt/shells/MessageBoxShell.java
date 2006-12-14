@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.*;
@@ -14,7 +15,6 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
@@ -33,6 +33,28 @@ public class MessageBoxShell
 	private final static int MAX_SIZE_X = 500;
 
 	private static int numOpen = 0;
+
+	private Shell parent;
+
+	private final String title;
+
+	private final String text;
+
+	private final String[] buttons;
+
+	private final int defaultOption;
+
+	private final String rememberID;
+
+	private final String rememberText;
+
+	private final boolean rememberByDefault;
+
+	private final int autoCloseInMS;
+
+	private String html;
+
+	private String url;
 
 	public static int open(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption) {
@@ -90,6 +112,44 @@ public class MessageBoxShell
 			final String rememberID, final String rememberText,
 			final boolean bRememberByDefault, final int autoCloseInMS) {
 
+		MessageBoxShell messageBoxShell = new MessageBoxShell(parent, title, text,
+				buttons, defaultOption, rememberID, rememberText, bRememberByDefault,
+				autoCloseInMS);
+		return messageBoxShell.open();
+	}
+
+	public static boolean isOpen() {
+		return numOpen > 0;
+	}
+
+	public MessageBoxShell(final Shell parent, final String title,
+			final String text, final String[] buttons, final int defaultOption,
+			final String rememberID, final String rememberText,
+			final boolean bRememberByDefault, final int autoCloseInMS) {
+
+		this.parent = parent;
+		this.title = title;
+		this.text = text;
+		this.buttons = buttons;
+		this.defaultOption = defaultOption;
+		this.rememberID = rememberID;
+		this.rememberText = rememberText;
+		this.rememberByDefault = bRememberByDefault;
+		this.autoCloseInMS = autoCloseInMS;
+	}
+
+	/**
+	 * @param shellForChildren
+	 * @param string
+	 * @param string2
+	 * @param strings
+	 */
+	public MessageBoxShell(final Shell parent, final String title,
+			final String text, final String[] buttons, final int defaultOption) {
+		this(parent, title, text, buttons, defaultOption, null, null, false, -1);
+	}
+
+	public int open() {
 		if (rememberID != null) {
 			int rememberedDecision = getRememberedDecision(rememberID);
 			if (rememberedDecision >= 0) {
@@ -104,10 +164,7 @@ public class MessageBoxShell
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				MessageBoxShell messageBoxShell = new MessageBoxShell();
-				result[0] = messageBoxShell._open(parent, title, text, buttons,
-						defaultOption, rememberID, rememberText, bRememberByDefault,
-						autoCloseInMS);
+				result[0] = _open();
 			}
 		}, false);
 
@@ -115,23 +172,26 @@ public class MessageBoxShell
 		return result[0];
 	}
 
-	public static boolean isOpen() {
-		return numOpen > 0;
-	}
-
-	private int _open(Shell parent, String title, String text, String[] buttons,
-			final int defaultOption, final String rememberID,
-			final String rememberText, boolean bRememberByDefault, int autoCloseInMS) {
-		MouseTrackAdapter mouseAdapter = null;
-		Display display = parent.getDisplay();
+	private int _open() {
 		final int[] result = { -1
 		};
 
-		final Shell shell = new Shell(parent, SWT.DIALOG_TRIM
+		if (parent == null || parent.isDisposed()) {
+			parent = Utils.findAnyShell();
+			if (parent == null || parent.isDisposed()) {
+				return result[0];
+			}
+		}
+
+		MouseTrackAdapter mouseAdapter = null;
+		Display display = parent.getDisplay();
+
+		final Shell shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE
 				| SWT.APPLICATION_MODAL);
 		shell.setText(title);
 		GridLayout gridLayout = new GridLayout();
 		shell.setLayout(gridLayout);
+		Utils.setShellIcon(shell);
 
 		FormData formData;
 		GridData gridData;
@@ -169,15 +229,50 @@ public class MessageBoxShell
 			Label linkLabel = new Label(shell, SWT.WRAP);
 			linkControl = linkLabel;
 
-			text = Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
+			String urlText = Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
 					text).replaceAll("$2 ($1)");
 
 			linkLabel.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-			linkLabel.setText(text);
+			linkLabel.setText(urlText);
 		}
 
-		gridData = new GridData(GridData.FILL_BOTH);
-		linkControl.setLayoutData(gridData);
+		if ((html != null && html.length() > 0)
+				|| (url != null && url.length() > 0)) {
+			final Browser browser = new Browser(shell, SWT.NONE);
+			if (url != null && url.length() > 0) {
+				browser.setUrl(url);
+			} else {
+				browser.setText(html);
+			}
+			GridData gd = new GridData(GridData.FILL_BOTH);
+			gd.heightHint = 200;
+			browser.setLayoutData(gd);
+			browser.addProgressListener(new ProgressListener() {
+				public void completed(ProgressEvent event) {
+					browser.addLocationListener(new LocationListener() {
+						public void changing(LocationEvent event) {
+							event.doit = false;
+						}
+
+						public void changed(LocationEvent event) {
+						}
+					});
+					browser.addOpenWindowListener(new OpenWindowListener() {
+						public void open(WindowEvent event) {
+						}
+					});
+				}
+
+				public void changed(ProgressEvent event) {
+				}
+			});
+
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			linkControl.setLayoutData(gridData);
+		} else {
+			gridData = new GridData(GridData.FILL_BOTH);
+			linkControl.setLayoutData(gridData);
+		}
 
 		// Closing in..
 		if (autoCloseInMS > 0) {
@@ -220,25 +315,36 @@ public class MessageBoxShell
 				}
 			});
 
-			mouseAdapter = new MouseTrackAdapter() {
+			SimpleTimer.addPeriodicEvent("OverPopup", 100, new TimerEventPerformer() {
+				boolean wasOver = true;
+
 				long lEnterOn = 0;
 
-				public void mouseEnter(MouseEvent e) {
-					lblCloseIn.setData("DelayPaused", "");
-					lEnterOn = SystemTime.getCurrentTime();
-					lblCloseIn.setText("");
+				public void perform(TimerEvent event) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							boolean isOver = shell.getBounds().contains(
+									shell.getDisplay().getCursorLocation());
+							if (isOver != wasOver) {
+								wasOver = isOver;
+								if (isOver) {
+									lblCloseIn.setData("DelayPaused", "");
+									lEnterOn = SystemTime.getCurrentTime();
+									lblCloseIn.setText("");
+								} else {
+									lblCloseIn.setData("DelayPaused", null);
+									if (lEnterOn > 0) {
+										long diff = SystemTime.getCurrentTime() - lEnterOn;
+										long endOn = ((Long) lblCloseIn.getData("CloseOn")).longValue()
+												+ diff;
+										lblCloseIn.setData("CloseOn", new Long(endOn));
+									}
+								}
+							}
+						}
+					});
 				}
-
-				public void mouseExit(MouseEvent e) {
-					lblCloseIn.setData("DelayPaused", null);
-					if (lEnterOn > 0) {
-						long diff = SystemTime.getCurrentTime() - lEnterOn;
-						long endOn = ((Long) lblCloseIn.getData("CloseOn")).longValue()
-								+ diff;
-						lblCloseIn.setData("CloseOn", new Long(endOn));
-					}
-				}
-			};
+			});
 		}
 
 		// Remember Me
@@ -246,7 +352,7 @@ public class MessageBoxShell
 		if (rememberID != null) {
 			checkRemember = new Button(shell, SWT.CHECK);
 			checkRemember.setText(rememberText);
-			checkRemember.setSelection(bRememberByDefault);
+			checkRemember.setSelection(rememberByDefault);
 
 			checkRemember.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
@@ -383,7 +489,7 @@ public class MessageBoxShell
 		Shell shell = new Shell(display, SWT.SHELL_TRIM);
 		shell.open();
 
-		System.out.println(open(
+		MessageBoxShell messageBoxShell = new MessageBoxShell(
 				shell,
 				"Title",
 				"Test\n"
@@ -394,6 +500,21 @@ public class MessageBoxShell
 					"Cancyyyyyy",
 					"Maybe"
 				}, 1, "test2",
-				MessageText.getString("MessageBoxWindow.nomoreprompting"), false, 15000));
+				MessageText.getString("MessageBoxWindow.nomoreprompting"), false, 15000);
+
+		messageBoxShell.setHtml("<b>Moo</b> goes the cow<p><hr>");
+		System.out.println(messageBoxShell.open());
+	}
+
+	public String getHtml() {
+		return html;
+	}
+
+	public void setHtml(String html) {
+		this.html = html;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
 	}
 }
