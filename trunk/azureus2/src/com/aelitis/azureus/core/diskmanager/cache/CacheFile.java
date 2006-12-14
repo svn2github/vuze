@@ -142,6 +142,13 @@ CacheFile
 	
 		throws CacheFileManagerException;
 	
+	public void
+	writeAndHandoverBuffers(
+		DirectByteBuffer[]	buffers,
+		long				position )
+	
+		throws CacheFileManagerException;
+
 		/**
 		 * flushes the cache to disk but retains entries
 		 * @throws CacheFileManagerException

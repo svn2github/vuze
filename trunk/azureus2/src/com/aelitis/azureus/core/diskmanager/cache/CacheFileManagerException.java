@@ -31,6 +31,7 @@ CacheFileManagerException
 	extends Exception
 {
 	private CacheFile	file;
+	private int			fail_index;
 	
 	public
 	CacheFileManagerException(
@@ -53,9 +54,28 @@ CacheFileManagerException
 		file	= _file;
 	}
 	
+	public
+	CacheFileManagerException(
+		CacheFile	_file,
+		String		_str,
+		Throwable	_cause,
+		int			_fail_index )
+	{
+		super( _str, _cause );
+		
+		file		= _file;
+		fail_index	= _fail_index;
+	}
+	
 	public CacheFile
 	getFile()
 	{
 		return( file );
+	}
+	
+	public int
+	getFailIndex()
+	{
+		return( fail_index );
 	}
 }

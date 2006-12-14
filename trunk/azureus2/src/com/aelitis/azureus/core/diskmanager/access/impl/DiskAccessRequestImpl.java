@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessRequest;
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessRequestListener;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
 
 public class 
 DiskAccessRequestImpl
@@ -124,67 +125,80 @@ DiskAccessRequestImpl
 			// assumption - they are all for the same file, sequential offsets and aggregatable, not cancelled
 		
 		int			op 				= base_request.getOperation();
-
-		if ( op == OP_READ || op == OP_WRITE ){
 			
-			CacheFile	file 			= base_request.getFile();
-			long		offset			= base_request.getOffset();
-			short		cache_policy	= base_request.getCachePolicy();
+		CacheFile	file 			= base_request.getFile();
+		long		offset			= base_request.getOffset();
+		short		cache_policy	= base_request.getCachePolicy();
+		
+		DirectByteBuffer[]	buffers = new DirectByteBuffer[requests.length];
+		
+		long	current_offset 	= offset;
+		long	total_size		= 0;
+		
+		for (int i=0;i<buffers.length;i++){
+		
+			DiskAccessRequestImpl	request = requests[i];
 			
-			DirectByteBuffer[]	buffers = new DirectByteBuffer[requests.length];
-			
-			long	current_offset 	= offset;
-			long	total_size		= 0;
-			
-			for (int i=0;i<buffers.length;i++){
-			
-				DiskAccessRequestImpl	request = requests[i];
+			if ( current_offset != request.getOffset()){
 				
-				if ( current_offset != request.getOffset()){
-					
-					Debug.out( "assert failed: requests not contiguous" );
-				}
-				
-				int	size = request.getSize();
-				
-				current_offset += size;
-				
-				total_size += size;
-				
-				buffers[i] = request.getBuffer();
+				Debug.out( "assert failed: requests not contiguous" );
 			}
 			
-			try{	
-				if ( op == OP_READ ){
-					
-					file.read( buffers, offset, cache_policy );
-					
-				}else{
-					
-					file.write( buffers, offset );
-				}
+			int	size = request.getSize();
+			
+			current_offset += size;
+			
+			total_size += size;
+			
+			buffers[i] = request.getBuffer();
+		}
+		
+		try{	
+			if ( op == OP_READ ){
 				
-				for (int i=0;i<requests.length;i++){
-
-					DiskAccessRequestImpl	request = requests[i];
-					
-					request.getListener().requestComplete( request );
-				}
-			}catch( Throwable e ){
+				file.read( buffers, offset, cache_policy );
 				
-				for (int i=0;i<requests.length;i++){
-
-					DiskAccessRequestImpl	request = requests[i];
-					
-					request.getListener().requestFailed( request, e );
-				}			
+			}else if ( op == OP_WRITE ){
+				
+				file.write( buffers, offset );
+			
+			}else{
+				
+				file.writeAndHandoverBuffers( buffers, offset );
 			}
-		}else{
 			
 			for (int i=0;i<requests.length;i++){
+
+				DiskAccessRequestImpl	request = requests[i];
 				
-				requests[i].runRequest();
+				request.getListener().requestComplete( request );
 			}
+			
+		}catch( CacheFileManagerException e ){
+			
+			int	fail_index = e.getFailIndex();
+			
+			for (int i=0;i<fail_index;i++){
+				
+				DiskAccessRequestImpl	request = requests[i];
+				
+				request.getListener().requestComplete( request );
+			}
+			
+			for (int i=fail_index;i<requests.length;i++){
+
+				DiskAccessRequestImpl	request = requests[i];
+				
+				request.getListener().requestFailed( request, e );
+			}			
+		}catch( Throwable e ){
+			
+			for (int i=0;i<requests.length;i++){
+
+				DiskAccessRequestImpl	request = requests[i];
+				
+				request.getListener().requestFailed( request, e );
+			}			
 		}
 	}
 	

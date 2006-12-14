@@ -284,10 +284,7 @@ CacheFileWithoutCache
 	
 		throws CacheFileManagerException
 	{
-		int	file_buffer_position	= buffer.position(DirectByteBuffer.SS_CACHE);
-		int file_buffer_limit		= buffer.limit(DirectByteBuffer.SS_CACHE);
-		
-		int	write_length = file_buffer_limit - file_buffer_position;
+		int	write_length = buffer.remaining(DirectByteBuffer.SS_CACHE);
 		
 		boolean	write_ok	= false;
 		
@@ -307,6 +304,45 @@ CacheFileWithoutCache
 			if ( write_ok ){
 				
 				buffer.returnToPool();
+			}
+		}
+	}
+	
+	public void
+	writeAndHandoverBuffers(
+		DirectByteBuffer[]	buffers,
+		long				position )
+	
+		throws CacheFileManagerException
+	{
+		int	write_length	= 0;
+		
+		for (int i=0;i<buffers.length;i++){
+			
+			write_length += buffers[i].remaining(DirectByteBuffer.SS_CACHE);
+		}
+		
+		boolean	write_ok	= false;
+		
+		try{			
+			file.write( buffers, position );
+			
+			manager.fileBytesWritten( write_length );
+
+			write_ok	= true;
+			
+		}catch( FMFileManagerException e ){
+				
+			manager.rethrow(this,e);
+			
+		}finally{
+			
+			if ( write_ok ){
+				
+				for (int i=0;i<buffers.length;i++){
+
+					buffers[i].returnToPool();
+				}
 			}
 		}
 	}

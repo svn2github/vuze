@@ -1480,9 +1480,15 @@ CacheFileWithCache
 			
 			int	len = buffer.remaining( DirectByteBuffer.SS_CACHE );
 			
-			read( buffer, position, policy );
-			
-			position += len;
+			try{
+				read( buffer, position, policy );
+				
+				position += len;
+				
+			}catch( CacheFileManagerException e ){
+				
+				throw( new CacheFileManagerException( this, e.getMessage(), e, i ));
+			}
 		}
 	}
 	
@@ -1533,9 +1539,15 @@ CacheFileWithCache
 			
 			int	len = buffer.remaining( DirectByteBuffer.SS_CACHE );
 			
-			write( buffer, position );
+			try{
+				write( buffer, position );
 			
-			position += len;
+				position += len;
+				
+			}catch( CacheFileManagerException e ){
+				
+				throw( new CacheFileManagerException( this, e.getMessage(), e, i ));
+			}
 		}
 	}
 	
@@ -1547,6 +1559,31 @@ CacheFileWithCache
 		throws CacheFileManagerException
 	{
 		writeCache( buffer, position, true );
+	}
+	
+	public void
+	writeAndHandoverBuffers(
+		DirectByteBuffer[]	buffers,
+		long				position )
+	
+		throws CacheFileManagerException
+	{
+		for (int i=0;i<buffers.length;i++){
+			
+			DirectByteBuffer	buffer = buffers[i];
+			
+			int	len = buffer.remaining( DirectByteBuffer.SS_CACHE );
+			
+			try{
+				writeAndHandoverBuffer( buffer, position );
+			
+				position += len;
+				
+			}catch( CacheFileManagerException e ){
+				
+				throw( new CacheFileManagerException( this, e.getMessage(), e, i ));
+			}
+		}
 	}
 	
 	public void
