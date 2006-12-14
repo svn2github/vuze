@@ -26,7 +26,6 @@ package org.gudy.azureus2.pluginsimpl.local.download;
  *
  */
 
-import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -90,6 +89,20 @@ DownloadStatsImpl
 		return( dm_stats.getDownloadCompleted(bLive) );
 	}
 	
+	
+	public int
+	getCheckingDoneInThousandNotation()
+	{
+		org.gudy.azureus2.core3.disk.DiskManager	disk = dm.getDiskManager();
+ 		
+ 		if ( disk != null ){
+ 			
+ 			return( disk.getCompleteRecheckStatus());
+ 		}
+ 		
+ 		return( -1 );
+	}
+
 	public long
 	getDownloaded()
 	{

@@ -797,16 +797,9 @@ DownloadImpl
  	public boolean
  	isChecking()
  	{
- 		org.gudy.azureus2.core3.disk.DiskManager	dm = download_manager.getDiskManager();
- 		
- 		if ( dm != null ){
- 			
- 			return( dm.getCompleteRecheckStatus() != -1 );
- 		}
- 		
- 		return( false );
+ 		return( download_stats.getCheckingDoneInThousandNotation() != -1 );
  	}
- 	
+
 	protected void
 	isRemovable()
 		throws DownloadRemovalVetoException

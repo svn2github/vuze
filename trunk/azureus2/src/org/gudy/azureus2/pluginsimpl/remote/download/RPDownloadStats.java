@@ -163,6 +163,15 @@ RPDownloadStats
 		return( bLive ? downloadCompletedLive : downloadCompletedStored );
 	}
 
+	
+	public int
+	getCheckingDoneInThousandNotation()
+	{
+		notSupported();
+		
+		return( 0 );
+	}
+
 	public long
 	getDownloaded()
 	{

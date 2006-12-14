@@ -122,6 +122,15 @@ DownloadStats
 	getDownloadCompleted(boolean bLive);
 
 	/**
+	 * if isChecking then returns completeness, 1000 -> 100%
+	 * @return
+	 */
+
+	public int
+	getCheckingDoneInThousandNotation();
+
+
+	/**
 	 * Gives the number of bytes downloaded
 	 * @return
    *
