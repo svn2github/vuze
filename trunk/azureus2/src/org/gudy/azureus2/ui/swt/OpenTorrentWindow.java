@@ -2022,6 +2022,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				file.delete();
 			}
 			MessageBoxShell boxShell = new MessageBoxShell(shellForChildren, 
 					MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
