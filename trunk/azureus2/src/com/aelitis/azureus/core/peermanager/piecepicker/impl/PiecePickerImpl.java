@@ -89,7 +89,7 @@ public class PiecePickerImpl
     
     	/** priority at and above which pieces require real-time scheduling */
     
-    private static final int PRIORITY_REALTIME		= 90000;
+    private static final int PRIORITY_REALTIME		= 9999999;
     
     /** Min number of requests sent to a peer */
     private static final int REQUESTS_MIN	=2;
