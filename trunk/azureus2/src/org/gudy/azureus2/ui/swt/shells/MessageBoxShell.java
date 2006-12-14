@@ -320,9 +320,13 @@ public class MessageBoxShell
 
 				long lEnterOn = 0;
 
-				public void perform(TimerEvent event) {
+				public void perform(final TimerEvent event) {
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
+							if (shell.isDisposed()) {
+								event.cancel();
+								return;
+							}
 							boolean isOver = shell.getBounds().contains(
 									shell.getDisplay().getCursorLocation());
 							if (isOver != wasOver) {
