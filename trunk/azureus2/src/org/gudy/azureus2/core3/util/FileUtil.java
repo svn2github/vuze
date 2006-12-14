@@ -1433,7 +1433,7 @@ public class FileUtil {
 		return fName.substring(fileDotIndex);
 	}
 	
-	public String
+	public static String
 	readFileAsString(
 		File	file,
 		int		size_limit )
