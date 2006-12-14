@@ -2585,6 +2585,10 @@ public class TableView
 	 * @param runner Code to run for each row/datasource
 	 */
 	public void runForAllRows(GroupTableRowVisibilityRunner runner) {
+		if (table == null || table.isDisposed()) {
+			return;
+		}
+
 		// put to array instead of synchronised iterator, so that runner can remove
 		TableRowCore[] rows = getRows();
 		int iTopIndex = table.getTopIndex();
