@@ -2488,7 +2488,7 @@ DownloadManagerStateImpl
 				
 				if ( download_manager != null ){
 					
-					download_manager.setFailed( Debug.getNestedExceptionMessage( e ));
+					download_manager.setTorrentInvalid( Debug.getNestedExceptionMessage( e ));
 					
 				}else{
 					
@@ -2509,11 +2509,27 @@ DownloadManagerStateImpl
 		
 			throws TOTorrentException
 		{
+			File	saved_file = getStateFile( torrent_hash ); 
+			
+			if ( saved_file.exists()){
+				
+				try{
+					
+					return( TorrentUtils.readFromFile( saved_file, true ));
+					
+				}catch( Throwable e ){
+					
+					Debug.out( "Failed to load download state for " + saved_file );
+				}
+			}
+			
+				// try reading from original
+			
 			TOTorrent original_torrent = TorrentUtils.readFromFile( new File(torrent_file), true );
 			
 			torrent_hash = original_torrent.getHash();
 			
-			File	saved_file = getStateFile( torrent_hash ); 
+			saved_file = getStateFile( torrent_hash ); 
 			
 			if ( saved_file.exists()){
 				

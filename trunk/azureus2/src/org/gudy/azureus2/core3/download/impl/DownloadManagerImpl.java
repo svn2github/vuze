@@ -1262,6 +1262,14 @@ DownloadManagerImpl
 		controller.setFailed( str );
 	}
   
+	protected void
+	setTorrentInvalid(
+		String	str )
+	{
+		setFailed( str );
+		
+		torrent	= null;
+	}
   
 
 	public void
