@@ -23,8 +23,12 @@
 package org.gudy.azureus2.core3.download.impl;
 
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import java.io.*;
+import java.net.URL;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFactory;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
@@ -32,10 +36,13 @@ import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
@@ -88,7 +95,9 @@ DownloadManagerStateImpl
 	
 	private static AEMonitor	class_mon	= new AEMonitor( "DownloadManagerState:class" );
 	
-	private static Map					state_map = new HashMap();
+	private static Map					state_map 					= new HashMap();
+	private static Map					global_state_cache			= new HashMap();
+	private static List					global_state_cache_wrappers	= new ArrayList();
 	
 	private DownloadManagerImpl			download_manager;
 	
@@ -96,7 +105,7 @@ DownloadManagerStateImpl
 	
 	private boolean						write_required;
 	
-	private Map							tracker_response_cache			= new HashMap();
+	private Map							tracker_response_cache;
   
 		
 	private Category 	category;
@@ -218,7 +227,19 @@ DownloadManagerStateImpl
 			if ( saved_file.exists()){
 				
 				try{
-					saved_state = TorrentUtils.readFromFile( saved_file, true );
+					Map	cached_state = (Map)global_state_cache.get( new HashWrapper( torrent_hash ));
+					
+					if ( cached_state != null ){
+						
+						CachedStateWrapper wrapper = new CachedStateWrapper( download_manager, torrent_file, torrent_hash, cached_state );
+						
+						global_state_cache_wrappers.add( wrapper );
+						
+						saved_state	= wrapper;
+					}else{
+						
+						saved_state = TorrentUtils.readFromFile( saved_file, true );
+					}
 					
 				}catch( Throwable e ){
 					
@@ -271,6 +292,137 @@ DownloadManagerStateImpl
 		return( new File( ACTIVE_DIR, ByteFormatter.encodeString( torrent_hash ) + ".dat" ));
 	}
 	
+	protected static File
+	getGlobalStateFile()
+	{
+		return( new File( ACTIVE_DIR, "cache.dat" ));
+	}
+	
+	public static void
+	loadGlobalStateCache()
+	{
+		File file = getGlobalStateFile();
+		
+		if ( !file.canRead()){
+			
+			return;
+		}
+		
+		try{
+			
+			BufferedInputStream is = new BufferedInputStream( new GZIPInputStream( new FileInputStream( file )));
+			
+			try{
+				
+				Map	map = BDecoder.decode( is );
+				
+				List	cache = (List)map.get( "state" );
+				
+				if ( cache != null ){
+					
+					for (int i=0;i<cache.size();i++){
+						
+						Map	entry = (Map)cache.get(i);
+						
+						byte[]	hash = (byte[])entry.get( "hash" );
+						
+						if ( hash != null ){
+							
+							global_state_cache.put( new HashWrapper( hash ), entry );
+						}
+					}
+				}
+				
+				is.close();
+				
+			}catch( IOException e){
+				
+				Debug.printStackTrace( e );
+			}finally{
+				
+				try{
+					is.close();
+					
+				}catch( Throwable e ){
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
+	}
+	
+	public static void
+	saveGlobalStateCache()
+	{
+		try{
+			class_mon.enter();
+
+			Map	map = new HashMap();
+			
+			List	cache = new ArrayList();
+			
+			map.put( "state", cache );
+
+			Iterator	it = state_map.values().iterator();
+			
+			while( it.hasNext()){
+				
+				DownloadManagerState dms = (DownloadManagerState)it.next();
+				
+				try{
+					Map	state = CachedStateWrapper.export( dms.getTorrent());
+				
+					cache.add( state );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
+				}
+			}
+			
+			GZIPOutputStream	os = new GZIPOutputStream( new FileOutputStream( getGlobalStateFile()));
+			
+			try{
+				
+				os.write( BEncoder.encode( map ));
+				
+				os.close();
+				
+			}catch( IOException e ){
+				
+				Debug.printStackTrace( e );
+			
+				try{
+					os.close();
+					
+				}catch( IOException f ){
+					
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+			
+		}finally{
+			
+			class_mon.exit();
+
+		}
+	}
+	
+	public static void
+	discardGlobalStateCache()
+	{
+		getGlobalStateFile().delete();
+		
+		for ( int i=0;i<global_state_cache_wrappers.size();i++){
+			
+			((CachedStateWrapper)global_state_cache_wrappers.get(i)).clearCache();
+		}
+		
+		global_state_cache_wrappers.clear();
+	}
 
 	protected
 	DownloadManagerStateImpl(
@@ -279,34 +431,6 @@ DownloadManagerStateImpl
 	{
 		download_manager	= _download_manager;
 		torrent				= _torrent;
-		
-			// sanity check on additional attribute types
-		
-		String[]	map_types = { RESUME_KEY, TRACKER_CACHE_KEY, ATTRIBUTE_KEY };
-		
-		for (int i=0;i<map_types.length;i++){
-			
-			String	map_type = map_types[i];
-			
-			Object	attribute_key = torrent.getAdditionalProperty( map_type );
-			
-			if ( attribute_key != null && !( attribute_key instanceof Map )){
-			
-				Debug.out( "Invalid state entry type for '" + map_type + "'" );
-				
-				torrent.removeAdditionalProperty( map_type );
-			}
-		}
-		
-			// get initial values
-		
-		tracker_response_cache	= (Map)torrent.getAdditionalMapProperty( TRACKER_CACHE_KEY );
-		
-		if ( tracker_response_cache == null ){
-			
-			tracker_response_cache	= new HashMap();
-		}
-		
 		
         String cat_string = getStringAttribute( AT_CATEGORY );
 
@@ -400,6 +524,16 @@ DownloadManagerStateImpl
 	public Map
 	getTrackerResponseCache()
 	{
+		if ( tracker_response_cache == null ){
+		
+			tracker_response_cache	= torrent.getAdditionalMapProperty( TRACKER_CACHE_KEY );
+			
+			if ( tracker_response_cache == null ){
+			
+				tracker_response_cache	= new HashMap();
+			}
+		}
+		
 		return( tracker_response_cache );
 	}
 	
@@ -407,6 +541,10 @@ DownloadManagerStateImpl
 	setTrackerResponseCache(
 		Map		value )
 	{
+			// ensure initial value read
+		
+		getTrackerResponseCache();
+		
 		try{
 			this_mon.enter();
 		
@@ -428,27 +566,7 @@ DownloadManagerStateImpl
 			this_mon.exit();
 		}
 	}
-	
-	/*
-	protected boolean
-	mergeTrackerResponseCache(
-		DownloadManagerStateImpl	other_state )
-	{
-		Map  other_cache	= other_state.getTrackerResponseCache();
 
-		if ( other_cache != null && other_cache.size() > 0 ){
-						
-			Map merged_cache = TRTrackerUtils.mergeResponseCache( tracker_response_cache, other_cache );
-		
-			setTrackerResponseCache( merged_cache );
-	  		
-	  		return( true );
-		}
-		
-		return( false );
-	}
-	*/
-	
 	public Map
 	getResumeData()
 	{
@@ -456,7 +574,7 @@ DownloadManagerStateImpl
 			this_mon.enter();
 		
 			return( torrent.getAdditionalMapProperty(RESUME_KEY));
-			
+		
 		}finally{
 			
 			this_mon.exit();
@@ -480,11 +598,17 @@ DownloadManagerStateImpl
 
 			if ( data == null ){
 				
+				setLongAttribute( AT_RESUME_STATE, 1 );
+				
 				torrent.removeAdditionalProperty( RESUME_KEY );
 				
 			}else{
 				
-				torrent.setAdditionalMapProperty(RESUME_KEY, data);
+				torrent.setAdditionalMapProperty( RESUME_KEY, data );
+				
+				boolean complete = DiskManagerFactory.isTorrentResumeDataComplete( this );
+				
+				setLongAttribute( AT_RESUME_STATE, complete?2:1 );
 			}
 			
 			write_required	= true;
@@ -497,6 +621,29 @@ DownloadManagerStateImpl
 			// we need to ensure this is persisted now as it has implications regarding crash restarts etc
 	
 		save();
+	}
+	
+	public boolean
+	isResumeDataComplete()
+	{
+			// this is a cache of resume state to speed up startup
+		
+		long	state = getLongAttribute( AT_RESUME_STATE );
+		
+		if ( state == 0 ){
+			
+			// don't know
+			
+			boolean complete = DiskManagerFactory.isTorrentResumeDataComplete( this );
+			
+			setLongAttribute( AT_RESUME_STATE, complete?2:1 );
+			
+			return( complete );
+			
+		}else{
+			
+			return( state == 2 );
+		}
 	}
 	
 	public TOTorrent
@@ -1966,6 +2113,12 @@ DownloadManagerStateImpl
 		{
 		}
 		
+		public boolean
+		isResumeDataComplete()
+		{
+			return( false );
+		}
+		
 		public void
 		clearTrackerResponseCache()
 		{
@@ -2241,5 +2394,717 @@ DownloadManagerStateImpl
 			// TODO Auto-generated method stub
 			return false;
 		}
+	}
+	
+	protected static class
+	CachedStateWrapper
+		implements TOTorrent
+	{
+		private DownloadManagerImpl	download_manager;
+		
+		private String		torrent_file;
+		private byte[]		torrent_hash;
+		private Map			cache;	
+		
+		private TOTorrent			delegate;
+		private TOTorrentException	fixup_failure;
+		
+		private boolean				logged_failure;
+		
+		protected
+		CachedStateWrapper(
+			DownloadManagerImpl		_download_manager,
+			String					_torrent_file,
+			byte[]					_torrent_hash,
+			Map						_cache )
+		{
+			download_manager	= _download_manager;
+			torrent_file		= _torrent_file;
+			torrent_hash		= _torrent_hash;
+			cache				= _cache;
+		}
+		
+		protected static Map
+		export(
+			TOTorrent	state )
+		
+			throws TOTorrentException
+		{
+			Map	cache = new HashMap();
+			
+			cache.put( "hash", state.getHash());
+			cache.put( "name", state.getName());
+			cache.put( "comment", state.getComment());
+			cache.put( "createdby", state.getCreatedBy());
+			cache.put( "size", new Long( state.getSize()));
+			
+			cache.put( "encoding", state.getAdditionalStringProperty( "encoding" ));
+			cache.put( "torrent filename", state.getAdditionalStringProperty( "torrent filename" ));
+			
+			cache.put( "attributes", state.getAdditionalMapProperty( "attributes" ));
+			
+			return( cache );
+		}
+		
+		protected void
+		clearCache()
+		{
+			fixup( true );
+		}
+		
+		protected boolean
+		fixup()
+		{
+			return( fixup( false ));
+		}
+		
+		protected boolean
+		fixup(
+			boolean	explicit_discard )
+		{
+			try{
+				if ( delegate == null ){
+					
+					if ( fixup_failure != null ){
+						
+						throw( fixup_failure );
+					}
+		
+					delegate = loadRealState();
+				
+					if ( cache != null && !explicit_discard ){
+						
+						Debug.out( "Cache missed forced fixup" );
+					}
+					
+					cache = null;
+				}	
+				
+				return( true );
+				
+			}catch( TOTorrentException e ){
+				
+				fixup_failure	= e;
+				
+				if ( download_manager != null ){
+					
+					download_manager.setFailed( Debug.getNestedExceptionMessage( e ));
+					
+				}else{
+					
+					if ( !logged_failure ){
+						
+						logged_failure = true;
+						
+						Debug.out( "Torrent can't be loaded: " + Debug.getNestedExceptionMessage( e ));
+					}
+				}
+			}
+			
+			return( false );
+		}
+		
+		protected TOTorrent
+		loadRealState()
+		
+			throws TOTorrentException
+		{
+			TOTorrent original_torrent = TorrentUtils.readFromFile( new File(torrent_file), true );
+			
+			torrent_hash = original_torrent.getHash();
+			
+			File	saved_file = getStateFile( torrent_hash ); 
+			
+			if ( saved_file.exists()){
+				
+				try{
+					return( TorrentUtils.readFromFile( saved_file, true ));
+					
+				}catch( Throwable e ){
+					
+					Debug.out( "Failed to load download state for " + saved_file );
+				}
+			}
+									
+				// we must copy the torrent as we want one independent from the
+				// original (someone might still have references to the original
+				// and do stuff like write it somewhere else which would screw us
+				// up)
+			
+			TorrentUtils.copyToFile( original_torrent, saved_file );
+			
+			return( TorrentUtils.readFromFile( saved_file, true ));
+		}
+		
+		
+		public byte[]
+    	getName()
+		{
+			Map	c = cache;
+			
+			if ( c != null ){
+				
+				byte[]	name = (byte[])c.get( "name" );
+				
+				if ( name != null ){
+					
+					return( name );
+				}
+			}
+			
+			if ( delegate != null ){
+				
+				return( delegate.getName());
+			}
+			
+	
+			return(("Error: " + Debug.getNestedExceptionMessage( fixup_failure )).getBytes()); 
+		}
+    	
+    	public boolean
+    	isSimpleTorrent()
+    	{
+    		if ( fixup()){
+    			
+    			return( delegate.isSimpleTorrent());
+    		}
+    		
+    		return( false );
+    	}
+    	
+    	public byte[]
+    	getComment()
+    	{
+			Map	c = cache;
+			
+			if ( c != null ){
+				
+				return((byte[])c.get( "comment" ));
+			}
+			
+	   		if ( fixup()){
+				
+				return( delegate.getComment());
+			}
+	   		
+	   		return( null );
+    	}
+
+    	public void
+    	setComment(
+    		String		comment )
+       	{
+	   		if ( fixup()){
+				
+				delegate.setComment( comment );
+			}
+    	}
+ 
+    	public long
+    	getCreationDate()
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.getCreationDate());
+			}
+	   		
+	   		return( 0 );
+    	}
+    	
+    	public void
+    	setCreationDate(
+    		long		date )
+       	{
+	   		if ( fixup()){
+				
+				delegate.setCreationDate( date );
+			}
+    	}
+    	
+    	public byte[]
+    	getCreatedBy()
+       	{
+			Map	c = cache;
+			
+			if ( c != null ){
+				
+				return((byte[])c.get( "createdby" ));
+			}
+			
+	   		if ( fixup()){
+				
+				return( delegate.getCreatedBy());
+			}
+	   		
+	   		return( null );
+    	}
+    	
+    	public boolean
+    	isCreated()
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.isCreated());
+			}
+	   		
+	   		return( false );
+    	}
+    	
+    	public URL
+    	getAnnounceURL()
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.getAnnounceURL());
+			}
+	   		
+	   		return( null );
+    	}
+
+    	public boolean
+    	setAnnounceURL(
+    		URL		url )
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.setAnnounceURL( url ));
+			}
+	   		
+	   		return( false );
+    	}
+    	
+    	public TOTorrentAnnounceURLGroup
+    	getAnnounceURLGroup()
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.getAnnounceURLGroup());
+			}
+	   		
+	   		return( null );
+    	}
+    	 
+    	public byte[][]
+    	getPieces()
+    	
+    		throws TOTorrentException
+	   	{
+	   		if ( fixup()){
+				
+				return( delegate.getPieces());
+			}
+	   		
+	   		throw( fixup_failure );
+    	}
+    	
+
+    	public void
+    	setPieces(
+    		byte[][]	pieces )
+    	
+    		throws TOTorrentException
+	   	{
+	   		if ( fixup()){
+				
+				delegate.setPieces( pieces );
+				
+				return;
+			}
+	   		
+	   		throw( fixup_failure );
+    	}
+    	
+    	public long
+    	getPieceLength()
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.getPieceLength());
+			}
+	   		
+	   		return( 0 );
+    	}
+
+    	public int
+    	getNumberOfPieces()
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.getNumberOfPieces());
+			}
+	   		
+	   		return( 0 );
+    	}
+    	
+    	public long
+    	getSize()
+       	{
+    		Map	c = cache;
+			
+			if ( c != null ){
+				
+				Long	size = (Long)c.get( "size" );
+				
+				if ( size != null ){
+					
+					return( size.longValue());
+				}
+			}
+			
+	   		if ( fixup()){
+				
+				return( delegate.getSize());
+			}
+	   		
+	   		return( 0 );
+    	}
+    	
+    	public TOTorrentFile[]
+    	getFiles()
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.getFiles());
+			}
+	   		
+	   		return( new TOTorrentFile[0] );
+    	}
+    	 
+    	public byte[]
+    	getHash()
+    				
+    		throws TOTorrentException
+	   	{
+			Map	c = cache;
+			
+			if ( c != null ){
+				
+				byte[]	hash = (byte[])c.get( "hash" );
+				
+				if ( hash != null ){
+					
+					return( hash );
+				}
+			}
+			
+	   		if ( fixup()){
+				
+				return( delegate.getHash());
+			}
+	   		
+	   		throw( fixup_failure );
+    	}
+    	
+    	public HashWrapper
+    	getHashWrapper()
+    				
+    		throws TOTorrentException
+	   	{
+			Map	c = cache;
+			
+			if ( c != null ){
+				
+				byte[]	hash = (byte[])c.get( "hash" );
+				
+				if ( hash != null ){
+					
+					return( new HashWrapper( hash ));
+				}
+			}
+			
+	   		if ( fixup()){
+				
+				return( delegate.getHashWrapper());
+			}
+	   		
+	   		throw( fixup_failure );
+    	}
+
+    	public boolean
+    	hasSameHashAs(
+    		TOTorrent		other )
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.hasSameHashAs( other ));
+			}
+	   		
+	   		return( false );
+    	}
+    	
+    	public boolean
+    	getPrivate()
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.getPrivate());
+			}
+	   		
+	   		return( false );
+    	}
+    	
+    	public void
+    	setPrivate(
+    		boolean	_private )
+    	
+    		throws TOTorrentException
+    	   	{
+    	   		if ( fixup()){
+    				
+    				delegate.setPrivate( _private );
+    			}
+        	}
+  
+    	public void
+    	setAdditionalStringProperty(
+    		String		name,
+    		String		value )
+       	{
+	   		if ( fixup()){
+				
+				delegate.setAdditionalStringProperty( name, value );
+			}
+    	}
+    		
+    	public String
+    	getAdditionalStringProperty(
+    		String		name )
+       	{
+			Map	c = cache;
+			
+			if ( c != null && ( name.equals( "encoding") || name.equals( "torrent filename" ))){
+								
+				byte[] res = (byte[])c.get( name );
+
+				if ( res == null ){
+					
+					return( null );
+				}
+				
+				try{
+					return( new String( res, "UTF8" ));
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
+					
+					return( null );
+				}
+			}
+
+	   		if ( fixup()){
+				
+				return( delegate.getAdditionalStringProperty( name ));
+			}
+	   		
+	   		return( null );
+    	}
+    		
+    	public void
+    	setAdditionalByteArrayProperty(
+    		String		name,
+    		byte[]		value )
+       	{
+	   		if ( fixup()){
+				
+				delegate.setAdditionalByteArrayProperty( name, value );
+			}
+    	}
+    	
+    	public byte[]
+    	getAdditionalByteArrayProperty(
+    		String		name )
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.getAdditionalByteArrayProperty( name ));
+			}
+	   		
+	   		return( null );
+    	}
+    	
+    	public void
+    	setAdditionalLongProperty(
+    		String		name,
+    		Long		value )
+       	{
+	   		if ( fixup()){
+				
+				delegate.setAdditionalLongProperty( name, value );
+			}
+    	}
+    		
+    	public Long
+    	getAdditionalLongProperty(
+    		String		name )
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.getAdditionalLongProperty( name ));
+			}
+	   		
+	   		return( null );
+    	}
+    		
+    	
+    	public void
+    	setAdditionalListProperty(
+    		String		name,
+    		List		value )
+       	{
+	   		if ( fixup()){
+				
+				delegate.setAdditionalListProperty( name, value );
+			}
+    	}
+    		
+    	public List
+    	getAdditionalListProperty(
+    		String		name )
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.getAdditionalListProperty( name ));
+			}
+	   		
+	   		return( null );
+    	}
+    		
+    	public void
+    	setAdditionalMapProperty(
+    		String		name,
+    		Map			value )
+       	{
+	   		if ( fixup()){
+				
+				delegate.setAdditionalMapProperty( name, value );
+			}
+    	}
+    		
+    	public Map
+    	getAdditionalMapProperty(
+    		String		name )
+       	{
+			Map	c = cache;
+			
+			if ( c != null && name.equals( "attributes")){
+								
+				return((Map)c.get( name ));
+			}
+			
+	   		if ( fixup()){
+				
+				return( delegate.getAdditionalMapProperty( name ));
+			}
+	   		
+	   		return( null );
+    	}
+    	
+    	public Object
+    	getAdditionalProperty(
+    		String		name )
+       	{
+	   		if ( fixup()){
+				
+				return( delegate.getAdditionalProperty( name ));
+			}
+	   		
+	   		return( null );
+    	}
+
+    	public void
+    	setAdditionalProperty(
+    		String		name,
+    		Object		value )
+       	{
+	   		if ( fixup()){
+				
+				delegate.setAdditionalProperty( name, value );
+			}
+    	}
+    	
+    	public void
+    	removeAdditionalProperty(
+    		String name )
+       	{
+	   		if ( fixup()){
+				
+				delegate.removeAdditionalProperty( name );
+			}
+    	}
+    	
+    	public void
+    	removeAdditionalProperties()
+       	{
+	   		if ( fixup()){
+				
+				delegate.removeAdditionalProperties();
+			}
+    	}
+    	
+    	public void
+    	serialiseToBEncodedFile(
+    		File		file )
+    		  
+    		throws TOTorrentException
+	   	{
+	   		if ( fixup()){
+				
+				delegate.serialiseToBEncodedFile( file );
+				
+				return;
+			}
+	   		
+	   		throw( fixup_failure );
+    	}
+    	
+    	public Map
+    	serialiseToMap()
+    		  
+    		throws TOTorrentException
+	   	{
+	   		if ( fixup()){
+				
+				return( delegate.serialiseToMap());
+			}
+	   		
+	   		throw( fixup_failure );
+    	}
+    	
+       public void
+       serialiseToXMLFile(
+    	   File		file )
+    		  
+    	   throws TOTorrentException
+   	   	{
+   	   		if ( fixup()){
+   				
+   				delegate.serialiseToXMLFile( file );
+   				
+   				return;
+   			}
+   	   		
+   	   		throw( fixup_failure );
+       	}
+
+       public AEMonitor
+       getMonitor()
+      	{
+	   		if ( fixup()){
+				
+				return( delegate.getMonitor());
+			}
+	   		
+	   		return( null );
+      	}
+
+       public void
+       print()
+      	{
+	   		if ( fixup()){
+				
+				delegate.print();
+			}
+      	}
 	}
 }

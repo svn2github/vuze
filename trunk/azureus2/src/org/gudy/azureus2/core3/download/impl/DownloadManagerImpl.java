@@ -36,7 +36,6 @@ import java.net.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.impl.DiskManagerImpl;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.*;
@@ -731,7 +730,7 @@ DownloadManagerImpl
 				 			 
 				 	// only restore the tracker response cache for non-seeds
 		   
-				 if ( DiskManagerFactory.isTorrentResumeDataComplete( this )) {
+				 if ( download_manager_state.isResumeDataComplete()){
 				 	
 					 	// actually, can't think of a good reason not to restore the
 					 	// cache for seeds, after all if the tracker's down we still want

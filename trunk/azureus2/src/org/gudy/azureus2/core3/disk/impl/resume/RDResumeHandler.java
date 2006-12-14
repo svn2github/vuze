@@ -189,7 +189,7 @@ RDResumeHandler
 								// if the torrent download is complete we don't need to invalidate the
 								// resume data
 							
-							if ( isTorrentResumeDataComplete( disk_manager.getDownloadManager(), resume_data )){
+							if ( isTorrentResumeDataComplete( disk_manager.getDownloadManager().getDownloadState(), resume_data )){
 								
 								resume_data_complete	= true;
 										
@@ -619,7 +619,7 @@ RDResumeHandler
 			return;
 		}
 
-		boolean	was_complete = isTorrentResumeDataComplete( disk_manager.getDownloadManager());
+		boolean	was_complete = isTorrentResumeDataComplete( disk_manager.getDownloadManager().getDownloadState());
 		
 		DiskManagerPiece[] pieces	= disk_manager.getPieces();
 
@@ -735,7 +735,7 @@ RDResumeHandler
 		
 	  		// OK, we've got valid resume data and flushed the cache
 	  
-		boolean	is_complete = isTorrentResumeDataComplete( disk_manager.getDownloadManager(), resume_data );
+		boolean	is_complete = isTorrentResumeDataComplete( disk_manager.getDownloadManager().getDownloadState(), resume_data );
 	
 		if ( was_complete && is_complete ){
 	 
@@ -757,8 +757,13 @@ RDResumeHandler
 	getResumeData(
 		DownloadManager		download_manager)
 	{
-		DownloadManagerState download_manager_state = download_manager.getDownloadState();
-		
+		return( getResumeData( download_manager.getDownloadState()));
+	}
+	
+	protected static Map
+	getResumeData(
+		DownloadManagerState	download_manager_state )
+	{
 		Map resume_map = download_manager_state.getResumeData();
 		
 		if ( resume_map != null ){
@@ -962,22 +967,22 @@ RDResumeHandler
 	
 	public static boolean
 	isTorrentResumeDataComplete(
-		DownloadManager			download_manager )
+		DownloadManagerState			dms )
 	{				
 			// backwards compatability, resume data key is the dir
 		
-		Map	resume_data = getResumeData( download_manager );
+		Map	resume_data = getResumeData( dms );
 		
-		return( isTorrentResumeDataComplete( download_manager, resume_data ));
+		return( isTorrentResumeDataComplete( dms, resume_data ));
 	}
 	
-	public static boolean
+	protected static boolean
 	isTorrentResumeDataComplete(
-		DownloadManager		download_manager, 
-		Map					resume_data )
+		DownloadManagerState		download_manager_state, 
+		Map							resume_data )
 	{
 		try{
-			int	piece_count = download_manager.getDownloadState().getTorrent().getNumberOfPieces();
+			int	piece_count = download_manager_state.getTorrent().getNumberOfPieces();
 							
 			if ( resume_data != null ){
 				

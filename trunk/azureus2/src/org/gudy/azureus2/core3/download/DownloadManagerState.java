@@ -54,6 +54,7 @@ DownloadManagerState
 	public static final String AT_RELATIVE_SAVE_PATH        = "relativepath";
 	public static final String AT_CONTENT_MAP 				= "contentmap";
 	public static final String AT_SECRETS				 	= "secrets";
+	public static final String AT_RESUME_STATE		 	= "resumecomplete";
 	
 	public static final long FLAG_ONLY_EVER_SEEDED			= Download.FLAG_ONLY_EVER_SEEDED;
 	public static final long FLAG_SCAN_INCOMPLETE_PIECES	= Download.FLAG_SCAN_INCOMPLETE_PIECES;
@@ -153,6 +154,9 @@ DownloadManagerState
 	public void
 	setResumeData(
 		Map	data );
+	
+	public boolean
+	isResumeDataComplete();
 	
 	public void
 	clearTrackerResponseCache();

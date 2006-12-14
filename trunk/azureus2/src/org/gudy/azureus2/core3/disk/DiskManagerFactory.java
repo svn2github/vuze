@@ -93,9 +93,9 @@ DiskManagerFactory
 	
 	public static boolean
 	isTorrentResumeDataComplete(
-		DownloadManager			download_manager )
+		DownloadManagerState	dms )
 	{
-		return RDResumeHandler.isTorrentResumeDataComplete( download_manager );
+		return RDResumeHandler.isTorrentResumeDataComplete( dms );
 	}
 
 	public static void 

@@ -318,14 +318,6 @@ public interface GlobalManager extends AzureusCoreComponent {
 			GlobalManagerDownloadWillBeRemovedListener l);
 
 	/**
-	 * Saves the states of the downloads
-	 * 
-	 * @param immediate True: Save Immediately;<BR>
-	 *                   False: Save on next manager checker cycle
-	 */
-	public void saveDownloads(boolean immediate);
-
-	/**
 	 * See plugin ConnectionManager.NAT_ constants for return values
 	 * @return ConnectionManager.NAT_*
 	 */

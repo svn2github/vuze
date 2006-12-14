@@ -42,4 +42,23 @@ DownloadManagerStateFactory
 	{
 		return( DownloadManagerStateImpl.getDownloadState( torrent ));
 	}
+	
+	
+	public static void
+	loadGlobalStateCache()
+	{
+		DownloadManagerStateImpl.loadGlobalStateCache();
+	}
+	
+	public static void
+	saveGlobalStateCache()
+	{
+		DownloadManagerStateImpl.saveGlobalStateCache();
+	}
+	
+	public static void
+	discardGlobalStateCache()
+	{
+		DownloadManagerStateImpl.discardGlobalStateCache();
+	}
 }

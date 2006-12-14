@@ -1154,6 +1154,8 @@ public class GlobalManagerImpl
   	stats_writer.destroy();
   }
   
+  DownloadManagerStateFactory.saveGlobalStateCache();
+  
   managers_cow	= new ArrayList();
   
   manager_map.clear();
@@ -1461,200 +1463,208 @@ public class GlobalManagerImpl
   
   private void loadDownloads(GlobalMangerProgressListener listener) 
   {
-  	int triggerOnCount = 2;
-    ArrayList downloadsAdded = new ArrayList();
-    long lastListenerUpdate = 0;
-  	try{
-  		if (listener != null)
-  			listener.reportCurrentTask(MessageText.getString("splash.loadingTorrents"));
-
-      Map map = FileUtil.readResilientConfigFile("downloads.config");
-      
-      boolean debug = Boolean.getBoolean("debug");
- 
-      Iterator iter = null;
-      //v2.0.3.0+ vs older mode
-      List downloads = (List) map.get("downloads");
-      int nbDownloads;
-      if (downloads == null) {
-        //No downloads entry, then use the old way
-        iter = map.values().iterator();
-        nbDownloads = map.size();
-      }
-      else {
-        //New way, downloads stored in a list
-        iter = downloads.iterator();
-        nbDownloads = downloads.size();
-      }
-      int currentDownload = 0;
-      while (iter.hasNext()) {
-        currentDownload++;        
-        Map mDownload = (Map) iter.next();
-        try {
-          byte[]	torrent_hash = (byte[])mDownload.get( "torrent_hash" );
-          
-          Long	lPersistent = (Long)mDownload.get( "persistent" );
-          
-          boolean	persistent = lPersistent==null || lPersistent.longValue()==1;
-          
-          
-          String fileName = new String((byte[]) mDownload.get("torrent"), Constants.DEFAULT_ENCODING);
-          
-          if(listener != null &&  SystemTime.getCurrentTime() - lastListenerUpdate > 100) {
-          	lastListenerUpdate = SystemTime.getCurrentTime();
-          	
-						listener.reportPercent(100 * currentDownload / nbDownloads);
-            listener.reportCurrentTask(MessageText.getString("splash.loadingTorrent") 
-                + " " + currentDownload + " "
-                + MessageText.getString("splash.of") + " " + nbDownloads
-                + " : " + fileName );
-          }
-          
-          //migration from using a single savePath to a separate dir and file entry
-          String	torrent_save_dir;
-          String	torrent_save_file;
-          
-          byte[] torrent_save_dir_bytes   = (byte[]) mDownload.get("save_dir");
-          
-          if ( torrent_save_dir_bytes != null ){
-          	
-          	byte[] torrent_save_file_bytes 	= (byte[]) mDownload.get("save_file");
-          	       
-          	torrent_save_dir	= new String(torrent_save_dir_bytes, Constants.DEFAULT_ENCODING);
-          	  
-          	if ( torrent_save_file_bytes != null ){
-          		
-          		torrent_save_file	= new String(torrent_save_file_bytes, Constants.DEFAULT_ENCODING);       		
-          	}else{
-          		
-          		torrent_save_file	= null;
-          	}
-          }else{
-            
-            byte[] savePathBytes = (byte[]) mDownload.get("path");
-          	torrent_save_dir 	= new String(savePathBytes, Constants.DEFAULT_ENCODING);
-          	torrent_save_file	= null;
-          }
-          
-          
-          
-          int state = DownloadManager.STATE_WAITING;
-          if (debug){
-          	
-            state = DownloadManager.STATE_STOPPED;
-            
-          }else {
-          	
-            if (mDownload.containsKey("state")) {
-              state = ((Long) mDownload.get("state")).intValue();
-              if (state != DownloadManager.STATE_STOPPED &&
-                  state != DownloadManager.STATE_QUEUED &&
-                  state != DownloadManager.STATE_WAITING)
-              	
-                state = DownloadManager.STATE_QUEUED;
-              
-            }else{
-            	
-              int stopped = ((Long) mDownload.get("stopped")).intValue();
-              
-              if (stopped == 1){
-              	
-                state = DownloadManager.STATE_STOPPED;
-              }
-            } 
-          }        
-
-	      Long seconds_downloading = (Long)mDownload.get("secondsDownloading");
-
-		  boolean	has_ever_been_started = seconds_downloading != null && seconds_downloading.longValue() > 0;
+	  try{
+		  DownloadManagerStateFactory.loadGlobalStateCache();
 		  
-					if (torrent_hash != null) {
-						saved_download_manager_state.put(new HashWrapper(torrent_hash),
-								mDownload);
-					}
-          
-          	// for non-persistent downloads the state will be picked up if the download is re-added
-          	// it won't get saved unless it is picked up, hence dead data is dropped as required
-          
-          if ( persistent ){
-          		        
-	        List file_priorities = (List) mDownload.get("file_priorities");
-	        
-          	final DownloadManager dm = 
-          		DownloadManagerFactory.create(
-          				this, torrent_hash, fileName, torrent_save_dir, torrent_save_file, 
-          				state, true, true, has_ever_been_started, file_priorities );
-
-            if (addDownloadManager(dm, false, false) == dm) {
-            	downloadsAdded.add(dm);
-
-            	if (downloadsAdded.size() >= triggerOnCount) {
-            		triggerOnCount *= 2;
-              	triggerAddListener(downloadsAdded);
-              	downloadsAdded.clear();
-            	}
-            }
-          }
-        }
-        catch (UnsupportedEncodingException e1) {
-          //Do nothing and process next.
-        }
-        catch (Throwable e) {
-        	Logger.log(new LogEvent(LOGID,
-									"Error while loading downloads.  " +
-									"One download may not have been added to the list.", e));
-        }
-      }
-      
-      // This is set to true by default, but once the downloads have been loaded, we have no reason to ever
-      // to do this check again - we only want to do it once to upgrade the state of existing downloads
-      // created before this code was around.
-      COConfigurationManager.setParameter("Set Completion Flag For Completed Downloads On Start", false);
-      
-      //load pause/resume state
-      ArrayList pause_data = (ArrayList)map.get( "pause_data" );
-      if( pause_data != null ) {
-        try {  paused_list_mon.enter();
-          for( int i=0; i < pause_data.size(); i++ ) {
-          	Object	pd = pause_data.get(i);
-          	
-          	byte[]		key;
-          	boolean		force;
-          	
-          	if ( pd instanceof byte[]){
-          			// old style, migration purposes
-          		key 	= (byte[])pause_data.get( i );
-          		force	= false;
-          	}else{
-          		Map	m = (Map)pd;
-          		
-          		key 	= (byte[])m.get("hash");
-          		force 	= ((Long)m.get("force")).intValue() == 1;
-          	}
-            paused_list.add( new Object[]{ new HashWrapper( key ), new Boolean( force )} );
-          }
-        }
-        finally {  paused_list_mon.exit();  }
-      }
-      
-
-      // Someone could have mucked with the config file and set weird positions,
-      // so fix them up.
-      fixUpDownloadManagerPositions();
-      Logger.log(new LogEvent(LOGID, "Loaded " + managers_cow.size()
-					+ " torrents"));
-
-  	}catch( Throwable e ){
-  			// there's been problems with corrupted download files stopping AZ from starting
-  			// added this to try and prevent such foolishness
-  		
-  		Debug.printStackTrace( e );
-  	} finally {
-			loadingComplete = true;
-			triggerAddListener(downloadsAdded);
-
-			loadingSem.releaseForever();
-		}
+		  int triggerOnCount = 2;
+		  ArrayList downloadsAdded = new ArrayList();
+		  long lastListenerUpdate = 0;
+		  try{
+			  if (listener != null)
+				  listener.reportCurrentTask(MessageText.getString("splash.loadingTorrents"));
+	
+			  Map map = FileUtil.readResilientConfigFile("downloads.config");
+	
+			  boolean debug = Boolean.getBoolean("debug");
+	
+			  Iterator iter = null;
+			  //v2.0.3.0+ vs older mode
+			  List downloads = (List) map.get("downloads");
+			  int nbDownloads;
+			  if (downloads == null) {
+				  //No downloads entry, then use the old way
+				  iter = map.values().iterator();
+				  nbDownloads = map.size();
+			  }
+			  else {
+				  //New way, downloads stored in a list
+				  iter = downloads.iterator();
+				  nbDownloads = downloads.size();
+			  }
+			  int currentDownload = 0;
+			  while (iter.hasNext()) {
+				  currentDownload++;        
+				  Map mDownload = (Map) iter.next();
+				  try {
+					  byte[]	torrent_hash = (byte[])mDownload.get( "torrent_hash" );
+	
+					  Long	lPersistent = (Long)mDownload.get( "persistent" );
+	
+					  boolean	persistent = lPersistent==null || lPersistent.longValue()==1;
+	
+	
+					  String fileName = new String((byte[]) mDownload.get("torrent"), Constants.DEFAULT_ENCODING);
+	
+					  if(listener != null &&  SystemTime.getCurrentTime() - lastListenerUpdate > 100) {
+						  lastListenerUpdate = SystemTime.getCurrentTime();
+	
+						  listener.reportPercent(100 * currentDownload / nbDownloads);
+						  listener.reportCurrentTask(MessageText.getString("splash.loadingTorrent") 
+								  + " " + currentDownload + " "
+								  + MessageText.getString("splash.of") + " " + nbDownloads
+								  + " : " + fileName );
+					  }
+	
+					  //migration from using a single savePath to a separate dir and file entry
+					  String	torrent_save_dir;
+					  String	torrent_save_file;
+	
+					  byte[] torrent_save_dir_bytes   = (byte[]) mDownload.get("save_dir");
+	
+					  if ( torrent_save_dir_bytes != null ){
+	
+						  byte[] torrent_save_file_bytes 	= (byte[]) mDownload.get("save_file");
+	
+						  torrent_save_dir	= new String(torrent_save_dir_bytes, Constants.DEFAULT_ENCODING);
+	
+						  if ( torrent_save_file_bytes != null ){
+	
+							  torrent_save_file	= new String(torrent_save_file_bytes, Constants.DEFAULT_ENCODING);       		
+						  }else{
+	
+							  torrent_save_file	= null;
+						  }
+					  }else{
+	
+						  byte[] savePathBytes = (byte[]) mDownload.get("path");
+						  torrent_save_dir 	= new String(savePathBytes, Constants.DEFAULT_ENCODING);
+						  torrent_save_file	= null;
+					  }
+	
+	
+	
+					  int state = DownloadManager.STATE_WAITING;
+					  if (debug){
+	
+						  state = DownloadManager.STATE_STOPPED;
+	
+					  }else {
+	
+						  if (mDownload.containsKey("state")) {
+							  state = ((Long) mDownload.get("state")).intValue();
+							  if (state != DownloadManager.STATE_STOPPED &&
+									  state != DownloadManager.STATE_QUEUED &&
+									  state != DownloadManager.STATE_WAITING)
+	
+								  state = DownloadManager.STATE_QUEUED;
+	
+						  }else{
+	
+							  int stopped = ((Long) mDownload.get("stopped")).intValue();
+	
+							  if (stopped == 1){
+	
+								  state = DownloadManager.STATE_STOPPED;
+							  }
+						  } 
+					  }        
+	
+					  Long seconds_downloading = (Long)mDownload.get("secondsDownloading");
+	
+					  boolean	has_ever_been_started = seconds_downloading != null && seconds_downloading.longValue() > 0;
+	
+					  if (torrent_hash != null) {
+						  saved_download_manager_state.put(new HashWrapper(torrent_hash),
+								  mDownload);
+					  }
+	
+					  // for non-persistent downloads the state will be picked up if the download is re-added
+					  // it won't get saved unless it is picked up, hence dead data is dropped as required
+	
+					  if ( persistent ){
+	
+						  List file_priorities = (List) mDownload.get("file_priorities");
+	
+						  final DownloadManager dm = 
+							  DownloadManagerFactory.create(
+									  this, torrent_hash, fileName, torrent_save_dir, torrent_save_file, 
+									  state, true, true, has_ever_been_started, file_priorities );
+	
+						  if (addDownloadManager(dm, false, false) == dm) {
+							  downloadsAdded.add(dm);
+	
+							  if (downloadsAdded.size() >= triggerOnCount) {
+								  triggerOnCount *= 2;
+								  triggerAddListener(downloadsAdded);
+								  downloadsAdded.clear();
+							  }
+						  }
+					  }
+				  }
+				  catch (UnsupportedEncodingException e1) {
+					  //Do nothing and process next.
+				  }
+				  catch (Throwable e) {
+					  Logger.log(new LogEvent(LOGID,
+							  "Error while loading downloads.  " +
+							  "One download may not have been added to the list.", e));
+				  }
+			  }
+	
+			  // This is set to true by default, but once the downloads have been loaded, we have no reason to ever
+			  // to do this check again - we only want to do it once to upgrade the state of existing downloads
+			  // created before this code was around.
+			  COConfigurationManager.setParameter("Set Completion Flag For Completed Downloads On Start", false);
+	
+			  //load pause/resume state
+			  ArrayList pause_data = (ArrayList)map.get( "pause_data" );
+			  if( pause_data != null ) {
+				  try {  paused_list_mon.enter();
+				  for( int i=0; i < pause_data.size(); i++ ) {
+					  Object	pd = pause_data.get(i);
+	
+					  byte[]		key;
+					  boolean		force;
+	
+					  if ( pd instanceof byte[]){
+						  // old style, migration purposes
+						  key 	= (byte[])pause_data.get( i );
+						  force	= false;
+					  }else{
+						  Map	m = (Map)pd;
+	
+						  key 	= (byte[])m.get("hash");
+						  force 	= ((Long)m.get("force")).intValue() == 1;
+					  }
+					  paused_list.add( new Object[]{ new HashWrapper( key ), new Boolean( force )} );
+				  }
+				  }
+				  finally {  paused_list_mon.exit();  }
+			  }
+	
+	
+			  // Someone could have mucked with the config file and set weird positions,
+			  // so fix them up.
+			  fixUpDownloadManagerPositions();
+			  Logger.log(new LogEvent(LOGID, "Loaded " + managers_cow.size()
+					  + " torrents"));
+	
+		  }catch( Throwable e ){
+			  // there's been problems with corrupted download files stopping AZ from starting
+			  // added this to try and prevent such foolishness
+	
+			  Debug.printStackTrace( e );
+		  } finally {
+			  loadingComplete = true;
+			  triggerAddListener(downloadsAdded);
+	
+			  loadingSem.releaseForever();
+		  }
+			  
+	  }finally{
+		  
+		  DownloadManagerStateFactory.discardGlobalStateCache();
+	  }
   }
   
   private void triggerAddListener(List downloadsToAdd) {
@@ -1676,7 +1686,7 @@ public class GlobalManagerImpl
   }
 
 
-  public void 
+  protected void 
   saveDownloads(
   	boolean	immediate ) 
   {
