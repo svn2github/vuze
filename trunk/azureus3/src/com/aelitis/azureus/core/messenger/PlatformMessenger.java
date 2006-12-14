@@ -75,7 +75,10 @@ public class PlatformMessenger
 
 	private static fakeContext context;
 
-	public static void init() {
+	public static synchronized void init() {
+		if (initialized) {
+			return;
+		}
 		initialized = true;
 
 		context = new fakeContext();
