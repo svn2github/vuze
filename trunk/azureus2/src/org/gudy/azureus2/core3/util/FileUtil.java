@@ -1432,4 +1432,45 @@ public class FileUtil {
 		
 		return fName.substring(fileDotIndex);
 	}
+	
+	public String
+	readFileAsString(
+		File	file,
+		int		size_limit )
+	
+		throws IOException
+	{
+		FileInputStream	fis = new FileInputStream( file );
+		
+		try{
+			StringBuffer	result = new StringBuffer(1024);
+			
+			byte[]	buffer = new byte[1024];
+			
+			while( true ){
+			
+				int	len = fis.read( buffer );
+			
+				if ( len <= 0 ){
+					
+					break;
+				}
+			
+				result.append( new String( buffer, 0, len, "ISO-8859-1" ));
+				
+				if ( result.length() > size_limit ){
+					
+					result.setLength( size_limit );
+					
+					break;
+				}
+			}
+			
+			return( result.toString());
+			
+		}finally{
+			
+			fis.close();
+		}
+	}
 }
