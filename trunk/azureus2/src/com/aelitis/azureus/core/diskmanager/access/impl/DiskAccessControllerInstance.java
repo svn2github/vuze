@@ -41,6 +41,9 @@ import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
 public class 
 DiskAccessControllerInstance 
 {
+	private static final int AGGREGATION_REQUEST_LIMIT	= 8;
+	private static final int AGGREGATION_BYTE_LIMIT		= 128*1024;
+	
 	private String		name;
 	private boolean		enable_aggregation;
 	
@@ -468,7 +471,7 @@ DiskAccessControllerInstance
 																	
 																aggregated_bytes += next.getSize();
 																
-																if ( aggregated.size() > 4 || aggregated_bytes >= 65536 ){
+																if ( aggregated.size() > AGGREGATION_REQUEST_LIMIT || aggregated_bytes >= AGGREGATION_BYTE_LIMIT ){
 																	
 																	break;
 																}

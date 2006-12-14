@@ -1521,6 +1521,25 @@ CacheFileWithCache
 	}
 	
 	public void
+	write(
+		DirectByteBuffer[]	buffers,
+		long				position )
+	
+		throws CacheFileManagerException
+	{
+		for (int i=0;i<buffers.length;i++){
+			
+			DirectByteBuffer	buffer = buffers[i];
+			
+			int	len = buffer.remaining( DirectByteBuffer.SS_CACHE );
+			
+			write( buffer, position );
+			
+			position += len;
+		}
+	}
+	
+	public void
 	writeAndHandoverBuffer(
 		DirectByteBuffer	buffer,
 		long				position )

@@ -197,7 +197,7 @@ CacheFileWithoutCache
 		
 		for (int i=0;i<buffers.length;i++){
 			
-			read_length += buffers[i].limit(DirectByteBuffer.SS_CACHE) - buffers[i].position(DirectByteBuffer.SS_CACHE);
+			read_length += buffers[i].remaining(DirectByteBuffer.SS_CACHE);
 		}
 		
 		try{			
@@ -219,7 +219,7 @@ CacheFileWithoutCache
 	
 		throws CacheFileManagerException
 	{
-		int	read_length	= buffer.limit(DirectByteBuffer.SS_CACHE) - buffer.position(DirectByteBuffer.SS_CACHE);
+		int	read_length	= buffer.remaining(DirectByteBuffer.SS_CACHE);
 
 		try{			
 			file.read( buffer, position );
@@ -239,13 +239,35 @@ CacheFileWithoutCache
 	
 		throws CacheFileManagerException
 	{
-		int	file_buffer_position	= buffer.position(DirectByteBuffer.SS_CACHE);
-		int file_buffer_limit		= buffer.limit(DirectByteBuffer.SS_CACHE);
-		
-		int	write_length = file_buffer_limit - file_buffer_position;
+		int	write_length = buffer.remaining(DirectByteBuffer.SS_CACHE);
 		
 		try{			
 			file.write( buffer, position );
+			
+			manager.fileBytesWritten( write_length );
+
+		}catch( FMFileManagerException e ){
+				
+			manager.rethrow(this,e);
+		}
+	}
+	
+	public void
+	write(
+		DirectByteBuffer[]	buffers,
+		long				position )
+	
+		throws CacheFileManagerException
+	{
+		int	write_length	= 0;
+		
+		for (int i=0;i<buffers.length;i++){
+			
+			write_length += buffers[i].remaining(DirectByteBuffer.SS_CACHE);
+		}
+		
+		try{			
+			file.write( buffers, position );
 			
 			manager.fileBytesWritten( write_length );
 

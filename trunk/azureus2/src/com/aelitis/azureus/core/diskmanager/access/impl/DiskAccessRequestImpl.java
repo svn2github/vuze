@@ -125,7 +125,7 @@ DiskAccessRequestImpl
 		
 		int			op 				= base_request.getOperation();
 
-		if ( op == OP_READ ){
+		if ( op == OP_READ || op == OP_WRITE ){
 			
 			CacheFile	file 			= base_request.getFile();
 			long		offset			= base_request.getOffset();
@@ -154,8 +154,15 @@ DiskAccessRequestImpl
 				buffers[i] = request.getBuffer();
 			}
 			
-			try{				
-				file.read( buffers, offset, cache_policy );
+			try{	
+				if ( op == OP_READ ){
+					
+					file.read( buffers, offset, cache_policy );
+					
+				}else{
+					
+					file.write( buffers, offset );
+				}
 				
 				for (int i=0;i<requests.length;i++){
 

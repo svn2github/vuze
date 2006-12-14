@@ -120,6 +120,14 @@ CacheFile
 	
 		throws CacheFileManagerException;
 	
+	public void
+	write(
+		DirectByteBuffer[]	buffers,
+		long				position )
+	
+		throws CacheFileManagerException;
+
+	
 		/**
 		 * writes the block to the cache and gives control of the buffer to the cache.
 		 * @param buffer
