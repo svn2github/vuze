@@ -141,6 +141,10 @@ public class SinglePeerUploader implements RateControlledEntity {
 	  return( 0 );
   }
 
-/////////////////////////////////////////////////////////////////////////////
+  public String
+  getString()
+  {
+	  return( "SPU: " + connection.getString());
+  }
   
 }

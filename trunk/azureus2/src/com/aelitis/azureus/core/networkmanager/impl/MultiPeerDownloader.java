@@ -185,5 +185,18 @@ public class MultiPeerDownloader implements RateControlledEntity {
   
   public int getPriority() {  return RateControlledEntity.PRIORITY_HIGH;  }
   
-
+  public String
+  getString()
+  {
+	  String	str = "";
+  
+	  for (Iterator it=connections_cow.iterator();it.hasNext();){
+	      
+	      NetworkConnectionBase connection = (NetworkConnectionBase)it.next();
+	      
+	      str += (str.length()==0?"":",") + connection.getString();
+	  }
+	  
+	  return( "MPD: " + str );
+  }
 }

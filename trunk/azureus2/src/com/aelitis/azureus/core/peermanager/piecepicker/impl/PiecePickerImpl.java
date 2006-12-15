@@ -2109,6 +2109,11 @@ public class PiecePickerImpl
 			final PEPeerListenerImpl peerListener =(PEPeerListenerImpl)peerListeners.remove(peer);
 			peer.removeListener(peerListener);
 		}
+		
+		public void
+		destroyed()
+		{		
+		}
 	}
 	
 	/**

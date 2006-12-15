@@ -91,6 +91,46 @@ public class ReadController implements AzureusCoreStatsProvider{
     AzureusCoreStats.registerProvider(
     	types,
     	this );
+    
+    AEDiagnostics.addEvidenceGenerator(
+    	new AEDiagnosticsEvidenceGenerator()
+    	{
+    		public void 
+    		generate(
+    			IndentWriter writer ) 
+    		{
+				writer.println( "Read Controller" );
+					
+				try{
+					writer.indent();
+					
+					ArrayList ref = normal_priority_entities;
+
+					writer.println( "normal - " + ref.size());
+					    
+					for (int i=0;i<ref.size();i++){
+						
+						RateControlledEntity entity = (RateControlledEntity)ref.get( i );
+
+						writer.println( entity.getString());
+					}
+
+					ref = high_priority_entities;
+
+					writer.println( "priority - " + ref.size());
+					    
+					for (int i=0;i<ref.size();i++){
+						
+						RateControlledEntity entity = (RateControlledEntity)ref.get( i );
+
+						writer.println( entity.getString());
+					}
+				}finally{
+					
+					writer.exdent();
+				}
+    		}
+    	});
   }
   
   public void

@@ -43,4 +43,6 @@ PEPeerManagerListener
    * @param peer removed
    */
   public void peerRemoved( PEPeerManager manager, PEPeer peer );
+  
+  public void destroyed();
 }

@@ -95,6 +95,23 @@ PeerForeignNetworkConnection
 		return( false );
 	}
 	
+	public String
+	getString()
+	{
+		String	peer_str = peer.getClass().getName();
+		
+		int	pos = peer_str.lastIndexOf('.');
+		
+		if ( pos != -1 ){
+			
+			peer_str = peer_str.substring( pos+1 );
+		}
+		
+		peer_str += " " + peer.getIp() + ":" + peer.getPort();
+		
+		return( "peer=" + peer_str + ",in=" + incoming_message_queue.getPercentDoneOfCurrentMessage() + 
+				",out=" + outgoing_message_queue.getTotalSize());
+	}
 	protected class
 	tp
 		implements TransportBase
@@ -110,7 +127,7 @@ PeerForeignNetworkConnection
 		isReadyForRead( 
 			EventWaiter waiter )
 		{
-			return( true );
+			return( peer.isTransferAvailable());
 		}
 	
 		public String 

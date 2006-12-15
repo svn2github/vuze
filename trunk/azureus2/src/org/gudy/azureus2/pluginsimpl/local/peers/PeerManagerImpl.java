@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.peers.*;
@@ -83,6 +84,8 @@ PeerManagerImpl
 	private final PEPiece[]				pe_pieces;
 	private pieceFacade[]				piece_facades;
 	
+	private boolean	destroyed;
+	
 	protected
 	PeerManagerImpl(
 		PEPeerManager	_manager )
@@ -115,6 +118,28 @@ PeerManagerImpl
 						 dele.closed();
 					 }
 				 }
+				 
+				public void
+				destroyed()
+				{	
+					synchronized( foreign_map ){
+						
+						destroyed	= true;
+						
+						Iterator it = foreign_map.values().iterator();
+						
+						while( it.hasNext()){
+							
+							try{
+								((PeerForeignDelegate)it.next()).closed();
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace( e );
+							}
+						}
+					}
+				}
 			});
 	}
 
@@ -335,18 +360,28 @@ PeerManagerImpl
 			return(((PeerImpl)_foreign).getDelegate());
 		}
 		
-		PEPeer	local = (PEPeer)foreign_map.get( _foreign );
-		
-		if( local == null ){
+		synchronized( foreign_map ){
 			
-			local 	= new PeerForeignDelegate( this, _foreign );
+			PEPeer	local = (PEPeer)foreign_map.get( _foreign );
 			
-			_foreign.setUserData( PeerManagerImpl.class, local );
+			if( local == null ){
+				
+				if ( destroyed ){
+					
+					Debug.out( "Peer added to destroyed peer manager" );
+					
+					return( null );
+				}
+				
+				local 	= new PeerForeignDelegate( this, _foreign );
+				
+				_foreign.setUserData( PeerManagerImpl.class, local );
+				
+				foreign_map.put( _foreign, local );
+			}
 			
-			foreign_map.put( _foreign, local );
+			return( local );
 		}
-		
-		return( local );
 	}
 	
 	protected PeerForeignDelegate
@@ -420,6 +455,10 @@ PeerManagerImpl
           else{         
             l.peerRemoved( PeerManagerImpl.this, pi );
           }
+        }
+        public void
+        destroyed()
+        {
         }
       };
       

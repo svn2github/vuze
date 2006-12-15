@@ -472,6 +472,32 @@ public class MultiPeerUploader implements RateControlledEntity {
     return RateControlledEntity.PRIORITY_HIGH;
   }
   
- ///////////////////////////////////////////////////////////////////////////////
+  public String
+  getString()
+  {
+	  String	str = "waiting";
   
+	  try {
+		  lists_lock.enter();
+
+		  for( Iterator i = waiting_connections.keySet().iterator(); i.hasNext(); ) {
+			 
+			  NetworkConnectionBase conn = (NetworkConnectionBase)i.next();
+			  
+			  str += "," + conn.getString();
+		  }
+		  
+		  for( Iterator i = ready_connections.iterator(); i.hasNext(); ) {
+				 
+			  NetworkConnectionBase conn = (NetworkConnectionBase)i.next();
+			  
+			  str += "," + conn.getString();
+		  }
+	  }finally{
+		  
+		  lists_lock.exit();
+	  }
+	  
+	  return( "PMU: " + str );
+  }  
 }

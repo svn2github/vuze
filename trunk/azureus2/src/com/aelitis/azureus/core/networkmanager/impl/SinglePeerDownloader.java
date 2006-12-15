@@ -133,4 +133,10 @@ public class SinglePeerDownloader implements RateControlledEntity {
 	  
 	  return( 0 );
   }
+  
+  public String
+  getString()
+  {
+	  return( "SPD: " + connection.getString());
+  }
 }

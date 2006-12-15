@@ -69,4 +69,7 @@ public interface RateControlledEntity {
   
   public int
   getReadyConnectionCount( EventWaiter waiter );
+  
+  public String
+  getString();
 }

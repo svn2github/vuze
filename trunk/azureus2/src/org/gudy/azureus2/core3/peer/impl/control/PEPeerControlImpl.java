@@ -332,6 +332,12 @@ PEPeerControlImpl
 		COConfigurationManager.removeParameterListener("Disconnect Seed", this);
 
 		ip_filter.removeListener(this);
+		
+		final ArrayList peer_manager_listeners = peer_manager_listeners_cow;
+
+		for( int i=0; i < peer_manager_listeners.size(); i++ ) {
+      		((PEPeerManagerListener)peer_manager_listeners.get(i)).destroyed();
+		}
 	}
 
 	public DiskManager getDiskManager() {  return disk_mgr;   }

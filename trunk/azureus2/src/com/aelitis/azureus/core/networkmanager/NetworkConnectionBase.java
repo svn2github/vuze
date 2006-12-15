@@ -61,4 +61,7 @@ NetworkConnectionBase
 	   */
 
 	public boolean isLANLocal();
+	
+	public String
+	getString();
 }

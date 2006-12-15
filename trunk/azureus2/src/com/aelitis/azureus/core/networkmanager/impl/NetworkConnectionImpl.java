@@ -249,4 +249,10 @@ public class NetworkConnectionImpl implements NetworkConnection {
 		return( is_lan_local == AddressUtils.LAN_LOCAL_YES );
 	}
 	
+	public String
+	getString()
+	{
+		return( "tran=" + (transport==null?"null":transport.getDescription())+ ",in=" + incoming_message_queue.getPercentDoneOfCurrentMessage() + 
+				",out=" + outgoing_message_queue.getTotalSize());
+	}
 }
