@@ -271,7 +271,9 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
               stateText = MessageText.getString("fileDownloadWindow.state_downloading") + ": " + downloader.getStatus();
               break;
             case TorrentDownloader.STATE_ERROR :
-            	progressBar.setSelection(100);
+            	if (!progressBar.isDisposed()) {
+            		progressBar.setSelection(100);
+            	}
               stateText = MessageText.getString("fileDownloadWindow.state_error") + downloader.getError();
               break;
             default :
