@@ -228,7 +228,7 @@ DownloadManagerStateImpl
 			if ( saved_file.exists()){
 				
 				try{
-					Map	cached_state = (Map)global_state_cache.get( new HashWrapper( torrent_hash ));
+					Map	cached_state = (Map)global_state_cache.remove( new HashWrapper( torrent_hash ));
 					
 					if ( cached_state != null ){
 						
@@ -371,14 +371,19 @@ DownloadManagerStateImpl
 				
 				DownloadManagerState dms = (DownloadManagerState)it.next();
 				
-				try{
-					Map	state = CachedStateWrapper.export( dms.getTorrent());
+				DownloadManager dm = dms.getDownloadManager();
 				
-					cache.add( state );
+				if ( dm != null && dm.isPersistent()){
 					
-				}catch( Throwable e ){
+					try{
+						Map	state = CachedStateWrapper.export( dms );
 					
-					Debug.printStackTrace( e );
+						cache.add( state );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace( e );
+					}
 				}
 			}
 			
@@ -2405,7 +2410,7 @@ DownloadManagerStateImpl
 		private DownloadManagerImpl	download_manager;
 		
 		private String		torrent_file;
-		private byte[]		torrent_hash;
+		private HashWrapper	torrent_hash_wrapper;
 		private Map			cache;	
 		
 		private TOTorrent			delegate;
@@ -2420,19 +2425,21 @@ DownloadManagerStateImpl
 			byte[]					_torrent_hash,
 			Map						_cache )
 		{
-			download_manager	= _download_manager;
-			torrent_file		= _torrent_file;
-			torrent_hash		= _torrent_hash;
-			cache				= _cache;
+			download_manager		= _download_manager;
+			torrent_file			= _torrent_file;
+			torrent_hash_wrapper	= new HashWrapper( _torrent_hash );
+			cache					= _cache;
 		}
 		
 		protected static Map
 		export(
-			TOTorrent	state )
+			DownloadManagerState dms )
 		
 			throws TOTorrentException
 		{
 			Map	cache = new HashMap();
+			
+			TOTorrent	state = dms.getTorrent();
 			
 			cache.put( "hash", state.getHash());
 			cache.put( "name", state.getName());
@@ -2444,6 +2451,8 @@ DownloadManagerStateImpl
 			cache.put( "torrent filename", state.getAdditionalStringProperty( "torrent filename" ));
 			
 			cache.put( "attributes", state.getAdditionalMapProperty( "attributes" ));
+			
+			cache.put( "rdc", new Long( dms.isResumeDataComplete()?1:0 ));
 			
 			return( cache );
 		}
@@ -2511,13 +2520,27 @@ DownloadManagerStateImpl
 		
 			throws TOTorrentException
 		{
-			File	saved_file = getStateFile( torrent_hash ); 
+			boolean	rdc = false;
+			
+			Map	c = cache;
+			
+			if ( c != null ){
+
+				Long	l_rdc = (Long)c.get( "rdc" );
+				
+				if ( l_rdc != null ){
+					
+					rdc = l_rdc.longValue() == 1;
+				}
+			}
+						
+			File	saved_file = getStateFile( torrent_hash_wrapper.getBytes() ); 
 			
 			if ( saved_file.exists()){
 				
 				try{
 					
-					return( TorrentUtils.readFromFile( saved_file, true ));
+					return( TorrentUtils.readFromFile( saved_file, true, rdc ));
 					
 				}catch( Throwable e ){
 					
@@ -2529,14 +2552,14 @@ DownloadManagerStateImpl
 			
 			TOTorrent original_torrent = TorrentUtils.readFromFile( new File(torrent_file), true );
 			
-			torrent_hash = original_torrent.getHash();
+			torrent_hash_wrapper = original_torrent.getHashWrapper();
 			
-			saved_file = getStateFile( torrent_hash ); 
+			saved_file = getStateFile( torrent_hash_wrapper.getBytes()); 
 			
 			if ( saved_file.exists()){
 				
 				try{
-					return( TorrentUtils.readFromFile( saved_file, true ));
+					return( TorrentUtils.readFromFile( saved_file, true, rdc ));
 					
 				}catch( Throwable e ){
 					
@@ -2551,7 +2574,7 @@ DownloadManagerStateImpl
 			
 			TorrentUtils.copyToFile( original_torrent, saved_file );
 			
-			return( TorrentUtils.readFromFile( saved_file, true ));
+			return( TorrentUtils.readFromFile( saved_file, true, rdc ));
 		}
 		
 		
@@ -2793,24 +2816,9 @@ DownloadManagerStateImpl
     				
     		throws TOTorrentException
 	   	{
-			Map	c = cache;
-			
-			if ( c != null ){
-				
-				byte[]	hash = (byte[])c.get( "hash" );
-				
-				if ( hash != null ){
-					
-					return( hash );
-				}
-			}
-			
-	   		if ( fixup()){
-				
-				return( delegate.getHash());
-			}
-	   		
-	   		throw( fixup_failure );
+    			// optimise this
+    		
+    		return( torrent_hash_wrapper.getBytes());
     	}
     	
     	public HashWrapper
@@ -2818,24 +2826,7 @@ DownloadManagerStateImpl
     				
     		throws TOTorrentException
 	   	{
-			Map	c = cache;
-			
-			if ( c != null ){
-				
-				byte[]	hash = (byte[])c.get( "hash" );
-				
-				if ( hash != null ){
-					
-					return( new HashWrapper( hash ));
-				}
-			}
-			
-	   		if ( fixup()){
-				
-				return( delegate.getHashWrapper());
-			}
-	   		
-	   		throw( fixup_failure );
+    		return( torrent_hash_wrapper );
     	}
 
     	public boolean
