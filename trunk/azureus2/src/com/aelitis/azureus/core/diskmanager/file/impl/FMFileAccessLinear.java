@@ -166,10 +166,16 @@ FMFileAccessLinear
 									  
 				int		loop			= 0;
 				
-				while( last_bb.position() != last_bb.limit()){
+					// we sometimes read off the end of the file (when rechecking) so
+					// bail out if we've completed the read or got to file end
+					// a "better" fix would be to prevent the over-read in the first
+					// place, but hey, we're just about to release and there may be other
+					// instances of this...
+
+				while ( fc.position() < fc.size() && last_bb.hasRemaining()){
 					
 					long	read = fc.read( bbs );
-										
+									
 					if ( read > 0 ){
 						
 						loop	= 0;
