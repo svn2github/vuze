@@ -27,7 +27,9 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -43,6 +45,7 @@ import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
@@ -261,7 +264,7 @@ public class Show extends IConsoleCommand {
 					return;
 				}
 				DownloadManager dm = (DownloadManager) ci.torrents.get(number - 1);
-				printTorrentDetails(ci.out, dm, number);
+				printTorrentDetails(ci.out, dm, number, args.size() > 0  );
 			}
 			catch (Exception e) {
 				ci.out.println("> Command 'show': Subcommand '" + subCommand + "' unknown.");
@@ -464,7 +467,7 @@ public class Show extends IConsoleCommand {
 	 * @param dm
 	 * @param torrentNum
 	 */
-	private static void printTorrentDetails( PrintStream out, DownloadManager dm, int torrentNum)
+	private static void printTorrentDetails( PrintStream out, DownloadManager dm, int torrentNum, boolean verbose)
 	{
 		String name = dm.getDisplayName();
 		if (name == null)
@@ -539,6 +542,49 @@ public class Show extends IConsoleCommand {
 			}
 		} else
 			out.println("  Info not available.");
+		
+		if ( verbose ){
+			
+			out.println( "Pieces" );
+			
+			PEPeerManager pm = dm.getPeerManager();
+			
+			if ( pm != null ){
+				
+				PiecePicker picker = pm.getPiecePicker();
+				
+				PEPiece[] pieces = pm.getPieces();
+				
+				String	line = "";
+				
+				for (int i=0;i<pieces.length;i++){
+					
+					PEPiece piece = pieces[i];
+					
+					String str = picker.getPieceString( i );
+					
+					line += (line.length()==0?(i + " "):",") + str;
+					
+					if ( (i+1)%10 == 0 ){
+						
+						out.println( line );
+						
+						line = "";
+					}
+					if ( piece == null ){
+						
+					}else{
+						
+					}
+				}
+				
+				if ( line.length() > 0 ){
+					
+					out.println( line );
+				}
+			}
+		}
+		
 		out.println("> -----");
 	}
 	
