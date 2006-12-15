@@ -178,7 +178,13 @@ PeerForeignDelegate
 	closeConnection( 
 		String reason ) 
 	{
-		foreign.close( reason, false, false ); 
+		try{
+			foreign.close( reason, false, false );
+			
+		}finally{
+			
+			closed();
+		}
 	}
 		
 	public List
