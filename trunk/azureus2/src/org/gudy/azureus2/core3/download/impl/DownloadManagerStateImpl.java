@@ -52,6 +52,7 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 
 /**
@@ -2398,6 +2399,7 @@ DownloadManagerStateImpl
 	
 	protected static class
 	CachedStateWrapper
+	extends LogRelation
 		implements TOTorrent
 	{
 		private DownloadManagerImpl	download_manager;
@@ -3122,5 +3124,26 @@ DownloadManagerStateImpl
 				delegate.print();
 			}
       	}
+
+     	/* (non-Javadoc)
+     	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()
+     	 */
+     	public String getRelationText() {
+     		return "Torrent: '" + new String(getName()) + "'";  
+     	}
+
+     	/* (non-Javadoc)
+     	 * @see org.gudy.azureus2.core3.logging.LogRelation#queryForClass(java.lang.Class)
+     	 */
+     	public Object[] getQueryableInterfaces() {
+     		// yuck
+     		try {
+     			return new Object[] { AzureusCoreFactory.getSingleton()
+     					.getGlobalManager().getDownloadManager(this) };
+     		} catch (Exception e) {
+     		}
+
+     		return null;
+     	}
 	}
 }
