@@ -20,14 +20,13 @@ package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -49,11 +48,13 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 public class MyTorrentsSuperView extends AbstractIView implements
 		ObfusticateImage, IViewExtension
 {
+	private static int SASH_WIDTH = 8;
   private AzureusCore	azureus_core;
   
   private MyTorrentsView torrentview;
   private MyTorrentsView seedingview;
-  private SashForm form;
+
+	private Composite form;
 
   final static TableColumnCore[] tableIncompleteItems = {
     new HealthItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
@@ -167,19 +168,25 @@ public class MyTorrentsSuperView extends AbstractIView implements
     super.delete();
   }
 
-  public void initialize(Composite composite0) {
-    if (form != null) {      
+  public void initialize(Composite parent) {
+    if (form != null) {
       return;
     }
-
-    GridData gridData;
-    form = new SashForm(composite0,SWT.VERTICAL);
-    form.SASH_WIDTH = 5;
-    gridData = new GridData(GridData.FILL_BOTH); 
-    form.setLayoutData(gridData);
     
-    Composite child1 = new Composite(form,SWT.NULL);
-    GridLayout layout = new GridLayout();
+    form = new Composite(parent, SWT.NONE);
+		FormLayout flayout = new FormLayout();
+		flayout.marginHeight = 0;
+		flayout.marginWidth = 0;
+		form.setLayout(flayout);
+		GridData gridData;
+		gridData = new GridData(GridData.FILL_BOTH);
+		form.setLayoutData(gridData);
+    
+		GridLayout layout;
+
+    
+    final Composite child1 = new Composite(form,SWT.NULL);
+    layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
     layout.verticalSpacing = 0;
@@ -188,18 +195,10 @@ public class MyTorrentsSuperView extends AbstractIView implements
     child1.setLayout(layout);
     torrentview = new MyTorrentsView(azureus_core, false, tableIncompleteItems);
     torrentview.initialize(child1);
-    child1.addListener(SWT.Resize, new Listener() {
-      public void handleEvent(Event e) {
-        int[] weights = form.getWeights();
-        int iSashValue = weights[0] * 10000 / (weights[0] + weights[1]);
-        if (iSashValue < 100) {
-        	iSashValue = 100;
-        }
-        COConfigurationManager.setParameter("MyTorrents.SplitAt", iSashValue);
-      }
-    });
 
-    Composite child2 = new Composite(form,SWT.NULL);
+    final Sash sash = new Sash(form, SWT.HORIZONTAL);
+
+    final Composite child2 = new Composite(form,SWT.NULL);
     layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
@@ -209,6 +208,31 @@ public class MyTorrentsSuperView extends AbstractIView implements
     child2.setLayout(layout);
     seedingview = new MyTorrentsView(azureus_core, true, tableCompleteItems);
     seedingview.initialize(child2);
+
+    FormData formData;
+
+		// FormData for table child1
+		formData = new FormData();
+		formData.left = new FormAttachment(0, 0);
+		formData.right = new FormAttachment(100, 0);
+		formData.top = new FormAttachment(0, 0);
+		child1.setLayoutData(formData);
+		final FormData child1Data = formData;
+    
+		// sash
+		formData = new FormData();
+		formData.left = new FormAttachment(0, 0);
+		formData.right = new FormAttachment(100, 0);
+		formData.top = new FormAttachment(child1);
+		formData.height = SASH_WIDTH;
+		sash.setLayoutData(formData);
+
+    // child2
+		formData = new FormData();
+		formData.left = new FormAttachment(0, 0);
+		formData.right = new FormAttachment(100, 0);
+		formData.bottom = new FormAttachment(100, 0);
+		formData.top = new FormAttachment(sash);
     // More precision, times by 100
     int weight = (int) (COConfigurationManager.getFloatParameter("MyTorrents.SplitAt"));
 		if (weight > 10000) {
@@ -216,14 +240,48 @@ public class MyTorrentsSuperView extends AbstractIView implements
 		} else if (weight < 100) {
 			weight *= 100;
 		}
-		
 		// Min/max of 5%/95%
 		if (weight < 500) {
 			weight = 500;
 		} else if (weight > 9000) {
 			weight = 9000;
 		}
-    form.setWeights(new int[] {weight,10000 - weight});
+		
+		// height will be set on first resize call
+		sash.setData("PCT", new Double((float)weight / 10000));
+		child2.setLayoutData(formData);
+
+		
+		// Listeners to size the folder
+		sash.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				final boolean FASTDRAG = true;
+
+				if (FASTDRAG && e.detail == SWT.DRAG)
+					return;
+
+				child1Data.height = e.y + e.height - SASH_WIDTH;
+				form.layout();
+
+				Double l = new Double((double) child1.getBounds().height
+						/ form.getBounds().height);
+				sash.setData("PCT", l);
+				if (e.detail != SWT.DRAG)
+					COConfigurationManager.setParameter("MyTorrents.SplitAt", (int) (l
+							.doubleValue() * 10000));
+			}
+		});
+
+		form.addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event e) {
+				Double l = (Double) sash.getData("PCT");
+				if (l != null) {
+					child1Data.height = (int) (form.getBounds().height * l
+							.doubleValue());
+					form.layout();
+				}
+			}
+		});
   }
 
   public void refresh() {
