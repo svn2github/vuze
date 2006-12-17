@@ -278,6 +278,11 @@ TransportImpl
 			}      
 	    }
 	 
+		if ( filter == null ){
+			
+			throw( new IOException( "Transport not ready" ));
+		}
+
 	    long bytes_read = filter.read( buffers, array_offset, length );
 
 	    if( stats != null )  stats.bytesRead( (int)bytes_read );  //TODO
