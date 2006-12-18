@@ -2460,18 +2460,11 @@ DownloadManagerStateImpl
 		protected void
 		clearCache()
 		{
-			fixup( true );
+			cache	= null;
 		}
 		
 		protected boolean
 		fixup()
-		{
-			return( fixup( false ));
-		}
-		
-		protected boolean
-		fixup(
-			boolean	explicit_discard )
 		{
 			try{
 				if ( delegate == null ){
@@ -2483,9 +2476,9 @@ DownloadManagerStateImpl
 		
 					delegate = loadRealState();
 				
-					if ( cache != null && !explicit_discard ){
+					if ( cache != null ){
 						
-						Debug.out( "Cache missed forced fixup" );
+						Debug.out( "Cache miss forced fixup" );
 					}
 					
 					cache = null;
