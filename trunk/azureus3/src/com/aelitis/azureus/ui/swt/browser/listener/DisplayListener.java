@@ -110,11 +110,15 @@ public class DisplayListener extends AbstractMessageListener
 		if (browser == null || browser.isDisposed()) {
 			return;
 		}
-		
+
 		String sURL = (String) browser.getData("StartURL");
 		System.out.println("reset " + sURL);
 		if (sURL != null && sURL.length() > 0) {
-			browser.setUrl(sURL);
+			if (sURL.indexOf('?') > 0) {
+				browser.setUrl(sURL + "&rnd=" + Math.random());
+			} else {
+				browser.setUrl(sURL + "?rnd=" + Math.random());
+			}
 		}
 	}
 
