@@ -292,15 +292,18 @@ public class UserCommand extends IConsoleCommand {
 				modified = true;
 			}
 			String defaultSaveDirectory = commandLine.getOptionValue('d');
-			if( defaultSaveDirectory != null )
-			{
-				profile.setDefaultSaveDirectory(defaultSaveDirectory);
+			
+			if( defaultSaveDirectory != null ){
+				
 				modified = true;
-			}
-			else if( defaultSaveDirectory.length() == 0 )
-			{
-				profile.setDefaultSaveDirectory(null);
-				modified = true;
+
+				if (  defaultSaveDirectory.length() > 0 ){
+				
+					profile.setDefaultSaveDirectory(defaultSaveDirectory);
+				}else{
+			
+					profile.setDefaultSaveDirectory(null);
+				}
 			}
 			
 			if( modified )
