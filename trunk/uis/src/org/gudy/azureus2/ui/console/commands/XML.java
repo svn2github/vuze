@@ -31,7 +31,7 @@ public class XML extends IConsoleCommand {
 	}
 	
 	public void execute(String commandName, ConsoleInput ci, List args) {
-		StatsWriterStreamer sws = StatsWriterFactory.createStreamer(ci.getGlobalManager());
+		StatsWriterStreamer sws = StatsWriterFactory.createStreamer(ci.getCore());
 		String file = null;
 		if ((args != null) && (!args.isEmpty()))
 				file = (String) args.get(0);

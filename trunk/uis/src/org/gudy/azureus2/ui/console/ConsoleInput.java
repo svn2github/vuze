@@ -749,6 +749,12 @@ public class ConsoleInput extends Thread {
 		
 	}
 	
+	public AzureusCore
+	getCore()
+	{
+		return( azureus_core );
+	}
+	
 	public GlobalManager
 	getGlobalManager()
 	{
