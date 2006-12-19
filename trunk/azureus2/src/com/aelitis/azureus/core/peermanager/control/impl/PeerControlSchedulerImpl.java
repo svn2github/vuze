@@ -29,10 +29,12 @@ import org.gudy.azureus2.core3.util.SystemTime.consumer;
 
 import com.aelitis.azureus.core.peermanager.control.PeerControlInstance;
 import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
+import com.aelitis.azureus.core.stats.AzureusCoreStats;
+import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 
 public class 
 PeerControlSchedulerImpl
-	implements PeerControlScheduler
+	implements PeerControlScheduler, AzureusCoreStatsProvider
 {
 	private static final PeerControlSchedulerImpl	singleton = new PeerControlSchedulerImpl();
 	
@@ -54,9 +56,22 @@ PeerControlSchedulerImpl
 	
 	protected AEMonitor	this_mon = new AEMonitor( "PeerControlScheduler" );
 	
+	private long	wait_count;
+	private long	yield_count;
+	private long	total_wait_time;
+	
 	protected
 	PeerControlSchedulerImpl()
 	{
+		Set	types = new HashSet();
+		
+		types.add( AzureusCoreStats.ST_PEER_CONTROL_LOOP_COUNT );
+		types.add( AzureusCoreStats.ST_PEER_CONTROL_YIELD_COUNT );
+		types.add( AzureusCoreStats.ST_PEER_CONTROL_WAIT_COUNT );
+		types.add( AzureusCoreStats.ST_PEER_CONTROL_WAIT_TIME );
+
+		AzureusCoreStats.registerProvider( types, this );
+		
 		new AEThread( "PeerControlScheduler", true )
 		{
 			public void
@@ -68,6 +83,31 @@ PeerControlSchedulerImpl
 		}.start();
 	}
 
+	public void
+	updateStats(
+		Set		types,
+		Map		values )
+	{
+			//read
+		
+		if ( types.contains( AzureusCoreStats.ST_PEER_CONTROL_LOOP_COUNT )){
+			
+			values.put( AzureusCoreStats.ST_PEER_CONTROL_LOOP_COUNT, new Long( wait_count + yield_count ));
+		}
+		if ( types.contains( AzureusCoreStats.ST_PEER_CONTROL_YIELD_COUNT )){
+			
+			values.put( AzureusCoreStats.ST_PEER_CONTROL_YIELD_COUNT, new Long( yield_count ));
+		}
+		if ( types.contains( AzureusCoreStats.ST_PEER_CONTROL_WAIT_COUNT )){
+			
+			values.put( AzureusCoreStats.ST_PEER_CONTROL_WAIT_COUNT, new Long( wait_count ));
+		}
+		if ( types.contains( AzureusCoreStats.ST_PEER_CONTROL_WAIT_TIME )){
+			
+			values.put( AzureusCoreStats.ST_PEER_CONTROL_WAIT_TIME, new Long( total_wait_time ));
+		}
+	}
+	
 	protected void
 	schedule()
 	{
@@ -155,14 +195,21 @@ PeerControlSchedulerImpl
 					inst.setNextTick( new_target );
 				}
 			}
-			
-										
+						
 			synchronized( this ){
 				
 				if ( latest_time == latest_time_used ){
 					
+					wait_count++;
+					
 					try{
+						long wait_start = SystemTime.getHighPrecisionCounter();
+						
 						wait();
+						
+						long wait_time 	= SystemTime.getHighPrecisionCounter() - wait_start;
+
+						total_wait_time += wait_time;
 						
 					}catch( Throwable e ){
 						
@@ -170,6 +217,8 @@ PeerControlSchedulerImpl
 					}
 					
 				}else{
+					
+					yield_count++;
 					
 					Thread.yield();
 				}

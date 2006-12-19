@@ -73,12 +73,21 @@ AzureusCoreStats
 	public static final String ST_NET_READ_CONTROL_CON_COUNT			= "net.read.control.con.count";			// Long
 	public static final String ST_NET_READ_CONTROL_READY_CON_COUNT		= "net.read.control.ready.con.count";	// Long
 	
-
 	public static final String ST_NET_TCP_OUT_CONNECT_QUEUE_LENGTH		= "net.tcp.outbound.connect.queue.length";	// Long
 	public static final String ST_NET_TCP_OUT_PENDING_QUEUE_LENGTH		= "net.tcp.outbound.pending.queue.length";	// Long
 	public static final String ST_NET_TCP_OUT_CANCEL_QUEUE_LENGTH		= "net.tcp.outbound.cancel.queue.length";	// Long
 	public static final String ST_NET_TCP_OUT_CLOSE_QUEUE_LENGTH		= "net.tcp.outbound.close.queue.length";	// Long
 
+	
+		// Peer
+	
+	public static final String ST_PEER_CONTROL_LOOP_COUNT		= "peer.control.loop.count";
+	public static final String ST_PEER_CONTROL_YIELD_COUNT		= "peer.control.yield.count";
+	public static final String ST_PEER_CONTROL_WAIT_COUNT		= "peer.control.wait.count";
+	public static final String ST_PEER_CONTROL_WAIT_TIME		= "peer.control.wait.time";
+
+	
+	
 	private static final Integer	POINT 		= new Integer(1);
 	private static final Integer	CUMULATIVE 	= new Integer(1);
 	
@@ -120,6 +129,12 @@ AzureusCoreStats
 		{ ST_NET_TCP_OUT_PENDING_QUEUE_LENGTH,		POINT },
 		{ ST_NET_TCP_OUT_CANCEL_QUEUE_LENGTH,		POINT },
 		{ ST_NET_TCP_OUT_CLOSE_QUEUE_LENGTH,		POINT },
+		
+		
+		{ ST_PEER_CONTROL_LOOP_COUNT,			CUMULATIVE },
+		{ ST_PEER_CONTROL_YIELD_COUNT,			CUMULATIVE },
+		{ ST_PEER_CONTROL_WAIT_COUNT,			CUMULATIVE },
+		{ ST_PEER_CONTROL_WAIT_TIME,			CUMULATIVE },
 	};
 	
 	static{

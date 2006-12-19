@@ -18,10 +18,12 @@
  */
 package com.aelitis.azureus.core.peermanager.control;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+
 public interface 
 PeerControlScheduler 
 {
-	public static final int SCHEDULE_PERIOD_MILLIS	= 100;
+	public static final int SCHEDULE_PERIOD_MILLIS = COConfigurationManager.getIntParameter( "peermanager.schedule.time" );
 	
 	public void
 	register(

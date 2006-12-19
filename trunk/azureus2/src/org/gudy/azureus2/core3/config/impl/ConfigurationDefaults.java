@@ -402,6 +402,7 @@ public class ConfigurationDefaults {
     def.put( "network.tcp.write.select.time", new Long(25));
     def.put( "network.control.write.idle.time", new Long(50));
     def.put( "network.control.read.idle.time", new Long(50));
+    def.put( "peermanager.schedule.time", new Long(100));
     def.put( "confirm_torrent_removal", FALSE );
     def.put( "add_torrents_silently", FALSE );
     def.put( "enable_small_osx_fonts", TRUE );
