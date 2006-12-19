@@ -95,8 +95,10 @@ public class PiecesItem
       // Named infoObj so code can be copied easily to the other PiecesItem
       DownloadManager infoObj = (DownloadManager)cell.getDataSource();
       long lCompleted = (infoObj == null) ? 0 : infoObj.getStats().getCompleted();
-      
-      if( !cell.setSortValue( lCompleted ) && cell.isValid() ) {
+
+      boolean bForce = infoObj != null && infoObj.getData("PiecesImage") == null;
+ 
+      if(!cell.setSortValue( lCompleted ) && cell.isValid() && !bForce) {
         return;
       }
       
