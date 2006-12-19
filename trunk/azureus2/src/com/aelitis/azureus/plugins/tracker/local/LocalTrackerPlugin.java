@@ -44,9 +44,7 @@ import org.gudy.azureus2.plugins.ui.config.LabelParameter;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
-import org.gudy.azureus2.plugins.utils.Monitor;
-import org.gudy.azureus2.plugins.utils.UTTimerEvent;
-import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
+import org.gudy.azureus2.plugins.utils.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
@@ -188,22 +186,32 @@ LocalTrackerPlugin
 			// cause an attempt to get out external address which unfortunately hangs 
 			// az initalisation if the version server is unavailable and it tries
 			// to use the DHT which is pending completion of this init...
-		
-		plugin_interface.getUtilities().createThread( "azlocalplugin:init", new Runnable() {
-			public void run() {
-					// we're in no hurry to complete this
-				
-				Thread.currentThread().setPriority( Thread.MIN_PRIORITY );
-				
-				processSubNets( subnets.getValue(),include_wellknown.getValue() );
-				processAutoAdd( autoadd.getValue());
-				
-					// take this off the main thread to reduce initialisation delay if we
-					// have a lot of torrents
-				
-				plugin_interface.getDownloadManager().addListener( LocalTrackerPlugin.this );
-			}
-		});
+
+		// XXX Would be better if we fired this off after (any) UI is complete,
+		//     instead of a timer
+		Utilities utilities = plugin_interface.getUtilities();
+		utilities.createTimer("azlocalplugin:init", true).addEvent(
+				utilities.getCurrentSystemTime() + 15000, new UTTimerEventPerformer() {
+					public void perform(UTTimerEvent event) {
+						// another thread so we can adjust the priority
+						plugin_interface.getUtilities().createThread( "azlocalplugin:init", new Runnable() {
+							public void run() {
+    						// we're in no hurry to complete this
+    
+    						Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+    
+    						processSubNets(subnets.getValue(), include_wellknown.getValue());
+    						processAutoAdd(autoadd.getValue());
+    
+    						// take this off the main thread to reduce initialisation delay if we
+    						// have a lot of torrents
+    
+    						plugin_interface.getDownloadManager().addListener(
+    								LocalTrackerPlugin.this);
+							}
+						});
+					}
+				});
 	}
 	
 	public void
