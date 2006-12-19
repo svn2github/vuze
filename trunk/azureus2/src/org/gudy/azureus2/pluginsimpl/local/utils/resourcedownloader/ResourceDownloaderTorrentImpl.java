@@ -305,7 +305,7 @@ ResourceDownloaderTorrentImpl
 				download = download_manager.addNonPersistentDownload( new TorrentImpl(torrent_holder[0]), torrent_file, data_dir );
 			}
 			
-			download.setPosition(1);		
+			download.moveTo(1);		
 			
 			download.setForceStart( true );
 			
