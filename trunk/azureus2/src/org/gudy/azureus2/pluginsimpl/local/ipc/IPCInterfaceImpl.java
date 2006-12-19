@@ -45,6 +45,10 @@ public class IPCInterfaceImpl implements IPCInterface {
 	throws IPCException {
 
 		try {
+			if (params == null) {
+				params = new Object[0];
+			}
+
 			Class[] paramTypes = new Class[params.length];
 			for (int i=0;i<params.length;i++) {
 				if (params[i] instanceof Boolean) {
