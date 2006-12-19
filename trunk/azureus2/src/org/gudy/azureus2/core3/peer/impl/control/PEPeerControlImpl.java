@@ -149,6 +149,22 @@ PEPeerControlImpl
     
     private Unchoker unchoker;
   
+    private static boolean fast_unchoke_new_peers;
+    
+    static{
+    	COConfigurationManager.addAndFireParameterListener(
+    		"Peer.Fast.Initial.Unchoke.Enabled",
+    		new ParameterListener()
+    		{
+    			public void 
+    			parameterChanged(
+    				String name ) 
+    			{
+    				fast_unchoke_new_peers = COConfigurationManager.getBooleanParameter( name );
+    			}
+    		});
+    }
+    
 	private final UploadHelper upload_helper = new UploadHelper() {		
 		public int getPriority() {			
 			return UploadHelper.PRIORITY_NORMAL;  //TODO also must call UploadSlotManager.getSingleton().updateHelper( upload_helper ); on priority change
@@ -1395,6 +1411,16 @@ PEPeerControlImpl
 					final PEPeerTransport peer = (PEPeerTransport)it.next();				
 					if( peer.isLANLocal() ) {
 						peers_to_unchoke.add( peer );
+					}else if ( fast_unchoke_new_peers ){
+						
+						if ( peer.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ){						
+							if ( peer.getData( "fast_unchoke_done" ) == null ){
+			
+								peers_to_unchoke.add( peer );
+																
+								peer.setData( "fast_unchoke_done", "" );
+							}
+						}
 					}
 				}
 						

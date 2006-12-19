@@ -131,6 +131,8 @@ public class ConfigurationDefaults {
     def.put("Max.Peer.Connections.Per.Torrent.When.Seeding.Enable", FALSE );
     def.put("Max.Peer.Connections.Total", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL));
 
+    def.put( "Peer.Fast.Initial.Unchoke.Enabled", FALSE );
+    
     def.put( "File Max Open", new Long(50));
     def.put( "Use Config File Backups", TRUE);
     
