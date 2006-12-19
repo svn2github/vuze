@@ -190,26 +190,17 @@ LocalTrackerPlugin
 		// XXX Would be better if we fired this off after (any) UI is complete,
 		//     instead of a timer
 		Utilities utilities = plugin_interface.getUtilities();
-		utilities.createTimer("azlocalplugin:init", true).addEvent(
+		utilities.createTimer("azlocalplugin:init", Thread.MIN_PRIORITY).addEvent(
 				utilities.getCurrentSystemTime() + 15000, new UTTimerEventPerformer() {
 					public void perform(UTTimerEvent event) {
-						// another thread so we can adjust the priority
-						plugin_interface.getUtilities().createThread( "azlocalplugin:init", new Runnable() {
-							public void run() {
-    						// we're in no hurry to complete this
-    
-    						Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-    
-    						processSubNets(subnets.getValue(), include_wellknown.getValue());
-    						processAutoAdd(autoadd.getValue());
-    
-    						// take this off the main thread to reduce initialisation delay if we
-    						// have a lot of torrents
-    
-    						plugin_interface.getDownloadManager().addListener(
-    								LocalTrackerPlugin.this);
-							}
-						});
+						processSubNets(subnets.getValue(), include_wellknown.getValue());
+						processAutoAdd(autoadd.getValue());
+
+						// take this off the main thread to reduce initialisation delay if we
+						// have a lot of torrents
+
+						plugin_interface.getDownloadManager().addListener(
+								LocalTrackerPlugin.this);
 					}
 				});
 	}
