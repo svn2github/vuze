@@ -255,9 +255,17 @@ UtilitiesImpl
 		String		name,
 		boolean		lightweight )
 	{
-		return( new UTTimerImpl( pi, name, true ));
+		return( new UTTimerImpl( pi, name, lightweight ));
 	}
-	
+
+	public UTTimer
+	createTimer(
+		String		name,
+		int priority )
+	{
+		return( new UTTimerImpl( pi, name, priority ));
+	}
+
 	public void
 	createThread(
 		String			name,

@@ -135,7 +135,14 @@ Utilities
 	createTimer(
 		String		name,
 		boolean		lightweight );
-	
+
+	/**
+	 * @param name
+	 * @param priority Thread.XXX_PRIORITY
+	 * @return
+	 */
+	public UTTimer createTimer(String name, int priority);
+
 		/**
 		 * create and run a thread for the target. This will be a daemon thread so that
 		 * its existence doesn't interfere with Azureus closedown

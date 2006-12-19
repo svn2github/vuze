@@ -68,7 +68,18 @@ UTTimerImpl
 			timer = new Timer( "Plugin " + pi.getPluginID() + ":" + name );
 		}
 	}
-	
+
+	protected
+	UTTimerImpl(
+		PluginInterface		pi,
+		String				name,
+		int priority )
+	{
+		plugin_interface	= pi;
+		
+		timer = new Timer( "Plugin " + pi.getPluginID() + ":" + name, 1, priority );
+	}
+
 	public UTTimerEvent
 	addEvent(
 		long						when,
