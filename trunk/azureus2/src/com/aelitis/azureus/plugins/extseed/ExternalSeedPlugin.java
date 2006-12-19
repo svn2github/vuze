@@ -36,9 +36,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
-import org.gudy.azureus2.plugins.utils.Monitor;
-import org.gudy.azureus2.plugins.utils.UTTimerEvent;
-import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
+import org.gudy.azureus2.plugins.utils.*;
 
 import com.aelitis.azureus.plugins.extseed.impl.getright.ExternalSeedReaderFactoryGetRight;
 import com.aelitis.azureus.plugins.extseed.impl.webseed.ExternalSeedReaderFactoryWebSeed;
@@ -112,9 +110,19 @@ ExternalSeedPlugin
 		
 		download_mon	= plugin_interface.getUtilities().getMonitor();
 		
-		plugin_interface.getDownloadManager().addListener( this );
+		Utilities utilities = plugin_interface.getUtilities();
+		UTTimer timer = utilities.createTimer("ExternalPeerScheduler", true);
+		// XXX Would be better if we fired this off after (any) UI is complete,
+		//     instead of a timer
+		timer.addEvent(utilities.getCurrentSystemTime() + 15000,
+				new UTTimerEventPerformer() {
+					public void perform(UTTimerEvent event) {
+						plugin_interface.getDownloadManager().addListener(
+								ExternalSeedPlugin.this);
+					}
+				});
 		
-		plugin_interface.getUtilities().createTimer( "ExternalPeerScheduler", true ).addPeriodicEvent(
+		timer.addPeriodicEvent(
 				5000,
 				new UTTimerEventPerformer()
 				{
