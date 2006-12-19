@@ -25,10 +25,6 @@ import org.gudy.azureus2.core3.download.DownloadManagerTrackerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
@@ -67,6 +63,11 @@ abstract class AbstractTrackerCell implements TableCellRefreshListener,
 
 	public boolean checkScrapeResult(final TRTrackerScraperResponse response) {
 		if (response != null) {
+			TableCell cell_ref = cell;
+			
+			if ( cell_ref == null ){
+				return( false );
+			}
 			// Exit if this scrape result is not from the tracker currently being used.
 			DownloadManager dm = (DownloadManager) cell.getDataSource();
 			if (dm == null || dm != this.dm)
@@ -85,9 +86,7 @@ abstract class AbstractTrackerCell implements TableCellRefreshListener,
 				return false;
 			
 
-			if (cell != null) {
-				cell.invalidate();
-			}
+			cell_ref.invalidate();
 			
 			return response.isValid();
 		}

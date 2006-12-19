@@ -595,9 +595,9 @@ public class MessageText {
                                                       new URLClassLoader(urls));
         // do more searches if getBundle failed, or if the language is not the 
         // same and the user wanted a specific country
-        if (newResourceBundle == null || 
-            (!newResourceBundle.getLocale().getLanguage().equals(newLocale.getLanguage()) &&
+        if ((!newResourceBundle.getLocale().getLanguage().equals(newLocale.getLanguage()) &&
              !newLocale.getCountry().equals(""))) {
+        	
           Locale foundLocale = newResourceBundle.getLocale();
           System.out.println("changeLocale: "+ 
                              (foundLocale.toString().equals("") ? "*Default Language*" : foundLocale.getDisplayLanguage()) +

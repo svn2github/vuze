@@ -175,7 +175,6 @@ TRHostExternalTorrent
 	addTorrentAnnounceURLSet( 
 		URL[] urls )
 	{
-		if ( urls == null ){}
 	}
   
 	

@@ -651,8 +651,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			return;
 		}
 
-		if (torrentList == null
-				|| (torrentList.size() == 0 && downloaders.size() == 0)) {
+		if ((torrentList.size() == 0 && downloaders.size() == 0)) {
 			close(true, false);
 			return;
 		}

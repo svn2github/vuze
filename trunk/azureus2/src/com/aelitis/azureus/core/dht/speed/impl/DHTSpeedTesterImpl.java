@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.dht.speed.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.UTTimer;
@@ -32,7 +31,6 @@ import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.azureus.core.dht.DHT;
-import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContact;
@@ -347,7 +345,7 @@ DHTSpeedTesterImpl
 			float				_rtt )
 		{
 			contact	= _contact;
-			rtt		= (int)(Float.isNaN(rtt)?1000.0:_rtt);
+			rtt		= (int)(Float.isNaN(_rtt)?1000.0:_rtt);
 		}
 		
 		protected DHTTransportContact

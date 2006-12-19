@@ -46,7 +46,7 @@ public class RemainingPiecesItem
 	
 		//	 dm may be null if this is a skeleton file view
 	
-    DiskManager			dm			= fileInfo.getDiskManager();
+    DiskManager			dm			= fileInfo==null?null:fileInfo.getDiskManager();
 	
     int remaining = 0;
     

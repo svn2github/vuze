@@ -63,8 +63,6 @@ TRTrackerServerTCP
 	
 	private ThreadPool	thread_pool;
 	
-	private AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTCP" );
-
 	public
 	TRTrackerServerTCP(
 		String		_name,

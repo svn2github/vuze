@@ -69,8 +69,6 @@ public class Tab {
   private static Item selectedItem = null;
 
 
-  private Composite composite;
-
   private IView view;
 
    // events
@@ -628,8 +626,8 @@ public class Tab {
       tabItem.dispose();
     }
     catch (Exception e) {}
-    if (composite != null && !composite.isDisposed()) {
-      composite.dispose();
+    if (folder != null && !folder.isDisposed()) {
+    	folder.dispose();
     }
   }
 

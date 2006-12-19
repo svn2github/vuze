@@ -35,7 +35,6 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
 
 public class PEPieceImpl
     implements PEPiece
@@ -458,7 +457,7 @@ public class PEPieceImpl
 		final Iterator iter = result.iterator();
 		while(iter.hasNext()) {
 			PEPieceWriteImpl write = (PEPieceWriteImpl) iter.next();
-			if(peer == null || ! peer.equals(write.getSender()))
+			if(peer == null || ! peer.getIp().equals(write.getSender()))
 				iter.remove();
 		}
 		return result;

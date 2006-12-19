@@ -393,17 +393,18 @@ public class Wizard {
   }
 
   public void switchToClose() {
-    if (display != null && !display.isDisposed()) {}
-    display.asyncExec(new AERunnable() {
-       public void runSupport() {
-        if (closeCatcher != null && wizardWindow != null && !wizardWindow.isDisposed()) {
-          wizardWindow.removeListener(SWT.Close, closeCatcher);
-          cancel.setText(MessageText.getString("wizard.close"));
-          cancel.setEnabled(true);
-		  setDefaultButton();
-        }
-      }
-    });
+    if (display != null && !display.isDisposed()) {
+	    display.asyncExec(new AERunnable() {
+	       public void runSupport() {
+	        if (closeCatcher != null && wizardWindow != null && !wizardWindow.isDisposed()) {
+	          wizardWindow.removeListener(SWT.Close, closeCatcher);
+	          cancel.setText(MessageText.getString("wizard.close"));
+	          cancel.setEnabled(true);
+			  setDefaultButton();
+	        }
+	      }
+	    });
+    }
   }
   
   public void onClose() {

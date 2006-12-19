@@ -746,7 +746,7 @@ public class TableView
   				int iCursorID = -1;
   				if (cell != lastCell) {
   					iCursorID = cell.getCursorID();
-  					cell = lastCell;
+  					lastCell = cell;
   				}
   
   				if (iCursorID != lastCursorID) {
@@ -766,7 +766,7 @@ public class TableView
 
     table.addSelectionListener(new SelectionListener() {
       public void widgetSelected(SelectionEvent event) {
-      	if (tabViews == null && tabViews.size() == 0)
+      	if (tabViews == null || tabViews.size() == 0)
       		return;
 
       	// Set Data Object for all tabs.  Tabs of PluginView are sent the plugin

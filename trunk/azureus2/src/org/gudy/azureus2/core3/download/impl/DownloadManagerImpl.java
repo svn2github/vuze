@@ -3224,9 +3224,7 @@ DownloadManagerImpl
 						+ stats.getCompleted());
 			}
 			
-			if (controller != null) {
-				controller.generateEvidence(writer);
-			}
+			controller.generateEvidence(writer);
 
 		} finally {
 

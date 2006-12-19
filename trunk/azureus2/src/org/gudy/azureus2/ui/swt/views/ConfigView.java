@@ -70,7 +70,6 @@ public class ConfigView extends AbstractIView {
   Font headerFont;
   Font filterFoundFont;
   Tree tree;
-  TreeItem treePlugins;
   ArrayList pluginSections;
 
 	private Timer filterDelayTimer;
@@ -330,33 +329,33 @@ public class ConfigView extends AbstractIView {
          }
          
          try {
-          TreeItem treeItem = null;
+          TreeItem treeItem;
           String location = section.configSectionGetParentSection();
   
           if (location.equalsIgnoreCase(ConfigSection.SECTION_ROOT))
-            treeItem = new TreeItem(tree, SWT.NULL);
+        	  treeItem = new TreeItem(tree, SWT.NULL);
           else if (location != "") {
-            TreeItem treeItemFound = findTreeItem(tree, location);
-            if (treeItemFound != null)
-              if (location.equalsIgnoreCase(ConfigSection.SECTION_PLUGINS)) {
-            	  // Force ordering by name here.
-            	  int position = findInsertPointFor(MessageText.getString(section_key), treeItemFound);
-            	  if (position == -1) {
-            		  treeItem = new TreeItem(treeItemFound, SWT.NULL);
-            	  }
-            	  else {
-            		  treeItem = new TreeItem(treeItemFound, SWT.NULL, position);
-            	  }
-              }
-              else {
-            	  treeItem = new TreeItem(treeItemFound, SWT.NULL);
-              }
+        	  TreeItem treeItemFound = findTreeItem(tree, location);
+        	  if (treeItemFound != null){
+        		  if (location.equalsIgnoreCase(ConfigSection.SECTION_PLUGINS)) {
+        			  // Force ordering by name here.
+        			  int position = findInsertPointFor(MessageText.getString(section_key), treeItemFound);
+        			  if (position == -1) {
+        				  treeItem = new TreeItem(treeItemFound, SWT.NULL);
+        			  }
+        			  else {
+        				  treeItem = new TreeItem(treeItemFound, SWT.NULL, position);
+        			  }
+        		  }
+        		  else {
+        			  treeItem = new TreeItem(treeItemFound, SWT.NULL);
+        		  }
+        	  }else{
+        		  treeItem = new TreeItem(tree, SWT.NULL);
+        	  }
+          }else{
+        	  treeItem = new TreeItem(tree, SWT.NULL); 
           }
-
-          // XXX: Is this statement ever executed? I can't see where
-          // treePlugins ever gets initialised...
-          if (treeItem == null)
-            treeItem = new TreeItem(treePlugins, SWT.NULL);
   
           ScrolledComposite sc = new ScrolledComposite(cConfigSection, SWT.H_SCROLL | SWT.V_SCROLL);
           sc.setExpandHorizontal(true);

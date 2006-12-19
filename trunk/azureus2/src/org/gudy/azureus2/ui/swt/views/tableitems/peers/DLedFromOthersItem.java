@@ -48,20 +48,22 @@ public class DLedFromOthersItem
     // Just because we sent data doesn't mean the peer has told us the piece is done yet
     if (value < 0) value = 0;
     
-    Long prev_value = (Long)peer.getData( "DLedFromOther_prev" );
+    if ( peer != null ){
+	    Long prev_value = (Long)peer.getData( "DLedFromOther_prev" );
+	    
+	    if( prev_value != null ) {
+	      if( value < prev_value.longValue() ) {  //dont show decrement while we're actively uploading
+	        value = prev_value.longValue();
+	      }
+	      else if( value > prev_value.longValue() ) {
+	        peer.setData( "DLedFromOther_prev", new Long( value ) );
+	      }
+	    }
+	    else {
+	      peer.setData( "DLedFromOther_prev", new Long( value ) );
+	    }
+    }
     
-    if( prev_value != null ) {
-      if( value < prev_value.longValue() ) {  //dont show decrement while we're actively uploading
-        value = prev_value.longValue();
-      }
-      else if( value > prev_value.longValue() ) {
-        peer.setData( "DLedFromOther_prev", new Long( value ) );
-      }
-    }
-    else {
-      peer.setData( "DLedFromOther_prev", new Long( value ) );
-    }
-
     if (!cell.setSortValue(value) && cell.isValid())
       return;
 

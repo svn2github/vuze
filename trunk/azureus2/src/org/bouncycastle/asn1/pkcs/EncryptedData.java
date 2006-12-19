@@ -31,7 +31,7 @@ public class EncryptedData
 	public static EncryptedData getInstance(
 		 Object  obj)
 	{
-		 if (obj instanceof IssuerAndSerialNumber)
+		 if (obj instanceof EncryptedData)
 		 {
 			 return (EncryptedData)obj;
 		 }
