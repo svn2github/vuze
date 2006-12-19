@@ -20,8 +20,9 @@
  */
 package org.gudy.azureus2.core3.stats.transfer;
 
-import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.stats.transfer.impl.OverallStatsImpl;
+
+import com.aelitis.azureus.core.AzureusCore;
 
 /**
  * @author Olivier
@@ -34,7 +35,7 @@ public class StatsFactory {
    return stats;
   }
   
-  public static void initialize(GlobalManager manager) {
-   stats = new OverallStatsImpl(manager); 
+  public static void initialize(AzureusCore core ) {
+   stats = new OverallStatsImpl(core); 
   }
 }

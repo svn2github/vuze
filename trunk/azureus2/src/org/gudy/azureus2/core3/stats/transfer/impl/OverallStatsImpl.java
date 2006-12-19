@@ -38,6 +38,10 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreComponent;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+
 
 /**
  * @author Olivier
@@ -46,7 +50,7 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 OverallStatsImpl 
 	extends GlobalManagerAdpater 
-	implements OverallStats, TimerEventPerformer
+	implements OverallStats
 {
 	
 	
@@ -84,7 +88,7 @@ OverallStatsImpl
   private static final int DL_AVERAGE_CELLS = (int)( 12*60*60*1000 / ( STATS_PERIOD * DL_STATE_TICKS ));
  
   
-  GlobalManager manager;
+  AzureusCore	core;
    
   long totalDownloaded;
   long totalUploaded;
@@ -107,6 +111,8 @@ OverallStatsImpl
   private int[]	seed_average_cells	= new int[DL_AVERAGE_CELLS];
   private int	dl_average;
   private int	seed_average;
+  private int	running_count;
+  private int	public_count;
   
   private Map 
   load(String filename) 
@@ -165,6 +171,9 @@ OverallStatsImpl
 	dl_average_cells[0]		= dl_average;
 	seed_average_cells[0]	= seed_average;
 	
+	running_count 	= (int)getLong( overallMap, "running" );
+	public_count 	= (int)getLong( overallMap, "public" );
+
 	dl_cell_pos	= 1;
   }
   
@@ -204,13 +213,44 @@ OverallStatsImpl
 	  return((Map)obj);
   }
   
-  public OverallStatsImpl(GlobalManager _manager) {
-    manager = _manager;
-    manager.addListener(this);
+  public 
+  OverallStatsImpl(
+	AzureusCore _core) 
+  {
+	core	= _core;
+	
     Map 	stats = load();
     validateAndLoadValues(stats);
 
-    SimpleTimer.addPeriodicEvent("OverallStats", STATS_PERIOD,this);
+    core.addLifecycleListener(
+    	new AzureusCoreLifecycleAdapter()
+    	{
+    		public void
+    		componentCreated(
+    			AzureusCore				core,
+    			AzureusCoreComponent	component )
+    		{
+    			if ( component instanceof GlobalManager ){
+    				
+    				GlobalManager	gm = (GlobalManager)component;
+    				
+    				gm.addListener( OverallStatsImpl.this, false );
+    				   
+    			    SimpleTimer.addPeriodicEvent(
+    			    	"OverallStats", 
+    			    	STATS_PERIOD, 
+    			    	new TimerEventPerformer()
+    			    	{
+    			    		public void 
+    			    		perform(TimerEvent event) 
+    			    		{
+    			    			updateStats( false );
+    			    		}
+    			    	});
+    			}
+    		}
+    	});
+
   }
   
 	public int getAverageDownloadSpeed() {
@@ -251,47 +291,17 @@ OverallStatsImpl
 	  res.put( "type", downloadTypes );
 	  
 	  res.put( "ver", new Long( download_stats_version ) );
+	  	  
+	  res.put( "cur", new Long( core.getGlobalManager().getDownloadManagers().size()));
 	  
-	  List	managers = manager.getDownloadManagers();
-	  
-	  res.put( "cur", new Long( managers.size()));
-	  
-	  int	pub 	= 0;
-	  int	run		= 0;
-	  
-	  for (int i=0;i<managers.size();i++){
-		  
-		  DownloadManager	dm = (DownloadManager)managers.get(i);
-		  
-		  TOTorrent	torrent = dm.getTorrent();
-		  
-		  if ( torrent != null && !torrent.getPrivate()){
-			  
-			  pub++;
-		  }
-		  
-		  int	state = dm.getState();
-		  
-		  if (	 state != DownloadManager.STATE_ERROR &&
-				 state != DownloadManager.STATE_STOPPED ){
-			  
-			  run++;
-		  }
-	  }
-	  
-	  res.put( "curp", new Long( pub ));
-	  res.put( "curr", new Long( run ));
+	  res.put( "curp", new Long( public_count ));
+	  res.put( "curr", new Long( running_count ));
 	  res.put( "curd", new Long( dl_average ));
 	  res.put( "curs", new Long( seed_average ));
 	  
 	  return( res );
   }
-	public void 
-	perform(TimerEvent event) 
-	{
-		updateStats();
-	}
-  
+
 	public void 
 	downloadManagerAdded(
 		DownloadManager dm) 
@@ -408,10 +418,10 @@ OverallStatsImpl
 	}
 	
   public void destroyInitiated() {
-    updateStats();
+    updateStats( true );
   }
 
-  private void updateStats() 
+  private void updateStats( boolean force ) 
   {
   	try{
   		this_mon.enter();
@@ -423,7 +433,7 @@ OverallStatsImpl
 	      return;
 	    }
 	    
-	    GlobalManagerStats stats = manager.getStats();
+	    GlobalManagerStats stats = core.getGlobalManager().getStats();
 	    
 	    long	current_total_received 	= stats.getTotalDataBytesReceived() + stats.getTotalProtocolBytesReceived();
 	    long	current_total_sent		= stats.getTotalDataBytesSent() + stats.getTotalProtocolBytesSent();
@@ -456,13 +466,15 @@ OverallStatsImpl
 	    
 	    tick_count++;
 	    
-	    if ( tick_count % DL_STATE_TICKS == 0 ){
+	    if ( force || tick_count % DL_STATE_TICKS == 0 ){
 	    	
 	      try{
-		  	  List	managers = manager.getDownloadManagers();
+		  	  List	managers = core.getGlobalManager().getDownloadManagers();
 			  		  
 			  int	dl		= 0;
 			  int	seed	= 0;
+			  int	run		= 0;
+			  int	pub		= 0;
 			  
 			  for (int i=0;i<managers.size();i++){
 				  
@@ -477,6 +489,19 @@ OverallStatsImpl
 				  }else if ( state == DownloadManager.STATE_SEEDING ){
 						  
 					  seed++;
+				  }
+				  
+				  TOTorrent	torrent = dm.getTorrent();
+				  
+				  if ( torrent != null && !torrent.getPrivate()){
+					  
+					  pub++;
+				  }
+				  				  
+				  if (	 state != DownloadManager.STATE_ERROR &&
+						 state != DownloadManager.STATE_STOPPED ){
+					  
+					  run++;
 				  }
 			  }
 		    
@@ -498,7 +523,10 @@ OverallStatsImpl
 			  
 			  dl_average 	= dl_average/cells;
 			  seed_average 	= seed_average/cells;
-			 			  
+			 		
+			  running_count	= run;
+			  public_count	= pub;
+			  
 	      }catch( Throwable e ){
 	    	  
 	    	  Debug.printStackTrace(e);
@@ -514,6 +542,8 @@ OverallStatsImpl
 	    overallMap.put("download_types", downloadTypes);
 	    overallMap.put("download_average", new Long(dl_average));
 	    overallMap.put("seed_average", new Long(seed_average));
+	    overallMap.put("public", new Long(public_count));
+	    overallMap.put("running", new Long(running_count));
 
 	    Map	map = new HashMap();
 	    

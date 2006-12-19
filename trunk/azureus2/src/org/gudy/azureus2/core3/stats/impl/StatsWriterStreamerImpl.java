@@ -29,19 +29,20 @@ package org.gudy.azureus2.core3.stats.impl;
 import java.io.*;
 
 import org.gudy.azureus2.core3.stats.*;
-import org.gudy.azureus2.core3.global.*;
+
+import com.aelitis.azureus.core.AzureusCore;
 
 public class 
 StatsWriterStreamerImpl
 	implements StatsWriterStreamer 
 {
-	protected GlobalManager	global_manager;
+	protected AzureusCore 	core;
 	
 	public
 	StatsWriterStreamerImpl(
-		GlobalManager		_gm )
+		AzureusCore		_core )
 	{
-		global_manager	= _gm;
+		core	= _core;
 	}
 	
 	public void
@@ -50,6 +51,6 @@ StatsWriterStreamerImpl
 		
 		throws IOException
 	{
-		new StatsWriterImpl( global_manager ).write( output_stream );
+		new StatsWriterImpl( core ).write( output_stream );
 	}
 }

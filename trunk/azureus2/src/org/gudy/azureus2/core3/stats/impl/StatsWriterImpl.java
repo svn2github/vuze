@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.*;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 
 
@@ -44,13 +45,13 @@ public class
 StatsWriterImpl
 	extends XUXmlWriter
 {
-	protected GlobalManager		global;
+	AzureusCore		core;
 	
 	protected
 	StatsWriterImpl(
-		GlobalManager		_global )
+		AzureusCore		_core )
 	{			
-		global		= _global;
+		core		= _core;
 	}
 	
 	protected void
@@ -101,6 +102,8 @@ StatsWriterImpl
 		
 		writeLineRaw( "<STATS>");
 	
+		GlobalManager	global = core.getGlobalManager();
+		
 		try{
 			indent();
 		

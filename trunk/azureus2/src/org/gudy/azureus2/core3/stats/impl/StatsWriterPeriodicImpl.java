@@ -31,6 +31,8 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.AEThread;
+
+import com.aelitis.azureus.core.AzureusCore;
 /**
  * @author parg
  */
@@ -48,7 +50,7 @@ StatsWriterPeriodicImpl
 	private static Thread			current_thread;
 	
 	private long			last_write_time	= 0;
-	private GlobalManager	global_manager;
+	private AzureusCore		core;
 	
 	private boolean			config_enabled;
 	private int				config_period;	
@@ -57,14 +59,14 @@ StatsWriterPeriodicImpl
 	
 	public static StatsWriterPeriodic
 	create(
-		GlobalManager	manager )
+		AzureusCore		_core )
 	{
 		try{
 			class_mon.enter();
 		
 			if ( singleton == null ){
 				
-				singleton = new StatsWriterPeriodicImpl(manager);
+				singleton = new StatsWriterPeriodicImpl(_core);
 			}
 			
 			return( singleton );
@@ -77,9 +79,9 @@ StatsWriterPeriodicImpl
 	
 	protected
 	StatsWriterPeriodicImpl(
-		GlobalManager	manager )
+		AzureusCore		_core )
 	{
-		global_manager	= manager;
+		core	= _core;
 		
 		COConfigurationManager.addListener( this );	
 	}
@@ -200,7 +202,7 @@ StatsWriterPeriodicImpl
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "Stats Logged to '" + file_name + "'"));				
 			
-			new StatsWriterImpl( global_manager ).write( file_name );
+			new StatsWriterImpl( core ).write( file_name );
 			
 		}catch( Throwable e ){
 			Logger.log(new LogEvent(LOGID, "Stats Logging fails", e));

@@ -26,23 +26,24 @@ package org.gudy.azureus2.core3.stats;
  *
  */
 
-import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.stats.impl.*;
+
+import com.aelitis.azureus.core.AzureusCore;
 
 public class 
 StatsWriterFactory 
 {
 	public static StatsWriterPeriodic
 	createPeriodicDumper(
-		GlobalManager	manager )
+		AzureusCore		core )
 	{
-		return(StatsWriterPeriodicImpl.create( manager ));
+		return(StatsWriterPeriodicImpl.create( core ));
 	}
 	
 	public static StatsWriterStreamer
 	createStreamer(
-		GlobalManager	manager )
+		AzureusCore		core )
 	{
-		return( new StatsWriterStreamerImpl( manager ));
+		return( new StatsWriterStreamerImpl( core ));
 	}
 }

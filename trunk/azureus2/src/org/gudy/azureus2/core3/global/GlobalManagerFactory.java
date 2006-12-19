@@ -28,34 +28,44 @@ package org.gudy.azureus2.core3.global;
 
 import org.gudy.azureus2.core3.global.impl.*;
 
+import com.aelitis.azureus.core.AzureusCore;
+
 
 public class 
 GlobalManagerFactory 
 {
+	/*
 	public static GlobalManager
 	create(
+		AzureusCore						core,
 		GlobalMangerProgressListener 	operation )
 	{
 		return( new GlobalManagerImpl( operation, 0 ));
 	}
   
 	public static GlobalManager
-	create()
+	create(
+		AzureusCore						core )
 	{
 		return( new GlobalManagerImpl( null, 0 ));
 	}
-
+	*/
 	public static GlobalManager
 	create(
+		AzureusCore						core,
 		GlobalMangerProgressListener 	operation,
-		long existingTorrentLoadDelay)
+		long 							existingTorrentLoadDelay)
 	{
-		return( new GlobalManagerImpl( operation, existingTorrentLoadDelay ));
+		return( new GlobalManagerImpl( core, operation, existingTorrentLoadDelay ));
 	}
   
+	/*
 	public static GlobalManager
-	create(long existingTorrentLoadDelay)
+	create(
+		AzureusCore						core,
+		long 							existingTorrentLoadDelay)
 	{
 		return( new GlobalManagerImpl( null, existingTorrentLoadDelay ));
 	}
+	*/
 }

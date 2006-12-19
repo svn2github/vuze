@@ -389,6 +389,7 @@ AzureusCoreImpl
 		// always publish a complete rss feed
 		
 		global_manager = GlobalManagerFactory.create(
+				this,
 				new GlobalMangerProgressListener()
 				{
 					public void 

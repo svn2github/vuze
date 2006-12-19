@@ -51,6 +51,7 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtilsListener;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -299,9 +300,10 @@ public class GlobalManagerImpl
   }
 
   public 
-  GlobalManagerImpl(final
-  		GlobalMangerProgressListener listener,
-  		long existingTorrentLoadDelay)
+  GlobalManagerImpl(
+	AzureusCore		core,
+	final	GlobalMangerProgressListener listener,
+  	long existingTorrentLoadDelay)
   {
     //Debug.dumpThreadsLoop("Active threads");
   	
@@ -310,7 +312,7 @@ public class GlobalManagerImpl
     stats = new GlobalManagerStatsImpl( this );
        
     try{
-    	stats_writer = new GlobalManagerStatsWriter( this );
+    	stats_writer = new GlobalManagerStatsWriter( core );
     	
     }catch( Throwable e ){
     	

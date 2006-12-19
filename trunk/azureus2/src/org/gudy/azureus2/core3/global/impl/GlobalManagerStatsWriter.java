@@ -26,6 +26,8 @@ import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.stats.*;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 
+import com.aelitis.azureus.core.AzureusCore;
+
 /**
  * @author parg
  *
@@ -33,18 +35,15 @@ import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 public class 
 GlobalManagerStatsWriter
 {
-	protected GlobalManager			gm;
 	protected StatsWriterPeriodic	stats_writer;
 	
 	protected
 	GlobalManagerStatsWriter(
-		GlobalManager	_gm )
+		AzureusCore		core )
 	{
-		gm		= _gm;
+	    StatsFactory.initialize( core );
 		
-	    StatsFactory.initialize( gm );
-		
-	    stats_writer = StatsWriterFactory.createPeriodicDumper( gm );
+	    stats_writer = StatsWriterFactory.createPeriodicDumper( core );
 	}
 	
 	protected void
