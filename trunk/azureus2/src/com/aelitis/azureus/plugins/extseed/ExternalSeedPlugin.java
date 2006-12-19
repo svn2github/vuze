@@ -111,17 +111,17 @@ ExternalSeedPlugin
 		download_mon	= plugin_interface.getUtilities().getMonitor();
 		
 		Utilities utilities = plugin_interface.getUtilities();
-		UTTimer timer = utilities.createTimer("ExternalPeerScheduler", true);
 		// XXX Would be better if we fired this off after (any) UI is complete,
 		//     instead of a timer
-		timer.addEvent(utilities.getCurrentSystemTime() + 15000,
-				new UTTimerEventPerformer() {
+		utilities.createTimer("ExternalPeerInitialize", Thread.MIN_PRIORITY).addEvent(
+				utilities.getCurrentSystemTime() + 15000, new UTTimerEventPerformer() {
 					public void perform(UTTimerEvent event) {
 						plugin_interface.getDownloadManager().addListener(
 								ExternalSeedPlugin.this);
 					}
 				});
 		
+		UTTimer timer = utilities.createTimer("ExternalPeerScheduler", true);
 		timer.addPeriodicEvent(
 				5000,
 				new UTTimerEventPerformer()
