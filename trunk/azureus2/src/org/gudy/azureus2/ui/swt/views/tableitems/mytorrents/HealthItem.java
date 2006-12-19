@@ -76,7 +76,7 @@ public class HealthItem
       	health = 0;
       	ht = null;
       } else {
-      	health = (dm == null) ? 0 : dm.getHealthStatus();
+      	health = dm.getHealthStatus();
       	ht = tracker_host.getHostTorrent( dm.getTorrent());
       }
 
