@@ -744,7 +744,9 @@ public class TableView
           
   				TableCellCore cell = getTableCell(e.x, e.y);
   				int iCursorID = -1;
-  				if (cell != lastCell) {
+  				if (cell==null){
+  					lastCell = null;					
+  				}else if ( cell != lastCell) {			
   					iCursorID = cell.getCursorID();
   					lastCell = cell;
   				}
