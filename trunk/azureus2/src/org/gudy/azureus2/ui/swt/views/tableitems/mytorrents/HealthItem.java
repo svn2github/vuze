@@ -69,9 +69,16 @@ public class HealthItem
     public void refresh(TableCell cell) {
        
       DownloadManager dm = (DownloadManager)cell.getDataSource();
-      int health = (dm == null) ? 0 : dm.getHealthStatus();
+      int health;
+      TRHostTorrent ht;
       
-      TRHostTorrent ht = tracker_host.getHostTorrent( dm.getTorrent());
+      if (dm == null) {
+      	health = 0;
+      	ht = null;
+      } else {
+      	health = (dm == null) ? 0 : dm.getHealthStatus();
+      	ht = tracker_host.getHostTorrent( dm.getTorrent());
+      }
 
       if (!cell.setSortValue(health+(ht==null?0:256)) && cell.isValid())
         return;
