@@ -33,6 +33,8 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.config.ConfigParameter;
 import org.gudy.azureus2.pluginsimpl.local.config.*;
 
+import com.aelitis.net.magneturi.MagnetURIHandler;
+
 /**
  * @author Eric Allen
  *
@@ -283,6 +285,15 @@ PluginConfigImpl
 		COConfigurationManager.setParameter(this.key+key, value);
 	}
 
+	public void setPluginParameter(String key, int value,boolean global)
+	{
+		COConfigurationManager.setParameter(this.key+key, value);
+		
+		if ( global ){
+			
+			MagnetURIHandler.getSingleton().addInfo( this.key+key, value );
+		}
+	}
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#setPluginParameter(java.lang.String, java.lang.String)
 	 */

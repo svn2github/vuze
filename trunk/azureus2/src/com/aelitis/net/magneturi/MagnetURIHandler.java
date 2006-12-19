@@ -49,6 +49,8 @@ MagnetURIHandler
 	removeListener(
 		MagnetURIHandlerListener l );
 	
-	
-
+	public abstract void
+	addInfo(
+		String		name,
+		int			info );
 }

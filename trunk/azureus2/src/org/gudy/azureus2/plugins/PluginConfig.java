@@ -265,6 +265,14 @@ PluginConfig
   
    public void setPluginParameter(String key,int value);
   
+   /**
+    * @since 2501
+    * @param key
+    * @param value
+    * @param global whether or not this parameter should be made externally accessible
+    */
+   public void setPluginParameter(String key,int value,boolean global);
+
   /**
    * sets a plugin String parameter value
    * @param key the parameter name

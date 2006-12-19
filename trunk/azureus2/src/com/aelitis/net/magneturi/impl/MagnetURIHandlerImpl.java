@@ -22,7 +22,9 @@
 
 package com.aelitis.net.magneturi.impl;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -37,6 +39,8 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
+
+import javax.imageio.ImageIO;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
@@ -88,6 +92,8 @@ MagnetURIHandlerImpl
 	private int		port;
 	
 	private List	listeners	= new ArrayList();
+	
+	private Map		info_map 	= new HashMap();
 	
 	protected
 	MagnetURIHandlerImpl()
@@ -587,6 +593,46 @@ MagnetURIHandlerImpl
 				
 				return( !params.containsKey( "pause_on_error" ));
 			}
+		}else if ( get.startsWith( "/getinfo?" )){
+
+			String name = (String)params.get( "name" );
+
+			if ( name != null ){
+				
+				Integer	info = (Integer)info_map.get( name );
+				
+				if ( info != null ){					
+					
+					ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+					
+					int	width 	= info.intValue();
+					int	height	= 1;
+					
+					BufferedImage	image = new BufferedImage( width, height, BufferedImage.TYPE_INT_RGB );
+					
+					for (int i=0;i<width;i++){
+						for (int j=0;j<height;j++){
+							int	red 	= i+j;
+							int	green 	= i*255/width;
+							int	blue	= j*255/height;
+							
+							image.setRGB(i,j,((red<<16)&0xff0000)|((green<<8)&0xff00)|((blue)&0xff));
+						}
+					}
+					ImageIO.write( image, "JPG", baos );
+
+					byte[]	data = baos.toByteArray();
+											
+					writeReply( os, "image/jpeg", data );
+						
+					return( true );
+				}
+			}
+			
+			writeNotFound( os );
+			
+			return( true );
+			
 		}
 		
 		return( true );
@@ -671,6 +717,16 @@ MagnetURIHandlerImpl
 	getPort()
 	{
 		return( port );
+	}
+	
+	public void
+	addInfo(
+		String		name,
+		int			info )
+	{
+		info_map.put( name, new Integer(info));
+		
+		Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION,"MagnetURIHandler: global info registered: " + name + " -> " + info ));
 	}
 	
 	public void

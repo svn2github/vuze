@@ -350,6 +350,11 @@ RPPluginConfig
 		_dispatcher.dispatch( new RPRequest( this, "setPluginParameter[String,int]", new Object[]{key,new Integer(value)} ));
 	  }
 	  
+	  public void setPluginParameter(String key,int value,boolean global)
+	  {
+		  notSupported();
+	  }
+
 	  public void setPluginParameter(String key,String value)
 	  {
 	  	
