@@ -1151,6 +1151,15 @@ TRTrackerServerTorrentImpl
 								limit++;
 							}
 							
+							if ( biased_peers.size() > 1 ){
+								
+									// juggle things a bit
+								
+								Object	x = biased_peers.remove(0);
+								
+								biased_peers.add( random.nextInt( biased_peers.size()), x);
+							}
+							
 							for (int i=0;i<limit && added < num_want;i++){
 								
 								int	peer_index;
@@ -1165,20 +1174,28 @@ TRTrackerServerTorrentImpl
 																		
 									int	bias = peer.getBias();
 									
-									int rand = random.nextInt( 100 );
-
+										// base chance is "loop limit" in "peer count"
+										// +100 bias -> always select
+										// -100 bias -> never select
+									
+									int	base 	= limit;
+									
 									if ( bias < 0 ){
-																														
-										if ( rand < -bias ){
 											
-											continue;
-										}
+											// decrease the chance by bias percentage
+										
+										base = ((100 + bias ) * base ) /100;
+
 									}else{
 										
-										if ( rand > bias ){
-											
-											continue;
-										}
+											// increase the chance by bias percentage
+										
+										base = base + (( peer_list_size - base ) * bias )/100;
+									}
+									
+									if ( random.nextInt( peer_list_size ) > base ){
+										
+										continue;
 									}
 									
 									peer_index = -1;	// don't know actual index and don't need to as biased peers processed separately
