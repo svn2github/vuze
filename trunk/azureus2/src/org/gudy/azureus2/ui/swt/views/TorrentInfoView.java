@@ -578,7 +578,7 @@ TorrentInfoView
 		public TableColumn 
 		getTableColumn()
 		{
-			throw( new RuntimeException( "getTableColumn not imp" ));
+			return column;
 		}
 		  	
 		public TableRow 
@@ -859,6 +859,13 @@ TorrentInfoView
 			}
 			
 			column.invokeCellDisposeListeners( this );
+			
+			// We share columns with the 2 MyTorrents view.  Disposing may
+			// have done something bad (Pieces Column), so make it dirty.
+			// Ideally, we'd check if there's any listeners
+			// Or, ideally, the cells would handle being in multiple tables at
+			// once better.
+			column.invalidateCells();
 		}
 
 		public void 
