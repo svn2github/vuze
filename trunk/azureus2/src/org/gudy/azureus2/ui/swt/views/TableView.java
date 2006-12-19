@@ -106,7 +106,7 @@ public class TableView
 	private final static LogIDs LOGID = LogIDs.GUI;
 	
 	/** Helpfull output when trying to debug add/removal of rows */
-	public final static boolean DEBUGADDREMOVE = false;
+	public final static boolean DEBUGADDREMOVE = true;
 	
 	/** Virtual Tables still a work in progress */
 	// Non-Virtual tables scroll faster with they keyboard
@@ -129,9 +129,9 @@ public class TableView
 
 	private static final long IMMEDIATE_ADDREMOVE_MAXDELAY = 2000;
 	
-	private static final long BREAKOFF_ADDTOMAP = 3000;
+	private static final long BREAKOFF_ADDTOMAP = 500;
 	
-	private static final long BREAKOFF_ADDROWSTOSWT = 4000;
+	private static final long BREAKOFF_ADDROWSTOSWT = 800;
 
   /** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
    * of the table this class is
@@ -2012,10 +2012,9 @@ public class TableView
 			} // for dataSources
 
 			// Sanity Check: Make sure # of rows in table and in array match
-			if (table.getItemCount() > sortedRows.size()) {
+			if (table.getItemCount() > sortedRows.size() && !bBrokeEarly) {
 				// This could happen if one of the datasources was null, or
-				// an error occured, or we exited early because things were talking
-				// to long
+				// an error occured
 				table.setItemCount(sortedRows.size());
 			}
 
@@ -2390,7 +2389,7 @@ public class TableView
 		// don't use sortedRows here, it's not always up to date 
 		return dataSourceToRow.size();
 	}
-  
+
 	public Object[] getDataSources() {
 		return dataSourceToRow.keySet().toArray();
 	}
