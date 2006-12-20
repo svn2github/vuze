@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -251,6 +252,13 @@ public class Show extends IConsoleCommand {
 				
 				ci.out.println( lines.get(i));
 			}
+		} else if (subCommand.equalsIgnoreCase("diag") || subCommand.equalsIgnoreCase("z")) {
+
+			PrintWriter	pw = new PrintWriter( ci.out );
+			
+			AEDiagnostics.generateEvidence( pw );
+			
+			pw.flush();
 			
 		} else {
 			if ((ci.torrents == null) || (ci.torrents != null) && ci.torrents.isEmpty()) {
@@ -559,22 +567,22 @@ public class Show extends IConsoleCommand {
 				
 				for (int i=0;i<pieces.length;i++){
 					
-					PEPiece piece = pieces[i];
-					
 					String str = picker.getPieceString( i );
 					
 					line += (line.length()==0?(i + " "):",") + str;
+					
+					PEPiece piece = pieces[i];
+
+					if ( piece != null ){
+					
+						line += ":" + piece.getString();
+					}
 					
 					if ( (i+1)%10 == 0 ){
 						
 						out.println( line );
 						
 						line = "";
-					}
-					if ( piece == null ){
-						
-					}else{
-						
 					}
 				}
 				
