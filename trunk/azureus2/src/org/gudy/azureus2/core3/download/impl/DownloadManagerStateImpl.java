@@ -218,6 +218,8 @@ DownloadManagerStateImpl
 	
 		throws TOTorrentException
 	{
+		boolean	discard_pieces = state_map.size() > 32;
+		
 		// System.out.println( "getDownloadState: hash = " + (torrent_hash==null?"null":ByteFormatter.encodeString(torrent_hash) + ", file = " + torrent_file ));
 
 		TOTorrent	original_torrent	= null;
@@ -243,7 +245,7 @@ DownloadManagerStateImpl
 						saved_state	= wrapper;
 					}else{
 						
-						saved_state = TorrentUtils.readFromFile( saved_file, true );
+						saved_state = TorrentUtils.readFromFile( saved_file, true, discard_pieces );
 					}
 					
 				}catch( Throwable e ){
@@ -257,7 +259,7 @@ DownloadManagerStateImpl
 		
 		if ( saved_state == null ){
 		
-			original_torrent = TorrentUtils.readFromFile( new File(torrent_file), true );
+			original_torrent = TorrentUtils.readFromFile( new File(torrent_file), true, discard_pieces );
 			
 			torrent_hash = original_torrent.getHash();
 			
@@ -266,7 +268,7 @@ DownloadManagerStateImpl
 			if ( saved_file.exists()){
 				
 				try{
-					saved_state = TorrentUtils.readFromFile( saved_file, true );
+					saved_state = TorrentUtils.readFromFile( saved_file, true, discard_pieces );
 					
 				}catch( Throwable e ){
 					
@@ -283,7 +285,7 @@ DownloadManagerStateImpl
 				
 				TorrentUtils.copyToFile( original_torrent, saved_file );
 				
-				saved_state = TorrentUtils.readFromFile( saved_file, true );
+				saved_state = TorrentUtils.readFromFile( saved_file, true, discard_pieces );
 			}
 		}
 
@@ -1160,7 +1162,7 @@ DownloadManagerStateImpl
 					sPrimary = fileInfo[idxBiggest].getFile(true).getPath();
 				}
 			}
-			System.out.println("calc getPrimaryFile " + sPrimary + ": " + download_manager.getDisplayName());
+			// System.out.println("calc getPrimaryFile " + sPrimary + ": " + download_manager.getDisplayName());
 		}
 
 		if (sPrimary == null) {
@@ -2411,7 +2413,8 @@ DownloadManagerStateImpl
 		private TOTorrent			delegate;
 		private TOTorrentException	fixup_failure;
 		
-		private boolean				logged_failure;
+		private boolean		discard_pieces;
+		private boolean		logged_failure;
 		
 		protected
 		CachedStateWrapper(
@@ -2426,6 +2429,18 @@ DownloadManagerStateImpl
 			cache					= _cache;
 			
 			cache_attributes = (Map)cache.get( "attributes" );
+			
+			Map	c = cache;
+			
+			if ( c != null ){
+
+				Long	l_fp = (Long)c.get( "dp" );
+				
+				if ( l_fp != null ){
+					
+					discard_pieces = l_fp.longValue() == 1;
+				}
+			}	
 		}
 		
 		protected static Map
@@ -2449,7 +2464,21 @@ DownloadManagerStateImpl
 			
 			cache.put( "attributes", state.getAdditionalMapProperty( ATTRIBUTE_KEY ));
 			
-			cache.put( "rdc", new Long( dms.isResumeDataComplete()?1:0 ));
+			boolean	discard_pieces = dms.isResumeDataComplete();
+			
+			if ( !discard_pieces ){
+				
+				TOTorrent	t = dms.getTorrent();
+				
+					// discard pieces if they are currently discarded
+				
+				if ( t instanceof CachedStateWrapper ){
+					
+					discard_pieces = ((CachedStateWrapper)t).peekPieces() == null;
+				}
+			}
+			
+			cache.put( "dp", new Long( discard_pieces?1:0 ));
 			
 			return( cache );
 		}
@@ -2461,7 +2490,7 @@ DownloadManagerStateImpl
 		}
 	
 		protected boolean
-		fixup(String name)
+		fixup()
 		{
 			try{
 				if ( delegate == null ){
@@ -2471,7 +2500,7 @@ DownloadManagerStateImpl
 						throw( fixup_failure );
 					}
 		
-					delegate = loadRealState(name);
+					delegate = loadRealState();
 				
 					if ( cache != null ){
 						
@@ -2517,25 +2546,11 @@ DownloadManagerStateImpl
 		}
 		
 		protected TOTorrent
-		loadRealState(String name)
+		loadRealState()
 		
 			throws TOTorrentException
-		{
-			boolean	rdc = false;
-			
-			Map	c = cache;
-			
-			if ( c != null ){
-
-				Long	l_rdc = (Long)c.get( "rdc" );
-				
-				if ( l_rdc != null ){
-					
-					rdc = l_rdc.longValue() == 1;
-				}
-			}
-									
-			System.out.println("loadReal; " + name + "/" + torrent_file + ": " + Debug.getCompressedStackTrace().substring(114));
+		{					
+			// System.out.println("loadReal: " + torrent_file + " dp=" + discard_pieces + ": " + Debug.getCompressedStackTrace().substring(114));
 						
 			File	saved_file = getStateFile( torrent_hash_wrapper.getBytes() ); 
 			
@@ -2543,7 +2558,7 @@ DownloadManagerStateImpl
 				
 				try{
 					
-					return( TorrentUtils.readFromFile( saved_file, true, rdc ));
+					return( TorrentUtils.readFromFile( saved_file, true, discard_pieces ));
 					
 				}catch( Throwable e ){
 					
@@ -2562,7 +2577,7 @@ DownloadManagerStateImpl
 			if ( saved_file.exists()){
 				
 				try{
-					return( TorrentUtils.readFromFile( saved_file, true, rdc ));
+					return( TorrentUtils.readFromFile( saved_file, true, discard_pieces ));
 					
 				}catch( Throwable e ){
 					
@@ -2577,7 +2592,7 @@ DownloadManagerStateImpl
 			
 			TorrentUtils.copyToFile( original_torrent, saved_file );
 			
-			return( TorrentUtils.readFromFile( saved_file, true, rdc ));
+			return( TorrentUtils.readFromFile( saved_file, true, discard_pieces ));
 		}
 		
 		
@@ -2608,7 +2623,7 @@ DownloadManagerStateImpl
     	public boolean
     	isSimpleTorrent()
     	{
-    		if ( fixup("isSimpleTorrent")){
+    		if ( fixup()){
     			
     			return( delegate.isSimpleTorrent());
     		}
@@ -2626,7 +2641,7 @@ DownloadManagerStateImpl
 				return((byte[])c.get( "comment" ));
 			}
 			
-	   		if ( fixup("getComment")){
+	   		if ( fixup()){
 				
 				return( delegate.getComment());
 			}
@@ -2638,7 +2653,7 @@ DownloadManagerStateImpl
     	setComment(
     		String		comment )
        	{
-	   		if ( fixup("setComment")){
+	   		if ( fixup()){
 				
 				delegate.setComment( comment );
 			}
@@ -2758,6 +2773,24 @@ DownloadManagerStateImpl
 	   		throw( fixup_failure );
     	}
     	
+    	public byte[][]
+    	peekPieces()
+    	
+    		throws TOTorrentException
+    	{
+    		if ( fixup()){
+    			
+    			if ( delegate instanceof TorrentUtils.torrentDelegate ){
+    				
+    				return(((TorrentUtils.torrentDelegate)delegate).peekPieces());
+    			}
+    			
+    			return( delegate.getPieces());
+    		}
+    		
+	   		throw( fixup_failure );
+    	}
+    	
     	public long
     	getPieceLength()
        	{
@@ -2768,13 +2801,6 @@ DownloadManagerStateImpl
 	   		
 	   		return( 0 );
        	}
-
-    	/**
-			 * @return
-			 */
-			private boolean fixup() {
-				return fixup(null);
-			}
 
 		public int
     	getNumberOfPieces()
@@ -2884,7 +2910,7 @@ DownloadManagerStateImpl
     		String		name,
     		String		value )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.setAdditionalStringProperty( name, value );
 			}
@@ -2916,7 +2942,7 @@ DownloadManagerStateImpl
 				}
 			}
 
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				return( delegate.getAdditionalStringProperty( name ));
 			}
@@ -2929,7 +2955,7 @@ DownloadManagerStateImpl
     		String		name,
     		byte[]		value )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.setAdditionalByteArrayProperty( name, value );
 			}
@@ -2939,7 +2965,7 @@ DownloadManagerStateImpl
     	getAdditionalByteArrayProperty(
     		String		name )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				return( delegate.getAdditionalByteArrayProperty( name ));
 			}
@@ -2952,7 +2978,7 @@ DownloadManagerStateImpl
     		String		name,
     		Long		value )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.setAdditionalLongProperty( name, value );
 			}
@@ -2962,7 +2988,7 @@ DownloadManagerStateImpl
     	getAdditionalLongProperty(
     		String		name )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				return( delegate.getAdditionalLongProperty( name ));
 			}
@@ -2976,7 +3002,7 @@ DownloadManagerStateImpl
     		String		name,
     		List		value )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.setAdditionalListProperty( name, value );
 			}
@@ -2986,7 +3012,7 @@ DownloadManagerStateImpl
     	getAdditionalListProperty(
     		String		name )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				return( delegate.getAdditionalListProperty( name ));
 			}
@@ -2999,7 +3025,7 @@ DownloadManagerStateImpl
     		String		name,
     		Map			value )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.setAdditionalMapProperty( name, value );
 			}
@@ -3016,7 +3042,7 @@ DownloadManagerStateImpl
 				return((Map)c.get( name ));
 			}
 			
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				return( delegate.getAdditionalMapProperty( name ));
 			}
@@ -3028,7 +3054,7 @@ DownloadManagerStateImpl
     	getAdditionalProperty(
     		String		name )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				return( delegate.getAdditionalProperty( name ));
 			}
@@ -3041,7 +3067,7 @@ DownloadManagerStateImpl
     		String		name,
     		Object		value )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.setAdditionalProperty( name, value );
 			}
@@ -3051,7 +3077,7 @@ DownloadManagerStateImpl
     	removeAdditionalProperty(
     		String name )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.removeAdditionalProperty( name );
 			}

@@ -1293,7 +1293,7 @@ TorrentUtils
 			});
 	}
 	
-	protected static class
+	public static class
 	torrentDelegate
 		extends LogRelation
 		implements TOTorrent
@@ -1454,6 +1454,19 @@ TorrentUtils
 			return( res );
 		}
 
+			/**
+			 * peeks the pieces, will return null if they are discarded
+			 * @return
+			 */
+		
+		public byte[][]
+		peekPieces()
+		
+			throws TOTorrentException
+		{
+			return( delegate.getPieces());
+		}
+		
 		public void
 		setPieces(
 			byte[][]	pieces )
