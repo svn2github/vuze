@@ -129,7 +129,7 @@ public class TableView
 
 	private static final long IMMEDIATE_ADDREMOVE_MAXDELAY = 2000;
 	
-	private static final long BREAKOFF_ADDTOMAP = 500;
+	private static final long BREAKOFF_ADDTOMAP = 1000;
 	
 	private static final long BREAKOFF_ADDROWSTOSWT = 800;
 
@@ -1911,6 +1911,7 @@ public class TableView
 		}
 
 		boolean bBrokeEarly = false;
+		boolean bReplacedVisible = false;
 		try {
 			dataSourceToRow_mon.enter();
 			sortedRows_mon.enter();
@@ -1922,6 +1923,9 @@ public class TableView
 			table.setItemCount(sortedRows.size() + dataSources.length);
 
 			long lStartTime = SystemTime.getCurrentTime();
+
+			int iTopIndex = table.getTopIndex();
+			int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
 			// add to sortedRows list in best position.  
 			// We need to be in the SWT thread because the rowSorter may end up
@@ -1994,6 +1998,10 @@ public class TableView
 						index = sortedRows.size();
 						sortedRows.add(row);
 					}
+					
+					if (!bReplacedVisible && index >= iTopIndex && index <= iBottomIndex) {
+						bReplacedVisible = true; 
+					}
 
 					// XXX Don't set table item here, it will mess up selected rows
 					//     handling (which is handled in fillRowGaps called later on)
@@ -2031,8 +2039,12 @@ public class TableView
 			}
 		}
 
-		fillRowGaps(false);
-		visibleRowsChanged();
+		if (!bBrokeEarly || bReplacedVisible) {
+		  lastTopIndex = 0;
+		  lastBottomIndex = -1;
+			fillRowGaps(false);
+  		visibleRowsChanged();
+		}
 		if (DEBUGADDREMOVE)
 			debug("<< " + sortedRows.size());
 	}
