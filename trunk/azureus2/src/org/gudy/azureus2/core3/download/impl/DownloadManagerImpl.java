@@ -1898,7 +1898,12 @@ DownloadManagerImpl
       	
 			TRTrackerScraperResponse	non_null_response = null;
     	
-			TOTorrentAnnounceURLSet[]	sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+			TOTorrentAnnounceURLSet[]	sets;
+			try {
+				sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+			} catch (Exception e) {
+				return( new Object[]{ scraper.scrape(torrent), active_url } );
+			}
     	
 			if ( sets.length == 0 ){
     	
