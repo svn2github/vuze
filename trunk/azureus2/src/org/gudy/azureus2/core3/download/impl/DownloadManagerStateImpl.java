@@ -121,7 +121,7 @@ DownloadManagerStateImpl
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DownloadManagerState" );
 
-	private boolean firstPrimaryFileRead;
+	private boolean firstPrimaryFileRead = true;
 
 
 	private static DownloadManagerState
