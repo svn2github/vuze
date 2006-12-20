@@ -31,8 +31,8 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
@@ -79,17 +79,8 @@ public class NameItem extends CoreTableColumn implements
 		//setText returns true only if the text is updated
 		if (cell.setText(name) || !cell.isValid()) {
 			if (dm != null && bShowIcon) {
-				DiskManagerFileInfo[] fileInfo = dm.getDiskManagerFileInfo();
-				if (fileInfo.length > 0) {
-					int idxBiggest = 0;
-					long lBiggest = fileInfo[0].getLength();
-					for (int i = 1; i < fileInfo.length && i < 10; i++) {
-						if (fileInfo[i].getLength() > lBiggest) {
-							lBiggest = fileInfo[i].getLength();
-							idxBiggest = i;
-						}
-					}
-					String path = fileInfo[idxBiggest].getFile(true).getPath();
+				String path = dm.getDownloadState().getPrimaryFile();
+				if (path != null) {
 					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
 					Image icon = ImageRepository.getPathIcon(path);
 
@@ -115,7 +106,8 @@ public class NameItem extends CoreTableColumn implements
 						try {
 							gc.drawImage(icon, 0, 0, iconBounds.width, iconBounds.height, 0,
 									0, cellHeight, cellHeight);
-							if (fileInfo.length > 1) {
+							TOTorrent torrent = dm.getTorrent();
+							if (torrent != null && !torrent.isSimpleTorrent()) {
 								Image imgFolder = ImageRepository.getImage("foldersmall");
 								Rectangle folderBounds = imgFolder.getBounds();
 								gc.drawImage(imgFolder, folderBounds.x, folderBounds.y,
