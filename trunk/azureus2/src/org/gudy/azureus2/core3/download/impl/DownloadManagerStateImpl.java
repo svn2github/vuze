@@ -29,6 +29,7 @@ import java.io.*;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFactory;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
@@ -119,6 +120,8 @@ DownloadManagerStateImpl
 	private Map			attributes;
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DownloadManagerState" );
+
+	private boolean firstPrimaryFileRead;
 
 
 	private static DownloadManagerState
@@ -1133,7 +1136,49 @@ DownloadManagerStateImpl
 	public void setRelativeSavePath(String path) {
 		this.setStringAttribute(AT_RELATIVE_SAVE_PATH, path);
 	}
+
+	public String getPrimaryFile() {
+		String sPrimary = this.getStringAttribute(AT_PRIMARY_FILE);
+		// Only recheck when file doesn't exists if this is the first check
+		// of the session, because the file may never exist and we don't want
+		// to continuously go through the fileinfos
+		if (sPrimary == null
+				|| sPrimary.length() == 0
+				|| (firstPrimaryFileRead && !new File(sPrimary).exists() 
+						&& download_manager.getStats().getDownloadCompleted(true) != 0)) {
+			DiskManagerFileInfo[] fileInfo = download_manager.getDiskManagerFileInfo();
+			if (fileInfo.length > 0) {
+				int idxBiggest = -1;
+				long lBiggest = -1;
+				for (int i = 0; i < fileInfo.length && i < 10; i++) {
+					if (!fileInfo[i].isSkipped() && fileInfo[i].getLength() > lBiggest) {
+						lBiggest = fileInfo[i].getLength();
+						idxBiggest = i;
+					}
+				}
+				if (idxBiggest >= 0) {
+					sPrimary = fileInfo[idxBiggest].getFile(true).getPath();
+				}
+			}
+			System.out.println("calc getPrimaryFile " + sPrimary + ": " + download_manager.getDisplayName());
+		}
+
+		if (sPrimary == null) {
+			sPrimary = "";
+		}
+		
+		setPrimaryFile(sPrimary);
+		return sPrimary;
+	}
     
+	/**
+	 * @param primary
+	 */
+	public void setPrimaryFile(String fileFullPath) {
+		this.setStringAttribute(AT_PRIMARY_FILE, fileFullPath);
+	}
+
+
 	public String[]
 	getNetworks()
 	{
@@ -2332,6 +2377,20 @@ DownloadManagerStateImpl
 		public boolean isOurContent() {
 			// TODO Auto-generated method stub
 			return false;
+		}
+
+		// @see org.gudy.azureus2.core3.download.DownloadManagerState#getPrimaryFile()
+		
+		public String getPrimaryFile() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		// @see org.gudy.azureus2.core3.download.DownloadManagerState#setPrimaryFile(java.lang.String)
+		
+		public void setPrimaryFile(String fileFullPath) {
+			// TODO Auto-generated method stub
+			
 		}
 	}
 	
