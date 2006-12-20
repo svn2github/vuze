@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 
 public class InitialisationFunctions
@@ -43,6 +44,8 @@ public class InitialisationFunctions
 		DownloadManagerEnhancer.initialise( core );
 		
 		registerTrackerURLExtensions( core );
+		
+		AzureusPlatformContentDirectory.register();
 	}
 	
 	protected static void registerTrackerURLExtensions(AzureusCore core) {
