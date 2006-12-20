@@ -2464,14 +2464,7 @@ DownloadManagerStateImpl
 		}
 		
 		protected boolean
-		fixup(String name)
-		{
-			return( fixup(name, false ));
-		}
-		
-		protected boolean
-		fixup(
-			String name, boolean	explicit_discard )
+		fixup()
 		{
 			try{
 				if ( delegate == null ){
@@ -2481,7 +2474,7 @@ DownloadManagerStateImpl
 						throw( fixup_failure );
 					}
 		
-					delegate = loadRealState(name);
+					delegate = loadRealState();
 				
 					if ( cache != null ){
 						
@@ -2516,7 +2509,7 @@ DownloadManagerStateImpl
 		}
 		
 		protected TOTorrent
-		loadRealState(String name)
+		loadRealState()
 		
 			throws TOTorrentException
 		{
@@ -2533,8 +2526,6 @@ DownloadManagerStateImpl
 					rdc = l_rdc.longValue() == 1;
 				}
 			}
-			
-			System.out.println("loadReal; " + name + "/" + torrent_file + ": " + Debug.getCompressedStackTrace().substring(114));
 						
 			File	saved_file = getStateFile( torrent_hash_wrapper.getBytes() ); 
 			
@@ -2607,7 +2598,7 @@ DownloadManagerStateImpl
     	public boolean
     	isSimpleTorrent()
     	{
-    		if ( fixup("isSimpleTorrent")){
+    		if ( fixup()){
     			
     			return( delegate.isSimpleTorrent());
     		}
@@ -2625,7 +2616,7 @@ DownloadManagerStateImpl
 				return((byte[])c.get( "comment" ));
 			}
 			
-	   		if ( fixup("getComment")){
+	   		if ( fixup()){
 				
 				return( delegate.getComment());
 			}
@@ -2637,7 +2628,7 @@ DownloadManagerStateImpl
     	setComment(
     		String		comment )
        	{
-	   		if ( fixup("setComment")){
+	   		if ( fixup()){
 				
 				delegate.setComment( comment );
 			}
@@ -2768,14 +2759,7 @@ DownloadManagerStateImpl
 	   		return( 0 );
     	}
 
-    	/**
-			 * @return
-			 */
-			private boolean fixup() {
-				return fixup(null);
-			}
-
-			public int
+    	public int
     	getNumberOfPieces()
        	{
 	   		if ( fixup()){
@@ -2878,7 +2862,7 @@ DownloadManagerStateImpl
     		String		name,
     		String		value )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.setAdditionalStringProperty( name, value );
 			}
@@ -2910,7 +2894,7 @@ DownloadManagerStateImpl
 				}
 			}
 
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				return( delegate.getAdditionalStringProperty( name ));
 			}
@@ -2923,7 +2907,7 @@ DownloadManagerStateImpl
     		String		name,
     		byte[]		value )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.setAdditionalByteArrayProperty( name, value );
 			}
@@ -2933,7 +2917,7 @@ DownloadManagerStateImpl
     	getAdditionalByteArrayProperty(
     		String		name )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				return( delegate.getAdditionalByteArrayProperty( name ));
 			}
@@ -2946,7 +2930,7 @@ DownloadManagerStateImpl
     		String		name,
     		Long		value )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.setAdditionalLongProperty( name, value );
 			}
@@ -2956,7 +2940,7 @@ DownloadManagerStateImpl
     	getAdditionalLongProperty(
     		String		name )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				return( delegate.getAdditionalLongProperty( name ));
 			}
@@ -2970,7 +2954,7 @@ DownloadManagerStateImpl
     		String		name,
     		List		value )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.setAdditionalListProperty( name, value );
 			}
@@ -2980,7 +2964,7 @@ DownloadManagerStateImpl
     	getAdditionalListProperty(
     		String		name )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				return( delegate.getAdditionalListProperty( name ));
 			}
@@ -2993,7 +2977,7 @@ DownloadManagerStateImpl
     		String		name,
     		Map			value )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.setAdditionalMapProperty( name, value );
 			}
@@ -3010,7 +2994,7 @@ DownloadManagerStateImpl
 				return((Map)c.get( name ));
 			}
 			
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				return( delegate.getAdditionalMapProperty( name ));
 			}
@@ -3022,7 +3006,7 @@ DownloadManagerStateImpl
     	getAdditionalProperty(
     		String		name )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				return( delegate.getAdditionalProperty( name ));
 			}
@@ -3035,7 +3019,7 @@ DownloadManagerStateImpl
     		String		name,
     		Object		value )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.setAdditionalProperty( name, value );
 			}
@@ -3045,7 +3029,7 @@ DownloadManagerStateImpl
     	removeAdditionalProperty(
     		String name )
        	{
-	   		if ( fixup(name)){
+	   		if ( fixup()){
 				
 				delegate.removeAdditionalProperty( name );
 			}
