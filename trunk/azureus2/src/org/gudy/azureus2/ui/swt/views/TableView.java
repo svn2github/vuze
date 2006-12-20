@@ -106,7 +106,7 @@ public class TableView
 	private final static LogIDs LOGID = LogIDs.GUI;
 	
 	/** Helpfull output when trying to debug add/removal of rows */
-	public final static boolean DEBUGADDREMOVE = true;
+	public final static boolean DEBUGADDREMOVE = false;
 	
 	/** Virtual Tables still a work in progress */
 	// Non-Virtual tables scroll faster with they keyboard
