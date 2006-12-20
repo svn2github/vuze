@@ -1298,10 +1298,11 @@ TorrentUtils
 		extends LogRelation
 		implements TOTorrent
 	{
-		protected TOTorrent		delegate;
-		protected File			file;
+		private TOTorrent		delegate;
+		private File			file;
 		
-		protected long			last_pieces_read_time	= SystemTime.getCurrentTime();
+		private long			last_pieces_read_time	= SystemTime.getCurrentTime();
+		private byte[][]		pieces;
 		
 		protected
 		torrentDelegate(
@@ -1643,10 +1644,16 @@ TorrentUtils
 			try{
 		   		getMonitor().enter();
 		   		
+		   		boolean	had_pieces = delegate.getPieces() != null;
+		   		
 		   		getPieces();
 			
 		   		delegate.serialiseToBEncodedFile( target_file );
 		   		
+		   		if ( !had_pieces ){
+		   			
+		   			discardPieces( SystemTime.getCurrentTime(), true );
+		   		}
 			}finally{
 				
 				getMonitor().exit();
@@ -1664,9 +1671,18 @@ TorrentUtils
 			try{
 		   		getMonitor().enter();
 		   		
+		   		boolean	had_pieces = delegate.getPieces() != null;
+
 		   		getPieces();
 			
-		   		return( delegate.serialiseToMap());
+		   		Map	result = delegate.serialiseToMap();
+		   		
+		   		if ( !had_pieces ){
+		   			
+		   			discardPieces( SystemTime.getCurrentTime(), true );
+		   		}
+		   		
+		   		return( result );
 		   		
 			}finally{
 				
@@ -1686,10 +1702,16 @@ TorrentUtils
 			try{
 		   		getMonitor().enter();
 		   		
+		   		boolean	had_pieces = delegate.getPieces() != null;
+
 		   		getPieces();
 			
 		   		delegate.serialiseToXMLFile( target_file );
 			
+		   		if ( !had_pieces ){
+		   			
+		   			discardPieces( SystemTime.getCurrentTime(), true );
+		   		}
 			}finally{
 				
 				getMonitor().exit();

@@ -116,6 +116,7 @@ DownloadManagerStateImpl
 	private List		will_be_read_list	= new ArrayList();
 	
 	private Map			parameters;
+	private Map			attributes;
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DownloadManagerState" );
 
@@ -438,6 +439,13 @@ DownloadManagerStateImpl
 		download_manager	= _download_manager;
 		torrent				= _torrent;
 		
+		attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		
+		if ( attributes == null ){
+        	
+			attributes	= new HashMap();
+        }
+		
         String cat_string = getStringAttribute( AT_CATEGORY );
 
         if ( cat_string != null ){
@@ -457,6 +465,7 @@ DownloadManagerStateImpl
         	parameters	= new HashMap();
         }
         
+
         addListeners();
 	}
 	
@@ -675,7 +684,7 @@ DownloadManagerStateImpl
 			this_mon.exit();
 		}
 
-		if (do_write) {
+		if ( do_write ){
 
 			try {
 				// System.out.println( "writing download state for '" + new String(torrent.getName()));
@@ -684,6 +693,8 @@ DownloadManagerStateImpl
 					Logger.log(new LogEvent(torrent, LOGID, "Saving state for download '"
 							+ TorrentUtils.getLocalisedName(torrent) + "'"));
 
+				torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
+				
 				TorrentUtils.writeToFile(torrent, true);
 
 			} catch (Throwable e) {
@@ -1458,9 +1469,7 @@ DownloadManagerStateImpl
 		try{
 			this_mon.enter();
 		
-			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
-			
-			if ( attributes == null || !(attributes.get( attribute_name) instanceof byte[] )){
+			if ( !(attributes.get( attribute_name) instanceof byte[] )){
 				
 				return( null );
 			}
@@ -1495,24 +1504,7 @@ DownloadManagerStateImpl
 		boolean	changed	= false;
 
 		try{
-			this_mon.enter();
-		
-			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
-			
-			if ( attributes == null ){
-				
-				if ( attribute_value == null ){
-				
-						// nothing to do, no attributes and we're removing a value
-					
-					return;
-				}
-				
-				attributes = new HashMap();
-				
-				torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
-			}
-		
+			this_mon.enter();		
 			
 			if ( attribute_value == null ){
 				
@@ -1563,13 +1555,6 @@ DownloadManagerStateImpl
 		
 		try{
 			this_mon.enter();
-		
-			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
-			
-			if ( attributes == null ){
-				
-				return( 0 );
-			}
 			
 			Long	l = (Long)attributes.get( attribute_name );
 			
@@ -1595,15 +1580,6 @@ DownloadManagerStateImpl
 		
 		try{
 			this_mon.enter();
-		
-			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
-			
-			if ( attributes == null ){
-				
-				attributes = new HashMap();
-				
-				torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
-			}
 		
 			Long	existing_value = (Long)attributes.get( attribute_name );
 					
@@ -1696,36 +1672,31 @@ DownloadManagerStateImpl
 		
 		try{
 			this_mon.enter();
-		
-			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
-			
+					
 			List	res = new ArrayList();
 	
-			if ( attributes != null ){
+			List	values = (List)attributes.get( attribute_name );
+		
+			if ( values != null ){
 				
-				List	values = (List)attributes.get( attribute_name );
-			
-				if ( values != null ){
+				for (int i=0;i<values.size();i++){
+				
+					Object	o = values.get(i);
 					
-					for (int i=0;i<values.size();i++){
-					
-						Object	o = values.get(i);
+					if ( o instanceof byte[] ){
 						
-						if ( o instanceof byte[] ){
+						byte[]	bytes = (byte[])o;
+						
+						try{
+							res.add( new String( bytes, Constants.DEFAULT_ENCODING ));
 							
-							byte[]	bytes = (byte[])o;
+						}catch( UnsupportedEncodingException e ){
 							
-							try{
-								res.add( new String( bytes, Constants.DEFAULT_ENCODING ));
-								
-							}catch( UnsupportedEncodingException e ){
-								
-								Debug.printStackTrace(e);					
-							}
-						}else if ( o instanceof String ){
-							
-							res.add( o );
+							Debug.printStackTrace(e);					
 						}
+					}else if ( o instanceof String ){
+						
+						res.add( o );
 					}
 				}
 			}
@@ -1747,22 +1718,6 @@ DownloadManagerStateImpl
 
 		try{
 			this_mon.enter();
-			
-			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
-			
-			if ( attributes == null ){
-				
-				if ( attribute_value == null ){
-				
-						// nothing to do, no attributes and we're removing a value
-					
-					return;
-				}
-				
-				attributes = new HashMap();
-				
-				torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
-			}
 						
 			if ( attribute_value == null ){
 				
@@ -1814,16 +1769,9 @@ DownloadManagerStateImpl
 		try{
 			this_mon.enter();
 		
-			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+			Map	value = (Map)attributes.get( attribute_name );
 			
-			if ( attributes != null ){
-				
-				Map	value = (Map)attributes.get( attribute_name );
-			
-				return( value );
-			}
-		
-			return( null );
+			return( value );
 			
 		}finally{
 			
@@ -1849,23 +1797,7 @@ DownloadManagerStateImpl
 
 		try{
 			this_mon.enter();
-
-			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
-			
-			if ( attributes == null ){
 				
-				if ( attribute_value == null ){
-				
-						// nothing to do, no attributes and we're removing a value
-					
-					return;
-				}
-				
-				attributes = new HashMap();
-				
-				torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
-			}
-		
 			if ( attribute_value == null ){
 				
 				if ( attributes.containsKey( attribute_name )){
@@ -1908,9 +1840,10 @@ DownloadManagerStateImpl
 	}
 
 	public boolean hasAttribute(String name) {
-		Map attribute_map = this.torrent.getAdditionalMapProperty(ATTRIBUTE_KEY);
-		if (attribute_map == null) {return false;}
-		return attribute_map.containsKey(name);
+
+		if (attributes == null) {return false;}
+		
+		return attributes.containsKey(name);
 	}
 	
 	// These methods just use long attributes to store data into.
@@ -2404,7 +2337,7 @@ DownloadManagerStateImpl
 	
 	protected static class
 	CachedStateWrapper
-	extends LogRelation
+		extends LogRelation
 		implements TOTorrent
 	{
 		private DownloadManagerImpl	download_manager;
@@ -2412,6 +2345,7 @@ DownloadManagerStateImpl
 		private String		torrent_file;
 		private HashWrapper	torrent_hash_wrapper;
 		private Map			cache;	
+		private Map			cache_attributes;
 		
 		private TOTorrent			delegate;
 		private TOTorrentException	fixup_failure;
@@ -2429,6 +2363,8 @@ DownloadManagerStateImpl
 			torrent_file			= _torrent_file;
 			torrent_hash_wrapper	= new HashWrapper( _torrent_hash );
 			cache					= _cache;
+			
+			cache_attributes = (Map)cache.get( "attributes" );
 		}
 		
 		protected static Map
@@ -2450,7 +2386,7 @@ DownloadManagerStateImpl
 			cache.put( "encoding", state.getAdditionalStringProperty( "encoding" ));
 			cache.put( "torrent filename", state.getAdditionalStringProperty( "torrent filename" ));
 			
-			cache.put( "attributes", state.getAdditionalMapProperty( "attributes" ));
+			cache.put( "attributes", state.getAdditionalMapProperty( ATTRIBUTE_KEY ));
 			
 			cache.put( "rdc", new Long( dms.isResumeDataComplete()?1:0 ));
 			
@@ -2462,7 +2398,7 @@ DownloadManagerStateImpl
 		{
 			cache	= null;
 		}
-		
+	
 		protected boolean
 		fixup()
 		{
@@ -2482,6 +2418,17 @@ DownloadManagerStateImpl
 					}
 					
 					cache = null;
+					
+						// join cache view back up with real state to save memory as the one
+						// we've just read is irrelevant due to the cache values being
+						// used
+					
+					if ( cache_attributes != null ){
+												
+						delegate.setAdditionalMapProperty( ATTRIBUTE_KEY, cache_attributes );
+						
+						cache_attributes = null;
+					}
 				}	
 				
 				return( true );
@@ -2526,7 +2473,7 @@ DownloadManagerStateImpl
 					rdc = l_rdc.longValue() == 1;
 				}
 			}
-						
+									
 			File	saved_file = getStateFile( torrent_hash_wrapper.getBytes() ); 
 			
 			if ( saved_file.exists()){
@@ -2757,9 +2704,9 @@ DownloadManagerStateImpl
 			}
 	   		
 	   		return( 0 );
-    	}
+       	}
 
-    	public int
+		public int
     	getNumberOfPieces()
        	{
 	   		if ( fixup()){
@@ -2826,12 +2773,17 @@ DownloadManagerStateImpl
     	hasSameHashAs(
     		TOTorrent		other )
        	{
-	   		if ( fixup()){
-				
-				return( delegate.hasSameHashAs( other ));
-			}
-	   		
-	   		return( false );
+    		try{
+    			byte[]	other_hash = other.getHash();
+    				
+    			return( Arrays.equals( getHash(), other_hash ));
+    				
+    		}catch( TOTorrentException e ){
+    			
+    			Debug.printStackTrace( e );
+    			
+    			return( false );
+    		}
     	}
     	
     	public boolean
