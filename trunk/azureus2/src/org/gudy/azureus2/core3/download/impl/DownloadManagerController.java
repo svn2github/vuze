@@ -1433,7 +1433,7 @@ DownloadManagerController
 	calculateCompleteness(
 		DiskManagerFileInfo[]	active )
 	{
-		boolean complete_exluding_dnd = true;
+		boolean complete_excluding_dnd = true;
 
 		boolean has_dnd_files = false;
 
@@ -1441,22 +1441,24 @@ DownloadManagerController
 
 			DiskManagerFileInfo file = active[i];
 
-			if (file.isSkipped()) {
+			if ( file.isSkipped()){
 
 				has_dnd_files = true;
+				
+			}else if (file.getDownloaded() != file.getLength()) {
 
-				continue;
-			}
-
-			if (file.getDownloaded() != file.getLength()) {
-
-				complete_exluding_dnd = false;
-
-				break;
+				complete_excluding_dnd = false;
+				
+				if ( has_dnd_files ){
+					
+						// we can bail out early 
+					
+					break;
+				}
 			}
 		}
 
-		cached_complete_excluding_dnd = complete_exluding_dnd;
+		cached_complete_excluding_dnd = complete_excluding_dnd;
 		cached_has_dnd_files = has_dnd_files;
 		cached_values_set = true;
 		DownloadManagerState state = download_manager.getDownloadState();
