@@ -48,19 +48,7 @@ import com.aelitis.azureus.core.versioncheck.*;
 public class 
 CoreUpdateChecker
 	implements Plugin, UpdatableComponent
-{
-		// test setting to grab the torrent from private location
-	
-	private static final boolean	UPDATE_FROM_AELITIS_TRACKER	= false;
-	
-	static{
-		if ( UPDATE_FROM_AELITIS_TRACKER ){
-			
-			System.err.println( "**** TEST MODE: Core Update loading from private location **** " );
-		}
-	}
-	
-	
+{		
 	public static final String	LATEST_VERSION_PROPERTY	= "latest_version";
 	public static final String	MESSAGE_PROPERTY		= "message";
 	
@@ -165,8 +153,8 @@ CoreUpdateChecker
       
 			displayUserMessage( decoded );
 			
-			String latest_version 			= null;
-			String latest_file_name			= null;
+			String latest_version;
+			String latest_file_name;
 			
 			byte[] b_version = (byte[])decoded.get("version");
 			
@@ -186,9 +174,43 @@ CoreUpdateChecker
 			if ( b_filename != null ){
 			
 				latest_file_name = new String( b_filename );
+				
+			}else{
+				
+				throw( new Exception( "No update file details in reply" ));
 			}
 			
+			//latest_version 		= "3.0.0.3";
+			//latest_file_name	= "http://torrents.aelitis.com:88/torrents/Azureus2.5.0.0.jar.torrent";
+			//latest_file_name	= "Azureus2.5.0.0.jar.torrent";
+			
 			String	msg = "Core: latest_version = '" + latest_version + "', file = '" + latest_file_name + "'";
+			
+			URL		full_download_url;
+			
+				// since 2501 we support a full download URL, falling back to SF mirrors if this
+				// fails. 
+					
+			if ( latest_file_name.startsWith( "http" )){
+				
+				try{
+					full_download_url	= new URL( latest_file_name );
+					
+				}catch( Throwable e ){
+					
+					full_download_url = null;
+					
+					log.log( e );
+				}
+				
+				int	pos = latest_file_name.lastIndexOf( '/' );
+				
+				latest_file_name = latest_file_name.substring( pos+1 );
+				
+			}else{
+				
+				full_download_url	= null;
+			}
 			
 			checker.reportProgress( msg );
 			
@@ -204,13 +226,8 @@ CoreUpdateChecker
 			
 			ResourceDownloader	top_downloader;
 			
-			if ( UPDATE_FROM_AELITIS_TRACKER ){
+			if ( full_download_url == null ){
 				
-				top_downloader = rdf.create( new URL( Constants.AELITIS_TORRENTS + latest_file_name ));
-				
-				top_downloader = rdf.getSuffixBasedDownloader( top_downloader );
-				
-			}else{
 				ResourceDownloader[]	primary_mirrors;
 					
 				primary_mirrors = getPrimaryDownloaders( latest_file_name );
@@ -234,7 +251,7 @@ CoreUpdateChecker
 								return( rdf.getRandomDownloader( backup_mirrors ));
 							}
 						});
-				
+								
 				top_downloader = 
 					rdf.getAlternateDownloader( 
 							new ResourceDownloader[]
@@ -242,8 +259,50 @@ CoreUpdateChecker
 									random_primary_mirrors,
 									backup_downloader,
 								});
-			}
 
+			}else{
+				
+				ResourceDownloader full_rd = rdf.create( full_download_url );
+				
+				full_rd = rdf.getSuffixBasedDownloader( full_rd );
+				
+				ResourceDownloader		primary_downloader =
+					rdf.create(
+						new ResourceDownloaderDelayedFactory()
+						{
+							public ResourceDownloader
+							create()
+							{
+								ResourceDownloader[]	primary_mirrors = getPrimaryDownloaders( f_latest_file_name );
+							
+								return( rdf.getRandomDownloader( primary_mirrors ));
+							}
+						});
+					
+				ResourceDownloader		backup_downloader =
+					rdf.create(
+						new ResourceDownloaderDelayedFactory()
+						{
+							public ResourceDownloader
+							create()
+							{
+								ResourceDownloader[]	backup_mirrors = getBackupDownloaders( f_latest_file_name );
+							
+								return( rdf.getRandomDownloader( backup_mirrors ));
+							}
+						});
+				
+				
+				top_downloader = 
+					rdf.getAlternateDownloader( 
+							new ResourceDownloader[]
+								{
+									full_rd,
+									primary_downloader,
+									backup_downloader,
+								});
+			}
+			
 			top_downloader.addListener( rd_logger );
 			
 				// get size so it is cached
