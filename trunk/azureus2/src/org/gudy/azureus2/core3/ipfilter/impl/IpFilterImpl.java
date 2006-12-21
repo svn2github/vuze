@@ -424,7 +424,7 @@ IpFilterImpl
 	      addBlockedIP( new BlockedIpImpl(ipAddress,match, torrent_name, loggable), loggable );
 	      
 	      if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Ip Blocked : "
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "Ip Blocked : "
 							+ ipAddress + ", in range : " + match));
 	      
 	      return true;
@@ -444,7 +444,7 @@ IpFilterImpl
 	    addBlockedIP( new BlockedIpImpl(ipAddress,null, torrent_name, loggable), loggable );
 	    
 	    if (Logger.isEnabled())
-				Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Ip Blocked : "
+				Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "Ip Blocked : "
 						+ ipAddress + ", not in any range"));
 	    
 	    return true;
@@ -501,7 +501,7 @@ IpFilterImpl
 	      addBlockedIP( new BlockedIpImpl(ipAddress.getHostAddress(),match, torrent_name, loggable), loggable );
 	      
 	      if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Ip Blocked : "
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "Ip Blocked : "
 							+ ipAddress + ", in range : " + match));
 	      
 	      return true;
@@ -516,7 +516,7 @@ IpFilterImpl
 	    addBlockedIP( new BlockedIpImpl(ipAddress.getHostAddress(),null, torrent_name, loggable), loggable );
 	    
 	    if (Logger.isEnabled())
-				Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Ip Blocked : "
+				Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "Ip Blocked : "
 						+ ipAddress + ", not in any range"));
 	    
 	    return true;
