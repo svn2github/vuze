@@ -77,6 +77,20 @@ Parameter
 	removeChangeListener(
 		ParameterChangeListener	l )
 	{
-		change_listeners.remove(l);
+		try{
+ 			class_mon.enter();
+		
+ 			change_listeners.remove(l);
+ 			
+		}finally{
+ 			
+ 			class_mon.exit();
+ 		}
+	}
+	
+	public boolean
+	isDisposed()
+	{
+		return( getControl().isDisposed());
 	}
 }

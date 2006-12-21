@@ -38,9 +38,22 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
 
+import com.aelitis.azureus.core.AzureusCore;
+
 public class ConfigSectionTransfer implements UISWTConfigSection {
+	
+	private AzureusCore	core;
+	
+	public 
+	ConfigSectionTransfer(
+		AzureusCore	_core )
+	{
+		core	= _core;
+	}
+	
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_ROOT;
 	}
@@ -174,7 +187,21 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 
 		// max upload/download limit dependencies
 		paramMaxUploadSpeed.addChangeListener(new ParameterChangeAdapter() {
+			
 			public void parameterChanged(Parameter p, boolean internal) {
+				if ( paramMaxUploadSpeed.isDisposed()){
+					paramMaxUploadSpeed.removeChangeListener( this );
+					return;
+				}
+				
+					// we don't want to police these limits when auto-speed is running as
+					// they screw things up bigtime
+				
+				if ( TransferSpeedValidator.isAutoSpeedActive( core.getGlobalManager())){
+					
+					return;
+				}
+				
 				int up_val = paramMaxUploadSpeed.getValue();
 				int down_val = paramMaxDownSpeed.getValue();
 
@@ -197,6 +224,20 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 
 		paramMaxDownSpeed.addChangeListener(new ParameterChangeAdapter() {
 			public void parameterChanged(Parameter p, boolean internal) {
+				
+				if ( paramMaxDownSpeed.isDisposed()){
+					paramMaxDownSpeed.removeChangeListener( this );
+					return;
+				}
+				
+					// we don't want to police these limits when auto-speed is running as
+					// they screw things up bigtime
+				
+				if ( TransferSpeedValidator.isAutoSpeedActive( core.getGlobalManager())){
+					
+					return;
+				}
+				
 				int up_val = paramMaxUploadSpeed.getValue();
 				int down_val = paramMaxDownSpeed.getValue();
 

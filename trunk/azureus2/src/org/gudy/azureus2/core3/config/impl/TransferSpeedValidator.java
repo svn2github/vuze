@@ -193,4 +193,11 @@ public final class TransferSpeedValidator
       		return( TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY );
       	}
     }
+    
+    public static boolean
+    isAutoSpeedActive(
+    	GlobalManager	gm )
+    {
+    	return( COConfigurationManager.getBooleanParameter( getActiveAutoUploadParameter( gm )));
+    }
 }
