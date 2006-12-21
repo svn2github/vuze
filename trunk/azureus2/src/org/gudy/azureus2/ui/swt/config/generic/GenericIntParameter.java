@@ -169,12 +169,16 @@ public class GenericIntParameter
 		System.out.println("[GenericIntParameter:" + sParamName + "] " + string);
 	}
 
-	public void setMinimumValue(int value) {
+	public void setMinimumValue(final int value) {
 		iMinValue = value;
 		if (iMinValue > 0 && getValue() < iMinValue) {
 			setValue(iMinValue);
 		}
-		spinner.setMinimum(value);
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				spinner.setMinimum(value);
+			}
+		}, false);
 	}
 
 	public void setMaximumValue(int value) {
@@ -182,35 +186,50 @@ public class GenericIntParameter
 		if (iMaxValue != -1 && getValue() > iMaxValue) {
 			setValue(iMaxValue);
 		}
-		spinner.setMaximum(iMaxValue == -1 ? Integer.MAX_VALUE : iMaxValue);
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				spinner.setMaximum(iMaxValue == -1 ? Integer.MAX_VALUE : iMaxValue);
+			}
+		}, false);
 	}
 
 	public String getName() {
 		return (sParamName);
 	}
 
-	public void setValue(int value) {
-		if (!spinner.isDisposed()) {
-			if (spinner.getSelection() != value) {
-				if (DEBUG) {
-					debug("spinner.setSelection(" + value + ")");
+	public void setValue(final int value) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (!spinner.isDisposed()) {
+					if (spinner.getSelection() != value) {
+						if (DEBUG) {
+							debug("spinner.setSelection(" + value + ")");
+						}
+						spinner.setSelection(value);
+					}
+					if (DEBUG) {
+						debug("setIntValue to " + spinner.getSelection()
+								+ " via setValue(int)");
+					}
+					adapter.setIntValue(sParamName, spinner.getSelection());
+				} else {
+					adapter.setIntValue(sParamName, value);
 				}
-				spinner.setSelection(value);
 			}
-			if (DEBUG) {
-				debug("setIntValue to " + spinner.getSelection() + " via setValue(int)");
-			}
-			adapter.setIntValue(sParamName, spinner.getSelection());
-		} else {
-			adapter.setIntValue(sParamName, value);
-		}
+		}, false);
 	}
 
-	public void setValue(int value, boolean force_adapter_set) {
+	public void setValue(final int value, boolean force_adapter_set) {
 		if (force_adapter_set) {
 			setValue(value);
-		} else if (spinner.getSelection() != value) {
-			spinner.setSelection(value);
+		} else {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (spinner.getSelection() != value) {
+						spinner.setSelection(value);
+					}
+				}
+			}, false);
 		}
 	}
 
