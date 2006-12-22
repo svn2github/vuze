@@ -214,7 +214,8 @@ DownloadManagerStateImpl
 	getDownloadState(
 		DownloadManagerImpl	download_manager,
 		String				torrent_file,
-		byte[]				torrent_hash )
+		byte[]				torrent_hash,
+		boolean				force_piece_discard )
 	
 		throws TOTorrentException
 	{
@@ -238,7 +239,7 @@ DownloadManagerStateImpl
 					
 					if ( cached_state != null ){
 						
-						CachedStateWrapper wrapper = new CachedStateWrapper( download_manager, torrent_file, torrent_hash, cached_state );
+						CachedStateWrapper wrapper = new CachedStateWrapper( download_manager, torrent_file, torrent_hash, cached_state, force_piece_discard );
 						
 						global_state_cache_wrappers.add( wrapper );
 						
@@ -2421,7 +2422,8 @@ DownloadManagerStateImpl
 			DownloadManagerImpl		_download_manager,
 			String					_torrent_file,
 			byte[]					_torrent_hash,
-			Map						_cache )
+			Map						_cache,
+			boolean					_force_piece_discard )
 		{
 			download_manager		= _download_manager;
 			torrent_file			= _torrent_file;
@@ -2430,11 +2432,13 @@ DownloadManagerStateImpl
 			
 			cache_attributes = (Map)cache.get( "attributes" );
 			
-			Map	c = cache;
-			
-			if ( c != null ){
-
-				Long	l_fp = (Long)c.get( "dp" );
+			if ( _force_piece_discard ){
+				
+				discard_pieces	= true;
+				
+			}else{
+				
+				Long	l_fp = (Long)cache.get( "dp" );
 				
 				if ( l_fp != null ){
 					

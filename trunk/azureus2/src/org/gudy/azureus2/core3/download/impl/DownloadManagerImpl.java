@@ -483,7 +483,7 @@ DownloadManagerImpl
 				
 				 download_manager_state	= 
 					 	DownloadManagerStateImpl.getDownloadState(
-					 			this, torrentFileName, torrent_hash );
+					 			this, torrentFileName, torrent_hash, initial_state == DownloadManager.STATE_STOPPED );
 				 
 				 readParameters();
 				 
