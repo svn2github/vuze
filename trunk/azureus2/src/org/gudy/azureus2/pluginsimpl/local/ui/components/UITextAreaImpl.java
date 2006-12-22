@@ -27,6 +27,12 @@ package org.gudy.azureus2.pluginsimpl.local.ui.components;
  *
  */
 
+import java.io.*;
+
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
+import org.gudy.azureus2.core3.util.FileUtil;
+
 import org.gudy.azureus2.plugins.ui.components.*;
 
 
@@ -36,6 +42,14 @@ UITextAreaImpl
 	implements 	UITextArea
 {
 	private int	max_size		= DEFAULT_MAX_SIZE;
+	
+	PrintWriter pw;
+	
+	File file;
+	
+	boolean useFile = true;
+	
+	AEMonitor file_mon = new AEMonitor("filemon");
 	
 	public
 	UITextAreaImpl()
@@ -47,6 +61,30 @@ UITextAreaImpl
 	setText(
 		String		text )
 	{
+		if (useFile) {
+			try {
+				file_mon.enter();
+				if (pw == null) {
+					try {
+						file = AETemporaryFileHandler.createTempFile();
+
+						FileWriter fr = new FileWriter(file);
+						pw = new PrintWriter(fr);
+
+						pw.print(text);
+						pw.flush();
+
+						return;
+					} catch (IOException e) {
+					}
+				}
+			} finally {
+				file_mon.exit();
+			}
+		}
+		
+		// has property change listener, or error while doing file (fallthrough)
+		
 		if ( text.length() > max_size ){
 				
 			int	size_to_show = max_size - 10000;
@@ -66,6 +104,17 @@ UITextAreaImpl
 	appendText(
 		String		text )
 	{
+		if (useFile && pw != null) {
+			try {
+				file_mon.enter();
+				pw.print(text);
+				pw.flush();
+				return;
+			} finally {
+				file_mon.exit();
+			}
+		}
+
 		String	str = getText();
 		
 		if ( str == null ){
@@ -81,6 +130,10 @@ UITextAreaImpl
 	public String
 	getText()
 	{
+		if (useFile && pw != null) {
+			return getFileText();
+		}
+
 		return((String)getProperty( PT_VALUE ));
 	}
 	
@@ -89,5 +142,61 @@ UITextAreaImpl
 		int	_max_size )
 	{
 		max_size	= _max_size;
+	}
+	
+	private String getFileText() {
+		boolean recreate = pw != null;
+
+		try {
+			file_mon.enter();
+
+			if (recreate) {
+				pw.close();
+			}
+
+			String text = null;
+			try {
+				text = FileUtil.readFileEndAsString(file, max_size);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			if (text == null) {
+				text = "";
+			}
+
+			if (recreate) {
+				try {
+					FileWriter fr = new FileWriter(file, true);
+					pw = new PrintWriter(fr);
+				} catch (IOException e) {
+					useFile = false;
+					e.printStackTrace();
+				}
+			}
+			return text;
+		} finally {
+			file_mon.exit();
+		}
+	}
+	
+	public void addPropertyChangeListener(UIPropertyChangeListener l) {
+		if (useFile) {
+			if (pw != null) {
+				try {
+					file_mon.enter();
+
+					pw.close();
+					pw = null;
+				} finally {
+					file_mon.exit();
+				}
+			}
+
+			useFile = false;
+			setText(getFileText());
+		}
+
+		super.addPropertyChangeListener(l);
 	}
 }
