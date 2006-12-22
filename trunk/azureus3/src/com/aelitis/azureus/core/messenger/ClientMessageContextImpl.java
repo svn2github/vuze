@@ -20,12 +20,15 @@
 
 package com.aelitis.azureus.core.messenger;
 
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageListener;
 import com.aelitis.azureus.ui.swt.browser.txn.Transaction;
 import com.aelitis.azureus.ui.swt.browser.txn.TransactionManager;
+import com.aelitis.azureus.util.Constants;
 
 /**
  * @author TuxPaper
@@ -55,11 +58,21 @@ public abstract class ClientMessageContextImpl implements ClientMessageContext
 	}
 
 	public void debug(String message) {
-		Debug.outNoStack("[" + id + "] " + message);
+		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.CMsgr");
+		diag_logger.log("[" + id + "] " + message);
+		if (Constants.DIAG_TO_STDOUT) {
+			System.out.println("[" + id + "] " + message);
+		}
 	}
 
 	public void debug(String message, Throwable t) {
-		Debug.out("[" + id + "] " + message, t);
+		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.CMsgr");
+		diag_logger.log("[" + id + "] " + message);
+		diag_logger.log(t);
+		if (Constants.DIAG_TO_STDOUT) {
+			System.err.println("[" + id + "] " + message);
+			t.printStackTrace();
+		}
 	}
 
 	public Transaction getTransaction(String type) {
