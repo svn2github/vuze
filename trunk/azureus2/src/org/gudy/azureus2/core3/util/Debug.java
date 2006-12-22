@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.util;
 
 import java.io.*;
+import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -333,7 +334,16 @@ public class Debug {
 		
 		while( e != null ){
 			
-			String	this_message = e.getMessage();
+			String	this_message;
+			
+			if ( e instanceof UnknownHostException ){
+				
+				this_message = "Unknown host " + e.getMessage();
+				
+			}else{
+				
+				this_message = e.getMessage();
+			}
 			
 			if ( this_message == null || this_message.length() == 0 ){
 				

@@ -335,11 +335,26 @@ SESecurityManagerImpl
 			// thus causing repetitive prompts
 		
 		if ( protocol.toLowerCase().startsWith( "socks" )){
-			
-			if ( COConfigurationManager.getStringParameter("Proxy.Username").trim().equalsIgnoreCase( "<none>" )){
+
+			String	socks_user 	= COConfigurationManager.getStringParameter( "Proxy.Username" ).trim();
+			String	socks_pw	= COConfigurationManager.getStringParameter( "Proxy.Password" ).trim();
+
+			if ( socks_user.equalsIgnoreCase( "<none>" )){
 				
 				return( new PasswordAuthentication( "", "".toCharArray()));
 			}
+			
+				// actually getting all sorts of problems with Java not caching socks passwords
+				// properly so I've abandoned prompting for them and always use the defined
+				// password
+			
+			if ( socks_user.length() == 0 ){
+				
+				Logger.log(
+					new LogAlert(false, LogAlert.AT_WARNING, "Socks server is requesting authentication, please setup user and password in config" ));
+			}
+			
+			return( new PasswordAuthentication(  socks_user, socks_pw.toCharArray()));
 		}
 		
 		try{			

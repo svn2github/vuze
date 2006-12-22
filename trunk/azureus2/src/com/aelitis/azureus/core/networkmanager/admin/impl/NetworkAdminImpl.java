@@ -26,6 +26,7 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 import java.io.PrintWriter;
 import java.net.Authenticator;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.PasswordAuthentication;
 import java.util.ArrayList;
@@ -476,17 +477,45 @@ NetworkAdminImpl
 		return( protocol.test( null ));
 	}
 	   
-	public NetworkAdminSocksProxy
-	getSocksProxy()
+	public NetworkAdminSocksProxy[]
+	getSocksProxies()
 	{
-		NetworkAdminSocksProxyImpl	res = new NetworkAdminSocksProxyImpl();
+		String host = System.getProperty( "socksProxyHost", "" ).trim();
+		String port = System.getProperty( "socksProxyPort", "" ).trim();
+        
+		String user 		= System.getProperty("java.net.socks.username", "" ).trim();
+		String password 	= System.getProperty("java.net.socks.password", "").trim();
+
+		List	res = new ArrayList();
 		
-		if ( !res.isConfigured()){
+		NetworkAdminSocksProxyImpl	p1 = new NetworkAdminSocksProxyImpl( host, port, user, password );
 		
-			res	= null;
+		if ( p1.isConfigured()){
+		
+			res.add( p1 );
 		}
 		
-		return( res );
+		if ( 	COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" ) &&
+				!COConfigurationManager.getBooleanParameter( "Proxy.Data.Same" )){
+			
+			host 	= COConfigurationManager.getStringParameter( "Proxy.Data.Host" );
+			port	= COConfigurationManager.getStringParameter( "Proxy.Data.Port" );
+			user	= COConfigurationManager.getStringParameter( "Proxy.Data.Username" );
+			
+			if ( user.trim().equalsIgnoreCase("<none>")){
+				user = "";
+			}
+			password = COConfigurationManager.getStringParameter( "Proxy.Data.Password" );
+			
+			NetworkAdminSocksProxyImpl	p2 = new NetworkAdminSocksProxyImpl( host, port, user, password );
+			
+			if ( p2.isConfigured()){
+			
+				res.add( p2 );
+			}			
+		}
+
+		return((NetworkAdminSocksProxy[])res.toArray(new NetworkAdminSocksProxy[res.size()]));
 	}
 	
 	public NetworkAdminHTTPProxy
@@ -550,6 +579,54 @@ NetworkAdminImpl
 	}
 	
 	public void
+	runInitialChecks()
+	{
+		if ( COConfigurationManager.getBooleanParameter( "Proxy.Check.On.Start" )){
+			
+			NetworkAdminSocksProxy[]	socks = getSocksProxies();
+		
+			for (int i=0;i<socks.length;i++){
+				
+				NetworkAdminSocksProxy	sock = socks[i];
+				
+				try{
+					sock.getVersionsSupported();
+			
+				}catch( Throwable e ){
+				
+					Debug.printStackTrace( e );
+					
+					Logger.log(
+						new LogAlert(
+							true,
+							LogAlert.AT_WARNING,
+							"Socks proxy " + sock.getName() + " check failed: " + Debug.getNestedExceptionMessage( e )));
+				}
+			}
+			
+			NetworkAdminHTTPProxy http_proxy = getHTTPProxy();
+			
+			if ( http_proxy != null ){
+			
+				try{
+
+					http_proxy.getDetails();
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
+					
+					Logger.log(
+						new LogAlert(
+							true,
+							LogAlert.AT_WARNING,
+							"HTTP proxy " + http_proxy.getName() + " check failed: " + Debug.getNestedExceptionMessage( e )));
+				}
+			}
+		}
+	}
+	
+	public void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener )
 	{
@@ -594,31 +671,36 @@ NetworkAdminImpl
 			}
 		}
 		
-		NetworkAdminSocksProxy	socks = getSocksProxy();
+		NetworkAdminSocksProxy[]	socks = getSocksProxies();
 		
-		if ( socks == null ){
+		if ( socks.length == 0 ){
 			
 			iw.println( "Socks proxy: none" );
 			
 		}else{
 			
-			iw.println( "Socks proxy: " + socks.getName());
-			
-			try{
-				String[] versions = socks.getVersionsSupported();
+			for (int i=0;i<socks.length;i++){
 				
-				String	str = "";
+				NetworkAdminSocksProxy	sock = socks[i];
 				
-				for (int i=0;i<versions.length;i++){
+				iw.println( "Socks proxy: " + sock.getName());
+				
+				try{
+					String[] versions = sock.getVersionsSupported();
 					
-					str += (i==0?"":",") + versions[i];
+					String	str = "";
+					
+					for (int j=0;j<versions.length;j++){
+						
+						str += (j==0?"":",") + versions[j];
+					}
+					
+					iw.println( "   version: " + str );
+					
+				}catch( NetworkAdminException e ){
+					
+					iw.println( "    failed: " + e.getLocalizedMessage());
 				}
-				
-				iw.println( "   version: " + str );
-				
-			}catch( NetworkAdminException e ){
-				
-				iw.println( "    failed: " + e.getLocalizedMessage());
 			}
 		}
 		

@@ -72,8 +72,8 @@ NetworkAdminHTTPProxyImpl
         https_host	= System.getProperty("https.proxyHost", "" ).trim();
         https_port	= System.getProperty("https.proxyPort", "" ).trim();
         
-        http_host	= System.getProperty("http.proxyUser", "" ).trim();
-        http_host	= System.getProperty("http.proxyPassword", "" ).trim();
+        user		= System.getProperty("http.proxyUser", "" ).trim();
+        password	= System.getProperty("http.proxyPassword", "" ).trim();
     
         String	nph = System.getProperty("http.nonProxyHosts", "" ).trim();
         
@@ -150,8 +150,8 @@ NetworkAdminHTTPProxyImpl
 		
 		final int[]	result = { RES_CONNECT_FAILED };
 		
-		final Throwable[]		error = { null };
-		final ProxyDetails[]	details = {null};
+		final NetworkAdminException[]		error = { null };
+		final ProxyDetails[]				details = {null};
 		
 		try{
 			InetSocketAddress		socks_address = 
@@ -336,7 +336,7 @@ NetworkAdminHTTPProxyImpl
 										Throwable				msg ) 
 									{
 										result[0] 	= RES_PROXY_FAILED;
-										error[0]	= msg;
+										error[0]	= new NetworkAdminException( "Proxy error", msg );
 										
 										transport.close( "Proxy error" );
 										
@@ -348,7 +348,7 @@ NetworkAdminHTTPProxyImpl
 						}catch( Throwable t ) {
 
 							result[0] 	= RES_PROXY_FAILED;
-							error[0]	= t;
+							error[0]	= new NetworkAdminException( "Proxy connect failed", t );
 							
 							sem.release();						}
 					}
@@ -358,7 +358,7 @@ NetworkAdminHTTPProxyImpl
 						Throwable failure_msg ) 
 					{
 						result[0] 	= RES_CONNECT_FAILED;
-						error[0]	= failure_msg;
+						error[0]	= new NetworkAdminException( "Connect failed", failure_msg );
 							
 						sem.release();
 					}
@@ -370,7 +370,7 @@ NetworkAdminHTTPProxyImpl
 		}catch( Throwable e ){
 			
 			result[0] 	= RES_CONNECT_FAILED;
-			error[0]	= e;
+			error[0]	= new NetworkAdminException( "Connect failed", e );
 			
 			sem.release();
 		}
@@ -378,7 +378,7 @@ NetworkAdminHTTPProxyImpl
 		if ( !sem.reserve(10000)){
 			
 			result[0] 	= RES_CONNECT_FAILED;
-			error[0] 	= new Exception( "Timeout" );
+			error[0] 	= new NetworkAdminException( "Connect timeout" );
 		}
 		
 		if ( result[0] == RES_OK ){
@@ -386,7 +386,7 @@ NetworkAdminHTTPProxyImpl
 			return( details[0] );
 		}
 					
-		throw( new NetworkAdminException( "Connection failed", error[0] ));
+		throw( error[0] );
 	}
 	
 	protected class

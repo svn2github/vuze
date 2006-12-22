@@ -52,6 +52,7 @@ import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerFactory;
 import com.aelitis.azureus.core.nat.NATTraverser;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.download.session.TorrentSessionManager;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATTraverser;
@@ -518,6 +519,8 @@ AzureusCoreImpl
 	   });	
 	   
 	   checkBadNatives();
+	   
+	   NetworkAdmin.getSingleton().runInitialChecks();
 	}
 	
 	public void triggerLifeCycleComponentCreated(AzureusCoreComponent component) {

@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 
+import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 
@@ -44,37 +45,54 @@ public class ProxyLoginHandler {
   private static final int	READ_NOT_DONE		= 1;
   private static final int	READ_NO_PROGRESS	= 2;
 	
-  public static final InetSocketAddress DEFAULT_SOCKS_SERVER_ADDRESS;
-  private static final String default_socks_version;
+  public static InetSocketAddress DEFAULT_SOCKS_SERVER_ADDRESS;
+  
+  private static String default_socks_version;
   private static String default_socks_user;
-  private static final String default_socks_password;
+  private static String default_socks_password;
   
 
-  static {
-    boolean socks_same = COConfigurationManager.getBooleanParameter( "Proxy.Data.Same" );
-    String socks_host = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Host" : "Proxy.Data.Host" );
-    int socks_port = 0;
-    try{
-      String socks_port_str = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Port" : "Proxy.Data.Port" );
-
-      socks_port_str = socks_port_str.trim();
-      
-      if ( socks_port_str.length() > 0 ){
-    	  
-    	  socks_port = Integer.parseInt( COConfigurationManager.getStringParameter( socks_same ? "Proxy.Port" : "Proxy.Data.Port" ) );
-      }
-    }catch( Throwable e ){  Debug.printStackTrace(e);  }
-    
-    DEFAULT_SOCKS_SERVER_ADDRESS = new InetSocketAddress( socks_host, socks_port );
-    
-    default_socks_version = COConfigurationManager.getStringParameter( "Proxy.Data.SOCKS.version" );
-    default_socks_user  = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Username" : "Proxy.Data.Username" );
-    if ( default_socks_user.trim().equalsIgnoreCase("<none>")){
-    	default_socks_user = "";
-    }
-    default_socks_password = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Password" : "Proxy.Data.Password" );
+  static{
+	  COConfigurationManager.addListener(
+			 new COConfigurationListener()
+			 {
+					public void
+					configurationSaved()
+					{
+						readConfig();
+					}
+			 });
+	  
+	  readConfig();
   }
   
+  static void
+  readConfig()
+  {
+	  boolean socks_same = COConfigurationManager.getBooleanParameter( "Proxy.Data.Same" );
+	  String socks_host = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Host" : "Proxy.Data.Host" );
+	  int socks_port = 0;
+	  try{
+		  String socks_port_str = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Port" : "Proxy.Data.Port" );
+
+		  socks_port_str = socks_port_str.trim();
+
+		  if ( socks_port_str.length() > 0 ){
+
+			  socks_port = Integer.parseInt( COConfigurationManager.getStringParameter( socks_same ? "Proxy.Port" : "Proxy.Data.Port" ) );
+		  }
+	  }catch( Throwable e ){  Debug.printStackTrace(e);  }
+
+	  DEFAULT_SOCKS_SERVER_ADDRESS = new InetSocketAddress( socks_host, socks_port );
+
+	  default_socks_version = COConfigurationManager.getStringParameter( "Proxy.Data.SOCKS.version" );
+	  default_socks_user  = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Username" : "Proxy.Data.Username" );
+	  if ( default_socks_user.trim().equalsIgnoreCase("<none>")){
+		  default_socks_user = "";
+	  }
+	  default_socks_password = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Password" : "Proxy.Data.Password" );
+
+  }
   
   private final TCPTransportImpl proxy_connection;
   private final InetSocketAddress remote_address;  
@@ -255,7 +273,10 @@ public class ProxyLoginHandler {
     }
     catch( Throwable t ) {
       Debug.out( t );
-      TCPNetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
+      SocketChannel chan = proxy_connection.getSocketChannel();
+      if ( chan != null ){
+    	  TCPNetworkManager.getSingleton().getReadSelector().cancel( chan );
+      }
       proxy_listener.connectFailure( t );
     }
   }
@@ -268,7 +289,7 @@ public class ProxyLoginHandler {
       byte resp = reply.get();
 
       if( ver != 0 || resp != 90 ) {
-        throw new IOException( "SOCKS4(a) connection declined [" +ver+ "/" + resp + "]" );
+        throw new IOException( "SOCKS 4(a): connection declined [" +ver+ "/" + resp + "]" );
       }
   }
   
@@ -455,7 +476,7 @@ public class ProxyLoginHandler {
       byte method = reply.get();
 
       if( method != 0 && method != 2 ) {
-        throw new IOException( "SOCKS5 no valid method [" + method + "]" );
+        throw new IOException( "SOCKS 5: no valid method [" + method + "]" );
       }
 
       // no auth -> go to request phase
@@ -473,7 +494,7 @@ public class ProxyLoginHandler {
       byte status = reply.get();
 
       if( status != 0 ) {
-        throw new IOException( "SOCKS authentication fails [" +status+ "]" );
+        throw new IOException( "SOCKS 5: authentication fails [status=" +status+ "]" );
       }
 
       return false;

@@ -253,6 +253,13 @@ public class VirtualChannelSelectorImpl {
     		// don't worry too much about cancels
     	}
     	
+    	if ( channel == null ){
+    		
+    		Debug.out( "Attempt to cancel selects for null channel" );
+    		
+    		return;
+    	}
+    	
     	try{
     		register_cancel_list_mon.enter();
       	   		
@@ -296,6 +303,13 @@ public class VirtualChannelSelectorImpl {
     	if ( destroyed ){
      			
    			Debug.out( "register called after selector destroyed" );
+    	}
+    	
+    	if ( channel == null ){
+    		
+    		Debug.out( "Attempt to register selects for null channel" );
+    		
+    		return;
     	}
     	
     	try{

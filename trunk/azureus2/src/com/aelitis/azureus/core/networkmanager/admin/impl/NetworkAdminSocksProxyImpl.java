@@ -55,14 +55,17 @@ NetworkAdminSocksProxyImpl
 	private String		password;
 	
 	protected
-	NetworkAdminSocksProxyImpl()
+	NetworkAdminSocksProxyImpl(
+		String		_host,
+		String		_port,
+		String		_user,
+		String		_password )
 	{
-        host = System.getProperty( "socksProxyHost", "" ).trim();
-        port = System.getProperty( "socksProxyPort", "" ).trim();
-        
-        user 		= System.getProperty("java.net.socks.username", "" ).trim();
-        password 	= System.getProperty("java.net.socks.password", "").trim();
-	}
+		host		= _host;
+		port		= _port;
+		user		= _user;
+		password	= _password;
+ 	}
 	
 	protected boolean
 	isConfigured()
@@ -99,27 +102,50 @@ NetworkAdminSocksProxyImpl
 	
 		throws NetworkAdminException
 	{
+		NetworkAdminException	failure = null;
+		
 		List	versions = new ArrayList();
 		
-		if ( testVersion( "v4" )){
+		try{
+			testVersion( "V4" );
 			
 			versions.add( "4" );
+			
+		}catch( NetworkAdminException e ){
+			
+			failure = e;
 		}
 		
-		if ( testVersion( "v4a" )){
+		try{
+			testVersion( "V4a" );
 			
 			versions.add( "4a" );
+			
+		}catch( NetworkAdminException e ){
+			
+			failure = e;
 		}
 		
-		if ( testVersion( "5" )){
+		try{
+			testVersion( "V5" );
 			
 			versions.add( "5" );
+			
+		}catch( NetworkAdminException e ){
+			
+			failure = e;
 		}
+		
+		if ( versions.size() > 0 ){
 	
-		return((String[])versions.toArray( new String[versions.size()]));
+			return((String[])versions.toArray( new String[versions.size()]));
+			
+		}
+		
+		throw( failure );
 	}
 	
-	protected boolean
+	protected void
 	testVersion(
 		final String	version )
 	
@@ -132,7 +158,8 @@ NetworkAdminSocksProxyImpl
 		final AESemaphore	sem = new AESemaphore( "NetworkAdminSocksProxy:test" );
 		
 		final int[]	result = { RES_CONNECT_FAILED };
-		final Throwable[]	error = { null };
+		
+		final NetworkAdminException[]	error = { null };
 		
 		try{
 			InetSocketAddress		socks_address = new InetSocketAddress( InetAddress.getByName( host ), Integer.parseInt(port));
@@ -179,7 +206,7 @@ NetworkAdminSocksProxyImpl
 									transport.close( "Proxy login failed" );
 									
 									result[0] 	= RES_SOCKS_FAILED;
-									error[0]	= failure_msg;
+									error[0]	= new NetworkAdminException( "Proxy connect failed", failure_msg );
 									
 									sem.release();
 								}
@@ -194,7 +221,7 @@ NetworkAdminSocksProxyImpl
 					Throwable failure_msg ) 
 				{
 					result[0] 	= RES_CONNECT_FAILED;
-					error[0]	= failure_msg;
+					error[0]	= new NetworkAdminException( "Connect failed", failure_msg );
 					
 					sem.release();
 				}
@@ -206,7 +233,7 @@ NetworkAdminSocksProxyImpl
 		}catch( Throwable e ){
 			
 			result[0] 	= RES_CONNECT_FAILED;
-			error[0]	= e;
+			error[0]	= new NetworkAdminException( "Connect failed", e );
 			
 			sem.release();
 		}
@@ -214,21 +241,12 @@ NetworkAdminSocksProxyImpl
 		if ( !sem.reserve(10000)){
 			
 			result[0] 	= RES_CONNECT_FAILED;
-			error[0] 	= new Exception( "Timeout" );
+			error[0] 	= new NetworkAdminException( "Connect timeout" );
 		}
 		
-		if ( result[0] == RES_OK ){
-			
-			return( true );
+		if ( result[0] != RES_OK ){
+				
+			throw( error[0] );
 		}
-		
-		if ( result[0] == RES_CONNECT_FAILED ){
-			
-			throw( new NetworkAdminException( "Connection failed", error[0] ));
-		}
-		
-		error[0].printStackTrace();
-		
-		return( false );
 	}
 }

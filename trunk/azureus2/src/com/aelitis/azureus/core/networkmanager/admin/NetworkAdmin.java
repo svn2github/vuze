@@ -69,8 +69,8 @@ NetworkAdmin
 	
 		throws NetworkAdminException;
 	
-	public abstract NetworkAdminSocksProxy
-	getSocksProxy();
+	public abstract NetworkAdminSocksProxy[]
+	getSocksProxies();
 	
 	public abstract NetworkAdminHTTPProxy
 	getHTTPProxy();
@@ -98,6 +98,9 @@ NetworkAdmin
 	public abstract void
 	removePropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener );
+	
+	public abstract void
+	runInitialChecks();
 	
 	public abstract void
 	logNATStatus(
