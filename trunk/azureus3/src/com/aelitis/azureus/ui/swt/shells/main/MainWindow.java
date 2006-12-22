@@ -284,7 +284,6 @@ public class MainWindow implements SWTSkinTabSetListener
 		Utils.setShellIcon(shell);
 		Utils.linkShellMetricsToConfig(shell, "window");
 
-		PlatformConfigMessenger.login(5000);
 		setupUsageTracker();
 
 		splash.reportPercent(70);
