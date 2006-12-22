@@ -36,6 +36,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
@@ -626,9 +627,6 @@ public class Tab {
       tabItem.dispose();
     }
     catch (Exception e) {}
-    if (folder != null && !folder.isDisposed()) {
-    	folder.dispose();
-    }
   }
 
   public static void addTabAddedListener(Listener listener)
