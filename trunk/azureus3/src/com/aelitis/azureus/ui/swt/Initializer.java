@@ -69,11 +69,10 @@ public class Initializer implements IUIIntializer
 
 		boolean debugGUI = Boolean.getBoolean("debug");
 
-		for (int i = 0; i < args.length; i++) {
-			Debug.out("param " + args[i]);
-		}
 		if (mi || debugGUI || Main.processParams(args, startServer)) {
 			AzureusCore core = AzureusCoreFactory.create();
+			Constants.initialize(core);
+			PlatformConfigMessenger.login(0);
 
 			core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
 				private GlobalManager gm;
@@ -90,7 +89,6 @@ public class Initializer implements IUIIntializer
 				// @see com.aelitis.azureus.core.AzureusCoreLifecycleAdapter#started(com.aelitis.azureus.core.AzureusCore)
 
 				public void started(AzureusCore core) {
-
 					if (gm == null)
 						return;
 
@@ -115,7 +113,6 @@ public class Initializer implements IUIIntializer
 					for (int i = 0; i < args.length; i++) {
 
 						try {
-							Debug.out("Opening " + args[i]);
 							TorrentOpener.openTorrent(args[i]);
 
 						} catch (Throwable e) {
@@ -239,8 +236,6 @@ public class Initializer implements IUIIntializer
 		core.start();
 
 		splash.reportPercent(25);
-
-		Constants.initialize(core);
 
 		System.out.println("Core Initializing took "
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");

@@ -23,15 +23,16 @@
 package com.aelitis.azureus.util;
 
 import org.gudy.azureus2.core3.util.Base32;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
+import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
+
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
-
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
-import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 
 public class InitialisationFunctions
 {
