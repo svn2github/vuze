@@ -124,7 +124,7 @@ public class PlatformMessenger
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.PMsgr");
 		diag_logger.log(string);
 		if (Constants.DIAG_TO_STDOUT) {
-			System.out.println(string);
+			System.out.println(System.currentTimeMillis() + "] " + string);
 		}
 	}
 
