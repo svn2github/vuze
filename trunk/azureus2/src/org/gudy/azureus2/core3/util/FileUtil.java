@@ -1473,4 +1473,49 @@ public class FileUtil {
 			fis.close();
 		}
 	}
+
+	public static String
+	readFileEndAsString(
+		File	file,
+		int		size_limit )
+	
+		throws IOException
+	{
+		FileInputStream	fis = new FileInputStream( file );
+		
+		try{
+			if (file.length() > size_limit) {
+				fis.skip(file.length() - size_limit);
+			}
+			
+			StringBuffer	result = new StringBuffer(1024);
+			
+			byte[]	buffer = new byte[1024];
+			
+			while( true ){
+			
+				int	len = fis.read( buffer );
+			
+				if ( len <= 0 ){
+					
+					break;
+				}
+			
+				result.append( new String( buffer, 0, len, "ISO-8859-1" ));
+				
+				if ( result.length() > size_limit ){
+					
+					result.setLength( size_limit );
+					
+					break;
+				}
+			}
+			
+			return( result.toString());
+			
+		}finally{
+			
+			fis.close();
+		}
+	}
 }
