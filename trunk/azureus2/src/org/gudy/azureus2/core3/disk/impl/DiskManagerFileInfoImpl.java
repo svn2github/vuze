@@ -470,6 +470,7 @@ DiskManagerFileInfoImpl
 	public void
 	close()
 	{
+		// this doesn't need to do anything as overall closure is handled by the disk manager closing
 	}
 	
 	public void

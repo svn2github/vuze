@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -62,7 +61,6 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
@@ -171,6 +169,8 @@ DownloadManagerController
 	private DiskManagerListener				disk_manager_listener_use_accessors;
 	
 	private fileInfoFacade[]		files_facade		= new fileInfoFacade[0];	// default before torrent avail
+	private boolean					files_facade_destroyed;
+	
 	private boolean					cached_complete_excluding_dnd;
 	private boolean					cached_has_dnd_files;
 	private boolean         cached_values_set;
@@ -1093,6 +1093,8 @@ DownloadManagerController
 			
 			peer_manager_registration	= null;
 		}
+		
+		destroyFileInfo();
 	}
 	
 		// secrets for inbound connections, support all
@@ -1863,6 +1865,29 @@ DownloadManagerController
 		return( interfaces.toArray());
 	}
 	
+	protected void
+	destroyFileInfo()
+	{
+		try{
+			facade_mon.enter();
+
+			if ( files_facade == null || files_facade_destroyed ){
+				
+				return;
+			}
+			
+			files_facade_destroyed = true;
+			
+			for (int i=0;i<files_facade.length;i++){
+				
+				files_facade[i].close();
+			}
+		}finally{
+			
+			facade_mon.exit();
+		}
+	}
+	
 	/** XXX Don't call me, call makeSureFilesFacadeFilled() */
 	protected void
 	fixupFileInfo(
@@ -1880,6 +1905,11 @@ DownloadManagerController
 		try{
 			facade_mon.enter();
 				
+			if ( files_facade_destroyed ){
+				
+				return;
+			}
+			
 			DiskManager	dm = DownloadManagerController.this.getDiskManager();
 
 			DiskManagerFileInfo[]	active	= null;
