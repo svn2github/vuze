@@ -5,6 +5,7 @@ import java.util.Map;
 import org.eclipse.swt.browser.Browser;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -35,7 +36,12 @@ public class PublishUtils
 
 	public static boolean isPublished(DownloadManager dm) {
 		try {
-			Map map = dm.getTorrent().getAdditionalMapProperty("attributes");
+			TOTorrent torrent = dm.getTorrent();
+			if (torrent == null) {
+				return false;
+			}
+			
+			Map map = torrent.getAdditionalMapProperty("attributes");
 
 			if (map != null) {
 				Map mapAttr = (Map) map.get("Plugin.azdirector.ContentMap");
