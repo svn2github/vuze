@@ -7,6 +7,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -71,10 +72,14 @@ public class SeedingListener extends AbstractMessageListener {
 		for( int i = downloads.length -1; i >=0; i-- ) {
 			Download d = downloads[i];
 			
-			String downloadId = Base32.encode(d.getTorrent().getHash());
+			Torrent torrent = d.getTorrent();
 			
-			if(downloadId.equals(magnet)) {
-				return d;
+			if (torrent != null) {
+  			String downloadId = Base32.encode(torrent.getHash());
+  			
+  			if(downloadId.equals(magnet)) {
+  				return d;
+  			}
 			}
 		}
 		
