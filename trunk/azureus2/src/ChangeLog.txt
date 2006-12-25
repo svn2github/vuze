@@ -4,25 +4,30 @@ AZUREUS CHANGELOG
 2006.0x.xx | Azureus 2.5.0.1
 
 FEATURE: Core | Minimum # of Simultaneous Active Downloads (ie. always have at least x torrents downloading) [TuxPaper]
+FEATURE: Core | Added method to XFS specific allocation of new files [Greg]
+FEATURE: Core | Added per-torrent max seeds parameter [Parg]
+FEATURE: Core | Added per-torrent max peers parameter [Parg]
 FEATURE: UI   | Total file size added to Open Torrent Window [TuxPaper]
 FEATURE: UI   | Option to show complete downloads with incomplete "do not download" files in the download area [TuxPaper]
 FEATURE: UI   | Added custom user comment field [amc1]
 FEATURE: UI   | Added file extension column in files view [amc1]
 FEATURE: UI   | Spinners for config field that take numbers [TuxPaper]
+FEATURE: UI   | Setting for Min # of Downloads to have running at any given time [TuxPaper]
+FEATURE: UI   | Console UI NAT test [Parg]
 FEATURE: Plug | Plugins can now create submenus. [amc1]
 FEATURE: Plug | Added code to allow plugins to get text input from a user in non-UI specific way. [amc1]
 FEATURE: Plug | Plugins now have better support to organise file data within default save directories. [amc1]
 FEATURE: Plug | Plugins can now easily add hyperlinks to config sections. [amc1]
-FEATURE: Core | Added method to XFS specific allocation of new files [Greg]
-FEATURE: Core | Added per-torrent max seeds parameter [Parg]
-FEATURE: Core | Added per-torrent max peers parameter [Parg]
-FEATURE: UI   | Console UI NAT test [Parg]
 
 CHANGE: Core  | Improve the "presence" handling for torrents created by ourselves [Parg]
+CHANGE: Core  | Less memory footprint [Parg,TuxPaper]
+CHANGE: Core  | Faster startup for large torrent lists (and no naughty plugins) [Parg]
+CHANGE: Core  | NAT test moved to separate server
 CHANGE: UI    | Open torrent windows now always has OK button enabled with warning message if pressed when in invalid state [TuxPaper]
 CHANGE: UI    | Remove nag/donation window [TuxPaper]
 CHANGE: UI    | Differentiate between libTorrent (Rakshasa) and libtorrent (Rasterbar) [TuxPaper]
-CHANGE: Core  | NAT test moved to separate server
+CHANGE: UI    | For multi-file torrents, icon in name column displays icon for largest file (+ a little folder icon) [TuxPaper]
+CHANGE: UI    | Faster filtering when torrent list is large [TuxPaper]
 
 BUGFIX: Core  | If clipboard has just a " or "" in it the open-torrents dialog won't open [Parg]
 BUGFIX: Core  | Setting of UDP port not working [Parg]
@@ -33,6 +38,7 @@ BUGFIX: Core  | Fix to stop already complete downloads being moved by "move-on-c
 BUGFIX: UI    | Fix (some) painting issues in pieces+files view [TuxPaper]
 BUGFIX: UI    | Fix to allow negative values for Multi-monitor window positions [TuxPaper]
 BUGFIX: UI    | Fixed memory leak in "Mr Slidey" code [amc1]
+BUGFIX: UI    | Fix UI loss when clicking delete from icon bar while in Details view [TuxPaper]
 BUGFIX: Plug  | Fixed bug where some listeners for table columns were not registered properly. [amc1]
 
 
