@@ -276,6 +276,20 @@ RPDownloadStats
 		 return ( 0 );
   }
   
+	public long
+	getSecondsSinceLastDownload()
+	{
+		notSupported();
+		return ( 0 );	
+	}
+	
+	public long
+	getSecondsSinceLastUpload()
+	{
+		notSupported();
+		return ( 0 );	
+	}
+	
 	public int
 	getHealth()
 	{

@@ -278,6 +278,24 @@ DownloadStats
 	getSecondsOnlySeeding();
 	
 	/**
+	 * Returns the number of seconds running time since data was downloaded, -1 if never 
+	 * @since 2501
+	 * @return
+	 */
+	
+	public long
+	getSecondsSinceLastDownload();
+	
+	/**
+	 * Returns the number of seconds running time since data was uploaded, -1 if never 
+	 * @since 2501
+	 * @return
+	 */
+	
+	public long
+	getSecondsSinceLastUpload();
+	
+	/**
 	 * returns an indication of the health of the torrent 
 	 * @return	see above HEALTH constants
 	 */

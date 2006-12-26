@@ -194,6 +194,18 @@ DownloadStatsImpl
 	  return dm_stats.getTimeStartedSeeding();
 	}
 	
+	public long
+	getSecondsSinceLastDownload()
+	{
+		return(dm_stats.getTimeSinceLastDataReceivedInSeconds());
+	}
+	
+	public long
+	getSecondsSinceLastUpload()
+	{
+		return(dm_stats.getTimeSinceLastDataSentInSeconds());
+	}
+	
 	public int
 	getHealth()
 	{
