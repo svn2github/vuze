@@ -31,17 +31,20 @@ public class
 TRTrackerServerTorrentStatsImpl
 	implements TRTrackerServerTorrentStats 
 {
-	protected TRTrackerServerTorrentImpl	torrent;
-	protected long							announce_count;
-	protected long							scrape_count;
-	protected long							completed_count;
+	private TRTrackerServerTorrentImpl	torrent;
+	private long							announce_count;
+	private long							scrape_count;
+	private long							completed_count;
 	
-	protected long							uploaded;
-	protected long							downloaded;
-	protected long							left;
+	private long							uploaded;
+	private long							downloaded;
+	private long							left;
 	
-	protected long							bytes_in;
-	protected long							bytes_out;
+	private long							biased_uploaded;
+	private long							biased_downloaded;
+
+	private long							bytes_in;
+	private long							bytes_out;
 	
 	protected
 	TRTrackerServerTorrentStatsImpl(
@@ -54,7 +57,8 @@ TRTrackerServerTorrentStatsImpl
 	addAnnounce(
 		long		ul_diff,
 		long		dl_diff,
-		long		le_diff )
+		long		le_diff,
+		boolean		biased_peer )
 	{
 		announce_count++;
 		
@@ -65,6 +69,12 @@ TRTrackerServerTorrentStatsImpl
 		if ( left < 0 ){
 			
 			left	= 0;
+		}
+		
+		if ( biased_peer ){
+			
+			biased_uploaded		+= ul_diff<0?0:ul_diff;	// should always be +ve
+			biased_downloaded	+= dl_diff<0?0:dl_diff;
 		}
 	}
 	
@@ -122,6 +132,18 @@ TRTrackerServerTorrentStatsImpl
 		return( downloaded );
 	}
 	
+	public long
+	getBiasedUploaded()
+	{
+		return( biased_uploaded );
+	}
+	
+	public long
+	getBiasedDownloaded()
+	{
+		return( biased_downloaded );
+	}
+
 	public long
 	getAmountLeft()
 	{

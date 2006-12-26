@@ -523,7 +523,7 @@ TRTrackerServerTorrentImpl
 				}
 			}
 			
-			stats.addAnnounce( ul_diff, dl_diff, le_diff );
+			stats.addAnnounce( ul_diff, dl_diff, le_diff, peer != null && peer.isBiased());
 			
 			if ( event_type==TRTrackerServerTorrentPeerListener.ET_COMPLETE && !already_completed ){
 				

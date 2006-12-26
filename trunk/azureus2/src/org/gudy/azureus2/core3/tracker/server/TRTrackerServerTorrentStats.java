@@ -49,6 +49,12 @@ TRTrackerServerTorrentStats
 	getDownloaded();
 	
 	public long
+	getBiasedUploaded();
+	
+	public long
+	getBiasedDownloaded();
+
+	public long
 	getAmountLeft();
 	
 	public long
