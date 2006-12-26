@@ -218,7 +218,16 @@ public class TableCellImpl
   ////////////////
   
   public Object getDataSource() {
-    return tableRow.getDataSource(tableColumn.getUseCoreDataSource());
+		// if we've been disposed then row/col are null
+	  
+	TableRowCore	row = tableRow;
+	TableColumnCore	col	= tableColumn;
+	
+	if ( row == null || col == null){
+		return( null );
+	}
+	
+    return row.getDataSource(col.getUseCoreDataSource());
   }
   
   public TableColumn getTableColumn() {
