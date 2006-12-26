@@ -61,7 +61,7 @@ DownloadManagerState
 	
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
 		{ AT_TIME_SINCE_DOWNLOAD,					new Integer( -1 )},
-		{ AT_TIME_SINCE_UPLOAD,						new Integer( -1 ) },
+		{ AT_TIME_SINCE_UPLOAD,						new Integer( -1 )},
 	};
 	
 	public static final long FLAG_ONLY_EVER_SEEDED			= Download.FLAG_ONLY_EVER_SEEDED;

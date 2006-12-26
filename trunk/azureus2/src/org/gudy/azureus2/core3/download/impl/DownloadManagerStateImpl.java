@@ -99,7 +99,7 @@ DownloadManagerStateImpl
 		
 		for (int i=0;i<ATTRIBUTE_DEFAULTS.length;i++){
 			
-			default_attributes.put( ATTRIBUTE_DEFAULTS[i][0], PARAMETERS[i][1] );
+			default_attributes.put( ATTRIBUTE_DEFAULTS[i][0], ATTRIBUTE_DEFAULTS[i][1] );
 		}
 	}
 	
