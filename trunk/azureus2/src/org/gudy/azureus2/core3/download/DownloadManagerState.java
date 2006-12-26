@@ -54,8 +54,15 @@ DownloadManagerState
 	public static final String AT_RELATIVE_SAVE_PATH        = "relativepath";
 	public static final String AT_CONTENT_MAP 				= "contentmap";
 	public static final String AT_SECRETS				 	= "secrets";
-	public static final String AT_RESUME_STATE		 	= "resumecomplete";
-	public static final String AT_PRIMARY_FILE		 	= "primaryfile";
+	public static final String AT_RESUME_STATE		 		= "resumecomplete";
+	public static final String AT_PRIMARY_FILE		 		= "primaryfile";
+	public static final String AT_TIME_SINCE_DOWNLOAD		= "timesincedl";
+	public static final String AT_TIME_SINCE_UPLOAD			= "timesinceul";
+	
+	public static Object[][] ATTRIBUTE_DEFAULTS = {
+		{ AT_TIME_SINCE_DOWNLOAD,					new Integer( -1 )},
+		{ AT_TIME_SINCE_UPLOAD,						new Integer( -1 ) },
+	};
 	
 	public static final long FLAG_ONLY_EVER_SEEDED			= Download.FLAG_ONLY_EVER_SEEDED;
 	public static final long FLAG_SCAN_INCOMPLETE_PIECES	= Download.FLAG_SCAN_INCOMPLETE_PIECES;

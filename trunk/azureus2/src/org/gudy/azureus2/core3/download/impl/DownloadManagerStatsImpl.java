@@ -56,6 +56,9 @@ DownloadManagerStatsImpl
 	private long saved_SecondsDownloading = 0;
 	private long saved_SecondsOnlySeeding = 0;
 	
+	private int saved_SecondsSinceDownload	= 0;
+	private int saved_SecondsSinceUpload	= 0;
+	
 	private int max_upload_rate_bps = 0;  //0 for unlimited
 	private int max_download_rate_bps = 0;  //0 for unlimited
   
@@ -485,6 +488,88 @@ DownloadManagerStatsImpl
 		max_download_rate_bps = max_rate_bps;  
 	}
     
+	public int 
+	getTimeSinceLastDataReceivedInSeconds()
+	{
+		PEPeerManager	pm = download_manager.getPeerManager();
+		
+		int	res = saved_SecondsSinceDownload;
+		
+		if ( pm != null ){
+			
+			int	current = pm.getStats().getTimeSinceLastDataReceivedInSeconds();
+			
+			if ( current >= 0 ){
+			
+					// activity this session, use this value
+				
+				res = current;
+				
+			}else{
+				
+					// no activity this session. If ever has been activity add in session
+					// time
+				
+				if ( res >= 0 ){
+					
+					long	now = SystemTime.getCurrentTime();
+					
+					long	elapsed = now - pm.getTimeStarted();
+					
+					if ( elapsed < 0 ){
+						
+						elapsed = 0;
+					}
+					
+					res += elapsed/1000;
+				}
+			}
+		}
+		
+		return( res );	
+	}
+	
+	public int 
+	getTimeSinceLastDataSentInSeconds()
+	{
+		PEPeerManager	pm = download_manager.getPeerManager();
+		
+		int	res = saved_SecondsSinceUpload;
+		
+		if ( pm != null ){
+			
+			int	current = pm.getStats().getTimeSinceLastDataSentInSeconds();
+			
+			if ( current >= 0 ){
+			
+					// activity this session, use this value
+				
+				res = current;
+				
+			}else{
+				
+					// no activity this session. If ever has been activity add in session
+					// time
+				
+				if ( res >= 0 ){
+					
+					long	now = SystemTime.getCurrentTime();
+					
+					long	elapsed = now - pm.getTimeStarted();
+					
+					if ( elapsed < 0 ){
+						
+						elapsed = 0;
+					}
+					
+					res += elapsed/1000;
+				}
+			}
+		}
+		
+		return( res );	
+	}
+	
 	protected void
 	saveSessionTotals()
 	{
@@ -498,6 +583,15 @@ DownloadManagerStatsImpl
 	
 		saved_SecondsDownloading 		= getSecondsDownloading();
 		saved_SecondsOnlySeeding		= getSecondsOnlySeeding();
+		
+		saved_SecondsSinceDownload		= getTimeSinceLastDataReceivedInSeconds();
+		saved_SecondsSinceUpload		= getTimeSinceLastDataSentInSeconds();
+		
+		DownloadManagerState state = download_manager.getDownloadState();
+
+		state.setIntAttribute( DownloadManagerState.AT_TIME_SINCE_DOWNLOAD, saved_SecondsSinceDownload );
+		state.setIntAttribute( DownloadManagerState.AT_TIME_SINCE_UPLOAD, saved_SecondsSinceUpload );
+
 	}
 	
  	protected void
@@ -524,6 +618,11 @@ DownloadManagerStatsImpl
 		saved_hashfails				= _saved_hashfails;
 		saved_SecondsDownloading	= _saved_SecondsDownloading;
 		saved_SecondsOnlySeeding	= _saved_SecondsOnlySeeding;
+		
+		DownloadManagerState state = download_manager.getDownloadState();
+		
+		saved_SecondsSinceDownload	= state.getIntAttribute( DownloadManagerState.AT_TIME_SINCE_DOWNLOAD );
+		saved_SecondsSinceUpload	= state.getIntAttribute( DownloadManagerState.AT_TIME_SINCE_UPLOAD );
 	}
 	
 	protected void 

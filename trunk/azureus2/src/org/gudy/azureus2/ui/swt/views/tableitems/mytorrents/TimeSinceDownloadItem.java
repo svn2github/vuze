@@ -24,7 +24,6 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -49,9 +48,8 @@ public class TimeSinceDownloadItem
 
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();
-    PEPeerManager pm = dm==null?null:dm.getPeerManager();
     
-    int value = (pm == null) ? -2 : pm.getStats().getTimeSinceLastDataReceivedInSeconds();
+    int value = (dm == null) ? -2 : dm.getStats().getTimeSinceLastDataReceivedInSeconds();
     
     if (!cell.setSortValue(value==-1?Integer.MAX_VALUE:value) && cell.isValid())
       return;

@@ -183,6 +183,9 @@ DownloadManagerStats
    */
   public void setDownloadRateLimitBytesPerSecond( int max_rate_bps );
   
+	public int getTimeSinceLastDataReceivedInSeconds();
+	public int getTimeSinceLastDataSentInSeconds();
+	
 	public void
 	restoreSessionTotals(
 		long		_saved_data_bytes_downloaded,

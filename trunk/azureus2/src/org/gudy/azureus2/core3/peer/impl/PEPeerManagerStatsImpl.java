@@ -21,8 +21,6 @@
 
 package org.gudy.azureus2.core3.peer.impl;
 
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.control.PEPeerControlImpl;
 import org.gudy.azureus2.core3.util.*;

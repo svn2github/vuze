@@ -85,6 +85,7 @@ DownloadManagerStateImpl
 	}
 	
 	private static final Map	default_parameters;
+	private static final Map	default_attributes;
 	
 	static{
 		default_parameters  = new HashMap();
@@ -92,6 +93,13 @@ DownloadManagerStateImpl
 		for (int i=0;i<PARAMETERS.length;i++){
 			
 			default_parameters.put( PARAMETERS[i][0], PARAMETERS[i][1] );
+		}
+		
+		default_attributes  = new HashMap();
+		
+		for (int i=0;i<ATTRIBUTE_DEFAULTS.length;i++){
+			
+			default_attributes.put( ATTRIBUTE_DEFAULTS[i][0], PARAMETERS[i][1] );
 		}
 	}
 	
@@ -1609,6 +1617,24 @@ DownloadManagerStateImpl
 			Long	l = (Long)attributes.get( attribute_name );
 			
 			if ( l == null ){
+				
+				Object def = default_attributes.get( attribute_name );
+				
+				if ( def != null ){
+					
+					if ( def instanceof Long ){
+						
+						return(((Long)def).longValue());
+						
+					}else if ( def instanceof Integer ){
+						
+						return(((Integer)def).longValue());
+						
+					}else{
+						
+						Debug.out( "unknown default type " + def );
+					}
+				}
 				
 				return( 0 );
 			}
