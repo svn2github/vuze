@@ -489,20 +489,43 @@ ConfigurationManager
   }
 
   public boolean setParameter(String parameter, int defaultValue) {
-    Long newValue = new Long(defaultValue);
-    Long oldValue = (Long) propertiesMap.put(parameter, newValue);
-    return notifyParameterListenersIfChanged(parameter, newValue, oldValue);
-  }
-  
-  public boolean setParameter(String parameter, long defaultValue) {
-	    Long newValue = new Long(defaultValue);
-	    Long oldValue = (Long) propertiesMap.put(parameter, newValue);
-	    return notifyParameterListenersIfChanged(parameter, newValue, oldValue);
-  }
-  public boolean setParameter(String parameter, byte[] defaultValue) {
-    byte[] oldValue = (byte[]) propertiesMap.put(parameter, defaultValue);
-    return notifyParameterListenersIfChanged(parameter, defaultValue, oldValue);
-   }
+		Long newValue = new Long(defaultValue);
+		try {
+			Long oldValue = (Long) propertiesMap.put(parameter, newValue);
+			return notifyParameterListenersIfChanged(parameter, newValue, oldValue);
+		} catch (ClassCastException e) {
+			// Issuing a warning here would be nice, but both logging and config stuff
+			// at startup create potential deadlocks or stack overflows
+			notifyParameterListeners(parameter);
+			return true;
+		}
+	}
+
+	public boolean setParameter(String parameter, long defaultValue) {
+		Long newValue = new Long(defaultValue);
+		try {
+			Long oldValue = (Long) propertiesMap.put(parameter, newValue);
+			return notifyParameterListenersIfChanged(parameter, newValue, oldValue);
+		} catch (ClassCastException e) {
+			// Issuing a warning here would be nice, but both logging and config stuff
+			// at startup create potential deadlocks or stack overflows
+			notifyParameterListeners(parameter);
+			return true;
+		}
+	}
+
+	public boolean setParameter(String parameter, byte[] defaultValue) {
+		try {
+			byte[] oldValue = (byte[]) propertiesMap.put(parameter, defaultValue);
+			return notifyParameterListenersIfChanged(parameter, defaultValue,
+					oldValue);
+		} catch (ClassCastException e) {
+			// Issuing a warning here would be nice, but both logging and config stuff
+			// at startup create potential deadlocks or stack overflows
+			notifyParameterListeners(parameter);
+			return true;
+		}
+	}
   
   public boolean setParameter(String parameter, String defaultValue) {
     return setParameter(parameter, stringToBytes(defaultValue));
