@@ -190,9 +190,7 @@ public class SystemTraySWT
 
 		trayItem.addListener(SWT.MenuDetect, new Listener() {
 			public void handleEvent(Event arg0) {
-				if(!Constants.isOSX || true) {
-					menu.setVisible(true);
-				}
+				menu.setVisible(true);
 			}
 		});
 	}
