@@ -3,7 +3,6 @@ AZUREUS CHANGELOG
 
 2006.0x.xx | Azureus 2.5.0.1
 
-FEATURE: Core | Minimum # of Simultaneous Active Downloads (ie. always have at least x torrents downloading) [TuxPaper]
 FEATURE: Core | Added method to XFS specific allocation of new files [Greg]
 FEATURE: Core | Added per-torrent max seeds parameter [Parg]
 FEATURE: Core | Added per-torrent max peers parameter [Parg]
@@ -12,7 +11,7 @@ FEATURE: UI   | Option to show complete downloads with incomplete "do not downlo
 FEATURE: UI   | Added custom user comment field [amc1]
 FEATURE: UI   | Added file extension column in files view [amc1]
 FEATURE: UI   | Spinners for config field that take numbers [TuxPaper]
-FEATURE: UI   | Setting for Min # of Downloads to have running at any given time [TuxPaper]
+FEATURE: UI   | Setting for Minimum # of Simultaneous Active Downloads to have running at any given time [TuxPaper]
 FEATURE: UI   | Console UI NAT test [Parg]
 FEATURE: Plug | Plugins can now create submenus. [amc1]
 FEATURE: Plug | Added code to allow plugins to get text input from a user in non-UI specific way. [amc1]
