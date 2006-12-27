@@ -23,6 +23,7 @@ CHANGE: Core  | Improve the "presence" handling for torrents created by ourselve
 CHANGE: Core  | Less memory footprint [Parg,TuxPaper]
 CHANGE: Core  | Faster startup for large torrent lists (and no naughty plugins) [Parg]
 CHANGE: Core  | NAT test moved to separate server
+CHANGE: Core  | Download up/down idle counts now persisted over restart [Parg]
 CHANGE: UI    | Open torrent windows now always has OK button enabled with warning message if pressed when in invalid state [TuxPaper]
 CHANGE: UI    | Remove nag/donation window [TuxPaper]
 CHANGE: UI    | Differentiate between libTorrent (Rakshasa) and libtorrent (Rasterbar) [TuxPaper]
