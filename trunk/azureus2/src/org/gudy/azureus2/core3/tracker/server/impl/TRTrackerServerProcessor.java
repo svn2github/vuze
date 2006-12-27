@@ -46,7 +46,7 @@ TRTrackerServerProcessor
 		}
 	}
 	
-	protected TRTrackerServerImpl		server;
+	private TRTrackerServerImpl		server;
 	
 	protected TRTrackerServerTorrentImpl
 	processTrackerRequest(

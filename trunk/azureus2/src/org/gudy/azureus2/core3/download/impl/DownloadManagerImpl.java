@@ -3223,12 +3223,6 @@ DownloadManagerImpl
 				pm.generateEvidence(writer);
 			}
 			
-			if (stats != null) {
-				writer.println("Completed? Live: " + stats.getDownloadCompleted(true)
-						+ "; NonLive: " + stats.getDownloadCompleted(false) + "; other: "
-						+ stats.getCompleted());
-			}
-			
 			controller.generateEvidence(writer);
 
 		} finally {

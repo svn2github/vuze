@@ -26,7 +26,6 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 import java.io.PrintWriter;
 import java.net.Authenticator;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.PasswordAuthentication;
 import java.util.ArrayList;
@@ -243,7 +242,7 @@ NetworkAdminImpl
 
 		try{
 	
-			if ( bind_ip.length() == 0 & old_bind_ip == null ){
+			if ( bind_ip.length() == 0 && old_bind_ip == null ){
 				
 			}else if ( bind_ip.length() == 0 ){
 				

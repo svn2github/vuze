@@ -638,8 +638,8 @@ DownloadManagerStatsImpl
 				"recv_d=" + getTotalDataBytesReceived() + ",recv_p=" + getTotalProtocolBytesReceived() + ",recv_g=" + getTotalGoodDataBytesReceived() + 
 				",sent_d=" + getTotalDataBytesSent() + ",sent_p=" + getTotalProtocolBytesSent() + 
 				",discard=" + getDiscarded() + ",hash_fails=" + getHashFailCount() + "/" + getHashFailBytes() +
-				",comp=" + completed + ",dl_comp=" + downloadCompleted );
-			
+				",comp=" + getCompleted() + "[live:" + getDownloadCompleted(true) + "/" + getDownloadCompleted( false)  + "],dl_comp=" + downloadCompleted );
+	
 		}finally{
 			
 			writer.exdent();

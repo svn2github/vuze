@@ -98,9 +98,13 @@ MagnetURIHandlerClient
 					
 				}finally{
 					
-					try{
-						sock.close();
-					}catch( Throwable e ){
+					if ( sock != null ){
+
+						try{
+							sock.close();
+							
+						}catch( Throwable e ){
+						}
 					}
 				}
 			}

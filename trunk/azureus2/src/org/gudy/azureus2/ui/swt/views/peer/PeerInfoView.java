@@ -410,7 +410,7 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 			gcImg.setBackground(peerInfoCanvas.getBackground());
 			gcImg.fillRectangle(0, 0, bounds.width, iNeededHeight);
 
-			int[] availability = pm == null ? null : pm.getAvailability();
+			int[] availability = pm.getAvailability();
 
 			int iNextDLPieceID = -1;
 			int iDLPieceID = -1;

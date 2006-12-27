@@ -51,13 +51,13 @@ TRTrackerServerProcessorUDP
 	
 	public static final long CONNECTION_ID_LIFETIME	= PRUDPPacket.DEFAULT_UDP_TIMEOUT*6;
 	
-	protected TRTrackerServerUDP		server;
-	protected DatagramSocket			socket;
-	protected DatagramPacket			request_dg;
+	private TRTrackerServerUDP		server;
+	private DatagramSocket			socket;
+	private DatagramPacket			request_dg;
 	
-	protected static Map				connection_id_map 	= new LinkedHashMap();
-	protected static SecureRandom		random				= new SecureRandom();
-	protected static AEMonitor			random_mon 			= new AEMonitor( "TRTrackerServerUDP:rand" );
+	private static Map				connection_id_map 	= new LinkedHashMap();
+	private static SecureRandom		random				= new SecureRandom();
+	private static AEMonitor		random_mon 			= new AEMonitor( "TRTrackerServerUDP:rand" );
 
 	static{
 	  	PRUDPTrackerCodecs.registerCodecs();
