@@ -22,45 +22,52 @@
  */
 package org.gudy.azureus2.ui.swt.welcome;
 
-import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.net.URL;
+import java.util.Locale;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+
 public class WelcomeWindow {
-  
-	public static final int		WELCOME_VERSION		 	=  2500;
-	public static final String	WELCOME_VERSION_STRING	= "2.5.0.0";
 	
+	private static final String URL_WHATSNEW = "http://web.azureusplatform.com/az-web/whatsnew.php";
+  
   private static final String lineSeparator = System.getProperty ("line.separator");
   
   Display display;
   Shell shell;
   Color black,white,light,grey,green,blue,fg,bg;
   
+  
   public WelcomeWindow() {
+		this(URL_WHATSNEW + "?version=" + Constants.AZUREUS_VERSION + "&locale="
+				+ Locale.getDefault().toString());
+	}
+  
+  public WelcomeWindow(String url) {
     shell = ShellFactory.createShell(SWT.BORDER | SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
-    if(! Constants.isOSX) {
-      shell.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(shell);
 	
-    shell.setText(MessageText.getString("window.welcome.title", new String[]{ WELCOME_VERSION_STRING }));
+    shell.setText(MessageText.getString("window.welcome.title", new String[]{ Constants.AZUREUS_VERSION }));
     
     display = shell.getDisplay();
     
@@ -69,108 +76,10 @@ public class WelcomeWindow {
     
     GridData data;
     
-    StyledText helpPanel = new StyledText(shell, SWT.VERTICAL | SWT.BORDER);
+    Composite cWhatsNew = new Composite(shell, SWT.BORDER);
     data = new GridData(GridData.FILL_BOTH);
-    helpPanel.setLayoutData(data);
-
-    helpPanel.setEditable(false);
-    try {
-      String helpText = "";
-      String helpFile = MessageText.getString("window.welcome.file");
-      InputStream stream = getClass().getResourceAsStream("/org/gudy/azureus2/internat/whatsnew/" + helpFile);
-      if (stream == null) {
-        System.err.println("Welcome Window: Error loading resource: /org/gudy/azureus2/internat/whatsnew/" + helpFile);
-      }
-      else {
-        BufferedReader in = new BufferedReader(new InputStreamReader(stream));
-
-        helpPanel.setRedraw(false);
-        helpPanel.setWordWrap(true);
-
-        black = new Color((Device)display, 0,0,0);
-        white = new Color((Device)display, 255,255,255);  
-        light = new Color((Device)display, 200,200,200);  
-        grey = new Color((Device)display, 50,50,50);
-        green = new Color((Device)display, 30,80,30);
-        blue = new Color((Device)display, 20,20,80);
-        int style;
-        boolean setStyle;
-
-        helpPanel.setForeground(grey);
-
-        String line;
-        while ((line = in.readLine()) != null) {
-
-          setStyle = false;
-          fg = grey;
-          bg = white;
-          style = SWT.NORMAL;
-
-          char styleChar;
-          String text;
-
-          if (line.length() < 2) {
-            styleChar = ' ';
-            text = " " + lineSeparator;
-          }
-          else {
-            styleChar = line.charAt(0);
-            text = line.substring(1) + lineSeparator;
-          }
-
-          switch (styleChar) {
-            case '*':
-              text = "  * " + text;
-              fg = green;
-              setStyle = true;
-            break;
-            case '+':
-              text = "     " + text;
-              fg = black;
-              bg = light;
-              style = SWT.BOLD;
-              setStyle = true;
-            break;
-            case '!':
-              style = SWT.BOLD;
-              setStyle = true;
-            break;
-            case '@':
-              fg = blue;
-              setStyle = true;
-            break;
-            case '$':
-              bg = blue;
-              fg = white;
-              style = SWT.BOLD;
-              setStyle = true;
-            break;
-            case ' ':
-              text = "  " + text;
-            break;
-          }
-
-          helpPanel.append(text);
-
-          if (setStyle) {
-            int lineCount = helpPanel.getLineCount()-1;
-            int charCount = helpPanel.getCharCount();
-  //          System.out.println("Got Linecount " + lineCount + ", Charcount " + charCount);
-
-            int lineOfs = helpPanel.getOffsetAtLine(lineCount - 1);
-            int lineLen = charCount-lineOfs;
-  //          System.out.println("Setting Style : " + lineOfs + ", " + lineLen);
-            helpPanel.setStyleRange(new StyleRange(lineOfs, lineLen, fg, bg, style));
-            helpPanel.setLineBackground(lineCount-1, 1, bg);
-          }
-        }
-      }
-        helpPanel.setRedraw(true);
-      }
-      catch (Exception e) {
-        System.out.println("Unable to load help contents because:" + e);
-        //e.printStackTrace();
-      }
+    cWhatsNew.setLayoutData(data);
+    cWhatsNew.setLayout(new FillLayout());
     
     Button bClose = new Button(shell,SWT.PUSH);
     bClose.setText(MessageText.getString("Button.close"));
@@ -202,7 +111,179 @@ public class WelcomeWindow {
     Utils.centreWindow(shell);
     shell.layout();
     shell.open();    
+    fillWhatsNew(cWhatsNew, url);
   }
+  
+  private void fillWhatsNew(Composite cWhatsNew, String url) {
+
+  	Label label = new Label(cWhatsNew, SWT.CENTER);
+  	label.setText(MessageText.getString("installPluginsWizard.details.loading"));
+  	shell.layout(true, true);
+  	shell.update();
+  	
+		String sWhatsNew = getWhatsNew(url);
+		if (shell.isDisposed()) {
+			return;
+		}
+
+		if (sWhatsNew == null || sWhatsNew.length() == 0) {
+			String helpFile = MessageText.getString("window.welcome.file");
+			InputStream stream = getClass().getResourceAsStream(
+					"/org/gudy/azureus2/internat/whatsnew/" + helpFile);
+			if (stream == null) {
+				sWhatsNew = "Welcome Window: Error loading resource: /org/gudy/azureus2/internat/whatsnew/"
+						+ helpFile;
+			} else {
+				try {
+					sWhatsNew = FileUtil.readInputStreamAsString(stream, 65535);
+					stream.close();
+				} catch (IOException e) {
+					Debug.out(e);
+				}
+			}
+		}
+
+		if (sWhatsNew.indexOf("<html") > 0 || sWhatsNew.indexOf("<HTML") > 0) {
+			Browser browser = new Browser(cWhatsNew, SWT.NONE);
+			browser.setText(sWhatsNew);
+		} else {
+
+			StyledText helpPanel = new StyledText(cWhatsNew, SWT.VERTICAL);
+
+			helpPanel.setEditable(false);
+			try {
+				helpPanel.setRedraw(false);
+				helpPanel.setWordWrap(true);
+
+				black = new Color((Device) display, 0, 0, 0);
+				white = new Color((Device) display, 255, 255, 255);
+				light = new Color((Device) display, 200, 200, 200);
+				grey = new Color((Device) display, 50, 50, 50);
+				green = new Color((Device) display, 30, 80, 30);
+				blue = new Color((Device) display, 20, 20, 80);
+				int style;
+				boolean setStyle;
+
+				helpPanel.setForeground(grey);
+
+				String[] lines = sWhatsNew.split("[\\r][\\n]?");
+				for (int i = 0; i < lines.length; i++) {
+					String line = lines[i];
+
+					setStyle = false;
+					fg = grey;
+					bg = white;
+					style = SWT.NORMAL;
+
+					char styleChar;
+					String text;
+
+					if (line.length() < 2) {
+						styleChar = ' ';
+						text = " " + lineSeparator;
+					} else {
+						styleChar = line.charAt(0);
+						text = line.substring(1) + lineSeparator;
+					}
+
+					switch (styleChar) {
+						case '*':
+							text = "  * " + text;
+							fg = green;
+							setStyle = true;
+							break;
+						case '+':
+							text = "     " + text;
+							fg = black;
+							bg = light;
+							style = SWT.BOLD;
+							setStyle = true;
+							break;
+						case '!':
+							style = SWT.BOLD;
+							setStyle = true;
+							break;
+						case '@':
+							fg = blue;
+							setStyle = true;
+							break;
+						case '$':
+							bg = blue;
+							fg = white;
+							style = SWT.BOLD;
+							setStyle = true;
+							break;
+						case ' ':
+							text = "  " + text;
+							break;
+					}
+
+					helpPanel.append(text);
+
+					if (setStyle) {
+						int lineCount = helpPanel.getLineCount() - 1;
+						int charCount = helpPanel.getCharCount();
+						//          System.out.println("Got Linecount " + lineCount + ", Charcount " + charCount);
+
+						int lineOfs = helpPanel.getOffsetAtLine(lineCount - 1);
+						int lineLen = charCount - lineOfs;
+						//          System.out.println("Setting Style : " + lineOfs + ", " + lineLen);
+						helpPanel.setStyleRange(new StyleRange(lineOfs, lineLen, fg, bg,
+								style));
+						helpPanel.setLineBackground(lineCount - 1, 1, bg);
+					}
+				}
+
+				helpPanel.setRedraw(true);
+			} catch (Exception e) {
+				System.out.println("Unable to load help contents because:" + e);
+				//e.printStackTrace();
+			}
+		}
+		
+		label.dispose();
+		shell.layout(true, true);
+	}
+  
+  private String getWhatsNew(final String url) {
+		final String[] s = new String[1];
+		new AEThread("getWhatsNew", true) {
+
+			public void runSupport() {
+
+				ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
+				try {
+					ResourceDownloader rd = rdf.create(new URL(url));
+					InputStream is = rd.download();
+
+					int length = is.available();
+
+					byte data[] = new byte[length];
+
+					is.read(data);
+
+					s[0] = new String(data);
+
+				} catch (Exception e) {
+					Debug.out(e);
+					s[0] = "";
+				}
+
+				if (!shell.isDisposed()) {
+					shell.getDisplay().wake();
+				}
+			}
+
+		}.start();
+		
+		while (!shell.isDisposed() && s[0] == null) {
+			if (!shell.getDisplay().readAndDispatch()) {
+				shell.getDisplay().sleep();
+			}
+		}
+
+		return s[0];
+	}
   
   private void close() {
     if(black != null && !black.isDisposed())  black.dispose();

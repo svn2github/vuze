@@ -532,7 +532,7 @@ MainWindow
 					PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS);
 
 			if (!COConfigurationManager
-					.getBooleanParameter("Wizard Completed", false)) {
+					.getBooleanParameter("Wizard Completed")) {
 				ConfigureWizard wizard = new ConfigureWizard(getAzureusCore(), display);
 
 
@@ -1474,18 +1474,53 @@ MainWindow
 	}
   
   private void checkForWhatsNewWindow() {
-    try {
-      int version = WelcomeWindow.WELCOME_VERSION;
-      int latestDisplayed = COConfigurationManager.getIntParameter("welcome.version.lastshown",0);
-      if(latestDisplayed < version) {
-        new WelcomeWindow();
-        COConfigurationManager.setParameter("welcome.version.lastshown",version);
-        COConfigurationManager.save();
-      }      
-    } catch(Exception e) {
-      //DOo Nothing
-    }    
-  }
+		final String CONFIG_LASTSHOWN = "welcome.version.lastshown";
+
+		// Config used to store int, such as 2500.  Now, it stores a string
+		// getIntParameter will return default value if parameter is string (user
+		// downgraded)
+		// getStringParameter will bork if parameter isn't really a string
+
+		try {
+			String lastShown = "";
+			boolean bIsStringParam = true;
+			try {
+  			lastShown = COConfigurationManager.getStringParameter(
+  					CONFIG_LASTSHOWN, "");
+			} catch (Exception e) {
+				bIsStringParam = false;
+			}
+
+			if (lastShown.length() == 0) {
+				// check if we have an old style version
+				int latestDisplayed = COConfigurationManager.getIntParameter(
+						CONFIG_LASTSHOWN, 0);
+				if (latestDisplayed > 0) {
+					bIsStringParam = false;
+					String s = "" + latestDisplayed;
+					for (int i = 0; i < s.length(); i++) {
+						if (i != 0) {
+							lastShown += ".";
+						}
+						lastShown += s.charAt(i);
+					}
+				}
+			}
+
+			if (Constants.compareVersions(lastShown, Constants.getBaseVersion()) < 0) {
+				new WelcomeWindow();
+				if (!bIsStringParam) {
+					// setting parameter to a different value type makes az unhappy
+					COConfigurationManager.removeParameter(CONFIG_LASTSHOWN);
+				}
+				COConfigurationManager.setParameter(CONFIG_LASTSHOWN,
+						Constants.getBaseVersion());
+				COConfigurationManager.save();
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+	}
   
   public UISWTInstanceImpl getUISWTInstanceImpl() {
   	return uiSWTInstanceImpl;
