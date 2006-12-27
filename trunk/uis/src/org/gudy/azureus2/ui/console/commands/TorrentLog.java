@@ -12,7 +12,6 @@ import java.util.Vector;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.logging.ILogEventListener;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogRelation;
@@ -43,6 +42,8 @@ public class TorrentLog extends TorrentCommand implements ILogEventListener
 
 	private ArrayList dms = new ArrayList();
 
+	private boolean	gm_listener_added;
+	
 	static {
 		dateFormatter = new SimpleDateFormat("[h:mm:ss.SSS] ");
 		formatPos = new FieldPosition(0);
@@ -55,12 +56,6 @@ public class TorrentLog extends TorrentCommand implements ILogEventListener
 	public TorrentLog() {
 		super(new String[] { "tlog", "tl"
 		}, "Torrent Logging");
-		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-		gm.addListener(new GlobalManagerAdapter() {
-			public void downloadManagerRemoved(DownloadManager dm) {
-				dms.remove(dm);
-			}
-		}, false);
 	}
 
 	public void execute(String commandName, ConsoleInput ci, List args) {
@@ -81,6 +76,20 @@ public class TorrentLog extends TorrentCommand implements ILogEventListener
 			List args) {
 		try {
 			dms_mon.enter();
+			
+				// defer this so that a non-running core doesn't prevent console ui init
+			
+			if ( !gm_listener_added ){
+				
+				gm_listener_added = true;
+				
+				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+				gm.addListener(new GlobalManagerAdapter() {
+					public void downloadManagerRemoved(DownloadManager dm) {
+						dms.remove(dm);
+					}
+				}, false);
+			}
 			
 			boolean turnOn;
 			if (mode == MODE_FLIP) {
