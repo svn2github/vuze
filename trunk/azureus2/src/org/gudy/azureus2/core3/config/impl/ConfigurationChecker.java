@@ -396,14 +396,12 @@ ConfigurationChecker
 	     */
 	    if (Constants.isOSX) {
 	      boolean sound = COConfigurationManager.getBooleanParameter("Play Download Finished",true);
-	      boolean close = COConfigurationManager.getBooleanParameter("Close To Tray",true);
-	      boolean min = COConfigurationManager.getBooleanParameter("Minimize To Tray",true);
+	      // Command + Q destroys the window, then notifies SWT, making it
+	      // hard to do a confirmation exit.
 	      boolean confirmExit = COConfigurationManager.getBooleanParameter("confirmationOnExit",false);
 	      
-	      if ( sound || close || min || confirmExit ) {
+	      if ( sound || confirmExit ) {
 	        COConfigurationManager.setParameter("Play Download Finished",false);
-	        COConfigurationManager.setParameter("Close To Tray",false);
-	        COConfigurationManager.setParameter("Minimize To Tray",false);
 	        COConfigurationManager.setParameter("confirmationOnExit",false);
 	        changed = true;
 	      }
