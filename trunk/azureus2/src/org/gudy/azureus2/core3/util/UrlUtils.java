@@ -19,6 +19,7 @@
  */
 package org.gudy.azureus2.core3.util;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -103,6 +104,10 @@ public class UrlUtils
 		}
 		if (strURL != null) {
 			return strURL;
+		}
+		
+		if (new File(text).exists()) {
+			return null;
 		}
 
 		// accept raw hash of 40 hex chars
