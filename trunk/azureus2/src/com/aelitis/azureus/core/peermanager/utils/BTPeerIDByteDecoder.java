@@ -364,17 +364,17 @@ public class BTPeerIDByteDecoder {
 				if (decoded.equals(ident)) {
 					if (ident.equals("BC")) {
 						// 4.56
-						String v2 = parseVersionNumber(id, 4);
-						String v3 = parseVersionNumber(id, 5);
-						String v4 = parseVersionNumber(id, 6);
+						String v2 = parseOneByteVersionNumber(id, 4);
+						String v3 = parseOneByteVersionNumber(id, 5);
+						String v4 = parseOneByteVersionNumber(id, 6);
 						return name + " " + v2 + "." + v3 + v4;
 					}
 					if (ident.equals("KT")) {
 						// 3.4.5=[RD].6
-						String v2 = parseVersionNumber(id, 3);
-						String v3 = parseVersionNumber(id, 4);
+						String v2 = parseOneByteVersionNumber(id, 3);
+						String v3 = parseOneByteVersionNumber(id, 4);
 						String v4 = new String(id, 5, 1, Constants.BYTE_ENCODING);
-						String v5 = parseVersionNumber(id, 6);
+						String v5 = parseOneByteVersionNumber(id, 6);
 						return name
 								+ " "
 								+ v2
@@ -385,9 +385,9 @@ public class BTPeerIDByteDecoder {
 					}
 					if (ident.equals("UT")) {
 						// 3.4.5
-						String v2 = parseVersionNumber(id, 3);
-						String v3 = parseVersionNumber(id, 4);
-						String v4 = parseVersionNumber(id, 5);
+						String v2 = parseOneByteVersionNumber(id, 3);
+						String v3 = parseOneByteVersionNumber(id, 4);
+						String v4 = parseOneByteVersionNumber(id, 5);
 						return name + " " + v2 + "." + v3 + "." + v4;
 					}
 					if (ident.equals("TR") || ident.equals("CD")) {
@@ -399,17 +399,17 @@ public class BTPeerIDByteDecoder {
 					}
 					if (ident.equals("BR")) {
 						// 3.4(56)
-						String v2 = parseVersionNumber(id, 3);
-						String v3 = parseVersionNumber(id, 4);
+						String v2 = parseOneByteVersionNumber(id, 3);
+						String v3 = parseOneByteVersionNumber(id, 4);
 						String v4 = new String(id, 5, 2, Constants.BYTE_ENCODING);
 						return name + " " + v2 + "." + v3 + "(" + Integer.parseInt(v4)
 								+ ")";
 					}
 
-					String v1 = parseVersionNumber(id, 3);
-					String v2 = parseVersionNumber(id, 4);
-					String v3 = parseVersionNumber(id, 5);
-					String v4 = parseVersionNumber(id, 6);
+					String v1 = parseOneByteVersionNumber(id, 3);
+					String v2 = parseOneByteVersionNumber(id, 4);
+					String v3 = parseOneByteVersionNumber(id, 5);
+					String v4 = parseOneByteVersionNumber(id, 6);
 					return name + " " + v1 + "." + v2 + "." + v3 + "." + v4;
 				}
 			}
@@ -425,9 +425,9 @@ public class BTPeerIDByteDecoder {
       if( (id[6] == (byte)45) && (id[7] == (byte)45) && (id[8] == (byte)45)) {
         String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
         if( decoded.equals( ident ) ) {
-          int v1 = Integer.parseInt( new String( id, 1, 1, Constants.BYTE_ENCODING ), 16 );
-          int v2 = Integer.parseInt( new String( id, 2, 1, Constants.BYTE_ENCODING ), 16 );
-          int v3 = Integer.parseInt( new String( id, 3, 1, Constants.BYTE_ENCODING ), 16 );
+          String v1 = parseOneByteVersionNumber(id, 1);
+          String v2 = parseOneByteVersionNumber(id, 2);
+          String v3 = parseOneByteVersionNumber(id, 3);
           return name + " " + v1 + "." + v2 + "." + v3;
         }
       }
@@ -435,9 +435,9 @@ public class BTPeerIDByteDecoder {
       if( (id[6] == (byte)48) ) {
           String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
           if( decoded.equals( ident ) ) {
-            int v1 = Integer.parseInt( new String( id, 1, 1, Constants.BYTE_ENCODING ), 16 );
-            int v2 = Integer.parseInt( new String( id, 2, 1, Constants.BYTE_ENCODING ), 16 );
-            int v3 = Integer.parseInt( new String( id, 3, 1, Constants.BYTE_ENCODING ), 16 );
+            String v1 = parseOneByteVersionNumber(id, 1);
+            String v2 = parseOneByteVersionNumber(id, 2);
+            String v3 = parseOneByteVersionNumber(id, 3);
             if(ident.equals("T")){
             	return name + " LM" + " " + v1 + "." + v2 + "." + v3;
             } else {
@@ -524,14 +524,20 @@ public class BTPeerIDByteDecoder {
     return( sPeerID );
   }
   
-  public static String parseVersionNumber(byte[] byteArray, int pos) {
+  public static String parseOneByteVersionNumber(byte[] byteArray, int pos) {
 		try {
 			return ""
 					+ Integer.parseInt(new String(byteArray, pos, 1,
-							Constants.BYTE_ENCODING), 16);
+							Constants.BYTE_ENCODING), 36);
 		} catch (Exception e) {
 		}
 
 		return "" + byteArray[pos];
+	}
+  
+  public static void main(String[] args) {
+  	for (int i = 0; i < 26; i++) {
+  		System.out.println((char)('a' + i) + ":" + parseOneByteVersionNumber(new byte[] { (byte)('a' + i) }, 0));
+  	}
 	}
 }
