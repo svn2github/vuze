@@ -44,10 +44,12 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.logging.impl.FileLogging;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.IAdditionalActionPerformer;
@@ -57,7 +59,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterface;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
 
 public class ConfigSectionLogging implements UISWTConfigSection {
@@ -289,23 +290,38 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 				public void 
 				handleEvent(Event event) 
 				{
-					StringWriter sw = new StringWriter();
-					
-					PrintWriter	pw = new PrintWriter( sw );
+					new AEThread("GenerateNetDiag", true)
+					{
+						public void
+						runSupport()
+						{
+							StringWriter sw = new StringWriter();
 							
-					IndentWriter iw = new IndentWriter( pw );
-					
-					NetworkAdmin admin = NetworkAdmin.getSingleton();
-					
-					admin.generateDiagnostics( iw );
-					
-					pw.close();
-					
-					String	info = sw.toString();
-					
-					ClipboardCopy.copyToClipBoard( info );
+							PrintWriter	pw = new PrintWriter( sw );
+									
+							IndentWriter iw = new IndentWriter( pw );
+							
+							NetworkAdmin admin = NetworkAdmin.getSingleton();
+							
+							admin.generateDiagnostics( iw );
+							
+							pw.close();
+							
+							final String	info = sw.toString();
+							
+							Logger.log( new LogEvent(LOGID, "Network Info:\n" + info));
 
-					Logger.log( new LogEvent(LOGID, "Network Info:\n" + info));
+							Utils.execSWTThread(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										ClipboardCopy.copyToClipBoard( info );
+									}
+								});
+						}
+					}.start();
 				}
 			});
     
