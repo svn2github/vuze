@@ -277,7 +277,7 @@ public class URLTransfer extends ByteArrayTransfer {
 		}
 
 		if (UrlUtils.isURL(url.linkURL)) {
-			if (DEBUG) System.out.println("Yes, type #" + transferData.type);
+			if (DEBUG) System.out.println("Yes, " + url.linkURL + " of type #" + transferData.type);
 			return true;
 		}
 
