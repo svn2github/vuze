@@ -58,6 +58,8 @@ TRTrackerServerImpl
 	public static boolean	all_networks_permitted		= true;
 	public static String[]	permitted_networks			= {};
 	
+	public static boolean	support_experimental_extensions;
+	
 	public static String	redirect_on_not_found		= "";
 	
 		// torrent map is static across all protocol servers
@@ -85,7 +87,7 @@ TRTrackerServerImpl
 	protected static void
 	readConfig()
 	{
-		send_peer_ids = COConfigurationManager.getBooleanParameter( "Tracker Send Peer IDs", true );
+		send_peer_ids = COConfigurationManager.getBooleanParameter( "Tracker Send Peer IDs" );
 				
 		max_peers_to_send = COConfigurationManager.getIntParameter( "Tracker Max Peers Returned" );
 				
@@ -126,6 +128,8 @@ TRTrackerServerImpl
 		full_scrape_enable = COConfigurationManager.getBooleanParameter( "Tracker Server Full Scrape Enable" );
 
 		redirect_on_not_found = COConfigurationManager.getStringParameter( "Tracker Server Not Found Redirect" ).trim();
+		
+		support_experimental_extensions = COConfigurationManager.getBooleanParameter( "Tracker Server Support Experimental Extensions" );
 	}
 	
 	protected static boolean
@@ -186,6 +190,12 @@ TRTrackerServerImpl
 	getPermittedNetworks()
 	{
 		return( permitted_networks );
+	}
+	
+	public static boolean
+	supportsExtensions()
+	{
+		return( support_experimental_extensions );
 	}
 	
 	protected IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();

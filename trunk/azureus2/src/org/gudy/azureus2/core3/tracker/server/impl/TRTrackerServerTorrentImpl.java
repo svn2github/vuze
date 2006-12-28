@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
+
 
 public class 
 TRTrackerServerTorrentImpl 
@@ -139,22 +141,24 @@ TRTrackerServerTorrentImpl
 	
 	public TRTrackerServerPeerImpl
 	peerContact(
-		String		url_parameters,
-		String		event,
-		HashWrapper	peer_id,
-		int			tcp_port,
-		int			udp_port,
-		int			http_port,
-		byte		crypto_level,
-		byte		az_ver,
-		String		ip_address,
-		boolean		ip_override,
-		boolean		loopback,
-		String		tracker_key,
-		long		uploaded,
-		long		downloaded,
-		long		left,
-		long		interval_requested )
+		String				url_parameters,
+		String				event,
+		HashWrapper			peer_id,
+		int					tcp_port,
+		int					udp_port,
+		int					http_port,
+		byte				crypto_level,
+		byte				az_ver,
+		String				ip_address,
+		boolean				ip_override,
+		boolean				loopback,
+		String				tracker_key,
+		long				uploaded,
+		long				downloaded,
+		long				left,
+		long				interval_requested,
+		int					up_speed,
+		DHTNetworkPosition	network_position )
 	
 		throws TRTrackerServerException
 	{
@@ -314,7 +318,9 @@ TRTrackerServerTorrentImpl
 									az_ver,
 									last_contact_time,
 									already_completed,
-									last_NAT_status );
+									last_NAT_status,
+									up_speed,
+									network_position );
 					
 					if ( ip_override ){
 						
@@ -407,7 +413,7 @@ TRTrackerServerTorrentImpl
 					byte[]	old_ip 		= peer.getIPAsRead();
 					int		old_port	= peer.getTCPPort();
 					
-					if ( peer.checkForIPOrPortChange( ip_address_bytes, tcp_port, udp_port, http_port, crypto_level, az_ver )){
+					if ( peer.update( ip_address_bytes, tcp_port, udp_port, http_port, crypto_level, az_ver, up_speed, network_position )){
 						
 							// same peer id so same port
 						
@@ -929,7 +935,9 @@ TRTrackerServerTorrentImpl
 				
 				num_want	= max_peers;
 			}
-					
+				
+			DHTNetworkPosition network_position = requesting_peer.getNetworkPosition();
+			
 			if ( 	caching_enabled &&
 					(!nat_warning) &&
 					preprocess_map.size() == 0 &&	// don't cache if we've got pre-process stuff to add
@@ -937,7 +945,11 @@ TRTrackerServerTorrentImpl
 					num_want >= MIN_CACHE_ENTRY_SIZE &&
 					total_peers >= TRTrackerServerImpl.getAnnounceCachePeerThreshold() &&
 					crypto_level != TRTrackerServerPeer.CRYPTO_REQUIRED ){	// no cache for crypto required peers
-							
+				
+					// too busy to bother with network position stuff
+				
+				network_position = null;
+				
 					// note that we've got to select a cache entry that is somewhat 
 					// relevant to the num_want param (but NOT greater than it)
 				
@@ -1071,9 +1083,21 @@ TRTrackerServerTorrentImpl
 										
 										rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
 									}
-								}
 								
+									rep_peer.put( "azup", new Long( peer.getUpSpeed()));
+									
+									if ( network_position != null ){
+										
+										DHTNetworkPosition	peer_pos = peer.getNetworkPosition();
+										
+										if ( peer_pos != null && network_position.getPositionType() == peer_pos.getPositionType()){
+											
+											rep_peer.put( "azrtt", new Long( (long)peer_pos.estimateRTT(network_position )));
+										}
+									}
+								}
 							}else{
+								
 								rep_peer.put( "ip", peer.getIPAsRead() );
 							}
 							
@@ -1274,6 +1298,18 @@ TRTrackerServerTorrentImpl
 													if ( peer.isSeed()){
 														
 														rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+													}
+													
+													rep_peer.put( "azup", new Long( peer.getUpSpeed()));
+													
+													if ( network_position != null ){
+														
+														DHTNetworkPosition	peer_pos = peer.getNetworkPosition();
+														
+														if ( peer_pos != null && network_position.getPositionType() == peer_pos.getPositionType()){
+															
+															rep_peer.put( "azrtt", new Long( (long)peer_pos.estimateRTT(network_position )));
+														}
 													}
 												}
 											}else{
@@ -1574,6 +1610,20 @@ TRTrackerServerTorrentImpl
 					if ( az_ver != 0 ){
 						
 						peer.put( "v", new Long(az_ver));
+					}
+					
+					Long up_speed = (Long)rep_peer.get( "azup" );
+					
+					if ( up_speed != null && up_speed.longValue() != 0 ){
+						
+						peer.put( "s", up_speed );
+					}
+					
+					Long rtt = (Long)rep_peer.get( "azrtt" );
+					
+					if ( rtt != null ){
+						
+						peer.put( "r", rtt );
 					}
 				}
 									

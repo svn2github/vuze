@@ -33,6 +33,9 @@ import org.gudy.azureus2.core3.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
 
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
+
 public abstract class 
 TRTrackerServerProcessorTCP
 	extends 	TRTrackerServerProcessor
@@ -102,7 +105,7 @@ TRTrackerServerProcessorTCP
 		throws IOException
 	{
 		String	str = url_path;
-		
+				
 		try{
 			Map	root = null;
 				
@@ -282,6 +285,9 @@ TRTrackerServerProcessorTCP
 				int			az_ver			= 0;
 				boolean		stop_to_queue	= false;
 				String		scrape_flags	= null;
+				int			up_speed		= 0;
+				
+				DHTNetworkPosition	network_position = null;
 				
 				String		real_ip_address		= client_address.getAddress().getHostAddress();
 				String		client_ip_address	= real_ip_address;
@@ -440,6 +446,21 @@ TRTrackerServerProcessorTCP
 					}else if ( lhs.equals( "azsf" )){
 					
 						scrape_flags = rhs;
+						
+					}else if ( TRTrackerServerImpl.supportsExtensions()){
+						
+						if ( lhs.equals( "aznp" )){
+
+							try{
+								network_position = DHTNetworkPositionManager.deserialisePosition( Base32.decode( rhs ));
+																
+							}catch( Throwable e ){
+								
+							}
+						}else if ( lhs.equals( "azup" )){
+	
+							up_speed = Integer.parseInt( rhs );
+						}
 					}
 					
 					if ( p1 == -1 ){
@@ -494,7 +515,9 @@ TRTrackerServerProcessorTCP
 							downloaded, uploaded, left,
 							num_want,
 							crypto_level,
-							(byte)az_ver );
+							(byte)az_ver,
+							up_speed,
+							network_position );
 				
 				root	= root_out[0];
 

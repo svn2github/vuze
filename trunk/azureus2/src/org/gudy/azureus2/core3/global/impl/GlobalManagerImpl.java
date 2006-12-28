@@ -1106,6 +1106,8 @@ public class GlobalManagerImpl
   		managers_mon.exit();
   	}
   		
+  	stats.save();
+  	
 	informDestroyInitiated();
 	
 	if ( host_support != null ){

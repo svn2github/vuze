@@ -522,7 +522,9 @@ TRTrackerServerProcessorUDP
 				downloaded, uploaded, left,
 				num_want,
 				TRTrackerServerPeer.CRYPTO_NONE,
-				(byte)1 );
+				(byte)1,
+				0,
+				null );
 		
 		Map	root = root_out[0];
 		

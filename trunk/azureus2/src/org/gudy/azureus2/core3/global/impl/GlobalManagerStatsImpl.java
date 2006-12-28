@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.global.impl;
  *
  */
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -44,6 +45,8 @@ GlobalManagerStatsImpl
     private long total_data_bytes_sent;
     private long total_protocol_bytes_sent;
 
+    private int	data_send_speed_at_close;
+    
 	private Average data_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
     private Average protocol_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 
@@ -58,9 +61,28 @@ GlobalManagerStatsImpl
 		GlobalManagerImpl	_manager )
 	{
 		manager = _manager;
+		
+		load();
 	}
   
+	protected void
+	load()
+	{
+		data_send_speed_at_close	= COConfigurationManager.getIntParameter( "globalmanager.stats.send.speed.at.close", 0 );
+	}
+	
+	protected void
+	save()
+	{
+		COConfigurationManager.setParameter( "globalmanager.stats.send.speed.at.close", getDataSendRate());
+	}
     
+	public int 
+	getDataSendRateAtClose()
+	{
+		return( data_send_speed_at_close );
+	}
+	
   			// update methods
   			
 	  public void discarded(int length) {

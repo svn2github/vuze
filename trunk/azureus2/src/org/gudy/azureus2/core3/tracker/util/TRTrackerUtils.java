@@ -554,9 +554,7 @@ TRTrackerUtils
  		boolean	az_tracker )
 	{
 		String	key = tracker_url.getHost() + ":" + tracker_url.getPort();
-		
-		System.out.println( "az_tracker: " + tracker_url + "->" + az_tracker );
-		
+				
 		synchronized( az_trackers ){
 			
 			boolean	changed = false;

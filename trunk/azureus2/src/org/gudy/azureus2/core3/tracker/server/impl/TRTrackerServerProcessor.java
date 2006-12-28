@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
+
 public abstract class 
 TRTrackerServerProcessor 
 	extends ThreadPoolTask
@@ -73,7 +75,9 @@ TRTrackerServerProcessor
 		long						left,
 		int							num_want,
 		byte						crypto_level,
-		byte						az_ver )
+		byte						az_ver,
+		int							up_speed,
+		DHTNetworkPosition			network_position )
 	
 		throws TRTrackerServerException
 	{
@@ -182,7 +186,8 @@ TRTrackerServerProcessor
 						peer_id, port, udp_port, http_port, crypto_level, az_ver,
 						client_ip_address, ip_override, loopback, key,
 						uploaded, downloaded, left,
-						interval );
+						interval,
+						up_speed, network_position );
 				
 				if ( stop_to_queue && ( QUEUE_TEST || !( loopback || ip_override ))){
 					

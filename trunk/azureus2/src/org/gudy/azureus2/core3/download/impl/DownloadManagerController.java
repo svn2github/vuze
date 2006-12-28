@@ -184,6 +184,8 @@ DownloadManagerController
 	
 	private boolean bInitialized = false;
 	
+	private long data_send_rate_at_close;
+	
 	private static final int			ACTIVATION_REBUILD_TIME		= 10*60*1000;
 	private static final int			BLOOM_SIZE					= 64;
 	private volatile BloomFilter		activation_bloom;
@@ -358,18 +360,61 @@ DownloadManagerController
 					getUploadSpeedKBSec(
 						boolean estimate ) 
 					{
-						int	current = (int)(temp.getStats().getDataSendRate()/1024);
+						long	current_local = stats.getDataSendRate();
 						
 						if ( estimate ){
 							
-							System.out.println( "estimate!!!!" );
+								// see if we have an old value from previous stop/start
 							
-							return( 0 );
+							current_local = data_send_rate_at_close;
+							
+							if ( current_local == 0 ){
 								
-						}else{
+								int current_global 	= global_stats.getDataSendRate();
+								
+								int	old_global		= global_stats.getDataSendRateAtClose();
 							
-							return( current );
+								if ( current_global < old_global ){
+									
+									current_global = old_global;
+								}
+						
+								List managers = download_manager.getGlobalManager().getDownloadManagers();
+								
+								int	num_dls = 0;
+								
+									// be optimistic and share out the bytes between non-seeds
+								
+								for (int i=0;i<managers.size();i++){
+									
+									DownloadManager	dm = (DownloadManager)managers.get(i);
+									
+									if ( dm.getStats().getDownloadCompleted( false ) == 1000 ){
+										
+										continue;
+									}
+									
+									int	state = dm.getState();
+									
+									if ( 	state != DownloadManager.STATE_ERROR &&
+											state != DownloadManager.STATE_STOPPING &&
+											state != DownloadManager.STATE_STOPPED ){
+										
+										num_dls++;
+									}
+								}
+								
+								if ( num_dls == 0 ){
+									
+									current_local = current_global;
+								}else{
+									
+									current_local = current_global/num_dls;
+								}
+							}
 						}
+												
+						return((int)( current_local/1024 ));
 					}
 	    		});
 	    
@@ -754,6 +799,13 @@ DownloadManagerController
 		final boolean 		remove_torrent, 
 		final boolean 		remove_data )
 	{	  
+		long	current_up = stats.getDataSendRate();
+		
+		if ( current_up != 0 ){
+			
+			data_send_rate_at_close = current_up;
+		}
+		
 		boolean closing = _stateAfterStopping == DownloadManager.STATE_CLOSED;
 		
 		if ( closing ){

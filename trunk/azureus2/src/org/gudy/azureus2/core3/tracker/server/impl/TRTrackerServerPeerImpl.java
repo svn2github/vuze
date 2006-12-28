@@ -27,6 +27,8 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
+
 public class 
 TRTrackerServerPeerImpl
 	implements TRTrackerServerPeer, HostNameToIPResolverListener, TRTrackerServerNatCheckerListener
@@ -57,22 +59,26 @@ TRTrackerServerPeerImpl
 	private boolean		download_completed;
 	private byte		bias	= UNBIASED;
 	
-	private Object		user_data;
+	private short				up_speed;
+	private DHTNetworkPosition	network_position;
+	private Object				user_data;
 	
 	protected
 	TRTrackerServerPeerImpl(
-		HashWrapper	_peer_id,
-		int			_key_hash_code,
-		byte[]		_ip,
-		boolean		_ip_override,
-		int			_tcp_port,
-		int			_udp_port,
-		int			_http_port,
-		byte		_crypto_level,
-		byte		_az_ver,
-		long		_last_contact_time,
-		boolean		_download_completed,
-		byte		_last_nat_status )
+		HashWrapper			_peer_id,
+		int					_key_hash_code,
+		byte[]				_ip,
+		boolean				_ip_override,
+		int					_tcp_port,
+		int					_udp_port,
+		int					_http_port,
+		byte				_crypto_level,
+		byte				_az_ver,
+		long				_last_contact_time,
+		boolean				_download_completed,
+		byte				_last_nat_status,
+		int					_up_speed,
+		DHTNetworkPosition	_network_position )
 	{
 		peer_id				= _peer_id;
 		key_hash_code		= _key_hash_code;
@@ -86,23 +92,29 @@ TRTrackerServerPeerImpl
 		last_contact_time	= _last_contact_time;
 		download_completed	= _download_completed;
 		NAT_status			= _last_nat_status;	
+		up_speed			= _up_speed>Short.MAX_VALUE?Short.MAX_VALUE:(short)_up_speed;
+		network_position	= _network_position;
 			
 		resolveAndCheckNAT();
 	}
 	
 	protected boolean
-	checkForIPOrPortChange(
-		byte[]		_ip,
-		int			_port,
-		int			_udp_port,
-		int			_http_port,
-		byte		_crypto_level,
-		byte		_az_ver )
+	update(
+		byte[]				_ip,
+		int					_port,
+		int					_udp_port,
+		int					_http_port,
+		byte				_crypto_level,
+		byte				_az_ver,
+		int					_up_speed,
+		DHTNetworkPosition	_network_position )
 	{
-		udp_port		= (short)_udp_port;
-		http_port		= (short)_http_port;
-		crypto_level	= _crypto_level;
-		az_ver			= _az_ver;
+		udp_port			= (short)_udp_port;
+		http_port			= (short)_http_port;
+		crypto_level		= _crypto_level;
+		az_ver				= _az_ver;
+		up_speed			= _up_speed>Short.MAX_VALUE?Short.MAX_VALUE:(short)_up_speed;
+		network_position	= _network_position;
 		
 		boolean	res	= false;
 		
@@ -343,6 +355,18 @@ TRTrackerServerPeerImpl
 	getAZVer()
 	{
 		return( az_ver );
+	}
+	
+	protected int
+	getUpSpeed()
+	{
+		return( up_speed&0xffff );
+	}
+	
+	protected DHTNetworkPosition
+	getNetworkPosition()
+	{
+		return( network_position );
 	}
 	
 	protected void

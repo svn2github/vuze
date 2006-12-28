@@ -38,18 +38,17 @@ GlobalManagerStats
 	public int getProtocolSendRate();
 	public int getProtocolSendRateNoLAN();
   
+	public int getDataSendRateAtClose();
   
 	public long getTotalDataBytesReceived();
   
 	public long getTotalProtocolBytesReceived();
-  
 	
 	public long getTotalDataBytesSent();
   
 	public long getTotalProtocolBytesSent();
   
   	public long getTotalSwarmsPeerRate( boolean downloading, boolean seeding );
-  	
   
 		// set methods
 		
