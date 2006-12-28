@@ -302,8 +302,7 @@ MainWindow
 					public void shellClosed(ShellEvent event) {
 						if (systemTraySWT != null
 								&& COConfigurationManager.getBooleanParameter("Enable System Tray")
-								&& COConfigurationManager.getBooleanParameter("Close To Tray",
-										true)) {
+								&& COConfigurationManager.getBooleanParameter("Close To Tray")) {
 
 							minimizeToTray(event);
 						} else {
@@ -315,7 +314,7 @@ MainWindow
 						if (systemTraySWT != null
 								&& COConfigurationManager.getBooleanParameter("Enable System Tray")
 								&& COConfigurationManager.getBooleanParameter(
-										"Minimize To Tray", false)) {
+										"Minimize To Tray")) {
 
 							minimizeToTray(event);
 						}
