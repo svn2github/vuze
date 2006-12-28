@@ -15,7 +15,7 @@ $
   File extension (Files view)
 
 !1.4 Faster startup times on large lists
-  Startup times when Azureus has a large list of torrents is now faster (up to 400x faster in some cases).
+  Startup times when Azureus has a large list of torrents is now faster (up to 400% faster in some cases).
   Some plugins may negate this optimization if the plugin accesses every torrents information immediately at startup.
 
 !1.5 Other
