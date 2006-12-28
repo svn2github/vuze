@@ -180,6 +180,15 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getIntParameter( _name ));
 	}
 	
+	
+	/**
+	 * Only use this for internal values, NOT for ones that the user can sensibly change. In this
+	 * case add the key to the configuration defaults and use the above method
+	 * @param _name
+	 * @param _def
+	 * @return
+	 */
+	
 	public static int
 	getIntParameter(
 		String		_name,
@@ -207,6 +216,22 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getLongParameter( _name ));
 	}
 	
+	/**
+	 * Only use this for internal values, NOT for ones that the user can sensibly change. In this
+	 * case add the key to the configuration defaults and use the above method
+	 * @param _name
+	 * @param _def
+	 * @return
+	 */
+	
+	public static long
+	getLongParameter(
+		String		_name,
+		long		_def )
+	{
+		return( ConfigurationManager.getInstance().getLongParameter( _name, _def ));
+	}
+
 	public static byte[]
 	getByteParameter(
 		String		_name,

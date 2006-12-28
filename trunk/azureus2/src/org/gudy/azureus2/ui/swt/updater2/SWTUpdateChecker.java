@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.update.UpdatableComponent;
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateChecker;
@@ -125,7 +126,15 @@ public class SWTUpdateChecker implements UpdatableComponent
 		        	    		}
 		        	    	}else{
 		        	    		
-		        		    	if ( update_prevented_version != versionGetter.getCurrentVersion()){
+		        	    			// we need to periodically remind the user there's a problem as they need to realise that
+		        	    			// it is causing ALL updates (core/plugin) to fail
+		        	    		
+		        	    		long	last_prompt = COConfigurationManager.getLongParameter( "swt.update.prevented.version.time", 0 );
+		        	    		long	now			= SystemTime.getCurrentTime();
+		        	    		
+		        	    		boolean force = now < last_prompt || now - last_prompt > 7*24*60*60*1000;
+		        	    		
+		        		    	if ( force || update_prevented_version != versionGetter.getCurrentVersion()){
 			        		    		
 			        	    		String	alert = 
 			        	    			MessageText.getString( 
@@ -141,6 +150,7 @@ public class SWTUpdateChecker implements UpdatableComponent
 			        	     		update_prevented_version = versionGetter.getCurrentVersion();
 			        	     		
 			        	    		COConfigurationManager.setParameter( "swt.update.prevented.version", update_prevented_version );
+			        	    		COConfigurationManager.setParameter( "swt.update.prevented.version.time", now );
 		        		    	}
 		        	    	}
 		        	    }
