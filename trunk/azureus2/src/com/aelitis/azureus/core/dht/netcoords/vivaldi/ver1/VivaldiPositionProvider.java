@@ -48,6 +48,12 @@ VivaldiPositionProvider
 	}
 	
 	public DHTNetworkPosition
+	getLocalPosition()
+	{
+		return( null );
+	}
+	
+	public DHTNetworkPosition
 	deserialisePosition(
 		DataInputStream		is )
 	

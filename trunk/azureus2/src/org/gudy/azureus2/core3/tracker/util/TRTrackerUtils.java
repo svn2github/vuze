@@ -38,7 +38,6 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -556,6 +555,8 @@ TRTrackerUtils
 	{
 		String	key = tracker_url.getHost() + ":" + tracker_url.getPort();
 		
+		System.out.println( "az_tracker: " + tracker_url + "->" + az_tracker );
+		
 		synchronized( az_trackers ){
 			
 			boolean	changed = false;
@@ -572,9 +573,10 @@ TRTrackerUtils
 				
 				if ( !az_tracker ){
 					
-					az_trackers.remove( key );
+					if ( az_trackers.remove( key ) != null ){
 					
-					changed = true;
+						changed = true;
+					}
 				}
 			}
 			

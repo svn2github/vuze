@@ -353,6 +353,24 @@ DownloadManagerController
 					{
 						return( temp.getMaxNewConnectionsAllowed());
 					}
+					
+					public int 
+					getUploadSpeedKBSec(
+						boolean estimate ) 
+					{
+						int	current = (int)(temp.getStats().getDataSendRate()/1024);
+						
+						if ( estimate ){
+							
+							System.out.println( "estimate!!!!" );
+							
+							return( 0 );
+								
+						}else{
+							
+							return( current );
+						}
+					}
 	    		});
 	    
 		

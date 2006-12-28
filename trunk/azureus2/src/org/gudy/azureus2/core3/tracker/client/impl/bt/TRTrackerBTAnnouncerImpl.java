@@ -54,6 +54,8 @@ import org.gudy.azureus2.plugins.clientid.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
+import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
@@ -121,6 +123,7 @@ TRTrackerBTAnnouncerImpl
   	private List trackerUrlLists;
      
   	private URL lastUsedUrl;
+  	private URL	lastAZTrackerCheckedURL;
     
   	private HashWrapper			torrent_hash;
   	
@@ -148,7 +151,8 @@ TRTrackerBTAnnouncerImpl
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerBTAnnouncer" );
 
-	protected boolean	destroyed;
+	private boolean	az_tracker;
+	private boolean	destroyed;
 		
 
 
@@ -848,6 +852,11 @@ TRTrackerBTAnnouncerImpl
 		  
 		  lastUsedUrl = original_url;
 		   
+		  if ( lastUsedUrl != lastAZTrackerCheckedURL ){
+			  
+			  az_tracker = TRTrackerUtils.isAZTracker( lastUsedUrl  );
+		  }
+		  
 		  URL	request_url = null;
 		  
 		  try{
@@ -1648,7 +1657,9 @@ TRTrackerBTAnnouncerImpl
     	request.append("&event=").append(evt);
     }
     
-    if (evt.equals("stopped")){
+    boolean	stopped = evt.equals("stopped");
+    
+    if ( stopped ){
     	
     	request.append("&numwant=0");
     	
@@ -1805,6 +1816,31 @@ TRTrackerBTAnnouncerImpl
 	}
 	
 	request.append( "&azver=" + TRTrackerAnnouncer.AZ_TRACKER_VERSION_CURRENT );
+	
+	if ( az_tracker && !stopped ){
+		
+		int up = announce_data_provider.getUploadSpeedKBSec( evt.equals( "started" ));
+		
+		if ( up > 0 ){
+			
+			request.append( "&azup=" + up );
+		}
+		
+		DHTNetworkPosition	best_position = DHTNetworkPositionManager.getBestLocalPosition();
+		
+		if ( best_position != null ){
+			
+			try{
+				byte[]	bytes = DHTNetworkPositionManager.serialisePosition( best_position );
+				
+				request.append( "&aznp=" + Base32.encode( bytes ));
+								
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+		}
+	}
 	
     return new URL( request.toString());
   }
@@ -2188,8 +2224,20 @@ TRTrackerBTAnnouncerImpl
 			    	Long	az_compact_l 	= (Long)metaData.get( "azcompact" );
 			    	long	az_compact		= az_compact_l==null?0:az_compact_l.longValue();
 
+					boolean	this_is_az_tracker = az_compact == 2;
+					
+					if ( az_tracker != this_is_az_tracker || lastUsedUrl != lastAZTrackerCheckedURL ){
+							
+						lastAZTrackerCheckedURL = lastUsedUrl;
+						
+						az_tracker	= this_is_az_tracker;
+						
+						TRTrackerUtils.setAZTracker( url, az_tracker );
+					}
+
 			    	if ( az_compact == 2 ){
 			    		
+	
 			    			// latest return to dictionary based data 
 			    		
 						List meta_peers = (List)meta_peers_peek;

@@ -27,6 +27,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -166,6 +168,51 @@ DHTNetworkPositionManager
 	}
 	
 	public static DHTNetworkPosition[]
+	getLocalPositions()
+	{
+		DHTNetworkPositionProvider[]	prov = providers;
+		
+		List res = new ArrayList();
+		
+		for (int i=0;i<prov.length;i++){
+			
+			DHTNetworkPosition	pos = prov[i].getLocalPosition();
+			
+			if ( pos != null ){
+				
+				res.add( pos );
+			}
+		}
+		
+		return((DHTNetworkPosition[])res.toArray(new DHTNetworkPosition[res.size()])); 
+
+	}
+	
+	public static DHTNetworkPosition
+	getBestLocalPosition()
+	{
+		DHTNetworkPosition	best_position = null;
+		
+		DHTNetworkPosition[]	positions = getLocalPositions();
+		
+		byte	best_provider = DHTNetworkPosition.POSITION_TYPE_NONE;
+
+		for (int i=0;i<positions.length;i++){
+			
+			DHTNetworkPosition	position = positions[i];
+			
+			int	type = position.getPositionType();
+			
+			if ( type > best_provider ){
+				
+				best_position = position;
+			}
+		}
+		
+		return( best_position );
+	}
+	
+	public static DHTNetworkPosition[]
 	createPositions(
 		byte[]		ID,
 		boolean		is_local )
@@ -289,6 +336,43 @@ DHTNetworkPositionManager
 			}
 		}
 	}
+	
+	public static byte[]
+	serialisePosition(
+		DHTNetworkPosition	pos )
+	
+		throws IOException
+	{
+		ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+		
+		DataOutputStream	dos = new DataOutputStream( baos );
+	
+		dos.writeByte( 1 );	// version
+		dos.writeByte( pos.getPositionType());
+		
+		pos.serialise( dos );
+		
+		dos.close();
+		
+		return( baos.toByteArray());
+	}
+	
+	public static DHTNetworkPosition
+   	deserialisePosition(
+   		byte[]		bytes )
+   	
+   		throws IOException
+   	{
+   		ByteArrayInputStream	bais = new ByteArrayInputStream( bytes );
+   		
+   		DataInputStream	dis = new DataInputStream( bais );
+   	
+   		dis.readByte();	// version
+   		
+   		byte	position_type = dis.readByte();
+   		
+   		return( deserialise( position_type, dis ));
+   	}
 	
 	public static DHTNetworkPosition
 	deserialise(

@@ -37,6 +37,13 @@ DHTNetworkPositionProvider
 		byte[]		ID,
 		boolean		is_local );
 	
+		/**
+		 * Returns a local, hopefully stable, network position for us or null if none available
+		 */
+	
+	public DHTNetworkPosition
+	getLocalPosition();
+	
 	public DHTNetworkPosition
 	deserialisePosition(
 		DataInputStream		is )
