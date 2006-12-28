@@ -1,16 +1,43 @@
 $ 
-$    Welcome to Azureus 2.5.0.0
+$    Welcome to Azureus 2.5.0.2
 $ 
 
-+1. What's new in Azureus 2.5.0.0
++1. What's new in Azureus 2.5.0.2
 
-!1.1 Send to a friend
+!1.1 Less memory footprint
+  Most noteably, torrent piece information is now removed from memory when not used.
+  
+!1.2 Minimum # of Simultaneous Active Downloads
+  The ability to always have at least x number of active downloads running.
+  
+!1.2 New columns
+  Custom user comment (My Torrents view)
+  File extension (Files view)
+
+!1.4 Faster startup times on large lists
+  Startup times when Azureus has a large list of torrents is now faster (up to 400x faster in some cases).
+  Some plugins may negate this optimization if the plugin accesses every torrents information immediately at startup.
+
+!1.5 Other
+  Various user interface improvements.
+  Bug fixes.
+  Less memory leaks.
+ 
+!1.6 Java 5.0 note
+  Java 5, Update 10 fixes a handle leak commonly seen in Azureus installations.  It is highly recommended that you upgrade to this version or a later version.  You can download the update at http://java.com/en/download/manual.jsp
+
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.2
+
+
++2. What's new in Azureus 2.5.0.0
+
+!2.1 Send to a friend
   A wizard to simplify sending a link to content to a friend or to embed in a web page (e.g. a blog).
 
-!1.2 Auto upload speed
+!2.2 Auto upload speed
   This feature controls your upload speed based on the latency of your internet connection as gauged by pinging other members of the Distributed Database.
 
-!1.3 Other new features
+!2.3 Other new features
   OSX: Open .torrent files into Azureus via Finder/Desktop/etc.
   'Do not download' files handled more consistently with respect to download completion.
   Renaming of a download directories.
@@ -23,28 +50,28 @@ $
   Don't forget to check the plugins - http://azureus.sourceforge.net/plugin_list.php
     New remote control plugin - AzSMRC
   
-!1.4 Bug fixes and performance improvements
+!2.4 Bug fixes and performance improvements
  Notable fixes:
     LAN Peer Finder retains peers more effectively; explicit LAN peer identification.
     Reduced CPU usage when connected to large numbers of peers.
     
     Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.0
 
-+2. What's new in Azureus 2.4.0.0
++3. What's new in Azureus 2.4.0.0
     
-!2.1 Encrypted/Obfuscated Data Transfer
+!3.1 Encrypted/Obfuscated Data Transfer
  Support for encrypting the data between Azureus and other compatible clients is included. This both provides a level of protection of data and can help with ISPs that block or restrict peer-to-peer traffic.
   
-!2.2 High Speed LAN Transfers
+!3.2 High Speed LAN Transfers
  Multiple copies of Azureus running on the same local network support high speed direct connections.
 
-!2.3 Improved Download Algorithm
+!3.3 Improved Download Algorithm
  The algorithm used to determine which pieces of a download to request from which peers has been rewritten to improve its behaviour and performance.
 
-!2.4 Webseed Support
+!3.4 Webseed Support
  Basic webseed support is included. Webseeds will only be used when a download's availability is less than 1.0.
 
-!2.5 Other
+!3.5 Other
 
  Various user interface improvements.
  Performance improvements.
@@ -54,33 +81,6 @@ $
 
     See http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 and 2.3.0.2 for previous changes.
     
-+3. What's new in Azureus 2.3.0.0
-
-!3.1 Distributed Database
- Azureus now has a distributed, decentralised database that can be used to track decentralised torrents. This permits both "trackerless" torrents and the maintenance of swarms where the tracker has become unavailable or where the torrent was removed from the tracker.
- It uses the UDP protocol, if you have a firewall/router, you will need to open/forward the UDP port in the same way you did with TCP to download data.
- 
-*3.1.1 Magnet Links
- For torrents that are tracked decentrally, Azureus can export a "Magnet Link". This is of the form "magnet:?xt=urn:btih:..." and can be used to download the torrent from the distributed database via the "open->url" menu item.
- 
-!3.2 Enhanced Protocol
- Azureus now supports an enhanced inter-client messaging protocol, which is aimed at allowing plugins to use the connections created by Azureus to add functionality to the program. Other clients developers can see the specifications for this protocol at http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Plugin developers can check the plugin javadocs to see how to use it.
- For example, the JPC and Chat plugins make use of this messaging extension.
-
-!3.3 JPC
- Joltid Peer Cache (JPC) is now integrated into Azureus. For users whose ISP support this, JPC should allow faster downloads, while helping the ISP reduce its bandwidth costs. The JPC Plugin is safe in the way that your ISP won't know what you are downloading, and can't use it to spy on you. The JPC plugin can be disabled through Tools > Options > Plugins > JPC.
-  
-!3.4 Featured Plugins
- The Distributed Database and the Enhanced Protocol allowed us to develop some new plugins. We won't auto install them for you, but we recommend all users who might be interested in them to install them using the Plugins > Installation Wizard menu.
- 
-*3.4.1 Chat
- This plugin will create a discussion channel for each torrent you are downloading. Each channel is independent, and you are free to discuss whatever you want inside the channel. This plugin makes use of the Enhanced Protocol. Developers of other clients willing to implement the chat functionality in their client are welcome to take a look at the very simple protocol used and described here : http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
- You can also create/join an arbitrary channel by typing in its name inside the plugin. This will have the effect of creating a "virtual" torrent, with no seeds, in order to allow users to create connections to chat. The "virtual" torrents make use of the Distributed Database as their tracker, so while you can use the Chat Plugin without the Distributed Database, you won't be able to use the virtual channel feature if you disable the Distributed Database.
- 
-*3.4.2 Ratings & Comments
- This plugin will allow you to see ratings & comments from other users, as well as rate and comment a torrent yourself (right click the torrent in "My Torrents" then choose "ratings & comments". This plugin uses the Distributed Database, so you need to have the Distributed Database enabled for it to work.
- 
-
 +4. Upgrade Advice
 
 !4.1 Java 5.0
