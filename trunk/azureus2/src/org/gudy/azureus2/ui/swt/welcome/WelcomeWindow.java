@@ -166,7 +166,7 @@ public class WelcomeWindow {
 
 				helpPanel.setForeground(grey);
 
-				String[] lines = sWhatsNew.split("[\\r][\\n]?");
+				String[] lines = sWhatsNew.split("\\r?\\n");
 				for (int i = 0; i < lines.length; i++) {
 					String line = lines[i];
 
