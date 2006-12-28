@@ -27,7 +27,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 /**
@@ -41,11 +40,10 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
   public static final int COLOR_AVERAGE = 0;
   public static final int COLOR_VALUE0 = 1;
   public static final int COLOR_VALUE1 = 2;
-  public static final int COLOR_VALUE3 = 3;
+  public static final int COLOR_VALUE2 = 3;
   
   public static Color[] colors = new Color[] {
-  	Colors.grey,Colors.blues[Colors.BLUES_MIDDARK], Colors.fadedGreen,Colors.fadedRed,Colors.black
-  };
+  	Colors.grey,Colors.blues[Colors.BLUES_MIDDARK], Colors.fadedGreen,Colors.fadedRed };
   
   private int internalLoop;
   private int graphicsUpdate;
@@ -123,10 +121,6 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
     	
     	this_mon.exit();
     }
-  }
-  
-  public void addIntValue(int value) {
-	  addIntsValue( new int[]{ value });
   }
   
   public void refresh() {  

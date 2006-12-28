@@ -26,7 +26,6 @@ import java.text.DecimalFormat;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -42,8 +41,8 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.components.graphics.PingGraphic;
-import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -232,9 +231,9 @@ public class TransferStatsView extends AbstractIView {
     currentPing.setLayoutData(gridData);
     
     pingCanvas = new Canvas(autoSpeedInfoPanel,SWT.NONE);
-    GridData data = new GridData(GridData.FILL_BOTH);
-    data.horizontalSpan = 8;
-    pingCanvas.setLayoutData(data);
+    gridData = new GridData(GridData.FILL_BOTH);
+    gridData.horizontalSpan = 8;
+    pingCanvas.setLayoutData(gridData);
     
     pingGraph = PingGraphic.getInstance();
     pingGraph.initialize(pingCanvas);
@@ -248,7 +247,21 @@ public class TransferStatsView extends AbstractIView {
     
     SpeedManager speedManager = core.getSpeedManager();
     autoSpeedPanelLayout.topControl = speedManager.isAvailable() ? autoSpeedInfoPanel : autoSpeedDisabledPanel;
+    
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 8;
+    
+	Legend.createLegendComposite(
+			autoSpeedInfoPanel,
+    		PingGraphic.colors,
+    		new String[]{
+        			"TransferStatsView.legend.pingaverage",        			
+        			"TransferStatsView.legend.ping1",        			
+        			"TransferStatsView.legend.ping2",
+    				"TransferStatsView.legend.ping3" },
+    		gridData );
   }
+  
   public void delete() {
     Utils.disposeComposite(generalPanel);
     pingGraph.dispose();
