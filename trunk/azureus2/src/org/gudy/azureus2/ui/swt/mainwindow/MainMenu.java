@@ -501,7 +501,7 @@ public class MainMenu {
         		if (uiFunctions != null) {
         			uiFunctions.bringToFront();
         		}
-        		UpdateMonitor.getSingleton(core).performCheck(true, new UpdateCheckInstanceListener() {
+        		UpdateMonitor.getSingleton(core).performCheck(true, false, new UpdateCheckInstanceListener() {
         			public void cancelled(UpdateCheckInstance instance) {
         			}
         			

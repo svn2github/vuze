@@ -134,6 +134,11 @@ public class SWTUpdateChecker implements UpdatableComponent
 		        	    		
 		        	    		boolean force = now < last_prompt || now - last_prompt > 7*24*60*60*1000;
 		        	    		
+		        	    		if ( !checker.getCheckInstance().isAutomatic()){
+		        	    			
+		        	    			force = true;
+		        	    		}
+		        	    		
 		        		    	if ( force || update_prevented_version != versionGetter.getCurrentVersion()){
 			        		    		
 			        	    		String	alert = 
@@ -145,7 +150,7 @@ public class SWTUpdateChecker implements UpdatableComponent
 			        	    						jar_file_dir.toString(), 
 			        	    						expected_dir.toString()});
 			        	    		
-			        	     		Logger.log(	new LogAlert(LogAlert.UNREPEATABLE, LogEvent.LT_ERROR, alert ));
+			        	     		Logger.log(	new LogAlert(LogAlert.REPEATABLE, LogEvent.LT_ERROR, alert ));
 			        						
 			        	     		update_prevented_version = versionGetter.getCurrentVersion();
 			        	     		

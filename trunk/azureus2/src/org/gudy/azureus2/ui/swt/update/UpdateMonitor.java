@@ -211,7 +211,7 @@ UpdateMonitor
 		if (	( check_at_start && start_of_day) ||
 				( check_periodic && !start_of_day )){
 			
-			performCheck(bOldSWT);	// this will implicitly do usage stats
+			performCheck(bOldSWT, true, null);	// this will implicitly do usage stats
 			
 		}else{
 
@@ -235,15 +235,12 @@ UpdateMonitor
 					});
 		}
 	}
-	
-	public void
-	performCheck(final boolean bForce)
-	{
-		performCheck(bForce, null);
-	}
 
 	public void
-	performCheck(final boolean bForce, final UpdateCheckInstanceListener l)
+	performCheck(
+		final boolean 						bForce, 
+		final boolean						automatic,
+		final UpdateCheckInstanceListener 	l )
 	{
 		if ( SystemProperties.isJavaWebStartInstance()){
 			
@@ -296,6 +293,11 @@ UpdateMonitor
 			    				bForce ? UpdateCheckInstance.UCI_INSTALL : UpdateCheckInstance.UCI_UPDATE,
 			  					"update.instance.update" );
 			  	
+			    		if ( !automatic ){
+			    			
+			    			current_update_instance.setAutomatic( false );
+			    		}
+			    		
 			    		if (l != null) {
 			    			current_update_instance.addListener(l);
 			    		}

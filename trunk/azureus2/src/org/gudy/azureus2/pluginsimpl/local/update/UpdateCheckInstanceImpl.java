@@ -40,22 +40,24 @@ UpdateCheckInstanceImpl
 	implements UpdateCheckInstance
 {
 	private static final LogIDs LOGID = LogIDs.CORE;
-	protected List	listeners			= new ArrayList();
-	protected List	updates 			= new ArrayList();
-	protected List	decision_listeners	= new ArrayList();
+	private List	listeners			= new ArrayList();
+	private List	updates 			= new ArrayList();
+	private List	decision_listeners	= new ArrayList();
 	
 
-	protected AESemaphore	sem 	= new AESemaphore("UpdateCheckInstance");
+	private AESemaphore	sem 	= new AESemaphore("UpdateCheckInstance");
 
-	protected UpdateManager	manager;
-	protected int			check_type;
-	protected String		name;
+	private UpdateManager	manager;
+	private int				check_type;
+	private String			name;
 
-	protected UpdatableComponentImpl[]		components;
-	protected UpdateCheckerImpl[]			checkers;
+	private UpdatableComponentImpl[]		components;
+	private UpdateCheckerImpl[]				checkers;
 	
-	protected boolean		completed;
-	protected boolean		cancelled;
+	private boolean		completed;
+	private boolean		cancelled;
+	
+	private boolean		automatic	= true;
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "UpdateCheckInstance" );
 	
@@ -121,6 +123,19 @@ UpdateCheckInstanceImpl
 		new_checkers[checkers.length]	= checker;
 		
 		checkers	= new_checkers;
+	}
+	
+	public void
+	setAutomatic(
+		boolean	a )
+	{
+		automatic = a;
+	}
+	
+	public boolean
+	isAutomatic()
+	{
+		return( automatic );
 	}
 	
 	public void

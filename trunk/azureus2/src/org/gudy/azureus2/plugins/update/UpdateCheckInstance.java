@@ -90,7 +90,13 @@ UpdateCheckInstance
 	public UpdateManager
 	getManager();
 	
-
+	public void
+	setAutomatic(
+		boolean	automatic );
+	
+	public boolean
+	isAutomatic();
+	
 	public void
 	addDecisionListener(
 		UpdateManagerDecisionListener	l );
