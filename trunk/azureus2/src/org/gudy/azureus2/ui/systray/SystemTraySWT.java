@@ -23,13 +23,13 @@ package org.gudy.azureus2.ui.systray;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -148,7 +148,9 @@ public class SystemTraySWT
 			}
 
 			public void menuHidden(MenuEvent _menu) {
-
+				if(Constants.isOSX) {
+					trayItem.setImage(ImageRepository.getImage("azureus_grey"));
+				}
 			}
 		});
 
@@ -179,15 +181,6 @@ public class SystemTraySWT
 			}
 		});
 		
-		menu.addListener(SWT.Hide, new Listener() {
-			public void handleEvent(Event arg0) {
-				if(Constants.isOSX) {
-					trayItem.setImage(ImageRepository.getImage("azureus_grey"));
-					trayItem.setText("test");
-				}
-			}
-		});
-
 		trayItem.addListener(SWT.MenuDetect, new Listener() {
 			public void handleEvent(Event arg0) {
 				menu.setVisible(true);
