@@ -669,7 +669,7 @@ public class VersionCheckClient {
 	    	
 			 long	advice = as_advice.longValue();
 			 
-			 if ( advice == 1 ){
+			 if ( advice != 0 ){
 			
 				 	// require crypto
 				 
@@ -679,16 +679,25 @@ public class VersionCheckClient {
 					 
 					 COConfigurationManager.setParameter( "ASN Advice Followed", asn );
 					 
+					 boolean	change 	= advice == 1 || advice == 2;
+					 boolean	alert 	= advice == 1 || advice == 3;
+					 
 					 if ( !COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require" )){
 						 
-						 COConfigurationManager.setParameter( "network.transport.encrypted.require", true );
-					 
-						 String	msg = 
-							 MessageText.getString(
-									"crypto.alert.as.warning",
-									new String[]{ asn });
+						 if ( change ){
+							 
+							 COConfigurationManager.setParameter( "network.transport.encrypted.require", true );
+						 }
 						 
-						 Logger.log( new LogAlert( false, LogAlert.AT_WARNING, msg ));
+						 if ( alert ){
+							 
+							 String	msg = 
+								 MessageText.getString(
+										"crypto.alert.as.warning",
+										new String[]{ asn });
+							 
+							 Logger.log( new LogAlert( false, LogAlert.AT_WARNING, msg ));
+						 }
 					 }
 				 }
 			 }
