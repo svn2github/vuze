@@ -101,12 +101,12 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		if (!Constants.isOSX || SWT.getVersion() >= 3300) {
 
 			BooleanParameter est = new BooleanParameter(cDisplay,
-					"Enable System Tray", true, KEY_PREFIX + "enabletray");
+					"Enable System Tray", KEY_PREFIX + "enabletray");
 
 			BooleanParameter ctt = new BooleanParameter(cDisplay, "Close To Tray",
-					true, LBLKEY_PREFIX + "closetotray");
+					LBLKEY_PREFIX + "closetotray");
 			BooleanParameter mtt = new BooleanParameter(cDisplay, "Minimize To Tray",
-					false, LBLKEY_PREFIX + "minimizetotray");
+					LBLKEY_PREFIX + "minimizetotray");
 
 			est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(ctt
 					.getControls()));
