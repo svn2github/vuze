@@ -131,8 +131,6 @@ ExternalSeedPlugin
 						UTTimerEvent		event )
 					{
 						try{
-							download_mon.enter();
-							
 							Iterator	it = download_map.values().iterator();
 							
 							while( it.hasNext()){
@@ -151,10 +149,14 @@ ExternalSeedPlugin
 								}
 							}
 							
-						}finally{
+						}catch( Throwable e ){
+							// we do this without holding the monitor as doing so causes potential
+							// deadlock between download_mon and the connection's connection_mon
 							
-							download_mon.exit();
-						}	
+							// so ignore possible errors here that may be caused by concurrent
+							// modification to the download_map ans associated lists. We are only
+							// reading the data so errors will only be transient
+						}
 					}
 				});
 		
