@@ -31,9 +31,9 @@ TRTrackerAnnouncerResponsePeerImpl
 	private String		source;
 	private byte[]		peer_id;
 	private String		address;
-	private int			tcp_port;
-	private int			udp_port;
-	private int			http_port;
+	private short		tcp_port;
+	private short		udp_port;
+	private short		http_port;
 	private short		crypto;
 	private byte		az_version;
 	private short		up_speed;
@@ -48,17 +48,17 @@ TRTrackerAnnouncerResponsePeerImpl
 		int			_http_port,
 		short		_crypto,
 		byte		_az_version,
-		short		_up_speed )
+		int			_up_speed )
 	{
 		source		= _source;
 		peer_id		= _peer_id;
 		address		= _address;
-		tcp_port	= _tcp_port;
-		udp_port	= _udp_port;
-		http_port	= _http_port;
+		tcp_port	= (short)_tcp_port;
+		udp_port	= (short)_udp_port;
+		http_port	= (short)_http_port;
 		crypto		= _crypto;
 		az_version	= _az_version;
-		up_speed	= _up_speed;
+		up_speed	= (short)_up_speed;
 	}
 	
 	public String
@@ -82,19 +82,19 @@ TRTrackerAnnouncerResponsePeerImpl
 	public int
 	getPort()
 	{
-		return( tcp_port );
+		return( tcp_port&0xffff );
 	}
 	
 	public int
 	getUDPPort()
 	{
-		return( udp_port );
+		return( udp_port&0xffff );
 	}
 	
 	public int
 	getHTTPPort()
 	{
-		return( http_port );
+		return( http_port&0xffff );
 	}
 	
 	public short
@@ -109,6 +109,12 @@ TRTrackerAnnouncerResponsePeerImpl
 		return( az_version );
 	}
 	
+	public int
+	getUploadSpeed()
+	{
+		return( up_speed&0xffff );
+	}
+	
 	protected String
 	getKey()
 	{
@@ -118,6 +124,12 @@ TRTrackerAnnouncerResponsePeerImpl
 	public String
 	getString()
 	{
-		return( "ip=" + address + ",tcp_port=" + tcp_port + ",udp_port=" + udp_port + ",prot=" + crypto + (up_speed==0?"":(",up=" + up_speed )) + ",ver=" + az_version );
+		return( "ip=" + address + 
+					(tcp_port==0?"":(",tcp_port=" + getPort())) + 
+					(udp_port==0?"":(",udp_port=" + getUDPPort())) + 
+					(http_port==0?"":(",http_port=" + getHTTPPort())) + 
+					",prot=" + crypto + 
+					(up_speed==0?"":(",up=" + getUploadSpeed())) + 
+					",ver=" + az_version );
 	}
 }

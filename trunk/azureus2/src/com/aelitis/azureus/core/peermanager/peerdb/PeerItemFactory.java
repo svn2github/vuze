@@ -59,8 +59,18 @@ public class PeerItemFactory {
    * @param source this peer info was obtained from
    * @return peer
    */
-  public static PeerItem createPeerItem( String address, int tcp_port, byte source, byte handshake_type, int udp_port, byte crypto_level ) {
-    return getLightweight( new PeerItem( address, tcp_port, source, handshake_type, udp_port, crypto_level ) );
+  public static PeerItem 
+  createPeerItem( 
+	String 	address, 
+	int 	tcp_port, 
+	byte 	source, 
+	byte 	handshake_type, 
+	int 	udp_port, 
+	byte 	crypto_level,
+	int		up_speed )
+  
+  {
+    return getLightweight( new PeerItem( address, tcp_port, source, handshake_type, udp_port, crypto_level, up_speed ) );
   }
   
   /**

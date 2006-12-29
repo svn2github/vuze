@@ -673,7 +673,7 @@ PEPeerControlImpl
 		boolean use_crypto ) 
 	{
 		final byte type = use_crypto ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
-		final PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, tcp_port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type, udp_port, PeerItemFactory.CRYPTO_LEVEL_1 );
+		final PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, tcp_port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type, udp_port, PeerItemFactory.CRYPTO_LEVEL_1, 0 );
 		
 		byte	crypto_level = PeerItemFactory.CRYPTO_LEVEL_1;
 		
@@ -736,7 +736,14 @@ PEPeerControlImpl
 				
 				byte crypto_level = peer.getAZVersion() < TRTrackerAnnouncer.AZ_TRACKER_VERSION_3?PeerItemFactory.CRYPTO_LEVEL_1:PeerItemFactory.CRYPTO_LEVEL_2;
 				
-				PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), type, peer.getUDPPort(), crypto_level );
+				PeerItem item = PeerItemFactory.createPeerItem( 
+									peer.getAddress(), 
+									peer.getPort(), 
+									PeerItem.convertSourceID( peer.getSource() ), 
+									type, 
+									peer.getUDPPort(), 
+									crypto_level,
+									peer.getUploadSpeed());
 				
 				peer_database.addDiscoveredPeer( item );
 			}
@@ -3189,7 +3196,8 @@ PEPeerControlImpl
 												PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE,
 												base_peer.getPeerItemIdentity().getHandshakeType(),
 												base_peer.getUDPListenPort(),
-												PeerItemFactory.CRYPTO_LEVEL_1 );
+												PeerItemFactory.CRYPTO_LEVEL_1,
+												0 );
 			
 			return peer_database.registerPeerConnection( peer, new PeerExchangerItem.Helper(){
 				public boolean 
@@ -3218,7 +3226,7 @@ PEPeerControlImpl
 	public void peerVerifiedAsSelf( PEPeerTransport self ) {
 		if( self.getTCPListenPort() > 0 ) {  //only accept self if remote port is known
 			final PeerItem peer = PeerItemFactory.createPeerItem( self.getIp(), self.getTCPListenPort(),
-				PeerItem.convertSourceID( self.getPeerSource() ), self.getPeerItemIdentity().getHandshakeType(), self.getUDPListenPort(),PeerItemFactory.CRYPTO_LEVEL_CURRENT );
+				PeerItem.convertSourceID( self.getPeerSource() ), self.getPeerItemIdentity().getHandshakeType(), self.getUDPListenPort(),PeerItemFactory.CRYPTO_LEVEL_CURRENT, 0 );
 			peer_database.setSelfPeer( peer );
 		}
 	}

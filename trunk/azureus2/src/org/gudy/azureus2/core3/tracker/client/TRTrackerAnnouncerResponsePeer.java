@@ -32,4 +32,7 @@ TRTrackerAnnouncerResponsePeer
 	
 	public byte
 	getAZVersion();
+	
+	public int
+	getUploadSpeed();
 }

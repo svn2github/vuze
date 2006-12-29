@@ -245,7 +245,8 @@ PeerForeignDelegate
 				PeerItemFactory.PEER_SOURCE_PLUGIN, 
 				PeerItemFactory.HANDSHAKE_TYPE_PLAIN,
 				foreign.getUDPListenPort(),
-				PeerItemFactory.CRYPTO_LEVEL_1 );
+				PeerItemFactory.CRYPTO_LEVEL_1,
+				0 );
 	}
   
   
