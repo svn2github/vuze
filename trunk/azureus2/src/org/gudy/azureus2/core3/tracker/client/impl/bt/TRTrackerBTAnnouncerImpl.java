@@ -23,6 +23,8 @@ package org.gudy.azureus2.core3.tracker.client.impl.bt;
 
 import java.io.*;
 import java.net.*;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -2241,9 +2243,149 @@ TRTrackerBTAnnouncerImpl
 			    			// latest return to dictionary based data 
 			    		
 						List meta_peers = (List)meta_peers_peek;
-	 					 
+
 						int peers_length = meta_peers.size();
 
+						if ( peers_length > 1 ){
+								// calculate average rtt to use for those with no rtt
+		 					 
+							long	total_rtt 	= 0;
+							int		rtt_count	= 0;
+							
+							for ( int i = 0; i < peers_length; i++ ){
+							 	
+								Map peer = (Map) meta_peers.get(i);
+								
+					    		Long	l_rtt = (Long)peer.get( "r" );
+	
+					    		if ( l_rtt != null ){
+					    			
+					    			total_rtt 	+= l_rtt.longValue();
+					    			rtt_count++; 
+					    		}
+							}
+							
+							final int average_rtt = (int)( rtt_count==0?0:(total_rtt/rtt_count));
+							
+								// sort into smallest rtt order with biased at front
+							
+							Collections.sort(
+									meta_peers,
+									new Comparator()
+									{
+										public int 
+										compare(
+											Object	o1, 
+											Object	o2 )
+										{
+											Map	map1 = (Map)o1;
+											Map map2 = (Map)o2;
+											
+								    		Long	l_rtt1 = (Long)map1.get( "r" );
+								    		Long	l_rtt2 = (Long)map2.get( "r" );
+	
+								    		boolean	biased_1 = map1.containsKey( "b" );
+								    		boolean	biased_2 = map2.containsKey( "b" );
+								    		
+								    		if ( biased_1 == biased_2 ){
+								    			
+								    			int	rtt1 = l_rtt1==null?average_rtt:l_rtt1.intValue();
+								    			int	rtt2 = l_rtt2==null?average_rtt:l_rtt2.intValue();
+								    			
+								    			return( rtt1 - rtt2 );
+								    			
+								    		}else if ( biased_1 ){
+								    			
+								    			return( -1 );
+								    		}else{
+								    			
+								    			return( +1 );
+								    		}
+										}
+									});
+							
+								// interleave non-biased peers with good rtt
+							
+							int	biased_pos		= peers_length;
+							int	non_biased_pos	= peers_length;
+							
+							for ( int i = 0; i < peers_length; i++ ){
+							 	
+								Map peer = (Map) meta_peers.get(i);
+			
+								if ( peer.containsKey( "b" )){
+									
+									if ( i == 0 ){
+										
+										biased_pos	= i;
+									}
+								}else{
+									
+									non_biased_pos = i;
+									
+									break;
+								}
+							}
+								
+							List	new_peers = new ArrayList(peers_length);
+							
+							int		non_biased_start = non_biased_pos;
+							
+							boolean	last_biased	= true;
+								
+							while( biased_pos < non_biased_start || non_biased_pos < peers_length ){
+								
+								if ( biased_pos < non_biased_start ){
+									
+									if ( non_biased_pos < peers_length ){
+										
+										Map biased 		= (Map) meta_peers.get(biased_pos);
+										Map non_biased 	= (Map) meta_peers.get(non_biased_pos);
+
+										boolean	use_biased;
+										
+										if ( !last_biased ){
+											
+											use_biased = true;
+											
+										}else{
+											
+									    	Long	l_rtt_biased 		= (Long)biased.get( "r" );
+								    		Long	l_rtt_non_biased 	= (Long)non_biased.get( "r" );
+		
+							    			int	biased_rtt 		= l_rtt_biased==null?average_rtt:l_rtt_biased.intValue();
+							    			int	non_biased_rtt 	= l_rtt_non_biased==null?average_rtt:l_rtt_non_biased.intValue();
+		
+							    			use_biased = non_biased_rtt >= biased_rtt;
+										}
+										
+										if ( use_biased ){
+											
+											new_peers.add( biased );
+											
+											biased_pos++;
+											
+										}else{
+											
+											new_peers.add( non_biased );
+											
+											non_biased_pos++;
+										}
+										
+										last_biased = use_biased;
+									}else{
+										
+										new_peers.add(  meta_peers.get( biased_pos++ ));
+									}
+								}else{
+									
+									new_peers.add( meta_peers.get( non_biased_pos++ ));
+								}
+							}
+							
+							meta_peers = new_peers;
+						}
+						
 						for ( int i = 0; i < peers_length; i++ ){
 						 	
 							Map peer = (Map) meta_peers.get(i);
@@ -2301,7 +2443,9 @@ TRTrackerBTAnnouncerImpl
 					    		Long	l_azver = (Long)peer.get("v" );
 					    		
 					    		byte	az_ver = l_azver==null?TRTrackerAnnouncer.AZ_TRACKER_VERSION_1:l_azver.byteValue();
-					    			
+					    								    		
+					    		Long	l_up_speed = (Long)peer.get( "s" );
+					    							    							    		
 								TRTrackerAnnouncerResponsePeerImpl new_peer = 
 									new TRTrackerAnnouncerResponsePeerImpl( 
 										PEPeerSource.PS_BT_TRACKER, 

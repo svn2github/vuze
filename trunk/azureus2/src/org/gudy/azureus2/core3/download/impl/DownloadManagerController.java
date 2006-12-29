@@ -414,7 +414,7 @@ DownloadManagerController
 							}
 						}
 												
-						return((int)( current_local/1024 ));
+						return((int)((current_local+1023)/1024 ));
 					}
 	    		});
 	    

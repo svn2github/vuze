@@ -1016,7 +1016,7 @@ TRTrackerServerTorrentImpl
 									
 						TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(i);
 										
-						if ( peer == null ){
+						if ( peer == null || peer == requesting_peer ){
 													
 						}else if ( now > peer.getTimeout()){
 										
@@ -1086,6 +1086,11 @@ TRTrackerServerTorrentImpl
 								
 									rep_peer.put( "azup", new Long( peer.getUpSpeed()));
 									
+									if ( peer.isBiased()){
+										
+										rep_peer.put( "azbiased", "" );
+									}
+
 									if ( network_position != null ){
 										
 										DHTNetworkPosition	peer_pos = peer.getNetworkPosition();
@@ -1242,7 +1247,7 @@ TRTrackerServerTorrentImpl
 									
 									peer_removed	= true;
 									
-								}else if ( peer.getTCPPort() == 0 ){
+								}else if ( requesting_peer == peer || peer.getTCPPort() == 0 ){
 									
 										// a port of 0 means that the peer definitely can't accept incoming connections
 							
@@ -1302,8 +1307,13 @@ TRTrackerServerTorrentImpl
 													
 													rep_peer.put( "azup", new Long( peer.getUpSpeed()));
 													
-													if ( network_position != null ){
+													if ( peer.isBiased()){
 														
+														rep_peer.put( "azbiased", "" );
+													}
+
+													if ( network_position != null ){
+																												
 														DHTNetworkPosition	peer_pos = peer.getNetworkPosition();
 														
 														if ( peer_pos != null && network_position.getPositionType() == peer_pos.getPositionType()){
@@ -1624,6 +1634,11 @@ TRTrackerServerTorrentImpl
 					if ( rtt != null ){
 						
 						peer.put( "r", rtt );
+					}
+					
+					if ( rep_peer.containsKey("azbiased")){
+						
+						peer.put( "b", new Long(1));
 					}
 				}
 									
