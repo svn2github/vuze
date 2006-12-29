@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.plugins.extseed.util;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -29,6 +30,8 @@ import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URL;
 import java.util.StringTokenizer;
+
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 
@@ -218,9 +221,16 @@ ExternalSeedHTTPDownloader
 
 			}else{
 				
-				outcome = "Connection failed" + e.toString();
+				outcome =  "Connection failed: " + Debug.getNestedExceptionMessage( e );
 				
-				throw( new ExternalSeedException( outcome, e ));
+				ExternalSeedException excep = new ExternalSeedException( outcome, e );
+				
+				if ( e instanceof FileNotFoundException ){
+					
+					excep.setPermanentFailure( true );
+				}
+				
+				throw( excep );
 			}
 		}catch( Throwable e ){
 			
@@ -229,7 +239,7 @@ ExternalSeedHTTPDownloader
 				throw((ExternalSeedException)e);
 			}
 			
-			outcome = "Connection failed" + e.toString();
+			outcome = "Connection failed: " + Debug.getNestedExceptionMessage( e );
 			
 			throw( new ExternalSeedException("Connection failed", e ));
 			
