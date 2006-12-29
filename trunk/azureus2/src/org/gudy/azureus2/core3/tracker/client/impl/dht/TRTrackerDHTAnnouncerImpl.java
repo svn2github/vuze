@@ -273,7 +273,8 @@ TRTrackerDHTAnnouncerImpl
 									ext_peer.getUDPPort(),
 									http_port,
 									ext_peer.getProtocol(),
-									az_version );
+									az_version,
+									(short)0 );
 			}
 			
 			addToTrackerCache( peers);

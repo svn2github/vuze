@@ -2466,14 +2466,14 @@ TRTrackerBTAnnouncerImpl
 						    				
 						    		if ( l_rtt != null ){
 						    			
-						    			extra = "rtt=" + l_rtt;
+						    			extra = ",rtt=" + l_rtt;
 						    		}
 						    		
 						    		boolean	biased = peer.containsKey( "b" );
 
 						    		if ( biased ){
 						    			
-						    			extra += (extra.length()==0?"":",") + "biased";
+						    			extra += ",biased";
 						    		}
 						    		
 									Logger.log(new LogEvent(torrent, LOGID,

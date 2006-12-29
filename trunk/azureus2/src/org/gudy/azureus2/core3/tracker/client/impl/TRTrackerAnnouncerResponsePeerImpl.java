@@ -118,6 +118,6 @@ TRTrackerAnnouncerResponsePeerImpl
 	public String
 	getString()
 	{
-		return( "ip=" + address + ",tcp_port=" + tcp_port + ",udp_port=" + udp_port + ",prot=" + crypto + ",ver=" + az_version );
+		return( "ip=" + address + ",tcp_port=" + tcp_port + ",udp_port=" + udp_port + ",prot=" + crypto + (up_speed==0?"":(",up=" + up_speed )) + ",ver=" + az_version );
 	}
 }
