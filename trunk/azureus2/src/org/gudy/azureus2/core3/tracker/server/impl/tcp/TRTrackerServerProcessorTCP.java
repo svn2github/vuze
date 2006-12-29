@@ -580,6 +580,9 @@ TRTrackerServerProcessorTCP
 
 						return;
 					}
+				}else if ( e instanceof NullPointerException ){
+					
+					e.printStackTrace();
 				}
 				
 				String	message = e.getMessage();

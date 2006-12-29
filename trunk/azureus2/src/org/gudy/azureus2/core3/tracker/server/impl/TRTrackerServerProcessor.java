@@ -211,7 +211,7 @@ TRTrackerServerProcessor
 				
 				boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
 				
-				root_out[0] = torrent.exportAnnounceToMap( pre_map, peer, left > 0, stopped?0:num_want, interval, server.getMinAnnounceRetryInterval(), no_peer_id, compact_mode, crypto_level );
+				root_out[0] = torrent.exportAnnounceToMap( pre_map, peer, left > 0, stopped?0:num_want, interval, server.getMinAnnounceRetryInterval(), no_peer_id, compact_mode, crypto_level, network_position );
 				
 				peer_out[0]	= peer;	
 				

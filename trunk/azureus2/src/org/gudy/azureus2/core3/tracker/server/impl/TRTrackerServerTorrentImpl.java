@@ -894,7 +894,8 @@ TRTrackerServerTorrentImpl
 		long						min_interval,
 		boolean						no_peer_id,
 		byte						compact_mode,
-		byte						crypto_level )
+		byte						crypto_level,
+		DHTNetworkPosition			network_position )
 	{
 		try{
 			this_mon.enter();
@@ -935,9 +936,7 @@ TRTrackerServerTorrentImpl
 				
 				num_want	= max_peers;
 			}
-				
-			DHTNetworkPosition network_position = requesting_peer.getNetworkPosition();
-			
+							
 			if ( 	caching_enabled &&
 					(!nat_warning) &&
 					preprocess_map.size() == 0 &&	// don't cache if we've got pre-process stuff to add
@@ -1180,7 +1179,7 @@ TRTrackerServerTorrentImpl
 								limit++;
 							}
 							
-							if ( biased_peers.size() > 1 ){
+							if ( biased_peers != null && biased_peers.size() > 1 ){
 								
 									// juggle things a bit
 								
