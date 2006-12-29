@@ -36,6 +36,7 @@ TRTrackerAnnouncerResponsePeerImpl
 	private int			http_port;
 	private short		crypto;
 	private byte		az_version;
+	private short		up_speed;
 	
 	public
 	TRTrackerAnnouncerResponsePeerImpl(
@@ -46,7 +47,8 @@ TRTrackerAnnouncerResponsePeerImpl
 		int			_udp_port,
 		int			_http_port,
 		short		_crypto,
-		byte		_az_version )
+		byte		_az_version,
+		short		_up_speed )
 	{
 		source		= _source;
 		peer_id		= _peer_id;
@@ -56,6 +58,7 @@ TRTrackerAnnouncerResponsePeerImpl
 		http_port	= _http_port;
 		crypto		= _crypto;
 		az_version	= _az_version;
+		up_speed	= _up_speed;
 	}
 	
 	public String

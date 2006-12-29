@@ -2445,7 +2445,7 @@ TRTrackerBTAnnouncerImpl
 					    		byte	az_ver = l_azver==null?TRTrackerAnnouncer.AZ_TRACKER_VERSION_1:l_azver.byteValue();
 					    								    		
 					    		Long	l_up_speed = (Long)peer.get( "s" );
-					    							    							    		
+					    		
 								TRTrackerAnnouncerResponsePeerImpl new_peer = 
 									new TRTrackerAnnouncerResponsePeerImpl( 
 										PEPeerSource.PS_BT_TRACKER, 
@@ -2455,12 +2455,31 @@ TRTrackerBTAnnouncerImpl
 										udp_port,
 										http_port,
 										protocol,
-										az_ver );
+										az_ver,
+										l_up_speed==null?0:l_up_speed.shortValue());
 										
-								if (Logger.isEnabled())
+								if (Logger.isEnabled()){
+									
+						    		String	extra = "";
+						    		
+						    		Long	l_rtt = (Long)peer.get( "r" );
+						    				
+						    		if ( l_rtt != null ){
+						    			
+						    			extra = "rtt=" + l_rtt;
+						    		}
+						    		
+						    		boolean	biased = peer.containsKey( "b" );
+
+						    		if ( biased ){
+						    			
+						    			extra += (extra.length()==0?"":",") + "biased";
+						    		}
+						    		
 									Logger.log(new LogEvent(torrent, LOGID,
-											"AZ2-COMPACT PEER: " + new_peer.getString()));
-	
+											"AZ2-COMPACT PEER: " + new_peer.getString() + extra));
+								}
+								
 								valid_meta_peers.add( new_peer );
 								
 							}catch( Throwable e ){
@@ -2566,7 +2585,8 @@ TRTrackerBTAnnouncerImpl
 										udp_port,
 										http_port,
 										protocol,
-										TRTrackerAnnouncer.AZ_TRACKER_VERSION_1 );
+										TRTrackerAnnouncer.AZ_TRACKER_VERSION_1,
+										(short)0 );
 										
 								if (Logger.isEnabled())
 									Logger.log(new LogEvent(torrent, LOGID,
@@ -2661,7 +2681,8 @@ TRTrackerBTAnnouncerImpl
 			    					udp_port,
 			    					http_port,
 			    					protocol,
-			    					TRTrackerAnnouncer.AZ_TRACKER_VERSION_1 );
+			    					TRTrackerAnnouncer.AZ_TRACKER_VERSION_1,
+			    					(short)0 );
 			    			
 				    		if (Logger.isEnabled())
 								Logger.log(new LogEvent(torrent, LOGID, "COMPACT PEER: " + peer.getString()));
@@ -2952,7 +2973,8 @@ TRTrackerBTAnnouncerImpl
 								ext_peer.getUDPPort(),
 								http_port,
 								ext_peer.getProtocol(),
-								az_version );
+								az_version,
+								(short)0 );
 				
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(torrent, LOGID, "EXTERNAL PEER: " + peers[i].getString())); 

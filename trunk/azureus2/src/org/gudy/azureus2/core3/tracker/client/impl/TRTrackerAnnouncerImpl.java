@@ -268,7 +268,8 @@ TRTrackerAnnouncerImpl
 							peer_udp_port,
 							peer_http_port,
 							protocol,
-							az_ver );
+							az_ver,
+							(short)0 );
 					
 					tracker_peer_cache.put( entry.getKey(), entry );
 				}
@@ -342,7 +343,7 @@ TRTrackerAnnouncerImpl
 				// create a fake peer so we can get the key
 			
 			TRTrackerAnnouncerResponsePeerImpl peer = 
-				new TRTrackerAnnouncerResponsePeerImpl( "", new byte[0], ip, tcp_port, 0, 0, (short)0, (byte)0 );
+				new TRTrackerAnnouncerResponsePeerImpl( "", new byte[0], ip, tcp_port, 0, 0, (short)0, (byte)0, (short)0 );
 			
 			if ( tracker_peer_cache.remove( peer.getKey()) != null ){
 				
