@@ -38,18 +38,23 @@ import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
  */
 public class WriteController implements AzureusCoreStatsProvider{
   
-	private static int IDLE_SLEEP_TIME  = 50;
-	   
+	private static int 		IDLE_SLEEP_TIME  	= 50;
+	private static boolean	AGGRESIVE_WRITE		= false;
+	
 	static{
-		COConfigurationManager.addAndFireParameterListener(
-			"network.control.write.idle.time",
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"network.control.write.idle.time",
+				"network.control.write.aggressive",
+			},
 			new ParameterListener()
 			{
 				public void 
 				parameterChanged(
 					String name )
 				{
-					IDLE_SLEEP_TIME 	= COConfigurationManager.getIntParameter( name );
+					IDLE_SLEEP_TIME 	= COConfigurationManager.getIntParameter( "network.control.write.idle.time" );
+					AGGRESIVE_WRITE		= COConfigurationManager.getBooleanParameter( "network.control.write.aggressive" );
 				}
 			});
 	}
@@ -60,7 +65,12 @@ public class WriteController implements AzureusCoreStatsProvider{
   private int next_normal_position = 0;
   private int next_high_position = 0;
   
-   private long	wait_count;
+  private int aggressive_np_normal_priority_count;
+  private int aggressive_np_high_priority_count;
+  
+  private long	wait_count;
+  private long	progress_count;
+  private long	non_progress_count;
   
   private EventWaiter 	write_waiter = new EventWaiter();
   
@@ -82,6 +92,8 @@ public class WriteController implements AzureusCoreStatsProvider{
     Set	types = new HashSet();
     
     types.add( AzureusCoreStats.ST_NET_WRITE_CONTROL_WAIT_COUNT );
+    types.add( AzureusCoreStats.ST_NET_WRITE_CONTROL_NP_COUNT );
+    types.add( AzureusCoreStats.ST_NET_WRITE_CONTROL_P_COUNT );
     types.add( AzureusCoreStats.ST_NET_WRITE_CONTROL_ENTITY_COUNT );
     types.add( AzureusCoreStats.ST_NET_WRITE_CONTROL_CON_COUNT );
     types.add( AzureusCoreStats.ST_NET_WRITE_CONTROL_READY_CON_COUNT );
@@ -142,6 +154,16 @@ public class WriteController implements AzureusCoreStatsProvider{
 		  values.put( AzureusCoreStats.ST_NET_WRITE_CONTROL_WAIT_COUNT, new Long( wait_count ));
 	  }
 	  
+	  if ( types.contains( AzureusCoreStats.ST_NET_WRITE_CONTROL_NP_COUNT )){
+
+		  values.put( AzureusCoreStats.ST_NET_WRITE_CONTROL_NP_COUNT, new Long( non_progress_count ));
+	  }
+	  
+	  if ( types.contains( AzureusCoreStats.ST_NET_WRITE_CONTROL_P_COUNT )){
+
+		  values.put( AzureusCoreStats.ST_NET_WRITE_CONTROL_P_COUNT, new Long( progress_count ));
+	  }
+
 	  if ( types.contains( AzureusCoreStats.ST_NET_WRITE_CONTROL_ENTITY_COUNT )){
 
 		  values.put( AzureusCoreStats.ST_NET_WRITE_CONTROL_ENTITY_COUNT, new Long( high_priority_entities.size() + normal_priority_entities.size()));
@@ -151,21 +173,26 @@ public class WriteController implements AzureusCoreStatsProvider{
 			types.contains( AzureusCoreStats.ST_NET_WRITE_CONTROL_READY_CON_COUNT ) ||
 			types.contains( AzureusCoreStats.ST_NET_WRITE_CONTROL_READY_BYTE_COUNT )){
 			   
-		  ArrayList ref = normal_priority_entities;
-		    
 		  long	ready_bytes			= 0;
 		  int	ready_connections	= 0;
 		  int	connections			= 0;
 		  
-		  for (int i=0;i<ref.size();i++){
+		  ArrayList[] refs = { normal_priority_entities, high_priority_entities };
+		    
+		  for (int i=0;i<refs.length;i++){
 			  
-		      RateControlledEntity entity = (RateControlledEntity)ref.get( i );
-		      
-		      connections 		+= entity.getConnectionCount();
-		      
-		      ready_connections += entity.getReadyConnectionCount( write_waiter );
-		      
-		      ready_bytes		+= entity.getBytesReadyToWrite();
+			  ArrayList	ref = refs[i];
+			 
+			  for (int j=0;j<ref.size();j++){
+				  
+			      RateControlledEntity entity = (RateControlledEntity)ref.get( j );
+			      
+			      connections 		+= entity.getConnectionCount();
+			      
+			      ready_connections += entity.getReadyConnectionCount( write_waiter );
+			      
+			      ready_bytes		+= entity.getBytesReadyToWrite();
+			  }
 		  }
 		  
 		  values.put( AzureusCoreStats.ST_NET_WRITE_CONTROL_CON_COUNT, new Long( connections ));
@@ -209,16 +236,62 @@ public class WriteController implements AzureusCoreStatsProvider{
   
   private boolean doNormalPriorityWrite() {
     RateControlledEntity ready_entity = getNextReadyNormalPriorityEntity();
-    if( ready_entity != null && ready_entity.doProcessing( write_waiter ) ) {
-      return true;
+    if( ready_entity != null ){
+    	
+    	if ( ready_entity.doProcessing( write_waiter ) ) {
+    
+    		progress_count++;
+    		
+    		return true;
+    	}else{
+    		
+    		non_progress_count++;
+			
+    		if ( AGGRESIVE_WRITE ){
+    			
+     			aggressive_np_normal_priority_count++;
+    			     			
+    			if ( aggressive_np_normal_priority_count < normal_priority_entities.size()){
+    				
+    				return( true );
+    				
+    			}else{
+    				
+    				aggressive_np_normal_priority_count = 0;
+    			}
+    		}
+    	}
     }
     return false;
   }
   
   private boolean doHighPriorityWrite() {
     RateControlledEntity ready_entity = getNextReadyHighPriorityEntity();
-    if( ready_entity != null && ready_entity.doProcessing( write_waiter ) ) {
-      return true;
+    if( ready_entity != null ){
+    	if ( ready_entity.doProcessing( write_waiter ) ) {
+    
+    		progress_count++;
+    		
+    		return true;
+    		
+    	}else{
+    		
+    		non_progress_count++;
+    		
+    		if ( AGGRESIVE_WRITE ){
+    			
+    			aggressive_np_high_priority_count++;
+    			
+    			if ( aggressive_np_high_priority_count < high_priority_entities.size()){
+    				
+    				return( true );
+    				
+    			}else{
+    				
+    				aggressive_np_high_priority_count = 0;
+    			}
+    		}
+    	}
     }
     return false;
   }

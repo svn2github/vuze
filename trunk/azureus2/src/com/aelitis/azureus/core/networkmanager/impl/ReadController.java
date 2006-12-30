@@ -150,19 +150,24 @@ public class ReadController implements AzureusCoreStatsProvider{
 	  
 	  if ( 	types.contains( AzureusCoreStats.ST_NET_READ_CONTROL_CON_COUNT ) ||
 			types.contains( AzureusCoreStats.ST_NET_READ_CONTROL_READY_CON_COUNT )){
-		   
-		  ArrayList ref = normal_priority_entities;
-		    
+		   		    
 		  int	ready_connections	= 0;
 		  int	connections			= 0;
 		  
-		  for (int i=0;i<ref.size();i++){
+		  ArrayList[] refs = { normal_priority_entities, high_priority_entities };
+		    
+		  for (int i=0;i<refs.length;i++){
 			  
-		      RateControlledEntity entity = (RateControlledEntity)ref.get( i );
-		      
-		      connections 		+= entity.getConnectionCount();
-		      
-		      ready_connections += entity.getReadyConnectionCount( read_waiter );
+			  ArrayList	ref = refs[i];
+			 
+			  for (int j=0;j<ref.size();j++){
+		  
+			      RateControlledEntity entity = (RateControlledEntity)ref.get( j );
+			      
+			      connections 		+= entity.getConnectionCount();
+			      
+			      ready_connections += entity.getReadyConnectionCount( read_waiter );
+			  }
 		  }
 		  
 		  values.put( AzureusCoreStats.ST_NET_READ_CONTROL_CON_COUNT, new Long( connections ));

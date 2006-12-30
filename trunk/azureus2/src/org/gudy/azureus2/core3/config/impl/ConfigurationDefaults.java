@@ -405,6 +405,7 @@ public class ConfigurationDefaults {
     def.put( "network.tcp.read.select.time", new Long(25));
     def.put( "network.tcp.write.select.time", new Long(25));
     def.put( "network.control.write.idle.time", new Long(50));
+    def.put( "network.control.write.aggressive", FALSE );
     def.put( "network.control.read.idle.time", new Long(50));
     def.put( "peermanager.schedule.time", new Long(100));
     def.put( "confirm_torrent_removal", FALSE );

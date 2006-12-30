@@ -100,7 +100,10 @@ TransportImpl
 	isReadyForWrite( 
 		EventWaiter waiter ) 
 	{
-		write_waiter = waiter;
+		if ( waiter != null ){
+			
+			write_waiter = waiter;
+		}
 		
 		return is_ready_for_write;  
 	}
@@ -144,7 +147,9 @@ TransportImpl
 	isReadyForRead( 
 		EventWaiter waiter ) 
 	{
-		read_waiter = waiter;
+		if ( waiter != null ){
+			read_waiter = waiter;
+		}
 	
 		return is_ready_for_read || data_already_read != null || ( filter != null && filter.hasBufferedRead());  
 	}

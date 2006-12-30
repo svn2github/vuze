@@ -63,6 +63,8 @@ AzureusCoreStats
 		// NETWORK
 	
 	public static final String ST_NET_WRITE_CONTROL_WAIT_COUNT			= "net.write.control.wait.count";		// Long
+	public static final String ST_NET_WRITE_CONTROL_NP_COUNT			= "net.write.control.np.count";		// Long
+	public static final String ST_NET_WRITE_CONTROL_P_COUNT				= "net.write.control.p.count";		// Long
 	public static final String ST_NET_WRITE_CONTROL_ENTITY_COUNT		= "net.write.control.entity.count";	
 	public static final String ST_NET_WRITE_CONTROL_CON_COUNT			= "net.write.control.con.count";			// Long
 	public static final String ST_NET_WRITE_CONTROL_READY_CON_COUNT		= "net.write.control.ready.con.count";	// Long
@@ -116,6 +118,8 @@ AzureusCoreStats
 		{ ST_DISK_WRITE_IO_TIME,					CUMULATIVE },
 
 		{ ST_NET_WRITE_CONTROL_WAIT_COUNT,			CUMULATIVE },
+		{ ST_NET_WRITE_CONTROL_P_COUNT,				CUMULATIVE },
+		{ ST_NET_WRITE_CONTROL_NP_COUNT,			CUMULATIVE },
 		{ ST_NET_WRITE_CONTROL_ENTITY_COUNT,		POINT },
 		{ ST_NET_WRITE_CONTROL_CON_COUNT,			POINT },
 		{ ST_NET_WRITE_CONTROL_READY_CON_COUNT,		POINT },

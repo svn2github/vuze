@@ -475,7 +475,7 @@ public class MultiPeerUploader implements RateControlledEntity {
   public String
   getString()
   {
-	  String	str = "waiting";
+	  String	str = "can_process=" + canProcess(null) + ",bytes_allowed=" + rate_handler.getCurrentNumBytesAllowed() + ", waiting ";
   
 	  try {
 		  lists_lock.enter();
@@ -486,6 +486,8 @@ public class MultiPeerUploader implements RateControlledEntity {
 			  
 			  str += "," + conn.getString();
 		  }
+		  
+		  str += ": ready ";
 		  
 		  for( Iterator i = ready_connections.iterator(); i.hasNext(); ) {
 				 
@@ -498,6 +500,6 @@ public class MultiPeerUploader implements RateControlledEntity {
 		  lists_lock.exit();
 	  }
 	  
-	  return( "PMU: " + str );
+	  return( "MPU: " + str );
   }  
 }

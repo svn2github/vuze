@@ -26,7 +26,6 @@ import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
-import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
 
 
@@ -144,7 +143,7 @@ public class SinglePeerUploader implements RateControlledEntity {
   public String
   getString()
   {
-	  return( "SPU: " + connection.getString());
+	  return( "SPU: bytes_allowed=" + rate_handler.getCurrentNumBytesAllowed() + " " + connection.getString());
   }
   
 }

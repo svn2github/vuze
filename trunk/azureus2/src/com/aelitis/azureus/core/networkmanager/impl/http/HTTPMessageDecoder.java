@@ -212,7 +212,7 @@ HTTPMessageDecoder
 	    		
 			    msg.destroy();
 			}
-		}catch( ArrayIndexOutOfBoundsException e ){
+		}catch( IndexOutOfBoundsException e ){
 		    	// as access to messages_last_read isn't synchronized we can get this error if we destroy the
 		    	// decoder in parallel with messages being removed. We don't really want to synchornized access
 		    	// to this so we'll take the hit here
