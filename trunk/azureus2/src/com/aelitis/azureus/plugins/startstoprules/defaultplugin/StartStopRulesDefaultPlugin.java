@@ -1354,7 +1354,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 				state = download.getState();
 
-			} else {
+			} else if (bDebugLog) {
 				String s = "NOT queuing: ";
 				if (maxDownloads == 0) {
 					s += "maxDownloads = " + maxDownloads;
