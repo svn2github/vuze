@@ -10,6 +10,7 @@
  */
 package org.gudy.azureus2.ui.console.commands;
 
+import java.io.FileWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
@@ -254,11 +255,23 @@ public class Show extends IConsoleCommand {
 			}
 		} else if (subCommand.equalsIgnoreCase("diag") || subCommand.equalsIgnoreCase("z")) {
 
-			PrintWriter	pw = new PrintWriter( ci.out );
+			try{
+				ci.out.println( "Writing diagnostics to file 'az.diag'" );
+				
+				FileWriter	fw = new FileWriter( "az.diag" );
+				
+				PrintWriter	pw = new PrintWriter( fw );
+				
+				AEDiagnostics.generateEvidence( pw );
+				
+				pw.flush();
+				
+				fw.close();
 			
-			AEDiagnostics.generateEvidence( pw );
-			
-			pw.flush();
+			}catch( Throwable e ){
+				
+				ci.out.println( e );
+			}
 			
 		} else {
 			if ((ci.torrents == null) || (ci.torrents != null) && ci.torrents.isEmpty()) {
