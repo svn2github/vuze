@@ -47,7 +47,7 @@ public class VirtualChannelSelector {
   private static final boolean TEST_SAFE_MODE	= false;
   
   private static final int MAX_CHANNELS_PER_SAFE_SELECTOR	= 60;
-  private static final int MAX_SAFEMODE_SELECTORS = 100;
+  private static final int MAX_SAFEMODE_SELECTORS = 20000 / MAX_CHANNELS_PER_SAFE_SELECTOR;
   
   private String		name;
 
@@ -292,17 +292,37 @@ public class VirtualChannelSelector {
    */
   public int select(long timeout) {
     if( SAFE_SELECTOR_MODE_ENABLED ) {
-      HashSet sels = selectors_keyset_cow;
+      boolean	was_destroyed = destroyed;
+      
+      try{	
+	      int count = 0;
+	      
+	      for( Iterator it = selectors_keyset_cow.iterator(); it.hasNext(); ){
+	    	  
+	        VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)it.next();
+	        
+	        count += sel.select( timeout );
+	      }
+	      
+	      return count;
+	      
+      }finally{
+    	  
+    	  if ( was_destroyed ){
+    		  
+    		  // destruction process requires select op after destroy...
+    		  
+   			 try{  
+   				 selectors_mon.enter();
 
-      int count = 0;
-      
-      for( Iterator it = sels.iterator(); it.hasNext(); ) {
-        VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)it.next();
-        
-        count += sel.select( timeout );
+	 		     selectors.clear();
+			     selectors_keyset_cow = new HashSet();
+			     
+   			 }finally{
+   				 selectors_mon.exit();
+   			 }
+    	  }
       }
-      
-      return count;
     }
    
     return selector_impl.select( timeout );
@@ -312,24 +332,14 @@ public class VirtualChannelSelector {
   {
 	  destroyed	= true;
 	  
-	  if( SAFE_SELECTOR_MODE_ENABLED ) {
+	  if ( SAFE_SELECTOR_MODE_ENABLED ){
 				      
-		 try{  
-			 selectors_mon.enter();
-		      
-		     for( Iterator it = selectors.keySet().iterator(); it.hasNext(); ) {
-		    	 
-		        VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)it.next();
-		        
-		        sel.destroy();
-		     }
-		     
-		     selectors.clear();
-		     selectors_keyset_cow = new HashSet();
-		     
-		 }finally{
-			 selectors_mon.exit();
-		 }
+	     for( Iterator it = selectors_keyset_cow.iterator(); it.hasNext(); ) {
+	    	 
+	        VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)it.next();
+	        
+	        sel.destroy();
+	     }
 	  }else{
 		  selector_impl.destroy();
 	  }

@@ -42,7 +42,7 @@ TRTrackerServerFactory
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( null, protocol, port, null, false, apply_ip_filter, main_tracker, true ));
+		return( TRTrackerServerFactoryImpl.create( "<none>", protocol, port, null, false, apply_ip_filter, main_tracker, true ));
 	}
 	
 	public static TRTrackerServer
@@ -54,7 +54,7 @@ TRTrackerServerFactory
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( null, protocol, port, null, true, apply_ip_filter, main_tracker, true ));
+		return( TRTrackerServerFactoryImpl.create( "<none>", protocol, port, null, true, apply_ip_filter, main_tracker, true ));
 	}
 	
 	public static TRTrackerServer

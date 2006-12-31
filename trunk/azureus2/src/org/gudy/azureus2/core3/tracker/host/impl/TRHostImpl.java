@@ -534,11 +534,11 @@ TRHostImpl
 					
 					if ( ssl ){
 						
-						server = TRTrackerServerFactory.createSSL( protocol, port, true, true );
+						server = TRTrackerServerFactory.createSSL( "tracker", protocol, port, true, true );
 					
 					}else{
 					
-						server = TRTrackerServerFactory.create( protocol, port, true, true );
+						server = TRTrackerServerFactory.create( "tracker", protocol, port, true, true );
 					}
 						
 					server_map.put( key, server );
