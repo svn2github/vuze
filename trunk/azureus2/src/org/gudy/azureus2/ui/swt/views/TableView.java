@@ -1771,7 +1771,8 @@ public class TableView
   }
 		
 	private void refreshenProcessDataSourcesTimer() {
-		if (bReallyAddingDataSources) {
+		if (bReallyAddingDataSources || timerProcessDataSources == null) {
+			// when timerProcessDataSources is null, we are disposing
 			return;
 		}
 
