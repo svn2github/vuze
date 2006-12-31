@@ -1,16 +1,43 @@
-$
-$    Willkommen bei Azureus 2.5.0.0
-$
+$ 
+$    Willkommen zu Azureus 2.5.0.2
+$ 
 
-+1. Was ist neu in Azureus 2.5.0.0?
++1. Was ist neu in Azureus 2.5.0.2
 
-!1.1 Sende zu einem Freund
+!1.1 Geringerer Speicherverbrauch
+  Am erwähnenswertesten, Teil-Informationen eines Torrents werden aus dem Speicher entfernt, wenn diese nicht benutzt werden.
+  
+!1.2 Mindestanzahl von gleichzeitig aktiven Downloads
+  Die Fähigkeit, immer mindestens eine gewisse Anzahl von aktiven Downloads zu haben.
+  
+!1.3 Neue Spalten
+  Benutzerdefinierter Kommentar (Meine Torrents)
+  Datei-Erweiterung (Dateien)
+
+!1.4 Schnellerer Start bei langen Listen
+  Die Zeit, die Azureus zum Starten benötigt, wenn es eine große Anzahl von Torrents verwaltet, wurde verringert (in eingigen Fällen bis zu 400% schneller).
+  Einige Plugins können diese Optimierung aufheben, wenn sie Informationen über jedes Torrent sofort während des Starts abfragen.
+
+!1.5 Other
+  Verschiedene Verbesserungen der Benutzeroberfläche.
+  Fehlerbereinigungen.
+  Weniger Speicherlecks.
+ 
+!1.6 Zu Java 5.0
+  Java 5 Update 10 behebt ein Speicherproblem, welches oft bei Azureus bemerkt wurde. Es wird dazu geraten, eine Aktualisierung zu dieser oder einer neueren Java-Version durchzuführen. Eine aktuelle Version kann unter http://java.sun.com/javase/downloads/index.jsp heruntergeladen werden.
+
+    Ausführliches ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.2
+
+
++2. Was ist neu in Azureus 2.5.0.0?
+
+!2.1 Sende zu einem Freund
   Ein Assistent, der es auf einfache Weise erlaubt, einen Link eines Inhaltes zu einem Freund zu senden, oder diesen auf einer Webseite zu veröffentlichen (z.B. in einem Blog).
 
-!1.2 Automatische Upload-Geschwindigkeit
+!2.2 Automatische Upload-Geschwindigkeit
   Dieses Merkmal kontrolliert die Upload-Geschwindigkeit basierend auf der Verzögerung der Internetverbindung, als Maßstab dient die Signallaufzeit (Ping) zu anderen Benutzern der Verteilten Datenbank (Diese muss aktiviert sein, um Auto-Speed benutzen zu können).
 
-!1.3 Andere neue Merkmale
+!2.3 Andere neue Merkmale
   OSX: Öffne .torrent-Dateien mit Azureus via Finder/Desktop/etc.
   Dateien mit dem Status 'nicht herunterladen' werden einheitlicher in Bezug auf fertige Downloads gehandhabt.
   Umbenennen von Download-Verzeichnissen.
@@ -23,28 +50,29 @@ $
   Nicht vergessen, die Plugins zu testen - http://azureus.sourceforge.net/plugin_list.php
      Neues Fernwartungs-Plugin - AzSMRC
      
-!1.4 Fehlerbereinigung und Geschwindigkeitsverbesserungen:
+!2.4 Fehlerbereinigung und Geschwindigkeitsverbesserungen:
  Erwähnenswerte Berichtigungen:
     Der LAN Peer Finder behält Quellen effektiver; explizite Identifikation von LAN-Quellen.
     Reduzierte CPU-Nutzung wenn Azureus zu einer großen Anzahl von Quellen verbunden ist.
     
     Ausführliches ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.0
-    
-+2. Was ist neu in Azureus 2.4.0.0?
 
-!2.1 Verschlüsselung/Verschleierung von Datenübertragung
+    
++3. Was ist neu in Azureus 2.4.0.0?
+
+!3.1 Verschlüsselung/Verschleierung von Datenübertragung
  Unterstützung, die Daten zwischen Azureus und anderen kompatiblen Programmen zu verschlüsseln, wurde hinzugefügt. Dies bietet ein gewisses Maß an Schutz für die Daten und kann bei Internetprovidern helfen, welche P2P-Verkehr blocken oder beschränken.
   
-!2.2 Hochgeschwindigkeits-LAN-Übertragungen
+!3.2 Hochgeschwindigkeits-LAN-Übertragungen
  Mehrere Instanzen von Azureus, die sich im selben lokalen Netzwerk befinden, unterstützen direkte Verbindungen mit hohen Übertragunggeschwindigkeiten.
 
-!2.3 Verbesserter Download-Algorithmus
+!3.3 Verbesserter Download-Algorithmus
  Der Algorithmus, der festlegt, welche Teile von welchen Quellen zum Download angefordert werden sollen, wurde neu geschrieben, um sein Verhalten und die Geschwindigkeit zu verbessern.
 
-!2.4 Unterstützung von Webseed
+!3.4 Unterstützung von Webseed
  Einfache Unterstützung für Webseed wurde hinzugefügt. Webseeds werden nur benutzt, wenn die Verfügbarkeit eines Torrents geringer als 1,0 ist.
 
-!2.5 Weiteres
+!3.5 Weiteres
 
  Verschieden Verbesserungen der Benutzeroberfläche.
  Geschwindigkeitsverbesserungen.
@@ -54,33 +82,6 @@ $
     
     Siehe auch http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 und 2.3.0.2 für die vorherigen Änderungen.    
 
-+3. Was ist neu in Azureus 2.3.0.0?
-
-!3.1 Distributed Database
- Azureus hat nun eine verteilte "distributed" und dezentralisierte Datenbank, die dazu verwendet werden kann um dezentralisierte Torrents zu verfolgen. Dies erlaubt sowohl die Nutzung von "trackerless" torrents als auch die Verarbeitung von Schwärmen bei denen der Tracker nicht mehr verfügbar ist oder der Torrent vom Tracker entfernt wurde.
- Die Datenbank nutzt das UDP Protokoll. Falls Sie eine Firewall/Router nutzen, müssen Sie den benötigten UDP Port in der selben Art und Weise öffnen bzw. weiterleiten wie Sie es mit dem TCP port zum Download der Daten getan haben.
- 
-*3.1.1 Magnet Links
- Für die Torrents die dezentral verfolgt werden kann Azureus einen "Magnet Link" exportieren. Dieser hat die Form "magnet:?xt=urn:btih:..." und kann dazu benutzt werden den Torrent von der "Distributed Database" über das "open->url" Menü zu laden.
- 
-!3.2 Verbessertes Protokoll
- Azureus unterstützt nun ein verbessertes inter-client messaging protocol, welches dazu dient plugins die Nutzung der von Azureus geschaffenen Internetverbindungen für Ihre Zwecke zu nutzen. 
- Die Entwickler anderer Clients können die Spezifikationen für dieses Protokoll unter "http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol" einsehen. Plugin Entwickler können das Plugin javadocs nutzen um sich mit der Nutzung der Funktion vertraut zu machen.
- Zum Beispiel machen das JPC and Chat Plugin Gebrauch von dieser Messaging Extension Funktion.
-
-!3.3 JPC
- Joltid Peer Cache (JPC) ist nun in Azureus integriert. Für Benutzer deren ISP dies unterstützt, sollte JPC schnellere Downloads ermöglichen und gleichzeitig dazubeitragen die Bandbreitenkosten des ISP zu reduzieren. Das JPC Plugin ist sicher in der Hinsicht, daß Ihr ISP nicht weiß, daß Sie Herunterladen und somit es auch nicht nutzen kann um Sie auszuspionieren. Das JPC plugin kann abgeschaltet werden im Menü "Tools > Options > Plugins > JPC".
-  
-!3.4 Unterstützte Plugins
- Die "Distributed Database" und das verbessserte Protokoll erlaubte uns einige neue Plugins zu entwickeln. Wir werden diese jedoch nicht automatisch installieren, aber wir empfehlen allen Nutzern die interessiert sind, diese über das Menü "Plugins > Installation Wizard" zu installieren und zu erproben.
- 
-*3.4.1 Chat
- Dieses Plugin erzeugt einen "Discussion Channel" für jeden Torrent den Sie herunterladen. Jeder Channel ist unabhängig und Sie sind frei darin zu diskutieren was immer Sie möchten. Dieses Plugin nutzt das verbesserte Protokoll. Entwickler anderer Clients die diese Chat Funktionalität implementieren möchten, sind eingeladen einen Blick auf das darin benutzte und sehr einfache Protokoll zu werfen. Dieses ist beschrieben unter: "http://azureus.aelitis.com/wiki/index.php/ChatPlugin".
- Sie können außerdem einen freizugänglichen Channel erzeugen bzw. beitreten durch Eingabe des gewünschten Namen innerhalb des Plugins. Damit schaffen Sie einen "virtuellen" Torrent ohne "Seeds" und erlauben anderen Nutzern die Verbindung zu diesem Chat Channel aufzubauen. Dieser "virtuelle" Torrent benutzt die "Distributed Database" als seinen Tracker, das hat zur Folge, daß Sie zwar das Chat Plugin ohne die "Distributed Database" verwenden können, aber nicht in der Lage sein werden den "virtuellen" Channel zu nutzen, falls Sie die "Distributed Database" deaktiviert haben.
- 
-*3.4.2 Bewertungen & Kommentare
- Dieses Plugin wird es Ihnen erlauben Bewertungen & Kommentare der anderen Nutzer zu sehen, ebenso können Sie selbst Torrents bewerten und kommentieren (Klicken Sie rechts auf den Torrent in "My Torrents" dann wählen Sie "Bewertungen & Kommentare"). Dieses Plugin nutzt die "Distributed Database", aus diesem Grund muß die "Distributed Database" aktiviert sein, damit dieses Plugin genutzt werden kann.
- 
 
 +4. Upgrade Empfehlung
 
@@ -103,7 +104,6 @@ $
 Bitte gehen Sie als erstes zu:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
- 
 
 !5.2 Azureus Absturz
  Falls Ihr Azureus abstürzt, ist der wahrscheinlichste Grund ein Problem mit ihren Netzwerk Komponenten (Netzwerkkarte, Treiber, Betriebssystem). Wir empfehlen dringendst daß Sie alle Netzwerk Komponenten aktualisieren. Falls das nicht hilft, liegt der Grund wahrscheinlich darin, daß ihr System nicht in der Lage ist die vielen Peer Verbindungen zu verwalten.
