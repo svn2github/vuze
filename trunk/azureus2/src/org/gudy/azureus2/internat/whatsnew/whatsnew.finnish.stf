@@ -1,16 +1,42 @@
 $ 
-$    Tervetuloa käyttämään versiota 2.5.0.0
+$    Tervetuloa käyttämään versiota 2.5.0.2
 $ 
 
-+1. Mitä uutta on Azureus 2.5.0.0:ssa
++1. Mitä uutta on Azureus 2.5.0.2:ssa
 
-!1.1 Lähetä ystävälle/WWW-sivulle
+!1.1 Vähentynyt muistinkäyttö
+  Huomattavimpana tekijänä se, että torrent-tiedostojen osista ei enää säilytetä tietoja muistissa kun niitä ei tarvita.
+  
+!1.2 Yhtäaikaisten aktiivisten latausten vähimmäismäärä
+  Mahdollisuus määrätä, että aina ladataan vähintään tiettyä määrää torrent-tiedostoja.
+  
+!1.3 Uusia saraketietoja
+  Omat kommentit torrent-tiedostoille (Siirrot-ikkuna)
+  Tiedoston tyyppi (Tiedostot-näkymä)
+
+!1.4 Nopeampi käynnistyminen kuormitettuna
+  Käynnistymisnopeutta on parannettu tilanteissa, jolloin ladattuna on suuri määrä torrent-tiedostoja (jopa 400 % nopeammin tietyissä olosuhteissa).
+  Jotkut lisäosat saattavat kuitenkin itse käsitellä kaikkia torrent-tiedostoja heti käynnistettäessä, jolloin eroa on vaikea huomata.
+
+!1.5 Muuta
+  Lukuisia parannuksia käyttöliittymään.
+  Ohjelmavirhekorjauksia.
+  Muistivuotopaikkauksia.
+ 
+!1.6 Java 5.0 -huomautus
+  Sun Java 5 -sarjan kymmenes päivitys (Update 10) korjaa kahvavuoto-ongelman, joka on haitannut yleisesti Azureuksen toimintaa. Päivittäminen ko. versioon tai uudempaan on suositeltavaa. Voit ladata päivityksen osoitteesta http://java.com/en/download/manual.jsp
+
+    Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.5.0.2
+
++2. Mitä uutta on Azureus 2.5.0.0:ssa
+
+!2.1 Lähetä ystävälle/WWW-sivulle
   Tämä toiminto auttaa sisällön levittämisessä sähköpostin tai WWW-sivun välityksellä. Voit siis kertoa hyvästä ladattavasta materiaalista ystävällesi sähköpostin avulla tai kirjoittaa asiasta vaikkapa omaan verkkopäiväkirjaasi.
 
-!1.2 Automaattinen lähetysnopeuden asettaminen
+!2.2 Automaattinen lähetysnopeuden asettaminen
   Lähetysnopeutta voidaan säädellä tutkimalla Internet-yhteyden vasteaikoja, kun lähetetään tiedustelupaketteja muille hajautetun tietokannan käyttäjille.
 
-!1.3 Muita uusia ominaisuuksia
+!2.3 Muita uusia ominaisuuksia
   OSX: torrent-tiedostojen avaaminen Azureukseen suoraan esimerkiksi työpöydältä/Finderista.
   Ei-ladattavia tiedostoja käsitellään johdonmukaisemmin suhteessa latauksen valmistumiseen.
   Lataushakemiston uudelleennimeäminen.
@@ -23,28 +49,28 @@ $
   Älä unohda lisäosia - http://azureus.sourceforge.net/plugin_list.php
     Uusi etähallinnan mahdollistava lisäosa - AzSMRC
   
-!1.4 Ohjelmavirhekorjauksia ja parannuksia suorituskykyyn
+!2.4 Ohjelmavirhekorjauksia ja parannuksia suorituskykyyn
  Huomattavia korjauksia:
     Lähiverkkokäyttö tehokkaampaa; käyttäjät tunnistetaan tarkemmin.
     Suoritinkäytön pienentäminen, kun ollaan yhteydessä suureen määrään käyttäjiä.
     
-    Kaikki muutokset http://azureus.sourceforge.net/changelog.php?version=2.5.0.0
+    Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.5.0.0
     
-+2. Mitä uutta on Azureus 2.4.0.0:ssa
++3. Mitä uutta on Azureus 2.4.0.0:ssa
 
-!2.1 Liikenteen salaaminen/peittäminen
+!3.1 Liikenteen salaaminen/peittäminen
  Azureus tukee nyt siirrettävän tiedon salausta tätä tukevien asiakasohjelmien kanssa. Tietojen suojauksen ohella tästä on apua siinä tapauksessa, jos Internet-palveluntarjoaja yrittää estää tai rajoittaa P2P-liikennettä verkossaan - estot ja rajoitukset voidaan kiertää, sillä Azureus peittää kaikki BitTorrent-liikenteeseen viittaavat tiedot.
   
-!2.2 Lähiverkkokäyttö
+!3.2 Lähiverkkokäyttö
  Jos samassa lähiverkkoympäristössä on käytössä useita Azureus-asiakasohjelmia, niiden välille voidaan muodostaa suorat, nopeat tiedonsiirtoyhteydet. Näin tiedon jakaminen tehostuu huomattavasti.
 
-!2.3 Parannettu latausmenetelmä
+!3.3 Parannettu latausmenetelmä
  Ladattavien osien ja käyttäjien paikallistamiseen käytettyjä tapoja on muutettu, jotta toiminta olisi tehokkaampaa ja nopeampaa.
 
-!2.4 Webseed-tuki
+!3.4 Webseed-tuki
  Azureus tukee nyt Webseed-menetelmän perustoimintoja. Webseed-kohteita käytetään vain, jos torrent-tiedoston saatavuus on alle 1.0.
 
-!2.5 Muuta
+!3.5 Muuta
 
  Lukuisia parannuksia käyttöliittymään.
  Parannuksia suorituskykyyn.
@@ -56,33 +82,6 @@ $
 
     Edellisten versioiden muutokset: http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 ja 2.3.0.2.
     
-+3. Mitä uutta on Azureus 2.3.0.0:ssa
-
-!3.1 Hajautettu tietokanta
- Azureuksessa on nyt ns. hajautettu tietokanta, jota käytettäessä ei tarvita perinteisiä seurantapalvelimia ollenkaan: tiedot torrent-tiedoston käyttäjistä liikkuvat suoraan käyttäjältä toiselle. Hajautetusta tietokannasta on apua myös silloin, jos perinteistä seurantapalvelinta käytettäessä palvelimeen ei voida syystä tai toisesta muodostaa yhteyttä tai torrent-tiedosto on poistettu seurantapalvelimelta - seurantaa jatketaan hajautetun tietokannan avulla.
- Hajautettu tietokanta käyttää UDP-protokollaa. Niinpä palomuureista/reitittimistä täytyy avata UDP-portti käytettäväksi.
- 
-*3.1.1 Magnet-linkit
- Hajautettua tietokantaa käyttävistä torrent-tiedostoista voidaan luoda ns. Magnet-linkki. Tämä on muotoa "magnet:?xt=urn:btih:..." ja sitä voidaan käyttää varsinaisen torrent-tiedoston lataamiseen hajautetusta tietokannasta.
- 
-!3.2 Parannettu protokolla
- Azureus tukee nyt uutta viestintään tarkoitettua protokollaa, jonka avulla lisäosat voivat hyödyntää Azureuksen luomia yhteyksiä uudenlaisissa käyttötarkoituksissa. Muiden asiakasohjelmien kehittäjät voivat katsoa protokollan määrittelyn osoitteesta http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Lisäosien kehittäjät voivat katsoa lisäosien javadocs-tiedostoista, kuinka käyttää tätä protokollaa.
- Esimerkiksi JPC- ja Chat-lisäosat hyödyntävät tätä uutta ominaisuutta.
-
-!3.3 JPC
- Joltid Peer Cache (JPC) on nyt sisällytetty Azureukseen. Jos käytettävä Internet-palveluntarjoaja tukee ominaisuutta, siirrot nopeutuvat. Samalla palveluntarjoajan oma liikenne vähenee. JPC-lisäosa on turvallinen, sillä palveluntarjoaja ei näe mitä lataat/lähetät, eikä pysty millään tavoin seuraamaan toimiasi. JPC-lisäosa voidaan kytkeä pois käytöstä asetuksista (Työkalut | Asetukset | Lisäosat | JPC).
-  
-!3.4 Uudet lisäosat
- Hajautettu tietokanta ja uusi viestinnän salliva protokolla mahdollistivat uudenlaisten lisäosien kehittämisen. Mitään näistä ei asenneta automaattisesti, mutta jos kiinnostusta riittää, voit tutustua niihin käyttämällä ohjattua lisäosien asennustoimintoa (Lisäosat | Ohjattu asennustoiminto).
- 
-*3.4.1 Chat-lisäosa
- Tämän lisäosan avulla jokaiselle lataamallesi torrent-tiedostolle perustetaan oma "keskustelukanava". Jokainen kanava on itsenäinen ja voit keskustella niillä mistä haluat. Tämä lisäosa hyödyntää uudistettua protokollaa. Muiden asiakasohjelmien kehittäjät voivat katsoa lisätietoja tästä protokollasta sekä lisäosasta täältä: http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
- Voit myös luoda oman erityisen kanavasi ilman torrent-tiedostoa (tai liittyä tällaiselle kanavalle). Tällöin luodaan ns. virtuaalinen torrent-tiedosto, jolla ei ole lähettäjiä, jotta käyttäjät vain pääsevät keskustelemaan. Nämä "virtuaaliset" torrent-tiedostot hyödyntävät hajautettua tietokantaa, joten et voi käyttää "virtuaalisia" torrent-tiedostoja ja kanavia, jos hajautettu tietokanta ei ole käytettävissä (tällöin normaalit Chat-lisäosan luomat torrent-kohtaiset keskustelut kuitenkin toimivat).
- 
-*3.4.2 Arvostelut ja kommentit
- Tämän lisäosan avulla voit nähdä muiden käyttäjien torrent-tiedostoille kirjoittamat arvostelut ja kommentit, mutta voit myös arvostella torrent-tiedoston ja kirjoittaa sille kommentin itse (hiiren kakkosnapin klikkaus torrent-tiedoston kohdalla Siirrot-ikkunassa -> Ratings & comments). Lisäosa hyödyntää hajautettua tietokantaa, joten sen täytyy olla toiminnassa.
- 
-
 +4. Päivityskehotus
 
 !4.1 Java 5.0
@@ -95,7 +94,6 @@ $
  NOD32 (http://www.nod32.com/) on virustentorjuntaohjelma, jonka tiedetään aiheuttavan ongelmia Azureuksen kanssa (aiheuttaa 100 % -prosessorikäytön).
  Katso lisätietoja osoitteesta http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
  
-
 +5. Yleiset ongelmat
 
 !5.1 NAT-ongelma
@@ -104,7 +102,6 @@ $
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
  
-
 !5.2 Azureus kaatuu?
  Jos Azureus kaatuilee usein, todennäköisin syy on tietokoneen verkkokomponenteissa (verkkokortti, sen ajurit, käyttöjärjestelmän verkko-ominaisuudet). Suositus on, että päivität kaikki verkkoyhteyteen vaikuttavien laitteiden ajurit. Jos tämä ei auta, järjestelmä ei todennäköisesti kestä kovin suurta yhteysmäärää kerrallaan.
  Alenna avattavien yhteyksien määrää Azureuksessa (Työkalut | Asetukset | Siirrot | Yhteyksien oletusenimmäismäärä/torrent-tiedosto ja Yhteyksien enimmäismäärä kaikkiaan). Kokeile pieniä arvoja, kuten 30.
