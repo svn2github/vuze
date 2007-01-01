@@ -18,7 +18,7 @@ $
   Die Zeit, die Azureus zum Starten benötigt, wenn es eine große Anzahl von Torrents verwaltet, wurde verringert (in eingigen Fällen bis zu 400% schneller).
   Einige Plugins können diese Optimierung aufheben, wenn sie Informationen über jedes Torrent sofort während des Starts abfragen.
 
-!1.5 Other
+!1.5 Weiteres
   Verschiedene Verbesserungen der Benutzeroberfläche.
   Fehlerbereinigungen.
   Weniger Speicherlecks.
