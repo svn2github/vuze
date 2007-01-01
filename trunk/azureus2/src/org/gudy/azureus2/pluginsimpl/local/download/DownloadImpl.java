@@ -1260,7 +1260,6 @@ DownloadImpl
 	activateRequest(
 		final int		count )
 	{
-		System.out.println(this.getName() + " - [" + count + "]");
 		DownloadActivationEvent event = 
 			new DownloadActivationEvent()
 		{
