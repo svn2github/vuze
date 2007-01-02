@@ -76,8 +76,19 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 {
 
-	/** Don't allow disabling of downloading for files smaller than this */
-	private final static int MIN_NODOWNLOAD_SIZE = 1024 * 1024;
+	/**
+	 * We prevent users from unselecting small files to prevent them missing
+	 * out "signature" files from trackers (.nfo file, readme file etc)
+	 * 
+	 * We define two constants to control this - one defines what a small file
+	 * is, and the other defines whether we believe a torrent has signature
+	 * files or not - we do this by seeing how many small files the torrent has.
+	 * 
+	 * If it has several small files, then it would be silly for us to assume
+	 * that the torrent consists of multiple signature files.
+	 */
+	private final static int MIN_NODOWNLOAD_SIZE = 64 * 1024;
+	private final static int MAX_NODOWNLOAD_COUNT = 3;
 
 	private final static int MIN_BUTTON_HEIGHT = Constants.isWindows ? 24 : -1;
 
@@ -813,7 +824,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		if (cmbStartMode == null)
 			return;
 
-		int[] indexes = tableTorrents.getSelectionIndices();
+		int[] indexes = tableTorrents.getSelectionIndices(); 
 		String[] sItemsText = new String[startModes.length];
 		int iMaxMatches = 0;
 		int iIndexToSelect = getDefaultStartMode();
@@ -2272,6 +2283,40 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			}
 			return true;
 		}
+		
+		private Boolean has_multiple_small_files = null; 
+		private boolean hasMultipleSmallFiles() {
+			TorrentFileInfo[] tfi_files = getFiles();
+			if (tfi_files.length <= MAX_NODOWNLOAD_COUNT) return false;
+			
+			int small_files_counted = 0;
+			for (int i=0; i<tfi_files.length; i++) {
+				if (tfi_files[i].lSize < MIN_NODOWNLOAD_SIZE) {
+					small_files_counted++;
+					if (small_files_counted > MAX_NODOWNLOAD_COUNT) {
+						return true;
+					}
+				}
+			}
+			
+			return false;
+		}
+			
+		// Indicates whether all files in this torrent can be deselected
+		// (if not, then it occurs on a per-file basis).
+		public boolean okToDisableAll() {
+			if (iStartID == STARTMODE_SEEDING) return true;
+			
+			// Do we have multiple small files? We'll allow all of them to
+			// be disabled if we do.
+			if (has_multiple_small_files == null) {
+				has_multiple_small_files = new Boolean(hasMultipleSmallFiles());
+			}
+			
+			// You can disable all files if there are lots of small files.
+			return has_multiple_small_files.booleanValue();
+		}
+		
 	}
 
 	/**
@@ -2332,8 +2377,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		}
 
 		public boolean okToDisable() {
-			return lSize >= MIN_NODOWNLOAD_SIZE
-					|| parent.iStartID == STARTMODE_SEEDING;
+			return lSize >= MIN_NODOWNLOAD_SIZE	|| parent.okToDisableAll();
 		}
 	}
 
