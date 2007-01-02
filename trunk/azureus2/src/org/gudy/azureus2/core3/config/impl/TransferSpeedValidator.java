@@ -45,7 +45,7 @@ public final class TransferSpeedValidator
     public static final String UPLOAD_SEEDING_ENABLED_CONFIGKEY =  "enable.seedingonly.upload.rate";
     
     private final String configKey;
-    private final Object configValue;
+    private final Number configValue;
 
     private static boolean seeding_upload_enabled;
     
@@ -69,7 +69,7 @@ public final class TransferSpeedValidator
      * @param configKey Configuration key; must be "Max Upload Speed KBs" or "Max Download Speed KBs"
      * @param value Configuration value to be validated
      */
-    public TransferSpeedValidator(final String configKey, final Object value)
+    public TransferSpeedValidator(final String configKey, final Number value)
     {
         this.configKey = configKey;
         configValue = value;
@@ -78,11 +78,11 @@ public final class TransferSpeedValidator
     /**
      * Gets the transformed value as an Integer
      */
-    private static Object validate(final String configKey, final Object value)
+    private static Object validate(final String configKey, final Number value)
     {
         //assert value instanceof Number;
 
-        int newValue = ((Number)value).intValue();
+        int newValue = value.intValue();
 
         if(newValue < 0)
         {

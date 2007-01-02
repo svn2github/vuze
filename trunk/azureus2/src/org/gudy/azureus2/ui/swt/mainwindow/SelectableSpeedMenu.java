@@ -22,10 +22,13 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
@@ -33,13 +36,15 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.shells.InputShell;
 
 import com.aelitis.azureus.core.AzureusCore;
 
 public class SelectableSpeedMenu {
 
 	public static void generateMenuItems(final Menu parent,
-			final AzureusCore core, final GlobalManager globalManager, boolean up_menu)
+			final AzureusCore core, final GlobalManager globalManager, final boolean up_menu)
 	{
         final MenuItem[] oldItems = parent.getItems();
         for(int i = 0; i < oldItems.length; i++)
@@ -135,6 +140,61 @@ public class SelectableSpeedMenu {
             item.addListener(SWT.Selection, getLimitMenuItemListener(up_menu, parent, globalManager, configKey));
             item.setSelection(!unlim && value == maxBandwidth && !auto);
         }
+        
+		new MenuItem(parent, SWT.SEPARATOR);
+
+		final MenuItem itemDownSpeedManual = new MenuItem(parent, SWT.PUSH);
+		Messages.setLanguageText(itemDownSpeedManual, "MyTorrentsView.menu.manual");
+		itemDownSpeedManual.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				String kbps_str = MessageText.getString("MyTorrentsView.dialog.setNumber.inKbps",
+						new String[]{ DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB ) });
+				
+				InputShell is = new InputShell(
+						"MyTorrentsView.dialog.setSpeed.title",
+						new String[] { MessageText.getString(up_menu?"MyTorrentsView.dialog.setNumber.upload":"MyTorrentsView.dialog.setNumber.download") },
+						"MyTorrentsView.dialog.setNumber.text",
+						new String[] {
+								kbps_str,
+								MessageText.getString(up_menu?"MyTorrentsView.dialog.setNumber.upload":"MyTorrentsView.dialog.setNumber.download") });
+
+				String sReturn = is.open();
+				if (sReturn == null)
+					return;
+
+				int newSpeed;
+				try {
+					newSpeed = (int) (Double.valueOf(sReturn).doubleValue());
+				} catch (NumberFormatException er) {
+					MessageBox mb = new MessageBox(parent.getShell(),
+							SWT.ICON_ERROR | SWT.OK);
+					mb.setText(MessageText
+							.getString("MyTorrentsView.dialog.NumberError.title"));
+					mb.setMessage(MessageText
+							.getString("MyTorrentsView.dialog.NumberError.text"));
+
+					mb.open();
+					return;
+				}
+				
+			    if ( up_menu ){	   
+			    }
+			    
+                if ( up_menu ){
+                    
+                	String configAutoKey = 
+                		TransferSpeedValidator.getActiveAutoUploadParameter(globalManager);
+     
+                	COConfigurationManager.setParameter( configAutoKey, false );
+                }
+                
+                final int cValue = ((Integer)new TransferSpeedValidator(configKey, new Integer(newSpeed)).getValue()).intValue();
+                
+                COConfigurationManager.setParameter(configKey, cValue);
+                
+                COConfigurationManager.save();
+			}
+		});
     }
 
 	  private static java.util.Map parseSpeedPartitionStringCache = new java.util.HashMap();
@@ -187,7 +247,7 @@ public class SelectableSpeedMenu {
 	                        	COConfigurationManager.setParameter( configAutoKey, false );
 	                        }
 	                        
-	                        final int cValue = ((Integer)new TransferSpeedValidator(configKey, items[i].getData("maxkb")).getValue()).intValue();
+	                        final int cValue = ((Integer)new TransferSpeedValidator(configKey, (Number)items[i].getData("maxkb")).getValue()).intValue();
 	                        COConfigurationManager.setParameter(configKey, cValue);
 	                        
 
