@@ -243,7 +243,7 @@ public class DownloadManagerDefaultPaths {
 		if (dm == null) {
 			return "\"" + cs.getContext() + "\"";
 		}
-		return "\"" + dm.getDisplayName() + "\" with regard to \"" + cs.getContext()  + "\"";
+		return "\"" + dm.getDisplayName() + "\" with regard to \"" + cs.getContext() + "\"";
 	}
 
     /**
@@ -253,7 +253,7 @@ public class DownloadManagerDefaultPaths {
 		LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
 		boolean proceed = mi.source.matchesDownload(dm, lr, mi);
 		if (!proceed) {
-			logWarn("Cannot consider " + describe(dm, mi) +
+			logInfo("Cannot consider " + describe(dm, mi) +
 			    " - does not match source criteria.", lr);
 			return null;
 		}
