@@ -92,7 +92,7 @@ public class URLTransfer extends ByteArrayTransfer {
 	/** We are in the process of checking a string to see if it's a valid URL */
 	private boolean bCheckingString = false;
 	
-	private static boolean DEBUG = false;
+	private static boolean DEBUG = true;
 
   private static URLTransfer _instance = new URLTransfer();
 
@@ -276,7 +276,7 @@ public class URLTransfer extends ByteArrayTransfer {
 			return false;
 		}
 
-		if (UrlUtils.isURL(url.linkURL)) {
+		if (UrlUtils.isURL(url.linkURL, false)) {
 			if (DEBUG) System.out.println("Yes, " + url.linkURL + " of type #" + transferData.type);
 			return true;
 		}
