@@ -56,7 +56,16 @@ public class UrlUtils
 		return parseTextForURL(sURL, true) != null;
 	}
 
+	public static boolean isURL(String sURL, boolean bGuess) {
+		return parseTextForURL(sURL, true, bGuess) != null;
+	}
+
 	public static String parseTextForURL(String text, boolean accept_magnets) {
+		return parseTextForURL(text, accept_magnets, true);
+	}
+
+	public static String parseTextForURL(String text, boolean accept_magnets,
+			boolean guess) {
 
 		if (text == null || text.length() < 5) {
 			return null;
@@ -126,7 +135,7 @@ public class UrlUtils
 		// javascript:loadOrAlert('WVOPRHRPFSCLAW7UWHCXCH7QNQIU6TWG')
 
 		// accept raw hash of 32 base-32 chars, with garbage around it
-		if (accept_magnets) {
+		if (accept_magnets && guess) {
 			Pattern pattern = Pattern.compile("[^a-zA-Z2-7][a-zA-Z2-7]{32}[^a-zA-Z2-7]");
 			Matcher matcher = pattern.matcher(text);
 			if (matcher.find()) {
