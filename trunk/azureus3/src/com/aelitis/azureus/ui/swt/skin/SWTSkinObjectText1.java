@@ -133,9 +133,9 @@ public class SWTSkinObjectText1 extends SWTSkinObjectBasic implements
 					int iSize = NumberFormat.getInstance(Locale.US).parse(sSize).intValue();
 
 					if (firstChar == '+') {
-						iFontSize = fd[0].height + iSize;
+						iFontSize = (int)(fd[0].height + iSize);
 					} else if (firstChar == '-') {
-						iFontSize = fd[0].height - iSize;
+						iFontSize = (int)(fd[0].height - iSize);
 					} else {
 						iFontSize = iSize;
 					}
