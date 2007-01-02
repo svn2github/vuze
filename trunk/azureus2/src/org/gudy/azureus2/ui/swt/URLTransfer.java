@@ -92,7 +92,7 @@ public class URLTransfer extends ByteArrayTransfer {
 	/** We are in the process of checking a string to see if it's a valid URL */
 	private boolean bCheckingString = false;
 	
-	private static boolean DEBUG = true;
+	private static boolean DEBUG = false;
 
   private static URLTransfer _instance = new URLTransfer();
 
