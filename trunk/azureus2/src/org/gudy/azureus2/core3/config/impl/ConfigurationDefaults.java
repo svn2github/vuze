@@ -446,6 +446,8 @@ public class ConfigurationDefaults {
     def.put( "File.move.download.removed.only_in_default", TRUE );
     def.put( "File.move.download.removed.move_torrent", TRUE );
     def.put( "File.move.download.removed.move_partial", FALSE );
+    
+    def.put("FilesView.separate_rename_and_retarget", FALSE);
 
   }
   

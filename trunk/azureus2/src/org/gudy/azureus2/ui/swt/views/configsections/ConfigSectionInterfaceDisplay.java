@@ -225,13 +225,16 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				MessageText.getString(MSG_PREFIX + "defaultSortOrder.flip") };
 		new IntListParameter(cArea, "config.style.table.defaultSortOrder",
 				sortOrderLabels, sortOrderValues);
+		
+		new BooleanParameter(cArea, "FilesView.separate_rename_and_retarget", MSG_PREFIX
+				+ "SeparateFilesViewRenameRetarget");
 
 		new BooleanParameter(cLook, "NameColumn.showProgramIcon", MSG_PREFIX
 				+ "showProgramIcon");
 
 		new BooleanParameter(cLook, "DND Always In Incomplete", MSG_PREFIX
 				+ "DNDalwaysInIncomplete");
-
+		
 		return cLook;
 	}
 }

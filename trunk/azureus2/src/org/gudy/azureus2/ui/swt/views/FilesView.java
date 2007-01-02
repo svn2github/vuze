@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.MessageBoxWindow;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -132,9 +133,25 @@ public class FilesView
 		});
 		itemExplore.setEnabled(hasSelection);
 
-    final MenuItem itemRename = new MenuItem(menu, SWT.PUSH);
-    Messages.setLanguageText(itemRename, "FilesView.menu.rename");
+	MenuItem itemRenameOrRetarget = null, itemRename = null, itemRetarget = null;
+	if (!COConfigurationManager.getBooleanParameter("FilesView.separate_rename_and_retarget")) {
+	    itemRenameOrRetarget = new MenuItem(menu, SWT.PUSH);
+	    Messages.setLanguageText(itemRenameOrRetarget, "FilesView.menu.rename");
+		itemRenameOrRetarget.setData("rename", Boolean.valueOf(true));
+		itemRenameOrRetarget.setData("retarget", Boolean.valueOf(true));
+	}
+	else {
+		itemRename = new MenuItem(menu, SWT.PUSH);
+		itemRetarget = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemRename, "FilesView.menu.rename_only");
+		Messages.setLanguageText(itemRetarget, "FilesView.menu.retarget");
+		itemRename.setData("rename", Boolean.valueOf(true));
+		itemRename.setData("retarget", Boolean.valueOf(false));
+		itemRetarget.setData("rename", Boolean.valueOf(false));
+		itemRetarget.setData("retarget", Boolean.valueOf(true));
 
+	}
+		
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemPriority, "FilesView.menu.setpriority"); //$NON-NLS-1$
     
@@ -164,7 +181,13 @@ public class FilesView
 		if (!hasSelection) {
 			itemOpen.setEnabled(false);
 			itemPriority.setEnabled(false);
-			itemRename.setEnabled(false);
+			if (itemRenameOrRetarget != null) {
+				itemRenameOrRetarget.setEnabled(false);
+			}
+			else {
+				itemRename.setEnabled(false);
+				itemRetarget.setEnabled(false);
+			}
 			return;
 		}
 
@@ -213,7 +236,13 @@ public class FilesView
 		// can't rename files for non-persistent downloads (e.g. shares) as these
 		// are managed "externally"
 
-		itemRename.setEnabled(manager.isPersistent());
+		if (itemRenameOrRetarget != null) {
+			itemRenameOrRetarget.setEnabled(manager.isPersistent());
+		}
+		else {
+			itemRename.setEnabled(manager.isPersistent());
+			itemRetarget.setEnabled(manager.isPersistent());
+		}
 
 		itemSkipped.setEnabled( !all_skipped );
 	
@@ -232,17 +261,22 @@ public class FilesView
       }
     });
     
-    itemRename.addListener(
-    	SWT.Selection, 
-    	new Listener() 
-    	{
-			public void 
-			handleEvent(Event event) 
-			{
-				rename(	getSelectedRows());
-			}
-    	});
-  
+    Listener rename_listener = new Listener() {
+    	public void handleEvent(Event event) {
+    		boolean rename_it = ((Boolean)event.widget.getData("rename")).booleanValue();
+    		boolean retarget_it = ((Boolean)event.widget.getData("retarget")).booleanValue();
+    		rename(getSelectedRows(), rename_it, retarget_it);
+    	}
+    };
+    
+    if (itemRenameOrRetarget != null) {
+    	itemRenameOrRetarget.addListener(SWT.Selection, rename_listener);
+    }
+    else {
+    	itemRename.addListener(SWT.Selection, rename_listener);
+    	itemRetarget.addListener(SWT.Selection, rename_listener);
+    }
+    
     Listener priorityListener = new Listener() {
 			public void handleEvent(Event event) {
 				changePriority(((Integer) event.widget.getData("Priority")).intValue(),
@@ -255,118 +289,128 @@ public class FilesView
     itemSkipped.addListener(SWT.Selection, priorityListener); 
     itemDelete.addListener(SWT.Selection, priorityListener);
 	}
-  
-	protected void
-	rename(
-		TableRowCore[]	rows )
-	{
-	 	if ( manager == null ){
-	 		
-	  		return;
-	  	}
-	 	
-		boolean	paused	= false;
-		
-		try{
-			for (int i=0;i<rows.length;i++){
-				
-				TableRowCore	row = rows[i];
-				
-				final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
-	
-				FileDialog fDialog = new FileDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
-				
-				File	existing_file = fileInfo.getFile(true);
-				
-				fDialog.setFilterPath(existing_file.getParent());
-				
-				fDialog.setFileName( existing_file.getName());
-				
-				fDialog.setText( MessageText.getString("FilesView.rename.choose.path"));
-	      
-				String	res = fDialog.open();
-	      
-				if ( res != null ){
-	    	  				
-					if ( !paused ){
-						
-						paused = manager.pause();
-					}
-						
-    				final File	target = new File( res );
-        	  
-    				boolean	ok = false;
-        	  
-    				if ( target.exists()){
-        		 
-    					if ( target.equals( existing_file )){
-        			  
-    						// nothing to do
-    						
-    					}else if ( !existing_file.exists()){
-	
-    						ok	= true;
-    						
-    					}else{
-        			  
-    						if ( MessageBoxWindow.open( 
-    								"FilesView.messagebox.rename.id",
-    								SWT.OK | SWT.CANCEL,
-    								SWT.OK, true,
-    								getComposite().getDisplay(), 
-    								MessageBoxWindow.ICON_WARNING,
-    								MessageText.getString( "FilesView.rename.confirm.delete.title" ),
-    								MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK ){
-	        		    			        		    		
-    							ok	= true;
-    						}
-    					}
-    				}else{
-        			  
-    					ok = true;
-    				}
-        	  
-    				if ( ok ){
-        		  
-    						// this behaviour should be put further down in the core but I'd rather not
-    						// do so close to release :(
-    					
-    					final boolean[] result = { false };
-    					
-    					FileUtil.runAsTask(
-								new AzureusCoreOperationTask()
-								{
-									public void 
-									run(
-										AzureusCoreOperation operation) 
-									{
-										result[0] = fileInfo.setLink( target );
-									}
-								});
 
-    					if ( !result[0]){
-    						
-    						MessageBox mb = new MessageBox(getComposite().getShell(),SWT.ICON_ERROR | SWT.OK );
-    					    
-    						mb.setText(MessageText.getString("FilesView.rename.failed.title"));
-    					    
-    						mb.setMessage(MessageText.getString("FilesView.rename.failed.text"));
-    					    
-    						mb.open();	    					
-    					}
-        		  
-    					row.invalidate();
-    				}
+	private String askForRenameFilename(DiskManagerFileInfo fileInfo) {
+		SimpleTextEntryWindow dialog = new SimpleTextEntryWindow(getComposite().getDisplay());
+		dialog.setTitle("FilesView.rename.filename.title");
+		dialog.setMessage("FilesView.rename.filename.text");
+		dialog.setPreenteredText(fileInfo.getFile(true).getName(), false); // false -> it's not "suggested", it's a previous value
+		dialog.allowEmptyInput(false);
+		dialog.prompt();
+		if (!dialog.hasSubmittedInput()) {return null;}
+		return dialog.getSubmittedInput();
+	}
+	
+	private String askForRetargetedFilename(DiskManagerFileInfo fileInfo) {
+		FileDialog fDialog = new FileDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
+		File existing_file = fileInfo.getFile(true);
+		fDialog.setFilterPath(existing_file.getParent());
+		fDialog.setFileName(existing_file.getName());
+		fDialog.setText(MessageText.getString("FilesView.rename.choose.path"));
+		return fDialog.open();
+	}
+	
+	private String askForSaveDirectory(DiskManagerFileInfo fileInfo) {
+		DirectoryDialog dDialog = new DirectoryDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);
+		File current_dir = fileInfo.getFile(true).getParentFile();
+		dDialog.setFilterPath(current_dir.getPath());
+		dDialog.setText(MessageText.getString("FilesView.rename.choose.path.dir"));
+		return dDialog.open();
+	}
+	
+	private boolean askCanOverwrite(File file) {
+		return MessageBoxWindow.open( 
+				"FilesView.messagebox.rename.id",
+				SWT.OK | SWT.CANCEL,
+				SWT.OK, true,
+				getComposite().getDisplay(), 
+				MessageBoxWindow.ICON_WARNING,
+				MessageText.getString( "FilesView.rename.confirm.delete.title" ),
+				MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ file.toString()})) == SWT.OK;
+	}
+	
+	private void moveFile(final DiskManagerFileInfo fileInfo, final File target) {
+
+		// this behaviour should be put further down in the core but I'd rather not
+		// do so close to release :(
+		final boolean[] result = { false };
+		
+		FileUtil.runAsTask(new AzureusCoreOperationTask() {
+			public void run(AzureusCoreOperation operation) {
+					result[0] = fileInfo.setLink(target);
 				}
 			}
-		}finally{
-			
-			if ( paused ){
+		);
+
+		if (!result[0]){
+			MessageBox mb = new MessageBox(getComposite().getShell(),SWT.ICON_ERROR | SWT.OK);
+			mb.setText(MessageText.getString("FilesView.rename.failed.title"));
+			mb.setMessage(MessageText.getString("FilesView.rename.failed.text"));
+			mb.open();	    					
+		}
+
+	}
+  
+	protected void rename(TableRowCore[] rows, boolean rename_it, boolean retarget_it) {
+	 	if (manager == null) {return;}
+	 	if (rows.length == 0) {return;}
+	 	
+	 	String save_dir = null;
+	 	if (!rename_it && retarget_it) {
+	 		save_dir = askForSaveDirectory((DiskManagerFileInfo)rows[0].getDataSource(true));
+	 		if (save_dir == null) {return;}
+	 	}
+	 	
+		boolean	paused = false;
+		try {
+			for (int i=0; i<rows.length; i++) {
+				TableRowCore row = rows[i];
+				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)rows[i].getDataSource(true);
+				File existing_file = fileInfo.getFile(true);
+				File f_target = null;
+				if (rename_it && retarget_it) {
+					String s_target = askForRetargetedFilename(fileInfo);
+					if (s_target != null)
+						f_target = new File(s_target);
+				}
+				else if (rename_it) {
+					String s_target = askForRenameFilename(fileInfo);
+					if (s_target != null)
+						f_target = new File(existing_file.getParentFile(), s_target);
+				}
+				else {
+					// Parent directory has changed.
+					f_target = new File(save_dir, existing_file.getName());
+				}
 				
-				manager.resume();
+				// So are we doing a rename?
+				if (f_target == null) {continue;}
+			
+			    if (!paused) {paused = manager.pause();}
+			    
+    			if (f_target.exists()){
+    				
+    				// Nothing to do.
+    				if (f_target.equals(existing_file))
+    					continue;
+    					
+    				// A rewrite will occur, so we need to ask the user's permission.
+    				else if (existing_file.exists() && !askCanOverwrite(existing_file))
+    					continue;
+    				
+    				// If we reach here, then it means we are doing a real move, but there is
+    				// no existing file.
+    			}
+    					
+    			moveFile(fileInfo, f_target);
+    			row.invalidate();
 			}
 		}
+		finally {
+			if (paused){manager.resume();}
+		}
 	}
+	
 	
   protected void
   changePriority(
