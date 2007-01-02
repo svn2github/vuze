@@ -28,6 +28,7 @@ CHANGE: UI    | Remove nag/donation window [TuxPaper]
 CHANGE: UI    | Differentiate between libTorrent (Rakshasa) and libtorrent (Rasterbar) [TuxPaper]
 CHANGE: UI    | For multi-file torrents, icon in name column displays icon for largest file (+ a little folder icon) [TuxPaper]
 CHANGE: UI    | Faster filtering when torrent list is large [TuxPaper]
+CHANGE: UI    | Better logic when preventing a user deselecting files to download from Open Torrent window [amc1]
 
 BUGFIX: Core  | If clipboard has just a " or "" in it the open-torrents dialog won't open [Parg]
 BUGFIX: Core  | Setting of UDP port not working [Parg]
