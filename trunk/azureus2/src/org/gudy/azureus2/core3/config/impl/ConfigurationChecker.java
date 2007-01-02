@@ -168,18 +168,18 @@ ConfigurationChecker
 	    
 	    if ( !last_version.equals( this_version )){
 	    	
-	    	if (!COConfigurationManager.hasParameter("azureus.first.version", true)) {
-					COConfigurationManager.setParameter("azureus.first.version",
+	    	if (!COConfigurationManager.hasParameter("First Recorded Version", true)) {
+					COConfigurationManager.setParameter("First Recorded Version",
 							last_version.length() == 0 ? this_version : last_version);
 				} else {
-					String sFirstVersion = COConfigurationManager.getStringParameter("azureus.first.version");
+					String sFirstVersion = COConfigurationManager.getStringParameter("First Recorded Version");
 					String sMinVersion = Constants.compareVersions(sFirstVersion,
 							this_version) > 0 ? this_version : sFirstVersion;
 					if (last_version.length() > 0) {
 						sMinVersion = Constants.compareVersions(sMinVersion, last_version) > 0
 								? last_version : sMinVersion;
 					}
-					COConfigurationManager.setParameter("azureus.first.version",
+					COConfigurationManager.setParameter("First Recorded Version",
 							sMinVersion);
 				}
 	    
