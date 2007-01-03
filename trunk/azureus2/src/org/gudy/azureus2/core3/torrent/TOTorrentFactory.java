@@ -34,7 +34,7 @@ TOTorrentFactory
 	public static final long	TO_DEFAULT_FIXED_PIECE_SIZE = 256*1024;
 	
 	public static final long	TO_DEFAULT_VARIABLE_PIECE_SIZE_MIN = 32*1024;
-	public static final long	TO_DEFAULT_VARIABLE_PIECE_SIZE_MAX = 4*1024*1024;
+	public static final long	TO_DEFAULT_VARIABLE_PIECE_SIZE_MAX = 2*1024*1024;
 	
 	public static final long	TO_DEFAULT_VARIABLE_PIECE_NUM_LOWER = 1024;
 	public static final long	TO_DEFAULT_VARIABLE_PIECE_NUM_UPPER = 2048;
