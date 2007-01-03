@@ -1,95 +1,93 @@
 $ 
-$    Bienvenido a Azureus 2.5.0.0
+$    Bienvenido a Azureus 2.5.0.2
 $ 
 
-+1. Lo nuevo en Azureus 2.5.0.0
++1. Novedades en Azureus 2.5.0.2
 
-!1.1 Enviar a un amigo
-  Un asistente que simplifica el envío a un amigo de enlaces a contenido o para incluir en una página web (p. ej. un blog)
+!1.1 Menor gasto de memoria
+  Lo mÃ¡s notable es que ahora, la informaciÃ³n sobre partes del torrent se elimina de la memoria cuando no se estÃ¡ usando.
+  
+!1.2 NÂº mÃ­nimo de descargas activas simultÃ¡neamente
+  La habilidad para tener siempre funcionando, al menos un nÂº x de descargas activas.
+  
+!1.3 Columnas nuevas
+  Comentario personal del usuario (vista Mis Torrents)
+  ExtensiÃ³n del archivo (vista de Archivos)
 
-!1.2 Auto velocidad de subida
-  Esta característica controla tu velocidad de envío basándose en la latencia de tu conexión a Internet haciendo pings a otros miembros de la Base de Datos Distribuída.
+!1.4 Acelerado el Tiempo de arranque con listas grandes
+  El tiempo de arranque cuando Azureus tiene que manejar una lista de torrents voluminosa es ahora menor (en algunos casos hasta el 400% menor).
+  Algunos complementos pueden negar esta optimizaciÃ³n si acceden inmediatamente en el arranque a la informaciÃ³n de cada torrent.
 
-!1.3 Otras nuevas características
+!1.5 Otros
+  Varias mejoras en el interfaz de usuario.
+  Arreglo de errores.
+  Menos pÃ©rdidas de memoria.
+ 
+!1.6 Nota sobre Java 5.0
+  Java 5, ActualizaciÃ³n 10 corrige una pÃ©rdida de memoria vista comÃºnmente en las instalaciones de Azureus. Se recomienda encarecidamente que se actualice a esta versiÃ³n o posterior. Puede descargarla en http://java.com/es/download/manual.jsp 
+
+    Registro completo de cambios en http://azureus.sourceforge.net/changelog.php?version=2.5.0.2
+
+
++2. Lo nuevo en Azureus 2.5.0.0
+
+!2.1 Enviar a un amigo
+  Un asistente que simplifica el envÃ­o a un amigo de enlaces a contenido o para incluir en una pÃ¡gina web (p. ej. un blog)
+
+!2.2 Auto velocidad de subida
+  Esta caracterÃ­stica controla tu velocidad de envÃ­o basÃ¡ndose en la latencia de tu conexiÃ³n a Internet haciendo pings a otros miembros de la Base de Datos DistribuÃ­da.
+
+!2.3 Otras nuevas caracterÃ­sticas
   OSX: Abrir archivos .torrent en Azureus via Finder/Escritorio/etc.
-  Los archivos 'No descargar' se manejan más consistentemente con respecto a completar la descarga.
+  Los archivos 'No descargar' se manejan mÃ¡s consistentemente con respecto a completar la descarga.
   Renombrado de las carpetas de descarga.
   Mover los archivos de datos al quitar el torrent desde Azureus.
   Actualizaciones y complementos firmados para mejorar la seguridad.
-  Mejoras en el Interfaz - más información: fecha de añadido, tiempos desocupado, nueva vista de info, vista de partes del archivo; más opciones por-torrent.
-  Generador de información para Depuración.
+  Mejoras en el Interfaz - mÃ¡s informaciÃ³n: fecha de aÃ±adido, tiempos desocupado, nueva vista de info, vista de partes del archivo; mÃ¡s opciones por-torrent.
+  Generador de informaciÃ³n para DepuraciÃ³n.
   Nuevo complemento de control remoto - AzSMRC
-  Más en el registro de cambios (changelog).
+  MÃ¡s en el registro de cambios (changelog).
   
   No olvides comprobar los complementos - http://azureus.sourceforge.net/plugin_list.php
     
-!1.4 Mejoras en el rendimiento y arreglo de fallos
+!2.4 Mejoras en el rendimiento y arreglo de fallos
  Arreglos Notables:
-    El Buscador de Pares en la LAN recuerda más eficientemente a los pares; identificación explícita del par LAN.
-    Reducción del uso en CPU al estar conectado a un gran número de pares.
+    El Buscador de Pares en la LAN recuerda mÃ¡s eficientemente a los pares; identificaciÃ³n explÃ­cita del par LAN.
+    ReducciÃ³n del uso en CPU al estar conectado a un gran nÃºmero de pares.
     
     Registro completo de cambios en http://azureus.sourceforge.net/changelog.php?version=2.5.0.0
     
-+2. Lo nuevo en Azureus 2.4.0.0
++3. Lo nuevo en Azureus 2.4.0.0
 
-!2.1 Transferencia de Datos Encriptados/Ofuscados
- Se incluye el soporte para la encriptación de los datos entre Azureus y cualquier otro cliente compatible. Esto proporciona una protección para los datos y también puede servir de ayuda con los ISPs que impiden o restrigen el tráfico entre pares.
+!3.1 Transferencia de Datos Encriptados/Ofuscados
+ Se incluye el soporte para la encriptaciÃ³n de los datos entre Azureus y cualquier otro cliente compatible. Esto proporciona una protecciÃ³n para los datos y tambiÃ©n puede servir de ayuda con los ISPs que impiden o restrigen el trÃ¡fico entre pares.
   
-!2.2 Transferencia de Alta Velocidad en Redes de Área Local
- Varias copias de Azureus corriendo en la misma red local soportarán conexiones directas de alta velocidad.
+!3.2 Transferencia de Alta Velocidad en Redes de Ãrea Local
+ Varias copias de Azureus corriendo en la misma red local soportarÃ¡n conexiones directas de alta velocidad.
 
-!2.3 Algoritmo de Descarga Mejorado
- Se ha reescrito el algoritmo utilizado para determinar qué partes de una descarga hay que pedir a qué cliente, de modo que mejore su comportamiento y rendimiento.
+!3.3 Algoritmo de Descarga Mejorado
+ Se ha reescrito el algoritmo utilizado para determinar quÃ© partes de una descarga hay que pedir a quÃ© cliente, de modo que mejore su comportamiento y rendimiento.
 
-!2.4 Soporte para Webseed
- Se incluye un soporte básico para webseed. Los webseeds se utilizarán sólo cuando la disponibilidad de una descarga sea menor de 1.0.
+!3.4 Soporte para Webseed
+ Se incluye un soporte bÃ¡sico para webseed. Los webseeds se utilizarÃ¡n sÃ³lo cuando la disponibilidad de una descarga sea menor de 1.0.
 
-!2.5 Otros
+!3.5 Otros
 
  Diversas mejoras en el interfaz de usuario.
  Mejoras en el rendimiento.
  Arreglo de errores.
     
-    Nota: El nuevo lanzador ejecutable para Windows necesitará que tu cortafuegos permita a "Azureus.exe" acceder a Internet.
-    
     Informe completo de cambios en http://azureus.sourceforge.net/changelog.php?version=2.4.0.0
    
-    Mire en http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4, 2.3.0.2 para cambios más antiguos.
+    Mire en http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4, 2.3.0.2 para cambios mÃ¡s antiguos.
 
-+3. Lo nuevo en Azureus 2.3.0.0
-
-!3.1 Base de datos Distribuída
- Azureus ahora tiene una base datos descentralizada y distribuída, que puede utilizarse para rastrear torrents descentralizados. Esta característica permite los torrents "sin rastreador" y el mantenimiento de los enjambres (=total de clientes + semillas) donde el rastreador ya no esté accesible o cuyo torrent haya sido retirado de él.
- Se utiliza el protocolo UDP, así que si tienes un cortafuegos/enrutador, tendrás que abrirles/reenviar el puerto UDP al igual que tuviste que hacer con el TCP para descargar datos.
- 
-*3.1.1 Enlaces Magnet (Imantados)
- Si los torrents están rastreados descentralizadamente, Azureus puede exportar un "Enlace Magnet". Su formato es "magnet:?xt=urn:btih:..." y pueden usarse para descargar el torrent desde la base de datos distribuída via el elemento de menú "abrir->url".
- http://azureus.aelitis.com/wiki/index.php/Magnet_link
- 
-!3.2 Protocolo Mejorado
- Azureus soporta ahora un protocolo mejorado para mensajería interclientes, el cual está enfocado a que los complementos puedan utilizar las conexiones creadas por Azureus para añadir funcionalidad al programa. Otros programadores de clientes pueden ver las especificaciones de este protocolo en http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Los programadores del Complemento podrán echarle un vistazo los plugin javadocs para saber cómo usarlo.
- Por ejemplo, los complementos JPC y Chat hacen uso de esta extensión para mensajería.
-
-!3.3 JPC
- El Joltid Peer Cache (JPC) ahora está integrado en Azureus. Para usuarios cuyo ISP lo soporta, JPC debería acelerar las descargas, al tiempo que ayudará al ISP a reducir sus costos en ancho de banda. El complemento JPC es seguro en el sentido de que tu ISP no sabe lo que estás descargando, y por tanto no puede usarlo para espiarte. El complemento JPC puede desactivarse en Herramientas > Opciones > Complementos > JPC.
-  
-!3.4 Complementos Destacados
- La Base de datos Distribuída y el Protocolo Mejorado nos permiten desarrollar nuevos complementos, que creemos que son interesantes. No queremos autoinstalártelos, pero recomendamos a todos los usuarios que puedan estar interesados en ellos que los instalen mediante el menú Complementos > Asistente de instalación.
-
-*3.4.1 Chat
- Este complemento creará un canal de discusión por cada torrent que estés descargando. Cada canal es independiente, y eres libre de discutir lo que quieras dentro del canal. Este complemento hace uso del protocolo Mejorado. Los desarrolladores de otros clientes que deseen implementar la funcionalidad chat en sus clientes están invitados a echarle un vistazo al sencillísimo protocolo utilizado y que se describe aquí : http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
- También puedes crear/unirte a un canal arbitrario tecleando su nombre en el complemento, lo que tendrá como efecto el crear un torrent "virtual", sin semillas, para poder permitir a los usuarios el crear conexiones al chat. Los torrents "virtuales" hacen uso de la Base de datos Distribuída como su tracker, de modo que mientras puedes usar el Complemento Chat sin la Base de datos Distribuída, no podrás utilizar el truco del canal virtual si la deshabilitas.
- 
-*3.4.2 Ratings & Comments (Valoraciones & Comentarios)
- Este complemento te permitirá ver las valoraciones y comentarios sobre un torrent de otros usuarios, así como hacerlos tú mismo (en "Mis torrents" haz clic dcho. sobre el torrent y elige "valoraciones y comentarios". Este complemento utiliza la Base de datos Distribuída, así que para que funcione has de tenerla activada.
-
-+4. Consejos de Actualización
++4. Consejos de ActualizaciÃ³n
 
 !4.1 Java 5.0
- Azureus está escrito en Java y necesita el Java runtime. Recomendamos Java 5.0 (también conocido como 1.5) por su fiabilidad y mejor rendimiento - actualice por favor si fuere necesario.
- Aquí encontrará los torrents para actualizar Java : http://azureus.sourceforge.net/download.php
+ Azureus estÃ¡ escrito en Java y necesita el Java runtime. Recomendamos Java 5.0 (tambiÃ©n conocido como 1.5) por su fiabilidad y mejor rendimiento - actualice por favor si fuere necesario.
+ AquÃ­ encontrarÃ¡ los torrents para actualizar Java : http://azureus.sourceforge.net/download.php
  Descarga el de tu sistema, cierra Azureus, ejecuta el archivo descargado, y reinicia Azureus.
- Los usuarios de WindowsXP tienen que ir a Herramientas > Configuracion > Interfaz > Display, y re-marcar la opción "Activar Estilo XP".
+ Los usuarios de WindowsXP tienen que ir a Herramientas > Configuracion > Interfaz > Display, y re-marcar la opciÃ³n "Activar Estilo XP".
 
 !4.2 NOD32
  NOD32 (http://www.nod32.com/) es un antivirus del que se sabe que tiene problemas con Azureus, llevando a usar el 100% de la CPU.
@@ -99,20 +97,20 @@ $
 +5. Sucesos Comunes
 
 !5.1 "error" NAT
- NAT significa "Network Address Translation" (Traducción de direcciones de red). La prueba NAT en Azureus te dice si eres o no, conectable por los demás desde Internet. Tendrás mejores velocidades si ERES conectable.
+ NAT significa "Network Address Translation" (TraducciÃ³n de direcciones de red). La prueba NAT en Azureus te dice si eres o no, conectable por los demÃ¡s desde Internet. TendrÃ¡s mejores velocidades si ERES conectable.
  Por favor no acuda a nosotros para resolver asuntos de NAT, ya que existen multitud de recursos sobre ello en Internet. Puede probrar en:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
  
 
-!5.2 Azureus Colgándose
- Si se cuelga tu Azureus, la razón más probable es que sea debido a tus componentes de red (tarjeta, drivers, OS). Recomendamos encarecidamente que actualices todos los componentes relacionados con la red. Si aún no se soluciona, entonces la razón más probable es que tu sistema no puede manejar tantas conexiones de clientes.
- Disminuye el número de conexiones de Azureus en (Herramientas > Opciones > Transferencia > Nº máximo de conexiones por torrent / globalmente), prueba primero con un valor bajo como 30.
+!5.2 Azureus ColgÃ¡ndose
+ Si se cuelga tu Azureus, la razÃ³n mÃ¡s probable es que sea debido a tus componentes de red (tarjeta, drivers, OS). Recomendamos encarecidamente que actualices todos los componentes relacionados con la red. Si aÃºn no se soluciona, entonces la razÃ³n mÃ¡s probable es que tu sistema no puede manejar tantas conexiones de clientes.
+ Disminuye el nÃºmero de conexiones de Azureus en (Herramientas > Opciones > Transferencia > NÂº mÃ¡ximo de conexiones por torrent / globalmente), prueba primero con un valor bajo como 30.
 
 !5.3 Soporte
- Antes de contactar con el equipo de soporte, asegúrese de comprobar los recursos disponibles en :
+ Antes de contactar con el equipo de soporte, asegÃºrese de comprobar los recursos disponibles en :
  - Sitio Web oficial	: http://azureus.sourceforge.net/
  - El Wiki oficial	: http://azureus.aelitis.com/wiki/
- - El canal IRC oficial	: #azureus-users on irc.freenode.net
+ - El canal IRC oficial	: #azureus-users en irc.freenode.net
  - El foro oficial de SF: http://sourceforge.net/forum/?group_id=84122
- - SI (y sólo SI) no pudieras solucionar tu problema tras probar TODOS esos medios, puedes contactar con nosotros en azureus@gmail.com
+ - SI (y sÃ³lo SI) no pudieras solucionar tu problema tras probar TODOS esos medios, puedes contactar con nosotros en azureus@gmail.com
