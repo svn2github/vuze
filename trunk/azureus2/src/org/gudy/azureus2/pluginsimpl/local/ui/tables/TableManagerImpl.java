@@ -509,6 +509,7 @@ TableManagerImpl
 		  	private Graphic	graphic;
 		  	
 		  	private List 	listeners 		= new ArrayList();
+		  	private List 	m_listeners 	= new ArrayList();
 		  	private List	fill_listeners	= new ArrayList();
 		  	
 		  	private String   display_text  = null;
@@ -533,6 +534,10 @@ TableManagerImpl
 	  			
 	  			for (int i=0;i<listeners.size();i++){
 	  				delegate.addListener((MenuItemListener)listeners.get(i));
+	  			}
+
+	  			for (int i=0;i<listeners.size();i++){
+	  				delegate.addMultiListener((MenuItemListener)m_listeners.get(i));
 	  			}
 	  			
 	  			for (int i=0;i<fill_listeners.size();i++){
@@ -642,26 +647,24 @@ TableManagerImpl
 	  			}
 	  		}
 
-	  		public void
-	  		addListener(
-	  			MenuItemListener	listener )
-	  		{
-	  			if ( delegate==null ){
-	  				listeners.add( listener );
-	  			}else{
-	  				delegate.addListener( listener );
-	  			}
+	  		public void addListener(MenuItemListener listener) {
+	  			if (delegate==null) {listeners.add(listener);}
+	  			else {delegate.addListener(listener);}
 	  		}
 	  		
-	  		public void
-	  		removeListener(
-	  			MenuItemListener	listener )
-	  		{
-	  			if ( delegate==null ){
-	  				listeners.remove( listener );
-	  			}else{
-	  				delegate.removeListener( listener );
-	  			}
+	  		public void removeListener(MenuItemListener listener) {
+	  			if (delegate==null) {listeners.remove(listener);}
+	  			else {delegate.removeListener(listener);}
+	  		}
+	  		
+	  		public void addMultiListener(MenuItemListener listener) {
+	  			if (delegate==null) {m_listeners.add(listener);}
+	  			else {delegate.addMultiListener(listener);}
+	  		}
+	  		
+	  		public void removeMultiListener(MenuItemListener listener) {
+	  			if (delegate==null) {m_listeners.remove(listener);}
+	  			else {delegate.removeMultiListener(listener);}
 	  		}
 	  		
 	  		public MenuItem[] getItems() {

@@ -19,12 +19,50 @@
 package org.gudy.azureus2.plugins.ui.tables;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 
 /** Represents on context menu item for a table.
  */
 public interface TableContextMenuItem 
-       extends MenuItem
-{
+       extends MenuItem {
+       
+   	/**
+   	 * Adds a selection listener for this menu item.
+   	 * 
+   	 * The {@link MenuItemListener#selected(MenuItem, Object)} method invoked
+   	 * with the <tt>target</tt> being a {@link TableRow} instance. This will be one of
+   	 * the items which was selected - this method will be invoked multiple
+   	 * times with each item that was selected - if you want the entire selection
+   	 * of items in one go, you should register the listener via
+   	 * {@link #addMultiListener(MenuItemListener)}.  
+   	 * 
+   	 * @param l listener to be notified when user has selected the menu item.
+   	 */
+   	public void	addListener(MenuItemListener l);
+   	
+   	/**
+   	 * Adds a selection listener for this menu item.
+   	 * 
+   	 * This differs from {@link #addListener(MenuItemListener)}, in that the
+   	 * <tt>target</tt> object which will be passed to the listener will be an
+   	 * array of {@link TableRow} objects, rather than just a single object.
+   	 * 
+   	 * @param l listener to be notified when user has selected the menu item.
+   	 * @since 2.5.0.2
+   	 */
+   	public void addMultiListener(MenuItemListener l);
+   	
+      /**
+       * Removes a selection listener from this menu item.
+       * 
+       * You only use this method to remove a listener added via
+       * {@link #addMultiListener(MenuItemListener)}.
+       * 
+       * @param l listener to remove
+       * @since 2.5.0.2
+       */
+   	public void removeMultiListener(MenuItemListener l);
+
   /**
    * Retrieve the Table ID that the menu item belongs to
    * @return {@link TableManager}.TABLE_ constant

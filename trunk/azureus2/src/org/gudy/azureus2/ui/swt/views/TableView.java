@@ -1297,14 +1297,15 @@ public class TableView
 		}
 		
 		menuItem.addListener(SWT.Selection, new SelectedTableRowsListener() {
-			public void run(TableRowCore row) {
+			public boolean run(TableRowCore[] rows) {
 				if (swt_style == SWT.CHECK || swt_style == SWT.RADIO) {
 					if (!menuItem.isDisposed()) {
 						contextMenuItem.setData(new Boolean(menuItem.getSelection()));
 					}
 				}
 
-				contextMenuItem.invokeListeners(row);
+				contextMenuItem.invokeListeners(rows);
+				return true;
 			}
 		});
 		
@@ -1420,8 +1421,9 @@ public class TableView
 
         Messages.setLanguageText(menuItem, contextMenuItem.getResourceKey());
         menuItem.addListener(SWT.Selection, new SelectedTableRowsListener() {
-          public void run(TableRowCore row) {
-            contextMenuItem.invokeListeners(row);
+          public boolean run(TableRowCore[] rows) {
+            contextMenuItem.invokeListeners(rows);
+            return true;
           }
         });
       }
@@ -2561,10 +2563,16 @@ public class TableView
       return;
 
     TableItem[] tis = table.getSelection();
+    List rows_to_use = null;
+    if (runner.supportsMultipleRows()) {rows_to_use = new ArrayList(tis.length);}
     for (int i = 0; i < tis.length; i++) {
       TableRowCore row = (TableRowCore)tis[i].getData("TableRow");
       if (row != null)
-        runner.run(row);
+       	  if (rows_to_use != null) {rows_to_use.add(row);}
+       	  else {runner.run(row);}
+      }
+    if (rows_to_use != null) {
+  	  runner.run((TableRowCore[])rows_to_use.toArray(new TableRowCore[rows_to_use.size()]));
     }
   }
   
@@ -2575,6 +2583,7 @@ public class TableView
 	 */
 	public void runForVisibleRows(GroupTableRowRunner runner) {
 		TableRowCore[] rows = getVisibleRows();
+		if (runner.run(rows)) {return;}
 
 		for (int i = 0; i < rows.length; i++)
 			runner.run(rows[i]);
@@ -2588,9 +2597,11 @@ public class TableView
 	public void runForAllRows(GroupTableRowRunner runner) {
 		// put to array instead of synchronised iterator, so that runner can remove
 		TableRowCore[] rows = getRows();
+		if (runner.run(rows)) {return;}
 
 		for (int i = 0; i < rows.length; i++)
 			runner.run(rows[i]);
+		
 	}
 
   /** For every row source, run the code provided by the specified 
@@ -2624,14 +2635,21 @@ public class TableView
           return;
 
       final Iterator iter = items.iterator();
+      List rows_to_use = null;
+      if (runner.supportsMultipleRows()) {rows_to_use = new ArrayList(items.size());}
       while (iter.hasNext()) {
           TableItem tableItem = (TableItem) iter.next();
           if(tableItem.isDisposed())
             continue;
 
           TableRowCore row = (TableRowCore) tableItem.getData("TableRow");
-          if (row != null)
-            runner.run(row);
+          if (row != null) {
+        	  if (rows_to_use != null) {rows_to_use.add(row);}
+        	  else {runner.run(row);}
+          }
+      }
+      if (rows_to_use != null) {
+    	  runner.run((TableRowCore[])rows_to_use.toArray(new TableRowCore[rows_to_use.size()]));
       }
   }
 
@@ -2668,6 +2686,25 @@ public class TableView
 		 */
 		public void run(TableRowCore row) {
 		}
+		
+		/**
+		 * Code to run against multiple rows.
+		 * 
+		 * Return true if this object supports it, false otherwise.
+		 * 
+		 * @param rows
+		 * @return
+		 */
+		public boolean run(TableRowCore[] rows) {
+			return false;
+		}
+		
+		/**
+		 * Indicates whether this object supports multiple rows.
+		 */
+		private static final TableRowCore[] EMPTY = new TableRowCore[0];
+		private boolean supportsMultipleRows() {return run(EMPTY);}
+		
 	}
 
 	public abstract class GroupTableRowVisibilityRunner {

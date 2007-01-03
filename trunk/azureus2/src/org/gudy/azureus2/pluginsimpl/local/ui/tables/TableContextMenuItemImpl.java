@@ -38,6 +38,7 @@ public class TableContextMenuItemImpl
   private Graphic	graphic;
   
   private List 	listeners 		= new ArrayList();
+  private List  m_listeners     = new ArrayList();
   private List	fill_listeners	= new ArrayList();
   
   private List  children        = new ArrayList();
@@ -150,23 +151,42 @@ public class TableContextMenuItemImpl
 		fill_listeners.remove( listener );
 	}
 	
-  public void invokeListeners(TableRow row) {
-    for (int i = 0; i < listeners.size(); i++){
+  // Currently used by TableView.
+  public void invokeListeners(TableRow[] rows) {
+	  // We invoke the multi listeners first...
+	  invokeListeners0(this.m_listeners, rows);
+	  if (!this.listeners.isEmpty()) {
+		  for (int i=0; i<rows.length; i++) {
+			  invokeListeners0(this.listeners, rows[i]);
+		  }
+	  }
+  }
+  
+  private void invokeListeners0(List listeners_to_notify, Object o) {
+    for (int i = 0; i < listeners_to_notify.size(); i++){
     	
     	try{
-    		((MenuItemListener)(listeners.get(i))).selected(this, row);
+    		((MenuItemListener)(listeners_to_notify.get(i))).selected(this, o);
     	}catch( Throwable e ){
     		Debug.printStackTrace(e);
     	}
     }
   }
-
+  
   public void addListener(MenuItemListener l) {
     listeners.add(l);
   }
   
   public void removeListener(MenuItemListener l) {
     listeners.remove(l);
+  }
+  
+  public void addMultiListener(MenuItemListener l) {
+	  m_listeners.add(l);
+  }
+  
+  public void removeMultiListener(MenuItemListener l) {
+	  m_listeners.remove(l);
   }
   
   public MenuItem getParent() {
