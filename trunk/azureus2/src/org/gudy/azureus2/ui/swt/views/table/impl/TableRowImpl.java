@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.widgets.Table;
@@ -373,7 +374,15 @@ public class TableRowImpl
 	}
 
 	public String toString() {
-		return "TableRowImpl@" + Integer.toHexString(hashCode()) + "/#" + getIndex();
+		String result = "TableRowImpl@" + Integer.toHexString(hashCode());
+		
+		// In the rare case that we are calling this outside of a SWT thread, this
+		// may break, so we will just ignore those exceptions.
+		String index = null;
+		try {index = String.valueOf(getIndex());}
+		catch (SWTException se) {/* do nothing */}
+		
+		return result + ((index == null) ? "" : ("/#" + index)); 		
 	}
 
 }
