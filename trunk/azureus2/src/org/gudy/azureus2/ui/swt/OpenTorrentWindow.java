@@ -240,6 +240,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 
 			if (saveSilentlyDir != null) {
 				openTorrentWindow.sDestDir = saveSilentlyDir;
+				for (int i = 0; i < openTorrentWindow.torrentList.size(); i++) {
+					final TorrentInfo info = (TorrentInfo) openTorrentWindow.torrentList.get(i);
+					info.renameDuplicates();
+				}
+
 				openTorrentWindow.openTorrents();
 				openTorrentWindow.close(true, false);
 			}
@@ -271,7 +276,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			boolean bOpenWindow) {
 		this.gm = gm;
 
-		sDestDir = COConfigurationManager.getStringParameter(PARAM_DEFSAVEPATH, "");
+		sDestDir = COConfigurationManager.getStringParameter(PARAM_DEFSAVEPATH);
 
 		if (bOpenWindow)
 			openWindow(parent);
@@ -668,8 +673,16 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		}
 
 		File file = new File(cmbDataDir.getText());
-		if (!file.isDirectory()) {
-			Utils.openMessageBox(shellForChildren, SWT.OK,
+		
+		File fileDefSavePath = new File(
+				COConfigurationManager.getStringParameter(PARAM_DEFSAVEPATH));
+
+		if (file.equals(fileDefSavePath) && !fileDefSavePath.isDirectory()) {
+			FileUtil.mkdirs(fileDefSavePath);
+		}
+
+		if (cmbDataDir.getText().length() == 0 || !file.isDirectory()) {
+			Utils.openMessageBox(shellForChildren, SWT.OK | SWT.ICON_ERROR,
 					"OpenTorrentWindow.mb.noGlobalDestDir",
 					new String[] { file.toString()
 					});
@@ -677,12 +690,15 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			return;
 		}
 
+
+		String sExistingFiles = "";
+		int iNumExistingFiles = 0;
 		for (int i = 0; i < torrentList.size(); i++) {
 			TorrentInfo info = (TorrentInfo) torrentList.get(i);
 
 			file = new File(info.sDestDir);
-			if (!file.isDirectory()) {
-				Utils.openMessageBox(shellForChildren, SWT.OK,
+			if (!file.isDirectory() && !FileUtil.mkdirs(file)) {
+				Utils.openMessageBox(shellForChildren, SWT.OK | SWT.ICON_ERROR,
 						"OpenTorrentWindow.mb.noDestDir", new String[] {
 							file.toString(),
 							info.getTorrentName()
@@ -691,10 +707,34 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			}
 
 			if (!info.isValid) {
-				Utils.openMessageBox(shellForChildren, SWT.OK,
+				Utils.openMessageBox(shellForChildren, SWT.OK | SWT.ICON_ERROR,
 						"OpenTorrentWindow.mb.notValid",
 						new String[] { info.getTorrentName()
 						});
+				return;
+			}
+			
+			TorrentFileInfo[] files = info.getFiles();
+			for (int j = 0; j < files.length; j++) {
+				TorrentFileInfo fileInfo = files[j];
+				if (fileInfo.getDestFile().exists()) {
+					sExistingFiles += fileInfo.sFileName + " - " + info.getTorrentName()
+							+ "\n";
+					iNumExistingFiles++;
+					if (iNumExistingFiles > 5) {
+						// this has the potential effect of adding 5 files from the first 
+						// torrent and then 1 file from each of the remaining torrents
+						break;
+					}
+				}
+			}
+		}
+		
+		if (sExistingFiles.length() > 0) {
+			if (Utils.openMessageBox(shellForChildren, SWT.OK | SWT.CANCEL
+					| SWT.ICON_WARNING, "OpenTorrentWindow.mb.existingFiles",
+					new String[] { sExistingFiles
+					}) != SWT.OK) {
 				return;
 			}
 		}
@@ -1950,7 +1990,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 										File fDest;
 										if (files[iIndex].sDestFileName != null) {
 											fDest = new File(files[iIndex].sDestFileName);
-											fileInfo.setLink(fDest);
+											// Can't use fileInfo.setLink(fDest) as it renames
+											// the existing file if there is one
+											dm.getDownloadState().setFileLink(
+													fileInfo.getFile(false), fDest);
 										} else {
 											fDest = new File(info.sDestDir,
 													files[iIndex].sFullFileName);
@@ -2015,10 +2058,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 	// TorrentDownloaderCallBackInterface
 	public void TorrentDownloaderEvent(int state, final TorrentDownloader inf) {
 		// This method is run even if the window is closed.
-		if (!inf.getDeleteFileOnCancel() && (state == TorrentDownloader.STATE_CANCELLED
-				|| state == TorrentDownloader.STATE_ERROR
-				|| state == TorrentDownloader.STATE_DUPLICATE
-				|| state == TorrentDownloader.STATE_FINISHED)) {
+		if (!inf.getDeleteFileOnCancel()
+				&& (state == TorrentDownloader.STATE_CANCELLED
+						|| state == TorrentDownloader.STATE_ERROR
+						|| state == TorrentDownloader.STATE_DUPLICATE || state == TorrentDownloader.STATE_FINISHED)) {
 			if (!downloaders.contains(inf))
 				return;
 			downloaders.remove(inf);
@@ -2034,11 +2077,14 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				}
 				file.delete();
 			}
-			MessageBoxShell boxShell = new MessageBoxShell(shellForChildren, 
+			MessageBoxShell boxShell = new MessageBoxShell(shellForChildren,
 					MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
-					MessageText.getString("OpenTorrentWindow.mb.notTorrent.text", 
-							new String[] { inf.getURL(), "" }),
-					new String[] { MessageText.getString("Button.ok") }, 0);
+					MessageText.getString("OpenTorrentWindow.mb.notTorrent.text",
+							new String[] {
+								inf.getURL(),
+								""
+							}), new String[] { MessageText.getString("Button.ok")
+					}, 0);
 			boxShell.setHtml(html);
 			boxShell.open();
 
@@ -2081,6 +2127,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					String saveSilentlyDir = getSaveSilentlyDir();
 					if (saveSilentlyDir != null) {
 						sDestDir = saveSilentlyDir;
+						for (int i = 0; i < torrentList.size(); i++) {
+							final TorrentInfo info = (TorrentInfo) torrentList.get(i);
+							info.renameDuplicates();
+						}
+
 						openTorrents();
 					}
 				}
@@ -2093,7 +2144,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		} else if (state == TorrentDownloader.STATE_DOWNLOADING) {
 			int count = inf.getLastReadCount();
 			int numRead = inf.getTotalRead();
-			
+
 			if (!inf.getDeleteFileOnCancel() && numRead >= 16384) {
 				inf.cancel();
 			} else if (numRead == count && count > 0) {
@@ -2283,6 +2334,46 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			}
 			return true;
 		}
+
+		public void renameDuplicates() {
+			if (iStartID == STARTMODE_SEEDING) {
+				return;
+			}
+
+			if (!torrent.isSimpleTorrent()) {
+				if (new File(sDestDir, getTorrentName()).isDirectory()) {
+					File f;
+					int idx = 0;
+					do {
+						idx++;
+						f = new File(sDestDir, getTorrentName() + "-" + idx);
+					} while (f.isDirectory());
+
+					String sNewDir = f.getAbsolutePath();
+
+					TorrentFileInfo[] fileInfos = getFiles();
+					for (int i = 0; i < fileInfos.length; i++) {
+						TorrentFileInfo info = fileInfos[i];
+						File file = new File(sNewDir, info.sFileName);
+						info.sDestFileName = file.getAbsolutePath();
+					}
+				}
+			} else {
+				TorrentFileInfo[] fileInfos = getFiles();
+				for (int i = 0; i < fileInfos.length; i++) {
+					TorrentFileInfo info = fileInfos[i];
+
+					File file = new File(sDestDir, info.sFileName);
+					int idx = 0;
+					while (file.exists()) {
+						idx++;
+						file = new File(sDestDir, idx + "-" + info.sFileName);
+					}
+
+					info.sDestFileName = file.getAbsolutePath();
+				}
+			}
+		}
 		
 		private Boolean has_multiple_small_files = null; 
 		private boolean hasMultipleSmallFiles() {
@@ -2374,6 +2465,14 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				return parent.sDestDir;
 
 			return new File(parent.sDestDir, sFullFileName).getParent();
+		}
+		
+		public File getDestFile() {
+			if (sDestFileName != null) {
+				return new File(sDestFileName);
+			} else {
+				return new File(sDestDir, sFullFileName);
+			}
 		}
 
 		public boolean okToDisable() {
