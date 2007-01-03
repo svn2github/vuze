@@ -141,23 +141,18 @@ public interface MenuItem
 	removeFillListener(
 		MenuItemFillListener	listener );
 
-	/** Add a Selection Listener for this menu item
-	 *
-	 * @param l listener to be notified when user has selected menu item.
-	 */
-	public void
-	addListener(
-		MenuItemListener	l );
-	
 	/**
-   * Remove a Selection Listener from this menu item
-   *
-   * @param l listener to remove
-   */
-	public void
-	removeListener(
-		MenuItemListener	l );
-
+	 * Adds a selection listener for this menu item.
+	 * @param l listener to be notified when user has selected the menu item.
+	 */
+	public void	addListener(MenuItemListener l);
+	
+   /**
+    * Removes a selection listener from this menu item.
+    * @param l listener to remove
+    */
+	public void	removeListener(MenuItemListener	l);
+	
 	/** 
 	 * Retrieve the parent MenuItem.
 	 *
