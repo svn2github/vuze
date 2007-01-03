@@ -89,6 +89,11 @@ DHTUDPPacketReplyFindValue
 		}else{
 			
 			contacts = DHTUDPUtils.deserialiseContacts( getTransport(), is );
+			
+			if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_VIVALDI_FINDVALUE ){
+
+				DHTUDPUtils.deserialiseVivaldi( this, is );
+			}
 		}
 	}
 	
@@ -111,6 +116,10 @@ DHTUDPPacketReplyFindValue
 			
 			DHTUDPUtils.serialiseContacts( os, contacts );
 			
+			if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_VIVALDI_FINDVALUE ){
+
+				DHTUDPUtils.serialiseVivaldi( this, os );
+			}
 		}else{
 			
 			if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_DIV_AND_CONT ){

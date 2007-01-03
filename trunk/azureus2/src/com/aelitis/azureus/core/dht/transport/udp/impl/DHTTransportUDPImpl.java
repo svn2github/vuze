@@ -3248,7 +3248,8 @@ DHTTransportUDPImpl
 		int	action = reply.getAction();
 		
 		if ( 	action == DHTUDPPacketHelper.ACT_REPLY_PING ||
-				action == DHTUDPPacketHelper.ACT_REPLY_FIND_NODE ){
+				action == DHTUDPPacketHelper.ACT_REPLY_FIND_NODE ||
+				action == DHTUDPPacketHelper.ACT_REPLY_FIND_VALUE ){
 						
 			reply.setNetworkPositions( local_contact.getNetworkPositions());
 		}
