@@ -420,6 +420,7 @@ public class ConfigurationDefaults {
     
     def.put( "BT Request Max Block Size", new Long(65536));
     def.put( "network.tcp.enable_safe_selector_mode", FALSE );
+    def.put( "network.tcp.safe_selector_mode.chunk_size", new Long( 60 ));
     
     def.put( "network.transport.encrypted.require", FALSE );
     def.put( "network.transport.encrypted.min_level", "RC4" );
@@ -428,6 +429,10 @@ public class ConfigurationDefaults {
     def.put( "network.transport.encrypted.use.crypto.port", FALSE );
     
     def.put( "network.bind.local.port", ZERO );
+    
+    // Memory settings
+    
+    def.put( "memory.slice.limit.multiplier", new Long(1));
     
     // Move on completion settings.
     def.put( "Move Completed When Done", FALSE );

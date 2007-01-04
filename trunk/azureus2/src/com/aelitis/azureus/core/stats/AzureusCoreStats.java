@@ -81,14 +81,20 @@ AzureusCoreStats
 	public static final String ST_NET_TCP_OUT_CLOSE_QUEUE_LENGTH		= "net.tcp.outbound.close.queue.length";	// Long
 
 	
-		// Peer
+		// Peer Control
 	
 	public static final String ST_PEER_CONTROL_LOOP_COUNT		= "peer.control.loop.count";
 	public static final String ST_PEER_CONTROL_YIELD_COUNT		= "peer.control.yield.count";
 	public static final String ST_PEER_CONTROL_WAIT_COUNT		= "peer.control.wait.count";
 	public static final String ST_PEER_CONTROL_WAIT_TIME		= "peer.control.wait.time";
 
+		// Peer Manager
 	
+	public static final String ST_PEER_MANAGER_COUNT					= "peer.manager.count";
+	public static final String ST_PEER_MANAGER_PEER_COUNT				= "peer.manager.peer.count";
+	public static final String ST_PEER_MANAGER_PEER_SNUBBED_COUNT		= "peer.manager.peer.snubbed.count";
+	public static final String ST_PEER_MANAGER_PEER_STALLED_DISK_COUNT	= "peer.manager.peer.stalled.disk.count";
+
 	
 	private static final Integer	POINT 		= new Integer(1);
 	private static final Integer	CUMULATIVE 	= new Integer(1);
@@ -135,10 +141,15 @@ AzureusCoreStats
 		{ ST_NET_TCP_OUT_CLOSE_QUEUE_LENGTH,		POINT },
 		
 		
-		{ ST_PEER_CONTROL_LOOP_COUNT,			CUMULATIVE },
-		{ ST_PEER_CONTROL_YIELD_COUNT,			CUMULATIVE },
-		{ ST_PEER_CONTROL_WAIT_COUNT,			CUMULATIVE },
-		{ ST_PEER_CONTROL_WAIT_TIME,			CUMULATIVE },
+		{ ST_PEER_CONTROL_LOOP_COUNT,				CUMULATIVE },
+		{ ST_PEER_CONTROL_YIELD_COUNT,				CUMULATIVE },
+		{ ST_PEER_CONTROL_WAIT_COUNT,				CUMULATIVE },
+		{ ST_PEER_CONTROL_WAIT_TIME,				CUMULATIVE },
+		
+		{ ST_PEER_MANAGER_COUNT,					POINT },
+		{ ST_PEER_MANAGER_PEER_COUNT,				POINT },
+		{ ST_PEER_MANAGER_PEER_SNUBBED_COUNT,		POINT },
+		{ ST_PEER_MANAGER_PEER_STALLED_DISK_COUNT,	POINT },
 	};
 	
 	static{

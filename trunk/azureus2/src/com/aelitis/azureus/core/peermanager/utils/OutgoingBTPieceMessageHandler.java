@@ -350,4 +350,10 @@ public class OutgoingBTPieceMessageHandler {
 	{
 		return( queued_messages.size()	+ loading_messages.size() + requests.size());
 	}
+	
+	public boolean
+	isStalledPendingLoad()
+	{
+		return( queued_messages.size() == 0 && loading_messages.size() > 0 );
+	}
 }

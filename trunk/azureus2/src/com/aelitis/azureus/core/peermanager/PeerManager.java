@@ -47,13 +47,15 @@ import com.aelitis.azureus.core.peermanager.download.TorrentDownloadFactory;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+import com.aelitis.azureus.core.stats.AzureusCoreStats;
+import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 /**
  *
  */
-public class PeerManager {
+public class PeerManager implements AzureusCoreStatsProvider{
   private static final LogIDs LOGID = LogIDs.PEER;
 	
   private static final PeerManager instance = new PeerManager();
@@ -152,12 +154,87 @@ public class PeerManager {
   
 
   private PeerManager() {
-    legacy_handshake_header = ByteBuffer.allocate( 20 );
-    legacy_handshake_header.put( (byte)BTHandshake.PROTOCOL.length() );
-    legacy_handshake_header.put( BTHandshake.PROTOCOL.getBytes() );
-    legacy_handshake_header.flip();
-    
-    MessageManager.getSingleton().initialize();  //ensure it gets initialized
+	  legacy_handshake_header = ByteBuffer.allocate( 20 );
+	  legacy_handshake_header.put( (byte)BTHandshake.PROTOCOL.length() );
+	  legacy_handshake_header.put( BTHandshake.PROTOCOL.getBytes() );
+	  legacy_handshake_header.flip();
+	    
+	  Set	types = new HashSet();
+
+	  types.add( AzureusCoreStats.ST_PEER_MANAGER_COUNT );
+
+	  AzureusCoreStats.registerProvider( types, this );
+	  
+	  init();
+  }
+  
+  public void
+  updateStats(
+	  Set		types,
+	  Map		values )
+  {
+	  if ( types.contains( AzureusCoreStats.ST_PEER_MANAGER_COUNT )){
+
+		  values.put( AzureusCoreStats.ST_PEER_MANAGER_COUNT, new Long( registered_legacy_managers.size()));
+	  }
+
+	  if ( 	types.contains( AzureusCoreStats.ST_PEER_MANAGER_PEER_COUNT ) ||
+			types.contains( AzureusCoreStats.ST_PEER_MANAGER_PEER_SNUBBED_COUNT ) ||
+			types.contains( AzureusCoreStats.ST_PEER_MANAGER_PEER_STALLED_DISK_COUNT )){
+
+		  long	total_peers 				= 0;
+		  long	total_snubbed_peers			= 0;
+		  long	total_stalled_pending_load	= 0;
+
+		  try{
+
+			  managers_mon.enter();
+
+			  Iterator	it = registered_legacy_managers.values().iterator();
+
+			  while( it.hasNext()){
+
+				  List	registrations = (List)it.next();
+
+				  Iterator	it2 = registrations.iterator();
+
+				  while( it2.hasNext()){
+
+					  PeerManagerRegistrationImpl reg = (PeerManagerRegistrationImpl)it2.next();
+
+					  PEPeerControl control = reg.getActiveControl();
+
+					  if ( control != null ){
+
+						  total_peers 				+= control.getNbPeers();
+						  total_snubbed_peers			+= control.getNbPeersSnubbed();
+						  total_stalled_pending_load	+= control.getNbPeersStalledPendingLoad();
+					  }
+				  }
+			  }
+		  }finally{
+
+			  managers_mon.exit();
+		  }
+		  if ( types.contains( AzureusCoreStats.ST_PEER_MANAGER_PEER_COUNT )){
+
+			  values.put( AzureusCoreStats.ST_PEER_MANAGER_PEER_COUNT, new Long( total_peers ));
+		  }
+		  if ( types.contains( AzureusCoreStats.ST_PEER_MANAGER_PEER_SNUBBED_COUNT )){
+
+			  values.put( AzureusCoreStats.ST_PEER_MANAGER_PEER_SNUBBED_COUNT, new Long( total_snubbed_peers ));
+		  }
+		  if ( types.contains( AzureusCoreStats.ST_PEER_MANAGER_PEER_STALLED_DISK_COUNT )){
+
+			  values.put( AzureusCoreStats.ST_PEER_MANAGER_PEER_STALLED_DISK_COUNT, new Long( total_stalled_pending_load ));
+		  }
+	  }
+  }
+  
+  protected void
+  init()
+  {
+     MessageManager.getSingleton().initialize();  //ensure it gets initialized
     
     NetworkManager.ByteMatcher matcher =
     	new NetworkManager.ByteMatcher() 
@@ -605,6 +682,12 @@ public class PeerManager {
 			
 			managers_mon.exit();
 		}
+	}
+	
+	protected PEPeerControl
+	getActiveControl()
+	{
+		return( active_control );
 	}
 	
 	protected void

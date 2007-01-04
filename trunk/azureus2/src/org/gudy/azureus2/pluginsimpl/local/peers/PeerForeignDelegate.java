@@ -539,6 +539,7 @@ PeerForeignDelegate
 
 	public void setUploadHint(int timeToSpread) {}  
 	
+	public boolean isStalledPendingLoad(){return( false );}
 
 	public void addListener(final PEPeerListener l )
 	{

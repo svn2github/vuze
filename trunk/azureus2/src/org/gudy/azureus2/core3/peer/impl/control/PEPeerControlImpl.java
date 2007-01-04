@@ -1816,8 +1816,26 @@ PEPeerControlImpl
 		return _stats;
 	}
 	
-	
-	
+	public int 
+	getNbPeersStalledPendingLoad()
+	{
+		int	res = 0;
+		
+		Iterator it = peer_transports_cow.iterator();
+		
+		while( it.hasNext()){
+			
+			PEPeerTransport transport = (PEPeerTransport)it.next();
+			
+			if ( transport.isStalledPendingLoad()){
+				
+				res ++;
+			}
+		}
+		
+		return( res );
+	}
+
 	/**
 	 * Returns the ETA time in seconds.
 	 * If the returned time is 0, the download is complete.

@@ -73,6 +73,8 @@ PEPeerControl
     
 	public int getNbActivePieces();
 
+	public int getNbPeersStalledPendingLoad();
+	
 	// Snubbed peers accounting
 	public void incNbPeersSnubbed();
 	public void decNbPeersSnubbed();

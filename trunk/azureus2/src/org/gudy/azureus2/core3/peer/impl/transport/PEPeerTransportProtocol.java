@@ -2338,6 +2338,17 @@ PEPeerTransportProtocol
 	  return( getNbRequests());
   }
  
+  public boolean 
+  isStalledPendingLoad()
+  {
+	  if ( outgoing_piece_message_handler == null ){
+		  
+		  return( false );
+	  }
+	  
+	  return outgoing_piece_message_handler.isStalledPendingLoad();
+  }
+
   public int[] getIncomingRequestedPieceNumbers() {
 	  if ( outgoing_piece_message_handler == null ){
 		  return( new int[0]);

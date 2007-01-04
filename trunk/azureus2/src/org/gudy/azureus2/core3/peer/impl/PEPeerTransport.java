@@ -193,6 +193,12 @@ PEPeerTransport
    */
   public PeerItem getPeerItemIdentity();
   
+  /**
+   * is peer waiting for a disk read with no network writes queued
+   * @return
+   */
+  
+  public boolean isStalledPendingLoad();
   
   /**
    * Is the connection within the local LAN network.
