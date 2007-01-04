@@ -46,7 +46,8 @@ public class VirtualChannelSelector {
   
   private static final boolean TEST_SAFE_MODE	= false;
   
-  private static final int MAX_CHANNELS_PER_SAFE_SELECTOR	= 60;
+  private static final int MAX_CHANNELS_PER_SAFE_SELECTOR	= COConfigurationManager.getIntParameter( "network.tcp.safe_selector_mode.chunk_size" );
+  
   private static final int MAX_SAFEMODE_SELECTORS = 20000 / MAX_CHANNELS_PER_SAFE_SELECTOR;
   
   private String		name;
