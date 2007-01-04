@@ -59,6 +59,9 @@ DHTNetworkPosition
 		DHTNetworkPosition	other,
 		float				rtt );
 	
+	public boolean
+	isValid();
+	
 	public void
 	serialise(
 		DataOutputStream	os )
