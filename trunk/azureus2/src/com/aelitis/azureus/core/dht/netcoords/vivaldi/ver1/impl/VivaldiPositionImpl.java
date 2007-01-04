@@ -27,9 +27,7 @@ import java.io.IOException;
 
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.*;
-import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketReply;
 
-import org.gudy.azureus2.core3.util.Debug;
 
 
 /**
@@ -102,7 +100,7 @@ public class VivaldiPositionImpl implements VivaldiPosition{
 	    
 	    float scale = delta * re;
 	    
-      HeightCoordinatesImpl random_error = new HeightCoordinatesImpl((float)Math.random()/10,(float)Math.random()/10,0f);
+	    HeightCoordinatesImpl random_error = new HeightCoordinatesImpl((float)Math.random()/10,(float)Math.random()/10,0f);
       
 	    HeightCoordinatesImpl new_coordinates = (HeightCoordinatesImpl)coordinates.add(coordinates.sub(cj.add(random_error)).unity().scale(scale));
 	    
@@ -114,8 +112,10 @@ public class VivaldiPositionImpl implements VivaldiPosition{
 	    	
 	    }else{
 	    	
+	    	/* not very interesting and occasionally happen...
 	    	Debug.out( "VivaldiPosition: resetting as invalid: " + 
 	    				coordinates + "/" + error + " + " + rtt + "," + cj + "," + ej + "->" + new_coordinates + "/" + new_error );
+	    	*/
 	    	
 	    	coordinates = new HeightCoordinatesImpl(0,0,0);
 	    	error		= initial_error;
@@ -132,6 +132,12 @@ public class VivaldiPositionImpl implements VivaldiPosition{
 	  }else{
 		 // System.out.println( "rejected vivaldi update:" + rtt + "/" + cj + "/" + ej );
 	  }
+  }
+  
+  public boolean
+  isValid()
+  {
+	  return( (!Float.isNaN( getErrorEstimate())) && getCoordinates().isValid());
   }
   
   private boolean
