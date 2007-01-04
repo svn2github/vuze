@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.math.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.logging.*;
 
@@ -87,6 +88,17 @@ DirectByteBufferPool
 	private static final boolean[]		slice_alloc_fails		= new boolean[SLICE_ENTRY_SIZES.length];
 	
 	static{
+		
+		int mult = COConfigurationManager.getIntParameter( "memory.slice.limit.multiplier" );
+		
+		if ( mult > 1 ){
+			
+			for (int i=0;i<SLICE_ALLOC_MAXS.length;i++){
+				
+				SLICE_ALLOC_MAXS[i] *= mult;
+			}
+		}
+		
 		for (int i=0;i<SLICE_ENTRY_SIZES.length;i++){
 			
 			SLICE_ENTRY_ALLOC_SIZES[i] = (short)(SLICE_ALLOC_CHUNK_SIZE/SLICE_ENTRY_SIZES[i]);
