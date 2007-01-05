@@ -1222,6 +1222,15 @@ PEPeerControlImpl
 	 */
 	private void checkRequests()
 	{
+			// to be honest I don't see why this can't be 5 seconds, but I'm trying 1 second
+			// now as the existing 0.1 second is crazy given we're checking for events that occur
+			// at 60+ second intervals
+		
+	 	if ( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL != 0 ){
+	  		
+	  		return;
+	  	}
+	 	
 		final long now =SystemTime.getCurrentTime();
 
 		//for every connection
