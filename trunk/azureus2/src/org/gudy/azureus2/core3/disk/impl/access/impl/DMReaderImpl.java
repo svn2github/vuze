@@ -185,6 +185,12 @@ DMReaderImpl
 					  {
 						  sem.release();
 					  }
+					  
+					  public int
+					  getPriority()
+					  {
+						  return( -1 );
+					  }
 				});
 		
 		sem.reserve();
@@ -220,6 +226,12 @@ DMReaderImpl
 				  request.requestEnds( false );
 
 				  _listener.readFailed( request, cause );
+			  }
+			  
+			  public int
+			  getPriority()
+			  {
+				  return( _listener.getPriority());
 			  }
 			};
 			
@@ -338,6 +350,12 @@ DMReaderImpl
 						  complete();
 						  
 						  listener.readFailed( request, cause );
+					  }
+					  
+					  public int
+					  getPriority()
+					  {
+						  return( _listener.getPriority());
 					  }
 					  
 					  protected void
@@ -490,6 +508,12 @@ DMReaderImpl
 										
 										sem.release();
 									}
+									
+									public int
+									getPriority()
+									{
+										return( listener.getPriority());
+									}							
 								});
 							
 							sem.reserve();
@@ -562,6 +586,12 @@ DMReaderImpl
 			Throwable			cause )
 		{
 			failed( cause );
+		}
+		
+		public int
+		getPriority()
+		{
+			return( listener.getPriority());
 		}
 		
 		protected void

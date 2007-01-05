@@ -692,23 +692,29 @@ DMCheckerImpl
 						listener.checkFailed( request, cause );
 					}
 					
-					  protected void
-					  complete()
-					  {
-						  try{
-							  this_mon.enter();
-							
-							  async_reads--;
-							  
-							  if ( stopped ){
-								  
-								  async_read_sem.release();
-							  }
-						  }finally{
-							  
-							  this_mon.exit();
-						  }
-					  }
+					public int
+					getPriority()
+					{
+						return( -1 );
+					}
+					
+					protected void
+					complete()
+					{
+						try{
+							this_mon.enter();
+
+							async_reads--;
+
+							if ( stopped ){
+
+								async_read_sem.release();
+							}
+						}finally{
+
+							this_mon.exit();
+						}
+					}
 				});
 				
 		}catch( Throwable e ){

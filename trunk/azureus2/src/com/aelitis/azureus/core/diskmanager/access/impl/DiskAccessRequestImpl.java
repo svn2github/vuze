@@ -244,6 +244,12 @@ DiskAccessRequestImpl
 		return( op );
 	}
 	
+	public int
+	getPriority()
+	{
+		return( listener.getPriority());
+	}
+	
 	protected DiskAccessRequestListener
 	getListener()
 	{

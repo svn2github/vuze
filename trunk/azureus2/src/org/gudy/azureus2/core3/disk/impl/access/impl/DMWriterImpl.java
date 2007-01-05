@@ -240,6 +240,12 @@ DMWriterImpl
 										
 										sem.release();
 									}
+									
+									public int
+									getPriority()
+									{
+										return( -1 );
+									}
 								});
            
 						sem.reserve();
@@ -626,6 +632,12 @@ DMWriterImpl
 										
 										sem.release();
 									}
+									
+									public int
+									getPriority()
+									{
+										return( -1 );
+									}
 								});
 							
 							sem.reserve();
@@ -699,6 +711,12 @@ DMWriterImpl
 					{
 						l.requestFailed( request, cause );
 					}
+					
+					public int
+					getPriority()
+					{
+						return( -1 );
+					}
 				};
 				
 			disk_access.queueWriteRequest(
@@ -731,6 +749,13 @@ DMWriterImpl
 			Throwable			cause )
 		{
 			failed( cause );
+		}
+		
+		
+		public int
+		getPriority()
+		{
+			return( -1 );
 		}
 		
 		protected void

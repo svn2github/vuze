@@ -217,6 +217,12 @@ Test
 												  {
 													  Debug.out( cause );
 												  }
+												  
+												  public int
+												  getPriority()
+												  {
+													  return( -1 );
+												  }
 											});	
 									}else{
 										

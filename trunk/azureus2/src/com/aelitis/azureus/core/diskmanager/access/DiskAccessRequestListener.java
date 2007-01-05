@@ -37,4 +37,7 @@ DiskAccessRequestListener
 	requestFailed(
 		DiskAccessRequest	request,
 		Throwable			cause );
+	
+	public int
+	getPriority();
 }

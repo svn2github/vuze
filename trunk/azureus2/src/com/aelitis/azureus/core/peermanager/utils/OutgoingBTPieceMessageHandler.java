@@ -99,6 +99,17 @@ public class OutgoingBTPieceMessageHandler {
           	lock_mon.exit();
           }
     }
+    
+    public int
+    getPriority()
+    {
+    	if ( queued_messages.size() == 0 ){
+    		
+    		return( 1 );
+    	}
+    	
+    	return( 0 );
+    }
   };
   
   

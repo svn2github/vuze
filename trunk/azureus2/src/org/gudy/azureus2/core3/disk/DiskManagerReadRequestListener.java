@@ -30,21 +30,24 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 public interface 
 DiskManagerReadRequestListener 
 {
-  
-  /**
-   * Notification that the read request has completed,
-   * along with its accompanying buffer data.
-   * @param request
-   * @param data
-   */
-	
-  public void 
-  readCompleted( 
-  		DiskManagerReadRequest 	request, 
-		DirectByteBuffer 		data );
-  
-  public void 
-  readFailed( 
-  		DiskManagerReadRequest 	request, 
-		Throwable		 		cause );
+
+	/**
+	 * Notification that the read request has completed,
+	 * along with its accompanying buffer data.
+	 * @param request
+	 * @param data
+	 */
+
+	public void 
+	readCompleted( 
+			DiskManagerReadRequest 	request, 
+			DirectByteBuffer 		data );
+
+	public void 
+	readFailed( 
+			DiskManagerReadRequest 	request, 
+			Throwable		 		cause );
+
+	public int
+	getPriority();
 }

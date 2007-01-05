@@ -391,6 +391,12 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.perf.write.maxmb", new Long(5));
     def.put( "diskmanager.perf.cache.trace", FALSE);
     def.put( "diskmanager.perf.cache.flushpieces", TRUE);
+    def.put( "diskmanager.perf.read.aggregate.enable", FALSE );
+    def.put( "diskmanager.perf.read.aggregate.request.limit", ZERO );
+    def.put( "diskmanager.perf.read.aggregate.byte.limit", ZERO );
+    def.put( "diskmanager.perf.write.aggregate.enable", FALSE );
+    def.put( "diskmanager.perf.write.aggregate.request.limit", ZERO );
+    def.put( "diskmanager.perf.write.aggregate.byte.limit", ZERO );
     def.put( "File.truncate.if.too.large", FALSE);
     def.put( "Enable System Tray", TRUE);
     def.put( "config.style.table.defaultSortOrder", ZERO);

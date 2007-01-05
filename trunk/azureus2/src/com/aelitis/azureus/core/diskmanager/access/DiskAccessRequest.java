@@ -41,6 +41,9 @@ DiskAccessRequest
 	public DirectByteBuffer
 	getBuffer();
 	
+	public int
+	getPriority();
+	
 	public void
 	cancel();
 }
