@@ -785,9 +785,7 @@ DownloadImpl
  	public boolean
 	isComplete()
  	{
- 		int	state = getState();
- 		
- 		return state == ST_SEEDING || download_manager.isDownloadComplete(false);
+ 		return download_manager.isDownloadComplete(false);
  	}
 
  	public boolean isComplete(boolean bIncludeDND) {
