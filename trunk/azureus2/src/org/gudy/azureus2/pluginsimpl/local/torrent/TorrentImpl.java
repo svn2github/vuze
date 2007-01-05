@@ -475,7 +475,11 @@ TorrentImpl
 		throws TorrentException
 	{
 		try{
-			TorrentUtils.writeToFile( torrent, file );
+				// don't use TorrentUtils.writeToFile as this updates the internal torrent
+				// file reference an means that the torrent get's auto-written to the new
+				// location in future, most likley NOT the desired behaviour
+			
+			torrent.serialiseToBEncodedFile( file );
 			
 		}catch( TOTorrentException e ){
 			
