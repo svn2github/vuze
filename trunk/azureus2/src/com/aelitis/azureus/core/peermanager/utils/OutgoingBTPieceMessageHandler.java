@@ -230,8 +230,12 @@ public class OutgoingBTPieceMessageHandler {
     try{
       lock_mon.enter();
       
-      String before_trace = outgoing_message_queue.getQueueTrace();  //TODO      
-      
+      // removed this trace as Alon can't remember why the trace is here anyway and as far as I can
+      // see there's nothing to stop a piece being delivered to transport and removed from
+      // the message queue before we're notified of this and thus it is entirely possible that
+      // our view of queued messages is lagging.
+      // String before_trace = outgoing_message_queue.getQueueTrace();     
+      /*
       int num_queued = queued_messages.size();
       int num_removed = 0;
       
@@ -246,7 +250,14 @@ public class OutgoingBTPieceMessageHandler {
       if( num_removed < num_queued -2 ) {
         Debug.out( "num_removed[" +num_removed+ "] < num_queued[" +num_queued+ "]:\nBEFORE:\n" +before_trace+ "\nAFTER:\n" +outgoing_message_queue.getQueueTrace() );		
       }
+      */
       
+      for( Iterator i = queued_messages.keySet().iterator(); i.hasNext(); ) {
+          BTPiece msg = (BTPiece)i.next();
+          outgoing_message_queue.removeMessage( msg, true );
+      }
+      
+      queued_messages.clear();	// this replaces stuff above 
       requests.clear();
       loading_messages.clear();
     }
