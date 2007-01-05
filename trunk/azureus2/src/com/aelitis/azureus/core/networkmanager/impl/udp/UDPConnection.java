@@ -114,6 +114,20 @@ UDPConnection
 	
 		throws IOException
 	{
+			// packets reach us using 8K space regardless of content - trim this back for small protocol
+			// messages to save memory
+		
+		int	rem = data.remaining();
+		
+		if ( rem < 256 ){
+			
+			byte[]	temp = new byte[rem];
+			
+			data.get( temp );
+			
+			data = ByteBuffer.wrap( temp );
+		}
+		
 		read_buffer_sem.reserve();
 		
 		if ( !connected ){
