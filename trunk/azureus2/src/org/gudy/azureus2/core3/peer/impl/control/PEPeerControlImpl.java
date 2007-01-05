@@ -492,7 +492,7 @@ PEPeerControlImpl
 	public List
 	getPeers()
 	{
-		return( new ArrayList( peer_transports_cow ));
+		return( peer_transports_cow );
 	}
 	
 	public List
