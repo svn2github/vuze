@@ -141,7 +141,7 @@ public abstract class AbstractUIInputReceiver implements UIInputReceiver {
 		// the value here - but just in case they forget, we remember.
 		//
 		// Subclasses should do it that the validator can validate the stripped string.
-		if (this.maintain_whitespace) {
+		if (!this.maintain_whitespace) {
 			this.result_input = input.trim();
 		}
 	}
