@@ -53,20 +53,21 @@ public class UnchokerUtil {
    * @param items existing items
    * @param start_pos index at which to start compare
    */
-  public static void updateLargestValueFirstSort( long new_value, long[] values, PEPeerTransport new_item, List items, int start_pos ) {  
+  public static void updateLargestValueFirstSort( long new_value, long[] values, PEPeerTransport new_item, ArrayList items, int start_pos ) {
+	items.ensureCapacity( values.length );
     for( int i=start_pos; i < values.length; i++ ) {
       if( new_value >= values[ i ] ) {
         for( int j = values.length - 2; j >= i; j-- ) {  //shift displaced values to the right
           values[j + 1] = values[ j ];
         }
         
+        if( items.size() == values.length ) {  //throw away last item if list too large 
+            items.remove( values.length - 1 );
+        }
+
         values[ i ] = new_value;
         items.add( i, new_item );
-        
-        if( items.size() > values.length ) {  //throw away last item if list too large 
-          items.remove( values.length );
-        }
-        
+          
         return;
       }
     }

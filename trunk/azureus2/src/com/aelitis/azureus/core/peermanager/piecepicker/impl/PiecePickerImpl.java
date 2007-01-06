@@ -513,7 +513,7 @@ public class PiecePickerImpl
         final int peersSize =peers.size();
 
 		final long[] upRates =new long[peersSize];
-        final ArrayList bestUploaders =new ArrayList();
+        final ArrayList bestUploaders =new ArrayList( peersSize );
 
 		for (int i =0; i <peersSize; i++){
 		

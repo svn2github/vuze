@@ -117,7 +117,7 @@ public class SeedingUnchoker implements Unchoker {
 
       Collections.reverse( peers_ordered_by_rate );  //we want higher rates at the end
 
-      List peers_ordered_by_rank = new ArrayList();
+      ArrayList peers_ordered_by_rank = new ArrayList();
       long[] ranks = new long[ peers_ordered_by_rate.size() ];
       Arrays.fill( ranks, Long.MIN_VALUE );
       
