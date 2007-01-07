@@ -21,10 +21,12 @@
  * AELITIS, SAS au capital de 46,603.30 euros,
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
- 
+
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -34,30 +36,53 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  * @author Olivier
  * @author TuxPaper (2004/Apr/19: modified to TableCellAdapter)
  */
-public class DownItem
-       extends CoreTableColumn 
-       implements TableCellRefreshListener
+public class DownItem extends CoreTableColumn implements
+		TableCellRefreshListener
 {
-  /** Default Constructor */
-  public DownItem() {
-    super("download", ALIGN_TRAIL, POSITION_INVISIBLE, 70, TableManager.TABLE_TORRENT_PEERS);
-    setRefreshInterval(INTERVAL_LIVE);
-  }
+	protected static boolean separate_prot_data_stats;
 
-  public void refresh(TableCell cell) {
-    PEPeer peer = (PEPeer)cell.getDataSource();
-    long data_value	= 0;
-    long prot_value	= 0;
-    
-    if ( peer != null ){
-    	data_value = peer.getStats().getTotalDataBytesReceived();
-       	prot_value = peer.getStats().getTotalProtocolBytesReceived();
-    }
-    long	sort_value = ( data_value<<32 ) + prot_value;
-    
-    if (!cell.setSortValue(sort_value) && cell.isValid())
-      return;
+	protected static boolean data_stats_only;
 
-    cell.setText(DisplayFormatters.formatDataProtByteCountToKiBEtc(data_value,prot_value));
-  }
+	static {
+		COConfigurationManager.addAndFireParameterListeners(new String[] {
+				"config.style.dataStatsOnly",
+				"config.style.separateProtDataStats" }, new ParameterListener() {
+			public void parameterChanged(String x) {
+				separate_prot_data_stats = COConfigurationManager.getBooleanParameter("config.style.separateProtDataStats");
+				data_stats_only = COConfigurationManager.getBooleanParameter("config.style.dataStatsOnly");
+			}
+		});
+	}
+
+	/** Default Constructor */
+	public DownItem() {
+		super("download", ALIGN_TRAIL, POSITION_INVISIBLE, 70,
+				TableManager.TABLE_TORRENT_PEERS);
+		setRefreshInterval(INTERVAL_LIVE);
+	}
+
+	public void refresh(TableCell cell) {
+		PEPeer peer = (PEPeer) cell.getDataSource();
+		long data_value = 0;
+		long prot_value = 0;
+
+		if (peer != null) {
+			data_value = peer.getStats().getTotalDataBytesReceived();
+			prot_value = peer.getStats().getTotalProtocolBytesReceived();
+		}
+		long sort_value;
+		if (separate_prot_data_stats) {
+			sort_value = (data_value << 24) + prot_value;
+		} else if (data_stats_only) {
+			sort_value = data_value;
+		} else {
+			sort_value = data_value + prot_value;
+		}
+
+		if (!cell.setSortValue(sort_value) && cell.isValid())
+			return;
+
+		cell.setText(DisplayFormatters.formatDataProtByteCountToKiBEtc(data_value,
+				prot_value));
+	}
 }
