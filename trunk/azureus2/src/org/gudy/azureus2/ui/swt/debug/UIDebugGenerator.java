@@ -161,6 +161,7 @@ public class UIDebugGenerator
 
 			ZipOutputStream out = new ZipOutputStream(new FileOutputStream(outFile));
 
+			// %USERDIR%\logs
 			File logPath = new File(SystemProperties.getUserPath(), "logs");
 			File[] files = logPath.listFiles(new FileFilter() {
 				public boolean accept(File pathname) {
@@ -169,9 +170,20 @@ public class UIDebugGenerator
 			});
 			addFilesToZip(out, files);
 
+			// %USERDIR%
+			File userPath = new File(SystemProperties.getUserPath());
+			files = userPath.listFiles(new FileFilter() {
+				public boolean accept(File pathname) {
+					return pathname.getName().endsWith(".log");
+				}
+			});
+			addFilesToZip(out, files);
+
+			// %USERDIR%\debug
 			files = path.listFiles();
 			addFilesToZip(out, files);
 
+			// recent errors from exe dir
 			final long ago = SystemTime.getCurrentTime() - 1000L * 60 * 60 * 24 * 90;
 			File azureusPath = new File(SystemProperties.getApplicationPath());
 			files = azureusPath.listFiles(new FileFilter() {
@@ -181,10 +193,11 @@ public class UIDebugGenerator
 			});
 			addFilesToZip(out, files);
 
-			File userPath = new File(System.getProperty("user.home"), "Library"
+			// recent errors from OSX java log dir
+			File javaLogPath = new File(System.getProperty("user.home"), "Library"
 					+ File.separator + "Logs" + File.separator + "Java");
-			if (userPath.isDirectory()) {
-				files = userPath.listFiles(new FileFilter() {
+			if (javaLogPath.isDirectory()) {
+				files = javaLogPath.listFiles(new FileFilter() {
 					public boolean accept(File pathname) {
 						return (pathname.getName().endsWith("log") && pathname.lastModified() > ago);
 					}
