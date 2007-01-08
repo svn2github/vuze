@@ -56,7 +56,13 @@ DHTNetworkPositionManager
 				
 					DHTNetworkPositionProvider	provider = providers[i];
 
-					startUp( provider );
+					try{
+						startUp( provider );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
 				}
 			}
 		}
@@ -176,11 +182,16 @@ DHTNetworkPositionManager
 		
 		for (int i=0;i<prov.length;i++){
 			
-			DHTNetworkPosition	pos = prov[i].getLocalPosition();
-			
-			if ( pos != null ){
+			try{
+				DHTNetworkPosition	pos = prov[i].getLocalPosition();
 				
-				res.add( pos );
+				if ( pos != null ){
+					
+					res.add( pos );
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
 			}
 		}
 		
