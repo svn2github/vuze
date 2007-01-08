@@ -27,7 +27,7 @@ package org.gudy.azureus2.plugins.ipfilter;
 
 /**
  * @author jstockall
- *
+ * @since 2.5.0.2
  */
 public interface 
 IPBanned 
