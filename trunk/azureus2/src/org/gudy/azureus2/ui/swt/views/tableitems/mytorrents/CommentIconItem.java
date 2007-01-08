@@ -66,6 +66,8 @@ public class CommentIconItem
   }
   
   public void refresh(TableCell cell) {
+	  if (cell.isDisposed()) {return;}
+	  
 	  DownloadManager dm = (DownloadManager)cell.getDataSource();
 	  String comment = null;
 	  if (dm != null) {
