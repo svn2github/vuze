@@ -82,6 +82,8 @@ public class NameItem extends CoreTableColumn implements
 					icon = ImageRepository.getPathIcon(fileInfo.getFile(true).getPath());
 
 					if (Constants.isWindows) {
+						disposeCellIcon(cell);
+
 						// recomposite to avoid artifacts - transparency mask does not work
 						final Image dstImage = new Image(Display.getCurrent(),
 								icon.getBounds().width, icon.getBounds().height);
@@ -110,12 +112,16 @@ public class NameItem extends CoreTableColumn implements
 
 	public void dispose(TableCell cell) {
 		if (bShowIcon && Constants.isWindows) {
-			final Image img = ((TableCellCore) cell).getIcon();
-			if (img != null) {
-				((TableCellCore) cell).setIcon(null);
-				if (!img.isDisposed()) {
-					img.dispose();
-				}
+			disposeCellIcon(cell);
+		}
+	}
+
+	private void disposeCellIcon(TableCell cell) {
+		final Image img = ((TableCellCore) cell).getIcon();
+		if (img != null) {
+			((TableCellCore) cell).setIcon(null);
+			if (!img.isDisposed()) {
+				img.dispose();
 			}
 		}
 	}
