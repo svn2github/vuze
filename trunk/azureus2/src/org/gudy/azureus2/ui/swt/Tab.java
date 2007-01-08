@@ -174,7 +174,8 @@ public class Tab {
 		try {
 			// Always create a composite around the IView, because a lot of them
 			// assume that their parent is of GridLayout layout.
-			Composite tabArea = new Composite(folder, SWT.NONE);
+			final Composite tabArea = new Composite(folder, SWT.NONE);
+			tabArea.setData("sleak", "tabArea" + _view.getFullTitle());
 			GridLayout layout = new GridLayout();
 			layout.marginHeight = 0;
 			layout.marginWidth = 0;
@@ -191,6 +192,14 @@ public class Tab {
 				if ((tabArea.getLayout() instanceof GridLayout)
 						&& !(viewComposite.getLayoutData() instanceof GridData)) {
 					viewComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+				}
+
+				if (viewComposite != tabArea) {
+  				viewComposite.addDisposeListener(new DisposeListener() {
+  					public void widgetDisposed(DisposeEvent e) {
+  						Utils.disposeComposite(tabArea);
+  					}
+  				});
 				}
 			}
 
