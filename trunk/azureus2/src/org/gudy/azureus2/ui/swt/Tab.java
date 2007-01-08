@@ -175,7 +175,6 @@ public class Tab {
 			// Always create a composite around the IView, because a lot of them
 			// assume that their parent is of GridLayout layout.
 			final Composite tabArea = new Composite(folder, SWT.NONE);
-			tabArea.setData("sleak", "tabArea" + _view.getFullTitle());
 			GridLayout layout = new GridLayout();
 			layout.marginHeight = 0;
 			layout.marginWidth = 0;
