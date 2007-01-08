@@ -382,7 +382,35 @@ DiskAccessControllerInstance
 					
 					total_bytes	+= request.getSize();
 					
-					requests.add( request );
+					boolean	added = false;
+					
+					int	priority = request.getPriority();
+										
+					if ( priority >= 0 ){
+						
+						int	pos = 0;
+						
+						for (Iterator it = requests.iterator();it.hasNext();){
+							
+							DiskAccessRequestImpl	r = (DiskAccessRequestImpl)it.next();
+						
+							if ( r.getPriority() < priority ){
+								
+								requests.add( pos, request );
+								
+								added = true;
+								
+								break;
+							}
+							
+							pos++;
+						}
+					}
+					
+					if ( !added ){
+						
+						requests.add( request );
+					}
 					
 					if ( enable_aggregation ){
 						
@@ -424,7 +452,7 @@ DiskAccessControllerInstance
 	
 												request = (DiskAccessRequestImpl)requests.remove(0);
 												
-												if ( enable_aggregation ){
+												if ( enable_aggregation && request.getPriority() < 0 ){
 													
 													CacheFile	file = request.getFile();
 													

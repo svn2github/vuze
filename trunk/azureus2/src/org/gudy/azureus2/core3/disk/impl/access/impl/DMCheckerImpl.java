@@ -48,7 +48,8 @@ DMCheckerImpl
 	protected static final LogIDs LOGID = LogIDs.DISK;
     
 	private static boolean	flush_pieces;
-
+	private static boolean	checking_read_priority;
+	
     static{
     	
     	 ParameterListener param_listener = new ParameterListener() {
@@ -56,12 +57,17 @@ DMCheckerImpl
 			parameterChanged( 
 				String  str ) 
     	    {
-    	  	  flush_pieces		= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.flushpieces" );
+    	   	    flush_pieces				= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.flushpieces" );
+    	   	  	checking_read_priority		= COConfigurationManager.getBooleanParameter( "diskmanager.perf.checking.read.priority" );
 
     	    }
     	 };
 
- 		COConfigurationManager.addAndFireParameterListener( "diskmanager.perf.cache.flushpieces", param_listener );
+ 		COConfigurationManager.addAndFireParameterListeners( 
+ 			new String[]{
+ 				"diskmanager.perf.cache.flushpieces",
+ 				"diskmanager.perf.checking.read.priority" },
+ 				param_listener );
     }
    
 	protected DiskManagerHelper		disk_manager;
@@ -695,7 +701,7 @@ DMCheckerImpl
 					public int
 					getPriority()
 					{
-						return( -1 );
+						return( checking_read_priority?0:-1 );
 					}
 					
 					protected void
