@@ -105,6 +105,13 @@ IPFilterImpl
 		return( filter.getNbIpsBlocked());
 	}
 	
+
+	public int 
+	getNumberOfBannedIPs() 
+	{
+		return( filter.getNbBannedIps());
+	}
+	
 	public boolean 
 	isInRange(
 		String IPAddress )
@@ -190,6 +197,36 @@ IPFilterImpl
 		String IPAddress)
 	{
 		filter.ban( IPAddress, "<plugin>" );
+	}
+	
+	public IPBanned[]
+ 	getBannedIPs()
+ 	{
+ 		BannedIp[]	l = filter.getBannedIps();
+ 		
+ 		IPBanned[]	res = new IPBanned[l.length];
+ 		
+ 		for (int i=0;i<l.length;i++){
+ 			
+ 			res[i] = new IPBannedImpl(l[i]);
+ 		}
+ 		
+ 		return( res );
+ 	}	
+	
+	public void 
+	ban(
+		String IPAddress,
+		String text)
+	{
+		filter.ban( IPAddress, text );
+	}	
+	
+	public void 
+	unban(
+		String IPAddress)
+	{
+		filter.unban( IPAddress );
 	}
 	
 	public boolean

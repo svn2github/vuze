@@ -270,6 +270,29 @@ RPIPFilter
 
 	}
 	
+	public IPBanned[]
+ 	getBannedIPs()
+ 	{
+ 		notSupported();
+ 		
+ 		return( null );
+ 	}
+	             	
+ 	public void 
+ 	ban(
+ 		String IPAddress,
+ 		String text)
+ 	{
+ 		notSupported();
+ 	}	
+ 	
+	public void 
+	unban(
+		String IPAddress) 
+	{
+		notSupported();
+	} 	
+	
 	public boolean
 	getInRangeAddressesAreAllowed()
 	{
@@ -342,4 +365,12 @@ RPIPFilter
 	{
 		return( number_of_blocked_ips );
 	}
+	
+	public int
+	getNumberOfBannedIPs()
+	{
+		notSupported();
+		
+		return -1;
+	}	
 }

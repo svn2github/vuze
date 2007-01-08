@@ -110,6 +110,9 @@ IpFilter
 		String 	ipAddress,
 		String	torrent_name );
 	
+	public void
+	unban(String ipAddress);
+	
 	public int
 	getNbBannedIps();
 	

@@ -145,6 +145,41 @@ IPFilter
 	block(
 		String IPAddress);
 	
+	/**
+	 * Gets the current list of b addresses
+	 * @return
+	 */
+
+	public IPBanned[]
+	getBannedIPs();
+
+	/**
+	 * returns length of banned ip list
+	 * @return
+	 */
+
+	public int
+    getNumberOfBannedIPs();	
+	
+	/**
+	 * Explicitly bans an address
+	 * @param IPAddress
+	 */
+
+	public void 
+    ban(
+	    String IPAddress,
+	    String text);
+	
+	/**
+	 * Removes a ban on an address
+	 * @param IPAddress
+	 */
+
+	public void 
+    unban(
+	    String IPAddress);
+	
 		/**
 		 * The filter either allows defined ranges to be allowed or denied access
 		 * @return

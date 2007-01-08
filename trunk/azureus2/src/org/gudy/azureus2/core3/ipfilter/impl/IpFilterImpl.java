@@ -881,6 +881,27 @@ IpFilterImpl
 		}
 	}
 	
+	public void
+	unban(String ipAddress)
+	{
+		try{
+			class_mon.enter();
+		
+			int	address = range_manager.addressToInt( ipAddress );
+			
+			Integer	i_address = new Integer( address );
+			
+			bannedIps.remove(i_address);
+			
+			saveBannedIPs();
+			
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
+	
+	
 	public BlockedIp[] 
 	getBlockedIps() 
 	{
