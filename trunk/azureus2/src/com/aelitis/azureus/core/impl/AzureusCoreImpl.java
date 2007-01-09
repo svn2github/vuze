@@ -556,7 +556,9 @@ AzureusCoreImpl
 									"mclsp", 
 									"radhslib", 
 									"winsflt",
-									"nl_lsp" };
+									"nl_lsp",
+									"AxShlex"
+						};
 			
 			for (int i=0;i<dlls.length;i++){
 				
