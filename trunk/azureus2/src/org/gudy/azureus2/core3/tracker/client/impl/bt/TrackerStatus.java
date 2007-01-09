@@ -252,7 +252,7 @@ public class TrackerStatus {
 			      	
 			        TRTrackerScraperResponseImpl r = (TRTrackerScraperResponseImpl)iterHashes.next();
 			        
-			        if ( r.getHash().equals( hash )) {
+			        if ( !r.getHash().equals( hash )) {
 			        	
 			          long lTimeDiff = Math.abs(lMainNextScrapeStartTime - r.getNextScrapeStartTime());
 			          
