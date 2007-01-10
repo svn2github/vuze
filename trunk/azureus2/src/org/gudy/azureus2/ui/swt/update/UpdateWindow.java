@@ -387,17 +387,18 @@ UpdateWindow
     stDescription.setText("");
     int ofs = 0;
     for(int i = 0 ; i < descriptions.length ; i++) {
-      stDescription.append(descriptions[i] + "\n");
+    	String s = descriptions[i].replaceAll("<.*a\\s++.*href=\"?([^\\'\"\\s>]++).*", "$1");
+      stDescription.append(s + "\n");
       
       try {
-	      int iURLStart = descriptions[i].indexOf("http");
+	      int iURLStart = s.indexOf("http");
 	      if (iURLStart >= 0) {
-	      	int iURLEnd = descriptions[i].indexOf(' ', iURLStart);
+	      	int iURLEnd = s.indexOf(' ', iURLStart);
 	      	String url;
 	      	if (iURLEnd >= 0) {
-	      		url = descriptions[i].substring(iURLStart, iURLEnd);
+	      		url = s.substring(iURLStart, iURLEnd);
 	      	} else {
-	      		url = descriptions[i].substring(iURLStart);
+	      		url = s.substring(iURLStart);
 	      	}
 	      	linkInfo info = new linkInfo(iURLStart + ofs, iURLStart + ofs
 							+ url.length(), url);
@@ -410,7 +411,7 @@ UpdateWindow
 	      	
 	      	stDescription.setStyleRange(sr);
 	      }
-	      ofs += descriptions[i].length() + 1;
+	      ofs += s.length() + 1;
       } catch (Exception e) {
       	Debug.out(e);
       }
