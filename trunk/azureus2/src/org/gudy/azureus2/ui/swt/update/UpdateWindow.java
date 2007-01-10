@@ -28,7 +28,10 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -39,6 +42,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.update.UpdateManagerDecisionListener;
@@ -81,6 +85,12 @@ UpdateWindow
   
   Button btnCancel;
   Listener lCancel;
+  
+  // list of linkInfo for tracking where the links are
+  // could have just used stDecription.getStyleRanges() since we underline
+  // the links, but I didn't want to risk a chance of any other styles
+  // being in there that I don't know about (plus managing the URL)
+  ArrayList links = new ArrayList();
   
   
   
@@ -234,6 +244,59 @@ UpdateWindow
     stDescription = new StyledText(sash,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);    
     stDescription.setWordWrap(true);
     
+    stDescription.addListener(SWT.MouseUp, new Listener() {
+    	public void handleEvent(Event event) {
+    		if (links.size() == 0) {
+    			return;
+    		}
+    		try {
+    			int ofs = stDescription.getOffsetAtLocation(new Point(event.x, event.y));
+    			for (int i = 0; i < links.size(); i++) {
+						linkInfo linkInfo = (linkInfo)links.get(i);
+						if (ofs >= linkInfo.ofsStart && ofs <= linkInfo.ofsEnd) {
+							Utils.launch(linkInfo.url);
+							break;
+						}
+					}
+    		} catch (Exception e) {
+    			
+    		}
+    	}
+    });
+
+    final Cursor handCursor = new Cursor(display, SWT.CURSOR_HAND);
+    stDescription.addListener(SWT.MouseMove, new Listener() {
+    	public void handleEvent(Event event) {
+    		if (links.size() == 0) {
+    			return;
+    		}
+  			boolean onLink = false;
+    		try {
+    			int ofs = stDescription.getOffsetAtLocation(new Point(event.x, event.y));
+    			for (int i = 0; i < links.size(); i++) {
+						linkInfo linkInfo = (linkInfo)links.get(i);
+						if (ofs >= linkInfo.ofsStart && ofs <= linkInfo.ofsEnd) {
+							onLink = true;
+							break;
+						}
+					}
+    		} catch (Exception e) {
+    			
+    		}
+  			Cursor cursor = onLink ? handCursor : null;
+  			if (stDescription.getCursor() != cursor) {
+  				stDescription.setCursor(cursor);
+  			}
+    	}
+    });
+    
+    stDescription.addListener(SWT.Dispose, new Listener() {
+    	public void handleEvent(Event event) {
+				stDescription.setCursor(null);
+				handCursor.dispose();
+    	}
+    });
+
     progress = new ProgressBar(updateWindow,SWT.NULL);
     progress.setMinimum(0);
     progress.setMaximum(100);
@@ -322,8 +385,35 @@ UpdateWindow
     Update update = (Update) items[0].getData();        
     String[] descriptions = update.getDescription();
     stDescription.setText("");
+    int ofs = 0;
     for(int i = 0 ; i < descriptions.length ; i++) {
       stDescription.append(descriptions[i] + "\n");
+      
+      try {
+	      int iURLStart = descriptions[i].indexOf("http");
+	      if (iURLStart >= 0) {
+	      	int iURLEnd = descriptions[i].indexOf(' ', iURLStart);
+	      	String url;
+	      	if (iURLEnd >= 0) {
+	      		url = descriptions[i].substring(iURLStart, iURLEnd);
+	      	} else {
+	      		url = descriptions[i].substring(iURLStart);
+	      	}
+	      	linkInfo info = new linkInfo(iURLStart + ofs, iURLStart + ofs
+							+ url.length(), url);
+	      	links.add(info);
+	      	
+	      	StyleRange sr = new StyleRange();
+	      	sr.start = info.ofsStart;
+	      	sr.length = url.length();
+	      	sr.underline = true;
+	      	
+	      	stDescription.setStyleRange(sr);
+	      }
+	      ofs += descriptions[i].length() + 1;
+      } catch (Exception e) {
+      	Debug.out(e);
+      }
     }
   }
   
@@ -624,5 +714,17 @@ UpdateWindow
   isDisposed()
   {
   	return( display == null || display.isDisposed() || updateWindow == null || updateWindow.isDisposed());
+  }
+  
+  public static class linkInfo {
+  	int ofsStart;
+  	int ofsEnd;
+  	String url;
+  	
+  	linkInfo(int s, int e, String url) {
+  		ofsStart = s;
+  		ofsEnd = e;
+  		this.url = url;
+  	}
   }
 }
