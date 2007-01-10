@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 -----------------
 
-2006.0x.xx | Azureus 2.5.0.1
+2007.01.10 | Azureus 2.5.0.2
 
 FEATURE: Core | Added method to XFS specific allocation of new files [Greg]
 FEATURE: Core | Added per-torrent max seeds parameter [Parg]
@@ -42,6 +42,7 @@ BUGFIX: UI    | Fix to allow negative values for Multi-monitor window positions 
 BUGFIX: UI    | Fixed memory leak in "Mr Slidey" code [amc1]
 BUGFIX: UI    | Fix UI loss when clicking delete from icon bar while in Details view [TuxPaper]
 BUGFIX: Plug  | Fixed bug where some listeners for table columns were not registered properly. [amc1]
+
 
 
 
