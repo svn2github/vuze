@@ -266,6 +266,8 @@ UpdateWindow
 
     final Cursor handCursor = new Cursor(display, SWT.CURSOR_HAND);
     stDescription.addListener(SWT.MouseMove, new Listener() {
+    	Cursor curCursor = null;
+
     	public void handleEvent(Event event) {
     		if (links.size() == 0) {
     			return;
@@ -283,17 +285,23 @@ UpdateWindow
     		} catch (Exception e) {
     			
     		}
-  			Cursor cursor = onLink ? handCursor : null;
-  			if (stDescription.getCursor() != cursor) {
-  				stDescription.setCursor(cursor);
-  			}
+    		
+    		try {
+	  			Cursor cursor = onLink ? handCursor : null;
+	  			if (curCursor != cursor) {
+	  				stDescription.setCursor(cursor);
+	  				curCursor = cursor;
+	  			}
+    		} catch (Exception e) {
+    			
+    		}
     	}
     });
     
     stDescription.addListener(SWT.Dispose, new Listener() {
     	public void handleEvent(Event event) {
-				stDescription.setCursor(null);
-				handCursor.dispose();
+  			stDescription.setCursor(null);
+  			handCursor.dispose();
     	}
     });
 
