@@ -785,7 +785,12 @@ DownloadImpl
  	public boolean
 	isComplete()
  	{
- 		return download_manager.isDownloadComplete(false);
+ 		int	state = getState();
+ 		
+ 		// need seeding check, some sort of timing issue with 
+ 		// statechanged event firing on completion and isDownloadComplete(false) 
+ 		// not being complete yet
+ 		return state == ST_SEEDING || download_manager.isDownloadComplete(false);
  	}
 
  	public boolean isComplete(boolean bIncludeDND) {
