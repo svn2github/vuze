@@ -102,7 +102,10 @@ DownloadManagerStats
 	
 	public long
 	getHashFailCount();
-	
+
+	/**
+	 * Gives the share ratio of the torrent in 1000ths (i.e. 1000 = share ratio of 1)
+	 */
 	public int
 	getShareRatio();
 	
