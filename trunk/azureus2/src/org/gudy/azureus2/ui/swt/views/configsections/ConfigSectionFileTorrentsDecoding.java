@@ -123,21 +123,21 @@ public class ConfigSectionFileTorrentsDecoding implements UISWTConfigSection
 
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
-		new BooleanParameter(cSection, "File.Decoder.Prompt", false,
+		new BooleanParameter(cSection, "File.Decoder.Prompt",
 				"ConfigView.section.file.decoder.prompt").setLayoutData(gridData);
 
 		// show lax decodings
 
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
-		new BooleanParameter(cSection, "File.Decoder.ShowLax", false,
+		new BooleanParameter(cSection, "File.Decoder.ShowLax",
 				"ConfigView.section.file.decoder.showlax").setLayoutData(gridData);
 
 		// show all decoders
 
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
-		new BooleanParameter(cSection, "File.Decoder.ShowAll", false,
+		new BooleanParameter(cSection, "File.Decoder.ShowAll",
 				"ConfigView.section.file.decoder.showall").setLayoutData(gridData);
 
 		return cSection;

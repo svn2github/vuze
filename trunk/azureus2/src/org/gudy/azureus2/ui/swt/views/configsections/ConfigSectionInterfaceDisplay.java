@@ -174,17 +174,17 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		new BooleanParameter(cLook, "GUI_SWT_bAlternateTablePainting", MSG_PREFIX
 				+ "alternateTablePainting");
 
-		new BooleanParameter(cLook, "config.style.useSIUnits", false, MSG_PREFIX
+		new BooleanParameter(cLook, "config.style.useSIUnits", MSG_PREFIX
 				+ "useSIUnits");
-		new BooleanParameter(cLook, "config.style.useUnitsRateBits", false,
+		new BooleanParameter(cLook, "config.style.useUnitsRateBits",
 				MSG_PREFIX + "useUnitsRateBits");
 		new BooleanParameter(cLook, "config.style.doNotUseGB", false, MSG_PREFIX
 				+ "doNotUseGB");
 
-		new BooleanParameter(cLook, "config.style.dataStatsOnly", false, MSG_PREFIX
+		new BooleanParameter(cLook, "config.style.dataStatsOnly", MSG_PREFIX
 				+ "dataStatsOnly");
 
-		new BooleanParameter(cLook, "config.style.separateProtDataStats", false, MSG_PREFIX
+		new BooleanParameter(cLook, "config.style.separateProtDataStats", MSG_PREFIX
 				+ "separateProtDataStats");
 
 		Composite cArea = new Composite(cLook, SWT.NULL);

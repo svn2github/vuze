@@ -65,9 +65,9 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
 
     new BooleanParameter(cStart, "Show Splash", true, "ConfigView.label.showsplash");
     //new BooleanParameter(cStart, "Auto Update", true, "ConfigView.label.autoupdate");
-    new BooleanParameter(cStart, "update.start", true, "ConfigView.label.checkonstart");
-    new BooleanParameter(cStart, "update.periodic", true, "ConfigView.label.periodiccheck");
-    new BooleanParameter(cStart, "update.opendialog", true, "ConfigView.label.opendialog");
+    new BooleanParameter(cStart, "update.start", "ConfigView.label.checkonstart");
+    new BooleanParameter(cStart, "update.periodic", "ConfigView.label.periodiccheck");
+    new BooleanParameter(cStart, "update.opendialog", "ConfigView.label.opendialog");
     new Label(cStart,SWT.NULL);
     new BooleanParameter(cStart, "Open MyTorrents", "ConfigView.label.openmytorrents");
     new BooleanParameter(cStart, "Open Console", false, "ConfigView.label.openconsole");

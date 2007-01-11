@@ -158,7 +158,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		if (!Constants.isOSX) {
 
 			BooleanParameter confirm = new BooleanParameter(cArea,
-					"confirmationOnExit", false,
+					"confirmationOnExit",
 					"ConfigView.section.style.confirmationOnExit");
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
@@ -322,7 +322,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 				}
 			});
 
-			new BooleanParameter(cArea, "config.interface.checkassoc", true,
+			new BooleanParameter(cArea, "config.interface.checkassoc",
 					KEY_PREFIX + "checkassoc");
 
 		}

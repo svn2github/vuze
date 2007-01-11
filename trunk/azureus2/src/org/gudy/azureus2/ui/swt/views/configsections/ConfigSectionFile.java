@@ -148,7 +148,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     
     if( userMode > 0 && !Constants.isWindows ) {
     	BooleanParameter xfsAllocation = 
-    		new BooleanParameter(gFile, "XFS Allocation", false,
+    		new BooleanParameter(gFile, "XFS Allocation",
                                     "ConfigView.label.xfs.allocation");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
@@ -159,7 +159,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     
     if( userMode > 0 ) {
     	// zero new files
-    	zeroNew = new BooleanParameter(gFile, "Zero New", false,
+    	zeroNew = new BooleanParameter(gFile, "Zero New",
                                                     "ConfigView.label.zeronewfiles");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
@@ -170,7 +170,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     if( userMode > 0 ) {
     	// truncate too large
     	BooleanParameter truncateLarge = 
-    		new BooleanParameter(gFile, "File.truncate.if.too.large", false,
+    		new BooleanParameter(gFile, "File.truncate.if.too.large",
                                     "ConfigView.section.file.truncate.too.large");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
@@ -179,7 +179,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     
     if( userMode > 0 ) {
     	// incremental file creation
-    	BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false,
+    	BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation",
                                                         "ConfigView.label.incrementalfile");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
@@ -197,7 +197,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     
     if( userMode > 0 ) {
     	// check on complete
-    	BooleanParameter checkOnComp = new BooleanParameter(gFile, "Check Pieces on Completion", true,
+    	BooleanParameter checkOnComp = new BooleanParameter(gFile, "Check Pieces on Completion",
                                                         "ConfigView.label.checkOncompletion");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
@@ -208,7 +208,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     if( userMode > 1 ) {
     	
     	BooleanParameter strictLocking = 
-    		new BooleanParameter(gFile, "File.strict.locking", true,
+    		new BooleanParameter(gFile, "File.strict.locking",
                                     "ConfigView.label.strictfilelocking");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
@@ -217,7 +217,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     
     if( userMode > 0 ) {
     	// resume data
-      final BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume", true,
+      final BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume",
                                                               "ConfigView.label.usefastresume");
       bpUseResume.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
 
@@ -245,14 +245,14 @@ public class ConfigSectionFile implements UISWTConfigSection {
 
       // save peers
 
-      final BooleanParameter recheck_all = new BooleanParameter(cResumeGroup, "On Resume Recheck All", false,
+      final BooleanParameter recheck_all = new BooleanParameter(cResumeGroup, "On Resume Recheck All",
                                                                "ConfigView.section.file.resume.recheck.all");
       gridData = new GridData();
       gridData.horizontalSpan = 3;
       recheck_all.setLayoutData(gridData);
       // save peers
 
-      final BooleanParameter save_peers = new BooleanParameter(cResumeGroup, "File.save.peers.enable", true,
+      final BooleanParameter save_peers = new BooleanParameter(cResumeGroup, "File.save.peers.enable",
                                                                "ConfigView.section.file.save.peers.enable");
       gridData = new GridData();
       gridData.horizontalSpan = 3;
@@ -263,7 +263,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
 
       final Label lblSavePeersMax = new Label(cResumeGroup, SWT.NULL);
       Messages.setLanguageText(lblSavePeersMax, "ConfigView.section.file.save.peers.max");
-      final IntParameter savePeersMax = new IntParameter(cResumeGroup, "File.save.peers.max", TRTrackerAnnouncer.DEFAULT_PEERS_TO_CACHE );
+      final IntParameter savePeersMax = new IntParameter(cResumeGroup, "File.save.peers.max");
       gridData = new GridData();
       gridData.widthHint = 30;
       savePeersMax.setLayoutData(gridData);
@@ -323,7 +323,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     // Confirm Delete
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    new BooleanParameter(gFile, "Confirm Data Delete", true,
+    new BooleanParameter(gFile, "Confirm Data Delete",
                          "ConfigView.section.file.confirm_data_delete").setLayoutData(gridData);
 
 
@@ -334,7 +334,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
 
 		    gridData = new GridData();
 		    gridData.horizontalSpan = 2;
-		    new BooleanParameter(gFile, "Move Deleted Data To Recycle Bin", true,
+		    new BooleanParameter(gFile, "Move Deleted Data To Recycle Bin",
 		                         "ConfigView.section.file.nativedelete").setLayoutData(gridData);
 
 	    }    
@@ -345,7 +345,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     if( userMode > 0 ) {
     	// check on complete
     	BooleanParameter backupConfig = 
-    		new BooleanParameter(gFile, "Use Config File Backups", true,
+    		new BooleanParameter(gFile, "Use Config File Backups",
                                     "ConfigView.label.backupconfigfiles");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;

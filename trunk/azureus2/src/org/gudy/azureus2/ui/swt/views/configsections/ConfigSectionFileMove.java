@@ -84,7 +84,7 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 			// copy rather than move
 
 			BooleanParameter copyDontMove = new BooleanParameter(gFile,
-					"Copy And Delete Data Rather Than Move", false,
+					"Copy And Delete Data Rather Than Move",
 					"ConfigView.label.copyanddeleteratherthanmove");
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;

@@ -76,7 +76,7 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     
     
     // Save .Torrent files to..
-    BooleanParameter saveTorrents = new BooleanParameter(cTorrent, "Save Torrent Files", true,
+    BooleanParameter saveTorrents = new BooleanParameter(cTorrent, "Save Torrent Files",
                                                          "ConfigView.label.savetorrents");
 
     Composite gSaveTorrents = new Composite(cTorrent, SWT.NULL);
@@ -120,7 +120,7 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    new BooleanParameter(gSaveTorrents, "Save Torrent Backup", false,
+    new BooleanParameter(gSaveTorrents, "Save Torrent Backup",
                         "ConfigView.label.savetorrentbackup").setLayoutData(gridData);
 
     Control[] controls = new Control[]{ gSaveTorrents };
@@ -131,12 +131,12 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     gridData.horizontalSpan = 2;
     new BooleanParameter(
     		cTorrent, 
-			"Default Start Torrents Stopped", false,
+			"Default Start Torrents Stopped",
     		"ConfigView.label.defaultstarttorrentsstopped").setLayoutData(gridData);
 
 
     // Watch Folder
-    BooleanParameter watchFolder = new BooleanParameter(cTorrent, "Watch Torrent Folder", false,
+    BooleanParameter watchFolder = new BooleanParameter(cTorrent, "Watch Torrent Folder",
                                                         "ConfigView.label.watchtorrentfolder");
 
     Composite gWatchFolder = new Composite(cTorrent, SWT.NULL);
@@ -200,7 +200,7 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
 
     gridData = new GridData();
     gridData.horizontalSpan = 3;
-    new BooleanParameter(gWatchFolder, "Start Watched Torrents Stopped", false,
+    new BooleanParameter(gWatchFolder, "Start Watched Torrents Stopped",
                          "ConfigView.label.startwatchedtorrentsstopped").setLayoutData(gridData);
 
     controls = new Control[]{ gWatchFolder };
