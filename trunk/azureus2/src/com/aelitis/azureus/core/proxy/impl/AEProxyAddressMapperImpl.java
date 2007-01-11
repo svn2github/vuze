@@ -65,8 +65,8 @@ AEProxyAddressMapperImpl
 	protected
 	AEProxyAddressMapperImpl()
 	{
-	    if ( 	COConfigurationManager.getBooleanParameter("Enable.Proxy", false) &&
-	    		COConfigurationManager.getBooleanParameter("Enable.SOCKS", false)){
+	    if ( 	COConfigurationManager.getBooleanParameter("Enable.Proxy") &&
+	    		COConfigurationManager.getBooleanParameter("Enable.SOCKS")){
 	    	
 	    	String	host = COConfigurationManager.getStringParameter("Proxy.Host");
 	

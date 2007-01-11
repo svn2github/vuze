@@ -48,12 +48,12 @@ DiskAccessControllerImpl
 		int 	_max_write_threads,
 		int		_max_write_mb )
 	{		
-		boolean	enable_read_aggregation 		= COConfigurationManager.getBooleanParameter( "diskmanager.perf.read.aggregate.enable", false );
+		boolean	enable_read_aggregation 		= COConfigurationManager.getBooleanParameter( "diskmanager.perf.read.aggregate.enable");
 		int		read_aggregation_request_limit 	= COConfigurationManager.getIntParameter( "diskmanager.perf.read.aggregate.request.limit", 4 );
 		int		read_aggregation_byte_limit 	= COConfigurationManager.getIntParameter( "diskmanager.perf.read.aggregate.byte.limit", 64*1024 );
 		
 		
-		boolean	enable_write_aggregation 		= COConfigurationManager.getBooleanParameter( "diskmanager.perf.write.aggregate.enable", false );
+		boolean	enable_write_aggregation 		= COConfigurationManager.getBooleanParameter( "diskmanager.perf.write.aggregate.enable");
 		int		write_aggregation_request_limit = COConfigurationManager.getIntParameter( "diskmanager.perf.write.aggregate.request.limit", 8 );
 		int		write_aggregation_byte_limit 	= COConfigurationManager.getIntParameter( "diskmanager.perf.write.aggregate.byte.limit", 128*1024 );
 

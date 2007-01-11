@@ -110,7 +110,7 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 		Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
 
 		BooleanParameter moveCompleted = new BooleanParameter(gFile,
-				move_when_done_setting, false, enable_section_label);
+				move_when_done_setting, enable_section_label);
 		GridData gridData = new GridData();
 		GridLayout layout = null;
 		gridData.horizontalSpan = 2;
@@ -131,8 +131,7 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 		Messages.setLanguageText(lDir, "ConfigView.label.directory");
 
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		final StringParameter movePath = new StringParameter(gMoveCompleted,
-				move_path_setting, "");
+		final StringParameter movePath = new StringParameter(gMoveCompleted, move_path_setting);
 		movePath.setLayoutData(gridData);
 
 		Button browse3 = new Button(gMoveCompleted, SWT.PUSH);
@@ -156,7 +155,7 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 		// move when done
 
 		BooleanParameter moveTorrent = new BooleanParameter(gMoveCompleted,
-				move_torrent_setting, true, "ConfigView.label.movetorrent");
+				move_torrent_setting, "ConfigView.label.movetorrent");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		moveTorrent.setLayoutData(gridData);
@@ -164,8 +163,7 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 		// only in default
 
 		BooleanParameter moveOnly = new BooleanParameter(gMoveCompleted,
-				move_when_in_save_dir_setting, true,
-				"ConfigView.label.moveonlyusingdefaultsave");
+				move_when_in_save_dir_setting, "ConfigView.label.moveonlyusingdefaultsave");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		moveOnly.setLayoutData(gridData);
@@ -173,8 +171,7 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 		// move if partially finished.
 		if (move_partial_downloads_setting != null) {
 			BooleanParameter movePartial = new BooleanParameter(gMoveCompleted,
-					move_partial_downloads_setting, false,
-					"ConfigView.label.movepartialdownloads");
+					move_partial_downloads_setting, "ConfigView.label.movepartialdownloads");
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
 			movePartial.setLayoutData(gridData);

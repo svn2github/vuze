@@ -59,7 +59,7 @@ AssociationChecker
 		    
 		    if ( platform.hasCapability(PlatformManagerCapabilities.RegisterFileAssociations) ){
 	    	
-		    	if ( COConfigurationManager.getBooleanParameter( "config.interface.checkassoc",true )){
+		    	if ( COConfigurationManager.getBooleanParameter( "config.interface.checkassoc")){
 		    		
 		    		if ( !platform.isApplicationRegistered()){
 		    		
