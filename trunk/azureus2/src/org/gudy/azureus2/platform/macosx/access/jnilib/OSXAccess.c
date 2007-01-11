@@ -2,7 +2,7 @@
 #include <jni.h>
 #include <AEDataModel.h>
 
-#define VERSION "1.01"
+#define VERSION "1.02"
 
 /**
  * AEDesc code from SWT, os_structs.c
@@ -69,4 +69,42 @@ Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getVersion(
 	jstring	result =(*env)->NewStringUTF(env, (char *)VERSION);
 
 	return( result );
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getDocDir(
+	JNIEnv		*env,
+	jclass		cla )
+{
+	CFURLRef docURL;
+	CFStringRef docPath;
+	FSRef    fsRef;
+  OSErr    err = FSFindFolder(kUserDomain, kDocumentsFolderType, kDontCreateFolder, &fsRef);
+  
+  jstring result = 0;
+
+	if (err == noErr) {
+  	if((docURL = CFURLCreateFromFSRef( kCFAllocatorSystemDefault, &fsRef))) {
+			docPath = CFURLCopyFileSystemPath(docURL, kCFURLPOSIXPathStyle);
+			
+			if (docPath) {
+				// convert to unicode
+				CFIndex strLen = CFStringGetLength( docPath );
+				UniChar uniStr[ strLen ];
+				CFRange strRange;
+				strRange.location = 0;
+				strRange.length = strLen;
+				CFStringGetCharacters( docPath, strRange, uniStr );
+	
+				result = (*env)->NewString( env, (jchar*)uniStr, (jsize)strLen );
+
+				CFRelease(docPath);
+				
+				return result;
+			}
+			CFRelease(docURL);
+		}
+
+		return result;
+  }
 }

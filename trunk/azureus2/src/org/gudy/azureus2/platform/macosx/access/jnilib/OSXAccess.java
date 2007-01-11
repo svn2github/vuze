@@ -21,7 +21,7 @@ package org.gudy.azureus2.platform.macosx.access.jnilib;
 
 import org.eclipse.swt.internal.carbon.AEDesc;
 
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author TuxPaper
@@ -35,7 +35,7 @@ public class OSXAccess
 	static {
 		try {
 			System.loadLibrary ("OSXAccess");
-			System.out.println("OSXAccess Load complete!");
+			System.out.println("OSXAccess v" + getVersion() + " Load complete!");
 			bLoaded = true;
 		} catch (UnsatisfiedLinkError e1) {
 			Debug.out("Could not find libOSXAccess.jnilib");
@@ -45,6 +45,9 @@ public class OSXAccess
 	public static final native int AEGetParamDesc(int theAppleEvent, int theAEKeyword, int desiredType, AEDesc result);
 
 	public static final native String getVersion();
+
+	// 1.02
+	public static final native String getDocDir();
 	
 	public static boolean isLoaded() {
 		return bLoaded;
