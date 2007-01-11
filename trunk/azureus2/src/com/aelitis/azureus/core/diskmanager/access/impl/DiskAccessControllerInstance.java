@@ -29,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -47,6 +48,9 @@ DiskAccessControllerInstance
 	private String		name;
 	private boolean		enable_aggregation;
 	
+	private boolean		invert_threads	= !COConfigurationManager.getBooleanParameter( "diskmanager.perf.queue.torrent.bias" );
+	
+	private int	max_threads;
 	private int	max_mb_queued;
 		
 	private groupSemaphore	max_mb_sem;
@@ -104,10 +108,11 @@ DiskAccessControllerInstance
 		max_mb_queued		= _max_mb;
 				
 		max_mb_sem 			= new groupSemaphore( max_mb_queued );
-
-		dispatchers	= new requestDispatcher[_max_threads];
+		max_threads			= _max_threads;
 		
-		for (int i=0;i<_max_threads;i++){
+		dispatchers	= new requestDispatcher[invert_threads?1:max_threads];
+		
+		for (int i=0;i<dispatchers.length;i++){
 			dispatchers[i]	= new requestDispatcher(i);
 		}
 	}
@@ -176,74 +181,81 @@ DiskAccessControllerInstance
 	queueRequest(
 		DiskAccessRequestImpl	request )
 	{
-		TOTorrent	torrent = request.getFile().getTorrentFile().getTorrent();
-		
 		requestDispatcher	dispatcher;
 		
-		synchronized( request_map ){
-			
-			int	min_index 	= 0;
-			int	min_size	= Integer.MAX_VALUE;
-			
-			long	now = System.currentTimeMillis();
-			
-			boolean	check = false;
-			
-			if ( now - last_check > 60000 || now < last_check ){
-				
-				check		= true;
-				last_check	= now;
-			}
-			
-			if ( check ){
-				
-				Iterator	it = request_map.values().iterator();
-				
-				while( it.hasNext()){
-					
-					requestDispatcher	d = (requestDispatcher)it.next();
-					
-					long	last_active = d.getLastRequestTime();
-					
-					if ( now - last_active > 60000 ){
-												
-						it.remove();
-						
-					}else if ( now < last_active ){
-						
-						d.setLastRequestTime( now );
-					}
-				}
-			}
-			
-			dispatcher = (requestDispatcher)request_map.get(torrent);			
+		if ( dispatchers.length == 1 ){
 
-			if ( dispatcher == null ){
+			dispatcher = dispatchers[0];
+			
+		}else{
+			
+			synchronized( request_map ){
 				
-				for (int i=0;i<dispatchers.length;i++){
+				int	min_index 	= 0;
+				int	min_size	= Integer.MAX_VALUE;
+				
+				long	now = System.currentTimeMillis();
+				
+				boolean	check = false;
+				
+				if ( now - last_check > 60000 || now < last_check ){
 					
-					int	size = dispatchers[i].size();
+					check		= true;
+					last_check	= now;
+				}
+				
+				if ( check ){
 					
-					if ( size == 0 ){
-						
-						min_index = i;
-						
-						break;
-					}
+					Iterator	it = request_map.values().iterator();
 					
-					if ( size < min_size ){
+					while( it.hasNext()){
 						
-						min_size 	= size;
-						min_index	= i;
+						requestDispatcher	d = (requestDispatcher)it.next();
+						
+						long	last_active = d.getLastRequestTime();
+						
+						if ( now - last_active > 60000 ){
+													
+							it.remove();
+							
+						}else if ( now < last_active ){
+							
+							d.setLastRequestTime( now );
+						}
 					}
 				}
 				
-				dispatcher = dispatchers[min_index];
+				TOTorrent	torrent = request.getFile().getTorrentFile().getTorrent();
+						
+				dispatcher = (requestDispatcher)request_map.get(torrent);			
+	
+				if ( dispatcher == null ){
+					
+					for (int i=0;i<dispatchers.length;i++){
+						
+						int	size = dispatchers[i].size();
+						
+						if ( size == 0 ){
+							
+							min_index = i;
+							
+							break;
+						}
+						
+						if ( size < min_size ){
+							
+							min_size 	= size;
+							min_index	= i;
+						}
+					}
+					
+					dispatcher = dispatchers[min_index];
+					
+					request_map.put( torrent, dispatcher );
+				}
 				
-				request_map.put( torrent, dispatcher );
+				dispatcher.setLastRequestTime( now );
 			}
-			
-			dispatcher.setLastRequestTime( now );
 		}
 		
 		dispatcher.queue( request );
@@ -327,12 +339,16 @@ DiskAccessControllerInstance
 	requestDispatcher
 	{
 		private int			index;
-		private AEThread	thread;
+		private AEThread[]	threads		= new AEThread[invert_threads?max_threads:1];
+		private int			active_threads;
+		
 		private LinkedList	requests 	= new LinkedList();
 		
 		private Map			request_map	= new HashMap();
 		
-		private AESemaphore	request_sem	= new AESemaphore("DiskAccessControllerInstance:requestDispatcher" );
+		private AESemaphore	request_sem		= new AESemaphore("DiskAccessControllerInstance:requestDispatcher:request" );
+		private AESemaphore	schedule_sem	= new AESemaphore("DiskAccessControllerInstance:requestDispatcher:schedule", 1 );
+		
 		
 		private long	last_request_time;
 				
@@ -430,177 +446,7 @@ DiskAccessControllerInstance
 					
 					request_sem.release();
 					
-					if ( thread == null ){
-						
-						thread = 
-							new AEThread("DiskAccessController:requestDispatcher[" + index + "]", true )
-							{
-								public void
-								runSupport()
-								{
-									tls.set( this );
-									
-									while( true ){
-										
-										if ( request_sem.reserve( 30000 )){
-											
-											DiskAccessRequestImpl	request;
-											
-											List	aggregated = null;
-											
-											synchronized( requests ){
-	
-												request = (DiskAccessRequestImpl)requests.remove(0);
-												
-												if ( enable_aggregation && request.getPriority() < 0 ){
-													
-													CacheFile	file = request.getFile();
-													
-													Map	file_map = (Map)request_map.get( file );
-														
-													file_map.remove( new Long( request.getOffset()));
-													
-													if ( !request.isCancelled()){
-														
-														DiskAccessRequestImpl	current = request;
-															
-														long	aggregated_bytes = 0;
-														
-														try{
-															while( true ){
-																
-																int	current_size = current.getSize();
-																
-																long	end = current.getOffset() + current_size;
-																				
-																	// doesn't matter if we remove from this and don't end up using it
-																
-																DiskAccessRequestImpl next = (DiskAccessRequestImpl)file_map.remove( new Long( end ));
-																
-																if ( 	next == null || next.isCancelled() ||
-																		!next.canBeAggregatedWith( request )){
-																	
-																	break;
-																}
-																
-																requests.remove( next );
-																
-																if ( !request_sem.reserve( 30000 )){
-																	
-																		// semaphore should already be > 0 as we've removed an element...
-																	
-																	Debug.out( "shouldn't happen" );
-																}
-																
-																if ( aggregated == null ){
-																	
-																	aggregated = new ArrayList(8);
-																	
-																	aggregated.add( current );
-																	
-																	aggregated_bytes += current_size;
-																}
-																
-																aggregated.add( next );
-																	
-																aggregated_bytes += next.getSize();
-																
-																if ( aggregated.size() > aggregation_request_limit || aggregated_bytes >= aggregation_byte_limit ){
-																	
-																	break;
-																}
-																
-																current = next;
-															}
-														}finally{
-															
-									
-															if ( aggregated != null ){
-																
-																total_aggregated_requests_made++;
-																
-																/*
-																System.out.println( 
-																		"aggregated read: requests=" + aggregated.size() + 
-																		", size=" + aggregated_bytes + 
-																		", a_reqs=" + requests.size() + 
-																		", f_reqs=" + file_map.size());
-																*/
-
-															}else{
-																
-																total_single_requests_made++;
-															}
-														}
-													}
-												}
-											}
-											
-											try{
-												
-												long	io_start = SystemTime.getHighPrecisionCounter();
-												
-												if ( aggregated == null ){
-													
-													try{
-														request.runRequest();
-														
-													}finally{
-														
-														long	io_end = SystemTime.getHighPrecisionCounter();
-
-														io_time += ( io_end - io_start );
-
-														total_single_bytes += request.getSize();
-														
-														releaseSpaceAllowance( request );
-													}		
-												}else{
-													
-													DiskAccessRequestImpl[]	requests = (DiskAccessRequestImpl[])aggregated.toArray( new DiskAccessRequestImpl[ aggregated.size()]);
-													
-													try{
-														
-														DiskAccessRequestImpl.runAggregated( request, requests );
-														
-													}finally{
-														
-														long	io_end = SystemTime.getHighPrecisionCounter();
-
-														io_time += ( io_end - io_start );
-														
-														for (int i=0;i<requests.length;i++){
-															
-															DiskAccessRequestImpl	r = requests[i];
-															
-															total_aggregated_bytes += r.getSize();
-															
-															releaseSpaceAllowance( r );
-														}
-													}		
-												}
-											}catch( Throwable e ){
-												
-												Debug.printStackTrace(e);	
-											}
-										}else{
-											
-											synchronized( requests ){
-	
-												if ( requests.size() == 0 ){
-													
-													thread	= null;
-																																					
-													break;
-												}
-											}
-										}
-									}
-								}
-							};
-							
-						thread.start();
-					}
+					requestQueued();
 				}
 			}
 		}
@@ -622,6 +468,212 @@ DiskAccessControllerInstance
 		size()
 		{
 			return( requests.size());
+		}
+		
+		protected void
+		requestQueued()
+		{	
+				// requests monitor held
+		
+			if ( active_threads < threads.length && ( active_threads == 0 || requests.size() > 32 )){
+				
+				for (int i=0;i<threads.length;i++){
+					
+					if ( threads[i] == null ){
+
+						active_threads++;
+						
+						final int thread_index = i;
+						
+						threads[thread_index] = 
+							new AEThread("DiskAccessController:requestDispatcher[" + index + "/" + thread_index + "]", true )
+							{
+								public void
+								runSupport()
+								{
+									tls.set( this );
+									
+									while( true ){
+										
+										DiskAccessRequestImpl	request		= null;		
+										List					aggregated 	= null;
+										
+										try{
+											if ( invert_threads ){
+												
+												schedule_sem.reserve();
+											}
+										
+											if ( request_sem.reserve( 30000 )){
+												
+												synchronized( requests ){
+			
+													request = (DiskAccessRequestImpl)requests.remove(0);
+													
+													if ( enable_aggregation ){
+														
+														CacheFile	file = request.getFile();
+														
+														Map	file_map = (Map)request_map.get( file );
+															
+														file_map.remove( new Long( request.getOffset()));
+																							
+														if ( request.getPriority() < 0 && !request.isCancelled()){
+																
+															DiskAccessRequestImpl	current = request;
+																
+															long	aggregated_bytes = 0;
+															
+															try{
+																while( true ){
+																	
+																	int	current_size = current.getSize();
+																	
+																	long	end = current.getOffset() + current_size;
+																					
+																		// doesn't matter if we remove from this and don't end up using it
+																	
+																	DiskAccessRequestImpl next = (DiskAccessRequestImpl)file_map.remove( new Long( end ));
+																	
+																	if ( 	next == null || next.isCancelled() ||
+																			!next.canBeAggregatedWith( request )){
+																		
+																		break;
+																	}
+																	
+																	requests.remove( next );
+																	
+																	if ( !request_sem.reserve( 30000 )){
+																		
+																			// semaphore should already be > 0 as we've removed an element...
+																		
+																		Debug.out( "shouldn't happen" );
+																	}
+																	
+																	if ( aggregated == null ){
+																		
+																		aggregated = new ArrayList(8);
+																		
+																		aggregated.add( current );
+																		
+																		aggregated_bytes += current_size;
+																	}
+																	
+																	aggregated.add( next );
+																		
+																	aggregated_bytes += next.getSize();
+																	
+																	if ( aggregated.size() > aggregation_request_limit || aggregated_bytes >= aggregation_byte_limit ){
+																		
+																		break;
+																	}
+																	
+																	current = next;
+																}
+															}finally{
+																
+										
+																if ( aggregated != null ){
+																	
+																	total_aggregated_requests_made++;
+																	
+																	/*
+																	System.out.println( 
+																			"aggregated read: requests=" + aggregated.size() + 
+																			", size=" + aggregated_bytes + 
+																			", a_reqs=" + requests.size() + 
+																			", f_reqs=" + file_map.size());
+																	*/
+			
+																}else{
+																	
+																	total_single_requests_made++;
+																}
+															}
+														}
+													}
+												}
+											}
+										}finally{
+											
+											if ( invert_threads ){
+												
+												schedule_sem.release();
+											}
+										}
+										
+										try{
+											
+											long	io_start = SystemTime.getHighPrecisionCounter();
+											
+											if ( aggregated != null ){
+												
+												DiskAccessRequestImpl[]	requests = (DiskAccessRequestImpl[])aggregated.toArray( new DiskAccessRequestImpl[ aggregated.size()]);
+												
+												try{
+													
+													DiskAccessRequestImpl.runAggregated( request, requests );
+													
+												}finally{
+													
+													long	io_end = SystemTime.getHighPrecisionCounter();
+	
+													io_time += ( io_end - io_start );
+													
+													for (int i=0;i<requests.length;i++){
+														
+														DiskAccessRequestImpl	r = requests[i];
+														
+														total_aggregated_bytes += r.getSize();
+														
+														releaseSpaceAllowance( r );
+													}
+												}
+											}else if ( request != null ){
+												
+												try{
+													request.runRequest();
+													
+												}finally{
+													
+													long	io_end = SystemTime.getHighPrecisionCounter();
+	
+													io_time += ( io_end - io_start );
+	
+													total_single_bytes += request.getSize();
+													
+													releaseSpaceAllowance( request );
+												}		
+
+											}else{
+											
+												synchronized( requests ){
+													
+													if ( requests.size() == 0 ){
+														
+														threads[thread_index] = null;
+														
+														active_threads--;
+														
+														break;
+													}
+												}
+											}
+										}catch( Throwable e ){
+											
+											Debug.printStackTrace(e);	
+										}
+		
+									}
+								}
+							};
+							
+						threads[thread_index].start();
+						
+						break;
+					}
+				}
+			}
 		}
 	}
 	
