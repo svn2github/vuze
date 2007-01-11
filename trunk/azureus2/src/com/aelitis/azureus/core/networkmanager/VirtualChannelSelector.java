@@ -215,7 +215,7 @@ public class VirtualChannelSelector {
           }
         }
         
-        System.out.println( "pauseSelects():: channel not found!" );
+        Debug.out( "pauseSelects():: channel not found!" );
       }
       finally{ selectors_mon.exit();  }
     }
@@ -245,7 +245,7 @@ public class VirtualChannelSelector {
           }
         }
         
-        System.out.println( "resumeSelects():: channel not found!" );
+        Debug.out( "resumeSelects():: channel not found!" );
       }
       finally{ selectors_mon.exit();  }
     }
