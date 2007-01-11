@@ -827,6 +827,11 @@ public class VersionCheckClient {
     	  message.put( "ip_asn", asn );
       }
       
+      String ui = COConfigurationManager.getStringParameter("ui");
+      if (ui.length() > 0) {
+      	message.put("ui", ui);
+      }
+      
       if ( AzureusCoreFactory.isCoreAvailable()){
       	
 	      //installed plugin IDs
