@@ -81,7 +81,7 @@ public class TrackerStatus {
    */
   private final static int GROUP_SCRAPES_MS 	= 60 * 15 * 1000;
   private final static int GROUP_SCRAPES_LIMIT	= 20;
-  
+
   
   static{
   	PRUDPTrackerCodecs.registerCodecs();
@@ -89,7 +89,7 @@ public class TrackerStatus {
   
   private static List	logged_invalid_urls	= new ArrayList();
   
-  private static ThreadPool	thread_pool = new ThreadPool( "TrackerStatus", 8, true );	// queue when full rather than block
+  private static ThreadPool	thread_pool = new ThreadPool( "TrackerStatus", 10, true );	// queue when full rather than block
   
   private final URL		tracker_url;
   private boolean		az_tracker;
@@ -105,6 +105,8 @@ public class TrackerStatus {
     
   protected AEMonitor hashes_mon 	= new AEMonitor( "TrackerStatus:hashes" );
   private final TrackerChecker checker;
+  
+  private volatile int numActiveScrapes = 0;
 
   public 
   TrackerStatus(
@@ -198,6 +200,10 @@ public class TrackerStatus {
   		//LGLogger.log( "updateSingleHash():: force=" + force + ", async=" +async+ ", url=" +scrapeURL+ ", hash=" +ByteFormatter.nicePrint(hash, true) );
     
   		if ( scrapeURL == null ){
+  			if (Logger.isEnabled()) {
+					Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
+						"TrackerStatus: scrape cancelled.. url null"));
+  			}
       
   			return;
   		}
@@ -224,15 +230,25 @@ public class TrackerStatus {
 	    	long lMainNextScrapeStartTime = response.getNextScrapeStartTime();
 	
 	    	if( !force && lMainNextScrapeStartTime > SystemTime.getCurrentTime() ) {
-	    		
+	  			if (Logger.isEnabled()) {
+						Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
+							"TrackerStatus: scrape cancelled.. not forced and still "
+									+ (lMainNextScrapeStartTime - SystemTime.getCurrentTime())
+									+ "ms"));
+	  			}
 	    		return;
 	    	}
     
 	    		// Set status id to SCRAPING, but leave status string until we actually
 	    		// do the scrape
 	    	
-	    	response.setStatus(TRTrackerScraperResponse.ST_SCRAPING, null);
-	
+	    	response.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
+					MessageText.getString(SS + "scraping.queued"));
+  			if (Logger.isEnabled()) {
+					Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
+						"TrackerStatus: setting to scraping"));
+  			}
+
 	    	responsesToUpdate.add(response);
 	    
 	    		// Go through hashes and pick out other scrapes that are "close to" wanting a new scrape.
@@ -258,7 +274,12 @@ public class TrackerStatus {
 			          
 			          if (lTimeDiff <= GROUP_SCRAPES_MS && r.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) {
 			          	
-			            r.setStatus(TRTrackerScraperResponse.ST_SCRAPING, null);
+			    	    	r.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
+			    						MessageText.getString(SS + "scraping.queued"));
+			      			if (Logger.isEnabled()) {
+			    					Logger.log(new LogEvent(TorrentUtils.getDownloadManager(r.getHash()), LOGID,
+			    						"TrackerStatus: setting to scraping via group scrape"));
+			      			}
 			            
 			            responsesToUpdate.add(r);
 			          }
@@ -268,7 +289,7 @@ public class TrackerStatus {
 		      	
 		      	hashes_mon.exit();
 		      }
-		    }
+			}
 		    
 		    runScrapes(responsesToUpdate,  force, async);
 		    
@@ -284,6 +305,7 @@ public class TrackerStatus {
   	    final boolean 		force, 
   	    boolean 			async) 
   	{
+  		numActiveScrapes++;
   		if ( async ){
   			
   			thread_pool.run( 
@@ -296,6 +318,12 @@ public class TrackerStatus {
   					}
   				});
   			
+  			if (Logger.isEnabled()) {
+  				Logger.log(new LogEvent(LOGID, "TrackerStatus: queuing '" + scrapeURL
+  						+ "', for " + responses.size() + " of " + hashes.size() + " hashes"
+  						+ ", single_hash_scrapes: " + (bSingleHashScrapes ? "Y" : "N")
+  						+ ", queue size=" + thread_pool.getQueueSize()));
+  			}
   		}else{
   		
   			runScrapesSupport( responses, force );
@@ -309,10 +337,11 @@ public class TrackerStatus {
     	boolean 	force ) 
     {
 		try {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(LOGID, "TrackerStatus: scraping '"
-						+ scrapeURL + "', number of hashes = " + responses.size()
-						+ ", single_hash_scrapes = " + bSingleHashScrapes));
+			if (Logger.isEnabled()) {
+				Logger.log(new LogEvent(LOGID, "TrackerStatus: scraping '" + scrapeURL
+						+ "', for " + responses.size() + " of " + hashes.size() + " hashes"
+						+ ", single_hash_scrapes: " + (bSingleHashScrapes ? "Y" : "N")));
+			}
 
 			boolean original_bSingleHashScrapes = bSingleHashScrapes;
 
@@ -766,31 +795,38 @@ public class TrackerStatus {
 					// notifiy listeners
 					scraper.scrapeReceived(response);
 				}
-			} catch (ConnectException e) {
-				for (int i = 0; i < responses.size(); i++) {
-					TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses
-							.get(i);
-					response.setNextScrapeStartTime(SystemTime.getCurrentTime()
-							+ FAULTY_SCRAPE_RETRY_INTERVAL);
-					response.setStatus(TRTrackerScraperResponse.ST_ERROR, MessageText
-							.getString(SS + "error")
-							+ e.getLocalizedMessage());
-					// notifiy listeners
-					scraper.scrapeReceived(response);
-				}
+			} catch (SocketException e) {
+				setAllError(e);
+			} catch (SocketTimeoutException e) {
+				setAllError(e);
+			} catch (UnknownHostException e) {
+				setAllError(e);
 			} catch (Exception e) {
-
+				
 				// for apache we can get error 414 - URL too long. simplest solution
 				// for this
 				// is to fall back to single scraping
 
 				String error_message = e.getMessage();
+				
+				if (error_message != null) {
+					if (error_message.indexOf(" 500 ") >= 0 
+							|| error_message.indexOf(" 400 ") >= 0 
+							|| error_message.indexOf(" 403 ") >= 0
+							|| error_message.indexOf(" 404 ") >= 0
+							|| error_message.indexOf(" 501 ") >= 0) {
+						// various errors that have a 99% chance of happening on
+						// any other scrape request
+						setAllError(e);
+						return;
+					}
 
-				if (error_message != null && error_message.indexOf("414") != -1
-						&& !bSingleHashScrapes) {
-					bSingleHashScrapes = true;
-					// Skip the setuing up the response.  We want to scrape again
-					return;
+  				if (error_message.indexOf("414") != -1
+  						&& !bSingleHashScrapes) {
+  					bSingleHashScrapes = true;
+  					// Skip the setuing up the response.  We want to scrape again
+  					return;
+  				}
 				}
 
 				String msg = Debug.getNestedExceptionMessage(e);
@@ -803,7 +839,7 @@ public class TrackerStatus {
 						HashWrapper hash = response.getHash();
 						Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
 								LogEvent.LT_ERROR, "Error from scrape interface " + scrapeURL
-										+ " : " + msg));
+										+ " : " + msg + " (" + e.getClass() + ")"));
 					}
 
 					response.setNextScrapeStartTime(SystemTime.getCurrentTime()
@@ -818,10 +854,48 @@ public class TrackerStatus {
 
 		} catch (Throwable t) {
 			Debug.out("runScrapesSupport failed", t);
+		} finally {
+			numActiveScrapes--;
 		}
 	}
 
-  protected URL 
+  /**
+	 * @param e
+	 */
+	private void setAllError(Exception e) {
+		// Error will apply to ALL hashes, so set all
+		Object[] values;
+		try {
+			values = hashes.values().toArray();
+			hashes_mon.enter();
+		} finally {
+			hashes_mon.exit();
+		}
+
+		String msg = e.getLocalizedMessage();
+
+		for (int i = 0; i < values.length; i++) {
+			TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) values[i];
+
+			if (Logger.isEnabled()) {
+				HashWrapper hash = response.getHash();
+				Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
+						LogEvent.LT_WARNING, "Error from scrape interface " + scrapeURL
+								+ " : " + msg));
+				//e.printStackTrace();
+			}
+
+			response.setNextScrapeStartTime(SystemTime.getCurrentTime()
+					+ FAULTY_SCRAPE_RETRY_INTERVAL);
+			response.setStatus(TRTrackerScraperResponse.ST_ERROR,
+					MessageText.getString(SS + "error") + msg + " (IO)");
+			// notifiy listeners
+			scraper.scrapeReceived(response);
+		}
+	}
+
+
+	protected URL 
   scrapeHTTP(
   	URL 					reqUrl, 
 	ByteArrayOutputStream 	message )
@@ -1301,5 +1375,9 @@ public class TrackerStatus {
 	getString()
 	{	  
 	  return( tracker_url + ", " + scrapeURL + ", multi-scrape=" + !bSingleHashScrapes );
+	}
+	
+	public int getNumActiveScrapes() {
+		return numActiveScrapes;
 	}
 }

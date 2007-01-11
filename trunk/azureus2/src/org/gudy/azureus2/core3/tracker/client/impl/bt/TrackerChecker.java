@@ -287,57 +287,81 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
   private void 
   runScrapes() 
   {
-	TRTrackerBTScraperResponseImpl next_response_to_scrape	= null;
+		TRTrackerBTScraperResponseImpl nextResponseScraping = null;
 
-    while( true ){
+		while (true) {
 
-    	long	delay;
-    	
-      	if ( next_response_to_scrape == null ){
-        
-      		delay	= 60000;	// nothing going on, recheck in a min
-      		
-      	}else{
-      		
-      		long	scrape_time = next_response_to_scrape.getNextScrapeStartTime();
-      		
-      		long	time_to_scrape = scrape_time - SystemTime.getCurrentTime();
-      		
-      		if ( time_to_scrape <= 0 ){
-      			
-	      		try{
-	      			next_response_to_scrape.getTrackerStatus().updateSingleHash(
-	      					next_response_to_scrape.getHash(), false);
-	        
-	      			delay	= 250;	// pick up next scrape fairly quickly
-	      			
-	      		}catch( Throwable e ){
-	      			
-	      			Debug.printStackTrace(e);
-	      			
-	      			delay	= 30000;
-	      		}
-      		}else{
-      			
-      			delay	= time_to_scrape;
-      			
-      			if ( delay > 30000 ){
-      				
-      				delay	= 30000;	// don't sleep too long in case new hashes are added etc.
-      			}
-      		}
-      	}
-      	
-      	try{ 
-      		nextScrapeCheckOn = SystemTime.getCurrentTime() + delay;
-      		Thread.sleep(delay); 
-      		
-      	}catch(Exception e){
-      	}
-      
-      	next_response_to_scrape = checkForNextScrape();
-    }
-  }
+			long delay;
+
+			if (nextResponseScraping == null) {
+
+				delay = 60000; // nothing going on, recheck in a min
+
+			} else {
+
+				long scrape_time = nextResponseScraping.getNextScrapeStartTime();
+
+				long time_to_scrape = scrape_time - SystemTime.getCurrentTime()
+						+ SystemTime.TIME_GRANULARITY_MILLIS;
+
+				if (time_to_scrape <= 0) {
+
+					if (nextResponseScraping.getTrackerStatus().getNumActiveScrapes() > 0) {
+						// check if done scraping every 2 seconds, if no other
+						// scrapes are scheduled.  If other scrapes are sceduled,
+						// we would have got them from checkForNextScrape()
+						delay = 2000;
+					} else {
+
+						try {
+							nextResponseScraping.getTrackerStatus().updateSingleHash(
+									nextResponseScraping.getHash(), false);
+
+							delay = 0; // pick up next scrape fairly quickly
+
+						} catch (Throwable e) {
+
+							Debug.printStackTrace(e);
+
+							delay = 30000;
+						}
+					}
+				} else {
+
+					delay = time_to_scrape;
+
+					if (delay > 30000) {
+						delay = 30000; // don't sleep too long in case new hashes are added etc.
+					}
+				}
+			}
+
+			try {
+				nextScrapeCheckOn = SystemTime.getCurrentTime() + delay;
+				Thread.sleep(delay);
+
+			} catch (Exception e) {
+			}
+
+			TRTrackerBTScraperResponseImpl oldResponse = nextResponseScraping;
+			nextResponseScraping = checkForNextScrape();
+
+			if (Logger.isEnabled() && nextResponseScraping != oldResponse) {
+				Logger.log(new LogEvent(
+						TorrentUtils.getDownloadManager(nextResponseScraping.getHash()),
+						LOGID,
+						LogEvent.LT_INFORMATION,
+						"Next scrape will be "
+								+ nextResponseScraping.getURL()
+								+ " in "
+								+ (nextResponseScraping.getNextScrapeStartTime() - SystemTime.getCurrentTime())
+								+ ";"
+								+ (nextResponseScraping.getTrackerStatus().getSupportsMultipeHashScrapes()
+										? "Multi" : "Single")
+										+ nextResponseScraping.getTrackerStatus().getNumActiveScrapes()));
+			}
+		}
+	}
   
   /** Finds the torrent that will be needing a scrape next.
    *
@@ -346,61 +370,76 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
   private TRTrackerBTScraperResponseImpl 
   checkForNextScrape() 
   {
-	    // search for the next scrape
-	  
-	    TRTrackerBTScraperResponseImpl next_response_to_scrape = null;
-	    
-	    long earliest = Long.MAX_VALUE;
-	
-	    try{
-	    	trackers_mon.enter();
-	    	
-	    	Iterator iter = trackers.values().iterator();
-	      
-	    	while (iter.hasNext()) {
-	    		
-	    		TrackerStatus ts = (TrackerStatus) iter.next();
-	    		
-	    		if ( !ts.isTrackerScrapeUrlValid()){
-	    			
-	    			continue;
-	    		}
-	    		
-	    		Map hashmap = ts.getHashes();
-	    		  
-	    		try{
-	    			ts.getHashesMonitor().enter();
-	        	
-	    			Iterator iterHashes = hashmap.values().iterator();
-	    			
-	    			while( iterHashes.hasNext() ) {
-	            
-	    				TRTrackerBTScraperResponseImpl response = (TRTrackerBTScraperResponseImpl)iterHashes.next();    				
-	            
-	    					// ignore ones already scraping
-	    				
-	    				if ( response.getStatus() != TRTrackerScraperResponse.ST_SCRAPING ){
-	    				
-	    					if ( response.getNextScrapeStartTime() < earliest ){
-	    						
-	    						earliest	= response.getNextScrapeStartTime();
-	    						
-	    						next_response_to_scrape	= response;
-	    					}
-	    				}
-	    			}
-	    		}finally{
-	        	
-	    			ts.getHashesMonitor().exit();
-	    		}
-	    	} 
-	    }finally{
-	    	
-	    	trackers_mon.exit();
-	    }
-	    
-	    return( next_response_to_scrape );
-  	}
+		// search for the next scrape
+
+		long earliestBlocked = Long.MAX_VALUE;
+		TRTrackerBTScraperResponseImpl earliestBlockedResponse = null;
+		long earliestNonBlocked = Long.MAX_VALUE;
+		TRTrackerBTScraperResponseImpl earliestNonBlockedResponse = null;
+
+		try {
+			trackers_mon.enter();
+
+			Iterator iter = trackers.values().iterator();
+
+			while (iter.hasNext()) {
+
+				TrackerStatus ts = (TrackerStatus) iter.next();
+
+				if (!ts.isTrackerScrapeUrlValid()) {
+					continue;
+				}
+
+				boolean hasActiveScrapes = ts.getNumActiveScrapes() > 0;
+
+				Map hashmap = ts.getHashes();
+
+				try {
+					ts.getHashesMonitor().enter();
+
+					Iterator iterHashes = hashmap.values().iterator();
+
+					while (iterHashes.hasNext()) {
+
+						TRTrackerBTScraperResponseImpl response = (TRTrackerBTScraperResponseImpl) iterHashes.next();
+
+						if (response.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) {
+							long nextScrapeStartTime = response.getNextScrapeStartTime();
+
+							if (hasActiveScrapes) {
+								if (nextScrapeStartTime < earliestBlocked) {
+									earliestBlocked = nextScrapeStartTime;
+									earliestBlockedResponse = response;
+								}
+							} else {
+								if (nextScrapeStartTime < earliestNonBlocked) {
+									earliestNonBlocked = nextScrapeStartTime;
+									earliestNonBlockedResponse = response;
+								}
+							}
+						}
+					}
+				} finally {
+
+					ts.getHashesMonitor().exit();
+				}
+			}
+		} finally {
+
+			trackers_mon.exit();
+		}
+
+		boolean hasEarlierBlockedScrape = earliestBlocked != Long.MAX_VALUE
+				&& earliestBlocked < earliestNonBlocked;
+		// If the earlist non-blocked scrape is still 2 seconds away,
+		// return the blocked scrape with in hopes that it gets unblocked soon
+		if (hasEarlierBlockedScrape
+				&& earliestNonBlocked - SystemTime.getCurrentTime() > 2000) {
+			return earliestBlockedResponse;
+		} else {
+			return earliestNonBlockedResponse;
+		}
+	}
 
 
   	public void
