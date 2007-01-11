@@ -25,17 +25,10 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MenuItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
-import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
-import org.gudy.azureus2.ui.swt.views.TableView.GroupTableRowRunner;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-
-import com.aelitis.azureus.core.AzureusCoreFactory;
 
 /**
  * User-editable comment for a download.

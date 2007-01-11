@@ -22,8 +22,6 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytracker;
 
-import java.util.List;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;

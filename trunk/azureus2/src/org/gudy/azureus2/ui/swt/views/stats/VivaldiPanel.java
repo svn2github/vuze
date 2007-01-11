@@ -22,7 +22,6 @@
  */
 package org.gudy.azureus2.ui.swt.views.stats;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.eclipse.swt.SWT;
@@ -37,7 +36,6 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
-import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.*;

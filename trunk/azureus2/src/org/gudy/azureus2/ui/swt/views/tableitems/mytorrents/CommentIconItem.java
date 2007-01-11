@@ -25,20 +25,14 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.tracker.host.*;
 
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
-
 /**
- *
- * @author Olivier
- * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
+ * @author amc1
  */
 public class CommentIconItem
        extends CoreTableColumn 
