@@ -338,6 +338,21 @@ AzureusCoreImpl
 		nat_traverser = new NATTraverser( this );
 		
 		PeerNATTraverser.initialise( this );
+		
+			// one off explicit GC to clear up initialisation mem
+		
+		SimpleTimer.addEvent(
+				"AzureusCore:gc",
+				SystemTime.getOffsetTime(60*1000),
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent event) 
+					{
+						System.gc();
+					}
+				});
 	}
 	
 	public LocaleUtil
