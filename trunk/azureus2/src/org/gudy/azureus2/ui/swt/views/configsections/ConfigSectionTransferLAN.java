@@ -98,7 +98,7 @@ public class ConfigSectionTransferLAN implements UISWTConfigSection {
 
 		
 		BooleanParameter enable_lan = new BooleanParameter(
-				cSection, "LAN Speed Enabled", true,
+				cSection, "LAN Speed Enabled",
 				CFG_PREFIX + "enable" );
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;

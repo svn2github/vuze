@@ -168,13 +168,13 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     
 	gridData = new GridData();
 
-    BooleanParameter enabled = new BooleanParameter(gFilter, "Ip Filter Enabled",true);
+    BooleanParameter enabled = new BooleanParameter(gFilter, "Ip Filter Enabled");
 	enabled.setLayoutData( gridData ); 
     Messages.setLanguageText(enabled.getControl(), "ConfigView.section.ipfilter.enable");
 
 	gridData = new GridData();
 
-    BooleanParameter deny = new BooleanParameter(gFilter, "Ip Filter Allow",false);
+    BooleanParameter deny = new BooleanParameter(gFilter, "Ip Filter Allow");
 	deny.setLayoutData( gridData ); 
     Messages.setLanguageText(deny.getControl(), "ConfigView.section.ipfilter.allow");
   
@@ -194,7 +194,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     
 	gridData = new GridData();
 
-  BooleanParameter persist_bad_data_banning = new BooleanParameter(gFilter, "Ip Filter Banning Persistent",true);
+  BooleanParameter persist_bad_data_banning = new BooleanParameter(gFilter, "Ip Filter Banning Persistent");
   persist_bad_data_banning.setLayoutData( gridData );
   Messages.setLanguageText(persist_bad_data_banning.getControl(), "ConfigView.section.ipfilter.persistblocking");
 
@@ -202,7 +202,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     
 	gridData = new GridData();
 	
-    BooleanParameter enable_bad_data_banning = new BooleanParameter(gFilter, "Ip Filter Enable Banning",true);
+    BooleanParameter enable_bad_data_banning = new BooleanParameter(gFilter, "Ip Filter Enable Banning");
 	enable_bad_data_banning.setLayoutData( gridData );
     Messages.setLanguageText(enable_bad_data_banning.getControl(), "ConfigView.section.ipfilter.enablebanning");
 
@@ -210,7 +210,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 		if (userMode > 0) {
 			gridData = new GridData();
 			BooleanParameter enableDesc = new BooleanParameter(gFilter,
-					"Ip Filter Enable Description Cache", true);
+					"Ip Filter Enable Description Cache");
 			enableDesc.setLayoutData(gridData);
 			Messages.setLanguageText(enableDesc.getControl(),
 					"ConfigView.section.ipfilter.enable.descriptionCache");

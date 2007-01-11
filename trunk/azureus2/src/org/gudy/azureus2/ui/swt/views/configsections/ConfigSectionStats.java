@@ -94,7 +94,7 @@ public class ConfigSectionStats implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     BooleanParameter enableStats = 
-        new BooleanParameter(gStats, "Stats Enable", false,
+        new BooleanParameter(gStats, "Stats Enable",
                              "ConfigView.section.stats.enable");
     enableStats.setLayoutData(gridData);
 
@@ -206,7 +206,7 @@ public class ConfigSectionStats implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     BooleanParameter exportPeers = 
-        new BooleanParameter(gStats, "Stats Export Peer Details", false,
+        new BooleanParameter(gStats, "Stats Export Peer Details",
                              "ConfigView.section.stats.exportpeers");
     enableStats.setLayoutData(gridData);
 

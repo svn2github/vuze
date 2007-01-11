@@ -121,7 +121,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 
 		gridData = new GridData();
 		BooleanParameter enable_seeding_rate = new BooleanParameter(
-				cMaxUploadSpeedOptionsArea, "enable.seedingonly.upload.rate", false,
+				cMaxUploadSpeedOptionsArea, "enable.seedingonly.upload.rate",
 				"ConfigView.label.maxuploadspeedseeding");
 		enable_seeding_rate.setLayoutData(gridData);
 
@@ -295,7 +295,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			
 			gridData = new GridData();
 			BooleanParameter enable_seeding_uploads = new BooleanParameter(
-					cMaxUploadsOptionsArea, "enable.seedingonly.maxuploads", false,
+					cMaxUploadsOptionsArea, "enable.seedingonly.maxuploads",
 					"ConfigView.label.maxuploadsseeding");
 			enable_seeding_uploads.setLayoutData(gridData);
 
@@ -346,7 +346,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			
 			gridData = new GridData();
 			BooleanParameter enable_max_peers_seeding = new BooleanParameter(
-					cMaxPeersOptionsArea, "Max.Peer.Connections.Per.Torrent.When.Seeding.Enable", false,
+					cMaxPeersOptionsArea, "Max.Peer.Connections.Per.Torrent.When.Seeding.Enable",
 					"ConfigView.label.maxuploadsseeding");
 			enable_max_peers_seeding.setLayoutData(gridData);
 
@@ -376,21 +376,21 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
 			BooleanParameter allowSameIP = new BooleanParameter(cSection,
-					"Allow Same IP Peers", false, "ConfigView.label.allowsameip");
+					"Allow Same IP Peers", "ConfigView.label.allowsameip");
 			allowSameIP.setLayoutData(gridData);
 
 			// lazy bit field
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
 			BooleanParameter lazybf = new BooleanParameter(cSection,
-					"Use Lazy Bitfield", false, "ConfigView.label.lazybitfield");
+					"Use Lazy Bitfield", "ConfigView.label.lazybitfield");
 			lazybf.setLayoutData(gridData);
 
 			// prioritise first/last pieces
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
 			BooleanParameter firstPiece = new BooleanParameter(cSection,
-					"Prioritize First Piece", false,
+					"Prioritize First Piece",
 					"ConfigView.label.prioritizefirstpiece");
 			firstPiece.setLayoutData(gridData);
 
@@ -398,7 +398,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
 			BooleanParameter mostCompletedFiles = new BooleanParameter(cSection,
-					"Prioritize Most Completed Files", false,
+					"Prioritize Most Completed Files",
 					"ConfigView.label.prioritizemostcompletedfiles");
 			mostCompletedFiles.setLayoutData(gridData);
 
@@ -429,13 +429,13 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
 			BooleanParameter pauseOnExit = new BooleanParameter(cSection,
-					"Pause Downloads On Exit", false, "ConfigView.label.pause.downloads.on.exit");
+					"Pause Downloads On Exit", "ConfigView.label.pause.downloads.on.exit");
 			pauseOnExit.setLayoutData(gridData);
 	
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
 			BooleanParameter resumeOnStart = new BooleanParameter(cSection,
-					"Resume Downloads On Start", false, "ConfigView.label.resume.downloads.on.start");
+					"Resume Downloads On Start", "ConfigView.label.resume.downloads.on.start");
 			resumeOnStart.setLayoutData(gridData);
 		}
 		

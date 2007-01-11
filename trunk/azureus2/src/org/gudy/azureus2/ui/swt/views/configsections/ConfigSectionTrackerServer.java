@@ -177,11 +177,10 @@ ConfigSectionTrackerServer
     // row
 
     final BooleanParameter nonsslEnable = 
-        new BooleanParameter(gMainTab, "Tracker Port Enable", false, 
+        new BooleanParameter(gMainTab, "Tracker Port Enable", 
                              CFG_PREFIX + "tracker.port");
 
-    IntParameter tracker_port = new IntParameter(gMainTab, "Tracker Port",
-					TRHost.DEFAULT_PORT);
+    IntParameter tracker_port = new IntParameter(gMainTab, "Tracker Port");
 
     gridData = new GridData();
     gridData.widthHint = 50;
@@ -207,11 +206,11 @@ ConfigSectionTrackerServer
     // row
 
     final BooleanParameter sslEnable = 
-        new BooleanParameter(gMainTab, "Tracker Port SSL Enable", false,
+        new BooleanParameter(gMainTab, "Tracker Port SSL Enable",
                              CFG_PREFIX + "tracker.sslport");
 
     IntParameter tracker_port_ssl = new IntParameter(gMainTab,
-					"Tracker Port SSL", TRHost.DEFAULT_PORT_SSL);
+					"Tracker Port SSL");
     gridData = new GridData();
     gridData.widthHint = 50;
     tracker_port_ssl.setLayoutData( gridData );
@@ -277,7 +276,7 @@ ConfigSectionTrackerServer
 
     gridData = new GridData();
     gridData.horizontalSpan = 1;
-    new BooleanParameter(gMainTab, "Tracker Public Enable", false,
+    new BooleanParameter(gMainTab, "Tracker Public Enable",
                          CFG_PREFIX + "tracker.publicenable").setLayoutData( gridData );
 
     label = new Label(gMainTab, SWT.NULL);
@@ -289,7 +288,7 @@ ConfigSectionTrackerServer
     // row
     
     BooleanParameter forcePortDetails = 
-        new BooleanParameter(gMainTab,  "Tracker Port Force External", false, 
+        new BooleanParameter(gMainTab,  "Tracker Port Force External",
                              CFG_PREFIX + "tracker.forceport");
 
     label = new Label(gMainTab, SWT.NULL);
@@ -318,7 +317,7 @@ ConfigSectionTrackerServer
     // row
     	// add announce urls to hosted torrents
     BooleanParameter hostAddURLs = 
-        new BooleanParameter(gMainTab,  "Tracker Host Add Our Announce URLs", true, 
+        new BooleanParameter(gMainTab,  "Tracker Host Add Our Announce URLs",
                              CFG_PREFIX + "tracker.host.addurls");
    
     gridData = new GridData();
@@ -335,14 +334,14 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     gridData.horizontalSpan = 1;
     final BooleanParameter passwordEnableWeb = 
-        new BooleanParameter(gMainTab, "Tracker Password Enable Web", false, 
+        new BooleanParameter(gMainTab, "Tracker Password Enable Web", 
                              CFG_PREFIX + "tracker.passwordenableweb");
     passwordEnableWeb.setLayoutData( gridData );
     
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     final BooleanParameter passwordWebHTTPSOnly = 
-        new BooleanParameter(gMainTab, "Tracker Password Web HTTPS Only", false, 
+        new BooleanParameter(gMainTab, "Tracker Password Web HTTPS Only", 
                              CFG_PREFIX + "tracker.passwordwebhttpsonly");
     passwordWebHTTPSOnly.setLayoutData( gridData );
 
@@ -367,7 +366,7 @@ ConfigSectionTrackerServer
     // row
 
      final BooleanParameter passwordEnableTorrent = 
-      new BooleanParameter(gMainTab, "Tracker Password Enable Torrent", false, 
+      new BooleanParameter(gMainTab, "Tracker Password Enable Torrent", 
                            CFG_PREFIX + "tracker.passwordenabletorrent");
  
     label = new Label(gMainTab, SWT.NULL);
@@ -443,7 +442,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter pollIntervalMin = new IntParameter(gPollStuff, "Tracker Poll Interval Min", TRHost.DEFAULT_MIN_RETRY_DELAY );
+    IntParameter pollIntervalMin = new IntParameter(gPollStuff, "Tracker Poll Interval Min");
 
     gridData = new GridData();
     gridData.widthHint = 30;
@@ -454,7 +453,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter pollIntervalMax = new IntParameter(gPollStuff, "Tracker Poll Interval Max", TRHost.DEFAULT_MAX_RETRY_DELAY );
+    IntParameter pollIntervalMax = new IntParameter(gPollStuff, "Tracker Poll Interval Max");
 
     gridData = new GridData();
     gridData.widthHint = 30;
@@ -467,7 +466,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter pollIntervalIncBy = new IntParameter(gPollStuff, "Tracker Poll Inc By", TRHost.DEFAULT_INC_BY );
+    IntParameter pollIntervalIncBy = new IntParameter(gPollStuff, "Tracker Poll Inc By");
 
     gridData = new GridData();
     gridData.widthHint = 30;
@@ -478,7 +477,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter pollIntervalIncPer = new IntParameter(gPollStuff, "Tracker Poll Inc Per", TRHost.DEFAULT_INC_PER );
+    IntParameter pollIntervalIncPer = new IntParameter(gPollStuff, "Tracker Poll Inc Per");
 
     gridData = new GridData();
     gridData.widthHint = 30;
@@ -501,7 +500,7 @@ ConfigSectionTrackerServer
     label = new Label(gScrapeCache, SWT.NULL);
     Messages.setLanguageText(label, CFG_PREFIX + "tracker.announcescrapepercentage");
 
-    IntParameter scrapeannouncepercentage = new IntParameter(gScrapeCache, "Tracker Scrape Retry Percentage", TRHost.DEFAULT_SCRAPE_RETRY_PERCENTAGE );
+    IntParameter scrapeannouncepercentage = new IntParameter(gScrapeCache, "Tracker Scrape Retry Percentage");
 
     gridData = new GridData();
     gridData.widthHint = 30;
@@ -512,7 +511,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter scrapeCachePeriod = new IntParameter(gScrapeCache, "Tracker Scrape Cache", TRHost.DEFAULT_SCRAPE_CACHE_PERIOD );
+    IntParameter scrapeCachePeriod = new IntParameter(gScrapeCache, "Tracker Scrape Cache");
 
     gridData = new GridData();
     gridData.widthHint = 30;
@@ -524,7 +523,7 @@ ConfigSectionTrackerServer
     label = new Label(gScrapeCache, SWT.NULL);
     Messages.setLanguageText(label, CFG_PREFIX + "tracker.announcecacheminpeers");
 
-    IntParameter announceCacheMinPeers = new IntParameter(gScrapeCache, "Tracker Announce Cache Min Peers", TRHost.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD );
+    IntParameter announceCacheMinPeers = new IntParameter(gScrapeCache, "Tracker Announce Cache Min Peers");
 
     gridData = new GridData();
     gridData.widthHint = 30;
@@ -535,7 +534,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter announceCachePeriod = new IntParameter(gScrapeCache, "Tracker Announce Cache", TRHost.DEFAULT_ANNOUNCE_CACHE_PERIOD );
+    IntParameter announceCachePeriod = new IntParameter(gScrapeCache, "Tracker Announce Cache");
 
     gridData = new GridData();
     gridData.widthHint = 30;
@@ -550,7 +549,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter maxPeersReturned = new IntParameter(gMainTab, "Tracker Max Peers Returned", 100 );
+    IntParameter maxPeersReturned = new IntParameter(gMainTab, "Tracker Max Peers Returned");
 
     gridData = new GridData();
     gridData.widthHint = 50;
@@ -582,7 +581,7 @@ ConfigSectionTrackerServer
 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    new BooleanParameter(gMainTab, "Tracker NAT Check Enable", true, 
+    new BooleanParameter(gMainTab, "Tracker NAT Check Enable", 
                          CFG_PREFIX + "tracker.natcheckenable").setLayoutData( gridData );
     
     Composite gNATDetails = new Composite(gMainTab, SWT.NULL);
@@ -602,7 +601,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter NATTimeout = new IntParameter(gNATDetails, "Tracker NAT Check Timeout", TRTrackerServer.DEFAULT_NAT_CHECK_SECS );
+    IntParameter NATTimeout = new IntParameter(gNATDetails, "Tracker NAT Check Timeout");
 
     gridData = new GridData();
     gridData.widthHint = 50;
@@ -614,7 +613,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     gridData.horizontalSpan = 4;
  
-    new BooleanParameter(gMainTab, "Tracker Send Peer IDs", true, 
+    new BooleanParameter(gMainTab, "Tracker Send Peer IDs",
                          CFG_PREFIX + "tracker.sendpeerids").setLayoutData(gridData);
     
     // row
@@ -623,7 +622,7 @@ ConfigSectionTrackerServer
     gridData.horizontalSpan = 4;
  
     BooleanParameter	enable_udp = 
-    	new BooleanParameter(gMainTab, "Tracker Port UDP Enable", false, 
+    	new BooleanParameter(gMainTab, "Tracker Port UDP Enable", 
                          CFG_PREFIX + "tracker.enableudp");
 
     enable_udp.setLayoutData(gridData);
@@ -634,7 +633,7 @@ ConfigSectionTrackerServer
     Messages.setLanguageText(udp_version_label,  CFG_PREFIX + "tracker.udpversion");
     gridData = new GridData();
     gridData.widthHint = 40;
-    IntParameter	udp_version = new IntParameter(gMainTab, "Tracker Port UDP Version", 2);
+    IntParameter	udp_version = new IntParameter(gMainTab, "Tracker Port UDP Version");
     udp_version.setLayoutData(gridData);
     label = new Label(gMainTab, SWT.NULL);
     label = new Label(gMainTab, SWT.NULL);
@@ -647,7 +646,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     gridData.horizontalSpan = 4;
  
-    new BooleanParameter(gMainTab, "Tracker Compact Enable", true,
+    new BooleanParameter(gMainTab, "Tracker Compact Enable",
                          CFG_PREFIX + "tracker.enablecompact").setLayoutData(gridData);
     
     // row
@@ -655,7 +654,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     gridData.horizontalSpan = 4;
     BooleanParameter log_enable = 
-    	new BooleanParameter(gMainTab, "Tracker Log Enable", false, 
+    	new BooleanParameter(gMainTab, "Tracker Log Enable", 
                          CFG_PREFIX + "tracker.logenable");
     log_enable.setLayoutData( gridData );
     
@@ -666,7 +665,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     gridData.horizontalSpan = 4;
  
-    new BooleanParameter(gMainTab, "Tracker Key Enable Server", true,
+    new BooleanParameter(gMainTab, "Tracker Key Enable Server",
                          CFG_PREFIX + "tracker.enablekey").setLayoutData(gridData);
 
     // Networks Group //
@@ -718,7 +717,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter maxGetTime = new IntParameter(gProcessing, "Tracker Max GET Time", 20 );
+    IntParameter maxGetTime = new IntParameter(gProcessing, "Tracker Max GET Time");
  
     gridData = new GridData();
     gridData.widthHint = 50;
@@ -734,7 +733,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter maxPostTimeMultiplier = new IntParameter(gProcessing, "Tracker Max POST Time Multiplier", 1 );
+    IntParameter maxPostTimeMultiplier = new IntParameter(gProcessing, "Tracker Max POST Time Multiplier");
 
     gridData = new GridData();
     gridData.widthHint = 50;
@@ -750,7 +749,7 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter maxThreadsTime = new IntParameter(gProcessing, "Tracker Max Threads", 48 );
+    IntParameter maxThreadsTime = new IntParameter(gProcessing, "Tracker Max Threads");
     maxThreadsTime.setMinimumValue(1);
     maxThreadsTime.setMaximumValue(4096);
     gridData = new GridData();
@@ -777,7 +776,7 @@ ConfigSectionTrackerServer
     gridData.horizontalSpan = 3;
  
     BooleanParameter nb_enable =
-    	new BooleanParameter(gNBTracker, "Tracker TCP NonBlocking", false,
+    	new BooleanParameter(gNBTracker, "Tracker TCP NonBlocking",
                          CFG_PREFIX + "tracker.tcpnonblocking");
     nb_enable.setLayoutData(gridData);
 

@@ -86,16 +86,16 @@ ConfigSectionTrackerClient
     Messages.setLanguageText(label, "ConfigView.section.tracker.client.scrapeinfo");
 
     BooleanParameter	scrape = 
-    	new BooleanParameter(scrapeGroup, "Tracker Client Scrape Enable", true,
+    	new BooleanParameter(scrapeGroup, "Tracker Client Scrape Enable",
     							"ConfigView.section.tracker.client.scrapeenable");
     
     BooleanParameter	scrape_stopped = 
-    	new BooleanParameter(scrapeGroup, "Tracker Client Scrape Stopped Enable", true,
+    	new BooleanParameter(scrapeGroup, "Tracker Client Scrape Stopped Enable",
     							"ConfigView.section.tracker.client.scrapestoppedenable");
     
     scrape.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( scrape_stopped.getControls()));
 
-    new BooleanParameter(scrapeGroup, "Tracker Client Scrape Single Only", false,
+    new BooleanParameter(scrapeGroup, "Tracker Client Scrape Single Only",
     							"ConfigView.section.tracker.client.scrapesingleonly");
     
     /////////////////////////
@@ -105,7 +105,7 @@ ConfigSectionTrackerClient
     gridData = new GridData();
     gridData.horizontalSpan = 2;
   
-    new BooleanParameter(gMainTab, "Tracker Client Send OS and Java Version", true,
+    new BooleanParameter(gMainTab, "Tracker Client Send OS and Java Version",
                          "ConfigView.section.tracker.sendjavaversionandos").setLayoutData(gridData);
 
     label = new Label(gMainTab, SWT.NULL);
@@ -113,7 +113,7 @@ ConfigSectionTrackerClient
 
 //////////////////////
     
-    BooleanParameter enableUDP = new BooleanParameter(gMainTab, "Server Enable UDP", true, "ConfigView.section.server.enableudp");
+    BooleanParameter enableUDP = new BooleanParameter(gMainTab, "Server Enable UDP", "ConfigView.section.server.enableudp");
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     enableUDP.setLayoutData(gridData); 
@@ -122,7 +122,7 @@ ConfigSectionTrackerClient
   
 //////////////////////
     
-    BooleanParameter showWarnings = new BooleanParameter(gMainTab, "Tracker Client Show Warnings", true, "ConfigView.section.tracker.client.showwarnings" );
+    BooleanParameter showWarnings = new BooleanParameter(gMainTab, "Tracker Client Show Warnings", "ConfigView.section.tracker.client.showwarnings" );
     gridData = new GridData();
     gridData.horizontalSpan = 2;
 	showWarnings.setLayoutData(gridData); 
@@ -190,7 +190,7 @@ ConfigSectionTrackerClient
     gridData = new GridData();
     gridData.horizontalSpan = 2;
   
-    new BooleanParameter(gMainTab, "Tracker Key Enable Client", true,
+    new BooleanParameter(gMainTab, "Tracker Key Enable Client",
                          "ConfigView.section.tracker.enablekey").setLayoutData(gridData);
 
     label = new Label(gMainTab, SWT.NULL);
@@ -201,7 +201,7 @@ ConfigSectionTrackerClient
     gridData = new GridData();
     gridData.horizontalSpan = 2;
  
-    new BooleanParameter(gMainTab, "Tracker Separate Peer IDs", false,
+    new BooleanParameter(gMainTab, "Tracker Separate Peer IDs",
                          "ConfigView.section.tracker.separatepeerids").setLayoutData(gridData);
   
     label = new Label(gMainTab, SWT.WRAP);

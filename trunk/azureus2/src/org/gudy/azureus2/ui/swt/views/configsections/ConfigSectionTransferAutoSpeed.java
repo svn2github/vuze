@@ -108,7 +108,7 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 		max_upload.setLayoutData(gridData);
 		
 		BooleanParameter enable_au = new BooleanParameter(
-				cSection, "Auto Upload Speed Enabled", false,
+				cSection, "Auto Upload Speed Enabled",
 				CFG_PREFIX + "enableauto" );
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
@@ -116,7 +116,7 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 
 		
 		BooleanParameter enable_au_seeding = new BooleanParameter(
-				cSection, "Auto Upload Speed Seeding Enabled", false,
+				cSection, "Auto Upload Speed Seeding Enabled",
 				CFG_PREFIX + "enableautoseeding" );
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
@@ -128,7 +128,7 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 		if ( userMode > 0 ){
 			
 			BooleanParameter enable_down_adj = new BooleanParameter(
-					cSection, "AutoSpeed Download Adj Enable", false,
+					cSection, "AutoSpeed Download Adj Enable",
 					CFG_PREFIX + "enabledownadj" );
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
@@ -216,7 +216,7 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 				    });
 		    
 			BooleanParameter debug_au = new BooleanParameter(
-					cSection, "Auto Upload Speed Debug Enabled", false,
+					cSection, "Auto Upload Speed Debug Enabled",
 					CFG_PREFIX + "enabledebug" );
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;

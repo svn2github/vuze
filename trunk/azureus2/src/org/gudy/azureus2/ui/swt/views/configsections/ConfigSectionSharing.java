@@ -79,7 +79,7 @@ public class ConfigSectionSharing implements UISWTConfigSection {
 	GridData grid_data = new GridData();
 	grid_data.horizontalSpan = 2;
 	BooleanParameter private_torrent = 
-		new BooleanParameter(gSharing, 	"Sharing Torrent Private", false, 
+		new BooleanParameter(gSharing, 	"Sharing Torrent Private", 
                          			"ConfigView.section.sharing.privatetorrent");
 	private_torrent.setLayoutData(grid_data);
 	
@@ -88,7 +88,7 @@ public class ConfigSectionSharing implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalSpan = 2;
 	final BooleanParameter permit_dht = 
-		new BooleanParameter(gSharing, "Sharing Permit DHT", true, 
+		new BooleanParameter(gSharing, "Sharing Permit DHT", 
                          "ConfigView.section.sharing.permitdht");
 	permit_dht.setLayoutData( gridData );
 
@@ -97,7 +97,7 @@ public class ConfigSectionSharing implements UISWTConfigSection {
     	// row
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    new BooleanParameter(gSharing, "Sharing Add Hashes", false, 
+    new BooleanParameter(gSharing, "Sharing Add Hashes", 
                          "wizard.createtorrent.extrahashes").setLayoutData( gridData );
     
 
@@ -105,7 +105,7 @@ public class ConfigSectionSharing implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     BooleanParameter rescan_enable = 
-    	new BooleanParameter(gSharing, "Sharing Rescan Enable", false, 
+    	new BooleanParameter(gSharing, "Sharing Rescan Enable", 
     						"ConfigView.section.sharing.rescanenable");
     
 	rescan_enable.setLayoutData( gridData );
@@ -119,7 +119,7 @@ public class ConfigSectionSharing implements UISWTConfigSection {
 
     gridData = new GridData();
     gridData.widthHint = 30;
-	IntParameter rescan_period = new IntParameter(gSharing, "Sharing Rescan Period", 60 );
+	IntParameter rescan_period = new IntParameter(gSharing, "Sharing Rescan Period");
     rescan_period.setMinimumValue(1);
     rescan_period.setLayoutData( gridData );
     
