@@ -67,7 +67,10 @@ DownloadManagerImpl
 {
 	private final static long SCRAPE_DELAY_ERROR_TORRENTS = 1000 * 60 * 60 * 2;// 2 hrs
 	private final static long SCRAPE_DELAY_STOPPED_TORRENTS = 1000 * 60 * 60;  // 1 hr
-	
+
+	private final static long SCRAPE_INITDELAY_ERROR_TORRENTS = 1000 * 60 * 10;
+	private final static long SCRAPE_INITDELAY_STOPPED_TORRENTS = 1000 * 60 * 3;
+
 	private static int	upload_when_busy_min_secs;
 	
 	static{
@@ -1854,6 +1857,30 @@ DownloadManagerImpl
 						response.setNextScrapeStartTime(minNextScrape);
 					}
 				}
+			} else if (response.getStatus() == TRTrackerScraperResponse.ST_INITIALIZING) {
+				long minNextScrape;
+				int state = getState();
+				if (state == STATE_ERROR || state == STATE_STOPPED) {
+					// Delay initial scrape if torrent is stopped or in error.
+					// Save excessive thread creation (by the scraper) and spreads out
+					// CPU usage at startup time
+					minNextScrape = SystemTime.getCurrentTime()
+							+ (state == STATE_ERROR ? SCRAPE_INITDELAY_ERROR_TORRENTS
+									: SCRAPE_INITDELAY_STOPPED_TORRENTS);
+				} else {
+					// Spread the scrapes out a bit.  This is extremely helpfull on large
+					// torrent lists, and trackers that do not support multi-scrapes.
+					// For trackers that do support multi-scrapes, it will really delay
+					// the scrape for all torrent in the tracker to the one that has
+					// the lowest share ratio.
+					int sr = getStats().getShareRatio();
+					minNextScrape = SystemTime.getCurrentTime()
+							+ ((sr > 10000 ? 10000 : sr + 1000) * 60);
+				}
+
+				if (response.getNextScrapeStartTime() < minNextScrape) {
+					response.setNextScrapeStartTime(minNextScrape);
+				}
 			}
 			
 			// Need to notify listeners, even if scrape result is not valid, in
@@ -2144,6 +2171,9 @@ DownloadManagerImpl
 		}
 	}
 	
+	/**
+	 * Doesn't not inform if state didn't change from last inform call
+	 */
 	protected void
 	informStateChanged()
 	{
@@ -2476,6 +2506,11 @@ DownloadManagerImpl
 	  /**
 	   * Is called when a download is finished.
 	   * Activates alerts for the user.
+	   *
+	   * @param never_downloaded true indicates that we never actually downloaded
+	   *                         anything in this session, but we determined that
+	   *                         the download is complete (usually via
+	   *                         startDownload())
 	   *
 	   * @author Rene Leonhardt
 	   */
