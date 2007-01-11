@@ -22,7 +22,6 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -32,7 +31,6 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.components.Legend;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.tableitems.pieces.*;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 

@@ -29,7 +29,6 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 /**
  * @author Olivier Chalouhi

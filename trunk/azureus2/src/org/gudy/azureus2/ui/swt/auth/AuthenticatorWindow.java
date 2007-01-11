@@ -44,7 +44,6 @@ import org.gudy.azureus2.core3.security.*;
 
 import org.bouncycastle.util.encoders.Base64;
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 public class 

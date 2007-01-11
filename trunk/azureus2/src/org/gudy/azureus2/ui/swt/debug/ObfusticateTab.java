@@ -19,9 +19,6 @@
  */
 package org.gudy.azureus2.ui.swt.debug;
 
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-
 /**
  * @author TuxPaper
  * @created May 28, 2006
