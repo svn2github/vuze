@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelectorFactory;

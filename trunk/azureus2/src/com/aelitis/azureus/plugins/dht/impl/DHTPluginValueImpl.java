@@ -23,8 +23,6 @@
 package com.aelitis.azureus.plugins.dht.impl;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
-import com.aelitis.azureus.plugins.dht.DHTPlugin;
-import com.aelitis.azureus.plugins.dht.DHTPluginKeyStats;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 
 

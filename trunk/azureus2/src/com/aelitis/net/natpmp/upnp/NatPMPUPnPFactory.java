@@ -26,7 +26,6 @@ import com.aelitis.net.natpmp.NatPMPDevice;
 import com.aelitis.net.natpmp.upnp.impl.NatPMPUPnPImpl;
 import com.aelitis.net.upnp.UPnP;
 import com.aelitis.net.upnp.UPnPException;
-import com.aelitis.net.upnp.UPnPRootDevice;
 
 public class 
 NatPMPUPnPFactory 

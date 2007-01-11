@@ -28,7 +28,6 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessage;
 
 
 

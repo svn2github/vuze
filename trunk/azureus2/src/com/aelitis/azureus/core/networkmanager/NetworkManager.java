@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.config.*;

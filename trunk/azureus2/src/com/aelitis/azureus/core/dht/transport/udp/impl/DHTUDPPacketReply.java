@@ -26,13 +26,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.gudy.azureus2.core3.util.Debug;
-
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 import com.aelitis.azureus.core.dht.netcoords.*;
-import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.VivaldiPosition;
 import com.aelitis.net.udp.uc.PRUDPPacketReply;
 
 /**

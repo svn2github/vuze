@@ -39,13 +39,10 @@ import java.net.InetSocketAddress;
 import java.security.KeyFactory;
 import java.security.Signature;
 import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.RSAPrivateKeySpec;
-import java.security.spec.RSAPublicKeySpec;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;

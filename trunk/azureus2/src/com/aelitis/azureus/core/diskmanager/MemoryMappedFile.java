@@ -27,7 +27,6 @@ import java.nio.*;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import java.security.*;
-import java.lang.reflect.Method;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;

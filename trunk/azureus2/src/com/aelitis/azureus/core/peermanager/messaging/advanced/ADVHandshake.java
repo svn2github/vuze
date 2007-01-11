@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.peermanager.messaging.advanced;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 
 

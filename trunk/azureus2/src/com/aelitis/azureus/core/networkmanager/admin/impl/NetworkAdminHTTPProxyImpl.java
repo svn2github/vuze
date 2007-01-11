@@ -28,7 +28,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core3.util.AESemaphore;

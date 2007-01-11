@@ -22,8 +22,6 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
-import java.util.Iterator;
-
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
