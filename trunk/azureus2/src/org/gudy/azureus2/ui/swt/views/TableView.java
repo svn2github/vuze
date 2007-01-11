@@ -1501,7 +1501,15 @@ public class TableView
 			view.refresh();
 	}
 
-  public void refreshTable(boolean bForceSort) {
+  public void refreshTable(final boolean bForceSort) {
+  	Utils.execSWTThread(new AERunnable() {
+  		public void runSupport() {
+  			_refreshTable(bForceSort);
+  		}
+  	});
+  }
+
+  private void _refreshTable(boolean bForceSort) {
   	// don't refresh while there's no table
   	if (table == null)
   		return;
