@@ -54,6 +54,7 @@ DiskManagerUtil
 	public static boolean
 	checkBlockConsistency(
 		DiskManager	dm,
+		String		originator,
 		int 		pieceNumber,
 		int 		offset,
 		int 		length)
@@ -61,25 +62,25 @@ DiskManagerUtil
 		if (length > max_read_block_size) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: length=" + length + " > " + max_read_block_size));
+						"CHECKBLOCK2: " + originator + " length=" + length + " > " + max_read_block_size));
 			return false;
 		}
 		if (length <= 0 ) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: length=" + length + " <= 0"));
+						"CHECKBLOCK2: " + originator + " length=" + length + " <= 0"));
 			return false;
 		}
 		if (pieceNumber < 0) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " < 0"));
+						"CHECKBLOCK2: " + originator + " pieceNumber=" + pieceNumber + " < 0"));
 			return false;
 		}
 		if (pieceNumber >= dm.getNbPieces()) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " >= this.nbPieces="
+						"CHECKBLOCK2: " + originator + " pieceNumber=" + pieceNumber + " >= this.nbPieces="
 						+ dm.getNbPieces()));
 			return false;
 		}
@@ -89,26 +90,26 @@ DiskManagerUtil
 		if (offset < 0) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: offset=" + offset + " < 0"));
+						"CHECKBLOCK2: " + originator + " offset=" + offset + " < 0"));
 			return false;
 		}
 		if (offset > pLength) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: offset=" + offset + " > pLength=" + pLength));
+						"CHECKBLOCK2: " + originator + " offset=" + offset + " > pLength=" + pLength));
 			return false;
 		}
 		if (offset + length > pLength) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: offset=" + offset + " + length=" + length
+						"CHECKBLOCK2: " + originator + " offset=" + offset + " + length=" + length
 						+ " > pLength=" + pLength));
 			return false;
 		}
 
 		if(!dm.getPiece(pieceNumber).isDone()) {
 			Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-					"CHECKBLOCK2: piece #" + pieceNumber + " not done"));
+					"CHECKBLOCK2: " + originator + " piece #" + pieceNumber + " not done"));
 			return false;
 		}
 		

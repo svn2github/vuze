@@ -23,13 +23,10 @@
 package org.gudy.azureus2.core3.disk.impl.piecemapper.impl;
 
 import java.io.*;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
-import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapper;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapperFile;
@@ -50,9 +47,6 @@ PieceMapperImpl
 {
 	private TOTorrent			torrent;
 	
-	private long 			total_length;
-	private int				piece_count;
-	private int				piece_length;
 	private int				last_piece_length;
 	
 	protected ArrayList btFileList = new ArrayList();
@@ -64,11 +58,11 @@ PieceMapperImpl
 	{
 		torrent 		= _torrent;
 		
-		piece_length	= (int)torrent.getPieceLength();
+		int piece_length	= (int)torrent.getPieceLength();
 		
-		piece_count		= torrent.getNumberOfPieces();
+		int piece_count		= torrent.getNumberOfPieces();
 		
-		total_length	= torrent.getSize();
+		long total_length	= torrent.getSize();
 		
 		last_piece_length  	= (int) (total_length - ((long) (piece_count - 1) * (long)piece_length));
 	}
@@ -181,6 +175,12 @@ PieceMapperImpl
 	public DMPieceList[] 
 	getPieceMap()
 	{
+		int piece_length	= (int)torrent.getPieceLength();
+		
+		int piece_count		= torrent.getNumberOfPieces();
+		
+		long total_length	= torrent.getSize();
+
 		DMPieceList[]	pieceMap = new DMPieceList[piece_count];
 
 
@@ -267,6 +267,8 @@ PieceMapperImpl
 		int currentFile, 
 		long fileOffset )
 	{
+		int piece_length	= (int)torrent.getPieceLength();
+	
 		ArrayList pieceToFileList = new ArrayList();
 		int usedSpace = 0;
 		while (last_piece_length > usedSpace) {
@@ -309,7 +311,7 @@ PieceMapperImpl
 	public long
 	getTotalLength()
 	{
-		return( total_length );
+		return( torrent.getSize());
 	}
 
 	public int

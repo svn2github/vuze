@@ -1729,11 +1729,12 @@ PEPeerControlImpl
 
 	public boolean 
 	validateReadRequest(
-		int pieceNumber, 
-		int offset, 
-		int length) 
+		PEPeerTransport	originator,
+		int				pieceNumber, 
+		int 			offset, 
+		int 			length) 
 	{
-		if ( disk_mgr.checkBlockConsistency(pieceNumber, offset, length)){
+		if ( disk_mgr.checkBlockConsistency(originator.getIp(),pieceNumber, offset, length)){
 			
 			if ( enable_seeding_piece_rechecks && isSeeding()){
 				

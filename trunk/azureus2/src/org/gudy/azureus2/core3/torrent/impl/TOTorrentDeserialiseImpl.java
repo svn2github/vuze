@@ -459,6 +459,16 @@ TOTorrentDeserialiseImpl
 			}
 		
 			setName((byte[])info.get( TK_NAME ));
+				
+			long	piece_length = ((Long)info.get( TK_PIECE_LENGTH )).longValue();
+			
+			if ( piece_length <= 0 ){
+				
+				throw( new TOTorrentException( "Decode fails, piece-length is invalid",
+						TOTorrentException.RT_DECODE_FAILS ));
+			}
+			
+			setPieceLength( piece_length );
 						
 			setHashFromInfo( info );
 			
@@ -472,7 +482,7 @@ TOTorrentDeserialiseImpl
 				
 				total_length = simple_file_length.longValue();
 				
-				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, total_length, new byte[][]{getName()})});
+				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, 0, total_length, new byte[][]{getName()})});
 				
 			}else{
 				
@@ -488,8 +498,6 @@ TOTorrentDeserialiseImpl
 					
 					long	len = ((Long)file_map.get( TK_LENGTH )).longValue();
 					
-					total_length += len;
-					
 					List	paths = (List)file_map.get( TK_PATH );
 						
 					byte[][]	path_comps = new byte[paths.size()][];
@@ -499,7 +507,9 @@ TOTorrentDeserialiseImpl
 						path_comps[j] = (byte[])paths.get(j);
 					}
 					
-					TOTorrentFileImpl file = files[i] = new TOTorrentFileImpl( this, len, path_comps );
+					TOTorrentFileImpl file = files[i] = new TOTorrentFileImpl( this, total_length, len, path_comps );
+					
+					total_length += len;
 					
 						// preserve any non-standard attributes
 						
@@ -523,16 +533,6 @@ TOTorrentDeserialiseImpl
 				setFiles( files );
 			}
 							
-			long	piece_length = ((Long)info.get( TK_PIECE_LENGTH )).longValue();
-			
-			if ( piece_length <= 0 ){
-				
-				throw( new TOTorrentException( "Decode fails, piece-length is invalid",
-						TOTorrentException.RT_DECODE_FAILS ));
-			}
-			
-			setPieceLength( piece_length );
-						
 			byte[]	flat_pieces = (byte[])info.get( TK_PIECES );
 			
 				// work out how many pieces we require for the torrent

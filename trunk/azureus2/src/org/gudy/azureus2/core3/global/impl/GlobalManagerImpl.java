@@ -142,6 +142,8 @@ public class GlobalManagerImpl
 	
 	private Map		manager_map			= new HashMap();
 		
+	private GlobalMangerProgressListener	progress_listener;
+	
 	private Checker checker;
 	private GlobalManagerStatsImpl		stats;
     private long last_swarm_stats_calc_time		= 0;
@@ -301,12 +303,14 @@ public class GlobalManagerImpl
 
   public 
   GlobalManagerImpl(
-	AzureusCore		core,
-	final	GlobalMangerProgressListener listener,
-  	long existingTorrentLoadDelay)
+	AzureusCore						core,
+	GlobalMangerProgressListener 	listener,
+  	long 							existingTorrentLoadDelay)
   {
     //Debug.dumpThreadsLoop("Active threads");
   	
+	progress_listener = listener;
+	
   	AEDiagnostics.addEvidenceGenerator( this );
 	
     stats = new GlobalManagerStatsImpl( this );
@@ -326,17 +330,18 @@ public class GlobalManagerImpl
 			loadTorrentsDelay = new DelayedEvent("GM:tld", existingTorrentLoadDelay,
 					new AERunnable() {
 						public void runSupport() {
-							loadExistingTorrentsNow(listener, false); // already async
+							loadExistingTorrentsNow(false); // already async
 						}
 					});
 		} else {
 			// run sync
-			loadDownloads(listener);
+			loadDownloads();
 		}
 
-    if (listener != null)
-      listener.reportCurrentTask(MessageText.getString("splash.initializeGM"));
-
+    if (progress_listener != null){
+    	progress_listener.reportCurrentTask(MessageText.getString("splash.initializeGM"));
+    }
+    
     // Initialize scraper after loadDownloads so that we can merge scrapes
     // into one request per tracker
     trackerScraper = TRTrackerScraperFactory.getSingleton();
@@ -510,8 +515,7 @@ public class GlobalManagerImpl
     	});
   }
   
-  public void loadExistingTorrentsNow(final GlobalMangerProgressListener listener,
-			boolean async)
+  public void loadExistingTorrentsNow(boolean async)
 	{
 		if (loadTorrentsDelay == null) {
 			return;
@@ -522,13 +526,13 @@ public class GlobalManagerImpl
 		if (async) {
 			AEThread thread = new AEThread("load torrents", true) {
 				public void runSupport() {
-					loadDownloads(listener);
+					loadDownloads();
 				}
 			};
 			thread.setPriority(3);
 			thread.start();
 		} else {
-			loadDownloads(listener);
+			loadDownloads();
 		}
 	}
 
@@ -686,7 +690,7 @@ public class GlobalManagerImpl
    {
     if (!isStopping) {
     	// make sure we have existing ones loaded so that existing check works
-    	loadExistingTorrentsNow(null, false);
+    	loadExistingTorrentsNow(false);
 
       try{
       	managers_mon.enter();
@@ -1172,9 +1176,37 @@ public class GlobalManagerImpl
   }
   
   protected void stopAllDownloads(boolean for_close ) {
-    for (Iterator iter = managers_cow.iterator(); iter.hasNext();) {
-      DownloadManager manager = (DownloadManager) iter.next();
+	  
+	if ( for_close ){	
+		if (progress_listener != null){
+			  progress_listener.reportCurrentTask(MessageText.getString("splash.unloadingTorrents"));
+		}
+	}
+	
+	long	lastListenerUpdate = 0;
+	
+	List	managers = managers_cow;
+	
+	int nbDownloads = managers.size();
+	
+    for ( int i=0;i<nbDownloads;i++){
+    	
+      DownloadManager manager = (DownloadManager)managers.get(i);
       
+      long	now = SystemTime.getCurrentTime();
+      
+	  if(progress_listener != null &&  SystemTime.getCurrentTime() - lastListenerUpdate > 100) {
+		  lastListenerUpdate = SystemTime.getCurrentTime();
+
+		  int	currentDownload = i+1;
+		  
+		  progress_listener.reportPercent(100 * currentDownload / nbDownloads);
+		  progress_listener.reportCurrentTask(MessageText.getString("splash.unloadingTorrent") 
+				  + " " + currentDownload + " "
+				  + MessageText.getString("splash.of") + " " + nbDownloads
+				  + " : " + manager.getTorrentFileName());
+	  }
+	  
       int state = manager.getState();
       
       if( state != DownloadManager.STATE_STOPPED &&
@@ -1465,7 +1497,7 @@ public class GlobalManagerImpl
   
   
   
-  private void loadDownloads(GlobalMangerProgressListener listener) 
+  private void loadDownloads() 
   {
 	  try{
 		  DownloadManagerStateFactory.loadGlobalStateCache();
@@ -1474,9 +1506,10 @@ public class GlobalManagerImpl
 		  ArrayList downloadsAdded = new ArrayList();
 		  long lastListenerUpdate = 0;
 		  try{
-			  if (listener != null)
-				  listener.reportCurrentTask(MessageText.getString("splash.loadingTorrents"));
-	
+			  if (progress_listener != null){
+				  progress_listener.reportCurrentTask(MessageText.getString("splash.loadingTorrents"));
+			  }
+			  
 			  Map map = FileUtil.readResilientConfigFile("downloads.config");
 	
 			  boolean debug = Boolean.getBoolean("debug");
@@ -1509,11 +1542,11 @@ public class GlobalManagerImpl
 	
 					  String fileName = new String((byte[]) mDownload.get("torrent"), Constants.DEFAULT_ENCODING);
 	
-					  if(listener != null &&  SystemTime.getCurrentTime() - lastListenerUpdate > 100) {
+					  if(progress_listener != null &&  SystemTime.getCurrentTime() - lastListenerUpdate > 100) {
 						  lastListenerUpdate = SystemTime.getCurrentTime();
 	
-						  listener.reportPercent(100 * currentDownload / nbDownloads);
-						  listener.reportCurrentTask(MessageText.getString("splash.loadingTorrent") 
+						  progress_listener.reportPercent(100 * currentDownload / nbDownloads);
+						  progress_listener.reportCurrentTask(MessageText.getString("splash.loadingTorrent") 
 								  + " " + currentDownload + " "
 								  + MessageText.getString("splash.of") + " " + nbDownloads
 								  + " : " + fileName );

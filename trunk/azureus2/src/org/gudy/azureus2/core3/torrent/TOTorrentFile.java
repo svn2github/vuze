@@ -34,4 +34,13 @@ TOTorrentFile
 	getPathComponents();
 	
 	public String getRelativePath();
+		
+	public int
+	getFirstPieceNumber();
+	
+	public int
+	getLastPieceNumber();
+	
+	public int
+	getNumberOfPieces();
 }

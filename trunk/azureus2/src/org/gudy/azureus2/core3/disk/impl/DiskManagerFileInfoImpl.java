@@ -51,8 +51,6 @@ DiskManagerFileInfoImpl
   
   private String 		extension;
   private long 			downloaded;
-  private int 			firstPieceNumber = -1;
-  private int 			nbPieces = 0;
   
   private DiskManagerHelper 	diskManager;
   private TOTorrentFile			torrent_file;
@@ -289,12 +287,12 @@ DiskManagerFileInfoImpl
    * @return
    */
   public int getFirstPieceNumber() {
-    return firstPieceNumber;
+    return torrent_file.getFirstPieceNumber();
   }
   
   
   public int getLastPieceNumber() {
-    return firstPieceNumber + nbPieces - 1;
+    return torrent_file.getLastPieceNumber();
   }
 
   /**
@@ -313,7 +311,7 @@ DiskManagerFileInfoImpl
    * @return
    */
   public int getNbPieces() {
-	return nbPieces;
+	return torrent_file.getNumberOfPieces();
   }
 
 
@@ -329,22 +327,6 @@ DiskManagerFileInfoImpl
    */
   public void setExtension(String string) {
 	extension = string;
-  }
-
-
-  /**
-   * @param i
-   */
-  public void setFirstPieceNumber(int i) {
-	firstPieceNumber = i;
-  }
-
-
-  /**
-   * @param i
-   */
-  public void setNbPieces(int i) {
-	nbPieces = i;
   }
 
   /**

@@ -61,6 +61,8 @@ DiskManagerImpl
     extends LogRelation
     implements DiskManagerHelper
 {
+	private static final int DM_FREE_PIECELIST_TIMEOUT	= 120*1000;
+	
     private static final LogIDs LOGID = LogIDs.DISK;
 
     private static DiskAccessController disk_access_controller;
@@ -129,7 +131,9 @@ DiskManagerImpl
     private DMPieceMapper           piece_mapper;
 
     private DiskManagerPieceImpl[]  pieces;
-    private DMPieceList[]           pieceMap;
+    
+	private DMPieceList[]			piece_map_use_accessor;
+	private long					piece_map_use_accessor_time;
 
     private DiskManagerFileInfoImpl[]   files;
     protected DownloadManager       download_manager;
@@ -419,10 +423,6 @@ DiskManagerImpl
             return;
         }
 
-        pieceMap = piece_mapper.getPieceMap();
-
-        constructFilesPieces();
-
         if ( getState() == FAULTY  ){
 
                 // bail out if broken in the meantime
@@ -438,6 +438,12 @@ DiskManagerImpl
 
             resume_handler.checkAllPieces(false);
 
+            	// unlikely to need piece list, force discard
+            
+            if ( getRemainingExcludingDND() == 0 ){
+            	
+            	checkFreePieceList( true );
+            }
         }else if ( newFiles != files.length ){
 
                 //  if not a fresh torrent, check pieces ignoring fast resume data
@@ -1100,13 +1106,11 @@ DiskManagerImpl
     {
         int piece_number =dmPiece.getPieceNumber();
         int piece_length =dmPiece.getLength();
-        DMPieceList piece_list =pieceMap[piece_number];
-
         try
         {
             file_piece_mon.enter();
 
-            if (dmPiece.isDone() !=done)
+            if (dmPiece.isDone() != done )
             {
                 dmPiece.setDoneSupport(done);
 
@@ -1114,6 +1118,8 @@ DiskManagerImpl
                     remaining -=piece_length;
                 else
                     remaining +=piece_length;
+
+                DMPieceList piece_list = getPieceList( piece_number );
 
                 for (int i =0; i <piece_list.size(); i++)
                 {
@@ -1252,24 +1258,6 @@ DiskManagerImpl
         return files;
     }
 
-
-    private void
-    constructFilesPieces()
-    {
-        for (int i = 0; i < pieceMap.length; i++) {
-            DMPieceList pieceList = pieceMap[i];
-            //for each piece
-
-            for (int j = 0; j < pieceList.size(); j++) {
-                //get the piece and the file
-                DiskManagerFileInfoImpl fileInfo = (pieceList.get(j)).getFile();
-                if (fileInfo.getFirstPieceNumber() == -1)
-                    fileInfo.setFirstPieceNumber(i);
-                fileInfo.setNbPieces(fileInfo.getNbPieces() + 1);
-            }
-        }
-    }
-
     public String getErrorMessage() {
         return errorMessage;
     }
@@ -1335,11 +1323,54 @@ DiskManagerImpl
 
     }
 
-    public DMPieceList getPieceList(int piece_number)
-    {
-        return (pieceMap[piece_number]);
-    }
+	public DMPieceList
+	getPieceList(
+		int	piece_number )
+	{
+		DMPieceList[]	list = piece_map_use_accessor;
+		
+		if ( list == null ){
+				
+			// System.out.println( "Creating piece list for " + new String( torrent.getName()));
+			
+			piece_map_use_accessor = list = piece_mapper.getPieceMap();			
+		}
+		
+		piece_map_use_accessor_time = SystemTime.getCurrentTime();
 
+		return( list[piece_number] );
+	}
+		
+	public void
+	checkFreePieceList(
+		boolean	force_discard )
+	{
+		if ( piece_map_use_accessor == null ){
+			
+			return;
+		}
+		
+		long now = SystemTime.getCurrentTime();
+		
+		if ( !force_discard ){
+			
+			if ( now < piece_map_use_accessor_time ){
+				
+				piece_map_use_accessor_time	= now;
+				
+				return;
+				
+			}else if ( now - piece_map_use_accessor_time < DM_FREE_PIECELIST_TIMEOUT ){
+					
+				return;
+			}
+		}
+		
+		// System.out.println( "Discarding piece list for " + new String( torrent.getName()));
+		
+		piece_map_use_accessor = null;
+	}
+	
     public byte[]
     getPieceHash(
         int piece_number )
@@ -1476,11 +1507,12 @@ DiskManagerImpl
     
 	public boolean
 	checkBlockConsistency(
-	    int pieceNumber,
-	    int offset,
-	    int length )
+		String	originator,
+	    int 	pieceNumber,
+	    int 	offset,
+	    int 	length )
 	{
-		return( DiskManagerUtil.checkBlockConsistency(this,pieceNumber, offset, length));
+		return( DiskManagerUtil.checkBlockConsistency(this, originator, pieceNumber, offset, length));
 	}
 	
     public void
@@ -2263,6 +2295,8 @@ DiskManagerImpl
 
         storeFilePriorities();
     }
+      
+      checkFreePieceList( false );
   }
 
   public DownloadManager getDownloadManager() {
@@ -2436,7 +2470,6 @@ DiskManagerImpl
             TOTorrentFile[] torrent_files = torrent.getFiles();
 
             long    piece_size  = torrent.getPieceLength();
-            long    size_so_far = 0;
 
             final DiskManagerFileInfoHelper[]   res = new DiskManagerFileInfoHelper[ torrent_files.length ];
 
@@ -2448,15 +2481,9 @@ DiskManagerImpl
 
                 long    file_length = torrent_file.getLength();
 
-                final int   first_piece = (int)(size_so_far/piece_size);
-
-                size_so_far += file_length;
-
-                final int   last_piece  = (int)((size_so_far-1)/piece_size);
-
                 String  path_str = root_dir + File.separator;
 
-                    // for a simple torrent the target file can be changed
+                     // for a simple torrent the target file can be changed
 
                 if ( torrent.isSimpleTorrent()){
 
@@ -2553,13 +2580,13 @@ DiskManagerImpl
                         public int
                         getFirstPieceNumber()
                         {
-                            return( first_piece );
+                            return( torrent_file.getFirstPieceNumber());
                         }
 
                         public int
                         getLastPieceNumber()
                         {
-                            return( last_piece );
+                            return( torrent_file.getLastPieceNumber());
                         }
 
                         public long
@@ -2577,7 +2604,7 @@ DiskManagerImpl
                         public int
                         getNbPieces()
                         {
-                            return( last_piece - first_piece + 1 );
+                            return( torrent_file.getNumberOfPieces());
                         }
 
                         public boolean

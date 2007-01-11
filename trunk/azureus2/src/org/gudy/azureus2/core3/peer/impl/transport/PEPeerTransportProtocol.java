@@ -1771,7 +1771,7 @@ PEPeerTransportProtocol
     final int length = request.getLength();
     request.destroy();  
     
-    if( !manager.validateReadRequest( number, offset, length ) ) {
+    if( !manager.validateReadRequest( this, number, offset, length ) ) {
       closeConnectionInternally( "request for piece #" + number + ":" + offset + "->" + (offset + length -1) + " is an invalid request" );
       return;
     }

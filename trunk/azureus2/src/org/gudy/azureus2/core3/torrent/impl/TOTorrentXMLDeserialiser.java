@@ -197,7 +197,9 @@ TOTorrentXMLDeserialiser
 			
 		byte[]	torrent_name 	= null;
 		long	torrent_length	= 0;
-					
+				
+		SimpleXMLParserDocumentNode[] file_nodes	= null;
+
 		for (int i=0;i<kids.length;i++){
 			
 			SimpleXMLParserDocumentNode	kid = kids[i];
@@ -222,70 +224,8 @@ TOTorrentXMLDeserialiser
 				
 				torrent.setSimpleTorrent( false );
 				
-				SimpleXMLParserDocumentNode[] file_nodes = kid.getChildren();
-				
-				TOTorrentFileImpl[]	files = new TOTorrentFileImpl[ file_nodes.length ];
-				
-				for (int j=0;j<files.length;j++){
+				file_nodes = kid.getChildren();
 					
-					SimpleXMLParserDocumentNode	file_node = file_nodes[j];
-					
-					SimpleXMLParserDocumentNode[]	file_entries = file_node.getChildren();
-					
-					long		file_length	= 0;
-					
-					boolean		length_entry_found	= false;
-					
-					byte[][]	path_comps	= null;
-					
-					Vector	additional_props	= new Vector();
-					
-					for ( int k=0;k<file_entries.length;k++){
-						
-						SimpleXMLParserDocumentNode	file_entry = file_entries[k];
-						
-						String	entry_name = file_entry.getName();
-						
-						if ( entry_name.equalsIgnoreCase( "LENGTH" )){
-					
-							file_length = readGenericLong(file_entry).longValue();
-					
-							length_entry_found = true;
-							
-						}else if ( entry_name.equalsIgnoreCase( "PATH" )){
-							
-							SimpleXMLParserDocumentNode[]	path_nodes = file_entry.getChildren();
-							
-							path_comps = new byte[path_nodes.length][];
-							
-							for (int n=0;n<path_nodes.length;n++){
-								
-								path_comps[n] = readLocalisableString( path_nodes[n] );
-							}
-						}else{
-							
-							additional_props.addElement( readGenericMapEntry( file_entry ));
-						}
-					}
-					
-					if ( (!length_entry_found) || path_comps == null ){
-
-						throw( new TOTorrentException( "FILE element invalid (file length = " + file_length + ")", TOTorrentException.RT_DECODE_FAILS));
-					
-					}
-					files[j] = new TOTorrentFileImpl( torrent, file_length, path_comps );
-					
-					for (int k=0;k<additional_props.size();k++){
-						
-						mapEntry	entry = (mapEntry)additional_props.elementAt(k);
-						
-						files[j].setAdditionalProperty( entry.name, entry.value );
-					}
-					
-				}
-				
-				torrent.setFiles( files );
-				
 			}else if ( name.equalsIgnoreCase( "PIECES" )){
 	
 				SimpleXMLParserDocumentNode[]	piece_nodes = kid.getChildren();
@@ -298,6 +238,7 @@ TOTorrentXMLDeserialiser
 				}
 				
 				torrent.setPieces( pieces );
+				
 			}else{
 				
 				mapEntry entry = readGenericMapEntry( kid );
@@ -311,8 +252,77 @@ TOTorrentXMLDeserialiser
 			torrent.setFiles( 
 				new TOTorrentFileImpl[]{ 
 						new TOTorrentFileImpl( 	torrent, 
+												0,
 												torrent_length,
 												new byte[][]{ torrent.getName()})});
+		}else{
+			
+			TOTorrentFileImpl[]	files = new TOTorrentFileImpl[ file_nodes.length ];
+			
+			long	offset = 0;
+			
+			for (int j=0;j<files.length;j++){
+				
+				SimpleXMLParserDocumentNode	file_node = file_nodes[j];
+				
+				SimpleXMLParserDocumentNode[]	file_entries = file_node.getChildren();
+				
+				long		file_length	= 0;
+				
+				boolean		length_entry_found	= false;
+				
+				byte[][]	path_comps	= null;
+				
+				Vector	additional_props	= new Vector();
+				
+				for ( int k=0;k<file_entries.length;k++){
+					
+					SimpleXMLParserDocumentNode	file_entry = file_entries[k];
+					
+					String	entry_name = file_entry.getName();
+					
+					if ( entry_name.equalsIgnoreCase( "LENGTH" )){
+				
+						file_length = readGenericLong(file_entry).longValue();
+				
+						length_entry_found = true;
+						
+					}else if ( entry_name.equalsIgnoreCase( "PATH" )){
+						
+						SimpleXMLParserDocumentNode[]	path_nodes = file_entry.getChildren();
+						
+						path_comps = new byte[path_nodes.length][];
+						
+						for (int n=0;n<path_nodes.length;n++){
+							
+							path_comps[n] = readLocalisableString( path_nodes[n] );
+						}
+					}else{
+						
+						additional_props.addElement( readGenericMapEntry( file_entry ));
+					}
+				}
+				
+				if ( (!length_entry_found) || path_comps == null ){
+
+					throw( new TOTorrentException( "FILE element invalid (file length = " + file_length + ")", TOTorrentException.RT_DECODE_FAILS));
+				
+				}
+				
+				files[j] = new TOTorrentFileImpl( torrent, offset, file_length, path_comps );
+				
+				offset += file_length;
+				
+				for (int k=0;k<additional_props.size();k++){
+					
+					mapEntry	entry = (mapEntry)additional_props.elementAt(k);
+					
+					files[j].setAdditionalProperty( entry.name, entry.value );
+				}
+				
+			}
+			
+			torrent.setFiles( files );
 		}
 	}
 	

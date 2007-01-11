@@ -233,9 +233,10 @@ DiskManager
 	
 	public boolean 
 	checkBlockConsistency(
-		int pieceNumber, 
-		int offset, 
-		int length );
+		String	originator,
+		int 	pieceNumber, 
+		int	 	offset, 
+		int 	length );
 		
    
 	public TOTorrent

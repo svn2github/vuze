@@ -633,23 +633,12 @@ DirectByteBuffer
 	returnToPool() 
 	{				
 		if ( pool != null ){
-			
-			if ( DirectByteBufferPool.DEBUG_TRACK_HANDEDOUT ){
 				
-				synchronized( this ){
-					
-					if ( buffer == null ){
-						
-						Debug.out( "Buffer already returned to pool");
-						
-					}else{
-		    	
-						pool.returnBuffer( this );
-						
-						buffer	= null;
-					}
-				}
-			}else{
+				// we can't afford to return a buffer more than once to the pool as it'll get
+				// handed out twice in parallel and cause weird problems. We haven't been able
+				// to totally eliminiate duplicate returnToPool calls....
+			
+			synchronized( this ){
 				
 				if ( buffer == null ){
 					
@@ -661,7 +650,6 @@ DirectByteBuffer
 					
 					buffer	= null;
 				}
-				
 			}
 		}
 	}

@@ -398,6 +398,8 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.perf.write.aggregate.request.limit", ZERO );
     def.put( "diskmanager.perf.write.aggregate.byte.limit", ZERO );
     def.put( "diskmanager.perf.checking.read.priority", FALSE );
+    def.put( "diskmanager.perf.queue.torrent.bias", TRUE );
+    
     def.put( "File.truncate.if.too.large", FALSE);
     def.put( "Enable System Tray", TRUE);
     def.put( "config.style.table.defaultSortOrder", ZERO);

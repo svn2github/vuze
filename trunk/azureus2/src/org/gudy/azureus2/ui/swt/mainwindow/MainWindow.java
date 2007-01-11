@@ -236,7 +236,7 @@ MainWindow
     		uiFunctions = new UIFunctionsImpl(this);
     	}
     	
-			globalManager.loadExistingTorrentsNow(null, true);
+			globalManager.loadExistingTorrentsNow(true);
        
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
     

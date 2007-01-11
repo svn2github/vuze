@@ -162,6 +162,9 @@ public class PeerManager implements AzureusCoreStatsProvider{
 	  Set	types = new HashSet();
 
 	  types.add( AzureusCoreStats.ST_PEER_MANAGER_COUNT );
+	  types.add( AzureusCoreStats.ST_PEER_MANAGER_PEER_COUNT );
+	  types.add( AzureusCoreStats.ST_PEER_MANAGER_PEER_SNUBBED_COUNT );
+	  types.add( AzureusCoreStats.ST_PEER_MANAGER_PEER_STALLED_DISK_COUNT );
 
 	  AzureusCoreStats.registerProvider( types, this );
 	  

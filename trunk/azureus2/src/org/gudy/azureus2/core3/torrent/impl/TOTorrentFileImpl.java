@@ -26,7 +26,6 @@ import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
-import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
@@ -35,29 +34,36 @@ public class
 TOTorrentFileImpl
 	implements TOTorrentFile
 {
-	protected TOTorrent	torrent;
-	protected long		file_length;
-	protected byte[][]	path_components;
+	private final TOTorrent	torrent;
+	private final long		file_length;
+	private final byte[][]	path_components;
 	
-	protected Map		additional_properties = new HashMap();
+	private final int		first_piece_number;
+	private final int		last_piece_number;
 	
-	protected boolean	is_utf8;
+	private final Map		additional_properties = new HashMap();
+	
+	private final boolean	is_utf8;
 
 	protected
 	TOTorrentFileImpl(
 		TOTorrent		_torrent,
+		long			_torrent_offset,
 		long			_len,
 		String			_path )
 		
 		throws TOTorrentException
 	{
-		torrent	= _torrent;
-		
+		torrent			= _torrent;
+		file_length		= _len;
+
+		first_piece_number 	= (int)( _torrent_offset / torrent.getPieceLength());
+		last_piece_number	= (int)(( _torrent_offset + file_length - 1 ) /  torrent.getPieceLength());
+
 		is_utf8	= true;
 		
 		try{
 			
-			file_length			= _len;
 			
 			Vector	temp = new Vector();
 			
@@ -95,6 +101,7 @@ TOTorrentFileImpl
 	protected
 	TOTorrentFileImpl(
 		TOTorrent		_torrent,
+		long			_torrent_offset,
 		long			_len,
 		byte[][]		_path_components )
 	
@@ -104,9 +111,14 @@ TOTorrentFileImpl
 		file_length			= _len;
 		path_components		= _path_components;
 		
+		first_piece_number 	= (int)( _torrent_offset / torrent.getPieceLength());
+		last_piece_number	= (int)(( _torrent_offset + file_length - 1 ) /  torrent.getPieceLength());
+
+		is_utf8				= false;
+		
 		checkComponents();
 	}
-	
+		
 	protected void
 	checkComponents()
 	
@@ -164,7 +176,25 @@ TOTorrentFileImpl
 	{
 		return( additional_properties );
 	}
-
+	
+	public int
+	getFirstPieceNumber()
+	{
+		return( first_piece_number );
+	}
+	
+	public int
+	getLastPieceNumber()
+	{
+		return( last_piece_number );
+	}
+	
+	public int
+	getNumberOfPieces()
+	{
+		return( getLastPieceNumber() - getFirstPieceNumber() + 1 );
+	}
+	
 	public String getRelativePath() {
 		if (torrent == null)
 			return "";
