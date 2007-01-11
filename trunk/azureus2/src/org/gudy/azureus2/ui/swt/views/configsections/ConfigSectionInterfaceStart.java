@@ -25,16 +25,16 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.ui.swt.config.BooleanParameter;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class ConfigSectionInterfaceStart implements UISWTConfigSection {
   public String configSectionGetParentSection() {
@@ -75,7 +75,7 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
     new BooleanParameter(cStart, "Open Config", false, "ConfigView.label.openconfig");
     new BooleanParameter(cStart, "Start Minimized", false, "ConfigView.label.startminimized");
     
-    if (Constants.compareVersions(Constants.AZUREUS_VERSION, "3.0.0.0") >= 0) {
+    if (COConfigurationManager.getStringParameter("ui").equals("az3")) {
 			new BooleanParameter(cStart, "v3.Start Advanced",
 					"ConfigView.interface.start.advanced");
 		}
