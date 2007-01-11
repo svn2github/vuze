@@ -70,9 +70,11 @@ public class UIConfigDefaultsSWTv3
 			config.save();
 		}
 
-		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0) {
-			ConfigurationDefaults defaults = ConfigurationDefaults.getInstance();
+		ConfigurationDefaults defaults = ConfigurationDefaults.getInstance();
 
+		defaults.addParameter("ui", "az3");
+
+		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0) {
 			defaults.addParameter("Auto Upload Speed Enabled", true);
 			defaults.addParameter("Wizard Completed", true);
 			defaults.addParameter("Use default data dir", true);
