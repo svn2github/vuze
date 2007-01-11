@@ -107,13 +107,13 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		gProxyTracker.setLayout(layout);
 		
 		final BooleanParameter enableProxy = new BooleanParameter(gProxyTracker,
-				"Enable.Proxy", false, CFG_PREFIX + "enable_proxy");
+				"Enable.Proxy", CFG_PREFIX + "enable_proxy");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		enableProxy.setLayoutData(gridData);
 
 		final BooleanParameter enableSocks = new BooleanParameter(gProxyTracker,
-				"Enable.SOCKS", false, CFG_PREFIX + "enable_socks");
+				"Enable.SOCKS", CFG_PREFIX + "enable_socks");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		enableSocks.setLayoutData(gridData);
@@ -158,13 +158,13 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		gProxyPeer.setLayout(layout);
 
 		final BooleanParameter enableSocksPeer = new BooleanParameter(gProxyPeer,
-				"Proxy.Data.Enable", false, CFG_PREFIX + "enable_socks.peer");
+				"Proxy.Data.Enable", CFG_PREFIX + "enable_socks.peer");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		enableSocksPeer.setLayoutData(gridData);
 
 		final BooleanParameter socksPeerInform = new BooleanParameter(gProxyPeer,
-				"Proxy.Data.SOCKS.inform", true, CFG_PREFIX + "peer.informtracker");
+				"Proxy.Data.SOCKS.inform", CFG_PREFIX + "peer.informtracker");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		socksPeerInform.setLayoutData(gridData);
@@ -182,7 +182,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 				"Proxy.Data.SOCKS.version", "V4", dropLabels, dropValues);
 
 		final BooleanParameter sameConfig = new BooleanParameter(gProxyPeer,
-				"Proxy.Data.Same", true, CFG_PREFIX + "peer.same");
+				"Proxy.Data.Same", CFG_PREFIX + "peer.same");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		sameConfig.setLayoutData(gridData);

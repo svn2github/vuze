@@ -113,7 +113,7 @@ public class ConfigSectionConnectionEncryption implements UISWTConfigSection {
 				+ "encrypt.info.link",
 				"http://azureus.aelitis.com/wiki/index.php/Avoid_traffic_shaping");
 		
-		final BooleanParameter require = new BooleanParameter(gCrypto,	"network.transport.encrypted.require", false, CFG_PREFIX + "require_encrypted_transport");
+		final BooleanParameter require = new BooleanParameter(gCrypto,	"network.transport.encrypted.require", CFG_PREFIX + "require_encrypted_transport");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		require.setLayoutData(gridData);
@@ -147,17 +147,17 @@ public class ConfigSectionConnectionEncryption implements UISWTConfigSection {
 		gridData.widthHint = 200;  // needed for wrap
 		lcryptofb.setLayoutData(gridData);
 
-		BooleanParameter fallback_outgoing = new BooleanParameter(gCrypto, "network.transport.encrypted.fallback.outgoing", false, CFG_PREFIX + "encrypt.fallback_outgoing");
+		BooleanParameter fallback_outgoing = new BooleanParameter(gCrypto, "network.transport.encrypted.fallback.outgoing", CFG_PREFIX + "encrypt.fallback_outgoing");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		fallback_outgoing.setLayoutData(gridData);
 		
-		BooleanParameter fallback_incoming = new BooleanParameter(gCrypto, "network.transport.encrypted.fallback.incoming", false, CFG_PREFIX + "encrypt.fallback_incoming");
+		BooleanParameter fallback_incoming = new BooleanParameter(gCrypto, "network.transport.encrypted.fallback.incoming", CFG_PREFIX + "encrypt.fallback_incoming");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		fallback_incoming.setLayoutData(gridData);
 		
-		BooleanParameter use_crypto_port = new BooleanParameter(gCrypto, "network.transport.encrypted.use.crypto.port", false, CFG_PREFIX + "use_crypto_port");
+		BooleanParameter use_crypto_port = new BooleanParameter(gCrypto, "network.transport.encrypted.use.crypto.port", CFG_PREFIX + "use_crypto_port");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		use_crypto_port.setLayoutData(gridData);
