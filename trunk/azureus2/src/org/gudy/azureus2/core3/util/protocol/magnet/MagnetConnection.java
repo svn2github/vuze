@@ -29,7 +29,6 @@ import java.net.Socket;
 import java.net.URL;
 
 
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.net.magneturi.MagnetURIHandler;

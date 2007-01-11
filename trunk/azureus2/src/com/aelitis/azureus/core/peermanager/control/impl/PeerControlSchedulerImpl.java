@@ -22,10 +22,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.SystemTime.consumer;
 
 import com.aelitis.azureus.core.peermanager.control.PeerControlInstance;
 import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;

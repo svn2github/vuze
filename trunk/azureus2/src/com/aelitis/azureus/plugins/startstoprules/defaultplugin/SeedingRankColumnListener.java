@@ -35,7 +35,6 @@ import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 
 /** A "My Torrents" column for displaying Seeding Rank.

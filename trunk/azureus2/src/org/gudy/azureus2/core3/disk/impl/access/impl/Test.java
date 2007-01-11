@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.download.impl.DownloadManagerDefaultPaths;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;

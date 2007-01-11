@@ -23,7 +23,6 @@ package org.gudy.azureus2.pluginsimpl.local.ui.tables;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
