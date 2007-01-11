@@ -1,6 +1,10 @@
 AZUREUS CHANGELOG
 -----------------
 
+2007.xx.xx | Azureus 2.5.0.3
+
+
+
 2007.01.10 | Azureus 2.5.0.2
 
 FEATURE: Core | Added method to XFS specific allocation of new files [Greg]
