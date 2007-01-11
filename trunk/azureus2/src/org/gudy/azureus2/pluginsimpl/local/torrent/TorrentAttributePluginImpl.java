@@ -27,10 +27,6 @@ package org.gudy.azureus2.pluginsimpl.local.torrent;
  *
  */
 
-import java.util.*;
-
-import org.gudy.azureus2.plugins.torrent.*;
-
 public class TorrentAttributePluginImpl extends BaseTorrentAttributeImpl {
 
 	private String	name;

@@ -27,15 +27,10 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourceuploader;
  *
  */
 
-import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.*;
 
 import org.gudy.azureus2.plugins.utils.resourceuploader.*;
-import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
-
-import org.gudy.azureus2.core3.logging.*;
 
 public class 
 ResourceUploaderFactoryImpl

@@ -22,14 +22,11 @@
 
 package org.gudy.azureus2.pluginsimpl.local.installer;
 
-import java.io.File;
 import java.util.Properties;
 
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.installer.FilePluginInstaller;
 import org.gudy.azureus2.plugins.installer.PluginInstaller;
-import org.gudy.azureus2.plugins.installer.StandardPlugin;
 
 /**
  * @author parg

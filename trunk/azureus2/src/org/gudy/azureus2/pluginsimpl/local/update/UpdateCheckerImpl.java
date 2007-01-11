@@ -27,7 +27,6 @@ package org.gudy.azureus2.pluginsimpl.local.update;
  *
  */
 
-import java.io.InputStream;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;

@@ -23,7 +23,6 @@
 package org.gudy.azureus2.pluginsimpl.local.utils.xml.rss;
 
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.Properties;
 
 import org.gudy.azureus2.core3.util.AEMonitor;

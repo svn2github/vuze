@@ -25,7 +25,6 @@ package org.gudy.azureus2.core3.util;
 import java.util.*;
 import java.io.*;
 import java.nio.*;
-import java.nio.charset.*;
 
 /**
  * A set of utility methods to decode a bencoded array of byte into a Map.

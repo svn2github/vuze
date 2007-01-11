@@ -29,7 +29,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.*;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 

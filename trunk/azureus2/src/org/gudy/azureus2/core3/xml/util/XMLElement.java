@@ -21,7 +21,6 @@
  */
 package org.gudy.azureus2.core3.xml.util;
 
-import org.gudy.azureus2.core3.util.Debug;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,7 +28,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Iterator;
-import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 

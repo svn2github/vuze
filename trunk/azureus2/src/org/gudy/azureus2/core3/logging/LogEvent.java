@@ -21,13 +21,6 @@ package org.gudy.azureus2.core3.logging;
 
 import java.util.Date;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-
-import com.aelitis.azureus.core.AzureusCoreFactory;
-
 /**
  * Container to hold Log Event information.
  * 

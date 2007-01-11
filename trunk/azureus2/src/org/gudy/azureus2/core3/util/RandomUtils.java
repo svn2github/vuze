@@ -25,9 +25,6 @@ import java.util.Random;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
-import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
-import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
-
 /**
  *	@author MjrTom
  *		2006/Jan/02:	added various methods, including some java.util.Random method aliases 
