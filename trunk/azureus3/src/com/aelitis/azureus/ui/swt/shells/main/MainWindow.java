@@ -401,19 +401,7 @@ public class MainWindow implements SWTSkinTabSetListener
 
 		GlobalManager globalManager = core.getGlobalManager();
 		if (globalManager != null) {
-			globalManager.loadExistingTorrentsNow(new GlobalMangerProgressListener() {
-
-				public void reportPercent(int percent) {
-					if (percent >= 100) {
-						System.out.println("load torrents (async) took "
-								+ (SystemTime.getCurrentTime() - lfStartTime) + "ms");
-					}
-				}
-
-				public void reportCurrentTask(String currentTask) {
-				}
-
-			}, true);
+			globalManager.loadExistingTorrentsNow(true);
 		}
 
 		showMainWindow();
