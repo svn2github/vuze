@@ -42,7 +42,6 @@ import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.pluginsimpl.remote.*;
-import org.gudy.azureus2.pluginsimpl.remote.rpexceptions.*;
 import org.gudy.azureus2.plugins.*;
 
 public class

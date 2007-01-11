@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIInputValidator;
-import org.gudy.azureus2.pluginsimpl.local.ui.AbstractUIInputReceiver;
 import org.gudy.azureus2.ui.swt.components.ControlUtils;
 import org.gudy.azureus2.ui.swt.pluginsimpl.AbstractUISWTInputReceiver;
 import org.eclipse.swt.widgets.MessageBox;

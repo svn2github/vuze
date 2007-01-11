@@ -31,7 +31,6 @@ import java.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ipfilter.*;
-import org.gudy.azureus2.pluginsimpl.remote.download.*;
 import org.gudy.azureus2.pluginsimpl.remote.rpexceptions.*;
 
 public class

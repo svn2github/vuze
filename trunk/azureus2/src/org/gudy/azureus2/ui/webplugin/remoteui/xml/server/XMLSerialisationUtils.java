@@ -22,12 +22,10 @@
 package org.gudy.azureus2.ui.webplugin.remoteui.xml.server;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.remote.GenericRPAttributes;
 import org.gudy.azureus2.pluginsimpl.remote.GenericRPObject;
 import org.gudy.azureus2.pluginsimpl.remote.GenericRPPluginInterface;
 import org.gudy.azureus2.pluginsimpl.remote.RPUtils;
-import org.gudy.azureus2.pluginsimpl.remote.RPException;
 import org.gudy.azureus2.pluginsimpl.remote.RPObject;
 import java.io.File;
 import java.net.URL;

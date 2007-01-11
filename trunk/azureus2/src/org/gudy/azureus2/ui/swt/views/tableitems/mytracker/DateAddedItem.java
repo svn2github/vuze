@@ -21,7 +21,6 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytracker;
 
 
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.tables.*;

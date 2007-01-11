@@ -34,7 +34,6 @@ import java.util.Iterator;
 import java.util.Map;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.pluginsimpl.remote.MethodSignature;
 import org.gudy.azureus2.pluginsimpl.remote.RPUtils;

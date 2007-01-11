@@ -22,7 +22,6 @@
 package org.gudy.azureus2.pluginsimpl.remote;
 
 import java.util.WeakHashMap;
-import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

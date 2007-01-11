@@ -38,7 +38,6 @@ import org.gudy.azureus2.plugins.torrent.*;
 
 import org.gudy.azureus2.pluginsimpl.remote.*;
 import org.gudy.azureus2.pluginsimpl.remote.disk.RPDiskManagerFileInfo;
-import org.gudy.azureus2.pluginsimpl.remote.ipfilter.RPIPRange;
 import org.gudy.azureus2.pluginsimpl.remote.torrent.*;
 
 
