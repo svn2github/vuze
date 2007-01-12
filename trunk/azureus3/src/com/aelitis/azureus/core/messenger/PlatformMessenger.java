@@ -124,7 +124,8 @@ public class PlatformMessenger
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.PMsgr");
 		diag_logger.log(string);
 		if (Constants.DIAG_TO_STDOUT) {
-			System.out.println(System.currentTimeMillis() + "] " + string);
+			System.out.println(Thread.currentThread().getName() + "|"
+					+ System.currentTimeMillis() + "] " + string);
 		}
 	}
 
@@ -190,7 +191,7 @@ public class PlatformMessenger
 		final String fURL = sURL;
 		final String fPostData = sPostData;
 
-		AEThread thread = new AEThread("v3.PlatformMessenger") {
+		AEThread thread = new AEThread("v3.PlatformMessenger", true) {
 			public void runSupport() {
 				try {
 					processQueueAsync(fURL, fPostData, mapProcessing);
@@ -225,7 +226,8 @@ public class PlatformMessenger
 		AzureusCore core = AzureusCoreFactory.getSingleton();
 		final PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
 
-		String s = new String(downloadURL(pi, url, sData));
+		byte[] bytes = downloadURL(pi, url, sData);
+		String s = new String(bytes, "UTF8");
 
 		// Format: <sequence no> ; <classification> [; <results>] [ \n ]
 
