@@ -63,10 +63,11 @@ public class Constants
 	
 	public static final String URL_POST_PLATFORM_DATA = "service=rpc";
 
-	// public static final String URL_BIG_BROWSE = "content/Browse.html";
-	public static final String URL_BIG_BROWSE = "content/BucketBrowse.html";
+	public static final String URL_BIG_BROWSE = "browse.start";
 
-	public static final String URL_MINI_BROWSE = "content/MiniBrowse.html";
+	public static final String URL_MINI_BROWSE = "minibrowse.start";
+
+	public static final String URL_PUBLISH = "publish.start";
 
 	public static final String URL_DETAILS = "details/";
 
