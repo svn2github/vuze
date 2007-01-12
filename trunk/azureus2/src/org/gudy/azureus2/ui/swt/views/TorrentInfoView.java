@@ -536,14 +536,14 @@ TorrentInfoView
 			return( MessageText.getString( column.getTitleLanguageKey()));
 		}
 		
-		public void
+		public boolean
 		refresh()
 		{
 			if ( refresh_failed ){
 				
 				label.setText( "Not Available" );
 				
-				return;
+				return false;
 			}
 			try{
 				
@@ -555,6 +555,7 @@ TorrentInfoView
 								
 				throw( e );
 			}
+			return true;
 		}
 		
 		protected int
@@ -823,25 +824,28 @@ TorrentInfoView
 			return( true );
 		}
 
-		public void 
+		public boolean
 		refresh(
 			boolean bDoGraphics)
 		{
+			return false;
 		}
 
-		public void 
+		public boolean 
 		refresh(
 			boolean bDoGraphics, 
 			boolean bRowVisible)
 		{
+			return false;
 		}
 
-		public void 
+		public boolean 
 		refresh(
 			boolean bDoGraphics, 
 			boolean bRowVisible,
 			boolean bCellVisible)
 		{
+			return false;
 		}
 
 		public void 
@@ -859,7 +863,6 @@ TorrentInfoView
 			}
 			
 			column.invokeCellDisposeListeners( this );
-			
 			// We share columns with the 2 MyTorrents view.  Disposing may
 			// have done something bad (Pieces Column), so make it dirty.
 			// Ideally, we'd check if there's any listeners
@@ -1022,6 +1025,13 @@ TorrentInfoView
 			// TODO Auto-generated method stub
 			
 		}
+
+		// @see org.gudy.azureus2.ui.swt.views.table.TableCellCore#getVisuallyChangedSinceRefresh()
+		
+		public boolean getVisuallyChangedSinceRefresh() {
+			// TODO Auto-generated method stub
+			return false;
+		}
 	}
 	
 	protected class
@@ -1048,9 +1058,11 @@ TorrentInfoView
 		public boolean isValid() {
 			return false;
 		}
-		public void refresh(boolean bDoGraphics) {
+		public boolean refresh(boolean bDoGraphics) {
+			return false;
 		}
-		public void refresh(boolean bDoGraphics, boolean bVisible) {
+		public boolean refresh(boolean bDoGraphics, boolean bVisible) {
+			return false;
 		}
 		public void setForeground(Color c) {
 		}

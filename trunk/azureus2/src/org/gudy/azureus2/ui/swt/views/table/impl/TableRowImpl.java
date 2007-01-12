@@ -77,6 +77,8 @@ public class TableRowImpl
   private boolean bSetNotUpToDateLastRefresh = false;
 
   private static AEMonitor sortedDisposal_mon = new AEMonitor( "TableRowImpl" );
+  
+  // XXX add rowVisuallyupdated bool like in ListRow
 
   /**
    * Default constructor
@@ -178,16 +180,16 @@ public class TableRowImpl
 		}
 	}
   
-  public void refresh(boolean bDoGraphics) {
+  public boolean refresh(boolean bDoGraphics) {
     if (bDisposed)
-      return;
+      return false;
     
     boolean bVisible = isVisible();
 
-    refresh(bDoGraphics, bVisible);
+    return refresh(bDoGraphics, bVisible);
   }
 
-  public void refresh(boolean bDoGraphics, boolean bVisible) {
+  public boolean refresh(boolean bDoGraphics, boolean bVisible) {
     // If this were called from a plugin, we'd have to refresh the sorted column
     // even if we weren't visible
     
@@ -196,18 +198,20 @@ public class TableRowImpl
     		setUpToDate(false);
     		bSetNotUpToDateLastRefresh = true;
     	}
-  		return;
+  		return false;
   	}
     
 		bSetNotUpToDateLastRefresh = false;
 		
 		//System.out.println(SystemTime.getCurrentTime() + "refresh " + getIndex());
 
+		boolean changed = false;
     Iterator iter = mTableCells.values().iterator();
     while(iter.hasNext()) {
       TableCellCore item = (TableCellCore)iter.next();
-      item.refresh(bDoGraphics, bVisible);
+      changed |= item.refresh(bDoGraphics, bVisible);
     }
+    return changed;
   }
 
   public void setAlternatingBGColor(boolean bEvenIfNotVisible) {

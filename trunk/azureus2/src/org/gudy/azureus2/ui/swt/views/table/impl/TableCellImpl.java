@@ -105,6 +105,7 @@ public class TableCellImpl
 	public boolean bDebug = false;
   
   private AEMonitor 	this_mon 	= new AEMonitor( "TableCell" );
+	private boolean bCellVisuallyChangedSinceRefresh;
 
   private static final String CFG_PAINT = "GUI_SWT_bAlternateTablePainting";
   private static boolean bAlternateTablePainting;
@@ -271,6 +272,7 @@ public class TableCellImpl
   	if (isInvisibleAndCanRefresh())
   		return false;
 
+  	bCellVisuallyChangedSinceRefresh = true;
     return bufferedTableItem.setForeground(color);
   }
   
@@ -281,6 +283,7 @@ public class TableCellImpl
   	if (isInvisibleAndCanRefresh())
   		return false;
 
+  	bCellVisuallyChangedSinceRefresh = true;
     return bufferedTableItem.setForeground(red, green, blue);
   }
 
@@ -314,6 +317,9 @@ public class TableCellImpl
 			debug("setText (" + bChanged + ") : " + text);
 		}
 
+		if (bChanged) {
+			bCellVisuallyChangedSinceRefresh = true;
+		}
   	return bChanged;
   }
   
@@ -464,7 +470,11 @@ public class TableCellImpl
       return false;
 
     graphic = null;
-    return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(img);
+    boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(img);
+    if (b) {
+      bCellVisuallyChangedSinceRefresh = true;
+    }
+    return b;
   }
 
   public boolean setGraphic(Graphic img) {
@@ -477,17 +487,27 @@ public class TableCellImpl
 
     graphic = img;
 
-    if (img == null)
-      return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(null);
+    if (img == null) {
+      boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(null);
+      if (b) {
+        bCellVisuallyChangedSinceRefresh = true;
+      }
+    }
 
     if (img instanceof GraphicSWT){
     	Image imgSWT = ((GraphicSWT)img).getImage();
-    	return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
+    	boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
+      if (b) {
+        bCellVisuallyChangedSinceRefresh = true;
+      }
     }
     
     if (img instanceof UISWTGraphic){
     	Image imgSWT = ((UISWTGraphic)img).getImage();
-    	return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
+    	boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
+      if (b) {
+        bCellVisuallyChangedSinceRefresh = true;
+      }
     }
     
     return( false );
@@ -520,6 +540,7 @@ public class TableCellImpl
     	((BufferedGraphicTableItem)bufferedTableItem).setOrientation(SWT.FILL);
     else
     	setOrientationViaColumn();
+    bCellVisuallyChangedSinceRefresh = true;
   }
 
 	public void setMarginHeight(int height) {
@@ -528,6 +549,7 @@ public class TableCellImpl
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
     ((BufferedGraphicTableItem)bufferedTableItem).setMargin(-1, height);
+    bCellVisuallyChangedSinceRefresh = true;
   }
 
   public void setMarginWidth(int width) {
@@ -536,6 +558,7 @@ public class TableCellImpl
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
     ((BufferedGraphicTableItem)bufferedTableItem).setMargin(width, -1);
+    bCellVisuallyChangedSinceRefresh = true;
   }
 
   /* End TYPE_GRAPHIC Functions */
@@ -726,51 +749,56 @@ public class TableCellImpl
   		this.bMustRefresh = true;
   }
 
-  public void refresh() {
-    refresh(true);
+  public boolean refresh() {
+    return refresh(true);
   }
   
-  public void refresh(boolean bDoGraphics) {
-  	refresh(bDoGraphics, isShown());
+  public boolean refresh(boolean bDoGraphics) {
+  	return refresh(bDoGraphics, isShown());
   }
 
-  public void refresh(boolean bDoGraphics, boolean bRowVisible) {
-  	refresh(bDoGraphics, bRowVisible, isShown());
+  public boolean refresh(boolean bDoGraphics, boolean bRowVisible) {
+  	return refresh(bDoGraphics, bRowVisible, isShown());
   }
 
   private boolean bInRefresh = false;
-  public void refresh(boolean bDoGraphics, boolean bRowVisible,
+  public boolean refresh(boolean bDoGraphics, boolean bRowVisible,
 			boolean bCellVisible)
 	{
-    if (refreshErrLoopCount > 2)
-      return;
-    int iErrCount = tableColumn.getConsecutiveErrCount();
-    if (iErrCount > 10) {
-    	refreshErrLoopCount = 3;
-      return;
-    }
-    
-    if (bInRefresh) {
-    	// Skip a Refresh call when being called from within refresh.
-    	// This could happen on virtual tables where SetData calls us again, or
-    	// if we ever introduce plugins to refresh.
-    	if (bDebug)
-    		debug("Calling Refresh from Refresh :) Skipping.");
-    	return;
-    }
-  	bInRefresh = true;
+  	boolean ret = bCellVisuallyChangedSinceRefresh;
 
-    // See bIsUpToDate variable comments
-    if (bCellVisible && !bIsUpToDate) {
-    	if (bDebug)
-    		debug("Setting Invalid because visible & not up to date");
-    	valid = false;
-    	bIsUpToDate = true;
-    } else if (!bCellVisible && bIsUpToDate) {
-    	bIsUpToDate = false;
-    }
+  	int iErrCount = 0;
+  	try {
+      if (refreshErrLoopCount > 2) {
+        return bCellVisuallyChangedSinceRefresh;
+      }
 
-    try {
+      iErrCount = tableColumn.getConsecutiveErrCount();
+      if (iErrCount > 10) {
+      	refreshErrLoopCount = 3;
+        return bCellVisuallyChangedSinceRefresh;
+      }
+      
+      if (bInRefresh) {
+      	// Skip a Refresh call when being called from within refresh.
+      	// This could happen on virtual tables where SetData calls us again, or
+      	// if we ever introduce plugins to refresh.
+      	if (bDebug)
+      		debug("Calling Refresh from Refresh :) Skipping.");
+      	return bCellVisuallyChangedSinceRefresh;
+      }
+    	bInRefresh = true;
+  
+      // See bIsUpToDate variable comments
+      if (bCellVisible && !bIsUpToDate) {
+      	if (bDebug)
+      		debug("Setting Invalid because visible & not up to date");
+      	valid = false;
+      	bIsUpToDate = true;
+      } else if (!bCellVisible && bIsUpToDate) {
+      	bIsUpToDate = false;
+      }
+
     	if (bDebug) {
     		debug("Cell Valid?" + valid + "; Visible?" + tableRow.isVisible() + "/" + bufferedTableItem.isShown());
     	}
@@ -816,6 +844,8 @@ public class TableCellImpl
       refreshErrLoopCount = 0;
       if (iErrCount > 0)
         tableColumn.setConsecutiveErrCount(0);
+      
+    	ret = bCellVisuallyChangedSinceRefresh;
     } catch (Throwable e) {
       refreshErrLoopCount++;
       tableColumn.setConsecutiveErrCount(++iErrCount);
@@ -824,8 +854,14 @@ public class TableCellImpl
       	Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
 						"TableCell will not be refreshed anymore this session."));
     } finally {
+    	bCellVisuallyChangedSinceRefresh = false;
     	bInRefresh = false;
     }
+  	return ret;
+  }
+  
+  public boolean getVisuallyChangedSinceRefresh() {
+  	return bCellVisuallyChangedSinceRefresh;
   }
 
 
@@ -862,6 +898,7 @@ public class TableCellImpl
 
     bufferedTableItem.setIcon(img);
     graphic = null;
+    bCellVisuallyChangedSinceRefresh = true;
   }
   
   public Image getIcon() {
@@ -899,7 +936,11 @@ public class TableCellImpl
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		return getText();
+		return "TableCell {"
+				+ tableColumn.getName()
+				+ ","
+				+ (bufferedTableItem == null ? "null" : bufferedTableItem.getPosition())
+				+ "," + getText() + "," + getSortValue() + "}";
 	}
 
 	/* Comparable Implementation */

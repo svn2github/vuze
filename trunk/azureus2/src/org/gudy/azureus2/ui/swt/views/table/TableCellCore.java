@@ -64,19 +64,19 @@ public interface TableCellCore
    * 
    * @param bDoGraphics Whether to update graphic cells 
    */
-  public void refresh(boolean bDoGraphics);
+  public boolean refresh(boolean bDoGraphics);
 
   /** 
    * Refresh the cell, including graphic types 
    */
-  public void refresh();
+  public boolean refresh();
   
 	/**
 	 * @param bDoGraphics
 	 * @param bRowVisible
 	 * @param bCellVisible
 	 */
-	void refresh(boolean bDoGraphics, boolean bRowVisible, boolean bCellVisible);
+	public boolean refresh(boolean bDoGraphics, boolean bRowVisible, boolean bCellVisible);
 
 	/**
    * Refresh the cell.  This method overide takes a bRowVisible paramater in
@@ -86,7 +86,7 @@ public interface TableCellCore
    * @param bDoGraphics Whether to update graphic cells
    * @param bRowVisible Visibility state of row
    */
-  public void refresh(boolean bDoGraphics, boolean bRowVisible);
+  public boolean refresh(boolean bDoGraphics, boolean bRowVisible);
   
   /** dispose of the cell */
   public void dispose();
@@ -169,4 +169,9 @@ public interface TableCellCore
 	 * @return
 	 */
 	boolean isUpToDate();
+
+	/**
+	 * @return
+	 */
+	boolean getVisuallyChangedSinceRefresh();
 }

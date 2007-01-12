@@ -47,7 +47,7 @@ public interface TableRowCore
    *
    * @param bDoGraphics Refresh graphic cells to
    */
-  public void refresh(boolean bDoGraphics);
+  public boolean refresh(boolean bDoGraphics);
 
   /** re-paint an area of the row
    *
@@ -127,7 +127,7 @@ public interface TableRowCore
 	 * @param bDoGraphics
 	 * @param bVisible
 	 */
-	void refresh(boolean bDoGraphics, boolean bVisible);
+	public boolean refresh(boolean bDoGraphics, boolean bVisible);
 
 	/**
 	 * 
