@@ -20,19 +20,24 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
+import com.aelitis.azureus.ui.swt.views.list.ListView;
 
 /**
  * @author TuxPaper
@@ -97,16 +102,17 @@ public class MiniDownloadList extends SkinView
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
 		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
-		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, true, false);
+		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, true,
+				false);
 
 		SWTSkinObject soStream = skin.getSkinObject(PREFIX + "stream");
 		if (soStream instanceof SWTSkinObjectContainer) {
 			SWTSkinButtonUtility btn = new SWTSkinButtonUtility(soStream);
 			btn.setDisabled(true);
-			Composite c = (Composite)soStream.getControl();
+			Composite c = (Composite) soStream.getControl();
 			Control[] children = c.getChildren();
 			c.setToolTipText("Coming Soon");
-			
+
 			for (int i = 0; i < children.length; i++) {
 				Control control = children[i];
 				control.setToolTipText("Coming Soon");
@@ -122,8 +128,7 @@ public class MiniDownloadList extends SkinView
 					ListRow[] selectedRows = view.getSelectedRows();
 					for (int i = 0; i < selectedRows.length; i++) {
 						DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
-						ManagerUtils.remove(dm,
-								btnDelete.getSkinObject().getControl().getShell(), true, true);
+						remove(dm, view, true, true);
 					}
 				}
 			});
@@ -148,4 +153,78 @@ public class MiniDownloadList extends SkinView
 
 		return null;
 	}
+
+	public static void remove(final DownloadManager dm, final ListView view,
+			final boolean bDeleteTorrent, final boolean bDeleteData) {
+		// This is copied from ManagerUtils.java and modified so we
+		// can remove the list row before stopping and removing
+
+		Shell shell = view.getControl().getShell();
+		if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
+
+			MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES | SWT.NO);
+
+			mb.setText(MessageText.getString("deletedata.title"));
+
+			mb.setMessage(MessageText.getString("deletetorrent.message1")
+					+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
+					+ MessageText.getString("deletetorrent.message2"));
+
+			if (mb.open() == SWT.NO) {
+				return;
+			}
+		}
+
+		boolean confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete");
+
+		int choice;
+		if (confirmDataDelete && bDeleteData) {
+			String path = dm.getSaveLocation().toString();
+
+			MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES | SWT.NO);
+
+			mb.setText(MessageText.getString("deletedata.title"));
+
+			mb.setMessage(MessageText.getString("deletedata.message1")
+					+ dm.getDisplayName() + " :\n" + path
+					+ MessageText.getString("deletedata.message2"));
+
+			choice = mb.open();
+		} else {
+			choice = SWT.YES;
+		}
+
+		if (choice == SWT.YES) {
+			try {
+				dm.getGlobalManager().canDownloadManagerBeRemoved(dm);
+				view.removeDataSource(dm, true);
+				new AEThread("asyncStop", true) {
+					public void runSupport() {
+
+						try {
+							dm.stopIt(DownloadManager.STATE_STOPPED, bDeleteTorrent,
+									bDeleteData);
+							dm.getGlobalManager().removeDownloadManager(dm);
+						} catch (GlobalManagerDownloadRemovalVetoException f) {
+							if (!f.isSilent()) {
+								Alerts.showErrorMessageBoxUsingResourceString(
+										"globalmanager.download.remove.veto", f);
+							}
+							view.addDataSource(dm, true);
+						} catch (Exception ex) {
+							view.addDataSource(dm, true);
+							Debug.printStackTrace(ex);
+						}
+					}
+				}.start();
+			} catch (GlobalManagerDownloadRemovalVetoException f) {
+				if (!f.isSilent()) {
+					Alerts.showErrorMessageBoxUsingResourceString(
+							"globalmanager.download.remove.veto", f);
+				}
+			}
+		}
+
+	}
+
 }
