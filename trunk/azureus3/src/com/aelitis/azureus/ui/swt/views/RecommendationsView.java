@@ -19,25 +19,17 @@
  */
 package com.aelitis.azureus.ui.swt.views;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
 
-import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.NameItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SizeItem;
 
 import com.aelitis.azureus.ui.swt.columns.recommend.ColumnRecEdit;
 import com.aelitis.azureus.ui.swt.columns.recommend.ColumnRecFrom;
-import com.aelitis.azureus.ui.swt.columns.torrent.*;
+import com.aelitis.azureus.ui.swt.columns.torrent.ColumnAzProduct;
+import com.aelitis.azureus.ui.swt.columns.torrent.ColumnQuality;
+import com.aelitis.azureus.ui.swt.columns.torrent.ColumnRate;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
 
@@ -53,7 +45,6 @@ public class RecommendationsView extends ListView
 	final static TableColumnCore[] tableItems = {
 		new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 
-		new ColumnIcon(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 		new NameItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 		new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
 		new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
