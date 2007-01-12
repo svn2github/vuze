@@ -313,20 +313,150 @@ PluginConfig
    * @since 2.1.0.0
    */
   
-  public String
-  getPluginConfigKeyPrefix();
+	public String
+	getPluginConfigKeyPrefix();
 
-  public ConfigParameter
-  getParameter(
-  	String		key );
+	public ConfigParameter
+	getParameter(
+			String		key );
+
+	public ConfigParameter
+	getPluginParameter(
+			String		key );
+
+	public boolean
+	isNewInstall();
+
+	
+	/**
+	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
+	 * If something changes and breaks your plugin, don't come complaining to me
+	 * @since 2.5.0.3
+	 */
+
+	public boolean
+	getUnsafeBooleanParameter(
+		String		key,
+		boolean		default_value );
+
+	/**
+	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
+	 * If something changes and breaks your plugin, don't come complaining to me
+	 * @since 2.5.0.3
+	 */
+
+	public void
+	setUnsafeBooleanParameter(
+		String		key,
+		boolean		value );
+
+	/**
+	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
+	 * If something changes and breaks your plugin, don't come complaining to me
+	 * @since 2.5.0.3
+	 */
+
+	public int
+	getUnsafeIntParameter(
+		String		key,
+		int		default_value );
+
+	/**
+	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
+	 * If something changes and breaks your plugin, don't come complaining to me
+	 * @since 2.5.0.3
+	 */
+
+	public void
+	setUnsafeIntParameter(
+		String		key,
+		int		value );
+
+	/**
+	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
+	 * If something changes and breaks your plugin, don't come complaining to me
+	 * @since 2.5.0.3
+	 */
+
+	public long
+	getUnsafeLongParameter(
+		String		key,
+		long		default_value );
+
+	/**
+	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
+	 * If something changes and breaks your plugin, don't come complaining to me
+	 * @since 2.5.0.3
+	 */
+
+	public void
+	setUnsafeLongParameter(
+		String		key,
+		long		value );
+
+	/**
+	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
+	 * If something changes and breaks your plugin, don't come complaining to me
+	 * @since 2.5.0.3
+	 */
+
+	public float
+	getUnsafeFloatParameter(
+		String		key,
+		float		default_value );
+
+	/**
+	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
+	 * If something changes and breaks your plugin, don't come complaining to me
+	 * @since 2.5.0.3
+	 */
+
+	public void
+	setUnsafeFloatParameter(
+		String		key,
+		float		value );
+
+	/**
+	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
+	 * If something changes and breaks your plugin, don't come complaining to me
+	 * @since 2.5.0.3
+	 */
+
+	public String
+	getUnsafeStringParameter(
+		String		key,
+		String		default_value );
+
+	/**
+	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
+	 * If something changes and breaks your plugin, don't come complaining to me
+	 * @since 2.5.0.3
+	 */
+
+	public void
+	setUnsafeStringParameter(
+		String		key,
+		String		value );
   
-  public ConfigParameter
-  getPluginParameter(
-  	String		key );
-  
-  public boolean
-  isNewInstall();
-  
+	
+	/**
+	 * Returns a map<String,Object> giving parameter names -> parameter values. Value can be Long or String
+	 * as the type is actually not known by the core (might fix one day). Therefore, float values are actually
+	 * represented by their String format:
+	 * 
+	 * boolean - Long 0 or 1
+	 * int     - Long.intValue
+	 * float   - String value
+	 * String  - String
+	 * 
+	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
+	 * If something changes and breaks your plugin, don't come complaining to me
+	 * @since 2.5.0.3
+	 */
+
+	public Map
+	getUnsafeParameterList();
+	
   /**
    * make sure you save it after making changes!
    *

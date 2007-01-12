@@ -388,6 +388,103 @@ RPPluginConfig
 	  	return( null );
 	  }
 		
+	  public boolean
+	  getUnsafeBooleanParameter(
+			  String		key,
+			  boolean		default_value )
+	  {
+		  notSupported();
+
+		  return( false );
+	  }
+
+	  public void
+	  setUnsafeBooleanParameter(
+			  String		key,
+			  boolean		value )
+	  {
+		  notSupported();
+	  }
+
+	  public int
+	  getUnsafeIntParameter(
+			  String		key,
+			  int		default_value )
+	  {
+		  notSupported();
+
+		  return( 0 );
+	  }
+
+	  public void
+	  setUnsafeIntParameter(
+			  String		key,
+			  int		value )
+	  {
+		  notSupported();
+	  }
+
+	  public long
+	  getUnsafeLongParameter(
+			  String		key,
+			  long		default_value )
+	  {
+		  notSupported();
+
+		  return( 0 );
+	  }
+
+	  public void
+	  setUnsafeLongParameter(
+			  String		key,
+			  long		value )
+	  {
+		  notSupported();
+	  }
+
+	  public float
+	  getUnsafeFloatParameter(
+			  String		key,
+			  float		default_value )
+	  {
+		  notSupported();
+
+		  return( 0 );
+	  }
+
+	  public void
+	  setUnsafeFloatParameter(
+			  String		key,
+			  float		value )
+	  {
+		  notSupported();
+	  }
+
+	  public String
+	  getUnsafeStringParameter(
+			  String		key,
+			  String		default_value )
+	  {
+		  notSupported();
+
+		  return( null );
+	  }
+
+	  public void
+	  setUnsafeStringParameter(
+			  String		key,
+			  String		value )
+	  {
+		  notSupported();
+	  }
+
+	  public Map
+	  getUnsafeParameterList()
+	  {
+		  notSupported();
+
+		  return( null );
+	  }
 	  
 	  public void
 	  save()

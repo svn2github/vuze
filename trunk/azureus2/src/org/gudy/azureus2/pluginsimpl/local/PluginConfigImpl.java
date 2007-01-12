@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 import org.gudy.azureus2.plugins.PluginConfig;
@@ -332,6 +333,142 @@ PluginConfigImpl
 	public boolean removePluginParameter(String key) {
 		return COConfigurationManager.removeParameter(this.key + key);
 	}
+	
+	  public boolean
+	  getUnsafeBooleanParameter(
+		  String		key,
+		  boolean		default_value )
+	  {
+		return( COConfigurationManager.getBooleanParameter( key, default_value ));
+	  }
+
+	  public void
+	  setUnsafeBooleanParameter(
+		  String		key,
+		  boolean		value )
+	  {
+		  COConfigurationManager.setParameter( key, value );
+	  }
+
+	  public int
+	  getUnsafeIntParameter(
+		  String		key,
+		  int		default_value )
+	  {
+			return( COConfigurationManager.getIntParameter( key, default_value ));
+	  }
+
+	  public void
+	  setUnsafeIntParameter(
+		  String		key,
+		  int		value )
+	  {
+		  COConfigurationManager.setParameter( key, value );
+	  }
+
+	  public long
+	  getUnsafeLongParameter(
+		  String		key,
+		  long		default_value )
+	  {
+			return( COConfigurationManager.getLongParameter( key, default_value ));
+	  }
+
+	  public void
+	  setUnsafeLongParameter(
+		  String		key,
+		  long		value )
+	  {
+		  COConfigurationManager.setParameter( key, value );
+	  }
+
+	  public float
+	  getUnsafeFloatParameter(
+		  String		key,
+		  float		default_value )
+	  {
+			return( COConfigurationManager.getFloatParameter( key, default_value ));
+	  }
+
+	  public void
+	  setUnsafeFloatParameter(
+			  String		key,
+			  float		value )
+	  {
+		  COConfigurationManager.setParameter( key, value );
+	  }
+
+	  public String
+	  getUnsafeStringParameter(
+			  String		key,
+			  String		default_value )
+	  {
+			return( COConfigurationManager.getStringParameter( key, default_value ));
+	  }
+
+	  public void
+	  setUnsafeStringParameter(
+			  String		key,
+			  String		value )
+	  {
+		  COConfigurationManager.setParameter( key, value );
+	  }
+
+	  public Map
+	  getUnsafeParameterList()
+	  {
+		  Set params = COConfigurationManager.getAllowedParameters();
+		  
+		  Iterator	it = params.iterator();
+		  
+		  Map	result = new HashMap();
+		  
+		  while( it.hasNext()){
+			  
+			  try{
+				  String	name = (String)it.next();
+				  
+				  Object val = COConfigurationManager.getParameter( name );
+				  
+				  if ( val instanceof String || val instanceof Long ){
+					  
+				  }else if ( val instanceof byte[]){
+					  
+					  val = new String((byte[])val, "UTF-8" );
+					  
+				  }else if ( val instanceof Integer ){
+					  
+					  val = new Long(((Integer)val).intValue());
+	
+				  }else if ( val instanceof List ){
+					  
+					  val = null;
+					  
+				  }else if ( val instanceof Map ){
+					  
+					  val = null;
+					  
+				  }else if ( val instanceof Boolean ){
+					  
+					  val = new Long(((Boolean)val).booleanValue()?1:0);
+					  
+				  }else if ( val instanceof Float || val instanceof Double ){
+					  
+					  val = val.toString();
+				  }
+				  
+				  if ( val != null ){
+					 
+					  result.put( name, val );
+				  }
+			  }catch( Throwable e ){
+				  
+				  Debug.printStackTrace(e);
+			  }
+		  }
+		  
+		  return( result );
+	  }
 	
 	public void
 	save()

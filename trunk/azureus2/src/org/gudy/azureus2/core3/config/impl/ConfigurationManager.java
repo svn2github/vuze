@@ -461,6 +461,11 @@ ConfigurationManager
   }
   
   public float getFloatParameter(String parameter) {
+	  ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+	  return( getFloatParameter( parameter, def.def_float ));
+  }
+
+  public float getFloatParameter(String parameter, float def_val) {
     ConfigurationDefaults def = ConfigurationDefaults.getInstance();
     try {
       Object o = propertiesMap.get(parameter);
@@ -479,10 +484,10 @@ ConfigurationManager
     try {
       return def.getFloatParameter(parameter);
     } catch (Exception e2) {
-      return def.def_float;
+      return def_val;
     }
   }
-
+  
   public boolean setParameter(String parameter, float defaultValue) {
     String newValue = String.valueOf(defaultValue);
     return setParameter(parameter, stringToBytes(newValue));
@@ -609,6 +614,19 @@ ConfigurationManager
     }
   }
   
+  public Object
+  getParameter(
+	String	name )
+  {
+	  Object value = propertiesMap.get( name );
+	  
+	  if ( value == null ){
+		  
+		  value = ConfigurationDefaults.getInstance().getParameter( name );
+	  }
+	  
+	  return( value );
+  }
   
   /**
    * Remove the given configuration parameter completely.

@@ -284,6 +284,13 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getFloatParameter( _name ));
 	}
 	
+	public static float
+	getFloatParameter(
+		String		_name,
+		float		_def )
+	{
+		return( ConfigurationManager.getInstance().getFloatParameter( _name, _def ));
+	}
 	public static boolean 
 	setParameter(String parameter, float value)
 	{
@@ -400,6 +407,18 @@ COConfigurationManager
   	return ConfigurationDefaults.getInstance().getAllowedParameters();
   }
   
+  	/**
+  	 * raw parameter access
+  	 * @param name
+  	 * @return
+  	 */
+  public static Object
+  getParameter(
+	String	name )
+  {
+  	return ConfigurationManager.getInstance().getParameter(name);
+  }
+		 
   	/**
   	 * checks if a default is defined for the named parameter
   	 * @param parameter
