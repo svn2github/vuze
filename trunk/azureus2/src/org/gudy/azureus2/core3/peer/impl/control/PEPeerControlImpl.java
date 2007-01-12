@@ -1424,19 +1424,19 @@ PEPeerControlImpl
 			
 				//ensure that lan-local peers always get unchoked   //TODO
 				for( Iterator it=peer_transports.iterator();it.hasNext();) {
-					final PEPeerTransport peer = (PEPeerTransport)it.next();				
-					if( peer.isLANLocal() ) {
-						peers_to_unchoke.add( peer );
-					}else if ( fast_unchoke_new_peers ){
-						
-						if ( peer.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ){						
-							if ( peer.getData( "fast_unchoke_done" ) == null ){
-			
-								peers_to_unchoke.add( peer );
-																
-								peer.setData( "fast_unchoke_done", "" );
-							}
-						}
+               
+				   PEPeerTransport peer = (PEPeerTransport)it.next();
+               
+               if( peer.isLANLocal() && UnchokerUtil.isUnchokable( peer, true ) ) {
+				      peers_to_unchoke.add( peer );
+					}
+				   else if ( fast_unchoke_new_peers &&
+				             peer.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED &&
+                         UnchokerUtil.isUnchokable( peer, true ) &&
+                         peer.getData( "fast_unchoke_done" ) == null ){                  				
+					
+				                  peer.setData( "fast_unchoke_done", "" );
+                              peers_to_unchoke.add( peer );
 					}
 				}
 						

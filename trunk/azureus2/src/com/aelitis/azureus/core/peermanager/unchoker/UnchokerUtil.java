@@ -164,7 +164,7 @@ public class UnchokerUtil {
   		for( int i=0; i < peers_to_unchoke.size(); i++ ) {
   			final PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );
 			
-  			if( peer.isChokedByMe() ) {
+  			if( peer.isChokedByMe() ) {   //TODO add UnchokerUtil.isUnchokable() test here to be safe?
   				peer.sendUnChoke();
   			}
   		}  	
