@@ -24,6 +24,7 @@
 
 package org.gudy.azureus2.core3.config.impl;
 
+import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -192,7 +193,9 @@ public class ConfigurationDefaults {
     
     //default data location options
     def.put("Use default data dir", FALSE);	
-    def.put("Default save path", "" );
+		String docPath =  SystemProperties.getDocPath();
+		File f = new File(docPath, "Azureus Downloads");
+		def.put("Default save path", f.getAbsolutePath());
     
     def.put("update.start",TRUE);
     def.put("update.periodic",TRUE);
