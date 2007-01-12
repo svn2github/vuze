@@ -106,7 +106,7 @@ public class ColumnProgressETA extends CoreTableColumn implements
 			int percentDone = getPercentDone(cell);
 			long eta = getETA(cell);
 
-			long sortValue = (percentDone << 58) + (eta << 4) + getState(cell)
+			long sortValue = (percentDone << 49) + (eta << 4) + getState(cell)
 					+ (bCanBeProgressive ? 1 : 0);
 
 			if (!cell.setSortValue(sortValue) && !bForce && cell.isValid()
