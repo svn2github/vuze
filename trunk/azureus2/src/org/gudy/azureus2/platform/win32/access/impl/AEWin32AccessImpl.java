@@ -205,7 +205,71 @@ AEWin32AccessImpl
 					app_data_name ));
 
 	}
+
+	public String
+	getUserDocumentsDir()
 	
+		throws AEWin32AccessException
+	{
+		String	app_data_key	= "software\\microsoft\\windows\\currentversion\\explorer\\shell folders";
+		String	app_data_name 	= "personal";
+		
+		return(	readStringValue(
+					HKEY_CURRENT_USER,
+					app_data_key,
+					app_data_name ));
+
+	}
+
+	public String
+	getUserMusicDir()
+	
+		throws AEWin32AccessException
+	{
+		String	app_data_key	= "software\\microsoft\\windows\\currentversion\\explorer\\shell folders";
+		String	app_data_name 	= "my music";
+		
+		try {
+  		return(	readStringValue(
+  					HKEY_CURRENT_USER,
+  					app_data_key,
+  					app_data_name ));
+		} catch (AEWin32AccessException e) {
+			// Win98 doesn't have it
+  		String s = getUserDocumentsDir();
+  		if (s != null) {
+  			s += "\\My Music";
+  		}
+  		return s;
+		}
+
+	}
+
+
+	public String
+	getUserVideoDir()
+	
+		throws AEWin32AccessException
+	{
+		String	app_data_key	= "software\\microsoft\\windows\\currentversion\\explorer\\shell folders";
+		String	app_data_name 	= "my video";
+		
+		try {
+  		return(	readStringValue(
+  					HKEY_CURRENT_USER,
+  					app_data_key,
+  					app_data_name ));
+		} catch (AEWin32AccessException e) {
+			// Win98 doesn't have it
+  		String s = getUserDocumentsDir();
+  		if (s != null) {
+  			s += "\\My Video";
+  		}
+  		return s;
+		}
+
+	}
+
 	public String
 	getProgramFilesDir()
 	

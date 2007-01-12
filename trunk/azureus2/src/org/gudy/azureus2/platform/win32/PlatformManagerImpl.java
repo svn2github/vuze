@@ -40,6 +40,7 @@ import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.platform.win32.access.AEWin32Access;
 import org.gudy.azureus2.platform.win32.access.AEWin32AccessListener;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
+
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import java.io.File;
@@ -389,11 +390,26 @@ PlatformManagerImpl
 	    }else if ( location_id == LOC_MUSIC ){
 	    	
 	    	try{
-		    	return( new File(
-		    		access.readStringValue(
-		    			AEWin32Access.HKEY_CURRENT_USER,
-		    			"software\\microsoft\\windows\\currentversion\\explorer\\shell folders",
-		    			"My Music" )));
+	    		
+		    	return(new File(access.getUserMusicDir()));
+		    	
+	    	}catch( Throwable e ){
+	    		
+				throw( new PlatformManagerException( "Failed to read registry details", e ));
+	    	}
+	    } else if (location_id == LOC_DOCUMENTS) {
+	    	try{
+	    		
+		    	return(new File(access.getUserDocumentsDir()));
+		    	
+	    	}catch( Throwable e ){
+	    		
+				throw( new PlatformManagerException( "Failed to read registry details", e ));
+	    	}
+	    } else if (location_id == LOC_VIDEO) {
+	    	try{
+	    		
+		    	return(new File(access.getUserVideoDir()));
 		    	
 	    	}catch( Throwable e ){
 	    		

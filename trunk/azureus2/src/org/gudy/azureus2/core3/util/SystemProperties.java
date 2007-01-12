@@ -29,6 +29,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.platform.*;
 
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+
 /**
  * Utility class to manage system-dependant information.
  */
@@ -55,9 +57,6 @@ public class SystemProperties {
   	private static String app_path;
   	
   	
-  	private static final Object migrate_lock = new Object();
-  	
-  
 	public static void
 	setApplicationName(
 		String		name )
@@ -124,133 +123,124 @@ public class SystemProperties {
    */
   public static String 
   getUserPath() 
-  {  
-    if ( user_path != null ) {
-      return user_path;
-    }
-    
+  {
+		if (user_path != null) {
+			return user_path;
+		}
+
 		// WATCH OUT!!!! possible recursion here if logging is changed so that it messes with
 		// config initialisation - that's why we don't assign the user_path variable until it
 		// is complete - an earlier bug resulted in us half-assigning it and using it due to 
 		// recursion. At least with this approach we'll get (worst case) stack overflow if
 		// a similar change is made, and we'll spot it!!!!
-	
-    	// Super Override -- no AZ_DIR or xxx_DEFAULT added at all.
-	
-    String	temp_user_path = System.getProperty( SYS_PROP_CONFIG_OVERRIDE );
-	
-	try{
-	    if ( temp_user_path != null ){
-			
-	      if (!temp_user_path.endsWith(SEP)){
-			  
-	        temp_user_path += SEP;
-	      }
-		  
-	      File dir = new File( temp_user_path );
-		  
-	      if (!dir.exists()) {
-	      	FileUtil.mkdirs(dir);
-	      }
-		  
-	      if (Logger.isEnabled())
+
+		// Super Override -- no AZ_DIR or xxx_DEFAULT added at all.
+
+		String temp_user_path = System.getProperty(SYS_PROP_CONFIG_OVERRIDE);
+
+		try {
+			if (temp_user_path != null) {
+
+				if (!temp_user_path.endsWith(SEP)) {
+
+					temp_user_path += SEP;
+				}
+
+				File dir = new File(temp_user_path);
+
+				if (!dir.exists()) {
+					FileUtil.mkdirs(dir);
+				}
+
+				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID,
 							"SystemProperties::getUserPath(Custom): user_path = "
 									+ temp_user_path));
-		  
-	      return temp_user_path;
-	    }
-	    
-	    String userhome = System.getProperty("user.home");
-	        
-	    if ( Constants.isWindows ) {   	
-	      try { 
-	        temp_user_path = PlatformManagerFactory.getPlatformManager().getUserDataDirectory();
-	        if (Logger.isEnabled())
-						Logger.log(new LogEvent(LOGID,
-								"Using user config path from registry: " + temp_user_path));
-	      }
-	      catch ( Throwable e ){
-	      	if (Logger.isEnabled())
-						Logger.log(new LogEvent(LOGID,
-								"Unable to retrieve user config path from registry. "
-										+ "Make sure aereg.dll is present."));
-	        
-	        temp_user_path = getEnvironmentalVariable( "APPDATA" );
-	        
-	        if ( temp_user_path != null && temp_user_path.length() > 0 ) {
-	        	if (Logger.isEnabled())
+
+				return temp_user_path;
+			}
+
+			// No override, get it from platform manager
+
+			PlatformManager platformManager = PlatformManagerFactory.getPlatformManager();
+			try {
+				temp_user_path = platformManager.getLocation(
+						PlatformManager.LOC_USER_DATA).getPath()
+						+ SEP + APPLICATION_NAME + SEP;
+
+				if (Logger.isEnabled()) {
+					Logger.log(new LogEvent(LOGID,
+							"SystemProperties::getUserPath: user_path = " + temp_user_path));
+				}
+			} catch (Exception e) {
+				if (Logger.isEnabled()) {
+					Logger.log(new LogEvent(LOGID,
+							"Unable to retrieve user config path from "
+									+ platformManager.getClass().getName()
+									+ "Make sure aereg.dll is present."));
+				}
+			}
+
+			// If platform failed, try some hackery
+			if (temp_user_path == null) {
+				String userhome = System.getProperty("user.home");
+
+				if (Constants.isWindows) {
+					temp_user_path = getEnvironmentalVariable("APPDATA");
+
+					if (temp_user_path != null && temp_user_path.length() > 0) {
+						if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID,
 									"Using user config path from APPDATA env var instead: "
 											+ temp_user_path));
-	        }
-	        else {
-	          temp_user_path = userhome + SEP + WIN_DEFAULT;
-	          if (Logger.isEnabled())
+					} else {
+						temp_user_path = userhome + SEP + WIN_DEFAULT;
+						if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID,
 									"Using user config path from java user.home var instead: "
 											+ temp_user_path));
-	        }
-	      }
-	    	
-	      temp_user_path = temp_user_path + SEP + APPLICATION_NAME + SEP;
-	      
-	      if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID,
-							"SystemProperties::getUserPath(Win): user_path = "
-									+ temp_user_path));
-	      
-	    }else if ( Constants.isOSX ) {
-	    	
-	      temp_user_path = userhome + SEP + OSX_DEFAULT + SEP + APPLICATION_NAME + SEP;
-	      
-	      if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID,
-							"SystemProperties::getUserPath(Mac): user_path = "
-									+ temp_user_path));
-	    
-	    }else{
-	    	
-	      temp_user_path = userhome + SEP + "." + APPLICATION_NAME.toLowerCase() + SEP;
-	      
-	      synchronized( migrate_lock ) {
-	      	File home = new File( temp_user_path );
-		      if( !home.exists() ) {  //might be a fresh install or might be an old non-migrated install
-		      	String old_home_path = userhome + SEP + "." + APPLICATION_NAME + SEP;
-		      	File old_home = new File( old_home_path );
-		      	if( old_home.exists() ) {  //migrate
-		      		String msg = "Migrating unix user config dir [" +old_home_path+ "] ===> [" +temp_user_path+ "]";
-		      		System.out.println( msg );
-		      		Logger.log(new LogEvent(LOGID, "SystemProperties::getUserPath(Unix): " +msg ));
-		      		try {
-		      			old_home.renameTo( home );
-		      		}
-		      		catch( Throwable t ) {
-		      			t.printStackTrace();  
-		      			Logger.log( new LogEvent( LOGID, "migration rename failed:",  t ) );
-		      		}
-		      	}
-		      }	      	
-	      }
-	      
-	      if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID,
-							"SystemProperties::getUserPath(Unix): user_path = "
-									+ temp_user_path));
-	    }
-	    
-	    //if the directory doesn't already exist, create it
-	    File dir = new File( temp_user_path );
-	    if (!dir.exists()) {
-	    	FileUtil.mkdirs(dir);
-	    }
-	    
-	    return temp_user_path;
-	}finally{
-		
-		user_path = temp_user_path;
+					}
+
+					temp_user_path = temp_user_path + SEP + APPLICATION_NAME + SEP;
+
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID,
+								"SystemProperties::getUserPath(Win): user_path = "
+										+ temp_user_path));
+
+				} else if (Constants.isOSX) {
+					temp_user_path = userhome + SEP + OSX_DEFAULT + SEP
+							+ APPLICATION_NAME + SEP;
+
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID,
+								"SystemProperties::getUserPath(Mac): user_path = "
+										+ temp_user_path));
+
+				} else {
+					// unix type
+					temp_user_path = userhome + SEP + "."
+							+ APPLICATION_NAME.toLowerCase() + SEP;
+
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID,
+								"SystemProperties::getUserPath(Unix): user_path = "
+										+ temp_user_path));
+				}
+			}
+
+			//if the directory doesn't already exist, create it
+			File dir = new File(temp_user_path);
+			if (!dir.exists()) {
+				FileUtil.mkdirs(dir);
+			}
+
+			return temp_user_path;
+		} finally {
+
+			user_path = temp_user_path;
+		}
 	}
-  }
   
   
   /**
@@ -349,6 +339,16 @@ public class SystemProperties {
     
     return envVars.getProperty( _var, "" );
   }
-
-
+  
+  public static String getDocPath() {
+		PlatformManager platformManager = PlatformManagerFactory.getPlatformManager();
+		File fDocPath;
+		try {
+			fDocPath = platformManager.getLocation(PlatformManager.LOC_DOCUMENTS);
+		} catch (PlatformManagerException e) {
+			// should never happen..
+			fDocPath = new File(getUserPath(), "Documents");
+		}
+		return fDocPath.getAbsolutePath();
+  }
 }

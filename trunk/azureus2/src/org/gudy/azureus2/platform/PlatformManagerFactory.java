@@ -54,6 +54,10 @@ PlatformManagerFactory
 						
 	                    platform_manager = org.gudy.azureus2.platform.macosx.PlatformManagerImpl.getSingleton();
 	                    
+					}else if( getPlatformType() == PlatformManager.PT_UNIX ){
+						
+            platform_manager = org.gudy.azureus2.platform.unix.PlatformManagerImpl.getSingleton();
+
 					}
 				}catch( PlatformManagerException e ){
 					
@@ -81,16 +85,20 @@ PlatformManagerFactory
 	public static int
 	getPlatformType()
 	{
-		if ( Constants.isWindows ){
-			
-			return( PlatformManager.PT_WINDOWS );
-			
-        } else if (Constants.isOSX){
-        	
-            return ( PlatformManager.PT_MACOSX );
-            
-		}else{
-			return( PlatformManager.PT_OTHER );
+		if (Constants.isWindows) {
+
+			return (PlatformManager.PT_WINDOWS );
+
+		} else if (Constants.isOSX) {
+
+			return (PlatformManager.PT_MACOSX );
+
+		} else if (Constants.isUnix) {
+
+			return (PlatformManager.PT_UNIX );
+
+		} else {
+			return (PlatformManager.PT_OTHER );
 		}
 	}
 }

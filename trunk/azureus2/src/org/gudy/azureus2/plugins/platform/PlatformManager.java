@@ -30,6 +30,8 @@ PlatformManager
 {
 	public static final int	LOC_USER_DATA		= 1;
 	public static final int	LOC_MUSIC			= 2;
+	public static final int	LOC_DOCUMENTS			= 3;
+	public static final int	LOC_VIDEO			= 4;
 	
 		/**
 		 * Checks to see if the supplied file type is registered with this application

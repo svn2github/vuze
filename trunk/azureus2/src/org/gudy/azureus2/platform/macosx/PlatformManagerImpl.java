@@ -23,9 +23,7 @@
 package org.gudy.azureus2.platform.macosx;
 
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerListener;
@@ -50,7 +48,7 @@ import java.util.HashSet;
  * @version 1.0 Initial Version
  * @see PlatformManager
  */
-public class PlatformManagerImpl implements PlatformManager
+public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEvidenceGenerator
 {
     private static final LogIDs LOGID = LogIDs.CORE;
 
@@ -115,6 +113,7 @@ public class PlatformManagerImpl implements PlatformManager
         if (OSXAccess.isLoaded()) {
 	        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
         }
+        AEDiagnostics.addEvidenceGenerator(this);
     }
 
     /**
@@ -152,12 +151,26 @@ public class PlatformManagerImpl implements PlatformManager
 	
 		throws PlatformManagerException
 	{
-		if ( location_id == LOC_USER_DATA ){
-			
-			return( new File( USERDATA_PATH ));
+		switch ((int)location_id) {
+			case LOC_USER_DATA:
+				return( new File( USERDATA_PATH ));
+				
+			case LOC_DOCUMENTS:
+				try {
+					return new File(OSXAccess.getDocDir());
+				} catch (UnsatisfiedLinkError e) {
+					// Usually in user.home + Documents
+					return new File(USERDATA_PATH, "Documents");
+				}
+				
+			case LOC_MUSIC:
+				
+			case LOC_VIDEO:
+
+			default:
+				return( null );
 		}
 		
-		return( null );
 	}
     /**
      * Not implemented; returns True
@@ -674,4 +687,25 @@ public class PlatformManagerImpl implements PlatformManager
     	PlatformManagerListener		listener )
     {
     }
+
+		// @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
+		public void generate(IndentWriter writer) {
+			writer.println("PlatformManager: MacOSX");
+			try {
+				writer.indent();
+				
+				if (OSXAccess.isLoaded()) {
+					try {
+						writer.println("Version " + getVersion());
+						writer.println("User Data Dir: " + getLocation(LOC_USER_DATA));
+						writer.println("User Doc Dir: " + getLocation(LOC_DOCUMENTS));
+					} catch (PlatformManagerException e) {
+					}
+				} else {
+					writer.println("Not loaded");
+				}
+			} finally {
+				writer.exdent();
+			}
+		}
 }

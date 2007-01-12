@@ -169,4 +169,22 @@ AEWin32Access
 	public void
 	removeListener(
 		AEWin32AccessListener	listener );
+
+	/**
+	 * @return
+	 * @throws AEWin32AccessException
+	 */
+	String getUserDocumentsDir() throws AEWin32AccessException;
+
+	/**
+	 * @return
+	 * @throws AEWin32AccessException
+	 */
+	String getUserMusicDir() throws AEWin32AccessException;
+
+	/**
+	 * @return
+	 * @throws AEWin32AccessException
+	 */
+	String getUserVideoDir() throws AEWin32AccessException;
 }
