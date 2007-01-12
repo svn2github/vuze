@@ -227,8 +227,8 @@ public class PlatformRatingMessenger
 					if (mapValues != null) {
 						if (mapValues.has("count")) {
 							Object val = mapValues.get("count");
-							if (val instanceof Long) {
-								rating = ((Long) val).longValue();
+							if (val instanceof Number) {
+								rating = ((Number) val).longValue();
 							}
 						}
 					}
