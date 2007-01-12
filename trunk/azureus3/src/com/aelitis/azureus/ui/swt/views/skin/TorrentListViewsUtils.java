@@ -20,14 +20,24 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -37,6 +47,8 @@ import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
@@ -47,6 +59,7 @@ import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
 
 /**
  * @author TuxPaper
@@ -230,12 +243,7 @@ public class TorrentListViewsUtils
 				if (selectedRows.length <= 0) {
 					return;
 				}
-				Download download = (Download) selectedRows[0].getDataSource(false);
-				if (download.isComplete(false)) {
-					ManagerUtils.run((DownloadManager) selectedRows[0].getDataSource(true));
-				} else {
-					playViaMediaServer(download);
-				}
+				playOrStream((DownloadManager) selectedRows[0].getDataSource(true));
 			}
 		});
 
@@ -261,10 +269,9 @@ public class TorrentListViewsUtils
 						DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
 						if (dmEnhancer != null) {
 							EnhancedDownloadManager edm = dmEnhancer.getEnhancedDownload(dm);
-							if (edm != null) {
-								if (edm.getProgressivePlayETA() > 0) {
-									bDisabled = true;
-								}
+							if (edm != null
+									&& (!edm.supportsProgressiveMode() || edm.getProgressivePlayETA() > 0)) {
+								bDisabled = true;
 							}
 						}
 					}
@@ -274,17 +281,168 @@ public class TorrentListViewsUtils
 
 			public void defaultSelected(ListRow[] rows) {
 				if (rows.length == 1) {
-					Download download = (Download) rows[0].getDataSource(false);
-					if (download.isComplete(false)) {
-						ManagerUtils.run((DownloadManager) rows[0].getDataSource(true));
-					} else {
-						playViaMediaServer(download);
-					}
+					playOrStream((DownloadManager) rows[0].getDataSource(true));
 				}
 			}
 		}, true);
 
 		return btn;
+	}
+
+	public static void playOrStream(DownloadManager dm) {
+		if (dm == null) {
+			return;
+		}
+
+		boolean bComplete = dm.isDownloadComplete(false);
+
+		if (!bComplete) {
+			DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
+			if (dmEnhancer != null) {
+				EnhancedDownloadManager edm = dmEnhancer.getEnhancedDownload(dm);
+				if (edm != null
+						&& (!edm.supportsProgressiveMode() || edm.getProgressivePlayETA() > 0)) {
+					return;
+				}
+			}
+		}
+
+		File file;
+		String sFile = dm.getDownloadState().getPrimaryFile();
+		if (sFile == null) {
+  		DiskManagerFileInfo[] diskManagerFileInfo = dm.getDiskManagerFileInfo();
+  		if (diskManagerFileInfo == null && diskManagerFileInfo.length == 0) {
+  			return;
+  		}
+  		file = diskManagerFileInfo[0].getFile(true);
+		} else {
+			file = new File(sFile);
+		}
+		String ext = FileUtil.getExtension(file.getName());
+		
+		boolean untrusted = isUntrustworthyContent(ext);
+		boolean trusted = isTrustedContent(ext);
+		
+		if (untrusted || !trusted) {
+			String sPrefix = untrusted ? "mb.NotTrusted." : "mb.UnknownContent.";
+			
+			UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			if (functionsSWT == null) {
+				return;
+			}
+			Program program = Program.findProgram(ext);
+			String sTextID;
+			String sFileType;
+			if (program == null) {
+				sTextID = sPrefix + "noapp.text";
+				sFileType = ext;
+			} else {
+				sTextID = sPrefix + "text";
+				sFileType = program.getName();
+			}
+
+			int i = MessageBoxShell.open(functionsSWT.getMainShell(),
+					MessageText.getString(sPrefix + "title"), MessageText.getString(
+							sTextID, new String[] {
+								dm.getDisplayName(),
+								sFileType
+							}), new String[] {
+						MessageText.getString(sPrefix + "button.run"),
+						MessageText.getString(sPrefix + "button.cancel")
+					}, 1);
+			if (i != 0) {
+				return;
+			}
+		}
+
+		if (bComplete) {
+			ManagerUtils.run(dm);
+		} else {
+			try {
+				playViaMediaServer(DownloadManagerImpl.getDownloadStatic(dm));
+			} catch (DownloadException e) {
+				Debug.out(e);
+			}
+		}
+	}
+
+	private static boolean isTrustedContent(String ext) {
+		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+				"aeupnpmediaserver");
+
+		ArrayList whiteList = new ArrayList();
+		String[] goodExts = null;
+		if (pi != null && pi.isOperational()) {
+			try {
+				goodExts = (String[]) pi.getIPC().invoke("getRecognizedExtensions", null);
+			} catch (Throwable e) {
+				e.printStackTrace();
+			}
+		}
+
+		if (goodExts == null) {
+			// some defaults if media server isn't installed
+			goodExts = new String[] {
+				"mpg",
+				"avi",
+				"mov",
+				"flv",
+				"flc",
+				"mp4",
+				"mpeg",
+				"divx",
+				"wmv",
+				"asf"
+			};
+		}
+
+		for (int i = 0; i < goodExts.length; i++) {
+			Program program = Program.findProgram(goodExts[i]);
+			if (program != null) {
+				String name = program.getName();
+				if (!whiteList.contains(name)) {
+					System.out.println("adding " + name);
+					whiteList.add(name);
+				}
+			}
+		}
+		
+		Program program = Program.findProgram(ext);
+		if (program == null) {
+			return false;
+		}
+		return whiteList.contains(program.getName());
+	}
+	
+	private static boolean isUntrustworthyContent(String ext) {
+		// must be sorted
+		final String[] badExts = new String[] {
+			"bas",
+			"bat",
+			"com",
+			"cmd",
+			"cpl",
+			"exe",
+			"js",
+			"lnk",
+			"mdb",
+			"msi",
+			"osx",
+			"pif",
+			"reg",
+			"scr",
+			"vb",
+			"vbe",
+			"vbs",
+			"wmv",
+			"wsh",
+			"wsf",
+		};
+
+		if (ext.startsWith(".")) {
+			ext = ext.substring(1);
+		}
+		return Arrays.binarySearch(badExts, ext) >= 0;
 	}
 
 	/**
@@ -386,5 +544,11 @@ public class TorrentListViewsUtils
 				}
 			}
 		}, true);
+	}
+
+	public static void main(String[] args) {
+		AzureusCoreFactory.create();
+		System.out.println(isTrustedContent(FileUtil.getExtension("moo.exep")));
+		System.out.println(isUntrustworthyContent(FileUtil.getExtension("moo.exe")));
 	}
 }
