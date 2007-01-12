@@ -25,6 +25,8 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
+import org.gudy.azureus2.core3.util.SystemTime;
+
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -96,7 +98,7 @@ public class SWTSkinObjectBrowser extends SWTSkinObjectBasic
 			sStartURL = url;
 			browser.setData("StartURL", url);
 		}
-		System.out.println("Set URL: " + url);
+		System.out.println(SystemTime.getCurrentTime() + "] Set URL: " + url);
 	}
 
 	public void restart() {
