@@ -23,14 +23,16 @@
 
 package com.aelitis.azureus.core.download;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginListener;
 
 import com.aelitis.azureus.core.AzureusCore;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginListener;
 
 public class 
 DownloadManagerEnhancer 
@@ -69,13 +71,8 @@ DownloadManagerEnhancer
 				downloadManagerAdded(
 					DownloadManager	dm )
 				{
-					synchronized( download_map ){
-						
-						if ( download_map.get( dm ) == null ){
-						
-							download_map.put( dm, new EnhancedDownloadManager( DownloadManagerEnhancer.this, dm ));
-						}
-					}
+					// Don't auto-add to download_map. getEnhancedDownload will
+					// take care of it later if we ever need the download
 				}
 					
 				public void
