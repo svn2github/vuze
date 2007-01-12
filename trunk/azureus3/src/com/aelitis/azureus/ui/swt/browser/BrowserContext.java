@@ -34,7 +34,6 @@ import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageListener;
-import com.aelitis.azureus.util.Constants;
 
 /**
  * Manages the context for a single SWT {@link Browser} component,
@@ -187,6 +186,7 @@ public class BrowserContext extends ClientMessageContextImpl implements
 						break;
 					}
 				}
+
 				if (!ok) {
 					debug("Canceling URL change to external: " + event.location
 							+ " (does not match one of the " + whitelist.length
