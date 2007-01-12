@@ -66,6 +66,8 @@ public class MessageDispatcher implements StatusTextListener
 
     private int lastSequence = INITIAL_LAST_SEQUENCE;
 
+		private String sLastEventText;
+
 
     /**
      * Registers itself as a listener to receive sequence number reset message.
@@ -163,15 +165,23 @@ public class MessageDispatcher implements StatusTextListener
      * 
      * @see org.eclipse.swt.browser.StatusTextListener#changed(org.eclipse.swt.browser.StatusTextEvent)
      */
-    public void changed ( StatusTextEvent event ) {
-        if ( event.text != null && event.text.startsWith(BrowserMessage.MESSAGE_PREFIX) ) {
-            try {
-                dispatch(new BrowserMessage(event.text));
-            }
-            catch ( Exception e ) {
-            	Debug.out(e);
-            }
-        }
+    public void changed(StatusTextEvent event) {
+    	if (event.text == null) {
+    		return;
+    	}
+    	if (sLastEventText != null && event.text.equals(sLastEventText)) {
+    		return;
+    	}
+
+    	sLastEventText = event.text;
+    	if (event.text.startsWith(BrowserMessage.MESSAGE_PREFIX)) {
+    		try {
+    			dispatch(new BrowserMessage(event.text));
+    			System.out.println("status change dispatched: " + event.text);
+    		} catch (Exception e) {
+    			Debug.out(e);
+    		}
+    	}
     }
 
     /**
