@@ -86,10 +86,11 @@ public class Win32UIEnhancer
 		}
 		/* Use the character encoding for the default locale */
 		TCHAR lpszFile = new TCHAR(0, fileName, true);
-		int[] phiconSmall = new int[1], phiconLarge = new int[1];
+		int[] phiconSmall = null, phiconLarge = new int[1];
 		OS.ExtractIconEx(lpszFile, nIconIndex, phiconLarge, phiconSmall, 1);
-		if (phiconLarge[0] == 0)
+		if (phiconLarge[0] == 0) {
 			return null;
+		}
 		Image image = Image.win32_new(null, SWT.ICON, phiconLarge[0]);
 		ImageData imageData = image.getImageData();
 		image.dispose();
