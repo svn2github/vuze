@@ -22,7 +22,6 @@ package com.aelitis.azureus.ui.swt.columns.torrent;
 
 import org.eclipse.swt.program.Program;
 
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
@@ -42,6 +41,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 public class ColumnTitle extends CoreTableColumn implements
 		TableCellRefreshListener, ObfusticateCellText
 {
+	static public String s = "";
 
 	/** Default Constructor */
 	public ColumnTitle(String sTableID) {
@@ -63,35 +63,32 @@ public class ColumnTitle extends CoreTableColumn implements
 			name = "";
 		}
 
-		if (cell.setSortValue(name) || !cell.isValid()) {
-			if (name.length() > 0) {
-				DiskManagerFileInfo[] fileInfo = dm.getDiskManagerFileInfo();
-				if (fileInfo.length > 0) {
-					int idxBiggest = 0;
-					long lBiggest = fileInfo[0].getLength();
-					for (int i = 1; i < fileInfo.length; i++) {
-						if (fileInfo[i].getLength() > lBiggest) {
-							lBiggest = fileInfo[i].getLength();
-							idxBiggest = i;
-						}
+		if (!cell.setSortValue(name) && cell.isValid()) {
+			return;
+		}
+		
+		if (!cell.isShown()) {
+			return;
+		}
+		
+		if (name.length() > 0) {
+			String path = dm.getDownloadState().getPrimaryFile();
+			if (path != null) {
+				int pos = path.lastIndexOf('.');
+				if (pos >= 0) {
+					String ext = path.substring(pos);
+					Program program = Program.findProgram(ext);
+					if (program != null) {
+						ext += " (" + program.getName() + ")";
 					}
-					String fname = fileInfo[idxBiggest].getFile(true).getName();
-					int pos = fname.lastIndexOf('.');
-					if (pos >= 0) {
-						String ext = fname.substring(pos);
-						Program program = Program.findProgram(ext);
-						if (program != null) {
-							ext += " (" + program.getName() + ")";
-						}
-						name += "\n"
-								+ MessageText.getString("TableColumn.header.name.ext",
-										new String[] { ext
-										});
-					}
+					name += "\n"
+							+ MessageText.getString("TableColumn.header.name.ext",
+									new String[] { ext
+									});
 				}
 			}
-			cell.setText(name);
 		}
+		cell.setText(name);
 	}
 
 	public String getObfusticatedText(TableCell cell) {

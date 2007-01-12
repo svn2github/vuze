@@ -26,7 +26,6 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -114,17 +113,8 @@ public class ColumnMediaThumb extends CoreTableColumn implements
 
 				if (b == null) {
 					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
-					DiskManagerFileInfo[] fileInfo = dm.getDiskManagerFileInfo();
-					if (fileInfo.length > 0) {
-						int idxBiggest = 0;
-						long lBiggest = fileInfo[0].getLength();
-						for (int i = 1; i < fileInfo.length && i < 10; i++) {
-							if (fileInfo[i].getLength() > lBiggest) {
-								lBiggest = fileInfo[i].getLength();
-								idxBiggest = i;
-							}
-						}
-						String path = fileInfo[idxBiggest].getFile(true).getPath();
+					String path = dm.getDownloadState().getPrimaryFile();
+					if (path != null) {
 						Image icon = ImageRepository.getPathIcon(path, true);
 						Graphic graphic = new UISWTGraphicImpl(icon);
 						cell.setGraphic(graphic);
