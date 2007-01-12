@@ -24,14 +24,22 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerFactory;
+import org.gudy.azureus2.core3.global.impl.GlobalManagerImpl;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.json.JSONObject;
 import org.json.JSONString;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformTorrentMessenger;
+
+import org.gudy.azureus2.plugins.torrent.Torrent;
 
 /**
  * @author TuxPaper
@@ -139,7 +147,7 @@ public class PlatformTorrentUtils
 			return (String) obj;
 		} else if (obj instanceof byte[]) {
 			try {
-				return new String((byte[]) obj, "UTF-8");
+				return new String((byte[]) obj, Constants.DEFAULT_ENCODING);
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -305,6 +313,14 @@ public class PlatformTorrentUtils
 				|| PlatformTorrentUtils.getContentThumbnail(torrent) != null;
 	}
 
+
+	public static boolean isContent(Torrent torrent) {
+		if (torrent instanceof TorrentImpl) {
+			return isContent(((TorrentImpl)torrent).getTorrent());
+		}
+		return false;
+	}
+
 	/**
 	 * @param torrent
 	 * @param maxDelayMS TODO
@@ -361,7 +377,6 @@ public class PlatformTorrentUtils
 					String key = (String) iterator.next();
 					Object value = jsonMapMetaData.get(key);
 
-					//System.out.println("  " + key + ";" + value);
 					if (value == null || value.equals(null)) {
 						contentMap.remove(key);
 					} else if ((key.equals("Thumbnail") || key.endsWith(".B64"))
@@ -371,16 +386,7 @@ public class PlatformTorrentUtils
 						expireyMins = ((Long) value).longValue();
 					} else if (!(value instanceof JSONString)) {
 						final String s = jsonMapMetaData.getString(key);
-
-						byte[] bytes = s.getBytes();
-						try {
-							String s2 = new String(bytes, "UTF-8");
-							contentMap.put(key, s2);
-						} catch (UnsupportedEncodingException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-							contentMap.put(key, s);
-						}
+						contentMap.put(key, s);
 					} else {
 						System.out.println("BOO! " + key + ";" + value);
 					}
@@ -389,6 +395,19 @@ public class PlatformTorrentUtils
 					} catch (TOTorrentException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+					}
+
+					// crappy way of updating the display name
+					try {
+  					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+  					DownloadManager dm = gm.getDownloadManager(torrent);
+  					String title = PlatformTorrentUtils.getContentTitle(torrent);
+  					if (title != null && title.length() > 0
+  							&& dm.getDownloadState().getDisplayName() == null) {
+  						dm.getDownloadState().setDisplayName(title);
+  					}
+					} catch (Exception e) {
+						
 					}
 					triggerMetaDataUpdateListeners(torrent);
 				}
