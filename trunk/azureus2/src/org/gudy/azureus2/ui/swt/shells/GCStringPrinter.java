@@ -98,7 +98,9 @@ public class GCStringPrinter
 			}
 
 			//We need to add some cariage return ...
-			String sTabsReplaced = string.replaceAll("\t", "  ");
+			// replaceall is slow
+			String sTabsReplaced = string.indexOf('\t') > 0 ? string.replaceAll("\t",
+					"  ") : string;
 
 			StringBuffer outputLine = new StringBuffer();
 
