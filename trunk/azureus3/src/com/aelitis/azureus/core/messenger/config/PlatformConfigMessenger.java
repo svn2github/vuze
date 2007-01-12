@@ -31,6 +31,7 @@ import org.json.JSONObject;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.Constants;
 
 /**
@@ -124,6 +125,7 @@ public class PlatformConfigMessenger
 
 						for (int i = 0; i < array.length(); i++) {
 							String string = array.getString(i);
+							PlatformTorrentUtils.log("v3.login: got whitelist of " + string);
 							sNewWhiteList[i+1] = string;
 						}
 						sURLWhiteList = sNewWhiteList;

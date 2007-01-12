@@ -152,7 +152,7 @@ public class ColumnRateDropDown extends CoreTableColumn implements
 
 			// drop down list may be bigger than row, or bigger than parent, so we add
 			// the list to shell and position accordingly
-			Composite parent = listCell.getRow().getComposite();
+			Composite parent = (Composite)listCell.getRow().getView().getControl();
 
 			Rectangle bounds = cellCore.getBounds();
 			Point location = parent.toDisplay(bounds.x, bounds.y + bounds.height);

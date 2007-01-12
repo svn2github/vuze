@@ -25,7 +25,6 @@ import java.io.File;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
 /**
@@ -45,38 +44,33 @@ public class UIConfigDefaultsSWTv3
 
 		// Up to az > 3.0.0.2, we did not store the original version the user starts
 		// on.
-		// However, we'd like to change the config defaults for AZ3 users while
-		// keeping az2 users at their present defaults.  To do this, we check
-		// default save path.  If it's userPath + "data", there's a very good
-		// chance the user started on az3.
-
-		String sFirstVersion = config.getStringParameter("First Recorded Version",
-				"");
-		
-		if (sFirstVersion == null || sFirstVersion.length() == 0) {
-			if (config.isNewInstall()) {
-				sFirstVersion = Constants.AZUREUS_VERSION;
-			} else {
-  			String userPath = SystemProperties.getUserPath();
-  			File f = new File(userPath, "data");
-  			String sDefSavePath = config.getStringParameter("Default save path");
-  			if (sDefSavePath != null && f.equals(new File(sDefSavePath))) {
-  				sFirstVersion = "3.0.0.0";
-  			} else {
-  				sFirstVersion = "2.5.0.0"; // guess
-  			}
-			}
-			config.setParameter("First Recorded Version", sFirstVersion);
-			config.save();
-		}
+		String sFirstVersion = config.getStringParameter("azureus.first.version");
 
 		ConfigurationDefaults defaults = ConfigurationDefaults.getInstance();
-
+		// Always have the wizard complete when running az3
+		defaults.addParameter("Wizard Completed", true);
+		
 		defaults.addParameter("ui", "az3");
 
 		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0) {
+			
+			if (!config.isNewInstall()
+					&& Constants.compareVersions(sFirstVersion, "3.0.0.4") < 0) {
+				// We can guess first version based on the Default save path.
+				// In 3.0.0.0 to 3.0.0.3, we set it to userPath + "data". Anything
+				// else is 2.x.  We don't want to change the defaults for 2.x people
+  			String userPath = SystemProperties.getUserPath();
+  			File f = new File(userPath, "data");
+  			String sDefSavePath = config.getStringParameter("Default save path");
+  			if (sDefSavePath == null || !f.equals(new File(sDefSavePath))) {
+  				sFirstVersion = "2.5.0.0"; // guess
+  				config.setParameter("azureus.first.version", sFirstVersion);
+  				config.save();
+  				return;
+  			}
+			}
+
 			defaults.addParameter("Auto Upload Speed Enabled", true);
-			defaults.addParameter("Wizard Completed", true);
 			defaults.addParameter("Use default data dir", true);
 			defaults.addParameter("Add URL Silently", true);
 			defaults.addParameter("add_torrents_silently", true);
@@ -89,11 +83,6 @@ public class UIConfigDefaultsSWTv3
 
 			defaults.addParameter("window.maximized", true);
 
-			String userPath = SystemProperties.getUserPath();
-			File f = new File(userPath, "data");
-			if (FileUtil.mkdirs(f)) {
-				config.setParameter("Default save path", f.getAbsolutePath());
-			}
 			config.save();
 		}
 	}

@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.global.GlobalMangerProgressListener;
@@ -53,7 +54,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
-import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.messenger.*;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
@@ -113,6 +114,8 @@ public class MainWindow implements SWTSkinTabSetListener
 
 	private boolean disposedOrDisposing;
 
+	private Object[] dms_Startup;
+
 	public static void main(String args[]) {
 		Initializer.main(new String[0]);
 		//org.gudy.azureus2.ui.swt.Main.main(args);
@@ -138,7 +141,9 @@ public class MainWindow implements SWTSkinTabSetListener
 		// When a download is added, check for new meta data and
 		// un-"wait state" the rating
 		// TODO: smart refreshing of meta data ("Refresh On" attribute)
-		core.getGlobalManager().addListener(new GlobalManagerListener() {
+		GlobalManager gm = core.getGlobalManager();
+		dms_Startup = gm.getDownloadManagers().toArray();
+		gm.addListener(new GlobalManagerListener() {
 
 			public void seedingStatusChanged(boolean seeding_only_mode) {
 			}
@@ -147,14 +152,7 @@ public class MainWindow implements SWTSkinTabSetListener
 			}
 
 			public void downloadManagerAdded(final DownloadManager dm) {
-				// must be in a new thread because we don't want to block
-				// initilization or any other add listeners
-				AEThread thread = new AEThread("v3.mw.dmAdded", true) {
-					public void runSupport() {
-						downloadAdded(dm);
-					}
-				};
-				thread.start();
+				downloadAdded(dm);
 			}
 
 			public void destroyed() {
@@ -163,7 +161,32 @@ public class MainWindow implements SWTSkinTabSetListener
 			public void destroyInitiated() {
 			}
 
-		});
+		}, false);
+	}
+
+	private void processStartupDMS() {
+		// must be in a new thread because we don't want to block
+		// initilization or any other add listeners
+		AEThread thread = new AEThread("v3.mw.dmAdded", true) {
+			public void runSupport() {
+				long startTime = System.currentTimeMillis();
+				if (dms_Startup == null || dms_Startup.length == 0) {
+					return;
+				}
+
+				for (int i = 0; i < dms_Startup.length; i++) {
+					DownloadManager dm = (DownloadManager) dms_Startup[i];
+					downloadAdded(dm);
+				}
+
+				dms_Startup = null;
+
+				System.out.println("psDMS " + (SystemTime.getCurrentTime() - startTime)
+						+ "ms");
+			}
+		};
+		thread.setPriority(Thread.MIN_PRIORITY);
+		thread.start();
 	}
 
 	private void downloadAdded(DownloadManager dm) {
@@ -179,8 +202,20 @@ public class MainWindow implements SWTSkinTabSetListener
 			Debug.out(e);
 		}
 
+		String title = PlatformTorrentUtils.getContentTitle(torrent);
+		if (title != null && title.length() > 0
+				&& dm.getDownloadState().getDisplayName() == null) {
+			dm.getDownloadState().setDisplayName(title);
+		}
+
 		// Show a popup when user adds a download
-		if (skin != null && PlatformTorrentUtils.isContent(torrent)) {
+		// if it wasn't added recently, it's not a new download
+		if (skin != null
+				&& PlatformTorrentUtils.isContent(torrent)
+				&& SystemTime.getCurrentTime()
+						- dm.getDownloadState().getLongParameter(
+								DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME) < 10000
+				&& !PublishUtils.isPublished(dm)) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					SWTSkinTabSet tabSetMain = skin.getTabSet("maintabs");
@@ -193,16 +228,22 @@ public class MainWindow implements SWTSkinTabSetListener
 						// and not display the popup when it doesn't
 						if (current != null && current.getFocusControl() != null
 								&& !MessageBoxShell.isOpen()) {
-							MessageBoxShell.open(
+							int ret = MessageBoxShell.open(
 									shell,
 									MessageText.getString("HomeReminder.title"),
 									MessageText.getString(
 											"HomeReminder.text",
 											new String[] { PlatformTorrentUtils.getContentTitle(torrent)
-											}), new String[] { MessageText.getString("Button.ok")
+											}), new String[] {
+										MessageText.getString("Button.ok"),
+										MessageText.getString("HomeReminder.gohome")
 									}, 0, "downloadinhome",
 									MessageText.getString("MessageBoxWindow.nomoreprompting"),
 									false, 15000);
+
+							if (ret == 1) {
+								tabSetMain.setActiveTab("maintabs.home");
+							}
 						}
 					}
 				}
@@ -397,15 +438,14 @@ public class MainWindow implements SWTSkinTabSetListener
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
 		startTime = SystemTime.getCurrentTime();
 
-		final long lfStartTime = startTime;
-
-		GlobalManager globalManager = core.getGlobalManager();
-		if (globalManager != null) {
-			globalManager.loadExistingTorrentsNow(true);
-		}
-
 		showMainWindow();
 		System.out.println("shell.open took "
+				+ (SystemTime.getCurrentTime() - startTime) + "ms");
+		startTime = SystemTime.getCurrentTime();
+
+		processStartupDMS();
+
+		System.out.println("processStartupDMS took "
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
 		startTime = SystemTime.getCurrentTime();
 	}

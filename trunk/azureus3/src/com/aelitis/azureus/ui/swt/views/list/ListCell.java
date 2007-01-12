@@ -108,6 +108,7 @@ public class ListCell implements BufferedTableItem
 	}
 
 	public Rectangle getBounds() {
+		bounds.y = row.getVisibleYOffset();
 		return bounds;
 	}
 
@@ -127,8 +128,7 @@ public class ListCell implements BufferedTableItem
 	}
 
 	public boolean isShown() {
-		boolean bIsShown = isShowable() && row.isVisible()
-				&& row.getComposite().getClientArea().intersects(bounds);
+		boolean bIsShown = isShowable() && row.isVisible();
 		if (bIsShown != bLastIsShown) {
 			bLastIsShown = bIsShown;
 			if (cell != null) {
@@ -195,11 +195,12 @@ public class ListCell implements BufferedTableItem
 	}
 
 	protected void redrawCell() {
+		// XXX Complete
 		if (!isShown()) {
 			return;
 		}
-		row.getComposite().redraw(bounds.x, bounds.y, bounds.width, bounds.height,
-				false);
+//		row.getComposite().redraw(bounds.x, bounds.y, bounds.width, bounds.height,
+//				false);
 	}
 
 	public Image getBackgroundImage() {

@@ -19,10 +19,12 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SizeItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpItem;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -123,7 +125,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 
 	private final dowloadManagerListener dmListener;
 
-	private final GlobalManager globalManager;
+	protected final GlobalManager globalManager;
 
 	private final int viewMode;
 
@@ -142,10 +144,12 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 	private final Composite dataArea;
 
 	private boolean bAllowScrolling;
+	
+	private boolean bSkipUpdateCount = false;
 
 	public TorrentListView(AzureusCore core, final SWTSkin skin,
 			SWTSkinProperties skinProperties, Composite headerArea, SWTSkinObjectText countArea,
-			Composite dataArea, int viewMode, final boolean bMiniMode,
+			final Composite dataArea, int viewMode, final boolean bMiniMode,
 			boolean bAllowScrolling) {
 
 		super(TABLE_IDS[viewMode] + ((bMiniMode) ? "-Mini" : ""), skinProperties,
@@ -172,8 +176,12 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		if (headerArea != null) {
 			setupHeader(headerArea);
 		}
+		
+		if (countArea != null) {
+			countArea.setText("");
+		}
 
-		getScrolledComposite().addListener(SWT.Resize, new Listener() {
+		getControl().addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
 				if (bMiniMode) {
 					fixupRowCount();
@@ -185,11 +193,12 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		final Listener l = new Listener() {
 			public void handleEvent(Event event) {
 				if (event.button == 2) {
-					ListRow row = (ListRow) event.widget.getData("ListRow");
+					ListRow row = getRow(event.x, event.y);
 					if (row != null) {
 						DownloadManager dm = (DownloadManager) row.getDataSource(true);
 						if (dm != null) {
 							TOTorrent torrent = dm.getTorrent();
+							// TODO: Add callback listener and update row
 							PlatformTorrentUtils.updateMetaData(torrent, 1);
 							Utils.beep();
 						}
@@ -197,11 +206,8 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 				}
 			}
 		};
-		addCountChangeListener(new ListCountChangeAdapter() {
-			public void rowAdded(ListRow row) {
-				row.getComposite().addListener(SWT.MouseUp, l);
-			}
-		});
+		
+		getControl().addListener(SWT.MouseUp, l);
 
 		addSelectionListener(new ListSelectionAdapter() {
 			public void defaultSelected(ListRow[] rows) {
@@ -214,15 +220,32 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 
 		this.globalManager = core.getGlobalManager();
 		globalManager.addListener(this, false);
-
+		
 		// Needed or Java borks!
 		dataArea.getDisplay().asyncExec(new AERunnable() {
 			public void runSupport() {
 				DownloadManager[] managers = sortDMList(globalManager.getDownloadManagers());
+				bSkipUpdateCount = true;
 				for (int i = 0; i < managers.length; i++) {
 					DownloadManager dm = managers[i];
 					downloadManagerAdded(dm);
+
+					if (dataArea.getSize().y / ListRow.ROW_HEIGHT == i) {
+
+						processDataSourceQueue();
+						bSkipUpdateCount = false;
+						updateCount();
+						bSkipUpdateCount = true;
+
+						for (int j = 0; j <= i; j++) {
+							ListRow row = getRow(j);
+							if (row != null) {
+								row.redraw(true);
+							}
+						}
+					}
 				}
+				bSkipUpdateCount = false;
 			}
 		});
 
@@ -292,7 +315,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		}
 	}
 
-	private void fixupRowCount() {
+	protected void fixupRowCount() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				_fixupRowCount();
@@ -301,7 +324,8 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 	}
 
 	private void _fixupRowCount() {
-		if (dataArea.isDisposed()) {
+		System.out.println("fixupRowCount");
+		if (dataArea.isDisposed() || bAllowScrolling) {
 			return;
 		}
 
@@ -320,13 +344,14 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 				DownloadManager dm = managers[i];
 				if (isOurDownload(dm)) {
 					if (!dataSourceExists(dm)) {
-						addDataSource(dm, false, -1);
+						addDataSource(dm, false);
 						changeCount++;
 						curRowCount++;
 						pos++;
 					}
 				}
 			}
+			processDataSourceQueue();
 		} else {
 			while (curRowCount > maxRows) {
 				ListRow row = getRow(--curRowCount);
@@ -379,6 +404,10 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 	public void downloadManagerAdded(DownloadManager dm) {
 		//regetDownloads();
 		dm.addListener(dmListener);
+  	if (isOurDownload(dm)) {
+      addDataSource(dm, false);
+      updateCount();
+    }
 	}
 
 	// GlobalManagerListener
@@ -434,11 +463,21 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		}
 
 		public void completionChanged(DownloadManager manager, boolean bCompleted) {
-			view.regetDownloads();
+			if (view.isOurDownload(manager)) {
+				view.addDataSource(manager, true);
+			} else {
+				view.removeDataSource(manager, true);
+			}
+			view.fixupRowCount();
 		}
 
 		public void downloadComplete(DownloadManager manager) {
-			view.regetDownloads();
+			if (view.isOurDownload(manager)) {
+				view.addDataSource(manager, true);
+			} else {
+				view.removeDataSource(manager, true);
+			}
+			view.fixupRowCount();
 		}
 
 		public void filePriorityChanged(DownloadManager download,
@@ -451,22 +490,6 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		}
 
 		public void stateChanged(DownloadManager manager, int state) {
-			//System.out.println("SC " + manager + " " + state);
-
-			if (!view.isOurDownload(manager)) {
-				if (view.getRow(manager) != null) {
-					view.removeDataSource(manager, false);
-					view.regetDownloads();
-				}
-
-				// might be able to add another in..
-				//view.fixupRowCount();
-				// could be optimized so we don't call updateCount twice (once in fixup)
-				view.updateCount();
-			} else {
-				view.fixupRowCount();
-			}
-
 			try {
 				view.listeners_mon.enter();
 				for (Iterator iter = view.listeners.iterator(); iter.hasNext();) {
@@ -490,7 +513,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 			listeners_mon.exit();
 		}
 
-		if (countArea != null) {
+		if (countArea != null && bSkipUpdateCount) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (countArea == null) {
@@ -536,4 +559,30 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 	public void removeListener(TorrentListViewListener l) {
 		listeners.remove(l);
 	}
+	
+	// @see com.aelitis.azureus.ui.swt.views.list.ListView#fillMenu(org.eclipse.swt.widgets.Menu)
+	public void fillMenu(Menu menu) {
+		Object[] dms = getSelectedDataSources();
+		boolean hasSelection = (dms.length > 0);
+
+		// Explore
+		final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemExplore, "MyTorrentsView.menu.explore");
+		itemExplore.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				exploreTorrents();
+			}
+		});
+		itemExplore.setEnabled(hasSelection);
+	}
+	
+  private void exploreTorrents() {
+    Object[] dataSources = getSelectedDataSources();
+    for (int i = dataSources.length - 1; i >= 0; i--) {
+      DownloadManager dm = (DownloadManager)dataSources[i];
+      if (dm != null) {
+        ManagerUtils.open(dm);
+      }
+    }
+  }
 }

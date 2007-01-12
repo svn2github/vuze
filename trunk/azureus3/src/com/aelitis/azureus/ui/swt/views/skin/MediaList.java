@@ -21,17 +21,23 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.ByteArrayInputStream;
+import java.util.regex.Pattern;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -54,6 +60,8 @@ import com.aelitis.azureus.ui.swt.views.list.ListSelectionAdapter;
  */
 public class MediaList extends SkinView
 {
+	private static final int ASYOUTYPE_UPDATEDELAY = 300;
+
 	private SWTSkinObjectText lblCountAreaNotOurs;
 
 	private SWTSkinObjectText lblCountAreaOurs;
@@ -82,12 +90,22 @@ public class MediaList extends SkinView
 
 	private MetaDataUpdateListener listener;
 
+	protected String sLastSearch = "";
+
+	private Text txtFilter;
+
+	private boolean bRegexSearch;
+
+	private Label lblX;
+
+	private TimerEvent searchUpdateEvent;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		final SWTSkin skin = skinObject.getSkin();
 		core = AzureusCoreFactory.getSingleton();
 
-		Composite cData = (Composite) skinObject.getControl();
+		final Composite cData = (Composite) skinObject.getControl();
 		Composite cHeaders = null;
 
 		skinObject = skin.getSkinObject(PREFIX + "list-headers");
@@ -98,12 +116,46 @@ public class MediaList extends SkinView
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
 				null, cData, TorrentListView.VIEW_MY_MEDIA, false, true) {
 			public boolean isOurDownload(DownloadManager dm) {
-				return true;
+				if (sLastSearch.length() == 0) {
+					return true;
+				}
+
+				boolean bOurs = true;
+				try {
+					String[][] names = {	{"", 		dm.getDisplayName()},
+													{"t:", 	dm.getTorrent().getAnnounceURL().getHost()},
+													{"st:", 	"" + dm.getState()}
+												};
+					
+					String name = names[0][1];
+					String tmpSearch = sLastSearch;
+					
+					for(int i = 0; i < names.length; i++){
+						if (tmpSearch.startsWith(names[i][0])) {
+							tmpSearch = tmpSearch.substring(names[i][0].length());
+							name = names[i][1];
+						}
+					}
+					
+					String s = bRegexSearch ? tmpSearch : "\\Q"
+							+ tmpSearch.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
+					Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
+
+					if (!pattern.matcher(name).find()) {
+						bOurs = false;
+					}
+				} catch (Exception e) {
+					// Future: report PatternSyntaxException message to user.
+				}
+				return bOurs;
 			}
 
 			public void regetDownloads() {
-				// called when a download state changed (stupid)
-				//  No need to regetDownloads, as we get all downloads
+				globalManager.removeListener(this);
+				this.removeAllDataSources(true);
+
+				System.out.println("reget");
+				globalManager.addListener(this, true);
 			}
 
 			public void updateUI() {
@@ -293,8 +345,108 @@ public class MediaList extends SkinView
 				}
 			}, true);
 		}
+		
+		skinObject = skin.getSkinObject("search-text");
+		if (skinObject != null) {
+			Control control = skinObject.getControl();
+			if (control instanceof Composite) {
+				Control[] children = ((Composite)control).getChildren();
+				if (children.length > 0 && (children[0] instanceof Text)) {
+					txtFilter = (Text)children[0];
+	        txtFilter.addModifyListener(new ModifyListener() {
+	        	public void modifyText(ModifyEvent e) {
+	        		sLastSearch = ((Text)e.widget).getText();
+	        		updateLastSearch();
+	        	}
+	        });
+					
+					cData.addKeyListener(new KeyListener() {
+						public void keyReleased(KeyEvent e) {
+						}
+					
+						public void keyPressed(KeyEvent e) {
+							if (e.keyCode != SWT.BS) {
+								if ((e.stateMask & (~SWT.SHIFT)) != 0 || e.character < 32)
+									return;
+							}
+
+							if (e.keyCode == SWT.BS) {
+								if (e.stateMask == SWT.CONTROL)
+									sLastSearch = "";
+								else if (sLastSearch.length() > 0)
+									sLastSearch = sLastSearch.substring(0, sLastSearch.length() - 1);
+							} else {
+								sLastSearch += String.valueOf(e.character);
+							}
+
+							if (txtFilter != null && !txtFilter.isDisposed()) {
+								txtFilter.setFocus();
+							}
+							updateLastSearch();
+
+							e.doit = false;
+						}
+					
+					});
+				}
+			}
+		}
+
 
 		return null;
+	}
+
+	/**
+	 * 
+	 */
+	protected void updateLastSearch() {
+		if (txtFilter != null && !txtFilter.isDisposed()) {
+			if (!sLastSearch.equals(txtFilter.getText())) { 
+				txtFilter.setText(sLastSearch);
+				txtFilter.setSelection(sLastSearch.length());
+			}
+
+			if (sLastSearch.length() > 0) {
+				if (bRegexSearch) {
+					try {
+						Pattern.compile(sLastSearch, Pattern.CASE_INSENSITIVE);
+						txtFilter.setBackground(Colors.colorAltRow);
+						Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
+					} catch (Exception e) {
+						txtFilter.setBackground(Colors.colorErrorBG);
+						txtFilter.setToolTipText(e.getMessage());
+					}
+				} else {
+					txtFilter.setBackground(null);
+					Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
+				}
+			}
+		}
+		if (lblX != null && !lblX.isDisposed()) {
+			Image img = ImageRepository.getImage(sLastSearch.length() > 0 ? "smallx"
+					: "smallx-gray");
+
+			lblX.setImage(img);
+		}
+
+		if (searchUpdateEvent != null) {
+			searchUpdateEvent.cancel();
+		}
+		searchUpdateEvent = SimpleTimer.addEvent("SearchUpdate",
+				SystemTime.getOffsetTime(ASYOUTYPE_UPDATEDELAY),
+				new TimerEventPerformer() {
+					public void perform(TimerEvent event) {
+						searchUpdateEvent = null;
+						doFilter();
+					}
+				});
+	}
+
+	/**
+	 * 
+	 */
+	protected void doFilter() {
+		view.regetDownloads();
 	}
 
 	private void updateDetailsInfo() {

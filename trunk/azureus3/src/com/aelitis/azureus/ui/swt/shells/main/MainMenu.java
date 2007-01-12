@@ -16,6 +16,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
+import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -82,14 +83,13 @@ public class MainMenu
 			new MenuItem(helpMenu, SWT.SEPARATOR);
 		}
 
-		MenuItem help_new = new MenuItem(helpMenu, SWT.NULL);
-		Messages.setLanguageText(help_new, "MainWindow.menu.help.whatsnew");
-		help_new.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				Utils.launch("http://azureus.sourceforge.net/changelog.php?version="
-						+ Constants.AZUREUS_VERSION);
-			}
-		});
+    MenuItem help_whatsnew = new MenuItem(helpMenu, SWT.NULL);
+    Messages.setLanguageText(help_whatsnew, "MainWindow.menu.help.releasenotes");
+    help_whatsnew.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        new WelcomeWindow();
+      }
+    });
 
 		MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
 		Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq");
