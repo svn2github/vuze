@@ -73,6 +73,9 @@ public class SWTSkinButtonUtility
 
 	public void setDisabled(boolean disabled) {
 		String suffix = disabled ? "-disabled" : "";
+		if (skinObject.getSuffix().equals(suffix)) {
+			return;
+		}
 		skinObject.switchSuffix(suffix, 1, true);
 
 		for (Iterator iter = listeners.iterator(); iter.hasNext();) {
