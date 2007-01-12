@@ -51,6 +51,7 @@ public class ColumnRate extends CoreTableColumn implements
 		TableCellAddedListener
 {
 	static Font font = null;
+	static Font smallFont = null;
 
 	/**
 	 * 
@@ -97,15 +98,19 @@ public class ColumnRate extends CoreTableColumn implements
 
 			TOTorrent torrent = dm.getTorrent();
 			String rating = GlobalRatingUtils.getRatingString(torrent);
+			long count = GlobalRatingUtils.getCount(torrent);
 
 			boolean b;
 			try {
-				b = !cell.setSortValue(Float.parseFloat(rating));
+				b = !cell.setSortValue(Float.parseFloat(rating) * 100000 + count);
 			} catch (Exception e) {
-				b = !cell.setSortValue(null);
+				b = !cell.setSortValue(new Float(count));
 			}
 			
 			if (b && cell.isValid()) {
+				return;
+			}
+			if (!cell.isShown()) {
 				return;
 			}
 
@@ -151,6 +156,7 @@ public class ColumnRate extends CoreTableColumn implements
 			if (color2 != null) {
 				gcImage.setForeground(color2);
 			}
+			r.height -= 12;
 
 			GCStringPrinter.printString(gcImage, rating, r, true, false, SWT.CENTER);
 
@@ -160,9 +166,27 @@ public class ColumnRate extends CoreTableColumn implements
 				color1 = skinProperties.getColor("color.row.fg");
 			}
 
+			r = img.getBounds();
+			r.height -= 12;
 			gcImage.setForeground(color1);
-			GCStringPrinter.printString(gcImage, rating, img.getBounds(), true,
+			GCStringPrinter.printString(gcImage, rating, r, true,
 					false, SWT.CENTER);
+
+			if (count > 0) {
+				if (smallFont == null) {
+					gcImage.setFont(null);
+					// no sync required, SWT is on single thread
+					FontData[] fontData = gcImage.getFont().getFontData();
+					fontData[0].setHeight(Utils.pixelsToPoint(9,
+							Display.getDefault().getDPI().y));
+					smallFont = new Font(Display.getDefault(), fontData);
+				}
+
+				gcImage.setFont(smallFont);
+
+				GCStringPrinter.printString(gcImage, "" + count + " ratings",
+						img.getBounds(), true, false, SWT.BOTTOM);
+			}
 
 			gcImage.dispose();
 
