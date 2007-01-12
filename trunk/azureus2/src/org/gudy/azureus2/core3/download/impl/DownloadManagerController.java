@@ -970,11 +970,15 @@ DownloadManagerController
   	public void
   	setStateSeeding(
   		boolean	never_downloaded )
-  	{
-  		setState(DownloadManager.STATE_SEEDING, true);
-  		
-		download_manager.downloadEnded( never_downloaded );
-  	}
+	{
+		// should already be finishing, but make sure (if it already is, there
+		// won't be a trigger)
+		setStateFinishing();
+
+		download_manager.downloadEnded(never_downloaded);
+
+		setState(DownloadManager.STATE_SEEDING, true);
+	}
   
   	public boolean
   	isStateSeeding()
@@ -1052,6 +1056,11 @@ DownloadManagerController
 		substate	= ss;
 	}
 	
+	/**
+	 * @param _state
+	 * @param _inform_changed trigger informStateChange (which may not trigger
+	 *                        listeners if state hasn't changed since last trigger)
+	 */
   	private void 
   	setState(
   		int 		_state,
