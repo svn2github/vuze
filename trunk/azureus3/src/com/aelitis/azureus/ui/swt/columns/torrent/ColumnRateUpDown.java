@@ -121,6 +121,9 @@ public class ColumnRateUpDown extends CoreTableColumn implements
 			if (!cell.setSortValue(rating) && cell.isValid()) {
 				return;
 			}
+			if (!cell.isShown()) {
+				return;
+			}
 
 			UISWTGraphic graphic;
 			switch (rating) {

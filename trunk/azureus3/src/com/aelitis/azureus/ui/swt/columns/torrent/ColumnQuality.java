@@ -76,6 +76,9 @@ public class ColumnQuality extends CoreTableColumn implements
 			if (!cell.setSortValue(quality) && cell.isValid()) {
 				return;
 			}
+			if (!cell.isShown()) {
+				return;
+			}
 			
 			if (quality == null) {
 				disposeOld(cell);

@@ -64,6 +64,9 @@ public class ColumnDateAdded2Liner extends CoreTableColumn implements
 		if (!cell.setSortValue(value) && cell.isValid()) {
 			return;
 		}
+		if (!cell.isShown()) {
+			return;
+		}
 
 		int cellWidth = cell.getWidth();
 		Date date = new Date(value);

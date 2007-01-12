@@ -80,6 +80,9 @@ public class ColumnIsPrivate extends CoreTableColumn implements
 			if (!cell.setSortValue(sortVal) && cell.isValid()) {
 				return;
 			}
+			if (!cell.isShown()) {
+				return;
+			}
 
 			cell.setGraphic(bPrivate ? graphicCheck : null);
 		}

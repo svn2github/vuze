@@ -151,6 +151,9 @@ public class ColumnSpeed extends CoreTableColumn implements
 			if (!cell.setSortValue(index) && cell.isValid()) {
 				return;
 			}
+			if (!cell.isShown()) {
+				return;
+			}
 
 			cell.setGraphic(index < 0 || index >= graphics.length ? null
 					: graphics[index]);
