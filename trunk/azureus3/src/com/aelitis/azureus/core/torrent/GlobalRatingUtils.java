@@ -109,22 +109,15 @@ public class GlobalRatingUtils
 		}
 
 		if (PlatformTorrentUtils.DEBUG_CACHING) {
-			Debug.outNoStack(
-					"v3.GR.caching: setRating to "
-							+ rating
-							+ " for "
-							+ torrent
-							+ ".  Next refresh in "
-							+ (refreshOn
-									- SystemTime.getCurrentTime()), false);
+			PlatformTorrentUtils.log("v3.GR.caching: setRating to " + rating
+					+ " for " + torrent + ".  Next refresh in "
+					+ (refreshOn - SystemTime.getCurrentTime()));
 		}
 		SimpleTimer.addEvent("Update G.Rating", refreshOn,
 				new TimerEventPerformer() {
 					public void perform(TimerEvent event) {
 						if (PlatformTorrentUtils.DEBUG_CACHING) {
-							Debug.outNoStack(
-									"v3.GR.caching: refresh timer calling updateFromPlatform",
-									false);
+							PlatformTorrentUtils.log("v3.GR.caching: refresh timer calling updateFromPlatform");
 						}
 						updateFromPlatform(torrent, 15000);
 					}
@@ -168,8 +161,8 @@ public class GlobalRatingUtils
 		try {
 			final String hash = torrent.getHashWrapper().toBase32String();
 			if (PlatformTorrentUtils.DEBUG_CACHING) {
-				Debug.outNoStack("v3.GR.caching: updateFromPlatform for " + torrent,
-						false);
+				PlatformTorrentUtils.log("v3.GR.caching: updateFromPlatform for "
+						+ torrent);
 			}
 			PlatformRatingMessenger.getGlobalRating(
 					new String[] { PlatformRatingMessenger.RATE_TYPE_CONTENT
@@ -179,8 +172,8 @@ public class GlobalRatingUtils
 								PlatformRatingMessenger.GetRatingReply reply) {
 
 							if (PlatformTorrentUtils.DEBUG_CACHING) {
-								Debug.outNoStack("v3.GR.caching: reply '" + replyType
-										+ "' for " + torrent, false);
+								PlatformTorrentUtils.log("v3.GR.caching: reply '" + replyType
+										+ "' for " + torrent);
 							}
 							if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
 								String type = PlatformRatingMessenger.RATE_TYPE_CONTENT;
@@ -204,7 +197,7 @@ public class GlobalRatingUtils
 										new TimerEventPerformer() {
 											public void perform(TimerEvent event) {
 												if (PlatformTorrentUtils.DEBUG_CACHING) {
-													Debug.outNoStack("v3.GR.caching: retrying..", false);
+													PlatformTorrentUtils.log("v3.GR.caching: retrying..");
 												}
 												updateFromPlatform(torrent, 15000);
 											}
