@@ -2356,7 +2356,7 @@ public class MyTorrentsView
       return;
 
     String sDefPath = COConfigurationManager.getBooleanParameter("Use default data dir") ?
-                      COConfigurationManager.getStringParameter("Default save path", "") :
+                      COConfigurationManager.getStringParameter("Default save path") :
                       "";
     
     if ( sDefPath.length() > 0 ){

@@ -104,7 +104,7 @@ public class FileUtil {
    * Deletes the given dir and all files/dirs underneath
    */
   public static void recursiveDelete(File f) {
-    String defSaveDir = COConfigurationManager.getStringParameter("Default save path", "");
+    String defSaveDir = COConfigurationManager.getStringParameter("Default save path");
     String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
     
     try{
@@ -173,7 +173,7 @@ public class FileUtil {
 	boolean	log_warnings ) 
   {
      try {
-      String defSaveDir 	= COConfigurationManager.getStringParameter("Default save path", "");
+      String defSaveDir 	= COConfigurationManager.getStringParameter("Default save path");
       String moveToDir 		= COConfigurationManager.getStringParameter("Completed Files Directory", "");
         
       if ( defSaveDir.trim().length() > 0 ){
@@ -1404,7 +1404,12 @@ public class FileUtil {
 		
 		core.createOperation( AzureusCoreOperation.OP_FILE_MOVE, task );
 	}
-	
+
+	/**
+	 * Makes Directories as long as the directory isn't directly in Volumes (OSX)
+	 * @param f
+	 * @return
+	 */
 	public static boolean mkdirs(File f) {
 		if (Constants.isOSX) {
 			Pattern pat = Pattern.compile("^(/Volumes/[^/]+)");
