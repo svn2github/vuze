@@ -238,34 +238,46 @@ public class MessageBoxShell
 
 		if ((html != null && html.length() > 0)
 				|| (url != null && url.length() > 0)) {
-			final Browser browser = new Browser(shell, SWT.NONE);
-			if (url != null && url.length() > 0) {
-				browser.setUrl(url);
-			} else {
-				browser.setText(html);
+			try {
+				int i = 0 / 0;
+  			final Browser browser = new Browser(shell, SWT.NONE);
+  			if (url != null && url.length() > 0) {
+  				browser.setUrl(url);
+  			} else {
+  				browser.setText(html);
+  			}
+  			GridData gd = new GridData(GridData.FILL_BOTH);
+  			gd.heightHint = 200;
+  			browser.setLayoutData(gd);
+  			browser.addProgressListener(new ProgressListener() {
+  				public void completed(ProgressEvent event) {
+  					browser.addLocationListener(new LocationListener() {
+  						public void changing(LocationEvent event) {
+  							event.doit = false;
+  						}
+  
+  						public void changed(LocationEvent event) {
+  						}
+  					});
+  					browser.addOpenWindowListener(new OpenWindowListener() {
+  						public void open(WindowEvent event) {
+  						}
+  					});
+  				}
+  
+  				public void changed(ProgressEvent event) {
+  				}
+  			});
+			} catch (Exception e) {
+				Debug.out(e);
+				if (html != null) {
+					Text text = new Text(shell, SWT.BORDER | SWT.READ_ONLY);
+					text.setText(html);
+	  			GridData gd = new GridData(GridData.FILL_BOTH);
+	  			gd.heightHint = 200;
+	  			text.setLayoutData(gd);
+				}
 			}
-			GridData gd = new GridData(GridData.FILL_BOTH);
-			gd.heightHint = 200;
-			browser.setLayoutData(gd);
-			browser.addProgressListener(new ProgressListener() {
-				public void completed(ProgressEvent event) {
-					browser.addLocationListener(new LocationListener() {
-						public void changing(LocationEvent event) {
-							event.doit = false;
-						}
-
-						public void changed(LocationEvent event) {
-						}
-					});
-					browser.addOpenWindowListener(new OpenWindowListener() {
-						public void open(WindowEvent event) {
-						}
-					});
-				}
-
-				public void changed(ProgressEvent event) {
-				}
-			});
 
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			linkControl.setLayoutData(gridData);
