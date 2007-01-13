@@ -64,7 +64,7 @@ public class WelcomeWindow {
 	}
   
   public WelcomeWindow(Shell parentShell, String url) {
-    shell = ShellFactory.createShell(SWT.BORDER | SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
+    shell = ShellFactory.createShell(parentShell, SWT.BORDER | SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
     Utils.setShellIcon(shell);
 	
     shell.setText(MessageText.getString("window.welcome.title", new String[]{ Constants.AZUREUS_VERSION }));
