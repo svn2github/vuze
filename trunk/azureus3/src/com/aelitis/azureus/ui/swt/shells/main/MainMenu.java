@@ -87,7 +87,7 @@ public class MainMenu
     Messages.setLanguageText(help_whatsnew, "MainWindow.menu.help.releasenotes");
     help_whatsnew.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        new WelcomeWindow();
+        new WelcomeWindow(parent);
       }
     });
 

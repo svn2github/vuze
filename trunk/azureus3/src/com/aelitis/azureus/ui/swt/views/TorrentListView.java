@@ -145,7 +145,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 
 	private boolean bAllowScrolling;
 	
-	private boolean bSkipUpdateCount = false;
+	protected boolean bSkipUpdateCount = false;
 
 	public TorrentListView(AzureusCore core, final SWTSkin skin,
 			SWTSkinProperties skinProperties, Composite headerArea, SWTSkinObjectText countArea,
@@ -365,7 +365,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		updateCount();
 	}
 
-	private DownloadManager[] sortDMList(List dms) {
+	protected DownloadManager[] sortDMList(List dms) {
 		DownloadManager[] dmsArray = (DownloadManager[]) dms.toArray(new DownloadManager[0]);
 		Arrays.sort(dmsArray, new Comparator() {
 			public int compare(Object o1, Object o2) {
@@ -502,7 +502,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		}
 	}
 
-	private void updateCount() {
+	protected void updateCount() {
 		try {
 			listeners_mon.enter();
 			for (Iterator iter = listeners.iterator(); iter.hasNext();) {
