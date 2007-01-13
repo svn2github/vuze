@@ -342,13 +342,16 @@ public class SystemProperties {
   
   public static String getDocPath() {
 		PlatformManager platformManager = PlatformManagerFactory.getPlatformManager();
-		File fDocPath;
+		File fDocPath = null;
 		try {
 			fDocPath = platformManager.getLocation(PlatformManager.LOC_DOCUMENTS);
 		} catch (PlatformManagerException e) {
-			// should never happen..
+		}
+		if (fDocPath == null) {
+			// should never happen.. but if we are missing a dll..
 			fDocPath = new File(getUserPath(), "Documents");
 		}
+
 		return fDocPath.getAbsolutePath();
   }
 }
