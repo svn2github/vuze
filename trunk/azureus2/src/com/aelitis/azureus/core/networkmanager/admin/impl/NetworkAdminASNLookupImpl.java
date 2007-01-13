@@ -65,7 +65,9 @@ NetworkAdminASNLookupImpl
 		throws NetworkAdminException
 	{
 		try{
-			lookupTCP( address );
+			//lookupTCP( address );
+			// Disable TCP lookup until we fix the WHOIS address
+			lookupDNS( address );
 			
 		}catch( NetworkAdminException e ){
 			
