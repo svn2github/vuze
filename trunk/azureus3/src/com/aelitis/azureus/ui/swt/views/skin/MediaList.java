@@ -60,7 +60,7 @@ import com.aelitis.azureus.ui.swt.views.list.ListSelectionAdapter;
  */
 public class MediaList extends SkinView
 {
-	private static final int ASYOUTYPE_UPDATEDELAY = 300;
+	private static final int ASYOUTYPE_UPDATEDELAY = 150;
 
 	private SWTSkinObjectText lblCountAreaNotOurs;
 
@@ -151,11 +151,37 @@ public class MediaList extends SkinView
 			}
 
 			public void regetDownloads() {
-				globalManager.removeListener(this);
-				this.removeAllDataSources(true);
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						globalManager.removeListener(view);
+						removeAllDataSources(true);
 
-				System.out.println("reget");
-				globalManager.addListener(this, true);
+						System.out.println("reget");
+						globalManager.addListener(view, false);
+						DownloadManager[] managers = sortDMList(globalManager.getDownloadManagers());
+						bSkipUpdateCount = true;
+						for (int i = 0; i < managers.length; i++) {
+							DownloadManager dm = managers[i];
+							downloadManagerAdded(dm);
+
+							if (getControl().getSize().y / ListRow.ROW_HEIGHT == i) {
+
+								processDataSourceQueue();
+								bSkipUpdateCount = false;
+								updateCount();
+								bSkipUpdateCount = true;
+
+								for (int j = 0; j <= i; j++) {
+									ListRow row = getRow(j);
+									if (row != null) {
+										row.redraw(true);
+									}
+								}
+							}
+						}
+						bSkipUpdateCount = false;
+					}
+				});
 			}
 
 			public void updateUI() {
