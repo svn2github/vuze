@@ -50,6 +50,10 @@ public class ColumnDateAdded2Liner extends CoreTableColumn implements
 		"MMM d, ''yy",
 		"yyyy/mm/dd"
 	};
+	
+	static int globalFormat = 0;
+	
+	int curFormat = 0;
 
 	public ColumnDateAdded2Liner(String sTableID, boolean bVisible) {
 		super("date_added", ALIGN_TRAIL, bVisible ? POSITION_LAST
@@ -61,7 +65,7 @@ public class ColumnDateAdded2Liner extends CoreTableColumn implements
 		long value = (dm == null) ? 0 : dm.getDownloadState().getLongParameter(
 				DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
 
-		if (!cell.setSortValue(value) && cell.isValid()) {
+		if (!cell.setSortValue(value) && cell.isValid() && curFormat == globalFormat) {
 			return;
 		}
 		if (!cell.isShown()) {
@@ -89,6 +93,14 @@ public class ColumnDateAdded2Liner extends CoreTableColumn implements
 		gc.dispose();
 
 		if (idxFormat >= 0) {
+			if (idxFormat > globalFormat) {
+				globalFormat = idxFormat;
+				cell.getTableColumn().invalidateCells();
+			} else if (idxFormat < globalFormat){
+				idxFormat = globalFormat;
+			}
+			curFormat = idxFormat;
+			
 			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[idxFormat]
 					+ "\nh:mm a");
 			cell.setText(temp.format(date));
