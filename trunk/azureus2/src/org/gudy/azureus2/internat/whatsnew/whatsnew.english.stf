@@ -1,4 +1,12 @@
 $ 
+$    Welcome to Azureus 3.0.0.5
+$ 
+
+ This is a mid-release (aka CVS Snapshot) version of Azureus.  Thank you for beta testing Azureus.
+
+ For Azureus 2 users, you will notice the version has changed to 3.  Relax, this does not mean we are forcing you to the new "zudeo" UI.  Since Azureus 3 and Azureus 2 use the same source, it didn't make much sense to continue calling the CVS snapshot versions "2.5.0.x".
+
+$ 
 $    Welcome to Azureus 2.5.0.2
 $ 
 

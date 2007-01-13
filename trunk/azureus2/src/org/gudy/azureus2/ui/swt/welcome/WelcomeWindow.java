@@ -58,12 +58,12 @@ public class WelcomeWindow {
   Color black,white,light,grey,green,blue,fg,bg;
   
   
-  public WelcomeWindow() {
-		this(URL_WHATSNEW + "?version=" + Constants.AZUREUS_VERSION + "&locale="
+  public WelcomeWindow(Shell parentShell) {
+		this(parentShell, URL_WHATSNEW + "?version=" + Constants.AZUREUS_VERSION + "&locale="
 				+ Locale.getDefault().toString());
 	}
   
-  public WelcomeWindow(String url) {
+  public WelcomeWindow(Shell parentShell, String url) {
     shell = ShellFactory.createShell(SWT.BORDER | SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
     Utils.setShellIcon(shell);
 	
@@ -296,7 +296,7 @@ public class WelcomeWindow {
   }
   
   public static void main(String[] args) {
-		new WelcomeWindow();
+		new WelcomeWindow(null);
 		Display display = Display.getDefault();
 		while (true) {
 			if (!display.readAndDispatch()) {

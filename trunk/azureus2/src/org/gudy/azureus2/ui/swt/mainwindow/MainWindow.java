@@ -1504,7 +1504,7 @@ MainWindow
 			}
 
 			if (Constants.compareVersions(lastShown, Constants.getBaseVersion()) < 0) {
-				new WelcomeWindow();
+				new WelcomeWindow(shell);
 				if (!bIsStringParam) {
 					// setting parameter to a different value type makes az unhappy
 					COConfigurationManager.removeParameter(CONFIG_LASTSHOWN);
