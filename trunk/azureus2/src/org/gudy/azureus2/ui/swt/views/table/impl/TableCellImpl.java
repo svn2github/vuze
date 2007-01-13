@@ -368,8 +368,9 @@ public class TableCellImpl
 		}
 
   	if (bDebug)
-  		debug("Setting SortValue to "
-					+ ((valueToSort == null) ? "null" : valueToSort.getClass().getName()));
+			debug("Setting SortValue to "
+					+ ((valueToSort == null) ? "null" : ""
+							+ valueToSort.getClass().getName()));
   	
   	tableColumn.setLastSortValueChange(SystemTime.getCurrentTime());
     sortValue = valueToSort;
