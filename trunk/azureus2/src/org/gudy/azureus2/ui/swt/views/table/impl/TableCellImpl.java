@@ -368,9 +368,8 @@ public class TableCellImpl
 		}
 
   	if (bDebug)
-			debug("Setting SortValue to "
-					+ ((valueToSort == null) ? "null" : ""
-							+ valueToSort.getClass().getName()));
+  		debug("Setting SortValue to "
+					+ ((valueToSort == null) ? "null" : valueToSort.getClass().getName()));
   	
   	tableColumn.setLastSortValueChange(SystemTime.getCurrentTime());
     sortValue = valueToSort;
@@ -940,8 +939,9 @@ public class TableCellImpl
 		return "TableCell {"
 				+ tableColumn.getName()
 				+ ","
-				+ (bufferedTableItem == null ? "null" : bufferedTableItem.getPosition())
-				+ "," + getText() + "," + getSortValue() + "}";
+				+ (bufferedTableItem == null ? "null" : ""
+						+ bufferedTableItem.getPosition()) + "," + getText() + ","
+				+ getSortValue() + "}";
 	}
 
 	/* Comparable Implementation */
