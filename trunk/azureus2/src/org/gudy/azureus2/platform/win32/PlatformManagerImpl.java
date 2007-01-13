@@ -369,7 +369,8 @@ PlatformManagerImpl
 		throws PlatformManagerException
 	{
 		try{
-			return( access.getUserAppData());
+			return access.getUserAppData() + SystemProperties.SEP
+					+ SystemProperties.APPLICATION_NAME + SystemProperties.SEP;
 			
 		}catch( Throwable e ){
 			

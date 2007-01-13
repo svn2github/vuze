@@ -45,7 +45,7 @@ public class SystemProperties {
    */
   public static final String SEP = System.getProperty("file.separator");
   
-  private static 		String APPLICATION_NAME 		= "Azureus";
+  public static String APPLICATION_NAME 		= "Azureus";
   private static 		String APPLICATION_ID 			= "az";
   	// TODO: fix for non-SWT entry points one day
   private static 		String APPLICATION_ENTRY_POINT 	= "org.gudy.azureus2.ui.swt.Main";
@@ -165,8 +165,7 @@ public class SystemProperties {
 			PlatformManager platformManager = PlatformManagerFactory.getPlatformManager();
 			try {
 				temp_user_path = platformManager.getLocation(
-						PlatformManager.LOC_USER_DATA).getPath()
-						+ SEP + APPLICATION_NAME + SEP;
+						PlatformManager.LOC_USER_DATA).getPath() + SEP;
 
 				if (Logger.isEnabled()) {
 					Logger.log(new LogEvent(LOGID,

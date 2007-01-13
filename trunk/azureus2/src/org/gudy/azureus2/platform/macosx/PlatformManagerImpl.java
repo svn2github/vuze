@@ -55,8 +55,6 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     protected static PlatformManagerImpl singleton;
     protected static AEMonitor class_mon = new AEMonitor("PlatformManager");
 
-    private static final String USERDATA_PATH = new File(System.getProperty("user.home") + "/Library/Application Support/").getPath();
-
     //T: PlatformManagerCapabilities
     private final HashSet capabilitySet = new HashSet();
 
@@ -142,7 +140,10 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
      */
     public String getUserDataDirectory() throws PlatformManagerException
     {
-        return USERDATA_PATH;
+    	return new File(System.getProperty("user.home")
+    			+ "/Library/Application Support/" 
+    			+ SystemProperties.APPLICATION_NAME).getPath()
+    			+ SystemProperties.SEP;
     }
 
 	public File
@@ -153,14 +154,14 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	{
 		switch ((int)location_id) {
 			case LOC_USER_DATA:
-				return( new File( USERDATA_PATH ));
+				return new File(getUserDataDirectory());
 				
 			case LOC_DOCUMENTS:
 				try {
 					return new File(OSXAccess.getDocDir());
 				} catch (UnsatisfiedLinkError e) {
 					// Usually in user.home + Documents
-					return new File(USERDATA_PATH, "Documents");
+					return new File(getUserDataDirectory(), "Documents");
 				}
 				
 			case LOC_MUSIC:

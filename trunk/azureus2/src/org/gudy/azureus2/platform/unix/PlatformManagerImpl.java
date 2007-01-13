@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.platform.*;
 
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
@@ -42,10 +43,6 @@ public class PlatformManagerImpl implements PlatformManager
 	private static final LogIDs LOGID = LogIDs.CORE;
 
 	private static final String ERR_UNSUPPORTED = "Unsupported capability called on platform manager";
-
-	private static String APPLICATION_NAME = "Azureus";
-
-	public static final String SEP = System.getProperty("file.separator");
 
 	protected static PlatformManagerImpl singleton;
 
@@ -115,15 +112,19 @@ public class PlatformManagerImpl implements PlatformManager
 	}
 
 	// @see org.gudy.azureus2.platform.PlatformManager#getUserDataDirectory()
-	public String getUserDataDirectory() throws PlatformManagerException {
+	public String getUserDataDirectory()
+		throws PlatformManagerException
+	{
 		String userhome = System.getProperty("user.home");
-		String temp_user_path = userhome + SEP + "."
-				+ APPLICATION_NAME.toLowerCase() + SEP;
+		String temp_user_path = userhome + SystemProperties.SEP + "."
+				+ SystemProperties.APPLICATION_NAME.toLowerCase()
+				+ SystemProperties.SEP;
 
 		synchronized (migrate_lock) {
 			File home = new File(temp_user_path);
 			if (!home.exists()) { //might be a fresh install or might be an old non-migrated install
-				String old_home_path = userhome + SEP + "." + APPLICATION_NAME + SEP;
+				String old_home_path = userhome + SystemProperties.SEP + "."
+						+ SystemProperties.APPLICATION_NAME + SystemProperties.SEP;
 				File old_home = new File(old_home_path);
 				if (old_home.exists()) { //migrate
 					String msg = "Migrating unix user config dir [" + old_home_path
@@ -140,7 +141,7 @@ public class PlatformManagerImpl implements PlatformManager
 				}
 			}
 		}
-		
+
 		return temp_user_path;
 	}
 
