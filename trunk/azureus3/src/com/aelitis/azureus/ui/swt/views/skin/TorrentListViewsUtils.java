@@ -434,7 +434,6 @@ public class TorrentListViewsUtils
 			"vb",
 			"vbe",
 			"vbs",
-			"wmv",
 			"wsh",
 			"wsf",
 		};
