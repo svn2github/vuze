@@ -633,7 +633,9 @@ public class TableView
     
 		table.addListener(SWT.MeasureItem, new Listener() {
 			public void handleEvent(Event event) {
-				event.height = ptIconSize.y;
+				if (ptIconSize != null) {
+					event.height = ptIconSize.y;
+				}
 			}
 		});
     		
