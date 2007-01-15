@@ -195,7 +195,12 @@ public class Tab {
 
 				if (viewComposite != tabArea) {
   				viewComposite.addDisposeListener(new DisposeListener() {
+  					boolean alreadyHere = false;
   					public void widgetDisposed(DisposeEvent e) {
+  						if (alreadyHere) {
+  							return;
+  						}
+  						alreadyHere = true;
   						Utils.disposeComposite(tabArea);
   					}
   				});
