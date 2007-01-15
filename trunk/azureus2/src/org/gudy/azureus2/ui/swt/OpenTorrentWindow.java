@@ -2281,9 +2281,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 					int iMatchLevel = (maxMatches * 100 / totalSegmentsLengths);
 					if (iMatchLevel >= 30) {
 						File f = match.getSaveLocation();
-						if (!f.isDirectory()) {
+						if (!f.isDirectory() || match.getDiskManagerFileInfo().length > 1) {
+							// don't place data within another torrent's data dir
 							f = f.getParentFile();
 						}
+
 						if (f != null && f.isDirectory()) {
 							sSmartDir = f.getAbsolutePath();
 						}
