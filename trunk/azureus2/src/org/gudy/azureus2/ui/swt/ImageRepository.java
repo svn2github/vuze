@@ -344,7 +344,10 @@ public class ImageRepository {
   		Image newImage = new Image(image.getDevice(), 16, 16);
   		GC gc = new GC(image);
   		try {
-  			gc.setAdvanced(true);
+  			if (!Constants.isUnix) {
+  				// drawImage doesn't work on GTK when advanced is on
+  				gc.setAdvanced(true);
+  			}
   			
   			gc.drawImage(image, 0, 0, bounds.width, bounds.height, 0, 0, 16, 16);
   		} finally {
