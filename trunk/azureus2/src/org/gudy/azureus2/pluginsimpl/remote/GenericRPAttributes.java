@@ -224,6 +224,7 @@ public class GenericRPAttributes {
             map.put("piece_count",   torrent.getPieceCount());
             map.put("piece_size",    torrent.getPieceSize());
             map.put("private",       torrent.isPrivate());
+            map.put("announce_url",  torrent.getAnnounceURL());
         }
         else if (obj_class == TrackerTorrent.class) {
             TrackerTorrent ttobject = (TrackerTorrent)object;
@@ -452,6 +453,7 @@ public class GenericRPAttributes {
         attributes.put("piece_count",   long.class);
         attributes.put("piece_size",    long.class);
         attributes.put("private",       boolean.class);
+        attributes.put("announce_url",  URL.class);
         class_definitions.put(plugin_class, attributes);
 
         attributes = new HashMap();
