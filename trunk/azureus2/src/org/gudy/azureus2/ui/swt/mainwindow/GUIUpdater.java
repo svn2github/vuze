@@ -37,9 +37,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.MinimizedWindow;
-import org.gudy.azureus2.ui.swt.Tab;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
@@ -147,6 +145,11 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 					} catch (Exception e) {
 						Logger.log(new LogEvent(LOGID,
 								"Error while trying to update DL Bars", e));
+					}
+					
+					TrayWindow tray = mainWindow.getTray();
+					if (tray != null) {
+						tray.refresh();
 					}
 
 					if (DEBUG_TIMER) {

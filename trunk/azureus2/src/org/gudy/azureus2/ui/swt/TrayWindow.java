@@ -78,10 +78,10 @@ public class TrayWindow implements GlobalManagerListener {
     label.setSize(bounds.width, bounds.height);
     minimized.setSize(bounds.width + 2, bounds.height + 2);
     screen = display.getClientArea();
-    //System.out.println(screen);
  //NICO handle macosx and multiple monitors
     if (!Constants.isOSX) {
-    	minimized.setLocation(screen.width - bounds.width - 2, screen.height - bounds.height - 2);
+    	minimized.setLocation(screen.x + screen.width - bounds.width - 2,
+					screen.y + screen.height - bounds.height - 2);
     } else {
     	minimized.setLocation(20, 20);
     }
@@ -200,6 +200,7 @@ public class TrayWindow implements GlobalManagerListener {
   public void refresh() {
     if (minimized.isDisposed() || !minimized.isVisible())
       return;
+
     StringBuffer toolTip = new StringBuffer();
     String separator = ""; //$NON-NLS-1$
     try{
