@@ -342,7 +342,7 @@ public class ImageRepository {
   	Rectangle bounds = image.getBounds();
   	if (bounds.height != 16) {
   		Image newImage = new Image(image.getDevice(), 16, 16);
-  		GC gc = new GC(image);
+  		GC gc = new GC(newImage);
   		try {
   			if (!Constants.isUnix) {
   				// drawImage doesn't work on GTK when advanced is on
