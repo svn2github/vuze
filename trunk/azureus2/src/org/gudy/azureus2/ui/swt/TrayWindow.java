@@ -174,6 +174,7 @@ public class TrayWindow implements GlobalManagerListener {
       }
     });
 
+    Utils.createTorrentDropTarget(minimized, false);
     globalManager = main.getGlobalManager();
     globalManager.addListener(this);
   }
