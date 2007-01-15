@@ -301,7 +301,7 @@ DownloadManagerImpl
 			
 		    String torrent_dir = null;
 		    
-		    if( COConfigurationManager.getBooleanParameter("Save Torrent Files",true)){
+		    if( COConfigurationManager.getBooleanParameter("Save Torrent Files")){
 		    	
 		      try{
 		      	
