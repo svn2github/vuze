@@ -630,6 +630,13 @@ public class TableView
 				}
 			});
 		}
+    
+		table.addListener(SWT.MeasureItem, new Listener() {
+			public void handleEvent(Event event) {
+				event.height = ptIconSize.y;
+			}
+		});
+    		
 
     // Deselect rows if user clicks on a black spot (a spot with no row)
     table.addMouseListener(new MouseAdapter() {
