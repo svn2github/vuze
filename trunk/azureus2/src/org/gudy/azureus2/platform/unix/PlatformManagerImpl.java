@@ -211,7 +211,7 @@ public class PlatformManagerImpl implements PlatformManager
 				return( new File( getUserDataDirectory() ));
 				
 			case LOC_DOCUMENTS:
-				return new File("~/Documents");
+				return new File(System.getProperty("user.home"));
 				
 			case LOC_MUSIC:
 				
