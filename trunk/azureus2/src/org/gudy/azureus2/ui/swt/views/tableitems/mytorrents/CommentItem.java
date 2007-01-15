@@ -24,6 +24,7 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -37,13 +38,14 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class CommentItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener, TableCellMouseListener
+       implements TableCellRefreshListener, TableCellMouseListener, ObfusticateCellText
 {
   /** Default Constructor */
   public CommentItem(String sTableID) {
     super("comment", POSITION_INVISIBLE, 300, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setType(TableColumn.TYPE_TEXT);
+    setObfustication(true);
   }
 
   public void refresh(TableCell cell) {
@@ -63,6 +65,11 @@ public class CommentItem
 		event.skipCoreFunctionality = true;
 		if (event.eventType != TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK) {return;}
 		openEditCommentWindow(dm);
+	}
+	
+	public String getObfusticatedText(TableCell cell) {
+		DownloadManager dm = (DownloadManager)cell.getDataSource();
+		return Integer.toHexString(dm.hashCode());
 	}
 	
 	/* Package private - used by CommentIconItem too. */
