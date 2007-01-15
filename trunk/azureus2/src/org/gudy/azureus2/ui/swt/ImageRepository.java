@@ -317,6 +317,9 @@ public class ImageRepository {
 
 					if (imageData != null) {
 						image = new Image(Display.getDefault(), imageData);
+						if (!bBig) {
+							image = force16height(image);
+						}
 						images.put(id, image);
 					}
 			}
@@ -330,6 +333,30 @@ public class ImageRepository {
 		}
 		return image;
 	}
+  
+  private static Image force16height(Image image) {
+  	if (image == null) {
+  		return image;
+  	}
+
+  	Rectangle bounds = image.getBounds();
+  	if (bounds.height != 16) {
+  		Image newImage = new Image(image.getDevice(), 16, 16);
+  		GC gc = new GC(image);
+  		try {
+  			gc.setAdvanced(true);
+  			
+  			gc.drawImage(image, 0, 0, bounds.width, bounds.height, 0, 0, 16, 16);
+  		} finally {
+  			gc.dispose();
+  		}
+  		
+  		image.dispose();
+  		image = newImage;
+  	}
+  	
+  	return image;
+  }
   
   /**
    * @deprecated Does not account for custom or native folder icons
@@ -437,6 +464,9 @@ public class ImageRepository {
         final ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
 
         image = new Image(Display.getDefault(), inStream);
+				if (!bBig) {
+					image = force16height(image);
+				}
 
 				registry.put(key, image);
 
