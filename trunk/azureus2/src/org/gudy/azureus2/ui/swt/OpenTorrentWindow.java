@@ -1357,7 +1357,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			}
 		});
 	}
-
+	
 	private void deleteSelected(Table table, ArrayList list) {
 		int[] indexes = table.getSelectionIndices();
 		Arrays.sort(indexes);
@@ -2337,8 +2337,32 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			return true;
 		}
 
+		public boolean allFilesExist() {
+			// check if all selected files exist
+			TorrentFileInfo[] files = getFiles();
+			for (int i = 0; i < files.length; i++) {
+				TorrentFileInfo fileInfo = files[i];
+				if (!fileInfo.bDownload)
+					continue;
+
+				String sFullPath;
+				if (fileInfo.sDestFileName == null) {
+					File f = new File(sDestDir, fileInfo.sFullFileName);
+					sFullPath = f.getAbsolutePath();
+				} else {
+					sFullPath = fileInfo.sDestFileName;
+				}
+
+				File file = new File(sFullPath);
+				if (!file.exists() || file.length() != fileInfo.lSize) {
+					return false;
+				}
+			}
+			return true;
+		}
+
 		public void renameDuplicates() {
-			if (iStartID == STARTMODE_SEEDING) {
+			if (iStartID == STARTMODE_SEEDING || !allFilesExist()) {
 				return;
 			}
 
