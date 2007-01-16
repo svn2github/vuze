@@ -274,12 +274,7 @@ public class Utils {
 				| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
 		dropTarget.setTransfer(transferList);
 		dropTarget.addDropListener(dropTargetListener);
-		composite.addListener(SWT.Dispose, new Listener() {
-			public void handleEvent(Event event) {
-				if (dropTarget != null && !dropTarget.isDisposed())
-					dropTarget.dispose();
-			}
-		});
+		// Note: DropTarget will dipose when the parent it's on diposes
 		
 		// On Windows, dropping on children moves up to parent
 		// On OSX, each child needs it's own drop.
@@ -299,13 +294,6 @@ public class Utils {
 									| DND.DROP_TARGET_MOVE);
 					dropTarget2.setTransfer(transferList);
 					dropTarget2.addDropListener(dropTargetListener);
-
-					control.addListener(SWT.Dispose, new Listener() {
-						public void handleEvent(Event event) {
-							if (dropTarget2 != null && !dropTarget2.isDisposed())
-								dropTarget2.dispose();
-						}
-					});
 				}
 			}
 		}
