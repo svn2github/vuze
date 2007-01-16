@@ -450,6 +450,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 		});
 
 		headerArea.addMouseMoveListener(new MouseMoveListener() {
+			Cursor cursor = null;
+
 			public void mouseMove(MouseEvent e) {
 				TableColumnCore[] columns = getVisibleColumns();
 				int inColumn = -1;
@@ -462,8 +464,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 					}
 				}
 				Cursor newCursor = (inColumn != -1) ? cursor : null;
-				if (headerArea.getCursor() != newCursor) {
+				if (cursor != newCursor) {
 					headerArea.setCursor(newCursor);
+					cursor = newCursor;
 				}
 			}
 		});
