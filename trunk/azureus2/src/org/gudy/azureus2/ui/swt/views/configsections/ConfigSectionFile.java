@@ -24,7 +24,13 @@
 
 package org.gudy.azureus2.ui.swt.views.configsections;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -62,6 +68,8 @@ public class ConfigSectionFile implements UISWTConfigSection {
     Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
     GridData gridData;
     Label label;
+    String sCurConfigID;
+    final ArrayList allConfigIDs = new ArrayList();
 
     Composite gFile = new Composite(parent, SWT.NULL);
 
@@ -85,12 +93,14 @@ public class ConfigSectionFile implements UISWTConfigSection {
     gDefaultDir.setLayoutData(gridData);
 
     // Save Path
+    sCurConfigID = "Default save path";
+    allConfigIDs.add(sCurConfigID);
     Label lblDefaultDir = new Label(gDefaultDir, SWT.NONE);
     Messages.setLanguageText(lblDefaultDir, "ConfigView.section.file.defaultdir.ask");
     lblDefaultDir.setLayoutData(new GridData());
     
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    final StringParameter pathParameter = new StringParameter(gDefaultDir, "Default save path" );
+    final StringParameter pathParameter = new StringParameter(gDefaultDir, sCurConfigID);
     pathParameter.setLayoutData(gridData);
 
     Button browse = new Button(gDefaultDir, SWT.PUSH);
@@ -114,15 +124,33 @@ public class ConfigSectionFile implements UISWTConfigSection {
     });
     
     // def dir: autoSave
+    sCurConfigID = "Use default data dir";
+    allConfigIDs.add(sCurConfigID);
     BooleanParameter autoSaveToDir = new BooleanParameter(gDefaultDir,
-				"Use default data dir", "ConfigView.section.file.defaultdir.auto");
+				sCurConfigID, "ConfigView.section.file.defaultdir.auto");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     autoSaveToDir.setLayoutData(gridData);
     
+    // def dir: autoSave -> auto-rename
+    sCurConfigID = "DefaultDir.AutoSave.AutoRename";
+    allConfigIDs.add(sCurConfigID);
+    BooleanParameter autoSaveAutoRename = new BooleanParameter(gDefaultDir,
+    		sCurConfigID, "ConfigView.section.file.defaultdir.autorename");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    gridData.horizontalIndent = 20;
+    autoSaveAutoRename.setLayoutData(gridData);
+    IAdditionalActionPerformer aapDefaultDirStuff3 = new ChangeSelectionActionPerformer(
+				autoSaveAutoRename.getControls(), false);
+		autoSaveToDir.setAdditionalActionPerformer(aapDefaultDirStuff3);
+    
+    
     // def dir: best guess
+    sCurConfigID = "DefaultDir.BestGuess";
+    allConfigIDs.add(sCurConfigID);
     BooleanParameter bestGuess = new BooleanParameter(gDefaultDir,
-				"DefaultDir.BestGuess", "ConfigView.section.file.defaultdir.bestguess");
+				sCurConfigID, "ConfigView.section.file.defaultdir.bestguess");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     bestGuess.setLayoutData(gridData);
@@ -132,8 +160,10 @@ public class ConfigSectionFile implements UISWTConfigSection {
     autoSaveToDir.setAdditionalActionPerformer(aapDefaultDirStuff);
 
     // def dir: auto update
+    sCurConfigID = "DefaultDir.AutoUpdate";
+    allConfigIDs.add(sCurConfigID);
     BooleanParameter autoUpdateSaveDir = new BooleanParameter(gDefaultDir, 
-    		"DefaultDir.AutoUpdate", "ConfigView.section.file.defaultdir.lastused");
+    		sCurConfigID, "ConfigView.section.file.defaultdir.lastused");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     autoUpdateSaveDir.setLayoutData(gridData);
@@ -145,9 +175,11 @@ public class ConfigSectionFile implements UISWTConfigSection {
 
     ////////////////////
     
+    sCurConfigID = "XFS Allocation";
+    allConfigIDs.add(sCurConfigID);
     if( userMode > 0 && !Constants.isWindows ) {
     	BooleanParameter xfsAllocation = 
-    		new BooleanParameter(gFile, "XFS Allocation",
+    		new BooleanParameter(gFile, sCurConfigID,
                                     "ConfigView.label.xfs.allocation");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
@@ -155,10 +187,12 @@ public class ConfigSectionFile implements UISWTConfigSection {
     }
 
     BooleanParameter zeroNew = null;
-    
+
+    sCurConfigID = "Zero New";
+    allConfigIDs.add(sCurConfigID);
     if( userMode > 0 ) {
     	// zero new files
-    	zeroNew = new BooleanParameter(gFile, "Zero New",
+    	zeroNew = new BooleanParameter(gFile, sCurConfigID,
                                                     "ConfigView.label.zeronewfiles");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
@@ -166,19 +200,23 @@ public class ConfigSectionFile implements UISWTConfigSection {
     }
 
     
+    sCurConfigID = "File.truncate.if.too.large";
+    allConfigIDs.add(sCurConfigID);
     if( userMode > 0 ) {
     	// truncate too large
     	BooleanParameter truncateLarge = 
-    		new BooleanParameter(gFile, "File.truncate.if.too.large",
+    		new BooleanParameter(gFile, sCurConfigID,
                                     "ConfigView.section.file.truncate.too.large");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
     	truncateLarge.setLayoutData(gridData);
     }
     
+    sCurConfigID = "Enable incremental file creation";
+    allConfigIDs.add(sCurConfigID);
     if( userMode > 0 ) {
     	// incremental file creation
-    	BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation",
+    	BooleanParameter incremental = new BooleanParameter(gFile, sCurConfigID,
                                                         "ConfigView.label.incrementalfile");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
@@ -194,9 +232,11 @@ public class ConfigSectionFile implements UISWTConfigSection {
     }
     
     
+    sCurConfigID = "Check Pieces on Completion";
+    allConfigIDs.add(sCurConfigID);
     if( userMode > 0 ) {
     	// check on complete
-    	BooleanParameter checkOnComp = new BooleanParameter(gFile, "Check Pieces on Completion",
+    	BooleanParameter checkOnComp = new BooleanParameter(gFile, sCurConfigID,
                                                         "ConfigView.label.checkOncompletion");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
@@ -204,19 +244,33 @@ public class ConfigSectionFile implements UISWTConfigSection {
     }
     
 
+    sCurConfigID = "File.strict.locking";
+    allConfigIDs.add(sCurConfigID);
     if( userMode > 1 ) {
     	
     	BooleanParameter strictLocking = 
-    		new BooleanParameter(gFile, "File.strict.locking",
+    		new BooleanParameter(gFile, sCurConfigID,
                                     "ConfigView.label.strictfilelocking");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
     	strictLocking.setLayoutData(gridData);
     }
     
-    if( userMode > 0 ) {
+    if( userMode == 0 ) {
+      allConfigIDs.add("Use Resume");
+      sCurConfigID = "Save Resume Interval";
+      allConfigIDs.add(sCurConfigID);
+      sCurConfigID = "On Resume Recheck All";
+      allConfigIDs.add(sCurConfigID);
+      sCurConfigID = "File.save.peers.enable";
+      allConfigIDs.add(sCurConfigID);
+      sCurConfigID = "File.save.peers.max";
+      allConfigIDs.add(sCurConfigID);
+    } else {
+      sCurConfigID = "Use Resume";
+      allConfigIDs.add(sCurConfigID);
     	// resume data
-      final BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume",
+      final BooleanParameter bpUseResume = new BooleanParameter(gFile, sCurConfigID,
                                                               "ConfigView.label.usefastresume");
       bpUseResume.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
 
@@ -231,10 +285,12 @@ public class ConfigSectionFile implements UISWTConfigSection {
       gridData.horizontalSpan = 2;
       cResumeGroup.setLayoutData(gridData);
 
+      sCurConfigID = "Save Resume Interval";
+      allConfigIDs.add(sCurConfigID);
       Label lblSaveResumeInterval = new Label(cResumeGroup, SWT.NULL);
       Messages.setLanguageText(lblSaveResumeInterval, "ConfigView.label.saveresumeinterval");
 
-      IntParameter paramSaveInterval = new IntParameter(cResumeGroup, "Save Resume Interval");
+      IntParameter paramSaveInterval = new IntParameter(cResumeGroup, sCurConfigID);
       gridData = new GridData();
       gridData.widthHint = 30;
       paramSaveInterval.setLayoutData(gridData);
@@ -244,14 +300,18 @@ public class ConfigSectionFile implements UISWTConfigSection {
 
       // save peers
 
-      final BooleanParameter recheck_all = new BooleanParameter(cResumeGroup, "On Resume Recheck All",
+      sCurConfigID = "On Resume Recheck All";
+      allConfigIDs.add(sCurConfigID);
+      final BooleanParameter recheck_all = new BooleanParameter(cResumeGroup, sCurConfigID,
                                                                "ConfigView.section.file.resume.recheck.all");
       gridData = new GridData();
       gridData.horizontalSpan = 3;
       recheck_all.setLayoutData(gridData);
       // save peers
 
-      final BooleanParameter save_peers = new BooleanParameter(cResumeGroup, "File.save.peers.enable",
+      sCurConfigID = "File.save.peers.enable";
+      allConfigIDs.add(sCurConfigID);
+      final BooleanParameter save_peers = new BooleanParameter(cResumeGroup, sCurConfigID,
                                                                "ConfigView.section.file.save.peers.enable");
       gridData = new GridData();
       gridData.horizontalSpan = 3;
@@ -260,9 +320,11 @@ public class ConfigSectionFile implements UISWTConfigSection {
       // save peers max
 
 
+      sCurConfigID = "File.save.peers.max";
+      allConfigIDs.add(sCurConfigID);
       final Label lblSavePeersMax = new Label(cResumeGroup, SWT.NULL);
       Messages.setLanguageText(lblSavePeersMax, "ConfigView.section.file.save.peers.max");
-      final IntParameter savePeersMax = new IntParameter(cResumeGroup, "File.save.peers.max");
+      final IntParameter savePeersMax = new IntParameter(cResumeGroup, sCurConfigID);
       gridData = new GridData();
       gridData.widthHint = 30;
       savePeersMax.setLayoutData(gridData);
@@ -296,6 +358,9 @@ public class ConfigSectionFile implements UISWTConfigSection {
     } //end usermode>0
 
       if( userMode > 0 ) {   	
+        sCurConfigID = "priorityExtensions";
+        allConfigIDs.add(sCurConfigID);
+
       	// Auto-Prioritize
       	label = new Label(gFile, SWT.WRAP);
       	gridData = new GridData();
@@ -313,27 +378,39 @@ public class ConfigSectionFile implements UISWTConfigSection {
       	cExtensions.setLayout(layout);
 
       	gridData = new GridData(GridData.FILL_HORIZONTAL);
-      	new StringParameter(cExtensions, "priorityExtensions", "").setLayoutData(gridData);
+      	new StringParameter(cExtensions, sCurConfigID).setLayoutData(gridData);
 
-      	new BooleanParameter(cExtensions, "priorityExtensionsIgnoreCase", "ConfigView.label.ignoreCase");
+        sCurConfigID = "priorityExtensionsIgnoreCase";
+        allConfigIDs.add(sCurConfigID);
+      	new BooleanParameter(cExtensions, sCurConfigID, "ConfigView.label.ignoreCase");
+      } else {
+        sCurConfigID = "priorityExtensions";
+        allConfigIDs.add(sCurConfigID);
+        sCurConfigID = "priorityExtensionsIgnoreCase";
+        allConfigIDs.add(sCurConfigID);
       }
       
 
     // Confirm Delete
+    sCurConfigID = "Confirm Data Delete";
+    allConfigIDs.add(sCurConfigID);
+
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    new BooleanParameter(gFile, "Confirm Data Delete",
-                         "ConfigView.section.file.confirm_data_delete").setLayoutData(gridData);
+    new BooleanParameter(gFile, sCurConfigID,
+				"ConfigView.section.file.confirm_data_delete").setLayoutData(gridData);
 
 
     try{
 	    final PlatformManager	platform  = PlatformManagerFactory.getPlatformManager();
 	    
 	    if (platform.hasCapability(PlatformManagerCapabilities.RecoverableFileDelete)){
+	      sCurConfigID = "Move Deleted Data To Recycle Bin";
+	      allConfigIDs.add(sCurConfigID);
 
 		    gridData = new GridData();
 		    gridData.horizontalSpan = 2;
-		    new BooleanParameter(gFile, "Move Deleted Data To Recycle Bin",
+		    new BooleanParameter(gFile, sCurConfigID,
 		                         "ConfigView.section.file.nativedelete").setLayoutData(gridData);
 
 	    }    
@@ -341,15 +418,31 @@ public class ConfigSectionFile implements UISWTConfigSection {
     	
     }
     
+    sCurConfigID = "Use Config File Backups";
+    allConfigIDs.add(sCurConfigID);
     if( userMode > 0 ) {
     	// check on complete
     	BooleanParameter backupConfig = 
-    		new BooleanParameter(gFile, "Use Config File Backups",
+    		new BooleanParameter(gFile, sCurConfigID,
                                     "ConfigView.label.backupconfigfiles");
     	gridData = new GridData();
     	gridData.horizontalSpan = 2;
     	backupConfig.setLayoutData(gridData);
     }
+    
+    Button buttonReset = new Button(gFile, SWT.PUSH);
+    Messages.setLanguageText(buttonReset, "Button.reset");
+    gridData = new GridData(GridData.FILL_VERTICAL | GridData.VERTICAL_ALIGN_END);
+  	gridData.horizontalSpan = 2;
+  	buttonReset.setLayoutData(gridData);
+  	buttonReset.addSelectionListener(new SelectionAdapter() {
+  		public void widgetSelected(SelectionEvent e) {
+  			for (Iterator iter = allConfigIDs.iterator(); iter.hasNext();) {
+					String sConfigID = (String) iter.next();
+					COConfigurationManager.removeParameter(sConfigID);
+				}
+  		}
+  	});
 
     return gFile;
   }
