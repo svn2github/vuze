@@ -601,7 +601,7 @@ MainWindow
 	}
   
 	protected void setIconBarEnabled(boolean enabled) {
-		if (enabled == bIconBarEnabled) {
+		if (enabled == bIconBarEnabled || shell.isDisposed()) {
 			return;
 		}
 		bIconBarEnabled  = enabled;
