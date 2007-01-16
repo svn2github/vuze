@@ -857,30 +857,32 @@ public abstract class ListView implements UIUpdatable, Listener,
 					refreshScrollbar();
 					// TODO: Redraw only if visible or above visible (bg change)
 
-					TableRowCore[] visibleRows = getVisibleRows();
-					Rectangle clientArea = listCanvas.getClientArea();
-					if (visibleRows.length > 0) {
-						int ofs = getOffset(iLastVBarPos);
-						int endY = visibleRows.length * ListRow.ROW_HEIGHT + ofs;
+					if (imageView != null && !imageView.isDisposed()) {
+						TableRowCore[] visibleRows = getVisibleRows();
+						Rectangle clientArea = listCanvas.getClientArea();
+						if (visibleRows.length > 0) {
+							int ofs = getOffset(iLastVBarPos);
+							int endY = visibleRows.length * ListRow.ROW_HEIGHT + ofs;
 
-						if (endY < clientArea.height) {
+							if (endY < clientArea.height) {
+								GC gc = new GC(imageView);
+								try {
+									gc.setBackground(listCanvas.getBackground());
+
+									gc.fillRectangle(0, endY, clientArea.width, clientArea.height
+											- endY);
+								} finally {
+									gc.dispose();
+								}
+							}
+						} else {
 							GC gc = new GC(imageView);
 							try {
 								gc.setBackground(listCanvas.getBackground());
-
-								gc.fillRectangle(0, endY, clientArea.width, clientArea.height
-										- endY);
+								gc.fillRectangle(clientArea);
 							} finally {
 								gc.dispose();
 							}
-						}
-					} else {
-						GC gc = new GC(imageView);
-						try {
-							gc.setBackground(listCanvas.getBackground());
-							gc.fillRectangle(clientArea);
-						} finally {
-							gc.dispose();
 						}
 					}
 
