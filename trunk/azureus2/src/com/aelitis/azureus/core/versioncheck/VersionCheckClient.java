@@ -590,23 +590,46 @@ public class VersionCheckClient {
 	 boolean	new_install = COConfigurationManager.isNewInstall();
 	 
 	 long now = SystemTime.getCurrentTime();
-	 
-	 String	bgp_prefix = null;
-	 
+	 	 
 	 if ( new_install ){
 		 
 		 check_asn	= true;
 		 
 	 }else{
 		 
-		 bgp_prefix	= COConfigurationManager.getStringParameter( "ASN BGP", null );
-		 
 		 long	asn_check_time = COConfigurationManager.getLongParameter( "ASN Autocheck Performed Time" );
 		 		 
-		 if ( 	bgp_prefix != null && 
-				now < asn_check_time || now - asn_check_time > ASN_MIN_CHECK ){
-			 			 
-			 check_asn = true;
+		 if ( now < asn_check_time || now - asn_check_time > ASN_MIN_CHECK ){
+			 
+			 String bgp_prefix	= COConfigurationManager.getStringParameter( "ASN BGP", null );
+			 String asn			= COConfigurationManager.getStringParameter( "ASN ASN", null );
+			 
+			 if ( asn == null || asn.length() == 0 ){
+				
+				 	// during 2502 introduction we ran DNS based queries as fallback without support
+				 	// for reading ASN - pick up blank ASNs now and force recheck
+				 
+				 check_asn = true;
+				 
+			 }else if ( bgp_prefix != null ){
+				 					 
+				 try{
+					 byte[] address = (byte[])reply.get( "source_ip_address" );
+					  
+					 InetAddress	ip = InetAddress.getByName( new String( address ));
+
+					 	// if we've got a prefix only recheck if outside existing range
+				 
+					 if ( !NetworkAdmin.getSingleton().matchesCIDR( bgp_prefix, ip )){
+					 
+						 check_asn = true;
+					 }
+					 
+				 }catch( Throwable e ){
+					 
+					 Debug.printStackTrace(e);
+				 }
+			}
 		 }
 	 }
 	 
@@ -616,46 +639,33 @@ public class VersionCheckClient {
 			 byte[] address = (byte[])reply.get( "source_ip_address" );
 			  
 			 InetAddress	ip = InetAddress.getByName( new String( address ));
-		 		
-			 if ( bgp_prefix != null ){
-				 
-				 	// if we've got a prefix only recheck if outside existing range
-				 
-				 if ( NetworkAdmin.getSingleton().matchesCIDR( bgp_prefix, ip )){
-					 
-					 check_asn = false;
-				 }
-			 }
+		 
+			 COConfigurationManager.setParameter( "ASN Autocheck Performed Time", now );
+
+			 NetworkAdminASNLookup	asn = NetworkAdmin.getSingleton().lookupASN( ip );
+			 				 
+			 COConfigurationManager.setParameter( "ASN AS", 	asn.getAS());
+			 COConfigurationManager.setParameter( "ASN ASN", 	asn.getASName());
+			 COConfigurationManager.setParameter( "ASN BGP", 	asn.getBGPPrefix());
 			 
-			 if ( check_asn ){
+			 	// kick off a secondary version check to communicate the new information
 			 
-				 COConfigurationManager.setParameter( "ASN Autocheck Performed Time", now );
-	
-				 NetworkAdminASNLookup	asn = NetworkAdmin.getSingleton().lookupASN( ip );
-				 				 
-				 COConfigurationManager.setParameter( "ASN AS", 	asn.getAS());
-				 COConfigurationManager.setParameter( "ASN ASN", 	asn.getASName());
-				 COConfigurationManager.setParameter( "ASN BGP", 	asn.getBGPPrefix());
+			 if ( !secondary_check_done ){
 				 
-				 	// kick off a secondary version check to communicate the new information
+				 secondary_check_done	= true;
 				 
-				 if ( !secondary_check_done ){
-					 
-					 secondary_check_done	= true;
-					 
-					 new AEThread( "Secondary version check", true )
+				 new AEThread( "Secondary version check", true )
+				 {
+					 public void
+					 runSupport()
 					 {
-						 public void
-						 runSupport()
-						 {
-							 getVersionCheckInfoSupport( REASON_SECONDARY_CHECK, false, true );
-						 }
-					 }.start();
-				 }
-			 }
+						 getVersionCheckInfoSupport( REASON_SECONDARY_CHECK, false, true );
+					 }
+				 }.start();
+			 }			 
+		 }catch( Throwable e ){		
 			 
-		 }catch( Throwable e ){
-			 
+			 Debug.printStackTrace(e);
 		 }
 	 }
 	 
@@ -812,6 +822,15 @@ public class VersionCheckClient {
       
       if ( as != null ){
     	
+    	  	// there was borkage with DNS based queries that left leading " on AS
+    	  
+    	  if ( as.startsWith( "\"" )){
+    		
+    		  as = as.substring( 1 ).trim();
+    		  
+    		  COConfigurationManager.setParameter( "ASN AS", as );
+    	  }
+    	  
     	  message.put( "ip_as", as );
       }
       
