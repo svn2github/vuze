@@ -322,7 +322,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 		Rectangle client = listCanvas.getClientArea();
 		int h = rows.size() * ListRow.ROW_HEIGHT - client.height;
 
-		if (h <= client.height) {
+		if (h <= client.height || client.height == 0) {
 			if (vBar.isVisible()) {
 				vBar.setVisible(false);
 				listCanvas.redraw();
@@ -727,8 +727,11 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 		Utils.execSWTThread(new Runnable() {
 			public void run() {
+				int iFirstChange = -1;
+
 				try {
 					row_mon.enter();
+					
 					for (int i = 0; i < dataSources.length; i++) {
 						Object datasource = dataSources[i];
 
@@ -768,11 +771,13 @@ public abstract class ListView implements UIUpdatable, Listener,
 								index = rows.size();
 						}
 
+						if (iFirstChange < 0 || iFirstChange > index) {
+							iFirstChange = index;
+						}
+
 						rows.add(index, row);
 						log("addDS pos " + index);
 						//System.out.println("addDS pos " + index);
-
-						row.fixupPosition();
 
 						mapDataSourceToRow.put(datasource, row);
 
@@ -780,9 +785,16 @@ public abstract class ListView implements UIUpdatable, Listener,
 					}
 				} finally {
 					row_mon.exit();
+
+					if (iFirstChange >= 0) {
+						for (int i = iFirstChange; i < rows.size(); i++) {
+							ListRow row = (ListRow) rows.get(i);
+							row.fixupPosition();
+						}
+					}
+
 					refreshScrollbar();
-					// TODO: Redraw only if visible or above visible (bg change)
-					listCanvas.redraw();
+					refreshVisible(true, true);
 				}
 				//System.out.println(Debug.getCompressedStackTrace());
 			}
@@ -884,6 +896,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 								gc.dispose();
 							}
 						}
+
+						listCanvas.redraw();
 					}
 
 					refreshVisible(true, true);
