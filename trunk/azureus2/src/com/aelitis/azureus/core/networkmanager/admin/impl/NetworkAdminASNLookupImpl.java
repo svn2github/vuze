@@ -64,17 +64,7 @@ NetworkAdminASNLookupImpl
 	
 		throws NetworkAdminException
 	{
-		try{
-			//lookupTCP( address );
-			// Disable TCP lookup until we fix the WHOIS address
-			lookupDNS( address );
-			
-		}catch( NetworkAdminException e ){
-			
-				// fallback to dns - won't get as name but better than nothing
-			
-			lookupDNS( address );
-		}
+		lookupDNS( address );
 	}
 	
 	protected void
@@ -152,15 +142,61 @@ NetworkAdminASNLookupImpl
 	
 		throws NetworkAdminException
 	{
+			// first query for the as
+		
 		byte[]	bytes = address.getAddress();
 		
-		String	target	= "origin.asn.cymru.com";
+		String	ip_query	= "origin.asn.cymru.com";
 		
 		for (int i=0;i<4;i++){
 			
-			target =  ( bytes[i] & 0xff ) + "." + target;
+			ip_query =  ( bytes[i] & 0xff ) + "." + ip_query;
 		}
 		
+			// "33544 | 64.71.0.0/20 | US | arin | 2006-05-04"
+
+		String	ip_result = lookupDNS( ip_query );
+					
+		processResult( 
+				"AS | BGP Prefix | CC | Reg | Date | AS Name" + "\n" + 
+				ip_result + " | n/a" );
+
+		String	as = getAS();
+		
+		if ( as.length() > 0 ){
+			
+				// now query for ASN
+			
+				// 33544 | US | arin | 2005-01-19 | WILINE - WiLine Networks Inc.
+			
+			String	asn_query = "AS" + as + ".asn.cymru.com";
+
+			try{
+				
+				String	asn_result = lookupDNS( asn_query );
+				
+				if ( asn_result != null ){
+					
+					int	pos = asn_result.lastIndexOf( '|' );
+					
+					if ( pos != -1 ){
+						
+						asn = asn_result.substring( pos+1 ).trim();
+					}
+				}
+			}catch( Throwable e ){
+				
+				Debug.outNoStack( "ASN lookup for '" + asn_query+ "' failed: " + e.getMessage());
+			}
+		}
+	}
+		
+	protected String
+	lookupDNS(
+		String		query )
+	
+		throws NetworkAdminException
+	{
 		DirContext context = null;
 		
 		try{
@@ -170,7 +206,7 @@ NetworkAdminASNLookupImpl
 			
 			context = new InitialDirContext(env);
 			
-			Attributes attrs = context.getAttributes( target, new String[]{ "TXT" });
+			Attributes attrs = context.getAttributes( query, new String[]{ "TXT" });
 			
 			NamingEnumeration n_enum = attrs.getAll();
 
@@ -185,17 +221,31 @@ NetworkAdminASNLookupImpl
 					String attribute = (String)n_enum2.nextElement();
 
 					if ( attribute != null ){
-					
-							// "33544 | 64.71.0.0/20 | US | arin | 2006-05-04"
-												
-						processResult( 
-								"AS | BGP Prefix | CC | Reg | Date | AS Name" + "\n" + 
-								attribute + " | n/a" );
 						
-						return;
+						attribute = attribute.trim();
+						
+						if ( attribute.startsWith( "\"" )){
+							
+							attribute = attribute.substring(1);
+						}
+						
+						if ( attribute.endsWith( "\"" )){
+							
+							attribute = attribute.substring(0,attribute.length()-1);
+						}
+						
+						if ( attribute.length() > 0 ){
+							
+							System.out.println( attribute );
+							
+							return( attribute );
+						}
 					}
 				}
 			}
+			
+			throw( new NetworkAdminException( "DNS query returned no results" ));
+			
 		}catch( Throwable e ){
 			
 			throw( new NetworkAdminException( "DNS query failed", e ));
@@ -212,7 +262,8 @@ NetworkAdminASNLookupImpl
 			}
 		}
 	}
-		
+	
+	
 	protected void
 	processResult(
 		String		result )
