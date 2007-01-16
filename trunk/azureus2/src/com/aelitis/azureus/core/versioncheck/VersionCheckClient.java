@@ -587,61 +587,53 @@ public class VersionCheckClient {
 	 final long ASN_MIN_CHECK = 7*24*60*60*1000L;
 		 
 	 boolean	check_asn 	= false;
-	 boolean	new_install = COConfigurationManager.isNewInstall();
 	 
 	 long now = SystemTime.getCurrentTime();
 	 	 
-	 if ( new_install ){
+	 long	asn_check_time = COConfigurationManager.getLongParameter( "ASN Autocheck Performed Time" );
+	 		 
+	 if ( now < asn_check_time || now - asn_check_time > ASN_MIN_CHECK ){
 		 
-		 check_asn	= true;
+		 String bgp_prefix	= COConfigurationManager.getStringParameter( "ASN BGP", null );
+		 String asn			= COConfigurationManager.getStringParameter( "ASN ASN", null );
 		 
-	 }else{
-		 
-		 long	asn_check_time = COConfigurationManager.getLongParameter( "ASN Autocheck Performed Time" );
-		 		 
-		 if ( now < asn_check_time || now - asn_check_time > ASN_MIN_CHECK ){
+		 if ( asn == null || asn.length() == 0 ){
+			
+			 	// during 2502 introduction we ran DNS based queries as fallback without support
+			 	// for reading ASN - pick up blank ASNs now and force recheck
 			 
-			 String bgp_prefix	= COConfigurationManager.getStringParameter( "ASN BGP", null );
-			 String asn			= COConfigurationManager.getStringParameter( "ASN ASN", null );
+			 check_asn = true;
 			 
-			 if ( asn == null || asn.length() == 0 ){
-				
-				 	// during 2502 introduction we ran DNS based queries as fallback without support
-				 	// for reading ASN - pick up blank ASNs now and force recheck
-				 
-				 check_asn = true;
-				 
-			 }else if ( bgp_prefix != null ){
-				 					 
-				 try{
-					 byte[] address = (byte[])reply.get( "source_ip_address" );
-					  
-					 InetAddress	ip = InetAddress.getByName( new String( address ));
+		 }else if ( bgp_prefix != null ){
+			 					 
+			 try{
+				 byte[] address = (byte[])reply.get( "source_ip_address" );
+				  
+				 InetAddress	ip = InetAddress.getByName( new String( address ));
 
-					 	// if we've got a prefix only recheck if outside existing range
+				 	// if we've got a prefix only recheck if outside existing range
+			 
+				 if ( !NetworkAdmin.getSingleton().matchesCIDR( bgp_prefix, ip )){
 				 
-					 if ( !NetworkAdmin.getSingleton().matchesCIDR( bgp_prefix, ip )){
-					 
-						 check_asn = true;
-					 }
-					 
-				 }catch( Throwable e ){
-					 
-					 Debug.printStackTrace(e);
+					 check_asn = true;
 				 }
-			}
-		 }
+				 
+			 }catch( Throwable e ){
+				 
+				 Debug.printStackTrace(e);
+			 }
+		}
 	 }
 	 
 	 if ( check_asn ){
 		 
+		 COConfigurationManager.setParameter( "ASN Autocheck Performed Time", now );
+
 		 try{
 			 byte[] address = (byte[])reply.get( "source_ip_address" );
 			  
 			 InetAddress	ip = InetAddress.getByName( new String( address ));
 		 
-			 COConfigurationManager.setParameter( "ASN Autocheck Performed Time", now );
-
 			 NetworkAdminASNLookup	asn = NetworkAdmin.getSingleton().lookupASN( ip );
 			 				 
 			 COConfigurationManager.setParameter( "ASN AS", 	asn.getAS());
