@@ -102,6 +102,10 @@ StatsWriterPeriodicImpl
 				
 				writeStats();	
 				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e );
+				
 			}finally{
 				
 				class_mon.exit();

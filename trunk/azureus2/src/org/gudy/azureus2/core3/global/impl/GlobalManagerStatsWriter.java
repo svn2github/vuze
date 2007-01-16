@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.stats.*;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 
 /**
  * @author parg
@@ -43,13 +44,21 @@ GlobalManagerStatsWriter
 	    StatsFactory.initialize( core );
 		
 	    stats_writer = StatsWriterFactory.createPeriodicDumper( core );
+	    
+	    core.addLifecycleListener(
+	    	new AzureusCoreLifecycleAdapter()
+	    	{
+	    		public void
+	    		started(
+	    			AzureusCore		core )
+	    		{
+	    			stats_writer.start();
+	    			
+	    			core.removeLifecycleListener( this );
+	    		}
+	    	});
 	}
 	
-	protected void
-	initialisationComplete()
-	{
-    	stats_writer.start();
- 	}
 	
 	protected void
 	destroy()

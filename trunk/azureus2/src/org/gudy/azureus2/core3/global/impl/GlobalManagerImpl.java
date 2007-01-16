@@ -493,11 +493,6 @@ public class GlobalManagerImpl
        	
     checker.start();
     
-    if ( stats_writer != null ){
-    	
-    	stats_writer.initialisationComplete();
-    }
-    
     torrent_folder_watcher = new TorrentFolderWatcher( this );
     
     
