@@ -709,6 +709,16 @@ PluginInterfaceImpl
 		 return( ipc_interface );
 	 }
 	 
+	public boolean
+	isShared()
+	{
+		String shared_dir 	= FileUtil.getApplicationFile( "plugins" ).toString(); 
+		   
+		String	plugin_dir = getPluginDirectoryName();
+				
+		return( plugin_dir.startsWith( shared_dir ));
+	}
+	
   public void
   addListener(
   	PluginListener	l )

@@ -422,6 +422,14 @@ public interface PluginInterface {
   isDisabled();
   
   /**
+   * @since 2503/3005
+   * @return
+   */
+  
+  public boolean
+  isShared();
+  
+  /**
    *
    * @since 2.1.0.0
    */  

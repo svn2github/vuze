@@ -379,6 +379,14 @@ RPPluginInterface
 		return( null );
 	}
 	
+	public boolean
+	isShared()
+	{
+		notSupported();
+		
+		return( false );
+	}
+	
     public String getPluginName()
 	{
 		notSupported();

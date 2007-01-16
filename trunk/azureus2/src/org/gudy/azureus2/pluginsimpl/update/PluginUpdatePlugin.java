@@ -762,7 +762,7 @@ PluginUpdatePlugin
 
 		String	target_version = version.endsWith("_CVS")?version.substring(0,version.length()-4):version;
 
-		String	plugin_dir	= plugin.getPluginDirectoryName();
+		final String	plugin_dir	= plugin.getPluginDirectoryName();
 		
 		UpdateInstaller	installer	= null;
 		
@@ -1013,7 +1013,24 @@ PluginUpdatePlugin
 											}
 										}
 										
-										initial_target 	= new File( plugin.getPluginDirectoryName() + File.separator + file_name );
+										String	install_root;
+										
+										if ( file_name.startsWith( "shared/lib" )){
+											
+											if ( plugin.isShared()){
+												
+												install_root 	= plugin_interface.getUtilities().getAzureusProgramDir();
+											
+											}else{
+												
+												install_root 	= plugin_interface.getUtilities().getAzureusUserDir();
+											}
+										}else{
+											
+											install_root 	= plugin_dir;
+										}
+										
+										initial_target 	= new File( install_root + File.separator + file_name );
 										
 										final_target	= initial_target;
 														
@@ -1028,7 +1045,7 @@ PluginUpdatePlugin
 												
 												file_name = file_name + "_" + target_version;
 												
-												final_target = new File( plugin.getPluginDirectoryName() + File.separator + file_name );
+												final_target = new File( install_root + File.separator + file_name );
 												
 												log.log( LoggerChannel.LT_INFORMATION,
 															"saving new file '" + old_file_name + "'as '" + file_name +"'" );
