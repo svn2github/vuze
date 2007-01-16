@@ -72,12 +72,12 @@ public class ConfigurationDefaults {
   
   private HashMap def = null;
   
-  public int def_int = 0;
-  public long def_long = 0;
-  public float def_float = 0;
-  public int def_boolean = 0;
-  public String def_String = "";
-  public byte[] def_bytes = null;
+  public static final int def_int = 0;
+  public static final long def_long = 0;
+  public static final float def_float = 0;
+  public static final int def_boolean = 0;
+  public static final String def_String = "";
+  public static final byte[] def_bytes = null;
   
   private Hashtable parameter_verifiers	= new Hashtable();
 
@@ -488,35 +488,41 @@ public class ConfigurationDefaults {
 	  l.add( verifier );
   }
   
+  private void checkParameterExists(String p) throws ConfigurationParameterNotFoundException {
+	  if (!def.containsKey(p)) {
+		  ConfigurationParameterNotFoundException cpnfe = new ConfigurationParameterNotFoundException(p);
+		  //cpnfe.fillInStackTrace();
+		  //Debug.out(cpnfe);
+		  throw cpnfe;
+	  }
+  }
+  
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {
-    if (def.containsKey(p)) {
-      Object o = def.get(p);
-      if (o instanceof Number)
-        return ((Number)o).toString();
-
-      return (String)o;
-    } else
-      throw new ConfigurationParameterNotFoundException(p);
+    checkParameterExists(p);
+    Object o = def.get(p);
+    if (o instanceof Number)
+      return ((Number)o).toString();
+    return (String)o;
   }
   
   public int getIntParameter(String p) throws ConfigurationParameterNotFoundException {
-    if (def.containsKey(p))
-      return ((Long) def.get(p)).intValue();
-    else
-      throw new ConfigurationParameterNotFoundException(p);
+	    checkParameterExists(p);
+	    return ((Long) def.get(p)).intValue();
   }
+  
   public long getLongParameter(String p) throws ConfigurationParameterNotFoundException {
-    if (def.containsKey(p))
-      return ((Long) def.get(p)).longValue();
-    else
-      throw new ConfigurationParameterNotFoundException(p);
+	    checkParameterExists(p);
+	    return ((Long) def.get(p)).longValue();
   }
   
   public float getFloatParameter(String p) throws ConfigurationParameterNotFoundException {
-    if (def.containsKey(p))
-      return ((Float) def.get(p)).floatValue();
-    else
-      throw new ConfigurationParameterNotFoundException(p);
+	    checkParameterExists(p);
+	    return ((Float) def.get(p)).floatValue();
+  }
+  
+  public byte[] getByteParameter(String p) throws ConfigurationParameterNotFoundException {
+	  checkParameterExists(p);
+	  return (byte[])def.get(p);
   }
   
   public boolean hasParameter(String p) {
@@ -551,6 +557,10 @@ public class ConfigurationDefaults {
   public void addParameter(String sKey, boolean bParameter) {
     Long lParameter = new Long(bParameter ? 1 : 0);
     def.put(sKey, lParameter);
+  }
+  
+  public void addParameter(String sKey, float fParameter) {
+	  def.put(sKey, new Float(fParameter));
   }
   
   public void registerExternalDefaults(Map addmap) {
