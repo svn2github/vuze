@@ -68,4 +68,7 @@ ButtonParameter
   {
 	 return button;
   }
+
+  public void setValue(Object value) {
+  }
 }

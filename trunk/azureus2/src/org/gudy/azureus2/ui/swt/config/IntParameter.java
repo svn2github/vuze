@@ -109,4 +109,14 @@ IntParameter
 	public void setGenerateIntermediateEvents(boolean generateIntermediateEvents) {
 		delegate.setGenerateIntermediateEvents(generateIntermediateEvents);
 	}
+
+  public void setValue(Object value) {
+  	if (value instanceof Number) {
+  		setValue(((Number)value).intValue());
+  	}
+  }
+  
+  public Object getValueObject() {
+  	return new Integer(getValue());
+  }
 }

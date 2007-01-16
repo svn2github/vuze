@@ -106,4 +106,14 @@ public class BooleanParameter extends Parameter{
   {
   	delegate.setSelected( selected );
   }
+  
+  public void setValue(Object value) {
+  	if (value instanceof Boolean) {
+  		setSelected(((Boolean)value).booleanValue());
+  	}
+  }
+  
+  public Object getValueObject() {
+  	return new Boolean(isSelected());
+  }
 }

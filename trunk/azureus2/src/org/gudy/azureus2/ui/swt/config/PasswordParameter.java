@@ -29,8 +29,10 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier
@@ -104,9 +106,20 @@ PasswordParameter
     inputField.setLayoutData(layoutData);
   }
   
-  public void setValue(String value) {
-    inputField.setText(value);
-    COConfigurationManager.setParameter(name, value);         
+  public void setValue(final String value) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (inputField == null || inputField.isDisposed()
+						|| inputField.getText().equals(value)) {
+					return;
+				}
+				inputField.setText(value);
+			}
+		});
+
+    if (!COConfigurationManager.getParameter(name).equals(value)) {
+    	COConfigurationManager.setParameter(name, value);
+    }
   }
   
   public String getValue() {
@@ -116,4 +129,10 @@ PasswordParameter
   public Control getControl() {
 	 return inputField;
    }
+
+  public void setValue(Object value) {
+  	if (value instanceof String) {
+  		setValue((String)value);
+  	}
+  }
 }

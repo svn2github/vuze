@@ -27,6 +27,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier
@@ -35,6 +37,8 @@ import org.gudy.azureus2.core3.config.*;
 public class IntListParameter extends Parameter {
 
   Combo list;
+	private final int[] values;
+	private final String name;
 
   public IntListParameter(
                           Composite composite,
@@ -47,6 +51,9 @@ public class IntListParameter extends Parameter {
   public IntListParameter(Composite composite, final String name,
 			int defaultValue, final String labels[], final int values[]) {
 		super(name);
+		this.name = name;
+		this.values = values;
+
       if(labels.length != values.length)
         return;
       int value = COConfigurationManager.getIntParameter(name,defaultValue);
@@ -56,18 +63,40 @@ public class IntListParameter extends Parameter {
         list.add(labels[i]);
       }
       
-      list.select(index);
+      setIndex(index);
       
       list.addListener(SWT.Selection, new Listener() {
            public void handleEvent(Event e) {
-        	int	selected_value = values[list.getSelectionIndex()];
-			COConfigurationManager.setParameter(name, selected_value);
+          	 setIndex(list.getSelectionIndex());
            }
          });
       
     }
     
-  private int findIndex(int value,int values[]) {
+  /**
+	 * @param index
+	 */
+	protected void setIndex(final int index) {
+  	int	selected_value = values[index];
+  	
+  	Utils.execSWTThread(new AERunnable() {
+  		public void runSupport() {
+  			if (list == null || list.isDisposed()) {
+  				return;
+  			}
+
+  	  	if (list.getSelectionIndex() != index) {
+  	  		list.select(index);
+  	  	}
+  		}
+  	});
+  	
+  	if (COConfigurationManager.getIntParameter(name) != selected_value) {
+  		COConfigurationManager.setParameter(name, selected_value);
+  	}
+	}
+
+	private int findIndex(int value,int values[]) {
     for(int i = 0 ; i < values.length ;i++) {
       if(values[i] == value)
         return i;
@@ -82,5 +111,16 @@ public class IntListParameter extends Parameter {
    
   public Control getControl() {
     return list;
+  }
+
+  public void setValue(Object value) {
+  	if (value instanceof Number) {
+  		int i = ((Number)value).intValue();
+      setIndex(findIndex(i, values));
+  	}
+  }
+
+  public Object getValueObject() {
+  	return new Integer(COConfigurationManager.getIntParameter(name));
   }
 }

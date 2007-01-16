@@ -27,6 +27,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier
@@ -94,12 +96,21 @@ public class StringParameter extends Parameter{
     inputField.setLayoutData(layoutData);
   }
   
-  public void setValue(String value) {    
-    if(inputField == null || inputField.isDisposed())
-      return;
-    inputField.setText(value);        
-    COConfigurationManager.setParameter(name, value);
-  }
+  public void setValue(final String value) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (inputField == null || inputField.isDisposed()
+						|| inputField.getText().equals(value)) {
+					return;
+				}
+				inputField.setText(value);
+			}
+		});
+
+		if (!COConfigurationManager.getStringParameter(name).equals(value)) {
+			COConfigurationManager.setParameter(name, value);
+		}
+	}
   
   public String getValue() {
     return inputField.getText();
@@ -112,4 +123,13 @@ public class StringParameter extends Parameter{
     return inputField;
   }
 
+  public void setValue(Object value) {
+  	if (value instanceof String) {
+  		setValue((String)value);
+  	}
+  }
+  
+  public Object getValueObject() {
+  	return COConfigurationManager.getStringParameter(name);
+  }
 }

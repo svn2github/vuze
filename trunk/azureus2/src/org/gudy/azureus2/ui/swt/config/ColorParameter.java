@@ -116,4 +116,8 @@ public class ColorParameter extends Parameter implements ParameterListener {
   public void newColorChosen() {
     // subclasses can write their own code
   }
+
+  public void setValue(Object value) {
+  	// not needed, we already trap external changes
+  }
 }

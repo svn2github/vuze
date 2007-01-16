@@ -94,4 +94,8 @@ public class RadioParameter extends Parameter{
   {
     return( radioButton.getSelection());
   }
+
+  public void setValue(Object value) {
+  	System.err.println("NOT IMPLEMENTED");
+  }
 }

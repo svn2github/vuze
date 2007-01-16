@@ -81,4 +81,7 @@ LinkParameter
   {
 	 return link_label;
   }
+
+  public void setValue(Object value) {
+  }
 }

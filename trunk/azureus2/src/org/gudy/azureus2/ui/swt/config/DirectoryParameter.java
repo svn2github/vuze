@@ -45,6 +45,8 @@ DirectoryParameter
 	extends Parameter
 {
 	Control[] controls;
+	
+	StringParameter sp;
 	  
 	public 
 	DirectoryParameter(
@@ -55,11 +57,7 @@ DirectoryParameter
   	super(name);
 	  	controls = new Control[2];
 	           	    
-	    final org.gudy.azureus2.ui.swt.config.StringParameter sp =
-	    	new org.gudy.azureus2.ui.swt.config.StringParameter(
-	    	    pluginGroup,
-	    	    name,
-				defaultValue );
+	    sp = new StringParameter(pluginGroup, name, defaultValue);
 	    
 	    controls[0] = sp.getControl();
 	    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -109,4 +107,10 @@ DirectoryParameter
         dialog.setFilterPath(old_value);        
         return dialog.open();
 	}
+
+  public void setValue(Object value) {
+  	if (value instanceof String) {
+  		sp.setValue((String)value);
+  	}
+  }
 }

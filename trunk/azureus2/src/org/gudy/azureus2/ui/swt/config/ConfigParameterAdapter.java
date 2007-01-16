@@ -43,7 +43,20 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 		COConfigurationManager.addParameterListener(configID,
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
-						informChanged(changedExternally);
+						informChanged(true);
+						
+						Object valueObject = owner.getValueObject();
+
+						if (valueObject instanceof Boolean) {
+							boolean b = COConfigurationManager.getBooleanParameter(parameterName);
+							owner.setValue(new Boolean(b));
+						} else if (owner instanceof IntParameter) {
+							int i = COConfigurationManager.getIntParameter(parameterName);
+							owner.setValue(new Integer(i));
+						} else if (valueObject instanceof String) {
+							String s = COConfigurationManager.getStringParameter(parameterName);
+							owner.setValue(s);
+						}
 					}
 				});
 	}

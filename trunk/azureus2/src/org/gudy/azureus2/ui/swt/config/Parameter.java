@@ -93,4 +93,10 @@ Parameter
 	{
 		return( getControl().isDisposed());
 	}
+	
+	public abstract void setValue(Object value);
+	
+	public Object getValueObject() {
+		return null;
+	}
 }

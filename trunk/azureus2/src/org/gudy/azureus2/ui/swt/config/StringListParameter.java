@@ -24,6 +24,8 @@ package org.gudy.azureus2.ui.swt.config;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier
@@ -34,6 +36,8 @@ public class StringListParameter extends Parameter {
   Control list;
   final String name;
   final String default_value;
+	private final String[] values;
+	private final boolean useCombo;
 
   /**
    * 
@@ -90,6 +94,8 @@ public class StringListParameter extends Parameter {
   	super(_name);
     this.name = _name;
     this.default_value = defaultValue;
+		this.values = values;
+		useCombo = bUseCombo;
     
     if(labels.length != values.length) {
       return;
@@ -109,10 +115,7 @@ public class StringListParameter extends Parameter {
     		((List)list).add(labels[i]);
     }
       
-  	if (bUseCombo)
-  		((Combo)list).select(index);
-  	else
-  		((List)list).select(index);
+    setIndex(index);
       
     list.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
@@ -121,7 +124,7 @@ public class StringListParameter extends Parameter {
       		index = ((Combo)list).getSelectionIndex();
       	else
       		index = ((List)list).getSelectionIndex();
-        COConfigurationManager.setParameter(name, values[index]);
+      	setIndex(index);
         
         if( change_listeners != null ) {
           for (int i=0;i<change_listeners.size();i++){
@@ -140,6 +143,29 @@ public class StringListParameter extends Parameter {
     return 0;
   }
   
+	protected void setIndex(final int index) {
+  	String selected_value = values[index];
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (list == null || list.isDisposed()) {
+			  	if (useCombo) {
+			  		if (((Combo)list).getSelectionIndex() != index) {
+			  			((Combo)list).select(index);
+			  		}
+			  	} else {
+			  		if (((List)list).getSelectionIndex() != index) {
+			  			((List)list).select(index);
+			  		}
+			  	}
+				}
+			}
+		});
+  	
+  	if (!COConfigurationManager.getStringParameter(name).equals(selected_value)) {
+  		COConfigurationManager.setParameter(name, selected_value);
+  	}
+	}
   
   public void setLayoutData(Object layoutData) {
     list.setLayoutData(layoutData);
@@ -152,5 +178,15 @@ public class StringListParameter extends Parameter {
   public String getValue() {
     return COConfigurationManager.getStringParameter( name, default_value );
   }
+
+  public void setValue(Object value) {
+  	if (value instanceof String) {
+  		String s = (String)value;
+      setIndex(findIndex(s, values));
+  	}
+  }
   
+  public Object getValueObject() {
+  	return getValue();
+  }
 }
