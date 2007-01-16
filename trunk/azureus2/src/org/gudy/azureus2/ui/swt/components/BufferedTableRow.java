@@ -506,6 +506,11 @@ BufferedTableRow
   		e.printStackTrace();
   		return false;
   	}
+  	
+  	if (newRow.isDisposed()) {
+  		Debug.out("newRow disposed from " + Debug.getCompressedStackTrace());
+  		return false;
+  	}
 
   	if (newRow == item) {
   		if (newRow == null || newRow.getData("TableRow") == this) {
