@@ -234,12 +234,16 @@ public class TableColumnManager {
    * @param sTableID Table to save settings for
    */
   public void saveTableColumns(String sTableID) {
-    TableColumnCore[] tcs = getAllTableColumnCoreAsArray(sTableID);
-    for (int i = 0; i < tcs.length; i++) {
-      if (tcs[i] != null)
-        tcs[i].saveSettings();
-    }
-    COConfigurationManager.save();
+  	try {
+      TableColumnCore[] tcs = getAllTableColumnCoreAsArray(sTableID);
+      for (int i = 0; i < tcs.length; i++) {
+        if (tcs[i] != null)
+          tcs[i].saveSettings();
+      }
+      COConfigurationManager.save();
+  	} catch (Exception e) {
+  		Debug.out(e);
+  	}
   }
 
 	/**
