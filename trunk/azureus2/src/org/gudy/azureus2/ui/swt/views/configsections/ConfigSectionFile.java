@@ -429,7 +429,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     	gridData.horizontalSpan = 2;
     	backupConfig.setLayoutData(gridData);
     }
-    
+/*
     Button buttonReset = new Button(gFile, SWT.PUSH);
     Messages.setLanguageText(buttonReset, "Button.reset");
     gridData = new GridData(GridData.FILL_VERTICAL | GridData.VERTICAL_ALIGN_END);
@@ -443,7 +443,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
 				}
   		}
   	});
-
+*/
     return gFile;
   }
 }
