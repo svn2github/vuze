@@ -1667,9 +1667,10 @@ public class TableView
     }
 
     TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
-    if (tableColumns != null)
-	    for (int i = 0; i < tableColumns.length; i++)
-	      tableColumns[i].saveSettings();
+    TableColumnManager tcManager = TableColumnManager.getInstance();
+    if (tcManager != null) {
+    	tcManager.saveTableColumns(sTableID);
+    }
 
     if (table != null && !table.isDisposed())
       table.dispose();
