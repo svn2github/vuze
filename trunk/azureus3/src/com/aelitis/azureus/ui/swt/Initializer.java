@@ -127,7 +127,6 @@ public class Initializer implements IUIIntializer
 				}
 
 				public void stopped(AzureusCore core) {
-					Alerts.stopCompleted();
 				}
 
 				public boolean syncInvokeRequired() {
