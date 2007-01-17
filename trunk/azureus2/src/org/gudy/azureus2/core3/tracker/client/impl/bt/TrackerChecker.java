@@ -346,7 +346,7 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
 			TRTrackerBTScraperResponseImpl oldResponse = nextResponseScraping;
 			nextResponseScraping = checkForNextScrape();
 
-			if (Logger.isEnabled() && nextResponseScraping != oldResponse) {
+			if (Logger.isEnabled() && nextResponseScraping != oldResponse && nextResponseScraping != null ) {
 				Logger.log(new LogEvent(
 						TorrentUtils.getDownloadManager(nextResponseScraping.getHash()),
 						LOGID,
