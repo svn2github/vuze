@@ -235,9 +235,7 @@ NetworkAdminASNLookupImpl
 						}
 						
 						if ( attribute.length() > 0 ){
-							
-							System.out.println( attribute );
-							
+														
 							return( attribute );
 						}
 					}
