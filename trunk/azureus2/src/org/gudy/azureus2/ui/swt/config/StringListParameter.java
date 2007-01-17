@@ -149,16 +149,18 @@ public class StringListParameter extends Parameter {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (list == null || list.isDisposed()) {
-			  	if (useCombo) {
-			  		if (((Combo)list).getSelectionIndex() != index) {
-			  			((Combo)list).select(index);
-			  		}
-			  	} else {
-			  		if (((List)list).getSelectionIndex() != index) {
-			  			((List)list).select(index);
-			  		}
-			  	}
+					return;
 				}
+
+		  	if (useCombo) {
+		  		if (((Combo)list).getSelectionIndex() != index) {
+		  			((Combo)list).select(index);
+		  		}
+		  	} else {
+		  		if (((List)list).getSelectionIndex() != index) {
+		  			((List)list).select(index);
+		  		}
+		  	}
 			}
 		});
   	
