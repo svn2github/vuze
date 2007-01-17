@@ -43,7 +43,15 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 		COConfigurationManager.addParameterListener(configID,
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
+						if (owner.isDisposed()) {
+							COConfigurationManager.removeParameterListener(parameterName, this);
+							return;
+						}
+
 						informChanged(true);
+
+/* Not ready for next release
+ * Needs to handle recursion
 						
 						Object valueObject = owner.getValueObject();
 
@@ -57,6 +65,7 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 							String s = COConfigurationManager.getStringParameter(parameterName);
 							owner.setValue(s);
 						}
+*/
 					}
 				});
 	}
