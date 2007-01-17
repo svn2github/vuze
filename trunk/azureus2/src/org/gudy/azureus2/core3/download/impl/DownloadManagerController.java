@@ -1149,12 +1149,16 @@ DownloadManagerController
 	   */
 	  
 	public void 
-	restartDownload()
+	restartDownload(boolean forceRecheck)
 	{
 		boolean	was_force_start = isForceStart();
 			    
 		stopIt( DownloadManager.STATE_STOPPED, false, false );
 	    
+		if (forceRecheck) {
+			download_manager.getDownloadState().clearResumeData();
+		}
+
 		download_manager.initialize();
 	    
 		if ( was_force_start ){

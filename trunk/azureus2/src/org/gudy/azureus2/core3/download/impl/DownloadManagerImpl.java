@@ -1472,7 +1472,7 @@ DownloadManagerImpl
   	public void
   	restartDownload()
   	{
-  		controller.restartDownload();
+  		controller.restartDownload(false);
   	}
   
   	public void

@@ -2240,7 +2240,7 @@ PEPeerControlImpl
 					if (!restart_initiated)
 					{
 						restart_initiated =true;
-						adapter.restartDownload();
+						adapter.restartDownload(true);
 					}
 				}
 				return;
@@ -2257,7 +2257,7 @@ PEPeerControlImpl
 						
 						restart_initiated = true;
 						
-						adapter.restartDownload();
+						adapter.restartDownload(true);
 					}
 				}
 				

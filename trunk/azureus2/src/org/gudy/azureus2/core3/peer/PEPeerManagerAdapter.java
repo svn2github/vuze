@@ -65,7 +65,7 @@ PEPeerManagerAdapter
 		boolean	never_downloaded );
 	
 	public void
-	restartDownload();
+	restartDownload(boolean forceRecheck);
 	
 	public TRTrackerScraperResponse
 	getTrackerScrapeResponse();
