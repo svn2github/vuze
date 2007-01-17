@@ -21,8 +21,7 @@
  */
 package org.gudy.azureus2.ui.swt;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -40,10 +39,6 @@ import org.gudy.azureus2.core3.util.*;
  *        could store LogAlert instead of an object array.
  */
 public class Alerts {
-
-  private static Alerts instance;
-  private static AEMonitor	class_mon	= new AEMonitor( "Alerts:class" );
-  
   
   private static List			alert_queue 			= new ArrayList();
   private static AEMonitor		alert_queue_mon	= new AEMonitor("Alerts:Q");
@@ -53,28 +48,11 @@ public class Alerts {
   private static boolean 		initialisation_complete = false;
   
   private static transient boolean	stopping;
-  private static transient int		stopping_alert_count;
   
   private Alerts() 
   {
   }
   
-  public static Alerts getInstance() 
-  {
-  	try{
-  		class_mon.enter();
-    
-  		if(instance == null) {
-  			instance = new Alerts();
-  		}
-    
-  		return instance;
-  		
-  	}finally{
-  		
-  		class_mon.exit();
-  	}
-  }
   
   public static void
   showWarningMessageBox(
@@ -101,15 +79,31 @@ public class Alerts {
   {
   	final Display display = SWTThread.getInstance().getDisplay();
   
+ 	if ( stopping || display.isDisposed()){
+  		
+ 		List	close_alerts = COConfigurationManager.getListParameter( "Alerts.raised.at.close", new ArrayList());
+ 		
+ 		Map	alert_map = new HashMap();
+ 		
+ 		alert_map.put( "type", new Long( type ));
+ 		alert_map.put( "title", title );
+ 		
+ 		alert_map.put( "message", message );
+ 
+ 		if ( details != null ){
+ 			alert_map.put( "details", details );
+ 		}
+ 		
+ 		close_alerts.add( alert_map );
+ 		
+ 		COConfigurationManager.setParameter( "Alerts.raised.at.close", close_alerts );
+  	}
+  	
   	if ( display.isDisposed()){
   		return;
   	}
   		
-  	if ( stopping ){
-  		
-  		stopping_alert_count++;
-  	}
-  	
+
   	final String message2;
   	if (message != null && COConfigurationManager.getBooleanParameter("Show Timestamp For Alerts")) {
   		message2 = "[" + DisplayFormatters.formatDateShort(SystemTime.getCurrentTime()) + "] " + message;
@@ -276,6 +270,34 @@ public class Alerts {
     				}
     			}
     			
+    			List	close_alerts = COConfigurationManager.getListParameter( "Alerts.raised.at.close", new ArrayList());
+
+    			if ( close_alerts.size() > 0 ){
+
+    				COConfigurationManager.setParameter( "Alerts.raised.at.close", new ArrayList());
+
+    				String	intro = MessageText.getString( "alert.raised.at.close" ) + "\n";
+
+    				for (int i=0;i<close_alerts.size();i++){
+
+    					try{
+	    					Map	alert_map = (Map)close_alerts.get(i);
+	
+	    					byte[]	details = (byte[])alert_map.get( "details" );
+	    					
+	    					showMessageBox(
+	    							((Long)alert_map.get( "type" )).intValue(),
+	    							new String((byte[])alert_map.get( "title" )),
+	    							intro + new String((byte[])alert_map.get( "message" )),
+	    							details==null?null:new String(details));
+	    					
+    					}catch( Throwable e ){
+    						
+    						Debug.printStackTrace(e);
+    					}
+    				}
+    			}
+  
     			alert_queue.clear();
     			
     		}finally{
@@ -291,46 +313,6 @@ public class Alerts {
   stopInitiated()
   {
 	 stopping	= true;
-  }
-  
-  public static void 
-  stopCompleted()
-  {
-	  	// give the users a chance to see alerts generated on shutdown, only if this happens to be
-	  	// the swt thread (can't risk sync-exec due to potential deadlock and async is pointless
-	  	// as UI will go ahead and close immediately )
-	  
-	  final Display display = SWTThread.getInstance().getDisplay();
-		
-	  if (	stopping_alert_count > 0 &&
-			Thread.currentThread() == display.getThread()){
-		  
-		  long	start = SystemTime.getCurrentTime();
-		  
-		  while( true ){
-			  
-			  long	now = SystemTime.getCurrentTime();
-			  
-			  if ( 	now >= start && 
-				  	now - start < 5000 && 
-				  	!display.isDisposed()){
-		
-				  try{
-					  if (!display.readAndDispatch()){
-						  
-						  display.sleep();
-					  }
-					  
-				  }catch( Throwable e ){
-					  
-					  break;
-				  }
-			  }else{
-				  
-				  break;
-			  }
-		  }
-	  }
   }
   
   public static void 

@@ -42,6 +42,8 @@ import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentE
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.net.natpmp.NATPMPDeviceAdapter;
@@ -72,7 +74,8 @@ UPnPPlugin
 	
 	private UPnPMappingManager	mapping_manager	= UPnPMappingManager.getSingleton( this );
 	
-	private UPnP	upnp;
+	private UPnP				upnp;
+	private UPnPLogListener		upnp_log_listener;
 	
 	private NatPMPUPnP	nat_pmp_upnp;
 	
@@ -534,7 +537,7 @@ UPnPPlugin
 				
 			upnp.addRootDeviceListener( this );
 			
-			upnp.addLogListener(
+			upnp_log_listener =
 				new UPnPLogListener()
 				{
 					public void
@@ -603,8 +606,10 @@ UPnPPlugin
 							log.log( str );
 						}
 					}
-				});
+				};
 			
+			upnp.addLogListener( upnp_log_listener );
+
 			mapping_manager.addListener(
 				new UPnPMappingManagerListener()
 				{
@@ -633,24 +638,57 @@ UPnPPlugin
 	
 	protected void
 	closeDown(
-		boolean	end_of_day )
+		final boolean	end_of_day )
 	{
-		for (int i=0;i<mappings.size();i++){
+			// problems here at end of day regarding devices that hang and cause AZ to hang around
+			// got ages before terminating
+		
+		final AESemaphore sem = new AESemaphore( "UPnPPlugin:closeTimeout" );
+		
 			
-			UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
-			
-			if ( !mapping.isEnabled()){
-				
-				continue;
+		new AEThread( "UPnPPlugin:closeTimeout" , true )
+		{
+			public void
+			runSupport()
+			{
+				try{
+					for (int i=0;i<mappings.size();i++){
+						
+						UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
+						
+						if ( !mapping.isEnabled()){
+							
+							continue;
+						}
+						
+						for (int j=0;j<services.size();j++){
+							
+							UPnPPluginService	service = (UPnPPluginService)services.get(j);
+							
+							service.removeMapping( log, mapping, end_of_day );
+						}
+					}
+				}finally{
+					
+					sem.release();
+				}
 			}
-			
-			for (int j=0;j<services.size();j++){
+		}.start();
+	
+	
+		if ( !sem.reserve( end_of_day?15*1000:0 )){
+		
+			String	msg = "A UPnP device is taking a long time to release its port mappings, consider disabling this via the UPnP configuration.";
+
+			if ( upnp_log_listener != null ){
 				
-				UPnPPluginService	service = (UPnPPluginService)services.get(j);
+				upnp_log_listener.logAlert( msg, false, UPnPLogListener.TYPE_ONCE_PER_SESSION );
 				
-				service.removeMapping( log, mapping, end_of_day );
+			}else{
+				
+				log.logAlertRepeatable( LoggerChannel.LT_WARNING, msg );
 			}
-		}		
+		}	
 	}
 
 	public boolean

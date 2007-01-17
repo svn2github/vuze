@@ -292,7 +292,6 @@ Initializer
 	    		stopped(
 	    			AzureusCore		core )
 	    		{
-	    			Alerts.stopCompleted();
 	    		}
 	    		
 	    		public boolean
