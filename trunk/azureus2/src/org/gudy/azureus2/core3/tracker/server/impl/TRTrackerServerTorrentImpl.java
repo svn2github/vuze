@@ -113,6 +113,18 @@ TRTrackerServerTorrentImpl
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTorrent" );
 
+	private static String[]	EXPLICIT_PEERS = {
+	};
+
+	private static final int		EXPLICIT_PORT	= 6881;
+	
+	private static final int	EXPLICIT_PEERS_TO_ADD	= 3;
+	private static final byte[]	EXPLICIT_HASH	= ByteFormatter.decodeString( "00C70C006B03B34D7967085FACA6F554C3446C46" );
+	
+	private static int explicit_next_peer;
+	
+	private final boolean	add_explicit_peers;
+	
 	public
 	TRTrackerServerTorrentImpl(
 		TRTrackerServerImpl		_server,
@@ -124,6 +136,13 @@ TRTrackerServerTorrentImpl
 		enabled		= _enabled;
 		
 		stats		= new TRTrackerServerTorrentStatsImpl( this );
+		
+		add_explicit_peers = Arrays.equals( hash.getBytes(), EXPLICIT_HASH );
+		
+		if ( add_explicit_peers ){
+			
+			System.out.println( "Adding explicit peers for " + ByteFormatter.encodeString( EXPLICIT_HASH ));
+		}
 	}
 	
 	public void
@@ -1519,6 +1538,68 @@ TRTrackerServerTorrentImpl
 			if ( preprocess_map.size() > 0 ){
 				
 				root.putAll( preprocess_map );
+			}
+			
+			if ( add_explicit_peers && num_want > 0 ){
+								
+				if ( requesting_peer != null && !requesting_peer.isSeed()){
+					
+					for (int i=0;i<EXPLICIT_PEERS_TO_ADD;i++){
+						
+						String	cl_peer = EXPLICIT_PEERS[explicit_next_peer++];
+						
+						if ( explicit_next_peer == EXPLICIT_PEERS.length ){
+							
+							explicit_next_peer = 0;
+						}
+						
+						Map rep_peer = new HashMap(3);
+						
+						if ( send_peer_ids ){
+							
+							byte[]	peer_id = new byte[20];
+							
+							random.nextBytes( peer_id );
+							
+							rep_peer.put( "peer id", peer_id );
+						}
+						
+						if ( compact_mode != COMPACT_MODE_NONE ){
+							
+							byte[]	peer_bytes = HostNameToIPResolver.hostAddressToBytes( cl_peer );
+							
+							if ( peer_bytes == null ){
+																	
+								continue;
+							}
+							
+							rep_peer.put( "ip", peer_bytes );
+							
+							if ( compact_mode >= COMPACT_MODE_AZ ){
+								
+								rep_peer.put( "azver", new Long( 0 ));	// non-az
+								
+								rep_peer.put( "azudp", new Long( 0 ));
+								
+								rep_peer.put( "azup", new Long( 0 ));
+																
+								rep_peer.put( "azbiased", "" );
+							}
+						}else{
+							
+							rep_peer.put( "ip", cl_peer.getBytes());
+						}
+						
+						rep_peer.put( "port", new Long( EXPLICIT_PORT ));	
+						
+						if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
+							
+							rep_peer.put( "crypto_flag", new Long( 0 ));
+						}
+	
+						rep_peers.addFirst( rep_peer );
+					}
+				}
 			}
 			
 			int			num_peers_returned	= rep_peers.size();
