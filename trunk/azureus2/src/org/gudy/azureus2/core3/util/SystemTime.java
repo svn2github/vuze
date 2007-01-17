@@ -38,11 +38,18 @@ SystemTime
 	
 	static{
 		
-		if ( System.getProperty( "azureus.time.use.raw.provider", "0" ).equals("1")){
-						
-			instance = new RawProvider();
+		try{
+			if ( System.getProperty( "azureus.time.use.raw.provider", "0" ).equals("1")){
+							
+				instance = new RawProvider();
+				
+			}else{
+				
+				instance = new SteppedProvider();
+			}
+		}catch( Throwable e ){
 			
-		}else{
+				// might be in applet...
 			
 			instance = new SteppedProvider();
 		}
