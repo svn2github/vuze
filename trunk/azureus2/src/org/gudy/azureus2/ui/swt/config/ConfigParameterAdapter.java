@@ -40,6 +40,9 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 	protected ConfigParameterAdapter(Parameter _owner, String configID) {
 		owner = _owner;
 
+/* Not ready for next release
+ * Needs to handle recursion
+								
 		COConfigurationManager.addParameterListener(configID,
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
@@ -50,9 +53,6 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 
 						informChanged(true);
 
-/* Not ready for next release
- * Needs to handle recursion
-						
 						Object valueObject = owner.getValueObject();
 
 						if (valueObject instanceof Boolean) {
@@ -65,9 +65,9 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 							String s = COConfigurationManager.getStringParameter(parameterName);
 							owner.setValue(s);
 						}
-*/
 					}
 				});
+*/
 	}
 
 	public int getIntValue(String key) {
