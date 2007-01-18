@@ -83,6 +83,7 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "PC", "CacheLogic" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "BR", "BitRocket" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "XX", "xtorrent" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "FG", "FlashGet" )) != null ) return decoded;
       
       if( (decoded = decodeTornadoStyle( peerID, "T", "BitTornado" )) != null ) return decoded;
       if( (decoded = decodeTornadoStyle( peerID, "A", "ABC" )) != null ) return decoded;
@@ -391,7 +392,7 @@ public class BTPeerIDByteDecoder {
 						String v4 = parseOneByteVersionNumber(id, 5);
 						return name + " " + v2 + "." + v3 + "." + v4;
 					}
-					if (ident.equals("TR") || ident.equals("CD")) {
+					if (ident.equals("TR") || ident.equals("CD") || ident.equals("FG")) {
 						// 34.56
 						String v2 = new String(id, 3, 2, Constants.BYTE_ENCODING);
 						String v3 = new String(id, 5, 2, Constants.BYTE_ENCODING);
