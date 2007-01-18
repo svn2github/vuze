@@ -521,6 +521,10 @@ public class Tab {
   public static boolean 
   closed(Item item, boolean bForceClose) 
   {
+  	if (item == null) {
+  		return true;
+  	}
+
     IView view = (IView) tabs.get(item);
     if (!bForceClose && view instanceof UISWTViewImpl) {
     	if (!((UISWTViewImpl)view).requestClose()) {
