@@ -386,7 +386,7 @@ NetworkAdminASNLookupImpl
 			
 		}catch( Throwable e ){
 			
-			throw( new NetworkAdminException( "Parse failure", e ));
+			throw( new NetworkAdminException( "Parse failure for '" + cidr + "'", e ));
 		}
 	}
 	
@@ -442,7 +442,7 @@ NetworkAdminASNLookupImpl
 			
 		}catch( Throwable e ){
 			
-			throw( new NetworkAdminException( "Parse failure", e ));
+			throw( new NetworkAdminException( "Parse failure for '" + cidr + "'", e ));
 		}		
 	}
 	
