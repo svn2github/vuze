@@ -456,5 +456,19 @@ AEDiagnostics
 				}
 			}
 		}
+		
+		writer.println( "Memory" );
+		
+		try{
+			writer.indent();
+			
+			Runtime rt = Runtime.getRuntime();
+			
+			writer.println( "max=" + rt.maxMemory() + ",total=" + rt.totalMemory() + ",free=" + rt.freeMemory());
+			
+		}finally{
+			
+			writer.exdent();
+		}
 	}
 }
