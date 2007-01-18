@@ -160,7 +160,8 @@ public class ManagerView extends AbstractIView implements
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
 			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
-			Map pluginViews = pluginUI.getViewListeners(UISWTInstance.VIEW_MYTORRENTS);
+			Map pluginViews = pluginUI == null ? null
+					: pluginUI.getViewListeners(UISWTInstance.VIEW_MYTORRENTS);
 			if (pluginViews != null) {
 				String[] sNames = (String[]) pluginViews.keySet().toArray(new String[0]);
 				for (int i = 0; i < sNames.length; i++) {
