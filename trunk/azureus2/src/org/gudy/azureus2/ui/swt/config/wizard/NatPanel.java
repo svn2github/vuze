@@ -281,6 +281,10 @@ public class NatPanel extends AbstractWizardPanel {
       return;
     display.asyncExec(new AERunnable(){
       public void runSupport() {
+      	if (bTest == null || bTest.isDisposed()) {
+      		return;
+      	}
+
         wizard.setNextEnabled(true);
         bTest.setEnabled(true);
         bCancel.setEnabled(false);
