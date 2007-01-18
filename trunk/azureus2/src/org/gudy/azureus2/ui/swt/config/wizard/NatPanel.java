@@ -275,13 +275,17 @@ public class NatPanel extends AbstractWizardPanel {
     });
   }
 
-  public void enableNext() {
+  private void enableNext() {
     Display display = wizard.getDisplay();
     if (display == null || display.isDisposed())
       return;
     display.asyncExec(new AERunnable(){
       public void runSupport() {
       	if (bTest == null || bTest.isDisposed()) {
+      		return;
+      	}
+      	
+      	if (wizard.getCurrentPanel().equals(this)) {
       		return;
       	}
 
