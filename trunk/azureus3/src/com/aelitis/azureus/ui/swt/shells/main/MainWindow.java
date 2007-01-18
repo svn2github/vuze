@@ -250,54 +250,56 @@ public class MainWindow implements SWTSkinTabSetListener
 			});
 		}
 		final String fHash = hash;
-
-		if (PlatformTorrentUtils.getUserRating(torrent) == -2) {
-			PlatformTorrentUtils.setUserRating(torrent, -1);
-			PlatformRatingMessenger.getUserRating(
-					new String[] { PlatformRatingMessenger.RATE_TYPE_CONTENT
-					}, new String[] { hash
-					}, 5000, new GetRatingReplyListener() {
-						public void replyReceived(String replyType,
-								PlatformRatingMessenger.GetRatingReply reply) {
-							if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
-								long rating = reply.getRatingValue(fHash,
-										PlatformRatingMessenger.RATE_TYPE_CONTENT);
-								if (rating >= -1) {
-									PlatformTorrentUtils.setUserRating(torrent, (int) rating);
-								}
-							}
-
-						}
-
-						public void messageSent() {
-						}
-					});
-		}
-
-		long now = SystemTime.getCurrentTime();
-		long mdRefreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
-		if (mdRefreshOn < now) {
-			PlatformTorrentUtils.log("addDM, update MD NOW");
-			PlatformTorrentUtils.updateMetaData(torrent, 5000);
-		} else {
-			PlatformTorrentUtils.log("addDM, update MD on " + new Date(mdRefreshOn));
-			SimpleTimer.addEvent("Update MD", mdRefreshOn, new TimerEventPerformer() {
-				public void perform(TimerEvent event) {
-					PlatformTorrentUtils.updateMetaData(torrent, 15000);
-				}
-			});
-		}
-
-		long grRefreshOn = GlobalRatingUtils.getRefreshOn(torrent);
-		if (grRefreshOn <= now) {
-			GlobalRatingUtils.updateFromPlatform(torrent, 5000);
-		} else {
-			SimpleTimer.addEvent("Update G.Rating", grRefreshOn,
-					new TimerEventPerformer() {
-						public void perform(TimerEvent event) {
-							GlobalRatingUtils.updateFromPlatform(torrent, 15000);
-						}
-					});
+		
+		if (PlatformTorrentUtils.isContent(torrent)) {
+  		if (PlatformTorrentUtils.getUserRating(torrent) == -2) {
+  			PlatformTorrentUtils.setUserRating(torrent, -1);
+  			PlatformRatingMessenger.getUserRating(
+  					new String[] { PlatformRatingMessenger.RATE_TYPE_CONTENT
+  					}, new String[] { hash
+  					}, 5000, new GetRatingReplyListener() {
+  						public void replyReceived(String replyType,
+  								PlatformRatingMessenger.GetRatingReply reply) {
+  							if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
+  								long rating = reply.getRatingValue(fHash,
+  										PlatformRatingMessenger.RATE_TYPE_CONTENT);
+  								if (rating >= -1) {
+  									PlatformTorrentUtils.setUserRating(torrent, (int) rating);
+  								}
+  							}
+  
+  						}
+  
+  						public void messageSent() {
+  						}
+  					});
+  		}
+  
+  		long now = SystemTime.getCurrentTime();
+  		long mdRefreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
+  		if (mdRefreshOn < now) {
+  			PlatformTorrentUtils.log("addDM, update MD NOW");
+  			PlatformTorrentUtils.updateMetaData(torrent, 5000);
+  		} else {
+  			PlatformTorrentUtils.log("addDM, update MD on " + new Date(mdRefreshOn));
+  			SimpleTimer.addEvent("Update MD", mdRefreshOn, new TimerEventPerformer() {
+  				public void perform(TimerEvent event) {
+  					PlatformTorrentUtils.updateMetaData(torrent, 15000);
+  				}
+  			});
+  		}
+  
+  		long grRefreshOn = GlobalRatingUtils.getRefreshOn(torrent);
+  		if (grRefreshOn <= now) {
+  			GlobalRatingUtils.updateFromPlatform(torrent, 5000);
+  		} else {
+  			SimpleTimer.addEvent("Update G.Rating", grRefreshOn,
+  					new TimerEventPerformer() {
+  						public void perform(TimerEvent event) {
+  							GlobalRatingUtils.updateFromPlatform(torrent, 15000);
+  						}
+  					});
+  		}
 		}
 	}
 

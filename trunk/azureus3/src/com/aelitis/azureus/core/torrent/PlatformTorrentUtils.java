@@ -326,6 +326,10 @@ public class PlatformTorrentUtils
 	 * @param maxDelayMS TODO
 	 */
 	public static void updateMetaData(final TOTorrent torrent, long maxDelayMS) {
+		if (!isContent(torrent)) {
+			return;
+		}
+		
 		try {
 			if (DEBUG_CACHING) {
 				log("updateMD");
