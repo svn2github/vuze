@@ -597,14 +597,15 @@ public class VersionCheckClient {
 		 String bgp_prefix	= COConfigurationManager.getStringParameter( "ASN BGP", null );
 		 String asn			= COConfigurationManager.getStringParameter( "ASN ASN", null );
 		 
-		 if ( asn == null || asn.length() == 0 ){
+		 if ( 	asn == null || asn.length() == 0 ||
+				bgp_prefix == null || bgp_prefix.length() == 0 ){
 			
 			 	// during 2502 introduction we ran DNS based queries as fallback without support
 			 	// for reading ASN - pick up blank ASNs now and force recheck
 			 
 			 check_asn = true;
 			 
-		 }else if ( bgp_prefix != null ){
+		 }else{
 			 					 
 			 try{
 				 byte[] address = (byte[])reply.get( "source_ip_address" );
@@ -619,6 +620,8 @@ public class VersionCheckClient {
 				 }
 				 
 			 }catch( Throwable e ){
+				 
+				 check_asn = true;
 				 
 				 Debug.printStackTrace(e);
 			 }
