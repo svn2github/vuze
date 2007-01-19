@@ -63,8 +63,8 @@ public class
 DHTControlImpl 
 	implements DHTControl, DHTTransportRequestHandler
 {
-	private static final int EXTERNAL_LOOKUP_CONCURRENCY	= 32;
-	private static final int EXTERNAL_PUT_CONCURRENCY		= 16;
+	private static final int EXTERNAL_LOOKUP_CONCURRENCY	= 16;
+	private static final int EXTERNAL_PUT_CONCURRENCY		= 8;
 	
 	private static final int RANDOM_QUERY_PERIOD			= 5*60*1000;
 	
@@ -1265,7 +1265,7 @@ DHTControlImpl
 					flags,
 					true, 
 					timeout,
-					search_concurrency * 2,	// double conc for priority gets
+					search_concurrency,
 					max_values,
 					router.getK(),
 					new lookupResultHandler( get_listener )
