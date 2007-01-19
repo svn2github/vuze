@@ -324,7 +324,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 	}
 
 	private void _fixupRowCount() {
-		System.out.println("fixupRowCount");
+		//System.out.println("fixupRowCount");
 		if (dataArea.isDisposed() || bAllowScrolling) {
 			return;
 		}

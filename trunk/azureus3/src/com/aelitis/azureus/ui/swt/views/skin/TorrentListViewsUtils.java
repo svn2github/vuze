@@ -377,7 +377,7 @@ public class TorrentListViewsUtils
 			try {
 				goodExts = (String[]) pi.getIPC().invoke("getRecognizedExtensions", null);
 			} catch (Throwable e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 		}
 
