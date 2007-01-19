@@ -13,6 +13,7 @@ CHANGE: Core  | ASN lookup via DNS queries only [parg]
 CHANGE: Core  | Full recheck of torrent when part of torrent fails hash check on completion [TuxPaper]
 
 BUGFIX: Core  | Fix choke/unchoke cycle bug for lan local peers [Nolar]
+BUGFIX: Core  | Fix auto moving torrent data with DND files [TuxPaper]
 BUGFIX: UI    | Fix crash when opening non-torrent URL when OS has no recognized HTML viewer [TuxPaper]
 BUGFIX: UI    | Fix big icon in name column for OSes using GTK [TuxPaper]
 BUGFIX: UI    | Make Download Basket work again for drag and dropping [TuxPaper]
