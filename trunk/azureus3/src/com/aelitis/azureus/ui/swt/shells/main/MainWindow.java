@@ -1128,6 +1128,7 @@ public class MainWindow implements SWTSkinTabSetListener
 			formData.top = new FormAttachment(0, 0);
 			formData.bottom = new FormAttachment(100, 0);
 			lblWait.setLayoutData(formData);
+			lblWait.setForeground(skinObject.getProperties().getColor("color.row.fg"));
 			Messages.setLanguageText(lblWait, "MainWindow.v3.view.wait");
 			cArea.layout(true);
 			lblWait.update();
