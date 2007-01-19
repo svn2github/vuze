@@ -2,9 +2,10 @@ $
 $    Willkommen zu Azureus 2.5.0.4
 $ 
 
- 2.5.0.4 is a maintenance release to fix up a few minor, but relatively annoying problems with 2.5.0.2.
+ 2.5.0.4 behebt einige kleine, aber relativ unangenehme Probleme, welche bei 2.5.0.2 auftraten. 
 
-+1. Was ist neu in Azureus 2.5.0.2/4
+
++1. Was ist neu in Azureus 2.5.0.2/2.5.0.4
 
 !1.1 Geringerer Speicherverbrauch
   Am erwähnenswertesten, Teil-Informationen eines Torrents werden aus dem Speicher entfernt, wenn diese nicht benutzt werden.
