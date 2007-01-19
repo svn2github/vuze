@@ -1,3 +1,36 @@
+$ 
+$    Welcome to Azureus 2.5.0.4
+$ 
+
+ 2.5.0.4 is a maintenance release to fix up a few minor, but relatively annoying problems with 2.5.0.2.
+
++1. What's new in Azureus 2.5.0.2/4
+
+!1.1 Less memory footprint
+  Most noteably, torrent piece information is now removed from memory when not used.
+  
+!1.2 Minimum # of Simultaneous Active Downloads
+  The ability to always have at least x number of active downloads running.
+  
+!1.3 New columns
+  Custom user comment (My Torrents view)
+  File extension (Files view)
+
+!1.4 Faster startup times on large lists
+  Startup times when Azureus has a large list of torrents is now faster (up to 400% faster in some cases).
+  Some plugins may negate this optimization if the plugin accesses every torrents information immediately at startup.
+
+!1.5 Other
+  Various user interface improvements.
+  Bug fixes.
+  Less memory leaks.
+ 
+!1.6 Java 5.0 note
+  Java 5, Update 10 fixes a handle leak commonly seen in Azureus installations.  It is highly recommended that you upgrade to this version or a later version.  You can download the update at http://java.com/en/download/manual.jsp
+
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.4
+
+
 $
 $ Dobrodosli kod Azureusa 2.5.0.0
 $ 

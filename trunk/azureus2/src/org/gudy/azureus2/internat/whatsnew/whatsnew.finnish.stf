@@ -1,8 +1,10 @@
 $ 
-$    Tervetuloa k‰ytt‰m‰‰n versiota 2.5.0.2
+$    Tervetuloa k‰ytt‰m‰‰n versiota 2.5.0.4
 $ 
 
-+1. Mit‰ uutta on Azureus 2.5.0.2:ssa
+ 2.5.0.4 is a maintenance release to fix up a few minor, but relatively annoying problems with 2.5.0.2.
+
++1. Mit‰ uutta on Azureus 2.5.0.2/4:ssa
 
 !1.1 V‰hentynyt muistink‰yttˆ
   Huomattavimpana tekij‰n‰ se, ett‰ torrent-tiedostojen osista ei en‰‰ s‰ilytet‰ tietoja muistissa kun niit‰ ei tarvita.
@@ -26,7 +28,7 @@ $
 !1.6 Java 5.0 -huomautus
   Sun Java 5 -sarjan kymmenes p‰ivitys (Update 10) korjaa kahvavuoto-ongelman, joka on haitannut yleisesti Azureuksen toimintaa. P‰ivitt‰minen ko. versioon tai uudempaan on suositeltavaa. Voit ladata p‰ivityksen osoitteesta http://java.com/en/download/manual.jsp
 
-    Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.5.0.2
+    Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.5.0.4
 
 +2. Mit‰ uutta on Azureus 2.5.0.0:ssa
 

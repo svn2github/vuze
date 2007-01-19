@@ -1,8 +1,10 @@
 $ 
-$    Willkommen zu Azureus 2.5.0.2
+$    Willkommen zu Azureus 2.5.0.4
 $ 
 
-+1. Was ist neu in Azureus 2.5.0.2
+ 2.5.0.4 is a maintenance release to fix up a few minor, but relatively annoying problems with 2.5.0.2.
+
++1. Was ist neu in Azureus 2.5.0.2/4
 
 !1.1 Geringerer Speicherverbrauch
   Am erwähnenswertesten, Teil-Informationen eines Torrents werden aus dem Speicher entfernt, wenn diese nicht benutzt werden.
@@ -26,7 +28,7 @@ $
 !1.6 Zu Java 5.0
   Java 5 Update 10 behebt ein Speicherproblem, welches oft bei Azureus bemerkt wurde. Es wird dazu geraten, eine Aktualisierung zu dieser oder einer neueren Java-Version durchzuführen. Eine aktuelle Version kann unter http://java.sun.com/javase/downloads/index.jsp heruntergeladen werden.
 
-    Ausführliches ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.2
+    Ausführliches ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.4
 
 
 +2. Was ist neu in Azureus 2.5.0.0?

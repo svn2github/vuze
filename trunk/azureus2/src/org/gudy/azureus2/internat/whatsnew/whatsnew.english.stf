@@ -1,16 +1,10 @@
 $ 
-$    Welcome to Azureus 3.0.0.5
+$    Welcome to Azureus 2.5.0.4
 $ 
 
- This is a mid-release (aka CVS Snapshot) version of Azureus.  Thank you for beta testing Azureus.
+ 2.5.0.4 is a maintenance release to fix up a few minor, but relatively annoying problems with 2.5.0.2.
 
- For Azureus 2 users, you will notice the version has changed to 3.  Relax, this does not mean we are forcing you to the new "zudeo" UI.  Since Azureus 3 and Azureus 2 use the same source, it didn't make much sense to continue calling the CVS snapshot versions "2.5.0.x".
-
-$ 
-$    Welcome to Azureus 2.5.0.2
-$ 
-
-+1. What's new in Azureus 2.5.0.2
++1. What's new in Azureus 2.5.0.2/4
 
 !1.1 Less memory footprint
   Most noteably, torrent piece information is now removed from memory when not used.
@@ -34,7 +28,7 @@ $
 !1.6 Java 5.0 note
   Java 5, Update 10 fixes a handle leak commonly seen in Azureus installations.  It is highly recommended that you upgrade to this version or a later version.  You can download the update at http://java.com/en/download/manual.jsp
 
-    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.2
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.4
 
 
 +2. What's new in Azureus 2.5.0.0

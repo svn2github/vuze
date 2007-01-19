@@ -1,8 +1,10 @@
-$ 
-$    Bienvenido a Azureus 2.5.0.2
+﻿$ 
+$    Bienvenido a Azureus 2.5.0.4
 $ 
 
-+1. Novedades en Azureus 2.5.0.2
+ 2.5.0.4 is a maintenance release to fix up a few minor, but relatively annoying problems with 2.5.0.2.
+
++1. Novedades en Azureus 2.5.0.2/4
 
 !1.1 Menor gasto de memoria
   Lo más notable es que ahora, la información sobre partes del torrent se elimina de la memoria cuando no se está usando.
@@ -26,7 +28,7 @@ $
 !1.6 Nota sobre Java 5.0
   Java 5, Actualización 10 corrige una pérdida de memoria vista comúnmente en las instalaciones de Azureus. Se recomienda encarecidamente que se actualice a esta versión o posterior. Puede descargarla en http://java.com/es/download/manual.jsp 
 
-    Registro completo de cambios en http://azureus.sourceforge.net/changelog.php?version=2.5.0.2
+    Registro completo de cambios en http://azureus.sourceforge.net/changelog.php?version=2.5.0.4
 
 
 +2. Lo nuevo en Azureus 2.5.0.0
