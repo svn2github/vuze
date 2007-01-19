@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.plugins;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
@@ -198,4 +199,13 @@ public interface UISWTInstance extends UIInstance {
 	 * @deprecated Use {@link #removeViews(String, String)}
 	 */
 	public void removeView(UISWTAWTPluginView view);
+	
+	/**
+	 * Shows or hides a download bar for a given download.
+	 * 
+	 * @since 3.0.0.5
+	 * @param download Download to use.
+	 * @param display <tt>true</tt> to show a download bar, <tt>false</tt> to hide it.
+	 */
+	public void showDownloadBar(Download download, boolean display);
 }

@@ -5,6 +5,7 @@ AZUREUS CHANGELOG
 
 FEATURE: Core | New users default save directory is not located in their "My Documents" directory, under "Azureus Downloads" [TuxPaper]
 FEATURE: Plug | Unsafe config read/writing [parg]
+FEATURE: Plug | Plugins can now open and close download bars [amc1]
 
 CHANGE: Core  | Added scrape delay for stopped/errored torrents, and torrents with high share ratios [TuxPaper]
 CHANGE: Core  | Allow only one active scrape for each tracker [TuxPaper]

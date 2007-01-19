@@ -40,9 +40,13 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
+import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -586,6 +590,24 @@ UISWTInstanceImpl
 		return MessageBoxShell.open(uiFunctions.getMainShell(), title, text,
 				options, defaultOption);
 	}
+	
+	public void showDownloadBar(Download download, final boolean display) {
+		if (!(download instanceof DownloadImpl)) {return;}
+		final DownloadManager dm = ((DownloadImpl)download).getDownload();
+		if (dm == null) {return;} // Not expecting this, but just in case...
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				boolean displayed = MinimizedWindow.isOpen(dm);
+				if (display == displayed) {return;}
+				if (display) {
+					new MinimizedWindow(dm, getDisplay().getActiveShell());
+				}
+				else {
+					MinimizedWindow.close(dm);
+				}
+			}
+		}, false);
+	}
 
 	// Core Functions
 	// ==============
@@ -707,5 +729,11 @@ UISWTInstanceImpl
 		public UIInputReceiver getInputReceiver() {
 			return delegate.getInputReceiver();
 		}
+		
+		public void showDownloadBar(Download download, boolean display) {
+			delegate.showDownloadBar(download, display);
+		}
+		
+		
 	}
 }
