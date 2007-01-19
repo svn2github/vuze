@@ -335,10 +335,12 @@ NetworkAdminImpl
 			
 			NetworkInterface ni = (NetworkInterface)it.next();
 			
-			str += (str.length()==0?"":",") + ni.getName() + "=";
-			
 			Enumeration addresses = ni.getInetAddresses();
-		
+
+			if (addresses.hasMoreElements()) {
+				str += (str.length()==0?"":",") + ni.getName() + "=";
+			}
+			
 			int	add_num = 0;
 			
 			while( addresses.hasMoreElements()){
