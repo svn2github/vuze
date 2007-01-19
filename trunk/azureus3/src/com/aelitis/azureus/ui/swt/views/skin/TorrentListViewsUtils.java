@@ -345,7 +345,8 @@ public class TorrentListViewsUtils
 					MessageText.getString(sPrefix + "title"), MessageText.getString(
 							sTextID, new String[] {
 								dm.getDisplayName(),
-								sFileType
+								sFileType,
+								ext
 							}), new String[] {
 						MessageText.getString(sPrefix + "button.run"),
 						MessageText.getString(sPrefix + "button.cancel")
