@@ -188,6 +188,8 @@ public class Initializer implements IUIIntializer
 		
 		ImageRepository.loadImagesForSplashWindow(display);
 
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/azureus.jpg", "azureus_splash");
+
 		display.syncExec(new AERunnable() {
 			public void runSupport() {
 				splash = new SplashWindow(display);
