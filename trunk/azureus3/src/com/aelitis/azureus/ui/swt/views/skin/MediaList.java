@@ -187,7 +187,8 @@ public class MediaList extends SkinView
 			public void updateUI() {
 				super.updateUI();
 
-				if (!skinDetailInfo.getControl().isVisible()) {
+				Control control = skinDetailInfo.getControl();
+				if (control == null || control.isDisposed() || !control.isVisible()) {
 					return;
 				}
 
