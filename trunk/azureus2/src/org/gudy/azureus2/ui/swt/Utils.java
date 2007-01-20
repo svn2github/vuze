@@ -778,7 +778,7 @@ public class Utils {
 		}
 
 		boolean isMaximized = COConfigurationManager.getBooleanParameter(
-				sConfigPrefix + ".maximized", false);
+				sConfigPrefix + ".maximized");
 		shell.setMaximized(isMaximized);
 
 		new ShellMetricsResizeListener(shell, sConfigPrefix);
