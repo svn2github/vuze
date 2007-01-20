@@ -44,7 +44,8 @@ public class UIConfigDefaultsSWTv3
 
 		// Up to az > 3.0.0.2, we did not store the original version the user starts
 		// on.
-		String sFirstVersion = config.getStringParameter("azureus.first.version");
+		String sFirstVersion = config.getStringParameter("First Recorded Version");
+		System.out.println("First Version " + sFirstVersion);
 
 		ConfigurationDefaults defaults = ConfigurationDefaults.getInstance();
 		// Always have the wizard complete when running az3
@@ -64,13 +65,14 @@ public class UIConfigDefaultsSWTv3
   			String sDefSavePath = config.getStringParameter("Default save path");
   			if (sDefSavePath == null || !f.equals(new File(sDefSavePath))) {
   				sFirstVersion = "2.5.0.0"; // guess
-  				config.setParameter("azureus.first.version", sFirstVersion);
+  				config.setParameter("First Recorded Version", sFirstVersion);
   				config.save();
   				return;
   			}
 			}
 
 			defaults.addParameter("Auto Upload Speed Enabled", true);
+	  	System.out.println("CONFIGDEF INIT.3");
 			defaults.addParameter("Use default data dir", true);
 			defaults.addParameter("Add URL Silently", true);
 			defaults.addParameter("add_torrents_silently", true);
