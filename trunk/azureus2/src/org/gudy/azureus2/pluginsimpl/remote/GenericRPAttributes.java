@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
+import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
@@ -58,6 +59,12 @@ public class GenericRPAttributes {
             map.put("length",             dmfi.getLength());
             map.put("link",               dmfi.getLink());            
             map.put("is_deleted",         dmfi.isDeleted());
+        }
+        else if (obj_class == DownloadManager.class) {
+            DownloadManager dm = (DownloadManager)object;
+            map.put("can_pause_downloads",  dm.canPauseDownloads());
+            map.put("can_resume_downloads", dm.canResumeDownloads());
+            map.put("is_seeding_only"     , dm.isSeedingOnly());
         }
         else if (obj_class == Download.class) {
             Download dload = (Download)object;
@@ -269,6 +276,13 @@ public class GenericRPAttributes {
         attributes.put("length",             long.class);
         attributes.put("link",               File.class);        
         attributes.put("is_deleted",         boolean.class);
+        class_definitions.put(plugin_class, attributes);
+
+        attributes = new HashMap();
+        plugin_class = DownloadManager.class;
+        attributes.put("can_pause_downloads",  boolean.class);
+        attributes.put("can_resume_downloads", boolean.class);
+        attributes.put("is_seeding_only",      boolean.class);
         class_definitions.put(plugin_class, attributes);
 
         attributes = new HashMap();
