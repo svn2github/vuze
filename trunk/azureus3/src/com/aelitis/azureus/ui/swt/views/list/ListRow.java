@@ -408,6 +408,9 @@ public class ListRow implements TableRowCore
 	}
 
 	public Color getForeground() {
+		if (fg == null) {
+			setBackgroundColor(getIndex());
+		}
 		return fg;
 	}
 
@@ -642,6 +645,9 @@ public class ListRow implements TableRowCore
 	}
 
 	public Color getBackground() {
+		if (bg == null) {
+			setBackgroundColor(getIndex());
+		}
 		return bg;
 	}
 
