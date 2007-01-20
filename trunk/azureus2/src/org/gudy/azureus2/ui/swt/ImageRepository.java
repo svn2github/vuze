@@ -169,7 +169,7 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/working.gif", "working");
 	}
 
-  private static void addPath(String path, String id) {
+  public static void addPath(String path, String id) {
     imagesToPath.put(id,path);
   	// 2x longer
     //loadImage(display, path, id);
