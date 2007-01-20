@@ -209,7 +209,7 @@ public class Initializer implements IUIIntializer
 				if (sLastTask != null && !sLastTask.startsWith("Loading Torrent")) {
 					long now = SystemTime.getCurrentTime();
 					long diff = now - startTime;
-					if (diff > 10) {
+					if (diff > 10 && diff < 1000 * 60 * 5) {
 						System.out.println("   Core: " + diff + "ms for " + sLastTask);
 					}
 					startTime = SystemTime.getCurrentTime();
