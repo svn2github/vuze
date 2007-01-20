@@ -219,11 +219,21 @@ public abstract class ListView implements UIUpdatable, Listener,
 						bNeedsRefresh = true;
 						Image newImageView = new Image(e.gc.getDevice(), clientArea);
 						if (lastBounds.width == clientArea.width) {
-							GC gc = new GC(newImageView);
+							GC gc = null;
 							try {
+								gc = new GC(newImageView);
 								gc.drawImage(imageView, 0, 0);
+							} catch (Exception ex) {
+								if (!(ex instanceof IllegalArgumentException)) {
+									// IllegalArgumentException happens when we are already drawing 
+									// to the image.  This is "normal" as we may be in a paint event,
+									// and something forces a repaint
+									Debug.out(ex);
+								}
 							} finally {
-								gc.dispose();
+								if (gc != null) {
+									gc.dispose();
+								}
 							}
 						} else {
 							e.setBounds(clientArea);
@@ -236,10 +246,11 @@ public abstract class ListView implements UIUpdatable, Listener,
 				if (bNeedsRefresh) {
 					lastBounds = clientArea;
 
-					GC gc = new GC(imageView);
+					GC gc = null;
 					try {
-						gc.setForeground(e.gc.getForeground());
-						gc.setBackground(e.gc.getBackground());
+						gc = new GC(imageView);
+						gc.setForeground(listCanvas.getForeground());
+						gc.setBackground(listCanvas.getBackground());
 
 						TableRowCore[] visibleRows = getVisibleRows();
 						if (visibleRows.length > 0) {
@@ -268,6 +279,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 							int endY = visibleRows.length * ListRow.ROW_HEIGHT + ofs;
 							if (endY < clientArea.height) {
 								//System.out.println("fill " + (clientArea.height - endY) + "@" + endY);
+								gc.setBackground(listCanvas.getBackground());
 								gc.fillRectangle(0, endY, clientArea.width, clientArea.height
 										- endY);
 							}
@@ -281,8 +293,17 @@ public abstract class ListView implements UIUpdatable, Listener,
 							//System.out.println("fillall");
 							gc.fillRectangle(clientArea);
 						}
+					} catch (Exception ex) {
+						if (!(ex instanceof IllegalArgumentException)) {
+							// IllegalArgumentException happens when we are already drawing 
+							// to the image.  This is "normal" as we may be in a paint event,
+							// and something forces a repaint
+							Debug.out(ex);
+						}
 					} finally {
-						gc.dispose();
+						if (gc != null) {
+							gc.dispose();
+						}
 					}
 				}
 
@@ -320,9 +341,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 	 */
 	protected void refreshScrollbar() {
 		Rectangle client = listCanvas.getClientArea();
-		int h = rows.size() * ListRow.ROW_HEIGHT - client.height;
+		int h = (rows.size() * ListRow.ROW_HEIGHT) - client.height;
 
-		if (h <= client.height || client.height == 0) {
+		if (h <= 0 || client.height == 0) {
 			if (vBar.isVisible()) {
 				vBar.setVisible(false);
 				listCanvas.redraw();
@@ -882,23 +903,43 @@ public abstract class ListView implements UIUpdatable, Listener,
 							int endY = visibleRows.length * ListRow.ROW_HEIGHT + ofs;
 
 							if (endY < clientArea.height) {
-								GC gc = new GC(imageView);
+								GC gc = null;
 								try {
+									gc = new GC(imageView);
 									gc.setBackground(listCanvas.getBackground());
 
 									gc.fillRectangle(0, endY, clientArea.width, clientArea.height
 											- endY);
+								} catch (Exception ex) {
+									if (!(ex instanceof IllegalArgumentException)) {
+										// IllegalArgumentException happens when we are already drawing 
+										// to the image.  This is "normal" as we may be in a paint event,
+										// and something forces a repaint
+										Debug.out(ex);
+									}
 								} finally {
-									gc.dispose();
+									if (gc != null) {
+										gc.dispose();
+									}
 								}
 							}
 						} else {
-							GC gc = new GC(imageView);
+							GC gc = null;
 							try {
+								gc = new GC(imageView);
 								gc.setBackground(listCanvas.getBackground());
 								gc.fillRectangle(clientArea);
+							} catch (Exception ex) {
+								if (!(ex instanceof IllegalArgumentException)) {
+									// IllegalArgumentException happens when we are already drawing 
+									// to the image.  This is "normal" as we may be in a paint event,
+									// and something forces a repaint
+									Debug.out(ex);
+								}
 							} finally {
-								gc.dispose();
+								if (gc != null) {
+									gc.dispose();
+								}
 							}
 						}
 
@@ -1922,8 +1963,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 					ListRow.ROW_HEIGHT);
 
 			if (imageView != null) {
-				GC gc = new GC(imageView);
+				GC gc = null;
 				try {
+					gc = new GC(imageView);
 					gc.setClipping(rect);
 					if (!row.isVisible()) {
 						System.out.println("asked for row refresh but not visible "
@@ -1935,13 +1977,25 @@ public abstract class ListView implements UIUpdatable, Listener,
 					changed |= row.refresh(bDoGraphics, true);
 
 					row.doPaint(gc, true);
+				} catch (Exception e) {
+					if (!(e instanceof IllegalArgumentException)) {
+						// IllegalArgumentException happens when we are already drawing 
+						// to the image.  This is "normal" as we may be in a paint event,
+						// and something forces a repaint
+						Debug.out(e);
+					}
 				} finally {
-					gc.dispose();
+					if (gc != null) {
+						gc.dispose();
+					}
 				}
 			}
 			if (changed || bForceRedraw) {
 				listCanvas.redraw(rect.x, rect.y, rect.width, rect.height, false);
-				listCanvas.update();
+				// don't update, because we may already be in a paint, and this
+				// would cause recursion
+				//listCanvas.update();
+
 				//												System.out.println("redrawing row " + i + "/" + row.getIndex() + "; (" + clientArea.x + ","
 				//														+ y + ","
 				//														+ clientArea.width + "," + ListRow.ROW_HEIGHT + ") via "
