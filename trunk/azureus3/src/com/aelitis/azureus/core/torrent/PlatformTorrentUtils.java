@@ -21,6 +21,7 @@
 package com.aelitis.azureus.core.torrent;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
@@ -308,9 +309,22 @@ public class PlatformTorrentUtils
 		if (torrent == null) {
 			return false;
 		}
-		// Thumbnail temporary until we have contenthash
-		return PlatformTorrentUtils.getContentHash(torrent) != null
-				|| PlatformTorrentUtils.getContentThumbnail(torrent) != null;
+		boolean bContent = PlatformTorrentUtils.getContentHash(torrent) != null;
+		if (bContent) {
+			return true;
+		}
+
+		try {
+  		URL announceURL = torrent.getAnnounceURL();
+  		if (announceURL == null) {
+  			return false;
+  		}
+  		String url = announceURL.toString().toLowerCase();
+  		return url.indexOf("tracker.aelitis.com") >= 0
+					|| url.indexOf("azureusplatform.com") >= 0;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 
@@ -327,6 +341,7 @@ public class PlatformTorrentUtils
 	 */
 	public static void updateMetaData(final TOTorrent torrent, long maxDelayMS) {
 		if (!isContent(torrent)) {
+			log("torrent " + new String(torrent.getName()) + " not az content");
 			return;
 		}
 		
@@ -492,6 +507,7 @@ public class PlatformTorrentUtils
 		if (DEBUG_CACHING) {
 			AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.MD");
 			diag_logger.log(str);
+			System.out.println(str);
 		}
 	}
 }
