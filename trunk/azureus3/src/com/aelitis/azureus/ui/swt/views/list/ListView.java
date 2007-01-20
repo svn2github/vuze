@@ -812,7 +812,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 	 * @param string
 	 */
 	protected void log(String string) {
-		System.out.println(sTableID + "] " + string);
+		if (DEBUGADDREMOVE) {
+			System.out.println(sTableID + "] " + string);
+		}
 	}
 
 	public void removeDataSource(final Object datasource, boolean bImmediate) {
