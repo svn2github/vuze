@@ -226,7 +226,7 @@ public class Initializer implements IUIIntializer
 				if (percent == 100) {
 					long now = SystemTime.getCurrentTime();
 					long diff = now - startTime;
-					if (diff > 10) {
+					if (diff > 10 && diff < 1000 * 60 * 5) {
 						System.out.println("   Core: " + diff + "ms for " + sLastTask);
 					}
 				}
