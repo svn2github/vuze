@@ -283,6 +283,8 @@ OverallStatsImpl
     return (SystemTime.getCurrentTime() - session_start_time) / 1000;
   }
   
+  // removed due to complaints about anonymous stats collection
+  /*
   public Map getDownloadStats(){
 	  Map	res = new HashMap();
 	  
@@ -301,7 +303,7 @@ OverallStatsImpl
 	  
 	  return( res );
   }
-
+*/
 	public void 
 	downloadManagerAdded(
 		DownloadManager dm) 

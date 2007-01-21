@@ -803,14 +803,15 @@ public class VersionCheckClient {
       
       if ( stats != null ){
       	
-	      long total_bytes_downloaded 	= stats.getDownloadedBytes();
-	      long total_bytes_uploaded		= stats.getUploadedBytes();
+	      //long total_bytes_downloaded 	= stats.getDownloadedBytes();
+	      //long total_bytes_uploaded		= stats.getUploadedBytes();
 	      long total_uptime 			= stats.getTotalUpTime();
-	
-	      message.put( "total_bytes_downloaded", new Long( total_bytes_downloaded ) );
-	      message.put( "total_bytes_uploaded", new Long( total_bytes_uploaded ) );
+	      
+	      //removed due to complaints about anonymous stats collection
+	      //message.put( "total_bytes_downloaded", new Long( total_bytes_downloaded ) );
+	      //message.put( "total_bytes_uploaded", new Long( total_bytes_uploaded ) );
 	      message.put( "total_uptime", new Long( total_uptime ) );
-	      message.put( "dlstats", stats.getDownloadStats());
+	      //message.put( "dlstats", stats.getDownloadStats());
       }
       
       String	as = COConfigurationManager.getStringParameter( "ASN AS", null );
