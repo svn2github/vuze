@@ -212,7 +212,35 @@ TRTrackerUtils
 				}
 			});
 	}
-			           
+			
+	public static String
+	getPublicIPOverride()
+	{
+	    String explicit_ips = COConfigurationManager.getStringParameter( "Override Ip", "" );
+	    	    
+	   	if ( explicit_ips.length() > 0 ){
+	    				  			
+			StringTokenizer	tok = new StringTokenizer( explicit_ips, ";" );
+					
+			while( tok.hasMoreTokens()){
+				
+				String	this_address = tok.nextToken().trim();
+				
+				if ( this_address.length() > 0 ){
+					
+					String	cat = AENetworkClassifier.categoriseAddress( this_address );
+					
+					if ( cat == AENetworkClassifier.AT_PUBLIC ){
+						
+						return( this_address );
+					}
+				}
+			}
+	   	}
+	   	
+	   	return( null );
+	}
+	
 	private static Map	az_trackers = COConfigurationManager.getMapParameter( "Tracker Client AZ Instances", new HashMap());
 	
 
