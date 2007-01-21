@@ -35,6 +35,7 @@ import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -159,6 +160,13 @@ public class NatChecker {
       }
       
       urlStr += "&locale=" + MessageText.getCurrentLocale().toString();
+      
+      String	ip_override = TRTrackerUtils.getPublicIPOverride();
+      
+      if ( ip_override != null ){
+    	  
+    	  urlStr += "&ip=" + ip_override;
+      }
       
       URL url = new URL( urlStr );
       HttpURLConnection con = (HttpURLConnection)url.openConnection();
