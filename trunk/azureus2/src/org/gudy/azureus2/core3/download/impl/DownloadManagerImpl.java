@@ -329,6 +329,41 @@ DownloadManagerImpl
 					boolean explicit) 
 				{
 					if ( explicit ){
+						
+							// flush connected peers on explicit url change
+						
+						if ( torrent.getPrivate()){
+						
+							final List	peers;
+							
+							try{
+								peer_listeners_mon.enter();
+					 	
+								peers = new ArrayList( current_peers );
+					 
+							}finally{
+								
+								peer_listeners_mon.exit();
+							}
+							
+							if ( peers.size() > 0 ){
+								
+								new AEThread( "DM:peerflusher", true )
+								{
+									public void
+									runSupport()
+									{
+										for (int i=0;i<peers.size();i++){
+											
+											PEPeer	peer = (PEPeer)peers.get(i);
+											
+											peer.getManager().removePeer( peer, "Private torrent: tracker changed" );
+										}
+									}
+								}.start();
+							}
+						}
+						
 						requestTrackerAnnounce( true );
 					}
 				}
