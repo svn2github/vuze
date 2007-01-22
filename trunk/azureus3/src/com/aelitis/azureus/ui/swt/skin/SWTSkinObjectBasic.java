@@ -233,7 +233,9 @@ public class SWTSkinObjectBasic implements SWTSkinObject
 		}
 
 		String sTooltip = properties.getStringValue(sConfigID + ".tooltip" + suffix);
-		setTooltipAndChildren(control, sTooltip);
+		if (sTooltip != null) {
+			setTooltipAndChildren(control, sTooltip);
+		}
 
 		return suffix;
 	}
