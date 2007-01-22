@@ -33,6 +33,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
@@ -97,6 +98,14 @@ TRTrackerAnnouncerImpl
 	private Map	tracker_peer_cache		= new LinkedHashMap();	// insertion order - most recent at end
 	private AEMonitor tracker_peer_cache_mon 	= new AEMonitor( "TRTrackerClientClassic:PC" );
 	
+	private TOTorrent		torrent;
+	
+	protected
+	TRTrackerAnnouncerImpl(
+		TOTorrent	_torrent )
+	{
+		torrent	= _torrent;
+	}
  	
 		// NOTE: tracker_cache is cleared out in DownloadManager when opening a torrent for the
 		// first time as a DOS prevention measure
@@ -218,7 +227,7 @@ TRTrackerAnnouncerImpl
 	importTrackerCache(
 		Map		map )
 	{
-		if ( !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
+		if ( torrent.getPrivate() || !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
 			
 			return( 0 );
 		}
@@ -292,7 +301,7 @@ TRTrackerAnnouncerImpl
 	addToTrackerCache(
 		TRTrackerAnnouncerResponsePeerImpl[]		peers )
 	{
-		if ( !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
+		if ( torrent.getPrivate() || !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
 			
 			return;
 		}
@@ -403,6 +412,13 @@ TRTrackerAnnouncerImpl
 	getPeersFromCache(
 		int	num_want )
 	{
+		if ( torrent.getPrivate()){
+			
+				// we don't use cached peers for private torrents
+			
+			return( new TRTrackerAnnouncerResponsePeer[0] );
+		}
+		
 		try{
 			tracker_peer_cache_mon.enter();
 	

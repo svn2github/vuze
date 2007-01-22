@@ -181,7 +181,9 @@ TRTrackerBTAnnouncerImpl
   	
   	throws TRTrackerAnnouncerException
   {
-  	torrent			= _torrent;
+	super( _torrent );
+	 
+	torrent			= _torrent;
   	peer_networks	= _peer_networks;
   	manual_control	= _manual;
   	

@@ -72,6 +72,8 @@ TRTrackerDHTAnnouncerImpl
 	
 		throws TRTrackerAnnouncerException
 	{
+		super( _torrent );
+		
 		torrent		= _torrent;
 		
 		try{
