@@ -64,17 +64,21 @@ TRTrackerDHTAnnouncerImpl
 	private int							state = TS_INITIALISED;
 	
 	private TRTrackerAnnouncerResponseImpl	last_response;
-		
+	
+	private boolean			manual;
+	
 	public
 	TRTrackerDHTAnnouncerImpl(
 		TOTorrent		_torrent,
-		String[]		_networks )
+		String[]		_networks,
+		boolean			_manual )
 	
 		throws TRTrackerAnnouncerException
 	{
 		super( _torrent );
 		
 		torrent		= _torrent;
+		manual		= _manual;
 		
 		try{
 			torrent_hash	= torrent.getHashWrapper();
@@ -105,6 +109,12 @@ TRTrackerDHTAnnouncerImpl
 		TRTrackerAnnouncerDataProvider		provider )
 	{
 		
+	}
+	
+	public boolean
+	isManual()
+	{
+		return( manual );
 	}
 	
 	public TOTorrent

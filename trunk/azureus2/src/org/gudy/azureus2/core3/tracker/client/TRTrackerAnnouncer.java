@@ -108,6 +108,9 @@ TRTrackerAnnouncer
 	public int
 	getStatus();
 	
+	public boolean
+	isManual();
+	
 	public String
 	getStatusString();
 	

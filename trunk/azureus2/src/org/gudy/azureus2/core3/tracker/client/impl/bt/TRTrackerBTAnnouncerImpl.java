@@ -2863,6 +2863,11 @@ TRTrackerBTAnnouncerImpl
 		return( last_response );
 	}
 	
+	public boolean
+	isManual()
+	{
+		return( manual_control );
+	}
  
 	public void
 	destroy()

@@ -55,35 +55,38 @@ TRTrackerAnnouncerFactoryImpl
 		
 		if ( TorrentUtils.isDecentralised( torrent )){
 			
-			client	= new TRTrackerDHTAnnouncerImpl( torrent, networks );
+			client	= new TRTrackerDHTAnnouncerImpl( torrent, networks, manual );
 			
 		}else{
 			
 			client = new TRTrackerBTAnnouncerImpl( torrent, networks, manual );
 		}
 		
-		List	listeners_copy	= new ArrayList();
-		
-		try{
-			class_mon.enter();
+		if ( !manual ){
 			
-			clients.add( client );
-		
-			listeners_copy = new ArrayList( listeners );
-	
-		}finally{
-			
-			class_mon.exit();
-		}
-		
-		for (int i=0;i<listeners_copy.size();i++){
+			List	listeners_copy	= new ArrayList();
 			
 			try{
-				((TRTrackerAnnouncerFactoryListener)listeners_copy.get(i)).clientCreated( client );
+				class_mon.enter();
 				
-			}catch( Throwable e ){
+				clients.add( client );
+			
+				listeners_copy = new ArrayList( listeners );
+		
+			}finally{
 				
-				Debug.printStackTrace(e);
+				class_mon.exit();
+			}
+			
+			for (int i=0;i<listeners_copy.size();i++){
+				
+				try{
+					((TRTrackerAnnouncerFactoryListener)listeners_copy.get(i)).clientCreated( client );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
 		}
 		
@@ -143,28 +146,31 @@ TRTrackerAnnouncerFactoryImpl
 	destroy(
 		TRTrackerAnnouncer	client )
 	{
-		List	listeners_copy	= new ArrayList();
-		
-		try{
-			class_mon.enter();
-		
-			clients.remove( client );
+		if ( !client.isManual()){
 			
-			listeners_copy	= new ArrayList( listeners );
-
-		}finally{
-			
-			class_mon.exit();
-		}
-		
-		for (int i=0;i<listeners_copy.size();i++){
+			List	listeners_copy	= new ArrayList();
 			
 			try{
-				((TRTrackerAnnouncerFactoryListener)listeners_copy.get(i)).clientDestroyed( client );
+				class_mon.enter();
+			
+				clients.remove( client );
 				
-			}catch( Throwable e ){
+				listeners_copy	= new ArrayList( listeners );
+	
+			}finally{
 				
-				Debug.printStackTrace(e);
+				class_mon.exit();
+			}
+			
+			for (int i=0;i<listeners_copy.size();i++){
+				
+				try{
+					((TRTrackerAnnouncerFactoryListener)listeners_copy.get(i)).clientDestroyed( client );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
 		}
 	}

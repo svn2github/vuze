@@ -371,6 +371,8 @@ DownloadManagerImpl
 										
 										an.stop( false );
 										
+										an.destroy();
+										
 									}catch( Throwable e ){
 										
 										Debug.printStackTrace(e);
