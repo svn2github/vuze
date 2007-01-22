@@ -376,18 +376,19 @@ IpFilterImpl
 		String torrent_name,
 		boolean	loggable ) 
 	{
+		//In all cases, block banned ip addresses
+		
+		  if(isBanned(ipAddress)){
+		  
+			  return true;
+		  }
+		  
+
 		if ( !isEnabled()){
 			
 			return( false );
 		}
 		
-		//In all cases, block banned ip addresses
-		
-	  if(isBanned(ipAddress)){
-	  
-		  return true;
-	  }
-	  
 	  	// never bounce the local machine (peer guardian has a range that includes it!)
 	  
 	  if ( ipAddress.equals("127.0.0.1")){
@@ -460,18 +461,18 @@ IpFilterImpl
 		String 		torrent_name,
 		boolean		loggable ) 
 	{
+		//In all cases, block banned ip addresses
+		
+		  if(isBanned(ipAddress)){
+		  
+			  return true;
+		  }
+
 		if ( !isEnabled()){
 			
 			return( false );
 		}
-		
-		//In all cases, block banned ip addresses
-		
-	  if(isBanned(ipAddress)){
-	  
-		  return true;
-	  }
-	  
+			  
 	  	// never bounce the local machine (peer guardian has a range that includes it!)
 	  
 	  if ( ipAddress.isLoopbackAddress() || ipAddress.isLinkLocalAddress() || ipAddress.isSiteLocalAddress()){
