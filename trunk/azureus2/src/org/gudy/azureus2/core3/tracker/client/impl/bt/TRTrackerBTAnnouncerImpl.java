@@ -342,6 +342,7 @@ TRTrackerBTAnnouncerImpl
 			key_id					= other.key_id;
 			key_udp					= other.key_udp;
 	
+			announce_data_provider	= other.announce_data_provider;
 		}else{
 			
 			Debug.out( "Incompatible type" );
@@ -631,7 +632,10 @@ TRTrackerBTAnnouncerImpl
 			
 			if ( stopped ){
 				
-				if ( tracker_state == TS_INITIALISED ){
+					// if manual control then we assume that a stop request is required, even if we
+					// are in an init state. needed for explicit stop based on URL
+				
+				if ( tracker_state == TS_INITIALISED && !manual_control ){
 					
 						// never started
 					
