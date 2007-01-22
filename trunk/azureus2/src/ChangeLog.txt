@@ -6,21 +6,27 @@ AZUREUS CHANGELOG
 FEATURE: Core | New users default save directory is not located in their "My Documents" directory, under "Azureus Downloads" [TuxPaper]
 FEATURE: Plug | Unsafe config read/writing [parg]
 FEATURE: Plug | Plugins can now open and close download bars [amc1]
+FEATURE: Core | Show alerts raised during closedown on next start as these often don't get displayed due to UI shutdown [Parg]
+FEATURE: Core | Allow plugin installs to place jars into the plugin-shared "shared/lib" directory [Parg]
 
 CHANGE: Core  | Added scrape delay for stopped/errored torrents, and torrents with high share ratios [TuxPaper]
 CHANGE: Core  | Allow only one active scrape for each tracker [TuxPaper]
-CHANGE: Core  | Release piece-map when not required [parg]
-CHANGE: Core  | ASN lookup via DNS queries only [parg]
+CHANGE: Core  | Release piece-map when not required [Parg]
+CHANGE: Core  | ASN lookup via DNS queries only [Parg]
 CHANGE: Core  | Full recheck of torrent when part of torrent fails hash check on completion [TuxPaper]
+CHANGE: Core  | Take note of banned IPs when we have IP filter turned off - these are independent [Parg]
+CHANGE: Core  | Disable download peer caching for private torrents [Parg]
+CHANGE: Core  | Disconnect currently connected peers on tracker URL change for private torrents [Parg]
+CHANGE: Core  | Remove download/upload specific stats from version-check message [Parg]
+CHANGE: Core  | Include IP override in NAT check message for NAT check server to use [Parg]
+CHANGE: Plug  | Timeout UPnP port releases during closedown to prevent Azureus hanging [Parg]
 
 BUGFIX: Core  | Fix choke/unchoke cycle bug for lan local peers [Nolar]
 BUGFIX: Core  | Fix auto moving torrent data with DND files [TuxPaper]
 BUGFIX: UI    | Fix crash when opening non-torrent URL when OS has no recognized HTML viewer [TuxPaper]
 BUGFIX: UI    | Fix big icon in name column for OSes using GTK [TuxPaper]
 BUGFIX: UI    | Make Download Basket work again for drag and dropping [TuxPaper]
-
-
-
+BUGFIX: Core  | Fix NPE causing XML stats not to be written [Parg]
 
 2007.01.10 | Azureus 2.5.0.2
 
