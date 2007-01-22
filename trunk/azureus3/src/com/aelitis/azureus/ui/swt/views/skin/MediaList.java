@@ -374,7 +374,7 @@ public class MediaList extends SkinView
 		}
 		
 		skinObject = skin.getSkinObject("search-text");
-		if (skinObject != null) {
+		if (skinObject != null || false) {
 			Control control = skinObject.getControl();
 			if (control instanceof Composite) {
 				Control[] children = ((Composite)control).getChildren();
