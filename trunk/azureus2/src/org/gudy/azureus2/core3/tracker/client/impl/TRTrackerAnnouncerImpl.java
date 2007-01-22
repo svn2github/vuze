@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.tracker.client.impl;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -83,10 +84,11 @@ TRTrackerAnnouncerImpl
 						
 						Object[]	x = (Object[])value;
 						
-						String		url 	= (String)x[0];
-						boolean	explicit	= ((Boolean)x[1]).booleanValue();
+						URL			old_url 	= (URL)x[0];
+						URL			new_url 	= (URL)x[1];
+						boolean		explicit	= ((Boolean)x[2]).booleanValue();
 						
-						listener.urlChanged(url, explicit );
+						listener.urlChanged( TRTrackerAnnouncerImpl.this, old_url, new_url, explicit );
 						
 					}else{
 						

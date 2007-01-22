@@ -656,8 +656,10 @@ TRHostImpl
 
 				public void
 				urlChanged(
-					String		url,
-					boolean		explicit )
+					TRTrackerAnnouncer	announcer,
+					URL					old_url,
+					URL					new_url,
+					boolean				explicit )
 				{	
 				}
 					

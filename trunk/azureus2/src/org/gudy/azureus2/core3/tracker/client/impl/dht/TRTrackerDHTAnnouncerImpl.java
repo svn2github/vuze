@@ -133,6 +133,13 @@ TRTrackerDHTAnnouncerImpl
 	}
 	
 	public void
+	cloneFrom(
+		TRTrackerAnnouncer	other )
+	{
+		data_peer_id	= other.getPeerId();
+	}
+	
+	public void
 	setIPOverride(
 		String		override )
 	{

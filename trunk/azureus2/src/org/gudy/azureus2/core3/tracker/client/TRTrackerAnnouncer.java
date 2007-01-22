@@ -71,6 +71,10 @@ TRTrackerAnnouncer
 		String		override );
 	
 	public void
+	cloneFrom(
+		TRTrackerAnnouncer	other );
+	
+	public void
 	clearIPOverride();
 	
 	public byte[]

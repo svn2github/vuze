@@ -327,6 +327,27 @@ TRTrackerBTAnnouncerImpl
 					"Tracker Announcer Created using url : " + trackerURLListToString()));
   }
   	
+	public void
+	cloneFrom(
+		TRTrackerAnnouncer	_other )
+	{
+		if ( _other instanceof TRTrackerBTAnnouncerImpl ){
+			
+			TRTrackerBTAnnouncerImpl	other = (TRTrackerBTAnnouncerImpl)_other;
+			
+			data_peer_id			= other.data_peer_id;
+			tracker_peer_id			= other.tracker_peer_id;
+			tracker_peer_id_str		= other.tracker_peer_id_str;
+			tracker_id				= other.tracker_id;
+			key_id					= other.key_id;
+			key_udp					= other.key_udp;
+	
+		}else{
+			
+			Debug.out( "Incompatible type" );
+		}
+	}
+	
 	protected long
 	getAdjustedSecsToWait()
 	{
@@ -839,7 +860,7 @@ TRTrackerBTAnnouncerImpl
 		
 		for (int j = 0 ; j < urls.size() ; j++) {
 			
-		  URL original_url = (URL)urls.get(j);
+		  final URL original_url = (URL)urls.get(j);
 		  
 		  if ( skip_host != null && skip_host.equals( original_url.getHost())){
 			  
@@ -905,7 +926,7 @@ TRTrackerBTAnnouncerImpl
 	            	
 	            trackerUrlLists.add(0,urls);            
 	            
-	            informURLChange( lastUsedUrl, false );
+	            informURLChange( original_url, lastUsedUrl, false );
 	            	
 	            	//and return the result
 	            		
@@ -1911,7 +1932,7 @@ TRTrackerBTAnnouncerImpl
 	  	
 			trackerUrlLists.add( list );
 		
-			informURLChange( new_url, true );   
+			informURLChange( lastUsedUrl, new_url, true );   
 			
 		}catch( Throwable e ){
 			
@@ -1936,7 +1957,7 @@ TRTrackerBTAnnouncerImpl
 			
 			URL	first_url = (URL)((List)trackerUrlLists.get(0)).get(0);
 			
-			informURLChange( first_url, true );
+			informURLChange( lastUsedUrl, first_url, true );
 		}
 	}
 	
@@ -2813,11 +2834,12 @@ TRTrackerBTAnnouncerImpl
   	
 	protected void
 	informURLChange(
-		URL		url,
+		URL		old_url,
+		URL		new_url,
 		boolean	explicit  )
 	{
 		listeners.dispatch(	LDT_URL_CHANGED,
-							new Object[]{url.toString(),new Boolean(explicit)});
+							new Object[]{old_url, new_url, new Boolean(explicit)});
 	}
 	
 	protected void

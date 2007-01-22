@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.core3.tracker.client;
 
+import java.net.URL;
+
 /**
  * @author parg
  *
@@ -41,8 +43,10 @@ TRTrackerAnnouncerListener
 	 */
 	public void
 	urlChanged(
-		String		url,
-		boolean		explicit );
+		TRTrackerAnnouncer	announcer,
+		URL					old_url,
+		URL					new_url,
+		boolean				explicit );
 		
 	public void
 	urlRefresh();

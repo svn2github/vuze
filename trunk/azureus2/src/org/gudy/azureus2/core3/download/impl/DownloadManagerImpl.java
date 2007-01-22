@@ -325,8 +325,10 @@ DownloadManagerImpl
 
 				public void 
 				urlChanged(
-					String 	url, 
-					boolean explicit) 
+					final TRTrackerAnnouncer	announcer,	
+					final URL	 				old_url,
+					URL							new_url,
+					boolean 					explicit ) 
 				{
 					if ( explicit ){
 						
@@ -345,23 +347,36 @@ DownloadManagerImpl
 								
 								peer_listeners_mon.exit();
 							}
-							
-							if ( peers.size() > 0 ){
-								
-								new AEThread( "DM:peerflusher", true )
+															
+							new AEThread( "DM:torrentChangeFlusher", true )
+							{
+								public void
+								runSupport()
 								{
-									public void
-									runSupport()
-									{
-										for (int i=0;i<peers.size();i++){
-											
-											PEPeer	peer = (PEPeer)peers.get(i);
-											
-											peer.getManager().removePeer( peer, "Private torrent: tracker changed" );
-										}
+									for (int i=0;i<peers.size();i++){
+										
+										PEPeer	peer = (PEPeer)peers.get(i);
+										
+										peer.getManager().removePeer( peer, "Private torrent: tracker changed" );
 									}
-								}.start();
-							}
+									
+										// force through a stop on old url
+									
+									try{
+										TRTrackerAnnouncer an = TRTrackerAnnouncerFactory.create( torrent, true );
+										
+										an.cloneFrom( announcer );
+										
+										an.setTrackerUrl( old_url );
+										
+										an.stop( false );
+										
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
+									}
+								}
+							}.start();
 						}
 						
 						requestTrackerAnnounce( true );
@@ -389,8 +404,10 @@ DownloadManagerImpl
 
 			public void 
 			urlChanged(
-				String 	url, 
-				boolean explicit) 
+				TRTrackerAnnouncer	announcer,
+				URL 				old_url,
+				URL					new_url,
+				boolean 			explicit ) 
 			{
 			}
 
