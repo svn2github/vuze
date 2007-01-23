@@ -1,6 +1,17 @@
 AZUREUS v3 CHANGELOG
 --------------------
 
+2006.01.23 | Azureus 3.0.0.6
+
+FEATURE: Rating column now contains # of ratings
+
+CHANGE: Allow more than 862 items in a list (Currently Downloading, 
+        Existing Downloads, Library)
+CHANGE: Faster list display with large lists
+CHANGE: Dates in My Library now all have same format
+CHANGE: Default save path is now in your "My Documents" folder under "Azureus Downloads"
+
+
 2006.12.07 | Azureus 3.0.0.3
 
 FEATURE: Reminder that download is on Home tab when downloading from Browse tab
@@ -12,8 +23,3 @@ BUGFIX: Progress column sort order fixed
 BUGFIX: Disallow search for empty string
 BUGFIX: CTRL-A now selects all
 BUGFIX: Fixed File->Restart
-
-Known Issues:
-- After 862 items in a list (Currently Downloading, Existing Downloads, 
-  Library), new items will stop displaying
-- 862 items in a list is horribly slow
