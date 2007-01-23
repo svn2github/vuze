@@ -1461,6 +1461,17 @@ public class FileUtil {
 	
 		throws IOException
 	{
+		return readInputStreamAsString(is, size_limit, "ISO-8859-1");
+	}
+
+	public static String
+	readInputStreamAsString(
+		InputStream is,
+		int		size_limit,
+		String charSet)
+	
+		throws IOException
+	{
 		StringBuffer result = new StringBuffer(1024);
 
 		byte[] buffer = new byte[1024];
@@ -1474,7 +1485,7 @@ public class FileUtil {
 				break;
 			}
 
-			result.append(new String(buffer, 0, len, "ISO-8859-1"));
+			result.append(new String(buffer, 0, len, charSet));
 
 			if (size_limit >= 0 && result.length() > size_limit) {
 
