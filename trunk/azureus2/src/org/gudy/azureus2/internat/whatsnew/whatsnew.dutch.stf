@@ -1,0 +1,31 @@
+$ 
+$ Welkom bij Azureus 2.5.0.2/4
+$ 
+
++1. Wat is er nieuw in Azureus 2.5.0.2
+
+!1.1 Minder geheugen gebruik.
+  Meest belangrijk, informatie van torrent stukjes is nu verwijderd uit het geheugen als dit niet gebruikt word.
+  
+!1.2 Minimum # van Gelijktijdige Active Downloads.
+  De mogelijkheid om altijd tenminste x nummers van lopende active downloads.
+  
+!1.3 Nieuwe kolommen.
+  Geplaatst gebruiker commentaar (In mij Torrents scherm)
+  File extensie (In het files scherm)
+
+!1.4 Snelleren opstart tijd bij lange lijsten.
+  Startop tijd als Azureus een lange lijst torrents heeft is nu sneller (naar 400% sneller in enkelen gevallen).
+  Some plugins may negate this optimization if the plugin accesses every torrents information immediately at startup.
+  Sommigen plugins negeren deze optimalisering als de plugin toegang heeft naar directe torrent infomatie bij het opstarten.
+
+  !1.5 Anders.
+  Verschilende gebruikers uiterlijk verbeteringen.
+  Bug fixes.
+  Minder geheugen lekken.
+ 
+!1.6 Java 5.0 notitie.
+  Java 5, Update 10 fixes, voorverwerking foutjes gezien bij Azureus installaties.  Het is hoog aanbevolen dat je upgrade naar deze versie of een lateren versie. Je kunt de update downloaden op http://java.com/en/download/manual.jsp
+
+    Voor volledigen veranderingen (Engels) http://azureus.sourceforge.net/changelog.php?version=2.5.0.2
+
