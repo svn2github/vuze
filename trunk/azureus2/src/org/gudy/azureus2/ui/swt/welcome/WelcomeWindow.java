@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
@@ -135,7 +136,7 @@ public class WelcomeWindow {
 						+ helpFile;
 			} else {
 				try {
-					sWhatsNew = FileUtil.readInputStreamAsString(stream, 65535);
+					sWhatsNew = FileUtil.readInputStreamAsString(stream, 65535, "utf8");
 					stream.close();
 				} catch (IOException e) {
 					Debug.out(e);
@@ -296,6 +297,9 @@ public class WelcomeWindow {
   }
   
   public static void main(String[] args) {
+  	Locale.setDefault(new Locale("bg", "BG"));
+  	MessageText.changeLocale(new Locale("bg", "BG"));
+  	System.out.println(Locale.getDefault().getCountry());
 		new WelcomeWindow(null);
 		Display display = Display.getDefault();
 		while (true) {
