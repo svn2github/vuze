@@ -133,6 +133,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 	private boolean bInRefreshVisible;
 
+   protected boolean viewVisible;
+
 	public ListView(final String sTableID, SWTSkinProperties skinProperties,
 			Composite parent) {
 		this.skinProperties = skinProperties;
@@ -188,19 +190,31 @@ public abstract class ListView implements UIUpdatable, Listener,
 				}
 			}
 		});
-		vBar.setVisible(false);
 
+		// Track whether the view is visible or not and adjust scrollbar when
+		// visibility becomes true (Bug on SWT/Windows where setting scrollbar's
+		// visibility doesn't set it in Windows, but SWT still returns that it
+		// does)
 		Composite c = listCanvas;
 		Listener listenerShow = new Listener() {
 			public void handleEvent(Event event) {
-				refreshScrollbar();
-				vBar.setVisible(true);
-				vBar.setVisible(false);
-				System.out.println("show " + event.widget.getData("SkinID"));
+				if (event.type == SWT.Show) {
+					viewVisible = true;
+					// asyncExec so SWT finishes up it's show routine
+					// Otherwise, the scrollbar visibility setting will fail
+					listCanvas.getDisplay().asyncExec(new AERunnable() {
+						public void runSupport() {
+							refreshScrollbar();
+						}
+					});
+				} else {
+					viewVisible = false;
+				}
 			}
 		};
 		while (c != null) {
 			c.addListener(SWT.Show, listenerShow);
+			c.addListener(SWT.Hide, listenerShow);
 			c = c.getParent();
 		}
 		
@@ -354,6 +368,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 	 * 
 	 */
 	protected void refreshScrollbar() {
+      if (!viewVisible) {
+         return;
+      }
 		Rectangle client = listCanvas.getClientArea();
 		int h = (rows.size() * ListRow.ROW_HEIGHT) - client.height;
 

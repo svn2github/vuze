@@ -226,12 +226,16 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 			public void runSupport() {
 				DownloadManager[] managers = sortDMList(globalManager.getDownloadManagers());
 				bSkipUpdateCount = true;
+            int max = dataArea.getSize().y / ListRow.ROW_HEIGHT;
 				for (int i = 0; i < managers.length; i++) {
 					DownloadManager dm = managers[i];
 					downloadManagerAdded(dm);
 
-					if (dataArea.getSize().y / ListRow.ROW_HEIGHT == i) {
+               if (bMiniMode && i == max - 1) {
+                  break;
+               }
 
+					if (max == i) {
 						processDataSourceQueue();
 						bSkipUpdateCount = false;
 						updateCount();
