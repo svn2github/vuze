@@ -1,6 +1,10 @@
 AZUREUS CHANGELOG
 -----------------
 
+2007.02.xx | Azureus 3.0.0.7
+
+
+
 2007.01.22 | Azureus 2.5.0.4 / 3.0.0.6
 
 FEATURE: Core | New users default save directory is now located in their "My Documents" directory, under "Azureus Downloads" [TuxPaper]
