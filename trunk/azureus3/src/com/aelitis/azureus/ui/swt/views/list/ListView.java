@@ -190,6 +190,20 @@ public abstract class ListView implements UIUpdatable, Listener,
 		});
 		vBar.setVisible(false);
 
+		Composite c = listCanvas;
+		Listener listenerShow = new Listener() {
+			public void handleEvent(Event event) {
+				refreshScrollbar();
+				vBar.setVisible(true);
+				vBar.setVisible(false);
+				System.out.println("show " + event.widget.getData("SkinID"));
+			}
+		};
+		while (c != null) {
+			c.addListener(SWT.Show, listenerShow);
+			c = c.getParent();
+		}
+		
 		listCanvas.addListener(SWT.Resize, new Listener() {
 			int w = listCanvas.getSize().x;
 
