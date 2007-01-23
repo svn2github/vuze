@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTError;
 import org.eclipse.swt.custom.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
@@ -354,6 +355,10 @@ MainWindow
 	
     try {
     	Utils.createTorrentDropTarget(parent, true);
+    } catch (SWTError e) {
+    	// "Cannot initialize Drop".. don't spew stack trace
+    	Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+    			"Drag and Drop not available: " + e.getMessage()));
     } catch (Throwable e) {
     	Logger.log(new LogEvent(LOGID, "Drag and Drop not available", e));
     }
