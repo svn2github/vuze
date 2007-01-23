@@ -180,6 +180,18 @@ DDBaseTTTorrent
 			
 			Torrent	torrent = download.getTorrent();
 			
+			if ( torrent.isPrivate()){
+				
+				Debug.out( "Attempt to download private torrent" );
+				
+				ddb.log( "TorrentDownload: request for '" + download.getName() + "' denied as it is private" );
+				
+					// should never happen as private torrents are not tracked so they can't be found for
+					// download
+				
+				return( null );
+			}
+			
 			String	msg = "TorrentDownload: request for '" + download.getName() + "' OK";		
 
 			if ( TRACE ){
