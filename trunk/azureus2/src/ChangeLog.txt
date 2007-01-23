@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 -----------------
 
-2007.01.22 | Azureus 2.5.0.4
+2007.01.22 | Azureus 2.5.0.4 / 3.0.0.6
 
 FEATURE: Core | New users default save directory is now located in their "My Documents" directory, under "Azureus Downloads" [TuxPaper]
 FEATURE: Core | Show alerts raised during closedown on next start as these often don't get displayed due to UI shutdown [Parg]
