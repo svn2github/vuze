@@ -1,117 +1,117 @@
 $ 
-$    Tervetuloa k‰ytt‰m‰‰n versiota 2.5.0.4
+$    Tervetuloa k√§ytt√§m√§√§n versiota 2.5.0.4
 $ 
 
  2.5.0.4 is a maintenance release to fix up a few minor, but relatively annoying problems with 2.5.0.2.
 
-+1. Mit‰ uutta on Azureus 2.5.0.2/4:ssa
++1. Mit√§ uutta on Azureus 2.5.0.2/4:ssa
 
-!1.1 V‰hentynyt muistink‰yttˆ
-  Huomattavimpana tekij‰n‰ se, ett‰ torrent-tiedostojen osista ei en‰‰ s‰ilytet‰ tietoja muistissa kun niit‰ ei tarvita.
+!1.1 V√§hentynyt muistink√§ytt√∂
+  Huomattavimpana tekij√§n√§ se, ett√§ torrent-tiedostojen osista ei en√§√§ s√§ilytet√§ tietoja muistissa kun niit√§ ei tarvita.
   
-!1.2 Yht‰aikaisten aktiivisten latausten v‰himm‰ism‰‰r‰
-  Mahdollisuus m‰‰r‰t‰, ett‰ aina ladataan v‰hint‰‰n tietty‰ m‰‰r‰‰ torrent-tiedostoja.
+!1.2 Yht√§aikaisten aktiivisten latausten v√§himm√§ism√§√§r√§
+  Mahdollisuus m√§√§r√§t√§, ett√§ aina ladataan v√§hint√§√§n tietty√§ m√§√§r√§√§ torrent-tiedostoja.
   
 !1.3 Uusia saraketietoja
   Omat kommentit torrent-tiedostoille (Siirrot-ikkuna)
-  Tiedoston tyyppi (Tiedostot-n‰kym‰)
+  Tiedoston tyyppi (Tiedostot-n√§kym√§)
 
-!1.4 Nopeampi k‰ynnistyminen kuormitettuna
-  K‰ynnistymisnopeutta on parannettu tilanteissa, jolloin ladattuna on suuri m‰‰r‰ torrent-tiedostoja (jopa 400 % nopeammin tietyiss‰ olosuhteissa).
-  Jotkut lis‰osat saattavat kuitenkin itse k‰sitell‰ kaikkia torrent-tiedostoja heti k‰ynnistett‰ess‰, jolloin eroa on vaikea huomata.
+!1.4 Nopeampi k√§ynnistyminen kuormitettuna
+  K√§ynnistymisnopeutta on parannettu tilanteissa, jolloin ladattuna on suuri m√§√§r√§ torrent-tiedostoja (jopa 400 % nopeammin tietyiss√§ olosuhteissa).
+  Jotkut lis√§osat saattavat kuitenkin itse k√§sitell√§ kaikkia torrent-tiedostoja heti k√§ynnistett√§ess√§, jolloin eroa on vaikea huomata.
 
 !1.5 Muuta
-  Lukuisia parannuksia k‰yttˆliittym‰‰n.
+  Lukuisia parannuksia k√§ytt√∂liittym√§√§n.
   Ohjelmavirhekorjauksia.
   Muistivuotopaikkauksia.
  
 !1.6 Java 5.0 -huomautus
-  Sun Java 5 -sarjan kymmenes p‰ivitys (Update 10) korjaa kahvavuoto-ongelman, joka on haitannut yleisesti Azureuksen toimintaa. P‰ivitt‰minen ko. versioon tai uudempaan on suositeltavaa. Voit ladata p‰ivityksen osoitteesta http://java.com/en/download/manual.jsp
+  Sun Java 5 -sarjan kymmenes p√§ivitys (Update 10) korjaa kahvavuoto-ongelman, joka on haitannut yleisesti Azureuksen toimintaa. P√§ivitt√§minen ko. versioon tai uudempaan on suositeltavaa. Voit ladata p√§ivityksen osoitteesta http://java.com/en/download/manual.jsp
 
     Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.5.0.4
 
-+2. Mit‰ uutta on Azureus 2.5.0.0:ssa
++2. Mit√§ uutta on Azureus 2.5.0.0:ssa
 
-!2.1 L‰het‰ yst‰v‰lle/WWW-sivulle
-  T‰m‰ toiminto auttaa sis‰llˆn levitt‰misess‰ s‰hkˆpostin tai WWW-sivun v‰lityksell‰. Voit siis kertoa hyv‰st‰ ladattavasta materiaalista yst‰v‰llesi s‰hkˆpostin avulla tai kirjoittaa asiasta vaikkapa omaan verkkop‰iv‰kirjaasi.
+!2.1 L√§het√§ yst√§v√§lle/WWW-sivulle
+  T√§m√§ toiminto auttaa sis√§ll√∂n levitt√§misess√§ s√§hk√∂postin tai WWW-sivun v√§lityksell√§. Voit siis kertoa hyv√§st√§ ladattavasta materiaalista yst√§v√§llesi s√§hk√∂postin avulla tai kirjoittaa asiasta vaikkapa omaan verkkop√§iv√§kirjaasi.
 
-!2.2 Automaattinen l‰hetysnopeuden asettaminen
-  L‰hetysnopeutta voidaan s‰‰dell‰ tutkimalla Internet-yhteyden vasteaikoja, kun l‰hetet‰‰n tiedustelupaketteja muille hajautetun tietokannan k‰ytt‰jille.
+!2.2 Automaattinen l√§hetysnopeuden asettaminen
+  L√§hetysnopeutta voidaan s√§√§dell√§ tutkimalla Internet-yhteyden vasteaikoja, kun l√§hetet√§√§n tiedustelupaketteja muille hajautetun tietokannan k√§ytt√§jille.
 
 !2.3 Muita uusia ominaisuuksia
-  OSX: torrent-tiedostojen avaaminen Azureukseen suoraan esimerkiksi tyˆpˆyd‰lt‰/Finderista.
-  Ei-ladattavia tiedostoja k‰sitell‰‰n johdonmukaisemmin suhteessa latauksen valmistumiseen.
-  Lataushakemiston uudelleennime‰minen.
-  Ladattujen tiedostojen siirt‰minen, kun ollaan poistamassa torrent-tiedostoa Azureuksesta.
-  P‰ivitysten ja lis‰osien varmentaminen paremman tietoturvan saavuttamiseksi.
-  K‰yttˆliittym‰parannuksia - lis‰‰ informaatiota, esimerkiksi: torrent-tiedoston lis‰ysaika, joutilasajat, uusi tieton‰kym‰, osakartta; lis‰‰ torrent-tiedosto-kohtaisia asetuksia.
-  Virheenm‰‰ritystietojen automaattinen luominen ja ohjeistus edelleenl‰hett‰misest‰.
-  Ja paljon muuta - katso lis‰tietoja muutoslokista.
+  OSX: torrent-tiedostojen avaaminen Azureukseen suoraan esimerkiksi ty√∂p√∂yd√§lt√§/Finderista.
+  Ei-ladattavia tiedostoja k√§sitell√§√§n johdonmukaisemmin suhteessa latauksen valmistumiseen.
+  Lataushakemiston uudelleennime√§minen.
+  Ladattujen tiedostojen siirt√§minen, kun ollaan poistamassa torrent-tiedostoa Azureuksesta.
+  P√§ivitysten ja lis√§osien varmentaminen paremman tietoturvan saavuttamiseksi.
+  K√§ytt√∂liittym√§parannuksia - lis√§√§ informaatiota, esimerkiksi: torrent-tiedoston lis√§ysaika, joutilasajat, uusi tieton√§kym√§, osakartta; lis√§√§ torrent-tiedosto-kohtaisia asetuksia.
+  Virheenm√§√§ritystietojen automaattinen luominen ja ohjeistus edelleenl√§hett√§misest√§.
+  Ja paljon muuta - katso lis√§tietoja muutoslokista.
   
-  ƒl‰ unohda lis‰osia - http://azureus.sourceforge.net/plugin_list.php
-    Uusi et‰hallinnan mahdollistava lis‰osa - AzSMRC
+  √Ñl√§ unohda lis√§osia - http://azureus.sourceforge.net/plugin_list.php
+    Uusi et√§hallinnan mahdollistava lis√§osa - AzSMRC
   
 !2.4 Ohjelmavirhekorjauksia ja parannuksia suorituskykyyn
  Huomattavia korjauksia:
-    L‰hiverkkok‰yttˆ tehokkaampaa; k‰ytt‰j‰t tunnistetaan tarkemmin.
-    Suoritink‰ytˆn pienent‰minen, kun ollaan yhteydess‰ suureen m‰‰r‰‰n k‰ytt‰ji‰.
+    L√§hiverkkok√§ytt√∂ tehokkaampaa; k√§ytt√§j√§t tunnistetaan tarkemmin.
+    Suoritink√§yt√∂n pienent√§minen, kun ollaan yhteydess√§ suureen m√§√§r√§√§n k√§ytt√§ji√§.
     
     Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.5.0.0
     
-+3. Mit‰ uutta on Azureus 2.4.0.0:ssa
++3. Mit√§ uutta on Azureus 2.4.0.0:ssa
 
-!3.1 Liikenteen salaaminen/peitt‰minen
- Azureus tukee nyt siirrett‰v‰n tiedon salausta t‰t‰ tukevien asiakasohjelmien kanssa. Tietojen suojauksen ohella t‰st‰ on apua siin‰ tapauksessa, jos Internet-palveluntarjoaja yritt‰‰ est‰‰ tai rajoittaa P2P-liikennett‰ verkossaan - estot ja rajoitukset voidaan kiert‰‰, sill‰ Azureus peitt‰‰ kaikki BitTorrent-liikenteeseen viittaavat tiedot.
+!3.1 Liikenteen salaaminen/peitt√§minen
+ Azureus tukee nyt siirrett√§v√§n tiedon salausta t√§t√§ tukevien asiakasohjelmien kanssa. Tietojen suojauksen ohella t√§st√§ on apua siin√§ tapauksessa, jos Internet-palveluntarjoaja yritt√§√§ est√§√§ tai rajoittaa P2P-liikennett√§ verkossaan - estot ja rajoitukset voidaan kiert√§√§, sill√§ Azureus peitt√§√§ kaikki BitTorrent-liikenteeseen viittaavat tiedot.
   
-!3.2 L‰hiverkkok‰yttˆ
- Jos samassa l‰hiverkkoymp‰ristˆss‰ on k‰ytˆss‰ useita Azureus-asiakasohjelmia, niiden v‰lille voidaan muodostaa suorat, nopeat tiedonsiirtoyhteydet. N‰in tiedon jakaminen tehostuu huomattavasti.
+!3.2 L√§hiverkkok√§ytt√∂
+ Jos samassa l√§hiverkkoymp√§rist√∂ss√§ on k√§yt√∂ss√§ useita Azureus-asiakasohjelmia, niiden v√§lille voidaan muodostaa suorat, nopeat tiedonsiirtoyhteydet. N√§in tiedon jakaminen tehostuu huomattavasti.
 
-!3.3 Parannettu latausmenetelm‰
- Ladattavien osien ja k‰ytt‰jien paikallistamiseen k‰ytettyj‰ tapoja on muutettu, jotta toiminta olisi tehokkaampaa ja nopeampaa.
+!3.3 Parannettu latausmenetelm√§
+ Ladattavien osien ja k√§ytt√§jien paikallistamiseen k√§ytettyj√§ tapoja on muutettu, jotta toiminta olisi tehokkaampaa ja nopeampaa.
 
 !3.4 Webseed-tuki
- Azureus tukee nyt Webseed-menetelm‰n perustoimintoja. Webseed-kohteita k‰ytet‰‰n vain, jos torrent-tiedoston saatavuus on alle 1.0.
+ Azureus tukee nyt Webseed-menetelm√§n perustoimintoja. Webseed-kohteita k√§ytet√§√§n vain, jos torrent-tiedoston saatavuus on alle 1.0.
 
 !3.5 Muuta
 
- Lukuisia parannuksia k‰yttˆliittym‰‰n.
+ Lukuisia parannuksia k√§ytt√∂liittym√§√§n.
  Parannuksia suorituskykyyn.
  Ohjelmavirhekorjauksia.
     
-    Huom.: Windows-ymp‰ristˆss‰ ohjelmistopohjaiseen palomuuriin tarvitaan liikenteen salliva s‰‰ntˆ prosessille Azureus.exe.
+    Huom.: Windows-ymp√§rist√∂ss√§ ohjelmistopohjaiseen palomuuriin tarvitaan liikenteen salliva s√§√§nt√∂ prosessille Azureus.exe.
     
     Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.4.0.0
 
     Edellisten versioiden muutokset: http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 ja 2.3.0.2.
     
-+4. P‰ivityskehotus
++4. P√§ivityskehotus
 
 !4.1 Java 5.0
- Azureus on ohjelmoitu Java-kielell‰ ja vaatii n‰in ollen Javan ajonaikaiset tiedostot (Java JRE). Suositus on Java 5.0 (tunnetaan myˆs versionumerolla 1.5), koska sen avulla saavutetaan parempi suorituskyky ja luotettavuus - p‰ivit‰, jos tarpeellista.
- Java-p‰ivitykset lˆyd‰t t‰‰lt‰: http://azureus.sourceforge.net/download.php
- Lataa k‰yttˆj‰rjestelm‰llesi sopiva versio, sulje Azureus, poista aikaisempi Javan versio (jos asennettu), k‰ynnist‰ tietokone uudelleen, asenna ladattu uusi Javan versio, k‰ynnist‰ tietokone uudelleen ja vihdoin k‰ynnist‰ Azureus uudelleen.
- Jos k‰yt‰t Windows XP:t‰ ja haluat k‰ytt‰‰ Windows XP -tyyli‰ myˆs Azureuksen ulkon‰ˆss‰, k‰y laittamassa ominaisuus p‰ivityksen j‰lkeen uudelleen p‰‰lle asetuksista (Tyˆkalut | Asetukset | K‰yttˆliittym‰ | Ulkoasu | K‰yt‰ Windows XP -tyyli‰).
+ Azureus on ohjelmoitu Java-kielell√§ ja vaatii n√§in ollen Javan ajonaikaiset tiedostot (Java JRE). Suositus on Java 5.0 (tunnetaan my√∂s versionumerolla 1.5), koska sen avulla saavutetaan parempi suorituskyky ja luotettavuus - p√§ivit√§, jos tarpeellista.
+ Java-p√§ivitykset l√∂yd√§t t√§√§lt√§: http://azureus.sourceforge.net/download.php
+ Lataa k√§ytt√∂j√§rjestelm√§llesi sopiva versio, sulje Azureus, poista aikaisempi Javan versio (jos asennettu), k√§ynnist√§ tietokone uudelleen, asenna ladattu uusi Javan versio, k√§ynnist√§ tietokone uudelleen ja vihdoin k√§ynnist√§ Azureus uudelleen.
+ Jos k√§yt√§t Windows XP:t√§ ja haluat k√§ytt√§√§ Windows XP -tyyli√§ my√∂s Azureuksen ulkon√§√∂ss√§, k√§y laittamassa ominaisuus p√§ivityksen j√§lkeen uudelleen p√§√§lle asetuksista (Ty√∂kalut | Asetukset | K√§ytt√∂liittym√§ | Ulkoasu | K√§yt√§ Windows XP -tyyli√§).
  
 !4.2 NOD32
- NOD32 (http://www.nod32.com/) on virustentorjuntaohjelma, jonka tiedet‰‰n aiheuttavan ongelmia Azureuksen kanssa (aiheuttaa 100 % -prosessorik‰ytˆn).
- Katso lis‰tietoja osoitteesta http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
+ NOD32 (http://www.nod32.com/) on virustentorjuntaohjelma, jonka tiedet√§√§n aiheuttavan ongelmia Azureuksen kanssa (aiheuttaa 100 % -prosessorik√§yt√∂n).
+ Katso lis√§tietoja osoitteesta http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
  
 +5. Yleiset ongelmat
 
 !5.1 NAT-ongelma
- NAT-lyhenne tulee sanoista Network Address Translation. Azureuksen NAT- ja palomuuritesti kertoo, saadaanko sinuun esteitt‰ yhteys ulkoap‰in. Esteettˆm‰ll‰ yhteydell‰ saavutetaan paremmat siirtonopeudet.
- ƒl‰ suoraan ota yhteytt‰ Azureuksen kehitt‰jiin, jos tˆrm‰‰t NAT-ongelmaan. Internetiss‰ on paljon ohjeita ongelman ratkaisemiseksi. Katso ensin:
+ NAT-lyhenne tulee sanoista Network Address Translation. Azureuksen NAT- ja palomuuritesti kertoo, saadaanko sinuun esteitt√§ yhteys ulkoap√§in. Esteett√∂m√§ll√§ yhteydell√§ saavutetaan paremmat siirtonopeudet.
+ √Ñl√§ suoraan ota yhteytt√§ Azureuksen kehitt√§jiin, jos t√∂rm√§√§t NAT-ongelmaan. Internetiss√§ on paljon ohjeita ongelman ratkaisemiseksi. Katso ensin:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
  
 !5.2 Azureus kaatuu?
- Jos Azureus kaatuilee usein, todenn‰kˆisin syy on tietokoneen verkkokomponenteissa (verkkokortti, sen ajurit, k‰yttˆj‰rjestelm‰n verkko-ominaisuudet). Suositus on, ett‰ p‰ivit‰t kaikki verkkoyhteyteen vaikuttavien laitteiden ajurit. Jos t‰m‰ ei auta, j‰rjestelm‰ ei todenn‰kˆisesti kest‰ kovin suurta yhteysm‰‰r‰‰ kerrallaan.
- Alenna avattavien yhteyksien m‰‰r‰‰ Azureuksessa (Tyˆkalut | Asetukset | Siirrot | Yhteyksien oletusenimm‰ism‰‰r‰/torrent-tiedosto ja Yhteyksien enimm‰ism‰‰r‰ kaikkiaan). Kokeile pieni‰ arvoja, kuten 30.
+ Jos Azureus kaatuilee usein, todenn√§k√∂isin syy on tietokoneen verkkokomponenteissa (verkkokortti, sen ajurit, k√§ytt√∂j√§rjestelm√§n verkko-ominaisuudet). Suositus on, ett√§ p√§ivit√§t kaikki verkkoyhteyteen vaikuttavien laitteiden ajurit. Jos t√§m√§ ei auta, j√§rjestelm√§ ei todenn√§k√∂isesti kest√§ kovin suurta yhteysm√§√§r√§√§ kerrallaan.
+ Alenna avattavien yhteyksien m√§√§r√§√§ Azureuksessa (Ty√∂kalut | Asetukset | Siirrot | Yhteyksien oletusenimm√§ism√§√§r√§/torrent-tiedosto ja Yhteyksien enimm√§ism√§√§r√§ kaikkiaan). Kokeile pieni√§ arvoja, kuten 30.
 
 !5.3 Tuki
- Ennen kuin otat yhteytt‰ Azureuksen tukeen, tarkasta ensin seuraavat resurssit:
+ Ennen kuin otat yhteytt√§ Azureuksen tukeen, tarkasta ensin seuraavat resurssit:
  - Viralliset kotisivut: http://azureus.sourceforge.net/
- - Virallinen Wiki-ymp‰ristˆ: http://azureus.aelitis.com/wiki/
- - Virallinen IRC-kanava k‰ytt‰jille: #azureus-users (freenode-verkossa, esim. irc.freenode.net-palvelin)
+ - Virallinen Wiki-ymp√§rist√∂: http://azureus.aelitis.com/wiki/
+ - Virallinen IRC-kanava k√§ytt√§jille: #azureus-users (freenode-verkossa, esim. irc.freenode.net-palvelin)
  - SF.netin viralliset foorumit: http://sourceforge.net/forum/?group_id=84122
- - jos (ja vain jos) et onnistu ratkaisemaan ongelmaasi viel‰k‰‰n, voit ottaa yhteytt‰ Azureuksen kehitt‰jiin s‰hkˆpostilla. Osoite on azureus@gmail.com.
+ - jos (ja vain jos) et onnistu ratkaisemaan ongelmaasi viel√§k√§√§n, voit ottaa yhteytt√§ Azureuksen kehitt√§jiin s√§hk√∂postilla. Osoite on azureus@gmail.com.

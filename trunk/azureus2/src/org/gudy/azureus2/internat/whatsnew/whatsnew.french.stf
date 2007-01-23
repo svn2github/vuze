@@ -65,89 +65,89 @@ $
     
 +2. Quoi de neuf dans Azureus 2.4.0.0
 
-!2.1 Transfert de données encryptées/obfusquées
- Supporte l'encryption de données entre Azureus et les autres clients compatibles. Cela procure à la fois une couche de protection des données et peut aider avec les limitations imposées par certains fournisseurs d'accés à Internet.
+!2.1 Transfert de donnÃ©es encryptÃ©es/obfusquÃ©es
+ Supporte l'encryption de donnÃ©es entre Azureus et les autres clients compatibles. Cela procure Ã  la fois une couche de protection des donnÃ©es et peut aider avec les limitations imposÃ©es par certains fournisseurs d'accÃ©s Ã  Internet.
   
-!2.2 Transfert sur LAN à haute vitesse
- Plusieurs Azureus sur un réseau local téléchargeant le même torrent établissent des connections à haute vitesse entre eux.
+!2.2 Transfert sur LAN Ã  haute vitesse
+ Plusieurs Azureus sur un rÃ©seau local tÃ©lÃ©chargeant le mÃªme torrent Ã©tablissent des connections Ã  haute vitesse entre eux.
 
-!2.3 Algorithme de téléchargement optimisé
- L'algorithme utilisé pour déterminer quelles pièces demander à quel client a été retravaillé pour améliorer son efficacité.
+!2.3 Algorithme de tÃ©lÃ©chargement optimisÃ©
+ L'algorithme utilisÃ© pour dÃ©terminer quelles piÃ¨ces demander Ã  quel client a Ã©tÃ© retravaillÃ© pour amÃ©liorer son efficacitÃ©.
 
 !2.4 Support des "Webseeds"
- Un support basique des webseeds est inclus. Les webseeds be sont utilisés que losque la disponibilité du torrent est inférieure à 1.
+ Un support basique des webseeds est inclus. Les webseeds be sont utilisÃ©s que losque la disponibilitÃ© du torrent est infÃ©rieure Ã  1.
 
 !2.5 Autre
 
- Diverses améliorations de l'interface utilisateur.
- Améliorations de performance.
- Réglages de bogues.
+ Diverses amÃ©liorations de l'interface utilisateur.
+ AmÃ©liorations de performance.
+ RÃ©glages de bogues.
     
-    Note: Le nouveau lanceur pour Windows requiert de laisser passer "Azureus.exe" dans le pare-feu (à la place de "javaw.exe").
+    Note: Le nouveau lanceur pour Windows requiert de laisser passer "Azureus.exe" dans le pare-feu (Ã  la place de "javaw.exe").
     
     ChangeLog complet: http://azureus.sourceforge.net/changelog.php?version=2.4.0.0
 
-    Voir http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 et 2.3.0.2 pour les changements précédents.
+    Voir http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 et 2.3.0.2 pour les changements prÃ©cÃ©dents.
     
 +3. Quoi de neuf dans Azureus 2.3.0.0
 
-!3.1 Base de données Distribuée
- Azureus a maintenant une base de données distribuée et décentralisée qui peut être utilisée pour tracker des torrents décentralisés. Cela permet les torrents "sans tracker" et la gestion des essaims dont le tracker vient à disparaitre ou dont le torrent a été enlevé du tracker.
- Elle utilise le protocol UDP, donc si vous avez un pare-feu ou un routeur, vous devrez ouvrir ou forwarder le port UDP tout comme vous l'avez fait avec le port TCP pour télécharger des données.
+!3.1 Base de donnÃ©es DistribuÃ©e
+ Azureus a maintenant une base de donnÃ©es distribuÃ©e et dÃ©centralisÃ©e qui peut Ãªtre utilisÃ©e pour tracker des torrents dÃ©centralisÃ©s. Cela permet les torrents "sans tracker" et la gestion des essaims dont le tracker vient Ã  disparaitre ou dont le torrent a Ã©tÃ© enlevÃ© du tracker.
+ Elle utilise le protocol UDP, donc si vous avez un pare-feu ou un routeur, vous devrez ouvrir ou forwarder le port UDP tout comme vous l'avez fait avec le port TCP pour tÃ©lÃ©charger des donnÃ©es.
  
 *3.1.1 Liens Magnet
- Pour les torrents décentralisés, Azureus peut exporter un "lien Magnet" ("une Magnet"), de la forme "magnet:?xt=urn:btih:..." et qui peut être utilisé pour télécharger le torrent à partir de la base de données distribuée via le menu "Fichier > Ouvrir > URL" ( ou directement Ctrl + L).
+ Pour les torrents dÃ©centralisÃ©s, Azureus peut exporter un "lien Magnet" ("une Magnet"), de la forme "magnet:?xt=urn:btih:..." et qui peut Ãªtre utilisÃ© pour tÃ©lÃ©charger le torrent Ã  partir de la base de donnÃ©es distribuÃ©e via le menu "Fichier > Ouvrir > URL" ( ou directement Ctrl + L).
  Voir: http://azureus.aelitis.com/wiki/index.php/Magnet_link
  
-!3.2 Protocol Avancé
- Azureus a maintenant un protocol de communication inter-client avancé, qui a pour but de permettre aux plugins d'utiliser les connexions créées par Azureus pour ajouter des fonctionalités au programme. Les spécifications de ce protocol, destinées aux développeurs de clients BitTorrent, sont disponibles à http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Les développeurs de plugins sont invités à regarder les javadocs pour savoir comment s'en servir.
+!3.2 Protocol AvancÃ©
+ Azureus a maintenant un protocol de communication inter-client avancÃ©, qui a pour but de permettre aux plugins d'utiliser les connexions crÃ©Ã©es par Azureus pour ajouter des fonctionalitÃ©s au programme. Les spÃ©cifications de ce protocol, destinÃ©es aux dÃ©veloppeurs de clients BitTorrent, sont disponibles Ã  http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Les dÃ©veloppeurs de plugins sont invitÃ©s Ã  regarder les javadocs pour savoir comment s'en servir.
  Par exemple, les plugins Chat et JPC utilisent cette extension.
 
 !3.3 JPC
- Joltid Peer Cache (JPC) est maintenant intégré à Azureus. Pour les utilisateurs dont l'ISP le supporte, JPC doit permettre des téléchargements plus rapides, tout en réduisant les coûts de bande passante pour l'ISP. Le plugin JPC est sûr dans le sens où votre ISP ne peut pas savoir ce que vous téléchargez et ne peut pas vous espionner. Le plugin peut être désactivé dans Outils > Options > Plugins > JPC.
+ Joltid Peer Cache (JPC) est maintenant intÃ©grÃ© Ã  Azureus. Pour les utilisateurs dont l'ISP le supporte, JPC doit permettre des tÃ©lÃ©chargements plus rapides, tout en rÃ©duisant les coÃ»ts de bande passante pour l'ISP. Le plugin JPC est sÃ»r dans le sens oÃ¹ votre ISP ne peut pas savoir ce que vous tÃ©lÃ©chargez et ne peut pas vous espionner. Le plugin peut Ãªtre dÃ©sactivÃ© dans Outils > Options > Plugins > JPC.
   
 !3.4 Nouveaux Plugins
- La base de données distribuée et le protocole avancé nous ont permis de développer de nouveaux plugins. Ils ne sont pas auto-installés, mais nous vous encourageons à le faire vous-même grâce au menu Plugins > Assistant d'installation...
+ La base de donnÃ©es distribuÃ©e et le protocole avancÃ© nous ont permis de dÃ©velopper de nouveaux plugins. Ils ne sont pas auto-installÃ©s, mais nous vous encourageons Ã  le faire vous-mÃªme grÃ¢ce au menu Plugins > Assistant d'installation...
  
 *3.4.1 Chat
- Ce plugin crée un canal de discussion par torrent que vous téléchargez. Chaque canal est indépendant et vous êtes libre de discuter comme bon vous semble. Ce plugin utilie le protocol avancé. Les développeurs d'autres clients voulant implémenter ce plugin peuvent lire les spécifications relativement simples à cette adresse : http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
- Vous pouvez aussi créer/joindre un canal arbitraire en entrant son nom dans le plugin: cela aura pour effect de créer un torrent "virtuel", sans sources, pour permettre aux utilisateurs de créer des connexions pour discuter. Les torrents "virtuels" utilisent la base de données distribuée comme tracker, donc, si vous pouvez utiliser le plugin Chat sans activer la base de données distribuée, vous ne pouvez utiliser de canal virtuel que si la base de données distribuée est activée.
+ Ce plugin crÃ©e un canal de discussion par torrent que vous tÃ©lÃ©chargez. Chaque canal est indÃ©pendant et vous Ãªtes libre de discuter comme bon vous semble. Ce plugin utilie le protocol avancÃ©. Les dÃ©veloppeurs d'autres clients voulant implÃ©menter ce plugin peuvent lire les spÃ©cifications relativement simples Ã  cette adresse : http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
+ Vous pouvez aussi crÃ©er/joindre un canal arbitraire en entrant son nom dans le plugin: cela aura pour effect de crÃ©er un torrent "virtuel", sans sources, pour permettre aux utilisateurs de crÃ©er des connexions pour discuter. Les torrents "virtuels" utilisent la base de donnÃ©es distribuÃ©e comme tracker, donc, si vous pouvez utiliser le plugin Chat sans activer la base de donnÃ©es distribuÃ©e, vous ne pouvez utiliser de canal virtuel que si la base de donnÃ©es distribuÃ©e est activÃ©e.
  
 *3.4.2 Notes & Commentaires
- Ce plugin vous permet de voir les notes et commentaires des autres utilisateurs, et également de noter et commenter un torrent vous-même (clic droit sur le torrent dans "Mes Torrents" et "ratings & comments". Ce plugin utilise la base de données distribuée, donc celle-ci doit être activée.
+ Ce plugin vous permet de voir les notes et commentaires des autres utilisateurs, et Ã©galement de noter et commenter un torrent vous-mÃªme (clic droit sur le torrent dans "Mes Torrents" et "ratings & comments". Ce plugin utilise la base de donnÃ©es distribuÃ©e, donc celle-ci doit Ãªtre activÃ©e.
  
 
-+4. Mise à niveau conseillée
++4. Mise Ã  niveau conseillÃ©e
 
 !4.1 Java 5.0
- Azureus est écrit en Java et fonctionne avec le Java JRE. Nous recomendaons la version 5.0 de Java (aussi connue en tant que 1.5) qui a des meilleures performances et une meilleure fiabilité - veuillez mettre à jour si nécessaire.
- Vous trouverez le dernier Java là : http://azureus.sourceforge.net/download.php
- Télécharger Java, fermer Azureus, désinstaller votre précédente version de Java, installer la dernière et relancer Azureus.
- Les utilisateurs de WinXP devront ré-activer l'option Outils > Options > Interface > Affichage > "Activer le style XP".
+ Azureus est Ã©crit en Java et fonctionne avec le Java JRE. Nous recomendaons la version 5.0 de Java (aussi connue en tant que 1.5) qui a des meilleures performances et une meilleure fiabilitÃ© - veuillez mettre Ã  jour si nÃ©cessaire.
+ Vous trouverez le dernier Java lÃ  : http://azureus.sourceforge.net/download.php
+ TÃ©lÃ©charger Java, fermer Azureus, dÃ©sinstaller votre prÃ©cÃ©dente version de Java, installer la derniÃ¨re et relancer Azureus.
+ Les utilisateurs de WinXP devront rÃ©-activer l'option Outils > Options > Interface > Affichage > "Activer le style XP".
  
 !4.2 NOD32
- NOD32 (http://www.nod32.com/) est un antivirus connu pour avoir des problèmes avec Azureus, provoquant une utilisation à 100% du processeur.
+ NOD32 (http://www.nod32.com/) est un antivirus connu pour avoir des problÃ¨mes avec Azureus, provoquant une utilisation Ã  100% du processeur.
  Voir http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
  
 
-+5. Problèmes courants
++5. ProblÃ¨mes courants
 
 !5.1 "Erreur" NAT
- NAT signifie "Network Address Translation" ("traduction d'adresse réseau"). Le test NAT d'Azureus vous dit si vous êtes accessibles de l'extérieur (Internet). Vous obtiendrez de meilleures performances si vous êtres accessibles.
- Pour régler vos problèmes NAT, voir:
+ NAT signifie "Network Address Translation" ("traduction d'adresse rÃ©seau"). Le test NAT d'Azureus vous dit si vous Ãªtes accessibles de l'extÃ©rieur (Internet). Vous obtiendrez de meilleures performances si vous Ãªtres accessibles.
+ Pour rÃ©gler vos problÃ¨mes NAT, voir:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
  
 
 !5.2 Azureus plante
- Si votre Azureus plante, la raison la plus probable est un problème de composants réseau (carte, drivers, système d'exploitation). Nous vous recommendons donc de mettre à jour tous ces composants. Si le problème persiste, votre système n'est peut-être pas capable de gérer beaucoup de connexions simultanées.
+ Si votre Azureus plante, la raison la plus probable est un problÃ¨me de composants rÃ©seau (carte, drivers, systÃ¨me d'exploitation). Nous vous recommendons donc de mettre Ã  jour tous ces composants. Si le problÃ¨me persiste, votre systÃ¨me n'est peut-Ãªtre pas capable de gÃ©rer beaucoup de connexions simultanÃ©es.
  Diminuez le nombre de connexions dans Azureus (Outils > Options > Transfert > Nombre maximum de connexions par torrent / en tout), en essayant une valeur basse (30 par exemple).
 
 !5 Support
- Veuillez utiliser les ressources disponibles avant de vous adressez directement à l'équipe:
+ Veuillez utiliser les ressources disponibles avant de vous adressez directement Ã  l'Ã©quipe:
  - Site officiel : http://azureus.sourceforge.net/
  - Wiki officiel : http://azureus.aelitis.com/wiki/
  - Canal IRC officiel : #azureus-users on irc.freenode.net
  - Forums SF officiels : http://sourceforge.net/forum/?group_id=84122
- - Si (et seulement si) vous n'avez toujours pas résolu votre problème, vous pouvez nous contacter à azureus@gmail.com
+ - Si (et seulement si) vous n'avez toujours pas rÃ©solu votre problÃ¨me, vous pouvez nous contacter Ã  azureus@gmail.com
 

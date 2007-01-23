@@ -8,114 +8,114 @@ $
 +1. Was ist neu in Azureus 2.5.0.2/2.5.0.4
 
 !1.1 Geringerer Speicherverbrauch
-  Am erwähnenswertesten, Teil-Informationen eines Torrents werden aus dem Speicher entfernt, wenn diese nicht benutzt werden.
+  Am erwÃ¤hnenswertesten, Teil-Informationen eines Torrents werden aus dem Speicher entfernt, wenn diese nicht benutzt werden.
   
 !1.2 Mindestanzahl von gleichzeitig aktiven Downloads
-  Die Fähigkeit, immer mindestens eine gewisse Anzahl von aktiven Downloads zu haben.
+  Die FÃ¤higkeit, immer mindestens eine gewisse Anzahl von aktiven Downloads zu haben.
   
 !1.3 Neue Spalten
   Benutzerdefinierter Kommentar (Meine Torrents)
   Datei-Erweiterung (Dateien)
 
 !1.4 Schnellerer Start bei langen Listen
-  Die Zeit, die Azureus zum Starten benötigt, wenn es eine große Anzahl von Torrents verwaltet, wurde verringert (in eingigen Fällen bis zu 400% schneller).
-  Einige Plugins können diese Optimierung aufheben, wenn sie Informationen über jedes Torrent sofort während des Starts abfragen.
+  Die Zeit, die Azureus zum Starten benÃ¶tigt, wenn es eine groÃŸe Anzahl von Torrents verwaltet, wurde verringert (in eingigen FÃ¤llen bis zu 400% schneller).
+  Einige Plugins kÃ¶nnen diese Optimierung aufheben, wenn sie Informationen Ã¼ber jedes Torrent sofort wÃ¤hrend des Starts abfragen.
 
 !1.5 Weiteres
-  Verschiedene Verbesserungen der Benutzeroberfläche.
+  Verschiedene Verbesserungen der BenutzeroberflÃ¤che.
   Fehlerbereinigungen.
   Weniger Speicherlecks.
  
 !1.6 Zu Java 5.0
-  Java 5 Update 10 behebt ein Speicherproblem, welches oft bei Azureus bemerkt wurde. Es wird dazu geraten, eine Aktualisierung zu dieser oder einer neueren Java-Version durchzuführen. Eine aktuelle Version kann unter http://java.sun.com/javase/downloads/index.jsp heruntergeladen werden.
+  Java 5 Update 10 behebt ein Speicherproblem, welches oft bei Azureus bemerkt wurde. Es wird dazu geraten, eine Aktualisierung zu dieser oder einer neueren Java-Version durchzufÃ¼hren. Eine aktuelle Version kann unter http://java.sun.com/javase/downloads/index.jsp heruntergeladen werden.
 
-    Ausführliches ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.4
+    AusfÃ¼hrliches ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.4
 
 
 +2. Was ist neu in Azureus 2.5.0.0?
 
 !2.1 Sende zu einem Freund
-  Ein Assistent, der es auf einfache Weise erlaubt, einen Link eines Inhaltes zu einem Freund zu senden, oder diesen auf einer Webseite zu veröffentlichen (z.B. in einem Blog).
+  Ein Assistent, der es auf einfache Weise erlaubt, einen Link eines Inhaltes zu einem Freund zu senden, oder diesen auf einer Webseite zu verÃ¶ffentlichen (z.B. in einem Blog).
 
 !2.2 Automatische Upload-Geschwindigkeit
-  Dieses Merkmal kontrolliert die Upload-Geschwindigkeit basierend auf der Verzögerung der Internetverbindung, als Maßstab dient die Signallaufzeit (Ping) zu anderen Benutzern der Verteilten Datenbank (Diese muss aktiviert sein, um Auto-Speed benutzen zu können).
+  Dieses Merkmal kontrolliert die Upload-Geschwindigkeit basierend auf der VerzÃ¶gerung der Internetverbindung, als MaÃŸstab dient die Signallaufzeit (Ping) zu anderen Benutzern der Verteilten Datenbank (Diese muss aktiviert sein, um Auto-Speed benutzen zu kÃ¶nnen).
 
 !2.3 Andere neue Merkmale
-  OSX: Öffne .torrent-Dateien mit Azureus via Finder/Desktop/etc.
+  OSX: Ã–ffne .torrent-Dateien mit Azureus via Finder/Desktop/etc.
   Dateien mit dem Status 'nicht herunterladen' werden einheitlicher in Bezug auf fertige Downloads gehandhabt.
   Umbenennen von Download-Verzeichnissen.
   Verschieben von Daten bei der Entfernung eines Torrents aus Azureus.
-  Signierte Updates und Plugins für verbesserte Sicherheit.
-  Oberflächenverbesserungen - mehr Informationen: Hinzufügedatum, Leerlaufzeiten, neue Info-Ansicht, Ansicht der Dateiteile; mehr Einstellungsmöglichkeiten pro Torrent.
-  Generator für Debug-Informationen.
+  Signierte Updates und Plugins fÃ¼r verbesserte Sicherheit.
+  OberflÃ¤chenverbesserungen - mehr Informationen: HinzufÃ¼gedatum, Leerlaufzeiten, neue Info-Ansicht, Ansicht der Dateiteile; mehr EinstellungsmÃ¶glichkeiten pro Torrent.
+  Generator fÃ¼r Debug-Informationen.
   Weiteres im Changelog.
   
   Nicht vergessen, die Plugins zu testen - http://azureus.sourceforge.net/plugin_list.php
      Neues Fernwartungs-Plugin - AzSMRC
      
 !2.4 Fehlerbereinigung und Geschwindigkeitsverbesserungen:
- Erwähnenswerte Berichtigungen:
-    Der LAN Peer Finder behält Quellen effektiver; explizite Identifikation von LAN-Quellen.
-    Reduzierte CPU-Nutzung wenn Azureus zu einer großen Anzahl von Quellen verbunden ist.
+ ErwÃ¤hnenswerte Berichtigungen:
+    Der LAN Peer Finder behÃ¤lt Quellen effektiver; explizite Identifikation von LAN-Quellen.
+    Reduzierte CPU-Nutzung wenn Azureus zu einer groÃŸen Anzahl von Quellen verbunden ist.
     
-    Ausführliches ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.0
+    AusfÃ¼hrliches ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.0
 
     
 +3. Was ist neu in Azureus 2.4.0.0?
 
-!3.1 Verschlüsselung/Verschleierung von Datenübertragung
- Unterstützung, die Daten zwischen Azureus und anderen kompatiblen Programmen zu verschlüsseln, wurde hinzugefügt. Dies bietet ein gewisses Maß an Schutz für die Daten und kann bei Internetprovidern helfen, welche P2P-Verkehr blocken oder beschränken.
+!3.1 VerschlÃ¼sselung/Verschleierung von DatenÃ¼bertragung
+ UnterstÃ¼tzung, die Daten zwischen Azureus und anderen kompatiblen Programmen zu verschlÃ¼sseln, wurde hinzugefÃ¼gt. Dies bietet ein gewisses MaÃŸ an Schutz fÃ¼r die Daten und kann bei Internetprovidern helfen, welche P2P-Verkehr blocken oder beschrÃ¤nken.
   
-!3.2 Hochgeschwindigkeits-LAN-Übertragungen
- Mehrere Instanzen von Azureus, die sich im selben lokalen Netzwerk befinden, unterstützen direkte Verbindungen mit hohen Übertragunggeschwindigkeiten.
+!3.2 Hochgeschwindigkeits-LAN-Ãœbertragungen
+ Mehrere Instanzen von Azureus, die sich im selben lokalen Netzwerk befinden, unterstÃ¼tzen direkte Verbindungen mit hohen Ãœbertragunggeschwindigkeiten.
 
 !3.3 Verbesserter Download-Algorithmus
  Der Algorithmus, der festlegt, welche Teile von welchen Quellen zum Download angefordert werden sollen, wurde neu geschrieben, um sein Verhalten und die Geschwindigkeit zu verbessern.
 
-!3.4 Unterstützung von Webseed
- Einfache Unterstützung für Webseed wurde hinzugefügt. Webseeds werden nur benutzt, wenn die Verfügbarkeit eines Torrents geringer als 1,0 ist.
+!3.4 UnterstÃ¼tzung von Webseed
+ Einfache UnterstÃ¼tzung fÃ¼r Webseed wurde hinzugefÃ¼gt. Webseeds werden nur benutzt, wenn die VerfÃ¼gbarkeit eines Torrents geringer als 1,0 ist.
 
 !3.5 Weiteres
 
- Verschieden Verbesserungen der Benutzeroberfläche.
+ Verschieden Verbesserungen der BenutzeroberflÃ¤che.
  Geschwindigkeitsverbesserungen.
  Fehlerbereinigungen.
     
     Detailliertes ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.4.0.0
     
-    Siehe auch http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 und 2.3.0.2 für die vorherigen Änderungen.    
+    Siehe auch http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 und 2.3.0.2 fÃ¼r die vorherigen Ã„nderungen.    
 
 
 +4. Upgrade Empfehlung
 
 !4.1 Java 5.0
- Azureus ist in Java geschrieben und benötigt eine Java Umgebung (Java Runtime Environment). Wir empfehlen Java 5.0 (auch bekannt unter 1.5) da diese eine bessere Leistung aufweist und verlässlicher ist - Bitte installieren Sie das Upgrade falls Sie Schwierigkeiten haben.
- Sie finden Torrents für ein Java Upgrade hier: http://azureus.sourceforge.net/download.php
- Laden Sie das für Ihr Betriebssystem passende Java Paket, schliessen Sie Azureus, führen Sie die heruntergeladene Datei aus und starten Sie Azureus erneut.
- WinXP Benutzer müssen in das Menü "Tools > Options > Interface > Display" gehen und überprüfen ob die Option "Enable XP Style" aktiviert ist.
+ Azureus ist in Java geschrieben und benÃ¶tigt eine Java Umgebung (Java Runtime Environment). Wir empfehlen Java 5.0 (auch bekannt unter 1.5) da diese eine bessere Leistung aufweist und verlÃ¤sslicher ist - Bitte installieren Sie das Upgrade falls Sie Schwierigkeiten haben.
+ Sie finden Torrents fÃ¼r ein Java Upgrade hier: http://azureus.sourceforge.net/download.php
+ Laden Sie das fÃ¼r Ihr Betriebssystem passende Java Paket, schliessen Sie Azureus, fÃ¼hren Sie die heruntergeladene Datei aus und starten Sie Azureus erneut.
+ WinXP Benutzer mÃ¼ssen in das MenÃ¼ "Tools > Options > Interface > Display" gehen und Ã¼berprÃ¼fen ob die Option "Enable XP Style" aktiviert ist.
  
 !4.2 NOD32
- NOD32 (http://www.nod32.com/) is ein Antiviren Programm von dem bekannt ist daß es Probleme mit Azureus hat, die dazuführen daß eine 100% CPU Auslastung auftritt.
+ NOD32 (http://www.nod32.com/) is ein Antiviren Programm von dem bekannt ist daÃŸ es Probleme mit Azureus hat, die dazufÃ¼hren daÃŸ eine 100% CPU Auslastung auftritt.
  Siehe dazu http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
  
 
 +5. Allgemeine Probleme
 
 !5.1 NAT "error"
- NAT bedeutet "Network Address Translation". Der NAT test in Azureus zeigt ob eine Verbindung aus dem Internet zu Ihrem Computer aufgebaut werden kann oder nicht. Sie werden bessere Übertragungsraten haben, falls Sie von AUßEN ERREICHBAR SIND.
- Bitte kontaktieren Sie uns nicht um NAT Probleme zu lösen, da es bereits eine Vielzahl von Quellen und Hilfen zu diesem Thema im Internet gibt. 
+ NAT bedeutet "Network Address Translation". Der NAT test in Azureus zeigt ob eine Verbindung aus dem Internet zu Ihrem Computer aufgebaut werden kann oder nicht. Sie werden bessere Ãœbertragungsraten haben, falls Sie von AUÃŸEN ERREICHBAR SIND.
+ Bitte kontaktieren Sie uns nicht um NAT Probleme zu lÃ¶sen, da es bereits eine Vielzahl von Quellen und Hilfen zu diesem Thema im Internet gibt. 
 Bitte gehen Sie als erstes zu:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
 
 !5.2 Azureus Absturz
- Falls Ihr Azureus abstürzt, ist der wahrscheinlichste Grund ein Problem mit ihren Netzwerk Komponenten (Netzwerkkarte, Treiber, Betriebssystem). Wir empfehlen dringendst daß Sie alle Netzwerk Komponenten aktualisieren. Falls das nicht hilft, liegt der Grund wahrscheinlich darin, daß ihr System nicht in der Lage ist die vielen Peer Verbindungen zu verwalten.
+ Falls Ihr Azureus abstÃ¼rzt, ist der wahrscheinlichste Grund ein Problem mit ihren Netzwerk Komponenten (Netzwerkkarte, Treiber, Betriebssystem). Wir empfehlen dringendst daÃŸ Sie alle Netzwerk Komponenten aktualisieren. Falls das nicht hilft, liegt der Grund wahrscheinlich darin, daÃŸ ihr System nicht in der Lage ist die vielen Peer Verbindungen zu verwalten.
  Verringern Sie die Anzahl der Verbindugen in Azureus (Tools > Options > Transfer > Maximum number of connections per torrent / globally). Versuchen Sie es zu es zuerst einmal mit einem niedrigen Wert, z.B. 30.
 
 !5.3 Support
- Bevor Sie das Support team kontaktieren, versichern Sie sich daß Sie die folgenden Quellen konsultiert haben:
+ Bevor Sie das Support team kontaktieren, versichern Sie sich daÃŸ Sie die folgenden Quellen konsultiert haben:
  - Die offizielle WebSite : http://azureus.sourceforge.net/
  - Die offizielle Wiki : http://azureus.aelitis.com/wiki/
  - Der offizielle IRC Channel: #azureus-users on irc.freenode.net
  - Das offizielle SF Forum: http://sourceforge.net/forum/?group_id=84122
- - FALLS Sie das Problem nach Durchsicht all dieser Quellen nicht lösen können (aber bitte nur dann), kontaktieren Sie uns bitte unter: azureus@gmail.com
+ - FALLS Sie das Problem nach Durchsicht all dieser Quellen nicht lÃ¶sen kÃ¶nnen (aber bitte nur dann), kontaktieren Sie uns bitte unter: azureus@gmail.com

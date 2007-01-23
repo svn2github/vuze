@@ -52,14 +52,14 @@ $
             Promjeniti imena od download foldera.
             Micanje od data fajla na torrent izbrisavanje od Azureusa.
             Potpisani obnovljeni fajlovi i pluginsi za poboljsanu sigurnost.
-            Obnavljanje Interfejsa – vise informacije: datum dodavanja, nista ne 
+            Obnavljanje Interfejsa â€“ vise informacije: datum dodavanja, nista ne 
             dogodeno vremena, novi info pogled, dio fajla pogled, vise per-torrent 
             opcija.
             Los code generator. 
             Vise informacije u ChangeLog. 
             
-            Nemojte zaboraviti da cekirate plugine – http://azureus.sourceforge.net/plugin_list.php
-            Novi odaljeni kontrolni plugin – AzSMRC 
+            Nemojte zaboraviti da cekirate plugine â€“ http://azureus.sourceforge.net/plugin_list.php
+            Novi odaljeni kontrolni plugin â€“ AzSMRC 
 
 !1.4  Poboljsavanje programa
 
@@ -101,7 +101,7 @@ $
 	Koristi UDP protocol, ako imate vatreni zid/router, onda morate da otvorite UDP port na isti nacin kao sto ste TCP port za downloadiranje fajla. 
 
 !3.1.1  Magnetni Linkovi
-	Za torrente koji su trazene bez zentralne base, Azureus moze da exportira "Magnetske Linkove". To ovako izgleda "magnet:?xt=urn:btih….." i moze biti koristeno za download torrenta sa distribucirane database preko "open->url" menjua. 
+	Za torrente koji su trazene bez zentralne base, Azureus moze da exportira "Magnetske Linkove". To ovako izgleda "magnet:?xt=urn:btihâ€¦.." i moze biti koristeno za download torrenta sa distribucirane database preko "open->url" menjua. 
 
 !3.2  Poboljsani Protokol
 	Azureus sada suportira poboljsani medusobni-klient za slanje poruka, koji je uperen da dozvoli pluginsima da koriste konekcije napravljene kod Azuriesa da dodaje bolje funkcije programu. Drugi developeri klienta mogu da vide spesifikacije za za ovaj protokol na stranici http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol. Developeri plugina mogu cekirati java dokumente da vide kako mogu to iskoristiti.
@@ -133,7 +133,7 @@ $
 
 !4.1  Java  5.0
 
-	Azureus je pisan u Javi i treba mu Java runtime. Me preporucujemo Java 5.0 (isto znato kao 1.5) zato sto ima bolji performance i bolju dependenciju – molimo vas poboljsajte to ako mozete. Nacete torrente da obnovite Java ovdje : http://azureus.sourceforge.net/download.php
+	Azureus je pisan u Javi i treba mu Java runtime. Me preporucujemo Java 5.0 (isto znato kao 1.5) zato sto ima bolji performance i bolju dependenciju â€“ molimo vas poboljsajte to ako mozete. Nacete torrente da obnovite Java ovdje : http://azureus.sourceforge.net/download.php
 
 	Downloadirajte tacan za vas system, zatvorite Azureus, onda otvorite downloadirani fajl, onda restartujte Azureus.
 
