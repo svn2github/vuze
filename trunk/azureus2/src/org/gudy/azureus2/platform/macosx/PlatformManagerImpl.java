@@ -161,7 +161,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 					return new File(OSXAccess.getDocDir());
 				} catch (UnsatisfiedLinkError e) {
 					// Usually in user.home + Documents
-					return new File(getUserDataDirectory(), "Documents");
+					return new File(System.getProperty("user.home"), "Documents");
 				}
 				
 			case LOC_MUSIC:
