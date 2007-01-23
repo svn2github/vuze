@@ -67,6 +67,10 @@ public class UIConfigDefaultsSWTv3
   				config.setParameter("First Recorded Version", sFirstVersion);
   				config.save();
   				return;
+  			} else {
+  				// first version was 3.0.0.0 - 3.0.0.3, which used userPath + "data"
+  				// remove save path, which will default it to Azureus' Doc dir
+  				config.removeParameter("Default save path");
   			}
 			}
 
