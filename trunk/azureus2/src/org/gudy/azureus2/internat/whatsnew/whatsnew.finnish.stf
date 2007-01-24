@@ -2,9 +2,9 @@ $
 $    Tervetuloa käyttämään versiota 2.5.0.4
 $ 
 
- 2.5.0.4 is a maintenance release to fix up a few minor, but relatively annoying problems with 2.5.0.2.
+ 2.5.0.4 on ylläpitopäivitys, joka korjaa joukon pieniä, mutta ärsyttäviä ohjelmavirheitä 2.5.0.2-versiossa.
 
-+1. Mitä uutta on Azureus 2.5.0.2/4:ssa
++1. Mitä uutta on Azureus 2.5.0.2:ssa/2.5.0.4:ssä
 
 !1.1 Vähentynyt muistinkäyttö
   Huomattavimpana tekijänä se, että torrent-tiedostojen osista ei enää säilytetä tietoja muistissa kun niitä ei tarvita.
