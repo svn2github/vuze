@@ -339,6 +339,8 @@
         <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.console.commands"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.utils.xml.simpleparser"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.ipchecker.extipchecker.impl"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.content"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.platform.unix"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.disk"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.download"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.remote"/>

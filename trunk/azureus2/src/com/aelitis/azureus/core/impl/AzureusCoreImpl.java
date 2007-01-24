@@ -572,7 +572,8 @@ AzureusCoreImpl
 									"radhslib", 
 									"winsflt",
 									"nl_lsp",
-									"AxShlex"
+									"AxShlex",
+									"iFW_Xfilter",
 						};
 			
 			for (int i=0;i<dlls.length;i++){
