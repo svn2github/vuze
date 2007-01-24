@@ -150,7 +150,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 	public TorrentListView(AzureusCore core, final SWTSkin skin,
 			SWTSkinProperties skinProperties, Composite headerArea, SWTSkinObjectText countArea,
 			final Composite dataArea, int viewMode, final boolean bMiniMode,
-			boolean bAllowScrolling) {
+			final boolean bAllowScrolling) {
 
 		super(TABLE_IDS[viewMode] + ((bMiniMode) ? "-Mini" : ""), skinProperties,
 				dataArea);
@@ -231,9 +231,9 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 					DownloadManager dm = managers[i];
 					downloadManagerAdded(dm);
 
-               if (bMiniMode && i == max - 1) {
-                  break;
-               }
+          if (!bAllowScrolling && i == max - 1) {
+						break;
+					}
 
 					if (max == i) {
 						processDataSourceQueue();
