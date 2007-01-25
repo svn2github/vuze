@@ -129,11 +129,13 @@ public class WelcomeWindow {
 
 		if (sWhatsNew == null || sWhatsNew.length() == 0) {
 			String helpFile = MessageText.getString("window.welcome.file");
-			InputStream stream = getClass().getResourceAsStream(
-					"/org/gudy/azureus2/internat/whatsnew/" + helpFile);
+			String helpFullPath = "/org/gudy/azureus2/internat/whatsnew/" + helpFile;
+			if (Constants.compareVersions(Constants.AZUREUS_VERSION, "3.0.0.6") == 0) {
+				helpFullPath = "/ChangeLog.v3.txt";
+			}
+			InputStream stream = getClass().getResourceAsStream(helpFullPath);
 			if (stream == null) {
-				sWhatsNew = "Welcome Window: Error loading resource: /org/gudy/azureus2/internat/whatsnew/"
-						+ helpFile;
+				sWhatsNew = "Welcome Window: Error loading resource: " + helpFullPath;
 			} else {
 				try {
 					sWhatsNew = FileUtil.readInputStreamAsString(stream, 65535, "utf8");
@@ -217,6 +219,9 @@ public class WelcomeWindow {
 						case ' ':
 							text = "  " + text;
 							break;
+							
+						default:
+							text = styleChar + text;
 					}
 
 					helpPanel.append(text);
