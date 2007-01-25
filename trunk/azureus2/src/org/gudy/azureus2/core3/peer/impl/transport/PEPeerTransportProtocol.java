@@ -145,8 +145,8 @@ PEPeerTransportProtocol
   private Message[] supported_messages = null;
   
   
-  private final AEMonitor	closing_mon	= new AEMonitor( "PEPeerTransportProtocol:closing" );
-  private final AEMonitor data_mon  = new AEMonitor( "PEPeerTransportProtocol:data" );
+  private final AEMonitor closing_mon	= new AEMonitor( "PEPeerTransportProtocol:closing" );
+  private final AEMonitor general_mon  	= new AEMonitor( "PEPeerTransportProtocol:data" );
   
 
   private LinkedHashMap recent_outgoing_requests;
@@ -163,6 +163,10 @@ PEPeerTransportProtocol
   private static int requests_recovered = 0;
   private static int requests_completed = 0;
 
+  private static final int REQUEST_HINT_MAX_LIFE	= 60*1000;
+  
+  private long[][]	request_hints;
+  
   private List peer_listeners_cow;
   private final AEMonitor	peer_listeners_mon = new AEMonitor( "PEPeerTransportProtocol:PL" );
 
@@ -198,7 +202,7 @@ PEPeerTransportProtocol
     
   protected PeerMessageLimiter message_limiter;
   
-  
+  private boolean request_hint_supported;
   
   
   
@@ -412,7 +416,19 @@ PEPeerTransportProtocol
     message_limiter = new PeerMessageLimiter();
 
     //link in outgoing piece handler
-    outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler(diskManager, connection.getOutgoingMessageQueue() );
+    outgoing_piece_message_handler = 
+    	new OutgoingBTPieceMessageHandler(
+    			this,
+    			connection.getOutgoingMessageQueue(),
+    			new OutgoingBTPieceMessageHandlerAdapter()
+    			{
+    				public void 
+    				diskRequestCompleted(
+    					long bytes) 
+    				{
+    					peer_stats.diskReadComplete( bytes );
+    				}
+    			});
 
     //link in outgoing have message aggregator
     outgoing_have_message_aggregator = new OutgoingBTHaveMessageAggregator( connection.getOutgoingMessageQueue() );
@@ -603,10 +619,6 @@ PEPeerTransportProtocol
     connection.getOutgoingMessageQueue().addMessage( az_handshake, false );
   }
   
-
-
-  
-
   public int getPeerState() {  return current_peer_state;  }
 
 	public boolean isDownloadPossible()
@@ -1037,7 +1049,7 @@ PEPeerTransportProtocol
   /** To store arbitrary objects against a peer. */
   public void setData (String key, Object value) {
   	try{
-      data_mon.enter();
+  		general_mon.enter();
   	
 	  	if (data == null) {
 	  	  data = new HashMap();
@@ -1049,7 +1061,7 @@ PEPeerTransportProtocol
 	      data.put(key, value);
 	    }
   	}finally{
-      data_mon.exit();
+  		general_mon.exit();
   	}
   }
 
@@ -2047,6 +2059,10 @@ PEPeerTransportProtocol
           return true;
         }
         
+        if( message.getID().equals( AZMessage.ID_AZ_REQUEST_HINT ) ) {
+            decodeAZRequestHint( (AZRequestHint)message );
+            return true;
+          }
         return false;
       }
       
@@ -2238,6 +2254,8 @@ PEPeerTransportProtocol
         }
       }
     }
+    
+    request_hint_supported = peerSupportsMessageType( AZMessage.ID_AZ_REQUEST_HINT );
   }
   
   
@@ -2310,7 +2328,165 @@ PEPeerTransportProtocol
     }
   }
   
+  public boolean
+  sendRequestHint(
+	  int		piece_number,
+	  int		offset,
+	  int		length,
+	  int		life )
+  {
+	  if ( request_hint_supported ){
+		  
+		  AZRequestHint	rh = new AZRequestHint( piece_number, offset, length, life );
+		  
+		  connection.getOutgoingMessageQueue().addMessage( rh, false );
+
+		  return( true );
+		  
+	  }else{
+		  
+		  return( false );
+	  }
+  }
   
+  protected void
+  decodeAZRequestHint(
+	AZRequestHint	hint )
+  {
+	  int	piece_number 	= hint.getPieceNumber();
+	  int	offset			= hint.getOffset();
+	  int	length			= hint.getLength();
+	  int	life			= hint.getLife();
+	  
+	  hint.destroy();
+
+	  if ( manager.validatePieceRequest( this, piece_number, offset, length )){
+		  
+		  long	now = SystemTime.getCurrentTime();
+		  
+		  try{
+			  general_mon.enter();
+		 
+			  long[][]	new_request_hints = new long[16][];
+			  
+			  int	oldest_index	= 0;
+			  
+			  if ( request_hints != null ){
+				  
+				  long	oldest_expiry	= Long.MAX_VALUE;
+				  
+				  for (int i=0;i<request_hints.length;i++){
+					  
+					  long[]	entry = request_hints[i];
+					  
+					  if ( entry == null ){
+						  
+						  oldest_index 	= i;
+						  oldest_expiry	= 0;
+						  
+					  }else{
+					  
+						  long	expires = entry[3];
+						  
+						  	// copy valid entries across
+						  
+						  if ( expires > now && expires - now < REQUEST_HINT_MAX_LIFE ){
+							  
+							  new_request_hints[i] = entry;							  
+						  }
+						  
+						  if ( expires < oldest_expiry ){
+							  
+							  oldest_expiry	= expires;
+							  oldest_index	= i;
+						  }
+					  }
+				  }
+			  }
+			  
+			  new_request_hints[ oldest_index ] = 
+					  new long[]{ 
+							 piece_number, 
+							 offset, 
+							 length, 
+							 SystemTime.getCurrentTime() + life };
+			  
+			  request_hints = new_request_hints;
+			  
+		  }finally{
+			  
+			  general_mon.exit();
+			  
+		  }
+	  }
+  }
+  
+  public int[] 
+  getRequestHint(
+	int piece_number) 
+  {
+	  long[][]	hints = request_hints;
+	  
+	  if ( hints == null ){
+		  
+		  return( null );
+	  }
+	  
+	  long	now = SystemTime.getCurrentTime();
+
+	  int	num_valid = 0;
+	  
+	  for ( int i=0;i<hints.length;i++){
+		  
+		  long[] entry = hints[i];
+		  
+		  if ( entry != null ){
+			  
+			  long	expires = entry[3];
+			  			  
+			  if ( expires > now && expires - now < REQUEST_HINT_MAX_LIFE ){
+				  
+				  num_valid++;
+				  
+				  if ( entry[0] == piece_number ){
+					  
+					  return( new int[]{(int)entry[1], (int)entry[2] });
+				  }
+			  }else{
+				  
+				  	// zero it out - hints are copy-on-write so this will get lost if an update is made
+				  	// however, the update mea 
+				  
+				  hints[i] = null;
+			  }
+		  }
+	  }
+	  
+	  	// lazily clear down the hints if there were none valid and still are none valid
+	  
+	  if ( num_valid == 0 ){
+		  
+		  try{
+			  general_mon.enter();
+
+			  for (int i=0;i<request_hints.length;i++){
+				  
+				  if ( request_hints[i] != null ){
+					  
+					  return( null );
+				  }
+			  }
+			  
+			  request_hints = null;
+			  			  
+		  }finally{
+			  
+			  general_mon.exit();  
+		  }
+	  }
+	  
+	  return( null );
+  }
   
   public PeerItem getPeerItemIdentity() {  return peer_item_identity;  }
   

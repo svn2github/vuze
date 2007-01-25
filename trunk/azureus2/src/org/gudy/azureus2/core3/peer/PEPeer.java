@@ -272,4 +272,29 @@ PEPeer
 	public boolean
 	isLANLocal();
 	
+		/**
+		 * Send a request hint to the peer. 
+		 * @param piece_number
+		 * @param offset
+		 * @param length
+		 * @param life
+		 * @return true if sent, false otherwise
+		 */
+	
+	public boolean
+	sendRequestHint(
+		int		piece_number,
+		int		offset,
+		int		length,
+		int		life );
+	
+		/**
+		 * Get current request hint for a given piece for this peer. 
+		 * @return null if no hint int[]{ offset, length } if hint found
+		 */
+	
+	public int[]
+	getRequestHint(
+		int		piece_number );
+	        		   
 }

@@ -42,8 +42,13 @@ public interface AZMessage extends Message {
   public static final byte[] ID_AZ_GENERIC_MAP_BYTES    = ID_AZ_GENERIC_MAP.getBytes();;
   public static final int SUBID_AZ_GENERIC_MAP			= 2;
   
+  public static final String ID_AZ_REQUEST_HINT    		= "AZ_REQUEST_HINT";
+  public static final byte[] ID_AZ_REQUEST_HINT_BYTES  = ID_AZ_REQUEST_HINT.getBytes();
+  public static final int SUBID_ID_AZ_REQUEST_HINT		= 3;
+
   
   //TODO
+
   public static final String ID_AZ_SESSION_SYN      	= "AZ_SESSION_SYN";
   public static final byte[] ID_AZ_SESSION_SYN_BYTES    = ID_AZ_SESSION_SYN.getBytes();
   

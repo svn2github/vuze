@@ -42,6 +42,13 @@ PEPeerControl
 		int 			offset, 
 		int 			length );
 
+	public boolean
+	validatePieceRequest(
+		PEPeerTransport	originator,
+		int 			pieceNumber, 
+		int 			offset, 
+		int 			length );
+	
 	public void 
 	havePiece(
 		int pieceNumber,

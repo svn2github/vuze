@@ -164,4 +164,12 @@ PEPeerStats
    */
   public long getTotalBytesDownloadedByPeer();
   
+  /**
+   * Disk access stats methods
+   * @param bytes
+   */
+  public void diskReadComplete( long bytes );
+  public int getTotalDiskReadCount();
+  public int getAggregatedDiskReadCount();
+  public long getTotalDiskReadBytes();
 }

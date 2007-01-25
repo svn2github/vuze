@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.peer;
 
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
 import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 
@@ -132,6 +134,12 @@ PEPeerManagerAdapter
 	public byte[][]
 	getSecrets(
 		int	crypto_level );
+	
+	public void 
+	enqueueReadRequest( 
+		PEPeer							peer,
+		DiskManagerReadRequest 			request, 
+		DiskManagerReadRequestListener 	listener );
 	
 	public LogRelation
 	getLogRelation();

@@ -218,7 +218,7 @@ DiskManager
 		 */
 	
 	public boolean 
-	checkBlockConsistency(
+	checkBlockConsistencyForWrite(
 		int 				pieceNumber, 
 		int 				offset, 
 		DirectByteBuffer 	data );
@@ -232,13 +232,19 @@ DiskManager
 		 */
 	
 	public boolean 
-	checkBlockConsistency(
+	checkBlockConsistencyForRead(
 		String	originator,
 		int 	pieceNumber, 
 		int	 	offset, 
 		int 	length );
 		
-   
+	public boolean 
+	checkBlockConsistency(
+		String	originator,
+		int 	pieceNumber, 
+		int	 	offset, 
+		int 	length );
+	
 	public TOTorrent
 	getTorrent();
 	

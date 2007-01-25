@@ -167,11 +167,18 @@ DiskAccessRequestImpl
 				file.writeAndHandoverBuffers( buffers, offset );
 			}
 			
+			base_request.getListener().requestExecuted( total_size );
+
 			for (int i=0;i<requests.length;i++){
 
 				DiskAccessRequestImpl	request = requests[i];
 				
 				request.getListener().requestComplete( request );
+				
+				if ( request != base_request ){
+					
+					request.getListener().requestExecuted( 0 );
+				}
 			}
 			
 		}catch( CacheFileManagerException e ){

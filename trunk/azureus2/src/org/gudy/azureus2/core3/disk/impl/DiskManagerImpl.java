@@ -1454,7 +1454,7 @@ DiskManagerImpl
 	}
 
     public boolean
-    checkBlockConsistency(
+    checkBlockConsistencyForWrite(
         int pieceNumber,
         int offset,
         DirectByteBuffer data )
@@ -1505,6 +1505,16 @@ DiskManagerImpl
         return true;
     }
     
+	public boolean
+	checkBlockConsistencyForRead(
+		String	originator,
+	    int 	pieceNumber,
+	    int 	offset,
+	    int 	length )
+	{
+		return( DiskManagerUtil.checkBlockConsistencyForRead(this, originator, pieceNumber, offset, length));
+	}
+	
 	public boolean
 	checkBlockConsistency(
 		String	originator,

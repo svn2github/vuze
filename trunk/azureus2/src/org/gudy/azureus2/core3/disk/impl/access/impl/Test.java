@@ -217,6 +217,11 @@ Test
 													  Debug.out( cause );
 												  }
 												  
+												  public void 
+												  requestExecuted(long bytes) 
+												  {							
+												  }
+												  
 												  public int
 												  getPriority()
 												  {
@@ -1058,6 +1063,11 @@ Test
 	 	{
 	 		return( null );
 	 	}
+	 	
+	 	public PEPeerManagerAdapter getAdapter() {
+	 		return null;
+	 	}
+	 	
 		public void
 		generateEvidence(
 			IndentWriter		writer )

@@ -191,6 +191,11 @@ DMReaderImpl
 					  {
 						  return( -1 );
 					  }
+					  
+					  public void 
+					  requestExecuted(long bytes) 
+					  {								
+					  }
 				});
 		
 		sem.reserve();
@@ -208,31 +213,36 @@ DMReaderImpl
 		final DiskManagerReadRequestListener	listener = 
 			new DiskManagerReadRequestListener()
 			{
-			  public void 
-			  readCompleted( 
-			  		DiskManagerReadRequest 	request, 
-					DirectByteBuffer 		data )
-			  {				  
-				  request.requestEnds( true );
-
-				  _listener.readCompleted( request, data );
-			  }
-			  
-			  public void 
-			  readFailed( 
-			  		DiskManagerReadRequest 	request, 
-					Throwable		 		cause )
-			  { 
-				  request.requestEnds( false );
-
-				  _listener.readFailed( request, cause );
-			  }
-			  
-			  public int
-			  getPriority()
-			  {
-				  return( _listener.getPriority());
-			  }
+				public void 
+				readCompleted( 
+						DiskManagerReadRequest 	request, 
+						DirectByteBuffer 		data )
+				{				  
+					request.requestEnds( true );
+	
+					_listener.readCompleted( request, data );
+				}
+	
+				public void 
+				readFailed( 
+						DiskManagerReadRequest 	request, 
+						Throwable		 		cause )
+				{ 
+					request.requestEnds( false );
+	
+					_listener.readFailed( request, cause );
+				}
+	
+				public int
+				getPriority()
+				{
+					return( _listener.getPriority());
+				}
+				public void 
+				requestExecuted(long bytes) 
+				{
+					_listener.requestExecuted( bytes );									
+				}
 			};
 			
 		DirectByteBuffer buffer	= null;
@@ -356,6 +366,12 @@ DMReaderImpl
 					  getPriority()
 					  {
 						  return( _listener.getPriority());
+					  }
+					  
+					  public void 
+					  requestExecuted(long bytes) 
+					  {
+						  _listener.requestExecuted( bytes );									
 					  }
 					  
 					  protected void
@@ -513,7 +529,13 @@ DMReaderImpl
 									getPriority()
 									{
 										return( listener.getPriority());
-									}							
+									}	
+									
+									public void 
+									requestExecuted(long bytes) 
+									{
+										listener.requestExecuted( bytes );									
+									}
 								});
 							
 							sem.reserve();
@@ -592,6 +614,12 @@ DMReaderImpl
 		getPriority()
 		{
 			return( listener.getPriority());
+		}
+		
+		public void 
+		requestExecuted(long bytes) 
+		{
+			listener.requestExecuted( bytes );									
 		}
 		
 		protected void

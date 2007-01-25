@@ -37,6 +37,8 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
 import org.gudy.azureus2.core3.disk.DiskManagerListener;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -1262,6 +1264,15 @@ DownloadManagerController
 		}
 		
 		return((byte[])secrets_map.get( "p1" ));
+	}
+	
+	public void 
+	enqueueReadRequest( 
+		PEPeer							peer,
+		DiskManagerReadRequest 			request, 
+		DiskManagerReadRequestListener 	listener )
+	{
+		getDiskManager().enqueueReadRequest( request, listener );
 	}
 	
 	public boolean

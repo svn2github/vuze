@@ -70,6 +70,7 @@ public class PiecePickerImpl
     /** Additional boost for more completed High priority */
     private static final int PRIORITY_W_COMPLETION	=2000;
   
+    private static final int PRIORITY_REQUEST_HINT	= 3000;
 
 	// The following are only used when resuming already running pieces
     /** priority boost due to being too old */
@@ -1404,19 +1405,33 @@ public class PiecePickerImpl
             // is the piece available from this peer?
             if (peerHavePieces.flags[i])
             {
-                priority =startPriorities[i];
+                priority = startPriorities[i];
                 
-                if ( peerPriorities != null ){
+                if( priority < 0 ){
+                
+                		// not required
                 	
-                	if ( priority >= 0 ){
-                		
-                		priority += peerPriorities[i];
-                	}
+                	continue;
                 }
                 
                 final DiskManagerPiece dmPiece =dmPieces[i];
 
-                if ( priority >=0 && dmPiece.isDownloadable()){
+                if ( !dmPiece.isDownloadable()){
+                	
+                	continue;
+                }
+                
+                if ( peerPriorities != null ){
+                	                		
+                	priority += peerPriorities[i];
+                }
+                
+                if ( pt.getRequestHint( i ) != null ){
+                	
+                	priority += PRIORITY_REQUEST_HINT;
+                }
+                
+                if ( priority >= 0 ){
                
                     final PEPiece pePiece = pePieces[i];
                     

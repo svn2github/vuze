@@ -46,9 +46,10 @@ import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 public interface 
 PEPeerManager 
 {
-	
 	public DiskManager getDiskManager();
 	public PiecePicker getPiecePicker();
+	
+	public PEPeerManagerAdapter	getAdapter();
 	
 	public void
 	start();

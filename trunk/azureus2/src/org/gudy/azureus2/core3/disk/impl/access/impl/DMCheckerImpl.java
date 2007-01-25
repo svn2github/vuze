@@ -704,6 +704,11 @@ DMCheckerImpl
 						return( checking_read_priority?0:-1 );
 					}
 					
+					public void 
+					requestExecuted(long bytes) 
+					{							
+					}
+					
 					protected void
 					complete()
 					{

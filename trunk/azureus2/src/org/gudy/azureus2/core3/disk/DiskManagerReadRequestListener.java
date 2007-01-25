@@ -50,4 +50,8 @@ DiskManagerReadRequestListener
 
 	public int
 	getPriority();
+	
+	public void 
+	requestExecuted(
+		long 	bytes );
 }

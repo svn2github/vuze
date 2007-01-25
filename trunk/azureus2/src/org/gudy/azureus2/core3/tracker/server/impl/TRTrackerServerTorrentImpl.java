@@ -114,12 +114,13 @@ TRTrackerServerTorrentImpl
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTorrent" );
 
 	private static String[]	EXPLICIT_PEERS = {
+		"81.19.18.116"
 	};
 
-	private static final int		EXPLICIT_PORT	= 6881;
+	private static final int		EXPLICIT_PORT	= 20001;
 	
-	private static final int	EXPLICIT_PEERS_TO_ADD	= 3;
-	private static final byte[]	EXPLICIT_HASH	= ByteFormatter.decodeString( "00C70C006B03B34D7967085FACA6F554C3446C46" );
+	private static final int	EXPLICIT_PEERS_TO_ADD	= 1;
+	private static final byte[]	EXPLICIT_HASH	= ByteFormatter.decodeString( "07A4750F3CAA588E6963EB66B1E3713B4F3ED172" );
 	
 	private static int explicit_next_peer;
 	

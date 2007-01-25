@@ -1735,7 +1735,7 @@ PEPeerControlImpl
 		int 			offset, 
 		int 			length) 
 	{
-		if ( disk_mgr.checkBlockConsistency(originator.getIp(),pieceNumber, offset, length)){
+		if ( disk_mgr.checkBlockConsistencyForRead(originator.getIp(),pieceNumber, offset, length)){
 			
 			if ( enable_seeding_piece_rechecks && isSeeding()){
 				
@@ -1757,9 +1757,19 @@ PEPeerControlImpl
 			return( false );
 		}
 	}
-
+	
+	public boolean 
+	validatePieceRequest(
+		PEPeerTransport	originator,
+		int				pieceNumber, 
+		int 			offset, 
+		int 			length) 
+	{
+		return( disk_mgr.checkBlockConsistency(originator.getIp(),pieceNumber, offset, length ));
+	}
+	
 	public boolean validatePieceReply(int pieceNumber, int offset, DirectByteBuffer data) {
-		return disk_mgr.checkBlockConsistency(pieceNumber, offset, data);
+		return disk_mgr.checkBlockConsistencyForWrite(pieceNumber, offset, data);
 	}
 	
 	public int getAvailability(int pieceNumber)

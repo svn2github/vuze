@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.peermanager.utils;
 import java.util.*;
 
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
@@ -42,8 +43,8 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
  * does, before passing the messages onto the outgoing message queue for transmission.
  */
 public class OutgoingBTPieceMessageHandler {
-  private final OutgoingMessageQueue outgoing_message_queue;
-  private final DiskManager disk_manager;
+  private final PEPeer					peer;
+  private final OutgoingMessageQueue 	outgoing_message_queue;
   
   private final LinkedList requests = new LinkedList();
   private final ArrayList	loading_messages = new ArrayList();
@@ -53,7 +54,27 @@ public class OutgoingBTPieceMessageHandler {
   private boolean destroyed = false;
   private int request_read_ahead = 2;
 
+  private OutgoingBTPieceMessageHandlerAdapter	adapter;
 
+  /**
+   * Create a new handler for outbound piece messages,
+   * reading piece data from the given disk manager
+   * and transmitting the messages out the given message queue.
+   * @param disk_manager
+   * @param outgoing_message_q
+   */
+  public 
+  OutgoingBTPieceMessageHandler( 
+	PEPeer									_peer,
+	OutgoingMessageQueue 					_outgoing_message_q,
+	OutgoingBTPieceMessageHandlerAdapter	_adapter ) 
+  {
+	peer					= _peer;
+    outgoing_message_queue 	= _outgoing_message_q;
+    adapter					= _adapter;
+    outgoing_message_queue.registerQueueListener( sent_message_listener );
+  }
+  
   
   
   
@@ -105,6 +126,11 @@ public class OutgoingBTPieceMessageHandler {
     {
     	return( -1 );
     }
+	public void 
+	requestExecuted(long bytes) 
+	{
+		adapter.diskRequestCompleted( bytes );							
+	}
   };
   
   
@@ -131,21 +157,7 @@ public class OutgoingBTPieceMessageHandler {
     public void dataBytesSent( int byte_count ) {/*ignore*/}
   };
   
-  
-  
-  /**
-   * Create a new handler for outbound piece messages,
-   * reading piece data from the given disk manager
-   * and transmitting the messages out the given message queue.
-   * @param disk_manager
-   * @param outgoing_message_q
-   */
-  public OutgoingBTPieceMessageHandler( DiskManager disk_manager, OutgoingMessageQueue outgoing_message_q ) {
-    this.disk_manager = disk_manager;
-    this.outgoing_message_queue = outgoing_message_q;
-    outgoing_message_queue.registerQueueListener( sent_message_listener );
-  }
-  
+ 
   
   /**
    * Register a new piece data request.
@@ -156,7 +168,7 @@ public class OutgoingBTPieceMessageHandler {
   public void addPieceRequest( int piece_number, int piece_offset, int length ) {
     if( destroyed )  return;
          
-    DiskManagerReadRequest dmr = disk_manager.createReadRequest( piece_number, piece_offset, length );
+    DiskManagerReadRequest dmr = peer.getManager().getDiskManager().createReadRequest( piece_number, piece_offset, length );
 
     try{
       lock_mon.enter();
@@ -180,7 +192,7 @@ public class OutgoingBTPieceMessageHandler {
   public void removePieceRequest( int piece_number, int piece_offset, int length ) {
   	if( destroyed )  return;
   	
-    DiskManagerReadRequest dmr = disk_manager.createReadRequest( piece_number, piece_offset, length );
+    DiskManagerReadRequest dmr = peer.getManager().getDiskManager().createReadRequest( piece_number, piece_offset, length );
     
     try{
       lock_mon.enter();
@@ -304,7 +316,7 @@ public class OutgoingBTPieceMessageHandler {
     
     if ( to_submit != null ){
     	for (int i=0;i<to_submit.size();i++){
-    		disk_manager.enqueueReadRequest( (DiskManagerReadRequest)to_submit.get(i), read_req_listener );
+    		peer.getManager().getAdapter().enqueueReadRequest( peer, (DiskManagerReadRequest)to_submit.get(i), read_req_listener );
     	}
     }
   }

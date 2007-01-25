@@ -54,6 +54,9 @@ PEPeerStatsImpl
     private long total_bytes_discarded = 0;
     private long total_bytes_downloaded = 0;
 
+    private long 	disk_read_bytes	= 0;
+    private int		disk_read_count = 0;
+    private int		disk_aggregated_read_count = 0;
 
 	  public PEPeerStatsImpl( PEPeer _owner ) {
 		  owner = _owner;
@@ -99,7 +102,6 @@ PEPeerStatsImpl
     public void statisticalSentPiece( int piece_size ) {
       estimated_upload_speed.addValue( piece_size );
     }
-    
 
     public long getDataReceiveRate() {  return data_receive_speed.getAverage();  }
     public long getProtocolReceiveRate() {  return protocol_receive_speed.getAverage();  }
@@ -122,5 +124,18 @@ PEPeerStatsImpl
     public long getTotalDataBytesSent() {  return total_data_bytes_sent;  }
     public long getTotalProtocolBytesSent() {  return total_protocol_bytes_sent;  }
     
-
+    public void 
+    diskReadComplete( 
+    	long bytes )
+    {
+    	disk_read_bytes	+= bytes;
+    	disk_read_count++;
+    	if ( bytes > 0 ){
+    		disk_aggregated_read_count++;
+    	}
+    }
+    
+    public int getTotalDiskReadCount(){ return( disk_read_count ); }
+    public int getAggregatedDiskReadCount(){ return( disk_aggregated_read_count ); }
+    public long getTotalDiskReadBytes(){ return( disk_read_bytes ); }
 }

@@ -107,6 +107,22 @@ DiskManagerUtil
 			return false;
 		}
 
+		return true;
+	}
+	
+	public static boolean
+	checkBlockConsistencyForRead(
+		DiskManager	dm,
+		String		originator,
+		int 		pieceNumber,
+		int 		offset,
+		int 		length)
+	{
+		if ( !checkBlockConsistency( dm, originator, pieceNumber, offset, length )){
+			
+			return( false );
+		}
+		
 		if(!dm.getPiece(pieceNumber).isDone()) {
 			Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
 					"CHECKBLOCK2: " + originator + " piece #" + pieceNumber + " not done"));

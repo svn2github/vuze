@@ -482,6 +482,23 @@ PeerForeignDelegate
 	}
 	
 	public boolean
+	sendRequestHint(
+		int		piece_number,
+		int		offset,
+		int		length,
+		int		life )
+	{	
+		return( false );
+	}
+	
+	public int[] 
+	getRequestHint(
+		int piece_number ) 
+	{
+		return null;
+	}
+	
+	public boolean
 	isTCP()
 	{
 		return( true );

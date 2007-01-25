@@ -315,6 +315,33 @@ public class PEPieceImpl
 		final String ip =peer.getIp();
         final boolean[] written =dmPiece.getWritten();
 		int blocksFound =0;
+		
+		int[]	request_hint = peer.getRequestHint( dmPiece.getPieceNumber());
+		
+		if ( request_hint != null ){
+			
+				// try to honour the hint first
+			
+			int	hint_block_start 	= request_hint[0] / DiskManager.BLOCK_SIZE;
+			int hint_block_count	=  ( request_hint[1] + DiskManager.BLOCK_SIZE-1 ) / DiskManager.BLOCK_SIZE;
+			
+			for (int i =hint_block_start; i < nbBlocks && i <hint_block_start + hint_block_count; i++)
+			{
+				while (blocksFound <nbWanted &&(i +blocksFound) <nbBlocks &&!downloaded[i +blocksFound]
+				    &&requested[i +blocksFound] ==null &&(written ==null ||!written[i]))
+				{
+					requested[i +blocksFound] =ip;
+					blocksFound++;
+				}
+				if (blocksFound >0){
+					
+					System.out.println( "Request hint satisfied: start=" + i + ",blocks=" + blocksFound );
+					
+					return new int[] {i, blocksFound};
+				}
+			}
+		}
+		
 		// scan piece to find first free block
 		for (int i =0; i <nbBlocks; i++)
 		{

@@ -67,6 +67,7 @@ public class AZMessageFactory {
     try {
       MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", 0, 0, 0, new String[0], new byte[0], 0) );
       MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null ) );
+      MessageManager.getSingleton().registerMessageType( new AZRequestHint( -1, -1, -1, -1 ) );
       /*
       MessageManager.getSingleton().registerMessageType( new AZSessionSyn( new byte[20], -1, null) );
       MessageManager.getSingleton().registerMessageType( new AZSessionAck( new byte[20], -1, null) );

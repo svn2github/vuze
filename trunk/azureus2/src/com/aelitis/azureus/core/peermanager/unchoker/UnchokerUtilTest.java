@@ -170,6 +170,14 @@ public class UnchokerUtilTest {
 			// TODO Auto-generated method stub
 			return false;
 		}
+		public boolean sendRequestHint(int piece_number, int offset, int length, int life) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+		public int[] getRequestHint(int piece_number) {
+			// TODO Auto-generated method stub
+			return null;
+		}
       };
       
      f_stats[0] = new PEPeerStats() {
@@ -197,6 +205,10 @@ public class UnchokerUtilTest {
         public long getEstimatedDownloadRateOfPeer(){  return 0;  }
         public long getEstimatedUploadRateOfPeer(){  return 0;  }
         public long getTotalBytesDownloadedByPeer(){  return 0;  }
+        public void diskReadComplete( long bytes ){};
+        public int getTotalDiskReadCount(){  return 0;  }
+        public int getAggregatedDiskReadCount(){  return 0;  }
+        public long getTotalDiskReadBytes(){  return 0;  }
       };
       peers.add( peer );
     }

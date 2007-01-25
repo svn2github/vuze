@@ -246,6 +246,11 @@ DMWriterImpl
 									{
 										return( -1 );
 									}
+									
+									public void 
+									requestExecuted(long bytes) 
+									{							
+									}
 								});
            
 						sem.reserve();
@@ -638,6 +643,11 @@ DMWriterImpl
 									{
 										return( -1 );
 									}
+									
+									public void 
+									requestExecuted(long bytes) 
+									{					
+									}
 								});
 							
 							sem.reserve();
@@ -717,6 +727,11 @@ DMWriterImpl
 					{
 						return( -1 );
 					}
+					
+					public void 
+					requestExecuted(long bytes) 
+					{							
+					}
 				};
 				
 			disk_access.queueWriteRequest(
@@ -756,6 +771,11 @@ DMWriterImpl
 		getPriority()
 		{
 			return( -1 );
+		}
+		
+		public void 
+		requestExecuted(long bytes) 
+		{							
 		}
 		
 		protected void
