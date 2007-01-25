@@ -336,8 +336,8 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		int changeCount = 0;
 		int curRowCount = size(true);
 
-		int maxRows = bAllowScrolling ? 100000 : (dataArea.getClientArea().height - 4)
-				/ ListRow.ROW_HEIGHT;
+		int maxRows = bAllowScrolling ? 100000
+				: (dataArea.getClientArea().height - 8) / ListRow.ROW_HEIGHT;
 
 		long totalPossible = getTotalPossible();
 		if (curRowCount < maxRows && totalPossible > curRowCount) {
