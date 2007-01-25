@@ -212,7 +212,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 				}
 			}
 		};
+		viewVisible = true;
 		while (c != null) {
+			viewVisible |= c.isVisible();
 			c.addListener(SWT.Show, listenerShow);
 			c.addListener(SWT.Hide, listenerShow);
 			c = c.getParent();
