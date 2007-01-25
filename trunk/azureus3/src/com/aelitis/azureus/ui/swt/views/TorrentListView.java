@@ -143,7 +143,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 
 	private final Composite dataArea;
 
-	private static boolean bAllowScrolling;
+	private boolean bAllowScrolling;
 	
 	protected boolean bSkipUpdateCount = false;
 
@@ -477,7 +477,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 			} else {
 				view.removeDataSource(manager, true);
 			}
-			if (!bAllowScrolling) {
+			if (!view.getAllowScrolling()) {
 				view.regetDownloads();
 			}
 		}
@@ -488,7 +488,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 			} else {
 				view.removeDataSource(manager, true);
 			}
-			if (!bAllowScrolling) {
+			if (!view.getAllowScrolling()) {
 				view.regetDownloads();
 			}
 		}
@@ -597,5 +597,9 @@ public class TorrentListView extends ListView implements GlobalManagerListener
         ManagerUtils.open(dm);
       }
     }
+  }
+  
+  public boolean getAllowScrolling() {
+  	return bAllowScrolling;
   }
 }
