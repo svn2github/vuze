@@ -143,7 +143,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 
 	private final Composite dataArea;
 
-	private boolean bAllowScrolling;
+	private static boolean bAllowScrolling;
 	
 	protected boolean bSkipUpdateCount = false;
 
@@ -336,7 +336,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		int changeCount = 0;
 		int curRowCount = size(true);
 
-		int maxRows = bAllowScrolling ? 100000 : dataArea.getSize().y
+		int maxRows = bAllowScrolling ? 100000 : (dataArea.getClientArea().height - 4)
 				/ ListRow.ROW_HEIGHT;
 
 		long totalPossible = getTotalPossible();
@@ -410,6 +410,9 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		dm.addListener(dmListener);
   	if (isOurDownload(dm)) {
       addDataSource(dm, false);
+      if (!bAllowScrolling) {
+      	regetDownloads();
+      }
       updateCount();
     }
 	}
@@ -417,7 +420,9 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 	// GlobalManagerListener
 	public void downloadManagerRemoved(DownloadManager dm) {
 		removeDataSource(dm, true);
-		fixupRowCount();
+		if (!bAllowScrolling) {
+			regetDownloads();
+		}
 	}
 
 	// GlobalManagerListener
@@ -472,7 +477,9 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 			} else {
 				view.removeDataSource(manager, true);
 			}
-			view.fixupRowCount();
+			if (!bAllowScrolling) {
+				view.regetDownloads();
+			}
 		}
 
 		public void downloadComplete(DownloadManager manager) {
@@ -481,7 +488,9 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 			} else {
 				view.removeDataSource(manager, true);
 			}
-			view.fixupRowCount();
+			if (!bAllowScrolling) {
+				view.regetDownloads();
+			}
 		}
 
 		public void filePriorityChanged(DownloadManager download,
