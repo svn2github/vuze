@@ -82,6 +82,18 @@ public class UnchokerUtil {
    * @return the next peer to optimistically unchoke, or null if there are no peers available
    */
   public static PEPeerTransport getNextOptimisticPeer( ArrayList all_peers, boolean factor_reciprocated, boolean allow_snubbed ) {
+	  
+	  ArrayList	peers = getNextOptimisticPeers( all_peers, factor_reciprocated, allow_snubbed, 1 );
+	  
+	  if ( peers != null ){
+		  
+		  return((PEPeerTransport)peers.get(0));
+	  }
+	  
+	  return( null );
+  }
+
+  public static ArrayList getNextOptimisticPeers( ArrayList all_peers, boolean factor_reciprocated, boolean allow_snubbed, int num_needed ) {
     //find all potential optimistic peers
     ArrayList optimistics = new ArrayList();
     for( int i=0; i < all_peers.size(); i++ ) {
@@ -105,7 +117,11 @@ public class UnchokerUtil {
     if( optimistics.isEmpty() )  return null;  //no unchokable peers avail
     
     //factor in peer reciprocation ratio when picking optimistic peers
-    if( factor_reciprocated ) {
+    
+    ArrayList	result = new ArrayList(optimistics.size());
+    
+    if ( factor_reciprocated ){
+    	
       ArrayList ratioed_peers = new ArrayList( optimistics.size() );
       long[] ratios = new long[ optimistics.size() ];
       Arrays.fill( ratios, Long.MIN_VALUE );
@@ -120,18 +136,25 @@ public class UnchokerUtil {
         UnchokerUtil.updateLargestValueFirstSort( score, ratios, peer, ratioed_peers, 0 );  //higher value = worse score
       }
       
-      double factor = 1F / ( 0.8 + 0.2 * Math.pow( RandomUtils.nextFloat(), -1 ) );  //map to sorted list using a logistic curve 
+	  for (int i=0;i<num_needed && ratioed_peers.size() > 0;i++ ){
+
+		  double factor = 1F / ( 0.8 + 0.2 * Math.pow( RandomUtils.nextFloat(), -1 ) );  //map to sorted list using a logistic curve 
       
-      int pos = (int)(factor * ratioed_peers.size());
+		  int pos = (int)(factor * ratioed_peers.size());
 
-      return (PEPeerTransport)ratioed_peers.get( pos );
+		  result.add(ratioed_peers.remove( pos ));
+	  }
+    }else{
+
+	    for (int i=0;i<num_needed && optimistics.size() > 0;i++ ){
+	    	
+		    int rand_pos = new Random().nextInt( optimistics.size() );
+		    		    
+		    result.add( optimistics.remove( rand_pos ));
+	    }
     }
-
     
-    int rand_pos = new Random().nextInt( optimistics.size() );
-    PEPeerTransport peer = (PEPeerTransport)optimistics.get( rand_pos );
-
-    return peer;
+    return( result );
     
     //TODO:
     //in downloading mode, we would be better off optimistically unchoking just peers we are interested in ourselves,

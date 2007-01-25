@@ -42,8 +42,14 @@ public class SeedingUnchoker implements Unchoker {
   
   
   public ArrayList getImmediateUnchokes( int max_to_unchoke, ArrayList all_peers ) {
-    ArrayList to_unchoke = new ArrayList();
     
+    int	peer_count = all_peers.size();
+    
+    if ( max_to_unchoke > peer_count ){
+    	
+    	max_to_unchoke = peer_count;
+    }
+  
     //count all the currently unchoked peers
     int num_unchoked = 0;
     for( int i=0; i < all_peers.size(); i++ ) {
@@ -53,16 +59,27 @@ public class SeedingUnchoker implements Unchoker {
     
     //if not enough unchokes
     int needed = max_to_unchoke - num_unchoked;
-    if( needed > 0 ) {
-      for( int i=0; i < needed; i++ ) {
-      	PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, false, false );
-        if( peer == null )  break;  //no more new unchokes avail
-        to_unchoke.add( peer );
-        peer.setOptimisticUnchoke( true );
-      }
-    }
     
-    return to_unchoke;
+    if ( needed > 0 ) {
+  
+    	ArrayList to_unchoke = UnchokerUtil.getNextOptimisticPeers( all_peers, false, false, needed );
+    	
+    	if ( to_unchoke == null ){
+    		
+    		return( new ArrayList(0));
+    	}
+    	
+    	for ( int i=0;i<to_unchoke.size();i++){
+    		
+    		((PEPeerTransport)to_unchoke.get(i)).setOptimisticUnchoke( true );
+    	}
+    	
+    	return( to_unchoke );
+    	
+    }else{
+    	   
+    	return( new ArrayList(0));
+    }
   }
   
   
