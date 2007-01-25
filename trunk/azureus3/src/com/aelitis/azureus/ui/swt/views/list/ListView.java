@@ -374,7 +374,7 @@ public abstract class ListView implements UIUpdatable, Listener,
          return;
       }
 		Rectangle client = listCanvas.getClientArea();
-		int h = (rows.size() * ListRow.ROW_HEIGHT) - client.height;
+		int h = (rows.size() * ListRow.ROW_HEIGHT) - client.height - 4;
 
 		if (h <= 0 || client.height == 0) {
 			if (vBar.isVisible()) {
