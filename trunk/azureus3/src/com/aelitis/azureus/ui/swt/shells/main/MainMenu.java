@@ -95,7 +95,7 @@ public class MainMenu
 		Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq");
 		help_faq.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
-				String faqString = Constants.AZUREUS_WIKI;
+				String faqString = com.aelitis.azureus.util.Constants.URL_FAQ;
 				Utils.launch(faqString);
 			}
 		});

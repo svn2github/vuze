@@ -50,7 +50,7 @@ public class Constants
 	public static String URL_PORT = System.getProperty("platform_port", DEFAULT_PORT);
 
 	public static String URL_NAMESPACE = System.getProperty("platform_namespace", DEFAULT_NAMESPACE);
-
+	
 	public static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/" + URL_NAMESPACE + "/";
 
 	public static String URL_SUFFIX;
@@ -76,6 +76,8 @@ public class Constants
 	public static final String URL_SHARE = "share/";
 	
 	public static final String URL_DOWNLOAD = "download/";
+
+	public static final String URL_FAQ = URL_PREFIX + "Support.html";
 
 	
 	public static final String PLATFORM_PAGE = "/" + URL_NAMESPACE 	+ "/PublishNewContent.html";
