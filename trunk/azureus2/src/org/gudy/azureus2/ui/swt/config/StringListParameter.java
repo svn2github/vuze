@@ -140,10 +140,35 @@ public class StringListParameter extends Parameter {
       if(values[i].equals( value))
         return i;
     }
-    return 0;
+    return -1;
   }
   
 	protected void setIndex(final int index) {
+		if (index < 0) {
+			COConfigurationManager.removeParameter(name);
+
+			String defValue = COConfigurationManager.getStringParameter(name);
+			int i = findIndex(defValue, values);
+			if (i <= 0) {
+				setIndex(i);
+			} else {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (list == null || list.isDisposed()) {
+							return;
+						}
+
+				  	if (useCombo) {
+			  			((Combo)list).deselectAll();
+				  	} else {
+			  			((List)list).deselectAll();
+				  	}
+					}
+				});
+			}
+			return;
+		}
+		
   	String selected_value = values[index];
 
 		Utils.execSWTThread(new AERunnable() {
