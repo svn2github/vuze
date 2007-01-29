@@ -328,7 +328,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 							}
 
 							long diff = System.currentTimeMillis() - lStart;
-							if (diff > 30) {
+							if (diff > 50) {
 								log(diff + "ms to paint" + start + " - " + (end - 1));
 							}
 						} else {
@@ -414,9 +414,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 				headerArea.redraw();
 			}
 			vBar.setIncrement(ListRow.ROW_HEIGHT);
-			vBar.setMaximum(h + ListRow.ROW_HEIGHT);
-			vBar.setThumb(ListRow.ROW_HEIGHT);
-			//vBar.setThumb(client.height - ListRow.ROW_HEIGHT);
+			int thumb = client.height;
+			vBar.setMaximum(h + thumb);
+			vBar.setThumb(thumb);
 			vBar.setPageIncrement(client.height / 2);
 			//vBar.setThumb(Math.min(h, client.height));
 			if (iLastVBarPos != vBar.getSelection()) {
