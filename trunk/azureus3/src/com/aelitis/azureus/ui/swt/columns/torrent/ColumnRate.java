@@ -58,7 +58,7 @@ public class ColumnRate extends CoreTableColumn implements
 	 */
 	public ColumnRate(String sTableID) {
 		super("Rating", sTableID);
-		initializeAsGraphic(POSITION_LAST, 40);
+		initializeAsGraphic(POSITION_LAST, 50);
 		setAlignment(ALIGN_CENTER);
 	}
 
