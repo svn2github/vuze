@@ -38,7 +38,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -47,6 +46,7 @@ import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -92,13 +92,9 @@ public class TorrentListViewsUtils
 							url = Constants.URL_PREFIX + Constants.URL_DETAILS
 									+ dm.getTorrent().getHashWrapper().toBase32String()
 									+ ".html#share?" + Constants.URL_SUFFIX;
-							skin.setActiveTab("maintabs", "maintabs.browse");
 
-							SWTSkinObject skinObjectBrowser = skin.getSkinObject("browse");
-							if (skinObjectBrowser instanceof SWTSkinObjectBrowser) {
-								SWTSkinObjectBrowser sob = (SWTSkinObjectBrowser) skinObjectBrowser;
-								sob.setURL(url);
-							}
+							UIFunctions functions = UIFunctionsManager.getUIFunctions();
+							functions.viewURL(url, "browse", 0, 0, false);
 						} catch (TOTorrentException e) {
 							Debug.out(e);
 						}
