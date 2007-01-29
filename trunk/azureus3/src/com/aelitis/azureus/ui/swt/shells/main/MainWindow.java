@@ -61,6 +61,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReplyListener;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -648,6 +649,7 @@ public class MainWindow implements SWTSkinTabSetListener
 		}
 
 		String startTab = hasInComplete ? "maintabs.home" : "maintabs.browse";
+		startTab ="maintabs.browse";
 		SWTSkinTabSet tabSet = skin.getTabSet("maintabs");
 		if (tabSet != null) {
 			COConfigurationManager.setBooleanDefault("v3.Start Advanced", false);
@@ -876,11 +878,6 @@ public class MainWindow implements SWTSkinTabSetListener
 		// Switch to browse tab
 		skin.setActiveTab("maintabs", "maintabs.browse");
 
-		SWTSkinObject skinObject = skin.getSkinObject("browse");
-		if (skinObject == null) {
-			return;
-		}
-
 		String sURL = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
 				+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX;
 		//		String sURL = Constants.URL_PREFIX
@@ -889,8 +886,9 @@ public class MainWindow implements SWTSkinTabSetListener
 		//				+ Constants.URL_SUFFIX;
 		System.out.println(sURL);
 
-		if (skinObject instanceof SWTSkinObjectBrowser) {
-			((SWTSkinObjectBrowser) skinObject).setURL(sURL);
+		UIFunctions functions = UIFunctionsManager.getUIFunctions();
+		if (functions != null) {
+			functions.viewURL(sURL, "browse", 0, 0, false);
 			return;
 		}
 
@@ -899,7 +897,7 @@ public class MainWindow implements SWTSkinTabSetListener
 
 		// Get Search Results tab (which contains a tabset of searched terms),
 		// create if needed
-		skinObject = skin.getSkinObject("browse-tabs");
+		SWTSkinObject skinObject = skin.getSkinObject("browse-tabs");
 		if (skinObject == null) {
 			System.err.println("no browse-tabs");
 			return;
