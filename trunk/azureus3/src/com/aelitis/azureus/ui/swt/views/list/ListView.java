@@ -64,7 +64,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 	private static final boolean DEBUGADDREMOVE = false;
 
-	private static final boolean DEBUGPAINT = false;
+	private static final boolean DEBUGPAINT = true;
 
 	// Shorter name for ConfigManager, easier to read code
 	private static final ConfigurationManager configMan = ConfigurationManager.getInstance();
@@ -453,7 +453,14 @@ public abstract class ListView implements UIUpdatable, Listener,
 				Rectangle bounds = imgView.getBounds();
 
 				if (diff > 0) {
-					gc.copyArea(0, 0, bounds.width, bounds.height - diff, 0, diff);
+					if (Constants.isOSX) {
+						// copyArea should work on OSX, but why risk it when drawImage works
+						int h = bounds.height - diff;
+						gc.drawImage(imgView, 0, 0, bounds.width, h, 0, diff,
+								bounds.width, h);
+					} else {
+						gc.copyArea(0, 0, bounds.width, bounds.height - diff, 0, diff);
+					}
 				} else {
 					if (Constants.isOSX) {
 						int h = bounds.height + diff;
@@ -464,16 +471,17 @@ public abstract class ListView implements UIUpdatable, Listener,
 					}
 				}
 
-				iLastVBarPos = iThisVBarPos;
 				int ofs = getOffset(iLastVBarPos);
+				iLastVBarPos = iThisVBarPos;
 				TableRowCore[] visibleRows = getVisibleRows();
 				if (diff < 0) {
+					ofs = ListRow.ROW_HEIGHT - ofs;
 					// image moved up.. gap at bottom
 					int i = visibleRows.length - 1;
 					while (diff <= 0 && i >= 0) {
 						TableRowCore row = visibleRows[i];
 						if (DEBUGPAINT) {
-							logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff);
+							logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff + ";ofs=" + ofs);
 						}
 						row.doPaint(gc, true);
 						i--;
@@ -486,7 +494,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 					while (diff >= 0 && i < visibleRows.length) {
 						TableRowCore row = visibleRows[i];
 						if (DEBUGPAINT) {
-							logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff);
+							logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff + ";ofs=" + ofs);
 						}
 						row.doPaint(gc, true);
 						i++;
