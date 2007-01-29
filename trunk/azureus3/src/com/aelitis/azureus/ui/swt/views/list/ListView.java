@@ -383,6 +383,13 @@ public abstract class ListView implements UIUpdatable, Listener,
 		return ofs;
 	}
 
+	private int getBottomRowHeight() {
+		int ofs = (iLastVBarPos + listCanvas.getClientArea().height)
+				% ListRow.ROW_HEIGHT;
+
+		return ofs;
+	}
+
 	/**
 	 * 
 	 */
@@ -456,8 +463,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 					if (Constants.isOSX) {
 						// copyArea should work on OSX, but why risk it when drawImage works
 						int h = bounds.height - diff;
-						gc.drawImage(imgView, 0, 0, bounds.width, h, 0, diff,
-								bounds.width, h);
+						gc.drawImage(imgView, 0, 0, bounds.width, h, 0, diff, bounds.width,
+								h);
 					} else {
 						gc.copyArea(0, 0, bounds.width, bounds.height - diff, 0, diff);
 					}
@@ -471,17 +478,17 @@ public abstract class ListView implements UIUpdatable, Listener,
 					}
 				}
 
-				int ofs = getOffset(iLastVBarPos);
 				iLastVBarPos = iThisVBarPos;
 				TableRowCore[] visibleRows = getVisibleRows();
 				if (diff < 0) {
-					ofs = ListRow.ROW_HEIGHT - ofs;
+					int ofs = getBottomRowHeight();
 					// image moved up.. gap at bottom
 					int i = visibleRows.length - 1;
 					while (diff <= 0 && i >= 0) {
 						TableRowCore row = visibleRows[i];
 						if (DEBUGPAINT) {
-							logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff + ";ofs=" + ofs);
+							logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff
+									+ ";o=" + ofs);
 						}
 						row.doPaint(gc, true);
 						i--;
@@ -491,10 +498,12 @@ public abstract class ListView implements UIUpdatable, Listener,
 				} else {
 					// image moved down.. gap at top to draw
 					int i = 0;
+					int ofs = ListRow.ROW_HEIGHT - getOffset(iLastVBarPos);
 					while (diff >= 0 && i < visibleRows.length) {
 						TableRowCore row = visibleRows[i];
 						if (DEBUGPAINT) {
-							logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff + ";ofs=" + ofs);
+							logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff
+									+ ";o=" + ofs);
 						}
 						row.doPaint(gc, true);
 						i++;
