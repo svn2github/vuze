@@ -19,6 +19,7 @@
  */
 package com.aelitis.azureus.ui.swt.views;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -50,7 +51,7 @@ public class RateItListView extends ListView
 	 * @param parent
 	 */
 	public RateItListView(SWTSkinProperties skinProperties, Composite parent) {
-		super("RateItList", skinProperties, parent);
+		super("RateItList", skinProperties, parent, SWT.V_SCROLL);
 
 		updateColumnList(new TableColumnCore[] { new ColumnRate("RateItList")
 		}, null);

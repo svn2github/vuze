@@ -153,7 +153,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 			final boolean bAllowScrolling) {
 
 		super(TABLE_IDS[viewMode] + ((bMiniMode) ? "-Mini" : ""), skinProperties,
-				dataArea);
+				dataArea, bAllowScrolling ? SWT.V_SCROLL : SWT.NONE);
 		this.skin = skin;
 		this.countArea = countArea;
 		this.dataArea = dataArea;

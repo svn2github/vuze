@@ -19,6 +19,7 @@
  */
 package com.aelitis.azureus.ui.swt.views;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -72,7 +73,7 @@ public class RecommendationsView extends ListView
 	 */
 	public RecommendationsView(SWTSkinProperties skinProperties,
 			Composite headerArea, Composite dataArea) {
-		super("Recommendations", skinProperties, dataArea);
+		super("Recommendations", skinProperties, dataArea, SWT.V_SCROLL);
 
 		// XXX Temporary width change
 		tableItems[2].setWidth(190);

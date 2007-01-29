@@ -64,6 +64,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 	private static final boolean DEBUGADDREMOVE = false;
 
+	private static final boolean DEBUGPAINT = false;
+
 	// Shorter name for ConfigManager, easier to read code
 	private static final ConfigurationManager configMan = ConfigurationManager.getInstance();
 
@@ -125,7 +127,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 	private ScrollBar vBar;
 
-	private Image imageView = null;
+	private Image imgView = null;
 
 	private int iLastVBarPos;
 
@@ -133,10 +135,10 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 	private boolean bInRefreshVisible;
 
-   protected boolean viewVisible;
+	protected boolean viewVisible;
 
 	public ListView(final String sTableID, SWTSkinProperties skinProperties,
-			Composite parent) {
+			Composite parent, int style) {
 		this.skinProperties = skinProperties;
 		this.sTableID = sTableID;
 
@@ -152,7 +154,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 		parent.setBackgroundMode(SWT.INHERIT_FORCE);
 
 		listCanvas = new Canvas(parent, SWT.NO_BACKGROUND | SWT.NO_REDRAW_RESIZE
-				| SWT.V_SCROLL);
+				| style);
 		listCanvas.setLayout(new FormLayout());
 
 		formData = new FormData();
@@ -163,34 +165,35 @@ public abstract class ListView implements UIUpdatable, Listener,
 		listCanvas.setLayoutData(formData);
 
 		vBar = listCanvas.getVerticalBar();
-		vBar.addListener(SWT.Selection, new Listener() {
-			private TimerEvent event;
+		if (vBar != null) {
+			vBar.addListener(SWT.Selection, new Listener() {
+				private TimerEvent event;
 
-			public void handleEvent(Event e) {
-				if (DELAY_SCROLL) {
-					if (event == null || event.hasRun() || event.isCancelled()) {
-						event = SimpleTimer.addEvent("Scrolling",
-								SystemTime.getOffsetTime(0), new TimerEventPerformer() {
-									public void perform(TimerEvent event) {
-										event.cancel();
-										event = null;
+				public void handleEvent(Event e) {
+					if (DELAY_SCROLL) {
+						if (event == null || event.hasRun() || event.isCancelled()) {
+							event = SimpleTimer.addEvent("Scrolling",
+									SystemTime.getOffsetTime(0), new TimerEventPerformer() {
+										public void perform(TimerEvent event) {
+											event.cancel();
+											event = null;
 
-										Utils.execSWTThread(new AERunnable() {
-											public void runSupport() {
-												scrollTo(vBar.getSelection());
-											}
-										});
-									}
-								});
+											Utils.execSWTThread(new AERunnable() {
+												public void runSupport() {
+													scrollTo(vBar.getSelection());
+												}
+											});
+										}
+									});
+						} else {
+							log("save");
+						}
 					} else {
-						System.out.println("save");
+						scrollTo(vBar.getSelection());
 					}
-				} else {
-					scrollTo(vBar.getSelection());
 				}
-			}
-		});
-
+			});
+		}
 		// Track whether the view is visible or not and adjust scrollbar when
 		// visibility becomes true (Bug on SWT/Windows where setting scrollbar's
 		// visibility doesn't set it in Windows, but SWT still returns that it
@@ -219,7 +222,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 			c.addListener(SWT.Hide, listenerShow);
 			c = c.getParent();
 		}
-		
+
 		listCanvas.addListener(SWT.Resize, new Listener() {
 			int w = listCanvas.getSize().x;
 
@@ -228,7 +231,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 				int nw = listCanvas.getSize().x;
 				if (w != nw) {
 					w = nw;
-					listCanvas.redraw();
+					refreshVisible(true, true);
 				}
 			}
 		});
@@ -240,8 +243,11 @@ public abstract class ListView implements UIUpdatable, Listener,
 				boolean bNeedsRefresh = false;
 
 				Rectangle clientArea = listCanvas.getClientArea();
-				if (imageView == null) {
-					imageView = new Image(e.gc.getDevice(), clientArea);
+				if (imgView == null) {
+					if (DEBUGPAINT) {
+						logPAINT("first paint (img null)");
+					}
+					imgView = new Image(e.gc.getDevice(), clientArea);
 					bNeedsRefresh = true;
 					e.setBounds(clientArea);
 				} else {
@@ -252,7 +258,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 							GC gc = null;
 							try {
 								gc = new GC(newImageView);
-								gc.drawImage(imageView, 0, 0);
+								gc.drawImage(imgView, 0, 0);
 							} catch (Exception ex) {
 								if (!(ex instanceof IllegalArgumentException)) {
 									// IllegalArgumentException happens when we are already drawing 
@@ -268,17 +274,20 @@ public abstract class ListView implements UIUpdatable, Listener,
 						} else {
 							e.setBounds(clientArea);
 						}
-						imageView.dispose();
-						imageView = newImageView;
+						imgView.dispose();
+						imgView = newImageView;
 					}
 				}
 
 				if (bNeedsRefresh) {
+					if (DEBUGPAINT) {
+						logPAINT("paint needs refresh");
+					}
 					lastBounds = clientArea;
 
 					GC gc = null;
 					try {
-						gc = new GC(imageView);
+						gc = new GC(imgView);
 						gc.setForeground(listCanvas.getForeground());
 						gc.setBackground(listCanvas.getBackground());
 
@@ -293,8 +302,10 @@ public abstract class ListView implements UIUpdatable, Listener,
 								end = visibleRows.length;
 							}
 
-							//System.out.println(sTableID + "] " + visibleRows.length
-							//		+ " visible;" + "; " + start + " - " + (end - 1));
+							if (DEBUGPAINT) {
+								logPAINT(visibleRows.length + " visible;" + "; " + start
+										+ " - " + (end - 1));
+							}
 							long lStart = System.currentTimeMillis();
 							for (int i = start; i < end; i++) {
 								TableRowCore row = visibleRows[i];
@@ -308,7 +319,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 							int endY = visibleRows.length * ListRow.ROW_HEIGHT + ofs;
 							if (endY < clientArea.height) {
-								//System.out.println("fill " + (clientArea.height - endY) + "@" + endY);
+								if (DEBUGPAINT) {
+									logPAINT("fill " + (clientArea.height - endY) + "@" + endY);
+								}
 								gc.setBackground(listCanvas.getBackground());
 								gc.fillRectangle(0, endY, clientArea.width, clientArea.height
 										- endY);
@@ -316,11 +329,12 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 							long diff = System.currentTimeMillis() - lStart;
 							if (diff > 30) {
-								System.out.println(diff + "ms to paint" + start + " - "
-										+ (end - 1));
+								log(diff + "ms to paint" + start + " - " + (end - 1));
 							}
 						} else {
-							//System.out.println("fillall");
+							if (DEBUGPAINT) {
+								logPAINT("fillall");
+							}
 							gc.fillRectangle(clientArea);
 						}
 					} catch (Exception ex) {
@@ -337,8 +351,11 @@ public abstract class ListView implements UIUpdatable, Listener,
 					}
 				}
 
-				e.gc.drawImage(imageView, e.x, e.y, e.width, e.height, e.x, e.y,
-						e.width, e.height);
+				if (DEBUGPAINT) {
+					logPAINT("paint " + e.getBounds());
+				}
+				e.gc.drawImage(imgView, e.x, e.y, e.width, e.height, e.x, e.y, e.width,
+						e.height);
 			}
 		});
 
@@ -370,9 +387,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 	 * 
 	 */
 	protected void refreshScrollbar() {
-      if (!viewVisible) {
-         return;
-      }
+		if (!viewVisible || vBar == null) {
+			return;
+		}
 		Rectangle client = listCanvas.getClientArea();
 		int h = (rows.size() * ListRow.ROW_HEIGHT) - client.height;
 
@@ -390,8 +407,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 				headerArea.redraw();
 			}
 			vBar.setIncrement(ListRow.ROW_HEIGHT);
-			vBar.setMaximum(h);
-			vBar.setThumb(1);
+			vBar.setMaximum(h + ListRow.ROW_HEIGHT);
+			vBar.setThumb(ListRow.ROW_HEIGHT);
 			//vBar.setThumb(client.height - ListRow.ROW_HEIGHT);
 			vBar.setPageIncrement(client.height / 2);
 			//vBar.setThumb(Math.min(h, client.height));
@@ -405,7 +422,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 	}
 
 	private void scrollTo(int pos) {
-		if (!vBar.getVisible()) {
+		if (vBar == null || !vBar.getVisible()) {
 			return;
 		}
 
@@ -424,10 +441,65 @@ public abstract class ListView implements UIUpdatable, Listener,
 		if (pos != vBar.getSelection()) {
 			vBar.setSelection(pos);
 		}
-		iLastVBarPos = vBar.getSelection();
+		int iThisVBarPos = vBar.getSelection();
+		int diff = iLastVBarPos - iThisVBarPos;
+		if (DEBUGPAINT) {
+			logPAINT("scroll diff = " + diff + ";" + imgView);
+		}
+		if (diff != 0 && imgView != null && !imgView.isDisposed()) {
+			GC gc = null;
+			try {
+				gc = new GC(imgView);
+				Rectangle bounds = imgView.getBounds();
+
+				gc.copyArea(0, 0, bounds.width, bounds.height - diff, 0, diff);
+
+				iLastVBarPos = iThisVBarPos;
+				int ofs = getOffset(iLastVBarPos);
+				TableRowCore[] visibleRows = getVisibleRows();
+				if (diff < 0) {
+					// image moved up.. gap at bottom
+					int i = visibleRows.length - 1;
+					while (diff <= 0 && i >= 0) {
+						TableRowCore row = visibleRows[i];
+						if (DEBUGPAINT) {
+							logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff);
+						}
+						row.doPaint(gc, true);
+						i--;
+						diff += ofs;
+						ofs = ListRow.ROW_HEIGHT;
+					}
+				} else {
+					// image moved down.. gap at top to draw
+					int i = 0;
+					while (diff >= 0 && i < visibleRows.length) {
+						TableRowCore row = visibleRows[i];
+						if (DEBUGPAINT) {
+							logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff);
+						}
+						row.doPaint(gc, true);
+						i++;
+						diff -= ofs;
+						ofs = ListRow.ROW_HEIGHT;
+					}
+				}
+			} catch (Exception ex) {
+				if (!(ex instanceof IllegalArgumentException)) {
+					// IllegalArgumentException happens when we are already drawing 
+					// to the image.  This is "normal" as we may be in a paint event,
+					// and something forces a repaint
+					Debug.out(ex);
+				}
+			} finally {
+				if (gc != null) {
+					gc.dispose();
+				}
+			}
+		}
+		iLastVBarPos = iThisVBarPos;
 
 		listCanvas.redraw();
-		refreshVisible(true, true);
 	}
 
 	/**
@@ -440,7 +512,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 		final Cursor cursor = new Cursor(headerArea.getDisplay(), SWT.CURSOR_HAND);
 		headerArea.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
-				Utils.disposeSWTObjects(new Object[] { cursor });
+				Utils.disposeSWTObjects(new Object[] { cursor
+				});
 			}
 		});
 
@@ -613,15 +686,15 @@ public abstract class ListView implements UIUpdatable, Listener,
 			}
 
 			ListRow newRow = (ListRow) rows.get(index);
-			setSelectedRows(new ListRow[] { newRow });
+			setSelectedRows(new ListRow[] { newRow
+			});
 		} finally {
 			selectedRows_mon.exit();
 		}
 	}
 
 	public void refreshVisible(final boolean doGraphics,
-			final boolean bForceRedraw)
-	{
+			final boolean bForceRedraw) {
 		if (bInRefreshVisible) {
 			bRestartRefreshVisible = true;
 			return;
@@ -635,7 +708,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 				try {
 					for (int i = 0; i < visibleRows.length; i++) {
 						if (bRestartRefreshVisible) {
-							//System.out.println("STOPPED refresh at " + i);
+							if (DEBUGPAINT) {
+								logPAINT("STOPPED refresh at " + i);
+							}
 							return;
 						}
 
@@ -647,7 +722,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 						display.asyncExec(new AERunnable() {
 							public void runSupport() {
 								if (bRestartRefreshVisible) {
-									//System.out.println("stopped refresh at " + row.getIndex());
+									if (DEBUGPAINT) {
+										logPAINT("stopped refresh at " + row.getIndex());
+									}
 									return;
 								}
 
@@ -736,7 +813,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 	}
 
 	public void addDataSource(final Object datasource, boolean bImmediate) {
-		addDataSources(new Object[] { datasource }, bImmediate);
+		addDataSources(new Object[] { datasource
+		}, bImmediate);
 	}
 
 	public void addDataSources(final Object[] dataSources, boolean bImmediate) {
@@ -870,6 +948,14 @@ public abstract class ListView implements UIUpdatable, Listener,
 		}
 	}
 
+	protected void logPAINT(String string) {
+		if (!DEBUGPAINT) {
+			return;
+		}
+
+		System.out.println(sTableID + "] " + string);
+	}
+
 	public void removeDataSource(final Object datasource, boolean bImmediate) {
 		Utils.execSWTThread(new Runnable() {
 			public void run() {
@@ -927,7 +1013,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 					refreshScrollbar();
 					// TODO: Redraw only if visible or above visible (bg change)
 
-					if (imageView != null && !imageView.isDisposed()) {
+					if (imgView != null && !imgView.isDisposed()) {
 						TableRowCore[] visibleRows = getVisibleRows();
 						Rectangle clientArea = listCanvas.getClientArea();
 						if (visibleRows.length > 0) {
@@ -937,7 +1023,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 							if (endY < clientArea.height) {
 								GC gc = null;
 								try {
-									gc = new GC(imageView);
+									gc = new GC(imgView);
 									gc.setBackground(listCanvas.getBackground());
 
 									gc.fillRectangle(0, endY, clientArea.width, clientArea.height
@@ -958,7 +1044,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 						} else {
 							GC gc = null;
 							try {
-								gc = new GC(imageView);
+								gc = new GC(imgView);
 								gc.setBackground(listCanvas.getBackground());
 								gc.fillRectangle(clientArea);
 							} catch (Exception ex) {
@@ -1017,8 +1103,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 	{
 		// XXX Copied from TableView!
 		private TableCellMouseEvent createMouseEvent(TableCellCore cell, Event e,
-				int type)
-		{
+				int type) {
 			TableCellMouseEvent event = new TableCellMouseEvent();
 			event.cell = cell;
 			event.eventType = type;
@@ -1087,7 +1172,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 						}
 					} else {
-						setSelectedRows(new ListRow[] { row });
+						setSelectedRows(new ListRow[] { row
+						});
 					}
 					if (listCanvas.isDisposed()) {
 						return;
@@ -1118,8 +1204,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 	}
 
 	private void addListenerAndChildren(Composite composite, int eventType,
-			Listener listener)
-	{
+			Listener listener) {
 		composite.addListener(eventType, listener);
 
 		Control[] children = composite.getChildren();
@@ -1242,8 +1327,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 	}
 
 	public void updateColumnList(TableColumnCore[] columns,
-			String defaultSortColumnID)
-	{
+			String defaultSortColumnID) {
 		// XXX Adding Columns only has to be done once per TableID.  
 		// Doing it more than once won't harm anything, but it's a waste.
 		TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -1627,7 +1711,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 					case SWT.HOME: {
 						ListRow row = (ListRow) rows.get(0);
 						if (row != null) {
-							setSelectedRows(new ListRow[] { row });
+							setSelectedRows(new ListRow[] { row
+							});
 						}
 						break;
 					}
@@ -1638,7 +1723,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 							ListRow row = (ListRow) rows.get(i - 1);
 
 							if (row != null) {
-								setSelectedRows(new ListRow[] { row });
+								setSelectedRows(new ListRow[] { row
+								});
 							}
 						}
 						break;
@@ -1672,8 +1758,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 	}
 
 	public void addSelectionListener(ListSelectionAdapter listener,
-			boolean bFireSelection)
-	{
+			boolean bFireSelection) {
 		listenersSelection.add(listener);
 		if (bFireSelection) {
 			ListRow[] rows = getSelectedRows();
@@ -1977,8 +2062,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 	 * @param bDoGraphics 
 	 */
 	public boolean rowRefresh(ListRow row, boolean bDoGraphics,
-			boolean bForceRedraw)
-	{
+			boolean bForceRedraw) {
 		if (listCanvas == null || listCanvas.isDisposed()) {
 			return false;
 		}
@@ -1995,10 +2079,10 @@ public abstract class ListView implements UIUpdatable, Listener,
 			Rectangle rect = new Rectangle(clientArea.x, y, clientArea.width,
 					ListRow.ROW_HEIGHT);
 
-			if (imageView != null) {
+			if (imgView != null) {
 				GC gc = null;
 				try {
-					gc = new GC(imageView);
+					gc = new GC(imgView);
 					gc.setClipping(rect);
 					if (!row.isVisible()) {
 						System.out.println("asked for row refresh but not visible "
