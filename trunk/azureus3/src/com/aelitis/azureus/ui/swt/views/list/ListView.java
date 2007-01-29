@@ -455,7 +455,13 @@ public abstract class ListView implements UIUpdatable, Listener,
 				if (diff > 0) {
 					gc.copyArea(0, 0, bounds.width, bounds.height - diff, 0, diff);
 				} else {
-					gc.copyArea(0, -diff, bounds.width, bounds.height + diff, 0, 0);
+					if (Constants.isOSX) {
+						int h = bounds.height + diff;
+						gc.drawImage(imgView, 0, -diff, bounds.width, h, 0, 0,
+								bounds.width, h);
+					} else {
+						gc.copyArea(0, -diff, bounds.width, bounds.height + diff, 0, 0);
+					}
 				}
 
 				iLastVBarPos = iThisVBarPos;
