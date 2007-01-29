@@ -335,7 +335,7 @@ public class PEPieceImpl
 				}
 				if (blocksFound >0){
 					
-					System.out.println( "Request hint satisfied: start=" + i + ",blocks=" + blocksFound );
+					// System.out.println( "Request hint satisfied: start=" + i + ",blocks=" + blocksFound );
 					
 					return new int[] {i, blocksFound};
 				}
