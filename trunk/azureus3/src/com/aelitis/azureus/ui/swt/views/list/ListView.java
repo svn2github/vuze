@@ -452,7 +452,11 @@ public abstract class ListView implements UIUpdatable, Listener,
 				gc = new GC(imgView);
 				Rectangle bounds = imgView.getBounds();
 
-				gc.copyArea(0, 0, bounds.width, bounds.height - diff, 0, diff);
+				if (diff > 0) {
+					gc.copyArea(0, 0, bounds.width, bounds.height - diff, 0, diff);
+				} else {
+					gc.copyArea(0, -diff, bounds.width, bounds.height + diff, 0, 0);
+				}
 
 				iLastVBarPos = iThisVBarPos;
 				int ofs = getOffset(iLastVBarPos);
