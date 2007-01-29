@@ -64,7 +64,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 	private static final boolean DEBUGADDREMOVE = false;
 
-	private static final boolean DEBUGPAINT = true;
+	private static final boolean DEBUGPAINT = false;
 
 	// Shorter name for ConfigManager, easier to read code
 	private static final ConfigurationManager configMan = ConfigurationManager.getInstance();
