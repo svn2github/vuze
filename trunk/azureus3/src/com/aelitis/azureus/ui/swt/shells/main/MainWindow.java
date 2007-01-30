@@ -649,7 +649,6 @@ public class MainWindow implements SWTSkinTabSetListener
 		}
 
 		String startTab = hasInComplete ? "maintabs.home" : "maintabs.browse";
-		startTab ="maintabs.browse";
 		SWTSkinTabSet tabSet = skin.getTabSet("maintabs");
 		if (tabSet != null) {
 			COConfigurationManager.setBooleanDefault("v3.Start Advanced", false);
