@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.json.JSONObject;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -340,12 +341,33 @@ public class PublishTransaction extends Transaction
             JSONObject params = new JSONObject();
             params.put("folder", dataFile.isDirectory());
             params.put("name", dataFile.getName());
+            long size = getSize(dataFile);
+            params.put("size", size);
+            params.put("size-text", DisplayFormatters.formatByteCountToKiBEtc(size));
             sendBrowserMessage("torrent", "chosen", params);
     	} else {
     		//No file was chosen, cancel the transaction
     		cancel();
             stop();
     	}
+    }
+    
+    private long getSize(File folderFile) {
+    	if (folderFile.isFile()) {
+    		return folderFile.length();
+    	}
+    	if (folderFile.isDirectory()) {
+    		long size = 0;
+    		File[] files = folderFile.listFiles();
+    		if (files != null) {
+    			for (int i = 0; i < files.length; i++) {
+						File file = files[i];
+						size += getSize(file);
+					}
+    		}
+    		return size;
+    	}
+    	return 0;
     }
     
     private class ResizedImageInfo {
