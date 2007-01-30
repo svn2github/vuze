@@ -122,8 +122,10 @@ public class IPWFilePanel extends AbstractWizardPanel {
     	Debug.printStackTrace(e);
     }
     valid = false;
-    wizard.setErrorMessage(MessageText.getString("installPluginsWizard.file.invalidfile"));
-    wizard.setNextEnabled(false);
+    if (!fileName.equals("")) {
+    	wizard.setErrorMessage(MessageText.getString("installPluginsWizard.file.invalidfile"));
+    	wizard.setNextEnabled(false);
+    }
   }
   
 	public boolean 
