@@ -185,7 +185,7 @@ public class ColumnRate extends CoreTableColumn implements
 				gcImage.setFont(smallFont);
 
 				GCStringPrinter.printString(gcImage, "" + count + " ratings",
-						img.getBounds(), true, false, SWT.BOTTOM);
+						img.getBounds(), true, false, SWT.BOTTOM | SWT.CENTER);
 			}
 
 			gcImage.dispose();
