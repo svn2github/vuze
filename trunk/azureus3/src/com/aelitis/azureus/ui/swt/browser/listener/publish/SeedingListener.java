@@ -156,8 +156,9 @@ public class SeedingListener extends AbstractMessageListener {
 			
 			Download[] downloads = dm.getDownloads();    			
 		
-			long total_bytes = 0;
-			long total_bytes_remaining = 0;
+			boolean hasIncompletePublish = false;
+			long totSeedingBytes = 0;
+			long totSeedingBytesRemaining = 0;
 			long total_up_rate_bps = 0;
 		
          int num_actually_uploading = 0;
@@ -168,7 +169,7 @@ public class SeedingListener extends AbstractMessageListener {
 			
 				Download d = downloads[i];
 			
-				if( isPublished( d ) ) {  //this one we're uploading as published  					  
+				if( isPublished( d ) ) {  //this one we're uploading as published
 				
 					//TODO use something more explicit than swarm availability / uploaded bytes
 					
@@ -180,12 +181,7 @@ public class SeedingListener extends AbstractMessageListener {
                   indiv_torrents.add( new IndividualProgress( d.getTorrent().getHash(), d.getName(), 100, 0 ) );
 					}
 					else {  //upload still in progress
-                  
-                  total_bytes += download_size;
-                  
-                  long bytes_remaining = (long)(download_size * ( (float)(100 - percent_done) /100 ) );  //rough
-                  
-                  total_bytes_remaining += bytes_remaining;  //global stats
+						hasIncompletePublish = true;
                   
 						long eta = INFINITE_ETA;  //so it shows infinity						
 						
@@ -195,15 +191,21 @@ public class SeedingListener extends AbstractMessageListener {
 						else if( d.getState() == Download.ST_ERROR ) {
 						   eta = ERROR_ETA;
 						}
-						else {                       
-                     num_actually_uploading++;  //running and upload still needed
-                     
+						else {
+							num_actually_uploading++; //running and upload still needed
+
+							totSeedingBytes += download_size;
+
+							long remaining = (long) (download_size * ((float) (100 - percent_done) / 100)); //rough
+
+							totSeedingBytesRemaining += remaining; //global stats
+
 							long up_rate_bps = d.getStats().getUploadAverage();
-						
-							if( up_rate_bps > 0 ) {
-								total_up_rate_bps += up_rate_bps;  //global stats
-						
-								eta = bytes_remaining / up_rate_bps;  //seconds remaining
+
+							if (up_rate_bps > 0) {
+								total_up_rate_bps += up_rate_bps; //global stats
+
+								eta = remaining / up_rate_bps; //seconds remaining
 							}
 						}
 				
@@ -218,21 +220,21 @@ public class SeedingListener extends AbstractMessageListener {
 				long g_percent = 100;
 				long g_eta = INFINITE_ETA;
 				
-				if( total_bytes > 0 ) {   //there is still torrent data to upload
-					g_percent = ((total_bytes - total_bytes_remaining) *100) / total_bytes;				
+				if (totSeedingBytes > 0) { //there is still torrent data to upload
+					g_percent = ((totSeedingBytes - totSeedingBytesRemaining) * 100)
+							/ totSeedingBytes;
 
-					if( total_up_rate_bps > 0 ) {					
-						g_eta = total_bytes_remaining / total_up_rate_bps;  //seconds remaining					
-					}       
-               
-               if( num_actually_uploading < 1 ) {  //all in stopped state
-                  g_eta = STOPPED_ETA;
-                  g_percent = 0;
-               }               
+					if (total_up_rate_bps > 0) {
+						g_eta = totSeedingBytesRemaining / total_up_rate_bps; //seconds remaining					
+					}
+
+					if (num_actually_uploading < 1) { //all in stopped state
+						g_eta = STOPPED_ETA;
+						g_percent = 0;
+					}
+				} else if (!hasIncompletePublish) { //done uploading
+					g_eta = 0;
 				}
-            else {   //done uploading
-               g_eta = 0;
-            }
 
             JSONArray torrents = new JSONArray();
             
