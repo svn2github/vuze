@@ -36,6 +36,8 @@ import org.gudy.azureus2.core3.util.IndentWriter;
 
 public interface PiecePicker
 {
+	public static final int REQUEST_HINT_MAX_LIFE	= 120*1000;
+	
     public boolean  hasDownloadablePiece();
     /** @return long value indicated serial number of current count of changes
      * to hasNeededUndonePiece.

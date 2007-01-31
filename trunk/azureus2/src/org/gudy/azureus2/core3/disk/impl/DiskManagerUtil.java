@@ -52,19 +52,13 @@ DiskManagerUtil
 	}
 
 	public static boolean
-	checkBlockConsistency(
+	checkBlockConsistencyForHint(
 		DiskManager	dm,
 		String		originator,
 		int 		pieceNumber,
 		int 		offset,
 		int 		length)
 	{
-		if (length > max_read_block_size) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: " + originator + " length=" + length + " > " + max_read_block_size));
-			return false;
-		}
 		if (length <= 0 ) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
@@ -118,11 +112,18 @@ DiskManagerUtil
 		int 		offset,
 		int 		length)
 	{
-		if ( !checkBlockConsistency( dm, originator, pieceNumber, offset, length )){
+		if ( !checkBlockConsistencyForHint( dm, originator, pieceNumber, offset, length )){
 			
 			return( false );
 		}
 		
+		if (length > max_read_block_size) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: " + originator + " length=" + length + " > " + max_read_block_size));
+			return false;
+		}
+
 		if(!dm.getPiece(pieceNumber).isDone()) {
 			Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
 					"CHECKBLOCK2: " + originator + " piece #" + pieceNumber + " not done"));

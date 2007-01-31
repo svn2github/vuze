@@ -179,7 +179,29 @@ DirectByteBuffer
 			*/
 		}
 	}
-  
+	
+		/**
+		 * constructor for reference counted version
+		 * @param basis
+		 */
+	
+	protected
+	DirectByteBuffer(
+		DirectByteBuffer		basis )
+	{
+		allocator	= basis.allocator;
+		buffer 		= basis.buffer;
+		pool		= null;
+	}
+	
+	public ReferenceCountedDirectByteBuffer
+	getReferenceCountedBuffer()
+	{
+		ReferenceCountedDirectByteBuffer res = new ReferenceCountedDirectByteBuffer( this );
+				
+		return( res );
+	}
+	
 	protected void
 	traceUsage(
 		byte		subsystem,

@@ -49,6 +49,7 @@ PluginManagerDefaults
 	//public static final String	PID_JPC						= "JPC";
 	public static final String	PID_EXTERNAL_SEED			= "External Seed";
 	public static final String	PID_LOCAL_TRACKER			= "Local Tracker";
+	public static final String	PID_TRACKER_PEER_AUTH		= "Tracker Peer Auth";
 	
 	public static final String[] PLUGIN_IDS = {
 			
@@ -68,6 +69,7 @@ PluginManagerDefaults
 			//PID_JPC,
 			PID_EXTERNAL_SEED,
 			PID_LOCAL_TRACKER,
+			PID_TRACKER_PEER_AUTH,
 		};
 	
 	public String[]

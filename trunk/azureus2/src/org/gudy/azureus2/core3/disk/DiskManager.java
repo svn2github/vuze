@@ -239,7 +239,7 @@ DiskManager
 		int 	length );
 		
 	public boolean 
-	checkBlockConsistency(
+	checkBlockConsistencyForHint(
 		String	originator,
 		int 	pieceNumber, 
 		int	 	offset, 

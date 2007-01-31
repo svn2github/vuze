@@ -188,6 +188,8 @@ public class PiecePickerImpl
 
 	private int					allocate_request_loop_count;
 	
+	private static boolean		enable_request_hints;
+	
 	private CopyOnWriteList		listeners = new CopyOnWriteList();
 	
 	static
@@ -205,6 +207,8 @@ public class PiecePickerImpl
 				{
 					firstPiecePriority =COConfigurationManager.getBooleanParameter(parameterName);
 					paramPriorityChange++;	// this is a user's priority change event
+			    }else if ( parameterName.equals( "Piece Picker Request Hint Enabled" )){
+			    	enable_request_hints = COConfigurationManager.getBooleanParameter(parameterName);
 			    }
 		    }
 		}
@@ -213,6 +217,7 @@ public class PiecePickerImpl
 
 		COConfigurationManager.addParameterListener("Prioritize Most Completed Files", parameterListener);
 		COConfigurationManager.addAndFireParameterListener("Prioritize First Piece", parameterListener);
+		COConfigurationManager.addAndFireParameterListener("Piece Picker Request Hint Enabled", parameterListener);
 
 	}
 	
@@ -985,7 +990,7 @@ public class PiecePickerImpl
 				nbRarestActive++;
 		}
 	
-		final int[] blocksFound =pePiece.getAndMarkBlocks(pt, nbWanted  );
+		final int[] blocksFound =pePiece.getAndMarkBlocks(pt, nbWanted,enable_request_hints  );
 		final int blockNumber =blocksFound[0];
 		final int nbBlocks =blocksFound[1];
 
@@ -1426,9 +1431,14 @@ public class PiecePickerImpl
                 	priority += peerPriorities[i];
                 }
                 
-                if ( pt.getRequestHint( i ) != null ){
+                if ( enable_request_hints ){
                 	
-                	priority += PRIORITY_REQUEST_HINT;
+	                if ( pt.getRequestHint( i ) != null ){
+	                	
+	                	System.out.println( "PiecePicker: hint for " + i );
+	                	
+	                	priority += PRIORITY_REQUEST_HINT;
+	                }
                 }
                 
                 if ( priority >= 0 ){

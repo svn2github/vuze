@@ -1759,13 +1759,13 @@ PEPeerControlImpl
 	}
 	
 	public boolean 
-	validatePieceRequest(
+	validateHintRequest(
 		PEPeerTransport	originator,
 		int				pieceNumber, 
 		int 			offset, 
 		int 			length) 
 	{
-		return( disk_mgr.checkBlockConsistency(originator.getIp(),pieceNumber, offset, length ));
+		return( disk_mgr.checkBlockConsistencyForHint(originator.getIp(),pieceNumber, offset, length ));
 	}
 	
 	public boolean validatePieceReply(int pieceNumber, int offset, DirectByteBuffer data) {

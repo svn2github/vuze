@@ -96,12 +96,13 @@ AzureusCoreStats
 	public static final String ST_PEER_MANAGER_PEER_STALLED_DISK_COUNT	= "peer.manager.peer.stalled.disk.count";
 
 	
-	private static final Integer	POINT 		= new Integer(1);
-	private static final Integer	CUMULATIVE 	= new Integer(1);
+	public static final String	POINT 		= "Point";
+	public static final String	CUMULATIVE 	= "Cumulative";
 	
+	private static final List		stats_names	= new ArrayList();
 	private static final Map		stats_types	= new HashMap();
 	
-	private static final Object[][] _ST_ALL = {
+	private static final String[][] _ST_ALL = {
 		
 		{ ST_DISK_READ_QUEUE_LENGTH,				POINT },
 		{ ST_DISK_READ_QUEUE_BYTES,					POINT },
@@ -154,10 +155,7 @@ AzureusCoreStats
 	
 	static{
 		
-		for (int i=0;i<_ST_ALL.length;i++){
-			
-			stats_types.put( _ST_ALL[i][0], _ST_ALL[i][1] );
-		}
+		addStatsDefinitions( _ST_ALL );
 	}
 	
 	private static final List	providers 	= new ArrayList();
@@ -166,6 +164,20 @@ AzureusCoreStats
 	
 	private static boolean 	enable_averages;
 	private static Timer	average_timer;
+	
+	public static void
+	addStatsDefinitions(
+		String[][]		stats )
+	{
+		for (int i=0;i<stats.length;i++){
+			
+			String	name = stats[i][0];
+			
+			stats_names.add( name );
+			
+			stats_types.put( name, stats[i][1] );
+		}
+	}
 	
 	public static Map
 	getStats(
@@ -186,9 +198,9 @@ AzureusCoreStats
 			
 			Pattern pattern = Pattern.compile( type );
 						
-			for (int i=0;i<_ST_ALL.length;i++){
+			for (int i=0;i<stats_names.size();i++){
 				
-				String	s = (String)_ST_ALL[i][0];
+				String	s = (String)stats_names.get(i);
 				
 				if ( pattern.matcher( s ).matches()){
 					

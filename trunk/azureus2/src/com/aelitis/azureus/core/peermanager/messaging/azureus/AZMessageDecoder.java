@@ -295,10 +295,18 @@ public class AZMessageDecoder implements MessageStreamDecoder {
       		msg_id_read_complete = true;
       	}
       	 
-      	if( MessageManager.getSingleton().lookupMessage( msg_id_bytes ).getType() == Message.TYPE_DATA_PAYLOAD ) {
-      		data_bytes_read += read;
+      	Message message = MessageManager.getSingleton().lookupMessage( msg_id_bytes );
+      	
+      	if ( message == null ){
+      		
+      		Debug.out( "Unknown message type '" + new String( msg_id_bytes ) + "'" );
+      		
+      		throw( new IOException( "Unknown message type" ));
       	}
-      	else {
+      	
+      	if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
+      		data_bytes_read += read;
+      	}else{
       		prot_bytes_read += read;
       	}
       }

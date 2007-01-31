@@ -310,34 +310,37 @@ public class PEPieceImpl
 	 * TODO: this should return the largest span equal or smaller than nbWanted
 	 * OR, probably a different method should do that, so this one can support 'more sequential' picking
 	 */
-	public int[] getAndMarkBlocks(PEPeer peer, int nbWanted )
+	public int[] getAndMarkBlocks(PEPeer peer, int nbWanted, boolean enable_request_hints )
 	{
 		final String ip =peer.getIp();
         final boolean[] written =dmPiece.getWritten();
 		int blocksFound =0;
 		
-		int[]	request_hint = peer.getRequestHint( dmPiece.getPieceNumber());
-		
-		if ( request_hint != null ){
+		if ( enable_request_hints ){
 			
-				// try to honour the hint first
+			int[]	request_hint = peer.getRequestHint( dmPiece.getPieceNumber());
 			
-			int	hint_block_start 	= request_hint[0] / DiskManager.BLOCK_SIZE;
-			int hint_block_count	=  ( request_hint[1] + DiskManager.BLOCK_SIZE-1 ) / DiskManager.BLOCK_SIZE;
-			
-			for (int i =hint_block_start; i < nbBlocks && i <hint_block_start + hint_block_count; i++)
-			{
-				while (blocksFound <nbWanted &&(i +blocksFound) <nbBlocks &&!downloaded[i +blocksFound]
-				    &&requested[i +blocksFound] ==null &&(written ==null ||!written[i]))
+			if ( request_hint != null ){
+				
+					// try to honour the hint first
+				
+				int	hint_block_start 	= request_hint[0] / DiskManager.BLOCK_SIZE;
+				int hint_block_count	=  ( request_hint[1] + DiskManager.BLOCK_SIZE-1 ) / DiskManager.BLOCK_SIZE;
+				
+				for (int i =hint_block_start; i < nbBlocks && i <hint_block_start + hint_block_count; i++)
 				{
-					requested[i +blocksFound] =ip;
-					blocksFound++;
-				}
-				if (blocksFound >0){
-					
-					// System.out.println( "Request hint satisfied: start=" + i + ",blocks=" + blocksFound );
-					
-					return new int[] {i, blocksFound};
+					while (blocksFound <nbWanted &&(i +blocksFound) <nbBlocks &&!downloaded[i +blocksFound]
+					    &&requested[i +blocksFound] ==null &&(written ==null ||!written[i]))
+					{
+						requested[i +blocksFound] =ip;
+						blocksFound++;
+					}
+					if (blocksFound >0){
+						
+						System.out.println( "Request hint satisfied: start=" + i + ",blocks=" + blocksFound );
+						
+						return new int[] {i, blocksFound};
+					}
 				}
 			}
 		}

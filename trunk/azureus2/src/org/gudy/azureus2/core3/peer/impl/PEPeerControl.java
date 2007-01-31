@@ -43,7 +43,7 @@ PEPeerControl
 		int 			length );
 
 	public boolean
-	validatePieceRequest(
+	validateHintRequest(
 		PEPeerTransport	originator,
 		int 			pieceNumber, 
 		int 			offset, 

@@ -253,6 +253,7 @@ public class ConfigurationDefaults {
     def.put( "Watch Torrent Folder Path", "" );
     def.put( "Prioritize First Piece", FALSE );
     def.put( "Prioritize Most Completed Files", FALSE );
+    def.put( "Piece Picker Request Hint Enabled", TRUE );
     def.put( "Use Lazy Bitfield", FALSE );
     def.put( "Zero New", FALSE );
     def.put( "XFS Allocation", FALSE );

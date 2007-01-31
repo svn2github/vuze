@@ -1516,13 +1516,13 @@ DiskManagerImpl
 	}
 	
 	public boolean
-	checkBlockConsistency(
+	checkBlockConsistencyForHint(
 		String	originator,
 	    int 	pieceNumber,
 	    int 	offset,
 	    int 	length )
 	{
-		return( DiskManagerUtil.checkBlockConsistency(this, originator, pieceNumber, offset, length));
+		return( DiskManagerUtil.checkBlockConsistencyForHint(this, originator, pieceNumber, offset, length));
 	}
 	
     public void

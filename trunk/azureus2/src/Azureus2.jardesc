@@ -376,6 +376,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.crypto"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.auth"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.util.bloom.impl"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.tracker.peerauth"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.wizard"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.client"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.splash"/>

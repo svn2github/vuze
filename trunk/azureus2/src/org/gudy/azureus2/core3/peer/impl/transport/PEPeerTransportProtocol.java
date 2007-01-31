@@ -163,7 +163,7 @@ PEPeerTransportProtocol
   private static int requests_recovered = 0;
   private static int requests_completed = 0;
 
-  private static final int REQUEST_HINT_MAX_LIFE	= 60*1000;
+  private static final int REQUEST_HINT_MAX_LIFE	= PiecePicker.REQUEST_HINT_MAX_LIFE + 30*1000;
   
   private long[][]	request_hints;
   
@@ -2060,6 +2060,8 @@ PEPeerTransportProtocol
         }
         
         if( message.getID().equals( AZMessage.ID_AZ_REQUEST_HINT ) ) {
+        	System.out.println( "decode hint: " + message );
+        	
             decodeAZRequestHint( (AZRequestHint)message );
             return true;
           }
@@ -2360,7 +2362,7 @@ PEPeerTransportProtocol
 	  
 	  hint.destroy();
 
-	  if ( manager.validatePieceRequest( this, piece_number, offset, length )){
+	  if ( manager.validateHintRequest( this, piece_number, offset, length )){
 		  
 		  long	now = SystemTime.getCurrentTime();
 		  
@@ -2390,7 +2392,7 @@ PEPeerTransportProtocol
 						  
 						  	// copy valid entries across
 						  
-						  if ( expires > now && expires - now < REQUEST_HINT_MAX_LIFE ){
+						  if ( expires >= now && expires - now < REQUEST_HINT_MAX_LIFE ){
 							  
 							  new_request_hints[i] = entry;							  
 						  }
@@ -2409,10 +2411,18 @@ PEPeerTransportProtocol
 							 piece_number, 
 							 offset, 
 							 length, 
-							 SystemTime.getCurrentTime() + life };
+							 now + life };
 			  
 			  request_hints = new_request_hints;
 			  
+			  System.out.println( "hints" );
+			  
+			  for (int i=0;i<request_hints.length;i++){
+				  if ( request_hints[i] != null ){
+					  System.out.println( "    " + request_hints[i][0] + "/" + request_hints[i][1] + "/" + request_hints[i][2] + "/" );
+				  }
+			  }
+
 		  }finally{
 			  
 			  general_mon.exit();
@@ -2436,6 +2446,8 @@ PEPeerTransportProtocol
 
 	  int	num_valid = 0;
 	  
+	  System.out.println( "trying " + piece_number  );
+	  
 	  for ( int i=0;i<hints.length;i++){
 		  
 		  long[] entry = hints[i];
@@ -2444,7 +2456,7 @@ PEPeerTransportProtocol
 			  
 			  long	expires = entry[3];
 			  			  
-			  if ( expires > now && expires - now < REQUEST_HINT_MAX_LIFE ){
+			  if ( expires >= now && expires - now < REQUEST_HINT_MAX_LIFE ){
 				  
 				  num_valid++;
 				  
