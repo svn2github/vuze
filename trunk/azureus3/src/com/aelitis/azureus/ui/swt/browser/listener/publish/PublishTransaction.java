@@ -19,13 +19,7 @@
  */
 package com.aelitis.azureus.ui.swt.browser.listener.publish;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -35,13 +29,14 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
-import org.eclipse.swt.internal.image.FileFormat;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.json.JSONObject;
 
@@ -388,6 +383,24 @@ public class PublishTransaction extends Transaction
     	ImageLoader loader = new ImageLoader();
     	final Display display = shell.getDisplay();
     	Image source = new Image(shell.getDisplay(),f.getAbsolutePath());
+    	
+    	// If size is already an exact match, and the file isn't too big, use
+    	// original file
+    	Rectangle bounds = source.getBounds();
+    	try {
+	    	if (bounds.width == width && bounds.height == height && f.length() < 60000) {
+	        URL url = hoster.hostFile(f);
+	    		final FileInputStream fos = new FileInputStream(f);
+	    		byte[] buf = new byte[(int)f.length()];
+	    		fos.read(buf);
+	    		fos.close();
+	    		
+	    		ResizedImageInfo result = new ResizedImageInfo(url,width,height, buf);
+	    		return result;
+	    	}
+    	} catch (Exception e) {
+    		Debug.out(e);
+    	}
 
     	ImageResizer resizer = new ImageResizer(display,width,height,shell);
 
@@ -417,45 +430,8 @@ public class PublishTransaction extends Transaction
 		};
         
 		loader.data = new ImageData[] {data};
+		loader.save(os, SWT.IMAGE_PNG);
 		
-		try {
-    		Class cla_JPEGFileFormat = Class.forName( "org.eclipse.swt.internal.image.JPEGFileFormat" );
-    		
-    		Constructor jpeg_constructor = cla_JPEGFileFormat.getDeclaredConstructor(new Class[0]);
-    		
-    		jpeg_constructor.setAccessible( true );
-    		
-    		FileFormat format = (FileFormat)jpeg_constructor.newInstance(new Object[0]);
-    		
-    		Field	field = cla_JPEGFileFormat.getDeclaredField( "encoderQFactor" );
-    		
-    		field.setAccessible( true );
-    		
-    		field.setInt( format, (int)(quality*100));
-    		
-       		Class cla_LEDataOutputStream = Class.forName( "org.eclipse.swt.internal.image.LEDataOutputStream" );
-
-       		Constructor le_constructor = cla_LEDataOutputStream.getDeclaredConstructor(new Class[]{ OutputStream.class });
-       		
-       		le_constructor.setAccessible( true );
-       	 
-       		Object le_stream = le_constructor.newInstance(new Object[]{ os });
-       		
-       		Method unloadIntoStream = cla_JPEGFileFormat.getMethod( "unloadIntoStream", new Class[]{ ImageLoader.class, cla_LEDataOutputStream });
-       		
-       		try {
-       			unloadIntoStream.invoke( format, new Object[]{ loader, le_stream });
-       		} catch(Exception ex) {
-       			//Too bad for us here
-       			//However we don't want to try the other way, as it may be an io exception, ie the stream is corrupted...
-       			ex.printStackTrace();
-       		}
-		}catch(Exception e) {
-			e.printStackTrace();
-			//The reflection way failed, do it the normal way with default (0.75) quality...
-			loader.save(os,SWT.IMAGE_JPEG);
-		} 
-        
         os.flush();
         
         URL url = hoster.hostFile(fDest);
