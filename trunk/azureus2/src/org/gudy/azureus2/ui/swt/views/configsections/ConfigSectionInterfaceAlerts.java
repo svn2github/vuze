@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 
 public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 {
@@ -409,6 +410,36 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 		gridData.horizontalSpan = 1;
 		gridData.widthHint = 30;
 		auto_hide_alert.setLayoutData(gridData);
+		
+		// Use popup boxes rather than Mr Slidey.
+		BooleanParameter use_popup_boxes = new BooleanParameter(cArea,
+				"Use Message Box For Popups", LBLKEY_PREFIX + "popup.use_message_boxes");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		use_popup_boxes.setLayoutData(gridData);
+		
+		// Suppress alerts.
+		BooleanParameter suppress_alerts = new BooleanParameter(cArea,
+				"Suppress Alerts", LBLKEY_PREFIX + "popup.suppress_alerts");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		suppress_alerts.setLayoutData(gridData);
+		
+		// Show alerts.
+		label = new Label(cArea, SWT.NULL);
+		Messages.setLanguageText(label, LBLKEY_PREFIX + "popup.show");
+		ButtonParameter show_alerts = new ButtonParameter(cArea, LBLKEY_PREFIX + "popup.show.button");
+		show_alerts.addChangeListener(new ParameterChangeAdapter() {
+			public void parameterChanged(Parameter p, boolean b) {
+				Display display = parent.getDisplay();
+				if (display.isDisposed()) {return;}
+				MessageSlideShell.displayLastMessage(display);
+			}
+		});
+		gridData = new GridData();
+		gridData.horizontalSpan = 1;
+		gridData.widthHint = 40;
+		show_alerts.setLayoutData(gridData);
 
 		return cSection;
 	}

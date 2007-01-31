@@ -25,12 +25,15 @@ import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.MessageBox;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
 
 /**
  * Utility methods to display popup window
@@ -73,9 +76,9 @@ public class Alerts {
   public static void
   showMessageBox(
   	final int			type,
-    final String		title,
-    final String		message,
-    final String 		details )
+    String		title,
+    String		message,
+    String 		details )
   {
   	final Display display = SWTThread.getInstance().getDisplay();
   
@@ -97,32 +100,78 @@ public class Alerts {
  		close_alerts.add( alert_map );
  		
  		COConfigurationManager.setParameter( "Alerts.raised.at.close", close_alerts );
+ 		
+ 		// amc: I added the return statement here, why would we try to continue?
+ 		// XXX: Is there any problem with the above code with race conditions?
+ 		return;
   	}
   	
   	if ( display.isDisposed()){
   		return;
   	}
-  		
-
+  	
   	final String message2;
   	if (message != null && COConfigurationManager.getBooleanParameter("Show Timestamp For Alerts")) {
   		message2 = "[" + DisplayFormatters.formatDateShort(SystemTime.getCurrentTime()) + "] " + message;
   	}
   	else {
-  		message2 = message;
+  		message2 = (message == null) ? "" : message;
   	}
   	
-	display.asyncExec( 
-	  	new AERunnable() 
-	  	{
-	  	  	public void 
-	  	  	runSupport()
-	  	  	{
-	  	  		// Here is where we would add time stamps.
-	  	      new MessageSlideShell(display, type, title, message2==null?"":message2, details);
-	  	  	}
-	  	});
-   }
+  	boolean suppress_popups = COConfigurationManager.getBooleanParameter("Suppress Alerts");
+  	boolean use_message_box = COConfigurationManager.getBooleanParameter("Use Message Box For Popups");
+  	
+  	// We'll add the message to the list and then force it to be displayed if necessary.
+  	MessageSlideShell.recordMessage(type, title, message2==null?"":message2, details);
+  	
+  	if (suppress_popups) {return;}
+  	else if (!use_message_box) {MessageSlideShell.displayLastMessage(display);}
+  	else {
+  		/**
+  		 * I don't like displaying dialog boxes with titles like "Information" and "Error".
+  		 * So if we are going to be displaying those message titles, then just revert back
+  		 * to something like "Azureus" (sounds good to me!).
+  		 */ 
+  		String amb_key_suffix;
+  		switch(type) {
+  			case SWT.ICON_ERROR:
+  				amb_key_suffix = "error";
+  				break;
+  			case SWT.ICON_INFORMATION:
+  				amb_key_suffix = "information";
+  				break;
+  			case SWT.ICON_WARNING:
+  				amb_key_suffix = "warning";
+  				break;
+  			default:
+  				amb_key_suffix = null;
+  				break;
+  		}
+  		
+  		final String title2;
+  		if (amb_key_suffix != null &&
+  				title.equals(MessageText.getString("AlertMessageBox." + amb_key_suffix))) {
+  			title2 = Constants.AZUREUS_NAME;
+  		}
+  		else {
+  			title2 = title;
+  		}
+  		
+  		display.asyncExec(new AERunnable() {
+  			public void runSupport() {
+  		  		// XXX: Not sure whether findAnyShell is the best thing to use here...
+		  	  	Shell s = Utils.findAnyShell();
+		  	  	if (s == null) {return;}
+		  	  	
+		  	  	MessageBox mb = new MessageBox(s, type | SWT.OK);
+		  	  	mb.setText(title2);
+		  	  	mb.setMessage(MessageSlideShell.stripOutHyperlinks(message2));
+		  	  	mb.open();
+  			}
+  		});
+  	} // end else
+  } // end method
+  	
 
   public static void
   showErrorMessageBoxUsingResourceString(

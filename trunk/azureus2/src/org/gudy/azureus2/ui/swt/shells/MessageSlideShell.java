@@ -180,6 +180,29 @@ public class MessageSlideShell {
 			boolean bSlide) {
 		create(display, popupParams, bSlide);
 	}
+	
+	public static void displayLastMessage(final Display display) {
+		display.asyncExec(new AERunnable() {
+			public void runSupport() {
+				if (historyList.isEmpty()) {return;}
+				if (currentPopupIndex >= 0) {return;} // Already being displayed.
+				new MessageSlideShell(display, (PopupParams)historyList.get(historyList.size()-1), true);
+			}
+		});
+	}
+	
+	/**
+	 * Adds this message to the slide shell without forcing it to be displayed.
+	 */
+	public static void recordMessage(int iconID, String title, String text, String details) {
+		try {
+			monitor.enter();
+			historyList.add(new PopupParams(iconID, title, text, details));
+		}
+		finally {
+			monitor.exit();
+		}		
+	}
 
 	private void create(final Display display, final PopupParams popupParams,
 			boolean bSlide) {
@@ -945,6 +968,10 @@ public class MessageSlideShell {
 				display.sleep();
 		}
 	}
+	
+	public static String stripOutHyperlinks(String message) {
+		return Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(message).replaceAll("$2");
+	}
 
 	/**
 	 * XXX This could/should be its own class 
@@ -1133,7 +1160,7 @@ public class MessageSlideShell {
 		}
 	}
 
-	private class PopupParams {
+	private static class PopupParams {
 		int iconID;
 
 		String title;
