@@ -70,8 +70,6 @@ public class PiecePickerImpl
     /** Additional boost for more completed High priority */
     private static final int PRIORITY_W_COMPLETION	=2000;
   
-    private static final int PRIORITY_REQUEST_HINT	= 3000;
-
 	// The following are only used when resuming already running pieces
     /** priority boost due to being too old */
     private static final int PRIORITY_W_AGE		=900;
@@ -88,6 +86,8 @@ public class PiecePickerImpl
     
     private static final int PRIORITY_OVERRIDES_RAREST	= 9000;
     
+    private static final int PRIORITY_REQUEST_HINT	= 3000;
+
     	/** priority at and above which pieces require real-time scheduling */
     
     private static final int PRIORITY_REALTIME		= 9999999;
@@ -1392,6 +1392,7 @@ public class PiecePickerImpl
         int         startMaxPriority =Integer.MIN_VALUE;
         int         startMinAvail =Integer.MAX_VALUE;
         boolean     startIsRarest =false;
+        boolean		forceStart=false;
         
         int         priority;   // aggregate priority of piece under inspection (start priority or resume priority for pieces to be resumed)
         int         avail =0;   // the swarm-wide availability level of the piece under inspection
@@ -1404,6 +1405,25 @@ public class PiecePickerImpl
         final int[]		peerPriorities	= pt.getPriorityOffsets();
         
         final long  now =SystemTime.getCurrentTime();
+        
+        int[] 	request_hint = pt.getRequestHint();
+        int		request_hint_piece_number;
+        
+        if ( request_hint != null ){
+        	
+        	request_hint_piece_number = request_hint[0];
+        	
+        	if ( dmPieces[request_hint_piece_number].isDone()){
+        		
+        		pt.clearRequestHint();
+        		
+        		request_hint_piece_number	= -1;
+        	}
+        }else{
+        	
+        	request_hint_piece_number = -1;
+        }
+        
         // Try to continue a piece already loaded, according to priority
         for (i =startI; i <=endI; i++)
         {
@@ -1431,14 +1451,25 @@ public class PiecePickerImpl
                 	priority += peerPriorities[i];
                 }
                 
-                if ( enable_request_hints ){
-                	
-	                if ( pt.getRequestHint( i ) != null ){
+                if ( enable_request_hints && i == request_hint_piece_number ){
+                		                		                	
+	               	priority += PRIORITY_REQUEST_HINT;
 	                	
-	                	System.out.println( "PiecePicker: hint for " + i );
-	                	
-	                	priority += PRIORITY_REQUEST_HINT;
-	                }
+	               	PEPiece pePiece = pePieces[i];
+	               	
+	               	if ( pePiece == null ){
+	               		
+	               		forceStart	= true;
+	               		
+	               	}else{
+	               		
+	               		if ( reservedPieceNumber != i ){
+	               			
+	               			pePiece.setReservedBy( pt.getIp());
+	               			
+	               			pt.setReservedPieceNumber( i );
+	               		}
+	               	}
                 }
                 
                 if ( priority >= 0 ){
@@ -1466,6 +1497,9 @@ public class PiecePickerImpl
                         // is the piece active
                         if (pePiece !=null)
                         {
+                        	if ( priority != startPriorities[i]){
+                        		pePiece.setResumePriority( priority );	// maintained for display purposes only
+                        	}
                             // How many requests can still be made on this piece?
                             final int freeReqs =pePiece.getNbUnrequested();
                             if (freeReqs <=0)
@@ -1580,29 +1614,32 @@ public class PiecePickerImpl
             }
         }
         
-        // can & should or must resume a piece?
-        if (reservedPieceNumber >=0 &&(resumeIsRarest ||!startIsRarest ||globalRarestOverride ||startCandidates ==null ||startCandidates.nbSet <=0))
-            return reservedPieceNumber;
-
-// this would allow more non-rarest pieces to be resumed so they get completed so they can be re-shared,
-// which can make us intersting to more peers, and generally improve the speed of the swarm,
-// however, it can sometimes be hard to get the rarest pieces, such as when a holder unchokes very infrequently
-// 20060312[MjrTom] this can lead to TOO many active pieces, so do the extra check with arbitrary # of active pieces
-        final boolean resumeIsBetter;
-        if (reservedPieceNumber >=0 &&globalMinOthers >0 &&peerControl.getNbActivePieces() >32)	// check at arbitrary figure of 32 pieces 
-        {
-            resumeIsBetter =(resumeMaxPriority /resumeMinAvail) >(startMaxPriority /globalMinOthers);
-            
-            if (Constants.isCVSVersion() &&Logger.isEnabled())
-                Logger.log(new LogEvent(new Object[] {pt, peerControl}, LOGID, 
-                    "Start/resume choice; piece #:" +reservedPieceNumber +" resumeIsBetter:" +resumeIsBetter
-                    +" globalMinOthers=" +globalMinOthers
-                    +" startMaxPriority=" +startMaxPriority +" startMinAvail=" +startMinAvail
-                    +" resumeMaxPriority=" +resumeMaxPriority +" resumeMinAvail=" +resumeMinAvail
-                    +" : " +pt));
-            
-            if (resumeIsBetter)
-                return reservedPieceNumber;
+        if ( !forceStart ){
+        	
+	        // can & should or must resume a piece?
+	        if (reservedPieceNumber >=0 &&(resumeIsRarest ||!startIsRarest ||globalRarestOverride ||startCandidates ==null ||startCandidates.nbSet <=0))
+	            return reservedPieceNumber;
+	
+	// this would allow more non-rarest pieces to be resumed so they get completed so they can be re-shared,
+	// which can make us intersting to more peers, and generally improve the speed of the swarm,
+	// however, it can sometimes be hard to get the rarest pieces, such as when a holder unchokes very infrequently
+	// 20060312[MjrTom] this can lead to TOO many active pieces, so do the extra check with arbitrary # of active pieces
+	        final boolean resumeIsBetter;
+	        if (reservedPieceNumber >=0 &&globalMinOthers >0 &&peerControl.getNbActivePieces() >32)	// check at arbitrary figure of 32 pieces 
+	        {
+	            resumeIsBetter =(resumeMaxPriority /resumeMinAvail) >(startMaxPriority /globalMinOthers);
+	            
+	            if (Constants.isCVSVersion() &&Logger.isEnabled())
+	                Logger.log(new LogEvent(new Object[] {pt, peerControl}, LOGID, 
+	                    "Start/resume choice; piece #:" +reservedPieceNumber +" resumeIsBetter:" +resumeIsBetter
+	                    +" globalMinOthers=" +globalMinOthers
+	                    +" startMaxPriority=" +startMaxPriority +" startMinAvail=" +startMinAvail
+	                    +" resumeMaxPriority=" +resumeMaxPriority +" resumeMinAvail=" +resumeMinAvail
+	                    +" : " +pt));
+	            
+	            if (resumeIsBetter)
+	                return reservedPieceNumber;
+	        }
         }
         
         // start a new piece; select piece from start candidates bitfield

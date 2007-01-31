@@ -492,10 +492,14 @@ PeerForeignDelegate
 	}
 	
 	public int[] 
-	getRequestHint(
-		int piece_number ) 
+	getRequestHint()
 	{
 		return null;
+	}
+	
+	public void
+	clearRequestHint()
+	{
 	}
 	
 	public boolean

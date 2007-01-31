@@ -165,7 +165,7 @@ PEPeerTransportProtocol
 
   private static final int REQUEST_HINT_MAX_LIFE	= PiecePicker.REQUEST_HINT_MAX_LIFE + 30*1000;
   
-  private long[][]	request_hints;
+  private int[]	request_hint;
   
   private List peer_listeners_cow;
   private final AEMonitor	peer_listeners_mon = new AEMonitor( "PEPeerTransportProtocol:PL" );
@@ -2059,9 +2059,7 @@ PEPeerTransportProtocol
           return true;
         }
         
-        if( message.getID().equals( AZMessage.ID_AZ_REQUEST_HINT ) ) {
-        	System.out.println( "decode hint: " + message );
-        	
+        if( message.getID().equals( AZMessage.ID_AZ_REQUEST_HINT ) ) {        	
             decodeAZRequestHint( (AZRequestHint)message );
             return true;
           }
@@ -2362,142 +2360,33 @@ PEPeerTransportProtocol
 	  
 	  hint.destroy();
 
+	  if ( life > REQUEST_HINT_MAX_LIFE ){
+		  
+		  life = REQUEST_HINT_MAX_LIFE;
+	  }
+	  
 	  if ( manager.validateHintRequest( this, piece_number, offset, length )){
-		  
-		  long	now = SystemTime.getCurrentTime();
-		  
-		  try{
-			  general_mon.enter();
-		 
-			  long[][]	new_request_hints = new long[16][];
+		  		  
+		  if ( request_hint == null ){ 
+	
+			  	// we ignore life time currently as once hinted we don't accept another hint
+			  	// until that one is satisfied. This is to prevent too many pieces starting
 			  
-			  int	oldest_index	= 0;
-			  
-			  if ( request_hints != null ){
-				  
-				  long	oldest_expiry	= Long.MAX_VALUE;
-				  
-				  for (int i=0;i<request_hints.length;i++){
-					  
-					  long[]	entry = request_hints[i];
-					  
-					  if ( entry == null ){
-						  
-						  oldest_index 	= i;
-						  oldest_expiry	= 0;
-						  
-					  }else{
-					  
-						  long	expires = entry[3];
-						  
-						  	// copy valid entries across
-						  
-						  if ( expires >= now && expires - now < REQUEST_HINT_MAX_LIFE ){
-							  
-							  new_request_hints[i] = entry;							  
-						  }
-						  
-						  if ( expires < oldest_expiry ){
-							  
-							  oldest_expiry	= expires;
-							  oldest_index	= i;
-						  }
-					  }
-				  }
-			  }
-			  
-			  new_request_hints[ oldest_index ] = 
-					  new long[]{ 
-							 piece_number, 
-							 offset, 
-							 length, 
-							 now + life };
-			  
-			  request_hints = new_request_hints;
-			  
-			  System.out.println( "hints" );
-			  
-			  for (int i=0;i<request_hints.length;i++){
-				  if ( request_hints[i] != null ){
-					  System.out.println( "    " + request_hints[i][0] + "/" + request_hints[i][1] + "/" + request_hints[i][2] + "/" );
-				  }
-			  }
-
-		  }finally{
-			  
-			  general_mon.exit();
-			  
+			  request_hint = new int[]{ piece_number, offset, length };
 		  }
 	  }
   }
   
   public int[] 
-  getRequestHint(
-	int piece_number) 
+  getRequestHint()
   {
-	  long[][]	hints = request_hints;
-	  
-	  if ( hints == null ){
-		  
-		  return( null );
-	  }
-	  
-	  long	now = SystemTime.getCurrentTime();
-
-	  int	num_valid = 0;
-	  
-	  System.out.println( "trying " + piece_number  );
-	  
-	  for ( int i=0;i<hints.length;i++){
-		  
-		  long[] entry = hints[i];
-		  
-		  if ( entry != null ){
-			  
-			  long	expires = entry[3];
-			  			  
-			  if ( expires >= now && expires - now < REQUEST_HINT_MAX_LIFE ){
-				  
-				  num_valid++;
-				  
-				  if ( entry[0] == piece_number ){
-					  
-					  return( new int[]{(int)entry[1], (int)entry[2] });
-				  }
-			  }else{
-				  
-				  	// zero it out - hints are copy-on-write so this will get lost if an update is made
-				  	// however, the update mea 
-				  
-				  hints[i] = null;
-			  }
-		  }
-	  }
-	  
-	  	// lazily clear down the hints if there were none valid and still are none valid
-	  
-	  if ( num_valid == 0 ){
-		  
-		  try{
-			  general_mon.enter();
-
-			  for (int i=0;i<request_hints.length;i++){
-				  
-				  if ( request_hints[i] != null ){
-					  
-					  return( null );
-				  }
-			  }
-			  
-			  request_hints = null;
-			  			  
-		  }finally{
-			  
-			  general_mon.exit();  
-		  }
-	  }
-	  
-	  return( null );
+	  return( request_hint );
+  }
+  
+  public void
+  clearRequestHint()
+  {
+	  request_hint = null;
   }
   
   public PeerItem getPeerItemIdentity() {  return peer_item_identity;  }

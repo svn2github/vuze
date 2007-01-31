@@ -318,14 +318,14 @@ public class PEPieceImpl
 		
 		if ( enable_request_hints ){
 			
-			int[]	request_hint = peer.getRequestHint( dmPiece.getPieceNumber());
+			int[]	request_hint = peer.getRequestHint();
 			
-			if ( request_hint != null ){
+			if ( request_hint != null && request_hint[0] == dmPiece.getPieceNumber()){
 				
 					// try to honour the hint first
 				
-				int	hint_block_start 	= request_hint[0] / DiskManager.BLOCK_SIZE;
-				int hint_block_count	=  ( request_hint[1] + DiskManager.BLOCK_SIZE-1 ) / DiskManager.BLOCK_SIZE;
+				int	hint_block_start 	= request_hint[1] / DiskManager.BLOCK_SIZE;
+				int hint_block_count	=  ( request_hint[2] + DiskManager.BLOCK_SIZE-1 ) / DiskManager.BLOCK_SIZE;
 				
 				for (int i =hint_block_start; i < nbBlocks && i <hint_block_start + hint_block_count; i++)
 				{
@@ -336,9 +336,7 @@ public class PEPieceImpl
 						blocksFound++;
 					}
 					if (blocksFound >0){
-						
-						System.out.println( "Request hint satisfied: start=" + i + ",blocks=" + blocksFound );
-						
+												
 						return new int[] {i, blocksFound};
 					}
 				}

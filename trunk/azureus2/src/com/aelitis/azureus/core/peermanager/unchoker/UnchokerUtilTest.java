@@ -174,9 +174,13 @@ public class UnchokerUtilTest {
 			// TODO Auto-generated method stub
 			return false;
 		}
-		public int[] getRequestHint(int piece_number) {
+		public int[] getRequestHint() {
 			// TODO Auto-generated method stub
 			return null;
+		}
+		public void
+		clearRequestHint()
+		{
 		}
       };
       

@@ -290,11 +290,12 @@ PEPeer
 	
 		/**
 		 * Get current request hint for a given piece for this peer. 
-		 * @return null if no hint int[]{ offset, length } if hint found
+		 * @return null if no hint int[]{ piece_number, offset, length } if hint found
 		 */
 	
 	public int[]
-	getRequestHint(
-		int		piece_number );
-	        		   
+	getRequestHint();
+	        		 
+	public void
+	clearRequestHint();
 }
