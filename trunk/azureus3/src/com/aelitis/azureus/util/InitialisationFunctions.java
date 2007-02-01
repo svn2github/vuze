@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.util.Base32;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
+import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -47,6 +48,8 @@ public class InitialisationFunctions
 		registerTrackerURLExtensions( core );
 		
 		AzureusPlatformContentDirectory.register();
+		
+		CacheDiscovery.initialise();
 	}
 	
 	protected static void registerTrackerURLExtensions(AzureusCore core) {

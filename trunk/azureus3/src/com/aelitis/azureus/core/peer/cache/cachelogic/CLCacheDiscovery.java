@@ -40,8 +40,12 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
+import com.aelitis.azureus.core.peer.cache.CacheDiscoverer;
+import com.aelitis.azureus.core.peer.cache.CachePeer;
+
 public class 
 CLCacheDiscovery 
+	implements CacheDiscoverer
 {
 	public static final String	CDPDomainName = ".find-cache.com";
 	public static final String	CDPServerName = "cls" + CDPDomainName;
@@ -188,18 +192,53 @@ CLCacheDiscovery
 		return findCache(announce_url, byteArrayToHex(hash, 4));
 	}
 	
-	public InetAddress[] 
-	findCache(
+	public CachePeer[] 
+	lookup(
 		TOTorrent	torrent )
 	{
 		try{
-			return( findCache( torrent.getAnnounceURL(), torrent.getHash()));
+			InetAddress[]	addresses = findCache( torrent.getAnnounceURL(), torrent.getHash());
+			
+			CachePeer[] result = new CachePeer[addresses.length];
+			
+			for (int i=0;i<addresses.length;i++){
+				
+				result[i] = new CLCachePeer( addresses[i] );
+			}
+			
+			return( result );
 			
 		}catch( TOTorrentException e ){
 			
 			Debug.printStackTrace( e );
 			
-			return( new InetAddress[0] );
+			return( new CachePeer[0] );
+		}
+	}
+	
+	class
+	CLCachePeer
+		implements CachePeer
+	{
+		private InetAddress		address;
+		
+		protected
+		CLCachePeer(
+			InetAddress	_address )
+		{
+			address	= _address;
+		}
+		
+		public InetAddress
+		getAddress()
+		{
+			return( address );
+		}
+		
+		public int
+		getPort()
+		{
+			return( 6881 );
 		}
 	}
 	
@@ -290,13 +329,13 @@ CLCacheDiscovery
 		try{
 			TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile( new File( "C:\\temp\\test.torrent" ));
 			
-			InetAddress[]	addresses = new CLCacheDiscovery().findCache( torrent );
+			CachePeer[]	peers = new CLCacheDiscovery().lookup( torrent );
 			
-			System.out.println( "addresses=" + addresses.length );
+			System.out.println( "peers=" + peers.length );
 			
-			for (int i=0;i<addresses.length;i++){
+			for (int i=0;i<peers.length;i++){
 				
-				System.out.println( "    cache: " + addresses[i] );
+				System.out.println( "    cache: " + peers[i].getAddress() + ":" + peers[i].getPort() );
 			}
 		}catch( Throwable e ){
 			
