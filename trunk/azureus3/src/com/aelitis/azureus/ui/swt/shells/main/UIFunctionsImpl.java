@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
+import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 
@@ -468,6 +469,13 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 
 		// XXX Don't use oldMainWindow, status bar is global and oldMainWindow
 		//     shouldn't need to be initialized
+	}
+	
+	// @see com.aelitis.azureus.ui.UIFunctions#setStatusText(int, java.lang.String, com.aelitis.azureus.ui.UIStatusTextClickListener)
+	public void setStatusText(int statustype, String string,
+			UIStatusTextClickListener l) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#showConfig(java.lang.String)
