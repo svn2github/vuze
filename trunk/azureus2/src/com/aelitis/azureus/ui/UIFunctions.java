@@ -33,6 +33,9 @@ import com.aelitis.azureus.core.AzureusCoreComponent;
  */
 public interface UIFunctions extends AzureusCoreComponent
 {
+	public static int STATUSICON_NONE = 0;
+	public static int STATUSICON_WARNING = 1;
+	public static int STATUSICON_ERROR = 2;
 
 	/**
 	 * Display the stats view
@@ -109,6 +112,8 @@ public interface UIFunctions extends AzureusCoreComponent
 	 * @param string
 	 */
 	void setStatusText(String string);
+	
+	void setStatusText(int statustype, String string, UIStatusTextClickListener l);
 
   boolean dispose(boolean for_restart, boolean close_already_in_progress);
 

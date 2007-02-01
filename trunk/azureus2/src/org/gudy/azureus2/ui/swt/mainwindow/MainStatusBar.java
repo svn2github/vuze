@@ -63,6 +63,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UIStatusTextClickListener;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -141,6 +142,8 @@ public class MainStatusBar {
 	private AzureusCore azureusCore;
 
 	private UIFunctions uiFunctions;
+
+	private UIStatusTextClickListener clickListener;
 
 	/**
 	 * 
@@ -227,8 +230,12 @@ public class MainStatusBar {
 
 		Listener listener = new Listener() {
 			public void handleEvent(Event e) {
-				if (updateWindow != null) {
-					updateWindow.show();
+				if (clickListener == null) {
+  				if (updateWindow != null) {
+  					updateWindow.show();
+  				}
+				} else {
+					clickListener.UIStatusTextClicked();
 				}
 			}
 		};
@@ -430,15 +437,46 @@ public class MainStatusBar {
 	public void setStatusText(String keyedSentence) {
 		this.statusTextKey = keyedSentence == null ? "" : keyedSentence;
 		statusImageKey = null;
+		this.clickListener = null;
 		if (statusTextKey.length() == 0) { // reset
-			if (Constants.isCVSVersion()) {
-				statusTextKey = "MainWindow.status.unofficialversion ("
-						+ Constants.AZUREUS_VERSION + ")";
-				statusImageKey = STATUS_ICON_WARN;
-			} else if (!Constants.isOSX) { //don't show official version numbers for OSX L&F
-				statusTextKey = Constants.AZUREUS_NAME + " "
-						+ Constants.AZUREUS_VERSION;
-			}
+			resetStatus();
+		}
+
+		updateStatusText();
+	}
+
+	private void resetStatus() {
+		if (Constants.isCVSVersion()) {
+			statusTextKey = "MainWindow.status.unofficialversion ("
+					+ Constants.AZUREUS_VERSION + ")";
+			statusImageKey = STATUS_ICON_WARN;
+		} else if (!Constants.isOSX) { //don't show official version numbers for OSX L&F
+			statusTextKey = Constants.AZUREUS_NAME + " "
+					+ Constants.AZUREUS_VERSION;
+			statusImageKey = null;
+		}
+	}
+
+	/**
+	 * @param statustype
+	 * @param string
+	 * @param l
+	 */
+	public void setStatusText(int statustype, String string,
+			UIStatusTextClickListener l) {
+		this.statusTextKey = string == null ? "" : string;
+		
+		if (statusTextKey.length() == 0) { // reset
+			resetStatus();
+		}
+
+		this.clickListener = l;
+		if (statustype == UIFunctions.STATUSICON_WARNING) {
+			statusImageKey = STATUS_ICON_WARN;
+		} if (statustype == UIFunctions.STATUSICON_WARNING) {
+			statusImageKey = STATUS_ICON_WARN;
+		} else {
+			statusImageKey = null;
 		}
 
 		updateStatusText();

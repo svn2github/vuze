@@ -71,6 +71,7 @@ import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreException;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -1536,6 +1537,18 @@ MainWindow
 			mainStatusBar.setStatusText(string);
 	}
 
+	/**
+	 * @param statustype
+	 * @param string
+	 * @param l
+	 */
+	public void setStatusText(int statustype, String string,
+			UIStatusTextClickListener l) {
+		if (mainStatusBar != null) {
+			mainStatusBar.setStatusText(statustype, string, l);
+		}
+	}
+
 	public SystemTraySWT getSystemTraySWT() {
 		return systemTraySWT;
 	}
@@ -1651,4 +1664,5 @@ MainWindow
 	public UIFunctionsSWT getUIFunctions() {
 		return uiFunctions;
 	}
+
 }
