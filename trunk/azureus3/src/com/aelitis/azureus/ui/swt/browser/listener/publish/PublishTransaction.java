@@ -182,7 +182,6 @@ public class PublishTransaction extends Transaction
 	                            params.put("width", info.width);
 	                            params.put("height", info.height);
 	                            params.put("data", encoded);
-	                            System.out.println(encoded.length());
 	                            if ( elements != null ){
 	                            	params.put(ELEMENTS, elements);
 	                            }
