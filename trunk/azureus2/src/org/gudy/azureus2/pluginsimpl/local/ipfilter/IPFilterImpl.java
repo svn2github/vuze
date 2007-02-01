@@ -196,7 +196,7 @@ IPFilterImpl
 	block(
 		String IPAddress)
 	{
-		filter.ban( IPAddress, "<plugin>" );
+		filter.ban( IPAddress, "<plugin>", false );
 	}
 	
 	public IPBanned[]
@@ -219,7 +219,7 @@ IPFilterImpl
 		String IPAddress,
 		String text)
 	{
-		filter.ban( IPAddress, text );
+		filter.ban( IPAddress, text, false );
 	}	
 	
 	public void 

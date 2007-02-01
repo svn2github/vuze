@@ -744,9 +744,31 @@ IpFilterImpl
 	
 	public boolean 
 	ban(
-		String 	ipAddress,
-		String	torrent_name ) 
+		String 		ipAddress,
+		String		torrent_name,
+		boolean		manual ) 
 	{
+			// always allow manual bans through
+		
+		if ( !manual ){
+			
+			List	listeners_ref = listeners;
+			
+			for (int j=0;j<listeners_ref.size();j++){
+				
+				try{
+					if ( !((IPFilterListener)listeners_ref.get(j)).canIPBeBanned( ipAddress )){
+						
+						return( false );
+					}
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+		
 		boolean	block_ban = false;
 		
 		List	new_bans = new ArrayList();
@@ -820,9 +842,9 @@ IpFilterImpl
 			
 			class_mon.exit();
 		}
-		
+			
 		List	listeners_ref = listeners;
-		
+
 		for (int i=0;i<new_bans.size();i++){
 			
 			BannedIp entry	= (BannedIp)new_bans.get(i);
@@ -892,13 +914,76 @@ IpFilterImpl
 			
 			Integer	i_address = new Integer( address );
 			
-			bannedIps.remove(i_address);
+			if ( bannedIps.remove(i_address) != null ){
 			
-			saveBannedIPs();
+				saveBannedIPs();
+			}
 			
 		}finally{
 			
 			class_mon.exit();
+		}
+	}
+	
+	public void
+	unban(String ipAddress, boolean block)
+	{
+		if ( block ){
+	
+			int	address = range_manager.addressToInt( ipAddress );	
+				
+			long	l_address = address;
+			
+	    	if ( l_address < 0 ){
+	     		
+				l_address += 0x100000000L;
+	     	}
+			
+			long	start 	= l_address & 0xffffff00;
+			long	end		= start+256;
+		
+			boolean	hit = false;
+			
+			try{
+				class_mon.enter();
+
+				for (long i=start;i<end;i++){
+					
+					Integer	a = new Integer((int)i);
+	
+					if ( bannedIps.remove(a) != null ){
+						
+						hit = true;
+					}
+				}
+				
+				if ( hit ){
+					
+					saveBannedIPs();
+				}
+			}finally{
+				
+				class_mon.exit();
+			}
+			
+		}else{
+			
+			try{
+				class_mon.enter();
+			
+				int	address = range_manager.addressToInt( ipAddress );
+				
+				Integer	i_address = new Integer( address );
+				
+				if ( bannedIps.remove(i_address) != null ){
+				
+					saveBannedIPs();
+				}
+				
+			}finally{
+				
+				class_mon.exit();
+			}
 		}
 	}
 	
@@ -1012,9 +1097,9 @@ IpFilterImpl
 	{
 		IpFilterImpl	filter = new IpFilterImpl();
 		
-		filter.ban( "255.1.1.1", "parp" );
-		filter.ban( "255.1.1.2", "parp" );
-		filter.ban( "255.1.2.2", "parp" );
+		filter.ban( "255.1.1.1", "parp", true );
+		filter.ban( "255.1.1.2", "parp", true );
+		filter.ban( "255.1.2.2", "parp", true );
 		
 		System.out.println( "is banned:" + filter.isBanned( "255.1.1.4" ));
 	}

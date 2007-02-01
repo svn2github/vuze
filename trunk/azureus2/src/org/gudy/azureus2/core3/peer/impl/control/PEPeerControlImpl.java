@@ -2439,7 +2439,7 @@ PEPeerControlImpl
 			if (COConfigurationManager.getBooleanParameter("Ip Filter Enable Banning"))
 			{
 				// if a block-ban occurred, check other connections
-				if (ip_filter.ban(ip, adapter.getDisplayName()))
+				if (ip_filter.ban(ip, adapter.getDisplayName(), false ))
 				{
 					checkForBannedConnections();
 				}
@@ -3268,6 +3268,13 @@ PEPeerControlImpl
 				PeerItem.convertSourceID( self.getPeerSource() ), self.getPeerItemIdentity().getHandshakeType(), self.getUDPListenPort(),PeerItemFactory.CRYPTO_LEVEL_CURRENT, 0 );
 			peer_database.setSelfPeer( peer );
 		}
+	}
+	
+	public boolean 
+	canIPBeBanned(
+		String ip ) 
+	{
+		return true;
 	}
 	
 	public void IPBanned(BannedIp ip)

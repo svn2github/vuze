@@ -25,6 +25,10 @@ package org.gudy.azureus2.core3.ipfilter;
 public interface 
 IPFilterListener 
 {
+	public boolean
+	canIPBeBanned(
+		String			ip );
+	
 	public void
 	IPBanned(
 		BannedIp		ip );

@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.util;
  */
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 
 public class 
@@ -113,6 +114,57 @@ IPToHostNameResolver
 		}finally{
 			
 			request_mon.exit();
+		}
+	}
+	
+	public static String
+	syncResolve(
+		String			ip,
+		int				timeout )
+	
+		throws Exception
+	{
+		final AESemaphore	sem = new AESemaphore( "IPToHostNameREsolver:sync" );
+		
+		final Object[]	result = {null};
+				
+		addResolverRequest(
+			ip, 
+			new IPToHostNameResolverListener()
+			{
+				public void
+				IPResolutionComplete(
+					String		resolved_ip,
+					boolean		succeeded )
+				{
+					try{
+						synchronized( result ){
+
+							if ( succeeded ){
+									
+								result[0] = resolved_ip;
+							}
+						}
+					}finally{
+						
+						sem.release();
+					}
+				}
+			});
+			
+		if ( !sem.reserve( timeout )){
+			
+			throw( new Exception( "Timeout" ));
+		}
+				
+		synchronized( result ){
+
+			if ( result[0] != null ){
+				
+				return((String)result[0]);
+			}
+			
+			throw( new UnknownHostException( ip ));
 		}
 	}
 }

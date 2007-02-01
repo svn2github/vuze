@@ -174,7 +174,7 @@ public class PeersView
 				PEPeer peer = (PEPeer) row.getDataSource(true);
 				String msg = MessageText.getString("PeersView.menu.kickandban.reason");
 				IpFilterManagerFactory.getSingleton().getIPFilter().ban(peer.getIp(),
-						msg);
+						msg, true );
 				peer.getManager().removePeer(peer);
 			}
 		});

@@ -1396,7 +1396,7 @@ DHTDBImpl
 		
 		ip_filter.ban( 
 				contact.getAddress().getAddress().getHostAddress(),
-				"DHT: Sender stored excessive entries at this node (" + reason + ")" );		
+				"DHT: Sender stored excessive entries at this node (" + reason + ")", false );		
 	}
 	
 	protected void

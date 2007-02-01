@@ -108,11 +108,15 @@ IpFilter
 	public boolean 
 	ban(
 		String 	ipAddress,
-		String	torrent_name );
+		String	torrent_name,
+		boolean	manual );
 	
 	public void
 	unban(String ipAddress);
 	
+	public void
+	unban(String ipAddress, boolean block);
+
 	public int
 	getNbBannedIps();
 	
