@@ -20,6 +20,9 @@
 package com.aelitis.azureus.ui.swt.browser.listener.publish;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -30,6 +33,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.internal.image.FileFormat;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
@@ -164,7 +168,7 @@ public class PublishTransaction extends Transaction
                             sendBrowserMessage("thumb", "start", elements);
                             
         					File file = new File(fileName);    				
-    	    				ResizedImageInfo info = loadAndResizeImage(file,resize_size[0],resize_size[1],image_quality[0]);
+    	    				ResizedImageInfo info = loadAndResizeImage(file,resize_size[0],resize_size[1],1);
     	    				if(info == null) {
     	    					debug("User canceled image resizing");
     	    					sendBrowserMessage("thumb", "clear", elements);
@@ -178,6 +182,7 @@ public class PublishTransaction extends Transaction
 	                            params.put("width", info.width);
 	                            params.put("height", info.height);
 	                            params.put("data", encoded);
+	                            System.out.println(encoded.length());
 	                            if ( elements != null ){
 	                            	params.put(ELEMENTS, elements);
 	                            }
@@ -379,70 +384,118 @@ public class PublishTransaction extends Transaction
     }
     
     
-    private ResizedImageInfo loadAndResizeImage(final File f,final  int width, final int height, float quality) throws Exception {
-    	ImageLoader loader = new ImageLoader();
-    	final Display display = shell.getDisplay();
-    	Image source = new Image(shell.getDisplay(),f.getAbsolutePath());
-    	
-    	// If size is already an exact match, and the file isn't too big, use
-    	// original file
-    	Rectangle bounds = source.getBounds();
-    	try {
-	    	if (bounds.width == width && bounds.height == height && f.length() < 60000) {
-	        URL url = hoster.hostFile(f);
-	    		final FileInputStream fos = new FileInputStream(f);
-	    		byte[] buf = new byte[(int)f.length()];
-	    		fos.read(buf);
-	    		fos.close();
-	    		
-	    		ResizedImageInfo result = new ResizedImageInfo(url,width,height, buf);
-	    		return result;
-	    	}
-    	} catch (Exception e) {
-    		Debug.out(e);
-    	}
+	private ResizedImageInfo loadAndResizeImage(final File f, final int width,
+			final int height, float quality) throws Exception {
+		ImageLoader loader = new ImageLoader();
+		final Display display = shell.getDisplay();
+		Image source = new Image(shell.getDisplay(), f.getAbsolutePath());
 
-    	ImageResizer resizer = new ImageResizer(display,width,height,shell);
+		// If size is already an exact match, and the file isn't too big, use
+		// original file
+		Rectangle bounds = source.getBounds();
+		try {
+			if (bounds.width == width && bounds.height == height
+					&& f.length() < 60000 && false) {
+				URL url = hoster.hostFile(f);
+				final FileInputStream fos = new FileInputStream(f);
+				byte[] buf = new byte[(int) f.length()];
+				fos.read(buf);
+				fos.close();
 
+				ResizedImageInfo result = new ResizedImageInfo(url, width, height, buf);
+				return result;
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+		}
 
-    	Image output = resizer.resize(source);
-    	if(output == null) return null;
-    	ImageData data = output.getImageData();    	
-    	//Dispose the image
-		if(output != null && !output.isDisposed()) {
+		ImageResizer resizer = new ImageResizer(display, width, height, shell);
+
+		Image output = resizer.resize(source);
+		if (output == null)
+			return null;
+		ImageData data = output.getImageData();
+		//Dispose the image
+		if (output != null && !output.isDisposed()) {
 			output.dispose();
 		}
-    	
-        File fDest = File.createTempFile("thumbnail",".jpg");
-        //debug("final FileOutputStream fos = new FileOutputStream(fDest);");
-		final FileOutputStream fos = new FileOutputStream(fDest);
-		
+
 		//debug("final ByteArrayOutputStream baos = new ByteArrayOutputStream();");
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		
-		
-		//debug("OutputStream os = new OutputStream() {...};");
-		OutputStream os = new OutputStream() {
-			public void write(int arg0) throws java.io.IOException {fos.write(arg0);baos.write(arg0);};
-			public void flush() throws java.io.IOException {fos.flush();baos.flush();};
-			public void write(byte[] arg0) throws java.io.IOException {fos.write(arg0);baos.write(arg0);};
-			public void write(byte[] arg0, int arg1, int arg2) throws java.io.IOException {fos.write(arg0);baos.write(arg0);};			
+
+		loader.data = new ImageData[] { data
 		};
-        
-		loader.data = new ImageData[] {data};
-		loader.save(os, SWT.IMAGE_PNG);
 		
-        os.flush();
-        
-        URL url = hoster.hostFile(fDest);
-		ResizedImageInfo result = new ResizedImageInfo(url,width,height,baos.toByteArray());
-		os.close();
-		
-		
-		
+		if (SWT.getVersion() >= 3400) {
+			// XXX Bug in SWT which borks some PNGs.. thus we can't use PNG saving
+			//     at all until they fix it.. See 
+			//     https://bugs.eclipse.org/bugs/show_bug.cgi?id=172290
+			loader.save(baos, SWT.IMAGE_PNG);
+		} else {
+			try {
+				Class cJPGFF = Class.forName("org.eclipse.swt.internal.image.JPEGFileFormat");
+
+				Constructor jpgConst = cJPGFF.getDeclaredConstructor(new Class[0]);
+
+				jpgConst.setAccessible(true);
+
+				FileFormat format = (FileFormat) jpgConst.newInstance(new Object[0]);
+
+				Field field = cJPGFF.getDeclaredField("encoderQFactor");
+
+				field.setAccessible(true);
+
+				field.setInt(format, (int) (quality * 100));
+
+				Class claLEDataOS = Class.forName("org.eclipse.swt.internal.image.LEDataOutputStream");
+
+				Constructor le_constructor = claLEDataOS.getDeclaredConstructor(new Class[] { OutputStream.class
+				});
+
+				le_constructor.setAccessible(true);
+
+				Object le_stream = le_constructor.newInstance(new Object[] { baos
+				});
+
+				Method unloadIntoStream = cJPGFF.getMethod("unloadIntoStream",
+						new Class[] {
+							ImageLoader.class,
+							claLEDataOS
+						});
+
+				try {
+					unloadIntoStream.invoke(format, new Object[] {
+						loader,
+						le_stream
+					});
+				} catch (Exception ex) {
+					//Too bad for us here
+					//However we don't want to try the other way, as it may be an io 
+					//exception, ie the stream is corrupted...
+					ex.printStackTrace();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				// The reflection way failed, do it the normal way with default 
+				// (0.75) quality...
+				loader.save(baos, SWT.IMAGE_JPEG);
+			}
+		}
+
+
+		byte[] bs = baos.toByteArray();
+
+		File fDest = File.createTempFile("thumbnail", ".png");
+		FileOutputStream fos = new FileOutputStream(fDest);
+		fos.write(bs);
+		fos.close();
+
+		URL url = hoster.hostFile(fDest);
+		ResizedImageInfo result = new ResizedImageInfo(url, width, height, bs);
+
 		return result;
-    }
-    
+	}
+
     /*
     private ResizedImageInfo loadAndResizeImage(File f,int thumbnail_size,float quality) throws Exception {
     	
