@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.util;
 
 import java.io.*;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -36,10 +37,23 @@ public class
 BEncoder 
 {          	
     public static byte[] encode(Map object) throws IOException{
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        new BEncoder().encode(baos, object);
-        return baos.toByteArray();
+       return( encode( object, false ));
     }    
+    
+    public static byte[] encode(Map object, boolean url_encode ) throws IOException{
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        new BEncoder(url_encode).encode(baos, object);
+        return baos.toByteArray();
+    }  
+    
+    private boolean	url_encode;
+    
+    private
+    BEncoder(
+    	boolean	_url_encode )
+    {
+    	url_encode	= _url_encode;
+    }
     
     private void 
 	encode(
@@ -174,7 +188,11 @@ BEncoder
             byte[] tempByteArray = (byte[])object;
             write(baos,Constants.DEFAULT_CHARSET.encode(String.valueOf(tempByteArray.length)));
             baos.write(':');
-            baos.write(tempByteArray);
+            if ( url_encode ){
+            	baos.write(URLEncoder.encode(new String(tempByteArray, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING ).getBytes());
+            }else{
+            	baos.write(tempByteArray);
+            }
             
        }else if(object instanceof ByteBuffer ){
        	

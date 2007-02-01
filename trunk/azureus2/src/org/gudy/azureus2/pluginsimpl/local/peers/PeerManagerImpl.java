@@ -257,6 +257,14 @@ PeerManagerImpl
 		manager.removePeer(mapForeignPeer( peer ));
 	}
   
+	protected void
+	removePeer(
+		Peer		peer,
+		String		reason )
+	{
+		manager.removePeer(mapForeignPeer( peer ), reason );
+	}
+	
 	public void 
 	addPeer( 
 		String 	ip_address, 

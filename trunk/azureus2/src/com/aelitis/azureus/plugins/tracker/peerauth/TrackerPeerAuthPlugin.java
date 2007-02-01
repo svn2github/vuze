@@ -23,8 +23,7 @@
 
 package com.aelitis.azureus.plugins.tracker.peerauth;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.BufferedInputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -33,6 +32,7 @@ import java.util.*;
 
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -56,7 +56,6 @@ import org.gudy.azureus2.plugins.peers.PeerManagerListener;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
@@ -145,11 +144,12 @@ TrackerPeerAuthPlugin
 					}
 				});
 		
-		plugin_interface.getDownloadManager().addListener( this );
-		
 		System.out.println( "**** tracker peer auth disabled ****" );
 		
 		/*
+
+		plugin_interface.getDownloadManager().addListener( this );
+		
 		SimpleTimer.addPeriodicEvent(
 			"TrackerPeerAuthPlugin:checker",
 			TIMER_PERIOD,
@@ -284,7 +284,7 @@ TrackerPeerAuthPlugin
 	DownloadTracker
 		implements DownloadPeerListener, PeerManagerListener, DownloadTrackerListener
 	{
-		private static final int 	BACKOFF_TICK_COUNT	= 60*1000 / TIMER_PERIOD;
+		private static final int 	BACKOFF_TICK_COUNT	= 60*1000 / TIMER_PERIOD;	// TODO:
 		
 		private static final int 	MAX_PEERS_PER_QUERY	= 100;
 		
@@ -301,7 +301,7 @@ TrackerPeerAuthPlugin
 		private BloomFilter		ok_bloom 	= BloomFilterFactory.createAddOnly( OK_BLOOM_INITIAL );
 		private BloomFilter		bad_bloom 	= BloomFilterFactory.createAddOnly( BAD_BLOOM_INITIAL );
 			
-		private long			pending_check_peer_count	= 1; // !!!!
+		private long			pending_check_peer_count	= 0; 
 		
 		private boolean			check_running;
 		private int				check_tick_count;
@@ -338,8 +338,6 @@ TrackerPeerAuthPlugin
 			int			port,
 			boolean		ok )
 		{
-			System.out.println( "recordPeer: " + source + " - " + id + "/" + ip + "/" + port + "->" + ok );
-			
 			if ( id == null ){
 				
 				return;
@@ -429,7 +427,23 @@ TrackerPeerAuthPlugin
 			
 			if ( tick_count % check_tick_count == 0 ){
 				
-				if ( pending_check_peer_count > 0 && !check_running ){
+				synchronized( this ){
+					
+					if ( pending_check_peer_count > 0 && !check_running){
+						
+						pending_check_peer_count	= 0;
+						
+						check_running				= true;
+						
+					}else{
+						
+						return;
+					}
+				}
+				
+				boolean	gone_async = false;
+				
+				try{
 					
 					PeerManager pm = download.getPeerManager();
 					
@@ -447,46 +461,51 @@ TrackerPeerAuthPlugin
 							
 							if ( peer_key != null ){
 								
-								//if ( ok_bloom.contains( peer_key )){
+								if ( ok_bloom.contains( peer_key )){
 									
-								//}else if ( bad_bloom.contains( peer_key )){
+								}else if ( bad_bloom.contains( peer_key )){
 									
-								//	removePeer( peer );
+									removePeer( peer );
 									
-								//}else{
+								}else{
 									
 									to_check.add( peer );
-								//}
+								}
 							}
 						}
 						
 						if ( to_check.size() > 0 ){
-							
-							synchronized( this ){
-								
-								if ( !check_running ){
-									
-									check_running				= true;
-									pending_check_peer_count	= 0;
-									
-									thread_pool.run(
-										new AERunnable()
-										{
-											public void
-											runSupport()
-											{
-												try{
-													
-													check( to_check );
-													
-												}finally{
-													
-													check_running	= false;
-												}
+																
+							thread_pool.run(
+								new AERunnable()
+								{
+									public void
+									runSupport()
+									{
+										try{
+											
+											check( to_check );
+											
+										}finally{
+											
+											synchronized( DownloadTracker.this ){
+											
+												check_running	= false;
 											}
-										});
-								}
-							}
+										}
+									}
+								});
+							
+							gone_async = true;
+						}
+					}
+				}finally{
+					
+					if ( !gone_async ){
+						
+						synchronized( this ){
+
+							check_running = false;
 						}
 					}
 				}
@@ -505,25 +524,9 @@ TrackerPeerAuthPlugin
 				
 				target = download.getTorrent().getAnnounceURL();
 			}
-				
-			Map	map = new HashMap();
-						
-			for (int i=0;i<peers.size() && i < MAX_PEERS_PER_QUERY; i++ ){
-				
-				Peer	peer = (Peer)peers.get(i);
-				
-				List	peer_data = new ArrayList();
-				
-				peer_data.add( download.getTorrent().getHash());
-				peer_data.add( peer.getId());
-				peer_data.add( new Long( peer.getPort()));
-				peer_data.add( peer.getIp());
-				
-				map.put( "peer" + i, peer_data );
-			}
-			
-			OutputStreamWriter 	out	= null;
-			BufferedReader		in	= null;
+							
+			OutputStreamWriter 		out	= null;
+			BufferedInputStream		in	= null;
 			
 			try{
 				String	url_str = target.toString();
@@ -532,7 +535,7 @@ TrackerPeerAuthPlugin
 				
 				if ( pos == -1 ){
 				
-						// TODO: this should be logged once
+						// TODO: this should be logged once and checked earlier
 					
 					log( "announce URL '" + url_str + "' is non-conformant" );
 					
@@ -543,12 +546,35 @@ TrackerPeerAuthPlugin
 				
 				target = new URL( url_str );
 			
-				byte[]	encoded = BEncoder.encode( map );
+				Map	map = new HashMap();
 				
+				String	peer_str = "";
+				
+				for (int i=0;i<peers.size() && i < MAX_PEERS_PER_QUERY; i++ ){
+					
+					Peer	peer = (Peer)peers.get(i);
+					
+					List	peer_data = new ArrayList();
+					
+					peer_data.add( download.getTorrent().getHash());
+					peer_data.add( peer.getId());
+					peer_data.add( peer.getIp());
+					
+					map.put( "peer" + i, peer_data );
+					
+					peer_str += (i==0?"":",") + peer.getIp();
+				}
+
+				log( "Checking " + url_str + " : peers=" + peer_str );
+				
+
+				byte[]	encoded = BEncoder.encode( map, true );				
 
 				HttpURLConnection connection = (HttpURLConnection)target.openConnection();
 				
 			    String data = "authpeers=" + new String(encoded, "ISO-8859-1" );
+			    
+			    System.out.println( "sending '" + data + "'" );
 			    
 			    connection.setDoOutput(true);
 			    
@@ -566,16 +592,33 @@ TrackerPeerAuthPlugin
 			    
 			    out.flush();
 			    
-			    
-			    in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			    
-			    String line;
-			    
-			    while ((line = in.readLine()) != null) {
+			    in = new BufferedInputStream(connection.getInputStream());
 
-			    	System.out.println( "read line:" + line );
-			    }
+			    Map	result_map = BDecoder.decode( in );
+			    
+				for (int i=0;i<peers.size() && i < MAX_PEERS_PER_QUERY; i++ ){
 
+					Peer	peer = (Peer)peers.get(i);
+
+					Long	enabled = (Long)result_map.get( "peer" + i );
+					
+					if ( enabled == null ){
+						
+						log( "No response for peer '" + peer.getIp() + "'" );
+						
+					}else{
+						
+						boolean	ok = enabled.longValue() != 0;
+						
+						recordPeer( "auth check", peer.getId(), peer.getIp(), peer.getPort(), ok );
+				
+						if ( !ok ){
+							
+							removePeer( peer );
+						}
+					}
+				}
+				
 			}catch( Throwable e ){
 				
 				backoff_tick_count = BACKOFF_TICK_COUNT;
@@ -694,9 +737,9 @@ TrackerPeerAuthPlugin
 		removePeer(
 			Peer		peer )
 		{
-			log( "Disconnecting peer " + peer.getIp() + "/" + peer.getPort() + ": not authorised" );
+			log( "Disconnecting peer " + peer.getIp() + "/" + peer.getPort() + ": not authorized" );
 			
-			peer.close( "Tracker peer auth failure", false, false );
+			peer.close( "Tracker peer authorization failure", false, false );
 		}
 		
 		public void 

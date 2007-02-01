@@ -333,7 +333,7 @@ PeerImpl
 		boolean 	closedOnError,
 		boolean 	attemptReconnect )
 	{
-		throw( new RuntimeException( "not supported"));
+		manager.removePeer( this, reason );
 	}
 	
 	public int
