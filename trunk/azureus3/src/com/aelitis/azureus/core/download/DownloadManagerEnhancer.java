@@ -24,15 +24,20 @@
 package com.aelitis.azureus.core.download;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.AzureusCore;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
+import org.gudy.azureus2.plugins.download.Download;
 
 public class 
 DownloadManagerEnhancer 
@@ -132,6 +137,29 @@ DownloadManagerEnhancer
 				{
 				}
 			});
+		
+		SimpleTimer.addPeriodicEvent(
+				"DownloadManagerEnhancer:speedChecker",
+				1000,
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent event ) 
+					{
+						List	downloads = core.getGlobalManager().getDownloadManagers();
+						
+						for ( int i=0;i<downloads.size();i++){
+							
+							DownloadManager download = (DownloadManager)downloads.get(i);
+							
+							if ( download.getState() == DownloadManager.STATE_DOWNLOADING ){
+								
+								getEnhancedDownload( download ).checkSpeed();
+							}
+						}
+					}
+				});
 	}
 	
 	public EnhancedDownloadManager

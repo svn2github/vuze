@@ -28,9 +28,23 @@ import java.net.InetAddress;
 public interface 
 CachePeer 
 {
+	public static final int PT_NONE				= 1;
+	public static final int PT_CACHE_LOGIC		= 2;
+	
+	public int
+	getType();
+	
 	public InetAddress
 	getAddress();
 	
 	public int
 	getPort();
+	
+	public long
+	getInjectTime(
+		long	now );
+	
+	public void
+	setInjectTime(
+		long	time );
 }

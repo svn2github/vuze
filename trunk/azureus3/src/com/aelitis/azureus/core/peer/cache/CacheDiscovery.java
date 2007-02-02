@@ -185,4 +185,56 @@ CacheDiscovery
 		
 		return( res );
 	}
+	
+	public static CachePeer
+	categorisePeer(
+		byte[]					peer_id,
+		final InetAddress		ip,
+		final int				port )
+	{
+		for (int i=0;i<discoverers.length;i++){
+			
+			CachePeer	cp = discoverers[i].lookup( peer_id, ip, port );
+			
+			if ( cp != null ){
+				
+				return( cp );
+			}
+		}
+		
+		return(
+			new CachePeer()
+			{
+				public int
+				getType()
+				{
+					return( PT_NONE );
+				}
+				
+				public InetAddress
+				getAddress()
+				{
+					return( ip );
+				}
+				
+				public int
+				getPort()
+				{
+					return( port );
+				}
+				
+				public long
+				getInjectTime(
+					long	now )
+				{
+					return( 0 );
+				}
+				
+				public void
+				setInjectTime(
+					long	time )
+				{
+				}
+			});
+	}
 }

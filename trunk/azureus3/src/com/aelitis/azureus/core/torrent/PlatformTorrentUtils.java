@@ -498,10 +498,19 @@ public class PlatformTorrentUtils
 		return getContentMapLong(torrent, TOR_AZ_PROP_PROGRESSIVE, 0) == 1;
 	}
 
-	public static long getContentSpeedBps(TOTorrent torrent) {
+	public static long getContentStreamSpeedBps(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_SPEED, 0);
 	}
 
+	static boolean logged;
+	
+	public static long getContentMinimumSpeedBps(TOTorrent torrent) {
+		if ( !logged ){
+			System.out.println( "**** TODO: define PlatformTorrentUtils::getContentMinimumSpeedBps");
+			logged = true;
+		}
+		return 20*1024;
+	}
 
 	public static void log(String str) {
 		if (DEBUG_CACHING) {

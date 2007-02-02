@@ -23,6 +23,8 @@
 
 package com.aelitis.azureus.core.peer.cache;
 
+import java.net.InetAddress;
+
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 
 public interface 
@@ -31,5 +33,11 @@ CacheDiscoverer
 	public CachePeer[]
 	lookup(
 		TOTorrent	torent );
-	                 
+	
+	
+	public CachePeer
+	lookup(
+		byte[]			peer_id,
+		InetAddress		ip,
+		int				port );
 }

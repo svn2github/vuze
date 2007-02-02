@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 import com.aelitis.azureus.core.peer.cache.CacheDiscoverer;
 import com.aelitis.azureus.core.peer.cache.CachePeer;
+import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 
 public class 
 CLCacheDiscovery 
@@ -172,8 +173,7 @@ CLCacheDiscovery
 		Hostname = "bt-" + hex_hash.substring(0, 4) +
 		".bt-" + hashAnnounceURL(announce_url) +
 		"-" + lookupFarm() + CDPDomainName;
-		System.out.println("findCache(): " + announce_url + " " + hex_hash + " --> " +
-				Hostname);
+		// System.out.println("findCache(): " + announce_url + " " + hex_hash + " --> " +	Hostname);
 		try {
 			Caches = InetAddress.getAllByName(Hostname);
 		} catch (UnknownHostException NoCache) {
@@ -216,17 +216,38 @@ CLCacheDiscovery
 		}
 	}
 	
+	public CachePeer 
+	lookup(
+		byte[] 			peer_id, 
+		InetAddress 	ip, 
+		int 			port ) 
+	{
+		if ( PeerClassifier.getClientDescription( peer_id ).startsWith( PeerClassifier.CACHE_LOGIC )){
+			
+			return( new CLCachePeer( ip ));
+		}
+		
+		return( null );
+	}
+	
 	class
 	CLCachePeer
 		implements CachePeer
 	{
 		private InetAddress		address;
+		private long			inject_time;
 		
 		protected
 		CLCachePeer(
 			InetAddress	_address )
 		{
 			address	= _address;
+		}
+		
+		public int
+		getType()
+		{
+			return( PT_CACHE_LOGIC );
 		}
 		
 		public InetAddress
@@ -239,6 +260,25 @@ CLCacheDiscovery
 		getPort()
 		{
 			return( 6881 );
+		}
+		
+		public long
+		getInjectTime(
+			long	now )
+		{
+			if ( inject_time > now ){
+				
+				inject_time	= now;
+			}
+			
+			return( inject_time );
+		}
+		
+		public void
+		setInjectTime(
+			long	time )
+		{
+			inject_time	= time;
 		}
 	}
 	

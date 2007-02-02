@@ -23,7 +23,8 @@
 
 package com.aelitis.azureus.core.download;
 
-import java.util.List;
+import java.net.InetAddress;
+import java.util.*;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
@@ -31,10 +32,16 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Average;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
+import com.aelitis.azureus.core.peer.cache.CachePeer;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePriorityProvider;
 import com.aelitis.azureus.core.peermanager.piecepicker.PieceRTAProvider;
@@ -44,6 +51,16 @@ public class
 EnhancedDownloadManager 
 {
 	public static final int	MINIMUM_INITIAL_BUFFER_SECS	= 30;
+	
+	public static final int SPEED_CONTROL_INITIAL_DELAY	= 10*1000;
+	public static final int SPEED_INCREASE_GRACE_PERIOD	= 3*1000;
+	public static final int PEER_INJECT_GRACE_PERIOD	= 3*1000;
+	
+	public static final int CACHE_RECONNECT_MIN_PERIOD	= 30*60*1000;
+	
+	public static final int TARGET_SPEED_EXCESS_MARGIN	= 2*1024;
+	
+	private static final String PEER_CACHE_KEY = "EnhancedDownloadManager:cachepeer";
 	
 	private DownloadManagerEnhancer		enhancer;
 	private DownloadManager				download_manager;
@@ -55,11 +72,24 @@ EnhancedDownloadManager
 	
 	private boolean	progressive_active	= false;
 	
-	private long	content_bps;
+	private long	content_stream_bps;
+	private long	content_min_bps;
+	
 	private int		initial_buffer_pieces;
 	
 	private bufferETAProvider	buffer_provider	= new bufferETAProvider();
 	private boostETAProvider	boost_provider	= new boostETAProvider();
+	
+	private long	time_download_started;
+	private Average	download_speed_average	= Average.getInstance( 1000, 5 );
+	
+	private long	last_speed_increase;
+	private long	last_peer_inject;
+	
+	private LinkedList	new_peers;
+	private List		cache_peers;
+	
+	private CachePeer[]	lookup_peers;
 	
 	protected
 	EnhancedDownloadManager(
@@ -73,9 +103,9 @@ EnhancedDownloadManager
 				
 		if ( torrent != null ){
 			
-			content_bps = PlatformTorrentUtils.getContentSpeedBps( torrent );
+			content_stream_bps = PlatformTorrentUtils.getContentStreamSpeedBps( torrent );
 			
-			if ( content_bps == 0 ){
+			if ( content_stream_bps == 0 ){
 			
 					// hack in some test values for torrents that don't have a bps in them yet
 				
@@ -83,19 +113,21 @@ EnhancedDownloadManager
 				
 				if ( size < 200*1024*1024 ){
 				
-					content_bps = 30*1024;
+					content_stream_bps = 30*1024;
 					
 				}else if ( size < 1000*1024*1024L ){
 					
-					content_bps = 200*1024;
+					content_stream_bps = 200*1024;
 					
 				}else{
 
-					content_bps = 400*1024;
+					content_stream_bps = 400*1024;
 				}
 			}
 			
-			long	initial_bytes = MINIMUM_INITIAL_BUFFER_SECS * content_bps;
+			content_min_bps = PlatformTorrentUtils.getContentMinimumSpeedBps( torrent );
+			
+			long	initial_bytes = MINIMUM_INITIAL_BUFFER_SECS * content_stream_bps;
 	
 			initial_buffer_pieces = (int)( initial_bytes / torrent.getPieceLength());
 			
@@ -111,8 +143,10 @@ EnhancedDownloadManager
 				peerManagerAdded(
 					PEPeerManager	manager )
 				{
-					synchronized( this ){
+					synchronized( EnhancedDownloadManager.this ){
 					
+						time_download_started = SystemTime.getCurrentTime();
+						
 						current_piece_pickler = manager.getPiecePicker();
 						
 						if ( progressive_active && current_piece_pickler != null ){
@@ -128,7 +162,9 @@ EnhancedDownloadManager
 				peerManagerRemoved(
 					PEPeerManager	manager )
 				{
-					synchronized( this ){
+					synchronized( EnhancedDownloadManager.this ){
+
+						time_download_started = 0;
 
 						if ( current_piece_pickler != null ){
 					
@@ -143,12 +179,43 @@ EnhancedDownloadManager
 				peerAdded(
 					PEPeer 	peer )
 				{
+					synchronized( EnhancedDownloadManager.this ){
+						
+						if ( new_peers == null ){
+							
+							new_peers = new LinkedList();
+						}
+						
+						new_peers.add( peer );
+					}
 				}
 					
 				public void
 				peerRemoved(
 					PEPeer	peer )
 				{
+					synchronized( EnhancedDownloadManager.this ){
+						
+						if ( new_peers != null ){
+						
+							new_peers.remove( peer );
+							
+							if ( new_peers.size() == 0 ){
+								
+								new_peers = null;
+							}
+						}
+						
+						if ( cache_peers != null ){
+							
+							cache_peers.remove( peer );
+							
+							if ( cache_peers.size() == 0 ){
+								
+								cache_peers = null;
+							}
+						}
+					}
 				}
 					
 				public void
@@ -165,6 +232,327 @@ EnhancedDownloadManager
 			});
 	}
 
+	protected long
+	getTimeRunning()
+	{
+		if ( time_download_started == 0 ){
+			
+			return( 0 );
+		}
+		
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now < time_download_started ){
+			
+			time_download_started	= now;
+		}
+		
+		return( now - time_download_started );
+	}
+	
+	protected long
+	getTargetSpeed()
+	{
+		long	target_speed = progressive_active?content_stream_bps:content_min_bps;
+		
+		if ( target_speed < content_min_bps ){
+			
+			target_speed = content_min_bps;
+		}
+			
+		return( target_speed );
+	}
+	
+	protected void
+	checkSpeed()
+	{
+		if ( download_manager.getState() != DownloadManager.STATE_DOWNLOADING ){
+			
+			return;
+		}
+		
+		long	target_speed = getTargetSpeed();
+		
+		PEPeerManager	pm = download_manager.getPeerManager();
+		
+		if ( pm != null ){
+			
+			PEPeerManagerStats stats = pm.getStats();
+			
+			long	download_speed = stats.getDataReceiveRate();
+			
+			download_speed_average.addValue( download_speed );
+			
+			long	time_downloading = getTimeRunning();
+			
+			List	peers_to_kick = new ArrayList();
+			
+			synchronized( this ){
+				
+				if ( new_peers != null ){
+											
+					Iterator it = new_peers.iterator();
+					
+					while( it.hasNext()){
+						
+						PEPeer	peer = (PEPeer)it.next();
+						
+						CachePeer	cache_peer = (CachePeer)peer.getData( PEER_CACHE_KEY );
+
+						if ( cache_peer == null ){
+							
+							byte[]	peer_id = peer.getId();
+							
+							if ( peer_id != null ){
+								
+								try{
+									cache_peer = CacheDiscovery.categorisePeer( 
+													peer_id, 
+													InetAddress.getByName( peer.getIp()),
+													peer.getPort());
+									
+									peer.setData( PEER_CACHE_KEY, cache_peer );
+										
+									if ( cache_peer.getType() == CachePeer.PT_CACHE_LOGIC ){
+										
+										if ( target_speed <= 0 ){
+										
+											peers_to_kick.add( peer );
+											
+										}else{
+											
+											long	current_speed = download_speed_average.getAverage();
+											
+												// if we are already exceeding required speed, block
+												// the cache peer download
+											
+											if ( current_speed + 2*1024 > target_speed ){
+												
+												peer.getStats().setDownloadRateLimitBytesPerSecond( -1 );
+											}
+											
+											if ( cache_peers == null ){
+												
+												cache_peers = new LinkedList();
+											}
+											
+											cache_peers.add( peer );
+										}
+									}
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+								
+								it.remove();
+							}
+						}else{
+							
+							it.remove();
+						}
+					}
+					
+					if ( new_peers.size() == 0 ){
+						
+						new_peers = null;
+					}
+				}
+			}
+			
+			for (int i=0;i<peers_to_kick.size();i++){
+				
+				pm.removePeer((PEPeer)peers_to_kick.get(i), "Cache peer not required" );
+			}
+			
+			if ( time_downloading > SPEED_CONTROL_INITIAL_DELAY ){
+				
+				long	current_average = download_speed_average.getAverage();
+					
+				if ( current_average < target_speed ){
+					
+					long	current_speed = getCurrentSpeed();
+					
+						// increase cache peer contribution
+						// due to latencies we need to give speed increases a time to take
+						// effect to see if the limits can be reached
+					
+					long	difference = target_speed - current_speed;
+
+					long	now = SystemTime.getCurrentTime();
+					
+					if ( last_speed_increase > now || now - last_speed_increase > SPEED_INCREASE_GRACE_PERIOD ){
+		
+						synchronized( this ){
+	
+							if ( cache_peers != null ){
+								
+								Iterator	it = cache_peers.iterator();
+								
+								while( it.hasNext() && difference > 0 ){
+							
+									PEPeer	peer = (PEPeer)it.next();
+																				
+									PEPeerStats peer_stats = peer.getStats();
+									
+									long peer_limit = peer_stats.getDownloadRateLimitBytesPerSecond();
+									
+										// try simple approach - find first cache peer that is limited
+										// to less than the target
+									
+									if ( peer_limit == 0 ){
+										
+									}else{
+										
+										if ( peer_limit < target_speed ){
+											
+											peer_stats.setDownloadRateLimitBytesPerSecond((int)target_speed );
+											
+											last_speed_increase = now;
+											
+											difference = 0;
+										}
+									}
+								}
+							}
+						}
+										
+						if ( 	difference > 0 &&
+								last_peer_inject > now || now - last_peer_inject > PEER_INJECT_GRACE_PERIOD ){
+							
+								// can't do the job with existing cache peers, try to find some more
+							
+							if ( lookup_peers == null ){
+								
+								lookup_peers = CacheDiscovery.lookup( download_manager.getTorrent());
+							}
+							
+							if ( lookup_peers.length > 0 ){
+								
+								Set	connected_peers = new HashSet();
+								
+								if ( cache_peers != null ){
+									
+									Iterator	it = cache_peers.iterator();
+									
+									while( it.hasNext() && difference > 0 ){
+								
+										PEPeer	peer = (PEPeer)it.next();
+							
+										connected_peers.add( peer.getIp() + ":" + peer.getPort());
+									}
+								}
+								
+								List	peers_to_try = new ArrayList();
+								
+								for (int i=0;i<lookup_peers.length;i++){
+									
+									CachePeer	cp = lookup_peers[i];
+									
+									if ( now - cp.getInjectTime(now) > CACHE_RECONNECT_MIN_PERIOD ){
+										
+										if ( !connected_peers.contains( cp.getAddress().getHostAddress() + ":" + cp.getPort())){
+										
+											peers_to_try.add( cp );
+										}
+									}
+								}
+								
+								if ( peers_to_try.size() > 0 ){
+									
+									CachePeer peer = (CachePeer)peers_to_try.get((int)( Math.random() * peers_to_try.size()));
+									
+									// System.out.println( "Injecting cache peer " + peer.getAddress() + ":" + peer.getPort());
+									
+									peer.setInjectTime( now );
+									
+									pm.addPeer( peer.getAddress().getHostAddress(), peer.getPort(), 0, false );
+									
+									last_peer_inject = now;
+								}
+							}
+						}
+					}				
+				}else if ( current_average > target_speed + TARGET_SPEED_EXCESS_MARGIN){
+					
+					long	current_speed = getCurrentSpeed();
+
+						// decrease cache peer contribution
+					
+					long	difference = current_speed - ( target_speed + TARGET_SPEED_EXCESS_MARGIN );
+					
+					synchronized( this ){
+
+						if ( cache_peers != null ){
+							
+							Iterator	it = cache_peers.iterator();
+							
+							while( it.hasNext() && difference > 0 ){
+						
+								PEPeer	peer = (PEPeer)it.next();
+															
+								PEPeerStats peer_stats = peer.getStats();
+								
+								long peer_rate = peer_stats.getDataReceiveRate();
+								
+								long peer_limit = peer_stats.getDownloadRateLimitBytesPerSecond();
+
+								if ( peer_limit == -1 ){
+									
+										// blocked, take into account adjustment in progress
+									
+									difference -= peer_rate;
+									
+								}else if ( peer_limit != 0 && peer_rate > peer_limit ){
+									
+										// adjusting
+									
+									difference -= peer_rate - peer_limit;
+									
+								}else{
+									
+									if ( peer_rate > difference ){
+										
+										peer_stats.setDownloadRateLimitBytesPerSecond((int)( peer_rate - difference ));
+										
+										difference = 0;
+										
+									}else{
+									
+										peer_stats.setDownloadRateLimitBytesPerSecond( -1 );
+										
+										difference -= peer_rate;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	protected long
+	getCurrentSpeed()
+	{
+			// gets instantaneous speed instead of longer term average
+		
+		PEPeerManager	pm = download_manager.getPeerManager();
+		
+		long	result = 0;
+		
+		if ( pm != null ){
+	
+			Iterator	it = pm.getPeers().iterator();
+		
+			while( it.hasNext()){
+				
+				result += ((PEPeer)it.next()).getStats().getDataReceiveRate();
+			}
+		}
+		
+		return( result );
+	}
+	
 	public boolean
 	supportsProgressiveMode()
 	{
@@ -175,7 +563,7 @@ EnhancedDownloadManager
 			return( false );
 		}
 		
-		return( content_bps > 0 && enhancer.isProgressiveAvailable() && PlatformTorrentUtils.isContentProgressive( torrent ));
+		return( content_stream_bps > 0 && enhancer.isProgressiveAvailable() && PlatformTorrentUtils.isContentProgressive( torrent ));
 	}
 	
 	public void
@@ -239,7 +627,7 @@ EnhancedDownloadManager
 				
 		DiskManager	disk_manager = download_manager.getDiskManager();
 		
-		if ( dl_rate > 0 && content_bps > 0 && disk_manager != null ){
+		if ( dl_rate > 0 && content_stream_bps > 0 && disk_manager != null ){
 				
 			PiecePicker	picker = current_piece_pickler;
 			
@@ -266,9 +654,9 @@ EnhancedDownloadManager
 					// max-cp 	= current streaming position
 					// max-bp	= blocking position (i.e. first missing data after max-cp)
 					
-				long	secs_pos			= max_cp/content_bps;
+				long	secs_pos			= max_cp/content_stream_bps;
 				
-				long	secs_to_watch 		= ( disk_manager.getTotalLength() - max_cp )/ content_bps;
+				long	secs_to_watch 		= ( disk_manager.getTotalLength() - max_cp )/ content_stream_bps;
 				
 				long	secs_to_download	= disk_manager.getRemainingExcludingDND() / dl_rate;
 				
@@ -457,11 +845,11 @@ EnhancedDownloadManager
 					
 					long	dl_rate = download_manager.getStats().getDataReceiveRate();
 
-					if ( dl_rate > 0 && content_bps > 0 ){
+					if ( dl_rate > 0 && content_stream_bps > 0 ){
 							
 							// boost assumes streaming from start
 						
-						long	secs_to_watch 		= disk_manager.getTotalLength()/ content_bps;
+						long	secs_to_watch 		= disk_manager.getTotalLength()/ content_stream_bps;
 						
 						long	secs_to_download	= disk_manager.getRemainingExcludingDND() / dl_rate;
 						
@@ -473,7 +861,7 @@ EnhancedDownloadManager
 							
 						}else{
 							
-							long	bytes_to_boost = delay * content_bps;
+							long	bytes_to_boost = delay * content_stream_bps;
 							
 							long	pieces_to_boost = (bytes_to_boost + disk_manager.getPieceLength()-1)/ disk_manager.getPieceLength();
 							
