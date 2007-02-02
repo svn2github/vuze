@@ -88,6 +88,8 @@ public class PeersView
     new PieceItem(),
     new IncomingRequestCountItem(),
     new OutgoingRequestCountItem(),
+    new UpSpeedLimitItem(),
+    new DownSpeedLimitItem(),
   };
   private DownloadManager manager;
 
@@ -169,7 +171,7 @@ public class PeersView
 				try {
 					int maxul = peer.getStats().getUploadRateLimitBytesPerSecond();
 					
-					maxUp += maxul * 2;
+					maxUp += maxul * 4;
 					
 					if (maxul == 0) {
 						upSpeedUnlimited = true;
@@ -186,7 +188,7 @@ public class PeersView
 
 					int maxdl = peer.getStats().getDownloadRateLimitBytesPerSecond();
 					
-					maxDown += maxdl * 2;
+					maxDown += maxdl * 4;
 					
 					if (maxdl == 0) {
 						downSpeedUnlimited = true;
