@@ -53,7 +53,7 @@ implements TableCellRefreshListener
 	    return;
 	  
 	  if(value == -1) {
-	    cell.setText(MessageText.getString("MyTorrents.items.UpSpeedLimit.disabled"));
+	    cell.setText(MessageText.getString("MyTorrents.items.DownSpeedLimit.disabled"));
 	  } else if(value  == 0) {
 	    cell.setText(Constants.INFINITY_STRING);
 	  } else {

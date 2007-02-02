@@ -27,6 +27,8 @@ package com.aelitis.azureus.core.peermanager.utils;
  */
 public class PeerClassifier {
   
+	public static final String CACHE_LOGIC = "CacheLogic";
+
   /**
    * Get a client description (name and version) from the given peerID byte array. 
    * @param peer_id peerID sent in handshake

@@ -36,7 +36,7 @@ import java.io.*;
 public class BTPeerIDByteDecoder {
 	
 	final static boolean LOG_UNKNOWN;
-	
+		
 	static{
 		String	prop = System.getProperty("log.unknown.peerids");
 		
@@ -80,7 +80,7 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "CD", "CTorrent" )) != null ) return decoded;      
       if( (decoded = decodeAzStyle( peerID, "RT", "Retriever" )) != null ) return decoded;      
       if( (decoded = decodeAzStyle( peerID, "LP", "Lphant" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "PC", "CacheLogic" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "PC", PeerClassifier.CACHE_LOGIC )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "BR", "BitRocket" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "XX", "Xtorrent" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "FG", "FlashGet" )) != null ) return decoded;
