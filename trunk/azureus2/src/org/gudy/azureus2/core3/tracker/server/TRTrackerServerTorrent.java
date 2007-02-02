@@ -46,6 +46,10 @@ TRTrackerServerTorrent
 	disableCaching();
 	
 	public void
+	setMinBiasedPeers(
+		int		num );
+	
+	public void
 	setEnabled(
 		boolean	enabled );
 	

@@ -57,6 +57,17 @@ public class NetworkConnectionImpl implements NetworkConnection {
   private volatile ConnectionAttempt	connection_attempt;
   private volatile boolean				closed;
   
+  private int	upload_limit;
+
+  private final LimitedRateGroup upload_limiter = new LimitedRateGroup() {
+	  public int getRateLimitBytesPerSecond() {  return upload_limit;  }
+  };
+
+  private int	download_limit;
+
+  private final LimitedRateGroup download_limiter = new LimitedRateGroup() {
+	  public int getRateLimitBytesPerSecond() {  return download_limit;  }
+  };
   
   /**
    * Constructor for new OUTbound connection.
@@ -231,6 +242,32 @@ public class NetworkConnectionImpl implements NetworkConnection {
 	  }
   }
   
+	public LimitedRateGroup
+	getUploadLimit()
+	{
+		return( upload_limiter );
+	}
+	
+	public LimitedRateGroup
+	getDownloadLimit()
+	{
+		return( download_limiter );
+	}
+	
+	public void
+	setUploadLimit(
+		int		limit )
+	{
+		upload_limit = limit;
+	}
+	
+	public void
+	setDownloadLimit(
+		int		limit )
+	{
+		download_limit = limit;
+	}
+	
   public String toString() {
     return( transport==null?connection_endpoint.getDescription():transport.getDescription() );
   }

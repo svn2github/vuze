@@ -84,7 +84,7 @@ public class TransferProcessor {
    * @param connection to register
    * @param group rate limit group
    */
-  public void registerPeerConnection( NetworkConnectionBase connection, LimitedRateGroup group ) {
+  public void registerPeerConnection( NetworkConnectionBase connection, LimitedRateGroup group, LimitedRateGroup individual ) {
     final ConnectionData conn_data = new ConnectionData();
 
     try {  connections_mon.enter();
@@ -100,6 +100,9 @@ public class TransferProcessor {
       conn_data.group_data = group_data;
       conn_data.state = ConnectionData.STATE_NORMAL;
 
+      conn_data.individual_limit = individual;
+      conn_data.individual_bucket = new ByteBucket( individual.getRateLimitBytesPerSecond());
+      
       connections.put( connection, conn_data );
     }
     finally {  connections_mon.exit();  }
@@ -167,7 +170,14 @@ public class TransferProcessor {
           if( conn_data.group_data.bucket.getRate() != group_rate ) {
             conn_data.group_data.bucket.setRate( group_rate );
           }
-
+          
+          // sync individual rate
+          int individual_rate = NetworkManagerUtilities.getGroupRateLimit( conn_data.individual_limit );
+          if ( conn_data.individual_bucket.getRate() != individual_rate ){
+        	  conn_data.individual_bucket.setRate( individual_rate );
+          }
+        	  
+          int individual_allowed = conn_data.individual_bucket.getAvailableByteCount();
           int group_allowed = conn_data.group_data.bucket.getAvailableByteCount();
           int global_allowed = main_bucket.getAvailableByteCount();
 
@@ -176,10 +186,16 @@ public class TransferProcessor {
           if( global_allowed < 0 ) global_allowed = 0;
           
           int allowed = group_allowed > global_allowed ? global_allowed : group_allowed;
+          
+          if ( allowed > individual_allowed ){
+        	  allowed = individual_allowed;
+          }
+          
           return allowed;
         }
 
         public void bytesProcessed( int num_bytes_written ) {
+          conn_data.individual_bucket.setBytesUsed( num_bytes_written );
           conn_data.group_data.bucket.setBytesUsed( num_bytes_written );
           main_bucket.setBytesUsed( num_bytes_written );
         }
@@ -218,6 +234,8 @@ public class TransferProcessor {
     private int state;
     private LimitedRateGroup group;
     private GroupData group_data;
+    private LimitedRateGroup 	individual_limit;
+    private ByteBucket			individual_bucket;
   }
 
     

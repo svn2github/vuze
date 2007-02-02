@@ -191,7 +191,11 @@ PEPeer
 	public int getConsecutiveNoRequestCount();
 	public void setConsecutiveNoRequestCount( int num );
 
-  
+	public void setUploadRateLimitBytesPerSecond( int bytes );
+	public void setDownloadRateLimitBytesPerSecond( int bytes );
+	public int getUploadRateLimitBytesPerSecond();
+	public int getDownloadRateLimitBytesPerSecond();
+	
   /** To retreive arbitrary objects against a peer. */
   public Object getData (String key);
   /** To store arbitrary objects against a peer. */

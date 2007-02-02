@@ -172,4 +172,9 @@ PEPeerStats
   public int getTotalDiskReadCount();
   public int getAggregatedDiskReadCount();
   public long getTotalDiskReadBytes();
+  
+  public void setUploadRateLimitBytesPerSecond( int bytes );
+  public void setDownloadRateLimitBytesPerSecond( int bytes );
+  public int getUploadRateLimitBytesPerSecond();
+  public int getDownloadRateLimitBytesPerSecond();
 }

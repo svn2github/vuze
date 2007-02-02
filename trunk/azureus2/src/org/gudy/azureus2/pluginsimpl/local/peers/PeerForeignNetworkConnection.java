@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.peers.Peer;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
 import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
@@ -43,12 +44,25 @@ public class
 PeerForeignNetworkConnection
 	implements NetworkConnectionBase
 {
+		
 	private Peer		peer;
 	
 	private OutgoingMessageQueue	outgoing_message_queue = new omq();
 	private IncomingMessageQueue	incoming_message_queue = new imq();
 	
 	private TransportBase			transport_base	= new tp();
+		
+	private int	upload_limit;
+	
+	private final LimitedRateGroup upload_limiter = new LimitedRateGroup() {
+		public int getRateLimitBytesPerSecond() {  return upload_limit;  }
+	};
+
+	private int	download_limit;
+	
+	private final LimitedRateGroup download_limiter = new LimitedRateGroup() {
+		public int getRateLimitBytesPerSecond() {  return download_limit;  }
+	};
 	
 	protected
 	PeerForeignNetworkConnection(
@@ -93,6 +107,32 @@ PeerForeignNetworkConnection
 	isLANLocal()
 	{
 		return( false );
+	}
+	
+	public LimitedRateGroup
+	getUploadLimit()
+	{
+		return( upload_limiter );
+	}
+	
+	public LimitedRateGroup
+	getDownloadLimit()
+	{
+		return( download_limiter );
+	}
+	
+	public void
+	setUploadLimit(
+		int		limit )
+	{
+		upload_limit = limit;
+	}
+	
+	public void
+	setDownloadLimit(
+		int		limit )
+	{
+		download_limit = limit;
 	}
 	
 	public String

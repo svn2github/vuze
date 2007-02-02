@@ -75,6 +75,7 @@ TRTrackerServerTorrentImpl
 	private boolean			peer_list_compaction_suspended;
 	
 	private List			biased_peers			= null;
+	private int				min_biased_peers		= 0;
 	
 	private Map				lightweight_seed_map	= new HashMap();
 	
@@ -114,7 +115,7 @@ TRTrackerServerTorrentImpl
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTorrent" );
 
 	private static String[]	EXPLICIT_PEERS = {
-		"81.19.18.116"
+		 "209.34.83.140",
 	};
 
 	private static final int		EXPLICIT_PORT	= 20001;
@@ -157,6 +158,13 @@ TRTrackerServerTorrentImpl
 	isEnabled()
 	{
 		return( enabled );
+	}
+	
+	public void
+	setMinBiasedPeers(
+		int	num )
+	{
+		min_biased_peers	= num;
 	}
 	
 	public TRTrackerServerPeerImpl
@@ -594,7 +602,7 @@ TRTrackerServerTorrentImpl
 								
 								TRTrackerServerPeerImpl	this_peer = (TRTrackerServerPeerImpl)peer_list.get(i);
 								
-								if ( this_peer != null && this_peer.isSeed()){
+								if ( this_peer != null && this_peer.isSeed() && !this_peer.isBiased()){
 							
 									boolean	bad_nat = this_peer.isNATStatusBad();
 									
@@ -1052,27 +1060,6 @@ TRTrackerServerTorrentImpl
 							// don't return "crypto required" peers to those that can't correctly connect to them
 							
 						}else if ( include_seeds || !peer.isSeed()){
-								
-							if ( peer.isBiased()){
-								
-									// only interested in negative bias here to remove from result
-								
-								int	bias = peer.getBias();
-								
-								if ( bias < 0 ){
-
-									bias = -bias;
-											
-										// -100 -> always drop, -1 -> drop 1% of the time
-									
-									int rand = random.nextInt( 100 );
-									
-									if ( rand < bias ){
-										
-										continue;
-									}
-								}
-							}
 							
 							Map rep_peer = new HashMap(3);
 				
@@ -1199,13 +1186,20 @@ TRTrackerServerTorrentImpl
 								limit++;
 							}
 							
-							if ( biased_peers != null && biased_peers.size() > 1 ){
+							int	biased_peers_count = 0;
+							
+							if ( biased_peers != null ){
 								
-									// juggle things a bit
+								if ( biased_peers.size() > 1 ){
+													
+										// juggle things a bit
+									
+									Object	x = biased_peers.remove(0);
+									
+									biased_peers.add( random.nextInt( biased_peers.size()), x);
+								}
 								
-								Object	x = biased_peers.remove(0);
-								
-								biased_peers.add( random.nextInt( biased_peers.size()), x);
+								biased_peers_count = Math.min( min_biased_peers, biased_peers.size());
 							}
 							
 							for (int i=0;i<limit && added < num_want;i++){
@@ -1216,35 +1210,9 @@ TRTrackerServerTorrentImpl
 								
 									// deal with bias up front
 								
-								if ( bad_nat_loop == 1 && biased_peers != null && i < biased_peers.size()){
+								if ( bad_nat_loop == 1 && i < biased_peers_count ){
 									
 									peer = (TRTrackerServerPeerImpl)biased_peers.get(i);
-																		
-									int	bias = peer.getBias();
-									
-										// base chance is "loop limit" in "peer count"
-										// +100 bias -> always select
-										// -100 bias -> never select
-									
-									int	base 	= limit;
-									
-									if ( bias < 0 ){
-											
-											// decrease the chance by bias percentage
-										
-										base = ((100 + bias ) * base ) /100;
-
-									}else{
-										
-											// increase the chance by bias percentage
-										
-										base = base + (( peer_list_size - base ) * bias )/100;
-									}
-									
-									if ( random.nextInt( peer_list_size ) > base ){
-										
-										continue;
-									}
 									
 									peer_index = -1;	// don't know actual index and don't need to as biased peers processed separately
 									

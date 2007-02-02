@@ -182,6 +182,10 @@ public class UnchokerUtilTest {
 		clearRequestHint()
 		{
 		}
+		public void setUploadRateLimitBytesPerSecond( int bytes ){}
+		public void setDownloadRateLimitBytesPerSecond( int bytes ){}
+		public int getUploadRateLimitBytesPerSecond(){ return 0 ;}
+		public int getDownloadRateLimitBytesPerSecond(){ return 0; }
       };
       
      f_stats[0] = new PEPeerStats() {
@@ -213,6 +217,10 @@ public class UnchokerUtilTest {
         public int getTotalDiskReadCount(){  return 0;  }
         public int getAggregatedDiskReadCount(){  return 0;  }
         public long getTotalDiskReadBytes(){  return 0;  }
+        public void setUploadRateLimitBytesPerSecond( int bytes ){}
+        public void setDownloadRateLimitBytesPerSecond( int bytes ){}
+        public int getUploadRateLimitBytesPerSecond(){return 0;}
+        public int getDownloadRateLimitBytesPerSecond(){return 0;}
       };
       peers.add( peer );
     }

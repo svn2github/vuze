@@ -72,18 +72,9 @@ TRTrackerServerPeer
 	public boolean
 	isBiased();
 	
-		/**
-		 * Bias values range from -100 to +100. Peers have to be globally biased before individual
-		 * values will be recognised (see TRTrackerServer to define global bias)
-		 * @return
-		 */
-	
-	public byte
-	getBias();
-	
 	public void
-	setBias(
-		byte	bias );
+	setBiased(
+		boolean	bias );
 	
 	public void
 	setUserData(

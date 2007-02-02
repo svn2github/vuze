@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
@@ -146,7 +147,68 @@ public class PeersView
 
 		final MenuItem block_item = new MenuItem(menu, SWT.CHECK);
 
+		Object[] peers = getSelectedDataSources();
+		
+		boolean hasSelection = (peers.length > 0);
+
+		boolean downSpeedDisabled	= false;
+		boolean	downSpeedUnlimited	= false;
+		long	totalDownSpeed		= 0;
+		long	downSpeedSetMax		= 0;
+		long	maxDown				= 0;
+		boolean upSpeedDisabled		= false;
+		boolean upSpeedUnlimited	= false;
+		long	totalUpSpeed		= 0;
+		long	upSpeedSetMax		= 0;
+		long	maxUp				= 0;
+		
+		if (hasSelection){
+			for (int i = 0; i < peers.length; i++) {
+				PEPeer peer = (PEPeer)peers[i];
+
+				try {
+					int maxul = peer.getStats().getUploadRateLimitBytesPerSecond();
+					
+					maxUp += maxul * 2;
+					
+					if (maxul == 0) {
+						upSpeedUnlimited = true;
+					}else{
+						if ( maxul > upSpeedSetMax ){
+							upSpeedSetMax	= maxul;
+						}
+					}
+					if (maxul == -1) {
+						maxul = 0;
+						upSpeedDisabled = true;
+					}
+					totalUpSpeed += maxul;
+
+					int maxdl = peer.getStats().getDownloadRateLimitBytesPerSecond();
+					
+					maxDown += maxdl * 2;
+					
+					if (maxdl == 0) {
+						downSpeedUnlimited = true;
+					}else{
+						if ( maxdl > downSpeedSetMax ){
+							downSpeedSetMax	= maxdl;
+						}
+					}
+					if (maxdl == -1) {
+						maxdl = 0;
+						downSpeedDisabled = true;
+					}
+					totalDownSpeed += maxdl;
+
+				} catch (Exception ex) {
+					Debug.printStackTrace(ex);
+				}
+			}
+		}
+		
 		PEPeer peer = (PEPeer) getFirstSelectedDataSource();
+
 
 		if ( peer == null || peer.getManager().getDiskManager().getRemainingExcludingDND() > 0 ){
 			// disallow peer upload blocking when downloading
@@ -179,12 +241,81 @@ public class PeersView
 			}
 		});
 
+		// === advanced menu ===
+
+		final MenuItem itemAdvanced = new MenuItem(menu, SWT.CASCADE);
+		Messages.setLanguageText(itemAdvanced, "MyTorrentsView.menu.advancedmenu"); //$NON-NLS-1$
+		itemAdvanced.setEnabled(hasSelection);
+
+		final Menu menuAdvanced = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+		itemAdvanced.setMenu(menuAdvanced);
+
+		// advanced > Download Speed Menu //
+
+		ViewUtils.addSpeedMenu(
+			getComposite(),
+			menuAdvanced,
+			hasSelection,
+			downSpeedDisabled,
+			downSpeedUnlimited,
+			totalDownSpeed,
+			downSpeedSetMax,
+			maxDown,
+			upSpeedDisabled,
+			upSpeedUnlimited,
+			totalUpSpeed,
+			upSpeedSetMax,
+			maxUp,
+			peers.length,
+			new ViewUtils.SpeeedAdapter()
+			{
+				public void 
+				setDownSpeed(
+					int speed ) 
+				{
+					setSelectedPeersDownSpeed( speed );	
+				}
+				
+				public void 
+				setUpSpeed(
+					int speed ) 
+				{
+					setSelectedPeersUpSpeed( speed );
+				}
+			});
 		new MenuItem(menu, SWT.SEPARATOR);
 
 		super.fillMenu(menu);
 	}
 
+	private void setSelectedPeersUpSpeed(int speed) {      
+		Object[] peers = getSelectedDataSources();
+		if(peers.length > 0) {            
+			for (int i = 0; i < peers.length; i++) {
+				try {
+					PEPeer peer = (PEPeer)peers[i];
+					peer.getStats().setUploadRateLimitBytesPerSecond(speed);
+				} catch (Exception e) {
+					Debug.printStackTrace( e );
+				}
+			}
+		}
+	}
 
+	private void setSelectedPeersDownSpeed(int speed) {      
+		Object[] peers = getSelectedDataSources();
+		if(peers.length > 0) {            
+			for (int i = 0; i < peers.length; i++) {
+				try {
+					PEPeer peer = (PEPeer)peers[i];
+					peer.getStats().setDownloadRateLimitBytesPerSecond(speed);
+				} catch (Exception e) {
+					Debug.printStackTrace( e );
+				}
+			}
+		}
+	}
+	
   public void delete() {
   	if (manager != null)
   		manager.removePeerListener(this);

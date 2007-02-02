@@ -319,12 +319,12 @@ public class NetworkManager {
    */
   public void startTransferProcessing( NetworkConnectionBase peer_connection, LimitedRateGroup upload_group, LimitedRateGroup download_group ) {
   	if( peer_connection.isLANLocal() && lan_rate_enabled ) {
-  		lan_upload_processor.registerPeerConnection( peer_connection, unlimited_rate_group );
-  		lan_download_processor.registerPeerConnection( peer_connection, unlimited_rate_group );
+  		lan_upload_processor.registerPeerConnection( peer_connection, unlimited_rate_group, unlimited_rate_group );
+  		lan_download_processor.registerPeerConnection( peer_connection, unlimited_rate_group, unlimited_rate_group );
   	}
   	else {
-  		upload_processor.registerPeerConnection( peer_connection, upload_group );
-  		download_processor.registerPeerConnection( peer_connection, download_group );
+  		upload_processor.registerPeerConnection( peer_connection, upload_group, peer_connection.getUploadLimit());
+  		download_processor.registerPeerConnection( peer_connection, download_group, peer_connection.getDownloadLimit() );
   	}
   }
   

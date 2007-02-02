@@ -480,15 +480,9 @@ TRTrackerServerProcessor
 			return( false );
 		}
 		
-		public byte
-		getBias()
-		{
-			return( 0 );
-		}
-		
 		public void
-		setBias(
-			byte	bias )
+		setBiased(
+			boolean		biased )
 		{	
 		}
 		

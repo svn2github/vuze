@@ -138,4 +138,9 @@ PEPeerStatsImpl
     public int getTotalDiskReadCount(){ return( disk_read_count ); }
     public int getAggregatedDiskReadCount(){ return( disk_aggregated_read_count ); }
     public long getTotalDiskReadBytes(){ return( disk_read_bytes ); }
+    
+    public void setUploadRateLimitBytesPerSecond( int bytes ){owner.setUploadRateLimitBytesPerSecond( bytes );}
+    public void setDownloadRateLimitBytesPerSecond( int bytes ){owner.setDownloadRateLimitBytesPerSecond( bytes );}
+    public int getUploadRateLimitBytesPerSecond(){return owner.getUploadRateLimitBytesPerSecond();}
+    public int getDownloadRateLimitBytesPerSecond(){return owner.getDownloadRateLimitBytesPerSecond();}
 }

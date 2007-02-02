@@ -2558,6 +2558,11 @@ PEPeerTransportProtocol
 		}
 	}
 	
+	public void setUploadRateLimitBytesPerSecond( int bytes ){ connection.setUploadLimit( bytes ); }
+	public void setDownloadRateLimitBytesPerSecond( int bytes ){ connection.setDownloadLimit( bytes ); }
+	public int getUploadRateLimitBytesPerSecond(){ return connection.getUploadLimit().getRateLimitBytesPerSecond(); }
+	public int getDownloadRateLimitBytesPerSecond(){ return connection.getDownloadLimit().getRateLimitBytesPerSecond(); }
+
 	public void
 	generateEvidence(
 		IndentWriter	writer )

@@ -62,6 +62,20 @@ NetworkConnectionBase
 
 	public boolean isLANLocal();
 	
+	public LimitedRateGroup
+	getUploadLimit();
+	
+	public void
+	setUploadLimit(
+		int		limit );
+
+	public LimitedRateGroup
+	getDownloadLimit();
+	
+	public void
+	setDownloadLimit(
+		int		limit );
+
 	public String
 	getString();
 }

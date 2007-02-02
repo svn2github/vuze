@@ -790,6 +790,11 @@ PeerForeignDelegate
 	
 	public PEPeerTransport reconnect(){ return null; }
 	
+	public void setUploadRateLimitBytesPerSecond( int bytes ){ network_connection.setUploadLimit( bytes ); }
+	public void setDownloadRateLimitBytesPerSecond( int bytes ){ network_connection.setDownloadLimit( bytes ); }
+	public int getUploadRateLimitBytesPerSecond(){ return network_connection.getUploadLimit().getRateLimitBytesPerSecond(); }
+	public int getDownloadRateLimitBytesPerSecond(){ return network_connection.getDownloadLimit().getRateLimitBytesPerSecond(); }
+	
 	public void
 	generateEvidence(
 		IndentWriter	writer )
