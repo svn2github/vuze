@@ -111,8 +111,7 @@ public class TableView
 	/** Virtual Tables still a work in progress */
 	// Non-Virtual tables scroll faster with they keyboard
 	// Virtual tables don't flicker when updating a cell (Windows)
-	private final static boolean DISABLEVIRTUAL = !Constants.isWindows
-			|| SWT.getVersion() < 3138;
+	private final static boolean DISABLEVIRTUAL = SWT.getVersion() < 3138;
 
 	private final static boolean COLUMN_CLICK_DELAY = Constants.isOSX
 			&& SWT.getVersion() >= 3221 && SWT.getVersion() <= 3222;
