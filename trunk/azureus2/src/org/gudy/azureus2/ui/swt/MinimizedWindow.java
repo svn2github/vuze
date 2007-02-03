@@ -34,6 +34,9 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.views.TableView.SelectedTableRowsListener;
+import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.eclipse.swt.widgets.ProgressBar;
 
@@ -269,6 +272,30 @@ public class MinimizedWindow {
     splash.setSize(xSize + 3, hSize + 2);
     
     Menu menu = new Menu(splash,SWT.POP_UP);
+    
+	final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
+	Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue");
+	Utils.setMenuItemImage(itemQueue, "start");
+	itemQueue.addListener(SWT.Selection, new Listener() {
+		public void handleEvent(Event e) {
+			ManagerUtils.queue(manager, splash);
+		}
+	});
+
+
+
+	// Stop
+	final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
+	Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop");
+	Utils.setMenuItemImage(itemStop, "stop");
+	itemStop.addListener(SWT.Selection, new Listener() {
+		public void handleEvent(Event e) {
+			ManagerUtils.stop(manager, splash);
+		}
+	});
+
+	new MenuItem(menu, SWT.SEPARATOR);
+    
     MenuItem itemClose = new MenuItem(menu,SWT.NULL);
     itemClose.setText(MessageText.getString("wizard.close"));
     itemClose.addListener(SWT.Selection,new Listener() {
@@ -276,6 +303,24 @@ public class MinimizedWindow {
         close();
       }
     });
+    
+    menu.addMenuListener(
+    	new MenuListener() 
+    	{
+     		public void 
+    		menuHidden(
+    			MenuEvent e) 
+    		{
+    		}
+
+    		public void 
+    		menuShown(
+    			MenuEvent e)
+    		{
+    			itemQueue.setEnabled(ManagerUtils.isStartable(manager));
+    			itemStop.setEnabled(ManagerUtils.isStopable(manager));
+    		}
+    	});
     
     splash.setMenu(menu);
     lDrag.setMenu(menu);
