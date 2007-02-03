@@ -202,39 +202,94 @@ CacheDiscovery
 			}
 		}
 		
-		return(
-			new CachePeer()
-			{
-				public int
-				getType()
-				{
-					return( PT_NONE );
-				}
+		return( new CachePeerImpl( CachePeer.PT_NONE, ip, port ));
+	}
+	
+	public static class
+	CachePeerImpl
+		implements CachePeer
+	{
+		private int				type;
+		private InetAddress		address;
+		private int				port;
+		private long			inject_time;
+		private long			speed_change_time;
+		
+		public
+		CachePeerImpl(
+			int			_type,
+			InetAddress	_address,
+			int			_port )
+		{
+			type	= _type;
+			address	= _address;
+			port	= _port;
+		}
+		
+		public int
+		getType()
+		{
+			return( type );
+		}
+		
+		public InetAddress
+		getAddress()
+		{
+			return( address );
+		}
+		
+		public int
+		getPort()
+		{
+			return( port );
+		}
+		
+		public long
+		getInjectTime(
+			long	now )
+		{
+			if ( inject_time > now ){
 				
-				public InetAddress
-				getAddress()
-				{
-					return( ip );
-				}
+				inject_time	= now;
+			}
+			
+			return( inject_time );
+		}
+		
+		public void
+		setInjectTime(
+			long	time )
+		{
+			inject_time	= time;
+		}
+		
+		public long
+		getSpeedChangeTime(
+			long	now )
+		{
+			if ( speed_change_time > now ){
 				
-				public int
-				getPort()
-				{
-					return( port );
-				}
-				
-				public long
-				getInjectTime(
-					long	now )
-				{
-					return( 0 );
-				}
-				
-				public void
-				setInjectTime(
-					long	time )
-				{
-				}
-			});
+				speed_change_time	= now;
+			}
+			
+			return( speed_change_time );
+		}
+		
+		public void
+		setSpeedChangeTime(
+			long	time )
+		{
+			speed_change_time	= time;
+		}
+		
+		public boolean
+		sameAs(
+			CachePeer	other )
+		{
+			return( 
+					getType() == other.getType() &&
+					getAddress().getHostAddress().equals( other.getAddress().getHostAddress()) &&
+					getPort() == other.getPort());
+		}
 	}
 }

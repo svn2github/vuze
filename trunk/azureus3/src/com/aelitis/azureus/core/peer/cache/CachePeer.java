@@ -47,4 +47,16 @@ CachePeer
 	public void
 	setInjectTime(
 		long	time );
+	
+	public long
+	getSpeedChangeTime(
+		long	now );
+	
+	public void
+	setSpeedChangeTime(
+		long	time );
+	
+	public boolean
+	sameAs(
+		CachePeer	other );
 }

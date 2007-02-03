@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 import com.aelitis.azureus.core.peer.cache.CacheDiscoverer;
+import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
 import com.aelitis.azureus.core.peer.cache.CachePeer;
 import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 
@@ -203,7 +204,7 @@ CLCacheDiscovery
 			
 			for (int i=0;i<addresses.length;i++){
 				
-				result[i] = new CLCachePeer( addresses[i] );
+				result[i] = new CacheDiscovery.CachePeerImpl( CachePeer.PT_CACHE_LOGIC, addresses[i], 6881 );
 			}
 			
 			return( result );
@@ -224,62 +225,10 @@ CLCacheDiscovery
 	{
 		if ( PeerClassifier.getClientDescription( peer_id ).startsWith( PeerClassifier.CACHE_LOGIC )){
 			
-			return( new CLCachePeer( ip ));
+			return( new CacheDiscovery.CachePeerImpl( CachePeer.PT_CACHE_LOGIC, ip, port ));
 		}
 		
 		return( null );
-	}
-	
-	class
-	CLCachePeer
-		implements CachePeer
-	{
-		private InetAddress		address;
-		private long			inject_time;
-		
-		protected
-		CLCachePeer(
-			InetAddress	_address )
-		{
-			address	= _address;
-		}
-		
-		public int
-		getType()
-		{
-			return( PT_CACHE_LOGIC );
-		}
-		
-		public InetAddress
-		getAddress()
-		{
-			return( address );
-		}
-		
-		public int
-		getPort()
-		{
-			return( 6881 );
-		}
-		
-		public long
-		getInjectTime(
-			long	now )
-		{
-			if ( inject_time > now ){
-				
-				inject_time	= now;
-			}
-			
-			return( inject_time );
-		}
-		
-		public void
-		setInjectTime(
-			long	time )
-		{
-			inject_time	= time;
-		}
 	}
 	
 	class

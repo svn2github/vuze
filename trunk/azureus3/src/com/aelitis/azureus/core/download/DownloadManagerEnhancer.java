@@ -42,6 +42,8 @@ import org.gudy.azureus2.plugins.download.Download;
 public class 
 DownloadManagerEnhancer 
 {
+	public static final int	TICK_PERIOD	= 1000;
+	
 	private static DownloadManagerEnhancer		singleton;
 	
 	public static synchronized void
@@ -140,13 +142,17 @@ DownloadManagerEnhancer
 		
 		SimpleTimer.addPeriodicEvent(
 				"DownloadManagerEnhancer:speedChecker",
-				1000,
+				TICK_PERIOD,
 				new TimerEventPerformer()
 				{
+					private int tick_count;
+					
 					public void 
 					perform(
 						TimerEvent event ) 
 					{
+						tick_count++;
+						
 						List	downloads = core.getGlobalManager().getDownloadManagers();
 						
 						for ( int i=0;i<downloads.size();i++){
@@ -155,7 +161,7 @@ DownloadManagerEnhancer
 							
 							if ( download.getState() == DownloadManager.STATE_DOWNLOADING ){
 								
-								getEnhancedDownload( download ).checkSpeed();
+								getEnhancedDownload( download ).checkSpeed( tick_count );
 							}
 						}
 					}
