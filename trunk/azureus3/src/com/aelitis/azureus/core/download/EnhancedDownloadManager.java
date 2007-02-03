@@ -69,6 +69,8 @@ EnhancedDownloadManager
 	private DownloadManagerEnhancer		enhancer;
 	private DownloadManager				download_manager;
 	
+	private boolean		platform_content;
+	
 	private transient PiecePicker		current_piece_pickler;
 	
 	private long		last_eta_result	= Long.MAX_VALUE;
@@ -121,6 +123,8 @@ EnhancedDownloadManager
 		TOTorrent	torrent = download_manager.getTorrent();
 				
 		if ( torrent != null ){
+			
+			platform_content = PlatformTorrentUtils.isContent( torrent );
 			
 			content_stream_bps = PlatformTorrentUtils.getContentStreamSpeedBps( torrent );
 			
@@ -202,14 +206,17 @@ EnhancedDownloadManager
 				peerAdded(
 					PEPeer 	peer )
 				{
-					synchronized( EnhancedDownloadManager.this ){
+					if ( platform_content ){
 						
-						if ( new_peers == null ){
+						synchronized( EnhancedDownloadManager.this ){
 							
-							new_peers = new LinkedList();
+							if ( new_peers == null ){
+								
+								new_peers = new LinkedList();
+							}
+							
+							new_peers.add( peer );
 						}
-						
-						new_peers.add( peer );
 					}
 				}
 					
@@ -217,25 +224,28 @@ EnhancedDownloadManager
 				peerRemoved(
 					PEPeer	peer )
 				{
-					synchronized( EnhancedDownloadManager.this ){
+					if ( platform_content ){
 						
-						if ( new_peers != null ){
-						
-							new_peers.remove( peer );
+						synchronized( EnhancedDownloadManager.this ){
 							
-							if ( new_peers.size() == 0 ){
+							if ( new_peers != null ){
+							
+								new_peers.remove( peer );
 								
-								new_peers = null;
+								if ( new_peers.size() == 0 ){
+									
+									new_peers = null;
+								}
 							}
-						}
-						
-						if ( cache_peers != null ){
 							
-							cache_peers.remove( peer );
-							
-							if ( cache_peers.size() == 0 ){
+							if ( cache_peers != null ){
 								
-								cache_peers = null;
+								cache_peers.remove( peer );
+								
+								if ( cache_peers.size() == 0 ){
+									
+									cache_peers = null;
+								}
 							}
 						}
 					}
@@ -290,6 +300,11 @@ EnhancedDownloadManager
 	checkSpeed(
 		int		tick_count )
 	{
+		if ( !platform_content ){
+			
+			return;
+		}
+		
 		if ( download_manager.getState() != DownloadManager.STATE_DOWNLOADING ){
 			
 			return;
