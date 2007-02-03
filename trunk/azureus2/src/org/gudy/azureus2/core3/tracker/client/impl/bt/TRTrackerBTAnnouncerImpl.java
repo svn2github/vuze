@@ -1855,6 +1855,13 @@ TRTrackerBTAnnouncerImpl
 			request.append( "&azup=" + up );
 		}
 		
+	    String	as = COConfigurationManager.getStringParameter( "ASN AS", "" );
+
+	    if ( as.length() > 0 ){
+	    	
+	    	request.append( "&azas=" + URLEncoder.encode( as, "UTF8" ));
+	    }
+	    
 		DHTNetworkPosition	best_position = DHTNetworkPositionManager.getBestLocalPosition();
 		
 		if ( best_position != null ){
