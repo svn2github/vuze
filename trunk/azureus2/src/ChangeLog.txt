@@ -5,6 +5,7 @@ AZUREUS CHANGELOG
 
 FEATURE: Core | Alerts can now be shown in individual message popup boxes [amc1]
 FEATURE: Core | Alerts can now be suppressed and shown on demand [amc1]
+FEATURE: Plug | Plugins can now add their own status indicators on the status bar [amc1]
 
 CHANGE: Core  | Include msvcr71.dll in Windows installation bundles, for compatibility with Java6 [Nolar]
 

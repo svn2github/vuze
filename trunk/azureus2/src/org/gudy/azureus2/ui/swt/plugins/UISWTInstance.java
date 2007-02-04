@@ -208,4 +208,12 @@ public interface UISWTInstance extends UIInstance {
 	 * @param display <tt>true</tt> to show a download bar, <tt>false</tt> to hide it.
 	 */
 	public void showDownloadBar(Download download, boolean display);
+	
+	/**
+	 * Creates an entry in the status bar to display custom status information.
+	 * 
+	 * @since 3.0.0.7
+	 * @see UISWTStatusEntry
+	 */
+	public UISWTStatusEntry createStatusEntry();
 }

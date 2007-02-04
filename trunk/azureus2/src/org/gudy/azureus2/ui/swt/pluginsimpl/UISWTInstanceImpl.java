@@ -22,7 +22,12 @@
 
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Frame;
+import java.awt.Panel;
+
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
@@ -32,11 +37,14 @@ import java.util.WeakHashMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
+import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -51,6 +59,7 @@ import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.*;
@@ -620,6 +629,24 @@ UISWTInstanceImpl
 		return new SimpleTextEntryWindow(getDisplay());
 	}
 	
+	public UISWTStatusEntry createStatusEntry() {
+		final UISWTStatusEntryImpl entry = new UISWTStatusEntryImpl();
+		final CLabel label = MainWindow.getWindow().getMainStatusBar().createStatusEntry(entry);
+		final Listener click_listener = new Listener() {
+			public void handleEvent(Event e) {
+				entry.onClick();
+			}
+		};
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				label.addListener(SWT.MouseDoubleClick, click_listener);
+			}
+		}, true);
+		
+		return entry;
+	}
+	
 	
 	protected static class
 	instanceWrapper
@@ -732,6 +759,10 @@ UISWTInstanceImpl
 		
 		public void showDownloadBar(Download download, boolean display) {
 			delegate.showDownloadBar(download, display);
+		}
+		
+		public UISWTStatusEntry createStatusEntry() {
+			return delegate.createStatusEntry();
 		}
 		
 		

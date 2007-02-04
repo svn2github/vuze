@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.GC;
@@ -34,6 +36,7 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -115,6 +118,8 @@ public class MainStatusBar {
 	private CLabel statusDown;
 
 	private CLabel statusUp;
+		
+	private Composite plugin_label_composite;
 
 	private Display display;
 
@@ -144,6 +149,9 @@ public class MainStatusBar {
 	private UIFunctions uiFunctions;
 
 	private UIStatusTextClickListener clickListener;
+	
+//	 final int borderFlag = (Constants.isOSX) ? SWT.SHADOW_NONE : SWT.SHADOW_IN;
+	private static final int borderFlag = SWT.SHADOW_NONE; 
 
 	/**
 	 * 
@@ -173,13 +181,10 @@ public class MainStatusBar {
 
 		FormData formData;
 
-		//final int borderFlag = (Constants.isOSX) ? SWT.SHADOW_NONE : SWT.SHADOW_IN;
-		final int borderFlag = SWT.SHADOW_NONE;
-
 		statusBar = new Composite(parent, SWT.NONE);
 
 		GridLayout layout_status = new GridLayout();
-		layout_status.numColumns = 7;
+		layout_status.numColumns = 8;
 		layout_status.horizontalSpacing = 0;
 		layout_status.verticalSpacing = 0;
 		layout_status.marginHeight = 0;
@@ -280,8 +285,26 @@ public class MainStatusBar {
 		});
 
 		layoutStatusArea.topControl = statusText;
+		
 		statusBar.layout();
-
+		
+		this.plugin_label_composite = new Composite(statusBar, SWT.NONE);
+		GridLayout gridLayout = new GridLayout();
+		gridLayout.horizontalSpacing = 0;
+		gridLayout.verticalSpacing = 0;
+		gridLayout.marginHeight = 0;
+		gridLayout.marginBottom = 0;
+		gridLayout.marginTop = 0;
+		gridLayout.marginLeft = 0;
+		gridLayout.marginRight = 0;
+		gridLayout.numColumns = 20; // Something nice and big. :)
+				
+		gridData = new GridData(GridData.FILL_VERTICAL);
+		gridData.heightHint = height;
+		gridData.minimumHeight = height;
+		plugin_label_composite.setLayout(gridLayout);
+		plugin_label_composite.setLayoutData(gridData);
+		
 		srStatus = new CLabelPadding(statusBar, borderFlag);
 		srStatus.setText(MessageText.getString("SpeedView.stats.ratio"));
 
@@ -743,6 +766,14 @@ public class MainStatusBar {
 			return;
 		}
 		
+		// Plugins.
+		Control[] plugin_elements = this.plugin_label_composite.getChildren();
+		for (int i=0; i<plugin_elements.length; i++) {
+			if (plugin_elements[i] instanceof UpdateableCLabel) {
+				((UpdateableCLabel)plugin_elements[i]).checkForRefresh();
+			}
+		}
+		
 		// IP Filter Status Section
 		IpFilter ip_filter = azureusCore.getIpFilterManager().getIPFilter();
 
@@ -989,6 +1020,10 @@ public class MainStatusBar {
 		if (!statusText.isDisposed())
 			statusText.setToolTipText(string);
 	}
+	
+	public static interface CLabelUpdater {
+		public void update(CLabel label);
+	}
 
 	/**
 	 * CLabel that shrinks to fit text after a specific period of time.
@@ -1041,5 +1076,35 @@ public class MainStatusBar {
 			return pt;
 		}
 	}
-
+	
+	private class UpdateableCLabel extends CLabelPadding {
+		
+		private CLabelUpdater updater;
+		
+		public UpdateableCLabel(Composite parent, int style, CLabelUpdater updater) {
+			super(parent, style);
+			this.updater = updater;
+		}
+		
+		private void checkForRefresh() {
+			updater.update(this);
+		}
+	}
+	
+	public CLabel createStatusEntry(final CLabelUpdater updater) {
+		final CLabel[] result = new CLabel[1];
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				try {
+					this_mon.enter();
+					result[0] = new UpdateableCLabel(plugin_label_composite, borderFlag, updater);
+				}
+				finally {
+					this_mon.exit();
+				}
+			}
+		}, false);
+		return result[0];
+	}
+	
 }
