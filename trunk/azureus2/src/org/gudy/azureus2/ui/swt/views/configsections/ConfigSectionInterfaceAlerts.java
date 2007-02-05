@@ -433,7 +433,7 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 			public void parameterChanged(Parameter p, boolean b) {
 				Display display = parent.getDisplay();
 				if (display.isDisposed()) {return;}
-				MessageSlideShell.displayLastMessage(display);
+				MessageSlideShell.displayLastMessage(display, true);
 			}
 		});
 		gridData = new GridData();

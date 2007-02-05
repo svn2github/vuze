@@ -23,6 +23,10 @@ package org.gudy.azureus2.ui.swt;
 
 import java.util.*;
 
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UIStatusTextClickListener;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -50,6 +54,8 @@ public class Alerts {
   private static AEMonitor		alert_history_mon	= new AEMonitor("Alerts:H");
   private static boolean 		initialisation_complete = false;
   
+  private static boolean        has_unshown_messages = false;
+    
   private static transient boolean	stopping;
   
   private Alerts() 
@@ -72,7 +78,7 @@ public class Alerts {
   {
   	showMessageBox( type,MessageText.getString(key), message,null);
   }
-
+  
   public static void
   showMessageBox(
   	final int			type,
@@ -83,27 +89,32 @@ public class Alerts {
   	final Display display = SWTThread.getInstance().getDisplay();
   
  	if ( stopping || display.isDisposed()){
+ 		
+ 		try {
+ 			alert_queue_mon.enter();
   		
- 		List	close_alerts = COConfigurationManager.getListParameter( "Alerts.raised.at.close", new ArrayList());
+ 			List	close_alerts = COConfigurationManager.getListParameter( "Alerts.raised.at.close", new ArrayList());
  		
- 		Map	alert_map = new HashMap();
+ 			Map	alert_map = new HashMap();
  		
- 		alert_map.put( "type", new Long( type ));
- 		alert_map.put( "title", title );
+ 			alert_map.put( "type", new Long( type ));
+ 			alert_map.put( "title", title );
  		
- 		alert_map.put( "message", message );
+ 			alert_map.put( "message", message );
  
- 		if ( details != null ){
- 			alert_map.put( "details", details );
+ 			if ( details != null ){
+ 				alert_map.put( "details", details );
+ 			}
+ 		
+ 			close_alerts.add( alert_map );
+ 		
+ 			COConfigurationManager.setParameter( "Alerts.raised.at.close", close_alerts );
+ 		
+ 			return;
  		}
- 		
- 		close_alerts.add( alert_map );
- 		
- 		COConfigurationManager.setParameter( "Alerts.raised.at.close", close_alerts );
- 		
- 		// amc: I added the return statement here, why would we try to continue?
- 		// XXX: Is there any problem with the above code with race conditions?
- 		return;
+ 		finally {
+ 			alert_queue_mon.exit();
+ 		}
   	}
   	
   	if ( display.isDisposed()){
@@ -124,8 +135,31 @@ public class Alerts {
   	// We'll add the message to the list and then force it to be displayed if necessary.
   	MessageSlideShell.recordMessage(type, title, message2==null?"":message2, details);
   	
-  	if (suppress_popups) {return;}
-  	else if (!use_message_box) {MessageSlideShell.displayLastMessage(display);}
+  	if (suppress_popups) {
+  		try {
+  			alert_queue_mon.enter();
+  			if (!has_unshown_messages) {
+  				final UIFunctions ui_functions = UIFunctionsManager.getUIFunctions();
+  				if (ui_functions != null) {
+  					ui_functions.setStatusText(UIFunctions.STATUSICON_WARNING,
+  							MessageText.getString("AlertMessageBox.unread"),
+  							new UIStatusTextClickListener() {
+  								public void UIStatusTextClicked() {
+  									MessageSlideShell.displayLastMessage(display, true);
+  									ui_functions.setStatusText("");
+  									has_unshown_messages = false;
+  								}
+  					});
+  					has_unshown_messages = true;
+  				}
+  			}
+  			return;
+  		}
+  		finally {
+  			alert_queue_mon.exit();
+  		}
+  	}
+  	else if (!use_message_box) {MessageSlideShell.displayLastMessage(display, true);}
   	else {
   		/**
   		 * I don't like displaying dialog boxes with titles like "Information" and "Error".

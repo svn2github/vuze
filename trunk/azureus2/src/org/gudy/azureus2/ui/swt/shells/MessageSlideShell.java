@@ -98,6 +98,9 @@ public class MessageSlideShell {
 	/** Current popup being displayed */
 	private static int currentPopupIndex = -1;
 
+	/** Index of first message which the user has not seen (index) - set to -1 if we don't care. :) **/
+	private static int firstUnreadMessage = -1;
+	
 	/** Shell for popup */
 	private Shell shell;
 
@@ -128,7 +131,7 @@ public class MessageSlideShell {
 
 	/** Position this popup is in the history list */
 	private int idxHistory;
-
+	
 	/** Open a popup using resource keys for title/text
 	 * 
 	 * @param display Display to create the shell on
@@ -181,12 +184,16 @@ public class MessageSlideShell {
 		create(display, popupParams, bSlide);
 	}
 	
-	public static void displayLastMessage(final Display display) {
+	public static void displayLastMessage(final Display display, final boolean last_unread) {
 		display.asyncExec(new AERunnable() {
 			public void runSupport() {
 				if (historyList.isEmpty()) {return;}
 				if (currentPopupIndex >= 0) {return;} // Already being displayed.
-				new MessageSlideShell(display, (PopupParams)historyList.get(historyList.size()-1), true);
+				int msg_index = firstUnreadMessage;
+				if (!last_unread || msg_index == -1) {
+					msg_index = historyList.size()-1;
+				}
+				new MessageSlideShell(display, (PopupParams)historyList.get(msg_index), true);
 			}
 		});
 	}
@@ -198,6 +205,7 @@ public class MessageSlideShell {
 		try {
 			monitor.enter();
 			historyList.add(new PopupParams(iconID, title, text, details));
+			if (firstUnreadMessage == -1) {firstUnreadMessage = historyList.size() - 1;}
 		}
 		finally {
 			monitor.exit();
@@ -206,6 +214,9 @@ public class MessageSlideShell {
 
 	private void create(final Display display, final PopupParams popupParams,
 			boolean bSlide) {
+		
+		firstUnreadMessage = -1; // Reset the last read message counter.
+		
 		GridData gridData;
 		int shellWidth;
 		int style = SWT.ON_TOP;
