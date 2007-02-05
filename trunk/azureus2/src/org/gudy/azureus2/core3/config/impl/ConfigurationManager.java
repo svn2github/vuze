@@ -276,7 +276,7 @@ ConfigurationManager
     try {
       result = getIntParameter(parameter, def.getIntParameter(parameter));
     } catch (ConfigurationParameterNotFoundException e) {
-      result = getIntParameter(parameter, def.def_boolean);
+      result = getIntParameter(parameter, ConfigurationDefaults.def_boolean);
     }
     return result == 0 ? false : true;
   }
@@ -305,7 +305,7 @@ ConfigurationManager
     try {
       result = getIntParameter(parameter, def.getIntParameter(parameter));
     } catch (ConfigurationParameterNotFoundException e) {
-      result = getIntParameter(parameter, def.def_int);
+      result = getIntParameter(parameter, ConfigurationDefaults.def_int);
     }
     return result;
   }
@@ -321,7 +321,7 @@ ConfigurationManager
     try {
       result = getLongParameter(parameter, def.getLongParameter(parameter));
     } catch (ConfigurationParameterNotFoundException e) {
-      result = getLongParameter(parameter, def.def_long);
+      result = getLongParameter(parameter, ConfigurationDefaults.def_long);
     }
     return result;
   }
@@ -329,6 +329,17 @@ ConfigurationManager
   private byte[] getByteParameterRaw(String parameter) {
     return (byte[]) propertiesMap.get(parameter);
   }
+  
+  public byte[] getByteParameter(String parameter) {
+	  	ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+	  	byte[] result;
+	    try {
+	      result = getByteParameter(parameter, def.getByteParameter(parameter));
+	    } catch (ConfigurationParameterNotFoundException e) {
+	      result = getByteParameter(parameter, ConfigurationDefaults.def_bytes);
+	    }
+	    return result;
+	  }
   
   public byte[] getByteParameter(String parameter, byte[] defaultValue) {
     byte[] tempValue = getByteParameterRaw(parameter);
@@ -356,7 +367,7 @@ ConfigurationManager
     try {
       result = getStringParameter(parameter, def.getStringParameter(parameter));
     } catch (ConfigurationParameterNotFoundException e) {
-      result = getStringParameter(parameter, def.def_String);
+      result = getStringParameter(parameter, ConfigurationDefaults.def_String);
     }
     return result;
   }
@@ -475,7 +486,7 @@ ConfigurationManager
       
       String s = getStringParameter(parameter);
       
-      if (!s.equals(def.def_String))
+      if (!s.equals(ConfigurationDefaults.def_String))
         return Float.parseFloat(s);
     } catch (Exception e) {
     	Debug.printStackTrace( e );
