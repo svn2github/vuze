@@ -41,6 +41,8 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
@@ -81,6 +83,7 @@ import com.aelitis.azureus.plugins.upnp.UPnPPluginService;
 public class 
 NetworkAdminImpl
 	extends NetworkAdmin
+	implements AEDiagnosticsEvidenceGenerator
 {
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 	
@@ -151,6 +154,8 @@ NetworkAdminImpl
 		checkNetworkInterfaces(true);
 		
 		checkDefaultBindAddress(true);
+		
+		AEDiagnostics.addEvidenceGenerator( this );
 	}
 	
 	protected void
@@ -641,6 +646,92 @@ NetworkAdminImpl
 		listeners.remove( listener );
 	}
 	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "Network Admin" );
+		
+		try{
+			writer.indent();
+			
+			NetworkAdminHTTPProxy	proxy = getHTTPProxy();
+			
+			if ( proxy == null ){
+				
+				writer.println( "HTTP proxy: none" );
+				
+			}else{
+				
+				writer.println( "HTTP proxy: " + proxy.getName());
+				
+				try{
+					
+					NetworkAdminHTTPProxy.Details details = proxy.getDetails();
+					
+					writer.println( "    name: " + details.getServerName());
+					writer.println( "    resp: " + details.getResponse());
+					writer.println( "    auth: " + details.getAuthenticationType());
+					
+				}catch( NetworkAdminException e ){
+					
+					writer.println( "    failed: " + e.getLocalizedMessage());
+				}
+			}
+			
+			NetworkAdminSocksProxy[]	socks = getSocksProxies();
+			
+			if ( socks.length == 0 ){
+				
+				writer.println( "Socks proxy: none" );
+				
+			}else{
+				
+				for (int i=0;i<socks.length;i++){
+					
+					NetworkAdminSocksProxy	sock = socks[i];
+					
+					writer.println( "Socks proxy: " + sock.getName());
+					
+					try{
+						String[] versions = sock.getVersionsSupported();
+						
+						String	str = "";
+						
+						for (int j=0;j<versions.length;j++){
+							
+							str += (j==0?"":",") + versions[j];
+						}
+						
+						writer.println( "   version: " + str );
+						
+					}catch( NetworkAdminException e ){
+						
+						writer.println( "    failed: " + e.getLocalizedMessage());
+					}
+				}
+			}
+			
+			NetworkAdminNATDevice[]	nat_devices = getNATDevices();
+			
+			writer.println( "NAT Devices: " + nat_devices.length );
+			
+			for (int i=0;i<nat_devices.length;i++){
+				
+				NetworkAdminNATDevice	device = nat_devices[i];
+				
+				writer.println( "    " + device.getName() + ",address=" + device.getAddress().getHostAddress() + ":" + device.getPort() + ",ext=" + device.getExternalAddress());
+			}
+			
+			writer.println( "Interfaces" );
+			
+			writer.println( "   " + getNetworkInterfacesAsString());
+			
+		}finally{
+	
+			writer.exdent();
+		}
+	}
 	
 	public void 
 	generateDiagnostics(
