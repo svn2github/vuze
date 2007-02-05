@@ -127,19 +127,37 @@ Utilities
 	public LocaleUtilities
 	getLocaleUtilities();
 	
+	/**
+	 * Creates a <code>UTTimer</code> instance.
+	 * 
+	 * @param name Name for the UTTimer object.
+	 * @return A UTTimer instance.
+	 */
 	public UTTimer
 	createTimer(
 		String		name );
 
+	/**
+	 * Creates a <code>UTTimer</code> instance.
+	 * 
+	 * @param name Name for the UTTimer object.
+	 * @param lightweight If <code>true</code>, it indicates that this timer will be used to
+	 *   perform small lightweight tasks. If <code>false</code>, it indicates that
+	 *   this timer will be used to perform expensive tasks. This allows Azureus to create
+	 *   the appropriate amount of resources to manage this timer.
+	 * @return A UTTimer instance.
+	 */
 	public UTTimer
 	createTimer(
 		String		name,
 		boolean		lightweight );
 
 	/**
-	 * @param name
-	 * @param priority Thread.XXX_PRIORITY
-	 * @return
+	 * Creates a <code>UTTimer</code> instance.
+	 * 
+	 * @param name Name for the UTTimer object.
+	 * @param priority The Thread.<i>XXX_</i>PRIORITY value to use.
+	 * @return A UTTimer instance.
 	 */
 	public UTTimer createTimer(String name, int priority);
 
