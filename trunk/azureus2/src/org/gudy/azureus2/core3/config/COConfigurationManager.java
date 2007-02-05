@@ -231,6 +231,10 @@ COConfigurationManager
 	{
 		return( ConfigurationManager.getInstance().getLongParameter( _name, _def ));
 	}
+	
+	public static byte[] getByteParameter(String _name) {
+		return( ConfigurationManager.getInstance().getByteParameter(_name));
+	}
 
 	public static byte[]
 	getByteParameter(
@@ -459,10 +463,22 @@ COConfigurationManager
   	ConfigurationDefaults.getInstance().addParameter( parameter, _default );
   }
   
+  public static void setFloatDefault(String parameter, float _default) {
+	  ConfigurationDefaults.getInstance().addParameter( parameter, _default );
+  }
+  
   public static void
   setIntDefault(
   	String	parameter,
 	int	_default )
+  {
+  	ConfigurationDefaults.getInstance().addParameter( parameter, _default );
+  }
+
+  public static void
+  setLongDefault(
+  	String	parameter,
+	long	_default )
   {
   	ConfigurationDefaults.getInstance().addParameter( parameter, _default );
   }
