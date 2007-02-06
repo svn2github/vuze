@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
@@ -146,8 +147,9 @@ public class PeerManager implements AzureusCoreStatsProvider{
   
 
    
-  private final HashMap registered_legacy_managers 	= new HashMap();
-   
+  private final Map registered_legacy_managers 	= new HashMap();
+  private final Map	registered_links			= new HashMap();
+  
   private final ByteBuffer legacy_handshake_header;
   
   private final AEMonitor	managers_mon = new AEMonitor( "PeerManager:managers" );
@@ -433,6 +435,33 @@ public class PeerManager implements AzureusCoreStatsProvider{
 		return routing_data;
   	}	
      
+ 	public PeerManagerRegistration
+  	manualMatchLink(
+  		InetSocketAddress	address,
+  		String				link )
+  	{	
+ 		byte[]	hash;
+  	
+  		try{
+  			managers_mon.enter();
+				  		
+  			PeerManagerRegistrationImpl	registration = (PeerManagerRegistrationImpl)registered_links.get( link );
+  			
+  			if ( registration == null ){
+  				
+  				return( null );
+  			}
+  			
+  			hash = registration.getHash();
+  			
+  		}finally{
+  			
+  			managers_mon.exit();
+  		}
+  		
+  		return( manualMatchHash( address, hash ));
+  	}
+ 	
   	public void
   	manualRoute(
   		PeerManagerRegistration		_registration,
@@ -496,6 +525,8 @@ public class PeerManager implements AzureusCoreStatsProvider{
 	private List	pending_connections;
 	
 	private BloomFilter		known_seeds;
+		
+	private Map				links;
 	
 	protected
 	PeerManagerRegistrationImpl(
@@ -510,6 +541,82 @@ public class PeerManager implements AzureusCoreStatsProvider{
 	getAdapter()
 	{
 		return( adapter );
+	}
+	
+	protected byte[]
+	getHash()
+	{
+		return( hash.getBytes() );
+	}
+	
+	public synchronized TOTorrentFile
+	getLink(
+		String		target )
+	{
+		if ( links == null ){
+			
+			return( null );
+		}
+		
+		return((TOTorrentFile)links.get(target));
+	}
+	
+	public void
+	addLink(
+		String			link,
+		TOTorrentFile	target )
+	
+		throws Exception
+	{
+		try{
+			managers_mon.enter();
+
+			if ( registered_links.get( link ) != null ){
+				
+				throw( new Exception( "Duplicate link '" + link + "'" ));
+			}
+			
+			registered_links.put( link, this );
+			
+			System.out.println( "Added link '" + link + "'" );
+			
+		}finally{
+			
+			managers_mon.exit();
+		}
+		
+		synchronized( this ){
+			
+			if ( links == null ){
+				
+				links = new HashMap();
+			}
+			
+			links.put( link, target );
+		}
+	}
+	
+	public void
+	removeLink(
+		String			link )
+	{
+		try{
+			managers_mon.enter();
+
+			registered_links.remove( link );
+				
+		}finally{
+			
+			managers_mon.exit();
+		}
+		
+		synchronized( this ){
+			
+			if ( links != null ){
+				
+				links.remove( link );
+			}
+		}
 	}
 	
 	public boolean
@@ -636,6 +743,16 @@ public class PeerManager implements AzureusCoreStatsProvider{
 			  }else{
 			
 				  Debug.out( "manager already deregistered" );
+			  }
+		  }
+		  
+		  if ( links != null ){
+			  
+			  Iterator	it = links.keySet().iterator();
+			  
+			  while( it.hasNext()){
+				  
+				  registered_links.remove( it.next());
 			  }
 		  }
 	  }finally{

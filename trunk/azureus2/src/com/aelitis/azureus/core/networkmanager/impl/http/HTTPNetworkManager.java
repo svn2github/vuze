@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +36,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.BEncoder;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
@@ -202,6 +204,50 @@ HTTPNetworkManager
 			    					
 			    					return( new Object[]{ trimmed, reg_data });
 			    				}
+				    		}else{
+				    			
+				    			int	link_pos = url.indexOf( "/links/" );
+				    			
+				    			if ( link_pos != -1 ){
+				    			
+			    					int	pos = url.indexOf( ' ', link_pos );
+
+			    					if ( pos == -1 ){
+			    						
+			    						return( null );
+			    					}
+			    					
+			    					String link = url.substring(0,pos).substring( link_pos+7 );
+			    					
+				    				link = URLDecoder.decode( link, "UTF-8" );
+			    					
+				    				PeerManagerRegistration reg_data = PeerManager.getSingleton().manualMatchLink( address, link );
+				    				
+				    				if ( reg_data != null ){
+
+				    					TOTorrentFile	file = reg_data.getLink( link );
+				    					
+				    					if ( file != null ){
+				    						
+					    					StringBuffer	target_url = new StringBuffer( 512 );
+					    					
+					    					target_url.append( "/files/" );
+					    					
+					    					target_url.append( URLEncoder.encode(  new String( file.getTorrent().getHash(), "ISO-8859-1" ), "ISO-8859-1" ));
+					    					
+					    					byte[][]	bits = file.getPathComponents();
+					    					
+					    					for (int i=0;i<bits.length;i++){
+					    						
+					    						target_url.append( "/" );
+					    						
+					    						target_url.append( URLEncoder.encode( new String( bits[i], "ISO-8859-1" ), "ISO-8859-1" ));
+					    					}
+					    					
+					    					return( new Object[]{ target_url.toString(), reg_data });
+				    					}
+				    				}
+				    			}
 				    		}
 				    		
 		   					if (Logger.isEnabled()){
