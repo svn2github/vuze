@@ -214,6 +214,7 @@ CacheDiscovery
 		private int				port;
 		private long			inject_time;
 		private long			speed_change_time;
+		private boolean			auto_reconnect	= true;
 		
 		public
 		CachePeerImpl(
@@ -283,6 +284,19 @@ CacheDiscovery
 		}
 		
 		public boolean
+		getAutoReconnect()
+		{
+			return( auto_reconnect );
+		}
+		
+		public void
+		setAutoReconnect(
+			boolean		auto )
+		{
+			auto_reconnect	= auto;
+		}
+		
+		public boolean
 		sameAs(
 			CachePeer	other )
 		{
@@ -290,6 +304,12 @@ CacheDiscovery
 					getType() == other.getType() &&
 					getAddress().getHostAddress().equals( other.getAddress().getHostAddress()) &&
 					getPort() == other.getPort());
+		}
+		
+		public String
+		getString()
+		{
+			return( "type=" + getType() + ",address=" + getAddress() + ",port=" + getPort());
 		}
 	}
 }

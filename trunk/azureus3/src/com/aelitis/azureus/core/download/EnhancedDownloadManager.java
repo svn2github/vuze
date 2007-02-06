@@ -57,7 +57,8 @@ EnhancedDownloadManager
 	public static final int PEER_INJECT_GRACE_PERIOD	= 3*1000;
 	public static final int IDLE_PEER_DISCONNECT_PERIOD	= 60*1000;
 	
-	public static final int CACHE_RECONNECT_MIN_PERIOD	= 30*60*1000;
+	public static final int CACHE_RECONNECT_MIN_PERIOD	= 15*60*1000;
+	public static final int CACHE_REQUERY_MIN_PERIOD	= 60*60*1000;
 	
 	public static final int TARGET_SPEED_EXCESS_MARGIN	= 2*1024;
 	
@@ -93,6 +94,7 @@ EnhancedDownloadManager
 	
 	private long	last_speed_increase;
 	private long	last_peer_inject;
+	private long	last_lookup_time;
 	
 	private LinkedList	new_peers;
 	private List		cache_peers;
@@ -105,6 +107,7 @@ EnhancedDownloadManager
 	{
 		last_speed_increase		= 0;
 		last_peer_inject		= 0;
+		last_lookup_time		= 0;
 		
 		new_peers					= null;
 		cache_peers					= null;
@@ -208,6 +211,8 @@ EnhancedDownloadManager
 				{
 					if ( platform_content ){
 						
+						System.out.println( "peer added: " + peer.getIp() + ":" + peer.getPort());
+						
 						synchronized( EnhancedDownloadManager.this ){
 							
 							if ( new_peers == null ){
@@ -225,7 +230,9 @@ EnhancedDownloadManager
 					PEPeer	peer )
 				{
 					if ( platform_content ){
-						
+							
+						System.out.println( "peer removed: " + peer.getIp() + ":" + peer.getPort());
+
 						synchronized( EnhancedDownloadManager.this ){
 							
 							if ( new_peers != null ){
@@ -245,6 +252,40 @@ EnhancedDownloadManager
 								if ( cache_peers.size() == 0 ){
 									
 									cache_peers = null;
+								}
+							}
+							
+							CachePeer	cache_peer = (CachePeer)peer.getData( PEER_CACHE_KEY );
+
+							if ( cache_peer == null ){
+								
+									// we can disconnect before getting peer-id etc
+								
+								if ( lookup_peers != null ){
+									
+									for (int i=0;i<lookup_peers.length;i++){
+										
+										CachePeer cp = lookup_peers[i];
+										                            
+										if ( 	cp.getAddress().getHostAddress().equals( peer.getIp()) &&
+												cp.getPort() == peer.getPort()){
+										
+											cache_peer = cp;
+										}
+									}
+								}
+							}
+							
+							if ( 	cache_peer != null && 
+									cache_peer.getType() == CachePeer.PT_CACHE_LOGIC &&
+									(	disconnected_cache_peers == null || !disconnected_cache_peers.contains( cache_peer ))){
+								
+									// lost connection very early - sign that the cache doesn't support
+									// us
+								
+								if ( !peer.hasReceivedBitField()){
+									
+									cache_peer.setAutoReconnect( false );
 								}
 							}
 						}
@@ -376,7 +417,7 @@ EnhancedDownloadManager
 												// if we are already exceeding required speed, block
 												// the cache peer download
 											
-											if ( current_speed + 2*1024 > target_speed ){
+											if ( current_speed + TARGET_SPEED_EXCESS_MARGIN > target_speed ){
 												
 												setPeerSpeed( peer, -1, now );
 											}
@@ -529,8 +570,12 @@ EnhancedDownloadManager
 								
 									// can't do the job with existing cache peers, try to find some more
 								
-								if ( lookup_peers == null ){
-									
+								if ( 	lookup_peers == null || 
+										now < last_lookup_time ||
+										now - last_lookup_time > CACHE_REQUERY_MIN_PERIOD ){
+																		
+									last_lookup_time = now;
+
 									lookup_peers = CacheDiscovery.lookup( download_manager.getTorrent());
 								}
 								
@@ -538,7 +583,7 @@ EnhancedDownloadManager
 									
 									CachePeer	cp = lookup_peers[i];
 									
-									if ( now - cp.getInjectTime(now) > CACHE_RECONNECT_MIN_PERIOD ){
+									if ( cp.getAutoReconnect() && now - cp.getInjectTime(now) > CACHE_RECONNECT_MIN_PERIOD ){
 										
 										if ( !connected_peers.contains( cp.getAddress().getHostAddress() + ":" + cp.getPort())){
 										

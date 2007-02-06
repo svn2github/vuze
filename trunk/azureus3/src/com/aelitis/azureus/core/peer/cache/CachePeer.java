@@ -57,6 +57,16 @@ CachePeer
 		long	time );
 	
 	public boolean
+	getAutoReconnect();
+	
+	public void
+	setAutoReconnect(
+		boolean		auto );
+	
+	public boolean
 	sameAs(
 		CachePeer	other );
+	
+	public String
+	getString();
 }
