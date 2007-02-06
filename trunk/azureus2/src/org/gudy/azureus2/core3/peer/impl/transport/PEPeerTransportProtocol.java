@@ -102,7 +102,8 @@ PEPeerTransportProtocol
   /** lazy allocation; null until needed */
   private volatile BitFlags	peerHavePieces =null; 
   private volatile boolean	availabilityAdded =false;
-
+  private volatile boolean	received_bitfield;
+  
   private boolean seed_set_by_accessor = false;
  
   private final boolean incoming;
@@ -1639,6 +1640,8 @@ PEPeerTransportProtocol
   
   protected void decodeBitfield( BTBitfield bitfield )
   {
+	  received_bitfield = true;
+	  
 	  final DirectByteBuffer field =bitfield.getBitfield();
 	  
 	  final byte[] dataf =new byte[(nbPieces +7) /8];
@@ -2148,6 +2151,12 @@ PEPeerTransportProtocol
   
   public boolean supportsMessaging() {
     return supported_messages != null;
+  }
+  
+  public boolean
+  hasReceivedBitField()
+  {
+	  return( received_bitfield );
   }
   
   public String

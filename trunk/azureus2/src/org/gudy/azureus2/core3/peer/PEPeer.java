@@ -165,6 +165,8 @@ PEPeer
  	
 	public boolean isIncoming();
 
+	public boolean hasReceivedBitField();
+	
   /**
    * Get the peer's torrent completion percentage in thousand-notation,
    * i.e. 53.7% is returned as the value 0537.

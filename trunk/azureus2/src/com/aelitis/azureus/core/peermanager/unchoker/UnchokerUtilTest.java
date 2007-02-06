@@ -131,6 +131,7 @@ public class UnchokerUtilTest {
         public boolean isSeed(){ return false;  }
         public boolean isSnubbed(){ return false;  }
         public long getSnubbedTime() { return 0; }
+        public boolean hasReceivedBitField() {return false; }
         public PEPeerStats getStats(){  return f_stats[0];  }
         public boolean isIncoming(){ return false;  }
         public int getPercentDoneInThousandNotation(){ return 0; }

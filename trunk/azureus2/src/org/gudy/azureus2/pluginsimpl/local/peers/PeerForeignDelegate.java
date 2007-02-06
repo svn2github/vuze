@@ -418,6 +418,12 @@ PeerForeignDelegate
 		return( bit_flags );
 	}
 
+	public boolean
+	hasReceivedBitField()
+	{
+		return( true );
+	}
+	
 	public boolean isPieceAvailable(int pieceNumber)
 	{
 		return foreign.isPieceAvailable(pieceNumber);
