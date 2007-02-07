@@ -562,6 +562,10 @@ public class ConfigurationDefaults {
     def.put(sKey, lParameter);
   }
   
+  public void addParameter(String sKey, long lParameter) {
+	    def.put(sKey, new Long(lParameter));
+  }
+  
   public void addParameter(String sKey, float fParameter) {
 	  def.put(sKey, new Float(fParameter));
   }
