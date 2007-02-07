@@ -192,7 +192,7 @@ ViewUtils
 					mb.open();
 					return;
 				}
-				adapter.setDownSpeed(newSpeed);
+				adapter.setDownSpeed(newSpeed/num_entries);
 			}
 		});
 
