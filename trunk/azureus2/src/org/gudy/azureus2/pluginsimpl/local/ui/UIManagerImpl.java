@@ -32,12 +32,14 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginConfigModelImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginViewModelImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableManagerImpl;
 
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
@@ -74,6 +76,7 @@ UIManagerImpl
 	protected String				key_prefix;
 	
 	protected TableManager			table_manager;
+	protected MenuManager           menu_manager;
 	
 	public
 	UIManagerImpl(
@@ -86,6 +89,7 @@ UIManagerImpl
 		key_prefix		= plugin_config.getPluginConfigKeyPrefix();
 		
 		table_manager	= new TableManagerImpl( this );
+		menu_manager	= new MenuManagerImpl( this );
 	}
 		
 	public PluginInterface
@@ -198,6 +202,10 @@ UIManagerImpl
 	
   public TableManager getTableManager() {
     return( table_manager );
+  }
+  
+  public MenuManager getMenuManager() {
+	  return menu_manager;
   }
 
   public SWTManager getSWTManager() {
@@ -434,7 +442,8 @@ UIManagerImpl
  		
  		if ( 	type == UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED ||
  				type == UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED || 
- 				type == UIManagerEvent.ET_ADD_TABLE_CONTEXT_MENU_ITEM ){
+ 				type == UIManagerEvent.ET_ADD_TABLE_CONTEXT_MENU_ITEM ||
+ 				type == UIManagerEvent.ET_ADD_MENU_ITEM){
  			
  			delivered = true;
  			

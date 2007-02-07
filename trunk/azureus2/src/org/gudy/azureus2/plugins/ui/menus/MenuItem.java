@@ -23,6 +23,7 @@
 package org.gudy.azureus2.plugins.ui.menus;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /** Menu item access for the UI.
  *
@@ -188,5 +189,13 @@ public interface MenuItem
 	 * pass null to revert back to the default behaviour.
 	 */
 	public void setText(String text);
+	
+	/**
+	 * Retrieve the menu ID that the menu item belongs to
+	 * @return {@link MenuManager}.MENU_ constant.
+	 * 
+	 * @since 3.0.0.7
+	 */
+	public String getMenuID();
 
 }

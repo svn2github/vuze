@@ -28,6 +28,7 @@ import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
@@ -542,6 +543,10 @@ TableManagerImpl
 	  			for (int i=0;i<fill_listeners.size();i++){
 	  				delegate.addFillListener((MenuItemFillListener)fill_listeners.get(i));
 	  			}
+	  		}
+	  		
+	  		public String getMenuID() {
+	  			return MenuManager.MENU_TABLE;
 	  		}
 	  		
 	  		public String 

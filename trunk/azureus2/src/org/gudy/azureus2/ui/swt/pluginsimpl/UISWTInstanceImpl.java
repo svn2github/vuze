@@ -53,6 +53,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
+import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
@@ -75,6 +76,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -305,6 +307,10 @@ UISWTInstanceImpl
 				TableContextMenuManager.getInstance().addContextMenuItem(item);
 				
 				break;
+			}
+			case UIManagerEvent.ET_ADD_MENU_ITEM: {
+				MenuItem item = (MenuItem)data;
+				MenuItemManager.getInstance().addMenuItem(item);
 			}
 			
 			case UIManagerEvent.ET_SHOW_CONFIG_SECTION: {

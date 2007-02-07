@@ -27,6 +27,7 @@ import java.net.URL;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
@@ -170,16 +171,13 @@ UIManager
 	 */
 	public boolean showConfigSection(String sectionID);
 
-	  /* Future
-	  public MenuManager getMenuManager();
-	  In MenuManager..
-	  public Menu addMenu(String resourceKey);
-	  public Menu addMenu(String resourceKey, String parentKey);
-	  public Menu addMenu(String resourceKey, Menu parent);
-	  public MenuItem addMenuItem(String resourceKey);
-	  public MenuItem addMenuItem(String resourceKey, String parentKey);
-	  public MenuItem addMenuItem(String resourceKey, Menu parent);
-	  */
+	/**
+	 * Retrieve the menu manager.
+	 * 
+	 * @return Menu management functions
+	 * @since 3.0.0.7
+	 */
+    public MenuManager getMenuManager();
   
 		/**
 		 * UIs should support generic UI-agnostic views such as the basic config model by default. The can also
