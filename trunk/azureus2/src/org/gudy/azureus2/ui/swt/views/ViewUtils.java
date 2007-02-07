@@ -192,7 +192,11 @@ ViewUtils
 					mb.open();
 					return;
 				}
-				adapter.setDownSpeed(newSpeed/num_entries);
+				int	shared = newSpeed/num_entries;
+				if ( shared <= 0 ){
+					shared = 1;
+				}
+				adapter.setDownSpeed(shared);
 			}
 		});
 
@@ -322,7 +326,11 @@ ViewUtils
 					mb.open();
 					return;
 				}
-				adapter.setUpSpeed(newSpeed/num_entries);
+				int	shared = newSpeed/num_entries;
+				if ( shared <= 0 ){
+					shared = 1;
+				}
+				adapter.setUpSpeed(shared);
 			}
 		});
 	}
