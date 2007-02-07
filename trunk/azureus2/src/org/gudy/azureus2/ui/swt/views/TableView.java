@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
@@ -1171,41 +1172,12 @@ public class TableView
    */
   public Menu createMenu() {
     final Menu menu = new Menu(tableComposite.getShell(), SWT.POP_UP);
-    menu.addMenuListener(new MenuListener() {
-    	boolean bShown = false;
-    	
-			public void menuHidden(MenuEvent e) {
-				bShown = false;
-
-				if (Constants.isOSX)
-					return;
-
-				// Must dispose in an asyncExec, otherwise SWT.Selection doesn't
-				// get fired (async workaround provided by Eclipse Bug #87678)
-				e.widget.getDisplay().asyncExec(new AERunnable() {
-					public void runSupport() {
-						if (bShown || menu.isDisposed())
-							return;
-						MenuItem[] items = menu.getItems();
-						for (int i = 0; i < items.length; i++) {
-							items[i].dispose();
-						}
-					}
-				});
-			}
-
-			public void menuShown(MenuEvent e) {
-				MenuItem[] items = menu.getItems();
-				for (int i = 0; i < items.length; i++)
-					items[i].dispose();
-
-        bShown = true;
-
-      	fillMenu(menu);
-        addThisColumnSubMenu(getColumnNo(iMouseX));
-			}
+    MenuBuildUtils.addMaintenanceListenerForMenu(menu, new MenuBuildUtils.MenuBuilder() {
+    	public void buildMenu(Menu menu) {
+    		fillMenu(menu);
+    		addThisColumnSubMenu(getColumnNo(iMouseX));
+    	}
     });
-
     return menu;
   }
 
@@ -1237,106 +1209,25 @@ public class TableView
     TableContextMenuItem[] items = TableContextMenuManager.getInstance()
 				.getAllAsArray(sTableID);
 		if (items.length > 0) {
-			new MenuItem(menu, SWT.SEPARATOR);
-			addTableContextMenuItems(items, menu, true, enable_items);
+			new org.eclipse.swt.widgets.MenuItem(menu, SWT.SEPARATOR);
+			MenuBuildUtils.addPluginMenuItems(getComposite(), items, menu, true, enable_items,
+				new MenuBuildUtils.PluginMenuController() {
+					public Listener makeSelectionListener(final org.gudy.azureus2.plugins.ui.menus.MenuItem plugin_menu_item) {
+						return new SelectedTableRowsListener() {
+							public boolean run(TableRowCore[] rows) {
+								((TableContextMenuItemImpl)plugin_menu_item).invokeListeners(rows);
+								return true;
+							}
+						};
+					}
+					
+					public void notifyFillListeners(org.gudy.azureus2.plugins.ui.menus.MenuItem menu_item) {
+						((TableContextMenuItemImpl)menu_item).invokeMenuWillBeShownListeners(getSelectedRows());
+					}
+			});
 
     }
   }
-  
-  private void addTableContextMenuItems(org.gudy.azureus2.plugins.ui.menus.MenuItem[] items, Menu parent, boolean prev_was_separator, boolean enable_items) {
-	for (int i = 0; i < items.length; i++) {
-		final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl) items[i];
-
-		final int style = contextMenuItem.getStyle();
-
-		final int swt_style;
-
-		boolean this_is_separator = false;
-
-		// Do we have any children? If so, we override any manually defined
-		// style.
-		boolean is_container = false;
-		org.gudy.azureus2.plugins.ui.menus.MenuItem [] child_items = contextMenuItem.getItems();
-		
-		if (style == TableContextMenuItem.STYLE_MENU) {
-			swt_style = SWT.CASCADE;
-			is_container = true;
-		}
-		else if (style == TableContextMenuItem.STYLE_PUSH) {
-			swt_style = SWT.PUSH;
-		} else if (style == TableContextMenuItem.STYLE_CHECK) {
-			swt_style = SWT.CHECK;
-		} else if (style == TableContextMenuItem.STYLE_RADIO) {
-			swt_style = SWT.RADIO;
-		} else if (style == TableContextMenuItem.STYLE_SEPARATOR) {
-			this_is_separator = true;
-			swt_style = SWT.SEPARATOR;
-		} else {
-			swt_style = SWT.PUSH;
-		}
-
-		// skip contiguous separators
-
-		if (prev_was_separator && this_is_separator) {
-			continue;
-		}
-
-		// skip trailing separator
-
-		if (this_is_separator && i == items.length - 1) {
-			continue;
-		}
-
-		prev_was_separator = this_is_separator;
-		
-		final MenuItem menuItem = new MenuItem(parent, swt_style);
-
-		if (swt_style == SWT.SEPARATOR) {
-			continue;
-		}
-		
-		menuItem.addListener(SWT.Selection, new SelectedTableRowsListener() {
-			public boolean run(TableRowCore[] rows) {
-				if (swt_style == SWT.CHECK || swt_style == SWT.RADIO) {
-					if (!menuItem.isDisposed()) {
-						contextMenuItem.setData(new Boolean(menuItem.getSelection()));
-					}
-				}
-
-				contextMenuItem.invokeListeners(rows);
-				return true;
-			}
-		});
-		
-		if (is_container) {
-			Menu this_menu = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
-			menuItem.setMenu(this_menu);
-			this.addTableContextMenuItems(child_items, this_menu, false, enable_items);
-		}
-
-		if (enable_items) {
-			contextMenuItem.invokeMenuWillBeShownListeners(getSelectedRows());
-
-			if (style == TableContextMenuItem.STYLE_CHECK
-					|| style == TableContextMenuItem.STYLE_RADIO) {
-
-				menuItem.setSelection(((Boolean) contextMenuItem.getData())
-						.booleanValue());
-			}
-		}
-		
-		String custom_title = contextMenuItem.getText();
-		menuItem.setText(custom_title);
-
-		Graphic g = contextMenuItem.getGraphic();
-		if (g instanceof UISWTGraphic) {
-			Utils.setMenuItemImage(menuItem, ((UISWTGraphic) g).getImage());
-		}
- 
-		menuItem.setEnabled(enable_items && contextMenuItem.isEnabled());
-
-	}
- }
   
   /**
    * SubMenu for column specific tasks. 
@@ -2737,7 +2628,7 @@ public class TableView
     /** Process the trapped event.  This function does not need to be overidden.
      * @param e event information
      */
-    public void handleEvent(Event e) {
+    public final void handleEvent(Event e) {
       event = e;
       runForSelectedRows(this);
     }    
