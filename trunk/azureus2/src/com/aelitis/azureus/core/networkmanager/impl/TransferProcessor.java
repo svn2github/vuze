@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
@@ -84,25 +85,31 @@ public class TransferProcessor {
    * @param connection to register
    * @param group rate limit group
    */
-  public void registerPeerConnection( NetworkConnectionBase connection, LimitedRateGroup group, LimitedRateGroup individual ) {
+  public void registerPeerConnection( NetworkConnectionBase connection, boolean upload ) {
     final ConnectionData conn_data = new ConnectionData();
 
     try {  connections_mon.enter();
+    
+      LimitedRateGroup[]	groups = connection.getRateLimiters( upload );
       //do group registration
-      GroupData group_data = (GroupData)group_buckets.get( group );
-      if( group_data == null ) {
-        int limit = NetworkManagerUtilities.getGroupRateLimit( group );
-        group_data = new GroupData( new ByteBucket( limit ) );
-        group_buckets.put( group, group_data );
+      GroupData[]	group_datas = new GroupData[groups.length];
+    
+      for (int i=0;i<groups.length;i++){
+    	  LimitedRateGroup group = groups[i];
+    	  GroupData group_data = (GroupData)group_buckets.get( group );
+	      if( group_data == null ) {
+	        int limit = NetworkManagerUtilities.getGroupRateLimit( group );
+	        group_data = new GroupData( new ByteBucket( limit ) );
+	        group_buckets.put( group, group_data );
+	      }
+	      group_data.group_size++;
+	      
+	      group_datas[i] = group_data;
       }
-      group_data.group_size++;
-      conn_data.group = group;
-      conn_data.group_data = group_data;
+      conn_data.groups = groups;
+      conn_data.group_datas = group_datas;
       conn_data.state = ConnectionData.STATE_NORMAL;
-
-      conn_data.individual_limit = individual;
-      conn_data.individual_bucket = new ByteBucket( individual.getRateLimitBytesPerSecond());
-      
+     
       connections.put( connection, conn_data );
     }
     finally {  connections_mon.exit();  }
@@ -126,12 +133,23 @@ public class TransferProcessor {
       ConnectionData conn_data = (ConnectionData)connections.remove( connection );
       
       if( conn_data != null ) {
-        //do group de-registration
-        if( conn_data.group_data.group_size == 1 ) {  //last of the group
-          group_buckets.remove( conn_data.group ); //so remove
-        }
-        else {
-          conn_data.group_data.group_size--;
+    	  
+    	GroupData[]	group_datas = conn_data.group_datas;
+    	
+  			//do groups de-registration
+    	 
+    	for (int i=0;i<group_datas.length;i++){
+    		
+    		GroupData	group_data = group_datas[i];
+    		
+    		if( group_data.group_size == 1 ) {  //last of the group
+          
+    			group_buckets.remove( conn_data.groups[i] ); //so remove
+    			
+    		}else {
+    		
+    			group_data.group_size--;
+    		}
         }
       }
     }
@@ -141,7 +159,128 @@ public class TransferProcessor {
     main_controller.cancelPeerConnection( connection );
   }
   
+  public void
+  addRateLimiter(
+	NetworkConnectionBase 	connection,
+	LimitedRateGroup		group )
+  {
+	  try{ 
+		  connections_mon.enter();
+	  
+	      ConnectionData conn_data = (ConnectionData)connections.get( connection );
+	      
+	      if ( conn_data != null ){
+	    	 
+			  LimitedRateGroup[]	groups 		= conn_data.groups;
+
+			  for (int i=0;i<groups.length;i++){
+				  
+				  if ( groups[i] == group ){
+					  
+					  return;
+				  }
+			  }
+			  
+	    	  GroupData group_data = (GroupData)group_buckets.get( group );
+	    	  
+		      if ( group_data == null ){
+		    	  
+		    	  int limit = NetworkManagerUtilities.getGroupRateLimit( group );
+
+		    	  group_data = new GroupData( new ByteBucket( limit ) );
+
+		    	  group_buckets.put( group, group_data );
+		      }
+		      
+		      group_data.group_size++;
+		   
+			  GroupData[]			group_datas = conn_data.group_datas; 
+
+		      int	len = groups.length;
+
+		      LimitedRateGroup[]	new_groups = new LimitedRateGroup[ len + 1 ];
+		      
+		      System.arraycopy( groups, 0, new_groups, 0, len );
+		      new_groups[len] = group;
+		      
+		      conn_data.groups 		= new_groups;
+		      
+		      GroupData[]	new_group_datas = new GroupData[ len + 1 ];
+		      
+		      System.arraycopy( group_datas, 0, new_group_datas, 0, len );
+		      new_group_datas[len] = group_data;
+
+		      conn_data.group_datas = new_group_datas;
+	      }
+	  }finally{
+		 
+		  connections_mon.exit();
+	  }
+  }
   
+  public void
+  removeRateLimiter(
+	NetworkConnectionBase 	connection,
+	LimitedRateGroup		group )
+  {
+	   try{ 
+		   connections_mon.enter();
+		   
+		   ConnectionData conn_data = (ConnectionData)connections.get( connection );
+	      
+		   if ( conn_data != null ){
+	    	  
+			   LimitedRateGroup[]	groups 		= conn_data.groups;
+			   GroupData[]			group_datas = conn_data.group_datas; 
+			   
+			   int	len = groups.length;
+
+			   if ( len == 0 ){
+				   
+				   return;
+			   }
+			   
+			   LimitedRateGroup[]	new_groups 		= new LimitedRateGroup[ len - 1 ];
+			   GroupData[]			new_group_datas = new GroupData[ len - 1 ];
+
+			   int	pos = 0;
+			   
+			   for (int i=0;i<groups.length;i++){
+	    		
+				   if ( groups[i] == group ){
+					   
+					   GroupData	group_data = conn_data.group_datas[i];
+	    		
+					   if ( group_data.group_size == 1 ){  //last of the group
+	          
+						   group_buckets.remove( conn_data.groups[i] ); //so remove
+	    			
+					   }else {
+	    		
+						   group_data.group_size--;
+					   }
+				   }else{
+					   
+					   if ( pos == new_groups.length ){
+						   
+						   return;
+					   }
+					   
+					   new_groups[pos]		= groups[i];
+					   new_group_datas[pos]	= group_datas[i];
+					   
+					   pos++;
+				   }
+			   }
+			   
+			   conn_data.groups 		= new_groups;
+			   conn_data.group_datas 	= new_group_datas;
+		   }
+	   }finally{ 
+		   
+		   connections_mon.exit(); 
+	   } 
+  }
   
 
   /**
@@ -165,38 +304,57 @@ public class TransferProcessor {
           if( main_bucket.getRate() != max_rate.getRateLimitBytesPerSecond() ) {
             main_bucket.setRate( max_rate.getRateLimitBytesPerSecond() );
           }
-          // sync group rate
-          int group_rate = NetworkManagerUtilities.getGroupRateLimit( conn_data.group );
-          if( conn_data.group_data.bucket.getRate() != group_rate ) {
-            conn_data.group_data.bucket.setRate( group_rate );
-          }
           
-          // sync individual rate
-          int individual_rate = NetworkManagerUtilities.getGroupRateLimit( conn_data.individual_limit );
-          if ( conn_data.individual_bucket.getRate() != individual_rate ){
-        	  conn_data.individual_bucket.setRate( individual_rate );
-          }
-        	  
-          int individual_allowed = conn_data.individual_bucket.getAvailableByteCount();
-          int group_allowed = conn_data.group_data.bucket.getAvailableByteCount();
-          int global_allowed = main_bucket.getAvailableByteCount();
+          int allowed = main_bucket.getAvailableByteCount();
 
           // reserve bandwidth for the general pool
-          global_allowed -= connection.getMssSize();
-          if( global_allowed < 0 ) global_allowed = 0;
+          allowed -= connection.getMssSize();
           
-          int allowed = group_allowed > global_allowed ? global_allowed : group_allowed;
+          if ( allowed < 0 )allowed = 0;
           
-          if ( allowed > individual_allowed ){
-        	  allowed = individual_allowed;
+          	// only apply group rates to non-lan local connections 
+          
+          if ( !connection.isLANLocal()){
+	          // sync group rates
+	          
+	          try{
+		           for (int i=0;i<conn_data.group_datas.length;i++){
+			          int group_rate = NetworkManagerUtilities.getGroupRateLimit( conn_data.groups[i] );
+			          
+			          ByteBucket group_bucket = conn_data.group_datas[i].bucket;
+			          
+			          if ( group_bucket.getRate() != group_rate ){
+			        	  
+			        	  group_bucket.setRate( group_rate );
+			          }
+			          
+			          int 	group_allowed = group_bucket.getAvailableByteCount();
+			          
+			          if ( group_allowed < allowed ){
+			        	  
+			        	  allowed = group_allowed;
+			          }
+		           }
+	          }catch( Throwable e ){
+	        	  // conn_data.group stuff is not synchronized for speed but can cause borkage if new
+	        	  // limiters added so trap here
+	        	  
+	        	  if (!( e instanceof IndexOutOfBoundsException )){
+	        		  
+	        		  Debug.printStackTrace(e);
+	        	  }
+	          }
           }
-          
-          return allowed;
+                  	            
+           return allowed;
         }
 
         public void bytesProcessed( int num_bytes_written ) {
-          conn_data.individual_bucket.setBytesUsed( num_bytes_written );
-          conn_data.group_data.bucket.setBytesUsed( num_bytes_written );
+          if ( !connection.isLANLocal()){
+	          for (int i=0;i<conn_data.group_datas.length;i++){
+	        	  conn_data.group_datas[i].bucket.setBytesUsed( num_bytes_written );
+	          }
+          }
           main_bucket.setBytesUsed( num_bytes_written );
         }
       });
@@ -232,10 +390,8 @@ public class TransferProcessor {
     private static final int STATE_UPGRADED = 1;
     
     private int state;
-    private LimitedRateGroup group;
-    private GroupData group_data;
-    private LimitedRateGroup 	individual_limit;
-    private ByteBucket			individual_bucket;
+    private LimitedRateGroup[] groups;
+    private GroupData[] group_datas;
   }
 
     

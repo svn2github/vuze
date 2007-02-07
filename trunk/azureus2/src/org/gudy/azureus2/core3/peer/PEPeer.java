@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.peer;
 
 import org.gudy.azureus2.plugins.network.Connection;
 
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
@@ -197,6 +198,16 @@ PEPeer
 	public void setDownloadRateLimitBytesPerSecond( int bytes );
 	public int getUploadRateLimitBytesPerSecond();
 	public int getDownloadRateLimitBytesPerSecond();
+	
+	public void
+	addRateLimiter(
+		LimitedRateGroup	limiter,
+		boolean				upload );
+	
+	public void
+	removeRateLimiter(
+		LimitedRateGroup	limiter,
+		boolean				upload );
 	
   /** To retreive arbitrary objects against a peer. */
   public Object getData (String key);

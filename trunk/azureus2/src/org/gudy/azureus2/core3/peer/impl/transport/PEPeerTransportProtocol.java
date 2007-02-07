@@ -2132,12 +2132,29 @@ PEPeerTransportProtocol
       }
     });
 
+    	//start message processing
     
-    //start message processing
-    connection.startMessageProcessing( manager.getUploadLimitedRateGroup(), manager.getDownloadLimitedRateGroup() );
+    connection.addRateLimiter( manager.getUploadLimitedRateGroup(), true );
+    connection.addRateLimiter(  manager.getDownloadLimitedRateGroup(), false );
+    
+    connection.startMessageProcessing();
   }
   
-  
+	public void
+	addRateLimiter(
+		LimitedRateGroup	limiter,
+		boolean				upload )
+	{
+		connection.addRateLimiter( limiter, upload );
+	}
+	
+	public void
+	removeRateLimiter(
+		LimitedRateGroup	limiter,
+		boolean				upload )
+	{
+		connection.removeRateLimiter( limiter, upload );
+	}
   
   public Connection getPluginConnection() {
     return plugin_connection;
@@ -2569,8 +2586,8 @@ PEPeerTransportProtocol
 	
 	public void setUploadRateLimitBytesPerSecond( int bytes ){ connection.setUploadLimit( bytes ); }
 	public void setDownloadRateLimitBytesPerSecond( int bytes ){ connection.setDownloadLimit( bytes ); }
-	public int getUploadRateLimitBytesPerSecond(){ return connection.getUploadLimit().getRateLimitBytesPerSecond(); }
-	public int getDownloadRateLimitBytesPerSecond(){ return connection.getDownloadLimit().getRateLimitBytesPerSecond(); }
+	public int getUploadRateLimitBytesPerSecond(){ return connection.getUploadLimit(); }
+	public int getDownloadRateLimitBytesPerSecond(){ return connection.getDownloadLimit(); }
 
 	public void
 	generateEvidence(

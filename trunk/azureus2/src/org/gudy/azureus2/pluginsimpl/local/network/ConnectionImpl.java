@@ -71,14 +71,8 @@ public class ConnectionImpl implements Connection {
 
   
   public void startMessageProcessing() {
-    core_connection.startMessageProcessing(
-        new LimitedRateGroup() {
-          public int getRateLimitBytesPerSecond() {  return 0;  }  //no specific write limit for now
-        },
-        new LimitedRateGroup() {
-          public int getRateLimitBytesPerSecond() {  return 0;  }  //no specific read limit for now
-        }
-    );     
+	
+    core_connection.startMessageProcessing();
     
     core_connection.enableEnhancedMessageProcessing( true );  //auto-upgrade connection
   }

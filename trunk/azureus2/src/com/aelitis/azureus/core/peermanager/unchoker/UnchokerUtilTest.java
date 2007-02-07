@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.network.Connection;
 
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
@@ -187,6 +188,14 @@ public class UnchokerUtilTest {
 		public void setDownloadRateLimitBytesPerSecond( int bytes ){}
 		public int getUploadRateLimitBytesPerSecond(){ return 0 ;}
 		public int getDownloadRateLimitBytesPerSecond(){ return 0; }
+		public void addRateLimiter(LimitedRateGroup limiter, boolean upload) {
+			// TODO Auto-generated method stub
+			
+		}
+		public void removeRateLimiter(LimitedRateGroup limiter, boolean upload) {
+			// TODO Auto-generated method stub
+			
+		}
       };
       
      f_stats[0] = new PEPeerStats() {

@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
@@ -83,7 +84,10 @@ PeerForeignDelegate
 		
 		network_connection = new PeerForeignNetworkConnection( foreign );
 				
-		NetworkManager.getSingleton().startTransferProcessing( network_connection, pm.getUploadLimitedRateGroup(), pm.getDownloadLimitedRateGroup() );
+		network_connection.addRateLimiter( pm.getUploadLimitedRateGroup(), true );
+		network_connection.addRateLimiter( pm.getDownloadLimitedRateGroup(), false );
+		
+		NetworkManager.getSingleton().startTransferProcessing( network_connection );
 		
 		NetworkManager.getSingleton().upgradeTransferProcessing( network_connection );
 	}
@@ -798,8 +802,24 @@ PeerForeignDelegate
 	
 	public void setUploadRateLimitBytesPerSecond( int bytes ){ network_connection.setUploadLimit( bytes ); }
 	public void setDownloadRateLimitBytesPerSecond( int bytes ){ network_connection.setDownloadLimit( bytes ); }
-	public int getUploadRateLimitBytesPerSecond(){ return network_connection.getUploadLimit().getRateLimitBytesPerSecond(); }
-	public int getDownloadRateLimitBytesPerSecond(){ return network_connection.getDownloadLimit().getRateLimitBytesPerSecond(); }
+	public int getUploadRateLimitBytesPerSecond(){ return network_connection.getUploadLimit(); }
+	public int getDownloadRateLimitBytesPerSecond(){ return network_connection.getDownloadLimit(); }
+	
+	public void
+	addRateLimiter(
+		LimitedRateGroup	limiter,
+		boolean				upload )
+	{
+		network_connection.addRateLimiter( limiter, upload );
+	}
+	
+	public void
+	removeRateLimiter(
+		LimitedRateGroup	limiter,
+		boolean				upload )
+	{
+		network_connection.removeRateLimiter( limiter, upload );
+	}
 	
 	public void
 	generateEvidence(

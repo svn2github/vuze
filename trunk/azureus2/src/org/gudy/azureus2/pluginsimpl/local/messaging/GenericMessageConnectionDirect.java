@@ -32,7 +32,6 @@ import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
-import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
@@ -40,7 +39,7 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 public class 
 GenericMessageConnectionDirect 
-	implements GenericMessageConnectionAdapter, LimitedRateGroup
+	implements GenericMessageConnectionAdapter
 {	
 	public static final int MAX_MESSAGE_SIZE	= GenericMessageDecoder.MAX_MESSAGE_LENGTH;
 
@@ -335,8 +334,6 @@ GenericMessageConnectionDirect
 	  			    {  			    	
 	  			    }
 	    		});
-	    
-	    connection.startMessageProcessing( this, this );
 	}
 	
 	public void
@@ -378,11 +375,5 @@ GenericMessageConnectionDirect
 			
 			connection.close();
 		}
-	}
-	
-	public int 
-	getRateLimitBytesPerSecond()
-	{
-		return( 0 );
 	}
 }

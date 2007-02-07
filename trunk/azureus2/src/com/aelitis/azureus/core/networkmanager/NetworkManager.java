@@ -141,6 +141,8 @@ public class NetworkManager {
   	public int getRateLimitBytesPerSecond() {  return 0;  }
   };
   
+  private final LimitedRateGroup[] unlimited_rate_groups = { unlimited_rate_group, unlimited_rate_group };
+  
   private NetworkManagerStats	stats = new NetworkManagerStats();
   
   
@@ -317,14 +319,17 @@ public class NetworkManager {
    * @param upload_group upload rate limit group
    * @param download_group download rate limit group
    */
-  public void startTransferProcessing( NetworkConnectionBase peer_connection, LimitedRateGroup upload_group, LimitedRateGroup download_group ) {
+  public void 
+  startTransferProcessing( 
+	NetworkConnectionBase 	peer_connection )
+  {
   	if( peer_connection.isLANLocal() && lan_rate_enabled ) {
-  		lan_upload_processor.registerPeerConnection( peer_connection, unlimited_rate_group, unlimited_rate_group );
-  		lan_download_processor.registerPeerConnection( peer_connection, unlimited_rate_group, unlimited_rate_group );
+  		lan_upload_processor.registerPeerConnection( peer_connection, true );
+  		lan_download_processor.registerPeerConnection( peer_connection, false );
   	}
   	else {
-  		upload_processor.registerPeerConnection( peer_connection, upload_group, peer_connection.getUploadLimit());
-  		download_processor.registerPeerConnection( peer_connection, download_group, peer_connection.getDownloadLimit() );
+  		upload_processor.registerPeerConnection( peer_connection, true );
+  		download_processor.registerPeerConnection( peer_connection, false );
   	}
   }
   
@@ -375,7 +380,56 @@ public class NetworkManager {
   	}
   }
   
+  public void
+  addRateLimiter(
+	NetworkConnectionBase 	peer_connection,
+	LimitedRateGroup		group,
+	boolean					upload )
+  {
+	  if ( upload ){
+		  if ( lan_upload_processor.isRegistered( peer_connection )){
+			  
+		  		lan_upload_processor.addRateLimiter( peer_connection, group );
+	
+		  }else{
+		  		upload_processor.addRateLimiter( peer_connection, group );
+		  } 
+	  }else{
+		  if ( lan_download_processor.isRegistered( peer_connection )){
+			  
+			  	lan_download_processor.addRateLimiter( peer_connection, group );
+	
+		  }else{
+		  		download_processor.addRateLimiter( peer_connection, group );
+		  } 
+	  }
+  }
     
+  public void
+  removeRateLimiter(
+	NetworkConnectionBase 	peer_connection,
+	LimitedRateGroup		group,
+	boolean					upload )
+  {
+	  if ( upload ){
+		  if ( lan_upload_processor.isRegistered( peer_connection )){
+			  
+		  		lan_upload_processor.removeRateLimiter( peer_connection, group );
+	
+		  }else{
+		  		upload_processor.removeRateLimiter( peer_connection, group );
+		  } 
+	  }else{
+		  if ( lan_download_processor.isRegistered( peer_connection )){
+			  
+			  	lan_download_processor.removeRateLimiter( peer_connection, group );
+	
+		  }else{
+		  		download_processor.removeRateLimiter( peer_connection, group );
+		  } 
+	  }
+  }
+  
   public NetworkManagerStats
   getStats()
   {

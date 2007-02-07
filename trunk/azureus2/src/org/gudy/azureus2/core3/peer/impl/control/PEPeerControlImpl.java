@@ -694,7 +694,7 @@ PEPeerControlImpl
 				fail_reason = "No usable protocol";
 			}
 		
-			if( fail_reason != null )  Debug.out( "injected peer was not added - " + fail_reason );
+			if( fail_reason != null )  Debug.out( "Injected peer " + ip_address + ":" + tcp_port + " was not added - " + fail_reason );
 		}
 	}
 	

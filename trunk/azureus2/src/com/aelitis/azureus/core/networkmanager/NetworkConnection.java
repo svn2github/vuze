@@ -58,7 +58,7 @@ NetworkConnection
    * @param upload_group upload rate limit group to use
    * @param download_group download rate limit group to use
    */
-  public void startMessageProcessing( LimitedRateGroup upload_group, LimitedRateGroup download_group );
+  public void startMessageProcessing();
   
   
   /**
