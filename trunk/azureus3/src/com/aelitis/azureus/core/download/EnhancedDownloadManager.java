@@ -210,9 +210,7 @@ EnhancedDownloadManager
 					PEPeer 	peer )
 				{
 					if ( platform_content ){
-						
-						System.out.println( "peer added: " + peer.getIp() + ":" + peer.getPort());
-						
+												
 						synchronized( EnhancedDownloadManager.this ){
 							
 							if ( new_peers == null ){
@@ -231,8 +229,6 @@ EnhancedDownloadManager
 				{
 					if ( platform_content ){
 							
-						System.out.println( "peer removed: " + peer.getIp() + ":" + peer.getPort());
-
 						synchronized( EnhancedDownloadManager.this ){
 							
 							if ( new_peers != null ){
