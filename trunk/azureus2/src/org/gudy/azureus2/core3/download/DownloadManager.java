@@ -32,6 +32,8 @@ import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+
 public interface
 DownloadManager
 {
@@ -520,6 +522,16 @@ DownloadManager
     
 	public boolean
 	seedPieceRecheck();
+	
+	public void
+	addRateLimiter(
+		LimitedRateGroup	group,
+		boolean				upload );
+	
+	public void
+	removeRateLimiter(
+		LimitedRateGroup	group,
+		boolean				upload );
 	
     public void
     addListener(

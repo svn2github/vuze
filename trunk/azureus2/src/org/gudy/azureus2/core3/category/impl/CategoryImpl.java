@@ -30,11 +30,36 @@ import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+
 public class CategoryImpl implements Category, Comparable {
   private String sName;
   private int type;
-	private List managers = new ArrayList();
+  private List managers = new ArrayList();
 
+  private int upload_speed;
+  private int download_speed;
+
+  private LimitedRateGroup upload_limiter = 
+	  new LimitedRateGroup()
+	  {
+		  public int 
+		  getRateLimitBytesPerSecond()
+		  {
+			  return( upload_speed );
+		  }
+	  };
+   
+  private LimitedRateGroup download_limiter = 
+	  new LimitedRateGroup()
+  {
+	  public int 
+	  getRateLimitBytesPerSecond()
+	  {
+		  return( download_speed );
+	  }
+  };  
+  
   private static final int LDT_CATEGORY_DMADDED     = 1;
   private static final int LDT_CATEGORY_DMREMOVED   = 2;
 	private ListenerManager	category_listeners = ListenerManager.createManager(
@@ -55,9 +80,11 @@ public class CategoryImpl implements Category, Comparable {
 			}
 		});
 
-  public CategoryImpl(String sName) {
+  public CategoryImpl(String sName, int maxup, int maxdown ) {
     this.sName = sName;
     this.type = Category.TYPE_USER;
+    upload_speed	= maxup;
+    download_speed	= maxdown;
   }
 
   public CategoryImpl(String sName, int type) {
@@ -96,6 +123,10 @@ public class CategoryImpl implements Category, Comparable {
     
     if (!managers.contains(manager)) {
       managers.add(manager);
+      
+      manager.addRateLimiter( upload_limiter, true );
+      manager.addRateLimiter( download_limiter, false );
+      
       category_listeners.dispatch(LDT_CATEGORY_DMADDED, manager);
     }
   }
@@ -110,10 +141,50 @@ public class CategoryImpl implements Category, Comparable {
 
     if (managers.contains(manager) || type != Category.TYPE_USER) {
       managers.remove(manager);
+      
+      manager.removeRateLimiter( upload_limiter, true );
+      manager.removeRateLimiter( download_limiter, false );
+ 
       category_listeners.dispatch( LDT_CATEGORY_DMREMOVED, manager );
     }
   }
 
+  public void
+  setDownloadSpeed(
+	int		speed )
+  {
+	  if ( download_speed != speed ){
+		  
+		  download_speed = speed;
+		  
+		  CategoryManagerImpl.getInstance().saveCategories();
+	  }
+  }
+  
+  public int
+  getDownloadSpeed()
+  {
+	  return( download_speed );
+  }
+  
+  public void
+  setUploadSpeed(
+	int		speed )
+  {
+	  if ( upload_speed != speed ){
+		  
+		  upload_speed	= speed;
+	  
+		  CategoryManagerImpl.getInstance().saveCategories();
+	  }
+  }
+  
+  public int
+  getUploadSpeed()
+  {
+	  return( upload_speed );
+  }
+  
   public int compareTo(Object b)
   {
     boolean aTypeIsUser = type == Category.TYPE_USER;

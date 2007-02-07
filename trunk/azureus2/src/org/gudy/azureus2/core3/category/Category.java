@@ -83,4 +83,18 @@ public interface Category {
   public void removeManager(DownloadManagerState manager);
 
   // Other things like stats, settings, etc?
+  
+  public void
+  setDownloadSpeed(
+	int		speed );
+  
+  public int
+  getDownloadSpeed();
+  
+  public void
+  setUploadSpeed(
+	int		speed );
+  
+  public int
+  getUploadSpeed();
 }

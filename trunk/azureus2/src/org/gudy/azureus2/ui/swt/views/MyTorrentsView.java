@@ -340,6 +340,8 @@ public class MyTorrentsView
       int iFontPixelsHeight = 11;
       int iFontPointHeight = (iFontPixelsHeight * 72) / cCategories.getDisplay().getDPI().y;
       for (int i = 0; i < categories.length; i++) {
+    	final Category category = categories[i];
+    	
         final Button catButton = new Button(cCategories, SWT.TOGGLE);
         catButton.addKeyListener(this);
         if (i == 0 && fontButton == null) {
@@ -357,14 +359,14 @@ public class MyTorrentsView
           catButton.setLayoutData(rd);
         }
 
-        String name = categories[i].getName();
-        if (categories[i].getType() == Category.TYPE_USER)
+        String name = category.getName();
+        if (category.getType() == Category.TYPE_USER)
           catButton.setText(name);
         else
           Messages.setLanguageText(catButton, name);
 
-        catButton.setData("Category", categories[i]);
-        if (categories[i] == currentCategory) {
+        catButton.setData("Category", category);
+        if (category == currentCategory) {
           catButton.setSelection(true);
         }
 
@@ -401,7 +403,7 @@ public class MyTorrentsView
             for (Iterator iter = dms.iterator(); iter.hasNext();) {
 							DownloadManager dm = (DownloadManager) iter.next();
 							
-							if (!isOurDownloadManager(dm))
+							if (!isInCategory(dm, currentCategory ))
 								continue;
 							
 							count++;
@@ -413,12 +415,24 @@ public class MyTorrentsView
 							ttlSSpeed += dm.getStats().getDataSendRate();
 						}
 
+            String up_str 	= MessageText.getString( "GeneralView.label.maxuploadspeed" );
+            String down_str = MessageText.getString( "GeneralView.label.maxdownloadspeed" );
+            String unlimited_str = MessageText.getString( "MyTorrentsView.menu.setSpeed.unlimited" );
+             
+            int	up_speed 	= category.getUploadSpeed();
+            int	down_speed 	= category.getDownloadSpeed();
+            
+            String up 	= up_str + ": " + (up_speed==0?unlimited_str:DisplayFormatters.formatByteCountToKiBEtc(up_speed));
+            String down = down_str + ": " + (down_speed==0?unlimited_str:DisplayFormatters.formatByteCountToKiBEtc(down_speed));
+            
             if (count == 0) {
-            	curButton.setToolTipText(null);
+            	curButton.setToolTipText( up + "\n" + down );
             	return;
             }
             
-            curButton.setToolTipText("Total: " + count + "\n"
+            curButton.setToolTipText(
+            		up + "\n" + down + "\n" +
+            		"Total: " + count + "\n"
             		+ "Downloading/Seeding: " + ttlActive + "\n"
             		+ "\n"
             		+ "Speed: "
@@ -458,43 +472,109 @@ public class MyTorrentsView
 					}
         });
 
-        Menu menu = new Menu(getComposite().getShell(), SWT.POP_UP);
+        if ( category.getType() == Category.TYPE_USER ){
+        	
+        	final Menu menu = new Menu(getComposite().getShell(), SWT.POP_UP);
+    
+            catButton.setMenu(menu);
+            
+        	menu.addMenuListener(
+        		new MenuListener() 
+        		{
+        	    	boolean bShown = false;
+        	    	
+        			public void 
+        			menuHidden(
+        				MenuEvent e )
+        			{
+        				bShown = false;
 
-        final MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
-        Messages.setLanguageText(itemDelete, "MyTorrentsView.menu.category.delete");
-        menu.setDefaultItem(itemDelete);
+        				if (Constants.isOSX)
+        					return;
 
-        if (categories[i].getType() == Category.TYPE_USER) {
-          itemDelete.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event event) {
-              Category catToDelete = (Category)catButton.getData("Category");
-              if (catToDelete != null) {
-                java.util.List managers = catToDelete.getDownloadManagers();
-                // move to array,since setcategory removed it from the category,
-                // which would mess up our loop
-                DownloadManager dms[] = (DownloadManager [])managers.toArray(new DownloadManager[managers.size()]);
-                for (int i = 0; i < dms.length; i++) {
-                  dms[i].getDownloadState().setCategory(null);
-                }
-                if (currentCategory == catToDelete){
-                	
-                   activateCategory(CategoryManager.getCategory(Category.TYPE_ALL));
-                   
-                }else{
-                		// always activate as deletion of this one might have
-                		// affected the current view 
-                	activateCategory(  currentCategory );
-                }
-                CategoryManager.removeCategory(catToDelete);
-              }
+        				// Must dispose in an asyncExec, otherwise SWT.Selection doesn't
+        				// get fired (async workaround provided by Eclipse Bug #87678)
+
+        				e.widget.getDisplay().asyncExec(new AERunnable() {
+        					public void runSupport() {
+        						if (bShown || menu.isDisposed())
+        							return;
+        						MenuItem[] items = menu.getItems();
+        						for (int i = 0; i < items.length; i++) {
+        							items[i].dispose();
+        						}
+        					}
+        				});
+        			}
+
+        			public void 
+        			menuShown(
+        				MenuEvent e) 
+        			{
+        				MenuItem[] items = menu.getItems();
+        				for (int i = 0; i < items.length; i++)
+        					items[i].dispose();
+
+        				bShown = true;
+
+        		        final MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
+        		       
+        		        Messages.setLanguageText(itemDelete, "MyTorrentsView.menu.category.delete");
+        		        
+        		        menu.setDefaultItem(itemDelete);
+
+        				long maxDownload = COConfigurationManager.getIntParameter("Max Download Speed KBs", 0) * 1024;
+        				long maxUpload = COConfigurationManager.getIntParameter("Max Upload Speed KBs", 0) * 1024;
+
+        		        ViewUtils.addSpeedMenu( 
+        		        		getComposite(), menu, true, 
+        		        		false, false, category.getDownloadSpeed(), category.getDownloadSpeed(), maxDownload, 
+        		        		false, false, category.getUploadSpeed(), category.getUploadSpeed(), maxUpload, 
+        		        		1, 
+        		        		new SpeeedAdapter()
+        		        		{
+        		        			public void 
+        		        			setDownSpeed(int val) 
+        		        			{
+        		        				category.setDownloadSpeed( val );
+        		        			}
+        		        			public void 
+        		        			setUpSpeed(int val) 
+        		        			{
+        		        				category.setUploadSpeed( val );
+
+        		        			}
+        		        		});
+
+        		        itemDelete.addListener(SWT.Selection, new Listener() {
+        		        	public void handleEvent(Event event) {
+        		        		Category catToDelete = (Category)catButton.getData("Category");
+        		        		if (catToDelete != null) {
+        		        			java.util.List managers = catToDelete.getDownloadManagers();
+        		        			// move to array,since setcategory removed it from the category,
+        		        			// which would mess up our loop
+        		        			DownloadManager dms[] = (DownloadManager [])managers.toArray(new DownloadManager[managers.size()]);
+        		        			for (int i = 0; i < dms.length; i++) {
+        		        				dms[i].getDownloadState().setCategory(null);
+        		        			}
+        		        			if (currentCategory == catToDelete){
+
+        		        				activateCategory(CategoryManager.getCategory(Category.TYPE_ALL));
+
+        		        			}else{
+        		        				// always activate as deletion of this one might have
+        		        				// affected the current view 
+        		        				activateCategory(  currentCategory );
+        		        			}
+        		        			CategoryManager.removeCategory(catToDelete);
+        		        		}
+        			}
+        		});
+        				
+ 
             }
           });
-          itemDelete.setEnabled(true);
         }
-        else {
-          itemDelete.setEnabled(false);
-        }
-        catButton.setMenu(menu);
       }
 
       cCategories.layout();
@@ -1651,10 +1731,11 @@ public class MyTorrentsView
       }
 
       for (i = 0; i < categories.length; i++) {
-        if (categories[i].getType() == Category.TYPE_USER) {
+    	Category category = categories[i];
+        if (category.getType() == Category.TYPE_USER) {
           final MenuItem itemCategory = new MenuItem(menuCategory, SWT.PUSH);
-          itemCategory.setText(categories[i].getName());
-          itemCategory.setData("Category", categories[i]);
+          itemCategory.setText(category.getName());
+          itemCategory.setData("Category", category);
 
           itemCategory.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event event) {

@@ -63,6 +63,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
@@ -179,6 +180,8 @@ DownloadManagerController
 	
 	private PeerManagerRegistration	peer_manager_registration;
 	private PEPeerManager 			peer_manager;
+	
+	private List	external_rate_limiters_cow;
 	
 	private String errorDetail;
 
@@ -421,8 +424,30 @@ DownloadManagerController
 	    		});
 	    
 		
-		peer_manager = temp;
+		List	limiters;
+		
+		try{
+			this_mon.enter();
+		
+			peer_manager = temp;
 
+			limiters = external_rate_limiters_cow;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		if ( limiters != null ){
+			
+			for (int i=0;i<limiters.size();i++){
+				
+				Object[]	entry = (Object[])limiters.get(i);
+				
+				temp.addRateLimiter((LimitedRateGroup)entry[0],((Boolean)entry[1]).booleanValue());
+			}
+		}
+		
 		// Inform only after peer_manager.start(), because it 
 		// may have switched it to STATE_SEEDING (in which case we don't need to
 		// inform).
@@ -1264,6 +1289,87 @@ DownloadManagerController
 		}
 		
 		return((byte[])secrets_map.get( "p1" ));
+	}
+	
+	public void
+	addRateLimiter(
+		LimitedRateGroup	group,
+		boolean				upload )
+	{
+		PEPeerManager	pm;
+		
+		try{
+			this_mon.enter();
+			
+			ArrayList	new_limiters = new ArrayList( external_rate_limiters_cow==null?1:external_rate_limiters_cow.size()+1);
+			
+			if ( external_rate_limiters_cow != null ){
+				
+				new_limiters.addAll( external_rate_limiters_cow );
+			}
+			
+			new_limiters.add( new Object[]{ group, new Boolean( upload )});
+			
+			external_rate_limiters_cow = new_limiters;
+			
+			pm	= peer_manager;
+			
+		}finally{
+			
+			this_mon.exit();
+		}	
+		
+		if ( pm != null ){
+			
+			pm.addRateLimiter(group, upload);
+		}
+	}
+	
+	public void
+	removeRateLimiter(
+		LimitedRateGroup	group,
+		boolean				upload )
+	{
+		PEPeerManager	pm;
+		
+		try{
+			this_mon.enter();
+			
+			if ( external_rate_limiters_cow != null ){
+				
+				ArrayList	new_limiters = new ArrayList( external_rate_limiters_cow.size()-1);
+				
+				for (int i=0;i<external_rate_limiters_cow.size();i++){
+					
+					Object[]	entry = (Object[])external_rate_limiters_cow.get(i);
+					
+					if ( entry[0] != group ){
+						
+						new_limiters.add( entry );
+					}
+				}
+				
+				if ( new_limiters.size() == 0 ){
+					
+					external_rate_limiters_cow = null;
+					
+				}else{
+				
+					external_rate_limiters_cow = new_limiters;
+				}
+			}
+			
+			pm	= peer_manager;
+			
+		}finally{
+			
+			this_mon.exit();
+		}	
+	
+		if ( pm != null ){
+			
+			pm.removeRateLimiter(group, upload);
+		}
 	}
 	
 	public void 

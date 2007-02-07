@@ -52,6 +52,7 @@ import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -3162,6 +3163,22 @@ DownloadManagerImpl
 	  return( false );
   }
   
+  public void
+  addRateLimiter(
+	  LimitedRateGroup	group,
+	  boolean			upload )
+  {
+	  controller.addRateLimiter( group, upload );
+  }
+
+  public void
+  removeRateLimiter(
+	  LimitedRateGroup	group,
+	  boolean				upload )
+  {
+	  controller.removeRateLimiter( group, upload );  
+  }
+	
   private byte[]
   getIdentity()
   {

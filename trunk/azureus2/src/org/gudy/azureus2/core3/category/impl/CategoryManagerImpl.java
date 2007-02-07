@@ -100,21 +100,33 @@ public class CategoryManagerImpl  {
 
     FileInputStream fin = null;
     BufferedInputStream bin = null;
-    Map map = null;
-    ArrayList catNames = new ArrayList();
+ 
+    makeSpecialCategories();
+
+   
     try {
       //open the file
       File configFile = FileUtil.getUserFile("categories.config");
       fin = new FileInputStream(configFile);
       bin = new BufferedInputStream(fin, 8192);
-      map = BDecoder.decode(bin);
+     
+      Map map = BDecoder.decode(bin);
 
       List catList = (List) map.get("categories");
       for (int i = 0; i < catList.size(); i++) {
         Map mCategory = (Map) catList.get(i);
         try {
           String catName = new String((byte[]) mCategory.get("name"), Constants.DEFAULT_ENCODING);
-          catNames.add(catName);
+          
+          Long l_maxup 		= (Long)mCategory.get( "maxup" );
+          Long l_maxdown 	= (Long)mCategory.get( "maxdown" );
+          
+          categories.put( 
+        	catName,
+        	  new CategoryImpl( 
+        		  catName, 
+        		  l_maxup==null?0:l_maxup.intValue(),
+        		  l_maxdown==null?0:l_maxdown.intValue()));
         }
         catch (UnsupportedEncodingException e1) {
           //Do nothing and process next.
@@ -139,24 +151,6 @@ public class CategoryManagerImpl  {
       }
       catch (Exception e) {}
     }
-
-    makeSpecialCategories();
-
-    if (map != null && catNames.size() > 0) {
-      try{
-      	categories_mon.enter();
-     
- 
-        for (int i = 0; i < catNames.size(); i++) {
-          String name = (String)catNames.get(i);
-          Category cat = new CategoryImpl(name);
-          categories.put(name, cat);
-        } // for catNames
-      }finally{
-      	
-      	categories_mon.exit();
-      }
-    }
   }
 
   public void saveCategories() {
@@ -173,7 +167,9 @@ public class CategoryManagerImpl  {
         // For now we are only putting in 1 thing.  Maybe more later, so we use a map
         if (cat.getType() == Category.TYPE_USER) {
           Map catMap = new HashMap();
-          catMap.put("name", cat.getName());
+          catMap.put( "name", cat.getName());
+          catMap.put( "maxup", new Long(cat.getUploadSpeed()));
+          catMap.put( "maxdown", new Long(cat.getUploadSpeed()));
           list.add(catMap);
         }
       }
@@ -225,7 +221,7 @@ public class CategoryManagerImpl  {
     makeSpecialCategories();
     Category newCategory = getCategory(name);
     if (newCategory == null) {
-      newCategory = new CategoryImpl(name);
+      newCategory = new CategoryImpl(name, 0, 0);
       categories.put(name, newCategory);
       saveCategories();
 
