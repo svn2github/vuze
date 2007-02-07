@@ -46,6 +46,11 @@ public interface MenuManager {
 	public static final String MENU_SYSTRAY = "systray";
 	
 	/**
+	 * The menu used on download bars.
+	 */
+	public static final String MENU_DOWNLOAD_BAR = "downloadbar";
+	
+	/**
 	 * Creates a menu item for the appropriate menu.
 	 * 
 	 * @param menuID The <tt>MENU_</tt> identifier as defined above. 

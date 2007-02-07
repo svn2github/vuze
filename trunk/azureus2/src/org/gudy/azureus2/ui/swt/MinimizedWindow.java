@@ -33,9 +33,11 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
+import org.gudy.azureus2.ui.common.util.MenuItemManager;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.TableView.SelectedTableRowsListener;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.eclipse.swt.widgets.ProgressBar;
@@ -48,7 +50,7 @@ import java.util.Vector;
  * @author Olivier
  * 
  */
-public class MinimizedWindow {
+public class MinimizedWindow implements MenuBuildUtils.MenuBuilder {
 
   Shell splash;
   Label lDrag;
@@ -76,7 +78,7 @@ public class MinimizedWindow {
   public ProgressBar pb1;
   
   public GC gc;
-  
+
   private DownloadManager manager;
 
   public MinimizedWindow(DownloadManager _manager, Shell main) {
@@ -271,56 +273,8 @@ public class MinimizedWindow {
     });
     splash.setSize(xSize + 3, hSize + 2);
     
-    Menu menu = new Menu(splash,SWT.POP_UP);
-    
-	final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
-	Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue");
-	Utils.setMenuItemImage(itemQueue, "start");
-	itemQueue.addListener(SWT.Selection, new Listener() {
-		public void handleEvent(Event e) {
-			ManagerUtils.queue(manager, splash);
-		}
-	});
-
-
-
-	// Stop
-	final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
-	Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop");
-	Utils.setMenuItemImage(itemStop, "stop");
-	itemStop.addListener(SWT.Selection, new Listener() {
-		public void handleEvent(Event e) {
-			ManagerUtils.stop(manager, splash);
-		}
-	});
-
-	new MenuItem(menu, SWT.SEPARATOR);
-    
-    MenuItem itemClose = new MenuItem(menu,SWT.NULL);
-    itemClose.setText(MessageText.getString("wizard.close"));
-    itemClose.addListener(SWT.Selection,new Listener() {
-      public void handleEvent(Event e) {
-        close();
-      }
-    });
-    
-    menu.addMenuListener(
-    	new MenuListener() 
-    	{
-     		public void 
-    		menuHidden(
-    			MenuEvent e) 
-    		{
-    		}
-
-    		public void 
-    		menuShown(
-    			MenuEvent e)
-    		{
-    			itemQueue.setEnabled(ManagerUtils.isStartable(manager));
-    			itemStop.setEnabled(ManagerUtils.isStopable(manager));
-    		}
-    	});
+    Menu menu = new Menu(splash, SWT.POP_UP);
+    MenuBuildUtils.addMaintenanceListenerForMenu(menu, this);
     
     splash.setMenu(menu);
     lDrag.setMenu(menu);
@@ -346,6 +300,54 @@ public class MinimizedWindow {
     splash.setVisible(true);
     
     
+  }
+  
+  public void buildMenu(Menu menu) {
+		final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue");
+		Utils.setMenuItemImage(itemQueue, "start");
+		itemQueue.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				ManagerUtils.queue(manager, splash);
+			}
+		});
+		itemQueue.setEnabled(ManagerUtils.isStartable(manager));
+
+
+		// Stop
+		final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop");
+		Utils.setMenuItemImage(itemStop, "stop");
+		itemStop.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				ManagerUtils.stop(manager, splash);
+			}
+		});
+		itemStop.setEnabled(ManagerUtils.isStopable(manager));
+
+		new MenuItem(menu, SWT.SEPARATOR);
+		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
+		menu_items = MenuItemManager.getInstance().getAllAsArray("downloadbar");
+		if (menu_items.length > 0) {
+			Object download = null;
+			try {download = DownloadManagerImpl.getDownloadStatic(this.manager);}
+			catch (DownloadException de) {/* Do nothing */}
+			if (download != null) {
+				MenuBuildUtils.addPluginMenuItems(splash, menu_items, menu, true, true,
+						// This will retrieve the plugin download object for associated menus.
+						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(download)
+				);
+				new MenuItem(menu, SWT.SEPARATOR);
+			}
+		}
+	    
+	    MenuItem itemClose = new MenuItem(menu,SWT.NULL);
+	    itemClose.setText(MessageText.getString("wizard.close"));
+	    itemClose.addListener(SWT.Selection,new Listener() {
+	      public void handleEvent(Event e) {
+	        close();
+	      }
+	    });
   }
 
   public static ShellManager getShellManager() {

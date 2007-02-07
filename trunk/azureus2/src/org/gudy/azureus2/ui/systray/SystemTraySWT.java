@@ -29,7 +29,11 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
+import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.SelectableSpeedMenu;
@@ -74,7 +78,48 @@ public class SystemTraySWT
 		trayItem.setVisible(true);
 
 		menu = new Menu(uiFunctions.getMainShell(), SWT.POP_UP);
+		menu.addMenuListener(new MenuListener() {
+			public void menuShown(MenuEvent _menu) {}
 
+			public void menuHidden(MenuEvent _menu) {
+				if(Constants.isOSX) {
+					trayItem.setImage(ImageRepository.getImage("azureus_grey"));
+				}
+			}
+		});
+		
+		MenuBuildUtils.addMaintenanceListenerForMenu(menu, new MenuBuildUtils.MenuBuilder() {
+			public void buildMenu(Menu menu) {
+				fillMenu(menu);
+			}
+		});
+
+		trayItem.addListener(SWT.DefaultSelection, new Listener() {
+			public void handleEvent(Event arg0) {
+				showMainWindow();
+			}
+		});
+		
+		trayItem.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event arg0) {
+				if(Constants.isOSX) {
+					trayItem.setImage(ImageRepository.getImage("azureus_white"));
+					menu.setVisible(true);
+				}
+			}
+		});
+		
+		trayItem.addListener(SWT.MenuDetect, new Listener() {
+			public void handleEvent(Event arg0) {
+				menu.setVisible(true);
+			}
+		});
+
+		
+	}
+	
+	public void fillMenu(final Menu menu) {
+		
 		final MenuItem itemShow = new MenuItem(menu, SWT.NULL);
 		Messages.setLanguageText(itemShow, "SystemTray.menu.show");
 
@@ -86,6 +131,13 @@ public class SystemTraySWT
 
 		new MenuItem(menu, SWT.SEPARATOR);
 
+		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
+		menu_items = MenuItemManager.getInstance().getAllAsArray("systray");
+		if (menu_items.length > 0) {
+			MenuBuildUtils.addPluginMenuItems(uiFunctions.getMainShell(), menu_items, menu, true, true, MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
+			new MenuItem(menu, SWT.SEPARATOR);
+		}
+		
 		createUploadLimitMenu(menu);
 		createDownloadLimitMenu(menu);
 
@@ -138,20 +190,9 @@ public class SystemTraySWT
 			}
 		});
 
-		menu.addMenuListener(new MenuListener() {
-			public void menuShown(MenuEvent _menu) {
-				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-				itemPause.setEnabled(gm.canPauseDownloads());
-
-				itemResume.setEnabled(gm.canResumeDownloads());
-			}
-
-			public void menuHidden(MenuEvent _menu) {
-				if(Constants.isOSX) {
-					trayItem.setImage(ImageRepository.getImage("azureus_grey"));
-				}
-			}
-		});
+		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		itemPause.setEnabled(gm.canPauseDownloads());
+		itemResume.setEnabled(gm.canResumeDownloads());
 
 		itemCloseAll.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
@@ -162,27 +203,6 @@ public class SystemTraySWT
 		itemExit.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				uiFunctions.requestShutdown();
-			}
-		});
-
-		trayItem.addListener(SWT.DefaultSelection, new Listener() {
-			public void handleEvent(Event arg0) {
-				showMainWindow();
-			}
-		});
-		
-		trayItem.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event arg0) {
-				if(Constants.isOSX) {
-					trayItem.setImage(ImageRepository.getImage("azureus_white"));
-					menu.setVisible(true);
-				}
-			}
-		});
-		
-		trayItem.addListener(SWT.MenuDetect, new Listener() {
-			public void handleEvent(Event arg0) {
-				menu.setVisible(true);
 			}
 		});
 	}
