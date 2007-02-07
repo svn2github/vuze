@@ -149,13 +149,11 @@ public class MenuBuildUtils {
 
 		public Listener makeSelectionListener(MenuItem menu_item) {
 			final MenuItemImpl mii = (MenuItemImpl) menu_item;
-			if (mii.internal_swt_listener_cache == null)
-				mii.internal_swt_listener_cache = new Listener() {
-					public void handleEvent(Event e) {
-						mii.invokeListeners(object);
-					}
-				};
-			return mii.internal_swt_listener_cache;
+			return new Listener() {
+				public void handleEvent(Event e) {
+					mii.invokeListeners(object);
+				}
+			};
 		}
 
 		public void notifyFillListeners(MenuItem menu_item) {

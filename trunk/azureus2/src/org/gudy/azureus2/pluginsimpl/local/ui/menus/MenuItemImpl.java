@@ -199,9 +199,4 @@ public class MenuItemImpl implements MenuItem {
 		}
 	}
 
-	/**
-	 * Used by MenuBuildUtils.
-	 */
-	public Listener internal_swt_listener_cache = null;
-
 }
