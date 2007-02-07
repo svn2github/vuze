@@ -532,4 +532,29 @@ RPPluginConfig
 		public boolean hasParameter(String x) {notSupported(); return false;}
 		public boolean hasPluginParameter(String x) {notSupported(); return false;}
 		public boolean removePluginParameter(String x) {notSupported(); return false;}
+		
+		  public byte[] getByteParameter(String key) {notSupported(); return null;}
+		  public float getFloatParameter(String key, float default_value) {notSupported(); return 0;}
+		  public long getLongParameter(String key) {notSupported(); return 0;}
+		  public long getLongParameter(String key, long default_value) {notSupported(); return 0;}
+		  public void setByteParameter(String key, byte[] value) {notSupported();}
+		  public void setFloatParameter(String key, float value) {notSupported();}
+		  public void setLongParameter(String key, long value) {notSupported();}
+		  public void setStringParameter(String key, String value) {notSupported();}
+		  public byte[] getPluginByteParameter(String key) {notSupported(); return null;}
+		  public float getPluginFloatParameter(String key) {notSupported(); return 0;}
+		  public float getPluginFloatParameter(String key, float default_value) {notSupported(); return 0;}
+		  public long getPluginLongParameter(String key) {notSupported(); return 0;}
+		  public long getPluginLongParameter(String key, long default_value) {notSupported(); return 0;}
+		  public void setPluginParameter(String key, float value) {notSupported();}
+		  public void setPluginParameter(String key, long value) {notSupported();}
+		  public boolean getUnsafeBooleanParameter(String key) {notSupported(); return false;}
+		  public byte[] getUnsafeByteParameter(String key) {notSupported(); return null;}
+		  public byte[] getUnsafeByteParameter(String key, byte[] default_value) {notSupported(); return null;}
+		  public float getUnsafeFloatParameter(String key) {notSupported(); return 0;}
+		  public int getUnsafeIntParameter(String key) {notSupported(); return 0;}
+		  public long getUnsafeLongParameter(String key) {notSupported(); return 0;}
+		  public String getUnsafeStringParameter(String key) {notSupported(); return null;}
+		  public void setUnsafeByteParameter(String key, byte[] value) {notSupported();}
+
 }

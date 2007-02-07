@@ -12,7 +12,7 @@ FEATURE: Core | Per-peer upload/download speed limits [Parg]
 FEATURE: Core | Per-category upload/download speed limits [Parg]
 
 CHANGE: Core  | Include msvcr71.dll in Windows installation bundles, for compatibility with Java6 [Nolar]
-
+CHANGE: Plug  | Added full set of config parameter methods for completeness [amc1]
 
 2007.01.22 | Azureus 2.5.0.4 / 3.0.0.6
 

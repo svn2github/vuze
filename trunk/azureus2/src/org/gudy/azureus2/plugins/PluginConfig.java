@@ -58,246 +58,677 @@ PluginConfig
 	public static final String CORE_PARAM_BOOLEAN_FRIENDLY_HASH_CHECKING				= "CORE_PARAM_BOOLEAN_FRIENDLY_HASH_CHECKING";
 
   /**
-   * returns the value of a core float parameter
-   * @param key the parameter name
-   * @return the value of the parameter
+   * Returns the value of a core boolean parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 2.0.4.2
+   */
+  public boolean getBooleanParameter(String key);
+	  
+  /**
+   * Returns the value of a core boolean parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 2.0.6.0
+   */
+  public boolean getBooleanParameter(String key, boolean default_value);
+  
+  /**
+   * Returns the value of a core byte array parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public byte[] getByteParameter(String key);
+	
+  /**
+   * Returns the value of a core byte array parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 2.1.0.2
+   */
+  public byte[] getByteParameter(String key, byte[] default_value);
+	
+  /**
+   * Returns the value of a core float parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
    *
    * @since 2.1.0.0
    */
   public float getFloatParameter(String key);
+  
+  /**
+   * Returns the value of a core float parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public float getFloatParameter(String key, float default_value);
 
   /**
-   * returns the value of a core int parameter
-   * @param key the parameter name
-   * @return the value of the parameter
+   * Returns the value of a core int parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
    *
    * @since 2.0.4.2
    */
   public int getIntParameter(String key);
 	
   /**
-   * returns the value of a core int parameter
-   * @param key the parameter name
-   * @param default_value the default return value
-   * @return the value of the parameter
+   * Returns the value of a core int parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
    *
    * @since 2.0.7.0
    */
   public int getIntParameter(String key, int default_value);
   
   /**
-   * sets a core parameter.  
-   * @param key		must be from above core constants
-   * @param value the new value
+   * Returns the value of a core long parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
    *
-   * @since 2.0.8.0
+   * @since 3.0.0.7
    */
-  
-  public void
-  setIntParameter(
-  	String	key, 
-	int		value );
+  public long getLongParameter(String key);
+	
+  /**
+   * Returns the value of a core long parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public long getLongParameter(String key, long default_value);
   
   /**
-   * returns the value of a core String parameter
-   * @param key the parameter name
-   * @return the value of the parameter
+   * Returns the value of a core string parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
    *
    * @since 2.0.4.2
    */
-  
   public String getStringParameter(String key);
-  
+	
   /**
-   * returns the value of a core string parameter or the default value if not defined
-   * @param key
-   * @param _default
-   * @return the value of the parameter
+   * Returns the value of a core string parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
    *
    * @since 2.1.0.0
    */
-  
-  public String getStringParameter(String key, String _default );
+  public String getStringParameter(String key, String default_value);
+
+  /**
+   * Sets the value of a core boolean parameter.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   */
+  public void setBooleanParameter(String key, boolean value);
   
   /**
-   * returns the value of a core boolean parameter
-   * @param key the parameter name
-   * @return the value of the parameter
+   * Sets the value of a core byte array parameter.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
    *
-   * @since 2.0.4.2
+   * @since 3.0.0.7
    */
-  public boolean getBooleanParameter(String key);
+  public void setByteParameter(String key, byte[] value);
+  
   
   /**
-   * returns the value of a core boolean parameter
-   * @param key the parameter name
-   * @param _default default value if non defined
-   * @return the value of the parameter
+   * Sets the value of a core float parameter.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
    *
-   * @since 2.0.6.0
+   * @since 3.0.0.7
    */
-  public boolean getBooleanParameter(String key, boolean _default );
+  public void setFloatParameter(String key, float value);
   
   /**
-   * Set a core boolean
-   * @param key		 must be from above constants
-   * @param value
+   * Sets the value of a core int parameter.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   *
+   * @since 2.0.8.0
    */
- 
-  public void
-  setBooleanParameter(
-  	String	key, 
-	boolean		value );
+  public void setIntParameter(String key, int value);
   
   /**
+   * Sets the value of a core long parameter.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public void setLongParameter(String key, long value);
+  
+  /**
+   * Sets the value of a core string parameter.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public void setStringParameter(String key, String value);
+
+  /**
+   * Returns the value of a plugin boolean parameter.
    * 
-   * @param key
-   * @param _default
-   * @return
-   * @since 2.1.0.2
-   */
-  
-  public byte[] getByteParameter(String key, byte[] _default );
-  
-  /**
-   * returns the value of a plugin int parameter
-   * @param key the parameter name
-   * @return the value or 0 if the parameter doesn't exist
-   *
-   * @since 2.0.4.2
-   */
-  public int getPluginIntParameter(String key);
-  
-  /**
-   * returns the value of a plugin int parameter
-   * @param key the parameter name
-   * @param defaultValue the parameter default value
-   * @return the value of defaultValue if the parameter doesn't exist
-   *
-   * @since 2.0.4.2
-   */
-  public int getPluginIntParameter(String key,int defaultValue);
-  
-  /**
-   * returns the value of a plugin String parameter
-   * @param key the parameter name
-   * @return the value or an empty String if the parameter doesn't exist
-   *
-   * @since 2.0.4.2
-   */
-  public String getPluginStringParameter(String key);
-  
-  /**
-   * returns the value of a plugin String parameter
-   * @param key the parameter name
-   * @param defaultValue the parameter default value
-   * @return the value of defaultValue if the parameter doesn't exist
-   *
-   * @since 2.0.4.2
-   */
-  public String getPluginStringParameter(String key,String defaultValue);
-  
-  /**
-   * returns the value of a plugin boolean parameter
-   * @param key the parameter name
-   * @return the value or false if the parameter doesn't exist
+   * @param key The parameter name.
+   * @return The value of the parameter.
    *
    * @since 2.0.4.2
    */
   public boolean getPluginBooleanParameter(String key);
-  
+	  
   /**
-   * returns the value of a plugin boolean parameter
-   * @param key the parameter name
-   * @param defaultValue the parameter default value
-   * @return the value of defaultValue if the parameter doesn't exist
+   * Returns the value of a plugin boolean parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
    *
    * @since 2.0.4.2
    */
-  public boolean getPluginBooleanParameter(String key,boolean defaultValue);
-
+  public boolean getPluginBooleanParameter(String key, boolean default_value);
+  
   /**
+   * Returns the value of a plugin byte array parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public byte[] getPluginByteParameter(String key);
+	
+  /**
+   * Returns the value of a plugin byte array parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
    * @since 2.2.0.3
-   * @param key
-   * @param defaultValue
-   * @return
    */
-  
-  public byte[] getPluginByteParameter( String key, byte[] defaultValue );
- 
+  public byte[] getPluginByteParameter(String key, byte[] default_value);
+	
   /**
-   * Get a list parameter List contents must conform to bencodable rules (Map,Long,byte[],List) 
-   * @param key
-   * @param default_value
-   * @return
-   * @since 2301
-   */
-  
-  public List
-  getPluginListParameter( String key, List	default_value );
- 
-  public void
-  setPluginListParameter( String key, List	value );
- 
-  /**
-   * Get a list parameter Map contents must conform to bencodable rules (Map,Long,byte[],List) 
-   * @param key
-   * @param default_value
-   * @return
-   * @since 2301
-   */
-  
-  public Map
-  getPluginMapParameter( String key, Map	default_value );
- 
-  public void
-  setPluginMapParameter( String key, Map	value );
-  
-  /**
-   * sets a plugin int parameter value
-   * @param key the parameter name
-   * @param value the parameter value
+   * Returns the value of a plugin float parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
    *
-   * @since 2.0.4.2
+   * @since 3.0.0.7
    */
+  public float getPluginFloatParameter(String key);
   
-  
-   public void setPluginParameter(String key,int value);
-  
-   /**
-    * @since 2501
-    * @param key
-    * @param value
-    * @param global whether or not this parameter should be made externally accessible
-    */
-   public void setPluginParameter(String key,int value,boolean global);
+  /**
+   * Returns the value of a plugin float parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public float getPluginFloatParameter(String key, float default_value);
 
   /**
-   * sets a plugin String parameter value
-   * @param key the parameter name
-   * @param value the parameter value
+   * Returns the value of a plugin int parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
    *
    * @since 2.0.4.2
    */
-  public void setPluginParameter(String key,String value);
-  
+  public int getPluginIntParameter(String key);
+	
   /**
-   * sets a plugin boolean parameter value
-   * @param key the parameter name
-   * @param value the parameter value
+   * Returns the value of a plugin int parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
    *
    * @since 2.0.4.2
    */
-  public void setPluginParameter(String key,boolean value);
+  public int getPluginIntParameter(String key, int default_value);
   
   /**
+   * Returns the value of a plugin list parameter. The contents of the list must conform
+   * to <i>bencodable</i> rules (e.g. <tt>Map</tt>, <tt>Long</tt>, <tt>byte[]</tt>, <tt>List</tt>)
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 2.3.0.1
+   */
+  public List getPluginListParameter(String key, List default_value);
+  
+  /**
+   * Returns the value of a plugin long parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public long getPluginLongParameter(String key);
+	
+  /**
+   * Returns the value of a plugin long parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public long getPluginLongParameter(String key, long default_value);
+
+  /**
+   * Returns the value of a plugin map parameter. The contents of the map must conform
+   * to <i>bencodable</i> rules (e.g. <tt>Map</tt>, <tt>Long</tt>, <tt>byte[]</tt>, <tt>List</tt>)
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 2.3.0.1
+   */
+  public Map getPluginMapParameter(String key, Map default_value);
+
+  
+  /**
+   * Returns the value of a plugin string parameter.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 2.0.4.2
+   */
+  public String getPluginStringParameter(String key);
+	
+  /**
+   * Returns the value of a plugin string parameter.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 2.0.4.2
+   */
+  public String getPluginStringParameter(String key, String default_value);
+
+  /**
+   * Sets the value of a plugin boolean parameter.
+   *   
+   * @param key	The parameter name.
+   * @param value The new value for the parameter.
+   * 
+   * @since 2.0.4.2
+   */
+  public void setPluginParameter(String key, boolean value);
+  
+  /**
+   * Sets the value of a plugin byte array parameter.
+   *   
+   * @param key	The parameter name.
+   * @param value The new value for the parameter.
+   *
    * @since 2.1.0.2
-   * @param key
-   * @param value
    */
+  public void setPluginParameter(String key, byte[] value);
   
-  public void setPluginParameter(String key,byte[] value);
   
+  /**
+   * Sets the value of a plugin float parameter.
+   *   
+   * @param key	The parameter name.
+   * @param value The new value for the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public void setPluginParameter(String key, float value);
+  
+  /**
+   * Sets the value of a plugin int parameter.
+   *   
+   * @param key	The parameter name.
+   * @param value The new value for the parameter.
+   *
+   * @since 2.0.4.2
+   */
+  public void setPluginParameter(String key, int value);
+ 
+  /**
+   * Sets the value of a plugin int parameter.
+   *   
+   * @param key	The parameter name.
+   * @param value The new value for the parameter.
+   * @param global Whether or not this parameter should be made externally accessible.
+   *
+   * @since 2.5.0.1
+   */
+  public void setPluginParameter(String key, int value, boolean global);
+
+  
+  /**
+   * Sets the value of a plugin long parameter.
+   *   
+   * @param key	The parameter name.
+   * @param value The new value for the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public void setPluginParameter(String key, long value);
+  
+  /**
+   * Sets the value of a plugin string parameter.
+   *   
+   * @param key	The parameter name.
+   * @param value The new value for the parameter.
+   *
+   * @since 2.0.4.2
+   */
+  public void setPluginParameter(String key, String value);
+
+  /**
+   * Sets the value of a plugin list parameter. The contents of the list must conform
+   * to <i>bencodable</i> rules (e.g. <tt>Map</tt>, <tt>Long</tt>, <tt>byte[]</tt>, <tt>List</tt>)
+   * 
+   * @param key	The parameter name.
+   * @param value The new value for the parameter.
+   *
+   * @since 2.3.0.1
+   */
+  public void setPluginListParameter(String key, List value);
+
+  /**
+   * Sets the value of a plugin map parameter. The contents of the map must conform
+   * to <i>bencodable</i> rules (e.g. <tt>Map</tt>, <tt>Long</tt>, <tt>byte[]</tt>, <tt>List</tt>)
+   * 
+   * @param key	The parameter name.
+   * @param value The new value for the parameter.
+   *
+   * @since 2.3.0.1
+   */
+  public void setPluginMapParameter(String key, Map value);
+  
+  /**
+   * Returns the value of a core boolean parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public boolean getUnsafeBooleanParameter(String key);
+	  
+  /**
+   * Returns the value of a core boolean parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.5
+   */
+  public boolean getUnsafeBooleanParameter(String key, boolean default_value);
+  
+  /**
+   * Returns the value of a core byte array parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public byte[] getUnsafeByteParameter(String key);
+	
+  /**
+   * Returns the value of a core byte array parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public byte[] getUnsafeByteParameter(String key, byte[] default_value);
+	
+  /**
+   * Returns the value of a core float parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public float getUnsafeFloatParameter(String key);
+  
+  /**
+   * Returns the value of a core float parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.5
+   */
+  public float getUnsafeFloatParameter(String key, float default_value);
+
+  /**
+   * Returns the value of a core int parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public int getUnsafeIntParameter(String key);
+	
+  /**
+   * Returns the value of a core int parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.5
+   */
+  public int getUnsafeIntParameter(String key, int default_value);
+  
+  /**
+   * Returns the value of a core long parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public long getUnsafeLongParameter(String key);
+	
+  /**
+   * Returns the value of a core long parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.5
+   */
+  public long getUnsafeLongParameter(String key, long default_value);
+  
+  /**
+   * Returns the value of a core string parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.7
+   */
+  public String getUnsafeStringParameter(String key);
+	
+  /**
+   * Returns the value of a core string parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   * 
+   * @param key The parameter name.
+   * @param default_value The default value to return if one is not defined.
+   * @return The value of the parameter.
+   *
+   * @since 3.0.0.5
+   */
+  public String getUnsafeStringParameter(String key, String default_value);
+  
+  /**
+   * Sets the value of a core boolean parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   * 
+   * @since 3.0.0.5
+   */
+  public void setUnsafeBooleanParameter(String key, boolean value);
+  
+  /**
+   * Sets the value of a core byte array parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   * 
+   * @since 3.0.0.7
+   */
+  public void setUnsafeByteParameter(String key, byte[] value);
+  
+  /**
+   * Sets the value of a core float parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   * 
+   * @since 3.0.0.5
+   */
+  public void setUnsafeFloatParameter(String key, float value);
+  
+  /**
+   * Sets the value of a core int parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   * 
+   * @since 3.0.0.5
+   */
+  public void setUnsafeIntParameter(String key, int value);
+  
+  /**
+   * Sets the value of a core long parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   * 
+   * @since 3.0.0.5
+   */
+  public void setUnsafeLongParameter(String key, long value);
+  
+  /**
+   * Sets the value of a core string parameter. Note: the semantics of this
+   * method will not be guaranteed - core parameter names may change in the future,
+   * and this method will not do any parameter name mapping for you, so take care when
+   * using this method.
+   *   
+   * @param key	The parameter name, which must be one defined from the above core constants.
+   * @param value The new value for the parameter.
+   * 
+   * @since 3.0.0.5
+   */
+  public void setUnsafeStringParameter(String key, String value);
+
 	/**
 	 * Removes the plugin parameter with the given name.
 	 * 
@@ -328,116 +759,6 @@ PluginConfig
 	isNewInstall();
 
 	
-	/**
-	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
-	 * If something changes and breaks your plugin, don't come complaining to me
-	 * @since 2.5.0.3
-	 */
-
-	public boolean
-	getUnsafeBooleanParameter(
-		String		key,
-		boolean		default_value );
-
-	/**
-	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
-	 * If something changes and breaks your plugin, don't come complaining to me
-	 * @since 2.5.0.3
-	 */
-
-	public void
-	setUnsafeBooleanParameter(
-		String		key,
-		boolean		value );
-
-	/**
-	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
-	 * If something changes and breaks your plugin, don't come complaining to me
-	 * @since 2.5.0.3
-	 */
-
-	public int
-	getUnsafeIntParameter(
-		String		key,
-		int		default_value );
-
-	/**
-	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
-	 * If something changes and breaks your plugin, don't come complaining to me
-	 * @since 2.5.0.3
-	 */
-
-	public void
-	setUnsafeIntParameter(
-		String		key,
-		int		value );
-
-	/**
-	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
-	 * If something changes and breaks your plugin, don't come complaining to me
-	 * @since 2.5.0.3
-	 */
-
-	public long
-	getUnsafeLongParameter(
-		String		key,
-		long		default_value );
-
-	/**
-	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
-	 * If something changes and breaks your plugin, don't come complaining to me
-	 * @since 2.5.0.3
-	 */
-
-	public void
-	setUnsafeLongParameter(
-		String		key,
-		long		value );
-
-	/**
-	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
-	 * If something changes and breaks your plugin, don't come complaining to me
-	 * @since 2.5.0.3
-	 */
-
-	public float
-	getUnsafeFloatParameter(
-		String		key,
-		float		default_value );
-
-	/**
-	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
-	 * If something changes and breaks your plugin, don't come complaining to me
-	 * @since 2.5.0.3
-	 */
-
-	public void
-	setUnsafeFloatParameter(
-		String		key,
-		float		value );
-
-	/**
-	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
-	 * If something changes and breaks your plugin, don't come complaining to me
-	 * @since 2.5.0.3
-	 */
-
-	public String
-	getUnsafeStringParameter(
-		String		key,
-		String		default_value );
-
-	/**
-	 * Unsafe methods - existence/semantics of parameters not guaranteed to be maintained across versions
-	 * If something changes and breaks your plugin, don't come complaining to me
-	 * @since 2.5.0.3
-	 */
-
-	public void
-	setUnsafeStringParameter(
-		String		key,
-		String		value );
-  
 	
 	/**
 	 * Returns a map<String,Object> giving parameter names -> parameter values. Value can be Long or String

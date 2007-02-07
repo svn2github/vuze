@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.impl.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 
@@ -76,7 +77,7 @@ PluginConfigImpl
 		// Following parameters can be set directly (we don't have an alias for these values).
 		String[] passthrough_params = new String[] {
 				"Open MyTorrents", "IconBar.enabled", "Wizard Completed",
-				"welcome.version.lastshown", "Set Completion Flag For Completed Downloads On Start",
+				"welcome.version.lastshown",
 		};
 		
 		for (int i=0; i<passthrough_params.length; i++) {
@@ -118,203 +119,361 @@ PluginConfigImpl
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#getStringParameter(java.lang.String)
-	 */
-	public String getStringParameter(String name) {
-		return COConfigurationManager.getStringParameter(mapKeyName(name, false));
-	}
-
-    public String getStringParameter(String name, String _default )
-	{
-		return COConfigurationManager.getStringParameter(mapKeyName(name, false), _default);
-    }
-
-	public float getFloatParameter(String name) {
-		return COConfigurationManager.getFloatParameter(mapKeyName(name, false));
-	}
-
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#getIntParameter(java.lang.String)
-	 */
-	public int getIntParameter(String name) {
-		return COConfigurationManager.getIntParameter(mapKeyName(name, false));
+	//
+	//
+	// Helper methods which do everything required to get a parameter value.
+	//
+	//
+	private boolean getBooleanParameter(String name, boolean _default, boolean map_name, boolean set_default) {
+		if (map_name) {name = mapKeyName(name, false);}
+		if (set_default) {COConfigurationManager.setBooleanDefault(name, _default);}
+		else if (!hasParameter(name)) {return _default;}
+		return COConfigurationManager.getBooleanParameter(name);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#getIntParameter(java.lang.String)
-	 */
-	public int getIntParameter(String name, int default_value) {
-		return COConfigurationManager.getIntParameter(mapKeyName(name, false), default_value);
+	private byte[] getByteParameter(String name, byte[] _default, boolean map_name, boolean set_default) {
+		if (map_name) {name = mapKeyName(name, false);}
+		if (set_default) {COConfigurationManager.setByteDefault(name, _default);}
+		else if (!hasParameter(name)) {return _default;}
+		return COConfigurationManager.getByteParameter(name);
 	}
 	
-	private String mapKeyName(String key, boolean for_set) {
-		String result = (String)external_to_internal_key_map.get(key);
-		if (result == null) {
-			if (for_set) {
-				throw new RuntimeException("No permission to set the value of core parameter: " + key);
-			}
-			else {
-				return key;
-			}
-		}
-		return result;
+	private float getFloatParameter(String name, float _default, boolean map_name, boolean set_default) {
+		if (map_name) {name = mapKeyName(name, false);}
+		if (set_default) {COConfigurationManager.setFloatDefault(name, _default);}
+		else if (!hasParameter(name)) {return _default;}
+		return COConfigurationManager.getFloatParameter(name);
+	}
+	
+	private int getIntParameter(String name, int _default, boolean map_name, boolean set_default) {
+		if (map_name) {name = mapKeyName(name, false);}
+		if (set_default) {COConfigurationManager.setIntDefault(name, _default);}
+		else if (!hasParameter(name)) {return _default;}
+		return COConfigurationManager.getIntParameter(name);
 	}
 
-	public void
-	setIntParameter(
-	  	String	key, 
-		int		value )
-	{
-		COConfigurationManager.setParameter(mapKeyName(key, true), value );
+	private long getLongParameter(String name, long _default, boolean map_name, boolean set_default) {
+		if (map_name) {name = mapKeyName(name, false);}
+		if (set_default) {COConfigurationManager.setLongDefault(name, _default);}
+		else if (!hasParameter(name)) {return _default;}
+		return COConfigurationManager.getLongParameter(name);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#getBooleanParameter(java.lang.String)
-	 */
+	private String getStringParameter(String name, String _default, boolean map_name, boolean set_default) {
+		if (map_name) {name = mapKeyName(name, false);}
+		if (set_default) {COConfigurationManager.setStringDefault(name, _default);}
+		else if (!hasParameter(name)) {return _default;}
+		return COConfigurationManager.getStringParameter(name);
+	}
+
+	//
+	//
+	// Variants of the methods above, but which use the values from ConfigurationDefaults.
+	//
+	//
+	private boolean getDefaultedBooleanParameter(String name, boolean map_name) {
+		return getBooleanParameter(name, ConfigurationDefaults.def_boolean == 1, map_name, false);
+	}
+	
+	private byte[] getDefaultedByteParameter(String name, boolean map_name) {
+		return getByteParameter(name, ConfigurationDefaults.def_bytes, map_name, false);
+	}
+	
+	private float getDefaultedFloatParameter(String name, boolean map_name) {
+		return getFloatParameter(name, ConfigurationDefaults.def_float, map_name, false);
+	}
+	
+	private int getDefaultedIntParameter(String name, boolean map_name) {
+		return getIntParameter(name, ConfigurationDefaults.def_int, map_name, false);
+	}
+
+	private long getDefaultedLongParameter(String name, boolean map_name) {
+		return getLongParameter(name, ConfigurationDefaults.def_long, map_name, false);
+	}
+	
+	private String getDefaultedStringParameter(String name, boolean map_name) {
+		return getStringParameter(name, ConfigurationDefaults.def_String, map_name, false);
+	}
+
+
+	
+	//
+	//
+	// Core get parameter methods.
+	//
+	//
+
 	public boolean getBooleanParameter(String name) {
-		return COConfigurationManager.getBooleanParameter(mapKeyName(name, false));
+		return getDefaultedBooleanParameter(name, true);
+	}
+
+	public boolean getBooleanParameter(String name, boolean default_value) {
+		return getBooleanParameter(name, default_value, true, false);
 	}
 	
-	public boolean getBooleanParameter(String name, boolean _default) {
-		return COConfigurationManager.getBooleanParameter(mapKeyName(name, false), _default);
+	public byte[] getByteParameter(String name) {
+		return getDefaultedByteParameter(name, true);
+	}
+
+	public byte[] getByteParameter(String name, byte[] default_value) {
+		return getByteParameter(name, default_value, true, false);
 	}
 	
-	public void
-	setBooleanParameter(
-	  	String		key, 
-		boolean		value )
-	{
-		COConfigurationManager.setParameter( mapKeyName(key, true), value );
+	public float getFloatParameter(String name) {
+		return getDefaultedFloatParameter(name, true);
+	}
+
+	public float getFloatParameter(String name, float default_value) {
+		return getFloatParameter(name, default_value, true, false);
+	}
+
+	public int getIntParameter(String name) {
+		return getDefaultedIntParameter(name, true);
+	}
+
+	public int getIntParameter(String name, int default_value) {
+		return getIntParameter(name, default_value, true, false);
+	}
+
+	public long getLongParameter(String name) {
+		return getDefaultedLongParameter(name, true);
+	}
+
+	public long getLongParameter(String name, long default_value) {
+		return getLongParameter(name, default_value, true, false);
 	}
 	
-    public byte[] getByteParameter(String name, byte[] _default )
-    {
-		return COConfigurationManager.getByteParameter(mapKeyName(name, false), _default);
+	public String getStringParameter(String name) {
+		return getDefaultedStringParameter(name, true);
+	}
+
+    public String getStringParameter(String name, String default_value) {
+    	return getStringParameter(name, default_value, true, false);
+    }
+    
+	//
+	//
+	// Core set parameter methods.
+	//
+	//
+    public void setBooleanParameter(String name, boolean value) {
+    	COConfigurationManager.setParameter(mapKeyName(name, true), value);
     }
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginIntParameter(java.lang.String)
-	 */
-	public int getPluginIntParameter(String key)
-	{
-		return getIntParameter(this.key+key);
+    public void setByteParameter(String name, byte[] value) {
+    	COConfigurationManager.setParameter(mapKeyName(name, true), value);
+    }
+
+    public void setFloatParameter(String name, float value) {
+    	COConfigurationManager.setParameter(mapKeyName(name, true), value);
+    }
+
+    public void setIntParameter(String name, int value) {
+    	COConfigurationManager.setParameter(mapKeyName(name, true), value);
+    }
+
+    public void setLongParameter(String name, long value) {
+    	COConfigurationManager.setParameter(mapKeyName(name, true), value);
+    }
+
+    public void setStringParameter(String name, String value) {
+    	COConfigurationManager.setParameter(mapKeyName(name, true), value);
+    }
+
+    
+	//
+	//
+	// Plugin get parameter methods.
+	//
+	//
+	public boolean getPluginBooleanParameter(String name) {
+		return getDefaultedBooleanParameter(this.key + name, false);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginIntParameter(java.lang.String, int)
-	 */
-	public int getPluginIntParameter(String key, int defaultValue)
-	{
-	   	COConfigurationManager.setIntDefault( this.key+key, defaultValue );
-
-		return COConfigurationManager.getIntParameter(this.key+key, defaultValue);
+	public boolean getPluginBooleanParameter(String name, boolean default_value) {
+		return getBooleanParameter(this.key + name, default_value, false, true);
+	}
+	
+	public byte[] getPluginByteParameter(String name) {
+		return getDefaultedByteParameter(this.key + name, false);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginStringParameter(java.lang.String)
-	 */
-	public String getPluginStringParameter(String key)
-	{
-		return getStringParameter(this.key+key);
+	public byte[] getPluginByteParameter(String name, byte[] default_value) {
+		return getByteParameter(this.key + name, default_value, false, true);
+	}
+	
+	public float getPluginFloatParameter(String name) {
+		return getDefaultedFloatParameter(this.key + name, false);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginStringParameter(java.lang.String, int)
-	 */
-	public String getPluginStringParameter(String key, String defaultValue)
-	{
-    	COConfigurationManager.setStringDefault( this.key+key, defaultValue );
-
-		return COConfigurationManager.getStringParameter(this.key+key, defaultValue);
+	public float getPluginFloatParameter(String name, float default_value) {
+		return getFloatParameter(this.key + name, default_value, false, true);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginBooleanParameter(java.lang.String)
-	 */
-	public boolean getPluginBooleanParameter(String key)
-	{
-		return getBooleanParameter(this.key+key);
+	public int getPluginIntParameter(String name) {
+		return getDefaultedIntParameter(this.key + name, false);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginBooleanParameter(java.lang.String, int)
-	 */
-	public boolean getPluginBooleanParameter(String key, boolean defaultValue)
-	{
-	   	COConfigurationManager.setBooleanDefault( this.key+key, defaultValue );
-
-		return COConfigurationManager.getBooleanParameter(this.key+key, defaultValue);
+	public int getPluginIntParameter(String name, int default_value) {
+		return getIntParameter(this.key + name, default_value, false, true);
 	}
 
-	public byte[] getPluginByteParameter(String key, byte[] defaultValue )
-	{
-	   	COConfigurationManager.setByteDefault( this.key+key, defaultValue );
-
-		return COConfigurationManager.getByteParameter(this.key+key, defaultValue);
+	public long getPluginLongParameter(String name) {
+		return getDefaultedLongParameter(this.key + name, false);
 	}
 
-	 public List
-	 getPluginListParameter( String key, List	default_value )
-	 {
+	public long getPluginLongParameter(String name, long default_value) {
+		return getLongParameter(this.key + name, default_value, false, true);
+	}
+	
+	public String getPluginStringParameter(String name) {
+		return getDefaultedStringParameter(this.key + name, false);
+	}
+
+    public String getPluginStringParameter(String name, String default_value) {
+    	return getStringParameter(this.key + name, default_value, false, true);
+    }
+    
+	//
+	//
+	// Plugin set parameter methods.
+	//
+	//
+    public void setPluginParameter(String name, boolean value) {
+    	COConfigurationManager.setParameter(this.key + name, value);
+    }
+
+    public void setPluginParameter(String name, byte[] value) {
+    	COConfigurationManager.setParameter(this.key + name, value);
+    }
+
+    public void setPluginParameter(String name, float value) {
+    	COConfigurationManager.setParameter(this.key + name, value);
+    }
+
+    public void setPluginParameter(String name, int value) {
+    	COConfigurationManager.setParameter(this.key + name, value);
+    }
+
+    public void setPluginParameter(String name, long value) {
+    	COConfigurationManager.setParameter(this.key + name, value);
+    }
+
+    public void setPluginParameter(String name, String value) {
+    	COConfigurationManager.setParameter(this.key + name, value);
+    }
+    
+	//
+	//
+	// Core "unsafe" get parameter methods.
+	//
+	//
+
+	public boolean getUnsafeBooleanParameter(String name) {
+		return getDefaultedBooleanParameter(name, false);
+	}
+
+	public boolean getUnsafeBooleanParameter(String name, boolean default_value) {
+		return getBooleanParameter(name, default_value, false, false);
+	}
+	
+	public byte[] getUnsafeByteParameter(String name) {
+		return getDefaultedByteParameter(name, false);
+	}
+
+	public byte[] getUnsafeByteParameter(String name, byte[] default_value) {
+		return getByteParameter(name, default_value, false, false);
+	}
+	
+	public float getUnsafeFloatParameter(String name) {
+		return getDefaultedFloatParameter(name, false);
+	}
+
+	public float getUnsafeFloatParameter(String name, float default_value) {
+		return getFloatParameter(name, default_value, false, false);
+	}
+
+	public int getUnsafeIntParameter(String name) {
+		return getDefaultedIntParameter(name, false);
+	}
+
+	public int getUnsafeIntParameter(String name, int default_value) {
+		return getIntParameter(name, default_value, false, false);
+	}
+	
+	public long getUnsafeLongParameter(String name) {
+		return getDefaultedLongParameter(name, false);
+	}
+
+	public long getUnsafeLongParameter(String name, long default_value) {
+		return getLongParameter(name, default_value, false, false);
+	}
+	
+	public String getUnsafeStringParameter(String name) {
+		return getDefaultedStringParameter(name, false);
+	}
+
+    public String getUnsafeStringParameter(String name, String default_value) {
+    	return getStringParameter(name, default_value, false, false);
+    }
+
+	//
+	//
+	// Core "unsafe" set parameter methods.
+	//
+	//
+    public void setUnsafeBooleanParameter(String name, boolean value) {
+    	COConfigurationManager.setParameter(name, value);
+    }
+
+    public void setUnsafeByteParameter(String name, byte[] value) {
+    	COConfigurationManager.setParameter(name, value);
+    }
+
+    public void setUnsafeFloatParameter(String name, float value) {
+    	COConfigurationManager.setParameter(name, value);
+    }
+
+    public void setUnsafeIntParameter(String name, int value) {
+    	COConfigurationManager.setParameter(name, value);
+    }
+
+    public void setUnsafeLongParameter(String name, long value) {
+    	COConfigurationManager.setParameter(name, value);
+    }
+
+    public void setUnsafeStringParameter(String name, String value) {
+    	COConfigurationManager.setParameter(name, value);
+    }
+    
+    //
+    //
+    // Get/set plugin list/map methods.
+    //
+    //
+    
+	 public List getPluginListParameter(String key, List default_value) {
 		return COConfigurationManager.getListParameter(this.key+key, default_value); 
 	 }
 	 
-	 public void
-	 setPluginListParameter( String key, List	value )
-	 {
+	 public void setPluginListParameter(String key, List value) {
 		 COConfigurationManager.setParameter(this.key+key, value);
 	 }
 
-	 public Map
-	 getPluginMapParameter( String key, Map	default_value )
-	 {
+	 public Map getPluginMapParameter(String key, Map default_value) {
 		return COConfigurationManager.getMapParameter(this.key+key, default_value); 
 	 }
 	 
-	 public void
-	 setPluginMapParameter( String key, Map	value )
-	 {
+	 public void setPluginMapParameter(String key, Map value) {
 		 COConfigurationManager.setParameter(this.key+key, value);
 	 }
 	 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#setPluginParameter(java.lang.String, int)
-	 */
-	public void setPluginParameter(String key, int value)
-	{
+	 public void setPluginParameter(String key, int value, boolean global) {
 		COConfigurationManager.setParameter(this.key+key, value);
-	}
-
-	public void setPluginParameter(String key, int value,boolean global)
-	{
-		COConfigurationManager.setParameter(this.key+key, value);
-		
-		if ( global ){
-			
-			MagnetURIHandler.getSingleton().addInfo( this.key+key, value );
+		if (global) {
+			MagnetURIHandler.getSingleton().addInfo(this.key+key, value);
 		}
-	}
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#setPluginParameter(java.lang.String, java.lang.String)
-	 */
-	public void setPluginParameter(String key, String value)
-	{
-		COConfigurationManager.setParameter(this.key+key, value);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#setPluginParameter(java.lang.String, boolean)
-	 */
-	public void setPluginParameter(String key, boolean value)
-	{
-		COConfigurationManager.setParameter(this.key+key, value);
-	}
-	
-	public void setPluginParameter(String key,byte[] value)
-	{
-		COConfigurationManager.setParameter(this.key+key, value);
-	}
+	 }
 
 	public ConfigParameter
 	getParameter(
@@ -334,85 +493,7 @@ PluginConfigImpl
 		return COConfigurationManager.removeParameter(this.key + key);
 	}
 	
-	  public boolean
-	  getUnsafeBooleanParameter(
-		  String		key,
-		  boolean		default_value )
-	  {
-		return( COConfigurationManager.getBooleanParameter( key, default_value ));
-	  }
 
-	  public void
-	  setUnsafeBooleanParameter(
-		  String		key,
-		  boolean		value )
-	  {
-		  COConfigurationManager.setParameter( key, value );
-	  }
-
-	  public int
-	  getUnsafeIntParameter(
-		  String		key,
-		  int		default_value )
-	  {
-			return( COConfigurationManager.getIntParameter( key, default_value ));
-	  }
-
-	  public void
-	  setUnsafeIntParameter(
-		  String		key,
-		  int		value )
-	  {
-		  COConfigurationManager.setParameter( key, value );
-	  }
-
-	  public long
-	  getUnsafeLongParameter(
-		  String		key,
-		  long		default_value )
-	  {
-			return( COConfigurationManager.getLongParameter( key, default_value ));
-	  }
-
-	  public void
-	  setUnsafeLongParameter(
-		  String		key,
-		  long		value )
-	  {
-		  COConfigurationManager.setParameter( key, value );
-	  }
-
-	  public float
-	  getUnsafeFloatParameter(
-		  String		key,
-		  float		default_value )
-	  {
-			return( COConfigurationManager.getFloatParameter( key, default_value ));
-	  }
-
-	  public void
-	  setUnsafeFloatParameter(
-			  String		key,
-			  float		value )
-	  {
-		  COConfigurationManager.setParameter( key, value );
-	  }
-
-	  public String
-	  getUnsafeStringParameter(
-			  String		key,
-			  String		default_value )
-	  {
-			return( COConfigurationManager.getStringParameter( key, default_value ));
-	  }
-
-	  public void
-	  setUnsafeStringParameter(
-			  String		key,
-			  String		value )
-	  {
-		  COConfigurationManager.setParameter( key, value );
-	  }
 
 	  public Map
 	  getUnsafeParameterList()
@@ -531,6 +612,19 @@ PluginConfigImpl
 					l.configSaved();
 				}
 			});
+	}
+
+	private String mapKeyName(String key, boolean for_set) {
+		String result = (String)external_to_internal_key_map.get(key);
+		if (result == null) {
+			if (for_set) {
+				throw new RuntimeException("No permission to set the value of core parameter: " + key);
+			}
+			else {
+				return key;
+			}
+		}
+		return result;
 	}
 	
 	public boolean hasParameter(String param_name) {
