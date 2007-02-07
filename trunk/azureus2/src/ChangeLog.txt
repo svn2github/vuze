@@ -8,9 +8,10 @@ FEATURE: Core | Alerts can now be suppressed and shown on demand [amc1]
 FEATURE: Plug | Plugins can now add their own status indicators on the status bar [amc1]
 FEATURE: Plug | Plugins can now add menu items to the system tray [amc1]
 FEATURE: Plug | Plugins can now add menu items to download bars [amc1]
+FEATURE: Core | Per-peer upload/download speed limits [Parg]
+FEATURE: Core | Per-category upload/download speed limits [Parg]
 
 CHANGE: Core  | Include msvcr71.dll in Windows installation bundles, for compatibility with Java6 [Nolar]
-
 
 
 2007.01.22 | Azureus 2.5.0.4 / 3.0.0.6
