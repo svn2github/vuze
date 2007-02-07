@@ -322,6 +322,16 @@ PEPeerManager
 	public PEPeerTransport getTransportFromAddress(String peer);
 	
 	public void
+	addRateLimiter(
+		LimitedRateGroup	group,
+		boolean				upload );
+	
+	public void
+	removeRateLimiter(
+		LimitedRateGroup	group,
+		boolean				upload );
+	
+	public void
 	generateEvidence(
 		IndentWriter		writer );
 	

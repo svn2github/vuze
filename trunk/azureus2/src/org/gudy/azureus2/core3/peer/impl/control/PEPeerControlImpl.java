@@ -149,6 +149,8 @@ PEPeerControlImpl
     
     private Unchoker unchoker;
   
+    private List	external_rate_limiters_cow;
+    
     private static boolean fast_unchoke_new_peers;
     
     static{
@@ -1927,6 +1929,8 @@ PEPeerControlImpl
 	{
 		boolean added = false;
 		
+		List limiters;
+
 		try{
 			peer_transports_mon.enter();
 			
@@ -1955,21 +1959,33 @@ PEPeerControlImpl
 				
 				added = true;
 			}
+			
+			limiters = external_rate_limiters_cow;
 		}
 		finally{
 			peer_transports_mon.exit();
 		}
-		
+			
 		if( added ) {
-      if ( peer.isIncoming()){
-	      long	connect_time = SystemTime.getCurrentTime();
-	        
-	      if ( connect_time > last_remote_time ){
-	        	
-	       	last_remote_time = connect_time;
-	      }
-      }
-      
+			if ( peer.isIncoming()){
+				long	connect_time = SystemTime.getCurrentTime();
+
+				if ( connect_time > last_remote_time ){
+
+					last_remote_time = connect_time;
+				}
+			}
+
+			if ( limiters != null ){
+				
+				for (int i=0;i<limiters.size();i++){
+					
+					Object[]	entry = (Object[])limiters.get(i);
+					
+					peer.addRateLimiter((LimitedRateGroup)entry[0],((Boolean)entry[1]).booleanValue());
+				}
+			}
+
 			peerAdded( peer ); 
 		}
 		else {
@@ -1977,6 +1993,86 @@ PEPeerControlImpl
 		}
 	}
 	
+	public void
+	addRateLimiter(
+		LimitedRateGroup	group,
+		boolean				upload )
+	{
+		List	transports;
+		
+		try{
+			peer_transports_mon.enter();
+			
+			ArrayList	new_limiters = new ArrayList( external_rate_limiters_cow==null?1:external_rate_limiters_cow.size()+1);
+			
+			if ( external_rate_limiters_cow != null ){
+				
+				new_limiters.addAll( external_rate_limiters_cow );
+			}
+			
+			new_limiters.add( new Object[]{ group, new Boolean( upload )});
+			
+			external_rate_limiters_cow = new_limiters;
+			
+			transports = peer_transports_cow;
+			
+		}finally{
+			
+			peer_transports_mon.exit();
+		}	
+		
+		for (int i=0;i<transports.size();i++){
+			
+			((PEPeerTransport)transports.get(i)).addRateLimiter( group, upload );
+		}
+	}
+	
+	public void
+	removeRateLimiter(
+		LimitedRateGroup	group,
+		boolean				upload )
+	{
+		List	transports;
+		
+		try{
+			peer_transports_mon.enter();
+			
+			if ( external_rate_limiters_cow != null ){
+				
+				ArrayList	new_limiters = new ArrayList( external_rate_limiters_cow.size()-1);
+				
+				for (int i=0;i<external_rate_limiters_cow.size();i++){
+					
+					Object[]	entry = (Object[])external_rate_limiters_cow.get(i);
+					
+					if ( entry[0] != group ){
+						
+						new_limiters.add( entry );
+					}
+				}
+				
+				if ( new_limiters.size() == 0 ){
+					
+					external_rate_limiters_cow = null;
+					
+				}else{
+				
+					external_rate_limiters_cow = new_limiters;
+				}
+			}
+			
+			transports = peer_transports_cow;
+			
+		}finally{
+			
+			peer_transports_mon.exit();
+		}	
+		
+		for (int i=0;i<transports.size();i++){
+			
+			((PEPeerTransport)transports.get(i)).removeRateLimiter( group, upload );
+		}	
+	}
 	
 //	the peer calls this method itself in closeConnection() to notify this manager
 	public void peerConnectionClosed( PEPeerTransport peer, boolean connect_failed ) {
