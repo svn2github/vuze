@@ -33,7 +33,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -62,7 +61,7 @@ ViewUtils
 		long			totalUpSpeed,
 		long			upSpeedSetMax,
 		long			maxUpload,
-		int				num_entries,
+		final int		num_entries,
 		final SpeeedAdapter	adapter )
 	{
 		// advanced > Download Speed Menu //
@@ -323,7 +322,7 @@ ViewUtils
 					mb.open();
 					return;
 				}
-				adapter.setUpSpeed(newSpeed);
+				adapter.setUpSpeed(newSpeed/num_entries);
 			}
 		});
 	}
