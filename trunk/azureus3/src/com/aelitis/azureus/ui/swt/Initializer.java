@@ -82,13 +82,14 @@ public class Initializer implements IUIIntializer
 					if (component instanceof GlobalManager) {
 						gm = (GlobalManager) component;
 
-						InitialisationFunctions.initialise(core);
+						InitialisationFunctions.earlyInitialisation(core);
 					}
 				}
 
 				// @see com.aelitis.azureus.core.AzureusCoreLifecycleAdapter#started(com.aelitis.azureus.core.AzureusCore)
 
 				public void started(AzureusCore core) {
+					InitialisationFunctions.lateInitialisation(core);
 					if (gm == null)
 						return;
 

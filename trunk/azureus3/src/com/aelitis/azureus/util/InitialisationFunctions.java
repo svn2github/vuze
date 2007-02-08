@@ -40,7 +40,7 @@ public class InitialisationFunctions
 	private static final String EXTENSION_PREFIX = "&azid=";
 
 	public static void
-	initialise(
+	earlyInitialisation(
 		AzureusCore		core )
 	{
 		DownloadManagerEnhancer.initialise( core );
@@ -50,6 +50,13 @@ public class InitialisationFunctions
 		AzureusPlatformContentDirectory.register();
 		
 		CacheDiscovery.initialise();
+	}
+	
+	public static void
+	lateInitialisation(
+		AzureusCore		core )
+	{	
+		ExternalStimulusHandler.initialise( core );
 	}
 	
 	protected static void registerTrackerURLExtensions(AzureusCore core) {
