@@ -119,6 +119,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.jce"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.network"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.disk.impl.resume"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.ui.menus"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.host"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.net.natpmp.upnp"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.predicate.shell"/>
