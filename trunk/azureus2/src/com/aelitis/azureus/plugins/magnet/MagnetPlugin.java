@@ -56,6 +56,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.net.magneturi.*;
 
 /**
@@ -69,6 +70,7 @@ MagnetPlugin
 {
 	private PluginInterface		plugin_interface;
 		
+	private CopyOnWriteList		listeners = new CopyOnWriteList();
 	
 	public void
 	initialize(
@@ -278,6 +280,24 @@ MagnetPlugin
 						
 						throw( new MagnetURIHandlerException( "Operation failed", e ));
 					}
+				}
+				
+				public boolean
+				set(
+					String		name,
+					String		value )
+				{
+					List	l = listeners.getList();
+					
+					for (int i=0;i<l.size();i++){
+						
+						if (((MagnetPluginListener)l.get(i)).set( name, value )){
+							
+							return( true );
+						}
+					}
+					
+					return( false );
 				}
 			});
 		
@@ -628,5 +648,19 @@ MagnetPlugin
 	{
 		return( plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText( 
 				"MagnetPlugin." + resource, new String[]{ param }));
+	}
+	
+	public void
+	addListener(
+		MagnetPluginListener		listener )
+	{
+		listeners.add( listener );
+	}
+	
+	public void
+	removeListener(
+		MagnetPluginListener		listener )
+	{
+		listeners.remove( listener );
 	}
 }

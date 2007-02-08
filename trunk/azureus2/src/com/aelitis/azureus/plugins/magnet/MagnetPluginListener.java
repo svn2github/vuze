@@ -1,7 +1,7 @@
 /*
- * Created on 03-Mar-2005
+ * Created on Feb 8, 2007
  * Created by Paul Gardner
- * Copyright (C) 2004, 2005, 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2007 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,44 +15,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SAS au capital de 46,603.30 euros
+ * AELITIS, SAS au capital de 63.529,40 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
-package com.aelitis.net.magneturi;
 
-import java.net.InetSocketAddress;
-import java.net.URL;
-
-/**
- * @author parg
- *
- */
+package com.aelitis.azureus.plugins.magnet;
 
 public interface 
-MagnetURIHandlerListener 
+MagnetPluginListener 
 {
-	public byte[]
-	badge();
-	
-	public byte[]
-	download(
-		MagnetURIHandlerProgressListener	progress,
-		byte[]								hash,
-		InetSocketAddress[]					sources,
-		long								timeout )
-	
-		throws MagnetURIHandlerException;
-	
-	public boolean
-	download(
-		URL			magnet_url )
-	
-		throws MagnetURIHandlerException;
-	
 	public boolean
 	set(
-		String	name,
-		String	value );
+		String		name,
+		String		value );
 }

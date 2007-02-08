@@ -633,6 +633,45 @@ MagnetURIHandlerImpl
 			
 			return( true );
 			
+		}else if ( get.startsWith( "/setinfo?" )){
+
+			String name 	= (String)params.get( "name" );
+			String value 	= (String)params.get( "value" );
+
+			if ( name != null && value != null){
+
+				boolean	result = false;
+				
+				for (int i=0;i<listeners.size() && !result;i++){
+					
+					result = ((MagnetURIHandlerListener)listeners.get(i)).set( name, value );
+				}
+				
+				int	width 	= result?20:10;
+				int height 	= result?20:10;
+				
+				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+
+				BufferedImage	image = new BufferedImage( width, height, BufferedImage.TYPE_INT_RGB );
+				
+				for (int i=0;i<width;i++){
+					for (int j=0;j<height;j++){
+						int	red 	= i+j;
+						int	green 	= i*255/width;
+						int	blue	= j*255/height;
+						
+						image.setRGB(i,j,((red<<16)&0xff0000)|((green<<8)&0xff00)|((blue)&0xff));
+					}
+				}
+				
+				ImageIO.write( image, "JPG", baos );
+
+				byte[]	data = baos.toByteArray();
+										
+				writeReply( os, "image/jpeg", data );
+					
+				return( true );
+			}
 		}
 		
 		return( true );
