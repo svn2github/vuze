@@ -66,6 +66,8 @@ TRTrackerServerImpl
 	
 	private static Map		torrent_map = new HashMap(); 
 	
+	private static Map		link_map	= new HashMap();
+	
 	protected AEMonitor class_mon 	= new AEMonitor( "TRTrackerServer:class" );
 
 
@@ -313,6 +315,38 @@ TRTrackerServerImpl
 	isReady()
 	{
 		return( is_ready );
+	}
+	
+	public TRTrackerServerTorrent
+	addLink(
+		String					link,
+		TRTrackerServerTorrent	target )
+	{
+		try{
+			class_mon.enter();
+			
+			return((TRTrackerServerTorrent)link_map.put( link, target ));
+			
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
+	
+	public void
+	removeLink(
+		String					link,
+		TRTrackerServerTorrent	target )
+	{
+		try{
+			class_mon.enter();
+			
+			link_map.remove( link );
+			
+		}finally{
+			
+			class_mon.exit();
+		}	
 	}
 	
 	public void
@@ -793,6 +827,21 @@ TRTrackerServerImpl
 			class_mon.enter();
 		
 			return((TRTrackerServerTorrentImpl)torrent_map.get(new HashWrapper(hash)));
+			
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
+	
+	public TRTrackerServerTorrentImpl
+	getTorrent(
+		String		link )
+	{
+		try{
+			class_mon.enter();
+		
+			return((TRTrackerServerTorrentImpl)link_map.get( link ));
 			
 		}finally{
 			

@@ -912,6 +912,20 @@ TRTrackerServerTorrentImpl
 		}
 	}
 	
+	public TRTrackerServerTorrent
+	addLink(
+		String	link )
+	{
+		return( server.addLink( link, this ));
+	}
+	
+	public void
+	removeLink(
+		String	link )
+	{
+		server.removeLink( link, this );
+	}
+	
 	public Map
 	exportAnnounceToMap(
 		HashMap						preprocess_map,

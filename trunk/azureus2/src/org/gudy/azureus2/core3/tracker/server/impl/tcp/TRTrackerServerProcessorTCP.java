@@ -54,7 +54,14 @@ TRTrackerServerProcessorTCP
 		"Server: " + Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
 		"Connection: close" + NL +
 		"Content-Length: ").getBytes();
-		
+	
+	protected static final byte[]	HTTP_RESPONSE_XML_START = (
+			"HTTP/1.1 200 OK" + NL + 
+			"Content-Type: text/xml; charset=\"utf-8\"" + NL +
+			"Server: " + Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
+			"Connection: close" + NL +
+			"Content-Length: ").getBytes();
+
 	protected static final byte[]	HTTP_RESPONSE_END_GZIP 		= (NL + "Content-Encoding: gzip" + NL + NL).getBytes();
 	protected static final byte[]	HTTP_RESPONSE_END_NOGZIP 	= (NL + NL).getBytes();
 	
@@ -113,6 +120,8 @@ TRTrackerServerProcessorTCP
 			
 			boolean	gzip_reply = false;
 			
+			boolean		xml_output		= false;
+			
 			try{
 				int	request_type;
 			
@@ -134,6 +143,12 @@ TRTrackerServerProcessorTCP
 					
 					str = "";
 				
+				}else if ( str.startsWith( "/query?" )){
+
+					request_type	= TRTrackerServerRequest.RT_QUERY;
+					
+					str = str.substring(7);
+
 				}else{
 					
 					String	redirect = TRTrackerServerImpl.redirect_on_not_found;
@@ -266,6 +281,7 @@ TRTrackerServerProcessorTCP
 					
 				byte[]		hash		= null;
 				List		hash_list	= null;
+				String		link		= null;
 				
 				HashWrapper	peer_id		= null;
 				int			tcp_port	= 0;
@@ -444,8 +460,19 @@ TRTrackerServerProcessorTCP
 						stop_to_queue	= true;
 												
 					}else if ( lhs.equals( "azsf" )){
-					
+						
 						scrape_flags = rhs;
+						
+					}else if ( lhs.equals( "link" )){
+						
+						link = rhs;
+					
+					}else if ( lhs.equals( "outform" )){
+
+						if ( rhs.equals( "xml" )){
+							
+							xml_output	= true;
+						}
 						
 					}else if ( TRTrackerServerImpl.supportsExtensions()){
 						
@@ -506,7 +533,7 @@ TRTrackerServerProcessorTCP
 							server, str,
 							root_out, peer_out,
 							request_type,
-							hashes, scrape_flags,
+							hashes, link, scrape_flags,
 							peer_id, no_peer_id, compact_mode, key, 
 							event, stop_to_queue,
 							tcp_port&0xffff, udp_port&0xffff, http_port&0xffff,
@@ -603,19 +630,47 @@ TRTrackerServerProcessorTCP
 		
 			setTaskState( "writing response" );
 
-				// cache both plain and gzip encoded data for possible reuse
+			byte[]	data;
+			byte[]	header_start;
 			
-			byte[] data 		= (byte[])root.get( "_data" );
-					
-			if ( data == null ){
+			if ( xml_output ){
 				
-				data = BEncoder.encode( root );
-				
-				root.put( "_data", data );
-			}
-						
-			if ( gzip_reply ){
+				StringBuffer	xml = new StringBuffer( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
 
+				xml.append( "<RESULT>" );
+				
+				if ( specific_torrent != null ){
+					
+					xml.append( "<BTIH>" );
+					xml.append( ByteFormatter.encodeString( specific_torrent.getHash().getBytes()));
+					xml.append( "</BTIH>" );
+					
+					xml.append( BEncoder.encodeToXML( root, true ));
+				}
+				
+				xml.append( "</RESULT>" );
+				
+				data			= xml.toString().getBytes("UTF-8" );
+				
+				header_start = HTTP_RESPONSE_XML_START;
+
+			}else{
+					// cache both plain and gzip encoded data for possible reuse
+				
+				data 		= (byte[])root.get( "_data" );
+						
+				if ( data == null ){
+					
+					data = BEncoder.encode( root );
+					
+					root.put( "_data", data );
+				}
+				
+				header_start = HTTP_RESPONSE_START;
+			}	
+			
+			if ( gzip_reply ){
+				
 				byte[]	gzip_data = (byte[])root.get( "_gzipdata");
 				
 				if ( gzip_data == null ){
@@ -635,20 +690,20 @@ TRTrackerServerProcessorTCP
 				
 				data	= gzip_data;
 			}
-						
+			
 				// System.out.println( "TRTrackerServerProcessor::reply: sending " + new String(data));
-						
+							
 				// write the response
 			
 			setTaskState( "writing header" );
 
-			os.write( HTTP_RESPONSE_START );
+			os.write( header_start );
 			
 			byte[]	length_bytes = String.valueOf(data.length).getBytes();
 			
 			os.write( length_bytes );
 
-			int	header_len = HTTP_RESPONSE_START.length + length_bytes.length;
+			int	header_len = header_start.length + length_bytes.length;
 			
 			setTaskState( "writing content" );
 

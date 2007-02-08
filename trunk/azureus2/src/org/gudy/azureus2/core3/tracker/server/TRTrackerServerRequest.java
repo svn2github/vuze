@@ -34,6 +34,7 @@ TRTrackerServerRequest
 	public static final int		RT_ANNOUNCE		= 1;
 	public static final int		RT_SCRAPE		= 2;
 	public static final int		RT_FULL_SCRAPE	= 3;
+	public static final int		RT_QUERY		= 4;
 	
 	public int
 	getType();

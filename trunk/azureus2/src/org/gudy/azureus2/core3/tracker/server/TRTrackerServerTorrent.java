@@ -63,6 +63,14 @@ TRTrackerServerTorrent
 	public URL[]
 	getRedirects();
 	
+	public TRTrackerServerTorrent
+	addLink(
+		String	link );
+	
+	public void
+	removeLink(
+		String	link );
+	
 	public void
 	addListener(
 		TRTrackerServerTorrentListener	l );

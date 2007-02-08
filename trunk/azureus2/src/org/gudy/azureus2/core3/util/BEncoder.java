@@ -27,6 +27,8 @@ import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
+
 /**
  * A set of utility methods to encode a Map into a bencoded array of byte.
  * integer are represented as Long, String as byte[], dictionnaries as Map, and list as List.
@@ -222,7 +224,7 @@ BEncoder
     {
     	os.write( bb.array(), 0, bb.limit());
     }
-    
+
     private static boolean
     objectsAreIdentical(
     	Object		o1,
@@ -353,5 +355,43 @@ BEncoder
     	}
     	
     	return( true );
-    }		
+    }	
+    
+    public static StringBuffer
+    encodeToXML(
+    	Map			map,
+    	boolean		simple )
+    {
+     	XMLEncoder writer = new XMLEncoder();
+  
+     	return( writer.encode( map, simple ));
+    }    
+    
+    protected static class
+    XMLEncoder
+    	extends XUXmlWriter
+    {
+    	protected
+    	XMLEncoder()
+    	{
+    	}
+    	
+    	protected StringBuffer
+    	encode(
+    		Map		map,
+    		boolean	simple )
+    	{
+    		StringWriter	writer = new StringWriter(1024);
+    		
+    		setOutputWriter( writer );
+    		
+    		setGenericSimple( simple );
+    		
+    		writeGeneric( map );
+    		
+    		flushOutputStream();
+    		
+    		return( writer.getBuffer());
+    	}
+    }
 }

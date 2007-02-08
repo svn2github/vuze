@@ -26,6 +26,10 @@ package org.gudy.azureus2.core3.xml.util;
  */
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -38,6 +42,8 @@ XUXmlWriter
 
 	private PrintWriter					writer;
 		
+	private boolean						generic_simple;
+	
 	protected
 	XUXmlWriter()
 	{
@@ -67,6 +73,27 @@ XUXmlWriter
 			
 			writer = new PrintWriter( _output_stream );
 		}
+	}
+	
+	protected void
+	setOutputWriter(
+		Writer		_writer )
+	{
+		if ( _writer instanceof PrintWriter ){
+			
+			writer = (PrintWriter)_writer;
+			
+		}else{
+			
+			writer = new PrintWriter( _writer );
+		}
+	}
+	
+	protected void
+	setGenericSimple(
+		boolean		simple )
+	{
+		generic_simple	= simple;
 	}
 	
 	protected void
@@ -171,6 +198,215 @@ XUXmlWriter
 			writer.close();
 			
 			writer	= null;
+		}
+	}
+	
+		// generic Map encoder
+	
+	protected void
+	writeGenericMapEntry(
+		String	name,
+		Object	value )
+	{
+		if ( generic_simple ){
+			
+			name = name.replace(' ', '_' ).toUpperCase();
+			
+			writeLineRaw( "<" + name + ">" );
+			
+			try{
+				indent();
+				
+				writeGeneric( value );
+			}finally{
+				
+				exdent();
+			}
+			
+			writeLineRaw( "</" + name + ">" );
+			
+		}else{
+			writeLineRaw( "<KEY name=\"" + escapeXML( name ) + "\">");
+			
+			try{
+				indent();
+				
+				writeGeneric( value );
+			}finally{
+				
+				exdent();
+			}
+			
+			writeLineRaw( "</KEY>");
+		}
+	}
+	
+	protected void
+	writeGeneric(
+		Object	obj )
+	{
+		if ( obj instanceof Map ){
+			
+			writeGeneric((Map)obj);
+			
+		}else if( obj instanceof List ){
+			
+			writeGeneric((List)obj);
+			
+		}else if ( obj instanceof byte[] ){
+		
+			writeGeneric((byte[])obj);
+			
+		}else{
+			
+			writeGeneric((Long)obj);
+		}
+	}
+	
+	protected void
+	writeGeneric(
+		Map		map )
+	{
+		writeLineRaw( "<MAP>" );
+		
+		try{
+			indent();
+			
+			Iterator it = map.keySet().iterator();
+			
+			while(it.hasNext()){
+				
+				String	key = (String)it.next();
+				
+				writeGenericMapEntry( key, map.get( key ));
+			}
+		}finally{
+			
+			exdent();
+		}	
+
+		writeLineRaw( "</MAP>" );
+	}
+	
+	protected void
+	writeGeneric(
+		List	list )
+	{
+		writeLineRaw( "<LIST>" );
+		
+		try{
+			indent();
+			
+			for (int i=0;i<list.size();i++){
+				
+				writeGeneric( list.get(i));
+			}
+		}finally{
+			
+			exdent();
+		}
+		
+		writeLineRaw( "</LIST>" );
+	}
+	
+	protected void
+	writeGeneric(
+		byte[]		bytes )
+	{
+		if ( generic_simple ){
+			
+			try{
+				writeLineRaw( escapeXML( new String(bytes, "UTF-8" )));
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}else{
+			
+			writeTag( "BYTES", encodeBytes( bytes ));
+		}
+	}
+	
+	protected void
+	writeGeneric(
+		Long		l )
+	{
+		if ( generic_simple ){
+			
+			writeLineRaw( l.toString());
+		
+		}else{
+			writeTag( "LONG", ""+l );
+		}
+	}
+		
+	protected void
+	writeTag(
+		String		tag,
+		byte[]		content )
+	{
+		writeLineRaw( "<" + tag + ">" + encodeBytes( content ) + "</" + tag + ">" );	
+	}
+		
+	protected void
+	writeLocalisableTag(
+		String		tag,
+		byte[]		content )
+	{
+		boolean	use_bytes = true;
+		
+		String	utf_string = null;
+		
+		try{
+			utf_string = new String(content,Constants.DEFAULT_ENCODING);
+			
+			if ( Arrays.equals(
+					content,
+					utf_string.getBytes( Constants.DEFAULT_ENCODING))){
+
+				use_bytes = false;					
+			}
+		}catch( UnsupportedEncodingException e ){
+		}
+		
+		writeLineRaw( "<" + tag + " encoding=\""+(use_bytes?"bytes":"utf8") + "\">" + 
+					(use_bytes?encodeBytes( content ):escapeXML(utf_string)) + "</" + tag + ">" );	
+	}
+	
+	protected String
+	encodeBytes(
+		byte[]	bytes )
+	{
+		String data = ByteFormatter.nicePrint( bytes, true );
+			
+		return( data );
+
+		/*
+		try{
+		
+			return( URLEncoder.encode(new String( bytes, Constants.DEFAULT_ENCODING ), Constants.DEFAULT_ENCODING));
+			
+		}catch( UnsupportedEncodingException e ){
+
+			throw( new TOTorrentException( 	"TOTorrentXMLSerialiser: unsupported encoding for '" + new String(bytes) + "'",
+										TOTorrentException.RT_UNSUPPORTED_ENCODING));
+		}
+		*/
+	}
+	
+	protected String
+	getUTF(
+		byte[]	bytes )
+	{
+		try{
+			return( new String(bytes,Constants.DEFAULT_ENCODING));
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			Debug.printStackTrace( e );
+			
+			return( "" );
 		}
 	}
 }

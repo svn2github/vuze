@@ -58,6 +58,7 @@ TRTrackerServerProcessor
 		TRTrackerServerPeerImpl[]	peer_out,		// output
 		int							request_type,
 		byte[][]					hashes,
+		String						link,
 		String						scrape_flags,
 		HashWrapper					peer_id,
 		boolean						no_peer_id,
@@ -132,18 +133,18 @@ TRTrackerServerProcessor
 		TRTrackerServerTorrentImpl	torrent = null;
 		
 		if ( request_type != TRTrackerServerRequest.RT_FULL_SCRAPE ){
-			
-			if ( hashes == null || hashes.length == 0 ){
-				
-				throw( new TRTrackerServerException( "Hash missing from request "));
-			}
-						
+									
 			// System.out.println( "TRTrackerServerProcessor::request:" + request_type + ",event:" + event + " - " + client_ip_address + ":" + port );
 			
 			// System.out.println( "    hash = " + ByteFormatter.nicePrint(hash));
 			
 			if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
 				
+				if ( hashes == null || hashes.length == 0 ){
+					
+					throw( new TRTrackerServerException( "Hash missing from request "));
+				}
+
 				if ( hashes.length != 1 ){
 					
 					throw( new TRTrackerServerException( "Too many hashes for announce"));
@@ -215,8 +216,45 @@ TRTrackerServerProcessor
 				
 				peer_out[0]	= peer;	
 				
+			}else if ( request_type == TRTrackerServerRequest.RT_QUERY ){
+				
+				if ( link == null ){
+					
+					if ( hashes == null || hashes.length == 0 ){
+						
+						throw( new TRTrackerServerException( "Hash missing from request "));
+					}
+					
+					if ( hashes.length != 1 ){
+						
+						throw( new TRTrackerServerException( "Too many hashes for query"));
+					}
+				
+					byte[]	hash = hashes[0];
+				
+					torrent = server.getTorrent( hash );
+					
+				}else{
+					
+					torrent = server.getTorrent( link );
+				}
+				
+				if ( torrent == null ){
+					
+					throw( new TRTrackerServerException( "Torrent unauthorised" ));
+				}
+				
+				long	interval = server.getAnnounceRetryInterval( torrent );
+
+				root_out[0] = torrent.exportAnnounceToMap( new HashMap(), null, true, num_want, interval, server.getMinAnnounceRetryInterval(), true, compact_mode, crypto_level, network_position );
+
 			}else{
 				
+				if ( hashes == null || hashes.length == 0 ){
+					
+					throw( new TRTrackerServerException( "Hash missing from request "));
+				}
+
 				boolean	local_scrape = client_ip_address.equals( "127.0.0.1" );
 				
 				long	max_interval	= server.getMinScrapeRetryInterval();
