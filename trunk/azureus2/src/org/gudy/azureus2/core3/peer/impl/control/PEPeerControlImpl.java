@@ -2752,23 +2752,67 @@ PEPeerControlImpl
   		return( seeding_mode );
   	}
 	
+	public boolean isInEndGameMode() {
+		return piecePicker.isInEndGameMode();
+	}
+	
 	public boolean isSuperSeedMode() {
 		return superSeedMode;
 	}
 	
-	public boolean isInEndGameMode() {
-		return piecePicker.isInEndGameMode();
+	public boolean
+	canToggleSuperSeedMode()
+	{
+		if ( superSeedMode ){
+						
+			return( true );
+		}
+		
+		return( superSeedPieces == null && this.getRemaining() ==0  );
 	}
 	
 	public void 
 	setSuperSeedMode(
 		boolean _superSeedMode) 
 	{
-		if (_superSeedMode && superSeedPieces == null ){
-			initialiseSuperSeedMode();
+		if ( _superSeedMode == superSeedMode ){
+			
+			return;
 		}
 		
-		superSeedMode = _superSeedMode;
+		boolean	kick_peers = false;
+		
+		if ( _superSeedMode ){
+
+			if ( superSeedPieces == null && this.getRemaining() ==0  ){
+			
+				superSeedMode = true;
+				
+				initialiseSuperSeedMode();
+				
+		  		kick_peers	= true;
+			}
+		}else{
+			
+			superSeedMode = false;
+			
+			kick_peers	= true;
+		}
+		
+		if ( kick_peers ){
+			
+				// turning on/off super-seeding, gotta kick all connected peers so they get the
+				// "right" bitfield
+			
+			ArrayList peer_transports = peer_transports_cow;
+			
+	  		for (int i=0; i < peer_transports.size(); i++) {
+	  			
+	  			PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
+	  			
+	  			closeAndRemovePeer( conn, "Turning on super-seeding", false );
+	  		}
+		}
 	}    
 	
 	private void

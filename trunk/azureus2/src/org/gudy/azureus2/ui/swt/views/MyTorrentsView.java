@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -714,6 +715,10 @@ public class MyTorrentsView
 		changeUrl = barsOpened = manualUpdate = fileMove = fileRescan = true;
 		forceStart = forceStartEnabled = recheck = start = stop = false;
 
+		boolean canSetSuperSeed	= false;
+		boolean superSeedAllYes	= true;
+		boolean superSeedAllNo	= true;
+		
 		boolean upSpeedDisabled = false;
 		long totalUpSpeed = 0;
 		boolean upSpeedUnlimited = false;
@@ -813,6 +818,28 @@ public class MyTorrentsView
 				
 				allScanSelected 	= incomplete && allScanSelected && scan;
 				allScanNotSelected 	= incomplete && allScanNotSelected && !scan;
+				
+				PEPeerManager pm = dm.getPeerManager();
+				
+				if ( pm != null ){
+					
+					if ( pm.canToggleSuperSeedMode()){
+						
+						canSetSuperSeed	= true;
+					}
+					
+					if ( pm.isSuperSeedMode()){
+						
+						superSeedAllYes = false;
+						
+					}else{
+						
+						superSeedAllNo	= false;
+					}
+				}else{
+					superSeedAllYes = false;
+					superSeedAllNo	= false;
+				}
 			}
 
 			fileRescan	= allScanSelected || allScanNotSelected;
@@ -1315,6 +1342,42 @@ public class MyTorrentsView
 				}
 				
 				itemNetwork.setSelection(bChecked);
+			}
+		}
+
+			// superseed
+		if ( userMode > 1 && isSeedingView ){
+			
+			final MenuItem itemSuperSeed = new MenuItem(menuAdvanced, SWT.CHECK);
+
+			Messages.setLanguageText(itemSuperSeed, "ManagerItem.superseeding"); 
+			
+			boolean enabled = canSetSuperSeed && ( superSeedAllNo || superSeedAllYes );
+			
+			itemSuperSeed.setEnabled( enabled );
+			
+			final boolean	selected = superSeedAllNo;
+			
+			if ( enabled ){
+				
+				itemSuperSeed.setSelection( selected );
+				
+				itemSuperSeed.addListener(SWT.Selection, new SelectedTableRowsListener() {
+					public void run(TableRowCore row) {
+						DownloadManager dm = (DownloadManager) row.getDataSource(true);
+						
+						PEPeerManager pm = dm.getPeerManager();
+						
+						if ( pm != null ){
+							
+							if ( 	pm.isSuperSeedMode() == selected &&
+									pm.canToggleSuperSeedMode()){
+								
+								pm.setSuperSeedMode( !selected );
+							}
+						}
+					}
+				});
 			}
 		}
 

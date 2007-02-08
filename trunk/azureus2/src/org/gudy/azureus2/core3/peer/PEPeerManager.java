@@ -132,6 +132,12 @@ PEPeerManager
   isSuperSeedMode();
   
   public boolean
+  canToggleSuperSeedMode();
+  
+  public void
+  setSuperSeedMode( boolean on );
+  
+  public boolean
   seedPieceRecheck();
   
   public int getNbRemoteConnections();
