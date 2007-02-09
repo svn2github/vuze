@@ -60,7 +60,19 @@ ResourceDownloaderFactoryImpl
 	create(
 		URL		url )
 	{
-		return( new ResourceDownloaderURLImpl( null, url ));
+		if ( url.getProtocol().equalsIgnoreCase("file")){
+			
+			try{
+				return( new ResourceDownloaderFileImpl( null, new File( url.toURI())));
+			
+			}catch( Throwable e ){
+				
+				return( new ResourceDownloaderURLImpl( null, url ));
+			}
+		}else{
+			
+			return( new ResourceDownloaderURLImpl( null, url ));
+		}
 	}
 	
 	public ResourceDownloader

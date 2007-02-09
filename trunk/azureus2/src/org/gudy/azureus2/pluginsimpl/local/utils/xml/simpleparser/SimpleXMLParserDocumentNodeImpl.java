@@ -171,6 +171,12 @@ SimpleXMLParserDocumentNodeImpl
 		return( null );
 	}
 	
+	public void
+	print()
+	{
+		print( "" );
+	}
+	
 	protected void
 	print(
 		String		indent )

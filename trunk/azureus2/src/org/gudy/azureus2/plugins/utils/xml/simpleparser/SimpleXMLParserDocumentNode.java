@@ -44,4 +44,7 @@ SimpleXMLParserDocumentNode
 	public SimpleXMLParserDocumentNode
 	getChild(
 		String		name );
+	
+	public void
+	print();
 }
