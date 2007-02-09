@@ -537,6 +537,8 @@ ResourceDownloaderURLImpl
 										
 										total_read += read;
 								        
+										informAmountComplete( total_read );
+										
 										if ( size > 0){
 											
 											informPercentDone(( 100 * total_read ) / size );

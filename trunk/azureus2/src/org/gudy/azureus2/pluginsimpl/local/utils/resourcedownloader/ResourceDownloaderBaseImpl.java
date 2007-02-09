@@ -212,6 +212,16 @@ ResourceDownloaderBaseImpl
 		}
 	}
 	
+	protected void
+	informAmountComplete(
+		long	amount )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((ResourceDownloaderListener)listeners.get(i)).reportAmountComplete(this,amount);
+		}
+	}
+	
 	public void
 	reportActivity(
 		String	str )
@@ -282,6 +292,14 @@ ResourceDownloaderBaseImpl
 		int					percentage )
 	{
 		informPercentDone( percentage );
+	}
+	
+	public void
+	reportAmountComplete(
+		ResourceDownloader	downloader,
+		long				amount )
+	{
+		informAmountComplete( amount );
 	}
 	
 	protected void

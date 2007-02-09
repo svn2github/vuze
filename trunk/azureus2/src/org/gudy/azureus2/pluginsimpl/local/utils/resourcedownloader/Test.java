@@ -69,7 +69,7 @@ Test
 			rd_u = rdf.getTorrentDownloader( rd_u, true );
 
 			rd_u.addListener(
-					new ResourceDownloaderListener()
+					new ResourceDownloaderAdapter()
 				    {
 						public boolean
 				        completed(
@@ -89,7 +89,13 @@ Test
 				        	System.out.println( "old - percentage = " + percentage );
 				        }
 				            
-
+				    	public void
+				    	reportAmountComplete(
+				    		ResourceDownloader	downloader,
+				    		long				amount )
+				    	{	
+				    	}
+				    	
 				        public void 
 						reportActivity(
 							ResourceDownloader	downloader, 
@@ -170,6 +176,13 @@ Test
 		int					percentage )
 	{
 		System.out.println( "percent = " + percentage );
+	}
+	
+	public void
+	reportAmountComplete(
+		ResourceDownloader	downloader,
+		long				amount )
+	{	
 	}
 	
 	public void

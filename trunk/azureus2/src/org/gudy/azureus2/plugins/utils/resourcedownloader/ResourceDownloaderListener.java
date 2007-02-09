@@ -37,6 +37,11 @@ ResourceDownloaderListener
 		int					percentage );
 	
 	public void
+	reportAmountComplete(
+		ResourceDownloader	downloader,
+		long				amount );
+	
+	public void
 	reportActivity(
 		ResourceDownloader	downloader,
 		String				activity );

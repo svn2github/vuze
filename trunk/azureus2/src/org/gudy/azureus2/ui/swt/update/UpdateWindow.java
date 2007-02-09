@@ -628,6 +628,13 @@ UpdateWindow
     setProgressSelection(percentage);   
   }
   
+  public void
+  reportAmountComplete(
+	 ResourceDownloader	downloader,
+	 long				amount )
+  {  
+  }
+  
   private void setProgressSelection(final int percent) {
     if(display == null || display.isDisposed())
       return;
