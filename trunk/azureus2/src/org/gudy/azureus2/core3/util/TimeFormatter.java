@@ -85,4 +85,33 @@ public class TimeFormatter {
     private static String twoDigits(int i) {
       return (i < 10) ? "0" + i : String.valueOf(i);
     }
+    
+    	/**
+    	 * parse time in h:m:s format to SECONDS
+    	 * @param str
+    	 * @return
+    	 */
+    
+    public static int
+    parseColon(
+    	String	str )
+    {
+    	final int[]	multipliers = { 1, 60, 3600, 86400 };
+    	
+    	String[]	bits = str.split( ":" );
+    	
+    	int	result = 0;
+    	
+    	for (int i=0;i<bits.length;i++){
+    		
+    		String bit = bits[bits.length-(i+1)].trim();
+    		
+    		if ( bit.length() > 0 ){
+    			
+    			result += multipliers[i] * Integer.parseInt( bit );
+    		}
+    	}
+    	
+    	return( result );
+    }
 }
