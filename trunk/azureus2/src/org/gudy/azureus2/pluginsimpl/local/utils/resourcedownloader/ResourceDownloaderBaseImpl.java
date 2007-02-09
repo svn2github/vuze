@@ -30,6 +30,7 @@ import java.util.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public abstract class 
@@ -208,7 +209,13 @@ ResourceDownloaderBaseImpl
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((ResourceDownloaderListener)listeners.get(i)).reportPercentComplete(this,percentage);
+			try{
+				((ResourceDownloaderListener)listeners.get(i)).reportPercentComplete(this,percentage);
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
@@ -218,7 +225,17 @@ ResourceDownloaderBaseImpl
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((ResourceDownloaderListener)listeners.get(i)).reportAmountComplete(this,amount);
+			try{
+				((ResourceDownloaderListener)listeners.get(i)).reportAmountComplete(this,amount);
+				
+			}catch( NoSuchMethodError e ){
+				
+				// handle addition of this new method with old impls
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
@@ -235,7 +252,13 @@ ResourceDownloaderBaseImpl
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((ResourceDownloaderListener)listeners.get(i)).reportActivity(this,activity);
+			try{
+				((ResourceDownloaderListener)listeners.get(i)).reportActivity(this,activity);
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
@@ -247,7 +270,14 @@ ResourceDownloaderBaseImpl
 			
 			for (int i=0;i<listeners.size();i++){
 				
-				if ( !((ResourceDownloaderListener)listeners.get(i)).completed(this,is)){
+				try{
+					if ( !((ResourceDownloaderListener)listeners.get(i)).completed(this,is)){
+						
+						return( false );
+					}
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
 					
 					return( false );
 				}
@@ -273,7 +303,13 @@ ResourceDownloaderBaseImpl
 			
 			for (int i=0;i<listeners.size();i++){
 				
-				((ResourceDownloaderListener)listeners.get(i)).failed(this,e);
+				try{
+					((ResourceDownloaderListener)listeners.get(i)).failed(this,e);
+					
+				}catch( Throwable f ){
+					
+					Debug.printStackTrace(f);
+				}
 			}
 		}
 	}
