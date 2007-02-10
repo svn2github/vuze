@@ -23,6 +23,8 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -37,9 +39,11 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.predicate.AllPredicate;
 import org.gudy.azureus2.core3.predicate.NotPredicate;
 import org.gudy.azureus2.core3.predicate.Predicable;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
@@ -93,11 +97,12 @@ public class MainMenu {
   private Menu menuBar;
   
   private MenuItem menu_plugin;
-  private Menu pluginMenu;
-  private Menu pluginLogsMenu;
   private Menu transferMenu;
   private Menu viewMenu;
   
+  private AEMonitor plugin_view_mon = new AEMonitor("plugin_menu_view_mon");
+  private Map plugin_view_info_map = new TreeMap();
+  private Map plugin_logs_view_info_map = new TreeMap();
   private AzureusCore core;
 
   /**
@@ -161,7 +166,7 @@ public class MainMenu {
       menuBar = new Menu(parent, SWT.BAR);
 
       // one time disable conditions
-      boolean notMainWindow = mainWindow != null && attachedShell != mainWindow.getShell();
+      final boolean notMainWindow = mainWindow != null && attachedShell != mainWindow.getShell();
       boolean isModal = new ShellIsModalPredicate().evaluate(attachedShell);
 
 
@@ -370,36 +375,14 @@ public class MainMenu {
       //the Plugins menu
         menu_plugin = new MenuItem(menuBar, SWT.CASCADE);
         Messages.setLanguageText(menu_plugin, "MainWindow.menu.view.plugins"); //$NON-NLS-1$
-        pluginMenu = new Menu(parent,SWT.DROP_DOWN);
-        menu_plugin.setEnabled(false);
+        Menu pluginMenu = new Menu(parent,SWT.DROP_DOWN);
         menu_plugin.setMenu(pluginMenu);
-        if(notMainWindow) {performOneTimeDisable(menu_plugin, true);}
-
-      MenuItem menu_plugin_logViews = new MenuItem(pluginMenu, SWT.CASCADE);
-			Messages.setLanguageText(menu_plugin_logViews, "MainWindow.menu.view.plugins.logViews");
-			pluginLogsMenu = new Menu(parent, SWT.DROP_DOWN);
-			menu_plugin_logViews.setMenu(pluginLogsMenu);
-			menu_plugin_logViews.setData("EOL", "1");
-
-      new MenuItem(pluginMenu, SWT.SEPARATOR);
-      
-      MenuItem plugins_install_wizard = new MenuItem(pluginMenu, SWT.NULL);
-      KeyBindings.setAccelerator(plugins_install_wizard, "MainWindow.menu.plugins.installPlugins");
-      Messages.setLanguageText(plugins_install_wizard, "MainWindow.menu.plugins.installPlugins"); //$NON-NLS-1$
-      plugins_install_wizard.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          new InstallPluginWizard(core, display);
-        }
-      });
-      
-      MenuItem plugins_uninstall_wizard = new MenuItem(pluginMenu, SWT.NULL);
-      KeyBindings.setAccelerator(plugins_uninstall_wizard, "MainWindow.menu.plugins.uninstallPlugins");
-      Messages.setLanguageText(plugins_uninstall_wizard, "MainWindow.menu.plugins.uninstallPlugins"); //$NON-NLS-1$
-      plugins_uninstall_wizard.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          new UnInstallPluginWizard(core, display);
-        }
-      });
+        if(isModal) {performOneTimeDisable(menu_plugin, true);}
+        MenuBuildUtils.addMaintenanceListenerForMenu(pluginMenu, new MenuBuildUtils.MenuBuilder() {
+        	public void buildMenu(Menu menu) {
+        		buildPluginMenu(parent, menu, notMainWindow);
+        	}
+        });
       
       // standard items
       if(Constants.isOSX) {
@@ -561,6 +544,73 @@ public class MainMenu {
     	parent.setMenuBar(menuBar);
     }
   }
+  
+  private void createIViewInfoMenuItem(Menu parent, final IViewInfo info) {
+	  MenuItem item = new MenuItem(parent, SWT.NULL);
+	  item.setText(info.name);
+	  if (info.viewID != null) {item.setData("ViewID", info.viewID);}
+      item.addListener(SWT.Selection,new Listener() {
+    	  public void handleEvent(Event e) {
+    		  UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+    		  if (uiFunctions != null) {info.openView(uiFunctions);}
+    	  }
+      });
+  }
+  
+  private void createIViewInfoMenuItems(Menu parent, Map menu_data) {
+	  Iterator itr = menu_data.values().iterator();
+	  while (itr.hasNext()) {
+		  createIViewInfoMenuItem(parent, (IViewInfo)itr.next());
+	  }
+  }
+  
+  private void buildPluginMenu(Shell parent, Menu pluginMenu, boolean notMainWindow) {
+      //menu_plugin.setEnabled(false);
+      //if(notMainWindow) {performOneTimeDisable(menu_plugin, true);}
+      
+      try {
+    	  this.plugin_view_mon.enter();
+    	  createIViewInfoMenuItems(pluginMenu, this.plugin_view_info_map);
+    	    MenuItem menu_plugin_logViews = new MenuItem(pluginMenu, SWT.CASCADE);
+			Messages.setLanguageText(menu_plugin_logViews, "MainWindow.menu.view.plugins.logViews");
+			Menu pluginLogsMenu = new Menu(parent, SWT.DROP_DOWN);
+			menu_plugin_logViews.setMenu(pluginLogsMenu);
+			createIViewInfoMenuItems(pluginLogsMenu, this.plugin_logs_view_info_map);
+      }
+      finally {
+    	  this.plugin_view_mon.exit();
+      }
+      
+    new MenuItem(pluginMenu, SWT.SEPARATOR);
+    
+    org.gudy.azureus2.plugins.ui.menus.MenuItem[] plugin_items;
+    plugin_items = MenuItemManager.getInstance().getAllAsArray("mainmenu");
+    if (plugin_items.length > 0) {
+    	MenuBuildUtils.addPluginMenuItems(parent, plugin_items, pluginMenu, true, true,
+    		MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER
+    	);
+    	new MenuItem(pluginMenu, SWT.SEPARATOR);
+    }
+    
+    MenuItem plugins_install_wizard = new MenuItem(pluginMenu, SWT.NULL);
+    KeyBindings.setAccelerator(plugins_install_wizard, "MainWindow.menu.plugins.installPlugins");
+    Messages.setLanguageText(plugins_install_wizard, "MainWindow.menu.plugins.installPlugins"); //$NON-NLS-1$
+    plugins_install_wizard.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        new InstallPluginWizard(core, display);
+      }
+    });
+    
+    MenuItem plugins_uninstall_wizard = new MenuItem(pluginMenu, SWT.NULL);
+    KeyBindings.setAccelerator(plugins_uninstall_wizard, "MainWindow.menu.plugins.uninstallPlugins");
+    Messages.setLanguageText(plugins_uninstall_wizard, "MainWindow.menu.plugins.uninstallPlugins"); //$NON-NLS-1$
+    plugins_uninstall_wizard.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        new UnInstallPluginWizard(core, display);
+      }
+    });
+  
+  }
 
 	private void addDebugMenu(Menu menu) {
 		MenuItem item;
@@ -709,174 +759,113 @@ public class MainMenu {
       }
   }
   
-  protected void addPluginView(final String sViewID, final UISWTViewEventListener l) {
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				String sResourceID = UISWTViewImpl.CFG_PREFIX + sViewID + ".title";
-				boolean bResourceExists = MessageText.keyExists(sResourceID);
-				
-				String name;
-				
-				if (bResourceExists){
-					name = MessageText.getString(sResourceID);
-				}else{
-						// try plain resource
-					
-					sResourceID	= sViewID;
-					bResourceExists = MessageText.keyExists(sResourceID);
-					
-					if ( bResourceExists){
-						
-						name = MessageText.getString(sResourceID);
-						
-					}else{
-						
-						name = sViewID.replace('.', ' ' );	// support old plugins
-					}
-				}
-				
-				Menu menu = (l instanceof BasicPluginViewImpl) ? pluginLogsMenu : pluginMenu;
-					
-				MenuItem[] items = menu.getItems();
-
-				int insert_at = items.length;
-
-				for (int i = 0; i < items.length; i++) {
-					if (items[i].getData("EOL") != null
-							|| name.compareTo(items[i].getText()) < 0) {
-						insert_at = i;
-						break;
-					}
-				}
-
-				MenuItem item = new MenuItem(menu, SWT.NULL, insert_at);
-				item.setData("ViewID", sViewID);
-
-				if (bResourceExists)
-					Messages.setLanguageText(item, sResourceID);
-				else
-					item.setText(name);
-
-				item.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event e) {
-						UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-						if (uiFunctions != null) {
-							uiFunctions.openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l,
-									null, true);
-						}
-					}
-				});
-				menu_plugin.setEnabled(true);
+  protected void addPluginView(String sViewID, UISWTViewEventListener l) {
+	  IViewInfo view_info = new IViewInfo();
+	  view_info.viewID = sViewID;
+	  view_info.event_listener = l;
+	  
+	  String sResourceID = UISWTViewImpl.CFG_PREFIX + sViewID + ".title";
+	  boolean bResourceExists = MessageText.keyExists(sResourceID);
+		
+	  String name;
+		
+	  if (bResourceExists){
+          name = MessageText.getString(sResourceID);
+      } else {
+			// try plain resource
+			sResourceID	= sViewID;
+			bResourceExists = MessageText.keyExists(sResourceID);
+			
+			if ( bResourceExists){
+				name = MessageText.getString(sResourceID);
+			}else{
+				name = sViewID.replace('.', ' ' );	// support old plugins
 			}
-		});
-	}
+		}
+	  
+	  view_info.name = name;
+	  
+	  Map map_to_use = (l instanceof BasicPluginViewImpl) ? this.plugin_logs_view_info_map : this.plugin_view_info_map;
+		
+	  try {
+		  plugin_view_mon.enter();
+		  map_to_use.put(name, view_info);
+	  }
+	  finally {
+		  plugin_view_mon.exit();  
+	  }
+  }
+  
+  
+  private void removePluginViewsWithID(String sViewID, Map map) {
+	  if (sViewID == null) {return;}
+	  Iterator itr = map.values().iterator();
+	  IViewInfo view_info = null;
+	  while (itr.hasNext()) {
+		  view_info = (IViewInfo)itr.next();
+		  if (sViewID.equals(view_info.viewID)) {
+			  itr.remove();
+		  }
+	  }
+  }
   
   protected void removePluginViews(final String sViewID) {
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				MenuItem[] items = pluginMenu.getItems();
-				for (int i = 0; i < items.length; i++) {
-					String sID = (String)items[i].getData("ViewID");
-					if (sID != null && sID.equals(sViewID)) {
-						items[i].dispose();
-					}
-				}
-				items = pluginLogsMenu.getItems();
-				for (int i = 0; i < items.length; i++) {
-					String sID = (String)items[i].getData("ViewID");
-					if (sID != null && sID.equals(sViewID)) {
-						items[i].dispose();
-					}
-				}
+	  try {
+		  plugin_view_mon.enter();
+		  removePluginViewsWithID(sViewID, plugin_view_info_map);
+		  removePluginViewsWithID(sViewID, plugin_logs_view_info_map);
+	  }
+	  finally {
+		  plugin_view_mon.exit();
+	  }
+	  Utils.execSWTThread(new AERunnable() {
+		  public void runSupport() {
 				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 				if (uiFunctions != null) {
-  				uiFunctions.closePluginViews(sViewID);
+					uiFunctions.closePluginViews(sViewID);
 				}
-			}
-		});
+		  }
+	  });
   }
 
-
-  protected void
-  addPluginView(
-  	final AbstractIView 	view,
-  	final String			name )
-  {
-  	Utils.execSWTThread(new AERunnable() {
-      public void runSupport()
-      {
-      	if (pluginMenu == null || pluginMenu.isDisposed())
-      		return;
-
-      	MenuItem[]	items = pluginMenu.getItems();
-
-      	int	insert_at	= items.length;
-
-      	for (int i=0;i<items.length;i++){
-
-      		if (items[i].getData("EOL") != null ||
-      				name.compareTo(items[i].getText()) < 0 ){
-
-      			insert_at  = i;
-
-      			break;
-      		}
-      	}
-
-        MenuItem item = new MenuItem(pluginMenu,SWT.NULL,insert_at);
-        item.setText( name );
-        item.addListener(SWT.Selection,new Listener() {
-          public void handleEvent(Event e) {
-    				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-    				if (uiFunctions != null) {
-      				uiFunctions.openPluginView(view, name);
-    				}
-          }
-        });
-        menu_plugin.setEnabled(true);
-      }
-    });
+ 
+  protected void addPluginView(final AbstractIView view, final String name) {
+	  IViewInfo view_info = new IViewInfo();
+	  view_info.name = name;
+	  view_info.view = view;
+	  try {
+		  plugin_view_mon.enter();
+		  plugin_view_info_map.put(name, view_info);
+	  }
+	  finally {
+		  plugin_view_mon.exit();  
+	  }
   }
-  
   
   protected void
   removePluginView(
   	final AbstractIView 	view,
   	final String			name )
   {
-  	Utils.execSWTThread(new AERunnable() {
-      public void runSupport()
-      {
-      	if (pluginMenu == null || pluginMenu.isDisposed())
-      		return;
-
-      	MenuItem[]	items = pluginMenu.getItems();
-
-      	boolean	others = false;
-      	
-      	for (int i=0;i<items.length;i++){
-
-      		MenuItem	item = items[i];
-      		
-      		if ( item.getStyle() == SWT.SEPARATOR ){
-    	
-      		}else if ( item.getText().equals( name )){
-      			
-      			item.dispose();
-      			
-    				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-    				if (uiFunctions != null) {
-      				uiFunctions.closePluginView(view);
-    				}
-      			
-      		}else{
-      			others = true;
-      		}
-      	}
-      	
-      	menu_plugin.setEnabled(others);
-      }
-    });
+	  IViewInfo view_info = null;
+	  try {
+		  plugin_view_mon.enter();
+		  view_info = (IViewInfo)this.plugin_view_info_map.remove(name);
+	  }
+	  finally {
+		  plugin_view_mon.exit();
+	  }
+	  
+	  if (view_info != null) {
+		  Utils.execSWTThread(new AERunnable() {
+			  public void runSupport() {
+				  UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+  					if (uiFunctions != null) {
+  						uiFunctions.closePluginView(view);
+  					}
+			  }
+		  });
+	  }
   }
 
   /**
@@ -1300,6 +1289,24 @@ public class MainMenu {
 
 		return null;
 	}
+	
+	private static class IViewInfo {
+		public AbstractIView view;
+		public String name;
+		public String viewID;
+		public UISWTViewEventListener event_listener;
+		
+		public void openView(UIFunctionsSWT uiFunctions) {
+			if (event_listener != null) {
+				uiFunctions.openPluginView(UISWTInstance.VIEW_MAIN, viewID, event_listener,	null, true);
+			}
+			else {
+				uiFunctions.openPluginView(view, name);
+			}
+		}
+		
+	}
+	
 }
 
 

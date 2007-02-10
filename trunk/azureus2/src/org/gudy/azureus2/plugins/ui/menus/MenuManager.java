@@ -51,6 +51,10 @@ public interface MenuManager {
 	public static final String MENU_DOWNLOAD_BAR = "downloadbar";
 	
 	/**
+	 * The "Plugins" menu on the menu bar.
+	 */
+	public static final String MENU_MENUBAR = "mainmenu";
+	/**
 	 * Creates a menu item for the appropriate menu.
 	 * 
 	 * @param menuID The <tt>MENU_</tt> identifier as defined above. 
