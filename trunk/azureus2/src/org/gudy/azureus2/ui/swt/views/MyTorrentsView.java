@@ -527,10 +527,13 @@ public class MyTorrentsView
         				long maxDownload = COConfigurationManager.getIntParameter("Max Download Speed KBs", 0) * 1024;
         				long maxUpload = COConfigurationManager.getIntParameter("Max Upload Speed KBs", 0) * 1024;
 
+           				int	down_speed 	= category.getDownloadSpeed();
+           				int	up_speed 	= category.getUploadSpeed();
+           			        				
         		        ViewUtils.addSpeedMenu( 
         		        		getComposite(), menu, true, 
-        		        		false, false, category.getDownloadSpeed(), category.getDownloadSpeed(), maxDownload, 
-        		        		false, false, category.getUploadSpeed(), category.getUploadSpeed(), maxUpload, 
+        		        		false, down_speed==0, down_speed, down_speed, maxDownload, 
+        		        		false, up_speed==0, up_speed, up_speed, maxUpload, 
         		        		1, 
         		        		new SpeeedAdapter()
         		        		{
