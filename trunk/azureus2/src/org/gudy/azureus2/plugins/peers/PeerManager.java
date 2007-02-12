@@ -126,6 +126,10 @@ PeerManager
 	public Piece[]
 	getPieces();
 	
+    public int getUploadRateLimitBytesPerSecond();
+    
+    public int getDownloadRateLimitBytesPerSecond();
+
 	public void
 	addListener(
 		PeerManagerListener	l );

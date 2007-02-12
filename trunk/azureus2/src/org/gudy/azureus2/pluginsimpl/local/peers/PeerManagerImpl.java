@@ -436,6 +436,18 @@ PeerManagerImpl
 		return( peer );
 	}
 	
+	public int 
+	getUploadRateLimitBytesPerSecond()
+	{
+		return( manager.getUploadRateLimitBytesPerSecond());
+	}
+
+	public int 
+	getDownloadRateLimitBytesPerSecond()
+	{
+		return( manager.getDownloadRateLimitBytesPerSecond());
+	}
+	
 	public void
 	addListener(
 		final PeerManagerListener	l )

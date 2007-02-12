@@ -300,6 +300,9 @@ PEPeerManager
    */
   public LimitedRateGroup getDownloadLimitedRateGroup();
   
+  public int getUploadRateLimitBytesPerSecond();
+  
+  public int getDownloadRateLimitBytesPerSecond();
   
   /** To retreive arbitrary objects against this object. */
   public Object getData (String key);

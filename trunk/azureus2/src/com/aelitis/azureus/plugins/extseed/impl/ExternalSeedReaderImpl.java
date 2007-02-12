@@ -32,6 +32,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
+import org.gudy.azureus2.plugins.peers.PeerStats;
 import org.gudy.azureus2.plugins.peers.Piece;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.Monitor;
@@ -47,7 +48,10 @@ public abstract class
 ExternalSeedReaderImpl 
 	implements ExternalSeedReader
 {
-	protected static final int	RECONNECT_DEFAULT = 30*1000;
+	public static final int	RECONNECT_DEFAULT 			= 30*1000;
+	public static final int INITIAL_DELAY				= 30*1000;
+	public static final int STALLED_DOWNLOAD_SPEED		= 20*1024;
+	public static final int STALLED_PEER_SPEED			= 5*1024;
 	
 
 	private ExternalSeedPlugin	plugin;
@@ -202,7 +206,7 @@ ExternalSeedReaderImpl
 		Peer		peer,
 		long		time_since_start )
 	{
-		boolean	early_days = time_since_start < 30000;
+		boolean	early_days = time_since_start < INITIAL_DELAY;
 		
 		try{
 
@@ -249,8 +253,40 @@ ExternalSeedReaderImpl
 				// now the more interesting stuff
 			
 			if ( transient_seed ){
+						
+					// kick any existing peers that are running too slowly if the download appears
+					// to be stalled		
+				
+				Peer[]	existing_peers = peer_manager.getPeers( getIP());
+						
+				int	existing_peer_count = existing_peers.length;
+				
+				int	download_limit = peer_manager.getDownloadRateLimitBytesPerSecond();
+				
+				long download_average = peer_manager.getStats().getDownloadAverage();
+				
+				if ( 	( download_limit == 0 || download_limit > STALLED_DOWNLOAD_SPEED + 2*1024 ) &&
+						peer_manager.getStats().getDownloadAverage() < STALLED_DOWNLOAD_SPEED ){
+					
+					for (int i=0;i<existing_peers.length;i++){
+					
+						Peer	existing_peer = existing_peers[i];
+						
+						PeerStats stats = existing_peer.getStats();
+						
+						if ( stats.getTimeSinceConnectionEstablished() > INITIAL_DELAY ){
+							
+							if ( stats.getDownloadAverage() < STALLED_PEER_SPEED ){
 								
-				if ( peer_manager.getPeers( getIP()).length == 0 ){
+								peer.close( "Replacing slow peer with web-seed", false, false );
+								
+								existing_peer_count--;
+							}
+						}
+					}
+				}
+				
+				if ( existing_peer_count == 0 ){
 					
 					// check to see if we have pending connections to the same address 
 								
@@ -377,7 +413,7 @@ ExternalSeedReaderImpl
 				
 				if ( active ){
 					
-					if ( now - peer_manager_change_time > 30000 && readyToDeactivate( peer_manager, peer )){
+					if ( now - peer_manager_change_time > INITIAL_DELAY && readyToDeactivate( peer_manager, peer )){
 													
 						setActive( false );			
 					}

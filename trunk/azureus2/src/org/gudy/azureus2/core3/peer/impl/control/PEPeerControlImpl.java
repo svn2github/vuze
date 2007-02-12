@@ -2074,6 +2074,18 @@ PEPeerControlImpl
 		}	
 	}
 	
+	public int 
+	getUploadRateLimitBytesPerSecond()
+	{
+		return( adapter.getUploadRateLimitBytesPerSecond());
+	}
+
+	public int 
+	getDownloadRateLimitBytesPerSecond()
+	{
+		return( adapter.getDownloadRateLimitBytesPerSecond());
+	}
+	
 //	the peer calls this method itself in closeConnection() to notify this manager
 	public void peerConnectionClosed( PEPeerTransport peer, boolean connect_failed ) {
 		boolean	connection_found = false;
