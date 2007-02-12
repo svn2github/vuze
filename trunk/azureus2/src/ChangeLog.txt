@@ -11,6 +11,7 @@ FEATURE: Plug | Plugins can now add menu items to download bars [amc1]
 FEATURE: Plug | Plugins can now add menu items to the menu bar [amc1]
 FEATURE: Core | Per-peer upload/download speed limits [Parg]
 FEATURE: Core | Per-category upload/download speed limits [Parg]
+FEATURE: Core | Per-torrent super-seeding via MyTorrents context menu [Parg]
 
 CHANGE: Core  | Include msvcr71.dll in Windows installation bundles, for compatibility with Java6 [Nolar]
 CHANGE: Plug  | Added full set of config parameter methods for completeness [amc1]
