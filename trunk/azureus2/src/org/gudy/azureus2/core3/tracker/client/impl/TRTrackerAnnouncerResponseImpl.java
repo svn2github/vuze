@@ -37,6 +37,9 @@ TRTrackerAnnouncerResponseImpl
 	private long			time_to_wait;
 	private String			failure_reason;
 	
+	private int				scrape_complete		= -1;
+	private int				scrape_incomplete	= -1;
+	
 	protected TRTrackerAnnouncerResponsePeer[]	peers;
 	
 	protected Map						extensions;
@@ -167,6 +170,27 @@ TRTrackerAnnouncerResponseImpl
 	getURL()
 	{
 		return( url );
+	}
+	
+	public int
+	getScrapeCompleteCount()
+	{
+		return( scrape_complete );
+	}
+	
+	public int
+	getScrapeIncompleteCount()
+	{
+		return( scrape_incomplete );
+	}
+	
+	public void
+	setScrapeResult(
+		int		_complete,
+		int		_incomplete )
+	{
+		scrape_complete		= _complete;
+		scrape_incomplete	= _incomplete;
 	}
 	
 	public void

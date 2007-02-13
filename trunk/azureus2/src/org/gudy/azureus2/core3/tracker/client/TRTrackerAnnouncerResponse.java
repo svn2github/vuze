@@ -80,6 +80,12 @@ TRTrackerAnnouncerResponse
 	public URL
 	getURL();
 	
+	public int
+	getScrapeCompleteCount();
+	
+	public int
+	getScrapeIncompleteCount();
+	
 	public void
 	print();
 }

@@ -2788,6 +2788,8 @@ TRTrackerBTAnnouncerImpl
 															+ " == " + incomplete + ". " : "") }));
 						} else {
 
+							resp.setScrapeResult( complete, incomplete );
+
 							TRTrackerScraper scraper = TRTrackerScraperFactory.getSingleton();
 
 							if (scraper != null) {
