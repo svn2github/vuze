@@ -916,8 +916,11 @@ PEPeerControlImpl
 							}
                             pePiece.setReservedBy(null);
 						}
-//						if (!piecePicker.isInEndGameMode())
-//							pePiece.checkRequests();
+						
+						if (!piecePicker.isInEndGameMode()){
+							pePiece.checkRequests();
+						}
+						
                         checkEmptyPiece(i);
 					}
 				}
@@ -2598,6 +2601,38 @@ PEPeerControlImpl
 		int length )
 	{
 		return( disk_mgr.createReadRequest( pieceNumber, offset, length ));
+	}
+	
+	public boolean
+	requestExists(
+		String			peer_ip,
+		int				piece_number,
+		int				offset,
+		int				length )
+	{
+		ArrayList peer_transports = peer_transports_cow;
+		
+		DiskManagerReadRequest	request = null;
+		
+  		for (int i=0; i < peer_transports.size(); i++) {
+  			
+  			PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
+
+  			if ( conn.getIp().equals( peer_ip )){
+  				
+  				if ( request == null ){
+  					
+  					request = createDiskManagerRequest( piece_number, offset, length );					
+  				}
+  				
+  				if ( conn.getRequestIndex( request ) != -1 ){
+  					  					
+  					return( true );
+  				}
+  			}
+  		}
+  				 
+  		return( false );
 	}
 	
 	public boolean

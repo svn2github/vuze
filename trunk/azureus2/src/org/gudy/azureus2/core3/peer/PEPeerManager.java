@@ -240,6 +240,13 @@ PEPeerManager
 	requestCanceled(
 		DiskManagerReadRequest	item );
 		
+	public boolean
+	requestExists(
+		String			peer_ip,
+		int				piece_number,
+		int				offset,
+		int				length );
+	
 	public boolean 
 	validatePieceReply(
 		int 		pieceNumber, 

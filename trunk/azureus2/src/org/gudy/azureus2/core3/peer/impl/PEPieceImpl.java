@@ -287,6 +287,64 @@ public class PEPieceImpl
 		return cleared;
 	}
 	*/
+	
+		/*
+		 * Parg: replaced above commented out checking with one that verifies that the 
+		 * requests still exist. As piece-picker activity and peer disconnect logic is multi-threaded
+		 * and full of holes, this is a stop-gap measure to prevent a piece from being left with 
+		 * requests that no longer exist
+		 */
+	
+	public void 
+	checkRequests()
+	{
+        if ( getTimeSinceLastActivity() < 30*1000 ){
+        	
+            return;
+        }
+        
+		int cleared = 0;
+				
+		for (int i=0; i<nbBlocks; i++){
+		
+			if (!downloaded[i] &&!dmPiece.isWritten(i)){
+			
+				final String			requester = requested[i];
+				
+				if ( requester != null ){
+				
+					if ( !manager.requestExists( 
+							requester, 
+							getPieceNumber(),
+							i *DiskManager.BLOCK_SIZE, 
+							getBlockSize( i ))){
+
+                        clearRequested(i);
+                        
+						cleared++;
+					}
+				}
+			}
+		}
+		
+		if ( cleared > 0 ){
+					
+            if (Logger.isEnabled())
+                Logger.log(new LogEvent(dmPiece.getManager().getTorrent(), LOGID, LogEvent.LT_WARNING,
+                        "checkRequests(): piece #" +getPieceNumber()+" cleared " +cleared +" requests" ));
+		}else{
+			
+			if ( fully_requested && getNbUnrequested() > 0 ){
+
+		          if (Logger.isEnabled())
+		                Logger.log(new LogEvent(dmPiece.getManager().getTorrent(), LOGID, LogEvent.LT_WARNING,
+		                        "checkRequests(): piece #" +getPieceNumber()+" reset fully requested" ));
+
+				fully_requested = false;
+			}
+		}
+	}
+	
     
 	/** @return true if the piece has any blocks that are not;
 	 *  Downloaded, Requested, or Written
