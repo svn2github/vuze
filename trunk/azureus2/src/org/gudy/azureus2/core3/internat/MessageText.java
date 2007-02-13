@@ -19,23 +19,27 @@
  */
 package org.gudy.azureus2.core3.internat;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.core3.util.Constants;
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.AccessController;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemProperties;
+
+import sun.security.action.GetPropertyAction;
 
 /**
  * @author Arbeiten
@@ -494,7 +498,6 @@ public class MessageText {
   	foundLocalesList.add( LOCALE_ENGLISH );
 
     Iterator val = bundleSet.iterator();
-    int i = 0;
     while (val.hasNext()) {
       String sBundle = (String)val.next();
       
@@ -670,5 +673,39 @@ public class MessageText {
       integratedSuccessfully = true;
     }
     return integratedSuccessfully;
+  }
+  
+/**
+ * Reverts Locale back to default, and removes the config settin. 
+ * Notifications of change should be done by the caller.
+ */
+  public static void revertToDefaultLocale() {
+  	// Aside from the last 2 lines, this is Sun's code that is run
+  	// at startup to determine the locale.  Too bad they didn't provide
+  	// a way to call this code explicitly..
+    String language, region, country, variant;
+    language = (String) AccessController.doPrivileged(
+                    new GetPropertyAction("user.language", "en"));
+    // for compatibility, check for old user.region property
+    region = (String) AccessController.doPrivileged(
+                    new GetPropertyAction("user.region"));
+    if (region != null) {
+        // region can be of form country, country_variant, or _variant
+        int i = region.indexOf('_');
+        if (i >= 0) {
+            country = region.substring(0, i);
+            variant = region.substring(i + 1);
+        } else {
+            country = region;
+            variant = "";
+        }
+    } else {
+        country = (String) AccessController.doPrivileged(
+                        new GetPropertyAction("user.country", ""));
+        variant = (String) AccessController.doPrivileged(
+                        new GetPropertyAction("user.variant", ""));
+    }
+    changeLocale(new Locale(language, country, variant));
+    COConfigurationManager.removeParameter("locale");
   }
 }
