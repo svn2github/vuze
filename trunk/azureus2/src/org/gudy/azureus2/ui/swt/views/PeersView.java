@@ -90,6 +90,7 @@ public class PeersView
     new OutgoingRequestCountItem(),
     new UpSpeedLimitItem(),
     new DownSpeedLimitItem(),
+    new LANItem(),
   };
   private DownloadManager manager;
 
