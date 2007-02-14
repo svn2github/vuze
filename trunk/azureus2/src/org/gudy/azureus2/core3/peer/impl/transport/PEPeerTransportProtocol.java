@@ -1457,12 +1457,26 @@ PEPeerTransportProtocol
     if( sameIdentity ) {
     	boolean close = true;
     	
-    	if( connection.isLANLocal() ) {   //this new connection is lan-local    		
-    		final PEPeerTransport existing = manager.getTransportFromIdentity( peer_id );
-    		if( existing != null && !existing.isLANLocal() ) {  //so drop the existing connection if it is an external (non lan-local) one
-    			Debug.out( "dropping existing non-lanlocal peer connection [" +existing+ "]" );
-    			manager.removePeer( existing );
-    			close = false;    			
+    	if( connection.isLANLocal() ) {   //this new connection is lan-local    
+    		
+    		PEPeerTransport existing = manager.getTransportFromIdentity( peer_id );
+    		
+    		if( existing != null ){
+    			
+    			String	existing_ip = existing.getIp();
+    			
+    				// normally we don't allow a lan-local to replace a lan-local connection. There is
+    				// however one exception - where the existing connection comes from the gateway address
+    				// and therefore actually denotes an effectively non-lan-local connection. Unfortunately
+    				// we don't have a good way of finding the default gateway, so just go for ending in .1
+    			    				
+    			if ( 	!existing.isLANLocal() ||
+    					( existing_ip.endsWith( ".1" ) && !existing_ip.equals( ip ))) {  //so drop the existing connection if it is an external (non lan-local) one
+    		
+	    			Debug.outNoStack( "Dropping existing non-lanlocal peer connection [" +existing+ "] in favour of [" + this + "]" );
+	    			manager.removePeer( existing );
+	    			close = false;    
+    			}
     		}
     	}
     	
