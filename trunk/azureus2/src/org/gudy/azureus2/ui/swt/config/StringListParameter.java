@@ -149,7 +149,8 @@ public class StringListParameter extends Parameter {
 
 			String defValue = COConfigurationManager.getStringParameter(name);
 			int i = findIndex(defValue, values);
-			if (i <= 0) {
+			if (i >= 0) {
+				// no recursion, because this area only gets called again if i was < 0
 				setIndex(i);
 			} else {
 				Utils.execSWTThread(new AERunnable() {
