@@ -343,13 +343,13 @@ HTTPNetworkManager
 	        					{
 	        						if ( url.indexOf( "/webseed" ) != -1 ){
 	        							
-	        							new HTTPNetworkConnectionWebSeed( HTTPNetworkManager.this, connection, peer, url );
+	        							new HTTPNetworkConnectionWebSeed( HTTPNetworkManager.this, connection, peer );
 	        							
 	        							return( true );
 	        							
 	        						}else if ( url.indexOf( "/files/" ) != -1 ){
 
-	        							new HTTPNetworkConnectionFile( HTTPNetworkManager.this, connection, peer, url );
+	        							new HTTPNetworkConnectionFile( HTTPNetworkManager.this, connection, peer );
 	        							
 	        							return( true );
 	        						}

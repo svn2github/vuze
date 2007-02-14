@@ -24,21 +24,25 @@ package com.aelitis.azureus.core.networkmanager.impl.http;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
@@ -62,6 +66,11 @@ HTTPNetworkConnection
 	private static final int	MAX_OUTSTANDING_BT_REQUESTS	= 16;
 	
 	protected static final String	NL			= "\r\n";
+
+	private static final String	HDR_SERVER 				= "Server: " + Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL;
+	private static final String	HDR_CONTENT_TYPE		= "Content-Type: application/octet-stream" + NL;
+	private static final String HDR_KEEP_ALIVE_TIMEOUT 	= "Keep-Alive: timeout=30" + NL;
+	private static final String HDR_CACHE_CONTROL		= "Cache-Control: public, max-age=86400" + NL;
 
 	private static int        max_read_block_size;
 
@@ -201,7 +210,6 @@ HTTPNetworkConnection
 	private HTTPNetworkManager	manager;
 	private NetworkConnection	connection;
 	private PEPeerTransport		peer;
-	private String				url;
 	
 	private HTTPMessageDecoder	decoder;
 	private HTTPMessageEncoder	encoder;
@@ -224,18 +232,30 @@ HTTPNetworkConnection
 	
 	private boolean	closing;
 	private boolean	destroyed;
-	
+		
+	private String	last_modified_date;
+		
 	protected
 	HTTPNetworkConnection(
 		HTTPNetworkManager		_manager,
 		NetworkConnection		_connection,
-		PEPeerTransport			_peer,
-		String					_url )
+		PEPeerTransport			_peer )
 	{
 		manager		= _manager;
 		connection	= _connection;
 		peer		= _peer;
-		url			= _url;
+		
+		DiskManager dm = peer.getManager().getDiskManager();
+		
+		long	last_modified = 0;
+		
+		try{
+			last_modified = dm.getFiles()[0].getFile(true).lastModified();
+						
+		}catch( Throwable e ){
+		}
+		
+		last_modified_date = TimeFormatter.getHTTPDate( last_modified );
 		
 		network_connection_key = new networkConnectionKey();
 			
@@ -367,16 +387,48 @@ HTTPNetworkConnection
 	encodeHeader(
 		httpRequest	request )
 	{
-		String	res = 
-			"HTTP/1.1 " + (request.isPartialContent()?"206 Partial Content":"200 OK" ) + NL + 
-				"Content-Type: application/octet-stream" + NL +
-				"Server: " + Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL +
-				"Connection: " + ( request.keepAlive()?"Keep-Alive":"Close" ) + NL +
-				(request.keepAlive()?("Keep-Alive: timeout=30" + NL) :"" ) +
-				"Content-Length: " + request.getTotalLength() + NL +
-				NL;
-							
-		return( res );
+		String	current_date = TimeFormatter.getHTTPDate( SystemTime.getCurrentTime());
+		
+		StringBuffer	res = new StringBuffer(256);
+		
+		res.append( "HTTP/1.1 " );
+		res.append( request.isPartialContent()?"206 Partial Content":"200 OK" );
+			res.append( NL );
+
+		res.append( HDR_CONTENT_TYPE );
+		
+		res.append( "Date: " );
+		res.append( current_date );
+		 	res.append( NL );
+		res.append( "Last-Modified: " );
+		res.append( last_modified_date );
+			res.append( NL );
+
+		res.append( HDR_CACHE_CONTROL );
+		
+			// not sure about ETag. I was going to use the torrent hash but I don't understand the link
+			// between URL, range requests and ETags. Do we need to generate different ETags for each
+			// webseed piece request URL or can we use the torrent hash and rely on the fact that the
+			// URL changes? Are range-requests irrelevant as far as ETags go - I'd like to think so...
+		
+		res.append( HDR_SERVER );
+		
+		res.append( "Connection: " );
+		res.append( request.keepAlive()?"Keep-Alive":"Close" );
+			res.append( NL );
+		
+		if ( request.keepAlive()){
+				
+			res.append( HDR_KEEP_ALIVE_TIMEOUT );
+		}
+		
+		res.append( "Content-Length: " );
+		res.append( request.getTotalLength());
+		res.append( NL );
+		
+		res.append( NL );
+						
+		return( res.toString());
 	}
 	
 	protected void
@@ -832,7 +884,7 @@ HTTPNetworkConnection
 				total_length += lengths[i];
 			}
 		}
-		
+				
 		protected boolean
 		isPartialContent()
 		{

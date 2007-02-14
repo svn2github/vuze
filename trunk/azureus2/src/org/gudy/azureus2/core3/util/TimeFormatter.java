@@ -20,6 +20,11 @@
  */
 package org.gudy.azureus2.core3.util;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+
 /**
  * @author Olivier
  * 
@@ -28,6 +33,16 @@ public class TimeFormatter {
   // XXX should be i18n'd
 	static final String[] TIME_SUFFIXES = { "s", "m", "h", "d" };
 
+	
+	private static final SimpleDateFormat http_date_format = 
+		new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US );
+
+	static{
+			// see http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1
+		
+		http_date_format.setTimeZone(TimeZone.getTimeZone("GMT"));
+	}
+	
 	/**
 	 * Format time into two time sections, the first chunk trimmed, the second
 	 * with always with 2 digits.  Sections are *d, **h, **m, **s.  Section
@@ -36,6 +51,8 @@ public class TimeFormatter {
 	 * @param time time in ms
 	 * @return Formatted time string
 	 */
+	
+	
 	public static String format(long time) {
 		if (time >= Constants.INFINITY_AS_INT)
 			return Constants.INFINITY_STRING;
@@ -113,5 +130,15 @@ public class TimeFormatter {
     	}
     	
     	return( result );
+    }
+    
+    public static String
+    getHTTPDate(
+    	long		millis )
+    {
+		synchronized( http_date_format ){
+			
+			return( http_date_format.format(new Date( millis )));
+		}
     }
 }

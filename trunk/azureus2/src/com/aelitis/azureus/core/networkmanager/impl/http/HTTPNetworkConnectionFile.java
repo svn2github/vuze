@@ -46,10 +46,9 @@ HTTPNetworkConnectionFile
 	HTTPNetworkConnectionFile(
 		HTTPNetworkManager		_manager,
 		NetworkConnection		_connection,
-		PEPeerTransport			_peer,
-		String					_url )
+		PEPeerTransport			_peer )
 	{
-		super( _manager, _connection, _peer, _url );
+		super( _manager, _connection, _peer );
 	}
 	
 	protected void

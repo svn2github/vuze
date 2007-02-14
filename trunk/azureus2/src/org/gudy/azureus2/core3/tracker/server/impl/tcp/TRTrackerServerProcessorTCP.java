@@ -520,7 +520,11 @@ TRTrackerServerProcessorTCP
 					// >= so that if this tracker is "old" and sees a version 3+ it replies with the
 					// best it can - version 2
 				
-				if ( az_ver >= 2 ){
+				if ( xml_output ){
+					
+					compact_mode = TRTrackerServerTorrentImpl.COMPACT_MODE_XML;
+					
+				}else if ( az_ver >= 2 ){
 					
 					compact_mode = TRTrackerServerTorrentImpl.COMPACT_MODE_AZ_2;
 				}

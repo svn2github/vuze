@@ -26,7 +26,6 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  *
  */
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -60,11 +59,8 @@ TrackerWebPageResponseImpl
 		OutputStream		_os )
 	{
 		os	= _os;
-		
-		SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
-		
-		String	formatted_date_now		 = format.format(new Date());
-		//String	formatted_date_bit_later = format.format(new Date( SystemTime.getCurrentTime() + 30000 ));
+				
+		String	formatted_date_now		 = TimeFormatter.getHTTPDate( SystemTime.getCurrentTime());
 		
 		setHeader( "Last-Modified",	formatted_date_now );
 		
@@ -74,10 +70,8 @@ TrackerWebPageResponseImpl
 	public void
 	setLastModified(
 		long		time )
-	{
-		SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
-		
-		String	formatted_date		 = format.format(new Date(time));
+	{		
+		String	formatted_date		 = TimeFormatter.getHTTPDate( time );
 
 		setHeader( "Last-Modified",	formatted_date );
 	}
@@ -85,10 +79,8 @@ TrackerWebPageResponseImpl
 	public void
 	setExpires(
 		long		time )
-	{
-		SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
-		
-		String	formatted_date		 = format.format(new Date(time));
+	{		
+		String	formatted_date		 = TimeFormatter.getHTTPDate( time );
 
 		setHeader( "Expires",	formatted_date );	
 	}

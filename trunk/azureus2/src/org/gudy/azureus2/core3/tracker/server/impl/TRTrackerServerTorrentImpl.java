@@ -58,6 +58,7 @@ TRTrackerServerTorrentImpl
 	public static final byte	COMPACT_MODE_NORMAL		= 1;
 	public static final byte	COMPACT_MODE_AZ			= 2;
 	public static final byte	COMPACT_MODE_AZ_2		= 3;
+	public static final byte	COMPACT_MODE_XML		= 16;
 	
 	private static final int	QUEUED_PEERS_MAX_SWARM_SIZE	= 32;
 	private static final int	QUEUED_PEERS_MAX			= 32;
@@ -1104,20 +1105,27 @@ TRTrackerServerTorrentImpl
 										rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
 									}
 								
-									rep_peer.put( "azup", new Long( peer.getUpSpeed()));
-									
-									if ( peer.isBiased()){
+									if ( compact_mode >= COMPACT_MODE_XML ){
 										
-										rep_peer.put( "azbiased", "" );
-									}
+										rep_peer.put( "ip", peer.getIPAsRead() );
 
-									if ( network_position != null ){
+									}else{
 										
-										DHTNetworkPosition	peer_pos = peer.getNetworkPosition();
+										rep_peer.put( "azup", new Long( peer.getUpSpeed()));
 										
-										if ( peer_pos != null && network_position.getPositionType() == peer_pos.getPositionType()){
+										if ( peer.isBiased()){
 											
-											rep_peer.put( "azrtt", new Long( (long)peer_pos.estimateRTT(network_position )));
+											rep_peer.put( "azbiased", "" );
+										}
+	
+										if ( network_position != null ){
+											
+											DHTNetworkPosition	peer_pos = peer.getNetworkPosition();
+											
+											if ( peer_pos != null && network_position.getPositionType() == peer_pos.getPositionType()){
+												
+												rep_peer.put( "azrtt", new Long( (long)peer_pos.estimateRTT(network_position )));
+											}
 										}
 									}
 								}
@@ -1210,7 +1218,7 @@ TRTrackerServerTorrentImpl
 									
 									Object	x = biased_peers.remove(0);
 									
-									biased_peers.add( random.nextInt( biased_peers.size()), x);
+									biased_peers.add( random.nextInt( biased_peers.size() + 1 ), x);
 								}
 								
 								biased_peers_count = Math.min( min_biased_peers, biased_peers.size());
@@ -1306,20 +1314,27 @@ TRTrackerServerTorrentImpl
 														rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
 													}
 													
-													rep_peer.put( "azup", new Long( peer.getUpSpeed()));
-													
-													if ( peer.isBiased()){
+													if ( compact_mode >= COMPACT_MODE_XML ){
 														
-														rep_peer.put( "azbiased", "" );
-													}
+														rep_peer.put( "ip", peer.getIPAsRead() );
 
-													if ( network_position != null ){
-																												
-														DHTNetworkPosition	peer_pos = peer.getNetworkPosition();
+													}else{
 														
-														if ( peer_pos != null && network_position.getPositionType() == peer_pos.getPositionType()){
+														rep_peer.put( "azup", new Long( peer.getUpSpeed()));
+														
+														if ( peer.isBiased()){
 															
-															rep_peer.put( "azrtt", new Long( (long)peer_pos.estimateRTT(network_position )));
+															rep_peer.put( "azbiased", "" );
+														}
+	
+														if ( network_position != null ){
+																													
+															DHTNetworkPosition	peer_pos = peer.getNetworkPosition();
+															
+															if ( peer_pos != null && network_position.getPositionType() == peer_pos.getPositionType()){
+																
+																rep_peer.put( "azrtt", new Long( (long)peer_pos.estimateRTT(network_position )));
+															}
 														}
 													}
 												}
@@ -1485,6 +1500,11 @@ TRTrackerServerTorrentImpl
 								if ( peer.isSeed()){
 									
 									rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+								}
+								
+								if ( compact_mode >= COMPACT_MODE_XML ){
+									
+									rep_peer.put( "ip", peer.getIP());
 								}
 							}
 								
@@ -1708,6 +1728,44 @@ TRTrackerServerTorrentImpl
 				root.put( "peers", compact_peers );
 				
 				root.put( "azcompact", new Long(2));
+				
+			}else if ( compact_mode == COMPACT_MODE_XML ){
+				
+				List	xml_peers = new ArrayList( num_peers_returned );
+				
+				while( it.hasNext()){
+					
+					Map	rep_peer = (Map)it.next();
+					
+					Map	peer = new HashMap();
+					
+					xml_peers.add( peer );
+										
+					peer.put( "ip", rep_peer.get( "ip" ) );
+									
+					peer.put( "tcp", rep_peer.get( "port" ));
+					
+					int		udp_port	= ((Long)rep_peer.get( "azudp" )).intValue();
+					
+					if ( udp_port != 0 ){
+													
+						peer.put( "udp", new Long( udp_port ));
+					}
+					
+					Long	http_port_l	= (Long)rep_peer.get( "azhttp" );
+					
+					if ( http_port_l != null ){
+						
+						int	http_port = http_port_l.intValue();
+						
+						if ( http_port != 0 ){
+							
+							peer.put( "http", new Long( http_port ));
+						}
+					}
+				}
+									
+				root.put( "peers", xml_peers );
 				
 			}else{
 				
