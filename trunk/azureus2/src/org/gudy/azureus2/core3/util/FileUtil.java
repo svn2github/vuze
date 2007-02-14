@@ -1437,7 +1437,24 @@ public class FileUtil {
 		
 		return fName.substring(fileDotIndex);
 	}
+
+	public static String
+	readFileAsString(
+		File	file,
+		int		size_limit,
+		String charset)
 	
+		throws IOException
+	{
+		FileInputStream fis = new FileInputStream(file);
+		try {
+			return readInputStreamAsString(fis, size_limit, charset);
+		} finally {
+
+			fis.close();
+		}
+	}
+
 	public static String
 	readFileAsString(
 		File	file,
