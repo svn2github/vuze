@@ -257,4 +257,9 @@ public class PlatformManagerImpl implements PlatformManager
     	PlatformManagerListener		listener )
     {
     }
+
+		// @see org.gudy.azureus2.platform.PlatformManager#getAzComputerID()
+		public String getAzComputerID() throws PlatformManagerException {
+	    throw new PlatformManagerException("Unsupported capability called on platform manager");
+		}
 }

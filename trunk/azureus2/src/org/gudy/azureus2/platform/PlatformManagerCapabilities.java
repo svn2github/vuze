@@ -49,6 +49,8 @@ public final class PlatformManagerCapabilities
     public static final PlatformManagerCapabilities TestNativeAvailability 	= new PlatformManagerCapabilities("TestNativeAvailability");
     public static final PlatformManagerCapabilities TraceRouteAvailability 	= new PlatformManagerCapabilities("TraceRoute");
     public static final PlatformManagerCapabilities PingAvailability 		= new PlatformManagerCapabilities("Ping");
+    
+    public static final PlatformManagerCapabilities ComputerIDAvailability = new PlatformManagerCapabilities("CID");
 
     private final String myName; // for debug only
 

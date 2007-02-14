@@ -245,4 +245,8 @@ public class PlatformManagerImpl implements PlatformManager
 		throw new PlatformManagerException(ERR_UNSUPPORTED);
 	}
 
+	// @see org.gudy.azureus2.platform.PlatformManager#getAzComputerID()
+	public String getAzComputerID() throws PlatformManagerException {
+    throw new PlatformManagerException(ERR_UNSUPPORTED);
+	}
 }

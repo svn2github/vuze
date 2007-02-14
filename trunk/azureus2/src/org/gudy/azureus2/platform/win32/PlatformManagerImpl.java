@@ -29,10 +29,7 @@ package org.gudy.azureus2.platform.win32;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerListener;
@@ -164,6 +161,7 @@ PlatformManagerImpl
 	        capabilitySet.add(PlatformManagerCapabilities.ShowFileInBrowser);
 	        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
 	        capabilitySet.add(PlatformManagerCapabilities.SetTCPTOSEnabled);
+	        capabilitySet.add(PlatformManagerCapabilities.ComputerIDAvailability);
 	        
 	        
 	        if ( Constants.compareVersions( access.getVersion(), "1.11" ) >= 0 &&
@@ -961,4 +959,94 @@ PlatformManagerImpl
     {
     	listeners.remove( listener );
     }
+
+  /**
+   * Gets an ID to identify this computer to azureus.  Used when the computer
+   * has muliple user accounts and we need a way to not duplicate efforts
+   * (An example would be to skip downloading something another user on the
+   * computer has already downloaded)
+   * <p>
+   * The default for the ID is the AZID of the first user profile.
+	 * 
+	 * @return ID
+	 */
+	public String getAzComputerID() {
+		boolean needWrite = false;
+		String cid = null;
+		try {
+			cid = access.readStringValue(AEWin32Access.HKEY_LOCAL_MACHINE,
+					"SOFTWARE\\Azureus", "CID");
+		} catch (Exception e) {
+		}
+
+		if (cid == null || cid.length() == 0) {
+			needWrite = true;
+			try {
+				File commonPath = new File(access.getCommonAppData(),
+						SystemProperties.APPLICATION_NAME);
+				if (commonPath.isDirectory()) {
+					File fCID = new File(commonPath, "azCID.txt");
+					if (fCID.exists()) {
+						cid = FileUtil.readFileAsString(fCID, 255, "utf8");
+					}
+				}
+			} catch (Exception e) {
+			}
+		}
+
+		if (cid == null || cid.length() == 0) {
+			needWrite = true;
+			cid = COConfigurationManager.getStringParameter("ID");
+		}
+
+		if (cid == null || cid.length() == 0) {
+			needWrite = true;
+			cid = RandomUtils.generateRandomAlphanumerics(20);
+		}
+
+		if (needWrite) {
+			setAzComputerID(cid);
+		}
+		return cid;
+	}
+
+	/**
+	 * @param cid
+	 */
+	private void setAzComputerID(String cid) {
+		try {
+			access.writeStringValue(AEWin32Access.HKEY_LOCAL_MACHINE,
+					"SOFTWARE\\Azureus", "CID", cid);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			String sCommonAppData = access.getCommonAppData();
+			if (sCommonAppData != null && sCommonAppData.length() > 0) {
+				File commonPath = new File(sCommonAppData);
+				if (commonPath.isDirectory()) {
+					commonPath = new File(commonPath, SystemProperties.APPLICATION_NAME);
+					FileUtil.mkdirs(commonPath);
+
+					File fCID = new File(commonPath, "azCID.txt");
+					FileUtil.writeBytesAsFile(fCID.getAbsolutePath(),
+							cid.getBytes("utf8"));
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void main(String[] args) {
+		try {
+			PlatformManagerImpl impl = new PlatformManagerImpl();
+			System.out.println(impl.getAzComputerID());
+		} catch (PlatformManagerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 }

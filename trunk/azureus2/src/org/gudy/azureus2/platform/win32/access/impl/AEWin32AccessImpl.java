@@ -207,6 +207,21 @@ AEWin32AccessImpl
 	}
 
 	public String
+	getCommonAppData()
+	
+		throws AEWin32AccessException
+	{
+		String	app_data_key	= "software\\microsoft\\windows\\currentversion\\explorer\\shell folders";
+		String	app_data_name 	= "Common AppData";
+		
+		return(	readStringValue(
+					HKEY_LOCAL_MACHINE,
+					app_data_key,
+					app_data_name ));
+
+	}
+	
+	public String
 	getUserDocumentsDir()
 	
 		throws AEWin32AccessException

@@ -187,4 +187,10 @@ AEWin32Access
 	 * @throws AEWin32AccessException
 	 */
 	String getUserVideoDir() throws AEWin32AccessException;
+
+	/**
+	 * @return
+	 * @throws AEWin32AccessException
+	 */
+	String getCommonAppData() throws AEWin32AccessException;
 }

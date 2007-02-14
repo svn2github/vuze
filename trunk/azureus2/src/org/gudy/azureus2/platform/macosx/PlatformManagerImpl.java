@@ -709,4 +709,10 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 				writer.exdent();
 			}
 		}
+
+	// @see org.gudy.azureus2.platform.PlatformManager#getAzComputerID()
+	public String getAzComputerID() throws PlatformManagerException {
+		throw new PlatformManagerException(
+				"Unsupported capability called on platform manager");
+	}
 }

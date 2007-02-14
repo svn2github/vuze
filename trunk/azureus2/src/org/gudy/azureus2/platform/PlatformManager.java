@@ -148,4 +148,10 @@ PlatformManager
     public void
     removeListener(
     	PlatformManagerListener		listener );
+
+		/**
+		 * @return
+		 * @throws PlatformManagerException 
+		 */
+		String getAzComputerID() throws PlatformManagerException;
 }
