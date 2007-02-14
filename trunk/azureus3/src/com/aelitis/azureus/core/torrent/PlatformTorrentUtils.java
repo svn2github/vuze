@@ -83,6 +83,8 @@ public class PlatformTorrentUtils
 	private static final String TOR_AZ_PROP_PROGRESSIVE = "Progressive";
 	
 	private static final String TOR_AZ_PROP_SPEED = "Speed Bps";
+	
+	private static final String TOR_AZ_PROP_DRM = "DRM";
 
 	private static final ArrayList metaDataListeners = new ArrayList();
 
@@ -210,6 +212,11 @@ public class PlatformTorrentUtils
 		return getContentMapString(torrent, TOR_AZ_PROP_QUALITY);
 	}
 
+	public static boolean isContentDRM(TOTorrent torrent) {
+		return getContentMapLong(torrent, TOR_AZ_PROP_DRM, -1) >= 0;
+	}
+
+
 	private static void putOrRemove(Map map, String key, Object obj) {
 		if (obj == null || obj.equals(null)) {
 			map.remove(key);
@@ -334,7 +341,7 @@ public class PlatformTorrentUtils
 		}
 		return false;
 	}
-
+	
 	/**
 	 * @param torrent
 	 * @param maxDelayMS TODO

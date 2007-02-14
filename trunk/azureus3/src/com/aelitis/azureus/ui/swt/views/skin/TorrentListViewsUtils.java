@@ -21,6 +21,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -56,6 +57,7 @@ import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
 import com.aelitis.azureus.ui.swt.views.list.ListSelectionAdapter;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.win32.Win32Utils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -353,7 +355,13 @@ public class TorrentListViewsUtils
 		}
 
 		if (bComplete) {
-			ManagerUtils.run(dm);
+			if (PlatformTorrentUtils.isContentDRM(dm.getTorrent())) {
+				if (!runInMediaPlayer(dm.getSaveLocation().toString())) {
+					ManagerUtils.run(dm);
+				}
+			} else {
+				ManagerUtils.run(dm);
+			}
 		} else {
 			try {
 				playViaMediaServer(DownloadManagerImpl.getDownloadStatic(dm));
@@ -361,6 +369,23 @@ public class TorrentListViewsUtils
 				Debug.out(e);
 			}
 		}
+	}
+
+	/**
+	 * @param string
+	 */
+	private static boolean runInMediaPlayer(String mediaFile) {
+		if (Constants.isWindows) {
+			String wmpEXE = Win32Utils.getWMP();
+			if (new File(wmpEXE).exists()) {
+				try {
+					Runtime.getRuntime().exec(wmpEXE + " \"" + mediaFile + "\"");
+					return true;
+				} catch (IOException e) {
+				}
+			}
+		}
+		return false;
 	}
 
 	private static boolean isTrustedContent(String ext) {
