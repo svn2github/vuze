@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
+import org.gudy.azureus2.ui.swt.donations.OldDonationWindow;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
@@ -503,6 +504,14 @@ public class MainMenu {
         });
       }
 
+      MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
+      Messages.setLanguageText(help_donate, "MainWindow.menu.help.donate");
+      help_donate.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          new OldDonationWindow(display).show();
+        }
+      });
+      
       new MenuItem(helpMenu,SWT.SEPARATOR);
       MenuItem help_debug = new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_debug, "MainWindow.menu.help.debug");
