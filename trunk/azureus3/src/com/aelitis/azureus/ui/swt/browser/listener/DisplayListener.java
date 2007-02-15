@@ -4,7 +4,6 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -22,6 +21,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
+import com.aelitis.azureus.util.JSONUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -43,6 +43,8 @@ public class DisplayListener extends AbstractMessageListener
 	public static final String OP_SEND_EMAIL = "send-email";
 
 	public static final String OP_IRC_SUPPORT = "irc-support";
+
+	public static final String OP_BRING_TO_FRONT = "bring-to-front";
 
 	private Browser browser;
 
@@ -66,40 +68,53 @@ public class DisplayListener extends AbstractMessageListener
 			copyToClipboard(decodedObject.getString("text"));
 		} else if (OP_OPEN_URL.equals(opid)) {
 			JSONObject decodedObject = message.getDecodedObject();
-			String target = getJSONString(decodedObject, "target", null);
+			String target = JSONUtils.getJSONString(decodedObject, "target", null);
 			if (target == null && !decodedObject.has("width")) {
-				launchUrl(getJSONString(decodedObject, "url", null));
+				launchUrl(JSONUtils.getJSONString(decodedObject, "url", null));
 			} else {
 				message.setCompleteDelayed(true);
-				showBrowser(getJSONString(decodedObject, "url", null), target,
-						getJSONInt(decodedObject, "width", 0), getJSONInt(decodedObject,
-								"height", 0),
-						getJSONBoolean(decodedObject, "resizable", false), message);
+				showBrowser(JSONUtils.getJSONString(decodedObject, "url", null),
+						target, JSONUtils.getJSONInt(decodedObject, "width", 0),
+						JSONUtils.getJSONInt(decodedObject, "height", 0),
+						JSONUtils.getJSONBoolean(decodedObject, "resizable", false),
+						message);
 			}
 		} else if (OP_RESET_URL.equals(opid)) {
 			resetURL();
 		} else if (OP_SEND_EMAIL.equals(opid)) {
 			JSONObject decodedObject = message.getDecodedObject();
 
-			String to =  decodedObject.getString("to");
+			String to = decodedObject.getString("to");
 			String subject = decodedObject.getString("subject");
 
 			String body = null;
-			
+
 			try {
 				body = decodedObject.getString("body");
-			} catch(JSONException e) {
+			} catch (JSONException e) {
 				// Do nothing if its not found 
 			}
-			
+
 			sendEmail(to, subject, body);
-			
+
 		} else if (OP_IRC_SUPPORT.equals(opid)) {
 			JSONObject decodedObject = message.getDecodedObject();
 			openIrc(null, decodedObject.getString("channel"),
 					decodedObject.getString("user"));
+		} else if (OP_BRING_TO_FRONT.equals(opid)) {
+			bringToFront();
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private void bringToFront() {
+		final UIFunctions functions = UIFunctionsManager.getUIFunctions();
+		if (functions != null) {
+			functions.bringToFront();
 		}
 	}
 
@@ -129,10 +144,11 @@ public class DisplayListener extends AbstractMessageListener
 		}
 	}
 
-	private void sendEmail(final String to, final String subject, final String body) {
+	private void sendEmail(final String to, final String subject,
+			final String body) {
 		String url = "mailto:" + to + "?subject=" + UrlUtils.encode(subject);
-		
-		if( body != null ) {
+
+		if (body != null) {
 			url = url + "&body=" + UrlUtils.encode(body);
 		}
 		Utils.launch(url);
@@ -148,30 +164,6 @@ public class DisplayListener extends AbstractMessageListener
 		}, new Transfer[] { textTransfer
 		});
 		cb.dispose();
-	}
-
-	private int getJSONInt(JSONObject json, String key, int def) {
-		try {
-			return json.getInt(key);
-		} catch (JSONException e) {
-			return def;
-		}
-	}
-
-	private String getJSONString(JSONObject json, String key, String def) {
-		try {
-			return json.getString(key);
-		} catch (JSONException e) {
-			return def;
-		}
-	}
-
-	private boolean getJSONBoolean(JSONObject json, String key, boolean def) {
-		try {
-			return json.getBoolean(key);
-		} catch (JSONException e) {
-			return def;
-		}
 	}
 
 	private void openIrc(final String server, final String channel,
