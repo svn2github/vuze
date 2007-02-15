@@ -756,7 +756,6 @@ PEPeerTransportProtocol
 	  // aggregation
 	  final boolean force =!other_peer_interested_in_me &&peerHavePieces !=null &&!peerHavePieces.flags[pieceNumber];
 	  
-	  System.out.println( "Queueing have for #" + pieceNumber + " to " + ip );
 	  outgoing_have_message_aggregator.queueHaveMessage( pieceNumber, force || have_aggregation_disabled );
 	  checkInterested();
 	}
