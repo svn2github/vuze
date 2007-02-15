@@ -325,13 +325,8 @@ UPnPSSWANConnectionImpl
 					// some routers won't add properly if the mapping's already there
 				
 				try{
-					UPnPActionInvocation rem_inv = act.getInvocation();
-					
-					rem_inv.addArgument( "NewRemoteHost", 	"" );		// "" = wildcard for hosts, 0 = wildcard for ports
-					rem_inv.addArgument( "NewProtocol", 	tcp?"TCP":"UDP" );
-					rem_inv.addArgument( "NewExternalPort", "" + port );
-					
-					rem_inv.invoke();
+					log("Problem when adding port mapping - will try to see if an existing mapping is in the way");
+					deletePortMapping(tcp, port);
 					
 				}catch( Throwable e ){
 					
