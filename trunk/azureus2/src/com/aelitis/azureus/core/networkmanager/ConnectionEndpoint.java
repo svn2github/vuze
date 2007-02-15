@@ -26,6 +26,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
+import com.aelitis.azureus.core.networkmanager.impl.udp.ProtocolEndpointUDP;
 
 public class 
 ConnectionEndpoint 
@@ -44,6 +46,51 @@ ConnectionEndpoint
 	getNotionalAddress()
 	{
 		return( notional_address );
+	}
+	
+	public boolean
+	matchIP(
+		String	ip )
+	{
+		if ( matchIP( ip, notional_address )){
+			
+			return( true );
+		}
+		
+		ProtocolEndpoint[]	peps = getProtocols();
+		
+		for (int i=0;i<peps.length;i++){
+			
+			ProtocolEndpoint	pep = peps[i];
+			
+			if ( pep.getType() == ProtocolEndpoint.PROTOCOL_TCP ){
+				
+				ProtocolEndpointTCP	tcp = (ProtocolEndpointTCP)pep;
+				
+				if ( matchIP( ip, tcp.getAddress())){
+					
+					return( true );
+				}
+			}else{
+				
+				ProtocolEndpointUDP	tcp = (ProtocolEndpointUDP)pep;
+				
+				if ( matchIP( ip, tcp.getAddress())){
+					
+					return( true );
+				}				
+			}
+		}
+		
+		return( false );
+	}
+	
+	protected boolean
+	matchIP(
+		String				ip,
+		InetSocketAddress	address )
+	{
+		return( ip.equals( address.getAddress().getHostAddress()));
 	}
 	
 	public ProtocolEndpoint[]

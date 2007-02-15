@@ -31,11 +31,7 @@ import java.nio.ByteBuffer;
 public interface
 NetworkConnection
 	extends NetworkConnectionBase
-{
-  
-	public ConnectionEndpoint
-	getEndpoint();
-  
+{  
   /**
    * Connect this connection's transport, i.e. establish the network connection.
    * If this connection is already established (from an incoming connection for example),

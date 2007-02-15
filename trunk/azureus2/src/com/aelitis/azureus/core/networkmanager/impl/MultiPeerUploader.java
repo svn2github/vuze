@@ -79,7 +79,8 @@ public class MultiPeerUploader implements RateControlledEntity {
           long wait_time = current_time - peer_data.last_message_added_time;
           
           if( wait_time > FLUSH_WAIT_TIME || wait_time < 0 ) {  //time to force flush
-        	  NetworkConnectionBase conn = (NetworkConnectionBase)entry.getKey();
+        	  
+        	NetworkConnectionBase conn = (NetworkConnectionBase)entry.getKey();
             
             if( conn.getOutgoingMessageQueue().getTotalSize() > 0 ) { //has data to flush
               conn.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener
@@ -87,7 +88,8 @@ public class MultiPeerUploader implements RateControlledEntity {
               addToReadyList( conn );
             }
             else { //no data, so reset flush wait time
-              peer_data.last_message_added_time = current_time;
+            	
+           	  peer_data.last_message_added_time = current_time;
             }
           }
         }
@@ -204,7 +206,15 @@ public class MultiPeerUploader implements RateControlledEntity {
             addToReadyList( conn );
           }
           else {  //still not enough data for a full packet
-            peer_data.last_message_added_time = SystemTime.getCurrentTime();  //update last message added time
+        	if ( !peer_data.bumped ){
+        		
+               	// only do this once to avoid the possibility that, for example, sending a have
+            	// every 2.9 seconds can result in them being delayed for a significant amount
+            	// of time (e.g. 60 seconds +...)
+
+        		peer_data.bumped = true;
+        		peer_data.last_message_added_time = SystemTime.getCurrentTime();  //update last message added time
+        	}
           }
         }
         finally {
@@ -220,6 +230,7 @@ public class MultiPeerUploader implements RateControlledEntity {
     
     peer_data.queue_listener = listener;  //attach listener
     peer_data.last_message_added_time = SystemTime.getCurrentTime(); //start flush wait time
+    peer_data.bumped = false;
     
     try {
       lists_lock.enter();
@@ -263,7 +274,7 @@ public class MultiPeerUploader implements RateControlledEntity {
       lists_lock.enter();
       
       int num_unusable_connections = 0;
-      
+            
       while( num_bytes_remaining > 0 && num_unusable_connections < ready_connections.size() ) {
     	NetworkConnectionBase conn = (NetworkConnectionBase)ready_connections.removeFirst();
         
@@ -301,6 +312,7 @@ public class MultiPeerUploader implements RateControlledEntity {
               num_unusable_connections = 0;  //reset the unusable count so that it has a chance to try this connection again in the loop
             }
             else {  //connection does not have enough for a full packet, so remove and place into waiting list
+ 
               addToWaitingList( conn );
             }
           }
@@ -330,6 +342,7 @@ public class MultiPeerUploader implements RateControlledEntity {
         else {  //we're not allowed enough to maximize the packet payload
           ready_connections.addLast( conn );  //re-add to end as currently unusable
           num_unusable_connections++;
+          
           continue;  //move on to the next connection
         }
       }
@@ -378,6 +391,7 @@ public class MultiPeerUploader implements RateControlledEntity {
   private static class PeerData {
     private OutgoingMessageQueue.MessageQueueListener queue_listener;
     private long last_message_added_time;
+    private boolean	bumped;
   }
   
   public long

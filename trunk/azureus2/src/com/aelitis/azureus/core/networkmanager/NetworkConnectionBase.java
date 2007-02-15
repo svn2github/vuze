@@ -25,6 +25,9 @@ package com.aelitis.azureus.core.networkmanager;
 public interface 
 NetworkConnectionBase 
 {
+	public ConnectionEndpoint
+	getEndpoint();
+
 	 /**
 	   * Inform connection of a thrown exception.
 	   * @param error exception

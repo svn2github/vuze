@@ -205,7 +205,7 @@ PEPeerTransportProtocol
   
   private boolean request_hint_supported;
   
-  
+  private boolean have_aggregation_disabled;
   
   //INCOMING
   public 
@@ -752,9 +752,12 @@ PEPeerTransportProtocol
   
   public void sendHave( int pieceNumber ) {
 	  if ( current_peer_state != TRANSFERING ) return;
-	  //only force if the other peer doesn't have this piece and is not yet interested
+	  //only force if the other peer doesn't have this piece and is not yet interested or we;ve disabled
+	  // aggregation
 	  final boolean force =!other_peer_interested_in_me &&peerHavePieces !=null &&!peerHavePieces.flags[pieceNumber];
-	  outgoing_have_message_aggregator.queueHaveMessage( pieceNumber, force );
+	  
+	  System.out.println( "Queueing have for #" + pieceNumber + " to " + ip );
+	  outgoing_have_message_aggregator.queueHaveMessage( pieceNumber, force || have_aggregation_disabled );
 	  checkInterested();
 	}
 
@@ -2184,6 +2187,13 @@ PEPeerTransportProtocol
     return supported_messages != null;
   }
   
+  public void
+  setHaveAggregationEnabled(
+	  boolean		enabled )
+  {
+	  have_aggregation_disabled	= !enabled;
+  }
+	
   public boolean
   hasReceivedBitField()
   {

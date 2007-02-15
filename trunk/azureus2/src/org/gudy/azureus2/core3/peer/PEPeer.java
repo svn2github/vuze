@@ -315,4 +315,8 @@ PEPeer
 	        		 
 	public void
 	clearRequestHint();
+	
+	public void
+	setHaveAggregationEnabled(
+		boolean		enabled );
 }

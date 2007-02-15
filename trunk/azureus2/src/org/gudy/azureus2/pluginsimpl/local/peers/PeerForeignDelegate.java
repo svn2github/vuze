@@ -822,6 +822,12 @@ PeerForeignDelegate
 	}
 	
 	public void
+	setHaveAggregationEnabled(
+		boolean		enabled )
+	{
+	}
+	
+	public void
 	generateEvidence(
 		IndentWriter	writer )
 	{

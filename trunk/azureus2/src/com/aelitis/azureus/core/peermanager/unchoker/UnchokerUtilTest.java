@@ -196,6 +196,9 @@ public class UnchokerUtilTest {
 			// TODO Auto-generated method stub
 			
 		}
+		public void setHaveAggregationEnabled(boolean enabled) {
+			// TODO Auto-generated method stub
+		}
       };
       
      f_stats[0] = new PEPeerStats() {
