@@ -239,8 +239,10 @@ ExternalSeedPeer
 			
 			listenerListMon.exit();
 		}
-		
+				
 		manager.removePeer( this );
+		
+		setState( Peer.DISCONNECTED );
 	}
 	
 	public void
@@ -629,6 +631,8 @@ ExternalSeedPeer
 			
 			connection_mon.exit();
 		}
+		
+		setState( Peer.DISCONNECTED );
 		
 		if ( reader.isTransient()){
 							
