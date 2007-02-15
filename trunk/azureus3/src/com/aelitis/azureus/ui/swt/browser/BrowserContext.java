@@ -178,16 +178,10 @@ public class BrowserContext extends ClientMessageContextImpl implements
 				// https://moo.com/dr
 				// https://moo.com:80/dr
 
-				String[] whitelist = PlatformConfigMessenger.getURLWhitelist();
-				boolean ok = false;
-				for (int i = 0; i < whitelist.length; i++) {
-					if (event.location.matches(whitelist[i])) {
-						ok = true;
-						break;
-					}
-				}
+				boolean ok = PlatformConfigMessenger.isURLBlocked(event.location);
 
 				if (!ok) {
+					String[] whitelist = PlatformConfigMessenger.getURLWhitelist();
 					debug("Canceling URL change to external: " + event.location
 							+ " (does not match one of the " + whitelist.length
 							+ " whitelist entries)");
