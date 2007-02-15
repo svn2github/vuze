@@ -172,15 +172,15 @@ public class PlatformConfigMessenger
 	
 	public static boolean isURLBlocked(String url) {
 		if (url == null) {
-			return false;
+			return true;
 		}
 
 		String[] whitelist = PlatformConfigMessenger.getURLWhitelist();
 		for (int i = 0; i < whitelist.length; i++) {
 			if (url.matches(whitelist[i])) {
-				return true;
+				return false;
 			}
 		}
-		return false;
+		return true;
 	}
 }
