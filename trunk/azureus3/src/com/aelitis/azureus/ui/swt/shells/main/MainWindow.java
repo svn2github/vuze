@@ -443,15 +443,15 @@ public class MainWindow implements SWTSkinTabSetListener
 		ExternalStimulusHandler.addListener(new ExternalStimulusListener() {
 			public boolean receive(String name, String value) {
 				try {
+					if (!name.equals("AZMSG")) {
+						return false;
+					}
+
 					ClientMessageContext context = PlatformMessenger.getClientMessageContext();
 					if (context == null) {
 						return false;
 					}
-					String message = name;
-					if (value != null && value.length() > 0) {
-						message += BrowserMessage.MESSAGE_DELIM + value;
-					}
-					BrowserMessage browserMsg = new BrowserMessage(message);
+					BrowserMessage browserMsg = new BrowserMessage(value);
 					if (browserMsg.getOperationId().equals(DisplayListener.OP_OPEN_URL)) {
 						JSONObject decodedObject = browserMsg.getDecodedObject();
 						String url = JSONUtils.getJSONString(decodedObject, "url", null);
