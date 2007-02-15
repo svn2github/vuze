@@ -516,7 +516,7 @@ public class PlatformTorrentUtils
 			System.out.println( "**** TODO: define PlatformTorrentUtils::getContentMinimumSpeedBps");
 			logged = true;
 		}
-		return 20*1024;
+		return Long.MAX_VALUE; // 100*1024;
 	}
 
 	public static void log(String str) {

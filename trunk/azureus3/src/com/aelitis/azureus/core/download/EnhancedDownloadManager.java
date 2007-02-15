@@ -390,8 +390,13 @@ EnhancedDownloadManager
 													peer.getPort());
 									
 									peer.setData( PEER_CACHE_KEY, cache_peer );
-										
+									
 									if ( cache_peer.getType() == CachePeer.PT_CACHE_LOGIC ){
+										
+											// cache logic rely on timely have messages to control both
+											// piece allocation and client-speed
+										
+										peer.setHaveAggregationEnabled( false );
 										
 										if ( target_speed <= 0 ){
 										
