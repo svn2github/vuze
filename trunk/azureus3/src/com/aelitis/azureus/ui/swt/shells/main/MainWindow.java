@@ -53,6 +53,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
+import org.json.JSONObject;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.messenger.*;
@@ -66,13 +67,16 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
+import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.search.network.NetworkSearch;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.views.RecommendationsView;
 import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.PluginEvent;
@@ -251,56 +255,57 @@ public class MainWindow implements SWTSkinTabSetListener
 			});
 		}
 		final String fHash = hash;
-		
+
 		if (PlatformTorrentUtils.isContent(torrent)) {
-  		if (PlatformTorrentUtils.getUserRating(torrent) == -2) {
-  			PlatformTorrentUtils.setUserRating(torrent, -1);
-  			PlatformRatingMessenger.getUserRating(
-  					new String[] { PlatformRatingMessenger.RATE_TYPE_CONTENT
-  					}, new String[] { hash
-  					}, 5000, new GetRatingReplyListener() {
-  						public void replyReceived(String replyType,
-  								PlatformRatingMessenger.GetRatingReply reply) {
-  							if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
-  								long rating = reply.getRatingValue(fHash,
-  										PlatformRatingMessenger.RATE_TYPE_CONTENT);
-  								if (rating >= -1) {
-  									PlatformTorrentUtils.setUserRating(torrent, (int) rating);
-  								}
-  							}
-  
-  						}
-  
-  						public void messageSent() {
-  						}
-  					});
-  		}
-  
-  		long now = SystemTime.getCurrentTime();
-  		long mdRefreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
-  		if (mdRefreshOn < now) {
-  			PlatformTorrentUtils.log("addDM, update MD NOW");
-  			PlatformTorrentUtils.updateMetaData(torrent, 5000);
-  		} else {
-  			PlatformTorrentUtils.log("addDM, update MD on " + new Date(mdRefreshOn));
-  			SimpleTimer.addEvent("Update MD", mdRefreshOn, new TimerEventPerformer() {
-  				public void perform(TimerEvent event) {
-  					PlatformTorrentUtils.updateMetaData(torrent, 15000);
-  				}
-  			});
-  		}
-  
-  		long grRefreshOn = GlobalRatingUtils.getRefreshOn(torrent);
-  		if (grRefreshOn <= now) {
-  			GlobalRatingUtils.updateFromPlatform(torrent, 5000);
-  		} else {
-  			SimpleTimer.addEvent("Update G.Rating", grRefreshOn,
-  					new TimerEventPerformer() {
-  						public void perform(TimerEvent event) {
-  							GlobalRatingUtils.updateFromPlatform(torrent, 15000);
-  						}
-  					});
-  		}
+			if (PlatformTorrentUtils.getUserRating(torrent) == -2) {
+				PlatformTorrentUtils.setUserRating(torrent, -1);
+				PlatformRatingMessenger.getUserRating(
+						new String[] { PlatformRatingMessenger.RATE_TYPE_CONTENT
+						}, new String[] { hash
+						}, 5000, new GetRatingReplyListener() {
+							public void replyReceived(String replyType,
+									PlatformRatingMessenger.GetRatingReply reply) {
+								if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
+									long rating = reply.getRatingValue(fHash,
+											PlatformRatingMessenger.RATE_TYPE_CONTENT);
+									if (rating >= -1) {
+										PlatformTorrentUtils.setUserRating(torrent, (int) rating);
+									}
+								}
+
+							}
+
+							public void messageSent() {
+							}
+						});
+			}
+
+			long now = SystemTime.getCurrentTime();
+			long mdRefreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
+			if (mdRefreshOn < now) {
+				PlatformTorrentUtils.log("addDM, update MD NOW");
+				PlatformTorrentUtils.updateMetaData(torrent, 5000);
+			} else {
+				PlatformTorrentUtils.log("addDM, update MD on " + new Date(mdRefreshOn));
+				SimpleTimer.addEvent("Update MD", mdRefreshOn,
+						new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								PlatformTorrentUtils.updateMetaData(torrent, 15000);
+							}
+						});
+			}
+
+			long grRefreshOn = GlobalRatingUtils.getRefreshOn(torrent);
+			if (grRefreshOn <= now) {
+				GlobalRatingUtils.updateFromPlatform(torrent, 5000);
+			} else {
+				SimpleTimer.addEvent("Update G.Rating", grRefreshOn,
+						new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								GlobalRatingUtils.updateFromPlatform(torrent, 15000);
+							}
+						});
+			}
 		}
 	}
 
@@ -432,6 +437,45 @@ public class MainWindow implements SWTSkinTabSetListener
 					shell.setVisible(false);
 					PasswordWindow.showPasswordWindow(display);
 				}
+			}
+		});
+
+		ExternalStimulusHandler.addListener(new ExternalStimulusListener() {
+			public boolean receive(String name, String value) {
+				try {
+					ClientMessageContext context = PlatformMessenger.getClientMessageContext();
+					if (context == null) {
+						return false;
+					}
+					String message = name;
+					if (value != null && value.length() > 0) {
+						message += BrowserMessage.MESSAGE_DELIM + value;
+					}
+					BrowserMessage browserMsg = new BrowserMessage(message);
+					if (browserMsg.getOperationId().equals(DisplayListener.OP_OPEN_URL)) {
+						JSONObject decodedObject = browserMsg.getDecodedObject();
+						String url = JSONUtils.getJSONString(decodedObject, "url", null);
+						if (decodedObject.has("target")
+								&& !PlatformConfigMessenger.isURLBlocked(url)) {
+
+							// implicit bring to front
+							final UIFunctions functions = UIFunctionsManager.getUIFunctions();
+							if (functions != null) {
+								functions.bringToFront();
+							}
+
+							// this is actually sync.. so we could add a completion listener
+							// and return the boolean result if we wanted/needed
+							context.getMessageDispatcher().dispatch(browserMsg);
+							context.getMessageDispatcher().resetSequence();
+						}
+					}
+
+					return true;
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+				return false;
 			}
 		});
 
