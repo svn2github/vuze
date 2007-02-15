@@ -177,6 +177,13 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       	save_dir = f.getParentFile();
       }
       
+      if(_wizard.useMultiTracker) {
+          this.reportCurrentTask(MessageText.getString("wizard.addingmt"));
+          TorrentUtils.listToAnnounceGroups(((NewTorrentWizard)wizard).trackers, torrent);
+         }
+
+      	// must do this last as it saves a copy of the torrent state for future opening...
+      
 	  DownloadManagerState	download_manager_state = 
 			DownloadManagerStateFactory.getDownloadState( torrent ); 
 
@@ -184,10 +191,6 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 
 	  download_manager_state.save();
      
-      if(_wizard.useMultiTracker) {
-        this.reportCurrentTask(MessageText.getString("wizard.addingmt"));
-        TorrentUtils.listToAnnounceGroups(((NewTorrentWizard)wizard).trackers, torrent);
-       }
       this.reportCurrentTask(MessageText.getString("wizard.savingfile"));
       
       final File torrent_file = new File(((NewTorrentWizard)wizard).savePath);
