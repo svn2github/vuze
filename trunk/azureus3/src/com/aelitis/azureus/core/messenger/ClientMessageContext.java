@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Control;
 import org.json.JSONString;
 
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
+import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageListener;
 import com.aelitis.azureus.ui.swt.browser.txn.Transaction;
 import com.aelitis.azureus.ui.swt.browser.txn.TransactionManager;
@@ -124,4 +125,5 @@ public interface ClientMessageContext
 	 */
 	public abstract void debug(String message, Throwable t);
 
+	public MessageDispatcher getMessageDispatcher();
 }

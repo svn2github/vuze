@@ -85,6 +85,13 @@ public class PlatformMessenger
 		context.addMessageListener(new TorrentListener());
 		context.addMessageListener(new DisplayListener(null));
 	}
+	
+	public static ClientMessageContext getClientMessageContext() {
+		if (!initialized) {
+			init();
+		}
+		return context;
+	}
 
 	public static void queueMessage(PlatformMessage message,
 			PlatformMessengerListener listener) {
