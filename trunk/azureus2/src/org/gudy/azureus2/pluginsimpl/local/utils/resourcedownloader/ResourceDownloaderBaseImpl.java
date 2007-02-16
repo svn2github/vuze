@@ -231,7 +231,10 @@ ResourceDownloaderBaseImpl
 			}catch( NoSuchMethodError e ){
 				
 				// handle addition of this new method with old impls
+			}catch( AbstractMethodError e ){
 				
+				// handle addition of this new method with old impls
+			
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace(e);
