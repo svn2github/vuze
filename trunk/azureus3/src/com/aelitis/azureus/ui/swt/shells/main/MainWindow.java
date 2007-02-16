@@ -468,10 +468,9 @@ public class MainWindow implements SWTSkinTabSetListener
 							// and return the boolean result if we wanted/needed
 							context.getMessageDispatcher().dispatch(browserMsg);
 							context.getMessageDispatcher().resetSequence();
+							return true;
 						}
 					}
-
-					return true;
 				} catch (Exception e) {
 					Debug.out(e);
 				}
