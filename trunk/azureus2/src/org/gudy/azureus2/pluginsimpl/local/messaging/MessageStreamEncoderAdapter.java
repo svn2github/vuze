@@ -40,7 +40,7 @@ public class MessageStreamEncoderAdapter implements com.aelitis.azureus.core.pee
     this.plug_encoder = plug_encoder;
   }
   
-  public com.aelitis.azureus.core.networkmanager.RawMessage encodeMessage( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
+  public com.aelitis.azureus.core.networkmanager.RawMessage[] encodeMessage( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
     Message plug_msg;
     
     if( message instanceof MessageAdapter ) {  //original message created by plugin, unwrap
@@ -51,7 +51,7 @@ public class MessageStreamEncoderAdapter implements com.aelitis.azureus.core.pee
     }
     
     RawMessage raw_plug = plug_encoder.encodeMessage( plug_msg );
-    return new RawMessageAdapter( raw_plug );
+    return new com.aelitis.azureus.core.networkmanager.RawMessage[]{ new RawMessageAdapter( raw_plug )};
   }
   
 

@@ -53,6 +53,8 @@ TCPTransportHelper
 		
 	private Map	user_data;
 	
+	private boolean	trace;
+	
 	public TCPTransportHelper( SocketChannel _channel ) {
 		channel = _channel;
 	}
@@ -89,250 +91,339 @@ TCPTransportHelper
 		return( READ_TIMEOUT );
 	}
 	
-	public int write( ByteBuffer buffer, boolean partial_write ) throws IOException {  	
-		    if( channel == null ) {
-		      Debug.out( "channel == null" );
-		      return 0;
-		    }
-		    return( channel.write( buffer ));
-	  }
+	public int 
+	write( 
+		ByteBuffer 	buffer, 
+		boolean 	partial_write ) 
 
-  public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
-  	if( channel == null ) {
-      Debug.out( "channel == null" );
-      return 0;
-    }
-    
-  	if( enable_efficient_io ) {
-  		try {
-  			return channel.write( buffers, array_offset, length );
-  		}
-  		catch( IOException ioe ) {
-  			//a bug only fixed in Tiger (1.5 series):
-  			//http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
-  			String msg = ioe.getMessage();
-  			if( msg != null && msg.equals( "A non-blocking socket operation could not be completed immediately" ) ) {
-  				enable_efficient_io = false;
-  				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
-							"WARNING: Multi-buffer socket write failed; "
-									+ "switching to single-buffer mode.\n"
-									+ "Upgrade to JRE 1.5 (5.0) series to fix this problem!"));
-  			}
-  			throw ioe;
-  		}
-  	}
-    
-  	//single-buffer mode
-  	long written_sofar = 0;
-  	for( int i=array_offset; i < (array_offset + length); i++ ) {
-  		int data_length = buffers[ i ].remaining();
-  		int written = channel.write( buffers[ i ] );
-  		written_sofar += written;
-  		if( written < data_length ) {
-  			break;
-  		}
-  	}
-      
-  	return written_sofar;
-  }
+		throws IOException 
+	{  	
+		if ( channel == null ){
+			
+			Debug.out( "channel == null" );
+			
+			return 0;
+		}
+		
+		int	res = channel.write( buffer );
+		
+		if ( trace ){
+			
+			TimeFormatter.milliTrace( "tcp: write " + res );
+		}
+		
+		return( res );
+	}
 
-  public int read( ByteBuffer buffer ) throws IOException {  	
-	    if( channel == null ) {
-	      Debug.out( "channel == null" );
-	      return 0;
-	    }
-	    return( channel.read( buffer ));
-  }
-  
-  public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {  	
-    if( channel == null ) {
-      Debug.out( "channel == null" );
-      return 0;
-    }
-    
-    if( buffers == null ) {
-      Debug.out( "read: buffers == null" );
-      return 0;
-    }
-    
-    
-    long bytes_read = 0;
-    
-    if( enable_efficient_io ) {
-      try{
-        bytes_read = channel.read( buffers, array_offset, length );
-      }
-      catch( IOException ioe ) {
-        //a bug only fixed in Tiger (1.5 series):
-        //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
-        String msg = ioe.getMessage();
-        if( msg != null && msg.equals( "A non-blocking socket operation could not be completed immediately" ) ) {
-          enable_efficient_io = false;
-          Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
-							"WARNING: Multi-buffer socket read failed; switching to single-buffer mode.\n"
-									+ "Upgrade to JRE 1.5 (5.0) series to fix this problem!"));
-        }
-        
-        throw ioe;
-      }
-    }
-    else {
-      //single-buffer mode
-      for( int i=array_offset; i < (array_offset + length); i++ ) {
-        int data_length = buffers[ i ].remaining();
-        int read = channel.read( buffers[ i ] );
-        bytes_read += read;
-        if( read < data_length ) {
-          break;
-        }
-      }
-    }    
-
-    if( bytes_read < 0 ) {
-      throw new IOException( "end of stream on socket read" );
-    }
-
-    return bytes_read;
-  }
-  
-  public void
-  registerForReadSelects(
-	final selectListener		listener,
-	Object						attachment )
-  {
-	  TCPNetworkManager.getSingleton().getReadSelector().register(
-				channel,
-				new VirtualSelectorListener()
-				{
-					public boolean 
-					selectSuccess(
-						VirtualChannelSelector	selector, 
-						SocketChannel			sc, 
-						Object 					attachment )
-					{
-						return( listener.selectSuccess( TCPTransportHelper.this, attachment ));
-					}
-
-					public void 
-					selectFailure(
-						VirtualChannelSelector	selector, 
-						SocketChannel 			sc, 
-						Object 					attachment, 
-						Throwable 				msg)
-					{
-						listener.selectFailure( TCPTransportHelper.this, attachment, msg );
-					}
-				},
-				attachment );
-  }
-  
-  public void
-  registerForWriteSelects(
-	final selectListener		listener,
-	Object						attachment )
-  {
-	  TCPNetworkManager.getSingleton().getWriteSelector().register(
-				channel,
-				new VirtualSelectorListener()
-				{
-					public boolean 
-					selectSuccess(
-						VirtualChannelSelector	selector, 
-						SocketChannel			sc, 
-						Object 					attachment )
-					{
-						return( listener.selectSuccess( TCPTransportHelper.this, attachment ));
-					}
-
-					public void 
-					selectFailure(
-						VirtualChannelSelector	selector, 
-						SocketChannel 			sc, 
-						Object 					attachment, 
-						Throwable 				msg)
-					{
-						listener.selectFailure( TCPTransportHelper.this, attachment, msg );
-					}
-				},
-				attachment );
-  }
-  
-  public void
-  cancelReadSelects()
-  {
-	  TCPNetworkManager.getSingleton().getReadSelector().cancel( channel );
-  }
-  
-  public void
-  cancelWriteSelects()
-  {
-	  TCPNetworkManager.getSingleton().getWriteSelector().cancel( channel );
-  }
-  
-  public void
-  resumeReadSelects()
-  {
-	  TCPNetworkManager.getSingleton().getReadSelector().resumeSelects( channel );
-  }
-  
-  public void
-  resumeWriteSelects()
-  {
-	  TCPNetworkManager.getSingleton().getWriteSelector().resumeSelects( channel );
-  }
-  
-  public void
-  pauseReadSelects()
-  {
-	  TCPNetworkManager.getSingleton().getReadSelector().pauseSelects( channel );
-  }
-  
-  public void
-  pauseWriteSelects()
-  {
-	  TCPNetworkManager.getSingleton().getWriteSelector().pauseSelects( channel );
-  }
-  
-  public void
-  close( String reason )
-  {
-      TCPNetworkManager.getSingleton().getReadSelector().cancel( channel );
-      TCPNetworkManager.getSingleton().getWriteSelector().cancel( channel );
-      TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
-  }
-  
-  public void
-  failed(
-	Throwable	reason )
-  {
-	  close( Debug.getNestedExceptionMessage( reason ));
-  }
-  
-  public SocketChannel getSocketChannel(){  return channel; }
+	public long 
+	write( 
+		ByteBuffer[] 	buffers, 
+		int 			array_offset, 
+		int 			length ) 
 	
-  public synchronized void
-  setUserData(
-  	Object	key,
-  	Object	data )
-  {
-	  if ( user_data == null ){
-		  
-		  user_data = new HashMap();
-	  }
-	  
-	  user_data.put( key, data );
-  }
-  
-  public synchronized Object
-  getUserData(
-  	Object	key )
-  {
-	  if ( user_data == null ){
+		throws IOException 
+	{
+		if( channel == null ){
+			
+			Debug.out( "channel == null" );
+			
+			return 0;
+		}
 
-		  return(null);
-		  
-	  }
-	  
-	  return( user_data.get( key ));
-  }
+		if( enable_efficient_io ) {
+			try {
+				return channel.write( buffers, array_offset, length );
+			}
+			catch( IOException ioe ) {
+				//a bug only fixed in Tiger (1.5 series):
+				//http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
+				String msg = ioe.getMessage();
+				if( msg != null && msg.equals( "A non-blocking socket operation could not be completed immediately" ) ) {
+					enable_efficient_io = false;
+					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+							"WARNING: Multi-buffer socket write failed; "
+							+ "switching to single-buffer mode.\n"
+							+ "Upgrade to JRE 1.5 (5.0) series to fix this problem!"));
+				}
+				throw ioe;
+			}
+		}
+
+			//single-buffer mode
+		
+		long written_sofar = 0;
+		
+		for( int i=array_offset; i < (array_offset + length); i++ ) {
+			
+			int data_length = buffers[ i ].remaining();
+			
+			int written = channel.write( buffers[ i ] );
+			
+			written_sofar += written;
+			
+			if( written < data_length ) {
+				
+				break;
+			}
+		}
+
+		if ( trace ){
+			TimeFormatter.milliTrace( "tcp: write " + written_sofar );
+		}
+
+		return written_sofar;
+	}
+
+	public int 
+	read( 
+		ByteBuffer buffer ) 
+	
+		throws IOException 
+	{  	
+		if( channel == null ) {
+			
+			Debug.out( "channel == null" );
+			
+			return 0;
+		}
+		
+		int	res = channel.read( buffer );
+		
+		if ( trace ){
+			TimeFormatter.milliTrace( "tcp: read " + res );
+		}
+		
+		return( res );
+	}
+
+	public long 
+	read( 
+		ByteBuffer[] 	buffers, 
+		int 			array_offset, 
+		int 			length ) 
+	
+		throws IOException 
+	{  	
+		if( channel == null ) {
+			Debug.out( "channel == null" );
+			return 0;
+		}
+
+		if( buffers == null ) {
+			Debug.out( "read: buffers == null" );
+			return 0;
+		}
+
+		long bytes_read = 0;
+
+		if( enable_efficient_io ) {
+			try{
+				bytes_read = channel.read( buffers, array_offset, length );
+			}
+			catch( IOException ioe ) {
+				//a bug only fixed in Tiger (1.5 series):
+				//http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
+				String msg = ioe.getMessage();
+				if( msg != null && msg.equals( "A non-blocking socket operation could not be completed immediately" ) ) {
+					enable_efficient_io = false;
+					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+							"WARNING: Multi-buffer socket read failed; switching to single-buffer mode.\n"
+							+ "Upgrade to JRE 1.5 (5.0) series to fix this problem!"));
+				}
+
+				throw ioe;
+			}
+		}else{
+				//single-buffer mode
+			
+			for( int i=array_offset; i < (array_offset + length); i++ ) {
+				
+				int data_length = buffers[ i ].remaining();
+				
+				int read = channel.read( buffers[ i ] );
+				
+				bytes_read += read;
+				
+				if( read < data_length ) {
+					
+					break;
+				}
+			}
+		}    
+
+		if ( bytes_read < 0 ){
+			
+			throw new IOException( "end of stream on socket read" );
+		}
+
+		if ( trace ){
+			TimeFormatter.milliTrace( "tcp: read " + bytes_read );
+		}
+		
+		return bytes_read;
+	}
+
+	public void
+	registerForReadSelects(
+		final selectListener		listener,
+		Object						attachment )
+	{
+		TCPNetworkManager.getSingleton().getReadSelector().register(
+				channel,
+				new VirtualSelectorListener()
+				{
+					public boolean 
+					selectSuccess(
+							VirtualChannelSelector	selector, 
+							SocketChannel			sc, 
+							Object 					attachment )
+					{
+						return( listener.selectSuccess( TCPTransportHelper.this, attachment ));
+					}
+
+					public void 
+					selectFailure(
+							VirtualChannelSelector	selector, 
+							SocketChannel 			sc, 
+							Object 					attachment, 
+							Throwable 				msg)
+					{
+						listener.selectFailure( TCPTransportHelper.this, attachment, msg );
+					}
+				},
+				attachment );
+	}
+
+	public void
+	registerForWriteSelects(
+		final selectListener		listener,
+		Object						attachment )
+	{
+		TCPNetworkManager.getSingleton().getWriteSelector().register(
+				channel,
+				new VirtualSelectorListener()
+				{
+					public boolean 
+					selectSuccess(
+							VirtualChannelSelector	selector, 
+							SocketChannel			sc, 
+							Object 					attachment )
+					{
+						if ( trace ){
+							TimeFormatter.milliTrace( "tcp: write select" );
+						}
+
+						return( listener.selectSuccess( TCPTransportHelper.this, attachment ));
+					}
+
+					public void 
+					selectFailure(
+							VirtualChannelSelector	selector, 
+							SocketChannel 			sc, 
+							Object 					attachment, 
+							Throwable 				msg)
+					{
+						listener.selectFailure( TCPTransportHelper.this, attachment, msg );
+					}
+				},
+				attachment );
+	}
+
+	public void
+	cancelReadSelects()
+	{
+		TCPNetworkManager.getSingleton().getReadSelector().cancel( channel );
+	}
+
+	public void
+	cancelWriteSelects()
+	{
+		if ( trace ){
+			TimeFormatter.milliTrace( "tcp: cancel write selects" );
+		}
+		
+		TCPNetworkManager.getSingleton().getWriteSelector().cancel( channel );
+	}
+
+	public void
+	resumeReadSelects()
+	{
+		TCPNetworkManager.getSingleton().getReadSelector().resumeSelects( channel );
+	}
+
+	public void
+	resumeWriteSelects()
+	{
+		if ( trace ){
+			TimeFormatter.milliTrace( "tcp: resume write selects" );
+		}
+		
+		TCPNetworkManager.getSingleton().getWriteSelector().resumeSelects( channel );
+	}
+
+	public void
+	pauseReadSelects()
+	{
+		TCPNetworkManager.getSingleton().getReadSelector().pauseSelects( channel );
+	}
+
+	public void
+	pauseWriteSelects()
+	{
+		if ( trace ){
+			TimeFormatter.milliTrace( "tcp: pause write selects" );
+		}
+		
+		TCPNetworkManager.getSingleton().getWriteSelector().pauseSelects( channel );
+	}
+
+	public void
+	close( String reason )
+	{
+		TCPNetworkManager.getSingleton().getReadSelector().cancel( channel );
+		TCPNetworkManager.getSingleton().getWriteSelector().cancel( channel );
+		TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
+	}
+
+	public void
+	failed(
+		Throwable	reason )
+	{
+		close( Debug.getNestedExceptionMessage( reason ));
+	}
+
+	public SocketChannel getSocketChannel(){  return channel; }
+
+	public synchronized void
+	setUserData(
+		Object	key,
+		Object	data )
+	{
+		if ( user_data == null ){
+
+			user_data = new HashMap();
+		}
+
+		user_data.put( key, data );
+	}
+
+	public synchronized Object
+	getUserData(
+		Object	key )
+	{
+		if ( user_data == null ){
+
+			return(null);
+
+		}
+
+		return( user_data.get( key ));
+	}
+
+	public void
+	setTrace(
+		boolean	on )
+	{
+		trace	= on;
+	}
 }

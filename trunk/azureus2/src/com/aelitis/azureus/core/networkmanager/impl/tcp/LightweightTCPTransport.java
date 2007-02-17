@@ -94,6 +94,9 @@ public class LightweightTCPTransport implements Transport {
   public void connectedInbound(){ throw new RuntimeException( "not implemented" ); }  
   public void setTransportMode( int mode ){ throw new RuntimeException( "not implemented" ); } 
   public int getTransportMode(){ throw new RuntimeException( "not implemented" );  }
+  public void setTrace(boolean on) {
+	  // TODO Auto-generated method stub
 
+  }
   public String getEncryption(){ return( filter.getName()); }
 }

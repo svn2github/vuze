@@ -223,7 +223,7 @@ UDPTransport
 			listener.connectFailure( e );
 		}
 	}
-	   
+	  
 	public void 
 	close(
 		String	reason )

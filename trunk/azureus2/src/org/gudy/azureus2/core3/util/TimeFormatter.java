@@ -133,6 +133,17 @@ public class TimeFormatter {
     }
     
     public static String
+    formatNanoAsMilli(
+    	long	nanos )
+    {
+    	final long truncator = 60*1000000000L;
+    	
+    	nanos = nanos - ((nanos/truncator) * truncator);
+    	
+    	return( String.valueOf(((double)nanos)/1000000) + " ms" );
+    }
+    
+    public static String
     getHTTPDate(
     	long		millis )
     {
@@ -140,5 +151,31 @@ public class TimeFormatter {
 			
 			return( http_date_format.format(new Date( millis )));
 		}
+    }
+    
+    public static String
+    milliStamp()
+    {
+    	long nanos = SystemTime.getHighPrecisionCounter();
+    	
+    	final long truncator = 60*1000000000L;
+    	
+    	nanos = nanos - ((nanos/truncator) * truncator);
+
+    	String	str = String.valueOf( nanos/1000000 );
+    	
+    	while( str.length() < 5 ){
+    		
+    		str = "0" + str;
+    	}
+    	
+    	return( str + ": " );
+    }
+    
+    public static void
+    milliTrace(
+    	String	str )
+    {
+    	System.out.println( milliStamp() + str );
     }
 }

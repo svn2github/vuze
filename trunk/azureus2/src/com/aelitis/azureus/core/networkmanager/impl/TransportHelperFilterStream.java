@@ -320,6 +320,13 @@ TransportHelperFilterStream
 		}
 	}
 	
+	public void
+	setTrace(
+			boolean	on )
+	{
+		transport.setTrace( on );
+	}
+	
 	protected abstract void
 	cryptoOut(
 		ByteBuffer	source_buffer,

@@ -34,7 +34,7 @@ public class
 GenericMessageEncoder
 	implements MessageStreamEncoder
 {
-	public RawMessage 
+	public RawMessage[] 
 	encodeMessage( 
 		Message _message )
 	{
@@ -45,12 +45,13 @@ GenericMessageEncoder
 		if ( message.isAlreadyEncoded()){
 			
 			return( 
+				new RawMessage[]{
 					new RawMessageImpl( 
 						message, 
 						new DirectByteBuffer[]{ payload }, 
 						RawMessage.PRIORITY_NORMAL, 
 						true,	// send immediately 
-						new Message[0] ));
+						new Message[0] )});
 			
 		}else{
 			
@@ -61,12 +62,13 @@ GenericMessageEncoder
 			header.flip( DirectByteBuffer.SS_MSG );
 			
 			return( 
-				new RawMessageImpl( 
-					message, 
-					new DirectByteBuffer[]{ header, payload }, 
-					RawMessage.PRIORITY_NORMAL, 
-					true,	// send immediately 
-					new Message[0] ));
+				new RawMessage[]{
+					new RawMessageImpl( 
+						message, 
+						new DirectByteBuffer[]{ header, payload }, 
+						RawMessage.PRIORITY_NORMAL, 
+						true,	// send immediately 
+						new Message[0] )});
 		}
 	}
 }

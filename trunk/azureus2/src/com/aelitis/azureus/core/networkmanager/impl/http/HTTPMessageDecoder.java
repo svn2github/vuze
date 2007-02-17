@@ -193,6 +193,12 @@ HTTPMessageDecoder
 		}
 	}
 	  
+	protected int
+	getQueueSize()
+	{
+		return( messages.size());
+	}
+	
 	public ByteBuffer 
 	destroy()
 	{

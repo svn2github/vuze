@@ -40,8 +40,8 @@ public class AZMessageEncoder implements MessageStreamEncoder {
   
   
   
-  public RawMessage encodeMessage( Message message ) {
-    return AZMessageFactory.createAZRawMessage( message );
+  public RawMessage[] encodeMessage( Message message ) {
+    return new RawMessage[]{ AZMessageFactory.createAZRawMessage( message )};
   }
 
   

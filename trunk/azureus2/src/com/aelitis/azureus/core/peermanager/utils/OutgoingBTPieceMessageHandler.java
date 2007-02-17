@@ -142,11 +142,24 @@ public class OutgoingBTPieceMessageHandler {
         try{
           lock_mon.enter();
 
+          	// due to timing issues we can get in here with a message already removed
+          
           queued_messages.remove( message );
    
         }finally{
           lock_mon.exit();
         }
+        
+        /*
+    	if ( peer.getIp().equals( "64.71.5.2" )){
+    		
+    		outgoing_message_queue.setTrace( true );
+    		
+    		// BTPiece p = (BTPiece)message;
+    		
+    		// TimeFormatter.milliTrace( "obt sent: " + p.getPieceNumber() + "/" + p.getPieceOffset());
+    	}
+   		*/
         
         doReadAheadLoads();
       }
@@ -313,6 +326,14 @@ public class OutgoingBTPieceMessageHandler {
     }finally{
     	lock_mon.exit();
     }
+    
+    /*
+	if ( peer.getIp().equals( "64.71.5.2")){
+
+		TimeFormatter.milliTrace( "obt read_ahead: -> " + (to_submit==null?0:to_submit.size()) + 
+				" [lo=" + loading_messages.size() + ",qm=" + queued_messages.size() + ",re=" + requests.size() + ",rl=" + request_read_ahead + "]");		
+	}
+	*/
     
     if ( to_submit != null ){
     	for (int i=0;i<to_submit.size();i++){

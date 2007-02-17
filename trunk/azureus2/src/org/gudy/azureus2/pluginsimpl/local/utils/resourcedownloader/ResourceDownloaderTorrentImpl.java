@@ -40,6 +40,8 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.*;
 import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerWebPageResponseImpl;
 import org.gudy.azureus2.pluginsimpl.local.*;
 
+import com.aelitis.azureus.core.util.HTTPUtils;
+
 public class 
 ResourceDownloaderTorrentImpl 	
 	extends 	ResourceDownloaderBaseImpl
@@ -185,7 +187,7 @@ ResourceDownloaderTorrentImpl
 				}
 				
 				setProperty( 	ResourceDownloader.PR_STRING_CONTENT_TYPE,
-								TrackerWebPageResponseImpl.guessContentTypeFromFileType( file_type ));
+								HTTPUtils.guessContentTypeFromFileType( file_type ));
 				
 			}catch( Throwable e ){
 				

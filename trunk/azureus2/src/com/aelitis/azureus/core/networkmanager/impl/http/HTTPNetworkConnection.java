@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.networkmanager.impl.http;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -36,7 +35,6 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
@@ -57,6 +55,7 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHave;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTInterested;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTPiece;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTRequest;
+import com.aelitis.azureus.core.util.HTTPUtils;
 
 public abstract class 
 HTTPNetworkConnection 
@@ -68,10 +67,11 @@ HTTPNetworkConnection
 	protected static final String	NL			= "\r\n";
 
 	private static final String	HDR_SERVER 				= "Server: " + Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + NL;
-	private static final String	HDR_CONTENT_TYPE		= "Content-Type: application/octet-stream" + NL;
 	private static final String HDR_KEEP_ALIVE_TIMEOUT 	= "Keep-Alive: timeout=30" + NL;
 	private static final String HDR_CACHE_CONTROL		= "Cache-Control: public, max-age=86400" + NL;
 
+	private static final String	DEFAULT_CONTENT_TYPE	= HTTPUtils.guessContentTypeFromFileType(null);
+	
 	private static int        max_read_block_size;
 
 	static{
@@ -234,16 +234,18 @@ HTTPNetworkConnection
 	private boolean	destroyed;
 		
 	private String	last_modified_date;
-		
+	private String	content_type	= DEFAULT_CONTENT_TYPE;
+	
+	
 	protected
 	HTTPNetworkConnection(
 		HTTPNetworkManager		_manager,
 		NetworkConnection		_connection,
 		PEPeerTransport			_peer )
 	{
-		manager		= _manager;
-		connection	= _connection;
-		peer		= _peer;
+		manager			= _manager;
+		connection		= _connection;
+		peer			= _peer;
 		
 		DiskManager dm = peer.getManager().getDiskManager();
 		
@@ -302,6 +304,13 @@ HTTPNetworkConnection
 		}
 		
 		return( true );
+	}
+	
+	protected void
+	setContentType(
+		String	ct )
+	{
+		content_type	= ct;
 	}
 	
 	protected HTTPNetworkManager
@@ -395,11 +404,14 @@ HTTPNetworkConnection
 		res.append( request.isPartialContent()?"206 Partial Content":"200 OK" );
 			res.append( NL );
 
-		res.append( HDR_CONTENT_TYPE );
-		
+		res.append( "Content-Type: " );
+		res.append( content_type );
+	 		res.append( NL );		
+	 		
 		res.append( "Date: " );
 		res.append( current_date );
 		 	res.append( NL );
+		 	
 		res.append( "Last-Modified: " );
 		res.append( last_modified_date );
 			res.append( NL );
@@ -554,7 +566,7 @@ HTTPNetworkConnection
 		}
 	}
 	
-	protected RawMessage
+	protected RawMessage[]
 	encodePiece(
 		Message		message )
 	{
@@ -570,7 +582,7 @@ HTTPNetworkConnection
 
 			if ( destroyed ){
 				
-				return( getEmptyRawMessage( message ));
+				return( new RawMessage[]{ getEmptyRawMessage( message )});
 			}
 		
 			for (int i=0;i<outstanding_requests.size();i++){
@@ -618,12 +630,12 @@ HTTPNetworkConnection
 			
 			Debug.out( "request not matched" );
 			
-			return( getEmptyRawMessage( message ));
+			return( new RawMessage[]{ getEmptyRawMessage( message )});
 		}
 		
 		if ( ready_requests.size() == 0 ){
 			
-			return( getEmptyRawMessage( message ));
+			return( new RawMessage[]{ getEmptyRawMessage( message )});
 		}
 		
 		try{
@@ -636,29 +648,30 @@ HTTPNetworkConnection
 		pendingRequest req	= (pendingRequest)ready_requests.get(0);
 		
 		DirectByteBuffer[]	buffers;
-		int					buffer_index	= 0;
 		
 		httpRequest	http_request = req.getHTTPRequest();
 		
-		buffers = new DirectByteBuffer[ ready_requests.size() + 1 ];
+		RawMessage[]	raw_messages = new RawMessage[ ready_requests.size()];
+		
+		for (int i=0;i<raw_messages.length;i++){
+			
+			buffers = new DirectByteBuffer[ 2 ];
 
-		if ( !http_request.hasSentFirstReply()){
+			if ( !http_request.hasSentFirstReply()){
 		
-			http_request.setSentFirstReply();
+				http_request.setSentFirstReply();
 						
-			String	header = encodeHeader( http_request );
+				String	header = encodeHeader( http_request );
 			
-			buffers[buffer_index++] = new DirectByteBuffer( ByteBuffer.wrap( header.getBytes()));
+				buffers[0] = new DirectByteBuffer( ByteBuffer.wrap( header.getBytes()));
 			
-		}else{
+			}else{
 			
-				// we have to do this as core code assumes buffer entry 0 is protocol
+					// we have to do this as core code assumes buffer entry 0 is protocol
 			
-			buffers[buffer_index++] = new DirectByteBuffer( ByteBuffer.allocate(0));
-		}
-		
-		for (int i=0;i<ready_requests.size();i++){
-			
+				buffers[0] = new DirectByteBuffer( ByteBuffer.allocate(0));
+			}
+					
 			req	= (pendingRequest)ready_requests.get(i);
 
 			BTPiece	this_piece = req.getBTPiece();
@@ -675,15 +688,20 @@ HTTPNetworkConnection
 				decoder.addMessage( new BTHave( piece_number ));
 			}
 			
-			buffers[buffer_index++] = this_piece.getPieceData();
-		}
-		
-		return(	new RawMessageImpl( 
-						message, 
+			buffers[1] = this_piece.getPieceData();
+			
+			req.logQueued();
+			
+			raw_messages[i] = 
+				new RawMessageImpl( 
+						this_piece, 
 						buffers,
 						RawMessage.PRIORITY_HIGH, 
 						true, 
-						new Message[0] ));
+						new Message[0] );
+		}
+		
+		return( raw_messages );
 	}
 	
 	protected int
@@ -951,7 +969,7 @@ HTTPNetworkConnection
 		private httpRequest	http_request;
 		
 		private BTPiece	bt_piece;
-		
+				
 		protected
 		pendingRequest(
 			BTRequest		_request,
@@ -962,6 +980,19 @@ HTTPNetworkConnection
 			length	= _request.getLength();
 			
 			http_request	= _http_request;
+			
+			/*
+			if ( peer.getIp().equals( "64.71.5.2")){
+				
+				TimeFormatter.milliTrace( 
+						"http_req_create: " +
+							piece + "/" + start + 
+							" [hr=" + http_requests.size() + 
+							",cr=" + choked_requests.size() + 
+							",or=" + outstanding_requests.size() + 
+							",d=" + decoder.getQueueSize() + "]" );
+			}
+			*/
 		}
 		
 		protected int
@@ -999,6 +1030,36 @@ HTTPNetworkConnection
 			BTPiece	_bt_piece )
 		{
 			bt_piece	= _bt_piece;
+			
+			/*
+			if ( peer.getIp().equals( "64.71.5.2")){
+
+				TimeFormatter.milliTrace( 
+					"http_req_data: " +
+						piece + "/" + start + 
+						" [hr=" + http_requests.size() + 
+						",cr=" + choked_requests.size() + 
+						",or=" + outstanding_requests.size() + 
+						",d=" + decoder.getQueueSize() + "]" );
+			}
+			*/
+		}
+		
+		protected void
+		logQueued()
+		{
+			/*
+			if ( peer.getIp().equals( "64.71.5.2")){
+
+				TimeFormatter.milliTrace( 
+					"http_req_out: " +
+						piece + "/" + start + 
+						" [hr=" + http_requests.size() + 
+						",cr=" + choked_requests.size() + 
+						",or=" + outstanding_requests.size() + 
+						",d=" + decoder.getQueueSize() + "]" );
+			}
+			*/
 		}
 	}
 	

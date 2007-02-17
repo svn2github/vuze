@@ -40,7 +40,7 @@ HTTPMessageEncoder
 		http_connection	= _http_connection;
 	}
 	
-	public RawMessage 
+	public RawMessage[] 
 	encodeMessage( 
 		Message message )
 	{
@@ -68,7 +68,7 @@ HTTPMessageEncoder
 
 		}else if ( id.equals( BTMessage.ID_BT_PIECE )){
 						
-			raw_message = http_connection.encodePiece( message );
+			return( http_connection.encodePiece( message ));
 			
 		}else if ( id.equals( HTTPMessage.MSG_ID )){
 
@@ -80,6 +80,6 @@ HTTPMessageEncoder
 			raw_message = http_connection.getEmptyRawMessage( message );
 		}
 		
-		return( raw_message );
+		return( new RawMessage[]{ raw_message });
 	}
 }

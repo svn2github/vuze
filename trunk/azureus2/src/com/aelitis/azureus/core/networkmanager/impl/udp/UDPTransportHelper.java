@@ -548,4 +548,10 @@ UDPTransportHelper
 
 		return( user_data.get( key ));
 	}
+	
+	public void
+	setTrace(
+		boolean	on )
+	{
+	}
 }

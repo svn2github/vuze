@@ -38,6 +38,8 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.util.HTTPUtils;
+
 public class 
 TrackerWebPageResponseImpl
 	implements TrackerWebPageResponse
@@ -276,7 +278,7 @@ TrackerWebPageResponseImpl
 		
 		throws IOException
 	{
-		String	response_type = guessContentTypeFromFileType( file_type );
+		String	response_type = HTTPUtils.guessContentTypeFromFileType( file_type );
 
 		OutputStream	os = getOutputStream();
 			
@@ -364,55 +366,5 @@ TrackerWebPageResponseImpl
 		
 			throw( new IOException( e.toString()));
 		}
-	}
-	
-	public static String
-	guessContentTypeFromFileType(
-		String	file_type )
-	{
-		String	response_type = null;
-
-		if ( file_type == null ){
-			
-			response_type = "application/octet-stream";
-			
-		}else{
-		
-			if (file_type.equals("html") || file_type.equals("htm")){
-				response_type = "text/html";
-			}else if (file_type.equals("css")){
-				response_type = "text/css";
-			}else if (file_type.equals("xml")){
-				response_type = "text/xml";
-			}else if (file_type.equals("xsl")){
-				response_type = "text/xml";
-			}else if (file_type.equals("jpg") || file_type.equals("jpeg")) {
-				response_type="image/jpeg";
-			}else if (file_type.equals("gif")) {
-				response_type="image/gif";
-			}else if (file_type.equals("tiff")) {
-				response_type="image/tiff";
-			}else if (file_type.equals("bmp")) {
-				response_type="image/bmp";
-			}else if (file_type.equals("png")) {
-				response_type="image/png";
-			}else if (file_type.equals("torrent") || file_type.equals( "tor" )) {
-				response_type="application/x-bittorrent";
-			}else if ( file_type.equals( "zip")){
-				response_type = "application/zip";
-			}else if ( file_type.equals( "txt" )){
-				response_type = "text/plain";
-			}else if ( file_type.equals( "jar" )){
-				response_type = "application/java-archive";
-			}else if ( file_type.equals( "jnlp" )){
-				response_type = "application/x-java-jnlp-file";
-			}else if ( file_type.equals( "mp3" )){
-				response_type = "audio/x-mpeg";
-			}else{
-				response_type = "application/octet-stream";
-			}
-		}
-		
-		return( response_type );
 	}
 }

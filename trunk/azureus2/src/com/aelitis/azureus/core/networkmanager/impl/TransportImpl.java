@@ -27,6 +27,7 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
 import com.aelitis.azureus.core.networkmanager.Transport;
@@ -48,6 +49,8 @@ TransportImpl
 	private Throwable write_select_failure = null;
 	private Throwable read_select_failure = null;
 
+	private boolean	trace;
+	
 	protected
 	TransportImpl()
 	{
@@ -58,6 +61,11 @@ TransportImpl
 		TransportHelperFilter	_filter )
 	{
 		filter	= _filter;
+		
+		if ( trace && _filter != null ){
+			
+			_filter.setTrace( true );
+		}
 	}
 	
 	protected TransportHelperFilter
@@ -112,6 +120,9 @@ TransportImpl
 	readyForWrite(
 		boolean	ready )
 	{
+		if ( trace ){
+			TimeFormatter.milliTrace( "trans: readyForWrite -> " + ready );
+		}
 		if ( ready ){
 		  	boolean	progress = !is_ready_for_write;
 	        is_ready_for_write = true;
@@ -392,5 +403,20 @@ TransportImpl
 			        }
 				},
 				null );
+	}
+	
+	 
+	public void
+	setTrace(
+		boolean	on )
+	{
+		trace	= on;
+		
+		TransportHelperFilter	filter = getFilter();
+
+		if ( filter != null ){
+
+			filter.setTrace( on );
+		}
 	}
 }

@@ -181,7 +181,7 @@ GenericMessageConnectionDirect
 		
 			GenericMessage	gm = new GenericMessage( msg_id, msg_desc, new DirectByteBuffer( upper_initial_data ), false );
 			
-			DirectByteBuffer[]	payload = new GenericMessageEncoder().encodeMessage( gm ).getRawData();
+			DirectByteBuffer[]	payload = new GenericMessageEncoder().encodeMessage( gm )[0].getRawData();
 			
 			int	size = initial_data.remaining();
 			

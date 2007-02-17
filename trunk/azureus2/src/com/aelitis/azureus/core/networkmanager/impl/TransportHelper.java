@@ -133,4 +133,8 @@ TransportHelper
     public Object
     getUserData(
     	Object	key );
+    
+	public void
+	setTrace(
+		boolean	on );
 }

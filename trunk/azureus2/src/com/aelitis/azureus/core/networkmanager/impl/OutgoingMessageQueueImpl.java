@@ -66,7 +66,7 @@ OutgoingMessageQueueImpl
   private static final int MAX_HISTORY_TRACES = 30;
   private final LinkedList prev_sent = new LinkedList();
   
-  
+  private boolean	trace;
   
   /**
    * Create a new outgoing message queue.
@@ -171,59 +171,66 @@ OutgoingMessageQueueImpl
     }
     
     
-    RawMessage rmesg = stream_encoder.encodeMessage( message );
+    RawMessage[] rmesgs = stream_encoder.encodeMessage( message );
     
     if( destroyed ) {  //queue is shutdown, drop any added messages
-      rmesg.destroy();
+      for (int i=0;i<rmesgs.length;i++){
+    	  rmesgs[i].destroy();
+      }
       return;
     }
     
-    removeMessagesOfType( rmesg.messagesToRemove(), manual_listener_notify );
-    
-    try{
-      queue_mon.enter();
-    
-      int pos = 0;
-      for( Iterator i = queue.iterator(); i.hasNext(); ) {
-        RawMessage msg = (RawMessage)i.next();
-        if( rmesg.getPriority() > msg.getPriority() 
-          && msg.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //but don't insert in front of a half-sent message
-          break;
-        }
-        pos++;
-      }
-      if( rmesg.isNoDelay() ) {
-        urgent_message = rmesg;
-      }
-      queue.add( pos, rmesg );
-      
-      DirectByteBuffer[] payload = rmesg.getRawData();
-      for( int i=0; i < payload.length; i++ ) {
-        total_size += payload[i].remaining(DirectByteBuffer.SS_NET);
-      }
-    }finally{
-      queue_mon.exit();
-    }
-    
-    if( manual_listener_notify ) {  //register listener event for later, manual notification
-      NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_ADDED );
-      item.message = rmesg;
-      try {
-        delayed_notifications_mon.enter();
-        
-        delayed_notifications.add( item );
-      }
-      finally {
-        delayed_notifications_mon.exit();
-      }
-    }
-    else { //do listener notification now
-      ArrayList listeners_ref = listeners;
-    
-      for( int i=0; i < listeners_ref.size(); i++ ) {
-        MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
-        listener.messageQueued( rmesg.getBaseMessage() );
-      }
+    for (int i=0;i<rmesgs.length;i++){
+    	
+    	RawMessage rmesg = rmesgs[i];
+    	
+	    removeMessagesOfType( rmesg.messagesToRemove(), manual_listener_notify );
+	    
+	    try{
+	      queue_mon.enter();
+	    
+	      int pos = 0;
+	      for( Iterator it = queue.iterator(); it.hasNext(); ) {
+	        RawMessage msg = (RawMessage)it.next();
+	        if( rmesg.getPriority() > msg.getPriority() 
+	          && msg.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //but don't insert in front of a half-sent message
+	          break;
+	        }
+	        pos++;
+	      }
+	      if( rmesg.isNoDelay() ) {
+	        urgent_message = rmesg;
+	      }
+	      queue.add( pos, rmesg );
+	      
+	      DirectByteBuffer[] payload = rmesg.getRawData();
+	      for( int j=0; j < payload.length; j++ ) {
+	        total_size += payload[j].remaining(DirectByteBuffer.SS_NET);
+	      }
+	    }finally{
+	      queue_mon.exit();
+	    }
+	    
+	    if( manual_listener_notify ) {  //register listener event for later, manual notification
+	      NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_ADDED );
+	      item.message = rmesg;
+	      try {
+	        delayed_notifications_mon.enter();
+	        
+	        delayed_notifications.add( item );
+	      }
+	      finally {
+	        delayed_notifications_mon.exit();
+	      }
+	    }
+	    else { //do listener notification now
+	      ArrayList listeners_ref = listeners;
+	    
+	      for( int j=0; j < listeners_ref.size(); j++ ) {
+	        MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( j );
+	        listener.messageQueued( rmesg.getBaseMessage() );
+	      }
+	    }
     }
   }
   
@@ -539,6 +546,11 @@ OutgoingMessageQueueImpl
     	// connections for example) - we still need to notify them of being sent...
     
     if( data_written + protocol_written > 0 || messages_sent != null ) {
+    	
+      if ( trace ){
+    	TimeFormatter.milliTrace( "omq:deliver: " + (data_written + protocol_written) + ", q=" + queue.size() + "/" + total_size );
+      }
+      
       if( manual_listener_notify ) {
         
         if( data_written > 0 ) {  //data bytes notify
@@ -591,6 +603,10 @@ OutgoingMessageQueueImpl
           }
         }
       }
+    }else{
+    	if ( trace ){
+    		TimeFormatter.milliTrace( "omq:deliver: 0, q=" + queue.size() + "/" + total_size );
+    	}
     }
     
     return data_written + protocol_written;
@@ -663,7 +679,14 @@ OutgoingMessageQueueImpl
   }
   
   
-  
+  public void
+  setTrace(
+		boolean	on )
+  {
+	  trace	= on;
+	  
+	  transport.setTrace( on );
+  }
   
   public String getQueueTrace() {
   	StringBuffer trace = new StringBuffer();

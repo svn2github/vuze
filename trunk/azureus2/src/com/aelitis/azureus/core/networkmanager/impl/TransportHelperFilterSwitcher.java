@@ -39,8 +39,8 @@ TransportHelperFilterSwitcher
 	
 	public
 	TransportHelperFilterSwitcher(
-		TransportHelperFilter	_filter1,
-		TransportHelperFilter	_filter2,
+		TransportHelperFilter		_filter1,
+		TransportHelperFilter		_filter2,
 		int							_switch_read,
 		int							_switch_write )
 	{
@@ -220,6 +220,15 @@ TransportHelperFilterSwitcher
 	getHelper()
 	{
 		return( second_filter.getHelper());
+	}
+	
+	public void
+	setTrace(
+			boolean	on )
+	{
+		current_reader.setTrace( on );
+		current_writer.setTrace( on );
+		second_filter.setTrace( on );
 	}
 	
 	public String

@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+import com.aelitis.azureus.core.util.HTTPUtils;
 
 
 public class 
@@ -243,6 +244,18 @@ HTTPNetworkConnectionFile
 			sendAndClose( getManager().getNotFound());
 			
 			return;
+		}
+		
+		try{
+			String	name = target_file.getFile( true ).getName();
+		
+			int	pos = name.lastIndexOf( "." );
+			
+			if ( pos != -1 ){
+				
+				setContentType( HTTPUtils.guessContentTypeFromFileType( name.substring( pos+1 )));
+			}
+		}catch( Throwable e ){
 		}
 		
 		long	file_length = target_file.getLength();

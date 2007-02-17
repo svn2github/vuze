@@ -299,6 +299,12 @@ PeerForeignNetworkConnection
 		{
 		}
 		  
+		public void
+		setTrace(
+				boolean	on )
+		{
+		}
+		
 		public String 
 		getQueueTrace()
 		{

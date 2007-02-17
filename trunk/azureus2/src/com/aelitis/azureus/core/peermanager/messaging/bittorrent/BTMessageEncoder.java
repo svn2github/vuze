@@ -40,8 +40,8 @@ public class BTMessageEncoder implements MessageStreamEncoder {
   
   
   
-  public RawMessage encodeMessage( Message message ) {
-    return BTMessageFactory.createBTRawMessage( message );
+  public RawMessage[] encodeMessage( Message message ) {
+    return new RawMessage[]{ BTMessageFactory.createBTRawMessage( message )};
   }
  
   

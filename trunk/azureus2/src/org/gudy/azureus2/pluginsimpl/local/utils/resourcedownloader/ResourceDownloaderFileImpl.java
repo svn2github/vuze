@@ -32,6 +32,8 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerWebPageResponseImpl;
 
+import com.aelitis.azureus.core.util.HTTPUtils;
+
 /**
  * @author parg
  *
@@ -91,7 +93,7 @@ ResourceDownloaderFileImpl
 		}
 		
 		setProperty( 	ResourceDownloader.PR_STRING_CONTENT_TYPE,
-						TrackerWebPageResponseImpl.guessContentTypeFromFileType( file_type ));
+						HTTPUtils.guessContentTypeFromFileType( file_type ));
 		
 		return( FileUtil.getFileOrDirectorySize( file ));
 	}

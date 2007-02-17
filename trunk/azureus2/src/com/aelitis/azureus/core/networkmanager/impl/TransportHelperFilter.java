@@ -55,4 +55,8 @@ TransportHelperFilter
 	
 	public String
 	getName();
+	
+	public void
+	setTrace(
+		boolean	on );
 }

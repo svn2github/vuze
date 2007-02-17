@@ -164,6 +164,13 @@ TransportHelperFilterTransparent
 		return( transport );
 	}
 	
+	public void
+	setTrace(
+			boolean	on )
+	{
+		transport.setTrace( on );
+	}
+	  
 	public String
 	getName()
 	{

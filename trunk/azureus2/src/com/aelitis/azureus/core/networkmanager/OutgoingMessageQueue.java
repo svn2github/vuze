@@ -150,6 +150,9 @@ OutgoingMessageQueue
    */
   public void doListenerNotifications();
  
+  public void
+  setTrace(
+		boolean	on );
   
   public String getQueueTrace();
   

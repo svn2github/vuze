@@ -124,6 +124,9 @@ Transport
    */
   public void close( String reason );
   
+  public void
+  setTrace(
+		boolean	on );
   
   /**
    * Listener for notification of connection establishment.
