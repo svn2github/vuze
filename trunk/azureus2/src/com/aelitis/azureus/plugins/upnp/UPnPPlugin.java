@@ -89,7 +89,8 @@ UPnPPlugin
 	private BooleanParameter	alert_other_port_param;
 	private BooleanParameter	alert_device_probs_param;
 	private BooleanParameter	release_mappings_param;
-	private StringParameter	selected_interfaces_param;
+	private StringParameter		selected_interfaces_param;
+	private StringParameter		selected_addresses_param;
 	
 	private BooleanParameter	ignore_bad_devices;
 	private LabelParameter		ignored_devices_list;
@@ -221,7 +222,8 @@ UPnPPlugin
 		
 		alert_device_probs_param = upnp_config.addBooleanParameter2( "upnp.alertdeviceproblems", "upnp.alertdeviceproblems", true );
 		
-		selected_interfaces_param = upnp_config.addStringParameter2( "upnp.selectedinterfaces", "upnp.selectedinterfaces", "" );
+		selected_interfaces_param 	= upnp_config.addStringParameter2( "upnp.selectedinterfaces", "upnp.selectedinterfaces", "" );
+		selected_addresses_param 	= upnp_config.addStringParameter2( "upnp.selectedaddresses", "upnp.selectedaddresses", "" );
 
 		ignore_bad_devices = upnp_config.addBooleanParameter2( "upnp.ignorebaddevices", "upnp.ignorebaddevices", true );
 		
@@ -258,6 +260,7 @@ UPnPPlugin
 		upnp_enable_param.addEnabledOnSelection( alert_device_probs_param );
 		upnp_enable_param.addEnabledOnSelection( release_mappings_param );
 		upnp_enable_param.addEnabledOnSelection( selected_interfaces_param );
+		upnp_enable_param.addEnabledOnSelection( selected_addresses_param );
 		upnp_enable_param.addEnabledOnSelection( ignore_bad_devices );
 		upnp_enable_param.addEnabledOnSelection( ignored_devices_list );
 		upnp_enable_param.addEnabledOnSelection( reset_param );
@@ -696,6 +699,68 @@ UPnPPlugin
 		String		USN,
 		URL			location )
 	{
+		String[]	addresses = getSelectedAddresses();
+		
+		if ( addresses.length > 0 ){
+			
+			String	address = location.getHost();
+			
+			boolean found	= false;
+			
+			boolean	all_exclude = true;
+			
+			for (int i=0;i<addresses.length;i++){
+				
+				String	this_address = addresses[i];
+				
+				boolean	include = true;
+
+				if ( this_address.startsWith( "+" )){
+					
+					this_address = this_address.substring(1);
+					
+					all_exclude = false;
+					
+				}else if ( this_address.startsWith( "-" )){
+					
+					this_address = this_address.substring(1);
+					
+					include = false;
+					
+				}else{
+					
+					all_exclude = false;
+				}
+				
+				if ( this_address.equals( address )){
+				
+					if ( !include ){
+						
+						log.log( "Device '" + location + "' is being ignored as excluded in address list" );
+						
+						return( false );
+					}
+					
+					found = true;
+					
+					break;
+				}
+			}
+			
+			if ( !found ){
+				
+				if ( all_exclude ){
+					
+					// if all exclude then we let others through
+				}else{
+					
+					log.log( "Device '" + location + "' is being ignored as not in address list" );
+					
+					return( false );
+				}
+			}
+		}
+		
 		if ( !ignore_bad_devices.getValue()){
 			
 			return( true );
@@ -936,6 +1001,28 @@ UPnPPlugin
 		return( (String[])res.toArray( new String[res.size()]));
 	}
 	
+	protected String[]
+	getSelectedAddresses()
+	{
+		String	si = selected_addresses_param.getValue().trim();
+
+		StringTokenizer	tok = new StringTokenizer( si, ";" );
+
+		List	res = new ArrayList();
+
+		while( tok.hasMoreTokens()){
+
+			String	s = tok.nextToken().trim();
+
+			if ( s.length() > 0 ){
+
+				res.add( s );
+			}
+		}
+
+		return( (String[])res.toArray( new String[res.size()]));
+	}
+	
 	protected void
 	processDevice(
 		UPnPDevice		device )
@@ -1046,6 +1133,20 @@ UPnPPlugin
 			}
 			
 			services.add(new UPnPPluginService( wan_service, ports, alert_success_param, grab_ports_param, alert_other_port_param, release_mappings_param ));
+			
+			if ( services.size() > 1 ){
+				
+				PluginConfig pc = plugin_interface.getPluginconfig();
+				
+				if ( !pc.getPluginBooleanParameter( "upnp.device.multipledevices.warned", false )){
+					
+					pc.setPluginParameter( "upnp.device.multipledevices.warned", true );
+					
+					String	text = MessageText.getString( "upnp.alert.multipledevice.warning" );
+																
+					log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+				}
+			}
 			
 			checkState();
 			
