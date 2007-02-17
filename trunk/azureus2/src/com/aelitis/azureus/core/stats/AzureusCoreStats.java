@@ -80,7 +80,9 @@ AzureusCoreStats
 	public static final String ST_NET_TCP_OUT_CANCEL_QUEUE_LENGTH		= "net.tcp.outbound.cancel.queue.length";	// Long
 	public static final String ST_NET_TCP_OUT_CLOSE_QUEUE_LENGTH		= "net.tcp.outbound.close.queue.length";	// Long
 
-	
+	public static final String ST_NET_TCP_SELECT_WRITE_COUNT			= "net.tcp.select.write.count";
+	public static final String ST_NET_TCP_SELECT_READ_COUNT				= "net.tcp.select.read.count";
+
 		// Peer Control
 	
 	public static final String ST_PEER_CONTROL_LOOP_COUNT		= "peer.control.loop.count";
@@ -141,7 +143,9 @@ AzureusCoreStats
 		{ ST_NET_TCP_OUT_CANCEL_QUEUE_LENGTH,		POINT },
 		{ ST_NET_TCP_OUT_CLOSE_QUEUE_LENGTH,		POINT },
 		
-		
+		{ ST_NET_TCP_SELECT_WRITE_COUNT,			CUMULATIVE },
+		{ ST_NET_TCP_SELECT_READ_COUNT,				CUMULATIVE },
+			
 		{ ST_PEER_CONTROL_LOOP_COUNT,				CUMULATIVE },
 		{ ST_PEER_CONTROL_YIELD_COUNT,				CUMULATIVE },
 		{ ST_PEER_CONTROL_WAIT_COUNT,				CUMULATIVE },

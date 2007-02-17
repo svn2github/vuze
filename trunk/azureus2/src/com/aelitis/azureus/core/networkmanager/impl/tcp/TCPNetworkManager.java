@@ -24,6 +24,9 @@ package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 
 import java.net.InetAddress;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -31,6 +34,8 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
+import com.aelitis.azureus.core.stats.AzureusCoreStats;
+import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 
 public class 
 TCPNetworkManager 
@@ -94,113 +99,154 @@ TCPNetworkManager
 	    if( tcp_mss_size < 512 )  tcp_mss_size = 512; 
 	}
 	
+	private final VirtualChannelSelector read_selector 	= 
+			new VirtualChannelSelector( "TCP network manager", VirtualChannelSelector.OP_READ, true );
+	private final VirtualChannelSelector write_selector = 
+			new VirtualChannelSelector( "TCP network manager", VirtualChannelSelector.OP_WRITE, true );
+
+	private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();
+
+	private final IncomingSocketChannelManager incoming_socketchannel_manager = 
+		new IncomingSocketChannelManager( "TCP.Listen.Port", "TCP.Listen.Port.Enable" );	  
+
+	private long	read_select_count;
+	private long	write_select_count;
+	
+	
 	protected
 	TCPNetworkManager()
 	{
+		Set	types = new HashSet();
+		
+		types.add( AzureusCoreStats.ST_NET_TCP_SELECT_READ_COUNT );
+		types.add( AzureusCoreStats.ST_NET_TCP_SELECT_WRITE_COUNT );
+
+		AzureusCoreStats.registerProvider(
+			types,
+			new AzureusCoreStatsProvider()
+			{
+				public void
+				updateStats(
+					Set		types,
+					Map		values )
+				{
+					if ( types.contains( AzureusCoreStats.ST_NET_TCP_SELECT_READ_COUNT )){
+						
+						values.put( AzureusCoreStats.ST_NET_TCP_SELECT_READ_COUNT, new Long( read_select_count ));
+					}	
+					if ( types.contains( AzureusCoreStats.ST_NET_TCP_SELECT_WRITE_COUNT )){
+						
+						values.put( AzureusCoreStats.ST_NET_TCP_SELECT_WRITE_COUNT, new Long( write_select_count ));
+					}					
+				}
+			});
+		
 		   //start read selector processing
-	    Thread read_selector_thread = new AEThread( "ReadController:ReadSelector" ) {
-	      public void runSupport() {
-	        readSelectorLoop();
-	      }
-	    };
+		
+	    Thread read_selector_thread = 
+	    	new AEThread( "ReadController:ReadSelector" ) 
+	    	{
+		    	public void 
+		    	runSupport() 
+		    	{
+		    		while( true ) {
+		    	
+		    			try{
+		    				read_selector.select( READ_SELECT_LOOP_TIME );
+		    				
+		    				read_select_count++;
+		    				
+		    			}catch( Throwable t ) {
+		    				
+		    				Debug.out( "readSelectorLoop() EXCEPTION: ", t );
+		    			}      
+		    		}
+		    	}
+	    	};
+	    	
 	    read_selector_thread.setDaemon( true );
 	    read_selector_thread.setPriority( Thread.MAX_PRIORITY - 2 );
 	    read_selector_thread.start();
 	    
-	    //start write selector processing
-	    Thread write_selector_thread = new AEThread( "WriteController:WriteSelector" ) {
-	      public void runSupport() {
-	        writeSelectorLoop();
-	      }
-	    };
+	    	//start write selector processing
+	    
+	    Thread write_selector_thread = 
+	    	new AEThread( "WriteController:WriteSelector" )
+	    	{
+		    	public void 
+		    	runSupport() 
+		    	{
+		    	    while( true ){
+		    	    	
+		    	    	try{
+		    	    		write_selector.select( WRITE_SELECT_LOOP_TIME );
+		    	    		
+		    	    		write_select_count++;
+		    	    		
+		    	    	}catch( Throwable t ) {
+		    	    		
+		    	    		Debug.out( "writeSelectorLoop() EXCEPTION: ", t );
+		    	    	}      
+		  		    }
+		    	}
+	    	};
+	    	
 	    write_selector_thread.setDaemon( true );
 	    write_selector_thread.setPriority( Thread.MAX_PRIORITY - 2 );
 	    write_selector_thread.start();	    
 	}
 	
-	  private final VirtualChannelSelector read_selector = new VirtualChannelSelector( "TCP network manager", VirtualChannelSelector.OP_READ, true );
-	  private final VirtualChannelSelector write_selector = new VirtualChannelSelector( "TCP network manager", VirtualChannelSelector.OP_WRITE, true );
+	public void
+	setExplicitBindAddress(
+			InetAddress	address )
+	{
+		incoming_socketchannel_manager.setExplicitBindAddress( address );
+	}
 
+	public void
+	clearExplicitBindAddress()
+	{
+		incoming_socketchannel_manager.clearExplicitBindAddress();
+	}
 
-	  private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();
-	  
-	  private final IncomingSocketChannelManager incoming_socketchannel_manager = 
-		  new IncomingSocketChannelManager( "TCP.Listen.Port", "TCP.Listen.Port.Enable" );	  
-
-	  public void
-	  setExplicitBindAddress(
-		InetAddress	address )
-	  {
-		  incoming_socketchannel_manager.setExplicitBindAddress( address );
-	  }
-	  
-	  public void
-	  clearExplicitBindAddress()
-	  {
-		  incoming_socketchannel_manager.clearExplicitBindAddress();
-	  }
-	  
-		public boolean
-		isEffectiveBindAddress(
+	public boolean
+	isEffectiveBindAddress(
 			InetAddress		address )
-		{
-			return( incoming_socketchannel_manager.isEffectiveBindAddress( address ));
-		}
-	  /**
-	   * Get the socket channel connect / disconnect manager.
-	   * @return connect manager
-	   */
-	  public ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
-	  
-	  
+	{
+		return( incoming_socketchannel_manager.isEffectiveBindAddress( address ));
+	}
+	/**
+	 * Get the socket channel connect / disconnect manager.
+	 * @return connect manager
+	 */
+	public ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
 
-	 
-	  /**
-	   * Get the virtual selector used for socket channel read readiness.
-	   * @return read readiness selector
-	   */
-	  public VirtualChannelSelector getReadSelector() {  return read_selector;  }
-	  
-	  
-	  /**
-	   * Get the virtual selector used for socket channel write readiness.
-	   * @return write readiness selector
-	   */
-	  public VirtualChannelSelector getWriteSelector() {  return write_selector;  }
-	  
-	  
-	  public boolean
-	  isTCPListenerEnabled()
-	  {
-		  return( incoming_socketchannel_manager.isEnabled());
-	  }
-	  
-	  /**
-	   * Get port that the TCP server socket is listening for incoming connections on.
-	   * @return port number
-	   */
-	  public int getTCPListeningPortNumber() {  return incoming_socketchannel_manager.getTCPListeningPortNumber();  }	  
-	  
-	  private void readSelectorLoop() {
-		    while( true ) {
-		      try {
-		        read_selector.select( READ_SELECT_LOOP_TIME );
-		      }
-		      catch( Throwable t ) {
-		        Debug.out( "readSelectorLoop() EXCEPTION: ", t );
-		      }      
-		    }
-		  }
-		 
-	  private void writeSelectorLoop() {
-		    while( true ) {
-		      try {
-		        write_selector.select( WRITE_SELECT_LOOP_TIME );
-		      }
-		      catch( Throwable t ) {
-		        Debug.out( "writeSelectorLoop() EXCEPTION: ", t );
-		      }      
-		    }
-		  }
 
+
+
+	/**
+	 * Get the virtual selector used for socket channel read readiness.
+	 * @return read readiness selector
+	 */
+	public VirtualChannelSelector getReadSelector() {  return read_selector;  }
+
+
+	/**
+	 * Get the virtual selector used for socket channel write readiness.
+	 * @return write readiness selector
+	 */
+	public VirtualChannelSelector getWriteSelector() {  return write_selector;  }
+
+
+	public boolean
+	isTCPListenerEnabled()
+	{
+		return( incoming_socketchannel_manager.isEnabled());
+	}
+
+	/**
+	 * Get port that the TCP server socket is listening for incoming connections on.
+	 * @return port number
+	 */
+	public int getTCPListeningPortNumber() {  return incoming_socketchannel_manager.getTCPListeningPortNumber();  }	  
 }
