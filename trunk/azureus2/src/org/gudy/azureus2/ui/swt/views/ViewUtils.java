@@ -27,12 +27,8 @@ package org.gudy.azureus2.ui.swt.views;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -48,7 +44,7 @@ ViewUtils
 {
 	public static void
 	addSpeedMenu(
-		final Composite	composite,
+		final Shell shell,
 		Menu			menuAdvanced,
 		boolean			hasSelection,
 		boolean			downSpeedDisabled,
@@ -69,8 +65,7 @@ ViewUtils
 		Messages.setLanguageText(itemDownSpeed, "MyTorrentsView.menu.setDownSpeed"); //$NON-NLS-1$
 		Utils.setMenuItemImage(itemDownSpeed, "speed");
 
-		final Menu menuDownSpeed = new Menu(composite.getShell(),
-				SWT.DROP_DOWN);
+		final Menu menuDownSpeed = new Menu(shell, SWT.DROP_DOWN);
 		itemDownSpeed.setMenu(menuDownSpeed);
 
 		final MenuItem itemCurrentDownSpeed = new MenuItem(menuDownSpeed, SWT.PUSH);
@@ -182,8 +177,7 @@ ViewUtils
 				try {
 					newSpeed = (int) (Double.valueOf(sReturn).doubleValue() * 1024);
 				} catch (NumberFormatException er) {
-					MessageBox mb = new MessageBox(composite.getShell(),
-							SWT.ICON_ERROR | SWT.OK);
+					MessageBox mb = new MessageBox(shell,	SWT.ICON_ERROR | SWT.OK);
 					mb.setText(MessageText
 							.getString("MyTorrentsView.dialog.NumberError.title"));
 					mb.setMessage(MessageText
@@ -205,7 +199,7 @@ ViewUtils
 		Messages.setLanguageText(itemUpSpeed, "MyTorrentsView.menu.setUpSpeed"); //$NON-NLS-1$
 		Utils.setMenuItemImage(itemUpSpeed, "speed");
 
-		final Menu menuUpSpeed = new Menu(composite.getShell(), SWT.DROP_DOWN);
+		final Menu menuUpSpeed = new Menu(shell, SWT.DROP_DOWN);
 		itemUpSpeed.setMenu(menuUpSpeed);
 
 		final MenuItem itemCurrentUpSpeed = new MenuItem(menuUpSpeed, SWT.PUSH);
@@ -316,8 +310,7 @@ ViewUtils
 				try {
 					newSpeed = (int) (Double.valueOf(sReturn).doubleValue() * 1024);
 				} catch (NumberFormatException er) {
-					MessageBox mb = new MessageBox(composite.getShell(),
-							SWT.ICON_ERROR | SWT.OK);
+					MessageBox mb = new MessageBox(shell, SWT.ICON_ERROR | SWT.OK);
 					mb.setText(MessageText
 							.getString("MyTorrentsView.dialog.NumberError.title"));
 					mb.setMessage(MessageText
