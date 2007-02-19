@@ -30,6 +30,14 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 
+/**
+ * 
+ * @author TuxPaper
+ * 
+ * XXX TODO TUX: This needs to be moved to common, and TableManagerImpl should
+ *          add to it instead of UISWTInstanceImpl
+ *
+ */
 public class TableContextMenuManager {
   private static TableContextMenuManager 	instance;
   private static AEMonitor 					class_mon 	= new AEMonitor( "TableContextMenuManager" );
