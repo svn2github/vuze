@@ -28,7 +28,7 @@ public interface TableColumn {
    */
   public static final int TYPE_GRAPHIC = 2;
   /**
-   * The cells in this column display only textual information, and do not
+   * The cells in this column display only textual information, and does not
    * set any other visible properties of cell (background, foreground, icon, 
    * etc).
    * 
@@ -61,6 +61,8 @@ public interface TableColumn {
    * @param iPosition See {@link #setPosition(int)}
    * @param iWidth See {@link #setWidth(int)}
    * @param iInterval See {@link #setRefreshInterval(int)}
+   * 
+   * @since 2.1.0.0
    */
   public void initialize(int iAlignment, int iPosition, 
                          int iWidth, int iInterval);
@@ -71,6 +73,8 @@ public interface TableColumn {
    * @param iAlignment See {@link #setAlignment(int)}
    * @param iPosition See {@link #setPosition(int)}
    * @param iWidth See {@link #setWidth(int)}
+   * 
+   * @since 2.1.0.0
    */
   public void initialize(int iAlignment, int iPosition, int iWidth);
   
@@ -79,6 +83,8 @@ public interface TableColumn {
    * {@link TableManager#createColumn} and can not be changed.
    *
    * @return the column name (identification)
+   * 
+   * @since 2.1.0.0
    */
   public String getName();
 
@@ -86,6 +92,8 @@ public interface TableColumn {
    * {@link TableManager#createColumn} and can not be changed.
    *
    * @return {@link TableManager}.TABLE_* constant(s)
+   * 
+   * @since 2.1.0.0
    */
   public String getTableID();
 
@@ -97,12 +105,16 @@ public interface TableColumn {
    * The default type is {@link #TYPE_TEXT_ONLY}.
    *
    * @param type {@link #TYPE_TEXT}, {@link #TYPE_TEXT_ONLY}, {@link #TYPE_GRAPHIC}
+   * 
+   * @since 2.1.0.0
    */
   public void setType(int type);
 
   /** Returns the type of the contained data.
    *
    * @return type TYPE_TEXT, or TYPE_GRAPHIC
+   * 
+   * @since 2.1.0.0
    */
   public int getType();
   
@@ -111,12 +123,16 @@ public interface TableColumn {
    * NOTE: This MUST be set BEFORE adding the column to a table.
    *
    * @param width the size in pixels
+   * 
+   * @since 2.1.0.0
    */
   public void setWidth(int width);
   
   /** Returns the column's size
    *
    * @return width in pixels
+   * 
+   * @since 2.1.0.0
    */
   public int getWidth();
   
@@ -130,6 +146,8 @@ public interface TableColumn {
    * UI table will result in the column being moved.
    *
    * @param position Column Number (0 based), POSITION_INVISIBLE or POSITION_LAST
+   * 
+   * @since 2.1.0.0
    */
   public void setPosition(int position);
   
@@ -137,6 +155,8 @@ public interface TableColumn {
   /** Returns the position of the column
    *
    * @return Column Number (0 based), POSITION_INVISIBLE or POSITION_LAST
+   * 
+   * @since 2.1.0.0
    */
   public int getPosition();
 
@@ -145,12 +165,16 @@ public interface TableColumn {
    * NOTE: This MUST be set BEFORE adding the column to a table.
    *
    * @param alignment ALIGN_TRAIL, ALIGN_LEAD, or ALIGN_CENTER
+   * 
+   * @since 2.1.0.0
    */
   public void setAlignment(int alignment);
 
   /** Returns the alignment of the column 
    *
    * @return ALIGN_TRAIL, ALIGN_LEAD, or ALIGN_CENTER
+   * 
+   * @since 2.1.0.0
    */
   public int getAlignment();
   
@@ -160,6 +184,8 @@ public interface TableColumn {
    *                 constants, or an integer based on the user-configurable
    *                 "GUI refresh interval".  For example, specifying 4 will 
    *                 result in a refresh trigger every 4 "GUI refresh intervals"
+   * 
+   * @since 2.1.0.0
    */
   public void setRefreshInterval(int interval);
 
@@ -168,18 +194,189 @@ public interface TableColumn {
    *
    * @return INTERVAL_* constant, or a number representing the # of GUI refresh
    *         cycles between each cell refresh call.
+   * 
+   * @since 2.1.0.0
    */
   public int getRefreshInterval();
+  
+  /**
+   * Sets the minimum width that the column can be before other columns
+   * start collapsing.  This may not prevent the user from resizing the column
+   * smaller than specified.
+   * <p>
+   * If not set, the width specified on initialize will be the minimum width
+   * <p>
+   * Not all UIs may have this feature implemented.
+   * 
+   * @param minwidth new minumum width
+   * 
+   * @since 3.0.0.7
+   */
+  public void setMinWidth(int minwidth);
+
+  /**
+   * Gets the minimum width that the column can be before other columns
+   * start collapsing.
+   * <p>
+   * If not set, the width specified on initialize will be the minimum width
+   * <p>
+   * Not all UIs may have this feature implemented.
+   * 
+   * @return minumum width of the column
+   * 
+   * @since 3.0.0.7
+   */
+  public int getMinWidth();
+
+  /**
+   * Sets the maximum width that the column can be
+   * <p>
+   * Not all UIs may have this feature implemented.
+   * 
+   * @param maxwidth new maximum width
+   *
+   * @since 3.0.0.7
+   */
+  public void setMaxWidth(int maxwidth);
+  
+  /**
+   * Gets the maximum width the column can be
+   * <p>
+   * Not all UIs may have this feature implemented.
+   * 
+   * @return maximum width of column
+   *
+   * @since 3.0.0.7
+   */
+  public int getMaxWidth();
+  
+  /**
+   * Sets the minimum and maximum widths in one call
+   * <p>
+   * Not all UIs may have this min and max limits implemented.
+   * 
+   * @param min New minimum column width
+   * @param max New maximum column width
+   *
+   * @since 3.0.0.7
+   */
+  public void setWidthLimits(int min, int max); 
+  
+  /**
+   * Sets whether the max width is automatically set.  Depending on the UI,
+   * automatically setting the max width usually results in the maximum width
+   * being grown to fit the largest text set for any cell (past or present).
+   * Therefore, the column will never grow larger than the largest text it
+   * contains or contained.
+   * 
+   * @param automaxwidth
+   *
+   * @since 3.0.0.7
+   */
+  public void setMaxWidthAuto(boolean automaxwidth);
+  
+  /**
+   * Retrieve whether the max width is automatically being set.
+   * 
+   * @return max width auto setting state
+   *
+   * @since 3.0.0.7
+   */
+  public boolean isMaxWidthAuto();
+  
+  /**
+   * Sets whether the min width of the column is automatically set.  Depending
+   * on the UI, automatically setting the min width usually results in the
+   * column never shrinking below the maximum text width ever encountered.
+   * 
+   * @param autowidth
+   *
+   * @since 3.0.0.7
+   */
+  public void setMinWidthAuto(boolean autowidth);
+  
+  /**
+   * Retrieve whether the min width is automatically being set
+   * 
+   * @return min width auto setting state
+   *
+   * @since 3.0.0.7
+   */
+  public boolean isMinWidthAuto();
+  
+  /**
+   * Sets the preferred width of the column.  When the UI is in auto-expand
+   * mode and space is made available, the columns will first fill to their
+   * preferred width, then to their maximum width.
+   * 
+   * @param width New preferred width
+   *
+   * @since 3.0.0.7
+   */
+  public void setPreferredWidth(int width);
+  
+  /**
+   * Gets the preferred width of the coloumn.
+   * 
+   * @return preferred width
+   *
+   * @since 3.0.0.7
+   */
+  public int getPreferredWidth();
+  
+  /**
+   * Retrieves whether the preferred width is automatically calculated.
+   * 
+   * @return preferred width auto calculation state
+   *
+   * @since 3.0.0.7
+   */
+  public boolean isPreferredWidthAuto();
+  
+  /**
+   * Sets whether the preferred with is automatically calculated.  An
+   * automatically calculated preferred width will be set to the largest
+   * text width known to that column
+   * 
+   * @param auto Preferred Width Auto State
+   *
+   * @since 3.0.0.7
+   */
+  public void setPreferredWidthAuto(boolean auto);
+
+  /**
+   * Gets the visibility of the column 
+   * <p>
+   * Not all UIs may have this feature implemented.
+   * 
+   * @return Column visibility
+   *
+   * @since 3.0.0.7
+   */
+  public boolean isVisible();
+  
+  /**
+   * Sets the visibility of the column
+   * 
+   * @param visible New visibility state
+   *
+   * @since 3.0.0.7
+   */
+  public void setVisible(boolean visible);
 
   /** Adds a listener that triggers when a TableCell that belongs to this column
    * needs refreshing.
    *
    * @param listener Listener Object to be called when refresh is needed.
+   * 
+   * @since 2.1.0.0
    */
   public void addCellRefreshListener(TableCellRefreshListener listener);
   /** Removed a previously added TableCellRefreshListener
    *
    * @param listener Previously added listener
+   * 
+   * @since 2.1.0.0
    */
   public void removeCellRefreshListener(TableCellRefreshListener listener);
 
@@ -188,6 +385,8 @@ public interface TableColumn {
    * is being added.
    *
    * @param listener Listener Object to be called when refresh is needed.
+   * 
+   * @since 2.1.0.0
    */
   public void addCellAddedListener(TableCellAddedListener listener);
   public void removeCellAddedListener(TableCellAddedListener listener);
@@ -196,6 +395,8 @@ public interface TableColumn {
    * is being disposed.
    *
    * @param listener Listener Object to be called when refresh is needed.
+   * 
+   * @since 2.1.0.0
    */
   public void addCellDisposeListener(TableCellDisposeListener listener);
   public void removeCellDisposeListener(TableCellDisposeListener listener);
@@ -204,6 +405,8 @@ public interface TableColumn {
    * has a tooltip action
    *
    * @param listener Listener Object to be called when refresh is needed.
+   * 
+   * @since 2.1.0.2
    */
   public void addCellToolTipListener(TableCellToolTipListener listener);
   public void removeCellToolTipListener(TableCellToolTipListener listener);
@@ -229,12 +432,16 @@ public interface TableColumn {
    * implements
    *  
    * @param listenerObject Object implementing some cell listeneters
+   * 
+   * @since 2.4.0.0
    */
   public void addListeners(Object listenerObject);
 
   
   /** Invalidate all cells in this column.  The cells will be forced to
    * update on the next refresh.
+   * 
+   * @since 2.1.0.0
    */
   public void invalidateCells();
 
@@ -245,6 +452,8 @@ public interface TableColumn {
    *                    the textual name from the plugin language file.
    *
    * @return a newly created menu item
+   * 
+   * @since 2.4.0.0
    */
   public TableContextMenuItem addContextMenuItem(String resourceKey);
 
