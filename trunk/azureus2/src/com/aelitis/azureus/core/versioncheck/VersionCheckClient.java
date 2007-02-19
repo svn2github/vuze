@@ -30,12 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -144,8 +139,12 @@ public class VersionCheckClient {
         try {
           last_check_data = performVersionCheck( constructVersionCheckMessage( reason ), true, true );
         }
+        catch( UnknownHostException t ) {
+        	// no internet
+        	Debug.out(t.getClass().getName() + ": " + t.getMessage());
+        }
         catch( Throwable t ) {
-          t.printStackTrace();
+        	Debug.out(t);
           last_check_data = new HashMap();
         }
       }
