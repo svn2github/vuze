@@ -1,9 +1,9 @@
-/*
+/**
  * File    : ITableStructureModificationListener.java
  * Created : 26 nov. 2003
  * By      : Olivier
  *
- * Copyright (C) 2004, 2005, 2006 Aelitis SAS, All rights Reserved
+ * Copyright (C) 2004-2007 Aelitis SAS, All rights Reserved
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,16 +21,20 @@
  * AELITIS, SAS au capital de 46,603.30 euros,
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
- 
-package org.gudy.azureus2.ui.swt.views.table;
+
+package com.aelitis.azureus.ui.common.table;
 
 /**
  * @author Olivier
  *
  */
-public interface ITableStructureModificationListener {
-  void tableStructureChanged();
-  void columnOrderChanged(int[] iPositions);
-  void columnSizeChanged(TableColumnCore tableColumn);
-  void columnInvalidate(TableColumnCore tableColumn);
+public interface TableStructureModificationListener
+{
+	void tableStructureChanged();
+
+	void columnOrderChanged(int[] iPositions);
+
+	void columnSizeChanged(TableColumnCore tableColumn);
+
+	void columnInvalidate(TableColumnCore tableColumn);
 }

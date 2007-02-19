@@ -33,9 +33,10 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
-import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
+
+import com.aelitis.azureus.ui.common.table.TableStructureModificationListener;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
 /**
  * Choose columns to display, and in what order
@@ -50,7 +51,7 @@ public class TableColumnEditorWindow {
   //private TableColumnCore[] tableColumns;
   private ArrayList tableColumns;
   private Map newEnabledState;
-  private ITableStructureModificationListener listener;
+  private TableStructureModificationListener listener;
   
   private boolean mousePressed;
   private TableItem selectedItem;
@@ -65,7 +66,7 @@ public class TableColumnEditorWindow {
    */
   public TableColumnEditorWindow(Shell parent,
                                 TableColumnCore[] _tableColumns,
-                                ITableStructureModificationListener _listener) {    
+                                TableStructureModificationListener _listener) {    
     RowData rd;
     display = parent.getDisplay();
     listener = _listener;
