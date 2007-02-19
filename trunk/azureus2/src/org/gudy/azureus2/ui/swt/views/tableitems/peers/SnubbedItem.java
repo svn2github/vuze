@@ -24,12 +24,14 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-
 import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  *
@@ -54,7 +56,7 @@ public class SnubbedItem
       return;
 
     cell.setText(bSnubbed ? "*" : "");
-    ((TableCellCore)cell).getTableRowCore().setForeground(bSnubbed ? Colors.grey 
+    ((TableCellSWT)cell).getTableRowSWT().setForeground(bSnubbed ? Colors.grey 
     		: null);
   }
 }

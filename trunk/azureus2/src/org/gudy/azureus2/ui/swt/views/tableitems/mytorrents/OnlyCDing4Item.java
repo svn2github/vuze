@@ -42,6 +42,7 @@ public class OnlyCDing4Item
   public OnlyCDing4Item(String sTableID) {
     super("OnlyCDing4", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

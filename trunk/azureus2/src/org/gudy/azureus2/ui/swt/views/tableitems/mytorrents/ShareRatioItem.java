@@ -26,12 +26,13 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 
 /**
@@ -51,6 +52,7 @@ public class ShareRatioItem
     super("shareRatio", ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
 		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
 
     if (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE))
       setPosition(POSITION_LAST);
@@ -89,7 +91,7 @@ public class ShareRatioItem
     }
     
     if( cell.setText(shareRatio) ) {
-      ((TableCellCore)cell).setForeground((sr < iMinShareRatio) ? Colors.colorWarning : null);
+      ((TableCellSWT)cell).setForeground((sr < iMinShareRatio) ? Colors.colorWarning : null);
     }
   }
 

@@ -43,6 +43,7 @@ public class TotalSpeedItem
   public TotalSpeedItem(String sTableID) {
     super("totalspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

@@ -44,6 +44,7 @@ public class TimeSinceUploadItem
   public TimeSinceUploadItem(String sTableID) {
     super("timesinceupload", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

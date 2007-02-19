@@ -53,6 +53,7 @@ public class PeersItem extends CoreTableColumn implements
 	public PeersItem(String sTableID) {
 		super("peers", ALIGN_CENTER, POSITION_LAST, 60, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
 	}
 
 	public void cellAdded(TableCell cell) {

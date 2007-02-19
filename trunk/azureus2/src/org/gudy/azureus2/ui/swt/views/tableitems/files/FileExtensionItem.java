@@ -32,6 +32,7 @@ public class FileExtensionItem
   /** Default Constructor */
   public FileExtensionItem() {
     super("fileext", ALIGN_LEAD, POSITION_INVISIBLE, 50, TableManager.TABLE_TORRENT_FILES);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

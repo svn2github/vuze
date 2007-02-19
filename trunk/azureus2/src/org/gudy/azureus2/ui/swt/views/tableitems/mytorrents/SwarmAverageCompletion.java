@@ -39,6 +39,7 @@ public class SwarmAverageCompletion
   public SwarmAverageCompletion(String sTableID) {
     super("swarm_average_completion", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_GRAPHIC);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

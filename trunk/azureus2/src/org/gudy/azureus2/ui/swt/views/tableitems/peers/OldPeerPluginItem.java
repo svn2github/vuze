@@ -29,7 +29,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.ui.tables.peers.*;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableColumnImpl;
+
+import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 
 /** Cell/Factory to support old style Plugin columns
  *

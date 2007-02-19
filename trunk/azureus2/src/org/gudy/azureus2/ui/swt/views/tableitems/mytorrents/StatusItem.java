@@ -24,12 +24,14 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 
 
 /**
@@ -53,11 +55,11 @@ public class StatusItem
     if( cell.setText( dm == null ? "" : DisplayFormatters.formatDownloadStatus(dm) ) || !cell.isValid() ) {
       int state = dm.getState();
       if (state == DownloadManager.STATE_SEEDING)
-        ((TableCellCore)cell).getTableRowCore().setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
+        ((TableCellSWT)cell).getTableRowSWT().setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
       else if (state == DownloadManager.STATE_ERROR)
-        ((TableCellCore)cell).getTableRowCore().setForeground(Colors.colorError);
+        ((TableCellSWT)cell).getTableRowSWT().setForeground(Colors.colorError);
       else
-        ((TableCellCore)cell).getTableRowCore().setForeground(null);
+        ((TableCellSWT)cell).getTableRowSWT().setForeground(null);
     }
  
   }

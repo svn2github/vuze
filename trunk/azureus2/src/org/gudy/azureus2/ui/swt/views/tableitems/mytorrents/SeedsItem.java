@@ -56,6 +56,7 @@ public class SeedsItem extends CoreTableColumn implements
 	public SeedsItem(String sTableID) {
 		super("seeds", ALIGN_CENTER, POSITION_LAST, 60, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
 
 		bCompleteTorrent = sTableID == TableManager.TABLE_MYTORRENTS_COMPLETE;
 		if (bCompleteTorrent) {

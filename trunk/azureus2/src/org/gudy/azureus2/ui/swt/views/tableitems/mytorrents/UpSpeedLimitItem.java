@@ -43,6 +43,7 @@ public class UpSpeedLimitItem
 	public UpSpeedLimitItem(String sTableID) {
 	  super("maxupspeed", ALIGN_TRAIL, POSITION_LAST, 35, sTableID);
 	  setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
 	}
 
 	public void refresh(TableCell cell) {

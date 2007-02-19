@@ -44,6 +44,7 @@ implements TableCellRefreshListener
 	public DownSpeedLimitItem(String sTableID) {
 	  super("maxdownspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 35, sTableID);
 	  setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
 	}
 
 	public void refresh(TableCell cell) {

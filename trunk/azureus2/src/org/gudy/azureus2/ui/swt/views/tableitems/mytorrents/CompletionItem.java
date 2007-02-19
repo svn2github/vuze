@@ -24,16 +24,19 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /** Torrent Completion Level Graphic Cell for My Torrents.
  *
@@ -46,10 +49,13 @@ public class CompletionItem
 {
   private static final int borderWidth = 1;
 
+	private static Font fontText;
+
   /** Default Constructor */
   public CompletionItem() {
     super("completion", TableManager.TABLE_MYTORRENTS_INCOMPLETE);
-    initializeAsGraphic(POSITION_INVISIBLE, 250);
+    initializeAsGraphic(POSITION_INVISIBLE, 200);
+    setMinWidth(100);
   }
 
   public void cellAdded(TableCell cell) {
@@ -68,9 +74,11 @@ public class CompletionItem
     }
 
     public void dispose(TableCell cell) {
-      Image img = ((TableCellCore)cell).getGraphicSWT();
-      if (img != null && !img.isDisposed())
-        img.dispose();
+    	if (cell instanceof TableCellSWT) {
+        Image img = ((TableCellSWT)cell).getGraphicSWT();
+        if (img != null && !img.isDisposed())
+          img.dispose();
+    	}
     }
   
       
@@ -96,7 +104,7 @@ public class CompletionItem
 
       lastPercentDone = percentDone;
 
-      Image image = ((TableCellCore)cell).getGraphicSWT();
+      Image image = ((TableCellSWT)cell).getGraphicSWT();
       GC gcImage;
       boolean bImageSizeChanged;
       Rectangle imageBounds;
@@ -128,10 +136,23 @@ public class CompletionItem
         gcImage.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
         gcImage.fillRectangle(limit+1, 1, x1-limit, y1);
       }
+      
+			if (fontText == null) {
+  			FontData[] fontData = gcImage.getFont().getFontData();
+  			Display display = SWTThread.getInstance().getDisplay();
+  			fontData[0].setHeight(Utils.pixelsToPoint(10, display.getDPI().y));
+  			fontText = new Font(display, fontData);
+			}
+			gcImage.setFont(fontText);
+			gcImage.setForeground(Colors.black);
+			String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
+			GCStringPrinter.printString(gcImage, sPercent, new Rectangle(4, 0,
+					newWidth, newHeight));
+
   
       gcImage.dispose();
         
-      ((TableCellCore)cell).setGraphic(image);
+      ((TableCellSWT)cell).setGraphic(image);
     }
   
     public int getPercentDone(TableCell cell) {

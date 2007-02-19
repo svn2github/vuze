@@ -26,14 +26,17 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.tracker.host.*;
-
+import org.gudy.azureus2.core3.tracker.host.TRHost;
+import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 
 /**
  *
@@ -44,12 +47,15 @@ public class HealthItem
        extends CoreTableColumn 
        implements TableCellAddedListener
 {
+	static final int COLUMN_WIDTH = 19;
+	
 	static TRHost	tracker_host	= AzureusCoreFactory.getSingleton().getTrackerHost();
 	
   /** Default Constructor */
   public HealthItem(String sTableID) {
     super("health", sTableID);
-    initializeAsGraphic(POSITION_LAST, 20);
+    initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
+    setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
   }
 
   public void cellAdded(TableCell cell) {
@@ -110,7 +116,7 @@ public class HealthItem
       	image_name += "_shared";
       }
       
-      if( ((TableCellCore)cell).setGraphic(ImageRepository.getImage(image_name)) ) {
+      if( ((TableCellSWT)cell).setGraphic(ImageRepository.getImage(image_name)) ) {
         String sToolTip = (health == DownloadManager.WEALTH_ERROR) ? dm
 						.getErrorDetails() : MessageText.getString(sHelpID);
         if (ht != null)

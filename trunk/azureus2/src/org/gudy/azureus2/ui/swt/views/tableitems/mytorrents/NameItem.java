@@ -36,7 +36,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -66,6 +66,7 @@ public class NameItem extends CoreTableColumn implements
 		setObfustication(true);
 		setRefreshInterval(INTERVAL_LIVE);
 		setType(TableColumn.TYPE_TEXT);
+		setMinWidth(100);
 	}
 
 	public void refresh(TableCell cell) {
@@ -124,7 +125,7 @@ public class NameItem extends CoreTableColumn implements
 
 					// cheat for core, since we really know it's a TabeCellImpl and want to
 					// use those special functions not available to Plugins
-					((TableCellCore) cell).setIcon(icon);
+					((TableCellSWT) cell).setIcon(icon);
 				} else {
 					if (Constants.isWindows) {
 						disposeCellIcon(cell);
@@ -157,9 +158,9 @@ public class NameItem extends CoreTableColumn implements
 	}
 
 	private void disposeCellIcon(TableCell cell) {
-		final Image img = ((TableCellCore) cell).getIcon();
+		final Image img = ((TableCellSWT) cell).getIcon();
 		if (img != null) {
-			((TableCellCore) cell).setIcon(null);
+			((TableCellSWT) cell).setIcon(null);
 			if (!img.isDisposed()) {
 				img.dispose();
 			}

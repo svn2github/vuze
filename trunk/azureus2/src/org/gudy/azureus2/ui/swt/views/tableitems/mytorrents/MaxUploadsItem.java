@@ -36,6 +36,7 @@ public class MaxUploadsItem
   public MaxUploadsItem(String sTableID) {
     super("maxuploads", ALIGN_TRAIL, POSITION_INVISIBLE, 30, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

@@ -26,16 +26,20 @@ package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.gudy.azureus2.core3.disk.*;
+
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 
 /** Torrent Completion Level Graphic Cell for My Torrents.
  *
@@ -52,6 +56,7 @@ public class ProgressGraphItem
   public ProgressGraphItem() {
     super("pieces", TableManager.TABLE_TORRENT_FILES);
     initializeAsGraphic(POSITION_LAST, 200);
+    setMinWidth(100);
   }
 
   public void cellAdded(TableCell cell) {
@@ -72,7 +77,7 @@ public class ProgressGraphItem
     }
 
     public void dispose(TableCell cell) {
-    	final Image img = ((TableCellCore)cell).getGraphicSWT();
+    	final Image img = ((TableCellSWT)cell).getGraphicSWT();
       if (img != null && !img.isDisposed())
         img.dispose();
     }
@@ -119,7 +124,7 @@ public class ProgressGraphItem
       
       lastPercentDone = percentDone;
 
-      Image piecesImage = ((TableCellCore)cell).getGraphicSWT();
+      Image piecesImage = ((TableCellSWT)cell).getGraphicSWT();
 
       if (piecesImage != null && !piecesImage.isDisposed())
         piecesImage.dispose();
@@ -224,7 +229,7 @@ public class ProgressGraphItem
       gcImage.dispose();
       last_draw_time =now;
 
-      ((TableCellCore)cell).setGraphic(piecesImage);
+      ((TableCellSWT)cell).setGraphic(piecesImage);
     }
   }
 }

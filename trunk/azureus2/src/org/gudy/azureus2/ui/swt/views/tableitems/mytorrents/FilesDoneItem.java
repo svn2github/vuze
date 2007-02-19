@@ -37,6 +37,7 @@ public class FilesDoneItem
   public FilesDoneItem(String sTableID) {
 	  super("filesdone", ALIGN_CENTER, POSITION_INVISIBLE, 50, sTableID);
 	  setRefreshInterval(5);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

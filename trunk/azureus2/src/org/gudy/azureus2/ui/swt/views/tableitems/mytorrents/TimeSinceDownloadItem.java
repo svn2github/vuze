@@ -44,6 +44,7 @@ public class TimeSinceDownloadItem
   public TimeSinceDownloadItem(String sTableID) {
     super("timesincedownload", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

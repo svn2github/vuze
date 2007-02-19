@@ -36,6 +36,7 @@ public class PieceCountItem
   /** Default Constructor */
   public PieceCountItem() {
     super("numberofpieces", ALIGN_TRAIL, POSITION_LAST, 75, TableManager.TABLE_TORRENT_FILES);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

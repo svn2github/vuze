@@ -43,6 +43,7 @@ public class SecondsDownloadingItem
   public SecondsDownloadingItem(String sTableID) {
     super("secondsdownloading", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

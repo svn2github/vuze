@@ -38,6 +38,7 @@ public class SwarmAverageSpeed
   public SwarmAverageSpeed(String sTableID) {
     super("swarm_average_speed", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

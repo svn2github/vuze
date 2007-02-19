@@ -47,6 +47,7 @@ public class DoneItem
       setPosition(POSITION_LAST);
     else
       setPosition(POSITION_INVISIBLE);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

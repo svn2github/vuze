@@ -33,7 +33,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.MyTorrentsTableItem;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItem;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableColumnImpl;
+
+import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 
 /** Cell/Factory to support old style Plugin columns
  *

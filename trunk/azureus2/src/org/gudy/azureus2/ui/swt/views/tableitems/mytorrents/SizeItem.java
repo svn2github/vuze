@@ -39,10 +39,13 @@ public class SizeItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
+	public static String COLUMN_ID = "size";
+
   /** Default Constructor */
-  public SizeItem(String sTableID) {
-    super("size", ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
-  }
+	public SizeItem(String sTableID) {
+		super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
+		setMinWidthAuto(true);
+	}
 
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();

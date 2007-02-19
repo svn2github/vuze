@@ -35,7 +35,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -96,7 +96,7 @@ public class NameItem extends CoreTableColumn implements
 
 				// cheat for core, since we really know it's a TabeCellImpl and want to use
 				// those special functions not available to Plugins
-				((TableCellCore) cell).setIcon(icon);
+				((TableCellSWT) cell).setIcon(icon);
 			}
 		}
 	}
@@ -117,9 +117,9 @@ public class NameItem extends CoreTableColumn implements
 	}
 
 	private void disposeCellIcon(TableCell cell) {
-		final Image img = ((TableCellCore) cell).getIcon();
+		final Image img = ((TableCellSWT) cell).getIcon();
 		if (img != null) {
-			((TableCellCore) cell).setIcon(null);
+			((TableCellSWT) cell).setIcon(null);
 			if (!img.isDisposed()) {
 				img.dispose();
 			}

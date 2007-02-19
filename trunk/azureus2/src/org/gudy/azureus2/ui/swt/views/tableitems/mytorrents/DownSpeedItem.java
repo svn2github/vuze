@@ -28,14 +28,15 @@ import org.eclipse.swt.graphics.Color;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
+
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 
 /** Download Speed column
@@ -47,14 +48,13 @@ public class DownSpeedItem
        extends CoreTableColumn 
        implements TableCellAddedListener
 {
-  private final static String CONFIG_ID = "StartStopManager_iMinSpeedForActiveDL";
-
   /** Default Constructor */
   public DownSpeedItem() {
     super("downspeed", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
 		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
     setUseCoreDataSource(false);
+    setMinWidthAuto(true);
   }
 
   public void cellAdded(TableCell cell) {
@@ -99,7 +99,7 @@ public class DownSpeedItem
 						&& !calc.getActivelyDownloading())
 					newFG = Colors.colorWarning;
 
-        ((TableCellCore)cell).setForeground(newFG);
+        ((TableCellSWT)cell).setForeground(newFG);
         iLastState = iState;
       } catch (Exception e) {
       	Debug.printStackTrace( e );

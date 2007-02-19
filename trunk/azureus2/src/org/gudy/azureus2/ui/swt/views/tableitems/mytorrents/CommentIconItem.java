@@ -25,11 +25,11 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-
 import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author amc1
@@ -40,9 +40,10 @@ public class CommentIconItem
 {
   /** Default Constructor */
   public CommentIconItem(String sTableID) {
-	super("commenticon", CommentIconItem.POSITION_LAST, 300, sTableID);
+	super("commenticon", CommentIconItem.POSITION_LAST, 20, sTableID);
 	setRefreshInterval(INTERVAL_LIVE);
     initializeAsGraphic(POSITION_LAST, 20);
+    setWidthLimits(20, 20);
   }
   
   public void cellMouseTrigger(TableCellMouseEvent event) {
@@ -70,12 +71,12 @@ public class CommentIconItem
 	  }
 	  
 	  if (comment == null) {
-		  ((TableCellCore)cell).setGraphic(ImageRepository.getImage(null));
+		  ((TableCellSWT)cell).setGraphic(ImageRepository.getImage(null));
 		  cell.setToolTip(null);
 		  cell.setSortValue(0);
 	  }
 	  else {
-		  ((TableCellCore)cell).setGraphic(ImageRepository.getImage("comment"));
+		  ((TableCellSWT)cell).setGraphic(ImageRepository.getImage("comment"));
 		  cell.setToolTip(comment);
 		  cell.setSortValue(1);
 	  }

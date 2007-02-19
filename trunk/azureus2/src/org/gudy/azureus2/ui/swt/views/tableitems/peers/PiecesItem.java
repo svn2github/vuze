@@ -24,19 +24,23 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
+
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  *
@@ -269,9 +273,9 @@ public class PiecesItem
     }
     gcImage.dispose();
 
-    Image oldImage = ((TableCellCore)cell).getGraphicSWT();
+    Image oldImage = ((TableCellSWT)cell).getGraphicSWT();
     if (bImageChanged || image != oldImage || !cell.isValid()) {
-      ((TableCellCore)cell).setGraphic(image);
+      ((TableCellSWT)cell).setGraphic(image);
       infoObj.setData("PiecesImage", image);
       infoObj.setData("PiecesImageBuffer", imageBuffer);
     }

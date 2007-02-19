@@ -53,6 +53,8 @@ public class RankItem
     setRefreshInterval(INTERVAL_INVALID_ONLY);
     GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
     gm.addListener(new GMListener());
+    setMaxWidthAuto(true);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

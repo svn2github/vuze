@@ -39,6 +39,7 @@ public class SeedToPeerRatioItem
   public SeedToPeerRatioItem(String sTableID) {
     super("seed_to_peer_ratio", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
+    setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {

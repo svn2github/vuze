@@ -28,9 +28,10 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTScraperResponseImpl;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
 
 /**
  * @author TuxPaper
@@ -45,7 +46,7 @@ public class TrackerCellUtils {
 		if (response instanceof TRTrackerBTScraperResponseImpl) {
 			boolean bMultiHashScrapes = ((TRTrackerBTScraperResponseImpl) response)
 					.getTrackerStatus().getSupportsMultipeHashScrapes();
-			((TableCellCore) cell).setForeground(bMultiHashScrapes ? null
+			((TableCellSWT) cell).setForeground(bMultiHashScrapes ? null
 					: Colors.colorWarning);
 		}
 	}

@@ -46,6 +46,7 @@ public class CommentItem
     setRefreshInterval(INTERVAL_LIVE);
     setType(TableColumn.TYPE_TEXT);
     setObfustication(true);
+    setMinWidth(50);
   }
 
   public void refresh(TableCell cell) {
