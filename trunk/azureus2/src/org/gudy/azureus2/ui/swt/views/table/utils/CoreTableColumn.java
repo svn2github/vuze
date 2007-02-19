@@ -22,8 +22,11 @@
  
 package org.gudy.azureus2.ui.swt.views.table.utils;
 
+import org.eclipse.swt.SWT;
+
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableColumnImpl;
+
+import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 
 /** This class  provides constructors for setting most of
  * the common column attributes and sets the column as a 'core' column.<p>
@@ -116,5 +119,16 @@ public class CoreTableColumn
     setType(TYPE_GRAPHIC);
     setRefreshInterval(INTERVAL_GRAPHIC);
     setAlignment(TableColumn.ALIGN_CENTER);
+  }
+
+  /** 
+   * Convert the getAlignment() constant to a SWT constant
+	 *
+	 * @return SWT alignment constant
+	 */
+	public static int getSWTAlign(int alignment) {
+    return alignment == ALIGN_LEAD ? SWT.LEAD
+                                   : (alignment == ALIGN_CENTER) ? SWT.CENTER
+                                                                 : SWT.TRAIL;
   }
 }
