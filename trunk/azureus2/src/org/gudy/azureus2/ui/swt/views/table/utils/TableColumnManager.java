@@ -33,9 +33,10 @@ import org.gudy.azureus2.core3.util.IndentWriter;
 
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.OldMyTorrentsPluginItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.OldPeerPluginItem;
+
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
 
 /** Holds a list of column definitions (TableColumnCore) for 
@@ -61,6 +62,14 @@ public class TableColumnManager {
    */
   private Map 			items;
   private AEMonitor 	items_mon 	= new AEMonitor( "TableColumnManager:items" );
+  
+  /**
+   * Holds the order in which the columns are auto-hidden
+   * 
+   * key   = TABLE_* type
+   * value = List of TableColumn, indexed in the order they should be removed
+   */ 
+  private Map autoHideOrder = new HashMap();
 
   
   private TableColumnManager() {
@@ -244,6 +253,27 @@ public class TableColumnManager {
   	} catch (Exception e) {
   		Debug.out(e);
   	}
+  }
+  
+  public void setAutoHideOrder(String sTableID, String[] autoHideOrderColumnIDs) {
+  	ArrayList autoHideOrderList = new ArrayList(autoHideOrderColumnIDs.length);
+  	for (int i = 0; i < autoHideOrderColumnIDs.length; i++) {
+			String sColumnID = autoHideOrderColumnIDs[i];
+			TableColumnCore column = getTableColumnCore(sTableID, sColumnID);
+			if (column != null) {
+				autoHideOrderList.add(column);
+			}
+		}
+  	
+  	autoHideOrder.put(sTableID, autoHideOrderList);
+  }
+  
+  public List getAutoHideOrder(String sTableID) {
+  	List list = (List)autoHideOrder.get(sTableID);
+  	if (list == null) {
+  		return new ArrayList();
+  	}
+  	return list;
   }
 
 	/**
