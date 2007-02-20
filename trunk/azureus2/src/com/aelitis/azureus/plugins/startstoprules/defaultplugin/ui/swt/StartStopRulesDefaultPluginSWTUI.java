@@ -107,6 +107,9 @@ public class StartStopRulesDefaultPluginSWTUI {
 
 				shell.getDisplay().syncExec(new Runnable() {
 					public void run() {
+						if (shell.isDisposed()) {
+							return;
+						}
 						String s = formatString();
 						if (s.compareTo(lastText) != 0) {
 							if (lastText.length() == 0 || btnAutoRefresh.getSelection()
