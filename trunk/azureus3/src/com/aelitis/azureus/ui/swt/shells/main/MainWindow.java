@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
-import org.gudy.azureus2.core3.global.GlobalMangerProgressListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -55,7 +54,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import org.json.JSONObject;
 
-import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.messenger.*;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
@@ -74,7 +73,6 @@ import com.aelitis.azureus.ui.swt.search.network.NetworkSearch;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.*;
-import com.aelitis.azureus.ui.swt.views.RecommendationsView;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
@@ -808,7 +806,7 @@ public class MainWindow implements SWTSkinTabSetListener
 				cHeaders = (Composite) skinObject.getControl();
 			}
 
-			new RecommendationsView(skin.getSkinProperties(), cHeaders, cData);
+			//new RecommendationsView(skin.getSkinProperties(), cHeaders, cData);
 		}
 
 		skinObject = skin.getSkinObject("statusbar");
