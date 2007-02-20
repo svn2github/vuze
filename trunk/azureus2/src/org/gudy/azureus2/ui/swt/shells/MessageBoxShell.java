@@ -239,7 +239,6 @@ public class MessageBoxShell
 		if ((html != null && html.length() > 0)
 				|| (url != null && url.length() > 0)) {
 			try {
-				int i = 0 / 0;
   			final Browser browser = new Browser(shell, SWT.NONE);
   			if (url != null && url.length() > 0) {
   				browser.setUrl(url);
@@ -271,7 +270,7 @@ public class MessageBoxShell
 			} catch (Exception e) {
 				Debug.out(e);
 				if (html != null) {
-					Text text = new Text(shell, SWT.BORDER | SWT.READ_ONLY);
+					Text text = new Text(shell, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP);
 					text.setText(html);
 	  			GridData gd = new GridData(GridData.FILL_BOTH);
 	  			gd.heightHint = 200;
