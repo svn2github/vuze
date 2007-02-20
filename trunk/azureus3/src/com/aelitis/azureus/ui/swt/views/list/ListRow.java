@@ -19,12 +19,13 @@
  */
 package com.aelitis.azureus.ui.swt.views.list;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -33,15 +34,14 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
-import org.gudy.azureus2.pluginsimpl.local.peers.PeerManagerImpl;
-import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.ui.common.table.TableCellCore;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -49,18 +49,26 @@ import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
+import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.peers.PeerManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
+
 /**
  * @author TuxPaper
  * @created Jun 12, 2006
  *
  */
-public class ListRow implements TableRowCore
+public class ListRow
+	implements TableRowSWT
 {
 	public static int ROW_HEIGHT = 38;
 
 	public static int MARGIN_HEIGHT = 2;
 
 	public static int MARGIN_WIDTH = 3;
+	
+	public static int PADDING_WIDTH = MARGIN_WIDTH * 2;
 
 	private SWTSkinProperties skinProperties;
 
@@ -96,11 +104,12 @@ public class ListRow implements TableRowCore
 		pluginDataSource = null;
 		bDisposed = false;
 		bSelected = false;
-		mapTableCells = new HashMap();
+		mapTableCells = new LinkedHashMap();
 
 		skinProperties = view.getSkinProperties();
 
 		TableColumnCore[] columns = view.getAllColumns();
+		// XXX Need invisible "sort by" column
 		int iStartPos = MARGIN_WIDTH;
 		// this is -1 :(
 		//int height = rowComposite.getSize().y;
@@ -113,49 +122,23 @@ public class ListRow implements TableRowCore
 
 			ListCell listCell;
 			int iColumnPos = column.getPosition();
+			int iSWTAlign = CoreTableColumn.getSWTAlign(column.getAlignment());
 			if (column.getType() == TableColumn.TYPE_GRAPHIC) {
-				listCell = new ListCellGraphic(this, iColumnPos, column.getSWTAlign(),
-						bounds);
+				listCell = new ListCellGraphic(this, iColumnPos, iSWTAlign, bounds);
 			} else {
-				listCell = new ListCell(this, iColumnPos, column.getSWTAlign(), bounds);
+				listCell = new ListCell(this, iColumnPos, iSWTAlign, bounds);
 			}
 
 			if (bVisible) {
 				iStartPos += bounds.width + (MARGIN_WIDTH * 2);
 			}
 
-			TableCellCore cell = new TableCellImpl(this, column, i, listCell);
+			TableCellSWT cell = new TableCellImpl(this, column, i, listCell);
 			listCell.setTableCell(cell);
 			cell.setUpToDate(false);
 
 			mapTableCells.put(column.getName(), cell);
 			//cell.refresh();
-		}
-	}
-
-	/**
-	 * @param bounds 
-	 * 
-	 */
-	protected void resizeRow(Rectangle bounds) {
-		if (bDisposed) {
-			return;
-		}
-
-		long lTimeStart = System.currentTimeMillis();
-		Iterator iter = mapTableCells.values().iterator();
-		while (iter.hasNext()) {
-			TableCellCore item = (TableCellCore) iter.next();
-			ListCell cell = (ListCell) item.getBufferedTableItem();
-			Rectangle cellBounds = cell.getBounds();
-			if (cellBounds != null && cell.getPosition() >= 0) {
-				cellBounds.height = bounds.height - (MARGIN_HEIGHT * 2);
-				cell.setBounds(cellBounds);
-			}
-		}
-		long diff = System.currentTimeMillis() - lTimeStart;
-		if (diff >= 50) {
-			System.out.println("resizeRow: " + diff + "ms");
 		}
 	}
 
@@ -170,34 +153,42 @@ public class ListRow implements TableRowCore
 
 		boolean bOdd = ((iPosition + 1) % 2) == 0;
 		if (bSelected) {
-			String sColorID = (bOdd) ? "color.row.odd.selected.bg"
-					: "color.row.even.selected.bg";
-			Color color = skinProperties.getColor(sColorID);
-			if (color != null) {
-				bg = color;
-			} else {
+			if (skinProperties == null) {
 				bg = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION);
-			}
-
-			sColorID = (bOdd) ? "color.row.odd.selected.fg"
-					: "color.row.even.selected.fg";
-			Color cText = skinProperties.getColor(sColorID);
-			if (cText == null) {
-				sColorID = (bOdd) ? "color.row.odd.fg" : "color.row.even.fg";
-				cText = skinProperties.getColor(sColorID);
-
-				if (cText == null) {
-					cText = parent.getDisplay().getSystemColor(
-							SWT.COLOR_LIST_SELECTION_TEXT);
+				fg = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
+			} else {
+				String sColorID = (bOdd) ? "color.row.odd.selected.bg"
+						: "color.row.even.selected.bg";
+				Color color = skinProperties == null ? null
+						: skinProperties.getColor(sColorID);
+				if (color != null) {
+					bg = color;
+				} else {
+					bg = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION);
 				}
-			}
 
-			fg = cText;
+				sColorID = (bOdd) ? "color.row.odd.selected.fg"
+						: "color.row.even.selected.fg";
+				Color cText = skinProperties == null ? null
+						: skinProperties.getColor(sColorID);
+				if (cText == null) {
+					sColorID = (bOdd) ? "color.row.odd.fg" : "color.row.even.fg";
+					cText = skinProperties == null ? null
+							: skinProperties.getColor(sColorID);
+
+					if (cText == null) {
+						cText = parent.getDisplay().getSystemColor(
+								SWT.COLOR_LIST_SELECTION_TEXT);
+					}
+				}
+
+				fg = cText;
+			}
 			bRowVisuallyChangedSinceRefresh = true;
-			
+
 			invalidate();
 			if (isVisible()) {
-				repaint();
+				redraw();
 			}
 		} else {
 			boolean bChanged = false;
@@ -210,18 +201,19 @@ public class ListRow implements TableRowCore
 				}
 			} else {
 				Color oldColor = bg;
-				bg = parent.getBackground();
+				bg = bOdd ? bg = parent.getDisplay().getSystemColor(
+						SWT.COLOR_LIST_BACKGROUND) : Colors.colorAltRow;
 				if (!colorsEqual(oldColor, bg)) {
 					bChanged = true;
 				}
 			}
 
 			String sColorID = (bOdd) ? "color.row.odd.fg" : "color.row.even.fg";
-			Color cText = skinProperties.getColor(sColorID);
+			Color cText = skinProperties == null ? null
+					: skinProperties.getColor(sColorID);
 
 			if (cText == null) {
-				cText = parent.getDisplay().getSystemColor(
-						SWT.COLOR_LIST_SELECTION_TEXT);
+				cText = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
 			}
 			if (!colorsEqual(cText, fg)) {
 				bChanged = true;
@@ -232,7 +224,7 @@ public class ListRow implements TableRowCore
 				bRowVisuallyChangedSinceRefresh = true;
 				invalidate();
 				if (isVisible()) {
-					repaint();
+					redraw();
 				}
 			}
 		}
@@ -261,75 +253,63 @@ public class ListRow implements TableRowCore
 		return parent.getBackground();
 	}
 
-	public void delete(boolean bDeleteSWTObject) {
-		// XXX bDeleteSWTObject non-usage is intentional
-
-		int iIndex = getIndex();
+	// @see com.aelitis.azureus.ui.common.table.TableRowCore#delete()
+	public void delete() {
 		bDisposed = true;
 
-		long lTimeStart = System.currentTimeMillis();
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
-			TableCellCore item = (TableCellCore) iter.next();
+			TableCellSWT item = (TableCellSWT) iter.next();
 			try {
 				item.dispose();
 			} catch (Exception e) {
 				Debug.out("Disposing ListRow Column", e);
 			}
 		}
-		/*
-		 if (rowComposite != null && !rowComposite.isDisposed()) {
-		 // Link next row to what is above this row
-		 ListRow rowNext = view.getRow(iIndex + 1);
-		 if (rowNext != null) {
-		 rowNext.fixupPosition();
-		 Composite nextComposite = rowNext.getComposite();
-		 if (nextComposite != null && !nextComposite.isDisposed()) {
-		 FormData fdNext = (FormData) nextComposite.getLayoutData();
-		 if (fdNext != null) {
-		 ListRow rowPrevious = view.getRow(iIndex - 1);
-
-		 Composite previousComposite = rowPrevious == null ? null
-		 : rowPrevious.getComposite();
-
-		 if (previousComposite != null && !previousComposite.isDisposed()) {
-		 fdNext.top = new FormAttachment(previousComposite, 0);
-		 } else {
-		 fdNext.top = new FormAttachment(0, 0);
-		 }
-		 nextComposite.setLayoutData(fdNext);
-		 }
-		 }
-		 }
-
-		 rowComposite.dispose();
-		 }
-		 */
 	}
 
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#doPaint(org.eclipse.swt.graphics.GC, boolean, boolean)
 	public void doPaint(GC gc, boolean bVisible) {
 		// XXX Copied from TableRowImpl
 		if (bDisposed || !bVisible) {
 			return;
 		}
 
+		TableColumnCore[] visibleColumns = view.getVisibleColumns();
+
 		long lTimeStart = System.currentTimeMillis();
 		Rectangle oldClipping = gc.getClipping();
 		try {
 			gc.setForeground(getForeground());
 			gc.setBackground(getBackground());
-			
+			//gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 16)));
+
 			Rectangle clientArea = view.getClientArea();
 			gc.fillRectangle(0, view.rowGetVisibleYOffset(this), clientArea.width,
 					ROW_HEIGHT);
-			
-			Iterator iter = mapTableCells.values().iterator();
-			while (iter.hasNext()) {
-				TableCellCore cell = (TableCellCore) iter.next();
+
+			int iStartPos = MARGIN_WIDTH;
+			for (int i = 0; i < visibleColumns.length; i++) {
+				TableColumnCore column = visibleColumns[i];
+				TableCellSWT cell = (TableCellSWT) mapTableCells.get(column.getName());
+				if (cell == null) {
+					continue;
+				}
+
 				try {
 					if (cell.needsPainting()) {
 						Rectangle bounds = cell.getBounds();
 						if (bounds != null) {
+							int width = column.getWidth();
+							if (bounds.x != iStartPos || bounds.width != width) {
+								bounds.x = iStartPos;
+								bounds.width = width;
+								
+								ListCell listcell = (ListCell) cell.getBufferedTableItem();
+								listcell.setBounds(bounds);
+							}
+							iStartPos += bounds.width + (MARGIN_WIDTH * 2);
+
 							Rectangle clipping = bounds.intersection(oldClipping);
 							gc.setClipping(clipping);
 
@@ -337,7 +317,8 @@ public class ListRow implements TableRowCore
 						}
 					}
 				} catch (Exception e) {
-					Debug.out(e);
+					//Debug.out(e);
+					System.err.println("column " + column.getName() + ";" + cell);
 				}
 			}
 		} finally {
@@ -351,8 +332,6 @@ public class ListRow implements TableRowCore
 
 	// XXX Copied from TableRowImpl!!
 	public Object getDataSource(boolean bCoreObject) {
-		checkCellForSetting();
-
 		if (bCoreObject) {
 			return coreDataSource;
 		}
@@ -427,16 +406,16 @@ public class ListRow implements TableRowCore
 	}
 
 	public void invalidate() {
-  	if (bDisposed)
-  		return;
+		if (bDisposed)
+			return;
 
 		long lTimeStart = System.currentTimeMillis();
-    Iterator iter = mapTableCells.values().iterator();
-    while (iter.hasNext()) {
-      TableCellCore cell = (TableCellCore)iter.next();
-      if (cell != null)
-        cell.invalidate(true);
-    }
+		Iterator iter = mapTableCells.values().iterator();
+		while (iter.hasNext()) {
+			TableCellSWT cell = (TableCellSWT) iter.next();
+			if (cell != null)
+				cell.invalidate(true);
+		}
 		long diff = System.currentTimeMillis() - lTimeStart;
 		if (diff >= 10) {
 			System.out.println("invalidate: " + diff + "ms");
@@ -461,40 +440,64 @@ public class ListRow implements TableRowCore
 	}
 
 	// XXX Copied from TableRowImp!
-	public boolean refresh(boolean bDoGraphics) {
-    if (bDisposed)
-      return false;
-    
-    boolean bVisible = isVisible();
+	public List refresh(boolean bDoGraphics) {
+		if (bDisposed)
+			return new ArrayList();
 
-    return refresh(bDoGraphics, bVisible);
+		boolean bVisible = isVisible();
+
+		return refresh(bDoGraphics, bVisible);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowCore#refresh(boolean, boolean)
-	public boolean refresh(boolean bDoGraphics, boolean bVisible) {
-    // If this were called from a plugin, we'd have to refresh the sorted column
-    // even if we weren't visible
-    
-    if (!bVisible) {
-  		setUpToDate(false);
-  		return false;
-  	}
-    
-		boolean changed = false;
+	public List refresh(boolean bDoGraphics, boolean bVisible) {
+		return view.rowRefresh(this, bDoGraphics, bVisible);
+	}
+	
+	protected List _refresh(boolean bDoGraphics, boolean bVisible) {
+		// If this were called from a plugin, we'd have to refresh the sorted column
+		// even if we weren't visible
+
+		if (!bVisible) {
+			setUpToDate(false);
+			return new ArrayList();
+		}
+
+		ArrayList list = new ArrayList();
+
+		int iStartPos = MARGIN_WIDTH;
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
-			TableCellCore item = (TableCellCore) iter.next();
-			changed |= item.refresh(bDoGraphics, bVisible);
+			TableCellSWT cell = (TableCellSWT) iter.next();
+			Rectangle bounds = cell.getBounds();
+			TableColumn column = cell.getTableColumn();
+			if (bounds != null && column.getPosition() >= 0) {
+				int width = column.getWidth();
+				if (bounds.x != iStartPos || bounds.width != width) {
+					bounds.x = iStartPos;
+					bounds.width = width;
+					ListCell listcell = (ListCell) cell.getBufferedTableItem();
+					listcell.setBounds(bounds);
+				}
+				iStartPos += bounds.width + (MARGIN_WIDTH * 2);
+
+				boolean thisChanged = cell.refresh(bDoGraphics, bVisible);
+				if (thisChanged) {
+					list.add(cell);
+				}
+			}
 		}
-		changed |= bRowVisuallyChangedSinceRefresh;
+		if (bRowVisuallyChangedSinceRefresh) {
+			list.add(0, this);
+		}
 		bRowVisuallyChangedSinceRefresh = false;
-		return changed;
+		return list;
 	}
 
 	public void setForeground(Color c) {
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
-			TableCellCore item = (TableCellCore) iter.next();
+			TableCellSWT item = (TableCellSWT) iter.next();
 			item.setForeground(c);
 		}
 	}
@@ -579,7 +582,7 @@ public class ListRow implements TableRowCore
 		long lTimeStart = System.currentTimeMillis();
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
-			TableCellCore cell = (TableCellCore) iter.next();
+			TableCellSWT cell = (TableCellSWT) iter.next();
 			if (cell != null) {
 				boolean bOldUpToDate = cell.isUpToDate();
 				if (bOldUpToDate != upToDate) {
@@ -593,7 +596,8 @@ public class ListRow implements TableRowCore
 		}
 		long diff = System.currentTimeMillis() - lTimeStart;
 		if (diff >= 50) {
-			System.out.println("sutd: " + upToDate + " for " + getIndex() + "; " + diff + "ms");
+			System.out.println("sutd: " + upToDate + " for " + getIndex() + "; "
+					+ diff + "ms");
 		}
 	}
 
@@ -602,46 +606,55 @@ public class ListRow implements TableRowCore
 	}
 
 	public TableCell getTableCell(String sColumnName) {
-		// TODO Auto-generated method stub
-		return null;
+		if (bDisposed)
+			return null;
+
+		return (TableCell) mapTableCells.get(sColumnName);
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getTableCellSWT(java.lang.String)
+	public TableCellSWT getTableCellSWT(String sColumnName) {
+		if (bDisposed)
+			return null;
+
+		return (TableCellSWT) mapTableCells.get(sColumnName);
 	}
 
 	public String getTableID() {
-		// TODO Auto-generated method stub
-		return null;
+		return view.getTableID();
 	}
 
 	public boolean isValid() {
-  	if (bDisposed)
-  		return true;
+		if (bDisposed)
+			return true;
 
-    boolean valid = true;
-    Iterator iter = mapTableCells.values().iterator();
-    while (iter.hasNext()) {
-      TableCellCore cell = (TableCellCore)iter.next();
-      if (cell != null)
-        valid &= cell.isValid();
-    }
-    return valid;
+		boolean valid = true;
+		Iterator iter = mapTableCells.values().iterator();
+		while (iter.hasNext()) {
+			TableCellSWT cell = (TableCellSWT) iter.next();
+			if (cell != null)
+				valid &= cell.isValid();
+		}
+		return valid;
 	}
 
 	public boolean getVisuallyChangedSinceLastRefresh() {
-  	if (bDisposed)
-  		return true;
+		if (bDisposed)
+			return true;
 
-  	if (bRowVisuallyChangedSinceRefresh) {
-  		return true;
-  	}
+		if (bRowVisuallyChangedSinceRefresh) {
+			return true;
+		}
 
-    Iterator iter = mapTableCells.values().iterator();
-    while (iter.hasNext()) {
-      TableCellCore cell = (TableCellCore)iter.next();
-      if (cell != null)
-        if (cell.getVisuallyChangedSinceRefresh()) {
-        	return true;
-        }
-    }
-    return false;
+		Iterator iter = mapTableCells.values().iterator();
+		while (iter.hasNext()) {
+			TableCellSWT cell = (TableCellSWT) iter.next();
+			if (cell != null)
+				if (cell.getVisuallyChangedSinceRefresh()) {
+					return true;
+				}
+		}
+		return false;
 	}
 
 	public Color getBackground() {
@@ -656,10 +669,10 @@ public class ListRow implements TableRowCore
 	 * @param y
 	 * @return
 	 */
-	public TableCellCore getTableCellCore(int x, int y) {
+	public TableCellSWT getTableCellSWT(int x, int y) {
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
-			TableCellCore cell = (TableCellCore) iter.next();
+			TableCellSWT cell = (TableCellSWT) iter.next();
 			if (cell.isShown()) {
 				Rectangle bounds = cell.getBounds();
 				if (bounds != null && bounds.contains(x, bounds.y)) {
@@ -674,9 +687,8 @@ public class ListRow implements TableRowCore
 		return view;
 	}
 
-	// @see org.gudy.azureus2.ui.swt.views.table.TableRowCore#repaint()
-	public void  redraw(boolean bDoGraphics) {
-		view.rowRefresh(this, bDoGraphics, true);
+	public void redraw() {
+		view.rowRefresh(this, true, true);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowCore#setAlternatingBGColor(boolean)
@@ -688,16 +700,13 @@ public class ListRow implements TableRowCore
 		doPaint(gc, isVisible());
 	}
 
-	public void repaint() {
-		redraw(true);
-	}
-	
 	public String toString() {
 		return "ListRow {" + getIndex() + (bDisposed ? ", Disposed" : "") + ","
 				+ view.getTableID() + "}";
 	}
-	
+
 	public int getVisibleYOffset() {
 		return view.rowGetVisibleYOffset(this);
 	}
+
 }

@@ -37,9 +37,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -48,20 +46,24 @@ import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
-import com.aelitis.azureus.ui.swt.views.list.ListRow;
-import com.aelitis.azureus.ui.swt.views.list.ListSelectionAdapter;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
+
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 /**
  * @author TuxPaper
@@ -82,7 +84,7 @@ public class TorrentListViewsUtils
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
-				ListRow[] selectedRows = view.getSelectedRows();
+				TableRowCore[] selectedRows = view.getSelectedRows();
 				if (selectedRows.length > 0) {
 					DownloadManager dm = (DownloadManager) selectedRows[0].getDataSource(true);
 					if (dm != null) {
@@ -117,7 +119,7 @@ public class TorrentListViewsUtils
 
 		btn.addSelectionListener(new ButtonListenerAdapter() {
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
-				ListRow[] selectedRows = view.getSelectedRows();
+				TableRowCore[] selectedRows = view.getSelectedRows();
 				for (int i = 0; i < selectedRows.length; i++) {
 					DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
 					int state = dm.getState();
@@ -154,7 +156,7 @@ public class TorrentListViewsUtils
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
-				ListRow[] selectedRows = view.getSelectedRows();
+				TableRowCore[] selectedRows = view.getSelectedRows();
 				if (selectedRows.length > 0) {
 					viewDetails(skin, selectedRows[0]);
 				}
@@ -164,7 +166,7 @@ public class TorrentListViewsUtils
 		return btn;
 	}
 
-	public static void viewDetails(SWTSkin skin, ListRow row) {
+	public static void viewDetails(SWTSkin skin, TableRowCore row) {
 		DownloadManager dm = (DownloadManager) row.getDataSource(true);
 		if (dm != null) {
 			if (!PlatformTorrentUtils.isContent(dm.getTorrent())) {
@@ -195,7 +197,7 @@ public class TorrentListViewsUtils
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
-				ListRow[] selectedRows = view.getSelectedRows();
+				TableRowCore[] selectedRows = view.getSelectedRows();
 				if (selectedRows.length > 0) {
 					DownloadManager dm = (DownloadManager) selectedRows[0].getDataSource(true);
 					if (dm != null) {
@@ -237,7 +239,7 @@ public class TorrentListViewsUtils
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
-				ListRow[] selectedRows = view.getSelectedRows();
+				TableRowCore[] selectedRows = view.getSelectedRows();
 				if (selectedRows.length <= 0) {
 					return;
 				}
@@ -245,16 +247,16 @@ public class TorrentListViewsUtils
 			}
 		});
 
-		view.addSelectionListener(new ListSelectionAdapter() {
-			public void deselected(ListRow row) {
+		view.addSelectionListener(new TableSelectionAdapter() {
+			public void deselected(TableRowCore row) {
 				update();
 			}
 
-			public void selected(ListRow row) {
+			public void selected(TableRowCore row) {
 				update();
 			}
 
-			public void focusChanged(ListRow focusedRow) {
+			public void focusChanged(TableRowCore focusedRow) {
 				update();
 			}
 
@@ -277,7 +279,7 @@ public class TorrentListViewsUtils
 				btn.setDisabled(bDisabled);
 			}
 
-			public void defaultSelected(ListRow[] rows) {
+			public void defaultSelected(TableRowCore[] rows) {
 				if (rows.length == 1) {
 					playOrStream((DownloadManager) rows[0].getDataSource(true));
 				}
@@ -511,16 +513,16 @@ public class TorrentListViewsUtils
 			final SWTSkinButtonUtility[] buttonsNeedingSingleSelection,
 			final SWTSkinButtonUtility btnStop) {
 
-		view.addSelectionListener(new ListSelectionAdapter() {
-			public void deselected(ListRow row) {
+		view.addSelectionListener(new TableSelectionAdapter() {
+			public void deselected(TableRowCore row) {
 				update();
 			}
 
-			public void selected(ListRow row) {
+			public void selected(TableRowCore row) {
 				update();
 			}
 
-			public void focusChanged(ListRow focusedRow) {
+			public void focusChanged(TableRowCore focusedRow) {
 				update();
 			}
 

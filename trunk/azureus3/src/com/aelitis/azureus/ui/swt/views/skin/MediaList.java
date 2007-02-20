@@ -24,10 +24,16 @@ import java.io.ByteArrayInputStream;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -38,20 +44,21 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
-import com.aelitis.azureus.ui.swt.views.list.ListSelectionAdapter;
 
 /**
  * @author TuxPaper
@@ -174,7 +181,7 @@ public class MediaList extends SkinView
 								for (int j = 0; j <= i; j++) {
 									ListRow row = getRow(j);
 									if (row != null) {
-										row.redraw(true);
+										row.redraw();
 									}
 								}
 							}
@@ -216,7 +223,7 @@ public class MediaList extends SkinView
 						if (manager == null) {
 							return;
 						}
-						ListRow row = view.getRow(manager);
+						TableRowSWT row = view.getRowSWT(manager);
 						if (row == null) {
 							return;
 						}
@@ -283,7 +290,7 @@ public class MediaList extends SkinView
 
 			btnDelete.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					ListRow[] selectedRows = view.getSelectedRows();
+					TableRowCore[] selectedRows = view.getSelectedRows();
 					for (int i = 0; i < selectedRows.length; i++) {
 						DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
 						ManagerUtils.remove(dm,
@@ -310,8 +317,8 @@ public class MediaList extends SkinView
 		TorrentListViewsUtils.addButtonSelectionDisabler(view, buttonsNeedingRow,
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
 
-		view.addSelectionListener(new ListSelectionAdapter() {
-			public void selected(ListRow row) {
+		view.addSelectionListener(new TableSelectionAdapter() {
+			public void selected(TableRowCore row) {
 				boolean bDisable = true;
 				if (row != null) {
 					DownloadManager dm = (DownloadManager) row.getDataSource(true);
@@ -339,16 +346,16 @@ public class MediaList extends SkinView
 			PlatformTorrentUtils.addListener(listener);
 
 			skinImgThumb = (SWTSkinObjectImage) skinObject;
-			view.addSelectionListener(new ListSelectionAdapter() {
-				public void deselected(ListRow row) {
+			view.addSelectionListener(new TableSelectionAdapter() {
+				public void deselected(TableRowCore row) {
 					update();
 				}
 
-				public void selected(ListRow row) {
+				public void selected(TableRowCore row) {
 					update();
 				}
 
-				public void focusChanged(ListRow focusedRow) {
+				public void focusChanged(TableRowCore focusedRow) {
 					update();
 				}
 
@@ -358,16 +365,16 @@ public class MediaList extends SkinView
 		skinObject = skin.getSkinObject(PREFIX + "detail-info");
 		if (skinObject instanceof SWTSkinObjectText) {
 			skinDetailInfo = (SWTSkinObjectText) skinObject;
-			view.addSelectionListener(new ListSelectionAdapter() {
-				public void deselected(ListRow row) {
+			view.addSelectionListener(new TableSelectionAdapter() {
+				public void deselected(TableRowCore row) {
 					updateDetailsInfo();
 				}
 
-				public void selected(ListRow row) {
+				public void selected(TableRowCore row) {
 					updateDetailsInfo();
 				}
 
-				public void focusChanged(ListRow focusedRow) {
+				public void focusChanged(TableRowCore focusedRow) {
 					updateDetailsInfo();
 				}
 			}, true);

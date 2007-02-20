@@ -21,28 +21,34 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SizeItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
-import com.aelitis.azureus.ui.swt.views.list.*;
+import com.aelitis.azureus.ui.swt.views.list.ListRow;
+import com.aelitis.azureus.ui.swt.views.list.ListView;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  * @author TuxPaper
  * @created Jun 12, 2006
- *
- * TODO: Mini mode - displays most recent (date added or data complete)
  */
-public class TorrentListView extends ListView implements GlobalManagerListener
+public class TorrentListView
+extends ListView
+	implements GlobalManagerListener
 {
 	public final static int VIEW_DOWNLOADING = 0;
 
@@ -52,75 +58,10 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 
 	public static final String TABLE_MYMEDIA = "MyMedia";
 
-	private final static String[] LINK_KEYS = {
-		"MainWindow.v3.currentDL.manage",
-		"MainWindow.v3.recentDL.library",
-		null,
-	};
-
 	private final static String[] TABLE_IDS = {
 		"Downloading",
 		"Recent",
 		"Media",
-	};
-
-	final static TableColumnCore[] tableIncompleteItemsMini = {
-		new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnTitle(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnSpeed(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnProgressETA(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_INCOMPLETE, false),
-	};
-
-	final static TableColumnCore[] tableIncompleteItems = {
-		new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnTitle(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnRate(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnSpeed(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnProgressETA(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-		new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_INCOMPLETE, false),
-	};
-
-	final static TableColumnCore[] tableCompleteItemsMini = {
-		new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnTitle(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE, false),
-	};
-
-	final static TableColumnCore[] tableCompleteItems = {
-		new ColumnIsSeeding(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnTitle(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnSpeed(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new UpItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnIsPrivate(TableManager.TABLE_MYTORRENTS_COMPLETE),
-		new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE, false),
-	};
-
-	final static TableColumnCore[] tableMyMediaItems = {
-		new ColumnComplete(TABLE_MYMEDIA),
-		new ColumnAzProduct(TABLE_MYMEDIA),
-		new ColumnMediaThumb(TABLE_MYMEDIA),
-		new ColumnTitle(TABLE_MYMEDIA),
-		new SizeItem(TABLE_MYMEDIA),
-		new ColumnQuality(TABLE_MYMEDIA),
-		new ColumnDateAdded2Liner(TABLE_MYMEDIA, true),
-		new ColumnRateUpDown(TABLE_MYMEDIA),
-		new ColumnRate(TABLE_MYMEDIA),
 	};
 
 	private final dowloadManagerListener dmListener;
@@ -131,10 +72,6 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 
 	private TableColumnCore[] tableColumns;
 
-	private final boolean bMiniMode;
-
-	private final SWTSkin skin;
-
 	private final SWTSkinObjectText countArea;
 
 	private final ArrayList listeners = new ArrayList();
@@ -144,44 +81,142 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 	private final Composite dataArea;
 
 	private boolean bAllowScrolling;
-	
+
 	protected boolean bSkipUpdateCount = false;
 
 	public TorrentListView(AzureusCore core, final SWTSkin skin,
-			SWTSkinProperties skinProperties, Composite headerArea, SWTSkinObjectText countArea,
-			final Composite dataArea, int viewMode, final boolean bMiniMode,
-			final boolean bAllowScrolling) {
+			SWTSkinProperties skinProperties, Composite headerArea,
+			SWTSkinObjectText countArea, final Composite dataArea, int viewMode,
+			final boolean bMiniMode, final boolean bAllowScrolling) {
 
 		super(TABLE_IDS[viewMode] + ((bMiniMode) ? "-Mini" : ""), skinProperties,
-				dataArea, bAllowScrolling ? SWT.V_SCROLL : SWT.NONE);
-		this.skin = skin;
+				dataArea, headerArea, bAllowScrolling ? SWT.V_SCROLL : SWT.NONE);
 		this.countArea = countArea;
 		this.dataArea = dataArea;
 		this.viewMode = viewMode;
-		this.bMiniMode = bMiniMode;
 		this.bAllowScrolling = bAllowScrolling;
 		dmListener = new dowloadManagerListener(this);
 
+		TableColumnManager tcManager = TableColumnManager.getInstance();
 		if (viewMode == VIEW_DOWNLOADING) {
-			tableColumns = (bMiniMode) ? tableIncompleteItemsMini
-					: tableIncompleteItems;
+			if (bMiniMode) {
+				tableColumns = new TableColumnCore[] {
+					new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnTitle(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnSpeed(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnProgressETA(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_INCOMPLETE,
+							false),
+				};
+				setColumnList(tableColumns, "date_added", true);
+				String[] autoHideOrder = new String[] {
+					ColumnSpeed.COLUMN_ID,
+					ColumnQuality.COLUMN_ID,
+					ColumnAzProduct.COLUMN_ID,
+					SizeItem.COLUMN_ID,
+					ColumnMediaThumb.COLUMN_ID,
+				};
+				tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
+			} else {
+				tableColumns = new TableColumnCore[] {
+					new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnTitle(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnRate(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnSpeed(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnProgressETA(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_INCOMPLETE,
+							false),
+				};
+				setColumnList(tableColumns, "date_added", true);
+				String[] autoHideOrder = new String[] {
+					ColumnQuality.COLUMN_ID,
+					ColumnAzProduct.COLUMN_ID,
+					SizeItem.COLUMN_ID,
+					ColumnMediaThumb.COLUMN_ID,
+					ColumnDateAdded2Liner.COLUMN_ID,
+				};
+				tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
+			}
 		} else if (viewMode == VIEW_RECENT_DOWNLOADED) {
-			tableColumns = (bMiniMode) ? tableCompleteItemsMini : tableCompleteItems;
+			if (bMiniMode) {
+				tableColumns = new TableColumnCore[] {
+					new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnTitle(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnQuality(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+					new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE, false),
+				};
+
+				setColumnList(tableColumns, "date_added", true);
+				String[] autoHideOrder = new String[] {
+					ColumnQuality.COLUMN_ID,
+					ColumnAzProduct.COLUMN_ID,
+					SizeItem.COLUMN_ID,
+					ColumnMediaThumb.COLUMN_ID,
+					ColumnRateUpDown.COLUMN_ID,
+				};
+				tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
+			} else {
+				tableColumns = new TableColumnCore[] {
+					new ColumnIsSeeding(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnAzProduct(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnMediaThumb(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnTitle(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnSpeed(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new UpItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnIsPrivate(TableManager.TABLE_MYTORRENTS_COMPLETE),
+					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE, false),
+				};
+				
+				setColumnList(tableColumns, "date_added", true);
+				String[] autoHideOrder = new String[] {
+					ColumnQuality.COLUMN_ID,
+					ColumnAzProduct.COLUMN_ID,
+					SizeItem.COLUMN_ID,
+					ColumnMediaThumb.COLUMN_ID,
+				};
+				tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
+			}
 		} else {
-			tableColumns = tableMyMediaItems;
+			tableColumns = new TableColumnCore[] {
+				new ColumnComplete(TABLE_MYMEDIA),
+				new ColumnAzProduct(TABLE_MYMEDIA),
+				new ColumnMediaThumb(TABLE_MYMEDIA),
+				new ColumnTitle(TABLE_MYMEDIA),
+				new SizeItem(TABLE_MYMEDIA),
+				new ColumnQuality(TABLE_MYMEDIA),
+				new ColumnDateAdded2Liner(TABLE_MYMEDIA, true),
+				new ColumnRateUpDown(TABLE_MYMEDIA),
+				new ColumnRate(TABLE_MYMEDIA),
+			};
+			setColumnList(tableColumns, "date_added", true);
+			String[] autoHideOrder = new String[] {
+				ColumnQuality.COLUMN_ID,
+				ColumnAzProduct.COLUMN_ID,
+				SizeItem.COLUMN_ID,
+				ColumnMediaThumb.COLUMN_ID,
+				ColumnDateAdded2Liner.COLUMN_ID,
+			};
+			tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
 		}
 
-		updateColumnList(tableColumns, "date_added");
-
-		if (headerArea != null) {
-			setupHeader(headerArea);
-		}
-		
 		if (countArea != null) {
 			countArea.setText("");
 		}
 
-		getControl().addListener(SWT.Resize, new Listener() {
+		getComposite().addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
 				if (bMiniMode) {
 					fixupRowCount();
@@ -193,7 +228,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		final Listener l = new Listener() {
 			public void handleEvent(Event event) {
 				if (event.button == 2) {
-					ListRow row = getRow(event.x, event.y);
+					TableRowCore row = getRow(event.x, event.y);
 					if (row != null) {
 						DownloadManager dm = (DownloadManager) row.getDataSource(true);
 						if (dm != null) {
@@ -202,16 +237,23 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 							PlatformTorrentUtils.updateMetaData(torrent, 1);
 							Utils.beep();
 						}
+
+						if ((event.stateMask & SWT.CONTROL) != 0) {
+							TableCellSWT cell = ((ListRow)row).getTableCellSWT(event.x, event.y);
+							if (cell != null) {
+								((TableCellImpl) cell).bDebug = !((TableCellImpl) cell).bDebug;
+							}
+						}
 					}
 				}
 			}
 		};
-		
-		getControl().addListener(SWT.MouseUp, l);
 
-		addSelectionListener(new ListSelectionAdapter() {
-			public void defaultSelected(ListRow[] rows) {
-				ListRow[] selectedRows = getSelectedRows();
+		getTableComposite().addListener(SWT.MouseUp, l);
+
+		addSelectionListener(new TableSelectionAdapter() {
+			public void defaultSelected(TableRowCore[] rows) {
+				TableRowCore[] selectedRows = getSelectedRows();
 				if (selectedRows.length > 0) {
 					//TorrentListViewsUtils.viewDetails(skin, selectedRows[0]);
 				}
@@ -220,7 +262,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 
 		this.globalManager = core.getGlobalManager();
 		globalManager.addListener(this, false);
-		
+
 		// Needed or Java borks!
 		dataArea.getDisplay().asyncExec(new AERunnable() {
 			public void runSupport() {
@@ -239,14 +281,15 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 						bSkipUpdateCount = true;
 
 						for (int j = 0; j <= i; j++) {
-							ListRow row = getRow(j);
+							TableRowCore row = getRow(j);
 							if (row != null) {
-								row.redraw(true);
+								row.redraw();
 							}
 						}
 					}
 				}
 				bSkipUpdateCount = false;
+				processDataSourceQueue();
 			}
 		});
 
@@ -256,7 +299,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 
 	// XXX Please get rid of me!  I suck and I am slow
 	public void regetDownloads() {
-		ListRow[] selectedRows = getSelectedRows();
+		TableRowCore[] selectedRows = getSelectedRows();
 		final int[] rowIndexes = new int[selectedRows.length];
 		int selectedIndex = -1;
 		if (selectedRows.length > 0) {
@@ -267,7 +310,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		//System.out.println("SelectedIndex" + selectedIndex);
 
 		//		globalManager.removeListener(this);
-		this.removeAllDataSources(true);
+		removeAllTableRows();
 
 		System.out.println("reget");
 		//		globalManager.addListener(this, false);
@@ -278,7 +321,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 			dataArea.getDisplay().asyncExec(new AERunnable() {
 				public void runSupport() {
 					for (int i = 0; i < rowIndexes.length; i++) {
-						ListRow row = getRow(rowIndexes[i]);
+						TableRowCore row = getRow(rowIndexes[i]);
 						if (row != null) {
 							row.setSelected(true);
 						}
@@ -289,15 +332,15 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 	}
 
 	protected void expandNameColumn() {
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				_expandNameColumn();
-			}
-		});
+		//		Utils.execSWTThread(new AERunnable() {
+		//			public void runSupport() {
+		//				_expandNameColumn();
+		//			}
+		//		});
 	}
 
 	protected void _expandNameColumn() {
-		int viewWidth = getClientArea().width;
+		int viewWidth = getTableComposite().getClientArea().width;
 		int columnWidthTotal = 0;
 		int nameColumnIdx = -1;
 
@@ -355,7 +398,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 			processDataSourceQueue();
 		} else {
 			while (curRowCount > maxRows) {
-				ListRow row = getRow(--curRowCount);
+				TableRowCore row = getRow(--curRowCount);
 				if (row != null) {
 					removeDataSource(row.getDataSource(true), true);
 				}
@@ -405,8 +448,8 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 	public void downloadManagerAdded(DownloadManager dm) {
 		//regetDownloads();
 		dm.addListener(dmListener);
-  	if (isOurDownload(dm)) {
-  		if (bAllowScrolling
+		if (isOurDownload(dm)) {
+			if (bAllowScrolling
 					|| size(true) < (dataArea.getClientArea().height - 8)
 							/ ListRow.ROW_HEIGHT) {
 				addDataSource(dm, false);
@@ -415,7 +458,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 				}
 				updateCount();
 			}
-    }
+		}
 	}
 
 	// GlobalManagerListener
@@ -460,8 +503,8 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		return false;
 	}
 
-	private static class dowloadManagerListener implements
-			DownloadManagerListener
+	private static class dowloadManagerListener
+		implements DownloadManagerListener
 	{
 		private final TorrentListView view;
 
@@ -573,7 +616,7 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 	public void removeListener(TorrentListViewListener l) {
 		listeners.remove(l);
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.views.list.ListView#fillMenu(org.eclipse.swt.widgets.Menu)
 	public void fillMenu(Menu menu) {
 		Object[] dms = getSelectedDataSources();
@@ -589,18 +632,18 @@ public class TorrentListView extends ListView implements GlobalManagerListener
 		});
 		itemExplore.setEnabled(hasSelection);
 	}
-	
-  private void exploreTorrents() {
-    Object[] dataSources = getSelectedDataSources();
-    for (int i = dataSources.length - 1; i >= 0; i--) {
-      DownloadManager dm = (DownloadManager)dataSources[i];
-      if (dm != null) {
-        ManagerUtils.open(dm);
-      }
-    }
-  }
-  
-  public boolean getAllowScrolling() {
-  	return bAllowScrolling;
-  }
+
+	private void exploreTorrents() {
+		Object[] dataSources = getSelectedDataSources();
+		for (int i = dataSources.length - 1; i >= 0; i--) {
+			DownloadManager dm = (DownloadManager) dataSources[i];
+			if (dm != null) {
+				ManagerUtils.open(dm);
+			}
+		}
+	}
+
+	public boolean getAllowScrolling() {
+		return bAllowScrolling;
+	}
 }

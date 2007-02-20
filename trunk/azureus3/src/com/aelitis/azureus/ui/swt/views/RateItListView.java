@@ -22,8 +22,8 @@ package com.aelitis.azureus.ui.swt.views;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnRate;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
@@ -33,7 +33,7 @@ import com.aelitis.azureus.ui.swt.views.list.ListView;
  * @created Jul 11, 2006
  *
  */
-public class RateItListView extends ListView
+public class RateItListView
 {
 	final String[] ICON_NAMES = {
 		"icon.frogfingers.0",
@@ -44,6 +44,7 @@ public class RateItListView extends ListView
 		"icon.frogfingers.5",
 		"icon.frogfingers.6",
 	};
+	private ListView lv;
 
 	/**
 	 * @param sTableID
@@ -51,11 +52,15 @@ public class RateItListView extends ListView
 	 * @param parent
 	 */
 	public RateItListView(SWTSkinProperties skinProperties, Composite parent) {
-		super("RateItList", skinProperties, parent, SWT.V_SCROLL);
+		lv = new ListView("RateItList", skinProperties, parent, null, SWT.V_SCROLL);
 
-		updateColumnList(new TableColumnCore[] { new ColumnRate("RateItList")
-		}, null);
+		lv.setColumnList(new TableColumnCore[] { new ColumnRate("RateItList")
+		}, null, true);
 
-		addDataSources(ICON_NAMES, false);
+		lv.addDataSources(ICON_NAMES, false);
+	}
+	
+	public ListView getListView() {
+		return lv;
 	}
 }

@@ -34,9 +34,9 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
-import com.aelitis.azureus.ui.swt.views.list.ListRow;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
 
 /**
@@ -125,7 +125,7 @@ public class MiniDownloadList extends SkinView
 
 			btnDelete.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					ListRow[] selectedRows = view.getSelectedRows();
+					TableRowCore[] selectedRows = view.getSelectedRows();
 					for (int i = 0; i < selectedRows.length; i++) {
 						DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
 						remove(dm, view, true, true);

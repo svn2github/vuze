@@ -23,11 +23,12 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -40,11 +41,14 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.views.TableView.GroupTableRowRunner;
+import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.*;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableStructureEventDispatcher;
 
+import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
@@ -57,8 +61,10 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
  * @created Jun 12, 2006
  *
  */
-public abstract class ListView implements UIUpdatable, Listener,
-		ITableStructureModificationListener
+public class ListView
+	extends TableViewImpl
+	implements TableViewSWT, UIUpdatable, Listener,
+	TableStructureModificationListener
 {
 	private final static LogIDs LOGID = LogIDs.UI3;
 
@@ -66,20 +72,24 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 	private static final boolean DEBUGPAINT = false;
 
+	private static final boolean DEBUG_SORTER = false;
+
+	private static final boolean DEBUG_COLUMNSIZE = false;
+
+	private static final boolean DELAY_SCROLL = false;
+
 	// Shorter name for ConfigManager, easier to read code
 	private static final ConfigurationManager configMan = ConfigurationManager.getInstance();
 
 	private static final String CFG_SORTDIRECTION = "config.style.table.defaultSortOrder";
 
-	private static final boolean DEBUG_SORTER = false;
-
-	protected static final boolean DELAY_SCROLL = false;
-
 	private Canvas listCanvas;
 
-	private final SWTSkinProperties skinProperties;
+	private SWTSkinProperties skinProperties;
 
-	private TableColumnCore[] visibleColumns;
+	private TableColumnCore[] lastVisibleColumns;
+
+	private int lastClientWidth = 0;
 
 	/** ArrayList of ListRow */
 	private ArrayList selectedRows = new ArrayList();
@@ -104,8 +114,6 @@ public abstract class ListView implements UIUpdatable, Listener,
 	private List dataSourcesToRemove = new ArrayList(4);
 
 	private long lCancelSelectionTriggeredOn = -1;
-
-	private List listenersSelection = new ArrayList();
 
 	private List listenersCountChange = new ArrayList();
 
@@ -137,11 +145,51 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 	protected boolean viewVisible;
 
+	private List listenersMenuFill = new ArrayList();
+
+	private final int style;
+
+	private Composite listParent;
+
+	private Image imgSortAsc;
+
+	private Image imgSortDesc;
+
+	private boolean bTitleIsMinWidth;
+
+	private TableViewSWTPanelCreator mainPanelCreator;
+
 	public ListView(final String sTableID, SWTSkinProperties skinProperties,
-			Composite parent, int style) {
+			Composite parent, Composite headerArea, int style) {
 		this.skinProperties = skinProperties;
 		this.sTableID = sTableID;
+		this.style = style;
+		this.headerArea = headerArea;
+		if (headerArea != null) {
+			ImageLoader imgLoader = ImageLoaderFactory.getInstance();
+			if (imgLoader != null) {
+				imgSortAsc = imgLoader.getImage("image.sort.asc");
+				imgSortDesc = imgLoader.getImage("image.sort.desc");
+			}
+		}
+		initialize(parent);
+		UIUpdaterFactory.getInstance().addUpdater(this);
+	}
 
+	public ListView(String sTableID, int style) {
+		this.sTableID = sTableID;
+		this.style = style;
+	}
+
+	public void setHeaderArea(Composite headerArea, Image imgSortAsc,
+			Image imgSortDesc) {
+		this.headerArea = headerArea;
+		this.imgSortAsc = imgSortAsc;
+		this.imgSortDesc = imgSortDesc;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#initialize(org.eclipse.swt.widgets.Composite)
+	public void initialize(Composite parent) {
 		FormData formData;
 
 		COConfigurationManager.addAndFireParameterListener("Graphics Update",
@@ -151,18 +199,31 @@ public abstract class ListView implements UIUpdatable, Listener,
 					}
 				});
 
-		parent.setBackgroundMode(SWT.INHERIT_FORCE);
+		TableViewSWTPanelCreator mainPanelCreator = getMainPanelCreator();
+		if (mainPanelCreator != null) {
+			listParent = mainPanelCreator.createTableViewPanel(parent);
+		} else {
+			listParent = parent;
+		}
 
-		listCanvas = new Canvas(parent, SWT.NO_BACKGROUND | SWT.NO_REDRAW_RESIZE
-				| style);
+		listParent.setBackgroundMode(SWT.INHERIT_FORCE);
+
+		listCanvas = new Canvas(listParent, SWT.NO_BACKGROUND
+				| SWT.NO_REDRAW_RESIZE | style);
 		listCanvas.setLayout(new FormLayout());
 
-		formData = new FormData();
-		formData.left = new FormAttachment(0);
-		formData.top = new FormAttachment(0);
-		formData.right = new FormAttachment(100);
-		formData.bottom = new FormAttachment(100);
-		listCanvas.setLayoutData(formData);
+		Object layout = listParent.getLayout();
+		if (layout instanceof FormLayout) {
+			formData = new FormData();
+			formData.left = new FormAttachment(0);
+			formData.top = new FormAttachment(0);
+			formData.right = new FormAttachment(100);
+			formData.bottom = new FormAttachment(100);
+			listCanvas.setLayoutData(formData);
+		} else if (layout instanceof GridLayout) {
+			GridData gd = new GridData(GridData.FILL_BOTH);
+			listCanvas.setLayoutData(gd);
+		}
 
 		vBar = listCanvas.getVerticalBar();
 		if (vBar != null) {
@@ -194,6 +255,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 				}
 			});
 		}
+
 		// Track whether the view is visible or not and adjust scrollbar when
 		// visibility becomes true (Bug on SWT/Windows where setting scrollbar's
 		// visibility doesn't set it in Windows, but SWT still returns that it
@@ -231,6 +293,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 				int nw = listCanvas.getSize().x;
 				if (w != nw) {
 					w = nw;
+					//System.out.println(sTableID + "] resize " + w);
 					refreshVisible(true, true);
 				}
 			}
@@ -291,7 +354,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 						gc.setForeground(listCanvas.getForeground());
 						gc.setBackground(listCanvas.getBackground());
 
-						TableRowCore[] visibleRows = getVisibleRows();
+						TableRowSWT[] visibleRows = getVisibleRows();
 						if (visibleRows.length > 0) {
 							//gc.setClipping(e.gc.getClipping());
 							int ofs = getOffset(iLastVBarPos);
@@ -308,7 +371,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 							}
 							long lStart = System.currentTimeMillis();
 							for (int i = start; i < end; i++) {
-								TableRowCore row = visibleRows[i];
+								TableRowSWT row = visibleRows[i];
 
 								//gc.setBackground(e.gc.getDevice().getSystemColor(i));
 								//gc.fillRectangle(0,0,800,38);
@@ -372,8 +435,13 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 		listCanvas.setMenu(createMenu());
 
-		UIUpdaterFactory.getInstance().addUpdater(this);
 		TableStructureEventDispatcher.getInstance(sTableID).addListener(this);
+
+		triggerLifeCycleListener(TableLifeCycleListener.EVENT_INITIALIZED);
+
+		if (headerArea != null) {
+			setupHeader(headerArea);
+		}
 	}
 
 	private int getOffset(int i) {
@@ -394,7 +462,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 	 * 
 	 */
 	protected void refreshScrollbar() {
-		if (!viewVisible || vBar == null) {
+		if (!viewVisible || vBar == null || vBar.isDisposed()) {
 			return;
 		}
 		Rectangle client = listCanvas.getClientArea();
@@ -404,21 +472,24 @@ public abstract class ListView implements UIUpdatable, Listener,
 			if (vBar.isVisible()) {
 				vBar.setVisible(false);
 				listCanvas.redraw();
-				headerArea.redraw();
+				if (headerArea != null) {
+					headerArea.redraw();
+				}
 			}
 			iLastVBarPos = 0;
 		} else {
 			if (!vBar.isVisible()) {
 				vBar.setVisible(true);
 				listCanvas.redraw();
-				headerArea.redraw();
+				if (headerArea != null) {
+					headerArea.redraw();
+				}
 			}
 			vBar.setIncrement(ListRow.ROW_HEIGHT);
 			int thumb = client.height;
 			vBar.setMaximum(h + thumb);
 			vBar.setThumb(thumb);
 			vBar.setPageIncrement(client.height / 2);
-			//vBar.setThumb(Math.min(h, client.height));
 			if (iLastVBarPos != vBar.getSelection()) {
 				scrollTo(vBar.getSelection());
 			} else {
@@ -479,13 +550,13 @@ public abstract class ListView implements UIUpdatable, Listener,
 				}
 
 				iLastVBarPos = iThisVBarPos;
-				TableRowCore[] visibleRows = getVisibleRows();
+				TableRowSWT[] visibleRows = getVisibleRows();
 				if (diff < 0) {
 					int ofs = getBottomRowHeight();
 					// image moved up.. gap at bottom
 					int i = visibleRows.length - 1;
 					while (diff <= 0 && i >= 0) {
-						TableRowCore row = visibleRows[i];
+						TableRowSWT row = visibleRows[i];
 						if (DEBUGPAINT) {
 							logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff
 									+ ";o=" + ofs);
@@ -500,7 +571,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 					int i = 0;
 					int ofs = ListRow.ROW_HEIGHT - getOffset(iLastVBarPos);
 					while (diff >= 0 && i < visibleRows.length) {
-						TableRowCore row = visibleRows[i];
+						TableRowSWT row = visibleRows[i];
 						if (DEBUGPAINT) {
 							logPAINT("repaint " + i + "(" + row.getIndex() + ") d=" + diff
 									+ ";o=" + ofs);
@@ -532,48 +603,20 @@ public abstract class ListView implements UIUpdatable, Listener,
 	/**
 	 * @param headerArea
 	 */
-	protected void setupHeader(final Composite headerArea) {
+	private void setupHeader(final Composite headerArea) {
 		this.headerArea = headerArea;
-		FormData formData;
 
 		final Cursor cursor = new Cursor(headerArea.getDisplay(), SWT.CURSOR_HAND);
 		headerArea.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
-				Utils.disposeSWTObjects(new Object[] { cursor
+				Utils.disposeSWTObjects(new Object[] {
+					cursor
 				});
 			}
 		});
 
-		Label lblCenterer = new Label(headerArea, SWT.WRAP);
-		formData = new FormData(0, 0);
-		formData.top = new FormAttachment(0, 0);
-		formData.bottom = new FormAttachment(100, 0);
-		lblCenterer.setLayoutData(formData);
-
-		ImageLoader imgLoader = ImageLoaderFactory.getInstance();
-		final Image imgSortAsc = imgLoader.getImage("image.sort.asc");
-		final Image imgSortDesc = imgLoader.getImage("image.sort.desc");
-
-		int sortWidth = Math.max(imgSortAsc.getBounds().width,
-				imgSortDesc.getBounds().width) + 2;
-
-		// set min column width to width of header
-		GC gc = new GC(headerArea);
-		try {
-			TableColumnCore[] columns = getVisibleColumns();
-			for (int i = 0; i < columns.length; i++) {
-				TableColumnCore column = columns[i];
-				String title = MessageText.getString(column.getTitleLanguageKey(), "");
-				int oldWidth = column.getWidth();
-				int minWidth = gc.textExtent(title).x + sortWidth;
-				if (minWidth > oldWidth) {
-					column.setWidth(minWidth);
-				}
-			}
-		} finally {
-			if (gc != null) {
-				gc.dispose();
-			}
+		if (bTitleIsMinWidth) {
+			setColumnMinWidthToHeaders();
 		}
 
 		headerArea.addMouseListener(new MouseListener() {
@@ -597,7 +640,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 				}
 				if (inColumn != -1) {
 					setSortColumn(columns[inColumn]);
-					System.out.println("sorting on " + columns[inColumn].getName());
+					if (DEBUG_SORTER) {
+						log("sorting on " + columns[inColumn].getName());
+					}
 				}
 			}
 
@@ -627,51 +672,71 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 		headerArea.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
-				TableColumnCore[] columns = getVisibleColumns();
+				TableColumnCore[] columns = lastVisibleColumns;
 
-				e.gc.setForeground(skinProperties.getColor("color.list.header.fg"));
+				if (skinProperties != null) {
+					e.gc.setForeground(skinProperties.getColor("color.list.header.fg"));
+				}
 
 				Rectangle clientArea = headerArea.getClientArea();
 				int pos = clientArea.x + ListRow.MARGIN_WIDTH;
+				int lastExtraSpace = -1;
 				for (int i = 0; i < columns.length; i++) {
 					int width = columns[i].getWidth();
 					String key = columns[i].getTitleLanguageKey();
 					String text = MessageText.getString(key, "");
-					int align = columns[i].getSWTAlign();
+					int align = CoreTableColumn.getSWTAlign(columns[i].getAlignment());
 
 					int drawWidth = width;
 
 					if (columns[i].equals(sortColumn)) {
 						Image img = sortColumn.isSortAscending() ? imgSortAsc : imgSortDesc;
-						Rectangle bounds = img.getBounds();
+						if (img != null) {
+							Rectangle bounds = img.getBounds();
 
-						if (align == SWT.RIGHT) {
-							e.gc.drawImage(img, pos + width - bounds.width, clientArea.height
-									- bounds.height);
-							drawWidth -= bounds.width + 2;
-						} else {
-							e.gc.drawImage(img, pos, clientArea.height - bounds.height);
-
-							if (align == SWT.CENTER) {
-								int adj = bounds.width / 2 + 1;
-								pos += adj;
-								width -= adj;
+							if (align == SWT.RIGHT) {
+								e.gc.drawImage(img, pos + width - bounds.width,
+										clientArea.height - bounds.height);
+								drawWidth -= bounds.width + 2;
 							} else {
-								pos += bounds.width + 2;
-								width -= bounds.width + 2;
+								e.gc.drawImage(img, pos, clientArea.height - bounds.height);
+
+								if (align == SWT.CENTER) {
+									int adj = bounds.width / 2 + 1;
+									pos += adj;
+									width -= adj;
+								} else {
+									pos += bounds.width + 2;
+									width -= bounds.width + 2;
+								}
+								drawWidth = width;
 							}
-							drawWidth = width;
 						}
 					}
 
-					//Point size = e.gc.textExtent(text);
+					Point size = e.gc.textExtent(text);
+					Rectangle bounds;
+					if (size.x > drawWidth && lastExtraSpace > 0) {
+						int giveSpace = Math.min(lastExtraSpace, size.x - drawWidth);
+						bounds = new Rectangle(pos - giveSpace, clientArea.y, drawWidth
+								+ giveSpace, clientArea.height);
+					} else {
+						bounds = new Rectangle(pos, clientArea.y, drawWidth,
+								clientArea.height);
+					}
 
-					Rectangle bounds = new Rectangle(pos, clientArea.y, drawWidth,
-							clientArea.height);
 					headerArea.setData("Column" + i + "Bounds", bounds);
 
 					if (text.length() > 0) {
 						GCStringPrinter.printString(e.gc, text, bounds, false, false, align);
+					}
+
+					if (align == SWT.LEFT) {
+						lastExtraSpace = bounds.width - size.x;
+					} else if (align == SWT.CENTER) {
+						lastExtraSpace = (bounds.width - size.x) / 2;
+					} else {
+						lastExtraSpace = 0;
 					}
 
 					//e.gc.drawLine(pos, bounds.y, pos, bounds.y + bounds.height);
@@ -679,6 +744,39 @@ public abstract class ListView implements UIUpdatable, Listener,
 				}
 			}
 		});
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.0.7
+	 */
+	private void setColumnMinWidthToHeaders() {
+		int sortWidth = Math.max(imgSortAsc == null ? -2
+				: imgSortAsc.getBounds().width, imgSortDesc == null ? -2
+				: imgSortDesc.getBounds().width) + 2;
+
+		// set min column width to width of header
+		GC gc = new GC(headerArea);
+		try {
+			TableColumnCore[] columns = getAllColumns();
+			if (columns == null) {
+				return;
+			}
+			for (int i = 0; i < columns.length; i++) {
+				TableColumnCore column = columns[i];
+				String title = MessageText.getString(column.getTitleLanguageKey(), "");
+				int oldWidth = column.getMinWidth();
+				int minWidth = gc.textExtent(title).x + sortWidth;
+				if (minWidth > oldWidth) {
+					column.setMinWidth(minWidth);
+				}
+			}
+		} finally {
+			if (gc != null) {
+				gc.dispose();
+			}
+		}
 	}
 
 	/**
@@ -713,7 +811,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 			}
 
 			ListRow newRow = (ListRow) rows.get(index);
-			setSelectedRows(new ListRow[] { newRow
+			setSelectedRows(new ListRow[] {
+				newRow
 			});
 		} finally {
 			selectedRows_mon.exit();
@@ -722,6 +821,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 	public void refreshVisible(final boolean doGraphics,
 			final boolean bForceRedraw) {
+		if (isDisposed()) {
+			return;
+		}
 		if (bInRefreshVisible) {
 			bRestartRefreshVisible = true;
 			return;
@@ -757,9 +859,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 								if (row.isVisible()) {
 									//if (row.isVisible() && !row.isValid()) {
-									if (rowRefresh(row, doGraphics, bForceRedraw)) {
-										//System.out.println("   "  + row.getIndex());
-									}
+									rowRefresh(row, doGraphics, bForceRedraw);
 								} else {
 									//System.out.println("skipping.. not visible. valid? " + row.isValid());
 								}
@@ -801,8 +901,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 							dataSourcesToRemove.remove(dataSourcesAdd[i]);
 							dataSourcesAdd[i] = null;
 							if (DEBUGADDREMOVE) {
-								System.out.println(sTableID
-										+ ": Saved time by not adding a row that was removed");
+								logADDREMOVE("Saved time by not adding a row that was removed");
 							}
 						}
 					}
@@ -812,8 +911,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 			if (dataSourcesToRemove != null && dataSourcesToRemove.size() > 0) {
 				dataSourcesRemove = dataSourcesToRemove.toArray();
 				if (DEBUGADDREMOVE && dataSourcesRemove.length > 1) {
-					System.out.println(sTableID + ": Streamlining removing "
-							+ dataSourcesRemove.length + " rows");
+					logADDREMOVE("Streamlining removing " + dataSourcesRemove.length
+							+ " rows");
 				}
 				dataSourcesToRemove.clear();
 			}
@@ -824,8 +923,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 		if (dataSourcesAdd != null) {
 			addDataSources(dataSourcesAdd, true);
 			if (DEBUGADDREMOVE && dataSourcesAdd.length > 1) {
-				System.out.println(sTableID + ": Streamlined adding "
-						+ dataSourcesAdd.length + " rows");
+				logADDREMOVE("Streamlined adding " + dataSourcesAdd.length + " rows");
 			}
 		}
 
@@ -839,9 +937,22 @@ public abstract class ListView implements UIUpdatable, Listener,
 		}
 	}
 
+	// @see com.aelitis.azureus.ui.common.table.TableView#addDataSource(java.lang.Object)
+	public void addDataSource(Object dataSource) {
+		addDataSources(new Object[] {
+			dataSource
+		}, false);
+	}
+
 	public void addDataSource(final Object datasource, boolean bImmediate) {
-		addDataSources(new Object[] { datasource
+		addDataSources(new Object[] {
+			datasource
 		}, bImmediate);
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#addDataSources(java.lang.Object[])
+	public void addDataSources(Object[] dataSources) {
+		addDataSources(dataSources, false);
 	}
 
 	public void addDataSources(final Object[] dataSources, boolean bImmediate) {
@@ -876,8 +987,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 				}
 
 				if (DEBUGADDREMOVE && count > 0) {
-					System.out.println(sTableID + ": Queueing " + count
-							+ " dataSources to add");
+					logADDREMOVE(sTableID + ": Queueing " + count + " dataSources to add");
 				}
 				return;
 
@@ -937,8 +1047,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 						}
 
 						rows.add(index, row);
-						log("addDS pos " + index);
-						//System.out.println("addDS pos " + index);
+						logADDREMOVE("addDS pos " + index);
 
 						mapDataSourceToRow.put(datasource, row);
 
@@ -962,17 +1071,23 @@ public abstract class ListView implements UIUpdatable, Listener,
 		});
 		long diff = System.currentTimeMillis() - lTimeStart;
 		if (diff > 20) {
-			System.out.println("addDS(" + dataSources.length + "): " + diff + "ms");
+			logADDREMOVE("addDS(" + dataSources.length + "): " + diff + "ms");
 		}
 	}
 
 	/**
 	 * @param string
 	 */
-	protected void log(String string) {
+	protected void logADDREMOVE(String string) {
 		if (DEBUGADDREMOVE) {
-			System.out.println(sTableID + "] " + string);
+			System.out.println(System.currentTimeMillis() + ":" + sTableID + "] "
+					+ string);
 		}
+	}
+
+	protected void log(String string) {
+		System.out.println(System.currentTimeMillis() + ":" + sTableID + "] "
+				+ string);
 	}
 
 	protected void logPAINT(String string) {
@@ -980,67 +1095,102 @@ public abstract class ListView implements UIUpdatable, Listener,
 			return;
 		}
 
-		System.out.println(sTableID + "] " + string);
+		System.out.println(System.currentTimeMillis() + ":" + sTableID + "] "
+				+ string);
 	}
 
+	protected void logCOLUMNSIZE(String string) {
+		if (!DEBUG_COLUMNSIZE) {
+			return;
+		}
+
+		System.out.println(System.currentTimeMillis() + ":" + sTableID + "] "
+				+ string);
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object)
+	public void removeDataSource(Object dataSource) {
+		removeDataSources(new Object[] {
+			dataSource
+		});
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object, boolean)
 	public void removeDataSource(final Object datasource, boolean bImmediate) {
+		removeDataSources(new Object[] {
+			datasource
+		});
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSources(java.lang.Object[])
+	public void removeDataSources(final Object[] dataSources) {
 		Utils.execSWTThread(new Runnable() {
 			public void run() {
 				try {
 					row_mon.enter();
-					ListRow row = (ListRow) mapDataSourceToRow.get(datasource);
-					if (row != null) {
-						ListRow newFocusRow = null;
+					int firstIndex = dataSources.length;
+					ListRow newFocusRow = null;
 
-						int index = row.getIndex();
-						if (row.isFocused()) {
-							int newIndex = index + 1;
-							if (index >= 0) {
-								if (newIndex >= mapDataSourceToRow.size()) {
-									newIndex -= 2;
-								}
+					for (int i = 0; i < dataSources.length; i++) {
+						Object datasource = dataSources[i];
+						ListRow row = (ListRow) mapDataSourceToRow.get(datasource);
+						if (row != null) {
 
-								if (newIndex >= 0) {
-									newFocusRow = getRow(newIndex);
+							int index = row.getIndex();
+							if (index < firstIndex) {
+								firstIndex = index;
+							}
+
+							if (newFocusRow == null && row.isFocused()) {
+								int newIndex = index + 1;
+								if (index >= 0) {
+									if (newIndex >= mapDataSourceToRow.size()) {
+										newIndex -= 2;
+									}
+
+									if (newIndex >= 0) {
+										newFocusRow = getRow(newIndex);
+									}
 								}
 							}
+
+							row = (ListRow) mapDataSourceToRow.remove(datasource);
+							if (row == null) {
+								return;
+							}
+
+							// Delete row before removing in case delete(..) calls back a method
+							// which needs rows.
+							row.setSelected(false);
+							row.setFocused(false);
+							row.delete();
+							rows.remove(row);
+
+							logADDREMOVE("remDS pos " + index + ";" + rows.size());
+
+							triggerListenerRowRemoved(row);
+						} else {
+							//System.out.println("not found " + datasource);
 						}
+					}
 
-						row = (ListRow) mapDataSourceToRow.remove(datasource);
-						if (row == null) {
-							return;
-						}
+					if (newFocusRow != null) {
+						//System.out.println("SR " + newFocusRow.getIndex());
+						rowSetFocused(newFocusRow);
+						newFocusRow.setSelected(true);
+					}
 
-						// Delete row before removing in case delete(..) calls back a method
-						// which needs rows.
-						row.setSelected(false);
-						row.setFocused(false);
-						row.delete(false);
-						rows.remove(row);
-
-						log("remDS pos " + index + ";" + rows.size());
-
-						triggerListenerRowRemoved(row);
-
-						if (newFocusRow != null) {
-							//System.out.println("SR " + newFocusRow.getIndex());
-							rowSetFocused(newFocusRow);
-							newFocusRow.setSelected(true);
-						}
-
-						for (int i = index; i < rows.size(); i++) {
-							ListRow fixRow = (ListRow) rows.get(i);
-							fixRow.fixupPosition();
-						}
-					} else {
-						//System.out.println("not found " + datasource);
+					for (int i = firstIndex; i < rows.size(); i++) {
+						ListRow fixRow = (ListRow) rows.get(i);
+						fixRow.fixupPosition();
 					}
 				} finally {
 					row_mon.exit();
 					refreshScrollbar();
 					// TODO: Redraw only if visible or above visible (bg change)
 
-					if (imgView != null && !imgView.isDisposed()) {
+					if (imgView != null && !imgView.isDisposed()
+							&& !listCanvas.isDisposed()) {
 						TableRowCore[] visibleRows = getVisibleRows();
 						Rectangle clientArea = listCanvas.getClientArea();
 						if (visibleRows.length > 0) {
@@ -1102,7 +1252,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 			public void run() {
 
 				row_mon.enter();
-				log("removeAll");
+				logADDREMOVE("removeAll");
 
 				try {
 					for (Iterator iterator = mapDataSourceToRow.keySet().iterator(); iterator.hasNext();) {
@@ -1113,7 +1263,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 							rows.remove(row);
 							row.setSelected(false);
 							row.setFocused(false);
-							row.delete(false);
+							row.delete();
 						}
 					}
 
@@ -1126,10 +1276,11 @@ public abstract class ListView implements UIUpdatable, Listener,
 		}, !bImmediate);
 	}
 
-	private class selectionListener implements Listener
+	private class selectionListener
+		implements Listener
 	{
 		// XXX Copied from TableView!
-		private TableCellMouseEvent createMouseEvent(TableCellCore cell, Event e,
+		private TableCellMouseEvent createMouseEvent(TableCellSWT cell, Event e,
 				int type) {
 			TableCellMouseEvent event = new TableCellMouseEvent();
 			event.cell = cell;
@@ -1139,11 +1290,6 @@ public abstract class ListView implements UIUpdatable, Listener,
 			event.keyboardState = e.stateMask;
 			event.skipCoreFunctionality = false;
 
-			int i = cell.getTableRowCore().getIndex();
-			int iTopIndex = iLastVBarPos / ListRow.ROW_HEIGHT;
-			int ofs = getOffset(iLastVBarPos);
-			int y = (i - iTopIndex) * ListRow.ROW_HEIGHT - ofs;
-
 			Rectangle r = cell.getBounds();
 			event.x = e.x - r.x;
 			event.y = e.y - r.y;
@@ -1151,7 +1297,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 		}
 
 		public void handleEvent(Event e) {
-			ListRow row = getRow(e.x, e.y);
+			ListRow row = (ListRow) getRow(e.x, e.y);
 			if (row == null) {
 				return;
 			}
@@ -1163,13 +1309,24 @@ public abstract class ListView implements UIUpdatable, Listener,
 				}
 
 				case SWT.MouseUp: {
-					if ((e.stateMask & SWT.MOD1) > 0) { // control
+					boolean MOD1 = (e.stateMask & SWT.MOD1) > 0;
+					boolean MOD2 = (e.stateMask & SWT.MOD2) > 0;
+
+					if (MOD1 && MOD2) {
+						TableCellSWT cell = ((ListRow) row).getTableCellSWT(e.x, e.y);
+						if (cell instanceof TableCellImpl) {
+							((TableCellImpl) cell).bDebug = !((TableCellImpl) cell).bDebug;
+							System.out.println("DEBUG ROW " + cell.getTableColumn().getName()
+									+ ":" + row.getIndex() + " "
+									+ (((TableCellImpl) cell).bDebug ? "ON" : "OFF"));
+						}
+					} else if (MOD1) { // control
 						boolean select = !row.isSelected();
 						row.setSelected(select);
 						if (select) {
 							row.setFocused(true);
 						}
-					} else if ((e.stateMask & SWT.MOD2) > 0) { // shift
+					} else if (MOD2) { // shift
 						ListRow rowFocused = getRowFocused();
 						if (rowFocused == null) {
 							boolean select = !row.isSelected();
@@ -1199,7 +1356,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 						}
 					} else {
-						setSelectedRows(new ListRow[] { row
+						setSelectedRows(new ListRow[] {
+							row
 						});
 					}
 					if (listCanvas.isDisposed()) {
@@ -1212,7 +1370,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 			}
 
 			if (mouseEventType != -1) {
-				TableCellCore cell = row.getTableCellCore(e.x, e.y);
+				TableCellSWT cell = row.getTableCellSWT(e.x, e.y);
 				if (cell != null) {
 					TableColumn tc = cell.getTableColumn();
 					TableCellMouseEvent event = createMouseEvent(cell, e, mouseEventType);
@@ -1230,26 +1388,13 @@ public abstract class ListView implements UIUpdatable, Listener,
 		}
 	}
 
-	private void addListenerAndChildren(Composite composite, int eventType,
-			Listener listener) {
-		composite.addListener(eventType, listener);
-
-		Control[] children = composite.getChildren();
-		for (int i = 0; i < children.length; i++) {
-			Control child = children[i];
-			child.addListener(eventType, listener);
-			if (child instanceof Composite) {
-				addListenerAndChildren((Composite) child, eventType, listener);
-			}
-		}
-	}
-
 	/**
 	 * @param x
 	 * @param y
 	 * @return
 	 */
-	public ListRow getRow(int x, int y) {
+	// @see com.aelitis.azureus.ui.common.table.TableView#getRow(int, int)
+	public TableRowCore getRow(int x, int y) {
 		int pos = (y + iLastVBarPos) / ListRow.ROW_HEIGHT;
 		if (pos < rows.size() && pos >= 0) {
 			ListRow row = (ListRow) rows.get(pos);
@@ -1292,8 +1437,12 @@ public abstract class ListView implements UIUpdatable, Listener,
 	 * 										(not a plugin datasource object)
 	 * @return The row, or null
 	 */
-	public ListRow getRow(Object dataSource) {
+	public TableRowCore getRow(Object dataSource) {
 		return (ListRow) mapDataSourceToRow.get(dataSource);
+	}
+
+	public TableRowSWT getRowSWT(Object dataSource) {
+		return (TableRowSWT) mapDataSourceToRow.get(dataSource);
 	}
 
 	public List getSelectedDataSourcesList() {
@@ -1312,9 +1461,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 	public List getSelectedDataSourcesList(boolean bCoreDataSource) {
 		ArrayList l = new ArrayList();
 
-		ListRow[] selectedRows = getSelectedRows();
+		TableRowCore[] selectedRows = getSelectedRows();
 		for (int i = 0; i < selectedRows.length; i++) {
-			ListRow row = selectedRows[i];
+			TableRowCore row = selectedRows[i];
 			if (row != null) {
 				l.add(row.getDataSource(bCoreDataSource));
 			}
@@ -1345,16 +1494,421 @@ public abstract class ListView implements UIUpdatable, Listener,
 		return skinProperties;
 	}
 
+	boolean adjustingColumns = false;
+
+	int lastVisColumnWidth = 0;
+
 	public TableColumnCore[] getVisibleColumns() {
-		if (visibleColumns == null) {
+		if (lastVisibleColumns == null) {
 			return new TableColumnCore[0];
 		}
 
-		return visibleColumns;
+		adjustingColumns = true;
+
+		try {
+			final int iClientWidth = listCanvas.getClientArea().width
+					- (Constants.isOSX ? 8 : 0);
+
+			if (iClientWidth <= 0) {
+				return new TableColumnCore[0];
+			}
+
+			if (lastClientWidth == iClientWidth) {
+				return lastVisibleColumns;
+			}
+
+			lastClientWidth = iClientWidth;
+
+			if (DEBUG_COLUMNSIZE) {
+				logCOLUMNSIZE(listCanvas.getSize() + "," + listCanvas.getBounds());
+			}
+
+			TableColumnManager tcManager = TableColumnManager.getInstance();
+			List autoHideOrder = tcManager.getAutoHideOrder(sTableID);
+
+			/*
+			 * When oversized:
+			 * 1) Shrink any columns that are shrinkable
+			 * 2) Remove columns as necessary 
+			 */
+
+			final int padding = ListRow.MARGIN_WIDTH * 2;
+			int totalWidthVis = 0;
+			int totalMinWidth = 0;
+			int totalMinWidthVis = 0;
+			int totalPrefWidthVis = 0;
+			for (int i = 0; i < allColumns.length; i++) {
+				TableColumnCore column = allColumns[i];
+				if (column.getPosition() < 0) {
+					continue;
+				}
+
+				int minWidth = column.getMinWidth();
+				if (DEBUG_COLUMNSIZE) {
+					logCOLUMNSIZE("  " + column.getName() + ",w" + column.getWidth()
+							+ ",mi" + minWidth + ",ma=" + column.getMaxWidth() + ",p="
+							+ column.getPreferredWidth());
+				}
+
+				totalMinWidth += minWidth + padding;
+				if (column.isVisible()) {
+					totalMinWidthVis += minWidth + padding;
+					totalWidthVis += column.getWidth() + padding;
+					totalPrefWidthVis += column.getPreferredWidth();
+				}
+			}
+
+			if (DEBUG_COLUMNSIZE) {
+				logCOLUMNSIZE("tot=" + totalWidthVis + ";minTot=" + totalMinWidth + "/"
+						+ totalMinWidthVis + ";avail=" + iClientWidth);
+			}
+
+			ArrayList visibleColumnsList = new ArrayList(allColumns.length);
+			for (int i = 0; i < allColumns.length; i++) {
+				if (allColumns[i].getPosition() >= 0) {
+					visibleColumnsList.add(allColumns[i]);
+				}
+			}
+
+			if (totalMinWidthVis > iClientWidth) {
+				// we gotta do column removals
+				int pos = 0;
+				while (totalMinWidthVis > iClientWidth && pos < autoHideOrder.size()) {
+					TableColumn columnToHide = (TableColumn) autoHideOrder.get(pos);
+					if (columnToHide.isVisible()) {
+						totalMinWidth -= columnToHide.getMinWidth() + padding;
+						totalWidthVis -= columnToHide.getWidth() + padding;
+						totalMinWidthVis -= columnToHide.getMinWidth() + padding;
+						columnToHide.setVisible(false);
+						visibleColumnsList.remove(columnToHide);
+						if (DEBUG_COLUMNSIZE) {
+							logCOLUMNSIZE("--- remove column " + columnToHide.getName()
+									+ ". minTot=" + totalMinWidth + "/" + totalMinWidthVis);
+						}
+					}
+					pos++;
+				}
+			} else if (totalMinWidth != totalMinWidthVis) {
+				// add a column
+				TableColumn columnToShow;
+				for (int i = autoHideOrder.size() - 1; i >= 0; i--) {
+					TableColumnCore column = (TableColumnCore) autoHideOrder.get(i);
+					if (column.getPosition() >= 0 && !column.isVisible()) {
+						columnToShow = column;
+
+						int iMinWidth = columnToShow.getMinWidth();
+						if (totalMinWidthVis + iMinWidth + padding < iClientWidth) {
+							columnToShow.setWidth(iMinWidth);
+							columnToShow.setVisible(true);
+							// reget width in case minwidth didn't apply 
+							int width = columnToShow.getWidth();
+							totalWidthVis += width + padding;
+							totalMinWidthVis += width + padding;
+							if (DEBUG_COLUMNSIZE) {
+								logCOLUMNSIZE("+++ add column " + column.getName() + ";w="
+										+ width + ";mw=" + iMinWidth + "; left: "
+										+ (totalMinWidthVis + iMinWidth - iClientWidth));
+							}
+						} else {
+							break;
+						}
+					}
+				}
+			}
+
+			// clean up list.  remove anything with 0 width
+			for (Iterator iter = visibleColumnsList.iterator(); iter.hasNext();) {
+				TableColumnCore column = (TableColumnCore) iter.next();
+
+				if (!column.isVisible()) {
+					iter.remove();
+				}
+			}
+
+			if (totalWidthVis > iClientWidth) {
+				// we gotta do some shrinking
+				int iNeededSpace = totalWidthVis - iClientWidth;
+				if (DEBUG_COLUMNSIZE) {
+					logCOLUMNSIZE("1] Shrink by " + iNeededSpace + " (tot="
+							+ totalWidthVis + ";avail=" + iClientWidth + ")");
+				}
+
+				// Pass 1: Shrink to preferred width
+				for (int i = 0; i < visibleColumnsList.size(); i++) {
+					if (iNeededSpace <= 0) {
+						break;
+					}
+
+					TableColumnCore column = (TableColumnCore) visibleColumnsList.get(i);
+
+					int width = column.getWidth();
+					int prefWidth = column.getPreferredWidth();
+					if (prefWidth <= 0 || width < prefWidth) {
+						continue;
+					}
+					int minWidth = column.getMinWidth();
+					if (prefWidth < minWidth) {
+						prefWidth = minWidth;
+					}
+					int diff = width - prefWidth;
+					if (diff > iNeededSpace) {
+						column.setWidth(width - iNeededSpace);
+						iNeededSpace = 0;
+					} else {
+						column.setWidth(prefWidth);
+						iNeededSpace -= diff;
+					}
+				}
+
+				if (DEBUG_COLUMNSIZE) {
+					logCOLUMNSIZE("2] Shrink by " + iNeededSpace + " (tot="
+							+ totalWidthVis + ";avail=" + iClientWidth + ")");
+				}
+				// Pass 2: Shrink to min width
+				for (int i = visibleColumnsList.size() - 1; i >= 0; i--) {
+					if (iNeededSpace <= 0) {
+						break;
+					}
+
+					TableColumnCore column = (TableColumnCore) visibleColumnsList.get(i);
+
+					int width = column.getWidth();
+					int minWidth = column.getMinWidth();
+					int diff = width - minWidth;
+					if (diff > iNeededSpace) {
+						column.setWidth(width - iNeededSpace);
+						iNeededSpace = 0;
+					} else {
+						column.setWidth(minWidth);
+						iNeededSpace -= diff;
+					}
+				}
+				if (DEBUG_COLUMNSIZE) {
+					logCOLUMNSIZE("3] Remaining Needed Space" + iNeededSpace + " (tot="
+							+ totalWidthVis + ";avail=" + iClientWidth + ")");
+				}
+			} else if (totalWidthVis < iClientWidth) {
+
+				// Expand expandable columns
+				int iExtraSpace = iClientWidth - totalWidthVis;
+
+				ArrayList expandableColumns = new ArrayList();
+				for (int i = 0; i < visibleColumnsList.size(); i++) {
+					TableColumnCore column = (TableColumnCore) visibleColumnsList.get(i);
+
+					int width = column.getWidth();
+					int maxWidth = column.getMaxWidth();
+
+					if (width == 0) {
+						int minWidth = column.getMinWidth();
+						if (minWidth == -1) {
+							minWidth = 50;
+						}
+						width = minWidth;
+						column.setWidth(width);
+					}
+
+					if (width != maxWidth) {
+						expandableColumns.add(column);
+					}
+				}
+
+				// pass 1.. set to preferred width if smaller
+				boolean bMoreSpace;
+				do {
+					int numExpandableColumns = expandableColumns.size();
+					if (DEBUG_COLUMNSIZE) {
+						logCOLUMNSIZE("1] Extra Space=" + iExtraSpace + ";# Expandable: "
+								+ numExpandableColumns);
+					}
+					bMoreSpace = false;
+
+					for (Iterator iter = expandableColumns.iterator(); iter.hasNext();) {
+						TableColumnCore column = (TableColumnCore) iter.next();
+						int width = column.getWidth();
+						int prefWidth = column.getPreferredWidth();
+						if (width >= prefWidth) {
+							continue;
+						}
+
+						int expandBy = (int) ((double) iExtraSpace / numExpandableColumns);
+						if (expandBy == 0) {
+							expandBy = 1;
+						}
+						int newWidth = width + expandBy;
+						if (newWidth > prefWidth) {
+							expandBy -= newWidth - prefWidth;
+							newWidth = prefWidth;
+						} else {
+							bMoreSpace = true;
+						}
+						column.setWidth(newWidth);
+						numExpandableColumns--;
+						iExtraSpace -= expandBy;
+						if (iExtraSpace <= 0) {
+							break;
+						}
+					}
+				} while (bMoreSpace && iExtraSpace > 0);
+
+				// pass 2: expand columns
+				if (iExtraSpace > 0) {
+					int numExpandableColumns = expandableColumns.size();
+					if (DEBUG_COLUMNSIZE) {
+						logCOLUMNSIZE("2] Extra Space=" + iExtraSpace + ";# Expandable: "
+								+ numExpandableColumns);
+					}
+
+					for (Iterator iter = expandableColumns.iterator(); iter.hasNext();) {
+						TableColumnCore column = (TableColumnCore) iter.next();
+						int width = column.getWidth();
+						int maxWidth = column.getMaxWidth();
+
+						int expandBy = (int) ((double) iExtraSpace / numExpandableColumns);
+						int newWidth = width + expandBy;
+						if (maxWidth != -1 && newWidth > maxWidth) {
+							newWidth = maxWidth;
+							expandBy = maxWidth - width;
+						}
+						column.setWidth(newWidth);
+						if (DEBUG_COLUMNSIZE) {
+							logCOLUMNSIZE(column.getName() + "]" + numExpandableColumns
+									+ ": expandBy:" + expandBy + ";newWidth=" + column.getWidth() + ";wantedW="
+									+ newWidth + ";mxw=" + column.getMaxWidth());
+						}
+						expandBy = column.getWidth() - width;
+						numExpandableColumns--;
+						iExtraSpace -= expandBy;
+					}
+					if (DEBUG_COLUMNSIZE) {
+						logCOLUMNSIZE("3] Extra Space=" + iExtraSpace);
+					}
+				}
+
+			} else {
+				if (DEBUG_COLUMNSIZE) {
+					logCOLUMNSIZE("perfect fit");
+				}
+			}
+
+			// Do a pass to try to match preferred widths
+			int iPrefWidthsOver = 0;
+			int iPrefWidthsUnder = 0;
+			int iPrefWidthsOverCount = 0;
+			int iPrefWidthsUnderCount = 0;
+			int iPrefWidthDiff = 0;
+			for (int i = 0; i < visibleColumnsList.size(); i++) {
+				TableColumnCore column = (TableColumnCore) visibleColumnsList.get(i);
+				int iPrefWidth = column.getPreferredWidth();
+				if (iPrefWidth <= 0) {
+					continue;
+				}
+				int diff = column.getWidth() - iPrefWidth;
+				if (diff > 0) {
+					iPrefWidthsOverCount++;
+					iPrefWidthsOver += diff;
+				} else {
+					iPrefWidthsUnderCount++;
+					iPrefWidthsUnder -= diff;
+				}
+				iPrefWidthDiff += diff;
+			}
+
+			if (DEBUG_COLUMNSIZE) {
+				logCOLUMNSIZE("PrefWO=" + iPrefWidthsOver + "(" + iPrefWidthsOverCount
+						+ "),PrefWU=" + iPrefWidthsUnder + "(" + iPrefWidthsUnderCount
+						+ "),d=" + iPrefWidthDiff);
+			}
+			if (iPrefWidthsOver > 0 && iPrefWidthsUnder > 0) {
+				if (iPrefWidthDiff >= 0) {
+					// we have iPrefWidthsUnder to shift to the under. All unders
+					// will end up at pref
+					int remaining = iPrefWidthsUnder;
+					int adj = (int) (remaining / iPrefWidthsOverCount) + 1;
+					for (int i = 0; i < visibleColumnsList.size(); i++) {
+						TableColumnCore column = (TableColumnCore) visibleColumnsList.get(i);
+						int iPrefWidth = column.getPreferredWidth();
+						if (iPrefWidth <= 0) {
+							continue;
+						}
+						int iWidth = column.getWidth();
+						int diff = iWidth - iPrefWidth;
+						if (diff < 0) {
+							diff *= -1;
+							// we can always set it to pref, because we have more over than
+							// under
+							column.setWidth(iPrefWidth);
+							remaining -= diff;
+						} else if (diff > 0) {
+							if (diff > remaining) {
+								column.setWidth(iWidth + diff - remaining);
+							} else {
+								column.setWidth(iPrefWidth - adj);
+							}
+						}
+					}
+				} else {
+					// we have iPrefWidthOver to shift to under.  Some unders will
+					// remain under. All overs will end up at pref
+					int remaining = iPrefWidthsOver;
+					int adj = (int) (remaining / iPrefWidthsUnderCount) + 1;
+					if (DEBUG_COLUMNSIZE) {
+						logCOLUMNSIZE("adj=" + adj);
+					}
+					for (int i = 0; i < visibleColumnsList.size(); i++) {
+						TableColumnCore column = (TableColumnCore) visibleColumnsList.get(i);
+						int iPrefWidth = column.getPreferredWidth();
+						if (iPrefWidth <= 0) {
+							continue;
+						}
+						int iWidth = column.getWidth();
+						int diff = iWidth - iPrefWidth;
+						if (diff < 0 && remaining > 0) {
+							diff *= -1;
+							if (diff - adj > remaining) {
+								if (DEBUG_COLUMNSIZE) {
+									logCOLUMNSIZE("sw from " + iWidth + " to "
+											+ (iWidth + remaining));
+								}
+								column.setWidth(iWidth + remaining);
+								remaining = 0;
+							} else {
+								column.setWidth(iPrefWidth - adj);
+								remaining -= (column.getWidth() - iWidth);
+							}
+
+						} else if (diff > 0) {
+							column.setWidth(iPrefWidth);
+						}
+					}
+				}
+			}
+
+			lastVisibleColumns = new TableColumnCore[visibleColumnsList.size()];
+			visibleColumnsList.toArray(lastVisibleColumns);
+
+			changeColumnIndicator();
+
+			if (bInRefreshVisible) {
+				listCanvas.getDisplay().asyncExec(new AERunnable() {
+					public void runSupport() {
+						refreshVisible(true, true);
+					}
+				});
+			} else {
+				refreshVisible(true, true);
+			}
+
+		} finally {
+			adjustingColumns = false;
+		}
+
+		return lastVisibleColumns;
 	}
 
-	public void updateColumnList(TableColumnCore[] columns,
-			String defaultSortColumnID) {
+	public void setColumnList(TableColumnCore[] columns,
+			String defaultSortColumnID, boolean titleIsMinWidth) {
+		this.bTitleIsMinWidth = titleIsMinWidth;
 		// XXX Adding Columns only has to be done once per TableID.  
 		// Doing it more than once won't harm anything, but it's a waste.
 		TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -1368,34 +1922,41 @@ public abstract class ListView implements UIUpdatable, Listener,
 		// fixup order
 		tcManager.ensureIntegrety(sTableID);
 
-		allColumns = columns;
-		//visibleColumns = tcManager.getAllTableColumnCoreAsArray(sTableID);
+		allColumns = tcManager.getAllTableColumnCoreAsArray(sTableID);
+
+		Arrays.sort(allColumns, new Comparator() {
+			public int compare(Object o1, Object o2) {
+				TableColumn tc0 = (TableColumn) o1;
+				TableColumn tc1 = (TableColumn) o2;
+				return tc0.getPosition() - tc1.getPosition();
+			}
+		});
 
 		ArrayList visibleColumnsList = new ArrayList();
-		for (int i = 0; i < columns.length; i++) {
-			if (columns[i].getPosition() >= 0) {
-				visibleColumnsList.add(columns[i]);
+		for (int i = 0; i < allColumns.length; i++) {
+			if (allColumns[i].getPosition() >= 0) {
+				visibleColumnsList.add(allColumns[i]);
 			}
 		}
-		visibleColumns = (TableColumnCore[]) visibleColumnsList.toArray(new TableColumnCore[0]);
+		lastVisibleColumns = (TableColumnCore[]) visibleColumnsList.toArray(new TableColumnCore[0]);
 		// TODO: Refresh all rows
 
 		// Initialize the sorter after the columns have been added
+		// TODO: Restore sort column and direction from config (list in TVSWTImpl)
 		String sSortColumn = defaultSortColumnID;
 		boolean bSortAscending = false;
-		// For now, set to default column, until we have a way to select sorting
-		// on a non-visible column
-		//configMan.getStringParameter(sTableID + ".sortColumn", defaultSortColumnID);
-		//int iSortDirection = configMan.getIntParameter(CFG_SORTDIRECTION);
-		//boolean bSortAscending = configMan.getBooleanParameter(sTableID
-		//+ ".sortAsc", iSortDirection == 1 ? false : true);
 
 		TableColumnCore tc = tcManager.getTableColumnCore(sTableID, sSortColumn);
 		if (tc == null) {
-			tc = visibleColumns[0];
+			tc = lastVisibleColumns[0];
 		}
 		sortColumn = tc;
 		sortColumn.setSortAscending(bSortAscending);
+
+		if (bTitleIsMinWidth) {
+			setColumnMinWidthToHeaders();
+		}
+
 		changeColumnIndicator();
 	}
 
@@ -1408,7 +1969,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 		}
 	}
 
-	public ListRow[] getSelectedRows() {
+	public TableRowCore[] getSelectedRows() {
 		selectedRows_mon.enter();
 		try {
 			ListRow[] rows = new ListRow[selectedRows.size()];
@@ -1419,21 +1980,21 @@ public abstract class ListView implements UIUpdatable, Listener,
 		}
 	}
 
-	public void setSelectedRows(ListRow[] rows) {
+	public void setSelectedRows(TableRowCore[] rows) {
 		selectedRows_mon.enter();
 		try {
 			ArrayList rowsToSelect = new ArrayList();
 			for (int i = 0; i < rows.length; i++) {
 				rowsToSelect.add(rows[i]);
 			}
-			ListRow[] selectedRows = getSelectedRows();
+			TableRowCore[] selectedRows = getSelectedRows();
 
 			// unselect already selected rows that aren't going to be selected anymore
 			for (int i = 0; i < selectedRows.length; i++) {
-				ListRow selectedRow = selectedRows[i];
+				TableRowCore selectedRow = selectedRows[i];
 				boolean bStillSelected = false;
 				for (int j = 0; j < rows.length; j++) {
-					ListRow row = rows[j];
+					TableRowCore row = rows[j];
 					if (row.equals(selectedRow)) {
 						bStillSelected = true;
 						break;
@@ -1452,7 +2013,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 			}
 
 			if (rows.length > 0) {
-				rows[0].setFocused(true);
+				((ListRow) rows[0]).setFocused(true);
 			}
 		} finally {
 			selectedRows_mon.exit();
@@ -1479,17 +2040,10 @@ public abstract class ListView implements UIUpdatable, Listener,
 			selectedRows_mon.exit();
 		}
 
-		for (Iterator iter = listenersSelection.iterator(); iter.hasNext();) {
-			ListSelectionAdapter l = (ListSelectionAdapter) iter.next();
-			try {
-				if (bSelected) {
-					l.selected(row);
-				} else {
-					l.deselected(row);
-				}
-			} catch (Exception e) {
-				Debug.out(e);
-			}
+		if (bSelected) {
+			triggerDeselectionListeners(row);
+		} else {
+			triggerSelectionListeners(row);
 		}
 	}
 
@@ -1504,14 +2058,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 		rowFocused = row;
 
-		for (Iterator iter = listenersSelection.iterator(); iter.hasNext();) {
-			ListSelectionAdapter l = (ListSelectionAdapter) iter.next();
-			try {
-				l.focusChanged(row);
-			} catch (Exception e) {
-				Debug.out(e);
-			}
-		}
+		triggerFocusChangedListeners(row);
 	}
 
 	public boolean rowIsSelected(ListRow row) {
@@ -1594,16 +2141,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#updateUI()
 	public void updateUI() {
-		if (listCanvas.isDisposed()) {
-			return;
-		}
-		processDataSourceQueue();
-
-		iGraphicRefresh++;
-		boolean bDoGraphics = (iGraphicRefresh % graphicsUpdate) == 0;
-		refreshVisible(bDoGraphics, false);
-
-		sortTable();
+		refreshTable(false);
 	}
 
 	// XXX This gets called a lot.  Could store location and size on 
@@ -1626,7 +2164,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 				for (Iterator iter = selectedRows.iterator(); iter.hasNext();) {
 					ListRow row = (ListRow) iter.next();
 					if (row != null) {
-						row.repaint();
+						row.redraw();
 					}
 				}
 			} finally {
@@ -1713,7 +2251,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 			if (event.stateMask == SWT.MOD1) { // Control/Command
 				switch (event.keyCode) {
 					case 'a': // select all
-						setSelectedRows(getRowsUnsorted());
+						selectAll();
 						break;
 
 					case ' ':
@@ -1738,7 +2276,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 					case SWT.HOME: {
 						ListRow row = (ListRow) rows.get(0);
 						if (row != null) {
-							setSelectedRows(new ListRow[] { row
+							setSelectedRows(new ListRow[] {
+								row
 							});
 						}
 						break;
@@ -1750,10 +2289,17 @@ public abstract class ListView implements UIUpdatable, Listener,
 							ListRow row = (ListRow) rows.get(i - 1);
 
 							if (row != null) {
-								setSelectedRows(new ListRow[] { row
+								setSelectedRows(new ListRow[] {
+									row
 								});
 							}
 						}
+						break;
+					}
+
+					case SWT.F5: {
+						refreshVisible(true, true);
+						System.out.println("F5");
 						break;
 					}
 				}
@@ -1772,11 +2318,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 				&& System.currentTimeMillis() - lCancelSelectionTriggeredOn < 200) {
 			lCancelSelectionTriggeredOn = -1;
 		} else {
-			ListRow[] selectedRows = getSelectedRows();
-			for (Iterator iter = listenersSelection.iterator(); iter.hasNext();) {
-				ListSelectionAdapter l = (ListSelectionAdapter) iter.next();
-				l.defaultSelected(selectedRows);
-			}
+			triggerDefaultSelectedListeners(getSelectedRows());
 		}
 	}
 
@@ -1784,33 +2326,20 @@ public abstract class ListView implements UIUpdatable, Listener,
 		bMouseClickIsDefaultSelection = b;
 	}
 
-	public void addSelectionListener(ListSelectionAdapter listener,
-			boolean bFireSelection) {
-		listenersSelection.add(listener);
-		if (bFireSelection) {
-			ListRow[] rows = getSelectedRows();
-			for (int i = 0; i < rows.length; i++) {
-				listener.selected(rows[i]);
-			}
-
-			listener.focusChanged(getRowFocused());
-		}
-	}
-
-	public void addCountChangeListener(ListCountChangeAdapter listener) {
+	public void addCountChangeListener(TableCountChangeListener listener) {
 		listenersCountChange.add(listener);
 	}
 
 	protected void triggerListenerRowAdded(ListRow row) {
 		for (Iterator iter = listenersCountChange.iterator(); iter.hasNext();) {
-			ListCountChangeAdapter l = (ListCountChangeAdapter) iter.next();
+			TableCountChangeListener l = (TableCountChangeListener) iter.next();
 			l.rowAdded(row);
 		}
 	}
 
 	protected void triggerListenerRowRemoved(ListRow row) {
 		for (Iterator iter = listenersCountChange.iterator(); iter.hasNext();) {
-			ListCountChangeAdapter l = (ListCountChangeAdapter) iter.next();
+			TableCountChangeListener l = (TableCountChangeListener) iter.next();
 			l.rowRemoved(row);
 		}
 	}
@@ -1843,69 +2372,51 @@ public abstract class ListView implements UIUpdatable, Listener,
 		}
 	}
 
-	/** For every row source, run the code provided by the specified 
-	 * parameter.
-	 *
-	 * @param runner Code to run for each row/datasource
-	 */
-	public void runForAllRows(GroupTableRowRunner runner) {
-		// put to array instead of synchronised iterator, so that runner can remove
-		TableRowCore[] rows = getRowsUnsorted();
-
-		for (int i = 0; i < rows.length; i++) {
-			runner.run(rows[i]);
+	public void columnInvalidate(TableColumnCore tableColumn) {
+		if (tableColumn.isVisible()) {
+			columnInvalidate(tableColumn, true);
+		} else {
+			// TODO
 		}
 	}
 
-	public void columnInvalidate(TableColumnCore tableColumn) {
-		// TODO Auto-generated method stub
+	public void columnInvalidate(TableColumnCore tableColumn,
+			final boolean bMustRefresh) {
+		final String sColumnName = tableColumn.getName();
 
+		runForAllRows(new TableGroupRowRunner() {
+			public void run(TableRowCore row) {
+				TableCellSWT cell = ((TableRowSWT) row).getTableCellSWT(sColumnName);
+				if (cell != null)
+					cell.invalidate(bMustRefresh);
+			}
+		});
 	}
 
+	// @see com.aelitis.azureus.ui.common.table.TableStructureModificationListener#columnOrderChanged(int[])
 	public void columnOrderChanged(int[] iPositions) {
 		// TODO Auto-generated method stub
 
 	}
 
+	// @see com.aelitis.azureus.ui.common.table.TableStructureModificationListener#columnSizeChanged(com.aelitis.azureus.ui.common.table.TableColumnCore)
 	public void columnSizeChanged(TableColumnCore tableColumn) {
+		if (adjustingColumns) {
+			return;
+		}
+		if (isDisposed()) {
+			return;
+		}
 		if (tableColumn.getPosition() < 0) {
 			return;
 		}
-
-		final String id = tableColumn.getName();
-		final int width = tableColumn.getWidth();
-
-		final int position = tableColumn.getPosition();
-		final int numColumns = visibleColumns.length;
-
-		runForAllRows(new GroupTableRowRunner() {
-			public void run(TableRowCore row) {
-				TableCellCore cell = row.getTableCellCore(id);
-				if (cell != null) {
-					Rectangle bounds = cell.getBounds();
-					int diff = width - bounds.width;
-					if (diff != 0) {
-						bounds.width = width;
-						((ListCell) cell.getBufferedTableItem()).setBounds(bounds);
-						cell.refresh(true);
-
-						for (int i = position + 1; i < numColumns; i++) {
-							TableColumnCore nextColumn = visibleColumns[i];
-							TableCellCore nextCell = row.getTableCellCore(nextColumn.getName());
-							if (nextCell != null) {
-								Rectangle nextBounds = nextCell.getBounds();
-								nextBounds.x += diff;
-								((ListCell) nextCell.getBufferedTableItem()).setBounds(nextBounds);
-								nextCell.refresh(true);
-							}
-						}
-					}
-				}
-			}
-		});
+		lastClientWidth = 0;
+		getVisibleColumns();
 	}
 
 	public void tableStructureChanged() {
+		// force an eventual recalc of visible row widths
+		lastClientWidth = 0;
 	}
 
 	public TableColumnCore getSortColumn() {
@@ -1936,21 +2447,32 @@ public abstract class ListView implements UIUpdatable, Listener,
 		sortColumn.setLastSortValueChange(SystemTime.getCurrentTime());
 
 		changeColumnIndicator();
-		sortTable();
+		sortTable(false);
 	}
 
-	public void sortTable() {
+	/**
+	 * Sorts the table
+	 * 
+	 * @param bForce
+	 * @return true: There were sort order changes (and the visible rows were
+	 *               refreshed)<br>
+	 *         false: No sort order changes
+	 *
+	 * @since 3.0.0.7
+	 */
+	private boolean sortTable(boolean bForce) {
 		long lTimeStart;
 		if (DEBUG_SORTER) {
-			//System.out.println(">>> Sort.. ");
+			log(">>> Sort.. " + (sortColumn.getLastSortValueChange() - lLastSortedOn));
 			lTimeStart = System.currentTimeMillis();
 		}
 
+		int iFirstChange = -1;
 		try {
 			row_mon.enter();
 
 			if (sortColumn != null
-					&& sortColumn.getLastSortValueChange() > lLastSortedOn) {
+					&& (bForce || sortColumn.getLastSortValueChange() > lLastSortedOn)) {
 				lLastSortedOn = SystemTime.getCurrentTime();
 
 				// 1) Copy rows to array and sort
@@ -1984,7 +2506,6 @@ public abstract class ListView implements UIUpdatable, Listener,
 				}
 
 				int iNumChanged = 0;
-				int iFirstChange = -1;
 				for (int i = 0; i < rowsArray.length; i++) {
 					ListRow row = (ListRow) rowsArray[i];
 					if (row != rows.get(i)) {
@@ -2002,6 +2523,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 					rows = new ArrayList(list);
 				}
 
+				if (DEBUG_SORTER) {
+					log("numChanged " + iNumChanged);
+				}
 				if (iFirstChange >= 0) {
 					for (int i = iFirstChange; i < rows.size(); i++) {
 						ListRow row = (ListRow) rows.get(i);
@@ -2021,6 +2545,8 @@ public abstract class ListView implements UIUpdatable, Listener,
 		} finally {
 			row_mon.exit();
 		}
+
+		return iFirstChange >= 0;
 
 		// Selection should be okay still.  May need to be moved into view
 		// if we want that behaviour
@@ -2048,9 +2574,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 		return (i >= iTopIndex && i <= iBottomIndex);
 	}
 
-	public TableRowCore[] getVisibleRows() {
+	public TableRowSWT[] getVisibleRows() {
 		if (listCanvas == null || listCanvas.isDisposed()) {
-			return new TableRowCore[0];
+			return new TableRowSWT[0];
 		}
 
 		int y = iLastVBarPos;
@@ -2060,14 +2586,14 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 		int size = iBottomIndex - iTopIndex + 1;
 		if (size <= 0)
-			return new TableRowCore[0];
+			return new TableRowSWT[0];
 
-		TableRowCore[] visiblerows = new TableRowCore[size];
+		TableRowSWT[] visiblerows = new TableRowSWT[size];
 		int pos = 0;
 
 		for (int i = iTopIndex; i <= iBottomIndex; i++) {
 			if (i >= 0 && i < rows.size()) {
-				TableRowCore row = (TableRowCore) rows.get(i);
+				TableRowSWT row = (TableRowSWT) rows.get(i);
 				if (row != null) {
 					visiblerows[pos++] = row;
 				}
@@ -2076,7 +2602,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 		if (pos <= visiblerows.length) {
 			// Some were null, shrink array
-			TableRowCore[] temp = new TableRowCore[pos];
+			TableRowSWT[] temp = new TableRowSWT[pos];
 			System.arraycopy(visiblerows, 0, temp, 0, pos);
 			return temp;
 		}
@@ -2088,10 +2614,9 @@ public abstract class ListView implements UIUpdatable, Listener,
 	 * @param row
 	 * @param bDoGraphics 
 	 */
-	public boolean rowRefresh(ListRow row, boolean bDoGraphics,
-			boolean bForceRedraw) {
+	public List rowRefresh(ListRow row, boolean bDoGraphics, boolean bForceRedraw) {
 		if (listCanvas == null || listCanvas.isDisposed()) {
-			return false;
+			return new ArrayList();
 		}
 
 		Rectangle clientArea = listCanvas.getClientArea();
@@ -2099,6 +2624,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 
 		int i = row.getIndex();
 		boolean changed = false;
+		List changedItems = null;
 		if (i >= iTopIndex) {
 			int ofs = getOffset(iLastVBarPos);
 			int y = (i - iTopIndex) * ListRow.ROW_HEIGHT - ofs;
@@ -2114,13 +2640,34 @@ public abstract class ListView implements UIUpdatable, Listener,
 					if (!row.isVisible()) {
 						System.out.println("asked for row refresh but not visible "
 								+ row.getIndex() + ";" + Debug.getCompressedStackTrace());
-						return false;
+						return new ArrayList();
 					}
 
 					//System.out.println(row.getTableCellCore("date_added").isShown() + ";" + row.getTableCellCore("date_added").isUpToDate() + ";" + row.getTableCellCore("date_added").isValid());
-					changed |= row.refresh(bDoGraphics, true);
+					changedItems = row._refresh(bDoGraphics, true);
+					boolean thisChanged = changedItems.size() > 0;
+					changed |= thisChanged;
 
-					row.doPaint(gc, true);
+					if (bForceRedraw) {
+						row.doPaint(gc, true);
+					} else if (thisChanged) {
+						String sChanged = "" + row.getIndex() + " ";
+						for (Iterator iter = changedItems.iterator(); iter.hasNext();) {
+							Object item = iter.next();
+							if (item instanceof TableRowSWT) {
+								sChanged += ", r" + ((TableRowSWT) item).getIndex();
+								((TableRowSWT) item).doPaint(gc, true);
+								break;
+							}
+							if (item instanceof TableCellSWT) {
+								sChanged += "," + item;
+								((TableCellSWT) item).doPaint(gc);
+							}
+						}
+						//log(sChanged);
+						//System.out.println("changed " + row.getIndex() + " force = " + bForceRedraw);
+						//row.doPaint(gc, true, !bForceRedraw);
+					}
 				} catch (Exception e) {
 					if (!(e instanceof IllegalArgumentException)) {
 						// IllegalArgumentException happens when we are already drawing 
@@ -2147,7 +2694,7 @@ public abstract class ListView implements UIUpdatable, Listener,
 				//listCanvas.redraw();
 			}
 		}
-		return changed;
+		return changedItems == null ? new ArrayList() : changedItems;
 	}
 
 	private int getTopIndex() {
@@ -2210,5 +2757,236 @@ public abstract class ListView implements UIUpdatable, Listener,
 	}
 
 	public void fillMenu(Menu menu) {
+		Object[] listeners = listenersMenuFill.toArray();
+		for (int i = 0; i < listeners.length; i++) {
+			TableViewSWTMenuFillListener l = (TableViewSWTMenuFillListener) listeners[i];
+			l.fillMenu(menu);
+		}
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#addKeyListener(org.eclipse.swt.events.KeyListener)
+	public void addKeyListener(KeyListener listener) {
+		listCanvas.addKeyListener(listener);
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#addMenuFillListener(org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener)
+	public void addMenuFillListener(TableViewSWTMenuFillListener l) {
+		listenersMenuFill.add(l);
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#createDragSource(int)
+	public DragSource createDragSource(int style) {
+		return null;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#createDropTarget(int)
+	public DropTarget createDropTarget(int style) {
+		return null;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getComposite()
+	public Composite getComposite() {
+		return listParent;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getRow(org.eclipse.swt.dnd.DropTargetEvent)
+	public TableRowCore getRow(DropTargetEvent event) {
+		return null;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getTableComposite()
+	public Composite getTableComposite() {
+		return listCanvas;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#obfusticatedImage(org.eclipse.swt.graphics.Image, org.eclipse.swt.graphics.Point)
+	public Image obfusticatedImage(Image image, Point shellOffset) {
+		return image;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#removeKeyListener(org.eclipse.swt.events.KeyListener)
+	public void removeKeyListener(KeyListener listener) {
+		listCanvas.addKeyListener(listener);
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#clipboardSelected()
+	public void clipboardSelected() {
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#columnInvalidate(java.lang.String)
+	public void columnInvalidate(String columnName) {
+		TableColumnCore tc = TableColumnManager.getInstance().getTableColumnCore(
+				sTableID, columnName);
+		if (tc != null) {
+			columnInvalidate(tc, tc.getType() == TableColumnCore.TYPE_TEXT_ONLY);
+		}
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#delete()
+	public void delete() {
+		triggerLifeCycleListener(TableLifeCycleListener.EVENT_DESTROYED);
+
+		UIUpdaterFactory.getInstance().removeUpdater(this);
+		TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
+
+		Utils.disposeSWTObjects(new Object[] {
+			headerArea,
+			listCanvas
+		});
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#getColumnCells(java.lang.String)
+	public TableCellCore[] getColumnCells(String sColumnName) {
+		TableCellCore[] cells = new TableCellCore[rows.size()];
+
+		try {
+			row_mon.enter();
+
+			int i = 0;
+			for (Iterator iter = rows.iterator(); iter.hasNext();) {
+				TableRowCore row = (TableRowCore) iter.next();
+				cells[i++] = row.getTableCellCore(sColumnName);
+			}
+
+		} finally {
+			row_mon.exit();
+		}
+
+		return cells;
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#getCoreTabViews()
+	public IView[] getCoreTabViews() {
+		return new IView[0];
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#getDataSources()
+	public Object[] getDataSources() {
+		return mapDataSourceToRow.keySet().toArray();
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#getFirstSelectedDataSource()
+	public Object getFirstSelectedDataSource() {
+		Object[] selectedDataSources = getSelectedDataSources();
+		if (selectedDataSources.length > 0) {
+			return selectedDataSources[0];
+		}
+		return null;
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#getFocusedRow()
+	public TableRowCore getFocusedRow() {
+		return getRowFocused();
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#getPropertiesPrefix()
+	public String getPropertiesPrefix() {
+		return sTableID;
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#getRows()
+	public TableRowCore[] getRows() {
+		return (TableRowCore[]) rows.toArray(new TableRowCore[0]);
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#isDisposed()
+	public boolean isDisposed() {
+		return listCanvas == null || listCanvas.isDisposed();
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#isTableFocus()
+	public boolean isTableFocus() {
+		return listCanvas.isFocusControl();
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#refreshTable(boolean)
+	public void refreshTable(boolean forceSort) {
+		if (listCanvas.isDisposed()) {
+			return;
+		}
+		//log("updateUI via " + Debug.getCompressedStackTrace());
+		processDataSourceQueue();
+
+		if (!sortTable(forceSort)) {
+			iGraphicRefresh++;
+			boolean bDoGraphics = (iGraphicRefresh % graphicsUpdate) == 0;
+			refreshVisible(bDoGraphics, false);
+		}
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#removeAllTableRows()
+	public void removeAllTableRows() {
+		removeAllDataSources(true);
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#selectAll()
+	public void selectAll() {
+		setSelectedRows(getRowsUnsorted());
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#setCoreTabViews(org.gudy.azureus2.ui.swt.views.IView[])
+	public void setCoreTabViews(IView[] coreTabViews) {
+		// XXX TabViews not supported
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#setEnableTabViews(boolean)
+	public void setEnableTabViews(boolean enableTabViews) {
+		// XXX TabViews not supported
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#setFocus()
+	public void setFocus() {
+		listCanvas.setFocus();
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#setRowDefaultHeight(int)
+	public void setRowDefaultHeight(int height) {
+		ListRow.ROW_HEIGHT = height + (ListRow.MARGIN_HEIGHT * 2);
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#setRowDefaultIconSize(org.eclipse.swt.graphics.Point)
+	public void setRowDefaultIconSize(Point size) {
+		ListRow.ROW_HEIGHT = size.y + (ListRow.MARGIN_HEIGHT * 2);
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#updateLanguage()
+	public void updateLanguage() {
+	}
+
+	// @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
+	public void generate(IndentWriter writer) {
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#runForAllRows(com.aelitis.azureus.ui.common.table.TableGroupRowVisibilityRunner)
+	public void runForAllRows(TableGroupRowVisibilityRunner runner) {
+		TableRowCore[] rows = getRows();
+
+		for (int i = 0; i < rows.length; i++) {
+			runner.run(rows[i], rows[i].isVisible());
+		}
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#runForSelectedRows(com.aelitis.azureus.ui.common.table.TableGroupRowRunner)
+	public void runForSelectedRows(TableGroupRowRunner runner) {
+		TableRowCore[] rows = getSelectedRows();
+		if (runner.run(rows)) {
+			return;
+		}
+
+		for (int i = 0; i < rows.length; i++) {
+			runner.run(rows[i]);
+		}
+	}
+
+	/**
+	 * @return
+	 */
+	protected TableViewSWTPanelCreator getMainPanelCreator() {
+		return mainPanelCreator;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.TableViewSWT#setMainPanelCreator(org.gudy.azureus2.ui.swt.views.TableViewMainPanelCreator)
+	public void setMainPanelCreator(TableViewSWTPanelCreator mainPanelCreator) {
+		this.mainPanelCreator = mainPanelCreator;
 	}
 }

@@ -20,16 +20,18 @@
 package com.aelitis.azureus.ui.swt.views.list;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.Display;
+
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
+
+import com.aelitis.azureus.ui.common.table.TableCellCore;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 /**
  * @author TuxPaper
@@ -38,6 +40,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener;
  */
 public class ListCell implements BufferedTableItem
 {
+	protected static final boolean DEBUG_COLORCELL = false;
+
 	private final int position;
 
 	private String sText;
@@ -55,6 +59,10 @@ public class ListCell implements BufferedTableItem
 	private boolean bLastIsShown = false;
 
 	private TableCellCore cell;
+	
+	private TableColumn column;
+
+	private Image imgIcon;
 
 	public ListCell(ListRow row, int position, int alignment, Rectangle bounds) {
 		this.row = row;
@@ -79,16 +87,42 @@ public class ListCell implements BufferedTableItem
 			return;
 		}
 
-		if (colorFG != null) {
-			gc.setForeground(colorFG);
+		gc.setForeground(getForeground());
+		gc.setBackground(getBackground());
+		
+		if (DEBUG_COLORCELL) {
+			gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 13) + 3));
 		}
-		if (colorBG != null) {
-			gc.setBackground(colorBG);
-		}
+		gc.fillRectangle(getBounds());
 
+		if (((TableCellImpl)cell).bDebug) {
+			((TableCellImpl)cell).debug("drawText " + bounds);
+		}
+		
+		Point size = gc.textExtent(sText);
+		
+		boolean hasIcon = (imgIcon != null && !imgIcon.isDisposed());
+		if (hasIcon) {
+			int w = imgIcon.getBounds().width + 2;
+			size.x += w;
+			gc.drawImage(imgIcon, bounds.x, bounds.y);
+			bounds.x += w;
+		}
+		
+		size.x += ListRow.PADDING_WIDTH;
+		
+		if (column.isMaxWidthAuto() && column.getMaxWidth() < size.x) {
+			column.setMaxWidth(size.x);
+		}
+		if (column.isMinWidthAuto() && column.getMinWidth() < size.x) {
+			column.setMinWidth(size.x);
+		}
+		if (column.isPreferredWidthAuto() && column.getPreferredWidth() < size.x) {
+			column.setPreferredWidth(size.x);
+		}
 		//gc.drawText(sText, bounds.x, bounds.y);
 		GCStringPrinter.printString(gc, sText, bounds, true, true, alignment
-				| SWT.WRAP);
+				| SWT.WRAP | SWT.TOP);
 	}
 
 	/**
@@ -108,7 +142,12 @@ public class ListCell implements BufferedTableItem
 	}
 
 	public Rectangle getBounds() {
-		bounds.y = row.getVisibleYOffset();
+		try {
+			bounds.y = row.getVisibleYOffset() + ListRow.MARGIN_HEIGHT;
+			bounds.height = ListRow.ROW_HEIGHT - (ListRow.MARGIN_HEIGHT * 2);
+		} catch (Exception e) {
+			//System.err.println(cell.getTableColumn().getName() + " " + bounds + ";" + row + ";");
+		}
 		return bounds;
 	}
 
@@ -116,6 +155,10 @@ public class ListCell implements BufferedTableItem
 	 * @param bounds the bounds to set
 	 */
 	public void setBounds(Rectangle bounds) {
+		if (((TableCellImpl)cell).bDebug) {
+			((TableCellImpl)cell).debug("setBounds " + bounds);
+		}
+		//System.out.println(cell.getTableID() + "]" + cell.getTableColumn().getName() + ": " + bounds);
 		this.bounds = bounds;
 	}
 
@@ -157,19 +200,31 @@ public class ListCell implements BufferedTableItem
 	}
 
 	public void setIcon(Image img) {
-		// TODO Auto-generated method stub
+		imgIcon = img;
 	}
 
 	public Image getIcon() {
-		// TODO Auto-generated method stub
-		return null;
+		return imgIcon;
 	}
 
 	public boolean setForeground(Color color) {
+		if (isSameColor(colorFG, color)) {
+			return false;
+		}
 		colorFG = color;
 		return true;
 	}
 
+	private boolean isSameColor(Color c1, Color c2) {
+		if (c1 == null && c2 == null) {
+			return true;
+		}
+		if (c1 == null || c2 == null) {
+			return false;
+		}
+		return c1.getRGB().equals(c2.getRGB());
+	}
+	
 	public boolean setForeground(int red, int green, int blue) {
 		// TODO Auto-generated method stub
 		return false;
@@ -190,7 +245,6 @@ public class ListCell implements BufferedTableItem
 
 		sText = text;
 		redrawCell();
-		//System.out.println("TEXT SET " + text);
 		return true;
 	}
 
@@ -224,6 +278,7 @@ public class ListCell implements BufferedTableItem
 	 */
 	public void setTableCell(TableCellCore cell) {
 		this.cell = cell;
+		this.column = cell.getTableColumn();
 	}
 
 }

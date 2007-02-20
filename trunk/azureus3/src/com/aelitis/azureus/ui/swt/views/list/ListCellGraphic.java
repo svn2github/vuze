@@ -24,6 +24,8 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
+
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
 
 /**
@@ -54,6 +56,7 @@ public class ListCellGraphic extends ListCell implements
 	}
 
 	public Point getSize() {
+		Rectangle bounds = getBounds();
 		return new Point(bounds.width - (marginWidth * 2), bounds.height
 				- (marginHeight * 2));
 	}
@@ -66,6 +69,10 @@ public class ListCellGraphic extends ListCell implements
 	public boolean setGraphic(Image img) {
 		//System.out.println(img.getBounds());
 		if (img != null && img.isDisposed()) {
+			return false;
+		}
+		
+		if (image == img) {
 			return false;
 		}
 
@@ -106,6 +113,11 @@ public class ListCellGraphic extends ListCell implements
 	public void doPaint(GC gc) {
 		if (getPosition() < 0) {
 			return;
+		}
+
+		if (DEBUG_COLORCELL) {
+			gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 16)));
+			gc.fillRectangle(getBounds());
 		}
 
 		// TODO: Orientation: fill

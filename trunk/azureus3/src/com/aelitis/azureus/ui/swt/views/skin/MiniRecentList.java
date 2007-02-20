@@ -21,7 +21,6 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -30,12 +29,12 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
-import com.aelitis.azureus.ui.swt.views.list.ListRow;
 
 /**
  * @author TuxPaper
@@ -113,7 +112,7 @@ public class MiniRecentList extends SkinView
 
 			btnDelete.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					ListRow[] selectedRows = view.getSelectedRows();
+					TableRowCore[] selectedRows = view.getSelectedRows();
 					for (int i = 0; i < selectedRows.length; i++) {
 						DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
 						if (PublishUtils.isPublished(dm)) {

@@ -56,6 +56,7 @@ public class UIUpdaterImpl extends AEThread implements ParameterListener,
 
 	public UIUpdaterImpl() {
 		super("UI Updater");
+		setDaemon(true);
 
 		COConfigurationManager.addAndFireParameterListener(CFG_REFRESH_INTERVAL,
 				this);

@@ -23,9 +23,9 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
-import com.aelitis.azureus.ui.swt.views.list.ListRow;
 
 /**
  * @author TuxPaper
@@ -41,14 +41,14 @@ public class StartStopButtonUtil
 		}
 
 		try {
-			ListRow[] selectedRows = view.getSelectedRows();
+			TableRowCore[] selectedRows = view.getSelectedRows();
 
 			if (selectedRows.length == 0) {
 				return;
 			}
 			boolean bResume = true;
 			for (int i = 0; i < selectedRows.length; i++) {
-				ListRow row = selectedRows[i];
+				TableRowCore row = selectedRows[i];
 				DownloadManager dm = (DownloadManager) row.getDataSource(true);
 				if (dm != null) {
 					int state = dm.getState();

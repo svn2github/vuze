@@ -29,18 +29,17 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
-import com.aelitis.azureus.ui.swt.views.list.ListRow;
-import com.aelitis.azureus.ui.swt.views.list.ListSelectionAdapter;
 
 /**
  * @author TuxPaper
@@ -206,7 +205,7 @@ public class ManageCdList extends SkinView
 
 			view.addListener(new TorrentListViewListener() {
 				public void stateChanged(DownloadManager manager) {
-					ListRow[] selectedRows = view.getSelectedRows();
+					TableRowCore[] selectedRows = view.getSelectedRows();
 					updateStatusText(selectedRows.length == 1 ? selectedRows[0] : null);
 				}
 			});
@@ -218,7 +217,7 @@ public class ManageCdList extends SkinView
 
 			btnDelete.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					ListRow[] selectedRows = view.getSelectedRows();
+					TableRowCore[] selectedRows = view.getSelectedRows();
 					for (int i = 0; i < selectedRows.length; i++) {
 						DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
 						// Don't delete torrent, we need to keep it for library
@@ -247,16 +246,16 @@ public class ManageCdList extends SkinView
 		TorrentListViewsUtils.addButtonSelectionDisabler(view, buttonsNeedingRow,
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
 
-		view.addSelectionListener(new ListSelectionAdapter() {
-			public void deselected(ListRow row) {
+		view.addSelectionListener(new TableSelectionAdapter() {
+			public void deselected(TableRowCore row) {
 				update();
 			}
 
-			public void selected(ListRow row) {
+			public void selected(TableRowCore row) {
 				update();
 			}
 
-			public void focusChanged(ListRow focusedRow) {
+			public void focusChanged(TableRowCore focusedRow) {
 				update();
 			}
 
