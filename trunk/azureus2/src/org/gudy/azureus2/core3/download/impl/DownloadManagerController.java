@@ -1691,11 +1691,12 @@ DownloadManagerController
 		// will have better information than the stats object.
 		DiskManager dm = getDiskManager();
 
+		//System.out.println(dm + ":" + (dm == null ? "null" : dm.getState() + ";" + dm.getRemainingExcludingDND()));
 		if (dm != null) {
 
 			int dm_state = dm.getState();
 
-			if (dm_state == DiskManager.CHECKING || dm_state == DiskManager.READY) {
+			if (dm_state == DiskManager.READY) {
 				long remaining = bIncludeDND ? dm.getRemaining()
 						: dm.getRemainingExcludingDND();
 				return remaining == 0;
