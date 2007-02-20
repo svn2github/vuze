@@ -10,6 +10,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
+import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -32,6 +33,7 @@ public class PublishUtils
 		context.registerTransactionType("publish", PublishTransaction.class);
 		context.addMessageListener(new DisplayListener(browser));
 		context.addMessageListener(new SeedingListener(pi, downloadListener));
+		context.addMessageListener(new TorrentListener());
 	}
 
 	public static boolean isPublished(DownloadManager dm) {
