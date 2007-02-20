@@ -43,9 +43,11 @@ import org.gudy.azureus2.ui.swt.components.*;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
+
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
@@ -63,7 +65,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * This object is needed to split core code from plugin code.
  */
 public class TableCellImpl 
-       implements TableCellCore
+       implements TableCellSWT
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
   private TableRowCore tableRow;
@@ -145,7 +147,7 @@ public class TableCellImpl
    * @param _tableColumn
    * @param position
    */
-  public TableCellImpl(TableRowCore _tableRow, TableColumnCore _tableColumn,
+  public TableCellImpl(TableRowSWT _tableRow, TableColumnCore _tableColumn,
                        int position) {
     this.tableColumn = _tableColumn;
     this.tableRow = _tableRow;
@@ -272,8 +274,11 @@ public class TableCellImpl
   	if (isInvisibleAndCanRefresh())
   		return false;
 
-  	bCellVisuallyChangedSinceRefresh = true;
-    return bufferedTableItem.setForeground(color);
+    boolean set = bufferedTableItem.setForeground(color);
+    if (set) {
+    	bCellVisuallyChangedSinceRefresh = true;
+    }
+    return set;
   }
   
   public boolean setForeground(int red, int green, int blue) {
@@ -283,8 +288,11 @@ public class TableCellImpl
   	if (isInvisibleAndCanRefresh())
   		return false;
 
-  	bCellVisuallyChangedSinceRefresh = true;
-    return bufferedTableItem.setForeground(red, green, blue);
+    boolean set = bufferedTableItem.setForeground(red, green, blue);
+    if (set) {
+    	bCellVisuallyChangedSinceRefresh = true;
+    }
+    return set;
   }
 
   public boolean setText(String text) {
@@ -809,7 +817,7 @@ public class TableCellImpl
     		if (bCellVisible) {
 	      	if (bDebug)
 	      		debug("fast refresh: setText");
-	    		setText((String)sortValue);
+	    		ret = setText((String)sortValue);
 	    		valid = true;
     		}
     	} else if ((iInterval == TableColumnCore.INTERVAL_LIVE ||
@@ -820,7 +828,7 @@ public class TableCellImpl
       	boolean bWasValid = isValid();
 
       	if (bDebug)
-      		debug("invoke refresh");
+      		debug("invoke refresh; wasValid? " + bWasValid);
 
       	long lTimeStart = SystemTime.getCurrentTime();
         tableColumn.invokeCellRefreshListeners(this);
@@ -846,6 +854,8 @@ public class TableCellImpl
         tableColumn.setConsecutiveErrCount(0);
       
     	ret = bCellVisuallyChangedSinceRefresh;
+    	if (bDebug)
+    		debug("refresh done; visual change? " + ret + ";" + Debug.getCompressedStackTrace());
     } catch (Throwable e) {
       refreshErrLoopCount++;
       tableColumn.setConsecutiveErrCount(++iErrCount);
@@ -919,7 +929,7 @@ public class TableCellImpl
   	}
 
 		if (bDebug) {
-			debug("doPaint " + bIsUpToDate + ";" + valid + ";" + refreshListeners);
+			debug("doPaint up2date:" + bIsUpToDate + ";v:" + valid + ";rl=" + refreshListeners);
 		}
     bufferedTableItem.doPaint(gc);
   }
@@ -931,7 +941,15 @@ public class TableCellImpl
   public TableRowCore getTableRowCore() {
     return tableRow;
   }
-  
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getTableRowSWT()
+	public TableRowSWT getTableRowSWT() {
+		if (tableRow instanceof TableRowSWT) {
+			return (TableRowSWT)tableRow;
+		}
+		return null;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -1057,7 +1075,7 @@ public class TableCellImpl
 		return bIsUpToDate;
 	}
 	
-	private void debug(final String s) {
+	public void debug(final String s) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				System.out.println(SystemTime.getCurrentTime() + ": r"

@@ -23,16 +23,23 @@ package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Table;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
-import org.gudy.azureus2.core3.peer.PEPiece;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.components.Legend;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.pieces.*;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+
+import com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
+
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  * @author Olivier
@@ -43,9 +50,10 @@ import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
  *			2005/Oct/08: Add PriorityItem, SpeedItem
 */
 
-public class PiecesView 
-       extends TableView 
-       implements DownloadManagerPeerListener
+public class PiecesView
+	extends TableViewTab
+	implements DownloadManagerPeerListener, TableDataSourceChangedListener,
+	TableLifeCycleListener
 {
   private final static TableColumnCore[] basicItems = {
     new PieceNumberItem(),
@@ -63,18 +71,27 @@ public class PiecesView
   };
 
   DownloadManager manager;
+
+	private TableViewSWTImpl tv;
+
+	private Composite legendComposite;
   
   /**
    * Initialize
    *
    */
 	public PiecesView() {
-		super(TableManager.TABLE_TORRENT_PIECES, "PiecesView", basicItems,
-			basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
-		bEnableTabViews = true;
+		tv = new TableViewSWTImpl(TableManager.TABLE_TORRENT_PIECES, "PiecesView",
+				basicItems, basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION
+						| SWT.VIRTUAL);
+		setTableView(tv);
+		tv.setEnableTabViews(true);
+		tv.addTableDataSourceChangedListener(this, true);
+		tv.addLifeCycleListener(this);
 	}
 
-	public void dataSourceChanged(Object newDataSource) {
+	// @see com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener#tableDataSourceChanged(java.lang.Object)
+	public void tableDataSourceChanged(Object newDataSource) {
   	if (manager != null)
   		manager.removePeerListener(this);
 
@@ -85,60 +102,57 @@ public class PiecesView
 		else
 			manager = (DownloadManager)newDataSource;
   	
-  	if (manager != null && getTable() != null) {
+  	if (manager != null) {
     	manager.addPeerListener(this, false);
     	addExistingDatasources();
     }
 	}
 
-	public void initialize(Composite composite) {
-    super.initialize(composite);
-    
-    Legend.createLegendComposite(
-    		getTableComposite(),
-    			BlocksItem.colors,
-    		new String[] {
-        			"PiecesView.legend.requested",
-        			"PiecesView.legend.written",        			
-    				"PiecesView.legend.downloaded",
-    				"PiecesView.legend.incache"}
-        	);
-  }
+	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
+	public void tableViewInitialized() {
+		if (legendComposite != null && (tv instanceof TableViewSWT)) {
+			Composite composite = ((TableViewSWT) tv).getTableComposite();
 
-  public void tableStructureChanged() {
-    //1. Unregister for item creation
-  	if (manager != null)
-  		manager.removePeerListener(this);
-    
-    super.tableStructureChanged();
+			legendComposite = Legend.createLegendComposite(composite,
+					BlocksItem.colors, new String[] {
+						"PiecesView.legend.requested",
+						"PiecesView.legend.written",
+						"PiecesView.legend.downloaded",
+						"PiecesView.legend.incache"
+					});
+		}
 
-    //5. Re-add as a listener
     if (manager != null) {
     	manager.addPeerListener(this, false);
     	addExistingDatasources();
     }
-  }
-  
-  public void delete() {
-  	if (manager != null)
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewDestroyed()
+	public void tableViewDestroyed() {
+		if (legendComposite != null && legendComposite.isDisposed()) {
+			legendComposite.dispose();
+		}
+
+		if (manager != null) {
   		manager.removePeerListener(this);
-    super.delete();
-  }
+		}
+	}
 
   /* DownloadManagerPeerListener implementation */
   public void pieceAdded(PEPiece created) {
-    addDataSource(created);
+    tv.addDataSource(created);
   }
 
   public void pieceRemoved(PEPiece removed) {    
-    removeDataSource(removed);
+    tv.removeDataSource(removed);
   }
   
   public void peerAdded(PEPeer peer) {  }
   public void peerRemoved(PEPeer peer) {  }
 	public void peerManagerAdded(PEPeerManager manager) {	}
 	public void peerManagerRemoved(PEPeerManager	manager) {
-		removeAllTableRows();
+		tv.removeAllTableRows();
 	}
 
 	/**
@@ -152,15 +166,7 @@ public class PiecesView
 		if (dataSources == null || dataSources.length == 0)
 			return;
 		
-		addDataSources(dataSources);
-  	processDataSourceQueue();
-	}
-
-	public void initializeTable(Table table) {
-		super.initializeTable(table);
-
-		// Table is initialized, we can add datasources to it now
-  	manager.addPeerListener(this, false);
-  	addExistingDatasources();
+		tv.addDataSources(dataSources);
+  	tv.processDataSourceQueue();
 	}
 }

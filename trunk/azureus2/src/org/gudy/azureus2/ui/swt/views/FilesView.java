@@ -38,21 +38,26 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
+import com.aelitis.azureus.ui.common.table.*;
 
 /**
  * @author Olivier
  * @author TuxPaper
  *         2004/Apr/23: extends TableView instead of IAbstractView
  */
-public class FilesView 
-       extends TableView
+public class FilesView
+	extends TableViewTab
+	implements TableDataSourceChangedListener, TableSelectionListener,
+	TableViewSWTMenuFillListener, TableRefreshListener
 {
 	boolean refreshing = false;
 
@@ -74,22 +79,34 @@ public class FilesView
   
   private DownloadManager manager = null;
   
+  // XXX There's no Default for this param!!
   public static boolean show_full_path = COConfigurationManager.getBooleanParameter( "FilesView.show.full.path", false );
   private MenuItem path_item;
+
+	private TableViewSWT tv;
   
 
   /**
    * Initialize 
    */
-  public FilesView() {
-    super(TableManager.TABLE_TORRENT_FILES, "FilesView", basicItems,
-				"firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
-    setRowDefaultIconSize(new Point(16, 16));
-    bEnableTabViews = true;
-    coreTabViews = new IView[] { new FileInfoView() };
-  }
+	public FilesView() {
+		tv = new TableViewSWTImpl(TableManager.TABLE_TORRENT_FILES, "FilesView",
+				basicItems, "firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		setTableView(tv);
+		tv.setRowDefaultIconSize(new Point(16, 16));
+		tv.setEnableTabViews(true);
+		tv.setCoreTabViews(new IView[] { new FileInfoView()
+		});
 
-	public void dataSourceChanged(Object newDataSource) {
+		tv.addTableDataSourceChangedListener(this, true);
+		tv.addRefreshListener(this, true);
+		tv.addSelectionListener(this, false);
+		tv.addMenuFillListener(this);
+	}
+
+  
+  // @see com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener#tableDataSourceChanged(java.lang.Object)
+  public void tableDataSourceChanged(Object newDataSource) {
 		if (newDataSource == null)
 			manager = null;
 		else if (newDataSource instanceof Object[])
@@ -97,18 +114,33 @@ public class FilesView
 		else
 			manager = (DownloadManager)newDataSource;
 
-		removeAllTableRows();
+		tv.removeAllTableRows();
 	}
 	
-	public void runDefaultAction() {
-		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) getFirstSelectedDataSource();
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void deselected(TableRowCore row) {
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#focusChanged(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void focusChanged(TableRowCore focus) {
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void selected(TableRowCore row) {
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
+	public void defaultSelected(TableRowCore[] rows) {
+		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tv.getFirstSelectedDataSource();
 		if (fileInfo != null
 				&& fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
 			Utils.launch(fileInfo.getFile(true).toString());
 	}
 
+	// @see org.gudy.azureus2.ui.swt.views.TableViewSWTMenuFillListener#fillMenu(org.eclipse.swt.widgets.Menu)
 	public void fillMenu(final Menu menu) {
-		Object[] infos = getSelectedDataSources();
+		Shell shell = menu.getShell();
+		Object[] infos = tv.getSelectedDataSources();
 		boolean hasSelection = (infos.length > 0);
 
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
@@ -122,7 +154,7 @@ public class FilesView
 		Messages.setLanguageText(itemExplore, "MyTorrentsView.menu.explore");
 		itemExplore.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-		    Object[] dataSources = getSelectedDataSources();
+		    Object[] dataSources = tv.getSelectedDataSources();
 		    for (int i = dataSources.length - 1; i >= 0; i--) {
 		    	DiskManagerFileInfo info = (DiskManagerFileInfo)dataSources[i];
 		      if (info != null)
@@ -154,7 +186,7 @@ public class FilesView
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemPriority, "FilesView.menu.setpriority"); //$NON-NLS-1$
     
-    final Menu menuPriority = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    final Menu menuPriority = new Menu(shell, SWT.DROP_DOWN);
     itemPriority.setMenu(menuPriority);
     
     final MenuItem itemHigh = new MenuItem(menuPriority, SWT.CASCADE);
@@ -174,8 +206,6 @@ public class FilesView
     Messages.setLanguageText(itemDelete, "wizard.multitracker.delete");	// lazy but we're near release
 
     new MenuItem(menu, SWT.SEPARATOR);
-
-    super.fillMenu(menu);
 
 		if (!hasSelection) {
 			itemOpen.setEnabled(false);
@@ -251,7 +281,7 @@ public class FilesView
 		
 		itemDelete.setEnabled( !all_compact );
 
-    itemOpen.addListener(SWT.Selection, new SelectedTableRowsListener() {
+    itemOpen.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
       public void run(TableRowCore row) {
         DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
         if (fileInfo.getAccessMode() == DiskManagerFileInfo.READ) {
@@ -264,7 +294,7 @@ public class FilesView
     	public void handleEvent(Event event) {
     		boolean rename_it = ((Boolean)event.widget.getData("rename")).booleanValue();
     		boolean retarget_it = ((Boolean)event.widget.getData("retarget")).booleanValue();
-    		rename(getSelectedRows(), rename_it, retarget_it);
+    		rename(tv.getSelectedRows(), rename_it, retarget_it);
     	}
     };
     
@@ -279,7 +309,7 @@ public class FilesView
     Listener priorityListener = new Listener() {
 			public void handleEvent(Event event) {
 				changePriority(((Integer) event.widget.getData("Priority")).intValue(),
-						getSelectedRows());
+						tv.getSelectedRows());
 			}
     };
 
@@ -290,7 +320,7 @@ public class FilesView
 	}
 
 	private String askForRenameFilename(DiskManagerFileInfo fileInfo) {
-		SimpleTextEntryWindow dialog = new SimpleTextEntryWindow(getComposite().getDisplay());
+		SimpleTextEntryWindow dialog = new SimpleTextEntryWindow(Display.getDefault());
 		dialog.setTitle("FilesView.rename.filename.title");
 		dialog.setMessage("FilesView.rename.filename.text");
 		dialog.setPreenteredText(fileInfo.getFile(true).getName(), false); // false -> it's not "suggested", it's a previous value
@@ -301,7 +331,7 @@ public class FilesView
 	}
 	
 	private String askForRetargetedFilename(DiskManagerFileInfo fileInfo) {
-		FileDialog fDialog = new FileDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
+		FileDialog fDialog = new FileDialog(Utils.findAnyShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
 		File existing_file = fileInfo.getFile(true);
 		fDialog.setFilterPath(existing_file.getParent());
 		fDialog.setFileName(existing_file.getName());
@@ -310,7 +340,7 @@ public class FilesView
 	}
 	
 	private String askForSaveDirectory(DiskManagerFileInfo fileInfo) {
-		DirectoryDialog dDialog = new DirectoryDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);
+		DirectoryDialog dDialog = new DirectoryDialog(Utils.findAnyShell(), SWT.SYSTEM_MODAL | SWT.SAVE);
 		File current_dir = fileInfo.getFile(true).getParentFile();
 		dDialog.setFilterPath(current_dir.getPath());
 		dDialog.setText(MessageText.getString("FilesView.rename.choose.path.dir"));
@@ -322,7 +352,7 @@ public class FilesView
 				"FilesView.messagebox.rename.id",
 				SWT.OK | SWT.CANCEL,
 				SWT.OK, true,
-				getComposite().getDisplay(), 
+				Display.getDefault(), 
 				MessageBoxWindow.ICON_WARNING,
 				MessageText.getString( "FilesView.rename.confirm.delete.title" ),
 				MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ file.toString()})) == SWT.OK;
@@ -342,7 +372,7 @@ public class FilesView
 		);
 
 		if (!result[0]){
-			MessageBox mb = new MessageBox(getComposite().getShell(),SWT.ICON_ERROR | SWT.OK);
+			MessageBox mb = new MessageBox(Utils.findAnyShell(), SWT.ICON_ERROR | SWT.OK);
 			mb.setText(MessageText.getString("FilesView.rename.failed.title"));
 			mb.setMessage(MessageText.getString("FilesView.rename.failed.text"));
 			mb.open();	    					
@@ -503,7 +533,7 @@ public class FilesView
 						"FilesView.messagebox.delete.id",
 						SWT.OK | SWT.CANCEL,
 						SWT.OK, true,
-						getComposite().getDisplay(), 
+						Display.getDefault(), 
 						MessageBoxWindow.ICON_WARNING,
 						MessageText.getString( "FilesView.rename.confirm.delete.title" ),
 						MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK;
@@ -586,65 +616,56 @@ public class FilesView
 	return( paused );
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#refresh()
-   */
-  public synchronized void refresh(boolean bForceSort) {
+  // @see com.aelitis.azureus.ui.common.table.TableRefreshListener#tableRefresh()
+  public void tableRefresh() {
   	if (refreshing)
   		return;
 
   	try {
 	  	refreshing = true;
-	    if(getComposite() == null || getComposite().isDisposed())
+	    if (tv.isDisposed())
 	      return;
 	
-	    removeInvalidFileItems();
-	
 	    DiskManagerFileInfo files[] = getFileInfo();
-		
-	    if (files != null && getTable().getItemCount() != files.length && files.length > 0) {
+
+	    if (files != null && !doAllExist(files)) {
+	    	tv.removeAllTableRows();
+
 		    Object filesCopy[] = new Object[files.length]; 
 		    System.arraycopy(files, 0, filesCopy, 0, files.length);
 
-		    addDataSources(filesCopy);
-		    processDataSourceQueue();
+		    tv.addDataSources(filesCopy);
+		    tv.processDataSourceQueue();
 	    }
-	    
-	    super.refresh(bForceSort);
   	} finally {
   		refreshing = false;
   	}
   }
   
-  private void removeInvalidFileItems() {
-    
-    final DiskManagerFileInfo files[] = getFileInfo();
+  /**
+	 * @param files
+	 * @return
+	 *
+	 * @since 3.0.0.7
+	 */
+	private boolean doAllExist(DiskManagerFileInfo[] files) {
+		for (int i = 0; i < files.length; i++) {
+			DiskManagerFileInfo fileinfo = files[i];
 
-    runForAllRows(new GroupTableRowRunner() {
-      public void run(TableRowCore row) {
-        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
-        if (fileInfo != null && !containsFileInfo(files, fileInfo)) {
-          removeDataSource(fileInfo);
-        }
-      }
-    });
-  }
-  
-  private boolean containsFileInfo(DiskManagerFileInfo[] files,
-                                   DiskManagerFileInfo file) {
-    //This method works with reference comparision
-    if(files == null || file == null) {
-      return false;
-    }
-    for(int i = 0 ; i < files.length ; i++) {
-      if(files[i] == file)
-        return true;
-    }
-    return false;
-  }
-  
+			// We can't just use tv.dataSourceExists(), since it does a .equals()
+			// comparison, and we want a reference comparison
+			TableRowCore row = tv.getRow(fileinfo);
+			if (row == null) {
+				return false;
+			}
+			// reference comparison
+			if (row.getDataSource(true) != fileinfo) {
+				return false;
+			}
+		}
+		return true;
+	}
 
-  
   /* SubMenu for column specific tasks.
    */
   public void addThisColumnSubMenu(String sColumnName, Menu menuThisColumn) {
@@ -663,8 +684,8 @@ public class FilesView
       path_item.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
           show_full_path = path_item.getSelection();
-          columnInvalidate("path");
-          refreshTable(false);
+          tv.columnInvalidate("path");
+          tv.refreshTable(false);
           COConfigurationManager.setParameter( "FilesView.show.full.path", show_full_path );
         }
       });

@@ -32,8 +32,6 @@ import java.net.URL;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.category.Category;
@@ -47,23 +45,25 @@ import org.gudy.azureus2.core3.tracker.host.TRHostTorrentRemovalVetoException;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
-import org.gudy.azureus2.ui.swt.Alerts;
-import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytracker.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.*;
 
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 
 
 /**
@@ -73,10 +73,10 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
  *         2004/Apr/21: extends TableView instead of IAbstractView
  */
 
-public class 
-MyTrackerView 
-	extends TableView
-	implements TRHostListener, CategoryManagerListener
+public class MyTrackerView
+	extends TableViewTab
+	implements TRHostListener, CategoryManagerListener, TableLifeCycleListener,
+	TableSelectionListener, TableViewSWTMenuFillListener, TableRefreshListener
 {
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
@@ -107,53 +107,45 @@ MyTrackerView
 
 	private Menu			menuCategory;
 
-	public 
-	MyTrackerView(
-		AzureusCore		_azureus_core ) 
-	{
-    super(TableManager.TABLE_MYTRACKER, "MyTrackerView", basicItems, "name", 
-          SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
-    azureus_core = _azureus_core;
+	private TableViewSWT tv;
+
+	public MyTrackerView(AzureusCore _azureus_core) {
+		tv = new TableViewSWTImpl(TableManager.TABLE_MYTRACKER, "MyTrackerView",
+				basicItems, "name", SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER
+						| SWT.VIRTUAL);
+		setTableView(tv);
+		azureus_core = _azureus_core;
+		tv.addLifeCycleListener(this);
+		tv.addSelectionListener(this, false);
+		tv.addMenuFillListener(this);
+		tv.addRefreshListener(this, false);
+	}
+	
+	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
+	public void tableViewInitialized() {
+		azureus_core.getTrackerHost().addListener( this );
+	}
+	
+	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewDestroyed()
+	public void tableViewDestroyed() {
+  	azureus_core.getTrackerHost().removeListener( this );
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
-	 */
-	public void 
-	initialize(
-		Composite composite0 ) 
-	{
-    super.initialize(composite0);
-
-		azureus_core.getTrackerHost().addListener( this );
-		
-		final Table table = getTable();
-		table.addMouseListener(new MouseAdapter() {
-      public void mouseDoubleClick(MouseEvent mEvent) {
-        TRHostTorrent torrent = (TRHostTorrent)getFirstSelectedDataSource();
-        if (torrent == null)
-          return;
-			  DownloadManager	dm = azureus_core.getGlobalManager().getDownloadManager(torrent.getTorrent());
-			  if (dm != null) {
-			  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-			  	if (uiFunctions != null) {
-			  		uiFunctions.openManagerView(dm);
-			  	}
-			  }
-		   }
-		 });	   
-  }
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
+	public void defaultSelected(TableRowCore[] rows) {
+		TRHostTorrent torrent = (TRHostTorrent) tv.getFirstSelectedDataSource();
+		if (torrent == null)
+			return;
+		DownloadManager dm = azureus_core.getGlobalManager().getDownloadManager(
+				torrent.getTorrent());
+		if (dm != null) {
+			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+			if (uiFunctions != null) {
+				uiFunctions.openManagerView(dm);
+			}
+		}
+	}
     
-  public void tableStructureChanged() {
-    //1. Unregister for item creation
-  	azureus_core.getTrackerHost().removeListener( this );
-    
-    super.tableStructureChanged();
-
-    //5. Re-add as a listener
-    azureus_core.getTrackerHost().addListener( this );
-  }
-
   public void fillMenu(final Menu menu) {	  
 	    menuCategory = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
 	    final MenuItem itemCategory = new MenuItem(menu, SWT.CASCADE);
@@ -177,7 +169,7 @@ MyTrackerView
 	   Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
 	   Utils.setMenuItemImage(itemRemove, "delete");
 
-	   Object[] hostTorrents = getSelectedDataSources();
+	   Object[] hostTorrents = tv.getSelectedDataSources();
 
 	   itemStart.setEnabled(false);
 	   itemStop.setEnabled(false);
@@ -241,15 +233,17 @@ MyTrackerView
 	   });
 
     new MenuItem(menu, SWT.SEPARATOR);
-
-    super.fillMenu(menu);
+  }
+  
+  // @see org.gudy.azureus2.ui.swt.views.TableViewSWTMenuFillListener#addThisColumnSubMenu(java.lang.String, org.eclipse.swt.widgets.Menu)
+  public void addThisColumnSubMenu(String columnName, Menu menuThisColumn) {
   }
 	
 	public void
 	torrentAdded(
 		TRHostTorrent		host_torrent )
 	{	
-	  addDataSource(host_torrent);
+	  tv.addDataSource(host_torrent);
 	}
 	
 	public void torrentChanged(TRHostTorrent t) { }
@@ -258,7 +252,7 @@ MyTrackerView
 	torrentRemoved(
 		TRHostTorrent		host_torrent )
 	{
-	  removeDataSource(host_torrent);
+	  tv.removeDataSource(host_torrent);
 	}
 
 	public boolean
@@ -276,9 +270,8 @@ MyTrackerView
 		return( false );
 	}
  
-	public void 
-	refresh(boolean bForceSort) 
-	{
+	// @see com.aelitis.azureus.ui.common.table.TableRefreshListener#tableRefresh()
+	public void tableRefresh() {
 		if (getComposite() == null || getComposite().isDisposed()){
 	   
 			return;
@@ -293,7 +286,7 @@ MyTrackerView
 		// Store values for columns that are calculate from peer information, so 
 		// that we only have to do one loop.  (As opposed to each cell doing a loop)
 		// Calculate code copied from TrackerTableItem
-		TableRowCore[] rows = getRows();
+		TableRowCore[] rows = tv.getRows();
 		for (int x = 0; x < rows.length; x++) {
 		  if (rows[x] == null)
 		    continue;
@@ -315,30 +308,18 @@ MyTrackerView
   		host_torrent.setData("GUI_Left", new Long(left));
 
       if ( seed_count != 0 ){
-        if (!rows[x].getForeground().equals(Colors.blues[Colors.BLUES_MIDDARK])) {
-          rows[x].setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
+        if (!((TableRowSWT)rows[x]).getForeground().equals(Colors.blues[Colors.BLUES_MIDDARK])) {
+          ((TableRowSWT)rows[x]).setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
         }
       }
     }
-    super.refresh(bForceSort);
 	}	 
 
-	 /* (non-Javadoc)
-	  * @see org.gudy.azureus2.ui.swt.IView#delete()
-	  */
-	 public void 
-	 delete() 
-	 {
-	 	super.delete();
-	 	azureus_core.getTrackerHost().removeListener( this );
-	 }
-
-  
   private boolean start,stop,remove;
   
   private void computePossibleActions() {
     start = stop = remove = false;
-    Object[] hostTorrents = getSelectedDataSources();
+    Object[] hostTorrents = tv.getSelectedDataSources();
     if (hostTorrents.length > 0) {
       remove = true;
       for (int i = 0; i < hostTorrents.length; i++) {
@@ -394,7 +375,7 @@ MyTrackerView
   }
   
   private void stopSelectedTorrents() {
-    runForSelectedRows(new GroupTableRowRunner() {
+    tv.runForSelectedRows(new TableGroupRowRunner() {
       public void run(TableRowCore row) {
         TRHostTorrent	torrent = (TRHostTorrent)row.getDataSource(true);
         if (torrent.getStatus() == TRHostTorrent.TS_STARTED)
@@ -404,7 +385,7 @@ MyTrackerView
   }
   
   private void startSelectedTorrents() {
-    runForSelectedRows(new GroupTableRowRunner() {
+    tv.runForSelectedRows(new TableGroupRowRunner() {
       public void run(TableRowCore row) {
         TRHostTorrent	torrent = (TRHostTorrent)row.getDataSource(true);
         if (torrent.getStatus() == TRHostTorrent.TS_STOPPED)
@@ -414,7 +395,7 @@ MyTrackerView
   }
   
   private void removeSelectedTorrents() {
-    runForSelectedRows(new GroupTableRowRunner() {
+    tv.runForSelectedRows(new TableGroupRowRunner() {
       public void run(TableRowCore row) {
         TRHostTorrent	torrent = (TRHostTorrent)row.getDataSource(true);
       	try{
@@ -522,7 +503,7 @@ MyTrackerView
   }
   
   private void assignSelectedToCategory(final Category category) {
-    runForSelectedRows(new GroupTableRowRunner() {
+    tv.runForSelectedRows(new TableGroupRowRunner() {
       public void run(TableRowCore row) {
       	
 	    TRHostTorrent	tr_torrent = (TRHostTorrent)row.getDataSource(true);
@@ -566,4 +547,16 @@ MyTrackerView
       }
     });
   }
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void deselected(TableRowCore row) {
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#focusChanged(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void focusChanged(TableRowCore focus) {
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void selected(TableRowCore row) {
+	}
 }

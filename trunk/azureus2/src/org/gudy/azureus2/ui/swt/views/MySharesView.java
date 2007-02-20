@@ -25,19 +25,35 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
+import org.gudy.azureus2.ui.swt.Alerts;
+import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
+import org.gudy.azureus2.ui.swt.views.tableitems.myshares.CategoryItem;
+import org.gudy.azureus2.ui.swt.views.tableitems.myshares.NameItem;
+import org.gudy.azureus2.ui.swt.views.tableitems.myshares.TypeItem;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.*;
+
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.sharing.*;
@@ -46,19 +62,6 @@ import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
-import org.gudy.azureus2.ui.swt.Alerts;
-import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
-import org.gudy.azureus2.ui.swt.views.tableitems.myshares.CategoryItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.myshares.NameItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.myshares.TypeItem;
-
-import java.util.*;
-import java.util.List;
 
 /**
  * @author parg
@@ -66,10 +69,11 @@ import java.util.List;
  *         2004/Apr/20: Remove need for tableItemToObject
  *         2004/Apr/21: extends TableView instead of IAbstractView
  */
-public class 
-MySharesView 
-	extends TableView
-	implements ShareManagerListener
+public class MySharesView 
+extends TableViewTab
+implements ShareManagerListener,
+		TableLifeCycleListener, TableViewSWTMenuFillListener,
+		TableRefreshListener
 {
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
@@ -85,71 +89,90 @@ MySharesView
 	private GlobalManager	global_manager;
 	
 	private Menu			menuCategory;
+
+	private TableViewSWTImpl tv;
 	
 	public 
 	MySharesView(
 		AzureusCore	_azureus_core )
 	{	
-    super(TableManager.TABLE_MYSHARES, "MySharesView", basicItems, "name", 
-          SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
-    
-    	azureus_core	= _azureus_core;
+		tv = new TableViewSWTImpl(TableManager.TABLE_MYSHARES, "MySharesView",
+				basicItems, "name", SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER
+						| SWT.VIRTUAL);
+		setTableView(tv);
+		azureus_core	= _azureus_core;
 		global_manager = azureus_core.getGlobalManager();
-	}
-	 
-	public void 
-	initialize(
-			Composite composite) 
-	{
-		super.initialize(composite);
 
-		getTable().addMouseListener(new MouseAdapter() {
-		   public void mouseDoubleClick(MouseEvent mEvent) {
-			 TableItem[] tis = getTable().getSelection();
-			 if (tis.length == 0) {
-			   return;
-			 }
-			 ShareResource share = (ShareResource)getFirstSelectedDataSource();
-			 
-			 if (share != null){
-			 	
-			 	List dms = global_manager.getDownloadManagers();
-			 	
-			 	for (int i=0;i<dms.size();i++){
-			 		
-			 		DownloadManager	dm = (DownloadManager)dms.get(i);
-			 		
-			 		try{
-				 		byte[]	share_hash = null;
-				 		
-				 		if ( share.getType() == ShareResource.ST_DIR ){
-				 			
-				 			share_hash = ((ShareResourceDir)share).getItem().getTorrent().getHash();
-				 			
-				 		}else if ( share.getType() == ShareResource.ST_FILE ){
-				 			
-				 			share_hash = ((ShareResourceFile)share).getItem().getTorrent().getHash();
-				 		}
-				 		
-				 		if ( Arrays.equals( share_hash, dm.getTorrent().getHash())){
-				 		
-				 	  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-				 	  	if (uiFunctions != null) {
-				 	  		uiFunctions.openManagerView(dm);
-				 	  	}
-						 	
-						 	break;
-				 		}
-			 		}catch( Throwable e ){
-			 			
-			 			Debug.printStackTrace( e );
-			 		}
-			 	}
-			 }
-		   }
-		 });	
-		 
+		tv.addSelectionListener(new TableSelectionListener() {
+			public void selected(TableRowCore row) {
+			}
+		
+			public void focusChanged(TableRowCore focus) {
+			}
+		
+			public void deselected(TableRowCore row) {
+			}
+		
+			public void defaultSelected(TableRowCore[] rows) {
+				MySharesView.this.defaultSelected(rows);
+			}
+		
+		}, false);
+
+		tv.addLifeCycleListener(this);
+		tv.addMenuFillListener(this);
+		tv.addRefreshListener(this, false);
+	}
+	
+	private void defaultSelected(TableRowCore[] rows) {
+		ShareResource share = (ShareResource) tv.getFirstSelectedDataSource();
+		if (share == null) {
+			return;
+		}
+
+		List dms = global_manager.getDownloadManagers();
+
+		for (int i = 0; i < dms.size(); i++) {
+			DownloadManager dm = (DownloadManager) dms.get(i);
+
+			try {
+				byte[] share_hash = null;
+
+				if (share.getType() == ShareResource.ST_DIR) {
+
+					share_hash = ((ShareResourceDir) share).getItem().getTorrent().getHash();
+
+				} else if (share.getType() == ShareResource.ST_FILE) {
+
+					share_hash = ((ShareResourceFile) share).getItem().getTorrent().getHash();
+				}
+
+				if (Arrays.equals(share_hash, dm.getTorrent().getHash())) {
+
+					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+					if (uiFunctions != null) {
+						uiFunctions.openManagerView(dm);
+					}
+
+					break;
+				}
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public void tableViewInitialized() {
 		createRows();
+	}
+	
+	public void tableViewDestroyed() {
+		try {
+			azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager().removeListener(
+					this);
+		} catch (ShareException e) {
+			Debug.printStackTrace(e);
+		}
 	}
 
   private void createRows() {
@@ -172,15 +195,11 @@ MySharesView
 		}
 	}
 
-  public void tableStructureChanged() {
-    super.tableStructureChanged();
-    createRows();
-  }
-
   public void 
   fillMenu(
   	final Menu menu) 
   {
+  	Shell shell = menu.getShell();
 		/*
 	   final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
 	   Messages.setLanguageText(itemStart, "MySharesView.menu.start"); //$NON-NLS-1$
@@ -191,7 +210,7 @@ MySharesView
 	   itemStop.setImage(ImageRepository.getImage("stop"));
 	   */
 		
-	    menuCategory = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+	    menuCategory = new Menu(shell, SWT.DROP_DOWN);
 	    final MenuItem itemCategory = new MenuItem(menu, SWT.CASCADE);
 	    Messages.setLanguageText(itemCategory, "MyTorrentsView.menu.setCategory"); //$NON-NLS-1$
 	    //itemCategory.setImage(ImageRepository.getImage("speed"));
@@ -206,7 +225,7 @@ MySharesView
 	   Utils.setMenuItemImage(itemRemove, "delete");
 
 
-	   Object[] shares = getSelectedDataSources();
+	   Object[] shares = tv.getSelectedDataSources();
 
 	   itemRemove.setEnabled(shares.length > 0);
 
@@ -217,36 +236,28 @@ MySharesView
 	   });
 
     new MenuItem(menu, SWT.SEPARATOR);
-
-    super.fillMenu(menu);
 	}
 	
 	public void resourceAdded(ShareResource resource) {		
-	  addDataSource(resource);
+	  tv.addDataSource(resource);
 	}
 	
 	public void resourceModified(ShareResource resource) { }
 	
 	public void resourceDeleted(ShareResource resource) {
-	  removeDataSource(resource);
+	  tv.removeDataSource(resource);
 	}
 	
 	public void reportProgress(final int percent_complete) {	}
 	
 	public void	reportCurrentTask(final String task_description) { }
  
-	public void refresh(boolean bForceSort) {
-		if (getComposite() == null || getComposite().isDisposed()) {
-      return;
-	  }
-		
+	public void tableRefresh() {
 		computePossibleActions();
 	  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
  	  	if (uiFunctions != null) {
  	  		uiFunctions.refreshIconBar();
  	  	}
-		
-		super.refresh(bForceSort);
 	}	 
 
 	 private void addCategorySubMenu() {
@@ -306,14 +317,14 @@ MySharesView
 	  }
 	
 	  private void addCategory() {
-	    CategoryAdderWindow adderWindow = new CategoryAdderWindow(getComposite().getDisplay());
+	    CategoryAdderWindow adderWindow = new CategoryAdderWindow(Display.getDefault());
 	    Category newCategory = adderWindow.getNewCategory();
 	    if (newCategory != null)
 	      assignSelectedToCategory(newCategory);
 	  }
 	  
 	  private void assignSelectedToCategory(final Category category) {
-	    runForSelectedRows(new GroupTableRowRunner() {
+	    tv.runForSelectedRows(new TableGroupRowRunner() {
 	      public void run(TableRowCore row) {
 	      	String value;
 	      	
@@ -335,16 +346,6 @@ MySharesView
 	    });
 	  }
 	  
-  public void delete() {
-    super.delete();
-
-	 	try {
-	 		azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager().removeListener(this);
-	 	}catch( ShareException e ){
-	 		Debug.printStackTrace( e );
-	 	}
-  }
-
   private boolean start,stop,remove;
   
   private void 
@@ -421,7 +422,7 @@ MySharesView
   private List
   getSelectedItems()
   {
-	  Object[] shares = getSelectedDataSources();
+	  Object[] shares = tv.getSelectedDataSources();
 	    
 	  List	items = new ArrayList();
 	  
@@ -589,7 +590,7 @@ MySharesView
   removeSelectedShares()
   {
 	stopSelectedShares();
-    Object[] shares = getSelectedDataSources();
+    Object[] shares = tv.getSelectedDataSources();
     for (int i = 0; i < shares.length; i++) {
     	try{
     		((ShareResource)shares[i]).delete();
@@ -600,4 +601,9 @@ MySharesView
     	}
     }
   }
+
+	public void addThisColumnSubMenu(String columnName, Menu menuThisColumn) {
+		// TODO Auto-generated method stub
+		
+	}
 }

@@ -67,10 +67,13 @@ import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+
+import com.aelitis.azureus.ui.common.table.TableCellCore;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 
 public class 
 TorrentInfoView
@@ -489,7 +492,7 @@ TorrentInfoView
 	
 	protected class
 	ExternalCell
-		implements TableCellCore
+		implements TableCellSWT
 	{
 		private TableColumnCore				column;
 		private TableCellRefreshListener	target;
@@ -1032,6 +1035,12 @@ TorrentInfoView
 			// TODO Auto-generated method stub
 			return false;
 		}
+
+		// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getTableRowSWT()
+		public TableRowSWT getTableRowSWT() {
+			return null;
+		}
+		
 	}
 	
 	protected class
@@ -1040,7 +1049,7 @@ TorrentInfoView
 	{
 			// table row core
 		
-		public void delete(boolean bDeleteSWTObject) {
+		public void delete() {
 		}
 		public void doPaint(GC gc) {	
 		}
@@ -1058,11 +1067,11 @@ TorrentInfoView
 		public boolean isValid() {
 			return false;
 		}
-		public boolean refresh(boolean bDoGraphics) {
-			return false;
+		public List refresh(boolean bDoGraphics) {
+			return new ArrayList();
 		}
-		public boolean refresh(boolean bDoGraphics, boolean bVisible) {
-			return false;
+		public List refresh(boolean bDoGraphics, boolean bVisible) {
+			return new ArrayList();
 		}
 		public void setForeground(Color c) {
 		}
@@ -1096,8 +1105,6 @@ TorrentInfoView
 		}
 		public void locationChanged(int iStartColumn) {		
 		}
-		public void repaint() {
-		}
 		public void setAlternatingBGColor(boolean bEvenIfNotVisible) {
 		}
 		public boolean setHeight(int iHeight) {
@@ -1110,6 +1117,8 @@ TorrentInfoView
 		}
 		public boolean setTableItem(int newIndex) {
 			return false;
+		}
+		public void redraw() {
 		}
 	}
 }

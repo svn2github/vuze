@@ -22,9 +22,8 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -35,10 +34,15 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
+
+import com.aelitis.azureus.ui.common.table.*;
 
 /**
  * @author Olivier
@@ -50,9 +54,10 @@ import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
  *			2005/Oct/08: Add PieceItem
  */
 
-public class PeersView 
-       extends TableView
-       implements DownloadManagerPeerListener
+public class PeersView
+	extends TableViewTab
+	implements DownloadManagerPeerListener, TableDataSourceChangedListener,
+	TableLifeCycleListener, TableViewSWTMenuFillListener
 {
   private static final TableColumnCore[] basicItems = {
     new IpItem(),
@@ -93,6 +98,8 @@ public class PeersView
     new LANItem(),
   };
   private DownloadManager manager;
+	private TableViewSWT tv;
+	private Shell shell;
 
 
   /**
@@ -100,14 +107,21 @@ public class PeersView
    *
    */
   public PeersView() {
-	    super(TableManager.TABLE_TORRENT_PEERS, "PeersView", 
-	          basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
-    setRowDefaultHeight(16);
-    bEnableTabViews = true;
-	  coreTabViews = new IView[] { new PeerInfoView(), new LoggerView() };
-  }
+		tv = new TableViewSWTImpl(TableManager.TABLE_TORRENT_PEERS, "PeersView",
+				basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		setTableView(tv);
+		tv.setRowDefaultHeight(16);
+		tv.setEnableTabViews(true);
+		tv.setCoreTabViews(new IView[] {
+			new PeerInfoView(),
+			new LoggerView()
+		});
+		tv.addTableDataSourceChangedListener(this, true);
+		tv.addLifeCycleListener(this);
+		tv.addMenuFillListener(this);
+	}
   
-	public void dataSourceChanged(Object newDataSource) {
+	public void tableDataSourceChanged(Object newDataSource) {
   	if (manager != null)
   		manager.removePeerListener(this);
 
@@ -118,39 +132,38 @@ public class PeersView
 		else
 			manager = (DownloadManager)newDataSource;
 
-  	if (manager != null && getTable() != null) {
+  	if (manager != null && !tv.isDisposed()) {
     	manager.addPeerListener(this, false);
     	addExistingDatasources();
     }
 	}
 
   
-	public void initializeTable(Table table) {
-		super.initializeTable(table);
+	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
+	public void tableViewInitialized() {
+		if (tv instanceof TableViewSWT) {
+			shell = ((TableViewSWT)tv).getComposite().getShell();
+		} else {
+			shell = Utils.findAnyShell();
+		}
 
-		manager.addPeerListener(this, false);
+		if (manager != null) {
+			manager.addPeerListener(this, false);
+		}
   	addExistingDatasources();
 	}
-
-	public void tableStructureChanged() {
-    //1. Unregister for item creation
-  	if (manager != null)
+	
+	public void tableViewDestroyed() {
+  	if (manager != null) {
   		manager.removePeerListener(this);
-    
-    super.tableStructureChanged();
-
-    //5. Re-add as a listener
-    if (manager != null) {
-    	manager.addPeerListener(this, false);
-    	addExistingDatasources();
-    }
-  }
+  	}
+	}
 
 	public void fillMenu(final Menu menu) {
 
 		final MenuItem block_item = new MenuItem(menu, SWT.CHECK);
 
-		Object[] peers = getSelectedDataSources();
+		Object[] peers = tv.getSelectedDataSources();
 		
 		boolean hasSelection = (peers.length > 0);
 
@@ -210,7 +223,7 @@ public class PeersView
 			}
 		}
 		
-		PEPeer peer = (PEPeer) getFirstSelectedDataSource();
+		PEPeer peer = (PEPeer) tv.getFirstSelectedDataSource();
 
 
 		if ( peer == null || peer.getManager().getDiskManager().getRemainingExcludingDND() > 0 ){
@@ -224,7 +237,7 @@ public class PeersView
 		}
 
 		Messages.setLanguageText(block_item, "PeersView.menu.blockupload");
-		block_item.addListener(SWT.Selection, new SelectedTableRowsListener() {
+		block_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
 			public void run(TableRowCore row) {
 				((PEPeer) row.getDataSource(true))
 						.setSnubbed(block_item.getSelection());
@@ -234,7 +247,7 @@ public class PeersView
 		final MenuItem ban_item = new MenuItem(menu, SWT.PUSH);
 
 		Messages.setLanguageText(ban_item, "PeersView.menu.kickandban");
-		ban_item.addListener(SWT.Selection, new SelectedTableRowsListener() {
+		ban_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
 			public void run(TableRowCore row) {
 				PEPeer peer = (PEPeer) row.getDataSource(true);
 				String msg = MessageText.getString("PeersView.menu.kickandban.reason");
@@ -250,13 +263,13 @@ public class PeersView
 		Messages.setLanguageText(itemAdvanced, "MyTorrentsView.menu.advancedmenu"); //$NON-NLS-1$
 		itemAdvanced.setEnabled(hasSelection);
 
-		final Menu menuAdvanced = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+		final Menu menuAdvanced = new Menu(shell, SWT.DROP_DOWN);
 		itemAdvanced.setMenu(menuAdvanced);
 
 		// advanced > Download Speed Menu //
 
 		ViewUtils.addSpeedMenu(
-			getComposite(),
+			shell,
 			menuAdvanced,
 			hasSelection,
 			downSpeedDisabled,
@@ -287,12 +300,13 @@ public class PeersView
 				}
 			});
 		new MenuItem(menu, SWT.SEPARATOR);
+	}
 
-		super.fillMenu(menu);
+	public void addThisColumnSubMenu(String columnName, Menu menuThisColumn) {
 	}
 
 	private void setSelectedPeersUpSpeed(int speed) {      
-		Object[] peers = getSelectedDataSources();
+		Object[] peers = tv.getSelectedDataSources();
 		if(peers.length > 0) {            
 			for (int i = 0; i < peers.length; i++) {
 				try {
@@ -306,7 +320,7 @@ public class PeersView
 	}
 
 	private void setSelectedPeersDownSpeed(int speed) {      
-		Object[] peers = getSelectedDataSources();
+		Object[] peers = tv.getSelectedDataSources();
 		if(peers.length > 0) {            
 			for (int i = 0; i < peers.length; i++) {
 				try {
@@ -318,27 +332,21 @@ public class PeersView
 			}
 		}
 	}
-	
-  public void delete() {
-  	if (manager != null)
-  		manager.removePeerListener(this);
-    super.delete();
-  }
   
   /* DownloadManagerPeerListener implementation */
   public void peerAdded(PEPeer created) {
-    addDataSource(created);
+    tv.addDataSource(created);
   }
 
   public void peerRemoved(PEPeer removed) {
-    removeDataSource(removed);
+    tv.removeDataSource(removed);
   }
 
   public void pieceAdded(PEPiece piece) {  }
   public void pieceRemoved(PEPiece piece) {  }
   public void peerManagerAdded(PEPeerManager manager) {	}
   public void peerManagerRemoved(PEPeerManager manager) {
-  	removeAllTableRows();
+  	tv.removeAllTableRows();
   }
 
 	/**
@@ -346,14 +354,16 @@ public class PeersView
 	 * Faster than allowing addListener to call us one datasource at a time. 
 	 */
 	private void addExistingDatasources() {
-		if (manager == null)
+		if (manager == null) {
 			return;
+		}
 
 		Object[] dataSources = manager.getCurrentPeers();
-		if (dataSources == null || dataSources.length == 0)
+		if (dataSources == null || dataSources.length == 0) {
 			return;
+		}
 		
-		addDataSources(dataSources);
-		processDataSourceQueue();
+		tv.addDataSources(dataSources);
+		tv.processDataSourceQueue();
 	}
 }

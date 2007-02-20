@@ -30,11 +30,11 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
@@ -308,9 +308,9 @@ public class MyTorrentsSuperView extends AbstractIView implements
   private IView getCurrentView() {
     // wrap in a try, since the controls may be disposed
     try {
-      if (torrentview.getTable().isFocusControl())
+      if (torrentview.isTableFocus())
         return torrentview;
-      else if (seedingview.getTable().isFocusControl())
+      else if (seedingview.isTableFocus())
         return seedingview;
     } catch (Exception ignore) {/*ignore*/}
 
