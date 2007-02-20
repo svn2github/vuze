@@ -1,4 +1,4 @@
-/*
+/**
  * Created on 19-Apr-2004
  *
  * This program is free software; you can redistribute it and/or
@@ -109,7 +109,6 @@ public class TableManagerImpl implements TableManager
 
 	public TableContextMenuItem addContextMenuItem(String tableID,
 			String resourceKey) {
-		System.out.println("********** " + tableID + "/" + resourceKey + ": menu add");
 		TableContextMenuItemImpl item = new TableContextMenuItemImpl(tableID,
 				resourceKey);
 
