@@ -41,11 +41,14 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 public class ColumnTitle extends CoreTableColumn implements
 		TableCellRefreshListener, ObfusticateCellText
 {
+	public static String COLUMN_ID = "name";
+
 	static public String s = "";
 
 	/** Default Constructor */
 	public ColumnTitle(String sTableID) {
-		super("name", POSITION_LAST, 250, sTableID);
+		super(COLUMN_ID, POSITION_LAST, 250, sTableID);
+		setMinWidth(100);
 		setObfustication(true);
 		setType(TableColumn.TYPE_TEXT);
 	}

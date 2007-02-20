@@ -13,11 +13,11 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.swt.columns.torrent.ColumnMediaThumb.disposableUISWTGraphic;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
@@ -34,15 +34,19 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnQuality extends CoreTableColumn implements
 		TableCellAddedListener
 {
+	public static String COLUMN_ID = "Quality";
+
 	public Font font;
+	private final int COLUMN_WIDTH = 40; 
 
 	/**
 	 * 
 	 */
 	public ColumnQuality(String sTableID) {
-		super("Quality", sTableID);
-		initializeAsGraphic(POSITION_LAST, 40);
+		super(COLUMN_ID, sTableID);
+		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
 		setAlignment(ALIGN_CENTER);
+		setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
 	}
 
 	public void cellAdded(TableCell cell) {
@@ -97,7 +101,7 @@ public class ColumnQuality extends CoreTableColumn implements
 
 				GC gcImage = new GC(img);
 
-				Color background = ((TableRowCore) cell.getTableRow()).getBackground();
+				Color background = ((TableRowSWT) cell.getTableRow()).getBackground();
 				if (background != null) {
 					gcImage.setBackground(background);
 					gcImage.fillRectangle(0, 0, width, height);

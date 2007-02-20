@@ -41,6 +41,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 public class ColumnDateAdded2Liner extends CoreTableColumn implements
 		TableCellRefreshListener
 {
+	public static String COLUMN_ID = "date_added"; 
+		
 	final static String[] FORMATS = new String[] {
 		"EEEE, MMMM d, yyyy",
 		"EEE, MMMM d, yyyy",
@@ -56,8 +58,9 @@ public class ColumnDateAdded2Liner extends CoreTableColumn implements
 	int curFormat = 0;
 
 	public ColumnDateAdded2Liner(String sTableID, boolean bVisible) {
-		super("date_added", ALIGN_TRAIL, bVisible ? POSITION_LAST
+		super(COLUMN_ID, ALIGN_TRAIL, bVisible ? POSITION_LAST
 				: POSITION_INVISIBLE, 70, sTableID);
+		setMaxWidthAuto(true);
 	}
 
 	public void refresh(TableCell cell) {

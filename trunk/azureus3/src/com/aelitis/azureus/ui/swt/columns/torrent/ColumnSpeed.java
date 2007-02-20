@@ -29,6 +29,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 public class ColumnSpeed extends CoreTableColumn implements
 		TableCellAddedListener
 {
+	public static String COLUMN_ID = "SpeedGraphic";
+
 	private static boolean DEBUG = false;
 
 	final static String[] ICON_NAMES = {
@@ -57,10 +59,10 @@ public class ColumnSpeed extends CoreTableColumn implements
 	 * 
 	 */
 	public ColumnSpeed(String sTableID) {
-		super("SpeedGraphic", sTableID);
-		// icon is 28, but column header needs more
+		super(COLUMN_ID, sTableID);
 		initializeAsGraphic(POSITION_LAST, width);
 		setAlignment(ALIGN_CENTER);
+		setWidthLimits(width, width);
 	}
 
 	public void cellAdded(TableCell cell) {

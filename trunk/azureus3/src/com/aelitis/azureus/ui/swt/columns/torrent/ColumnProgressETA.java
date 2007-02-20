@@ -15,13 +15,14 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -41,7 +42,13 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnProgressETA extends CoreTableColumn implements
 		TableCellAddedListener
 {
+	public static String COLUMN_ID = "ProgressETA";
+	
 	private static final int borderWidth = 1;
+	
+	private static final int COLUMN_WIDTH = 120;
+	
+	private static Font fontText = null;
 
 	Display display;
 
@@ -49,9 +56,10 @@ public class ColumnProgressETA extends CoreTableColumn implements
 	 * 
 	 */
 	public ColumnProgressETA(String sTableID) {
-		super("ProgressETA", sTableID);
-		initializeAsGraphic(POSITION_LAST, 120);
+		super(COLUMN_ID, sTableID);
+		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
 		setAlignment(ALIGN_LEAD);
+		setMinWidth(COLUMN_WIDTH);
 
 		display = SWTThread.getInstance().getDisplay();
 	}
@@ -156,7 +164,7 @@ public class ColumnProgressETA extends CoreTableColumn implements
 			lastETA = eta;
 
 			boolean bDrawProgressBar = true;
-			Image image = ((TableCellCore) cell).getGraphicSWT();
+			Image image = ((TableCellSWT) cell).getGraphicSWT();
 			GC gcImage;
 			boolean bImageSizeChanged;
 			Rectangle imageBounds;
@@ -178,7 +186,7 @@ public class ColumnProgressETA extends CoreTableColumn implements
 			imageBounds = image.getBounds();
 
 			gcImage = new GC(image);
-			Color background = ((TableRowCore) cell.getTableRow()).getBackground();
+			Color background = ((TableRowSWT) cell.getTableRow()).getBackground();
 			if (background != null) {
 				gcImage.setBackground(background);
 				gcImage.fillRectangle(imageBounds);
@@ -277,10 +285,12 @@ public class ColumnProgressETA extends CoreTableColumn implements
 						});
 			}
 
-			FontData[] fontData = gcImage.getFont().getFontData();
-			fontData[0].setHeight(Utils.pixelsToPoint(10, display.getDPI().y));
-			Font font = new Font(display, fontData);
-			gcImage.setFont(font);
+			if (fontText == null) {
+  			FontData[] fontData = gcImage.getFont().getFontData();
+  			fontData[0].setHeight(Utils.pixelsToPoint(10, display.getDPI().y));
+  			fontText = new Font(display, fontData);
+			}
+			gcImage.setFont(fontText);
 			int[] fg = cell.getForeground();
 			gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
 			gcImage.drawText(sETALine, 0, etaY0, true);
@@ -292,13 +302,12 @@ public class ColumnProgressETA extends CoreTableColumn implements
 			}
 
 			gcImage.setFont(null);
-			font.dispose();
 
 			gcImage.dispose();
 
 			disposeExisting(cell);
 
-			((TableCellCore) cell).setGraphic(image);
+			((TableCellSWT) cell).setGraphic(image);
 		}
 
 		private int getPercentDone(TableCell cell) {

@@ -25,6 +25,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 public class ColumnAzProduct extends CoreTableColumn implements
 		TableCellAddedListener
 {
+	public static String COLUMN_ID = "AzProduct";
+
 	private static UISWTGraphicImpl graphicProductAzureus;
 
 	private static UISWTGraphicImpl graphicProductGlobe;
@@ -46,8 +48,9 @@ public class ColumnAzProduct extends CoreTableColumn implements
 	 * 
 	 */
 	public ColumnAzProduct(String sTableID) {
-		super("AzProduct", sTableID);
+		super(COLUMN_ID, sTableID);
 		initializeAsGraphic(POSITION_LAST, width);
+		setWidthLimits(width, width);
 		setAlignment(ALIGN_CENTER);
 	}
 

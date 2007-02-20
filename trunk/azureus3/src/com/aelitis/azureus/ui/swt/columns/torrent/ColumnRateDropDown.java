@@ -20,20 +20,26 @@
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
-import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.RateItListView;
 import com.aelitis.azureus.ui.swt.views.list.ListCell;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
-import com.aelitis.azureus.ui.swt.views.list.ListSelectionAdapter;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -43,9 +49,12 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @created Jul 11, 2006
  *
  */
-public class ColumnRateDropDown extends CoreTableColumn implements
-		TableCellAddedListener
+public class ColumnRateDropDown
+	extends CoreTableColumn
+	implements TableCellAddedListener
 {
+	public static String COLUMN_ID = "RateDD";
+
 	private final static int DROP_DOWN_ARROW_WIDTH = 20;
 
 	final String[] ICON_NAMES = {
@@ -66,7 +75,7 @@ public class ColumnRateDropDown extends CoreTableColumn implements
 	 * 
 	 */
 	public ColumnRateDropDown(String sTableID) {
-		super("RateDD", sTableID);
+		super(COLUMN_ID, sTableID);
 		if (imgDD == null) {
 			imgDD = ImageLoaderFactory.getInstance().getImage("image.rateitdd");
 			imgDDbounds = imgDD.getBounds();
@@ -79,8 +88,8 @@ public class ColumnRateDropDown extends CoreTableColumn implements
 		new Cell(cell);
 	}
 
-	private class Cell implements TableCellRefreshListener,
-			TableCellMouseListener
+	private class Cell
+		implements TableCellRefreshListener, TableCellMouseListener
 	{
 		private Composite cDropDownList = null;
 
@@ -147,14 +156,14 @@ public class ColumnRateDropDown extends CoreTableColumn implements
 				return;
 			}
 
-			TableCellCore cellCore = (TableCellCore) event.cell;
-			final ListCell listCell = (ListCell) cellCore.getBufferedTableItem();
+			TableCellSWT cellSWT = (TableCellSWT) event.cell;
+			final ListCell listCell = (ListCell) cellSWT.getBufferedTableItem();
 
 			// drop down list may be bigger than row, or bigger than parent, so we add
 			// the list to shell and position accordingly
-			Composite parent = (Composite)listCell.getRow().getView().getControl();
+			Composite parent = (Composite) listCell.getRow().getView().getControl();
 
-			Rectangle bounds = cellCore.getBounds();
+			Rectangle bounds = cellSWT.getBounds();
 			Point location = parent.toDisplay(bounds.x, bounds.y + bounds.height);
 
 			cDropDownList = new Composite(parent.getShell(), SWT.BORDER);
@@ -170,8 +179,8 @@ public class ColumnRateDropDown extends CoreTableColumn implements
 			cDropDownList.setLayout(new FormLayout());
 
 			RateItListView view = new RateItListView(null, cDropDownList);
-			view.setMouseClickIsDefaultSelection(true);
-			view.addSelectionListener(new ListSelectionAdapter() {
+			view.getListView().setMouseClickIsDefaultSelection(true);
+			view.getListView().addSelectionListener(new TableSelectionAdapter() {
 				public void defaultSelected(ListRow[] rows) {
 					closeDropDownList();
 
@@ -188,19 +197,20 @@ public class ColumnRateDropDown extends CoreTableColumn implements
 			}, false);
 
 			cDropDownList.layout(true, true);
-			view.updateUI();
+			view.getListView().updateUI();
 			cDropDownList.setFocus();
 
-			view.getControl().addListener(SWT.FocusOut, new Listener() {
+			view.getListView().getControl().addListener(SWT.FocusOut, new Listener() {
 				public void handleEvent(Event event) {
 					closeDropDownList();
 				}
 			});
-			view.getControl().addListener(SWT.Deactivate, new Listener() {
-				public void handleEvent(Event event) {
-					closeDropDownList();
-				}
-			});
+			view.getListView().getControl().addListener(SWT.Deactivate,
+					new Listener() {
+						public void handleEvent(Event event) {
+							closeDropDownList();
+						}
+					});
 		}
 
 		/**

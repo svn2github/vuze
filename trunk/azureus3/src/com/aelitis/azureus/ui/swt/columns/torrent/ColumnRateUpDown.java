@@ -51,6 +51,8 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnRateUpDown extends CoreTableColumn implements
 		TableCellAddedListener
 {
+	public static String COLUMN_ID = "RateIt";
+
 	private static UISWTGraphicImpl graphicRateMe;
 
 	private static UISWTGraphicImpl graphicUp;
@@ -86,9 +88,10 @@ public class ColumnRateUpDown extends CoreTableColumn implements
 	 * 
 	 */
 	public ColumnRateUpDown(String sTableID) {
-		super("RateIt", sTableID);
+		super(COLUMN_ID, sTableID);
 		initializeAsGraphic(POSITION_LAST, width);
 		setAlignment(ALIGN_CENTER);
+		setWidthLimits(width, width);
 	}
 
 	public void cellAdded(TableCell cell) {

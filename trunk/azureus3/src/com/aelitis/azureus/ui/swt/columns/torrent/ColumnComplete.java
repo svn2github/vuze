@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 public class ColumnComplete extends CoreTableColumn implements
 		TableCellAddedListener
 {
+	public static String COLUMN_ID = "CompleteIcon";
 	private static UISWTGraphicImpl graphicWait;
 
 	private static int width;
@@ -54,9 +55,10 @@ public class ColumnComplete extends CoreTableColumn implements
 	 * 
 	 */
 	public ColumnComplete(String sTableID) {
-		super("CompleteIcon", sTableID);
+		super(COLUMN_ID, sTableID);
 		initializeAsGraphic(POSITION_LAST, width);
 		setAlignment(ALIGN_CENTER);
+		setWidthLimits(width, width);
 	}
 
 	public void cellAdded(TableCell cell) {

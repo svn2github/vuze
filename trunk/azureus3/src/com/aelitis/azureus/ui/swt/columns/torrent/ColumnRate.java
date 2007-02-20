@@ -30,7 +30,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.HSLColor;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -50,16 +50,22 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnRate extends CoreTableColumn implements
 		TableCellAddedListener
 {
+	public static String COLUMN_ID = "Rating";
+
+	private final int COLUMN_WIDTH = 50;
+
 	static Font font = null;
+
 	static Font smallFont = null;
 
 	/**
 	 * 
 	 */
 	public ColumnRate(String sTableID) {
-		super("Rating", sTableID);
-		initializeAsGraphic(POSITION_LAST, 50);
+		super(COLUMN_ID, sTableID);
+		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
 		setAlignment(ALIGN_CENTER);
+		setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
 	}
 
 	public void cellAdded(TableCell cell) {
@@ -106,7 +112,7 @@ public class ColumnRate extends CoreTableColumn implements
 			} catch (Exception e) {
 				b = !cell.setSortValue(new Float(count));
 			}
-			
+
 			if (b && cell.isValid()) {
 				return;
 			}
@@ -124,7 +130,7 @@ public class ColumnRate extends CoreTableColumn implements
 			// draw border
 			GC gcImage = new GC(img);
 
-			Color background = ((TableRowCore) cell.getTableRow()).getBackground();
+			Color background = ((TableRowSWT) cell.getTableRow()).getBackground();
 			if (background != null) {
 				gcImage.setBackground(background);
 				gcImage.fillRectangle(0, 0, width, height);
@@ -143,7 +149,7 @@ public class ColumnRate extends CoreTableColumn implements
 
 			SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
 
-			Color bg = ((TableCellImpl) cell).getTableRowCore().getBackground();
+			Color bg = ((TableCellImpl) cell).getTableRowSWT().getBackground();
 			HSLColor hsl = new HSLColor();
 			hsl.initHSLbyRGB(bg.getRed(), bg.getGreen(), bg.getBlue());
 			hsl.setLuminence(hsl.getLuminence() - 10);
@@ -169,8 +175,7 @@ public class ColumnRate extends CoreTableColumn implements
 			r = img.getBounds();
 			r.height -= 12;
 			gcImage.setForeground(color1);
-			GCStringPrinter.printString(gcImage, rating, r, true,
-					false, SWT.CENTER);
+			GCStringPrinter.printString(gcImage, rating, r, true, false, SWT.CENTER);
 
 			if (count > 0) {
 				if (smallFont == null) {

@@ -32,10 +32,10 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -48,12 +48,15 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnMediaThumb extends CoreTableColumn implements
 		TableCellAddedListener
 {
+	public static String COLUMN_ID = "MediaThumb";
+
 	/**
 	 * 
 	 */
 	public ColumnMediaThumb(String sTableID) {
-		super("MediaThumb", sTableID);
+		super(COLUMN_ID, sTableID);
 		initializeAsGraphic(POSITION_LAST, 50);
+		setWidthLimits(50, 50);
 		setAlignment(ALIGN_CENTER);
 	}
 

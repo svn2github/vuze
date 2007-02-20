@@ -39,7 +39,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 public class ColumnIsPrivate extends CoreTableColumn implements
 		TableCellAddedListener
 {
-
+	public static String COLUMN_ID = "IsPrivate";
+		
 	private static UISWTGraphicImpl graphicCheck;
 
 	private static int width;
@@ -54,7 +55,7 @@ public class ColumnIsPrivate extends CoreTableColumn implements
 	 * 
 	 */
 	public ColumnIsPrivate(String sTableID) {
-		super("IsPrivate", sTableID);
+		super(COLUMN_ID, sTableID);
 		initializeAsGraphic(POSITION_LAST, width);
 		setAlignment(ALIGN_CENTER);
 	}

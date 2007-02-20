@@ -39,6 +39,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 public class ColumnIsSeeding extends CoreTableColumn implements
 		TableCellAddedListener
 {
+	public static String COLUMN_ID = "IsSeeding"; 
+		
 	private static UISWTGraphicImpl graphicCheck;
 
 	private static int width;
@@ -50,7 +52,7 @@ public class ColumnIsSeeding extends CoreTableColumn implements
 	}
 
 	public ColumnIsSeeding(String sTableID) {
-		super("IsSeeding", sTableID);
+		super(COLUMN_ID, sTableID);
 		initializeAsGraphic(POSITION_LAST, width);
 		setAlignment(ALIGN_CENTER);
 	}
