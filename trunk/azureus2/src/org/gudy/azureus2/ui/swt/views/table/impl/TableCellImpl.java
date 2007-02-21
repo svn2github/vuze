@@ -45,6 +45,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
@@ -371,6 +372,11 @@ public class TableCellImpl
     }
     
     if ((valueToSort instanceof String) && (sortValue instanceof String)
+				&& sortValue.equals(valueToSort)) {
+			return false;
+		}
+
+    if ((valueToSort instanceof Number) && (sortValue instanceof Number)
 				&& sortValue.equals(valueToSort)) {
 			return false;
 		}
@@ -748,15 +754,28 @@ public class TableCellImpl
   //////////////////////////////////
 	
   public void invalidate(final boolean bMustRefresh) {
+  	if (!valid) {
+  		if (bMustRefresh) {
+  			if (this.bMustRefresh) {
+  				return;
+  			}
+  		} else {
+  			return;
+  		}
+  	}
   	valid = false;
+  	
+  	bCellVisuallyChangedSinceRefresh = true;
 
   	if (bDebug)
   		debug("Invalidate Cell;" + bMustRefresh);
 
-  	if (bMustRefresh)
+  	if (bMustRefresh) {
   		this.bMustRefresh = true;
+  		bufferedTableItem.invalidate();
+  	}
   }
-
+  
   public boolean refresh() {
     return refresh(true);
   }
