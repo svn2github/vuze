@@ -1773,8 +1773,8 @@ public class ListView
 						column.setWidth(newWidth);
 						if (DEBUG_COLUMNSIZE) {
 							logCOLUMNSIZE(column.getName() + "]" + numExpandableColumns
-									+ ": expandBy:" + expandBy + ";newWidth=" + column.getWidth() + ";wantedW="
-									+ newWidth + ";mxw=" + column.getMaxWidth());
+									+ ": expandBy:" + expandBy + ";newWidth=" + column.getWidth()
+									+ ";wantedW=" + newWidth + ";mxw=" + column.getMaxWidth());
 						}
 						expandBy = column.getWidth() - width;
 						numExpandableColumns--;
@@ -2614,7 +2614,21 @@ public class ListView
 	 * @param row
 	 * @param bDoGraphics 
 	 */
-	public List rowRefresh(ListRow row, boolean bDoGraphics, boolean bForceRedraw) {
+	public List rowRefresh(final ListRow row, final boolean bDoGraphics,
+			final boolean bForceRedraw) {
+		final List[] list = new List[1];
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				list[0] = _rowRefresh(row, bDoGraphics, bForceRedraw);
+			}
+		}, false);
+
+		return list[0];
+	}
+
+	private List _rowRefresh(ListRow row, boolean bDoGraphics,
+			boolean bForceRedraw) {
 		if (listCanvas == null || listCanvas.isDisposed()) {
 			return new ArrayList();
 		}
