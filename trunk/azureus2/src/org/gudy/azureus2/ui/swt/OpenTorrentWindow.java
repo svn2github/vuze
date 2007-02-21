@@ -1874,7 +1874,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (shell == null)
-						new MessageSlideShell(Display.getCurrent(), SWT.ICON_ERROR,
+						new MessageSlideShell(Display.getCurrent(), SWT.ICON_WARNING,
 								"OpenTorrentWindow.mb.alreadyExists", null, new String[] {
 									sOriginatingLocation,
 									sfExistingName
