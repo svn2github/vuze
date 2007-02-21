@@ -23,11 +23,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
@@ -63,7 +60,7 @@ public class ListCell implements BufferedTableItem
 
 	private TableCellCore cell;
 
-	private TableColumn column;
+	protected TableColumn column;
 
 	private Image imgIcon;
 
@@ -162,6 +159,7 @@ public class ListCell implements BufferedTableItem
 		if (((TableCellImpl) cell).bDebug) {
 			((TableCellImpl) cell).debug("setBounds " + bounds);
 		}
+
 		//System.out.println(cell.getTableID() + "]" + cell.getTableColumn().getName() + ": " + bounds);
 		this.bounds = bounds;
 	}

@@ -689,31 +689,6 @@ public class ListView
 
 					int drawWidth = width;
 
-					if (columns[i].equals(sortColumn)) {
-						Image img = sortColumn.isSortAscending() ? imgSortAsc : imgSortDesc;
-						if (img != null) {
-							Rectangle bounds = img.getBounds();
-
-							if (align == SWT.RIGHT) {
-								e.gc.drawImage(img, pos + width - bounds.width,
-										clientArea.height - bounds.height);
-								drawWidth -= bounds.width + 2;
-							} else {
-								e.gc.drawImage(img, pos, clientArea.height - bounds.height);
-
-								if (align == SWT.CENTER) {
-									int adj = bounds.width / 2 + 1;
-									pos += adj;
-									width -= adj;
-								} else {
-									pos += bounds.width + 2;
-									width -= bounds.width + 2;
-								}
-								drawWidth = width;
-							}
-						}
-					}
-
 					Point size = e.gc.textExtent(text);
 					Rectangle bounds;
 					if (size.x > drawWidth && lastExtraSpace > 0) {
@@ -737,6 +712,15 @@ public class ListView
 						lastExtraSpace = (bounds.width - size.x) / 2;
 					} else {
 						lastExtraSpace = 0;
+					}
+
+					if (columns[i].equals(sortColumn)) {
+						Image img = sortColumn.isSortAscending() ? imgSortAsc : imgSortDesc;
+						if (img != null) {
+							Rectangle imgBounds = img.getBounds();
+							e.gc.drawImage(img, bounds.x + (bounds.width / 2)
+									- (imgBounds.width / 2), 0);
+						}
 					}
 
 					//e.gc.drawLine(pos, bounds.y, pos, bounds.y + bounds.height);
@@ -2558,13 +2542,13 @@ public class ListView
 
 	public boolean isRowVisible(final ListRow row) {
 		final Boolean[] b = new Boolean[1];
-		
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				b[0] = new Boolean(_isRowVisible(row));
 			}
 		}, false);
-		
+
 		return b[0].booleanValue();
 	}
 
@@ -2621,17 +2605,17 @@ public class ListView
 
 		return visiblerows;
 	}
-	
+
 	public boolean cellRefresh(final ListCell cell, final boolean bDoGraphics,
 			final boolean bForceRedraw) {
 		final Boolean[] b = new Boolean[1];
-		
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				b[0] = new Boolean(_cellRefresh(cell, bDoGraphics, bForceRedraw));
 			}
 		}, false);
-		
+
 		return b[0].booleanValue();
 	}
 
@@ -2640,7 +2624,7 @@ public class ListView
 		GC gc = null;
 		try {
 			gc = new GC(imgView);
-			
+
 			cell.doPaint(gc);
 
 			Rectangle rect = cell.getBounds();

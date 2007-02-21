@@ -22,10 +22,7 @@ package com.aelitis.azureus.ui.swt.views.list;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -300,7 +297,7 @@ public class ListRow
 				try {
 					if (cell.needsPainting()) {
 						Rectangle bounds = cell.getBounds();
-						if (bounds != null) {
+						if (bounds != null && column.isVisible()) {
 							int width = column.getWidth();
 							if (bounds.x != iStartPos || bounds.width != width) {
 								bounds.x = iStartPos;
@@ -472,7 +469,7 @@ public class ListRow
 			TableCellSWT cell = (TableCellSWT) iter.next();
 			Rectangle bounds = cell.getBounds();
 			TableColumn column = cell.getTableColumn();
-			if (bounds != null && column.getPosition() >= 0) {
+			if (bounds != null && column.isVisible()) {
 				int width = column.getWidth();
 				if (bounds.x != iStartPos || bounds.width != width) {
 					bounds.x = iStartPos;
