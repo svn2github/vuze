@@ -61,11 +61,6 @@ public class ListCellGraphic extends ListCell implements
 				- (marginHeight * 2));
 	}
 
-	public void invalidate() {
-		// TODO Auto-generated method stub
-
-	}
-
 	public boolean setGraphic(Image img) {
 		//System.out.println(img.getBounds());
 		if (img != null && img.isDisposed()) {
@@ -80,7 +75,6 @@ public class ListCellGraphic extends ListCell implements
 		if (image != null) {
 			imageBounds = image.getBounds();
 		}
-		redrawCell();
 		return true;
 	}
 
@@ -115,10 +109,11 @@ public class ListCellGraphic extends ListCell implements
 			return;
 		}
 
+		gc.setBackground(getBackground());
 		if (DEBUG_COLORCELL) {
 			gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 16)));
-			gc.fillRectangle(getBounds());
 		}
+		gc.fillRectangle(getBounds());
 
 		// TODO: Orientation: fill
 		if (image != null && !image.isDisposed()) {

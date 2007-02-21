@@ -23,8 +23,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
@@ -59,7 +62,7 @@ public class ListCell implements BufferedTableItem
 	private boolean bLastIsShown = false;
 
 	private TableCellCore cell;
-	
+
 	private TableColumn column;
 
 	private Image imgIcon;
@@ -89,18 +92,19 @@ public class ListCell implements BufferedTableItem
 
 		gc.setForeground(getForeground());
 		gc.setBackground(getBackground());
-		
+
 		if (DEBUG_COLORCELL) {
-			gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 13) + 3));
+			gc.setBackground(Display.getDefault().getSystemColor(
+					(int) (Math.random() * 13) + 3));
 		}
 		gc.fillRectangle(getBounds());
 
-		if (((TableCellImpl)cell).bDebug) {
-			((TableCellImpl)cell).debug("drawText " + bounds);
+		if (((TableCellImpl) cell).bDebug) {
+			((TableCellImpl) cell).debug("drawText " + bounds);
 		}
-		
+
 		Point size = gc.textExtent(sText);
-		
+
 		boolean hasIcon = (imgIcon != null && !imgIcon.isDisposed());
 		if (hasIcon) {
 			int w = imgIcon.getBounds().width + 2;
@@ -108,9 +112,9 @@ public class ListCell implements BufferedTableItem
 			gc.drawImage(imgIcon, bounds.x, bounds.y);
 			bounds.x += w;
 		}
-		
+
 		size.x += ListRow.PADDING_WIDTH;
-		
+
 		if (column.isMaxWidthAuto() && column.getMaxWidth() < size.x) {
 			column.setMaxWidth(size.x);
 		}
@@ -122,7 +126,7 @@ public class ListCell implements BufferedTableItem
 		}
 		//gc.drawText(sText, bounds.x, bounds.y);
 		GCStringPrinter.printString(gc, sText, bounds, true, true, alignment
-				| SWT.WRAP | SWT.TOP);
+				| SWT.WRAP);
 	}
 
 	/**
@@ -155,8 +159,8 @@ public class ListCell implements BufferedTableItem
 	 * @param bounds the bounds to set
 	 */
 	public void setBounds(Rectangle bounds) {
-		if (((TableCellImpl)cell).bDebug) {
-			((TableCellImpl)cell).debug("setBounds " + bounds);
+		if (((TableCellImpl) cell).bDebug) {
+			((TableCellImpl) cell).debug("setBounds " + bounds);
 		}
 		//System.out.println(cell.getTableID() + "]" + cell.getTableColumn().getName() + ": " + bounds);
 		this.bounds = bounds;
@@ -195,8 +199,7 @@ public class ListCell implements BufferedTableItem
 	}
 
 	public void refresh() {
-		// TODO Auto-generated method stub
-
+		redraw();
 	}
 
 	public void setIcon(Image img) {
@@ -224,7 +227,7 @@ public class ListCell implements BufferedTableItem
 		}
 		return c1.getRGB().equals(c2.getRGB());
 	}
-	
+
 	public boolean setForeground(int red, int green, int blue) {
 		// TODO Auto-generated method stub
 		return false;
@@ -244,17 +247,32 @@ public class ListCell implements BufferedTableItem
 		}
 
 		sText = text;
-		redrawCell();
 		return true;
 	}
 
-	protected void redrawCell() {
-		// XXX Complete
+	public void redraw() {
+		// XXX Complete.  We don't have a redraw for cells, so redraw the row
 		if (!isShown()) {
 			return;
 		}
-//		row.getComposite().redraw(bounds.x, bounds.y, bounds.width, bounds.height,
-//				false);
+		row.redraw();
+		// invalidating the area
+		//	Utils.execSWTThread(new AERunnable() {
+		//	public void runSupport() {
+		//		if (!isShown()) {
+		//			return;
+		//		}
+		//  	Rectangle r = getBounds();
+		//  	if (r == null) {
+		//  		return;
+		//  	}
+		//  	((TableViewSWT) row.getView()).getTableComposite().redraw(r.x, r.y,
+		//				r.width, r.height, true);
+		//	}
+		//});
+	}
+
+	public void invalidate() {
 	}
 
 	public Image getBackgroundImage() {
