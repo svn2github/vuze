@@ -1338,10 +1338,11 @@ public class TableViewSWTImpl
 						sToClipboard += "\n";
 					sToClipboard += tis[i].getText(iColumn);
 				}
-				new Clipboard(mainComposite.getDisplay()).setContents(
-						new Object[] { sToClipboard
-						}, new Transfer[] { TextTransfer.getInstance()
-						});
+				new Clipboard(mainComposite.getDisplay()).setContents(new Object[] {
+					sToClipboard
+				}, new Transfer[] {
+					TextTransfer.getInstance()
+				});
 			}
 		});
 
@@ -1630,7 +1631,8 @@ public class TableViewSWTImpl
 
 	// see common.TableView
 	public void addDataSource(Object dataSource) {
-		addDataSources(new Object[] { dataSource
+		addDataSources(new Object[] {
+			dataSource
 		});
 	}
 
@@ -1752,8 +1754,8 @@ public class TableViewSWTImpl
 				if (mapDataSourceToRow.containsKey(dataSources[i])) {
 					dataSources[i] = null;
 				} else {
-					TableRowImpl row = new TableRowImpl(table, sTableID, columnsOrdered,
-							dataSources[i], bSkipFirstColumn);
+					TableRowImpl row = new TableRowImpl(this, table, sTableID,
+							columnsOrdered, dataSources[i], bSkipFirstColumn);
 					mapDataSourceToRow.put(dataSources[i], row);
 				}
 			}
@@ -1958,13 +1960,15 @@ public class TableViewSWTImpl
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object, boolean)
 	public void removeDataSource(Object dataSource, boolean immediate) {
-		removeDataSources(new Object[] { dataSource
+		removeDataSources(new Object[] {
+			dataSource
 		});
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object)
 	public void removeDataSource(final Object dataSource) {
-		removeDataSources(new Object[] { dataSource
+		removeDataSources(new Object[] {
+			dataSource
 		});
 	}
 
@@ -2296,7 +2300,7 @@ public class TableViewSWTImpl
 	public TableRowSWT getRowSWT(Object dataSource) {
 		return (TableRowSWT) mapDataSourceToRow.get(dataSource);
 	}
-	
+
 	public int getRowCount() {
 		// don't use sortedRows here, it's not always up to date 
 		return mapDataSourceToRow.size();
@@ -2577,10 +2581,11 @@ public class TableViewSWTImpl
 				sToClipboard += tis[i].getText(j);
 			}
 		}
-		new Clipboard(getComposite().getDisplay()).setContents(
-				new Object[] { sToClipboard
-				}, new Transfer[] { TextTransfer.getInstance()
-				});
+		new Clipboard(getComposite().getDisplay()).setContents(new Object[] {
+			sToClipboard
+		}, new Transfer[] {
+			TextTransfer.getInstance()
+		});
 	}
 
 	/** Handle sorting of a column based on clicking the Table Header */
@@ -3426,7 +3431,7 @@ public class TableViewSWTImpl
 	public TableColumnCore[] getVisibleColumns() {
 		return tableColumns;
 	}
-		
+
 	/**
 	 * @return
 	 */
