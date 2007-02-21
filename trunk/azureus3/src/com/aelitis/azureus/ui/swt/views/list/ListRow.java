@@ -42,6 +42,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -683,7 +684,7 @@ public class ListRow
 		return null;
 	}
 
-	public ListView getView() {
+	public TableView getView() {
 		return view;
 	}
 
