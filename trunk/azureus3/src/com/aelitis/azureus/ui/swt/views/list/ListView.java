@@ -2556,7 +2556,19 @@ public class ListView
 		return allColumns;
 	}
 
-	public boolean isRowVisible(ListRow row) {
+	public boolean isRowVisible(final ListRow row) {
+		final Boolean[] b = new Boolean[1];
+		
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				b[0] = _isRowVisible(row);
+			}
+		}, false);
+		
+		return b[0];
+	}
+
+	public boolean _isRowVisible(ListRow row) {
 		if (listCanvas == null || listCanvas.isDisposed()) {
 			return false;
 		}
@@ -2608,6 +2620,45 @@ public class ListView
 		}
 
 		return visiblerows;
+	}
+	
+	public boolean cellRefresh(final ListCell cell, final boolean bDoGraphics,
+			final boolean bForceRedraw) {
+		final Boolean[] b = new Boolean[1];
+		
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				b[0] = _cellRefresh(cell, bDoGraphics, bForceRedraw);
+			}
+		}, false);
+		
+		return b[0];
+	}
+
+	public boolean _cellRefresh(final ListCell cell, final boolean bDoGraphics,
+			final boolean bForceRedraw) {
+		GC gc = null;
+		try {
+			gc = new GC(imgView);
+			
+			cell.doPaint(gc);
+
+			Rectangle rect = cell.getBounds();
+			listCanvas.redraw(rect.x, rect.y, rect.width, rect.height, false);
+		} catch (Exception e) {
+			if (!(e instanceof IllegalArgumentException)) {
+				// IllegalArgumentException happens when we are already drawing 
+				// to the image.  This is "normal" as we may be in a paint event,
+				// and something forces a repaint
+				Debug.out(e);
+			}
+		} finally {
+			if (gc != null) {
+				gc.dispose();
+			}
+		}
+
+		return true;
 	}
 
 	/**

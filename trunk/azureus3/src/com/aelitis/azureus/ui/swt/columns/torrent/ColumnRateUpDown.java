@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.messenger.PlatformMessage;
@@ -39,6 +40,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRati
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.views.list.ListCell;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -179,7 +181,7 @@ public class ColumnRateUpDown extends CoreTableColumn implements
 										if (rating >= -1) {
 											PlatformTorrentUtils.setUserRating(torrent,
 													(int) rating);
-											event.cell.invalidate();
+											refresh(event.cell);
 										}
 									}
 
@@ -238,7 +240,7 @@ public class ColumnRateUpDown extends CoreTableColumn implements
 							final String hash = torrent.getHashWrapper().toBase32String();
 							final int value = (x < (boundsRateMe.height - y + 1)) ? 1 : 0;
 							PlatformTorrentUtils.setUserRating(torrent, -2);
-							event.cell.invalidate();
+							refresh(event.cell);
 							PlatformRatingMessenger.setUserRating(hash, value, 0,
 									new PlatformMessengerListener() {
 										public void replyReceived(PlatformMessage message,
@@ -249,7 +251,7 @@ public class ColumnRateUpDown extends CoreTableColumn implements
 											} else {
 												PlatformTorrentUtils.setUserRating(torrent, -1);
 											}
-											event.cell.invalidate();
+											refresh(event.cell);
 										}
 
 										public void messageSent(PlatformMessage message) {
@@ -270,7 +272,7 @@ public class ColumnRateUpDown extends CoreTableColumn implements
 							return;
 						}
 						PlatformTorrentUtils.setUserRating(torrent, -2);
-						event.cell.invalidate();
+						refresh(event.cell);
 						PlatformRatingMessenger.setUserRating(hash, -1, 0,
 								new PlatformMessengerListener() {
 									public void replyReceived(PlatformMessage message,
@@ -282,7 +284,7 @@ public class ColumnRateUpDown extends CoreTableColumn implements
 											PlatformTorrentUtils.setUserRating(torrent,
 													oldValue == -2 ? -1 : oldValue);
 										}
-										event.cell.invalidate();
+										refresh(event.cell);
 									}
 
 									public void messageSent(PlatformMessage message) {

@@ -247,6 +247,9 @@ public class ListCell implements BufferedTableItem
 		}
 
 		sText = text;
+		
+		((ListView)row.getView()).cellRefresh(this, true, true);
+
 		return true;
 	}
 
@@ -273,6 +276,18 @@ public class ListCell implements BufferedTableItem
 	}
 
 	public void invalidate() {
+			Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (!isShown()) {
+					return;
+				}
+		  	Rectangle r = getBounds();
+		  	if (r == null) {
+		  		return;
+		  	}
+		  	((TableViewSWT) row.getView()).getTableComposite().redraw();
+			}
+		});
 	}
 
 	public Image getBackgroundImage() {

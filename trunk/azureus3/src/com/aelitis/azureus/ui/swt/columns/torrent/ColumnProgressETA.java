@@ -410,7 +410,7 @@ public class ColumnProgressETA extends CoreTableColumn implements
 						edm.setProgressiveMode(true);
 					}
 				}
-				event.cell.invalidate();
+				refresh(event.cell, true);
 			}
 			bMouseDowned = false;
 		}

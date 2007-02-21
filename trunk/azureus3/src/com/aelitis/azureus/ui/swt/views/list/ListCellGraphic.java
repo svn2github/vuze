@@ -75,6 +75,9 @@ public class ListCellGraphic extends ListCell implements
 		if (image != null) {
 			imageBounds = image.getBounds();
 		}
+		
+		((ListView)row.getView()).cellRefresh(this, true, true);
+		
 		return true;
 	}
 
