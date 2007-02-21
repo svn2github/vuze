@@ -46,6 +46,4 @@ public abstract interface BufferedGraphicTableItem
 	public abstract boolean setGraphic(Image img);
 
 	public abstract Image getGraphic();
-
-	public abstract void invalidate();
 }

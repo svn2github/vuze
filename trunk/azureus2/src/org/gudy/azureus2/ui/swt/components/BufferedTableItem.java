@@ -84,4 +84,13 @@ public interface BufferedTableItem
 	 */
 	public abstract Color getForeground();
 
+	/**
+	 * 
+	 */
+	public abstract void invalidate();
+
+	/**
+	 * Set to redraw at the next OS paint
+	 */
+	public abstract void redraw();
 }
