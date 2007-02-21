@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableView;
 
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
@@ -77,6 +78,7 @@ public class TableRowImpl
   private Object pluginDataSource;
   private boolean bDisposed;
   private boolean bSetNotUpToDateLastRefresh = false;
+	private TableView tableView;
 
   private static AEMonitor sortedDisposal_mon = new AEMonitor( "TableRowImpl" );
   
@@ -91,10 +93,11 @@ public class TableRowImpl
    * @param dataSource
    * @param bSkipFirstColumn
    */
-  public TableRowImpl(Table table, String sTableID,
+  public TableRowImpl(TableView tv, Table table, String sTableID,
 			TableColumnCore[] columnsSorted, Object dataSource,
 			boolean bSkipFirstColumn) {
 		super(table);
+		this.tableView = tv;
     this.sTableID = sTableID;
     coreDataSource = dataSource;
     mTableCells = new HashMap();
@@ -401,6 +404,11 @@ public class TableRowImpl
 		catch (SWTException se) {/* do nothing */}
 		
 		return result + ((index == null) ? "" : ("/#" + index)); 		
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableRowCore#getView()
+	public TableView getView() {
+		return tableView;
 	}
 
 }

@@ -71,9 +71,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
-import com.aelitis.azureus.ui.common.table.TableCellCore;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.*;
 
 public class 
 TorrentInfoView
@@ -1119,6 +1117,11 @@ TorrentInfoView
 			return false;
 		}
 		public void redraw() {
+		}
+		// @see com.aelitis.azureus.ui.common.table.TableRowCore#getView()
+		public TableView getView() {
+			// TODO Auto-generated method stub
+			return null;
 		}
 	}
 }

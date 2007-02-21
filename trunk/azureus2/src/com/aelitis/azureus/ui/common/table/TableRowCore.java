@@ -113,5 +113,10 @@ public interface TableRowCore extends TableRow
 	/**
 	 * @param bEvenIfNotVisible
 	 */
-	void setAlternatingBGColor(boolean bEvenIfNotVisible);
+	public void setAlternatingBGColor(boolean bEvenIfNotVisible);
+
+	/**
+	 * @return
+	 */
+	public TableView getView();
 }
