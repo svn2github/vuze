@@ -20,26 +20,21 @@
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.RateItListView;
 import com.aelitis.azureus.ui.swt.views.list.ListCell;
-import com.aelitis.azureus.ui.swt.views.list.ListRow;
+import com.aelitis.azureus.ui.swt.views.list.ListView;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -161,7 +156,7 @@ public class ColumnRateDropDown
 
 			// drop down list may be bigger than row, or bigger than parent, so we add
 			// the list to shell and position accordingly
-			Composite parent = (Composite) listCell.getRow().getView().getControl();
+			Composite parent = (Composite) ((ListView) listCell.getRow().getView()).getControl();
 
 			Rectangle bounds = cellSWT.getBounds();
 			Point location = parent.toDisplay(bounds.x, bounds.y + bounds.height);
@@ -181,17 +176,17 @@ public class ColumnRateDropDown
 			RateItListView view = new RateItListView(null, cDropDownList);
 			view.getListView().setMouseClickIsDefaultSelection(true);
 			view.getListView().addSelectionListener(new TableSelectionAdapter() {
-				public void defaultSelected(ListRow[] rows) {
+				public void defaultSelected(TableRowCore[] rows) {
 					closeDropDownList();
 
-					listCell.getRow().getView().getControl().setFocus();
+					((ListView)listCell.getRow().getView()).getControl().setFocus();
 
 					String id = (String) rows[0].getDataSource(true);
 					imgRating = ImageLoaderFactory.getInstance().getImage(id);
 					event.cell.invalidate();
 				}
 
-				public void selected(ListRow row) {
+				public void selected(TableRowCore row) {
 					closeDropDownList();
 				}
 			}, false);
