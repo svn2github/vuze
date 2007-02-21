@@ -2561,11 +2561,11 @@ public class ListView
 		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				b[0] = _isRowVisible(row);
+				b[0] = new Boolean(_isRowVisible(row));
 			}
 		}, false);
 		
-		return b[0];
+		return b[0].booleanValue();
 	}
 
 	public boolean _isRowVisible(ListRow row) {
@@ -2628,11 +2628,11 @@ public class ListView
 		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				b[0] = _cellRefresh(cell, bDoGraphics, bForceRedraw);
+				b[0] = new Boolean(_cellRefresh(cell, bDoGraphics, bForceRedraw));
 			}
 		}, false);
 		
-		return b[0];
+		return b[0].booleanValue();
 	}
 
 	public boolean _cellRefresh(final ListCell cell, final boolean bDoGraphics,
