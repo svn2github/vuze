@@ -473,6 +473,9 @@ public class ImageRepository {
 
 				registry.put(key, image);
 
+				if (bDeleteFile && file != null && file.exists()) {
+					file.delete();
+				}
 				return image;
 			}
 		} catch (Exception e) {
