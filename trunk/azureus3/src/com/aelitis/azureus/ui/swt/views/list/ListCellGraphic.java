@@ -33,8 +33,10 @@ import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
 public class ListCellGraphic extends ListCell implements
 		BufferedGraphicTableItem
 {
+	// XXX Must remain 1 as plugin docs say so
 	private int marginHeight = 1;
 
+	// XXX Must remain 1 as plugin docs say so
 	private int marginWidth = 1;
 
 	private int orientation = SWT.CENTER;
@@ -54,6 +56,9 @@ public class ListCellGraphic extends ListCell implements
 
 	public Point getSize() {
 		Rectangle bounds = getBounds();
+		if (bounds == null) {
+			return new Point(0, 0);
+		}
 		return new Point(bounds.width - (marginWidth * 2), bounds.height
 				- (marginHeight * 2));
 	}
