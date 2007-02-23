@@ -2364,7 +2364,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		public void renameDuplicates() {
 			if (iStartID == STARTMODE_SEEDING
 					|| !COConfigurationManager.getBooleanParameter("DefaultDir.AutoSave.AutoRename")
-					|| !allFilesExist()) {
+					|| allFilesExist()) {
 				return;
 			}
 
