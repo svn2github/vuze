@@ -29,7 +29,10 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
@@ -40,9 +43,6 @@ import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -157,43 +157,6 @@ Initializer
   run() 
   {
   	try{
-  		String sFirstVersion = COConfigurationManager.getStringParameter("First Recorded Version");
-			if (Constants.compareVersions(sFirstVersion, "3.0.0.0") < 0) {
-				try {
-
-					final Class uiswClass = Class.forName("com.aelitis.azureus.ui.swt.shells.uiswitcher.UISwitcherWindow");
-
-					final Constructor constructor = uiswClass.getConstructor(new Class[] {});
-
-					final int[] result = new int[1];
-					
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							try {
-								Object object = constructor.newInstance(new Object[] {});
-
-								Method method = uiswClass.getMethod("open", new Class[] {});
-
-								Object resultObj = method.invoke(object, new Object[] {});
-								
-								if (resultObj instanceof Number) {
-									result[0] = ((Number)resultObj).intValue();
-								}
-							} catch (Exception e) {
-								Debug.printStackTrace(e);
-							}
-						}
-					}, false);
-					System.out.println(result[0]);
-					if (result[0] == 0) {
-						
-					}
-				} catch (Exception e) {
-					Debug.printStackTrace(e);
-				}
-			}
-  		
-  		
   		// initialise the SWT locale util
 	  	
 	    new LocaleUtilSWT( azureus_core );
