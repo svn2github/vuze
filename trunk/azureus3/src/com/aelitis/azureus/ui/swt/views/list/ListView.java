@@ -76,11 +76,11 @@ public class ListView
 
 	private static final boolean DEBUGADDREMOVE = false;
 
-	private static final boolean DEBUGPAINT = false;
+	private static final boolean DEBUGPAINT = true;
 
 	private static final boolean DEBUG_SORTER = false;
 
-	private static final boolean DEBUG_COLUMNSIZE = false;
+	private static final boolean DEBUG_COLUMNSIZE = true;
 
 	private static final boolean DELAY_SCROLL = false;
 
@@ -1566,8 +1566,7 @@ public class ListView
 		adjustingColumns = true;
 
 		try {
-			final int iClientWidth = listCanvas.getClientArea().width
-					- (Constants.isOSX ? 8 : 0);
+			final int iClientWidth = listCanvas.getClientArea().width;
 
 			if (iClientWidth <= 0) {
 				return new TableColumnCore[0];
@@ -1907,12 +1906,15 @@ public class ListView
 					// we have iPrefWidthOver to shift to under.  Some unders will
 					// remain under. All overs will end up at pref
 					int remaining = iPrefWidthsOver;
-					int adj = (int) (remaining / iPrefWidthsUnderCount) + 1;
+					double pctPerColumn = ((double) iPrefWidthsOver / iPrefWidthsUnder);
+
 					if (DEBUG_COLUMNSIZE) {
-						logCOLUMNSIZE("adj=" + adj);
+						logCOLUMNSIZE("pct per column: " + pctPerColumn);
 					}
+
 					for (int i = 0; i < visibleColumnsList.size(); i++) {
 						TableColumnCore column = (TableColumnCore) visibleColumnsList.get(i);
+
 						int iPrefWidth = column.getPreferredWidth();
 						if (iPrefWidth <= 0) {
 							continue;
@@ -1920,18 +1922,27 @@ public class ListView
 						int iWidth = column.getWidth();
 						int diff = iWidth - iPrefWidth;
 						if (diff < 0 && remaining > 0) {
-							diff *= -1;
-							if (diff - adj > remaining) {
-								if (DEBUG_COLUMNSIZE) {
-									logCOLUMNSIZE("sw from " + iWidth + " to "
-											+ (iWidth + remaining));
-								}
-								column.setWidth(iWidth + remaining);
-								remaining = 0;
+							if (iPrefWidthsUnderCount == 1) {
+								diff = remaining;
 							} else {
-								column.setWidth(iPrefWidth - adj);
-								remaining -= (column.getWidth() - iWidth);
+								diff = (int) ((diff * -1) * pctPerColumn);
+								if (diff > remaining) {
+									if (DEBUG_COLUMNSIZE) {
+										logCOLUMNSIZE(column.getName() + " wants " + diff
+												+ ", gets " + remaining);
+									}
+									diff = remaining;
+								}
 							}
+							column.setWidth(iWidth + diff);
+
+							remaining -= (column.getWidth() - iWidth);
+							if (DEBUG_COLUMNSIZE) {
+								logCOLUMNSIZE(column.getName() + "sw from " + iWidth + " to "
+										+ (iWidth + diff) + "; End Size=" + column.getWidth()
+										+ ";remaining=" + remaining);
+							}
+							iPrefWidthsUnderCount--;
 
 						} else if (diff > 0) {
 							column.setWidth(iPrefWidth);
