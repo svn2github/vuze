@@ -62,12 +62,6 @@ public class ListRow
 {
 	public static int ROW_HEIGHT = 38;
 
-	public static int MARGIN_HEIGHT = 2;
-
-	public static int MARGIN_WIDTH = 3;
-	
-	public static int PADDING_WIDTH = MARGIN_WIDTH * 2;
-
 	private SWTSkinProperties skinProperties;
 
 	private Object coreDataSource;
@@ -108,15 +102,15 @@ public class ListRow
 
 		TableColumnCore[] columns = view.getAllColumns();
 		// XXX Need invisible "sort by" column
-		int iStartPos = MARGIN_WIDTH;
+		int iStartPos = ListView.COLUMN_MARGIN_WIDTH;
 		// this is -1 :(
 		//int height = rowComposite.getSize().y;
 		for (int i = 0; i < columns.length; i++) {
 			TableColumnCore column = columns[i];
 
 			boolean bVisible = column.getPosition() >= 0;
-			Rectangle bounds = bVisible ? new Rectangle(iStartPos, MARGIN_HEIGHT,
-					column.getWidth(), ROW_HEIGHT - (MARGIN_HEIGHT * 2)) : null;
+			Rectangle bounds = bVisible ? new Rectangle(iStartPos, ListView.ROW_MARGIN_HEIGHT,
+					column.getWidth(), ROW_HEIGHT - (ListView.ROW_MARGIN_HEIGHT * 2)) : null;
 
 			ListCell listCell;
 			int iColumnPos = column.getPosition();
@@ -128,7 +122,7 @@ public class ListRow
 			}
 
 			if (bVisible) {
-				iStartPos += bounds.width + (MARGIN_WIDTH * 2);
+				iStartPos += bounds.width + (ListView.COLUMN_MARGIN_WIDTH * 2);
 			}
 
 			TableCellSWT cell = new TableCellImpl(this, column, i, listCell);
@@ -184,7 +178,7 @@ public class ListRow
 			}
 			bRowVisuallyChangedSinceRefresh = true;
 
-			invalidate();
+			invalidateGraphic();
 			if (isVisible()) {
 				redraw();
 			}
@@ -220,7 +214,7 @@ public class ListRow
 
 			if (bChanged) {
 				bRowVisuallyChangedSinceRefresh = true;
-				invalidate();
+				invalidateGraphic();
 				if (isVisible()) {
 					redraw();
 				}
@@ -268,6 +262,10 @@ public class ListRow
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#doPaint(org.eclipse.swt.graphics.GC, boolean, boolean)
 	public void doPaint(GC gc, boolean bVisible) {
+		doPaint(gc, bVisible, false);
+	}
+	
+	public void doPaint(GC gc, boolean bVisible, boolean bListCellPaint) {
 		// XXX Copied from TableRowImpl
 		if (bDisposed || !bVisible) {
 			return;
@@ -285,8 +283,12 @@ public class ListRow
 			Rectangle clientArea = view.getClientArea();
 			gc.fillRectangle(0, view.rowGetVisibleYOffset(this), clientArea.width,
 					ROW_HEIGHT);
+			if (isFocused()) {
+				gc.setLineStyle(SWT.LINE_DOT);
+				gc.drawRectangle(0, view.rowGetVisibleYOffset(this),
+						clientArea.width - 1, ROW_HEIGHT - 1);
+			}
 
-			int iStartPos = MARGIN_WIDTH;
 			for (int i = 0; i < visibleColumns.length; i++) {
 				TableColumnCore column = visibleColumns[i];
 				TableCellSWT cell = (TableCellSWT) mapTableCells.get(column.getName());
@@ -297,21 +299,16 @@ public class ListRow
 				try {
 					if (cell.needsPainting()) {
 						Rectangle bounds = cell.getBounds();
-						if (bounds != null && column.isVisible()) {
-							int width = column.getWidth();
-							if (bounds.x != iStartPos || bounds.width != width) {
-								bounds.x = iStartPos;
-								bounds.width = width;
-								
-								ListCell listcell = (ListCell) cell.getBufferedTableItem();
-								listcell.setBounds(bounds);
-							}
-							iStartPos += bounds.width + (MARGIN_WIDTH * 2);
-
+						if (bounds != null) {
 							Rectangle clipping = bounds.intersection(oldClipping);
 							gc.setClipping(clipping);
 
-							cell.doPaint(gc);
+							if (bListCellPaint) {
+								ListCell listcell = (ListCell) cell.getBufferedTableItem();
+								listcell.doPaint(gc);
+							} else {
+								cell.doPaint(gc);
+							}
 						}
 					}
 				} catch (Exception e) {
@@ -324,7 +321,7 @@ public class ListRow
 		}
 		long diff = System.currentTimeMillis() - lTimeStart;
 		if (diff > 30) {
-			System.out.println("doPaint: " + view.getTableID() + ": " + diff + "ms");
+			view.log("doPaint took " + diff + "ms. " + this.toString()); 
 		}
 	}
 
@@ -403,6 +400,7 @@ public class ListRow
 		return (TableCellCore) mapTableCells.get(field);
 	}
 
+	// @see com.aelitis.azureus.ui.common.table.TableRowCore#invalidate()
 	public void invalidate() {
 		if (bDisposed)
 			return;
@@ -413,6 +411,24 @@ public class ListRow
 			TableCellSWT cell = (TableCellSWT) iter.next();
 			if (cell != null)
 				cell.invalidate(true);
+		}
+		long diff = System.currentTimeMillis() - lTimeStart;
+		if (diff >= 10) {
+			System.out.println("invalidate: " + diff + "ms");
+		}
+	}
+
+	public void invalidateGraphic() {
+		if (bDisposed)
+			return;
+
+		long lTimeStart = System.currentTimeMillis();
+		Iterator iter = mapTableCells.values().iterator();
+		while (iter.hasNext()) {
+			TableCellSWT cell = (TableCellSWT) iter.next();
+			if (cell.getTableColumn().getType() == TableColumn.TYPE_GRAPHIC) {
+				cell.invalidate(true);
+			}
 		}
 		long diff = System.currentTimeMillis() - lTimeStart;
 		if (diff >= 10) {
@@ -463,22 +479,12 @@ public class ListRow
 
 		ArrayList list = new ArrayList();
 
-		int iStartPos = MARGIN_WIDTH;
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
 			TableCellSWT cell = (TableCellSWT) iter.next();
 			Rectangle bounds = cell.getBounds();
 			TableColumn column = cell.getTableColumn();
 			if (bounds != null && column.isVisible()) {
-				int width = column.getWidth();
-				if (bounds.x != iStartPos || bounds.width != width) {
-					bounds.x = iStartPos;
-					bounds.width = width;
-					ListCell listcell = (ListCell) cell.getBufferedTableItem();
-					listcell.setBounds(bounds);
-				}
-				iStartPos += bounds.width + (MARGIN_WIDTH * 2);
-
 				boolean thisChanged = cell.refresh(bDoGraphics, bVisible);
 				if (thisChanged) {
 					list.add(cell);
@@ -526,11 +532,16 @@ public class ListRow
 	 * @param b
 	 */
 	public void setFocused(boolean b) {
+		ListRow oldRow = view.getRowFocused();
 		if (b) {
 			view.rowSetFocused(this);
 		} else if (isFocused()) {
 			view.rowSetFocused(null);
 		}
+		if (oldRow != null) {
+			oldRow.redraw();
+		}
+		redraw();
 	}
 
 	public boolean isFocused() {

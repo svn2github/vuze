@@ -63,12 +63,15 @@ public class ListCell implements BufferedTableItem
 	protected TableColumn column;
 
 	private Image imgIcon;
+	
+	private ListView view;
 
 	public ListCell(ListRow row, int position, int alignment, Rectangle bounds) {
 		this.row = row;
 		this.position = position;
 		this.alignment = alignment;
 		this.bounds = bounds;
+		this.view = (ListView)row.getView();
 	}
 
 	public void dispose() {
@@ -110,7 +113,7 @@ public class ListCell implements BufferedTableItem
 			bounds.x += w;
 		}
 
-		size.x += ListRow.PADDING_WIDTH;
+		size.x += ListView.COLUMN_PADDING_WIDTH;
 
 		if (column.isMaxWidthAuto() && column.getMaxWidth() < size.x) {
 			column.setMaxWidth(size.x);
@@ -143,9 +146,16 @@ public class ListCell implements BufferedTableItem
 	}
 
 	public Rectangle getBounds() {
+		TableColumnMetrics columnMetrics = view.getColumnMetrics(column);
+		if (columnMetrics == null) {
+			return null;
+		}
+		
+		bounds.x = columnMetrics.x;
+		bounds.width = columnMetrics.width;
 		try {
-			bounds.y = row.getVisibleYOffset() + ListRow.MARGIN_HEIGHT;
-			bounds.height = ListRow.ROW_HEIGHT - (ListRow.MARGIN_HEIGHT * 2);
+			bounds.y = row.getVisibleYOffset() + ListView.ROW_MARGIN_HEIGHT;
+			bounds.height = ListRow.ROW_HEIGHT - (ListView.ROW_MARGIN_HEIGHT * 2);
 		} catch (Exception e) {
 			//System.err.println(cell.getTableColumn().getName() + " " + bounds + ";" + row + ";");
 		}
@@ -246,7 +256,7 @@ public class ListCell implements BufferedTableItem
 
 		sText = text;
 		
-		((ListView)row.getView()).cellRefresh(this, true, true);
+		view.cellRefresh(this, true, true);
 
 		return true;
 	}

@@ -290,6 +290,9 @@ extends ListView
 				}
 				bSkipUpdateCount = false;
 				processDataSourceQueue();
+				if (!bAllowScrolling) {
+					regetDownloads();
+				}
 			}
 		});
 
@@ -349,13 +352,13 @@ extends ListView
 			if (columns[i].getName().equals("name")) {
 				nameColumnIdx = i;
 			} else {
-				columnWidthTotal += columns[i].getWidth() + (ListRow.MARGIN_WIDTH * 2);
+				columnWidthTotal += columns[i].getWidth() + (ListView.COLUMN_MARGIN_WIDTH * 2);
 			}
 		}
 
 		if (nameColumnIdx >= 0) {
 			columns[nameColumnIdx].setWidth(viewWidth - columnWidthTotal
-					- (ListRow.MARGIN_WIDTH * 2));
+					- (ListView.COLUMN_MARGIN_WIDTH * 2));
 		}
 	}
 
@@ -453,7 +456,7 @@ extends ListView
 					|| size(true) < (dataArea.getClientArea().height - 8)
 							/ ListRow.ROW_HEIGHT) {
 				addDataSource(dm, false);
-				if (!bAllowScrolling) {
+				if (!bAllowScrolling && !bSkipUpdateCount) {
 					regetDownloads();
 				}
 				updateCount();
