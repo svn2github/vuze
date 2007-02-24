@@ -34,10 +34,7 @@ public abstract class TableViewImpl
 		listenersSelection.add(listener);
 		if (bFireSelection) {
 			TableRowCore[] rows = getSelectedRows();
-			for (int i = 0; i < rows.length; i++) {
-				listener.selected(rows[i]);
-			}
-
+			listener.selected(rows);
 			listener.focusChanged(getFocusedRow());
 		}
 	}
@@ -95,19 +92,25 @@ public abstract class TableViewImpl
 		}
 	}
 
-	protected void triggerSelectionListeners(TableRowCore row) {
+	protected void triggerSelectionListeners(TableRowCore[] rows) {
+		if (rows == null || rows.length == 0) {
+			return;
+		}
 		Object[] listeners = listenersSelection.toArray();
 		for (int i = 0; i < listeners.length; i++) {
 			TableSelectionListener l = (TableSelectionListener) listeners[i];
-			l.selected(row);
+			l.selected(rows);
 		}
 	}
 
-	protected void triggerDeselectionListeners(TableRowCore row) {
+	protected void triggerDeselectionListeners(TableRowCore[] rows) {
+		if (rows == null || rows.length == 0) {
+			return;
+		}
 		Object[] listeners = listenersSelection.toArray();
 		for (int i = 0; i < listeners.length; i++) {
 			TableSelectionListener l = (TableSelectionListener) listeners[i];
-			l.deselected(row);
+			l.deselected(rows);
 		}
 	}
 

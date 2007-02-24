@@ -157,8 +157,11 @@ public interface TableView
 	 */
 	Object[] getSelectedDataSources(boolean bCoreDataSource);
 
-	/**
-	 * @return
+	/** 
+	 * Returns an array of all selected TableRowSWT.  Null data sources are
+	 * ommitted.
+	 *
+	 * @return an array containing the selected data sources
 	 */
 	TableRowCore[] getSelectedRows();
 
@@ -303,4 +306,11 @@ public interface TableView
 	 * @param dataSources
 	 */
 	void removeDataSources(Object[] dataSources);
+
+	/**
+	 * @return
+	 * 
+	 * @since 3.0.0.7
+	 */
+	int getSelectedRowsSize();
 }

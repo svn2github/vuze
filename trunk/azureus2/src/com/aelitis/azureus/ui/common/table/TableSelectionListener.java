@@ -28,9 +28,9 @@ package com.aelitis.azureus.ui.common.table;
  */
 public interface TableSelectionListener
 {
-	public void selected(TableRowCore row);
+	public void selected(TableRowCore[] row);
 
-	public void deselected(TableRowCore row);
+	public void deselected(TableRowCore[] rows);
 	
 	public void focusChanged(TableRowCore focus);
 

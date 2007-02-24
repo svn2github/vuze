@@ -791,7 +791,9 @@ public class TableViewSWTImpl
 
 		table.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent event) {
-				triggerSelectionListeners((TableRowCore) ((TableItem) event.item).getData("TableRow"));
+				triggerSelectionListeners(new TableRowCore[] {
+					(TableRowCore) ((TableItem) event.item).getData("TableRow")
+				});
 
 				if (tabViews == null || tabViews.size() == 0)
 					return;
@@ -2377,13 +2379,17 @@ public class TableViewSWTImpl
 		return getSelectedDataSourcesList(bCoreDataSource).toArray();
 	}
 
-	/** Returns an array of all selected TableRowSWT.  Null data sources are
-	 * ommitted.
-	 *
-	 * @return an array containing the selected data sources
-	 */
+	/** @see com.aelitis.azureus.ui.common.table.TableView#getSelectedRows() */
 	public TableRowCore[] getSelectedRows() {
 		return (TableRowCore[]) getSelectedRowsList().toArray(new TableRowCore[0]);
+	}
+	
+	// @see com.aelitis.azureus.ui.common.table.TableView#getSelectedRowsSize()
+	public int getSelectedRowsSize() {
+		if (table != null && !table.isDisposed()) {
+			return table.getSelectionCount();
+		}
+		return 0;
 	}
 
 	public TableRowSWT[] getSelectedRowsSWT() {

@@ -728,13 +728,13 @@ public class MyTorrentsView
 		return bOurs;
 	}
 
-  // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore)
-  public void selected(TableRowCore row) {
+  // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])
+  public void selected(TableRowCore[] rows) {
   	refreshIconBar();
   }
 
-  // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore)
-	public void deselected(TableRowCore row) {
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore[])
+	public void deselected(TableRowCore[] rows) {
   	refreshIconBar();
 	}
 

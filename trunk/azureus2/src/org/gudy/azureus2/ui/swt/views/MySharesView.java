@@ -38,10 +38,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
-import org.gudy.azureus2.ui.swt.Alerts;
-import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
@@ -103,16 +100,7 @@ implements ShareManagerListener,
 		azureus_core	= _azureus_core;
 		global_manager = azureus_core.getGlobalManager();
 
-		tv.addSelectionListener(new TableSelectionListener() {
-			public void selected(TableRowCore row) {
-			}
-		
-			public void focusChanged(TableRowCore focus) {
-			}
-		
-			public void deselected(TableRowCore row) {
-			}
-		
+		tv.addSelectionListener(new TableSelectionAdapter() {
 			public void defaultSelected(TableRowCore[] rows) {
 				MySharesView.this.defaultSelected(rows);
 			}

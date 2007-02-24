@@ -33,7 +33,7 @@ public abstract class TableSelectionAdapter
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore)
-	public void deselected(TableRowCore row) {
+	public void deselected(TableRowCore[] rows) {
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#focusChanged(com.aelitis.azureus.ui.common.table.TableRowCore)
@@ -41,6 +41,6 @@ public abstract class TableSelectionAdapter
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore)
-	public void selected(TableRowCore row) {
+	public void selected(TableRowCore[] rows) {
 	}
 }
