@@ -318,10 +318,10 @@ public class MediaList extends SkinView
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
 
 		view.addSelectionListener(new TableSelectionAdapter() {
-			public void selected(TableRowCore row) {
-				boolean bDisable = true;
-				if (row != null) {
-					DownloadManager dm = (DownloadManager) row.getDataSource(true);
+			public void selected(TableRowCore[] rows) {
+				boolean bDisable = view.getSelectedRowsSize() != 1;
+				if (!bDisable) {
+					DownloadManager dm = (DownloadManager) view.getSelectedDataSources()[0];
 					if (dm != null) {
 						bDisable = !dm.isDownloadComplete(false);
 					}
@@ -347,11 +347,11 @@ public class MediaList extends SkinView
 
 			skinImgThumb = (SWTSkinObjectImage) skinObject;
 			view.addSelectionListener(new TableSelectionAdapter() {
-				public void deselected(TableRowCore row) {
+				public void deselected(TableRowCore[] rows) {
 					update();
 				}
 
-				public void selected(TableRowCore row) {
+				public void selected(TableRowCore[] rows) {
 					update();
 				}
 
@@ -366,11 +366,11 @@ public class MediaList extends SkinView
 		if (skinObject instanceof SWTSkinObjectText) {
 			skinDetailInfo = (SWTSkinObjectText) skinObject;
 			view.addSelectionListener(new TableSelectionAdapter() {
-				public void deselected(TableRowCore row) {
+				public void deselected(TableRowCore[] rows) {
 					updateDetailsInfo();
 				}
 
-				public void selected(TableRowCore row) {
+				public void selected(TableRowCore[] rows) {
 					updateDetailsInfo();
 				}
 
@@ -484,8 +484,8 @@ public class MediaList extends SkinView
 	}
 
 	private void updateDetailsInfo() {
-		TableRowCore[] rows = view.getSelectedRows();
-		if (rows.length == 0 || rows.length > 1) {
+		int count = view.getSelectedRowsSize();
+		if (count == 0 || count > 1) {
 			int completed = 0;
 			ListRow[] rowsUnsorted = view.getRowsUnsorted();
 
@@ -512,6 +512,7 @@ public class MediaList extends SkinView
 					}));
 			return;
 		}
+		TableRowCore[] rows = view.getSelectedRows();
 		String sText = "";
 		DownloadManager dm = (DownloadManager) rows[0].getDataSource(true);
 		if (dm != null) {
@@ -533,11 +534,12 @@ public class MediaList extends SkinView
 	private void update() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				TableRowCore[] rows = view.getSelectedRows();
-				if (rows.length == 0 || rows.length > 1) {
+				int count = view.getSelectedRowsSize();
+				if (count != 1) {
 					skinImgThumb.setImage(null);
 					return;
 				}
+				TableRowCore[] rows = view.getSelectedRows();
 				Image image = null;
 				DownloadManager dm = (DownloadManager) rows[0].getDataSource(true);
 				if (dm != null) {

@@ -150,11 +150,11 @@ public class ManageDlList extends SkinView
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
 
 		view.addSelectionListener(new TableSelectionAdapter() {
-			public void deselected(TableRowCore row) {
+			public void deselected(TableRowCore[] rows) {
 				update();
 			}
 
-			public void selected(TableRowCore row) {
+			public void selected(TableRowCore[] rows) {
 				update();
 			}
 
@@ -163,12 +163,7 @@ public class ManageDlList extends SkinView
 			}
 
 			private void update() {
-				TableRowCore[] rows = view.getSelectedRows();
-				if (rows.length == 0 || rows.length > 1) {
-					updateStatusText(null);
-				} else {
-					updateStatusText(rows[0]);
-				}
+				updateStatusText(view.getFocusedRow());
 			}
 		}, true);
 

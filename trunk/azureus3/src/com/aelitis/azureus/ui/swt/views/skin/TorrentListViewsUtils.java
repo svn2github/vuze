@@ -63,6 +63,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 /**
@@ -248,11 +249,11 @@ public class TorrentListViewsUtils
 		});
 
 		view.addSelectionListener(new TableSelectionAdapter() {
-			public void deselected(TableRowCore row) {
+			public void deselected(TableRowCore[] rows) {
 				update();
 			}
 
-			public void selected(TableRowCore row) {
+			public void selected(TableRowCore[] rows) {
 				update();
 			}
 
@@ -261,9 +262,9 @@ public class TorrentListViewsUtils
 			}
 
 			private void update() {
-				TableRowCore[] rows = view.getSelectedRows();
-				boolean bDisabled = rows.length != 1;
+				boolean bDisabled = view.getSelectedRowsSize() != 1;
 				if (!bDisabled) {
+					TableRowCore[] rows = view.getSelectedRows();
 					DownloadManager dm = (DownloadManager) rows[0].getDataSource(true);
 					if (!dm.isDownloadComplete(false)) {
 						DownloadManagerEnhancer dmEnhancer = DownloadManagerEnhancer.getSingleton();
@@ -514,11 +515,11 @@ public class TorrentListViewsUtils
 			final SWTSkinButtonUtility btnStop) {
 
 		view.addSelectionListener(new TableSelectionAdapter() {
-			public void deselected(TableRowCore row) {
+			public void deselected(TableRowCore[] rows) {
 				update();
 			}
 
-			public void selected(TableRowCore row) {
+			public void selected(TableRowCore[] rows) {
 				update();
 			}
 
@@ -527,8 +528,8 @@ public class TorrentListViewsUtils
 			}
 
 			private void update() {
-				TableRowCore[] rows = view.getSelectedRows();
-				boolean bDisabled = rows.length == 0;
+				int size = view.getSelectedRowsSize();
+				boolean bDisabled = size == 0;
 
 				for (int i = 0; i < buttonsNeedingRow.length; i++) {
 					if (buttonsNeedingRow[i] != null) {
@@ -538,6 +539,7 @@ public class TorrentListViewsUtils
 
 				// now for buttons that require platform torrents
 				if (!bDisabled) {
+					TableRowCore[] rows = view.getSelectedRows();
 					for (int i = 0; i < rows.length; i++) {
 						TableRowCore row = rows[i];
 						DownloadManager dm = (DownloadManager) row.getDataSource(true);
@@ -554,7 +556,7 @@ public class TorrentListViewsUtils
 				}
 
 				// buttons needing single selection
-				if (rows.length > 1) {
+				if (size > 1) {
 					for (int i = 0; i < buttonsNeedingSingleSelection.length; i++) {
 						if (buttonsNeedingSingleSelection[i] != null) {
 							buttonsNeedingSingleSelection[i].setDisabled(true);

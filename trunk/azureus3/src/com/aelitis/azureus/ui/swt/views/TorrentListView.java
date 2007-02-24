@@ -251,14 +251,14 @@ extends ListView
 
 		getTableComposite().addListener(SWT.MouseUp, l);
 
-		addSelectionListener(new TableSelectionAdapter() {
-			public void defaultSelected(TableRowCore[] rows) {
-				TableRowCore[] selectedRows = getSelectedRows();
-				if (selectedRows.length > 0) {
-					//TorrentListViewsUtils.viewDetails(skin, selectedRows[0]);
-				}
-			}
-		}, false);
+//		addSelectionListener(new TableSelectionAdapter() {
+//			public void defaultSelected(TableRowCore[] rows) {
+//				TableRowCore[] selectedRows = getSelectedRows();
+//				if (selectedRows.length > 0) {
+//					//TorrentListViewsUtils.viewDetails(skin, selectedRows[0]);
+//				}
+//			}
+//		}, false);
 
 		this.globalManager = core.getGlobalManager();
 		globalManager.addListener(this, false);

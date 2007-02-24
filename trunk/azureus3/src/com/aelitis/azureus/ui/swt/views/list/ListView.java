@@ -76,11 +76,11 @@ public class ListView
 
 	private static final boolean DEBUGADDREMOVE = false;
 
-	private static final boolean DEBUGPAINT = true;
+	private static final boolean DEBUGPAINT = false;
 
 	private static final boolean DEBUG_SORTER = false;
 
-	private static final boolean DEBUG_COLUMNSIZE = true;
+	private static final boolean DEBUG_COLUMNSIZE = false;
 
 	private static final boolean DELAY_SCROLL = false;
 
@@ -170,6 +170,8 @@ public class ListView
 	private TableViewSWTPanelCreator mainPanelCreator;
 
 	private Map mapColumnMetrics = new HashMap();
+	
+	private boolean bSkipSelectionTrigger = false;
 
 	public ListView(final String sTableID, SWTSkinProperties skinProperties,
 			Composite parent, Composite headerArea, int style) {
@@ -2055,11 +2057,16 @@ public class ListView
 			selectedRows_mon.exit();
 		}
 	}
+	
+	public int getSelectedRowsSize() {
+		return selectedRows.size();
+	}
 
 	public void setSelectedRows(TableRowCore[] rows) {
 		selectedRows_mon.enter();
 		try {
 			ArrayList rowsToSelect = new ArrayList();
+			ArrayList rowsToDeselect = new ArrayList();
 			for (int i = 0; i < rows.length; i++) {
 				rowsToSelect.add(rows[i]);
 			}
@@ -2077,10 +2084,27 @@ public class ListView
 					}
 				}
 				if (!bStillSelected) {
-					selectedRow.setSelected(false);
+					rowsToDeselect.add(selectedRow);
 				} else {
 					rowsToSelect.remove(selectedRow);
 				}
+			}
+			
+			// trigger selection/deselection early, which will prevent each
+			// row from firing one individually
+
+			TableRowCore[] rowsToDeselectArray = new TableRowCore[rowsToDeselect.size()];
+			rowsToDeselect.toArray(rowsToDeselectArray);
+			triggerDeselectionListeners(rowsToDeselectArray);
+
+			TableRowCore[] rowsToSelectArray = new TableRowCore[rowsToSelect.size()];
+			rowsToSelect.toArray(rowsToSelectArray);
+			triggerDeselectionListeners(rowsToSelectArray);
+
+			bSkipSelectionTrigger = true;
+			for (Iterator iter = rowsToDeselect.iterator(); iter.hasNext();) {
+				ListRow row = (ListRow) iter.next();
+				row.setSelected(false);
 			}
 
 			for (Iterator iter = rowsToSelect.iterator(); iter.hasNext();) {
@@ -2092,6 +2116,7 @@ public class ListView
 				((ListRow) rows[0]).setFocused(true);
 			}
 		} finally {
+			bSkipSelectionTrigger = false;
 			selectedRows_mon.exit();
 		}
 	}
@@ -2116,11 +2141,12 @@ public class ListView
 			selectedRows_mon.exit();
 		}
 
-		// XXX SLOW when selecting multiple in a row (like select all)
-		if (bSelected) {
-			triggerDeselectionListeners(row);
-		} else {
-			triggerSelectionListeners(row);
+		if (!bSkipSelectionTrigger) {
+  		if (bSelected) {
+  			triggerDeselectionListeners(new TableRowCore[] { row });
+  		} else {
+  			triggerSelectionListeners(new TableRowCore[] { row });
+  		}
 		}
 	}
 

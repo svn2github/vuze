@@ -186,7 +186,7 @@ public class ColumnRateDropDown
 					event.cell.invalidate();
 				}
 
-				public void selected(TableRowCore row) {
+				public void selected(TableRowCore[] rows) {
 					closeDropDownList();
 				}
 			}, false);

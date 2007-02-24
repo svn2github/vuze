@@ -247,11 +247,11 @@ public class ManageCdList extends SkinView
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
 
 		view.addSelectionListener(new TableSelectionAdapter() {
-			public void deselected(TableRowCore row) {
+			public void deselected(TableRowCore[] row) {
 				update();
 			}
 
-			public void selected(TableRowCore row) {
+			public void selected(TableRowCore[] row) {
 				update();
 			}
 
