@@ -799,7 +799,7 @@ FMFileImpl
 	generateEvidence(
 		IndentWriter	writer )
 	{
-		writer.println( "FMFile Reservations" );
+		writer.println( file_map.size() + " FMFile Reservations" );
 		
 		try{
 			writer.indent();
