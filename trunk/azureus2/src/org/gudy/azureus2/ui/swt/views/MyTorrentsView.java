@@ -2145,6 +2145,7 @@ public class MyTorrentsView
 					e.doit = false;
 					break;
 				case SWT.END:
+					System.out.println("MOVEND");
 					moveSelectedTorrentsEnd();
 					e.doit = false;
 					break;
@@ -2528,13 +2529,17 @@ public class MyTorrentsView
   }
 
   private void moveSelectedTorrentsTopOrEnd(boolean moveToTop) {
-    DownloadManager[] downloadManagers = (DownloadManager[]) tv.getSelectedDataSources();
-    if (downloadManagers.length == 0)
+  	Object[] datasources = tv.getSelectedDataSources();
+    if (datasources.length == 0)
       return;
+  	DownloadManager[] downloadManagers = new DownloadManager[datasources.length];
+  	System.arraycopy(datasources, 0, downloadManagers, 0, datasources.length);
+
     if(moveToTop)
       globalManager.moveTop(downloadManagers);
     else
       globalManager.moveEnd(downloadManagers);
+
     boolean bForceSort = tv.getSortColumn().getName().equals("#");
     if (bForceSort) {
     	tv.columnInvalidate("#");
