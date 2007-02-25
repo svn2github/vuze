@@ -46,7 +46,7 @@ public class BTPeerIDByteDecoder {
   /**
    * Decodes the given peerID, returning an identification string.
    */  
-  protected static String decode(byte[] peer_id) {   
+  public static String decode(byte[] peer_id) {   
     String decoded = null;
     byte[] peerID = new byte[peer_id.length];
     System.arraycopy(peer_id, 0, peerID, 0, peer_id.length);
@@ -57,6 +57,7 @@ public class BTPeerIDByteDecoder {
     int iFirstNonZeroPos = 0;
     try {
       if( (decoded = decodeAzStyle( peerID, "AZ", "Azureus" )) != null ) return decoded;      
+      if( (decoded = decodeAzStyle( peerID, "UT", "\u00B5Torrent" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "BC", "BitComet" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "LT", "libtorrent (Rasterbar)" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "lt", "libTorrent (Rakshasa)" )) != null ) return decoded;
@@ -75,7 +76,6 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "ZT", "ZipTorrent" )) != null ) return decoded; 
       if( (decoded = decodeAzStyle( peerID, "SZ", "Shareaza" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "KT", "KTorrent" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "UT", "\u00B5Torrent" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "TR", "Transmission" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "CD", "CTorrent" )) != null ) return decoded;      
       if( (decoded = decodeAzStyle( peerID, "RT", "Retriever" )) != null ) return decoded;      
@@ -83,7 +83,7 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "PC", PeerClassifier.CACHE_LOGIC )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "BR", "BitRocket" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "XX", "Xtorrent" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "FG", "FlashGet" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "FG", "FlashGet", false )) != null ) return decoded;
       
       if( (decoded = decodeTornadoStyle( peerID, "T", "BitTornado" )) != null ) return decoded;
       if( (decoded = decodeTornadoStyle( peerID, "A", "ABC" )) != null ) return decoded;
@@ -92,6 +92,9 @@ public class BTPeerIDByteDecoder {
      
       if( (decoded = decodeMainlineStyle( peerID, "M", "Mainline" )) != null ) return decoded;
       
+      // Not sure what BitTyrant's numbering scheme will be in the future - at the moment, it just
+      // tries to announce what Azureus version it's based on. 
+      if( (decoded = decodeSimpleStyle( peerID, 0, "AZ2500BT", "BitTyrant" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "martini", "Martini Man" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "oernu", "BTugaXP" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "BTDWV-", "Deadman Walking" )) != null ) return decoded;
@@ -358,10 +361,13 @@ public class BTPeerIDByteDecoder {
 }
   
   
-  
   private static String decodeAzStyle(byte[] id, String ident, String name) {
+	  return decodeAzStyle(id, ident, name, true);
+  }
+  
+  private static String decodeAzStyle(byte[] id, String ident, String name, boolean require_end_dash) {
 		try {
-			if ((id[0] == (byte) 45) && (id[7] == (byte) 45)) {
+			if ((id[0] == (byte) 45) && (!require_end_dash || (id[7] == (byte) 45))) {
 				String decoded = new String(id, 1, 2, Constants.BYTE_ENCODING);
 				if (decoded.equals(ident)) {
 					if (ident.equals("BC")) {
