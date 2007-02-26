@@ -84,7 +84,8 @@ import org.gudy.azureus2.plugins.PluginEvent;
  * @created May 29, 2006
  *
  */
-public class MainWindow implements SWTSkinTabSetListener
+public class MainWindow
+	implements SWTSkinTabSetListener
 {
 
 	private static final LogIDs LOGID = LogIDs.GUI;
@@ -192,7 +193,7 @@ public class MainWindow implements SWTSkinTabSetListener
 		thread.start();
 	}
 
-	private void downloadAdded(DownloadManager dm) {
+	private void downloadAdded(final DownloadManager dm) {
 		final TOTorrent torrent = dm.getTorrent();
 		if (torrent == null) {
 			return;
@@ -231,13 +232,11 @@ public class MainWindow implements SWTSkinTabSetListener
 						// and not display the popup when it doesn't
 						if (current != null && current.getFocusControl() != null
 								&& !MessageBoxShell.isOpen()) {
-							int ret = MessageBoxShell.open(
-									shell,
+							int ret = MessageBoxShell.open(shell,
 									MessageText.getString("HomeReminder.title"),
-									MessageText.getString(
-											"HomeReminder.text",
-											new String[] { PlatformTorrentUtils.getContentTitle(torrent)
-											}), new String[] {
+									MessageText.getString("HomeReminder.text", new String[] {
+										dm.getDisplayName()
+									}), new String[] {
 										MessageText.getString("Button.ok"),
 										MessageText.getString("HomeReminder.gohome")
 									}, 0, "downloadinhome",
@@ -257,25 +256,26 @@ public class MainWindow implements SWTSkinTabSetListener
 		if (PlatformTorrentUtils.isContent(torrent)) {
 			if (PlatformTorrentUtils.getUserRating(torrent) == -2) {
 				PlatformTorrentUtils.setUserRating(torrent, -1);
-				PlatformRatingMessenger.getUserRating(
-						new String[] { PlatformRatingMessenger.RATE_TYPE_CONTENT
-						}, new String[] { hash
-						}, 5000, new GetRatingReplyListener() {
-							public void replyReceived(String replyType,
-									PlatformRatingMessenger.GetRatingReply reply) {
-								if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
-									long rating = reply.getRatingValue(fHash,
-											PlatformRatingMessenger.RATE_TYPE_CONTENT);
-									if (rating >= -1) {
-										PlatformTorrentUtils.setUserRating(torrent, (int) rating);
-									}
-								}
-
+				PlatformRatingMessenger.getUserRating(new String[] {
+					PlatformRatingMessenger.RATE_TYPE_CONTENT
+				}, new String[] {
+					hash
+				}, 5000, new GetRatingReplyListener() {
+					public void replyReceived(String replyType,
+							PlatformRatingMessenger.GetRatingReply reply) {
+						if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
+							long rating = reply.getRatingValue(fHash,
+									PlatformRatingMessenger.RATE_TYPE_CONTENT);
+							if (rating >= -1) {
+								PlatformTorrentUtils.setUserRating(torrent, (int) rating);
 							}
+						}
 
-							public void messageSent() {
-							}
-						});
+					}
+
+					public void messageSent() {
+					}
+				});
 			}
 
 			long now = SystemTime.getCurrentTime();
@@ -361,9 +361,11 @@ public class MainWindow implements SWTSkinTabSetListener
 				Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer");
 
 				Method method = ehancerClass.getMethod("registerToolbarToggle",
-						new Class[] { Shell.class
+						new Class[] {
+							Shell.class
 						});
-				method.invoke(null, new Object[] { shell
+				method.invoke(null, new Object[] {
+					shell
 				});
 
 			} catch (Exception e) {
@@ -1038,7 +1040,8 @@ public class MainWindow implements SWTSkinTabSetListener
 				SWTSkinObject searchResultsContent = skin.createSkinObject(sContentID,
 						sContentConfigID, searchResultsView);
 
-				tabSearchResult.setActiveWidgets(new SWTSkinObject[] { searchResultsContent
+				tabSearchResult.setActiveWidgets(new SWTSkinObject[] {
+					searchResultsContent
 				});
 
 				SWTSkinObject searchResultsContentG = skin.getSkinObject(
