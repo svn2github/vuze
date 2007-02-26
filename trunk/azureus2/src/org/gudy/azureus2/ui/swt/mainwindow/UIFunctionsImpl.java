@@ -29,6 +29,8 @@ import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
@@ -42,7 +44,8 @@ import org.gudy.azureus2.plugins.PluginView;
  * @created Jul 12, 2006
  *
  */
-public class UIFunctionsImpl implements UIFunctionsSWT
+public class UIFunctionsImpl
+	implements UIFunctionsSWT
 {
 
 	private final MainWindow mainwindow;
@@ -156,8 +159,7 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 		return mainwindow.showConfig(string);
 	}
 
-	public void addPluginView(final String viewID, final UISWTViewEventListener l)
-	{
+	public void addPluginView(final String viewID, final UISWTViewEventListener l) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (mainwindow.getMenu() != null) {
@@ -239,8 +241,7 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 
 	public void openPluginView(final String sParentID, final String sViewID,
 			final UISWTViewEventListener l, final Object dataSource,
-			final boolean bSetFocus)
-	{
+			final boolean bSetFocus) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				mainwindow.openPluginView(sParentID, sViewID, l, dataSource, bSetFocus);
@@ -265,7 +266,7 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 			}
 		});
 	}
-	
+
 	public void setStatusText(final int statustype, final String string,
 			final UIStatusTextClickListener l) {
 		Utils.execSWTThread(new AERunnable() {
@@ -275,8 +276,7 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 		});
 	}
 
-	public boolean dispose(boolean for_restart, boolean close_already_in_progress)
-	{
+	public boolean dispose(boolean for_restart, boolean close_already_in_progress) {
 		return mainwindow.dispose(for_restart, close_already_in_progress);
 	}
 
@@ -326,13 +326,23 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 			}
 		});
 	}
-	
+
 	public UISWTInstance getUISWTInstance() {
 		return mainwindow.getUISWTInstanceImpl();
 	}
-	
-	public boolean viewURL(String url, String target, int w, int h, boolean bAllowResize) {
+
+	public boolean viewURL(String url, String target, int w, int h,
+			boolean bAllowResize) {
 		// do me
 		return false;
+	}
+
+	// @see com.aelitis.azureus.ui.UIFunctions#promptUser(java.lang.String, java.lang.String, java.lang.String[], int, java.lang.String, java.lang.String, boolean, int)
+	public int promptUser(String title, String text, String[] buttons,
+			int defaultOption, String rememberID, String rememberText,
+			boolean rememberByDefault, int autoCloseInMS) {
+		return MessageBoxShell.open(getMainShell(), title, text, buttons,
+				defaultOption, rememberID, rememberText, rememberByDefault,
+				autoCloseInMS);
 	}
 }

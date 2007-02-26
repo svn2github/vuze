@@ -23,7 +23,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
 
-
 /**
  * @author TuxPaper
  * @created Jun 14, 2006
@@ -31,17 +30,20 @@ import com.aelitis.azureus.core.AzureusCoreComponent;
  *
  * TODO: Replace showXxxx(..) with showView(ID, ..) + ID Constants
  */
-public interface UIFunctions extends AzureusCoreComponent
+public interface UIFunctions
+	extends AzureusCoreComponent
 {
 	public static int STATUSICON_NONE = 0;
+
 	public static int STATUSICON_WARNING = 1;
+
 	public static int STATUSICON_ERROR = 2;
 
 	/**
 	 * Display the stats view
 	 */
 	void showStats();
-	
+
 	/**
 	 * Display the Stats View -> Transfer subview
 	 */
@@ -112,10 +114,10 @@ public interface UIFunctions extends AzureusCoreComponent
 	 * @param string
 	 */
 	void setStatusText(String string);
-	
+
 	void setStatusText(int statustype, String string, UIStatusTextClickListener l);
 
-  boolean dispose(boolean for_restart, boolean close_already_in_progress);
+	boolean dispose(boolean for_restart, boolean close_already_in_progress);
 
 	/**
 	 * 
@@ -131,4 +133,8 @@ public interface UIFunctions extends AzureusCoreComponent
 	 * @return success level
 	 */
 	boolean viewURL(String url, String target, int w, int h, boolean allowResize);
+
+	public int promptUser(String title, String text, String[] buttons,
+			int defaultOption, String rememberID, String rememberText,
+			boolean bRememberByDefault, int autoCloseInMS);
 }
