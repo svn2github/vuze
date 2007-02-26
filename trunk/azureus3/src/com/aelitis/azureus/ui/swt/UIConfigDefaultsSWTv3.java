@@ -86,6 +86,8 @@ public class UIConfigDefaultsSWTv3
 			defaults.addParameter("Status Area Show IPF", false);
 
 			defaults.addParameter("window.maximized", true);
+			
+	    defaults.addParameter("update.autodownload", true);
 
 			config.save();
 		}
