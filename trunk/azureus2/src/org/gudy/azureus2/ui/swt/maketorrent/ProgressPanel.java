@@ -213,7 +213,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
              		hash = torrent.getHash();
              	} catch (TOTorrentException e1) { }
 
-                ((NewTorrentWizard)wizard).getAzureusCore().getGlobalManager().addDownloadManager(
+                DownloadManager dm = ((NewTorrentWizard)wizard).getAzureusCore().getGlobalManager().addDownloadManager(
                 		torrent_file.toString(),
                 		hash,
                 		save_dir.toString(), 
@@ -222,6 +222,15 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 						true,	// persistent 
 						true,	// for seeding
 						null );	// no adapter required
+                
+                if (!default_start_stopped && dm != null) {
+                	// We want this to move to seeding ASAP, so move it to the top
+                	// of the download list, where it will do the quick check and
+                	// move to the seeding list
+                	// (the for seeding flag should really be smarter and verify
+                	//  it's a seeding torrent and set appropriately) 
+                	dm.getGlobalManager().moveTop(new DownloadManager[] { dm });
+                }
                 
                 if ( ((NewTorrentWizard)wizard).autoHost &&  ((NewTorrentWizard)wizard).getTrackerType() != NewTorrentWizard.TT_EXTERNAL ){
                 	
