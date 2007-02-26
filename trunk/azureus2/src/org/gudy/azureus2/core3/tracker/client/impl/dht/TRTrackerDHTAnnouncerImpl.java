@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerResponseImp
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerResponsePeerImpl;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
@@ -322,5 +323,12 @@ TRTrackerDHTAnnouncerImpl
 				listeners.dispatch( LDT_TRACKER_RESPONSE, last_response );
 		     }
 		}
+	}
+	
+	public void 
+	generateEvidence(
+		IndentWriter writer )
+	{
+		writer.println( "DHT announce: " + (last_response==null?"null":last_response.getString()));
 	}
 }

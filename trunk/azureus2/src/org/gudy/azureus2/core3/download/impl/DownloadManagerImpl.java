@@ -3331,6 +3331,22 @@ DownloadManagerImpl
 			
 			controller.generateEvidence(writer);
 
+			TRTrackerAnnouncer announcer = tracker_client;
+			
+			if ( announcer != null ){
+				
+				announcer.generateEvidence( writer );
+			}
+			
+			TRTrackerScraperResponse scrape = getTrackerScrapeResponse();
+			
+			if ( scrape == null ){
+				
+				writer.println( "Scrape: null" );
+			}else{
+				
+				writer.println( "Scrape: " + scrape.getString());
+			}
 		} finally {
 
 			writer.exdent();

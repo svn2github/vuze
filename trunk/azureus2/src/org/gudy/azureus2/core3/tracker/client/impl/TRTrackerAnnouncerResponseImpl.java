@@ -211,4 +211,21 @@ TRTrackerAnnouncerResponseImpl
 			}
 		}
 	}
+		
+	public String
+	getString()
+	{
+		String	str = "url=" + url + ", status=" + getStatus();
+		
+		if ( getStatus() != ST_ONLINE ){
+			
+			str +=", error=" + getAdditionalInfo();
+		}
+		
+		str += ", time_to_wait=" + time_to_wait;
+		
+		str += ", scrape_comp=" + scrape_complete + ", scrape_incomp=" + scrape_incomplete;
+		
+		return( str );
+	}
 }

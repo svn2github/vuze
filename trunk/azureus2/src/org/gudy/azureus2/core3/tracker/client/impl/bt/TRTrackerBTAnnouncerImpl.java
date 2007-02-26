@@ -100,7 +100,7 @@ TRTrackerBTAnnouncerImpl
 	
 	protected int				tracker_state 			= TS_INITIALISED;
 	private String				tracker_status_str		= "";
-	private TRTrackerAnnouncerResponse	last_response			= null;
+	private TRTrackerAnnouncerResponseImpl	last_response			= null;
 	private long				last_update_time_secs;
 	private long				current_time_to_wait_secs;
 	private boolean				manual_control;
@@ -628,7 +628,7 @@ TRTrackerBTAnnouncerImpl
 			
 			tracker_status_str = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$      
 		
-			TRTrackerAnnouncerResponse	response = null;
+			TRTrackerAnnouncerResponseImpl	response = null;
 			
 			if ( stopped ){
 				
@@ -759,7 +759,7 @@ TRTrackerBTAnnouncerImpl
 		}
 	}
 	
-	protected TRTrackerAnnouncerResponse startSupport() {
+	protected TRTrackerAnnouncerResponseImpl startSupport() {
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(torrent, LOGID, "Tracker Announcer is sending "
 					+ "a start Request"));
@@ -767,7 +767,7 @@ TRTrackerBTAnnouncerImpl
     return (update("started"));
   }
 
-  protected TRTrackerAnnouncerResponse completeSupport() {
+  protected TRTrackerAnnouncerResponseImpl completeSupport() {
   	if (Logger.isEnabled())
 			Logger.log(new LogEvent(torrent, LOGID, "Tracker Announcer is sending "
 					+ "a completed Request"));
@@ -775,7 +775,7 @@ TRTrackerBTAnnouncerImpl
 		return (update("completed"));
   }
 
-  protected TRTrackerAnnouncerResponse stopSupport() {
+  protected TRTrackerAnnouncerResponseImpl stopSupport() {
   	if (Logger.isEnabled())
 			Logger.log(new LogEvent(torrent, LOGID, "Tracker Announcer is sending "
 					+ "a stopped Request"));
@@ -783,7 +783,7 @@ TRTrackerBTAnnouncerImpl
     return (update("stopped"));
   }
 
-  protected TRTrackerAnnouncerResponse updateSupport() {
+  protected TRTrackerAnnouncerResponseImpl updateSupport() {
   	if (Logger.isEnabled())
 			Logger.log(new LogEvent(torrent, LOGID, "Tracker Announcer is sending "
 					+ "an update Request"));
@@ -791,7 +791,7 @@ TRTrackerBTAnnouncerImpl
     return update("");
   }
   
-  	private TRTrackerAnnouncerResponse 
+  	private TRTrackerAnnouncerResponseImpl
 	update(
 		String evt )
   	{
@@ -3040,5 +3040,41 @@ TRTrackerBTAnnouncerImpl
 		}
 		
 		listeners.dispatch( LDT_TRACKER_RESPONSE, response );
+	}
+	
+	public void 
+	generateEvidence(
+		IndentWriter writer )
+	{
+		writer.println( "BT announce:" );
+		
+		try{
+			writer.indent();
+			
+			writer.println( "state: " + tracker_state + ", in_progress=" + update_in_progress );
+			
+			writer.println( "current: " + (lastUsedUrl==null?"null":lastUsedUrl.toString()));
+			
+			writer.println( "last: " + (last_response==null?"null":last_response.getString()));
+			
+			writer.println( "last_update_secs: " + last_update_time_secs );
+			
+			writer.println( "secs_to_wait: " + current_time_to_wait_secs  + (manual_control?" - manual":""));
+			
+			writer.println( "min_interval: " + min_interval );
+			
+			writer.println( "min_interval_override: " + min_interval_override );
+			
+			writer.println( "rd: last_override=" + rd_last_override + ",percentage=" + rd_override_percentage );
+			
+			writer.println( "event: " + ( current_timer_event==null?"null":current_timer_event.getString()));
+			
+			writer.println( "stopped: " + stopped + ", for_q=" + stopped_for_queue );
+			
+			writer.println( "complete: " + completed + ", reported=" + complete_reported );
+			
+		}finally{
+			writer.exdent();
+		}
 	}
 }

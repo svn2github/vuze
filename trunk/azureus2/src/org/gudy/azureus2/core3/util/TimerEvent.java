@@ -162,7 +162,7 @@ TimerEvent
 	{
 	}
 	
-	protected String
+	public String
 	getString()
 	{
 		if ( performer instanceof TimerEventPeriodic ){

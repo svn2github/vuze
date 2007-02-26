@@ -25,6 +25,7 @@ import java.util.Map;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 
 public interface 
@@ -167,4 +168,8 @@ TRTrackerAnnouncer
 	public void
 	removeListener(
 		TRTrackerAnnouncerListener	l );
+	
+	public void 
+	generateEvidence(
+		IndentWriter writer );
 }
