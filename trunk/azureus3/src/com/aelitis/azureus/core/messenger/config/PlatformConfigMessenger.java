@@ -25,6 +25,8 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -33,6 +35,8 @@ import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.Constants;
+
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 /**
  * @author TuxPaper
@@ -103,11 +107,20 @@ public class PlatformConfigMessenger
 	}
 	
 	public static void login(long maxDelayMS) {
+		PlatformManager pm = PlatformManagerFactory.getPlatformManager();
+		String azComputerID = "";
+		try {
+			azComputerID = pm.getAzComputerID();
+		} catch (PlatformManagerException e) {
+		}
+
 		Object[] params = new Object[] {
 			"version",
 			org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
 			"locale",
 			Locale.getDefault().toString(),
+			"azCID",
+			azComputerID
 		};
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				"login", params, maxDelayMS);
