@@ -254,4 +254,33 @@ UIManager
  	public void
   	removeUIEventListener(
   		UIManagerEventListener listener );
+ 	
+ 	/**
+ 	 * Returns <tt>true</tt> if there any user interfaces currently attached to
+ 	 * Azureus.
+ 	 * 
+ 	 * Note that this value may change over time, and that at the point when a
+ 	 * plugin is being initialised, there is no guarantee over whether if the
+ 	 * user interfaces will have been created yet or not.
+ 	 * 
+ 	 * If you want to monitor what user interfaces are being attached / detached
+ 	 * from Azureus, you should add a <tt>UIListener</tt> to this object.
+ 	 * 
+ 	 * @since 3.0.0.7
+ 	 */
+ 	public boolean hasUIInstances();
+ 	
+ 	/**
+ 	 * Returns an array of all currently attached user interfaces.
+ 	 * 
+ 	 * Note that this value may change over time, and that at the point when a
+ 	 * plugin is being initialised, there is no guarantee over whether if the
+ 	 * user interfaces will have been created yet or not.
+ 	 * 
+ 	 * If you want to monitor what user interfaces are being attached / detached
+ 	 * from Azureus, you should add a <tt>UIListener</tt> to this object.
+ 	 * 
+ 	 * @since 3.0.0.7
+ 	 */
+ 	public UIInstance[] getUIInstances();
 }

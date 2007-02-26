@@ -406,6 +406,23 @@ UIManagerImpl
   		}		
  	}
  	
+ 	public boolean hasUIInstances() {return !ui_factories.isEmpty();}
+ 	
+ 	public UIInstance[] getUIInstances() {
+ 		try {
+  			class_mon.enter();
+  			ArrayList result = new ArrayList(ui_factories.size());
+  			for (int i=0;i<ui_factories.size();i++){
+  				UIInstanceFactory instance = (UIInstanceFactory)ui_factories.get(i);
+  				result.add(instance.getInstance(pi));
+  			}
+  			return (UIInstance[])result.toArray(new UIInstance[result.size()]);
+ 		}
+ 		finally {
+ 			class_mon.exit();
+ 		}
+ 	}
+ 	
 	public static boolean
  	fireEvent(
  		int			type,
