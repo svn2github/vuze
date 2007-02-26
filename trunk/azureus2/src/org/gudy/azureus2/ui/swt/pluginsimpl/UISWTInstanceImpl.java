@@ -71,7 +71,6 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -536,7 +535,6 @@ UISWTInstanceImpl
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					try {
-						UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 						if (uiFunctions != null) {
 							uiFunctions.removePluginView(sViewID);
 						}
@@ -563,7 +561,6 @@ UISWTInstanceImpl
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 				if (uiFunctions != null) {
 					uiFunctions.openPluginView(sParentID, sViewID, l, dataSource,
 							!bUIAttaching);
@@ -578,7 +575,6 @@ UISWTInstanceImpl
 			final UISWTViewEventListener l, final Object dataSource) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 				if (uiFunctions != null) {
 					uiFunctions.openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l, dataSource, !bUIAttaching);
 				}
@@ -589,7 +585,6 @@ UISWTInstanceImpl
 	public UISWTView[] getOpenViews(String sParentID) {
 		if (sParentID.equals(UISWTInstance.VIEW_MAIN)) {
 			try {
-				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 				if (uiFunctions != null) {
 					return uiFunctions.getPluginViews();
 				}
@@ -600,6 +595,7 @@ UISWTInstanceImpl
 		return new UISWTView[0];
 	}
 	
+	// @see org.gudy.azureus2.plugins.ui.UIInstance#promptUser(java.lang.String, java.lang.String, java.lang.String[], int)
 	public int promptUser(String title, String text, String[] options,
 			int defaultOption) {
 		return MessageBoxShell.open(uiFunctions.getMainShell(), title, text,
