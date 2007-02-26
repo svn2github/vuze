@@ -32,9 +32,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
-import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.MenuBuildUtils;
-import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.SelectableSpeedMenu;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -252,9 +250,13 @@ public class SystemTraySWT
 	}
 
 	public void dispose() {
-		if (trayItem != null && !trayItem.isDisposed()) {
-			trayItem.dispose();
-		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (trayItem != null && !trayItem.isDisposed()) {
+					trayItem.dispose();
+				}
+			}
+		});
 	}
 
 	public void update() {
