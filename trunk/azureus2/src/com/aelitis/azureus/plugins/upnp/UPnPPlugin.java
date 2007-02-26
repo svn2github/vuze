@@ -1136,15 +1136,38 @@ UPnPPlugin
 			
 			if ( services.size() > 1 ){
 				
-				PluginConfig pc = plugin_interface.getPluginconfig();
+					// check this isn't a single device with multiple services
 				
-				if ( !pc.getPluginBooleanParameter( "upnp.device.multipledevices.warned", false )){
+				String	new_usn = wan_service.getGenericService().getDevice().getRootDevice().getUSN();
+				
+				boolean	multiple_found = false;
+				
+				for (int i=0;i<services.size()-1;i++){
 					
-					pc.setPluginParameter( "upnp.device.multipledevices.warned", true );
+					UPnPPluginService	service = (UPnPPluginService)services.get(i);
 					
-					String	text = MessageText.getString( "upnp.alert.multipledevice.warning" );
-																
-					log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+					String existing_usn = service.getService().getGenericService().getDevice().getRootDevice().getUSN();
+					
+					if ( !new_usn.equals( existing_usn )){
+						
+						multiple_found = true;
+						
+						break;
+					}
+				}
+				
+				if ( multiple_found ){
+					
+					PluginConfig pc = plugin_interface.getPluginconfig();
+					
+					if ( !pc.getPluginBooleanParameter( "upnp.device.multipledevices.warned", false )){
+						
+						pc.setPluginParameter( "upnp.device.multipledevices.warned", true );
+						
+						String	text = MessageText.getString( "upnp.alert.multipledevice.warning" );
+																	
+						log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+					}
 				}
 			}
 			
