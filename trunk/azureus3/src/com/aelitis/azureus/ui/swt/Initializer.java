@@ -284,7 +284,11 @@ public class Initializer implements IUIIntializer
 
 			UIUpdaterFactory.getInstance().stopIt();
 
-			SWTThread.getInstance().terminate();
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					SWTThread.getInstance().terminate();
+				}
+			});
 
 		} finally {
 
