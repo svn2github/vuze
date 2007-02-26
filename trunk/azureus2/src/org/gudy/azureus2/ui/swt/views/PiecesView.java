@@ -30,6 +30,8 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.components.Legend;
+import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
+import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
@@ -75,6 +77,8 @@ public class PiecesView
 	private TableViewSWTImpl tv;
 
 	private Composite legendComposite;
+
+	private PieceInfoView pieceInfoView;
   
   /**
    * Initialize
@@ -86,6 +90,10 @@ public class PiecesView
 						| SWT.VIRTUAL);
 		setTableView(tv);
 		tv.setEnableTabViews(true);
+		pieceInfoView = new PieceInfoView();
+		tv.setCoreTabViews(new IView[] {
+			pieceInfoView
+		});
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addLifeCycleListener(this);
 	}
@@ -106,6 +114,9 @@ public class PiecesView
     	manager.addPeerListener(this, false);
     	addExistingDatasources();
     }
+  	if (pieceInfoView != null) {
+  		pieceInfoView.dataSourceChanged(manager);
+  	}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
@@ -168,5 +179,12 @@ public class PiecesView
 		
 		tv.addDataSources(dataSources);
   	tv.processDataSourceQueue();
+	}
+
+	/**
+	 * @return the manager
+	 */
+	public DownloadManager getManager() {
+		return manager;
 	}
 }
