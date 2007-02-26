@@ -1308,7 +1308,11 @@ public class TableViewSWTImpl
 
 		String sColumnName = (String) tcColumn.getData("Name");
 		if (sColumnName != null) {
-			addThisColumnSubMenu(sColumnName, menuThisColumn);
+			Object[] listeners = listenersMenuFill.toArray();
+			for (int i = 0; i < listeners.length; i++) {
+				TableViewSWTMenuFillListener l = (TableViewSWTMenuFillListener) listeners[i];
+				l.addThisColumnSubMenu(sColumnName, menuThisColumn);
+			}
 		}
 
 		if (menuThisColumn.getItemCount() > 0) {
@@ -1368,27 +1372,6 @@ public class TableViewSWTImpl
 						});
 			}
 		}
-	}
-
-	/** Create a SubMenu for column specific tasks.  Everytime the user opens
-	 * the context menu, the "This Column" submenu is cleared, and this function
-	 * is called to refill it.
-	 *
-	 * @param sColumnName The name of the column the user clicked on
-	 * @param menuThisColumn the menu to fill with MenuItems
-	 */
-	public void addThisColumnSubMenu(String sColumnName, Menu menuThisColumn) {
-		/*  // Template code
-		 if (sColumnName.equals("xxx")) {
-		 item = new MenuItem(menuThisColumn, SWT.PUSH);
-		 Messages.setLanguageText(item, "xxx.menu.xxx");
-		 item.setImage(ImageRepository.getImage("xxx"));
-		 item.addListener(SWT.Selection, new Listener() {
-		 public void handleEvent(Event e) {
-		 // Code here
-		 }
-		 });
-		 */
 	}
 
 	/** IView.getComposite()
