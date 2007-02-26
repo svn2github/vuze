@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -96,18 +97,22 @@ public class PlatformMessage
 	public static JSONObject parseParams(Object[] parameters) {
 		JSONObject result = new JSONObject();
 		for (int i = 0; i < parameters.length - 1; i += 2) {
-			if (parameters[i] instanceof String) {
-				if (parameters[i + 1] instanceof String[]) {
-					List list = Arrays.asList((String[]) parameters[i + 1]);
-					result.put((String) parameters[i], new JSONArray(list));
-				} else if (parameters[i + 1] instanceof Object[]) {
-					result.put((String) parameters[i],
-							parseParams((Object[]) parameters[i + 1]));
-				} else if (parameters[i + 1] instanceof Map) {
-					result.put((String) parameters[i], (Map)parameters[i + 1]);
-				} else {
-					result.put((String) parameters[i], parameters[i + 1]);
-				}
+			try {
+  			if (parameters[i] instanceof String) {
+  				if (parameters[i + 1] instanceof String[]) {
+  					List list = Arrays.asList((String[]) parameters[i + 1]);
+  					result.put((String) parameters[i], new JSONArray(list));
+  				} else if (parameters[i + 1] instanceof Object[]) {
+  					result.put((String) parameters[i],
+  							parseParams((Object[]) parameters[i + 1]));
+  				} else if (parameters[i + 1] instanceof Map) {
+  					result.put((String) parameters[i], (Map)parameters[i + 1]);
+  				} else {
+  					result.put((String) parameters[i], parameters[i + 1]);
+  				}
+  			}
+			} catch (Exception e) {
+				Debug.out("making JSONObject out of parsedParams", e);
 			}
 		}
 
