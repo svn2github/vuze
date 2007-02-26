@@ -200,6 +200,7 @@ public class ConfigurationDefaults {
     def.put("update.start",TRUE);
     def.put("update.periodic",TRUE);
     def.put("update.opendialog",TRUE);
+    def.put("update.autodownload", FALSE);
     
     
     // Logging

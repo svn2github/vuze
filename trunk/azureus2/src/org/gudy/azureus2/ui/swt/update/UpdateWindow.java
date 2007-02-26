@@ -201,7 +201,7 @@ UpdateWindow
     	
     }else{
     	
-    	res_prefix += "update.window";
+    	res_prefix = "UpdateWindow";
     }
     
     Messages.setLanguageText(updateWindow, res_prefix + ".title");
@@ -230,7 +230,7 @@ UpdateWindow
     int[] sizes = {220,80,80};
     for(int i = 0 ; i < names.length ; i++) {
       TableColumn column = new TableColumn(table,SWT.LEFT);
-      Messages.setLanguageText(column,"swt.update.window.columns." + names[i]);
+      Messages.setLanguageText(column,"UpdateWindow.columns." + names[i]);
       column.setWidth(sizes[i]);
     }
     table.setHeaderVisible(true);    
@@ -329,7 +329,7 @@ UpdateWindow
     
     btnCancel = new Button(updateWindow,SWT.PUSH);
     
-    Messages.setLanguageText(btnCancel,"swt.update.window.cancel");
+    Messages.setLanguageText(btnCancel,"UpdateWindow.cancel");
     
     lCancel = new Listener() {
 	      public void handleEvent(Event e) {
@@ -433,11 +433,15 @@ UpdateWindow
   }
   
   public void dispose() {
-    updateWindow.dispose();
-    MainWindow window = MainWindow.getWindow();
-    if (window != null) {
-    	MainWindow.getWindow().setUpdateNeeded(null);
-    }
+  	Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+		    updateWindow.dispose();
+		    MainWindow window = MainWindow.getWindow();
+		    if (window != null) {
+		    	MainWindow.getWindow().setUpdateNeeded(null);
+		    }
+			}
+		});
   }
   
   public void addUpdate(final Update update) {
@@ -540,9 +544,9 @@ UpdateWindow
       }
     }
     if(restartRequired) {
-        status.setText(MessageText.getString("swt.update.window.status.restartNeeded"));
+        status.setText(MessageText.getString("UpdateWindow.status.restartNeeded"));
     }else if(restartMaybeRequired) {
-        status.setText(MessageText.getString("swt.update.window.status.restartMaybeNeeded"));
+        status.setText(MessageText.getString("UpdateWindow.status.restartMaybeNeeded"));
     }else{
       status.setText("");
     }
@@ -550,7 +554,7 @@ UpdateWindow
   
   private void update() {
     btnOk.setEnabled(false);    
-    Messages.setLanguageText(btnCancel,"swt.update.window.cancel");
+    Messages.setLanguageText(btnCancel,"UpdateWindow.cancel");
     table.setEnabled(false);
     stDescription.setText("");
     TableItem[] items = table.getItems();
@@ -568,7 +572,7 @@ UpdateWindow
         try {
           totalDownloadSize += rds[j].getSize();
         } catch (Exception e) {
-          stDescription.append(MessageText.getString("swt.update.window.no_size") + rds[j].getName() +"\n");
+          stDescription.append(MessageText.getString("UpdateWindow.no_size") + rds[j].getName() +"\n");
         }        
       }
     }
@@ -595,7 +599,7 @@ UpdateWindow
       public void runSupport() {
       	checkRestartNeeded();	// gotta recheck coz a maybe might have got to yes
         progress.setSelection(100);
-        status.setText(MessageText.getString("swt.update.window.status.done"));
+        status.setText(MessageText.getString("UpdateWindow.status.done"));
         btnOk.removeListener(SWT.Selection,lOk);
         btnOk.setEnabled(true);
         btnOk.addListener(SWT.Selection,new Listener() {
@@ -607,16 +611,16 @@ UpdateWindow
           ((FormData)btnOk.getLayoutData()).width = 150;
           ((FormData)btnCancel.getLayoutData()).width = 150;
           updateWindow.layout();
-          Messages.setLanguageText(btnOk,"swt.update.window.restart");
+          Messages.setLanguageText(btnOk,"UpdateWindow.restart");
           btnCancel.removeListener(SWT.Selection,lCancel);
-          Messages.setLanguageText(btnCancel,"swt.update.window.restartLater");
+          Messages.setLanguageText(btnCancel,"UpdateWindow.restartLater");
           btnCancel.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event e) {
               finishUpdate(false);
             }
           });
         } else {
-          Messages.setLanguageText(btnOk,"swt.update.window.close");
+          Messages.setLanguageText(btnOk,"UpdateWindow.close");
           btnCancel.setEnabled(false);
         }
       }
@@ -660,7 +664,7 @@ UpdateWindow
   public void failed(ResourceDownloader downloader,
       ResourceDownloaderException e) {
     downloader.removeListener(this);
-    setStatusText(MessageText.getString("swt.update.window.status.failed"));
+    setStatusText(MessageText.getString("UpdateWindow.status.failed"));
     
     String	msg = downloader.getName() + " : " + e;
     
@@ -708,21 +712,19 @@ UpdateWindow
   		MainWindow.getWindow().setUpdateNeeded(null);
   	}
     
+  	boolean bDisposeUpdateWindow = true;
     //If restart is required, then restart
     if( restartRequired && restartNow) {
     	// this HAS to be done this way around else the restart inherits
     	// the 6880 port listen. However, this is a general problem....
     	UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-    	if (uiFunctions != null) {
-    		if (!uiFunctions.dispose(true, false)) {
-        	updateWindow.dispose(); 
-    		}
-    	} else {
-      	updateWindow.dispose(); 
-    	}
-    }else{
-    	
-      updateWindow.dispose();      
+    	if (uiFunctions != null && uiFunctions.dispose(true, false)) {
+   			bDisposeUpdateWindow = false;
+			}
+    }
+
+    if (bDisposeUpdateWindow) {
+      updateWindow.dispose();
     }
   }
   
