@@ -377,7 +377,13 @@ public class Debug {
 	{
 		return( getCompressedStackTrace( new Throwable(), 2 ));
 	}
-	
+
+	public static String
+	getCompressedStackTrace(int iMaxLines)
+	{
+		return( getCompressedStackTrace( new Throwable(), 2, iMaxLines ));
+	}
+
 	public static String
 	getExceptionMessage(
 		Throwable	e )
