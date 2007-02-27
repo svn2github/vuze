@@ -697,7 +697,7 @@ public class ListRow
 	}
 
 	public void redraw() {
-		view.rowRefresh(this, true, true);
+		view.rowRefreshAsync(this, true, true);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowCore#setAlternatingBGColor(boolean)

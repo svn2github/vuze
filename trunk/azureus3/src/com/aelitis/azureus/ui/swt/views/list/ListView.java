@@ -170,8 +170,12 @@ public class ListView
 	private TableViewSWTPanelCreator mainPanelCreator;
 
 	private Map mapColumnMetrics = new HashMap();
-	
+
 	private boolean bSkipSelectionTrigger = false;
+
+	private ArrayList rowsToRefresh = new ArrayList();
+
+	private AEMonitor rowsToRefresh_mon = new AEMonitor("rowsToRefresh");
 
 	public ListView(final String sTableID, SWTSkinProperties skinProperties,
 			Composite parent, Composite headerArea, int style) {
@@ -283,6 +287,7 @@ public class ListView
 					// Otherwise, the scrollbar visibility setting will fail
 					listCanvas.getDisplay().asyncExec(new AERunnable() {
 						public void runSupport() {
+							refreshVisible(true, true, true);
 							refreshScrollbar();
 						}
 					});
@@ -844,7 +849,7 @@ public class ListView
 
 	public void refreshVisible(final boolean doGraphics,
 			final boolean bForceRedraw, final boolean bAsync) {
-		if (isDisposed()) {
+		if (isDisposed() || !listCanvas.isVisible()) {
 			return;
 		}
 		if (bInRefreshVisible) {
@@ -896,7 +901,7 @@ public class ListView
 
 								if (row.isVisible()) {
 									//if (row.isVisible() && !row.isValid()) {
-									rowRefresh(row, doGraphics, bForceRedraw);
+									rowRefreshAsync(row, doGraphics, bForceRedraw);
 								} else {
 									//System.out.println("skipping.. not visible. valid? " + row.isValid());
 								}
@@ -2057,7 +2062,7 @@ public class ListView
 			selectedRows_mon.exit();
 		}
 	}
-	
+
 	public int getSelectedRowsSize() {
 		return selectedRows.size();
 	}
@@ -2089,7 +2094,7 @@ public class ListView
 					rowsToSelect.remove(selectedRow);
 				}
 			}
-			
+
 			// trigger selection/deselection early, which will prevent each
 			// row from firing one individually
 
@@ -2142,11 +2147,15 @@ public class ListView
 		}
 
 		if (!bSkipSelectionTrigger) {
-  		if (bSelected) {
-  			triggerDeselectionListeners(new TableRowCore[] { row });
-  		} else {
-  			triggerSelectionListeners(new TableRowCore[] { row });
-  		}
+			if (bSelected) {
+				triggerDeselectionListeners(new TableRowCore[] {
+					row
+				});
+			} else {
+				triggerSelectionListeners(new TableRowCore[] {
+					row
+				});
+			}
 		}
 	}
 
@@ -2779,6 +2788,11 @@ public class ListView
 			final boolean bForceRedraw) {
 		final List[] list = new List[1];
 
+		if (DEBUGPAINT) {
+			logPAINT("rowRefresh " + row + " force? " + bForceRedraw + " via "
+					+ Debug.getCompressedStackTrace(5));
+		}
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				list[0] = _rowRefresh(row, bDoGraphics, bForceRedraw);
@@ -2788,11 +2802,58 @@ public class ListView
 		return list[0];
 	}
 
+	public void rowRefreshAsync(final ListRow row, final boolean bDoGraphics,
+			final boolean bForceRedraw) {
+		if (DEBUGPAINT) {
+			logPAINT("rowRefreshA " + row + " force? " + bForceRedraw + " via "
+					+ Debug.getCompressedStackTrace(5));
+		}
+
+		try {
+			rowsToRefresh_mon.enter();
+
+			if (rowsToRefresh.contains(row)) {
+				return;
+			}
+			rowsToRefresh.add(row);
+			
+			if (rowsToRefresh.size() > 1) {
+				return;
+			}
+		} finally {
+			rowsToRefresh_mon.exit();
+		}
+
+		if (!isDisposed()) {
+			listCanvas.getDisplay().asyncExec(new AERunnable() {
+				public void runSupport() {
+					Object[] rows;
+					try {
+						rowsToRefresh_mon.enter();
+						
+						rows = rowsToRefresh.toArray();
+
+						rowsToRefresh.clear();
+					} finally {
+						rowsToRefresh_mon.exit();
+					}
+					if (DEBUGPAINT) {
+						logPAINT("rowRefreshA hit " + rows.length + " force? " + bForceRedraw);
+					}
+
+					for (int i = 0; i < rows.length; i++) {
+						ListRow row = (ListRow)rows[i];
+						// XXX May be using the wrong boolean params!!
+						_rowRefresh(row, bDoGraphics, bForceRedraw);
+					}
+				}
+			});
+		}
+		;
+	}
+
 	private List _rowRefresh(ListRow row, boolean bDoGraphics,
 			boolean bForceRedraw) {
-		if (DEBUGPAINT) {
-			logPAINT("rowRefresh " + row + " force? " + bForceRedraw);
-		}
 		if (listCanvas == null || listCanvas.isDisposed()) {
 			return new ArrayList();
 		}
@@ -2873,7 +2934,7 @@ public class ListView
 
 				// prevent recursion
 				if (!isPaintingCanvas) {
-					listCanvas.update();
+					//listCanvas.update();
 				}
 
 				//System.out.println("redrawing row " + i + "/" + row.getIndex() 
@@ -2916,7 +2977,7 @@ public class ListView
 			if (e.width > 0) {
 				if (DEBUGPAINT) {
 					logPAINT("paint " + e.getBounds() + " image area: "
-							+ imgView.getBounds());
+							+ imgView.getBounds() + "; pending=" + e.count);
 				}
 				e.gc.drawImage(imgView, e.x, e.y, e.width, e.height, e.x, e.y, e.width,
 						e.height);
