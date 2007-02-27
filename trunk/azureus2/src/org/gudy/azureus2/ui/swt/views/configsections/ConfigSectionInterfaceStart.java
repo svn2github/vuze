@@ -28,10 +28,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.config.BooleanParameter;
+import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
@@ -64,10 +66,14 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
     cStart.setLayout(layout);
 
     new BooleanParameter(cStart, "Show Splash", true, "ConfigView.label.showsplash");
-    //new BooleanParameter(cStart, "Auto Update", true, "ConfigView.label.autoupdate");
     new BooleanParameter(cStart, "update.start", "ConfigView.label.checkonstart");
     new BooleanParameter(cStart, "update.periodic", "ConfigView.label.periodiccheck");
-    new BooleanParameter(cStart, "update.opendialog", "ConfigView.label.opendialog");
+    BooleanParameter autoDownload = new BooleanParameter(cStart, "update.autodownload", "ConfigView.section.update.autodownload");
+    BooleanParameter openDialog = new BooleanParameter(cStart, "update.opendialog", "ConfigView.label.opendialog");
+    
+		autoDownload.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+				new Control[] { openDialog.getControl() }, true ));
+    
     new Label(cStart,SWT.NULL);
     new BooleanParameter(cStart, "Open MyTorrents", "ConfigView.label.openmytorrents");
     new BooleanParameter(cStart, "Open Console", false, "ConfigView.label.openconsole");
