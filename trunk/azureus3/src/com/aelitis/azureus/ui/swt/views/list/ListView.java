@@ -76,7 +76,7 @@ public class ListView
 
 	private static final boolean DEBUGADDREMOVE = false;
 
-	private static final boolean DEBUGPAINT = true;
+	private static final boolean DEBUGPAINT = false;
 
 	private static final boolean DEBUG_SORTER = false;
 
