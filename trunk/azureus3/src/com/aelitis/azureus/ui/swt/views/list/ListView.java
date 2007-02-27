@@ -76,7 +76,7 @@ public class ListView
 
 	private static final boolean DEBUGADDREMOVE = false;
 
-	private static final boolean DEBUGPAINT = false;
+	private static final boolean DEBUGPAINT = true;
 
 	private static final boolean DEBUG_SORTER = false;
 
@@ -428,7 +428,7 @@ public class ListView
 
 				// Refreshing the scrollbar will trigger a bigger paint
 				// Otherwise, we may have to trigger one ourselves
-				if (vBar != null || !refreshScrollbar()) {
+				if (vBar == null || !refreshScrollbar()) {
 					getVisibleColumns();
 				}
 			}
