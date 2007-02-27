@@ -27,6 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 
@@ -98,17 +99,17 @@ public class TableContextMenuManager {
     }
   }
 
-  public TableContextMenuItem[] getAllAsArray(String sTableID) {
-    Map mTypes = (Map)items.get(sTableID);
-    if (mTypes != null) {
-      ArrayList l = new ArrayList();
-      l.addAll(mTypes.values());
-      // Add global table context menu items
-      mTypes = (Map)items.get(null);
-      if (mTypes != null)
-        l.addAll(mTypes.values());
-      return (TableContextMenuItem[])l.toArray(new TableContextMenuItem[l.size()]);
-    }
-    return new TableContextMenuItem[0];
-  }
+	public TableContextMenuItem[] getAllAsArray(String sMenuID) {
+		Map local_menu_item_map = (Map)this.items.get(sMenuID);
+		Map global_menu_item_map = (Map)this.items.get(null);
+		if (local_menu_item_map == null && global_menu_item_map == null) {
+			return new TableContextMenuItem[0];
+		}
+		
+		ArrayList l = new ArrayList();
+		if (local_menu_item_map != null) {l.addAll(local_menu_item_map.values());}
+		if (global_menu_item_map != null) {l.addAll(global_menu_item_map.values());}
+		return (TableContextMenuItem[]) l.toArray(new TableContextMenuItem[l.size()]);
+	}
+
 }

@@ -16,7 +16,8 @@ FEATURE: Core | Per-torrent super-seeding via MyTorrents context menu [Parg]
 CHANGE: Core  | Include msvcr71.dll in Windows installation bundles, for compatibility with Java6 [Nolar]
 CHANGE: Plug  | Added full set of config parameter methods for completeness [amc1]
 
-BUGFIX: Plug  | UPnP plugin now correctly attempts to remove existing mappings if they are in the way of new mappings. [amc1]
+BUGFIX: Plug  | UPnP plugin now correctly attempts to remove existing mappings if they are in the way of new mappings [amc1]
+BUGFIX: Plug  | Fixed bug where some plugin menu items didn't appear under certain conditions [amc1]
 
 2007.01.22 | Azureus 2.5.0.4 / 3.0.0.6
 

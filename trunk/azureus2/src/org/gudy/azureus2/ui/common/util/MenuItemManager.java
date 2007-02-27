@@ -92,17 +92,16 @@ public class MenuItemManager {
 	}
 
 	public MenuItem[] getAllAsArray(String sMenuID) {
-		Map mTypes = (Map) this.items.get(sMenuID);
-		if (mTypes != null) {
-			ArrayList l = new ArrayList();
-			l.addAll(mTypes.values());
-			// Add global menu items
-			mTypes = (Map) this.items.get(null);
-			if (mTypes != null)
-				l.addAll(mTypes.values());
-			return (MenuItem[]) l.toArray(new MenuItem[l.size()]);
+		Map local_menu_item_map = (Map)this.items.get(sMenuID);
+		Map global_menu_item_map = (Map)this.items.get(null);
+		if (local_menu_item_map == null && global_menu_item_map == null) {
+			return new MenuItem[0];
 		}
-		return new MenuItem[0];
+		
+		ArrayList l = new ArrayList();
+		if (local_menu_item_map != null) {l.addAll(local_menu_item_map.values());}
+		if (global_menu_item_map != null) {l.addAll(global_menu_item_map.values());}
+		return (MenuItem[]) l.toArray(new MenuItem[l.size()]);
 	}
 
 }
