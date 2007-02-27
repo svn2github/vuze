@@ -278,6 +278,10 @@ public class PieceInfoView
 		Utils.execSWTThread(new AERunnable() {
 			// @see org.gudy.azureus2.core3.util.AERunnable#runSupport()
 			public void runSupport() {
+				if (imageLabel == null || imageLabel.isDisposed()) {
+					return;
+				}
+
 				if (imageLabel.getImage() != null) {
 					Image image = imageLabel.getImage();
 					imageLabel.setImage(null);
@@ -552,7 +556,8 @@ public class PieceInfoView
 	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#delete()
 	 */
 	public void delete() {
-		if (!imageLabel.isDisposed() && imageLabel.getImage() != null) {
+		if (imageLabel != null && !imageLabel.isDisposed()
+				&& imageLabel.getImage() != null) {
 			Image image = imageLabel.getImage();
 			imageLabel.setImage(null);
 			image.dispose();
