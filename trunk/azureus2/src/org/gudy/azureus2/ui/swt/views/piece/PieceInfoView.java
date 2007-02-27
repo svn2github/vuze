@@ -128,14 +128,10 @@ public class PieceInfoView
 	}
 
 	public void dataSourceChanged(Object newDataSource) {
-		if (dlm != null) {
-			dlm.removePeerListener(this);
-		}
 		if (newDataSource instanceof DownloadManager) {
+			dlm.removePeerListener(this);
 			dlm = (DownloadManager)newDataSource;
 			dlm.addPeerListener(this, false);
-		} else {
-			dlm = null;
 		}
 	}
 
