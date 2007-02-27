@@ -626,6 +626,16 @@ public class ListView
 				diff += ofs;
 				ofs = ListRow.ROW_HEIGHT;
 			}
+			if (i >= 0) {
+				ListRow row = (ListRow) visibleRows[i];
+				if (!row.isValid()) {
+					if (DEBUGPAINT) {
+						logPAINT("scrollTo repaint dirty Row#" + i + "(idx:"
+								+ row.getIndex() + ") d=" + diff + ";ofs=" + ofs);
+					}
+					row.doPaint(gc, true);
+				}
+			}
 		} else {
 			// image moved down.. gap at top to draw
 			int i = 0;
@@ -2816,7 +2826,7 @@ public class ListView
 				return;
 			}
 			rowsToRefresh.add(row);
-			
+
 			if (rowsToRefresh.size() > 1) {
 				return;
 			}
@@ -2830,7 +2840,7 @@ public class ListView
 					Object[] rows;
 					try {
 						rowsToRefresh_mon.enter();
-						
+
 						rows = rowsToRefresh.toArray();
 
 						rowsToRefresh.clear();
@@ -2838,11 +2848,12 @@ public class ListView
 						rowsToRefresh_mon.exit();
 					}
 					if (DEBUGPAINT) {
-						logPAINT("rowRefreshA hit " + rows.length + " force? " + bForceRedraw);
+						logPAINT("rowRefreshA hit " + rows.length + " force? "
+								+ bForceRedraw);
 					}
 
 					for (int i = 0; i < rows.length; i++) {
-						ListRow row = (ListRow)rows[i];
+						ListRow row = (ListRow) rows[i];
 						// XXX May be using the wrong boolean params!!
 						_rowRefresh(row, bDoGraphics, bForceRedraw);
 					}
