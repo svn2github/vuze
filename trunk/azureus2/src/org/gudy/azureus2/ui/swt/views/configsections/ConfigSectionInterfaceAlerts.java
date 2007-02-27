@@ -438,7 +438,7 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 		});
 		gridData = new GridData();
 		gridData.horizontalSpan = 1;
-		gridData.widthHint = 40;
+		gridData.widthHint = 60;
 		show_alerts.setLayoutData(gridData);
 
 		return cSection;
