@@ -81,7 +81,7 @@ public class ColumnDateAdded2Liner extends CoreTableColumn implements
 		GC gc = new GC(Display.getDefault());
 		Point minSize = new Point(99999, 0);
 		int idxFormat = -1;
-		for (int i = 0; i < FORMATS.length; i++) {
+		for (int i = globalFormat; i < FORMATS.length; i++) {
 			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[i]);
 			Point newSize = gc.stringExtent(temp.format(date));
 			if (newSize.x < cellWidth) {
