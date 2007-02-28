@@ -39,26 +39,20 @@ public class InitialisationFunctions
 {
 	private static final String EXTENSION_PREFIX = "&azid=";
 
-	public static void
-	earlyInitialisation(
-		AzureusCore		core )
-	{
-		DownloadManagerEnhancer.initialise( core );
-		
-		registerTrackerURLExtensions( core );
-		
+	public static void earlyInitialisation(AzureusCore core) {
+		DownloadManagerEnhancer.initialise(core);
+
+		registerTrackerURLExtensions(core);
+
 		AzureusPlatformContentDirectory.register();
-		
+
 		CacheDiscovery.initialise();
 	}
-	
-	public static void
-	lateInitialisation(
-		AzureusCore		core )
-	{	
-		ExternalStimulusHandler.initialise( core );
+
+	public static void lateInitialisation(AzureusCore core) {
+		ExternalStimulusHandler.initialise(core);
 	}
-	
+
 	protected static void registerTrackerURLExtensions(AzureusCore core) {
 		byte[] secure_id = core.getCryptoManager().getSecureID();
 
@@ -85,7 +79,7 @@ public class InitialisationFunctions
 						return;
 					}
 
-					if ( value.indexOf(EXTENSION_PREFIX) != -1) {
+					if (value.indexOf(EXTENSION_PREFIX) != -1) {
 
 						String[] bits = value.split("&");
 
@@ -95,11 +89,11 @@ public class InitialisationFunctions
 
 							String bit = bits[i].trim();
 
-							if ( bit.length() == 0 ){
-								
+							if (bit.length() == 0) {
+
 								continue;
 							}
-							
+
 							if (!bit.startsWith(EXTENSION_PREFIX.substring(1))) {
 
 								value += "&" + bit;
