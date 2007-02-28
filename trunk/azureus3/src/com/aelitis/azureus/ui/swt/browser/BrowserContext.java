@@ -124,8 +124,10 @@ public class BrowserContext extends ClientMessageContextImpl implements
 		}
 		browser.addTitleListener(new TitleListener() {
 			public void changed(TitleEvent event) {
-				SimpleTimer.addEvent("Show Browser", System.currentTimeMillis() + 700,
-						showBrowersPerformer);
+				if (!browser.isVisible()) {
+  				SimpleTimer.addEvent("Show Browser", System.currentTimeMillis() + 700,
+  						showBrowersPerformer);
+				}
 			}
 		});
 
@@ -136,6 +138,9 @@ public class BrowserContext extends ClientMessageContextImpl implements
 			}
 
 			public void completed(ProgressEvent event) {
+				if (!browser.isVisible()) {
+					browser.setVisible(true);
+				}
 				if (org.gudy.azureus2.core3.util.Constants.isOSX) {
 					Shell shell = browser.getShell();
 					Point size = shell.getSize();
