@@ -904,6 +904,16 @@ public class ListView
 									}
 									return;
 								}
+								
+								if (!row.isVisible()) {
+									// uh oh, order changed, refresh!
+									restartRefreshVisible = new Object[] {
+										new Boolean(doGraphics),
+										new Boolean(bForceRedraw),
+										new Boolean(bAsync)
+									};
+									return;
+								}
 
 								if (bForceRedraw) {
 									row.invalidate();
@@ -1386,8 +1396,9 @@ public class ListView
 				}
 
 				case SWT.MouseUp: {
-					boolean MOD1 = (e.stateMask & SWT.MOD1) > 0;
-					boolean MOD2 = (e.stateMask & SWT.MOD2) > 0;
+					boolean MOD1 = (e.stateMask & SWT.MOD1) > 0; // ctrl(Win)
+					boolean MOD2 = (e.stateMask & SWT.MOD2) > 0; // shift(Win)
+					boolean MOD4 = (e.stateMask & SWT.MOD4) > 0; // ctrl(OSX)
 
 					if (MOD1 && MOD2) {
 						TableCellSWT cell = ((ListRow) row).getTableCellSWT(e.x, e.y);
@@ -1432,7 +1443,7 @@ public class ListView
 							}
 
 						}
-					} else {
+					} else if (!MOD4) {
 						setSelectedRows(new ListRow[] {
 							row
 						});
@@ -2322,13 +2333,14 @@ public class ListView
 								nextRow.setFocused(true);
 							}
 						}
-					} else {
+					} else if (event.stateMask == 0) {
 						moveFocus(1, false);
 					}
 					break;
 
 				case SWT.TRAVERSE_ARROW_PREVIOUS:
-					if ((event.stateMask & SWT.MOD2) > 0) {
+					if ((event.stateMask & SWT.MOD2) > 0) { // shift
+						// select up
 						ListRow activeRow = getRowFocused();
 						if (activeRow != null) {
 							int index = activeRow.getIndex();
@@ -2343,6 +2355,7 @@ public class ListView
 							}
 						}
 					} else if ((event.stateMask & SWT.MOD1) > 0) { // control
+						// focus up
 						ListRow focusedRow = getRowFocused();
 						if (focusedRow != null) {
 							int index = focusedRow.getIndex();
@@ -2352,7 +2365,8 @@ public class ListView
 								nextRow.setFocused(true);
 							}
 						}
-					} else {
+					} else if (event.stateMask == 0) {
+						// focus up, selection replace
 						moveFocus(-1, false);
 					}
 					break;
@@ -2659,6 +2673,8 @@ public class ListView
 						System.out.println("Sort made " + iNumChanged + " rows move in "
 								+ lTimeDiff + "ms");
 					}
+					
+					rowShow(getRowFocused());
 
 					refreshVisible(true, true, true);
 				}
@@ -2760,7 +2776,7 @@ public class ListView
 	public boolean _cellRefresh(final ListCell cell, final boolean bDoGraphics,
 			final boolean bForceRedraw) {
 		// assume cell if being refreshed if there's already a GC
-		if (gcImgView != null) {
+		if (gcImgView != null || imgView == null) {
 			return true;
 		}
 
@@ -2772,14 +2788,7 @@ public class ListView
 			Rectangle rect = cell.getBounds();
 			listCanvas.redraw(rect.x, rect.y, rect.width, rect.height, false);
 		} catch (Exception e) {
-			if (!(e instanceof IllegalArgumentException)) {
-				// IllegalArgumentException happens when we are already drawing 
-				// to the image.  This is "normal" as we may be in a paint event,
-				// and something forces a repaint
-				Debug.out(e);
-			} else {
-				log("Already drawing on image: " + Debug.getCompressedStackTrace());
-			}
+			Debug.out(e);
 		} finally {
 			if (gcImgView != null) {
 				gcImgView.dispose();
@@ -2854,8 +2863,10 @@ public class ListView
 
 					for (int i = 0; i < rows.length; i++) {
 						ListRow row = (ListRow) rows[i];
-						// XXX May be using the wrong boolean params!!
-						_rowRefresh(row, bDoGraphics, bForceRedraw);
+						if (row.isVisible()) {
+  						// XXX May be using the wrong boolean params!!
+  						_rowRefresh(row, bDoGraphics, bForceRedraw);
+						}
 					}
 				}
 			});
