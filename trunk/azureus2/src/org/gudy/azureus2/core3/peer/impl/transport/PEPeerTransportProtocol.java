@@ -1570,6 +1570,10 @@ PEPeerTransportProtocol
 							+ " extended AZ messaging support...ignoring."));
       }
       else {
+    	  /**
+    	   * We log when a non-Azureus client claims to support extended messaging...
+    	   * Obviously other Azureus clients do, so there's no point logging about them!
+    	   */ 
       	if (Logger.isEnabled() && client.indexOf("Azureus") == -1) {
 					Logger.log(new LogEvent(this, LOGID, "Handshake claims extended AZ "
 							+ "messaging support....enabling AZ mode."));
@@ -1612,7 +1616,20 @@ PEPeerTransportProtocol
   
   
   protected void decodeAZHandshake( AZHandshake handshake ) {
-    client = handshake.getClient()+ " " +handshake.getClientVersion();
+	  /**
+	   * Hack for BitTyrant - the handshake resembles this:
+	   *   Client: AzureusBitTyrant
+       *   ClientVersion: 2.5.0.0BitTyrant
+       *   
+       * Yuck - let's format it so it resembles something pleasant.
+	   */ 
+	  String handshake_client = handshake.getClient();
+	  String handshake_client_version = handshake.getClientVersion();
+	  if (handshake_client.endsWith("BitTyrant")) {
+		  handshake_client = "Azureus BitTyrant";
+		  handshake_client_version = handshake_client_version.replaceAll("BitTyrant", "");
+	  }
+    client = handshake_client + " " + handshake_client_version;
 
     if( handshake.getTCPListenPort() > 0 ) {  //use the ports given in handshake
       tcp_listen_port = handshake.getTCPListenPort();
