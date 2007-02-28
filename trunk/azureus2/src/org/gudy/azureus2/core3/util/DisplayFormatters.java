@@ -550,64 +550,81 @@ DisplayFormatters
 		String	tmp = "";
 
 		switch (state) {
-		  case DownloadManager.STATE_WAITING :
-			tmp = ManagerItem_waiting;
-			break;
-		  case DownloadManager.STATE_INITIALIZING :
-			  tmp = ManagerItem_initializing;
-			  break;
-		  case DownloadManager.STATE_INITIALIZED :
-			  tmp = ManagerItem_initializing;
-			  break;
-		  case DownloadManager.STATE_ALLOCATING :
-			tmp = ManagerItem_allocating;
-			break;
-		  case DownloadManager.STATE_CHECKING :
-			tmp = ManagerItem_checking + ": " + formatPercentFromThousands(manager.getStats().getCompleted());
-			break;
-		  case DownloadManager.STATE_FINISHING :
-		    tmp = ManagerItem_finishing;
-			 break;
-		  case DownloadManager.STATE_READY :
-			tmp = ManagerItem_ready;
-			break;
-		  case DownloadManager.STATE_DOWNLOADING :
-			tmp = ManagerItem_downloading;
-			break;
-		  case DownloadManager.STATE_SEEDING :
-         
-			  DiskManager diskManager = manager.getDiskManager();
-			  
-			  if ((diskManager != null) && diskManager.getCompleteRecheckStatus() != -1) {
-				  
-				  int	done = diskManager.getCompleteRecheckStatus();
-				  
-				  if ( done == -1 ){
-					  done = 1000;
-				  }
-				  
-				  tmp = ManagerItem_seeding + " + " + ManagerItem_checking + ": " + formatPercentFromThousands( done );
-				  
-			  }else if(manager.getPeerManager()!= null && manager.getPeerManager().isSuperSeedMode()){
-				  tmp = ManagerItem_superseeding;
-			  }else{
-				  tmp = ManagerItem_seeding;
-			  }
-			  break;
-		case DownloadManager.STATE_STOPPING :
-			tmp = ManagerItem_stopping;
-			break;
-		case DownloadManager.STATE_STOPPED :
-			tmp = manager.isPaused()?ManagerItem_paused:ManagerItem_stopped;
-			break;
-		  case DownloadManager.STATE_QUEUED :
-			tmp = ManagerItem_queued;
-			break;
-		  case DownloadManager.STATE_ERROR :
-			tmp = ManagerItem_error + ": " + manager.getErrorDetails();
-			break;
-			default :
-			tmp = String.valueOf(state);
+			case DownloadManager.STATE_QUEUED:
+				tmp = ManagerItem_queued;
+				break;
+
+			case DownloadManager.STATE_DOWNLOADING:
+				tmp = ManagerItem_downloading;
+				break;
+
+			case DownloadManager.STATE_SEEDING:
+
+				DiskManager diskManager = manager.getDiskManager();
+
+				if ((diskManager != null)
+						&& diskManager.getCompleteRecheckStatus() != -1) {
+
+					int done = diskManager.getCompleteRecheckStatus();
+
+					if (done == -1) {
+						done = 1000;
+					}
+
+					tmp = ManagerItem_seeding + " + " + ManagerItem_checking + ": "
+							+ formatPercentFromThousands(done);
+
+				} else if (manager.getPeerManager() != null
+						&& manager.getPeerManager().isSuperSeedMode()) {
+					tmp = ManagerItem_superseeding;
+				} else {
+					tmp = ManagerItem_seeding;
+				}
+				break;
+
+			case DownloadManager.STATE_STOPPED:
+				tmp = manager.isPaused() ? ManagerItem_paused : ManagerItem_stopped;
+				break;
+
+			case DownloadManager.STATE_ERROR:
+				tmp = ManagerItem_error + ": " + manager.getErrorDetails();
+				break;
+
+			case DownloadManager.STATE_WAITING:
+				tmp = ManagerItem_waiting;
+				break;
+
+			case DownloadManager.STATE_INITIALIZING:
+				tmp = ManagerItem_initializing;
+				break;
+
+			case DownloadManager.STATE_INITIALIZED:
+				tmp = ManagerItem_initializing;
+				break;
+
+			case DownloadManager.STATE_ALLOCATING:
+				tmp = ManagerItem_allocating;
+				break;
+
+			case DownloadManager.STATE_CHECKING:
+				tmp = ManagerItem_checking + ": "
+						+ formatPercentFromThousands(manager.getStats().getCompleted());
+				break;
+
+			case DownloadManager.STATE_FINISHING:
+				tmp = ManagerItem_finishing;
+				break;
+
+			case DownloadManager.STATE_READY:
+				tmp = ManagerItem_ready;
+				break;
+
+			case DownloadManager.STATE_STOPPING:
+				tmp = ManagerItem_stopping;
+				break;
+
+			default:
+				tmp = String.valueOf(state);
 		}
 
 		if (manager.isForceStart() &&
