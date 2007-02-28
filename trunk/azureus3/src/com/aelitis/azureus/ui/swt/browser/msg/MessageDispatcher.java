@@ -22,9 +22,9 @@ package com.aelitis.azureus.ui.swt.browser.msg;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.StatusTextEvent;
-import org.eclipse.swt.browser.StatusTextListener;
+import org.eclipse.swt.browser.*;
+
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -47,7 +47,7 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
  * @author dharkness
  * @created Jul 18, 2006
  */
-public class MessageDispatcher implements StatusTextListener
+public class MessageDispatcher implements StatusTextListener, TitleListener
 {
     public static final String LISTENER_ID = "dispatcher";
 
@@ -67,6 +67,8 @@ public class MessageDispatcher implements StatusTextListener
     private int lastSequence = INITIAL_LAST_SEQUENCE;
 
 		private String sLastEventText;
+		
+		private AEMonitor class_mon = new AEMonitor("MessageDispatcher");
 
 
     /**
@@ -85,6 +87,7 @@ public class MessageDispatcher implements StatusTextListener
      */
     public void registerBrowser ( Browser browser ) {
         browser.addStatusTextListener(this);
+        browser.addTitleListener(this);
     }
 
     /**
@@ -96,6 +99,7 @@ public class MessageDispatcher implements StatusTextListener
      */
     public void deregisterBrowser ( Browser browser ) {
         browser.removeStatusTextListener(this);
+        browser.removeTitleListener(this);
     }
 
 
@@ -166,25 +170,41 @@ public class MessageDispatcher implements StatusTextListener
      * @see org.eclipse.swt.browser.StatusTextListener#changed(org.eclipse.swt.browser.StatusTextEvent)
      */
     public void changed(StatusTextEvent event) {
-    	if (event.text == null) {
-    		return;
-    	}
-    	if (sLastEventText != null && event.text.equals(sLastEventText)) {
-    		return;
-    	}
-
-    	sLastEventText = event.text;
-    	if (event.text.startsWith(BrowserMessage.MESSAGE_PREFIX)) {
-    		try {
-    			dispatch(new BrowserMessage(event.text));
-    			System.out.println("status change dispatched: " + event.text);
-    		} catch (Exception e) {
-    			Debug.out(e);
-    		}
-    	}
+    	processIncomingMessage(event.text);
     }
 
-    /**
+
+		// @see org.eclipse.swt.browser.TitleListener#changed(org.eclipse.swt.browser.TitleEvent)
+		public void changed(TitleEvent event) {
+    	processIncomingMessage(event.title);
+		}
+		
+	private void processIncomingMessage(String msg) {
+		if (msg == null) {
+			return;
+		}
+
+		try {
+			class_mon.enter();
+			if (sLastEventText != null && msg.equals(sLastEventText)) {
+				return;
+			}
+
+			sLastEventText = msg;
+		} finally {
+			class_mon.exit();
+		}
+
+		if (msg.startsWith(BrowserMessage.MESSAGE_PREFIX)) {
+			try {
+				dispatch(new BrowserMessage(msg));
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+	}
+
+		/**
      * Dispatches the given message to the appropriate listener.
      * 
      * @param message holds the listener ID, operation ID and parameters
