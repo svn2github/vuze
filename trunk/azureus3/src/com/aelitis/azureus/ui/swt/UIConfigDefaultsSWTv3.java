@@ -24,6 +24,7 @@ import java.io.File;
 
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
@@ -46,11 +47,35 @@ public class UIConfigDefaultsSWTv3
 		// on.
 		String sFirstVersion = config.getStringParameter("First Recorded Version");
 
+
 		ConfigurationDefaults defaults = ConfigurationDefaults.getInstance();
 		// Always have the wizard complete when running az3
 		defaults.addParameter("Wizard Completed", true);
 		
 		defaults.addParameter("ui", "az3");
+
+		// Another hack to fix up some 3.x versions thinking their first version
+		// was 2.5.0.0..
+		if (Constants.compareVersions(sFirstVersion, "2.5.0.0") == 0) {
+			String sDefSavePath = config.getStringParameter("Default save path");
+			
+			System.out.println(sDefSavePath);
+			String sDefPath = null;
+			try {
+				sDefPath = defaults.getStringParameter("Default save path");
+			} catch (ConfigurationParameterNotFoundException e) {
+				e.printStackTrace();
+			}
+			if (sDefPath != null) {
+  			File fNewPath = new File(sDefPath);
+  			
+  			if (sDefSavePath != null && fNewPath.equals(new File(sDefSavePath))) {
+  				sFirstVersion = "3.0.0.5";
+  				config.setParameter("First Recorded Version", sFirstVersion);
+  				config.save();
+  			}
+			}
+		}
 
 		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0) {
 			
@@ -60,9 +85,21 @@ public class UIConfigDefaultsSWTv3
 				// In 3.0.0.0 to 3.0.0.3, we set it to userPath + "data". Anything
 				// else is 2.x.  We don't want to change the defaults for 2.x people
   			String userPath = SystemProperties.getUserPath();
-  			File f = new File(userPath, "data");
+  			File fOldPath = new File(userPath, "data");
   			String sDefSavePath = config.getStringParameter("Default save path");
-  			if (sDefSavePath == null || !f.equals(new File(sDefSavePath))) {
+  			
+  			String sDefPath = "";
+				try {
+					sDefPath = defaults.getStringParameter("Default save path");
+				} catch (ConfigurationParameterNotFoundException e) {
+				}
+  			File fNewPath = new File(sDefPath);
+  			
+  			if (sDefSavePath != null && fNewPath.equals(new File(sDefSavePath))) {
+  				sFirstVersion = "3.0.0.5";
+  				config.setParameter("First Recorded Version", sFirstVersion);
+  				config.save();
+  			} else if (sDefSavePath == null || !fOldPath.equals(new File(sDefSavePath))) {
   				sFirstVersion = "2.5.0.0"; // guess
   				config.setParameter("First Recorded Version", sFirstVersion);
   				config.save();
