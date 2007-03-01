@@ -563,8 +563,18 @@ BufferedTableRow
     foreground = null;
 
     // unlink old item from tablerow
-    if (item != null && !item.isDisposed() && item.getData("TableRow") == this)
+    if (item != null && !item.isDisposed() && item.getData("TableRow") == this && newRow != item) {
     	item.setData("TableRow", null);
+  		int numColumns = table.getColumnCount();
+  		for (int i = 0; i < numColumns; i++) {
+        try {
+        	item.setImage(i, null);
+        	item.setForeground(i, null);
+        } catch (NoSuchMethodError e) {
+          /* Ignore for Pre 3.0 SWT.. */
+        }
+  		}
+    }
 
     item = newRow;
  		invalidate();
