@@ -104,6 +104,8 @@ PEPeerTransportProtocol
   private volatile boolean	availabilityAdded =false;
   private volatile boolean	received_bitfield;
   
+  private boolean handshake_sent;
+  
   private boolean seed_set_by_accessor = false;
  
   private final boolean incoming;
@@ -365,36 +367,70 @@ PEPeerTransportProtocol
     
     changePeerState( PEPeer.CONNECTING );
     
-    connection.connect( new NetworkConnection.ConnectionListener() {
-      public final void connectStarted() {
-        connection_state = PEPeerTransport.CONNECTION_CONNECTING;
-      }
- 
-      public final void connectSuccess( ByteBuffer remaining_initial_data ) {
-        if( closing ) {
-          //Debug.out( "PEPeerTransportProtocol::connectSuccess() called when closing." );
-          return;
-        }
-        
-        if (Logger.isEnabled())
-					Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
-							"Out: Established outgoing connection"));
-        initializeConnection();
-        sendBTHandshake();
-      }
-        
-      public final void connectFailure( Throwable failure_msg ) {
-        closeConnectionInternally( "failed to establish outgoing connection: " + failure_msg.getMessage(), true );
-      }
-        
-      public final void exceptionThrown( Throwable error ) {
-        if( error.getMessage() == null ) {
-          Debug.out( "error.getMessage() == null", error );
-        }
-        
-        closeConnectionInternally( "connection exception: " + error.getMessage(), true );
-      }
-    });
+    ByteBuffer	initial_outbound_data = null;
+    
+    if ( use_crypto ){
+    	
+    	DirectByteBuffer[] ddbs = 
+    		new BTHandshake( manager.getHash(),
+                                 manager.getPeerId(),
+                                 manager.isAZMessagingEnabled() ).getRawData();
+    	
+    	int	handshake_len = 0;
+    	
+    	for (int i=0;i<ddbs.length;i++){
+    		
+    		handshake_len += ddbs[i].remaining( DirectByteBuffer.SS_PEER );
+    	}
+    	
+    	initial_outbound_data = ByteBuffer.allocate( handshake_len );
+    	
+       	for (int i=0;i<ddbs.length;i++){
+       	 
+       		DirectByteBuffer	ddb = ddbs[i];
+       		
+       		initial_outbound_data.put( ddb.getBuffer( DirectByteBuffer.SS_PEER ));
+       		
+       		ddb.returnToPool();
+       	}
+       	
+       	initial_outbound_data.flip();
+       		
+    	handshake_sent = true;
+    }
+    
+    connection.connect( 
+    		initial_outbound_data,
+    		new NetworkConnection.ConnectionListener() {
+    			public final void connectStarted() {
+    				connection_state = PEPeerTransport.CONNECTION_CONNECTING;
+    			}
+
+    			public final void connectSuccess( ByteBuffer remaining_initial_data ) {
+    				if( closing ) {
+    					//Debug.out( "PEPeerTransportProtocol::connectSuccess() called when closing." );
+    					return;
+    				}
+
+    				if (Logger.isEnabled())
+    					Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
+    					"Out: Established outgoing connection"));
+    				initializeConnection();
+    				sendBTHandshake();
+    			}
+
+    			public final void connectFailure( Throwable failure_msg ) {
+    				closeConnectionInternally( "failed to establish outgoing connection: " + failure_msg.getMessage(), true );
+    			}
+
+    			public final void exceptionThrown( Throwable error ) {
+    				if( error.getMessage() == null ) {
+    					Debug.out( "error.getMessage() == null", error );
+    				}
+
+    				closeConnectionInternally( "connection exception: " + error.getMessage(), true );
+    			}
+    		});
       
     if (Logger.isEnabled())
 			Logger.log(new LogEvent(this, LOGID,
@@ -584,10 +620,12 @@ PEPeerTransportProtocol
 
   	
   protected void sendBTHandshake() {
-    connection.getOutgoingMessageQueue().addMessage(
-        new BTHandshake( manager.getHash(),
-                         manager.getPeerId(),
-                         manager.isAZMessagingEnabled() ), false );
+	if ( !handshake_sent ){
+	    connection.getOutgoingMessageQueue().addMessage(
+	        new BTHandshake( manager.getHash(),
+	                         manager.getPeerId(),
+	                         manager.isAZMessagingEnabled() ), false );
+	}
   }
   
   
