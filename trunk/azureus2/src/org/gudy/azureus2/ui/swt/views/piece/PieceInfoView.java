@@ -272,21 +272,31 @@ public class PieceInfoView
 		return pieceInfoComposite;
 	}
 
+	private boolean alreadyFilling = false;
+
 	public void fillPieceInfoSection() {
+		if (alreadyFilling) {
+			return;
+		}
+		alreadyFilling = true;
 		Utils.execSWTThread(new AERunnable() {
 			// @see org.gudy.azureus2.core3.util.AERunnable#runSupport()
 			public void runSupport() {
-				if (imageLabel == null || imageLabel.isDisposed()) {
-					return;
+				try {
+  				if (imageLabel == null || imageLabel.isDisposed()) {
+  					return;
+  				}
+  
+  				if (imageLabel.getImage() != null) {
+  					Image image = imageLabel.getImage();
+  					imageLabel.setImage(null);
+  					image.dispose();
+  				}
+  
+  				refreshInfoCanvas();
+				} finally {
+					alreadyFilling = false;
 				}
-
-				if (imageLabel.getImage() != null) {
-					Image image = imageLabel.getImage();
-					imageLabel.setImage(null);
-					image.dispose();
-				}
-
-				refreshInfoCanvas();
 			}
 		});
 	}
