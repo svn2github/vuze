@@ -40,10 +40,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -72,7 +69,10 @@ public class Utils {
 			|| SWT.getVersion() >= 3212;
 
 	public static final boolean SWT32_TABLEPAINT = false; //SWT.getVersion() >= 3200;
-			
+
+	// if you want to debug execSWTThread, initialize the array
+  static ArrayList queue = null; //new ArrayList();
+
   public static void disposeComposite(Composite composite,boolean disposeSelf) {
     if(composite == null || composite.isDisposed())
       return;
@@ -551,7 +551,7 @@ public class Utils {
    * @param async true if SWT asyncExec, false if SWT syncExec
    * @return success
    */
-  public static boolean execSWTThread(Runnable code,
+  public static boolean execSWTThread(final Runnable code,
 			boolean async) {
   	
     SWTThread swt = SWTThread.getInstance();
@@ -578,7 +578,32 @@ public class Utils {
 			code.run();
 		} else if (async) {
 			try {
-				display.asyncExec(code);
+				if (queue == null) {
+					display.asyncExec(code);
+				} else {
+  				queue.add(code);
+
+					if (queue.size() > 10) {
+						System.out.println("+ QUEUE: " + queue.size() + " via "
+								+ Debug.getCompressedStackTrace(3));
+					}
+					final long lStart = SystemTime.getCurrentTime();
+
+					display.asyncExec(new AERunnable() {
+						public void runSupport() {
+							long wait = SystemTime.getCurrentTime() - lStart;
+							if (wait > 500) {
+								System.out.println("took " + wait
+										+ "ms before SWT ran async code");
+							}
+							code.run();
+							queue.remove(code);
+							if (queue.size() > 10) {
+								System.out.println("- QUEUE: " + queue.size());
+							}
+						}
+					});
+				}
 			} catch (NullPointerException e) {
 				// If the display is being disposed of, asyncExec may give a null
 				// pointer error
