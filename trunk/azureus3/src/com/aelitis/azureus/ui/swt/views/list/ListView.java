@@ -1494,7 +1494,7 @@ public class ListView
 		return null;
 	}
 
-	public int indexOf(ListRow row) {
+	public int indexOf(TableRowCore row) {
 		return rows.indexOf(row);
 	}
 
