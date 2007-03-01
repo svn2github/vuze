@@ -548,6 +548,7 @@ public class ListView
 		if (DEBUGPAINT) {
 			logPAINT("scroll diff = " + diff + ";" + imgView);
 		}
+
 		if (diff != 0 && imgView != null && !imgView.isDisposed()) {
 			// Shift image up or down, then fill in the gap with a newly displayed row
 			boolean isOurGC = gcImgView == null;
@@ -558,12 +559,7 @@ public class ListView
 				}
 				scrollToWithGC(gcImgView, diff, iThisVBarPos, false, true);
 			} catch (Exception ex) {
-				if (!(ex instanceof IllegalArgumentException)) {
-					// IllegalArgumentException happens when we are already drawing 
-					// to the image.  This is "normal" as we may be in a paint event,
-					// and something forces a repaint
-					Debug.out(ex);
-				}
+				Debug.out(ex);
 			} finally {
 				if (isOurGC && gcImgView != null) {
 					gcImgView.dispose();
@@ -586,22 +582,26 @@ public class ListView
 		Rectangle bounds = imgView.getBounds();
 
 		if (diff > 0) {
-			if (Constants.isOSX) {
-				// copyArea should work on OSX, but why risk it when drawImage works
-				int h = bounds.height - diff;
-				gc.drawImage(imgView, 0, 0, bounds.width, h, 0, diff, bounds.width, h);
-			} else {
-				// Windows can't use drawImage on same image
-				gc.copyArea(0, 0, bounds.width, bounds.height - diff, 0, diff);
+			int h = bounds.height - diff;
+			if (h > 0) {
+  			if (Constants.isOSX) {
+  				// copyArea should work on OSX, but why risk it when drawImage works
+  				gc.drawImage(imgView, 0, 0, bounds.width, h, 0, diff, bounds.width, h);
+  			} else {
+  				// Windows can't use drawImage on same image
+  				gc.copyArea(0, 0, bounds.width, h, 0, diff);
+  			}
 			}
 		} else {
-			if (Constants.isOSX) {
-				// OSX can't copyArea upwards
-				int h = bounds.height + diff;
-				gc.drawImage(imgView, 0, -diff, bounds.width, h, 0, 0, bounds.width, h);
-			} else {
-				// Windows can't use drawImage on same image
-				gc.copyArea(0, -diff, bounds.width, bounds.height + diff, 0, 0);
+			int h = bounds.height + diff;
+			if (h > 0) {
+  			if (Constants.isOSX) {
+  				// OSX can't copyArea upwards
+  				gc.drawImage(imgView, 0, -diff, bounds.width, h, 0, 0, bounds.width, h);
+  			} else {
+  				// Windows can't use drawImage on same image
+  				gc.copyArea(0, -diff, bounds.width, h, 0, 0);
+  			}
 			}
 		}
 
@@ -2308,7 +2308,7 @@ public class ListView
 
 			switch (event.detail) {
 				case SWT.TRAVERSE_ARROW_NEXT:
-					if ((event.stateMask & SWT.MOD2) > 0) { // shift
+					if (event.stateMask == SWT.MOD2) { // shift only
 						ListRow focusedRow = getRowFocused();
 						if (focusedRow != null) {
 							int index = focusedRow.getIndex();
@@ -2323,7 +2323,7 @@ public class ListView
 								nextRow.setFocused(true);
 							}
 						}
-					} else if ((event.stateMask & SWT.MOD1) > 0) { // control
+					} else if (event.stateMask == SWT.MOD1) { // control only
 						ListRow focusedRow = getRowFocused();
 						if (focusedRow != null) {
 							int index = focusedRow.getIndex();
@@ -2339,7 +2339,7 @@ public class ListView
 					break;
 
 				case SWT.TRAVERSE_ARROW_PREVIOUS:
-					if ((event.stateMask & SWT.MOD2) > 0) { // shift
+					if (event.stateMask == SWT.MOD2) { // shift only
 						// select up
 						ListRow activeRow = getRowFocused();
 						if (activeRow != null) {
@@ -2354,7 +2354,7 @@ public class ListView
 								previousRow.setFocused(true);
 							}
 						}
-					} else if ((event.stateMask & SWT.MOD1) > 0) { // control
+					} else if (event.stateMask == SWT.MOD1) { // control only
 						// focus up
 						ListRow focusedRow = getRowFocused();
 						if (focusedRow != null) {
