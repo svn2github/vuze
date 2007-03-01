@@ -423,6 +423,87 @@ public class BDecoder {
 	  }
   }
   
+  	/**
+  	 * Converts any byte[] entries into UTF-8 strings
+  	 * @param map
+  	 * @return
+  	 */
+  
+  public static Map
+  decodeStrings(
+	Map	map )
+  {
+	  if (map == null ){
+		  
+		  return( null );
+	  }
+	  
+	  Iterator it = map.entrySet().iterator();
+	  
+	  while( it.hasNext()){
+		  
+		  Map.Entry	entry = (Map.Entry)it.next();
+		  
+		  Object	value = entry.getValue();
+		  
+		  if ( value instanceof byte[]){
+			  
+			  try{
+				  entry.setValue( new String((byte[])value,"UTF-8" ));
+				  
+			  }catch( Throwable e ){
+				  
+				  Debug.printStackTrace(e);
+			  }
+		  }else if ( value instanceof Map ){
+			  
+			  decodeStrings((Map)value );
+		  }else if ( value instanceof List ){
+			  
+			  decodeStrings((List)value );
+		  }
+	  }
+	  
+	  return( map );
+  }
+  
+  public static List
+  decodeStrings(
+	List	list )
+  {
+	  if ( list == null ){
+		  
+		  return( null );
+	  }
+	  
+	  for (int i=0;i<list.size();i++){
+		  
+		  Object value = list.get(i);
+		  
+		  if ( value instanceof byte[]){
+			  
+			  try{
+				  String str = new String((byte[])value, "UTF-8" );
+				  
+				  list.set( i, str );
+			  
+			  }catch( Throwable e ){
+				  
+				  Debug.printStackTrace(e);
+			  }
+		  }else if ( value instanceof Map ){
+			  
+			  decodeStrings((Map)value );
+			  
+		  }else if ( value instanceof List ){
+			  
+			  decodeStrings((List)value );		 
+		  }
+	  }
+	  
+	  return( list );
+  }
+  
   private static void
   print(
 	File		f,
