@@ -617,7 +617,6 @@ public class TableViewSWTImpl
 		//     work until the table is shown.  Since SWT.Show doesn't trigger,
 		//     use the first paint trigger.
 		if (!Utils.SWT32_TABLEPAINT) {
-
 			table.addPaintListener(new PaintListener() {
 				boolean first = true;
 
@@ -792,7 +791,7 @@ public class TableViewSWTImpl
 		table.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent event) {
 				triggerSelectionListeners(new TableRowCore[] {
-					(TableRowCore) ((TableItem) event.item).getData("TableRow")
+					getRow((TableItem) event.item)
 				});
 
 				if (tabViews == null || tabViews.size() == 0)
@@ -843,98 +842,6 @@ public class TableViewSWTImpl
 			});
 		}
 
-		// XXX Disabled.  We handle unset rows ourselves via table paints which
-		//     are more reliable.
-		if (bTableVirtual || false)
-			table.addListener(SWT.SetData, new Listener() {
-				public void handleEvent(Event e) {
-					final TableItem item = (TableItem) e.item;
-					// This is catch is temporary for SWT 3212, because there are cases where
-					// it says it isn't disposed, when it really almost is
-					try {
-						if (item.getData("SD") != null) {
-							return;
-						}
-						item.setData("SD", "1");
-					} catch (NullPointerException badSWT) {
-						return;
-					}
-
-					int tableIndex = table.indexOf(item);
-					if (tableIndex < 0) {
-						System.out.println("XXX TI < 0!!");
-						return;
-					}
-
-					TableRowSWT row = (TableRowSWT) item.getData("TableRow");
-					if (row == null || row.getIndex() != tableIndex) {
-						//System.out.println("SetData " + tableIndex + ": Sort..");
-						fillRowGaps(false);
-
-						row = (TableRowSWT) item.getData("TableRow");
-						if (row == null || row.getIndex() != tableIndex) {
-							// row's been deleted.  tableitem probably about to be remove
-							// (hopefully!)
-							if (DEBUGADDREMOVE)
-								Debug.outStackTrace();
-							return;
-						}
-					} else {
-						//System.out.println("SetData " + tableIndex + ": invalidate");
-						row.invalidate();
-					}
-
-					// User made the row visible, they want satisfaction now!
-					if (!row.setIconSize(ptIconSize)) {
-						row.refresh(true, true);
-					}
-
-					if (!Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR) {
-						Utils.alternateRowBackground(item);
-						// Bug, background color doesn't fully draw in SetData
-						Rectangle r = item.getBounds(0);
-						table.redraw(0, r.y, table.getClientArea().width, r.height, false);
-					}
-				}
-			});
-
-		// bypasses disappearing graphic glitch on Mac OS X
-		/* Temporarily Disabled to see if we need it anymore
-		 if(Constants.isOSX) {
-		 table.addSelectionListener(new SelectionAdapter() {
-		 public void widgetSelected( SelectionEvent event) {
-		 GroupTableRowRunner refresher = new GroupTableRowRunner() {
-		 public void run(TableRowSWT row) {
-		 row.setValid(false);
-		 row.refresh(true);
-		 }
-		 };
-
-		 TableItem[] sel = table.getSelection();
-
-		 ArrayList toRefresh = new ArrayList(sel.length);
-
-		 if(oldSelectedItems != null) {
-		 runForTableItems(oldSelectedItems, refresher);
-		 for (int i = 0; i < sel.length; i++) {
-		 if(!oldSelectedItems.contains(sel[i]))
-		 toRefresh.add(sel[i]);
-		 }
-		 }
-		 else {
-		 for (int i = 0; i < sel.length; i++) {
-		 toRefresh.add(sel[i]);
-		 }
-		 }
-
-		 runForTableItems(toRefresh, refresher);
-
-		 oldSelectedItems = toRefresh;
-		 }
-		 });
-		 }
-		 */
-
 		new TableTooltips(table);
 
 		table.addKeyListener(new KeyAdapter() {
@@ -981,10 +888,8 @@ public class TableViewSWTImpl
 			return;
 		}
 
-		TableRowSWT row;
-		try {
-			row = (TableRowSWT) item.getData("TableRow");
-		} catch (NullPointerException e) {
+		TableRowSWT row = (TableRowSWT) getRow(item);
+		if (row == null) {
 			return;
 		}
 
@@ -1689,7 +1594,14 @@ public class TableViewSWTImpl
 						SystemTime.getCurrentTime() + IMMEDIATE_ADDREMOVE_DELAY,
 						new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
+								if (DEBUGADDREMOVE && timerEventProcessDS != null) {
+									debug("processDataSourceQueue after "
+											+ (SystemTime.getCurrentTime() - timerEventProcessDS.getCreatedTime())
+											+ "ms");
+								}
+
 								timerEventProcessDS = null;
+
 								processDataSourceQueue();
 							}
 						});
@@ -1994,20 +1906,58 @@ public class TableViewSWTImpl
 		if (DEBUGADDREMOVE)
 			debug(">> Remove rows");
 
+		final long lStart = SystemTime.getCurrentTime();
+
 		boolean ok = Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (table == null || table.isDisposed()) {
 					return;
 				}
 
-				if (DEBUGADDREMOVE)
-					debug(">>> Remove rows.  Start");
+				StringBuffer sbWillRemove;
+				if (DEBUGADDREMOVE) {
+					debug(">>> Remove rows.  Start w/" + mapDataSourceToRow.size()
+							+ "ds; tc=" + table.getItemCount() + ";"
+							+ (SystemTime.getCurrentTime() - lStart) + "ms wait");
+
+					sbWillRemove = new StringBuffer("Will soon remove row #");
+				}
 
 				ArrayList itemsToRemove = new ArrayList();
+				ArrayList swtItemsToRemove = new ArrayList();
 				int iTopIndex = table.getTopIndex();
 				int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 				boolean bRefresh = false;
 
+				// pass one: get the SWT indexes of the items we are going to remove
+				//           This will re-link them if they lost their link
+				for (int i = 0; i < dataSources.length; i++) {
+					if (dataSources[i] == null)
+						continue;
+
+					TableRowSWT item = (TableRowSWT) mapDataSourceToRow.get(dataSources[i]);
+					if (item != null) {
+						int index = item.getIndex();
+						if (!bRefresh) {
+							bRefresh = index >= iTopIndex || index <= iBottomIndex;
+						}
+						if (DEBUGADDREMOVE) {
+							if (i != 0) {
+								sbWillRemove.append(", ");
+							}
+							sbWillRemove.append(index);
+						}
+						if (index >= 0) {
+							swtItemsToRemove.add(new Long(index));
+						}
+					}
+				}
+
+				if (DEBUGADDREMOVE) {
+					debug(sbWillRemove.toString());
+				}
+
+				// pass 2: remove from map and list, add removed to seperate list
 				for (int i = 0; i < dataSources.length; i++) {
 					if (dataSources[i] == null)
 						continue;
@@ -2015,10 +1965,6 @@ public class TableViewSWTImpl
 					// Must remove from map before deleted from gui
 					TableRowSWT item = (TableRowSWT) mapDataSourceToRow.remove(dataSources[i]);
 					if (item != null) {
-						if (!bRefresh) {
-							int index = item.getIndex();
-							bRefresh = index >= iTopIndex || index <= iBottomIndex;
-						}
 						itemsToRemove.add(item);
 						sortedRows.remove(item);
 						triggerListenerRowRemoved(item);
@@ -2028,27 +1974,18 @@ public class TableViewSWTImpl
 				// Remove the rows from SWT first.  On SWT 3.2, this currently has 
 				// zero perf gain, and a small perf gain on Windows.  However, in the
 				// future it may be optimized.
-				int[] swtRowsToRemove = new int[itemsToRemove.size()];
-				int count = 0;
-				for (Iterator iter = itemsToRemove.iterator(); iter.hasNext();) {
-					TableRowSWT item = (TableRowSWT) iter.next();
-					int index = item.getIndex();
-					if (index >= 0) {
-						swtRowsToRemove[count++] = index;
-					} else if (count != 0) {
-						// duplicate indexes will be only removed once
-						// this saves us from shrinking the array
-						swtRowsToRemove[count] = swtRowsToRemove[count - 1];
-						count++;
+				if (swtItemsToRemove.size() > 0) {
+					int[] swtRowsToRemove = new int[swtItemsToRemove.size()];
+					for (int i = 0; i < swtItemsToRemove.size(); i++) {
+						swtRowsToRemove[i] = ((Long) swtItemsToRemove.get(i)).intValue();
 					}
-				}
-				if (count > 0) {
 					table.remove(swtRowsToRemove);
 				}
 
+				// Finally, delete the rows
 				for (Iterator iter = itemsToRemove.iterator(); iter.hasNext();) {
-					TableRowSWT item = (TableRowSWT) iter.next();
-					item.delete();
+					TableRowCore row = (TableRowCore) iter.next();
+					row.delete();
 				}
 
 				if (bRefresh) {
@@ -2285,6 +2222,59 @@ public class TableViewSWTImpl
 	public TableRowSWT getRowSWT(Object dataSource) {
 		return (TableRowSWT) mapDataSourceToRow.get(dataSource);
 	}
+	
+	private TableRowCore getRow(int iPos) {
+		try {
+			sortedRows_mon.enter();
+			
+			if (iPos >= 0 && iPos < sortedRows.size()) {
+				TableRowCore row = (TableRowCore) sortedRows.get(iPos);
+
+				if (row.getIndex() != iPos) {
+					row.setTableItem(iPos);
+				}
+				return row;
+			}
+		} finally {
+			sortedRows_mon.exit();
+		}
+		return null;
+	}
+
+	public int indexOf(TableRowCore row) {
+		int i = ((TableRowImpl) row).getRealIndex();
+		if (i == -1) {
+			i = sortedRows.indexOf(row);
+			if (i >= 0) {
+				row.setTableItem(i);
+			}
+		}
+		return i;
+	}
+
+	private TableRowCore getRow(TableItem item) {
+		try {
+			Object o = item.getData("TableRow");
+			if (o instanceof TableRowCore) {
+				return (TableRowCore) o;
+			} else {
+				int iPos = table.indexOf(item);
+				//System.out.println(iPos + " has no table row.. associating. " + Debug.getCompressedStackTrace(4));
+				if (iPos >= 0 && iPos < sortedRows.size()) {
+					TableRowSWT row = (TableRowSWT) sortedRows.get(iPos);
+					//System.out.print(".. associating to " + row);
+					if (row != null) {
+						row.setTableItem(iPos);
+					}
+					//System.out.println(", now " + row);
+					return row;
+				}
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+		return null;
+	}
 
 	public int getRowCount() {
 		// don't use sortedRows here, it's not always up to date 
@@ -2320,12 +2310,12 @@ public class TableViewSWTImpl
 			public void runSupport() {
 				TableItem[] tis = table.getSelection();
 				for (int i = 0; i < tis.length; i++) {
-					TableRowSWT row = (TableRowSWT) tis[i].getData("TableRow");
+					TableRowSWT row = (TableRowSWT) getRow(tis[i]);
 					if (row == null) {
 						fillRowGaps(false);
 
 						// Try again
-						row = (TableRowSWT) tis[i].getData("TableRow");
+						row = (TableRowSWT) getRow(tis[i]);
 						if (row == null)
 							System.out.println("XXX Boo, row still null "
 									+ table.indexOf(tis[i]) + ";sd=" + tis[i].getData("SD") + ";"
@@ -2366,7 +2356,7 @@ public class TableViewSWTImpl
 	public TableRowCore[] getSelectedRows() {
 		return (TableRowCore[]) getSelectedRowsList().toArray(new TableRowCore[0]);
 	}
-	
+
 	// @see com.aelitis.azureus.ui.common.table.TableView#getSelectedRowsSize()
 	public int getSelectedRowsSize() {
 		if (table != null && !table.isDisposed()) {
@@ -2389,7 +2379,7 @@ public class TableViewSWTImpl
 		if (table != null && !table.isDisposed()) {
 			TableItem[] tis = table.getSelection();
 			for (int i = 0; i < tis.length; i++) {
-				TableRowSWT row = (TableRowSWT) tis[i].getData("TableRow");
+				TableRowSWT row = (TableRowSWT) getRow(tis[i]);
 				if (row != null && row.getDataSource(true) != null)
 					l.add(row);
 			}
@@ -2427,7 +2417,7 @@ public class TableViewSWTImpl
 		for (int i = iTopIndex; i <= iBottomIndex; i++) {
 			TableItem item = table.getItem(i);
 			if (item != null && !item.isDisposed()) {
-				TableRowSWT row = (TableRowSWT) item.getData("TableRow");
+				TableRowSWT row = (TableRowSWT) getRow(item);
 				if (row != null) {
 					rows[pos++] = row;
 				}
@@ -2453,7 +2443,7 @@ public class TableViewSWTImpl
 		if (table == null || table.isDisposed() || table.getSelectionCount() == 0)
 			return null;
 
-		TableRowSWT row = (TableRowSWT) table.getSelection()[0].getData("TableRow");
+		TableRowCore row = getRow(table.getSelection()[0]);
 		if (row == null)
 			return null;
 		return row.getDataSource(bCoreObject);
@@ -2474,7 +2464,7 @@ public class TableViewSWTImpl
 			rows_to_use = new ArrayList(tis.length);
 		}
 		for (int i = 0; i < tis.length; i++) {
-			TableRowSWT row = (TableRowSWT) tis[i].getData("TableRow");
+			TableRowSWT row = (TableRowSWT) getRow(tis[i]);
 			if (row != null)
 				if (rows_to_use != null) {
 					rows_to_use.add(row);
@@ -2514,8 +2504,7 @@ public class TableViewSWTImpl
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
 		for (int i = 0; i < rows.length; i++) {
-			int index = rows[i].getIndex();
-			runner.run(rows[i], index >= iTopIndex && index <= iBottomIndex);
+			runner.run(rows[i], i >= iTopIndex && i <= iBottomIndex);
 		}
 	}
 
@@ -2538,7 +2527,7 @@ public class TableViewSWTImpl
 			if (tableItem.isDisposed())
 				continue;
 
-			TableRowSWT row = (TableRowSWT) tableItem.getData("TableRow");
+			TableRowSWT row = (TableRowSWT) getRow(tableItem);
 			if (row != null) {
 				if (rows_to_use != null) {
 					rows_to_use.add(row);
@@ -2828,9 +2817,7 @@ public class TableViewSWTImpl
 			return null;
 
 		TableItem item = table.getItem(new Point(2, y));
-		if (item == null)
-			return null;
-		return (TableRowCore) item.getData("TableRow");
+		return (TableRowCore) getRow(item);
 	}
 
 	private TableCellSWT getTableCell(int x, int y) {
@@ -2841,10 +2828,11 @@ public class TableViewSWTImpl
 		TableItem item = table.getItem(new Point(2, y));
 		if (item == null)
 			return null;
-		TableRowSWT row = (TableRowSWT) item.getData("TableRow");
+		TableRowSWT row = (TableRowSWT) getRow(item);
 
-		if (row == null)
+		if (row == null) {
 			return null;
+		}
 
 		TableColumn tcColumn = table.getColumn(iColumn);
 		String sCellName = (String) tcColumn.getData("Name");
@@ -2964,14 +2952,14 @@ public class TableViewSWTImpl
 
 			// This actually gets the focus, assuming the focus is selected
 			int iFocusIndex = table.getSelectionIndex();
-			TableRowSWT focusedRow = (iFocusIndex == -1) ? null
-					: (TableRowSWT) table.getItem(iFocusIndex).getData("TableRow");
+			TableRowCore focusedRow = (iFocusIndex == -1) ? null
+					: getRow(iFocusIndex);
 
 			int[] selectedRowIndices = table.getSelectionIndices();
-			TableRowSWT[] selectedRows = new TableRowSWT[selectedRowIndices.length];
+			TableRowCore[] selectedRows = new TableRowCore[selectedRowIndices.length];
 			for (int i = 0; i < selectedRowIndices.length; i++) {
-				selectedRows[i] = (TableRowSWT) table.getItem(selectedRowIndices[i]).getData(
-						"TableRow");
+				selectedRows[i] = getRow(selectedRowIndices[i]);
+				//System.out.println("Selected: " + selectedRowIndices[i] + ";" + selectedRows[i]);
 			}
 
 			try {
@@ -3006,12 +2994,20 @@ public class TableViewSWTImpl
 				}
 
 				if (bTableVirtual) {
-					for (int i = 0; i < sortedRows.size(); i++) {
+					int count = sortedRows.size();
+					int iTopIndex = table.getTopIndex();
+					int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+					if (iBottomIndex >= count) {
+						iBottomIndex = count - 1;
+					}
+					for (int i = iTopIndex; i <= iBottomIndex; i++) {
 						TableRowSWT row = (TableRowSWT) sortedRows.get(i);
 						if (row.setTableItem(i)) {
 							iNumMoves++;
 						}
 					}
+
+					// visibleRowsChanged() will setTableItem for the rest
 				} else {
 					for (int i = 0; i < sortedRows.size(); i++) {
 						TableRowSWT row = (TableRowSWT) sortedRows.get(i);
@@ -3139,7 +3135,7 @@ public class TableViewSWTImpl
 			lastBottomIndex = -1;
 			return;
 		}
-		//System.out.println(SystemTime.getCurrentTime() + ": VRC " + Debug.getCompressedStackTrace());
+		//debug("VRC " + Debug.getCompressedStackTrace());
 
 		boolean bTableUpdate = false;
 		int iTopIndex = table.getTopIndex();
@@ -3153,15 +3149,17 @@ public class TableViewSWTImpl
 				if (tmpIndex > iBottomIndex + 1 && iBottomIndex >= 0)
 					tmpIndex = iBottomIndex + 1;
 
-				//System.out.println("Refresh top rows " + iTopIndex + " to " + (tmpIndex - 1));
+				//debug("Refresh top rows " + iTopIndex + " to " + (tmpIndex - 1));
 				try {
 					sortedRows_mon.enter();
 					for (int i = iTopIndex; i < tmpIndex && i < sortedRows.size(); i++) {
-						TableRowSWT row = (TableRowSWT) sortedRows.get(i);
-						row.refresh(true, true);
-						row.setAlternatingBGColor(true);
-						if (Constants.isOSX) {
-							bTableUpdate = true;
+						TableRowSWT row = (TableRowSWT) getRow(i);
+						if (row != null) {
+  						row.refresh(true, true);
+  						row.setAlternatingBGColor(true);
+  						if (Constants.isOSX) {
+  							bTableUpdate = true;
+  						}
 						}
 					}
 				} finally {
@@ -3184,16 +3182,18 @@ public class TableViewSWTImpl
 				tmpIndex = iTopIndex - 1;
 
 			if (tmpIndex <= iBottomIndex) {
-				//System.out.println("Refresh bottom rows " + (tmpIndex + 1) + " to " + iBottomIndex);
+				//debug("Refresh bottom rows " + (tmpIndex + 1) + " to " + iBottomIndex);
 				try {
 					sortedRows_mon.enter();
 					for (int i = tmpIndex + 1; i <= iBottomIndex && i < sortedRows.size(); i++) {
-						TableRowSWT row = (TableRowSWT) sortedRows.get(i);
-						row.refresh(true, true);
-						row.setAlternatingBGColor(true);
-						if (Constants.isOSX) {
-							bTableUpdate = true;
-						}
+						TableRowSWT row = (TableRowSWT) getRow(i);
+						if (row != null) {
+  						row.refresh(true, true);
+  						row.setAlternatingBGColor(true);
+  						if (Constants.isOSX) {
+  							bTableUpdate = true;
+  						}
+						} 
 					}
 				} finally {
 					sortedRows_mon.exit();
@@ -3272,7 +3272,7 @@ public class TableViewSWTImpl
 		return image;
 	}
 
-	private void debug(String s) {
+	void debug(String s) {
 		System.out.println(SystemTime.getCurrentTime() + ": " + sTableID + ": " + s);
 	}
 
@@ -3355,7 +3355,20 @@ public class TableViewSWTImpl
 	// @see com.aelitis.azureus.ui.common.table.TableView#selectAll()
 	public void selectAll() {
 		if (table != null && !table.isDisposed()) {
+			ensureAllRowsHaveIndex();
 			table.selectAll();
+		}
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.0.7
+	 */
+	private void ensureAllRowsHaveIndex() {
+		for (int i = 0; i < sortedRows.size(); i++) {
+			TableRowSWT row = (TableRowSWT) sortedRows.get(i);
+			row.setTableItem(i);
 		}
 	}
 
@@ -3364,6 +3377,14 @@ public class TableViewSWTImpl
 		table.deselectAll();
 		for (int i = 0; i < rows.length; i++) {
 			TableRowCore row = rows[i];
+			if (row.getIndex() == -1) {
+				int j = sortedRows.indexOf(row);
+				if (j == -1) {
+					System.err.println("BOO");
+				} else {
+					row.setTableItem(j);
+				}
+			}
 			row.setSelected(true);
 		}
 	}
