@@ -340,6 +340,12 @@ public class TableRowImpl
 		if (bDisposed)
 			return -1;
 
+		return ((TableViewSWTImpl)tableView).indexOf(this);
+
+		//return super.getIndex();
+	}
+	
+	public int getRealIndex() {
 		return super.getIndex();
 	}
 
@@ -349,6 +355,9 @@ public class TableRowImpl
 			return false;
 		}
 
+		//if (getRealIndex() != newIndex) {
+		//	((TableViewSWTImpl)tableView).debug("sTI " + newIndex + "; via " + Debug.getCompressedStackTrace(4));
+		//}
 		return setTableItem(newIndex, false);
 	}
 	
