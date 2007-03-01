@@ -357,6 +357,23 @@ BEncoder
     	return( true );
     }	
     
+    public static Map
+    cloneMap(
+    	Map		map )
+    {
+		try{
+				// inefficient impl
+			
+			return( BDecoder.decode(BEncoder.encode( map )));
+		
+		}catch( Throwable e ){
+		
+			Debug.printStackTrace( e );
+		
+			return( map );
+		}
+    }
+    
     public static StringBuffer
     encodeToXML(
     	Map			map,
