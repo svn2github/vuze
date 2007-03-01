@@ -313,4 +313,12 @@ public interface TableView
 	 * @since 3.0.0.7
 	 */
 	int getSelectedRowsSize();
+
+	/**
+	 * @param row
+	 * @return
+	 *
+	 * @since 3.0.0.7
+	 */
+	int indexOf(TableRowCore row);
 }
