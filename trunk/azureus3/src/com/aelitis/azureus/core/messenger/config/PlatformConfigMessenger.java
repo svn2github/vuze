@@ -50,11 +50,13 @@ public class PlatformConfigMessenger
 	public static final String SECTION_TYPE_BIGBROWSE = "browse";
 
 	public static final String SECTION_TYPE_MINIBROWSE = "minibrowse";
+
+	private static int iRPCVersion = 0;
 	
 	private static String DEFAULT_WHITELIST = "https?://"
-		+ Constants.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/"
-		+ Constants.URL_NAMESPACE.replaceAll("\\.", "\\\\.") + ".*";
-	
+			+ Constants.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/"
+			+ Constants.URL_NAMESPACE.replaceAll("\\.", "\\\\.") + ".*";
+
 	private static String[] sURLWhiteList = new String[] {
 		DEFAULT_WHITELIST
 	};
@@ -105,7 +107,7 @@ public class PlatformConfigMessenger
 
 		PlatformMessenger.queueMessage(message, listener);
 	}
-	
+
 	public static void login(long maxDelayMS) {
 		PlatformManager pm = PlatformManagerFactory.getPlatformManager();
 		String azComputerID = "";
@@ -125,36 +127,49 @@ public class PlatformConfigMessenger
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				"login", params, maxDelayMS);
 
-		PlatformMessengerListener listener = new PlatformMessengerListener(){
-		
+		PlatformMessengerListener listener = new PlatformMessengerListener() {
+
 			public void replyReceived(PlatformMessage message, String replyType,
 					Object jsonReply) {
 				if (jsonReply instanceof JSONObject) {
-					JSONObject jsonObject = (JSONObject)jsonReply;
+					JSONObject jsonObject = (JSONObject) jsonReply;
 					if (jsonObject.has("url-whitelist")) {
-						JSONArray array = jsonObject.getJSONArray("url-whitelist");
-						String[] sNewWhiteList = new String[array.length() + 1];
-						sNewWhiteList[0] = DEFAULT_WHITELIST;
+						try {
+							JSONArray array = jsonObject.getJSONArray("url-whitelist");
+							String[] sNewWhiteList = new String[array.length() + 1];
+							sNewWhiteList[0] = DEFAULT_WHITELIST;
 
-						for (int i = 0; i < array.length(); i++) {
-							String string = array.getString(i);
-							PlatformTorrentUtils.log("v3.login: got whitelist of " + string);
-							sNewWhiteList[i+1] = string;
+							for (int i = 0; i < array.length(); i++) {
+								String string = array.getString(i);
+								PlatformTorrentUtils.log("v3.login: got whitelist of " + string);
+								sNewWhiteList[i + 1] = string;
+							}
+							sURLWhiteList = sNewWhiteList;
+						} catch (Exception e) {
+							Debug.out(e);
 						}
-						sURLWhiteList = sNewWhiteList;
+					}
+
+					if (jsonObject.has("rpc-version")) {
+						try {
+							iRPCVersion = jsonObject.getInt("rpc-version");
+						} catch (Exception e) {
+							Debug.out(e);
+						}
 					}
 				}
 			}
-		
+
 			public void messageSent(PlatformMessage message) {
 			}
-		
+
 		};
-		
+
 		PlatformMessenger.queueMessage(message, listener);
 	}
 
-	public static void sendUsageStats(Map stats, long timestamp, PlatformMessengerListener l) {
+	public static void sendUsageStats(Map stats, long timestamp,
+			PlatformMessengerListener l) {
 		try {
 			PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 					"send-usage-stats", new Object[] {
@@ -178,11 +193,11 @@ public class PlatformConfigMessenger
 
 		public void replyReceived(Map[] browseSections);
 	}
-	
+
 	public static String[] getURLWhitelist() {
 		return sURLWhiteList;
 	}
-	
+
 	public static boolean isURLBlocked(String url) {
 		if (url == null) {
 			return true;
@@ -195,5 +210,12 @@ public class PlatformConfigMessenger
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * @return the iRPCVersion
+	 */
+	public static int getRPCVersion() {
+		return iRPCVersion;
 	}
 }
