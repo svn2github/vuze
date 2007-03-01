@@ -134,11 +134,7 @@ public class TableCellImpl
 
     bufferedTableItem = item;
 
-    Utils.execSWTThread(new AERunnable() {
-    	public void runSupport() {
-        tableColumn.invokeCellAddedListeners(TableCellImpl.this);
-    	}
-    });
+    tableColumn.invokeCellAddedListeners(TableCellImpl.this);
   }
 
   /**
@@ -159,11 +155,7 @@ public class TableCellImpl
 
     createBufferedTableItem(position);
     
-    Utils.execSWTThread(new AERunnable() {
-    	public void runSupport() {
-        tableColumn.invokeCellAddedListeners(TableCellImpl.this);
-    	}
-    });
+    tableColumn.invokeCellAddedListeners(TableCellImpl.this);
     //bDebug = (position == 1) && tableColumn.getTableID().equalsIgnoreCase("Peers");
   }
   
