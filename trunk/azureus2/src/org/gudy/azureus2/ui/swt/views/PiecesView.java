@@ -30,15 +30,14 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.components.Legend;
-import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.pieces.*;
 
-import com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -134,6 +133,7 @@ public class PiecesView
 		}
 
     if (manager != null) {
+  		manager.removePeerListener(this);
     	manager.addPeerListener(this, false);
     	addExistingDatasources();
     }
@@ -171,8 +171,10 @@ public class PiecesView
 	 * Faster than allowing addListener to call us one datasource at a time. 
 	 */
 	private void addExistingDatasources() {
-		if (manager == null)
+		if (manager == null || tv.isDisposed()) {
 			return;
+		}
+
 		Object[] dataSources = manager.getCurrentPieces();
 		if (dataSources == null || dataSources.length == 0)
 			return;

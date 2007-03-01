@@ -148,6 +148,7 @@ public class PeersView
 		}
 
 		if (manager != null) {
+  		manager.removePeerListener(this);
 			manager.addPeerListener(this, false);
 		}
   	addExistingDatasources();
@@ -354,7 +355,7 @@ public class PeersView
 	 * Faster than allowing addListener to call us one datasource at a time. 
 	 */
 	private void addExistingDatasources() {
-		if (manager == null) {
+		if (manager == null || tv.isDisposed()) {
 			return;
 		}
 
