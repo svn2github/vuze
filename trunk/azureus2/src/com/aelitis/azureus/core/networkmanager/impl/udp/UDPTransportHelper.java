@@ -168,6 +168,21 @@ UDPTransportHelper
 		return( connection );
 	}
 	
+	public boolean 
+	delayWrite(
+		ByteBuffer buffer) 
+	{
+			// TODO: support this one day?
+		
+		return false;
+	}
+	
+	public boolean
+	hasDelayedWrite()
+	{
+		return( false );
+	}
+	
 	public int 
 	write( 
 		ByteBuffer 	buffer, 

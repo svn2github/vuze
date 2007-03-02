@@ -91,6 +91,19 @@ TCPTransportHelper
 		return( READ_TIMEOUT );
 	}
 	
+	public boolean 
+	delayWrite(
+		ByteBuffer buffer) 
+	{
+		return( false );
+	}
+	
+	public boolean
+	hasDelayedWrite()
+	{
+		return( false );
+	}
+	
 	public int 
 	write( 
 		ByteBuffer 	buffer, 

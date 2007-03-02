@@ -54,7 +54,7 @@ TransportHelperFilterTransparent
 	public boolean
 	hasBufferedWrite()
 	{
-		return( false );
+		return( transport.hasDelayedWrite());
 	}
 	
 	public boolean 

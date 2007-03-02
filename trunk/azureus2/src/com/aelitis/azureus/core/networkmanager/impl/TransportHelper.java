@@ -45,6 +45,13 @@ TransportHelper
 	public int
 	getReadTimeout();
 	
+	public boolean
+	delayWrite(
+		ByteBuffer	buffer );
+	
+	public boolean
+	hasDelayedWrite();
+	
 	public int 
 	write( 
 		ByteBuffer 	buffer,

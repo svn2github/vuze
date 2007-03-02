@@ -49,7 +49,9 @@ TransportHelperFilterStream
 	public boolean
 	hasBufferedWrite()
 	{
-		return( write_buffer_pending_db != null || write_buffer_pending_byte != null );
+		return( write_buffer_pending_db != null || 
+				write_buffer_pending_byte != null ||
+				transport.hasDelayedWrite());
 	}
 	
 	public boolean 

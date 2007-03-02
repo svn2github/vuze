@@ -313,10 +313,7 @@ ProtocolDecoderPHE
 	
 	private ByteBuffer		initial_data_out; 
 	private ByteBuffer		initial_data_in; 
-	
-	private int				initial_data_out_len;
-	private int				initial_data_in_len;
-	
+		
 	private TransportCipher		write_cipher;
 	private TransportCipher		read_cipher;
 
@@ -339,6 +336,8 @@ ProtocolDecoderPHE
 	
 	private TransportHelperFilter		filter;
 	
+	private boolean			delay_outbound_4;
+
 	private boolean processing_complete;
 	
 	private AEMonitor	process_mon	= new AEMonitor( "ProtocolDecoderPHE:process" );
@@ -383,12 +382,7 @@ ProtocolDecoderPHE
 		}
 		
 		outbound	= _header == null;
-		
-		if ( outbound ){
-			
-			initial_data_out_len	= initial_data_out==null?0:initial_data_out.remaining();
-		}
-		
+				
 		my_supported_protocols = SUPPORTED_PROTOCOLS;
 				
 		if ( outbound ){
@@ -825,7 +819,9 @@ ProtocolDecoderPHE
 						// A->B: HASH('req1', S), HASH('req2', SKEY)^HASH('req3', S), ENCRYPT(VC, crypto_provide, len(PadC), PadC, len(IA)), ENCRYPT(IA)
 		
 					if ( write_buffer == null ){
-						
+													
+						int initial_data_out_len	= initial_data_out==null?0:initial_data_out.remaining();
+
 							// padding_a here is half of the padding from before
 						
 						int	pad_max = getPaddingMax();
@@ -1079,9 +1075,7 @@ ProtocolDecoderPHE
 								
 								throw( new IOException( "Invalid IA length '" + ia_len + "'" ));
 							}
-							
-							initial_data_in_len = ia_len;
-							
+														
 							if ( ia_len > 0 ){
 								
 								read_buffer = ByteBuffer.allocate( ia_len );
@@ -1109,6 +1103,10 @@ ProtocolDecoderPHE
 							read_buffer.get( data );
 
 							data = read_cipher.update( data );
+							
+							delay_outbound_4 = new String( data ).indexOf( "BitTorrent" ) != -1;
+							
+							System.out.println( "Initial Data In: " + new String( data ) + "->delay=" +delay_outbound_4 );
 							
 							initial_data_in = ByteBuffer.wrap( data );
 							
@@ -1150,15 +1148,31 @@ ProtocolDecoderPHE
 						write_buffer.flip();
 					}
 					
-					write( write_buffer );
-					
-					if ( !write_buffer.hasRemaining()){
-					
-						write_buffer	= null;
-					
-						handshakeComplete();
+					if ( delay_outbound_4 ){
+						
+						if ( transport.delayWrite( write_buffer )){
+							
+							write_buffer	= null;
+							
+							handshakeComplete();
+							
+						}else{
+							
+							delay_outbound_4 = false;
+						}
 					}
-				
+					
+					if ( !delay_outbound_4 ){
+						
+						write( write_buffer );
+						
+						if ( !write_buffer.hasRemaining()){
+						
+							write_buffer	= null;
+						
+							handshakeComplete();
+						}
+					}
 				}else if ( protocol_state == PS_INBOUND_4 ){
 					
 						// B->A: ENCRYPT(VC, crypto_select, len(padD), padD // , len(IB)), ENCRYPT(IB)
