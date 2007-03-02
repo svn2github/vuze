@@ -341,6 +341,9 @@ public class ListView
 							//gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 16)));
 							gc.setBackground(listCanvas.getBackground());
 							gc.fillRectangle(clientArea);
+
+							gc.setClipping((Region) null);
+							reg.dispose();
 						} finally {
 							if (gc != null) {
 								gc.dispose();
@@ -754,33 +757,39 @@ public class ListView
 					Rectangle bounds;
 					if (size.x > drawWidth && lastExtraSpace > 0) {
 						int giveSpace = Math.min(lastExtraSpace, size.x - drawWidth);
-						bounds = new Rectangle(pos - giveSpace, clientArea.y, drawWidth
+						bounds = new Rectangle(pos - giveSpace, clientArea.y + 1, drawWidth
 								+ giveSpace, clientArea.height);
 					} else {
-						bounds = new Rectangle(pos, clientArea.y, drawWidth,
+						bounds = new Rectangle(pos, clientArea.y + 1, drawWidth,
 								clientArea.height);
 					}
 
 					headerArea.setData("Column" + i + "Bounds", bounds);
 
 					if (text.length() > 0) {
-						GCStringPrinter.printString(e.gc, text, bounds, false, false, align);
+						GCStringPrinter.printString(e.gc, text, bounds, false, false, align
+								| SWT.TOP);
 					}
 
+					int middlePos = bounds.x;
 					if (align == SWT.LEFT) {
 						lastExtraSpace = bounds.width - size.x;
+						middlePos += size.x / 2;
 					} else if (align == SWT.CENTER) {
 						lastExtraSpace = (bounds.width - size.x) / 2;
+						middlePos += bounds.width / 2;
 					} else {
 						lastExtraSpace = 0;
+						middlePos += bounds.width - (size.x / 2);
 					}
 
 					if (columns[i].equals(sortColumn)) {
 						Image img = sortColumn.isSortAscending() ? imgSortAsc : imgSortDesc;
 						if (img != null) {
 							Rectangle imgBounds = img.getBounds();
-							e.gc.drawImage(img, bounds.x + (bounds.width / 2)
-									- (imgBounds.width / 2), 0);
+							e.gc.drawImage(img, middlePos
+									- (imgBounds.width / 2),
+									bounds.height + bounds.y - imgBounds.height);
 						}
 					}
 
@@ -2666,7 +2675,7 @@ public class ListView
 			}
 		}, false);
 
-		return b[0].booleanValue();
+		return b[0] == null ? false : b[0].booleanValue();
 	}
 
 	public boolean _isRowVisible(ListRow row) {
@@ -2735,7 +2744,7 @@ public class ListView
 			}
 		}, false);
 
-		return b[0].booleanValue();
+		return b[0] == null ? false : b[0].booleanValue();
 	}
 
 	public boolean _cellRefresh(final ListCell cell, final boolean bDoGraphics,
@@ -2783,7 +2792,7 @@ public class ListView
 			}
 		}, false);
 
-		return list[0];
+		return list == null ? new ArrayList() : list[0];
 	}
 
 	public void rowRefreshAsync(final ListRow row, final boolean bDoGraphics,
