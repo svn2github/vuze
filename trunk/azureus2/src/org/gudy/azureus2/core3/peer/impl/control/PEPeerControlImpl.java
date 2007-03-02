@@ -1175,9 +1175,9 @@ PEPeerControlImpl
 				disk_mgr.enqueueCompleteRecheckRequest(req, this);
 			}
 
-			disk_mgr.downloadEnded();
 			_timeStartedSeeding =SystemTime.getCurrentTime();
 			adapter.setStateSeeding(start_of_day);
+			disk_mgr.downloadEnded();
 		}
 	}
 	

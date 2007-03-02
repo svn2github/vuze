@@ -58,7 +58,7 @@ public class DownloadManagerDefaultPaths {
 		source.setBoolean("check exclusion flag", true);
 		source.setBoolean("check completion flag", true);
 		source.setBoolean(STATE_INCOMPLETE, false);
-		source.setBoolean(STATE_COMPLETE_DND, false);
+		source.setBoolean(STATE_COMPLETE_DND, true);
 		source.setBoolean(STATE_COMPLETE, true); // Only handle fully complete downloads at moment.
 
 		dest = new TargetSpecification();
@@ -250,9 +250,9 @@ public class DownloadManagerDefaultPaths {
      * This does the guts of determining appropriate file paths.
      * @param assumecomplete 
      */
-    private static TransferDetails determinePaths(DownloadManager dm, MovementInformation mi, boolean assumecomplete) {
+    private static TransferDetails determinePaths(DownloadManager dm, MovementInformation mi) {
 		LogRelation lr = (dm instanceof LogRelation) ? (LogRelation)dm : null;
-		boolean proceed = mi.source.matchesDownload(dm, lr, mi, assumecomplete);
+		boolean proceed = mi.source.matchesDownload(dm, lr, mi);
 		if (!proceed) {
 			logInfo("Cannot consider " + describe(dm, mi) +
 			    " - does not match source criteria.", lr);
@@ -270,10 +270,10 @@ public class DownloadManagerDefaultPaths {
 		return mi.transfer.getTransferDetails(dm, lr, mi, target_path);
 	}
 
-	private static TransferDetails determinePaths(DownloadManager dm, MovementInformation[] mis, boolean assumecomplete) {
+	private static TransferDetails determinePaths(DownloadManager dm, MovementInformation[] mis) {
 	    TransferDetails result = null;
 		for (int i=0; i<mis.length; i++) {
-			result = determinePaths(dm, mis[i], assumecomplete);
+			result = determinePaths(dm, mis[i]);
 			if (result != null) {return result;}
 		}
 		return null;
@@ -359,7 +359,7 @@ public class DownloadManagerDefaultPaths {
 
     private static class SourceSpecification extends ParameterHelper {
 
-		public boolean matchesDownload(DownloadManager dm, LogRelation lr, ContextDescriptor context, boolean assumecomplete) {
+		public boolean matchesDownload(DownloadManager dm, LogRelation lr, ContextDescriptor context) {
 			if (this.getBoolean("persistent only") && !dm.isPersistent()) {
 				logWarn(describe(dm, context) + " is not persistent.", lr);
 				return false;
@@ -389,7 +389,6 @@ public class DownloadManagerDefaultPaths {
 				logInfo(describe(dm, context) + " does exist inside default dirs.", lr);
 			}
 
-			if (!assumecomplete) {
   			String current_state = getStateDescriptor(dm);
   			boolean can_move = this.getBoolean(current_state);
   			String log_message = describe(dm, context) + " is " +
@@ -400,8 +399,6 @@ public class DownloadManagerDefaultPaths {
   				return false;
   			}
   			logInfo(log_message, lr);
-			}
-
 			return true;
 		}
 		
@@ -470,7 +467,7 @@ public class DownloadManagerDefaultPaths {
 	}
 
 	public static TransferDetails onCompletion(DownloadManager dm, boolean set_on_completion_flag) {
-		TransferDetails td = determinePaths(dm, COMPLETION_DETAILS, true);
+		TransferDetails td = determinePaths(dm, COMPLETION_DETAILS);
 		
 		// Not sure what we should do if we don't have any transfer details w.r.t the
 		// completion flag. I think we probably should - we only want to consider the
@@ -484,12 +481,12 @@ public class DownloadManagerDefaultPaths {
 	}
 
 	public static TransferDetails onRemoval(DownloadManager dm) {
-		return determinePaths(dm, REMOVAL_DETAILS, false);
+		return determinePaths(dm, REMOVAL_DETAILS);
 	}
 
 	public static File[] getDefaultSavePaths(DownloadManager dm, boolean for_moving) {
 		MovementInformation[] mi = (for_moving) ? UPDATE_FOR_MOVE_DETAILS : UPDATE_FOR_LOGIC_DETAILS;
-		TransferDetails details = determinePaths(dm, mi, false);
+		TransferDetails details = determinePaths(dm, mi);
 
 		// Always return an array of size two.
 		File[] result = new File[2];
