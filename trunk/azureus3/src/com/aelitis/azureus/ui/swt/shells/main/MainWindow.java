@@ -120,6 +120,8 @@ public class MainWindow
 
 	private Object[] dms_Startup;
 
+	protected boolean isReady = false;
+
 	public static void main(String args[]) {
 		Initializer.main(new String[0]);
 		//org.gudy.azureus2.ui.swt.Main.main(args);
@@ -470,6 +472,10 @@ public class MainWindow
 							context.getMessageDispatcher().resetSequence();
 							return true;
 						}
+					} else if (browserMsg.getOperationId().equals("is-ready")) {
+						// The platform needs to know when it can call open-url, and it
+						// determines this by the is-ready function
+						return isReady;
 					}
 				} catch (Exception e) {
 					Debug.out(e);
@@ -500,6 +506,8 @@ public class MainWindow
 		if (disposedOrDisposing) {
 			return true;
 		}
+
+		isReady = false;
 
 		disposedOrDisposing = true;
 		if (oldMainWindow != null) {
@@ -700,7 +708,8 @@ public class MainWindow
 			}
 			tabSet.setActiveTab(startTab);
 		}
-
+		
+		isReady = true;
 	}
 
 	public void setVisible(final boolean visible) {
