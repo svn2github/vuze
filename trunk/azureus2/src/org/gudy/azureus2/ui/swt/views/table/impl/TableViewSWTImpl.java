@@ -255,6 +255,8 @@ public class TableViewSWTImpl
 
 	private TableViewSWTPanelCreator mainPanelCreator;
 
+	private List listenersKey = new ArrayList();
+
 	/**
 	 * Main Initializer
 	 * @param _sTableID Which table to handle (see 
@@ -844,8 +846,17 @@ public class TableViewSWTImpl
 
 		new TableTooltips(this, table);
 
-		table.addKeyListener(new KeyAdapter() {
+		table.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent event) {
+				Object[] listeners = listenersKey.toArray();
+				for (int i = 0; i < listeners.length; i++) {
+					KeyListener l = (KeyListener) listeners[i];
+					l.keyPressed(event);
+					if (!event.doit) {
+						return;
+					}
+				}
+
 				if (event.keyCode == SWT.F5) {
 					if ((event.stateMask & SWT.SHIFT) > 0) {
 						runForSelectedRows(new TableGroupRowRunner() {
@@ -858,6 +869,36 @@ public class TableViewSWTImpl
 						sortColumn(true);
 					}
 					event.doit = false;
+					return;
+				}
+
+				int key = event.character;
+				if (key <= 26 && key > 0)
+					key += 'a' - 1;
+
+				if (event.stateMask == SWT.MOD1) {
+					switch (key) {
+						case 'a': // CTRL+A select all Torrents
+							if ((table.getStyle() & SWT.MULTI) > 0) {
+								selectAll();
+								event.doit = false;
+							}
+							break;
+					}
+
+					if (!event.doit)
+						return;
+				}
+			}
+
+			public void keyReleased(KeyEvent event) {
+				Object[] listeners = listenersKey.toArray();
+				for (int i = 0; i < listeners.length; i++) {
+					KeyListener l = (KeyListener) listeners[i];
+					l.keyReleased(event);
+					if (!event.doit) {
+						return;
+					}
 				}
 			}
 		});
@@ -2222,11 +2263,11 @@ public class TableViewSWTImpl
 	public TableRowSWT getRowSWT(Object dataSource) {
 		return (TableRowSWT) mapDataSourceToRow.get(dataSource);
 	}
-	
+
 	private TableRowCore getRow(int iPos) {
 		try {
 			sortedRows_mon.enter();
-			
+
 			if (iPos >= 0 && iPos < sortedRows.size()) {
 				TableRowCore row = (TableRowCore) sortedRows.get(iPos);
 
@@ -3036,11 +3077,11 @@ public class TableViewSWTImpl
 					for (int i = iTopIndex; i < tmpIndex && i < sortedRows.size(); i++) {
 						TableRowSWT row = (TableRowSWT) getRow(i);
 						if (row != null) {
-  						row.refresh(true, true);
-  						row.setAlternatingBGColor(true);
-  						if (Constants.isOSX) {
-  							bTableUpdate = true;
-  						}
+							row.refresh(true, true);
+							row.setAlternatingBGColor(true);
+							if (Constants.isOSX) {
+								bTableUpdate = true;
+							}
 						}
 					}
 				} finally {
@@ -3069,12 +3110,12 @@ public class TableViewSWTImpl
 					for (int i = tmpIndex + 1; i <= iBottomIndex && i < sortedRows.size(); i++) {
 						TableRowSWT row = (TableRowSWT) getRow(i);
 						if (row != null) {
-  						row.refresh(true, true);
-  						row.setAlternatingBGColor(true);
-  						if (Constants.isOSX) {
-  							bTableUpdate = true;
-  						}
-						} 
+							row.refresh(true, true);
+							row.setAlternatingBGColor(true);
+							if (Constants.isOSX) {
+								bTableUpdate = true;
+							}
+						}
 					}
 				} finally {
 					sortedRows_mon.exit();
@@ -3216,16 +3257,16 @@ public class TableViewSWTImpl
 
 	// @see org.gudy.azureus2.ui.swt.views.TableViewSWT#addKeyListener(org.eclipse.swt.events.KeyListener)
 	public void addKeyListener(KeyListener listener) {
-		if (table != null && !table.isDisposed()) {
-			table.addKeyListener(listener);
+		if (listenersKey.contains(listener)) {
+			return;
 		}
+
+		listenersKey.add(listener);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeKeyListener(org.eclipse.swt.events.KeyListener)
 	public void removeKeyListener(KeyListener listener) {
-		if (table != null && !table.isDisposed()) {
-			table.removeKeyListener(listener);
-		}
+		listenersKey.remove(listener);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.TableViewSWT#getSortColumn()
