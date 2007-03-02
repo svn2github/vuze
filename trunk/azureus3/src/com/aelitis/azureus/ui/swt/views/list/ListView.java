@@ -44,6 +44,7 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableTooltips;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
@@ -448,6 +449,9 @@ public class ListView
 		listCanvas.addListener(SWT.KeyDown, this); // so we are a tab focus
 
 		listCanvas.setMenu(createMenu());
+		
+		new TableTooltips(this, listCanvas);
+
 
 		TableStructureEventDispatcher.getInstance(sTableID).addListener(this);
 
@@ -584,24 +588,25 @@ public class ListView
 		if (diff > 0) {
 			int h = bounds.height - diff;
 			if (h > 0) {
-  			if (Constants.isOSX) {
-  				// copyArea should work on OSX, but why risk it when drawImage works
-  				gc.drawImage(imgView, 0, 0, bounds.width, h, 0, diff, bounds.width, h);
-  			} else {
-  				// Windows can't use drawImage on same image
-  				gc.copyArea(0, 0, bounds.width, h, 0, diff);
-  			}
+				if (Constants.isOSX) {
+					// copyArea should work on OSX, but why risk it when drawImage works
+					gc.drawImage(imgView, 0, 0, bounds.width, h, 0, diff, bounds.width, h);
+				} else {
+					// Windows can't use drawImage on same image
+					gc.copyArea(0, 0, bounds.width, h, 0, diff);
+				}
 			}
 		} else {
 			int h = bounds.height + diff;
 			if (h > 0) {
-  			if (Constants.isOSX) {
-  				// OSX can't copyArea upwards
-  				gc.drawImage(imgView, 0, -diff, bounds.width, h, 0, 0, bounds.width, h);
-  			} else {
-  				// Windows can't use drawImage on same image
-  				gc.copyArea(0, -diff, bounds.width, h, 0, 0);
-  			}
+				if (Constants.isOSX) {
+					// OSX can't copyArea upwards
+					gc.drawImage(imgView, 0, -diff, bounds.width, h, 0, 0, bounds.width,
+							h);
+				} else {
+					// Windows can't use drawImage on same image
+					gc.copyArea(0, -diff, bounds.width, h, 0, 0);
+				}
 			}
 		}
 
@@ -904,7 +909,7 @@ public class ListView
 									}
 									return;
 								}
-								
+
 								if (!row.isVisible()) {
 									// uh oh, order changed, refresh!
 									restartRefreshVisible = new Object[] {
@@ -1493,6 +1498,16 @@ public class ListView
 
 		return null;
 	}
+	
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getTableCell(int, int)
+	public TableCellSWT getTableCell(int x, int y) {
+		ListRow row = (ListRow) getRow(x, y);
+		if (row == null) {
+			return null;
+		}
+		return row.getTableCellSWT(x, y);
+	}
+
 
 	public int indexOf(TableRowCore row) {
 		return rows.indexOf(row);
@@ -1908,6 +1923,9 @@ public class ListView
 					// will end up at pref
 					int remaining = iPrefWidthsUnder;
 					int adj = (int) (remaining / iPrefWidthsOverCount) + 1;
+					if (DEBUG_COLUMNSIZE) {
+						logCOLUMNSIZE("remaining " + remaining + ";adj=" + adj);
+					}
 					for (int i = 0; i < visibleColumnsList.size(); i++) {
 						TableColumnCore column = (TableColumnCore) visibleColumnsList.get(i);
 						int iPrefWidth = column.getPreferredWidth();
@@ -1921,13 +1939,13 @@ public class ListView
 							// we can always set it to pref, because we have more over than
 							// under
 							column.setWidth(iPrefWidth);
-							remaining -= diff;
 						} else if (diff > 0) {
-							if (diff > remaining) {
-								column.setWidth(iWidth + diff - remaining);
+							if (adj > remaining) {
+								column.setWidth(iWidth - remaining);
 							} else {
-								column.setWidth(iPrefWidth - adj);
+								column.setWidth(iWidth - adj);
 							}
+							remaining -= (column.getWidth() - iWidth);
 						}
 					}
 				} else {
@@ -2673,7 +2691,7 @@ public class ListView
 						System.out.println("Sort made " + iNumChanged + " rows move in "
 								+ lTimeDiff + "ms");
 					}
-					
+
 					rowShow(getRowFocused());
 
 					refreshVisible(true, true, true);
@@ -2864,8 +2882,8 @@ public class ListView
 					for (int i = 0; i < rows.length; i++) {
 						ListRow row = (ListRow) rows[i];
 						if (row.isVisible()) {
-  						// XXX May be using the wrong boolean params!!
-  						_rowRefresh(row, bDoGraphics, bForceRedraw);
+							// XXX May be using the wrong boolean params!!
+							_rowRefresh(row, bDoGraphics, bForceRedraw);
 						}
 					}
 				}
