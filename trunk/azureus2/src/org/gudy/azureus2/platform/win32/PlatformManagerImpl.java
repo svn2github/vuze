@@ -1018,7 +1018,7 @@ PlatformManagerImpl
 			access.writeStringValue(AEWin32Access.HKEY_LOCAL_MACHINE,
 					"SOFTWARE\\Azureus", "CID", cid);
 		} catch (Exception e) {
-			e.printStackTrace();
+			Debug.out("Could not write CID: " + e.getMessage());
 		}
 
 		try {
