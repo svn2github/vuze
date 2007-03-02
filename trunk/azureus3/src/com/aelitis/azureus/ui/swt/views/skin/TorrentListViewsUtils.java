@@ -417,7 +417,8 @@ public class TorrentListViewsUtils
 				"mpeg",
 				"divx",
 				"wmv",
-				"asf"
+				"asf",
+				"mp3",
 			};
 		}
 
