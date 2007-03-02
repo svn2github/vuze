@@ -101,4 +101,13 @@ public interface TableViewSWT
 	 * @param coreTabViews
 	 */
 	void setCoreTabViews(IView[] coreTabViews);
+
+	/**
+	 * @param x
+	 * @param y
+	 * @return
+	 *
+	 * @since 3.0.0.7
+	 */
+	TableCellSWT getTableCell(int x, int y);
 }
