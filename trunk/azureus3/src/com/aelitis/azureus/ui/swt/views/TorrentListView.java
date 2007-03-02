@@ -556,6 +556,10 @@ extends ListView
 					TorrentListViewListener l = (TorrentListViewListener) iter.next();
 					l.stateChanged(manager);
 				}
+				TableRowCore row = view.getRow(manager);
+				if (row != null) {
+					row.refresh(true);
+				}
 			} finally {
 				view.listeners_mon.exit();
 			}
