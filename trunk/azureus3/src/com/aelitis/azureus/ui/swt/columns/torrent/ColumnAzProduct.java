@@ -7,15 +7,16 @@ import org.eclipse.swt.graphics.Image;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author TuxPaper
@@ -23,7 +24,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  *
  */
 public class ColumnAzProduct extends CoreTableColumn implements
-		TableCellAddedListener
+		TableCellAddedListener, TableCellToolTipListener
 {
 	public static String COLUMN_ID = "AzProduct";
 
@@ -88,5 +89,24 @@ public class ColumnAzProduct extends CoreTableColumn implements
 
 			cell.setGraphic(isContent ? graphicProductAzureus : graphicProductGlobe);
 		}
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void cellHover(TableCell cell) {
+		if (Constants.isCVSVersion()) {
+			DownloadManager dm = (DownloadManager) cell.getDataSource();
+			if (dm == null) {
+				return;
+			}
+
+			TOTorrent torrent = dm.getTorrent();
+			long refreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
+			long diff = (refreshOn - SystemTime.getCurrentTime()) / 1000;
+			cell.setToolTip("Meta data auto refreshes in " + TimeFormatter.format(diff));
+		}
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHoverComplete(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void cellHoverComplete(TableCell cell) {
 	}
 }

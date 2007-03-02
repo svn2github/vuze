@@ -25,6 +25,9 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.HSLColor;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
@@ -73,7 +76,7 @@ public class ColumnRate extends CoreTableColumn implements
 	}
 
 	private class Cell implements TableCellRefreshListener,
-			TableCellDisposeListener, TableCellMouseListener
+			TableCellDisposeListener, TableCellMouseListener, TableCellToolTipListener
 	{
 		String rating = "--";
 
@@ -227,6 +230,27 @@ public class ColumnRate extends CoreTableColumn implements
 				GlobalRatingUtils.updateFromPlatform(torrent, 0);
 				Utils.beep();
 			}
+		}
+
+		// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
+		public void cellHover(TableCell cell) {
+			if (Constants.isCVSVersion()) {
+  			DownloadManager dm = (DownloadManager) cell.getDataSource();
+  			if (dm == null) {
+  				return;
+  			}
+  
+  			TOTorrent torrent = dm.getTorrent();
+  			long refreshOn = GlobalRatingUtils.getRefreshOn(torrent);
+  			long diff = (refreshOn - SystemTime.getCurrentTime()) / 1000;
+  			cell.setToolTip("G.Rating Auto Refreshes in " + TimeFormatter.format(diff));
+			}
+		}
+
+		// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHoverComplete(org.gudy.azureus2.plugins.ui.tables.TableCell)
+		public void cellHoverComplete(TableCell cell) {
+			// TODO Auto-generated method stub
+			
 		}
 	}
 }
