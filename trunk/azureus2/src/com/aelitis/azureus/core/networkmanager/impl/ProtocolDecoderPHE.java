@@ -312,6 +312,7 @@ ProtocolDecoderPHE
 	private byte[]			secret_bytes;
 	
 	private ByteBuffer		initial_data_out; 
+	private ByteBuffer		initial_data_in; 
 	
 	private int				initial_data_out_len;
 	private int				initial_data_in_len;
@@ -673,8 +674,7 @@ ProtocolDecoderPHE
 				new TransportHelperFilterSwitcher(
 					 new TransportHelperFilterStreamCipher( transport, read_cipher,	write_cipher ),
 					 filter,
-					 initial_data_in_len,
-					 0 );	// any initial data out is dealt with entirely during cryto phase
+					 initial_data_in );
 		}
 		
 		handshake_complete	= true;
@@ -1067,7 +1067,7 @@ ProtocolDecoderPHE
 						
 						}else if ( protocol_substate == 3 ){
 
-								// ENCRYPT( len(IA)), ENCRYPT(IA)
+								// ENCRYPT( len(IA)),  { ENCRYPT(IA) }
 							
 							read_buffer.flip();
 							
@@ -1086,14 +1086,37 @@ ProtocolDecoderPHE
 							
 							initial_data_in_len = ia_len;
 							
+							if ( ia_len > 0 ){
+								
+								read_buffer = ByteBuffer.allocate( ia_len );
+								
+								// skip the padding
+							
+								protocol_substate	= 4;
+
+							}else{
+								
+								read_buffer	= null;
+						        
+								protocol_state = PS_OUTBOUND_4;
+								
+								break;		
+							}
+						}else if ( protocol_substate == 4 ){
+
+							// ENCRYPT(IA)
+						
+							read_buffer.flip();
+							
+							initial_data_in = read_buffer;
+							
 							read_buffer	= null;
 					        
 							protocol_state = PS_OUTBOUND_4;
 							
-							break;							
+							break;		
 						}
 					}
-					
 				}else if ( protocol_state == PS_OUTBOUND_4 ){
 					
 						// B->A: ENCRYPT(VC, crypto_select, len(padD), padD, // len(IB)), ENCRYPT(IB)
