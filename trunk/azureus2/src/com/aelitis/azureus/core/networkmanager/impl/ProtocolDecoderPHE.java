@@ -1108,7 +1108,13 @@ ProtocolDecoderPHE
 						
 							read_buffer.flip();
 							
-							initial_data_in = read_buffer;
+							byte[]	data = new byte[read_buffer.remaining()];
+							
+							read_buffer.get( data );
+
+							data = read_cipher.update( data );
+							
+							initial_data_in = ByteBuffer.wrap( data );
 							
 							read_buffer	= null;
 					        
