@@ -27,12 +27,9 @@ import java.util.*;
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerFactory;
-import org.gudy.azureus2.core3.global.impl.GlobalManagerImpl;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.json.JSONObject;
 import org.json.JSONString;
 
@@ -41,6 +38,8 @@ import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformTorrentMessenger;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
+
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 /**
  * @author TuxPaper
@@ -79,11 +78,13 @@ public class PlatformTorrentUtils
 	private static final String TOR_AZ_PROP_CREATIONDATE = "Creation Date";
 
 	private static final String TOR_AZ_PROP_METADATA_REFRESHON = "Refresh On";
-	
+
 	private static final String TOR_AZ_PROP_PROGRESSIVE = "Progressive";
-	
+
 	private static final String TOR_AZ_PROP_SPEED = "Speed Bps";
-	
+
+	private static final String TOR_AZ_PROP_MIN_SPEED = "Min Speed Bps";
+
 	private static final String TOR_AZ_PROP_DRM = "DRM";
 
 	private static final ArrayList metaDataListeners = new ArrayList();
@@ -176,7 +177,7 @@ public class PlatformTorrentUtils
 			} else if (obj instanceof String) {
 				return Long.parseLong((String) obj);
 			} else if (obj instanceof byte[]) {
-				return Long.parseLong(new String((byte[])obj));
+				return Long.parseLong(new String((byte[]) obj));
 			}
 		} catch (Exception e) {
 		}
@@ -215,7 +216,6 @@ public class PlatformTorrentUtils
 	public static boolean isContentDRM(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_DRM, -1) >= 0;
 	}
-
 
 	private static void putOrRemove(Map map, String key, Object obj) {
 		if (obj == null || obj.equals(null)) {
@@ -322,26 +322,25 @@ public class PlatformTorrentUtils
 		}
 
 		try {
-  		URL announceURL = torrent.getAnnounceURL();
-  		if (announceURL == null) {
-  			return false;
-  		}
-  		String url = announceURL.toString().toLowerCase();
-  		return url.indexOf("tracker.aelitis.com") >= 0
+			URL announceURL = torrent.getAnnounceURL();
+			if (announceURL == null) {
+				return false;
+			}
+			String url = announceURL.toString().toLowerCase();
+			return url.indexOf("tracker.aelitis.com") >= 0
 					|| url.indexOf("azureusplatform.com") >= 0;
 		} catch (Exception e) {
 			return false;
 		}
 	}
 
-
 	public static boolean isContent(Torrent torrent) {
 		if (torrent instanceof TorrentImpl) {
-			return isContent(((TorrentImpl)torrent).getTorrent());
+			return isContent(((TorrentImpl) torrent).getTorrent());
 		}
 		return false;
 	}
-	
+
 	/**
 	 * @param torrent
 	 * @param maxDelayMS TODO
@@ -351,28 +350,22 @@ public class PlatformTorrentUtils
 			log("torrent " + new String(torrent.getName()) + " not az content");
 			return;
 		}
-		
-		try {
-			if (DEBUG_CACHING) {
-				log("updateMD");
+
+		if (DEBUG_CACHING) {
+			log("updateMD");
+		}
+
+		PlatformTorrentMessenger.getMetaData(new TOTorrent[] {
+			torrent
+		}, maxDelayMS, new PlatformTorrentMessenger.GetMetaDataReplyListener() {
+
+			public void messageSent() {
 			}
 
-			final String hash = torrent.getHashWrapper().toBase32String();
-
-			PlatformTorrentMessenger.getMetaData(new String[] { hash
-			}, maxDelayMS, new PlatformTorrentMessenger.GetMetaDataReplyListener() {
-
-				public void messageSent() {
-				}
-
-				public void replyReceived(String replyType, Map mapHashes) {
-					updateMetaData_handleReply(torrent, hash, replyType, mapHashes);
-				}
-			});
-		} catch (TOTorrentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			public void replyReceived(String replyType, Map mapHashes) {
+				updateMetaData_handleReply(torrent, null, replyType, mapHashes);
+			}
+		});
 	}
 
 	private static void updateMetaData_handleReply(final TOTorrent torrent,
@@ -394,7 +387,14 @@ public class PlatformTorrentUtils
 				}
 			});
 		} else {
-			JSONObject jsonMapMetaData = (JSONObject) mapHashes.get(hash);
+			if (hash == null) {
+				try {
+					hash = torrent.getHashWrapper().toBase32String();
+				} catch (TOTorrentException e) {
+				}
+			}
+			JSONObject jsonMapMetaData = hash == null ? null
+					: (JSONObject) mapHashes.get(hash);
 			if (jsonMapMetaData != null) {
 				long oldLastUpdated = getContentLastUpdated(torrent);
 				long expireyMins = 0;
@@ -425,15 +425,15 @@ public class PlatformTorrentUtils
 
 					// crappy way of updating the display name
 					try {
-  					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-  					DownloadManager dm = gm.getDownloadManager(torrent);
-  					String title = PlatformTorrentUtils.getContentTitle(torrent);
-  					if (title != null && title.length() > 0
-  							&& dm.getDownloadState().getDisplayName() == null) {
-  						dm.getDownloadState().setDisplayName(title);
-  					}
+						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+						DownloadManager dm = gm.getDownloadManager(torrent);
+						String title = PlatformTorrentUtils.getContentTitle(torrent);
+						if (title != null && title.length() > 0
+								&& dm.getDownloadState().getDisplayName() == null) {
+							dm.getDownloadState().setDisplayName(title);
+						}
 					} catch (Exception e) {
-						
+
 					}
 					triggerMetaDataUpdateListeners(torrent);
 				}
@@ -509,14 +509,8 @@ public class PlatformTorrentUtils
 		return getContentMapLong(torrent, TOR_AZ_PROP_SPEED, 0);
 	}
 
-	static boolean logged;
-	
 	public static long getContentMinimumSpeedBps(TOTorrent torrent) {
-		if ( !logged ){
-			System.out.println( "**** TODO: define PlatformTorrentUtils::getContentMinimumSpeedBps");
-			logged = true;
-		}
-		return Long.MAX_VALUE; // 100*1024;
+		return getContentMapLong(torrent, TOR_AZ_PROP_MIN_SPEED, 20 * 1024);
 	}
 
 	public static void log(String str) {
