@@ -668,13 +668,9 @@ ProtocolDecoderPHE
 			throw( new IOException( "Invalid selected protocol '" + selected_protocol + "'" ));
 		}	
 			
-		if ( selected_protocol != CRYPTO_RC4 ){
+		if ( initial_data_in != null ){
 			
-			filter = 
-				new TransportHelperFilterSwitcher(
-					 new TransportHelperFilterStreamCipher( transport, read_cipher,	write_cipher ),
-					 filter,
-					 initial_data_in );
+			filter = new TransportHelperFilterInserter(	filter, initial_data_in );
 		}
 		
 		handshake_complete	= true;
