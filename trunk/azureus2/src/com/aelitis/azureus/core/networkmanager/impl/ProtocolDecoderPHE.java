@@ -1104,9 +1104,14 @@ ProtocolDecoderPHE
 
 							data = read_cipher.update( data );
 							
+								// hack alert - we can delay the writing of the outbound_4 packet if this is an incoming packet with
+								// a piggybacked bt handshake as we know that we'll be sending our own handshake back out pretty soon
+								// and it'll take the delayed data with it. To be more generic we'd need to add a callback to the pattern
+								// matcher to allow it to decide whether delaying was sensible / or stick a timer on the delayed data
+							
 							delay_outbound_4 = new String( data ).indexOf( "BitTorrent" ) != -1;
 							
-							System.out.println( "Initial Data In: " + new String( data ) + "->delay=" +delay_outbound_4 );
+							// System.out.println( "Initial Data In: " + new String( data ) + "->delay=" +delay_outbound_4 );
 							
 							initial_data_in = ByteBuffer.wrap( data );
 							

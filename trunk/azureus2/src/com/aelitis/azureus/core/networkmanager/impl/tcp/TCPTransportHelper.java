@@ -50,7 +50,9 @@ TCPTransportHelper
 	private static boolean enable_efficient_io = !Constants.JAVA_VERSION.startsWith("1.4");
 
 	private	final SocketChannel	channel;
-		
+	
+	private ByteBuffer	delayed_write;
+	
 	private Map	user_data;
 	
 	private boolean	trace;
@@ -95,7 +97,16 @@ TCPTransportHelper
 	delayWrite(
 		ByteBuffer buffer) 
 	{
-		return( false );
+		if ( delayed_write != null ){
+			
+			Debug.out( "secondary delayed write" );
+			
+			return( false );
+		}
+		
+		delayed_write = buffer;
+		
+		return( true );
 	}
 	
 	public boolean
@@ -118,14 +129,45 @@ TCPTransportHelper
 			return 0;
 		}
 		
-		int	res = channel.write( buffer );
+		long	written = 0;
+		
+		if ( delayed_write != null ){
+			
+			// System.out.println( "delayed write: single" );
+			
+			ByteBuffer[]	buffers = new ByteBuffer[]{ delayed_write, buffer };
+			
+			int	delay_remaining = delayed_write.remaining();
+
+			delayed_write = null;
+			
+			written = write( buffers, 0, 2 );
+			
+			if ( buffers[0].hasRemaining()){
+				
+				delayed_write = buffers[0];
+				
+				written = 0;
+				
+				// System.out.println( "delayed write: single incomp" );
+			}else{
+				
+					// note that we can't report delayed bytes actually written as these have already been accounted for and confuse
+					// the layers above if we report them now
+				
+				written -= delay_remaining;
+			}
+		}else{
+			
+			written = channel.write( buffer );
+		}
 		
 		if ( trace ){
 			
-			TimeFormatter.milliTrace( "tcp: write " + res );
+			TimeFormatter.milliTrace( "tcp: write " + written );
 		}
 		
-		return( res );
+		return((int)written );
 	}
 
 	public long 
@@ -143,50 +185,88 @@ TCPTransportHelper
 			return 0;
 		}
 
-		if( enable_efficient_io ) {
-			try {
-				return channel.write( buffers, array_offset, length );
-			}
-			catch( IOException ioe ) {
-				//a bug only fixed in Tiger (1.5 series):
-				//http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
-				String msg = ioe.getMessage();
-				if( msg != null && msg.equals( "A non-blocking socket operation could not be completed immediately" ) ) {
-					enable_efficient_io = false;
-					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
-							"WARNING: Multi-buffer socket write failed; "
-							+ "switching to single-buffer mode.\n"
-							+ "Upgrade to JRE 1.5 (5.0) series to fix this problem!"));
-				}
-				throw ioe;
-			}
-		}
-
-			//single-buffer mode
-		
 		long written_sofar = 0;
-		
-		for( int i=array_offset; i < (array_offset + length); i++ ) {
+
+		if ( delayed_write != null ){
 			
-			int data_length = buffers[ i ].remaining();
+			ByteBuffer[]	buffers2 = new ByteBuffer[length+1];
 			
-			int written = channel.write( buffers[ i ] );
+			buffers2[0] = delayed_write;
 			
-			written_sofar += written;
-			
-			if( written < data_length ) {
+			int	pos = 1;
+
+			for (int i=array_offset;i<array_offset+length;i++){
 				
-				break;
+				buffers2[pos++] = buffers[i];
+			}
+			
+			// System.out.println( "delayed write: mult (" + buffers2.length + ")" );
+
+			int	delay_remaining = delayed_write.remaining();
+
+			delayed_write = null;
+			
+			written_sofar = write( buffers2, 0, buffers2.length );
+			
+			if ( buffers2[0].hasRemaining()){
+				
+				delayed_write = buffers2[0];
+				
+				written_sofar = 0;
+				
+				// System.out.println( "delayed write: mult incomp" );
+
+			}else{
+				
+				written_sofar -= delay_remaining;
+			}
+		}else{
+			if( enable_efficient_io ) {
+				
+				try{
+					written_sofar = channel.write( buffers, array_offset, length );
+					
+				}catch( IOException ioe ) {
+					
+					//a bug only fixed in Tiger (1.5 series):
+					//http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
+					String msg = ioe.getMessage();
+					if( msg != null && msg.equals( "A non-blocking socket operation could not be completed immediately" ) ) {
+						enable_efficient_io = false;
+						Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+								"WARNING: Multi-buffer socket write failed; "
+								+ "switching to single-buffer mode.\n"
+								+ "Upgrade to JRE 1.5 (5.0) series to fix this problem!"));
+					}
+					throw ioe;
+				}
+			}
+	
+				//single-buffer mode
+						
+			for( int i=array_offset; i < (array_offset + length); i++ ) {
+				
+				int data_length = buffers[ i ].remaining();
+				
+				int written = channel.write( buffers[ i ] );
+				
+				written_sofar += written;
+				
+				if( written < data_length ) {
+					
+					break;
+				}
 			}
 		}
 
+	
 		if ( trace ){
 			TimeFormatter.milliTrace( "tcp: write " + written_sofar );
 		}
-
+		
 		return written_sofar;
 	}
-
+	
 	public int 
 	read( 
 		ByteBuffer buffer ) 
