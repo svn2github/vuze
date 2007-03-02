@@ -41,6 +41,8 @@ public class AZHandshake implements AZMessage {
 	public static final int HANDSHAKE_TYPE_PLAIN  = 0;
 	public static final int HANDSHAKE_TYPE_CRYPTO = 1;
 	
+	private static final int MAX_PADDING		= 128;
+	
 	
   private static final byte bss = DirectByteBuffer.SS_MSG;
 
@@ -172,6 +174,13 @@ public class AZHandshake implements AZMessage {
       }
       payload_map.put( "messages", message_list );
 
+      	// random padding if crypto
+      
+      if ( handshake_type == AZHandshake.HANDSHAKE_TYPE_CRYPTO ){
+    	  
+    	  payload_map.put( "pad", new byte[(int)( Math.random() * MAX_PADDING )]);
+      }
+      
       buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map, DirectByteBuffer.AL_MSG_AZ_HAND );
 
       if( buffer.remaining( bss ) > 1200 )  System.out.println( "Generated AZHandshake size = " +buffer.remaining( bss )+ " bytes" );
