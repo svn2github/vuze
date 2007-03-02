@@ -159,6 +159,8 @@ TCPTransportHelper
 			}
 		}else{
 			
+			// log( buffer );
+			
 			written = channel.write( buffer );
 		}
 		
@@ -221,6 +223,13 @@ TCPTransportHelper
 				written_sofar -= delay_remaining;
 			}
 		}else{
+			/*
+			for( int i=array_offset; i < (array_offset + length); i++ ) {
+
+				log( buffers[i]);
+			}
+			*/
+			
 			if( enable_efficient_io ) {
 				
 				try{
@@ -513,6 +522,25 @@ TCPTransportHelper
 		return( user_data.get( key ));
 	}
 
+	/*
+	protected void
+	log(
+		ByteBuffer	buffer )
+	{
+		int position = buffer.position();
+		
+		int	rem = buffer.remaining();
+		
+		byte[]	temp = new byte[rem>64?64:rem];
+		
+		buffer.get( temp );
+		
+		buffer.position( position );
+		
+		System.out.println( "    writing: " + new String(temp));
+	}
+	*/
+	
 	public void
 	setTrace(
 		boolean	on )
