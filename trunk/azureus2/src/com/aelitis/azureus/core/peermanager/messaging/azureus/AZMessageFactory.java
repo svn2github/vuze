@@ -155,9 +155,21 @@ public class AZMessageFactory {
       return new RawMessageImpl( base_message, raw_buffs, ld.priority, ld.is_no_delay, ld.to_remove );
     }
     
-    //standard message, ensure that protocol messages have wire priority over data payload messages
-    int priority = base_message.getType() == Message.TYPE_DATA_PAYLOAD ? RawMessage.PRIORITY_LOW : RawMessage.PRIORITY_NORMAL;
+     int priority;
     
+    if ( base_message.getID() == AZMessage.ID_AZ_HANDSHAKE ){
+    	
+    		// handshake needs to go out first - if not high then bitfield can get in front of it...
+    	
+    	priority = RawMessage.PRIORITY_HIGH;
+    	
+    }else{
+    	
+    	   //standard message, ensure that protocol messages have wire priority over data payload messages
+
+    	priority = base_message.getType() == Message.TYPE_DATA_PAYLOAD ? RawMessage.PRIORITY_LOW : RawMessage.PRIORITY_NORMAL;
+    }
+        
     return new RawMessageImpl( base_message, raw_buffs, priority, true, null );
   }
   
