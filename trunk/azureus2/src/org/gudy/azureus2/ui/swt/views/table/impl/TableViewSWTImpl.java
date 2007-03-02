@@ -842,7 +842,7 @@ public class TableViewSWTImpl
 			});
 		}
 
-		new TableTooltips(table);
+		new TableTooltips(this, table);
 
 		table.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent event) {
@@ -2662,125 +2662,6 @@ public class TableViewSWTImpl
 		}
 	}
 
-	private class TableTooltips
-		implements Listener
-	{
-		Shell toolTipShell = null;
-
-		Shell mainShell = null;
-
-		Label toolTipLabel = null;
-
-		/**
-		 * Initialize
-		 */
-		public TableTooltips(Table table) {
-			mainShell = table.getShell();
-
-			table.addListener(SWT.Dispose, this);
-			table.addListener(SWT.KeyDown, this);
-			table.addListener(SWT.MouseMove, this);
-			table.addListener(SWT.MouseHover, this);
-			mainShell.addListener(SWT.Deactivate, this);
-			getComposite().addListener(SWT.Deactivate, this);
-		}
-
-		public void handleEvent(Event event) {
-			switch (event.type) {
-				case SWT.MouseHover: {
-					if (toolTipShell != null && !toolTipShell.isDisposed())
-						toolTipShell.dispose();
-
-					TableCellSWT cell = getTableCell(event.x, event.y);
-					if (cell == null)
-						return;
-					cell.invokeToolTipListeners(TableCellSWT.TOOLTIPLISTENER_HOVER);
-					Object oToolTip = cell.getToolTip();
-
-					// TODO: support composite, image, etc
-					if (oToolTip == null || !(oToolTip instanceof String))
-						return;
-					String sToolTip = (String) oToolTip;
-
-					Display d = table.getDisplay();
-					if (d == null)
-						return;
-
-					// We don't get mouse down notifications on trim or borders..
-					toolTipShell = new Shell(table.getShell(), SWT.ON_TOP);
-					FillLayout f = new FillLayout();
-					try {
-						f.marginWidth = 3;
-						f.marginHeight = 1;
-					} catch (NoSuchFieldError e) {
-						/* Ignore for Pre 3.0 SWT.. */
-					}
-					toolTipShell.setLayout(f);
-					toolTipShell.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-
-					toolTipLabel = new Label(toolTipShell, SWT.WRAP);
-					toolTipLabel.setForeground(d.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
-					toolTipLabel.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-					toolTipShell.setData("TableCellSWT", cell);
-					toolTipLabel.setText(sToolTip.replaceAll("&", "&&"));
-					// compute size on label instead of shell because label
-					// calculates wrap, while shell doesn't
-					Point size = toolTipLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-					if (size.x > 600) {
-						size = toolTipLabel.computeSize(600, SWT.DEFAULT, true);
-					}
-					size.x += toolTipShell.getBorderWidth() * 2 + 2;
-					size.y += toolTipShell.getBorderWidth() * 2;
-					try {
-						size.x += toolTipShell.getBorderWidth() * 2 + (f.marginWidth * 2);
-						size.y += toolTipShell.getBorderWidth() * 2 + (f.marginHeight * 2);
-					} catch (NoSuchFieldError e) {
-						/* Ignore for Pre 3.0 SWT.. */
-					}
-					Point pt = table.toDisplay(event.x, event.y);
-					Rectangle displayRect;
-					try {
-						displayRect = table.getMonitor().getClientArea();
-					} catch (NoSuchMethodError e) {
-						displayRect = table.getDisplay().getClientArea();
-					}
-					if (pt.x + size.x > displayRect.x + displayRect.width) {
-						pt.x = displayRect.x + displayRect.width - size.x;
-					}
-
-					if (pt.y + size.y > displayRect.y + displayRect.height) {
-						pt.y -= size.y + 2;
-					} else {
-						pt.y += 21;
-					}
-
-					if (pt.y < displayRect.y)
-						pt.y = displayRect.y;
-
-					toolTipShell.setBounds(pt.x, pt.y, size.x, size.y);
-					toolTipShell.setVisible(true);
-
-					break;
-				}
-
-				case SWT.Dispose:
-					if (mainShell != null && !mainShell.isDisposed())
-						mainShell.removeListener(SWT.Deactivate, this);
-					if (getComposite() != null && !getComposite().isDisposed())
-						mainShell.removeListener(SWT.Deactivate, this);
-					// fall through
-
-				default:
-					if (toolTipShell != null) {
-						toolTipShell.dispose();
-						toolTipShell = null;
-						toolTipLabel = null;
-					}
-					break;
-			} // switch
-		} // handlEvent()
-	}
-
 	private int getColumnNo(int iMouseX) {
 		int iColumn = -1;
 		int itemCount = table.getItemCount();
@@ -2820,7 +2701,7 @@ public class TableViewSWTImpl
 		return (TableRowCore) getRow(item);
 	}
 
-	private TableCellSWT getTableCell(int x, int y) {
+	public TableCellSWT getTableCell(int x, int y) {
 		int iColumn = getColumnNo(x);
 		if (iColumn < 0)
 			return null;
