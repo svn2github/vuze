@@ -65,7 +65,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 public class ListView
 	extends TableViewImpl
 	implements TableViewSWT, UIUpdatable, Listener,
-	TableStructureModificationListener
+	TableStructureModificationListener, KeyListener
 {
 	public static int COLUMN_MARGIN_WIDTH = 3;
 
@@ -157,6 +157,8 @@ public class ListView
 	protected boolean viewVisible;
 
 	private List listenersMenuFill = new ArrayList();
+
+	private ArrayList listenersKey = new ArrayList();
 
 	private final int style;
 
@@ -446,12 +448,11 @@ public class ListView
 		listCanvas.addListener(SWT.FocusOut, this);
 		listCanvas.addListener(SWT.Traverse, this);
 		listCanvas.addListener(SWT.DefaultSelection, this);
-		listCanvas.addListener(SWT.KeyDown, this); // so we are a tab focus
+		listCanvas.addKeyListener(this);
 
 		listCanvas.setMenu(createMenu());
-		
-		new TableTooltips(this, listCanvas);
 
+		new TableTooltips(this, listCanvas);
 
 		TableStructureEventDispatcher.getInstance(sTableID).addListener(this);
 
@@ -1498,7 +1499,7 @@ public class ListView
 
 		return null;
 	}
-	
+
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getTableCell(int, int)
 	public TableCellSWT getTableCell(int x, int y) {
 		ListRow row = (ListRow) getRow(x, y);
@@ -1507,7 +1508,6 @@ public class ListView
 		}
 		return row.getTableCellSWT(x, y);
 	}
-
 
 	public int indexOf(TableRowCore row) {
 		return rows.indexOf(row);
@@ -2397,67 +2397,6 @@ public class ListView
 					System.out.println("TR" + event.detail);
 
 			}
-		} else if (event.type == SWT.KeyDown) {
-			int key = event.character;
-			if (key <= 26 && key > 0)
-				key += 'a' - 1;
-
-			if (event.stateMask == SWT.MOD1) { // Control/Command
-				switch (event.keyCode) {
-					case 'a': // select all
-						selectAll();
-						break;
-
-					case ' ':
-						event.doit = false;
-						ListRow focusedRow = getRowFocused();
-						if (focusedRow != null) {
-							focusedRow.setSelected(!focusedRow.isSelected());
-						}
-						break;
-				}
-
-			} else {
-				switch (event.keyCode) {
-					case SWT.PAGE_UP:
-						moveFocus(getClientArea().height / -ListRow.ROW_HEIGHT, false); // TODO: Use real height
-						break;
-
-					case SWT.PAGE_DOWN:
-						moveFocus(getClientArea().height / ListRow.ROW_HEIGHT, false); // TODO: Use real height
-						break;
-
-					case SWT.HOME: {
-						ListRow row = (ListRow) rows.get(0);
-						if (row != null) {
-							setSelectedRows(new ListRow[] {
-								row
-							});
-						}
-						break;
-					}
-
-					case SWT.END: {
-						int i = rows.size();
-						if (i > 0) {
-							ListRow row = (ListRow) rows.get(i - 1);
-
-							if (row != null) {
-								setSelectedRows(new ListRow[] {
-									row
-								});
-							}
-						}
-						break;
-					}
-
-					case SWT.F5: {
-						System.out.println("F5");
-						refreshVisible(true, true, true);
-						break;
-					}
-				}
-			}
 		} else if (event.type == SWT.DefaultSelection
 				|| event.type == SWT.MouseDoubleClick) {
 			_runDefaultAction();
@@ -3094,7 +3033,16 @@ public class ListView
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#addKeyListener(org.eclipse.swt.events.KeyListener)
 	public void addKeyListener(KeyListener listener) {
-		listCanvas.addKeyListener(listener);
+		if (listenersKey.contains(listener)) {
+			return;
+		}
+
+		listenersKey.add(listener);
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableView#removeKeyListener(org.eclipse.swt.events.KeyListener)
+	public void removeKeyListener(KeyListener listener) {
+		listenersKey.remove(listener);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#addMenuFillListener(org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener)
@@ -3130,11 +3078,6 @@ public class ListView
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#obfusticatedImage(org.eclipse.swt.graphics.Image, org.eclipse.swt.graphics.Point)
 	public Image obfusticatedImage(Image image, Point shellOffset) {
 		return image;
-	}
-
-	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#removeKeyListener(org.eclipse.swt.events.KeyListener)
-	public void removeKeyListener(KeyListener listener) {
-		listCanvas.addKeyListener(listener);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#clipboardSelected()
@@ -3321,5 +3264,100 @@ public class ListView
 	public TableColumnMetrics getColumnMetrics(TableColumn column) {
 		TableColumnMetrics metrics = (TableColumnMetrics) mapColumnMetrics.get(column);
 		return metrics;
+	}
+
+	// @see org.eclipse.swt.events.KeyListener#keyPressed(org.eclipse.swt.events.KeyEvent)
+	public void keyPressed(KeyEvent event) {
+		Object[] listeners = listenersKey.toArray();
+		for (int i = 0; i < listeners.length; i++) {
+			KeyListener l = (KeyListener) listeners[i];
+			l.keyPressed(event);
+			if (!event.doit) {
+				return;
+			}
+		}
+
+		int key = event.character;
+		if (key <= 26 && key > 0)
+			key += 'a' - 1;
+
+		if (event.stateMask == SWT.MOD1) { // Control/Command
+			switch (event.keyCode) {
+				case 'a': // select all
+					selectAll();
+					break;
+
+				case ' ':
+					event.doit = false;
+					ListRow focusedRow = getRowFocused();
+					if (focusedRow != null) {
+						focusedRow.setSelected(!focusedRow.isSelected());
+					}
+					break;
+
+				case SWT.F5: {
+					System.out.println("^F5");
+					refreshVisible(true, true, true);
+					break;
+				}
+			}
+
+		} else {
+			switch (event.keyCode) {
+				case SWT.PAGE_UP:
+					moveFocus(getClientArea().height / -ListRow.ROW_HEIGHT, false);
+					break;
+
+				case SWT.PAGE_DOWN:
+					moveFocus(getClientArea().height / ListRow.ROW_HEIGHT, false);
+					break;
+
+				case SWT.HOME: {
+					ListRow row = (ListRow) rows.get(0);
+					if (row != null) {
+						setSelectedRows(new ListRow[] {
+							row
+						});
+					}
+					break;
+				}
+
+				case SWT.END: {
+					int i = rows.size();
+					if (i > 0) {
+						ListRow row = (ListRow) rows.get(i - 1);
+
+						if (row != null) {
+							setSelectedRows(new ListRow[] {
+								row
+							});
+						}
+					}
+					break;
+				}
+
+				case SWT.F5: {
+					System.out.println("F5");
+					TableRowCore[] rows = getSelectedRows();
+					for (int i = 0; i < rows.length; i++) {
+						rows[i].invalidate();
+						rows[i].refresh(true);
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	// @see org.eclipse.swt.events.KeyListener#keyReleased(org.eclipse.swt.events.KeyEvent)
+	public void keyReleased(KeyEvent event) {
+		Object[] listeners = listenersKey.toArray();
+		for (int i = 0; i < listeners.length; i++) {
+			KeyListener l = (KeyListener) listeners[i];
+			l.keyReleased(event);
+			if (!event.doit) {
+				return;
+			}
+		}
 	}
 }
