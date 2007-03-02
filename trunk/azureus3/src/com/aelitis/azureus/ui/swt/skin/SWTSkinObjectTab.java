@@ -26,7 +26,8 @@ import java.util.ArrayList;
  * @created Jun 21, 2006
  *
  */
-public class SWTSkinObjectTab extends SWTSkinObjectContainer
+public class SWTSkinObjectTab
+	extends SWTSkinObjectContainer
 {
 	SWTSkinObject[] activeWidgets = null;
 

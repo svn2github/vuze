@@ -72,7 +72,9 @@ public class NetworkSearch
 		try {
 			IPCInterface my_ipc = new IPCInterfaceImpl(this);
 
-			pi.getIPC().invoke("search", new Object[] { my_ipc, params
+			pi.getIPC().invoke("search", new Object[] {
+				my_ipc,
+				params
 			});
 
 		} catch (Throwable e) {

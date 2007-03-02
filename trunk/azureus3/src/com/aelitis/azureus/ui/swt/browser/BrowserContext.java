@@ -42,8 +42,9 @@ import com.aelitis.azureus.ui.swt.browser.msg.MessageListener;
  * @author dharkness
  * @created Jul 19, 2006
  */
-public class BrowserContext extends ClientMessageContextImpl implements
-		DisposeListener
+public class BrowserContext
+	extends ClientMessageContextImpl
+	implements DisposeListener
 {
 	public static final String LISTENER_ID = "context";
 
@@ -125,8 +126,8 @@ public class BrowserContext extends ClientMessageContextImpl implements
 		browser.addTitleListener(new TitleListener() {
 			public void changed(TitleEvent event) {
 				if (!browser.isVisible()) {
-  				SimpleTimer.addEvent("Show Browser", System.currentTimeMillis() + 700,
-  						showBrowersPerformer);
+					SimpleTimer.addEvent("Show Browser",
+							System.currentTimeMillis() + 700, showBrowersPerformer);
 				}
 			}
 		});
@@ -344,8 +345,9 @@ public class BrowserContext extends ClientMessageContextImpl implements
 	}
 
 	private String getShortJavascript(String javascript) {
-		if (javascript.length() < (256 + 3 + 256))
+		if (javascript.length() < (256 + 3 + 256)) {
 			return javascript;
+		}
 		StringBuffer result = new StringBuffer();
 		result.append(javascript.substring(0, 256));
 		result.append("...");

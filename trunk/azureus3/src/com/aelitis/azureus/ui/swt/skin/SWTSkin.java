@@ -173,7 +173,8 @@ public class SWTSkin
 				//						+ (length + 1));
 			}
 		} else {
-			arrayMap.put(key, new SWTSkinObject[] { object
+			arrayMap.put(key, new SWTSkinObject[] {
+				object
 			});
 		}
 	}
@@ -308,8 +309,9 @@ public class SWTSkin
 			for (int i = 0; i < children.length; i++) {
 				SWTSkinObject object = children[i];
 				//System.out.println("  check " + object + " in " + start + " for " + skinObject);
-				if (hasSkinObject(object, skinObject))
+				if (hasSkinObject(object, skinObject)) {
 					return true;
+				}
 			}
 		}
 		//System.out.println("  check " + start + " for " + skinObject);
@@ -989,7 +991,8 @@ public class SWTSkin
 					return null;
 				}
 
-				sTypeParams = new String[] { sType
+				sTypeParams = new String[] {
+					sType
 				};
 			}
 

@@ -39,15 +39,16 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @created Jun 13, 2006
  *
  */
-public class ColumnProgressETA extends CoreTableColumn implements
-		TableCellAddedListener
+public class ColumnProgressETA
+	extends CoreTableColumn
+	implements TableCellAddedListener
 {
 	public static String COLUMN_ID = "ProgressETA";
-	
+
 	private static final int borderWidth = 1;
-	
+
 	private static final int COLUMN_WIDTH = 120;
-	
+
 	private static Font fontText = null;
 
 	Display display;
@@ -68,9 +69,9 @@ public class ColumnProgressETA extends CoreTableColumn implements
 		new Cell(cell);
 	}
 
-	private class Cell implements TableCellRefreshListener,
-			TableCellDisposeListener, TableCellMouseListener,
-			TableCellVisibilityListener
+	private class Cell
+		implements TableCellRefreshListener, TableCellDisposeListener,
+		TableCellMouseListener, TableCellVisibilityListener
 	{
 		int lastPercentDone = 0;
 
@@ -238,7 +239,8 @@ public class ColumnProgressETA extends CoreTableColumn implements
 						if (sETA.length() == 0) {
 							sETALine = MessageText.getString(
 									"MyTorrents.column.ColumnProgressETA.StreamReady",
-									new String[] { sSpeed
+									new String[] {
+										sSpeed
 									});
 						} else {
 							sETALine = MessageText.getString(
@@ -286,9 +288,9 @@ public class ColumnProgressETA extends CoreTableColumn implements
 			}
 
 			if (fontText == null) {
-  			FontData[] fontData = gcImage.getFont().getFontData();
-  			fontData[0].setHeight(Utils.pixelsToPoint(10, display.getDPI().y));
-  			fontText = new Font(display, fontData);
+				FontData[] fontData = gcImage.getFont().getFontData();
+				fontData[0].setHeight(Utils.pixelsToPoint(10, display.getDPI().y));
+				fontText = new Font(display, fontData);
 			}
 			gcImage.setFont(fontText);
 			int[] fg = cell.getForeground();

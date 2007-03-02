@@ -32,7 +32,6 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
@@ -47,7 +46,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
  * @created Jun 12, 2006
  */
 public class TorrentListView
-extends ListView
+	extends ListView
 	implements GlobalManagerListener
 {
 	public final static int VIEW_DOWNLOADING = 0;
@@ -153,7 +152,8 @@ extends ListView
 					new SizeItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnRate(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE, false),
+					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE,
+							false),
 				};
 
 				setColumnList(tableColumns, "date_added", true);
@@ -177,9 +177,10 @@ extends ListView
 					new UpItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnRateUpDown(TableManager.TABLE_MYTORRENTS_COMPLETE),
 					new ColumnIsPrivate(TableManager.TABLE_MYTORRENTS_COMPLETE),
-					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE, false),
+					new ColumnDateAdded2Liner(TableManager.TABLE_MYTORRENTS_COMPLETE,
+							false),
 				};
-				
+
 				setColumnList(tableColumns, "date_added", true);
 				String[] autoHideOrder = new String[] {
 					ColumnQuality.COLUMN_ID,
@@ -239,7 +240,8 @@ extends ListView
 						}
 
 						if ((event.stateMask & SWT.CONTROL) != 0) {
-							TableCellSWT cell = ((ListRow)row).getTableCellSWT(event.x, event.y);
+							TableCellSWT cell = ((ListRow) row).getTableCellSWT(event.x,
+									event.y);
 							if (cell != null) {
 								((TableCellImpl) cell).bDebug = !((TableCellImpl) cell).bDebug;
 							}
@@ -251,14 +253,14 @@ extends ListView
 
 		getTableComposite().addListener(SWT.MouseUp, l);
 
-//		addSelectionListener(new TableSelectionAdapter() {
-//			public void defaultSelected(TableRowCore[] rows) {
-//				TableRowCore[] selectedRows = getSelectedRows();
-//				if (selectedRows.length > 0) {
-//					//TorrentListViewsUtils.viewDetails(skin, selectedRows[0]);
-//				}
-//			}
-//		}, false);
+		//		addSelectionListener(new TableSelectionAdapter() {
+		//			public void defaultSelected(TableRowCore[] rows) {
+		//				TableRowCore[] selectedRows = getSelectedRows();
+		//				if (selectedRows.length > 0) {
+		//					//TorrentListViewsUtils.viewDetails(skin, selectedRows[0]);
+		//				}
+		//			}
+		//		}, false);
 
 		this.globalManager = core.getGlobalManager();
 		globalManager.addListener(this, false);
@@ -352,7 +354,8 @@ extends ListView
 			if (columns[i].getName().equals("name")) {
 				nameColumnIdx = i;
 			} else {
-				columnWidthTotal += columns[i].getWidth() + (ListView.COLUMN_MARGIN_WIDTH * 2);
+				columnWidthTotal += columns[i].getWidth()
+						+ (ListView.COLUMN_MARGIN_WIDTH * 2);
 			}
 		}
 
@@ -588,7 +591,8 @@ extends ListView
 
 					if (size1 == size2) {
 						countArea.setText(MessageText.getString("MainWindow.v3.count",
-								new String[] { "" + size1
+								new String[] {
+									"" + size1
 								}));
 					} else {
 						countArea.setText(MessageText.getString("MainWindow.v3.xofx",

@@ -47,18 +47,17 @@ public class UIConfigDefaultsSWTv3
 		// on.
 		String sFirstVersion = config.getStringParameter("First Recorded Version");
 
-
 		ConfigurationDefaults defaults = ConfigurationDefaults.getInstance();
 		// Always have the wizard complete when running az3
 		defaults.addParameter("Wizard Completed", true);
-		
+
 		defaults.addParameter("ui", "az3");
 
 		// Another hack to fix up some 3.x versions thinking their first version
 		// was 2.5.0.0..
 		if (Constants.compareVersions(sFirstVersion, "2.5.0.0") == 0) {
 			String sDefSavePath = config.getStringParameter("Default save path");
-			
+
 			System.out.println(sDefSavePath);
 			String sDefPath = null;
 			try {
@@ -67,48 +66,49 @@ public class UIConfigDefaultsSWTv3
 				e.printStackTrace();
 			}
 			if (sDefPath != null) {
-  			File fNewPath = new File(sDefPath);
-  			
-  			if (sDefSavePath != null && fNewPath.equals(new File(sDefSavePath))) {
-  				sFirstVersion = "3.0.0.5";
-  				config.setParameter("First Recorded Version", sFirstVersion);
-  				config.save();
-  			}
+				File fNewPath = new File(sDefPath);
+
+				if (sDefSavePath != null && fNewPath.equals(new File(sDefSavePath))) {
+					sFirstVersion = "3.0.0.5";
+					config.setParameter("First Recorded Version", sFirstVersion);
+					config.save();
+				}
 			}
 		}
 
 		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0) {
-			
+
 			if (!config.isNewInstall()
 					&& Constants.compareVersions(sFirstVersion, "3.0.0.4") < 0) {
 				// We can guess first version based on the Default save path.
 				// In 3.0.0.0 to 3.0.0.3, we set it to userPath + "data". Anything
 				// else is 2.x.  We don't want to change the defaults for 2.x people
-  			String userPath = SystemProperties.getUserPath();
-  			File fOldPath = new File(userPath, "data");
-  			String sDefSavePath = config.getStringParameter("Default save path");
-  			
-  			String sDefPath = "";
+				String userPath = SystemProperties.getUserPath();
+				File fOldPath = new File(userPath, "data");
+				String sDefSavePath = config.getStringParameter("Default save path");
+
+				String sDefPath = "";
 				try {
 					sDefPath = defaults.getStringParameter("Default save path");
 				} catch (ConfigurationParameterNotFoundException e) {
 				}
-  			File fNewPath = new File(sDefPath);
-  			
-  			if (sDefSavePath != null && fNewPath.equals(new File(sDefSavePath))) {
-  				sFirstVersion = "3.0.0.5";
-  				config.setParameter("First Recorded Version", sFirstVersion);
-  				config.save();
-  			} else if (sDefSavePath == null || !fOldPath.equals(new File(sDefSavePath))) {
-  				sFirstVersion = "2.5.0.0"; // guess
-  				config.setParameter("First Recorded Version", sFirstVersion);
-  				config.save();
-  				return;
-  			} else {
-  				// first version was 3.0.0.0 - 3.0.0.3, which used userPath + "data"
-  				// remove save path, which will default it to Azureus' Doc dir
-  				config.removeParameter("Default save path");
-  			}
+				File fNewPath = new File(sDefPath);
+
+				if (sDefSavePath != null && fNewPath.equals(new File(sDefSavePath))) {
+					sFirstVersion = "3.0.0.5";
+					config.setParameter("First Recorded Version", sFirstVersion);
+					config.save();
+				} else if (sDefSavePath == null
+						|| !fOldPath.equals(new File(sDefSavePath))) {
+					sFirstVersion = "2.5.0.0"; // guess
+					config.setParameter("First Recorded Version", sFirstVersion);
+					config.save();
+					return;
+				} else {
+					// first version was 3.0.0.0 - 3.0.0.3, which used userPath + "data"
+					// remove save path, which will default it to Azureus' Doc dir
+					config.removeParameter("Default save path");
+				}
 			}
 
 			defaults.addParameter("Auto Upload Speed Enabled", true);
@@ -123,8 +123,8 @@ public class UIConfigDefaultsSWTv3
 			defaults.addParameter("Status Area Show IPF", false);
 
 			defaults.addParameter("window.maximized", true);
-			
-	    defaults.addParameter("update.autodownload", true);
+
+			defaults.addParameter("update.autodownload", true);
 
 			config.save();
 		}

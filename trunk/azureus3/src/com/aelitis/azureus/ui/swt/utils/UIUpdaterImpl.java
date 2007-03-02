@@ -26,10 +26,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
@@ -37,8 +34,9 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
  * @author TuxPaper
  *
  */
-public class UIUpdaterImpl extends AEThread implements ParameterListener,
-		UIUpdater
+public class UIUpdaterImpl
+	extends AEThread
+	implements ParameterListener, UIUpdater
 {
 	private static final LogIDs LOGID = LogIDs.UI3;
 

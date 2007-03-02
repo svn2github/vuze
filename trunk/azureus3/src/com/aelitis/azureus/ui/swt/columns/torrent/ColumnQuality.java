@@ -31,13 +31,15 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @created Jun 13, 2006
  *
  */
-public class ColumnQuality extends CoreTableColumn implements
-		TableCellAddedListener
+public class ColumnQuality
+	extends CoreTableColumn
+	implements TableCellAddedListener
 {
 	public static String COLUMN_ID = "Quality";
 
 	public Font font;
-	private final int COLUMN_WIDTH = 40; 
+
+	private final int COLUMN_WIDTH = 40;
 
 	/**
 	 * 
@@ -53,14 +55,15 @@ public class ColumnQuality extends CoreTableColumn implements
 		new Cell(cell);
 	}
 
-	private class Cell implements TableCellRefreshListener, TableCellDisposeListener
+	private class Cell
+		implements TableCellRefreshListener, TableCellDisposeListener
 	{
 		public Cell(TableCell cell) {
 			cell.addListeners(this);
 			cell.setMarginWidth(0);
 			cell.setMarginHeight(0);
 		}
-		
+
 		public void dispose(TableCell cell) {
 			disposeOld(cell);
 		}
@@ -75,7 +78,7 @@ public class ColumnQuality extends CoreTableColumn implements
 			if (torrent == null) {
 				return;
 			}
-			
+
 			String quality = PlatformTorrentUtils.getContentQuality(torrent);
 			if (!cell.setSortValue(quality) && cell.isValid()) {
 				return;
@@ -83,17 +86,18 @@ public class ColumnQuality extends CoreTableColumn implements
 			if (!cell.isShown()) {
 				return;
 			}
-			
+
 			if (quality == null) {
 				disposeOld(cell);
 				cell.setGraphic(null);
 				return;
 			}
 
-			Image img = ImageLoaderFactory.getInstance().getImage("icon.quality." + quality);
+			Image img = ImageLoaderFactory.getInstance().getImage(
+					"icon.quality." + quality);
 			if (ImageLoader.isRealImage(img)) {
-  			UISWTGraphicImpl graphic = new UISWTGraphicImpl(img);
-  			cell.setGraphic(graphic);
+				UISWTGraphicImpl graphic = new UISWTGraphicImpl(img);
+				cell.setGraphic(graphic);
 			} else {
 				int width = cell.getWidth();
 				int height = cell.getHeight();
@@ -133,11 +137,12 @@ public class ColumnQuality extends CoreTableColumn implements
 				r.y += 2;
 				gcImage.setForeground(color1);
 
-				GCStringPrinter.printString(gcImage, quality, r, true, false, SWT.CENTER);
+				GCStringPrinter.printString(gcImage, quality, r, true, false,
+						SWT.CENTER);
 
 				gcImage.setForeground(color2);
-				GCStringPrinter.printString(gcImage, quality, img.getBounds(), true, false,
-						SWT.CENTER);
+				GCStringPrinter.printString(gcImage, quality, img.getBounds(), true,
+						false, SWT.CENTER);
 
 				gcImage.dispose();
 
@@ -148,18 +153,20 @@ public class ColumnQuality extends CoreTableColumn implements
 				cell.setGraphic(graphic);
 			}
 		}
-		
+
 		private void disposeOld(TableCell cell) {
 			Graphic oldGraphic = cell.getGraphic();
 			if (oldGraphic instanceof disposableUISWTGraphic) {
 				Image oldImage = ((UISWTGraphic) oldGraphic).getImage();
-				Utils.disposeSWTObjects(new Object[] { oldImage
+				Utils.disposeSWTObjects(new Object[] {
+					oldImage
 				});
 			}
 		}
 	}
 
-	public class disposableUISWTGraphic extends UISWTGraphicImpl
+	public class disposableUISWTGraphic
+		extends UISWTGraphicImpl
 	{
 		public disposableUISWTGraphic(Image newImage) {
 			super(newImage);

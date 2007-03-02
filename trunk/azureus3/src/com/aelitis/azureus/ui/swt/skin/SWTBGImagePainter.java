@@ -6,10 +6,7 @@ package com.aelitis.azureus.ui.swt.skin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
@@ -24,7 +21,8 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoader;
  * @created Jun 8, 2006
  *
  */
-public class SWTBGImagePainter implements Listener
+public class SWTBGImagePainter
+	implements Listener
 {
 	private static boolean DEBUG = false;
 

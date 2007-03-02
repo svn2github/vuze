@@ -42,12 +42,12 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 public class PlatformTorrentMessenger
 {
 	public static String LISTENER_ID = "torrent";
-	
+
 	public static String OP_GETMETADATA = "get-metadata";
-	
-	public static void getMetaData(String[] torrentHashes,
-			long maxDelayMS, final GetMetaDataReplyListener replyListener) {
-		
+
+	public static void getMetaData(String[] torrentHashes, long maxDelayMS,
+			final GetMetaDataReplyListener replyListener) {
+
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				OP_GETMETADATA, new Object[] {
 					"hashes",
@@ -72,10 +72,11 @@ public class PlatformTorrentMessenger
 
 		PlatformMessenger.queueMessage(message, listener);
 	}
-	
-	public static interface GetMetaDataReplyListener {
+
+	public static interface GetMetaDataReplyListener
+	{
 		public void messageSent();
-		
+
 		public void replyReceived(String replyType, Map mapHashes);
 	}
 
@@ -90,11 +91,11 @@ public class PlatformTorrentMessenger
 			final GetMetaDataReplyListener replyListener) {
 		if (PlatformConfigMessenger.getRPCVersion() > 0) {
 			// We can use the better function
-			
+
 			JSONObject jsonObject = new JSONObject();
 			JSONArray jsonArray = new JSONArray();
 			jsonObject.put("hashes", jsonArray);
-			
+
 			for (int i = 0; i < torrents.length; i++) {
 				TOTorrent torrent = torrents[i];
 				String hash = null;
@@ -104,15 +105,16 @@ public class PlatformTorrentMessenger
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+
 				if (hash != null) {
 					JSONObject jsonSubObject = new JSONObject();
 					jsonArray.put(jsonObject);
 					jsonSubObject.put("hash", hash);
-					jsonSubObject.put("last-revision", new Long(PlatformTorrentUtils.getContentLastUpdated(torrent)));
+					jsonSubObject.put("last-revision", new Long(
+							PlatformTorrentUtils.getContentLastUpdated(torrent)));
 				}
 			}
-			
+
 			PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 					OP_GETMETADATA, jsonObject, maxDelayMS);
 

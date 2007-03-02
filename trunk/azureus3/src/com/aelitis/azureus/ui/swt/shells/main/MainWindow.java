@@ -708,7 +708,7 @@ public class MainWindow
 			}
 			tabSet.setActiveTab(startTab);
 		}
-		
+
 		isReady = true;
 	}
 
@@ -738,8 +738,9 @@ public class MainWindow
 	private void minimizeToTray(ShellEvent event) {
 		boolean isOSX = org.gudy.azureus2.core3.util.Constants.isOSX;
 		//Added this test so that we can call this method with null parameter.
-		if (event != null)
+		if (event != null) {
 			event.doit = false;
+		}
 		if (isOSX) {
 			shell.setMinimized(true);
 		} else {

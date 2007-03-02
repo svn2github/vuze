@@ -30,8 +30,9 @@ import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
  * @created Jul 2, 2006
  *
  */
-public class ListCellGraphic extends ListCell implements
-		BufferedGraphicTableItem
+public class ListCellGraphic
+	extends ListCell
+	implements BufferedGraphicTableItem
 {
 	// XXX Must remain 1 as plugin docs say so
 	private int marginHeight = 1;
@@ -68,7 +69,7 @@ public class ListCellGraphic extends ListCell implements
 		if (img != null && img.isDisposed()) {
 			return false;
 		}
-		
+
 		if (image == img) {
 			return false;
 		}
@@ -77,9 +78,9 @@ public class ListCellGraphic extends ListCell implements
 		if (image != null) {
 			imageBounds = image.getBounds();
 		}
-		
-		((ListView)row.getView()).cellRefresh(this, true, true);
-		
+
+		((ListView) row.getView()).cellRefresh(this, true, true);
+
 		return true;
 	}
 
@@ -116,7 +117,8 @@ public class ListCellGraphic extends ListCell implements
 
 		gc.setBackground(getBackground());
 		if (DEBUG_COLORCELL) {
-			gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 16)));
+			gc.setBackground(Display.getDefault().getSystemColor(
+					(int) (Math.random() * 16)));
 		}
 		gc.fillRectangle(getBounds());
 

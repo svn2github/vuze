@@ -62,7 +62,7 @@ public class Sleak
 	Object[] objects = new Object[0];
 
 	Error[] errors = new Error[0];
-	
+
 	ArrayList oldNonResources = new ArrayList();
 
 	public void open() {

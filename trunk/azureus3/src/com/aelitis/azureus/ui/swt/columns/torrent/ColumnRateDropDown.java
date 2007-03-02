@@ -179,7 +179,7 @@ public class ColumnRateDropDown
 				public void defaultSelected(TableRowCore[] rows) {
 					closeDropDownList();
 
-					((ListView)listCell.getRow().getView()).getControl().setFocus();
+					((ListView) listCell.getRow().getView()).getControl().setFocus();
 
 					String id = (String) rows[0].getDataSource(true);
 					imgRating = ImageLoaderFactory.getInstance().getImage(id);

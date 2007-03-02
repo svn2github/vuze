@@ -31,12 +31,12 @@ public class TableColumnMetrics
 	 * X Position after padding
 	 */
 	public int x;
+
 	/**
 	 * Width including any padding
 	 */
 	public int width;
-	
-	
+
 	/**
 	 * @param x
 	 * @param width

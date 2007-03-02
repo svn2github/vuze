@@ -50,7 +50,8 @@ import com.aelitis.azureus.util.InitialisationFunctions;
  * @created May 29, 2006
  *
  */
-public class Initializer implements IUIIntializer
+public class Initializer
+	implements IUIIntializer
 {
 	private static StartServer startServer;
 
@@ -90,8 +91,9 @@ public class Initializer implements IUIIntializer
 
 				public void started(AzureusCore core) {
 					InitialisationFunctions.lateInitialisation(core);
-					if (gm == null)
+					if (gm == null) {
 						return;
+					}
 
 					new UserAlerts(gm);
 
@@ -186,10 +188,11 @@ public class Initializer implements IUIIntializer
 		UIConfigDefaultsSWT.initialize();
 
 		UIConfigDefaultsSWTv3.initialize();
-		
+
 		ImageRepository.loadImagesForSplashWindow(display);
 
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/azureus.jpg", "azureus_splash");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/azureus.jpg",
+				"azureus_splash");
 
 		display.syncExec(new AERunnable() {
 			public void runSupport() {
@@ -207,8 +210,9 @@ public class Initializer implements IUIIntializer
 			String sLastTask;
 
 			public void reportCurrentTask(AzureusCoreOperation op, String currentTask) {
-				if (op.getOperationType() != AzureusCoreOperation.OP_INITIALISATION)
+				if (op.getOperationType() != AzureusCoreOperation.OP_INITIALISATION) {
 					return;
+				}
 				if (sLastTask != null && !sLastTask.startsWith("Loading Torrent")) {
 					long now = SystemTime.getCurrentTime();
 					long diff = now - startTime;
@@ -222,8 +226,9 @@ public class Initializer implements IUIIntializer
 			}
 
 			public void reportPercent(AzureusCoreOperation op, int percent) {
-				if (op.getOperationType() != AzureusCoreOperation.OP_INITIALISATION)
+				if (op.getOperationType() != AzureusCoreOperation.OP_INITIALISATION) {
 					return;
+				}
 				if (percent == 100) {
 					long now = SystemTime.getCurrentTime();
 					long diff = now - startTime;

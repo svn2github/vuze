@@ -34,7 +34,7 @@ public class SWTSkinFactory
 		}
 		return instance;
 	}
-	
+
 	public static void setInstance(SWTSkin skin) {
 		instance = skin;
 	}

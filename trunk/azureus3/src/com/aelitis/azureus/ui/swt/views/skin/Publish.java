@@ -50,7 +50,9 @@ import org.gudy.azureus2.plugins.*;
  * @created Oct 1, 2006
  *
  */
-public class Publish extends SkinView implements LocalHoster
+public class Publish
+	extends SkinView
+	implements LocalHoster
 {
 	private LocalResourceHTTPServer local_publisher;
 

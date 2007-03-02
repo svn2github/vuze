@@ -465,8 +465,9 @@ public class ListView
 
 	private int getOffset(int i) {
 		int ofs = (i % ListRow.ROW_HEIGHT);
-		if (ofs == 0)
+		if (ofs == 0) {
 			return 0;
+		}
 		return ofs;
 	}
 
@@ -1119,11 +1120,13 @@ public class ListView
 							index = rows.size();
 						} else {
 							index = Collections.binarySearch(rows, row, sortColumn);
-							if (index < 0)
+							if (index < 0) {
 								index = -1 * index - 1; // best guess
+							}
 
-							if (index > rows.size())
+							if (index > rows.size()) {
 								index = rows.size();
+							}
 						}
 
 						if (iFirstChange < 0 || iFirstChange > index) {
@@ -2480,8 +2483,9 @@ public class ListView
 		runForAllRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
 				TableCellSWT cell = ((TableRowSWT) row).getTableCellSWT(sColumnName);
-				if (cell != null)
+				if (cell != null) {
 					cell.invalidate(bMustRefresh);
+				}
 			}
 		});
 	}
@@ -2521,12 +2525,13 @@ public class ListView
 		if (!bSameColumn) {
 			sortColumn = sorter;
 			int iSortDirection = configMan.getIntParameter(CFG_SORTDIRECTION);
-			if (iSortDirection == 0)
+			if (iSortDirection == 0) {
 				sortColumn.setSortAscending(true);
-			else if (iSortDirection == 1)
+			} else if (iSortDirection == 1) {
 				sortColumn.setSortAscending(false);
-			else
+			} else {
 				sortColumn.setSortAscending(!sortColumn.isSortAscending());
+			}
 
 			configMan.setParameter(sTableID + ".sortAsc",
 					sortColumn.isSortAscending());
@@ -2593,8 +2598,9 @@ public class ListView
 				//Collections.sort(rows, sortColumn);
 				if (DEBUG_SORTER) {
 					long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
-					if (lTimeDiff > 100)
+					if (lTimeDiff > 100) {
 						System.out.println("--- Build & Sort took " + lTimeDiff + "ms");
+					}
 					lTimeStart = System.currentTimeMillis();
 				}
 
@@ -2674,8 +2680,9 @@ public class ListView
 				/ ListRow.ROW_HEIGHT;
 
 		int size = iBottomIndex - iTopIndex + 1;
-		if (size <= 0)
+		if (size <= 0) {
 			return false;
+		}
 
 		int i = row.getIndex();
 		return (i >= iTopIndex && i <= iBottomIndex);
@@ -2692,8 +2699,9 @@ public class ListView
 		int iBottomIndex = (y + clientArea.height - 1) / ListRow.ROW_HEIGHT;
 
 		int size = iBottomIndex - iTopIndex + 1;
-		if (size <= 0)
+		if (size <= 0) {
 			return new TableRowSWT[0];
+		}
 
 		TableRowSWT[] visiblerows = new TableRowSWT[size];
 		int pos = 0;
@@ -2991,15 +2999,17 @@ public class ListView
 			public void menuHidden(MenuEvent e) {
 				bShown = false;
 
-				if (Constants.isOSX)
+				if (Constants.isOSX) {
 					return;
+				}
 
 				// Must dispose in an asyncExec, otherwise SWT.Selection doesn't
 				// get fired (async workaround provided by Eclipse Bug #87678)
 				e.widget.getDisplay().asyncExec(new AERunnable() {
 					public void runSupport() {
-						if (bShown || menu.isDisposed())
+						if (bShown || menu.isDisposed()) {
 							return;
+						}
 						MenuItem[] items = menu.getItems();
 						for (int i = 0; i < items.length; i++) {
 							items[i].dispose();
@@ -3010,8 +3020,9 @@ public class ListView
 
 			public void menuShown(MenuEvent e) {
 				MenuItem[] items = menu.getItems();
-				for (int i = 0; i < items.length; i++)
+				for (int i = 0; i < items.length; i++) {
 					items[i].dispose();
+				}
 
 				bShown = true;
 
@@ -3278,8 +3289,9 @@ public class ListView
 		}
 
 		int key = event.character;
-		if (key <= 26 && key > 0)
+		if (key <= 26 && key > 0) {
 			key += 'a' - 1;
+		}
 
 		if (event.stateMask == SWT.MOD1) { // Control/Command
 			switch (event.keyCode) {

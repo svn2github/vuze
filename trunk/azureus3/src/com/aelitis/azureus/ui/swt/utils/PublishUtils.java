@@ -42,7 +42,7 @@ public class PublishUtils
 			if (torrent == null) {
 				return false;
 			}
-			
+
 			Map map = torrent.getAdditionalMapProperty("attributes");
 
 			if (map != null) {

@@ -22,7 +22,8 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoader;
  * @created Jun 12, 2006
  *
  */
-public class SWTSkinObjectBasic implements SWTSkinObject
+public class SWTSkinObjectBasic
+	implements SWTSkinObject
 {
 	protected Control control;
 

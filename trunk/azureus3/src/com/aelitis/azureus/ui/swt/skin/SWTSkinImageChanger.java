@@ -13,7 +13,8 @@ import org.eclipse.swt.widgets.Listener;
  * @created Jun 8, 2006
  *
  */
-public class SWTSkinImageChanger implements Listener
+public class SWTSkinImageChanger
+	implements Listener
 {
 	private final String suffix;
 

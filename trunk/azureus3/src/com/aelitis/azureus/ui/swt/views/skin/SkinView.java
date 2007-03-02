@@ -30,7 +30,8 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter;
  * @created Sep 30, 2006
  *
  */
-public class SkinView extends SWTSkinObjectAdapter
+public class SkinView
+	extends SWTSkinObjectAdapter
 {
 	private boolean bAlreadyInitialized;
 

@@ -46,7 +46,8 @@ import com.aelitis.azureus.ui.swt.views.list.ListView;
  * TODO Code similaries between MiniRecentList, MiniDownloadList, ManageCdList, 
  *     and ManageDlList.  Need to combine
  */
-public class MiniDownloadList extends SkinView
+public class MiniDownloadList
+	extends SkinView
 {
 	private static String PREFIX = "minidownload-";
 

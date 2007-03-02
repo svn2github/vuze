@@ -34,11 +34,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
@@ -55,7 +51,8 @@ import org.gudy.azureus2.plugins.PluginView;
  * @created Jul 13, 2006
  *
  */
-public class UIFunctionsImpl implements UIFunctionsSWT
+public class UIFunctionsImpl
+	implements UIFunctionsSWT
 {
 	private final static LogIDs LOGID = LogIDs.GUI;
 
@@ -471,12 +468,12 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 		// XXX Don't use oldMainWindow, status bar is global and oldMainWindow
 		//     shouldn't need to be initialized
 	}
-	
+
 	// @see com.aelitis.azureus.ui.UIFunctions#setStatusText(int, java.lang.String, com.aelitis.azureus.ui.UIStatusTextClickListener)
 	public void setStatusText(int statustype, String string,
 			UIStatusTextClickListener l) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#showConfig(java.lang.String)
@@ -648,8 +645,7 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 					uiFunctions.addPluginView((UISWTPluginView) key);
 				} else if (key instanceof String) {
 					UISWTViewEventListener value = (UISWTViewEventListener) mapPluginViews.get(key);
-					uiFunctions.addPluginView((String) key,
-							(UISWTViewEventListener) value);
+					uiFunctions.addPluginView((String) key, value);
 				}
 			}
 			mapPluginViews.clear();
@@ -657,7 +653,7 @@ public class UIFunctionsImpl implements UIFunctionsSWT
 			pluginViews_mon.exit();
 		}
 	}
-	
+
 	// @see com.aelitis.azureus.ui.UIFunctions#promptUser(java.lang.String, java.lang.String, java.lang.String[], int, java.lang.String, java.lang.String, boolean, int)
 	public int promptUser(String title, String text, String[] buttons,
 			int defaultOption, String rememberID, String rememberText,

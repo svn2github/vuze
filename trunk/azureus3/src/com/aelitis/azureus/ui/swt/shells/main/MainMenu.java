@@ -83,13 +83,13 @@ public class MainMenu
 			new MenuItem(helpMenu, SWT.SEPARATOR);
 		}
 
-    MenuItem help_whatsnew = new MenuItem(helpMenu, SWT.NULL);
-    Messages.setLanguageText(help_whatsnew, "MainWindow.menu.help.releasenotes");
-    help_whatsnew.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        new WelcomeWindow(parent);
-      }
-    });
+		MenuItem help_whatsnew = new MenuItem(helpMenu, SWT.NULL);
+		Messages.setLanguageText(help_whatsnew, "MainWindow.menu.help.releasenotes");
+		help_whatsnew.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				new WelcomeWindow(parent);
+			}
+		});
 
 		MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
 		Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq");
@@ -307,24 +307,24 @@ public class MainMenu
 		if (skinObject != null) {
 			final Control control = skinObject.getControl();
 			if (control != null && !control.isDisposed()) {
-  			if (visible) {
-  				final Point size = (Point) control.getData("v3.oldHeight");
-  				if (size != null) {
-  					final FormData fd = (FormData) control.getLayoutData();
-  					if (fd != null && (fd.width != size.x || fd.height != size.y)) {
-  						slide(control, fd, size);
-  					}
-  				}
-  			} else {
-  				final FormData fd = (FormData) control.getLayoutData();
-  				if (fd != null) {
-  					control.setData("v3.oldHeight", new Point(fd.width, fd.height));
-  					final Point size = new Point(0, 0);
-  
-  					slide(control, fd, size);
-  				}
-  			}
-  			Utils.relayout(control);
+				if (visible) {
+					final Point size = (Point) control.getData("v3.oldHeight");
+					if (size != null) {
+						final FormData fd = (FormData) control.getLayoutData();
+						if (fd != null && (fd.width != size.x || fd.height != size.y)) {
+							slide(control, fd, size);
+						}
+					}
+				} else {
+					final FormData fd = (FormData) control.getLayoutData();
+					if (fd != null) {
+						control.setData("v3.oldHeight", new Point(fd.width, fd.height));
+						final Point size = new Point(0, 0);
+
+						slide(control, fd, size);
+					}
+				}
+				Utils.relayout(control);
 			}
 
 			COConfigurationManager.setParameter(configID, visible);

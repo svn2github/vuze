@@ -45,8 +45,9 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @created Jun 29, 2006
  *
  */
-public class ColumnMediaThumb extends CoreTableColumn implements
-		TableCellAddedListener
+public class ColumnMediaThumb
+	extends CoreTableColumn
+	implements TableCellAddedListener
 {
 	public static String COLUMN_ID = "MediaThumb";
 
@@ -64,8 +65,9 @@ public class ColumnMediaThumb extends CoreTableColumn implements
 		new Cell(cell);
 	}
 
-	private class Cell implements TableCellRefreshListener,
-			TableCellDisposeListener, TableCellVisibilityListener
+	private class Cell
+		implements TableCellRefreshListener, TableCellDisposeListener,
+		TableCellVisibilityListener
 	{
 		TOTorrent torrent;
 
@@ -133,32 +135,32 @@ public class ColumnMediaThumb extends CoreTableColumn implements
 
 					ByteArrayInputStream bis = new ByteArrayInputStream(b);
 					try {
-  					Image img = new Image(Display.getDefault(), bis);
-  
-  					int w = img.getBounds().width;
-  					int h = img.getBounds().height;
-  
-  					if (h > MAXH) {
-  						int h2 = MAXH;
-  						int w2 = h2 * w / h;
-  						Image newImg = new Image(img.getDevice(), w2, h2);
-  
-  						GC gc = new GC(newImg);
-  						gc.setAdvanced(true);
-  						try {
-  							gc.setInterpolation(SWT.HIGH);
-  						} catch (Exception e) {
-  							// may not be avail
-  						}
-  						gc.drawImage(img, 0, 0, w, h, 0, 0, w2, h2);
-  						gc.dispose();
-  
-  						img.dispose();
-  						img = newImg;
-  					}
-  
-  					Graphic graphic = new disposableUISWTGraphic(img);
-  					cell.setGraphic(graphic);
+						Image img = new Image(Display.getDefault(), bis);
+
+						int w = img.getBounds().width;
+						int h = img.getBounds().height;
+
+						if (h > MAXH) {
+							int h2 = MAXH;
+							int w2 = h2 * w / h;
+							Image newImg = new Image(img.getDevice(), w2, h2);
+
+							GC gc = new GC(newImg);
+							gc.setAdvanced(true);
+							try {
+								gc.setInterpolation(SWT.HIGH);
+							} catch (Exception e) {
+								// may not be avail
+							}
+							gc.drawImage(img, 0, 0, w, h, 0, 0, w2, h2);
+							gc.dispose();
+
+							img.dispose();
+							img = newImg;
+						}
+
+						Graphic graphic = new disposableUISWTGraphic(img);
+						cell.setGraphic(graphic);
 					} catch (Exception e) {
 						// ignore, probably invalid image
 					}
@@ -173,11 +175,12 @@ public class ColumnMediaThumb extends CoreTableColumn implements
 			Graphic oldGraphic = cell.getGraphic();
 			if (oldGraphic instanceof disposableUISWTGraphic) {
 				Image oldImage = ((UISWTGraphic) oldGraphic).getImage();
-				Utils.disposeSWTObjects(new Object[] { oldImage
+				Utils.disposeSWTObjects(new Object[] {
+					oldImage
 				});
 			}
 		}
-		
+
 		public void cellVisibilityChanged(TableCell cell, int visibility) {
 			if (visibility == TableCellVisibilityListener.VISIBILITY_HIDDEN) {
 				//log(cell, "whoo, save");
@@ -194,7 +197,8 @@ public class ColumnMediaThumb extends CoreTableColumn implements
 		}
 	}
 
-	public class disposableUISWTGraphic extends UISWTGraphicImpl
+	public class disposableUISWTGraphic
+		extends UISWTGraphicImpl
 	{
 		public disposableUISWTGraphic(Image newImage) {
 			super(newImage);

@@ -24,16 +24,10 @@ import java.io.ByteArrayInputStream;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -65,7 +59,8 @@ import com.aelitis.azureus.ui.swt.views.list.ListRow;
  * @created Oct 12, 2006
  *
  */
-public class MediaList extends SkinView
+public class MediaList
+	extends SkinView
 {
 	private static final int ASYOUTYPE_UPDATEDELAY = 150;
 
@@ -129,21 +124,31 @@ public class MediaList extends SkinView
 
 				boolean bOurs = true;
 				try {
-					String[][] names = {	{"", 		dm.getDisplayName()},
-													{"t:", 	dm.getTorrent().getAnnounceURL().getHost()},
-													{"st:", 	"" + dm.getState()}
-												};
-					
+					String[][] names = {
+						{
+							"",
+							dm.getDisplayName()
+						},
+						{
+							"t:",
+							dm.getTorrent().getAnnounceURL().getHost()
+						},
+						{
+							"st:",
+							"" + dm.getState()
+						}
+					};
+
 					String name = names[0][1];
 					String tmpSearch = sLastSearch;
-					
-					for(int i = 0; i < names.length; i++){
+
+					for (int i = 0; i < names.length; i++) {
 						if (tmpSearch.startsWith(names[i][0])) {
 							tmpSearch = tmpSearch.substring(names[i][0].length());
 							name = names[i][1];
 						}
 					}
-					
+
 					String s = bRegexSearch ? tmpSearch : "\\Q"
 							+ tmpSearch.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
 					Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
@@ -268,13 +273,14 @@ public class MediaList extends SkinView
 
 						if (lblCountAreaOurs != null) {
 							lblCountAreaOurs.setText(MessageText.getString("MainWindow.v3."
-									+ PREFIX + "ours.count", new String[] { "" + totalOurs
+									+ PREFIX + "ours.count", new String[] {
+								"" + totalOurs
 							}));
 						}
 						if (lblCountAreaNotOurs != null) {
 							lblCountAreaNotOurs.setText(MessageText.getString(
-									"MainWindow.v3." + PREFIX + "notours.count",
-									new String[] { "" + totalNotOurs
+									"MainWindow.v3." + PREFIX + "notours.count", new String[] {
+										"" + totalNotOurs
 									}));
 							lblCountAreaNotOurs.getControl().getParent().layout(true, true);
 						}
@@ -379,36 +385,39 @@ public class MediaList extends SkinView
 				}
 			}, true);
 		}
-		
+
 		skinObject = skin.getSkinObject("search-text");
 		if (skinObject != null && false) {
 			Control control = skinObject.getControl();
 			if (control instanceof Composite) {
-				Control[] children = ((Composite)control).getChildren();
+				Control[] children = ((Composite) control).getChildren();
 				if (children.length > 0 && (children[0] instanceof Text)) {
-					txtFilter = (Text)children[0];
-	        txtFilter.addModifyListener(new ModifyListener() {
-	        	public void modifyText(ModifyEvent e) {
-	        		sLastSearch = ((Text)e.widget).getText();
-	        		updateLastSearch();
-	        	}
-	        });
-					
+					txtFilter = (Text) children[0];
+					txtFilter.addModifyListener(new ModifyListener() {
+						public void modifyText(ModifyEvent e) {
+							sLastSearch = ((Text) e.widget).getText();
+							updateLastSearch();
+						}
+					});
+
 					cData.addKeyListener(new KeyListener() {
 						public void keyReleased(KeyEvent e) {
 						}
-					
+
 						public void keyPressed(KeyEvent e) {
 							if (e.keyCode != SWT.BS) {
-								if ((e.stateMask & (~SWT.SHIFT)) != 0 || e.character < 32)
+								if ((e.stateMask & (~SWT.SHIFT)) != 0 || e.character < 32) {
 									return;
+								}
 							}
 
 							if (e.keyCode == SWT.BS) {
-								if (e.stateMask == SWT.CONTROL)
+								if (e.stateMask == SWT.CONTROL) {
 									sLastSearch = "";
-								else if (sLastSearch.length() > 0)
-									sLastSearch = sLastSearch.substring(0, sLastSearch.length() - 1);
+								} else if (sLastSearch.length() > 0) {
+									sLastSearch = sLastSearch.substring(0,
+											sLastSearch.length() - 1);
+								}
 							} else {
 								sLastSearch += String.valueOf(e.character);
 							}
@@ -420,12 +429,11 @@ public class MediaList extends SkinView
 
 							e.doit = false;
 						}
-					
+
 					});
 				}
 			}
 		}
-
 
 		return null;
 	}
@@ -435,7 +443,7 @@ public class MediaList extends SkinView
 	 */
 	protected void updateLastSearch() {
 		if (txtFilter != null && !txtFilter.isDisposed()) {
-			if (!sLastSearch.equals(txtFilter.getText())) { 
+			if (!sLastSearch.equals(txtFilter.getText())) {
 				txtFilter.setText(sLastSearch);
 				txtFilter.setSelection(sLastSearch.length());
 			}
@@ -445,14 +453,16 @@ public class MediaList extends SkinView
 					try {
 						Pattern.compile(sLastSearch, Pattern.CASE_INSENSITIVE);
 						txtFilter.setBackground(Colors.colorAltRow);
-						Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
+						Messages.setLanguageTooltip(txtFilter,
+								"MyTorrentsView.filter.tooltip");
 					} catch (Exception e) {
 						txtFilter.setBackground(Colors.colorErrorBG);
 						txtFilter.setToolTipText(e.getMessage());
 					}
 				} else {
 					txtFilter.setBackground(null);
-					Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
+					Messages.setLanguageTooltip(txtFilter,
+							"MyTorrentsView.filter.tooltip");
 				}
 			}
 		}
@@ -550,7 +560,8 @@ public class MediaList extends SkinView
 					}
 				}
 				Image oldImage = skinImgThumb.getImage();
-				Utils.disposeSWTObjects(new Object[] { oldImage
+				Utils.disposeSWTObjects(new Object[] {
+					oldImage
 				});
 				skinImgThumb.setImage(image);
 			}

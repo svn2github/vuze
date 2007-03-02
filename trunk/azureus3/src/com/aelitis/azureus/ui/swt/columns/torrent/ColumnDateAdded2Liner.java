@@ -38,11 +38,12 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  * @created Jun 16, 2006
  *
  */
-public class ColumnDateAdded2Liner extends CoreTableColumn implements
-		TableCellRefreshListener
+public class ColumnDateAdded2Liner
+	extends CoreTableColumn
+	implements TableCellRefreshListener
 {
-	public static String COLUMN_ID = "date_added"; 
-		
+	public static String COLUMN_ID = "date_added";
+
 	final static String[] FORMATS = new String[] {
 		"EEEE, MMMM d, yyyy",
 		"EEE, MMMM d, yyyy",
@@ -52,14 +53,14 @@ public class ColumnDateAdded2Liner extends CoreTableColumn implements
 		"MMM d, ''yy",
 		"yyyy/mm/dd"
 	};
-	
+
 	static int globalFormat = 0;
-	
+
 	int curFormat = 0;
 
 	public ColumnDateAdded2Liner(String sTableID, boolean bVisible) {
-		super(COLUMN_ID, ALIGN_TRAIL, bVisible ? POSITION_LAST
-				: POSITION_INVISIBLE, 70, sTableID);
+		super(COLUMN_ID, ALIGN_TRAIL,
+				bVisible ? POSITION_LAST : POSITION_INVISIBLE, 70, sTableID);
 		setMaxWidthAuto(true);
 	}
 
@@ -68,7 +69,8 @@ public class ColumnDateAdded2Liner extends CoreTableColumn implements
 		long value = (dm == null) ? 0 : dm.getDownloadState().getLongParameter(
 				DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
 
-		if (!cell.setSortValue(value) && cell.isValid() && curFormat == globalFormat) {
+		if (!cell.setSortValue(value) && cell.isValid()
+				&& curFormat == globalFormat) {
 			return;
 		}
 		if (!cell.isShown()) {
@@ -99,11 +101,11 @@ public class ColumnDateAdded2Liner extends CoreTableColumn implements
 			if (idxFormat > globalFormat) {
 				globalFormat = idxFormat;
 				cell.getTableColumn().invalidateCells();
-			} else if (idxFormat < globalFormat){
+			} else if (idxFormat < globalFormat) {
 				idxFormat = globalFormat;
 			}
 			curFormat = idxFormat;
-			
+
 			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[idxFormat]
 					+ "\nh:mm a");
 			cell.setText(temp.format(date));

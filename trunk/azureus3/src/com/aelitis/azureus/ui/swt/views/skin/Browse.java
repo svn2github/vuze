@@ -46,7 +46,8 @@ import com.aelitis.azureus.util.Constants;
  * @created Sep 30, 2006
  *
  */
-public class Browse extends SkinView
+public class Browse
+	extends SkinView
 {
 	public static boolean PULL_TABS = false;
 
@@ -103,7 +104,8 @@ public class Browse extends SkinView
 		Composite cArea = (Composite) skinObject.getControl();
 
 		final Browser browser = new Browser(cArea, SWT.NONE);
-		final ClientMessageContext context = new BrowserContext("big", browser, null);
+		final ClientMessageContext context = new BrowserContext("big", browser,
+				null);
 		context.addMessageListener(new TorrentListener(core));
 
 		formData = new FormData();

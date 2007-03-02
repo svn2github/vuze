@@ -24,7 +24,8 @@ package com.aelitis.azureus.ui.swt.skin;
  * @created Jun 27, 2006
  *
  */
-public interface SWTSkinPropertiesParam extends SWTSkinProperties
+public interface SWTSkinPropertiesParam
+	extends SWTSkinProperties
 {
 
 	/**

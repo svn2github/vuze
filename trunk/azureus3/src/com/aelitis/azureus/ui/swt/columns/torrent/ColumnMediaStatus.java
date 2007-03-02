@@ -31,8 +31,9 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  * @created Jan 17, 2007
  *
  */
-public class ColumnMediaStatus extends CoreTableColumn implements
-		TableCellRefreshListener
+public class ColumnMediaStatus
+	extends CoreTableColumn
+	implements TableCellRefreshListener
 {
 
 	public static String COLUMN_ID = "MediaStatus";

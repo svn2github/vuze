@@ -29,7 +29,8 @@ import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 
-public class DisplayListener extends AbstractMessageListener
+public class DisplayListener
+	extends AbstractMessageListener
 {
 
 	public static final String DEFAULT_LISTENER_ID = "display";
@@ -160,8 +161,10 @@ public class DisplayListener extends AbstractMessageListener
 		}
 		final Clipboard cb = new Clipboard(browser.getDisplay());
 		TextTransfer textTransfer = TextTransfer.getInstance();
-		cb.setContents(new Object[] { text
-		}, new Transfer[] { textTransfer
+		cb.setContents(new Object[] {
+			text
+		}, new Transfer[] {
+			textTransfer
 		});
 		cb.dispose();
 	}

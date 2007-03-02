@@ -85,7 +85,7 @@ public class PlatformMessenger
 		context.addMessageListener(new TorrentListener());
 		context.addMessageListener(new DisplayListener(null));
 	}
-	
+
 	public static ClientMessageContext getClientMessageContext() {
 		if (!initialized) {
 			init();
@@ -431,7 +431,8 @@ public class PlatformMessenger
 		return (data);
 	}
 
-	private static class fakeContext extends ClientMessageContextImpl
+	private static class fakeContext
+		extends ClientMessageContextImpl
 	{
 
 		public fakeContext() {

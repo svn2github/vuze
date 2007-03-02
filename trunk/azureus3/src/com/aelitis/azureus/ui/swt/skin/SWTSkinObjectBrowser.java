@@ -39,13 +39,14 @@ import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
  * @created Oct 9, 2006
  *
  */
-public class SWTSkinObjectBrowser extends SWTSkinObjectBasic
+public class SWTSkinObjectBrowser
+	extends SWTSkinObjectBasic
 {
 
 	private Browser browser;
 
 	private Composite cArea;
-	
+
 	private String sStartURL;
 
 	/**

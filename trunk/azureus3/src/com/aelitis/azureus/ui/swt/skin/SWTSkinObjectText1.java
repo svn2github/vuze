@@ -42,8 +42,9 @@ import org.gudy.azureus2.ui.swt.Utils;
  * @created Jun 26, 2006
  *
  */
-public class SWTSkinObjectText1 extends SWTSkinObjectBasic implements
-		SWTSkinObjectText
+public class SWTSkinObjectText1
+	extends SWTSkinObjectBasic
+	implements SWTSkinObjectText
 {
 	String sText;
 
@@ -133,9 +134,9 @@ public class SWTSkinObjectText1 extends SWTSkinObjectBasic implements
 					int iSize = NumberFormat.getInstance(Locale.US).parse(sSize).intValue();
 
 					if (firstChar == '+') {
-						iFontSize = (int)(fd[0].height + iSize);
+						iFontSize = (int) (fd[0].height + iSize);
 					} else if (firstChar == '-') {
-						iFontSize = (int)(fd[0].height - iSize);
+						iFontSize = (int) (fd[0].height - iSize);
 					} else {
 						iFontSize = iSize;
 					}
@@ -284,7 +285,8 @@ public class SWTSkinObjectText1 extends SWTSkinObjectBasic implements
 		});
 	}
 
-	private class LabelNoShrink extends Label
+	private class LabelNoShrink
+		extends Label
 	{
 		Point ptMax;
 

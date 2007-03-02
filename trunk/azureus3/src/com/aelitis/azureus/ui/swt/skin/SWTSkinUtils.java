@@ -4,10 +4,7 @@
 package com.aelitis.azureus.ui.swt.skin;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Widget;
+import org.eclipse.swt.widgets.*;
 
 /**
  * @author TuxPaper
@@ -102,7 +99,8 @@ public class SWTSkinUtils
 		widget.setData("hasMICL", "1");
 	}
 
-	public static class MouseEnterExitListener implements Listener
+	public static class MouseEnterExitListener
+		implements Listener
 	{
 
 		boolean bOver = false;

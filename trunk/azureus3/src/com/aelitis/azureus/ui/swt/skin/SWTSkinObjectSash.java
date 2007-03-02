@@ -35,7 +35,8 @@ import org.gudy.azureus2.core3.util.Debug;
  * @created Oct 18, 2006
  *
  */
-public class SWTSkinObjectSash extends SWTSkinObjectBasic
+public class SWTSkinObjectSash
+	extends SWTSkinObjectBasic
 {
 	private static final boolean FASTDRAG = false;
 
@@ -72,7 +73,7 @@ public class SWTSkinObjectSash extends SWTSkinObjectBasic
 		int splitAt = COConfigurationManager.getIntParameter("v3." + sID
 				+ ".SplitAt", -1);
 		if (splitAt != -1) {
-			double pct = (double) splitAt / 10000.0;
+			double pct = splitAt / 10000.0;
 			sash.setData("PCT", new Double(pct));
 		} else {
 			String sPos = properties.getStringValue(sConfigID + ".startpos");
@@ -141,8 +142,9 @@ public class SWTSkinObjectSash extends SWTSkinObjectBasic
 				} else if (e.type == SWT.Selection) {
 					skipResize = true;
 
-					if (FASTDRAG && e.detail == SWT.DRAG)
+					if (FASTDRAG && e.detail == SWT.DRAG) {
 						return;
+					}
 
 					Rectangle area = parentComposite.getClientArea();
 					FormData belowData = (FormData) below.getLayoutData();

@@ -26,8 +26,9 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  * @created Jun 13, 2006
  *
  */
-public class ColumnSpeed extends CoreTableColumn implements
-		TableCellAddedListener
+public class ColumnSpeed
+	extends CoreTableColumn
+	implements TableCellAddedListener
 {
 	public static String COLUMN_ID = "SpeedGraphic";
 
@@ -69,7 +70,8 @@ public class ColumnSpeed extends CoreTableColumn implements
 		new Cell(cell);
 	}
 
-	private class Cell implements TableCellRefreshListener
+	private class Cell
+		implements TableCellRefreshListener
 	{
 
 		public Cell(TableCell cell) {

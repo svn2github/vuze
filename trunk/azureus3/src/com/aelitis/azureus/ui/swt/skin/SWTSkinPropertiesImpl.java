@@ -33,8 +33,9 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
  * @created Jun 1, 2006
  *
  */
-public class SWTSkinPropertiesImpl extends SkinPropertiesImpl implements
-		SWTSkinProperties
+public class SWTSkinPropertiesImpl
+	extends SkinPropertiesImpl
+	implements SWTSkinProperties
 {
 	private static Map colorMap = new HashMap();
 

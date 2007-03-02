@@ -36,7 +36,8 @@ import org.gudy.azureus2.core3.util.Debug;
  * @created Jun 26, 2006
  *
  */
-public class SWTSkinObjectContainer extends SWTSkinObjectBasic
+public class SWTSkinObjectContainer
+	extends SWTSkinObjectBasic
 {
 	boolean bPropogate = false;
 

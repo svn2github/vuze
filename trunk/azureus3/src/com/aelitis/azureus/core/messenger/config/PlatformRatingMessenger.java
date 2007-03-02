@@ -287,7 +287,7 @@ public class PlatformRatingMessenger
 
 			return color;
 		}
-		
+
 		public long getRatingExpireyMins(String hash, String type) {
 			long expiryMins = -1;
 			try {

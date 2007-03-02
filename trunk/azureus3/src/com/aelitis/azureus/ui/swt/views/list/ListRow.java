@@ -109,8 +109,9 @@ public class ListRow
 			TableColumnCore column = columns[i];
 
 			boolean bVisible = column.getPosition() >= 0;
-			Rectangle bounds = bVisible ? new Rectangle(iStartPos, ListView.ROW_MARGIN_HEIGHT,
-					column.getWidth(), ROW_HEIGHT - (ListView.ROW_MARGIN_HEIGHT * 2)) : null;
+			Rectangle bounds = bVisible ? new Rectangle(iStartPos,
+					ListView.ROW_MARGIN_HEIGHT, column.getWidth(), ROW_HEIGHT
+							- (ListView.ROW_MARGIN_HEIGHT * 2)) : null;
 
 			ListCell listCell;
 			int iColumnPos = column.getPosition();
@@ -264,7 +265,7 @@ public class ListRow
 	public void doPaint(GC gc, boolean bVisible) {
 		doPaint(gc, bVisible, false);
 	}
-	
+
 	public void doPaint(GC gc, boolean bVisible, boolean bListCellPaint) {
 		// XXX Copied from TableRowImpl
 		if (bDisposed || !bVisible) {
@@ -321,7 +322,7 @@ public class ListRow
 		}
 		long diff = System.currentTimeMillis() - lTimeStart;
 		if (diff > 30) {
-			view.log("doPaint took " + diff + "ms. " + this.toString()); 
+			view.log("doPaint took " + diff + "ms. " + this.toString());
 		}
 	}
 
@@ -402,15 +403,17 @@ public class ListRow
 
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#invalidate()
 	public void invalidate() {
-		if (bDisposed)
+		if (bDisposed) {
 			return;
+		}
 
 		long lTimeStart = System.currentTimeMillis();
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
 			TableCellSWT cell = (TableCellSWT) iter.next();
-			if (cell != null)
+			if (cell != null) {
 				cell.invalidate(true);
+			}
 		}
 		long diff = System.currentTimeMillis() - lTimeStart;
 		if (diff >= 10) {
@@ -419,8 +422,9 @@ public class ListRow
 	}
 
 	public void invalidateGraphic() {
-		if (bDisposed)
+		if (bDisposed) {
 			return;
+		}
 
 		long lTimeStart = System.currentTimeMillis();
 		Iterator iter = mapTableCells.values().iterator();
@@ -455,8 +459,9 @@ public class ListRow
 
 	// XXX Copied from TableRowImp!
 	public List refresh(boolean bDoGraphics) {
-		if (bDisposed)
+		if (bDisposed) {
 			return new ArrayList();
+		}
 
 		boolean bVisible = isVisible();
 
@@ -467,7 +472,7 @@ public class ListRow
 	public List refresh(boolean bDoGraphics, boolean bVisible) {
 		return view.rowRefresh(this, bDoGraphics, bVisible);
 	}
-	
+
 	protected List _refresh(boolean bDoGraphics, boolean bVisible) {
 		// If this were called from a plugin, we'd have to refresh the sorted column
 		// even if we weren't visible
@@ -585,8 +590,9 @@ public class ListRow
 	}
 
 	public void setUpToDate(boolean upToDate) {
-		if (bDisposed)
+		if (bDisposed) {
 			return;
+		}
 
 		long lTimeStart = System.currentTimeMillis();
 		Iterator iter = mapTableCells.values().iterator();
@@ -615,16 +621,18 @@ public class ListRow
 	}
 
 	public TableCell getTableCell(String sColumnName) {
-		if (bDisposed)
+		if (bDisposed) {
 			return null;
+		}
 
 		return (TableCell) mapTableCells.get(sColumnName);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getTableCellSWT(java.lang.String)
 	public TableCellSWT getTableCellSWT(String sColumnName) {
-		if (bDisposed)
+		if (bDisposed) {
 			return null;
+		}
 
 		return (TableCellSWT) mapTableCells.get(sColumnName);
 	}
@@ -634,22 +642,25 @@ public class ListRow
 	}
 
 	public boolean isValid() {
-		if (bDisposed)
+		if (bDisposed) {
 			return true;
+		}
 
 		boolean valid = true;
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
 			TableCellSWT cell = (TableCellSWT) iter.next();
-			if (cell != null)
+			if (cell != null) {
 				valid &= cell.isValid();
+			}
 		}
 		return valid;
 	}
 
 	public boolean getVisuallyChangedSinceLastRefresh() {
-		if (bDisposed)
+		if (bDisposed) {
 			return true;
+		}
 
 		if (bRowVisuallyChangedSinceRefresh) {
 			return true;
@@ -658,10 +669,11 @@ public class ListRow
 		Iterator iter = mapTableCells.values().iterator();
 		while (iter.hasNext()) {
 			TableCellSWT cell = (TableCellSWT) iter.next();
-			if (cell != null)
+			if (cell != null) {
 				if (cell.getVisuallyChangedSinceRefresh()) {
 					return true;
 				}
+			}
 		}
 		return false;
 	}

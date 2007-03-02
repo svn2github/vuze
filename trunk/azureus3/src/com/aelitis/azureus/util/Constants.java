@@ -41,17 +41,19 @@ public class Constants
 
 	public static final String DEFAULT_PORT = "80";
 
-	public static final String DEFAULT_NAMESPACE = "az-web";  //TODO
-	
-	
+	public static final String DEFAULT_NAMESPACE = "az-web"; //TODO
 
-	public static String URL_ADDRESS = System.getProperty("platform_address", DEFAULT_ADDRESS);
+	public static String URL_ADDRESS = System.getProperty("platform_address",
+			DEFAULT_ADDRESS);
 
-	public static String URL_PORT = System.getProperty("platform_port", DEFAULT_PORT);
+	public static String URL_PORT = System.getProperty("platform_port",
+			DEFAULT_PORT);
 
-	public static String URL_NAMESPACE = System.getProperty("platform_namespace", DEFAULT_NAMESPACE);
-	
-	public static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/" + URL_NAMESPACE + "/";
+	public static String URL_NAMESPACE = System.getProperty("platform_namespace",
+			DEFAULT_NAMESPACE);
+
+	public static final String URL_PREFIX = "http://" + URL_ADDRESS + ":"
+			+ URL_PORT + "/" + URL_NAMESPACE + "/";
 
 	public static String URL_SUFFIX;
 
@@ -60,7 +62,7 @@ public class Constants
 	public static final String URL_PLATFORM_MESSAGE = "app?service=rpc";
 
 	public static final String URL_POST_PLATFORM_MESSAGE = "app";
-	
+
 	public static final String URL_POST_PLATFORM_DATA = "service=rpc";
 
 	public static final String URL_BIG_BROWSE = "browse.start";
@@ -74,18 +76,17 @@ public class Constants
 	public static final String URL_COMMENTS = "comment/";
 
 	public static final String URL_SHARE = "share/";
-	
+
 	public static final String URL_DOWNLOAD = "download/";
 
 	public static final String URL_FAQ = URL_PREFIX + "Support.html";
 
-	
-	public static final String PLATFORM_PAGE = "/" + URL_NAMESPACE 	+ "/PublishNewContent.html";
+	public static final String PLATFORM_PAGE = "/" + URL_NAMESPACE
+			+ "/PublishNewContent.html";
 
+	public static final boolean DIAG_TO_STDOUT = System.getProperty(
+			"DIAG_TO_STDOUT", "0").equals("1");
 
-	public static final boolean DIAG_TO_STDOUT = System.getProperty("DIAG_TO_STDOUT", "0").equals("1"); 
-
-	
 	public static void initialize(AzureusCore core) {
 		URL_SUFFIX = "azid=" + Base32.encode(core.getCryptoManager().getSecureID());
 	}

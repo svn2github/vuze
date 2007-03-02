@@ -25,7 +25,8 @@ public class JSFunctionParametersParser
 		public abstract void processCharacter(char c);
 	}
 
-	private class ParserStateInList extends ParserState
+	private class ParserStateInList
+		extends ParserState
 	{
 
 		public ParserStateInList(ParserState previousState) {
@@ -50,7 +51,8 @@ public class JSFunctionParametersParser
 		}
 	}
 
-	private class ParserStateInEscapedCharacter extends ParserState
+	private class ParserStateInEscapedCharacter
+		extends ParserState
 	{
 
 		public ParserStateInEscapedCharacter(ParserState previousState) {

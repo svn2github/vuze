@@ -4,14 +4,8 @@
 package com.aelitis.azureus.ui.swt.skin;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
@@ -23,7 +17,8 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
  *
  * XXX NOT USED XXX
  */
-public class SWTTextPaintListener implements PaintListener
+public class SWTTextPaintListener
+	implements PaintListener
 {
 	private int align;
 

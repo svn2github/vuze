@@ -22,7 +22,6 @@ package com.aelitis.azureus.ui.swt.views;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
-
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnRate;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
@@ -44,6 +43,7 @@ public class RateItListView
 		"icon.frogfingers.5",
 		"icon.frogfingers.6",
 	};
+
 	private ListView lv;
 
 	/**
@@ -54,12 +54,13 @@ public class RateItListView
 	public RateItListView(SWTSkinProperties skinProperties, Composite parent) {
 		lv = new ListView("RateItList", skinProperties, parent, null, SWT.V_SCROLL);
 
-		lv.setColumnList(new TableColumnCore[] { new ColumnRate("RateItList")
+		lv.setColumnList(new TableColumnCore[] {
+			new ColumnRate("RateItList")
 		}, null, true);
 
 		lv.addDataSources(ICON_NAMES, false);
 	}
-	
+
 	public ListView getListView() {
 		return lv;
 	}

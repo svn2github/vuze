@@ -38,8 +38,9 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
  * @created Oct 10, 2006
  *
  */
-public class ColumnTitle extends CoreTableColumn implements
-		TableCellRefreshListener, ObfusticateCellText
+public class ColumnTitle
+	extends CoreTableColumn
+	implements TableCellRefreshListener, ObfusticateCellText
 {
 	public static String COLUMN_ID = "name";
 
@@ -69,11 +70,11 @@ public class ColumnTitle extends CoreTableColumn implements
 		if (!cell.setSortValue(name) && cell.isValid()) {
 			return;
 		}
-		
+
 		if (!cell.isShown()) {
 			return;
 		}
-		
+
 		if (name.length() > 0) {
 			String path = dm.getDownloadState().getPrimaryFile();
 			if (path != null) {
@@ -86,7 +87,8 @@ public class ColumnTitle extends CoreTableColumn implements
 					}
 					name += "\n"
 							+ MessageText.getString("TableColumn.header.name.ext",
-									new String[] { ext
+									new String[] {
+										ext
 									});
 				}
 			}
@@ -105,8 +107,9 @@ public class ColumnTitle extends CoreTableColumn implements
 			}
 		}
 
-		if (name == null)
+		if (name == null) {
 			name = "";
+		}
 		return name;
 	}
 }

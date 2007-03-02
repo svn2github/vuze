@@ -22,7 +22,6 @@ package com.aelitis.azureus.core.messenger;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
-import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageListener;
@@ -35,7 +34,8 @@ import com.aelitis.azureus.util.Constants;
  * @created Oct 9, 2006
  *
  */
-public abstract class ClientMessageContextImpl implements ClientMessageContext
+public abstract class ClientMessageContextImpl
+	implements ClientMessageContext
 {
 	private String id;
 
@@ -98,7 +98,7 @@ public abstract class ClientMessageContextImpl implements ClientMessageContext
 	public Transaction startTransaction(String type) {
 		return txnManager.startTransaction(type);
 	}
-	
+
 	public MessageDispatcher getMessageDispatcher() {
 		return dispatcher;
 	}

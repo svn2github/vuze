@@ -63,7 +63,10 @@ public class ImageLoader
 			return null;
 		}
 
-		String[] sSuffixChecks = { "-over", "-down", "-disabled",
+		String[] sSuffixChecks = {
+			"-over",
+			"-down",
+			"-disabled",
 		};
 
 		for (int i = 0; i < sSuffixChecks.length; i++) {
@@ -114,7 +117,10 @@ public class ImageLoader
 
 		//System.out.println("LoadImage " + sKey + " - " + res);
 		if (res == null) {
-			String[] sSuffixChecks = { "-over", "-down", "-disabled",
+			String[] sSuffixChecks = {
+				"-over",
+				"-down",
+				"-disabled",
 			};
 
 			for (int i = 0; i < sSuffixChecks.length; i++) {
@@ -187,7 +193,8 @@ public class ImageLoader
 
 	public Image[] getImages(String sKey) {
 		if (sKey == null) {
-			return new Image[] { getNoImage()
+			return new Image[] {
+				getNoImage()
 			};
 		}
 
@@ -203,7 +210,8 @@ public class ImageLoader
 			images = findResources(sKey);
 
 			if (images == null) {
-				return new Image[] { getNoImage()
+				return new Image[] {
+					getNoImage()
 				};
 			}
 

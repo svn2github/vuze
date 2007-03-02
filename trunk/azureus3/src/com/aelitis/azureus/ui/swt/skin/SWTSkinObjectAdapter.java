@@ -27,7 +27,8 @@ import org.gudy.azureus2.core3.util.Debug;
  * @created Sep 30, 2006
  *
  */
-public class SWTSkinObjectAdapter implements SWTSkinObjectListener
+public class SWTSkinObjectAdapter
+	implements SWTSkinObjectListener
 {
 	public Object show(SWTSkinObject skinObject, Object params) {
 		return null;
@@ -45,8 +46,7 @@ public class SWTSkinObjectAdapter implements SWTSkinObjectListener
 	 * @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener#eventOccured(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, int, java.lang.Object)
 	 */
 	public Object eventOccured(SWTSkinObject skinObject, int eventType,
-			Object params)
-	{
+			Object params) {
 		try {
 			switch (eventType) {
 				case EVENT_SHOW:

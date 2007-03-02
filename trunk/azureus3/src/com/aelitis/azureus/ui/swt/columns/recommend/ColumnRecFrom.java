@@ -29,10 +29,14 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
  * @created Jun 19, 2006
  *
  */
-public class ColumnRecFrom extends CoreTableColumn implements
-		TableCellAddedListener
+public class ColumnRecFrom
+	extends CoreTableColumn
+	implements TableCellAddedListener
 {
-	String[] SAMPLES = new String[] { "Froglegs", "Lilypad", "Tadpol",
+	String[] SAMPLES = new String[] {
+		"Froglegs",
+		"Lilypad",
+		"Tadpol",
 	};
 
 	public ColumnRecFrom(String sTableID) {

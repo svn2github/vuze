@@ -22,19 +22,21 @@
 
 package com.aelitis.azureus.util;
 
-import java.util.*;
-import java.io.*;
-import java.net.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.tracker.Tracker;
-import org.gudy.azureus2.plugins.tracker.web.TrackerWebContext;
-import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageGenerator;
-import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
-import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
+import org.gudy.azureus2.plugins.tracker.web.*;
 
-public class LocalResourceHTTPServer implements TrackerWebPageGenerator
+public class LocalResourceHTTPServer
+	implements TrackerWebPageGenerator
 {
 	private static final String my_ip = "127.0.0.1";
 

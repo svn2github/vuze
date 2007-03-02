@@ -48,7 +48,8 @@ import org.gudy.azureus2.core3.util.Constants;
  * @created May 29, 2006
  *
  */
-public class SkinPropertiesImpl implements SkinProperties
+public class SkinPropertiesImpl
+	implements SkinProperties
 {
 	private static final LogIDs LOGID = LogIDs.UI3;
 
@@ -92,7 +93,7 @@ public class SkinPropertiesImpl implements SkinProperties
 			}
 		}
 
-		String sFiles = (String) properties.getProperty("skin.include");
+		String sFiles = properties.getProperty("skin.include");
 		if (sFiles != null) {
 			String[] sFilesArray = sFiles.split(",");
 			for (int i = 0; i < sFilesArray.length; i++) {
@@ -250,7 +251,8 @@ public class SkinPropertiesImpl implements SkinProperties
 
 		String[] values = s.split("\\s*,\\s*");
 		if (values == null) {
-			return new String[] { s
+			return new String[] {
+				s
 			};
 		}
 

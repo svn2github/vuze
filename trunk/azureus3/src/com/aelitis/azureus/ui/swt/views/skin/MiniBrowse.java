@@ -46,7 +46,8 @@ import com.aelitis.azureus.util.Constants;
  * @created Sep 30, 2006
  *
  */
-public class MiniBrowse extends SkinView
+public class MiniBrowse
+	extends SkinView
 {
 	public static boolean PULL_TABS = false;
 

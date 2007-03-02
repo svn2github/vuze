@@ -24,7 +24,8 @@ package com.aelitis.azureus.ui.swt.skin;
  * @created Aug 4, 2006
  *
  */
-public interface SWTSkinObjectText extends SWTSkinObject
+public interface SWTSkinObjectText
+	extends SWTSkinObject
 {
 	public void setText(String text);
 

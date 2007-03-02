@@ -30,7 +30,8 @@ import com.aelitis.azureus.ui.skin.SkinProperties;
  * @created Jun 26, 2006
  *
  */
-public interface SWTSkinProperties extends SkinProperties
+public interface SWTSkinProperties
+	extends SkinProperties
 {
 
 	/**

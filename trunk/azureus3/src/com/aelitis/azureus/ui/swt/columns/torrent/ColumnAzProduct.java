@@ -23,8 +23,9 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @created Jun 13, 2006
  *
  */
-public class ColumnAzProduct extends CoreTableColumn implements
-		TableCellAddedListener, TableCellToolTipListener
+public class ColumnAzProduct
+	extends CoreTableColumn
+	implements TableCellAddedListener, TableCellToolTipListener
 {
 	public static String COLUMN_ID = "AzProduct";
 
@@ -59,7 +60,8 @@ public class ColumnAzProduct extends CoreTableColumn implements
 		new Cell(cell);
 	}
 
-	private class Cell implements TableCellRefreshListener
+	private class Cell
+		implements TableCellRefreshListener
 	{
 
 		public Cell(TableCell cell) {
@@ -82,7 +84,7 @@ public class ColumnAzProduct extends CoreTableColumn implements
 			if (!cell.setSortValue(sortVal) && cell.isValid()) {
 				return;
 			}
-			
+
 			if (!cell.isShown()) {
 				return;
 			}
@@ -102,7 +104,8 @@ public class ColumnAzProduct extends CoreTableColumn implements
 			TOTorrent torrent = dm.getTorrent();
 			long refreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
 			long diff = (refreshOn - SystemTime.getCurrentTime()) / 1000;
-			cell.setToolTip("Meta data auto refreshes in " + TimeFormatter.format(diff));
+			cell.setToolTip("Meta data auto refreshes in "
+					+ TimeFormatter.format(diff));
 		}
 	}
 

@@ -48,6 +48,5 @@ public class SkinViewManager
 	public static SkinView get(Class cla) {
 		return (SkinView) skinViews.get(cla);
 	}
-	
 
 }

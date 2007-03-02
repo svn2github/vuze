@@ -29,7 +29,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.messenger.PlatformMessage;
@@ -40,7 +39,6 @@ import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRati
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
-import com.aelitis.azureus.ui.swt.views.list.ListCell;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -50,8 +48,9 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  * TODO: Implement
  */
-public class ColumnRateUpDown extends CoreTableColumn implements
-		TableCellAddedListener
+public class ColumnRateUpDown
+	extends CoreTableColumn
+	implements TableCellAddedListener
 {
 	public static String COLUMN_ID = "RateIt";
 
@@ -100,8 +99,8 @@ public class ColumnRateUpDown extends CoreTableColumn implements
 		new Cell(cell);
 	}
 
-	private class Cell implements TableCellRefreshListener,
-			TableCellMouseListener
+	private class Cell
+		implements TableCellRefreshListener, TableCellMouseListener
 	{
 		public Cell(TableCell cell) {
 			cell.addListeners(this);
@@ -169,27 +168,27 @@ public class ColumnRateUpDown extends CoreTableColumn implements
 				final TOTorrent torrent = dm.getTorrent();
 				try {
 					final String fHash = torrent.getHashWrapper().toString();
-					PlatformRatingMessenger.getUserRating(
-							new String[] { PlatformRatingMessenger.RATE_TYPE_CONTENT
-							}, new String[] { fHash
-							}, 5000, new GetRatingReplyListener() {
-								public void replyReceived(String replyType,
-										PlatformRatingMessenger.GetRatingReply reply) {
-									if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
-										long rating = reply.getRatingValue(fHash,
-												PlatformRatingMessenger.RATE_TYPE_CONTENT);
-										if (rating >= -1) {
-											PlatformTorrentUtils.setUserRating(torrent,
-													(int) rating);
-											refresh(event.cell);
-										}
-									}
-
+					PlatformRatingMessenger.getUserRating(new String[] {
+						PlatformRatingMessenger.RATE_TYPE_CONTENT
+					}, new String[] {
+						fHash
+					}, 5000, new GetRatingReplyListener() {
+						public void replyReceived(String replyType,
+								PlatformRatingMessenger.GetRatingReply reply) {
+							if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
+								long rating = reply.getRatingValue(fHash,
+										PlatformRatingMessenger.RATE_TYPE_CONTENT);
+								if (rating >= -1) {
+									PlatformTorrentUtils.setUserRating(torrent, (int) rating);
+									refresh(event.cell);
 								}
+							}
 
-								public void messageSent() {
-								}
-							});
+						}
+
+						public void messageSent() {
+						}
+					});
 				} catch (TOTorrentException e) {
 					Debug.out(e);
 				}

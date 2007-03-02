@@ -38,7 +38,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
  * @created Jul 2, 2006
  *
  */
-public class ListCell implements BufferedTableItem
+public class ListCell
+	implements BufferedTableItem
 {
 	protected static final boolean DEBUG_COLORCELL = false;
 
@@ -63,7 +64,7 @@ public class ListCell implements BufferedTableItem
 	protected TableColumn column;
 
 	private Image imgIcon;
-	
+
 	private ListView view;
 
 	public ListCell(ListRow row, int position, int alignment, Rectangle bounds) {
@@ -71,7 +72,7 @@ public class ListCell implements BufferedTableItem
 		this.position = position;
 		this.alignment = alignment;
 		this.bounds = bounds;
-		this.view = (ListView)row.getView();
+		this.view = (ListView) row.getView();
 	}
 
 	public void dispose() {
@@ -150,7 +151,7 @@ public class ListCell implements BufferedTableItem
 		if (columnMetrics == null) {
 			return null;
 		}
-		
+
 		bounds.x = columnMetrics.x;
 		bounds.width = columnMetrics.width;
 		try {
@@ -255,7 +256,7 @@ public class ListCell implements BufferedTableItem
 		}
 
 		sText = text;
-		
+
 		view.cellRefresh(this, true, true);
 
 		return true;

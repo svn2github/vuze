@@ -63,7 +63,6 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 /**
@@ -311,22 +310,22 @@ public class TorrentListViewsUtils
 		File file;
 		String sFile = dm.getDownloadState().getPrimaryFile();
 		if (sFile == null) {
-  		DiskManagerFileInfo[] diskManagerFileInfo = dm.getDiskManagerFileInfo();
-  		if (diskManagerFileInfo == null && diskManagerFileInfo.length == 0) {
-  			return;
-  		}
-  		file = diskManagerFileInfo[0].getFile(true);
+			DiskManagerFileInfo[] diskManagerFileInfo = dm.getDiskManagerFileInfo();
+			if (diskManagerFileInfo == null && diskManagerFileInfo.length == 0) {
+				return;
+			}
+			file = diskManagerFileInfo[0].getFile(true);
 		} else {
 			file = new File(sFile);
 		}
 		String ext = FileUtil.getExtension(file.getName());
-		
+
 		boolean untrusted = isUntrustworthyContent(ext);
 		boolean trusted = isTrustedContent(ext);
-		
+
 		if (untrusted || !trusted) {
 			String sPrefix = untrusted ? "mb.NotTrusted." : "mb.UnknownContent.";
-			
+
 			UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 			if (functionsSWT == null) {
 				return;
@@ -399,7 +398,8 @@ public class TorrentListViewsUtils
 		String[] goodExts = null;
 		if (pi != null && pi.isOperational()) {
 			try {
-				goodExts = (String[]) pi.getIPC().invoke("getRecognizedExtensions", null);
+				goodExts = (String[]) pi.getIPC().invoke("getRecognizedExtensions",
+						null);
 			} catch (Throwable e) {
 				//e.printStackTrace();
 			}
@@ -431,14 +431,14 @@ public class TorrentListViewsUtils
 				}
 			}
 		}
-		
+
 		Program program = Program.findProgram(ext);
 		if (program == null) {
 			return false;
 		}
 		return whiteList.contains(program.getName());
 	}
-	
+
 	private static boolean isUntrustworthyContent(String ext) {
 		// must be sorted
 		final String[] badExts = new String[] {
@@ -491,7 +491,8 @@ public class TorrentListViewsUtils
 		}
 
 		try {
-			pi.getIPC().invoke("playDownload", new Object[] { download
+			pi.getIPC().invoke("playDownload", new Object[] {
+				download
 			});
 
 		} catch (Throwable e) {

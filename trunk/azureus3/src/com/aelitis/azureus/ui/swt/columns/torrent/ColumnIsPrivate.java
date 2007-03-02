@@ -36,11 +36,12 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  * @created Jun 29, 2006
  *
  */
-public class ColumnIsPrivate extends CoreTableColumn implements
-		TableCellAddedListener
+public class ColumnIsPrivate
+	extends CoreTableColumn
+	implements TableCellAddedListener
 {
 	public static String COLUMN_ID = "IsPrivate";
-		
+
 	private static UISWTGraphicImpl graphicCheck;
 
 	private static int width;
@@ -64,7 +65,8 @@ public class ColumnIsPrivate extends CoreTableColumn implements
 		new Cell(cell);
 	}
 
-	private class Cell implements TableCellRefreshListener
+	private class Cell
+		implements TableCellRefreshListener
 	{
 
 		public Cell(TableCell cell) {

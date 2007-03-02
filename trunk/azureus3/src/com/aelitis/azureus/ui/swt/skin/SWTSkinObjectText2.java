@@ -40,8 +40,9 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
  * @created Aug 4, 2006
  *
  */
-public class SWTSkinObjectText2 extends SWTSkinObjectBasic implements
-		SWTSkinObjectText, PaintListener
+public class SWTSkinObjectText2
+	extends SWTSkinObjectBasic
+	implements SWTSkinObjectText, PaintListener
 {
 	String sText;
 

@@ -171,8 +171,9 @@ public class SWTSkinTabSet
 			SWTSkinObject[] children = ((SWTSkinObjectContainer) skinObject).getChildren();
 			for (int i = 0; i < children.length; i++) {
 				SWTSkinObject object = children[i];
-				if (hasSkinBrowser(object))
+				if (hasSkinBrowser(object)) {
 					return true;
+				}
 			}
 		}
 		return (skinObject instanceof SWTSkinObjectBrowser);

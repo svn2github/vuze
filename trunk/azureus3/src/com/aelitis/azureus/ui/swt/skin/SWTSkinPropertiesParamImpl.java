@@ -31,7 +31,8 @@ import org.eclipse.swt.graphics.Color;
  * @created Jun 27, 2006
  *
  */
-public class SWTSkinPropertiesParamImpl implements SWTSkinPropertiesParam
+public class SWTSkinPropertiesParamImpl
+	implements SWTSkinPropertiesParam
 {
 	private final SWTSkinProperties properties;
 

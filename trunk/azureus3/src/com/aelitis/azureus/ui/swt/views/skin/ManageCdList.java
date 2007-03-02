@@ -48,7 +48,8 @@ import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
  * TODO Code similaries between MiniRecentList, MiniDownloadList, ManageCdList, 
  *     and ManageDlList.  Need to combine
  */
-public class ManageCdList extends SkinView
+public class ManageCdList
+	extends SkinView
 {
 	private SWTSkinObjectText lblCountAreaNotOurs;
 
@@ -149,7 +150,8 @@ public class ManageCdList extends SkinView
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
 		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
-		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, false, true);
+		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, false,
+				true);
 
 		view.addListener(new TorrentListViewListener() {
 			boolean countChanging = false;
@@ -183,13 +185,14 @@ public class ManageCdList extends SkinView
 
 						if (lblCountAreaOurs != null) {
 							lblCountAreaOurs.setText(MessageText.getString("MainWindow.v3."
-									+ PREFIX + "ours.count", new String[] { "" + totalOurs
+									+ PREFIX + "ours.count", new String[] {
+								"" + totalOurs
 							}));
 						}
 						if (lblCountAreaNotOurs != null) {
 							lblCountAreaNotOurs.setText(MessageText.getString(
-									"MainWindow.v3." + PREFIX + "notours.count",
-									new String[] { "" + totalNotOurs
+									"MainWindow.v3." + PREFIX + "notours.count", new String[] {
+										"" + totalNotOurs
 									}));
 							lblCountAreaNotOurs.getControl().getParent().layout(true, true);
 						}

@@ -36,8 +36,9 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  * @created Jun 19, 2006
  *
  */
-public class ColumnRecEdit extends CoreTableColumn implements
-		TableCellAddedListener
+public class ColumnRecEdit
+	extends CoreTableColumn
+	implements TableCellAddedListener
 {
 	/**
 	 * 
@@ -52,7 +53,8 @@ public class ColumnRecEdit extends CoreTableColumn implements
 		new Cell(cell);
 	}
 
-	private class Cell implements TableCellRefreshListener
+	private class Cell
+		implements TableCellRefreshListener
 	{
 
 		public Cell(TableCell cell) {

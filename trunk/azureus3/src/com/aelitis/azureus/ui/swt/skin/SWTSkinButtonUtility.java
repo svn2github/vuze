@@ -36,6 +36,7 @@ public class SWTSkinButtonUtility
 		this.skinObject = skinObject;
 		Listener l = new Listener() {
 			boolean bDownPressed;
+
 			public void handleEvent(Event event) {
 				if (event.type == SWT.MouseDown) {
 					bDownPressed = true;
@@ -43,9 +44,9 @@ public class SWTSkinButtonUtility
 				} else if (!bDownPressed) {
 					return;
 				}
-				
+
 				bDownPressed = false;
-				
+
 				if (isDisabled()) {
 					return;
 				}

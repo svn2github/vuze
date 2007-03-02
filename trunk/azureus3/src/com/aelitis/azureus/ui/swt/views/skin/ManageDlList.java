@@ -42,7 +42,8 @@ import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
  * TODO Code similaries between MiniRecentList, MiniDownloadList, ManageCdList, 
  *     and ManageDlList.  Need to combine
  */
-public class ManageDlList extends SkinView
+public class ManageDlList
+	extends SkinView
 {
 	private SWTSkinObjectText lblCountArea;
 
@@ -102,7 +103,8 @@ public class ManageDlList extends SkinView
 		btnStop = TorrentListViewsUtils.addStopButton(skin, PREFIX, view);
 		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
 		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
-		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, true, false);
+		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, true,
+				false);
 
 		skinObject = skin.getSkinObject(PREFIX + "status");
 		if (skinObject instanceof SWTSkinObjectText) {

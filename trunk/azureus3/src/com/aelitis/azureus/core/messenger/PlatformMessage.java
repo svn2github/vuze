@@ -49,7 +49,7 @@ public class PlatformMessage
 	private final long messageCreatedOn;
 
 	private long lSequenceNo = -1;
-	
+
 	/**
 	 * @param messageID
 	 * @param listenerID
@@ -98,19 +98,19 @@ public class PlatformMessage
 		JSONObject result = new JSONObject();
 		for (int i = 0; i < parameters.length - 1; i += 2) {
 			try {
-  			if (parameters[i] instanceof String) {
-  				if (parameters[i + 1] instanceof String[]) {
-  					List list = Arrays.asList((String[]) parameters[i + 1]);
-  					result.put((String) parameters[i], new JSONArray(list));
-  				} else if (parameters[i + 1] instanceof Object[]) {
-  					result.put((String) parameters[i],
-  							parseParams((Object[]) parameters[i + 1]));
-  				} else if (parameters[i + 1] instanceof Map) {
-  					result.put((String) parameters[i], (Map)parameters[i + 1]);
-  				} else {
-  					result.put((String) parameters[i], parameters[i + 1]);
-  				}
-  			}
+				if (parameters[i] instanceof String) {
+					if (parameters[i + 1] instanceof String[]) {
+						List list = Arrays.asList((String[]) parameters[i + 1]);
+						result.put((String) parameters[i], new JSONArray(list));
+					} else if (parameters[i + 1] instanceof Object[]) {
+						result.put((String) parameters[i],
+								parseParams((Object[]) parameters[i + 1]));
+					} else if (parameters[i + 1] instanceof Map) {
+						result.put((String) parameters[i], (Map) parameters[i + 1]);
+					} else {
+						result.put((String) parameters[i], parameters[i + 1]);
+					}
+				}
 			} catch (Exception e) {
 				Debug.out("making JSONObject out of parsedParams", e);
 			}

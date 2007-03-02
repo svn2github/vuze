@@ -50,8 +50,9 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @author TuxPaper
  * @created Jun 16, 2006
  */
-public class ColumnRate extends CoreTableColumn implements
-		TableCellAddedListener
+public class ColumnRate
+	extends CoreTableColumn
+	implements TableCellAddedListener
 {
 	public static String COLUMN_ID = "Rating";
 
@@ -75,8 +76,9 @@ public class ColumnRate extends CoreTableColumn implements
 		new Cell(cell);
 	}
 
-	private class Cell implements TableCellRefreshListener,
-			TableCellDisposeListener, TableCellMouseListener, TableCellToolTipListener
+	private class Cell
+		implements TableCellRefreshListener, TableCellDisposeListener,
+		TableCellMouseListener, TableCellToolTipListener
 	{
 		String rating = "--";
 
@@ -235,22 +237,23 @@ public class ColumnRate extends CoreTableColumn implements
 		// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
 		public void cellHover(TableCell cell) {
 			if (Constants.isCVSVersion()) {
-  			DownloadManager dm = (DownloadManager) cell.getDataSource();
-  			if (dm == null) {
-  				return;
-  			}
-  
-  			TOTorrent torrent = dm.getTorrent();
-  			long refreshOn = GlobalRatingUtils.getRefreshOn(torrent);
-  			long diff = (refreshOn - SystemTime.getCurrentTime()) / 1000;
-  			cell.setToolTip("G.Rating Auto Refreshes in " + TimeFormatter.format(diff));
+				DownloadManager dm = (DownloadManager) cell.getDataSource();
+				if (dm == null) {
+					return;
+				}
+
+				TOTorrent torrent = dm.getTorrent();
+				long refreshOn = GlobalRatingUtils.getRefreshOn(torrent);
+				long diff = (refreshOn - SystemTime.getCurrentTime()) / 1000;
+				cell.setToolTip("G.Rating Auto Refreshes in "
+						+ TimeFormatter.format(diff));
 			}
 		}
 
 		// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHoverComplete(org.gudy.azureus2.plugins.ui.tables.TableCell)
 		public void cellHoverComplete(TableCell cell) {
 			// TODO Auto-generated method stub
-			
+
 		}
 	}
 }
