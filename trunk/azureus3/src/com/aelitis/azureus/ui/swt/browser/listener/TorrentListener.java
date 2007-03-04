@@ -56,7 +56,7 @@ public class TorrentListener
 	private void loadTorrent(String url) {
 		try {
 			core.getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
-					new URL(url), true);
+					new URL(url), false);
 		} catch (Exception e) {
 			Debug.out(e);
 		}
