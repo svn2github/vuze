@@ -135,13 +135,12 @@ public class NetworkManager {
   private final TransferProcessor lan_download_processor = new TransferProcessor( TransferProcessor.TYPE_DOWNLOAD, new LimitedRateGroup(){
     public int getRateLimitBytesPerSecond() {  return max_lan_download_rate_bps;  }
   });
-  
-  
-  private final LimitedRateGroup unlimited_rate_group = new LimitedRateGroup() {
-  	public int getRateLimitBytesPerSecond() {  return 0;  }
-  };
-  
-  private final LimitedRateGroup[] unlimited_rate_groups = { unlimited_rate_group, unlimited_rate_group };
+     
+  public static boolean
+  isLANRateEnabled()
+  {
+	  return( lan_rate_enabled );
+  }
   
   private NetworkManagerStats	stats = new NetworkManagerStats();
   

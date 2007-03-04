@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 
 
 
@@ -314,7 +315,7 @@ public class TransferProcessor {
           
           	// only apply group rates to non-lan local connections 
           
-          if ( !connection.isLANLocal()){
+          if ( !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
 	          // sync group rates
 	          
 	          try{
@@ -350,7 +351,7 @@ public class TransferProcessor {
         }
 
         public void bytesProcessed( int num_bytes_written ) {
-          if ( !connection.isLANLocal()){
+          if ( !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
 	          for (int i=0;i<conn_data.group_datas.length;i++){
 	        	  conn_data.group_datas[i].bucket.setBytesUsed( num_bytes_written );
 	          }
