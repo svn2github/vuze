@@ -146,7 +146,19 @@ PEPeerTransportProtocol
   
   private boolean az_messaging_mode = false;
   private Message[] supported_messages = null;
-  
+  private byte	other_peer_bitfield_version		= 1;
+  private byte	other_peer_cancel_version		= 1;
+  private byte	other_peer_choke_version		= 1;
+  private byte	other_peer_handshake_version	= 1;
+  private byte	other_peer_have_version			= 1;
+  private byte	other_peer_interested_version	= 1;
+  private byte	other_peer_keep_alive_version	= 1;
+  private byte	other_peer_pex_version			= 1;
+  private byte	other_peer_piece_version		= 1;
+  private byte	other_peer_request_hint_version	= 1;
+  private byte	other_peer_unchoke_version		= 1;
+  private byte	other_peer_uninterested_version	= 1;
+  private byte	other_peer_request_version		= 1;
   
   private final AEMonitor closing_mon	= new AEMonitor( "PEPeerTransportProtocol:closing" );
   private final AEMonitor general_mon  	= new AEMonitor( "PEPeerTransportProtocol:data" );
@@ -374,7 +386,7 @@ PEPeerTransportProtocol
     	DirectByteBuffer[] ddbs = 
     		new BTHandshake( manager.getHash(),
                                  manager.getPeerId(),
-                                 manager.isAZMessagingEnabled() ).getRawData();
+                                 manager.isAZMessagingEnabled(), other_peer_handshake_version ).getRawData();
     	
     	int	handshake_len = 0;
     	
@@ -465,10 +477,11 @@ PEPeerTransportProtocol
     				{
     					peer_stats.diskReadComplete( bytes );
     				}
-    			});
+    			},
+    			other_peer_piece_version);
 
     //link in outgoing have message aggregator
-    outgoing_have_message_aggregator = new OutgoingBTHaveMessageAggregator( connection.getOutgoingMessageQueue() );
+    outgoing_have_message_aggregator = new OutgoingBTHaveMessageAggregator( connection.getOutgoingMessageQueue(), other_peer_have_version );
 
     connection_established_time = SystemTime.getCurrentTime();
     
@@ -624,7 +637,7 @@ PEPeerTransportProtocol
 	    connection.getOutgoingMessageQueue().addMessage(
 	        new BTHandshake( manager.getHash(),
 	                         manager.getPeerId(),
-	                         manager.isAZMessagingEnabled() ), false );
+	                         manager.isAZMessagingEnabled(), other_peer_handshake_version ), false );
 	}
   }
   
@@ -637,7 +650,7 @@ PEPeerTransportProtocol
     
     for( int i=0; i < avail_msgs.length; i++ ) {
       avail_ids[i] = avail_msgs[i].getID();
-      avail_vers[i] = (byte)1;  //NOTE: hack for ADV messaging transition
+      avail_vers[i] = avail_msgs[i].getVersion();
     }
     
     int local_tcp_port = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
@@ -653,7 +666,8 @@ PEPeerTransportProtocol
         local_udp2_port,
         avail_ids,
         avail_vers,
-        NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ? AZHandshake.HANDSHAKE_TYPE_CRYPTO : AZHandshake.HANDSHAKE_TYPE_PLAIN );        
+        NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ? AZHandshake.HANDSHAKE_TYPE_CRYPTO : AZHandshake.HANDSHAKE_TYPE_PLAIN,
+        other_peer_handshake_version );        
     
     connection.getOutgoingMessageQueue().addMessage( az_handshake, false );
   }
@@ -749,7 +763,7 @@ PEPeerTransportProtocol
                 
         if (added)
         {
-            connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength ), false );
+            connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength, other_peer_request_version ), false );
             _lastPiece =pieceNumber;
             
             try{
@@ -783,7 +797,7 @@ PEPeerTransportProtocol
   	if ( current_peer_state != TRANSFERING ) return;
 		if ( hasBeenRequested( request ) ) {
 			removeRequest( request );
-      connection.getOutgoingMessageQueue().addMessage( new BTCancel( request.getPieceNumber(), request.getOffset(), request.getLength() ), false );
+      connection.getOutgoingMessageQueue().addMessage( new BTCancel( request.getPieceNumber(), request.getOffset(), request.getLength(), other_peer_cancel_version ), false );
 		}
   }
 
@@ -805,7 +819,7 @@ PEPeerTransportProtocol
     //System.out.println( "["+(System.currentTimeMillis()/1000)+"] " +connection + " choked");
     
     outgoing_piece_message_handler.removeAllPieceRequests();
-    connection.getOutgoingMessageQueue().addMessage( new BTChoke(), false );
+    connection.getOutgoingMessageQueue().addMessage( new BTChoke( other_peer_choke_version ), false );
     choking_other_peer = true;
     is_optimistic_unchoke = false;
   }
@@ -819,7 +833,7 @@ PEPeerTransportProtocol
     choking_other_peer = false;	// set this first as with pseudo peers we can effectively synchronously act
     							// on the unchoke advice and we don't want that borking with choked still set
     
-    connection.getOutgoingMessageQueue().addMessage( new BTUnchoke(), false );
+    connection.getOutgoingMessageQueue().addMessage( new BTUnchoke(other_peer_unchoke_version), false );
   }
 
 
@@ -830,7 +844,7 @@ PEPeerTransportProtocol
       outgoing_have_message_aggregator.forceSendOfPending();
     }
     else {
-      connection.getOutgoingMessageQueue().addMessage( new BTKeepAlive(), false );
+      connection.getOutgoingMessageQueue().addMessage( new BTKeepAlive(other_peer_keep_alive_version), false );
     }
   }
   
@@ -863,9 +877,9 @@ PEPeerTransportProtocol
 				is_interesting =true;
 		}
 		if (is_interesting &&!interested_in_other_peer)
-			connection.getOutgoingMessageQueue().addMessage(new BTInterested(), false);
+			connection.getOutgoingMessageQueue().addMessage(new BTInterested(other_peer_interested_version), false);
 		else if (!is_interesting &&interested_in_other_peer)
-			connection.getOutgoingMessageQueue().addMessage(new BTUninterested(), false);
+			connection.getOutgoingMessageQueue().addMessage(new BTUninterested(other_peer_uninterested_version), false);
 
 		interested_in_other_peer =is_interesting;
 	}
@@ -939,14 +953,14 @@ PEPeerTransportProtocol
 
 		buffer.flip(DirectByteBuffer.SS_BT);
 
-		connection.getOutgoingMessageQueue().addMessage(new BTBitfield(buffer), false);
+		connection.getOutgoingMessageQueue().addMessage(new BTBitfield(buffer, other_peer_bitfield_version ), false);
 
 		if (lazies !=null)
 		{
 			for (int x =0; x <lazies.size(); x++ )
 			{
 				final Integer num =(Integer) lazies.get(x);
-				connection.getOutgoingMessageQueue().addMessage(new BTHave(num.intValue()), false);
+				connection.getOutgoingMessageQueue().addMessage(new BTHave(num.intValue(), other_peer_have_version), false);
 			}
 		}
 
@@ -1138,7 +1152,7 @@ PEPeerTransportProtocol
 	private void cancelRequests()
     {
         if (!closing) {   //cancel any unsent requests in the queue
-            final Message[] type ={new BTRequest(-1, -1, -1)};
+            final Message[] type ={new BTRequest(-1, -1, -1, other_peer_request_version)};
             connection.getOutgoingMessageQueue().removeMessagesOfType(type, false);
         }
         if (requested !=null &&requested.size() >0) {
@@ -1249,7 +1263,7 @@ PEPeerTransportProtocol
 	    		
 	    		requested_mon.exit();
 	    	}
-	    	final BTRequest msg = new BTRequest( request.getPieceNumber(), request.getOffset(), request.getLength() );
+	    	final BTRequest msg = new BTRequest( request.getPieceNumber(), request.getOffset(), request.getLength(), other_peer_request_version );
 	    	connection.getOutgoingMessageQueue().removeMessage( msg, false );
         msg.destroy();
 		}
@@ -1691,7 +1705,13 @@ PEPeerTransportProtocol
     }
     
     supported_messages = (Message[])messages.toArray( new Message[messages.size()] );
-     
+    
+    byte[] supported_message_versions = handshake.getMessageVersions();
+    
+    outgoing_piece_message_handler.setPieceVersion( other_peer_piece_version );
+ 
+    outgoing_have_message_aggregator.setHaveVersion( other_peer_have_version );
+
     changePeerState( PEPeer.TRANSFERING );
     
     connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
@@ -1835,7 +1855,7 @@ PEPeerTransportProtocol
         {
             if (!interested_in_other_peer &&diskManager.isInteresting(pieceNumber))
             {
-                connection.getOutgoingMessageQueue().addMessage(new BTInterested(), false);
+                connection.getOutgoingMessageQueue().addMessage(new BTInterested(other_peer_interested_version), false);
                 interested_in_other_peer =true;
             }
             peerHavePieces.set(pieceNumber);
@@ -2384,7 +2404,7 @@ PEPeerTransportProtocol
       final PeerItem[] drops = peer_exchange_item.getNewlyDroppedPeerConnections();  
       
       if( (adds != null && adds.length > 0) || (drops != null && drops.length > 0) ) {
-        connection.getOutgoingMessageQueue().addMessage( new AZPeerExchange( manager.getHash(), adds, drops ), false );
+        connection.getOutgoingMessageQueue().addMessage( new AZPeerExchange( manager.getHash(), adds, drops, other_peer_pex_version ), false );
       }
     }
   }
@@ -2441,7 +2461,7 @@ PEPeerTransportProtocol
   {
 	  if ( request_hint_supported ){
 		  
-		  AZRequestHint	rh = new AZRequestHint( piece_number, offset, length, life );
+		  AZRequestHint	rh = new AZRequestHint( piece_number, offset, length, life, other_peer_request_hint_version );
 		  
 		  connection.getOutgoingMessageQueue().addMessage( rh, false );
 

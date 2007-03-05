@@ -35,6 +35,7 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
  * Sent to initiate a torrent session.
  */
 public class AZSessionSyn implements AZMessage {
+  private final byte version;
   private DirectByteBuffer buffer = null;
   private String description = null;
   
@@ -42,10 +43,11 @@ public class AZSessionSyn implements AZMessage {
   private final int session_id;
   private final Map session_info;
 
-  public AZSessionSyn( byte[] infohash, int local_session_id, Map session_info ) {
+  public AZSessionSyn( byte[] infohash, int local_session_id, Map session_info, byte version ) {
     this.session_id = local_session_id;
     this.infohash = infohash;
     this.session_info = session_info;
+    this.version = version;
   }
   
   
@@ -63,7 +65,8 @@ public class AZSessionSyn implements AZMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
-  
+  public byte getVersion() { return version; };
+
   public String getDescription() {
     if( description == null ) {
       description = getID()+ " session id " +session_id+ " for infohash " +ByteFormatter.nicePrint( infohash, true );
@@ -87,7 +90,7 @@ public class AZSessionSyn implements AZMessage {
   }
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 20, getID() );
 
     Long id = (Long)root.get( "session_id" );
@@ -100,7 +103,7 @@ public class AZSessionSyn implements AZMessage {
     
     Map info = (Map)root.get( "info" );
     
-    return new AZSessionSyn( hash, sid, info );
+    return new AZSessionSyn( hash, sid, info, version );
   }
   
   

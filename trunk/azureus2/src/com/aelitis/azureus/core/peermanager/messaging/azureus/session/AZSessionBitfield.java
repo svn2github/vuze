@@ -36,12 +36,14 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
  * Torrent session bitfield message.
  */
 public class AZSessionBitfield implements AZMessage {
+  private final byte version;
   private final DirectByteBuffer bitfield;
   private final int session_id;
   
-  public AZSessionBitfield( int session_id, DirectByteBuffer bitfield ) {
+  public AZSessionBitfield( int session_id, DirectByteBuffer bitfield, byte version ) {
     this.session_id = session_id;
     this.bitfield = bitfield;
+    this.version = version;
   }
   
   
@@ -57,7 +59,8 @@ public class AZSessionBitfield implements AZMessage {
   public int getFeatureSubID() {  throw new RuntimeException( "not implemented" );  }   //TODO
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
-    
+  public byte getVersion() { return version; };
+
   public String getDescription() {  return getID() +" session #"+ session_id;  }
   
   public DirectByteBuffer[] getData() {
@@ -68,7 +71,7 @@ public class AZSessionBitfield implements AZMessage {
     return new DirectByteBuffer[]{ sess, bitfield };
   }
 
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     if( data == null ) {
       throw new MessageException( "[" +getID()+ "] decode error: data == null" );
     }
@@ -79,7 +82,7 @@ public class AZSessionBitfield implements AZMessage {
     
     int id = data.getInt( DirectByteBuffer.SS_MSG );
     
-    return new AZSessionBitfield( id, data );
+    return new AZSessionBitfield( id, data, version );
   }
   
   public void destroy() {

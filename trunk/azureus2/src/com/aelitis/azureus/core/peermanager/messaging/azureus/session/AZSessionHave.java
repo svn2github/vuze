@@ -33,6 +33,7 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
  * BitTorrent have message.
  */
 public class AZSessionHave implements AZMessage {
+  private final byte version;
   private DirectByteBuffer buffer = null;
   private String description = null;
   
@@ -40,9 +41,10 @@ public class AZSessionHave implements AZMessage {
   private final int[] piece_numbers;
 
   
-  public AZSessionHave( int session_id, int[] piece_numbers ) {
+  public AZSessionHave( int session_id, int[] piece_numbers, byte version ) {
     this.session_id = session_id;
     this.piece_numbers = piece_numbers;
+    this.version = version;
   }
   
   
@@ -58,7 +60,9 @@ public class AZSessionHave implements AZMessage {
   public int getFeatureSubID() {  throw new RuntimeException( "not implemented" );  }   //TODO
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
-    
+
+  public byte getVersion() { return version; };
+
   
   public String getDescription() {
     if( description == null ) {
@@ -90,7 +94,7 @@ public class AZSessionHave implements AZMessage {
   }
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     if( data == null ) {
       throw new MessageException( "[" +getID() +"] decode error: data == null" );
     }
@@ -117,7 +121,7 @@ public class AZSessionHave implements AZMessage {
 
     data.returnToPool();
     
-    return new AZSessionHave( id, numbers );
+    return new AZSessionHave( id, numbers, version );
   }
 
   

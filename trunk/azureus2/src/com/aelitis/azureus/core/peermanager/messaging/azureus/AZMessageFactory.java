@@ -45,10 +45,10 @@ public class AZMessageFactory {
   
   private static final Map legacy_data = new HashMap();
   static {
-    legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke(), new BTPiece(-1, -1, null )} ) );
-    legacy_data.put( BTMessage.ID_BT_UNCHOKE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, new Message[]{new BTChoke()} ) );
-    legacy_data.put( BTMessage.ID_BT_INTERESTED, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUninterested()} ) );
-    legacy_data.put( BTMessage.ID_BT_UNINTERESTED, new LegacyData( RawMessage.PRIORITY_NORMAL, false, new Message[]{new BTInterested()} ) );
+    legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke((byte)0), new BTPiece(-1, -1, null,(byte)0 )} ) );
+    legacy_data.put( BTMessage.ID_BT_UNCHOKE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, new Message[]{new BTChoke((byte)0)} ) );
+    legacy_data.put( BTMessage.ID_BT_INTERESTED, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUninterested((byte)0)} ) );
+    legacy_data.put( BTMessage.ID_BT_UNINTERESTED, new LegacyData( RawMessage.PRIORITY_NORMAL, false, new Message[]{new BTInterested((byte)0)} ) );
     legacy_data.put( BTMessage.ID_BT_HAVE, new LegacyData( RawMessage.PRIORITY_LOW, false, null ) );
     legacy_data.put( BTMessage.ID_BT_BITFIELD, new LegacyData( RawMessage.PRIORITY_HIGH, true, null ) );
     legacy_data.put( BTMessage.ID_BT_REQUEST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null ) );
@@ -65,9 +65,9 @@ public class AZMessageFactory {
    */
   public static void init() {
     try {
-      MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", 0, 0, 0, new String[0], new byte[0], 0) );
-      MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null ) );
-      MessageManager.getSingleton().registerMessageType( new AZRequestHint( -1, -1, -1, -1 ) );
+      MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", 0, 0, 0, new String[0], new byte[0], 0,(byte)0) );
+      MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null,(byte)0 ) );
+      MessageManager.getSingleton().registerMessageType( new AZRequestHint( -1, -1, -1, -1,(byte)0 ) );
       /*
       MessageManager.getSingleton().registerMessageType( new AZSessionSyn( new byte[20], -1, null) );
       MessageManager.getSingleton().registerMessageType( new AZSessionAck( new byte[20], -1, null) );
@@ -89,7 +89,7 @@ public class AZMessageFactory {
    * @throws MessageException on registration error
    */
   public static void registerGenericMapPayloadMessageType( String type_id ) throws MessageException {
-  	MessageManager.getSingleton().registerMessageType( new AZGenericMapPayload( type_id, null ) );
+  	MessageManager.getSingleton().registerMessageType( new AZGenericMapPayload( type_id, null,(byte)1 ) );
   }
   
   
@@ -115,7 +115,7 @@ public class AZMessageFactory {
     
     byte version = stream_payload.get( bss );
     
-    return MessageManager.getSingleton().createMessage( id_bytes, stream_payload );
+    return MessageManager.getSingleton().createMessage( id_bytes, stream_payload, version );
   }
   
   
@@ -134,7 +134,7 @@ public class AZMessageFactory {
     for( int i=0; i < payload.length; i++ ) {
       payload_size += payload[i].remaining( bss );
     }
-    
+       
     //create and fill header buffer
     DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_AZ_HEADER, 9 + id_bytes.length );
     header.putInt( bss, 5 + id_bytes.length + payload_size );

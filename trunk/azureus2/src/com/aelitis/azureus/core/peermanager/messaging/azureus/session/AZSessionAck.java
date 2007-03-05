@@ -35,6 +35,7 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
  * Sent as reply to torrent session initiation request.
  */
 public class AZSessionAck implements AZMessage {
+  private final byte version;
   private DirectByteBuffer buffer = null;
   private String description = null;
   
@@ -43,10 +44,11 @@ public class AZSessionAck implements AZMessage {
   private final Map session_info;
   
 
-  public AZSessionAck( byte[] infohash, int local_session_id, Map session_info ) {
+  public AZSessionAck( byte[] infohash, int local_session_id, Map session_info, byte version ) {
     this.session_id = local_session_id;
     this.infohash = infohash;
     this.session_info = session_info;
+    this.version = version;
   }
   
   
@@ -63,7 +65,9 @@ public class AZSessionAck implements AZMessage {
   
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
-    
+  
+  public byte getVersion() { return version; };
+
   
   public String getDescription() {
     if( description == null ) {
@@ -88,7 +92,7 @@ public class AZSessionAck implements AZMessage {
   }
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 20, getID() );
 
     Long id = (Long)root.get( "session_id" );
@@ -101,7 +105,7 @@ public class AZSessionAck implements AZMessage {
     
     Map info = (Map)root.get( "info" );
     
-    return new AZSessionAck( hash, sid, info );
+    return new AZSessionAck( hash, sid, info, version );
   }
   
   

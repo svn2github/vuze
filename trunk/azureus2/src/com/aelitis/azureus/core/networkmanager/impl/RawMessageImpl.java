@@ -73,12 +73,14 @@ public class RawMessageImpl implements RawMessage {
   
   public int getType() {  return message.getType();  }
   
+  public byte getVersion() { return message.getVersion(); }
+  
   public String getDescription() {  return message.getDescription();  }
   
   public DirectByteBuffer[] getData() {  return message.getData();  }
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {
-    return message.deserialize( data );
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {
+    return message.deserialize( data, version );
   }
   
   

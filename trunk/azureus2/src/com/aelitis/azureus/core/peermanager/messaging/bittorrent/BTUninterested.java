@@ -33,9 +33,10 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * BitTorrent uninterested message.
  */
 public class BTUninterested implements BTMessage {
-
-  public BTUninterested() {
-    /* nothing */
+  private final byte version;
+  
+  public BTUninterested(byte _version) {
+    version = _version;
   }
     
   public String getID() {  return BTMessage.ID_BT_UNINTERESTED;  }
@@ -47,18 +48,20 @@ public class BTUninterested implements BTMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
+  public byte getVersion() { return version; };
+
   public String getDescription() {  return BTMessage.ID_BT_UNINTERESTED;  }
   
   public DirectByteBuffer[] getData() {  return new DirectByteBuffer[] {};  }
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     if( data != null && data.hasRemaining( DirectByteBuffer.SS_MSG ) ) {
       throw new MessageException( "[" +getID() +"] decode error: payload not empty" );
     }
     
     if( data != null )  data.returnToPool();
     
-    return new BTUninterested();
+    return new BTUninterested(version);
   }
   
   public void destroy() { /*nothing*/ } 

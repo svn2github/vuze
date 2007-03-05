@@ -34,11 +34,12 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * BitTorrent bitfield message.
  */
 public class BTBitfield implements BTMessage {
-  private final DirectByteBuffer[] buffer;
-
+  private final DirectByteBuffer[] 	buffer;
+  private final byte				version;
   
-  public BTBitfield( DirectByteBuffer bitfield ) {
-    buffer = new DirectByteBuffer[] { bitfield };
+  public BTBitfield( DirectByteBuffer bitfield, byte _version ) {
+    buffer 	= new DirectByteBuffer[] { bitfield };
+    version	= _version;
   }
   
   
@@ -56,16 +57,18 @@ public class BTBitfield implements BTMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
+  public byte getVersion() { return version; };
+
   public String getDescription() {  return BTMessage.ID_BT_BITFIELD;  }
   
   public DirectByteBuffer[] getData() {  return buffer;  }
 
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     if( data == null ) {
       throw new MessageException( "[" +getID() +"] decode error: data == null" );
     }
         
-    return new BTBitfield( data );
+    return new BTBitfield( data, version );
   }
   
   public void destroy() {

@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
  * BitTorrent piece message.
  */
 public class AZSessionPiece implements AZMessage {
+  private final byte version;
   private final DirectByteBuffer[] buffer = new DirectByteBuffer[ 2 ];
   private String description;
   
@@ -43,12 +44,13 @@ public class AZSessionPiece implements AZMessage {
   private final int piece_length;
   
   
-  public AZSessionPiece( int session_id, int piece_number, int piece_offset, DirectByteBuffer data ) {
+  public AZSessionPiece( int session_id, int piece_number, int piece_offset, DirectByteBuffer data, byte version ) {
     this.session_id = session_id;
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
     this.piece_length = data == null ? 0 : data.remaining( DirectByteBuffer.SS_BT );
     buffer[1] = data;
+    this.version = version;
   }
   
   
@@ -70,6 +72,8 @@ public class AZSessionPiece implements AZMessage {
   
   public int getType() {  return Message.TYPE_DATA_PAYLOAD;  }
     
+  public byte getVersion() { return version; };
+
   public String getDescription() {
     if( description == null ) {
       description = getID()+ " session #" +session_id+ " data for piece #" + piece_number + ":" + piece_offset + "->" + (piece_offset + piece_length -1);
@@ -93,7 +97,7 @@ public class AZSessionPiece implements AZMessage {
   
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     if( data == null ) {
       throw new MessageException( "[" +getID() + "] decode error: data == null" );
     }
@@ -115,7 +119,7 @@ public class AZSessionPiece implements AZMessage {
       throw new MessageException( "[" +getID() + "] decode error: offset < 0" );
     }
     
-    return new AZSessionPiece( id, number, offset, data );
+    return new AZSessionPiece( id, number, offset, data, version );
   }
   
   

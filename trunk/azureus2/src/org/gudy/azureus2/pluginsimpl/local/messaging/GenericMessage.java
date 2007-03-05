@@ -90,6 +90,12 @@ GenericMessage
 	{
 		return( desc );
 	}
+	
+	public byte
+	getVersion()
+	{
+		return( 1 );
+	}
 	 
 	public DirectByteBuffer
 	getPayload()
@@ -105,7 +111,8 @@ GenericMessage
 	  
 	public Message 
 	deserialize( 
-		DirectByteBuffer data ) 
+		DirectByteBuffer 	data,
+		byte				version ) 
 	  
 	 	throws MessageException
 	{

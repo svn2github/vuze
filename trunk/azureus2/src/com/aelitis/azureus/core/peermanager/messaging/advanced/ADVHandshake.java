@@ -33,13 +33,14 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  */
 public class ADVHandshake implements ADVMessage {
 
+  private byte version;
   private DirectByteBuffer buffer = null;
   private String description = null;
   
   
   
-  public ADVHandshake( ) {  //TODO
-
+  public ADVHandshake( byte _version ) {  //TODO
+	  version = _version;
     /*
     for( int i=0; i < reserved.length; i++ ) {  //locate any reserved bits
       for( int x=7; x >= 0; x-- ) {
@@ -86,7 +87,8 @@ public String getFeatureID() {  return ADVMessage.ADV_FEATURE_ID;  }
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
-  
+  public byte getVersion() { return version; };
+
   public String getDescription() {
     if( description == null ) {
       description = getID();
@@ -105,7 +107,7 @@ public String getFeatureID() {  return ADVMessage.ADV_FEATURE_ID;  }
   }
 
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     if( data == null ) {
       throw new MessageException( "[" +getID() + "] decode error: data == null" );
     }
@@ -126,7 +128,7 @@ public String getFeatureID() {  return ADVMessage.ADV_FEATURE_ID;  }
     
     data.returnToPool();
     
-    return new ADVHandshake();
+    return new ADVHandshake(version);
   }
   
  

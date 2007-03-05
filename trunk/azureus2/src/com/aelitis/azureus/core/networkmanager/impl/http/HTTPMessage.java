@@ -79,6 +79,12 @@ HTTPMessage
 		return( TYPE_DATA_PAYLOAD );
 	}
 
+	public byte
+	getVersion()
+	{
+		return( 1 );
+	}
+	
 	public String 
 	getDescription()
 	{
@@ -93,7 +99,8 @@ HTTPMessage
 
 	public Message 
 	deserialize( 
-		DirectByteBuffer data ) 
+		DirectByteBuffer 	data,
+		byte				version ) 
 	
 		throws MessageException
 	{

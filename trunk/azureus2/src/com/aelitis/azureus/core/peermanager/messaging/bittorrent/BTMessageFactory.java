@@ -45,17 +45,17 @@ public class BTMessageFactory {
    */
   public static void init() {
     try {
-      MessageManager.getSingleton().registerMessageType( new BTBitfield( null ) );
-      MessageManager.getSingleton().registerMessageType( new BTCancel( -1, -1, -1 ) );
-      MessageManager.getSingleton().registerMessageType( new BTChoke() );
-      MessageManager.getSingleton().registerMessageType( new BTHandshake( new byte[0], new byte[0], true ) );
-      MessageManager.getSingleton().registerMessageType( new BTHave( -1 ) );
-      MessageManager.getSingleton().registerMessageType( new BTInterested() );
-      MessageManager.getSingleton().registerMessageType( new BTKeepAlive() );
-      MessageManager.getSingleton().registerMessageType( new BTPiece( -1, -1, null ) );
-      MessageManager.getSingleton().registerMessageType( new BTRequest( -1, -1 , -1 ) );
-      MessageManager.getSingleton().registerMessageType( new BTUnchoke() );
-      MessageManager.getSingleton().registerMessageType( new BTUninterested() );
+      MessageManager.getSingleton().registerMessageType( new BTBitfield( null, (byte)0 ) );
+      MessageManager.getSingleton().registerMessageType( new BTCancel( -1, -1, -1,(byte)0 ) );
+      MessageManager.getSingleton().registerMessageType( new BTChoke((byte)0) );
+      MessageManager.getSingleton().registerMessageType( new BTHandshake( new byte[0], new byte[0], true,(byte)0 ) );
+      MessageManager.getSingleton().registerMessageType( new BTHave( -1,(byte)0 ) );
+      MessageManager.getSingleton().registerMessageType( new BTInterested((byte)0) );
+      MessageManager.getSingleton().registerMessageType( new BTKeepAlive((byte)0) );
+      MessageManager.getSingleton().registerMessageType( new BTPiece( -1, -1, null,(byte)0 ) );
+      MessageManager.getSingleton().registerMessageType( new BTRequest( -1, -1 , -1,(byte)0 ) );
+      MessageManager.getSingleton().registerMessageType( new BTUnchoke((byte)0) );
+      MessageManager.getSingleton().registerMessageType( new BTUninterested((byte)0) );
     }
     catch( MessageException me ) {  me.printStackTrace();  }
   }
@@ -66,16 +66,16 @@ public class BTMessageFactory {
   private static final String[] id_to_name = new String[9];  
   private static final HashMap legacy_data = new HashMap();
   static {
-    legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke(), new BTPiece( -1, -1, null )}, (byte)0 ) );
+    legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke((byte)0), new BTPiece( -1, -1, null,(byte)0 )}, (byte)0 ) );
     id_to_name[0] = BTMessage.ID_BT_CHOKE;
     
-    legacy_data.put( BTMessage.ID_BT_UNCHOKE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, new Message[]{new BTChoke()}, (byte)1 ) );
+    legacy_data.put( BTMessage.ID_BT_UNCHOKE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, new Message[]{new BTChoke((byte)0)}, (byte)1 ) );
     id_to_name[1] = BTMessage.ID_BT_UNCHOKE;
     
-    legacy_data.put( BTMessage.ID_BT_INTERESTED, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUninterested()}, (byte)2 ) );
+    legacy_data.put( BTMessage.ID_BT_INTERESTED, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUninterested((byte)0)}, (byte)2 ) );
     id_to_name[2] = BTMessage.ID_BT_INTERESTED;
     
-    legacy_data.put( BTMessage.ID_BT_UNINTERESTED, new LegacyData( RawMessage.PRIORITY_NORMAL, false, new Message[]{new BTInterested()}, (byte)3 ) );
+    legacy_data.put( BTMessage.ID_BT_UNINTERESTED, new LegacyData( RawMessage.PRIORITY_NORMAL, false, new Message[]{new BTInterested((byte)0)}, (byte)3 ) );
     id_to_name[3] = BTMessage.ID_BT_UNINTERESTED;
     
     legacy_data.put( BTMessage.ID_BT_HAVE, new LegacyData( RawMessage.PRIORITY_LOW, false, null, (byte)4 ) );
@@ -111,31 +111,31 @@ public class BTMessageFactory {
     
     switch( id ) {
       case 0:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CHOKE_BYTES, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CHOKE_BYTES, stream_payload, (byte)1 );
         
       case 1:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_UNCHOKE_BYTES, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_UNCHOKE_BYTES, stream_payload, (byte)1 );
         
       case 2:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_INTERESTED_BYTES, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_INTERESTED_BYTES, stream_payload, (byte)1 );
         
       case 3:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_UNINTERESTED_BYTES, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_UNINTERESTED_BYTES, stream_payload, (byte)1 );
         
       case 4:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HAVE_BYTES, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HAVE_BYTES, stream_payload, (byte)1 );
         
       case 5:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_BITFIELD_BYTES, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_BITFIELD_BYTES, stream_payload, (byte)1 );
         
       case 6:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_REQUEST_BYTES, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_REQUEST_BYTES, stream_payload, (byte)1 );
         
       case 7:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_PIECE_BYTES, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_PIECE_BYTES, stream_payload, (byte)1 );
         
       case 8:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CANCEL_BYTES, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CANCEL_BYTES, stream_payload, (byte)1 );
         
       case 20:
         //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.
@@ -144,7 +144,7 @@ public class BTMessageFactory {
 					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
 							"Old extended messaging hello received, "
 									+ "ignoring and faking as keep-alive."));
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE_BYTES, null );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE_BYTES, null, (byte)1 );
         
       default: {  System.out.println( "Unknown BT message id [" +id+ "]" );
         					throw new MessageException( "Unknown BT message id [" +id+ "]" );

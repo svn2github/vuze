@@ -191,7 +191,7 @@ public class AZTorrentSession implements TorrentSession {
   private void authenticate( Map incoming_syn ) {
     if( incoming_syn == null ) {  //outgoing session
       //send out the session request
-      AZSessionSyn syn = new AZSessionSyn( download.getInfoHash(), local_session_id, download.getSessionAuthenticator().createSessionSyn( peer ) );
+      AZSessionSyn syn = new AZSessionSyn( download.getInfoHash(), local_session_id, download.getSessionAuthenticator().createSessionSyn( peer ), (byte)1 );
       peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( syn, false );
       
       //set a timeout timer in case the other peer forgets to send an ACK or END reply
@@ -206,7 +206,7 @@ public class AZTorrentSession implements TorrentSession {
         Map ack_reply = download.getSessionAuthenticator().verifySessionSyn( peer, incoming_syn );
         
         //send out the session acceptance
-        AZSessionAck ack = new AZSessionAck( download.getInfoHash(), local_session_id, ack_reply );
+        AZSessionAck ack = new AZSessionAck( download.getInfoHash(), local_session_id, ack_reply, (byte)1 );
         peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( ack, false );
         
         listener.sessionIsEstablished();  //notify of readiness
@@ -223,7 +223,7 @@ public class AZTorrentSession implements TorrentSession {
     System.out.println( "endSession:: " +end_reason );
     
     //send end notice to remote peer
-    AZSessionEnd end = new AZSessionEnd( download.getInfoHash(), end_reason );
+    AZSessionEnd end = new AZSessionEnd( download.getInfoHash(), end_reason, (byte)1 );
     peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
     
     if( notify_listener ) {
@@ -249,21 +249,21 @@ public class AZTorrentSession implements TorrentSession {
 
 
   public void sendSessionBitfield( DirectByteBuffer bitfield ) {
-    AZSessionBitfield bitf = new AZSessionBitfield( remote_session_id, bitfield );
+    AZSessionBitfield bitf = new AZSessionBitfield( remote_session_id, bitfield, (byte)1 );
     peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( bitf, false );
   }
   
 
 
   public void sendSessionRequest( byte unchoke_id, int piece_number, int piece_offset, int length ) {
-    AZSessionRequest req = new AZSessionRequest( remote_session_id, unchoke_id, piece_number, piece_offset, length );
+    AZSessionRequest req = new AZSessionRequest( remote_session_id, unchoke_id, piece_number, piece_offset, length, (byte)1 );
     peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( req, false );
   }
   
 
 
   public void sendSessionCancel( int piece_number, int piece_offset, int length ) {
-    AZSessionCancel can = new AZSessionCancel( remote_session_id, piece_number, piece_offset, length );
+    AZSessionCancel can = new AZSessionCancel( remote_session_id, piece_number, piece_offset, length, (byte)1 );
     peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( can, false );
   }
   
@@ -271,7 +271,7 @@ public class AZTorrentSession implements TorrentSession {
 
 
   public void sendSessionHave( int[] piece_numbers ) {
-    AZSessionHave have = new AZSessionHave( remote_session_id, piece_numbers );
+    AZSessionHave have = new AZSessionHave( remote_session_id, piece_numbers, (byte)1 );
     peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( have, false );
   }
   
@@ -279,7 +279,7 @@ public class AZTorrentSession implements TorrentSession {
   public Object sendSessionPiece( int piece_number, int piece_offset, DirectByteBuffer data ) {
     try{
       DirectByteBuffer encoded = download.getSessionAuthenticator().encodeSessionData( peer, data );
-      AZSessionPiece piece = new AZSessionPiece( remote_session_id, piece_number, piece_offset, encoded );
+      AZSessionPiece piece = new AZSessionPiece( remote_session_id, piece_number, piece_offset, encoded, (byte)1 );
       peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( piece, false );
       return piece;
     }

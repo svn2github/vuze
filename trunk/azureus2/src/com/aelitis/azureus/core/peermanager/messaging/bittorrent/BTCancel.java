@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  */
 public class BTCancel implements BTMessage {
   private DirectByteBuffer buffer = null;
+  private byte	version;
   private String description = null;
   
   private final int piece_number;
@@ -41,10 +42,11 @@ public class BTCancel implements BTMessage {
   private final int length;
   
   
-  public BTCancel( int piece_number, int piece_offset, int length ) {
+  public BTCancel( int piece_number, int piece_offset, int length, byte version ) {
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
     this.length = length;
+    this.version = version;
   }
   
   
@@ -66,6 +68,8 @@ public class BTCancel implements BTMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
+  public byte getVersion() { return version; };
+
   public String getDescription() {
     if( description == null ) {
       description = BTMessage.ID_BT_CANCEL + " piece #" + piece_number + ":" + piece_offset + "->" + (piece_offset + length -1);
@@ -88,7 +92,7 @@ public class BTCancel implements BTMessage {
   }
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {
     if( data == null ) {
       throw new MessageException( "[" +getID() +"] decode error: data == null" );
     }
@@ -107,14 +111,14 @@ public class BTCancel implements BTMessage {
       throw new MessageException( "[" +getID()+ "] decode error: offset < 0" );
     }
     
-    int lngth = data.getInt( DirectByteBuffer.SS_MSG );
-    if( lngth < 0 ) {
+    int length = data.getInt( DirectByteBuffer.SS_MSG );
+    if( length < 0 ) {
       throw new MessageException( "[" +getID() + "] decode error: lngth < 0" );
     }
     
     data.returnToPool();
     
-    return new BTCancel( num, offset, lngth );
+    return new BTCancel( num, offset, length, version );
   }
 
   

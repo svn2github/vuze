@@ -41,8 +41,6 @@ public interface Message {
    * Is a data-bearing message, i.e. file data.
    */
   public static final int TYPE_DATA_PAYLOAD     = 1;
-
-
   
   /**
    * Get message id.
@@ -63,6 +61,7 @@ public interface Message {
    */
   public int getFeatureSubID();
   
+  public byte getVersion();
   
   /**
    * Get message type.
@@ -90,7 +89,7 @@ public interface Message {
    * @throws MessageException if the decoding process fails
    * NOTE: Does not auto-return given direct buffer on thrown exception.
    */
-  public Message deserialize( DirectByteBuffer data ) throws MessageException;
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException;
     
   
   /**

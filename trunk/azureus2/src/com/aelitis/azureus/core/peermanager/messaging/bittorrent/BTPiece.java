@@ -33,6 +33,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * BitTorrent piece message.
  */
 public class BTPiece implements BTMessage {
+  private byte version;
   private final DirectByteBuffer[] buffer = new DirectByteBuffer[ 2 ];
   private String description;
   
@@ -41,11 +42,12 @@ public class BTPiece implements BTMessage {
   private final int piece_length;
   
   
-  public BTPiece( int piece_number, int piece_offset, DirectByteBuffer data ) {
+  public BTPiece( int piece_number, int piece_offset, DirectByteBuffer data, byte version ) {
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
     this.piece_length = data == null ? 0 : data.remaining( DirectByteBuffer.SS_MSG );
     buffer[1] = data;
+    this.version = version;
   }
   
   
@@ -67,6 +69,8 @@ public class BTPiece implements BTMessage {
   
   public int getType() {  return Message.TYPE_DATA_PAYLOAD;  }
     
+  public byte getVersion() { return version; };
+  
   public String getDescription() {
     if( description == null ) {
       description = BTMessage.ID_BT_PIECE + " data for piece #" + piece_number + ":" + piece_offset + "->" + (piece_offset + piece_length -1);
@@ -89,7 +93,7 @@ public class BTPiece implements BTMessage {
   
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     if( data == null ) {
       throw new MessageException( "[" +getID() + "] decode error: data == null" );
     }
@@ -108,7 +112,7 @@ public class BTPiece implements BTMessage {
       throw new MessageException( "[" +getID() + "] decode error: offset < 0" );
     }
     
-    return new BTPiece( number, offset, data );
+    return new BTPiece( number, offset, data, version );
   }
   
   

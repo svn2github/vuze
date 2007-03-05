@@ -46,16 +46,18 @@ public class AZPeerExchange implements AZMessage {
   private DirectByteBuffer buffer = null;
   private String description = null;
   
+  private final byte version;
   private final byte[] infohash;
   private final PeerItem[] peers_added;
   private final PeerItem[] peers_dropped;
   
   
   
-  public AZPeerExchange( byte[] _infohash, PeerItem[] _peers_added, PeerItem[] _peers_dropped ) {
+  public AZPeerExchange( byte[] _infohash, PeerItem[] _peers_added, PeerItem[] _peers_dropped, byte version ) {
     this.infohash = _infohash;
     this.peers_added = _peers_added;
     this.peers_dropped = _peers_dropped;
+    this.version = version;
   }
   
 
@@ -158,7 +160,8 @@ public class AZPeerExchange implements AZMessage {
   public int getFeatureSubID() { return AZMessage.SUBID_AZ_PEER_EXCHANGE;  }
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
-    
+   
+  public byte getVersion() { return version; };
   
   public String getDescription() {
     if( description == null ) {
@@ -189,7 +192,7 @@ public class AZPeerExchange implements AZMessage {
   }
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {
     if( data.remaining( bss ) > 2000 )  System.out.println( "Received PEX msg byte size = " +data.remaining( bss ) );
     
     Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 10, getID() );
@@ -203,7 +206,7 @@ public class AZPeerExchange implements AZMessage {
       
     if( added == null && dropped == null )  throw new MessageException( "[" +getID()+ "] received exchange message without any adds or drops" );
 
-    return new AZPeerExchange( hash, added, dropped );
+    return new AZPeerExchange( hash, added, dropped, version );
   }
   
   

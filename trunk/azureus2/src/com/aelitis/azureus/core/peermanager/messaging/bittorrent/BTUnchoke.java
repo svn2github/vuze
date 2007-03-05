@@ -34,12 +34,11 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * BitTorrent unchoke message.
  */
 public class BTUnchoke implements BTMessage {
+  private final byte version;
   
-  public BTUnchoke() {
-    
-    //TODO add unchoke id
-    
-    /* nothing */
+  public BTUnchoke(byte _version) {
+ 
+	  version = _version;
   }
     
   public String getID() {  return BTMessage.ID_BT_UNCHOKE;  }
@@ -51,18 +50,20 @@ public class BTUnchoke implements BTMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
+  public byte getVersion() { return version; };
+
   public String getDescription() {  return BTMessage.ID_BT_UNCHOKE;  }
   
   public DirectByteBuffer[] getData() {  return new DirectByteBuffer[] {};  }
 
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     if( data != null && data.hasRemaining( DirectByteBuffer.SS_MSG ) ) {
       throw new MessageException( "[" +getID() +"] decode error: payload not empty" );
     }
     
     if( data != null )  data.returnToPool();
     
-    return new BTUnchoke();
+    return new BTUnchoke( version );
   }
   
   public void destroy() { /*nothing*/ } 

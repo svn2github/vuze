@@ -286,7 +286,7 @@ public class NonBlockingReadWriteService {
       return;
 		}
 		
-		Message reply = new AZGenericMapPayload( message.getMessageID(), message.getPayload() );
+		Message reply = new AZGenericMapPayload( message.getMessageID(), message.getPayload(), (byte)1 );
 
 		vconn.sendMessage( message, reply );
 		

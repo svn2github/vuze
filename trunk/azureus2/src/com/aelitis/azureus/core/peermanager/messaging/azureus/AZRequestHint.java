@@ -36,6 +36,7 @@ public class
 AZRequestHint
 	implements AZMessage
 {
+	private final byte version;
 	private DirectByteBuffer buffer = null;
 
 	private int		piece_number;
@@ -48,12 +49,14 @@ AZRequestHint
 		int		_piece_number,
 		int		_offset,
 		int		_length,
-		int		_life )
+		int		_life,
+		byte	_version )
 	{
 		piece_number	= _piece_number;
 		offset			= _offset;
 		length			= _length;
 		life			= _life;
+		version			= _version;
 	}
 	
 	public String 
@@ -85,6 +88,8 @@ AZRequestHint
 	{
 		return( Message.TYPE_PROTOCOL_PAYLOAD );
 	}
+
+	public byte getVersion() { return version; };
 
 	public String 
 	getDescription() 
@@ -134,7 +139,8 @@ AZRequestHint
 
 	public Message 
 	deserialize( 
-		DirectByteBuffer data ) 
+		DirectByteBuffer 	data,
+		byte				version ) 
 	
 		throws MessageException 
 	{
@@ -145,7 +151,7 @@ AZRequestHint
 		int	length			= ((Long)payload.get( "length")).intValue();
 		int	life			= ((Long)payload.get( "life" )).intValue();
 		
-		return( new AZRequestHint( piece_number, offset, length, life ));
+		return( new AZRequestHint( piece_number, offset, length, life, version ));
 	}
 
 	public void 

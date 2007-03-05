@@ -32,14 +32,16 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * BitTorrent have message.
  */
 public class BTHave implements BTMessage {
+  private byte version;
   private DirectByteBuffer buffer = null;
   private String description = null;
   
   private final int piece_number;
 
   
-  public BTHave( int piece_number ) {
+  public BTHave( int piece_number, byte version ) {
     this.piece_number = piece_number;
+    this.version = version;
   }
   
   
@@ -55,7 +57,8 @@ public class BTHave implements BTMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
-  
+  public byte getVersion() { return version; };
+
   public String getDescription() {
     if( description == null ) {
       description = BTMessage.ID_BT_HAVE + " piece #" + piece_number;
@@ -76,7 +79,7 @@ public class BTHave implements BTMessage {
   }
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     if( data == null ) {
       throw new MessageException( "[" +getID() + "] decode error: data == null" );
     }
@@ -93,7 +96,7 @@ public class BTHave implements BTMessage {
     
     data.returnToPool();
     
-    return new BTHave( number );
+    return new BTHave( number, version );
   }
 
   

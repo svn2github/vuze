@@ -35,6 +35,7 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
  * Sent when a torrent session ends/fails.
  */
 public class AZSessionEnd implements AZMessage {  
+  private final byte version;
   private DirectByteBuffer buffer = null;
   private String description = null;
   
@@ -42,9 +43,10 @@ public class AZSessionEnd implements AZMessage {
   private final String reason;
   
 
-  public AZSessionEnd( byte[] infohash, String reason ) {
+  public AZSessionEnd( byte[] infohash, String reason, byte version ) {
     this.infohash = infohash;
     this.reason = reason;
+    this.version = version;
   }
   
   
@@ -60,7 +62,8 @@ public class AZSessionEnd implements AZMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
-  
+  public byte getVersion() { return version; };
+
   public String getDescription() {
     if( description == null ) {
       description = getID()+ " for infohash " +ByteFormatter.nicePrint( infohash, true )+ " because " +reason;
@@ -83,7 +86,7 @@ public class AZSessionEnd implements AZMessage {
   }
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 20, getID() );
 
     byte[] hash = (byte[])root.get( "infohash" );
@@ -94,7 +97,7 @@ public class AZSessionEnd implements AZMessage {
     if( reason_raw == null )  throw new MessageException( "reason_raw == null" );
     String res = new String( reason_raw );
     
-    return new AZSessionEnd( hash, res );
+    return new AZSessionEnd( hash, res, version );
   }
   
   

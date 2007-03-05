@@ -368,7 +368,7 @@ HTTPNetworkConnection
 	protected RawMessage
 	encodeBitField()
 	{
-		decoder.addMessage( new BTInterested());
+		decoder.addMessage( new BTInterested((byte)1));
 		
 		return( null );
 	}
@@ -457,13 +457,13 @@ HTTPNetworkConnection
 			
 			sent_handshake	= true;
 			
-			decoder.addMessage( new BTHandshake( control.getHash(), peer_id, false ));
+			decoder.addMessage( new BTHandshake( control.getHash(), peer_id, false, (byte)1 ));
 			
 			byte[]	bits = new byte[(control.getPieces().length +7) /8];
 			
 			DirectByteBuffer buffer = new DirectByteBuffer( ByteBuffer.wrap( bits ));
 			
-			decoder.addMessage( new BTBitfield( buffer ));
+			decoder.addMessage( new BTBitfield( buffer, (byte)1 ));
 		}
 		
 		synchronized( outstanding_requests ){
@@ -512,7 +512,8 @@ HTTPNetworkConnection
 					new BTRequest( 
 							this_piece_number, 
 							offset_in_piece, 
-							request_size ),
+							request_size,
+							(byte)1),
 					http_request );
 					
 				if ( request_size == length ){
@@ -685,7 +686,7 @@ HTTPNetworkConnection
 				
 				piece_map.set( piece_number );
 				
-				decoder.addMessage( new BTHave( piece_number ));
+				decoder.addMessage( new BTHave( piece_number, (byte)1 ));
 			}
 			
 			buffers[1] = this_piece.getPieceData();

@@ -112,29 +112,29 @@ public class BTTorrentSession implements TorrentSession {
   
   
   public void sendSessionBitfield( DirectByteBuffer bitfield ) {
-    peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( new BTBitfield( bitfield ), false );
+    peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( new BTBitfield( bitfield, (byte)1 ), false );
   }
   
 
   public void sendSessionRequest( byte unchoke_id, int piece_number, int piece_offset, int length ) {
-    peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( new BTRequest( piece_number, piece_offset, length ), false );
+    peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( new BTRequest( piece_number, piece_offset, length, (byte)1 ), false );
   }
   
 
   public void sendSessionCancel( int piece_number, int piece_offset, int length ) {
-    peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( new BTCancel( piece_number, piece_offset, length ), false );
+    peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( new BTCancel( piece_number, piece_offset, length, (byte)1 ), false );
   }
   
 
   public void sendSessionHave( int[] piece_numbers ) {
     for( int i=0; i < piece_numbers.length; i++ ) { 
-      peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( new BTHave( piece_numbers[i] ), false );
+      peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( new BTHave( piece_numbers[i], (byte)1 ), false );
     }
   }
 
 
   public Object sendSessionPiece( int piece_number, int piece_offset, DirectByteBuffer data ) {
-    BTPiece piece = new BTPiece( piece_number, piece_offset, data );
+    BTPiece piece = new BTPiece( piece_number, piece_offset, data, (byte)1 );
     peer.getNetworkConnection().getOutgoingMessageQueue().addMessage( piece, false );
     return piece;
   }

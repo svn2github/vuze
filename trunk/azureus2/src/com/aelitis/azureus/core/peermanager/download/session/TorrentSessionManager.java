@@ -72,7 +72,7 @@ public class TorrentSessionManager {
                 
               if( download == null ) {
                 System.out.println( "unknown session infohash " +ByteFormatter.nicePrint( hash, true ) );
-                AZSessionEnd end = new AZSessionEnd( hash, "unknown session infohash" );
+                AZSessionEnd end = new AZSessionEnd( hash, "unknown session infohash", (byte)1 );
                 connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
               }
               else { //success

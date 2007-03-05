@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  * This is a helper class for creating messages with a Map'd beencode-able payload.
  */
 public class AZGenericMapPayload implements AZMessage {
+  private final byte version;
   private DirectByteBuffer buffer = null;
 
   private final String type_id;
@@ -45,9 +46,10 @@ public class AZGenericMapPayload implements AZMessage {
    * @param message_type of message
    * @param message payload (to be bencoded)
    */
-  public AZGenericMapPayload( String message_type, Map message ) {
+  public AZGenericMapPayload( String message_type, Map message, byte version ) {
     this.type_id = message_type;
     this.msg_map = message;
+    this.version = version;
   }
   
     
@@ -61,6 +63,8 @@ public class AZGenericMapPayload implements AZMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
  
+  public byte getVersion() { return version; };
+
   public Map getMapPayload() {  return msg_map;  }
   
  
@@ -75,9 +79,9 @@ public class AZGenericMapPayload implements AZMessage {
   }
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {
     Map payload = MessagingUtil.convertBencodedByteStreamToPayload( data, 1, getID() );
-    return new AZGenericMapPayload( getID(), payload );
+    return new AZGenericMapPayload( getID(), payload, version );
   }
   
   

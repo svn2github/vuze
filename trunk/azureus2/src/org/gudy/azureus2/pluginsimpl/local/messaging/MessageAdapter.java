@@ -77,7 +77,7 @@ public class MessageAdapter implements Message, com.aelitis.azureus.core.peerman
     }
     
     try{
-      return new MessageAdapter( core_msg.deserialize( new DirectByteBuffer( data ) ) );
+      return new MessageAdapter( core_msg.deserialize( new DirectByteBuffer( data ), (byte)1 ) );
     }
     catch( com.aelitis.azureus.core.peermanager.messaging.MessageException e ) {
       throw new MessageException( e.getMessage() );
@@ -98,6 +98,11 @@ public class MessageAdapter implements Message, com.aelitis.azureus.core.peerman
   public int getType() {
     return core_msg == null ? plug_msg.getType() : core_msg.getType();
   }
+  
+  public byte getVersion() {
+	    return core_msg == null ? (byte)1 : core_msg.getVersion();
+  }
+	  
   
   public String getDescription() {
     return core_msg == null ? plug_msg.getDescription() : core_msg.getDescription();
@@ -130,9 +135,9 @@ public class MessageAdapter implements Message, com.aelitis.azureus.core.peerman
     return dbbs;
   }
   
-  public com.aelitis.azureus.core.peermanager.messaging.Message deserialize( DirectByteBuffer data ) throws com.aelitis.azureus.core.peermanager.messaging.MessageException {
+  public com.aelitis.azureus.core.peermanager.messaging.Message deserialize( DirectByteBuffer data, byte version ) throws com.aelitis.azureus.core.peermanager.messaging.MessageException {
     if( plug_msg == null ) {
-      return core_msg.deserialize( data );
+      return core_msg.deserialize( data, version );
     }
     
     try{

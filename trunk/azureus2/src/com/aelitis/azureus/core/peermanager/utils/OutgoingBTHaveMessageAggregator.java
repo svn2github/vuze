@@ -42,6 +42,7 @@ public class OutgoingBTHaveMessageAggregator {
   private final ArrayList 	pending_haves 		= new ArrayList();
   private final AEMonitor	pending_haves_mon	= new AEMonitor( "OutgoingBTHaveMessageAggregator:PH");
 
+  private byte have_version;
   private boolean destroyed = false;
   
   private final OutgoingMessageQueue outgoing_message_q;
@@ -68,12 +69,18 @@ public class OutgoingBTHaveMessageAggregator {
    * Create a new aggregator, which will send messages out the given queue.
    * @param outgoing_message_q
    */
-  public OutgoingBTHaveMessageAggregator( OutgoingMessageQueue outgoing_message_q ) {
+  public OutgoingBTHaveMessageAggregator( OutgoingMessageQueue outgoing_message_q, byte _have_version ) {
     this.outgoing_message_q = outgoing_message_q;
+    have_version = _have_version;
     outgoing_message_q.registerQueueListener( added_message_listener );
   }
   
-  
+  public void
+  setHaveVersion(
+	byte	version )
+  {
+	  have_version = version;
+  }
   /**
    * Queue a new have message for aggregated sending.
    * @param piece_number of the have message
@@ -144,7 +151,7 @@ public class OutgoingBTHaveMessageAggregator {
     
       for( int i=0; i < pending_haves.size(); i++ ) {
         Integer piece_num = (Integer)pending_haves.get( i ); 
-        outgoing_message_q.addMessage( new BTHave( piece_num.intValue() ), true );
+        outgoing_message_q.addMessage( new BTHave( piece_num.intValue(), have_version ), true );
       }
       outgoing_message_q.doListenerNotifications();
       pending_haves.clear();

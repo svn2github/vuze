@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
  * BitTorrent cancel message.
  */
 public class AZSessionCancel implements AZMessage {
+  private final byte version;
   private DirectByteBuffer buffer = null;
   private String description = null;
   
@@ -43,11 +44,12 @@ public class AZSessionCancel implements AZMessage {
   private final int length;
   
   
-  public AZSessionCancel( int session_id, int piece_number, int piece_offset, int length ) {
+  public AZSessionCancel( int session_id, int piece_number, int piece_offset, int length, byte version ) {
     this.session_id = session_id;
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
     this.length = length;
+    this.version = version;
   }
   
   
@@ -69,6 +71,8 @@ public class AZSessionCancel implements AZMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
+  public byte getVersion() { return version; };
+
   public String getDescription() {
     if( description == null ) {
       description = getID()+ " session #" +session_id+ " piece #" + piece_number + ":" + piece_offset + "->" + (piece_offset + length -1);
@@ -92,7 +96,7 @@ public class AZSessionCancel implements AZMessage {
   }
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {
     if( data == null ) {
       throw new MessageException( "[" +getID() + "] decode error: data == null" );
     }
@@ -113,14 +117,14 @@ public class AZSessionCancel implements AZMessage {
       throw new MessageException( "[" +getID() + "] decode error: offset < 0" );
     }
     
-    int lngth = data.getInt( DirectByteBuffer.SS_MSG );
-    if( lngth < 0 ) {
-      throw new MessageException( "[" +getID() + "] decode error: lngth < 0" );
+    int length = data.getInt( DirectByteBuffer.SS_MSG );
+    if( length < 0 ) {
+      throw new MessageException( "[" +getID() + "] decode error: length < 0" );
     }
     
     data.returnToPool();
     
-    return new AZSessionCancel( id, num, offset, lngth );
+    return new AZSessionCancel( id, num, offset, length, version );
   }
 
   

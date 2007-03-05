@@ -107,7 +107,7 @@ public class BTMessageManager {
    * @return core message wrapped in an adapter
    */
   public static Message createCoreBTRequest( int piece_number, int piece_offset, int length ) {
-    return new MessageAdapter( new BTRequest( piece_number, piece_offset, length ) );    
+    return new MessageAdapter( new BTRequest( piece_number, piece_offset, length, (byte)1 ) );    
   }
   
   
@@ -119,7 +119,7 @@ public class BTMessageManager {
    * @return core message wrapped in an adapter
    */
   public static Message createCoreBTCancel( int piece_number, int piece_offset, int length ) {
-    return new MessageAdapter( new BTCancel( piece_number, piece_offset, length ) );    
+    return new MessageAdapter( new BTCancel( piece_number, piece_offset, length, (byte)1 ) );    
   }
   
   
@@ -131,7 +131,7 @@ public class BTMessageManager {
    * @return core message wrapped in an adapter
    */
   public static Message createCoreBTPiece( int piece_number, int piece_offset, ByteBuffer data ) {
-    return new MessageAdapter( new BTPiece( piece_number, piece_offset, new DirectByteBuffer( data ) ) );    
+    return new MessageAdapter( new BTPiece( piece_number, piece_offset, new DirectByteBuffer( data ), (byte)1 ) );    
   }
 
 }

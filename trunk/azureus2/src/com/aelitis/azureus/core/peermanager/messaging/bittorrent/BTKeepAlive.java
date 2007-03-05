@@ -34,11 +34,12 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * BitTorrent keep-alive message.
  */
 public class BTKeepAlive implements BTMessage, RawMessage {
+  private byte version;
   private DirectByteBuffer[] buffer = null;
   
   
-  public BTKeepAlive() {
-    /* nothing */    
+  public BTKeepAlive(byte _version) {
+    version = _version;
   }
 
   
@@ -52,18 +53,20 @@ public class BTKeepAlive implements BTMessage, RawMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
+  public byte getVersion() { return version; };
+
   public String getDescription() {  return BTMessage.ID_BT_KEEP_ALIVE;  }
   
   public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{};  }
 
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {   
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {   
     if( data != null && data.hasRemaining( DirectByteBuffer.SS_MSG ) ) {
       throw new MessageException( "[" +getID() +"] decode error: payload not empty" );
     }
     
     if( data != null )  data.returnToPool();
     
-    return new BTKeepAlive();
+    return new BTKeepAlive(version);
   }
   
   

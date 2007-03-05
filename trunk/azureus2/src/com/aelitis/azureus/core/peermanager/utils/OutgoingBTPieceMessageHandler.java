@@ -45,6 +45,7 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 public class OutgoingBTPieceMessageHandler {
   private final PEPeer					peer;
   private final OutgoingMessageQueue 	outgoing_message_queue;
+  private 		byte					piece_version;
   
   private final LinkedList requests = new LinkedList();
   private final ArrayList	loading_messages = new ArrayList();
@@ -67,15 +68,23 @@ public class OutgoingBTPieceMessageHandler {
   OutgoingBTPieceMessageHandler( 
 	PEPeer									_peer,
 	OutgoingMessageQueue 					_outgoing_message_q,
-	OutgoingBTPieceMessageHandlerAdapter	_adapter ) 
+	OutgoingBTPieceMessageHandlerAdapter	_adapter,
+	byte									_piece_version ) 
   {
 	peer					= _peer;
     outgoing_message_queue 	= _outgoing_message_q;
     adapter					= _adapter;
+    piece_version			= _piece_version;
+    
     outgoing_message_queue.registerQueueListener( sent_message_listener );
   }
   
-  
+  public void
+  setPieceVersion(
+	byte	version )
+  {
+	  piece_version = version;
+  }
   
   
   
@@ -90,7 +99,7 @@ public class OutgoingBTPieceMessageHandler {
       	}
       	loading_messages.remove( request );
 
-        BTPiece msg = new BTPiece( request.getPieceNumber(), request.getOffset(), data );
+        BTPiece msg = new BTPiece( request.getPieceNumber(), request.getOffset(), data, piece_version );
         queued_messages.put( msg, request );
 
         outgoing_message_queue.addMessage( msg, true );    

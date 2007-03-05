@@ -111,14 +111,14 @@ public class MessageManager {
    * @return decoded/deserialized message
    * @throws MessageException if message creation failed
    */
-  public Message createMessage( byte[] id_bytes, DirectByteBuffer message_data ) throws MessageException {    
+  public Message createMessage( byte[] id_bytes, DirectByteBuffer message_data, byte version ) throws MessageException {    
     Message message = (Message)message_map.get( id_bytes );
     
     if( message == null ) {
       throw new MessageException( "message id[" + new String( id_bytes) + "] not registered" );
     }
     
-    return message.deserialize( message_data );    
+    return message.deserialize( message_data, version );    
   }
   
   

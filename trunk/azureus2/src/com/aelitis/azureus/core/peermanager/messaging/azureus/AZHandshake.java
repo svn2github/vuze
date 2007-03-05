@@ -38,14 +38,15 @@ import com.aelitis.azureus.core.peermanager.messaging.MessagingUtil;
  */
 public class AZHandshake implements AZMessage {
 	
-	public static final int HANDSHAKE_TYPE_PLAIN  = 0;
-	public static final int HANDSHAKE_TYPE_CRYPTO = 1;
+  public static final int HANDSHAKE_TYPE_PLAIN  = 0;
+  public static final int HANDSHAKE_TYPE_CRYPTO = 1;
 	
-	private static final int MAX_PADDING		= 128;
+  private static final int MAX_PADDING		= 128;
 	
 	
   private static final byte bss = DirectByteBuffer.SS_MSG;
 
+  private final byte version;
   private DirectByteBuffer buffer = null;
   private String description = null;
   
@@ -68,7 +69,8 @@ public class AZHandshake implements AZMessage {
                       int udp_non_data_listen_port,
                       String[] avail_msg_ids,
                       byte[] avail_msg_versions,
-                      int _handshake_type ) {
+                      int _handshake_type,
+                      byte _version ) {
     
     this.identity = peer_identity;
     this.client = _client;
@@ -79,6 +81,7 @@ public class AZHandshake implements AZMessage {
     this.udp_port = udp_listen_port;
     this.udp_non_data_port = udp_non_data_listen_port;
     this.handshake_type = _handshake_type;
+    this.version = _version;
     
     //verify given port info is ok
     if( tcp_port < 0 || tcp_port > 65535 ) {
@@ -126,6 +129,8 @@ public class AZHandshake implements AZMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
+  public byte getVersion() { return version; };
+
   public String getDescription() {
     if( description == null ) {
       String msgs_desc = "";
@@ -190,7 +195,7 @@ public class AZHandshake implements AZMessage {
   }
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {
     Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 100, getID() );
 
     byte[] id = (byte[])root.get( "identity" );
@@ -203,7 +208,7 @@ public class AZHandshake implements AZMessage {
 
     byte[] raw_ver = (byte[])root.get( "version" );
     if( raw_ver == null )  throw new MessageException( "raw_ver == null" );
-    String version = new String( raw_ver );
+    String client_version = new String( raw_ver );
 
     Long tcp_lport = (Long)root.get( "tcp_port" );
     if( tcp_lport == null ) {  //old handshake
@@ -249,7 +254,7 @@ public class AZHandshake implements AZMessage {
       pos++;
     }
 
-    return new AZHandshake( id, name, version, tcp_lport.intValue(), udp_lport.intValue(), udp2_lport.intValue(), ids, vers, h_type.intValue() );
+    return new AZHandshake( id, name, client_version, tcp_lport.intValue(), udp_lport.intValue(), udp2_lport.intValue(), ids, vers, h_type.intValue(), version );
   }
   
   

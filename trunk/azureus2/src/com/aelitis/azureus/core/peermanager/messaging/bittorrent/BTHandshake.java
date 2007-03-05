@@ -43,7 +43,7 @@ public class BTHandshake implements BTMessage, RawMessage {
   private final byte[] reserved_bytes;
   private final byte[] datahash_bytes;
   private final byte[] peer_id_bytes;
-  
+  private final byte version;
   
   
   /**
@@ -52,16 +52,16 @@ public class BTHandshake implements BTMessage, RawMessage {
    * @param peer_id
    * @param set_reserve_bit
    */
-  public BTHandshake( byte[] data_hash, byte[] peer_id, boolean set_reserve_bit ) {
-    this( set_reserve_bit ? AZ_RESERVED : BT_RESERVED, data_hash, peer_id );
+  public BTHandshake( byte[] data_hash, byte[] peer_id, boolean set_reserve_bit, byte version ) {
+    this( set_reserve_bit ? AZ_RESERVED : BT_RESERVED, data_hash, peer_id, version );
   }
   
   
-  private BTHandshake( byte[] reserved, byte[] data_hash, byte[] peer_id ) {
+  private BTHandshake( byte[] reserved, byte[] data_hash, byte[] peer_id, byte version ) {
     this.reserved_bytes = reserved;
     this.datahash_bytes = data_hash;
     this.peer_id_bytes = peer_id;
-
+    this.version = version;
     /*
     for( int i=0; i < reserved.length; i++ ) {  //locate any reserved bits
       for( int x=7; x >= 0; x-- ) {
@@ -115,7 +115,8 @@ public class BTHandshake implements BTMessage, RawMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
-  
+  public byte getVersion() { return version; };
+
   public String getDescription() {
     if( description == null ) {
       description = BTMessage.ID_BT_HANDSHAKE + " of dataID: " +ByteFormatter.nicePrint( datahash_bytes, true ) + " peerID: " +PeerClassifier.getPrintablePeerID( peer_id_bytes );
@@ -134,7 +135,7 @@ public class BTHandshake implements BTMessage, RawMessage {
   }
 
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
+  public Message deserialize( DirectByteBuffer data, byte version ) throws MessageException {    
     if( data == null ) {
       throw new MessageException( "[" +getID() + "] decode error: data == null" );
     }
@@ -165,7 +166,7 @@ public class BTHandshake implements BTMessage, RawMessage {
     
     data.returnToPool();
     
-    return new BTHandshake( reserved, infohash, peerid );
+    return new BTHandshake( reserved, infohash, peerid, version );
   }
   
   
