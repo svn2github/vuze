@@ -39,9 +39,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerListener;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -650,7 +648,7 @@ DownloadManagerController
 	}
 
 	public void 
-	forceRecheck() 
+	forceRecheck(final ForceRecheckListener l) 
 	{
 		try{
 			this_mon.enter();
@@ -683,136 +681,7 @@ DownloadManagerController
 	  					
 	  		initializeDiskManagerSupport( 
 	  			DownloadManager.STATE_CHECKING,
-	 	  		new DiskManagerListener()
-  	  			{
-  	  				public void
-  	  				stateChanged(
-  	  					int 	oldDMState,
-  	  					int		newDMState )
-  	  				{
-  						try{
-   							this_mon.enter();
-
-   							if ( getDiskManager() == null ){
-   								
-	  	  							// already closed down via stop
-   								
-	  	  						download_manager.setAssumedComplete(false);
-	  	  						
-	  	  						return;
-  							}
-						}finally{
-  								
-							this_mon.exit();
-  	  					}
-  						
- 	  					if ( newDMState == DiskManager.CHECKING ){
- 	  					 
- 	  						makeSureFilesFacadeFilled(true);
- 	  					}
- 	  					
-  	  					if ( newDMState == DiskManager.READY || newDMState == DiskManager.FAULTY ){
-  	  						
-	  	  					force_start = wasForceStarted;
-		  					
-	  	  					stats.setDownloadCompleted(stats.getDownloadCompleted(true));
-		  					
-	  	  					if ( newDMState == DiskManager.READY ){
-		  						
-	  	  						try{
-	  	  							boolean	only_seeding 		= false;
-	  	  							boolean	update_only_seeding	= false;
-	  	  						
-	  	  							try{
-	  	  								this_mon.enter();
-	  	  							
-	  	  								DiskManager	dm = getDiskManager();
-	  	  								
-	  	  								if ( dm != null ){
-	  	  									  					  		
-	  	  									dm.stop( false );
-		  							
-	  	  									only_seeding	= dm.getRemainingExcludingDND() == 0;
-	  	  									
-	  	  									update_only_seeding	= true;
-	  	  								
-	  		  	  							setDiskManager( null, null );
-		  							
-		  							
-	  		  	  							if ( start_state == DownloadManager.STATE_ERROR ){
-		  								
-	  		  	  								setState( DownloadManager.STATE_STOPPED, false );
-		  								
-	  		  	  							}else{
-		  								
-	  		  	  								setState( start_state, false );
-	  		  	  							}
-	  	  								}
-	  	  							}finally{
-	  	  								
-	  	  								this_mon.exit();
-	  	  							
-	  	  								download_manager.informStateChanged();
-	  	  							}
-	  	  							
-	  	  								// careful here, don't want to update seeding while holding monitor
-	  	  								// as potential deadlock
-	  	  							
-	  	  							if ( update_only_seeding ){
-	  	  								
-	  	  								download_manager.setAssumedComplete( only_seeding );
-	  	  							}
-	  	  						
-	  	  						}catch( Exception e ){
-		  					  		
-	  	  							setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
-	  	  						}
-	  	  					}else{ // Faulty
-		  					  		
-  	  							try{
-  	  								this_mon.enter();
-  	  							
-  	  								DiskManager	dm = getDiskManager();
-  	  								
-  	  								if ( dm != null ){
-
-  	  									dm.stop( false );
-		  					
-  	  									setDiskManager( null, null );
-		  						
-  	  									setFailed( dm.getErrorMessage());	 
-  	  								}
-  	  							}finally{
-  	  								
-  	  								this_mon.exit();
-  	  							}
-  	  							
-	  	  						download_manager.setAssumedComplete(false);
-	  	  					}
-	  					}
-  	  				}
-
-  	                public void 
-  					filePriorityChanged(
-  						DiskManagerFileInfo	file ) 
-  	                {     
-  	                	download_manager.informPriorityChange( file );
-  	                }
-  	                
-  	               	public void
-  	            	pieceDoneChanged(
-  	            		DiskManagerPiece	piece )
-  	            	{           		
-  	            	}
-  	               	
-  	            	public void
-  	            	fileAccessModeChanged(
-  	            		DiskManagerFileInfo		file,
-  	            		int						old_mode,
-  	            		int						new_mode )
-  	            	{
-  	            	}
-  	  			});
+	  			new forceRecheckDiskManagerListener(wasForceStarted, start_state, l));
 	  		
 		}finally{
 			
@@ -2444,6 +2313,146 @@ DownloadManagerController
 			
 		} finally {
 			writer.exdent();
+		}
+	}
+	
+	public class forceRecheckDiskManagerListener
+		implements DiskManagerListener
+	{
+		private final boolean wasForceStarted;
+
+		private final int start_state;
+
+		private final ForceRecheckListener l;
+
+		public forceRecheckDiskManagerListener(boolean wasForceStarted,
+				int start_state, ForceRecheckListener l) {
+			this.wasForceStarted = wasForceStarted;
+			this.start_state = start_state;
+			this.l = l;
+		}
+
+		public void stateChanged(int oldDMState, int newDMState) {
+			try {
+				this_mon.enter();
+
+				if (getDiskManager() == null) {
+
+					// already closed down via stop
+
+					download_manager.setAssumedComplete(false);
+
+					if (l != null) {
+						l.forceRecheckComplete(download_manager);
+					}
+
+					return;
+				}
+			} finally {
+
+				this_mon.exit();
+			}
+
+			
+			if (newDMState == DiskManager.CHECKING) {
+
+				makeSureFilesFacadeFilled(true);
+			}
+
+			if (newDMState == DiskManager.READY || newDMState == DiskManager.FAULTY) {
+
+				force_start = wasForceStarted;
+
+				stats.setDownloadCompleted(stats.getDownloadCompleted(true));
+
+				if (newDMState == DiskManager.READY) {
+
+					try {
+						boolean only_seeding = false;
+						boolean update_only_seeding = false;
+
+						try {
+							this_mon.enter();
+
+							DiskManager dm = getDiskManager();
+
+							if (dm != null) {
+
+								dm.stop(false);
+
+								only_seeding = dm.getRemainingExcludingDND() == 0;
+
+								update_only_seeding = true;
+
+								setDiskManager(null, null);
+
+								if (start_state == DownloadManager.STATE_ERROR) {
+
+									setState(DownloadManager.STATE_STOPPED, false);
+
+								} else {
+
+									setState(start_state, false);
+								}
+							}
+						} finally {
+
+							this_mon.exit();
+
+							download_manager.informStateChanged();
+						}
+
+						// careful here, don't want to update seeding while holding monitor
+						// as potential deadlock
+
+						if (update_only_seeding) {
+
+							download_manager.setAssumedComplete(only_seeding);
+						}
+
+					} catch (Exception e) {
+
+						setFailed("Resume data save fails: "
+								+ Debug.getNestedExceptionMessage(e));
+					}
+				} else { // Faulty
+
+					try {
+						this_mon.enter();
+
+						DiskManager dm = getDiskManager();
+
+						if (dm != null) {
+
+							dm.stop(false);
+
+							setDiskManager(null, null);
+
+							setFailed(dm.getErrorMessage());
+						}
+					} finally {
+
+						this_mon.exit();
+					}
+
+					download_manager.setAssumedComplete(false);
+
+				}
+				if (l != null) {
+					l.forceRecheckComplete(download_manager);
+				}
+			}
+		}
+
+		public void filePriorityChanged(DiskManagerFileInfo file) {
+			download_manager.informPriorityChange(file);
+		}
+
+		public void pieceDoneChanged(DiskManagerPiece piece) {
+		}
+
+		public void fileAccessModeChanged(DiskManagerFileInfo file, int old_mode,
+				int new_mode) {
 		}
 	}
 }
