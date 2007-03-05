@@ -2137,6 +2137,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				}
 			}
 
+			checkSeedingMode();
 		} else if (state == TorrentDownloader.STATE_CANCELLED
 				|| state == TorrentDownloader.STATE_ERROR
 				|| state == TorrentDownloader.STATE_DUPLICATE) {
@@ -2156,8 +2157,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		} else {
 			return;
 		}
-
-		checkSeedingMode();
 	}
 
 	/**
