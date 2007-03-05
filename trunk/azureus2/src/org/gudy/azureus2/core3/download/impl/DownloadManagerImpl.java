@@ -1487,9 +1487,15 @@ DownloadManagerImpl
   	public void
   	forceRecheck()
   	{
-  		controller.forceRecheck();
+  		controller.forceRecheck(null);
   	}
-  
+
+  	public void
+  	forceRecheck(final ForceRecheckListener l)
+  	{
+  		controller.forceRecheck(l);
+  	}
+
     public void
     resetFile(
     	DiskManagerFileInfo		file )
