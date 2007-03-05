@@ -39,6 +39,9 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
  * NOTE: wire format: [total message length] + [id length] + [id bytes] + [version byte] + [payload bytes]
  */
 public class AZMessageFactory {
+  public static final byte MESSAGE_VERSION_INITIAL				= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  public static final byte MESSAGE_VERSION_SUPPORTS_PADDING		= BTMessageFactory.MESSAGE_VERSION_SUPPORTS_PADDING;
+  
   private static final byte bss = DirectByteBuffer.SS_MSG;
   
   
@@ -65,9 +68,9 @@ public class AZMessageFactory {
    */
   public static void init() {
     try {
-      MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", 0, 0, 0, new String[0], new byte[0], 0,(byte)0) );
-      MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null,(byte)0 ) );
-      MessageManager.getSingleton().registerMessageType( new AZRequestHint( -1, -1, -1, -1,(byte)0 ) );
+      MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", 0, 0, 0, new String[0], new byte[0], 0, MESSAGE_VERSION_SUPPORTS_PADDING ) );
+      MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null, MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new AZRequestHint( -1, -1, -1, -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
       /*
       MessageManager.getSingleton().registerMessageType( new AZSessionSyn( new byte[20], -1, null) );
       MessageManager.getSingleton().registerMessageType( new AZSessionAck( new byte[20], -1, null) );
@@ -89,7 +92,7 @@ public class AZMessageFactory {
    * @throws MessageException on registration error
    */
   public static void registerGenericMapPayloadMessageType( String type_id ) throws MessageException {
-  	MessageManager.getSingleton().registerMessageType( new AZGenericMapPayload( type_id, null,(byte)1 ) );
+  	MessageManager.getSingleton().registerMessageType( new AZGenericMapPayload( type_id, null, MESSAGE_VERSION_INITIAL ) );
   }
   
   

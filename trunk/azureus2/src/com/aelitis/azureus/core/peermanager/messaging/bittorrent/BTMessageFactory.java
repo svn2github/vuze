@@ -38,24 +38,27 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  *
  */
 public class BTMessageFactory {
-	private static final LogIDs LOGID = LogIDs.PEER;
+  public static final byte MESSAGE_VERSION_INITIAL				= 1;	
+  public static final byte MESSAGE_VERSION_SUPPORTS_PADDING		= 2;	// most of these messages are also used by AZ code
+
+  private static final LogIDs LOGID = LogIDs.PEER;
   
   /**
    * Initialize the factory, i.e. register the messages with the message manager.
    */
   public static void init() {
     try {
-      MessageManager.getSingleton().registerMessageType( new BTBitfield( null, (byte)0 ) );
-      MessageManager.getSingleton().registerMessageType( new BTCancel( -1, -1, -1,(byte)0 ) );
-      MessageManager.getSingleton().registerMessageType( new BTChoke((byte)0) );
-      MessageManager.getSingleton().registerMessageType( new BTHandshake( new byte[0], new byte[0], true,(byte)0 ) );
-      MessageManager.getSingleton().registerMessageType( new BTHave( -1,(byte)0 ) );
-      MessageManager.getSingleton().registerMessageType( new BTInterested((byte)0) );
-      MessageManager.getSingleton().registerMessageType( new BTKeepAlive((byte)0) );
-      MessageManager.getSingleton().registerMessageType( new BTPiece( -1, -1, null,(byte)0 ) );
-      MessageManager.getSingleton().registerMessageType( new BTRequest( -1, -1 , -1,(byte)0 ) );
-      MessageManager.getSingleton().registerMessageType( new BTUnchoke((byte)0) );
-      MessageManager.getSingleton().registerMessageType( new BTUninterested((byte)0) );
+      MessageManager.getSingleton().registerMessageType( new BTBitfield( null, MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTCancel( -1, -1, -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTChoke( MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTHandshake( new byte[0], new byte[0], true, MESSAGE_VERSION_INITIAL ));
+      MessageManager.getSingleton().registerMessageType( new BTHave( -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTInterested( MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTKeepAlive(MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTPiece( -1, -1, null, MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTRequest( -1, -1 , -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTUnchoke( MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new BTUninterested( MESSAGE_VERSION_SUPPORTS_PADDING ));
     }
     catch( MessageException me ) {  me.printStackTrace();  }
   }

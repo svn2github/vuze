@@ -41,14 +41,16 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 //based on http://82.182.115.6/extension.txt  //TODO
 
 public class ADVMessageFactory {
+  public static final byte MESSAGE_VERSION_INITIAL	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  
   private static final byte bss = DirectByteBuffer.SS_MSG;
 
   private static final Map legacy_data = new HashMap();
   static {
-    legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke((byte)1), new BTPiece(-1, -1, null,(byte)1 )} ) );
-    legacy_data.put( BTMessage.ID_BT_UNCHOKE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, new Message[]{new BTChoke((byte)1)} ) );
-    legacy_data.put( BTMessage.ID_BT_INTERESTED, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUninterested((byte)1)} ) );
-    legacy_data.put( BTMessage.ID_BT_UNINTERESTED, new LegacyData( RawMessage.PRIORITY_NORMAL, false, new Message[]{new BTInterested((byte)1)} ) );
+    legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke((byte)0), new BTPiece(-1, -1, null, (byte)0 )} ) );
+    legacy_data.put( BTMessage.ID_BT_UNCHOKE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, new Message[]{new BTChoke((byte)0)} ) );
+    legacy_data.put( BTMessage.ID_BT_INTERESTED, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUninterested((byte)0)} ) );
+    legacy_data.put( BTMessage.ID_BT_UNINTERESTED, new LegacyData( RawMessage.PRIORITY_NORMAL, false, new Message[]{new BTInterested((byte)0)} ) );
     legacy_data.put( BTMessage.ID_BT_HAVE, new LegacyData( RawMessage.PRIORITY_LOW, false, null ) );
     legacy_data.put( BTMessage.ID_BT_BITFIELD, new LegacyData( RawMessage.PRIORITY_HIGH, true, null ) );
     legacy_data.put( BTMessage.ID_BT_REQUEST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null ) );
@@ -85,7 +87,7 @@ public class ADVMessageFactory {
    */
   //TODO plugin mapping
   private static void registerGenericMapPayloadMessageType( String type_id ) throws MessageException {
-  	MessageManager.getSingleton().registerMessageType( new AZGenericMapPayload( type_id, null,(byte)1 ) );
+  	MessageManager.getSingleton().registerMessageType( new AZGenericMapPayload( type_id, null, MESSAGE_VERSION_INITIAL ) );
   }
   
   
