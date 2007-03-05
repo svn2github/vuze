@@ -30,6 +30,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
@@ -92,7 +93,7 @@ public class MiniRecentList
 			SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 			btn.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					skin.setActiveTab("maintabs", "maintabs.library");
+					skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.library");
 				}
 			});
 		}

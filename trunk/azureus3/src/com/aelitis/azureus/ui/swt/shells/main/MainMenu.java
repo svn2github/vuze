@@ -20,10 +20,12 @@ import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
@@ -148,25 +150,25 @@ public class MainMenu
 	private void addViewMenuItems(Menu viewMenu) {
 		createMenuItem(viewMenu, PREFIX_V3 + ".home", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab("maintabs", "maintabs.home");
+				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.home");
 			}
 		});
 
 		createMenuItem(viewMenu, PREFIX_V3 + ".browse", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab("maintabs", "maintabs.browse");
+				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.browse");
 			}
 		});
 
 		createMenuItem(viewMenu, PREFIX_V3 + ".library", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab("maintabs", "maintabs.library");
+				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.library");
 			}
 		});
 
 		createMenuItem(viewMenu, PREFIX_V3 + ".publish", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab("maintabs", "maintabs.publish");
+				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.publish");
 			}
 		});
 
@@ -174,7 +176,7 @@ public class MainMenu
 
 		createMenuItem(viewMenu, PREFIX_V3 + ".advanced", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab("maintabs", "maintabs.advanced");
+				skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.advanced");
 			}
 		});
 	}
