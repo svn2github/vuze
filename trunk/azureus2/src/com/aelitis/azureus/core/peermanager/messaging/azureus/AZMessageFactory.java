@@ -116,7 +116,28 @@ public class AZMessageFactory {
     
     stream_payload.get( bss, id_bytes );
     
-    byte version = stream_payload.get( bss );
+    	// if only the version came first we could save a lot of space by changing the id length + id....
+    
+    	// in the meantime we overload the version byte to have a version number and flags
+    	// flags = top 4 bits, version = bottom 4 bits
+    
+    byte version_and_flags = stream_payload.get( bss );
+    
+    byte version = (byte)( version_and_flags & 0x0f );
+    
+    if ( version >= MESSAGE_VERSION_SUPPORTS_PADDING ){
+    
+    	byte	flags =  (byte)(( version_and_flags >> 4 ) & 0x0f );
+    	
+    	if ( ( flags & 0x01 ) != 0 ){
+    		
+    		short padding_length = stream_payload.getShort( bss );
+    	
+    		byte[]	padding = new byte[padding_length];
+    	
+    		stream_payload.get( bss, padding );
+    	}
+    }
     
     return MessageManager.getSingleton().createMessage( id_bytes, stream_payload, version );
   }
@@ -131,6 +152,8 @@ public class AZMessageFactory {
    */
   public static RawMessage createAZRawMessage( Message base_message ) {
     byte[] id_bytes = base_message.getIDBytes();
+    byte version = base_message.getVersion();
+    
     DirectByteBuffer[] payload = base_message.getData();
     
     int payload_size = 0;
@@ -139,11 +162,48 @@ public class AZMessageFactory {
     }
        
     //create and fill header buffer
-    DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_AZ_HEADER, 9 + id_bytes.length );
-    header.putInt( bss, 5 + id_bytes.length + payload_size );
-    header.putInt( bss, id_bytes.length );
-    header.put( bss, id_bytes );
-    header.put( bss, (byte)1 );  //NOTE: this is a hack as we transition to ADV messaging.
+    
+    DirectByteBuffer header;
+    
+    if ( version >= MESSAGE_VERSION_SUPPORTS_PADDING ){
+
+    	boolean	do_padding = true;
+    	
+    	short 	padding_length = do_padding?(short)( Math.random() * 256 ):0;
+    	
+    	byte	flags = do_padding?(byte)0x01:(byte)0x00;
+    	
+    	int	header_size = 4 + 4 + id_bytes.length + 1 + (do_padding?(2+padding_length):0);
+    	
+        header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_AZ_HEADER, header_size );
+        
+	    header.putInt( bss, header_size - 4 + payload_size );
+	    header.putInt( bss, id_bytes.length );
+	    header.put( bss, id_bytes );
+	    
+	    byte version_and_flags = (byte)( ( flags << 4 ) | version );
+	    
+	    header.put( bss, version_and_flags ); 
+	    
+	    if ( do_padding ){
+	    	
+	    	byte[]	padding = new byte[padding_length];
+	    	
+	    	header.putShort( bss, padding_length );
+	    	header.put( bss, padding );
+	    }
+    }else{
+    	
+	   	int	header_size = 4 + 4 + id_bytes.length + 1;
+
+	    header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_AZ_HEADER, header_size );
+	    
+	    header.putInt( bss, header_size - 4 + payload_size );
+	    header.putInt( bss, id_bytes.length );
+	    header.put( bss, id_bytes );
+	    header.put( bss, version ); 
+    }
+    
     header.flip( bss );
     
     DirectByteBuffer[] raw_buffs = new DirectByteBuffer[ payload.length + 1 ];

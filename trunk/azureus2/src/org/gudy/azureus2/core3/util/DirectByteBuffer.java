@@ -133,13 +133,16 @@ DirectByteBuffer
 	public static final byte		OP_READ_SC			= 21;
 	public static final byte		OP_WRITE_SC			= 22;
 	public static final byte		OP_GETBUFFER		= 23;
+	public static final byte		OP_GETSHORT			= 24;
+	public static final byte		OP_PUTSHORT			= 25;
 	
 	public static final String[]	OP_DESCS = 
 		{ 	"limit", 		"limit(int)", 	"position", 	"position(int)", 	"clear", 
 			"flip", 		"remaining", 	"capacity", 	"put(byte[])", 		"put(dbb)",
 			"put(bbb)", 	"putInt", 		"put(byte)",	"get",				"get(int)",
 			"get(byte[])",	"getInt",		"getInt(int",	"hasRemaining",		"read(fc)",		
-			"write(fc)",	"read(sc)",		"write(sc)",	"getBuffer",
+			"write(fc)",	"read(sc)",		"write(sc)",	"getBuffer",		"getShort",
+			"putShort",
 		};
 			
 	protected static final boolean	TRACE				= AEDiagnostics.TRACE_DIRECT_BYTE_BUFFERS;
@@ -459,6 +462,19 @@ DirectByteBuffer
 	}
   
 	public void
+	putShort(
+		byte		subsystem,
+		short		x )
+	{
+		if ( TRACE ){
+			
+			traceUsage( subsystem, OP_PUTSHORT);
+		}
+		
+		buffer.putShort( x );
+	}
+	
+	public void
 	putInt(
 		byte		subsystem,
 		int			data )
@@ -509,6 +525,18 @@ DirectByteBuffer
 		buffer.get(data);
 	}
   
+	public short
+	getShort(
+		byte		subsystem )
+	{
+		if ( TRACE ){
+			
+			traceUsage( subsystem, OP_GETSHORT);
+		}
+		
+		return( buffer.getShort());
+	}
+	
 	public int
 	getInt(
 		byte		subsystem )

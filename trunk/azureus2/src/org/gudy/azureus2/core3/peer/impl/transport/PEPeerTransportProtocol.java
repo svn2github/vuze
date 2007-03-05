@@ -146,19 +146,19 @@ PEPeerTransportProtocol
   
   private boolean az_messaging_mode = false;
   private Message[] supported_messages = null;
-  private byte	other_peer_bitfield_version		= 1;
-  private byte	other_peer_cancel_version		= 1;
-  private byte	other_peer_choke_version		= 1;
-  private byte	other_peer_handshake_version	= 1;
-  private byte	other_peer_have_version			= 1;
-  private byte	other_peer_interested_version	= 1;
-  private byte	other_peer_keep_alive_version	= 1;
-  private byte	other_peer_pex_version			= 1;
-  private byte	other_peer_piece_version		= 1;
-  private byte	other_peer_request_hint_version	= 1;
-  private byte	other_peer_unchoke_version		= 1;
-  private byte	other_peer_uninterested_version	= 1;
-  private byte	other_peer_request_version		= 1;
+  private byte	other_peer_bitfield_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_cancel_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_choke_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_handshake_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_have_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_interested_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_keep_alive_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_pex_version			= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_request_hint_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_unchoke_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_uninterested_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+  private byte	other_peer_request_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   
   private final AEMonitor closing_mon	= new AEMonitor( "PEPeerTransportProtocol:closing" );
   private final AEMonitor general_mon  	= new AEMonitor( "PEPeerTransportProtocol:data" );
@@ -1693,20 +1693,57 @@ PEPeerTransportProtocol
       peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( peer_source ), type, udp_listen_port, crypto_level, 0 );
     }
 
+    String[]	supported_message_ids		= handshake.getMessageIDs();
+    byte[] 		supported_message_versions 	= handshake.getMessageVersions();
+    
     //find mutually available message types
     final ArrayList messages = new ArrayList();
 
     for( int i=0; i < handshake.getMessageIDs().length; i++ ) {
-      Message msg = MessageManager.getSingleton().lookupMessage( handshake.getMessageIDs()[i] );
+      Message msg = MessageManager.getSingleton().lookupMessage( supported_message_ids[i] );
       
       if( msg != null ) {  //mutual support!
         messages.add( msg );
+        
+        String	id 					= msg.getID();
+        byte	supported_version 	= supported_message_versions[i];
+        
+        	// we can use == safely
+        
+        if ( id == BTMessage.ID_BT_BITFIELD ){
+        	other_peer_bitfield_version = supported_version;
+        }else if ( id == BTMessage.ID_BT_CANCEL ){
+        	other_peer_cancel_version = supported_version;
+        }else if ( id == BTMessage.ID_BT_CHOKE ){
+        	other_peer_choke_version = supported_version;
+        }else if ( id == BTMessage.ID_BT_HANDSHAKE ){
+        	other_peer_handshake_version = supported_version;
+        }else if ( id == BTMessage.ID_BT_HAVE ){
+        	other_peer_have_version = supported_version;
+        }else if ( id == BTMessage.ID_BT_INTERESTED ){
+        	other_peer_interested_version = supported_version;
+        }else if ( id == BTMessage.ID_BT_KEEP_ALIVE ){
+        	other_peer_keep_alive_version = supported_version;
+        }else if ( id == BTMessage.ID_BT_PIECE ){
+        	other_peer_piece_version = supported_version;
+         }else if ( id == BTMessage.ID_BT_UNCHOKE ){
+        	other_peer_unchoke_version = supported_version;
+        }else if ( id == BTMessage.ID_BT_UNINTERESTED ){
+        	other_peer_uninterested_version = supported_version;
+        }else if ( id == BTMessage.ID_BT_REQUEST ){
+        	other_peer_request_version = supported_version;
+        }else if ( id == AZMessage.ID_AZ_PEER_EXCHANGE ){
+        	other_peer_pex_version = supported_version;
+        }else if ( id == AZMessage.ID_AZ_REQUEST_HINT ){
+        	other_peer_request_hint_version = supported_version;
+        }else{
+        	// we expect unmatched ones here at the moment as we're not dealing with them yet or they don't make sense.
+        	// for example AZVER
+        }
       }
     }
     
     supported_messages = (Message[])messages.toArray( new Message[messages.size()] );
-    
-    byte[] supported_message_versions = handshake.getMessageVersions();
     
     outgoing_piece_message_handler.setPieceVersion( other_peer_piece_version );
  
