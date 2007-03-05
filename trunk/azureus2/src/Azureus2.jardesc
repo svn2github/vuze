@@ -11,6 +11,7 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.ui.common.table.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.ui.swt"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.peermanager.nat"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.ui.model"/>
@@ -97,6 +98,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.proxy"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.util.protocol.udp"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.pluginsuninstaller"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.ui.common.table"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.clientmessageservice.secure"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.jce.provider"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.config"/>
@@ -361,6 +363,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.tracker.local"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.clientid"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.shells"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.views.piece"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.server.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.protocol.udp"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.ipchecker.extipchecker"/>
