@@ -18,6 +18,7 @@ CHANGE: Plug  | Added full set of config parameter methods for completeness [amc
 
 BUGFIX: Plug  | UPnP plugin now correctly attempts to remove existing mappings if they are in the way of new mappings [amc1]
 BUGFIX: Core  | Fix Re-adding a torrent causing "1-" or "-1" directories or files [TuxPaper]
+BUGFIX: Core  | Fixed bug where files were sometimes moved into a subdirectory, where the directory name was only one character long [amc1]
 BUGFIX: Plug  | Fixed bug where some plugin menu items didn't appear under certain conditions [amc1]
 
 

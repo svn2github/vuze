@@ -1621,7 +1621,15 @@ DiskManagerImpl
         start_stop_mon.exit();
     }
   }
-
+    
+  // Helper function
+  private void logMoveFileError(String destination_path, String message) {
+      Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, message));
+      Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+                      LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
+                      new String[] {destination_path, message});
+  }
+	  
   private boolean isFileDestinationIsItself(String move_to_dir) {
 
         File save_location = download_manager.getAbsoluteSaveLocation();
@@ -1640,19 +1648,10 @@ DiskManagerImpl
             if (from_file.equals(to_file)){
                 return true;
             }else{
-
                 if ( !download_manager.getTorrent().isSimpleTorrent()){
-
                     if ( to_file.getPath().startsWith( save_location.getPath())){
-
                         String msg = "Target is sub-directory of files";
-
-                        Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
-
-                        Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
-                                        LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
-                                        new String[] {save_location.toString(), msg });
-
+                        logMoveFileError(save_location.toString(), msg);
                         return true;
                     }
                 }
@@ -1670,44 +1669,12 @@ DiskManagerImpl
     private boolean moveDataFiles0(String move_to_dir, boolean change_to_read_only) throws Exception {
         File save_location = download_manager.getAbsoluteSaveLocation();
         String move_from_dir = save_location.getParent();
-
-         // sanity check - never move a dir into itself
-        try{
-            File from_file = new File(move_from_dir).getCanonicalFile();
-            File to_file   = new File(move_to_dir).getCanonicalFile();
-
-            save_location   = save_location.getCanonicalFile();
-
-            move_from_dir   = from_file.getPath();
-            move_to_dir     = to_file.getPath();
-
-            if (from_file.equals(to_file)){
-                return true;
-            }else{
-
-                if ( !download_manager.getTorrent().isSimpleTorrent()){
-
-                    if ( to_file.getPath().startsWith( save_location.getPath())){
-
-                        String msg = "Target is sub-directory of files";
-
-                        Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
-
-                        Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
-                                        LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
-                                        new String[] {save_location.toString(), msg });
-
-                        return true;
-                    }
-                }
-            }
-
-        }catch( Throwable e ){
-
-                // carry on
-
-            Debug.out(e);
-        }
+        
+        // It is important that we are able to get the canonical form of the directory to
+        // move to, because later code determining new file paths will break otherwise.
+        move_from_dir = new File(move_from_dir).getCanonicalFile().getPath();
+        
+        if (isFileDestinationIsItself(move_to_dir)) {return false;}
 
         // first of all check that no destination files already exist
         File[]    new_files   = new File[files.length];
@@ -1720,7 +1687,7 @@ DiskManagerImpl
 
             File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, old_file );
 
-            if ( linked_file != old_file ){
+            if (!linked_file.equals(old_file)) {
 
                 if ( save_location.isDirectory()){
 
@@ -1749,25 +1716,57 @@ DiskManagerImpl
                     }
                 }
             }
+            
+            /**
+             * We are trying to calculate the relative path of the file within the original save
+             * directory, and then use that to calculate the new save path of the file in the new
+             * save directory.
+             * 
+             * We have three cases which we may deal with:
+             *   1) Where the file in the torrent has never been moved (therefore, old_file will
+             *      equals linked_file),
+             *   2) Where the file in the torrent has been moved somewhere elsewhere inside the save
+             *      path (old_file will not equal linked_file, but we will overwrite the value of
+             *      old_file with linked_file),
+             *   3) Where the file in the torrent has been moved outside of the download path - meaning
+             *      we set link_only[i] to true. This is just to update the internal reference of where
+             *      the file should be - it doesn't move the file at all.
+             *      
+             * Below, we will determine a new path for the file, but only in terms of where it should be
+             * inside the new download save location - if the file currently exists outside of the save
+             * location, we will not move it.
+             */
+            old_files[i] = old_file;
+            
+            /**
+             * move_from_dir should be canonical (see earlier code).
+             * 
+             * Need to get canonical form of the old file, because that's what we are using for determining
+             * the relative path.
+             */ 
+            String old_parent_path = old_file.getCanonicalFile().getParent();
+            String sub_path = null;
 
-            old_files[i]  = old_file;
-
-              //get old file's parent path
-
-            String fullPath = old_file.getParent();
-
-              //compute the file's sub-path off from the default save path
-
-            String subPath = fullPath.substring(fullPath.indexOf(move_from_dir) + move_from_dir.length());
-
+            /**
+             * Calculate the sub path of where the file lives compared to the save location.
+             * 
+             * The code here has changed from what it used to be to fix bug 1636342:
+             *   https://sourceforge.net/tracker/?func=detail&atid=575154&aid=1636342&group_id=84122
+             */
+            if (old_parent_path.startsWith(move_from_dir)) {
+            	sub_path = old_parent_path.substring(move_from_dir.length());
+            }
+            else {
+            	logMoveFileError(move_to_dir, "Could not determine relative path for file - " + old_parent_path);
+            	throw new IOException("relative path assertion failed: move_from_dir=\"" + move_from_dir + "\", old_parent_path=\"" + old_parent_path + "\"");
+            }
+            
               //create the destination dir
-
-            if ( subPath.startsWith( File.separator )){
-
-                subPath = subPath.substring(1);
+            if ( sub_path.startsWith( File.separator )){
+                sub_path = sub_path.substring(1);
             }
 
-            File destDir = new File(move_to_dir, subPath);
+            File destDir = new File(move_to_dir, sub_path);
 
               //create the destination file pointer
 
