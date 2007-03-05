@@ -34,14 +34,17 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  */
 public class AZMessageEncoder implements MessageStreamEncoder {
 
-  public AZMessageEncoder() {
-    /*nothing*/
+  private boolean enable_padding;
+  
+  public AZMessageEncoder( boolean _enable_padding ) {
+  
+	  enable_padding = _enable_padding;
   }
   
   
   
   public RawMessage[] encodeMessage( Message message ) {
-    return new RawMessage[]{ AZMessageFactory.createAZRawMessage( message )};
+    return new RawMessage[]{ AZMessageFactory.createAZRawMessage( message, enable_padding  )};
   }
 
   

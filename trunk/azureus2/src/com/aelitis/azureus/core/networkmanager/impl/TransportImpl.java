@@ -98,6 +98,12 @@ TransportImpl
 		return( filter==null?"":filter.getName()); 
 	}
 	
+	 public boolean 
+	 isEncrypted()
+	 { 
+		 return( filter==null?false:filter.isEncrypted());
+	 }
+	 
 	  /**
 	   * Is the transport ready to write,
 	   * i.e. will a write request result in >0 bytes written.

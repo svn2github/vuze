@@ -140,6 +140,12 @@ TransportHelperFilterInserter
 		target_filter.setTrace( on );
 	}
 	
+	public boolean 
+	isEncrypted()
+	{
+		return( target_filter.isEncrypted());
+	}
+	
 	public String
 	getName()
 	{

@@ -66,6 +66,12 @@ TransportHelperFilterStreamCipher
 		read_cipher.update( source_buffer, target_buffer );
 	}	
 	
+	public boolean 
+	isEncrypted()
+	{
+		return( true );
+	}
+	
 	public String
 	getName()
 	{

@@ -298,6 +298,12 @@ TransportHelperFilterSwitcher
 		second_filter.setTrace( on );
 	}
 	
+	public boolean 
+	isEncrypted()
+	{
+		return( current_reader.isEncrypted() || current_writer.isEncrypted());
+	}
+	
 	public String
 	getName()
 	{

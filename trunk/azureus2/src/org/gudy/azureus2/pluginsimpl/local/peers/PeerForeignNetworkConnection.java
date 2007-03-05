@@ -143,6 +143,14 @@ PeerForeignNetworkConnection
 			return( peer.isTransferAvailable());
 		}
 	
+		public boolean
+		isTCP()
+		{
+				// we don't know (or care?)
+			
+			return( false );
+		}
+		
 		public String 
 		getDescription()
 		{

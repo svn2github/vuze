@@ -56,6 +56,9 @@ TransportHelperFilter
 	public String
 	getName();
 	
+	public boolean 
+	isEncrypted();
+	
 	public void
 	setTrace(
 		boolean	on );

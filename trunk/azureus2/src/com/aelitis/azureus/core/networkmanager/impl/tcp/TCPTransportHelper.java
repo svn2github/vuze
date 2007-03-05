@@ -112,7 +112,7 @@ TCPTransportHelper
 	public boolean
 	hasDelayedWrite()
 	{
-		return( false );
+		return( delayed_write != null );
 	}
 	
 	public int 
@@ -127,6 +127,15 @@ TCPTransportHelper
 			Debug.out( "channel == null" );
 			
 			return 0;
+		}
+		
+			// partial-write means we are guaranteed to get hit with another write straight away
+		
+		if ( partial_write && delayed_write == null ){
+			
+			delayed_write = buffer;
+			
+			return( delayed_write.remaining());
 		}
 		
 		long	written = 0;
@@ -223,12 +232,8 @@ TCPTransportHelper
 				written_sofar -= delay_remaining;
 			}
 		}else{
-			/*
-			for( int i=array_offset; i < (array_offset + length); i++ ) {
-
-				log( buffers[i]);
-			}
-			*/
+			
+			// log( buffers, array_offset, length );
 			
 			if( enable_efficient_io ) {
 				
@@ -523,6 +528,20 @@ TCPTransportHelper
 	}
 
 	/*
+	protected void 
+	log( 
+		ByteBuffer[] 	buffers, 
+		int 			array_offset, 
+		int 			length ) 
+	{
+		System.out.println( "Writing group of " + length );
+		
+		for( int i=array_offset; i < (array_offset + length); i++ ) {
+	
+			log( buffers[i]);
+		}
+	}
+
 	protected void
 	log(
 		ByteBuffer	buffer )
@@ -537,7 +556,7 @@ TCPTransportHelper
 		
 		buffer.position( position );
 		
-		System.out.println( "    writing: " + new String(temp));
+		System.out.println( "    writing " + rem + ": " + new String(temp));
 	}
 	*/
 	

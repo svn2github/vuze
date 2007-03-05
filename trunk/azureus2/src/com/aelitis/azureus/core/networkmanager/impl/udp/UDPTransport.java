@@ -67,6 +67,12 @@ UDPTransport
 		setFilter( _filter );
 	}
 	
+	public boolean 
+	isTCP()
+	{ 
+		return( false );
+	}
+	
 	public TransportEndpoint 
 	getTransportEndpoint()
 	{

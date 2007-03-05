@@ -92,6 +92,12 @@ TransportHelperFilterStreamXOR
 		}	
 	}
 	
+	public boolean 
+	isEncrypted()
+	{
+		return( true );
+	}
+	
 	public String
 	getName()
 	{

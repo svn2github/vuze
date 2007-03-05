@@ -1632,8 +1632,13 @@ PEPeerTransportProtocol
 				}
         
         az_messaging_mode = true;
+        
+        Transport transport = connection.getTransport();
+        
+        boolean enable_padding = transport.isTCP() && transport.isEncrypted();
+        
         connection.getIncomingMessageQueue().setDecoder( new AZMessageDecoder() );
-        connection.getOutgoingMessageQueue().setEncoder( new AZMessageEncoder() );
+        connection.getOutgoingMessageQueue().setEncoder( new AZMessageEncoder( enable_padding ));
       
         sendAZHandshake();
       }

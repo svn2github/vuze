@@ -133,6 +133,12 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 	  return( TCPNetworkManager.getTcpMssSize());
   }
   
+  public boolean 
+  isTCP()
+  { 
+	  return( true );
+  }
+	
   /**
    * Get a textual description for this transport.
    * @return description

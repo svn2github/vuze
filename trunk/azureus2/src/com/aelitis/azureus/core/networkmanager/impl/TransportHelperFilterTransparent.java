@@ -171,6 +171,12 @@ TransportHelperFilterTransparent
 		transport.setTrace( on );
 	}
 	  
+	public boolean 
+	isEncrypted()
+	{
+		return( false );
+	}
+	
 	public String
 	getName()
 	{

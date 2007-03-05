@@ -99,4 +99,6 @@ public class LightweightTCPTransport implements Transport {
 
   }
   public String getEncryption(){ return( filter.getName()); }
+  public boolean isEncrypted(){ return( filter.isEncrypted());}
+  public boolean isTCP(){ return true; }
 }

@@ -42,6 +42,8 @@ TransportBase
 	
 	public boolean isReadyForRead( EventWaiter waiter );
 	
+	public boolean isTCP();
+	
 	  /**
 	   * Get a textual description for this transport.
 	   * @return description

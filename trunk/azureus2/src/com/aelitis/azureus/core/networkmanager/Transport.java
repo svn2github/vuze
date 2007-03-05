@@ -53,6 +53,8 @@ Transport
    */
   public TransportEndpoint getTransportEndpoint();  
   
+  public boolean isEncrypted();
+  
   /**
    * Return a textual description of the encryption for this transport
    * @return
