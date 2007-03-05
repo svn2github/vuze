@@ -293,6 +293,10 @@ public class MessageBoxShell
 			lblCloseIn.setData("CloseOn", new Long(endOn));
 			SimpleTimer.addPeriodicEvent("autoclose", 500, new TimerEventPerformer() {
 				public void perform(TimerEvent event) {
+					if (shell.isDisposed()) {
+						event.cancel();
+						return;
+					}
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
 							if (!shell.isDisposed()) {
@@ -332,6 +336,10 @@ public class MessageBoxShell
 				long lEnterOn = 0;
 
 				public void perform(final TimerEvent event) {
+					if (shell.isDisposed()) {
+						event.cancel();
+						return;
+					}
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
 							if (shell.isDisposed()) {
