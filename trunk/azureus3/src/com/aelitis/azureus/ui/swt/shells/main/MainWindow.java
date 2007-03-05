@@ -26,7 +26,6 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
@@ -55,7 +54,8 @@ import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import org.json.JSONObject;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.messenger.*;
+import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReplyListener;
@@ -63,6 +63,7 @@ import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
@@ -224,7 +225,7 @@ public class MainWindow
 				&& !PublishUtils.isPublished(dm)) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					SWTSkinTabSet tabSetMain = skin.getTabSet("maintabs");
+					SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
 					if (tabSetMain != null
 							&& !tabSetMain.getActiveTab().getSkinObjectID().equals(
 									"maintabs.home")) {
@@ -332,8 +333,6 @@ public class MainWindow
 		shell.setText("Azureus");
 		Utils.setShellIcon(shell);
 		Utils.linkShellMetricsToConfig(shell, "window");
-
-		setupUsageTracker();
 
 		splash.reportPercent(70);
 
@@ -448,7 +447,7 @@ public class MainWindow
 					if (!name.equals("AZMSG")) {
 						return false;
 					}
-
+					
 					ClientMessageContext context = PlatformMessenger.getClientMessageContext();
 					if (context == null) {
 						return false;
@@ -536,7 +535,7 @@ public class MainWindow
 		mapTrackUsage_mon.enter();
 		try {
 			if (mapTrackUsage != null) {
-				SWTSkinTabSet tabSetMain = skin.getTabSet("maintabs");
+				SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
 				if (tabSetMain != null) {
 					updateMapTrackUsage(tabSetMain.getActiveTab().getSkinObjectID());
 				}
@@ -549,89 +548,6 @@ public class MainWindow
 		}
 
 		return true;
-	}
-
-	/**
-	 * 
-	 */
-	private void setupUsageTracker() {
-		mapTrackUsage_mon.enter();
-		try {
-			if (COConfigurationManager.getBooleanParameter("Send Version Info")) {
-
-				mapTrackUsage = new HashMap();
-
-				File f = new File(SystemProperties.getUserPath(), "timingstats.dat");
-				if (f.exists()) {
-					final Map oldMapTrackUsage = FileUtil.readResilientFile(f);
-					PlatformConfigMessenger.sendUsageStats(oldMapTrackUsage,
-							f.lastModified(), new PlatformMessengerListener() {
-
-								public void messageSent(PlatformMessage message) {
-								}
-
-								public void replyReceived(PlatformMessage message,
-										String replyType, Object jsonReply) {
-									if (mapTrackUsage == null) {
-										return;
-									}
-									mapTrackUsage_mon.enter();
-									try {
-										if (replyType.equals(PlatformMessenger.REPLY_EXCEPTION)) {
-											for (Iterator iterator = oldMapTrackUsage.keySet().iterator(); iterator.hasNext();) {
-												String key = (String) iterator.next();
-												Long value = (Long) oldMapTrackUsage.get(key);
-
-												Long oldValue = (Long) mapTrackUsage.get(key);
-												if (oldValue != null) {
-													value = new Long(value.longValue()
-															+ oldValue.longValue());
-												}
-												mapTrackUsage.put(key, value);
-											}
-										}
-									} finally {
-										mapTrackUsage_mon.exit();
-									}
-								}
-							});
-				}
-
-				SimpleTimer.addPeriodicEvent("UsageTracker", 1000,
-						new TimerEventPerformer() {
-							long lLastMouseMove = 0;
-
-							Point ptLastMousePos = new Point(0, 0);
-
-							public void perform(TimerEvent event) {
-								Utils.execSWTThread(new AERunnable() {
-									public void runSupport() {
-										if (shell == null || shell.isDisposed()) {
-											return;
-										}
-
-										Point pt = shell.getDisplay().getCursorLocation();
-										if (pt.equals(ptLastMousePos)) {
-											return;
-										}
-										ptLastMousePos = pt;
-
-										long now = SystemTime.getCurrentTime();
-										long diff = now - lLastMouseMove;
-										if (diff < 10000) {
-											lCurrentTrackTime += diff;
-										}
-										lLastMouseMove = now;
-									}
-								});
-							}
-						});
-			} else {
-				mapTrackUsage = null;
-			}
-		} finally {
-			mapTrackUsage_mon.exit();
-		}
 	}
 
 	private void showMainWindow() {
@@ -700,7 +616,7 @@ public class MainWindow
 		}
 
 		String startTab = hasInComplete ? "maintabs.home" : "maintabs.browse";
-		SWTSkinTabSet tabSet = skin.getTabSet("maintabs");
+		SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
 		if (tabSet != null) {
 			COConfigurationManager.setBooleanDefault("v3.Start Advanced", false);
 			if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
@@ -808,19 +724,6 @@ public class MainWindow
 	private void initWidgets() {
 		SWTSkinObject skinObject;
 
-		skinObject = skin.getSkinObject("recommend-list");
-		if (skinObject != null) {
-			Composite cData = (Composite) skinObject.getControl();
-			Composite cHeaders = null;
-
-			skinObject = skin.getSkinObject("recommend-list-headers");
-			if (skinObject != null) {
-				cHeaders = (Composite) skinObject.getControl();
-			}
-
-			//new RecommendationsView(skin.getSkinProperties(), cHeaders, cData);
-		}
-
 		skinObject = skin.getSkinObject("statusbar");
 		if (skinObject != null) {
 			final Composite cArea = (Composite) skinObject.getControl();
@@ -851,7 +754,7 @@ public class MainWindow
 
 		shell.layout(true, true);
 
-		SWTSkinTabSet tabSet = skin.getTabSet("maintabs");
+		SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
 		if (tabSet != null) {
 			tabSet.addListener(this);
 		}
@@ -928,7 +831,7 @@ public class MainWindow
 	 */
 	protected void doSearch(String sSearchText) {
 		// Switch to browse tab
-		skin.setActiveTab("maintabs", "maintabs.browse");
+		skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.browse");
 
 		String sURL = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
 				+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX;
@@ -1098,7 +1001,7 @@ public class MainWindow
 	public void tabChanged(SWTSkinTabSet tabSet, String oldTabID, String newTabID) {
 		updateMapTrackUsage(oldTabID);
 
-		if (tabSet.getID().equals("maintabs")) {
+		if (tabSet.getID().equals(SkinConstants.TABSET_MAIN)) {
 			// TODO: Don't use internal skin IDs.  Skin needs to provide an ViewID
 			//        we can query (or is passed in)
 			if (newTabID.equals("maintabs.advanced")) {
@@ -1227,9 +1130,9 @@ public class MainWindow
 	}
 
 	public void switchToAdvancedTab() {
-		SWTSkinTabSet tabSetMain = skin.getTabSet("maintabs");
+		SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
 		if (tabSetMain == null) {
-			System.err.println("maintabs");
+			System.err.println(SkinConstants.TABSET_MAIN);
 			return;
 		}
 
