@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.ForceRecheckListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -318,6 +319,11 @@ public class TorrentListViewsUtils
 		} else {
 			file = new File(sFile);
 		}
+		
+		if (!file.exists()) {
+			handleNoFileExists(dm);
+			return;
+		}
 		String ext = FileUtil.getExtension(file.getName());
 
 		boolean untrusted = isUntrustworthyContent(ext);
@@ -370,6 +376,40 @@ public class TorrentListViewsUtils
 			} catch (DownloadException e) {
 				Debug.out(e);
 			}
+		}
+	}
+
+	/**
+	 * @param dm
+	 *
+	 * @since 3.0.0.7
+	 */
+	private static void handleNoFileExists(DownloadManager dm) {
+		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (functionsSWT == null) {
+			return;
+		}
+		ManagerUtils.start(dm);
+		
+		String sPrefix = "mb.PlayFileNotFound.";
+		int i = MessageBoxShell.open(functionsSWT.getMainShell(),
+				MessageText.getString(sPrefix + "title"), MessageText.getString(
+						sPrefix + "text", new String[] {
+							dm.getDisplayName(),
+						}), new String[] {
+					MessageText.getString(sPrefix + "button.remove"),
+					MessageText.getString(sPrefix + "button.redownload"),
+					MessageText.getString("Button.cancel"),
+				}, 2);
+		
+		if (i == 0) {
+			ManagerUtils.remove(dm, functionsSWT.getMainShell(), true, false);
+		} else if (i == 1) {
+			dm.forceRecheck(new ForceRecheckListener() {
+				public void forceRecheckComplete(DownloadManager dm) {
+					ManagerUtils.start(dm);
+				}
+			});
 		}
 	}
 
