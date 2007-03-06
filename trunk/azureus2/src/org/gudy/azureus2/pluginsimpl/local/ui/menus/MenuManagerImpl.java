@@ -49,7 +49,7 @@ public class MenuManagerImpl implements MenuManager {
 		}
 		
 		MenuItemImpl item = new MenuItemImpl((MenuItemImpl)parent, resource_key);
-		UIManagerImpl.fireEvent( UIManagerEvent.ET_ADD_SUBMENU_ITEM, item);
+		UIManagerImpl.fireEvent( UIManagerEvent.ET_ADD_SUBMENU_ITEM, new Object[] {item, parent});
 		return item;
 
     }

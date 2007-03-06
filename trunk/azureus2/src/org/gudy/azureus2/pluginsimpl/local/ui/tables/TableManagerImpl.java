@@ -103,7 +103,7 @@ public class TableManagerImpl implements TableManager
 		TableContextMenuItemImpl item = new TableContextMenuItemImpl(
 				(TableContextMenuItemImpl) parent, resourceKey);
 		UIManagerImpl.fireEvent(UIManagerEvent.ET_ADD_TABLE_CONTEXT_SUBMENU_ITEM,
-				item);
+				new Object[] {item, parent});
 		return item;
 	}
 
