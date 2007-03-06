@@ -25,8 +25,7 @@ import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -162,40 +161,6 @@ public class MediaList
 				return bOurs;
 			}
 
-			public void regetDownloads() {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						globalManager.removeListener(view);
-						removeAllDataSources(true);
-
-						System.out.println("reget");
-						globalManager.addListener(view, false);
-						DownloadManager[] managers = sortDMList(globalManager.getDownloadManagers());
-						bSkipUpdateCount = true;
-						for (int i = 0; i < managers.length; i++) {
-							DownloadManager dm = managers[i];
-							downloadManagerAdded(dm);
-
-							if (getControl().getSize().y / ListRow.ROW_HEIGHT == i) {
-
-								processDataSourceQueue();
-								bSkipUpdateCount = false;
-								updateCount();
-								bSkipUpdateCount = true;
-
-								for (int j = 0; j <= i; j++) {
-									ListRow row = getRow(j);
-									if (row != null) {
-										row.redraw();
-									}
-								}
-							}
-						}
-						bSkipUpdateCount = false;
-					}
-				});
-			}
-
 			public void updateUI() {
 				super.updateUI();
 
@@ -244,6 +209,7 @@ public class MediaList
 				});
 			}
 
+			// @see com.aelitis.azureus.ui.swt.views.TorrentListViewListener#countChanged()
 			public void countChanged() {
 				if (countChanging) {
 					return;
@@ -285,6 +251,10 @@ public class MediaList
 							lblCountAreaNotOurs.getControl().getParent().layout(true, true);
 						}
 
+						int count = view.getSelectedRowsSize();
+						if (count == 0 || count > 1) {
+							updateDetailsInfo();
+						}
 					}
 				});
 			}
@@ -386,52 +356,80 @@ public class MediaList
 			}, true);
 		}
 
-		skinObject = skin.getSkinObject("search-text");
-		if (skinObject != null && false) {
+		skinObject = skin.getSkinObject(PREFIX + "filter-box");
+		if (skinObject != null) {
 			Control control = skinObject.getControl();
 			if (control instanceof Composite) {
-				Control[] children = ((Composite) control).getChildren();
-				if (children.length > 0 && (children[0] instanceof Text)) {
-					txtFilter = (Text) children[0];
-					txtFilter.addModifyListener(new ModifyListener() {
-						public void modifyText(ModifyEvent e) {
-							sLastSearch = ((Text) e.widget).getText();
-							updateLastSearch();
+				final Composite composite = (Composite) control;
+				txtFilter = new Text(composite, SWT.BORDER);
+				txtFilter.addModifyListener(new ModifyListener() {
+					public void modifyText(ModifyEvent e) {
+						sLastSearch = ((Text) e.widget).getText();
+						updateLastSearch();
+					}
+				});
+				txtFilter.setLayoutData(Utils.getFilledFormData());
+				composite.layout();
+
+				FontData[] fontData = txtFilter.getFont().getFontData();
+				int h = txtFilter.getClientArea().height - 2;
+				int size = Utils.pixelsToPoint(h,
+						txtFilter.getDisplay().getDPI().y);
+
+				Font font = null;
+				do {
+					if (font != null) {
+						font.dispose();
+					}
+					fontData[0].setHeight(size);
+
+					font = new Font(txtFilter.getDisplay(), fontData);
+					txtFilter.setFont(font);
+
+					size--;
+				} while (txtFilter.getLineHeight() > h);
+
+				final Font fFont = font;
+
+				txtFilter.addDisposeListener(new DisposeListener() {
+					public void widgetDisposed(DisposeEvent e) {
+						if (fFont != null && !fFont.isDisposed()) {
+							txtFilter.setFont(null);
+							fFont.dispose();
 						}
-					});
+					}
+				});
 
-					cData.addKeyListener(new KeyListener() {
-						public void keyReleased(KeyEvent e) {
+				view.addKeyListener(new KeyListener() {
+					public void keyReleased(KeyEvent e) {
+					}
+
+					public void keyPressed(KeyEvent e) {
+						if (e.keyCode != SWT.BS) {
+							if ((e.stateMask & (~SWT.SHIFT)) != 0 || e.character < 32) {
+								return;
+							}
 						}
 
-						public void keyPressed(KeyEvent e) {
-							if (e.keyCode != SWT.BS) {
-								if ((e.stateMask & (~SWT.SHIFT)) != 0 || e.character < 32) {
-									return;
-								}
+						if (e.keyCode == SWT.BS) {
+							if (e.stateMask == SWT.CONTROL) {
+								sLastSearch = "";
+							} else if (sLastSearch.length() > 0) {
+								sLastSearch = sLastSearch.substring(0, sLastSearch.length() - 1);
 							}
-
-							if (e.keyCode == SWT.BS) {
-								if (e.stateMask == SWT.CONTROL) {
-									sLastSearch = "";
-								} else if (sLastSearch.length() > 0) {
-									sLastSearch = sLastSearch.substring(0,
-											sLastSearch.length() - 1);
-								}
-							} else {
-								sLastSearch += String.valueOf(e.character);
-							}
-
-							if (txtFilter != null && !txtFilter.isDisposed()) {
-								txtFilter.setFocus();
-							}
-							updateLastSearch();
-
-							e.doit = false;
+						} else {
+							sLastSearch += String.valueOf(e.character);
 						}
 
-					});
-				}
+						if (txtFilter != null && !txtFilter.isDisposed()) {
+							txtFilter.setFocus();
+						}
+						updateLastSearch();
+
+						e.doit = false;
+					}
+
+				});
 			}
 		}
 
@@ -490,18 +488,17 @@ public class MediaList
 	 * 
 	 */
 	protected void doFilter() {
-		view.regetDownloads();
+		view.tableStructureChanged();
 	}
 
 	private void updateDetailsInfo() {
+		if (skinDetailInfo == null) {
+			return;
+		}
 		int count = view.getSelectedRowsSize();
 		if (count == 0 || count > 1) {
 			int completed = 0;
 			ListRow[] rowsUnsorted = view.getRowsUnsorted();
-
-			if (rowsUnsorted.length == 0) {
-				return;
-			}
 
 			int all = rowsUnsorted.length;
 			for (int i = 0; i < all; i++) {
