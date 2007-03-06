@@ -695,57 +695,57 @@ DownloadManagerImpl
 		return( global_manager.isSeedingOnly());
 	}
 	
-	public void
-	addListener(
-		DownloadManagerListener	l )
-	{
-		List	downloads_copy;
-		
-		try{
-			listeners_mon.enter();
-			
-			List	new_listeners = new ArrayList( listeners );
-			
-			new_listeners.add( l );
-		
-			listeners	= new_listeners;
-			
-			downloads_copy = new ArrayList( downloads );
+	public void addListener(DownloadManagerListener l) {addListener(l, true);}
 	
-		}finally{
-			
+	public void addListener(DownloadManagerListener l, boolean notify_of_current_downloads) {
+		List downloads_copy = null;
+
+		try {
+			listeners_mon.enter();
+			List new_listeners = new ArrayList(listeners);
+			new_listeners.add(l);
+			listeners = new_listeners;
+			if (notify_of_current_downloads) {
+				downloads_copy = new ArrayList(downloads);
+			}
+		}
+		finally {
 			listeners_mon.exit();
-		}	
-		
-		for (int i=0;i<downloads_copy.size();i++){
-			
-			try{
-					
-				l.downloadAdded((Download)downloads_copy.get(i));
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
+		}
+
+		if (downloads_copy != null) {
+			for (int i = 0; i < downloads_copy.size(); i++) {
+				try {l.downloadAdded((Download) downloads_copy.get(i));}
+				catch (Throwable e) {Debug.printStackTrace(e);}
 			}
 		}
 	}
 	
-	public void
-	removeListener(
-		DownloadManagerListener	l )
-	{
-		try{
+	public void removeListener(DownloadManagerListener l) {removeListener(l, false);}
+
+	public void removeListener(DownloadManagerListener l, boolean notify_of_current_downloads) {
+		List downloads_copy = null;
+		
+		try {
 			listeners_mon.enter();
-			
-			List	new_listeners	= new ArrayList( listeners );
-			
+			List new_listeners = new ArrayList(listeners);
 			new_listeners.remove(l);
-			
-			listeners	= new_listeners;
-			
-		}finally{
+			listeners = new_listeners;
+			if (notify_of_current_downloads) {
+				downloads_copy = new ArrayList(downloads);
+			}
+		}
+		finally {
 			listeners_mon.exit();
-		}	
+		}
+
+		if (downloads_copy != null) {
+			for (int i = 0; i < downloads_copy.size(); i++) {
+				try {l.downloadRemoved((Download) downloads_copy.get(i));}
+				catch (Throwable e) {Debug.printStackTrace(e);}
+			}
+		}
+	
 	}
 	
 	public void

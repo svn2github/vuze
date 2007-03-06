@@ -258,25 +258,51 @@ DownloadManager
 	public boolean
 	isSeedingOnly();
 	
-	/**
-	 * Add a listener that will be informed when a download is added to/removed from Azureus
-	 * @param l
-   *
-   * @since 2.0.7.0
+    /**
+	 * Add a listener that will be informed when a download is added to and removed
+	 * from Azureus.
+	 * <p />
+	 * Invoking this method is equivalent to <code>addListener(l, true)</code>.
+	 * 
+	 * @param l The listener to add.
+	 * @since 2.0.7.0
+	 * @see #addListener(DownloadManagerListener, boolean)
 	 */
-	public void
-	addListener(
-		DownloadManagerListener	l );
+	public void addListener(DownloadManagerListener l);
 	
 	/**
-	 * Removes listeners added above
-	 * @param l
-   *
-   * @since 2.0.7.0
+	 * Add a listener that will be informed when a download is added to and removed
+	 * from Azureus.
+	 * @param l The listener to add.
+	 * @param notify_of_current_downloads <tt>true</tt> - if you want the listener to
+	 *   have its {@link DownloadManagerListener#downloadAdded(Download) downloadAdded}
+	 *   method invoked immediately with all downloads currently managed by Azureus.
+	 *   <tt>false</tt> - if you only want to be notified about new downloads added after
+	 *   this method is called.
+	 * @since 3.0.0.7
 	 */
-	public void
-	removeListener(
-		DownloadManagerListener	l );
+	public void addListener(DownloadManagerListener l, boolean notify_of_current_downloads);
+	
+	/**
+	 * Removes a previously added listener.
+     * @param l The listener to remove.
+	 * @param notify_of_current_downloads <tt>true</tt> - if you want the listener to
+	 *   have its {@link DownloadManagerListener#downloadRemoved(Download) downloadRemoved}
+	 *   method invoked immediately with all downloads currently managed by Azureus,
+	 *   <tt>false</tt> otherwise.
+	 *  @since 3.0.0.7
+	 */
+	public void removeListener(DownloadManagerListener l, boolean notify_of_current_downloads);
+	
+    /**
+     * Removes a previously added listener.
+     * <p />
+     * Invoking this method is equivalent to <code>removeListener(l, false)</code>.
+     * @see #removeListener(DownloadManagerListener, boolean)
+     * @param l The listener to remove.
+     * @since 2.0.7.0
+     */
+	public void	removeListener(DownloadManagerListener l);
 	
 	public void
 	addDownloadWillBeAddedListener(
@@ -285,4 +311,13 @@ DownloadManager
 	public void
 	removeDownloadWillBeAddedListener(
 		DownloadWillBeAddedListener		listener );
+	
+	/**
+	 * Return a {@link DownloadEventNotifier} object which can be used as
+	 * an easy way to register listeners against all downloads handled by
+	 * Azureus.
+	 * 
+	 * @since 3.0.0.7
+	 */
+	//public DownloadEventNotifier getGlobalDownloadEventNotifier();
 }

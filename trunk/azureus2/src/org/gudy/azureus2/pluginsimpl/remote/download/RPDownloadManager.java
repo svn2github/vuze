@@ -401,6 +401,9 @@ RPDownloadManager
 		notSupported();
 	}
 	
+	public void addListener(DownloadManagerListener	l, boolean notify) {
+		notSupported();
+	}
 	
 	public void
 	removeListener(
@@ -408,6 +411,10 @@ RPDownloadManager
 	{
 		notSupported();
 	}	
+
+	public void removeListener(DownloadManagerListener	l, boolean notify) {
+		notSupported();
+	}
 	
 	public void
 	addDownloadWillBeAddedListener(
