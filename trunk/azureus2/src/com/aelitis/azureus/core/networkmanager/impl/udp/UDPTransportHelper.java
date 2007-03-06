@@ -224,10 +224,9 @@ UDPTransportHelper
 		
 		if ( pending_partial_write != null ){
 			
-			int	pw_len = pending_partial_write.remaining();
-			
 			try{
-			
+				int	pw_len = pending_partial_write.remaining();
+				
 				int	written = connection.write( new ByteBuffer[]{ pending_partial_write, buffer }, 0, 2 );
 				
 				if ( written >= pw_len ){
@@ -274,7 +273,44 @@ UDPTransportHelper
 			}
 		}
 		
-		return( connection.write( buffers, array_offset, length ));
+		if ( pending_partial_write != null ){
+			
+			ByteBuffer[]	buffers2 = new ByteBuffer[length+1];
+			
+			buffers2[0] = pending_partial_write;
+			
+			int	pos = 1;
+
+			for (int i=array_offset;i<array_offset+length;i++){
+				
+				buffers2[pos++] = buffers[i];
+			}
+			
+			try{
+				int	pw_len = pending_partial_write.remaining();
+				
+				int written = connection.write( buffers2, 0, buffers2.length );
+				
+				if ( written >= pw_len ){
+					
+					return( written - pw_len );
+					
+				}else{
+					
+					return( 0 );
+				}
+				
+			}finally{
+				
+				if ( pending_partial_write.remaining() == 0 ){
+					
+					pending_partial_write = null;
+				}
+			}
+		}else{
+		
+			return( connection.write( buffers, array_offset, length ));
+		}
     }
 
     public int 

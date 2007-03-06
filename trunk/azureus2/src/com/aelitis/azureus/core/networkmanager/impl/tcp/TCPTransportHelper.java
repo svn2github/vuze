@@ -46,6 +46,8 @@ TCPTransportHelper
 	public static final int READ_TIMEOUT		= 10*1000;
 	public static final int CONNECT_TIMEOUT		= 60*1000;
 	  
+	public static final int MAX_PARTIAL_WRITE_RETAIN	= 64;	// aim here is to catch headers
+	
 
 	private static boolean enable_efficient_io = !Constants.JAVA_VERSION.startsWith("1.4");
 
@@ -133,9 +135,18 @@ TCPTransportHelper
 		
 		if ( partial_write && delayed_write == null ){
 			
-			delayed_write = buffer;
-			
-			return( delayed_write.remaining());
+			if ( buffer.remaining() < MAX_PARTIAL_WRITE_RETAIN ){
+				
+				ByteBuffer	copy = ByteBuffer.allocate( buffer.remaining());
+				
+				copy.put( buffer );
+				
+				copy.position( 0 );
+				
+				delayed_write = copy;
+				
+				return( copy.remaining());
+			}
 		}
 		
 		long	written = 0;
@@ -152,6 +163,9 @@ TCPTransportHelper
 			
 			written = write( buffers, 0, 2 );
 			
+				// note that we can't report delayed bytes actually written as these have already been accounted for and confuse
+				// the layers above if we report them now
+
 			if ( buffers[0].hasRemaining()){
 				
 				delayed_write = buffers[0];
@@ -160,9 +174,6 @@ TCPTransportHelper
 				
 				// System.out.println( "delayed write: single incomp" );
 			}else{
-				
-					// note that we can't report delayed bytes actually written as these have already been accounted for and confuse
-					// the layers above if we report them now
 				
 				written -= delay_remaining;
 			}
@@ -235,7 +246,7 @@ TCPTransportHelper
 			
 			// log( buffers, array_offset, length );
 			
-			if( enable_efficient_io ) {
+			if ( enable_efficient_io ){
 				
 				try{
 					written_sofar = channel.write( buffers, array_offset, length );
@@ -254,21 +265,22 @@ TCPTransportHelper
 					}
 					throw ioe;
 				}
-			}
+			}else{
 	
-				//single-buffer mode
-						
-			for( int i=array_offset; i < (array_offset + length); i++ ) {
-				
-				int data_length = buffers[ i ].remaining();
-				
-				int written = channel.write( buffers[ i ] );
-				
-				written_sofar += written;
-				
-				if( written < data_length ) {
+					//single-buffer mode
+							
+				for( int i=array_offset; i < (array_offset + length); i++ ) {
 					
-					break;
+					int data_length = buffers[ i ].remaining();
+					
+					int written = channel.write( buffers[ i ] );
+					
+					written_sofar += written;
+					
+					if( written < data_length ) {
+						
+						break;
+					}
 				}
 			}
 		}
