@@ -57,6 +57,8 @@ TorrentImpl
 	private TOTorrent				torrent;
 	private LocaleUtilDecoder		decoder;
 	
+	private boolean					complete;
+	
 	public
 	TorrentImpl(
 		TOTorrent		_torrent )
@@ -532,11 +534,22 @@ TorrentImpl
 
 			download_manager_state.save();
 			
+			complete	= true;
+			
 		}catch( Throwable e ){
 			
 			throw( new TorrentException("encoding selection fails", e ));
 		}
 	}
+	
+	public boolean
+	isComplete()
+	{
+			// TODO: could check the download state too I guess...
+		
+		return( complete );
+	}
+	
 	
   // Pass LogRelation off to core objects
 

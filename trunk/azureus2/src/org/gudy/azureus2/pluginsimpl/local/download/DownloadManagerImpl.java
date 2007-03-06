@@ -361,9 +361,11 @@ DownloadManagerImpl
 			hash = torrent.getHash();
 		} catch (Exception e) { }
 		
+		boolean	for_seeding = torrent.isComplete();
+		
 		DownloadManager dm = global_manager.addDownloadManager(
 				torrent_file.toString(), hash, data_location.toString(),
-				getInitialState(), true);
+				getInitialState(), true, for_seeding, null );
 		
 		if ( dm == null ){
 			

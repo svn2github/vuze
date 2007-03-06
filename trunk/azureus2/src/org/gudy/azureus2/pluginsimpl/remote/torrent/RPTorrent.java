@@ -388,4 +388,12 @@ RPTorrent
 	{
 		notSupported();
 	}
+	
+	public boolean
+	isComplete()
+	{
+		notSupported();
+		
+		return( false );
+	}
 }

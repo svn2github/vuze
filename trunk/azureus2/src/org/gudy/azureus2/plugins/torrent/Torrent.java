@@ -263,4 +263,7 @@ Torrent
 		File		data_dir )
 	
 		throws TorrentException;
+	
+	public boolean
+	isComplete();
 }
