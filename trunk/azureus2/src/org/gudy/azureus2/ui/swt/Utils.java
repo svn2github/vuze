@@ -70,8 +70,21 @@ public class Utils {
 
 	public static final boolean SWT32_TABLEPAINT = false; //SWT.getVersion() >= 3200;
 
+	private static final boolean DEBUG_SWTEXEC = true;
+
 	// if you want to debug execSWTThread, initialize the array
-  static ArrayList queue = null; //new ArrayList();
+	private static ArrayList queue;
+  
+	private static AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("swt");
+	
+	static {
+		if (DEBUG_SWTEXEC) {
+			queue = new ArrayList();
+			diag_logger = AEDiagnostics.getLogger("swt");
+		} else {
+			queue = null;
+		}
+	}
 
   public static void disposeComposite(Composite composite,boolean disposeSelf) {
     if(composite == null || composite.isDisposed())
@@ -553,54 +566,75 @@ public class Utils {
    */
   public static boolean execSWTThread(final Runnable code,
 			boolean async) {
-  	
-    SWTThread swt = SWTThread.getInstance();
-    
-    Display display;
-    if (swt == null) {
-    	display = Display.getDefault();
-    	if (display == null) {
-      	System.err.println("SWT Thread not started yet!");
-      	return false;
-    	}
-    } else {
-    	if (swt.isTerminated()) {
-    		return false;
-    	}
-      display = swt.getDisplay();
-    }
-    
+		SWTThread swt = SWTThread.getInstance();
 
-  	if (display == null || display.isDisposed() || code == null)
+		Display display;
+		if (swt == null) {
+			display = Display.getDefault();
+			if (display == null) {
+				System.err.println("SWT Thread not started yet!");
+				return false;
+			}
+		} else {
+			if (swt.isTerminated()) {
+				return false;
+			}
+			display = swt.getDisplay();
+		}
+
+		if (display == null || display.isDisposed() || code == null)
 			return false;
 
 		if (display.getThread() == Thread.currentThread()) {
-			code.run();
+			if (queue == null) {
+				code.run();
+			} else {
+				long lStartTimeRun = SystemTime.getCurrentTime();
+
+				code.run();
+
+				long wait = SystemTime.getCurrentTime() - lStartTimeRun;
+				if (wait > 700) {
+					diag_logger.log(SystemTime.getCurrentTime() + "] took " + wait
+							+ "ms to run " + Debug.getCompressedStackTrace(4));
+				}
+			}
 		} else if (async) {
 			try {
 				if (queue == null) {
 					display.asyncExec(code);
 				} else {
-  				queue.add(code);
+					queue.add(code);
 
-					if (queue.size() > 10) {
-						System.out.println("+ QUEUE: " + queue.size() + " via "
-								+ Debug.getCompressedStackTrace(3));
+					if (queue.size() > 0) {
+						diag_logger.log(SystemTime.getCurrentTime() + "] + QUEUE. size= "
+								+ queue.size() + "; add " + code + " via "
+								+ Debug.getCompressedStackTrace(4));
 					}
 					final long lStart = SystemTime.getCurrentTime();
 
 					display.asyncExec(new AERunnable() {
 						public void runSupport() {
 							long wait = SystemTime.getCurrentTime() - lStart;
-							if (wait > 500) {
-								System.out.println("took " + wait
-										+ "ms before SWT ran async code");
+							if (wait > 700) {
+								diag_logger.log(SystemTime.getCurrentTime() + "] took " + wait
+										+ "ms before SWT ran async code " + code);
 							}
+							long lStartTimeRun = SystemTime.getCurrentTime();
+
 							code.run();
-							queue.remove(code);
-							if (queue.size() > 10) {
-								System.out.println("- QUEUE: " + queue.size());
+
+							wait = SystemTime.getCurrentTime() - lStartTimeRun;
+							if (wait > 500) {
+								diag_logger.log(SystemTime.getCurrentTime() + "] took " + wait
+										+ "ms to run " + code);
 							}
+
+							if (queue.size() > 0) {
+								diag_logger.log(SystemTime.getCurrentTime()
+										+ "] - QUEUE. size=" + queue.size());
+							}
+							queue.remove(code);
 						}
 					});
 				}
