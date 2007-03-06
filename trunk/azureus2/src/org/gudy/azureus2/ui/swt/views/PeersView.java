@@ -96,6 +96,8 @@ public class PeersView
     new UpSpeedLimitItem(),
     new DownSpeedLimitItem(),
     new LANItem(),
+    new PeerIDItem(),
+    new PeerByteIDItem(),
   };
   private DownloadManager manager;
 	private TableViewSWT tv;
