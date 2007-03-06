@@ -81,6 +81,7 @@ public class Utils {
 		if (DEBUG_SWTEXEC) {
 			queue = new ArrayList();
 			diag_logger = AEDiagnostics.getLogger("swt");
+			diag_logger.log("\n\nSWT Logging Starts");
 		} else {
 			queue = null;
 		}
@@ -606,11 +607,9 @@ public class Utils {
 				} else {
 					queue.add(code);
 
-					if (queue.size() > 0) {
-						diag_logger.log(SystemTime.getCurrentTime() + "] + QUEUE. size= "
-								+ queue.size() + "; add " + code + " via "
-								+ Debug.getCompressedStackTrace(4));
-					}
+					diag_logger.log(SystemTime.getCurrentTime() + "] + QUEUE. size= "
+							+ queue.size() + "; add " + code + " via "
+							+ Debug.getCompressedStackTrace(4));
 					final long lStart = SystemTime.getCurrentTime();
 
 					display.asyncExec(new AERunnable() {
@@ -630,10 +629,8 @@ public class Utils {
 										+ "ms to run " + code);
 							}
 
-							if (queue.size() > 0) {
-								diag_logger.log(SystemTime.getCurrentTime()
-										+ "] - QUEUE. size=" + queue.size());
-							}
+							diag_logger.log(SystemTime.getCurrentTime()
+									+ "] - QUEUE. size=" + queue.size());
 							queue.remove(code);
 						}
 					});
