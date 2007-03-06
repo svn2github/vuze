@@ -47,6 +47,9 @@ public class SplashWindow implements InitializerListener {
   Label currentTask;
   ProgressBar percentDone;
   Color white;
+	private String task;
+	private int percent;
+	private boolean updating;
   
 
   public SplashWindow(Display display) {
@@ -134,19 +137,41 @@ public class SplashWindow implements InitializerListener {
     //Ensure that display is set and not disposed
     if(display == null || display.isDisposed())
       return;
-    
+
+    if (this.task == null || this.task.compareTo(task) != 0) {
+    	this.task = task;
+    	update();
+    }
+  }
+  
+  /**
+	 * 
+	 *
+	 * @since 3.0.0.7
+	 */
+	private void update() {
+		if (updating) {
+			return;
+		}
+		
+		updating = true;
     //Post runnable to SWTThread
     Utils.execSWTThread(new AERunnable(){
       public void runSupport() {
+      	updating = false;
         //Ensure than the task Label is created and not disposed
-        if(currentTask == null || currentTask.isDisposed())
-          return;
-        currentTask.setText(task);
+        if(currentTask != null && !currentTask.isDisposed() && task != null) {
+        	currentTask.setText(task);
+        }
+        //Ensure than the percentDone ProgressBar is created and not disposed
+        if(percentDone != null && !percentDone.isDisposed()) {
+        	percentDone.setSelection(percent);
+        }
       }
     });
-  }
-  
-  // AzureusCoreListener
+	}
+
+	// AzureusCoreListener
   public void reportPercent(final int percent) {
     //Ensure that display is set and not disposed
     if(display == null || display.isDisposed())
@@ -157,16 +182,11 @@ public class SplashWindow implements InitializerListener {
       closeSplash();
       return;
     }
-
-    //Post runnable to SWTThread
-    Utils.execSWTThread(new AERunnable(){
-      public void runSupport() {
-        //Ensure than the percentDone ProgressBar is created and not disposed
-        if(percentDone == null || percentDone.isDisposed())
-          return;
-        percentDone.setSelection(percent);      
-      }
-    });
+    
+    if (this.percent != percent) {
+    	this.percent = percent;
+    	update();
+    }
   }
  
 }
