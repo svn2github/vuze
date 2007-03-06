@@ -188,8 +188,6 @@ UPnPImpl
 						old_root_device.destroy( true );
 					}
 		
-					log( "UPnP: root discovered: usn=" + usn + ", location=" + location + ", ni=" + network_interface.getName() + ",local=" + local_address.toString() );
-					
 					List	listeners;
 					
 					try{
@@ -216,6 +214,8 @@ UPnPImpl
 						}
 					}				
 
+					log( "UPnP: root discovered: usn=" + usn + ", location=" + location + ", ni=" + network_interface.getName() + ",local=" + local_address.toString() );
+					
 					try{
 						UPnPRootDeviceImpl new_root_device = new UPnPRootDeviceImpl( UPnPImpl.this, network_interface, local_address, usn, location );
 											

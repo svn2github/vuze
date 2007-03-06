@@ -98,7 +98,8 @@ UPnPPlugin
 	private List	mappings	= new ArrayList();
 	private List	services	= new ArrayList();
 	
-	private Map	root_info_map	= new HashMap();
+	private Map	root_info_map		= new HashMap();
+	private Map log_no_repeat_map	= new HashMap();
 	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UPnPPlugin" );
 	   
@@ -736,7 +737,7 @@ UPnPPlugin
 				
 					if ( !include ){
 						
-						log.log( "Device '" + location + "' is being ignored as excluded in address list" );
+						logNoRepeat( USN, "Device '" + location + "' is being ignored as excluded in address list" );
 						
 						return( false );
 					}
@@ -754,7 +755,7 @@ UPnPPlugin
 					// if all exclude then we let others through
 				}else{
 					
-					log.log( "Device '" + location + "' is being ignored as not in address list" );
+					logNoRepeat( USN, "Device '" + location + "' is being ignored as not in address list" );
 					
 					return( false );
 				}
@@ -779,17 +780,37 @@ UPnPPlugin
 
 		if ( !ok ){
 			
-			log.log( "Device '" + location + "' is being ignored: " + stats );
+			logNoRepeat( USN, "Device '" + location + "' is being ignored: " + stats );
 			
 		}else{
 			
 			
-			log.log( "Device '" + location +"' is ok: " + stats );
+			logNoRepeat( USN, "Device '" + location +"' is ok: " + stats );
 		}
 		
 		return( ok );
 	}
 	
+	protected void
+	logNoRepeat(
+		String	usn,
+		String	msg )
+	{
+		synchronized( log_no_repeat_map ){
+			
+			String	last = (String)log_no_repeat_map.get( usn );
+			
+			if ( last != null && last.equals( msg )){
+				
+				return;
+			}
+			
+			log_no_repeat_map.put( usn, msg );
+		}
+		
+		log.log( msg );
+	}
+
 	public void
 	rootDeviceFound(
 		UPnPRootDevice	device )
