@@ -269,8 +269,7 @@ public class MediaList
 					TableRowCore[] selectedRows = view.getSelectedRows();
 					for (int i = 0; i < selectedRows.length; i++) {
 						DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
-						ManagerUtils.remove(dm,
-								btnDelete.getSkinObject().getControl().getShell(), true, true);
+						TorrentListViewsUtils.removeDownload(dm, view, true, true);
 					}
 				}
 			});

@@ -25,19 +25,27 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -55,8 +63,10 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
+import com.aelitis.azureus.ui.swt.views.list.ListView;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
@@ -319,7 +329,7 @@ public class TorrentListViewsUtils
 		} else {
 			file = new File(sFile);
 		}
-		
+
 		if (!file.exists()) {
 			handleNoFileExists(dm);
 			return;
@@ -390,18 +400,18 @@ public class TorrentListViewsUtils
 			return;
 		}
 		ManagerUtils.start(dm);
-		
+
 		String sPrefix = "mb.PlayFileNotFound.";
 		int i = MessageBoxShell.open(functionsSWT.getMainShell(),
-				MessageText.getString(sPrefix + "title"), MessageText.getString(
-						sPrefix + "text", new String[] {
-							dm.getDisplayName(),
-						}), new String[] {
+				MessageText.getString(sPrefix + "title"), MessageText.getString(sPrefix
+						+ "text", new String[] {
+					dm.getDisplayName(),
+				}), new String[] {
 					MessageText.getString(sPrefix + "button.remove"),
 					MessageText.getString(sPrefix + "button.redownload"),
 					MessageText.getString("Button.cancel"),
 				}, 2);
-		
+
 		if (i == 0) {
 			ManagerUtils.remove(dm, functionsSWT.getMainShell(), true, false);
 		} else if (i == 1) {
@@ -611,6 +621,118 @@ public class TorrentListViewsUtils
 				}
 			}
 		}, true);
+	}
+
+	public static void removeDownload(final DownloadManager dm,
+			final ListView view, final boolean bDeleteTorrent,
+			final boolean bDeleteData) {
+		
+		TOTorrent torrent = dm.getTorrent();
+
+		Shell shell = view.getControl().getShell();
+		if (PublishUtils.isPublished(dm)) {
+			String title = MessageText.getString("stopSeeding.title");
+			String text = MessageText.getString("stopSeeding.text", new String[] {
+				dm.getDisplayName()
+			});
+
+			int result = MessageBoxShell.open(shell, title, text, new String[] {
+				MessageText.getString("stopSeeding.delete"),
+				MessageText.getString("stopSeeding.cancel")
+			}, 1);
+			if (result == 0) {
+				// overide parameters.. never delete published content data!
+				ManagerUtils.remove(dm, shell, false, false);
+			}
+		} else if (PlatformTorrentUtils.isContentDRM(torrent)) {
+
+			String prefix = "v3.deletePurchased.";
+			String title = MessageText.getString(prefix + "title");
+			String text = MessageText.getString(prefix + "text", new String[] {
+				dm.getDisplayName()
+			});
+
+			int result = MessageBoxShell.open(shell, title, text, new String[] {
+				MessageText.getString(prefix + "button.delete"),
+				MessageText.getString(prefix + "button.cancel")
+			}, 1);
+			if (result == 0) {
+				// overide parameters.. never delete published content data!
+				ManagerUtils.remove(dm, shell, bDeleteTorrent, bDeleteData);
+			}
+			
+		} else {
+			// This is copied from ManagerUtils.java and modified so we
+			// can remove the list row before stopping and removing
+
+			if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
+
+				MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES
+						| SWT.NO);
+
+				mb.setText(MessageText.getString("deletedata.title"));
+
+				mb.setMessage(MessageText.getString("deletetorrent.message1")
+						+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
+						+ MessageText.getString("deletetorrent.message2"));
+
+				if (mb.open() == SWT.NO) {
+					return;
+				}
+			}
+
+			boolean confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete");
+
+			int choice;
+			if (confirmDataDelete && bDeleteData) {
+				String path = dm.getSaveLocation().toString();
+
+				MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES
+						| SWT.NO);
+
+				mb.setText(MessageText.getString("deletedata.title"));
+
+				mb.setMessage(MessageText.getString("deletedata.message1")
+						+ dm.getDisplayName() + " :\n" + path
+						+ MessageText.getString("deletedata.message2"));
+
+				choice = mb.open();
+			} else {
+				choice = SWT.YES;
+			}
+
+			if (choice == SWT.YES) {
+				try {
+					dm.getGlobalManager().canDownloadManagerBeRemoved(dm);
+					view.removeDataSource(dm, true);
+					new AEThread("asyncStop", true) {
+						public void runSupport() {
+
+							try {
+								dm.stopIt(DownloadManager.STATE_STOPPED, bDeleteTorrent,
+										bDeleteData);
+								dm.getGlobalManager().removeDownloadManager(dm);
+							} catch (GlobalManagerDownloadRemovalVetoException f) {
+								if (!f.isSilent()) {
+									Alerts.showErrorMessageBoxUsingResourceString(
+											"globalmanager.download.remove.veto", f);
+								}
+								view.addDataSource(dm, true);
+							} catch (Exception ex) {
+								view.addDataSource(dm, true);
+								Debug.printStackTrace(ex);
+							}
+						}
+					}.start();
+				} catch (GlobalManagerDownloadRemovalVetoException f) {
+					if (!f.isSilent()) {
+						Alerts.showErrorMessageBoxUsingResourceString(
+								"globalmanager.download.remove.veto", f);
+					}
+				}
+			}
+		}
+
 	}
 
 	public static void main(String[] args) {

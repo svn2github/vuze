@@ -24,8 +24,6 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -33,7 +31,6 @@ import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 
@@ -118,24 +115,7 @@ public class MiniRecentList
 					TableRowCore[] selectedRows = view.getSelectedRows();
 					for (int i = 0; i < selectedRows.length; i++) {
 						DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
-						if (PublishUtils.isPublished(dm)) {
-							String title = MessageText.getString("stopSeeding.title");
-							String text = MessageText.getString("stopSeeding.text");
-
-							int result = MessageBoxShell.open(cData.getShell(), title, text,
-									new String[] {
-										MessageText.getString("stopSeeding.delete"),
-										MessageText.getString("stopSeeding.cancel")
-									}, 1);
-							if (result == 0) {
-								ManagerUtils.remove(dm,
-										btnDelete.getSkinObject().getControl().getShell(), false,
-										false);
-							}
-						} else {
-							ManagerUtils.remove(dm,
-									btnDelete.getSkinObject().getControl().getShell(), true, true);
-						}
+						TorrentListViewsUtils.removeDownload(dm, view, true, true);
 					}
 				}
 			});
