@@ -180,6 +180,8 @@ public class ListView
 
 	private AEMonitor rowsToRefresh_mon = new AEMonitor("rowsToRefresh");
 
+	private Rectangle lastBounds = new Rectangle(0, 0, 0, 0);
+
 	public ListView(final String sTableID, SWTSkinProperties skinProperties,
 			Composite parent, Composite headerArea, int style) {
 		this.skinProperties = skinProperties;
@@ -308,135 +310,9 @@ public class ListView
 		}
 
 		listCanvas.addListener(SWT.Resize, new Listener() {
-			Rectangle lastBounds = new Rectangle(0, 0, 0, 0);
 
 			public void handleEvent(Event event) {
-				boolean bNeedsRefresh = false;
-				Rectangle clientArea = listCanvas.getClientArea();
-
-				if (clientArea.width == 0 || clientArea.height == 0) {
-					return;
-				}
-
-				if (imgView == null) {
-					if (DEBUGPAINT) {
-						logPAINT("first resize (img null)");
-					}
-					imgView = new Image(listCanvas.getDisplay(), clientArea);
-					bNeedsRefresh = true;
-				} else {
-					if (!lastBounds.equals(clientArea)) {
-						bNeedsRefresh = lastBounds.height != clientArea.height;
-						Image newImageView = new Image(listCanvas.getDisplay(), clientArea);
-						GC gc = null;
-						try {
-							gc = new GC(newImageView);
-							gc.drawImage(imgView, 0, 0);
-
-							Region reg = new Region();
-							reg.add(clientArea);
-							reg.subtract(imgView.getBounds());
-							gc.setClipping(reg);
-
-							//gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 16)));
-							gc.setBackground(listCanvas.getBackground());
-							gc.fillRectangle(clientArea);
-
-							gc.setClipping((Region) null);
-							reg.dispose();
-						} finally {
-							if (gc != null) {
-								gc.dispose();
-							}
-						}
-						imgView.dispose();
-						imgView = newImageView;
-						//listCanvas.update();
-					}
-				}
-
-				if (bNeedsRefresh) {
-					if (DEBUGPAINT) {
-						logPAINT("paint needs refresh");
-					}
-
-					boolean isOurGC = gcImgView == null;
-					try {
-						if (isOurGC) {
-							gcImgView = new GC(imgView);
-						}
-						gcImgView.setForeground(listCanvas.getForeground());
-						gcImgView.setBackground(listCanvas.getBackground());
-
-						TableRowSWT[] visibleRows = getVisibleRows();
-						if (visibleRows.length > 0) {
-							//gc.setClipping(e.gc.getClipping());
-							int ofs = getOffset(iLastVBarPos);
-
-							int y0 = lastBounds.y + lastBounds.height;
-							int y1 = clientArea.y + clientArea.height;
-
-							int start = y0 / ListRow.ROW_HEIGHT;
-							int end = y1 / ListRow.ROW_HEIGHT + 1;
-							if (end > visibleRows.length) {
-								end = visibleRows.length;
-							}
-
-							if (DEBUGPAINT) {
-								logPAINT(visibleRows.length + " visible;" + "; " + start
-										+ " - " + (end - 1));
-							}
-							long lStart = System.currentTimeMillis();
-							for (int i = start; i < end; i++) {
-								TableRowSWT row = visibleRows[i];
-
-								row.doPaint(gcImgView, true);
-							}
-
-							// Blank out area below visible rows
-							int endY = visibleRows.length * ListRow.ROW_HEIGHT + ofs;
-							if (endY < clientArea.height) {
-								if (DEBUGPAINT) {
-									logPAINT("fill " + (clientArea.height - endY) + "@" + endY);
-								}
-								gcImgView.setBackground(listCanvas.getBackground());
-								gcImgView.fillRectangle(0, endY, clientArea.width,
-										clientArea.height - endY);
-							}
-
-							long diff = System.currentTimeMillis() - lStart;
-							if (diff > 50) {
-								log(diff + "ms to paint" + start + " - " + (end - 1));
-							}
-						} else {
-							if (DEBUGPAINT) {
-								logPAINT("fillall");
-							}
-							gcImgView.fillRectangle(clientArea);
-						}
-					} catch (Exception ex) {
-						if (!(ex instanceof IllegalArgumentException)) {
-							// IllegalArgumentException happens when we are already drawing 
-							// to the image.  This is "normal" as we may be in a paint event,
-							// and something forces a repaint
-							Debug.out(ex);
-						}
-					} finally {
-						if (isOurGC && gcImgView != null) {
-							gcImgView.dispose();
-							gcImgView = null;
-						}
-					}
-				}
-				lastBounds = clientArea;
-
-				// SWT does resize, then paint 
-
-				// Refreshing the scrollbar will trigger a bigger paint
-				// Otherwise, we may have to trigger one ourselves
-				if (vBar == null || !refreshScrollbar()) {
-					getVisibleColumns();
-				}
+				handleResize(false);
 			}
 		});
 
@@ -463,6 +339,141 @@ public class ListView
 
 		if (headerArea != null) {
 			setupHeader(headerArea);
+		}
+	}
+
+	/**
+	 * 
+	 *
+	 * @param bForce 
+	 * @since 3.0.0.7
+	 */
+	protected void handleResize(boolean bForce) {
+		boolean bNeedsRefresh = false;
+		Rectangle clientArea = listCanvas.getClientArea();
+
+		if (clientArea.width == 0 || clientArea.height == 0) {
+			return;
+		}
+
+		if (imgView == null || bForce) {
+			if (DEBUGPAINT) {
+				logPAINT("first resize (img null)");
+			}
+			imgView = new Image(listCanvas.getDisplay(), clientArea);
+			bNeedsRefresh = true;
+		} else {
+			if (!lastBounds.equals(clientArea)) {
+				bNeedsRefresh = lastBounds.height != clientArea.height;
+				Image newImageView = new Image(listCanvas.getDisplay(), clientArea);
+				GC gc = null;
+				try {
+					gc = new GC(newImageView);
+					gc.drawImage(imgView, 0, 0);
+
+					Region reg = new Region();
+					reg.add(clientArea);
+					reg.subtract(imgView.getBounds());
+					gc.setClipping(reg);
+
+					//gc.setBackground(Display.getDefault().getSystemColor((int)(Math.random() * 16)));
+					gc.setBackground(listCanvas.getBackground());
+					gc.fillRectangle(clientArea);
+
+					gc.setClipping((Region) null);
+					reg.dispose();
+				} finally {
+					if (gc != null) {
+						gc.dispose();
+					}
+				}
+				imgView.dispose();
+				imgView = newImageView;
+				//listCanvas.update();
+			}
+		}
+
+		if (bNeedsRefresh) {
+			if (DEBUGPAINT) {
+				logPAINT("paint needs refresh");
+			}
+
+			boolean isOurGC = gcImgView == null;
+			try {
+				if (isOurGC) {
+					gcImgView = new GC(imgView);
+				}
+				gcImgView.setForeground(listCanvas.getForeground());
+				gcImgView.setBackground(listCanvas.getBackground());
+
+				TableRowSWT[] visibleRows = getVisibleRows();
+				if (visibleRows.length > 0) {
+					//gc.setClipping(e.gc.getClipping());
+					int ofs = getOffset(iLastVBarPos);
+
+					int y0 = lastBounds.y + lastBounds.height;
+					int y1 = clientArea.y + clientArea.height;
+
+					int start = y0 / ListRow.ROW_HEIGHT;
+					int end = y1 / ListRow.ROW_HEIGHT + 1;
+					if (end > visibleRows.length) {
+						end = visibleRows.length;
+					}
+
+					if (DEBUGPAINT) {
+						logPAINT(visibleRows.length + " visible;" + "; " + start
+								+ " - " + (end - 1));
+					}
+					long lStart = System.currentTimeMillis();
+					for (int i = start; i < end; i++) {
+						TableRowSWT row = visibleRows[i];
+
+						row.doPaint(gcImgView, true);
+					}
+
+					// Blank out area below visible rows
+					int endY = visibleRows.length * ListRow.ROW_HEIGHT + ofs;
+					if (endY < clientArea.height) {
+						if (DEBUGPAINT) {
+							logPAINT("fill " + (clientArea.height - endY) + "@" + endY);
+						}
+						gcImgView.setBackground(listCanvas.getBackground());
+						gcImgView.fillRectangle(0, endY, clientArea.width,
+								clientArea.height - endY);
+					}
+
+					long diff = System.currentTimeMillis() - lStart;
+					if (diff > 50) {
+						log(diff + "ms to paint" + start + " - " + (end - 1));
+					}
+				} else {
+					if (DEBUGPAINT) {
+						logPAINT("fillall");
+					}
+					gcImgView.fillRectangle(clientArea);
+				}
+			} catch (Exception ex) {
+				if (!(ex instanceof IllegalArgumentException)) {
+					// IllegalArgumentException happens when we are already drawing 
+					// to the image.  This is "normal" as we may be in a paint event,
+					// and something forces a repaint
+					Debug.out(ex);
+				}
+			} finally {
+				if (isOurGC && gcImgView != null) {
+					gcImgView.dispose();
+					gcImgView = null;
+				}
+			}
+		}
+		lastBounds = clientArea;
+
+		// SWT does resize, then paint 
+
+		// Refreshing the scrollbar will trigger a bigger paint
+		// Otherwise, we may have to trigger one ourselves
+		if (vBar == null || !refreshScrollbar()) {
+			getVisibleColumns();
 		}
 	}
 
@@ -1377,6 +1388,9 @@ public class ListView
 				} finally {
 					row_mon.exit();
 				}
+
+				handleResize(true);
+				listCanvas.redraw();
 			}
 		}, !bImmediate);
 	}
@@ -2523,6 +2537,11 @@ public class ListView
 	public void tableStructureChanged() {
 		// force an eventual recalc of visible row widths
 		lastClientWidth = 0;
+		triggerLifeCycleListener(TableLifeCycleListener.EVENT_DESTROYED);
+
+		removeAllTableRows();
+
+		triggerLifeCycleListener(TableLifeCycleListener.EVENT_INITIALIZED);
 	}
 
 	public TableColumnCore getSortColumn() {
