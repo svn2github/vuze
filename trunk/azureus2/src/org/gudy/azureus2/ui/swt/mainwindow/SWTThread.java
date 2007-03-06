@@ -136,7 +136,8 @@ public class SWTThread {
         }
         catch (Exception e) {
 					if (Constants.isOSX && (e instanceof SWTException)
-							&& e.getMessage().equals("Device is disposed")) {
+							&& e.getMessage().endsWith(" is disposed")
+							&& Debug.getStackTrace(e).contains("DropTarget")) {
 						Logger.log(new LogEvent(LogIDs.GUI,
 								"Weird non-critical display disposal in readAndDispatch"));
 					} else {
