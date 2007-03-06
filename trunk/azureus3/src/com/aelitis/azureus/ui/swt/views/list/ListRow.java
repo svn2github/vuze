@@ -470,6 +470,9 @@ public class ListRow
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowCore#refresh(boolean, boolean)
 	public List refresh(boolean bDoGraphics, boolean bVisible) {
+		if (bDisposed) {
+			return new ArrayList();
+		}
 		return view.rowRefresh(this, bDoGraphics, bVisible);
 	}
 
@@ -718,6 +721,9 @@ public class ListRow
 	}
 
 	public void doPaint(GC gc) {
+		if (bDisposed) {
+			return;
+		}
 		doPaint(gc, isVisible());
 	}
 
