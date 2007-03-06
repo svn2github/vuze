@@ -31,6 +31,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
@@ -263,43 +264,54 @@ public class TorrentListView
 		//		}, false);
 
 		this.globalManager = core.getGlobalManager();
-		globalManager.addListener(this, false);
+		//globalManager.addListener(this, false);
 
-		// Needed or Java borks!
-		dataArea.getDisplay().asyncExec(new AERunnable() {
-			public void runSupport() {
-				DownloadManager[] managers = sortDMList(globalManager.getDownloadManagers());
-				bSkipUpdateCount = true;
-
-				int max = (dataArea.getClientArea().height - 8) / ListRow.ROW_HEIGHT;
-				for (int i = 0; i < managers.length; i++) {
-					DownloadManager dm = managers[i];
-					downloadManagerAdded(dm);
-
-					if (max == i) {
-						processDataSourceQueue();
-						bSkipUpdateCount = false;
-						updateCount();
-						bSkipUpdateCount = true;
-
-						for (int j = 0; j <= i; j++) {
-							TableRowCore row = getRow(j);
-							if (row != null) {
-								row.redraw();
-							}
-						}
-					}
-				}
-				bSkipUpdateCount = false;
-				processDataSourceQueue();
-				if (!bAllowScrolling) {
-					regetDownloads();
-				}
-			}
-		});
 
 		dataArea.layout();
 		_expandNameColumn();
+		
+		addLifeCycleListener(new TableLifeCycleListener() {
+			public void tableViewInitialized() {
+				globalManager.addListener(TorrentListView.this, false);
+				
+				// Needed or Java borks!
+				dataArea.getDisplay().asyncExec(new AERunnable() {
+					public void runSupport() {
+						DownloadManager[] managers = sortDMList(globalManager.getDownloadManagers());
+						bSkipUpdateCount = true;
+
+						int max = (dataArea.getClientArea().height - 8) / ListRow.ROW_HEIGHT;
+						for (int i = 0; i < managers.length; i++) {
+							DownloadManager dm = managers[i];
+							downloadManagerAdded(dm);
+
+							if (max == i) {
+								processDataSourceQueue();
+								bSkipUpdateCount = false;
+								updateCount();
+								bSkipUpdateCount = true;
+
+								for (int j = 0; j <= i; j++) {
+									TableRowCore row = getRow(j);
+									if (row != null) {
+										row.redraw();
+									}
+								}
+							}
+						}
+						bSkipUpdateCount = false;
+						processDataSourceQueue();
+						if (!bAllowScrolling) {
+							regetDownloads();
+						}
+					}
+				});
+			}
+		
+			public void tableViewDestroyed() {
+				globalManager.removeListener(TorrentListView.this);
+			}
+		});
 	}
 
 	// XXX Please get rid of me!  I suck and I am slow
