@@ -300,18 +300,25 @@ UISWTInstanceImpl
 				break;
 			} 
 			case UIManagerEvent.ET_ADD_TABLE_CONTEXT_MENU_ITEM:{
-				
 				TableContextMenuItem	item = (TableContextMenuItem)data;
-				
 				TableContextMenuManager.getInstance().addContextMenuItem(item);
-				
 				break;
 			}
 			case UIManagerEvent.ET_ADD_MENU_ITEM: {
 				MenuItem item = (MenuItem)data;
 				MenuItemManager.getInstance().addMenuItem(item);
+				break;
 			}
-			
+			case UIManagerEvent.ET_REMOVE_TABLE_CONTEXT_MENU_ITEM:{
+				TableContextMenuItem item = (TableContextMenuItem)data;
+				TableContextMenuManager.getInstance().removeContextMenuItem(item);
+				break;
+			}
+			case UIManagerEvent.ET_REMOVE_MENU_ITEM: {
+				MenuItem item = (MenuItem)data;
+				MenuItemManager.getInstance().removeMenuItem(item);
+				break;
+			}			
 			case UIManagerEvent.ET_SHOW_CONFIG_SECTION: {
 				event.setResult(new Boolean(false));
 

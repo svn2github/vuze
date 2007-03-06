@@ -13,6 +13,7 @@ FEATURE: UI   | Overall piece map for Piece View [TuxPaper]
 FEATURE: UI   | New "Peer ID" columns in the Peers View [amc1]
 FEATURE: Plug | Plugins can now add their own status indicators on the status bar [amc1]
 FEATURE: Plug | Plugins can now add menu items to the system tray, download bars, menu bar [amc1]
+FEATURE: Plug | Plugins can now remove menu items that are created (allows for dynamic menus) [amc1]
 
 CHANGE: Core  | Include msvcr71.dll in Windows installation bundles, for compatibility with Java6 [Nolar]
 CHANGE: Plug  | Added full set of config parameter methods for completeness [amc1]

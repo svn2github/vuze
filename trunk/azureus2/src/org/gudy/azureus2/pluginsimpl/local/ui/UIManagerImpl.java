@@ -460,7 +460,9 @@ UIManagerImpl
  		if ( 	type == UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED ||
  				type == UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED || 
  				type == UIManagerEvent.ET_ADD_TABLE_CONTEXT_MENU_ITEM ||
- 				type == UIManagerEvent.ET_ADD_MENU_ITEM){
+ 				type == UIManagerEvent.ET_ADD_MENU_ITEM ||
+ 				type == UIManagerEvent.ET_REMOVE_TABLE_CONTEXT_MENU_ITEM ||
+ 				type == UIManagerEvent.ET_REMOVE_MENU_ITEM) {
  			
  			delivered = true;
  			

@@ -98,6 +98,11 @@ public class TableContextMenuManager {
       Debug.printStackTrace( e );
     }
   }
+  
+	public void removeContextMenuItem(TableContextMenuItem item) {
+		Map menu_item_map = (Map)this.items.get(item.getTableID());
+		if (menu_item_map != null) {menu_item_map.remove(item.getResourceKey());}
+	}
 
 	public TableContextMenuItem[] getAllAsArray(String sMenuID) {
 		Map local_menu_item_map = (Map)this.items.get(sMenuID);

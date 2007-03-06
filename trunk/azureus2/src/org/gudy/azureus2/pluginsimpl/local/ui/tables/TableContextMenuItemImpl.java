@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
@@ -61,5 +62,11 @@ public class TableContextMenuItemImpl extends MenuItemImpl implements TableConte
   public void removeMultiListener(MenuItemListener l) {
 	  m_listeners.remove(l);
   }
+  
+  public void remove() {
+		removeWithEvents(UIManagerEvent.ET_REMOVE_TABLE_CONTEXT_MENU_ITEM,
+				UIManagerEvent.ET_REMOVE_TABLE_CONTEXT_SUBMENU_ITEM);
+		this.m_listeners.clear();
+	}
   
 }

@@ -41,6 +41,10 @@ UIManagerEvent
 	public static final int ET_ADD_TABLE_CONTEXT_SUBMENU_ITEM	= 14;		// data is TableContextMenuItem[] - child, parent
 	public static final int ET_ADD_MENU_ITEM					= 15;		// data is MenuItem
 	public static final int ET_ADD_SUBMENU_ITEM		            = 16;		// data is MenuItem[] - child, parent
+	public static final int ET_REMOVE_TABLE_CONTEXT_MENU_ITEM   = 17;       // data is MenuItem
+	public static final int ET_REMOVE_TABLE_CONTEXT_SUBMENU_ITEM = 18;      // data is MenuItem[] - child, parent
+	public static final int ET_REMOVE_MENU_ITEM                 = 19;       // data is MenuItem
+	public static final int ET_REMOVE_SUBMENU_ITEM              = 20;       // data is MenuItem[] - child, parent
 
 	public int
 	getType();

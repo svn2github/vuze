@@ -21,14 +21,15 @@
 package org.gudy.azureus2.pluginsimpl.local.ui.menus;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.menus.*;
-
-import org.eclipse.swt.widgets.Listener;
+import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 
 /**
  * amc1: This class was largely derived from TableContextMenuImpl.
@@ -196,6 +197,35 @@ public class MenuItemImpl implements MenuItem {
 			} catch (Throwable e) {
 				Debug.printStackTrace(e);
 			}
+		}
+	}
+	
+	protected void removeWithEvents(int root_menu_event, int sub_menu_event) {
+		
+		if (this.parent != null) {
+			UIManagerImpl.fireEvent(sub_menu_event, new Object[]{this.parent, this});
+			parent.children.remove(this);
+			this.parent = null;
+		}
+		else {
+			UIManagerImpl.fireEvent(root_menu_event, this);
+		}
+		this.data = null;
+		this.graphic = null;
+		this.listeners.clear();
+		this.fill_listeners.clear();
+		
+	}
+	
+	public void remove() {
+		removeWithEvents(UIManagerEvent.ET_REMOVE_MENU_ITEM, UIManagerEvent.ET_REMOVE_SUBMENU_ITEM);
+	}
+
+	public void removeAllChildItems() {
+		// This should make this.children be empty...
+		MenuItem[] children = this.getItems();
+		if (children != null) {
+			for (int i=0; i<children.length; i++) {children[i].remove();}
 		}
 	}
 

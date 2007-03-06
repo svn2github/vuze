@@ -198,4 +198,25 @@ public interface MenuItem
 	 */
 	public String getMenuID();
 
+	/**
+	 * Removes the menu item.
+	 *
+	 * Calling this will remove the item from the menus, as well as removing all
+	 * listeners and removing all child menu items (if any exist).
+	 *
+	 * The behaviour of this object is undefined after this method has been called.
+	 * If you need to interact with this object when you are about to destroy it,
+	 * you should do it before you call the <tt>remove</tt> method.
+	 *
+	 * @since 3.0.0.7
+	 */
+	public void remove();
+	
+	/**
+	 * Removes all child menu items from this menu (if any exist).
+	 * 
+	 * @since 3.0.0.7
+	 */
+	public void removeAllChildItems();
+
 }
