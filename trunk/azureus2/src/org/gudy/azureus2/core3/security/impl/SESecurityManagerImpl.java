@@ -628,6 +628,38 @@ SESecurityManagerImpl
 	}
 	
 	public SSLSocketFactory
+	getSSLSocketFactory()
+	{
+		try{
+			this_mon.enter();
+		
+			KeyStore keystore = getTrustStore();
+						
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			
+			tmf.init(keystore);
+			
+			SSLContext ctx = SSLContext.getInstance("SSL");
+			
+			ctx.init(null, tmf.getTrustManagers(), null);
+						
+			SSLSocketFactory	factory = ctx.getSocketFactory();
+	
+			return( factory );
+			
+		}catch( Throwable e ){
+				
+			Debug.printStackTrace( e );
+			
+			return((SSLSocketFactory)SSLSocketFactory.getDefault());
+			
+		}finally{
+			
+			this_mon.exit();
+		}		
+	}
+	
+	public SSLSocketFactory
 	installServerCertificates(
 		URL		https_url )
 	{
