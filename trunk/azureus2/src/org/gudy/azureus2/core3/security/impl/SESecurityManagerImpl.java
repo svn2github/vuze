@@ -708,7 +708,7 @@ SESecurityManagerImpl
 						
 						String	alias = host.concat(":").concat(String.valueOf(port));
 				
-						return( addCertToTrustStore( alias, cert ));
+						return( addCertToTrustStore( alias, cert, true ));
 					}
 				}
 				
@@ -800,7 +800,7 @@ SESecurityManagerImpl
 					x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
 				}
 					
-				return( addCertToTrustStore( alias, cert ));
+				return( addCertToTrustStore( alias, cert, false ));
 								
 			}catch( Throwable e ){
 				
@@ -874,7 +874,8 @@ SESecurityManagerImpl
 	protected SSLSocketFactory
 	addCertToTrustStore(
 		String							alias,
-		java.security.cert.Certificate	cert )
+		java.security.cert.Certificate	cert,
+		boolean							update_https_factory )
 	
 		throws Exception
 	{
@@ -920,7 +921,10 @@ SESecurityManagerImpl
 						
 			SSLSocketFactory	factory = ctx.getSocketFactory();
 			
-			HttpsURLConnection.setDefaultSSLSocketFactory( factory );
+			if ( update_https_factory ){
+				
+				HttpsURLConnection.setDefaultSSLSocketFactory( factory );
+			}
 			
 			return( factory );
 		}finally{
