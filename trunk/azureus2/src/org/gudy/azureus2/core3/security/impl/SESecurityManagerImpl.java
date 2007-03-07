@@ -739,6 +739,94 @@ SESecurityManagerImpl
 		}
 	}
 	
+	public SSLSocketFactory
+	installServerCertificates(
+		String		alias,
+		String		host,
+		int			port )
+	{
+		try{
+			this_mon.enter();
+					
+			SSLSocket	socket = null;
+			
+			try{
+		
+					// to get the server certs we have to use an "all trusting" trust manager
+				
+				TrustManager[] trustAllCerts = new TrustManager[]{
+							new X509TrustManager() {
+								public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+									return null;
+								}
+								public void checkClientTrusted(
+										java.security.cert.X509Certificate[] certs, String authType) {
+								}
+								public void checkServerTrusted(
+										java.security.cert.X509Certificate[] certs, String authType) {
+								}
+							}
+						};
+				
+				SSLContext sc = SSLContext.getInstance("SSL");
+				
+				sc.init(null, trustAllCerts, new java.security.SecureRandom());
+				
+				SSLSocketFactory factory = sc.getSocketFactory();
+						
+				socket = (SSLSocket)factory.createSocket(host, port);
+			
+				socket.startHandshake();
+				
+				java.security.cert.Certificate[] serverCerts = socket.getSession().getPeerCertificates();
+				
+				if ( serverCerts.length == 0 ){
+									
+					return( null );
+				}
+				
+				java.security.cert.Certificate	cert = serverCerts[0];
+							
+				java.security.cert.X509Certificate x509_cert;
+				
+				if ( cert instanceof java.security.cert.X509Certificate ){
+					
+					x509_cert = (java.security.cert.X509Certificate)cert;
+					
+				}else{
+					
+					java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
+					
+					x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
+				}
+					
+				return( addCertToTrustStore( alias, cert ));
+								
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+				
+				return( null );
+				
+			}finally{
+				
+				if ( socket != null ){
+					
+					try{
+						socket.close();
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace( e );
+					}
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
 	protected void
 	addCertToKeyStore(
 		String								alias,

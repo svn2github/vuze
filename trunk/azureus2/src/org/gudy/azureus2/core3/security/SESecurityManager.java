@@ -92,6 +92,15 @@ SESecurityManager
 		return( SESecurityManagerImpl.getSingleton().installServerCertificates(https_url));
 	}
 	
+	public static SSLSocketFactory
+	installServerCertificates(
+		String		alias,
+		String		ip,
+		int			port )
+	{
+		return( SESecurityManagerImpl.getSingleton().installServerCertificates( alias, ip, port ));
+	}
+	
 	public static Certificate
 	createSelfSignedCertificate(
 		String		alias,
