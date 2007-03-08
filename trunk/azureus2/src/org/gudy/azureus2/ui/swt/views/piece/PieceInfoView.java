@@ -495,7 +495,7 @@ public class PieceInfoView
 		topLabel.setText(MessageText.getString("PiecesView.BlockView.Header",
 				new String[] {
 					"" + iNumCols,
-					"" + iRow,
+					"" + (iRow + 1),
 					"" + dm_pieces.length
 				}));
 
