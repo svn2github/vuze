@@ -25,9 +25,15 @@ import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -38,7 +44,6 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -367,11 +372,13 @@ public class MediaList
 						updateLastSearch();
 					}
 				});
-				txtFilter.setLayoutData(Utils.getFilledFormData());
+				FormData formData = Utils.getFilledFormData();
+				formData.top = null;
+				txtFilter.setLayoutData(formData);
 				composite.layout();
 
 				FontData[] fontData = txtFilter.getFont().getFontData();
-				int h = txtFilter.getClientArea().height - 2;
+				int h = txtFilter.getClientArea().height - (Constants.isOSX ? 0 : 2);
 				int size = Utils.pixelsToPoint(h,
 						txtFilter.getDisplay().getDPI().y);
 
@@ -387,6 +394,8 @@ public class MediaList
 
 					size--;
 				} while (txtFilter.getLineHeight() > h);
+
+				composite.getParent().layout();
 
 				final Font fFont = font;
 
