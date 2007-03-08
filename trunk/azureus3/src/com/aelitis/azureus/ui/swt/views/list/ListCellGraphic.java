@@ -120,7 +120,11 @@ public class ListCellGraphic
 			gc.setBackground(Display.getDefault().getSystemColor(
 					(int) (Math.random() * 16)));
 		}
-		gc.fillRectangle(getBounds());
+		Rectangle bounds = getBounds();
+		if (bounds == null) {
+			return;
+		}
+		gc.fillRectangle(bounds);
 
 		// TODO: Orientation: fill
 		if (image != null && !image.isDisposed()) {
