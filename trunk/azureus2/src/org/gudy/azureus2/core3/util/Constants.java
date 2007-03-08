@@ -80,6 +80,7 @@ Constants
   public static final boolean isSolaris			= OSName.equalsIgnoreCase("SunOS");
   public static final boolean isFreeBSD			= OSName.equalsIgnoreCase("FreeBSD");
   public static final boolean isWindowsXP		= OSName.equalsIgnoreCase("Windows XP");
+  public static final boolean isWindowsVista = OSName.equalsIgnoreCase("Windows Vista");
   public static final boolean isWindows95		= OSName.equalsIgnoreCase("Windows 95");
   public static final boolean isWindows98		= OSName.equalsIgnoreCase("Windows 98");
   public static final boolean isWindowsME		= OSName.equalsIgnoreCase("Windows ME");
