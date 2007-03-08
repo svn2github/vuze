@@ -10,6 +10,9 @@
 package org.gudy.azureus2.ui.swt.osx;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.internal.Callback;
@@ -52,6 +55,8 @@ public class CarbonUIEnhancer {
    private static String fgWizardActionName;
    private static String fgNatTestActionName;
    private static String fgRestartActionName;
+
+	private static int memmove_type = 0;
 
    public CarbonUIEnhancer() {
       if (fgAboutActionName == null) {
@@ -318,6 +323,68 @@ public class CarbonUIEnhancer {
 		c[3] = (char)(i & 0xff);
 		return new String(c);
 	}
+ 	
+ 	private static void memmove(byte[] dest, int src, int size) {
+		switch (memmove_type) {
+			case 0:
+				try {
+					OSXAccess.memmove(dest, src, size);
+					memmove_type = 0;
+					return;
+				} catch (Exception e) {
+				}
+				// FALL THROUGH
+
+			case 1:
+				try {
+					Class cMemMove = Class.forName("org.eclipse.swt.internal.carbon.OS");
+
+					Method method = cMemMove.getMethod("memmove", new Class[] {
+						byte[].class,
+						Integer.TYPE,
+						Integer.TYPE
+					});
+
+					method.invoke(null, new Object[] {
+						dest,
+						new Integer(src),
+						new Integer(size)
+					});
+					memmove_type = 1;
+					return;
+				} catch (Exception e) {
+				}
+
+				// FALL THROUGH
+			case 2:
+				try {
+					Class cMemMove = Class.forName("org.eclipse.swt.internal.carbon.OS");
+
+					Method method = cMemMove.getMethod("memcpy", new Class[] {
+						byte[].class,
+						Integer.TYPE,
+						Integer.TYPE
+					});
+
+					method.invoke(null, new Object[] {
+						dest,
+						new Integer(src),
+						new Integer(size)
+					});
+
+					memmove_type = 2;
+					return;
+				} catch (Exception e) {
+				}
+
+				// FALL THROUGH
+
+			default:
+				break;
+		}
+
+		memmove_type = 3;
+	}
 
   final static Object target = new Object() {
 		int openDocProc(int theAppleEvent, int reply, int handlerRefcon) {
@@ -350,7 +417,7 @@ public class CarbonUIEnhancer {
 					if (OS.AEGetNthPtr(aeDesc, i + 1, OS.typeFSRef, aeKeyword, typeCode,
 							dataPtr, maximumSize, actualSize) == OS.noErr) {
 						byte[] fsRef = new byte[actualSize[0]];
-						OS.memcpy(fsRef, dataPtr, actualSize[0]);
+						memmove(fsRef, dataPtr, actualSize[0]);
 						int dirUrl = OS.CFURLCreateFromFSRef(OS.kCFAllocatorDefault, fsRef);
 						int dirString = OS.CFURLCopyFileSystemPath(dirUrl,
 								OS.kCFURLPOSIXPathStyle);
@@ -367,7 +434,7 @@ public class CarbonUIEnhancer {
 					if (OS.AEGetNthPtr(aeDesc, i + 1, typeText, aeKeyword, typeCode,
 							dataPtr, maximumSize, actualSize) == OS.noErr) {
 						byte[] urlRef = new byte[actualSize[0]];
-						OS.memcpy(urlRef, dataPtr, actualSize[0]);
+						memmove(urlRef, dataPtr, actualSize[0]);
 						fileNames[i] = new String(urlRef);
 					}
 
