@@ -74,6 +74,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Open Stats On Start", false);
 		def.addParameter("Start Minimized", false);
 		def.addParameter("Open Bar", false);
+		def.addParameter("Open Bar Incomplete", false);
 
 		def.addParameter("Close To Tray", true);
 		def.addParameter("Minimize To Tray", false);

@@ -91,8 +91,23 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 
 		new BooleanParameter(cDisplay, "Open Details", LBLKEY_PREFIX
 				+ "opendetails");
-		new BooleanParameter(cDisplay, "Open Bar", false, LBLKEY_PREFIX + "openbar");
+		
+		Composite cBars = new Composite(cDisplay, SWT.NULL);
+		layout = new GridLayout();
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.numColumns = 2;
+		cBars.setLayout(layout);
+		cBars.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
+		
+		BooleanParameter open_bar = new BooleanParameter(cBars, "Open Bar", LBLKEY_PREFIX + "openbar");
+		BooleanParameter open_bar_inc = new BooleanParameter(cBars, "Open Bar Incomplete", LBLKEY_PREFIX + "openbar.incomplete");
+		
+		open_bar.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(open_bar_inc.getControls()));
+
+		
+		
 		if (!Constants.isOSX || SWT.getVersion() >= 3300) {
 
 			BooleanParameter est = new BooleanParameter(cDisplay,

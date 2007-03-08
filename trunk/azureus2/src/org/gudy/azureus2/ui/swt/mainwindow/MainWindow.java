@@ -1391,15 +1391,22 @@ MainWindow
             	if (display == null || display.isDisposed())
             		return;
 
-              if (COConfigurationManager.getBooleanParameter("Open Details",false)) {
+              if (COConfigurationManager.getBooleanParameter("Open Details")) {
                 openManagerView(manager);
               }
               
-              if (COConfigurationManager.getBooleanParameter("Open Bar", false)) {
-              	MinimizedWindow mw = MinimizedWindow.get(manager);
-              	if (mw == null) {
-              	  new MinimizedWindow(manager, shell);
-              	}
+              if (COConfigurationManager.getBooleanParameter("Open Bar")) {
+            	  
+            	  boolean	do_it = 
+            		  !( 	manager.isDownloadComplete(false) &&
+            	  			COConfigurationManager.getBooleanParameter("Open Bar Incomplete"));
+            	  
+            	  if ( do_it ){
+	              	MinimizedWindow mw = MinimizedWindow.get(manager);
+	              	if (mw == null) {
+	              	  new MinimizedWindow(manager, shell);
+	              	}
+            	  }
               }
             }
           });
