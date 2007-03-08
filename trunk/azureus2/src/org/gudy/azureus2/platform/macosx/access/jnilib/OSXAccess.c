@@ -2,7 +2,7 @@
 #include <jni.h>
 #include <AEDataModel.h>
 
-#define VERSION "1.02"
+#define VERSION "1.03"
 
 /**
  * AEDesc code from SWT, os_structs.c
@@ -107,4 +107,21 @@ Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getDocDir(
 
 		return result;
   }
+}
+
+JNIEXPORT void JNICALL
+Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_memmove(
+	JNIEnv *env,
+	jclass cla,
+	jbyteArray dest,
+	jint src,
+	jint count)
+{
+	jshort *dest1;
+	
+	if (dest) {
+		dest1 = (*env)->GetByteArrayElements(env, dest, NULL);
+		memmove((void *)dest1, (void *)src, count);
+		(*env)->ReleaseByteArrayElements(env, dest, dest1, 0);
+	}
 }

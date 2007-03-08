@@ -49,6 +49,9 @@ public class OSXAccess
 	// 1.02
 	public static final native String getDocDir();
 	
+	// 1.03
+	public static final native void memmove(byte[] dest, int src, int size);
+	
 	public static boolean isLoaded() {
 		return bLoaded;
 	}
