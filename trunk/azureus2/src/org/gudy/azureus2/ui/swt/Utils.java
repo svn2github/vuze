@@ -1100,5 +1100,33 @@ public class Utils {
 			}
 		});
 	}
+	
+	public static Font getFontWithHeight(Control control, int heightInPixels) {
+		Font font = null;
+		GC gc = new GC(control);
+		try {
+			FontData[] fontData = control.getFont().getFontData();
+			int h = heightInPixels;
+			int size = Utils.pixelsToPoint(h,
+					control.getDisplay().getDPI().y);
+
+			do {
+				if (font != null) {
+					font.dispose();
+				}
+				fontData[0].setHeight(size);
+
+				font = new Font(control.getDisplay(), fontData);
+				
+				gc.setFont(font);
+
+				size--;
+			} while (gc.textExtent("/|,jI~`g").y > h && size > 1);
+			
+		} finally {
+			gc.dispose();
+		}
+		return font;
+	}
 }
 
