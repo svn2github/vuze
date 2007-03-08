@@ -54,8 +54,7 @@ public class PlatformConfigMessenger
 	private static int iRPCVersion = 0;
 	
 	private static String DEFAULT_WHITELIST = "https?://"
-			+ Constants.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/"
-			+ Constants.URL_NAMESPACE.replaceAll("\\.", "\\\\.") + ".*";
+			+ Constants.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/" + ".*";
 
 	private static String[] sURLWhiteList = new String[] {
 		DEFAULT_WHITELIST
