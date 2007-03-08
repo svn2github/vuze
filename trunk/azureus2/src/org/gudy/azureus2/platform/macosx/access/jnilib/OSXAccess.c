@@ -117,7 +117,7 @@ Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_memmove(
 	jint src,
 	jint count)
 {
-	jshort *dest1;
+	jbyte *dest1;
 	
 	if (dest) {
 		dest1 = (*env)->GetByteArrayElements(env, dest, NULL);
