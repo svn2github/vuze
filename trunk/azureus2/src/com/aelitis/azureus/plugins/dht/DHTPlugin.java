@@ -136,6 +136,7 @@ DHTPlugin
 	private int					port_change_outstanding;
 	
 	private BooleanParameter	ipfilter_logging;
+	private BooleanParameter	warn_user;
 	
 	private UPnPMapping			upnp_mapping;
 	
@@ -200,6 +201,8 @@ DHTPlugin
 				new Parameter[]{ reseed_label, reseed_ip, reseed_port, reseed });
 		
 		ipfilter_logging = config.addBooleanParameter2( "dht.ipfilter.log", "dht.ipfilter.log", true );
+
+		warn_user = config.addBooleanParameter2( "dht.warn.user", "dht.warn.user", true );
 
 		final BooleanParameter	advanced = config.addBooleanParameter2( "dht.advanced", "dht.advanced", false );
 
@@ -753,6 +756,7 @@ DHTPlugin
 												override_ip,
 												dht_data_port,
 												reseed,
+												warn_user,
 												logging,
 												log, dht_log );
 								
@@ -769,6 +773,7 @@ DHTPlugin
 										override_ip,
 										dht_data_port,
 										reseed,
+										warn_user,
 										logging,
 										log, dht_log ));
 							}

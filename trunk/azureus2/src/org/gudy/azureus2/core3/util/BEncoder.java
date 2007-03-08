@@ -361,17 +361,77 @@ BEncoder
     cloneMap(
     	Map		map )
     {
-		try{
-				// inefficient impl
-			
-			return( BDecoder.decode(BEncoder.encode( map )));
-		
-		}catch( Throwable e ){
-		
-			Debug.printStackTrace( e );
-		
-			return( map );
-		}
+    	if ( map == null ){
+    		
+    		return( null );
+    	}
+    	
+    	Map res = new TreeMap();
+    	
+    	Iterator	it = map.entrySet().iterator();
+    	
+    	while( it.hasNext()){
+    		
+    		Map.Entry	entry = (Map.Entry)it.next();
+    		
+    		Object	key 	= entry.getKey();
+    		Object	value	= entry.getValue();
+
+    			// keys must be String (or very rarely byte[])
+    		
+    		if ( key instanceof byte[] ){
+    			
+    			key = ((byte[])key).clone();
+    		}
+    		
+    		res.put( key, clone( value ));
+    	}
+    	
+    	return( res );
+    }
+    
+    public static List
+    cloneList(
+    	List		list )
+    {
+    	if ( list == null ){
+    		
+    		return( null );
+    	}
+    	
+    	List	res = new ArrayList(list.size());
+    	
+    	Iterator	it = list.iterator();
+    	
+    	while( it.hasNext()){
+    		
+    		res.add( clone( it.next()));
+    	}
+    	
+    	return( res );
+    }
+    
+    public static Object
+    clone(
+    	Object	obj )
+    {
+    	if ( obj instanceof List ){
+    		
+    		return( cloneList((List)obj));
+    		
+    	}else if ( obj instanceof Map ){
+    		
+    		return( cloneMap((Map)obj));
+    		
+    	}else if ( obj instanceof byte[]){
+    		
+    		return(((byte[])obj).clone());
+    		
+    	}else{
+    			// assume immutable - String,Long etc
+    		
+    		return( obj );
+    	}
     }
     
     public static StringBuffer

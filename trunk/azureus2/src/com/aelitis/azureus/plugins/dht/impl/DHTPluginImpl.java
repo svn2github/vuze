@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
@@ -94,7 +95,8 @@ DHTPluginImpl
 	private int					status;
 	private String				status_text;
 	
-	private ActionParameter		reseed;
+	private ActionParameter		reseed_param;
+	private BooleanParameter	warn_user_param;
 	
 	private DHT					dht;
 	private int					port;
@@ -121,6 +123,7 @@ DHTPluginImpl
 		String					_ip,
 		int						_port,
 		ActionParameter			_reseed,
+		BooleanParameter		_warn_user_param,
 		boolean					_logging,
 		LoggerChannel			_log,
 		DHTLogger				_dht_log )
@@ -129,7 +132,8 @@ DHTPluginImpl
 		protocol_version	= _protocol_version;
 		network				= _network;
 		port				= _port;
-		reseed				= _reseed;
+		reseed_param		= _reseed;
+		warn_user_param		= _warn_user_param;
 		log					= _log;
 		dht_log				= _dht_log;
 		
@@ -290,7 +294,7 @@ DHTPluginImpl
 
 					int	warned_port = plugin_interface.getPluginconfig().getPluginIntParameter( "udp_warned_port", 0 );
 					
-					if ( warned_port == port  ){
+					if ( warned_port == port || !warn_user_param.getValue() ){
 						
 						log.log( msg );
 						
@@ -425,7 +429,7 @@ DHTPluginImpl
 		DHTTransportContact	remove_afterwards )
 	{
 		try{
-			reseed.setEnabled( false );						
+			reseed_param.setEnabled( false );						
 
 			log.log( "DHT " + (first?"":"re-") + "integration starts" );
 		
@@ -450,7 +454,7 @@ DHTPluginImpl
 			
 		}finally{
 			
-			reseed.setEnabled( true );						
+			reseed_param.setEnabled( true );						
 		}
 	}
 	
