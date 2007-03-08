@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.util.Constants;
 
 /**
  * @author TuxPaper
@@ -52,7 +53,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("GUI_SWT_bAlternateTablePainting", false);
 		def.addParameter("Colors.progressBar.override", false);
 		def.addParameter("GUI_SWT_DisableAlertSliding", false);
-		def.addParameter("NameColumn.showProgramIcon", true);
+		def.addParameter("NameColumn.showProgramIcon", !Constants.isWindowsXP);
 		def.addParameter("Open MyTorrents", true);
 		def.addParameter("DND Always In Incomplete", false);
 
