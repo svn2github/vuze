@@ -42,6 +42,10 @@ public class AZMessageFactory {
   public static final byte MESSAGE_VERSION_INITIAL				= BTMessageFactory.MESSAGE_VERSION_INITIAL;
   public static final byte MESSAGE_VERSION_SUPPORTS_PADDING		= BTMessageFactory.MESSAGE_VERSION_SUPPORTS_PADDING;
   
+  public static final int AZ_HANDSHAKE_PAD_MAX		= 64;
+  public static final int SMALL_PAD_MAX				= 8;
+  public static final int BIG_PAD_MAX				= 20;
+	  
   private static final byte bss = DirectByteBuffer.SS_MSG;
   
   
@@ -166,9 +170,9 @@ public class AZMessageFactory {
     DirectByteBuffer header;
     
     if ( version >= MESSAGE_VERSION_SUPPORTS_PADDING ){
-    	
-    	short 	padding_length = enable_padding?(short)( Math.random() * ( payload_size>256?32:256 )):0;
-    	
+    	    	
+    	short 	padding_length = enable_padding?(short)(( Math.random() * ( payload_size>256?SMALL_PAD_MAX:BIG_PAD_MAX ))+1):0;
+    	    	
     	byte	flags = enable_padding?(byte)0x01:(byte)0x00;
     	
     	int	header_size = 4 + 4 + id_bytes.length + 1 + (enable_padding?(2+padding_length):0);

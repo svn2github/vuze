@@ -39,10 +39,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessagingUtil;
 public class AZHandshake implements AZMessage {
 	
   public static final int HANDSHAKE_TYPE_PLAIN  = 0;
-  public static final int HANDSHAKE_TYPE_CRYPTO = 1;
-	
-  private static final int MAX_PADDING		= 128;
-	
+  public static final int HANDSHAKE_TYPE_CRYPTO = 1;	
 	
   private static final byte bss = DirectByteBuffer.SS_MSG;
 
@@ -183,7 +180,7 @@ public class AZHandshake implements AZMessage {
       
       if ( handshake_type == AZHandshake.HANDSHAKE_TYPE_CRYPTO ){
     	  
-    	  payload_map.put( "pad", new byte[(int)( Math.random() * MAX_PADDING )]);
+    	  payload_map.put( "pad", new byte[(int)( Math.random() * AZMessageFactory.AZ_HANDSHAKE_PAD_MAX )]);
       }
       
       buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map, DirectByteBuffer.AL_MSG_AZ_HAND );
