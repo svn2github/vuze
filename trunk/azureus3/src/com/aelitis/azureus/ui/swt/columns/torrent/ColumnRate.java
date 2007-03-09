@@ -141,12 +141,18 @@ public class ColumnRate
 				gcImage.fillRectangle(0, 0, width, height);
 			}
 
+			Rectangle r = img.getBounds();
+			r.x += 2;
+			r.y += 2;
+			r.height -= 11;
+
 			if (font == null) {
 				// no sync required, SWT is on single thread
 				FontData[] fontData = gcImage.getFont().getFontData();
-				fontData[0].setHeight(Utils.pixelsToPoint(20,
-						Display.getDefault().getDPI().y));
 				fontData[0].setStyle(SWT.BOLD);
+				// we can do a few more pixels because we have no text hanging below baseline
+				Utils.getFontHeightFromPX(gcImage.getDevice(), fontData, gcImage,
+						(int)(r.height * 1.3));
 				font = new Font(Display.getDefault(), fontData);
 			}
 
@@ -161,13 +167,9 @@ public class ColumnRate
 			Color color2 = ColorCache.getColor(Display.getDefault(), hsl.getRed(),
 					hsl.getGreen(), hsl.getBlue());
 
-			Rectangle r = img.getBounds();
-			r.x += 2;
-			r.y += 2;
 			if (color2 != null) {
 				gcImage.setForeground(color2);
 			}
-			r.height -= 12;
 
 			GCStringPrinter.printString(gcImage, rating, r, true, false, SWT.CENTER);
 
@@ -178,7 +180,7 @@ public class ColumnRate
 			}
 
 			r = img.getBounds();
-			r.height -= 12;
+			r.height -= 11;
 			gcImage.setForeground(color1);
 			GCStringPrinter.printString(gcImage, rating, r, true, false, SWT.CENTER);
 

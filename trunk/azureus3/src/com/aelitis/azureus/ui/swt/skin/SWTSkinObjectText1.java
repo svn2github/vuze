@@ -142,8 +142,7 @@ public class SWTSkinObjectText1
 					}
 
 					if (sSize.endsWith("px")) {
-						iFontSize = Utils.pixelsToPoint(iSize,
-								label.getDisplay().getDPI().y);
+						iFontSize = Utils.getFontHeightFromPX(label.getFont(), null, iSize);
 					}
 
 					bNewFont = true;

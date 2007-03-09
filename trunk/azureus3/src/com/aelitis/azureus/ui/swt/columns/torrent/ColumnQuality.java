@@ -114,8 +114,8 @@ public class ColumnQuality
 				if (font == null) {
 					// no sync required, SWT is on single thread
 					FontData[] fontData = gcImage.getFont().getFontData();
-					fontData[0].setHeight(Utils.pixelsToPoint(12,
-							Display.getDefault().getDPI().y));
+					fontData[0].setHeight(Utils.getFontHeightFromPX(gcImage.getFont(),
+							gcImage, 12));
 					fontData[0].setStyle(SWT.BOLD);
 					fontData[0].setName("Sans Serif");
 					font = new Font(Display.getDefault(), fontData);

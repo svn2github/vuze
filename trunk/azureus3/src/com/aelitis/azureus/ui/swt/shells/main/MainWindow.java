@@ -816,7 +816,7 @@ public class MainWindow
 			// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
 			public void handleEvent(Event event) {
 				int h = text.getClientArea().height - 2;
-				Font font = Utils.getFontWithHeight(text, h);
+				Font font = Utils.getFontWithHeight(text.getFont(), null, h);
 				if (font != null) {
 					text.setFont(font);
 					final Font fFont = font;

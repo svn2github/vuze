@@ -27,13 +27,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -378,7 +375,7 @@ public class MediaList
 				composite.layout();
 
 				int h = txtFilter.getClientArea().height - (Constants.isOSX ? 0 : 2);
-				Font font = Utils.getFontWithHeight(txtFilter, h);
+				Font font = Utils.getFontWithHeight(txtFilter.getFont(), null, h);
 				
 				composite.getParent().layout();
 

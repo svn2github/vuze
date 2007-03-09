@@ -288,9 +288,7 @@ public class ColumnProgressETA
 			}
 
 			if (fontText == null) {
-				FontData[] fontData = gcImage.getFont().getFontData();
-				fontData[0].setHeight(Utils.pixelsToPoint(10, display.getDPI().y));
-				fontText = new Font(display, fontData);
+				fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, 13);
 			}
 			gcImage.setFont(fontText);
 			int[] fg = cell.getForeground();
