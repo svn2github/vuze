@@ -529,6 +529,11 @@ public class ConfigurationDefaults {
 	  return (byte[])def.get(p);
   }
   
+  public boolean getBooleanParameter(String p) throws ConfigurationParameterNotFoundException {
+  	checkParameterExists(p);
+  	return ((Long)def.get(p)).equals(TRUE);
+  }
+  
   public boolean hasParameter(String p) {
 	  return def.containsKey(p);
   }

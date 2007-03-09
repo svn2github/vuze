@@ -26,6 +26,8 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
 
 /**
  * @author Olivier
@@ -36,8 +38,6 @@ BooleanParameterImpl
 	extends 	ParameterImpl 
 	implements 	BooleanParameter
 {
-	private boolean defaultValue;
-	
 	public 
 	BooleanParameterImpl(
 		PluginConfig	config,
@@ -48,14 +48,15 @@ BooleanParameterImpl
 		super( config, key, label);
  
 		COConfigurationManager.setBooleanDefault( getKey(), defaultValue );
-		
-		this.defaultValue = defaultValue;
- 
 	}
 	
 	public boolean getDefaultValue()
 	{
-		return defaultValue;
+		try {
+			return ConfigurationDefaults.getInstance().getBooleanParameter(getKey());
+		} catch (ConfigurationParameterNotFoundException e) {
+		}
+		return false;
 	}
 
 	public boolean
