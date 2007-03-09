@@ -28,6 +28,8 @@ import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundExcepti
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
+import com.aelitis.azureus.core.*;
+
 /**
  * @author TuxPaper
  * @created Nov 3, 2006
@@ -35,7 +37,7 @@ import org.gudy.azureus2.core3.util.SystemProperties;
  */
 public class UIConfigDefaultsSWTv3
 {
-	public static void initialize() {
+	public static void initialize(AzureusCore core) {
 		ConfigurationManager config = ConfigurationManager.getInstance();
 
 		if (System.getProperty("FORCE_PROGRESSIVE", "").length() > 0) { //TODO HACK FOR DEMO PURPOSES ONLY!
@@ -47,7 +49,7 @@ public class UIConfigDefaultsSWTv3
 		// on.
 		String sFirstVersion = config.getStringParameter("First Recorded Version");
 
-		ConfigurationDefaults defaults = ConfigurationDefaults.getInstance();
+		final ConfigurationDefaults defaults = ConfigurationDefaults.getInstance();
 		// Always have the wizard complete when running az3
 		defaults.addParameter("Wizard Completed", true);
 
@@ -128,5 +130,16 @@ public class UIConfigDefaultsSWTv3
 
 			config.save();
 		}
+		
+		// by default, turn off some slidey warning
+		// Since they are plugin configs, we need to set the default after the 
+		// plugin sets the default
+		core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
+			public void started(AzureusCore core) {
+				defaults.addParameter("dht.warn.user", false);
+				defaults.addParameter("upnp.alertothermappings", false);
+				defaults.addParameter("upnp.alertdeviceproblems", false);
+			}
+		});
 	}
 }

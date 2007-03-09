@@ -187,7 +187,7 @@ public class Initializer
 
 		UIConfigDefaultsSWT.initialize();
 
-		UIConfigDefaultsSWTv3.initialize();
+		UIConfigDefaultsSWTv3.initialize(core);
 
 		ImageRepository.loadImagesForSplashWindow(display);
 
