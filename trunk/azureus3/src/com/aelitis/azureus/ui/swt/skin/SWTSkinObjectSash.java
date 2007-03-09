@@ -128,13 +128,11 @@ public class SWTSkinObjectSash
 						return;
 					}
 					Double l = (Double) sash.getData("PCT");
+					Long px = (Long) sash.getData("PX");
 					if (l != null) {
 						setPercent(l, sash, above, below, bVertical, parentComposite,
 								aboveMin, belowMin);
-					}
-
-					Long px = (Long) sash.getData("PX");
-					if (px != null) {
+					} else if (px != null) {
 						int i = (bVertical) ? createOn.getSize().x : createOn.getSize().y;
 						double pct = 1 - (px.doubleValue() / i);
 
@@ -283,6 +281,7 @@ public class SWTSkinObjectSash
 	protected void setPercent(Double l, Control sash, Composite above,
 			Composite below, boolean bVertical, Control parentComposite,
 			int minAbove, int belowMin) {
+		
 		FormData belowData = (FormData) below.getLayoutData();
 		if (bVertical) {
 			int parentWidth = parentComposite.getBounds().width;
