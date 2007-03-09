@@ -56,7 +56,7 @@ public class ColumnRate
 {
 	public static String COLUMN_ID = "Rating";
 
-	private final int COLUMN_WIDTH = 50;
+	private final int COLUMN_WIDTH = 55;
 
 	static Font font = null;
 
@@ -152,7 +152,7 @@ public class ColumnRate
 				fontData[0].setStyle(SWT.BOLD);
 				// we can do a few more pixels because we have no text hanging below baseline
 				Utils.getFontHeightFromPX(gcImage.getDevice(), fontData, gcImage,
-						(int)(r.height * 1.25));
+						(int)(r.height * 1.15));
 				font = new Font(Display.getDefault(), fontData);
 			}
 			
