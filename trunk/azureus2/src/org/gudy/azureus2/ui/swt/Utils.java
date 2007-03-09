@@ -55,6 +55,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  * 
  */
 public class Utils {
+	private static final String GOOD_STRING = "(/|,jI~`gy";
+	
   public static final boolean isGTK	= SWT.getPlatform().equals("gtk");
 
 	/** Some platforms expand the last column to fit the remaining width of
@@ -1101,31 +1103,120 @@ public class Utils {
 		});
 	}
 	
-	public static Font getFontWithHeight(Control control, int heightInPixels) {
+	/**
+	 * 
+	 * @param baseFont
+	 * @param gc Can be null
+	 * @param heightInPixels
+	 * @return
+	 *
+	 * @since 3.0.0.7
+	 */
+	public static int getFontHeightFromPX(Font baseFont, GC gc, int heightInPixels) {
 		Font font = null;
-		GC gc = new GC(control);
+		Device device = baseFont.getDevice();
+
+		// This isn't accurate, but gets us close
+		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y);
+
+		boolean bOurGC = gc == null || gc.isDisposed();
 		try {
-			FontData[] fontData = control.getFont().getFontData();
-			int h = heightInPixels;
-			int size = Utils.pixelsToPoint(h,
-					control.getDisplay().getDPI().y);
+			if (bOurGC) {
+				gc = new GC(device);
+			}
+			FontData[] fontData = baseFont.getFontData();
 
 			do {
 				if (font != null) {
+					size--;
 					font.dispose();
 				}
 				fontData[0].setHeight(size);
 
-				font = new Font(control.getDisplay(), fontData);
-				
+				font = new Font(device, fontData);
+
 				gc.setFont(font);
 
-				size--;
-			} while (gc.textExtent("/|,jI~`g").y > h && size > 1);
-			
+			} while (font != null && gc.textExtent(GOOD_STRING).y > heightInPixels
+					&& size > 1);
+
 		} finally {
-			gc.dispose();
+			if (bOurGC) {
+				gc.dispose();
+			}
 		}
+		return size;
+	}
+
+	public static int getFontHeightFromPX(Device device, FontData[] fontData,
+			GC gc, int heightInPixels) {
+		Font font = null;
+
+		// This isn't accurate, but gets us close
+		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y);
+
+		boolean bOurGC = gc == null || gc.isDisposed();
+		try {
+			if (bOurGC) {
+				gc = new GC(device);
+			}
+
+			do {
+				if (font != null) {
+					size--;
+					font.dispose();
+				}
+				fontData[0].setHeight(size);
+
+				font = new Font(device, fontData);
+
+				gc.setFont(font);
+
+			} while (font != null && gc.textExtent(GOOD_STRING).y > heightInPixels
+					&& size > 1);
+
+		} finally {
+			if (bOurGC) {
+				gc.dispose();
+			}
+		}
+		return size;
+	}
+
+	public static Font getFontWithHeight(Font baseFont, GC gc, int heightInPixels) {
+		Font font = null;
+		Device device = baseFont.getDevice();
+
+		// This isn't accurate, but gets us close
+		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y);
+
+		boolean bOurGC = gc == null || gc.isDisposed();
+		try {
+			if (bOurGC) {
+				gc = new GC(device);
+			}
+			FontData[] fontData = baseFont.getFontData();
+
+			do {
+				if (font != null) {
+					size--;
+					font.dispose();
+				}
+				fontData[0].setHeight(size);
+
+				font = new Font(device, fontData);
+
+				gc.setFont(font);
+
+			} while (font != null && gc.textExtent(GOOD_STRING).y > heightInPixels
+					&& size > 1);
+
+		} finally {
+			if (bOurGC) {
+				gc.dispose();
+			}
+		}
+
 		return font;
 	}
 }

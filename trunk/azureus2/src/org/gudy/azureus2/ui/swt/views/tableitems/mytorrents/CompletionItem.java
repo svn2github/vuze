@@ -25,7 +25,6 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -137,11 +136,9 @@ public class CompletionItem
         gcImage.fillRectangle(limit+1, 1, x1-limit, y1);
       }
       
-			if (fontText == null) {
-  			FontData[] fontData = gcImage.getFont().getFontData();
-  			Display display = SWTThread.getInstance().getDisplay();
-  			fontData[0].setHeight(Utils.pixelsToPoint(10, display.getDPI().y));
-  			fontText = new Font(display, fontData);
+			if (fontText == null || true) {
+				fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage,
+						newHeight);
 			}
 			gcImage.setFont(fontText);
 			gcImage.setForeground(Colors.black);
