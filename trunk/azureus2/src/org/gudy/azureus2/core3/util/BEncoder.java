@@ -225,7 +225,27 @@ BEncoder
     	os.write( bb.array(), 0, bb.limit());
     }
 
-    private static boolean
+    private static Object
+    normaliseObject(
+    	Object		o )
+    {
+    	if ( o instanceof Integer ){
+       		o = new Long(((Integer)o).longValue());
+      	}else if ( o instanceof Boolean ){
+       		o = new Long(((Boolean)o).booleanValue()?1:0);
+      	}else if ( o instanceof Float ){
+       		o = String.valueOf((Float)o);
+       	}else if ( o instanceof byte[] ){    		
+       		try{
+       			o = new String((byte[])o,"UTF-8");			
+       		}catch( Throwable e ){
+       		}
+       	}
+    	
+    	return( o );
+    }
+    
+    public static boolean
     objectsAreIdentical(
     	Object		o1,
     	Object		o2 )
@@ -239,41 +259,28 @@ BEncoder
     		return( false );
     	}
     	
-     	if ( o1 instanceof Integer ){
-       		o1 = new Long(((Integer)o1).longValue());
-       	}
-      	if ( o2 instanceof Integer ){
-       		o2 = new Long(((Integer)o2).longValue());
-       	}
-      	
-      	if ( o1 instanceof Float ){
-       		o1 = String.valueOf((Float)o1);
-       	}
-       	if ( o2 instanceof Float ){
-       		o2 = String.valueOf((Float)o2);
-       	}
+      	if ( o1.getClass() != o2.getClass()){
+      		 
+	    	o1 = normaliseObject( o1 );
+	    	o2 = normaliseObject( o2 );
        	
-    	if ( o1.getClass() != o2.getClass()){
+	    	if ( o1.getClass() != o2.getClass()){
     		
-    		return( false );
+	    		Debug.out( "Failed to normalise classes " + o1.getClass() + "/" + o2.getClass());
+	    		
+	    		return( false );
+	    	}
     	}
     	
-    	if ( o1 instanceof Long ){
+    	if ( 	o1 instanceof Long ||
+    			o1 instanceof String ){		
     		
     		return( o1.equals( o2 ));
     		
      	}else if ( o1 instanceof byte[] ){
      		
      		return( Arrays.equals((byte[])o1,(byte[])o2 ));
-     		
-     	}else if ( o1 instanceof ByteBuffer ){
-     		
-     		return( o1.equals( o2 ));
-     			
-    	}else if ( o1 instanceof String ){
-    		
-    		return( o1.equals(o2 ));
-    		
+     		    		
     	}else if ( o1 instanceof List ){
     		
     		return( listsAreIdentical((List)o1,(List)o2));
@@ -282,6 +289,13 @@ BEncoder
        	    		
     		return( mapsAreIdentical((Map)o1,(Map)o2));
     		
+       	}else if ( 	o1 instanceof Integer ||
+	    			o1 instanceof Boolean ||
+	    			o1 instanceof Float ||
+	    			o1 instanceof ByteBuffer ){
+    		
+    		return( o1.equals( o2 ));
+
     	}else{
     		
     		Debug.out( "Invalid type: " + o1 );
