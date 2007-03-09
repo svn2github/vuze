@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
@@ -166,6 +167,11 @@ public class MultiPeerDownloader implements RateControlledEntity {
             }
           }
 
+          if (! (e instanceof IOException )){
+        	
+        	  Debug.printStackTrace(e);
+          }
+          
           connection.notifyOfException( e );
         }
 
