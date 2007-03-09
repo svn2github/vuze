@@ -815,7 +815,7 @@ public class MainWindow
 		text.addListener(SWT.Resize, new Listener() {
 			// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
 			public void handleEvent(Event event) {
-				int h = text.getClientArea().height - (Constants.isOSX ? 0 : 2);
+				int h = text.getClientArea().height - 2;
 				Font font = Utils.getFontWithHeight(text, h);
 				if (font != null) {
 					text.setFont(font);
