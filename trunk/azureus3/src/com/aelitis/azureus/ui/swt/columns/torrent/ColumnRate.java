@@ -152,10 +152,10 @@ public class ColumnRate
 				fontData[0].setStyle(SWT.BOLD);
 				// we can do a few more pixels because we have no text hanging below baseline
 				Utils.getFontHeightFromPX(gcImage.getDevice(), fontData, gcImage,
-						(int)(r.height * 1.3));
+						(int)(r.height * 1.25));
 				font = new Font(Display.getDefault(), fontData);
 			}
-
+			
 			gcImage.setFont(font);
 
 			SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
@@ -183,6 +183,7 @@ public class ColumnRate
 			r.height -= 11;
 			gcImage.setForeground(color1);
 			GCStringPrinter.printString(gcImage, rating, r, true, false, SWT.CENTER);
+
 
 			if (count > 0) {
 				if (smallFont == null) {
