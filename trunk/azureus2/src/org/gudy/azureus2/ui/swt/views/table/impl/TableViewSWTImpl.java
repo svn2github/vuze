@@ -652,6 +652,12 @@ public class TableViewSWTImpl
 				}
 			});
 		}
+		
+		table.addListener(SWT.MeasureItem, new Listener() {
+			public void handleEvent(Event event) {
+				event.height = getRowDefaultHeight();
+			}
+		});
 
 		// Deselect rows if user clicks on a black spot (a spot with no row)
 		table.addMouseListener(new MouseAdapter() {
@@ -1023,8 +1029,11 @@ public class TableViewSWTImpl
 					bInFunction = true;
 
 					TableColumnCore tc = (TableColumnCore) column.getData("TableColumnCore");
-					if (tc != null)
-						tc.setWidth(column.getWidth());
+					if (tc != null) {
+						Long lPadding = (Long)column.getData("widthOffset");
+						int padding = (lPadding == null) ? 0 : lPadding.intValue();
+						tc.setWidth(column.getWidth() - padding);
+					}
 
 					int columnNumber = table.indexOf(column);
 					locationChanged(columnNumber);
@@ -1063,6 +1072,7 @@ public class TableViewSWTImpl
 
 		ColumnSelectionListener columnSelectionListener = new ColumnSelectionListener();
 
+		TableItem tempTI = new TableItem(table, SWT.NONE);
 		//Assign length and titles
 		//We can only do it after ALL columns are created, as position (order)
 		//may not be in the natural order (if the user re-order the columns).
@@ -1097,12 +1107,20 @@ public class TableViewSWTImpl
 			column.setData("TableColumnCore", tableColumns[i]);
 			column.setData("configName", "Table." + sTableID + "." + sName);
 			column.setData("Name", sName);
+			
+			Rectangle bounds = tempTI.getBounds(adjusted_position);
+			int ofs = bounds.width - tableColumns[i].getWidth();
+			if (ofs > 0) {
+				column.setWidth(tableColumns[i].getWidth() + ofs);
+			}
+			column.setData("widthOffset", new Long(ofs));
 
 			column.addControlListener(resizeListener);
 			// At the time of writing this SWT (3.0RC1) on OSX doesn't call the 
 			// selection listener for tables
 			column.addListener(SWT.Selection, columnSelectionListener);
 		}
+		table.remove(0);
 
 		// Initialize the sorter after the columns have been added
 		String sSortColumn = configMan.getStringParameter(sTableID + ".sortColumn",
@@ -2163,6 +2181,10 @@ public class TableViewSWTImpl
 				column = tableColumnsSWT[i];
 				break;
 			}
+		}
+		Long lOfs = (Long)column.getData("widthOffset");
+		if (lOfs != null) {
+			newWidth += lOfs.intValue();
 		}
 		if (column == null || column.isDisposed()
 				|| (column.getWidth() == newWidth))
