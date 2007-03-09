@@ -26,6 +26,7 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
@@ -769,10 +770,8 @@ public class MainWindow
 		final Text text = new Text(cArea, SWT.NONE);
 		text.setLayoutData(Utils.getFilledFormData());
 		final String sDefault = MessageText.getString("MainWindow.v3.search.defaultText");
-		text.setText(sDefault);
 		text.setForeground(ColorCache.getColor(text.getDisplay(), 127, 127, 127));
 		text.setBackground(ColorCache.getColor(text.getDisplay(), 255, 255, 255));
-		text.selectAll();
 		text.addMouseListener(new MouseListener() {
 
 			public void mouseUp(MouseEvent e) {
@@ -811,6 +810,32 @@ public class MainWindow
 			}
 
 		});
+
+
+		text.addListener(SWT.Resize, new Listener() {
+			// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+			public void handleEvent(Event event) {
+				int h = text.getClientArea().height - (Constants.isOSX ? 0 : 2);
+				Font font = Utils.getFontWithHeight(text, h);
+				if (font != null) {
+					text.setFont(font);
+					final Font fFont = font;
+
+					text.addDisposeListener(new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							if (fFont != null && !fFont.isDisposed()) {
+								text.setFont(null);
+								fFont.dispose();
+							}
+						}
+					});
+				}
+			}
+		});
+		
+		// must be done after layout
+		text.setText(sDefault);
+		text.selectAll();
 
 		SWTSkinObject searchGo = skin.getSkinObject("search-go");
 		if (searchGo != null) {

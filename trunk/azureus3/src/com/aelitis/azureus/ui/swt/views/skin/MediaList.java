@@ -377,36 +377,24 @@ public class MediaList
 				txtFilter.setLayoutData(formData);
 				composite.layout();
 
-				FontData[] fontData = txtFilter.getFont().getFontData();
 				int h = txtFilter.getClientArea().height - (Constants.isOSX ? 0 : 2);
-				int size = Utils.pixelsToPoint(h,
-						txtFilter.getDisplay().getDPI().y);
-
-				Font font = null;
-				do {
-					if (font != null) {
-						font.dispose();
-					}
-					fontData[0].setHeight(size);
-
-					font = new Font(txtFilter.getDisplay(), fontData);
-					txtFilter.setFont(font);
-
-					size--;
-				} while (txtFilter.getLineHeight() > h);
-
+				Font font = Utils.getFontWithHeight(txtFilter, h);
+				
 				composite.getParent().layout();
 
-				final Font fFont = font;
-
-				txtFilter.addDisposeListener(new DisposeListener() {
-					public void widgetDisposed(DisposeEvent e) {
-						if (fFont != null && !fFont.isDisposed()) {
-							txtFilter.setFont(null);
-							fFont.dispose();
-						}
-					}
-				});
+				if (font != null) {
+  				final Font fFont = font;
+  				txtFilter.setFont(fFont);
+  
+  				txtFilter.addDisposeListener(new DisposeListener() {
+  					public void widgetDisposed(DisposeEvent e) {
+  						if (fFont != null && !fFont.isDisposed()) {
+  							txtFilter.setFont(null);
+  							fFont.dispose();
+  						}
+  					}
+  				});
+				}
 
 				view.addKeyListener(new KeyListener() {
 					public void keyReleased(KeyEvent e) {
