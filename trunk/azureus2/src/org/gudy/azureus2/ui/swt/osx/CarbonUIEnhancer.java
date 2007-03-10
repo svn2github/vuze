@@ -331,7 +331,7 @@ public class CarbonUIEnhancer {
 					OSXAccess.memmove(dest, src, size);
 					memmove_type = 0;
 					return;
-				} catch (Exception e) {
+				} catch (Throwable e) {
 				}
 				// FALL THROUGH
 
@@ -352,7 +352,7 @@ public class CarbonUIEnhancer {
 					});
 					memmove_type = 1;
 					return;
-				} catch (Exception e) {
+				} catch (Throwable e) {
 				}
 
 				// FALL THROUGH
@@ -374,7 +374,7 @@ public class CarbonUIEnhancer {
 
 					memmove_type = 2;
 					return;
-				} catch (Exception e) {
+				} catch (Throwable e) {
 				}
 
 				// FALL THROUGH
