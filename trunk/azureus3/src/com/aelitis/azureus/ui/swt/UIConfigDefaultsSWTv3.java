@@ -136,9 +136,9 @@ public class UIConfigDefaultsSWTv3
 		// plugin sets the default
 		core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
 			public void started(AzureusCore core) {
-				defaults.addParameter("dht.warn.user", false);
-				defaults.addParameter("upnp.alertothermappings", false);
-				defaults.addParameter("upnp.alertdeviceproblems", false);
+				defaults.addParameter("Plugin.DHT.dht.warn.user", false);
+				defaults.addParameter("Plugin.UPnP.upnp.alertothermappings", false);
+				defaults.addParameter("Plugin.UPnP.upnp.alertdeviceproblems", false);
 			}
 		});
 	}
