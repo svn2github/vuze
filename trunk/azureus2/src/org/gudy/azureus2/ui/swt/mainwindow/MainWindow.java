@@ -1395,17 +1395,14 @@ MainWindow
                 openManagerView(manager);
               }
               
-              if (COConfigurationManager.getBooleanParameter("Open Bar")) {
-            	  
-            	  boolean	do_it = 
-            		  !( 	manager.isDownloadComplete(false) &&
-            	  			COConfigurationManager.getBooleanParameter("Open Bar Incomplete"));
-            	  
-            	  if ( do_it ){
-	              	MinimizedWindow mw = MinimizedWindow.get(manager);
-	              	if (mw == null) {
-	              	  new MinimizedWindow(manager, shell);
-	              	}
+              boolean	complete = manager.isDownloadComplete(false);
+              
+              if (	((!complete) && COConfigurationManager.getBooleanParameter("Open Bar Incomplete")) ||
+            		(complete && COConfigurationManager.getBooleanParameter("Open Bar Complete"))){
+
+            	  MinimizedWindow mw = MinimizedWindow.get(manager);
+            	  if (mw == null) {
+            		  new MinimizedWindow(manager, shell);
             	  }
               }
             }

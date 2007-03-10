@@ -20,6 +20,7 @@
 
 package org.gudy.azureus2.ui.swt;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.util.Constants;
 
@@ -74,8 +75,9 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Open Config", false);
 		def.addParameter("Open Stats On Start", false);
 		def.addParameter("Start Minimized", false);
-		def.addParameter("Open Bar", false);
+		
 		def.addParameter("Open Bar Incomplete", false);
+		def.addParameter("Open Bar Complete", false);
 
 		def.addParameter("Close To Tray", true);
 		def.addParameter("Minimize To Tray", false);
@@ -86,5 +88,15 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Status Area Show IPF", true);
 		
 		def.addParameter("ui", "az2");
+		
+		
+		
+		if ( COConfigurationManager.getBooleanParameter( "Open Bar" )){
+			
+			COConfigurationManager.setParameter( "Open Bar Incomplete", true );
+			COConfigurationManager.setParameter( "Open Bar Complete", true );
+			
+			COConfigurationManager.setParameter( "Open Bar", false );
+		}
 	}
 }
