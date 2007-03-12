@@ -2294,7 +2294,19 @@ TRTrackerBTAnnouncerImpl
 	
 					    		if ( l_rtt != null ){
 					    			
-					    			total_rtt 	+= l_rtt.longValue();
+					    			long rtt = l_rtt.longValue();
+					    			
+					    			if ( rtt <= 0 ){
+					    				
+					    					// invalid, remove
+					    				
+					    				peer.remove( "r" );
+					    				
+					    			}else{
+					    				
+					    				total_rtt 	+= rtt;
+					    			}
+					    			
 					    			rtt_count++; 
 					    		}
 							}
