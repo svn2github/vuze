@@ -890,6 +890,27 @@ public class TableViewSWTImpl
 								event.doit = false;
 							}
 							break;
+							
+						case '+' : {
+							if (Constants.isUnix) {
+								TableColumn[] tableColumnsSWT = table.getColumns();
+								for (int i = 0; i < tableColumnsSWT.length; i++) {
+									TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
+									if (tc != null) {
+										int w = tc.getPreferredWidth();
+										if (w <= 0) {
+											w = tc.getMinWidth();
+											if (w <= 0) {
+												w = 100;
+											}
+										}
+										tc.setWidth(w);
+									}
+								}
+								event.doit = false;
+							}
+							break;
+						}
 					}
 
 					if (!event.doit)
@@ -1109,11 +1130,13 @@ public class TableViewSWTImpl
 			column.setData("Name", sName);
 			
 			Rectangle bounds = tempTI.getBounds(adjusted_position);
-			int ofs = bounds.width - tableColumns[i].getWidth();
-			if (ofs > 0) {
-				column.setWidth(tableColumns[i].getWidth() + ofs);
+			if (bounds.width > 0) {
+  			int ofs = bounds.width - tableColumns[i].getWidth();
+  			if (ofs > 0) {
+  				column.setWidth(tableColumns[i].getWidth() + ofs);
+  			}
+  			column.setData("widthOffset", new Long(ofs));
 			}
-			column.setData("widthOffset", new Long(ofs));
 
 			column.addControlListener(resizeListener);
 			// At the time of writing this SWT (3.0RC1) on OSX doesn't call the 
@@ -2190,7 +2213,17 @@ public class TableViewSWTImpl
 				|| (column.getWidth() == newWidth))
 			return;
 
-		column.setWidth(newWidth);
+		if (Constants.isUnix) {
+  		final int fNewWidth = newWidth;
+  		final TableColumn fTableColumn = column; 
+  		column.getDisplay().asyncExec(new AERunnable() {
+  			public void runSupport() {
+  				fTableColumn.setWidth(fNewWidth);
+  			}
+  		});
+		} else {
+			column.setWidth(newWidth);
+		}
 	}
 
 	// ITableStructureModificationListener
