@@ -86,6 +86,8 @@ public class PlatformTorrentUtils
 	private static final String TOR_AZ_PROP_MIN_SPEED = "Min Speed Bps";
 
 	private static final String TOR_AZ_PROP_DRM = "DRM";
+	
+	private static final String TOR_AZ_PROP_QOS_CLASS = "QOS Class";
 
 	private static final ArrayList metaDataListeners = new ArrayList();
 
@@ -215,6 +217,10 @@ public class PlatformTorrentUtils
 
 	public static boolean isContentDRM(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_DRM, -1) >= 0;
+	}
+
+	public static long getQOSClass(TOTorrent torrent) {
+		return getContentMapLong(torrent, TOR_AZ_PROP_QOS_CLASS, 0 );
 	}
 
 	private static void putOrRemove(Map map, String key, Object obj) {
