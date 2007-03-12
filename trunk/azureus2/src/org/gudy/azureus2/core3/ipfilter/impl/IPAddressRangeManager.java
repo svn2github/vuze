@@ -471,6 +471,7 @@ IPAddressRangeManager
 	{
 		IPAddressRangeManager manager = new IPAddressRangeManager();
 
+		/*
 		Object[] testBlockIPs1 = {
 				new String[] { "1", "3.1.1.1", "3.1.1.2" },
 				new String[] { "2", "3.1.1.1", "3.1.1.3" },
@@ -520,7 +521,21 @@ IPAddressRangeManager
 		
 		
 		System.out.println( "Total span = " + manager.getTotalSpan());
+		*/
 		
+		Random r = new Random();
+
+		for (int i=0;i<1000000;i++){
+			
+			int	ip1 	= r.nextInt( 0x0fffffff );
+	
+			int	ip2 	= ip1 + r.nextInt( 255 );
+			
+			String	start 	= PRHelpers.intToAddress( ip1 );
+			String	end		= PRHelpers.intToAddress( ip2 );
+			
+			manager.addRange( new IpRangeImpl("test_" + i, start, end, true ));
+		}
 		
 		/*
 		for (int i=0;i<100000;i++){
@@ -531,9 +546,10 @@ IPAddressRangeManager
 			manager.addRange( start, end, new Object());
 		}
 		*/
-		/*
+		
 		int	num 	= 0;
 		int	hits	= 0;
+		
 		
 		while(true){
 			
@@ -545,7 +561,7 @@ IPAddressRangeManager
 			
 			num++;
 		
-			int	ip 	= (int)(Math.random() * 0xffffffff);
+			int	ip 	= r.nextInt();
 
 			Object	res = manager.isInRange( ip );
 			
@@ -554,7 +570,6 @@ IPAddressRangeManager
 				hits++;
 			}
 		}
-		*/
 	}
 
 	public ArrayList getEntries() {
