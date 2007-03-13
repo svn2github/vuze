@@ -206,8 +206,6 @@ TRTrackerServerTorrentImpl
 				ip_address	= HostNameToIPResolver.syncResolve( ip_address ).getHostAddress();
 			
 			}catch( UnknownHostException e ){
-				
-				// ignore, client has crud for ip-override
 			}
 		}
 		

@@ -391,9 +391,9 @@ TRTrackerServerProcessorTCP
 							
 					}else if ( lhs.equals( "ip" )){
 							
-						if ( AENetworkClassifier.categoriseAddress( rhs ) == AENetworkClassifier.AT_PUBLIC ){
-	
-								// only accept public resolved addresses
+						// System.out.println( "override: " + real_ip_address + " -> " + rhs + " [" + input_header + "]" );
+						
+						if ( !HostNameToIPResolver.isNonDNSName( rhs )){
 							
 							for (int i=0;i<rhs.length();i++){
 								
@@ -402,7 +402,15 @@ TRTrackerServerProcessorTCP
 								if ( c != '.' && !Character.isDigit( c )){
 									
 									throw( new Exception( "IP override address must be resolved by the client" ));
-								}
+								}	
+							}
+							
+							try{
+								rhs	= HostNameToIPResolver.syncResolve( rhs ).getHostAddress();
+							
+							}catch( UnknownHostException e ){
+								
+								throw( new Exception( "IP override address must be resolved by the client" ));
 							}
 						}
 						
