@@ -477,7 +477,6 @@ public class TorrentListViewsUtils
 			if (program != null) {
 				String name = program.getName();
 				if (!whiteList.contains(name)) {
-					System.out.println("adding " + name);
 					whiteList.add(name);
 				}
 			}
