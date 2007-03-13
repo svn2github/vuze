@@ -1,6 +1,21 @@
 AZUREUS v3 CHANGELOG
 --------------------
 
+2006.04.13 | Azureus 3.0.0.8
+
+FEATURE: Columns auto-hide when there's not enough room for them to display nicely
+FEATURE: Added Quality column to "Last Downloads" and "Library" views
+FEATURE: Warn on trying to delete paid for content
+FEATURE: Ability to use cache peers
+FEATURE: Auto-download updates
+FEATURE: Filtering for Library view
+
+CHANGE: Warn when trying to play a piece of content that's been removed from the filesystem
+CHANGE: Font size tweaks for some fonts that need to fit into a specific area (like buttons and tabs)
+
+BUGFIX: Fixed versions prior to 3.0.0.6 sometimes thinking they were originally 2.5.0.x
+
+
 2006.01.23 | Azureus 3.0.0.6
 
 FEATURE: Rating column now contains # of ratings
