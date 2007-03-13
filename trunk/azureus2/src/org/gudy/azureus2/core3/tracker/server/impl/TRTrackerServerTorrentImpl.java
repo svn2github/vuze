@@ -207,7 +207,7 @@ TRTrackerServerTorrentImpl
 			
 			}catch( UnknownHostException e ){
 				
-				Debug.printStackTrace( e );
+				// ignore, client has crud for ip-override
 			}
 		}
 		
