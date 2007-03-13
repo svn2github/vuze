@@ -1017,6 +1017,15 @@ PluginUpdatePlugin
 										
 										if ( file_name.startsWith( "shared/lib" )){
 											
+												// updating shared resources, force restart
+											
+											update.setRestartRequired( Update.RESTART_REQUIRED_YES );
+
+												// indicate that we can't go ahead and load the plugin
+												// later in the code
+											
+											unloadable	= false;
+											
 											if ( plugin.isShared()){
 												
 												install_root 	= plugin_interface.getUtilities().getAzureusProgramDir();
