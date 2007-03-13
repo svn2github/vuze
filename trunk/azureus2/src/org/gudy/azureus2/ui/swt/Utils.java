@@ -72,12 +72,11 @@ public class Utils {
 
 	public static final boolean SWT32_TABLEPAINT = false; //SWT.getVersion() >= 3200;
 
-	private static final boolean DEBUG_SWTEXEC = true;
+	private static final boolean DEBUG_SWTEXEC = false;
 
-	// if you want to debug execSWTThread, initialize the array
 	private static ArrayList queue;
   
-	private static AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("swt");
+	private static AEDiagnosticsLogger diag_logger;
 	
 	static {
 		if (DEBUG_SWTEXEC) {
@@ -86,6 +85,7 @@ public class Utils {
 			diag_logger.log("\n\nSWT Logging Starts");
 		} else {
 			queue = null;
+			diag_logger = null;
 		}
 	}
 
