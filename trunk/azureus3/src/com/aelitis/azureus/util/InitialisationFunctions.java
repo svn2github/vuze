@@ -28,6 +28,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -66,9 +67,19 @@ public class InitialisationFunctions
 
 		final TorrentAttribute ta = tm.getAttribute(TorrentAttribute.TA_TRACKER_CLIENT_EXTENSIONS);
 
-		pi.getDownloadManager().addListener(new DownloadManagerListener() {
-			public void downloadAdded(Download download) {
-				// TODO: only add the attribtute for platform content
+		pi.getDownloadManager().addListener(
+			new DownloadManagerListener() 
+			{
+			public void 
+			downloadAdded(
+				Download download )
+			{
+					// only add the azid to platform content
+				
+				if ( !PlatformTorrentUtils.isContent( download.getTorrent())){
+					
+					return;
+				}
 
 				String value = download.getAttribute(ta);
 
