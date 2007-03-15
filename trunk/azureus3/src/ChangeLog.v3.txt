@@ -1,6 +1,9 @@
 AZUREUS v3 CHANGELOG
 --------------------
 
+2007.0x.xx | Azureus 3.0.0.9
+
+
 2007.03.15 | Azureus 3.0.0.8
 
 FEATURE: Columns auto-hide when there's not enough room for them to display nicely
