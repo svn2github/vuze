@@ -134,6 +134,7 @@ public class PieceInfoView
 			}
 			dlm = (DownloadManager)newDataSource;
 			dlm.addPeerListener(this, false);
+			fillPieceInfoSection();
 		}
 	}
 
