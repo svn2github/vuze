@@ -130,7 +130,8 @@ public class WelcomeWindow {
 		if (sWhatsNew == null || sWhatsNew.length() == 0) {
 			String helpFile = MessageText.getString("window.welcome.file");
 			String helpFullPath = "/org/gudy/azureus2/internat/whatsnew/" + helpFile;
-			if (Constants.compareVersions(Constants.AZUREUS_VERSION, "3.0.0.6") == 0) {
+			if (Constants.compareVersions(Constants.AZUREUS_VERSION, "3.0.0.6") == 0
+					|| Constants.compareVersions(Constants.AZUREUS_VERSION, "3.0.0.8") == 0) {
 				helpFullPath = "/ChangeLog.v3.txt";
 			}
 			InputStream stream = getClass().getResourceAsStream(helpFullPath);
