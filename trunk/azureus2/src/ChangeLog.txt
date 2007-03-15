@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 -----------------
 
-2007.0x.xx | Azureus 3.0.0.7
+2007.03.15 | Azureus 3.0.0.8
 
 FEATURE: Core | Alerts can now be shown in individual message popup boxes [amc1]
 FEATURE: Core | Alerts can now be suppressed and shown on demand [amc1]
