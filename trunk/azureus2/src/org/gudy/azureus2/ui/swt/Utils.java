@@ -1189,6 +1189,9 @@ public class Utils {
 
 		// This isn't accurate, but gets us close
 		int size = Utils.pixelsToPoint(heightInPixels, device.getDPI().y);
+		if (size <= 0) {
+			size = 2;
+		}
 
 		boolean bOurGC = gc == null || gc.isDisposed();
 		try {
