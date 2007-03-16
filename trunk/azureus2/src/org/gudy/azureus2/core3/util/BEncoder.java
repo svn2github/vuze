@@ -261,15 +261,23 @@ BEncoder
     	
       	if ( o1.getClass() != o2.getClass()){
       		 
-	    	o1 = normaliseObject( o1 );
-	    	o2 = normaliseObject( o2 );
-       	
-	    	if ( o1.getClass() != o2.getClass()){
-    		
-	    		Debug.out( "Failed to normalise classes " + o1.getClass() + "/" + o2.getClass());
-	    		
-	    		return( false );
-	    	}
+    		if ( 	( o1 instanceof Map && o2 instanceof Map ) ||
+    				( o1 instanceof List && o2 instanceof List )){
+    			
+    			// things actually OK
+    			
+    		}else{
+    			
+		    	o1 = normaliseObject( o1 );
+		    	o2 = normaliseObject( o2 );
+	       	
+		    	if ( o1.getClass() != o2.getClass()){
+	    				    			
+			    	Debug.out( "Failed to normalise classes " + o1.getClass() + "/" + o2.getClass());
+			    		
+			    	return( false );
+		    	}
+      		}
     	}
     	
     	if ( 	o1 instanceof Long ||
