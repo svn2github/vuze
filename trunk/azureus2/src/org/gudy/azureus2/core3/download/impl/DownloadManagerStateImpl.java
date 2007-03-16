@@ -1815,6 +1815,11 @@ DownloadManagerStateImpl
 					
 				}else{
 					
+					if ( old_value == attribute_value ){
+						
+						Debug.out( "setListAttribute: should clone?" );
+					}
+					
 					changed = !BEncoder.listsAreIdentical( old_value, attribute_value ); 
 					
 					if ( changed ){
@@ -1893,6 +1898,11 @@ DownloadManagerStateImpl
 					changed	= true;
 					
 				}else{
+					
+					if ( old_value == attribute_value ){
+						
+						Debug.out( "setMapAttribute: should clone?" );
+					}
 					
 					changed = !BEncoder.mapsAreIdentical( old_value, attribute_value ); 
 					

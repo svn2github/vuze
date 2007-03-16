@@ -1148,6 +1148,12 @@ DownloadManagerController
 		if ( secrets_map == null ){
 			
 			secrets_map = new HashMap();
+			
+		}else{
+			
+				// clone as we can't just update the returned values
+			
+			secrets_map = new HashMap( secrets_map );
 		}
 		
 		if ( secrets_map.size() == 0 ){

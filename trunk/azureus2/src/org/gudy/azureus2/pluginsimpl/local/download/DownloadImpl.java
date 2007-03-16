@@ -500,8 +500,13 @@ DownloadImpl
 	  	return( null );
   }
   
-  public void setListAttribute(TorrentAttribute attribute, String[] value) {
+  public void 
+  setListAttribute(
+	TorrentAttribute attribute, 
+	String[] value) 
+  {
 	  String name = convertAttribute(attribute);
+	  
 	  if (name != null) {
 		  download_manager.getDownloadState().setListAttribute(name, value);
 	  }
@@ -516,7 +521,10 @@ DownloadImpl
 	  	
 	  	if ( name != null ){
 			
-			download_manager.getDownloadState().setMapAttribute( name, value );
+	  			// gotta clone before updating in case user has read values and then just
+	  			// updated them - setter code optimises out sets of the same values...
+	  		
+			download_manager.getDownloadState().setMapAttribute( name, BEncoder.cloneMap( value ));
 	  	}
   }
   
