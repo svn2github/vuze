@@ -565,31 +565,24 @@ public class TorrentListView
 		}
 
 		public void stateChanged(DownloadManager manager, int state) {
-			try {
-				view.listeners_mon.enter();
-				for (Iterator iter = view.listeners.iterator(); iter.hasNext();) {
-					TorrentListViewListener l = (TorrentListViewListener) iter.next();
-					l.stateChanged(manager);
-				}
-				TableRowCore row = view.getRow(manager);
-				if (row != null) {
-					row.refresh(true);
-				}
-			} finally {
-				view.listeners_mon.exit();
+			Object[] listenersArray = view.listeners.toArray();
+			for (int i = 0; i < listenersArray.length; i++) {
+				TorrentListViewListener l = (TorrentListViewListener) listenersArray[i];
+				l.stateChanged(manager);
+			}
+
+			TableRowCore row = view.getRow(manager);
+			if (row != null) {
+				row.refresh(true);
 			}
 		}
 	}
 
 	protected void updateCount() {
-		try {
-			listeners_mon.enter();
-			for (Iterator iter = listeners.iterator(); iter.hasNext();) {
-				TorrentListViewListener l = (TorrentListViewListener) iter.next();
-				l.countChanged();
-			}
-		} finally {
-			listeners_mon.exit();
+		Object[] listenersArray = listeners.toArray();
+		for (int i = 0; i < listenersArray.length; i++) {
+			TorrentListViewListener l = (TorrentListViewListener) listenersArray[i];
+			l.countChanged();
 		}
 
 		if (countArea != null && bSkipUpdateCount) {
