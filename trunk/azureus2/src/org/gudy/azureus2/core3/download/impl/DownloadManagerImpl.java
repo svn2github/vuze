@@ -788,7 +788,7 @@ DownloadManagerImpl
 				 			 
 				 	// only restore the tracker response cache for non-seeds
 		   
-				 if ( download_manager_state.isResumeDataComplete()){
+				 if ( download_manager_state.isResumeDataComplete() || for_seeding ){
 				 	
 					 	// actually, can't think of a good reason not to restore the
 					 	// cache for seeds, after all if the tracker's down we still want
