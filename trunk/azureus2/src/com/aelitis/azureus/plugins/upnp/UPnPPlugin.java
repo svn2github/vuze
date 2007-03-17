@@ -83,6 +83,7 @@ UPnPPlugin
 	private StringParameter		nat_pmp_router;
 	
 	private BooleanParameter 	upnp_enable_param;
+	private BooleanParameter 	trace_to_log;
 	
 	private BooleanParameter	alert_success_param;
 	private BooleanParameter	grab_ports_param;
@@ -171,31 +172,11 @@ UPnPPlugin
 			// UPNP
 		
 		upnp_config.addLabelParameter2( "upnp.info" );
+		upnp_config.addHyperlinkParameter2("upnp.wiki_link", "http://azureus.aelitis.com/wiki/index.php/UPnP");
 		
-		ActionParameter	upnp_wiki = upnp_config.addActionParameter2( "Utils.link.visit", "MainWindow.about.internet.wiki" );
-		
-		upnp_wiki.setStyle( ActionParameter.STYLE_LINK );
-		
-		upnp_wiki.addListener(
-			new ParameterListener()
-			{
-				public void
-				parameterChanged(
-					Parameter	param )
-				{
-					try{
-						plugin_interface.getUIManager().openURL( new URL( "http://azureus.aelitis.com/wiki/index.php/UPnP" ));
-						
-					}catch( Throwable e ){
-						
-						e.printStackTrace();
-					}
-				}
-			});
 		
 		upnp_enable_param = 
 			upnp_config.addBooleanParameter2( "upnp.enable", "upnp.enable", true );
-		
 		
 		grab_ports_param = upnp_config.addBooleanParameter2( "upnp.grabports", "upnp.grabports", false );
 		
@@ -265,6 +246,8 @@ UPnPPlugin
 		upnp_enable_param.addEnabledOnSelection( ignore_bad_devices );
 		upnp_enable_param.addEnabledOnSelection( ignored_devices_list );
 		upnp_enable_param.addEnabledOnSelection( reset_param );
+		
+		trace_to_log = upnp_config.addBooleanParameter2("upnp.trace_to_log", "upnp.trace_to_log", false);
 
 		final boolean	enabled = upnp_enable_param.getValue();
 		
@@ -498,6 +481,9 @@ UPnPPlugin
 							String	str )
 						{
 							core_log.log( str );
+							if (trace_to_log.getValue()) {
+								upnp_log_listener.log(str);
+							}
 						}
 						
 						public void
