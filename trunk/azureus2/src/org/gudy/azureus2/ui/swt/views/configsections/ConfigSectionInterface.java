@@ -41,6 +41,7 @@ import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -159,6 +160,9 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		layout.numColumns = 2;
 		cArea.setLayout(layout);
 		cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		new LinkLabel(cArea, LBLKEY_PREFIX + "version.info.link",
+				"http://www.azureuswiki.com/index.php/Version.aelitis.com");
 
 		if (!Constants.isOSX) {
 
