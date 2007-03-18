@@ -44,6 +44,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+import org.gudy.azureus2.core3.util.TrackersUtil;
 
 import java.util.HashMap;
 
@@ -207,6 +208,19 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 			}
 		});
 
+		final Label clear_tracker_label = new Label(cArea, SWT.NULL);
+		Messages.setLanguageText(clear_tracker_label, KEY_PREFIX + "cleartrackers");
+
+		final Button clear_tracker_button = new Button(cArea, SWT.PUSH);
+		Messages.setLanguageText(clear_tracker_button, KEY_PREFIX
+				+ "cleartrackersbutton");
+		
+		clear_tracker_button.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				TrackersUtil.getInstance().clearAllTrackers(true);
+			}
+		});
+		
 		decisions_parameter_listener = new ParameterListener() {
 			public void parameterChanged(String parameterName) {
 				if (clear_decisions.isDisposed()) {

@@ -94,6 +94,12 @@ public class TrackersUtil {
     return new HashMap(multiTrackers);
   }
   
+  public void clearAllTrackers(boolean save) {
+	  trackers = new ArrayList();
+	  multiTrackers = new HashMap();
+	  if (save) {saveList();}
+  }
+  
   private void loadList() {    
     File fTrackers = FileUtil.getUserFile("trackers.config");
     if(fTrackers.exists() && fTrackers.isFile()) {
@@ -177,6 +183,7 @@ public class TrackersUtil {
     }
   }
 
+  
   
 
 }
