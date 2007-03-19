@@ -222,7 +222,7 @@ AEDiagnostics
 
 						long last_modified = file.lastModified();
 
-						if (now - last_modified > 30 * 24 * 60 * 60 * 1000L) {
+						if (now - last_modified > 10 * 24 * 60 * 60 * 1000L) {
 
 							file.delete();
 						}
