@@ -746,7 +746,8 @@ public class MessageSlideShell
 
 		Matcher matcher = Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
 				popupParams.text);
-		if (tryLinkIfURLs && matcher.find()) {
+		boolean hasHTML = matcher.find();
+		if (tryLinkIfURLs && hasHTML) {
 			try {
 				Link linkLabel = new Link(cShell, SWT.WRAP);
 				GridData gridData = new GridData(GridData.FILL_BOTH);
@@ -786,13 +787,15 @@ public class MessageSlideShell
 
 			//<a href="http://atorre.s">test</A> and <a href="http://atorre.s">test2</A>
 
-			matcher.reset();
-			popupParams.text = matcher.replaceAll("$2 ($1)");
-
-			if (sDetails == null) {
-				sDetails = popupParams.text;
-			} else {
-				sDetails = popupParams.text + "\n---------\n" + sDetails;
+			if (hasHTML) {
+  			matcher.reset();
+  			popupParams.text = matcher.replaceAll("$2 ($1)");
+  
+  			if (sDetails == null) {
+  				sDetails = popupParams.text;
+  			} else {
+  				sDetails = popupParams.text + "\n---------\n" + sDetails;
+  			}
 			}
 
 			linkLabel.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_BLACK));
