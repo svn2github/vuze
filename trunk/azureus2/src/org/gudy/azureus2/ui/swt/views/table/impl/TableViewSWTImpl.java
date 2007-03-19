@@ -409,13 +409,20 @@ public class TableViewSWTImpl
 		final Sash sash = new Sash(form, SWT.HORIZONTAL);
 
 		tableComposite = createMainPanel(form);
+		Composite cFixLayout = tableComposite;
+		while (cFixLayout != null && cFixLayout.getParent() != form) {
+			cFixLayout = cFixLayout.getParent();
+		}
+		if (cFixLayout == null) {
+			cFixLayout = tableComposite;
+		}
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 1;
 		layout.horizontalSpacing = 0;
 		layout.verticalSpacing = 0;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
-		tableComposite.setLayout(layout);
+		cFixLayout.setLayout(layout);
 
 		// FormData for Folder
 		formData = new FormData();
@@ -453,7 +460,7 @@ public class TableViewSWTImpl
 		formData.right = new FormAttachment(100, 0);
 		formData.top = new FormAttachment(0, 0);
 		formData.bottom = new FormAttachment(sash);
-		tableComposite.setLayoutData(formData);
+		cFixLayout.setLayoutData(formData);
 
 		// Listeners to size the folder
 		sash.addSelectionListener(new SelectionAdapter() {
@@ -3268,7 +3275,7 @@ public class TableViewSWTImpl
 		return coreTabViews;
 	}
 
-	// from common.TableView
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#setCoreTabViews(org.gudy.azureus2.ui.swt.views.IView[])
 	public void setCoreTabViews(IView[] coreTabViews) {
 		this.coreTabViews = coreTabViews;
 	}

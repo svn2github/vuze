@@ -124,6 +124,8 @@ public class GeneralView extends AbstractIView implements ParameterListener,
   
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
 
+  private Composite parent;
+
   /**
    * Initialize GeneralView
    */
@@ -137,20 +139,19 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 			manager = (DownloadManager)((Object[])newDataSource)[0];
 		else
 			manager = (DownloadManager)newDataSource;
+
+		refreshInfo();
 	}
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
-  	if (manager == null)
-  		return;
+  	parent = composite;
 
-    pieces = new boolean[manager.getNbPieces()];
+    genComposite = new Canvas(parent, SWT.NULL);
 
-    this.display = composite.getDisplay();
 
-    genComposite = new Canvas(composite, SWT.NULL);
     GridLayout genLayout = new GridLayout();
     genLayout.marginHeight = 0;
     try {
@@ -161,6 +162,20 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     genLayout.marginWidth = 2;
     genLayout.numColumns = 1;
     genComposite.setLayout(genLayout);
+
+    refreshInfo();
+    COConfigurationManager.addParameterListener("Graphics Update", this);
+  }
+  
+  private void refreshInfo() {
+  	if (manager == null || parent == null)
+  		return;
+  	
+  	Utils.disposeComposite(genComposite, false);
+  	
+    pieces = new boolean[manager.getNbPieces()];
+
+    this.display = parent.getDisplay();
 
     gFile = new Composite(genComposite, SWT.SHADOW_OUT);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -606,8 +621,6 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     
     genComposite.layout();
     //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
-
-    COConfigurationManager.addParameterListener("Graphics Update", this);
   }
 
   /* (non-Javadoc)
