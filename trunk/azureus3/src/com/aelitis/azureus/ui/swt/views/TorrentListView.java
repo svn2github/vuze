@@ -470,7 +470,7 @@ public class TorrentListView
 			if (bAllowScrolling
 					|| size(true) < (dataArea.getClientArea().height - 8)
 							/ ListRow.ROW_HEIGHT) {
-				addDataSource(dm, false);
+				addDataSource(dm, !bSkipUpdateCount);
 				if (!bAllowScrolling && !bSkipUpdateCount) {
 					regetDownloads();
 				}
