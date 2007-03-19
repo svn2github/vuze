@@ -19,6 +19,7 @@
  */
 package org.gudy.azureus2.core3.logging;
 
+
 /**
  * @author TuxPaper
  */
@@ -42,6 +43,9 @@ public class LogAlert {
 
 	public String text;
 
+	/** A list of events that this entry is related to */
+	public Object[] relatedTo;
+
 	/**
 	 * @param type
 	 * @param text
@@ -53,8 +57,30 @@ public class LogAlert {
 		this.repeatable = repeatable;
 	}
 
+	public LogAlert(Object[] relatedTo, boolean repeatable, int type, String text) {
+		this(repeatable, type, text);
+		this.relatedTo = relatedTo;
+	}
+
+	public LogAlert(Object relatedTo, boolean repeatable, int type, String text) {
+		this(repeatable, type, text);
+		this.relatedTo = new Object[] { relatedTo };
+	}
+
 	public LogAlert(boolean repeatable, String text, Throwable err) {
 		this(repeatable, AT_ERROR, text);
 		this.err = err;
+	}
+
+	/**
+	 * @param downloadManagerImpl
+	 * @param b
+	 * @param string
+	 * @param e
+	 */
+	public LogAlert(Object relatedTo, boolean repeatable,
+			String text, Throwable err) {
+		this(repeatable, text, err);
+		this.relatedTo = new Object[] { relatedTo };
 	}
 }

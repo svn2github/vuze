@@ -134,6 +134,9 @@ public interface UIFunctions
 	 */
 	boolean viewURL(String url, String target, int w, int h, boolean allowResize);
 
+	public UIFunctionsUserPrompter getUserPrompter(String title, String text,
+			String[] buttons, int defaultOption);
+
 	public int promptUser(String title, String text, String[] buttons,
 			int defaultOption, String rememberID, String rememberText,
 			boolean bRememberByDefault, int autoCloseInMS);

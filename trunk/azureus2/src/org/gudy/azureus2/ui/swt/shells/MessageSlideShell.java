@@ -31,6 +31,7 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -41,8 +42,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.*;
 
 /**
  * 
@@ -62,7 +62,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  * @created Mar 7, 2006
  *
  */
-public class MessageSlideShell {
+public class MessageSlideShell
+{
 	private static boolean USE_SWT32_BG_SET = true;
 
 	private static final boolean DEBUG = false;
@@ -100,7 +101,7 @@ public class MessageSlideShell {
 
 	/** Index of first message which the user has not seen (index) - set to -1 if we don't care. :) **/
 	private static int firstUnreadMessage = -1;
-	
+
 	/** Shell for popup */
 	private Shell shell;
 
@@ -122,7 +123,7 @@ public class MessageSlideShell {
 
 	/** paused state of auto-close delay */
 	private boolean bDelayPaused = false;
-	
+
 	/** List of SWT objects needing disposal */
 	private ArrayList disposeList = new ArrayList();
 
@@ -131,7 +132,9 @@ public class MessageSlideShell {
 
 	/** Position this popup is in the history list */
 	private int idxHistory;
-	
+
+	private Image imgPopup;
+
 	/** Open a popup using resource keys for title/text
 	 * 
 	 * @param display Display to create the shell on
@@ -150,6 +153,18 @@ public class MessageSlideShell {
 				MessageText.getString(keyPrefix + ".text", textParams), details);
 	}
 
+	public MessageSlideShell(Display display, int iconID, String keyPrefix,
+			String details, String[] textParams, Object[] relatedObjects) {
+		this(display, iconID, MessageText.getString(keyPrefix + ".title"),
+				MessageText.getString(keyPrefix + ".text", textParams), details,
+				relatedObjects);
+	}
+
+	public MessageSlideShell(Display display, int iconID, String title,
+			String text, String details) {
+		this(display, iconID, title, text, details, null);
+	}
+
 	/**
 	 * Open Mr Slidey
 	 * 
@@ -161,11 +176,12 @@ public class MessageSlideShell {
 	 *                 for disabled Details button.
 	 */
 	public MessageSlideShell(Display display, int iconID, String title,
-			String text, String details) {
+			String text, String details, Object[] relatedObjects) {
 		try {
 			monitor.enter();
 
-			PopupParams popupParams = new PopupParams(iconID, title, text, details);
+			PopupParams popupParams = new PopupParams(iconID, title, text, details,
+					relatedObjects);
 			historyList.add(popupParams);
 			if (currentPopupIndex < 0) {
 				create(display, popupParams, true);
@@ -183,40 +199,49 @@ public class MessageSlideShell {
 			boolean bSlide) {
 		create(display, popupParams, bSlide);
 	}
-	
-	public static void displayLastMessage(final Display display, final boolean last_unread) {
+
+	public static void displayLastMessage(final Display display,
+			final boolean last_unread) {
 		display.asyncExec(new AERunnable() {
 			public void runSupport() {
-				if (historyList.isEmpty()) {return;}
-				if (currentPopupIndex >= 0) {return;} // Already being displayed.
+				if (historyList.isEmpty()) {
+					return;
+				}
+				if (currentPopupIndex >= 0) {
+					return;
+				} // Already being displayed.
 				int msg_index = firstUnreadMessage;
 				if (!last_unread || msg_index == -1) {
-					msg_index = historyList.size()-1;
+					msg_index = historyList.size() - 1;
 				}
-				new MessageSlideShell(display, (PopupParams)historyList.get(msg_index), true);
+				new MessageSlideShell(display,
+						(PopupParams) historyList.get(msg_index), true);
 			}
 		});
 	}
-	
+
 	/**
 	 * Adds this message to the slide shell without forcing it to be displayed.
+	 * @param relatedTo 
 	 */
-	public static void recordMessage(int iconID, String title, String text, String details) {
+	public static void recordMessage(int iconID, String title, String text,
+			String details, Object[] relatedTo) {
 		try {
 			monitor.enter();
-			historyList.add(new PopupParams(iconID, title, text, details));
-			if (firstUnreadMessage == -1) {firstUnreadMessage = historyList.size() - 1;}
-		}
-		finally {
+			historyList.add(new PopupParams(iconID, title, text, details, relatedTo));
+			if (firstUnreadMessage == -1) {
+				firstUnreadMessage = historyList.size() - 1;
+			}
+		} finally {
 			monitor.exit();
-		}		
+		}
 	}
 
 	private void create(final Display display, final PopupParams popupParams,
 			boolean bSlide) {
-		
+
 		firstUnreadMessage = -1; // Reset the last read message counter.
-		
+
 		GridData gridData;
 		int shellWidth;
 		int style = SWT.ON_TOP;
@@ -258,12 +283,13 @@ public class MessageSlideShell {
 
 		// Load Images
 		// Disable BG Image on OSX
-		Image imgPopup;
-		if (Constants.isOSX && (SWT.getVersion() < 3221 || !USE_SWT32_BG_SET)) {
-			USE_SWT32_BG_SET = false;
-			imgPopup = null;
-		} else {
-			imgPopup = ImageRepository.getImage("popup");
+		if (imgPopup == null) {
+			if (Constants.isOSX && (SWT.getVersion() < 3221 || !USE_SWT32_BG_SET)) {
+				USE_SWT32_BG_SET = false;
+				imgPopup = null;
+			} else {
+				imgPopup = ImageRepository.getImage("popup");
+			}
 		}
 		Rectangle imgPopupBounds;
 		if (imgPopup != null) {
@@ -291,7 +317,7 @@ public class MessageSlideShell {
 				imgIcon = null;
 				break;
 		}
-		
+
 		// if there's a link, or the info is non-information,
 		// disable timer and mouse watching
 		bDelayPaused = UrlUtils.parseHTMLforURL(popupParams.text) != null
@@ -333,6 +359,16 @@ public class MessageSlideShell {
 		}
 		Utils.setShellIcon(shell);
 		shell.setText(popupParams.title);
+
+		UISkinnableSWTListener[] listeners = UISkinnableManagerSWT.getInstance().getSkinnableListeners(
+				MessageSlideShell.class.toString());
+		for (int i = 0; i < listeners.length; i++) {
+			try {
+				listeners[i].skinBeforeComponents(shell, this, popupParams.relatedTo);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
 
 		FormLayout shellLayout = new FormLayout();
 		shell.setLayout(shellLayout);
@@ -455,8 +491,9 @@ public class MessageSlideShell {
 		if (idxHistory > 0) {
 			final Button btnPrev = new Button(cButtons, SWT.PUSH);
 			btnPrev.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-			btnPrev.setText(MessageText.getString("popup.previous", new String[] { ""
-					+ idxHistory }));
+			btnPrev.setText(MessageText.getString("popup.previous", new String[] {
+				"" + idxHistory
+			}));
 			btnPrev.addListener(SWT.MouseUp, new Listener() {
 				public void handleEvent(Event arg0) {
 					disposeShell(shell);
@@ -585,7 +622,7 @@ public class MessageSlideShell {
 
 							e.gc.drawImage(imgTransparent, 0, 0, e.width, e.height, e.x, e.y,
 									e.width, e.height);
-							
+
 							img.dispose();
 							imgTransparent.dispose();
 						} finally {
@@ -602,27 +639,27 @@ public class MessageSlideShell {
 
 		Rectangle bounds = null;
 		try {
-    	UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-    	if (uiFunctions != null) {
+			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			if (uiFunctions != null) {
 				Shell mainShell = uiFunctions.getMainShell();
 				if (mainShell != null) {
 					bounds = mainShell.getMonitor().getClientArea();
 				}
-    	} else {
-    		Shell shell = display.getActiveShell();
+			} else {
+				Shell shell = display.getActiveShell();
 				if (shell != null) {
 					bounds = shell.getMonitor().getClientArea();
 				}
-    	}
-    	if (bounds == null) {
+			}
+			if (bounds == null) {
 				bounds = shell.getMonitor().getClientArea();
-    	}
+			}
 		} catch (Exception e) {
 		}
 		if (bounds == null) {
 			bounds = display.getClientArea();
 		}
-		
+
 		Rectangle endBounds;
 		if (bDisableSliding) {
 			endBounds = new Rectangle(((bounds.x + bounds.width) / 2)
@@ -664,8 +701,7 @@ public class MessageSlideShell {
 
 				if (currentPopupIndex == idxHistory) {
 					if (DEBUG)
-						System.out
-								.println("Clear #" + currentPopupIndex + "/" + idxHistory);
+						System.out.println("Clear #" + currentPopupIndex + "/" + idxHistory);
 					try {
 						monitor.enter();
 						currentPopupIndex = -1;
@@ -688,6 +724,14 @@ public class MessageSlideShell {
 		if (mouseAdapter != null)
 			addMouseTrackListener(shell, mouseAdapter);
 
+		for (int i = 0; i < listeners.length; i++) {
+			try {
+				listeners[i].skinAfterComponents(shell, this, popupParams.relatedTo);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+
 		runPopup(endBounds, idxHistory, bSlide);
 	}
 
@@ -700,8 +744,8 @@ public class MessageSlideShell {
 	private void createLinkLabel(Composite shell, boolean tryLinkIfURLs,
 			PopupParams popupParams) {
 
-		Matcher matcher = Pattern.compile(REGEX_URLHTML,
-				Pattern.CASE_INSENSITIVE).matcher(popupParams.text);
+		Matcher matcher = Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
+				popupParams.text);
 		if (tryLinkIfURLs && matcher.find()) {
 			try {
 				Link linkLabel = new Link(cShell, SWT.WRAP);
@@ -763,8 +807,9 @@ public class MessageSlideShell {
 		if (numAfter <= 0)
 			Messages.setLanguageText(btnNext, "popup.error.hide");
 		else
-			Messages.setLanguageText(btnNext, "popup.next", new String[] { ""
-					+ numAfter });
+			Messages.setLanguageText(btnNext, "popup.next", new String[] {
+				"" + numAfter
+			});
 		cShell.layout(true);
 	}
 
@@ -865,8 +910,7 @@ public class MessageSlideShell {
 		final Display display = shell.getDisplay();
 
 		if (DEBUG)
-			System.out
-					.println("runPopup " + idx + ((bSlide) ? " Slide" : " Instant"));
+			System.out.println("runPopup " + idx + ((bSlide) ? " Slide" : " Instant"));
 
 		AEThread thread = new AEThread("Slidey", true) {
 			private final static int PAUSE = 500;
@@ -887,13 +931,13 @@ public class MessageSlideShell {
 					});
 				}
 
-				int delayLeft = COConfigurationManager
-						.getIntParameter("Message Popup Autoclose in Seconds") * 1000;
+				int delayLeft = COConfigurationManager.getIntParameter("Message Popup Autoclose in Seconds") * 1000;
 				final boolean autohide = (delayLeft != 0);
 
 				long lastDelaySecs = 0;
 				int lastNumPopups = -1;
-				while ((!autohide || bDelayPaused || delayLeft > 0) && !shell.isDisposed()) {
+				while ((!autohide || bDelayPaused || delayLeft > 0)
+						&& !shell.isDisposed()) {
 					int delayPausedOfs = (bDelayPaused ? 1 : 0);
 					final long delaySecs = Math.round(delayLeft / 1000.0)
 							+ delayPausedOfs;
@@ -911,14 +955,18 @@ public class MessageSlideShell {
 								lblCloseIn.setRedraw(false);
 								if (!bDelayPaused && autohide)
 									sText += MessageText.getString("popup.closing.in",
-											new String[] { String.valueOf(delaySecs) });
+											new String[] {
+												String.valueOf(delaySecs)
+											});
 
 								int numPopupsAfterUs = numPopups - idx - 1;
 								boolean bHasMany = numPopupsAfterUs > 0;
 								if (bHasMany) {
 									sText += "\n";
 									sText += MessageText.getString("popup.more.waiting",
-											new String[] { String.valueOf(numPopupsAfterUs) });
+											new String[] {
+												String.valueOf(numPopupsAfterUs)
+											});
 								}
 
 								lblCloseIn.setText(sText);
@@ -995,15 +1043,17 @@ public class MessageSlideShell {
 				display.sleep();
 		}
 	}
-	
+
 	public static String stripOutHyperlinks(String message) {
-		return Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(message).replaceAll("$2");
+		return Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
+				message).replaceAll("$2");
 	}
 
 	/**
 	 * XXX This could/should be its own class 
 	 */
-	private class SlideShell {
+	private class SlideShell
+	{
 		private int STEP = 8;
 
 		private int PAUSE = 30;
@@ -1185,7 +1235,8 @@ public class MessageSlideShell {
 		}
 	}
 
-	private static class PopupParams {
+	private static class PopupParams
+	{
 		int iconID;
 
 		String title;
@@ -1195,6 +1246,8 @@ public class MessageSlideShell {
 		String details;
 
 		long addedOn;
+
+		Object[] relatedTo;
 
 		/**
 		 * @param iconID
@@ -1209,6 +1262,19 @@ public class MessageSlideShell {
 			this.details = details;
 			addedOn = System.currentTimeMillis();
 		}
+
+		/**
+		 * @param iconID2
+		 * @param title2
+		 * @param text2
+		 * @param details2
+		 * @param relatedTo
+		 */
+		public PopupParams(int iconID, String title, String text, String details,
+				Object[] relatedTo) {
+			this(iconID, title, text, details);
+			this.relatedTo = relatedTo;
+		}
 	}
 
 	/**
@@ -1218,7 +1284,7 @@ public class MessageSlideShell {
 	 */
 	public static void main(String[] args) {
 		final Display display = Display.getDefault();
-		
+
 		Shell shell = new Shell(display, SWT.DIALOG_TRIM);
 		shell.setLayout(new FillLayout());
 		Button btn = new Button(shell, SWT.PUSH);
@@ -1228,14 +1294,14 @@ public class MessageSlideShell {
 			}
 		});
 		shell.open();
-		
+
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
 		}
 	}
-	
+
 	public static void test(Display display) {
 
 		ImageRepository.loadImages(display);
@@ -1282,5 +1348,19 @@ public class MessageSlideShell {
 				(String) null);
 
 		MessageSlideShell.waitUntilClosed();
+	}
+
+	/**
+	 * @return the imgPopup
+	 */
+	public Image getImgPopup() {
+		return imgPopup;
+	}
+
+	/**
+	 * @param imgPopup the imgPopup to set
+	 */
+	public void setImgPopup(Image imgPopup) {
+		this.imgPopup = imgPopup;
 	}
 }

@@ -1,5 +1,6 @@
 package org.gudy.azureus2.ui.swt.shells;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -8,21 +9,28 @@ import java.util.regex.Pattern;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+
+import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
+import com.aelitis.azureus.ui.swt.UISkinnableManagerSWT;
+import com.aelitis.azureus.ui.swt.UISkinnableSWTListener;
 
 /**
  * A messagebox that allows you config the button
  * 
  */
 public class MessageBoxShell
+	implements UIFunctionsUserPrompter
 {
 	private final static String REGEX_URLHTML = "<A HREF=\"(.+?)\">(.+?)</A>";
 
@@ -34,6 +42,8 @@ public class MessageBoxShell
 
 	private static int numOpen = 0;
 
+	private static ArrayList skinnableListeners = new ArrayList();
+
 	private Shell parent;
 
 	private final String title;
@@ -44,17 +54,31 @@ public class MessageBoxShell
 
 	private final int defaultOption;
 
-	private final String rememberID;
+	private String rememberID;
 
-	private final String rememberText;
+	private String rememberText;
 
-	private final boolean rememberByDefault;
+	private boolean rememberByDefault;
 
-	private final int autoCloseInMS;
+	private int autoCloseInMS;
 
 	private String html;
 
 	private String url;
+
+	private boolean autoClosed = false;
+
+	private Object[] relatedObjects;
+
+	private Image imgLeft;
+
+	public static void addSkinnableListener(UISkinnableSWTListener l) {
+		skinnableListeners.add(l);
+	}
+
+	public static void removeSkinnableListener(UISkinnableSWTListener l) {
+		skinnableListeners.remove(l);
+	}
 
 	public static int open(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption) {
@@ -173,7 +197,8 @@ public class MessageBoxShell
 	}
 
 	private int _open() {
-		final int[] result = { -1
+		final int[] result = {
+			-1
 		};
 
 		if (parent == null || parent.isDisposed()) {
@@ -193,12 +218,28 @@ public class MessageBoxShell
 		shell.setLayout(gridLayout);
 		Utils.setShellIcon(shell);
 
+		UISkinnableSWTListener[] listeners = UISkinnableManagerSWT.getInstance().getSkinnableListeners(
+				MessageBoxShell.class.toString());
+		for (int i = 0; i < listeners.length; i++) {
+			listeners[i].skinBeforeComponents(shell, this, relatedObjects);
+		}
+
 		FormData formData;
 		GridData gridData;
+		
+		Composite textComposite = shell;
+		if (imgLeft != null) {
+			textComposite = new Composite(shell, SWT.NONE);
+			textComposite.setLayout(new GridLayout(2, false));
+			textComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+			Label lblImage = new Label(textComposite, SWT.NONE);
+			lblImage.setImage(imgLeft);
+			lblImage.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
+		}
 
 		Control linkControl;
 		try {
-			Link linkLabel = new Link(shell, SWT.WRAP);
+			Link linkLabel = new Link(textComposite, SWT.WRAP);
 
 			linkControl = linkLabel;
 
@@ -226,7 +267,7 @@ public class MessageBoxShell
 			linkLabel.setToolTipText(tooltip);
 		} catch (Throwable t) {
 			// 3.0
-			Label linkLabel = new Label(shell, SWT.WRAP);
+			Label linkLabel = new Label(textComposite, SWT.WRAP);
 			linkControl = linkLabel;
 
 			String urlText = Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
@@ -239,42 +280,42 @@ public class MessageBoxShell
 		if ((html != null && html.length() > 0)
 				|| (url != null && url.length() > 0)) {
 			try {
-  			final Browser browser = new Browser(shell, SWT.NONE);
-  			if (url != null && url.length() > 0) {
-  				browser.setUrl(url);
-  			} else {
-  				browser.setText(html);
-  			}
-  			GridData gd = new GridData(GridData.FILL_BOTH);
-  			gd.heightHint = 200;
-  			browser.setLayoutData(gd);
-  			browser.addProgressListener(new ProgressListener() {
-  				public void completed(ProgressEvent event) {
-  					browser.addLocationListener(new LocationListener() {
-  						public void changing(LocationEvent event) {
-  							event.doit = false;
-  						}
-  
-  						public void changed(LocationEvent event) {
-  						}
-  					});
-  					browser.addOpenWindowListener(new OpenWindowListener() {
-  						public void open(WindowEvent event) {
-  						}
-  					});
-  				}
-  
-  				public void changed(ProgressEvent event) {
-  				}
-  			});
+				final Browser browser = new Browser(shell, SWT.NONE);
+				if (url != null && url.length() > 0) {
+					browser.setUrl(url);
+				} else {
+					browser.setText(html);
+				}
+				GridData gd = new GridData(GridData.FILL_BOTH);
+				gd.heightHint = 200;
+				browser.setLayoutData(gd);
+				browser.addProgressListener(new ProgressListener() {
+					public void completed(ProgressEvent event) {
+						browser.addLocationListener(new LocationListener() {
+							public void changing(LocationEvent event) {
+								event.doit = false;
+							}
+
+							public void changed(LocationEvent event) {
+							}
+						});
+						browser.addOpenWindowListener(new OpenWindowListener() {
+							public void open(WindowEvent event) {
+							}
+						});
+					}
+
+					public void changed(ProgressEvent event) {
+					}
+				});
 			} catch (Exception e) {
 				Debug.out(e);
 				if (html != null) {
 					Text text = new Text(shell, SWT.BORDER | SWT.READ_ONLY | SWT.WRAP);
 					text.setText(html);
-	  			GridData gd = new GridData(GridData.FILL_BOTH);
-	  			gd.heightHint = 200;
-	  			text.setLayoutData(gd);
+					GridData gd = new GridData(GridData.FILL_BOTH);
+					gd.heightHint = 200;
+					text.setLayoutData(gd);
 				}
 			}
 
@@ -308,6 +349,7 @@ public class MessageBoxShell
 								long endOn = ((Long) lblCloseIn.getData("CloseOn")).longValue();
 								if (SystemTime.getCurrentTime() > endOn) {
 									result[0] = defaultOption;
+									autoClosed = true;
 									shell.dispose();
 								} else {
 									String sText = "";
@@ -318,7 +360,8 @@ public class MessageBoxShell
 									if (!bDelayPaused) {
 										long delaySecs = (endOn - SystemTime.getCurrentTime()) / 1000;
 										sText = MessageText.getString("popup.closing.in",
-												new String[] { String.valueOf(delaySecs)
+												new String[] {
+													String.valueOf(delaySecs)
 												});
 									}
 
@@ -474,6 +517,11 @@ public class MessageBoxShell
 		}
 
 		Utils.centerWindowRelativeTo(shell, parent);
+
+		for (int i = 0; i < listeners.length; i++) {
+			listeners[i].skinAfterComponents(shell, this, relatedObjects);
+		}
+
 		shell.open();
 
 		while (!shell.isDisposed()) {
@@ -507,6 +555,86 @@ public class MessageBoxShell
 		}
 	}
 
+	public String getHtml() {
+		return html;
+	}
+
+	public void setHtml(String html) {
+		this.html = html;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	/**
+	 * @return the rememberID
+	 */
+	public String getRememberID() {
+		return rememberID;
+	}
+
+	/**
+	 * @param rememberID the rememberID to set
+	 */
+	public void setRememberID(String rememberID, boolean rememberByDefault) {
+		this.rememberID = rememberID;
+		this.rememberByDefault = rememberByDefault;
+	}
+
+	/**
+	 * @return the rememberText
+	 */
+	public String getRememberText() {
+		return rememberText;
+	}
+
+	/**
+	 * @param rememberText the rememberText to set
+	 */
+	public void setRememberText(String rememberText) {
+		this.rememberText = rememberText;
+	}
+
+	/**
+	 * @return the autoCloseInMS
+	 */
+	public int getAutoCloseInMS() {
+		return autoCloseInMS;
+	}
+
+	/**
+	 * @param autoCloseInMS the autoCloseInMS to set
+	 */
+	public void setAutoCloseInMS(int autoCloseInMS) {
+		this.autoCloseInMS = autoCloseInMS;
+	}
+
+	/**
+	 * @return the autoClosed
+	 */
+	public boolean isAutoClosed() {
+		return autoClosed;
+	}
+	
+	// @see com.aelitis.azureus.ui.UIFunctionsUserPrompter#setRelatedObject(java.lang.Object)
+	public void setRelatedObject(Object relatedObject) {
+		this.relatedObjects = new Object[] { relatedObject };
+	}
+
+	// @see com.aelitis.azureus.ui.UIFunctionsUserPrompter#setRelatedObjects(java.lang.Object[])
+	public void setRelatedObjects(Object[] relatedObjects) {
+		this.relatedObjects = relatedObjects;
+	}
+	
+	public Object[] getRelatedObjects() {
+		return relatedObjects;
+	}
+	
+	public void setLeftImage(Image imgLeft) {
+		this.imgLeft = imgLeft;
+	}
+
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
 		Shell shell = new Shell(display, SWT.SHELL_TRIM);
@@ -527,17 +655,5 @@ public class MessageBoxShell
 
 		messageBoxShell.setHtml("<b>Moo</b> goes the cow<p><hr>");
 		System.out.println(messageBoxShell.open());
-	}
-
-	public String getHtml() {
-		return html;
-	}
-
-	public void setHtml(String html) {
-		this.html = html;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
 	}
 }

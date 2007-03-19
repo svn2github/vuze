@@ -349,6 +349,7 @@ public class ManagerView extends AbstractIView implements
 
 						if(!e.isSilent()) {
 							Alerts.showErrorMessageBoxUsingResourceString(
+									new Object[] { manager },
 									"globalmanager.download.remove.veto", e);	
 						}
 						

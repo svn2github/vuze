@@ -1853,9 +1853,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		} catch (Exception e) {
 		}
 
+		DownloadManager existingDownload = null;
 		if (sExistingName == null) {
 			// Check if torrent already exists in gm, and add if not
-			DownloadManager existingDownload = (gm == null) ? null
+			existingDownload = (gm == null) ? null
 					: gm.getDownloadManager(torrent);
 			if (existingDownload != null) {
 				sExistingName = existingDownload.getDisplayName();
@@ -1871,6 +1872,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 		} else {
 
 			final String sfExistingName = sExistingName;
+			final DownloadManager fExistingDownload = existingDownload;
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (shell == null)
@@ -1878,7 +1880,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 								"OpenTorrentWindow.mb.alreadyExists", null, new String[] {
 									sOriginatingLocation,
 									sfExistingName
-								});
+								}, new Object[] { fExistingDownload });
 					else
 						Utils.openMessageBox(shell, SWT.OK,
 								"OpenTorrentWindow.mb.alreadyExists", new String[] {

@@ -75,6 +75,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.swt.views.list.ListView;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
@@ -1165,7 +1166,7 @@ public class MyTorrentsView
 
 							} catch (Throwable e) {
 
-								Logger.log(new LogAlert(LogAlert.REPEATABLE,
+								Logger.log(new LogAlert(dms[i], LogAlert.REPEATABLE,
 										"Download data move operation failed", e));
 							}
 						}
@@ -1206,7 +1207,7 @@ public class MyTorrentsView
 
 							} catch (Throwable e) {
 
-								Logger.log(new LogAlert(LogAlert.REPEATABLE,
+								Logger.log(new LogAlert(dms[i], LogAlert.REPEATABLE,
 										"Download torrent move operation failed", e));
 							}
 						}
@@ -1310,7 +1311,7 @@ public class MyTorrentsView
 								dest.serialiseToBEncodedFile(target);
 	
 							} catch (Throwable e) {
-								Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+								Logger.log(new LogAlert(dm, LogAlert.UNREPEATABLE,
 										"Torrent export failed", e));
 							}
 	
@@ -1648,7 +1649,7 @@ public class MyTorrentsView
                             if (change_save_name) {
                             	try {dm.renameDownload((value_to_set==null) ? dm.getDisplayName() : value_to_set);}
                             	catch (Exception e) {
-                                    Logger.log(new LogAlert(LogAlert.REPEATABLE,
+                                    Logger.log(new LogAlert(dm, LogAlert.REPEATABLE,
                                             "Download data rename operation failed", e));
                             	}
                             }

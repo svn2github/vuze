@@ -585,7 +585,9 @@ implements ShareManagerListener,
     		
     	}catch( Throwable e ){
     		
-    	  Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", e );
+    	  Alerts.showErrorMessageBoxUsingResourceString(
+						new Object[] { shares[i] },
+    	  		"globalmanager.download.remove.veto", e );
     	}
     }
   }

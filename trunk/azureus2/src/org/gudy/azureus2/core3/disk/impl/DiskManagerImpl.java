@@ -912,12 +912,12 @@ DiskManagerImpl
 	                                p.waitFor();
                                 } catch (IOException e) {
                                 	String message = MessageText.getString("xfs.allocation.xfs_io.not.found", new String[] {e.getMessage()});
-                                	Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, message));
+                                	Logger.log(new LogAlert(this, LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, message));
                                 }
                                 if (os.size() > 0) {
                                 	String message = os.toString().trim();
                                 	if (message.endsWith("is not on an XFS filesystem")) {
-                                		Logger.log(new LogEvent(LogIDs.DISK, "XFS file allocation impossible because \"" + data_file.getAbsolutePath()
+                                		Logger.log(new LogEvent(this, LogIDs.DISK, "XFS file allocation impossible because \"" + data_file.getAbsolutePath()
                                 				+ "\" is not on an XFS filesystem. Original error reported by xfs_io : \"" + message + "\""));
                                 	} else {
                                 		throw new IOException(message);
@@ -1279,7 +1279,7 @@ DiskManagerImpl
             {
                 errorMessage    = reason;
 
-                Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
+                Logger.log(new LogAlert(DiskManagerImpl.this, LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
                             errorMessage));
 
 
@@ -1309,7 +1309,7 @@ DiskManagerImpl
             {
                 errorMessage    = reason;
 
-                Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
+                Logger.log(new LogAlert(DiskManagerImpl.this, LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
                         errorMessage));
 
 
@@ -1625,7 +1625,7 @@ DiskManagerImpl
   // Helper function
   private void logMoveFileError(String destination_path, String message) {
       Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, message));
-      Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+      Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
                       LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
                       new String[] {destination_path, message});
   }
@@ -1782,7 +1782,7 @@ DiskManagerImpl
 
                     Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
 
-                    Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+                    Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
                               LogAlert.AT_ERROR, "DiskManager.alert.movefileexists"),
                               new String[] { old_file.getName() });
 
@@ -1815,7 +1815,7 @@ DiskManagerImpl
 
               Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
 
-              Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+              Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
                               LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
                               new String[] { old_files[i].toString(),
                                       Debug.getNestedExceptionMessage(e) });
@@ -1829,7 +1829,7 @@ DiskManagerImpl
 
                   }catch( CacheFileManagerException f ){
 
-                      Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+                      Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
                                       LogAlert.AT_ERROR,
                                       "DiskManager.alert.movefilerecoveryfails"),
                                       new String[] { old_files[j].toString(),
@@ -1881,7 +1881,7 @@ DiskManagerImpl
                         if (Logger.isEnabled())
                             Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
 
-                        Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+                        Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
                                         LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
                                         new String[] { oldTorrentFile.toString(),
                                                 newTorrentFile.toString() });
@@ -2376,7 +2376,7 @@ DiskManagerImpl
 
             if ( !from_file.equals( to_link )){
 
-                Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+                Logger.log(new LogAlert(download_manager, LogAlert.REPEATABLE, LogAlert.AT_ERROR,
                                 "Attempt to link to existing link '" + existing_link.toString()
                                         + "'"));
 
@@ -2397,7 +2397,7 @@ DiskManagerImpl
 
             if ( to_link.equals( info[i].getFile( true ))){
 
-                Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+                Logger.log(new LogAlert(download_manager, LogAlert.REPEATABLE, LogAlert.AT_ERROR,
                                 "Attempt to link to existing file '" + info[i].getFile(true)
                                         + "'"));
 
@@ -2423,7 +2423,7 @@ DiskManagerImpl
 
                 }else{
 
-                    Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+                    Logger.log(new LogAlert(download_manager, LogAlert.REPEATABLE, LogAlert.AT_ERROR,
                             "Failed to delete '" + existing_file.toString() + "'"));
 
                     return( false );
@@ -2435,7 +2435,7 @@ DiskManagerImpl
 
                 if ( !FileUtil.renameFile( existing_file, to_link )){
 
-                    Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+                    Logger.log(new LogAlert(download_manager, LogAlert.REPEATABLE, LogAlert.AT_ERROR,
                         "Failed to rename '" + existing_file.toString() + "'" ));
 
                     return( false );
@@ -2759,7 +2759,7 @@ DiskManagerImpl
                                 Debug.printStackTrace(e);
 
                                 Logger.log(
-                                    new LogAlert(
+                                    new LogAlert(download_manager,
                                             LogAlert.REPEATABLE,
                                             LogAlert.AT_ERROR,
                                             "Failed to change storage type for '" + getFile(true) +"': " + Debug.getNestedExceptionMessage(e)));

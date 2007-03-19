@@ -67,7 +67,7 @@ UserAlerts
 				public void
 				downloadComplete(DownloadManager manager)
 				{
-					activityFinished(true, manager.getDisplayName());
+					activityFinished(true, manager.getDisplayName(), manager);
 				}
 			}; 
 		
@@ -102,7 +102,7 @@ UserAlerts
 					if ( 	old_mode == DiskManagerFileInfo.WRITE &&
 							new_mode == DiskManagerFileInfo.READ ){
 						
-						activityFinished(false, file.getFile(true).getName());
+						activityFinished(false, file.getFile(true).getName(), file.getDiskManager());
 					}
 				
 					/*
@@ -144,7 +144,7 @@ UserAlerts
   						String popup_text = MessageText.getString("popup.download.added",
   								new String[] { manager.getDisplayName()
   						});
-  						Logger.log(new LogAlert(true, LogAlert.AT_INFORMATION, popup_text));
+  						Logger.log(new LogAlert(manager, true, LogAlert.AT_INFORMATION, popup_text));
   					}
 					}
 					
@@ -170,7 +170,7 @@ UserAlerts
     	startup = false;
      }
 
-  	protected void activityFinished(boolean	download, String item_name)
+  	protected void activityFinished(boolean	download, String item_name, Object relatedObject)
   	{
   		final String sound_enabler;
   		final String sound_file;
@@ -207,7 +207,7 @@ UserAlerts
   			
   			if (COConfigurationManager.getBooleanParameter(popup_enabler)) {
   				String popup_text = MessageText.getString(popup_def_text, new String[]{item_name});
-  				Logger.log(new LogAlert(true, LogAlert.AT_INFORMATION, popup_text));
+  				Logger.log(new LogAlert(relatedObject, true, LogAlert.AT_INFORMATION, popup_text));
   			}
 
             if(Constants.isOSX) { // OS X cannot concurrently use SWT and AWT
@@ -266,7 +266,7 @@ UserAlerts
 	    				}finally{
 
 	    					if ( audio_clip == null ){
-	    						Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+	    						Logger.log(new LogAlert(relatedObject, LogAlert.UNREPEATABLE,
 										LogAlert.AT_ERROR, "Failed to load audio file '" + file
 												+ "'"));
 	    					}

@@ -403,7 +403,9 @@ public class MyTrackerView
       		
       	}catch( TRHostTorrentRemovalVetoException f ){
       		
-      		Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
+      		Alerts.showErrorMessageBoxUsingResourceString(
+							new Object[] { torrent },
+      				"globalmanager.download.remove.veto", f );
       	}
       }
     });

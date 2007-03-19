@@ -3038,7 +3038,7 @@ DownloadManagerImpl
 		  }else if ((	!torrent.isSimpleTorrent()) &&
 				  new_save_location.getPath().startsWith( old_file.getPath())){
 		    		
-	            Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+	            Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
 						LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
 						new String[] {old_file.toString(), "Target is sub-directory of files" });
 	            
@@ -3393,7 +3393,8 @@ DownloadManagerImpl
 		    		moved_files = true;
 		    	}
 		    	catch (Exception e) {
-		    		Logger.log(new LogAlert(true, "Problem moving files to removed download directory", e));
+		    		Logger.log(new LogAlert(this, true,
+							"Problem moving files to removed download directory", e));
 		    	}
 		    	
 		    	// This code will silently fail if the torrent file doesn't exist.
@@ -3402,7 +3403,8 @@ DownloadManagerImpl
 			    		this.moveTorrentFile(move_details.transfer_destination);
 			    	}
 			    	catch (Exception e) {
-			    		Logger.log(new LogAlert(true, "Problem moving torrent to removed download directory", e));
+			    		Logger.log(new LogAlert(this, true, 
+			    				"Problem moving torrent to removed download directory", e));
 			    	}
 		    	}
 			}finally{

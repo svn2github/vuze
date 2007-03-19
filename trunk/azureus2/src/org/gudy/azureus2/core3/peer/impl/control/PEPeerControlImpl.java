@@ -2372,7 +2372,9 @@ PEPeerControlImpl
 					
 					Debug.out(getDisplayName() + "Piece #" +pieceNumber +" failed recheck while seeding. Re-downloading...");
 
-                   	Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR, "Download '" + getDisplayName() + "': piece " + pieceNumber + " has been corrupted, re-downloading" ));
+					Logger.log(new LogAlert(this, LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+							"Download '" + getDisplayName() + "': piece " + pieceNumber
+									+ " has been corrupted, re-downloading"));
                     
 					if ( !restart_initiated ){
 						

@@ -2135,8 +2135,8 @@ TRTrackerBTAnnouncerImpl
 								}
 								
 								if ( log_it ){
-		 							Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-											LogAlert.AT_WARNING,
+		 							Logger.logTextResource(new LogAlert(torrent, 
+		 									LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
 											"TrackerClient.announce.warningmessage"), new String[] {
 											announce_data_provider.getName(), warning_message });
 		 						}

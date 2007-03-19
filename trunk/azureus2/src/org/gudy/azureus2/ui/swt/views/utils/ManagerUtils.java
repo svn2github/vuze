@@ -332,6 +332,7 @@ public class ManagerUtils {
 					} catch (GlobalManagerDownloadRemovalVetoException f) {
 						if (!f.isSilent()) {
 							Alerts.showErrorMessageBoxUsingResourceString(
+									new Object[] { dm },
 									"globalmanager.download.remove.veto", f);
 						}
 					} catch (Exception ex) {
