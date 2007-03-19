@@ -25,10 +25,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -357,7 +355,7 @@ public class TorrentListViewsUtils
 				sFileType = program.getName();
 			}
 
-			int i = MessageBoxShell.open(functionsSWT.getMainShell(),
+			MessageBoxShell mb = new MessageBoxShell(functionsSWT.getMainShell(),
 					MessageText.getString(sPrefix + "title"), MessageText.getString(
 							sTextID, new String[] {
 								dm.getDisplayName(),
@@ -367,6 +365,8 @@ public class TorrentListViewsUtils
 						MessageText.getString(sPrefix + "button.run"),
 						MessageText.getString(sPrefix + "button.cancel")
 					}, 1);
+			mb.setRelatedObject(dm);
+			int i = mb.open();
 			if (i != 0) {
 				return;
 			}
@@ -402,7 +402,7 @@ public class TorrentListViewsUtils
 		ManagerUtils.start(dm);
 
 		String sPrefix = "mb.PlayFileNotFound.";
-		int i = MessageBoxShell.open(functionsSWT.getMainShell(),
+		MessageBoxShell mb = new MessageBoxShell(functionsSWT.getMainShell(),
 				MessageText.getString(sPrefix + "title"), MessageText.getString(sPrefix
 						+ "text", new String[] {
 					dm.getDisplayName(),
@@ -411,6 +411,8 @@ public class TorrentListViewsUtils
 					MessageText.getString(sPrefix + "button.redownload"),
 					MessageText.getString("Button.cancel"),
 				}, 2);
+		mb.setRelatedObject(dm);
+		int i = mb.open();
 
 		if (i == 0) {
 			ManagerUtils.remove(dm, functionsSWT.getMainShell(), true, false);
@@ -635,10 +637,13 @@ public class TorrentListViewsUtils
 				dm.getDisplayName()
 			});
 
-			int result = MessageBoxShell.open(shell, title, text, new String[] {
+			MessageBoxShell mb = new MessageBoxShell(shell, title, text, new String[] {
 				MessageText.getString("stopSeeding.delete"),
 				MessageText.getString("stopSeeding.cancel")
 			}, 1);
+			mb.setRelatedObject(dm);
+
+			int result = mb.open();
 			if (result == 0) {
 				// overide parameters.. never delete published content data!
 				ManagerUtils.remove(dm, shell, false, false);
@@ -651,10 +656,13 @@ public class TorrentListViewsUtils
 				dm.getDisplayName()
 			});
 
-			int result = MessageBoxShell.open(shell, title, text, new String[] {
+			MessageBoxShell mb = new MessageBoxShell(shell, title, text, new String[] {
 				MessageText.getString(prefix + "button.delete"),
 				MessageText.getString(prefix + "button.cancel")
 			}, 1);
+			mb.setRelatedObject(dm);
+
+			int result = mb.open();
 			if (result == 0) {
 				// overide parameters.. never delete published content data!
 				ManagerUtils.remove(dm, shell, bDeleteTorrent, bDeleteData);
@@ -666,16 +674,21 @@ public class TorrentListViewsUtils
 
 			if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
 
-				MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES
-						| SWT.NO);
-
-				mb.setText(MessageText.getString("deletedata.title"));
-
-				mb.setMessage(MessageText.getString("deletetorrent.message1")
+				String prefix = "v3.deletePurchased.";
+				String title = MessageText.getString("deletedata.title");
+				String text = MessageText.getString("deletetorrent.message1")
 						+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
-						+ MessageText.getString("deletetorrent.message2"));
+						+ MessageText.getString("deletetorrent.message2");
+				
+				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+						new String[] {
+							MessageText.getString(prefix + "button.delete"),
+							MessageText.getString(prefix + "button.cancel")
+						}, 0);
+				mb.setRelatedObject(dm);
+				int result = mb.open();
 
-				if (mb.open() == SWT.NO) {
+				if (result != 0) {
 					return;
 				}
 			}
@@ -686,21 +699,24 @@ public class TorrentListViewsUtils
 			if (confirmDataDelete && bDeleteData) {
 				String path = dm.getSaveLocation().toString();
 
-				MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES
-						| SWT.NO);
-
-				mb.setText(MessageText.getString("deletedata.title"));
-
-				mb.setMessage(MessageText.getString("deletedata.message1")
+				String prefix = "v3.deletePurchased.";
+				String title = MessageText.getString("deletedata.title");
+				String text = MessageText.getString("deletedata.message1")
 						+ dm.getDisplayName() + " :\n" + path
-						+ MessageText.getString("deletedata.message2"));
-
+						+ MessageText.getString("deletedata.message2");
+				
+				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+						new String[] {
+							MessageText.getString(prefix + "button.delete"),
+							MessageText.getString(prefix + "button.cancel")
+						}, 0);
+				mb.setRelatedObject(dm);
 				choice = mb.open();
 			} else {
-				choice = SWT.YES;
+				choice = 0;
 			}
 
-			if (choice == SWT.YES) {
+			if (choice == 0) {
 				try {
 					dm.getGlobalManager().canDownloadManagerBeRemoved(dm);
 					view.removeDataSource(dm, true);
@@ -714,6 +730,7 @@ public class TorrentListViewsUtils
 							} catch (GlobalManagerDownloadRemovalVetoException f) {
 								if (!f.isSilent()) {
 									Alerts.showErrorMessageBoxUsingResourceString(
+											new Object[] { dm },
 											"globalmanager.download.remove.veto", f);
 								}
 								view.addDataSource(dm, true);
@@ -726,6 +743,7 @@ public class TorrentListViewsUtils
 				} catch (GlobalManagerDownloadRemovalVetoException f) {
 					if (!f.isSilent()) {
 						Alerts.showErrorMessageBoxUsingResourceString(
+								new Object[] { dm },
 								"globalmanager.download.remove.veto", f);
 					}
 				}

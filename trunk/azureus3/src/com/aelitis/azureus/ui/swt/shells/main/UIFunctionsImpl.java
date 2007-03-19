@@ -40,6 +40,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
+import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
@@ -661,5 +662,14 @@ public class UIFunctionsImpl
 		return MessageBoxShell.open(getMainShell(), title, text, buttons,
 				defaultOption, rememberID, rememberText, rememberByDefault,
 				autoCloseInMS);
+	}
+
+	// @see com.aelitis.azureus.ui.UIFunctions#getUserPrompter(java.lang.String, java.lang.String, java.lang.String[], int)
+	public UIFunctionsUserPrompter getUserPrompter(String title, String text,
+			String[] buttons, int defaultOption) {
+
+		MessageBoxShell mb = new MessageBoxShell(getMainShell(), title, text,
+				buttons, defaultOption);
+		return mb;
 	}
 }

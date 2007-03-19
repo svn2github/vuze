@@ -19,6 +19,7 @@
  */
 package com.aelitis.azureus.ui.swt.shells.main;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -26,7 +27,7 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
@@ -37,9 +38,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
@@ -51,6 +50,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SplashWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import org.json.JSONObject;
 
@@ -65,8 +65,7 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.Initializer;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
@@ -448,7 +447,7 @@ public class MainWindow
 					if (!name.equals("AZMSG")) {
 						return false;
 					}
-					
+
 					ClientMessageContext context = PlatformMessenger.getClientMessageContext();
 					if (context == null) {
 						return false;
@@ -708,6 +707,9 @@ public class MainWindow
 							e.printStackTrace();
 						}
 					}
+				} else if (eventType == EVENT_SELECT) {
+					//System.out.println("select " + skinObject);
+				} else {
 				}
 				return null;
 			}
@@ -716,6 +718,159 @@ public class MainWindow
 		for (Iterator iterator = views.keySet().iterator(); iterator.hasNext();) {
 			String viewID = (String) iterator.next();
 			skin.addListener(viewID, l);
+		}
+
+		UISkinnableManagerSWT skinnableManagerSWT = UISkinnableManagerSWT.getInstance();
+		skinnableManagerSWT.addSkinnableListener(MessageBoxShell.class.toString(),
+				new UISkinnableSWTListener() {
+					public void skinBeforeComponents(Composite composite,
+							Object skinnableObject, Object[] relatedObjects) {
+						TOTorrent torrent = null;
+						DownloadManager dm = (DownloadManager) LogRelationUtils.queryForClass(
+								relatedObjects, DownloadManager.class);
+						if (dm != null) {
+							torrent = dm.getTorrent();
+						} else {
+							torrent = (TOTorrent) LogRelationUtils.queryForClass(
+								relatedObjects, TOTorrent.class);
+						}
+
+						if (torrent != null) {
+							byte[] contentThumbnail = PlatformTorrentUtils.getContentThumbnail(torrent);
+							if (contentThumbnail != null) {
+								try {
+									ByteArrayInputStream bis = new ByteArrayInputStream(
+											contentThumbnail);
+									final Image img = new Image(Display.getDefault(), bis);
+
+									if (img != null) {
+
+										if (skinnableObject instanceof MessageBoxShell) {
+											((MessageBoxShell) skinnableObject).setLeftImage(img);
+										}
+
+										composite.addDisposeListener(new DisposeListener() {
+											public void widgetDisposed(DisposeEvent e) {
+												if (img != null && !img.isDisposed()) {
+													img.dispose();
+												}
+											}
+										});
+									}
+								} catch (Exception e) {
+
+								}
+							}
+						}
+					}
+
+					public void skinAfterComponents(Composite composite,
+							Object skinnableObject, Object[] relatedObjects) {
+						Color bg = skin.getSkinProperties().getColor("color.mainshell");
+						bg = null;
+						if (bg != null) {
+							composite.setBackground(bg);
+						}
+						Color fg = skin.getSkinProperties().getColor("color.section.header");
+						fg = null;
+						if (fg != null) {
+							setChildrenFG(composite, fg);
+						}
+						composite.setBackgroundMode(SWT.INHERIT_DEFAULT);
+					}
+				});
+
+		skinnableManagerSWT.addSkinnableListener(
+				MessageSlideShell.class.toString(), new UISkinnableSWTListener() {
+
+					public void skinBeforeComponents(Composite composite,
+							Object skinnableObject, Object[] relatedObjects) {
+						if (skinnableObject instanceof MessageSlideShell) {
+							Color bg = skin.getSkinProperties().getColor("color.mainshell");
+							if (bg != null) {
+
+								final Image image = new Image(composite.getDisplay(), 250, 300);
+
+								GC gc = new GC(image);
+								try {
+									gc.setBackground(bg);
+									gc.fillRectangle(image.getBounds());
+
+									TOTorrent torrent = null;
+									DownloadManager dm = (DownloadManager) LogRelationUtils.queryForClass(
+											relatedObjects, DownloadManager.class);
+									if (dm != null) {
+										torrent = dm.getTorrent();
+									} else {
+										torrent = (TOTorrent) LogRelationUtils.queryForClass(
+												relatedObjects, TOTorrent.class);
+									}
+
+									if (torrent != null) {
+										byte[] contentThumbnail = PlatformTorrentUtils.getContentThumbnail(torrent);
+										if (contentThumbnail != null) {
+											try {
+												ByteArrayInputStream bis = new ByteArrayInputStream(
+														contentThumbnail);
+												final Image img = new Image(Display.getDefault(), bis);
+												Rectangle imgBounds = img.getBounds();
+												double pct = 35.0 / imgBounds.height;
+												int w = (int) (imgBounds.width * pct);
+
+												if (img != null) {
+													gc.drawImage(img, 0, 0, imgBounds.width,
+															imgBounds.height, 0, 265, w, 35);
+													img.dispose();
+												}
+											} catch (Exception e) {
+
+											}
+										}
+									}
+								} finally {
+									gc.dispose();
+								}
+
+								MessageSlideShell shell = (MessageSlideShell) skinnableObject;
+								shell.setImgPopup(image);
+
+								composite.addListener(SWT.Dispose, new Listener() {
+									public void handleEvent(Event event) {
+										if (image != null && !image.isDisposed()) {
+											image.dispose();
+										}
+									}
+								});
+							}
+						}
+					}
+
+					public void skinAfterComponents(Composite composite,
+							Object skinnableObject, Object[] relatedObjects) {
+						Color bg = skin.getSkinProperties().getColor("color.mainshell");
+						if (bg != null) {
+							composite.setBackground(bg);
+						}
+						Color fg = skin.getSkinProperties().getColor("color.section.header");
+						if (fg != null) {
+							setChildrenFG(composite, fg);
+						}
+						composite.setBackgroundMode(SWT.INHERIT_DEFAULT);
+					}
+				});
+	}
+
+	private void setChildrenFG(Control parent, Color color) {
+		parent.setForeground(color);
+		if (parent instanceof Composite) {
+			Control[] children = ((Composite) parent).getChildren();
+			for (int i = 0; i < children.length; i++) {
+				Control control = children[i];
+				if (!(control instanceof Button)
+						|| (((Button) control).getStyle() & SWT.CHECK) > 0) {
+					setChildrenFG(control, color);
+				}
+			}
 		}
 	}
 
@@ -811,7 +966,6 @@ public class MainWindow
 
 		});
 
-
 		text.addListener(SWT.Resize, new Listener() {
 			// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
 			public void handleEvent(Event event) {
@@ -832,7 +986,7 @@ public class MainWindow
 				}
 			}
 		});
-		
+
 		// must be done after layout
 		text.setText(sDefault);
 		text.selectAll();
