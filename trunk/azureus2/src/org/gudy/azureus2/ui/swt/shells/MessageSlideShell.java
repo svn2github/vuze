@@ -415,56 +415,7 @@ public class MessageSlideShell {
 			}
 		});
 
-		try {
-			Link linkLabel = new Link(cShell, SWT.WRAP);
-			gridData = new GridData(GridData.FILL_BOTH);
-			gridData.horizontalSpan = 3;
-			linkLabel.setLayoutData(gridData);
-			linkLabel.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-			linkLabel.setText(popupParams.text);
-			linkLabel.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					if (e.text.endsWith(".torrent"))
-						TorrentOpener.openTorrent(e.text);
-					else
-						Utils.launch(e.text);
-				}
-			});
-
-			Matcher matcher = Pattern
-					.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
-							popupParams.text);
-			String tooltip = null;
-			while (matcher.find()) {
-				if (tooltip == null)
-					tooltip = "";
-				else
-					tooltip += "\n";
-				tooltip += matcher.group(2) + ": " + matcher.group(1);
-			}
-			linkLabel.setToolTipText(tooltip);
-		} catch (Throwable t) {
-			// 3.0
-			Label linkLabel = new Label(cShell, SWT.WRAP);
-			gridData = new GridData(GridData.FILL_BOTH);
-			gridData.horizontalSpan = 3;
-			linkLabel.setLayoutData(gridData);
-
-			//<a href="http://atorre.s">test</A> and <a href="http://atorre.s">test2</A>
-
-			popupParams.text = Pattern.compile(REGEX_URLHTML,
-					Pattern.CASE_INSENSITIVE).matcher(popupParams.text).replaceAll(
-					"$2 ($1)");
-
-			if (sDetails == null) {
-				sDetails = popupParams.text;
-			} else {
-				sDetails = popupParams.text + "\n---------\n" + sDetails;
-			}
-
-			linkLabel.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-			linkLabel.setText(popupParams.text);
-		}
+		createLinkLabel(cShell, true, popupParams);
 
 		lblCloseIn = new Label(cShell, SWT.TRAIL);
 		lblCloseIn.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
@@ -738,6 +689,71 @@ public class MessageSlideShell {
 			addMouseTrackListener(shell, mouseAdapter);
 
 		runPopup(endBounds, idxHistory, bSlide);
+	}
+
+	/**
+	 * @param shell2
+	 * @param b
+	 *
+	 * @since 3.0.0.9
+	 */
+	private void createLinkLabel(Composite shell, boolean tryLinkIfURLs,
+			PopupParams popupParams) {
+
+		Matcher matcher = Pattern.compile(REGEX_URLHTML,
+				Pattern.CASE_INSENSITIVE).matcher(popupParams.text);
+		if (tryLinkIfURLs && matcher.find()) {
+			try {
+				Link linkLabel = new Link(cShell, SWT.WRAP);
+				GridData gridData = new GridData(GridData.FILL_BOTH);
+				gridData.horizontalSpan = 3;
+				linkLabel.setLayoutData(gridData);
+				linkLabel.setForeground(shell.getDisplay().getSystemColor(
+						SWT.COLOR_BLACK));
+				linkLabel.setText(popupParams.text);
+				linkLabel.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						if (e.text.endsWith(".torrent"))
+							TorrentOpener.openTorrent(e.text);
+						else
+							Utils.launch(e.text);
+					}
+				});
+
+				String tooltip = null;
+				matcher.reset();
+				while (matcher.find()) {
+					if (tooltip == null)
+						tooltip = "";
+					else
+						tooltip += "\n";
+					tooltip += matcher.group(2) + ": " + matcher.group(1);
+				}
+				linkLabel.setToolTipText(tooltip);
+			} catch (Throwable t) {
+				createLinkLabel(shell, false, popupParams);
+			}
+		} else {
+			// 3.0
+			Label linkLabel = new Label(cShell, SWT.WRAP);
+			GridData gridData = new GridData(GridData.FILL_BOTH);
+			gridData.horizontalSpan = 3;
+			linkLabel.setLayoutData(gridData);
+
+			//<a href="http://atorre.s">test</A> and <a href="http://atorre.s">test2</A>
+
+			matcher.reset();
+			popupParams.text = matcher.replaceAll("$2 ($1)");
+
+			if (sDetails == null) {
+				sDetails = popupParams.text;
+			} else {
+				sDetails = popupParams.text + "\n---------\n" + sDetails;
+			}
+
+			linkLabel.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_BLACK));
+			linkLabel.setText(popupParams.text);
+		}
 	}
 
 	/**
@@ -1036,8 +1052,6 @@ public class MessageSlideShell {
 								for (int i = 0; i < monitors.length; i++) {
 									Monitor monitor = monitors[i];
 									displayBounds = monitor.getBounds();
-									int x = endBounds.x;
-									int y = endBounds.y;
 									if (displayBounds.contains(endBounds.x, endBounds.y)) {
 										ok = true;
 										break;
