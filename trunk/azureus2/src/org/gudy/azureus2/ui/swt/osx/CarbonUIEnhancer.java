@@ -46,6 +46,8 @@ public class CarbonUIEnhancer {
    private static final int typeAEList = ('l'<<24) + ('i'<<16) + ('s'<<8) + 't';
    private static final int kCoreEventClass = ('a'<<24) + ('e'<<16) + ('v'<<8) + 't';
    private static final int kAEOpenDocuments = ('o'<<24) + ('d'<<16) + ('o'<<8) + 'c';
+   private static final int kAEReopenApplication = ('r'<<24) + ('a'<<16) + ('p'<<8) + 'p';
+   private static final int kAEOpenContents = ('o'<<24) + ('c'<<16) + ('o'<<8) + 'n';
    private static final int kURLEventClass = ('G'<<24) + ('U'<<16) + ('R'<<8) + 'L';
 
    private static final int typeText = ('T'<<24) + ('E'<<16) + ('X'<<8) + 'T';
@@ -104,6 +106,34 @@ public class CarbonUIEnhancer {
 	}
 
    private void registerTorrentFile() {
+ 		int result;
+
+ 		Callback clickDockIconCallback = new Callback(target, "clickDockIcon", 3);
+ 		int clickDocIcon = clickDockIconCallback.getAddress();
+ 		if (clickDocIcon == 0) {
+ 			clickDockIconCallback.dispose();
+ 		} else {
+ 			result = OS.AEInstallEventHandler(kCoreEventClass, kAEReopenApplication,
+ 					clickDocIcon, 0, false);
+
+ 			if (result != OS.noErr) {
+ 				Debug.out("OSX: Could Install ReopenApplication Event Handler. Error: " + result);
+ 			}
+ 		}
+
+ 		Callback openContentsCallback = new Callback(target, "openContents", 3);
+ 		int openContents = openContentsCallback.getAddress();
+ 		if (openContents == 0) {
+ 			openContentsCallback.dispose();
+ 		} else {
+ 			result = OS.AEInstallEventHandler(kCoreEventClass, kAEOpenContents,
+ 					openContents, 0, false);
+
+ 			if (result != OS.noErr) {
+ 				Debug.out("OSX: Could Install OpenContents Event Handler. Error: " + result);
+ 			}
+ 		}
+
 		Callback openDocCallback = new Callback(target, "openDocProc", 3);
 		int openDocProc = openDocCallback.getAddress();
 		if (openDocProc == 0) {
@@ -112,7 +142,6 @@ public class CarbonUIEnhancer {
 			return;
 		}
 
-		int result;
 		result = OS.AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments,
 				openDocProc, 0, false);
 
@@ -123,16 +152,20 @@ public class CarbonUIEnhancer {
 
 		result = OS.AEInstallEventHandler(kURLEventClass, kURLEventClass,
 				openDocProc, 0, false);
-
 		if (result != OS.noErr) {
-			Debug.out("OSX: Could Install OpenDocs Event Handler. Error: " + result);
+			Debug.out("OSX: Could Install URLEventClass Event Handler. Error: " + result);
 			return;
 		}
 
 		int appTarget = OS.GetApplicationEventTarget();
 		Callback appleEventCallback = new Callback(this, "appleEventProc", 3);
 		int appleEventProc = appleEventCallback.getAddress();
-		int[] mask3 = new int[] { OS.kEventClassAppleEvent, OS.kEventAppleEvent, kURLEventClass, };
+		int[] mask3 = new int[] {
+				OS.kEventClassAppleEvent,
+				OS.kEventAppleEvent,
+				kURLEventClass,
+				kAEReopenApplication,
+				kAEOpenContents,};
 		result = OS.InstallEventHandler(appTarget, appleEventProc,
 				mask3.length / 2, mask3, 0, null);
 		if (result != OS.noErr) {
@@ -286,11 +319,11 @@ public class CarbonUIEnhancer {
 
    int appleEventProc(int nextHandler, int theEvent, int userData) {
 		int eventClass = OS.GetEventClass(theEvent);
-//		int eventKind = OS.GetEventKind(theEvent);
+		//int eventKind = OS.GetEventKind(theEvent);
 
-//		System.out.println("appleEventProc " + OSXtoString(eventClass) + ";"
-//				+ OS.GetEventKind(theEvent) + ";" + OSXtoString(theEvent) + ";"
-//				+ OSXtoString(userData));
+		//System.out.println("appleEventProc " + OSXtoString(eventClass) + ";"
+		//		+ OS.GetEventKind(theEvent) + ";" + OSXtoString(theEvent) + ";"
+		//		+ OSXtoString(userData));
 
 		// Process teh odoc event
 		if (eventClass == OS.kEventClassAppleEvent) {
@@ -299,17 +332,21 @@ public class CarbonUIEnhancer {
 					null, 4, null, aeEventID) != OS.noErr) {
 				return OS.eventNotHandledErr;
 			}
-//			System.out.println("EventID = " + OSXtoString(aeEventID[0]));
-			if (aeEventID[0] != kAEOpenDocuments && aeEventID[0] != kURLEventClass) {
+			//System.out.println("EventID = " + OSXtoString(aeEventID[0]));
+			if (aeEventID[0] != kAEOpenDocuments 
+					&& aeEventID[0] != kURLEventClass
+					&& aeEventID[0] != kAEReopenApplication 
+					&& aeEventID[0] != kAEOpenContents) {
 				return OS.eventNotHandledErr;
 			}
 
+			// Handle Event
 			EventRecord eventRecord = new EventRecord();
 			OS.ConvertEventRefToEventRecord(theEvent, eventRecord);
 			OS.AEProcessAppleEvent(eventRecord);
 
-			if (true)
-				return OS.noErr;
+			// Tell Mac we are handling this event
+			return OS.noErr;
 		}
 
 		return OS.eventNotHandledErr;
@@ -444,6 +481,20 @@ public class CarbonUIEnhancer {
 				TorrentOpener.openTorrents(fileNames);
 			}
 
+			return OS.noErr;
+		}
+
+		int clickDockIcon(int nextHandler, int theEvent, int userData) {
+			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+			if (uiFunctions != null) {
+				uiFunctions.bringToFront();
+				return OS.noErr;
+			}
+			return OS.eventNotHandledErr;
+		}
+
+		int openContents(int nextHandler, int theEvent, int userData) {
+			Debug.out("openDocContents");
 			return OS.noErr;
 		}
 
