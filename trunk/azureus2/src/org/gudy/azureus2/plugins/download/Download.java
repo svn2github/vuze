@@ -59,7 +59,7 @@ import org.gudy.azureus2.plugins.peers.PeerManager;
  */
 
 public interface 
-Download 
+Download extends DownloadEventNotifier
 {
   /** waiting to be told to start preparing */  
 	public static final int ST_WAITING     = 1;
@@ -783,120 +783,10 @@ Download
 	requestTrackerScrape(
 		boolean		immediate );
 	
-	/**
-	 * Adds a listener to the download that will be informed of changes in the download's state
-	 * @param l
-   *
-   * @since 2.0.7.0
-	 */
-	public void
-	addListener(
-		DownloadListener	l );
-	
-	/**
-	 * Removes listeners added above
-	 * @param l
-   *
-   * @since 2.0.7.0
-	 */
-	public void
-	removeListener(
-		DownloadListener	l );
 
-	/**
-	 * Adds a listener that will be informed when the latest announce/scrape results change.
-	 * <p>
-	 * listener events will be immediately triggered after listener is added
-	 * 
-	 * @param l
-   *
-   * @since 2.0.7.0
-	 */
-	public void
-	addTrackerListener(
-		DownloadTrackerListener	l );
 	
-	/**
-	 * Adds a listener that will be informed when the latest announce/scrape results change
-	 *  
-	 * @param l Listener to add
-	 * @param immediateTrigger Whether to immediately trigger listener's events
-   *
-   * @since 2.4.0.3
-	 */
-	void addTrackerListener(DownloadTrackerListener l, boolean immediateTrigger);
-  
-	/**
-	 * Removes listeners added above
-	 * @param l
-   *
-   * @since 2.0.7.0
-	 */
-	public void
-	removeTrackerListener(
-		DownloadTrackerListener	l );
-	
-	/**
-	 * Adds a listener that will be informed when a download is about to be removed. This gives
-	 * the implementor the opportunity to veto the removal
-	 * @param l
-   *
-   * @since 2.0.7.0
-	 */
-	public void
-	addDownloadWillBeRemovedListener(
-		DownloadWillBeRemovedListener	l );
-	
-	/**
-	 * Removes the listener added above
-	 * @param l
-   *
-   * @since 2.0.7.0
-	 */
-	public void
-	removeDownloadWillBeRemovedListener(
-		DownloadWillBeRemovedListener	l );
-	
-		/**
-		 * Add a listener that will be invoked when a request is made to activate a torrent
-		 * @param l
-		 * @since 2403
-		 */
-	
-	public void
-	addActivationListener(
-		DownloadActivationListener		l );
-	
-		/**
-		 * Remove a listener that will be invoked when a request is made to activate a torrent
-		 * @param l
-		 * @since 2403
-		 */
-	
-	public void
-	removeActivationListener(
-		DownloadActivationListener		l );
-	
-	/**
-	 * Adds a listener to the download that will be informed of 
-	 * @param l
-   *
-   * @since 2.1.0.0
-	 */
-	public void
-	addPeerListener(
-		DownloadPeerListener	l );
-	
-	/**
-	 * Removes listeners added above
-	 * @param l
-   *
-   * @since 2.1.0.0
-	 */
-	public void
-	removePeerListener(
-		DownloadPeerListener	l );
 
+	
 	/**
 	 * The torrents with the highest rankings will be seeded first.
 	 * 
@@ -911,14 +801,6 @@ Download
 	 */
 	public void setSeedingRank(int rank);
   
-	public void
-	addPropertyListener(
-		DownloadPropertyListener	l );
-	
-	public void
-	removePropertyListener(
-		DownloadPropertyListener	l );
-	
   /**
    * Get the local peerID advertised to the download swarm.
    * @return self peer id
