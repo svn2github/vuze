@@ -46,7 +46,7 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
  */
 public class SWTSkin
 {
-	static boolean DEBUGLAYOUT = false; //System.getProperty("debuglayout") != null;
+	static boolean DEBUGLAYOUT = System.getProperty("debuglayout") != null;
 
 	private Map mapImageLoaders = new HashMap();
 
