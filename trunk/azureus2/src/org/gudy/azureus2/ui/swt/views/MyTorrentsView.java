@@ -75,7 +75,6 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
-import com.aelitis.azureus.ui.swt.views.list.ListView;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
