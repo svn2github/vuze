@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.plugins.utils;
 
+import java.util.Locale;
+
 /**
  * @author parg
  *
@@ -58,4 +60,11 @@ LocaleUtilities
 	public void
 	removeListener(
 		LocaleListener		l );
+
+	/**
+	 * Returns the current locale being used.
+	 * 
+	 * @since 3.0.0.9
+	 */
+	public Locale getCurrentLocale();
 }

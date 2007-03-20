@@ -74,6 +74,10 @@ LocaleUtilitiesImpl
 		return( MessageText.getString( key, params ));
 	}
 	
+	public Locale getCurrentLocale() {
+		return MessageText.getCurrentLocale();
+	}
+	
 	public LocaleDecoder[]
 	getDecoders()
 	{
