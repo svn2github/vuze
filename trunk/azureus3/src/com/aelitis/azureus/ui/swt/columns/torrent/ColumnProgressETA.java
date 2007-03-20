@@ -276,15 +276,16 @@ public class ColumnProgressETA
 			}
 
 			if (sETALine == null) {
-				String sETA = isStopped(cell)
-						? DisplayFormatters.formatDownloadStatus((DownloadManager) cell.getDataSource())
-						: TimeFormatter.format(eta);
-
-				sETALine = MessageText.getString(
-						"MyTorrents.column.ColumnProgressETA.2ndLine", new String[] {
-							sETA,
-							sSpeed
-						});
+				if (isStopped(cell)) {
+					sETALine = DisplayFormatters.formatDownloadStatus((DownloadManager) cell.getDataSource());
+				} else {
+					String sETA = TimeFormatter.format(eta);
+					sETALine = MessageText.getString(
+							"MyTorrents.column.ColumnProgressETA.2ndLine", new String[] {
+								sETA,
+								sSpeed
+							});
+				}
 			}
 
 			if (fontText == null) {
