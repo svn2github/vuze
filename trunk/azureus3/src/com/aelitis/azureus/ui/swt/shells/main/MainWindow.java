@@ -899,6 +899,9 @@ public class MainWindow
 
 				public void updateUI() {
 					statusBar.refreshStatusBar();
+					if (systemTraySWT != null) {
+						systemTraySWT.update();
+					}
 				}
 			});
 		}
