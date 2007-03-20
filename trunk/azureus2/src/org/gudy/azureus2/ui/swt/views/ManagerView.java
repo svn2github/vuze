@@ -28,6 +28,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -36,6 +37,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -78,9 +80,42 @@ public class ManagerView extends AbstractIView implements
   	azureus_core	= _azureus_core;
     this.manager 	= manager;
     
-    dataSourceChanged(manager);
+  }
+  
+  public void dataSourceChanged(Object newDataSource) {
+  	super.dataSourceChanged(newDataSource);
 
-    manager.addListener(this);
+    if (manager != null) {
+    	manager.removeListener(this);
+    }
+
+  	DownloadImpl dataSourcePlugin = null;
+  	if (newDataSource instanceof DownloadImpl) {
+  		dataSourcePlugin = (DownloadImpl) newDataSource;
+  		manager = dataSourcePlugin.getDownload();
+  	} else if (newDataSource instanceof DownloadManager) {
+    	manager = (DownloadManager) newDataSource;
+      try {
+      	dataSourcePlugin = DownloadManagerImpl.getDownloadStatic(manager);
+      } catch (DownloadException e) { /* Ignore */ }
+  	} else {
+  		manager = null;
+  	}
+  	
+    if (manager != null) {
+    	manager.addListener(this);
+    }
+
+		for (int i = 0; i < tabViews.size(); i++) {
+			IView view = (IView) tabViews.get(i);
+			if (view != null) {
+				if (view instanceof UISWTViewImpl) {
+					((UISWTViewImpl) view).dataSourceChanged(dataSourcePlugin);
+				} else {
+					view.dataSourceChanged(newDataSource);
+				}
+			}
+		}
   }
 
   /* (non-Javadoc)
@@ -91,7 +126,9 @@ public class ManagerView extends AbstractIView implements
   	if (uiFunctions != null) {
   		uiFunctions.removeManagerView(manager);
   	}
-    manager.removeListener(this);
+  	if (manager != null) {
+  		manager.removeListener(this);
+  	}
     
     if ( !folder.isDisposed()){
     	
@@ -148,10 +185,10 @@ public class ManagerView extends AbstractIView implements
 		} else {
 			System.out.println("ManagerView::initialize : folder isn't null !!!");
 		}
-
+  	
 	  IView views[] = { new GeneralView(), new PeersView(),
-				new PeersGraphicView(), new PiecesView(), new FilesView(), new TorrentInfoView( manager ),
-				new TorrentOptionsView( manager ), new LoggerView() };
+			new PeersGraphicView(), new PiecesView(), new FilesView(), new TorrentInfoView( manager ),
+			new TorrentOptionsView( manager ), new LoggerView() };
 
 		for (int i = 0; i < views.length; i++)
 			addSection(views[i], manager);
