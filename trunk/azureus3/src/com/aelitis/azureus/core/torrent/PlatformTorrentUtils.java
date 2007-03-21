@@ -48,8 +48,9 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
  */
 public class PlatformTorrentUtils
 {
-	private static final long RETRY_METADATA = 10 * 60 * 1000;
-
+	private static final long RETRY_METADATA 		= 10 * 60 * 1000;
+	private static final long MIN_SPEED_DEFAULT		= 100 * 1024;
+	
 	public static final boolean DEBUG_CACHING = System.getProperty(
 			"az3.debug.caching", "0").equals("1");
 
@@ -529,7 +530,7 @@ public class PlatformTorrentUtils
 	}
 
 	public static long getContentMinimumSpeedBps(TOTorrent torrent) {
-		return getContentMapLong(torrent, TOR_AZ_PROP_MIN_SPEED, 20 * 1024);
+		return getContentMapLong(torrent, TOR_AZ_PROP_MIN_SPEED, MIN_SPEED_DEFAULT );
 	}
 
 	public static void log(String str) {
