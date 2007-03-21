@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.ui.common.table.*;
 
 /**
@@ -82,12 +84,20 @@ public abstract class TableViewImpl
 		if (eventType == TableLifeCycleListener.EVENT_INITIALIZED) {
 			for (int i = 0; i < listeners.length; i++) {
 				TableLifeCycleListener l = (TableLifeCycleListener) listeners[i];
-				l.tableViewInitialized();
+				try {
+					l.tableViewInitialized();
+				} catch (Exception e) {
+					Debug.out(e);
+				}
 			}
 		} else {
 			for (int i = 0; i < listeners.length; i++) {
 				TableLifeCycleListener l = (TableLifeCycleListener) listeners[i];
-				l.tableViewDestroyed();
+				try {
+					l.tableViewDestroyed();
+				} catch (Exception e) {
+					Debug.out(e);
+				}
 			}
 		}
 	}
