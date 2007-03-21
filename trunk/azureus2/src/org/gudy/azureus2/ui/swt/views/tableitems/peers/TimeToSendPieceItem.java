@@ -49,10 +49,20 @@ public class TimeToSendPieceItem
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
     long value = (peer == null) ? 0 : peer.getUploadHint();
+    
+    Comparable sortValue = cell.getSortValue();
+    long oldValue = 0;
+    if (sortValue instanceof Number) {
+    	oldValue = ((Number)sortValue).longValue();
+    }
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;
 
-    cell.setText(TimeFormatter.format(value / 1000));
+    String text = TimeFormatter.format(value / 1000);
+    if (oldValue > 0) {
+    	text += ", " + TimeFormatter.format(oldValue / 1000);
+    }
+    cell.setText(text);
   }
 }
