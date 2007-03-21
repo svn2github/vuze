@@ -40,7 +40,11 @@ public class StartServer extends Thread {
       Logger.getLogger("azureus2").info("StartServer: listening on 127.0.0.1:6880 for passed torrent info");
     } catch (Exception e) {
       state = STATE_FAULTY;
-      Logger.getLogger("azureus2").error("StartServer ERROR: unable to bind to 127.0.0.1:6880 for passed torrent info");
+
+		// DON'T USE LOGGER here as we DON't want to initialise all the logger stuff
+		// and in particular AEDiagnostics config dirty stuff!!!!
+
+      System.out.println( "StartServer ERROR: unable to bind to 127.0.0.1:6880 for passed torrent info");
     }
   }
 
