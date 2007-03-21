@@ -74,11 +74,15 @@ StartServer
         			+ "127.0.0.1:6880 for passed torrent info"));
     
     }catch (Throwable t) {
+    	
+		// DON'T USE LOGGER here as we DON't want to initialise all the logger stuff
+		// and in particular AEDiagnostics config dirty stuff!!!!
+
       state = STATE_FAULTY;
       String reason = t.getMessage() == null ? "<>" : t.getMessage();
-      Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-					"StartServer ERROR: unable" + " to bind to 127.0.0.1:6880 listening"
-							+ " for passed torrent info: " + reason));
+
+      System.out.println( "StartServer ERROR: unable" + " to bind to 127.0.0.1:6880 listening"
+							+ " for passed torrent info: " + reason);
     }
   }
 

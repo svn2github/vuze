@@ -51,7 +51,10 @@ public class StartSocket {
     	PrintWriter pw = null;
     	try {
     		String msg = "StartSocket: passing startup args to already-running Azureus java process listening on [127.0.0.1: 6880]";
-    		Logger.log(new LogEvent(LOGID, msg ));
+    		
+    			// DON'T USE LOGGER here as we DON't want to initialise all the logger stuff
+    			// and in particular AEDiagnostics config dirty stuff!!!!
+    		
     		System.out.println( msg );
        	
     		sck = new Socket("127.0.0.1", 6880);
@@ -67,10 +70,6 @@ public class StartSocket {
     			buffer.append(arg);
     			buffer.append(';');
     		}
-         
-        if (Logger.isEnabled())
-        	Logger.log(new LogEvent(LOGID, "Main::startSocket: sending '"
-        			+ buffer.toString() + "'"));
       	 
     		pw.println(buffer.toString());
     		pw.flush();
