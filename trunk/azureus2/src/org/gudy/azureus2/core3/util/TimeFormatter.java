@@ -48,7 +48,7 @@ public class TimeFormatter {
 	 * with always with 2 digits.  Sections are *d, **h, **m, **s.  Section
 	 * will be skipped if 0.   
 	 * 
-	 * @param time time in ms
+	 * @param time time in seconds
 	 * @return Formatted time string
 	 */
 	
@@ -82,6 +82,12 @@ public class TimeFormatter {
 		return result;
 	}
 
+	/**
+	 * Format time into "[## d] 00:00:00" format
+	 * 
+	 * @param time time in seconds
+	 * @return
+	 */
     public static String formatColon(long time)
     {
       if (time >= Constants.INFINITY_AS_INT) return Constants.INFINITY_STRING;
