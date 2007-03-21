@@ -182,6 +182,13 @@ public class MyTorrentsView
     tv.addMenuFillListener(this);
     tv.addRefreshListener(this, false);
     tv.addCountChangeListener(this);
+
+    // experiment
+		//tv.setEnableTabViews(true);
+		//IView views[] = { new GeneralView(), new PeersView(),
+		//	new PeersGraphicView(), new PiecesView(), new FilesView(),
+		//	new LoggerView() };
+    //tv.setCoreTabViews(views);
 	}
 
   // @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
@@ -220,20 +227,22 @@ public class MyTorrentsView
   public void tableViewDestroyed() {
   	tv.removeKeyListener(this);
   	
-    if (dragSource != null && !dragSource.isDisposed()) {
-    	dragSource.dispose();
-    	dragSource = null;
-    }
-    	
-    if (dropTarget != null && !dropTarget.isDisposed()) {
-    	dropTarget.dispose();
-    	dropTarget = null;
-    }
-    
-    if (fontButton != null && !fontButton.isDisposed()) {
-      fontButton.dispose();
-      fontButton = null;
-    }
+  	Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				try {
+					Utils.disposeSWTObjects(new Object[] {
+						dragSource,
+						dropTarget,
+						fontButton
+					});
+					dragSource = null;
+					dropTarget = null;
+					fontButton = null;
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+		});
     CategoryManager.removeCategoryManagerListener(this);
     globalManager.removeListener(this);
     COConfigurationManager.removeParameterListener("DND Always In Incomplete", this);
@@ -2682,7 +2691,9 @@ public class MyTorrentsView
     	Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 		    	row.refresh(true);
-		    	refreshIconBar();
+		    	if (row.isSelected()) {
+		    		refreshIconBar();
+		    	}
 				}
     	});
     }
