@@ -69,7 +69,10 @@ AzureusCoreStats
 	public static final String ST_NET_WRITE_CONTROL_CON_COUNT			= "net.write.control.con.count";			// Long
 	public static final String ST_NET_WRITE_CONTROL_READY_CON_COUNT		= "net.write.control.ready.con.count";	// Long
 	public static final String ST_NET_WRITE_CONTROL_READY_BYTE_COUNT	= "net.write.control.ready.byte.count";	// Long
-
+	    
+	public static final String ST_NET_READ_CONTROL_LOOP_COUNT			= "net.read.control.loop.count";			// Long
+	public static final String ST_NET_READ_CONTROL_NP_COUNT				= "net.read.control.np.count";			// Long
+	public static final String ST_NET_READ_CONTROL_P_COUNT				= "net.read.control.p.count";			// Long
 	public static final String ST_NET_READ_CONTROL_WAIT_COUNT			= "net.read.control.wait.count";			// Long
 	public static final String ST_NET_READ_CONTROL_ENTITY_COUNT			= "net.read.control.entity.count";		// Long
 	public static final String ST_NET_READ_CONTROL_CON_COUNT			= "net.read.control.con.count";			// Long
@@ -133,6 +136,10 @@ AzureusCoreStats
 		{ ST_NET_WRITE_CONTROL_CON_COUNT,			POINT },
 		{ ST_NET_WRITE_CONTROL_READY_CON_COUNT,		POINT },
 		{ ST_NET_WRITE_CONTROL_READY_BYTE_COUNT,	POINT },
+
+		{ ST_NET_READ_CONTROL_LOOP_COUNT,			CUMULATIVE },
+		{ ST_NET_READ_CONTROL_P_COUNT,				CUMULATIVE },
+		{ ST_NET_READ_CONTROL_NP_COUNT,				CUMULATIVE },
 		{ ST_NET_READ_CONTROL_WAIT_COUNT,			CUMULATIVE },
 		{ ST_NET_READ_CONTROL_ENTITY_COUNT,			POINT },
 		{ ST_NET_READ_CONTROL_CON_COUNT,			POINT },

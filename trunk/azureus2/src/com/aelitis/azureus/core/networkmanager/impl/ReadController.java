@@ -64,8 +64,14 @@ public class ReadController implements AzureusCoreStatsProvider{
   private int next_normal_position = 0;
   private int next_high_position = 0;
     
+  private long	loop_count;
   private long	wait_count;
+  private long	non_progress_count;
+  private long	progress_count;
 
+  private long	entity_check_count;
+  private long	last_entity_check_count;
+  
   private EventWaiter 	read_waiter = new EventWaiter();
 
   
@@ -83,6 +89,9 @@ public class ReadController implements AzureusCoreStatsProvider{
     
     Set	types = new HashSet();
     
+    types.add( AzureusCoreStats.ST_NET_READ_CONTROL_LOOP_COUNT );
+    types.add( AzureusCoreStats.ST_NET_READ_CONTROL_NP_COUNT );
+    types.add( AzureusCoreStats.ST_NET_READ_CONTROL_P_COUNT );
     types.add( AzureusCoreStats.ST_NET_READ_CONTROL_WAIT_COUNT );
     types.add( AzureusCoreStats.ST_NET_READ_CONTROL_ENTITY_COUNT );
     types.add( AzureusCoreStats.ST_NET_READ_CONTROL_CON_COUNT );
@@ -138,6 +147,21 @@ public class ReadController implements AzureusCoreStatsProvider{
 		  Set		types,
 		  Map		values )
   {
+	  if ( types.contains( AzureusCoreStats.ST_NET_READ_CONTROL_LOOP_COUNT )){
+
+		  values.put( AzureusCoreStats.ST_NET_READ_CONTROL_LOOP_COUNT, new Long( loop_count  ));
+	  }
+	  
+	  if ( types.contains( AzureusCoreStats.ST_NET_READ_CONTROL_NP_COUNT )){
+
+		  values.put( AzureusCoreStats.ST_NET_READ_CONTROL_NP_COUNT, new Long( non_progress_count  ));
+	  }
+	  
+	  if ( types.contains( AzureusCoreStats.ST_NET_READ_CONTROL_P_COUNT )){
+
+		  values.put( AzureusCoreStats.ST_NET_READ_CONTROL_P_COUNT, new Long( progress_count  ));
+	  }
+	  
 	  if ( types.contains( AzureusCoreStats.ST_NET_READ_CONTROL_WAIT_COUNT )){
 
 		  values.put( AzureusCoreStats.ST_NET_READ_CONTROL_WAIT_COUNT, new Long( wait_count  ));
@@ -147,7 +171,7 @@ public class ReadController implements AzureusCoreStatsProvider{
 
 		  values.put( AzureusCoreStats.ST_NET_READ_CONTROL_ENTITY_COUNT, new Long( high_priority_entities.size() + normal_priority_entities.size()));
 	  }
-	  
+	 
 	  if ( 	types.contains( AzureusCoreStats.ST_NET_READ_CONTROL_CON_COUNT ) ||
 			types.contains( AzureusCoreStats.ST_NET_READ_CONTROL_READY_CON_COUNT )){
 		   		    
@@ -182,6 +206,7 @@ public class ReadController implements AzureusCoreStatsProvider{
     boolean check_high_first = true;
     
     while( true ) {
+      loop_count++;
       try {
         if( check_high_first ) {
           check_high_first = false;
@@ -211,20 +236,45 @@ public class ReadController implements AzureusCoreStatsProvider{
   }
   
   
-  private boolean doNormalPriorityRead() {
-    RateControlledEntity ready_entity = getNextReadyNormalPriorityEntity();
-    if( ready_entity != null && ready_entity.doProcessing( read_waiter ) ) {
-      return true;
-    }
-    return false;
+  private boolean 
+  doNormalPriorityRead() 
+  {
+	  return( doRead( getNextReadyNormalPriorityEntity()));
   }
   
-  private boolean doHighPriorityRead() {
-    RateControlledEntity ready_entity = getNextReadyHighPriorityEntity();
-    if( ready_entity != null && ready_entity.doProcessing( read_waiter ) ) {
-      return true;
-    }
-    return false;
+  private boolean 
+  doHighPriorityRead() 
+  {
+	  return( doRead( getNextReadyHighPriorityEntity()));
+  }
+  
+  private boolean
+  doRead(
+	  RateControlledEntity	  ready_entity )
+  {  
+	  if ( ready_entity != null ){
+		 
+		  if ( ready_entity.doProcessing( read_waiter ) ) {
+
+			  progress_count++;
+
+			  return( true );
+
+		  }else{
+			  
+			  non_progress_count++;
+
+			  if ( entity_check_count - last_entity_check_count >= normal_priority_entities.size() + high_priority_entities.size() ){
+
+				  last_entity_check_count	= entity_check_count;
+				  
+				  return( false);
+			  }
+
+			  return( true );
+		  }
+	  }
+	  return false;
   }
   
   
@@ -235,6 +285,7 @@ public class ReadController implements AzureusCoreStatsProvider{
     int num_checked = 0;
 
     while( num_checked < size ) {
+      entity_check_count++;
       next_normal_position = next_normal_position >= size ? 0 : next_normal_position;  //make circular
       RateControlledEntity entity = (RateControlledEntity)ref.get( next_normal_position );
       next_normal_position++;
@@ -255,6 +306,7 @@ public class ReadController implements AzureusCoreStatsProvider{
     int num_checked = 0;
 
     while( num_checked < size ) {
+      entity_check_count++;
       next_high_position = next_high_position >= size ? 0 : next_high_position;  //make circular
       RateControlledEntity entity = (RateControlledEntity)ref.get( next_high_position );
       next_high_position++;
