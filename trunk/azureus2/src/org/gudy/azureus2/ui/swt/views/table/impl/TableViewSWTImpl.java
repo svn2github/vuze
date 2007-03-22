@@ -662,7 +662,10 @@ public class TableViewSWTImpl
 		
 		table.addListener(SWT.MeasureItem, new Listener() {
 			public void handleEvent(Event event) {
-				event.height = getRowDefaultHeight();
+				int defaultHeight = getRowDefaultHeight();
+				if (event.height < defaultHeight) {
+					event.height = defaultHeight;
+				}
 			}
 		});
 
