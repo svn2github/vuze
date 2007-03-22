@@ -764,11 +764,6 @@ public class PEPieceImpl
 		
 		dmPiece.setDownloadable();
 	}
-	
-	public boolean isChecking()
-	{
-		return dmPiece.isChecking();
-	}
 
 	public String
 	getString()

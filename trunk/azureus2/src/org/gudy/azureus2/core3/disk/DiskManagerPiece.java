@@ -71,10 +71,8 @@ DiskManagerPiece
 
 	// a piece is Checking if a hash check has been setup and the hash check hasn't finalized the result yet
 	// this flag is asynch, so be careful, and it's also transitory (comapared to most of the others being kinda sticky)
-	public boolean		calcChecking();
+
 	public void			setChecking();
-	public void			setChecking(boolean b);
-    public void         clearChecking();
     public boolean 		isChecking();
     
     public boolean		isNeedsCheck();

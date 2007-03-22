@@ -253,28 +253,9 @@ public class DiskManagerPieceImpl
 		return (statusFlags &PIECE_STATUS_CHECKING) !=0;
 	}
 
-	//TODO: implement
-	public boolean calcChecking()
-	{
-		return isChecking();
-	}
-
-	public void clearChecking()
-	{
-		statusFlags &=~PIECE_STATUS_CHECKING;
-	}
-
 	public void setChecking()
 	{
 		statusFlags |=PIECE_STATUS_CHECKING;
-	}
-
-	public void setChecking(boolean b)
-	{
-		if (b)
-			statusFlags |=PIECE_STATUS_CHECKING;
-		else
-			statusFlags &=~PIECE_STATUS_CHECKING;
 	}
 
     public boolean isNeedsCheck()
