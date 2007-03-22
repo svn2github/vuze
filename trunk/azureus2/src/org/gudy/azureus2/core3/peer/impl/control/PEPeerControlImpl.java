@@ -3694,11 +3694,11 @@ PEPeerControlImpl
 		
 		try{
 			peer_transports_mon.enter();
-			
-			writer.indent();
-		
+
 			writer.println( "Peers: total = " + peer_transports_cow.size()); 
 
+			writer.indent();
+		
 			try{
 				writer.indent();
 				

@@ -831,6 +831,6 @@ PeerForeignDelegate
 	generateEvidence(
 		IndentWriter	writer )
 	{
-		writer.println( "delegate: ip=" + getIp() + ",tcp=" + getTCPListenPort()+",udp="+getUDPListenPort()+",foreign=" + foreign );
+		writer.println( "delegate: ip=" + getIp() + ",tcp=" + getTCPListenPort()+",udp="+getUDPListenPort()+",state=" + foreign.getState()+",foreign=" + foreign );
 	}
 }

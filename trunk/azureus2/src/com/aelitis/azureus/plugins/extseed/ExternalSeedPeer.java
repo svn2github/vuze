@@ -301,10 +301,10 @@ ExternalSeedPeer
 				if ( peer_added ){
 					
 					plugin.log( reader.getName() + " failed - " + reader.getStatus() + ", permanent = " + reader.isPermanentlyUnavailable());
-	
-					removePeer();
-					
+						
 					peer_added	= false;
+
+					removePeer();
 				}
 			}finally{
 				
@@ -605,8 +605,12 @@ ExternalSeedPeer
 		boolean 	closedOnError,
 		boolean 	attemptReconnect )
 	{
+		boolean	peer_was_added;
+		
 		try{
 			connection_mon.enter();
+
+			peer_was_added	= peer_added;
 
 			reader.cancelAllRequests();
 			
@@ -630,6 +634,11 @@ ExternalSeedPeer
 		}finally{
 			
 			connection_mon.exit();
+		}
+		
+		if ( peer_was_added ){
+		
+			manager.removePeer( this );
 		}
 		
 		setState( Peer.DISCONNECTED );
