@@ -82,6 +82,7 @@ Main
 	    }
 	    
   	}catch( AzureusCoreException e ){
+  		
   		Logger.log(new LogEvent(LOGID, "Start failed", e));
   	}
   }
@@ -94,6 +95,8 @@ Main
 	 */
 	public static boolean processParams(String[] args, StartServer startServer) {
     boolean	closedown	= false;
+    
+    boolean another_instance = startServer.getState() != StartServer.STATE_LISTENING;
     
     for (int i=0;i<args.length;i++){
 
@@ -129,7 +132,10 @@ Main
         	
         	args[i] = file.getCanonicalPath();
           	
-        	if (Logger.isEnabled())
+        		// don't use logger if we're not the main instance as we don't want all
+        		// the associated core initialisation + debug file moving...
+        	
+        	if ( (!another_instance) && Logger.isEnabled())
         		Logger.log(new LogEvent(LOGID, "Main::main: args[" + i
         				+ "] exists = " + new File(filename).exists()));
           
@@ -143,9 +149,7 @@ Main
     }
     
     
-    boolean another_instance = startServer.getState() != StartServer.STATE_LISTENING;
-    
-    if( another_instance ) {  //looks like there's already a process listening on 127.0.0.1:6880
+     if( another_instance ) {  //looks like there's already a process listening on 127.0.0.1:6880
     	//attempt to pass args to existing instance
     	StartSocket ss = new StartSocket(args);
     	
@@ -168,7 +172,6 @@ Main
     }
     return false;
 	}
-
 
 
 	public static void main(String args[]) 
