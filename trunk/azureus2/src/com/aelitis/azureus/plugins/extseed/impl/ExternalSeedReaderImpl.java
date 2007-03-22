@@ -278,7 +278,7 @@ ExternalSeedReaderImpl
 							
 							if ( stats.getDownloadAverage() < STALLED_PEER_SPEED ){
 								
-								peer.close( "Replacing slow peer with web-seed", false, false );
+								existing_peer.close( "Replacing slow peer with web-seed", false, false );
 								
 								existing_peer_count--;
 							}
