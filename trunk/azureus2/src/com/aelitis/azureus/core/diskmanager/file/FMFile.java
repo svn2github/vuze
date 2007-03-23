@@ -128,6 +128,9 @@ FMFile
 	
 		throws FMFileManagerException;
 	
+	public boolean
+	isOpen();
+	
 	public void
 	delete()
 	

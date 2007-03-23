@@ -345,6 +345,7 @@ DiskAccessControllerInstance
 		private LinkedList	requests 	= new LinkedList();
 		
 		private Map			request_map	= new HashMap();
+		private long		last_request_map_tidy;
 		
 		private AESemaphore	request_sem		= new AESemaphore("DiskAccessControllerInstance:requestDispatcher:request" );
 		private AESemaphore	schedule_sem	= new AESemaphore("DiskAccessControllerInstance:requestDispatcher:schedule", 1 );
@@ -440,6 +441,31 @@ DiskAccessControllerInstance
 						}
 						
 						m.put( new Long( request.getOffset()), request );
+						
+						long now = SystemTime.getCurrentTime();
+						
+						if ( now < last_request_map_tidy || now - last_request_map_tidy > 30000 ){
+							
+								// check for and discard manky old files from stopped/removed
+								// downloads
+							
+							last_request_map_tidy = now;
+							
+							Iterator	it = request_map.entrySet().iterator();
+							
+							while( it.hasNext()){
+								
+								Map.Entry	entry = (Map.Entry)it.next();
+								
+								if (((HashMap)entry.getValue()).size() == 0 ){
+									
+									if (!((CacheFile)entry.getKey()).isOpen()){
+																				
+										it.remove();
+									}
+								}
+							}
+						}
 					}
 					
 					// System.out.println( "request queue: req = " + requests.size() + ", bytes = " + request_bytes_queued );

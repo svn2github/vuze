@@ -383,6 +383,12 @@ CacheFileWithoutCache
 		}
 	}
 	
+	public boolean
+	isOpen()
+	{
+		return( file.isOpen());
+	}
+	
 	public void
 	delete()
 	

@@ -502,7 +502,7 @@ FMFileImpl
 		file_access.write( raf, buffers, position );
 	}
 	
-	protected boolean
+	public boolean
 	isOpen()
 	{
 		return( raf != null );

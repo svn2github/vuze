@@ -38,6 +38,11 @@ public class
 FormattersImpl
 	implements Formatters
 {
+	public
+	FormattersImpl()
+	{
+	}
+	
 	public String
 	formatByteCountToKiBEtc(
 		long		bytes )

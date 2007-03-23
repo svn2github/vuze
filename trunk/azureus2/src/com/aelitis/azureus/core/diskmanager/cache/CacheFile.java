@@ -174,6 +174,9 @@ CacheFile
 	
 		throws CacheFileManagerException;
 	
+	public boolean
+	isOpen();
+	
 	public void
 	delete()
 
