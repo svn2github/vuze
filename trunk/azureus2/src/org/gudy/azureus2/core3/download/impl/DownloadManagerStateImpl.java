@@ -960,12 +960,12 @@ DownloadManagerStateImpl
 			
 			parameters.put( name, new Long(value));
 			
+			setMapAttribute( AT_PARAMETERS, parameters );
+			
 		}finally{
 			
 			this_mon.exit();
 		}
-		
-		setMapAttribute( AT_PARAMETERS, parameters );
 	}
 	
 	public int
@@ -1925,27 +1925,53 @@ DownloadManagerStateImpl
 		}
 	}
 
-	public boolean hasAttribute(String name) {
-
-		if (attributes == null) {return false;}
-		
-		return attributes.containsKey(name);
+	public boolean 
+	hasAttribute(
+		String name )
+	{
+		try{
+	
+			this_mon.enter();
+			
+			if ( attributes == null) {return false;}
+			
+			return attributes.containsKey(name);
+	
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	// These methods just use long attributes to store data into.
-	public void setIntAttribute(String name, int value) {
+	
+	public void 
+	setIntAttribute(
+		String 	name, 
+		int 	value) 
+	{
 		setLongAttribute(name, value);
 	}
 	
-	public int getIntAttribute(String name) {
+	public int 
+	getIntAttribute(
+		String name )
+	{
 		return (int)getLongAttribute(name);
 	}
 	
-	public void setBooleanAttribute(String name, boolean value) {
+	public void 
+	setBooleanAttribute(
+		String 		name, 
+		boolean 	value ) 
+	{
 		setLongAttribute(name, (value ? 1 : 0));
 	}
 	
-	public boolean getBooleanAttribute(String name) {
+	public boolean 
+	getBooleanAttribute(
+		String name ) 
+	{
 		return getLongAttribute(name) != 0;
 	}
 
