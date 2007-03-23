@@ -98,6 +98,9 @@ Main
     
     boolean another_instance = startServer.getState() != StartServer.STATE_LISTENING;
     
+    	// WATCH OUT FOR LOGGING HERE - we don't want to use Logger if this is a secondary instance as
+    	// it initialised TOO MUCH of AZ core
+    
     for (int i=0;i<args.length;i++){
 
     	String	arg = args[i];
@@ -114,11 +117,16 @@ Main
 	    	
         String filename = arg;
           
-          if( filename.toUpperCase().startsWith( "HTTP:" ) || 
+          if( 	filename.toUpperCase().startsWith( "HTTP:" ) || 
           		filename.toUpperCase().startsWith( "HTTPS:" ) || 
           		filename.toUpperCase().startsWith( "MAGNET:" ) ) {
+        	  
+        	  if ( !another_instance ){
+        		  
         		Logger.log(new LogEvent(LOGID, "Main::main: args[" + i
         				+ "] handling as a URI: " + filename));
+        	  }
+        	  
             continue;  //URIs cannot be checked as a .torrent file
           }            
         
@@ -127,7 +135,7 @@ Main
         	
         	if ( !file.exists()){
         		
-        		throw( new Exception("File not found" ));
+        		throw( new Exception("File '" + file + "' not found" ));
         	}
         	
         	args[i] = file.getCanonicalPath();
@@ -135,17 +143,25 @@ Main
         		// don't use logger if we're not the main instance as we don't want all
         		// the associated core initialisation + debug file moving...
         	
-        	if ( (!another_instance) && Logger.isEnabled())
+        	if ( (!another_instance) && Logger.isEnabled()){
+        		
         		Logger.log(new LogEvent(LOGID, "Main::main: args[" + i
         				+ "] exists = " + new File(filename).exists()));
-          
+        	}
         }catch( Throwable e ){
-        	Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-						"Failed to access torrent file '" + filename
-								+ "'. Ensure sufficient temporary "
-								+ "file space available (check browser cache usage)."));
+        	
+        	if ( another_instance ){
+        		
+        		e.printStackTrace();
+        		
+        	}else{
+        		
+	        	Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+							"Failed to access torrent file '" + filename
+									+ "'. Ensure sufficient temporary "
+									+ "file space available (check browser cache usage)."));
+        	}
         }
-
     }
     
     
