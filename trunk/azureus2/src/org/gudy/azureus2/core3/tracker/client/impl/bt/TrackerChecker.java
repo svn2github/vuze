@@ -140,22 +140,18 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
     	// result in significant hangs (several seconds....)
     
     String	url_str = trackerUrl.toString();
-        
-    try{
+      
+    TrackerStatus ts = null;
+    
+     try{
         trackers_mon.enter();
     	
-        TrackerStatus ts = (TrackerStatus) trackers.get(url_str);
+        ts = (TrackerStatus) trackers.get(url_str);
     
         if ( ts != null ){
 	      
 	      data = ts.getHashData( hash );
 	      
-	      if (data == null) {
-	    	  
-	        //System.out.println("data == null: " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
-	    	  
-	        data = ts.addHash(hash);
-	      }
 	    }else{
     
 	    	//System.out.println( "adding hash for " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
@@ -163,8 +159,6 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
 	    	ts = new TrackerStatus(this, scraper.getScraper(),trackerUrl);
       
 	        trackers.put(url_str, ts);
-
-        	data = ts.addHash(hash);
 
 	        if( !ts.isTrackerScrapeUrlValid() ) {
   
@@ -179,6 +173,14 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
     }finally{
       	
         trackers_mon.exit();
+    }
+    
+    	// do outside monitor to avoid deadlock situation as ts.addHash invokes
+		// listeners....
+
+    if ( data == null ){
+    	
+    	 data = ts.addHash(hash);
     }
     
     return data;

@@ -1580,6 +1580,48 @@ DHTTrackerPlugin
 	
 		long	now = plugin_interface.getUtilities().getCurrentSystemTime();
 		
+			// unfortunately getting scrape results can acquire locks and there is a vague
+			// possibility of deadlock here, so pre-fetch the scrape results
+		
+		List	to_scrape = new ArrayList();
+		
+		try{
+			this_mon.enter();
+
+			Iterator	it = interesting_downloads.keySet().iterator();
+			
+			while( it.hasNext() && ready_download == null ){
+				
+				Download	download = (Download)it.next();
+				
+				Torrent	torrent = download.getTorrent();
+				
+				if ( torrent == null ){
+					
+					continue;
+				}
+				
+				if ( !running_downloads.contains( download)){
+					
+						// looks like we'll need the scrape below
+					
+					to_scrape.add( download );
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		Map scrapes = new HashMap();
+		
+		for (int i=0;i<to_scrape.size();i++){
+			
+			Download	download = (Download)to_scrape.get(i);
+						
+			scrapes.put( download, download.getLastScrapeResult());		
+		}
+		
 		try{
 			this_mon.enter();
 
@@ -1612,7 +1654,14 @@ DHTTrackerPlugin
 							continue;
 						}
 						
-						DownloadScrapeResult	scrape = download.getLastScrapeResult();
+						DownloadScrapeResult	scrape = (DownloadScrapeResult)scrapes.get( download );
+						
+						if ( scrape == null ){
+							
+								// catch it next time round
+							
+							continue;
+						}
 						
 						if ( scrape.getSeedCount() + scrape.getNonSeedCount() > NUM_WANT ){
 							

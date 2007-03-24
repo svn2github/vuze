@@ -218,15 +218,16 @@ public class TrackerStatus {
    		
 	    		response = (TRTrackerScraperResponseImpl)hashes.get( hash );
 		    
-	    		if (response == null) {
-	    			
-	    			response = addHash(hash);
-	    		}
 	    	}finally{
 	    	
 	    		hashes_mon.exit();
 	    	}
 	
+    		if ( response == null ){
+    			
+    			response = addHash(hash);
+    		}
+    		
 	    	long lMainNextScrapeStartTime = response.getNextScrapeStartTime();
 	
 	    	if( !force && lMainNextScrapeStartTime > SystemTime.getCurrentTime() ) {
@@ -1309,28 +1310,40 @@ public class TrackerStatus {
   
 
   protected TRTrackerScraperResponseImpl addHash(HashWrapper hash) {
-    TRTrackerScraperResponseImpl response = new TRTrackerBTScraperResponseImpl(this, hash);
-    if (scrapeURL == null)  {
-      response.setStatus(TRTrackerScraperResponse.ST_ERROR,
-                         MessageText.getString(SS + "error") + 
-                         MessageText.getString(SSErr + "badURL"));
-    } else {
-      response.setStatus(TRTrackerScraperResponse.ST_INITIALIZING,
-                         MessageText.getString(SS + "initializing"));
-    }
-    
-    response.setNextScrapeStartTime(checker.getNextScrapeCheckOn());
+ 
+	TRTrackerScraperResponseImpl response;
+	  
   	try{
   		hashes_mon.enter();
   	
-  		hashes.put( hash, response);
-      
+  		response = (TRTrackerScraperResponseImpl)hashes.get( hash );
+  		
+  		if ( response == null ){
+  			
+	  	    response = new TRTrackerBTScraperResponseImpl(this, hash);
+	  	    
+	  	    if ( scrapeURL == null ){
+	  	    	
+	  	      response.setStatus(TRTrackerScraperResponse.ST_ERROR,
+	  	                         MessageText.getString(SS + "error") + 
+	  	                         MessageText.getString(SSErr + "badURL"));
+	  	    }else{
+	  	    	
+	  	      response.setStatus(TRTrackerScraperResponse.ST_INITIALIZING,
+	  	                         MessageText.getString(SS + "initializing"));
+	  	    }
+	  	    
+	  	    response.setNextScrapeStartTime(checker.getNextScrapeCheckOn());
+	  	    
+	  		hashes.put( hash, response);
+  		}
   	}finally{
   		
   		hashes_mon.exit();
   	}
 
-    //notifiy listeners
+  		//notifiy listeners
+  	
     scraper.scrapeReceived( response );
 
   	return response;
