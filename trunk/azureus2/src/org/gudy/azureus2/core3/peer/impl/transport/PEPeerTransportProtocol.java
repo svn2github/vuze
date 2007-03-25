@@ -208,8 +208,7 @@ PEPeerTransportProtocol
     			 }
     		});
   }
-  
-  
+    
   private boolean is_optimistic_unchoke = false;
 
   private PeerExchangerItem peer_exchange_item = null;
@@ -915,38 +914,141 @@ PEPeerTransportProtocol
 		if (manager.isSuperSeedMode())
 			return;
 
-		ArrayList lazies =null;
-
 		// create bitfield
 		final DirectByteBuffer buffer =DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_MSG, (nbPieces +7) /8);
 		final DiskManagerPiece[] pieces =diskManager.getPieces();
 
+		
+		int num_pieces = pieces.length;
+		
+		HashSet	lazies 		= null;
+		int[]	lazy_haves	= null;
+		
+		if ( ENABLE_LAZY_BITFIELD ){
+		
+			int	bits_in_first_byte = Math.min( num_pieces, 8 );
+			
+			int	last_byte_start_bit = (num_pieces/8)*8;
+			
+			int bits_in_last_byte = num_pieces - last_byte_start_bit;
+			
+			if ( bits_in_last_byte == 0 ){
+				
+				bits_in_last_byte = 8;
+				
+				last_byte_start_bit -= 8;
+			}
+			
+			Random	random = new Random();
+			
+			lazies = new HashSet();
+			
+				// one bit from first byte
+			
+			int	first_byte_entry = random.nextInt( bits_in_first_byte );
+			
+			if (pieces[first_byte_entry].isDone()){
+				
+				lazies.add( new MutableInteger( first_byte_entry ));
+			}
+				// one bit from last byte
+			
+			int last_byte_entry = last_byte_start_bit + random.nextInt( bits_in_last_byte );
+			
+			if (pieces[last_byte_entry].isDone()){
+				
+				lazies.add( new MutableInteger( last_byte_entry ));
+			}
+			
+				// random others missing
+			
+			int	other_lazies = random.nextInt(16) + 4;
+			
+			for (int i=0;i<other_lazies;i++){
+				
+				int	random_entry = random.nextInt( num_pieces );
+				
+				if (pieces[random_entry].isDone()){
+				
+					lazies.add( new MutableInteger( random_entry ));
+				}
+			}
+			
+			int	num_lazy = lazies.size();
+			
+			if ( num_lazy == 0 ){
+				
+				lazies = null;
+				
+			}else{
+				
+				lazy_haves = new int[num_lazy];
+				
+				Iterator it = lazies.iterator();
+				
+				for (int i=0;i<num_lazy;i++){
+					
+					int	lazy_have = ((MutableInteger)it.next()).getValue();
+					
+					lazy_haves[i] = lazy_have;
+				}
+				
+				if ( num_lazy > 1 ){
+					
+					for (int i=0;i<num_lazy;i++){
+						
+						int	swap = random.nextInt( num_lazy );
+						
+						if ( swap != i ){
+							
+							int	temp = lazy_haves[swap];
+							
+							lazy_haves[swap] 	= lazy_haves[i];
+							lazy_haves[i]		= temp;
+						}
+					}
+				}
+			}
+		}
+		
 		int bToSend =0;
 		int i =0;
-		for (; i <pieces.length; i++ )
-		{
-			if ((i %8) ==0)
+
+		MutableInteger	mi = new MutableInteger(0);
+		
+		for (; i <num_pieces; i++ ){
+		
+			if ((i %8) ==0){
 				bToSend =0;
-			bToSend =bToSend <<1;
-			if (pieces[i].isDone())
-			{
-				if (ENABLE_LAZY_BITFIELD)
-				{
-					if (i <8 ||i >=(pieces.length -(pieces.length %8)))
-					{ // first and last bytes
-						if (lazies ==null)
-							lazies =new ArrayList();
-						lazies.add(new Integer(i)); // send as a Have message instead
-					} else
-						bToSend +=1;
-				} else
-					bToSend +=1;
 			}
-			if ((i %8) ==7)
+			
+			bToSend =bToSend <<1;
+			
+			if (pieces[i].isDone()){
+			
+				if ( lazies != null ){
+					
+					mi.setValue(i);
+					
+					if ( lazies.contains( mi )){				
+
+						// System.out.println( "LazySet: " + getIp() + " -> " + i );
+						
+					}else{
+						bToSend +=1;
+					}
+				}else{
+					bToSend +=1;
+				}
+			}
+			
+			if ((i %8) ==7){
 				buffer.put(DirectByteBuffer.SS_BT, (byte) bToSend);
+			}
 		}
-		if ((i %8) !=0)
-		{
+		
+		if ((i %8) !=0){
+		
 			bToSend =bToSend <<(8 -(i %8));
 			buffer.put(DirectByteBuffer.SS_BT, (byte) bToSend);
 		}
@@ -954,18 +1056,42 @@ PEPeerTransportProtocol
 		buffer.flip(DirectByteBuffer.SS_BT);
 
 		connection.getOutgoingMessageQueue().addMessage(new BTBitfield(buffer, other_peer_bitfield_version ), false);
+		
+		if ( lazy_haves != null ){
+			
+			final int[]	f_lazy_haves = lazy_haves;
+						
+			final Random random = new Random();
+			
+			SimpleTimer.addEvent(
+				"LazyHaveSender",
+				SystemTime.getCurrentTime() + 1000 + random.nextInt( 2000 ),
+				new TimerEventPerformer()
+				{
+					int	next_have = 0;
+					
+					public void 
+					perform(
+						TimerEvent event) 
+					{
+						int lazy_have = f_lazy_haves[next_have++];
+						                             
+						// System.out.println( "LazyDone: " + getIp() + " -> " + lazy_have );
 
-		if (lazies !=null)
-		{
-			for (int x =0; x <lazies.size(); x++ )
-			{
-				final Integer num =(Integer) lazies.get(x);
-				connection.getOutgoingMessageQueue().addMessage(new BTHave(num.intValue(), other_peer_have_version), false);
-			}
+		 				connection.getOutgoingMessageQueue().addMessage(
+		 					new BTHave(lazy_have, other_peer_have_version), false);
+		 			
+		 				if ( next_have < f_lazy_haves.length && current_peer_state == TRANSFERING ){
+		 					
+		 					SimpleTimer.addEvent(
+		 						"LazyHaveSender",
+		 						SystemTime.getCurrentTime() + random.nextInt( 2000 ),
+		 						this );
+		 				}
+					}
+				});
 		}
-
 	}
-
   
   public byte[] getId() {  return peer_id;  }
   public String getIp() {  return ip;  }
@@ -2745,5 +2871,47 @@ PEPeerTransportProtocol
 		writer.println( "    conn_at=" + connection_established_time + ",cons_no_reqs=" + consecutive_no_request_count +
 				",discard=" + requests_discarded + "/" + requests_discarded_endgame + ",recov=" + requests_recovered + ",comp=" + requests_completed );
 
-	}	
+	}
+	
+	protected static class
+	MutableInteger
+	{
+		private int	value;
+		
+		protected
+		MutableInteger(
+			int		v )
+		{
+			value = v;
+		}
+		
+		protected void
+		setValue(
+			int	v )
+		{
+			value = v;
+		}
+		
+		protected int
+		getValue()
+		{
+			return( value );
+		}
+		
+		public int 
+		hashCode() 
+		{
+			return value;
+		}
+
+		public boolean 
+		equals(
+			Object obj )
+		{
+			if (obj instanceof MutableInteger) {
+				return value == ((MutableInteger)obj).value;
+			}
+			return false;
+		}
+	}
 }
