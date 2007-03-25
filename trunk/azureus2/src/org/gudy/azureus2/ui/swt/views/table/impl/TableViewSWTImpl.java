@@ -1135,6 +1135,10 @@ public class TableViewSWTImpl
 			column.setAlignment(CoreTableColumn.getSWTAlign(tableColumns[i].getAlignment()));
 			Messages.setLanguageText(column, tableColumns[i].getTitleLanguageKey());
 			column.setWidth(tableColumns[i].getWidth());
+			if (tableColumns[i].getMinWidth() == tableColumns[i].getMaxWidth()
+					&& tableColumns[i].getMinWidth() > 0) {
+				column.setResizable(false);
+			}
 			column.setData("TableColumnCore", tableColumns[i]);
 			column.setData("configName", "Table." + sTableID + "." + sName);
 			column.setData("Name", sName);
