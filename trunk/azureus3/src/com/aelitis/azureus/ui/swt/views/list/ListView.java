@@ -2984,7 +2984,7 @@ public class ListView
 				return;
 			}
 
-			if (vBar != null && !vBar.isDisposed()
+			if (vBar != null && !vBar.isDisposed() && vBar.isVisible()
 					&& iLastVBarPos != vBar.getSelection()) {
 				return;
 			}
