@@ -86,21 +86,18 @@ PeerForeignDelegate
 				
 		network_connection.addRateLimiter( pm.getUploadLimitedRateGroup(), true );
 		network_connection.addRateLimiter( pm.getDownloadLimitedRateGroup(), false );
-		
-		NetworkManager.getSingleton().startTransferProcessing( network_connection );
-		
-		NetworkManager.getSingleton().upgradeTransferProcessing( network_connection );
 	}
 	
 	public void
 	start()
 	{
-		// should never be called
-		Debug.out( "eh?" );
+		NetworkManager.getSingleton().startTransferProcessing( network_connection );
+		
+		NetworkManager.getSingleton().upgradeTransferProcessing( network_connection );
 	}
 	
 	protected void
-	closed()
+	stop()
 	{
 		NetworkManager.getSingleton().stopTransferProcessing( network_connection );
 	}
@@ -187,7 +184,7 @@ PeerForeignDelegate
 			
 		}finally{
 			
-			closed();
+			stop();
 		}
 	}
 		

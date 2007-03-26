@@ -131,7 +131,7 @@ PeerManagerImpl
 						while( it.hasNext()){
 							
 							try{
-								((PeerForeignDelegate)it.next()).closed();
+								((PeerForeignDelegate)it.next()).stop();
 								
 							}catch( Throwable e ){
 								

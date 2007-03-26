@@ -355,7 +355,7 @@ PeerImpl
 	{
 		if ( delegate instanceof PeerForeignDelegate ){
 			
-			((PeerForeignDelegate)delegate).closed();
+			((PeerForeignDelegate)delegate).stop();
 		}
 	}
 	

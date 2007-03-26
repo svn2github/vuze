@@ -530,28 +530,30 @@ PEPeerControlImpl
 		PEPeer		_transport )
 	{
 		if ( !( _transport instanceof PEPeerTransport )){
-			
+
 			throw( new RuntimeException("invalid class"));
 		}
-		
+
 		final PEPeerTransport	transport = (PEPeerTransport)_transport;
-		
-	    if (!ip_filter.isInRange(transport.getIp(), adapter.getDisplayName())) {
+
+		if (!ip_filter.isInRange(transport.getIp(), adapter.getDisplayName())) {
 
 			final ArrayList peer_transports = peer_transports_cow;
-		
-	    	if ( !peer_transports.contains(transport)){
-			
-	    		addToPeerTransports( transport );
-			
-	    	}else{
-	    		Debug.out( "addPeer():: peer_transports.contains(transport): SHOULD NEVER HAPPEN !" );
-	    		transport.closeConnection( "already connected" );
+
+			if ( !peer_transports.contains(transport)){
+
+				addToPeerTransports( transport );
+
+				transport.start();
+
+			}else{
+				Debug.out( "addPeer():: peer_transports.contains(transport): SHOULD NEVER HAPPEN !" );
+				transport.closeConnection( "already connected" );
+			}
+		}else{
+
+			transport.closeConnection( "IP address blocked by filters" );
 		}
-	    }else{
-	    	
-	        transport.closeConnection( "IP address blocked by filters" );
-	}
 	}
 	
 	
