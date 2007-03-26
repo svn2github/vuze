@@ -7,6 +7,8 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -312,6 +314,24 @@ public class TorrentListView
 				globalManager.removeListener(TorrentListView.this);
 			}
 		});
+		
+		addKeyListener(new KeyListener() {
+			public void keyReleased(KeyEvent e) {
+			}
+		
+			public void keyPressed(KeyEvent e) {
+				if (e.keyCode == SWT.F5) {
+					Object[] selectedDataSources = getSelectedDataSources();
+					for (int i = 0; i < selectedDataSources.length; i++) {
+						DownloadManager dm = (DownloadManager) selectedDataSources[i];
+						if (dm != null) {
+							TOTorrent torrent = dm.getTorrent();
+							PlatformTorrentUtils.updateMetaData(torrent, 1);
+						}
+					}
+				}
+			}
+		});
 	}
 
 	// XXX Please get rid of me!  I suck and I am slow
@@ -463,19 +483,23 @@ public class TorrentListView
 	}
 
 	// GlobalManagerListener
-	public void downloadManagerAdded(DownloadManager dm) {
+	public void downloadManagerAdded(final DownloadManager dm) {
 		//regetDownloads();
 		dm.addListener(dmListener);
 		if (isOurDownload(dm)) {
-			if (bAllowScrolling
-					|| size(true) < (dataArea.getClientArea().height - 8)
-							/ ListRow.ROW_HEIGHT) {
-				addDataSource(dm, !bSkipUpdateCount);
-				if (!bAllowScrolling && !bSkipUpdateCount) {
-					regetDownloads();
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (bAllowScrolling
+							|| size(true) < (dataArea.getClientArea().height - 8)
+									/ ListRow.ROW_HEIGHT) {
+						addDataSource(dm, !bSkipUpdateCount);
+						if (!bAllowScrolling && !bSkipUpdateCount) {
+							regetDownloads();
+						}
+						updateCount();
+					}
 				}
-				updateCount();
-			}
+			});
 		}
 	}
 
