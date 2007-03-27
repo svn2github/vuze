@@ -104,7 +104,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 
 		tcplisten.addChangeListener(new ParameterChangeAdapter() {
 			public void intParameterChanging(Parameter p, int toValue) {
-				if (toValue == 6880 || toValue == 6881) {
+				if (toValue == 6880) {
 					toValue = 6881;
 					tcplisten.setValue(toValue);
 				}
@@ -134,7 +134,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			
 			udp_listen.addChangeListener(new ParameterChangeAdapter() {
 				public void intParameterChanging(Parameter p, int toValue) {
-					if (toValue == 6880 || toValue == 6881) {
+					if (toValue == 6880) {
 						toValue = 6881;
 						udp_listen.setValue(toValue);
 					}
@@ -170,7 +170,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 					new ParameterChangeAdapter() 
 					{
 						public void intParameterChanging(Parameter p, int toValue) {
-							if (toValue == 6880 || toValue == 6881) {
+							if (toValue == 6880) {
 								toValue = 6881;
 								non_data_udp_listen.setValue(toValue);
 							}
