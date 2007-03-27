@@ -6,6 +6,8 @@ AZUREUS CHANGELOG
 FEATURE: Core | Option to clear stored tracker list used for creating torrents [amc1]
 FEATURE: UI   | Option to add full UPnP debug information to the log view [amc1]
 
+BUGFIX:  UI   | Fixed issue where excessive file checks were being done when generating the torrent context menu [amc1]
+
 2007.03.15 | Azureus 3.0.0.8
 
 FEATURE: Core | Alerts can now be shown in individual message popup boxes [amc1]

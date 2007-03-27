@@ -880,7 +880,17 @@ public class MyTorrentsView
 				}
 				int state = dm.getState();
 				bChangeDir &= (state == DownloadManager.STATE_ERROR || state == DownloadManager.STATE_STOPPED)
-						&& dm.isDownloadComplete(false) && !dm.filesExist();
+						&& dm.isDownloadComplete(false);
+				
+				/**
+				 * Only perform a test on disk if:
+				 *    1) We are currently set to allow the "Change Data Directory" option, and
+				 *    2) We've only got one item selected - otherwise, we may potentially end up checking massive
+				 *       amounts of files across multiple torrents before we generate a menu.
+				 */
+				if (bChangeDir && dms.length == 1) {
+					bChangeDir = !dm.filesExist();
+				}
 				
 				boolean	scan = dm.getDownloadState().getFlag( DownloadManagerState.FLAG_SCAN_INCOMPLETE_PIECES );
 				
