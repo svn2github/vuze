@@ -3335,6 +3335,8 @@ DownloadManagerImpl
 				pm.generateEvidence(writer);
 			}
 			
+				// note, PeerManager generates DiskManager evidence
+			
 			controller.generateEvidence(writer);
 
 			TRTrackerAnnouncer announcer = tracker_client;

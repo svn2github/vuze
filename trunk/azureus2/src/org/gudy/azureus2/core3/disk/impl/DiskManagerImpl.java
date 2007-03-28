@@ -2977,45 +2977,21 @@ DiskManagerImpl
         return pieces[pieceNumber].isDone();
     }
 
-/*
-    public boolean isRequestable(int pieceNumber)
-    {
-        return pieces[pieceNumber].isRequestable();
-    }
-
-    public boolean calcNeeded(int pieceNumber)
-    {
-        return pieces[pieceNumber].calcNeeded();
-    }
-
-    public void clearNeeded(int pieceNumber)
-    {
-        pieces[pieceNumber].clearNeeded();
-    }
-
-    public void setRequested(int pieceNumber)
-    {
-        pieces[pieceNumber].setRequested();
-    }
-
-    public boolean isRequested(int pieceNumber)
-    {
-        return pieces[pieceNumber].isRequested();
-    }
-
-    public long getLastWriteTime(int pieceNumber)
-    {
-        return pieces[pieceNumber].getLastWriteTime();
-    }
-
-    public long getNbBlocks(int pieceNumber)
-    {
-        return pieces[pieceNumber].getNbBlocks();
-    }
-
-    public long getNbWritten(int pieceNumber)
-    {
-        return pieces[pieceNumber].getNbWritten();
-    }
-*/
+	public void
+	generateEvidence(
+		IndentWriter		writer )
+	{
+		writer.println( "Disk Manager" );
+		
+		try{
+			writer.indent();
+			
+			writer.println( "percent_done=" + percentDone +",allocated=" + allocated+",remaining="+ remaining);
+			writer.println( "skipped_file_set_size=" + skipped_file_set_size + ",skipped_but_downloaded=" + skipped_but_downloaded );
+			writer.println( "already_moved=" + alreadyMoved );
+		}finally{
+			
+			writer.exdent();
+		}
+	}
 }

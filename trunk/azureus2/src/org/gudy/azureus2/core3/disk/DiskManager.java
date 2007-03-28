@@ -27,6 +27,7 @@ import java.io.File;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.IndentWriter;
 
 /**
 * @author MjrTom
@@ -273,15 +274,10 @@ DiskManager
 	 * @return true if the pieceNumber is Needed and not Done
 	 */
 	public boolean isInteresting(int pieceNumber);
+	
 	public boolean isDone(int pieceNumber);
-/*
-    public boolean isRequestable(int pieceNumber);
-	public boolean calcNeeded(int pieceNumber);
-	public void clearNeeded(int pieceNumber);
-	public long getLastWriteTime(int pieceNumber);
-	public long getNbBlocks(int pieceNumber);
-	public long getNbWritten(int pieceNumber);
-	public boolean isRequested(int pieceNumber);
-	public void setRequested(int pieceNumber);
-*/
+
+	public void
+	generateEvidence(
+		IndentWriter		writer );
 }
