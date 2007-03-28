@@ -255,21 +255,25 @@ public class XMLRequestProcessor2 {
                     Class sub_type = type.getComponentType();
 
                     SimpleXMLParserDocumentNode[] entries = child.getChildren();
-
-                    Object array = Array.newInstance(sub_type, entries.length);
-
-                    /**
-                     * hack. for request objects we deserialise the
-                     * parameters array by using the method signature
-                     */
                     String[] bits = null;
+                    int arr_length = entries.length;
                     if (request_method != null) {
-                        bits = MethodSignature.parse(request_method).arg_classes;
+                    	
+                    	/**
+                    	 * If we have a method signature, we will allow the number
+                    	 * of arguments allowed there to determine how many arguments
+                    	 * we are expecting - this gives us the caller a way of passing
+                    	 * null as an argument (by omitting the ENTRY for the value they
+                    	 * want to use null for).
+                    	 */ 
+                    	bits = MethodSignature.parse(request_method).arg_classes;
+                    	arr_length = bits.length;
                     }
                     else {
-                        int arr_length = Array.getLength(array);
-                        bits = (String[])Collections.nCopies(arr_length, "String").toArray(new String[arr_length]);
+                    	bits = (String[])Collections.nCopies(arr_length, "String").toArray(new String[arr_length]);
                     }
+
+                    Object array = Array.newInstance(sub_type, arr_length);
 
                     debug_in("Attempting to deserialise " + entries.length + " entries for this field (which is an array type).");
 
