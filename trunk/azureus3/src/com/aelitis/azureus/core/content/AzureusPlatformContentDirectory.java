@@ -76,11 +76,15 @@ AzureusPlatformContentDirectory
 		
 			InputStream	is = rd.download();
 			
-			TOTorrent	torrent = TOTorrentFactory.deserialiseFromBEncodedInputStream( is );
+			try{		
+				TOTorrent	torrent = TOTorrentFactory.deserialiseFromBEncodedInputStream( is );
 			
-			is.close();
-			
-			return( new AzureusPlatformContent( new TorrentImpl( torrent )));
+				return( new AzureusPlatformContent( new TorrentImpl( torrent )));
+				
+			}finally{
+				
+				is.close();
+			}
 			
 		}catch( Throwable e ){
 			

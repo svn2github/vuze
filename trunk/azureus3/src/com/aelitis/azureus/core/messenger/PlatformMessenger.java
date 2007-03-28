@@ -422,12 +422,20 @@ public class PlatformMessenger
 
 		InputStream is = rd.download();
 
-		int length = is.available();
+		byte data[];
+		
+		try{
+			int length = is.available();
+	
+			data = new byte[length];
+	
+			is.read(data);
 
-		byte data[] = new byte[length];
-
-		is.read(data);
-
+		}finally{
+			
+			is.close();
+		}
+		
 		return (data);
 	}
 
