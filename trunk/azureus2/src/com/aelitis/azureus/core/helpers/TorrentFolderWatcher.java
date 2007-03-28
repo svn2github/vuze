@@ -270,6 +270,7 @@ public class TorrentFolderWatcher {
 					Debug.out("Failed to auto-import torrent file '"
 							+ file.getAbsolutePath() + "' - "
 							+ Debug.getNestedExceptionMessage(e));
+					Debug.printStackTrace(e);
 				}
 			}
 		} finally {
