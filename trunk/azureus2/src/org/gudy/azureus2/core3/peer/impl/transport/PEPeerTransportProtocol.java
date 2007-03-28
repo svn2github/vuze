@@ -2096,7 +2096,7 @@ PEPeerTransportProtocol
 		  }
 	  };
 
-	  if( !manager.validatePieceReply( pieceNumber, offset, payload ) ) {
+	  if( !manager.validatePieceReply( this, pieceNumber, offset, payload ) ) {
 		  peer_stats.bytesDiscarded( length );
 		  manager.discarded( this, length );
 		  requests_discarded++;

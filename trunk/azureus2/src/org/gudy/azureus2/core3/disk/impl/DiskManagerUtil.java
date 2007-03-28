@@ -62,19 +62,19 @@ DiskManagerUtil
 		if (length <= 0 ) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: " + originator + " length=" + length + " <= 0"));
+						"Hint invalid: " + originator + " length=" + length + " <= 0"));
 			return false;
 		}
 		if (pieceNumber < 0) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: " + originator + " pieceNumber=" + pieceNumber + " < 0"));
+						"Hint invalid: " + originator + " pieceNumber=" + pieceNumber + " < 0"));
 			return false;
 		}
 		if (pieceNumber >= dm.getNbPieces()) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: " + originator + " pieceNumber=" + pieceNumber + " >= this.nbPieces="
+						"Hint invalid: " + originator + " pieceNumber=" + pieceNumber + " >= this.nbPieces="
 						+ dm.getNbPieces()));
 			return false;
 		}
@@ -84,19 +84,19 @@ DiskManagerUtil
 		if (offset < 0) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: " + originator + " offset=" + offset + " < 0"));
+						"Hint invalid: " + originator + " offset=" + offset + " < 0"));
 			return false;
 		}
 		if (offset > pLength) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: " + originator + " offset=" + offset + " > pLength=" + pLength));
+						"Hint invalid: " + originator + " offset=" + offset + " > pLength=" + pLength));
 			return false;
 		}
 		if (offset + length > pLength) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: " + originator + " offset=" + offset + " + length=" + length
+						"Hint invalid: " + originator + " offset=" + offset + " + length=" + length
 						+ " > pLength=" + pLength));
 			return false;
 		}
@@ -120,13 +120,13 @@ DiskManagerUtil
 		if (length > max_read_block_size) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: " + originator + " length=" + length + " > " + max_read_block_size));
+						"Read invalid: " + originator + " length=" + length + " > " + max_read_block_size));
 			return false;
 		}
 
 		if(!dm.getPiece(pieceNumber).isDone()) {
 			Logger.log(new LogEvent(dm, LOGID, LogEvent.LT_ERROR,
-					"CHECKBLOCK2: " + originator + " piece #" + pieceNumber + " not done"));
+					"Read invalid: " + originator + " piece #" + pieceNumber + " not done"));
 			return false;
 		}
 		

@@ -1763,7 +1763,7 @@ PEPeerControlImpl
 		int 			offset, 
 		int 			length) 
 	{
-		if ( disk_mgr.checkBlockConsistencyForRead(originator.getIp(),pieceNumber, offset, length)){
+		if ( disk_mgr.checkBlockConsistencyForRead( originator.getIp(),pieceNumber, offset, length)){
 			
 			if ( enable_seeding_piece_rechecks && isSeeding()){
 				
@@ -1796,8 +1796,14 @@ PEPeerControlImpl
 		return( disk_mgr.checkBlockConsistencyForHint(originator.getIp(),pieceNumber, offset, length ));
 	}
 	
-	public boolean validatePieceReply(int pieceNumber, int offset, DirectByteBuffer data) {
-		return disk_mgr.checkBlockConsistencyForWrite(pieceNumber, offset, data);
+	public boolean 
+	validatePieceReply(
+		PEPeerTransport		originator, 
+		int 				pieceNumber, 
+		int 				offset, 
+		DirectByteBuffer 	data) 
+	{
+		return disk_mgr.checkBlockConsistencyForWrite(originator.getIp(),pieceNumber, offset, data);
 	}
 	
 	public int getAvailability(int pieceNumber)

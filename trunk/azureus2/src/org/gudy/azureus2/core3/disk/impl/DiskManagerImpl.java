@@ -1455,20 +1455,21 @@ DiskManagerImpl
 
     public boolean
     checkBlockConsistencyForWrite(
-        int pieceNumber,
-        int offset,
-        DirectByteBuffer data )
+    	String				originator,
+        int 				pieceNumber,
+        int 				offset,
+        DirectByteBuffer 	data )
     {
         if (pieceNumber < 0) {
             if (Logger.isEnabled())
                 Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-                        "CHECKBLOCK1: pieceNumber=" + pieceNumber + " < 0"));
+                        "Write invalid: " + originator + " pieceNumber=" + pieceNumber + " < 0"));
             return false;
         }
         if (pieceNumber >= this.nbPieces) {
             if (Logger.isEnabled())
                 Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-                        "CHECKBLOCK1: pieceNumber=" + pieceNumber + " >= this.nbPieces="
+                        "Write invalid: " + originator + " pieceNumber=" + pieceNumber + " >= this.nbPieces="
                                 + this.nbPieces));
             return false;
         }
@@ -1479,26 +1480,26 @@ DiskManagerImpl
         if (offset < 0) {
             if (Logger.isEnabled())
                 Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-                        "CHECKBLOCK1: offset=" + offset + " < 0"));
+                        "Write invalid: " + originator + " offset=" + offset + " < 0"));
             return false;
         }
         if (offset > length) {
             if (Logger.isEnabled())
                 Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-                        "CHECKBLOCK1: offset=" + offset + " > length=" + length));
+                        "Write invalid: " + originator + " offset=" + offset + " > length=" + length));
             return false;
         }
         int size = data.remaining(DirectByteBuffer.SS_DW);
         if (size <= 0) {
             if (Logger.isEnabled())
                 Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-                        "CHECKBLOCK1: size=" + size + " <= 0"));
+                        "Write invalid: " + originator + " size=" + size + " <= 0"));
             return false;
         }
         if (offset + size > length) {
             if (Logger.isEnabled())
                 Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-                        "CHECKBLOCK1: offset=" + offset + " + size=" + size + " > length="
+                        "Write invalid: " + originator + " offset=" + offset + " + size=" + size + " > length="
                                 + length));
             return false;
         }

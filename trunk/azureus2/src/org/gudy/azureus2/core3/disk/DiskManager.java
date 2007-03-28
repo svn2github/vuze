@@ -220,6 +220,7 @@ DiskManager
 	
 	public boolean 
 	checkBlockConsistencyForWrite(
+		String				originator,
 		int 				pieceNumber, 
 		int 				offset, 
 		DirectByteBuffer 	data );

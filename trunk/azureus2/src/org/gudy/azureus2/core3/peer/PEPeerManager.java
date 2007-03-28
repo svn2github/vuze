@@ -249,8 +249,9 @@ PEPeerManager
 	
 	public boolean 
 	validatePieceReply(
-		int 		pieceNumber, 
-		int 		offset, 
+		PEPeerTransport		originator,
+		int 				pieceNumber, 
+		int 				offset, 
 		DirectByteBuffer 	data );
 	
 	public void 
