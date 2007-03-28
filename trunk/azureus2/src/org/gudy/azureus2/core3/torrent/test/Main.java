@@ -91,8 +91,7 @@ Main
 			
 			}else if ( test_type == TT_DECODE ){
 							 
-				//File f = new File("c:\\temp\\badt\\Copy of Ivan Lins - Anjo De Mim - 1995(azureus).torrent" );
-				File f = new File("c:\\temp\\badt\\Copy of Ivan Lins - Anjo De Mim - 1995(maketorrent2).torrent" );
+				File f = new File("c:\\temp\\az3008-broken.torrent" );
 			
 				TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile( f );
 			
