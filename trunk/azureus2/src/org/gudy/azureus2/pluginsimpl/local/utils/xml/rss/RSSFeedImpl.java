@@ -22,8 +22,10 @@
 
 package org.gudy.azureus2.pluginsimpl.local.utils.xml.rss;
 
+import java.io.InputStream;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
@@ -51,25 +53,39 @@ RSSFeedImpl
 	
 		throws ResourceDownloaderException, SimpleXMLParserDocumentException
 	{
-		SimpleXMLParserDocument	doc = utilities.getSimpleXMLParserDocumentFactory().create( downloader.download());
+		InputStream	is = downloader.download();
 		
-		SimpleXMLParserDocumentNode[]	xml_channels = doc.getChildren();
+		try{
+			SimpleXMLParserDocument	doc = utilities.getSimpleXMLParserDocumentFactory().create( is );
 		
-		List	chans = new ArrayList();
-		
-		for (int i=0;i<xml_channels.length;i++){
+			SimpleXMLParserDocumentNode[]	xml_channels = doc.getChildren();
 			
-			SimpleXMLParserDocumentNode	xml_channel = xml_channels[i];
+			List	chans = new ArrayList();
 			
-			if ( xml_channel.getName().equalsIgnoreCase("channel")){
+			for (int i=0;i<xml_channels.length;i++){
 				
-				chans.add( new RSSChannelImpl( xml_channel ));
+				SimpleXMLParserDocumentNode	xml_channel = xml_channels[i];
+				
+				if ( xml_channel.getName().equalsIgnoreCase("channel")){
+					
+					chans.add( new RSSChannelImpl( xml_channel ));
+				}
+			}
+			
+			channels	= new RSSChannel[ chans.size()];
+			
+			chans.toArray( channels );
+			
+		}finally{
+			
+			try{
+				is.close();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
 			}
 		}
-		
-		channels	= new RSSChannel[ chans.size()];
-		
-		chans.toArray( channels );
 	}
 	
 	public RSSChannel[]

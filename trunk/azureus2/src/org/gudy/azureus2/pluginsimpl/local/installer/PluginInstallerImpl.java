@@ -409,6 +409,8 @@ PluginInstallerImpl
 												Logger.log(new LogAlert(LogAlert.REPEATABLE,
 														"Plugin uninstall failed", e));
 											}
+											
+												// don't close the stream as we process it later
 												
 											return( true );
 										}

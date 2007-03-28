@@ -34,12 +34,15 @@ import javax.net.ssl.*;
 import java.net.PasswordAuthentication;
 import java.util.zip.GZIPInputStream;
 
+import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+
+import com.aelitis.azureus.core.util.DeleteFileOnCloseInputStream;
 
 public class 
 ResourceDownloaderURLImpl
@@ -48,6 +51,8 @@ ResourceDownloaderURLImpl
 {
 	private static final int BUFFER_SIZE = 32768;
   
+	private static final int MAX_IN_MEM_READ_SIZE	= 256*1024;
+	
 	protected URL			original_url;
 	protected boolean		auth_supplied;
 	protected String		user_name;
@@ -431,7 +436,9 @@ ResourceDownloaderURLImpl
 					}
 
 					for (int i=0;i<2;i++){
-						
+				
+						File					temp_file	= null;
+
 						try{
 							HttpURLConnection	con;
 							
@@ -505,8 +512,9 @@ ResourceDownloaderURLImpl
 								this_mon.exit();
 							}
 							
-							ByteArrayOutputStream	baos;
-			
+							ByteArrayOutputStream	baos		= null;
+							FileOutputStream		fos			= null;
+							
 							try{
 								byte[] buf = new byte[BUFFER_SIZE];
 								
@@ -525,15 +533,33 @@ ResourceDownloaderURLImpl
 								 */
 								int size = gzip ? -1 : con.getContentLength();					
 								
-								baos = size>0?new ByteArrayOutputStream(size):new ByteArrayOutputStream();
+								baos = size>0?new ByteArrayOutputStream(size>MAX_IN_MEM_READ_SIZE?MAX_IN_MEM_READ_SIZE:size):new ByteArrayOutputStream();
 								
 								while( !cancel_download ){
 									
 									int read = input_stream.read(buf);
 										
 									if ( read > 0 ){
-										
-										baos.write(buf, 0, read);
+									
+										if ( total_read > MAX_IN_MEM_READ_SIZE ){
+											
+											if ( fos == null ){
+												
+												temp_file = AETemporaryFileHandler.createTempFile();
+												
+												fos = new FileOutputStream( temp_file );
+												
+												fos.write( baos.toByteArray());
+												
+												baos = null;
+											}
+											
+											fos.write( buf, 0, read );
+											
+										}else{
+											
+											baos.write(buf, 0, read);
+										}
 										
 										total_read += read;
 								        
@@ -567,14 +593,42 @@ ResourceDownloaderURLImpl
 								}
 							}finally{
 								
+								if ( fos != null ){
+									
+									fos.close();
+								}
+								
 								input_stream.close();
 							}
 				
-							InputStream	res = new ByteArrayInputStream( baos.toByteArray());
+							InputStream	res;
 							
-							if ( informComplete( res )){
+							if ( temp_file != null ){
 							
-								return( res );
+								res = new DeleteFileOnCloseInputStream( temp_file );
+								
+								temp_file = null;
+								
+							}else{
+								
+								res = new ByteArrayInputStream( baos.toByteArray());
+							}
+							
+							boolean	handed_over = false;
+							
+							try{
+								if ( informComplete( res )){
+											
+									handed_over = true;
+									
+									return( res );
+								}
+							}finally{
+							
+								if ( !handed_over ){
+									
+									res.close();
+								}
 							}
 							
 							throw( new ResourceDownloaderException("Contents downloaded but rejected: '" + original_url + "'" ));
@@ -591,7 +645,14 @@ ResourceDownloaderURLImpl
 								}
 							}
 
-							throw( e );							
+							throw( e );
+							
+						}finally{
+							
+							if ( temp_file != null ){
+								
+								temp_file.delete();
+							}
 						}
 					}
 					

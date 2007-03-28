@@ -113,7 +113,7 @@ Test
 				        }
 				    });
 
-			rd_u.download();
+			InputStream is = rd_u.download();
 
 			/*
 			ResourceDownloader top_downloader =

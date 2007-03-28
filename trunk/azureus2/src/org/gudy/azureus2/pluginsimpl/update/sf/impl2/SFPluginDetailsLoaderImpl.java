@@ -144,7 +144,11 @@ SFPluginDetailsLoaderImpl
 			
 			Properties	details = new Properties();
 			
-			details.load( dl.download());
+			InputStream is = dl.download();
+			
+			details.load( is );
+			
+			is.close();
 			
 			Iterator it = details.keySet().iterator();
 			

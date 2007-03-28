@@ -532,8 +532,13 @@ UPnPImpl
 				
 				InputStream	data = rd.download();
 					
-				return( parseXML( data ));
-	
+				try{
+					return( parseXML( data ));
+					
+				}finally{
+					
+					data.close();
+				}
 			}
 		}catch( Throwable e ){
 				

@@ -269,6 +269,8 @@ public class WelcomeWindow {
 
 					is.read(data);
 
+					is.close();
+					
 					s[0] = new String(data);
 
 				} catch (Exception e) {
