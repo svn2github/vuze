@@ -32,6 +32,7 @@ import java.net.*;
 import java.util.Properties;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
@@ -64,9 +65,9 @@ Test
 			
 			//rd_u = rdf.getSuffixBasedDownloader(rd_u);
 
-			ResourceDownloader rd_u = rdf.create( new URL( "http://12.7.123.37:6969/torrents/MalloyShow-%282004-Dec-02%29.mp3.torrent?E103C21AB6BD4775BC2866CC2FE0A21649CDA32B" ));
+			ResourceDownloader rd_u = rdf.create( new URL( "http://torrents.aelitis.com:88/files/Azureus3009-B5.jar" ));
 			
-			rd_u = rdf.getTorrentDownloader( rd_u, true );
+			// rd_u = rdf.getTorrentDownloader( rd_u, true );
 
 			rd_u.addListener(
 					new ResourceDownloaderAdapter()
@@ -76,7 +77,7 @@ Test
 				        	ResourceDownloader 	downloader,
 				            InputStream 		data )
 						{
-				        	System.out.println( "old - complete" );
+				        	System.out.println( "complete" );
 
 							return( true );
 						}
@@ -86,7 +87,7 @@ Test
 							ResourceDownloader 	downloader, 
 							final int 			percentage )
 				        {
-				        	System.out.println( "old - percentage = " + percentage );
+				        	System.out.println( "percentage = " + percentage );
 				        }
 				            
 				    	public void
@@ -94,6 +95,7 @@ Test
 				    		ResourceDownloader	downloader,
 				    		long				amount )
 				    	{	
+				    		System.out.println( "amount = " + amount );
 				    	}
 				    	
 				        public void 
@@ -101,7 +103,7 @@ Test
 							ResourceDownloader	downloader, 
 							String 				activity) 
 				        {
-				        	System.out.println( "old - activity = " + activity );
+				        	System.out.println( "activity = " + activity );
 			            }
 
 				        public void 
@@ -109,12 +111,18 @@ Test
 							ResourceDownloader 			downloader,
 							ResourceDownloaderException e) 
 				        {
-				        	System.out.println( "old - failed" );
+				        	System.out.println( "failed" );
+				        	
+				        	e.printStackTrace();
 				        }
 				    });
 
 			InputStream is = rd_u.download();
 
+			FileUtil.copyFile( is, new File( "C:\\temp\\file.jar" ));
+			
+			is.close();
+			
 			/*
 			ResourceDownloader top_downloader =
 				rdf.getAlternateDownloader(
@@ -220,7 +228,7 @@ Test
 		try{
 			PluginManager.registerPlugin( Test.class );
 										
-			PluginManager.startAzureus( PluginManager.UI_SWT, new Properties() );
+			PluginManager.startAzureus( PluginManager.UI_NONE, new Properties() );
 			
 		}catch( Throwable e ){
 			
