@@ -56,8 +56,6 @@ DeleteFileOnCloseInputStream
 				
 		in		= _in;
 		file	= _file;
-		
-		System.out.println( "dfoc: open " + file );
 	}
 	
 	public void 
@@ -69,8 +67,6 @@ DeleteFileOnCloseInputStream
 		
 		}finally{
 			
-			System.out.println( "dfoc: close " + file );
-
 			if ( !file.delete()){
 				
 				Debug.out( "Failed to delete file '" + file + "'" );
