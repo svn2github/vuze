@@ -125,10 +125,11 @@ BasicPluginViewImpl
     gridLayout.marginHeight = 0;
     gridLayout.marginWidth = 0;
     topSection.setLayout(gridLayout);
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		if (sConfigSectionID == null)
-			gridData.horizontalSpan = 2;
-		topSection.setLayoutData(gridData);
+	gridData = new GridData(GridData.FILL_HORIZONTAL);
+	if (sConfigSectionID == null){
+		gridData.horizontalSpan = 2;
+	}
+	topSection.setLayoutData(gridData);
     
     if(model.getStatus().getVisible()) {
       Label statusTitle = new Label(topSection,SWT.NULL);
@@ -152,7 +153,7 @@ BasicPluginViewImpl
       Label progressTitle = new Label(topSection,SWT.NULL);
       Messages.setLanguageText(progressTitle,"plugins.basicview.progress");
     
-      progress = new ProgressBar(panel,SWT.NULL);
+      progress = new ProgressBar(topSection,SWT.NULL);
       progress.setMaximum(100);
       progress.setMinimum(0);
       gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -162,15 +163,15 @@ BasicPluginViewImpl
     if (sConfigSectionID != null) {
     	Composite configSection = new Composite(panel, SWT.NONE);
         gridLayout = new GridLayout();
-        gridLayout.numColumns = 2;
+        gridLayout.numColumns = 1;
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 2;
         configSection.setLayout(gridLayout);
-        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData = new GridData(GridData.END | GridData.VERTICAL_ALIGN_END );
         configSection.setLayoutData(gridData);
-        Label padding = new Label(configSection,SWT.NULL);
-        gridData = new GridData(GridData.FILL_HORIZONTAL);
-        padding.setLayoutData(gridData);
+        //Label padding = new Label(configSection,SWT.NULL);
+        //gridData = new GridData(GridData.FILL_HORIZONTAL);
+        //padding.setLayoutData(gridData);
     	Button btnConfig = new Button(configSection, SWT.PUSH);
     	Messages.setLanguageText(btnConfig, "plugins.basicview.config");
     	btnConfig.addSelectionListener(new SelectionAdapter() {
