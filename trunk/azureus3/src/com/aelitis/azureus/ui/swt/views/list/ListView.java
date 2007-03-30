@@ -2686,15 +2686,12 @@ public class ListView
 	}
 
 	public boolean isRowVisible(final ListRow row) {
-		final Boolean[] b = new Boolean[1];
-
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				b[0] = new Boolean(_isRowVisible(row));
+		
+		return Utils.execSWTThreadWithBool("isRowVisible", new AERunnableBoolean() {
+			public boolean runSupport() {
+				return _isRowVisible(row);
 			}
-		}, false);
-
-		return b[0] == null ? false : b[0].booleanValue();
+		});
 	}
 
 	public boolean _isRowVisible(ListRow row) {
@@ -2798,20 +2795,14 @@ public class ListView
 	 */
 	public List rowRefresh(final ListRow row, final boolean bDoGraphics,
 			final boolean bForceRedraw) {
-		final List[] list = new List[1];
+		List list = (List) Utils.execSWTThreadWithObject("rowRefresh",
+				new AERunnableObject() {
+					public Object runSupport() {
+						return _rowRefresh(row, bDoGraphics, bForceRedraw);
+					}
+				});
 
-		if (DEBUGPAINT) {
-			logPAINT("rowRefresh " + row + " force? " + bForceRedraw + " via "
-					+ Debug.getCompressedStackTrace(5));
-		}
-
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				list[0] = _rowRefresh(row, bDoGraphics, bForceRedraw);
-			}
-		}, false);
-
-		return list == null ? new ArrayList() : list[0];
+		return list == null ? new ArrayList() : list;
 	}
 
 	public void rowRefreshAsync(final ListRow row, final boolean bDoGraphics,
