@@ -938,11 +938,17 @@ MainWindow
     return shell.isVisible();
   }
 
-  public boolean 
-  dispose(
-  	boolean	for_restart,
-	boolean	close_already_in_progress ) 
-  {
+  public boolean dispose(final boolean for_restart,
+			final boolean close_already_in_progress) {
+		return Utils.execSWTThreadWithBool("MainWindow.dispose",
+				new AERunnableBoolean() {
+					public boolean runSupport() {
+						return _dispose(for_restart, close_already_in_progress);
+					}
+				});
+  }
+  
+  public boolean _dispose(boolean for_restart, boolean close_already_in_progress) {
   	if (isAlreadyDead) {
   		return true;
   	}
