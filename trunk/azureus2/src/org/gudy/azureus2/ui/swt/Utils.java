@@ -41,9 +41,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
@@ -1221,6 +1219,50 @@ public class Utils {
 		}
 
 		return font;
+	}
+	
+	public static boolean execSWTThreadWithBool(String ID,
+			AERunnableBoolean code) {
+		if (code == null) {
+			return false;
+		}
+
+		final AESemaphore			sem 	= new AESemaphore(ID);
+		boolean[] returnValueObject = { false };
+
+		try{
+			code.setupReturn(ID, returnValueObject, sem);
+			
+			execSWTThread(code);
+		}catch( Throwable e ){
+			Debug.out(ID, e);
+			sem.release();
+		}
+		sem.reserve();
+	
+		return returnValueObject[0];
+	}
+
+	public static Object execSWTThreadWithObject(String ID,
+			AERunnableObject code) {
+		if (code == null) {
+			return false;
+		}
+
+		final AESemaphore			sem 	= new AESemaphore(ID);
+		Object[] returnValueObject = { null };
+
+		try{
+			code.setupReturn(ID, returnValueObject, sem);
+			
+			execSWTThread(code);
+		}catch( Throwable e ){
+			Debug.out(ID, e);
+			sem.release();
+		}
+		sem.reserve();
+	
+		return returnValueObject[0];
 	}
 }
 
