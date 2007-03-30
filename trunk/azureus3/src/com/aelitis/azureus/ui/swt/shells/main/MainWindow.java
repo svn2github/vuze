@@ -409,6 +409,9 @@ public class MainWindow
 
 		shell.addShellListener(new ShellAdapter() {
 			public void shellClosed(ShellEvent event) {
+				if (disposedOrDisposing) {
+					return;
+				}
 				if (systemTraySWT != null
 						&& COConfigurationManager.getBooleanParameter("Enable System Tray")
 						&& COConfigurationManager.getBooleanParameter("Close To Tray")) {
@@ -420,6 +423,9 @@ public class MainWindow
 			}
 
 			public void shellIconified(ShellEvent event) {
+				if (disposedOrDisposing) {
+					return;
+				}
 				if (systemTraySWT != null
 						&& COConfigurationManager.getBooleanParameter("Enable System Tray")
 						&& COConfigurationManager.getBooleanParameter("Minimize To Tray")) {
@@ -501,7 +507,20 @@ public class MainWindow
 		startTime = SystemTime.getCurrentTime();
 	}
 
-	public boolean dispose(boolean bForRestart, boolean bCloseAlreadyInProgress) {
+  public boolean dispose(final boolean for_restart,
+			final boolean close_already_in_progress) {
+		if (disposedOrDisposing) {
+			return true;
+		}
+		return Utils.execSWTThreadWithBool("v3.MainWindow.dispose",
+				new AERunnableBoolean() {
+					public boolean runSupport() {
+						return _dispose(for_restart, close_already_in_progress);
+					}
+				});
+  }
+
+  public boolean _dispose(boolean bForRestart, boolean bCloseAlreadyInProgress) {
 		if (disposedOrDisposing) {
 			return true;
 		}
