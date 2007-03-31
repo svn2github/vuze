@@ -18,9 +18,15 @@ import org.json.JSONObject;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet;
 import com.aelitis.azureus.util.JSONUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -46,6 +52,8 @@ public class DisplayListener
 	public static final String OP_IRC_SUPPORT = "irc-support";
 
 	public static final String OP_BRING_TO_FRONT = "bring-to-front";
+
+	public static final String OP_SWITCH_TO_TAB = "switch-to-tab";
 
 	private Browser browser;
 
@@ -104,8 +112,24 @@ public class DisplayListener
 					decodedObject.getString("user"));
 		} else if (OP_BRING_TO_FRONT.equals(opid)) {
 			bringToFront();
+		} else if (OP_SWITCH_TO_TAB.equals(opid)) {
+			JSONObject decodedObject = message.getDecodedObject();
+			switchToTab(decodedObject.getString("target"));
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
+		}
+	}
+
+	/**
+	 * @param string
+	 *
+	 * @since 3.0.0.7
+	 */
+	private void switchToTab(String tabID) {
+		SWTSkin skin = SWTSkinFactory.getInstance();
+		SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
+		if (tabSet != null) {
+			tabSet.setActiveTab("maintabs." + tabID);
 		}
 	}
 

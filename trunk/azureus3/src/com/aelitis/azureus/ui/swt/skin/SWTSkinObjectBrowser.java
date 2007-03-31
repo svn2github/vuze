@@ -31,6 +31,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 
@@ -81,6 +82,7 @@ public class SWTSkinObjectBrowser
 				widgetIndicator);
 		context.addMessageListener(new TorrentListener(core));
 		context.addMessageListener(new DisplayListener(browser));
+		context.addMessageListener(new ConfigListener(browser));
 
 		setControl(browser);
 	}

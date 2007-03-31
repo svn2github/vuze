@@ -37,6 +37,7 @@ import org.json.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
@@ -84,6 +85,7 @@ public class PlatformMessenger
 		context = new fakeContext();
 		context.addMessageListener(new TorrentListener());
 		context.addMessageListener(new DisplayListener(null));
+		context.addMessageListener(new ConfigListener(null));
 	}
 
 	public static ClientMessageContext getClientMessageContext() {

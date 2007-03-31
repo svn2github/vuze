@@ -31,6 +31,7 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 
@@ -68,6 +69,7 @@ public class BrowserWindow
 				+ Math.random(), browser, null);
 		context.addMessageListener(new TorrentListener());
 		context.addMessageListener(new DisplayListener(browser));
+		context.addMessageListener(new ConfigListener(browser));
 
 		browser.addProgressListener(new ProgressListener() {
 			public void completed(ProgressEvent event) {
