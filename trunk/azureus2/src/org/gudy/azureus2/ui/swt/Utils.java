@@ -1246,7 +1246,7 @@ public class Utils {
 	public static Object execSWTThreadWithObject(String ID,
 			AERunnableObject code) {
 		if (code == null) {
-			return false;
+			return null;
 		}
 
 		final AESemaphore			sem 	= new AESemaphore(ID);
