@@ -132,11 +132,10 @@ public class TorrentListViewsUtils
 				for (int i = 0; i < selectedRows.length; i++) {
 					DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
 					int state = dm.getState();
-					if (state == DownloadManager.STATE_QUEUED
-							|| state == DownloadManager.STATE_STOPPED
-							|| state == DownloadManager.STATE_STOPPING
-							|| state == DownloadManager.STATE_ERROR) {
-						ManagerUtils.start(dm);
+					if (state == DownloadManager.STATE_ERROR) {
+						dm.stopIt(DownloadManager.STATE_QUEUED, false, false);
+					} else if (state == DownloadManager.STATE_STOPPED) {
+						ManagerUtils.queue(dm, (Composite) btn.getSkinObject().getControl());
 
 						StartStopButtonUtil.updateStopButton(view, btn);
 					} else {
