@@ -806,62 +806,62 @@ public class MainWindow
 							Object skinnableObject, Object[] relatedObjects) {
 						if (skinnableObject instanceof MessageSlideShell) {
 							Color bg = skin.getSkinProperties().getColor("color.mainshell");
-							bg = null; // temp disable
-							if (bg != null) {
+							bg = composite.getBackground(); // temp disable
 
-								final Image image = new Image(composite.getDisplay(), 250, 300);
+							final Image image = new Image(composite.getDisplay(), 250, 300);
 
-								GC gc = new GC(image);
-								try {
+							GC gc = new GC(image);
+							try {
+								if (bg != null) {
 									gc.setBackground(bg);
 									gc.fillRectangle(image.getBounds());
-
-									TOTorrent torrent = null;
-									DownloadManager dm = (DownloadManager) LogRelationUtils.queryForClass(
-											relatedObjects, DownloadManager.class);
-									if (dm != null) {
-										torrent = dm.getTorrent();
-									} else {
-										torrent = (TOTorrent) LogRelationUtils.queryForClass(
-												relatedObjects, TOTorrent.class);
-									}
-
-									if (torrent != null) {
-										byte[] contentThumbnail = PlatformTorrentUtils.getContentThumbnail(torrent);
-										if (contentThumbnail != null) {
-											try {
-												ByteArrayInputStream bis = new ByteArrayInputStream(
-														contentThumbnail);
-												final Image img = new Image(Display.getDefault(), bis);
-												Rectangle imgBounds = img.getBounds();
-												double pct = 35.0 / imgBounds.height;
-												int w = (int) (imgBounds.width * pct);
-
-												if (img != null) {
-													gc.drawImage(img, 0, 0, imgBounds.width,
-															imgBounds.height, 0, 265, w, 35);
-													img.dispose();
-												}
-											} catch (Exception e) {
-
-											}
-										}
-									}
-								} finally {
-									gc.dispose();
 								}
 
-								MessageSlideShell shell = (MessageSlideShell) skinnableObject;
-								shell.setImgPopup(image);
+								TOTorrent torrent = null;
+								DownloadManager dm = (DownloadManager) LogRelationUtils.queryForClass(
+										relatedObjects, DownloadManager.class);
+								if (dm != null) {
+									torrent = dm.getTorrent();
+								} else {
+									torrent = (TOTorrent) LogRelationUtils.queryForClass(
+											relatedObjects, TOTorrent.class);
+								}
 
-								composite.addListener(SWT.Dispose, new Listener() {
-									public void handleEvent(Event event) {
-										if (image != null && !image.isDisposed()) {
-											image.dispose();
+								if (torrent != null) {
+									byte[] contentThumbnail = PlatformTorrentUtils.getContentThumbnail(torrent);
+									if (contentThumbnail != null) {
+										try {
+											ByteArrayInputStream bis = new ByteArrayInputStream(
+													contentThumbnail);
+											final Image img = new Image(Display.getDefault(), bis);
+											Rectangle imgBounds = img.getBounds();
+											double pct = 35.0 / imgBounds.height;
+											int w = (int) (imgBounds.width * pct);
+
+											if (img != null) {
+												gc.drawImage(img, 0, 0, imgBounds.width,
+														imgBounds.height, 0, 265, w, 35);
+												img.dispose();
+											}
+										} catch (Exception e) {
+
 										}
 									}
-								});
+								}
+							} finally {
+								gc.dispose();
 							}
+
+							MessageSlideShell shell = (MessageSlideShell) skinnableObject;
+							shell.setImgPopup(image);
+
+							composite.addListener(SWT.Dispose, new Listener() {
+								public void handleEvent(Event event) {
+									if (image != null && !image.isDisposed()) {
+										image.dispose();
+									}
+								}
+							});
 						}
 					}
 
