@@ -396,7 +396,7 @@ public class MainWindow
 		startTime = SystemTime.getCurrentTime();
 
 		try {
-			Utils.createTorrentDropTarget(shell, true);
+			Utils.createTorrentDropTarget(shell, false);
 		} catch (Throwable e) {
 			Logger.log(new LogEvent(LOGID, "Drag and Drop not available", e));
 		}
@@ -786,7 +786,7 @@ public class MainWindow
 					public void skinAfterComponents(Composite composite,
 							Object skinnableObject, Object[] relatedObjects) {
 						Color bg = skin.getSkinProperties().getColor("color.mainshell");
-						bg = null;
+						bg = null; // temp disable
 						if (bg != null) {
 							composite.setBackground(bg);
 						}
@@ -806,6 +806,7 @@ public class MainWindow
 							Object skinnableObject, Object[] relatedObjects) {
 						if (skinnableObject instanceof MessageSlideShell) {
 							Color bg = skin.getSkinProperties().getColor("color.mainshell");
+							bg = null; // temp disable
 							if (bg != null) {
 
 								final Image image = new Image(composite.getDisplay(), 250, 300);
@@ -867,10 +868,12 @@ public class MainWindow
 					public void skinAfterComponents(Composite composite,
 							Object skinnableObject, Object[] relatedObjects) {
 						Color bg = skin.getSkinProperties().getColor("color.mainshell");
+						bg = null; // temp disable
 						if (bg != null) {
 							composite.setBackground(bg);
 						}
 						Color fg = skin.getSkinProperties().getColor("color.section.header");
+						fg = null; // temp disable
 						if (fg != null) {
 							setChildrenFG(composite, fg);
 						}
