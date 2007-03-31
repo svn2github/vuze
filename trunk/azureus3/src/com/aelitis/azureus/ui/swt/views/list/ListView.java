@@ -2955,6 +2955,8 @@ public class ListView
 	private class canvasPaintListener
 		implements Listener
 	{
+		long makeSureWeDraw = -1;
+
 		Rectangle lastBounds = new Rectangle(0, 0, 0, 0);
 
 		public void handleEvent(Event e) {
@@ -2977,7 +2979,11 @@ public class ListView
 
 			if (vBar != null && !vBar.isDisposed() && vBar.isVisible()
 					&& iLastVBarPos != vBar.getSelection()) {
-				return;
+				if (makeSureWeDraw < 0) {
+					makeSureWeDraw = SystemTime.getCurrentTime();
+				} else if (SystemTime.getCurrentTime() < makeSureWeDraw + 3000) {
+					return;
+				}
 			}
 
 			if (e.width > 0) {
@@ -2985,6 +2991,8 @@ public class ListView
 					logPAINT("paint " + e.getBounds() + " image area: "
 							+ imgView.getBounds() + "; pending=" + e.count);
 				}
+				makeSureWeDraw = -1;
+
 				e.gc.drawImage(imgView, e.x, e.y, e.width, e.height, e.x, e.y, e.width,
 						e.height);
 			}
