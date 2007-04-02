@@ -785,13 +785,14 @@ public class MainWindow
 
 					public void skinAfterComponents(Composite composite,
 							Object skinnableObject, Object[] relatedObjects) {
+						if (true) {
+							return; // temp disable
+						}
 						Color bg = skin.getSkinProperties().getColor("color.mainshell");
-						bg = null; // temp disable
 						if (bg != null) {
 							composite.setBackground(bg);
 						}
 						Color fg = skin.getSkinProperties().getColor("color.section.header");
-						fg = null;
 						if (fg != null) {
 							setChildrenFG(composite, fg);
 						}
@@ -810,26 +811,26 @@ public class MainWindow
 
 							final Image image = new Image(composite.getDisplay(), 250, 300);
 
-							GC gc = new GC(image);
-							try {
-								if (bg != null) {
-									gc.setBackground(bg);
-									gc.fillRectangle(image.getBounds());
-								}
+							TOTorrent torrent = null;
+							DownloadManager dm = (DownloadManager) LogRelationUtils.queryForClass(
+									relatedObjects, DownloadManager.class);
+							if (dm != null) {
+								torrent = dm.getTorrent();
+							} else {
+								torrent = (TOTorrent) LogRelationUtils.queryForClass(
+										relatedObjects, TOTorrent.class);
+							}
 
-								TOTorrent torrent = null;
-								DownloadManager dm = (DownloadManager) LogRelationUtils.queryForClass(
-										relatedObjects, DownloadManager.class);
-								if (dm != null) {
-									torrent = dm.getTorrent();
-								} else {
-									torrent = (TOTorrent) LogRelationUtils.queryForClass(
-											relatedObjects, TOTorrent.class);
-								}
+							if (torrent != null) {
+								byte[] contentThumbnail = PlatformTorrentUtils.getContentThumbnail(torrent);
+								if (contentThumbnail != null) {
+									GC gc = new GC(image);
+									try {
+										if (bg != null) {
+											gc.setBackground(bg);
+											gc.fillRectangle(image.getBounds());
+										}
 
-								if (torrent != null) {
-									byte[] contentThumbnail = PlatformTorrentUtils.getContentThumbnail(torrent);
-									if (contentThumbnail != null) {
 										try {
 											ByteArrayInputStream bis = new ByteArrayInputStream(
 													contentThumbnail);
@@ -837,6 +838,13 @@ public class MainWindow
 											Rectangle imgBounds = img.getBounds();
 											double pct = 35.0 / imgBounds.height;
 											int w = (int) (imgBounds.width * pct);
+											
+											try {
+												gc.setAdvanced(true);
+												gc.setInterpolation(SWT.HIGH);
+											} catch (Exception e) {
+												// not important if we can't set advanced
+											}
 
 											if (img != null) {
 												gc.drawImage(img, 0, 0, imgBounds.width,
@@ -846,34 +854,35 @@ public class MainWindow
 										} catch (Exception e) {
 
 										}
+									} finally {
+										gc.dispose();
 									}
+
+									MessageSlideShell shell = (MessageSlideShell) skinnableObject;
+									shell.setImgPopup(image);
+
+									composite.addListener(SWT.Dispose, new Listener() {
+										public void handleEvent(Event event) {
+											if (image != null && !image.isDisposed()) {
+												image.dispose();
+											}
+										}
+									});
 								}
-							} finally {
-								gc.dispose();
 							}
-
-							MessageSlideShell shell = (MessageSlideShell) skinnableObject;
-							shell.setImgPopup(image);
-
-							composite.addListener(SWT.Dispose, new Listener() {
-								public void handleEvent(Event event) {
-									if (image != null && !image.isDisposed()) {
-										image.dispose();
-									}
-								}
-							});
 						}
 					}
 
 					public void skinAfterComponents(Composite composite,
 							Object skinnableObject, Object[] relatedObjects) {
+						if (true) {
+							return; // temp disable
+						}
 						Color bg = skin.getSkinProperties().getColor("color.mainshell");
-						bg = null; // temp disable
 						if (bg != null) {
 							composite.setBackground(bg);
 						}
 						Color fg = skin.getSkinProperties().getColor("color.section.header");
-						fg = null; // temp disable
 						if (fg != null) {
 							setChildrenFG(composite, fg);
 						}
