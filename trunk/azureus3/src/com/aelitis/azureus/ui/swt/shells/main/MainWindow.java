@@ -662,8 +662,8 @@ public class MainWindow
 
 				shell.setVisible(visible);
 				if (visible) {
-					shell.forceActive();
 					shell.setMinimized(false);
+					shell.forceActive();
 				}
 
 			}
