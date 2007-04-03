@@ -148,11 +148,9 @@ public class UIFunctionsImpl
 	public void bringToFront() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				// TODO: Password
 				try {
-					mainWindow.shell.setVisible(true);
-					mainWindow.shell.forceActive();
-					mainWindow.shell.setMinimized(false);
+					// this will force active and set !minimized after PW test
+					mainWindow.setVisible(true);
 
 				} catch (Exception e) {
 					Logger.log(new LogEvent(LOGID, "bringToFront", e));
