@@ -73,6 +73,7 @@ public class Constants
 
 	public static final String URL_FAQ = URL_PREFIX + "Support.html";
    
+	public static final String URL_PUBLISH_INFO = URL_PREFIX + "Publish.html";
 
 	public static final boolean DIAG_TO_STDOUT = System.getProperty(
 			"DIAG_TO_STDOUT", "0").equals("1");
