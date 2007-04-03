@@ -633,7 +633,10 @@ public class TorrentListViewsUtils
 		if (PublishUtils.isPublished(dm)) {
 			String title = MessageText.getString("stopSeeding.title");
 			String text = MessageText.getString("stopSeeding.text", new String[] {
-				dm.getDisplayName()
+				dm.getDisplayName(),
+				Constants.URL_PREFIX,
+				Constants.DEFAULT_ADDRESS,
+				Constants.URL_PUBLISH_INFO
 			});
 
 			MessageBoxShell mb = new MessageBoxShell(shell, title, text, new String[] {
