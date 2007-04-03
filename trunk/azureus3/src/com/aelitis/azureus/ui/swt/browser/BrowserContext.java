@@ -147,6 +147,12 @@ public class BrowserContext
 				browser.execute("if (azureusClientWelcome) { azureusClientWelcome('" 
 						+ Constants.AZID + "'); }");
 
+				if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
+					if (browser.getUrl().indexOf("https") == 0) {
+						browser.execute("try { o = document.getElementsByTagName('body'); if (o) o[0].style.borderTop = '2px dotted #3b3b3b'; } catch (e) {}");
+					}
+				}
+
 				if (org.gudy.azureus2.core3.util.Constants.isOSX) {
 					Shell shell = browser.getShell();
 					Point size = shell.getSize();
