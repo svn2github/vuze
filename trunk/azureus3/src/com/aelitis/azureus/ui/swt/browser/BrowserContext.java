@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageListener;
+import com.aelitis.azureus.util.Constants;
 
 /**
  * Manages the context for a single SWT {@link Browser} component,
@@ -142,6 +143,10 @@ public class BrowserContext
 				if (!browser.isVisible()) {
 					browser.setVisible(true);
 				}
+				
+				browser.execute("if (azureusClientWelcome) { azureusClientWelcome('" 
+						+ Constants.AZID + "'); }");
+
 				if (org.gudy.azureus2.core3.util.Constants.isOSX) {
 					Shell shell = browser.getShell();
 					Point size = shell.getSize();
