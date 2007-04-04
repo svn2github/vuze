@@ -61,6 +61,8 @@ public class BrowserContext
 
 	private boolean pageLoading = false;
 
+	private String lastValidURL = null;
+
 	/**
 	 * Creates a context and registers the given browser.
 	 * 
@@ -130,6 +132,9 @@ public class BrowserContext
 					SimpleTimer.addEvent("Show Browser",
 							System.currentTimeMillis() + 700, showBrowersPerformer);
 				}
+				if (event.title.startsWith("res://")) {
+					fillWithRetry(event.title);
+				}
 			}
 		});
 
@@ -166,10 +171,24 @@ public class BrowserContext
 				}
 			}
 		});
+		
+		SimpleTimer.addPeriodicEvent("checkURL", 10000, new TimerEventPerformer() {
+			public void perform(TimerEvent event) {
+				if (!browser.isDisposed()) {
+  				browser.getDisplay().asyncExec(new AERunnable() {
+  					public void runSupport() {
+							if (!browser.isDisposed()) {
+								browser.execute("s = document.location.toString(); " 
+										+ "if (s.indexOf('res://') == 0) { document.title = s; }");
+  						}
+  					}
+  				});
+				}
+			}
+		});
 
 		browser.addLocationListener(new LocationListener() {
 			private TimerEvent timerevent;
-			private String lastValidURL = null;
 
 			public void changed(LocationEvent event) {
 				if (timerevent != null) {
@@ -180,15 +199,6 @@ public class BrowserContext
 				}
 			}
 			
-			public void fillWithRetry(String s) {
-				browser.setText("<html><body style='font-family: verdana; font-size: 10pt' bgcolor=#2e2e2e text=#e0e0e0>"
-						+ "Sorry, there was a problem loading this page.<br> " 
-						+ "Please check if your internet connection is working and click <a href='"
-						+ lastValidURL + "'>retry</a> to continue."
-						+ "<div style='word-wrap: break-word'><font size=1 color=#2e2e2e>" + s + "</font></div>"
-						+ "</body></html>");
-			}
-
 			public void changing(LocationEvent event) {
 				if (event.location.startsWith("javascript") && event.location.indexOf("back()") > 0) {
 					if (browser.isBackEnabled()) {
@@ -255,6 +265,15 @@ public class BrowserContext
 		getMessageDispatcher().registerBrowser(browser);
 		this.browser = browser;
 		this.display = browser.getDisplay();
+	}
+
+	public void fillWithRetry(String s) {
+		browser.setText("<html><body style='font-family: verdana; font-size: 10pt' bgcolor=#2e2e2e text=#e0e0e0>"
+				+ "Sorry, there was a problem loading this page.<br> " 
+				+ "Please check if your internet connection is working and click <a href='"
+				+ lastValidURL + "'>retry</a> to continue."
+				+ "<div style='word-wrap: break-word'><font size=1 color=#2e2e2e>" + s + "</font></div>"
+				+ "</body></html>");
 	}
 
 	public void deregisterBrowser() {
