@@ -322,26 +322,33 @@ public class ManagerUtils {
 		}
 
 		if (choice == SWT.YES) {
-			new AEThread("asyncStop", true) {
-				public void runSupport() {
-
-					try {
-						dm.stopIt(DownloadManager.STATE_STOPPED, bDeleteTorrent,
-								bDeleteData);
-						dm.getGlobalManager().removeDownloadManager(dm);
-					} catch (GlobalManagerDownloadRemovalVetoException f) {
-						if (!f.isSilent()) {
-							Alerts.showErrorMessageBoxUsingResourceString(
-									new Object[] { dm },
-									"globalmanager.download.remove.veto", f);
-						}
-					} catch (Exception ex) {
-						Debug.printStackTrace(ex);
-					}
-				}
-			}.start();
+			asyncStopDelete(dm, DownloadManager.STATE_STOPPED, bDeleteTorrent,
+					bDeleteData);
 		}
 
+	}
+  
+  public static void asyncStopDelete(final DownloadManager dm,
+			final int stateAfterStopped, final boolean bDeleteTorrent,
+			final boolean bDeleteData) {
+
+		new AEThread("asyncStop", true) {
+			public void runSupport() {
+
+				try {
+					dm.stopIt(DownloadManager.STATE_STOPPED, bDeleteTorrent, bDeleteData);
+					dm.getGlobalManager().removeDownloadManager(dm);
+				} catch (GlobalManagerDownloadRemovalVetoException f) {
+					if (!f.isSilent()) {
+						Alerts.showErrorMessageBoxUsingResourceString(new Object[] {
+							dm
+						}, "globalmanager.download.remove.veto", f);
+					}
+				} catch (Exception ex) {
+					Debug.printStackTrace(ex);
+				}
+			}
+		}.start();
 	}
   
   	public static void
