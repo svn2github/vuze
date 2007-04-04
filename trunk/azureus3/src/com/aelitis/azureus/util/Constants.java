@@ -37,7 +37,7 @@ public class Constants
 
 	public static boolean isUnix = org.gudy.azureus2.core3.util.Constants.isUnix;
 
-	public static final String DEFAULT_ADDRESS = "www.zudeo.com"; //DO NOT TOUCH !!!!  use the -Dplatform_address=ip override instead
+	public static final String DEFAULT_ADDRESS = "www.vuze.com"; //DO NOT TOUCH !!!!  use the -Dplatform_address=ip override instead
 
 	public static final String DEFAULT_PORT = "80";
 
