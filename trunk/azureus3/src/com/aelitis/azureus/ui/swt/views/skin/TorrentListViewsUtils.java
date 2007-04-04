@@ -648,7 +648,8 @@ public class TorrentListViewsUtils
 			int result = mb.open();
 			if (result == 0) {
 				// overide parameters.. never delete published content data!
-				ManagerUtils.remove(dm, shell, false, false);
+				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED, false,
+						false);
 			}
 		} else if (PlatformTorrentUtils.isContentDRM(torrent)) {
 
@@ -666,8 +667,8 @@ public class TorrentListViewsUtils
 
 			int result = mb.open();
 			if (result == 0) {
-				// overide parameters.. never delete published content data!
-				ManagerUtils.remove(dm, shell, bDeleteTorrent, bDeleteData);
+				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED, bDeleteTorrent,
+						bDeleteData);
 			}
 			
 		} else {
