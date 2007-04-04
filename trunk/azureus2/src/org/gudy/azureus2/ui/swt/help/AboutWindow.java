@@ -97,9 +97,9 @@ public class AboutWindow {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gTranslators.setLayoutData(gridData);
   
-    label = new Label(gTranslators, SWT.LEFT);
-    label.setText(properties.getProperty("translators")); //$NON-NLS-1$ //$NON-NLS-2$
-    label.setLayoutData(gridData = new GridData());
+    Text txtTrans = new Text(gTranslators, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP | SWT.NO_FOCUS);
+    txtTrans.setText(properties.getProperty("translators")); //$NON-NLS-1$ //$NON-NLS-2$
+    txtTrans.setLayoutData(gridData = new GridData());
     
     Group gInternet = new Group(window, SWT.NULL);
     GridLayout gridLayout = new GridLayout();
@@ -118,7 +118,7 @@ public class AboutWindow {
     gridData.verticalSpan = 1;
     gSys.setLayoutData(gridData);
 
-    Text txtSysInfo = new Text(gSys, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP | SWT.NO_FOCUS);
+    Text txtSysInfo = new Text(gSys, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP);
     txtSysInfo.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
     txtSysInfo.setText("Java " + System.getProperty("java.version") + "\n "
 				+ System.getProperty("java.vendor") + "\n"
@@ -170,6 +170,7 @@ public class AboutWindow {
     window.addListener(SWT.KeyUp,keyListener);
   
     window.pack();
+    txtSysInfo.setFocus();
     Utils.centreWindow(window);
     window.open();
 
