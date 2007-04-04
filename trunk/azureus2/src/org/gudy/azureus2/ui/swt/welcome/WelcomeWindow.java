@@ -38,6 +38,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
@@ -130,8 +131,7 @@ public class WelcomeWindow {
 		if (sWhatsNew == null || sWhatsNew.length() == 0) {
 			String helpFile = MessageText.getString("window.welcome.file");
 			String helpFullPath = "/org/gudy/azureus2/internat/whatsnew/" + helpFile;
-			if (Constants.compareVersions(Constants.AZUREUS_VERSION, "3.0.0.6") == 0
-					|| Constants.compareVersions(Constants.AZUREUS_VERSION, "3.0.0.8") == 0) {
+			if (COConfigurationManager.getStringParameter("ui", "").equals("az3")) {
 				helpFullPath = "/ChangeLog.v3.txt";
 			}
 			InputStream stream = getClass().getResourceAsStream(helpFullPath);
