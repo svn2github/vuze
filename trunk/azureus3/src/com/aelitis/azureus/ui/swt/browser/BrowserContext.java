@@ -169,6 +169,7 @@ public class BrowserContext
 
 		browser.addLocationListener(new LocationListener() {
 			private TimerEvent timerevent;
+			private String lastValidURL = null;
 
 			public void changed(LocationEvent event) {
 				if (timerevent != null) {
@@ -178,11 +179,31 @@ public class BrowserContext
 					widgetWaitIndicator.setVisible(false);
 				}
 			}
+			
+			public void fillWithRetry(String s) {
+				browser.setText("<html><body style='font-family: verdana; font-size: 10pt' bgcolor=#2e2e2e text=#e0e0e0>"
+						+ "Sorry, there was a problem loading this page.<br> " 
+						+ "Please check if your internet connection is working and click <a href='"
+						+ lastValidURL + "'>retry</a> to continue."
+						+ "<div style='word-wrap: break-word'><font size=1 color=#2e2e2e>" + s + "</font></div>"
+						+ "</body></html>");
+			}
 
 			public void changing(LocationEvent event) {
+				if (event.location.startsWith("javascript") && event.location.indexOf("back()") > 0) {
+					if (browser.isBackEnabled()) {
+						browser.back();
+					} else if (lastValidURL != null) {
+						fillWithRetry(event.location);
+					}
+					return;
+				}
 				boolean isWebURL = event.location.startsWith("http://")
 						|| event.location.startsWith("https://");
 				if (!isWebURL) {
+					if (event.location.startsWith("res://") && lastValidURL != null) {
+						fillWithRetry(event.location);
+					}
 					// we don't get a changed state on non URLs (mailto, javascript, etc)
 					return;
 				}
@@ -206,6 +227,7 @@ public class BrowserContext
 					event.doit = false;
 					browser.back();
 				} else {
+					lastValidURL = event.location;
 					if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 						widgetWaitIndicator.setVisible(true);
 					}
