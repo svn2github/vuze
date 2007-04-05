@@ -159,7 +159,8 @@ DownloadManagerEnhancer
 							
 							DownloadManager download = (DownloadManager)downloads.get(i);
 							
-							if ( download.getState() == DownloadManager.STATE_DOWNLOADING ){
+							if ( 	download.getState() == DownloadManager.STATE_DOWNLOADING ||
+									download.getState() == DownloadManager.STATE_SEEDING ){
 								
 								getEnhancedDownload( download ).checkSpeed( tick_count );
 							}
