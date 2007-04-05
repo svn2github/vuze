@@ -131,7 +131,7 @@ public class WelcomeWindow {
 		if (sWhatsNew == null || sWhatsNew.length() == 0) {
 			String helpFile = MessageText.getString("window.welcome.file");
 			String helpFullPath = "/org/gudy/azureus2/internat/whatsnew/" + helpFile;
-			if (COConfigurationManager.getStringParameter("ui", "").equals("az3")) {
+			if (COConfigurationManager.getStringParameter("ui").equals("az3")) {
 				helpFullPath = "/ChangeLog.v3.txt";
 			}
 			InputStream stream = getClass().getResourceAsStream(helpFullPath);
