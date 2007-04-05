@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.IPToHostNameResolver;
 import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.peer.cache.cachelogic.CLCacheDiscovery;
 
@@ -212,6 +213,7 @@ CacheDiscovery
 		private int				type;
 		private InetAddress		address;
 		private int				port;
+		private long			create_time;
 		private long			inject_time;
 		private long			speed_change_time;
 		private boolean			auto_reconnect	= true;
@@ -225,6 +227,8 @@ CacheDiscovery
 			type	= _type;
 			address	= _address;
 			port	= _port;
+			
+			create_time	= SystemTime.getCurrentTime();
 		}
 		
 		public int
@@ -243,6 +247,18 @@ CacheDiscovery
 		getPort()
 		{
 			return( port );
+		}
+		
+		public long
+		getCreateTime(
+			long	now )
+		{
+			if ( create_time > now ){
+				
+				create_time	= now;
+			}
+			
+			return( create_time );
 		}
 		
 		public long

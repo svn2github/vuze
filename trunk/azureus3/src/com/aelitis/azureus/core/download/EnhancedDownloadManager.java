@@ -57,6 +57,9 @@ EnhancedDownloadManager
 	public static final int PEER_INJECT_GRACE_PERIOD	= 3*1000;
 	public static final int IDLE_PEER_DISCONNECT_PERIOD	= 60*1000;
 	public static final int IDLE_SEED_DISCONNECT_PERIOD = 60*1000;
+	public static final int MIN_SEED_CONNECTION_TIME	= 60*1000;
+	
+	public static final int IDLE_SEED_DISCONNECT_SECS	= IDLE_SEED_DISCONNECT_PERIOD/1000;
 	
 	public static final int CACHE_RECONNECT_MIN_PERIOD	= 15*60*1000;
 	public static final int CACHE_REQUERY_MIN_PERIOD	= 60*60*1000;
@@ -420,11 +423,13 @@ EnhancedDownloadManager
 									
 									if ( state == DownloadManager.STATE_SEEDING ){
 										
-										if ( secs_since_last_up >= IDLE_SEED_DISCONNECT_PERIOD / 1000 ){
+										if ( 	now - cache_peer.getCreateTime( now ) >= MIN_SEED_CONNECTION_TIME &&
+												secs_since_last_up >= IDLE_SEED_DISCONNECT_SECS ){
 
 											peers_to_kick.add( peer );
 											
 											addToDisconnectedCachePeers( cache_peer );
+											
 										}else{
 											
 											if ( cache_peers == null ){
@@ -725,7 +730,8 @@ EnhancedDownloadManager
 
 						if ( state == DownloadManager.STATE_SEEDING ){
 							
-							if ( secs_since_last_up >= IDLE_SEED_DISCONNECT_PERIOD / 1000 ){
+							if ( 	now - cache_peer.getCreateTime( now ) >= MIN_SEED_CONNECTION_TIME &&
+									secs_since_last_up >= IDLE_SEED_DISCONNECT_SECS ){
 
 								peers_to_kick.add( peer );
 								

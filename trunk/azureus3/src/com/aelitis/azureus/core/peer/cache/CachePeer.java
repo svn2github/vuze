@@ -41,6 +41,10 @@ CachePeer
 	getPort();
 	
 	public long
+	getCreateTime(
+		long	now );
+	
+	public long
 	getInjectTime(
 		long	now );
 	
