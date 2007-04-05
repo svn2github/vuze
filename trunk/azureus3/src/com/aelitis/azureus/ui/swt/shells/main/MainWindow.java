@@ -960,6 +960,7 @@ public class MainWindow
 		Composite cArea = (Composite) skinObject.getControl();
 
 		final Text text = new Text(cArea, SWT.NONE);
+		text.setTextLimit(254);
 		text.setLayoutData(Utils.getFilledFormData());
 		final String sDefault = MessageText.getString("MainWindow.v3.search.defaultText");
 		text.setForeground(ColorCache.getColor(text.getDisplay(), 127, 127, 127));
