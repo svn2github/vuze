@@ -149,8 +149,8 @@ public class BrowserContext
 					browser.setVisible(true);
 				}
 				
-				browser.execute("if (azureusClientWelcome) { azureusClientWelcome('" 
-						+ Constants.AZID + "'); }");
+				browser.execute("try { if (azureusClientWelcome) { azureusClientWelcome('" 
+						+ Constants.AZID + "'); } } catch (e) {}");
 
 				if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()
 						|| System.getProperty("debug.https", null) != null) {
