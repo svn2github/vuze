@@ -3,7 +3,8 @@ AZUREUS v3 CHANGELOG
 
 2007.0x.xx | Azureus 3.0.1.1
 
-2007.04.04 | Azureus 3.0.1.0
+
+2007.04.05 | Azureus 3.0.1.0
 
 FEATURE: Message boxes that are related to content now display a thumbnail  
 
