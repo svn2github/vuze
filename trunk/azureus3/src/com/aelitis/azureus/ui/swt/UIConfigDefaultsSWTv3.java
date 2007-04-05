@@ -127,6 +127,8 @@ public class UIConfigDefaultsSWTv3
 			defaults.addParameter("window.maximized", true);
 
 			defaults.addParameter("update.autodownload", true);
+			
+			defaults.addParameter("bFirstPriority_ignore0Peer", true);
 
 			config.save();
 		}
