@@ -57,7 +57,7 @@ public class ReadController implements AzureusCoreStatsProvider{
 				parameterChanged(
 					String name )
 				{
-					IDLE_SLEEP_TIME 	= COConfigurationManager.getIntParameter( name );
+					IDLE_SLEEP_TIME 	= COConfigurationManager.getIntParameter( "network.control.read.idle.time" );
 					AGGRESIVE_READ		= COConfigurationManager.getBooleanParameter( "network.control.read.aggressive" );
 				}
 			});
