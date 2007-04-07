@@ -42,11 +42,15 @@ import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
  */
 public class ReadController implements AzureusCoreStatsProvider{
 	
-	private static int IDLE_SLEEP_TIME  = 50;
-	   
+	private static int 		IDLE_SLEEP_TIME  	= 50;
+	private static boolean	AGGRESIVE_READ		= false;
+	
 	static{
-		COConfigurationManager.addAndFireParameterListener(
-			"network.control.read.idle.time",
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"network.control.read.idle.time",
+				"network.control.read.aggressive",
+			},
 			new ParameterListener()
 			{
 				public void 
@@ -54,6 +58,7 @@ public class ReadController implements AzureusCoreStatsProvider{
 					String name )
 				{
 					IDLE_SLEEP_TIME 	= COConfigurationManager.getIntParameter( name );
+					AGGRESIVE_READ		= COConfigurationManager.getBooleanParameter( "network.control.read.aggressive" );
 				}
 			});
 	}
@@ -254,26 +259,35 @@ public class ReadController implements AzureusCoreStatsProvider{
   {  
 	  if ( ready_entity != null ){
 		 
-		  if ( ready_entity.doProcessing( read_waiter ) ) {
-
-			  progress_count++;
-
-			  return( true );
-
+		  if ( AGGRESIVE_READ ){
+			  
+			  	// skip over failed readers to find a good one
+			  
+			  if ( ready_entity.doProcessing( read_waiter ) ) {
+	
+				  progress_count++;
+	
+				  return( true );
+	
+			  }else{
+				  
+				  non_progress_count++;
+	
+				  if ( entity_check_count - last_entity_check_count >= normal_priority_entities.size() + high_priority_entities.size() ){
+	
+					  last_entity_check_count	= entity_check_count;
+					  
+					  return( false);
+				  }
+	
+				  return( true );
+			  }
 		  }else{
 			  
-			  non_progress_count++;
-
-			  if ( entity_check_count - last_entity_check_count >= normal_priority_entities.size() + high_priority_entities.size() ){
-
-				  last_entity_check_count	= entity_check_count;
-				  
-				  return( false);
-			  }
-
-			  return( true );
+			  return( ready_entity.doProcessing( read_waiter ));
 		  }
 	  }
+	  
 	  return false;
   }
   
