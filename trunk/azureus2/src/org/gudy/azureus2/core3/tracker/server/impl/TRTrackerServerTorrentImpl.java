@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
+import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 
 
 public class 
@@ -977,8 +978,93 @@ TRTrackerServerTorrentImpl
 				
 				num_want	= max_peers;
 			}
+			
+				// if set this list contains the only peers that are to be returned. It allows a manual
+				// external peer selection algorithm
+			
+			List	explicit_limited_peers 	= null;
+			List	explicit_biased_peers 	= null;
+			Set		remove_ips				= null;
+			
+			if ( requesting_peer != null ){
+				
+				if ( peer_listeners != null ){
+					
+					for (int i=0;i<peer_listeners.size();i++){
+						
+						try{
+							Map reply = ((TRTrackerServerTorrentPeerListener)peer_listeners.get(i)).eventOccurred( this, requesting_peer, TRTrackerServerTorrentPeerListener.ET_ANNOUNCE, null );
+										
+							if ( reply != null ){
+								
+								List	limited_peers = (List)reply.get( "limited_peers" );
+								
+								if ( limited_peers != null ){
+									
+									if ( explicit_limited_peers == null ){
+										
+										explicit_limited_peers = new ArrayList();
+									}
+									
+									for (int j=0;j<limited_peers.size();j++){
+										
+										Map peer_map = (Map)limited_peers.get(j);
+										
+										String	ip 		= (String)peer_map.get("ip");
+										int		port 	= ((Long)peer_map.get( "port")).intValue();
+										
+										String	reuse_key = ip + ":" + port;
+
+										TRTrackerServerPeerImpl peer	= (TRTrackerServerPeerImpl)peer_reuse_map.get( reuse_key );
+
+										if ( peer != null && !explicit_limited_peers.contains( peer )){
+											
+											explicit_limited_peers.add( peer );
+										}
+									}
+								}
+								
+								List	biased_peers = (List)reply.get( "biased_peers" );
+								
+								if ( biased_peers != null ){
+									
+									if ( explicit_biased_peers == null ){
+										
+										explicit_biased_peers = new ArrayList();
+									}
+									
+									for (int j=0;j<biased_peers.size();j++){
+										
+										Map peer_map = (Map)biased_peers.get(j);
+										
+										String	ip 		= (String)peer_map.get("ip");
+										int		port 	= ((Long)peer_map.get( "port")).intValue();
+										
+										String	reuse_key = ip + ":" + port;
+
+										TRTrackerServerPeerImpl peer	= (TRTrackerServerPeerImpl)peer_reuse_map.get( reuse_key );
+
+										if ( peer != null && !explicit_biased_peers.contains( peer )){
+											
+											explicit_biased_peers.add( peer );
+										}
+									}
+								}
+								
+								remove_ips = (Set)reply.get( "remove_ips" );
+							}
+						}catch( Throwable e ){
 							
+							Debug.printStackTrace(e);
+						}
+					}
+				}					
+			}
+			
 			if ( 	caching_enabled &&
+					explicit_limited_peers == null &&
+					explicit_biased_peers == null &&
+					remove_ips == null && 
 					(!nat_warning) &&
 					preprocess_map.size() == 0 &&	// don't cache if we've got pre-process stuff to add
 					cache_millis > 0 &&
@@ -1046,7 +1132,7 @@ TRTrackerServerTorrentImpl
 			
 				// if they want them all simply give them the set
 			
-			if ( num_want > 0 ){
+			if ( num_want > 0 && explicit_limited_peers == null ){
 							
 				if ( num_want >= total_peers){
 			
@@ -1071,6 +1157,16 @@ TRTrackerServerTorrentImpl
 						}else if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE && peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED ){
 							
 							// don't return "crypto required" peers to those that can't correctly connect to them
+							
+						}else if ( 	explicit_biased_peers != null &&
+									peer.isBiased()){
+							
+								// if we have an explicit biased peer list and this peer is biased 
+								// skip here as we add them later
+							
+						}else if ( remove_ips != null && remove_ips.contains( new String( peer.getIP()))){
+
+								// skippy skippy
 							
 						}else if ( include_seeds || !peer.isSeed()){
 							
@@ -1208,7 +1304,7 @@ TRTrackerServerTorrentImpl
 							
 							int	biased_peers_count = 0;
 							
-							if ( biased_peers != null ){
+							if ( biased_peers != null && explicit_biased_peers == null ){
 								
 								if ( biased_peers.size() > 1 ){
 													
@@ -1261,6 +1357,10 @@ TRTrackerServerTorrentImpl
 								}else if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE && peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED ){
 									
 									// don't return "crypto required" peers to those that can't correctly connect to them
+
+								}else if ( remove_ips != null && remove_ips.contains( new String( peer.getIP()))){
+
+									// skippy skippy
 
 								}else if ( include_seeds || !peer.isSeed()){
 							
@@ -1454,6 +1554,7 @@ TRTrackerServerTorrentImpl
 			}
 			
 			if ( 	include_seeds && 
+					explicit_limited_peers == null &&
 					!send_peer_ids &&
 					seed_count < 3 && 
 					queued_peers != null ){
@@ -1473,7 +1574,11 @@ TRTrackerServerTorrentImpl
 					}else if ( crypto_level == TRTrackerServerPeer.CRYPTO_NONE && peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED ){
 							
 							// don't return "crypto required" peers to those that can't correctly connect to them
-							
+						
+					}else if ( remove_ips != null && remove_ips.contains( new String( peer.getIP()))){
+						
+							// skippy skippy
+						
 					}else{
 											
 						Map rep_peer = new HashMap(3);
@@ -1541,6 +1646,30 @@ TRTrackerServerTorrentImpl
 				root.putAll( preprocess_map );
 			}
 			
+			if ( explicit_limited_peers != null ){
+				
+				for (int i=0;i<explicit_limited_peers.size();i++){
+					
+					num_want--;
+					
+					TRTrackerServerPeerImpl peer = (TRTrackerServerPeerImpl)explicit_limited_peers.get(i);
+					
+					exportPeer(rep_peers, peer, send_peer_ids, compact_mode, crypto_level, network_position);
+				}
+			}
+			
+			if ( explicit_biased_peers != null ){
+				
+				for (int i=0;i<explicit_biased_peers.size();i++){
+					
+					num_want--;
+					
+					TRTrackerServerPeerImpl peer = (TRTrackerServerPeerImpl)explicit_biased_peers.get(i);
+					
+					exportPeer(rep_peers, peer, send_peer_ids, compact_mode, crypto_level, network_position);
+				}
+			}
+		
 			if ( add_explicit_peers && num_want > 0 ){
 								
 				if ( requesting_peer != null && !requesting_peer.isSeed()){
@@ -1868,6 +1997,91 @@ TRTrackerServerTorrentImpl
 		}
 	}
 		
+	
+	private void
+	exportPeer(
+		LinkedList				rep_peers,
+		TRTrackerServerPeerImpl	peer,
+		boolean					send_peer_ids,
+		byte					compact_mode,
+		byte					crypto_level,
+		DHTNetworkPosition		network_position )
+	{
+		Map rep_peer = new HashMap(3);
+		
+		if ( send_peer_ids ){
+			
+			rep_peer.put( "peer id", peer.getPeerId().getHash());
+		}
+		
+		if ( compact_mode != COMPACT_MODE_NONE ){
+			
+			byte[]	peer_bytes = peer.getIPBytes();
+			
+			if ( peer_bytes == null ){
+													
+				return;
+			}
+			
+			rep_peer.put( "ip", peer_bytes );
+			
+			if ( compact_mode >= COMPACT_MODE_AZ ){
+				
+				rep_peer.put( "azver", new Long( peer.getAZVer()));
+				
+				rep_peer.put( "azudp", new Long( peer.getUDPPort()));
+				
+				if ( peer.isSeed()){
+					
+					rep_peer.put( "azhttp", new Long( peer.getHTTPPort()));
+				}
+				
+				if ( compact_mode >= COMPACT_MODE_XML ){
+					
+					rep_peer.put( "ip", peer.getIPAsRead() );
+
+				}else{
+					
+					rep_peer.put( "azup", new Long( peer.getUpSpeed()));
+					
+					if ( peer.isBiased()){
+						
+						rep_peer.put( "azbiased", "" );
+					}
+
+					if ( network_position != null ){
+																				
+						DHTNetworkPosition	peer_pos = peer.getNetworkPosition();
+						
+						if ( peer_pos != null && network_position.getPositionType() == peer_pos.getPositionType()){
+							
+							rep_peer.put( "azrtt", new Long( (long)peer_pos.estimateRTT(network_position )));
+						}
+					}
+				}
+			}
+		}else{
+			
+			rep_peer.put( "ip", peer.getIPAsRead() );
+		}
+		
+		rep_peer.put( "port", new Long( peer.getTCPPort()));	
+		
+		if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
+			
+			rep_peer.put( "crypto_flag", new Long( peer.getCryptoLevel() == TRTrackerServerPeer.CRYPTO_REQUIRED?1:0));
+		}
+
+		if ( peer.isBiased()){
+														
+			rep_peers.addFirst( rep_peer );
+			
+		}else{
+		
+			rep_peers.addLast( rep_peer );
+		}
+	}
+	
 	public Map
 	exportScrapeToMap(
 		String		url_parameters,

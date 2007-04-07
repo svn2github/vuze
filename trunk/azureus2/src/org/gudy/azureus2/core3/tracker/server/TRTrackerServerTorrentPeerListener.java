@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.tracker.server;
 
+import java.util.Map;
+
 public interface
 TRTrackerServerTorrentPeerListener 
 {
@@ -37,7 +39,10 @@ TRTrackerServerTorrentPeerListener
 	public static final int	ET_TOO_MANY_PEERS	= 6;		// peer removed due to too many peers
 	public static final int	ET_FAILED			= 7;		// eventOccurred method threw exception
 	
-	public void
+	public static final int	ET_ANNOUNCE			= 8;		// announce event - reply can contain List of explicit peers to return
+
+	
+	public Map
 	eventOccurred(
 		TRTrackerServerTorrent	torrent,
 		TRTrackerServerPeer		peer,
