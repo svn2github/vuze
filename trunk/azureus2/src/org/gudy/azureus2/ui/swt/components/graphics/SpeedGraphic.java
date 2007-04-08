@@ -20,14 +20,19 @@
  */
 package org.gudy.azureus2.ui.swt.components.graphics;
 
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Canvas;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 /**
@@ -70,6 +75,22 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     
     COConfigurationManager.addParameterListener("Graphics Update",this);
     parameterChanged("Graphics Update");
+  }
+  
+  public void initialize(Canvas canvas) {
+  	super.initialize(canvas);
+  	
+  	drawCanvas.addPaintListener(new PaintListener() {
+			public void paintControl(PaintEvent e) {
+				if (bufferImage != null && !bufferImage.isDisposed()) {
+					Rectangle bounds = bufferImage.getBounds();
+					if (bounds.width >= e.width && bounds.height >= e.height) {
+						e.gc.drawImage(bufferImage, e.x, e.y, e.width, e.height, e.x, e.y,
+								e.width, e.height);
+					}
+				}
+			}
+		});
   }
   
   public static SpeedGraphic getInstance() {
