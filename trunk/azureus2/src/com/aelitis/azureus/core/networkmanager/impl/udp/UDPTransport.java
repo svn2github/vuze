@@ -130,104 +130,9 @@ UDPTransport
 			return;
 		}
 		
-		UDPTransportHelper	helper = null;
-
-		try{
-			listener.connectAttemptStarted();
-
-			helper = 
-	 			new UDPTransportHelper( 
-	 					UDPNetworkManager.getSingleton().getConnectionManager(), 
-	 					endpoint.getAddress(),
-	 					this );
-	 		
-			final UDPTransportHelper f_helper = helper;
-			
-	    	TransportCryptoManager.getSingleton().manageCrypto( 
-	    			helper, 
-	    			shared_secrets, 
-	    			false, 
-	    			initial_data,
-	    			new TransportCryptoManager.HandshakeListener() 
-	    			{
-	    				public void 
-	    				handshakeSuccess( 
-	    					ProtocolDecoder	decoder,
-	    					ByteBuffer		remaining_initial_data )
-	    				{
-	    					TransportHelperFilter	filter = decoder.getFilter();
-	    					
-	    					try{
-		    					setFilter( filter );
-		    					
-		    					if ( closed ){
-		    						
-		    						close( "Already closed" );
-		    						
-		    						listener.connectFailure( new Exception( "Connection already closed" ));
-		    						
-		    					}else{
-		    						
-			    		   			if ( Logger.isEnabled()){
-			    		    		
-			    		   				Logger.log(new LogEvent(LOGID, "Outgoing UDP stream to " + endpoint.getAddress() + " established, type = " + filter.getName()));
-			    		    		}
-			    		   			
-			    		   			connectedOutbound();
-			    		   			
-			    		   			listener.connectSuccess( UDPTransport.this, remaining_initial_data );
-		    					}
-	    					}catch( Throwable e ){
-	    						
-	    						Debug.printStackTrace(e);
-	    						
-	    						close( Debug.getNestedExceptionMessageAndStack(e));
-	    						
-	    						listener.connectFailure( e );
-	    					}
-	    				}
-	
-	    				public void 
-	    				handshakeFailure( 
-	    					Throwable failure_msg )
-	    				{
-	    					f_helper.close( Debug.getNestedExceptionMessageAndStack(failure_msg));
-	    					
-	    					listener.connectFailure( failure_msg );
-	    				}
-	    				
-	    				public void
-	    				gotSecret(
-							byte[]				session_secret )
-	    				{
-	    					f_helper.getConnection().setSecret( session_secret );
-	    				}
-	    				
-	    				public int 
-	    				getMaximumPlainHeaderLength()
-	    				{
-	    		   			throw( new RuntimeException());	// this is outgoing
-	    				}
-	    				
-	    				public int 
-	    				matchPlainHeader( 
-	    					ByteBuffer buffer )
-	    				{
-	    					throw( new RuntimeException());	// this is outgoing
-	    				}
-	    			});
-	    	
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
-			
-			if ( helper != null ){
-			
-				helper.close( Debug.getNestedExceptionMessage( e ));
-			}
-				
-			listener.connectFailure( e );
-		}
+		UDPConnectionManager	con_man = UDPNetworkManager.getSingleton().getConnectionManager();
+		
+		con_man.connectOutbound( this, endpoint.getAddress(), shared_secrets, initial_data, listener);
 	}
 	  
 	public void 
@@ -247,5 +152,11 @@ UDPTransport
 			
 			setFilter( null );
 		}
+	}
+	
+	public boolean
+	isClosed()
+	{
+		return( closed );
 	}
 }

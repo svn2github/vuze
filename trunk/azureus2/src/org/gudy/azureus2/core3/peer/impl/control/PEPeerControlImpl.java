@@ -41,7 +41,8 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.control.*;
@@ -3167,19 +3168,25 @@ PEPeerControlImpl
 			if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
 				final int free = getMaxConnections() / 20;  //leave 5%
 				allowed = allowed - free;
-			}
-			
+			}	
+
 			if( allowed > 0 ) {
-				//try and connect only as many as necessary
-				final int wanted = ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - num_waiting_establishments;
+					//try and connect only as many as necessary
+				
+				final int wanted = TCPConnectionManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - num_waiting_establishments;
+				
 				if( wanted > allowed ) {
 					num_waiting_establishments += wanted - allowed;
 				}
 				
 				int	remaining = allowed;
 				
+				int	tcp_remaining = TCPNetworkManager.getSingleton().getConnectDisconnectManager().getMaxOutboundPermitted();
+				
+				int	udp_remaining = UDPNetworkManager.getSingleton().getConnectionManager().getMaxOutboundPermitted();
+								
 				//load stored peer-infos to be established
-				while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {        	
+				while( num_waiting_establishments < TCPConnectionManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS && ( tcp_remaining > 0 || udp_remaining > 0 )){        	
 					if( !is_running )  break;        	
 
 					final PeerItem item = peer_database.getNextOptimisticConnectPeer();
@@ -3196,18 +3203,22 @@ PEPeerControlImpl
 
 						final boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
 
-						if ( TCPNetworkManager.TCP_OUTGOING_ENABLED && item.getTCPPort() > 0 ){
+						if ( TCPNetworkManager.TCP_OUTGOING_ENABLED && item.getTCPPort() > 0 && tcp_remaining > 0 ){
 							
 							if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), true, use_crypto, item.getCryptoLevel()) == null) {
+								
+								tcp_remaining--;
 								
 								num_waiting_establishments++;
 								
 								remaining--;
 							}
-						}else if ( UDPNetworkManager.UDP_OUTGOING_ENABLED && item.getUDPPort() > 0 ){
+						}else if ( UDPNetworkManager.UDP_OUTGOING_ENABLED && item.getUDPPort() > 0 && udp_remaining > 0 ){
 								
 							if ( makeNewOutgoingConnection( source, item.getAddressString(), item.getTCPPort(), item.getUDPPort(), false, use_crypto, item.getCryptoLevel() ) == null) {
 									
+								udp_remaining--;
+								
 								num_waiting_establishments++;
 									
 								remaining--;
@@ -3218,8 +3229,9 @@ PEPeerControlImpl
 				
 				if ( 	UDPNetworkManager.UDP_OUTGOING_ENABLED &&
 						remaining > 0 &&
+						udp_remaining > 0 && 
 						udp_connections < MAX_UDP_CONNECTIONS &&
-						num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ){
+						num_waiting_establishments < TCPConnectionManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ){
 					
 					doUDPConnectionChecks( remaining );
 				}

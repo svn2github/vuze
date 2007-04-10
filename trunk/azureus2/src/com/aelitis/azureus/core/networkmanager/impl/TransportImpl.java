@@ -346,7 +346,7 @@ TransportImpl
 		registerSelectHandling();
 	}
 	
-	protected void
+	public void
 	connectedOutbound()
 	{
 		registerSelectHandling();

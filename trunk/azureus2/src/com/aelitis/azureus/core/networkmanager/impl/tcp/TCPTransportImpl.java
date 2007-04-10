@@ -49,7 +49,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 
 
   
-  private ConnectDisconnectManager.ConnectListener connect_request_key = null;
+  private TCPConnectionManager.ConnectListener connect_request_key = null;
   private String description = "<disconnected>";
   private final boolean is_inbound_connection;
   
@@ -175,7 +175,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     
     final InetSocketAddress	address = protocol_endpoint.getAddress();
     
-    ConnectDisconnectManager.ConnectListener connect_listener = new ConnectDisconnectManager.ConnectListener() {
+    TCPConnectionManager.ConnectListener connect_listener = new TCPConnectionManager.ConnectListener() {
       public void connectAttemptStarted() {
         listener.connectAttemptStarted();
       }

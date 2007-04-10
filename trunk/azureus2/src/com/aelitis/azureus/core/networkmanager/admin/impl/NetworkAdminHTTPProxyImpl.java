@@ -37,7 +37,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminHTTPProxy;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.ConnectDisconnectManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPTransportHelperFilterFactory;
@@ -158,8 +158,8 @@ NetworkAdminHTTPProxyImpl
 			
 			final InetSocketAddress	target_address = new InetSocketAddress( TARGET_HOST, TARGET_PORT );
 			
-			ConnectDisconnectManager.ConnectListener connect_listener = 
-				new ConnectDisconnectManager.ConnectListener() 
+			TCPConnectionManager.ConnectListener connect_listener = 
+				new TCPConnectionManager.ConnectListener() 
 				{
 					public void 
 					connectAttemptStarted() 

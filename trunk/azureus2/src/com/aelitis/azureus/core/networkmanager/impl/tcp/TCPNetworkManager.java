@@ -104,7 +104,7 @@ TCPNetworkManager
 	private final VirtualChannelSelector write_selector = 
 			new VirtualChannelSelector( "TCP network manager", VirtualChannelSelector.OP_WRITE, true );
 
-	private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();
+	private final TCPConnectionManager connect_disconnect_manager = new TCPConnectionManager();
 
 	private final IncomingSocketChannelManager incoming_socketchannel_manager = 
 		new IncomingSocketChannelManager( "TCP.Listen.Port", "TCP.Listen.Port.Enable" );	  
@@ -219,7 +219,7 @@ TCPNetworkManager
 	 * Get the socket channel connect / disconnect manager.
 	 * @return connect manager
 	 */
-	public ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
+	public TCPConnectionManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
 
 
 

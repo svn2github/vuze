@@ -42,11 +42,14 @@ import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 /**
  * Manages new connection establishment and ended connection termination.
  */
-public class ConnectDisconnectManager {
+public class TCPConnectionManager {
   private static final LogIDs LOGID = LogIDs.NWMAN;
 
   private static int MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = 3;  
   public static int MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = 5;  //NOTE: WinXP SP2 limits to 10 max at any given time
+  
+  private static int max_outbound_connections;
+  
   static {
     MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = COConfigurationManager.getIntParameter( "network.max.simultaneous.connect.attempts" );
     
@@ -70,7 +73,22 @@ public class ConnectDisconnectManager {
         }
       }
     });
+    
+	COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+			    "network.tcp.max.connections.outstanding",
+			},
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					max_outbound_connections = COConfigurationManager.getIntParameter( "network.tcp.max.connections.outstanding", 2048 );
+				}
+			});
   }
+  
   
   private static final int CONNECT_ATTEMPT_TIMEOUT = 30*1000;  //30sec
   private static final int CONNECT_ATTEMPT_STALL_TIME = 3*1000;  //3sec
@@ -91,10 +109,11 @@ public class ConnectDisconnectManager {
      
   private final Random random = new Random();
   
+  private boolean max_conn_exceeded_logged;
   
   
   public 
-  ConnectDisconnectManager() 
+  TCPConnectionManager() 
   {
 	  Set	types = new HashSet();
 	  
@@ -153,6 +172,11 @@ public class ConnectDisconnectManager {
     }
   }
   
+	public int
+	getMaxOutboundPermitted()
+	{
+		return( Math.max( max_outbound_connections - new_requests.size(), 0 ));
+	}
   
   private void addNewOutboundRequests() {    
     while( pending_attempts.size() < MIN_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
@@ -533,6 +557,16 @@ public class ConnectDisconnectManager {
 	      //connect attempts if there are multiple torrents running
 	      int insert_pos = random.nextInt( new_requests.size() + 1 );
 	      new_requests.add( insert_pos, cr );
+	      
+	      if ( new_requests.size() >= max_outbound_connections ){
+			
+	    	if ( !max_conn_exceeded_logged ){
+	    		
+	    		max_conn_exceeded_logged = true;
+	    	
+	    		Debug.out( "TCPConnectionManager: max outbound connection limit reached (" + max_outbound_connections + ")" );
+	    	}
+	      }
 	    }finally{
 	    	
 	      new_canceled_mon.exit();

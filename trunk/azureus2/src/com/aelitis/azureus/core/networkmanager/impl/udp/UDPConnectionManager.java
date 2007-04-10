@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
+import com.aelitis.azureus.core.networkmanager.Transport.ConnectListener;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
@@ -54,17 +55,23 @@ UDPConnectionManager
 	private static final boolean	FORCE_LOG	= false;
 	
 	private static boolean	LOG = false;
-	
+	private static int max_outbound_connections;
+
 	static{
-		COConfigurationManager.addAndFireParameterListener(
-				"Logging Enable UDP Transport",
+		COConfigurationManager.addAndFireParameterListeners(
+				new String[]{
+				    "Logging Enable UDP Transport",
+				    "network.udp.max.connections.outstanding",
+				},
 				new ParameterListener()
 				{
 					public void 
 					parameterChanged(
 						String name )
 					{
-						LOG = FORCE_LOG || COConfigurationManager.getBooleanParameter( name );
+						LOG = FORCE_LOG || COConfigurationManager.getBooleanParameter( "Logging Enable UDP Transport" );
+						
+						max_outbound_connections = COConfigurationManager.getIntParameter( "network.udp.max.connections.outstanding", 2048 );
 					}
 				});
 	}
@@ -102,6 +109,8 @@ UDPConnectionManager
 	private int setup_discard_packets;
 	private int	setup_discard_bytes;
 	
+	private int outbound_connection_count;
+	private boolean	max_conn_exceeded_logged;
 	
 	protected
 	UDPConnectionManager()
@@ -114,6 +123,161 @@ UDPConnectionManager
 			
 			network_glue = new NetworkGlueUDP( this );
 		}
+	}
+	
+	public void
+	connectOutbound(
+		final UDPTransport			udp_transport,
+		final InetSocketAddress		address,
+		byte[][]					shared_secrets,
+		ByteBuffer					initial_data,
+		final ConnectListener 		listener )
+	{		
+		UDPTransportHelper	helper = null;
+
+		try{
+			listener.connectAttemptStarted();
+			
+			helper = new UDPTransportHelper( this, address, udp_transport );
+	 		
+			final UDPTransportHelper f_helper = helper;
+			
+			synchronized( this ){
+				
+				outbound_connection_count++;
+				
+				if ( outbound_connection_count >= max_outbound_connections ){
+			    	
+					if ( !max_conn_exceeded_logged ){
+			    		
+						max_conn_exceeded_logged = true;
+			    	
+			    		Debug.out( "UDPConnectionManager: max outbound connection limit reached (" + max_outbound_connections + ")" );
+					}
+				}
+			}
+			
+			try{
+		    	TransportCryptoManager.getSingleton().manageCrypto( 
+	    			helper, 
+	    			shared_secrets, 
+	    			false, 
+	    			initial_data,
+	    			new TransportCryptoManager.HandshakeListener() 
+	    			{
+	    				public void 
+	    				handshakeSuccess( 
+	    					ProtocolDecoder	decoder,
+	    					ByteBuffer		remaining_initial_data )
+	    				{
+	    					synchronized( this ){
+	    						
+	    						if ( outbound_connection_count > 0 ){
+
+	    							outbound_connection_count--;
+	    						}
+	    					}
+	    					
+	    					TransportHelperFilter	filter = decoder.getFilter();
+	    					
+	    					try{
+	    						udp_transport.setFilter( filter );
+		    					
+		    					if ( udp_transport.isClosed()){
+		    						
+		    						udp_transport.close( "Already closed" );
+		    						
+		    						listener.connectFailure( new Exception( "Connection already closed" ));
+		    						
+		    					}else{
+		    						
+			    		   			if ( Logger.isEnabled()){
+			    		    		
+			    		   				Logger.log(new LogEvent(LOGID, "Outgoing UDP stream to " + address + " established, type = " + filter.getName()));
+			    		    		}
+			    		   			
+			    		   			udp_transport.connectedOutbound();
+			    		   			
+			    		   			listener.connectSuccess( udp_transport, remaining_initial_data );
+		    					}
+	    					}catch( Throwable e ){
+	    						
+	    						Debug.printStackTrace(e);
+	    						
+	    						udp_transport.close( Debug.getNestedExceptionMessageAndStack(e));
+	    						
+	    						listener.connectFailure( e );
+	    					}
+	    				}
+	
+	    				public void 
+	    				handshakeFailure( 
+	    					Throwable failure_msg )
+	    				{
+	    					synchronized( this ){
+	    						
+	    						if ( outbound_connection_count > 0 ){
+
+	    							outbound_connection_count--;
+	    						}
+	    					}
+	    					
+	    					f_helper.close( Debug.getNestedExceptionMessageAndStack(failure_msg));
+	    					
+	    					listener.connectFailure( failure_msg );
+	    				}
+	    				
+	    				public void
+	    				gotSecret(
+							byte[]				session_secret )
+	    				{
+	    					f_helper.getConnection().setSecret( session_secret );
+	    				}
+	    				
+	    				public int 
+	    				getMaximumPlainHeaderLength()
+	    				{
+	    		   			throw( new RuntimeException());	// this is outgoing
+	    				}
+	    				
+	    				public int 
+	    				matchPlainHeader( 
+	    					ByteBuffer buffer )
+	    				{
+	    					throw( new RuntimeException());	// this is outgoing
+	    				}
+	    			});
+		    	
+			}catch( Throwable e ){
+				
+				synchronized( this ){
+					
+					if ( outbound_connection_count > 0 ){
+						
+						outbound_connection_count--;
+					}
+				}
+				
+				throw( e );
+			}
+	    	
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			if ( helper != null ){
+			
+				helper.close( Debug.getNestedExceptionMessage( e ));
+			}
+				
+			listener.connectFailure( e );
+		}
+	}
+	
+	public int
+	getMaxOutboundPermitted()
+	{
+		return( Math.max( max_outbound_connections - outbound_connection_count, 0 ));
 	}
 	
 	protected UDPSelector
