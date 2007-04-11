@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -374,9 +375,13 @@ public class Wizard {
     wizardWindow.open();
     
     while (!wizardWindow.isDisposed()) {
-			if (!display.readAndDispatch()) {
-				display.sleep();
-			}
+    	try {
+  			if (!display.readAndDispatch()) {
+  				display.sleep();
+  			}
+    	} catch (Exception e) {
+    		Debug.out(e);
+    	}
 		}
   }
 
