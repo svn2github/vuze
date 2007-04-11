@@ -151,12 +151,13 @@ PluginInitializer
 	   				"azlocaltracker", 
 	   				"azlocaltracker",
 					"true" },
+			/* disable until we can get some tracker admins to work on this
 	   		{	 PluginManagerDefaults.PID_TRACKER_PEER_AUTH, 
 					"com.aelitis.azureus.plugins.tracker.peerauth.TrackerPeerAuthPlugin", 
 					"aztrackerpeerauth", 
 					"aztrackerpeerauth",
 					"true" },
-
+			*/
         };
  
   
