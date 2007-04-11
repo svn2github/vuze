@@ -327,7 +327,7 @@ public class MainWindow
 		// XXX Temporary.  We'll use our own images
 		ImageRepository.loadImagesForSplashWindow(display);
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/azureus.jpg",
-		"azureus_splash");
+				"azureus_splash");
 
 		ImageRepository.loadImages(display);
 
@@ -510,7 +510,7 @@ public class MainWindow
 		startTime = SystemTime.getCurrentTime();
 	}
 
-  public boolean dispose(final boolean for_restart,
+	public boolean dispose(final boolean for_restart,
 			final boolean close_already_in_progress) {
 		if (disposedOrDisposing) {
 			return true;
@@ -521,9 +521,9 @@ public class MainWindow
 						return _dispose(for_restart, close_already_in_progress);
 					}
 				});
-  }
+	}
 
-  public boolean _dispose(boolean bForRestart, boolean bCloseAlreadyInProgress) {
+	public boolean _dispose(boolean bForRestart, boolean bCloseAlreadyInProgress) {
 		if (disposedOrDisposing) {
 			return true;
 		}
@@ -754,7 +754,7 @@ public class MainWindow
 							torrent = dm.getTorrent();
 						} else {
 							torrent = (TOTorrent) LogRelationUtils.queryForClass(
-								relatedObjects, TOTorrent.class);
+									relatedObjects, TOTorrent.class);
 						}
 
 						if (torrent != null) {
@@ -841,7 +841,7 @@ public class MainWindow
 											Rectangle imgBounds = img.getBounds();
 											double pct = 35.0 / imgBounds.height;
 											int w = (int) (imgBounds.width * pct);
-											
+
 											try {
 												gc.setAdvanced(true);
 												gc.setInterpolation(SWT.HIGH);
@@ -1278,9 +1278,9 @@ public class MainWindow
 	/**
 	 * 
 	 */
-	private void createOldMainWindow() {
+	private org.gudy.azureus2.ui.swt.mainwindow.MainWindow createOldMainWindow() {
 		if (oldMainWindow != null || disposedOrDisposing) {
-			return;
+			return oldMainWindow;
 		}
 
 		if (uiSWTInstanceImpl == null) {
@@ -1288,44 +1288,55 @@ public class MainWindow
 					+ Debug.getCompressedStackTrace());
 		}
 
-		SWTSkinObject skinObject = skin.getSkinObject("advanced");
-		if (skinObject != null) {
-			Composite cArea = (Composite) skinObject.getControl();
+		return (org.gudy.azureus2.ui.swt.mainwindow.MainWindow) Utils.execSWTThreadWithObject(
+				"createOldMainWindow", new AERunnableObject() {
 
-			Label lblWait = new Label(cArea, SWT.CENTER);
-			FormData formData = new FormData();
-			formData.left = new FormAttachment(0, 0);
-			formData.right = new FormAttachment(100, 0);
-			formData.top = new FormAttachment(0, 0);
-			formData.bottom = new FormAttachment(100, 0);
-			lblWait.setLayoutData(formData);
-			lblWait.setForeground(skinObject.getProperties().getColor("color.row.fg"));
-			Messages.setLanguageText(lblWait, "MainWindow.v3.view.wait");
-			cArea.layout(true);
-			lblWait.update();
+					public Object runSupport() {
 
-			cArea.setBackground(cArea.getShell().getBackground());
+						SWTSkinObject skinObject = skin.getSkinObject("advanced");
+						if (skinObject != null) {
+							Composite cArea = (Composite) skinObject.getControl();
 
-			oldMainWindow = new org.gudy.azureus2.ui.swt.mainwindow.MainWindow(core,
-					null, cArea.getShell(), cArea, uiSWTInstanceImpl);
-			oldMainWindow.setShowMainWindow(false);
-			oldMainWindow.runSupport();
+							Label lblWait = new Label(cArea, SWT.CENTER);
+							FormData formData = new FormData();
+							formData.left = new FormAttachment(0, 0);
+							formData.right = new FormAttachment(100, 0);
+							formData.top = new FormAttachment(0, 0);
+							formData.bottom = new FormAttachment(100, 0);
+							lblWait.setLayoutData(formData);
+							lblWait.setForeground(skinObject.getProperties().getColor(
+									"color.row.fg"));
+							Messages.setLanguageText(lblWait, "MainWindow.v3.view.wait");
+							cArea.layout(true);
+							lblWait.update();
 
-			oldMainMenu = new org.gudy.azureus2.ui.swt.mainwindow.MainMenu(shell);
-			oldMainMenu.createMenu(core, shell);
-			oldMainMenu.setMainWindow(oldMainWindow);
-			oldMainWindow.setMenu(oldMainMenu);
+							cArea.setBackground(cArea.getShell().getBackground());
 
-			Menu viewMenu = oldMainMenu.getMenu(org.gudy.azureus2.ui.swt.mainwindow.MainMenu.MENU_VIEW);
-			if (viewMenu != null) {
-				menu.addToOldMenuView(viewMenu);
-			}
+							oldMainWindow = new org.gudy.azureus2.ui.swt.mainwindow.MainWindow(
+									core, null, cArea.getShell(), cArea, uiSWTInstanceImpl);
+							oldMainWindow.setShowMainWindow(false);
+							oldMainWindow.runSupport();
 
-			uiFunctions.oldMainWindowInitialized(oldMainWindow);
+							oldMainMenu = new org.gudy.azureus2.ui.swt.mainwindow.MainMenu(
+									shell);
+							oldMainMenu.createMenu(core, shell);
+							oldMainMenu.setMainWindow(oldMainWindow);
+							oldMainWindow.setMenu(oldMainMenu);
 
-			lblWait.dispose();
-			cArea.layout(true);
-		}
+							Menu viewMenu = oldMainMenu.getMenu(org.gudy.azureus2.ui.swt.mainwindow.MainMenu.MENU_VIEW);
+							if (viewMenu != null) {
+								menu.addToOldMenuView(viewMenu);
+							}
+
+							uiFunctions.oldMainWindowInitialized(oldMainWindow);
+
+							lblWait.dispose();
+							cArea.layout(true);
+						}
+						return oldMainWindow;
+					}
+
+				});
 	}
 
 	public org.gudy.azureus2.ui.swt.mainwindow.MainWindow getOldMainWindow(
