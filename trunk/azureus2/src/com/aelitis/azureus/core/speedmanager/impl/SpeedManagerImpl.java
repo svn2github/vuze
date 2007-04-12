@@ -69,6 +69,7 @@ SpeedManagerImpl
 	private static final String	CONFIG_DOWNADJ_ENABLE	= "AutoSpeed Download Adj Enable";
 	private static final String	CONFIG_DOWNADJ_RATIO	= "AutoSpeed Download Adj Ratio";
 	private static final String	CONFIG_LATENCY_FACTOR	= "AutoSpeed Latency Factor";
+	private static final String	CONFIG_FORCED_MIN		= "AutoSpeed Forced Min KBs";
 	private static final String	CONFIG_DEBUG			= "Auto Upload Speed Debug Enabled";
 	
 	private static final String[]	CONFIG_PARAMS = {
@@ -78,6 +79,7 @@ SpeedManagerImpl
 		CONFIG_DOWNADJ_ENABLE,
 		CONFIG_DOWNADJ_RATIO,
 		CONFIG_LATENCY_FACTOR,
+		CONFIG_FORCED_MIN,
 		CONFIG_DEBUG };
 		
 	private static int					PING_CHOKE_TIME;
@@ -89,6 +91,7 @@ SpeedManagerImpl
 	private static int					MAX_INCREMENT;
 	private static int					MAX_DECREMENT;
 	private static int					LATENCY_FACTOR;
+	private static int					FORCED_MIN_SPEED;
 	
 	static{
 		COConfigurationManager.addAndFireParameterListeners(
@@ -111,6 +114,12 @@ SpeedManagerImpl
 						if ( LATENCY_FACTOR < 1 ){
 							LATENCY_FACTOR = 1;
 						}
+
+						FORCED_MIN_SPEED	= COConfigurationManager.getIntParameter( CONFIG_FORCED_MIN ) * 1024;
+
+						if ( FORCED_MIN_SPEED < 1024 ){
+							FORCED_MIN_SPEED = 1024;
+						}
 						
 						DEBUG			= COConfigurationManager.getBooleanParameter( CONFIG_DEBUG );
 						
@@ -128,7 +137,6 @@ SpeedManagerImpl
 	
 	private static final int	FORCED_MIN_TICKS		= 60;			// time we'll force low upload to get baseline
 	private static final int	FORCED_MIN_AT_START_TICK_LIMIT	= 60;	// how long we'll wait on start up before forcing min
-	private static final int	FORCED_MIN_SPEED		= 4*1024;		// speed forced during min period
 	
 	private static final int	PING_AVERAGE_HISTORY_COUNT	= 5;
 

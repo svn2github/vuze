@@ -184,6 +184,17 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 			gridData.widthHint = 40;
 			choke_ping.setLayoutData(gridData);
 			
+				// forced min
+			
+			label = new Label(cSection, SWT.NULL);
+			Messages.setLanguageText( label, CFG_PREFIX + "forcemin", units );
+			
+			final IntParameter forced_min = new IntParameter(cSection,
+					"AutoSpeed Forced Min KBs");
+			gridData = new GridData();
+			gridData.widthHint = 40;
+			forced_min.setLayoutData(gridData);
+
 				// latency
 			
 			label = new Label(cSection, SWT.NULL);
@@ -212,6 +223,7 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 				        	max_decrease.resetToDefault();
 				        	choke_ping.resetToDefault();
 				        	latency_factor.resetToDefault();
+				        	forced_min.resetToDefault();
 				        }
 				    });
 		    
