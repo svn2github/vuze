@@ -7,6 +7,8 @@ FEATURE: Core | Auto-speed: added control for forced-max network speed [Parg]
 
 BUGFIX: Core  | 100% CPU problem in network code under some conditions [Parg]
 
+
+
 2007.04.05 | Azureus 3.0.1.0
 
 FEATURE: Core | Option to clear stored tracker list used for creating torrents [amc1]
