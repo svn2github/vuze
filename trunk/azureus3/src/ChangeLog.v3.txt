@@ -1,7 +1,9 @@
 AZUREUS v3 CHANGELOG
 --------------------
 
-2007.0x.xx | Azureus 3.0.1.1
+2007.04.12 | Azureus 3.0.1.2
+
+100% CPU problem in network code under some conditions
 
 
 2007.04.05 | Azureus 3.0.1.0
