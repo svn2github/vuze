@@ -3,7 +3,7 @@ AZUREUS CHANGELOG
 
 2007.04.12 | Azureus 3.0.1.2
 
-FEATURE: Core | Auto-speed: added control for forced-min network speed [Parg]
+FEATURE: Core | Auto-speed: added control for forced-max network speed [Parg]
 
 BUGFIX: Core  | 100% CPU problem in network code under some conditions [Parg]
 
