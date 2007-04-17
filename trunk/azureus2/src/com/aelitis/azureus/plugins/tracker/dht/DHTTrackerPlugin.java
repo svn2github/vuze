@@ -633,9 +633,16 @@ DHTTrackerPlugin
 		
 		String	register_reason;
 		
+			/*
+			 * Queued downloads are removed from the set to consider as we now have the "presence store"
+			 * mechanism to ensure that there are a number of peers out there to provide torrent download
+			 * if required. This has been done to avoid the large number of registrations that users with
+			 * large numbers of queued torrents were getting.
+			 */
+		
 		if ( 	state == Download.ST_DOWNLOADING 	||
 				state == Download.ST_SEEDING 		||
-				state == Download.ST_QUEUED 		||
+				// state == Download.ST_QUEUED 		||	
 				download.isPaused()){	// pause is a transitory state, don't dereg
 			
 			String[]	networks = download.getListAttribute( ta_networks );
@@ -758,6 +765,13 @@ DHTTrackerPlugin
 					state == Download.ST_ERROR ){
 			
 			register_reason	= "not running";
+			
+		}else if ( 	state == Download.ST_QUEUED ){
+
+				// leave in whatever state it current is (reg or not reg) to avoid thrashing
+				// registrations when seeding rules are start/queueing downloads
+			
+			register_reason	= "";
 			
 		}else{
 			
