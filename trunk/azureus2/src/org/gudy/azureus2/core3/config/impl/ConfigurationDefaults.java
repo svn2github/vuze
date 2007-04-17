@@ -157,6 +157,7 @@ public class ConfigurationDefaults {
     def.put( "AutoSpeed Download Adj Enable", FALSE );
     def.put( "AutoSpeed Download Adj Ratio", "1.0" );
     def.put( "AutoSpeed Latency Factor", new Long(50));
+    def.put( "AutoSpeed Forced Min KBs", new Long(4));
     def.put( "Auto Upload Speed Debug Enabled", FALSE );
     
     def.put( "ASN Autocheck Performed Time", ZERO );
