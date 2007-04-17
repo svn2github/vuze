@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.disk.impl;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -79,6 +80,11 @@ DiskManagerHelper
 	setPercentDone(
 		int			num );
 		
+	public void
+	setPieceDone(
+		DiskManagerPieceImpl	piece,
+		boolean					done );
+	
 	public TOTorrent
 	getTorrent();
 	

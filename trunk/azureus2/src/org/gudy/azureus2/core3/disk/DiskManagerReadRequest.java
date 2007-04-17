@@ -69,4 +69,12 @@ DiskManagerReadRequest
 	
 	public boolean
 	getUseCache();
+	
+	 /**
+	   * We override the equals method
+	   * 2 requests are equals if
+	   * all their bt fields (piece number, offset, length) are equal
+	   */
+	public boolean equals(Object o);
+	public int	hashCode();
 }

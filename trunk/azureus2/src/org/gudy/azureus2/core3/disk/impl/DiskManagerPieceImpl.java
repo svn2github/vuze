@@ -51,7 +51,7 @@ public class DiskManagerPieceImpl
 
     //private static boolean statusTested =false;
 
-    private final DiskManagerImpl	diskManager;
+    private final DiskManagerHelper	diskManager;
 	private final int				pieceNumber;
 
 	/** the number of bytes in this piece */
@@ -78,7 +78,7 @@ public class DiskManagerPieceImpl
     
     private boolean		done;
     
-	protected DiskManagerPieceImpl(final DiskManagerImpl _disk_manager, final int pieceIndex)
+	public DiskManagerPieceImpl(final DiskManagerHelper _disk_manager, final int pieceIndex)
 	{
 		diskManager =_disk_manager;
 		pieceNumber =pieceIndex;
@@ -286,9 +286,12 @@ public class DiskManagerPieceImpl
         }
 	}
 
-	// this is ONLY used by the disk manager to update the done state while synchronized
-	// i.e. don't use it else where!
-	protected void setDoneSupport(final boolean b)
+	/** this is ONLY used by the disk manager to update the done state while synchronized
+	 *i.e. don't use it else where!
+	 * @param b
+	 */
+	
+	public void setDoneSupport(final boolean b)
 	{
         done =b;
         if (done)

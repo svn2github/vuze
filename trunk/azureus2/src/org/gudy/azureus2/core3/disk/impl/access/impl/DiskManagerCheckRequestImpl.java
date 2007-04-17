@@ -34,7 +34,7 @@ DiskManagerCheckRequestImpl
 	private boolean	low_priority;
 	private boolean	ad_hoc		= true;
 	
-	protected 
+	public 
 	DiskManagerCheckRequestImpl(
 		int		_piece_number,
 		Object	_user_data )

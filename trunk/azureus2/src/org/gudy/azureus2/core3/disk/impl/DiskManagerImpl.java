@@ -1098,8 +1098,11 @@ DiskManagerImpl
         allocated   = num;
     }
 
-    // called when status has CHANGED and should only be called by DiskManagerPieceImpl
-    protected void
+    /**
+     *  Called when status has CHANGED and should only be called by DiskManagerPieceImpl
+     */
+    
+    public void
     setPieceDone(
         DiskManagerPieceImpl    dmPiece,
         boolean                 done )
