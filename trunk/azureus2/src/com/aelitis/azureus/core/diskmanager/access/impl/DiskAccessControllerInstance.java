@@ -72,7 +72,7 @@ DiskAccessControllerInstance
 	
 	private long		last_check		= 0;	
 	
-	private Map			request_map	= new HashMap();	
+	private Map			torrent_dispatcher_map	= new HashMap();	
 	
 	private static final int REQUEST_NUM_LOG_CHUNK 		= 100;
 	private static final int REQUEST_BYTE_LOG_CHUNK 	= 1024*1024;
@@ -189,10 +189,7 @@ DiskAccessControllerInstance
 			
 		}else{
 			
-			synchronized( request_map ){
-				
-				int	min_index 	= 0;
-				int	min_size	= Integer.MAX_VALUE;
+			synchronized( torrent_dispatcher_map ){
 				
 				long	now = System.currentTimeMillis();
 				
@@ -206,7 +203,7 @@ DiskAccessControllerInstance
 				
 				if ( check ){
 					
-					Iterator	it = request_map.values().iterator();
+					Iterator	it = torrent_dispatcher_map.values().iterator();
 					
 					while( it.hasNext()){
 						
@@ -227,9 +224,12 @@ DiskAccessControllerInstance
 				
 				TOTorrent	torrent = request.getFile().getTorrentFile().getTorrent();
 						
-				dispatcher = (requestDispatcher)request_map.get(torrent);			
+				dispatcher = (requestDispatcher)torrent_dispatcher_map.get(torrent);			
 	
 				if ( dispatcher == null ){
+					
+					int	min_index 	= 0;
+					int	min_size	= Integer.MAX_VALUE;
 					
 					for (int i=0;i<dispatchers.length;i++){
 						
@@ -251,7 +251,7 @@ DiskAccessControllerInstance
 					
 					dispatcher = dispatchers[min_index];
 					
-					request_map.put( torrent, dispatcher );
+					torrent_dispatcher_map.put( torrent, dispatcher );
 				}
 				
 				dispatcher.setLastRequestTime( now );
@@ -267,7 +267,7 @@ DiskAccessControllerInstance
 	{
 		int	mb_diff;
 				
-		synchronized( request_map ){
+		synchronized( torrent_dispatcher_map ){
 			
 			int	old_mb = (int)(request_bytes_queued/(1024*1024));
 			
@@ -316,7 +316,7 @@ DiskAccessControllerInstance
 	{
 		int	mb_diff;
 		
-		synchronized( request_map ){
+		synchronized( torrent_dispatcher_map ){
 			
 			int	old_mb = (int)(request_bytes_queued/(1024*1024));
 			
@@ -542,6 +542,16 @@ DiskAccessControllerInstance
 														
 														Map	file_map = (Map)request_map.get( file );
 															
+															// it is possible for the file_map to be null here due to
+															// the fact that the entries can be zero sized even though 
+															// requests for the file are outstanding (as we key on non-unique
+															// request.offset)
+														
+														if ( file_map == null ){
+															
+															file_map = new HashMap();
+														}
+														
 														file_map.remove( new Long( request.getOffset()));
 																							
 														if ( request.getPriority() < 0 && !request.isCancelled()){
