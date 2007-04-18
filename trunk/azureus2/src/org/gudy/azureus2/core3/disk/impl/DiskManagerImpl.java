@@ -1422,6 +1422,13 @@ DiskManagerImpl
       return ( checker.getCompleteRecheckStatus());
     }
 
+	public void
+	setPieceCheckingEnabled(
+		boolean		enabled )
+	{
+		checker.setCheckingEnabled( enabled );
+	}
+	
     public DirectByteBuffer
     readBlock(
         int pieceNumber,

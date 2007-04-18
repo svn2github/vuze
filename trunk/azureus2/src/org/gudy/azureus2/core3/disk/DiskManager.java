@@ -151,6 +151,10 @@ DiskManager
 		DiskManagerCheckRequestListener	listener );
 	
 	public void
+	setPieceCheckingEnabled(
+		boolean		enabled );
+			
+	public void
     saveResumeData(
     	boolean interim_save )
 		

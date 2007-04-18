@@ -54,4 +54,8 @@ DMChecker
 	  
 	public int 
 	getCompleteRecheckStatus();
+	
+	public void
+	setCheckingEnabled(
+		boolean		enabled );
 }

@@ -152,7 +152,7 @@ PeerManagerImpl
 	public DiskManager
 	getDiskManager()
 	{
-		return( new DiskManagerImpl( this ));
+		return( new DiskManagerImpl( manager.getDiskManager()));
 	}
 	
 	public PeerManagerStats

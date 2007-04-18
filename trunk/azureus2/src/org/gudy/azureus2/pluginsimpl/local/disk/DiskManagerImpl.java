@@ -29,18 +29,22 @@ package org.gudy.azureus2.pluginsimpl.local.disk;
 
 import org.gudy.azureus2.plugins.disk.*;
 
-import org.gudy.azureus2.pluginsimpl.local.peers.*;
-
 public class 
 DiskManagerImpl
 	implements DiskManager
 {
-	protected PeerManagerImpl		peer_manager;
+	private org.gudy.azureus2.core3.disk.DiskManager		disk_manager;
 	
 	public
 	DiskManagerImpl(
-		PeerManagerImpl		_peer_manager )
+		org.gudy.azureus2.core3.disk.DiskManager		_disk_manager )
 	{
-		peer_manager	= _peer_manager;
+		disk_manager	= _disk_manager;
+	}
+	
+	public org.gudy.azureus2.core3.disk.DiskManager
+	getDiskmanager()
+	{
+		return( disk_manager );	
 	}
 }

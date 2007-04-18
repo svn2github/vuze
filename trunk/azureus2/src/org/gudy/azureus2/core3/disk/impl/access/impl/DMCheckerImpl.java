@@ -90,6 +90,8 @@ DMCheckerImpl
 	private volatile boolean	complete_recheck_in_progress;
 	private volatile int		complete_recheck_progress;
 	
+	private boolean				checking_enabled		= true;
+	
 	protected AEMonitor	this_mon	= new AEMonitor( "DMChecker" );
 		
 	public
@@ -225,6 +227,13 @@ DMCheckerImpl
 	   }
 	}
 	  
+	public void
+	setCheckingEnabled(
+		boolean		enabled )
+	{
+		checking_enabled = enabled;
+	}
+	
 	public DiskManagerCheckRequest
 	createRequest(
 		int 	pieceNumber,
@@ -486,6 +495,13 @@ DMCheckerImpl
 		final DiskManagerCheckRequestListener	listener,
 		boolean									read_flush )
 	{
+		if ( !checking_enabled ){
+			
+			listener.checkCompleted( request, true );
+			
+			return;
+		}
+		
 		int	pieceNumber	= request.getPieceNumber();
 		
 		try{
