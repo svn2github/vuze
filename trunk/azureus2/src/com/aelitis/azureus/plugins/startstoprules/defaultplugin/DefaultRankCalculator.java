@@ -317,7 +317,7 @@ public class DefaultRankCalculator implements Comparable {
 	
 	public boolean isForceActive() {
 		DownloadStats stats = dl.getStats();
-		return System.currentTimeMillis() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR;
+		return SystemTime.getCurrentTime() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR;
 	}
 
 	/**
@@ -335,14 +335,14 @@ public class DefaultRankCalculator implements Comparable {
 		// - Must be above speed threshold, or started less than 30s ago
 		if (state != Download.ST_DOWNLOADING) {
 			bIsActive = false;
-		} else if (System.currentTimeMillis() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR) {
+		} else if (SystemTime.getCurrentTime() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR) {
 			bIsActive = true;
 		} else {
 			// activity based on DL Average
 			bIsActive = (stats.getDownloadAverage() >= minSpeedForActiveDL);
 
 			if (bActivelyDownloading != bIsActive) {
-				long now = System.currentTimeMillis();
+				long now = SystemTime.getCurrentTime();
 				// Change
 				if (lDLActivelyChangedOn == -1) {
 					// Start Timer
@@ -393,13 +393,13 @@ public class DefaultRankCalculator implements Comparable {
 			// Not active if we aren't seeding
 			// Not active if we are AutoStarting 0 Peers, and peer count == 0
 			bIsActive = false;
-		} else if (System.currentTimeMillis() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR) {
+		} else if (SystemTime.getCurrentTime() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR) {
 			bIsActive = true;
 		} else {
 			bIsActive = (stats.getUploadAverage() >= minSpeedForActiveSeeding);
 
 			if (bActivelySeeding != bIsActive) {
-				long now = System.currentTimeMillis();
+				long now = SystemTime.getCurrentTime();
 				// Change
 				if (lCDActivelyChangedOn == -1) {
 					// Start Timer
