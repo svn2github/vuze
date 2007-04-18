@@ -164,7 +164,20 @@ public class BTPeerIDByteDecoder {
       
       String bow = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
       if( bow.equals( "BOW" ) ) {
+    	  
+    	/**
+    	 * BitsOnWheels v1.0.6 starts with:
+    	 *    -BOWA0C
+    	 *    
+    	 * BitsOnWheels v1.0.5 starts with:
+    	 *    -BOWA0B
+    	 *    
+    	 * Don't know why this is, but we'll replace the version with something
+    	 * better (if we happen to know what the version is).
+    	 */ 
         String version = new String(peerID, 4, 3, Constants.BYTE_ENCODING);
+        if (version.equals("A0C")) {version = "1.0.6";}
+        else if (version.equals("A0B")) {version = "1.0.5";}
         return "BitsOnWheels " + version;
       }
       
