@@ -1028,7 +1028,12 @@ public class FileUtil {
     		}
     	}else{
     		
-    		copyFile(  from_file_or_dir, new File( to_parent_dir, from_file_or_dir.getName()));
+    		File target = new File( to_parent_dir, from_file_or_dir.getName());
+    		
+    		if ( !copyFile(  from_file_or_dir, target )){
+    			
+    			throw( new IOException( "File copy from " + from_file_or_dir + " to " + target + " failed" ));
+    		}
     	}
     }
     
