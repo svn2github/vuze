@@ -27,16 +27,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.PasswordAuthentication;
 import java.net.Socket;
 import java.net.URL;
 import java.util.StringTokenizer;
 
+import org.gudy.azureus2.core3.security.SEPasswordListener;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 
 public class 
 ExternalSeedHTTPDownloader 
+	implements SEPasswordListener
 {
 	public static final String	NL = "\r\n";
 	
@@ -99,6 +103,8 @@ ExternalSeedHTTPDownloader
 		String	outcome = "";
 		
 		try{
+			SESecurityManager.setThreadPasswordHandler( this );
+			
 			// System.out.println( "Connecting to " + url + ": " + Thread.currentThread().getId());
 
 			HttpURLConnection	connection = (HttpURLConnection)url.openConnection();
@@ -245,6 +251,8 @@ ExternalSeedHTTPDownloader
 			
 		}finally{
 			
+			SESecurityManager.unsetThreadPasswordHandler();
+
 			// System.out.println( "Done to " + url + ": " + Thread.currentThread().getId() + ", outcome=" + outcome );
 
 			if ( is != null ){
@@ -495,6 +503,27 @@ ExternalSeedHTTPDownloader
 				}
 			}
 		}
+	}
+	
+	public PasswordAuthentication
+	getAuthentication(
+		String		realm,
+		URL			tracker )
+	{
+		return( null );
+	}
+	
+	public void
+	setAuthenticationOutcome(
+		String		realm,
+		URL			tracker,
+		boolean		success )
+	{
+	}
+	
+	public void
+	clearPasswords()
+	{
 	}
 	
 	public int

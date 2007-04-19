@@ -83,6 +83,17 @@ SESecurityManagerImpl
 	protected List				certificate_listeners 	= new ArrayList();
 	protected CopyOnWriteList	password_listeners 		= new CopyOnWriteList();
 	
+	
+	private static ThreadLocal		tls	= 
+		new ThreadLocal()
+		{
+			public Object
+			initialValue()
+			{
+				return( null );
+			}
+		};
+		
 	protected Map	password_handlers		= new HashMap();
 	
 	protected boolean	 exit_vm_permitted	= false;
@@ -970,6 +981,13 @@ SESecurityManagerImpl
 		String		realm,
 		URL			tracker )
 	{
+		SEPasswordListener	thread_listener = (SEPasswordListener)tls.get();
+		
+		if ( thread_listener != null ){
+			
+			return( thread_listener.getAuthentication( realm, tracker));
+		}
+		
 		Object[]	handler = (Object[])password_handlers.get(tracker.toString());
 		
 		if ( handler != null ){
@@ -1009,6 +1027,13 @@ SESecurityManagerImpl
 		URL			tracker,
 		boolean		success )
 	{
+		SEPasswordListener	thread_listener = (SEPasswordListener)tls.get();
+		
+		if ( thread_listener != null ){
+			
+			thread_listener.setAuthenticationOutcome(realm, tracker, success);
+		}
+		
 		Iterator	it = password_listeners.iterator();
 		
 		while( it.hasNext()){
@@ -1050,6 +1075,13 @@ SESecurityManagerImpl
 	public void
 	clearPasswords()
 	{
+		SEPasswordListener	thread_listener = (SEPasswordListener)tls.get();
+		
+		if ( thread_listener != null ){
+			
+			thread_listener.clearPasswords();
+		}
+		
 		Iterator	it = password_listeners.iterator();
 		
 		while( it.hasNext()){
@@ -1064,6 +1096,19 @@ SESecurityManagerImpl
 		}
 	}
 	
+	public void
+	setThreadPasswordHandler(
+		SEPasswordListener		l )
+	{
+		tls.set( l );
+	}
+	
+	public void
+	unsetThreadPasswordHandler()
+	{
+		tls.set( null );
+	}
+		
 	public void
 	addPasswordHandler(
 		URL						url,

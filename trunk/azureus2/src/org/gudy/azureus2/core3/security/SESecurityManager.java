@@ -181,6 +181,20 @@ SESecurityManager
 	}
 	
 	public static void
+	setThreadPasswordHandler(
+		SEPasswordListener		l )
+	{
+		SESecurityManagerImpl.getSingleton().setThreadPasswordHandler(l);
+	}
+	
+	public static void
+	unsetThreadPasswordHandler()
+	{
+		SESecurityManagerImpl.getSingleton().unsetThreadPasswordHandler();
+
+	}
+	
+	public static void
 	addPasswordHandler(
 		URL						url,
 		SEPasswordListener		l )
