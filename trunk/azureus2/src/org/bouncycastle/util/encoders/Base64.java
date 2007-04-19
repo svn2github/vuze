@@ -278,7 +278,12 @@ public class Base64
 		OutputStream	out) 
 		throws IOException
 	{
-		byte[]	bytes;
+			// PARG
+		if ( data.length()== 0 ){
+			
+			return( 0 );
+		}
+		
 		byte	b1, b2, b3, b4;
 		int		length;
 
