@@ -101,6 +101,7 @@ UPnPImpl
 	private String	secondary_route_log = "";
 	
 	private ThreadPool	device_dispatcher	 = new ThreadPool("UPnPDispatcher", 1, true );
+	private Set			device_dispatcher_pending	= new HashSet();
 	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UPnP" );
 
@@ -132,6 +133,28 @@ UPnPImpl
 			// we need to take this operation off the main thread as it can take some time. This is a single
 			// concurrency queued thread pool so things get done serially in the right order
 		
+		try{
+			rd_listeners_mon.enter();
+
+			if ( device_dispatcher_pending.contains( usn )){
+			
+				// System.out.println( "UPnP: skipping discovery of " + usn + " as already pending (queue=" + device_dispatcher_pending.size() + ")" );
+				
+				return;
+			}
+			
+			if ( device_dispatcher_pending.size() > 512 ){
+				
+				Debug.out( "Device dispatcher queue is full - dropping discovery of " + usn + "/" + location );
+			}
+			
+			device_dispatcher_pending.add( usn );
+	
+		}finally{
+			
+			rd_listeners_mon.exit();
+		}
+		
 		device_dispatcher.run(
 			new AERunnable()
 			{
@@ -144,6 +167,8 @@ UPnPImpl
 						rd_listeners_mon.enter();
 
 						old_root_device = (UPnPRootDeviceImpl)root_locations.get( usn );
+						
+						device_dispatcher_pending.remove( usn );
 						
 					}finally{
 						
