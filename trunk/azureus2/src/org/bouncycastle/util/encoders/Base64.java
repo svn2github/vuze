@@ -129,6 +129,12 @@ public class Base64
 	public static byte[] decode(
 		byte[]	data)
 	{
+			// PARG - fix up for zero length encodes/decodes
+		
+		if ( data.length == 0 ){
+			return( data );
+		}
+		
 		byte[]	bytes;
 		byte	b1, b2, b3, b4;
 
@@ -196,6 +202,13 @@ public class Base64
 	public static byte[] decode(
 		String	data)
 	{
+			// PARG - fix up for zero length encodes/decodes
+		
+		if ( data.length() == 0 ){
+			
+			return( new byte[0] );
+		}
+		
 		byte[]	bytes;
 		byte	b1, b2, b3, b4;
 
