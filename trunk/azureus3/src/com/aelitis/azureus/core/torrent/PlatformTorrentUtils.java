@@ -164,6 +164,15 @@ public class PlatformTorrentUtils
 		return null;
 	}
 
+	private static void setContentMapString(TOTorrent torrent, String key, String value) {
+		if (torrent == null) {
+			return;
+		}
+
+		Map mapContent = getContentMap(torrent);
+		mapContent.put( key, value );
+	}
+	
 	private static long getContentMapLong(TOTorrent torrent, String key, long def) {
 		if (torrent == null) {
 			return def;
@@ -203,6 +212,10 @@ public class PlatformTorrentUtils
 
 	public static String getContentTitle(TOTorrent torrent) {
 		return getContentMapString(torrent, TOR_AZ_PROP_TITLE);
+	}
+
+	public static void setContentTitle(TOTorrent torrent, String title) {
+		setContentMapString(torrent, TOR_AZ_PROP_TITLE, title);
 	}
 
 	public static String getContentDescription(TOTorrent torrent) {
