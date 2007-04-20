@@ -636,18 +636,36 @@ Download extends DownloadEventNotifier
 	getMaximumDownloadKBPerSecond();
     
     
-    /**
-     * Get the max upload rate allowed for this download.
-     * @return upload rate in bytes per second, 0 for unlimited, -1 for upload disabled
-     */
+	    /**
+	     * Get the max upload rate allowed for this download.
+	     * @return upload rate in bytes per second, 0 for unlimited, -1 for upload disabled
+	     */
+  	
     public int getUploadRateLimitBytesPerSecond();
     
-    /**
-     * Set the max upload rate allowed for this download.
-     * @param max_rate_bps limit in bytes per second, 0 for unlimited, -1 for upload disabled
-     */
+	    /**
+	     * Set the max upload rate allowed for this download.
+	     * @param max_rate_bps limit in bytes per second, 0 for unlimited, -1 for upload disabled
+	     */
+    
     public void setUploadRateLimitBytesPerSecond( int max_rate_bps );
     
+	    /**
+	     * Get the max download rate allowed for this download.
+	     * @return upload rate in bytes per second, 0 for unlimited, -1 for download disabled
+	     * @since 3013
+	     */
+    
+    public int getDownloadRateLimitBytesPerSecond();
+    
+	    /**
+	     * Set the max download rate allowed for this download.
+	     * @param max_rate_bps limit in bytes per second, 0 for unlimited, -1 for dowmload disabled
+	     * @since 3013
+	     */
+    
+    public void setDownloadRateLimitBytesPerSecond( int max_rate_bps );
+  
 
 	/**
 	 * Indicates if the download has completed or not, exluding any files marked

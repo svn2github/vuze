@@ -1473,6 +1473,14 @@ DownloadImpl
       download_manager.getStats().setUploadRateLimitBytesPerSecond( max_rate_bps );
   	}
 
+  	public int getDownloadRateLimitBytesPerSecond() {
+  		return download_manager.getStats().getDownloadRateLimitBytesPerSecond();
+  	}
+
+  	public void setDownloadRateLimitBytesPerSecond( int max_rate_bps ) {
+  		download_manager.getStats().setDownloadRateLimitBytesPerSecond( max_rate_bps );
+  	}
+
   public int getSeedingRank() {
     return download_manager.getSeedingRank();
   }
