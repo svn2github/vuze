@@ -32,8 +32,6 @@ public class NetworkAdminSpeedTesterImpl
     private static Result lastResult=null;
     private static long lastResultTime;
 
-    private static long ONE_HOUR = 60 * 60 * 1000;
-
     private List listenerList = new ArrayList();//<NetworkAdminSpeedTestListener>
 
 
@@ -86,6 +84,8 @@ public class NetworkAdminSpeedTesterImpl
             long pieceSize = tot.getPieceLength();
             writeHalfFileWithOnes(blankFile,pieceCount, pieceSize);
 
+            plugin.getDownloadManager().addDownload( torrent, blankTorrentFile ,blankFile);
+
             TorrentSpeedTestMonitorThread monitor = new TorrentSpeedTestMonitorThread(plugin,torrent,listenerList);
             monitor.start();
 
@@ -102,16 +102,16 @@ public class NetworkAdminSpeedTesterImpl
 	 * If a test has been completed in the last hour, return true.
 	 * @return true if a new result is detected in the past hour.
 	 */
-	public synchronized boolean isComplete(){
-
-        //check for a result.
-        if(lastResult==null)
-            return false;
-
-        //has it been longer then an hour?
-        long currTime = SystemTime.getCurrentTime();
-        return currTime <= lastResultTime + ONE_HOUR;
-    }
+//	public synchronized boolean isComplete(){
+//
+//        //check for a result.
+//        if(lastResult==null)
+//            return false;
+//
+//        //has it been longer then an hour?
+//        long currTime = SystemTime.getCurrentTime();
+//        return currTime <= lastResultTime + ONE_HOUR;
+//    }
 	
 	/**
 	 * 
@@ -213,13 +213,10 @@ public class NetworkAdminSpeedTesterImpl
     private static File createBlankFileOfSize(File baseDir, String name, long size)
         throws IOException
     {
-        assert size%1024==0:"size must be modulo 1024. size="+size;
-
         File retVal = new File(baseDir,name);
 
         //to ensure the file is deleted when JVM exits.
         retVal.deleteOnExit();
-
 
         //Write file with zeros
         RandomAccessFile raf = new RandomAccessFile(retVal,"rw");
@@ -294,59 +291,66 @@ public class NetworkAdminSpeedTesterImpl
 
         public void run()
         {
-            startTime = SystemTime.getCurrentTime();
-            peakTime = startTime;
+            try
+            {
+                startTime = SystemTime.getCurrentTime();
+                peakTime = startTime;
 
-            boolean testDone=false;
-            Download d = plugin.getDownloadManager().getDownload(testTorrent);
-            long lastTotalDownloadBytes=0;
+                boolean testDone=false;
+                Download d = plugin.getDownloadManager().getDownload(testTorrent);
+                long lastTotalDownloadBytes=0;
 
-            //ToDo: use this condition to signal a manual abort.
-            while( !testDone ){
+                //ToDo: use this condition to signal a manual abort.
+                while( !testDone ){
 
-                long currTime = SystemTime.getCurrentTime();
-                DownloadStats stats = d.getStats();
-                historyDownloadSpeed.add( autoboxLong(stats.getDownloaded()) );
-                historyUploadSpeed.add( autoboxLong(stats.getUploaded()) );
-                timestamps.add( autoboxLong(currTime) );
+                    long currTime = SystemTime.getCurrentTime();
+                    DownloadStats stats = d.getStats();
+                    historyDownloadSpeed.add( autoboxLong(stats.getDownloaded()) );
+                    historyUploadSpeed.add( autoboxLong(stats.getUploaded()) );
+                    timestamps.add( autoboxLong(currTime) );
 
-                lastTotalDownloadBytes = checkForNewPeakValue( stats, lastTotalDownloadBytes, currTime );
+                    lastTotalDownloadBytes = checkForNewPeakValue( stats, lastTotalDownloadBytes, currTime );
 
-                testDone = checkForTestDone();
-                if(testDone)
-                    break;
+                    testDone = checkForTestDone();
+                    if(testDone)
+                        break;
 
-                try{ Thread.sleep(1000); }
-                catch(InterruptedException ie){
-                    //someone interrupted this thread for a reason. "test is now over"
-                    //To//Do: Replace with an error result.
-                    //System.out.println("TorrentSpeedTestMonitorThread was interrupted before test completed.");
-                    String msg = "TorrentSpeedTestMonitorThread was interrupted before test completed.";
-                    //ToDo: unfortunately we cannot send the Result to the listeners, since we are NOT done yet!!
-                    //ToDo: This will be the same condition on a manual abort, find one way to handle both conditions.
-                    break;
+                    try{ Thread.sleep(1000); }
+                    catch(InterruptedException ie){
+                        //someone interrupted this thread for a reason. "test is now over"
+                        //To//Do: Replace with an error result.
+                        //System.out.println("TorrentSpeedTestMonitorThread was interrupted before test completed.");
+                        String msg = "TorrentSpeedTestMonitorThread was interrupted before test completed.";
+                        //ToDo: unfortunately we cannot send the Result to the listeners, since we are NOT done yet!!
+                        //ToDo: This will be the same condition on a manual abort, find one way to handle both conditions.
+                        break;
+                    }
+
+                }//while
+
+                //It is time to stop the test.
+                try{
+                    d.stop();
+                    d.remove();
+                }catch(DownloadException de){
+                    String msg = "TorrentSpeedTestMonitorThread could not stop the torrent "+testTorrent.getName();
+                    sendResultToListeners( new BitTorrentResult(msg) );
+                }catch(DownloadRemovalVetoException drve){
+                    String msg = "TorrentSpeedTestMonitorTheard could not remove the torrent "+testTorrent.getName();
+                    sendResultToListeners( new BitTorrentResult(msg) );
                 }
 
-            }//while
-
-            //It is time to stop the test.
-            try{
-                d.stop();
-                d.remove();
-            }catch(DownloadException de){
-                String msg = "TorrentSpeedTestMonitorThread could not stop the torrent "+testTorrent.getName();
-                sendResultToListeners( new BitTorrentResult(msg) );
-            }catch(DownloadRemovalVetoException drve){
-                String msg = "TorrentSpeedTestMonitorTheard could not remove the torrent "+testTorrent.getName();
-                sendResultToListeners( new BitTorrentResult(msg) );
+            }catch(Exception e){
+                System.out.println("Error: "+e);
             }
 
             //calculate the measured download rate.
             Result r = calculateDownloadRate();
 
             sendResultToListeners(r);
+
             //To//Do: call listeners!! We are done!!
-            //System.out.println("Finished with bandwidth testing. "+r.toString() );
+            System.out.println("Finished with bandwidth testing. "+r.toString() );
         }//run.
 
         /**

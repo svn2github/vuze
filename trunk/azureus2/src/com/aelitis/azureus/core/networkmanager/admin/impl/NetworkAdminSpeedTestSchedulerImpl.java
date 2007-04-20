@@ -8,6 +8,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.DownloadManager;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 /**
  * User: asnyder
@@ -19,7 +20,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
         implements NetworkAdminSpeedTestScheduler
 {
 
-    private static final NetworkAdminSpeedTestSchedulerImpl instance = null;
+    private static NetworkAdminSpeedTestSchedulerImpl instance = null;
 
     private static PluginInterface plugin;
     private NetworkAdminSpeedTester.Result lastResult;
@@ -36,14 +37,20 @@ public class NetworkAdminSpeedTestSchedulerImpl
     public static final int TCP_UPLOAD = 7780;
 
     private static final String NOT_RUNNING = "Not Running.";
+    private static long ONE_HOUR = 60 * 60 * 1000;
 
     public static synchronized NetworkAdminSpeedTestScheduler getInstance(){
         if(instance==null){
             AzureusCore ac = AzureusCoreFactory.getSingleton();
             PluginManager pm = ac.getPluginManager();
-            plugin = pm.getDefaultPluginInterface();
+                        
+            instance = new NetworkAdminSpeedTestSchedulerImpl(pm.getDefaultPluginInterface());
         }
         return instance;
+    }
+
+    private NetworkAdminSpeedTestSchedulerImpl(PluginInterface pi){
+        plugin = pi;
     }
 
     /**
@@ -88,14 +95,21 @@ public class NetworkAdminSpeedTestSchedulerImpl
      * @return true is a test is already running.
      */
     public boolean isRunning() {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
+        return testRunning.booleanValue();
     }
 
     /**
-     * @return true if
+     * @return true if a test has not been run in the past hour.
      */
     public boolean isComplete() {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
+
+        //check for a result.
+        if(lastResult==null)
+            return false;
+
+        //has it been longer then an hour?
+        long currTime = SystemTime.getCurrentTime();
+        return currTime <= lastResult.getTestTime() + ONE_HOUR;
     }
 
     /**
