@@ -30,7 +30,6 @@ public class NetworkAdminSpeedTesterImpl
     private PluginInterface plugin;
 
     private static Result lastResult=null;
-    private static long lastResultTime;
 
     private List listenerList = new ArrayList();//<NetworkAdminSpeedTestListener>
 
@@ -97,21 +96,7 @@ public class NetworkAdminSpeedTesterImpl
         }
         return true;
     }
-	
-	/**
-	 * If a test has been completed in the last hour, return true.
-	 * @return true if a new result is detected in the past hour.
-	 */
-//	public synchronized boolean isComplete(){
-//
-//        //check for a result.
-//        if(lastResult==null)
-//            return false;
-//
-//        //has it been longer then an hour?
-//        long currTime = SystemTime.getCurrentTime();
-//        return currTime <= lastResultTime + ONE_HOUR;
-//    }
+
 	
 	/**
 	 * 
@@ -519,6 +504,21 @@ public class NetworkAdminSpeedTesterImpl
 
         public String getLastError() {
             return lastError;
+        }
+
+        public String toString(){
+            StringBuffer sb = new StringBuffer("[com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTesterImpl");
+
+            if(hadError){
+                sb.append(" Last Error: ").append(lastError);
+            }else{
+                sb.append(" download speed: ").append(downspeed);
+                sb.append(" upload speed: ").append(upspeed);
+            }
+            sb.append(" time=").append(time);
+            sb.append("]");
+
+            return sb.toString();
         }
     }//class BitTorrentResult
 

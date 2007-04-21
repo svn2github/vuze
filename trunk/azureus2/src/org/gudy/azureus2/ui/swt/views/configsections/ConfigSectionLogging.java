@@ -379,16 +379,21 @@ public class ConfigSectionLogging implements UISWTConfigSection {
           {
               public void handleEvent(Event event)
               {
-                  NetworkAdminSpeedTestScheduler nasts
-                          = NetworkAdminSpeedTestSchedulerImpl.getInstance();
+					new AEThread("GenerateNetDiag", true)
+					{
+						public void
+						runSupport()
+						{
+                              NetworkAdminSpeedTestScheduler nasts
+                                      = NetworkAdminSpeedTestSchedulerImpl.getInstance();
 
-                  if( !nasts.isRunning() ){
-                      nasts.start( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
-                  }
-
-              }//handleEvent
+                              if( !nasts.isRunning() ){
+                                  nasts.start( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
+                              }
+						}//runSupport
+					}.start();
+              }//handleEvent                                                                                         
           });
-
 
 
         // diagnostics
