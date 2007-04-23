@@ -103,6 +103,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
      * @return true is a test is already running.
      */
     public boolean isRunning() {
+
         return testRunning.booleanValue();
     }
 
@@ -169,16 +170,15 @@ public class NetworkAdminSpeedTestSchedulerImpl
             for(int i=0;i<len;i++){
 
                 plugin.getDownloadManager().getStats();
-                int downloadLimit = d[i].getMaximumDownloadKBPerSecond();
+                int downloadLimit = d[i].getUploadRateLimitBytesPerSecond();
                 int uploadLimit = d[i].getUploadRateLimitBytesPerSecond();
 
-                //ToDo: remove.
-                System.out.println("pauseDownloads: "+d[i].getName()+" upload: "+uploadLimit+" downloadLimit: "+downloadLimit);
+                System.out.println("pauseDownloads: "+d[i].getName()+" upload: "+uploadLimit+" downloadLimit: "+downloadLimit);//ToDo: remove.
                 
                 preTestSettings.set(d[i],uploadLimit,downloadLimit);
 
                 d[i].setUploadRateLimitBytesPerSecond(ZERO_DOWNLOAD_SETTING);
-                d[i].setMaximumDownloadKBPerSecond(ZERO_DOWNLOAD_SETTING);
+                d[i].setDownloadRateLimitBytesPerSecond( ZERO_DOWNLOAD_SETTING );
             }//for
         }//if
 
@@ -228,9 +228,9 @@ public class NetworkAdminSpeedTestSchedulerImpl
             //stage("Not Running");
 
             restoreAllDownloads();
+            testRunning=Boolean.FALSE;
 
-            //ToDo: remove
-            System.out.println(res);
+            System.out.println(res);//ToDo: remove
         }
 
         /**
@@ -321,7 +321,8 @@ public class NetworkAdminSpeedTestSchedulerImpl
                     int uploadLimit = get(downloads[i], TORRENT_UPLOAD_LIMIT);
                     int downLimit = get(downloads[i], TORRENT_DOWNLOAD_LIMIT);
 
-                    downloads[i].setMaximumDownloadKBPerSecond(downLimit);
+                    //downloads[i].setMaximumDownloadKBPerSecond(downLimit);
+                    downloads[i].setDownloadRateLimitBytesPerSecond(downLimit);
                     downloads[i].setUploadRateLimitBytesPerSecond(uploadLimit);
 
                     System.out.println("restoreDownloads: "+downloads[i].getName()+" upload: "+uploadLimit+" download: "+downLimit);

@@ -379,7 +379,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
           {
               public void handleEvent(Event event)
               {
-					new AEThread("GenerateNetDiag", true)
+					new AEThread("SpeedTestInitiator", true)
 					{
 						public void
 						runSupport()

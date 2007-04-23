@@ -1456,7 +1456,12 @@ DownloadImpl
 	setMaximumDownloadKBPerSecond(
 		int		kb )
  	{
- 		download_manager.getStats().setDownloadRateLimitBytesPerSecond( kb < 0 ? 0 : kb*1024 );
+         if(kb==-1){
+            Debug.out("setMaximiumDownloadKBPerSecond got value (-1) ZERO_DOWNLOAD. (-1)"+
+                "does not work through this method, use getDownloadRateLimitBytesPerSecond() instead.");
+         }//if
+
+         download_manager.getStats().setDownloadRateLimitBytesPerSecond( kb < 0 ? 0 : kb*1024 );
  	}
   	
   	public int
