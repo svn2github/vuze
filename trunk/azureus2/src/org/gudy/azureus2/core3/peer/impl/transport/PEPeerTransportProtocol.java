@@ -2592,10 +2592,15 @@ PEPeerTransportProtocol
     
     exchange.destroy();
     
-    if( added != null && added.length > PeerExchangerItem.MAX_PEERS_PER_VOLLEY || dropped != null && dropped.length > PeerExchangerItem.MAX_PEERS_PER_VOLLEY ) {
-    	//drop these too-large messages as they seem to be used for DOS by swarm poisoners
-    	System.out.println( "Invalid PEX message received: too large [" +added.length+ "/" +dropped.length+ "]" +PEPeerTransportProtocol.this );
+    if(		( added != null && added.length > PeerExchangerItem.MAX_PEERS_PER_VOLLEY ) || 
+    		( dropped != null && dropped.length > PeerExchangerItem.MAX_PEERS_PER_VOLLEY )){
+    	
+    		//drop these too-large messages as they seem to be used for DOS by swarm poisoners
+    	
+    	System.out.println( "Invalid PEX message received: too large [" + (added==null?-1:added.length)+ "/" + (dropped==null?-1:dropped.length)+ "]" +PEPeerTransportProtocol.this );
+    	
     	closeConnectionInternally( "Invalid PEX message received: too large, dropping likely poisoner peer connection." );
+    	
     	return;
     }
 
