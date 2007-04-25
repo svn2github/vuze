@@ -37,6 +37,7 @@ DeleteFileOnCloseInputStream
 {
 	private InputStream			in;
 	private File				file;
+	private boolean				closed;
 	
 	public
 	DeleteFileOnCloseInputStream(
@@ -62,6 +63,13 @@ DeleteFileOnCloseInputStream
 	close() 
 		throws IOException 
 	{
+		if ( closed ){
+			
+			return;
+		}
+		
+		closed = true;
+		
 		try{
 			in.close();
 		
