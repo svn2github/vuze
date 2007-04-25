@@ -84,9 +84,11 @@ public class NetworkAdminSpeedTesterImpl
             long pieceSize = tot.getPieceLength();
             writeHalfFileWithOnes(blankFile,pieceCount, pieceSize);
 
-            plugin.getDownloadManager().addDownload( torrent, blankTorrentFile ,blankFile);
+            Download speed_download = plugin.getDownloadManager().addDownload( torrent, blankTorrentFile ,blankFile);
 
-            TorrentSpeedTestMonitorThread monitor = new TorrentSpeedTestMonitorThread(plugin,torrent,listenerList);
+            
+            
+            TorrentSpeedTestMonitorThread monitor = new TorrentSpeedTestMonitorThread( speed_download );
             monitor.start();
 
             //The test has now started!!
@@ -254,10 +256,8 @@ public class NetworkAdminSpeedTesterImpl
         List historyUploadSpeed = new LinkedList();    //<Long>
         List timestamps = new LinkedList();            //<Long>
 
-        Torrent testTorrent;
-        PluginInterface plugin;
-        List listenerList; //List<NetworkAdminSpeedTestListener>
-
+        Download testDownload;
+ 
         public static final long MAX_TEST_TIME = 2*60*1000; //Limit test to 2 minutes.
         public static final long MAX_PEAK_TIME = 30 * 1000; //Limit to 30 seconds at peak.
         long startTime;
@@ -267,11 +267,9 @@ public class NetworkAdminSpeedTesterImpl
         public static final String AVE = "ave";
         public static final String STD_DEV = "stddev";
 
-        public TorrentSpeedTestMonitorThread(PluginInterface pi, Torrent t, List listeners)
+        public TorrentSpeedTestMonitorThread( Download d )
         {
-            plugin = pi;
-            testTorrent = t;
-            listenerList = listeners;
+            testDownload = d;
         }
 
         public void run()
@@ -282,7 +280,6 @@ public class NetworkAdminSpeedTesterImpl
                 peakTime = startTime;
 
                 boolean testDone=false;
-                Download d = plugin.getDownloadManager().getDownload(testTorrent);
                 long lastTotalDownloadBytes=0;
 
                 sendStageUpdateToListeners("starting test...");
@@ -291,7 +288,7 @@ public class NetworkAdminSpeedTesterImpl
                 while( !testDone ){
 
                     long currTime = SystemTime.getCurrentTime();
-                    DownloadStats stats = d.getStats();
+                    DownloadStats stats = testDownload.getStats();
                     historyDownloadSpeed.add( autoboxLong(stats.getDownloaded()) );
                     historyUploadSpeed.add( autoboxLong(stats.getUploaded()) );
                     timestamps.add( autoboxLong(currTime) );
@@ -317,13 +314,13 @@ public class NetworkAdminSpeedTesterImpl
 
                 //It is time to stop the test.
                 try{
-                    d.stop();
-                    d.remove();
+                	testDownload.stop();
+                	testDownload.remove();
                 }catch(DownloadException de){
-                    String msg = "TorrentSpeedTestMonitorThread could not stop the torrent "+testTorrent.getName();
+                    String msg = "TorrentSpeedTestMonitorThread could not stop the torrent "+testDownload.getName();
                     sendResultToListeners( new BitTorrentResult(msg) );
                 }catch(DownloadRemovalVetoException drve){
-                    String msg = "TorrentSpeedTestMonitorTheard could not remove the torrent "+testTorrent.getName();
+                    String msg = "TorrentSpeedTestMonitorTheard could not remove the torrent "+testDownload.getName();
                     sendResultToListeners( new BitTorrentResult(msg) );
                 }
 
