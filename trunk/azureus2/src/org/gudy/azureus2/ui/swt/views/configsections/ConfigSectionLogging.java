@@ -370,7 +370,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 			});
 
     //Speed Test
-    Label run_speed_test = new Label(gLogging, SWT.NULL);
+    final Label run_speed_test = new Label(gLogging, SWT.NULL);
     run_speed_test.setText("Run upload/download speed test");
     Button speed_test_button = new Button(gLogging,SWT.PUSH);
     speed_test_button.setText("Go!");
@@ -388,6 +388,13 @@ public class ConfigSectionLogging implements UISWTConfigSection {
                                       = NetworkAdminSpeedTestSchedulerImpl.getInstance();
 
                               if( !nasts.isRunning() ){
+
+                                  //schedule a test
+                                  //boolean accepted = nasts.requestTestFromService( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
+                                  NetworkAdminSpeedTestSchedulerImpl.TextLabelListener textListener =
+                                          new NetworkAdminSpeedTestSchedulerImpl.TextLabelListener(run_speed_test);
+                                  nasts.addSpeedTestListener( textListener );
+
                                   nasts.start( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
                               }
 						}//runSupport

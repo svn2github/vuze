@@ -1,5 +1,7 @@
 package com.aelitis.azureus.core.networkmanager.admin;
 
+import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTestSchedulerImpl;
+
 /**
  * Created by IntelliJ IDEA.
  * User: asnyder
@@ -9,6 +11,13 @@ package com.aelitis.azureus.core.networkmanager.admin;
  */
 public interface NetworkAdminSpeedTestScheduler
 {
+
+    /**
+     * Request a test using the testing service.
+     * @param type - ID for the type of test.
+     * @return boolean - true if a success, otherwise false.
+     */
+    public boolean requestTestFromService(int type);
 
     /**
      * Create a test of type.
@@ -38,5 +47,10 @@ public interface NetworkAdminSpeedTestScheduler
      * @return - Result
      */
     public NetworkAdminSpeedTester.Result getLastResult();
-    
+
+    /**
+     * Add NetworkSpeedTestListener to this test.
+     * @param listener -
+     */
+    void addSpeedTestListener(NetworkAdminSpeedTestListener listener);
 }

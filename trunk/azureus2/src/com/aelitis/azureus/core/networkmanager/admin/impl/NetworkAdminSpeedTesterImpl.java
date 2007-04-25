@@ -2,9 +2,7 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestListener;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -56,8 +54,10 @@ public class NetworkAdminSpeedTesterImpl
 
         //OK lets start the test.
         try{
+
+            sendStageUpdateToListeners("requesting test...");
             //Get the file from
-            URL urlTestService = new URL("http://seed20.azureusplatform.com:60000/speedtest?");
+            URL urlTestService = new URL("http://seed20.azureusplatform.com:60000/speedtest?");//ToDo: add the ID for service.
             byte[] torrentBytes = getTestTorrentFromService(urlTestService);
 
             Map m = BDecoder.decode(torrentBytes);
@@ -70,6 +70,7 @@ public class NetworkAdminSpeedTesterImpl
             byte[] fileNameBytes = tot.getName();
             String fileName = new String(fileNameBytes);
 
+            sendStageUpdateToListeners("preparing test...");
             //create a blank file of specified size. (using the temporary name.)
             File saveLocation = AETemporaryFileHandler.createTempFile();
             File baseDir = saveLocation.getParentFile();
@@ -210,7 +211,6 @@ public class NetworkAdminSpeedTesterImpl
             long remaining = size;
             while( remaining>0 ){
                 if( remaining < buffer.length ){
-                    //int offset = (int) (size-remaining);//maybe offest is from the current pointer?
                     raf.write(buffer,0,(int)remaining);
                     break;
                 }//if
@@ -285,6 +285,8 @@ public class NetworkAdminSpeedTesterImpl
                 Download d = plugin.getDownloadManager().getDownload(testTorrent);
                 long lastTotalDownloadBytes=0;
 
+                sendStageUpdateToListeners("starting test...");
+
                 //ToDo: use this condition to signal a manual abort.
                 while( !testDone ){
 
@@ -303,9 +305,9 @@ public class NetworkAdminSpeedTesterImpl
                     try{ Thread.sleep(1000); }
                     catch(InterruptedException ie){
                         //someone interrupted this thread for a reason. "test is now over"
-                        //To//Do: Replace with an error result.
-                        //System.out.println("TorrentSpeedTestMonitorThread was interrupted before test completed.");
                         String msg = "TorrentSpeedTestMonitorThread was interrupted before test completed.";
+                        Debug.out(msg);
+                        sendStageUpdateToListeners(msg);
                         //ToDo: unfortunately we cannot send the Result to the listeners, since we are NOT done yet!!
                         //ToDo: This will be the same condition on a manual abort, find one way to handle both conditions.
                         break;
@@ -332,10 +334,14 @@ public class NetworkAdminSpeedTesterImpl
             //calculate the measured download rate.
             Result r = calculateDownloadRate();
 
+            //Log the result.
+            AEDiagnosticsLogger diagLogger = AEDiagnostics.getLogger("v3.STres");
+            diagLogger.log(r.toString());
+
             sendResultToListeners(r);
 
-            //To//Do: call listeners!! We are done!!
-            System.out.println("Finished with bandwidth testing. "+r.toString() );
+            Debug.out("Finished with bandwidth testing. "+r.toString() );
+            System.out.println("Finished with bandwidth testing. "+r.toString() );//ToDo: remove.
         }//run.
 
         /**

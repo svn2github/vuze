@@ -10,11 +10,16 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.eclipse.swt.widgets.Label;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * User: asnyder
@@ -33,6 +38,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
 
     private NetworkAdminSpeedTester currentTest = null;
     private SpeedTestDownloadState preTestSettings;
+    private List testListeners = new ArrayList(); //List<NetworkAdminSpeedTestListener>
 
     private Boolean testRunning=Boolean.FALSE;
     private String testStatus = NOT_RUNNING;
@@ -63,6 +69,27 @@ public class NetworkAdminSpeedTestSchedulerImpl
     }
 
     /**
+     * Request a test from the speed testing service, handle the "challenge" if request and then get
+     * the id for the test.
+     * @param type - test type.
+     * @return boolean - true if the test has been reserved with the service.
+     */
+    public boolean requestTestFromService(int type){
+
+        //Get the configuration parameters for the test.
+
+        //Send "schedule test" request.
+
+        //Read the respose.
+
+        //handle the challenge response.
+
+        //set the ID and wait-time for the request.
+                        
+        return false;//ToDo: finish implementation.
+    }//requestTestFromService.
+
+    /**
      * Create a test of type.
      *
      * @param type -
@@ -83,6 +110,11 @@ public class NetworkAdminSpeedTestSchedulerImpl
         //add Scheduler's listeners here so it knows when it stops, aborts, crashes!!
         EndOfTestListener testListener = new EndOfTestListener(testRunning,lastResult,testStatus,dm);
         currentTest.addListener( testListener );
+
+        int nListeners = testListeners.size();
+        for(int i=0;i<nListeners; i++){
+            currentTest.addListener( (NetworkAdminSpeedTestListener) testListeners.get(i) );
+        }
 
         //start it.
         currentTest.start();
@@ -132,6 +164,19 @@ public class NetworkAdminSpeedTestSchedulerImpl
     public NetworkAdminSpeedTester.Result getLastResult() {
         return lastResult;
     }
+
+    /**
+     * Add NetworkSpeedTestListener to this test. Pass along to test. This method
+     * must be called after the test is created.
+     *
+     * @param listener -
+     * @throws IllegalStateException
+     */
+    public void addSpeedTestListener(NetworkAdminSpeedTestListener listener)
+        throws IllegalStateException
+    {
+        testListeners.add( listener );
+    }//addSpeedTestListener
 
     //ToDo: factory method for creating test.
     protected NetworkAdminSpeedTester createTest(int type){
@@ -230,8 +275,11 @@ public class NetworkAdminSpeedTestSchedulerImpl
             restoreAllDownloads();
             testRunning=Boolean.FALSE;
 
+            //clear list of handler - don't want this list to grow with each test.
+            testListeners = new ArrayList();
+            
             System.out.println(res);//ToDo: remove
-        }
+        }//complete.
 
         /**
          * Informs listener when the test is at a new stage.
@@ -243,6 +291,41 @@ public class NetworkAdminSpeedTestSchedulerImpl
         }
 
     }//class EndOfTestListener
+
+    public static class TextLabelListener implements NetworkAdminSpeedTestListener {
+        final Label label;
+        String origText;
+
+        public TextLabelListener(final Label l){
+            label = l;
+
+            Utils.execSWTThread(new AERunnable(){
+                public void runSupport() {
+                    origText = l.getText();
+                }
+            });                           
+        }
+
+        /**
+         * Restore the Label to its Original contents.
+         * @param res - Result of the test.
+         */
+        public void complete(NetworkAdminSpeedTester.Result res){
+            Utils.execSWTThread(new AERunnable(){
+                public void runSupport() {
+                    label.setText( origText );
+                }
+            });
+        }//complete
+
+        public void stage(final String update){
+            Utils.execSWTThread(new AERunnable(){
+                public void runSupport() {
+                    label.setText(update);
+                }
+            });
+        }//stage
+    }//class TextLableListener
 
     /**
      * Preservers the state of all the downloads before the speed test started.
@@ -321,7 +404,6 @@ public class NetworkAdminSpeedTestSchedulerImpl
                     int uploadLimit = get(downloads[i], TORRENT_UPLOAD_LIMIT);
                     int downLimit = get(downloads[i], TORRENT_DOWNLOAD_LIMIT);
 
-                    //downloads[i].setMaximumDownloadKBPerSecond(downLimit);
                     downloads[i].setDownloadRateLimitBytesPerSecond(downLimit);
                     downloads[i].setUploadRateLimitBytesPerSecond(uploadLimit);
 
