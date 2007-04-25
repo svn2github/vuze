@@ -470,6 +470,7 @@ public class TorrentListViewsUtils
 				"wmv",
 				"asf",
 				"mp3",
+				"wma",
 			};
 		}
 
