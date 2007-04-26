@@ -353,4 +353,17 @@ public class SystemProperties {
 
 		return fDocPath.getAbsolutePath();
   }
+  
+  public static String
+  getAzureusJarPath()
+  {
+	  String	str = getApplicationPath();
+
+	  if( Constants.isOSX ){
+
+		  str += SystemProperties.getApplicationName() + ".app/Contents/Resources/Java/";
+	  }
+
+	  return( str + "Azureus2.jar" );			
+  }
 }
