@@ -1,6 +1,10 @@
 AZUREUS CHANGELOG
 -----------------
 
+2007.xx.xx | Azureus 3.0.1.4
+
+BUGFIX: Core  | Fixed bug which sometimes prevented corrupted torrents being removed properly [amc1]
+
 2007.04.12 | Azureus 3.0.1.2
 
 FEATURE: Core | Auto-speed: added control for forced-max network speed [Parg]

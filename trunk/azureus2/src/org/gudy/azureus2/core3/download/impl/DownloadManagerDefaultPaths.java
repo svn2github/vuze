@@ -379,6 +379,16 @@ public class DownloadManagerDefaultPaths {
 				logInfo("Checking if " + describe(dm, context) + " is inside default dirs.", lr);
 				File[] default_dirs = getDefaultDirs(lr);
 				File current_location = dm.getSaveLocation().getParentFile();
+				
+				/**
+                 * Very very rare, but I have seen this on fscked up downloads which don't appear
+                 * to have a blank / malformed download path.
+				 */ 
+				if (current_location == null) {
+					logWarn(describe(dm, context) + " appears to have a malformed save directory, skipping.", lr);
+					return false;
+				}
+				
 				if (!this.checkDefaultDir(current_location, default_dirs)) {
 					logWarn(describe(dm, context) +
 					    " doesn't exist in any of the following default directories" +
