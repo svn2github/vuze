@@ -37,6 +37,7 @@ Constants
   public static final String GETAZUREUS_WEB_SITE= "http://www.getazureus.com/";
   
   public static final String AELITIS_TORRENTS	= "http://torrents.aelitis.com:88/torrents/";
+  public static final String AELITIS_FILES		= "http://torrents.aelitis.com:88/files/";
   public static final String AZUREUS_WIKI 		= "http://www.azureuswiki.com/index.php/";
   
   public static final String NAT_TEST_SERVER		= "nettest.azureusplatform.com";
@@ -80,7 +81,7 @@ Constants
   public static final boolean isSolaris			= OSName.equalsIgnoreCase("SunOS");
   public static final boolean isFreeBSD			= OSName.equalsIgnoreCase("FreeBSD");
   public static final boolean isWindowsXP		= OSName.equalsIgnoreCase("Windows XP");
-  public static final boolean isWindowsVista = OSName.equalsIgnoreCase("Windows Vista");
+  public static final boolean isWindowsVista 	= OSName.equalsIgnoreCase("Windows Vista");
   public static final boolean isWindows95		= OSName.equalsIgnoreCase("Windows 95");
   public static final boolean isWindows98		= OSName.equalsIgnoreCase("Windows 98");
   public static final boolean isWindowsME		= OSName.equalsIgnoreCase("Windows ME");
