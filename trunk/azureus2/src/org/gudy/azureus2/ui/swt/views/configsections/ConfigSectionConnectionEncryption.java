@@ -152,22 +152,41 @@ public class ConfigSectionConnectionEncryption implements UISWTConfigSection {
 		gridData.horizontalSpan = 2;
 		fallback_outgoing.setLayoutData(gridData);
 		
-		BooleanParameter fallback_incoming = new BooleanParameter(gCrypto, "network.transport.encrypted.fallback.incoming", CFG_PREFIX + "encrypt.fallback_incoming");
+		final BooleanParameter fallback_incoming = new BooleanParameter(gCrypto, "network.transport.encrypted.fallback.incoming", CFG_PREFIX + "encrypt.fallback_incoming");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		fallback_incoming.setLayoutData(gridData);
 		
-		BooleanParameter use_crypto_port = new BooleanParameter(gCrypto, "network.transport.encrypted.use.crypto.port", CFG_PREFIX + "use_crypto_port");
+		final BooleanParameter use_crypto_port = new BooleanParameter(gCrypto, "network.transport.encrypted.use.crypto.port", CFG_PREFIX + "use_crypto_port");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		use_crypto_port.setLayoutData(gridData);
 
-		fallback_incoming.setAdditionalActionPerformer(
-				new ChangeSelectionActionPerformer(
-						use_crypto_port.getControls(), true ));
 		
-		Control[] encryption_controls = {	min_level.getControl(), lmin, lcryptofb, fallback_outgoing.getControl(), fallback_incoming.getControl(), use_crypto_port.getControl() };
-		require.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(encryption_controls));
+		final Control[] ap_controls = {	min_level.getControl(), lmin, lcryptofb, fallback_outgoing.getControl(), fallback_incoming.getControl()};
+
+      	IAdditionalActionPerformer iap = 
+      		new GenericActionPerformer(new Control[] {}) 
+      		{
+	    		public void 
+	    		performAction() 
+	    		{	    
+	    			boolean	required = require.isSelected();
+	    			
+	    			boolean	ucp_enabled = !fallback_incoming.isSelected() && required;
+	    			
+	    			use_crypto_port.getControl().setEnabled( ucp_enabled );	
+
+	    			for (int i=0;i<ap_controls.length;i++){
+	    				
+	    				ap_controls[i].setEnabled( required );
+	    			}
+	    		}
+	    	};
+	    	
+	   	fallback_incoming.setAdditionalActionPerformer( iap );
+	   	
+		require.setAdditionalActionPerformer( iap );
 		
 		///////////////////////   
 
