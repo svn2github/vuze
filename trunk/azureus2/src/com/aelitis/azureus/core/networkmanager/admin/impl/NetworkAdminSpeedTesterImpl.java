@@ -2,11 +2,11 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestListener;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -15,7 +15,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -29,7 +28,6 @@ import java.net.URLConnection;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
-import java.io.RandomAccessFile;
 
 
 public class NetworkAdminSpeedTesterImpl 
@@ -40,8 +38,7 @@ public class NetworkAdminSpeedTesterImpl
 
     private static Result lastResult=null;
 
-    private List listenerList = new ArrayList();//<NetworkAdminSpeedTestListener>
-
+    NetworkAdminSpeedTestScheduler scheduler = NetworkAdminSpeedTestSchedulerImpl.getInstance();
 
     public static final String DOWNLOAD_AVE = "download-ave";
     public static final String UPLOAD_AVE = "upload-ave";
@@ -79,7 +76,7 @@ public class NetworkAdminSpeedTesterImpl
             //Get the file from
             Map torrentMap;
             if(mapForTest==null){
-                URL urlTestService = new URL("http://seed20.azureusplatform.com:60000/speedtest?");//ToDo: add the ID for service.
+                URL urlTestService = new URL("http://seed20.azureusplatform.com:60000/speedtest?");
                 torrentBytes = getTestTorrentFromService(urlTestService);
                 Map m = BDecoder.decode(torrentBytes);
                 torrentMap = (Map) m.get("torrent");
@@ -135,7 +132,7 @@ public class NetworkAdminSpeedTesterImpl
             				
                 			DiskManagerPiece[]	pieces = disk_manager.getPieces();
                 			
-                			for ( int i=(pieces.length/2)+1;i<pieces.length;i++ ){
+                			for ( int i=(pieces.length/2);i<pieces.length;i++ ){
                 				
                 				pieces[i].setDone( true );
                 			}
@@ -210,109 +207,23 @@ public class NetworkAdminSpeedTesterImpl
      * @param listener -
      */
     public void addListener(NetworkAdminSpeedTestListener listener) {
-        listenerList.add( listener );
+        scheduler.addSpeedTestListener(listener);
     }
 
     /**
-     * //ToDo: move the list of Listeners to the Scheduler.
      * Send a Result to all of the NetworkAdminSpeedTestListeners.
      * @param r - Result of the test.
      */
     private void sendResultToListeners(Result r){
-        int n = listenerList.size();
-        for( int i=0; i<n; i++){
-            NetworkAdminSpeedTestListener nas = (NetworkAdminSpeedTestListener)listenerList.get(i);
-            nas.complete(r);
-        }
+        scheduler.sendResultToListeners(r);
     }
 
-    /**
-     * Send a status update to all of the listeners.
-     * @param status - String to send to the UI.
-     */
+
     public void sendStageUpdateToListeners(String status){
-        int n = listenerList.size();
-        for( int i=0; i<n; i++){
-            NetworkAdminSpeedTestListener nas = (NetworkAdminSpeedTestListener)listenerList.get(i);
-            nas.stage(status);
-        }
+        scheduler.sendStageUpdateToListeners(status);
     }
-
 
     // ------------------ private methods ---------------
-
-    /**
-     * Take the blank file and put ones into half of it.
-     * @param blankFile - file created on local file system for testing. Should have all zeros at this point.
-     * @param pieceCount - number of pieces
-     * @param pieceSize - size of each piece
-     * @throws IOException - FileNotFound Exception possible.
-     */
-    private static void writeHalfFileWithOnes(File blankFile,  long pieceCount, long pieceSize)
-        throws IOException
-    {
-        RandomAccessFile raf = new RandomAccessFile(blankFile,"rw");
-
-        byte[] byteSeq = createByteSequence( (int)pieceSize );
-        for(int i=0; i<pieceCount/2;i++){
-            raf.write(byteSeq);
-        }
-        raf.close();
-
-    }//writeHalfFileWithOnes
-
-    /**
-     * Return byte[] with all bits set to one.
-     * @param size - of byte array.
-     * @return byte[]
-     */
-    private static byte[] createByteSequence(int size)
-    {
-        //NOTE: the real purpose for this is to random bytes from a seed.
-        byte[] retVal = new byte[size];
-        for(int i=0;i<size;i++){
-            retVal[i] = (byte) 0xFF;
-        }//for
-        return retVal;
-    }//createByteSequence
-
-
-    /**
-     *
-     * @param baseDir - base directory.
-     * @param name - torrent file name.
-     * @param size - torrent file size which should be a multiple of 1024.
-     * @return File that has all zeros in it.
-     * @throws IOException -
-     */
-    private static File createBlankFileOfSize(File baseDir, String name, long size)
-        throws IOException
-    {
-        File retVal = new File(baseDir,name);
-
-        //to ensure the file is deleted when JVM exits.
-        retVal.deleteOnExit();
-
-        //Write file with zeros
-        RandomAccessFile raf = new RandomAccessFile(retVal,"rw");
-        try{
-            byte[] buffer = new byte[1024*1024];
-            long remaining = size;
-            while( remaining>0 ){
-                if( remaining < buffer.length ){
-                    raf.write(buffer,0,(int)remaining);
-                    break;
-                }//if
-                raf.write(buffer);
-                remaining -= buffer.length;
-            }//while
-        }finally{
-            raf.close();
-        }
-
-        return retVal;
-    }//createBlankFileOfSize
-
 
     /**
      * Read from URL and return byte array.

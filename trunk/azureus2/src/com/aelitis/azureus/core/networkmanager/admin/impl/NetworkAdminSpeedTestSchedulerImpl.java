@@ -325,11 +325,6 @@ public class NetworkAdminSpeedTestSchedulerImpl
         EndOfTestListener testListener = new EndOfTestListener(testRunning,lastResult,testStatus,dm);
         currentTest.addListener( testListener );
 
-        int nListeners = testListeners.size();
-        for(int i=0;i<nListeners; i++){
-            currentTest.addListener( (NetworkAdminSpeedTestListener) testListeners.get(i) );
-        }
-
         //start it.
         currentTest.start();
     }
@@ -384,21 +379,39 @@ public class NetworkAdminSpeedTestSchedulerImpl
      * @param listener -
      * @throws IllegalStateException
      */
-    public void addSpeedTestListener(NetworkAdminSpeedTestListener listener)
+    public synchronized void addSpeedTestListener(NetworkAdminSpeedTestListener listener)
         throws IllegalStateException
     {
         testListeners.add( listener );
     }//addSpeedTestListener
+    
 
     /**
-     * Send a stage message to NetworkAdminSpeedTestListeners
-     *
-     * @param message - text to send. Keep it short.
+     * Send a status update to all of the listeners.
+     * @param status - String to send to the UI.
      */
-    public void sendStateMessageToListeners(String message) {
-        //ToDo: implement. Move listener from Test in Schedule class.
+    public synchronized void sendStageUpdateToListeners(String status){
+        int n = testListeners.size();
+        for( int i=0; i<n; i++){
+            NetworkAdminSpeedTestListener nas = (NetworkAdminSpeedTestListener)testListeners.get(i);
+            nas.stage(status);
+        }
+    }//sendStageUpdateToListeners
 
-    }
+    /**
+     * Send a Result to all of the NetworkAdminSpeedTestListeners.
+     * @param r - Result of the test.
+     */
+    public synchronized void sendResultToListeners(NetworkAdminSpeedTester.Result r){
+        int n = testListeners.size();
+        for( int i=0; i<n; i++){
+            NetworkAdminSpeedTestListener nas = (NetworkAdminSpeedTestListener)testListeners.get(i);
+            nas.complete(r);
+        }
+
+        //After all the listeners have been informed the test is now oficially over. clear the listeners.
+        testListeners = new ArrayList();
+    }//sendResultToListeners
 
     /**
      * @deprecated
@@ -478,9 +491,16 @@ public class NetworkAdminSpeedTestSchedulerImpl
         COConfigurationManager.setParameter(TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY,false);
         COConfigurationManager.setParameter(TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY,false);
 
-        COConfigurationManager.setParameter(TransferSpeedValidator.UPLOAD_CONFIGKEY,300);
-        COConfigurationManager.setParameter(TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY,300);
-        COConfigurationManager.setParameter(TransferSpeedValidator.DOWNLOAD_CONFIGKEY,300);
+
+        Long kbpsLimitForTest = (Long) mapForTest.get("limit");
+        if( kbpsLimitForTest==null ){
+            //if the map does have have a limit, set it to 300 kbps by default.
+            kbpsLimitForTest = new Long(300);
+        }
+
+        COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_CONFIGKEY, kbpsLimitForTest.intValue());
+        COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY, kbpsLimitForTest.intValue());
+        COConfigurationManager.setParameter( TransferSpeedValidator.DOWNLOAD_CONFIGKEY, kbpsLimitForTest.intValue());
 
     }//pauseAllDownloads
 
@@ -514,13 +534,9 @@ public class NetworkAdminSpeedTestSchedulerImpl
         public void complete(NetworkAdminSpeedTester.Result res)
         {
             result=res;
-            //stage("Not Running");
 
             restoreAllDownloads();
             testRunning=Boolean.FALSE;
-
-            //clear list of handler - don't want this list to grow with each test.
-            testListeners = new ArrayList();
             
             Debug.out( res.toString() );
         }//complete.
