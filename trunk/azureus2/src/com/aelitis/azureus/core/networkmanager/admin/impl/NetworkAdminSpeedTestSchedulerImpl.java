@@ -62,14 +62,8 @@ public class NetworkAdminSpeedTestSchedulerImpl
     private static final String CHALLENGE_REPLY = "1";
 
     private static final String NOT_RUNNING = "Not Running.";
-    private static long ONE_HOUR = 60 * 60 * 1000;
 
     private static int ZERO_DOWNLOAD_SETTING = -1;
-
-    //ToDo: delete static section once challenge testing is done.
-    static{
-        System.setProperty("debug.speed.test.challenge","y");
-    }
 
     public static synchronized NetworkAdminSpeedTestScheduler getInstance(){
         if(instance==null){
@@ -208,7 +202,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
             byte[] jarBytes = new byte[size.intValue()];
 
             raf.seek(offset.intValue());
-            int bytesRead = raf.read( jarBytes );
+            raf.read( jarBytes );
 
 
             //Build the URL.
@@ -368,10 +362,8 @@ public class NetworkAdminSpeedTestSchedulerImpl
         if(lastResult==null)
             return false;
 
-        //has it been longer then an hour?
+        //cannot request a test more then once per minute. server side will enforce a limit per IP.
         long currTime = SystemTime.getCurrentTime();
-        //return currTime <= lastResult.getTestTime() + ONE_HOUR;
-        //ToDo: restore one hour setting after testing is done.
         final long ONE_MIN = 60 * 1000;
         return currTime <= lastResult.getTestTime() + ONE_MIN;        
     }
@@ -405,6 +397,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
      */
     public void sendStateMessageToListeners(String message) {
         //ToDo: implement. Move listener from Test in Schedule class.
+
     }
 
     /**
