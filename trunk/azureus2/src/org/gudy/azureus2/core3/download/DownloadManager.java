@@ -126,6 +126,16 @@ DownloadManager
     public void
     recheckFile(
         DiskManagerFileInfo     file );
+    	
+    	/**
+    	 * Use with care - introduced to support speed tests whereby we want to avoid checking the
+    	 * virtual torrent used for the test
+    	 * @param enabled
+    	 */
+    
+    public void
+    setPieceCheckingEnabled(
+    	boolean	enabled );
 
   /**
    * Stop the download manager, and do any file/torrent removals.

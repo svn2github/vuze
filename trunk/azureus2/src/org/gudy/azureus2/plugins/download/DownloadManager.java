@@ -139,6 +139,24 @@ DownloadManager
 		throws DownloadException;
 	
 	/**
+	 * Explicit way of adding a download in a stopped state
+	 * @since 3013
+	 * @param torrent
+	 * @param torrent_location
+	 * @param data_location
+	 * @return
+	 * @throws DownloadException
+	 */
+	
+	public Download
+	addDownloadStopped(
+		Torrent		torrent,
+		File		torrent_location,
+		File		data_location )
+	
+		throws DownloadException;
+	
+	/**
 	 * Add a non-persistent download. Such downloads are not persisted by Azureus and as such will
 	 * not be remembered across an Azureus close and restart.
 	 * @param torrent

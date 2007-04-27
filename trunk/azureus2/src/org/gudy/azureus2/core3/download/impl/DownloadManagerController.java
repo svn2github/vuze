@@ -196,6 +196,7 @@ DownloadManagerController
 	private volatile int				activation_count;
 	private volatile long				activation_count_time;
 	
+	private boolean	 piece_checking_enabled	= true;
 	
 	
 	protected
@@ -689,6 +690,20 @@ DownloadManagerController
 		}
 	}  	  
   
+ 	public void 
+  	setPieceCheckingEnabled(
+  		boolean enabled )
+ 	{
+ 		piece_checking_enabled	= enabled;
+ 		
+ 		DiskManager dm = getDiskManager();
+ 	
+ 		if ( dm != null ){
+ 			
+ 			dm.setPieceCheckingEnabled( enabled );
+ 		}
+ 	}
+ 	
 	public void 
 	stopIt(
 		int 				_stateAfterStopping, 
@@ -1613,6 +1628,11 @@ DownloadManagerController
   		DiskManager			new_disk_manager,
   		DiskManagerListener	new_disk_manager_listener )
   	{
+ 		if ( new_disk_manager != null ){
+ 			
+ 			new_disk_manager.setPieceCheckingEnabled( piece_checking_enabled );
+ 		}
+ 		
   	 	try{
 	  		disk_listeners_mon.enter();
 	  		

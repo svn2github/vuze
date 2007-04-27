@@ -3,14 +3,24 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestListener;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
+import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 import java.util.*;
@@ -82,23 +92,21 @@ public class NetworkAdminSpeedTesterImpl
             TOTorrent tot = TOTorrentFactory.deserialiseFromMap(torrentMap);
             Torrent torrent = new TorrentImpl(tot);
 
-            long fileSize = tot.getSize();
-            byte[] fileNameBytes = tot.getName();
-            String fileName = new String(fileNameBytes);
+             String fileName = torrent.getName();
 
             sendStageUpdateToListeners("preparing test...");
-            //create a blank file of specified size. (using the temporary name.)
+            	
+            	//create a blank file of specified size. (using the temporary name.)
+            
             File saveLocation = AETemporaryFileHandler.createTempFile();
+            
             File baseDir = saveLocation.getParentFile();
-            File blankFile = createBlankFileOfSize( baseDir, fileName, fileSize );
-            File blankTorrentFile = new File( baseDir, "speedTestTorrent.torrent" );
-            torrent.writeToFile(blankTorrentFile);
+            
+            File blankFile = new File(baseDir,fileName);
 
-            //Now write half of the file with one.
-            //ToDo:  implement a better method that will mark each piece as done in the future.
-            long pieceCount = tot.getNumberOfPieces();
-            long pieceSize = tot.getPieceLength();
-            writeHalfFileWithOnes(blankFile,pieceCount, pieceSize);
+            File blankTorrentFile = new File( baseDir, "speedTestTorrent.torrent" );
+            
+            torrent.writeToFile(blankTorrentFile);
 
             //wait to start the test.
             long currTime = SystemTime.getCurrentTime();
@@ -110,7 +118,61 @@ public class NetworkAdminSpeedTesterImpl
                 currTime = SystemTime.getCurrentTime();
             }//while
 
-            Download speed_download = plugin.getDownloadManager().addDownload( torrent, blankTorrentFile ,blankFile);
+            Download speed_download = plugin.getDownloadManager().addDownloadStopped( torrent, blankTorrentFile ,blankFile);
+            
+            DownloadManager core_download = PluginCoreUtils.unwrap( speed_download );
+            
+            core_download.setPieceCheckingEnabled( false );
+
+            core_download.addPeerListener(
+            		new DownloadManagerPeerListener()
+            		{
+            			public void
+            			peerManagerAdded(
+            				PEPeerManager	peer_manager )
+            			{
+            				DiskManager	disk_manager = peer_manager.getDiskManager();
+            				
+                			DiskManagerPiece[]	pieces = disk_manager.getPieces();
+                			
+                			for ( int i=(pieces.length/2)+1;i<pieces.length;i++ ){
+                				
+                				pieces[i].setDone( true );
+                			}
+            			}
+            			
+            			public void
+            			peerManagerRemoved(
+            				PEPeerManager	manager )
+            			{    				
+            			}
+            			
+            			public void
+            			peerAdded(
+            				PEPeer 	peer )
+            			{	
+            			}
+            				
+            			public void
+            			peerRemoved(
+            				PEPeer	peer )
+            			{	
+            			}
+            				
+            			public void
+            			pieceAdded(
+            				PEPiece 	piece )
+            			{	
+            			}
+            				
+            			public void
+            			pieceRemoved(
+            				PEPiece		piece )
+            			{	
+            			}
+                	});
+ 
+            core_download.initialize();
             
             TorrentSpeedTestMonitorThread monitor = new TorrentSpeedTestMonitorThread( speed_download );
             monitor.start();

@@ -1496,6 +1496,13 @@ DownloadManagerImpl
   		controller.forceRecheck(l);
   	}
 
+  	public void 
+  	setPieceCheckingEnabled(
+  		boolean enabled )
+  	{
+  		controller.setPieceCheckingEnabled( enabled );
+  	}
+  	
     public void
     resetFile(
     	DiskManagerFileInfo		file )

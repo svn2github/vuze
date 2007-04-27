@@ -297,6 +297,18 @@ DownloadManagerImpl
 	
 		throws DownloadException
 	{
+		return( addDownload( torrent, torrent_file, data_location, getInitialState()));
+	}
+	
+	public Download
+	addDownload(
+		Torrent		torrent,
+		File		torrent_file,
+		File		data_location,
+		int			initial_state )
+	
+		throws DownloadException
+	{
 		if ( torrent_file == null ){
 			
 		    String torrent_dir = null;
@@ -365,7 +377,7 @@ DownloadManagerImpl
 		
 		DownloadManager dm = global_manager.addDownloadManager(
 				torrent_file.toString(), hash, data_location.toString(),
-				getInitialState(), true, for_seeding, null );
+				initial_state, true, for_seeding, null );
 		
 		if ( dm == null ){
 			
@@ -377,6 +389,17 @@ DownloadManagerImpl
 		return( getDownload( dm ));
 	}
 
+	public Download
+	addDownloadStopped(
+		Torrent		torrent,
+		File		torrent_location,
+		File		data_location )
+	
+		throws DownloadException
+	{
+		return( addDownload( torrent, torrent_location, data_location, DownloadManager.STATE_STOPPED ));
+	}
+	
 	public Download
 	addNonPersistentDownload(
 		Torrent		torrent,

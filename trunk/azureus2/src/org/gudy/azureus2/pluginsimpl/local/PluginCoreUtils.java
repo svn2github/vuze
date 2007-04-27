@@ -24,9 +24,13 @@
 package org.gudy.azureus2.pluginsimpl.local;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManager;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 public class 
@@ -58,5 +62,27 @@ PluginCoreUtils
 		DiskManager		dm )
 	{
 		return(((DiskManagerImpl)dm).getDiskmanager());
+	}
+	
+	public static Download
+	wrap(
+		org.gudy.azureus2.core3.download.DownloadManager	dm )
+	{
+		try{
+			return( DownloadManagerImpl.getDownloadStatic( dm ));
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+			
+			return( null );
+		}
+	}
+	
+	public static org.gudy.azureus2.core3.download.DownloadManager
+	unwrap(
+		Download		dm )
+	{
+		return(((DownloadImpl)dm).getDownload());
 	}
 }

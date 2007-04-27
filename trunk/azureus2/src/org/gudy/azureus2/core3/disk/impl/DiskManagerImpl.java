@@ -144,6 +144,8 @@ DiskManagerImpl
     private long                skipped_file_set_size;
     private long                skipped_but_downloaded;
 
+    private boolean				checking_enabled = true;
+    
 
         // DiskManager listeners
 
@@ -434,23 +436,26 @@ DiskManagerImpl
 
         resume_handler.start();
 
-        if ( newFiles == 0 ){
-
-            resume_handler.checkAllPieces(false);
-
-            	// unlikely to need piece list, force discard
-            
-            if ( getRemainingExcludingDND() == 0 ){
-            	
-            	checkFreePieceList( true );
-            }
-        }else if ( newFiles != files.length ){
-
-                //  if not a fresh torrent, check pieces ignoring fast resume data
-
-            resume_handler.checkAllPieces(true);
+        if ( checking_enabled ){
+        	
+	        if ( newFiles == 0 ){
+	
+	            resume_handler.checkAllPieces(false);
+	
+	            	// unlikely to need piece list, force discard
+	            
+	            if ( getRemainingExcludingDND() == 0 ){
+	            	
+	            	checkFreePieceList( true );
+	            }
+	        }else if ( newFiles != files.length ){
+	
+	                //  if not a fresh torrent, check pieces ignoring fast resume data
+	
+	            resume_handler.checkAllPieces(true);
+	        }
         }
-
+        
         if ( getState() == FAULTY  ){
 
             return;
@@ -1426,6 +1431,8 @@ DiskManagerImpl
 	setPieceCheckingEnabled(
 		boolean		enabled )
 	{
+		checking_enabled = enabled;
+		
 		checker.setCheckingEnabled( enabled );
 	}
 	

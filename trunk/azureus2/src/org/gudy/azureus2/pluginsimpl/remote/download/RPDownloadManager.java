@@ -281,6 +281,19 @@ RPDownloadManager
 	}
 	
 	public Download
+	addDownloadStopped(
+		Torrent		torrent,
+		File		torrent_location,
+		File		data_location )
+	
+		throws DownloadException
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
+	public Download
 	addNonPersistentDownload(
 		Torrent		torrent,
 		File		torrent_location,
