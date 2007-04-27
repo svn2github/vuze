@@ -53,4 +53,10 @@ public interface NetworkAdminSpeedTestScheduler
      * @param listener -
      */
     void addSpeedTestListener(NetworkAdminSpeedTestListener listener);
+
+    /**
+     * Send a stage message to NetworkAdminSpeedTestListeners
+     * @param message - text to send. Keep it short.
+     */
+    void sendStateMessageToListeners(String message);
 }

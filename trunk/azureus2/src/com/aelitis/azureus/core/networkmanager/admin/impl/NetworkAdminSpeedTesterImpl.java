@@ -26,6 +26,7 @@ public class NetworkAdminSpeedTesterImpl
 	implements NetworkAdminSpeedTester
 {
     private PluginInterface plugin;
+    private Map mapForTest=null;
 
     private static Result lastResult=null;
 
@@ -45,8 +46,17 @@ public class NetworkAdminSpeedTesterImpl
         plugin = pi;
     }
 
+    /**
+     * This is the
+     * @param pi - PluginInterface
+     * @param testMap - Map with test details including the torrent.
+     */
+    public NetworkAdminSpeedTesterImpl(PluginInterface pi, Map testMap){
+        this(pi);
+        mapForTest = testMap;
+    }//
 
-	/**
+    /**
 	 * The downloads have been stopped just need to do the testing.
 	 * @return true if the test seems to have stated successfully.
 	 */
@@ -54,16 +64,22 @@ public class NetworkAdminSpeedTesterImpl
 
         //OK lets start the test.
         try{
-
+            byte[] torrentBytes;
             sendStageUpdateToListeners("requesting test...");
             //Get the file from
-            URL urlTestService = new URL("http://seed20.azureusplatform.com:60000/speedtest?");//ToDo: add the ID for service.
-            byte[] torrentBytes = getTestTorrentFromService(urlTestService);
+            Map torrentMap;
+            if(mapForTest==null){
+                URL urlTestService = new URL("http://seed20.azureusplatform.com:60000/speedtest?");//ToDo: add the ID for service.
+                torrentBytes = getTestTorrentFromService(urlTestService);
+                Map m = BDecoder.decode(torrentBytes);
+                torrentMap = (Map) m.get("torrent");
+            }else{
+                torrentMap = getTestTorrentFromMap(mapForTest);
+            }
 
-            Map m = BDecoder.decode(torrentBytes);
-            Map torrentMap = (Map) m.get("torrent");
+            long startTime = calculateTestStartTimeFromMap(mapForTest);
+
             TOTorrent tot = TOTorrentFactory.deserialiseFromMap(torrentMap);
-
             Torrent torrent = new TorrentImpl(tot);
 
             long fileSize = tot.getSize();
@@ -84,9 +100,17 @@ public class NetworkAdminSpeedTesterImpl
             long pieceSize = tot.getPieceLength();
             writeHalfFileWithOnes(blankFile,pieceCount, pieceSize);
 
-            Download speed_download = plugin.getDownloadManager().addDownload( torrent, blankTorrentFile ,blankFile);
+            //wait to start the test.
+            long currTime = SystemTime.getCurrentTime();
+            while( currTime < startTime ){
+                //calculation how long till the test starts.
+                long secondsTillTestStarts = (startTime-currTime)/1000;
+                sendStageUpdateToListeners("test scheduled in ... "+secondsTillTestStarts);
+                Thread.sleep(1000);
+                currTime = SystemTime.getCurrentTime();
+            }//while
 
-            
+            Download speed_download = plugin.getDownloadManager().addDownload( torrent, blankTorrentFile ,blankFile);
             
             TorrentSpeedTestMonitorThread monitor = new TorrentSpeedTestMonitorThread( speed_download );
             monitor.start();
@@ -128,6 +152,7 @@ public class NetworkAdminSpeedTesterImpl
     }
 
     /**
+     * //ToDo: move the list of Listeners to the Scheduler.
      * Send a Result to all of the NetworkAdminSpeedTestListeners.
      * @param r - Result of the test.
      */
@@ -143,7 +168,7 @@ public class NetworkAdminSpeedTesterImpl
      * Send a status update to all of the listeners.
      * @param status - String to send to the UI.
      */
-    private void sendStageUpdateToListeners(String status){
+    public void sendStageUpdateToListeners(String status){
         int n = listenerList.size();
         for( int i=0; i<n; i++){
             NetworkAdminSpeedTestListener nas = (NetworkAdminSpeedTestListener)listenerList.get(i);
@@ -247,6 +272,45 @@ public class NetworkAdminSpeedTesterImpl
         return b;
     }//getTestTorrentFromService
 
+    /**
+     * The Speed Test scheduler service returns a Map with the "torrent" parameter.
+     * @param m - Map for this test. It is expected to contain the key "torrent".
+     * @return byte[] of the results.
+     */
+    private static Map getTestTorrentFromMap(Map m){
+
+        if( !m.containsKey("torrent") ){
+            Debug.out("The speed test map recieved from the service should contain the torrent.");
+            Debug.out("map="+m);
+            throw new IllegalStateException("Map for speed test failed to contain the key torrent.");
+        }
+
+        return (Map) m.get("torrent");
+    }
+
+    /**
+     * Read the Map from the test scheduler, and return the time for starting this test. If the input is null
+     * then it is assumed that the start time is immediate.
+     * @param m - Map recieved from the service which should contain the key "time"
+     * @return long of start time for the test.
+     */
+    private static long calculateTestStartTimeFromMap(Map m){
+        long currTime = SystemTime.getCurrentTime();
+
+        if(m==null){
+            return currTime;
+        }
+
+        //verify that the "time" parameter exists.
+        if( !m.containsKey("time") ){
+            Debug.out("NetworkAdminSpeedTesterImpl didn't have an param: time.");
+            return currTime;
+        }
+
+        Long delay = (Long) m.get("time");
+
+        return ( currTime + delay.longValue() );
+    }//calculateTestStartTimeFromMap
 
     /**   -------------------- helper class to monitor test. ------------------- **/
     public class TorrentSpeedTestMonitorThread

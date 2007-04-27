@@ -387,15 +387,20 @@ public class ConfigSectionLogging implements UISWTConfigSection {
                               NetworkAdminSpeedTestScheduler nasts
                                       = NetworkAdminSpeedTestSchedulerImpl.getInstance();
 
+                              //listener to feedback into the UI
+                              NetworkAdminSpeedTestSchedulerImpl.TextLabelListener textListener =
+                                              new NetworkAdminSpeedTestSchedulerImpl.TextLabelListener(run_speed_test);
+                              nasts.addSpeedTestListener( textListener );
+
                               if( !nasts.isRunning() ){
 
                                   //schedule a test
-                                  //boolean accepted = nasts.requestTestFromService( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
-                                  NetworkAdminSpeedTestSchedulerImpl.TextLabelListener textListener =
-                                          new NetworkAdminSpeedTestSchedulerImpl.TextLabelListener(run_speed_test);
-                                  nasts.addSpeedTestListener( textListener );
-
-                                  nasts.start( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
+                                  boolean accepted = nasts.requestTestFromService( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
+                                  if(accepted){
+                                      nasts.start( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
+                                  }else{
+                                      //ToDo: the test request failed, need to indicate this back to the UI!!
+                                  }
                               }
 						}//runSupport
 					}.start();

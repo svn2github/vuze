@@ -7,19 +7,26 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import org.eclipse.swt.widgets.Label;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.BufferedInputStream;
+import java.io.RandomAccessFile;
 
 /**
  * User: asnyder
@@ -42,12 +49,17 @@ public class NetworkAdminSpeedTestSchedulerImpl
 
     private Boolean testRunning=Boolean.FALSE;
     private String testStatus = NOT_RUNNING;
+    private Map mapForTest;
 
     /** Types of speed tests **/
     public static final int BIT_TORRENT_UPLOAD_AND_DOWNLOAD = 7777;
     public static final int BIT_TORRENT_DOWNLOAD = 7778;
     public static final int TCP_DOWNLOAD = 7779;
     public static final int TCP_UPLOAD = 7780;
+
+    //Types of requests sent to SpeedTest scheduler.
+    private static final String REQUEST_TEST = "0";
+    private static final String CHALLENGE_REPLY = "1";
 
     private static final String NOT_RUNNING = "Not Running.";
     private static long ONE_HOUR = 60 * 60 * 1000;
@@ -71,23 +83,204 @@ public class NetworkAdminSpeedTestSchedulerImpl
     /**
      * Request a test from the speed testing service, handle the "challenge" if request and then get
      * the id for the test.
+     *
+     * Per spec all request are BEncoded maps.
+     *
      * @param type - test type.
      * @return boolean - true if the test has been reserved with the service.
      */
     public boolean requestTestFromService(int type){
 
-        //Get the configuration parameters for the test.
+        try{
+            //Send "schedule test" request.
+            Map request = new HashMap();
+            request.put("request_type", new Long(REQUEST_TEST) );
 
-        //Send "schedule test" request.
+            String id = COConfigurationManager.getStringParameter("ID","unknown");
+            String ver = COConfigurationManager.getStringParameter("azureus.version","0.0.0.0");
+            request.put("az-id",id); //Where to I get the AZ-ID and client version from the Configuration?
+            request.put("type","both");
+            request.put("jar_ver",ver);
+            request.put("ver", new Long(1) );
 
-        //Read the respose.
+            String speedTestServiceName = System.getProperty( "speedtest.service.ip.address", "seed20.azureusplatform.com" );
 
-        //handle the challenge response.
+            URL urlRequestTest = new URL("http://"+speedTestServiceName+":60000/scheduletest?request="
+                    + URLEncoder.encode( new String(BEncoder.encode(request)),"ISO-8859-1"));
 
-        //set the ID and wait-time for the request.
-                        
-        return false;//ToDo: finish implementation.
+            Map result = getBEncodedMapFromRequest( urlRequestTest );
+            Long responseType =  (Long) result.get("reply_type");
+
+            if( responseType.intValue()==1 ){
+                //a challenge has occured.
+                result = handleChallengeFromSpeedTestService( result );
+                responseType = (Long) result.get("reply_type");
+            }
+            if( responseType.intValue()==0 ){
+                //a test has been scheduled.
+                //set the Map properly.
+                scheduleTestWithSpeedTestService( result );
+                return true;
+            }else{
+                throw new IllegalStateException( "Unrecongnized response from speed test scheduling servcie." );
+            }
+
+        }catch(Throwable t){
+            Debug.printStackTrace(t);
+            return false;
+        }
     }//requestTestFromService.
+
+    /**
+     * Just verify that the Map is valid for starting the test.
+     * @param result -
+     * @return int - time to wait before starting test in milliseconds.
+     */
+    private int scheduleTestWithSpeedTestService(Map result){
+
+        //Expected values in this Map are:
+        //torrent
+        //time (in milliseconds)
+        //limit (in kpbs)
+        //result = 1 (success)
+
+        Long time = (Long) result.get("time");
+        Long limit = (Long) result.get("limit");
+
+        if( time==null || limit==null )
+            throw new IllegalArgumentException("scheduleTestWithSpeedTestService had a null parameter.");
+
+        mapForTest = result;
+
+        return time.intValue();
+    }//scheduleTestWithSpeedTestService
+
+    /**
+     *
+     * @param result - Map from the previous response
+     * @return Map - from the current response.
+     */
+    private Map handleChallengeFromSpeedTestService(Map result){
+        //verify the following items are in the response.
+
+        //size (in bytes)
+        //offset (in bytes)
+        //challenge_id
+        Map retVal = new HashMap();
+        RandomAccessFile raf=null;
+        try{
+
+            Long size = (Long) result.get("size");
+            Long offset = (Long) result.get("offset");
+            byte[] idBytes = (byte[]) result.get("challenge_id");
+
+            if( size==null || offset==null || idBytes==null )
+                throw new IllegalStateException("scheduleTestWithSpeedTestService had a null parameter.");
+
+            //get the size.
+            String id = bytes2String(idBytes);
+
+            //Find the location of the Azureus2.jar file.
+            String azureusJarPath = SystemProperties.getAzureusJarPath();
+            //read the bytes
+            raf = new RandomAccessFile( azureusJarPath, "r" );
+            byte[] jarBytes = new byte[size.intValue()];
+            raf.read( jarBytes, offset.intValue(), size.intValue() );
+
+            //Build the URL.
+            Map request = new HashMap();
+            request.put("request_type", new Long(CHALLENGE_REPLY) );
+            request.put("challenge_id",id);
+            request.put("data",jarBytes);
+            request.put("ver", new Long(1) );//request version
+
+            String speedTestServiceName = System.getProperty( "speedtest.service.ip.address", "seed20.azureusplatform.com" );
+            URL urlRequestTest = new URL("http://"+speedTestServiceName+":60000/scheduletest?request="
+                    + URLEncoder.encode( new String(BEncoder.encode(request)),"ISO-8859-1"));
+
+            Debug.out("Speed Test Challenge response: "+urlRequestTest);
+
+            //Get the response.
+            retVal = getBEncodedMapFromRequest(urlRequestTest);
+
+        }catch( Throwable t ){
+            Debug.printStackTrace(t);
+        }finally{
+            //close
+            try{
+                if(raf!=null)
+                    raf.close();
+            }catch(Throwable t){
+                Debug.printStackTrace(t);
+            }
+        }
+
+        return retVal;
+    }//handleChallengeFromSpeedTestService
+
+
+
+    /**
+     * Convert byte[] into a String
+     * @param data - byte[]
+     * @return String
+     * @throws IllegalArgumentException - if an error occurs.
+     */
+    private static String bytes2String(byte[] data){
+        if(data==null)
+            throw new IllegalArgumentException("bytes2String got null input.");
+
+        return new String(data);
+    }
+
+    /**
+     * Read from URL and return byte array.
+     * @param url -
+     * @return byte[] of the results. Max size currently 100k.
+     * @throws java.io.IOException -
+     */
+    private static Map getBEncodedMapFromRequest(URL url)
+            throws IOException
+    {
+
+        ResourceDownloader rd = ResourceDownloaderFactoryImpl.getSingleton().create( url );
+
+        InputStream is=null;
+        Map reply = new HashMap();
+        try
+        {
+            is = rd.download();
+            reply = BDecoder.decode( new BufferedInputStream(is) );
+
+            //all replys of this type contains a "result"
+            Long res = (Long) reply.get("result");
+            if(res==null)
+                throw new IllegalStateException("No result parameter in the response!! reply="+reply);
+            if(res.intValue()==0){
+                StringBuffer msg = new StringBuffer("Error occurred on the server side. ");
+                String error = new String( (byte[]) reply.get("error") );
+                String errDetail = new String( (byte[]) reply.get("error_detail") );
+                msg.append("error: ").append(error);
+                msg.append(" ,error detail: ").append(errDetail);
+                throw new IllegalStateException( msg.toString() );
+            }
+        }catch(IllegalStateException ise){
+            //rethrow this type of exception.
+            throw ise;
+        }catch(Throwable t){
+            Debug.out(t);
+            Debug.printStackTrace(t);
+        }finally{
+            try{
+                if(is!=null)
+                    is.close();
+            }catch(Throwable e){
+                Debug.printStackTrace(e);
+            }
+        }
+        return reply;
+    }//getBytesFromRequest
+
 
     /**
      * Create a test of type.
@@ -105,7 +298,10 @@ public class NetworkAdminSpeedTestSchedulerImpl
         pauseAllDownloads(dm);
 
         //create the test
-        currentTest = createTest(type);
+        if(mapForTest==null)
+            currentTest = createTest(type);
+        else
+            currentTest = createTest(mapForTest);
 
         //add Scheduler's listeners here so it knows when it stops, aborts, crashes!!
         EndOfTestListener testListener = new EndOfTestListener(testRunning,lastResult,testStatus,dm);
@@ -178,14 +374,45 @@ public class NetworkAdminSpeedTestSchedulerImpl
         testListeners.add( listener );
     }//addSpeedTestListener
 
-    //ToDo: factory method for creating test.
+    /**
+     * Send a stage message to NetworkAdminSpeedTestListeners
+     *
+     * @param message - text to send. Keep it short.
+     */
+    public void sendStateMessageToListeners(String message) {
+        //ToDo: implement. Move listener from Test in Schedule class.
+    }
+
+    /**
+     * @deprecated
+     * @param type -
+     * @return -
+     */
     protected NetworkAdminSpeedTester createTest(int type){
         if( type == BIT_TORRENT_UPLOAD_AND_DOWNLOAD){
             return new NetworkAdminSpeedTesterImpl(plugin);
         }
         //else if(){}
 
-        throw new IllegalArgumentException("file to create NetworkAdminSpeedTester test.");
+        throw new IllegalArgumentException("failed to create NetworkAdminSpeedTester test.");
+    }
+
+
+    /**
+     * A factory method to select a test implementation.
+     * @param m - Map file recieved from the service.
+     * @return NetworkAdminSpeedTester class for this test.
+     */
+    protected NetworkAdminSpeedTester createTest(Map m){
+
+        //Currently only the BitTorrent upload and download test is implemented.
+        //if the map contains a torrent then it will do the upload and download.
+        if( m.containsKey("torrent") ){
+            return new NetworkAdminSpeedTesterImpl(plugin,m);    
+        }else{
+            throw new IllegalStateException("failed to create NetworkAdminSpeedTest.");
+        }
+
     }
 
     /**
@@ -218,7 +445,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
                 int downloadLimit = d[i].getUploadRateLimitBytesPerSecond();
                 int uploadLimit = d[i].getUploadRateLimitBytesPerSecond();
 
-                System.out.println("pauseDownloads: "+d[i].getName()+" upload: "+uploadLimit+" downloadLimit: "+downloadLimit);//ToDo: remove.
+                Debug.out("pauseDownloads: "+d[i].getName()+" upload: "+uploadLimit+" downloadLimit: "+downloadLimit);
                 
                 preTestSettings.set(d[i],uploadLimit,downloadLimit);
 
@@ -278,7 +505,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
             //clear list of handler - don't want this list to grow with each test.
             testListeners = new ArrayList();
             
-            System.out.println(res);//ToDo: remove
+            Debug.out( res.toString() );
         }//complete.
 
         /**
@@ -443,5 +670,3 @@ public class NetworkAdminSpeedTestSchedulerImpl
     }//class SpeedTestDownloadState
 
 }//class NetworkAdminSpeedTestSchedulerImpl
-
-
