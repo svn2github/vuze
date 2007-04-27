@@ -66,6 +66,11 @@ public class NetworkAdminSpeedTestSchedulerImpl
 
     private static int ZERO_DOWNLOAD_SETTING = -1;
 
+    //ToDo: delete static section once challenge testing is done.
+    static{
+        System.setProperty("debug.speed.test.challenge","y");
+    }
+
     public static synchronized NetworkAdminSpeedTestScheduler getInstance(){
         if(instance==null){
             AzureusCore ac = AzureusCoreFactory.getSingleton();
@@ -98,6 +103,14 @@ public class NetworkAdminSpeedTestSchedulerImpl
 
             String id = COConfigurationManager.getStringParameter("ID","unknown");
             String ver = COConfigurationManager.getStringParameter("azureus.version","0.0.0.0");
+
+            //ToDo: remove once challenge testing is done.
+            String debug = System.getProperty("debug.speed.test.challenge","n");
+            if( !"n".equals(debug) ){
+                //over-ride the jar version, and location for debugging.
+                ver="3.0.1.2";
+            }//if
+
             request.put("az-id",id); //Where to I get the AZ-ID and client version from the Configuration?
             request.put("type","both");
             request.put("jar_ver",ver);
@@ -106,7 +119,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
             String speedTestServiceName = System.getProperty( "speedtest.service.ip.address", "seed20.azureusplatform.com" );
 
             URL urlRequestTest = new URL("http://"+speedTestServiceName+":60000/scheduletest?request="
-                    + URLEncoder.encode( new String(BEncoder.encode(request)),"ISO-8859-1"));
+                    + URLEncoder.encode( new String(BEncoder.encode(request),"ISO-8859-1"),"ISO-8859-1"));
 
             Map result = getBEncodedMapFromRequest( urlRequestTest );
             Long responseType =  (Long) result.get("reply_type");
@@ -182,10 +195,21 @@ public class NetworkAdminSpeedTestSchedulerImpl
 
             //Find the location of the Azureus2.jar file.
             String azureusJarPath = SystemProperties.getAzureusJarPath();
+
+            //ToDo: remove once challenge testing is done.
+            String debug = System.getProperty("debug.speed.test.challenge","n");
+            if( !"n".equals(debug) ){
+                //over-ride the jar version, and location for debugging.
+                azureusJarPath = "C:\\test\\azureus\\Azureus3.0.1.2.jar";
+            }//if
+
             //read the bytes
             raf = new RandomAccessFile( azureusJarPath, "r" );
             byte[] jarBytes = new byte[size.intValue()];
-            raf.read( jarBytes, offset.intValue(), size.intValue() );
+
+            raf.seek(offset.intValue());
+            int bytesRead = raf.read( jarBytes );
+
 
             //Build the URL.
             Map request = new HashMap();
@@ -196,7 +220,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
 
             String speedTestServiceName = System.getProperty( "speedtest.service.ip.address", "seed20.azureusplatform.com" );
             URL urlRequestTest = new URL("http://"+speedTestServiceName+":60000/scheduletest?request="
-                    + URLEncoder.encode( new String(BEncoder.encode(request)),"ISO-8859-1"));
+                    + URLEncoder.encode( new String(BEncoder.encode(request),"ISO-8859-1"),"ISO-8859-1"));
 
             Debug.out("Speed Test Challenge response: "+urlRequestTest);
 
