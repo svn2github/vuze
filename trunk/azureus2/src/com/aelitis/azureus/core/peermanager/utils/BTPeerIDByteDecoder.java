@@ -84,6 +84,7 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "BR", "BitRocket" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "XX", "Xtorrent" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "FG", "FlashGet", false )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "FT", "FoxTorrent/RedSwoosh", false )) != null ) return decoded;
       
       if( (decoded = decodeTornadoStyle( peerID, "T", "BitTornado" )) != null ) return decoded;
       if( (decoded = decodeTornadoStyle( peerID, "A", "ABC" )) != null ) return decoded;
@@ -113,7 +114,6 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeSimpleStyle( peerID, 0, "346-", "TorrentTopia" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "271-", "GreedBT 2.7.1" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 10, "BG", "BTGetit" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "OP", "Opera" )) != null ) return decoded;
       
       
       if( (decoded = decodeSimpleStyle( peerID, 0, "a00---0", "Swarmy" )) != null ) return decoded;
@@ -124,6 +124,9 @@ public class BTPeerIDByteDecoder {
 
       if( (decoded = decodeSimpleStyle( peerID, 0, "LIME", "Limewire" )) != null ) return decoded;
       
+      if (decodeSimpleStyle(peerID, 0, "OP", "Opera") != null) {
+    	  return "Opera (Build " + new String(peerID, 2, 4) + ")";
+      }
       
       String burst = new String(peerID, 0, 5, Constants.BYTE_ENCODING);
       if( burst.equals( "Mbrst" ) ) {
