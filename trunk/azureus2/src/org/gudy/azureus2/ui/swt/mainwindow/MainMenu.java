@@ -65,6 +65,7 @@ import org.gudy.azureus2.ui.swt.predicate.shell.*;
 import org.gudy.azureus2.ui.swt.predicate.shellmanager.AllManagedShellsAreMinimizedPredicate;
 import org.gudy.azureus2.ui.swt.predicate.shellmanager.ShellManagerIsEmptyPredicate;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
+import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -353,6 +354,7 @@ public class MainMenu {
             addConsoleMenuItem(toolsMenu);
             addStatisticsMenuItem(toolsMenu);
             addNatTestMenuItem( toolsMenu );
+            addSpeedTestMenuItem( toolsMenu );
             
             new MenuItem(toolsMenu, SWT.SEPARATOR);
 
@@ -1064,6 +1066,13 @@ public class MainMenu {
       });    	
     }
     
+    private MenuItem addSpeedTestMenuItem( Menu menu ) {
+    	return addMenuItem(menu, "MainWindow.menu.tools.speedtest", new Listener() {
+        public void handleEvent(Event e) {
+        	new SpeedTestWizard(core, display);
+        }
+      });    	
+    }
 
     private MenuItem addConfigWizardMenuItem(Menu menu) {
         return addMenuItem(menu, "MainWindow.menu.file.configure", new Listener() {

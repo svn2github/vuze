@@ -1,8 +1,5 @@
 package com.aelitis.azureus.core.networkmanager.admin;
 
-import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTestSchedulerImpl;
-
-import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -56,6 +53,7 @@ public interface NetworkAdminSpeedTestScheduler
      */
     void addSpeedTestListener(NetworkAdminSpeedTestListener listener);
 
+    void removeSpeedTestListener(NetworkAdminSpeedTestListener listener);
     /**
      * Send a stage message to NetworkAdminSpeedTestListeners
      * @param message - text to send. Keep it short.

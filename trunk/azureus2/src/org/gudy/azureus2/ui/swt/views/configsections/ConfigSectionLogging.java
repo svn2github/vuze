@@ -59,8 +59,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
-import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTestSchedulerImpl;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
 
 public class ConfigSectionLogging implements UISWTConfigSection {
@@ -368,45 +366,6 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 					Logger.log( new LogEvent(LOGID, "Stats Info:\n" + str));
 				}
 			});
-
-    //Speed Test
-    final Label run_speed_test = new Label(gLogging, SWT.NULL);
-    run_speed_test.setText("Run upload/download speed test");
-    Button speed_test_button = new Button(gLogging,SWT.PUSH);
-    speed_test_button.setText("Go!");
-    speed_test_button.addListener( SWT.Selection,
-          new Listener()
-          {
-              public void handleEvent(Event event)
-              {
-					new AEThread("SpeedTestInitiator", true)
-					{
-						public void
-						runSupport()
-						{
-                              NetworkAdminSpeedTestScheduler nasts
-                                      = NetworkAdminSpeedTestSchedulerImpl.getInstance();
-
-                              //listener to feedback into the UI
-                              NetworkAdminSpeedTestSchedulerImpl.TextLabelListener textListener =
-                                              new NetworkAdminSpeedTestSchedulerImpl.TextLabelListener(run_speed_test);
-                              nasts.addSpeedTestListener( textListener );
-
-                              if( !nasts.isRunning() ){
-
-                                  //schedule a test
-                                  boolean accepted = nasts.requestTestFromService( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
-                                  if(accepted){
-                                      nasts.start( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
-                                  }else{
-                                      //ToDo: the test request failed, need to indicate this back to the UI!!
-                                  }
-                              }
-						}//runSupport
-					}.start();
-              }//handleEvent                                                                                         
-          });
-
 
         // diagnostics
 

@@ -3,6 +3,7 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestListener;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -13,9 +14,8 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
-import org.eclipse.swt.widgets.Label;
+
 
 import java.util.Map;
 import java.util.HashMap;
@@ -45,7 +45,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
 
     private NetworkAdminSpeedTester currentTest = null;
     private SpeedTestDownloadState preTestSettings;
-    private List testListeners = new ArrayList(); //List<NetworkAdminSpeedTestListener>
+    private CopyOnWriteList testListeners = new CopyOnWriteList(); //List<NetworkAdminSpeedTestListener>
 
     private Boolean testRunning=Boolean.FALSE;
     private String testStatus = NOT_RUNNING;
@@ -133,6 +133,8 @@ public class NetworkAdminSpeedTestSchedulerImpl
             }
 
         }catch(Throwable t){
+        	
+        	sendStageUpdateToListeners( Debug.getNestedExceptionMessage( t ));
             Debug.printStackTrace(t);
             return false;
         }
@@ -379,21 +381,24 @@ public class NetworkAdminSpeedTestSchedulerImpl
      * @param listener -
      * @throws IllegalStateException
      */
-    public synchronized void addSpeedTestListener(NetworkAdminSpeedTestListener listener)
-        throws IllegalStateException
+    public void addSpeedTestListener(NetworkAdminSpeedTestListener listener)
     {
-        testListeners.add( listener );
+    	testListeners.add( listener );
     }//addSpeedTestListener
-    
+
+    public void removeSpeedTestListener(NetworkAdminSpeedTestListener listener)
+    {
+    	testListeners.remove( listener );
+    }
 
     /**
      * Send a status update to all of the listeners.
      * @param status - String to send to the UI.
      */
-    public synchronized void sendStageUpdateToListeners(String status){
-        int n = testListeners.size();
-        for( int i=0; i<n; i++){
-            NetworkAdminSpeedTestListener nas = (NetworkAdminSpeedTestListener)testListeners.get(i);
+    public void sendStageUpdateToListeners(String status){
+       List listeners = testListeners.getList();
+       for( int i=0; i<listeners.size(); i++){
+            NetworkAdminSpeedTestListener nas = (NetworkAdminSpeedTestListener)listeners.get(i);
             nas.stage(status);
         }
     }//sendStageUpdateToListeners
@@ -402,15 +407,12 @@ public class NetworkAdminSpeedTestSchedulerImpl
      * Send a Result to all of the NetworkAdminSpeedTestListeners.
      * @param r - Result of the test.
      */
-    public synchronized void sendResultToListeners(NetworkAdminSpeedTester.Result r){
-        int n = testListeners.size();
-        for( int i=0; i<n; i++){
-            NetworkAdminSpeedTestListener nas = (NetworkAdminSpeedTestListener)testListeners.get(i);
+    public void sendResultToListeners(NetworkAdminSpeedTester.Result r){
+    	List listeners = testListeners.getList();
+    	for( int i=0; i<listeners.size(); i++){
+            NetworkAdminSpeedTestListener nas = (NetworkAdminSpeedTestListener)listeners.get(i);
             nas.complete(r);
         }
-
-        //After all the listeners have been informed the test is now oficially over. clear the listeners.
-        testListeners = new ArrayList();
     }//sendResultToListeners
 
     /**
@@ -552,40 +554,6 @@ public class NetworkAdminSpeedTestSchedulerImpl
 
     }//class EndOfTestListener
 
-    public static class TextLabelListener implements NetworkAdminSpeedTestListener {
-        final Label label;
-        String origText;
-
-        public TextLabelListener(final Label l){
-            label = l;
-
-            Utils.execSWTThread(new AERunnable(){
-                public void runSupport() {
-                    origText = l.getText();
-                }
-            });                           
-        }
-
-        /**
-         * Restore the Label to its Original contents.
-         * @param res - Result of the test.
-         */
-        public void complete(NetworkAdminSpeedTester.Result res){
-            Utils.execSWTThread(new AERunnable(){
-                public void runSupport() {
-                    label.setText( origText );
-                }
-            });
-        }//complete
-
-        public void stage(final String update){
-            Utils.execSWTThread(new AERunnable(){
-                public void runSupport() {
-                    label.setText(update);
-                }
-            });
-        }//stage
-    }//class TextLableListener
 
     /**
      * Preservers the state of all the downloads before the speed test started.
