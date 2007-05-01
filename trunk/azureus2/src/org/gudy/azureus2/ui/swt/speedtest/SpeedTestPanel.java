@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
+import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
@@ -58,6 +59,7 @@ SpeedTestPanel
 	private ProgressBar progress;
 	private Display 	display;
 
+	private boolean		test_running;
 	private boolean		switched_to_close;
 	
 	public 
@@ -102,6 +104,20 @@ SpeedTestPanel
 	public void 
 	finish() 
 	{
+		test_running	= true;
+		
+		wizard.addListener(
+			new WizardListener()
+			{
+				public void
+				closed()
+				{
+					cancel();
+				}
+			});
+		
+		wizard.setFinishEnabled( false );
+		
 		Thread t = 
 			new AEThread("SpeedTest Performer") 
 			{
@@ -117,11 +133,24 @@ SpeedTestPanel
 		t.start();
 	}
 	  
+	public void
+	cancel()
+	{
+			// TODO: refactor nasts to create a scheduled-test object..
+		
+		nasts.abort();
+	}
+	
 	protected void
 	runTest()
 	{
-		if ( !nasts.isRunning() ){
+		test_running	= true;
+		
+		if ( nasts.isRunning() ){
 	
+			stage( "Test already running!" );
+
+		}else{
 				// what's the contract here in terms of listener removal?
 			
 			nasts.addSpeedTestListener( this );
@@ -135,6 +164,8 @@ SpeedTestPanel
 				nasts.start( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
 				
 			}else{
+				
+				stage( "Test request not accepted" );
 				
 				nasts.removeSpeedTestListener( this );
 				
@@ -192,20 +223,18 @@ SpeedTestPanel
 		switched_to_close	= true;
 		
 		wizard.switchToClose();
-		
-		wizard.setFinishEnabled( false );
 	}
 	
 	public boolean
 	isFinishEnabled()
 	{
-		return( !switched_to_close );
+		return( !( switched_to_close || test_running ));
 	}
 	
 	public boolean
 	isFinishSelectionOK()
 	{
-		return( !switched_to_close );
+		return( !( switched_to_close || test_running ));
 	}
 	
 	public IWizardPanel 
