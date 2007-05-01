@@ -313,23 +313,25 @@ PlatformManagerImpl
 			try{
 			
 				String az_home;
+
+				// Try the app dir first, because we may not be using the one in the registry
+				az_home = SystemProperties.getApplicationPath();		
 				
-				try{
-					az_home = access.getApplicationInstallDir( SystemProperties.getApplicationName());
-					
-					az_exe = new File( az_home + File.separator + app_exe_name ).getAbsoluteFile();
-	
-					if ( !az_exe.exists()){
-						
-						throw( new PlatformManagerException( app_exe_name + " not found in " + az_home + ", please re-install"));
+				az_exe = new File(az_home + File.separator + app_exe_name).getAbsoluteFile();
+
+				if (!az_exe.exists()) {
+					try {
+						az_home = access.getApplicationInstallDir(SystemProperties.getApplicationName());
+
+						az_exe = new File(az_home + File.separator + app_exe_name).getAbsoluteFile();
+
+						if (!az_exe.exists()) {
+
+							throw (new PlatformManagerException(app_exe_name
+									+ " not found in " + az_home + ", please re-install"));
+						}
+					} catch (Throwable e) {
 					}
-				}catch( Throwable e ){
-					
-						//hmmm, well let's try the app dir
-					
-					az_home = SystemProperties.getApplicationPath();		
-					
-					az_exe = new File( az_home + File.separator + app_exe_name ).getAbsoluteFile();
 				}
 				
 				if ( !az_exe.exists()){
