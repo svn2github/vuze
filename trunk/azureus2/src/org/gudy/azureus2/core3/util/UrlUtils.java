@@ -44,6 +44,14 @@ public class UrlUtils
 			"magnet://?" };
 
 	private static int MAGNETURL_STARTS_AT = 3;
+	
+	private static final Object[] XMLescapes = new Object[] {
+		new String[] { "&", "&amp;" },
+		new String[] { ">", "&gt;" },
+		new String[] { "<", "&lt;" },
+		new String[] { "\"", "&quot;" },
+		new String[] { "'", "&apos;" },
+	};
 
 	/**
 	 * test string for possibility that it's an URL.  Considers 40 byte hex 
@@ -181,6 +189,7 @@ public class UrlUtils
 	}
 
 	public static void main(String[] args) {
+		
 		MagnetURIHandler.getSingleton();
 		byte[] infohash = ByteFormatter.decodeString("1234567890123456789012345678901234567890");
 		String[] test = {
@@ -208,5 +217,23 @@ public class UrlUtils
 	 */
 	public static String encode(String s) {
 		return URLEncoder.encode(s).replaceAll("\\+", "%20");
+	}
+	
+	public static String escapeXML(String s) {
+		String ret = s;
+		for (int i = 0; i < XMLescapes.length; i++) {
+			String[] escapeEntry = (String[])XMLescapes[i];
+			ret = ret.replaceAll(escapeEntry[0], escapeEntry[1]);
+		}
+		return ret;
+	}
+
+	public static String unescapeXML(String s) {
+		String ret = s;
+		for (int i = 0; i < XMLescapes.length; i++) {
+			String[] escapeEntry = (String[])XMLescapes[i];
+			ret = ret.replaceAll(escapeEntry[1], escapeEntry[0]);
+		}
+		return ret;
 	}
 }
