@@ -27,7 +27,6 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTest;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTestListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -37,9 +36,6 @@ import org.gudy.azureus2.plugins.PluginInterface;
 
 import org.gudy.azureus2.core3.util.*;
 
-
-
-import java.util.Map;
 
 public class NetworkAdminSpeedTestSchedulerImpl
         implements NetworkAdminSpeedTestScheduler

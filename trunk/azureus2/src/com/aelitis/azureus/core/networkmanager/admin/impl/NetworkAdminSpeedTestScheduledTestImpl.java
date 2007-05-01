@@ -224,6 +224,11 @@ NetworkAdminSpeedTestScheduledTestImpl
             request.put("jar_ver",ver);
             request.put("ver", new Long(1) );
 
+            if ( detectedRouter != null ){
+            	
+            	request.put( "router", detectedRouter );
+            }
+            
             String speedTestServiceName = System.getProperty( "speedtest.service.ip.address", "speed.azureusplatform.com" );
 
             URL urlRequestTest = new URL("http://"+speedTestServiceName+":60000/scheduletest?request="
@@ -250,7 +255,7 @@ NetworkAdminSpeedTestScheduledTestImpl
                 
                 delay_millis 	= time.longValue();
                 max_speed		= limit.longValue();
-                
+                                
                 	// this is test-specific data
                 
                 Map torrentMap = (Map)result.get("torrent");

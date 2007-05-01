@@ -102,7 +102,6 @@ public class NetworkAdminSpeedTesterBTImpl
 
     
     private PluginInterface plugin;
-    private Map mapForTest=null;
 
      
     private volatile boolean	aborted;
@@ -115,16 +114,6 @@ public class NetworkAdminSpeedTesterBTImpl
     public NetworkAdminSpeedTesterBTImpl(PluginInterface pi){
         plugin = pi;
     }
-
-    /**
-     * This is the
-     * @param pi - PluginInterface
-     * @param testMap - Map with test details including the torrent.
-     */
-    public NetworkAdminSpeedTesterBTImpl(PluginInterface pi, Map testMap){
-        this(pi);
-        mapForTest = testMap;
-    }//
 
     public int
     getTestType()
@@ -224,7 +213,6 @@ public class NetworkAdminSpeedTesterBTImpl
 		aborted	= true;
 		
         sendResultToListeners( new BitTorrentResult("Test aborted" ));
-
     }
 
 
@@ -277,7 +265,7 @@ public class NetworkAdminSpeedTesterBTImpl
                 sendStageUpdateToListeners("starting test...");
 
                 //ToDo: use this condition to signal a manual abort.
-                while( !testDone || aborted ){
+                while( !( testDone || aborted )){
 
                     long currTime = SystemTime.getCurrentTime();
                     DownloadStats stats = testDownload.getStats();
