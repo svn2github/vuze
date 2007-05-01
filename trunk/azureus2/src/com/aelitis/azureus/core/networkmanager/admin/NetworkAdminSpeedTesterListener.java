@@ -23,19 +23,19 @@
 package com.aelitis.azureus.core.networkmanager.admin;
 
 
-public interface NetworkAdminSpeedTestListener 
+public interface NetworkAdminSpeedTesterListener 
 {
 
     /**
      * When a test completes.
      * @param result - String with the result
      */
-    public void complete(NetworkAdminSpeedTester.Result result);
+    public void complete(NetworkAdminSpeedTester tester, NetworkAdminSpeedTesterResult result);
 
     /**
      * Informs listener when the test is at a new stage.
      * @param step - String with stage.
      */
-    public void stage(String step);
+    public void stage(NetworkAdminSpeedTester tester, String step);
 
 }

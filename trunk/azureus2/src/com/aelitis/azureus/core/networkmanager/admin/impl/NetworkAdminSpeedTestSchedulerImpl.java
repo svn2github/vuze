@@ -23,37 +23,23 @@
 
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTest;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTestListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestListener;
-import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
+
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
-import org.gudy.azureus2.plugins.download.DownloadManager;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
-import org.gudy.azureus2.plugins.download.DownloadException;
+
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
+
 
 
 import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.BufferedInputStream;
-import java.io.RandomAccessFile;
-
 
 public class NetworkAdminSpeedTestSchedulerImpl
         implements NetworkAdminSpeedTestScheduler
@@ -61,681 +47,89 @@ public class NetworkAdminSpeedTestSchedulerImpl
 
     private static NetworkAdminSpeedTestSchedulerImpl instance = null;
 
-    private static PluginInterface plugin;
-    private NetworkAdminSpeedTester.Result lastResult;
+ 
+    private NetworkAdminSpeedTestScheduledTestImpl currentTest = null;
+     
+    private PluginInterface plugin;
 
-    private NetworkAdminSpeedTester currentTest = null;
-    private SpeedTestDownloadState preTestSettings;
-    private CopyOnWriteList testListeners = new CopyOnWriteList(); //List<NetworkAdminSpeedTestListener>
-
-    private static String detectedRouter;
-    private static TorrentAttribute speedTestAttrib;
-
-    private Boolean testRunning=Boolean.FALSE;
-    private String testStatus = NOT_RUNNING;
-    private Map mapForTest;
-
-    /** Types of speed tests **/
-    public static final int BIT_TORRENT_UPLOAD_AND_DOWNLOAD = 7777;
-    public static final int BIT_TORRENT_DOWNLOAD = 7778;
-    public static final int TCP_DOWNLOAD = 7779;
-    public static final int TCP_UPLOAD = 7780;
-
-    //Types of requests sent to SpeedTest scheduler.
-    private static final String REQUEST_TEST = "0";
-    private static final String CHALLENGE_REPLY = "1";
-
-    private static final String NOT_RUNNING = "Not Running.";
-
-    private static int ZERO_DOWNLOAD_SETTING = -1;
-
-    public static synchronized NetworkAdminSpeedTestScheduler getInstance(){
+     public static synchronized NetworkAdminSpeedTestScheduler getInstance(){
         if(instance==null){
-            AzureusCore ac = AzureusCoreFactory.getSingleton();
-            PluginManager pm = ac.getPluginManager();
-
-            //detect the router.
-            PluginInterface upnp = pm.getPluginInterfaceByClass( UPnPPlugin.class );
-            if( upnp!=null ){
-                detectedRouter = upnp.getPluginconfig().getPluginStringParameter("plugin.info");
-            }
-
-            instance = new NetworkAdminSpeedTestSchedulerImpl(pm.getDefaultPluginInterface());
+             instance = new NetworkAdminSpeedTestSchedulerImpl();
         }
         return instance;
     }
 
-    private NetworkAdminSpeedTestSchedulerImpl(PluginInterface pi){
-        plugin = pi;
-        speedTestAttrib = plugin.getTorrentManager().getPluginAttribute(this.getClass().getName()+".test.attrib");
-    }
+    private NetworkAdminSpeedTestSchedulerImpl(){
+        AzureusCore ac = AzureusCoreFactory.getSingleton();
+        PluginManager pm = ac.getPluginManager();
 
-    /**
-     * Request a test from the speed testing service, handle the "challenge" if request and then get
-     * the id for the test.
-     *
-     * Per spec all request are BEncoded maps.
-     *
-     * @param type - test type.
-     * @return boolean - true if the test has been reserved with the service.
-     */
-    public boolean requestTestFromService(int type){
+        plugin = pm.getDefaultPluginInterface();
+     }
 
-        try{
-            //Send "schedule test" request.
-            Map request = new HashMap();
-            request.put("request_type", new Long(REQUEST_TEST) );
-
-            String id = COConfigurationManager.getStringParameter("ID","unknown");
-            String ver = COConfigurationManager.getStringParameter("azureus.version","0.0.0.0");
-
-            //ToDo: remove once challenge testing is done.
-            String debug = System.getProperty("debug.speed.test.challenge","n");
-            if( !"n".equals(debug) ){
-                //over-ride the jar version, and location for debugging.
-                ver="3.0.1.2";
-            }//if
-
-            request.put("az-id",id); //Where to I get the AZ-ID and client version from the Configuration?
-            request.put("type","both");
-            request.put("jar_ver",ver);
-            request.put("ver", new Long(1) );
-
-            String speedTestServiceName = System.getProperty( "speedtest.service.ip.address", "speed.azureusplatform.com" );
-
-            URL urlRequestTest = new URL("http://"+speedTestServiceName+":60000/scheduletest?request="
-                    + URLEncoder.encode( new String(BEncoder.encode(request),"ISO-8859-1"),"ISO-8859-1"));
-
-            Map result = getBEncodedMapFromRequest( urlRequestTest );
-            Long responseType =  (Long) result.get("reply_type");
-
-            if( responseType.intValue()==1 ){
-                //a challenge has occured.
-                result = handleChallengeFromSpeedTestService( result );
-                responseType = (Long) result.get("reply_type");
-            }
-            if( responseType.intValue()==0 ){
-                //a test has been scheduled.
-                //set the Map properly.
-                scheduleTestWithSpeedTestService( result );
-                return true;
-            }else{
-                throw new IllegalStateException( "Unrecongnized response from speed test scheduling servcie." );
-            }
-
-        }catch(Throwable t){
-        	
-        	sendStageUpdateToListeners( Debug.getNestedExceptionMessage( t ));
-            Debug.printStackTrace(t);
-            return false;
-        }
-    }//requestTestFromService.
-
-    /**
-     * Just verify that the Map is valid for starting the test.
-     * @param result -
-     * @return int - time to wait before starting test in milliseconds.
-     */
-    private int scheduleTestWithSpeedTestService(Map result){
-
-        //Expected values in this Map are:
-        //torrent
-        //time (in milliseconds)
-        //limit (in kpbs)
-        //result = 1 (success)
-
-        Long time = (Long) result.get("time");
-        Long limit = (Long) result.get("limit");
-
-        if( time==null || limit==null )
-            throw new IllegalArgumentException("scheduleTestWithSpeedTestService had a null parameter.");
-
-        mapForTest = result;
-
-        return time.intValue();
-    }//scheduleTestWithSpeedTestService
-
-    /**
-     *
-     * @param result - Map from the previous response
-     * @return Map - from the current response.
-     */
-    private Map handleChallengeFromSpeedTestService(Map result){
-        //verify the following items are in the response.
-
-        //size (in bytes)
-        //offset (in bytes)
-        //challenge_id
-        Map retVal = new HashMap();
-        RandomAccessFile raf=null;
-        try{
-
-            Long size = (Long) result.get("size");
-            Long offset = (Long) result.get("offset");
-            byte[] idBytes = (byte[]) result.get("challenge_id");
-
-            if( size==null || offset==null || idBytes==null )
-                throw new IllegalStateException("scheduleTestWithSpeedTestService had a null parameter.");
-
-            //get the size.
-            String id = bytes2String(idBytes);
-
-            //Find the location of the Azureus2.jar file.
-            String azureusJarPath = SystemProperties.getAzureusJarPath();
-
-            //ToDo: remove once challenge testing is done.
-            String debug = System.getProperty("debug.speed.test.challenge","n");
-            if( !"n".equals(debug) ){
-                //over-ride the jar version, and location for debugging.
-                azureusJarPath = "C:\\test\\azureus\\Azureus3.0.1.2.jar";
-            }//if
-
-            //read the bytes
-            raf = new RandomAccessFile( azureusJarPath, "r" );
-            byte[] jarBytes = new byte[size.intValue()];
-
-            raf.seek(offset.intValue());
-            raf.read( jarBytes );
-
-
-            //Build the URL.
-            Map request = new HashMap();
-            request.put("request_type", new Long(CHALLENGE_REPLY) );
-            request.put("challenge_id",id);
-            request.put("data",jarBytes);
-            request.put("ver", new Long(1) );//request version
-
-            String speedTestServiceName = System.getProperty( "speedtest.service.ip.address", "speed.azureusplatform.com" );
-            URL urlRequestTest = new URL("http://"+speedTestServiceName+":60000/scheduletest?request="
-                    + URLEncoder.encode( new String(BEncoder.encode(request),"ISO-8859-1"),"ISO-8859-1"));
-
-            Debug.out("Speed Test Challenge response: "+urlRequestTest);
-
-            //Get the response.
-            retVal = getBEncodedMapFromRequest(urlRequestTest);
-
-        }catch( Throwable t ){
-            Debug.printStackTrace(t);
-        }finally{
-            //close
-            try{
-                if(raf!=null)
-                    raf.close();
-            }catch(Throwable t){
-                Debug.printStackTrace(t);
-            }
-        }
-
-        return retVal;
-    }//handleChallengeFromSpeedTestService
-
-
-
-    /**
-     * Convert byte[] into a String
-     * @param data - byte[]
-     * @return String
-     * @throws IllegalArgumentException - if an error occurs.
-     */
-    private static String bytes2String(byte[] data){
-        if(data==null)
-            throw new IllegalArgumentException("bytes2String got null input.");
-
-        return new String(data);
-    }
-
-    /**
-     * Read from URL and return byte array.
-     * @param url -
-     * @return byte[] of the results. Max size currently 100k.
-     * @throws java.io.IOException -
-     */
-    private static Map getBEncodedMapFromRequest(URL url)
-            throws IOException
+    public void
+    initialise()
     {
-
-        ResourceDownloader rd = ResourceDownloaderFactoryImpl.getSingleton().create( url );
-
-        InputStream is=null;
-        Map reply = new HashMap();
-        try
-        {
-            is = rd.download();
-            reply = BDecoder.decode( new BufferedInputStream(is) );
-
-            //all replys of this type contains a "result"
-            Long res = (Long) reply.get("result");
-            if(res==null)
-                throw new IllegalStateException("No result parameter in the response!! reply="+reply);
-            if(res.intValue()==0){
-                StringBuffer msg = new StringBuffer("Error occurred on the server side. ");
-                String error = new String( (byte[]) reply.get("error") );
-                String errDetail = new String( (byte[]) reply.get("error_detail") );
-                msg.append("error: ").append(error);
-                msg.append(" ,error detail: ").append(errDetail);
-                throw new IllegalStateException( msg.toString() );
-            }
-        }catch(IllegalStateException ise){
-            //rethrow this type of exception.
-            throw ise;
-        }catch(Throwable t){
-            Debug.out(t);
-            Debug.printStackTrace(t);
-        }finally{
-            try{
-                if(is!=null)
-                    is.close();
-            }catch(Throwable e){
-                Debug.printStackTrace(e);
-            }
-        }
-        return reply;
-    }//getBytesFromRequest
-
-
-    /**
-     * Create a test of type.
-     *
-     * @param type -
-     */
-    public synchronized void start(int type) {
-
-        testRunning=Boolean.TRUE;
-
-        //ToDo: change the interface to a boolean incase it fails to start!!!
-
-        //stop the downloads.
-        DownloadManager dm = plugin.getDownloadManager();
-        pauseAllDownloads(dm);
-
-        //create the test
-        if(mapForTest==null)
-            currentTest = createTest(type);
-        else
-            currentTest = createTest(mapForTest);
-
-        //add Scheduler's listeners here so it knows when it stops, aborts, crashes!!
-        EndOfTestListener testListener = new EndOfTestListener(testRunning,lastResult,testStatus,dm);
-        currentTest.addListener( testListener );
-
-        //start it.
-        currentTest.start();
+    	NetworkAdminSpeedTesterBTImpl.startUp( plugin );
     }
-
-    /**
-     * If a test is currently running abort it.
-     */
-    public synchronized void abort() {
-
-        if(currentTest!=null){
-            currentTest.abort();
-        }
-        //To change body of implemented methods use File | Settings | File Templates.
+    
+    public synchronized NetworkAdminSpeedTestScheduledTest
+    getCurrentTest()
+    {
+    	return( currentTest );
     }
+    
+    public synchronized NetworkAdminSpeedTestScheduledTest 
+    scheduleTest(int type)
+    	throws NetworkAdminException
+    {
+    	if ( currentTest != null ){
 
-    /**
-     * @return true is a test is already running.
-     */
-    public boolean isRunning() {
+    		throw( new NetworkAdminException( "Test already scheduled" ));
+    	}
 
-        return testRunning.booleanValue();
+    	if ( type == TEST_TYPE_BITTORRENT ){
+
+    		currentTest = new NetworkAdminSpeedTestScheduledTestImpl(plugin, new NetworkAdminSpeedTesterBTImpl(plugin) );
+
+    		currentTest.addListener(
+    			new NetworkAdminSpeedTestScheduledTestListener()
+    			{
+    				public void stage(NetworkAdminSpeedTestScheduledTest test, String step){}
+
+    				public void 
+    				complete(NetworkAdminSpeedTestScheduledTest test )
+    				{
+    					synchronized( NetworkAdminSpeedTestSchedulerImpl.this ){
+    						
+    						currentTest = null;
+    					}
+    				}
+  				
+    			});
+    	}else{
+
+    		throw( new NetworkAdminException( "Unknown test type" ));
+    	}
+
+    	return( currentTest );
     }
-
-    /**
-     * @return true if a test has not been run in the past hour.
-     */
-    public boolean isComplete() {
-
-        //check for a result.
-        if(lastResult==null)
-            return false;
-
-        //cannot request a test more then once per minute. server side will enforce a limit per IP.
-        long currTime = SystemTime.getCurrentTime();
-        final long ONE_MIN = 60 * 1000;
-        return currTime <= lastResult.getTestTime() + ONE_MIN;        
-    }
-
+    
     /**
      * Get the most recent result for the test.
      *
      * @return - Result
      */
-    public NetworkAdminSpeedTester.Result getLastResult() {
-        return lastResult;
-    }
-
-    /**
-     * Add NetworkSpeedTestListener to this test. Pass along to test. This method
-     * must be called after the test is created.
-     *
-     * @param listener -
-     * @throws IllegalStateException
-     */
-    public void addSpeedTestListener(NetworkAdminSpeedTestListener listener)
-    {
-    	testListeners.add( listener );
-    }//addSpeedTestListener
-
-    public void removeSpeedTestListener(NetworkAdminSpeedTestListener listener)
-    {
-    	testListeners.remove( listener );
-    }
-
-    /**
-     * Send a status update to all of the listeners.
-     * @param status - String to send to the UI.
-     */
-    public void sendStageUpdateToListeners(String status){
-       List listeners = testListeners.getList();
-       for( int i=0; i<listeners.size(); i++){
-            NetworkAdminSpeedTestListener nas = (NetworkAdminSpeedTestListener)listeners.get(i);
-            nas.stage(status);
-        }
-    }//sendStageUpdateToListeners
-
-    /**
-     * Send a Result to all of the NetworkAdminSpeedTestListeners.
-     * @param r - Result of the test.
-     */
-    public void sendResultToListeners(NetworkAdminSpeedTester.Result r){
-    	List listeners = testListeners.getList();
-    	for( int i=0; i<listeners.size(); i++){
-            NetworkAdminSpeedTestListener nas = (NetworkAdminSpeedTestListener)listeners.get(i);
-            nas.complete(r);
-        }
-    }//sendResultToListeners
-
-    /**
-     * If system crashes on start-up, then speed tests torrents need to be
-     * cleaned on start-up.
-     */
-    public void cleanTestTorrentsOnStartUp() {
-
-        DownloadManager dm = plugin.getDownloadManager();
-        Download[] downloads = dm.getDownloads();
-
-        if(downloads!=null){
-            int num = downloads.length;
-            for(int i=0; i<num; i++){
-                if( downloads[i].getBooleanAttribute(speedTestAttrib) ){
-                    try{
-                        downloads[i].stop();
-                        downloads[i].remove();
-                    }catch(DownloadRemovalVetoException drve){
-                        Debug.out("Had "+drve.getMessage()+" while trying to remove "+downloads[i].getName());
-                    }catch(DownloadException de){
-                        Debug.out("Had "+de.getMessage()+" while trying to remove "+downloads[i].getName());
-                    }
-                }
-            }//for
-        }//if
-
-
-    }//cleanTestTorrentsOnStartUp
-
-    /**
-     * Get the TorrentAttribute used to determine if this download is a speed test.
-     *
-     * @return TorrentAttribute used to identify Speed Tests.
-     */
-    public TorrentAttribute getTestTorrentAttribute() {
-        return speedTestAttrib;
-    }
-
-    /**
-     * @deprecated
-     * @param type -
-     * @return -
-     */
-    protected NetworkAdminSpeedTester createTest(int type){
-        if( type == BIT_TORRENT_UPLOAD_AND_DOWNLOAD){
-            return new NetworkAdminSpeedTesterImpl(plugin);
-        }
-        //else if(){}
-
-        throw new IllegalArgumentException("failed to create NetworkAdminSpeedTester test.");
-    }
-
-
-    /**
-     * A factory method to select a test implementation.
-     * @param m - Map file recieved from the service.
-     * @return NetworkAdminSpeedTester class for this test.
-     */
-    protected NetworkAdminSpeedTester createTest(Map m){
-
-        //Currently only the BitTorrent upload and download test is implemented.
-        //if the map contains a torrent then it will do the upload and download.
-        if( m.containsKey("torrent") ){
-            return new NetworkAdminSpeedTesterImpl(plugin,m);    
+    public NetworkAdminSpeedTesterResult getLastResult(int type) {
+    	
+        if ( type == TEST_TYPE_BITTORRENT ){
+        	
+        	return( NetworkAdminSpeedTesterBTImpl.getLastResult());
+        	
         }else{
-            throw new IllegalStateException("failed to create NetworkAdminSpeedTest.");
+        	
+        	Debug.out( "Unknown test type" );
+        	
+        	return( null );
         }
-
     }
-
-    /**
-     * Restore all the downloads the state before the speed test started.
-     */
-    private synchronized void restoreAllDownloads(){
-
-        //restore the global settings.
-        preTestSettings.restoreGlobalLimits();
-
-        //restore the individual
-        preTestSettings.restoreIndividualLimits();
-    }//restoreAllDownloads
-
-    /**
-     * Preserve all the data about the downloads while the test is running.
-     * @param dm - DownloadManager.
-     */
-    private synchronized void pauseAllDownloads(DownloadManager dm){
-
-        preTestSettings = new SpeedTestDownloadState();
-
-        //preserve the limits for all the downloads and set each to zero.
-        Download[] d = dm.getDownloads();
-        if(d!=null){
-            int len = d.length;
-            for(int i=0;i<len;i++){
-
-                plugin.getDownloadManager().getStats();
-                int downloadLimit = d[i].getUploadRateLimitBytesPerSecond();
-                int uploadLimit = d[i].getUploadRateLimitBytesPerSecond();
-
-                Debug.out("pauseDownloads: "+d[i].getName()+" upload: "+uploadLimit+" downloadLimit: "+downloadLimit);
-                
-                preTestSettings.set(d[i],uploadLimit,downloadLimit);
-
-                d[i].setUploadRateLimitBytesPerSecond(ZERO_DOWNLOAD_SETTING);
-                d[i].setDownloadRateLimitBytesPerSecond( ZERO_DOWNLOAD_SETTING );
-            }//for
-        }//if
-
-        //preserver the global limits
-        preTestSettings.saveGlobalLimits();
-
-        //set global limits for speed test. Should we limit it it 300k here?
-        COConfigurationManager.setParameter(TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY,false);
-        COConfigurationManager.setParameter(TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY,false);
-
-
-        Long kbpsLimitForTest = (Long) mapForTest.get("limit");
-        if( kbpsLimitForTest==null ){
-            //if the map does have have a limit, set it to 300 kbps by default.
-            kbpsLimitForTest = new Long(300);
-        }
-
-        COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_CONFIGKEY, kbpsLimitForTest.intValue());
-        COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY, kbpsLimitForTest.intValue());
-        COConfigurationManager.setParameter( TransferSpeedValidator.DOWNLOAD_CONFIGKEY, kbpsLimitForTest.intValue());
-
-    }//pauseAllDownloads
-
-
-    // ---------------    HELPER CLASSES BELOW HERE   ---------------- //
-
-    /**
-     * Listener class to get status and completion events from the speed test.
-     */
-    class EndOfTestListener implements NetworkAdminSpeedTestListener{
-
-        Boolean running;
-        NetworkAdminSpeedTester.Result result;
-        String testStatus;
-        DownloadManager downloadManager;
-
-        public EndOfTestListener(Boolean testRunning, NetworkAdminSpeedTester.Result res,
-                                 String status, DownloadManager dm)
-        {
-            running = testRunning;
-            result = res;
-            testStatus = status;
-            downloadManager = dm;
-        }
-
-        /**
-         * When a test completes.
-         *
-         * @param res - String with the result
-         */
-        public void complete(NetworkAdminSpeedTester.Result res)
-        {
-            result=res;
-
-            restoreAllDownloads();
-            testRunning=Boolean.FALSE;
-            
-            Debug.out( res.toString() );
-        }//complete.
-
-        /**
-         * Informs listener when the test is at a new stage.
-         *
-         * @param update - String with stage.
-         */
-        public void stage(String update) {
-            testStatus = update;
-        }
-
-    }//class EndOfTestListener
-
-
-    /**
-     * Preservers the state of all the downloads before the speed test started.
-     */
-    class SpeedTestDownloadState{
-
-        private Map torrentLimits = new HashMap(); //Map <Download , Map<String,Integer> >
-
-        public static final String TORRENT_UPLOAD_LIMIT = "u";
-        public static final String TORRENT_DOWNLOAD_LIMIT = "d";
-
-        //global limits.
-        int maxUploadKbs;
-        int maxUploadSeedingKbs;
-        int maxDownloadKbs;
-
-        boolean autoSpeedEnabled;
-        boolean autoSpeedSeedingEnabled;
-
-
-        public SpeedTestDownloadState(){}
-
-        /**
-         * Save the upload/download limits of this Download object before the test started.
-         * @param d - Download
-         * @param uploadLimit - int
-         * @param downloadLimit - int
-         */
-        public void set(Download d, int uploadLimit, int downloadLimit){
-            if(d==null)
-                throw new IllegalArgumentException("Download should not be null.");
-
-            Map props = new HashMap();//Map<String,Integer>
-
-            props.put(TORRENT_UPLOAD_LIMIT, new Integer(uploadLimit) );
-            props.put(TORRENT_DOWNLOAD_LIMIT, new Integer(downloadLimit) );
-
-            torrentLimits.put(d,props);
-        }
-
-        /**
-         * Get the global limits from the TransferSpeedValidator class. Call before starting a speed test.
-         */
-        public void saveGlobalLimits(){
-            //int settings.
-            maxUploadKbs = COConfigurationManager.getIntParameter( TransferSpeedValidator.UPLOAD_CONFIGKEY );
-            maxUploadSeedingKbs = COConfigurationManager.getIntParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY );
-            maxDownloadKbs = COConfigurationManager.getIntParameter( TransferSpeedValidator.DOWNLOAD_CONFIGKEY );
-            //boolean setting.
-            autoSpeedEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY );
-            autoSpeedSeedingEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY );
-        }//saveGlobalLimits
-
-        /**
-         * Call this method after a speed test completes to restore the global limits.
-         */
-        public void restoreGlobalLimits(){
-            COConfigurationManager.setParameter(TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY,autoSpeedEnabled);
-            COConfigurationManager.setParameter(TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY,autoSpeedSeedingEnabled);
-
-            COConfigurationManager.setParameter(TransferSpeedValidator.UPLOAD_CONFIGKEY,maxUploadKbs);
-            COConfigurationManager.setParameter(TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY,maxUploadSeedingKbs);
-            COConfigurationManager.setParameter(TransferSpeedValidator.DOWNLOAD_CONFIGKEY,maxDownloadKbs);
-        }//restoreGlobalLimits
-
-        /**
-         * Call this method after the speed test is completed to restore the individual download limits
-         * before the test started.
-         */
-        public void restoreIndividualLimits(){
-            Download[] downloads = getAllDownloads();
-            if(downloads!=null){
-                int nDownloads = downloads.length;
-
-                for(int i=0;i<nDownloads;i++){
-                    int uploadLimit = get(downloads[i], TORRENT_UPLOAD_LIMIT);
-                    int downLimit = get(downloads[i], TORRENT_DOWNLOAD_LIMIT);
-
-                    downloads[i].setDownloadRateLimitBytesPerSecond(downLimit);
-                    downloads[i].setUploadRateLimitBytesPerSecond(uploadLimit);
-
-                    System.out.println("restoreDownloads: "+downloads[i].getName()+" upload: "+uploadLimit+" download: "+downLimit);
-                }//for
-            }//if
-        }//restoreIndividualLimits
-
-        /**
-         * Get the upload or download limit for this Download object before the test started.
-         * @param d - Download
-         * @param param - String
-         * @return - limit as int.
-         */
-        public int get(Download d, String param){
-            if(d==null || param==null )
-                throw new IllegalArgumentException("null inputs.");
-
-            if(!param.equals(TORRENT_UPLOAD_LIMIT) && !param.equals(TORRENT_DOWNLOAD_LIMIT))
-                throw new IllegalArgumentException("invalid param. param="+param);
-
-            Map out = (Map) torrentLimits.get(d);
-            Integer limit = (Integer) out.get(param);
-
-            return limit.intValue();
-        }
-
-        /**
-         * Get all the Download keys in this Map.
-         * @return - Download[]
-         */
-        public Download[] getAllDownloads(){
-            Download[] a = new Download[0];
-            return (Download[]) torrentLimits.keySet().toArray(a);
-        }
-
-    }//class SpeedTestDownloadState
-
-}//class NetworkAdminSpeedTestSchedulerImpl
+}

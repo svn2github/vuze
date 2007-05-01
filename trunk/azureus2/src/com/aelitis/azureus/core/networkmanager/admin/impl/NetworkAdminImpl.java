@@ -621,7 +621,8 @@ NetworkAdminImpl
 		}
 
         NetworkAdminSpeedTestScheduler nast = NetworkAdminSpeedTestSchedulerImpl.getInstance();
-        nast.cleanTestTorrentsOnStartUp();
+        
+        nast.initialise();
     }
 	
 	public void
