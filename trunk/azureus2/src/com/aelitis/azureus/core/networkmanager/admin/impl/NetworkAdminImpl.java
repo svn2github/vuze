@@ -59,18 +59,7 @@ import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASNLookup;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminHTTPProxy;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNATDevice;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterface;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNode;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminProtocol;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminRouteListener;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
+import com.aelitis.azureus.core.networkmanager.admin.*;
 import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
@@ -630,7 +619,10 @@ NetworkAdminImpl
 				}
 			}
 		}
-	}
+
+        NetworkAdminSpeedTestScheduler nast = NetworkAdminSpeedTestSchedulerImpl.getInstance();
+        nast.cleanTestTorrentsOnStartUp();
+    }
 	
 	public void
 	addPropertyChangeListener(

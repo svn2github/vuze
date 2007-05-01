@@ -1,3 +1,25 @@
+/**
+* Created on Apr 17, 2007
+* Created by Alan Snyder
+* Copyright (C) 2007 Aelitis, All Rights Reserved.
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*
+* AELITIS, SAS au capital de 63.529,40 euros
+* 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+*
+*/
+
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
@@ -19,6 +41,7 @@ import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
@@ -76,7 +99,9 @@ public class NetworkAdminSpeedTesterImpl
             //Get the file from
             Map torrentMap;
             if(mapForTest==null){
-                URL urlTestService = new URL("http://seed20.azureusplatform.com:60000/speedtest?");
+
+                String speedTestName = System.getProperty( "speedtest.service.ip.address", "speed.azureusplatform.com" );
+                URL urlTestService = new URL("http://"+speedTestName+":60000/speedtest?");
                 torrentBytes = getTestTorrentFromService(urlTestService);
                 Map m = BDecoder.decode(torrentBytes);
                 torrentMap = (Map) m.get("torrent");
@@ -93,16 +118,11 @@ public class NetworkAdminSpeedTesterImpl
 
             sendStageUpdateToListeners("preparing test...");
             	
-            	//create a blank file of specified size. (using the temporary name.)
-            
+            //create a blank file of specified size. (using the temporary name.)
             File saveLocation = AETemporaryFileHandler.createTempFile();
-            
             File baseDir = saveLocation.getParentFile();
-            
             File blankFile = new File(baseDir,fileName);
-
             File blankTorrentFile = new File( baseDir, "speedTestTorrent.torrent" );
-            
             torrent.writeToFile(blankTorrentFile);
 
             //wait to start the test.
@@ -116,55 +136,47 @@ public class NetworkAdminSpeedTesterImpl
             }//while
 
             Download speed_download = plugin.getDownloadManager().addDownloadStopped( torrent, blankTorrentFile ,blankFile);
-            
-            DownloadManager core_download = PluginCoreUtils.unwrap( speed_download );
-            
-            core_download.setPieceCheckingEnabled( false );
 
+            TorrentAttribute ta = NetworkAdminSpeedTestSchedulerImpl.getInstance().getTestTorrentAttribute();
+            speed_download.setBooleanAttribute(ta,true);
+
+            DownloadManager core_download = PluginCoreUtils.unwrap( speed_download );
+            core_download.setPieceCheckingEnabled( false );
             core_download.addPeerListener(
             		new DownloadManagerPeerListener()
             		{
             			public void
-            			peerManagerAdded(
-            				PEPeerManager	peer_manager )
+            			peerManagerAdded( PEPeerManager	peer_manager )
             			{
             				DiskManager	disk_manager = peer_manager.getDiskManager();
-            				
                 			DiskManagerPiece[]	pieces = disk_manager.getPieces();
-                			
                 			for ( int i=(pieces.length/2);i<pieces.length;i++ ){
-                				
                 				pieces[i].setDone( true );
                 			}
             			}
             			
             			public void
-            			peerManagerRemoved(
-            				PEPeerManager	manager )
+            			peerManagerRemoved(PEPeerManager	manager )
             			{    				
             			}
             			
             			public void
-            			peerAdded(
-            				PEPeer 	peer )
+            			peerAdded(PEPeer 	peer )
             			{	
             			}
             				
             			public void
-            			peerRemoved(
-            				PEPeer	peer )
+            			peerRemoved(PEPeer	peer )
             			{	
             			}
             				
             			public void
-            			pieceAdded(
-            				PEPiece 	piece )
+            			pieceAdded(PEPiece 	piece )
             			{	
             			}
             				
             			public void
-            			pieceRemoved(
-            				PEPiece		piece )
+            			pieceRemoved(PEPiece		piece )
             			{	
             			}
                 	});

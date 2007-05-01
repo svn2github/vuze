@@ -1,3 +1,26 @@
+/**
+* Created on Apr 17, 2007
+* Created by Alan Snyder
+* Copyright (C) 2007 Aelitis, All Rights Reserved.
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*
+* AELITIS, SAS au capital de 63.529,40 euros
+* 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+*
+*/
+
+
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
@@ -6,11 +29,15 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestListen
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -20,7 +47,6 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDown
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.io.InputStream;
@@ -28,12 +54,7 @@ import java.io.IOException;
 import java.io.BufferedInputStream;
 import java.io.RandomAccessFile;
 
-/**
- * User: asnyder
- * Date: Apr 17, 2007
- * Time: 5:43:45 PM
- * Azureus - 2007
- */
+
 public class NetworkAdminSpeedTestSchedulerImpl
         implements NetworkAdminSpeedTestScheduler
 {
@@ -46,6 +67,9 @@ public class NetworkAdminSpeedTestSchedulerImpl
     private NetworkAdminSpeedTester currentTest = null;
     private SpeedTestDownloadState preTestSettings;
     private CopyOnWriteList testListeners = new CopyOnWriteList(); //List<NetworkAdminSpeedTestListener>
+
+    private static String detectedRouter;
+    private static TorrentAttribute speedTestAttrib;
 
     private Boolean testRunning=Boolean.FALSE;
     private String testStatus = NOT_RUNNING;
@@ -69,7 +93,13 @@ public class NetworkAdminSpeedTestSchedulerImpl
         if(instance==null){
             AzureusCore ac = AzureusCoreFactory.getSingleton();
             PluginManager pm = ac.getPluginManager();
-                        
+
+            //detect the router.
+            PluginInterface upnp = pm.getPluginInterfaceByClass( UPnPPlugin.class );
+            if( upnp!=null ){
+                detectedRouter = upnp.getPluginconfig().getPluginStringParameter("plugin.info");
+            }
+
             instance = new NetworkAdminSpeedTestSchedulerImpl(pm.getDefaultPluginInterface());
         }
         return instance;
@@ -77,6 +107,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
 
     private NetworkAdminSpeedTestSchedulerImpl(PluginInterface pi){
         plugin = pi;
+        speedTestAttrib = plugin.getTorrentManager().getPluginAttribute(this.getClass().getName()+".test.attrib");
     }
 
     /**
@@ -110,7 +141,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
             request.put("jar_ver",ver);
             request.put("ver", new Long(1) );
 
-            String speedTestServiceName = System.getProperty( "speedtest.service.ip.address", "seed20.azureusplatform.com" );
+            String speedTestServiceName = System.getProperty( "speedtest.service.ip.address", "speed.azureusplatform.com" );
 
             URL urlRequestTest = new URL("http://"+speedTestServiceName+":60000/scheduletest?request="
                     + URLEncoder.encode( new String(BEncoder.encode(request),"ISO-8859-1"),"ISO-8859-1"));
@@ -214,7 +245,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
             request.put("data",jarBytes);
             request.put("ver", new Long(1) );//request version
 
-            String speedTestServiceName = System.getProperty( "speedtest.service.ip.address", "seed20.azureusplatform.com" );
+            String speedTestServiceName = System.getProperty( "speedtest.service.ip.address", "speed.azureusplatform.com" );
             URL urlRequestTest = new URL("http://"+speedTestServiceName+":60000/scheduletest?request="
                     + URLEncoder.encode( new String(BEncoder.encode(request),"ISO-8859-1"),"ISO-8859-1"));
 
@@ -414,6 +445,43 @@ public class NetworkAdminSpeedTestSchedulerImpl
             nas.complete(r);
         }
     }//sendResultToListeners
+
+    /**
+     * If system crashes on start-up, then speed tests torrents need to be
+     * cleaned on start-up.
+     */
+    public void cleanTestTorrentsOnStartUp() {
+
+        DownloadManager dm = plugin.getDownloadManager();
+        Download[] downloads = dm.getDownloads();
+
+        if(downloads!=null){
+            int num = downloads.length;
+            for(int i=0; i<num; i++){
+                if( downloads[i].getBooleanAttribute(speedTestAttrib) ){
+                    try{
+                        downloads[i].stop();
+                        downloads[i].remove();
+                    }catch(DownloadRemovalVetoException drve){
+                        Debug.out("Had "+drve.getMessage()+" while trying to remove "+downloads[i].getName());
+                    }catch(DownloadException de){
+                        Debug.out("Had "+de.getMessage()+" while trying to remove "+downloads[i].getName());
+                    }
+                }
+            }//for
+        }//if
+
+
+    }//cleanTestTorrentsOnStartUp
+
+    /**
+     * Get the TorrentAttribute used to determine if this download is a speed test.
+     *
+     * @return TorrentAttribute used to identify Speed Tests.
+     */
+    public TorrentAttribute getTestTorrentAttribute() {
+        return speedTestAttrib;
+    }
 
     /**
      * @deprecated
