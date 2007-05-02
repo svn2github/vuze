@@ -104,6 +104,8 @@ public class NetworkAdminSpeedTesterBTImpl
     private PluginInterface plugin;
 
      
+    private boolean	test_started;
+    
     private volatile boolean	aborted;
     
 
@@ -125,8 +127,19 @@ public class NetworkAdminSpeedTesterBTImpl
      * The downloads have been stopped just need to do the testing.
      * @param tot - Torrent recieved from testing service.
      */
-    public synchronized void start( TOTorrent	tot ){
-
+    public synchronized void 
+    start( 
+    	TOTorrent	tot )
+    {
+    	if ( test_started ){
+    		
+    		Debug.out( "Test already started!" );
+    		
+    		return;
+    	}
+    	
+    	test_started = true;
+    	
         //OK lets start the test.
         try{
             sendStageUpdateToListeners("requesting test...");
@@ -189,10 +202,10 @@ public class NetworkAdminSpeedTesterBTImpl
             			}
                 	});
  
-            core_download.setForceStart( true );
-            
             core_download.initialize();
             
+            core_download.setForceStart( true );
+                        
             TorrentSpeedTestMonitorThread monitor = new TorrentSpeedTestMonitorThread( speed_download );
             
             monitor.start();
@@ -275,7 +288,7 @@ public class NetworkAdminSpeedTesterBTImpl
                 		break;
                 	}
                 	
-                	if ( state == Download.ST_QUEUED || state == Download.ST_STOPPED ){
+                	if (  state == Download.ST_STOPPED ){
                 		
                 		abort( "Test downloaded entered queued/stopped state" );
                 		
@@ -299,10 +312,8 @@ public class NetworkAdminSpeedTesterBTImpl
                     try{ Thread.sleep(1000); }
                     catch(InterruptedException ie){
                         //someone interrupted this thread for a reason. "test is now over"
-                        String msg = "TorrentSpeedTestMonitorThread was interrupted before test completed.";
-                        Debug.out(msg);
-                        sendStageUpdateToListeners(msg);
-                        //ToDo: verify manual abort works.
+                        abort( "TorrentSpeedTestMonitorThread was interrupted before test completed" );
+ 
                         break;
                     }
 
