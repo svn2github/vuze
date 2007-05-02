@@ -27,10 +27,7 @@ package org.gudy.azureus2.ui.swt.speedtest;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -55,8 +52,15 @@ SpeedTestPanel
 
     private NetworkAdminSpeedTestScheduler nasts;
 	private NetworkAdminSpeedTestScheduledTest	scheduled_test;
-	
-	private Text 		tasks;
+
+    private Label       explain;
+    private Label       testType;
+    private Button      test;
+    private Button      abort;
+    private Label       testCountDown1;
+    private Label       testCountDown2;
+
+    private Text textMessages;
 	private ProgressBar progress;
 	private Display 	display;
 
@@ -83,26 +87,89 @@ SpeedTestPanel
 	{
 		display = wizard.getDisplay();
 		wizard.setTitle(MessageText.getString( SpeedTestWizard.CFG_PREFIX + "run" ));
-		wizard.setCurrentInfo("");
+		wizard.setCurrentInfo("BitTorrent bandwidth testing.");
 		wizard.setPreviousEnabled(false);
 		
-		Composite panel = wizard.getPanel();
+		Composite rootPanel = wizard.getPanel();
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 1;
-		panel.setLayout(layout);		
-		GridData gridData = new GridData(GridData.FILL_BOTH);
+		rootPanel.setLayout(layout);
+
+        Composite panel = new Composite(rootPanel, SWT.NULL);
+        GridData gridData = new GridData(GridData.FILL_BOTH);
 		panel.setLayoutData(gridData);
 
-		tasks = new Text(panel, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL );
-		tasks.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-		gridData = new GridData(GridData.FILL_BOTH);
-		tasks.setLayoutData(gridData);
+        //label explain section.
+        layout = new GridLayout();
+        layout.numColumns = 4;
+        panel.setLayout(layout);
 
-		progress = new ProgressBar(panel, SWT.SMOOTH);
+        Label explain = new Label(panel, SWT.WRAP);
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData.horizontalSpan = 4;
+        explain.setLayoutData(gridData);
+        StringBuffer sb = new StringBuffer("This test will measure the speed at which data can be simultaneously uploaded");
+        sb.append("and downloaded in your network. The test will first request a testing slot from our service. If a ");
+        sb.append("testing slot is available it will then get a virtual torrent, half for uploading and half for downloading.");
+        sb.append("Once the test start it has 2 minutes to complete. It will first pause all the downloads, then set a ");
+        sb.append("very high global limit, so it doesn't consume too much server bandwidth. It lets the download rate ");
+        explain.setText( sb.toString() );
+
+        //space line
+        Label spacer = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 4;
+        spacer.setLayoutData(gridData);
+
+        //label type and button section.
+        Label ul = new Label(panel, SWT.NULL );
+        gridData = new GridData();
+        ul.setLayoutData(gridData);
+        ul.setText("Azureus speed test: ");
+
+        Label ulType = new Label(panel, SWT.NULL);
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        ulType.setLayoutData(gridData);
+        ulType.setText("BT upload/download");
+
+        test = new Button(panel, SWT.PUSH);
+        test.setText("run");
+        gridData = new GridData();
+        gridData.widthHint = 70;
+        test.setLayoutData(gridData);
+
+        abort = new Button(panel, SWT.PUSH);
+        abort.setText("abort");
+        gridData = new GridData();
+        gridData.widthHint = 70;
+        abort.setLayoutData(gridData);
+
+        //test count down section.
+
+
+        //test progress bar
+        //layout = new GridLayout();
+        //layout.numColumns = 1;
+        //panel.setLayout(layout);
+
+        progress = new ProgressBar(panel, SWT.SMOOTH);
 		progress.setMinimum(0);
 		progress.setMaximum(100);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		progress.setLayoutData(gridData);
+        gridData.horizontalSpan = 4;
+        progress.setLayoutData(gridData);
+
+        //message text section
+        layout = new GridLayout();
+        layout.numColumns = 1;
+        panel.setLayout(layout);
+
+        textMessages = new Text(panel, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL );
+		textMessages.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+		gridData = new GridData(GridData.FILL_BOTH);
+        gridData.horizontalSpan = 4;
+        textMessages.setLayoutData(gridData);
+
 	}
 
 	public void 
@@ -221,11 +288,11 @@ SpeedTestPanel
 	    if (display != null && !display.isDisposed()) {
 		      display.asyncExec(new AERunnable(){
 		        public void runSupport() {
-		          if (tasks != null && !tasks.isDisposed()) {
+		          if (textMessages != null && !textMessages.isDisposed()) {
                         uploadTest = result.getUploadSpeed();
                         downloadTest = result.getDownloadSpeed();
-                        tasks.append("Upload speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getUploadSpeed()) + Text.DELIMITER);
-			            tasks.append("Download speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getDownloadSpeed()) + Text.DELIMITER);
+                        textMessages.append("Upload speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getUploadSpeed()) + Text.DELIMITER);
+			            textMessages.append("Download speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getDownloadSpeed()) + Text.DELIMITER);
                         wizard.setNextEnabled(true);
                   }
 		          
@@ -254,8 +321,8 @@ SpeedTestPanel
                   }
 
                   //print everything including progress indications.
-                  if (tasks != null && !tasks.isDisposed()) {
-			            tasks.append( step + Text.DELIMITER);
+                  if (textMessages != null && !textMessages.isDisposed()) {
+			            textMessages.append( step + Text.DELIMITER);
 		          }
 		        }
 		      });
