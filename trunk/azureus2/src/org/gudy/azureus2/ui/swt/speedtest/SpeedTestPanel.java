@@ -25,7 +25,6 @@ package org.gudy.azureus2.ui.swt.speedtest;
 
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -35,25 +34,28 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestListener;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTest;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTestListener;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
 import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTestSchedulerImpl;
 
 public class 
 SpeedTestPanel
 	extends AbstractWizardPanel 
-	implements NetworkAdminSpeedTestListener
+	implements NetworkAdminSpeedTestScheduledTestListener, NetworkAdminSpeedTesterListener
 {	
 	private SpeedTestWizard		wizard;
 	
 	private NetworkAdminSpeedTestScheduler nasts;
+	private NetworkAdminSpeedTestScheduledTest	scheduled_test;
 	
 	private Text 		tasks;
 	private ProgressBar progress;
@@ -136,9 +138,10 @@ SpeedTestPanel
 	public void
 	cancel()
 	{
-			// TODO: refactor nasts to create a scheduled-test object..
+		if ( scheduled_test != null ){
 		
-		nasts.abort();
+			scheduled_test.abort();
+		}
 	}
 	
 	protected void
@@ -146,29 +149,26 @@ SpeedTestPanel
 	{
 		test_running	= true;
 		
-		if ( nasts.isRunning() ){
+		if ( nasts.getCurrentTest() !=  null ){
 	
-			stage( "Test already running!" );
+			reportStage( "Test already running!" );
 
 		}else{
 				// what's the contract here in terms of listener removal?
 			
-			nasts.addSpeedTestListener( this );
-
-				//schedule a test
-			
-			boolean accepted = nasts.requestTestFromService( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
-			
-			if ( accepted ){
+			try{
+				scheduled_test = nasts.scheduleTest( NetworkAdminSpeedTestScheduler.TEST_TYPE_BITTORRENT );
+	
+				scheduled_test.addListener( this );
 				
-				nasts.start( NetworkAdminSpeedTestSchedulerImpl.BIT_TORRENT_UPLOAD_AND_DOWNLOAD );
+				scheduled_test.getTester().addListener( this );
 				
-			}else{
+				scheduled_test.start();				
 				
-				stage( "Test request not accepted" );
+			}catch( Throwable e ){
 				
-				nasts.removeSpeedTestListener( this );
-				
+				reportStage( "Test request not accepted" );
+								
 			    if (display != null && !display.isDisposed()) {
 				      display.asyncExec(new AERunnable(){
 				        public void runSupport() {
@@ -183,11 +183,39 @@ SpeedTestPanel
 	}
 	
 	public void 
-	complete(
-		final NetworkAdminSpeedTester.Result 	result )
+	stage(
+		NetworkAdminSpeedTestScheduledTest 	test, 
+		String 								step )
 	{
-		nasts.removeSpeedTestListener( this );
-		
+		reportStage( step );
+	}
+
+	public void 
+	complete(
+		NetworkAdminSpeedTestScheduledTest test )
+	{
+	}
+	
+	public void 
+	stage(
+		NetworkAdminSpeedTester 	tester, 
+		String 						step )
+	{
+		reportStage( step );
+	}
+	
+	public void 
+	complete(
+		NetworkAdminSpeedTester			tester,
+		NetworkAdminSpeedTesterResult 	result )
+	{
+		reportComplete( result );
+	}
+	
+	protected void 
+	reportComplete(
+		final NetworkAdminSpeedTesterResult 	result )
+	{
 	    if (display != null && !display.isDisposed()) {
 		      display.asyncExec(new AERunnable(){
 		        public void runSupport() {
@@ -202,9 +230,9 @@ SpeedTestPanel
 		    }
 	}
 
-	public void 
-	stage(
-		final String 		step )
+	protected void 
+	reportStage(
+		final String 						step )
 	{
 	    if (display != null && !display.isDisposed()) {
 		      display.asyncExec(new AERunnable(){
