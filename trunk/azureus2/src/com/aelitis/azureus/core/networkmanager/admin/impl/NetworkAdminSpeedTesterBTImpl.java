@@ -120,16 +120,18 @@ public class NetworkAdminSpeedTesterBTImpl
     {
     	return( NetworkAdminSpeedTestScheduler.TEST_TYPE_BITTORRENT );
     }
-    
+
     /**
-	 * The downloads have been stopped just need to do the testing.
-	 */
-	public synchronized void start( TOTorrent	tot ){
+     * The downloads have been stopped just need to do the testing.
+     * @param tot - Torrent recieved from testing service.
+     */
+    public synchronized void start( TOTorrent	tot ){
 
         //OK lets start the test.
         try{
-            Torrent torrent = new TorrentImpl(tot);
+            sendStageUpdateToListeners("requesting test...");
 
+            Torrent torrent = new TorrentImpl(tot);
             String fileName = torrent.getName();
 
             sendStageUpdateToListeners("preparing test...");
@@ -205,13 +207,10 @@ public class NetworkAdminSpeedTesterBTImpl
 
 	
 	/**
-	 * 
-	 * @return true abort is successful.
+	 *
 	 */
 	public void abort(){
-       
 		aborted	= true;
-		
         sendResultToListeners( new BitTorrentResult("Test aborted" ));
     }
 
@@ -264,7 +263,7 @@ public class NetworkAdminSpeedTesterBTImpl
 
                 sendStageUpdateToListeners("starting test...");
 
-                //ToDo: use this condition to signal a manual abort.
+                //ToDo: wire abort up to UI and test.
                 while( !( testDone || aborted )){
 
                     long currTime = SystemTime.getCurrentTime();
@@ -272,6 +271,8 @@ public class NetworkAdminSpeedTesterBTImpl
                     historyDownloadSpeed.add( autoboxLong(stats.getDownloaded()) );
                     historyUploadSpeed.add( autoboxLong(stats.getUploaded()) );
                     timestamps.add( autoboxLong(currTime) );
+
+                    updateTestProgress(currTime,stats);
 
                     lastTotalDownloadBytes = checkForNewPeakValue( stats, lastTotalDownloadBytes, currTime );
 
@@ -285,8 +286,7 @@ public class NetworkAdminSpeedTesterBTImpl
                         String msg = "TorrentSpeedTestMonitorThread was interrupted before test completed.";
                         Debug.out(msg);
                         sendStageUpdateToListeners(msg);
-                        //ToDo: unfortunately we cannot send the Result to the listeners, since we are NOT done yet!!
-                        //ToDo: This will be the same condition on a manual abort, find one way to handle both conditions.
+                        //ToDo: verify manual abort works.
                         break;
                     }
 
@@ -311,7 +311,7 @@ public class NetworkAdminSpeedTesterBTImpl
                 }
 
             }catch(Exception e){
-                System.out.println("Error: "+e);
+                Debug.out("Error: "+e);
             }
 
             if ( !aborted ){
@@ -330,9 +330,41 @@ public class NetworkAdminSpeedTesterBTImpl
 	            sendResultToListeners(r);
 	
 	            Debug.out("Finished with bandwidth testing. "+r.toString() );
-	            System.out.println("Finished with bandwidth testing. "+r.toString() );//ToDo: remove.
             }
         }//run.
+
+        /**
+         * Calculate the test progression as a value between 0-100.
+         * @param currTime - current time as long.
+         * @param stats - Download stats
+         */
+        public void updateTestProgress(long currTime, DownloadStats stats){
+
+            //do two calculations. Frist based on the total time allowed for the test
+            long totalTestTimeUsed = currTime-startTime;
+            float percentTotal = ((float)totalTestTimeUsed/(float)MAX_TEST_TIME);
+
+            //second for the time since the peak value has been reached.
+            long totalDownloadTimeUsed = currTime-peakTime;
+            float percentDownload = ((float)totalDownloadTimeUsed/(float)MAX_PEAK_TIME);
+
+            //the larger of the two wins.
+            float reportedProgress = percentTotal;
+            if( percentDownload>reportedProgress )
+                reportedProgress=percentDownload;
+
+            int progressBarVal = Math.round( reportedProgress*100.0f );
+            StringBuffer msg = new StringBuffer("progress: ");
+            msg.append(  progressBarVal );
+            //include the upload and download values.
+            msg.append(" : download ave ");
+            msg.append( stats.getDownloadAverage() );
+            msg.append(" : upload ave ");
+            msg.append( stats.getUploadAverage() );
+
+            sendStageUpdateToListeners( msg.toString() );
+
+        }//updateTestProgress
 
         /**
          * Calculate the avererage and standard deviation for a history.
@@ -502,8 +534,9 @@ public class NetworkAdminSpeedTesterBTImpl
             return lastError;
         }
 
+        //ToDo: make a printResult which is more concise.
         public String toString(){
-            StringBuffer sb = new StringBuffer("[com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTesterImpl");
+            StringBuffer sb = new StringBuffer("[com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTesterBTImpl");
 
             if(hadError){
                 sb.append(" Last Error: ").append(lastError);

@@ -192,19 +192,20 @@ NetworkAdminSpeedTestScheduledTestImpl
 	}
 	
 	
-	   /**
+	/**
      * Request a test from the speed testing service, handle the "challenge" if request and then get
      * the id for the test.
      *
      * Per spec all request are BEncoded maps.
      *
-     * @param type - test type.
      * @return boolean - true if the test has been reserved with the service.
      */
     private boolean 
     schedule()
     {
         try{
+            //lookup UPnP devices found. One might be a router.
+
             //Send "schedule test" request.
             Map request = new HashMap();
             request.put("request_type", new Long(REQUEST_TEST) );
@@ -436,7 +437,6 @@ NetworkAdminSpeedTestScheduledTestImpl
 
     /**
      * Preserve all the data about the downloads while the test is running.
-     * @param dm - DownloadManager.
      */
     protected synchronized void setSpeedLimits(){
 
@@ -642,4 +642,5 @@ NetworkAdminSpeedTestScheduledTestImpl
 	{
 		listeners.remove( listener );
 	}
+
 }

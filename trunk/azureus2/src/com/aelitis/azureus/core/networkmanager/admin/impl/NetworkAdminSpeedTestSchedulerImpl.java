@@ -40,17 +40,14 @@ import org.gudy.azureus2.core3.util.*;
 public class NetworkAdminSpeedTestSchedulerImpl
         implements NetworkAdminSpeedTestScheduler
 {
-
     private static NetworkAdminSpeedTestSchedulerImpl instance = null;
-
- 
     private NetworkAdminSpeedTestScheduledTestImpl currentTest = null;
-     
+
     private PluginInterface plugin;
 
      public static synchronized NetworkAdminSpeedTestScheduler getInstance(){
         if(instance==null){
-             instance = new NetworkAdminSpeedTestSchedulerImpl();
+            instance = new NetworkAdminSpeedTestSchedulerImpl();
         }
         return instance;
     }
@@ -128,4 +125,6 @@ public class NetworkAdminSpeedTestSchedulerImpl
         	return( null );
         }
     }
+
+
 }
