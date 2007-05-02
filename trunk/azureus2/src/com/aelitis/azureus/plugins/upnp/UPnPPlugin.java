@@ -806,41 +806,43 @@ UPnPPlugin
 		checkDeviceStats( device );
 		
 		try{
-			processDevice( device.getDevice() );
+			int	interesting = processDevice( device.getDevice() );
 			
-			try{
-				this_mon.enter();
-			
-				root_info_map.put( device.getLocation(), device.getInfo());
-			
-				Iterator	it = root_info_map.values().iterator();
+			if ( interesting > 0 ){
+					
+				try{
+					this_mon.enter();
 				
-				String	all_info = "";
-					
-				List	reported_info = new ArrayList();
+					root_info_map.put( device.getLocation(), device.getInfo());
 				
-				while( it.hasNext()){
+					Iterator	it = root_info_map.values().iterator();
 					
-					String	info = (String)it.next();
+					String	all_info = "";
+						
+					List	reported_info = new ArrayList();
 					
-					if ( info != null && !reported_info.contains( info )){
+					while( it.hasNext()){
 						
-						reported_info.add( info );
+						String	info = (String)it.next();
 						
-						all_info += (all_info.length()==0?"":",") + info;
+						if ( info != null && !reported_info.contains( info )){
+							
+							reported_info.add( info );
+							
+							all_info += (all_info.length()==0?"":",") + info;
+						}
 					}
-				}
-				
-				if ( all_info.length() > 0 ){
 					
-					plugin_interface.getPluginconfig().setPluginParameter( "plugin.info", all_info );
+					if ( all_info.length() > 0 ){
+						
+						plugin_interface.getPluginconfig().setPluginParameter( "plugin.info", all_info );
+					}
+					
+				}finally{
+					
+					this_mon.exit();
 				}
-				
-			}finally{
-				
-				this_mon.exit();
-			}
-			
+			}			
 		}catch( Throwable e ){
 			
 			log.log( "Root device processing fails", e );
@@ -1030,29 +1032,33 @@ UPnPPlugin
 		return( (String[])res.toArray( new String[res.size()]));
 	}
 	
-	protected void
+	protected int
 	processDevice(
 		UPnPDevice		device )
 	
 		throws UPnPException
 	{			
-		processServices( device, device.getServices());
+		int	interesting = processServices( device, device.getServices());
 			
 		UPnPDevice[]	kids = device.getSubDevices();
-		
+				
 		for (int i=0;i<kids.length;i++){
 			
-			processDevice( kids[i] );
+			interesting += processDevice( kids[i] );
 		}
+		
+		return( interesting );
 	}
 	
-	protected void
+	protected int
 	processServices(
 		UPnPDevice		device,
 		UPnPService[] 	device_services )
 	
 		throws UPnPException
 	{
+		int	interesting = 0;
+		
 		for (int i=0;i<device_services.length;i++){
 			
 			UPnPService	s = device_services[i];
@@ -1078,6 +1084,8 @@ UPnPPlugin
 				
 				addService( wan_service );
 				
+				interesting++;
+				
 			}else if ( 	service_type.equalsIgnoreCase( "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1")){ 
 				
 				/* useless stats
@@ -1099,6 +1107,8 @@ UPnPPlugin
 				*/
 			}
 		}
+		
+		return( interesting );
 	}
 	
 	protected void
