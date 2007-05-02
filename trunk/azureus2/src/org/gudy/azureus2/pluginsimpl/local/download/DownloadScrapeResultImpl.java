@@ -128,7 +128,10 @@ DownloadScrapeResultImpl
 	public URL
 	getURL()
 	{
-		return( response.getURL());
+		if (response != null) {
+			return( response.getURL());
+		}
+		return null;
 	}
 	
 	protected TRTrackerScraperResponse
