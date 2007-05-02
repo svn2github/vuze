@@ -83,8 +83,8 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         explain.setLayoutData(gridData);
         StringBuffer sb = new StringBuffer("To get the best performance out of Azureus, it is recommended that you ");
         sb.append("set the upload limit to 80% of achievable. Please test result. ");
-        sb.append("\n\nNOTE: This test is BitTorrent upload/download simultaneous. Most home DSL users will get");
-        sb.append("20 kb/s and 30 kb/s upload. Results were vary depending on the specific router you use.");
+        sb.append("\n\nNOTE: This test is BitTorrent upload/download simultaneous. Most home DSL users will get ");
+        sb.append("20 kb/s and 30 kb/s upload. Results were vary depending on the specific router you use. ");
         sb.append("Connections through a better connection such as on a collage campus can be significantly better. ");
         explain.setText( sb.toString() );
         //Messages.setLanguageText(explain,"speedTestWizard.setupload.explain");
@@ -92,7 +92,7 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         //spacer line
         Label spacer = new Label(panel, SWT.NULL);
         gridData = new GridData();
-        gridData.horizontalSpan = 4;
+        gridData.horizontalSpan = 3;
         spacer.setLayoutData(gridData);
 
         //upload limit label.
