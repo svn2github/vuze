@@ -275,6 +275,10 @@ AEDiagnostics
 			}
 			
 			loggers.put( name, logger );
+			
+			Calendar now = GregorianCalendar.getInstance();
+			log(logger, "\n\n[" + now.get(Calendar.YEAR) + "] Log File Opened for "
+					+ Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + "\n\n");
 		}
 		
 		return( logger );
