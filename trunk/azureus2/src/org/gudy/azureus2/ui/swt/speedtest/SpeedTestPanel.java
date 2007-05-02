@@ -51,10 +51,9 @@ public class
 SpeedTestPanel
 	extends AbstractWizardPanel 
 	implements NetworkAdminSpeedTestScheduledTestListener, NetworkAdminSpeedTesterListener
-{	
-	private SpeedTestWizard		wizard;
-	
-	private NetworkAdminSpeedTestScheduler nasts;
+{
+
+    private NetworkAdminSpeedTestScheduler nasts;
 	private NetworkAdminSpeedTestScheduledTest	scheduled_test;
 	
 	private Text 		tasks;
@@ -63,8 +62,11 @@ SpeedTestPanel
 
 	private boolean		test_running;
 	private boolean		switched_to_close;
-	
-	public 
+
+    //measured upload and download results.
+    int uploadTest, downloadTest;
+
+    public
 	SpeedTestPanel(
 		SpeedTestWizard _wizard, 
 		IWizardPanel 	_previousPanel) 
@@ -96,9 +98,9 @@ SpeedTestPanel
 		gridData = new GridData(GridData.FILL_BOTH);
 		tasks.setLayoutData(gridData);
 
-		progress = new ProgressBar(panel, SWT.NULL);
+		progress = new ProgressBar(panel, SWT.SMOOTH);
 		progress.setMinimum(0);
-		progress.setMaximum(0);
+		progress.setMaximum(100);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		progress.setLayoutData(gridData);
 	}
@@ -220,9 +222,12 @@ SpeedTestPanel
 		      display.asyncExec(new AERunnable(){
 		        public void runSupport() {
 		          if (tasks != null && !tasks.isDisposed()) {
-			            tasks.append("Upload speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getUploadSpeed()) + Text.DELIMITER);
+                        uploadTest = result.getUploadSpeed();
+                        downloadTest = result.getDownloadSpeed();
+                        tasks.append("Upload speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getUploadSpeed()) + Text.DELIMITER);
 			            tasks.append("Download speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getDownloadSpeed()) + Text.DELIMITER);
-		          }
+                        wizard.setNextEnabled(true);
+                  }
 		          
 		          switchToClose();
 		        }
@@ -237,15 +242,56 @@ SpeedTestPanel
 	    if (display != null && !display.isDisposed()) {
 		      display.asyncExec(new AERunnable(){
 		        public void runSupport() {
-		          if (tasks != null && !tasks.isDisposed()) {
+
+                  if(step==null)
+                    return;
+
+                  //intercept progress indications.
+                  if( step.startsWith("progress:")){
+                      //expect format of string to be "progress: # : ..." where # is 0-100
+                      int progressAmount = getProgressValueFromString(step);
+                      progress.setSelection(progressAmount);
+                  }
+
+                  //print everything including progress indications.
+                  if (tasks != null && !tasks.isDisposed()) {
 			            tasks.append( step + Text.DELIMITER);
 		          }
 		        }
 		      });
 		    }	
 	}
-	
-	protected void
+
+    /**
+     *
+     * @param step - String with the expected format.  "progress: #" where # is 0 - 100.
+     * @return The number as an integer, if the result is not known return 0.
+     */
+    private static int getProgressValueFromString(String step){
+        if(step==null)
+            return 0;
+        
+        if( !step.startsWith("progress:") )
+            return 0;
+
+        String[] value = step.split(":");
+        if(value.length<2)
+            return 0;
+
+        int progress;
+        try{
+            progress = Integer.parseInt(value[1].trim());
+        }catch(Exception e){
+            return 0;
+        }
+
+        if( progress<0 || progress>100 )
+            return 0;
+
+        return progress;
+    }//getProgressValueFromString
+
+    protected void
 	switchToClose()
 	{
 		switched_to_close	= true;
@@ -270,4 +316,15 @@ SpeedTestPanel
 	{
 		return( this );
 	}
+
+
+    public boolean isNextEnabled(){
+        //only enable after the test completes correctly.
+        return uploadTest>0;
+    }//isNextEnabled
+
+    public IWizardPanel getNextPanel() {
+        return new SetUploadLimitPanel( wizard, this, uploadTest, downloadTest);
+    }
+
 }
