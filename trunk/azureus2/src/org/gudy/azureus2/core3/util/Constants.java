@@ -43,6 +43,8 @@ Constants
   public static final String NAT_TEST_SERVER		= "nettest.azureusplatform.com";
   public static final String NAT_TEST_SERVER_HTTP	= "http://nettest.azureusplatform.com/";
    
+  public static final String SPEED_TEST_SERVER		= "speed.azureusplatform.com";
+  
   public static final String[] AZUREUS_DOMAINS = { "azureusplatform.com", "aelitis.com" };
   
   public static final String DEFAULT_ENCODING 	= "UTF8";

@@ -44,6 +44,15 @@ public final class TransferSpeedValidator
 
     public static final String UPLOAD_SEEDING_ENABLED_CONFIGKEY =  "enable.seedingonly.upload.rate";
     
+    public static final String[] CONFIG_PARAMS = {	
+    	AUTO_UPLOAD_CONFIGKEY,
+    	AUTO_UPLOAD_SEEDING_CONFIGKEY,
+    	UPLOAD_CONFIGKEY,
+    	UPLOAD_SEEDING_CONFIGKEY,
+    	DOWNLOAD_CONFIGKEY,
+    	UPLOAD_SEEDING_ENABLED_CONFIGKEY,
+    };
+    
     private final String configKey;
     private final Number configValue;
 

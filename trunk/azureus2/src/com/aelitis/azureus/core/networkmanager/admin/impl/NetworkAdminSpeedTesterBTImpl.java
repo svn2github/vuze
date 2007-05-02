@@ -209,9 +209,9 @@ public class NetworkAdminSpeedTesterBTImpl
 	/**
 	 *
 	 */
-	public void abort(){
+	public void abort( String reason ){
 		aborted	= true;
-        sendResultToListeners( new BitTorrentResult("Test aborted" ));
+        sendResultToListeners( new BitTorrentResult("Test aborted: " + reason ));
     }
 
 
@@ -266,6 +266,22 @@ public class NetworkAdminSpeedTesterBTImpl
                 //ToDo: wire abort up to UI and test.
                 while( !( testDone || aborted )){
 
+                	int state = testDownload.getState();
+                	
+                	if ( state == Download.ST_ERROR ){
+                		
+                		abort( "Test download entered error state '" + testDownload.getErrorStateDetails() + "'" );
+                		
+                		break;
+                	}
+                	
+                	if ( state == Download.ST_QUEUED || state == Download.ST_STOPPED ){
+                		
+                		abort( "Test downloaded entered queued/stopped state" );
+                		
+                		break;
+                	}
+                	
                     long currTime = SystemTime.getCurrentTime();
                     DownloadStats stats = testDownload.getStats();
                     historyDownloadSpeed.add( autoboxLong(stats.getDownloaded()) );

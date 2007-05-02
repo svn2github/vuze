@@ -40,7 +40,8 @@ NetworkAdminSpeedTesterImpl
 
     
     protected abstract void
-    abort();
+    abort(
+    	String	reason );
     
 	public void addListener(NetworkAdminSpeedTesterListener listener) {
 		listeners.add( listener );
