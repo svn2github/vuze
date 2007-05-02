@@ -1536,13 +1536,7 @@ DownloadManagerImpl
 	  		Debug.out( "Download not stopped" );
 	  	}
 	  }
-    
-  	public void
-  	restartDownload()
-  	{
-  		controller.restartDownload(false);
-  	}
-  
+      
   	public void
   	startDownload()
   	{
