@@ -34,7 +34,7 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.2"
+#define VERSION "1.3"
 
  
 HMODULE	application_module;
@@ -1030,6 +1030,48 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_testNat
 	}
 }
 
+// 1.3
+JNIEXPORT jint JNICALL
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecuteW(
+	JNIEnv	*env,
+	jclass	cla,
+	jstring _operation,
+	jstring	_file,
+	jstring _parameters,
+	jstring _directory,
+	jint _showCmd )
+{
+	WCHAR		operation[20];
+	WCHAR		file[5192];
+	WCHAR		parameters[16000];
+	WCHAR		directory[5192];
+	INT			showCmd = _showCmd;
+	
+	if ( !jstringToCharsW( env, _operation, operation, sizeof( operation ))){
+		return -1;
+	}
+
+	if ( !jstringToCharsW( env, _file, file, sizeof( file ))){
+		return -1;
+	}
+
+	if ( !jstringToCharsW( env, _parameters, parameters, sizeof( parameters ))){
+		return -1;
+	}
+
+	if ( !jstringToCharsW( env, _directory, directory, sizeof( directory ))){
+		return -1;
+	}
+	
+	// Not sure if ShellExecute treats "\0" as NULL, so do explicit check 
+	return ShellExecuteW(NULL,
+			_operation == NULL ? NULL : operation,
+			_file == NULL ? NULL : file,
+			_parameters == NULL ? NULL : parameters,
+			_directory == NULL ? NULL : directory,
+			showCmd);
+}
+
 
 // NON-UNICODE VARIANT FOR WIN95,98,ME
 
@@ -1658,6 +1700,48 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_testNat
 	}
 }
 
+// 1.3
+JNIEXPORT jint JNICALL
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecuteA(
+	JNIEnv	*env,
+	jclass	cla,
+	jstring _operation,
+	jstring	_file,
+	jstring _parameters,
+	jstring _directory,
+	jint _showCmd )
+{
+	char	operation[20];
+	char	file[5192];
+	char	parameters[16000];
+	char	directory[5192];
+	INT		showCmd = _showCmd;
+	
+	if ( !jstringToCharsA( env, _operation, operation, sizeof( operation ))){
+		return -1;
+	}
+
+	if ( !jstringToCharsA( env, _file, file, sizeof( file ))){
+		return -1;
+	}
+
+	if ( !jstringToCharsA( env, _parameters, parameters, sizeof( parameters ))){
+		return -1;
+	}
+
+	if ( !jstringToCharsA( env, _directory, directory, sizeof( directory ))){
+		return -1;
+	}
+	
+	// Not sure if ShellExecute treats "\0" as NULL, so do explicit check 
+	return ShellExecuteA(NULL,
+			_operation == NULL ? NULL : operation,
+			_file == NULL ? NULL : file,
+			_parameters == NULL ? NULL : parameters,
+			_directory == NULL ? NULL : directory,
+			showCmd);
+}
+
 
 // BLAH
 
@@ -1830,5 +1914,26 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_testNat
 		return( Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_testNativeAvailabilityA( env, cla,name ));
 	}else{
 		return( Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_testNativeAvailabilityW( env, cla, name ));
+	}
+}
+
+JNIEXPORT jint JNICALL
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecute(
+	JNIEnv	*env,
+	jclass	cla,
+	jstring operation,
+	jstring	file,
+	jstring parameters,
+	jstring directory,
+	jint showCmd )
+{
+	if ( non_unicode ){
+		return
+			Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecuteA(
+				env, cla, operation, file, parameters, directory, showCmd));
+	}else{
+		return
+			Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecuteW(
+				env, cla, operation, file, parameters, directory, showCmd));
 	}
 }
