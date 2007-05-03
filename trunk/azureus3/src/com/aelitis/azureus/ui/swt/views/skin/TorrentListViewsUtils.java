@@ -317,7 +317,7 @@ public class TorrentListViewsUtils
 
 		File file;
 		String sFile = dm.getDownloadState().getPrimaryFile();
-		if (sFile == null) {
+		if (sFile == null || sFile.length() == 0) {
 			DiskManagerFileInfo[] diskManagerFileInfo = dm.getDiskManagerFileInfo();
 			if (diskManagerFileInfo == null && diskManagerFileInfo.length == 0) {
 				return;
