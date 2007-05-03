@@ -39,10 +39,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.predicate.AllPredicate;
 import org.gudy.azureus2.core3.predicate.NotPredicate;
 import org.gudy.azureus2.core3.predicate.Predicable;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
@@ -751,6 +748,7 @@ public class MainMenu {
 
   private void addViewMenu(final Shell parent, boolean notMainWindow)
   {
+  	try {
       // ******** The View Menu
       MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(viewItem, "MainWindow.menu.view"); //$NON-NLS-1$
@@ -768,6 +766,9 @@ public class MainMenu {
           indent(addConsoleMenuItem(viewMenu));
           indent(addStatisticsMenuItem(viewMenu));
       }
+  	} catch (Exception e) {
+  		Debug.out("Error creating View Menu", e);
+  	}
   }
   
   protected void addPluginView(String sViewID, UISWTViewEventListener l) {
