@@ -168,13 +168,11 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
 
     public void finish(){
         wizard.switchToClose();
-        //wizard.onClose();
     }//finish
 
     public IWizardPanel getFinishPanel(){
 
-        //
-        return this;
+        return new SpeedTestFinishPanel(wizard,this);
     }
 
     public boolean isNextEnabled(){
