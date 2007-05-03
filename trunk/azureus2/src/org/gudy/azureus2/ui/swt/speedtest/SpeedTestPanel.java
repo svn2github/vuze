@@ -53,8 +53,6 @@ SpeedTestPanel
     private NetworkAdminSpeedTestScheduler nasts;
 	private NetworkAdminSpeedTestScheduledTest	scheduled_test;
 
-    private Label       explain;
-    private Label       testType;
     private Button      test;
     private Button      abort;
     private Label       testCountDown1;
@@ -69,6 +67,8 @@ SpeedTestPanel
 
     //measured upload and download results.
     int uploadTest, downloadTest;
+
+    private static final String START_VALUES = " -        ";
 
     public
 	SpeedTestPanel(
@@ -144,14 +144,36 @@ SpeedTestPanel
         gridData.widthHint = 70;
         abort.setLayoutData(gridData);
 
+        //space line
+        spacer = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 4;
+        spacer.setLayoutData(gridData);
+
         //test count down section.
+        Label abortCountDown = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        abortCountDown.setLayoutData(gridData);
+        abortCountDown.setText("abort test in: ");
+
+        testCountDown1 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        testCountDown1.setLayoutData(gridData);
+        testCountDown1.setText(START_VALUES);
+
+        Label testFinishCountDown = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        testFinishCountDown.setLayoutData(gridData);
+        testFinishCountDown.setText("test finish in: ");
+
+        testCountDown2 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        testCountDown2.setLayoutData(gridData);
+        testCountDown2.setText(START_VALUES);
 
 
-        //test progress bar
-        //layout = new GridLayout();
-        //layout.numColumns = 1;
-        //panel.setLayout(layout);
 
+        //progress bar section.
         progress = new ProgressBar(panel, SWT.SMOOTH);
 		progress.setMinimum(0);
 		progress.setMaximum(100);
@@ -159,11 +181,7 @@ SpeedTestPanel
         gridData.horizontalSpan = 4;
         progress.setLayoutData(gridData);
 
-        //message text section
-        layout = new GridLayout();
-        layout.numColumns = 1;
-        panel.setLayout(layout);
-
+        //message text section.
         textMessages = new Text(panel, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL );
 		textMessages.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
 		gridData = new GridData(GridData.FILL_BOTH);
@@ -227,13 +245,9 @@ SpeedTestPanel
 			
 			try{
 				scheduled_test = nasts.scheduleTest( NetworkAdminSpeedTestScheduler.TEST_TYPE_BITTORRENT );
-	
 				scheduled_test.addListener( this );
-				
 				scheduled_test.getTester().addListener( this );
-				
-				scheduled_test.start();				
-				
+				scheduled_test.start();
 			}catch( Throwable e ){
 				
 				reportStage( "Test request not accepted" );
@@ -248,8 +262,8 @@ SpeedTestPanel
 				
 				//ToDo: the test request failed, need to indicate this back to the UI!!
 			}
-		}
-	}
+		}//else
+	}//runTest
 	
 	public void 
 	stage(
@@ -316,8 +330,17 @@ SpeedTestPanel
                   //intercept progress indications.
                   if( step.startsWith("progress:")){
                       //expect format of string to be "progress: # : ..." where # is 0-100
-                      int progressAmount = getProgressValueFromString(step);
+                      int progressAmount = getProgressBarValueFromString(step);
                       progress.setSelection(progressAmount);
+
+                      int[] timeLeft = getTimeLeftFromString(step);
+                      if(timeLeft!=null){
+                          testCountDown1.setText( ""+timeLeft[0]+" sec" );
+                          testCountDown2.setText( ""+timeLeft[1]+" sec" );
+                      }else{
+                          testCountDown1.setText(START_VALUES);
+                          testCountDown2.setText(START_VALUES);
+                      }
                   }
 
                   //print everything including progress indications.
@@ -330,11 +353,38 @@ SpeedTestPanel
 	}
 
     /**
+     * If you find the time left values then use them. On any error return null and the calling
+     * function should handle that condition.
+     * @param step - String in format "progress: #: text: text: #: #"     The last two items are
+     *               the seconds till abort and seconds till complete respectively.
+     * @return - int array of size 2 with time left in test, or null on any error.
+     */
+    private static int[] getTimeLeftFromString(String step){
+        if(step==null)
+            return null;
+        if( !step.startsWith("progress:") )
+            return null;
+
+        String[] values = step.split(":");
+            if(values.length<5)
+                return null;
+
+        int[] times = new int[2];
+        try{
+            times[0] = Integer.parseInt( values[4].trim() );
+            times[1] = Integer.parseInt( values[5].trim() );
+        }catch(Exception e){
+            return null;
+        }
+        return times;
+    }//getTimeLeftFromString
+
+    /**
      *
      * @param step - String with the expected format.  "progress: #" where # is 0 - 100.
      * @return The number as an integer, if the result is not known return 0.
      */
-    private static int getProgressValueFromString(String step){
+    private static int getProgressBarValueFromString(String step){
         if(step==null)
             return 0;
         

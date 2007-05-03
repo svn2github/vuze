@@ -388,6 +388,13 @@ public class NetworkAdminSpeedTesterBTImpl
             msg.append( stats.getDownloadAverage() );
             msg.append(" : upload ave ");
             msg.append( stats.getUploadAverage() );
+            msg.append(" : ");
+            int totalTimeLeft = (int)((MAX_TEST_TIME-totalDownloadTimeUsed)/1000);
+            msg.append(totalTimeLeft);
+            msg.append(" : ");
+            int testTimeLeft = (int)((MAX_PEAK_TIME-totalDownloadTimeUsed)/1000);
+            msg.append(testTimeLeft);
+
 
             sendStageUpdateToListeners( msg.toString() );
 
