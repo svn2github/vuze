@@ -5,10 +5,18 @@ import org.gudy.azureus2.ui.swt.wizard.Wizard;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.SWT;
+
+import java.awt.*;
 
 
 /**
@@ -133,11 +141,23 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         gridData = new GridData();
         gridData.widthHint = 70;
         apply.setLayoutData(gridData);
+        apply.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event){
 
-        //apply.addListener(SWT.Selection, new Listener(){
-        //    //ToDo: complete.
-        //    listener 
-        //});
+                //Turn the string into an int and make it kbps.
+                int uploadLimitBPS = Integer.parseInt( uploadLimitSetting.getText() );
+                int uploadLimitKBPS = uploadLimitBPS/1024;
+
+                //set global upload limit
+                COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY , uploadLimitKBPS );
+                //set while seeding upload limit
+                COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY , uploadLimitKBPS );
+                //set auto-speed upload limit.
+                //ToDo: is there an auto-speed upload limit?
+
+                wizard.setFinishEnabled(true);
+            }
+        });
 
 
     }//show
@@ -147,8 +167,15 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
     }
 
     public void finish(){
-
+        wizard.switchToClose();
+        //wizard.onClose();
     }//finish
+
+    public IWizardPanel getFinishPanel(){
+
+        //
+        return this;
+    }
 
     public boolean isNextEnabled(){
         //This is the final step for now.

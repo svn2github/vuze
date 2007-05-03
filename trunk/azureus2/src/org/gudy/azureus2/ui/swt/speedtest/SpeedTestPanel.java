@@ -68,7 +68,7 @@ SpeedTestPanel
     //measured upload and download results.
     int uploadTest, downloadTest;
 
-    private static final String START_VALUES = " -        ";
+    private static final String START_VALUES = "   -         ";
 
     public
 	SpeedTestPanel(
@@ -89,8 +89,9 @@ SpeedTestPanel
 		wizard.setTitle(MessageText.getString( SpeedTestWizard.CFG_PREFIX + "run" ));
 		wizard.setCurrentInfo("BitTorrent bandwidth testing.");
 		wizard.setPreviousEnabled(false);
-		
-		Composite rootPanel = wizard.getPanel();
+        wizard.setFinishEnabled(false);
+
+        Composite rootPanel = wizard.getPanel();
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 1;
 		rootPanel.setLayout(layout);
@@ -133,16 +134,20 @@ SpeedTestPanel
         ulType.setText("BT upload/download");
 
         test = new Button(panel, SWT.PUSH);
-        test.setText("run");
+        test.setText("Run");
         gridData = new GridData();
         gridData.widthHint = 70;
         test.setLayoutData(gridData);
+        //ToDo: add a Run listener.
+        test.addListener(SWT.Selection, new RunButtonListener() );
 
         abort = new Button(panel, SWT.PUSH);
-        abort.setText("abort");
+        abort.setText("Abort");
         gridData = new GridData();
         gridData.widthHint = 70;
         abort.setLayoutData(gridData);
+        abort.setEnabled(false);
+        //ToDo: add an Abort listener.
 
         //space line
         spacer = new Label(panel, SWT.NULL);
@@ -171,8 +176,7 @@ SpeedTestPanel
         testCountDown2.setLayoutData(gridData);
         testCountDown2.setText(START_VALUES);
 
-
-
+        
         //progress bar section.
         progress = new ProgressBar(panel, SWT.SMOOTH);
 		progress.setMinimum(0);
@@ -335,8 +339,8 @@ SpeedTestPanel
 
                       int[] timeLeft = getTimeLeftFromString(step);
                       if(timeLeft!=null){
-                          testCountDown1.setText( ""+timeLeft[0]+" sec" );
-                          testCountDown2.setText( ""+timeLeft[1]+" sec" );
+                          testCountDown1.setText( ""+timeLeft[0]+" sec " );
+                          testCountDown2.setText( ""+timeLeft[1]+" sec " );
                       }else{
                           testCountDown1.setText(START_VALUES);
                           testCountDown2.setText(START_VALUES);
@@ -443,5 +447,48 @@ SpeedTestPanel
     public IWizardPanel getNextPanel() {
         return new SetUploadLimitPanel( wizard, this, uploadTest, downloadTest);
     }
+
+    /**
+     * An abort button listener
+     */
+    class AbortButtonListener implements Listener{
+
+        public void handleEvent(Event event) {
+            //same action as "cancel" button.
+            cancel();
+            test.setEnabled(true);
+            abort.setEnabled(false);
+        }//handleEvent
+    }
+
+
+    /**
+     * A run button listener
+     */
+    class RunButtonListener implements Listener{
+
+        public void handleEvent(Event event) {
+            abort.setEnabled(true);
+            test.setEnabled(false);
+            finish();
+        }//handleEvent
+    }
+
+
+    /**
+     *
+     */
+    public class RunTest extends AEThread {
+        public RunTest(String name) {
+            super(name);
+        }
+
+        public void runSupport() {
+            //should be the contents of the finish method.
+
+
+
+        }
+    }//class
 
 }
