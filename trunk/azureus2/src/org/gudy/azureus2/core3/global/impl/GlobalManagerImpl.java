@@ -192,6 +192,9 @@ public class GlobalManagerImpl
    /** Monitor to block adding torrents while loading existing torrent list */
    AESemaphore loadingSem = new AESemaphore("Loading Torrents");
 
+   AEMonitor addingDM_monitor = new AEMonitor("addingDM");
+   /** List of torrents being added, but not added to the GM list yet */ 
+   List addingDMs = new ArrayList();
 	
 	
    public class Checker extends AEThread {
@@ -573,7 +576,7 @@ public class GlobalManagerImpl
 
 		// wait for "load existing" to complete
 		loadingSem.reserve(60 * 1000);
-
+		
 		DownloadManagerInitialisationAdapter adapter = getDMAdapter(_adapter);
 
 		/* to recover the initial state for non-persistent downloads the simplest way is to do it here
@@ -615,6 +618,9 @@ public class GlobalManagerImpl
 
 		File torrentDir = null;
 		File fDest = null;
+		HashWrapper hash = null;
+		boolean deleteDest = false;
+		boolean removeFromAddingDM = false;
 
 		try {
 			File f = new File(torrent_file_name);
@@ -634,15 +640,43 @@ public class GlobalManagerImpl
 			String fName = fDest.getCanonicalPath();
 			
 			try {
-				TOTorrent torrent = TorrentUtils.readFromFile(fDest, false);
-				DownloadManager existingDM = getDownloadManager(torrent);
-				if (existingDM != null) {
-					fDest.delete();
-					File backupFile = new File(fName + ".bak");
-					if (backupFile.exists())
-						backupFile.delete();
-					return existingDM;
+				// Check if we already have the torrent loaded or loading
+
+				if (optionalHash != null) {
+					hash = new HashWrapper(optionalHash);
+				} else {
+					// This does not trigger locale decoding :)
+					TOTorrent torrent = TorrentUtils.readFromFile(fDest, false);
+					hash = torrent.getHashWrapper();
 				}
+				
+				if (hash != null) {
+					removeFromAddingDM = true;
+
+					// loaded check
+					DownloadManager existingDM = getDownloadManager(hash);
+					if (existingDM != null) {
+						deleteDest = true;
+						return existingDM;
+					}
+
+  				try {
+  					// loading check
+  					addingDM_monitor.enter();
+  					
+  					if (addingDMs.contains(hash)) {
+  						removeFromAddingDM = false;
+  						deleteDest = true;
+  						return null;
+  					}
+
+  					addingDMs.add(hash);
+  				} finally {
+  					addingDM_monitor.exit();
+  				}
+				}
+
+				
 			} catch (Exception e) {
 				// ignore any error.. let it bork later in case old code relies
 				// on it borking later
@@ -660,10 +694,7 @@ public class GlobalManagerImpl
 			// this torrent exists and the new one isn't needed (yuck)
 
 			if (manager == null || manager != new_manager) {
-				fDest.delete();
-				File backupFile = new File(fName + ".bak");
-				if (backupFile.exists())
-					backupFile.delete();
+				deleteDest = true;
 			}
 		} catch (IOException e) {
 			System.out.println("DownloadManager::addDownloadManager: fails - td = "
@@ -679,6 +710,27 @@ public class GlobalManagerImpl
 					torrent_file_name, savePath, initialState, persistent, for_seeding,
 					file_priorities, adapter);
 			manager = addDownloadManager(manager, true, true);
+		} finally {
+			if (deleteDest) {
+  			fDest.delete();
+  			File backupFile;
+				try {
+					backupFile = new File(fDest.getCanonicalPath() + ".bak");
+	  			if (backupFile.exists())
+	  				backupFile.delete();
+				} catch (IOException e) {
+				}
+			}
+
+			if (removeFromAddingDM && hash != null) {
+  			try {
+  				addingDM_monitor.enter();
+  				
+  				addingDMs.remove(hash);
+  			} finally {
+  				addingDM_monitor.exit();
+  			}
+			}
 		}
 
 		if (needsFixup && manager != null) {
