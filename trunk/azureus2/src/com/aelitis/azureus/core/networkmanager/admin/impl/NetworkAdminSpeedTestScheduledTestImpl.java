@@ -171,7 +171,7 @@ NetworkAdminSpeedTestScheduledTestImpl
 				
 						setSpeedLimits();
 						
-						if ( tester.getTestType() == NetworkAdminSpeedTestScheduler.TEST_TYPE_BITTORRENT ){
+						if ( tester.getTestType() == NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_AND_DOWNLOAD){
 						
 							((NetworkAdminSpeedTesterBTImpl)tester).start( test_torrent );
 							

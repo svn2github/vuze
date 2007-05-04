@@ -61,6 +61,8 @@ public class NetworkAdminSpeedTesterBTImpl
     public static final String DOWNLOAD_STD_DEV = "download-std-dev";
     public static final String UPLOAD_STD_DEV = "upload-std-dev";
 
+    private static int testMode;
+
     private static TorrentAttribute speedTestAttrib;
 
     private static NetworkAdminSpeedTesterResult	lastResult;
@@ -123,7 +125,12 @@ public class NetworkAdminSpeedTesterBTImpl
     public int
     getTestType()
     {
-    	return( NetworkAdminSpeedTestScheduler.TEST_TYPE_BITTORRENT );
+    	return( NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_AND_DOWNLOAD);
+    }
+
+    public boolean setMode(int mode) {
+        testMode = mode;
+        return true;
     }
 
     /**
@@ -180,8 +187,11 @@ public class NetworkAdminSpeedTesterBTImpl
             			{
             				DiskManager	disk_manager = peer_manager.getDiskManager();
                 			DiskManagerPiece[]	pieces = disk_manager.getPieces();
-                			for ( int i=(pieces.length/2);i<pieces.length;i++ ){
-                				pieces[i].setDone( true );
+
+                            int startPiece = setStartPieceBasedOnMode(testMode,pieces.length);
+                            for ( int i=startPiece;i<pieces.length;i++ ){
+                            //for ( int i=(pieces.length/2);i<pieces.length;i++ ){
+                                pieces[i].setDone( true );
                 			}
             			}
             			
@@ -248,6 +258,29 @@ public class NetworkAdminSpeedTesterBTImpl
 
     // ------------------ private methods ---------------
 
+    /**
+     * Depending on the mode we want to upload all the set all, none or only
+     * half the pieces to done.
+     * @param mode - int that maps to NetworkAdminSpeedTestScheduler.TEST_TYPE...
+     * @param totalPieces - total pieces in this test torrent.
+     * @return - int - the starting piece number to setDone to true.
+     */
+    private static int setStartPieceBasedOnMode(int mode, int totalPieces){
+
+        if(mode==NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_AND_DOWNLOAD){
+            //upload half the pieces
+            return totalPieces/2;
+        }else if(mode==NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_ONLY){
+            //upload all the pieces
+            return 0;
+        }else if(mode==NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_DOWNLOAD_ONLY){
+            //download all the pieces
+            return totalPieces;
+        }
+        else
+            throw new IllegalStateException("Did not recognize the NetworkAdmin Speed Test type. mode="+mode);
+    }
+
 
     /**   -------------------- helper class to monitor test. ------------------- **/
     private class TorrentSpeedTestMonitorThread
@@ -285,7 +318,7 @@ public class NetworkAdminSpeedTesterBTImpl
                 peakTime = startTime;
 
                 boolean testDone=false;
-                long lastTotalDownloadBytes=0;
+                long lastTotalTransferredBytes=0;
 
                 sendStageUpdateToListeners("starting test...");
                   while( !( testDone || aborted )){
@@ -338,7 +371,7 @@ public class NetworkAdminSpeedTesterBTImpl
 
                     updateTestProgress(currTime,stats);
 
-                    lastTotalDownloadBytes = checkForNewPeakValue( stats, lastTotalDownloadBytes, currTime );
+                    lastTotalTransferredBytes = checkForNewPeakValue( stats, lastTotalTransferredBytes, currTime );
 
                     testDone = checkForTestDone();
                     if(testDone)
@@ -380,17 +413,18 @@ public class NetworkAdminSpeedTesterBTImpl
             	
             		// check the stats for peers we connected to during the test
             	
-            	sendStageUpdateToListeners( "Connection stats: peers=" + connected_peers.size() + ", up_ok=" + not_choked_peers.size() + ", down_ok=" + not_choking_peers.size());
+            	sendStageUpdateToListeners( "Connection stats: peers=" + connected_peers.size() + ", down_ok=" + not_choked_peers.size() + ", up_ok=" + not_choking_peers.size());
             	
 	            if ( connected_peers.size() == 0 ){
 	            	
 	            	abort( "Failed to connect to any peers" );
-	            	
-	            }else if ( not_choked_peers.size() == 0 ){
+
+
+                }else if ( not_choking_peers.size() == 0 && testMode!=NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_DOWNLOAD_ONLY ){
 	            	
 	            	abort( "Could not upload to any of the peers - insufficient upload slots" );
 	            	
-	            }else if ( not_choking_peers.size() == 0 ){
+	            }else if ( not_choked_peers.size() == 0 && testMode!=NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_ONLY){
 	            	
 	            	abort( "Could not download from any of the peers as never unchoked by them" );
 	            }
@@ -556,18 +590,23 @@ public class NetworkAdminSpeedTesterBTImpl
          */
         long checkForNewPeakValue(DownloadStats stat, long lastTotalDownload, long currTime)
         {
-            long totDownload = stat.getDownloaded();
-            long currDownloadRate = totDownload-lastTotalDownload;
+            //upload only used the "uploaded" data. The "download only" and "both" uses download.
+            long totTransferred;
+            if(testMode==NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_ONLY){
+                totTransferred = stat.getUploaded();
+            }else{
+                totTransferred = stat.getDownloaded();
+            }
+            long currTransferRate = totTransferred-lastTotalDownload;
 
             //if the current rate is 10% greater then the previous max, reset the max, and test timer.
-            if( currDownloadRate > peakRate ){
-                peakRate = (long) (currDownloadRate*1.1);
+            if( currTransferRate > peakRate ){
+                peakRate = (long) (currTransferRate*1.1);
                 peakTime = currTime;
             }
 
-            return totDownload;
+            return totTransferred;
         }//checkForNewPeakValue
-
 
     }//class TorrentSpeedTestMonitorThread
 

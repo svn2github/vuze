@@ -26,10 +26,12 @@ package com.aelitis.azureus.core.networkmanager.admin;
 
 public interface NetworkAdminSpeedTestScheduler
 {
-	public static final int TEST_TYPE_BITTORRENT	= 1;
-	
-	
-	/**
+	public static final int TEST_TYPE_BT_UPLOAD_AND_DOWNLOAD = 0;
+    public static final int TEST_TYPE_BT_UPLOAD_ONLY = 1;
+    public static final int TEST_TYPE_BT_DOWNLOAD_ONLY = 2;
+
+
+    /**
      * If system crashes on start-up, then speed tests torrents need to be
      * cleaned on start-up etc - call this method on start to allow this
      */

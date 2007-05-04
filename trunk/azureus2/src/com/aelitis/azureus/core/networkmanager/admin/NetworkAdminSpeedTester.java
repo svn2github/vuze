@@ -27,7 +27,9 @@ package com.aelitis.azureus.core.networkmanager.admin;
 public interface NetworkAdminSpeedTester 
 {
 	public int getTestType();
-	
+
+    public boolean setMode(int mode);
+
     public void addListener( NetworkAdminSpeedTesterListener listener);
     
     public void removeListener( NetworkAdminSpeedTesterListener listener);

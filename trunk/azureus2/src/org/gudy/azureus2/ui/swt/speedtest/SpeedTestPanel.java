@@ -43,6 +43,7 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestSchedu
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
 import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTestSchedulerImpl;
+import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTestMode;
 
 public class 
 SpeedTestPanel
@@ -52,6 +53,9 @@ SpeedTestPanel
 
     private NetworkAdminSpeedTestScheduler nasts;
 	private NetworkAdminSpeedTestScheduledTest	scheduled_test;
+
+    private Combo testCombo;
+    private NetworkAdminSpeedTestMode testMode;
 
     private Button      test;
     private Button      abort;
@@ -78,11 +82,11 @@ SpeedTestPanel
 		IWizardPanel 	_previousPanel) 
 	{
 	    super( _wizard, _previousPanel );
-	    
 	    wizard	= _wizard;
-	    
 		nasts = NetworkAdminSpeedTestSchedulerImpl.getInstance();
-	}
+
+        testMode = NetworkAdminSpeedTestMode.BT_UP_AND_DOWN;
+    }
 	
 	public void 
 	show() 
@@ -130,10 +134,18 @@ SpeedTestPanel
         ul.setLayoutData(gridData);
         ul.setText("Azureus speed test: ");
 
-        Label ulType = new Label(panel, SWT.NULL);
+        //Label ulType = new Label(panel, SWT.NULL);
+        //gridData = new GridData(GridData.FILL_HORIZONTAL);
+        //ulType.setLayoutData(gridData);
+        //ulType.setText("BT upload/download");
+
+        testCombo = new Combo(panel, SWT.READ_ONLY);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
-        ulType.setLayoutData(gridData);
-        ulType.setText("BT upload/download");
+        testCombo.setLayoutData(gridData);
+        testCombo.add(NetworkAdminSpeedTestMode.BT_UP_AND_DOWN.getComboString(), NetworkAdminSpeedTestMode.BT_UP_AND_DOWN.getSelectionIndex());
+        testCombo.add(NetworkAdminSpeedTestMode.BT_UP_ONLY.getComboString(), NetworkAdminSpeedTestMode.BT_UP_ONLY.getSelectionIndex());
+        testCombo.add(NetworkAdminSpeedTestMode.BT_DOWN_ONLY.getComboString(), NetworkAdminSpeedTestMode.BT_DOWN_ONLY.getSelectionIndex());
+        testCombo.select(NetworkAdminSpeedTestMode.BT_UP_AND_DOWN.getSelectionIndex());
 
         test = new Button(panel, SWT.PUSH);
         test.setText("Run");
@@ -212,14 +224,17 @@ SpeedTestPanel
         wizard.addListener(clListener);
 
         wizard.setFinishEnabled( false );
-		
-		Thread t = 
+
+        final int speedTestType = testCombo.getSelectionIndex();
+
+        Thread t =
 			new AEThread("SpeedTest Performer") 
 			{
 				public void 
 				runSupport() 
 				{
-					runTest();
+
+                    runTest(speedTestType);
 				}
 			};
 		
@@ -247,7 +262,7 @@ SpeedTestPanel
 	}
 	
 	protected void
-	runTest()
+	runTest(int networkAdminTestType)
 	{
 		test_running	= true;
 		
@@ -259,7 +274,8 @@ SpeedTestPanel
 				// what's the contract here in terms of listener removal?
 			
 			try{
-				scheduled_test = nasts.scheduleTest( NetworkAdminSpeedTestScheduler.TEST_TYPE_BITTORRENT );
+                scheduled_test = nasts.scheduleTest( networkAdminTestType );
+                //scheduled_test = nasts.scheduleTest( NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_AND_DOWNLOAD);
 				scheduled_test.addListener( this );
 				scheduled_test.getTester().addListener( this );
 				scheduled_test.start();
@@ -331,15 +347,23 @@ SpeedTestPanel
                         downloadTest = result.getDownloadSpeed();
                         textMessages.append("Upload speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getUploadSpeed()) + Text.DELIMITER);
 			            textMessages.append("Download speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getDownloadSpeed()) + Text.DELIMITER);
-                    
-			            wizard.setNextEnabled(true);
+
+                        if( testMode != NetworkAdminSpeedTestMode.BT_UP_AND_DOWN ){
+                            //only the combined test will allow the next step.
+                        }else{
+                            wizard.setNextEnabled(true);
+                        }
+                        abort.setEnabled(false);
+                        test.setEnabled(true);
                   }}
 
-                  if( !result.hadError() )
+                  if( !result.hadError() ){
                     switchToClose();
-		        }
+                  }
+
+                }
 		      });
-		    }
+        }
         wizard.removeListener(clListener);
         clListener=null;
     }

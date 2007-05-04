@@ -80,11 +80,15 @@ public class NetworkAdminSpeedTestSchedulerImpl
     		throw( new NetworkAdminException( "Test already scheduled" ));
     	}
 
-    	if ( type == TEST_TYPE_BITTORRENT ){
+    	if ( type==TEST_TYPE_BT_UPLOAD_AND_DOWNLOAD ||
+             type==TEST_TYPE_BT_UPLOAD_ONLY ||
+             type==TEST_TYPE_BT_DOWNLOAD_ONLY)
+        {
 
     		currentTest = new NetworkAdminSpeedTestScheduledTestImpl(plugin, new NetworkAdminSpeedTesterBTImpl(plugin) );
+            currentTest.getTester().setMode(type);
 
-    		currentTest.addListener(
+            currentTest.addListener(
     			new NetworkAdminSpeedTestScheduledTestListener()
     			{
     				public void stage(NetworkAdminSpeedTestScheduledTest test, String step){}
@@ -114,7 +118,7 @@ public class NetworkAdminSpeedTestSchedulerImpl
      */
     public NetworkAdminSpeedTesterResult getLastResult(int type) {
     	
-        if ( type == TEST_TYPE_BITTORRENT ){
+        if ( type == TEST_TYPE_BT_UPLOAD_AND_DOWNLOAD){
         	
         	return( NetworkAdminSpeedTesterBTImpl.getLastResult());
         	

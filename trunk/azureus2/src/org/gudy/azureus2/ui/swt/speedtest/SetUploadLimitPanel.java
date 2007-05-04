@@ -3,8 +3,6 @@ package org.gudy.azureus2.ui.swt.speedtest;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.eclipse.swt.widgets.*;
@@ -15,8 +13,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.SWT;
-
-import java.awt.*;
 
 
 /**
@@ -42,7 +38,7 @@ import java.awt.*;
 
 public class SetUploadLimitPanel extends AbstractWizardPanel {
 
-    int measuredUpload, measuredDownload;
+    int measuredUploadKbps, measuredDownloadKbps;
 
     Label explain;
 
@@ -55,8 +51,8 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
 
     public SetUploadLimitPanel(Wizard wizard, IWizardPanel previousPanel, int upload, int download) {
         super(wizard, previousPanel);
-        measuredUpload=upload;
-        measuredDownload=download;
+        measuredUploadKbps =upload/1024;
+        measuredDownloadKbps =download/1024;
     }
 
     /**
@@ -107,14 +103,14 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         Label ul = new Label(panel, SWT.NULL );
         gridData = new GridData();
         ul.setLayoutData(gridData);
-        ul.setText("Recommend Upload Speed Limit ");
+        ul.setText("Recommend Upload Speed Limit - kb/s ");
         //Messages.setLanguageText(ul, "speedTestWizard.setupload.ul-label");
 
         final Text uploadLimitSetting = new Text(panel, SWT.BORDER );
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.widthHint=80;
         uploadLimitSetting.setLayoutData(gridData);
-        int eightyPercent = calculatePercent(measuredUpload,80);
+        int eightyPercent = calculatePercent(measuredUploadKbps,80);
 
         //don't accept any value less the 20 kb/s
         if(eightyPercent<20)
@@ -145,8 +141,10 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
             public void handleEvent(Event event){
 
                 //Turn the string into an int and make it kbps.
-                int uploadLimitBPS = Integer.parseInt( uploadLimitSetting.getText() );
-                int uploadLimitKBPS = uploadLimitBPS/1024;
+                int uploadLimitKBPS = Integer.parseInt( uploadLimitSetting.getText() );
+                //No value less then 20 kpbs should be allowed.
+                if(uploadLimitKBPS<20)
+                    uploadLimitKBPS=20;
 
                 //set upload limits
                 COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY , uploadLimitKBPS );
@@ -154,9 +152,9 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
                 COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY , uploadLimitKBPS );
 
                 wizard.setFinishEnabled(true);
+                wizard.setPreviousEnabled(false);
             }
         });
-
 
     }//show
 
@@ -178,11 +176,5 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         return false;
     }
 
-    public boolean isPreviousEnbled(){
-        //Need to be explicit on that there is a limit on number of tests.
-        return true;
-    }
-
     //here finish just closes the wizard.
-
 }
