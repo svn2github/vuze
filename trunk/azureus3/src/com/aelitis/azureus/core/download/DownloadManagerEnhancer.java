@@ -29,6 +29,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -37,6 +38,9 @@ import com.aelitis.azureus.core.AzureusCore;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
+import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerChannelImpl;
 
 public class 
 DownloadManagerEnhancer 
@@ -166,6 +170,36 @@ DownloadManagerEnhancer
 						}
 					}
 				});
+		
+			// listener to pick up on streams kicked off externally
+		
+		DiskManagerChannelImpl.addListener(
+			new DiskManagerChannelImpl.channelCreateListener()
+			{
+				public void
+				channelCreated(
+					DiskManagerChannel	channel )
+				{
+					try{
+						EnhancedDownloadManager edm = 
+							getEnhancedDownload(
+									PluginCoreUtils.unwrap(channel.getFile().getDownload()));
+						
+						if ( !edm.getProgressiveMode()){
+							
+							if ( edm.supportsProgressiveMode()){
+								
+								Debug.out( "Enabling progressive mode for '" + edm.getName() + "' due to external stream" );
+								
+								edm.setProgressiveMode( true );
+							}
+						}
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			});
 	}
 	
 	public EnhancedDownloadManager

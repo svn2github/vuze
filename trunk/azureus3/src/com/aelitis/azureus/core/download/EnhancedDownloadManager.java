@@ -29,6 +29,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
@@ -55,7 +56,11 @@ EnhancedDownloadManager
 {
 	private static boolean DEBUG	= true;
 	
-	public static  int	MINIMUM_INITIAL_BUFFER_SECS_FOR_ETA	= 30;
+	public static  int	DEFAULT_MINIMUM_INITIAL_BUFFER_SECS_FOR_ETA	= 30;
+	public static  int	WMP_MINIMUM_INITIAL_BUFFER_SECS_FOR_ETA		= 60;
+	
+		// number of seconds of buffer required before we fall back to normal bt mode
+	
 	public static  int	MINIMUM_INITIAL_BUFFER_SECS;
 	
 	static{
@@ -111,6 +116,8 @@ EnhancedDownloadManager
 	private long	content_stream_bps_max;
 	private long	content_min_bps;
 		
+	private int		minimum_initial_buffer_secs_for_eta;
+	
 	private bufferETAProvider	buffer_provider	= new bufferETAProvider();
 	private boostETAProvider	boost_provider	= new boostETAProvider();
 
@@ -151,6 +158,36 @@ EnhancedDownloadManager
 	{
 		enhancer			= _enhancer;
 		download_manager	= _download_manager;
+
+		DiskManagerFileInfo[] files = download_manager.getDiskManagerFileInfo();
+		
+			// hack - we don't know the actual player until play starts so we just use the file name
+		
+			// TODO: we can probably read the registry to work out what player is associated with
+			// the file extension?
+		
+		boolean	found_wmv = false;
+		
+		for (int i=0;i<files.length;i++){
+		
+			String	file_name = files[i].getFile(true).getName().toLowerCase();
+			
+			if ( file_name.endsWith( ".wmv" )){
+				
+				found_wmv = true;
+				
+				break;
+			}
+		}
+		
+		if ( found_wmv ){
+			
+			minimum_initial_buffer_secs_for_eta = WMP_MINIMUM_INITIAL_BUFFER_SECS_FOR_ETA;
+
+		}else{
+		
+			minimum_initial_buffer_secs_for_eta = DEFAULT_MINIMUM_INITIAL_BUFFER_SECS_FOR_ETA;
+		}
 		
 		progressive_stats	= new progressiveStats();
 
@@ -182,9 +219,9 @@ EnhancedDownloadManager
 				}
 			}
 				
-					// dump it up by a bit to be conservative
+					// dump it up by a bit to be conservative to deal with fluctuations, discards etc.
 				
-			content_stream_bps_max = content_stream_bps_min + ( content_stream_bps_min / 10 );
+			content_stream_bps_max = content_stream_bps_min + ( content_stream_bps_min / 5 );
 			
 			content_min_bps = PlatformTorrentUtils.getContentMinimumSpeedBps( torrent );
 							
@@ -224,8 +261,10 @@ EnhancedDownloadManager
 				{
 					synchronized( EnhancedDownloadManager.this ){
 
-						time_download_started = 0;
+						time_download_started 	= 0;
 
+						progressive_active		= false;
+						
 						if ( current_piece_pickler != null ){
 					
 							buffer_provider.deactivate(  current_piece_pickler );
@@ -336,6 +375,12 @@ EnhancedDownloadManager
 			});
 	}
 
+	protected String
+	getName()
+	{
+		return( download_manager.getDisplayName());
+	}
+	
 	protected long
 	getTimeRunning()
 	{
@@ -881,11 +926,11 @@ EnhancedDownloadManager
 			if ( progressive_active == active ){
 				
 				return;
-			}
-			
-			if ( current_piece_pickler != null ){
+			}			
 
-				progressive_active	= active;
+			progressive_active	= active;
+
+			if ( current_piece_pickler != null ){
 		
 				if ( progressive_active ){
 					
@@ -1037,6 +1082,18 @@ EnhancedDownloadManager
 		{
 			return( 0 );
 		}
+		
+    	public void
+    	setBufferMillis(
+			long	seconds )
+		{
+		}
+    	
+		public String
+		getUserAgent()
+		{
+			return( null );
+		}
 	}
 	
 	protected class
@@ -1110,7 +1167,7 @@ EnhancedDownloadManager
 					
 					for ( int i=start_piece;i<piece_rtas.length;i++ ){
 						
-						piece_rtas[i] = now + ( bytes_offset / content_stream_bps_max );
+						piece_rtas[i] = now + ( 1000* ( bytes_offset / content_stream_bps_max ));
 						
 						bytes_offset += piece_size;
 					}
@@ -1143,6 +1200,18 @@ EnhancedDownloadManager
 	   	{
 	   		return( 0 );
 	   	}
+	   	
+		public void
+		setBufferMillis(
+			long	seconds )
+		{
+		}
+		
+		public String
+		getUserAgent()
+		{
+			return( null );
+		}
 	}
 	
 	protected class
@@ -1150,12 +1219,17 @@ EnhancedDownloadManager
 		implements Cloneable
 	{
 		private PieceRTAProvider	current_provider;
+		private String				current_user_agent;
 		
 		private long		total_file_length = download_manager.getSize();
 
 
-		private Average		download_rate_average = AverageFactory.MovingImmediateAverage( 10 );
-		private long		bytes_to_download;
+		private Average		download_rate_average 	= AverageFactory.MovingImmediateAverage( 10 );
+		private Average		discard_rate_average 	= AverageFactory.MovingImmediateAverage( 10 );
+		private long		last_discard_bytes		= download_manager.getStats().getDiscarded();
+		
+		private long		actual_bytes_to_download;
+		private long		weighted_bytes_to_download;
 		
 		private long		viewer_byte_position;
 				
@@ -1164,7 +1238,7 @@ EnhancedDownloadManager
 		private long		provider_byte_position;
 		private long		provider_last_byte_position	= -1;
 		private long		provider_blocking_byte_position;
-		private Average		provider_speed_average;
+		private Average		provider_speed_average	= AverageFactory.MovingImmediateAverage( 10 );
 						
 		protected void
 		updateCurrentProvider(
@@ -1172,8 +1246,9 @@ EnhancedDownloadManager
 		{
 			if ( current_provider != provider || provider == null ){
 				
-				current_provider = provider;
-									
+				current_provider 	= provider;
+				current_user_agent	= null;
+				
 				provider_speed_average	= AverageFactory.MovingImmediateAverage( 10 );
 				
 				if ( current_provider == null ){
@@ -1204,6 +1279,16 @@ EnhancedDownloadManager
 				
 				provider_life_secs++;
 					
+				if ( current_user_agent == null ){
+				
+					current_user_agent = current_provider.getUserAgent();
+					
+					if ( current_user_agent != null ){
+						
+						log( "Provider user agent = " + current_user_agent );
+					}
+				}
+				
 				provider_byte_position	= current_provider.getCurrentPosition();
 				provider_blocking_byte_position	= current_provider.getBlockingPosition();
 				
@@ -1227,6 +1312,12 @@ EnhancedDownloadManager
 			long download_rate = download_manager.getStats().getDataReceiveRate();
 			
 			download_rate_average.update( download_rate );
+			
+			long	discards = download_manager.getStats().getDiscarded();
+			
+			discard_rate_average.update( discards - last_discard_bytes );
+			
+			last_discard_bytes = discards;
 			
 			DiskManager	disk_manager = download_manager.getDiskManager();
 			
@@ -1273,9 +1364,30 @@ EnhancedDownloadManager
 					viewer_byte_position = provider_byte_position;
 				}
 				
+				if ( best_provider != null ){
+							
+						// only report buffer if we have a bit of slack
+					
+					long	buffer_secs = getViewerBufferSeconds();
+					
+					if ( buffer_secs < 10 ){
+						
+							// no point in having a very small buffer as we end up with
+							// too much discard. Given we're doing a long-term stream here the
+							// aggressiveness applied when rta gets close to "now" isn't needed
+						
+						buffer_secs = 10;
+					}
+					
+					best_provider.setBufferMillis( buffer_secs * 1000 );
+				}
+				
 				DiskManagerPiece[] pieces = disk_manager.getPieces();
 				
-				bytes_to_download = 0;
+				actual_bytes_to_download 	= 0;
+				weighted_bytes_to_download	= 0;
+				
+				int	first_incomplete_piece = -1;
 				
 				int	piece_size = disk_manager.getPieceLength();
 				
@@ -1288,19 +1400,46 @@ EnhancedDownloadManager
 						continue;
 					}
 					
+					if ( first_incomplete_piece == -1 ){
+						
+						first_incomplete_piece = i;
+					}
+					
 					boolean[] blocks = piece.getWritten();
+					
+					int	bytes_this_piece = 0;
 					
 					if ( blocks == null ){
 						
-						bytes_to_download += piece.getLength();
+						bytes_this_piece = piece.getLength();
 						
 					}else{
 						for (int j=0;j<blocks.length;j++){
 							
 							if ( !blocks[j] ){
 								
-								bytes_to_download += piece.getBlockSize( j );
+								bytes_this_piece += piece.getBlockSize( j );
 							}
+						}
+					}
+					
+					if ( bytes_this_piece > 0 ){
+						
+						actual_bytes_to_download += bytes_this_piece;
+						
+						int	diff = i - first_incomplete_piece;
+						
+						if ( diff == 0 ){
+							
+							weighted_bytes_to_download += bytes_this_piece;
+							
+						}else{
+														
+							int	weighted_bytes_done =  piece.getLength() - bytes_this_piece;
+						
+							weighted_bytes_done = ( weighted_bytes_done * ( pieces.length - i )) / (pieces.length - first_incomplete_piece);
+						
+							weighted_bytes_to_download += piece.getLength() - weighted_bytes_done;
 						}
 					}
 				}
@@ -1324,7 +1463,7 @@ EnhancedDownloadManager
 				return( 0 );
 			}
 			
-			long	downloaded = total_file_length - bytes_to_download;
+			long	downloaded = total_file_length - weighted_bytes_to_download;
 
 			long download_rate = (long)download_rate_average.getAverage();
 			
@@ -1333,13 +1472,20 @@ EnhancedDownloadManager
 				return( Long.MAX_VALUE );
 			}
 			
-			long min_dl = MINIMUM_INITIAL_BUFFER_SECS_FOR_ETA * content_stream_bps_max;
+			long min_dl = minimum_initial_buffer_secs_for_eta * content_stream_bps_max;
 			
 			long rem_dl = min_dl - downloaded;	// ok as initial dl is forced in order byte buffer-rta
 			
 			long rem_secs = rem_dl / download_rate;
 			
-			long eta = getSecondsToDownload() - getSecondsToWatch();
+			long	secs_to_download = getSecondsToDownload();
+			
+				// increase time to download a bit so we don't start streaming too soon
+				// we'll always lose time due to speed variations, discards, hashfails...
+			
+			secs_to_download = secs_to_download + (secs_to_download/10);
+			
+			long eta = secs_to_download - getSecondsToWatch();
 			
 			if ( rem_secs > eta ){
 				
@@ -1359,7 +1505,7 @@ EnhancedDownloadManager
 				return( Long.MAX_VALUE );
 			}
 			
-			return( bytes_to_download / download_rate );
+			return( weighted_bytes_to_download / download_rate );
 		}
 		
 		protected long
@@ -1372,6 +1518,12 @@ EnhancedDownloadManager
 		getBytePosition()
 		{
 			return( viewer_byte_position );
+		}
+		
+		protected long
+		getViewerBufferSeconds()
+		{
+			return((provider_byte_position - viewer_byte_position ) / content_stream_bps_max );
 		}
 		
 		protected progressiveStats
@@ -1406,10 +1558,11 @@ EnhancedDownloadManager
 		getString()
 		{
 			return( "play_eta=" + getETA() + "/d=" + getSecondsToDownload() + "/w=" + getSecondsToWatch()+ 
-					", dl_rate=" + formatSpeed((long)download_rate_average.getAverage())+ ", download_rem=" + formatBytes(bytes_to_download) +
+					", dl_rate=" + formatSpeed((long)download_rate_average.getAverage())+ ", download_rem=" + formatBytes(weighted_bytes_to_download) + "/" + formatBytes(actual_bytes_to_download) +
+					", discard_rate=" + formatSpeed((long)discard_rate_average.getAverage()) +
 					", viewer: byte=" + formatBytes( viewer_byte_position ) + " secs=" + ( viewer_byte_position/content_stream_bps_min ) + 
 					", prov: byte=" + formatBytes( provider_byte_position ) + " secs=" + ( provider_byte_position/content_stream_bps_min ) + " speed=" + formatSpeed((long)provider_speed_average.getAverage()) +
-					" block= " + formatBytes( provider_blocking_byte_position ) + " buffer=" + formatBytes( provider_byte_position - viewer_byte_position ));
+					" block= " + formatBytes( provider_blocking_byte_position ) + " buffer=" + formatBytes( provider_byte_position - viewer_byte_position ) + "/" + getViewerBufferSeconds());
 		}
 	}
 }
