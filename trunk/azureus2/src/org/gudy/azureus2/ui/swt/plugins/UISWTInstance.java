@@ -65,6 +65,13 @@ public interface UISWTInstance extends UIInstance {
 	 * @since 2.3.0.7
 	 */
 	public static final String VIEW_TORRENT_FILES = TableManager.TABLE_TORRENT_FILES;
+	
+	/**
+	 * ID of the top bar of az3ui
+	 * 
+	 * @since 3.0.1.3
+	 */
+	public static final String VIEW_TOPBAR = "TopBar";
 
 	/** Retrieve the SWT Display object that Azureus uses (when in SWT mode).
 	 * If you have a thread that does some periodic/asynchronous stuff, Azureus 
