@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
@@ -40,6 +41,8 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -162,7 +165,13 @@ public class NetworkAdminSpeedTesterBTImpl
             speed_download.setBooleanAttribute(speedTestAttrib,true);
 
             DownloadManager core_download = PluginCoreUtils.unwrap( speed_download );
+            
             core_download.setPieceCheckingEnabled( false );
+            
+            	// make sure we've got a bunch of upload slots
+            
+            core_download.getDownloadState().setIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS, 10 );
+            
             core_download.addPeerListener(
             		new DownloadManagerPeerListener()
             		{
@@ -266,6 +275,10 @@ public class NetworkAdminSpeedTesterBTImpl
 
         public void run()
         {
+            Set	connected_peers 	= new HashSet();
+            Set	not_choked_peers 	= new HashSet();
+            Set	not_choking_peers 	= new HashSet();
+                           
             try
             {
                 startTime = SystemTime.getCurrentTime();
@@ -275,9 +288,7 @@ public class NetworkAdminSpeedTesterBTImpl
                 long lastTotalDownloadBytes=0;
 
                 sendStageUpdateToListeners("starting test...");
-
-                //ToDo: wire abort up to UI and test.
-                while( !( testDone || aborted )){
+                  while( !( testDone || aborted )){
 
                 	int state = testDownload.getState();
                 	
@@ -293,6 +304,30 @@ public class NetworkAdminSpeedTesterBTImpl
                 		abort( "Test downloaded entered queued/stopped state" );
                 		
                 		break;
+                	}
+                	
+                	PeerManager pm = testDownload.getPeerManager();
+                	
+                	if ( pm != null ){
+                		
+                		Peer[] peers = pm.getPeers();
+                		
+                		for ( int i=0;i<peers.length;i++){
+                			
+                			Peer peer = peers[i];
+                			
+                			connected_peers.add( peer );
+                			
+                			if ( !peer.isChoked()){
+                				
+                				not_choked_peers.add( peer );
+                			}
+                			
+                			if ( !peer.isChoking()){
+                				
+                				not_choking_peers.add( peer );
+                			}
+                		}
                 	}
                 	
                     long currTime = SystemTime.getCurrentTime();
@@ -317,7 +352,7 @@ public class NetworkAdminSpeedTesterBTImpl
                         break;
                     }
 
-                }//while
+                }
 
                 //It is time to stop the test.
                 try{
@@ -338,9 +373,29 @@ public class NetworkAdminSpeedTesterBTImpl
                 }
 
             }catch(Exception e){
-                Debug.out("Error: "+e);
+                abort(Debug.getNestedExceptionMessage(e));
             }
 
+            if ( !aborted ){
+            	
+            		// check the stats for peers we connected to during the test
+            	
+            	sendStageUpdateToListeners( "Connection stats: peers=" + connected_peers.size() + ", up_ok=" + not_choked_peers.size() + ", down_ok=" + not_choking_peers.size());
+            	
+	            if ( connected_peers.size() == 0 ){
+	            	
+	            	abort( "Failed to connect to any peers" );
+	            	
+	            }else if ( not_choked_peers.size() == 0 ){
+	            	
+	            	abort( "Could not upload to any of the peers - insufficient upload slots" );
+	            	
+	            }else if ( not_choking_peers.size() == 0 ){
+	            	
+	            	abort( "Could not download from any of the peers as never unchoked by them" );
+	            }
+            }
+            
             if ( !aborted ){
             	
 	            //calculate the measured download rate.
@@ -394,7 +449,6 @@ public class NetworkAdminSpeedTesterBTImpl
             msg.append(" : ");
             int testTimeLeft = (int)((MAX_PEAK_TIME-totalDownloadTimeUsed)/1000);
             msg.append(testTimeLeft);
-
 
             sendStageUpdateToListeners( msg.toString() );
 

@@ -521,9 +521,13 @@ NetworkAdminSpeedTestScheduledTestImpl
         
         public void 
         parameterChanged(
-        	String parameterName )
+        	String name )
         {
-        	abort( "Configuration parameter '" + parameterName + "' changed during test" );
+        		// add some trace so we have some clue as to what has made the change!
+        	
+        	String trace = Debug.getCompressedStackTrace();
+        	
+        	abort( "Configuration parameter '" + name + "' changed (new value=" + COConfigurationManager.getParameter( name ) + ") during test (" + trace + ")" );
         }
         
     	public void
