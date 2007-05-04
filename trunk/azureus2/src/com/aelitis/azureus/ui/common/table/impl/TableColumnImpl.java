@@ -543,11 +543,13 @@ public class TableColumnImpl
 		return bCoreDataSource;
 	}
 
-	public void invokeCellRefreshListeners(TableCellCore cell) {
+	public void invokeCellRefreshListeners(TableCellCore cell) throws Throwable {
 		//System.out.println(this + " :: invokeCellRefreshListeners" + cellRefreshListeners);
 		if (cellRefreshListeners == null) {
 			return;
 		}
+		
+		Throwable firstError = null;
 
 		//System.out.println(this + " :: invokeCellRefreshListeners" + cellRefreshListeners.size());
 		for (int i = 0; i < cellRefreshListeners.size(); i++) {
@@ -556,9 +558,17 @@ public class TableColumnImpl
 				((TableCellRefreshListener) (cellRefreshListeners.get(i))).refresh(cell);
 
 			} catch (Throwable e) {
+				
+				if (firstError == null) {
+					firstError = e;
+				}
 
 				Debug.printStackTrace(e);
 			}
+		}
+		
+		if (firstError != null) {
+			throw firstError;
 		}
 	}
 
