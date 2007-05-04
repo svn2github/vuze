@@ -21,8 +21,11 @@ package com.aelitis.azureus.ui.swt.views.list;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.util.AERunnableObject;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
@@ -67,12 +70,32 @@ public class ListCell
 
 	private ListView view;
 
+	private int fontHeight = -1;
+	
+	private int maxLines = -1;
+
 	public ListCell(ListRow row, int position, int alignment, Rectangle bounds) {
 		this.row = row;
 		this.position = position;
 		this.alignment = alignment;
 		this.bounds = bounds;
 		this.view = (ListView) row.getView();
+
+		Utils.execSWTThreadWithObject("getCellFontHeight",
+				new AERunnableObject() {
+					public Object runSupport() {
+						Control control = view.getControl();
+						if (control != null) {
+							GC gc = new GC(control);
+							try {
+								fontHeight = gc.textExtent("(/|,jI~`gy").y;
+							} finally {
+								gc.dispose();
+							}
+						}
+						return null;
+					}
+				});
 	}
 
 	public void dispose() {
@@ -311,4 +334,15 @@ public class ListCell
 		this.column = cell.getTableColumn();
 	}
 
+	// @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#getMaxLines()
+	public int getMaxLines() {
+		if (maxLines <= 0) {
+  		if (fontHeight <= 0) {
+  			maxLines = 1;
+  		} else {
+  			maxLines = (int) Math.ceil((double)getBounds().height / fontHeight);
+  		}
+		}
+		return maxLines;
+	}
 }
