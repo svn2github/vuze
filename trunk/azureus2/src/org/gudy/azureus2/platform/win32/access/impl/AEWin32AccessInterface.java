@@ -226,4 +226,8 @@ AEWin32AccessInterface
 		AEWin32AccessCallback	callback )
 	
 		throws AEWin32AccessException;
+
+	public static native int shellExecute(String operation, String file,
+			String parameters, String directory, int sw_const)
+	throws AEWin32AccessExceptionImpl;
 }
