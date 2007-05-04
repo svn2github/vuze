@@ -148,12 +148,10 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
                 int uploadLimitBPS = Integer.parseInt( uploadLimitSetting.getText() );
                 int uploadLimitKBPS = uploadLimitBPS/1024;
 
-                //set global upload limit
+                //set upload limits
                 COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY , uploadLimitKBPS );
-                //set while seeding upload limit
+                COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_CONFIGKEY, uploadLimitKBPS );
                 COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY , uploadLimitKBPS );
-                //set auto-speed upload limit.
-                //ToDo: is there an auto-speed upload limit?
 
                 wizard.setFinishEnabled(true);
             }
