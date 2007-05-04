@@ -20,19 +20,16 @@
  */
 package org.gudy.azureus2.ui.swt.components.graphics;
 
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 /**
@@ -49,7 +46,10 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   public static final int COLOR_VALUE2PLUS = 3;
   public static final int COLOR_TRIMMED = 4;
   
-  public static Color[] colors = new Color[] {
+  private static final int ALPHA_FOCUS = 200;
+  private static final int ALPHA_NOFOCUS = 150;
+  
+  public Color[] colors = new Color[] {
   	Colors.red, Colors.blues[Colors.BLUES_MIDDARK], Colors.blue, Colors.grey,
   	Colors.light_grey
   };
@@ -65,7 +65,9 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   private int[][] all_values	= new int[1][ENTRIES];
   private int currentPosition;
   
-   
+  private int alpha = 255;
+  
+  private boolean autoAlpha = false;
   
   
   private SpeedGraphic(Scale scale,ValueFormater formater) {
@@ -80,15 +82,41 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   public void initialize(Canvas canvas) {
   	super.initialize(canvas);
   	
+  	canvas.addMouseTrackListener(new MouseTrackListener() {
+			public void mouseHover(MouseEvent e) {
+			}
+		
+			public void mouseExit(MouseEvent e) {
+				if (autoAlpha) {
+					setAlpha(ALPHA_NOFOCUS);
+				}
+			}
+		
+			public void mouseEnter(MouseEvent e) {
+				if (autoAlpha) {
+					setAlpha(ALPHA_FOCUS);
+				}
+			}
+		});
+  	
   	drawCanvas.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				if (bufferImage != null && !bufferImage.isDisposed()) {
 					Rectangle bounds = bufferImage.getBounds();
 					if (bounds.width >= e.width && bounds.height >= e.height) {
+						if (alpha != 255) {
+							e.gc.setAlpha(alpha);
+						}
 						e.gc.drawImage(bufferImage, e.x, e.y, e.width, e.height, e.x, e.y,
 								e.width, e.height);
 					}
 				}
+			}
+		});
+  	
+  	drawCanvas.addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event event) {
+				drawChart(true);
 			}
 		});
   }
@@ -149,7 +177,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 	  addIntsValue( new int[]{ value });
   }
   
-  public void refresh() {  
+  public void refresh() {
     if(drawCanvas == null || drawCanvas.isDisposed())
       return;
     
@@ -169,18 +197,28 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 	    drawChart(sizeChanged);
     }
     
-    GC gc = new GC(drawCanvas);
-    gc.drawImage(bufferImage,bounds.x,bounds.y);
-    gc.dispose();    
+    drawCanvas.redraw();
+    drawCanvas.update();
   }
   
   protected void drawChart(boolean sizeChanged) {
+  	if (drawCanvas == null || drawCanvas.isDisposed()) {
+  		return;
+  	}
    try{
    	  this_mon.enter();
    		
       drawScale(sizeChanged);
       
+      if (bufferScale == null || bufferScale.isDisposed()) {
+      	return;
+      }
+      
       Rectangle bounds = drawCanvas.getClientArea();    
+      
+      if (bounds.isEmpty()) {
+      	return;
+      }
         
       //If bufferedImage is not null, dispose it
       if(bufferImage != null && ! bufferImage.isDisposed())
@@ -194,8 +232,8 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       
       int oldAverage = 0;   
       int[] oldTargetValues = new int[all_values.length];
-      Color background = Colors.blues[Colors.BLUES_DARKEST];
-      Color foreground = Colors.blues[Colors.BLUES_MIDLIGHT];
+      Color background = colors[COLOR_VALUE0]; // Colors.blues[Colors.BLUES_DARKEST];
+      Color foreground = colors[COLOR_VALUE0]; //Colors.blues[Colors.BLUES_MIDLIGHT];
       int[] maxs = new int[all_values.length];
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
         int position = currentPosition - x -1;
@@ -338,4 +376,45 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     }
     COConfigurationManager.removeParameterListener("Graphics Update",this);
   }
+
+	public int getAlpha() {
+		return alpha;
+	}
+
+	public void setAlpha(int alpha) {
+		this.alpha = alpha;
+		if (drawCanvas != null && !drawCanvas.isDisposed()) {
+			drawCanvas.redraw();
+		}
+	}
+
+	public boolean isAutoAlpha() {
+		return autoAlpha;
+	}
+
+	public void setAutoAlpha(boolean autoAlpha) {
+		this.autoAlpha = autoAlpha;
+		if (autoAlpha) {
+			setAlpha(drawCanvas.getDisplay().getCursorControl() == drawCanvas ? ALPHA_FOCUS : ALPHA_NOFOCUS);
+		}
+	}
+	
+	public void setLineColors(Color average, Color value0, Color value1, Color value2plus, Color trimmed) {
+		if (average != null) {
+			colors[COLOR_AVERAGE] = average;
+		}
+		if (value0 != null) {
+			colors[COLOR_VALUE0] = value0;
+		}
+		if (value1 != null) {
+			colors[COLOR_VALUE1] = value1;
+		}
+		if (value2plus != null) {
+			colors[COLOR_VALUE2PLUS] = value2plus;
+		}
+		if (trimmed != null) {
+			colors[COLOR_TRIMMED] = trimmed;
+		}
+		drawCanvas.redraw();
+	}
 }
