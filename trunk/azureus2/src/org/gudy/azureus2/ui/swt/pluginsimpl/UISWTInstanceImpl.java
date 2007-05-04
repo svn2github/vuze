@@ -378,6 +378,7 @@ UISWTInstanceImpl
 	}
   
 
+	/** @deprecated */
 	public void addView(final UISWTPluginView view, boolean bAutoOpen) {
 		try {
 			uiFunctions.addPluginView(view);
@@ -398,6 +399,7 @@ UISWTInstanceImpl
 		}
 	}
 
+	/** @deprecated */
 	public void
 	addView(
 		final UISWTAWTPluginView	view,
