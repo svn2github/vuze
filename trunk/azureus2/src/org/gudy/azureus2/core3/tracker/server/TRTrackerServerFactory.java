@@ -97,6 +97,19 @@ TRTrackerServerFactory
 		return( TRTrackerServerFactoryImpl.create( name, protocol, port, null, true, apply_ip_filter, main_tracker, true ));
 	}
 	
+	public static TRTrackerServer
+	createSSL(
+		String	name,
+		int		protocol,
+		int		port,
+		boolean apply_ip_filter,
+		boolean	main_tracker,
+		boolean	startup_ready )
+		
+		throws TRTrackerServerException
+	{
+		return( TRTrackerServerFactoryImpl.create( name, protocol, port, null, true, apply_ip_filter, main_tracker, startup_ready ));
+	}
 	
 	public static TRTrackerServer
 	create(
