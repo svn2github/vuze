@@ -251,13 +251,7 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getSWTPluginInstanceImpl()
 	public UISWTInstanceImpl getSWTPluginInstanceImpl() {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return null;
-			}
-
-			return uiFunctions.getSWTPluginInstanceImpl();
-
+			return (UISWTInstanceImpl) mainWindow.getUISWTInstanceImpl();
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "getSWTPluginInstanceImpl", e));
 		}
