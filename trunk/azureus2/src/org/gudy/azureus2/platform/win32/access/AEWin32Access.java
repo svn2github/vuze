@@ -39,6 +39,22 @@ AEWin32Access
 	public static final int	HKEY_CURRENT_CONFIG		= 2;
 	public static final int	HKEY_LOCAL_MACHINE		= 3;
 	public static final int	HKEY_CURRENT_USER		= 4;
+	
+	public static final int SW_HIDE = 0;
+	public static final int SW_NORMAL = 1;
+	public static final int SW_SHOWNORMAL = 1;
+	public static final int SW_SHOWMINIMIZED = 2;
+	public static final int SW_SHOWMAXIMIZED = 3;
+	public static final int SW_MAXIMIZE = 3;
+	public static final int SW_SHOWNOACTIVATE = 4;
+	public static final int SW_SHOW = 5;
+	public static final int SW_MINIMIZE = 6;
+	public static final int SW_SHOWMINNOACTIVE = 7;
+	public static final int SW_SHOWNA = 8;
+	public static final int SW_RESTORE = 9;
+	public static final int SW_SHOWDEFAULT = 10;
+	public static final int SW_FORCEMINIMIZE = 11;
+	public static final int SW_MAX = 11;
 
 	public boolean
 	isEnabled();
@@ -193,4 +209,14 @@ AEWin32Access
 	 * @throws AEWin32AccessException
 	 */
 	String getCommonAppData() throws AEWin32AccessException;
+	
+	public int
+	shellExecute(
+		String operation, 
+		String file, 
+		String parameters, 
+		String directory, 
+		int SW_const)
+
+		throws AEWin32AccessException;
 }

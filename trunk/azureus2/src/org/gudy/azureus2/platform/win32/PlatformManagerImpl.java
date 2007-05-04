@@ -34,9 +34,7 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
-import org.gudy.azureus2.platform.win32.access.AEWin32Access;
-import org.gudy.azureus2.platform.win32.access.AEWin32AccessListener;
-import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
+import org.gudy.azureus2.platform.win32.access.*;
 
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
@@ -313,25 +311,23 @@ PlatformManagerImpl
 			try{
 			
 				String az_home;
-
-				// Try the app dir first, because we may not be using the one in the registry
-				az_home = SystemProperties.getApplicationPath();		
 				
-				az_exe = new File(az_home + File.separator + app_exe_name).getAbsoluteFile();
-
-				if (!az_exe.exists()) {
-					try {
-						az_home = access.getApplicationInstallDir(SystemProperties.getApplicationName());
-
-						az_exe = new File(az_home + File.separator + app_exe_name).getAbsoluteFile();
-
-						if (!az_exe.exists()) {
-
-							throw (new PlatformManagerException(app_exe_name
-									+ " not found in " + az_home + ", please re-install"));
-						}
-					} catch (Throwable e) {
+				try{
+					az_home = access.getApplicationInstallDir( SystemProperties.getApplicationName());
+					
+					az_exe = new File( az_home + File.separator + app_exe_name ).getAbsoluteFile();
+	
+					if ( !az_exe.exists()){
+						
+						throw( new PlatformManagerException( app_exe_name + " not found in " + az_home + ", please re-install"));
 					}
+				}catch( Throwable e ){
+					
+						//hmmm, well let's try the app dir
+					
+					az_home = SystemProperties.getApplicationPath();		
+					
+					az_exe = new File( az_home + File.separator + app_exe_name ).getAbsoluteFile();
 				}
 				
 				if ( !az_exe.exists()){
@@ -900,6 +896,16 @@ PlatformManagerImpl
 			throw( new PlatformManagerException( "Failed to trace route", e ));
 		}	
 	}
+	
+	public int shellExecute(String operation, String file, String parameters,
+			String directory, int SW_const) throws PlatformManagerException {
+		try {
+			return access.shellExecute(operation, file, parameters, directory, SW_const);
+		} catch (Throwable e) {
+			throw( new PlatformManagerException( "Failed to shellExecute", e ));
+		}
+	}
+
 	
     /**
      * {@inheritDoc}

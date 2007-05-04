@@ -364,6 +364,12 @@ AEWin32AccessImpl
 		return( AEWin32AccessInterface.testNativeAvailability( name ));
 	}
 	
+	public int shellExecute(String operation, String file, String parameters,
+			String directory, int SW_const) throws AEWin32AccessException {
+		return AEWin32AccessInterface.shellExecute(operation, file, parameters, 
+				directory, SW_const);
+	}
+	
 	public void
 	traceRoute(
 		InetAddress								source_address,
