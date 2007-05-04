@@ -34,7 +34,7 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.3"
+#define VERSION "1.13"
 
  
 HMODULE	application_module;
@@ -1064,7 +1064,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellEx
 	}
 	
 	// Not sure if ShellExecute treats "\0" as NULL, so do explicit check 
-	return ShellExecuteW(NULL,
+	return(jint) ShellExecuteW(NULL,
 			_operation == NULL ? NULL : operation,
 			_file == NULL ? NULL : file,
 			_parameters == NULL ? NULL : parameters,
@@ -1734,7 +1734,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellEx
 	}
 	
 	// Not sure if ShellExecute treats "\0" as NULL, so do explicit check 
-	return ShellExecuteA(NULL,
+	return (jint)ShellExecuteA(NULL,
 			_operation == NULL ? NULL : operation,
 			_file == NULL ? NULL : file,
 			_parameters == NULL ? NULL : parameters,
@@ -1930,10 +1930,10 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellEx
 	if ( non_unicode ){
 		return
 			Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecuteA(
-				env, cla, operation, file, parameters, directory, showCmd));
+				env, cla, operation, file, parameters, directory, showCmd );
 	}else{
 		return
 			Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecuteW(
-				env, cla, operation, file, parameters, directory, showCmd));
+				env, cla, operation, file, parameters, directory, showCmd );
 	}
 }

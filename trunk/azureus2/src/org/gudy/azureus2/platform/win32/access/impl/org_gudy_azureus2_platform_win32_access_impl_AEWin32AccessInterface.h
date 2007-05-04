@@ -134,6 +134,14 @@ JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEW
 JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_traceRoute
   (JNIEnv *, jclass, jint, jint, jint, jint, jobject);
 
+/*
+ * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
+ * Method:    shellExecute
+ * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)I
+ */
+JNIEXPORT jint JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecute
+  (JNIEnv *, jclass, jstring, jstring, jstring, jstring, jint);
+
 #ifdef __cplusplus
 }
 #endif
