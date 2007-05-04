@@ -63,6 +63,10 @@ DiskManagerRequest
 	cancel();
 	
 	public void
+	setUserAgent(
+		String		agent );
+	
+	public void
 	addListener(
 		DiskManagerListener	listener );
 	

@@ -40,4 +40,21 @@ PieceRTAProvider
 	
 	public long
 	getBlockingPosition();
+	
+		/**
+		 * Sets an external view of how much buffer is being maintained by an external source. This
+		 * reduces piece urgency and therefore reduces discard. 
+		 */
+	
+	public void
+	setBufferMillis(
+		long	millis );
+	
+		/**
+		 * Returns the user-agent associated with this RTA activity, if known
+		 * @return
+		 */
+	
+	public String
+	getUserAgent();
 }

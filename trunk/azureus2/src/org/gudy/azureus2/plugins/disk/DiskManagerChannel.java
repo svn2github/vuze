@@ -28,6 +28,9 @@ DiskManagerChannel
 	public DiskManagerRequest
 	createRequest();
 	
+	public DiskManagerFileInfo
+	getFile();
+	
 	public void
 	destroy();
 }

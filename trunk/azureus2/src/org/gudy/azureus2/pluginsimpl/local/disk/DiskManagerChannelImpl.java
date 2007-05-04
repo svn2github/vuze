@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
 import org.gudy.azureus2.plugins.download.Download;
@@ -49,6 +50,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.PieceRTAProvider;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
 DiskManagerChannelImpl 
@@ -124,6 +126,50 @@ DiskManagerChannelImpl
 	private static final String	channel_key = "DiskManagerChannel";
 	private static int	channel_id_next;
 	
+		// hack to allow other components to be informed when channels are created
+	
+	private static CopyOnWriteList	listeners = new CopyOnWriteList();
+	
+	public static void 
+	addListener(
+		channelCreateListener		l )
+	{
+		listeners.add( l );
+	}
+	
+	public static void 
+	removeListener(
+		channelCreateListener		l )
+	{
+		listeners.remove( l );
+	}
+	
+	protected static void
+	reportCreated(
+		DiskManagerChannel	channel )
+	{
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((channelCreateListener)it.next()).channelCreated( channel );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public static interface
+	channelCreateListener
+	{
+		public void
+		channelCreated(
+			DiskManagerChannel	channel );
+	}
+	
 	private DownloadImpl	download;
 	
 	private org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl	plugin_file;
@@ -145,6 +191,8 @@ DiskManagerChannelImpl
 	private long	current_position;
 	
 	private request	current_request;
+	
+	private long	buffer_millis;
 	
 	private PEPeerManager	peer_manager;
 	
@@ -185,6 +233,14 @@ DiskManagerChannelImpl
 		piece_size	= tf.getTorrent().getPieceLength();
 		
 		core_file.addListener( this );
+		
+		reportCreated( this );
+	}
+	
+	public DiskManagerFileInfo 
+	getFile() 
+	{
+		return( plugin_file );
 	}
 	
 	public DiskManagerRequest
@@ -375,6 +431,8 @@ DiskManagerChannelImpl
    		 
    		long	now = SystemTime.getCurrentTime();
    		
+   		now += buffer_millis;
+   		
    		for (int i=first_piece;i<first_piece+pieces_to_buffer&&i<rtas.length;i++){
    			
    			rtas[i]	= now + (( i - first_piece ) * millis_per_piece );
@@ -412,6 +470,25 @@ DiskManagerChannelImpl
 		}
 		
 		return( current_position + r.getAvailableBytes());
+	}
+	
+	public void
+	setBufferMillis(
+		long	millis )
+	{
+		buffer_millis = millis;
+	}
+	public String
+	getUserAgent()
+	{
+		request r = current_request;
+		
+		if ( r == null ){
+			
+			return( null );
+		}
+		
+		return( r.getUserAgent());
 	}
 	
 	public void
@@ -458,6 +535,8 @@ DiskManagerChannelImpl
 		private long	request_length;
 		private List	listeners	= new ArrayList();
 		
+		private String	user_agent;
+		
 		private volatile boolean	cancelled;
 		
 		AESemaphore	wait_sem = new AESemaphore( "DiskManagerChannelImpl:wait" );
@@ -497,6 +576,19 @@ DiskManagerChannelImpl
 
 				return( request_length - (current_position - request_offset ));
 			}
+		}
+		
+		public void
+		setUserAgent(
+			String	str )
+		{
+			user_agent	= str;
+		}
+		
+		protected String
+		getUserAgent()
+		{
+			return( user_agent );
 		}
 		
 		public long
