@@ -26,6 +26,8 @@ package com.aelitis.azureus.core.download;
 import java.net.InetAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -36,21 +38,43 @@ import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
 import com.aelitis.azureus.core.peer.cache.CachePeer;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
-import com.aelitis.azureus.core.peermanager.piecepicker.PiecePriorityProvider;
 import com.aelitis.azureus.core.peermanager.piecepicker.PieceRTAProvider;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.util.average.Average;
+import com.aelitis.azureus.core.util.average.AverageFactory;
 
 public class 
 EnhancedDownloadManager 
 {
-	public static final int	MINIMUM_INITIAL_BUFFER_SECS	= 30;
+	private static boolean DEBUG	= true;
+	
+	public static  int	MINIMUM_INITIAL_BUFFER_SECS_FOR_ETA	= 30;
+	public static  int	MINIMUM_INITIAL_BUFFER_SECS;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"filechannel.rt.buffer.millis"	
+			},
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameterName )
+				{
+					int channel_buffer_millis = COConfigurationManager.getIntParameter( "filechannel.rt.buffer.millis" );
+					
+					MINIMUM_INITIAL_BUFFER_SECS = (2 * channel_buffer_millis )/1000;
+				}
+			});
+	}
 	
 	public static final int SPEED_CONTROL_INITIAL_DELAY	= 10*1000;
 	public static final int SPEED_INCREASE_GRACE_PERIOD	= 3*1000;
@@ -79,21 +103,21 @@ EnhancedDownloadManager
 	
 	private transient PiecePicker		current_piece_pickler;
 	
-	private long		last_eta_result	= Long.MAX_VALUE;
-	private long		last_eta_time;
+	
 	
 	private boolean	progressive_active	= false;
 	
-	private long	content_stream_bps;
+	private long	content_stream_bps_min;
+	private long	content_stream_bps_max;
 	private long	content_min_bps;
-	
-	private int		initial_buffer_pieces;
-	
+		
 	private bufferETAProvider	buffer_provider	= new bufferETAProvider();
 	private boostETAProvider	boost_provider	= new boostETAProvider();
+
+	private progressiveStats	progressive_stats;
 	
 	private long	time_download_started;
-	private Average	download_speed_average	= Average.getInstance( 1000, 5 );
+	private Average	download_speed_average	= AverageFactory.MovingImmediateAverage( 5 );
 	
 		// ********* reset these in resetVars ***********
 	
@@ -128,15 +152,17 @@ EnhancedDownloadManager
 		enhancer			= _enhancer;
 		download_manager	= _download_manager;
 		
+		progressive_stats	= new progressiveStats();
+
 		TOTorrent	torrent = download_manager.getTorrent();
 				
 		if ( torrent != null ){
 			
 			platform_content = PlatformTorrentUtils.isContent( torrent );
 			
-			content_stream_bps = PlatformTorrentUtils.getContentStreamSpeedBps( torrent );
+			content_stream_bps_min = PlatformTorrentUtils.getContentStreamSpeedBps( torrent );
 			
-			if ( content_stream_bps == 0 ){
+			if ( content_stream_bps_min == 0 ){
 			
 					// hack in some test values for torrents that don't have a bps in them yet
 				
@@ -144,25 +170,26 @@ EnhancedDownloadManager
 				
 				if ( size < 200*1024*1024 ){
 				
-					content_stream_bps = 30*1024;
+					content_stream_bps_min = 30*1024;
 					
 				}else if ( size < 1000*1024*1024L ){
 					
-					content_stream_bps = 200*1024;
+					content_stream_bps_min = 200*1024;
 					
 				}else{
 
-					content_stream_bps = 400*1024;
+					content_stream_bps_min = 400*1024;
 				}
 			}
+				
+					// dump it up by a bit to be conservative
+				
+			content_stream_bps_max = content_stream_bps_min + ( content_stream_bps_min / 10 );
 			
 			content_min_bps = PlatformTorrentUtils.getContentMinimumSpeedBps( torrent );
-			
-			long	initial_bytes = MINIMUM_INITIAL_BUFFER_SECS * content_stream_bps;
-	
-			initial_buffer_pieces = (int)( initial_bytes / torrent.getPieceLength());
-			
-			initial_buffer_pieces = Math.min( initial_buffer_pieces, torrent.getNumberOfPieces());
+							
+			log( "platform=" + platform_content + ", content_stream_bps=" + content_stream_bps_min + 
+					",content_min_bps=" + content_min_bps );
 			
 			// setProgressiveMode( true );
 		}
@@ -202,6 +229,8 @@ EnhancedDownloadManager
 						if ( current_piece_pickler != null ){
 					
 							buffer_provider.deactivate(  current_piece_pickler );
+							
+							boost_provider.deactivate(  current_piece_pickler );
 							
 							current_piece_pickler	= null;	
 						}
@@ -328,7 +357,7 @@ EnhancedDownloadManager
 	protected long
 	getTargetSpeed()
 	{
-		long	target_speed = progressive_active?content_stream_bps:content_min_bps;
+		long	target_speed = progressive_active?content_stream_bps_max:content_min_bps;
 		
 		if ( target_speed < content_min_bps ){
 			
@@ -339,9 +368,11 @@ EnhancedDownloadManager
 	}
 	
 	protected void
-	checkSpeed(
+	updateStats(
 		int		tick_count )
 	{
+		updateProgressiveStats();
+		
 		if ( !platform_content ){
 			
 			return;
@@ -369,7 +400,7 @@ EnhancedDownloadManager
 		
 		long	download_speed = stats.getDataReceiveRate();
 		
-		download_speed_average.addValue( download_speed );
+		download_speed_average.update( download_speed );
 		
 		long	time_downloading = getTimeRunning();
 		
@@ -456,7 +487,7 @@ EnhancedDownloadManager
 	
 										}else{
 											
-											long	current_speed = download_speed_average.getAverage();
+											long	current_speed = (long)download_speed_average.getAverage();
 											
 												// if we are already exceeding required speed, block
 												// the cache peer download
@@ -504,7 +535,7 @@ EnhancedDownloadManager
 		
 			if ( time_downloading > SPEED_CONTROL_INITIAL_DELAY ){
 				
-				long	current_average = download_speed_average.getAverage();
+				long	current_average = (long)download_speed_average.getAverage();
 					
 				if ( current_average < target_speed ){
 					
@@ -831,7 +862,7 @@ EnhancedDownloadManager
 			return( false );
 		}
 		
-		return( content_stream_bps > 0 && enhancer.isProgressiveAvailable() && PlatformTorrentUtils.isContentProgressive( torrent ));
+		return( content_stream_bps_min > 0 && enhancer.isProgressiveAvailable() && PlatformTorrentUtils.isContentProgressive( torrent ));
 	}
 	
 	public void
@@ -847,7 +878,7 @@ EnhancedDownloadManager
 		
 		synchronized( this ){
 
-			if ( progressive_active== active ){
+			if ( progressive_active == active ){
 				
 				return;
 			}
@@ -862,11 +893,15 @@ EnhancedDownloadManager
 					
 					boost_provider.activate( current_piece_pickler );
 					
+					progressive_stats.update();
+					
 				}else{
 					
 					buffer_provider.deactivate( current_piece_pickler );
 					
 					boost_provider.deactivate( current_piece_pickler );
+					
+					progressive_stats = new progressiveStats();
 				}
 			}
 		}
@@ -881,63 +916,41 @@ EnhancedDownloadManager
 	public long
 	getProgressivePlayETA()
 	{
-		long	now = SystemTime.getCurrentTime();
+		progressiveStats stats = getProgressiveStats();
 		
-		if ( 	now > last_eta_time &&
-				now - last_eta_time < 1000 ){
+		return( stats.getETA());
+	}
+	
+	protected progressiveStats
+	getProgressiveStats()
+	{
+		synchronized( this ){
 			
-			return( last_eta_result );
+			return( progressive_stats.getCopy());
 		}
-		
-		long	dl_rate = download_manager.getStats().getDataReceiveRate();
-		
-		long	result	= Long.MAX_VALUE;
-				
-		DiskManager	disk_manager = download_manager.getDiskManager();
-		
-		if ( dl_rate > 0 && content_stream_bps > 0 && disk_manager != null ){
-				
-			PiecePicker	picker = current_piece_pickler;
+	}
+	
+	protected void
+	updateProgressiveStats()
+	{
+		if ( !progressive_active ){
 			
-			if ( picker != null ){
-			
-				List	providers = picker.getRTAProviders();
-				
-				long	max_cp	= 0;
-				long	max_bp	= 0;
-				
-				for (int i=0;i<providers.size();i++){
-					
-					PieceRTAProvider	provider = (PieceRTAProvider)providers.get(i);
-					
-					long	cp = provider.getCurrentPosition();
-					
-					if ( cp >= max_cp ){
-						
-						max_cp	= cp;
-						max_bp	= provider.getBlockingPosition();
-					}
-				}
-				
-					// max-cp 	= current streaming position
-					// max-bp	= blocking position (i.e. first missing data after max-cp)
-					
-				long	secs_pos			= max_cp/content_stream_bps;
-				
-				long	secs_to_watch 		= ( disk_manager.getTotalLength() - max_cp )/ content_stream_bps;
-				
-				long	secs_to_download	= disk_manager.getRemainingExcludingDND() / dl_rate;
-				
-				result = secs_to_download - secs_to_watch;
-				
-				//System.out.println( "Stream readyness: watch=" + secs_to_watch + " (pos=" + secs_pos + "), dl=" + secs_to_download + ",wait=" + result );
-			}
+			return;
 		}
-		
-		last_eta_result	= result;
-		last_eta_time	= now;
-		
-		return( result );
+			
+		synchronized( this ){
+			
+			progressive_stats.update();
+		}
+	}
+	
+	protected void
+	log(
+		String	str )
+	{
+		if ( DEBUG ){
+			System.out.println( download_manager.getDisplayName() + ": " + str );
+		}
 	}
 	
 	protected class
@@ -956,9 +969,12 @@ EnhancedDownloadManager
 				
 				long	now = SystemTime.getCurrentTime();
 				
-				for (int i=0;i<initial_buffer_pieces;i++){
+				for (int i=0;i<piece_rtas.length;i++){
 					
-					piece_rtas[i] = now+i;
+						// not bothered about times here but need to use large increments to ensure
+						// that pieces are picked in order even for slower peers
+					
+					piece_rtas[i] = now+(i*60000);
 				}
 
 				picker.addRTAProvider( this );
@@ -981,26 +997,16 @@ EnhancedDownloadManager
     	updateRTAs(
     		PiecePicker		picker )
     	{
+				// be force linear downloading until we have enough to allow the user to 
+				// potentially start playing. If they don't do so immediately then until that
+				// time we'll be doing normal BT download
+			
     		DiskManager	dm = download_manager.getDiskManager();
 
     		if ( dm != null ){
 
-    			DiskManagerPiece[]	pieces = dm.getPieces();
-    			
-    			boolean	all_done = true;
-    			
-    			for (int i=0;i<initial_buffer_pieces;i++){
-    				
-    				if ( !pieces[i].isDone()){
-    						
-    					all_done = false;
-    					
-    					break;
-    				}
-    			}
-    			
-    			if ( all_done ){
-    				
+    			if ( getProgressivePlayETA() <= 0 ){
+      				
     				deactivate( picker );
     			}
     		}
@@ -1014,58 +1020,30 @@ EnhancedDownloadManager
     		return( 0 );
     	}
     	
+      	public long
+       	getStartTime()
+       	{
+       		return( 0 );
+       	}
+       	
+       	public long
+       	getStartPosition()
+       	{
+       		return( 0 );
+       	}
+       	
     	public long
-    	getBlockingPosition()
-    	{
-    		DiskManager	dm = download_manager.getDiskManager();
-    		
-    		if ( dm == null ){
-    			
-    			return( 0 );
-    		}
-    		
-    		DiskManagerPiece[]	pieces = dm.getPieces();
-    		
-    		for (int i=0;i<pieces.length;i++){
-    			
-    			DiskManagerPiece	piece = pieces[i];
-    			
-    			if ( !piece.isDone()){
-    				
-    				long	complete = i*dm.getPieceLength();
-    				
-    				boolean[] written = piece.getWritten();
-    				
-    				if ( written == null ){
-    					
-    					complete += piece.getLength();
-    					
-    				}else{
-    					
-    					for (int j=0;j<written.length;j++){
-    						
-    						if ( written[j] ){
-    							
-    							complete += piece.getBlockSize( j );
-    						}
-    						
-    						break;
-    					}
-    				}
-    				
-    				return( complete );
-    			}
-    		}
-    		
-    		return( dm.getTotalLength());
-    	}
+		getBlockingPosition()
+		{
+			return( 0 );
+		}
 	}
 	
 	protected class
 	boostETAProvider
-		implements PiecePriorityProvider
+		implements PieceRTAProvider
 	{
-		private long[]		piece_priorities;
+		private long[]		piece_rtas;
 		
 		private long		last_recalc;
 		
@@ -1073,9 +1051,12 @@ EnhancedDownloadManager
 		activate(	
 			PiecePicker		picker )
 		{
-			synchronized( EnhancedDownloadManager.this ){
+			if ( content_stream_bps_min > 0 ){
 				
-				picker.addPriorityProvider( this );
+				synchronized( EnhancedDownloadManager.this ){
+					
+					picker.addRTAProvider( this );
+				}
 			}
 		}
 		
@@ -1085,84 +1066,350 @@ EnhancedDownloadManager
 		{
 			synchronized( EnhancedDownloadManager.this ){
 									
-				picker.removePriorityProvider( this );
+				picker.removeRTAProvider( this );
 				
-				piece_priorities	= null;
+				piece_rtas	= null;
 			}
 		}
 		
 		public long[]
-    	updatePriorities(
+    	updateRTAs(
     		PiecePicker		picker )
     	{
 			long	now = SystemTime.getCurrentTime();
 			
-			if ( now < last_recalc || now - last_recalc > 5000 ){
+			if ( now < last_recalc || now - last_recalc > 2500 ){
 				
 				last_recalc	= now;
-				
-				long	stream_delay = getProgressivePlayETA();
-				
+								
 				DiskManager	disk_manager = download_manager.getDiskManager();
 
-				if ( stream_delay <= 0 || disk_manager == null ){
+					// if it'll take less time to download than watch then the channel-based rta logic
+					// will do the job.
+				
+				progressiveStats	stats = getProgressiveStats();
+				
+				if ( 	disk_manager == null || 
+						!stats.isProviderActive() || 
+						stats.getETA() < -MINIMUM_INITIAL_BUFFER_SECS  ||
+						content_stream_bps_min == 0 ){
 					
-					piece_priorities = null;
+					piece_rtas = null;
 					
 				}else{
+	
+					piece_rtas = new long[disk_manager.getNbPieces()];
 					
-					long	dl_rate = download_manager.getStats().getDataReceiveRate();
-
-					if ( dl_rate > 0 && content_stream_bps > 0 ){
-							
-							// boost assumes streaming from start
+						// need to force piece order - set RTAs for all outstanding pieces
+					
+					long	piece_size = disk_manager.getPieceLength();
+					
+					int		start_piece = (int)( stats.getBytePosition() / piece_size );
 						
-						long	secs_to_watch 		= disk_manager.getTotalLength()/ content_stream_bps;
+					long	bytes_offset = 0;
+					
+					for ( int i=start_piece;i<piece_rtas.length;i++ ){
 						
-						long	secs_to_download	= disk_manager.getRemainingExcludingDND() / dl_rate;
+						piece_rtas[i] = now + ( bytes_offset / content_stream_bps_max );
 						
-						long 	delay = secs_to_download - secs_to_watch;
-						
-						if ( delay <= 0 ){
-							
-							piece_priorities = null;
-							
-						}else{
-							
-							long	bytes_to_boost = delay * content_stream_bps;
-							
-							long	pieces_to_boost = (bytes_to_boost + disk_manager.getPieceLength()-1)/ disk_manager.getPieceLength();
-							
-							int	num_pieces = picker.getNumberOfPieces();
-
-							if ( pieces_to_boost >= num_pieces ){
-								
-									// no point in boosting entire thing
-								
-								// System.out.println("not boosting, too many pieces" );
-								
-								piece_priorities	= null;
-								
-							}else{
-								
-								// System.out.println( "boosting " + pieces_to_boost );
-								
-								piece_priorities = new long[num_pieces];
-
-								for (int i=0;i<pieces_to_boost;i++){
-									
-									piece_priorities[i] = 20000;
-								}
-							}
-						}
-					}else{
-						
-						piece_priorities = null;
+						bytes_offset += piece_size;
 					}
 				}
 			}
     		
-    		return( piece_priorities );
+    		return( piece_rtas );
     	}
+		
+	   	public long
+    	getCurrentPosition()
+    	{
+    		return( 0 );
+    	}
+    	
+		public long
+		getBlockingPosition()
+		{
+			return( 0 );
+		}
+		
+	  	public long
+	   	getStartTime()
+	   	{
+	   		return( 0 );
+	   	}
+	   	
+	   	public long
+	   	getStartPosition()
+	   	{
+	   		return( 0 );
+	   	}
+	}
+	
+	protected class
+	progressiveStats
+		implements Cloneable
+	{
+		private PieceRTAProvider	current_provider;
+		
+		private long		total_file_length = download_manager.getSize();
+
+
+		private Average		download_rate_average = AverageFactory.MovingImmediateAverage( 10 );
+		private long		bytes_to_download;
+		
+		private long		viewer_byte_position;
+				
+		private long		provider_life_secs;
+		private long		provider_initial_position;
+		private long		provider_byte_position;
+		private long		provider_last_byte_position	= -1;
+		private long		provider_blocking_byte_position;
+		private Average		provider_speed_average;
+						
+		protected void
+		updateCurrentProvider(
+			PieceRTAProvider	provider )
+		{
+			if ( current_provider != provider || provider == null ){
+				
+				current_provider = provider;
+									
+				provider_speed_average	= AverageFactory.MovingImmediateAverage( 10 );
+				
+				if ( current_provider == null ){
+					
+					provider_life_secs					= 0;
+					provider_initial_position			= 0;
+					provider_byte_position				= 0;
+					provider_blocking_byte_position		= 0;
+					provider_last_byte_position 		= -1;
+					
+				}else{
+					
+					provider_initial_position	= current_provider.getStartPosition();
+					
+					provider_byte_position 		= provider_initial_position;
+					provider_last_byte_position	= provider_initial_position;
+					
+					provider_blocking_byte_position		= current_provider.getBlockingPosition();
+					
+					provider_life_secs = ( SystemTime.getCurrentTime() - current_provider.getStartTime()) / 1000;
+					
+					if ( provider_life_secs < 0 ){
+						
+						provider_life_secs = 0;
+					}
+				}
+			}else{
+				
+				provider_life_secs++;
+					
+				provider_byte_position	= current_provider.getCurrentPosition();
+				provider_blocking_byte_position	= current_provider.getBlockingPosition();
+				
+				long bytes_read = provider_byte_position - provider_last_byte_position;
+					
+				provider_speed_average.update( bytes_read );
+	
+				provider_last_byte_position = provider_byte_position;
+			}
+		}
+		
+		protected boolean
+		isProviderActive()
+		{
+			return( current_provider != null );
+		}
+		
+		protected void
+		update()
+		{
+			long download_rate = download_manager.getStats().getDataReceiveRate();
+			
+			download_rate_average.update( download_rate );
+			
+			DiskManager	disk_manager = download_manager.getDiskManager();
+			
+			PiecePicker	picker = current_piece_pickler;
+
+			if ( content_stream_bps_min > 0 && disk_manager != null && picker != null ){
+				
+				List	providers = picker.getRTAProviders();
+				
+				long	max_cp	= 0;
+				
+				PieceRTAProvider	best_provider = null;
+				
+				for (int i=0;i<providers.size();i++){
+					
+					PieceRTAProvider	provider = (PieceRTAProvider)providers.get(i);
+					
+					if ( provider.getStartTime() > 0 ){
+						
+						long	cp = provider.getCurrentPosition();
+						
+						if ( cp >= max_cp ){
+							
+							best_provider = provider;
+							
+							max_cp	= cp;
+						}
+					}
+				}
+
+				updateCurrentProvider( best_provider );
+				
+				// System.out.println( "prov_ini=" + provider_initial_position + ", life=" + provider_life_secs + ", pos=" + provider_byte_position );
+				
+				viewer_byte_position 	= provider_initial_position + (content_stream_bps_max * provider_life_secs );
+				
+				if ( viewer_byte_position > total_file_length ){
+					
+					viewer_byte_position = total_file_length;
+				}
+				
+				if ( viewer_byte_position > provider_byte_position ){
+					
+					viewer_byte_position = provider_byte_position;
+				}
+				
+				DiskManagerPiece[] pieces = disk_manager.getPieces();
+				
+				bytes_to_download = 0;
+				
+				int	piece_size = disk_manager.getPieceLength();
+				
+				for (int i=(int)(provider_byte_position/piece_size);i<pieces.length;i++){
+					
+					DiskManagerPiece piece = pieces[i];
+					
+					if ( piece.isDone()){
+						
+						continue;
+					}
+					
+					boolean[] blocks = piece.getWritten();
+					
+					if ( blocks == null ){
+						
+						bytes_to_download += piece.getLength();
+						
+					}else{
+						for (int j=0;j<blocks.length;j++){
+							
+							if ( !blocks[j] ){
+								
+								bytes_to_download += piece.getBlockSize( j );
+							}
+						}
+					}
+				}
+			}
+			
+			System.out.println( getString());
+		}
+		
+		protected long
+		getETA()
+		{
+			DiskManager dm = download_manager.getDiskManager();
+			
+			if ( dm == null ){
+				
+				return( Long.MAX_VALUE );
+			}
+			
+			if ( dm.getRemainingExcludingDND() == 0 ){
+				
+				return( 0 );
+			}
+			
+			long	downloaded = total_file_length - bytes_to_download;
+
+			long download_rate = (long)download_rate_average.getAverage();
+			
+			if ( download_rate <= 0 ){
+				
+				return( Long.MAX_VALUE );
+			}
+			
+			long min_dl = MINIMUM_INITIAL_BUFFER_SECS_FOR_ETA * content_stream_bps_max;
+			
+			long rem_dl = min_dl - downloaded;	// ok as initial dl is forced in order byte buffer-rta
+			
+			long rem_secs = rem_dl / download_rate;
+			
+			long eta = getSecondsToDownload() - getSecondsToWatch();
+			
+			if ( rem_secs > eta ){
+				
+				eta = rem_secs;
+			}
+			
+			return( eta );
+		}
+		
+		protected long
+		getSecondsToDownload()
+		{
+			long download_rate = (long)download_rate_average.getAverage();
+
+			if ( download_rate == 0 ){
+				
+				return( Long.MAX_VALUE );
+			}
+			
+			return( bytes_to_download / download_rate );
+		}
+		
+		protected long
+		getSecondsToWatch()
+		{
+			return((total_file_length - viewer_byte_position ) / content_stream_bps_min );
+		}
+		
+		protected long
+		getBytePosition()
+		{
+			return( viewer_byte_position );
+		}
+		
+		protected progressiveStats
+		getCopy()
+		{
+			try{
+				return((progressiveStats)clone());
+				
+			}catch( CloneNotSupportedException e ){
+				
+				Debug.printStackTrace(e);
+				
+				return( null );
+			}
+		}
+		
+		protected String
+		formatBytes(
+			long	l )
+		{
+			return( DisplayFormatters.formatByteCountToKiBEtc( l ));
+		}
+		
+		protected String
+		formatSpeed(
+			long	l )
+		{
+			return( DisplayFormatters.formatByteCountToKiBEtcPerSec( l ));
+		}
+		
+		protected String
+		getString()
+		{
+			return( "play_eta=" + getETA() + "/d=" + getSecondsToDownload() + "/w=" + getSecondsToWatch()+ 
+					", dl_rate=" + formatSpeed((long)download_rate_average.getAverage())+ ", download_rem=" + formatBytes(bytes_to_download) +
+					", viewer: byte=" + formatBytes( viewer_byte_position ) + " secs=" + ( viewer_byte_position/content_stream_bps_min ) + 
+					", prov: byte=" + formatBytes( provider_byte_position ) + " secs=" + ( provider_byte_position/content_stream_bps_min ) + " speed=" + formatSpeed((long)provider_speed_average.getAverage()) +
+					" block= " + formatBytes( provider_blocking_byte_position ) + " buffer=" + formatBytes( provider_byte_position - viewer_byte_position ));
+		}
 	}
 }

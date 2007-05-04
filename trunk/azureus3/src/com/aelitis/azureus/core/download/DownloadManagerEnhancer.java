@@ -37,7 +37,6 @@ import com.aelitis.azureus.core.AzureusCore;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
-import org.gudy.azureus2.plugins.download.Download;
 
 public class 
 DownloadManagerEnhancer 
@@ -162,7 +161,7 @@ DownloadManagerEnhancer
 							if ( 	download.getState() == DownloadManager.STATE_DOWNLOADING ||
 									download.getState() == DownloadManager.STATE_SEEDING ){
 								
-								getEnhancedDownload( download ).checkSpeed( tick_count );
+								getEnhancedDownload( download ).updateStats( tick_count );
 							}
 						}
 					}
