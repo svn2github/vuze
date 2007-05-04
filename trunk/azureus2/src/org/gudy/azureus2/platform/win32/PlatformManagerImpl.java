@@ -312,24 +312,26 @@ PlatformManagerImpl
 			
 				String az_home;
 				
-				try{
-					az_home = access.getApplicationInstallDir( SystemProperties.getApplicationName());
-					
-					az_exe = new File( az_home + File.separator + app_exe_name ).getAbsoluteFile();
-	
-					if ( !az_exe.exists()){
-						
-						throw( new PlatformManagerException( app_exe_name + " not found in " + az_home + ", please re-install"));
-					}
-				}catch( Throwable e ){
-					
-						//hmmm, well let's try the app dir
-					
-					az_home = SystemProperties.getApplicationPath();		
-					
-					az_exe = new File( az_home + File.separator + app_exe_name ).getAbsoluteFile();
-				}
+				// Try the app dir first, because we may not be using the one in the registry
+				az_home = SystemProperties.getApplicationPath();		
 				
+				az_exe = new File(az_home + File.separator + app_exe_name).getAbsoluteFile();
+
+				if (!az_exe.exists()) {
+					try {
+						az_home = access.getApplicationInstallDir(SystemProperties.getApplicationName());
+
+						az_exe = new File(az_home + File.separator + app_exe_name).getAbsoluteFile();
+
+						if (!az_exe.exists()) {
+
+							throw (new PlatformManagerException(app_exe_name
+									+ " not found in " + az_home + ", please re-install"));
+						}
+					} catch (Throwable e) {
+					}
+				}
+								
 				if ( !az_exe.exists()){
 					
 					String	msg = app_exe_name + " not found in " + az_home + " - can't check file associations. Please re-install " + SystemProperties.getApplicationName();
