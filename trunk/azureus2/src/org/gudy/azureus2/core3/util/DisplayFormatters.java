@@ -356,11 +356,21 @@ DisplayFormatters
 		return( formatByteCountToKiBEtc( n, false, bTruncateZeros ));
 	}
 
-	protected static
+	public static
 	String formatByteCountToKiBEtc(
 		long	n,
 		boolean	rate,
 		boolean bTruncateZeros)
+	{
+		return formatByteCountToKiBEtc(n, rate, bTruncateZeros, -1);
+	}
+
+	public static
+	String formatByteCountToKiBEtc(
+		long	n,
+		boolean	rate,
+		boolean bTruncateZeros,
+		int precision)
 	{
 		double dbl = (rate && use_units_rate_bits) ? n * 8 : n;
 
@@ -371,6 +381,10 @@ DisplayFormatters
 		  dbl /= 1024L;
 		  unitIndex++;
 		}
+	  	
+	  if (precision < 0) {
+	  	precision = UNITS_PRECISION[unitIndex];
+	  }
 			 
 	  // round for rating, because when the user enters something like 7.3kbps
 		// they don't want it truncated and displayed as 7.2  
@@ -380,7 +394,7 @@ DisplayFormatters
 		// "I have a 1.0GB torrent and it says I've downloaded 1.0GB.. why isn't 
 		//  it complete? waaah"
 
-		return formatDecimal(dbl, UNITS_PRECISION[unitIndex], bTruncateZeros, rate)
+		return formatDecimal(dbl, precision, bTruncateZeros, rate)
 				+ (rate ? units_rate[unitIndex] : units[unitIndex]);
 	}
 
