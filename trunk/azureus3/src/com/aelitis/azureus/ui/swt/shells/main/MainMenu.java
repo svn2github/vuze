@@ -244,7 +244,7 @@ public class MainMenu
 		return createMenuItem(parent, SWT.PUSH, key, selectionListener);
 	}
 
-	private MenuItem createMenuItem(Menu parent, int style, String key,
+	private static MenuItem createMenuItem(Menu parent, int style, String key,
 			Listener selectionListener) {
 		MenuItem item = new MenuItem(parent, style);
 		Messages.setLanguageText(item, key);
@@ -263,8 +263,10 @@ public class MainMenu
 
 		new MenuItem(viewMenu, SWT.SEPARATOR);
 
-		createViewMenuItem(viewMenu, "SearchBar.visible", "searchbar");
-		createViewMenuItem(viewMenu, "TabBar.visible", "tabbar");
+		createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.searchbar",
+				"SearchBar.visible", "searchbar");
+		createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
+				"TabBar.visible", "tabbar");
 	}
 
 	/**
@@ -272,21 +274,25 @@ public class MainMenu
 	 * @param string
 	 * @param string2
 	 */
-	private void createViewMenuItem(Menu viewMenu, final String configID,
-			final String keyID) {
+	public static MenuItem createViewMenuItem(final SWTSkin skin, Menu viewMenu,
+			final String textID,
+			final String configID,
+			final String viewID) {
 		MenuItem item;
 
 		COConfigurationManager.setBooleanDefault(configID, true);
 
-		item = createMenuItem(viewMenu, SWT.CHECK, PREFIX_V3 + ".view." + keyID,
+		item = createMenuItem(viewMenu, SWT.CHECK, textID,
 				new Listener() {
 					public void handleEvent(Event event) {
-						MenuItem item = (MenuItem) event.widget;
-						boolean visible = item.getSelection();
-						setVisibility(configID, keyID, visible);
+						SWTSkinObject skinObject = skin.getSkinObject(viewID);
+						if (skinObject != null) {
+							System.out.println(skinObject.isVisible());
+							setVisibility(skin, configID, viewID, !skinObject.isVisible());
+						}
 					}
 				});
-		setVisibility(configID, keyID,
+		setVisibility(skin, configID, viewID,
 				COConfigurationManager.getBooleanParameter(configID));
 
 		final MenuItem itemViewSearchBar = item;
@@ -302,11 +308,14 @@ public class MainMenu
 				COConfigurationManager.removeParameterListener(configID, listener);
 			}
 		});
+		
+		return item;
 	}
 
-	public void setVisibility(String configID, String viewID, boolean visible) {
+	public static void setVisibility(SWTSkin skin, String configID,
+			String viewID, boolean visible) {
 		SWTSkinObject skinObject = skin.getSkinObject(viewID);
-		if (skinObject != null) {
+		if (skinObject != null && skinObject.isVisible() != visible) {
 			final Control control = skinObject.getControl();
 			if (control != null && !control.isDisposed()) {
 				if (visible) {
@@ -326,6 +335,7 @@ public class MainMenu
 						slide(control, fd, size);
 					}
 				}
+				skinObject.setVisible(visible);
 				Utils.relayout(control);
 			}
 
@@ -333,7 +343,7 @@ public class MainMenu
 		}
 	}
 
-	private void slide(final Control control, final FormData fd, final Point size) {
+	private static void slide(final Control control, final FormData fd, final Point size) {
 		AERunnable runnable = new AERunnable() {
 			public void runSupport() {
 				if (true) {
@@ -343,6 +353,9 @@ public class MainMenu
 					Utils.relayout(control);
 					return;
 				}
+				
+				// sliding disabled until we prevent slide in being triggered while
+				// sliding out (or visa-versa)
 
 				int newWidth = (int) (fd.width + (size.x - fd.width) * 0.4);
 				int newHeight = (int) (fd.height + (size.y - fd.height) * 0.4);
