@@ -183,6 +183,10 @@ public class SWTSkinObjectBasic
 		triggerListeners(visible ? SWTSkinObjectListener.EVENT_SHOW
 				: SWTSkinObjectListener.EVENT_HIDE);
 	}
+	
+	public boolean isVisible() {
+		return control != null && !control.isDisposed() && control.isVisible();
+	}
 
 	public String switchSuffix(String suffix, int level, boolean walkUp) {
 		if (walkUp) {
@@ -216,9 +220,19 @@ public class SWTSkinObjectBasic
 
 		suffix = getSuffix();
 
+		if (properties.getStringValue(sConfigID + ".visible", "true").equalsIgnoreCase(
+				"false")) {
+			setVisible(false);
+		}
+		
 		Color color = properties.getColor(sConfigID + ".color" + suffix);
 		if (color != null) {
 			control.setBackground(color);
+		}
+
+		Color fg = properties.getColor(sConfigID + ".fgcolor" + suffix);
+		if (fg != null) {
+			control.setForeground(fg);
 		}
 
 		setBackground(sConfigID + ".background", suffix);

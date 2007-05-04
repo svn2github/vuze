@@ -49,6 +49,8 @@ public interface SWTSkinObject
 
 	public void setVisible(boolean visible);
 
+	public boolean isVisible();
+
 	/**
 	 * @param sConfigID
 	 * @param sSuffix
