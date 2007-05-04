@@ -203,6 +203,15 @@ public interface TableCell {
    * @since 2.3.0.7
    */
   public boolean isDisposed();
+  
+  /**
+   * Retrieves the number of lines available for setting text
+   * 
+   * @return # of lines available
+   *
+   * @since 3.0.1.1
+   */
+  public int getMaxLines();
 
   //////////////////////////////////
   // Start TYPE_GRAPHIC functions //

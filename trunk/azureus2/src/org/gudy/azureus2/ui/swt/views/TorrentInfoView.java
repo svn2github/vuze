@@ -1038,6 +1038,11 @@ TorrentInfoView
 		public TableRowSWT getTableRowSWT() {
 			return null;
 		}
+
+		// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMaxLines()
+		public int getMaxLines() {
+			return 1;
+		}
 		
 	}
 	

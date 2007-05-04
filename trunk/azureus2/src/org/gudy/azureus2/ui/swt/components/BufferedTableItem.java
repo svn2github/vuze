@@ -93,4 +93,12 @@ public interface BufferedTableItem
 	 * Set to redraw at the next OS paint
 	 */
 	public abstract void redraw();
+	
+	/**
+	 * # of lines item can handle
+	 * @return
+	 *
+	 * @since 3.0.1.1
+	 */
+	public abstract int getMaxLines();
 }

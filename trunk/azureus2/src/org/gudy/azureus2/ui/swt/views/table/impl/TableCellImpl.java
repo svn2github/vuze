@@ -132,9 +132,14 @@ public class TableCellImpl
     tooltipErrLoopCount = 0;
     loopFactor = 0;
 
-    bufferedTableItem = item;
+    if (item != null) {
+    	bufferedTableItem = item;
+    } else {
+    	createBufferedTableItem(position);
+    }
 
     tableColumn.invokeCellAddedListeners(TableCellImpl.this);
+    //bDebug = (position == 1) && tableColumn.getTableID().equalsIgnoreCase("Peers");
   }
 
   /**
@@ -146,17 +151,7 @@ public class TableCellImpl
    */
   public TableCellImpl(TableRowSWT _tableRow, TableColumnCore _tableColumn,
                        int position) {
-    this.tableColumn = _tableColumn;
-    this.tableRow = _tableRow;
-    valid = false;
-    refreshErrLoopCount = 0;
-    tooltipErrLoopCount = 0;
-    loopFactor = 0;
-
-    createBufferedTableItem(position);
-    
-    tableColumn.invokeCellAddedListeners(TableCellImpl.this);
-    //bDebug = (position == 1) && tableColumn.getTableID().equalsIgnoreCase("Peers");
+  	this(_tableRow, _tableColumn, position, null);
   }
   
   private void createBufferedTableItem(int position) {
@@ -427,6 +422,11 @@ public class TableCellImpl
 
 	public boolean isDisposed() {
 		return bDisposed;
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getMaxLines()
+	public int getMaxLines() {
+		return bufferedTableItem.getMaxLines();
 	}
   
   /* Start TYPE_GRAPHIC Functions */

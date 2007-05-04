@@ -221,4 +221,9 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
   // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#redraw()
   public void redraw() {
   }
+  
+  // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#getMaxLines()
+  public int getMaxLines() {
+  	return 1;
+  }
 }
