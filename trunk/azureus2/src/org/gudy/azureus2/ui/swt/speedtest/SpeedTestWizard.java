@@ -46,12 +46,9 @@ SpeedTestWizard
 		super(azureus_core, display, "speedtest.wizard.title");
 		SpeedTestPanel panel = new SpeedTestPanel(this, null);
 		setFirstPanel(panel);
-	}
+    }
 
     public void onClose(){
-
-        //ToDo: might want to validate error and give a message box before closing.
-        //perhaps display a message with the current global limits.
 
         super.onClose();
     }

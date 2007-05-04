@@ -68,6 +68,8 @@ SpeedTestPanel
     //measured upload and download results.
     int uploadTest, downloadTest;
 
+    WizardListener clListener;
+
     private static final String START_VALUES = "   -         ";
 
     public
@@ -138,7 +140,6 @@ SpeedTestPanel
         gridData = new GridData();
         gridData.widthHint = 70;
         test.setLayoutData(gridData);
-        //ToDo: add a Run listener.
         test.addListener(SWT.Selection, new RunButtonListener() );
 
         abort = new Button(panel, SWT.PUSH);
@@ -147,7 +148,7 @@ SpeedTestPanel
         gridData.widthHint = 70;
         abort.setLayoutData(gridData);
         abort.setEnabled(false);
-        //ToDo: add an Abort listener.
+        abort.addListener(SWT.Selection, new AbortButtonListener() );
 
         //space line
         spacer = new Label(panel, SWT.NULL);
@@ -198,18 +199,19 @@ SpeedTestPanel
 	finish() 
 	{
 		test_running	= true;
-		
-		wizard.addListener(
-			new WizardListener()
+
+        clListener = new WizardListener()
 			{
 				public void
 				closed()
 				{
 					cancel();
 				}
-			});
-		
-		wizard.setFinishEnabled( false );
+			};
+
+        wizard.addListener(clListener);
+
+        wizard.setFinishEnabled( false );
 		
 		Thread t = 
 			new AEThread("SpeedTest Performer") 
@@ -232,7 +234,16 @@ SpeedTestPanel
 		if ( scheduled_test != null ){
 		
 			scheduled_test.abort();
-		}
+
+            if( !test.isDisposed() )
+                test.setEnabled(true);
+
+            if( !abort.isDisposed() )
+                abort.setEnabled(false);
+            
+            wizard.setNextEnabled(false);
+            wizard.setFinishEnabled(false);
+        }
 	}
 	
 	protected void
@@ -263,8 +274,9 @@ SpeedTestPanel
 				        }
 				      });
 			    }
-				
-				//ToDo: the test request failed, need to indicate this back to the UI!!
+
+                test.setEnabled(true);
+                abort.setEnabled(false);
 			}
 		}//else
 	}//runTest
@@ -313,12 +325,15 @@ SpeedTestPanel
 			            textMessages.append("Download speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getDownloadSpeed()) + Text.DELIMITER);
                         wizard.setNextEnabled(true);
                   }
-		          
-		          switchToClose();
+
+                  if( !result.hadError() )
+                    switchToClose();
 		        }
 		      });
 		    }
-	}
+        wizard.removeListener(clListener);
+        clListener=null;
+    }
 
 	protected void 
 	reportStage(
@@ -458,6 +473,13 @@ SpeedTestPanel
             cancel();
             test.setEnabled(true);
             abort.setEnabled(false);
+            wizard.setNextEnabled(false);
+            uploadTest=0;
+            downloadTest=0;
+
+            wizard.setErrorMessage("test aborted manually.");
+            reportStage("\ntest aborted manually.");
+
         }//handleEvent
     }
 
@@ -470,25 +492,9 @@ SpeedTestPanel
         public void handleEvent(Event event) {
             abort.setEnabled(true);
             test.setEnabled(false);
+            wizard.setErrorMessage("");
             finish();
         }//handleEvent
     }
-
-
-    /**
-     *
-     */
-    public class RunTest extends AEThread {
-        public RunTest(String name) {
-            super(name);
-        }
-
-        public void runSupport() {
-            //should be the contents of the finish method.
-
-
-
-        }
-    }//class
 
 }
