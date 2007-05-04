@@ -632,6 +632,21 @@ public class GlobalManagerImpl
 			fDest = TorrentUtils.copyTorrentFileToSaveDir(f, persistent);
 
 			String fName = fDest.getCanonicalPath();
+			
+			try {
+				TOTorrent torrent = TorrentUtils.readFromFile(fDest, false);
+				DownloadManager existingDM = getDownloadManager(torrent);
+				if (existingDM != null) {
+					fDest.delete();
+					File backupFile = new File(fName + ".bak");
+					if (backupFile.exists())
+						backupFile.delete();
+					return existingDM;
+				}
+			} catch (Exception e) {
+				// ignore any error.. let it bork later in case old code relies
+				// on it borking later
+			}
 
 			// now do the creation!
 
