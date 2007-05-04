@@ -85,10 +85,11 @@ public interface TableColumnCore
 	 * Send a refresh trigger to all listeners stored in TableColumn
 	 *
 	 * @param cell the cell is being refreshed
+	 * @throws Throwable 
 	 *               
 	 * @since 2.1.0.0
 	 */
-	public void invokeCellRefreshListeners(TableCellCore cell);
+	public void invokeCellRefreshListeners(TableCellCore cell) throws Throwable;
 
 	/**
 	 * Retrieve all the refresh listeners for the cell
