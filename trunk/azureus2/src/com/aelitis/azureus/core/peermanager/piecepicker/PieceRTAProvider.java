@@ -30,6 +30,12 @@ PieceRTAProvider
 		PiecePicker		picker );
 	
 	public long
+	getStartTime();
+	
+	public long
+	getStartPosition();
+	
+	public long
 	getCurrentPosition();
 	
 	public long

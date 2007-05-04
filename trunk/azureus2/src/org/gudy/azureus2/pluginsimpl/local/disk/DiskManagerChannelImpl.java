@@ -24,6 +24,8 @@ package org.gudy.azureus2.pluginsimpl.local.disk;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoListener;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
@@ -52,8 +54,27 @@ public class
 DiskManagerChannelImpl 
 	implements DiskManagerChannel, DiskManagerFileInfoListener, DownloadManagerPeerListener, PieceRTAProvider
 {
-	private static final int		BUFFER_SECS 			= 30;
-	private static final int		MIN_PIECES_TO_BUFFER	= 3;
+	private static int		BUFFER_MILLIS;
+	private static int		MIN_PIECES_TO_BUFFER;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"filechannel.rt.buffer.millis",
+				"filechannel.rt.buffer.pieces",
+			},
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameterName )
+				{
+					BUFFER_MILLIS			= COConfigurationManager.getIntParameter( "filechannel.rt.buffer.millis" );
+					MIN_PIECES_TO_BUFFER 	= COConfigurationManager.getIntParameter( "filechannel.rt.buffer.pieces" );
+				}
+			});
+	}
+	
 	
 	private static final boolean	TRACE = false;
 	
@@ -119,7 +140,10 @@ DiskManagerChannelImpl
 		
 	private Average	byte_rate = Average.getInstance( 1000, 20 );
 	
+	private long	start_position;
+	private long	start_time;
 	private long	current_position;
+	
 	private request	current_request;
 	
 	private PEPeerManager	peer_manager;
@@ -329,7 +353,7 @@ DiskManagerChannelImpl
    		
    		long	rate = byte_rate.getAverage();
    		
-   		long	buffer_bytes = BUFFER_SECS * rate;
+   		long	buffer_bytes = ( BUFFER_MILLIS * rate ) / 1000;
    		
    		int	pieces_to_buffer = (int)( buffer_bytes / piece_size );
    		
@@ -338,7 +362,7 @@ DiskManagerChannelImpl
    			pieces_to_buffer	= 1;
    		}
    		
-   		int	millis_per_piece = BUFFER_SECS*1000/pieces_to_buffer; 
+   		int	millis_per_piece = BUFFER_MILLIS/pieces_to_buffer; 
 
    		if ( pieces_to_buffer < MIN_PIECES_TO_BUFFER ){
    			
@@ -358,7 +382,19 @@ DiskManagerChannelImpl
    		
    		return( rtas );
    	}
+   
+   	public long
+   	getStartTime()
+   	{
+   		return( start_time );
+   	}
    	
+   	public long
+   	getStartPosition()
+   	{
+   		return( start_position );
+   	}
+   
 	public long
 	getCurrentPosition()
 	{
@@ -426,6 +462,12 @@ DiskManagerChannelImpl
 		
 		AESemaphore	wait_sem = new AESemaphore( "DiskManagerChannelImpl:wait" );
 		
+		protected
+		request()
+		{
+			start_time	= SystemTime.getCurrentTime();
+		}
+		
 		public void
 		setType(
 			int			_type )
@@ -438,6 +480,7 @@ DiskManagerChannelImpl
 			long		_offset )
 		{
 			request_offset	= _offset;
+			start_position	= request_offset;
 		}
 		
 		public void

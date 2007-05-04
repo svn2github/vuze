@@ -435,6 +435,9 @@ public class ConfigurationDefaults {
     def.put( "Play File Finished Announcement", FALSE);
     def.put( "Play File Finished Announcement Text", "File Complete");
     
+    def.put( "filechannel.rt.buffer.millis", new Long( 60*1000 ));
+    def.put( "filechannel.rt.buffer.pieces", new Long( 5 ));
+    
     def.put( "BT Request Max Block Size", new Long(65536));
     def.put( "network.tcp.enable_safe_selector_mode", FALSE );
     def.put( "network.tcp.safe_selector_mode.chunk_size", new Long( 60 ));

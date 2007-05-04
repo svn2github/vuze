@@ -2350,7 +2350,29 @@ public class PiecePickerImpl
 	getPieceString(
 		int	piece_number )
 	{
-		return( "pri=" + (startPriorities==null?0:startPriorities[piece_number]));
+		String	str;
+		
+		long priority = startPriorities==null?0:startPriorities[piece_number];
+		
+		if  ( priority == PRIORITY_REALTIME ){
+			
+			long[]	rta = provider_piece_rtas;
+			
+			str = "pri=rta:" + (rta==null?"?":("" + (rta[piece_number] - SystemTime.getCurrentTime())));
+			
+		}else{
+			
+			str = "pri=" + priority;
+		}
+		
+		long[] exts = provider_piece_priorities;
+		
+		if ( exts != null ){
+			
+			str += ",ext=" + exts[piece_number];
+		}
+
+		return( str );
 	}
 	
 	public void

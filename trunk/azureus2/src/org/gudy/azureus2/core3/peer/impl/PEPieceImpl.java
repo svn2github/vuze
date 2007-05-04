@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
+
 
 public class PEPieceImpl
     implements PEPiece
@@ -770,13 +772,15 @@ public class PEPieceImpl
 	{
 		String	text  = "";
 		
+		PiecePicker pp = manager.getPiecePicker();
+
 		text	+= ( isRequestable()?"reqable,":"" );
 		text	+= "req=" + getNbRequests() + ",";
 		text	+= ( isRequested()?"reqstd,":"" );
 		text	+= ( isDownloaded()?"downed,":"" );
 		text	+= ( getReservedBy()!=null?"resrv,":"" );
 		text	+= "speed=" + getSpeed() + ",";
-		text	+= "pri=" + getResumePriority();
+		text	+= ( pp==null?("pri=" + getResumePriority()):pp.getPieceString(dmPiece.getPieceNumber()));
 		
 		if ( text.endsWith(",")){
 			text = text.substring(0,text.length()-1);
