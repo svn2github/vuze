@@ -39,9 +39,16 @@ public class VivaldiView extends AbstractIView {
   DHT dht;  
   Composite panel;
   VivaldiPanel drawPanel;
+	private final boolean autoAlpha;
   
   public VivaldiView() {
+  	autoAlpha = false;
     init();
+  }
+  
+  public VivaldiView(boolean autoAlpha) {
+  	this.autoAlpha = autoAlpha;
+		init();
   }
   
   private void init() {
@@ -69,6 +76,7 @@ public class VivaldiView extends AbstractIView {
     panel = new Composite(composite,SWT.NULL);
     panel.setLayout(new FillLayout());    
     drawPanel = new VivaldiPanel(panel);    
+  	drawPanel.setAutoAlpha(autoAlpha);
   }
   
   public Composite getComposite() {
@@ -76,11 +84,13 @@ public class VivaldiView extends AbstractIView {
   }
   
   public void refresh() {
+  	if (dht == null) {
+  		init();
+  	}
+  	
     if(dht != null) {
       List l = dht.getControl().getContacts();
       drawPanel.refreshContacts(l,dht.getControl().getTransport().getLocalContact());
-    } else { 
-      init();
     }
   }
   

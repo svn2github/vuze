@@ -25,16 +25,15 @@ package org.gudy.azureus2.ui.swt.views.stats;
 import java.util.Iterator;
 import java.util.List;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.*;
+
+import org.gudy.azureus2.core3.internat.MessageText;
+
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
@@ -42,7 +41,9 @@ import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.*;
 import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.impl.*;
 
 public class VivaldiPanel {
-  
+  private static final int ALPHA_FOCUS = 255;
+  private static final int ALPHA_NOFOCUS = 150;
+
   Display display;
   Composite parent;
   
@@ -55,6 +56,15 @@ public class VivaldiPanel {
   private int yDown;
   
   private boolean antiAliasingAvailable = true;
+	private List lastContacts;
+	private DHTTransportContact lastSelf;
+	
+	private Image img;
+	
+  private int alpha = 255;
+  
+  private boolean autoAlpha = false;
+
   
   private class Scale {
     int width;
@@ -83,8 +93,27 @@ public class VivaldiPanel {
   public VivaldiPanel(Composite parent) {
     this.parent = parent;
     this.display = parent.getDisplay();
-    this.canvas = new Canvas(parent,SWT.NULL);   
+    this.canvas = new Canvas(parent,SWT.NONE);
+    
     this.scale = new Scale();
+    
+  	canvas.addPaintListener(new PaintListener() {
+			public void paintControl(PaintEvent e) {
+				if (img != null && !img.isDisposed()) {
+					Rectangle bounds = img.getBounds();
+					if (bounds.width >= e.width && bounds.height >= e.height) {
+						if (alpha != 255) {
+							e.gc.setAlpha(alpha);
+						}
+						e.gc.drawImage(img, e.x, e.y, e.width, e.height, e.x, e.y,
+								e.width, e.height);
+					}
+				} else {
+					e.gc.drawText(MessageText.getString("VivaldiView.notavailable"), 5,
+							5, true);
+				}
+			}
+		});
     
     canvas.addMouseListener(new MouseAdapter() {
 
@@ -102,9 +131,43 @@ public class VivaldiPanel {
       public void mouseUp(MouseEvent event) {
         if(event.button == 1) mouseLeftDown = false;
         if(event.button == 3) mouseRightDown = false;
+        refreshContacts(lastContacts, lastSelf);
       }                  
     });
     
+    canvas.addListener(SWT.KeyDown, new Listener() {
+			public void handleEvent(Event event) {
+			}
+		});
+
+    canvas.addListener(SWT.MouseWheel, new Listener() {
+			public void handleEvent(Event event) {
+				System.out.println(event.count);
+        scale.saveMinX = scale.minX;
+        scale.saveMaxX = scale.maxX;
+        scale.saveMinY = scale.minY;
+        scale.saveMaxY = scale.maxY;
+        
+        int deltaY = event.count * 5;
+        // scaleFactor>1 means zoom in, this happens when
+        // deltaY<0 which happens when the mouse is moved up.
+        float scaleFactor = 1 - (float) deltaY / 300;
+        if(scaleFactor <= 0) scaleFactor = 0.01f;
+
+        // Scalefactor of e.g. 3 makes elements 3 times larger
+        float moveFactor = 1 - 1/scaleFactor;
+        
+        float centerX = (scale.saveMinX + scale.saveMaxX)/2;
+        scale.minX = scale.saveMinX + moveFactor * (centerX - scale.saveMinX);
+        scale.maxX = scale.saveMaxX - moveFactor * (scale.saveMaxX - centerX);
+
+        float centerY = (scale.saveMinY + scale.saveMaxY)/2;
+        scale.minY = scale.saveMinY + moveFactor * (centerY - scale.saveMinY);
+        scale.maxY = scale.saveMaxY - moveFactor * (scale.saveMaxY - centerY);
+        refreshContacts(lastContacts, lastSelf);
+			}
+		});
+
     canvas.addMouseMoveListener(new MouseMoveListener() {
       public void mouseMove(MouseEvent event) {
         if(mouseLeftDown) {
@@ -120,6 +183,7 @@ public class VivaldiPanel {
           scale.maxX = scale.saveMaxX - realDeltaX;
           scale.minY = scale.saveMinY - realDeltaY;
           scale.maxY = scale.saveMaxY - realDeltaY;
+          refreshContacts(lastContacts, lastSelf);
         }
         if(mouseRightDown) {
           int deltaY = event.y - yDown;
@@ -138,9 +202,27 @@ public class VivaldiPanel {
           float centerY = (scale.saveMinY + scale.saveMaxY)/2;
           scale.minY = scale.saveMinY + moveFactor * (centerY - scale.saveMinY);
           scale.maxY = scale.saveMaxY - moveFactor * (scale.saveMaxY - centerY);
+          refreshContacts(lastContacts, lastSelf);
         }
       }
     });
+
+  	canvas.addMouseTrackListener(new MouseTrackListener() {
+			public void mouseHover(MouseEvent e) {
+			}
+		
+			public void mouseExit(MouseEvent e) {
+				if (autoAlpha) {
+					setAlpha(ALPHA_NOFOCUS);
+				}
+			}
+		
+			public void mouseEnter(MouseEvent e) {
+				if (autoAlpha) {
+					setAlpha(ALPHA_FOCUS);
+				}
+			}
+		});
   }
   
   public void setLayoutData(Object data) {
@@ -148,9 +230,18 @@ public class VivaldiPanel {
   }
   
   public void refreshContacts(List contacts,DHTTransportContact self) {
-    
+  	if (contacts == null || self == null) {
+  		return;
+  	}
+    lastContacts = contacts;
+    lastSelf = self;
+  	
     if(canvas.isDisposed()) return;
     Rectangle size = canvas.getBounds();
+    
+    if (size.isEmpty()) {
+    	return;
+    }
     
     scale.width = size.width;
     scale.height = size.height;
@@ -158,7 +249,11 @@ public class VivaldiPanel {
     Color white = new Color(display,255,255,255);
     Color blue = new Color(display,66,87,104);
     
-    Image img = new Image(display,size);
+    if (img != null && !img.isDisposed()) {
+    	img.dispose();
+    }
+    
+    img = new Image(display,size);
     
     GC gc = new GC(img);    
     
@@ -221,10 +316,7 @@ public class VivaldiPanel {
     
     gc.dispose();
     
-    gc = new GC(canvas);
-    gc.drawImage(img,0,0);
-    gc.dispose();
-    img.dispose();
+    canvas.redraw();
     white.dispose();
     blue.dispose();
     black.dispose();
@@ -237,7 +329,11 @@ public class VivaldiPanel {
     scale.width = size.width;
     scale.height = size.height;
     
-    Image img = new Image(display,size);
+    if (img != null && !img.isDisposed()) {
+    	img.dispose();
+    }
+    
+    img = new Image(display,size);
     GC gc = new GC(img);
     
     Color white = new Color(display,255,255,255);
@@ -268,10 +364,9 @@ public class VivaldiPanel {
     }
     
     gc.dispose();
-    gc = new GC(canvas);
-    gc.drawImage(img,0,0);
-    gc.dispose();
-    img.dispose();
+    
+    canvas.redraw();
+    
     white.dispose();
     blue.dispose();
   }
@@ -310,4 +405,22 @@ public class VivaldiPanel {
   private void drawBorder(GC gc) {
     
   }
+
+	public int getAlpha() {
+		return alpha;
+	}
+
+	public void setAlpha(int alpha) {
+		this.alpha = alpha;
+		if (canvas != null && !canvas.isDisposed()) {
+			canvas.redraw();
+		}
+	}
+
+	public void setAutoAlpha(boolean autoAlpha) {
+		this.autoAlpha = autoAlpha;
+		if (autoAlpha) {
+			setAlpha(canvas.getDisplay().getCursorControl() == canvas ? ALPHA_FOCUS : ALPHA_NOFOCUS);
+		}
+	}
 }
