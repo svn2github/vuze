@@ -28,6 +28,8 @@ import org.eclipse.swt.widgets.Canvas;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+
 /**
  * @author Olivier
  *
@@ -40,6 +42,7 @@ public class BackGroundGraphic implements Graphic {
   
   protected Color lightGrey;
   protected Color lightGrey2;
+  protected Color colorWhite;
   
   protected AEMonitor	this_mon	= new AEMonitor( "BackGroundGraphic" );
 
@@ -48,8 +51,9 @@ public class BackGroundGraphic implements Graphic {
   
   public void initialize(Canvas canvas) {
     this.drawCanvas = canvas;
-    lightGrey = new Color(canvas.getDisplay(),250,250,250);
-    lightGrey2 = new Color(canvas.getDisplay(),233,233,233);
+    lightGrey = ColorCache.getColor(canvas.getDisplay(), 250, 250, 250);
+		lightGrey2 = ColorCache.getColor(canvas.getDisplay(), 233, 233, 233);
+		colorWhite = ColorCache.getColor(canvas.getDisplay(), 255, 255, 255);
   }
   
   public void refresh() {    
@@ -72,7 +76,7 @@ public class BackGroundGraphic implements Graphic {
       bufferBackground = new Image(drawCanvas.getDisplay(),bounds);
       
       Color colors[] = new Color[4];
-      colors[0] = Colors.white;
+      colors[0] = colorWhite;
       colors[1] = lightGrey;
       colors[2] = lightGrey2;
       colors[3] = lightGrey;
@@ -92,10 +96,12 @@ public class BackGroundGraphic implements Graphic {
   public void dispose() {
     if(bufferBackground != null && ! bufferBackground.isDisposed())
       bufferBackground.dispose();
-    if(lightGrey != null && ! lightGrey.isDisposed())
-      lightGrey.dispose();
-    if(lightGrey2 != null && ! lightGrey2.isDisposed())
-      lightGrey2.dispose();
   }   
-  
+
+  public void setColors(Color color1, Color color2, Color color3) {
+  	colorWhite = color1;
+  	lightGrey = color2;
+  	lightGrey2 = color3;
+  	drawCanvas.redraw();
+  }
 }

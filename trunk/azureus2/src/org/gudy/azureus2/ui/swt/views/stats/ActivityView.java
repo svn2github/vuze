@@ -24,6 +24,7 @@
 package org.gudy.azureus2.ui.swt.views.stats;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -31,6 +32,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
@@ -42,6 +44,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
  * @author Olivier
@@ -111,17 +115,33 @@ public class ActivityView extends AbstractIView {
     upSpeedCanvas.setLayoutData(gridData);
     upSpeedGraphic = SpeedGraphic.getInstance();
     upSpeedGraphic.initialize(upSpeedCanvas);
-    
-	Legend.createLegendComposite(
-	    		panel,
-	    		SpeedGraphic.colors,
-	    		new String[] {
-	        			"ActivityView.legend.peeraverage",        			
-	        			"ActivityView.legend.achieved",        			
-	        			"ActivityView.legend.limit",
-	    				"ActivityView.legend.swarmaverage",
-	    				"ActivityView.legend.trimmed"}
-	        	);
+  
+		String[] colorConfigs = new String[] {
+			"ActivityView.legend.peeraverage",
+			"ActivityView.legend.achieved",
+			"ActivityView.legend.limit",
+			"ActivityView.legend.swarmaverage",
+			"ActivityView.legend.trimmed"
+		};
+
+		Legend.createLegendComposite(panel, downSpeedGraphic.colors, colorConfigs);
+		
+		for (int i = 0; i < colorConfigs.length; i++) {
+			String configID = colorConfigs[i];
+			final int pos = i;
+			COConfigurationManager.addParameterListener(configID, new ParameterListener() {
+				public void parameterChanged(String id) {
+					int r = COConfigurationManager.getIntParameter(id + ".red", -1);
+					if (r >= 0) {
+						int g = COConfigurationManager.getIntParameter(id + ".green");
+						int b = COConfigurationManager.getIntParameter(id + ".blue");
+						Color color = ColorCache.getColor(panel.getDisplay(), r, g, b);
+						upSpeedGraphic.colors[pos] = color;
+					}
+					upSpeedCanvas.redraw();
+				}
+			});
+		}
   }
   
   public void delete() {    
