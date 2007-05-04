@@ -319,12 +319,21 @@ SpeedTestPanel
 		      display.asyncExec(new AERunnable(){
 		        public void runSupport() {
 		          if (textMessages != null && !textMessages.isDisposed()) {
+		        	  if ( result.hadError()){
+		        		  
+		        		  textMessages.append( "Test failed: " + result.getLastError());
+		        		  test.setEnabled( true );
+		        		  abort.setEnabled(false);
+		                  wizard.setErrorMessage("Test failed");
+		                  
+		        	  }else{
                         uploadTest = result.getUploadSpeed();
                         downloadTest = result.getDownloadSpeed();
                         textMessages.append("Upload speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getUploadSpeed()) + Text.DELIMITER);
 			            textMessages.append("Download speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getDownloadSpeed()) + Text.DELIMITER);
-                        wizard.setNextEnabled(true);
-                  }
+                    
+			            wizard.setNextEnabled(true);
+                  }}
 
                   if( !result.hadError() )
                     switchToClose();
