@@ -130,6 +130,8 @@ public class UIConfigDefaultsSWTv3
 			
 			defaults.addParameter("bFirstPriority_ignore0Peer", true);
 
+			defaults.addParameter("v3.topbar.show.frog", false);
+
 			config.save();
 		}
 		
