@@ -23,11 +23,13 @@
 
 package com.aelitis.azureus.util;
 
+import java.util.Map;
+
 public interface 
 ExternalStimulusListener 
 {
 	public boolean
 	receive(
 		String		name,
-		String		value );
+		Map		values );
 }

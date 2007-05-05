@@ -23,6 +23,9 @@
 
 package com.aelitis.azureus.util;
 
+import java.util.Iterator;
+import java.util.Map;
+
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 
@@ -57,9 +60,11 @@ ExternalStimulusHandler
 				{
 					public boolean 
 					receive(
-						String name, String value ) 
+						String name, Map values ) 
 					{
-						System.out.println( "ExternalStimulus: " + name + " -> " + value );
+						System.out.println( "ExternalStimulus: " + name );
+						System.out.println("  " + (values == null ? "" : values.size())
+						+ " Values: " + values);
 						
 						return( name.equals("ExternalStimulus.test"));
 					}
@@ -78,9 +83,9 @@ ExternalStimulusHandler
 					public boolean
 					set(
 						String		name,
-						String		value )
+						Map		values )
 					{
-						return( listener.receive( name, value ));
+						return( listener.receive( name, values ));
 					}
 				});
 		}
