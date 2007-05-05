@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.KeyBindings;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -280,7 +281,9 @@ public class MainMenu
 			final String viewID) {
 		MenuItem item;
 
-		COConfigurationManager.setBooleanDefault(configID, true);
+		if (!ConfigurationDefaults.getInstance().doesParameterDefaultExist(configID)) {
+			COConfigurationManager.setBooleanDefault(configID, true);
+		}
 
 		item = createMenuItem(viewMenu, SWT.CHECK, textID,
 				new Listener() {
@@ -315,7 +318,9 @@ public class MainMenu
 	public static void setVisibility(SWTSkin skin, String configID,
 			String viewID, boolean visible) {
 		SWTSkinObject skinObject = skin.getSkinObject(viewID);
-		if (skinObject != null && skinObject.isVisible() != visible) {
+		// XXX Following wont work at startup because main window is invisible..
+		//		if (skinObject != null && skinObject.isVisible() != visible) {
+		if (skinObject != null) {
 			final Control control = skinObject.getControl();
 			if (control != null && !control.isDisposed()) {
 				if (visible) {
@@ -339,7 +344,9 @@ public class MainMenu
 				Utils.relayout(control);
 			}
 
-			COConfigurationManager.setParameter(configID, visible);
+			if (COConfigurationManager.getBooleanParameter(configID) != visible) {
+				COConfigurationManager.setParameter(configID, visible);
+			}
 		}
 	}
 
