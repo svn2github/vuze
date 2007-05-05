@@ -23,6 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -33,6 +34,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -48,9 +50,13 @@ import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.SplashWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
+import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import org.json.JSONObject;
 
@@ -75,6 +81,8 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.topbar.TopBarDownSpeedGraphView;
+import com.aelitis.azureus.ui.swt.views.skin.topbar.TopBarUpSpeedGraphView;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
 
@@ -122,6 +130,10 @@ public class MainWindow
 	private Object[] dms_Startup;
 
 	protected boolean isReady = false;
+
+	private List topbarViews = new ArrayList();
+
+	private IView activeTopBar;
 
 	public static void main(String args[]) {
 		Initializer.main(new String[0]);
@@ -379,7 +391,8 @@ public class MainWindow
 			Listener toggleListener = new Listener() {
 				public void handleEvent(Event event) {
 					boolean bVisible = (event.type == SWT.Expand);
-					menu.setVisibility("SearchBar.visible", "searchbar", bVisible);
+					MainMenu.setVisibility(skin, "SearchBar.visible", "searchbar",
+							bVisible);
 				}
 			};
 			shell.addListener(SWT.Expand, toggleListener);
@@ -450,12 +463,25 @@ public class MainWindow
 			}
 		});
 
+		AdManager.getInstance().intialize(core);
+
 		ExternalStimulusHandler.addListener(new ExternalStimulusListener() {
-			public boolean receive(String name, String value) {
+			public boolean receive(String name, Map values) {
 				try {
+					if (values == null) {
+						return false;
+					}
+
 					if (!name.equals("AZMSG")) {
 						return false;
 					}
+
+					Object valueObj = values.get("value");
+					if (!(valueObj instanceof String)) {
+						return false;
+					}
+
+					String value = (String) valueObj;
 
 					ClientMessageContext context = PlatformMessenger.getClientMessageContext();
 					if (context == null) {
@@ -945,12 +971,242 @@ public class MainWindow
 			attachSearchBox(skinObject);
 		}
 
+		skinObject = skin.getSkinObject("topbar-plugins");
+		if (skinObject != null) {
+			try {
+				buildTopBarViews(skinObject);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+
+		skinObject = skin.getSkinObject("searchbar");
+		if (skinObject != null) {
+			Menu topbarMenu = new Menu(shell, SWT.POP_UP);
+			String[] ids = {
+				"logo",
+				"plugin",
+				"search",
+				"frog"
+			};
+			final MenuItem[] items = new MenuItem[ids.length];
+			for (int i = 0; i < ids.length; i++) {
+				final String id = ids[i];
+
+				items[i] = MainMenu.createViewMenuItem(skin, topbarMenu,
+						"v3.topbar.menu.show." + id, "v3.topbar.show." + id, "topbar-area-"
+								+ id);
+			}
+
+			new MenuItem(topbarMenu, SWT.SEPARATOR);
+			MainMenu.createViewMenuItem(skin, topbarMenu,
+					"MainWindow.v3.menu.view.searchbar", "SearchBar.visible", "searchbar");
+
+			topbarMenu.addMenuListener(new MenuListener() {
+				public void menuShown(MenuEvent e) {
+					for (int i = 0; i < items.length; i++) {
+						MenuItem item = items[i];
+
+						String id = (String) item.getData("id");
+						if (id != null) {
+							SWTSkinObject so = skin.getSkinObject("topbar-area-" + id);
+							if (so != null) {
+								item.setSelection(so.isVisible());
+							}
+						}
+					}
+				}
+
+				public void menuHidden(MenuEvent e) {
+				}
+			});
+			addMenuAndChildren((Composite) skinObject.getControl(), topbarMenu);
+
+			skinObject = skin.getSkinObject("tabbar");
+			if (skinObject != null) {
+				addMenuAndChildren((Composite) skinObject.getControl(), topbarMenu);
+			}
+		}
+
 		shell.layout(true, true);
 
 		SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
 		if (tabSet != null) {
 			tabSet.addListener(this);
 		}
+	}
+
+	private void addMenuAndChildren(Composite parent, Menu menu) {
+		parent.setMenu(menu);
+
+		Control[] children = parent.getChildren();
+		for (int i = 0; i < children.length; i++) {
+			Control control = children[i];
+			if (control instanceof Composite) {
+				Composite c = (Composite) control;
+				addMenuAndChildren(c, menu);
+			} else {
+				control.setMenu(menu);
+			}
+		}
+	}
+
+	/**
+	 * @param skinObject
+	 *
+	 * @since 3.0.1.1
+	 */
+	private void buildTopBarViews(SWTSkinObject skinObject) {
+		// TODO actually use plugins..
+
+		IView[] coreTopBarViews = {
+			new TopBarDownSpeedGraphView(),
+			new TopBarUpSpeedGraphView(),
+			new VivaldiView(true)
+		};
+
+		final Composite composite = (Composite) skinObject.getControl();
+
+		for (int i = 0; i < coreTopBarViews.length; i++) {
+			IView view = coreTopBarViews[i];
+			addTopBarView(view, composite);
+		}
+
+		Map pluginViews = null;
+		pluginViews = uiSWTInstanceImpl.getViewListeners(UISWTInstance.VIEW_TOPBAR);
+		if (pluginViews != null) {
+			String[] sNames = (String[]) pluginViews.keySet().toArray(new String[0]);
+			for (int i = 0; i < sNames.length; i++) {
+				UISWTViewEventListener l = (UISWTViewEventListener) pluginViews.get(sNames[i]);
+				if (l != null) {
+					try {
+						UISWTViewImpl view = new UISWTViewImpl(UISWTInstance.VIEW_TOPBAR,
+								sNames[i], l);
+						addTopBarView(view, composite);
+					} catch (Exception e) {
+						// skip, plugin probably specifically asked to not be added
+					}
+				}
+			}
+		}
+
+		activeTopBar = (IView) topbarViews.get(0);
+		activeTopBar.getComposite().setVisible(true);
+
+		UIUpdaterFactory.getInstance().addUpdater(new UIUpdatable() {
+			public void updateUI() {
+				Object[] views = topbarViews.toArray();
+				for (int i = 0; i < views.length; i++) {
+					IView view = (IView) views[i];
+					view.refresh();
+				}
+			}
+
+			public String getUpdateUIName() {
+				return "TopBar";
+			}
+		});
+
+		skinObject.getControl().addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				Object[] views = topbarViews.toArray();
+				topbarViews.clear();
+				for (int i = 0; i < views.length; i++) {
+					IView view = (IView) views[i];
+					view.delete();
+				}
+			}
+		});
+
+		SWTSkinObject soPrev = skin.getSkinObject("topbar-plugin-prev");
+		if (soPrev != null) {
+			SWTSkinButtonUtility btnPrev = new SWTSkinButtonUtility(soPrev);
+			btnPrev.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					System.out.println("prev click " + activeTopBar + " ; "
+							+ topbarViews.size());
+					if (activeTopBar == null || topbarViews.size() <= 1) {
+						return;
+					}
+					int i = topbarViews.indexOf(activeTopBar) - 1;
+					if (i < 0) {
+						i = topbarViews.size() - 1;
+					}
+					activateTopBar((IView) topbarViews.get(i));
+				}
+			});
+		}
+
+		SWTSkinObject soNext = skin.getSkinObject("topbar-plugin-next");
+		if (soNext != null) {
+			SWTSkinButtonUtility btnNext = new SWTSkinButtonUtility(soNext);
+			btnNext.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					System.out.println("next click");
+					if (activeTopBar == null || topbarViews.size() <= 1) {
+						return;
+					}
+					int i = topbarViews.indexOf(activeTopBar) + 1;
+					if (i >= topbarViews.size()) {
+						i = 0;
+					}
+					activateTopBar((IView) topbarViews.get(i));
+				}
+			});
+		}
+
+		SWTSkinObject soTitle = skin.getSkinObject("topbar-plugin-title");
+		if (soTitle != null) {
+			final Composite cTitle = (Composite) soTitle.getControl();
+			cTitle.addPaintListener(new PaintListener() {
+				public void paintControl(PaintEvent e) {
+					e.gc.setAdvanced(true);
+					if (e.gc.getAdvanced() && activeTopBar != null) {
+						e.gc.setAntialias(SWT.ON);
+
+						Transform transform = new Transform(e.gc.getDevice());
+						transform.rotate(270);
+						e.gc.setTransform(transform);
+
+						String s = activeTopBar.getShortTitle();
+						Point size = e.gc.textExtent(s);
+						e.gc.drawText(s, -size.x, 0, true);
+						//e.gc.drawText(s, 0,0, true);
+						transform.dispose();
+					}
+				}
+			});
+		}
+	}
+
+	/**
+	 * @param view
+	 *
+	 * @since 3.0.1.1
+	 */
+	protected void activateTopBar(IView view) {
+		activeTopBar.getComposite().setVisible(false);
+		activeTopBar = view;
+		activeTopBar.getComposite().setVisible(true);
+
+		SWTSkinObject soTitle = skin.getSkinObject("topbar-plugin-title");
+		System.out.println("Hello" + soTitle);
+		if (soTitle != null) {
+			soTitle.getControl().redraw();
+		}
+	}
+
+	/**
+	 * @param view
+	 *
+	 * @since 3.0.1.1
+	 */
+	private void addTopBarView(IView view, Composite c) {
+		view.initialize(c);
+		Composite composite = view.getComposite();
+		composite.setVisible(false);
+		composite.setLayoutData(Utils.getFilledFormData());
+		topbarViews.add(view);
 	}
 
 	/**
