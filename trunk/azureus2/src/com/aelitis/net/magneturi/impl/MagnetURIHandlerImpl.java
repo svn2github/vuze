@@ -69,6 +69,8 @@ MagnetURIHandlerImpl
 	private static final int				DOWNLOAD_TIMEOUT	= 3*60*1000;
 	
 	protected static final String	NL			= "\015\012";
+	
+	private final static boolean DEBUG = false;
 
 	public static MagnetURIHandler
 	getSingleton()
@@ -164,7 +166,28 @@ MagnetURIHandlerImpl
 										        	BufferedReader br = new BufferedReader(new InputStreamReader(sck.getInputStream(),Constants.DEFAULT_ENCODING));
 										        	
 										        	String line = br.readLine();
-					
+										        	
+											if (DEBUG) {
+												System.out.println("=====");
+												System.out.println("Traffic Class: "
+														+ sck.getTrafficClass());
+												System.out.println("OS: " + sck.getOutputStream());
+												System.out.println("isBound? " + sck.isBound()
+														+ "; isClosed=" + sck.isClosed() + "; isConn="
+														+ sck.isConnected() + ";isIShutD "
+														+ sck.isInputShutdown() + ";isOShutD "
+														+ sck.isOutputShutdown());
+												System.out.println("- - - -");
+												System.out.println(line);
+
+												while (br.ready()) {
+													String extraline = br.readLine();
+													System.out.println(extraline);
+												}
+												System.out.println("=====");
+											}
+
+
 										        	if ( line != null ){
 										        		
 											        	if ( line.toUpperCase().startsWith( "GET " )){
@@ -193,6 +216,7 @@ MagnetURIHandlerImpl
 											       				+ "'" + address + "': no data read"));
 									        		
 										        	}
+										        	
 											   }else{
 												   
 											      	Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
@@ -266,6 +290,9 @@ MagnetURIHandlerImpl
 		if ( pos != -1 ){
 					
 			StringTokenizer	tok = new StringTokenizer( get.substring( pos+1 ), "&" );
+			if (DEBUG) {
+				System.out.println("params:" + get.substring( pos+1 ));
+			}
 			
 			while( tok.hasMoreTokens()){
 				
@@ -636,15 +663,17 @@ MagnetURIHandlerImpl
 		}else if ( get.startsWith( "/setinfo?" )){
 
 			String name 	= (String)params.get( "name" );
-			String value 	= (String)params.get( "value" );
+			
+			HashMap paramsCopy = new HashMap();
+			paramsCopy.putAll(params);
 
-			if ( name != null && value != null){
+			if ( name != null ){
 
 				boolean	result = false;
 				
 				for (int i=0;i<listeners.size() && !result;i++){
 					
-					result = ((MagnetURIHandlerListener)listeners.get(i)).set( name, value );
+					result = ((MagnetURIHandlerListener)listeners.get(i)).set( name, paramsCopy );
 				}
 				
 				int	width 	= result?20:10;
@@ -734,7 +763,7 @@ MagnetURIHandlerImpl
 		pw.print( "Content-Length: " + content.length + NL + NL );
 		
 		pw.flush();
-		
+
 		os.write( content );
 
 	}

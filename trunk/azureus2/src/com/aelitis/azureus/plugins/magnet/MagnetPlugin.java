@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.net.InetSocketAddress;
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -285,13 +286,13 @@ MagnetPlugin
 				public boolean
 				set(
 					String		name,
-					String		value )
+					Map		values )
 				{
 					List	l = listeners.getList();
 					
 					for (int i=0;i<l.size();i++){
 						
-						if (((MagnetPluginListener)l.get(i)).set( name, value )){
+						if (((MagnetPluginListener)l.get(i)).set( name, values )){
 							
 							return( true );
 						}

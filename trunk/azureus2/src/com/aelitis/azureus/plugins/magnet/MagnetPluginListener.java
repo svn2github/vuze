@@ -23,11 +23,13 @@
 
 package com.aelitis.azureus.plugins.magnet;
 
+import java.util.Map;
+
 public interface 
 MagnetPluginListener 
 {
 	public boolean
 	set(
 		String		name,
-		String		value );
+		Map		values );
 }

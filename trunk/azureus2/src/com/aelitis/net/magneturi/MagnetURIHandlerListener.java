@@ -24,6 +24,7 @@ package com.aelitis.net.magneturi;
 
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.Map;
 
 /**
  * @author parg
@@ -54,5 +55,5 @@ MagnetURIHandlerListener
 	public boolean
 	set(
 		String	name,
-		String	value );
+		Map values );
 }
