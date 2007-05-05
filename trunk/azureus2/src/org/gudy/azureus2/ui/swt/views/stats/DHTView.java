@@ -348,7 +348,7 @@ public class DHTView extends AbstractIView {
     label.setLayoutData(data);
     
     
-    in = new Canvas(gTransport,SWT.NONE);
+    in = new Canvas(gTransport,SWT.NO_BACKGROUND);
     data = new GridData(GridData.FILL_BOTH);
     data.horizontalSpan = 3;
     in.setLayoutData(data);
@@ -361,7 +361,7 @@ public class DHTView extends AbstractIView {
     data.horizontalSpan = 3;
     label.setLayoutData(data);
     
-    out = new Canvas(gTransport,SWT.NONE);
+    out = new Canvas(gTransport,SWT.NO_BACKGROUND);
     data = new GridData(GridData.FILL_BOTH);
     data.horizontalSpan = 3;
     out.setLayoutData(data);

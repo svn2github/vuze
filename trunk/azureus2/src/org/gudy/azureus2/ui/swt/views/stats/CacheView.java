@@ -247,14 +247,14 @@ public class CacheView extends AbstractIView {
     lbl = new Label(gCacheSpeeds,SWT.NULL);
     Messages.setLanguageText(lbl,"CacheView.speeds.fromCache");
     
-    readsFromCache = new Canvas(gCacheSpeeds,SWT.NULL);
+    readsFromCache = new Canvas(gCacheSpeeds,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     readsFromCache.setLayoutData(gridData);
     rfcGraph = SpeedGraphic.getInstance();
     rfcGraph.initialize(readsFromCache);
     
     
-    writesToCache = new Canvas(gCacheSpeeds,SWT.NULL);
+    writesToCache = new Canvas(gCacheSpeeds,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     writesToCache.setLayoutData(gridData);
     wtcGraph = SpeedGraphic.getInstance();
@@ -263,13 +263,13 @@ public class CacheView extends AbstractIView {
     lbl = new Label(gCacheSpeeds,SWT.NULL);
     Messages.setLanguageText(lbl,"CacheView.speeds.fromFile");
     
-    readsFromFile = new Canvas(gCacheSpeeds,SWT.NULL);
+    readsFromFile = new Canvas(gCacheSpeeds,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     readsFromFile.setLayoutData(gridData);
     rffGraph = SpeedGraphic.getInstance();
     rffGraph.initialize(readsFromFile);
     
-    writesToFile = new Canvas(gCacheSpeeds,SWT.NULL);
+    writesToFile = new Canvas(gCacheSpeeds,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     writesToFile.setLayoutData(gridData);
     wtfGraph = SpeedGraphic.getInstance();

@@ -93,7 +93,7 @@ public class VivaldiPanel {
   public VivaldiPanel(Composite parent) {
     this.parent = parent;
     this.display = parent.getDisplay();
-    this.canvas = new Canvas(parent,SWT.NONE);
+    this.canvas = new Canvas(parent,SWT.NO_BACKGROUND);
     
     this.scale = new Scale();
     

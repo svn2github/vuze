@@ -98,7 +98,7 @@ public class ActivityView extends AbstractIView {
     gDownSpeed.setLayoutData(gridData);    
     gDownSpeed.setLayout(new GridLayout());
     
-    downSpeedCanvas = new Canvas(gDownSpeed,SWT.NULL);
+    downSpeedCanvas = new Canvas(gDownSpeed,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     downSpeedCanvas.setLayoutData(gridData);
     downSpeedGraphic = SpeedGraphic.getInstance();
@@ -110,7 +110,7 @@ public class ActivityView extends AbstractIView {
     gUpSpeed.setLayoutData(gridData);
     gUpSpeed.setLayout(new GridLayout());
     
-    upSpeedCanvas = new Canvas(gUpSpeed,SWT.NULL);
+    upSpeedCanvas = new Canvas(gUpSpeed,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     upSpeedCanvas.setLayoutData(gridData);
     upSpeedGraphic = SpeedGraphic.getInstance();

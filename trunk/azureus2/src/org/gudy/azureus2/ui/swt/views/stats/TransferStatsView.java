@@ -230,7 +230,7 @@ public class TransferStatsView extends AbstractIView {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     currentPing.setLayoutData(gridData);
     
-    pingCanvas = new Canvas(autoSpeedInfoPanel,SWT.NONE);
+    pingCanvas = new Canvas(autoSpeedInfoPanel,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 8;
     pingCanvas.setLayoutData(gridData);
