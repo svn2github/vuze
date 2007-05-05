@@ -34,7 +34,6 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -462,8 +461,6 @@ public class MainWindow
 				}
 			}
 		});
-
-		AdManager.getInstance().intialize(core);
 
 		ExternalStimulusHandler.addListener(new ExternalStimulusListener() {
 			public boolean receive(String name, Map values) {
