@@ -63,7 +63,7 @@ ExternalStimulusHandler
 						String name, Map values ) 
 					{
 						System.out.println( "ExternalStimulus: " + name );
-						System.out.println("  " + (values == null ? "" : values.size())
+						System.out.println("  " + (values == null ? -1 : values.size())
 						+ " Values: " + values);
 						
 						return( name.equals("ExternalStimulus.test"));
