@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -43,7 +44,6 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestSchedu
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
 import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTestSchedulerImpl;
-import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTestMode;
 
 public class 
 SpeedTestPanel
@@ -55,7 +55,6 @@ SpeedTestPanel
 	private NetworkAdminSpeedTestScheduledTest	scheduled_test;
 
     private Combo testCombo;
-    private NetworkAdminSpeedTestMode testMode;
 
     private Button      test;
     private Button      abort;
@@ -84,8 +83,6 @@ SpeedTestPanel
 	    super( _wizard, _previousPanel );
 	    wizard	= _wizard;
 		nasts = NetworkAdminSpeedTestSchedulerImpl.getInstance();
-
-        testMode = NetworkAdminSpeedTestMode.BT_UP_AND_DOWN;
     }
 	
 	public void 
@@ -142,10 +139,38 @@ SpeedTestPanel
         testCombo = new Combo(panel, SWT.READ_ONLY);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         testCombo.setLayoutData(gridData);
-        testCombo.add(NetworkAdminSpeedTestMode.BT_UP_AND_DOWN.getComboString(), NetworkAdminSpeedTestMode.BT_UP_AND_DOWN.getSelectionIndex());
-        testCombo.add(NetworkAdminSpeedTestMode.BT_UP_ONLY.getComboString(), NetworkAdminSpeedTestMode.BT_UP_ONLY.getSelectionIndex());
-        testCombo.add(NetworkAdminSpeedTestMode.BT_DOWN_ONLY.getComboString(), NetworkAdminSpeedTestMode.BT_DOWN_ONLY.getSelectionIndex());
-        testCombo.select(NetworkAdminSpeedTestMode.BT_UP_AND_DOWN.getSelectionIndex());
+           
+        int[]	test_types  	= NetworkAdminSpeedTester.TEST_TYPES;
+        int		up_down_index 	= 0;
+        
+        for (int i=0;i<test_types.length;i++){
+        	
+        	int	test_type = test_types[i];
+        	
+        	String	resource = null;
+        	
+        	if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_UPLOAD_AND_DOWNLOAD ){
+        	
+        		resource = "updown";
+        		
+        		up_down_index = i;
+        		
+        	}else if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_UPLOAD_ONLY ){
+        		
+        		resource = "up";
+        		
+        	}else if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_DOWNLOAD_ONLY ){
+        		
+        		resource = "down";
+        	}else{
+        		
+        		Debug.out( "Unknown test type" );
+        	}
+        	
+        	testCombo.add( "BT " + MessageText.getString( "speedtest.wizard.test.mode." + resource ), i);
+        }
+        
+        testCombo.select( up_down_index );
 
         test = new Button(panel, SWT.PUSH);
         test.setText("Run");
@@ -225,8 +250,11 @@ SpeedTestPanel
 
         wizard.setFinishEnabled( false );
 
-        final int speedTestType = testCombo.getSelectionIndex();
-
+        	// convert to mode
+        
+        final int test_mode = NetworkAdminSpeedTester.TEST_TYPES[testCombo.getSelectionIndex()];
+    
+        	
         Thread t =
 			new AEThread("SpeedTest Performer") 
 			{
@@ -234,7 +262,7 @@ SpeedTestPanel
 				runSupport() 
 				{
 
-                    runTest(speedTestType);
+                    runTest(test_mode);
 				}
 			};
 		
@@ -250,19 +278,18 @@ SpeedTestPanel
 		
 			scheduled_test.abort();
 
-            if( !test.isDisposed() )
-                test.setEnabled(true);
-
-            if( !abort.isDisposed() )
-                abort.setEnabled(false);
-            
-            wizard.setNextEnabled(false);
-            wizard.setFinishEnabled(false);
+			if ( !test.isDisposed()){
+         
+                test.setEnabled(true);   
+                abort.setEnabled(false);         
+                wizard.setNextEnabled(false);
+                wizard.setFinishEnabled(false);
+  			}
         }
 	}
 	
 	protected void
-	runTest(int networkAdminTestType)
+	runTest( int test_mode )
 	{
 		test_running	= true;
 		
@@ -274,25 +301,28 @@ SpeedTestPanel
 				// what's the contract here in terms of listener removal?
 			
 			try{
-                scheduled_test = nasts.scheduleTest( networkAdminTestType );
-                //scheduled_test = nasts.scheduleTest( NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_AND_DOWNLOAD);
-				scheduled_test.addListener( this );
+                scheduled_test = nasts.scheduleTest( NetworkAdminSpeedTestScheduler.TEST_TYPE_BT );
+                
+                scheduled_test.getTester().setMode( test_mode );
+                
+ 				scheduled_test.addListener( this );
 				scheduled_test.getTester().addListener( this );
 				scheduled_test.start();
+				
 			}catch( Throwable e ){
 				
-				reportStage( "Test request not accepted" );
+				reportStage( "Test request not accepted: " + Debug.getNestedExceptionMessage(e));
 								
-			    if (display != null && !display.isDisposed()) {
+			    if (!test.isDisposed()) {
 				      display.asyncExec(new AERunnable(){
 				        public void runSupport() {
-				        	switchToClose();
+
+			                test.setEnabled(true);
+			                abort.setEnabled(false);
 				        }
 				      });
 			    }
 
-                test.setEnabled(true);
-                abort.setEnabled(false);
 			}
 		}//else
 	}//runTest
@@ -331,10 +361,10 @@ SpeedTestPanel
 	reportComplete(
 		final NetworkAdminSpeedTesterResult 	result )
 	{
-	    if (display != null && !display.isDisposed()) {
+	    if ( !textMessages.isDisposed()) {
 		      display.asyncExec(new AERunnable(){
 		        public void runSupport() {
-		          if (textMessages != null && !textMessages.isDisposed()) {
+		        	if ( !textMessages.isDisposed()){
 		        	  if ( result.hadError()){
 		        		  
 		        		  textMessages.append( "Test failed: " + result.getLastError());
@@ -348,19 +378,20 @@ SpeedTestPanel
                         textMessages.append("Upload speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getUploadSpeed()) + Text.DELIMITER);
 			            textMessages.append("Download speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getDownloadSpeed()) + Text.DELIMITER);
 
-                        if( testMode != NetworkAdminSpeedTestMode.BT_UP_AND_DOWN ){
+			            
+                        if( result.getTest().getMode() == NetworkAdminSpeedTester.TEST_TYPE_DOWNLOAD_ONLY ){
                             //only the combined test will allow the next step.
                         }else{
                             wizard.setNextEnabled(true);
                         }
                         abort.setEnabled(false);
                         test.setEnabled(true);
-                  }}
+		        	  }
 
-                  if( !result.hadError() ){
-                    switchToClose();
-                  }
-
+	                  if( !result.hadError() ){
+	                    switchToClose();
+	                  }
+		        	}
                 }
 		      });
         }
@@ -372,32 +403,33 @@ SpeedTestPanel
 	reportStage(
 		final String 						step )
 	{
-	    if (display != null && !display.isDisposed()) {
+	    if ( !textMessages.isDisposed()) {
 		      display.asyncExec(new AERunnable(){
 		        public void runSupport() {
 
-                  if(step==null)
-                    return;
-
-                  //intercept progress indications.
-                  if( step.startsWith("progress:")){
-                      //expect format of string to be "progress: # : ..." where # is 0-100
-                      int progressAmount = getProgressBarValueFromString(step);
-                      progress.setSelection(progressAmount);
-
-                      int[] timeLeft = getTimeLeftFromString(step);
-                      if(timeLeft!=null){
-                          testCountDown1.setText( ""+timeLeft[0]+" sec " );
-                          testCountDown2.setText( ""+timeLeft[1]+" sec " );
-                      }else{
-                          testCountDown1.setText(START_VALUES);
-                          testCountDown2.setText(START_VALUES);
-                      }
-                  }
-
-                  //print everything including progress indications.
-                  if (textMessages != null && !textMessages.isDisposed()) {
-			            textMessages.append( step + Text.DELIMITER);
+		        	if ( !textMessages.isDisposed()){
+	                  if(step==null)
+	                    return;
+	
+	                  //intercept progress indications.
+	                  if( step.startsWith("progress:")){
+	                      //expect format of string to be "progress: # : ..." where # is 0-100
+	                      int progressAmount = getProgressBarValueFromString(step);
+	                      progress.setSelection(progressAmount);
+	
+	                      int[] timeLeft = getTimeLeftFromString(step);
+	                      if(timeLeft!=null){
+	                          testCountDown1.setText( ""+timeLeft[0]+" sec " );
+	                          testCountDown2.setText( ""+timeLeft[1]+" sec " );
+	                      }else{
+	                          testCountDown1.setText(START_VALUES);
+	                          testCountDown2.setText(START_VALUES);
+	                      }
+	                  }
+	
+	                  //print everything including progress indications.
+        
+			           textMessages.append( step + Text.DELIMITER);
 		          }
 		        }
 		      });

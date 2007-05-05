@@ -115,7 +115,7 @@ ResourceUploaderURLImpl
 				try{
 					if ( user_name != null ){
 						
-						SESecurityManager.addPasswordHandler( url, this );
+						SESecurityManager.setPasswordHandler( url, this );
 					}
 
 					for (int i=0;i<2;i++){
@@ -207,7 +207,7 @@ ResourceUploaderURLImpl
 							
 					if ( user_name != null ){
 								
-						SESecurityManager.removePasswordHandler( url, this );
+						SESecurityManager.setPasswordHandler( url, null );
 					}
 				}
 			}catch (java.net.MalformedURLException e){

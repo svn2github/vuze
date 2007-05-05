@@ -195,27 +195,27 @@ SESecurityManager
 	}
 	
 	public static void
-	addPasswordHandler(
+	setPasswordHandler(
 		URL						url,
 		SEPasswordListener		l )
 	{
-		SESecurityManagerImpl.getSingleton().addPasswordHandler( url, l );
-	}
-	
-	public static void
-	removePasswordHandler(
-		URL						url,
-		SEPasswordListener		l )
-	{
-		SESecurityManagerImpl.getSingleton().removePasswordHandler( url, l );
+		SESecurityManagerImpl.getSingleton().setPasswordHandler( url, l );
 	}
 	
 	public static void
 	addCertificateListener(
-			SECertificateListener	l )
+		SECertificateListener	l )
 	{
 		SESecurityManagerImpl.getSingleton().addCertificateListener(l);
 	}	
+	
+	public static void
+	setCertificateHandler(
+		URL						url,
+		SECertificateListener	l )
+	{
+		SESecurityManagerImpl.getSingleton().setCertificateHandler(url,l);
+	}
 	
 	public static void
 	removeCertificateListener(

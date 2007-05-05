@@ -216,7 +216,7 @@ ResourceDownloaderURLImpl
 				try{
 					if ( auth_supplied ){
 	
-						SESecurityManager.addPasswordHandler( url, this );
+						SESecurityManager.setPasswordHandler( url, this );
 					}
 	
 					for (int i=0;i<2;i++){
@@ -291,7 +291,7 @@ ResourceDownloaderURLImpl
 					
 					if ( auth_supplied ){
 					
-						SESecurityManager.removePasswordHandler( url, this );
+						SESecurityManager.setPasswordHandler( url, null );
 					}
 				}
 			}catch (java.net.MalformedURLException e){
@@ -432,7 +432,7 @@ ResourceDownloaderURLImpl
 				try{
 					if ( auth_supplied ){
 						
-						SESecurityManager.addPasswordHandler( url, this );
+						SESecurityManager.setPasswordHandler( url, this );
 					}
 
 					for (int i=0;i<2;i++){
@@ -662,7 +662,7 @@ ResourceDownloaderURLImpl
 							
 					if ( auth_supplied ){
 								
-						SESecurityManager.removePasswordHandler( url, this );
+						SESecurityManager.setPasswordHandler( url, null );
 					}
 				}
 			}catch (java.net.MalformedURLException e){

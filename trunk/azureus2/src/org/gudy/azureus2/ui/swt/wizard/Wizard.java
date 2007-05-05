@@ -86,7 +86,7 @@ public class Wizard {
   	azureus_core	= _azureus_core;
     this.display 	= display;
     
-    wizardWindow = ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.RESIZE);
+    wizardWindow = ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM | SWT.RESIZE);
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
@@ -295,34 +295,36 @@ public class Wizard {
 	private void
 	setDefaultButton()
 	{
-		if (display != null && !display.isDisposed()){
+		if (!wizardWindow.isDisposed()){
 		
 		 	display.asyncExec(new AERunnable() {
 				public void runSupport() {
 		 	
-			  	Button	default_button = null;
-			  	
-				if ( next.isEnabled()){
-			    	
-					default_button = next;
-					
-				}else if ( finish.isEnabled()){
-				
-					default_button = finish;
-					
-				}else if ( previous.isEnabled()){
-					
-					default_button = previous;
-					
-				}else if ( cancel.isEnabled()){
-					
-					default_button	= cancel;
-				}
-				
-				if ( default_button != null ){
-				
-					wizardWindow.setDefaultButton( default_button );
-				}
+					if (!wizardWindow.isDisposed()){
+					  	Button	default_button = null;
+					  	
+						if ( next.isEnabled()){
+					    	
+							default_button = next;
+							
+						}else if ( finish.isEnabled()){
+						
+							default_button = finish;
+							
+						}else if ( previous.isEnabled()){
+							
+							default_button = previous;
+							
+						}else if ( cancel.isEnabled()){
+							
+							default_button	= cancel;
+						}
+						
+						if ( default_button != null ){
+						
+							wizardWindow.setDefaultButton( default_button );
+						}
+					}
 		 	}
 		});
 	 }
@@ -398,7 +400,7 @@ public class Wizard {
   }
 
   public void switchToClose() {
-    if (display != null && !display.isDisposed()) {
+    if (!wizardWindow.isDisposed()) {
 	    display.asyncExec(new AERunnable() {
 	       public void runSupport() {
 	        if (closeCatcher != null && wizardWindow != null && !wizardWindow.isDisposed()) {

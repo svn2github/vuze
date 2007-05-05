@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.security.SECertificateListener;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -48,8 +50,10 @@ import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
+import java.security.cert.X509Certificate;
 import java.util.*;
 import java.io.File;
+import java.net.URL;
 
 
 public class NetworkAdminSpeedTesterBTImpl 
@@ -61,7 +65,7 @@ public class NetworkAdminSpeedTesterBTImpl
     public static final String DOWNLOAD_STD_DEV = "download-std-dev";
     public static final String UPLOAD_STD_DEV = "upload-std-dev";
 
-    private static int testMode;
+    private static int testMode	= TEST_TYPE_UPLOAD_AND_DOWNLOAD;
 
     private static TorrentAttribute speedTestAttrib;
 
@@ -125,14 +129,19 @@ public class NetworkAdminSpeedTesterBTImpl
     public int
     getTestType()
     {
-    	return( NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_AND_DOWNLOAD);
+    	return( NetworkAdminSpeedTestScheduler.TEST_TYPE_BT );
     }
 
-    public boolean setMode(int mode) {
+    public void setMode(int mode) {
         testMode = mode;
-        return true;
     }
 
+    public int
+    getMode()
+    {
+    	return( testMode );
+    }
+    
     /**
      * The downloads have been stopped just need to do the testing.
      * @param tot - Torrent recieved from testing service.
@@ -166,7 +175,24 @@ public class NetworkAdminSpeedTesterBTImpl
             File blankTorrentFile = new File( baseDir, "speedTestTorrent.torrent" );
             torrent.writeToFile(blankTorrentFile);
 
-  
+            URL	announce_url = torrent.getAnnounceURL();
+            
+            if ( announce_url.getProtocol().equalsIgnoreCase( "https" )){
+            	
+            	SESecurityManager.setCertificateHandler( 
+            			announce_url,
+            			new SECertificateListener()
+            			{
+            				public boolean
+            				trustCertificate(
+            					String			resource,
+            					X509Certificate	cert )
+            				{
+            					return( true );
+            				}
+            			});
+            }
+            
             Download speed_download = plugin.getDownloadManager().addDownloadStopped( torrent, blankTorrentFile ,blankFile);
 
             speed_download.setBooleanAttribute(speedTestAttrib,true);
@@ -267,13 +293,13 @@ public class NetworkAdminSpeedTesterBTImpl
      */
     private static int setStartPieceBasedOnMode(int mode, int totalPieces){
 
-        if(mode==NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_AND_DOWNLOAD){
+        if(mode==TEST_TYPE_UPLOAD_AND_DOWNLOAD){
             //upload half the pieces
             return totalPieces/2;
-        }else if(mode==NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_ONLY){
+        }else if(mode==TEST_TYPE_UPLOAD_ONLY){
             //upload all the pieces
             return 0;
-        }else if(mode==NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_DOWNLOAD_ONLY){
+        }else if(mode==TEST_TYPE_DOWNLOAD_ONLY){
             //download all the pieces
             return totalPieces;
         }
@@ -420,11 +446,11 @@ public class NetworkAdminSpeedTesterBTImpl
 	            	abort( "Failed to connect to any peers" );
 
 
-                }else if ( not_choking_peers.size() == 0 && testMode!=NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_DOWNLOAD_ONLY ){
+                }else if ( not_choking_peers.size() == 0 && testMode!=TEST_TYPE_DOWNLOAD_ONLY ){
 	            	
 	            	abort( "Could not upload to any of the peers - insufficient upload slots" );
 	            	
-	            }else if ( not_choked_peers.size() == 0 && testMode!=NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_ONLY){
+	            }else if ( not_choked_peers.size() == 0 && testMode!=TEST_TYPE_UPLOAD_ONLY){
 	            	
 	            	abort( "Could not download from any of the peers as never unchoked by them" );
 	            }
@@ -592,7 +618,7 @@ public class NetworkAdminSpeedTesterBTImpl
         {
             //upload only used the "uploaded" data. The "download only" and "both" uses download.
             long totTransferred;
-            if(testMode==NetworkAdminSpeedTestScheduler.TEST_TYPE_BT_UPLOAD_ONLY){
+            if(testMode==TEST_TYPE_UPLOAD_ONLY){
                 totTransferred = stat.getUploaded();
             }else{
                 totTransferred = stat.getDownloaded();
@@ -641,6 +667,10 @@ public class NetworkAdminSpeedTesterBTImpl
             lastError = errorMsg;
         }
 
+        public NetworkAdminSpeedTester getTest() {
+        	return( NetworkAdminSpeedTesterBTImpl.this );
+        }
+        
         public long getTestTime() {
             return time;
         }

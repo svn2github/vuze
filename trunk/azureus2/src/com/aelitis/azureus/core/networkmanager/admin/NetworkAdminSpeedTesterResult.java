@@ -24,7 +24,7 @@
 package com.aelitis.azureus.core.networkmanager.admin;
 
 public interface NetworkAdminSpeedTesterResult{
-
+	public NetworkAdminSpeedTester getTest();
 	public long getTestTime();
 	public int getDownloadSpeed();
 	public int getUploadSpeed();

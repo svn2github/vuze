@@ -95,6 +95,7 @@ SESecurityManagerImpl
 		};
 		
 	protected Map	password_handlers		= new HashMap();
+	protected Map	certificate_handlers	= new HashMap();
 	
 	protected boolean	 exit_vm_permitted	= false;
 	
@@ -744,6 +745,22 @@ SESecurityManagerImpl
 					
 					resource = resource.substring(0,param_pos);
 				}
+			
+					// recalc - don't use port above as it may have been changed
+				
+				String url_s	= https_url.getProtocol() + "://" + https_url.getHost() + ":" + https_url.getPort() + "/";
+				
+				Object[]	handler = (Object[])certificate_handlers.get( url_s );
+				
+				if ( handler != null ){
+					
+					if (((SECertificateListener)handler[0]).trustCertificate( resource, x509_cert )){
+						
+						String	alias = host.concat(":").concat(String.valueOf(port));
+				
+						return( addCertToTrustStore( alias, cert, true ));
+					}
+				}
 				
 				for (int i=0;i<certificate_listeners.size();i++){
 					
@@ -1110,25 +1127,20 @@ SESecurityManagerImpl
 	}
 		
 	public void
-	addPasswordHandler(
+	setPasswordHandler(
 		URL						url,
 		SEPasswordListener		l )
 	{
 		String url_s	= url.getProtocol() + "://" + url.getHost() + ":" + url.getPort() + "/";
 		
-		password_handlers.put( url_s, new Object[]{ l, url });
-	}
-	
-	public void
-	removePasswordHandler(
-		URL						url,
-		SEPasswordListener		l )
-	{
-		Ignore.ignore( l );
-		
-		String url_s	= url.getProtocol() + "://" + url.getHost() + ":" + url.getPort() + "/";
-		
-		password_handlers.remove( url_s );
+		if ( l == null ){
+			
+			password_handlers.remove( url_s );
+			
+		}else{
+			
+			password_handlers.put( url_s, new Object[]{ l, url });
+		}
 	}
 	
 	public void
@@ -1145,6 +1157,23 @@ SESecurityManagerImpl
 			this_mon.exit();
 		}
 	}	
+	
+	public void
+	setCertificateHandler(
+		URL						url,
+		SECertificateListener	l )
+	{
+		String url_s	= url.getProtocol() + "://" + url.getHost() + ":" + url.getPort() + "/";
+		
+		if ( l == null ){
+		
+			certificate_handlers.remove( url_s );
+			
+		}else{
+			
+			certificate_handlers.put( url_s, new Object[]{ l, url });
+		}
+	}
 	
 	public void
 	removeCertificateListener(
