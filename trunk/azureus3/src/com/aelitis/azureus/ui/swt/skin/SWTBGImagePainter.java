@@ -173,7 +173,8 @@ public class SWTBGImagePainter
 	}
 
 	public void buildBackground(Control control) {
-		if (inEvent || shell == null || shell.isDisposed()) {
+		if (inEvent || shell == null || shell.isDisposed() || control == null
+				|| control.isDisposed()) {
 			return;
 		}
 
