@@ -1583,6 +1583,15 @@ DownloadManagerImpl
 
 	// Protected: Use requestAssumedCompleteMode outside of scope
 	protected void setAssumedComplete(boolean _assumedComplete) {
+		if (_assumedComplete) {
+			long completedOn = download_manager_state.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+			if (completedOn <= 0) {
+				download_manager_state.setLongParameter(
+						DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME,
+						SystemTime.getCurrentTime());
+			}
+		}
+		
 		if (assumedComplete == _assumedComplete) {
 			return;
 		}
