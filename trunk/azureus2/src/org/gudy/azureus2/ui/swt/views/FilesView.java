@@ -47,6 +47,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
+import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 
 /**
@@ -571,9 +572,8 @@ public class FilesView
 		
 		if ( skipped ){
 			
-			boolean	compact_disabled = MessageBoxWindow.getRememberedDecision( 
-											"FilesView.messagebox.skip.id",
-											SWT.YES | SWT.NO ) == SWT.NO;
+			boolean compact_disabled = RememberedDecisionsManager.getRememberedDecision(
+						"FilesView.messagebox.skip.id", SWT.YES | SWT.NO) == SWT.NO;
 
 			if ( compact_disabled ){
 				

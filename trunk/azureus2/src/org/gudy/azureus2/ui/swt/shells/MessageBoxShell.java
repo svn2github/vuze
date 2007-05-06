@@ -1,8 +1,6 @@
 package org.gudy.azureus2.ui.swt.shells;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,14 +12,13 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
+import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.swt.UISkinnableManagerSWT;
 import com.aelitis.azureus.ui.swt.UISkinnableSWTListener;
 
@@ -85,43 +82,6 @@ public class MessageBoxShell
 		return open(parent, title, text, buttons, defaultOption, null, false, -1);
 	}
 
-	public static int getRememberedDecision(String id) {
-		if (id == null) {
-			return -1;
-		}
-		Map remembered_decisions = COConfigurationManager.getMapParameter(
-				"MessageBoxWindow.decisions", new HashMap());
-
-		Long l = (Long) remembered_decisions.get(id);
-		System.out.println("getR " + id + " -> " + l);
-		if (l != null) {
-
-			return l.intValue();
-		}
-
-		return -1;
-	}
-
-	protected static void setRemembered(String id, int value) {
-		if (id == null) {
-			return;
-		}
-
-		Map remembered_decisions = COConfigurationManager.getMapParameter(
-				"MessageBoxWindow.decisions", new HashMap());
-
-		if (value == -1) {
-			remembered_decisions.remove(id);
-		} else {
-			remembered_decisions.put(id, new Long(value));
-		}
-
-		System.out.println("setR " + id + " -> " + value);
-		COConfigurationManager.setParameter("MessageBoxWindow.decisions",
-				remembered_decisions);
-		COConfigurationManager.save();
-	}
-
 	public static int open(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption,
 			final String rememberID, final boolean bRememberByDefault,
@@ -175,7 +135,7 @@ public class MessageBoxShell
 
 	public int open() {
 		if (rememberID != null) {
-			int rememberedDecision = getRememberedDecision(rememberID);
+			int rememberedDecision = RememberedDecisionsManager.getRememberedDecision(rememberID);
 			if (rememberedDecision >= 0) {
 				return rememberedDecision;
 			}
@@ -425,7 +385,7 @@ public class MessageBoxShell
 					Button checkRemember = (Button) e.widget;
 					if (rememberID != null && checkRemember != null
 							&& checkRemember.getSelection()) {
-						setRemembered(rememberID, result[0]);
+						RememberedDecisionsManager.setRemembered(rememberID, result[0]);
 					}
 				}
 			});

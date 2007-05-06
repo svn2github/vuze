@@ -22,24 +22,18 @@
 
 package org.gudy.azureus2.ui.swt;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+
+import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 
 
 
@@ -50,33 +44,6 @@ MessageBoxWindow
 	public static final String ICON_WARNING 	= "warning";
 	public static final String ICON_INFO	 	= "info";
 
-	public static int
-	getRememberedDecision(
-		String		id,
-		int			remember_map )
-	{
-		if ( remember_map == SWT.NULL ){
-			
-			return( SWT.NULL );
-		}
-		
-		Map	remembered_decisions = COConfigurationManager.getMapParameter( "MessageBoxWindow.decisions", new HashMap());
-		
-		Long	l = (Long)remembered_decisions.get( id );
-		
-		if ( l != null ){
-			
-			int	remembered_value = l.intValue();
-			
-			if (( remembered_value & remember_map) != 0 ){
-				
-				return( remembered_value );
-			}
-		}
-		
-		return( SWT.NULL );
-	}
-	
 	public static int 
 	open(
 		String	id,
@@ -88,7 +55,8 @@ MessageBoxWindow
 		String	title,
 		String	message ) 
 	{
-		int	remembered = getRememberedDecision( id, remember_map );
+		int remembered = RememberedDecisionsManager.getRememberedDecision(id,
+				remember_map);
 		
 		if ( remembered != SWT.NULL ){
 			
@@ -248,18 +216,6 @@ MessageBoxWindow
 	}      
 
 	protected void
-	setRemembered(
-		String		id,
-		int			value )
-	{
-		Map	remembered_decisions = COConfigurationManager.getMapParameter( "MessageBoxWindow.decisions", new HashMap());
-
-		remembered_decisions.put( id, new Long( value ));
-		
-		COConfigurationManager.setParameter( "MessageBoxWindow.decisions", remembered_decisions );
-	}
-	
-	protected void
 	setResult(
 		String		id,
 		int			option,
@@ -273,7 +229,7 @@ MessageBoxWindow
 			
 			if ( remember ){
 				
-				setRemembered( id, result );
+				RememberedDecisionsManager.setRemembered(id, result);
 			}
 			
 			result_sem.release();
