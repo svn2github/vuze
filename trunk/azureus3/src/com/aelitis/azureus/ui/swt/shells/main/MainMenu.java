@@ -389,4 +389,11 @@ public class MainMenu
 		};
 		control.getDisplay().asyncExec(runnable);
 	}
+
+	/**
+	 * @return the menuBar
+	 */
+	public Menu getMenuBar() {
+		return menuBar;
+	}
 }
