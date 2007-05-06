@@ -256,7 +256,11 @@ public class SWTSkinTabSet
 			}
 
 			if (ok) {
-				skinObject.setVisible(visible);
+				if (visible) {
+  				skinObject.setDefaultVisibility();
+				} else {
+					skinObject.setVisible(visible);
+				}
 				//System.out.println(((visible ? "show" : "hide") + " " + skinObject) + Debug.getCompressedStackTrace());
 			}
 		}
