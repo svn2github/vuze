@@ -32,11 +32,14 @@ public interface SWTSkinObjectListener
 	public static int EVENT_HIDE = 1;
 
 	public static int EVENT_SELECT = 2;
+	
+	public static int EVENT_DESTROY = 3;
 
 	public static String[] NAMES = {
 		"Show",
 		"Hide",
-		"Select"
+		"Select",
+		"Destroy",
 	};
 
 	/**
