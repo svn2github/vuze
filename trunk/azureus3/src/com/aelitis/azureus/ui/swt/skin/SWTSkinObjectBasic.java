@@ -106,6 +106,10 @@ public class SWTSkinObjectBasic
 		Image imageBG;
 		Image imageBGLeft;
 		Image imageBGRight;
+		
+		if (sConfigID == null) {
+			return;
+		}
 
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		Image[] images = imageLoader.getImages(sConfigID + sSuffix);
@@ -184,6 +188,16 @@ public class SWTSkinObjectBasic
 				: SWTSkinObjectListener.EVENT_HIDE);
 	}
 	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#setDefaultVisibility()
+	public void setDefaultVisibility() {
+		if (sConfigID == null) {
+			return;
+		}
+		
+		setVisible(properties.getStringValue(sConfigID + ".visible", "true").equalsIgnoreCase(
+				"true"));
+	}
+	
 	public boolean isVisible() {
 		return control != null && !control.isDisposed() && control.isVisible();
 	}
@@ -207,7 +221,7 @@ public class SWTSkinObjectBasic
 				return null;
 			}
 		}
-
+		
 		//System.out.println(SystemTime.getCurrentTime() + ": " + sConfigID + suffix + "; switchy");
 		if (suffixes == null) {
 			suffixes = new String[level];
@@ -219,6 +233,10 @@ public class SWTSkinObjectBasic
 		suffixes[level - 1] = suffix;
 
 		suffix = getSuffix();
+
+		if (sConfigID == null || control == null || control.isDisposed()) {
+			return suffix;
+		}
 
 		if (properties.getStringValue(sConfigID + ".visible", "true").equalsIgnoreCase(
 				"false")) {
@@ -353,5 +371,12 @@ public class SWTSkinObjectBasic
 
 	public String getViewID() {
 		return sViewID;
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#dispose()
+	public void dispose() {
+		if (control != null && !control.isDisposed()) {
+			control.dispose();
+		}
 	}
 }

@@ -50,6 +50,8 @@ public interface SWTSkinObject
 	public void setVisible(boolean visible);
 
 	public boolean isVisible();
+	
+	public void setDefaultVisibility();
 
 	/**
 	 * @param sConfigID
@@ -103,4 +105,11 @@ public interface SWTSkinObject
 	 * @param params
 	 */
 	void triggerListeners(int eventType, Object params);
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.1.3
+	 */
+	public void dispose();
 }
