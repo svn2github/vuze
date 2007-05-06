@@ -267,4 +267,13 @@ public class SkinPropertiesImpl
 		String s = getValue(name, params);
 		return (s == null) ? def : s;
 	}
+	
+	// @see com.aelitis.azureus.ui.skin.SkinProperties#getBooleanValue(java.lang.String, boolean)
+	public boolean getBooleanValue(String name, boolean def) {
+		String s = getStringValue(name, (String)null);
+		if (s == null) {
+			return def;
+		}
+		return s.toLowerCase().equals("true") || s.equals("1");
+	}
 }

@@ -75,4 +75,5 @@ public interface SkinProperties
 
 	int[] getColorValue(String name);
 
+	boolean getBooleanValue(String name, boolean def);
 }

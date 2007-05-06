@@ -222,4 +222,17 @@ public class SWTSkinPropertiesClone
 	public String[] getParamValues() {
 		return sCloneParams;
 	}
+	
+	// @see com.aelitis.azureus.ui.skin.SkinProperties#getBooleanValue(java.lang.String, boolean)
+	public boolean getBooleanValue(String name, boolean def) {
+		if (DEBUG) {
+			checkName(name);
+		}
+		if (!name.equals(IGNORE_NAME)) {
+			if (properties.getStringValue(sCloneConfigID + name) != null) {
+				return properties.getBooleanValue(sCloneConfigID + name, def);
+			}
+		}
+		return properties.getBooleanValue(sTemplateConfigID + name, def);
+	}
 }
