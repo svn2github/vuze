@@ -56,13 +56,13 @@ public class SWTSkin
 
 	private Listener ontopPaintListener;
 
-	// Key = Skin Object ID; Value = Control
+	// Key = Skin Object ID; Value = Array of SWTSkinObject
 	private HashMap mapIDsToControls = new HashMap();
 
-	// Key = TabSet ID; Value = List of Control
+	// Key = TabSet ID; Value = SWTSkinTabSet
 	private HashMap mapTabSetToControls = new HashMap();
 
-	// Key = Widget ID; Value = Control
+	// Key = Widget ID; Value = Array of SWTSkinObject
 	private HashMap mapPublicViewIDsToControls = new HashMap();
 
 	private HashMap mapPublicViewIDsToListeners = new HashMap();
@@ -75,6 +75,8 @@ public class SWTSkin
 	private Shell shell;
 
 	private boolean bLayoutComplete = false;
+
+	private List listenersLayoutComplete = new ArrayList();
 
 	/**
 	 * 
@@ -154,7 +156,7 @@ public class SWTSkin
 			boolean bAlreadyPresent = false;
 			for (int i = 0; i < existingObjects.length; i++) {
 				//System.out.println(".." + existingObjects[i]);
-				if (existingObjects[i].equals(object)) {
+				if (existingObjects[i] != null && existingObjects[i].equals(object)) {
 					bAlreadyPresent = true;
 					System.err.println("already present: " + key + "; " + object
 							+ "; existing: " + existingObjects[i]);
@@ -233,6 +235,26 @@ public class SWTSkin
 				System.out.println(sID + "bottom=" + getAttachLine(formdata.bottom));
 			}
 		}
+	}
+
+	/**
+	 * Get all the SWTSkinObject of a specific type
+	 * 
+	 * @param sTypeRegEx Type of skin objects to find (container, image, etc)
+	 * @return
+	 *
+	 * @since 3.0.1.3
+	 */
+	public SWTSkinObject[] getSkinObjectsByType(String sTypeRegEx) {
+		List list = new ArrayList();
+		for (Iterator iter = mapIDsToControls.keySet().iterator(); iter.hasNext();) {
+			String sID = (String) iter.next();
+			SWTSkinObject so = getSkinObjectByID(sID);
+			if (so != null && so.getType().matches(sTypeRegEx)) {
+				list.add(so);
+			}
+		}
+		return (SWTSkinObject[]) list.toArray(new SWTSkinObject[0]);
 	}
 
 	public SWTSkinObject getSkinObjectByID(String sID) {
@@ -405,6 +427,13 @@ public class SWTSkin
 		//addPaintListenerToAll(shell);
 
 		bLayoutComplete = true;
+
+		Object[] listeners = listenersLayoutComplete.toArray();
+		for (int i = 0; i < listeners.length; i++) {
+			SWTSkinLayoutCompleteListener l = (SWTSkinLayoutCompleteListener) listeners[i];
+			l.skinLayoutCompleted();
+		}
+
 		if (DEBUGLAYOUT) {
 			System.out.println("==== End Apply Layout");
 		}
@@ -782,7 +811,6 @@ public class SWTSkin
 	private SWTSkinObject createMySash(SWTSkinProperties properties,
 			final String sID, String sConfigID, String[] typeParams,
 			SWTSkinObject parentSkinObject, final boolean bVertical) {
-
 		SWTSkinObject skinObject = new SWTSkinObjectSash(this, properties, sID,
 				sConfigID, typeParams, parentSkinObject, bVertical);
 		addToControlMap(skinObject);
@@ -945,14 +973,68 @@ public class SWTSkin
 		return handCursorListener;
 	}
 
+	/**
+	 * Create a skin object based off an existing config "template"
+	 *  
+	 * @param sID ID of new skin object
+	 * @param sConfigID config id to use to create new skin object 
+	 * @param parentSkinObject location to place new skin object in
+	 * 
+	 * @return new skin object
+	 */
 	public SWTSkinObject createSkinObject(String sID, String sConfigID,
 			SWTSkinObject parentSkinObject) {
 		SWTSkinObject skinObject = linkIDtoParent(skinProperties, sID, sConfigID,
 				parentSkinObject, true, true);
-		if (bLayoutComplete) {
-			((Composite) skinObject.getControl()).getParent().layout(true);
+		if (bLayoutComplete && skinObject != null) {
+			Control control = skinObject.getParent().getControl();
+			if (control instanceof Composite) {
+				((Composite) control).layout(true);
+			}
 		}
 		return skinObject;
+	}
+
+	public void addSkinObject(SWTSkinObject skinObject) {
+		String sViewID = skinObject.getProperties().getStringValue(
+				skinObject.getConfigID() + ".view");
+		if (sViewID != null) {
+			setSkinObjectViewID(skinObject, sViewID);
+			if (skinObject instanceof SWTSkinObjectBasic) {
+				((SWTSkinObjectBasic) skinObject).setViewID(sViewID);
+			}
+		}
+
+		attachControl(skinObject);
+	}
+
+	/**
+	 * @param skinObject
+	 *
+	 * @since 3.0.1.3
+	 */
+	public void removeSkinObject(SWTSkinObject skinObject) {
+		skinObject.triggerListeners(SWTSkinObjectListener.EVENT_DESTROY);
+
+		SWTSkinObject[] objects = (SWTSkinObject[]) mapIDsToControls.get(skinObject.getSkinObjectID());
+		if (objects != null) {
+			for (int i = 0; i < objects.length; i++) {
+				if (objects[i] == skinObject) {
+					objects[i] = null;
+				}
+			}
+		}
+
+		objects = (SWTSkinObject[]) mapPublicViewIDsToControls.get(skinObject.getViewID());
+		if (objects != null) {
+			for (int i = 0; i < objects.length; i++) {
+				if (objects[i] == skinObject) {
+					objects[i] = null;
+				}
+			}
+		}
+
+		skinObject.dispose();
 	}
 
 	private SWTSkinObject linkIDtoParent(SWTSkinProperties properties,
@@ -966,7 +1048,7 @@ public class SWTSkin
 				sType = sTypeParams[0];
 				bForceCreate = true;
 			} else {
-				// best guess
+				// no type, use best guess
 				sType = null;
 
 				String sImageLoc = properties.getStringValue(sConfigID);
@@ -1267,6 +1349,16 @@ public class SWTSkin
 		}
 	}
 
+	public boolean isLayoutComplete() {
+		return bLayoutComplete;
+	}
+
+	public void addListener(SWTSkinLayoutCompleteListener l) {
+		if (!listenersLayoutComplete.contains(l)) {
+			listenersLayoutComplete.add(l);
+		}
+	}
+
 	public static void main(String[] args) {
 		java.util.Date d = new java.util.Date();
 		long t = d.getTime();
@@ -1278,5 +1370,6 @@ public class SWTSkin
 		Date then = new Date(t);
 
 		System.out.println(d + ";" + then);
+
 	}
 }
