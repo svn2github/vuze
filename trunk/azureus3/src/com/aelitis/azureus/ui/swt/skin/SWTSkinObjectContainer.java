@@ -43,7 +43,8 @@ public class SWTSkinObjectContainer
 
 	public SWTSkinObjectContainer(SWTSkin skin, SWTSkinProperties properties,
 			String sID, String sConfigID, SWTSkinObject parent) {
-		this(skin, properties, null, sID, sConfigID, "container", parent);
+		super(skin, properties, sID, sConfigID, "container", parent);
+		createComposite();
 	}
 
 	public SWTSkinObjectContainer(SWTSkin skin, SWTSkinProperties properties,
@@ -51,40 +52,46 @@ public class SWTSkinObjectContainer
 			SWTSkinObject parent) {
 		super(skin, properties, sID, sConfigID, type, parent);
 
-		if (control == null) {
-			int style = SWT.NONE;
-			if (properties.getIntValue(sConfigID + ".border", 0) == 1) {
-				style = SWT.BORDER;
-			}
+		if (control != null) {
+			setControl(control);
+		}
+	}
 
-			Composite createOn;
-			if (parent == null) {
-				createOn = skin.getShell();
-			} else {
-				createOn = (Composite) parent.getControl();
-			}
-
-			Composite parentComposite;
-			if (SWTSkin.DEBUGLAYOUT) {
-				System.out.println("linkIDtoParent: Create Composite " + sID + " on "
-						+ createOn);
-				parentComposite = new Group(createOn, style);
-				((Group) parentComposite).setText(sConfigID);
-				parentComposite.setData("DEBUG", "1");
-			} else {
-				parentComposite = new Composite(createOn, style);
-			}
-
-			parentComposite.setLayout(new FormLayout());
-			control = parentComposite;
+	private void createComposite() {
+		int style = SWT.NONE;
+		if (properties.getIntValue(sConfigID + ".border", 0) == 1) {
+			style = SWT.BORDER;
 		}
 
-		//		if (painter == null) {
-		//			parentComposite.setBackgroundMode(SWT.INHERIT_FORCE);
-		//		} else {
-		//			parentComposite.setBackgroundMode(SWT.INHERIT_NONE);
-		//		}
+		Composite createOn;
+		if (parent == null) {
+			createOn = skin.getShell();
+		} else {
+			createOn = (Composite) parent.getControl();
+		}
+
+		Composite parentComposite;
+		if (SWTSkin.DEBUGLAYOUT) {
+			System.out.println("linkIDtoParent: Create Composite " + sID + " on "
+					+ createOn);
+			parentComposite = new Group(createOn, style);
+			((Group) parentComposite).setText(sConfigID);
+			parentComposite.setData("DEBUG", "1");
+		} else {
+			parentComposite = new Composite(createOn, style);
+		}
+
+		parentComposite.setLayout(new FormLayout());
+		control = parentComposite;
+
 		setControl(control);
+	}
+
+	protected void setViewID(String viewID) {
+		super.setViewID(viewID);
+		if (SWTSkin.DEBUGLAYOUT) {
+			((Group) control).setText("[" + viewID + "]");
+		}
 	}
 
 	// TODO: Need find child(view id)
@@ -109,11 +116,15 @@ public class SWTSkinObjectContainer
 		return objects;
 	}
 
+	public Composite getComposite() {
+		return (Composite) control;
+	}
+
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#switchSuffix(java.lang.String)
 	public String switchSuffix(String suffix, int level, boolean walkUp) {
 		String sFullsuffix = super.switchSuffix(suffix, level, walkUp);
 
-		if (bPropogate && suffix != null) {
+		if (bPropogate && suffix != null && control != null && !control.isDisposed()) {
 			SWTSkinObject[] children = getChildren();
 			for (int i = 0; i < children.length; i++) {
 				children[i].switchSuffix(suffix, level, false);
