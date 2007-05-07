@@ -7,6 +7,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridLayout;
@@ -77,13 +78,22 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
 
         StringBuffer sb = new StringBuffer("\n\n");
         String maxUpload = MessageText.getString("SpeedTestWizard.finish.panel.max.upload");
-        sb.append(maxUpload).append(" ").append(maxUploadKbs).append(" kb/s\n"); //ToDo: internatinalize the unit. Use DisplayFormatter.
+        String maxUploadVal = DisplayFormatters.formatByteCountToKiBEtcPerSec( maxUploadKbs*1024 );
+        sb.append(maxUpload).append(" ").append(maxUploadVal).append("\n");
 
         String maxSeedingUpload = MessageText.getString("SpeedTestWizard.finish.panel.max.seeding.upload");
-        sb.append(maxSeedingUpload).append(" ").append(maxUploadSeedingKbs).append(" kb/s\n");//ToDo: internatinalize the unit. Use DisplayFormatter.
+        String maxSeedingUploadVal = DisplayFormatters.formatByteCountToKiBEtcPerSec( maxUploadSeedingKbs*1024 );
+        sb.append(maxSeedingUpload).append(" ").append(maxSeedingUploadVal).append("\n");
 
         String maxDownload = MessageText.getString("SpeedTestWizard.finish.panel.max.download");
-        sb.append(maxDownload).append(" ").append(maxDownloadKbs).append(" kb/s\n");
+        if(maxDownloadKbs==0){
+            String unlimited = MessageText.getString("ConfigView.unlimited");
+            sb.append(maxDownload).append(" ").append(unlimited).append("\n");
+        }else{
+            String maxDownloadVal = DisplayFormatters.formatByteCountToKiBEtcPerSec( maxDownloadKbs*1024 );
+            sb.append(maxDownload).append(" ").append(maxDownloadVal).append("\n");
+        }
+
 
         String autoSpeed = MessageText.getString("SpeedTestWizard.finish.panel.auto.speed");
         sb.append(autoSpeed); 

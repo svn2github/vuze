@@ -91,8 +91,8 @@ SpeedTestPanel
 	{
 		display = wizard.getDisplay();
 		wizard.setTitle(MessageText.getString( SpeedTestWizard.CFG_PREFIX + "run" ));
-		wizard.setCurrentInfo("BitTorrent bandwidth testing.");
-		wizard.setPreviousEnabled(false);
+        wizard.setCurrentInfo( MessageText.getString("SpeedTestWizard.test.panel.currinfo") );
+        wizard.setPreviousEnabled(false);
         wizard.setFinishEnabled(false);
 
         Composite rootPanel = wizard.getPanel();
@@ -125,15 +125,14 @@ SpeedTestPanel
         Label ul = new Label(panel, SWT.NULL );
         gridData = new GridData();
         ul.setLayoutData(gridData);
-        ul.setText("Azureus speed test: ");//ToDo: add to messages.
-        //Messages.setLanguageText(,"SpeedTestWizard.test.panel.?");
+        Messages.setLanguageText(ul,"SpeedTestWizard.test.panel.label");
 
         testCombo = new Combo(panel, SWT.READ_ONLY);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         testCombo.setLayoutData(gridData);
            
         int[]	test_types  	= NetworkAdminSpeedTester.TEST_TYPES;
-        int		up_down_index 	= 0;
+        int		up_only_index 	= 0;
         
         for (int i=0;i<test_types.length;i++){
         	
@@ -143,28 +142,27 @@ SpeedTestPanel
         	
         	if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_UPLOAD_AND_DOWNLOAD ){
         	
-        		resource = "updown";//ToDo: MessageText
-        		
-        		up_down_index = i;
+        		resource = "updown";
         		
         	}else if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_UPLOAD_ONLY ){
         		
-        		resource = "up";//ToDo: MessageText
+        		resource = "up";
+
+                up_only_index = i;
+
+            }else if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_DOWNLOAD_ONLY ){
         		
-        	}else if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_DOWNLOAD_ONLY ){
-        		
-        		resource = "down";//ToDo: MessageText
+        		resource = "down";
         	}else{
         		
         		Debug.out( "Unknown test type" );
         	}
         	
-        	testCombo.add( "BT " + MessageText.getString( "speedtest.wizard.test.mode." + resource ), i);//ToDo: message set language
-            //Messages.setLanguageText(,"SpeedTestWizard.test.panel.?");
+        	testCombo.add( "BT " + MessageText.getString( "speedtest.wizard.test.mode." + resource ), i);
 
         }
         
-        testCombo.select( up_down_index );
+        testCombo.select( up_only_index );
 
         test = new Button(panel, SWT.PUSH);
         Messages.setLanguageText(test,"dht.execute");//Run
@@ -288,9 +286,8 @@ SpeedTestPanel
 		test_running	= true;
 		
 		if ( nasts.getCurrentTest() !=  null ){
-	
-			reportStage( "Test already running!" );//ToDo: message bundle.
 
+            reportStage( MessageText.getString("SpeedTestWizard.test.panel.already.running") );
 		}else{
 				// what's the contract here in terms of listener removal?
 			
@@ -304,8 +301,9 @@ SpeedTestPanel
 				scheduled_test.start();
 				
 			}catch( Throwable e ){
-				
-				reportStage( "Test request not accepted: " + Debug.getNestedExceptionMessage(e));//ToDo: message bundle.
+
+                String requestNotAccepted = MessageText.getString("SpeedTestWizard.test.panel.not.accepted");
+                reportStage( requestNotAccepted + Debug.getNestedExceptionMessage(e));
 								
 			    if (!test.isDisposed()) {
 				      display.asyncExec(new AERunnable(){
