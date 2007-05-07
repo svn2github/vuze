@@ -49,6 +49,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.pluginsimpl.local.PluginConfigImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTest;
@@ -517,7 +518,8 @@ NetworkAdminSpeedTestScheduledTestImpl
 
         public 
         SpeedTestDownloadState()
-        {}
+        {
+        }
         
         public void 
         parameterChanged(
@@ -559,6 +561,11 @@ NetworkAdminSpeedTestScheduledTestImpl
         public void
         saveLimits()
         {
+        		// a bunch of plugins mess with limits (AutoSpeed, Shaper, SpeedScheduler...) - disable their
+        		// ability to mess with config during the test
+        	
+        	PluginConfigImpl.setEnablePluginCoreConfigChange( false );
+        	
         	plugin.getDownloadManager().addListener( this, false );
         	
             //preserve the limits for all the downloads and set each to zero.
@@ -612,6 +619,8 @@ NetworkAdminSpeedTestScheduledTestImpl
          	restoreGlobalLimits();
        	
         	restoreIndividualLimits();
+        	
+           	PluginConfigImpl.setEnablePluginCoreConfigChange( true );
         }
         
         /**
