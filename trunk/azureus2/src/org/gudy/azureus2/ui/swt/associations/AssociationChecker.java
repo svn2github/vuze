@@ -131,17 +131,12 @@ AssociationChecker
 		user_label.setLayoutData(gridData);
 
 
-	    Label label = new Label(shell, SWT.NULL);
-		gridData = new GridData(GridData.FILL_BOTH);
-		gridData.horizontalSpan = 1;
-		label.setLayoutData(gridData);
-	    Messages.setLanguageText(label, "dialog.associations.askagain"); //$NON-NLS-1$
-
 	    final Button checkBox = new Button(shell, SWT.CHECK);
 	    checkBox.setSelection(true);
 		gridData = new GridData(GridData.FILL_BOTH);
-		gridData.horizontalSpan = 2;
+		gridData.horizontalSpan = 3;
 		checkBox.setLayoutData(gridData);
+		Messages.setLanguageText(checkBox, "dialog.associations.askagain"); 
 		
 		// line
 		
@@ -152,7 +147,7 @@ AssociationChecker
 
 			// buttons
 			
-		label = new Label(shell,SWT.NULL);
+		new Label(shell,SWT.NULL);
 
 		Button bYes = new Button(shell,SWT.PUSH);
 	 	bYes.setText(MessageText.getString("Button.yes"));
@@ -177,7 +172,8 @@ AssociationChecker
 		 		close(false, checkBox.getSelection());
 	   		}
 	 	});
-						    
+
+	 	bYes.setFocus();
 		shell.setDefaultButton( bYes );
 		
 		shell.addListener(SWT.Traverse, new Listener() {	
@@ -207,7 +203,7 @@ AssociationChecker
 		boolean		ok,
 		boolean		check_on_startup )
  	{
-    	if ( check_on_startup != COConfigurationManager.getBooleanParameter( "config.interface.checkassoc",true )){
+    	if ( check_on_startup != COConfigurationManager.getBooleanParameter( "config.interface.checkassoc" )){
     		
     		COConfigurationManager.setParameter( "config.interface.checkassoc",check_on_startup );
     		
