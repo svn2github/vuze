@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
+import org.gudy.azureus2.ui.swt.Messages;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTest;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduledTestListener;
@@ -112,12 +113,7 @@ SpeedTestPanel
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.horizontalSpan = 4;
         explain.setLayoutData(gridData);
-        StringBuffer sb = new StringBuffer("This test will measure the speed at which data can be simultaneously uploaded");
-        sb.append("and downloaded in your network. The test will first request a testing slot from our service. If a ");
-        sb.append("testing slot is available it will then get a virtual torrent, half for uploading and half for downloading.");
-        sb.append("Once the test start it has 2 minutes to complete. It will first pause all the downloads, then set a ");
-        sb.append("very high global limit, so it doesn't consume too much server bandwidth. It lets the download rate ");
-        explain.setText( sb.toString() );
+        Messages.setLanguageText(explain,"SpeedTestWizard.test.panel.explain");
 
         //space line
         Label spacer = new Label(panel, SWT.NULL);
@@ -129,12 +125,8 @@ SpeedTestPanel
         Label ul = new Label(panel, SWT.NULL );
         gridData = new GridData();
         ul.setLayoutData(gridData);
-        ul.setText("Azureus speed test: ");
-
-        //Label ulType = new Label(panel, SWT.NULL);
-        //gridData = new GridData(GridData.FILL_HORIZONTAL);
-        //ulType.setLayoutData(gridData);
-        //ulType.setText("BT upload/download");
+        ul.setText("Azureus speed test: ");//ToDo: add to messages.
+        //Messages.setLanguageText(,"SpeedTestWizard.test.panel.?");
 
         testCombo = new Combo(panel, SWT.READ_ONLY);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -151,36 +143,38 @@ SpeedTestPanel
         	
         	if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_UPLOAD_AND_DOWNLOAD ){
         	
-        		resource = "updown";
+        		resource = "updown";//ToDo: MessageText
         		
         		up_down_index = i;
         		
         	}else if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_UPLOAD_ONLY ){
         		
-        		resource = "up";
+        		resource = "up";//ToDo: MessageText
         		
         	}else if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_DOWNLOAD_ONLY ){
         		
-        		resource = "down";
+        		resource = "down";//ToDo: MessageText
         	}else{
         		
         		Debug.out( "Unknown test type" );
         	}
         	
-        	testCombo.add( "BT " + MessageText.getString( "speedtest.wizard.test.mode." + resource ), i);
+        	testCombo.add( "BT " + MessageText.getString( "speedtest.wizard.test.mode." + resource ), i);//ToDo: message set language
+            //Messages.setLanguageText(,"SpeedTestWizard.test.panel.?");
+
         }
         
         testCombo.select( up_down_index );
 
         test = new Button(panel, SWT.PUSH);
-        test.setText("Run");
+        Messages.setLanguageText(test,"dht.execute");//Run
         gridData = new GridData();
         gridData.widthHint = 70;
         test.setLayoutData(gridData);
         test.addListener(SWT.Selection, new RunButtonListener() );
 
         abort = new Button(panel, SWT.PUSH);
-        abort.setText("Abort");
+        Messages.setLanguageText(abort,"SpeedTestWizard.test.panel.abort");//Abort
         gridData = new GridData();
         gridData.widthHint = 70;
         abort.setLayoutData(gridData);
@@ -197,7 +191,7 @@ SpeedTestPanel
         Label abortCountDown = new Label(panel, SWT.NULL);
         gridData = new GridData();
         abortCountDown.setLayoutData(gridData);
-        abortCountDown.setText("abort test in: ");
+        Messages.setLanguageText(abortCountDown,"SpeedTestWizard.test.panel.abort.countdown");
 
         testCountDown1 = new Label(panel, SWT.NULL);
         gridData = new GridData();
@@ -207,7 +201,7 @@ SpeedTestPanel
         Label testFinishCountDown = new Label(panel, SWT.NULL);
         gridData = new GridData();
         testFinishCountDown.setLayoutData(gridData);
-        testFinishCountDown.setText("test finish in: ");
+        Messages.setLanguageText(testFinishCountDown,"SpeedTestWizard.test.panel.test.countdown");
 
         testCountDown2 = new Label(panel, SWT.NULL);
         gridData = new GridData();
@@ -295,7 +289,7 @@ SpeedTestPanel
 		
 		if ( nasts.getCurrentTest() !=  null ){
 	
-			reportStage( "Test already running!" );
+			reportStage( "Test already running!" );//ToDo: message bundle.
 
 		}else{
 				// what's the contract here in terms of listener removal?
@@ -311,7 +305,7 @@ SpeedTestPanel
 				
 			}catch( Throwable e ){
 				
-				reportStage( "Test request not accepted: " + Debug.getNestedExceptionMessage(e));
+				reportStage( "Test request not accepted: " + Debug.getNestedExceptionMessage(e));//ToDo: message bundle.
 								
 			    if (!test.isDisposed()) {
 				      display.asyncExec(new AERunnable(){
@@ -366,17 +360,21 @@ SpeedTestPanel
 		        public void runSupport() {
 		        	if ( !textMessages.isDisposed()){
 		        	  if ( result.hadError()){
-		        		  
-		        		  textMessages.append( "Test failed: " + result.getLastError());
+
+                          String testFailed = MessageText.getString("SpeedTestWizard.test.panel.testfailed");//Test failed
+
+                          textMessages.append( testFailed+": " + result.getLastError());
 		        		  test.setEnabled( true );
 		        		  abort.setEnabled(false);
-		                  wizard.setErrorMessage("Test failed");
+		                  wizard.setErrorMessage(testFailed); 
 		                  
 		        	  }else{
                         uploadTest = result.getUploadSpeed();
                         downloadTest = result.getDownloadSpeed();
-                        textMessages.append("Upload speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getUploadSpeed()) + Text.DELIMITER);
-			            textMessages.append("Download speed = " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getDownloadSpeed()) + Text.DELIMITER);
+                        String uploadSpeedStr = MessageText.getString("GeneralView.label.uploadspeed");
+                        String downlaodSpeedStr = MessageText.getString("GeneralView.label.downloadspeed");
+                        textMessages.append(uploadSpeedStr+" " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getUploadSpeed()) + Text.DELIMITER);
+			            textMessages.append(downlaodSpeedStr+" " + DisplayFormatters.formatByteCountToKiBEtcPerSec(result.getDownloadSpeed()) + Text.DELIMITER);
 
 			            
                         if( result.getTest().getMode() == NetworkAdminSpeedTester.TEST_TYPE_DOWNLOAD_ONLY ){
@@ -419,7 +417,8 @@ SpeedTestPanel
 	
 	                      int[] timeLeft = getTimeLeftFromString(step);
 	                      if(timeLeft!=null){
-	                          testCountDown1.setText( ""+timeLeft[0]+" sec " );
+                              //ToDo: use SimpleDateFormat ... to internationalize this.
+                              testCountDown1.setText( ""+timeLeft[0]+" sec " );//
 	                          testCountDown2.setText( ""+timeLeft[1]+" sec " );
 	                      }else{
 	                          testCountDown1.setText(START_VALUES);
@@ -542,8 +541,9 @@ SpeedTestPanel
             uploadTest=0;
             downloadTest=0;
 
-            wizard.setErrorMessage("test aborted manually.");
-            reportStage("\ntest aborted manually.");
+            String testAbortedManually = MessageText.getString("SpeedTestWizard.test.panel.aborted");
+            wizard.setErrorMessage(testAbortedManually);
+            reportStage("\n"+testAbortedManually); 
 
         }//handleEvent
     }

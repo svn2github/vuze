@@ -3,8 +3,10 @@ package org.gudy.azureus2.ui.swt.speedtest;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -62,11 +64,8 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
      */
     public void show() {
 
-        //ToDo: All text on this page needs to use MessageText for language translation.
-        wizard.setTitle( "Set Upload Limit" );
-        //wizard.setTitle(MessageText.getString("speedTestWizard.setupload.title"));
-        wizard.setCurrentInfo("Set the upload limit at 80% of measured value.");
-        //wizard.setCurrentInfo(MessageText.getString("speedTestWizard.setupload.hint"));
+        wizard.setTitle(MessageText.getString("SpeedTestWizard.set.upload.title"));
+        wizard.setCurrentInfo(MessageText.getString("SpeedTestWizard.set.upload.hint"));
 
         Composite rootPanel = wizard.getPanel();
         GridLayout layout = new GridLayout();
@@ -85,13 +84,7 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.horizontalSpan = 3;
         explain.setLayoutData(gridData);
-        StringBuffer sb = new StringBuffer("To get the best performance out of Azureus, it is recommended that you ");
-        sb.append("set the upload limit to 80% of achievable. Please test result. ");
-        sb.append("\n\nNOTE: This test is BitTorrent upload/download simultaneous. Most home DSL users will get ");
-        sb.append("20 kb/s and 30 kb/s upload. Results were vary depending on the specific router you use. ");
-        sb.append("Connections through a better connection such as on a collage campus can be significantly better. ");
-        explain.setText( sb.toString() );
-        //Messages.setLanguageText(explain,"speedTestWizard.setupload.explain");
+        Messages.setLanguageText(explain,"SpeedTestWizard.set.upload.panel.explain");
 
         //spacer line
         Label spacer = new Label(panel, SWT.NULL);
@@ -103,8 +96,7 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         Label ul = new Label(panel, SWT.NULL );
         gridData = new GridData();
         ul.setLayoutData(gridData);
-        ul.setText("Recommend Upload Speed Limit - kb/s ");
-        //Messages.setLanguageText(ul, "speedTestWizard.setupload.ul-label");
+        Messages.setLanguageText(ul, "SpeedTestWizard.set.upload.label");
 
         final Text uploadLimitSetting = new Text(panel, SWT.BORDER );
         gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -132,8 +124,7 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         });
 
         apply = new Button(panel, SWT.PUSH);
-        //Messages.setLanguageText(apply, "speedTestWizard.setupload.button" );
-        apply.setText("Apply");
+        Messages.setLanguageText(apply, "SpeedTestWizard.set.upload.button.apply" );
         gridData = new GridData();
         gridData.widthHint = 70;
         apply.setLayoutData(gridData);

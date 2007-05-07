@@ -3,8 +3,10 @@ package org.gudy.azureus2.ui.swt.speedtest;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridLayout;
@@ -43,7 +45,9 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
      */
     public void show() {
 
-        wizard.setTitle("Speed Test Finished!");
+        String title = MessageText.getString("SpeedTestWizard.finish.panel.title");
+        wizard.setTitle(title);
+
         Composite rootPanel = wizard.getPanel();
         GridLayout layout = new GridLayout();
         layout.numColumns = 1;
@@ -61,7 +65,7 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         gridData.horizontalSpan = 3;
         gridData.widthHint = 380;
         label.setLayoutData(gridData);
-        label.setText("You have finished the speed test wizard. click close.");
+        Messages.setLanguageText(label,"SpeedTestWizard.finish.panel.click.close");
 
         //show the setting for upload speed.
         int maxUploadKbs = COConfigurationManager.getIntParameter( TransferSpeedValidator.UPLOAD_CONFIGKEY );
@@ -72,20 +76,34 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         boolean autoSpeedSeedingEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY );
 
         StringBuffer sb = new StringBuffer("\n\n");
-        sb.append("Max upload : ").append(maxUploadKbs).append(" kb/s\n");
-        sb.append("Max upload while seeding : ").append(maxUploadSeedingKbs).append(" kb/s\n");
-        sb.append("Max download : ").append(maxDownloadKbs).append(" kb/s\n");
-        sb.append("Auto speed is : ");
-        if( autoSpeedEnabled )
-            sb.append("enabled");
-        else
-            sb.append("disabled");
+        String maxUpload = MessageText.getString("SpeedTestWizard.finish.panel.max.upload");
+        sb.append(maxUpload).append(" ").append(maxUploadKbs).append(" kb/s\n"); //ToDo: internatinalize the unit. Use DisplayFormatter.
+
+        String maxSeedingUpload = MessageText.getString("SpeedTestWizard.finish.panel.max.seeding.upload");
+        sb.append(maxSeedingUpload).append(" ").append(maxUploadSeedingKbs).append(" kb/s\n");//ToDo: internatinalize the unit. Use DisplayFormatter.
+
+        String maxDownload = MessageText.getString("SpeedTestWizard.finish.panel.max.download");
+        sb.append(maxDownload).append(" ").append(maxDownloadKbs).append(" kb/s\n");
+
+        String autoSpeed = MessageText.getString("SpeedTestWizard.finish.panel.auto.speed");
+        sb.append(autoSpeed); 
+
+        String enabled = MessageText.getString("SpeedTestWizard.finish.panel.enabled","enabled");
+        String disabled = MessageText.getString("SpeedTestWizard.finish.panel.disabled","disabled");
+
+        if( autoSpeedEnabled ){
+            sb.append(enabled);
+        }else{
+            sb.append(disabled);
+        }
         sb.append("\n");
-        sb.append("Auto speed while seeding is : ");
-        if(autoSpeedSeedingEnabled)
-            sb.append("enabled");
-        else
-            sb.append("disabled");
+        String autoSpeedWhileSeeding = MessageText.getString("SpeedTestWizard.finish.panel.auto.speed.seeding");
+        sb.append(autoSpeedWhileSeeding).append(" ");
+        if(autoSpeedSeedingEnabled){
+            sb.append(enabled);
+        }else{
+            sb.append(disabled);
+        }
         sb.append("\n");
 
         //print out configuration data, so they know what the current values are.
