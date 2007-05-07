@@ -85,6 +85,80 @@ PluginConfigImpl
 		}
 	}
 
+	private static Map		fake_values_when_disabled;
+	private static int		fake_values_ref_count;
+	
+	public static void
+	setEnablePluginCoreConfigChange(
+		boolean		enabled )
+	{
+		synchronized( PluginConfigImpl.class ){
+
+			if ( enabled ){
+				
+				fake_values_ref_count--;
+				
+				if ( fake_values_ref_count == 0 ){
+					
+						// TODO: we could try and recover the faked values at this point
+					
+					fake_values_when_disabled = null;
+				}				
+
+			}else{
+				fake_values_ref_count++;
+
+				if ( fake_values_ref_count == 1 ){
+					
+					fake_values_when_disabled = new HashMap();
+				}
+			}
+		}
+	}
+	
+	private static Object
+	getFakeValueWhenDisabled(
+		String	key,
+		String	name )
+	{
+		if ( name.startsWith(key)){
+			return( null );
+		}
+		
+		synchronized( PluginConfigImpl.class ){
+			
+			if ( fake_values_when_disabled != null ){
+				
+				return( fake_values_when_disabled.get( name ));
+			}
+		}
+		
+		return( null );
+	}
+	
+	private static boolean
+	setFakeValueWhenDisabled(
+		String	key,
+		String	name,
+		Object	value )
+	{
+		if ( name.startsWith(key)){
+			return( false );
+		}
+		
+		synchronized( PluginConfigImpl.class ){
+			
+			if ( fake_values_when_disabled != null ){
+				
+				fake_values_when_disabled.put( name, value );
+				
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
+	
 	private PluginInterface	plugin_interface;
 	private String 			key;
   
@@ -125,6 +199,10 @@ PluginConfigImpl
 	//
 	//
 	private boolean getBooleanParameter(String name, boolean _default, boolean map_name, boolean set_default) {
+		Object	obj = getFakeValueWhenDisabled(key,name);
+		if ( obj != null ){
+			return(((Boolean)obj).booleanValue());
+		}
 		if (map_name) {name = mapKeyName(name, false);}
 		if (set_default) {COConfigurationManager.setBooleanDefault(name, _default);}
 		else if (!hasParameter(name)) {return _default;}
@@ -132,6 +210,10 @@ PluginConfigImpl
 	}
 	
 	private byte[] getByteParameter(String name, byte[] _default, boolean map_name, boolean set_default) {
+		Object	obj = getFakeValueWhenDisabled(key,name);
+		if ( obj != null ){
+			return((byte[])obj);
+		}
 		if (map_name) {name = mapKeyName(name, false);}
 		if (set_default) {COConfigurationManager.setByteDefault(name, _default);}
 		else if (!hasParameter(name)) {return _default;}
@@ -139,6 +221,10 @@ PluginConfigImpl
 	}
 	
 	private float getFloatParameter(String name, float _default, boolean map_name, boolean set_default) {
+		Object	obj = getFakeValueWhenDisabled(key,name);
+		if ( obj != null ){
+			return(((Float)obj).floatValue());
+		}
 		if (map_name) {name = mapKeyName(name, false);}
 		if (set_default) {COConfigurationManager.setFloatDefault(name, _default);}
 		else if (!hasParameter(name)) {return _default;}
@@ -146,6 +232,10 @@ PluginConfigImpl
 	}
 	
 	private int getIntParameter(String name, int _default, boolean map_name, boolean set_default) {
+		Object	obj = getFakeValueWhenDisabled(key,name);
+		if ( obj != null ){
+			return(((Long)obj).intValue());
+		}
 		if (map_name) {name = mapKeyName(name, false);}
 		if (set_default) {COConfigurationManager.setIntDefault(name, _default);}
 		else if (!hasParameter(name)) {return _default;}
@@ -153,6 +243,10 @@ PluginConfigImpl
 	}
 
 	private long getLongParameter(String name, long _default, boolean map_name, boolean set_default) {
+		Object	obj = getFakeValueWhenDisabled(key,name);
+		if ( obj != null ){
+			return(((Long)obj).longValue());
+		}
 		if (map_name) {name = mapKeyName(name, false);}
 		if (set_default) {COConfigurationManager.setLongDefault(name, _default);}
 		else if (!hasParameter(name)) {return _default;}
@@ -160,6 +254,10 @@ PluginConfigImpl
 	}
 	
 	private String getStringParameter(String name, String _default, boolean map_name, boolean set_default) {
+		Object	obj = getFakeValueWhenDisabled(key,name);
+		if ( obj != null ){
+			return((String)obj);
+		}
 		if (map_name) {name = mapKeyName(name, false);}
 		if (set_default) {COConfigurationManager.setStringDefault(name, _default);}
 		else if (!hasParameter(name)) {return _default;}
@@ -172,6 +270,10 @@ PluginConfigImpl
 	//
 	//
 	private boolean getDefaultedBooleanParameter(String name, boolean map_name) {
+		Object	obj = getFakeValueWhenDisabled(key,name);
+		if ( obj != null ){
+			return(((Boolean)obj).booleanValue());
+		}
 		return getBooleanParameter(name, ConfigurationDefaults.def_boolean == 1, map_name, false);
 	}
 	
@@ -257,26 +359,44 @@ PluginConfigImpl
 	//
 	//
     public void setBooleanParameter(String name, boolean value) {
+		if ( setFakeValueWhenDisabled(key, name, new Boolean( value))){
+			return;
+		}
     	COConfigurationManager.setParameter(mapKeyName(name, true), value);
     }
 
     public void setByteParameter(String name, byte[] value) {
+		if ( setFakeValueWhenDisabled(key, name, value )){
+			return;
+		}
     	COConfigurationManager.setParameter(mapKeyName(name, true), value);
     }
 
     public void setFloatParameter(String name, float value) {
+		if ( setFakeValueWhenDisabled(key, name, new Float( value))){
+			return;
+		}
     	COConfigurationManager.setParameter(mapKeyName(name, true), value);
     }
 
     public void setIntParameter(String name, int value) {
+		if ( setFakeValueWhenDisabled(key, name, new Long( value))){
+			return;
+		}
     	COConfigurationManager.setParameter(mapKeyName(name, true), value);
     }
 
     public void setLongParameter(String name, long value) {
+		if ( setFakeValueWhenDisabled(key, name, new Long( value))){
+			return;
+		}
     	COConfigurationManager.setParameter(mapKeyName(name, true), value);
     }
 
     public void setStringParameter(String name, String value) {
+		if ( setFakeValueWhenDisabled(key, name, value)){
+			return;
+		}
     	COConfigurationManager.setParameter(mapKeyName(name, true), value);
     }
 
@@ -423,26 +543,44 @@ PluginConfigImpl
 	//
 	//
     public void setUnsafeBooleanParameter(String name, boolean value) {
+		if ( setFakeValueWhenDisabled(key, name, new Boolean( value))){
+			return;
+		}
     	COConfigurationManager.setParameter(name, value);
     }
 
     public void setUnsafeByteParameter(String name, byte[] value) {
+		if ( setFakeValueWhenDisabled(key, name, value)){
+			return;
+		}
     	COConfigurationManager.setParameter(name, value);
     }
 
     public void setUnsafeFloatParameter(String name, float value) {
+		if ( setFakeValueWhenDisabled(key, name, new Float( value))){
+			return;
+		}
     	COConfigurationManager.setParameter(name, value);
     }
 
     public void setUnsafeIntParameter(String name, int value) {
+		if ( setFakeValueWhenDisabled(key, name, new Long( value))){
+			return;
+		}
     	COConfigurationManager.setParameter(name, value);
     }
 
     public void setUnsafeLongParameter(String name, long value) {
+		if ( setFakeValueWhenDisabled(key, name, new Long( value))){
+			return;
+		}
     	COConfigurationManager.setParameter(name, value);
     }
 
     public void setUnsafeStringParameter(String name, String value) {
+		if ( setFakeValueWhenDisabled(key, name, value )){
+			return;
+		}
     	COConfigurationManager.setParameter(name, value);
     }
     
