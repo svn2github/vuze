@@ -42,21 +42,21 @@ public final class ShellFactory
 {
 	public static Shell createMainShell( int styles )
 	{
-		Display	display = null;
+		Shell parent = null;
 		
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 
 		if ( uiFunctions != null ){
 			
-			display = uiFunctions.getMainShell().getDisplay();
+			parent = uiFunctions.getMainShell();
 		}
 		
-		if ( display == null ){
+		if ( parent == null ){
 			
-			display = SWTThread.getInstance().getDisplay();
+			return createShell(SWTThread.getInstance().getDisplay());
 		}
 		
-		return( createShell( display, styles ));
+		return( createShell( parent, styles ));
 	}
 	
     /**
