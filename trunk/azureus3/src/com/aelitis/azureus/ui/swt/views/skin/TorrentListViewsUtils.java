@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.Alerts;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -65,6 +66,7 @@ import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
+import com.aelitis.azureus.util.AdManager;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
@@ -372,12 +374,17 @@ public class TorrentListViewsUtils
 		}
 
 		if (bComplete) {
+			String runFile = AdManager.getInstance().createASX(dm, file);
+			if (runFile == null) {
+				runFile = dm.getSaveLocation().toString();
+			}
+			
 			if (PlatformTorrentUtils.isContentDRM(dm.getTorrent())) {
-				if (!runInMediaPlayer(dm.getSaveLocation().toString())) {
-					ManagerUtils.run(dm);
+				if (!runInMediaPlayer(runFile)) {
+					Utils.launch(runFile);
 				}
 			} else {
-				ManagerUtils.run(dm);
+				Utils.launch(runFile);
 			}
 		} else {
 			try {
@@ -542,6 +549,19 @@ public class TorrentListViewsUtils
 			return;
 		}
 
+		try {
+  		Program program = Program.findProgram(".qtl");
+  		boolean hasQuickTime = program == null ? false
+  				: program.getName().toLowerCase().contains("quicktime");
+
+			pi.getIPC().invoke("setQuickTimeAvailable", new Object[] {
+				new Boolean(hasQuickTime)
+			});
+		} catch (Throwable e) {
+			Logger.log(new LogEvent(LogIDs.UI3, LogEvent.LT_WARNING,
+					"IPC to media server plugin failed", e));
+		}
+		
 		try {
 			pi.getIPC().invoke("playDownload", new Object[] {
 				download
