@@ -66,7 +66,6 @@ import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
-import com.aelitis.azureus.util.AdManager;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
