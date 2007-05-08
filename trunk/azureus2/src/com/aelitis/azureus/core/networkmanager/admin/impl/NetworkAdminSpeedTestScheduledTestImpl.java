@@ -295,7 +295,7 @@ NetworkAdminSpeedTestScheduledTestImpl
         	       	
             Debug.printStackTrace(t);
             			
-			tester.abort( "Scheduling of the test failed: " + Debug.getNestedExceptionMessage( t ));
+			tester.abort( "Scheduling of the test failed", t );
 
             return( false );
         }
@@ -379,6 +379,10 @@ NetworkAdminSpeedTestScheduledTestImpl
 	    		
 	    		request.put("challenge_id", challenge_id );
 	
+    			request.put( "type", new Long( tester.getTestType()));
+    			request.put( "mode", new Long( tester.getMode()));
+    			request.put( "crypto", new Long( tester.getUseCrypto()?1:0));
+
 	    		if ( result.hadError()){
 	    			
 	    			request.put( "result", new Long(0));
@@ -391,9 +395,6 @@ NetworkAdminSpeedTestScheduledTestImpl
 
 	    			request.put( "maxup", new Long(result.getUploadSpeed()));
 	    			request.put( "maxdown", new Long(result.getDownloadSpeed()));
-	    			request.put( "type", new Long( tester.getTestType()));
-	    			request.put( "mode", new Long( tester.getMode()));
-	    			request.put( "crypto", new Long( tester.getUseCrypto()?1:0));
 	    		}
 	    		
 	    		sendRequest( request );

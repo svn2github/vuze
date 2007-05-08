@@ -44,6 +44,11 @@ NetworkAdminSpeedTesterImpl
     abort(
     	String	reason );
     
+    protected abstract void
+    abort(
+    	String		reason,
+    	Throwable 	cause );
+
 	public void addListener(NetworkAdminSpeedTesterListener listener) {
 		listeners.add( listener );
 	}

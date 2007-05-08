@@ -299,7 +299,18 @@ public class NetworkAdminSpeedTesterBTImpl
     	String		reason,
     	Throwable	cause )
     {
-    	abort( cause + ": " + Debug.getNestedExceptionMessage( cause ));
+    	String	msg;
+    	
+    	if ( cause instanceof RuntimeException ){
+    		
+    		msg = Debug.getNestedExceptionMessageAndStack( cause );
+    			
+    	}else{
+    		
+    		msg = Debug.getNestedExceptionMessage( cause );
+    	}
+    	
+    	abort( cause + ": " + msg );
     }
     
 	public void 
