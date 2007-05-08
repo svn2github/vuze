@@ -374,7 +374,7 @@ public class TorrentListViewsUtils
 		}
 
 		if (bComplete) {
-			String runFile = AdManager.getInstance().createASX(dm, file);
+			String runFile = null; // AdManager.getInstance().createASX(dm, file);
 			if (runFile == null) {
 				runFile = dm.getSaveLocation().toString();
 			}
