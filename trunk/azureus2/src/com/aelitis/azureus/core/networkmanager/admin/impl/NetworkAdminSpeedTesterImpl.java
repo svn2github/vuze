@@ -38,6 +38,7 @@ NetworkAdminSpeedTesterImpl
 {
     private CopyOnWriteList	listeners = new CopyOnWriteList();
 
+    private boolean	result_reported;
     
     protected abstract void
     abort(
@@ -54,10 +55,23 @@ NetworkAdminSpeedTesterImpl
 	 * Send a Result to all of the NetworkAdminSpeedTestListeners.
 	 * @param r - Result of the test.
 	 */
+	
 	protected void 
-	sendResultToListeners(NetworkAdminSpeedTesterResult r)
+	sendResultToListeners(
+		NetworkAdminSpeedTesterResult r )
 	{
-
+			// just report the first result in case an implementation hits this more than once
+		
+		synchronized( this ){
+			
+			if ( result_reported ){
+				
+				return;
+			}
+			
+			result_reported = true;
+		}
+		
 		Iterator	it = listeners.iterator();
 
 		while( it.hasNext()){
@@ -72,7 +86,9 @@ NetworkAdminSpeedTesterImpl
 		}
 	}
 
-	protected void sendStageUpdateToListeners(String status)
+	protected void 
+	sendStageUpdateToListeners(
+		String status )
 	{
 
 		Iterator	it = listeners.iterator();

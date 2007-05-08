@@ -38,6 +38,13 @@ public interface NetworkAdminSpeedTester
 
     public int getMode();
     
+    public void
+    setUseCrypto(
+    	boolean	use_crypto );
+    
+    public boolean
+    getUseCrypto();
+    
     public void addListener( NetworkAdminSpeedTesterListener listener);
     
     public void removeListener( NetworkAdminSpeedTesterListener listener);

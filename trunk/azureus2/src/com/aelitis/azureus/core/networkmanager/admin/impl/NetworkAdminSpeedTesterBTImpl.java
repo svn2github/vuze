@@ -115,9 +115,12 @@ public class NetworkAdminSpeedTesterBTImpl
 
      
     private boolean	test_started;
+    private boolean	test_completed;
+    
+    private boolean	use_crypto;
     
     private volatile boolean	aborted;
-    
+    private String				deferred_abort;
 
     /**
      *
@@ -141,6 +144,19 @@ public class NetworkAdminSpeedTesterBTImpl
     getMode()
     {
     	return( testMode );
+    }
+    
+    public void
+    setUseCrypto(
+    	boolean	_use_crypto )
+    {
+    	use_crypto = _use_crypto;
+    }
+    
+    public boolean
+    getUseCrypto()
+    {
+    	return( use_crypto );
     }
     
     /**
@@ -206,7 +222,10 @@ public class NetworkAdminSpeedTesterBTImpl
             
             core_download.getDownloadState().setIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS, 10 );
             
-            core_download.setCryptoLevel( NetworkManager.CRYPTO_OVERRIDE_REQUIRED );
+            if ( use_crypto ){
+            	
+            	core_download.setCryptoLevel( NetworkManager.CRYPTO_OVERRIDE_REQUIRED );
+            }
             
             core_download.addPeerListener(
             		new DownloadManagerPeerListener()
@@ -261,17 +280,56 @@ public class NetworkAdminSpeedTesterBTImpl
 
         }catch( Throwable e){
         	
-            sendResultToListeners( new BitTorrentResult("Could not start test due to: "+e) );
+        	test_completed = true;
+        	
+            abort( "Could not start test", e );
         }
     }
 
 	
-	/**
-	 *
-	 */
-	public void abort( String reason ){
-		aborted	= true;
-        sendResultToListeners( new BitTorrentResult("Test aborted: " + reason ));
+    public void
+    complete(
+    	NetworkAdminSpeedTesterResult		result )
+    {
+    	sendResultToListeners( result );
+    }
+    
+    protected void
+    abort(
+    	String		reason,
+    	Throwable	cause )
+    {
+    	abort( cause + ": " + Debug.getNestedExceptionMessage( cause ));
+    }
+    
+	public void 
+	abort( 
+		String reason )
+	{
+		reason = "Test aborted: " + reason;
+		
+		synchronized( this ){
+			
+			if ( aborted ){
+				
+				return;
+			}
+			
+			aborted = true;
+		
+				// we need to defer the reporting of a failure until the test is complete
+				// as this prevents us from starting another test while the current one is
+				// terminating
+			
+			if ( test_started && !test_completed ){
+				
+				deferred_abort = reason;
+				
+				return;
+			}
+		}
+		
+        sendResultToListeners( new BitTorrentResult( reason ));
     }
 
 
@@ -336,145 +394,164 @@ public class NetworkAdminSpeedTesterBTImpl
 
         public void run()
         {
-            Set	connected_peers 	= new HashSet();
-            Set	not_choked_peers 	= new HashSet();
-            Set	not_choking_peers 	= new HashSet();
-                           
-            try
-            {
-                startTime = SystemTime.getCurrentTime();
-                peakTime = startTime;
+        	try{
+	            Set	connected_peers 	= new HashSet();
+	            Set	not_choked_peers 	= new HashSet();
+	            Set	not_choking_peers 	= new HashSet();
+	                           
+	            try{
+	            
+	                startTime = SystemTime.getCurrentTime();
+	                peakTime = startTime;
+	
+	                boolean testDone=false;
+	                long lastTotalTransferredBytes=0;
+	
+	                sendStageUpdateToListeners("starting test...");
+	                  while( !( testDone || aborted )){
+	
+	                	int state = testDownload.getState();
+	                	
+	                	if ( state == Download.ST_ERROR ){
+	                		
+	                		abort( "Test download entered error state '" + testDownload.getErrorStateDetails() + "'" );
+	                		
+	                		break;
+	                	}
+	                	
+	                	if (  state == Download.ST_STOPPED ){
+	                		
+	                		abort( "Test downloaded entered queued/stopped state" );
+	                		
+	                		break;
+	                	}
+	                	
+	                	PeerManager pm = testDownload.getPeerManager();
+	                	
+	                	if ( pm != null ){
+	                		
+	                		Peer[] peers = pm.getPeers();
+	                		
+	                		for ( int i=0;i<peers.length;i++){
+	                			
+	                			Peer peer = peers[i];
+	                			
+	                				// use the IP as the key so we don't count reconnects multiple times
+	                			
+	                			String	key = peer.getIp();
+	                			
+	                			connected_peers.add( key );
+	                			
+	                			if ( !peer.isChoked()){
+	                				
+	                				not_choked_peers.add( key );
+	                			}
+	                			
+	                			if ( !peer.isChoking()){
+	                				
+	                				not_choking_peers.add( key );
+	                			}
+	                		}
+	                	}
+	                	
+	                    long currTime = SystemTime.getCurrentTime();
+	                    DownloadStats stats = testDownload.getStats();
+	                    historyDownloadSpeed.add( autoboxLong(stats.getDownloaded()) );
+	                    historyUploadSpeed.add( autoboxLong(stats.getUploaded()) );
+	                    timestamps.add( autoboxLong(currTime) );
+	
+	                    updateTestProgress(currTime,stats);
+	
+	                    lastTotalTransferredBytes = checkForNewPeakValue( stats, lastTotalTransferredBytes, currTime );
+	
+	                    testDone = checkForTestDone();
+	                    if(testDone)
+	                        break;
+	
+	                    try{ Thread.sleep(1000); }
+	                    catch(InterruptedException ie){
+	                        //someone interrupted this thread for a reason. "test is now over"
+	                        abort( "TorrentSpeedTestMonitorThread was interrupted before test completed" );
+	 
+	                        break;
+	                    }
+	
+	                }
+	
+	                //It is time to stop the test.
+	                try{
+	                	if ( testDownload.getState() != Download.ST_STOPPED){
+	                		try{
+	                			testDownload.stop();
+	                		}catch( Throwable e ){
+	                			Debug.printStackTrace(e);
+	                		}
+	                	}
+	                	testDownload.remove(true,true);
+	                	
+	                }catch(DownloadException de){
+	                	
+	                    abort( "TorrentSpeedTestMonitorThread could not stop the torrent "+testDownload.getName(), de);
+	                    
+	                }catch(DownloadRemovalVetoException drve){
 
-                boolean testDone=false;
-                long lastTotalTransferredBytes=0;
-
-                sendStageUpdateToListeners("starting test...");
-                  while( !( testDone || aborted )){
-
-                	int state = testDownload.getState();
-                	
-                	if ( state == Download.ST_ERROR ){
-                		
-                		abort( "Test download entered error state '" + testDownload.getErrorStateDetails() + "'" );
-                		
-                		break;
-                	}
-                	
-                	if (  state == Download.ST_STOPPED ){
-                		
-                		abort( "Test downloaded entered queued/stopped state" );
-                		
-                		break;
-                	}
-                	
-                	PeerManager pm = testDownload.getPeerManager();
-                	
-                	if ( pm != null ){
-                		
-                		Peer[] peers = pm.getPeers();
-                		
-                		for ( int i=0;i<peers.length;i++){
-                			
-                			Peer peer = peers[i];
-                			
-                			connected_peers.add( peer );
-                			
-                			if ( !peer.isChoked()){
-                				
-                				not_choked_peers.add( peer );
-                			}
-                			
-                			if ( !peer.isChoking()){
-                				
-                				not_choking_peers.add( peer );
-                			}
-                		}
-                	}
-                	
-                    long currTime = SystemTime.getCurrentTime();
-                    DownloadStats stats = testDownload.getStats();
-                    historyDownloadSpeed.add( autoboxLong(stats.getDownloaded()) );
-                    historyUploadSpeed.add( autoboxLong(stats.getUploaded()) );
-                    timestamps.add( autoboxLong(currTime) );
-
-                    updateTestProgress(currTime,stats);
-
-                    lastTotalTransferredBytes = checkForNewPeakValue( stats, lastTotalTransferredBytes, currTime );
-
-                    testDone = checkForTestDone();
-                    if(testDone)
-                        break;
-
-                    try{ Thread.sleep(1000); }
-                    catch(InterruptedException ie){
-                        //someone interrupted this thread for a reason. "test is now over"
-                        abort( "TorrentSpeedTestMonitorThread was interrupted before test completed" );
- 
-                        break;
-                    }
-
-                }
-
-                //It is time to stop the test.
-                try{
-                	if ( testDownload.getState() != Download.ST_STOPPED){
-                		try{
-                			testDownload.stop();
-                		}catch( Throwable e ){
-                			Debug.printStackTrace(e);
-                		}
-                	}
-                	testDownload.remove(true,true);
-                }catch(DownloadException de){
-                    String msg = "TorrentSpeedTestMonitorThread could not stop the torrent "+testDownload.getName();
-                    sendResultToListeners( new BitTorrentResult(msg) );
-                }catch(DownloadRemovalVetoException drve){
-                    String msg = "TorrentSpeedTestMonitorTheard could not remove the torrent "+testDownload.getName();
-                    sendResultToListeners( new BitTorrentResult(msg) );
-                }
-
-            }catch(Exception e){
-                abort(Debug.getNestedExceptionMessage(e));
-            }
-
-            if ( !aborted ){
-            	
-            		// check the stats for peers we connected to during the test
-            	
-            	sendStageUpdateToListeners( "Connection stats: peers=" + connected_peers.size() + ", down_ok=" + not_choked_peers.size() + ", up_ok=" + not_choking_peers.size());
-            	
-	            if ( connected_peers.size() == 0 ){
+	                	abort( "TorrentSpeedTestMonitorTheard could not remove the torrent "+testDownload.getName(), drve);
+	                }
+	
+	            }catch(Exception e){
 	            	
-	            	abort( "Failed to connect to any peers" );
-
-
-                }else if ( not_choking_peers.size() == 0 && testMode!=TEST_TYPE_DOWNLOAD_ONLY ){
-	            	
-	            	abort( "Could not upload to any of the peers - insufficient upload slots" );
-	            	
-	            }else if ( not_choked_peers.size() == 0 && testMode!=TEST_TYPE_UPLOAD_ONLY){
-	            	
-	            	abort( "Could not download from any of the peers as never unchoked by them" );
+	                abort( "Test execution failed", e );
 	            }
-            }
-            
-            if ( !aborted ){
-            	
-	            //calculate the measured download rate.
-	            NetworkAdminSpeedTesterResult r = calculateDownloadRate();
 	
-	            lastResult = r;
+	            if ( !aborted ){
+	            	
+	            		// check the stats for peers we connected to during the test
+	            	
+	            	sendStageUpdateToListeners( "Connection stats: peers=" + connected_peers.size() + ", down_ok=" + not_choked_peers.size() + ", up_ok=" + not_choking_peers.size());
+	            	
+		            if ( connected_peers.size() == 0 ){
+		            	
+		            	abort( "Failed to connect to any peers" );
+	
+	                }else if ( not_choking_peers.size() == 0 && testMode!=TEST_TYPE_DOWNLOAD_ONLY ){
+		            	
+		            	abort( "Could not upload to any of the peers - insufficient upload slots" );
+		            	
+		            }else if ( not_choked_peers.size() == 0 && testMode!=TEST_TYPE_UPLOAD_ONLY){
+		            	
+		            	abort( "Could not download from any of the peers as never unchoked by them" );
+		            }
+	            }
 	            
-	            	// TODO: persist it
-	            
-	            //Log the result.
-	            AEDiagnosticsLogger diagLogger = AEDiagnostics.getLogger("v3.STres");
-	            diagLogger.log(r.toString());
-	
-	            sendResultToListeners(r);
-	
-	            Debug.out("Finished with bandwidth testing. "+r.toString() );
-            }
+	            if ( !aborted ){
+	            	
+		            //calculate the measured download rate.
+		            NetworkAdminSpeedTesterResult r = calculateDownloadRate();
+		
+		            lastResult = r;
+		            
+		            	// TODO: persist it
+		            
+		            //Log the result.
+		            AEDiagnosticsLogger diagLogger = AEDiagnostics.getLogger("v3.STres");
+		            diagLogger.log(r.toString());
+		
+		            complete(r);
+		
+		            Debug.out("Finished with bandwidth testing. "+r.toString() );
+	            }
+        	}finally{
+        		
+        		synchronized( NetworkAdminSpeedTesterBTImpl.this ){
+        			
+        			test_completed	= true;
+        			
+        			if ( deferred_abort != null ){
+        				
+        		        sendResultToListeners( new BitTorrentResult( deferred_abort ));
+        			}
+        		}
+        	}
         }//run.
 
         /**

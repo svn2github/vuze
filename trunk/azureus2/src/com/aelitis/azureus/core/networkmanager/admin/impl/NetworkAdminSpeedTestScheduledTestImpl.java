@@ -391,6 +391,9 @@ NetworkAdminSpeedTestScheduledTestImpl
 
 	    			request.put( "maxup", new Long(result.getUploadSpeed()));
 	    			request.put( "maxdown", new Long(result.getDownloadSpeed()));
+	    			request.put( "type", new Long( tester.getTestType()));
+	    			request.put( "mode", new Long( tester.getMode()));
+	    			request.put( "crypto", new Long( tester.getUseCrypto()?1:0));
 	    		}
 	    		
 	    		sendRequest( request );
