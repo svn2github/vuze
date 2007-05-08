@@ -41,6 +41,7 @@ public class CarbonUIEnhancer {
    private static final int kHICommandServices= ('s'<<24) + ('e'<<16) + ('r'<<8) + 'v';
    private static final int kHICommandWizard = ('a'<<24) + ('z'<<16) + ('c' << 8) + 'n';
    private static final int kHICommandNatTest = ('a'<<24) + ('z'<<16) + ('n' << 8) + 't';
+   private static final int kHICommandSpeedTest = ('a'<<24) + ('z'<<16) + ('s'<<8) + 't';
    private static final int kHICommandRestart = ('a'<<24) + ('z'<<16) + ('r'<<8) + 's';
 
    private static final int typeAEList = ('l'<<24) + ('i'<<16) + ('s'<<8) + 't';
@@ -57,8 +58,9 @@ public class CarbonUIEnhancer {
    private static String fgWizardActionName;
    private static String fgNatTestActionName;
    private static String fgRestartActionName;
+   private static String fgSpeedTestActionName;
 
-	private static int memmove_type = 0;
+    private static int memmove_type = 0;
 
    public CarbonUIEnhancer() {
       if (fgAboutActionName == null) {
@@ -72,6 +74,9 @@ public class CarbonUIEnhancer {
       }
       if(fgRestartActionName == null) {
           fgRestartActionName = MessageText.getString("MainWindow.menu.file.restart").replaceAll("&", "");
+      }
+      if(fgSpeedTestActionName == null){
+          fgRestartActionName = MessageText.getString("MainWindow.menu.tools.speedtest").replaceAll("&","");
       }
       earlyStartup();
       registerTorrentFile();
@@ -280,17 +285,26 @@ public class CarbonUIEnhancer {
          OS.CFRelease(str);
          
 
-          OS.InsertMenuItemTextWithCFString(menu, 0, (short) 5, OS.kMenuItemAttrSeparator, 0);
+          //SpeedTest
+          l = fgSpeedTestActionName.length();
+          buffer = new char[1];
+          fgSpeedTestActionName.getChars(0,l,buffer,0);
+          str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
+          OS.InsertMenuItemTextWithCFString(menu, str, (short) 5, 0, kHICommandSpeedTest);
+          OS.CFRelease(str);
+
+
+          OS.InsertMenuItemTextWithCFString(menu, 0, (short) 6, OS.kMenuItemAttrSeparator, 0);
 
           // restart menu
          l= fgRestartActionName.length();
          buffer= new char[l];
          fgRestartActionName.getChars(0, l, buffer, 0);
          str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-         OS.InsertMenuItemTextWithCFString(menu, str, (short) 6, 0, kHICommandRestart);
+         OS.InsertMenuItemTextWithCFString(menu, str, (short) 7, 0, kHICommandRestart);
          OS.CFRelease(str);
 
-          OS.InsertMenuItemTextWithCFString(menu, 0, (short) 7, OS.kMenuItemAttrSeparator, 0);
+          OS.InsertMenuItemTextWithCFString(menu, 0, (short) 8, OS.kMenuItemAttrSeparator, 0);
       }
 
       // schedule disposal of callback object
