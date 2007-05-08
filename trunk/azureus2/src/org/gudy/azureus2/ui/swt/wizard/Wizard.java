@@ -86,7 +86,7 @@ public class Wizard {
   	azureus_core	= _azureus_core;
     this.display 	= display;
     
-    wizardWindow = ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM | SWT.RESIZE);
+    wizardWindow = ShellFactory.createShell(SWT.DIALOG_TRIM | SWT.RESIZE);
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
