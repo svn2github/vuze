@@ -187,11 +187,9 @@ NetworkAdminSpeedTestScheduledTestImpl
 			return( true );
 			
 		}else{
-			
-			tester.abort( "Scheduling of the test failed");
-		}
 		
-		return( false );
+			return( false );
+		}
 	}
 	
 	public void
@@ -220,7 +218,7 @@ NetworkAdminSpeedTestScheduledTestImpl
      *
      * @return boolean - true if the test has been reserved with the service.
      */
-    private boolean 
+    private boolean
     schedule()
     {
         try{
@@ -254,16 +252,19 @@ NetworkAdminSpeedTestScheduledTestImpl
             challenge_id = (byte[]) result.get("challenge_id");
 
             if( challenge_id == null ){
-                throw new IllegalStateException("scheduleTestWithSpeedTestService returned no challenge_id.");
+            	
+                throw new IllegalStateException("No challenge returned from speed test scheduling service");
             }
         
             Long responseType =  (Long) result.get("reply_type");
 
             if( responseType.intValue()==1 ){
-                //a challenge has occured.
+                	//a challenge has occured.
                 result = handleChallengeFromSpeedTestService( result );
+                
                 responseType = (Long) result.get("reply_type");
             }
+            
             if( responseType.intValue()==0 ){
                 	//a test has been scheduled.
                 	//set the Map properly.
@@ -272,7 +273,7 @@ NetworkAdminSpeedTestScheduledTestImpl
                 Long limit = (Long) result.get("limit");
 
                 if( time==null || limit==null ){
-                    throw new IllegalArgumentException("scheduleTestWithSpeedTestService had a null parameter.");
+                    throw new IllegalArgumentException("Returned time or limit parameter is null");
                 }
                 
                 delay_millis 	= time.longValue();
@@ -284,16 +285,19 @@ NetworkAdminSpeedTestScheduledTestImpl
     	
                 test_torrent = TOTorrentFactory.deserialiseFromMap(torrentMap);
 
-                return true;
+                return( true );
             }else{
-                throw new IllegalStateException( "Unrecongnized response from speed test scheduling servcie." );
+            	
+                throw new IllegalStateException( "Unrecognized response from speed test scheduling servcie." );
             }
 
-        }catch(Throwable t){
-        	
-        	reportStage( Debug.getNestedExceptionMessage( t ));
+        }catch( Throwable t ){
+        	       	
             Debug.printStackTrace(t);
-            return false;
+            			
+			tester.abort( "Scheduling of the test failed: " + Debug.getNestedExceptionMessage( t ));
+
+            return( false );
         }
     }
 
