@@ -29,28 +29,7 @@ SpeedManager
 {
 	public boolean
 	isAvailable();
-	
-	public void
-	setMinumumUploadSpeed(
-		int		speed );
-	
-	public int
-	getMinumumUploadSpeed();
-	
-	public void
-	setMaximumUploadSpeed(
-		int		speed );
-	
-	public int
-	getMaximumUploadSpeed();
-	
-	public int
-	getChokePingTime();
-	
-	public void
-	setChokePingTime(
-		int	milliseconds );
-	
+		
 	public void
 	setEnabled(
 		boolean		enabled );

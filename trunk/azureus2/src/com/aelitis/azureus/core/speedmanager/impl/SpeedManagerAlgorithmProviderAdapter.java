@@ -1,7 +1,7 @@
 /*
- * Created on 22-Mar-2006
+ * Created on May 7, 2007
  * Created by Paul Gardner
- * Copyright (C) 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2007 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,24 +15,64 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SAS au capital de 46,603.30 euros
+ * AELITIS, SAS au capital de 63.529,40 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
-package com.aelitis.azureus.core.speedmanager;
 
-import java.net.InetSocketAddress;
+package com.aelitis.azureus.core.speedmanager.impl;
 
 public interface 
-SpeedManagerPingSource 
+SpeedManagerAlgorithmProviderAdapter 
 {
-	public InetSocketAddress
-	getAddress();
+	public int
+	getCurrentProtocolUploadSpeed();
 	
 	public int
-	getPingTime();
+	getCurrentDataUploadSpeed();
+	
+	public int
+	getCurrentUploadLimit();
 	
 	public void
-	destroy();
+	setCurrentUploadLimit(
+		int		bytes_per_second );
+	
+	public int
+	getCurrentDownloadLimit();
+	
+		/**
+		 * Various config parameters
+		 * @param str
+		 */
+	
+	public int
+	getMaxUp();
+	
+	public int
+	getMinUp();
+	
+	public int
+	getForcedMinSpeed();
+	
+	public int
+	getMaxIncrement();
+	
+	public int
+	getMaxDecrement();
+	
+	public int
+	getPingChokeTime();
+	
+	public int
+	getLatencyFactor();
+	
+	public void
+	setLoggingEnabled(
+		boolean	enabled );
+	
+	public void
+	log(
+		String	str );
 }
