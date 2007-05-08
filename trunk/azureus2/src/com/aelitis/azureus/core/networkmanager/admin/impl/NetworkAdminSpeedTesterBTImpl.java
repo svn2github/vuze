@@ -218,8 +218,7 @@ public class NetworkAdminSpeedTesterBTImpl
                 			DiskManagerPiece[]	pieces = disk_manager.getPieces();
 
                             int startPiece = setStartPieceBasedOnMode(testMode,pieces.length);
-                            for ( int i=startPiece;i<pieces.length;i++ ){
-                            //for ( int i=(pieces.length/2);i<pieces.length;i++ ){
+                            for ( int i=startPiece; i<pieces.length; i++ ){
                                 pieces[i].setDone( true );
                 			}
             			}
@@ -531,7 +530,7 @@ public class NetworkAdminSpeedTesterBTImpl
             int i;
             for(i=0;i<numStats;i++ ){
                 thisTime = autoboxLong( timestamps.get(i) );
-                if(thisTime>=peakTime){
+                if(thisTime>peakTime){
                     break;
                 }
             }//for
