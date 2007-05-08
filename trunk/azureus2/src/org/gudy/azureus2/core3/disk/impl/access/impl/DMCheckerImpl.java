@@ -247,6 +247,13 @@ DMCheckerImpl
 		final DiskManagerCheckRequest			request,
 		final DiskManagerCheckRequestListener 	listener )
 	{  	
+		if ( !checking_enabled ){
+			
+			listener.checkCompleted( request, true );
+			
+			return;
+		}
+		
 		complete_recheck_progress		= 0;
 		complete_recheck_in_progress	= true;
 
