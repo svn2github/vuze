@@ -287,7 +287,7 @@ public class CarbonUIEnhancer {
 
           //SpeedTest
           l = fgSpeedTestActionName.length();
-          buffer = new char[1];
+          buffer = new char[l];
           fgSpeedTestActionName.getChars(0,l,buffer,0);
           str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
           OS.InsertMenuItemTextWithCFString(menu, str, (short) 5, 0, kHICommandSpeedTest);
