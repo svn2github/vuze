@@ -24,10 +24,12 @@ package org.gudy.azureus2.core3.util;
 
 import java.io.*;
 import java.net.URI;
+import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.platform.PlatformManager;
@@ -1065,6 +1067,38 @@ public class FileUtil {
       }
     }
 
+    public static File
+    getJarFileFromClass(
+    	Class		cla )
+    {
+    	try{
+	    	String str = cla.getName();
+	    	
+	    	str = str.replace( '.', '/' ) + ".class";
+	    	
+	        URL url = SWT.class.getClassLoader().getResource( str );
+	        
+	        if ( url != null ){
+	        	
+	        	String	url_str = url.toExternalForm();
+	
+	        	if ( url_str.startsWith("jar:file:")){
+	
+	        		File jar_file = FileUtil.getJarFileFromURL(url_str);
+	        		
+	        		if ( jar_file.exists()){
+	        			
+	        			return( jar_file );
+	        		}
+	        	}
+	        }
+    	}catch( Throwable e ){
+    		
+    		Debug.printStackTrace(e);
+    	}
+
+        return( null );
+    }
     
     public static File
 	getJarFileFromURL(

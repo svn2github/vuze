@@ -24,10 +24,13 @@
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Field;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,6 +47,7 @@ import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -229,18 +233,86 @@ NetworkAdminSpeedTestScheduledTestImpl
             request.put("request_type", new Long(REQUEST_TEST) );
 
             String id = COConfigurationManager.getStringParameter("ID","unknown");
-            String ver = COConfigurationManager.getStringParameter("azureus.version","0.0.0.0");
+            
+            	// get jar file its version for the test
+            
+            File	jar_file 		= null;
+            String	jar_version		= null;
+            
+            String	explicit_path = System.getProperty( "azureus.speed.test.challenge.jar.path", null );
+            
+            if ( explicit_path != null ){
+            	
+            	File	f = new File( explicit_path );
+            	
+            	if ( f.exists()){
+            		
+            		String v = getVersionFromJAR( f );
+            		
+            		if ( v != null ){
+            			
+             			jar_file	= f;
+            			jar_version	= v;
+            			
+               			System.out.println( "SpeedTest: using explicit challenge jar " + jar_file.getAbsolutePath() + ", version " + jar_version );
+            		}
+            	}
+            }
+            
+            if ( jar_file == null ){
+            	
+                String debug = System.getProperty("debug.speed.test.challenge","n");
 
+                if( !debug.equals( "n" )){
+                    
+                	//over-ride the jar version, and location for debugging.
+
+                	File f = new File( "C:\\test\\azureus\\Azureus3.0.1.2.jar" );
+
+                	if ( f.exists()){
+                		
+                		jar_file 	= f;
+                		jar_version = "3.0.1.2";
+                		
+              			System.out.println( "SpeedTest: using old spec challenge jar " + jar_file.getAbsolutePath() + ", version " + jar_version );
+                	}
+                }
+            }
+            	
+            if ( jar_file == null ){
+            
+            	jar_file = FileUtil.getJarFileFromClass( getClass());
+
+            	if ( jar_file != null ){
+            		
+            		jar_version = Constants.AZUREUS_VERSION;
+            		
+          			System.out.println( "SpeedTest: using class-based challenge jar " + jar_file.getAbsolutePath() + ", version " + jar_version );
+
+            	}else{
+            		
+            		File f = new File( SystemProperties.getAzureusJarPath());
+            		
+            		if ( f.exists()){
+            			
+            			jar_version = Constants.AZUREUS_VERSION;
+            			jar_file	= f;
+            			
+             			System.out.println( "SpeedTest: using config-based challenge jar " + jar_file.getAbsolutePath() + ", version " + jar_version );
+            		}
+            	}
+            }            
+            
+            if ( jar_file == null ){
+            	
+            	throw( new Exception( "Failed to locate an 'Azureus2.jar' to use for the challenge protocol" ));
+            }
+            
             //ToDo: remove once challenge testing is done.
-            String debug = System.getProperty("debug.speed.test.challenge","n");
-            if( !"n".equals(debug) ){
-                //over-ride the jar version, and location for debugging.
-                ver="3.0.1.2";
-            }//if
-
+   
             request.put("az-id",id); //Where to I get the AZ-ID and client version from the Configuration?
             request.put("type","both");
-            request.put("jar_ver",ver);
+            request.put("jar_ver",jar_version);
  
             if ( detectedRouter != null ){
             	
@@ -260,7 +332,7 @@ NetworkAdminSpeedTestScheduledTestImpl
 
             if( responseType.intValue()==1 ){
                 	//a challenge has occured.
-                result = handleChallengeFromSpeedTestService( result );
+                result = handleChallengeFromSpeedTestService( jar_file, result );
                 
                 responseType = (Long) result.get("reply_type");
             }
@@ -301,6 +373,38 @@ NetworkAdminSpeedTestScheduledTestImpl
         }
     }
 
+    private String
+    getVersionFromJAR(
+    	File	jar_file )
+    {
+		try{
+				// force the URLClassLoader to load from the URL and not delegate and find the currently
+				// jar's Constants
+			
+			ClassLoader parent = new ClassLoader()
+			{
+				protected synchronized Class 
+				loadClass(
+					String 		name,
+					boolean		resolve )
+				{
+					return( null );
+				}
+			};
+			
+			ClassLoader cl = new URLClassLoader(new URL[]{jar_file.toURI().toURL()}, parent);
+			
+	    	Class c = cl.loadClass( "org.gudy.azureus2.core3.util.Constants");
+
+	    	Field	field = c.getField( "AZUREUS_VERSION" );
+	    	
+	    	return((String)field.get( null ));
+	    	
+		}catch( Throwable e){
+						
+			return( null );
+		}
+    }
  
 
     /**
@@ -308,7 +412,11 @@ NetworkAdminSpeedTestScheduledTestImpl
      * @param result - Map from the previous response
      * @return Map - from the current response.
      */
-    private Map handleChallengeFromSpeedTestService(Map result){
+    private Map 
+    handleChallengeFromSpeedTestService(
+    	File		jar_file,
+    	Map 		result )
+    {
         //verify the following items are in the response.
 
         //size (in bytes)
@@ -324,18 +432,9 @@ NetworkAdminSpeedTestScheduledTestImpl
             if( size==null || offset==null  )
                 throw new IllegalStateException("scheduleTestWithSpeedTestService had a null parameter.");
 
-            //Find the location of the Azureus2.jar file.
-            String azureusJarPath = SystemProperties.getAzureusJarPath();
-
-            //ToDo: remove once challenge testing is done.
-            String debug = System.getProperty("debug.speed.test.challenge","n");
-            if( !"n".equals(debug) ){
-                //over-ride the jar version, and location for debugging.
-                azureusJarPath = "C:\\test\\azureus\\Azureus3.0.1.2.jar";
-            }//if
-
+ 
             //read the bytes
-            raf = new RandomAccessFile( azureusJarPath, "r" );
+            raf = new RandomAccessFile( jar_file, "r" );
             byte[] jarBytes = new byte[size.intValue()];
 
             raf.seek(offset.intValue());
