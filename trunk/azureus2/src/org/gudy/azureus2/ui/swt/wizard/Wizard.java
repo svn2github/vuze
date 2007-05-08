@@ -94,9 +94,8 @@ public class Wizard {
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     wizardWindow.setLayout(layout);
-    if(! Constants.isOSX) {
-      wizardWindow.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(wizardWindow);
+
     Composite cTitle = new Composite(wizardWindow, SWT.NULL);
     Color white = display.getSystemColor(SWT.COLOR_WHITE);
     cTitle.setBackground(white);
