@@ -405,6 +405,13 @@ DownloadManager
     public int
     getEffectiveUploadRateLimitBytesPerSecond();
 
+    public void
+    setCryptoLevel(
+    	int	level );
+    
+    public int
+    getCryptoLevel();
+    
         /**
          * Move data files to new location. Torrent must be in stopped/error state
          * @param new_parent_dir

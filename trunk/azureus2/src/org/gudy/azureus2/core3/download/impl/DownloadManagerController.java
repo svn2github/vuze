@@ -62,6 +62,7 @@ import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
@@ -419,6 +420,12 @@ DownloadManagerController
 						}
 												
 						return((int)((current_local+1023)/1024 ));
+					}
+					
+					public int 
+					getCryptoLevel() 
+					{
+						return( download_manager.getCryptoLevel());
 					}
 	    		});
 	    
@@ -1774,6 +1781,12 @@ DownloadManagerController
 	isPeerExchangeEnabled()
 	{
 		return( download_manager.getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_OTHER_PEER ));
+	}
+	
+	public int 
+	getCryptoLevel() 
+	{
+		return( download_manager.getCryptoLevel());
 	}
 	
 	public boolean

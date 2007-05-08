@@ -56,6 +56,14 @@ PEPeerManagerAdapter
 	public boolean
 	isPeerExchangeEnabled();
 	
+		/**
+		 * See NetworkManager.CRYPTO_OVERRIDE constants
+		 * @return
+		 */
+	
+	public int
+	getCryptoLevel();
+	
 	public boolean
 	isPeriodicRescanEnabled();
 	

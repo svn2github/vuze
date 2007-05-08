@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestScheduler;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
@@ -204,6 +205,8 @@ public class NetworkAdminSpeedTesterBTImpl
             	// make sure we've got a bunch of upload slots
             
             core_download.getDownloadState().setIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS, 10 );
+            
+            core_download.setCryptoLevel( NetworkManager.CRYPTO_OVERRIDE_REQUIRED );
             
             core_download.addPeerListener(
             		new DownloadManagerPeerListener()

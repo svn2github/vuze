@@ -7,11 +7,8 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.eclipse.swt.widgets.*;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.SWT;
@@ -96,7 +93,10 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         Label ul = new Label(panel, SWT.NULL );
         gridData = new GridData();
         ul.setLayoutData(gridData);
-        Messages.setLanguageText(ul, "SpeedTestWizard.set.upload.label");
+        Messages.setLanguageText(
+        		ul, 
+        		"SpeedTestWizard.set.upload.label", 
+        		new String[] { DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)});
 
         final Text uploadLimitSetting = new Text(panel, SWT.BORDER );
         gridData = new GridData(GridData.FILL_HORIZONTAL);

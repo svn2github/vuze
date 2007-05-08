@@ -53,6 +53,7 @@ import org.gudy.azureus2.plugins.network.ConnectionManager;
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -451,6 +452,8 @@ DownloadManagerImpl
     private int		current_upload_when_busy_bps;
     private long	last_upload_when_busy_update;
     private long	last_upload_when_busy_dec_time;
+    
+    private int		crypto_level = NetworkManager.CRYPTO_OVERRIDE_NONE;
     
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	
@@ -2915,6 +2918,19 @@ DownloadManagerImpl
 	boolean enable ) 
   {
     az_messaging_enabled = enable;
+  }
+  
+  public void
+  setCryptoLevel(
+	int		level )
+  {
+	  crypto_level = level;
+  }
+  
+  public int
+  getCryptoLevel()
+  {
+	  return( crypto_level );
   }
   
   public void

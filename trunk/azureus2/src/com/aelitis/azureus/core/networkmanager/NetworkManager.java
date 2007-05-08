@@ -193,7 +193,28 @@ public class NetworkManager {
     return max_download_rate_bps; 
   }
   
+  public static final int CRYPTO_OVERRIDE_NONE			= 0;
+  public static final int CRYPTO_OVERRIDE_REQUIRED		= 1;
+  public static final int CRYPTO_OVERRIDE_NOT_REQUIRED	= 2;
   
+  
+  public static boolean
+  getCryptoRequired(
+	int	override_level )
+  {
+	  if ( override_level == CRYPTO_OVERRIDE_NONE ){
+	    
+		  return( REQUIRE_CRYPTO_HANDSHAKE );
+		  
+	  }else if ( override_level == CRYPTO_OVERRIDE_REQUIRED ){
+	    		
+		  return( true );
+		  
+	  }else{
+		  
+		  return( false );
+	  }
+  }
   
   public void initialize() {
 	HTTPNetworkManager.getSingleton();  

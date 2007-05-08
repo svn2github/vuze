@@ -58,6 +58,7 @@ import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
@@ -1668,7 +1669,10 @@ TRTrackerBTAnnouncerImpl
   	request.append(info_hash);
   	request.append(tracker_peer_id_str);
   	
-	String	port_details = TRTrackerUtils.getPortsForURL();
+	String	port_details = 
+		announce_data_provider.getCryptoLevel()==NetworkManager.CRYPTO_OVERRIDE_REQUIRED?
+				TRTrackerUtils.getPortsForURLFullCrypto():
+				TRTrackerUtils.getPortsForURL();
 
   	request.append(port_details);
   	request.append("&uploaded=").append(announce_data_provider.getTotalSent());

@@ -341,7 +341,10 @@ PEPeerTransportProtocol
       return;
     }
 
-    boolean use_crypto = _require_crypto_handshake || NetworkManager.REQUIRE_CRYPTO_HANDSHAKE;  //either peer specific or global pref
+    	// either peer specific or global pref plus optional per-download level
+    
+    boolean use_crypto = 	_require_crypto_handshake || 
+    						NetworkManager.getCryptoRequired( manager.getAdapter().getCryptoLevel()); 
     
     if( isLANLocal() )  use_crypto = false;  //dont bother with PHE for lan peers
     
@@ -655,7 +658,9 @@ PEPeerTransportProtocol
     int local_tcp_port = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
     int local_udp_port = UDPNetworkManager.getSingleton().getUDPListeningPortNumber();
     int local_udp2_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
-       
+           
+    boolean require_crypto = NetworkManager.getCryptoRequired( manager.getAdapter().getCryptoLevel());
+    
     AZHandshake az_handshake = new AZHandshake(
         AZPeerIdentityManager.getAZPeerIdentity(),
         Constants.AZUREUS_NAME,
@@ -665,7 +670,7 @@ PEPeerTransportProtocol
         local_udp2_port,
         avail_ids,
         avail_vers,
-        NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ? AZHandshake.HANDSHAKE_TYPE_CRYPTO : AZHandshake.HANDSHAKE_TYPE_PLAIN,
+        require_crypto ? AZHandshake.HANDSHAKE_TYPE_CRYPTO : AZHandshake.HANDSHAKE_TYPE_PLAIN,
         other_peer_handshake_version );        
     
     connection.getOutgoingMessageQueue().addMessage( az_handshake, false );
