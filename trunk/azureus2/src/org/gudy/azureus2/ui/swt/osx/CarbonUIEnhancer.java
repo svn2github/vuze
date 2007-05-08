@@ -76,7 +76,7 @@ public class CarbonUIEnhancer {
           fgRestartActionName = MessageText.getString("MainWindow.menu.file.restart").replaceAll("&", "");
       }
       if(fgSpeedTestActionName == null){
-          fgRestartActionName = MessageText.getString("MainWindow.menu.tools.speedtest").replaceAll("&","");
+          fgSpeedTestActionName = MessageText.getString("MainWindow.menu.tools.speedtest").replaceAll("&", "");
       }
       earlyStartup();
       registerTorrentFile();
