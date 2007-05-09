@@ -353,6 +353,9 @@ public class MainMenu
 	private static void slide(final Control control, final FormData fd, final Point size) {
 		AERunnable runnable = new AERunnable() {
 			public void runSupport() {
+				if (control.isDisposed()) {
+					return;
+				}
 				if (true) {
 					fd.width = size.x;
 					fd.height = size.y;
