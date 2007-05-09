@@ -32,7 +32,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
@@ -44,8 +43,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
-
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
  * @author Olivier
@@ -103,6 +100,7 @@ public class ActivityView extends AbstractIView {
     downSpeedCanvas.setLayoutData(gridData);
     downSpeedGraphic = SpeedGraphic.getInstance();
     downSpeedGraphic.initialize(downSpeedCanvas);
+    Color[] colors = downSpeedGraphic.colors;
     
     Group gUpSpeed = new Group(panel,SWT.NULL);
     Messages.setLanguageText(gUpSpeed,"SpeedView.uploadSpeed.title");
@@ -115,6 +113,7 @@ public class ActivityView extends AbstractIView {
     upSpeedCanvas.setLayoutData(gridData);
     upSpeedGraphic = SpeedGraphic.getInstance();
     upSpeedGraphic.initialize(upSpeedCanvas);
+		upSpeedGraphic.setLineColors(colors);
   
 		String[] colorConfigs = new String[] {
 			"ActivityView.legend.peeraverage",
@@ -124,24 +123,7 @@ public class ActivityView extends AbstractIView {
 			"ActivityView.legend.trimmed"
 		};
 
-		Legend.createLegendComposite(panel, downSpeedGraphic.colors, colorConfigs);
-		
-		for (int i = 0; i < colorConfigs.length; i++) {
-			String configID = colorConfigs[i];
-			final int pos = i;
-			COConfigurationManager.addParameterListener(configID, new ParameterListener() {
-				public void parameterChanged(String id) {
-					int r = COConfigurationManager.getIntParameter(id + ".red", -1);
-					if (r >= 0) {
-						int g = COConfigurationManager.getIntParameter(id + ".green");
-						int b = COConfigurationManager.getIntParameter(id + ".blue");
-						Color color = ColorCache.getColor(panel.getDisplay(), r, g, b);
-						upSpeedGraphic.colors[pos] = color;
-					}
-					upSpeedCanvas.redraw();
-				}
-			});
-		}
+		Legend.createLegendComposite(panel, colors, colorConfigs);
   }
   
   public void delete() {    

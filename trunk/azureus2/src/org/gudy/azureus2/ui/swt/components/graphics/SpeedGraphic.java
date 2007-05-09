@@ -415,6 +415,15 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 		if (trimmed != null) {
 			colors[COLOR_TRIMMED] = trimmed;
 		}
-		drawCanvas.redraw();
+		if (drawCanvas != null && !drawCanvas.isDisposed()) {
+			drawCanvas.redraw();
+		}
+	}
+	
+	public void setLineColors(Color[] newChangeableColorSet) {
+		colors = newChangeableColorSet;
+		if (drawCanvas != null && !drawCanvas.isDisposed()) {
+			drawCanvas.redraw();
+		}
 	}
 }
