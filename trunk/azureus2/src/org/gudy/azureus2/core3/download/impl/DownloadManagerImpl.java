@@ -733,6 +733,15 @@ DownloadManagerImpl
 				 	
 					download_manager_state.setLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME, SystemTime.getCurrentTime());
 					 
+				 		// propagate initial properties from torrent to download
+					 
+					boolean	low_noise = TorrentUtils.getFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE );
+					
+					if ( low_noise ){
+						
+						download_manager_state.setFlag( DownloadManagerState.FLAG_LOW_NOISE, true );
+					}
+							
 				 	download_manager_state.setTrackerResponseCache( new HashMap());
 				 	
 				 		// also remove resume data incase someone's published a torrent with resume
@@ -751,50 +760,25 @@ DownloadManagerImpl
 				 	}
 				 }else{
 					 
-			       long	add_time = download_manager_state.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
-			        
-			       if ( add_time == 0 ){
-			    	  
-			        		// grab an initial value from torrent file - migration only
-			    	   
-			        	try{
-			        		add_time = new File( torrentFileName ).lastModified();
-			        		
-			        	}catch( Throwable e ){
-			        	}
-			        	
-			        	if ( add_time == 0 ){
-			        		
-			        		add_time = SystemTime.getCurrentTime();
-			        	}
-			        	
-			        	download_manager_state.setLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME, add_time );
-			        	
-			        }else{
+					 long	add_time = download_manager_state.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
 
-			        		// HACK to recover from error where add-time was getting set to complete-time
-					       
-					    if ( Constants.AZUREUS_VERSION.equals( "3.0.1.3_B9" )) {
-					    	
-							long completedOn = download_manager_state.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+					 if ( add_time == 0 ){
 
-							long	now = SystemTime.getCurrentTime();
-							
-							if ( completedOn == 0 && now - add_time < 5*24*60*60*1000 ){
-								
-						        try{
-						        	add_time = new File( torrentFileName ).lastModified();
-						        	
-							        if ( add_time != 0 ){
-							        	
-							        	download_manager_state.setLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME, add_time );
-							        }
+						 // grab an initial value from torrent file - migration only
 
-						        }catch( Throwable e ){
-						        }
-							}
-					    }
-			        }
+						 try{
+							 add_time = new File( torrentFileName ).lastModified();
+
+						 }catch( Throwable e ){
+						 }
+
+						 if ( add_time == 0 ){
+
+							 add_time = SystemTime.getCurrentTime();
+						 }
+
+						 download_manager_state.setLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME, add_time );
+					 }
 				 }
 				 
 		         

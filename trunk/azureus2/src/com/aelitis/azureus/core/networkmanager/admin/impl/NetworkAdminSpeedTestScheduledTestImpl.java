@@ -383,12 +383,28 @@ NetworkAdminSpeedTestScheduledTestImpl
 			
 			ClassLoader parent = new ClassLoader()
 			{
+				public synchronized Class 
+				loadClass(
+					String 		name )
+				
+					throws ClassNotFoundException
+				{
+					return( loadClass( name, false ));
+				}
+				
 				protected synchronized Class 
 				loadClass(
 					String 		name,
 					boolean		resolve )
+				
+					throws ClassNotFoundException
 				{
-					return( null );
+					if ( name.equals( "org.gudy.azureus2.core3.util.Constants")){
+					
+						throw( new ClassNotFoundException());
+					}
+					
+					return( super.loadClass( name, resolve ));
 				}
 			};
 			

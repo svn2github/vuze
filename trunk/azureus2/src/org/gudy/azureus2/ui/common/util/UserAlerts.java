@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerListener;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
@@ -67,7 +68,10 @@ UserAlerts
 				public void
 				downloadComplete(DownloadManager manager)
 				{
-					activityFinished(true, manager.getDisplayName(), manager);
+					if( !manager.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE )){
+						
+						activityFinished(true, manager.getDisplayName(), manager);
+					}
 				}
 			}; 
 		
@@ -99,10 +103,15 @@ UserAlerts
 					int						old_mode,
 					int						new_mode )
 				{
+					DownloadManager dm = file.getDownloadManager();
+				
 					if ( 	old_mode == DiskManagerFileInfo.WRITE &&
 							new_mode == DiskManagerFileInfo.READ ){
 						
-						activityFinished(false, file.getFile(true).getName(), file.getDiskManager());
+						if( dm == null || !dm.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE )){
+
+							activityFinished(false, file.getFile(true).getName(), file.getDiskManager());
+						}
 					}
 				
 					/*
@@ -138,14 +147,23 @@ UserAlerts
 				public void 
 				downloadManagerAdded(DownloadManager manager) 
 				{
-					if (!startup) {
-  					boolean bPopup = COConfigurationManager.getBooleanParameter("Popup Download Added");
-  					if (bPopup) {
-  						String popup_text = MessageText.getString("popup.download.added",
-  								new String[] { manager.getDisplayName()
-  						});
-  						Logger.log(new LogAlert(manager, true, LogAlert.AT_INFORMATION, popup_text));
-  					}
+						// don't pop up for non-persistent as these get added late in the day every time
+						// so we'll notify for each download every startup
+					
+					if (!startup && manager.isPersistent()) {
+						
+						boolean bPopup = COConfigurationManager.getBooleanParameter("Popup Download Added");
+
+						if ( bPopup ){
+
+							if( !manager.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE )){
+
+								String popup_text = MessageText.getString("popup.download.added",
+										new String[] { manager.getDisplayName()
+								});
+								Logger.log(new LogAlert(manager, true, LogAlert.AT_INFORMATION, popup_text));
+							}
+						}
 					}
 					
 					manager.addListener( download_manager_listener );

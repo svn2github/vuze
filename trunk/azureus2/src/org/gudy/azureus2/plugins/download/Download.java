@@ -116,7 +116,7 @@ Download extends DownloadEventNotifier
 	 * 
 	 * @since 2.5.0.1
 	 */
-	public static final long FLAG_DISABLE_AUTO_FILE_MOVE   = 0x00000004;
+	public static final long FLAG_DISABLE_AUTO_FILE_MOVE 	= 0x00000004;
 
     /**
      * Flag value - if set, then it means this download has been considered
@@ -125,8 +125,16 @@ Download extends DownloadEventNotifier
      * 
      * @since 2.5.0.1
      */
-    public static final long FLAG_MOVE_ON_COMPLETION_DONE  = 0x00000008;
+    public static final long FLAG_MOVE_ON_COMPLETION_DONE	= 0x00000008;
 	
+    /**
+     * Flag value - if set the user won't be bothered with popups/completion events during
+     * the download's life. This is used, for example, for downloads used to run speed-tests
+     * @since 3.0.1.3
+     */
+    
+    public static final long FLAG_LOW_NOISE					= 0x00000010;
+
 	/** get state from above ST_ set
    * @return ST_ constant
    *

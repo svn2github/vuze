@@ -68,6 +68,7 @@ DownloadManagerState
 	public static final long FLAG_SCAN_INCOMPLETE_PIECES	= Download.FLAG_SCAN_INCOMPLETE_PIECES;
 	public static final long FLAG_DISABLE_AUTO_FILE_MOVE    = Download.FLAG_DISABLE_AUTO_FILE_MOVE;
 	public static final long FLAG_MOVE_ON_COMPLETION_DONE   = Download.FLAG_MOVE_ON_COMPLETION_DONE;
+	public static final long FLAG_LOW_NOISE					= Download.FLAG_LOW_NOISE;
 	
 	public static final String	PARAM_MAX_PEERS							= "max.peers";
 	public static final String	PARAM_MAX_PEERS_WHEN_SEEDING			= "max.peers.when.seeding";

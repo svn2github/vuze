@@ -180,6 +180,8 @@ public class NetworkAdminSpeedTesterBTImpl
         try{
             sendStageUpdateToListeners("requesting test...");
 
+            TorrentUtils.setFlag( tot, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
+            
             Torrent torrent = new TorrentImpl(tot);
             String fileName = torrent.getName();
 
@@ -271,7 +273,7 @@ public class NetworkAdminSpeedTesterBTImpl
             speed_download.moveTo( 1 );
             
             speed_download.setFlag( Download.FLAG_DISABLE_AUTO_FILE_MOVE, true );
-
+            
             core_download.initialize();
             
             core_download.setForceStart( true );
