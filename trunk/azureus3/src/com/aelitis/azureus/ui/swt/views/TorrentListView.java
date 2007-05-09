@@ -268,14 +268,13 @@ public class TorrentListView
 		this.globalManager = core.getGlobalManager();
 		//globalManager.addListener(this, false);
 
-
 		dataArea.layout();
 		_expandNameColumn();
-		
+
 		addLifeCycleListener(new TableLifeCycleListener() {
 			public void tableViewInitialized() {
 				globalManager.addListener(TorrentListView.this, false);
-				
+
 				// Needed or Java borks!
 				dataArea.getDisplay().asyncExec(new AERunnable() {
 					public void runSupport() {
@@ -286,7 +285,8 @@ public class TorrentListView
 						DownloadManager[] managers = sortDMList(globalManager.getDownloadManagers());
 						bSkipUpdateCount = true;
 
-						int max = (dataArea.getClientArea().height - 8) / ListRow.ROW_HEIGHT;
+						int max = (dataArea.getClientArea().height - 8)
+								/ ListRow.ROW_HEIGHT;
 						for (int i = 0; i < managers.length; i++) {
 							DownloadManager dm = managers[i];
 							downloadManagerAdded(dm);
@@ -313,16 +313,16 @@ public class TorrentListView
 					}
 				});
 			}
-		
+
 			public void tableViewDestroyed() {
 				globalManager.removeListener(TorrentListView.this);
 			}
 		});
-		
+
 		addKeyListener(new KeyListener() {
 			public void keyReleased(KeyEvent e) {
 			}
-		
+
 			public void keyPressed(KeyEvent e) {
 				if (e.keyCode == SWT.F5) {
 					Object[] selectedDataSources = getSelectedDataSources();
