@@ -191,6 +191,12 @@ SpeedTestPanel
         encryptToggle.setLayoutData(gridData);
         encryptToggle.addListener(SWT.Selection, new EncryptToggleButtonListener() );
 
+        //finish line
+        Label spacer2 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 2;
+        spacer2.setLayoutData(gridData);
+
         //test count down section.
         Label abortCountDown = new Label(panel, SWT.NULL);
         gridData = new GridData();
