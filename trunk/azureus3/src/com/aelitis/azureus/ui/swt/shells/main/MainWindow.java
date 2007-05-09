@@ -233,7 +233,8 @@ public class MainWindow
 				&& SystemTime.getCurrentTime()
 						- dm.getDownloadState().getLongParameter(
 								DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME) < 10000
-				&& !PublishUtils.isPublished(dm)) {
+				&& !PublishUtils.isPublished(dm)
+				&& !dm.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE )){
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
