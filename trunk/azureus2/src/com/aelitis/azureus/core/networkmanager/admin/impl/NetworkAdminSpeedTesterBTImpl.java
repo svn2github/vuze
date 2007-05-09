@@ -268,10 +268,12 @@ public class NetworkAdminSpeedTesterBTImpl
             			}
                 	});
  
+            speed_download.moveTo( 1 );
+            
+            speed_download.setFlag( Download.FLAG_DISABLE_AUTO_FILE_MOVE, true );
+
             core_download.initialize();
             
-            core_download.setForceStart( true );
-                        
             TorrentSpeedTestMonitorThread monitor = new TorrentSpeedTestMonitorThread( speed_download );
             
             monitor.start();
@@ -435,6 +437,16 @@ public class NetworkAdminSpeedTesterBTImpl
 	                		abort( "Test downloaded entered queued/stopped state" );
 	                		
 	                		break;
+	                	}
+	                	
+	                		// due to the cruddy separation of control for normal + force-start downloads we
+	                		// only kick in a force-start if it has gone queued. If we hit force-start earlier on 
+	                		// then we can get up to a 10 second delay while the global-manager gets off its arse
+	                		// and schedules the download
+	                	
+	                	if ( state == Download.ST_QUEUED ){
+	                		
+	                		testDownload.setForceStart( true );
 	                	}
 	                	
 	                	PeerManager pm = testDownload.getPeerManager();
