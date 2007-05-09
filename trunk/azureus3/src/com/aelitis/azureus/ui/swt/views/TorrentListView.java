@@ -279,6 +279,10 @@ public class TorrentListView
 				// Needed or Java borks!
 				dataArea.getDisplay().asyncExec(new AERunnable() {
 					public void runSupport() {
+						if (dataArea.isDisposed()) {
+							return;
+						}
+
 						DownloadManager[] managers = sortDMList(globalManager.getDownloadManagers());
 						bSkipUpdateCount = true;
 
