@@ -23,15 +23,15 @@
 
 package com.aelitis.azureus.util;
 
-import java.util.Iterator;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginListener;
+
+import org.gudy.azureus2.plugins.PluginInterface;
 
 public class 
 ExternalStimulusHandler 
