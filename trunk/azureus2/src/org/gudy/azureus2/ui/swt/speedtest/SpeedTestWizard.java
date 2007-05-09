@@ -43,7 +43,7 @@ SpeedTestWizard
 		AzureusCore		azureus_core,
 		Display 		display) 
 	{
-		super(azureus_core, display, "speedtest.wizard.title");
+		super(azureus_core, "speedtest.wizard.title");
 		SpeedTestPanel panel = new SpeedTestPanel(this, null);
 		setFirstPanel(panel);
     }

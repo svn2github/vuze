@@ -53,7 +53,7 @@ ImportTorrentWizard
 		AzureusCore	azureus_core,
 		Display 	display )
 	{
-		super(azureus_core,display,"importTorrentWizard.title");
+		super(azureus_core,"importTorrentWizard.title");
 	
 		ImportTorrentWizardInputPanel input_panel = new ImportTorrentWizardInputPanel(this,null);
 	

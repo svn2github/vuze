@@ -38,7 +38,7 @@ public class IpCheckerWizard extends Wizard {
   String detectedIp;
   
   public IpCheckerWizard(AzureusCore azureus_core,Display display) {
-    super(azureus_core,display, "ipCheckerWizard.title");
+    super(azureus_core, "ipCheckerWizard.title");
     IWizardPanel panel = new ChooseServicePanel(this,null);
     this.setFirstPanel(panel);
   }

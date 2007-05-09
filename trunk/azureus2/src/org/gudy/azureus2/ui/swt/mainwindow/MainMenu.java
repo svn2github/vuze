@@ -1078,7 +1078,7 @@ public class MainMenu {
     private MenuItem addConfigWizardMenuItem(Menu menu) {
         return addMenuItem(menu, "MainWindow.menu.file.configure", new Listener() {
           public void handleEvent(Event e) {
-            new ConfigureWizard(core, display);
+            new ConfigureWizard(core, false);
           }
         });
     }

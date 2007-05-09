@@ -94,7 +94,7 @@ public class InstallPluginWizard extends Wizard {
       	AzureusCore	azureus_core,	
  		Display 	display )
 	{
-		super(azureus_core,display,"installPluginsWizard.title");			
+		super(azureus_core,"installPluginsWizard.title");			
 				
 		IPWModePanel mode_panel = new IPWModePanel(this,null);
 	
@@ -108,7 +108,7 @@ public class InstallPluginWizard extends Wizard {
   		String				reason,
   		StandardPlugin		plugin )
   	{
-		super(azureus_core,display,"installPluginsWizard.title");			
+		super(azureus_core,"installPluginsWizard.title");			
 			
 		standard_plugins 	= new StandardPlugin[]{ plugin };
 		list_title_text		= reason;

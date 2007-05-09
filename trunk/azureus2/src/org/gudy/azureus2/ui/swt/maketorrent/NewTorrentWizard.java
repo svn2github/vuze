@@ -104,7 +104,7 @@ NewTorrentWizard
   	AzureusCore		azureus_core,
 	Display 		display) 
   {
-    super(azureus_core, display, "wizard.title");
+    super(azureus_core, "wizard.title");
     
     cancel.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {

@@ -43,7 +43,7 @@ public class UnInstallPluginWizard extends Wizard {
       	AzureusCore	azureus_core,	
  		Display 	display )
 	{
-		super(azureus_core,display,"uninstallPluginsWizard.title");			
+		super(azureus_core,"uninstallPluginsWizard.title");			
 		
 		UIPWListPanel list_panel = new UIPWListPanel(this,null);
 	

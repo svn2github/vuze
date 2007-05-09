@@ -59,9 +59,9 @@ public class ConfigureWizard extends Wizard {
   public 
   ConfigureWizard(
   	AzureusCore		azureus_core,
-	Display 		display) 
+		boolean modal) 
   {
-    super(azureus_core,display,"configureWizard.title");
+    super(azureus_core,"configureWizard.title",modal);
     IWizardPanel panel = new LanguagePanel(this,null);
     try  {
       torrentPath = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");

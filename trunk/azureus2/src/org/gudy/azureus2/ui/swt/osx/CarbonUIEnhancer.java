@@ -222,7 +222,7 @@ public class CarbonUIEnhancer {
                   return OS.noErr;
                }
                case kHICommandWizard:
-                  new ConfigureWizard(AzureusCoreFactory.getSingleton(), display);
+                  new ConfigureWizard(AzureusCoreFactory.getSingleton(), false);
                   return OS.noErr;
                case kHICommandNatTest:
                  new NatTestWindow();

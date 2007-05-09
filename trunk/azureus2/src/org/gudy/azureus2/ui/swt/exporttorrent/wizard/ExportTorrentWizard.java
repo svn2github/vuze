@@ -54,7 +54,7 @@ ExportTorrentWizard
 		AzureusCore	azureus_core,	
  		Display 	display )
 	{
-		super(azureus_core,display,"exportTorrentWizard.title");
+		super(azureus_core,"exportTorrentWizard.title");
 	
 		ExportTorrentWizardInputPanel input_panel = new ExportTorrentWizardInputPanel(this,null);
 	
@@ -67,7 +67,7 @@ ExportTorrentWizard
 		Display 		display,
 		DownloadManager	dm )
 	{
-		super(azureus_core, display,"exportTorrentWizard.title");
+		super(azureus_core, "exportTorrentWizard.title");
 	
 		setTorrentFile( dm.getTorrentFileName());
 		

@@ -533,22 +533,12 @@ MainWindow
 			azureus_core.getPluginManager().firePluginEvent(
 					PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS);
 
-			if (!COConfigurationManager
-					.getBooleanParameter("Wizard Completed")) {
-				ConfigureWizard wizard = new ConfigureWizard(getAzureusCore(), display);
-
-
-				wizard.addListener(new WizardListener() {
-					public void closed() {
-						azureus_core.getPluginManager().firePluginEvent(
-								PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES);
-					}
-				});
-			} else {
-
-				azureus_core.getPluginManager().firePluginEvent(
-						PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES);
+			if (!COConfigurationManager.getBooleanParameter("Wizard Completed")) {
+				// returns after the wizard is done
+				new ConfigureWizard(getAzureusCore(), true);
 			}
+			azureus_core.getPluginManager().firePluginEvent(
+					PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES);
 
 			// attach the UI to plugins
 			// Must be done before initializing views, since plugins may register

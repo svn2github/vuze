@@ -69,22 +69,35 @@ public class Wizard {
   public 
   Wizard(
   	AzureusCore		azureus_core,
-  	Display 		display,
-	String 			keyTitle) 
+  	String 			keyTitle,
+  	boolean modal) 
   {
-    this(azureus_core,display);
+    this(azureus_core, modal);
     setTitleKey(keyTitle);
   }
+
+	public Wizard(AzureusCore azureus_core, String keyTitle) {
+		this(azureus_core, keyTitle, false);
+	}
+
+	public Wizard(AzureusCore azureus_core) {
+		this(azureus_core, false);
+	}
 
   public 
   Wizard(
   	AzureusCore		_azureus_core,
-	Display 		display ) 
+  	boolean modal) 
   {
   	azureus_core	= _azureus_core;
-    this.display 	= display;
     
-    wizardWindow = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE);
+  	int style = SWT.DIALOG_TRIM | SWT.RESIZE;
+  	if (modal) {
+  		style |= SWT.APPLICATION_MODAL;
+  	}
+    wizardWindow = ShellFactory.createMainShell(style);
+    this.display 	= wizardWindow.getDisplay();
+
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
@@ -245,8 +258,8 @@ public class Wizard {
  	wizardWindow.setSize(DEFAULT_WIDTH,400);
 
   }
-  
-   private void
+
+	private void
    finishSelected()
    {
 	   if ( currentPanel.isFinishSelectionOK()){      			   
@@ -447,6 +460,9 @@ public class Wizard {
   addListener(
   	WizardListener	l )
   {
+  	if (wizardWindow.isDisposed() && closeCatcher != null) {
+  		l.closed();
+  	}
   	listeners.add(l);
   }
   
