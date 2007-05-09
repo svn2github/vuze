@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.speedtest;
 
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -56,6 +57,8 @@ SpeedTestPanel
 	private NetworkAdminSpeedTestScheduledTest	scheduled_test;
 
     private Combo testCombo;
+    private Button encryptToggle;
+    private Color originalColor;
 
     private Button      test;
     private Button      abort;
@@ -141,25 +144,16 @@ SpeedTestPanel
         	String	resource = null;
         	
         	if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_UPLOAD_AND_DOWNLOAD ){
-        	
         		resource = "updown";
-        		
         	}else if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_UPLOAD_ONLY ){
-        		
         		resource = "up";
-
                 up_only_index = i;
-
             }else if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_DOWNLOAD_ONLY ){
-        		
         		resource = "down";
         	}else{
-        		
         		Debug.out( "Unknown test type" );
         	}
-        	
         	testCombo.add( "BT " + MessageText.getString( "speedtest.wizard.test.mode." + resource ), i);
-
         }
         
         testCombo.select( up_only_index );
@@ -179,11 +173,23 @@ SpeedTestPanel
         abort.setEnabled(false);
         abort.addListener(SWT.Selection, new AbortButtonListener() );
 
-        //space line
-        spacer = new Label(panel, SWT.NULL);
+        //toggle button line.
+        Label enc = new Label( panel, SWT.NULL );
         gridData = new GridData();
-        gridData.horizontalSpan = 4;
-        spacer.setLayoutData(gridData);
+        enc.setLayoutData(gridData);
+        Messages.setLanguageText(enc,"SpeedTestWizard.test.panel.enc.label");
+
+        encryptToggle = new Button(panel, SWT.TOGGLE);
+
+        String statusString="SpeedTestWizard.test.panel.standard";
+        if( encryptToggle.getSelection() ){
+            statusString = "SpeedTestWizard.test.panel.encrypted";
+        }
+        Messages.setLanguageText(encryptToggle,statusString);
+        gridData = new GridData();
+        gridData.widthHint = 80;
+        encryptToggle.setLayoutData(gridData);
+        encryptToggle.addListener(SWT.Selection, new EncryptToggleButtonListener() );
 
         //test count down section.
         Label abortCountDown = new Label(panel, SWT.NULL);
@@ -245,8 +251,8 @@ SpeedTestPanel
         	// convert to mode
         
         final int test_mode = NetworkAdminSpeedTester.TEST_TYPES[testCombo.getSelectionIndex()];
-    
-        	
+        final boolean encState = encryptToggle.getSelection();
+
         Thread t =
 			new AEThread("SpeedTest Performer") 
 			{
@@ -254,7 +260,7 @@ SpeedTestPanel
 				runSupport() 
 				{
 
-                    runTest(test_mode);
+                    runTest(test_mode, encState);
 				}
 			};
 		
@@ -281,7 +287,7 @@ SpeedTestPanel
 	}
 	
 	protected void
-	runTest( int test_mode )
+	runTest( int test_mode, boolean encrypt_mode )
 	{
 		test_running	= true;
 		
@@ -295,8 +301,9 @@ SpeedTestPanel
                 scheduled_test = nasts.scheduleTest( NetworkAdminSpeedTestScheduler.TEST_TYPE_BT );
                 
                 scheduled_test.getTester().setMode( test_mode );
-                
- 				scheduled_test.addListener( this );
+                scheduled_test.getTester().setUseCrypto( encrypt_mode );
+
+                scheduled_test.addListener( this );
 				scheduled_test.getTester().addListener( this );
 				scheduled_test.start();
 				
@@ -558,6 +565,28 @@ SpeedTestPanel
             wizard.setErrorMessage("");
             finish();
         }//handleEvent
+    }
+
+    /**
+     * Run test with encryption toggle button listener.
+     */
+    class EncryptToggleButtonListener implements Listener{
+
+        public void handleEvent(Event event){
+
+            if(encryptToggle.getSelection()){
+                Messages.setLanguageText(encryptToggle,"SpeedTestWizard.test.panel.encrypted");
+                originalColor = encryptToggle.getForeground();
+                Color highlightColor = new Color(display,178,78,127);
+                encryptToggle.setForeground(highlightColor);
+            }else{
+                Messages.setLanguageText(encryptToggle,"SpeedTestWizard.test.panel.standard");
+                if(originalColor!=null){
+                    encryptToggle.setForeground(originalColor);
+                }
+
+            }
+        }//handleEvent        
     }
 
 }
