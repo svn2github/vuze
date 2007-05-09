@@ -1251,11 +1251,16 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		int state = download.getState();
 
 		if (download.isForceStart()) {
-			if (bDebugLog) {
-				String s = "isForceStart.. rules skipped";
-				log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
+  		try {
+				download.start();
+				String s = "   start: isForceStart";
+				log.log(LoggerChannel.LT_INFORMATION, s);
 				dlData.sTrace += s + "\n";
+			} catch (DownloadException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+
 			return;
 		}
 

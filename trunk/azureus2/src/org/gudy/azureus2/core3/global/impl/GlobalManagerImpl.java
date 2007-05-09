@@ -270,14 +270,6 @@ public class GlobalManagerImpl
 		            /*
 		             * seeding rules have been moved to StartStopRulesDefaultPlugin
 		             */
-	              
-	         		// Handle forced starts here
-         	
-	        	if (	manager.getState() == DownloadManager.STATE_READY &&
-	        			manager.isForceStart()) {
-            	
-	        		manager.startDownload();
-	           }
 	        }        
 
       	}catch( Throwable e ){
