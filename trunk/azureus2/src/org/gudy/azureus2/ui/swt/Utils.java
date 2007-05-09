@@ -612,6 +612,7 @@ public class Utils {
 							+ Debug.getCompressedStackTrace(4));
 					final long lStart = SystemTime.getCurrentTime();
 
+					final Display fDisplay = display;
 					display.asyncExec(new AERunnable() {
 						public void runSupport() {
 							long wait = SystemTime.getCurrentTime() - lStart;
@@ -620,8 +621,19 @@ public class Utils {
 										+ "ms before SWT ran async code " + code);
 							}
 							long lStartTimeRun = SystemTime.getCurrentTime();
-
-							code.run();
+							
+							if (fDisplay.isDisposed()) {
+								Debug.out("Display disposed while trying to execSWTThread "
+										+ code);
+								// run anayway, except trap SWT error
+								try {
+									code.run();
+								} catch (SWTException e) {
+									Debug.out("Error while execSWTThread w/disposed Display", e);
+								}
+							} else {
+								code.run();
+							}
 
 							wait = SystemTime.getCurrentTime() - lStartTimeRun;
 							if (wait > 500) {
@@ -1233,12 +1245,16 @@ public class Utils {
 		try{
 			code.setupReturn(ID, returnValueObject, sem);
 			
-			execSWTThread(code);
+			if (!execSWTThread(code)) {
+				// code never got run
+				// XXX: throw instead?
+				return false;
+			}
 		}catch( Throwable e ){
 			Debug.out(ID, e);
 			sem.release();
 		}
-		sem.reserve();
+		sem.reserve(90000);
 	
 		return returnValueObject[0];
 	}
@@ -1255,12 +1271,15 @@ public class Utils {
 		try{
 			code.setupReturn(ID, returnValueObject, sem);
 			
-			execSWTThread(code);
+			if (!execSWTThread(code)) {
+				// XXX: throw instead?
+				return null;
+			}
 		}catch( Throwable e ){
 			Debug.out(ID, e);
 			sem.release();
 		}
-		sem.reserve();
+		sem.reserve(90000);
 	
 		return returnValueObject[0];
 	}
