@@ -1251,16 +1251,17 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		int state = download.getState();
 
 		if (download.isForceStart()) {
-  		try {
-				download.start();
-				String s = "   start: isForceStart";
-				log.log(LoggerChannel.LT_INFORMATION, s);
-				dlData.sTrace += s + "\n";
-			} catch (DownloadException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if ( state == Download.ST_READY ){
+				try {
+					download.start();
+					String s = "   start: isForceStart";
+					log.log(LoggerChannel.LT_INFORMATION, s);
+					dlData.sTrace += s + "\n";
+				} catch (DownloadException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-
 			return;
 		}
 
