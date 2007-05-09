@@ -769,6 +769,31 @@ DownloadManagerImpl
 			        	}
 			        	
 			        	download_manager_state.setLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME, add_time );
+			        	
+			        }else{
+
+			        		// HACK to recover from error where add-time was getting set to complete-time
+					       
+					    if ( Constants.AZUREUS_VERSION.equals( "3.0.1.3_B9" )) {
+					    	
+							long completedOn = download_manager_state.getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+
+							long	now = SystemTime.getCurrentTime();
+							
+							if ( completedOn == 0 && now - add_time < 5*24*60*60*1000 ){
+								
+						        try{
+						        	add_time = new File( torrentFileName ).lastModified();
+						        	
+							        if ( add_time != 0 ){
+							        	
+							        	download_manager_state.setLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME, add_time );
+							        }
+
+						        }catch( Throwable e ){
+						        }
+							}
+					    }
 			        }
 				 }
 				 
