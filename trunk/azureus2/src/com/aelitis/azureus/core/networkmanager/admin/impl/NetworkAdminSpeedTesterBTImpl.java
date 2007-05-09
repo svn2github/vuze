@@ -610,17 +610,90 @@ public class NetworkAdminSpeedTesterBTImpl
 
         }//updateTestProgress
 
+
         /**
          * Calculate the avererage and standard deviation for a history.
-         * @param history - calculate average from this list.
+         * @param history - List of Long values but that contains the sum downloaded at that time.
          * @return Map<String,Double> with values "ave" and "stddev" set
          */
-//        private Map<String,Double> calculateAverageAndStdDevFromHistory(List<Long> history){
-          private Map calculateAverageAndStdDevFromHistory(List history){
+        //Map<String,Double> calculate(List<Long> history)
+        private Map calculate(List history){
 
+            //convert the list of long values that sum the value into a list of deltas.
+            List deltas = convertSumToDeltas(history);
+
+            //sort
+            Collections.sort(deltas);
+
+            //remove the top and bottom 10% of the sample. This removes outliers from the mean.
+            final int nSamples = deltas.size();
+            final int nRemove = nSamples/10;
+
+            //removing high values.
+            for(int i=nSamples-1; i<nSamples-nRemove; i--){
+                deltas.remove(i);
+            }
+            //remove low values.
+            for(int i=0; i<nRemove; i++){
+                deltas.remove(0);
+            }
+            //sum values
+            long sumBytes=0;
+            int j=0;
+            while(j<deltas.size()){
+                sumBytes += autoboxLong( deltas.get(j) );
+                j++;
+            }
+            //calculate average.
+            double aveDownloadRate = (double) ( sumBytes/deltas.size() );
+
+            //calculate standard deviation.
+            double variance = 0.0;
+            double s;
+            for(j=0;j<deltas.size();j++){
+                s = ( autoboxLong(deltas.get(j)) - aveDownloadRate );
+                variance += s*s;
+            }
+            double stddev = Math.sqrt( variance/(j-1) );
+
+            //Map<String,Double> retVal = new HashMap<String,Double>();
+            Map retVal = new HashMap();
+            retVal.put(AVE, autoboxDouble(aveDownloadRate));
+            retVal.put(STD_DEV,autoboxDouble(stddev));
+            return retVal;
+        }//calculate
+
+
+        /**
+         * Convert a list of sums into a list of download rates per second.
+         * @param sumHistory - List<Long> with download sum for each second.
+         * @return - List<Long> with the download rate for each second.
+         */
+        private List convertSumToDeltas(List sumHistory){
+            //find the first time to include in stats.
             long thisTime;
             //find the first element to inlcude in the stat.
-            int numStats = history.size();
+            int numStats = sumHistory.size();
+            int i = findIndexPeak(numStats);
+
+            List deltas = new ArrayList(numStats);
+            long prevSumDownload = autoboxLong(sumHistory.get(i-1));
+            long currSumDownload;
+            while(i<numStats){
+
+                currSumDownload = autoboxLong( sumHistory.get(i) );
+                Long currDelta = autoboxLong( currSumDownload - prevSumDownload );
+
+                deltas.add(currDelta);
+                i++;
+                prevSumDownload = currSumDownload;
+            }//while
+
+            return deltas;
+        }//convertSumToDeltas
+
+        private int findIndexPeak(int numStats) {
+            long thisTime;
             int i;
             for(i=0;i<numStats;i++ ){
                 thisTime = autoboxLong( timestamps.get(i) );
@@ -628,42 +701,8 @@ public class NetworkAdminSpeedTesterBTImpl
                     break;
                 }
             }//for
-
-            //calculate the average.
-            long sumBytes = autoboxLong( history.get(numStats-1) ) - autoboxLong( history.get(i) );
-            double aveDownloadRate = (double) sumBytes/(numStats-i);
-
-            //calculate the standard deviation.
-            double variance = 0.0;
-            double s;
-            long thisBytesSent;
-
-            long lastTotalBytes=0;
-            if(i>0)
-                lastTotalBytes = autoboxLong( history.get(i-1) )-lastTotalBytes;
-
-            for(int j=i;j<numStats;j++){
-                thisBytesSent = autoboxLong( history.get(j) )-lastTotalBytes;
-                lastTotalBytes = autoboxLong(history.get(j));
-
-                //now do the calculations.
-                s = (double) thisBytesSent - aveDownloadRate;
-                variance += s*s;
-            }//for
-
-            double stddev = Math.sqrt( variance/(numStats-1) );
-
-            //if average is zero, then don't use the standard deviation calculation.
-            if(aveDownloadRate==0.0){
-                stddev = 0.0;
-            }//if
-
-            //Map<String,Double> retVal = new HashMap<String,Double>();
-            Map retVal = new HashMap();
-            retVal.put(AVE, autoboxDouble(aveDownloadRate));
-            retVal.put(STD_DEV,autoboxDouble(stddev));
-            return retVal;
-        }//calculateAverageAndStdDevFromHistory
+            return i;
+        }
 
         /**
          * Based on the previous data cancluate an average and a standard deviation.
@@ -673,12 +712,12 @@ public class NetworkAdminSpeedTesterBTImpl
         NetworkAdminSpeedTesterResult calculateDownloadRate()
         {
             //calculate the BT download rate.
-            //Map<String,Double> resDown = calculateAverageAndStdDevFromHistory(historyDownloadSpeed);
-            Map resDown = calculateAverageAndStdDevFromHistory(historyDownloadSpeed);
+            //Map<String,Double> resDown = calculate(historyDownloadSpeed);
+            Map resDown = calculate(historyDownloadSpeed);
 
             //calculate the BT upload rate.
-            //Map<String,Double> resUp = calculateAverageAndStdDevFromHistory(historyUploadSpeed);
-            Map resUp = calculateAverageAndStdDevFromHistory(historyUploadSpeed);
+            //Map<String,Double> resUp = calculate(historyUploadSpeed);
+            Map resUp = calculate(historyUploadSpeed);
 
             return new BitTorrentResult(resUp,resDown);
         }//calculateDownloadRate
