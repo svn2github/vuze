@@ -459,7 +459,7 @@ public class TCPConnectionManager {
         	target = sock_address.toString();
         }
                
-        request.listener.connectFailure( new Throwable( "Connection attempt to " + target + " aborted: timed out after " + request.connect_timeout/1000+ "sec" ) );
+        request.listener.connectFailure( new SocketTimeoutException( "Connection attempt to " + target + " aborted: timed out after " + request.connect_timeout/1000+ "sec" ) );
       }
       else if( waiting_time >= CONNECT_ATTEMPT_STALL_TIME ) {
         num_stalled_requests++;
