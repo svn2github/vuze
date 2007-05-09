@@ -35,8 +35,8 @@ import com.aelitis.azureus.core.AzureusCore;
  */
 public final class TransferSpeedValidator
 {
-	public static final String AUTO_UPLOAD_CONFIGKEY 			=  "Auto Upload Speed Enabled";
-	public static final String AUTO_UPLOAD_SEEDING_CONFIGKEY 	=  "Auto Upload Speed Seeding Enabled";
+	public static final String AUTO_UPLOAD_ENABLED_CONFIGKEY 			=  "Auto Upload Speed Enabled";
+	public static final String AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY 	=  "Auto Upload Speed Seeding Enabled";
     
     public static final String UPLOAD_CONFIGKEY 		=  "Max Upload Speed KBs";
     public static final String UPLOAD_SEEDING_CONFIGKEY =  "Max Upload Speed Seeding KBs";
@@ -45,8 +45,8 @@ public final class TransferSpeedValidator
     public static final String UPLOAD_SEEDING_ENABLED_CONFIGKEY =  "enable.seedingonly.upload.rate";
     
     public static final String[] CONFIG_PARAMS = {	
-    	AUTO_UPLOAD_CONFIGKEY,
-    	AUTO_UPLOAD_SEEDING_CONFIGKEY,
+    	AUTO_UPLOAD_ENABLED_CONFIGKEY,
+    	AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY,
     	UPLOAD_CONFIGKEY,
     	UPLOAD_SEEDING_CONFIGKEY,
     	DOWNLOAD_CONFIGKEY,
@@ -188,18 +188,18 @@ public final class TransferSpeedValidator
     		// if downloading+seeding is set then we always use this regardless of
     		// only seeding status
     	
-    	if ( COConfigurationManager.getBooleanParameter(TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY)){
+    	if ( COConfigurationManager.getBooleanParameter(TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY)){
     		
-    		return( TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY );
+    		return( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY );
     	}
     	
     	if ( gm.isSeedingOnly()){
         	
-        	return( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY );
+        	return( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY );
         	
       	}else{
       		
-      		return( TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY );
+      		return( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY );
       	}
     }
     

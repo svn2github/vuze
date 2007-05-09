@@ -287,7 +287,7 @@ NetworkAdminSpeedTestScheduledTestImpl
             		
             		jar_version = Constants.AZUREUS_VERSION;
             		
-          			System.out.println( "SpeedTest: using class-based challenge jar " + jar_file.getAbsolutePath() + ", version " + jar_version );
+          			// System.out.println( "SpeedTest: using class-based challenge jar " + jar_file.getAbsolutePath() + ", version " + jar_version );
 
             	}else{
             		
@@ -298,7 +298,7 @@ NetworkAdminSpeedTestScheduledTestImpl
             			jar_version = Constants.AZUREUS_VERSION;
             			jar_file	= f;
             			
-             			System.out.println( "SpeedTest: using config-based challenge jar " + jar_file.getAbsolutePath() + ", version " + jar_version );
+             			// System.out.println( "SpeedTest: using config-based challenge jar " + jar_file.getAbsolutePath() + ", version " + jar_version );
             		}
             	}
             }            
@@ -621,7 +621,7 @@ NetworkAdminSpeedTestScheduledTestImpl
 
         boolean autoSpeedEnabled;
         boolean autoSpeedSeedingEnabled;
-
+        boolean LANSpeedEnabled;
 
         public 
         SpeedTestDownloadState()
@@ -698,8 +698,10 @@ NetworkAdminSpeedTestScheduledTestImpl
             
             saveGlobalLimits();
 
-            COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY,false);
-            COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY,false);
+            COConfigurationManager.setParameter( "LAN Speed Enabled", false );
+
+            COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY,false);
+            COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY,false);
 
             COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_CONFIGKEY, max_speed);
             COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY, max_speed);
@@ -739,16 +741,21 @@ NetworkAdminSpeedTestScheduledTestImpl
             maxUploadSeedingKbs = COConfigurationManager.getIntParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY );
             maxDownloadKbs = COConfigurationManager.getIntParameter( TransferSpeedValidator.DOWNLOAD_CONFIGKEY );
             //boolean setting.
-            autoSpeedEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY );
-            autoSpeedSeedingEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY );
+            autoSpeedEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY );
+            autoSpeedSeedingEnabled = COConfigurationManager.getBooleanParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY );
+            
+            LANSpeedEnabled = COConfigurationManager.getBooleanParameter( "LAN Speed Enabled" );
+            
         }//saveGlobalLimits
 
         /**
          * Call this method after a speed test completes to restore the global limits.
          */
         private void restoreGlobalLimits(){
-            COConfigurationManager.setParameter(TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY,autoSpeedEnabled);
-            COConfigurationManager.setParameter(TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY,autoSpeedSeedingEnabled);
+            COConfigurationManager.setParameter( "LAN Speed Enabled", LANSpeedEnabled );
+            
+            COConfigurationManager.setParameter(TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY,autoSpeedEnabled);
+            COConfigurationManager.setParameter(TransferSpeedValidator.AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY,autoSpeedSeedingEnabled);
 
             COConfigurationManager.setParameter(TransferSpeedValidator.UPLOAD_CONFIGKEY,maxUploadKbs);
             COConfigurationManager.setParameter(TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY,maxUploadSeedingKbs);
