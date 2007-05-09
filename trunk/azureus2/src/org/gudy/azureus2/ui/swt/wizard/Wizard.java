@@ -34,9 +34,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -86,7 +84,7 @@ public class Wizard {
   	azureus_core	= _azureus_core;
     this.display 	= display;
     
-    wizardWindow = ShellFactory.createShell(SWT.DIALOG_TRIM | SWT.RESIZE);
+    wizardWindow = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE);
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
