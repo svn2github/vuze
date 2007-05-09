@@ -22,9 +22,9 @@
  */
 package org.gudy.azureus2.ui.swt.update;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import java.io.InputStream;
+import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -39,16 +39,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-
-import org.gudy.azureus2.plugins.update.Update;
-import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
-import org.gudy.azureus2.plugins.update.UpdateManagerDecisionListener;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.StringListChooser;
@@ -56,9 +47,16 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
-import java.io.InputStream;
-import java.util.*;
-import java.util.List;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+
+import org.gudy.azureus2.plugins.update.Update;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
+import org.gudy.azureus2.plugins.update.UpdateManagerDecisionListener;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener;
 
 /**
  * @author Olivier Chalouhi
@@ -66,7 +64,6 @@ import java.util.List;
  */
 public class 
 UpdateWindow
-	extends 	AERunnable
 	implements 	ResourceDownloaderListener{
   
   private UpdateCheckInstance	check_instance;
@@ -94,7 +91,6 @@ UpdateWindow
   
   
   
-  boolean askingForShow;
   
   boolean restartRequired;
   
@@ -159,27 +155,28 @@ UpdateWindow
 	  			}
 	  		});
   	
-    this.display = SWTThread.getInstance().getDisplay();
     this.updateWindow = null;
-    this.askingForShow =false;
-    if(display != null && !display.isDisposed())
-      display.asyncExec(this);
+    this.display = SWTThread.getInstance().getDisplay();
+    
+    Utils.execSWTThreadWithBool("UpdateWindow", new AERunnableBoolean() {
+			public boolean runSupport() {
+				buildWindow();
+				return true;
+			}
+		});
   }
   
   //The Shell creation process
-  public void runSupport() {
+  public void buildWindow() {
     if(display == null || display.isDisposed())
       return;
+
+    Utils.waitForModals();
     
     //Do not use ~SWT.CLOSE cause on some linux/GTK platform it
     //forces the window to be only 200x200
     //catch close event instead, and never do it
-  	UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-  	if (uiFunctions != null) {
-			Shell mainShell = uiFunctions.getMainShell();
-			updateWindow = ShellFactory.createShell(mainShell, SWT.DIALOG_TRIM
-					| SWT.RESIZE);
-  	}
+		updateWindow = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE);
     
     updateWindow.addListener(SWT.Close,new Listener() {
       public void handleEvent(Event e) {
@@ -513,8 +510,10 @@ UpdateWindow
   }
   
   public void show() {
-    if(updateWindow == null || updateWindow.isDisposed())
+    if(updateWindow == null || updateWindow.isDisposed()) {
       return;
+    }
+    
     Utils.centreWindow( updateWindow );
     updateWindow.open();
     updateWindow.forceActive();       
