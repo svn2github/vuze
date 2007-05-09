@@ -1195,6 +1195,17 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 						|| state == Download.ST_ERROR) {
 					continue;
 				}
+				
+				if (state == Download.ST_READY && download.isForceStart()) {
+					try {
+						download.start();
+						String s = "Start: isForceStart";
+						log.log(LoggerChannel.LT_INFORMATION, s);
+						dlData.sTrace += s + "\n";
+					} catch (DownloadException e) {
+						/* ignore */
+					}
+				}
 
 				// Handle incomplete DLs
 				if (!download.isComplete()) {
@@ -1251,16 +1262,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		int state = download.getState();
 
 		if (download.isForceStart()) {
-			if ( state == Download.ST_READY ){
-				try {
-					download.start();
-					String s = "   start: isForceStart";
-					log.log(LoggerChannel.LT_INFORMATION, s);
-					dlData.sTrace += s + "\n";
-				} catch (DownloadException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			if (bDebugLog) {
+				String s = "isForceStart.. rules skipped";
+				log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
+				dlData.sTrace += s + "\n";
 			}
 			return;
 		}
