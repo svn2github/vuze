@@ -1264,5 +1264,50 @@ public class Utils {
 	
 		return returnValueObject[0];
 	}
+
+	/**
+	 * Waits until modal dialogs are disposed.  Assumes we are one SWT thread
+	 *
+	 * @since 3.0.1.3
+	 */
+	public static void waitForModals() {
+		SWTThread swt = SWTThread.getInstance();
+
+		Display display;
+		if (swt == null) {
+			display = Display.getDefault();
+			if (display == null) {
+				System.err.println("SWT Thread not started yet!");
+				return;
+			}
+		} else {
+			if (swt.isTerminated()) {
+				return;
+			}
+			display = swt.getDisplay();
+		}
+
+		if (display == null || display.isDisposed()) {
+			return;
+		}
+
+		Shell[] shells = display.getShells();
+		Shell modalShell = null;
+		for (int i = 0; i < shells.length; i++) {
+			Shell shell = shells[i];
+			if ((shell.getStyle() & SWT.APPLICATION_MODAL) > 0) {
+				modalShell = shell;
+				break;
+			}
+		}
+
+		if (modalShell != null) {
+			while (!modalShell.isDisposed()) {
+				if (!display.readAndDispatch()) {
+					display.sleep();
+				}
+			}
+		}
+	}
 }
 
