@@ -36,6 +36,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+
 
 /**
  * @author Olivier
@@ -86,13 +88,12 @@ public class ColorParameter extends Parameter implements ParameterListener {
   
   private void updateButtonColor(final Display display, final int rV, final int gV, final int bV) {
     Image oldImg = img;
-    Color color = new Color(display,rV,gV,bV);
+    Color color = ColorCache.getColor(display, rV, gV, bV);
     img = new Image(display,25,10);
     GC gc = new GC(img);
     gc.setBackground(color);
     gc.fillRectangle(0,0,25,10);
     gc.dispose();
-    color.dispose();
     colorChooser.setImage(img);
     if(oldImg != null && ! oldImg.isDisposed())
       oldImg.dispose();

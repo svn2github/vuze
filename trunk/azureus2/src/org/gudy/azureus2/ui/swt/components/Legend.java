@@ -42,6 +42,8 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+
 /**
  * 
  * TODO: have a callback when color changes
@@ -85,8 +87,6 @@ public class Legend {
 		if (blockColors.length != keys.length)
 			return null;
 
-		final ArrayList disposeList = new ArrayList();
-		
 		final Color[] defaultColors = new Color[blockColors.length];
 		System.arraycopy(blockColors, 0, defaultColors, 0, blockColors.length);
 
@@ -110,8 +110,7 @@ public class Legend {
 				int g = config.getIntParameter(keys[i] + ".green");
 				int b = config.getIntParameter(keys[i] + ".blue");
 				
-				Color color = new Color(panel.getDisplay(), r, g, b);
-				disposeList.add(color);
+				Color color = ColorCache.getColor(panel.getDisplay(), r, g, b);
 				blockColors[i] = color;
 			}
 
@@ -166,10 +165,10 @@ public class Legend {
 						if (keys[j].equals(parameterName)) {
 							final int index = j;
 
-							int r = config.getIntParameter(keys[j] + ".red", -1);
+							final int r = config.getIntParameter(keys[j] + ".red", -1);
 							if (r >= 0) {
-								int g = config.getIntParameter(keys[j] + ".green");
-								int b = config.getIntParameter(keys[j] + ".blue");
+								final int g = config.getIntParameter(keys[j] + ".green");
+								final int b = config.getIntParameter(keys[j] + ".blue");
 								
 								final RGB rgb = new RGB(r, g, b);
 								if (blockColors[j].isDisposed()
@@ -179,8 +178,7 @@ public class Legend {
 										public void runSupport() {
 											if (panel == null || panel.isDisposed())
 												return;
-											Color color = new Color(panel.getDisplay(), rgb);
-											disposeList.add(color);
+											Color color = ColorCache.getColor(panel.getDisplay(), r, g, b);
 											blockColors[index] = color;
 											cColor.redraw();
 										}
@@ -213,8 +211,6 @@ public class Legend {
 				for (int i = 0; i < blockColors.length; i++) {
 					blockColors[i] = defaultColors[i];
 				}
-
-				Utils.disposeSWTObjects(disposeList);
 			}
 		});
 
