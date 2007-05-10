@@ -26,7 +26,7 @@ import java.util.StringTokenizer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author TuxPaper
@@ -36,6 +36,17 @@ import org.gudy.azureus2.core3.util.Debug;
 public class ColorCache
 {
 	private final static Map mapColors = new HashMap();
+	
+	static {
+		AEDiagnostics.addEvidenceGenerator(new AEDiagnosticsEvidenceGenerator() {
+			public void generate(IndentWriter writer) {
+				writer.println("Colors:");
+				writer.indent();
+				writer.println("# cached: " + mapColors.size());
+				writer.exdent();
+			}
+		});
+	}
 
 	public static Color getColor(Device device, int red, int green, int blue) {
 		if (mapColors.size() == 0) {
