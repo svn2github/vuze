@@ -36,7 +36,7 @@ public class RememberedDecisionsManager
 {
 
 	public static int getRememberedDecision(String id) {
-		return getRememberedDecision(id, Integer.MAX_VALUE);
+		return getRememberedDecision(id, -1);
 	}
 	
 	public static int getRememberedDecision(String id, int onlyIfInMask) {
@@ -47,10 +47,10 @@ public class RememberedDecisionsManager
 				"MessageBoxWindow.decisions", new HashMap());
 
 		Long l = (Long) remembered_decisions.get(id);
-		//System.out.println("getR " + id + " -> " + l);
+		System.out.println("getR " + id + " -> " + l);
 		if (l != null) {
 			int i = l.intValue();
-			if ((i & onlyIfInMask) != 0) {
+			if (onlyIfInMask == -1 || (i & onlyIfInMask) != 0) {
 				return i;
 			}
 		}
@@ -81,7 +81,7 @@ public class RememberedDecisionsManager
 			remembered_decisions.put(id, new Long(value));
 		}
 
-		//System.out.println("setR " + id + " -> " + value);
+		System.out.println("setR " + id + " -> " + value);
 		COConfigurationManager.setParameter("MessageBoxWindow.decisions",
 				remembered_decisions);
 		COConfigurationManager.save();
