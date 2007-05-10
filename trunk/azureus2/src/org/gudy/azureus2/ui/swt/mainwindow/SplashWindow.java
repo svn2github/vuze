@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+
 /**
  * The initial Splash Screen shown while azureus loads 
  */
@@ -46,7 +48,6 @@ public class SplashWindow implements InitializerListener {
   Shell splash;
   Label currentTask;
   ProgressBar percentDone;
-  Color white;
 	private String task;
 	private int percent;
 	private boolean updating;
@@ -60,7 +61,6 @@ public class SplashWindow implements InitializerListener {
     this.display = display;
     this.initializer = initializer;
     
-    white = new Color(display,255,255,255);
     splash = new Shell(display, SWT.NULL);
     splash.setText("Azureus");
     Utils.setShellIcon(splash);
@@ -78,7 +78,7 @@ public class SplashWindow implements InitializerListener {
     currentTask = new Label(splash,SWT.BORDER);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL);
     currentTask.setLayoutData(gridData);
-    currentTask.setBackground(white);
+    currentTask.setBackground(ColorCache.getColor(display, 255, 255, 255));
     currentTask.setText("(: Azureus :)");
     
     this.percentDone = new ProgressBar(splash,SWT.HORIZONTAL);
@@ -120,8 +120,6 @@ public class SplashWindow implements InitializerListener {
 		      initializer.removeListener(SplashWindow.this);
 		    if(splash != null && !splash.isDisposed())
 		      splash.dispose();
-		    if(white != null && ! white.isDisposed())
-		      white.dispose();
 		    ImageRepository.unloadImage("azureus_splash");
       }
     });
