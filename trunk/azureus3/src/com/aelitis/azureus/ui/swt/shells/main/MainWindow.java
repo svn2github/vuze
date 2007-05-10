@@ -465,6 +465,8 @@ public class MainWindow
 
 		//AdManager.getInstance().intialize(core);
 
+		// TODO: Move this out of MainWindow and put somewhere into the messenger
+		// class structure
 		ExternalStimulusHandler.addListener(new ExternalStimulusListener() {
 			public boolean receive(String name, Map values) {
 				try {
@@ -510,6 +512,19 @@ public class MainWindow
 						// The platform needs to know when it can call open-url, and it
 						// determines this by the is-ready function
 						return isReady;
+					} else if (browserMsg.getOperationId().equals("is-version-ge")) {
+						JSONObject decodedObject = browserMsg.getDecodedObject();
+						if (decodedObject.has("version")) {
+							String id = JSONUtils.getJSONString(decodedObject, "id", "client");
+							String version = JSONUtils.getJSONString(decodedObject, "version", "");
+							if (id.equals("client")) {
+								return org.gudy.azureus2.core3.util.Constants.compareVersions(
+										org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
+										version) >= 0;
+							} else {
+								return false;
+							}
+						}
 					}
 				} catch (Exception e) {
 					Debug.out(e);
