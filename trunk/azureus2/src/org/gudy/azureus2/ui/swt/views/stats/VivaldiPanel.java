@@ -39,6 +39,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.*;
 import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.impl.*;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class VivaldiPanel {
   private static final int ALPHA_FOCUS = 255;
@@ -246,8 +247,8 @@ public class VivaldiPanel {
     scale.width = size.width;
     scale.height = size.height;
     
-    Color white = new Color(display,255,255,255);
-    Color blue = new Color(display,66,87,104);
+    Color white = ColorCache.getColor(display,255,255,255);
+    Color blue = ColorCache.getColor(display,66,87,104);
     
     if (img != null && !img.isDisposed()) {
     	img.dispose();
@@ -288,7 +289,7 @@ public class VivaldiPanel {
     
     gc.drawText("Our error: " + ownErrorEstimate,10,10);
     
-    Color black = new Color(display, 0, 0, 0);
+    Color black = ColorCache.getColor(display, 0, 0, 0);
     gc.setBackground(black); // Color of the squares
 
     // Draw all known positions of other contacts
@@ -307,7 +308,7 @@ public class VivaldiPanel {
     }
     
     // Mark our own position
-    Color red = new Color(display, 255, 0, 0);
+    Color red = ColorCache.getColor(display, 255, 0, 0);
 		gc.setForeground(red);
 		red.dispose();
     drawSelf(gc, ownCoords.getX(), ownCoords.getY(),
@@ -336,12 +337,12 @@ public class VivaldiPanel {
     img = new Image(display,size);
     GC gc = new GC(img);
     
-    Color white = new Color(display,255,255,255);
+    Color white = ColorCache.getColor(display,255,255,255);
     gc.setForeground(white);
     gc.setBackground(white);
     gc.fillRectangle(size);
     
-    Color blue = new Color(display,66,87,104);
+    Color blue = ColorCache.getColor(display,66,87,104);
     gc.setForeground(blue);
     gc.setBackground(blue);
     
@@ -356,7 +357,9 @@ public class VivaldiPanel {
       if(error < 0) error = 0;
       if(error > 1) error = 1;
       int blueComponent = (int) (255 - error * 255);
-      int redComponent = (int) (255*error);      
+      int redComponent = (int) (255*error);
+      // Don't use ColorCache, as our color creation is temporary and
+      // varying
       Color drawColor = new Color(display,redComponent,50,blueComponent);      
       gc.setForeground(drawColor);
       draw(gc,coord.getX(),coord.getY(),coord.getH());

@@ -46,6 +46,7 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestSchedu
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
 import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTestSchedulerImpl;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class 
 SpeedTestPanel
@@ -599,7 +600,7 @@ SpeedTestPanel
             if(encryptToggle.getSelection()){
                 Messages.setLanguageText(encryptToggle,"SpeedTestWizard.test.panel.encrypted");
                 originalColor = encryptToggle.getForeground();
-                Color highlightColor = new Color(display,178,78,127);
+                Color highlightColor = ColorCache.getColor(display,178,78,127);
                 encryptToggle.setForeground(highlightColor);
             }else{
                 Messages.setLanguageText(encryptToggle,"SpeedTestWizard.test.panel.standard");
