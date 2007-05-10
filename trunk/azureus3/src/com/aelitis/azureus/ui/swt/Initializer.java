@@ -291,8 +291,6 @@ public class Initializer
 				startServer.stopIt();
 			}
 
-			Colors.getInstance().disposeColors();
-
 			//			Cursors.dispose();
 
 			UIUpdaterFactory.getInstance().stopIt();
