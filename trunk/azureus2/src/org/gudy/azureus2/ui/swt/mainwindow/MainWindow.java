@@ -65,7 +65,6 @@ import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
-import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -758,12 +757,10 @@ MainWindow
     //Added this test so that we can call this method with null parameter.
     if (event != null)
       event.doit = false;
-    if(Constants.isOSX) {
-    	shell.setMinimized(true);
-    } else {  
-    	shell.setVisible(false);
-    }
-    if (downloadBasket != null)
+
+    shell.setVisible(false);
+
+		if (downloadBasket != null)
       downloadBasket.setVisible(true);
 
     MinimizedWindow.setAllVisible(true);
@@ -905,6 +902,21 @@ MainWindow
 					}
 				}
 
+				if (visible && Constants.isWindows) {
+					// We don't want the window to just flash and not open, so:
+					// -Minimize main shell
+					// -Set all shells invisible
+					try {
+  					shell.setMinimized(true);
+  					Shell[] shells = shell.getDisplay().getShells();
+  					for (int i = 0; i < shells.length; i++) {
+  						shells[i].setVisible(false);
+  					}
+  				} catch (Exception e) {
+  				}
+				}
+
+				
 				shell.setVisible(visible);
 				if (visible) {
 					if (downloadBasket != null) {
@@ -916,8 +928,21 @@ MainWindow
 					 if (trayIcon != null)
 					 trayIcon.showIcon();
 					 */
-					shell.forceActive();
 					shell.setMinimized(false);
+					shell.forceActive();
+
+					if (Constants.isWindows) {
+  					try {
+    					Shell[] shells = shell.getDisplay().getShells();
+    					for (int i = 0; i < shells.length; i++) {
+    						if (shells[i] != shell) {
+    							shells[i].setVisible(visible);
+    							shells[i].setFocus();
+    						}
+    					}
+  					} catch (Exception e) {
+  					}
+					}
 				}
 
 			}
