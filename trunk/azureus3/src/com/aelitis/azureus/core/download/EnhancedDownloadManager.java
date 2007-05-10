@@ -234,6 +234,12 @@ EnhancedDownloadManager
 		download_manager.addPeerListener(
 			new DownloadManagerPeerListener()
 			{
+       			public void
+    			peerManagerWillBeAdded(
+    				PEPeerManager	peer_manager )
+       			{
+       			}
+       			
 				public void
 				peerManagerAdded(
 					PEPeerManager	manager )
