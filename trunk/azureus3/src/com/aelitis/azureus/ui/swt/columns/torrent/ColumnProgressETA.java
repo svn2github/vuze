@@ -295,6 +295,8 @@ public class ColumnProgressETA
 			int[] fg = cell.getForeground();
 			gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
 			gcImage.drawText(sETALine, 0, etaY0, true);
+			Point textExtent = gcImage.textExtent(sETALine);
+			cell.setToolTip(textExtent.x > newWidth ? sETALine : null);
 
 			if (bDrawProgressBar) {
 				gcImage.setForeground(cText);
