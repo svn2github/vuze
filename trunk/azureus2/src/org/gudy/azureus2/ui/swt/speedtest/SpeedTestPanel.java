@@ -324,7 +324,8 @@ SpeedTestPanel
 
 			                test.setEnabled(true);
 			                abort.setEnabled(false);
-				        }
+                            encryptToggle.setEnabled(true);
+                        }
 				      });
 			    }
 
@@ -377,7 +378,8 @@ SpeedTestPanel
                           textMessages.append( testFailed+": " + result.getLastError());
 		        		  test.setEnabled( true );
 		        		  abort.setEnabled(false);
-		                  wizard.setErrorMessage(testFailed); 
+                          encryptToggle.setEnabled(true);
+                          wizard.setErrorMessage(testFailed);
 		                  
 		        	  }else{
                         uploadTest = result.getUploadSpeed();
@@ -395,7 +397,8 @@ SpeedTestPanel
                         }
                         abort.setEnabled(false);
                         test.setEnabled(true);
-		        	  }
+                        encryptToggle.setEnabled(true);
+                      }
 
 	                  if( !result.hadError() ){
 	                    switchToClose();
@@ -559,6 +562,7 @@ SpeedTestPanel
             cancel();
             test.setEnabled(true);
             abort.setEnabled(false);
+            encryptToggle.setEnabled(true);
             wizard.setNextEnabled(false);
             uploadTest=0;
             downloadTest=0;
@@ -579,6 +583,7 @@ SpeedTestPanel
         public void handleEvent(Event event) {
             abort.setEnabled(true);
             test.setEnabled(false);
+            encryptToggle.setEnabled(false);
             wizard.setErrorMessage("");
             finish();
         }//handleEvent

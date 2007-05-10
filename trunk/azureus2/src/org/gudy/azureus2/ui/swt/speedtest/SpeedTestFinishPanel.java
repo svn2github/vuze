@@ -247,22 +247,23 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         r3c1.setLayoutData(gridData);
         r3c1.setText(label);
 
-        Label r3c2 = new Label(panel,SWT.NULL);//enabled or disabled
+        Label c2 = new Label(panel,SWT.NULL);//space.
         gridData = new GridData();
         gridData.horizontalSpan = 1;
-        r3c2.setLayoutData(gridData);
+        c2.setLayoutData(gridData);
+        String maxUploadBitsSec = "       ";
+        c2.setText(maxUploadBitsSec);
+
+        Label c3 = new Label(panel,SWT.NULL);//enabled or disabled
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        c3.setLayoutData(gridData);
         if(enabled){
-            r3c2.setText( MessageText.getString("SpeedTestWizard.finish.panel.enabled","enabled") );
+            c3.setText( MessageText.getString("SpeedTestWizard.finish.panel.enabled","enabled") );
         }else{
-            r3c2.setText( MessageText.getString("SpeedTestWizard.finish.panel.disabled","disabled") );
+            c3.setText( MessageText.getString("SpeedTestWizard.finish.panel.disabled","disabled") );
         }
 
-        Label r3c3 = new Label(panel,SWT.NULL);//space.
-        gridData = new GridData();
-        gridData.horizontalSpan = 1;
-        r3c3.setLayoutData(gridData);
-        String maxUploadBitsSec = "       ";
-        r3c3.setText(maxUploadBitsSec);
     }//createStatusLine
 
     /**

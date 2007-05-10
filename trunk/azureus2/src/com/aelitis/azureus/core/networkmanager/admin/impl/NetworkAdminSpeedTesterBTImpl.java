@@ -180,14 +180,14 @@ public class NetworkAdminSpeedTesterBTImpl
     	
         //OK lets start the test.
         try{
-            sendStageUpdateToListeners("requesting test...");
+            sendStageUpdateToListeners(MessageText.getString("SpeedTestWizard.stage.message.requesting="));
 
             TorrentUtils.setFlag( tot, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
             
             Torrent torrent = new TorrentImpl(tot);
             String fileName = torrent.getName();
 
-            sendStageUpdateToListeners("preparing test...");
+            sendStageUpdateToListeners(MessageText.getString("SpeedTestWizard.stage.message.preparing"));
             	
             //create a blank file of specified size. (using the temporary name.)
             File saveLocation = AETemporaryFileHandler.createTempFile();
@@ -433,8 +433,7 @@ public class NetworkAdminSpeedTesterBTImpl
 	
 	                boolean testDone=false;
 	                long lastTotalTransferredBytes=0;
-	
-	                //sendStageUpdateToListeners("starting test...");  //ToDo: remove
+
                       sendStageUpdateToListeners(MessageText.getString("SpeedTestWizard.stage.message.starting"));
                       while( !( testDone || aborted )){
 	
@@ -445,8 +444,6 @@ public class NetworkAdminSpeedTesterBTImpl
                             String enteredErrorState = MessageText.getString("SpeedTestWizard.abort.message.entered.error"
                                     , new String[] {testDownload.getErrorStateDetails()} );
                             abort( enteredErrorState );
-
-                            //abort( "Test download entered error state '" + testDownload.getErrorStateDetails() + "'" );//ToDo: remove.
 	                		
 	                		break;
 	                	}
@@ -539,34 +536,31 @@ public class NetworkAdminSpeedTesterBTImpl
 	                }
 	
 	            }catch(Exception e){
-	            	
-	                //abort( "Test execution failed", e );//ToDo: remove.
-                    abort( MessageText.getString("SpeedTestWizard.abort.message.execution.failed") );
+
+                    abort( MessageText.getString("SpeedTestWizard.abort.message.execution.failed"),e );
                 }
 	
 	            if ( !aborted ){
 	            	
 	            		// check the stats for peers we connected to during the test
-	            	
-	            	sendStageUpdateToListeners( "Connection stats: peers=" + connected_peers.size()
-                            + ", down_ok=" + not_choked_peers.size()
-                            + ", up_ok=" + not_choking_peers.size());
-                    //ToDo: internationalize.
+                    String connectStats = MessageText.getString("SpeedTestWizard.stage.message.connect.stats",
+                            new String[]{""+connected_peers.size()
+                                    ,""+not_choked_peers.size()
+                                    ,""+not_choking_peers.size()
+                            });
+                    sendStageUpdateToListeners(connectStats);
 
                     if ( connected_peers.size() == 0 ){
 
                         abort( MessageText.getString("SpeedTestWizard.abort.message.failed.peers") );
-                        //abort( "Failed to connect to any peers" ); //ToDo: remove.
 	
 	                }else if ( not_choking_peers.size() == 0 && testMode!=TEST_TYPE_DOWNLOAD_ONLY ){
 
                         abort( MessageText.getString("SpeedTestWizard.abort.message.insufficient.slots") );
-                        //abort( "Could not upload to any of the peers - insufficient upload slots?" );  //ToDo: remove.
 		            	
 		            }else if ( not_choked_peers.size() == 0 && testMode!=TEST_TYPE_UPLOAD_ONLY){
 
                         abort( MessageText.getString("SpeedTestWizard.abort.message.not.unchoked") );
-                        //abort( "Could not download from any of the peers as never unchoked by them" ); //ToDo: remove.
 		            }
 	            }
 	            
