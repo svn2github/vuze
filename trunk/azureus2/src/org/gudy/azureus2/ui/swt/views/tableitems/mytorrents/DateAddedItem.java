@@ -19,33 +19,66 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
- 
+
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.util.DisplayFormatters;
+import java.io.File;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 public class DateAddedItem
-       extends CoreTableColumn 
-       implements TableCellRefreshListener
+	extends CoreTableColumn
+	implements TableCellRefreshListener
 {
- 
-  public DateAddedItem(String sTableID) {
-    super("date_added", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
-  }
 
-  public void refresh(TableCell cell) {
-    DownloadManager dm = (DownloadManager)cell.getDataSource();
-    long value = (dm == null) ? 0 : dm.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+	public DateAddedItem(String sTableID) {
+		super("date_added", ALIGN_TRAIL, POSITION_INVISIBLE, 120, sTableID);
 
-    if (!cell.setSortValue(value) && cell.isValid())
-      return;
+		TableContextMenuItem menuReset = addContextMenuItem("MyTorrentsView.date_added.menu.reset");
+		menuReset.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof TableRowCore) {
+					TableRowCore row = (TableRowCore) target;
+					Object dataSource = row.getDataSource(true);
+					if (dataSource instanceof DownloadManager) {
+						DownloadManager dm = (DownloadManager) dataSource;
 
-    cell.setText(DisplayFormatters.formatDate(value));
-  }
+						DownloadManagerState state = dm.getDownloadState();
+
+						try {
+							long add_time = new File(dm.getTorrentFileName()).lastModified();
+
+							if (add_time >= 0) {
+								state.setLongParameter(
+										DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME, add_time);
+							}
+
+						} catch (Throwable e) {
+						}
+					}
+					row.getTableCell("date_added").invalidate();
+				}
+			}
+		});
+	}
+
+	public void refresh(TableCell cell) {
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		long value = (dm == null) ? 0 : dm.getDownloadState().getLongParameter(
+				DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
+
+		if (!cell.setSortValue(value) && cell.isValid())
+			return;
+
+		cell.setText(DisplayFormatters.formatDate(value));
+	}
 }
