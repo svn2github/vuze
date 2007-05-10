@@ -350,6 +350,10 @@ public class ListView
 	 */
 	protected void handleResize(boolean bForce) {
 		boolean bNeedsRefresh = false;
+		if (listCanvas == null || listCanvas.isDisposed()) {
+			return;
+		}
+		
 		Rectangle clientArea = listCanvas.getClientArea();
 
 		if (clientArea.width == 0 || clientArea.height == 0) {
