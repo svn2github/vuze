@@ -120,7 +120,7 @@ DownloadManagerEnhancer
 				public void
 				initializationComplete()
 				{
-					PluginInterface	ms_pi = plugin_interface.getPluginManager().getPluginInterfaceByID("aeupnpmediaserver");
+					PluginInterface	ms_pi = plugin_interface.getPluginManager().getPluginInterfaceByID("azupnpav");
 					
 					if ( ms_pi != null ){
 						

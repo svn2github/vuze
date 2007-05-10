@@ -238,7 +238,7 @@ public class TorrentListViewsUtils
 
 		if (bOnlyIfMediaServer) {
 			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-					"aeupnpmediaserver");
+					"azupnpav");
 			if (pi == null || !pi.isOperational() || pi.isDisabled()) {
 				skinObject.getControl().setVisible(false);
 				return null;
@@ -449,7 +449,7 @@ public class TorrentListViewsUtils
 
 	private static boolean isTrustedContent(String ext) {
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-				"aeupnpmediaserver");
+				"azupnpav");
 
 		ArrayList whiteList = new ArrayList();
 		String[] goodExts = null;
@@ -532,7 +532,7 @@ public class TorrentListViewsUtils
 	 */
 	public static void playViaMediaServer(Download download) {
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-				"aeupnpmediaserver");
+				"azupnpav");
 
 		if (pi == null) {
 
