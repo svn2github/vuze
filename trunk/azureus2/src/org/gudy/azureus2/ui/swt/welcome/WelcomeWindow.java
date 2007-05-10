@@ -46,6 +46,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 
@@ -159,12 +161,12 @@ public class WelcomeWindow {
 				helpPanel.setRedraw(false);
 				helpPanel.setWordWrap(true);
 
-				black = new Color((Device) display, 0, 0, 0);
-				white = new Color((Device) display, 255, 255, 255);
-				light = new Color((Device) display, 200, 200, 200);
-				grey = new Color((Device) display, 50, 50, 50);
-				green = new Color((Device) display, 30, 80, 30);
-				blue = new Color((Device) display, 20, 20, 80);
+				black = ColorCache.getColor(display, 0, 0, 0);
+				white = ColorCache.getColor(display, 255, 255, 255);
+				light = ColorCache.getColor(display, 200, 200, 200);
+				grey = ColorCache.getColor(display, 50, 50, 50);
+				green = ColorCache.getColor(display, 30, 80, 30);
+				blue = ColorCache.getColor(display, 20, 20, 80);
 				int style;
 				boolean setStyle;
 
@@ -295,12 +297,6 @@ public class WelcomeWindow {
 	}
   
   private void close() {
-    if(black != null && !black.isDisposed())  black.dispose();
-    if(white != null && !white.isDisposed())  white.dispose();
-    if(light != null && !light.isDisposed())  light.dispose();
-    if(grey  != null && !grey.isDisposed() )  grey.dispose();
-    if(green != null && !green.isDisposed())  green.dispose();
-    if(blue  != null && !blue.isDisposed() )  blue.dispose();
     shell.dispose();
   }
   

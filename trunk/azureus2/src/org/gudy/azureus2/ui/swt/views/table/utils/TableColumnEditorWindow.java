@@ -37,6 +37,7 @@ import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 import com.aelitis.azureus.ui.common.table.TableStructureModificationListener;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
  * Choose columns to display, and in what order
@@ -45,7 +46,6 @@ public class TableColumnEditorWindow {
   
   private Display display;
   private Shell shell;
-  private Color blue;
   private Table table;
   
   //private TableColumnCore[] tableColumns;
@@ -93,7 +93,7 @@ public class TableColumnEditorWindow {
 			newEnabledState.put(item, value);
 		}
     
-    blue = new Color(display,0,0,128);
+    final Color blue = ColorCache.getColor(display,0,0,128);
     
     shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
     Utils.setShellIcon(shell);
@@ -314,8 +314,6 @@ public class TableColumnEditorWindow {
   }
   
   private void close() {
-    if(blue != null && ! blue.isDisposed())
-      blue.dispose();
     if (!shell.isDisposed())
     	shell.dispose();
   }

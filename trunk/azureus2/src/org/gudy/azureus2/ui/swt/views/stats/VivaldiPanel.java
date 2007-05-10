@@ -310,7 +310,6 @@ public class VivaldiPanel {
     // Mark our own position
     Color red = ColorCache.getColor(display, 255, 0, 0);
 		gc.setForeground(red);
-		red.dispose();
     drawSelf(gc, ownCoords.getX(), ownCoords.getY(),
 						 ownCoords.getH(), ownErrorEstimate);
     
@@ -318,9 +317,6 @@ public class VivaldiPanel {
     gc.dispose();
     
     canvas.redraw();
-    white.dispose();
-    blue.dispose();
-    black.dispose();
   }
   
   public void refresh(List vivaldiPositions) {
@@ -369,9 +365,6 @@ public class VivaldiPanel {
     gc.dispose();
     
     canvas.redraw();
-    
-    white.dispose();
-    blue.dispose();
   }
   
   private void draw(GC gc,float x,float y,float h) {
