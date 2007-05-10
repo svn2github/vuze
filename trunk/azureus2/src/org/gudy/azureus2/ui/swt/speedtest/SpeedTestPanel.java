@@ -439,16 +439,73 @@ SpeedTestPanel
 	                          testCountDown1.setText(START_VALUES);
 	                          testCountDown2.setText(START_VALUES);
 	                      }
-	                  }
-	
-	                  //print everything including progress indications.
-        
-			           textMessages.append( step + Text.DELIMITER);
-		          }
+                          String modified = modifyProgressStatusString(step);
+                          textMessages.append(modified);
+                      }else{
+	                      //print non-progress strings as is.
+			              textMessages.append( step + Text.DELIMITER);
+                      }
+                  }
 		        }
 		      });
 		    }	
 	}
+
+    /**
+     * Change the "progress status" string into something that can be displayed.
+     * @param step - String must start with "progress:"
+     * @return - a String that can be displayed in the Text Messages window.
+     */
+    private static String modifyProgressStatusString(String step){
+        if(step==null){
+            return " ";
+        }
+        if( !step.startsWith("progress:") ){
+            return " ";
+        }
+
+        String[] values = step.split(":");
+        //the expected format is:
+        // progress: 87 : download ave 0 : upload ave 512438 : 93 : 3
+        //values[2] should be download ave
+        //values[3] should be upload ave
+
+        if(values.length<4){
+            return " ";
+        }
+
+        int downAve = getValueFromAveString(values[2]);
+        int upAve = getValueFromAveString(values[3]);
+
+        StringBuffer sb = new StringBuffer();
+        sb.append(MessageText.getString("GeneralView.label.uploadspeed"));
+        sb.append( DisplayFormatters.formatByteCountToKiBEtcPerSec( upAve ) ).append(" , ");
+        sb.append(MessageText.getString("GeneralView.label.downloadspeed"));
+        sb.append( DisplayFormatters.formatByteCountToKiBEtcPerSec( downAve) );
+        sb.append("\n");        
+
+        return sb.toString();
+    }
+
+    /**
+     * Get the number after the last " " space in the String.
+     * @param aveStr - String in format "download ave 32000"
+     * @return int 32000, or -1 if an error.
+     */
+    private static int getValueFromAveString(String aveStr){
+        try{
+            int number=-2;
+            aveStr = aveStr.trim();
+            String[] parts = aveStr.split(" ");
+            //the last item should be the number.
+            if(parts!=null){
+                number = Integer.parseInt( parts[parts.length-1].trim() );
+            }
+            return number;
+        }catch(Throwable t){
+            return -1;
+        }
+    }//getValueFromAveString
 
     /**
      * If you find the time left values then use them. On any error return null and the calling
@@ -464,8 +521,9 @@ SpeedTestPanel
             return null;
 
         String[] values = step.split(":");
-            if(values.length<5)
-                return null;
+        if(values.length<5){
+            return null;
+        }
 
         int[] times = new int[2];
         try{

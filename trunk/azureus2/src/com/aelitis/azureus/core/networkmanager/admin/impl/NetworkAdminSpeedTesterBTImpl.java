@@ -180,7 +180,7 @@ public class NetworkAdminSpeedTesterBTImpl
     	
         //OK lets start the test.
         try{
-            sendStageUpdateToListeners(MessageText.getString("SpeedTestWizard.stage.message.requesting="));
+            sendStageUpdateToListeners(MessageText.getString("SpeedTestWizard.stage.message.requesting"));
 
             TorrentUtils.setFlag( tot, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
             
@@ -697,8 +697,6 @@ public class NetworkAdminSpeedTesterBTImpl
          * @return - List<Long> with the download rate for each second.
          */
         private List convertSumToDeltas(List sumHistory){
-            //find the first time to include in stats.
-            long thisTime;
             //find the first element to inlcude in the stat.
             int numStats = sumHistory.size();
             int i = findIndexPeak(numStats);

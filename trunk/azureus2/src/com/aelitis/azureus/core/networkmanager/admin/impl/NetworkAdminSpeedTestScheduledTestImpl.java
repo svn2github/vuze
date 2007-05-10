@@ -165,7 +165,6 @@ NetworkAdminSpeedTestScheduledTestImpl
                         String testScheduledIn = MessageText.getString( "SpeedTestWizard.abort.message.scheduled.in"
                                 , new String[]{""+(delay_ticks - i)} );
 						reportStage( testScheduledIn );
-                        //reportStage( "test scheduled in ... " + ( delay_ticks - i ) + " seconds" ); //ToDo: remove
 						
 						try{
 							Thread.sleep(1000);
@@ -671,7 +670,6 @@ NetworkAdminSpeedTestScheduledTestImpl
             String downloadAdded = MessageText.getString("SpeedTestWizard.abort.message.download.added"
                     , new String[]{download.getName()});
             abort(downloadAdded);
-            //abort( "Download '" + download.getName() + "' added during test" );  //ToDo: remove.
     	}
     	
     	public void
