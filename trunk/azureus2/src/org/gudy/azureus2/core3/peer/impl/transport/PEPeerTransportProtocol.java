@@ -2122,7 +2122,7 @@ PEPeerTransportProtocol
 		  final long now =SystemTime.getCurrentTime();
 		  reSetRequestsTime(now);
 
-		  if( manager.isWritten( pieceNumber, offset ) ) {  //oops, looks like this block has already been written
+		  if( manager.isWritten( pieceNumber, offset )) {  //oops, looks like this block has already been written
 			  peer_stats.bytesDiscarded( length );
 			  manager.discarded( this, length );
 

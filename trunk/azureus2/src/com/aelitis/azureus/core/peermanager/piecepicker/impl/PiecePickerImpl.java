@@ -1806,6 +1806,12 @@ public class PiecePickerImpl
 		return endGameMode;
 	}
 	
+    public boolean
+    hasEndGameModeBeenAbandoned()
+    {
+    	return( endGameModeAbandoned );
+    }
+    
     /** adds every block from the piece to the list of chuncks to be selected for egm requesting
      * 
      */ 

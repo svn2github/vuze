@@ -206,39 +206,66 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 	enable_bad_data_banning.setLayoutData( gridData );
     Messages.setLanguageText(enable_bad_data_banning.getControl(), "ConfigView.section.ipfilter.enablebanning");
 
-  	// description scratch file
-		if (userMode > 0) {
-			gridData = new GridData();
-			BooleanParameter enableDesc = new BooleanParameter(gFilter,
-					"Ip Filter Enable Description Cache");
-			enableDesc.setLayoutData(gridData);
-			Messages.setLanguageText(enableDesc.getControl(),
-					"ConfigView.section.ipfilter.enable.descriptionCache");
-		}
-      
-    	// block banning
+ 	// block banning
 
     Composite cLine = new Composite(gFilter, SWT.NULL);
-		layout = new GridLayout();
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
-		layout.numColumns = 2;
-		cLine.setLayout(layout);
+    layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    layout.numColumns = 4;
+    cLine.setLayout(layout);
 
-		Label block_label = new Label(cLine, SWT.NULL);
-		Messages.setLanguageText(block_label,
-				"ConfigView.section.ipfilter.blockbanning");
+    Label discard_label = new Label(cLine, SWT.NULL);
+    Messages.setLanguageText(discard_label,
+    "ConfigView.section.ipfilter.discardbanning");
 
-		IntParameter block_banning = new IntParameter(cLine,
-				"Ip Filter Ban Block Limit");
-		gridData = new GridData();
-		gridData.widthHint = 30;
-		block_banning.setLayoutData(gridData);
+    FloatParameter discard_ratio = new FloatParameter(cLine, "Ip Filter Ban Discard Ratio");
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    discard_ratio.setLayoutData(gridData);
 
-		enable_bad_data_banning
-				.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-						new Control[] { block_banning.getControl(), block_label }));
-	
+    Label discard_min_label = new Label(cLine, SWT.NULL);
+    Messages.setLanguageText(discard_min_label,
+    "ConfigView.section.ipfilter.discardminkb", new String[]{ DisplayFormatters.getUnit( DisplayFormatters.UNIT_KB)});
+
+    IntParameter discard_min = new IntParameter(cLine, "Ip Filter Ban Discard Min KB");
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    discard_min.setLayoutData(gridData);
+    
+  	   	// block banning
+
+    Label block_label = new Label(cLine, SWT.NULL);
+    Messages.setLanguageText(block_label,
+    "ConfigView.section.ipfilter.blockbanning");
+
+    IntParameter block_banning = new IntParameter(cLine,
+    "Ip Filter Ban Block Limit");
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    block_banning.setLayoutData(gridData);
+
+    new Label(cLine, SWT.NULL);
+    new Label(cLine, SWT.NULL);
+
+    enable_bad_data_banning.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+    		new Control[] { 
+    				block_banning.getControl(), block_label, 
+    				discard_ratio.getControl(), discard_label,
+    				discard_min.getControl(), discard_min_label }));
+
+
+    // description scratch file
+    if (userMode > 0) {
+    	gridData = new GridData();
+    	BooleanParameter enableDesc = new BooleanParameter(gFilter,
+    	"Ip Filter Enable Description Cache");
+    	enableDesc.setLayoutData(gridData);
+    	Messages.setLanguageText(enableDesc.getControl(),
+    	"ConfigView.section.ipfilter.enable.descriptionCache");
+    }
+      
+ 
 		// table
 	
     table = new Table(gFilter, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);

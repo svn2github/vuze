@@ -64,6 +64,7 @@ public interface PiecePicker
 	public void		allocateRequests();
 
 	public boolean	isInEndGameMode();
+	public boolean	hasEndGameModeBeenAbandoned();
 	public void		clearEndGameChunks();
 	/** adds all blocks in the piece to endGameModeChunks
 	 * @param pePiece

@@ -152,18 +152,26 @@ PEPeerControlImpl
   
     private List	external_rate_limiters_cow;
     
-    private static boolean fast_unchoke_new_peers;
+    private static boolean 	fast_unchoke_new_peers;
+    private static float	ban_peer_discard_ratio;
+    private static int		ban_peer_discard_min_kb;
     
     static{
-    	COConfigurationManager.addAndFireParameterListener(
-    		"Peer.Fast.Initial.Unchoke.Enabled",
+    	COConfigurationManager.addAndFireParameterListeners(
+    		new String[]{
+    				"Peer.Fast.Initial.Unchoke.Enabled",
+    				"Ip Filter Ban Discard Ratio",
+    				"Ip Filter Ban Discard Min KB",
+    		},
     		new ParameterListener()
     		{
     			public void 
     			parameterChanged(
     				String name ) 
     			{
-    				fast_unchoke_new_peers = COConfigurationManager.getBooleanParameter( name );
+    				fast_unchoke_new_peers 	= COConfigurationManager.getBooleanParameter( "Peer.Fast.Initial.Unchoke.Enabled" );
+    				ban_peer_discard_ratio	= COConfigurationManager.getFloatParameter( "Ip Filter Ban Discard Ratio" );
+    				ban_peer_discard_min_kb	= COConfigurationManager.getIntParameter( "Ip Filter Ban Discard Min KB" );
     			}
     		});
     }
@@ -931,7 +939,7 @@ PEPeerControlImpl
 						if (reservingPeer !=null)
 						{
 							if (needsMD5CheckOnCompletion(i))
-								badPeerDetected(reservingPeer);
+								badPeerDetected(reservingPeer, true);
 							else
 							{
 								final PEPeerTransport pt =getTransportFromAddress(reservingPeer);
@@ -1607,7 +1615,32 @@ PEPeerControlImpl
 	
 	public void discarded(PEPeer peer, int length) {
 		if (length > 0){
+			
 			_stats.discarded(peer, length);
+			
+				// discards are more likely during end-game-mode
+			
+			if ( ban_peer_discard_ratio > 0 && !( piecePicker.isInEndGameMode() || piecePicker.hasEndGameModeBeenAbandoned())){
+				
+				long	received 	= peer.getStats().getTotalDataBytesReceived();
+				long	discarded	= peer.getStats().getTotalBytesDiscarded();
+				
+				long	non_discarded = received - discarded;
+				
+				if ( non_discarded < 0 ){
+					
+					non_discarded = 0;
+				}
+				
+				if ( discarded >= ban_peer_discard_min_kb * 1024 ){
+								
+					if ( 	non_discarded == 0 || 
+							((float)discarded) / non_discarded >= ban_peer_discard_ratio ){
+												
+						badPeerDetected( peer.getIp(), false );
+					}
+				}
+			}
 		}
 	}
 	
@@ -2474,7 +2507,7 @@ PEPeerControlImpl
 										if (!Arrays.equals(write.getHash(), correctHash))
 										{
 											// Bad peer found here
-											badPeerDetected(write.getSender());
+											badPeerDetected(write.getSender(),true);
 										}
 									}
 								}
@@ -2520,7 +2553,7 @@ PEPeerControlImpl
 						{
 							// Very simple case, only 1 peer contributed for that piece,
 							// so, let's mark it as a bad peer
-							badPeerDetected((String)uniqueWriters.get(0));
+							badPeerDetected((String)uniqueWriters.get(0), true);
 	
 								// and let's reset the whole piece
 							
@@ -2617,44 +2650,67 @@ PEPeerControlImpl
 		}
 	}
 
-	private void badPeerDetected(String ip)
-	{
-		final PEPeerTransport peer =getTransportFromAddress(ip);
+	
+	private void badPeerDetected(String ip,  boolean hash_fail)
+	{	
+			// note that peer can be NULL but things still work in the main
+		
+		PEPeerTransport peer =getTransportFromAddress(ip);
+		
 		// Debug.out("Bad Peer Detected: " + peerIP + " [" + peer.getClient() + "]");
 
-		final IpFilterManager filter_manager =IpFilterManagerFactory.getSingleton();
+		IpFilterManager filter_manager =IpFilterManagerFactory.getSingleton();
 
 		// Ban fist to avoid a fast reco of the bad peer
-		final int nbWarnings =filter_manager.getBadIps().addWarningForIp(ip);
+		
+		int nbWarnings = filter_manager.getBadIps().addWarningForIp(ip);
 
+		boolean	disconnect_peer = false;
+		
 		// no need to reset the bad chunk count as the peer is going to be disconnected and
 		// if it comes back it'll start afresh
-		if (nbWarnings >WARNINGS_LIMIT)
-		{
-			if (COConfigurationManager.getBooleanParameter("Ip Filter Enable Banning"))
-			{
-				// if a block-ban occurred, check other connections
-				if (ip_filter.ban(ip, adapter.getDisplayName(), false ))
-				{
+		
+		// warning limit only applies to hash-fails, discards cause immediate action
+		
+		if ( nbWarnings > WARNINGS_LIMIT ){
+		
+			if (COConfigurationManager.getBooleanParameter("Ip Filter Enable Banning")){
+			
+					// if a block-ban occurred, check other connections
+				
+				if (ip_filter.ban(ip, adapter.getDisplayName(), false )){
+				
 					checkForBannedConnections();
 				}
 
-				if (peer !=null)
+				// Trace the ban
+				if (Logger.isEnabled()){
+					Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_ERROR, ip +" : has been banned and won't be able "
+						+"to connect until you restart azureus"));
+				}
+				
+				disconnect_peer = true;
+			}
+		}else if ( !hash_fail ){
+			
+				// for failures due to excessive discard we boot the peer anyway
+			
+			disconnect_peer	= true;
+			
+		}
+		
+		if ( disconnect_peer ){
+			
+			if ( peer != null ){
+			
+				final int ps = peer.getPeerState();
+
+				// might have been through here very recently and already started closing
+				// the peer (due to multiple bad blocks being found from same peer when checking piece)
+				if (!(ps ==PEPeer.CLOSING ||ps ==PEPeer.DISCONNECTED))
 				{
-					final int ps =peer.getPeerState();
-	
-					// might have been through here very recently and already started closing
-					// the peer (due to multiple bad blocks being found from same peer when checking piece)
-					if (!(ps ==PEPeer.CLOSING ||ps ==PEPeer.DISCONNECTED))
-					{
-						// Close connection
-						closeAndRemovePeer(peer, "has sent too many bad pieces, " +WARNINGS_LIMIT +" max.", true);
-					}
-	
-					// Trace the ban
-					if (Logger.isEnabled())
-						Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_ERROR, ip +" : has been banned and won't be able "
-							+"to connect until you restart azureus"));
+					// Close connection
+					closeAndRemovePeer(peer, "has sent too many " + (hash_fail?"bad pieces":"discarded blocks") + ", " +WARNINGS_LIMIT +" max.", true);
 				}
 			}
 		}
