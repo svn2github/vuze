@@ -230,7 +230,7 @@ public class CarbonUIEnhancer {
                  new NatTestWindow();
                  return OS.noErr;
                case kHICommandSpeedTest:
-                 new SpeedTestWizard(AzureusCoreFactory.getSingleton(), SWTThread.getInstance().getDisplay());  
+                 new SpeedTestWizard(AzureusCoreFactory.getSingleton(), display);  
                  return OS.noErr;
                default:
                   break;
