@@ -164,9 +164,6 @@ StartServer
             		Logger.log(new LogEvent(LOGID,
 										"Main::startServer: decoded to '" + debug_str + "'"));
                   
-            		if( !COConfigurationManager.getBooleanParameter( "add_torrents_silently" ) ) {
-            			showMainWindow();
-                  }
               	                  
                   processArgs(azureus_core,args);
                 }
@@ -200,7 +197,12 @@ StartServer
     	
     	return;
     }
-           	
+    
+    if (args.length == 1
+				|| !COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
+			showMainWindow();
+		}
+
     boolean	open	= true;
     
     for (int i = 1; i < args.length; i++) {
