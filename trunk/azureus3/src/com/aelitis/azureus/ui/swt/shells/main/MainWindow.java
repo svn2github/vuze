@@ -704,7 +704,9 @@ public class MainWindow
 					}
 				}
 
-				if (visible && Constants.isWindows) {
+				boolean bHideAndShow = visible && Constants.isWindows
+						&& display.getActiveShell() != shell;
+				if (bHideAndShow) {
 					// We don't want the window to just flash and not open, so:
 					// -Minimize main shell
 					// -Set all shells invisible
@@ -723,7 +725,7 @@ public class MainWindow
 					shell.setMinimized(false);
 					shell.forceActive();
 
-					if (Constants.isWindows) {
+					if (bHideAndShow) {
   					try {
     					Shell[] shells = shell.getDisplay().getShells();
     					for (int i = 0; i < shells.length; i++) {
