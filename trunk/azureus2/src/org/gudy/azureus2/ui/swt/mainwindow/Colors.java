@@ -30,6 +30,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
+
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 /**
  * @author Olivier Chalouhi
  * @author MjrTom
@@ -93,24 +95,20 @@ public class Colors implements ParameterListener {
       // [blues.length-1] == rgb
       // in between == blend
       for (int i = 0; i < blues.length; i++) {
-        Color toBeDisposed = blues[i];
         hslColor.initHSLbyRGB(r, g, b);
         float blendBy = (i == 0) ? 1 : (float) 1.0
             - ((float) i / (float) (blues.length - 1));
         hslColor.blend(tR, tG, tB, blendBy);
-        blues[i] = new Color(display, hslColor.getRed(), hslColor.getGreen(),
-            hslColor.getBlue());
+        blues[i] = ColorCache.getColor(display, hslColor.getRed(),
+						hslColor.getGreen(), hslColor.getBlue());
         int iSat = hslColor.getSaturation();
         if (iSat != 0)
           hslColor.setSaturation(iSat / 2);
         else if (bGrayScale) // gray
         	hslColor.brighten(0.8f);
 
-        faded[i] = new Color(display, hslColor.getRed(), hslColor.getGreen(),
-            hslColor.getBlue());
-        if (toBeDisposed != null && !toBeDisposed.isDisposed()) {
-          toBeDisposed.dispose();
-        }
+        faded[i] = ColorCache.getColor(display, hslColor.getRed(),
+						hslColor.getGreen(), hslColor.getBlue());
       }
       
       if (bGrayScale) {
@@ -119,69 +117,23 @@ public class Colors implements ParameterListener {
       	else
       		b += 20;
       }
-      Color toBeDisposed = colorInverse;
       hslColor.initHSLbyRGB(r, g, b);
       hslColor.reverseColor();
-      colorInverse = new Color(display, hslColor.getRed(), hslColor.getGreen(),
-          hslColor.getBlue());
-      if (toBeDisposed != null && !toBeDisposed.isDisposed()) {
-        toBeDisposed.dispose();
-      }
-      toBeDisposed = colorShiftRight;
+      colorInverse = ColorCache.getColor(display, hslColor.getRed(),
+					hslColor.getGreen(), hslColor.getBlue());
+
       hslColor.initHSLbyRGB(r, g, b);
       hslColor.setHue(hslColor.getHue() + 25);
-      colorShiftRight = new Color(display, hslColor.getRed(), hslColor
-          .getGreen(), hslColor.getBlue());
-      if (toBeDisposed != null && !toBeDisposed.isDisposed()) {
-        toBeDisposed.dispose();
-      }
-      toBeDisposed = colorShiftLeft;
+      colorShiftRight = ColorCache.getColor(display, hslColor.getRed(),
+					hslColor.getGreen(), hslColor.getBlue());
+
       hslColor.initHSLbyRGB(r, g, b);
       hslColor.setHue(hslColor.getHue() - 25);
-      colorShiftLeft = new Color(display, hslColor.getRed(), hslColor
-          .getGreen(), hslColor.getBlue());
-      if (toBeDisposed != null && !toBeDisposed.isDisposed()) {
-        toBeDisposed.dispose();
-      }
+      colorShiftLeft = ColorCache.getColor(display, hslColor.getRed(),
+					hslColor.getGreen(), hslColor.getBlue());
     } catch (Exception e) {
     	Logger.log(new LogEvent(LOGID, "Error allocating colors", e));
     }
-  }
-  
-  public void disposeColors() {
-    if(display == null || display.isDisposed())
-      return;
-    
-    Utils.execSWTThread(new AERunnable() {
-      public void runSupport() {
-        if (Colors.colorProgressBar != null
-            && !Colors.colorProgressBar.isDisposed())
-          Colors.colorProgressBar.dispose();
-        for (int i = 0; i < Colors.blues.length; i++) {
-          if (Colors.blues[i] != null && !Colors.blues[i].isDisposed())
-            Colors.blues[i].dispose();
-        }
-        Color[] colorsToDispose = {colorInverse, colorShiftLeft, colorShiftRight,
-        		colorError, grey, black, light_grey, blue, green, red, white,
-        		red_ConsoleView, colorAltRow, colorWarning};
-        for (int i = 0; i < colorsToDispose.length; i++) {
-          if (colorsToDispose[i] != null && !colorsToDispose[i].isDisposed()) {
-            colorsToDispose[i].dispose();
-          }
-        }
-      }
-    }, false);
-  }
-  
-  /**
-   * @param background The background to set.
-   */
-  public void setBackground(Color background) {
-    if(Colors.background != null && !Colors.background.isDisposed()) {
-      Color old = Colors.background;
-      Colors.background = background;
-      old.dispose();
-    }    
   }
   
   private void allocateColorProgressBar() {
@@ -272,19 +224,16 @@ public class Colors implements ParameterListener {
 
   /** Allocates a color */
   private class AllocateColor extends AERunnable {
-    private Color toBeDeleted = null;
     private String sName;
     private RGB rgbDefault;
     private Color newColor;
     
     public AllocateColor(String sName, RGB rgbDefault, Color colorOld) {
-      toBeDeleted = colorOld;
       this.sName = sName;
       this.rgbDefault = rgbDefault;
     }
     
     public AllocateColor(String sName, final Color colorDefault, Color colorOld) {
-			toBeDeleted = colorOld;
 			this.sName = sName;
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
@@ -303,7 +252,7 @@ public class Colors implements ParameterListener {
 
     public void runSupport() {
       if (COConfigurationManager.getBooleanParameter("Colors." + sName + ".override")) {
-        newColor = new Color(display,
+        newColor = ColorCache.getColor(display,
            COConfigurationManager.getIntParameter("Colors." + sName + ".red", 
                                                   rgbDefault.red),
            COConfigurationManager.getIntParameter("Colors." + sName + ".green",
@@ -311,14 +260,13 @@ public class Colors implements ParameterListener {
            COConfigurationManager.getIntParameter("Colors." + sName + ".blue",
                                                   rgbDefault.blue));
       } else {
-        newColor = new Color(display, rgbDefault);
+        newColor = ColorCache.getColor(display, rgbDefault.red,
+        		rgbDefault.green, rgbDefault.blue);
         // Since the color is not longer overriden, reset back to default
         // so that the user sees the correct color in Config.
-        COConfigurationManager.setRGBParameter("Colors." + sName, rgbDefault.red, rgbDefault.green, rgbDefault.blue ); 
+        COConfigurationManager.setRGBParameter("Colors." + sName,
+						rgbDefault.red, rgbDefault.green, rgbDefault.blue); 
       }
-
-      if (toBeDeleted != null && !toBeDeleted.isDisposed())
-        toBeDeleted.dispose();
     }
   }
   
@@ -336,23 +284,23 @@ public class Colors implements ParameterListener {
   }
 
   private void allocateNonDynamicColors() {
-    allocateColorWarning();
-    allocateColorError();
-    allocateColorAltRow();
-    
-    black = new Color(display, new RGB(0, 0, 0));
-    light_grey = new Color(display, new RGB(192, 192, 192));
-    blue = new Color(display, new RGB(0, 0, 170));
-    green = new Color(display, new RGB(0, 170, 0));
-    fadedGreen = new Color(display, new RGB(96,160,96));
-    grey = new Color(display, new RGB(170, 170, 170));
-    red = new Color(display, new RGB(255, 0, 0));
-    fadedRed = new Color(display, new RGB(160, 96, 96));
-    yellow = new Color(display, new RGB(255, 255, 0));
-    white = new Color(display, new RGB(255, 255, 255));
-    background = new Color(display , new RGB(248,248,248));
-    red_ConsoleView = new Color(display, new RGB(255, 192, 192));
-  }   
+		allocateColorWarning();
+		allocateColorError();
+		allocateColorAltRow();
+
+		black = ColorCache.getColor(display, 0, 0, 0);
+		light_grey = ColorCache.getColor(display, 192, 192, 192);
+		blue = ColorCache.getColor(display, 0, 0, 170);
+		green = ColorCache.getColor(display, 0, 170, 0);
+		fadedGreen = ColorCache.getColor(display, 96, 160, 96);
+		grey = ColorCache.getColor(display, 170, 170, 170);
+		red = ColorCache.getColor(display, 255, 0, 0);
+		fadedRed = ColorCache.getColor(display, 160, 96, 96);
+		yellow = ColorCache.getColor(display, 255, 255, 0);
+		white = ColorCache.getColor(display, 255, 255, 255);
+		background = ColorCache.getColor(display, 248, 248, 248);
+		red_ConsoleView = ColorCache.getColor(display, 255, 192, 192);
+	}   
   
   private Display display;
   
