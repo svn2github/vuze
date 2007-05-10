@@ -24,9 +24,11 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -226,6 +228,9 @@ public class CarbonUIEnhancer {
                   return OS.noErr;
                case kHICommandNatTest:
                  new NatTestWindow();
+                 return OS.noErr;
+               case kHICommandSpeedTest:
+                 new SpeedTestWizard(AzureusCoreFactory.getSingleton(), SWTThread.getInstance().getDisplay());  
                  return OS.noErr;
                default:
                   break;
