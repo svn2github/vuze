@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.security.SECertificateListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadStats;
@@ -55,6 +56,7 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import java.io.File;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 
 
 public class NetworkAdminSpeedTesterBTImpl 
@@ -432,21 +434,26 @@ public class NetworkAdminSpeedTesterBTImpl
 	                boolean testDone=false;
 	                long lastTotalTransferredBytes=0;
 	
-	                sendStageUpdateToListeners("starting test...");
-	                  while( !( testDone || aborted )){
+	                //sendStageUpdateToListeners("starting test...");  //ToDo: remove
+                      sendStageUpdateToListeners(MessageText.getString("SpeedTestWizard.stage.message.starting"));
+                      while( !( testDone || aborted )){
 	
 	                	int state = testDownload.getState();
 	                	
 	                	if ( state == Download.ST_ERROR ){
-	                		
-	                		abort( "Test download entered error state '" + testDownload.getErrorStateDetails() + "'" );
+
+                            String enteredErrorState = MessageText.getString("SpeedTestWizard.abort.message.entered.error"
+                                    , new String[] {testDownload.getErrorStateDetails()} );
+                            abort( enteredErrorState );
+
+                            //abort( "Test download entered error state '" + testDownload.getErrorStateDetails() + "'" );//ToDo: remove.
 	                		
 	                		break;
 	                	}
 	                	
 	                	if (  state == Download.ST_STOPPED ){
-	                		
-	                		abort( "Test downloaded entered queued/stopped state" );
+
+                            abort( MessageText.getString("SpeedTestWizard.abort.message.entered.queued") );
 	                		
 	                		break;
 	                	}
@@ -504,7 +511,7 @@ public class NetworkAdminSpeedTesterBTImpl
 	                    try{ Thread.sleep(1000); }
 	                    catch(InterruptedException ie){
 	                        //someone interrupted this thread for a reason. "test is now over"
-	                        abort( "TorrentSpeedTestMonitorThread was interrupted before test completed" );
+                            abort( MessageText.getString("SpeedTestWizard.abort.message.interrupted") );
 	 
 	                        break;
 	                    }
@@ -533,26 +540,33 @@ public class NetworkAdminSpeedTesterBTImpl
 	
 	            }catch(Exception e){
 	            	
-	                abort( "Test execution failed", e );
-	            }
+	                //abort( "Test execution failed", e );//ToDo: remove.
+                    abort( MessageText.getString("SpeedTestWizard.abort.message.execution.failed") );
+                }
 	
 	            if ( !aborted ){
 	            	
 	            		// check the stats for peers we connected to during the test
 	            	
-	            	sendStageUpdateToListeners( "Connection stats: peers=" + connected_peers.size() + ", down_ok=" + not_choked_peers.size() + ", up_ok=" + not_choking_peers.size());
-	            	
-		            if ( connected_peers.size() == 0 ){
-		            	
-		            	abort( "Failed to connect to any peers" );
+	            	sendStageUpdateToListeners( "Connection stats: peers=" + connected_peers.size()
+                            + ", down_ok=" + not_choked_peers.size()
+                            + ", up_ok=" + not_choking_peers.size());
+                    //ToDo: internationalize.
+
+                    if ( connected_peers.size() == 0 ){
+
+                        abort( MessageText.getString("SpeedTestWizard.abort.message.failed.peers") );
+                        //abort( "Failed to connect to any peers" ); //ToDo: remove.
 	
 	                }else if ( not_choking_peers.size() == 0 && testMode!=TEST_TYPE_DOWNLOAD_ONLY ){
-		            	
-		            	abort( "Could not upload to any of the peers - insufficient upload slots?" );
+
+                        abort( MessageText.getString("SpeedTestWizard.abort.message.insufficient.slots") );
+                        //abort( "Could not upload to any of the peers - insufficient upload slots?" );  //ToDo: remove.
 		            	
 		            }else if ( not_choked_peers.size() == 0 && testMode!=TEST_TYPE_UPLOAD_ONLY){
-		            	
-		            	abort( "Could not download from any of the peers as never unchoked by them" );
+
+                        abort( MessageText.getString("SpeedTestWizard.abort.message.not.unchoked") );
+                        //abort( "Could not download from any of the peers as never unchoked by them" ); //ToDo: remove.
 		            }
 	            }
 	            
@@ -661,20 +675,23 @@ public class NetworkAdminSpeedTesterBTImpl
                 j++;
             }
             //calculate average.
-            double aveDownloadRate = (double) ( sumBytes/deltas.size() );
+            double aveRate = (double) ( sumBytes/deltas.size() );
+            Debug.out("ave rate:"+aveRate);
 
             //calculate standard deviation.
             double variance = 0.0;
             double s;
             for(j=0;j<deltas.size();j++){
-                s = ( autoboxLong(deltas.get(j)) - aveDownloadRate );
+                Debug.out( j+","+deltas.get(j) );
+
+                s = ( autoboxLong(deltas.get(j)) - aveRate );
                 variance += s*s;
             }
             double stddev = Math.sqrt( variance/(j-1) );
 
             //Map<String,Double> retVal = new HashMap<String,Double>();
             Map retVal = new HashMap();
-            retVal.put(AVE, autoboxDouble(aveDownloadRate));
+            retVal.put(AVE, autoboxDouble(aveRate));
             retVal.put(STD_DEV,autoboxDouble(stddev));
             return retVal;
         }//calculate
@@ -842,17 +859,44 @@ public class NetworkAdminSpeedTesterBTImpl
             return lastError;
         }
 
-        //ToDo: make a printResult which is more concise.
+        public String getResultString(){
+            StringBuffer sb = new StringBuffer();
+
+            //Time
+            SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmss z");
+            String d = format.format( new Date(time) );
+            sb.append(d).append(" ");
+
+            sb.append("type: BT test ");
+
+            //Get test info.
+            sb.append("mode: ").append( getMode() );
+
+            //Get crypto
+            sb.append(" encrypted: ");
+            if( use_crypto ){
+                sb.append("y");
+            }else{
+                sb.append("n");
+            }
+
+            if(hadError){
+                //Error
+                sb.append(" Last Error: ").append(lastError);
+            }else{
+                //Result
+                sb.append(" download speed: ").append(downspeed).append(" bits/sec");
+                sb.append(" upload speed: ").append(upspeed).append(" bits/sec");
+            }
+
+            return sb.toString();
+        }//getString
+
+
         public String toString(){
             StringBuffer sb = new StringBuffer("[com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTesterBTImpl");
 
-            if(hadError){
-                sb.append(" Last Error: ").append(lastError);
-            }else{
-                sb.append(" download speed: ").append(downspeed);
-                sb.append(" upload speed: ").append(upspeed);
-            }
-            sb.append(" time=").append(time);
+            sb.append(" ").append( getResultString() ).append(" ");
             sb.append("]");
 
             return sb.toString();

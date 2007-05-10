@@ -49,6 +49,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
@@ -160,8 +161,11 @@ NetworkAdminSpeedTestScheduledTestImpl
 			            		
 			            	break;
 			            }
-				       
-						reportStage( "test scheduled in ... " + ( delay_ticks - i ) + " seconds" );
+                        
+                        String testScheduledIn = MessageText.getString( "SpeedTestWizard.abort.message.scheduled.in"
+                                , new String[]{""+(delay_ticks - i)} );
+						reportStage( testScheduledIn );
+                        //reportStage( "test scheduled in ... " + ( delay_ticks - i ) + " seconds" ); //ToDo: remove
 						
 						try{
 							Thread.sleep(1000);
@@ -181,8 +185,8 @@ NetworkAdminSpeedTestScheduledTestImpl
 							((NetworkAdminSpeedTesterBTImpl)tester).start( test_torrent );
 							
 						}else{
-														
-							tester.abort( "Unsupported test type!!!!" );
+							String unsupportedType = MessageText.getString("SpeedTestWizard.abort.message.unsupported.type");
+							tester.abort(unsupportedType);
 						}
 					}
 				}
@@ -199,7 +203,7 @@ NetworkAdminSpeedTestScheduledTestImpl
 	public void
 	abort()
 	{
-		abort( "Manally aborted" );
+        abort( MessageText.getString("SpeedTestWizard.abort.message.manual.abort") );
 	}
 	
 	public void
@@ -267,7 +271,7 @@ NetworkAdminSpeedTestScheduledTestImpl
                     
                 	//over-ride the jar version, and location for debugging.
 
-                	File f = new File( "C:\\test\\azureus\\Azureus3.0.1.2.jar" );
+                	File f = new File( "C:\\test\\azureus\\Azureus3.0.1.2.jar" );  //ToDo: make this a -D option with this default.
 
                 	if ( f.exists()){
                 		
@@ -366,8 +370,8 @@ NetworkAdminSpeedTestScheduledTestImpl
         }catch( Throwable t ){
         	       	
             Debug.printStackTrace(t);
-            			
-			tester.abort( "Scheduling of the test failed", t );
+
+            tester.abort( MessageText.getString("SpeedTestWizard.abort.message.scheduling.failed"), t );
 
             return( false );
         }
@@ -416,6 +420,7 @@ NetworkAdminSpeedTestScheduledTestImpl
 
     /**
      *
+     * @param jar_file - File Azureus jar used to load classes.
      * @param result - Map from the previous response
      * @return Map - from the current response.
      */
@@ -662,8 +667,11 @@ NetworkAdminSpeedTestScheduledTestImpl
     				Debug.printStackTrace(e);
     			}
     		}
-    		
-        	abort( "Download '" + download.getName() + "' added during test" );
+
+            String downloadAdded = MessageText.getString("SpeedTestWizard.abort.message.download.added"
+                    , new String[]{download.getName()});
+            abort(downloadAdded);
+            //abort( "Download '" + download.getName() + "' added during test" );  //ToDo: remove.
     	}
     	
     	public void

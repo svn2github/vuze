@@ -467,6 +467,17 @@ SpeedTestPanel
         try{
             times[0] = Integer.parseInt( values[4].trim() );
             times[1] = Integer.parseInt( values[5].trim() );
+
+            //don't allow time values less then zero.
+            if(times[0]<0){
+                times[0]=0;
+            }
+
+            if(times[1]<0){
+                times[1]=0;
+            }
+
+
         }catch(Exception e){
             return null;
         }
@@ -590,7 +601,6 @@ SpeedTestPanel
                 if(originalColor!=null){
                     encryptToggle.setForeground(originalColor);
                 }
-
             }
         }//handleEvent        
     }
