@@ -161,10 +161,11 @@ public class PiecesView
   
   public void peerAdded(PEPeer peer) {  }
   public void peerRemoved(PEPeer peer) {  }
-	public void peerManagerAdded(PEPeerManager manager) {	}
-	public void peerManagerRemoved(PEPeerManager	manager) {
+  public void peerManagerWillBeAdded( PEPeerManager	peer_manager ){}
+  public void peerManagerAdded(PEPeerManager manager) {	}
+  public void peerManagerRemoved(PEPeerManager	manager) {
 		tv.removeAllTableRows();
-	}
+  }
 
 	/**
 	 * Add datasources already in existance before we called addListener.

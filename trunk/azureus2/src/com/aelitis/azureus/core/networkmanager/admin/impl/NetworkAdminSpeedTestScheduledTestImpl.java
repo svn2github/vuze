@@ -383,15 +383,6 @@ NetworkAdminSpeedTestScheduledTestImpl
 			
 			ClassLoader parent = new ClassLoader()
 			{
-				public synchronized Class 
-				loadClass(
-					String 		name )
-				
-					throws ClassNotFoundException
-				{
-					return( loadClass( name, false ));
-				}
-				
 				protected synchronized Class 
 				loadClass(
 					String 		name,
@@ -700,15 +691,13 @@ NetworkAdminSpeedTestScheduledTestImpl
                     plugin.getDownloadManager().getStats();
                     int downloadLimit = d[i].getDownloadRateLimitBytesPerSecond();
                     int uploadLimit = d[i].getUploadRateLimitBytesPerSecond();
-
-                    Debug.out("pauseDownloads: "+d[i].getName()+" upload: "+uploadLimit+" downloadLimit: "+downloadLimit);
                     
                     setDownloadDetails(d[i],uploadLimit,downloadLimit);
 
                     d[i].setUploadRateLimitBytesPerSecond(ZERO_DOWNLOAD_SETTING);
                     d[i].setDownloadRateLimitBytesPerSecond( ZERO_DOWNLOAD_SETTING );
-                }//for
-            }//if
+                }
+            }
 
             //preserve the global limits
             
@@ -793,12 +782,9 @@ NetworkAdminSpeedTestScheduledTestImpl
 
                     downloads[i].setDownloadRateLimitBytesPerSecond(downLimit);
                     downloads[i].setUploadRateLimitBytesPerSecond(uploadLimit);
-
-                    System.out.println("restoreDownloads: "+downloads[i].getName()+" upload: "+uploadLimit+" download: "+downLimit);
-                }//for
-            }//if
-        }//restoreIndividualLimits
-
+                }
+            }
+        }
         /**
          * Save the upload/download limits of this Download object before the test started.
          * @param d - Download

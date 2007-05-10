@@ -358,6 +358,12 @@ DiskManagerChannelImpl
 	}
 	
 	public void
+	peerManagerWillBeAdded(
+		PEPeerManager	manager )
+	{
+	}
+	
+	public void
 	peerManagerAdded(
 		PEPeerManager	manager )
 	{

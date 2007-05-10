@@ -233,15 +233,23 @@ public class NetworkAdminSpeedTesterBTImpl
             		new DownloadManagerPeerListener()
             		{
             			public void
-            			peerManagerAdded( PEPeerManager	peer_manager )
+            			peerManagerWillBeAdded(
+            				PEPeerManager	peer_manager )
             			{
-            				DiskManager	disk_manager = peer_manager.getDiskManager();
+              				DiskManager	disk_manager = peer_manager.getDiskManager();
+              				
                 			DiskManagerPiece[]	pieces = disk_manager.getPieces();
 
                             int startPiece = setStartPieceBasedOnMode(testMode,pieces.length);
+                            
                             for ( int i=startPiece; i<pieces.length; i++ ){
                                 pieces[i].setDone( true );
                 			}
+            			}
+            			
+            			public void
+            			peerManagerAdded( PEPeerManager	peer_manager )
+            			{
             			}
             			
             			public void
@@ -443,6 +451,14 @@ public class NetworkAdminSpeedTesterBTImpl
 	                		break;
 	                	}
 	                	
+	                		// can flick out of force-mode when transitioning from downloading
+	                		// to seeding - easiest fix is:
+	                	
+	                	if ( !testDownload.isForceStart()){
+	                		
+	                		testDownload.setForceStart( true );
+	                	}
+	                	
 	                	PeerManager pm = testDownload.getPeerManager();
 	                	
 	                	if ( pm != null ){
@@ -532,7 +548,7 @@ public class NetworkAdminSpeedTesterBTImpl
 	
 	                }else if ( not_choking_peers.size() == 0 && testMode!=TEST_TYPE_DOWNLOAD_ONLY ){
 		            	
-		            	abort( "Could not upload to any of the peers - insufficient upload slots" );
+		            	abort( "Could not upload to any of the peers - insufficient upload slots?" );
 		            	
 		            }else if ( not_choked_peers.size() == 0 && testMode!=TEST_TYPE_UPLOAD_ONLY){
 		            	

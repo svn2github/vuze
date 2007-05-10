@@ -1344,7 +1344,11 @@ DownloadImpl
 		}
 	}
 	
-	
+	public void
+	peerManagerWillBeAdded(
+		PEPeerManager	manager )
+	{
+	}
 	
 	public void
 	peerManagerAdded(

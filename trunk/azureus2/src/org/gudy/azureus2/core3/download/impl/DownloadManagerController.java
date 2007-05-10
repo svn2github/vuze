@@ -315,6 +315,8 @@ DownloadManagerController
 		
 		final PEPeerManager temp = PEPeerManagerFactory.create( tracker_client.getPeerId(), this, dm );
 		
+		download_manager.informWillBeStarted( temp );
+		
 		temp.start();
 	
 		   //The connection to the tracker

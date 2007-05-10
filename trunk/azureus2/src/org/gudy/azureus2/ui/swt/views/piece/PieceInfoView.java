@@ -594,6 +594,8 @@ public class PieceInfoView
 	public void peerAdded(PEPeer peer) {
 	}
 
+    public void peerManagerWillBeAdded( PEPeerManager	peer_manager ){}
+
 	// @see org.gudy.azureus2.core3.download.DownloadManagerPeerListener#peerManagerAdded(org.gudy.azureus2.core3.peer.PEPeerManager)
 	public void peerManagerAdded(PEPeerManager manager) {
 	}

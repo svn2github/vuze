@@ -2502,7 +2502,27 @@ DownloadManagerImpl
 		}	
 	}
 
-
+	protected void
+	informWillBeStarted(
+		PEPeerManager	pm )
+	{
+			// hack I'm afraid - sometimes we want synchronous notification of a peer manager's
+			// creation before it actually starts
+		
+		List l = peer_listeners.getListenersCopy();
+		
+		for (int i=0;i<l.size();i++){
+			
+			try{
+				((DownloadManagerPeerListener)l.get(i)).peerManagerWillBeAdded( pm );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
   	protected void
   	informStarted(
 		PEPeerManager	pm )

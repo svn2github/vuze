@@ -31,6 +31,15 @@ import org.gudy.azureus2.core3.peer.*;
 public interface 
 DownloadManagerPeerListener 
 {
+		/**
+		 * Called when a peer manager is created but not yet started
+		 * @param manager
+		 */
+	
+	public void
+	peerManagerWillBeAdded(
+		PEPeerManager	manager );
+
 	public void
 	peerManagerAdded(
 		PEPeerManager	manager );

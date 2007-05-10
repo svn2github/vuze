@@ -139,6 +139,12 @@ UserAlerts
 				{
 					dm.removeListener( disk_listener );
 				}
+				
+    			public boolean
+    			syncInvokeRequired()
+    			{
+    				return( false );
+    			}
 			};
 
     	global_manager.addListener(
