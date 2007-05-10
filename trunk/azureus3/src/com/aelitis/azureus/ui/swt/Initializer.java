@@ -59,39 +59,107 @@ public class Initializer
 
 	protected static SplashWindow splash;
 
-	private final String[] args;
-	
-	private static boolean ROUTE_TO_AZ2 = true;
-
 	public static void main(final String args[]) {
-		// Temporary force
-		if (System.getProperty("force.ui") == null) {
-			System.setProperty("force.ui", "az3");
+		// This *has* to be done first as it sets system properties that are read and cached by Java
+		COConfigurationManager.preInitialise();
+
+		String mi_str = System.getProperty(Main.PR_MULTI_INSTANCE);
+		boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
+
+		startServer = new StartServer();
+
+		boolean debugGUI = Boolean.getBoolean("debug");
+
+		if (mi || debugGUI || Main.processParams(args, startServer)) {
+			AzureusCore core = AzureusCoreFactory.create();
+			Constants.initialize(core);
+			PlatformConfigMessenger.login(0);
+
+			core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
+				private GlobalManager gm;
+
+				public void componentCreated(AzureusCore core,
+						AzureusCoreComponent component) {
+					if (component instanceof GlobalManager) {
+						gm = (GlobalManager) component;
+
+						InitialisationFunctions.earlyInitialisation(core);
+					}
+				}
+
+				// @see com.aelitis.azureus.core.AzureusCoreLifecycleAdapter#started(com.aelitis.azureus.core.AzureusCore)
+
+				public void started(AzureusCore core) {
+					InitialisationFunctions.lateInitialisation(core);
+					if (gm == null) {
+						return;
+					}
+
+					new UserAlerts(gm);
+
+					new Colors();
+
+					Cursors.init();
+
+					new MainWindow(core, Display.getDefault(), splash);
+
+					SWTUpdateChecker.initialize();
+
+					UpdateMonitor.getSingleton(core); // setup the update monitor
+
+					//Tell listeners that all is initialized :
+
+					Alerts.initComplete();
+
+					//Finally, open torrents if any.
+
+					for (int i = 0; i < args.length; i++) {
+
+						try {
+							TorrentOpener.openTorrent(args[i]);
+
+						} catch (Throwable e) {
+
+							Debug.printStackTrace(e);
+						}
+					}
+				}
+
+				public void stopping(AzureusCore core) {
+					Alerts.stopInitiated();
+				}
+
+				public void stopped(AzureusCore core) {
+				}
+
+				public boolean syncInvokeRequired() {
+					return (true);
+				}
+
+				public boolean stopRequested(AzureusCore _core)
+						throws AzureusCoreException {
+					return (handleStopRestart(false));
+				}
+
+				public boolean restartRequested(final AzureusCore core) {
+					return (handleStopRestart(true));
+				}
+
+			});
+
+			startServer.pollForConnections(core);
+
+			new Initializer(core, args);
+		}
+	}
+
+	public static boolean handleStopRestart(final boolean restart) {
+		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (functionsSWT != null) {
+			return functionsSWT.dispose(restart, true);
 		}
 
-		if (ROUTE_TO_AZ2) {
-			Main.main(args);
-		} else {
-			// This *has* to be done first as it sets system properties that are read and cached by Java
-			COConfigurationManager.preInitialise();
-
-			String mi_str = System.getProperty(Main.PR_MULTI_INSTANCE);
-			boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
-
-			startServer = new StartServer();
-
-			boolean debugGUI = Boolean.getBoolean("debug");
-
-			if (mi || debugGUI || Main.processParams(args, startServer)) {
-				AzureusCore core = AzureusCoreFactory.create();
-				Constants.initialize(core);
-				PlatformConfigMessenger.login(0);
-
-				startServer.pollForConnections(core);
-
-				new Initializer(core, true, args);
-			}
-		}
+		return false;
 	}
 
 	/**
@@ -99,19 +167,13 @@ public class Initializer
 	 * @param core
 	 * @param args
 	 */
-	public Initializer(AzureusCore core, boolean createSWTThreadAndRun, String[] args) {
+	public Initializer(AzureusCore core, String[] args) {
 		this.core = core;
-		this.args = args;
 
-		if (createSWTThreadAndRun) {
-  		try {
-  			SWTThread.createInstance(this);
-  		} catch (SWTThreadAlreadyInstanciatedException e) {
-  			Debug.printStackTrace(e);
-  		}
-		} else {
-			Constants.initialize(core);
-			PlatformConfigMessenger.login(0);
+		try {
+			SWTThread.createInstance(this);
+		} catch (SWTThreadAlreadyInstanciatedException e) {
+			Debug.printStackTrace(e);
 		}
 	}
 
@@ -178,76 +240,6 @@ public class Initializer
 			}
 
 		});
-
-		core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
-			private GlobalManager gm;
-
-			public void componentCreated(AzureusCore core,
-					AzureusCoreComponent component) {
-				if (component instanceof GlobalManager) {
-					gm = (GlobalManager) component;
-
-					InitialisationFunctions.earlyInitialisation(core);
-				}
-			}
-
-			// @see com.aelitis.azureus.core.AzureusCoreLifecycleAdapter#started(com.aelitis.azureus.core.AzureusCore)
-			public void started(AzureusCore core) {
-				InitialisationFunctions.lateInitialisation(core);
-				if (gm == null) {
-					return;
-				}
-
-				new UserAlerts(gm);
-
-				new Colors();
-
-				Cursors.init();
-
-				new MainWindow(core, Display.getDefault(), splash);
-
-				SWTUpdateChecker.initialize();
-
-				UpdateMonitor.getSingleton(core); // setup the update monitor
-
-				//Tell listeners that all is initialized :
-				Alerts.initComplete();
-
-				//Finally, open torrents if any.
-				for (int i = 0; i < args.length; i++) {
-
-					try {
-						TorrentOpener.openTorrent(args[i]);
-
-					} catch (Throwable e) {
-
-						Debug.printStackTrace(e);
-					}
-				}
-			}
-
-			public void stopping(AzureusCore core) {
-				Alerts.stopInitiated();
-			}
-
-			public void stopped(AzureusCore core) {
-			}
-
-			public boolean syncInvokeRequired() {
-				return (true);
-			}
-
-			public boolean stopRequested(AzureusCore _core)
-					throws AzureusCoreException {
-				return org.gudy.azureus2.ui.swt.mainwindow.Initializer.handleStopRestart(false);
-			}
-
-			public boolean restartRequested(final AzureusCore core) {
-				return org.gudy.azureus2.ui.swt.mainwindow.Initializer.handleStopRestart(true);
-			}
-
-		});
-
 		core.start();
 
 		splash.reportPercent(25);
