@@ -234,7 +234,7 @@ public class MainWindow
 						- dm.getDownloadState().getLongParameter(
 								DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME) < 10000
 				&& !PublishUtils.isPublished(dm)
-				&& !dm.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE )){
+				&& !dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
@@ -463,6 +463,8 @@ public class MainWindow
 			}
 		});
 
+		//AdManager.getInstance().intialize(core);
+
 		ExternalStimulusHandler.addListener(new ExternalStimulusListener() {
 			public boolean receive(String name, Map values) {
 				try {
@@ -687,10 +689,37 @@ public class MainWindow
 					}
 				}
 
+				if (visible && Constants.isWindows) {
+					// We don't want the window to just flash and not open, so:
+					// -Minimize main shell
+					// -Set all shells invisible
+					try {
+  					shell.setMinimized(true);
+  					Shell[] shells = shell.getDisplay().getShells();
+  					for (int i = 0; i < shells.length; i++) {
+  						shells[i].setVisible(false);
+  					}
+  				} catch (Exception e) {
+  				}
+				}
+
 				shell.setVisible(visible);
 				if (visible) {
 					shell.setMinimized(false);
 					shell.forceActive();
+
+					if (Constants.isWindows) {
+  					try {
+    					Shell[] shells = shell.getDisplay().getShells();
+    					for (int i = 0; i < shells.length; i++) {
+    						if (shells[i] != shell) {
+    							shells[i].setVisible(visible);
+    							shells[i].setFocus();
+    						}
+    					}
+  					} catch (Exception e) {
+  					}
+					}
 				}
 
 			}
@@ -698,16 +727,11 @@ public class MainWindow
 	}
 
 	private void minimizeToTray(ShellEvent event) {
-		boolean isOSX = org.gudy.azureus2.core3.util.Constants.isOSX;
 		//Added this test so that we can call this method with null parameter.
 		if (event != null) {
 			event.doit = false;
 		}
-		if (isOSX) {
-			shell.setMinimized(true);
-		} else {
-			shell.setVisible(false);
-		}
+		shell.setVisible(false);
 		MinimizedWindow.setAllVisible(true);
 	}
 
@@ -1306,10 +1330,6 @@ public class MainWindow
 
 		String sURL = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
 				+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX;
-		//		String sURL = Constants.URL_PREFIX
-		//				+ "app?page=content%2FBrowse&service=external&sp=X&sp=X&sp=S"
-		//				+ UrlUtils.encode(" " + sSearchText + " ") + "&sp=X&sp=X&"
-		//				+ Constants.URL_SUFFIX;
 		System.out.println(sURL);
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
