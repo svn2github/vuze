@@ -21,16 +21,17 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.ui.IUIIntializer;
 
 import org.eclipse.swt.widgets.Display;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.*;
@@ -42,10 +43,8 @@ import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
-import com.aelitis.azureus.core.*;
-import com.aelitis.azureus.ui.IUIIntializer;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * this class initiatize all GUI and Core components which are :
@@ -81,6 +80,28 @@ Initializer
     startServer 	= _server;
     args 			= _args;
     
+    	// these lifecycle actions are initially to handle plugin-initiated stops and restarts
+    
+    azureus_core.addLifecycleListener(
+			new AzureusCoreLifecycleAdapter()
+			{
+				public boolean
+				stopRequested(
+					AzureusCore		_core )
+				
+					throws AzureusCoreException
+				{
+					return( handleStopRestart(false));
+				}
+				
+				public boolean
+				restartRequested(
+					final AzureusCore		core )
+				{
+					return( handleStopRestart(true));
+				}
+			});
+    
     try {
       SWTThread.createInstance(this);
     } catch(SWTThreadAlreadyInstanciatedException e) {
@@ -88,33 +109,54 @@ Initializer
     }
   }  
 
-  public static boolean
+  public boolean
   handleStopRestart(
   	final boolean	restart )
   {
-		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		if (functionsSWT != null) {
-			return functionsSWT.dispose(restart, true);
+  	if (Utils.isThisThreadSWT())
+  		return( MainWindow.getWindow().dispose(restart,true));
+		
+		final AESemaphore			sem 	= new AESemaphore("SWTInit::stopRestartRequest");
+		final boolean[]				ok	 	= {false};
+		
+		try{
+			Utils.execSWTThread(
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							try{
+								ok[0] = MainWindow.getWindow().dispose(restart,true);
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							
+							}finally{
+								
+								sem.release();
+							}
+						}
+					});
+		
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			sem.release();
 		}
-
-		return false;
-	}
+	
+		sem.reserve();
+	
+		return( ok[0] );
+  }
 	
 
   public void 
   run() 
   {
   	try{
-  		String uiMode = UISwitcherUtil.openSwitcherWindow(false);
-			if (uiMode.equals("az3")) {
-				IUIIntializer initializer = new com.aelitis.azureus.ui.swt.Initializer(
-						azureus_core, false, args);
-				initializer.run();
-				return;
-			}
-			// else AZ2UI
-  		
-  		
   		// initialise the SWT locale util
 	  	
 	    new LocaleUtilSWT( azureus_core );
@@ -170,83 +212,93 @@ Initializer
 	    
 	    azureus_core.addListener( this );
 	    
-	    azureus_core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
-				public void componentCreated(AzureusCore core, AzureusCoreComponent comp) {
-					if (comp instanceof GlobalManager) {
+	    azureus_core.addLifecycleListener(
+	    	new AzureusCoreLifecycleAdapter()
+			{
+	    		public void
+				componentCreated(
+					AzureusCore					core,
+					AzureusCoreComponent		comp )
+	    		{
+	    			if ( comp instanceof GlobalManager ){
+	    				
+	    				gm	= (GlobalManager)comp;
 
-						gm = (GlobalManager) comp;
+	    				nextTask();	    
+	    				reportCurrentTask(MessageText.getString("splash.initializePlugins"));
+	    			}
+	    		}
+	    		
+	    		public void
+				started(
+					AzureusCore		core )
+	    		{	    		      	
+	    			if (gm == null)
+	    				return;
 
-						nextTask();
-						reportCurrentTask(MessageText.getString("splash.initializePlugins"));
-					}
-				}
-
-				public void started(AzureusCore core) {
-					if (gm == null)
-						return;
-
-					new UserAlerts(gm);
-
-					nextTask();
-					reportCurrentTaskByKey("splash.initializeGui");
-
-					new Colors();
-
-					Cursors.init();
-
-					MainWindow main_window = new MainWindow(core, Initializer.this,
+    		    new UserAlerts(gm);
+    		    
+    		    nextTask();	    
+    		    reportCurrentTaskByKey("splash.initializeGui");
+    		    
+    		    new Colors();
+    		    
+    		    Cursors.init();
+    		    
+    		    MainWindow main_window = new MainWindow(core, Initializer.this,
 							logEvents);
+    		    
+    		    if (finalLogListener != null)
+    		    	Logger.removeListener(finalLogListener);
 
-					if (finalLogListener != null)
-						Logger.removeListener(finalLogListener);
+    		    nextTask();
+    		    
+	    		    reportCurrentTaskByKey( "splash.openViews");
 
-					nextTask();
-
-					reportCurrentTaskByKey("splash.openViews");
-
-					SWTUpdateChecker.initialize();
-
-					UpdateMonitor.getSingleton(core); // setup the update monitor
-
-					//Tell listeners that all is initialized :
-					Alerts.initComplete();
-
-					// 7th task: just for triggering a > 100% completion
-					nextTask();
-
-					//Finally, open torrents if any.
-					for (int i = 0; i < args.length; i++) {
-
-						try {
-							TorrentOpener.openTorrent(args[i]);
-
-						} catch (Throwable e) {
-
-							Debug.printStackTrace(e);
-						}
-					}
-				}
-
-				public void stopping(AzureusCore core) {
-					Alerts.stopInitiated();
-				}
-
-				public void stopped(AzureusCore core) {
-				}
-
-				public boolean syncInvokeRequired() {
-					return (true);
-				}
-
-				public boolean stopRequested(AzureusCore _core)
-
-				throws AzureusCoreException {
-					return (handleStopRestart(false));
-				}
-
-				public boolean restartRequested(final AzureusCore core) {
-					return (handleStopRestart(true));
-				}
+	    		    SWTUpdateChecker.initialize();
+	    		    
+	    		    UpdateMonitor.getSingleton( core );	// setup the update monitor
+	    			
+	    		    //Tell listeners that all is initialized :
+	    		    
+	    		    Alerts.initComplete();
+	    		    
+	    		    // 7th task: just for triggering a > 100% completion
+	    		    nextTask();
+	    		    
+	    		    
+	    		    //Finally, open torrents if any.
+	    		    
+	    		    for (int i=0;i<args.length;i++){
+	    		    	
+	    		    	try{
+	    		    		TorrentOpener.openTorrent(args[i]);
+	    		    		
+	    	        	}catch( Throwable e ){
+	    	        		
+	    	        		Debug.printStackTrace(e);
+	    	        	}	
+	    		    }
+	    		}
+	    		
+	    		public void
+	    		stopping(
+	    			AzureusCore		core )
+	    		{
+	    			Alerts.stopInitiated();
+	    		}
+	    		
+	    		public void
+	    		stopped(
+	    			AzureusCore		core )
+	    		{
+	    		}
+	    		
+	    		public boolean
+	    		syncInvokeRequired()
+	    		{
+	    			return( true );
+	    		}
 			});
 	    
 	    azureus_core.start();
@@ -410,7 +462,6 @@ Initializer
   
   public static void main(String args[]) 
   {
-  	System.err.println("Shouldn't you be starting with org.gudy.azureus2.ui.swt.Main?");
  	AzureusCore		core = AzureusCoreFactory.create();
 
  	new Initializer( core, null,args);
