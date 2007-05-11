@@ -79,9 +79,9 @@ import com.aelitis.azureus.ui.swt.search.network.NetworkSearch;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.*;
+import com.aelitis.azureus.ui.swt.views.ViewDownSpeedGraph;
+import com.aelitis.azureus.ui.swt.views.ViewUpSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.skin.*;
-import com.aelitis.azureus.ui.swt.views.skin.topbar.TopBarDownSpeedGraphView;
-import com.aelitis.azureus.ui.swt.views.skin.topbar.TopBarUpSpeedGraphView;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
 
@@ -1099,8 +1099,8 @@ public class MainWindow
 		// TODO actually use plugins..
 
 		IView[] coreTopBarViews = {
-			new TopBarDownSpeedGraphView(),
-			new TopBarUpSpeedGraphView(),
+			new ViewDownSpeedGraph(),
+			new ViewUpSpeedGraph(),
 			new VivaldiView(true)
 		};
 

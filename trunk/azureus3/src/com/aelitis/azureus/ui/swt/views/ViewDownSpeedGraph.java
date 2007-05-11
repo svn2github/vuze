@@ -18,7 +18,7 @@
  *
  */
 
-package com.aelitis.azureus.ui.swt.views.skin.topbar;
+package com.aelitis.azureus.ui.swt.views;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -50,7 +50,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
  * @created Apr 7, 2007
  *
  */
-public class TopBarDownSpeedGraphView
+public class ViewDownSpeedGraph
 	extends AbstractIView
 {
 
@@ -64,7 +64,7 @@ public class TopBarDownSpeedGraphView
 
 	SpeedGraphic downSpeedGraphic;
 
-	public TopBarDownSpeedGraphView() {
+	public ViewDownSpeedGraph() {
 		this.manager = AzureusCoreFactory.getSingleton().getGlobalManager();
 		this.stats = manager.getStats();
 		this.totalStats = StatsFactory.getStats();

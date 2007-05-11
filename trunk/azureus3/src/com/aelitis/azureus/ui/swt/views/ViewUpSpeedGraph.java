@@ -18,7 +18,7 @@
  *
  */
 
-package com.aelitis.azureus.ui.swt.views.skin.topbar;
+package com.aelitis.azureus.ui.swt.views;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -47,7 +47,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
  * @created Apr 7, 2007
  *
  */
-public class TopBarUpSpeedGraphView
+public class ViewUpSpeedGraph
 	extends AbstractIView
 {
 
@@ -61,7 +61,7 @@ public class TopBarUpSpeedGraphView
 
 	SpeedGraphic upSpeedGraphic;
 
-	public TopBarUpSpeedGraphView() {
+	public ViewUpSpeedGraph() {
 		this.manager = AzureusCoreFactory.getSingleton().getGlobalManager();
 		this.stats = manager.getStats();
 		this.totalStats = StatsFactory.getStats();
