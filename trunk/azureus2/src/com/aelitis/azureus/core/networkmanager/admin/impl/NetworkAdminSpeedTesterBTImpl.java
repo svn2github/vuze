@@ -180,7 +180,7 @@ public class NetworkAdminSpeedTesterBTImpl
     	
         //OK lets start the test.
         try{
-            sendStageUpdateToListeners(MessageText.getString("SpeedTestWizard.stage.message.requesting"));
+            //sendStageUpdateToListeners(MessageText.getString("SpeedTestWizard.stage.message.requesting"));//ToDo: move as early as possible.
 
             TorrentUtils.setFlag( tot, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
             

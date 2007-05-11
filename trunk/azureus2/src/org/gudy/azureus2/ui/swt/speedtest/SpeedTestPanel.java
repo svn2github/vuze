@@ -312,6 +312,7 @@ SpeedTestPanel
 				// what's the contract here in terms of listener removal?
 			
 			try{
+                reportStage( MessageText.getString("SpeedTestWizard.stage.message.requesting") );
                 scheduled_test = nasts.scheduleTest( NetworkAdminSpeedTestScheduler.TEST_TYPE_BT );
                 
                 scheduled_test.getTester().setMode( test_mode );
@@ -611,7 +612,7 @@ SpeedTestPanel
 
     public boolean isNextEnabled(){
         //only enable after the test completes correctly.
-        return uploadTest>0;
+        return (uploadTest>0 && !test_running);
     }//isNextEnabled
 
     public IWizardPanel getNextPanel() {
@@ -656,6 +657,8 @@ SpeedTestPanel
             test.setEnabled(false);
             encryptToggle.setEnabled(false);
             wizard.setErrorMessage("");
+            wizard.setNextEnabled(false);
+            textMessages.setText("");
             finish();
         }//handleEvent
     }
