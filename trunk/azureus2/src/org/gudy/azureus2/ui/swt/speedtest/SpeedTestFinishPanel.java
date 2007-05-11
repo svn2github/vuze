@@ -14,8 +14,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.SWT;
 
-import java.text.NumberFormat;
-
 /**
  * Created on May 3, 2007
  * Created by Alan Snyder

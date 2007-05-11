@@ -46,7 +46,6 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTestSchedu
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTester;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
 import com.aelitis.azureus.core.networkmanager.admin.impl.NetworkAdminSpeedTestSchedulerImpl;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class 
 SpeedTestPanel
@@ -79,6 +78,7 @@ SpeedTestPanel
     WizardListener clListener;
 
     private static final String START_VALUES = "   -         ";
+
 
     public
 	SpeedTestPanel(
@@ -233,9 +233,16 @@ SpeedTestPanel
 		textMessages.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
 		gridData = new GridData(GridData.FILL_BOTH);
         gridData.horizontalSpan = 4;
+        gridData.heightHint = 80;
         textMessages.setLayoutData(gridData);
 
-	}
+        //this should only be new when returning from a previous panel.
+        String lastData = SpeedTestData.getInstance().getLastTestData();
+        if(lastData!=null){
+            textMessages.setText(lastData);
+        }
+        
+    }
 
 	public void 
 	finish() 
@@ -608,8 +615,13 @@ SpeedTestPanel
     }//isNextEnabled
 
     public IWizardPanel getNextPanel() {
+
+        SpeedTestData persist = SpeedTestData.getInstance();
+        persist.setLastTestData( textMessages.getText() );
+
         return new SetUploadLimitPanel( wizard, this, uploadTest, downloadTest);
     }
+
 
     /**
      * An abort button listener
@@ -658,12 +670,13 @@ SpeedTestPanel
             if(encryptToggle.getSelection()){
                 Messages.setLanguageText(encryptToggle,"SpeedTestWizard.test.panel.encrypted");
                 originalColor = encryptToggle.getForeground();
-                Color highlightColor = ColorCache.getColor(display,178,78,127);
-                encryptToggle.setForeground(highlightColor);
+                //Color highlightColor = ColorCache.getColor(display,178,78,127);
+                Color highlightColor = display.getSystemColor(SWT.COLOR_DARK_YELLOW);
+                encryptToggle.setBackground(highlightColor);
             }else{
                 Messages.setLanguageText(encryptToggle,"SpeedTestWizard.test.panel.standard");
                 if(originalColor!=null){
-                    encryptToggle.setForeground(originalColor);
+                    encryptToggle.setBackground(originalColor);
                 }
             }
         }//handleEvent        

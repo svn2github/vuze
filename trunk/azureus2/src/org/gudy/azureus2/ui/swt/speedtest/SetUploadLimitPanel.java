@@ -138,7 +138,6 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
                     uploadLimitKBPS=20;
 
                 //set upload limits
-                //COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY , uploadLimitKBPS );
                 COConfigurationManager.setParameter( "AutoSpeed Max Upload KBs", uploadLimitKBPS ); //ToDo: does this go in TransferSpeedValidator?
                 COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_CONFIGKEY, uploadLimitKBPS );
                 COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY , uploadLimitKBPS );
@@ -167,6 +166,5 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         //This is the final step for now.
         return false;
     }
-
-    //here finish just closes the wizard.
+    
 }
