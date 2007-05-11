@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.SWT;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
 
 
 /**
@@ -70,7 +71,7 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         rootPanel.setLayout(layout);
 
         Composite panel = new Composite(rootPanel, SWT.NULL);
-        GridData gridData = new GridData(GridData.FILL_BOTH);
+        GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
         panel.setLayoutData(gridData);
 
         layout = new GridLayout();
@@ -99,7 +100,7 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         		new String[] { DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)});
 
         final Text uploadLimitSetting = new Text(panel, SWT.BORDER );
-        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData = new GridData(GridData.BEGINNING);
         gridData.widthHint=80;
         uploadLimitSetting.setLayoutData(gridData);
         int eightyPercent = calculatePercent(measuredUploadKbps,80);
@@ -147,7 +148,167 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
             }
         });
 
+
+//        //spacer col
+//        Label c1 = new Label(panel, SWT.NULL);
+//        gridData = new GridData();
+//        gridData.horizontalSpan = 1;
+//        c1.setLayoutData(c1);
+//
+//        //echo
+//        Label c2 = new Label(panel, SWT.NULL);
+//        gridData = new GridData();
+//        gridData.horizontalSpan = 1;
+//        c2.setLayoutData(c2);
+//        c2.setText( DisplayFormatters.formatByteCountToKiBEtcPerSec(eightyPercent*8) );
+//        //This space has a change listener the updates in bits/sec.
+//
+//        //spacer col
+//        Label c3 = new Label(panel, SWT.NULL);
+//        gridData = new GridData();
+//        gridData.horizontalSpan = 1;
+//        c3.setLayoutData(c3);
+
+        //spacer line
+        Label spacer2 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 3;
+        spacer2.setLayoutData(gridData);
+
+        //switch column width to 5 columns.
+        Composite resultsPanel = new Composite(rootPanel, SWT.NULL);
+        gridData = new GridData( GridData.VERTICAL_ALIGN_END | GridData.FILL_HORIZONTAL );
+        resultsPanel.setLayoutData(gridData);
+
+        layout = new GridLayout();
+        layout.numColumns = 5;
+        layout.makeColumnsEqualWidth=true;
+        resultsPanel.setLayout(layout);
+
+
+        //display last test result
+        NetworkAdminSpeedTesterResult result = SpeedTestData.getInstance().getLastResult();
+        if( result.hadError() ){
+            //error
+            String error = result.getLastError();
+            createResultLabels(resultsPanel,true);
+            createErrorDesc(resultsPanel,error);
+            createTestDesc(resultsPanel);
+            
+        }else{
+            //no error
+            //print out the last result format.
+            int upload = result.getUploadSpeed();
+            int download = result.getDownloadSpeed();
+
+            createResultLabels(resultsPanel,false);
+            createResultData(resultsPanel, MessageText.getString("GeneralView.label.uploadspeed") ,upload);
+            createResultData(resultsPanel, MessageText.getString("GeneralView.label.downloadspeed"), download);
+            createTestDesc(resultsPanel);
+        }
+
     }//show
+
+    /**
+     * Create a label for the test. The layout is assumed to be five across. If an error
+     * occured in the test then the units are not printed out.
+     * @param panel -
+     * @param hadError - true if the test had an error.
+     */
+    private void createResultLabels(Composite panel,boolean hadError){
+        GridData gridData;
+
+        //spacer column
+        Label c1 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        c1.setLayoutData(gridData);
+
+        //label
+        Label c2 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.END;
+        c2.setLayoutData(gridData);
+        c2.setText( MessageText.getString("SpeedTestWizard.set.upload.result") );
+
+
+        //bytes
+        Label c3 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.CENTER;
+        c3.setLayoutData(gridData);
+        if(!hadError){
+            c3.setText( MessageText.getString("SpeedTestWizard.set.upload.bytes.per.sec") );
+        }
+
+        //bits
+        Label c4 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.CENTER;
+        c4.setLayoutData(gridData);
+        if(!hadError){
+            c4.setText( MessageText.getString("SpeedTestWizard.set.upload.bits.per.sec") );
+        }
+
+        //spacer column
+        Label c5 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        c5.setLayoutData(gridData);
+
+    }
+
+    private void createResultData(Composite panel,String label, int rate){
+        GridData gridData;
+
+        //spacer column
+        Label c1 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        c1.setLayoutData(gridData);
+
+        //label
+        Label c2 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.END;
+        c2.setLayoutData(gridData);
+        c2.setText( label );
+
+
+        //bytes
+        Label c3 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.CENTER;
+        c3.setLayoutData(gridData);
+        c3.setText( DisplayFormatters.formatByteCountToKiBEtcPerSec(rate) );
+
+        //bits
+        Label c4 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.CENTER;
+        c4.setLayoutData(gridData);
+        c4.setText( DisplayFormatters.formatByteCountToBitsPerSec(rate) );
+
+        //spacer column
+        Label c5 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        c5.setLayoutData(gridData);
+    }
+
+    private void createTestDesc(Composite panel){
+
+    }
+
+    private void createErrorDesc(Composite panel,String error){
+
+    }
 
     public int calculatePercent(int value, int percent){
         return  Math.round( ((float)value/100.0f)*(percent) );

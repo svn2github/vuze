@@ -134,14 +134,12 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         c1.setText(" ");
 
 
-
         Label c2 = new Label(panel,SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan = 1;
         gridData.horizontalAlignment = GridData.CENTER;
         c2.setLayoutData(gridData);
-        c2.setText("bytes/sec");//ToDo: internationalize.
-
+        c2.setText( MessageText.getString("SpeedTestWizard.set.upload.bytes.per.sec") );
 
 
         Label c3 = new Label(panel,SWT.NULL);
@@ -149,7 +147,7 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         gridData.horizontalSpan = 1;
         gridData.horizontalAlignment = GridData.BEGINNING;
         c3.setLayoutData(gridData);
-        c3.setText("bits/sec");//ToDo: internationalize.
+        c3.setText( MessageText.getString("SpeedTestWizard.set.upload.bits.per.sec") );
     }
 
     /**

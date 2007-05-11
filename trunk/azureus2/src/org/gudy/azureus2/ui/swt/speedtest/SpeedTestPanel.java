@@ -369,7 +369,8 @@ SpeedTestPanel
 		NetworkAdminSpeedTester			tester,
 		NetworkAdminSpeedTesterResult 	result )
 	{
-		reportComplete( result );
+        SpeedTestData.getInstance().setResult( result );
+        reportComplete( result );
 	}
 	
 	protected void 

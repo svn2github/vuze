@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.ui.swt.speedtest;
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
+
 /**
  * Use this class to store data that should persist across panels.
  */
@@ -29,6 +31,8 @@ public class SpeedTestData {
     private static SpeedTestData ourInstance = new SpeedTestData();
 
     private String lastTestData;
+
+    private NetworkAdminSpeedTesterResult lastResult;
 
     public static SpeedTestData getInstance() {
         return ourInstance;
@@ -45,4 +49,11 @@ public class SpeedTestData {
         return lastTestData;
     }
 
+    public void setResult( NetworkAdminSpeedTesterResult result){
+        lastResult = result;
+    }
+
+    public NetworkAdminSpeedTesterResult getLastResult(){
+        return lastResult;
+    }
 }
