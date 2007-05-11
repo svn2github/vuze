@@ -449,7 +449,8 @@ DisplayFormatters
 		return( formatByteCountToKiBEtc(n,true,TRUNCZEROS_NO));
 	}
 
-	public static String
+
+    public static String
 	formatByteCountToKiBEtcPerSec(
 		long		n,
 		boolean bTruncateZeros)
@@ -503,7 +504,60 @@ DisplayFormatters
 		return( formatByteCountToBase10KBEtc(n) + per_sec );
 	}
 
-   public static String 
+
+    /**
+     * Print the BITS/second in an international format.
+     * @param n -
+     * @return String in an internationalized format.
+     */
+    public static String
+    formatByteCountToBitsPerSec(
+            long n)
+    {
+        return formatBitCountToKiBEtcLocalImpl(n,true,true,-1,true);
+    }
+
+    /**
+     * NOTE: This method is a copy of formatByteCountToKiBEtc. Since the "use_units_rate_bits" member is
+     * static it cannot be used in a local context. Thus this method. More refactoring of this area
+     * should be done. Also need testing of the method to make sure units are accurate.
+     *
+     * Takes a long value that is bytes/bits download and converts it into internationalized units.
+     * @param n - value
+     * @param rate - true if in ? per second. Otherwise false.
+     * @param bTruncateZeros - true if truncating zeros.
+     * @param precision - negative value if same as units.
+     * @param useBits - true if using BITS, otherwise using BYTES.
+     * @return String - with units internationalized properly.
+     */
+    public static
+    String formatBitCountToKiBEtcLocalImpl(
+        long	n,
+        boolean	rate,
+        boolean bTruncateZeros,
+        int precision,
+        boolean useBits)
+    {
+        double dbl = (rate && useBits) ? n * 8 : n;
+
+        int unitIndex = UNIT_B;
+
+        while (dbl >= 1024 && unitIndex < unitsStopAt){
+
+          dbl /= 1024L;
+          unitIndex++;
+        }
+
+      if (precision < 0) {
+          precision = UNITS_PRECISION[unitIndex];
+      }
+
+        return formatDecimal(dbl, precision, bTruncateZeros, rate)
+                + (rate ? units_rate[unitIndex] : units[unitIndex]);
+    }
+
+
+   public static String
    formatETA(long eta) 
    {
      if (eta == 0) return PeerManager_status_finished;

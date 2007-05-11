@@ -193,26 +193,25 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
      */
     private void createDataLine(Composite panel, String label, String value, int maxKbps) {
         GridData gridData;
-        Label r3c1 = new Label(panel, SWT.NULL);//max upload
+        Label c1 = new Label(panel, SWT.NULL);//max upload
         gridData = new GridData();
         gridData.horizontalSpan = 1;
-        r3c1.setLayoutData(gridData);
-        r3c1.setText(label+"  ");
+        c1.setLayoutData(gridData);
+        c1.setText(label+"  ");
 
-        Label r3c2 = new Label(panel,SWT.NULL);//kbytes/sec
+        Label c2 = new Label(panel,SWT.NULL);//kbytes/sec
         gridData = new GridData();
         gridData.horizontalSpan = 1;
-        r3c2.setLayoutData(gridData);
-        r3c2.setText(value+colSpace);
+        c2.setLayoutData(gridData);
+        c2.setText(value+colSpace);
 
-        Label r3c3 = new Label(panel,SWT.NULL);//kbits/sec
+        Label c3 = new Label(panel,SWT.NULL);//kbits/sec
         gridData = new GridData();
         gridData.horizontalSpan = 1;
-        r3c3.setLayoutData(gridData);
-        //String maxUploadBitsSec = "      ( "+maxKbps*8+" )";  DisplayFormatters.formatDecimal(maxKbps*8,3,true,true);
-        //String maxUploadBitsSec = "      ( "+DisplayFormatters.formatDecimal(maxKbps*8,3,true,true)+" )";
-        String maxUploadBitsSec = NumberFormat.getInstance().format(maxKbps*8);
-        r3c3.setText(colSpace+maxUploadBitsSec);
+        c3.setLayoutData(gridData);
+
+        String maxBitsPerSec = DisplayFormatters.formatByteCountToBitsPerSec(maxKbps*1024);
+        c3.setText(colSpace+maxBitsPerSec);
     }
 
 
