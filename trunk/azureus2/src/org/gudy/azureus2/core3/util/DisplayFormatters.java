@@ -65,6 +65,7 @@ DisplayFormatters
 	private static NumberFormat	percentage_format;
 
 	private static String[] units;
+	private static String[] units_bits;
 	private static String[] units_rate;
 	private static int unitsStopAt = UNIT_TB;
 
@@ -166,47 +167,59 @@ DisplayFormatters
       // (1) http://physics.nist.gov/cuu/Units/binary.html
       // (2) http://www.isi.edu/isd/LOOM/documentation/unit-definitions.text
 
-    units = new String[unitsStopAt + 1];
-    units_rate = new String[unitsStopAt + 1];
+	units 		= new String[unitsStopAt + 1];
+	units_bits 	= new String[unitsStopAt + 1];
+    units_rate 	= new String[unitsStopAt + 1];
     
     if ( use_si_units ){
       // fall through intentional
       switch (unitsStopAt) {
         case UNIT_TB:
-          units[UNIT_TB] = getUnit("TiB");
-          units_rate[UNIT_TB] = (use_units_rate_bits) ? getUnit("Tibit")  : getUnit("TiB");
+         units[UNIT_TB] = getUnit("TiB");
+         units_bits[UNIT_TB] = getUnit("Tibit");
+         units_rate[UNIT_TB] = (use_units_rate_bits) ? getUnit("Tibit")  : getUnit("TiB");
         case UNIT_GB:
           units[UNIT_GB]= getUnit("GiB");
+          units_bits[UNIT_GB]= getUnit("Gibit");
           units_rate[UNIT_GB] = (use_units_rate_bits) ? getUnit("Gibit")  : getUnit("GiB");
         case UNIT_MB:
           units[UNIT_MB] = getUnit("MiB");
+          units_bits[UNIT_MB] = getUnit("Mibit");
           units_rate[UNIT_MB] = (use_units_rate_bits) ? getUnit("Mibit")  : getUnit("MiB");
         case UNIT_KB:
           // can be upper or lower case k
           units[UNIT_KB] = getUnit("KiB"); 
+          units_bits[UNIT_KB] = getUnit("Kibit"); 
+
           // can be upper or lower case k, upper more consistent
           units_rate[UNIT_KB] = (use_units_rate_bits) ? getUnit("Kibit")  : getUnit("KiB");
         case UNIT_B:
           units[UNIT_B] = getUnit("B");
+          units_bits[UNIT_B] = getUnit("bit");
           units_rate[UNIT_B] = (use_units_rate_bits)  ?   getUnit("bit")  :   getUnit("B");
       }
     }else{
       switch (unitsStopAt) {
         case UNIT_TB:
           units[UNIT_TB] = getUnit("TB");
+          units_bits[UNIT_TB] = getUnit("Tbit");
           units_rate[UNIT_TB] = (use_units_rate_bits) ? getUnit("Tbit")  : getUnit("TB");
         case UNIT_GB:
           units[UNIT_GB]= getUnit("GB");
+          units_bits[UNIT_GB]= getUnit("Gbit");
           units_rate[UNIT_GB] = (use_units_rate_bits) ? getUnit("Gbit")  : getUnit("GB");
         case UNIT_MB:
           units[UNIT_MB] = getUnit("MB");
+          units_bits[UNIT_MB] = getUnit("Mbit");
           units_rate[UNIT_MB] = (use_units_rate_bits) ? getUnit("Mbit")  : getUnit("MB");
         case UNIT_KB:
           // yes, the k should be lower case
           units[UNIT_KB] = getUnit("kB");
+          units_bits[UNIT_KB] = getUnit("kbit");
           units_rate[UNIT_KB] = (use_units_rate_bits) ? getUnit("kbit")  : getUnit("kB");
         case UNIT_B:
           units[UNIT_B] = getUnit("B");
+          units_bits[UNIT_B] = getUnit("bit");
           units_rate[UNIT_B] = (use_units_rate_bits)  ?  getUnit("bit")  :  getUnit("B");
       }
     }
@@ -553,7 +566,7 @@ DisplayFormatters
       }
 
         return formatDecimal(dbl, precision, bTruncateZeros, rate)
-                + (rate ? units_rate[unitIndex] : units[unitIndex]);
+                + units_bits[unitIndex] + (rate?per_sec:"");
     }
 
 
