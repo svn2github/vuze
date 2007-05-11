@@ -39,6 +39,8 @@ import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -50,12 +52,11 @@ import com.aelitis.azureus.core.peermanager.piecepicker.PieceRTAProvider;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.average.Average;
 import com.aelitis.azureus.core.util.average.AverageFactory;
+import com.aelitis.azureus.util.Constants;
 
 public class 
 EnhancedDownloadManager 
 {
-	private static boolean DEBUG	= true;
-	
 	public static  int	DEFAULT_MINIMUM_INITIAL_BUFFER_SECS_FOR_ETA	= 30;
 	public static  int	WMP_MINIMUM_INITIAL_BUFFER_SECS_FOR_ETA		= 60;
 	
@@ -97,6 +98,10 @@ EnhancedDownloadManager
 	
 	public static final int DISCONNECT_CHECK_PERIOD	= 10*1000;
 	public static final int DISCONNECT_CHECK_TICKS	= DISCONNECT_CHECK_PERIOD/DownloadManagerEnhancer.TICK_PERIOD;
+	
+	public static final int LOG_PROG_STATS_PERIOD	= 10*1000;
+	public static final int LOG_PROG_STATS_TICKS	= LOG_PROG_STATS_PERIOD/DownloadManagerEnhancer.TICK_PERIOD;
+
 	
 	private static final String PM_SEED_TIME_KEY = "EnhancedDownloadManager:seedtime";
 	private static final String PEER_CACHE_KEY = "EnhancedDownloadManager:cachepeer";
@@ -227,8 +232,6 @@ EnhancedDownloadManager
 							
 			log( "platform=" + platform_content + ", content_stream_bps=" + content_stream_bps_min + 
 					",content_min_bps=" + content_min_bps );
-			
-			// setProgressiveMode( true );
 		}
 		
 		download_manager.addPeerListener(
@@ -422,7 +425,7 @@ EnhancedDownloadManager
 	updateStats(
 		int		tick_count )
 	{
-		updateProgressiveStats();
+		updateProgressiveStats( tick_count );
 		
 		if ( !platform_content ){
 			
@@ -934,6 +937,8 @@ EnhancedDownloadManager
 				return;
 			}			
 
+			log( "Progressive mode changed to " + active );
+			
 			progressive_active	= active;
 
 			if ( current_piece_pickler != null ){
@@ -944,7 +949,7 @@ EnhancedDownloadManager
 					
 					boost_provider.activate( current_piece_pickler );
 					
-					progressive_stats.update();
+					progressive_stats.update( 0 );
 					
 				}else{
 					
@@ -982,7 +987,8 @@ EnhancedDownloadManager
 	}
 	
 	protected void
-	updateProgressiveStats()
+	updateProgressiveStats(
+		int		tick_count )
 	{
 		if ( !progressive_active ){
 			
@@ -991,7 +997,7 @@ EnhancedDownloadManager
 			
 		synchronized( this ){
 			
-			progressive_stats.update();
+			progressive_stats.update( tick_count );
 		}
 	}
 	
@@ -999,8 +1005,27 @@ EnhancedDownloadManager
 	log(
 		String	str )
 	{
-		if ( DEBUG ){
-			System.out.println( download_manager.getDisplayName() + ": " + str );
+		log( str, true );
+	}
+	
+	protected void
+	log(
+		String	str,
+		boolean	to_file )
+	{
+		str = download_manager.getDisplayName() + ": " + str;
+		
+		if ( to_file ){
+			
+			AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.Stream");
+			
+			diag_logger.log(str);
+		}
+		
+		if (Constants.DIAG_TO_STDOUT) {
+			
+			System.out.println(Thread.currentThread().getName() + "|"
+					+ System.currentTimeMillis() + "] " + str);
 		}
 	}
 	
@@ -1313,7 +1338,8 @@ EnhancedDownloadManager
 		}
 		
 		protected void
-		update()
+		update(
+			int		tick_count )
 		{
 			long download_rate = download_manager.getStats().getDataReceiveRate();
 			
@@ -1451,7 +1477,7 @@ EnhancedDownloadManager
 				}
 			}
 			
-			System.out.println( getString());
+			log( getString(), tick_count % LOG_PROG_STATS_TICKS == 0 );
 		}
 		
 		protected long
