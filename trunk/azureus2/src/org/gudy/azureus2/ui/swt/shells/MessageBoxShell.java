@@ -33,7 +33,7 @@ public class MessageBoxShell
 
 	private final static int MIN_SIZE_X = 300;
 
-	private final static int MIN_SIZE_Y = 200;
+	private final static int MIN_SIZE_Y = 120;
 
 	private final static int MAX_SIZE_X = 500;
 
