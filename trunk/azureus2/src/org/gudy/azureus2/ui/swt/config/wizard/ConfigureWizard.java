@@ -28,6 +28,8 @@ import org.eclipse.swt.widgets.MessageBox;
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.MessageBoxWindow;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
@@ -45,13 +47,9 @@ public class ConfigureWizard extends Wizard {
   int nbUploadsPerTorrent = 4;
   
   //Server / NAT Settings
-  //int	  serverMinPort = 6881;
-  //int 	  serverMaxPort = 6889;
   int serverTCPListenPort = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
-  //boolean serverSharePort = true;
   //Files / Torrents
   String torrentPath;
- // boolean fastResume = true;
   
   boolean completed = false;
  
@@ -72,18 +70,25 @@ public class ConfigureWizard extends Wizard {
   }
   
   public void onClose() {
-  	
-    if(!completed && !COConfigurationManager.getBooleanParameter("Wizard Completed",false)) {
-      MessageBox mb = new MessageBox(this.getWizardWindow(),SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-      mb.setText(MessageText.getString("wizard.close.confirmation"));
-      mb.setMessage(MessageText.getString("wizard.close.message"));
-      int result = mb.open();
-      if(result == SWT.NO) {
-        COConfigurationManager.setParameter("Wizard Completed",true);
-        COConfigurationManager.save();
-      }         
-    }
-    
-    super.onClose();
-  }
+		try {
+			if (!completed
+					&& !COConfigurationManager.getBooleanParameter("Wizard Completed")) {
+				int result = MessageBoxShell.open(this.getWizardWindow(),
+						MessageText.getString("wizard.close.confirmation"),
+						MessageText.getString("wizard.close.message"), new String[] {
+							MessageText.getString("Button.yes"),
+							MessageText.getString("Button.no")
+						}, 0);
+
+				if (result == 1) {
+					COConfigurationManager.setParameter("Wizard Completed", true);
+					COConfigurationManager.save();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		super.onClose();
+	}
 }
