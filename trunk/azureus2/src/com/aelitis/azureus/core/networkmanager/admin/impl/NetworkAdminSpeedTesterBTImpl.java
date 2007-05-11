@@ -601,12 +601,12 @@ public class NetworkAdminSpeedTesterBTImpl
         public void updateTestProgress(long currTime, DownloadStats stats){
 
             //do two calculations. Frist based on the total time allowed for the test
-            long totalTestTimeUsed = currTime-startTime;
-            float percentTotal = ((float)totalTestTimeUsed/(float)MAX_TEST_TIME);
+            long totalDownloadTimeUsed = currTime-startTime;
+            float percentTotal = ((float)totalDownloadTimeUsed/(float)MAX_TEST_TIME);
 
             //second for the time since the peak value has been reached.
-            long totalDownloadTimeUsed = currTime-peakTime;
-            float percentDownload = ((float)totalDownloadTimeUsed/(float)MAX_PEAK_TIME);
+            long totalTestTimeUsed = currTime-peakTime;
+            float percentDownload = ((float)totalTestTimeUsed/(float)MAX_PEAK_TIME);
 
             //the larger of the two wins.
             float reportedProgress = percentTotal;
@@ -625,7 +625,7 @@ public class NetworkAdminSpeedTesterBTImpl
             int totalTimeLeft = (int)((MAX_TEST_TIME-totalDownloadTimeUsed)/1000);
             msg.append(totalTimeLeft);
             msg.append(" : ");
-            int testTimeLeft = (int)((MAX_PEAK_TIME-totalDownloadTimeUsed)/1000);
+            int testTimeLeft = (int)((MAX_PEAK_TIME-totalTestTimeUsed)/1000);
             msg.append(testTimeLeft);
 
             sendStageUpdateToListeners( msg.toString() );
