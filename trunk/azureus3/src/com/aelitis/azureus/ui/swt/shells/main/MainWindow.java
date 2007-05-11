@@ -1136,8 +1136,14 @@ public class MainWindow
 			public void updateUI() {
 				Object[] views = topbarViews.toArray();
 				for (int i = 0; i < views.length; i++) {
-					IView view = (IView) views[i];
-					view.refresh();
+					try {
+  					IView view = (IView) views[i];
+  					if (view.getComposite().isVisible()) {
+  						view.refresh();
+  					}
+					} catch (Exception e) {
+						Debug.out(e);
+					}
 				}
 			}
 
