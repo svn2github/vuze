@@ -326,7 +326,7 @@ public class NetworkAdminSpeedTesterBTImpl
     		msg = Debug.getNestedExceptionMessage( cause );
     	}
     	
-    	abort( cause + ": " + msg );
+    	abort( reason + ": " + msg );
     }
     
 	public void 

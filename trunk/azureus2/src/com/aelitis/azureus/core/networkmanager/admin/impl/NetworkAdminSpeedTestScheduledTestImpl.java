@@ -521,8 +521,9 @@ NetworkAdminSpeedTestScheduledTestImpl
     
     	throws IOException
     {
-        request.put("ver", new Long(1) );//request version
-
+        request.put( "ver", new Long(1) );//request version
+        request.put( "locale",  MessageText.getCurrentLocale().toString());
+        
         String speedTestServiceName = System.getProperty( "speedtest.service.ip.address", Constants.SPEED_TEST_SERVER );
 
         URL urlRequestTest = new URL("http://"+speedTestServiceName+":60000/scheduletest?request="
@@ -555,14 +556,19 @@ NetworkAdminSpeedTestScheduledTestImpl
             if(res==null)
                 throw new IllegalStateException("No result parameter in the response!! reply="+reply);
             if(res.intValue()==0){
-                StringBuffer msg = new StringBuffer("Error occurred on the server side. ");
+                StringBuffer msg = new StringBuffer("Server failed. ");
                 String error = new String( (byte[]) reply.get("error") );
                 String errDetail = new String( (byte[]) reply.get("error_detail") );
-                msg.append("error: ").append(error);
-                msg.append(" ,error detail: ").append(errDetail);
-                throw new IllegalStateException( msg.toString() );
+                msg.append("Error: ").append(error);
+                
+                // detail is of no interest to the user
+                // msg.append(" ,error detail: ").append(errDetail);
+                
+                Debug.outNoStack( "SpeedCheck server returned an error: " + error + ", details=" + errDetail );
+                
+                throw new IOException( msg.toString() );
             }
-        }catch(IllegalStateException ise){
+        }catch(IOException ise){
             //rethrow this type of exception.
             throw ise;
         }catch(Throwable t){
