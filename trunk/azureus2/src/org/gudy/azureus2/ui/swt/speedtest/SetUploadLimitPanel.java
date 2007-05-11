@@ -124,6 +124,7 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
           }
         });
 
+
         apply = new Button(panel, SWT.PUSH);
         Messages.setLanguageText(apply, "SpeedTestWizard.set.upload.button.apply" );
         gridData = new GridData();
@@ -149,25 +150,40 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         });
 
 
-//        //spacer col
-//        Label c1 = new Label(panel, SWT.NULL);
-//        gridData = new GridData();
-//        gridData.horizontalSpan = 1;
-//        c1.setLayoutData(c1);
-//
-//        //echo
-//        Label c2 = new Label(panel, SWT.NULL);
-//        gridData = new GridData();
-//        gridData.horizontalSpan = 1;
-//        c2.setLayoutData(c2);
-//        c2.setText( DisplayFormatters.formatByteCountToKiBEtcPerSec(eightyPercent*8) );
-//        //This space has a change listener the updates in bits/sec.
-//
-//        //spacer col
-//        Label c3 = new Label(panel, SWT.NULL);
-//        gridData = new GridData();
-//        gridData.horizontalSpan = 1;
-//        c3.setLayoutData(c3);
+        //spacer col
+        Label c1 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        c1.setLayoutData(gridData);
+
+        //echo
+        final Label echo = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        echo.setLayoutData(gridData);
+        echo.setText( DisplayFormatters.formatByteCountToBitsPerSec(eightyPercent*1024) );
+        //This space has a change listener the updates in bits/sec.
+
+        //want a change listener to update the echo label which has the value in bits/sec.
+        uploadLimitSetting.addListener(SWT.Modify, new Listener(){
+            public void handleEvent(Event e){
+                String newVal = uploadLimitSetting.getText();
+                try{
+                    int newValInt = Integer.parseInt(newVal);
+                    if( echo!=null ){
+                        echo.setText( DisplayFormatters.formatByteCountToBitsPerSec(newValInt*1024) );
+                    }
+                }catch(Throwable t){
+                    //echo.setText(" - ");
+                }
+            }
+        });
+
+        //spacer col
+        Label c3 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        c3.setLayoutData(gridData);
 
         //spacer line
         Label spacer2 = new Label(panel, SWT.NULL);

@@ -233,7 +233,7 @@ SpeedTestPanel
 		textMessages.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
 		gridData = new GridData(GridData.FILL_BOTH);
         gridData.horizontalSpan = 4;
-        gridData.heightHint = 80;
+        gridData.heightHint = 60;
         textMessages.setLayoutData(gridData);
 
         //this should only be new when returning from a previous panel.
