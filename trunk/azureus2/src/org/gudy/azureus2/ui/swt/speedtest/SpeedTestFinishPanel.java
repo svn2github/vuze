@@ -60,6 +60,7 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         panel.setLayoutData(gridData);
         layout = new GridLayout();
         layout.numColumns = 3;
+        layout.makeColumnsEqualWidth=true;
         panel.setLayout(layout);
 
         Label label = new Label(panel, SWT.WRAP);
@@ -122,7 +123,7 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
 
     }//show
 
-    private static final String colSpace = "  ";
+    //private static final String colSpace = "  ";
 
     private void createHeaderLine(Composite panel){
         GridData gridData;
@@ -137,16 +138,18 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         Label c2 = new Label(panel,SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.CENTER;
         c2.setLayoutData(gridData);
-        c2.setText("bytes/sec"+colSpace);//ToDo: internationalize.
+        c2.setText("bytes/sec");//ToDo: internationalize.
 
 
 
         Label c3 = new Label(panel,SWT.NULL);
         gridData = new GridData();
         gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.BEGINNING;
         c3.setLayoutData(gridData);
-        c3.setText(colSpace+"bits/sec");//ToDo: internationalize.
+        c3.setText("bits/sec");//ToDo: internationalize.
     }
 
     /**
@@ -160,25 +163,28 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         Label r3c1 = new Label(panel, SWT.NULL);//label
         gridData = new GridData();
         gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.END;
         r3c1.setLayoutData(gridData);
         r3c1.setText(label);
-
-        Label c2 = new Label(panel,SWT.NULL);//space.
-        gridData = new GridData();
-        gridData.horizontalSpan = 1;
-        c2.setLayoutData(gridData);
-        String maxUploadBitsSec = "       ";
-        c2.setText(maxUploadBitsSec);
 
         Label c3 = new Label(panel,SWT.NULL);//enabled or disabled
         gridData = new GridData();
         gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.CENTER;
         c3.setLayoutData(gridData);
         if(enabled){
             c3.setText( MessageText.getString("SpeedTestWizard.finish.panel.enabled","enabled") );
         }else{
             c3.setText( MessageText.getString("SpeedTestWizard.finish.panel.disabled","disabled") );
         }
+
+        Label c2 = new Label(panel,SWT.NULL);//space.
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.BEGINNING;
+        c2.setLayoutData(gridData);
+        String maxUploadBitsSec = "       ";
+        c2.setText(maxUploadBitsSec);
 
     }//createStatusLine
 
@@ -194,22 +200,25 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         Label c1 = new Label(panel, SWT.NULL);//max upload
         gridData = new GridData();
         gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.END;
         c1.setLayoutData(gridData);
         c1.setText(label+"  ");
 
         Label c2 = new Label(panel,SWT.NULL);//kbytes/sec
         gridData = new GridData();
         gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.CENTER;
         c2.setLayoutData(gridData);
-        c2.setText(value+colSpace);
+        c2.setText(value);
 
         Label c3 = new Label(panel,SWT.NULL);//kbits/sec
         gridData = new GridData();
         gridData.horizontalSpan = 1;
+        gridData.horizontalAlignment = GridData.BEGINNING;
         c3.setLayoutData(gridData);
 
         String maxBitsPerSec = DisplayFormatters.formatByteCountToBitsPerSec(maxKbps*1024);
-        c3.setText(colSpace+maxBitsPerSec);
+        c3.setText(maxBitsPerSec);
     }
 
 
