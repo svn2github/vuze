@@ -129,7 +129,12 @@ CLCacheDiscovery
 			return Response.getFarmID();
 		} catch (Throwable Excpt) {
 			
-			Excpt.printStackTrace();
+			if ( Excpt instanceof UnknownHostException ){
+				
+			}else{
+				
+				Excpt.printStackTrace();
+			}
 			
 			return "default";
 		}
