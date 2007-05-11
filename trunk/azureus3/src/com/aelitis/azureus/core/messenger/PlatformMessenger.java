@@ -156,6 +156,10 @@ public class PlatformMessenger
 			queue_mon.exit();
 		}
 		debug("about to process " + mapProcessing.size());
+		
+		if (mapProcessing.size() == 0) {
+			return;
+		}
 
 		String urlStem = "";
 		long sequenceNo = 0;
@@ -241,7 +245,8 @@ public class PlatformMessenger
 		// Format: <sequence no> ; <classification> [; <results>] [ \n ]
 
 		if (s == null || s.length() == 0 || !Character.isDigit(s.charAt(0))) {
-			Debug.out("Error while sending message(s) to Platform: reply = " + s);
+			Debug.out("Error while sending message(s) to Platform: reply: " + s
+					+ "\nurl: " + sURL + "\nPostData: " + sData);
 			for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
 				PlatformMessage message = (PlatformMessage) iter.next();
 				PlatformMessengerListener l = (PlatformMessengerListener) mapProcessing.get(message);
@@ -249,7 +254,8 @@ public class PlatformMessenger
 					try {
 						l.replyReceived(message, REPLY_EXCEPTION, s);
 					} catch (Exception e2) {
-						Debug.out("Error while sending replyReceived", e2);
+						Debug.out("Error while sending replyReceived" + "\nurl: " + sURL
+								+ "\nPostData: " + sData, e2);
 					}
 				}
 			}
