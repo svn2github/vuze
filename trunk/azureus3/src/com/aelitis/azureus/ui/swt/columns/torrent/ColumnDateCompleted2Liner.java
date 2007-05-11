@@ -66,8 +66,8 @@ public class ColumnDateCompleted2Liner
 
 	public void refresh(TableCell cell) {
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
-		long value;
-		if (dm != null) {
+		long value = 0;
+		if (dm != null && dm.isDownloadComplete(false)) {
 			long completedTime = dm.getDownloadState().getLongParameter(
 					DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
 			if (completedTime <= 0) {
@@ -76,8 +76,6 @@ public class ColumnDateCompleted2Liner
 			} else {
 				value = completedTime;
 			}
-		} else {
-			value = 0;
 		}
 
 		if (!cell.setSortValue(value) && cell.isValid()
@@ -85,6 +83,11 @@ public class ColumnDateCompleted2Liner
 			return;
 		}
 		if (!cell.isShown()) {
+			return;
+		}
+		
+		if (value <= 0) {
+			cell.setText("");
 			return;
 		}
 
