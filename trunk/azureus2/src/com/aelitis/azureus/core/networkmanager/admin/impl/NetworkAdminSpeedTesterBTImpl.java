@@ -578,8 +578,6 @@ public class NetworkAdminSpeedTesterBTImpl
 		            diagLogger.log(r.toString());
 		
 		            complete(r);
-		
-		            Debug.out("Finished with bandwidth testing. "+r.toString() );
 	            }
         	}finally{
         		
@@ -670,13 +668,13 @@ public class NetworkAdminSpeedTesterBTImpl
             }
             //calculate average.
             double aveRate = (double) ( sumBytes/deltas.size() );
-            Debug.out("ave rate:"+aveRate);
+            //Debug.out("ave rate:"+aveRate);
 
             //calculate standard deviation.
             double variance = 0.0;
             double s;
             for(j=0;j<deltas.size();j++){
-                Debug.out( j+","+deltas.get(j) );
+                //Debug.out( j+","+deltas.get(j) );
 
                 s = ( autoboxLong(deltas.get(j)) - aveRate );
                 variance += s*s;
