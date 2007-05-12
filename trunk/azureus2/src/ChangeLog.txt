@@ -3,6 +3,7 @@ AZUREUS CHANGELOG
 
 2007.xx.xx | Azureus 3.0.1.4
 
+FEATURE: UI   | Added "Transfers Bar" (similar to the "Download Bar") [amc1]
 FEATURE: UI   | Correctly identifies FoxTorrent peers [amc1]
 FEATURE: UI   | Determines version information for Bits On Wheels and Opera peers [amc1]
 BUGFIX: Core  | Fixed bug which sometimes prevented corrupted torrents being removed properly [amc1]

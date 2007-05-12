@@ -217,6 +217,14 @@ public interface UISWTInstance extends UIInstance {
 	public void showDownloadBar(Download download, boolean display);
 	
 	/**
+	 * Shows or hides the transfers bar.
+	 * 
+	 * @since 3.0.1.3
+	 * @param display <tt>true</tt> to show the bar, <tt>false</tt> to hide it.
+	 */
+	public void showTransfersBar(boolean display);
+	
+	/**
 	 * Creates an entry in the status bar to display custom status information.
 	 * 
 	 * @since 3.0.0.7

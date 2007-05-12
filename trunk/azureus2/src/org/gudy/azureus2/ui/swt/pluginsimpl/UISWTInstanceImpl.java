@@ -55,7 +55,6 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
-import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -63,6 +62,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
+import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
@@ -617,13 +618,24 @@ UISWTInstanceImpl
 		if (dm == null) {return;} // Not expecting this, but just in case...
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				boolean displayed = MinimizedWindow.isOpen(dm);
-				if (display == displayed) {return;}
 				if (display) {
-					new MinimizedWindow(dm, getDisplay().getActiveShell());
+					DownloadBar.open(dm, getDisplay().getActiveShell());
 				}
 				else {
-					MinimizedWindow.close(dm);
+					DownloadBar.close(dm);
+				}
+			}
+		}, false);
+	}
+	
+	public void showTransfersBar(final boolean display) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (display) {
+					AllTransfersBar.open(core.getGlobalManager(), getDisplay().getActiveShell());
+				}
+				else {
+					AllTransfersBar.close(core.getGlobalManager());
 				}
 			}
 		}, false);
@@ -770,6 +782,10 @@ UISWTInstanceImpl
 		
 		public void showDownloadBar(Download download, boolean display) {
 			delegate.showDownloadBar(download, display);
+		}
+		
+		public void showTransfersBar(boolean display) {
+			delegate.showTransfersBar(display);
 		}
 		
 		public UISWTStatusEntry createStatusEntry() {

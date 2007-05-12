@@ -54,6 +54,14 @@ public interface MenuManager {
 	 * The "Plugins" menu on the menu bar.
 	 */
 	public static final String MENU_MENUBAR = "mainmenu";
+	
+	/**
+	 * The "transfers bar". 
+	 * 
+	 * @since 3.0.1.3
+	 */
+	public static final String MENU_TRANSFERSBAR = "transfersbar";
+	
 	/**
 	 * Creates a menu item for the appropriate menu.
 	 * 

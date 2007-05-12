@@ -51,6 +51,8 @@ import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
+import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
@@ -725,7 +727,7 @@ public class MainMenu {
       itemResume.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0)
         {
-          core.getGlobalManager().resumeDownloads();
+        	ManagerUtils.asyncResume();
         }
       });
 
@@ -761,6 +763,7 @@ public class MainMenu {
       indent(addMyTrackerMenuItem(viewMenu));
       indent(addMySharesMenuItem(viewMenu));
       indent(addViewToolbarMenuItem(viewMenu));
+      indent(addTransferBarToMenu(viewMenu));
 
       if(Constants.isOSX) {
           indent(addConsoleMenuItem(viewMenu));
@@ -1217,21 +1220,37 @@ public class MainMenu {
   public MenuItem addCloseDownloadBarsToMenu(Menu menu) {
     final MenuItem item = addMenuItem(menu, "MainWindow.menu.closealldownloadbars", new Listener() {
       public void handleEvent(Event e) {
-      	MinimizedWindow.closeAll();
+    	  MiniBarManager.getManager().closeAll();
       }
     });
 
     final NotPredicate pred = new NotPredicate(new ShellManagerIsEmptyPredicate());
-    final Listener enableHandler = getEnableHandler(item, pred, MinimizedWindow.getShellManager());
+    final Listener enableHandler = getEnableHandler(item, pred, MiniBarManager.getManager().getShellManager());
 
     menu.addListener(SWT.Show, enableHandler);
     attachedShell.addListener(SWT.FocusIn,  enableHandler);
-    setHandlerForShellManager(item, MinimizedWindow.getShellManager(), enableHandler);
+    setHandlerForShellManager(item, MiniBarManager.getManager().getShellManager(), enableHandler);
 
     return item;
   }
 
+  public MenuItem addTransferBarToMenu(Menu menu) {
+	    final MenuItem item = addMenuItem(menu, "MainWindow.menu.view.open_global_transfer_bar", new Listener() {
+	      public void handleEvent(Event e) {
+	    	  AllTransfersBar.open(core.getGlobalManager(), attachedShell);
+	      }
+	    });
 
+	    final ShellManagerIsEmptyPredicate pred = new ShellManagerIsEmptyPredicate();
+	    final Listener enableHandler = getEnableHandler(item, pred, AllTransfersBar.getManager().getShellManager());
+
+	    menu.addListener(SWT.Show, enableHandler);
+	    attachedShell.addListener(SWT.FocusIn,  enableHandler);
+	    setHandlerForShellManager(item, AllTransfersBar.getManager().getShellManager(), enableHandler);
+
+	    return item;
+	  }
+  
     // utility methods
 
   public void updateMenuText(Object menu) {

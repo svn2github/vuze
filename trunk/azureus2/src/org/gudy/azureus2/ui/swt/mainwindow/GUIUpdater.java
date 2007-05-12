@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
@@ -141,7 +142,7 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 						timeMap.put("SysTray", new Long(System.currentTimeMillis()));
 
 					try {
-						MinimizedWindow.refreshAll();
+						MiniBarManager.getManager().refreshAll();
 					} catch (Exception e) {
 						Logger.log(new LogEvent(LOGID,
 								"Error while trying to update DL Bars", e));

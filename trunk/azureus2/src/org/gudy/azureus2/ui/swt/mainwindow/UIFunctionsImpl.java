@@ -23,10 +23,11 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.minibar.*;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -187,7 +188,19 @@ public class UIFunctionsImpl
 	public void closeDownloadBars() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				MinimizedWindow.closeAll();
+				MiniBarManager.getManager().closeAll();
+			}
+		});
+	}
+	
+	public boolean isGlobalTransferBarShown() {
+		return AllTransfersBar.getManager().isOpen(mainwindow.getGlobalManager());
+	}
+	
+	public void showGlobalTransferBar() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				AllTransfersBar.open(mainwindow.getGlobalManager(), mainwindow.getShell());
 			}
 		});
 	}

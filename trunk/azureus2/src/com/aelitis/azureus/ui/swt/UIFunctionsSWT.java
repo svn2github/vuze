@@ -83,6 +83,9 @@ public interface UIFunctionsSWT extends UIFunctions
 	 * 
 	 */
 	public void closeDownloadBars();
+	
+	public boolean isGlobalTransferBarShown();
+	public void showGlobalTransferBar();
 
 	/**
 	 * @return

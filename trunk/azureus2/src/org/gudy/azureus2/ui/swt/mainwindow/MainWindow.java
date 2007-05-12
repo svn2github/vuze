@@ -55,6 +55,8 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
+import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
@@ -763,7 +765,7 @@ MainWindow
 		if (downloadBasket != null)
       downloadBasket.setVisible(true);
 
-    MinimizedWindow.setAllVisible(true);
+    MiniBarManager.getManager().setAllVisible(true);
   }
   
   private void
@@ -1421,10 +1423,7 @@ MainWindow
               if (	((!complete) && COConfigurationManager.getBooleanParameter("Open Bar Incomplete")) ||
             		(complete && COConfigurationManager.getBooleanParameter("Open Bar Complete"))){
 
-            	  MinimizedWindow mw = MinimizedWindow.get(manager);
-            	  if (mw == null) {
-            		  new MinimizedWindow(manager, shell);
-            	  }
+            	  DownloadBar.open(manager, shell);
               }
             }
           });

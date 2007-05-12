@@ -61,6 +61,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
+import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeeedAdapter;
@@ -847,7 +848,7 @@ public class MyTorrentsView
 					changeUrl = false;
 				}
 
-				if (barsOpened && !MinimizedWindow.isOpen(dm)) {
+				if (barsOpened && !DownloadBar.getManager().isOpen(dm)) {
 					barsOpened = false;
 				}
 
@@ -978,10 +979,10 @@ public class MyTorrentsView
 		itemBar.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
 			public void run(TableRowCore row) {
 				DownloadManager dm = (DownloadManager) row.getDataSource(true);
-				if (MinimizedWindow.isOpen(dm)) {
-					MinimizedWindow.close(dm);
+				if (DownloadBar.getManager().isOpen(dm)) {
+					DownloadBar.close(dm);
 				} else {
-					new MinimizedWindow(dm, cTablePanel.getShell());
+					DownloadBar.open(dm, cTablePanel.getShell());
 				}
 			} // run
 		});
@@ -2864,9 +2865,7 @@ public class MyTorrentsView
 
   public void downloadManagerRemoved( DownloadManager dm ) {
     dm.removeListener( this );
-
-    MinimizedWindow.close(dm);
-
+    DownloadBar.close(dm);
     downloadManagerRemoved(null, dm);
   }
 
