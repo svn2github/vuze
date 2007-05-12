@@ -367,6 +367,19 @@ public class ManagerUtils {
   	}
   	
   	public static void
+	asyncStartAll()
+  	{
+     	new AEThread( "asyncStartAll", true )
+		{
+    		public void
+			runSupport()
+    		{
+    			AzureusCoreFactory.getSingleton().getGlobalManager().startAllDownloads();
+    		}
+		}.start();
+  	}
+  	
+  	public static void
 	asyncStopAll()
   	{
 		new AEThread( "asyncStopAll", true )
@@ -389,6 +402,18 @@ public class ManagerUtils {
 			runSupport()
     		{
     			AzureusCoreFactory.getSingleton().getGlobalManager().pauseDownloads();
+    		}
+		}.start();
+  	}
+  	
+  	public static void
+  	asyncResume() {
+     	new AEThread( "asyncResume", true )
+		{
+    		public void
+			runSupport()
+    		{
+    			AzureusCoreFactory.getSingleton().getGlobalManager().resumeDownloads();
     		}
 		}.start();
   	}
