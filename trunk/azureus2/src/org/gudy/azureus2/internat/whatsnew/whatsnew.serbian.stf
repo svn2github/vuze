@@ -1,0 +1,118 @@
+$ 
+$    Добродошли у Азуреус 2.5.0.4
+$ 
+
+ 2.5.0.4 је сервисно издање које исправља неколико мањих, али релативно иритирајућих проблема код 2.5.0.2.
+
++1. Шта је ново код Азуреуса 2.5.0.2/4
+
+!1.1 Мањи отисак у меморији
+  Најприметније, подаци о деловима торента се сада уклањају из меморије када се не користе.
+  
+!1.2 Најмањи број истовремено активних пријема
+  Могућност да се има одређен минималан број активних пријема.
+  
+!1.3 Нове колоне
+  Корисников коментар (Поглед „Моји торенти‟)
+  Екстензија датотеке (Поглед „Датотека‟)
+
+!1.4 Брже покретање са дугачким списковима
+  Азуреус се брже покреће када је активно много преноса (до 4 пута брже у неким случајевима).
+  Неки додаци могу да преиначе оптимизацију ако приступају свим торентима одмах по покретању.
+
+!1.5 Остало
+  Разне промене сучеља
+  Исправљене грешке
+  Мање цурење меморије
+ 
+!1.6 Белешка о Јави 5.0 (Java 5.0)
+  Јава 5, доградња 10 третира цурење меморије које се обично јавља у инсталацијама Азуреуса. Препоручује се да доградите Ваше Јава окружење на ово издање или неко касније.  Доградњу можете да преузмете са адресе http://java.com/en/download/manual.jsp
+
+    Пун списак измена је доступан на адреси: http://azureus.sourceforge.net/changelog.php?version=2.5.0.4
+
+
++2. What's new in Azureus 2.5.0.0
+
+!2.1 Send to a friend
+  A wizard to simplify sending a link to content to a friend or to embed in a web page (e.g. a blog).
+
+!2.2 Auto upload speed
+  This feature controls your upload speed based on the latency of your internet connection as gauged by pinging other members of the Distributed Database.
+
+!2.3 Other new features
+  OSX: Open .torrent files into Azureus via Finder/Desktop/etc.
+  'Do not download' files handled more consistently with respect to download completion.
+  Renaming of a download directories.
+  Moving of data files on torrent removal from Azureus.
+  Signed updates and plugins for improved security.
+  Interface improvements - more information: date added, idle times, new info view, file piece view; more per-torrent options.
+  Debug information generator.
+  More in the changelog.
+  
+  Don't forget to check the plugins - http://azureus.sourceforge.net/plugin_list.php
+    New remote control plugin - AzSMRC
+  
+!2.4 Bug fixes and performance improvements
+ Notable fixes:
+    LAN Peer Finder retains peers more effectively; explicit LAN peer identification.
+    Reduced CPU usage when connected to large numbers of peers.
+    
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.5.0.0
+
++3. What's new in Azureus 2.4.0.0
+    
+!3.1 Encrypted/Obfuscated Data Transfer
+ Support for encrypting the data between Azureus and other compatible clients is included. This both provides a level of protection of data and can help with ISPs that block or restrict peer-to-peer traffic.
+  
+!3.2 High Speed LAN Transfers
+ Multiple copies of Azureus running on the same local network support high speed direct connections.
+
+!3.3 Improved Download Algorithm
+ The algorithm used to determine which pieces of a download to request from which peers has been rewritten to improve its behaviour and performance.
+
+!3.4 Webseed Support
+ Basic webseed support is included. Webseeds will only be used when a download's availability is less than 1.0.
+
+!3.5 Other
+
+ Various user interface improvements.
+ Performance improvements.
+ Bug fixes.
+     
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.4.0.0
+
+    See http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 and 2.3.0.2 for previous changes.
+    
++4. Upgrade Advice
+
+!4.1 Java 5.0
+ Azureus is written in Java and requires the Java runtime. We recommend Java 5.0 (also known as 1.5) as it has better performance and reliability - please upgrade if necessary.
+ You'll find torrents to update Java here : http://azureus.sourceforge.net/download.php
+ Download the one for your system, close Azureus, execute the downloaded file, then restart Azureus.
+ WinXP users will have to go to Tools > Options > Interface > Display, and re-check the "Enable XP Style" option.
+ 
+!4.2 NOD32
+ NOD32 (http://www.nod32.com/) is an antivirus which is known to have problems with Azureus, causing 100% CPU usage.
+ See http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
+ 
+
++5. Common Issues
+
+!4.1 NAT "error"
+ NAT means "Network Address Translation". The NAT test in Azureus tells you whether or not you are connectable from people on the Internet. You'll get better speeds if you ARE connectable.
+ Please don't contact us in order to solve NAT issues, as plenty resources are available on the Internet about it. First check :
+ - http://azureus.aelitis.com/wiki/index.php/PortForwarding
+ - http://www.portforward.com
+ 
+
+!5.2 Azureus Crashing
+ If your Azureus is crashing, the most likely reason is an issue with your network components (card, drivers, OS). We highly recommend that you update all network related components. If this doesn't help, then the reason is probably that your system can't handle that many peer connections.
+ Lower the number of connections in Azureus (Tools > Options > Transfer > Maximum number of connections per torrent / globally), try a low value like 30 first.
+
+!5.3 Support
+ Before contacting the support team, be sure to check the available resources at :
+ - The official WebSite : http://azureus.sourceforge.net/
+ - The official Wiki : http://azureus.aelitis.com/wiki/
+ - The official IRC Channel : #azureus-users on irc.freenode.net
+ - The official SF forums : http://sourceforge.net/forum/?group_id=84122
+ - IF (and only IF) you can't solve your issue after trying ALL those mediums, you can contact us at azureus@gmail.com
