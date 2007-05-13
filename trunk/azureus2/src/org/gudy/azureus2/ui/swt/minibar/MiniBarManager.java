@@ -24,9 +24,7 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.ArrayList;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 
 /**
