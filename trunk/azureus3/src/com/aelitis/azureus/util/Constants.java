@@ -49,7 +49,7 @@ public class Constants
 
 	public static String URL_SUFFIX;
 
-	public static final String URL_ADD_SEARCH = "app?page=content%2FSearch&service=external&sp=S";
+	public static final String URL_ADD_SEARCH = "search?q=";
 
 	public static final String URL_PLATFORM_MESSAGE = "app?service=rpc";
 
