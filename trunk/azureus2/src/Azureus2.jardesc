@@ -289,6 +289,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.stats.transfer"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.maketorrent"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.utils.resourcedownloader"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.minibar"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.ui"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.peermanager.messaging.bittorrent"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.proxy.impl"/>
