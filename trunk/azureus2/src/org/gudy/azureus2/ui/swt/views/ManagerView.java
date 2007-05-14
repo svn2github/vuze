@@ -78,7 +78,7 @@ public class ManagerView extends AbstractIView implements
 	DownloadManager manager) 
   {
   	azureus_core	= _azureus_core;
-    this.manager 	= manager;
+  	dataSourceChanged(manager);
     
   }
   
