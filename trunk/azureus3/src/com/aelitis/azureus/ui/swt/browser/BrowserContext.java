@@ -148,8 +148,8 @@ public class BrowserContext
 				if (!browser.isVisible()) {
 					browser.setVisible(true);
 				}
-				
-				browser.execute("try { if (azureusClientWelcome) { azureusClientWelcome('" 
+
+				browser.execute("try { if (azureusClientWelcome) { azureusClientWelcome('"
 						+ Constants.AZID + "'); } } catch (e) {}");
 
 				if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()
@@ -171,18 +171,18 @@ public class BrowserContext
 				}
 			}
 		});
-		
+
 		SimpleTimer.addPeriodicEvent("checkURL", 10000, new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
 				if (!browser.isDisposed()) {
-  				browser.getDisplay().asyncExec(new AERunnable() {
-  					public void runSupport() {
+					browser.getDisplay().asyncExec(new AERunnable() {
+						public void runSupport() {
 							if (!browser.isDisposed()) {
-								browser.execute("s = document.location.toString(); " 
+								browser.execute("s = document.location.toString(); "
 										+ "if (s.indexOf('res://') == 0) { document.title = s; }");
-  						}
-  					}
-  				});
+							}
+						}
+					});
 				}
 			}
 		});
@@ -191,6 +191,7 @@ public class BrowserContext
 			private TimerEvent timerevent;
 
 			public void changed(LocationEvent event) {
+				//System.out.println("cd" + event.location);
 				if (timerevent != null) {
 					timerevent.cancel();
 				}
@@ -198,9 +199,11 @@ public class BrowserContext
 					widgetWaitIndicator.setVisible(false);
 				}
 			}
-			
+
 			public void changing(LocationEvent event) {
-				if (event.location.startsWith("javascript") && event.location.indexOf("back()") > 0) {
+				//System.out.println("cing " + event.location);
+				if (event.location.startsWith("javascript")
+						&& event.location.indexOf("back()") > 0) {
 					if (browser.isBackEnabled()) {
 						browser.back();
 					} else if (lastValidURL != null) {
@@ -269,11 +272,13 @@ public class BrowserContext
 
 	public void fillWithRetry(String s) {
 		browser.setText("<html><body style='font-family: verdana; font-size: 10pt' bgcolor=#2e2e2e text=#e0e0e0>"
-				+ "Sorry, there was a problem loading this page.<br> " 
+				+ "Sorry, there was a problem loading this page.<br> "
 				+ "Please check if your internet connection is working and click <a href='"
-				+ lastValidURL + "'>retry</a> to continue."
-				+ "<div style='word-wrap: break-word'><font size=1 color=#2e2e2e>" + s + "</font></div>"
-				+ "</body></html>");
+				+ lastValidURL
+				+ "'>retry</a> to continue."
+				+ "<div style='word-wrap: break-word'><font size=1 color=#2e2e2e>"
+				+ s
+				+ "</font></div>" + "</body></html>");
 	}
 
 	public void deregisterBrowser() {
