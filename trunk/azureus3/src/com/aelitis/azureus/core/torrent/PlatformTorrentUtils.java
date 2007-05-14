@@ -90,6 +90,8 @@ public class PlatformTorrentUtils
 	
 	private static final String TOR_AZ_PROP_QOS_CLASS = "QOS Class";
 
+	private static final String TOR_AZ_PROP_AD_ID = "Ad ID";
+
 	private static final ArrayList metaDataListeners = new ArrayList();
 
 	public static Map getContentMap(TOTorrent torrent) {
@@ -372,6 +374,22 @@ public class PlatformTorrentUtils
 			return isContent(((TorrentImpl) torrent).getTorrent());
 		}
 		return false;
+	}
+
+
+	public static String getAdId(TOTorrent torrent) {
+		return getContentMapString(torrent, TOR_AZ_PROP_AD_ID);
+	}
+
+	public static void setAdId(TOTorrent torrent, String sID) {
+		Map mapContent = getContentMap(torrent);
+		putOrRemove(mapContent, TOR_AZ_PROP_AD_ID, sID);
+
+		try {
+			TorrentUtils.writeToFile(torrent);
+		} catch (TOTorrentException e) {
+			Debug.out(e);
+		}
 	}
 
 	/**
