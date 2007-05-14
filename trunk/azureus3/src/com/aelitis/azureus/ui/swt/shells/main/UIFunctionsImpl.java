@@ -34,12 +34,14 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -663,5 +665,20 @@ public class UIFunctionsImpl
 		MessageBoxShell mb = new MessageBoxShell(getMainShell(), title, text,
 				buttons, defaultOption);
 		return mb;
+	}
+
+	public boolean isGlobalTransferBarShown() {
+		return AllTransfersBar.getManager().isOpen(
+				AzureusCoreFactory.getSingleton().getGlobalManager());
+	}
+
+	public void showGlobalTransferBar() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				AllTransfersBar.open(
+						AzureusCoreFactory.getSingleton().getGlobalManager(),
+						getMainShell());
+			}
+		});
 	}
 }

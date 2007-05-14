@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.SplashWindow;
+import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
@@ -749,7 +750,7 @@ public class MainWindow
 			event.doit = false;
 		}
 		shell.setVisible(false);
-		MinimizedWindow.setAllVisible(true);
+    MiniBarManager.getManager().setAllVisible(true);
 	}
 
 	/**
