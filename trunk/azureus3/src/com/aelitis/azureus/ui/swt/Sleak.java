@@ -348,8 +348,25 @@ public class Sleak
 		}
 
 		if (object instanceof Control) {
+			Control control = (Control) object;
+			Rectangle bounds = control.getBounds();
+
 			gc.drawString(object.toString(), 0, 0);
-			gc.drawString(((Control) object).getBounds().toString(), 0, 20);
+			gc.drawString(bounds.toString(), 0, 20);
+			
+			GC gcControl = new GC(control);
+			try {
+  			Image img = new Image(control.getDisplay(), bounds.width, bounds.height);
+  			gcControl.copyArea(img, 0, 0);
+  			
+  			gc.drawImage(img, 0, 40);
+  			
+  			img.dispose();
+			} catch (Exception e) {
+			} finally {
+  			gcControl.dispose();
+				
+			}
 			return;
 		}
 	}
