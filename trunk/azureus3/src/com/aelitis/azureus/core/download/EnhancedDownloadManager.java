@@ -44,6 +44,8 @@ import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
 import com.aelitis.azureus.core.peer.cache.CachePeer;
@@ -53,6 +55,7 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.average.Average;
 import com.aelitis.azureus.core.util.average.AverageFactory;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.DownloadUtils;
 
 public class 
 EnhancedDownloadManager 
@@ -102,6 +105,8 @@ EnhancedDownloadManager
 	public static final int LOG_PROG_STATS_PERIOD	= 10*1000;
 	public static final int LOG_PROG_STATS_TICKS	= LOG_PROG_STATS_PERIOD/DownloadManagerEnhancer.TICK_PERIOD;
 
+	private static final String TRACKER_PROG_PREFIX	= "azprog";
+	
 	
 	private static final String PM_SEED_TIME_KEY = "EnhancedDownloadManager:seedtime";
 	private static final String PEER_CACHE_KEY = "EnhancedDownloadManager:cachepeer";
@@ -127,10 +132,13 @@ EnhancedDownloadManager
 	private boostETAProvider	boost_provider	= new boostETAProvider();
 
 	private progressiveStats	progressive_stats;
+
+	private boolean				progressive_informed = false;
 	
 	private long	time_download_started;
 	private Average	download_speed_average	= AverageFactory.MovingImmediateAverage( 5 );
 	
+
 		// ********* reset these in resetVars ***********
 	
 	private long	last_speed_increase;
@@ -960,6 +968,19 @@ EnhancedDownloadManager
 					progressive_stats = new progressiveStats();
 				}
 			}
+		}
+		
+		if ( active && !progressive_informed ){
+			
+			progressive_informed	= true;
+			
+				// tell tracker we're progressive so it can, if required, schedule more seeds
+			
+			Download	plugin_dl = PluginCoreUtils.wrap( download_manager );
+			
+			DownloadUtils.addTrackerExtension( plugin_dl, TRACKER_PROG_PREFIX, "y" );
+			
+			download_manager.requestTrackerAnnounce( true );
 		}
 	}
 	

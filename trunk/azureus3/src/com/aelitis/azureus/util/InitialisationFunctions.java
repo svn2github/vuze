@@ -22,8 +22,6 @@
 
 package com.aelitis.azureus.util;
 
-import org.gudy.azureus2.core3.util.Base32;
-
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
@@ -33,14 +31,15 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
-import org.gudy.azureus2.plugins.torrent.TorrentManager;
 
 public class InitialisationFunctions
 {
-	private static final String EXTENSION_PREFIX = "&azid=";
+	private static final String EXTENSION_PREFIX = "azid";
 
 	public static void earlyInitialisation(AzureusCore core) {
+		
+		DownloadUtils.initialise( core );
+		
 		DownloadManagerEnhancer.initialise(core);
 
 		registerTrackerURLExtensions(core);
@@ -54,18 +53,11 @@ public class InitialisationFunctions
 		ExternalStimulusHandler.initialise(core);
 	}
 
-	protected static void registerTrackerURLExtensions(AzureusCore core) {
-		byte[] secure_id = core.getCryptoManager().getSecureID();
-
-		final String extension = EXTENSION_PREFIX + Base32.encode(secure_id);
-
-		// initial hack to set the azid on tracker communications
-
+	protected static void 
+	registerTrackerURLExtensions(
+		AzureusCore core ) 
+	{
 		PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
-
-		TorrentManager tm = pi.getTorrentManager();
-
-		final TorrentAttribute ta = tm.getAttribute(TorrentAttribute.TA_TRACKER_CLIENT_EXTENSIONS);
 
 		pi.getDownloadManager().addListener(
 			new DownloadManagerListener() 
@@ -81,45 +73,7 @@ public class InitialisationFunctions
 					return;
 				}
 
-				String value = download.getAttribute(ta);
-
-				if (value != null) {
-
-					if (value.indexOf(extension) != -1) {
-
-						return;
-					}
-
-					if (value.indexOf(EXTENSION_PREFIX) != -1) {
-
-						String[] bits = value.split("&");
-
-						value = "";
-
-						for (int i = 0; i < bits.length; i++) {
-
-							String bit = bits[i].trim();
-
-							if (bit.length() == 0) {
-
-								continue;
-							}
-
-							if (!bit.startsWith(EXTENSION_PREFIX.substring(1))) {
-
-								value += "&" + bit;
-							}
-						}
-					}
-
-					value += extension;
-
-				} else {
-
-					value = extension;
-				}
-
-				download.setAttribute(ta, value);
+				DownloadUtils.addTrackerExtension( download, EXTENSION_PREFIX, Constants.AZID );
 			}
 
 			public void downloadRemoved(Download download) {
