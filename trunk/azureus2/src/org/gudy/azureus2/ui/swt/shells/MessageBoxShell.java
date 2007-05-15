@@ -286,6 +286,9 @@ public class MessageBoxShell
 			linkControl.setLayoutData(gridData);
 		}
 
+		Label lblPadding = new Label(shell, SWT.NONE);
+		lblPadding.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
 		// Closing in..
 		if (autoCloseInMS > 0) {
 			final Label lblCloseIn = new Label(shell, SWT.WRAP);
