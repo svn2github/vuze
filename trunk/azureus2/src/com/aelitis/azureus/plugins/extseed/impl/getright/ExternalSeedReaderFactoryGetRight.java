@@ -80,6 +80,15 @@ ExternalSeedReaderFactoryGetRight
 	{				
 		try{
 			Object	obj = config.get( "url-list" );
+            
+            /* resolve url-list according to specification 
+             * (http://www.getright.com/seedtorrent.html)
+             */ 
+            if ( obj instanceof byte[] ){
+                List l = new ArrayList();
+                l.add(obj);
+                obj = l;
+            }
 			
 			if ( obj instanceof List ){
 				
@@ -97,6 +106,10 @@ ExternalSeedReaderFactoryGetRight
 						URL	url = new URL(new String((byte[])urls.get(i)));
 						
 						String	protocol = url.getProtocol().toLowerCase();
+						
+                        if (url.toString().endsWith("/")) {
+                            url = new URL(url.toString() + download.getTorrent().getName());
+                        }
 												
 						if ( protocol.equals( "http" )){
 							

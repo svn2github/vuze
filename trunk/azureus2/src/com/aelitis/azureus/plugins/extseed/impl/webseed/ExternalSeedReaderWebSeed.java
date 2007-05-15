@@ -138,8 +138,10 @@ ExternalSeedReaderWebSeed
 				
 		setReconnectDelay( RECONNECT_DEFAULT );
 		
+		ExternalSeedHTTPDownloader	http_downloader = null;
+		
 		try{
-			ExternalSeedHTTPDownloader	http_downloader = new ExternalSeedHTTPDownloader( new URL( str ), getUserAgent());
+			http_downloader = new ExternalSeedHTTPDownloader( new URL( str ), getUserAgent());
 
 				// unfortunately using HttpURLConnection it isn't possible to read the 503 response as per
 				// protocol - however, for az http web seeds we don't uses 503 anyway so we cna use URLCon. The
@@ -155,13 +157,19 @@ ExternalSeedReaderWebSeed
 				http_downloader.download( request.getLength(), request, isTransient() );
 			}			
 			
-			if ( http_downloader.getLastResponse() == 503 ){
+       }catch( ExternalSeedException ese ){
+
+			if ( http_downloader.getLastResponse() == 503 && http_downloader.getLast503RetrySecs() >= 0 ){
 				
-				Integer	retry = new Integer( new String( http_downloader.getLast503ResponseData()));
+				int	retry_secs = http_downloader.getLast503RetrySecs();
 				
-				setReconnectDelay( retry.intValue() * 1000 );
+				setReconnectDelay( retry_secs * 1000 );
 				
-				throw( new ExternalSeedException( "Server temporarily unavailable, retrying in " + retry ));
+				throw( new ExternalSeedException( "Server temporarily unavailable, retrying in " + retry_secs + " seconds" ));
+				
+			}else{
+				
+				throw( ese );
 			}
 		}catch( MalformedURLException e ){
 			

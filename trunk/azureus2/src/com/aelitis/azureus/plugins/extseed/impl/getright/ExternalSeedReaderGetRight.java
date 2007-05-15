@@ -131,10 +131,29 @@ ExternalSeedReaderGetRight
 	
 		throws ExternalSeedException
 	{
-		http_downloader.downloadRange( 
-						request.getStartPieceNumber() * piece_size + request.getStartPieceOffset(), 
-						request.getLength(),
-						request,
-						isTransient());
+		setReconnectDelay( RECONNECT_DEFAULT );
+		
+        try{
+			http_downloader.downloadRange( 
+							request.getStartPieceNumber() * piece_size + request.getStartPieceOffset(), 
+							request.getLength(),
+							request,
+							isTransient());
+
+        }catch( ExternalSeedException ese ){
+        	
+        	if ( http_downloader.getLastResponse() == 503 && http_downloader.getLast503RetrySecs() >= 0 ){
+		
+				int	retry_secs = http_downloader.getLast503RetrySecs();
+				
+				setReconnectDelay( retry_secs * 1000 );
+				
+				throw( new ExternalSeedException( "Server temporarily unavailable, retrying in " + retry_secs + " seconds" ));
+        		
+        	}else{
+        		
+        		throw(ese);                	
+        	}
+        }
 	}
 }

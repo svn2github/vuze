@@ -198,6 +198,7 @@ ExternalSeedReaderImpl
 		int	delay )
 	{
 		reconnect_delay = delay;
+        consec_failures = 0;		
 	}
 	
 	protected boolean

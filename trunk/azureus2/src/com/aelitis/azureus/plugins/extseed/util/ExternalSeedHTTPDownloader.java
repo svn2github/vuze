@@ -49,8 +49,8 @@ ExternalSeedHTTPDownloader
 	private String		user_agent;
 	
 	private int			last_response;
-	private byte[]		last_response_data;
-	
+	private int			last_response_retry_after_secs;
+    
 	public
 	ExternalSeedHTTPDownloader(
 		URL		_url,
@@ -122,10 +122,33 @@ ExternalSeedHTTPDownloader
 			connected	= true;
 			
 			int	response = connection.getResponseCode();
-			
-			is = connection.getInputStream();
 
 			last_response	= response;
+			
+			last_response_retry_after_secs	= -1;
+			
+            if ( response == 503 ){
+                           
+                	// webseed support for temp unavail - read the retry_after
+            	
+            	long retry_after_date = new Long(connection.getHeaderFieldDate("Retry-After", -1L)).longValue();
+            	
+                if ( retry_after_date <= -1 ){
+                	
+                	last_response_retry_after_secs = connection.getHeaderFieldInt("Retry-After", -1);
+                    
+                }else{
+                	
+                	last_response_retry_after_secs = (int)((retry_after_date - System.currentTimeMillis())/1000);
+                	
+                	if ( last_response_retry_after_secs < 0 ){
+                		
+                		last_response_retry_after_secs = -1;
+                	}
+                }
+            }
+            
+			is = connection.getInputStream();
 			
 			if ( 	response == HttpURLConnection.HTTP_ACCEPTED || 
 					response == HttpURLConnection.HTTP_OK ||
@@ -228,6 +251,11 @@ ExternalSeedHTTPDownloader
 			}else{
 				
 				outcome =  "Connection failed: " + Debug.getNestedExceptionMessage( e );
+                
+                if ( last_response_retry_after_secs >= 0){
+                	
+                    outcome += ", Retry-After: " + last_response_retry_after_secs + " seconds";
+                }
 				
 				ExternalSeedException excep = new ExternalSeedException( outcome, e );
 				
@@ -361,7 +389,9 @@ ExternalSeedHTTPDownloader
 				int	response = Integer.parseInt( tok.nextToken());
 				
 				last_response	= response;
-	
+				
+				last_response_retry_after_secs	= -1;
+				
 				String	response_str	= tok.nextToken();				
 				
 				if ( 	response == HttpURLConnection.HTTP_ACCEPTED || 
@@ -454,8 +484,12 @@ ExternalSeedHTTPDownloader
 						data_str += (char)buffer[0];
 					}
 					
-					last_response_data = data_str.getBytes();
+					last_response_retry_after_secs = Integer.parseInt( data_str );
 				
+						// this gets trapped below and turned into an appropriate ExternalSeedException
+					
+					throw( new IOException( "Server overloaded" ));
+					
 				}else{
 					
 					ExternalSeedException	error = new ExternalSeedException("Connection failed: " + response_str );
@@ -481,7 +515,14 @@ ExternalSeedHTTPDownloader
 
 			}else{
 				
-				throw( new ExternalSeedException("Connection failed", e ));
+				String outcome =  "Connection failed: " + Debug.getNestedExceptionMessage( e );
+
+				if ( last_response_retry_after_secs >= 0 ){
+	                	
+					outcome += ", Retry-After: " + last_response_retry_after_secs + " seconds";
+	            }
+
+				throw( new ExternalSeedException( outcome, e ));
 			}
 		}catch( Throwable e ){
 			
@@ -532,9 +573,9 @@ ExternalSeedHTTPDownloader
 		return( last_response );
 	}
 	
-	public byte[]
-	getLast503ResponseData()
+	public int
+	getLast503RetrySecs()
 	{
-		return( last_response_data );
+		return( last_response_retry_after_secs );
 	}
 }
