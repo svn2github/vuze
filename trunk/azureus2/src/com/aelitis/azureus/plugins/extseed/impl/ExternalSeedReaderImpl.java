@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.plugins.utils.Semaphore;
 
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedPeer;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReaderListener;
@@ -263,15 +264,20 @@ ExternalSeedReaderImpl
 				int	existing_peer_count = existing_peers.length;
 				
 				int	download_limit = peer_manager.getDownloadRateLimitBytesPerSecond();
-				
-				long download_average = peer_manager.getStats().getDownloadAverage();
-				
+								
 				if ( 	( download_limit == 0 || download_limit > STALLED_DOWNLOAD_SPEED + 2*1024 ) &&
 						peer_manager.getStats().getDownloadAverage() < STALLED_DOWNLOAD_SPEED ){
 					
 					for (int i=0;i<existing_peers.length;i++){
 					
 						Peer	existing_peer = existing_peers[i];
+						
+							// no point in booting ourselves!
+						
+						if ( existing_peer instanceof ExternalSeedPeer ){
+							
+							continue;
+						}
 						
 						PeerStats stats = existing_peer.getStats();
 						
