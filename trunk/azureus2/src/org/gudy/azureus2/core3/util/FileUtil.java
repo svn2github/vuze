@@ -920,21 +920,41 @@ public class FileUtil {
         }
       }
     
+    	/**
+    	 * copys the input stream to the file. always closes the input stream
+    	 * @param _source
+    	 * @param _dest
+    	 * @throws IOException
+    	 */
+    
     public static void 
     copyFile( 
-    	final InputStream _source, 
-    	final File _dest )
+    	final InputStream 	_source, 
+    	final File 			_dest )
     
     	throws IOException
     {
     	FileOutputStream	dest = null;
+    
+    	boolean	close_input = true;
     	
     	try{
     		dest = new FileOutputStream(_dest);
    
+    			// copyFile will close from now on, we don't need to
+    		
+    		close_input = false;
+    		
     		copyFile( _source, dest, true );
     		
     	}finally{
+    		
+       		try{
+    			if(close_input){
+    				_source.close();
+    			}
+    		}catch( IOException e ){
+     		}
     		
     		if ( dest != null ){
     			
@@ -947,7 +967,9 @@ public class FileUtil {
     copyFile( 
       InputStream   is,
       OutputStream  os ) 
-    throws IOException {
+    	
+    	throws IOException 
+    {
       copyFile(is,os,true);
     }
     
