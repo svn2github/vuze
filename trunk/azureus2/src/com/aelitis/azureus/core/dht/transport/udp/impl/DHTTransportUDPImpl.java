@@ -72,8 +72,9 @@ DHTTransportUDPImpl
 {
 	public static boolean TEST_EXTERNAL_IP	= false;
 	
-	public static final int	TRANSFER_QUEUE_MAX	= 64;
-	
+	public static final int	TRANSFER_QUEUE_MAX			= 64;
+	public static final long MAX_TRANSFER_QUEUE_BYTES	= 8*1024*1024;	 
+		
 	public static final long	WRITE_XFER_RESEND_DELAY		= 12500;
 	public static final long	READ_XFER_REREQUEST_DELAY	= 5000;
 	public static final long	WRITE_REPLY_TIMEOUT			= 60000;		
@@ -113,6 +114,9 @@ DHTTransportUDPImpl
 	private Map transfer_handlers 	= new HashMap();
 	private Map	read_transfers		= new HashMap();
 	private Map write_transfers		= new HashMap();
+	
+	private int 	active_write_queue_processor_count;
+	private long	total_bytes_on_transfer_queues;
 	
 	private Map	call_transfers		= new HashMap();
 	
@@ -2182,6 +2186,10 @@ DHTTransportUDPImpl
 		
 		byte	packet_type = req.getPacketType();
 		
+		if ( XFER_TRACE ){
+			System.out.println( "dataRequest: originator=" + originator.getAddress() + ",packet=" + req.getString());
+		}
+		
 		if ( packet_type == DHTUDPPacketData.PT_READ_REPLY ){
 			
 			transferQueue	queue = lookupTransferQueue( read_transfers, req.getConnectionId());
@@ -2244,7 +2252,7 @@ DHTTransportUDPImpl
 						logger.log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
 						
 					}else{
-					
+											
 						try{
 							final transferQueue new_queue = new transferQueue( read_transfers, req.getConnectionId());
 						
@@ -2253,7 +2261,27 @@ DHTTransportUDPImpl
 							new_queue.add( req );
 							
 								// set up the queue processor
-												
+								
+							try{
+								this_mon.enter();
+								
+								if ( active_write_queue_processor_count >= TRANSFER_QUEUE_MAX ){
+									
+									new_queue.destroy();
+									
+									throw( new DHTTransportException( "Active write queue process thread limit exceeded" ));
+								}
+								
+								active_write_queue_processor_count++;
+								
+								if ( XFER_TRACE ){
+									System.out.println( "active_write_queue_processor_count=" + active_write_queue_processor_count );
+								}
+							}finally{
+								
+								this_mon.exit();
+							}
+
 							new AEThread( "DHTTransportUDP:writeQueueProcessor", true )
 								{
 									public void
@@ -2361,6 +2389,21 @@ DHTTransportUDPImpl
 										}catch( DHTTransportException e ){
 											
 											logger.log( "Failed to process transfer queue: " + Debug.getNestedExceptionMessage(e));
+											
+										}finally{
+											
+											try{
+												this_mon.enter();
+																								
+												active_write_queue_processor_count--;
+												
+												if ( XFER_TRACE ){
+													System.out.println( "active_write_queue_processor_count=" + active_write_queue_processor_count );
+												}
+											}finally{
+												
+												this_mon.exit();
+											}
 										}
 									}
 								}.start();
@@ -3415,12 +3458,13 @@ DHTTransportUDPImpl
 	protected class
 	transferQueue
 	{
-		Map			transfers;
-		long		id;
+		private Map			transfers;
+		private long		id;
+		private boolean		destroyed;
 		
-		List		packets	= new ArrayList();
+		private List		packets	= new ArrayList();
 		
-		AESemaphore	packets_sem	= new AESemaphore("DHTUDPTransport:transferQueue");
+		private AESemaphore	packets_sem	= new AESemaphore("DHTUDPTransport:transferQueue");
 		
 		protected
 		transferQueue(
@@ -3437,10 +3481,21 @@ DHTTransportUDPImpl
 
 				if ( transfers.size() > TRANSFER_QUEUE_MAX ){
 					
+					Debug.out( "Transfer queue count limit exceeded" );
+					
 					throw( new DHTTransportException( "Transfer queue limit exceeded" ));
 				}
 				
-				transfers.put( new Long( id ), this );
+				Long l_id = new Long( id );
+				
+				transferQueue	existing = (transferQueue)transfers.get( l_id );
+				
+				if ( existing != null ){
+					
+					existing.destroy();
+				}
+				
+				transfers.put( l_id, this );
 				
 			}finally{
 				
@@ -3461,6 +3516,28 @@ DHTTransportUDPImpl
 			try{
 				this_mon.enter();
 	
+				if ( destroyed ){
+					
+					return;
+				}
+				
+				if ( total_bytes_on_transfer_queues > MAX_TRANSFER_QUEUE_BYTES ){
+					
+					Debug.out( "Transfer queue byte limit exceeded" );
+				
+						// just drop the packet
+					
+					return;
+				}
+				
+				int	length = packet.getLength();
+				
+				total_bytes_on_transfer_queues += length;
+				
+				if ( XFER_TRACE ){
+					System.out.println( "total_bytes_on_transfer_queues=" + total_bytes_on_transfer_queues );
+				}
+				
 				packets.add( packet );
 				
 			}finally{
@@ -3479,8 +3556,23 @@ DHTTransportUDPImpl
 				
 				try{
 					this_mon.enter();
-								
-					return((DHTUDPPacketData)packets.remove(0));
+						
+					if ( destroyed ){
+						
+						return( null );
+					}
+					
+					DHTUDPPacketData packet = (DHTUDPPacketData)packets.remove(0);
+					
+					int	length = packet.getLength();
+					
+					total_bytes_on_transfer_queues -= length;
+
+					if ( XFER_TRACE ){
+						System.out.println( "total_bytes_on_transfer_queues=" + total_bytes_on_transfer_queues );
+					}
+					
+					return( packet );
 					
 				}finally{
 					
@@ -3497,8 +3589,27 @@ DHTTransportUDPImpl
 		{
 			try{
 				this_mon.enter();
-							
+					
+				destroyed = true;
+				
 				transfers.remove( new Long( id ));
+				
+				for (int i=0;i<packets.size();i++){
+					
+					DHTUDPPacketData	packet = (DHTUDPPacketData)packets.get(i);
+					
+					int	length = packet.getLength();
+					
+					total_bytes_on_transfer_queues -= length;
+					
+					if ( XFER_TRACE ){
+						System.out.println( "total_bytes_on_transfer_queues=" + total_bytes_on_transfer_queues );
+					}
+				}
+				
+				packets.clear();
+				
+				packets_sem.releaseForever();
 				
 			}finally{
 				
