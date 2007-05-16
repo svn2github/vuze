@@ -24,13 +24,20 @@ package com.aelitis.azureus.core.update.impl;
 import java.io.*;
 import java.util.Properties;
 
-import com.aelitis.azureus.core.*;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.platform.win32.PlatformManagerImpl;
+import org.gudy.azureus2.platform.win32.access.AEWin32Access;
+import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
+
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.update.AzureusRestarter;
 
-import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.platform.*;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.plugins.PluginInterface;
 
 public class 
 AzureusRestarterImpl 
@@ -39,6 +46,8 @@ AzureusRestarterImpl
 	private static final LogIDs LOGID = LogIDs.CORE;
 	private static final String MAIN_CLASS 		= "org.gudy.azureus2.update.Updater";
 	private static final String UPDATER_JAR 	= "Updater.jar";
+	private static final String EXE_UPDATER		= "AzureusUpdater.exe";
+	
   
 	public static final String		UPDATE_PROPERTIES	= "update.properties";
 
@@ -218,14 +227,184 @@ AzureusRestarterImpl
 	    	return( true );
 	    	
 	    }catch(Throwable e) {
-	    	
 	        e.printStackTrace(log);
 	        
 	        return( false );
 	    }
 	}
 	
+
+	private String getExeUpdater(PrintWriter log) {
+		try {
+			boolean isVistaOrHigher = false;
+			if (Constants.isWindows) {
+				Float ver = null;
+				try {
+					ver = new Float(System.getProperty("os.version"));
+				} catch (Exception e) {
+				}
+				isVistaOrHigher = ver != null && ver.floatValue() >= 6;
+			}
+
+			// Vista test: We will need to run an elevated EXE updater if we can't
+			//             write to the program dir.
+			
+			if (isVistaOrHigher) {
+				if (AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUpdateManager().getInstallers().length > 0) {
+					log.println("Vista restart w/Updates.. checking if EXE needed");
+					try {
+						final File writeFile = FileUtil.getApplicationFile("write.tst");
+						// should fail if no perms, but sometimes it's created in
+						// virtualstore (if ran from java(w).exe for example)
+						FileOutputStream fos = new FileOutputStream(writeFile);
+						fos.write(32);
+						fos.close();
+
+						writeFile.delete();
+
+						File renameFile = FileUtil.getApplicationFile("License.txt");
+						if (renameFile != null && renameFile.exists()) {
+							File oldFile = FileUtil.getApplicationFile("License.txt");
+							String oldName = renameFile.getName();
+							File newFile = new File(renameFile.getParentFile(), oldName
+									+ ".bak");
+							renameFile.renameTo(newFile);
+
+							if (oldFile.exists()) {
+								log.println("Requiring EXE because rename test failed");
+								return EXE_UPDATER; 
+							}
+
+							newFile.renameTo(oldFile);
+						} else {
+							log.println("Could not try Permission Test 2. File " + renameFile
+									+ " not found");
+						}
+
+					} catch (Exception e) {
+						log.println("Permission Test Failed. " + e.getMessage() + ";"
+								+ Debug.getCompressedStackTrace());
+						return EXE_UPDATER; 
+					}
+				}
+			}
+		} catch (Throwable t) {
+			// ignore vista test
+		}
+
+		return null;
+	}
+
+  private boolean restartViaEXE(PrintWriter log,
+  		String exeUpdater,
+      String[]  properties,
+      String[]  parameters,
+      String backupJavaRunString) 
+  {
+		try {
+			String execEXE = "\"-J" + getClassPath().replaceAll("\\\"", "") + "\" ";
+
+			for (int i = 0; i < properties.length; i++) {
+				execEXE += "\"-J" + properties[i].replaceAll("\\\"", "") + "\" ";
+			}
+
+			for (int i = 0; i < properties.length; i++) {
+				execEXE += "\"-J" + properties[i].replaceAll("\\\"", "") + "\" ";
+			}
+
+			for (int i = 0; i < parameters.length; i++) {
+				execEXE += " \"" + parameters[i].replaceAll("\\\"", "") + "\"";
+			}
+
+			log.println("Launch via " + exeUpdater + " params " + execEXE);
+			
+			int result;
+			
+			AEWin32Access accessor = AEWin32Manager.getAccessor(true);
+			if (accessor == null) {
+				result = -123;
+			} else {
+				result = accessor.shellExecute(null, exeUpdater, execEXE,
+					SystemProperties.getApplicationPath(), AEWin32Access.SW_NORMAL);
+			}
+
+			/*
+			 * Some results:
+			 * 0: OOM
+			 * 2: FNF
+			 * 3: Path Not Foud
+			 * 5: Access Denied (User clicked cancel on admin access dialog)
+			 * 8: OOM
+			 * 11: Bad Format
+			 * 26: Sharing Violation
+			 * 27: Association incomplete
+			 * 28: DDE Timeout
+			 * 29: DDE Fail
+			 * 30: DDE Busy
+			 * 31: No Association
+			 * 32: DLL Not found
+			 * >32: OK!
+			 */
+			log.println("   -> " + result);
+
+			if (result <= 32) {
+				String sErrorReason = "";
+				String key = null;
+
+				switch (result) {
+					case 0:
+					case 8:
+						key = "oom";
+						break;
+
+					case 2:
+						key = "fnf";
+						break;
+
+					case 3:
+						key = "pnf";
+						break;
+
+					case 5:
+						key = "denied";
+						break;
+
+					case 11:
+						key = "bad";
+						break;
+						
+					case -123:
+						key = "nowin32";
+						break;
+
+					default:
+						sErrorReason = "" + result;
+						break;
+				}
+				if (key != null) {
+					sErrorReason = MessageText.getString("restart.error." + key,
+							new String[] {
+								exeUpdater,
+								SystemProperties.getApplicationPath(),
+							});
+				}
+				Logger.log(new LogAlert(false, LogAlert.AT_ERROR,
+						MessageText.getString("restart.error", new String[] {
+							sErrorReason
+						})));
+				return false;
+			}
+		} catch (Throwable f) {
+
+			f.printStackTrace(log);
+
+			return javaSpawn(log, backupJavaRunString);
+		}
+
+		return true;
+	}
   
+
   // ****************** This code is copied into Restarter / Updater so make changes there too !!!
   
   
@@ -259,46 +438,61 @@ AzureusRestarterImpl
     String[]  properties,
     String[]  parameters) 
   {
-    
-    //Classic restart way using Runtime.exec directly on java(w)    
-    String exec = "\"" + JAVA_EXEC_DIR + "javaw\" "+ getClassPath() + getLibraryPath();
-    
-    for (int i=0;i<properties.length;i++){
-      exec += properties[i] + " ";
-    }
-    
-    exec += mainClass;
-    
-    for(int i = 0 ; i < parameters.length ; i++) {
-      exec += " \"" + parameters[i] + "\"";
-    }
-    
-    if ( log != null ){
-      log.println( "  " + exec );
-    }
-    
-    if ( !win32NativeRestart( log, exec )){
-      
-      // hmm, try java method - this WILL inherit handles but might work :)
-          
-        try{
-        	log.println( "Using java spawn" );
+  	String exeUpdater = getExeUpdater(log);  // Not for Updater.java
 
-  		  	//NOTE: no logging done here, as we need the method to return right away, before the external process completes
-        	Process p = Runtime.getRuntime().exec( exec );
-          
-        	log.println("    -> " + p );
-        	
-        }catch(Throwable f){
-          
-          f.printStackTrace( log );
-        }
-    }
-  }
+  	String exec;
+
+		//Classic restart way using Runtime.exec directly on java(w)
+		exec = "\"" + JAVA_EXEC_DIR + "javaw\" " + getClassPath() + getLibraryPath();
+
+		for (int i = 0; i < properties.length; i++) {
+			exec += properties[i] + " ";
+		}
+
+		exec += mainClass;
+
+		for (int i = 0; i < parameters.length; i++) {
+			exec += " \"" + parameters[i] + "\"";
+		}
+
+		if (exeUpdater != null) {
+			restartViaEXE(log, exeUpdater, properties, parameters, exec);
+		} else {
+			if (log != null) {
+				log.println("  " + exec);
+			}
+
+			if (!win32NativeRestart(log, exec)) {
+				javaSpawn(log, exec);
+			}
+		}
+	}
   
-  
-  
-  private void 
+
+	private boolean
+	javaSpawn(
+		PrintWriter log, 
+		String execString) 
+	{
+		try {
+			// hmm, try java method - this WILL inherit handles but might work :)
+
+			log.println("Using java spawn");
+
+			//NOTE: no logging done here, as we need the method to return right away, before the external process completes
+			Process p = Runtime.getRuntime().exec(execString);
+
+			log.println("    -> " + p);
+
+			return true;
+		} catch (Throwable g) {
+
+			g.printStackTrace();
+			return false;
+		}
+	}
+
+	private void 
   restartAzureus_OSX(
       PrintWriter log,
     String mainClass,
