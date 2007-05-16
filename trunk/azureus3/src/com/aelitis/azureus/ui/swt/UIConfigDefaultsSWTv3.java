@@ -131,11 +131,12 @@ public class UIConfigDefaultsSWTv3
 			defaults.addParameter("bFirstPriority_ignore0Peer", true);
 
 			defaults.addParameter("v3.topbar.show.frog", false);
-			defaults.addParameter("v3.topbar.show.plugin", false);
 			
 			config.save();
 		}
-		
+
+		defaults.addParameter("v3.topbar.show.plugin", false);
+
 		// by default, turn off some slidey warning
 		// Since they are plugin configs, we need to set the default after the 
 		// plugin sets the default
