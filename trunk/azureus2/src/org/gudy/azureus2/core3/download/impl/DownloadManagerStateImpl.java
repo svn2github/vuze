@@ -2108,6 +2108,8 @@ DownloadManagerStateImpl
 			
 			writer.println( "parameters=" + parameters );
 			
+			writer.println("primary file=" + Debug.secretFileName(getPrimaryFile()));
+			
 		}finally{
 			
 			writer.exdent();
