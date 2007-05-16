@@ -131,7 +131,7 @@ ExternalSeedReaderGetRight
 	
 		throws ExternalSeedException
 	{
-		setReconnectDelay( RECONNECT_DEFAULT );
+		setReconnectDelay( RECONNECT_DEFAULT, false );
 		
         try{
 			http_downloader.downloadRange( 
@@ -146,7 +146,7 @@ ExternalSeedReaderGetRight
 		
 				int	retry_secs = http_downloader.getLast503RetrySecs();
 				
-				setReconnectDelay( retry_secs * 1000 );
+				setReconnectDelay( retry_secs * 1000, true );
 				
 				throw( new ExternalSeedException( "Server temporarily unavailable, retrying in " + retry_secs + " seconds" ));
         		

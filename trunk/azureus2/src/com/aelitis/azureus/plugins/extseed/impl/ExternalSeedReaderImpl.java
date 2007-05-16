@@ -196,10 +196,15 @@ ExternalSeedReaderImpl
 	
 	protected void
 	setReconnectDelay(
-		int	delay )
+		int			delay,
+		boolean		reset_failures )
 	{
 		reconnect_delay = delay;
-        consec_failures = 0;		
+		
+		if ( reset_failures ){
+			
+			consec_failures = 0;
+		}
 	}
 	
 	protected boolean

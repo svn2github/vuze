@@ -136,7 +136,7 @@ ExternalSeedReaderWebSeed
 			
 		String	str = url_prefix + "&piece=" + piece + "&ranges=" + piece_start + "-" + piece_end;
 				
-		setReconnectDelay( RECONNECT_DEFAULT );
+		setReconnectDelay( RECONNECT_DEFAULT, false );
 		
 		ExternalSeedHTTPDownloader	http_downloader = null;
 		
@@ -163,7 +163,7 @@ ExternalSeedReaderWebSeed
 				
 				int	retry_secs = http_downloader.getLast503RetrySecs();
 				
-				setReconnectDelay( retry_secs * 1000 );
+				setReconnectDelay( retry_secs * 1000, true );
 				
 				throw( new ExternalSeedException( "Server temporarily unavailable, retrying in " + retry_secs + " seconds" ));
 				
