@@ -196,7 +196,6 @@ Main
  
   	//Debug.dumpSystemProperties();
   	
-		// Temporary force
 		if (System.getProperty("ui.temp") == null) {
 			System.setProperty("ui.temp", "az2");
 		}

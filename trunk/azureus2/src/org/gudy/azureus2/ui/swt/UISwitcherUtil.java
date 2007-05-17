@@ -35,78 +35,90 @@ import org.gudy.azureus2.core3.util.Debug;
  */
 public class UISwitcherUtil
 {
+	private static boolean NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET = true;
+
 	public static String openSwitcherWindow(boolean bForceAsk) {
-		String forceUI = System.getProperty("force.ui");
-		if (forceUI != null) {
-			return forceUI;
-		}
-
-		// This is temporary until we have the UI Switcher in place
-		//
-		// ui.temp system property is set in one of the two main (startup) classes
-		// Anyone running using "org.gudy.." get it set to "az2", and anyone running
-		// "com.aelitis.." get it set to "az3".  On first run with this code,
-		// we set the "ui.temp" azureus config parameter to this value.  Every
-		// run after that, we use the config parameter, guaranteeing that the
-		// they always get the same UI as the first time.
-		String tempForceUI = COConfigurationManager.getStringParameter("ui.temp",
-				null);
-		if (tempForceUI != null) {
-			return tempForceUI;
-		}
-
-		tempForceUI = System.getProperty("ui.temp");
-		if (tempForceUI != null) {
-			COConfigurationManager.setParameter("ui.temp", tempForceUI);
-			return tempForceUI;
-		}
-
-		String sFirstVersion = COConfigurationManager.getStringParameter("First Recorded Version");
-		if (!bForceAsk && Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0) {
-			return "az3";
-		} else if (bForceAsk || !COConfigurationManager.hasParameter("ui", true)) {
-			try {
-
-				final int[] result = {
-					-1
-				};
-
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						try {
-							final Class uiswClass = Class.forName("com.aelitis.azureus.ui.swt.shells.uiswitcher.UISwitcherWindow");
-
-							final Constructor constructor = uiswClass.getConstructor(new Class[] {});
-
-							Object object = constructor.newInstance(new Object[] {});
-
-							Method method = uiswClass.getMethod("open", new Class[] {});
-
-							Object resultObj = method.invoke(object, new Object[] {});
-
-							if (resultObj instanceof Number) {
-								result[0] = ((Number) resultObj).intValue();
-							}
-						} catch (Exception e) {
-							Debug.printStackTrace(e);
-						}
-					}
-				}, false);
-
-				if (result[0] == 0) {
-					// Full AZ3UI
-					COConfigurationManager.setParameter("ui", "az3");
-					COConfigurationManager.setParameter("v3.Start Advanced", false);
-				} else if (result[0] == 1) {
-					// AZ3UI w/Advanced view default
-					COConfigurationManager.setParameter("ui", "az3");
-					COConfigurationManager.setParameter("v3.Start Advanced", true);
-				} else if (result[0] == 2) {
-					COConfigurationManager.setParameter("ui", "az2");
-				}
-			} catch (Exception e) {
-				Debug.printStackTrace(e);
+		if (!bForceAsk) {
+			String forceUI = System.getProperty("force.ui");
+			if (forceUI != null) {
+				return forceUI;
 			}
+
+			forceUI = System.getProperty("ui.temp");
+			if (forceUI != null) {
+				COConfigurationManager.setParameter("ui", forceUI);
+				return forceUI;
+			}
+
+			boolean asked = COConfigurationManager.getBooleanParameter("ui.asked",
+					false);
+
+			// NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET Notes:
+			//
+			// AZ2 users will always get az2 because they startup with "org.gudy.."
+			// and that sets "ui.temp" to az2.  Likewise, people starting with 
+			// "org.gudy.azureus2.ui.swt.mainwindow.Initializer" will have "ui.temp"
+			// set to "az3".
+			// The third, "com.aelitis.azureus.ui.Main" starting point does not
+			// set "ui.temp", so for now it will default to "az3" if azureus was never
+			// run before with the other 2 starting points.
+			if (NOT_GOOD_ENOUGH_FOR_AZ2_USERS_YET || asked) {
+				return COConfigurationManager.getStringParameter("ui", "az3");
+			}
+
+			// Never auto-ask people who never have had 2.x, because they'd be scared
+			// and cry at the advanced coolness of the az2 ui
+			String sFirstVersion = COConfigurationManager.getStringParameter("First Recorded Version");
+			if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0) {
+				return "az3";
+			}
+		}
+
+		// either !asked or forceAsked at this point
+
+		try {
+
+			final int[] result = {
+				-1
+			};
+
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					try {
+						final Class uiswClass = Class.forName("com.aelitis.azureus.ui.swt.shells.uiswitcher.UISwitcherWindow");
+
+						final Constructor constructor = uiswClass.getConstructor(new Class[] {});
+
+						Object object = constructor.newInstance(new Object[] {});
+
+						Method method = uiswClass.getMethod("open", new Class[] {});
+
+						Object resultObj = method.invoke(object, new Object[] {});
+
+						if (resultObj instanceof Number) {
+							result[0] = ((Number) resultObj).intValue();
+						}
+					} catch (Exception e) {
+						Debug.printStackTrace(e);
+					}
+				}
+			}, false);
+
+			if (result[0] == 0) {
+				// Full AZ3UI
+				COConfigurationManager.setParameter("ui", "az3");
+				COConfigurationManager.setParameter("v3.Start Advanced", false);
+			} else if (result[0] == 1) {
+				// AZ3UI w/Advanced view default
+				COConfigurationManager.setParameter("ui", "az3");
+				COConfigurationManager.setParameter("v3.Start Advanced", true);
+			} else if (result[0] == 2) {
+				COConfigurationManager.setParameter("ui", "az2");
+			}
+			
+			COConfigurationManager.setParameter("ui.asked", true);
+		} catch (Exception e) {
+			Debug.printStackTrace(e);
 		}
 
 		return COConfigurationManager.getStringParameter("ui");
