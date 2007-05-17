@@ -64,7 +64,6 @@ public class Initializer
 	private static boolean ROUTE_TO_AZ2 = true;
 
 	public static void main(final String args[]) {
-		// Temporary force
 		if (System.getProperty("ui.temp") == null) {
 			System.setProperty("ui.temp", "az3");
 		}
