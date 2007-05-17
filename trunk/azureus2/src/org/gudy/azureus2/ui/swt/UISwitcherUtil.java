@@ -37,9 +37,28 @@ public class UISwitcherUtil
 {
 	public static String openSwitcherWindow(boolean bForceAsk) {
 		String forceUI = System.getProperty("force.ui");
-
 		if (forceUI != null) {
 			return forceUI;
+		}
+
+		// This is temporary until we have the UI Switcher in place
+		//
+		// ui.temp system property is set in one of the two main (startup) classes
+		// Anyone running using "org.gudy.." get it set to "az2", and anyone running
+		// "com.aelitis.." get it set to "az3".  On first run with this code,
+		// we set the "ui.temp" azureus config parameter to this value.  Every
+		// run after that, we use the config parameter, guaranteeing that the
+		// they always get the same UI as the first time.
+		String tempForceUI = COConfigurationManager.getStringParameter("ui.temp",
+				null);
+		if (tempForceUI != null) {
+			return tempForceUI;
+		}
+
+		tempForceUI = System.getProperty("ui.temp");
+		if (tempForceUI != null) {
+			COConfigurationManager.setParameter("ui.temp", tempForceUI);
+			return tempForceUI;
 		}
 
 		String sFirstVersion = COConfigurationManager.getStringParameter("First Recorded Version");
