@@ -524,6 +524,9 @@ public class TorrentListView
 	}
 
 	public boolean isOurDownload(DownloadManager dm) {
+		if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null) {
+			return false;
+		}
 		boolean bDownloadComplete = dm.isDownloadComplete(false);
 
 		switch (viewMode) {
@@ -625,12 +628,12 @@ public class TorrentListView
 					long size2 = getTotalPossible();
 
 					if (size1 == size2) {
-						countArea.setText(MessageText.getString("MainWindow.v3.count",
+						countArea.setText(MessageText.getString("v3.MainWindow.count",
 								new String[] {
 									"" + size1
 								}));
 					} else {
-						countArea.setText(MessageText.getString("MainWindow.v3.xofx",
+						countArea.setText(MessageText.getString("v3.MainWindow.xofx",
 								new String[] {
 									"" + size1,
 									"" + size2

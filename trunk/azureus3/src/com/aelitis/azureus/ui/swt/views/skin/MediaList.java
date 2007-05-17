@@ -119,6 +119,9 @@ public class MediaList
 		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
 				null, cData, TorrentListView.VIEW_MY_MEDIA, false, true) {
 			public boolean isOurDownload(DownloadManager dm) {
+				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null) {
+					return false;
+				}
 				if (sLastSearch.length() == 0) {
 					return true;
 				}
@@ -240,14 +243,14 @@ public class MediaList
 						}
 
 						if (lblCountAreaOurs != null) {
-							lblCountAreaOurs.setText(MessageText.getString("MainWindow.v3."
+							lblCountAreaOurs.setText(MessageText.getString("v3.MainWindow."
 									+ PREFIX + "ours.count", new String[] {
 								"" + totalOurs
 							}));
 						}
 						if (lblCountAreaNotOurs != null) {
 							lblCountAreaNotOurs.setText(MessageText.getString(
-									"MainWindow.v3." + PREFIX + "notours.count", new String[] {
+									"v3.MainWindow." + PREFIX + "notours.count", new String[] {
 										"" + totalNotOurs
 									}));
 							lblCountAreaNotOurs.getControl().getParent().layout(true, true);
@@ -506,7 +509,7 @@ public class MediaList
 			}
 
 			skinDetailInfo.setText(MessageText.getString(
-					"MainWindow.v3.myMedia.noneSelected", new String[] {
+					"v3.MainWindow.myMedia.noneSelected", new String[] {
 						"" + all,
 						"" + completed
 					}));

@@ -318,7 +318,7 @@ public class TorrentListViewsUtils
 
 		File file;
 		String sFile = dm.getDownloadState().getPrimaryFile();
-		if (sFile == null || sFile.length() == 0) {
+		if (sFile == null || sFile.length() == 0 || !new File(sFile).exists()) {
 			DiskManagerFileInfo[] diskManagerFileInfo = dm.getDiskManagerFileInfo();
 			if (diskManagerFileInfo == null && diskManagerFileInfo.length == 0) {
 				return;
@@ -338,7 +338,7 @@ public class TorrentListViewsUtils
 		boolean trusted = isTrustedContent(ext);
 
 		if (untrusted || !trusted) {
-			String sPrefix = untrusted ? "mb.NotTrusted." : "mb.UnknownContent.";
+			String sPrefix = untrusted ? "v3.mb.notTrusted." : "v3.mb.UnknownContent.";
 
 			UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 			if (functionsSWT == null) {
@@ -406,7 +406,7 @@ public class TorrentListViewsUtils
 		}
 		ManagerUtils.start(dm);
 
-		String sPrefix = "mb.PlayFileNotFound.";
+		String sPrefix = "v3.mb.PlayFileNotFound.";
 		MessageBoxShell mb = new MessageBoxShell(functionsSWT.getMainShell(),
 				MessageText.getString(sPrefix + "title"), MessageText.getString(sPrefix
 						+ "text", new String[] {
@@ -651,8 +651,8 @@ public class TorrentListViewsUtils
 
 		Shell shell = view.getControl().getShell();
 		if (PublishUtils.isPublished(dm)) {
-			String title = MessageText.getString("stopSeeding.title");
-			String text = MessageText.getString("stopSeeding.text", new String[] {
+			String title = MessageText.getString("v3.mb.stopSeeding.title");
+			String text = MessageText.getString("v3.mb.stopSeeding.text", new String[] {
 				dm.getDisplayName(),
 				Constants.URL_PREFIX,
 				Constants.DEFAULT_ADDRESS,
@@ -660,8 +660,8 @@ public class TorrentListViewsUtils
 			});
 
 			MessageBoxShell mb = new MessageBoxShell(shell, title, text, new String[] {
-				MessageText.getString("stopSeeding.delete"),
-				MessageText.getString("stopSeeding.cancel")
+				MessageText.getString("v3.mb.stopSeeding.delete"),
+				MessageText.getString("v3.mb.stopSeeding.cancel")
 			}, 1);
 			mb.setRelatedObject(dm);
 
@@ -673,7 +673,7 @@ public class TorrentListViewsUtils
 			}
 		} else if (PlatformTorrentUtils.isContentDRM(torrent)) {
 
-			String prefix = "v3.deletePurchased.";
+			String prefix = "v3.mb.deletePurchased.";
 			String title = MessageText.getString(prefix + "title");
 			String text = MessageText.getString(prefix + "text", new String[] {
 				dm.getDisplayName()
@@ -697,7 +697,7 @@ public class TorrentListViewsUtils
 
 			if (COConfigurationManager.getBooleanParameter("confirm_torrent_removal")) {
 
-				String prefix = "v3.deletePurchased.";
+				String prefix = "v3.mb.deletePurchased.";
 				String title = MessageText.getString("deletedata.title");
 				String text = MessageText.getString("deletetorrent.message1")
 						+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
@@ -722,7 +722,7 @@ public class TorrentListViewsUtils
 			if (confirmDataDelete && bDeleteData) {
 				String path = dm.getSaveLocation().toString();
 
-				String prefix = "v3.deletePurchased.";
+				String prefix = "v3.mb.deletePurchased.";
 				String title = MessageText.getString("deletedata.title");
 				String text = MessageText.getString("deletedata.message1")
 						+ dm.getDisplayName() + " :\n" + path

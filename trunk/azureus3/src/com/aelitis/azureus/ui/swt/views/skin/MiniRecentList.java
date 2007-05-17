@@ -142,7 +142,7 @@ public class MiniRecentList
 			view.addListener(new TorrentListViewListener() {
 				public void countChanged() {
 					skinHeaderText.setText(MessageText.getString(
-							"MainWindow.v3.recentDL", new String[] {
+							"v3.MainWindow.recentDL", new String[] {
 								"" + view.size(true)
 							}));
 				}

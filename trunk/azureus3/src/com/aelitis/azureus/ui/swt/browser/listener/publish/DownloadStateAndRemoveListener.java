@@ -78,11 +78,11 @@ public class DownloadStateAndRemoveListener implements DownloadManagerListener, 
 			display.syncExec(new Runnable() {
 				public void run() {
 						LocaleUtilities msgs = pluginInterface.getUtilities().getLocaleUtilities();
-						String title = msgs.getLocalisedMessageText("stopSeeding.title");
-						String text = msgs.getLocalisedMessageText("stopSeeding.text");
+						String title = msgs.getLocalisedMessageText("v3.mb.stopSeeding.title");
+						String text = msgs.getLocalisedMessageText("v3.mb.stopSeeding.text");
 						int result = swtInstance.promptUser(title, text, new String[] {
-								msgs.getLocalisedMessageText("stopSeeding.stopSeeding"),
-								msgs.getLocalisedMessageText("stopSeeding.cancel") }, 1);
+								msgs.getLocalisedMessageText("v3.mb.stopSeeding.v3.mb.stopSeeding"),
+								msgs.getLocalisedMessageText("v3.mb.stopSeeding.cancel") }, 1);
 						stop[0] = (result == 0);
 					}
 			});

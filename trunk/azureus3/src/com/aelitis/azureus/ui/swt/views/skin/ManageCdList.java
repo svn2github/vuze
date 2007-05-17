@@ -184,14 +184,14 @@ public class ManageCdList
 						}
 
 						if (lblCountAreaOurs != null) {
-							lblCountAreaOurs.setText(MessageText.getString("MainWindow.v3."
+							lblCountAreaOurs.setText(MessageText.getString("v3.MainWindow."
 									+ PREFIX + "ours.count", new String[] {
 								"" + totalOurs
 							}));
 						}
 						if (lblCountAreaNotOurs != null) {
 							lblCountAreaNotOurs.setText(MessageText.getString(
-									"MainWindow.v3." + PREFIX + "notours.count", new String[] {
+									"v3.MainWindow." + PREFIX + "notours.count", new String[] {
 										"" + totalNotOurs
 									}));
 							lblCountAreaNotOurs.getControl().getParent().layout(true, true);
@@ -282,7 +282,7 @@ public class ManageCdList
 			DownloadManager dm = (DownloadManager) row.getDataSource(true);
 			statusObject.setText(DisplayFormatters.formatDownloadStatus(dm));
 		} else {
-			statusObject.setTextID("MainWindow.v3." + PREFIX + "status.noselection");
+			statusObject.setTextID("v3.MainWindow." + PREFIX + "status.noselection");
 		}
 	}
 }

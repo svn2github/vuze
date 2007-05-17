@@ -35,7 +35,7 @@ public class MainMenu
 {
 	final String PREFIX_V2 = "MainWindow.menu";
 
-	final String PREFIX_V3 = "MainWindow.v3.menu";
+	final String PREFIX_V3 = "v3.MainWindow.menu";
 
 	private Menu menuBar;
 

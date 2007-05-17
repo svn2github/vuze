@@ -180,7 +180,7 @@ public class ManageDlList
 			DownloadManager dm = (DownloadManager) row.getDataSource(true);
 			statusObject.setText(DisplayFormatters.formatDownloadStatus(dm));
 		} else {
-			statusObject.setTextID("MainWindow.v3." + PREFIX + "status.noselection");
+			statusObject.setTextID("v3.MainWindow." + PREFIX + "status.noselection");
 		}
 	}
 }

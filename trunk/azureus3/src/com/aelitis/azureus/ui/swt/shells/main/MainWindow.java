@@ -249,12 +249,12 @@ public class MainWindow
 						if (current != null && current.getFocusControl() != null
 								&& !MessageBoxShell.isOpen()) {
 							int ret = MessageBoxShell.open(shell,
-									MessageText.getString("HomeReminder.title"),
-									MessageText.getString("HomeReminder.text", new String[] {
+									MessageText.getString("v3.HomeReminder.title"),
+									MessageText.getString("v3.HomeReminder.text", new String[] {
 										dm.getDisplayName()
 									}), new String[] {
 										MessageText.getString("Button.ok"),
-										MessageText.getString("HomeReminder.gohome")
+										MessageText.getString("v3.HomeReminder.gohome")
 									}, 0, "downloadinhome",
 									MessageText.getString("MessageBoxWindow.nomoreprompting"),
 									false, 15000);
@@ -1040,7 +1040,7 @@ public class MainWindow
 
 			new MenuItem(topbarMenu, SWT.SEPARATOR);
 			MainMenu.createViewMenuItem(skin, topbarMenu,
-					"MainWindow.v3.menu.view.searchbar", "SearchBar.visible", "searchbar");
+					"v3.MainWindow.menu.view.searchbar", "SearchBar.visible", "searchbar");
 
 			topbarMenu.addMenuListener(new MenuListener() {
 				public void menuShown(MenuEvent e) {
@@ -1264,7 +1264,7 @@ public class MainWindow
 		final Text text = new Text(cArea, SWT.NONE);
 		text.setTextLimit(254);
 		text.setLayoutData(Utils.getFilledFormData());
-		final String sDefault = MessageText.getString("MainWindow.v3.search.defaultText");
+		final String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
 		text.setForeground(ColorCache.getColor(text.getDisplay(), 127, 127, 127));
 		text.setBackground(ColorCache.getColor(text.getDisplay(), 255, 255, 255));
 		text.addMouseListener(new MouseListener() {
@@ -1604,7 +1604,7 @@ public class MainWindow
 							lblWait.setLayoutData(formData);
 							lblWait.setForeground(skinObject.getProperties().getColor(
 									"color.row.fg"));
-							Messages.setLanguageText(lblWait, "MainWindow.v3.view.wait");
+							Messages.setLanguageText(lblWait, "v3.MainWindow.view.wait");
 							cArea.layout(true);
 							lblWait.update();
 

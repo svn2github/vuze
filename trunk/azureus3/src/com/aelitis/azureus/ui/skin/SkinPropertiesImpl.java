@@ -57,8 +57,6 @@ public class SkinPropertiesImpl
 
 	private static final String FILE_SKIN_DEFS = "skin3.properties";
 
-	private static final String MESSAGES = "com.aelitis.azureus.ui.skin.messages3";
-
 	private static final String LOCATION_SKIN = "skin/display.properties";
 
 	private static final Pattern PAT_PARAM_ALPHA = Pattern.compile("\\{([^0-9].+?)\\}");
@@ -110,10 +108,6 @@ public class SkinPropertiesImpl
 				}
 			}
 		}
-
-		MessageText.integratePluginMessages(MESSAGES,
-				this.getClass().getClassLoader());
-
 	}
 
 	public Properties getProperties() {
