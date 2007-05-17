@@ -65,8 +65,8 @@ public class Initializer
 
 	public static void main(final String args[]) {
 		// Temporary force
-		if (System.getProperty("force.ui") == null) {
-			System.setProperty("force.ui", "az3");
+		if (System.getProperty("ui.temp") == null) {
+			System.setProperty("ui.temp", "az3");
 		}
 
 		if (ROUTE_TO_AZ2) {
