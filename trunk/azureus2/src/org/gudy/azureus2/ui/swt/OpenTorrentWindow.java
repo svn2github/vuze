@@ -1967,7 +1967,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				if (info.torrent == null)
 					continue;
 
-				int iStartMode = (info.iStartID == STARTMODE_STOPPED)
+				int iStartState = (info.iStartID == STARTMODE_STOPPED)
 						? DownloadManager.STATE_STOPPED : DownloadManager.STATE_QUEUED;
 
 				final TorrentFileInfo[] files = info.getFiles();
@@ -1979,7 +1979,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				}
 
 				DownloadManager dm = gm.addDownloadManager(info.sFileName, hash,
-						info.sDestDir, iStartMode, true,
+						info.sDestDir, iStartState, true,
 						info.iStartID == STARTMODE_SEEDING,
 						new DownloadManagerInitialisationAdapter() {
 							public void initialised(DownloadManager dm) {
@@ -2022,8 +2022,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface
 				if (info.iQueueLocation == QUEUELOCATION_TOP)
 					addedTorrentsTop.add(dm);
 
-				if (iStartMode == STARTMODE_FORCESTARTED)
+				if (info.iStartID == STARTMODE_FORCESTARTED) {
 					dm.setForceStart(true);
+				}
 
 			} catch (Exception e) {
 				if (shell == null)
