@@ -1260,11 +1260,56 @@ public class MainWindow
 	 */
 	private void attachSearchBox(SWTSkinObject skinObject) {
 		Composite cArea = (Composite) skinObject.getControl();
+		
+		Text text;
+		
+		if (Constants.isOSX) {
+			cArea.setVisible(false);
+			cArea.getParent().setBackgroundImage(null);
 
-		final Text text = new Text(cArea, SWT.NONE);
+			text = new Text(cArea.getParent(), SWT.SEARCH | SWT.CANCEL);
+
+			FormData filledFormData = Utils.getFilledFormData();
+			text.setLayoutData(filledFormData);
+
+			FormData fd = (FormData)cArea.getParent().getLayoutData();
+			fd.height = text.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+			cArea.getParent().setLayoutData(fd);
+			cArea.getParent().layout(true);
+		} else {
+			text = new Text(cArea, SWT.NONE);
+			FormData filledFormData = Utils.getFilledFormData();
+			text.setLayoutData(filledFormData);
+
+			text.addListener(SWT.Resize, new Listener() {
+				// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+				public void handleEvent(Event event) {
+					Text text = (Text) event.widget;
+
+					int h = text.getClientArea().height - 2;
+					Font font = Utils.getFontWithHeight(text.getFont(), null, h);
+					if (font != null) {
+						text.setFont(font);
+						final Font fFont = font;
+
+						text.addDisposeListener(new DisposeListener() {
+							public void widgetDisposed(DisposeEvent e) {
+								Text text = (Text) e.widget;
+								if (fFont != null && !fFont.isDisposed()) {
+									text.setFont(null);
+									fFont.dispose();
+								}
+							}
+						});
+					}
+				}
+			});
+
+		}
 		text.setTextLimit(254);
-		text.setLayoutData(Utils.getFilledFormData());
+
 		final String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
+
 		text.setForeground(ColorCache.getColor(text.getDisplay(), 127, 127, 127));
 		text.setBackground(ColorCache.getColor(text.getDisplay(), 255, 255, 255));
 		text.addMouseListener(new MouseListener() {
@@ -1292,12 +1337,17 @@ public class MainWindow
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
+				Text text = (Text) e.widget;
+
+				if (e.detail == SWT.CANCEL) {
+					text.setText("");
+					return;
+				}
 				// Open a new search result view
 
 				// Search Results are placed in a Search Results tab in the 
 				// "Browse Content" tab view. 
 
-				Text text = (Text) e.widget;
 				String sSearchText = text.getText();
 
 				doSearch(sSearchText);
@@ -1306,37 +1356,17 @@ public class MainWindow
 
 		});
 
-		text.addListener(SWT.Resize, new Listener() {
-			// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-			public void handleEvent(Event event) {
-				int h = text.getClientArea().height - 2;
-				Font font = Utils.getFontWithHeight(text.getFont(), null, h);
-				if (font != null) {
-					text.setFont(font);
-					final Font fFont = font;
-
-					text.addDisposeListener(new DisposeListener() {
-						public void widgetDisposed(DisposeEvent e) {
-							if (fFont != null && !fFont.isDisposed()) {
-								text.setFont(null);
-								fFont.dispose();
-							}
-						}
-					});
-				}
-			}
-		});
-
 		// must be done after layout
 		text.setText(sDefault);
 		text.selectAll();
 
+		final Text fText = text;
 		SWTSkinObject searchGo = skin.getSkinObject("search-go");
 		if (searchGo != null) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(searchGo);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					String sSearchText = text.getText().trim();
+					String sSearchText = fText.getText().trim();
 					if (!sSearchText.equals(sDefault) && sSearchText.length() > 0) {
 						doSearch(sSearchText);
 					}
