@@ -115,7 +115,7 @@ public class ColumnRate
 			try {
 				b = !cell.setSortValue(Float.parseFloat(rating) * 100000 + count);
 			} catch (Exception e) {
-				b = !cell.setSortValue(new Float(count));
+				b = !cell.setSortValue(count > 0 ? new Float(count) : null);
 			}
 
 			if (b && cell.isValid()) {
