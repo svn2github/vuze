@@ -19,13 +19,15 @@
  */
 package com.aelitis.azureus.ui.swt;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
@@ -40,6 +42,7 @@ import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.IUIIntializer;
+import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.utils.UIUpdaterFactory;
 import com.aelitis.azureus.util.Constants;
@@ -60,37 +63,19 @@ public class Initializer
 	protected static SplashWindow splash;
 
 	private final String[] args;
-	
-	private static boolean ROUTE_TO_AZ2 = true;
+
+	private ArrayList listeners = new ArrayList();
+
+	private AEMonitor listeners_mon = new AEMonitor("Initializer:l");
+
+	private int curPercent = 0;
 
 	public static void main(final String args[]) {
 		if (System.getProperty("ui.temp") == null) {
 			System.setProperty("ui.temp", "az3");
 		}
 
-		if (ROUTE_TO_AZ2) {
-			Main.main(args);
-		} else {
-			// This *has* to be done first as it sets system properties that are read and cached by Java
-			COConfigurationManager.preInitialise();
-
-			String mi_str = System.getProperty(Main.PR_MULTI_INSTANCE);
-			boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
-
-			startServer = new StartServer();
-
-			boolean debugGUI = Boolean.getBoolean("debug");
-
-			if (mi || debugGUI || Main.processParams(args, startServer)) {
-				AzureusCore core = AzureusCoreFactory.create();
-				Constants.initialize(core);
-				PlatformConfigMessenger.login(0);
-
-				startServer.pollForConnections(core);
-
-				new Initializer(core, true, args);
-			}
-		}
+		Main.main(args);
 	}
 
 	/**
@@ -98,16 +83,17 @@ public class Initializer
 	 * @param core
 	 * @param args
 	 */
-	public Initializer(AzureusCore core, boolean createSWTThreadAndRun, String[] args) {
+	public Initializer(AzureusCore core, boolean createSWTThreadAndRun,
+			String[] args) {
 		this.core = core;
 		this.args = args;
 
 		if (createSWTThreadAndRun) {
-  		try {
-  			SWTThread.createInstance(this);
-  		} catch (SWTThreadAlreadyInstanciatedException e) {
-  			Debug.printStackTrace(e);
-  		}
+			try {
+				SWTThread.createInstance(this);
+			} catch (SWTThreadAlreadyInstanciatedException e) {
+				Debug.printStackTrace(e);
+			}
 		} else {
 			Constants.initialize(core);
 			PlatformConfigMessenger.login(0);
@@ -131,17 +117,21 @@ public class Initializer
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/azureus.jpg",
 				"azureus_splash");
 
-		display.syncExec(new AERunnable() {
-			public void runSupport() {
-				splash = new SplashWindow(display);
-			}
-		});
+		if (COConfigurationManager.getBooleanParameter("Show Splash")) {
+			display.syncExec(new AERunnable() {
+				public void runSupport() {
+					splash = new SplashWindow(display, Initializer.this);
+				}
+			});
+		}
 
 		System.out.println("Locale Initializing took "
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
 		startTime = SystemTime.getCurrentTime();
 
 		core.addListener(new AzureusCoreListener() {
+			int fakePercent = 80;
+
 			long startTime = SystemTime.getCurrentTime();
 
 			String sLastTask;
@@ -150,6 +140,13 @@ public class Initializer
 				if (op.getOperationType() != AzureusCoreOperation.OP_INITIALISATION) {
 					return;
 				}
+
+				Initializer.this.reportCurrentTask(currentTask);
+				if (fakePercent > 0) {
+					fakePercent--;
+					Initializer.this.reportPercent(curPercent + 1);
+				}
+
 				if (sLastTask != null && !sLastTask.startsWith("Loading Torrent")) {
 					long now = SystemTime.getCurrentTime();
 					long diff = now - startTime;
@@ -183,7 +180,10 @@ public class Initializer
 
 			public void componentCreated(AzureusCore core,
 					AzureusCoreComponent component) {
+				Initializer.this.reportPercent(curPercent + 1);
 				if (component instanceof GlobalManager) {
+					reportCurrentTaskByKey("splash.initializePlugins");
+
 					gm = (GlobalManager) component;
 
 					InitialisationFunctions.earlyInitialisation(core);
@@ -197,13 +197,18 @@ public class Initializer
 					return;
 				}
 
+				Initializer.this.reportPercent(curPercent + 1);
 				new UserAlerts(gm);
 
-				new Colors();
+				reportCurrentTaskByKey("splash.initializeGui");
 
+				Initializer.this.reportPercent(curPercent + 1);
 				Cursors.init();
 
+				Initializer.this.reportPercent(curPercent + 1);
 				new MainWindow(core, Display.getDefault(), splash);
+
+				reportCurrentTaskByKey("splash.openViews");
 
 				SWTUpdateChecker.initialize();
 
@@ -247,27 +252,36 @@ public class Initializer
 
 		});
 
+		reportCurrentTaskByKey("splash.initializeCore");
+
 		core.start();
 
-		splash.reportPercent(25);
+		reportPercent(80);
 
 		System.out.println("Core Initializing took "
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
 		startTime = SystemTime.getCurrentTime();
 
+		reportCurrentTaskByKey("splash.initializeUIElements");
+
 		Colors.getInstance();
 
+		reportPercent(curPercent + 1);
 		Alerts.init();
 
+		reportPercent(curPercent + 1);
 		ProgressWindow.register(core);
 
+		reportPercent(curPercent + 1);
 		new SWTNetworkSelection();
 
+		reportPercent(curPercent + 1);
 		new AuthenticatorWindow();
 
+		reportPercent(curPercent + 1);
 		new CertificateTrustWindow();
 
-		splash.reportPercent(50);
+		reportPercent(99);
 
 		InstallPluginWizard.register(core, display);
 
@@ -324,6 +338,80 @@ public class Initializer
 					Debug.out(e);
 				}
 			}
+		}
+	}
+
+	// @see com.aelitis.azureus.ui.IUIIntializer#addListener(org.gudy.azureus2.ui.swt.mainwindow.InitializerListener)
+	public void addListener(InitializerListener listener) {
+		try {
+			listeners_mon.enter();
+
+			listeners.add(listener);
+		} finally {
+
+			listeners_mon.exit();
+		}
+	}
+
+	// @see com.aelitis.azureus.ui.IUIIntializer#removeListener(org.gudy.azureus2.ui.swt.mainwindow.InitializerListener)
+	public void removeListener(InitializerListener listener) {
+		try {
+			listeners_mon.enter();
+
+			listeners.remove(listener);
+		} finally {
+
+			listeners_mon.exit();
+		}
+	}
+
+	private void reportCurrentTask(String currentTaskString) {
+		try {
+			listeners_mon.enter();
+
+			Iterator iter = listeners.iterator();
+			while (iter.hasNext()) {
+				InitializerListener listener = (InitializerListener) iter.next();
+				try {
+					listener.reportCurrentTask(currentTaskString);
+				} catch (Exception e) {
+					// ignore
+				}
+			}
+		} finally {
+
+			listeners_mon.exit();
+		}
+	}
+
+	private void reportCurrentTaskByKey(String key) {
+		reportCurrentTask(MessageText.getString(key));
+	}
+
+	public void reportPercent(int percent) {
+		if (curPercent > percent) {
+			return;
+		}
+
+		try {
+			listeners_mon.enter();
+
+			Iterator iter = listeners.iterator();
+			while (iter.hasNext()) {
+				InitializerListener listener = (InitializerListener) iter.next();
+				try {
+					listener.reportPercent(percent);
+				} catch (Exception e) {
+					// ignore
+				}
+			}
+
+			if (percent > 100) {
+				listeners.clear();
+			}
+		} finally {
+
+			listeners_mon.exit();
 		}
 	}
 }
