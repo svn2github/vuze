@@ -93,7 +93,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	 * Interval in ms between checks to see if the {@link #somethingChanged} 
 	 * flag changed 
 	 */
-	private static final int PROCESS_CHECK_PERIOD = 500;
+	private static final int PROCESS_CHECK_PERIOD = 120;
 
 	/** Wait xx ms before starting completed torrents (so scrapes can come in) */
 	private static final int MIN_SEEDING_STARTUP_WAIT = 20000;
@@ -422,29 +422,25 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	 */
 	private class ChangeFlagCheckerTask implements TimerEventPerformer
 	{
-		long last_process_time = 0;
+		final long FORCE_CHECK_CYCLES = FORCE_CHECK_PERIOD / PROCESS_CHECK_PERIOD;
+
+		long cycleNo = 0;
 
 		public void perform(TimerEvent event) {
-			if (closingDown)
+			if (closingDown) {
 				return;
+			}
 
-			long now = SystemTime.getCurrentTime();
-
-			if (now < last_process_time
-					|| now - last_process_time >= FORCE_CHECK_PERIOD) {
-
+			cycleNo++;
+			if (cycleNo > FORCE_CHECK_CYCLES) {
 				somethingChanged = true;
 			}
 
 			if (somethingChanged) {
-
 				try {
-					last_process_time = now;
-
+					cycleNo = 0;
 					process();
-
 				} catch (Exception e) {
-
 					Debug.printStackTrace(e);
 				}
 			}
@@ -1196,14 +1192,28 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					continue;
 				}
 				
-				if (state == Download.ST_READY && download.isForceStart()) {
-					try {
-						download.start();
-						String s = "Start: isForceStart";
-						log.log(LoggerChannel.LT_INFORMATION, s);
-						dlData.sTrace += s + "\n";
-					} catch (DownloadException e) {
-						/* ignore */
+				if (download.isForceStart()) {
+					if (state == Download.ST_STOPPED || state == Download.ST_QUEUED) {
+						try {
+							download.restart();
+							String s = "restart: isForceStart";
+							log.log(LoggerChannel.LT_INFORMATION, s);
+							dlData.sTrace += s + "\n";
+						} catch (DownloadException e) {
+						}
+
+						state = download.getState();
+					}
+
+					if (state == Download.ST_READY) {
+						try {
+							download.start();
+							String s = "Start: isForceStart";
+							log.log(LoggerChannel.LT_INFORMATION, s);
+							dlData.sTrace += s + "\n";
+						} catch (DownloadException e) {
+							/* ignore */
+						}
 					}
 				}
 
