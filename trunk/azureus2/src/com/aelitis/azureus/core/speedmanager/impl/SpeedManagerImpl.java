@@ -151,8 +151,18 @@ SpeedManagerImpl
 	{
 		core			= _core;
 		adapter			= _adapter;
-		
-		String	alg = System.getProperty( "azureus.autospeed.alg.provider.version" );
+
+        boolean useBeta=false;
+        try{
+            useBeta = COConfigurationManager.getBooleanParameter(SpeedManagerAlgorithmProviderV2.SETTING_V2_BETA_ENABLED);
+            if(useBeta){
+                System.setProperty("azureus.autospeed.alg.provider.version","2");
+            }
+        }catch(Throwable t){
+            Debug.out("SpeedManagerImpl had: "+t.getMessage());
+        }
+
+        String	alg = System.getProperty( "azureus.autospeed.alg.provider.version" );
 		
 		if ( alg == null || alg.equals( "1" )){
 			
@@ -451,8 +461,9 @@ SpeedManagerImpl
 	{
 		return( adapter.getCurrentDownloadLimit());
 	}
-	
-		// config access
+
+
+        // config access
 	
 	public int
 	getMaxUp()

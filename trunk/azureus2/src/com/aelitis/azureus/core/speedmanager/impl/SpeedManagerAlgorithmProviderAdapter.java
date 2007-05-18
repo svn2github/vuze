@@ -41,8 +41,9 @@ SpeedManagerAlgorithmProviderAdapter
 	
 	public int
 	getCurrentDownloadLimit();
-	
-		/**
+
+
+        /**
 		 * Various config parameters
 		 * @param str
 		 */

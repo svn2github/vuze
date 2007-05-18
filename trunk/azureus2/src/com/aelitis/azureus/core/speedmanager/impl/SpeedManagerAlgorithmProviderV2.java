@@ -20,9 +20,7 @@
  *
  */
 
-
 package com.aelitis.azureus.core.speedmanager.impl;
-
 
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 
@@ -30,30 +28,52 @@ public class
 SpeedManagerAlgorithmProviderV2 
 	implements SpeedManagerAlgorithmProvider
 {
-	private SpeedManagerAlgorithmProviderAdapter		adapter;
-	
-	protected
+
+    private SpeedManagerAlgorithmProviderAdapter		adapter;
+
+    //Test algorithms below.
+    private SpeedManagerAlgorithmProvider strategy;
+
+    //key names are below.
+    public static final String SETTING_DOWNLOAD_MAX_LIMIT = "SpeedManagerAlgorithmProviderV2.setting.download.max.limit";
+    public static final String SETTING_DOWNLOAD_MIN_LIMIT = "SpeedManagerAlgorithmProviderV2.setting.download.min.limit";
+    public static final String SETTING_UPLOAD_MAX_LIMIT = "SpeedManagerAlgorithmProviderV2.setting.upload.max.limit";
+    public static final String SETTING_UPLOAD_MIN_LIMIT = "SpeedManagerAlgorithmProviderV2.setting.upload.min.limit";
+    public static final String SETTING_VIVALDI_GOOD_SET_POINT = "SpeedManagerAlgorithmProviderV2.setting.vivaldi.good.setpoint";
+    public static final String SETTING_VIVALDI_GOOD_TOLERANCE = "SpeedManagerAlgorithmProviderV2.setting.vivaldi.good.tolerance";
+    public static final String SETTING_VIVALDI_BAD_SET_POINT = "SpeedManagerAlgorithmProviderV2.setting.vivaldi.bad.setpoint";
+    public static final String SETTING_VIVALDI_BAD_TOLERANCE = "SpeedManagerAlgorithmProviderV2.setting.vivaldi.good.tolerance";
+    
+    public static final String SETTING_V2_BETA_ENABLED = "SpeedManagerAlgorithmProviderV2.setting.beta.enabled";
+
+
+    protected
 	SpeedManagerAlgorithmProviderV2(
 		SpeedManagerAlgorithmProviderAdapter	_adapter )
 	{
 		adapter	= _adapter;
-		
 		adapter.setLoggingEnabled( true );
-	}
+
+        //strategy = new SpeedManagerAlgorithmProviderPingTrendsMethod(_adapter);
+        //strategy = new SpeedManagerAlgorithmProviderSpeedSense(_adapter);
+        strategy = new SpeedManagerAlgorithmProviderVivaldi(_adapter);
+
+        //ToDo: use factory to set strategy.
+        //String strategyName = System.getProperty( "azureus.autospeed.alg.provider.v2.strategy" );//ToDo: name in factory.
+        //strategy = SpeedManagerAlgorithmProviderV2Factory(_adapter, strategyName );
+    }
 	
 	public void
 	reset()
-	{	
-			// TODO - reset everything to start-of-day values
-	}
+	{
+        strategy.reset();
+    }
 	
 	public void
 	updateStats()
 	{
-			// TODO - calculate upload speed!
-		
-		adapter.setCurrentUploadLimit( 1024*16 );
-	}
+        strategy.updateStats();
+    }
 	
 	public void
 	pingSourceFound(
@@ -61,14 +81,18 @@ SpeedManagerAlgorithmProviderV2
 		boolean						is_replacement )
 	{
 		log( "Found ping source: " + source.getAddress());
-	}
+
+        strategy.pingSourceFound(source,is_replacement);
+    }
 	
 	public void
 	pingSourceFailed(
 		SpeedManagerPingSource		source )
 	{
 		log( "Lost ping source: " + source.getAddress());
-	}
+
+        strategy.pingSourceFailed(source);
+    }
 	
 	public void
 	calculate(
@@ -82,36 +106,39 @@ SpeedManagerAlgorithmProviderV2
 		}
 		
 		log( "Calculate: " + str );
-	}
+
+
+        strategy.calculate(sources);
+    }
 	
 	public int
 	getIdlePingMillis()
 	{
-		return( 0 );	// TODO
+        return strategy.getIdlePingMillis();
 	}
 	
 	public int
 	getCurrentPingMillis()
 	{
-		return( 0 );	// TODO
+        return strategy.getCurrentPingMillis();
 	}
 	
 	public int
 	getMaxPingMillis()
 	{
-		return( 0 );	// TODO
+        return strategy.getMaxPingMillis();
 	}
 	
 	public int
 	getCurrentChokeSpeed()
 	{
-		return( 0 );	// TODO
+        return strategy.getCurrentChokeSpeed();
 	}
 	
 	public int
 	getMaxUploadSpeed()
-	{
-		return( 0 );	// TODO
+	{        
+        return strategy.getMaxUploadSpeed();
 	}
 	
 	protected void
@@ -120,4 +147,5 @@ SpeedManagerAlgorithmProviderV2
 	{
 		adapter.log( str );
 	}
+
 }

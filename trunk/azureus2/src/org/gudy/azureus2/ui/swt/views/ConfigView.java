@@ -266,6 +266,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionConnectionEncryption(),
                                          new ConfigSectionTransfer(azureus_core),
                                          new ConfigSectionTransferAutoSpeed(),
+                                         new ConfigSectionTransferAutoSpeedBeta(),
                                          new ConfigSectionTransferLAN(),
                                          new ConfigSectionFile(), 
                                          new ConfigSectionFileMove(),

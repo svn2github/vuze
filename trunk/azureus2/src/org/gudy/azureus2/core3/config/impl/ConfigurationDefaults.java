@@ -34,7 +34,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.*;
-
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderV2;
 
 /**
  *
@@ -474,8 +474,17 @@ public class ConfigurationDefaults {
     def.put( "File.move.download.removed.move_torrent", TRUE );
     def.put( "File.move.download.removed.move_partial", FALSE );
     
-    def.put("FilesView.separate_rename_and_retarget", FALSE);
+    def.put("FilesView.separate_rename_and_retarget", FALSE);      
 
+    //temp section for SpeedManagerAlgorithmProviderV2
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, new Long(80000) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT, new Long(8000) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, new Long(38000) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, new Long(5000) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_SET_POINT, new Long(100) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_TOLERANCE, new Long(300) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_SET_POINT, new Long(1300) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_TOLERANCE, new Long(300) );
   }
   
   protected void
