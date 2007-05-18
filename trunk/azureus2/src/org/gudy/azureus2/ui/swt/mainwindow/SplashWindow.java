@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.IUIIntializer;
+import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
@@ -43,7 +45,7 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
 public class SplashWindow implements InitializerListener {
   
   Display display;
-  Initializer initializer;
+  IUIIntializer initializer;
   
   Shell splash;
   Label currentTask;
@@ -57,7 +59,7 @@ public class SplashWindow implements InitializerListener {
   	this(display, null);
   }
 
-  private SplashWindow(Display display,Initializer initializer) {
+  public SplashWindow(Display display,IUIIntializer initializer) {
     this.display = display;
     this.initializer = initializer;
     

@@ -20,16 +20,11 @@
  *
  */
 
-package org.gudy.azureus2.ui.swt.mainwindow;
+package com.aelitis.azureus.ui;
 
-public interface 
-InitializerListener 
+public interface InitializerListener
 {
-	public void 
-	reportCurrentTask(
-		String currentTask );
-	  
-	public void 
-	reportPercent(
-		int percent );
+	public void reportCurrentTask(String currentTask);
+
+	public void reportPercent(int percent);
 }

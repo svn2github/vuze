@@ -19,6 +19,7 @@
  */
 package com.aelitis.azureus.ui;
 
+
 /**
  * @author TuxPaper
  * @created May 29, 2006
@@ -28,10 +29,23 @@ public interface IUIIntializer
 {
 	public void stopIt(boolean isForRestart, boolean isCloseAreadyInPorgress);
 
-	/**
-	 * @param swtThread TODO
-	 * @param thread 
-	 * 
-	 */
 	public void run();
+
+	/**
+	 * Add a listener that gets triggered on progress changes (tasks, percent)
+	 * 
+	 * @param listener
+	 *
+	 * @since 3.0.1.3
+	 */
+	public void addListener(InitializerListener listener);
+
+	/**
+	 * Remove listener that gets triggered on progress changes (tasks, percent)
+	 * 
+	 * @param listener
+	 *
+	 * @since 3.0.1.3
+	 */
+	public void removeListener(InitializerListener listener);
 }
