@@ -526,6 +526,20 @@ public class MainWindow
 								return false;
 							}
 						}
+					} else if (browserMsg.getOperationId().equals("is-active-tab")) {
+						JSONObject decodedObject = browserMsg.getDecodedObject();
+						if (decodedObject.has("tab")) {
+							String tabID = JSONUtils.getJSONString(decodedObject, "tab", "");
+							if (tabID.length() > 0) {
+								SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
+								if (tabSet != null) {
+									SWTSkinObjectTab activeTab = tabSet.getActiveTab();
+									if (activeTab != null) {
+										return activeTab.getViewID().equals("tab-" + tabID);
+									}
+								}
+							}
+						}
 					}
 				} catch (Exception e) {
 					Debug.out(e);
