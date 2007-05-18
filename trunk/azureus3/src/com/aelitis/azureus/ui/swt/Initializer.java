@@ -393,6 +393,7 @@ public class Initializer
 			return;
 		}
 
+		curPercent = percent;
 		try {
 			listeners_mon.enter();
 
