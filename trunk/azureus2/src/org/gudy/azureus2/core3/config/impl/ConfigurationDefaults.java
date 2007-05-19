@@ -485,6 +485,12 @@ public class ConfigurationDefaults {
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_GOOD_TOLERANCE, new Long(300) );
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_SET_POINT, new Long(1300) );
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_VIVALDI_BAD_TOLERANCE, new Long(300) );
+
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT, new Long(50) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_TOLERANCE, new Long(100) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT, new Long(1000) );
+    def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE, new Long(300) );
+
   }
   
   protected void
