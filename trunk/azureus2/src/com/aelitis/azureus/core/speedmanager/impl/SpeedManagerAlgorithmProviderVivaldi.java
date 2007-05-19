@@ -202,8 +202,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
     public void updateStats() {
 
         //update some stats used in the UI.
-        log("updateStats");
-
         int currDownload = adapter.getCurrentDownloadLimit();
 
         int currUploadLimit = adapter.getCurrentUploadLimit();
@@ -600,13 +598,70 @@ public class SpeedManagerAlgorithmProviderVivaldi
      */
     private float consectiveMultiplier(){
 
-        int c;
-
+        //int c;
+        float multiple=0.0f;
         if( consecutiveUpticks > consecutiveDownticks ){
-            c=consecutiveUpticks;
+            calculateUpTickMultiple(consecutiveUpticks);
         }else{
-            c=consecutiveDownticks;
+            //c=consecutiveDownticks;
+            multiple = calculateDownTickMultiple(consecutiveDownticks);
         }
+
+        return multiple;
+    }
+
+    /**
+     * Want to rise much slower then drop.
+     * @param c - number of upsignals recieved in a row
+     * @return - multiple factor.
+     */
+    private float calculateUpTickMultiple(int c) {
+                float multiple=0.0f;
+        if(c<0){
+            return multiple;
+        }
+
+        switch(c){
+            case 0:
+            case 1:
+                multiple=0.25f;
+                break;
+            case 2:
+                multiple=0.5f;
+                break;
+            case 3:
+                multiple=1.0f;
+                break;
+            case 4:
+                multiple=1.25f;
+                break;
+            case 5:
+                multiple=1.5f;
+                break;
+            case 6:
+                multiple=1.75f;
+                break;
+            case 7:
+                multiple=2.0f;
+                break;
+            case 8:
+                multiple=2.25f;
+                break;
+            case 9:
+                multiple=2.5f;
+                break;
+            default:
+                multiple=3.0f;
+        }//switch
+        return multiple;
+    }
+
+    /**
+     * Want to drop rate faster then increase.
+     * @param c -
+     * @return -
+     */
+    private float calculateDownTickMultiple(int c) {
 
         float multiple=0.0f;
         if(c<0){

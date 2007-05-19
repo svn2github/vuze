@@ -1,9 +1,7 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
-import org.gudy.azureus2.ui.swt.config.IntParameter;
-import org.gudy.azureus2.ui.swt.config.BooleanParameter;
-import org.gudy.azureus2.ui.swt.config.StringListParameter;
+import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
 import org.eclipse.swt.widgets.*;
@@ -48,12 +46,14 @@ public class ConfigSectionTransferAutoSpeedBeta
     IntParameter uploadMinLim;
 
     //vivaldi set-points
+    Group vivaldiGroup;
     IntParameter vGood;
     IntParameter vGoodTol;
     IntParameter vBad;
     IntParameter vBadTol;
 
     //DHT ping set-points
+    Group dhtGroup;
     IntParameter dGood;
     IntParameter dGoodTol;
     IntParameter dBad;
@@ -111,7 +111,7 @@ public class ConfigSectionTransferAutoSpeedBeta
 
     public Composite configSectionCreate(final Composite parent) {
 
-        //ToDo: for new we are NOT going to internationalize this panel. Wait until the panel is in its final format.
+        //ToDo: for now we are NOT going to internationalize this panel. Wait until the panel is in its final format.
 
         GridData gridData;
 
@@ -179,6 +179,8 @@ public class ConfigSectionTransferAutoSpeedBeta
                 SpeedManagerAlgorithmProviderV2.SETTING_DATA_SOURCE_INPUT,
                 SpeedManagerAlgorithmProviderV2.VALUE_SOURCE_DHT,
                 modeNames,modes,true);
+
+        strategyList.addChangeListener( new GroupModeChangeListener() );
 
 
         //ToDo: for now we put in just the Vivaldi settings, but this WILL change.
@@ -257,7 +259,7 @@ public class ConfigSectionTransferAutoSpeedBeta
         //////////////////////////
 
         //Vivaldi grouping.
-        Group vivaldiGroup = new Group(cSection, SWT.NULL);
+        vivaldiGroup = new Group(cSection, SWT.NULL);
         //Messages.setLanguageText
         vivaldiGroup.setText("Data: Vivaldi");
         GridLayout vivaldiLayout = new GridLayout();
@@ -337,7 +339,7 @@ public class ConfigSectionTransferAutoSpeedBeta
         //DHT Ping Group
         //////////////////////////
 
-        Group dhtGroup = new Group(cSection, SWT.NULL);
+        dhtGroup = new Group(cSection, SWT.NULL);
         //Messages.setLanguageText
         dhtGroup.setText("Data: DHT Pings");
         GridLayout dhtLayout = new GridLayout();
@@ -446,7 +448,78 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData.widthHint = 50;
         skipAfterAdjustment.setLayoutData(gridData);
 
+        //Hide the group that is not selected.
+        String value = strategyList.getValue();
+        enableGroups(value);
+
         return cSection;
+    }
+
+    void enableGroups(String strategyListValue){
+        if(strategyListValue==null){
+            return;
+        }
+            if( SpeedManagerAlgorithmProviderV2.VALUE_SOURCE_VIVALDI.equals(strategyListValue) ){
+                //enable the Vivaldi median distance group.
+                if( vivaldiGroup!=null ){
+                    vivaldiGroup.setEnabled(true);
+                    vivaldiGroup.setVisible(true);
+                }
+                if( dhtGroup!=null ){
+                    dhtGroup.setEnabled(false);
+                    dhtGroup.setVisible(false);
+                }
+
+            }
+            else if( SpeedManagerAlgorithmProviderV2.VALUE_SOURCE_DHT.equals(strategyListValue) ){
+                //enable the DHT group
+                if( vivaldiGroup!=null){
+                    vivaldiGroup.setEnabled(false);
+                    vivaldiGroup.setVisible(false);
+                }
+                if( dhtGroup!=null ){
+                    dhtGroup.setEnabled(true);
+                    dhtGroup.setVisible(true);
+                }
+            }
+
+    }
+
+    /**
+     * Listen for changes in the drop down, then enable/disable the appropriate
+     * group mode.
+     */
+    class GroupModeChangeListener implements ParameterChangeListener
+    {
+        /**
+         * Enable/Disable approriate group.
+         * @param p -
+         * @param caused_internally  -
+         */
+        public void parameterChanged(Parameter p, boolean caused_internally) {
+            String value = strategyList.getValue();
+            enableGroups(value);
+        }
+
+
+        public void intParameterChanging(Parameter p, int toValue) {
+            //nothing to do here.
+        }
+
+
+        public void booleanParameterChanging(Parameter p, boolean toValue) {
+            //nothing to do here.
+        }
+
+
+        public void stringParameterChanging(Parameter p, String toValue) {
+            //nothing to do here.
+        }
+
+
+        public void floatParameterChanging(Parameter owner, double toValue) {
+            //nothing to do here.
+        }
     }
 
 }

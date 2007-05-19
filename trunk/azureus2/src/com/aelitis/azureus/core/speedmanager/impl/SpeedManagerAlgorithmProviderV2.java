@@ -53,7 +53,7 @@ SpeedManagerAlgorithmProviderV2
     public static final String SETTING_VIVALDI_BAD_TOLERANCE = "SpeedManagerAlgorithmProviderV2.setting.vivaldi.good.tolerance";
 
     //adjustments up should be smaller then down.
-    public static final String SETTING_UPTICK_ADJUST_FACTOR = "SpeedManagerAlgorithmProviderV2.uptick.adjust.factor";
+    public static final String SETTING_UPTICK_DAMPING_FACTOR = "SpeedManagerAlgorithmProviderV2.uptick.adjust.factor";
 
     //DHT ping settings.
     public static final String SETTING_DHT_GOOD_SET_POINT = "SpeedManagerAlgorithmProviderV2.setting.dht.good.setpoint";
