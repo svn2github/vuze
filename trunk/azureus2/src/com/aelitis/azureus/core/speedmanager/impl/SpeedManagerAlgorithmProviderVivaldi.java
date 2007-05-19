@@ -433,11 +433,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
         //The amount to move it against the new limit is.
         float multi = Math.abs( signalStrength * multiple * 0.3f );
 
-        //We want to adjust up more slowly then dropping down.
-        if(signalStrength>0){
-            multi = multi/uptickDampingFactor;
-        }
-
         //Force the value to the limit.
         if(multi>1.0f){
             if( signalStrength>0.0f ){
