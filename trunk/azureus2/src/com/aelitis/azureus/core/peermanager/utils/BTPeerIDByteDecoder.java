@@ -114,6 +114,7 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeSimpleStyle( peerID, 0, "346-", "TorrentTopia" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "271-", "GreedBT 2.7.1" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 10, "BG", "BTGetit" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "BLZ", "Blizzard Downloader" )) != null ) return decoded;
       
       
       if( (decoded = decodeSimpleStyle( peerID, 0, "a00---0", "Swarmy" )) != null ) return decoded;
