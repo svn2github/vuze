@@ -1116,7 +1116,7 @@ public class MainWindow
 		IView[] coreTopBarViews = {
 			new ViewDownSpeedGraph(),
 			new ViewUpSpeedGraph(),
-			new VivaldiView(true)
+			new VivaldiView(false)
 		};
 
 		final Composite composite = (Composite) skinObject.getControl();
@@ -1275,22 +1275,28 @@ public class MainWindow
 	private void attachSearchBox(SWTSkinObject skinObject) {
 		Composite cArea = (Composite) skinObject.getControl();
 		
-		Text text;
+		Text text = null;
 		
 		if (Constants.isOSX) {
-			cArea.setVisible(false);
-			cArea.getParent().setBackgroundImage(null);
+			try {
+  			cArea.setVisible(false);
+  			cArea.getParent().setBackgroundImage(null);
+  
+  			text = new Text(cArea.getParent(), SWT.SEARCH | SWT.CANCEL);
+  
+  			FormData filledFormData = Utils.getFilledFormData();
+  			text.setLayoutData(filledFormData);
+  
+  			FormData fd = (FormData)cArea.getParent().getLayoutData();
+  			fd.height = text.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+  			cArea.getParent().setLayoutData(fd);
+  			cArea.getParent().layout(true);
+			} catch (Throwable t) {
+				// >= 3.3 has the SWT.SEARCH type 
+			}
+		}
 
-			text = new Text(cArea.getParent(), SWT.SEARCH | SWT.CANCEL);
-
-			FormData filledFormData = Utils.getFilledFormData();
-			text.setLayoutData(filledFormData);
-
-			FormData fd = (FormData)cArea.getParent().getLayoutData();
-			fd.height = text.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
-			cArea.getParent().setLayoutData(fd);
-			cArea.getParent().layout(true);
-		} else {
+		if (text == null) {
 			text = new Text(cArea, SWT.NONE);
 			FormData filledFormData = Utils.getFilledFormData();
 			text.setLayoutData(filledFormData);
