@@ -92,7 +92,7 @@ public class ViewUpSpeedGraph
 		upSpeedCanvas.setLayoutData(gridData);
 		upSpeedGraphic = SpeedGraphic.getInstance();
 		upSpeedGraphic.initialize(upSpeedCanvas);
-		upSpeedGraphic.setAutoAlpha(true);
+		//upSpeedGraphic.setAutoAlpha(true);
 	}
 
 	public void delete() {
