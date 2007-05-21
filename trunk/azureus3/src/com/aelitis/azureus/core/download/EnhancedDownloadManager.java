@@ -210,7 +210,7 @@ EnhancedDownloadManager
 			
 			platform_content = PlatformTorrentUtils.isContent( torrent );
 			
-			content_stream_bps_min = PlatformTorrentUtils.getContentStreamSpeedBps( torrent );
+			long original_stream_bps = content_stream_bps_min = PlatformTorrentUtils.getContentStreamSpeedBps( torrent );
 			
 			if ( content_stream_bps_min == 0 ){
 			
@@ -237,9 +237,12 @@ EnhancedDownloadManager
 			content_stream_bps_max = content_stream_bps_min + ( content_stream_bps_min / 5 );
 			
 			content_min_bps = PlatformTorrentUtils.getContentMinimumSpeedBps( torrent );
-							
-			log( "platform=" + platform_content + ", content_stream_bps=" + content_stream_bps_min + 
-					",content_min_bps=" + content_min_bps );
+						
+			if ( platform_content ){
+				
+				log( 	"content_stream_bps=" + content_stream_bps_min + " (orig=" + original_stream_bps + ")" +
+						",content_min_bps=" + content_min_bps );
+			}
 		}
 		
 		download_manager.addPeerListener(
