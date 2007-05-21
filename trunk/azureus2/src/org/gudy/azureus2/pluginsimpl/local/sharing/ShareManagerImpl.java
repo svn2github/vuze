@@ -39,9 +39,11 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+
 public class 
 ShareManagerImpl
-	implements ShareManager, TOTorrentProgressListener, ParameterListener
+	implements ShareManager, TOTorrentProgressListener, ParameterListener, AEDiagnosticsEvidenceGenerator
 {
 	private static final LogIDs LOGID = LogIDs.PLUGIN;
 	public static final String		TORRENT_STORE 		= "shares";
@@ -107,6 +109,8 @@ ShareManagerImpl
 					announce_urls	= null;
 				}
 			});
+		
+		AEDiagnostics.addEvidenceGenerator( this );
 	}
 	
 	public void
@@ -444,7 +448,7 @@ ShareManagerImpl
 	protected boolean
 	getAddHashes()
 	{
-		return( COConfigurationManager.getBooleanParameter( "Sharing Add Hashes", true ));
+		return( COConfigurationManager.getBooleanParameter( "Sharing Add Hashes" ));
 	}
 	
 	public ShareResource[]
@@ -837,6 +841,125 @@ ShareManagerImpl
 	{
 		listeners.remove(l);
 	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "Shares" );
+			
+		try{
+			writer.indent();
+
+			ShareResource[]	shares = getShares();
+			
+			HashSet	share_map = new HashSet();
+						
+			for ( int i=0;i<shares.length;i++ ){
+				
+				ShareResource	share = shares[i];
+									
+				if ( share instanceof ShareResourceDirContents ){
+					
+					share_map.add( share );
+					
+				}else if ( share.getParent() != null ){
+					
+				}else{
+					
+					writer.println( getDebugName( share ));
+				}
+			}
+			
+			Iterator	it = share_map.iterator();
+			
+			TorrentManager tm = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getTorrentManager();
+
+			TorrentAttribute	category_attribute 	= tm.getAttribute( TorrentAttribute.TA_CATEGORY );
+			TorrentAttribute	props_attribute 	= tm.getAttribute( TorrentAttribute.TA_SHARE_PROPERTIES );
+			
+			while( it.hasNext()){
+				
+				ShareResourceDirContents	root = (ShareResourceDirContents)it.next();
+				
+				String	cat 	= root.getAttribute( category_attribute );
+				String	props 	= root.getAttribute( props_attribute );
+				
+				String	extra = cat==null?"":(",cat=" + cat );
+				
+				extra += props==null?"":(",props=" + props );
+				
+				extra += ",rec=" + root.isRecursive();
+				
+				writer.println( root.getName() + extra );
+				
+				generate( writer, root );
+			}
+		}finally{
+			
+			writer.exdent();
+		}
+	}
+	
+	protected void
+	generate(
+		IndentWriter				writer,		
+		ShareResourceDirContents	node )
+	{
+		try{
+			writer.indent();
+
+			ShareResource[]	kids = node.getChildren();
+			
+			for (int i=0;i<kids.length;i++){
+				
+				ShareResource	kid = kids[i];
+				
+				writer.println( getDebugName( kid ));
+	
+				if ( kid instanceof ShareResourceDirContents ){
+					
+					generate( writer, (ShareResourceDirContents)kid );
+				}
+			}
+		}finally{
+			
+			writer.exdent();
+		}
+	}
+	
+	protected String
+	getDebugName(
+		ShareResource	_share )
+	{
+		Torrent	torrent = null;
+		
+		try{
+			if ( _share instanceof ShareResourceFile ){
+				
+				ShareResourceFile share = (ShareResourceFile)_share;
+				
+				torrent = share.getItem().getTorrent();
+				
+			}else if ( _share instanceof ShareResourceDir ){
+				
+				ShareResourceDir share = (ShareResourceDir)_share;
+				
+				torrent = share.getItem().getTorrent();
+			}
+		}catch( Throwable e ){			
+		}
+		
+		if ( torrent == null ){
+			
+			return(	Debug.secretFileName( _share.getName()));
+			
+		}else{
+			
+			return( Debug.secretFileName( torrent.getName() ) + "/" + ByteFormatter.encodeString( torrent.getHash()));
+		}
+	}
+	
 	
 	protected class
 	shareScanner
