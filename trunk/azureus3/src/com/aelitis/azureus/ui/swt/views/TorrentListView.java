@@ -201,10 +201,9 @@ public class TorrentListView
 				new ColumnTitle(TABLE_MYMEDIA),
 				new SizeItem(TABLE_MYMEDIA),
 				new ColumnQuality(TABLE_MYMEDIA),
-				new ColumnDateAdded2Liner(TABLE_MYMEDIA, true),
+				new ColumnDateCompleted2Liner(TABLE_MYMEDIA, true),
 				new ColumnRateUpDown(TABLE_MYMEDIA),
 				new ColumnRate(TABLE_MYMEDIA),
-				new ColumnDateCompleted2Liner(TABLE_MYMEDIA, true),
 			};
 			setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, true);
 			String[] autoHideOrder = new String[] {
