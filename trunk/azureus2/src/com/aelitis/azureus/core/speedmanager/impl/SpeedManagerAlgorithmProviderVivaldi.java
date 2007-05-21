@@ -599,7 +599,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
         //int c;
         float multiple=0.0f;
         if( consecutiveUpticks > consecutiveDownticks ){
-            calculateUpTickMultiple(consecutiveUpticks);
+            multiple = calculateUpTickMultiple(consecutiveUpticks);
         }else{
             //c=consecutiveDownticks;
             multiple = calculateDownTickMultiple(consecutiveDownticks);
@@ -614,7 +614,9 @@ public class SpeedManagerAlgorithmProviderVivaldi
      * @return - multiple factor.
      */
     private float calculateUpTickMultiple(int c) {
-                float multiple=0.0f;
+
+        float multiple=0.0f;
+        
         if(c<0){
             return multiple;
         }

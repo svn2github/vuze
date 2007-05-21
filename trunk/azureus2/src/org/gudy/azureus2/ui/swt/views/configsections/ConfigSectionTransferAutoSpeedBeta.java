@@ -3,6 +3,9 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.layout.GridData;
@@ -44,6 +47,9 @@ public class ConfigSectionTransferAutoSpeedBeta
     IntParameter downMinLim;
     IntParameter uploadMaxLim;
     IntParameter uploadMinLim;
+
+    //add a comment to the auto-speed debug logs.
+    Group commentGroup;
 
     //vivaldi set-points
     Group vivaldiGroup;
@@ -123,6 +129,64 @@ public class ConfigSectionTransferAutoSpeedBeta
         subPanel.numColumns = 3;
         cSection.setLayout(subPanel);
 
+        //add a comment to the debug log.
+        ///////////////////////////////////
+        // Comment group
+        ///////////////////////////////////
+        //comment grouping.
+        commentGroup = new Group(cSection, SWT.NULL);
+        commentGroup.setText("Add comment to debug log");
+        GridLayout commentLayout = new GridLayout();
+        commentLayout.numColumns = 3;
+        commentGroup.setLayout(commentLayout);
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        commentGroup.setLayoutData(gridData);
+
+        //Label
+        Label commentLabel = new Label(commentGroup,SWT.NULL);
+        commentLabel.setText("Add Comment: ");
+        gridData = new GridData();
+        gridData.widthHint = 70;
+        gridData.horizontalSpan=1;
+        commentLabel.setLayoutData(gridData);
+
+        //Text-Box
+        final Text commentBox = new Text(commentGroup, SWT.BORDER);
+        gridData = new GridData(GridData.BEGINNING);
+        gridData.widthHint = 200;
+        gridData.horizontalSpan=1;
+        commentBox.setText("");
+        commentBox.setLayoutData(gridData);
+
+
+        //button
+        Button commentButton = new Button( commentGroup, SWT.PUSH);
+        //Messages.
+        gridData = new GridData();
+        gridData.widthHint = 70;
+        gridData.horizontalSpan=1;
+        commentButton.setLayoutData(gridData);
+        commentButton.setText("Log");
+        commentButton.addListener(SWT.Selection, new Listener(){
+            public void handleEvent(Event event){
+                //Add a file to the log.
+                AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("v3.AutoSpeed_Beta_Debug");
+                String comment = commentBox.getText();
+                if(comment!=null){
+                    if( comment.length()>0){
+                        dLog.log( "user-comment:"+comment );
+                    }
+                }
+            }
+        });
+
+        //spacer
+        Label commentSpacer = new Label(cSection, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan=3;
+        commentSpacer.setLayoutData(gridData);
+
+                
         ///////////////////////////////////
         // AutoSpeed Beta mode group
         ///////////////////////////////////
@@ -135,8 +199,6 @@ public class ConfigSectionTransferAutoSpeedBeta
         modeGroup.setLayout(modeLayout);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         modeGroup.setLayoutData(gridData);
-
-
 
         //To enable the beta.
         gridData = new GridData();
@@ -163,7 +225,7 @@ public class ConfigSectionTransferAutoSpeedBeta
         Label label = new Label(modeGroup, SWT.NULL);
         label.setText("algorithm: ");
         gridData = new GridData();
-        gridData.widthHint = 40;
+        gridData.widthHint = 50;
         label.setLayoutData(gridData);
 
         //Set DHT as the default 
@@ -262,8 +324,8 @@ public class ConfigSectionTransferAutoSpeedBeta
         vivaldiGroup = new Group(cSection, SWT.NULL);
         //Messages.setLanguageText
         vivaldiGroup.setText("Data: Vivaldi");
-        GridLayout vivaldiLayout = new GridLayout();
-        vivaldiLayout.numColumns = 3;
+        //GridLayout vivaldiLayout = new GridLayout();
+        //vivaldiLayout.numColumns = 3;
         vivaldiGroup.setLayout(subPanel);
 
         gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -280,13 +342,13 @@ public class ConfigSectionTransferAutoSpeedBeta
         Label vSet = new Label(vivaldiGroup,SWT.NULL);
         gridData = new GridData();
         vSet.setLayoutData(gridData);
-        vSet.setText("set point");
+        vSet.setText("set point (ms)");
         //Messages.setLanguageText //ToDo: internationalize
 
         Label vTol = new Label(vivaldiGroup, SWT.NULL);
         gridData = new GridData();
         vTol.setLayoutData(gridData);
-        vTol.setText("tolerance");
+        vTol.setText("tolerance (ms)");
         //Messages.setLanguageText //ToDo: internationalize
 
         //good
@@ -342,9 +404,9 @@ public class ConfigSectionTransferAutoSpeedBeta
         dhtGroup = new Group(cSection, SWT.NULL);
         //Messages.setLanguageText
         dhtGroup.setText("Data: DHT Pings");
-        GridLayout dhtLayout = new GridLayout();
-        dhtLayout.numColumns = 3;
-        //dhtGroup.setLayout(dhtLayout);
+        //GridLayout dhtLayout = new GridLayout();
+        //dhtLayout.numColumns = 3;
+        ////dhtGroup.setLayout(dhtLayout);
         dhtGroup.setLayout(subPanel);
 
         gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -361,13 +423,13 @@ public class ConfigSectionTransferAutoSpeedBeta
         Label dSet = new Label(dhtGroup,SWT.NULL);
         gridData = new GridData();
         dSet.setLayoutData(gridData);
-        dSet.setText("set point");
+        dSet.setText("set point (ms)");
         //Messages.setLanguageText //ToDo: internationalize
 
         Label dTol = new Label(dhtGroup, SWT.NULL);
         gridData = new GridData();
         dTol.setLayoutData(gridData);
-        dTol.setText("tolerance");
+        dTol.setText("tolerance (ms)");
         //Messages.setLanguageText //ToDo: internationalize
 
         //good
@@ -483,6 +545,20 @@ public class ConfigSectionTransferAutoSpeedBeta
                 }
             }
 
+
+        //only enable the comment section if the beta is enabled.
+        boolean isBetaEnabled = COConfigurationManager.getBooleanParameter(SpeedManagerAlgorithmProviderV2.SETTING_V2_BETA_ENABLED);
+        if( commentGroup!=null){
+            if( isBetaEnabled ){
+                //make this section visible.
+                commentGroup.setEnabled(true);
+                commentGroup.setVisible(true);
+            }else{
+                //make it invisible.
+                commentGroup.setEnabled(false);
+                commentGroup.setVisible(false);
+            }
+        }
     }
 
     /**
