@@ -1658,6 +1658,7 @@ public class MainWindow
 							cArea.layout(true);
 							lblWait.update();
 
+							cArea.setBackgroundMode(SWT.INHERIT_NONE);
 							cArea.setBackground(cArea.getShell().getBackground());
 
 							oldMainWindow = new org.gudy.azureus2.ui.swt.mainwindow.MainWindow(
