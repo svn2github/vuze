@@ -87,6 +87,8 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Status Area Show DDB", true);
 		def.addParameter("Status Area Show IPF", true);
 		
+		def.addParameter("GUI_SWT_share_count_at_close", 0 );
+		
 		def.addParameter("ui", "az2");
 		
 		

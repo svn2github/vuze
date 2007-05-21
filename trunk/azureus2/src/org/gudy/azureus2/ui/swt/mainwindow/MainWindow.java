@@ -77,6 +77,12 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginListener;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
+import org.gudy.azureus2.plugins.sharing.ShareManagerListener;
+import org.gudy.azureus2.plugins.sharing.ShareResource;
 
 /**
  * @author Olivier
@@ -531,58 +537,96 @@ MainWindow
    
     globalManager.addListener(this);
 
-			azureus_core.getPluginManager().firePluginEvent(
-					PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS);
+    PluginManager	plugin_manager = azureus_core.getPluginManager();
+    
+    plugin_manager.firePluginEvent(	PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS);
 
-			if (!COConfigurationManager.getBooleanParameter("Wizard Completed")) {
-				// returns after the wizard is done
-				new ConfigureWizard(getAzureusCore(), true);
-			}
-			azureus_core.getPluginManager().firePluginEvent(
-					PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES);
+    if (!COConfigurationManager.getBooleanParameter("Wizard Completed")) {
+    	// returns after the wizard is done
+    	new ConfigureWizard(getAzureusCore(), true);
+    }
 
-			// attach the UI to plugins
-			// Must be done before initializing views, since plugins may register
-			// table columns and other objects
-			if (uiSWTInstanceImpl == null) {
-				uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
-				uiSWTInstanceImpl.init();
-			}
+    plugin_manager.firePluginEvent(	PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES);
 
-			if (azureus_core.getTrackerHost().getTorrents().length > 0) {
-				showMyTracker();
-			}
+    // attach the UI to plugins
+    // Must be done before initializing views, since plugins may register
+    // table columns and other objects
+    if (uiSWTInstanceImpl == null) {
+    	uiSWTInstanceImpl = new UISWTInstanceImpl(azureus_core);
+    	uiSWTInstanceImpl.init();
+    }
 
-			if (COConfigurationManager.getBooleanParameter("Open MyTorrents", true)) {
-				showMyTorrents();
-			}
+    if (azureus_core.getTrackerHost().getTorrents().length > 0) {
+    	showMyTracker();
+    }
 
-			//  share progress window
+    	// share manager init is async so we need to deal with this
 
-			new ProgressWindow();
+    PluginInterface default_pi = plugin_manager.getDefaultPluginInterface();
+    
+    final ShareManager share_manager = default_pi.getShareManager();
 
-			if (COConfigurationManager.getBooleanParameter("Open Console", false)) {
-				showConsole();
-			}
-			events = null;
+    default_pi.addListener(
+    	new PluginListener()
+    	{
+    		public void
+    		initializationComplete()
+    		{  			
+    		}
+    		
+    		public void
+    		closedownInitiated()
+    		{
+    			int share_count = share_manager.getShares().length;
+    			
+    			if ( share_count != COConfigurationManager.getIntParameter(  "GUI_SWT_share_count_at_close" )){
+    			
+    				COConfigurationManager.setParameter(  "GUI_SWT_share_count_at_close", share_count );
+    			}
+    		}
+    		
+    		public void
+    		closedownComplete()
+    		{  			
+    		}
+    	});
+    
+    if ( 	share_manager.getShares().length >  0 || 
+    		COConfigurationManager.getIntParameter(  "GUI_SWT_share_count_at_close" ) > 0 ){
+    	
+    	showMyShares();
+    }
 
-			if (COConfigurationManager.getBooleanParameter("Open Config", false)) {
-				showConfig();
-			}
+    if (COConfigurationManager.getBooleanParameter("Open MyTorrents", true)) {
+    	showMyTorrents();
+    }
 
-			if (COConfigurationManager.getBooleanParameter("Open Stats On Start",
-					false)) {
-				showStats();
-			}
+    //  share progress window
 
-			COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
+    new ProgressWindow();
 
-			updater = new GUIUpdater(this);
-			updater.start();
+    if (COConfigurationManager.getBooleanParameter("Open Console", false)) {
+    	showConsole();
+    }
+    events = null;
 
-		} catch (Throwable e) {
-			Debug.printStackTrace(e);
-		}
+    if (COConfigurationManager.getBooleanParameter("Open Config", false)) {
+    	showConfig();
+    }
+
+    if (COConfigurationManager.getBooleanParameter("Open Stats On Start",
+    		false)) {
+    	showStats();
+    }
+
+    COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
+
+    updater = new GUIUpdater(this);
+    updater.start();
+
+    } catch (Throwable e) {
+    	Debug.printStackTrace(e);
+    }
 
     COConfigurationManager.addAndFireParameterListener("IconBar.enabled",
 				new ParameterListener() {
