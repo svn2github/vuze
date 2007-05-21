@@ -1403,7 +1403,8 @@ public class MainWindow
 		skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.browse");
 
 		String sURL = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
-				+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX;
+				+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX + "&rand="
+				+ SystemTime.getCurrentTime();
 		System.out.println(sURL);
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
