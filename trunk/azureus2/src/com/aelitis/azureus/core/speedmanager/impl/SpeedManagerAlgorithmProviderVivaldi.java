@@ -7,8 +7,6 @@ import com.aelitis.azureus.core.util.average.Average;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
-import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.VivaldiPosition;
-import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.impl.HeightCoordinatesImpl;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -51,6 +49,8 @@ import java.util.*;
 public class SpeedManagerAlgorithmProviderVivaldi
     implements SpeedManagerAlgorithmProvider
 {
+	private static final byte VIVALDI_VERSION = DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1;
+	
     private SpeedManagerAlgorithmProviderAdapter adapter;
     private PluginInterface dhtPlugin;
 
@@ -386,27 +386,30 @@ public class SpeedManagerAlgorithmProviderVivaldi
         DHT forSelf = dhts[dhts.length-1];
         DHTTransportContact c = forSelf.getControl().getTransport().getLocalContact();
 
-        DHTNetworkPosition ownLocation = c.getNetworkPosition(DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1);
-        VivaldiPosition loc = (VivaldiPosition) ownLocation;
+        DHTNetworkPosition ownLocation = c.getNetworkPosition( VIVALDI_VERSION );
         //float locErrorEstimate = loc.getErrorEstimate();
-        HeightCoordinatesImpl ownCoords = (HeightCoordinatesImpl) loc.getCoordinates();
-
+ 
         List l = forSelf.getControl().getContacts();
         Iterator itr = l.iterator();
         List forMedian = new ArrayList( l.size() );//List<Float>
+        
         while( itr.hasNext() ){
+        	
             DHTControlContact contact = (DHTControlContact) itr.next();
-            DHTNetworkPosition _pos = contact.getTransportContact().getNetworkPosition(DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1);
+            
+            DHTNetworkPosition _pos = contact.getTransportContact().getNetworkPosition( VIVALDI_VERSION );
+            
             if( _pos==null ){
                 continue;
             }
-            VivaldiPosition pos = (VivaldiPosition)_pos;
-            HeightCoordinatesImpl coord = (HeightCoordinatesImpl) pos.getCoordinates();
-            if(coord.isValid()){
-                ownCoords.distance(coord);
-                forMedian.add( new Float(ownCoords.distance(coord) ) );
+            
+            float rtt = ownLocation.estimateRTT( _pos );
+            
+            if( !Float.isNaN( rtt )){
+               
+                forMedian.add( new Float( rtt ));
             }
-        }//while
+        }
 
         Collections.sort(forMedian);
 
