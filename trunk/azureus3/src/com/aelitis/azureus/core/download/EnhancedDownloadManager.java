@@ -62,7 +62,7 @@ EnhancedDownloadManager
 {
 	public static  int	DEFAULT_MINIMUM_INITIAL_BUFFER_SECS_FOR_ETA	= 30;
 	public static  int	WMP_MINIMUM_INITIAL_BUFFER_SECS_FOR_ETA		= 60;
-	
+		
 		// number of seconds of buffer required before we fall back to normal bt mode
 	
 	public static  int	MINIMUM_INITIAL_BUFFER_SECS;
@@ -970,6 +970,9 @@ EnhancedDownloadManager
 					
 					progressive_stats = new progressiveStats();
 				}
+			}else{
+				
+				progressive_stats = new progressiveStats();
 			}
 		}
 		
@@ -998,7 +1001,11 @@ EnhancedDownloadManager
 	{
 		progressiveStats stats = getProgressiveStats();
 		
-		return( stats.getETA());
+		long	eta = stats.getETA();
+		
+		System.out.println( "eta=" + eta );
+		
+		return( eta );
 	}
 	
 	protected progressiveStats
@@ -1519,8 +1526,6 @@ EnhancedDownloadManager
 				return( 0 );
 			}
 			
-			long	downloaded = total_file_length - weighted_bytes_to_download;
-
 			long download_rate = (long)download_rate_average.getAverage();
 			
 			if ( download_rate <= 0 ){
@@ -1530,7 +1535,51 @@ EnhancedDownloadManager
 			
 			long min_dl = minimum_initial_buffer_secs_for_eta * content_stream_bps_max;
 			
-			long rem_dl = min_dl - downloaded;	// ok as initial dl is forced in order byte buffer-rta
+				// work out number of initial bytes downloaded and stop as soon as a gap is found
+			
+			long	initial_downloaded = 0;
+			
+			DiskManagerPiece[] pieces = dm.getPieces();
+			
+			for (int i=0;i<pieces.length;i++){
+				
+				DiskManagerPiece piece = pieces[i];
+				
+				if ( piece.isDone()){
+					
+					initial_downloaded += piece.getLength();
+					
+				}else{
+								
+					boolean[] blocks = piece.getWritten();
+								
+					if ( blocks == null ){
+						
+						break;
+						
+					}else{
+						
+						for (int j=0;j<blocks.length;j++){
+						
+							if ( blocks[j] ){
+								
+								initial_downloaded += piece.getBlockSize( j );
+								
+							}else{
+								
+								break;
+							}
+						}
+					}
+				}
+									
+				if ( initial_downloaded >= min_dl ){
+						
+					break;
+				}
+			}
+			
+			long rem_dl = min_dl - initial_downloaded;	// ok as initial dl is forced in order byte buffer-rta
 			
 			long rem_secs = rem_dl / download_rate;
 			
