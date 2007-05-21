@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 
@@ -67,7 +68,8 @@ public class AboutWindow {
       return;
     }
         
-    final Shell window = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, (Constants.isOSX) ? SWT.DIALOG_TRIM : (SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL));
+    final Shell window = ShellFactory.createMainShell((Constants.isOSX)
+				? SWT.DIALOG_TRIM : (SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL));
     Utils.setShellIcon(window);
 
     window.setText(MessageText.getString("MainWindow.about.title") + " " + Constants.AZUREUS_VERSION); //$NON-NLS-1$
