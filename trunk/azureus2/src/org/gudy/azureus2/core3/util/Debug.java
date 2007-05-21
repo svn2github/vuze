@@ -524,7 +524,7 @@ public class Debug {
 			return "";
 
 		final String sep = File.separator;
-		final String regex = "([\\" + sep + "][^\\" + sep + "]{0,3}+)[^\\" + sep
+		final String regex = "([\\" + sep + "]?[^\\" + sep + "]{0,3}+)[^\\" + sep
 				+ "]*";
 		
 		String secretName = key.replaceAll(regex, "$1");
@@ -532,5 +532,10 @@ public class Debug {
 		if (iExtensionPos >= 0)
 			secretName += key.substring(iExtensionPos); 
 		return secretName;
+	}
+
+	public static void main(String[] args) {
+		System.out.println(secretFileName("c:\\temp\\hello there.txt"));
+		System.out.println(secretFileName("hello there.txt"));
 	}
 }
