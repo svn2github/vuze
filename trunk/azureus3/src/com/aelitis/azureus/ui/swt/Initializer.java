@@ -197,6 +197,9 @@ public class Initializer
 					return;
 				}
 
+				// Ensure colors initialized
+				Colors.getInstance();
+				
 				Initializer.this.reportPercent(curPercent + 1);
 				new UserAlerts(gm);
 
@@ -264,6 +267,7 @@ public class Initializer
 
 		reportCurrentTaskByKey("splash.initializeUIElements");
 
+		// Ensure colors initialized
 		Colors.getInstance();
 
 		reportPercent(curPercent + 1);
