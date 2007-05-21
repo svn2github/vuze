@@ -140,6 +140,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
     new SwarmAverageSpeed( TableManager.TABLE_MYTORRENTS_COMPLETE ),
     new SwarmAverageCompletion( TableManager.TABLE_MYTORRENTS_COMPLETE ),
     new DateAddedItem( TableManager.TABLE_MYTORRENTS_COMPLETE ),
+    new DateCompletedItem( TableManager.TABLE_MYTORRENTS_COMPLETE ),
   };
 
   public MyTorrentsSuperView(AzureusCore	_azureus_core) {
