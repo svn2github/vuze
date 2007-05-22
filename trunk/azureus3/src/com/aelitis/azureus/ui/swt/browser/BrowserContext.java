@@ -150,7 +150,19 @@ public class BrowserContext
 				}
 
 				browser.execute("try { if (azureusClientWelcome) { azureusClientWelcome('"
-						+ Constants.AZID + "'); } } catch (e) {}");
+						+ Constants.AZID
+						+ "',"
+						+ "{ 'azv':'"
+						+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
+						+ "' }"
+						+ "); } } catch (e) {}");
+				System.out.println("try { if (azureusClientWelcome) { azureusClientWelcome('"
+						+ Constants.AZID
+						+ "',"
+						+ "{ 'azv':'"
+						+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
+						+ "' }"
+						+ "); } } catch (e) {}");
 
 				if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()
 						|| System.getProperty("debug.https", null) != null) {
