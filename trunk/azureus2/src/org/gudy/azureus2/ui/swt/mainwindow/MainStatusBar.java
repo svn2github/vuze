@@ -272,6 +272,7 @@ public class MainStatusBar {
 				: SWT.HORIZONTAL;
 		statusUpdateProgressBar = new ProgressBar(statusUpdate, progressFlag);
 		gridData = new GridData(GridData.FILL_BOTH);
+		gridData.verticalIndent = 3;
 		statusUpdateProgressBar.setLayoutData(gridData);
 		Messages.setLanguageText(statusUpdateProgressBar,
 				"MainWindow.status.update.tooltip");
