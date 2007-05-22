@@ -82,6 +82,6 @@ public class Constants
 
 	public static void initialize(AzureusCore core) {
 		AZID = Base32.encode(core.getCryptoManager().getSecureID());
-		URL_SUFFIX = "azid=" + AZID;
+		URL_SUFFIX = "azid=" + AZID + "&azv=" + org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION;
 	}
 }
