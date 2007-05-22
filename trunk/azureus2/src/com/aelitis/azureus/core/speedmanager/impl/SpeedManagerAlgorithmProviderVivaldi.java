@@ -15,7 +15,6 @@ import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
-import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 
 import java.util.*;
 
@@ -58,7 +57,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
     private AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("v3.AutoSpeed_Beta_Debug");
 
     private long timeSinceLastUpdate;
-    private static final long TIME_BETWEEN_UPDATES = 15000;
+    private static final long VIVALDI_TIME_BETWEEN_UPDATES = 15000;
 
     //use for home network.
     private static int uploadLimitMax = 38000;
@@ -71,6 +70,8 @@ public class SpeedManagerAlgorithmProviderVivaldi
     private static int metricBadResult = 1300;
     private static int metricBadTolerance = 300;
     private static boolean useVivaldi = false;
+
+    private static float upDownRatio=2.0f;
 
     private int consecutiveUpticks=0;
     private int consecutiveDownticks=0;
@@ -134,22 +135,11 @@ public class SpeedManagerAlgorithmProviderVivaldi
                                 numIntervalsBetweenCal=COConfigurationManager.getIntParameter(
                                         SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
 
+                                //tie the upload and download ratios together.
+                                upDownRatio = ( (float)downloadLimitMax/(float)uploadLimitMax );
+                                COConfigurationManager.setParameter(
+                                        SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
                             }
-
-                            //NOTE: need to be careful about changing parameters used by changing parameters used by SpeedManagerAlgorithmV1.
-                            String algorithmUsed = System.getProperty("azureus.autospeed.alg.provider.version");
-                            if( !(algorithmUsed==null) && !("1".equals(algorithmUsed)) ){
-
-                                //we are using V2, so lets change the settings we need.
-
-                                //set the Upload to Download ratio.
-                                float downloadRatio = ( (float)downloadLimitMax/(float)uploadLimitMax );
-                                COConfigurationManager.setParameter("AutoSpeed Download Adj Ratio",downloadRatio);
-
-                                //enable upload to download ratio.
-                                COConfigurationManager.setParameter("AutoSpeed Download Adj Enable",true);
-
-                            }//if
 
                         }catch( Throwable t ){
 
@@ -184,7 +174,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
     public void reset() {
         log("reset");
 
-        //log("curr-data: curr-download : curr-upload-limit : curr-upload-data-speed : curr-proto-upload-speed");
         log("curr-data: curr-down-rate : curr-down-limit : down-saturation-mode : curr-up-rate : curr-up-limit : upload-saturation-mode ");
 
         log( "new-limit:newLimit:currStep:signalStrength:multiple:currUpLimit:maxStep:uploadLimitMax:uploadLimitMin" );
@@ -208,7 +197,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
         int currUploadLimit = adapter.getCurrentUploadLimit();
         int currDataUploadSpeed = adapter.getCurrentDataUploadSpeed();
         int currProtoUploadSpeed = adapter.getCurrentProtocolUploadSpeed();
-
+        int upRate = currDataUploadSpeed + currProtoUploadSpeed;
 
         //current upload limit setting
         //current upload average
@@ -221,12 +210,11 @@ public class SpeedManagerAlgorithmProviderVivaldi
         int downDataRate = adapter.getCurrentDataDownloadSpeed();
         int downProtoRate = adapter.getCurrentProtocolDownloadSpeed();
         int downRate = downDataRate+downProtoRate;
-        //int downRate = COConfigurationManager.getIntParameter( TransferSpeedValidator.getDownloadParameter() ) * 1024;
 
         SaturatedMode downSatMode = SaturatedMode.getSaturatedMode(downRate,currDownLimit);
         SaturatedMode upSatMode = SaturatedMode.getSaturatedMode(currDataUploadSpeed,currUploadLimit);
 
-        log("curr-data:"+downRate+":"+currDownLimit+":"+downSatMode+":"+currDataUploadSpeed+":"+currUploadLimit+":"+upSatMode);
+        log("curr-data:"+downRate+":"+currDownLimit+":"+downSatMode+":"+upRate+":"+currUploadLimit+":"+upSatMode);
     }
 
     /**
@@ -292,7 +280,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
         }
 
         //If Vivaldi calculate results on a time interval.
-        if( timeSinceLastUpdate+TIME_BETWEEN_UPDATES > currTime && useVivaldi){
+        if( timeSinceLastUpdate+ VIVALDI_TIME_BETWEEN_UPDATES > currTime && useVivaldi){
             //still waiting for the next time to update the value.
             log("calculate-deferred");
             return;
@@ -382,7 +370,11 @@ public class SpeedManagerAlgorithmProviderVivaldi
             log(" setting new limit to: "+kbpsLimit+" kb/s");
 
             //based on the value need to set a limit.
-            adapter.setCurrentUploadLimit( newLimit );
+            //adapter.setCurrentUploadLimit( newLimit );
+
+            //setting new
+            setNewLimits( newLimit );
+
         }else{
             hadAdjustmentLastInterval=false;
         }
@@ -391,12 +383,24 @@ public class SpeedManagerAlgorithmProviderVivaldi
         checkPingSources(sources);
     }
 
+    /**
+     * Adjusts both upload and download limits but at a fixed ratio.
+     * @param newLimit
+     */
+    private void setNewLimits( int newLimit ){
+
+        adapter.setCurrentUploadLimit( newLimit );
+
+        int downLimit = (int)(newLimit * upDownRatio);
+        //apply the fixed ratio.
+        adapter.setCurrentDownloadLimit( downLimit );       
+    }
+
     private static int calculateMedianVivaldiDistance(DHT[] dhts) {
         DHT forSelf = dhts[dhts.length-1];
         DHTTransportContact c = forSelf.getControl().getTransport().getLocalContact();
 
         DHTNetworkPosition ownLocation = c.getNetworkPosition( VIVALDI_VERSION );
-        //float locErrorEstimate = loc.getErrorEstimate();
  
         List l = forSelf.getControl().getContacts();
         Iterator itr = l.iterator();
@@ -605,12 +609,10 @@ public class SpeedManagerAlgorithmProviderVivaldi
      */
     private float consectiveMultiplier(){
 
-        //int c;
-        float multiple=0.0f;
+        float multiple;
         if( consecutiveUpticks > consecutiveDownticks ){
             multiple = calculateUpTickMultiple(consecutiveUpticks);
         }else{
-            //c=consecutiveDownticks;
             multiple = calculateDownTickMultiple(consecutiveDownticks);
         }
 

@@ -135,9 +135,10 @@ SpeedManagerImpl
 	
 	
 	private boolean				enabled;
-		
-	
-	private Map							contacts	= new HashMap();
+    private boolean             use_v2_provider;
+
+
+    private Map							contacts	= new HashMap();
 	private volatile int				total_contacts;
 	private pingContact[]				contacts_array	= new pingContact[0];
 	
@@ -152,10 +153,9 @@ SpeedManagerImpl
 		core			= _core;
 		adapter			= _adapter;
 
-        boolean useBeta=false;
         try{
-            useBeta = COConfigurationManager.getBooleanParameter(SpeedManagerAlgorithmProviderV2.SETTING_V2_BETA_ENABLED);
-            if(useBeta){
+            use_v2_provider = COConfigurationManager.getBooleanParameter(SpeedManagerAlgorithmProviderV2.SETTING_V2_BETA_ENABLED);
+            if(use_v2_provider){
                 System.setProperty("azureus.autospeed.alg.provider.version","2");
             }
         }catch(Throwable t){
@@ -447,7 +447,7 @@ SpeedManagerImpl
 			
 			adapter.setCurrentUploadLimit( bytes_per_second );
 			
-			if ( ADJUST_DOWNLOAD_ENABLE && !( Float.isInfinite( ADJUST_DOWNLOAD_RATIO ) || Float.isNaN( ADJUST_DOWNLOAD_RATIO ))){
+			if ( !use_v2_provider && ADJUST_DOWNLOAD_ENABLE && !( Float.isInfinite( ADJUST_DOWNLOAD_RATIO ) || Float.isNaN( ADJUST_DOWNLOAD_RATIO ))){
 				
 				int	dl_limit = (int)(bytes_per_second * ADJUST_DOWNLOAD_RATIO);
 				
@@ -474,8 +474,16 @@ SpeedManagerImpl
 		return( adapter.getCurrentDownloadLimit());
 	}
 
+    /**
+     * NOTE: added for V2 SpeedManagerAlgorithmProvider. Need to move upload and download
+     * independently within a range.
+     * @param bytes_per_second
+     */
+    public void setCurrentDownloadLimit(int bytes_per_second) {
+        adapter.setCurrentDownloadLimit( bytes_per_second );
+    }
 
-        // config access
+    // config access
 	
 	public int
 	getMaxUp()

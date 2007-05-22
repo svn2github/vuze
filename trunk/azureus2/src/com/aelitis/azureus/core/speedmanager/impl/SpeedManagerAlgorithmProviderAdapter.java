@@ -48,6 +48,9 @@ SpeedManagerAlgorithmProviderAdapter
     public int
 	getCurrentDownloadLimit();
 
+    public void
+    setCurrentDownloadLimit(int bytes_per_second);
+
 
         /**
 		 * Various config parameters

@@ -69,6 +69,10 @@ SpeedManagerAlgorithmProviderV2
     public static final String SETTING_V2_BETA_ENABLED = "SpeedManagerAlgorithmProviderV2.setting.beta.enabled";
 
 
+    //the ratio of upload/download speed when making adjustments.
+    public static final String SETTING_V2_UP_DOWN_RATIO = "SpeedManagerAlgorithmProviderV2.setting.updown.ratio";
+
+
     protected
 	SpeedManagerAlgorithmProviderV2(
 		SpeedManagerAlgorithmProviderAdapter	_adapter )
