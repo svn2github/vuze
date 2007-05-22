@@ -19,37 +19,51 @@
  * AELITIS, SAS au capital de 46,603.30 euros, 8 Alle Lenotre, La Grille Royale,
  * 78600 Le Mesnil le Roi, France.
  */
- 
+
 package org.gudy.azureus2.ui.swt.mainwindow;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier Chalouhi
  *  
  */
-public class Cursors {
+public class Cursors
+{
+	public static Cursor handCursor = null;
 
-  public static Cursor handCursor;
-  public static void init() {
-    final Display display = SWTThread.getInstance().getDisplay();
-    display.syncExec(new AERunnable() {
-      public void runSupport() {
-        handCursor = new Cursor(display, SWT.CURSOR_HAND);
-      }
-    });
-  }
-  
-  public static void dispose() {
-    final Display display = SWTThread.getInstance().getDisplay();
-    display.syncExec(new AERunnable() {
-      public void runSupport() {
-        if (handCursor != null && !handCursor.isDisposed())
-          handCursor.dispose();
-      }
-    });
-  }
-  
+	public static void init() {
+		try {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					Display display = SWTThread.getInstance().getDisplay();
+					if (display != null && !display.isDisposed()) {
+						handCursor = new Cursor(display, SWT.CURSOR_HAND);
+					}
+				}
+			});
+		} catch (Exception e) {
+			Debug.out("Cursor Init", e);
+		}
+	}
+
+	public static void dispose() {
+		try {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (handCursor != null && !handCursor.isDisposed()) {
+						handCursor.dispose();
+					}
+				}
+			});
+		} catch (Exception e) {
+			Debug.out("Cursor Destroy", e);
+		}
+	}
+
 }
