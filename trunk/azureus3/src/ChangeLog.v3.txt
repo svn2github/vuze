@@ -1,6 +1,17 @@
 AZUREUS v3 CHANGELOG
 --------------------
 
+2007.05.xx | Azureus 3.0.1.4
+
+FEATURE: Speed Tester Wizard (Advanced UI)
+FEATURE: Added Date Completed column to Library
+FEATURE: Streaming via UPnP Media Server
+
+CHANGE: OSX: Make minimize to status bar icon hide the main window instead of putting it in the doc
+
+BUGFIX: Updater now works on Vista with security challenged users 
+
+
 2007.04.12 | Azureus 3.0.1.2
 
 BUGFIX: 100% CPU problem in network code under some conditions
