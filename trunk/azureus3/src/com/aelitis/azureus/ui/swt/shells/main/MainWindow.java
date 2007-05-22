@@ -1659,8 +1659,20 @@ public class MainWindow
 							cArea.layout(true);
 							lblWait.update();
 
-							cArea.setBackgroundMode(SWT.INHERIT_NONE);
-							cArea.setBackground(cArea.getShell().getBackground());
+							if (Constants.isUnix) {
+								// Hack: For some reason, if we set the color of a Composite
+								// to the widget background color, it will use the color
+								// of the parent composite, even when backgroundmode is
+								// INHERIT_NONE
+								// The hack fix is to not use the exact color :(
+  							Color c = display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+  							if (c.getRed() > 0) {
+  								c = ColorCache.getColor(display, c.getRed() - 1, c.getGreen(), c.getBlue());
+  							} else {
+  								c = ColorCache.getColor(display, c.getRed() + 1, c.getGreen(), c.getBlue());
+  							}
+  							cArea.setBackground(c);
+							}
 
 							oldMainWindow = new org.gudy.azureus2.ui.swt.mainwindow.MainWindow(
 									core, null, cArea.getShell(), cArea, uiSWTInstanceImpl);
