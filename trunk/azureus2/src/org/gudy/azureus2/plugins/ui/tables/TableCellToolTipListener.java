@@ -31,7 +31,7 @@ public interface TableCellToolTipListener {
    */
   void cellHover(TableCell cell);
 
-  /** triggered when a cell's tooltip is about to be re,pved.
+  /** triggered when a cell's tooltip is about to be removed.
    *
    * @param cell TableCell which the tooltip will be removed
    */
