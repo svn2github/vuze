@@ -14,6 +14,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.KeyBindings;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
@@ -138,6 +139,15 @@ public class MainMenu
 				}
 			});
 		}
+
+    new MenuItem(helpMenu,SWT.SEPARATOR);
+    MenuItem help_debug = new MenuItem(helpMenu, SWT.NULL);
+    Messages.setLanguageText(help_debug, "MainWindow.menu.help.debug");
+    help_debug.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+      	UIDebugGenerator.generate();
+      }
+    });
 	}
 
 	private void addViewMenu(Shell parent) {
