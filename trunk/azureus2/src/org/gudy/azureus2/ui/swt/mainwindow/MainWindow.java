@@ -76,13 +76,8 @@ import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
-import org.gudy.azureus2.plugins.PluginEvent;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginListener;
-import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
-import org.gudy.azureus2.plugins.sharing.ShareManagerListener;
-import org.gudy.azureus2.plugins.sharing.ShareResource;
 
 /**
  * @author Olivier
@@ -948,7 +943,9 @@ MainWindow
 					}
 				}
 
-				if (visible && Constants.isWindows) {
+				boolean bHideAndShow = visible && Constants.isWindows
+						&& display.getActiveShell() != shell;
+				if (bHideAndShow) {
 					// We don't want the window to just flash and not open, so:
 					// -Minimize main shell
 					// -Set all shells invisible
@@ -974,10 +971,10 @@ MainWindow
 					 if (trayIcon != null)
 					 trayIcon.showIcon();
 					 */
-					shell.setMinimized(false);
 					shell.forceActive();
+					shell.setMinimized(false);
 
-					if (Constants.isWindows) {
+					if (bHideAndShow) {
   					try {
     					Shell[] shells = shell.getDisplay().getShells();
     					for (int i = 0; i < shells.length; i++) {
