@@ -1,23 +1,33 @@
 AZUREUS CHANGELOG
 -----------------
 
-2007.xx.xx | Azureus 3.0.1.4
+2007.05.xx | Azureus 3.0.1.4
 
+FEATURE: Core | Byte-level download control for Downloads [Parg] 
+FEATURE: Core | Speed tester wizard [ranul,Parg]
 FEATURE: UI   | Added "Transfers Bar" (similar to the "Download Bar") [amc1]
 FEATURE: UI   | Correctly identifies FoxTorrent and Blizzard Downloader peers [amc1]
 FEATURE: UI   | Determines version information for Bits On Wheels and Opera peers [amc1]
+FEATURE: UI   | Vivaldi view can use mouse wheel too zoom now (requires clicking on the view first) [TuxPaper]
+FEATURE: UI   | Date Completed column [TuxPaper]
+FEATURE: UI   | (Beta) Various Auto Speed algorithms [ranul]
 FEATURE: UI   | Auto-open MyShares if any shares [Parg]
-FEATURE: Core | Speed tester wizard [ranul,Parg]
-FEATURE: Core | Byte-level download control for Downloads [Parg] 
 
 CHANGE: Core  | Handle 503s better with webseeds [Jochen Seifarth,Parg]
 CHANGE: Core  | Disable HTTP authentication dialog for webseeds [Parg]
 CHANGE: Core  | Reduce DHT registration counts for queued torrents [Parg]
+CHANGE: UI    | Running Azureus while azureus is already running now brings Azureus to front [TuxPaper]
+CHANGE: UI    | OSX: Make minimize to status bar icon hide the main window instead of putting it in the doc [TuxPaper]
 
+BUGFIX: Core  | Updater now works on Vista with security challenged users [TuxPaper] 
 BUGFIX: Core  | Fixup "Get Right" webseed handling as per the spec [Jochen Seifarth]
 BUGFIX: Core  | Fixed bug which sometimes prevented corrupted torrents being removed properly [amc1]
+BUGFIX: Core  | Fix rare case where app dir on win32 could report wrong azureus dir on multi-az computers [TuxPaper]
 BUGFIX: Core  | Prevent upnp dispatcher queue from growing too large [Parg]
 BUGFIX: Core  | Limit UPnP write-request exec threads [Parg]
+BUGFIX: UI    | Fixed force starting a torrent via the Open Torrent Window options. [TuxPaper]
+
+
 
 2007.04.12 | Azureus 3.0.1.2
 
