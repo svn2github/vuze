@@ -245,8 +245,6 @@ public class ConfigSectionTransferAutoSpeedBeta
         strategyList.addChangeListener( new GroupModeChangeListener() );
 
 
-        //ToDo: for now we put in just the Vivaldi settings, but this WILL change.
-
         //spacer
         Label spacer = new Label(modeGroup, SWT.NULL);
         gridData = new GridData();

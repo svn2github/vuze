@@ -455,8 +455,20 @@ SpeedManagerImpl
 			}
 		}
 	}
-	
-	public int
+
+    public int
+    getCurrentDataDownloadSpeed()
+    {
+        return( adapter.getCurrentDataDownloadSpeed() );
+    }
+
+    public int
+    getCurrentProtocolDownloadSpeed()
+    {
+        return( adapter.getCurrentProtocolDownloadSpeed() );
+    }
+
+    public int
 	getCurrentDownloadLimit()
 	{
 		return( adapter.getCurrentDownloadLimit());

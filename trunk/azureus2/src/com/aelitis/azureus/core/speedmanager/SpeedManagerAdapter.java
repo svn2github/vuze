@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.speedmanager;
 
+import org.gudy.azureus2.core3.global.GlobalManagerStats;
+
 public interface 
 SpeedManagerAdapter 
 {
@@ -44,8 +46,14 @@ SpeedManagerAdapter
 	public void
 	setCurrentDownloadLimit(
 		int		bytes_per_second );
-	
-	public Object
+
+    public int
+    getCurrentProtocolDownloadSpeed();
+
+    public int
+    getCurrentDataDownloadSpeed();
+
+    public Object
 	getLimits();
 	
 	public void

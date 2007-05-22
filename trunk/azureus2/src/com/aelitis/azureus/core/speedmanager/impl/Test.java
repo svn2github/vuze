@@ -178,7 +178,21 @@ Test
 		upload_limit	= bytes_per_second;
 	}
 
-	public int
+    public int
+    getCurrentDataDownloadSpeed()
+    {
+        //ToDo: late addition to the interface not tested here.
+        return (0);
+    }
+
+    public int
+    getCurrentProtocolDownloadSpeed()
+    {
+        //ToDo: late addition to the interface not tested here.
+        return (0);
+    }
+
+    public int
 	getCurrentDownloadLimit()
 	{
 		return( 0 );

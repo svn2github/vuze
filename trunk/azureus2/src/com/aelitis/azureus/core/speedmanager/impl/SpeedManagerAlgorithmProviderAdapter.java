@@ -38,8 +38,14 @@ SpeedManagerAlgorithmProviderAdapter
 	public void
 	setCurrentUploadLimit(
 		int		bytes_per_second );
-	
-	public int
+
+    public int
+    getCurrentProtocolDownloadSpeed();
+
+    public int
+    getCurrentDataDownloadSpeed();    
+
+    public int
 	getCurrentDownloadLimit();
 
 

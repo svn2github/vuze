@@ -15,6 +15,7 @@ import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 
 import java.util.*;
 
@@ -73,7 +74,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
     private int consecutiveUpticks=0;
     private int consecutiveDownticks=0;
-    private static float uptickDampingFactor=2.0f;
 
     //variables for display and vivaldi.
     private int lastMetricValue;
@@ -134,8 +134,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
                                 numIntervalsBetweenCal=COConfigurationManager.getIntParameter(
                                         SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
 
-                                //uptickDampingFactor=COConfigurationManager.getFloatParameter(
-                                //        SpeedManagerAlgorithmProviderV2.SETTING_UPTICK_ADJUST_FACTOR);
                             }
 
                             //NOTE: need to be careful about changing parameters used by changing parameters used by SpeedManagerAlgorithmV1.
@@ -186,13 +184,16 @@ public class SpeedManagerAlgorithmProviderVivaldi
     public void reset() {
         log("reset");
 
-        log("curr-data: curr-download : curr-upload-limit : curr-upload-data-speed : curr-proto-upload-speed");
+        //log("curr-data: curr-download : curr-upload-limit : curr-upload-data-speed : curr-proto-upload-speed");
+        log("curr-data: curr-down-rate : curr-down-limit : down-saturation-mode : curr-up-rate : curr-up-limit : upload-saturation-mode ");
 
         log( "new-limit:newLimit:currStep:signalStrength:multiple:currUpLimit:maxStep:uploadLimitMax:uploadLimitMin" );
 
         log("consecutive:up:down");
 
         log("metric:value:type");
+
+        log("user-comment:log");
     }
 
     /**
@@ -202,13 +203,12 @@ public class SpeedManagerAlgorithmProviderVivaldi
     public void updateStats() {
 
         //update some stats used in the UI.
-        int currDownload = adapter.getCurrentDownloadLimit();
+        int currDownLimit = adapter.getCurrentDownloadLimit();
 
         int currUploadLimit = adapter.getCurrentUploadLimit();
         int currDataUploadSpeed = adapter.getCurrentDataUploadSpeed();
         int currProtoUploadSpeed = adapter.getCurrentProtocolUploadSpeed();
 
-        log("curr-data:"+currDownload+":"+currUploadLimit+":"+currDataUploadSpeed+":"+currProtoUploadSpeed);
 
         //current upload limit setting
         //current upload average
@@ -218,6 +218,15 @@ public class SpeedManagerAlgorithmProviderVivaldi
         //current download average
         //current download data rate
 
+        int downDataRate = adapter.getCurrentDataDownloadSpeed();
+        int downProtoRate = adapter.getCurrentProtocolDownloadSpeed();
+        int downRate = downDataRate+downProtoRate;
+        //int downRate = COConfigurationManager.getIntParameter( TransferSpeedValidator.getDownloadParameter() ) * 1024;
+
+        SaturatedMode downSatMode = SaturatedMode.getSaturatedMode(downRate,currDownLimit);
+        SaturatedMode upSatMode = SaturatedMode.getSaturatedMode(currDataUploadSpeed,currUploadLimit);
+
+        log("curr-data:"+downRate+":"+currDownLimit+":"+downSatMode+":"+currDataUploadSpeed+":"+currUploadLimit+":"+upSatMode);
     }
 
     /**

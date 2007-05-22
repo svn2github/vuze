@@ -225,7 +225,30 @@ AzureusCoreImpl
 								return(0);
 							}
 						}
-						public int
+
+                        public int
+                        getCurrentProtocolDownloadSpeed()
+                        {
+                            if( global_manager != null ){
+                                GlobalManagerStats stats = global_manager.getStats();
+                                return (stats.getProtocolReceiveRate() );//ToDo: This needs to be Non-LAN.
+                            }else{
+                                return(0);
+                            }
+                        }
+
+                        public int
+                        getCurrentDataDownloadSpeed()
+                        {
+                            if( global_manager != null ){
+                                GlobalManagerStats stats = global_manager.getStats();
+                                return (stats.getDataReceiveRate() );//ToDo: This needs to be Non-LAN.
+                            }else{
+                                return(0);
+                            }
+                        }
+
+                        public int
 						getCurrentUploadLimit()
 						{
 							String key = TransferSpeedValidator.getActiveUploadParameter( global_manager );
