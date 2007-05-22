@@ -1868,7 +1868,7 @@ DownloadManagerController
 	{
 		if ( global_stats != null ){
 			
-			global_stats.protocolBytesReceived( bytes );
+			global_stats.protocolBytesReceived( bytes, peer.isLANLocal());
 		}
 	}
 	
@@ -1879,7 +1879,7 @@ DownloadManagerController
 	{
 		if ( global_stats != null ){
 			
-			global_stats.dataBytesReceived( bytes );
+			global_stats.dataBytesReceived( bytes, peer.isLANLocal());
 		}
 	}
 	

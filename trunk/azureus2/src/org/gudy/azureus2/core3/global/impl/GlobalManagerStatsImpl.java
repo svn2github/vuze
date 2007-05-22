@@ -49,6 +49,8 @@ GlobalManagerStatsImpl
     
 	private Average data_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
     private Average protocol_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+	private Average data_receive_speed_no_lan = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+    private Average protocol_receive_speed_no_lan = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 
 	private Average data_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
     private Average protocol_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
@@ -84,93 +86,99 @@ GlobalManagerStatsImpl
 	}
 	
   			// update methods
-  			
-	  public void discarded(int length) {
-	    this.totalDiscarded += length;
-	  }
 
-	  public void dataBytesReceived(int length) {
-	    total_data_bytes_received += length;
-	    data_receive_speed.addValue(length);
-	  }
-    
-    
-    public void protocolBytesReceived(int length) {
-      total_protocol_bytes_received += length;
-      protocol_receive_speed.addValue(length);
+	public void discarded(int length) {
+		this.totalDiscarded += length;
+	}
+
+	public void dataBytesReceived(int length,boolean LAN){
+		total_data_bytes_received += length;
+		if ( !LAN ){
+			data_receive_speed_no_lan.addValue(length);
+		}
+		data_receive_speed.addValue(length);
+	}
+
+
+	public void protocolBytesReceived(int length, boolean LAN ){
+		total_protocol_bytes_received += length;
+		if ( !LAN ){
+			protocol_receive_speed_no_lan.addValue(length);
+		}
+		protocol_receive_speed.addValue(length);
+	}
+
+	public void dataBytesSent(int length, boolean LAN) {
+		total_data_bytes_sent += length;
+		if ( !LAN ){
+			data_send_speed_no_lan.addValue(length);
+		}
+		data_send_speed.addValue(length);
+	}
+
+
+	public void protocolBytesSent(int length, boolean LAN) {
+		total_protocol_bytes_sent += length;
+		if ( !LAN ){
+			protocol_send_speed_no_lan.addValue(length);
+		}
+		protocol_send_speed.addValue(length);
+	}
+
+	public int getDataReceiveRate() {
+		return (int)data_receive_speed.getAverage();
+	}
+	public int getDataReceiveRateNoLAN() {
+		return (int)data_receive_speed_no_lan.getAverage();
+	}
+
+	public int getProtocolReceiveRate() {
+		return (int)protocol_receive_speed.getAverage();
+	}
+	public int getProtocolReceiveRateNoLAN() {
+		return (int)protocol_receive_speed_no_lan.getAverage();
+	}
+
+	public int getDataSendRate() {
+		return (int)data_send_speed.getAverage();
+	}
+	public int getDataSendRateNoLAN() {
+		return (int)data_send_speed_no_lan.getAverage();
+	}
+	public int getProtocolSendRate() {
+		return (int)protocol_send_speed.getAverage();
+	}
+	public int getProtocolSendRateNoLAN() {
+		return (int)protocol_send_speed_no_lan.getAverage();
+	}
+
+
+
+    public long getTotalDataBytesSent() {
+    	return total_data_bytes_sent;
     }
-    
-    
 
-	  public void dataBytesSent(int length, boolean LAN) {
-	    total_data_bytes_sent += length;
-	    if ( !LAN ){
-	    	data_send_speed_no_lan.addValue(length);
-	    }
-	    data_send_speed.addValue(length);
-	  }
-    
-    
-    public void protocolBytesSent(int length, boolean LAN) {
-      total_protocol_bytes_sent += length;
-      if ( !LAN ){
-    	  protocol_send_speed_no_lan.addValue(length);
-      }
-      protocol_send_speed.addValue(length);
-    }
-    
-
- 
-	  public int getDataReceiveRate() {
-	    return (int)data_receive_speed.getAverage();
-	  }
-    
-    public int getProtocolReceiveRate() {
-      return (int)protocol_receive_speed.getAverage();
-    }
-    
-    
-  
-	  public int getDataSendRate() {
-		  return (int)data_send_speed.getAverage();
-	  }
-	  public int getDataSendRateNoLAN() {
-		  return (int)data_send_speed_no_lan.getAverage();
-	  }
-	  public int getProtocolSendRate() {
-		  return (int)protocol_send_speed.getAverage();
-	  }
-	  public int getProtocolSendRateNoLAN() {
-		  return (int)protocol_send_speed_no_lan.getAverage();
-	  }
-    
-
-    
-	  public long getTotalDataBytesSent() {
-	    return total_data_bytes_sent;
-	  }
-    
     public long getTotalProtocolBytesSent() {
-      return total_protocol_bytes_sent;
+    	return total_protocol_bytes_sent;
     }
-    
-  
-	  public long getTotalDataBytesReceived() {
-	    return total_data_bytes_received;
-	  }
-    
+
+
+    public long getTotalDataBytesReceived() {
+    	return total_data_bytes_received;
+    }
+
     public long getTotalProtocolBytesReceived() {
-      return total_protocol_bytes_received;
+    	return total_protocol_bytes_received;
     }
-    
-    
-	  public long getTotalDiscardedRaw() {
-		  return totalDiscarded;
-	  }
-	  
-	  public long getTotalSwarmsPeerRate(boolean downloading, boolean seeding )
-	  {
-		  return( manager.getTotalSwarmsPeerRate(downloading,seeding));
-	  }
+
+
+    public long getTotalDiscardedRaw() {
+    	return totalDiscarded;
+    }
+
+    public long getTotalSwarmsPeerRate(boolean downloading, boolean seeding )
+    {
+    	return( manager.getTotalSwarmsPeerRate(downloading,seeding));
+    }
 
 }

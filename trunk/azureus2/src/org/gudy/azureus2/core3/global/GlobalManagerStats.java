@@ -29,8 +29,10 @@ public interface
 GlobalManagerStats 
 {
 	public int getDataReceiveRate();
-  
+	public int getDataReceiveRateNoLAN();
+
 	public int getProtocolReceiveRate();
+	public int getProtocolReceiveRateNoLAN();
 	
 	public int getDataSendRate();
 	public int getDataSendRateNoLAN();
@@ -55,8 +57,8 @@ GlobalManagerStats
 	public void	dataBytesSent( int bytes, boolean LAN );
 	public void protocolBytesSent( int bytes, boolean LAN );
 		
-	public void dataBytesReceived( int bytes );
-	public void protocolBytesReceived( int bytes );
+	public void dataBytesReceived( int bytes, boolean LAN );
+	public void protocolBytesReceived( int bytes, boolean LAN );
 		
 	public void
 	discarded(
