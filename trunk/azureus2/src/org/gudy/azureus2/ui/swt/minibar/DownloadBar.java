@@ -82,22 +82,22 @@ public class DownloadBar extends MiniBar {
 	public void beginConstruction() {
 		
 		// Download name.
-		this.createFixedTextLabel("MinimizedWindow.name", false);
+		this.createFixedTextLabel("MinimizedWindow.name", false, false);
 		this.download_name = this.createDataLabel(200);
 		
 		// Download progress.
 		this.progress_bar = this.createPercentProgressBar(100);
 		
 		// Download speed.
-		this.createFixedTextLabel("ConfigView.download.abbreviated", false);
+		this.createFixedTextLabel("ConfigView.download.abbreviated", false, false);
 		this.down_speed = this.createDataLabel(65);
 		
 		// Upload speed.
-		this.createFixedTextLabel("ConfigView.upload.abbreviated", false);
+		this.createFixedTextLabel("ConfigView.upload.abbreviated", false, false);
 		this.up_speed = this.createDataLabel(65);
 		
 		// ETA.
-		this.createFixedTextLabel("MyTorrentsView.eta", true);
+		this.createFixedTextLabel("MyTorrentsView.eta", true, false);
 		this.eta = this.createDataLabel(65);
 	}
 	

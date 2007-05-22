@@ -30,6 +30,8 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
@@ -66,6 +68,8 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	protected int hSize;
 	protected Shell splash;
 	protected MiniBarManager manager;
+	
+	private Font bold_font = null;
 
 	//
 	// These are components used during the construction of the bar.
@@ -93,8 +97,17 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 			throw new RuntimeException("not constructing!");
 	}
 	
+	private Font createBoldFont(Font original) {
+		FontData[] font_data = original.getFontData();
+		for (int i=0; i<font_data.length; i++) {
+			font_data[i].setStyle(font_data[i].getStyle() | SWT.BOLD);
+		}
+		return new Font(original.getDevice(), font_data);
+	}
+	
 	protected final void createGap(int width) {
 		// We create a label just so we can attach the menu to it.
+		assertConstructing();
 		Label result = new Label(splash, SWT.NONE);
 	    result.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
 	    result.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
@@ -107,12 +120,18 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    this.xSize += width;
 	}
 	
-	protected final void createFixedTextLabel(String msg_key, boolean add_colon) {
+	protected final void createFixedTextLabel(String msg_key, boolean add_colon, boolean bold) {
 		assertConstructing();
 	    Label result = new Label(splash, SWT.NONE);
 	    result.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
 	    result.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
 	    result.setText(MessageText.getString(msg_key) + ((add_colon) ? ":" : ""));
+	    if (bold) {
+	    	if (this.bold_font == null) {
+	    		this.bold_font = createBoldFont(result.getFont());
+	    	}
+	    	result.setFont(this.bold_font);
+	    }
 	    result.addMouseListener(this.mListener);
 	    result.addMouseMoveListener(this.mMoveListener);
 	    result.pack();
@@ -428,6 +447,9 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 					public void runSupport() {
 						if (!splash.isDisposed()) {
 							splash.dispose();
+						}
+						if (bold_font != null && !bold_font.isDisposed()) {
+							bold_font.dispose();
 						}
 					}
 				});

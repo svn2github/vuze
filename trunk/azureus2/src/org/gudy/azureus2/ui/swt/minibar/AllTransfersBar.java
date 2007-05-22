@@ -74,15 +74,15 @@ public class AllTransfersBar extends MiniBar {
 	public Object getContextObject() {return this.g_manager;}
 	
 	public void beginConstruction() {
-		this.createFixedTextLabel("MinimizedWindow.all_transfers", false);
-		this.createGap(20);
+		this.createFixedTextLabel("MinimizedWindow.all_transfers", false, true);
+		this.createGap(40);
 
 		// Download speed.
-		this.createFixedTextLabel("ConfigView.download.abbreviated", false);
+		this.createFixedTextLabel("ConfigView.download.abbreviated", false, false);
 		this.down_speed = this.createDataLabel(65);
 		
 		// Upload speed.
-		this.createFixedTextLabel("ConfigView.upload.abbreviated", false);
+		this.createFixedTextLabel("ConfigView.upload.abbreviated", false, false);
 		this.up_speed = this.createDataLabel(65);
 	}
 	
