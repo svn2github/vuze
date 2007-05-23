@@ -28,7 +28,7 @@ public class
 CopyOnWriteList 
 {
 	private volatile List	list = new ArrayList();
-	private volatile int	version;
+	//private volatile int	version;
 	
 	public void
 	add(
@@ -42,7 +42,7 @@ CopyOnWriteList
 		
 			list	= new_list;
 			
-			version++;
+			//version++;
 		}
 	}
 	
@@ -58,9 +58,20 @@ CopyOnWriteList
 		
 			list	= new_list;
 			
-			version++;
+			//version++;
 			
 			return( result );
+		}
+	}
+	
+	public void
+	clear()
+	{
+		synchronized( list ){
+								
+			list	= new ArrayList();
+			
+			//version++;
 		}
 	}
 	
@@ -89,9 +100,11 @@ CopyOnWriteList
 		return( list.size());
 	}
 	
+	/*
 	public int
 	getVersion()
 	{
 		return( version );
 	}
+	*/
 }
