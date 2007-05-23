@@ -118,12 +118,16 @@ public class SplashWindow implements InitializerListener {
   public void closeSplash() {
     Utils.execSWTThread(new AERunnable(){
       public void runSupport() {
-		    if(initializer != null)
-		      initializer.removeListener(SplashWindow.this);
-		    if(splash != null && !splash.isDisposed())
-		      splash.dispose();
-		    ImageRepository.unloadImage("azureus_splash");
-      }
+				try {
+					if (initializer != null)
+						initializer.removeListener(SplashWindow.this);
+					if (splash != null && !splash.isDisposed())
+						splash.dispose();
+					ImageRepository.unloadImage("azureus_splash");
+				} catch (Exception e) {
+					//ignore
+				}
+			}
     });
   }
   
@@ -169,6 +173,10 @@ public class SplashWindow implements InitializerListener {
         }
       }
     });
+	}
+	
+	public int getPercent() {
+		return percent;
 	}
 
 	// AzureusCoreListener
