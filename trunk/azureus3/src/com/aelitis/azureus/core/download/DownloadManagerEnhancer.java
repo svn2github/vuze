@@ -29,12 +29,15 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
@@ -140,6 +143,31 @@ DownloadManagerEnhancer
 				public void
 				closedownComplete()
 				{
+				}
+			});
+		
+		PlatformTorrentUtils.addListener(
+			new MetaDataUpdateListener()
+			{
+				public void 
+				metaDataUpdated(
+					TOTorrent torrent )
+				{
+					 DownloadManager dm = core.getGlobalManager().getDownloadManager( torrent );
+
+					 if ( dm == null ){
+						 
+						 Debug.out( "Meta data update: download not found for " + torrent );
+						 
+					 }else{
+						
+						 EnhancedDownloadManager edm = getEnhancedDownload( dm );
+						 
+						 if ( edm != null ){
+							 
+							 edm.refreshMetaData();
+						 }
+					 }
 				}
 			});
 		

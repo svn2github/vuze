@@ -210,39 +210,7 @@ EnhancedDownloadManager
 			
 			platform_content = PlatformTorrentUtils.isContent( torrent );
 			
-			long original_stream_bps = content_stream_bps_min = PlatformTorrentUtils.getContentStreamSpeedBps( torrent );
-			
-			if ( content_stream_bps_min == 0 ){
-			
-					// hack in some test values for torrents that don't have a bps in them yet
-				
-				long	size = torrent.getSize();
-				
-				if ( size < 200*1024*1024 ){
-				
-					content_stream_bps_min = 30*1024;
-					
-				}else if ( size < 1000*1024*1024L ){
-					
-					content_stream_bps_min = 200*1024;
-					
-				}else{
-
-					content_stream_bps_min = 400*1024;
-				}
-			}
-				
-					// dump it up by a bit to be conservative to deal with fluctuations, discards etc.
-				
-			content_stream_bps_max = content_stream_bps_min + ( content_stream_bps_min / 5 );
-			
-			content_min_bps = PlatformTorrentUtils.getContentMinimumSpeedBps( torrent );
-						
-			if ( platform_content ){
-				
-				log( 	"content_stream_bps=" + content_stream_bps_min + " (orig=" + original_stream_bps + ")" +
-						",content_min_bps=" + content_min_bps );
-			}
+			calculateSpeeds();
 		}
 		
 		download_manager.addPeerListener(
@@ -399,6 +367,59 @@ EnhancedDownloadManager
 	getName()
 	{
 		return( download_manager.getDisplayName());
+	}
+	
+	protected void
+	refreshMetaData()
+	{
+		calculateSpeeds();
+	}
+	
+	protected void
+	calculateSpeeds()
+	{
+		TOTorrent	torrent = download_manager.getTorrent();
+
+		if ( torrent == null ){
+			
+			return;
+		}
+		
+		long old_content_stream_bps_min = content_stream_bps_min;
+		
+		long original_stream_bps = content_stream_bps_min = PlatformTorrentUtils.getContentStreamSpeedBps( torrent );
+		
+		if ( content_stream_bps_min == 0 ){
+		
+				// hack in some test values for torrents that don't have a bps in them yet
+			
+			long	size = torrent.getSize();
+			
+			if ( size < 200*1024*1024 ){
+			
+				content_stream_bps_min = 30*1024;
+				
+			}else if ( size < 1000*1024*1024L ){
+				
+				content_stream_bps_min = 200*1024;
+				
+			}else{
+
+				content_stream_bps_min = 400*1024;
+			}
+		}
+			
+				// dump it up by a bit to be conservative to deal with fluctuations, discards etc.
+			
+		content_stream_bps_max = content_stream_bps_min + ( content_stream_bps_min / 5 );
+		
+		content_min_bps = PlatformTorrentUtils.getContentMinimumSpeedBps( torrent );
+					
+		if ( old_content_stream_bps_min == 0 && content_stream_bps_min > 0 ){
+			
+			log( 	"content_stream_bps=" + content_stream_bps_min + " (orig=" + original_stream_bps + ")" +
+					",content_min_bps=" + content_min_bps );
+		}
 	}
 	
 	protected long
@@ -1002,9 +1023,7 @@ EnhancedDownloadManager
 		progressiveStats stats = getProgressiveStats();
 		
 		long	eta = stats.getETA();
-		
-		System.out.println( "eta=" + eta );
-		
+				
 		return( eta );
 	}
 	
