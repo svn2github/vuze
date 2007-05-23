@@ -335,7 +335,9 @@ public class MainWindow
 
 		Utils.disposeComposite(shell);
 
-		splash.reportPercent(60);
+		if (splash != null) {
+			splash.reportPercent(splash.getPercent() + 1);
+		}
 
 		// XXX Temporary.  We'll use our own images
 		ImageRepository.loadImagesForSplashWindow(display);
@@ -350,11 +352,17 @@ public class MainWindow
 		Utils.setShellIcon(shell);
 		Utils.linkShellMetricsToConfig(shell, "window");
 
-		splash.reportPercent(70);
+		if (splash != null) {
+			splash.reportPercent(splash.getPercent() + 1);
+		}
 
 		skin = SWTSkinFactory.getInstance();
 
 		initSkinListeners();
+
+		if (splash != null) {
+			splash.reportPercent(splash.getPercent() + 1);
+		}
 
 		// attach the UI to plugins
 		// Must be done before initializing views, since plugins may register
@@ -364,7 +372,9 @@ public class MainWindow
 
 		skin.initialize(shell, "main.shell");
 
-		splash.reportPercent(80);
+		if (splash != null) {
+			splash.reportPercent(splash.getPercent() + 1);
+		}
 
 		System.out.println("skin init took "
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -404,7 +414,9 @@ public class MainWindow
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
 		startTime = SystemTime.getCurrentTime();
 
-		splash.reportPercent(90);
+		if (splash != null) {
+			splash.reportPercent(splash.getPercent() + 1);
+		}
 
 		skin.layout();
 

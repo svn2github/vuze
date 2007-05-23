@@ -286,7 +286,7 @@ public class Initializer
 		reportPercent(curPercent + 1);
 		new CertificateTrustWindow();
 
-		reportPercent(99);
+		reportPercent(90);
 
 		InstallPluginWizard.register(core, display);
 
