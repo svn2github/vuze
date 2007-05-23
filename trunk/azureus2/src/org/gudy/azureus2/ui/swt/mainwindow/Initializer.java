@@ -44,6 +44,7 @@ import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -66,7 +67,8 @@ Initializer
   private GlobalManager 	gm;
   private StartServer 		startServer;
   
-  private ArrayList listeners;
+  private CopyOnWriteList listeners = new CopyOnWriteList();
+  
   private AEMonitor	listeners_mon	= new AEMonitor( "Initializer:l" );
 
   private String[] args;
@@ -76,9 +78,7 @@ Initializer
   		final AzureusCore		_azureus_core,
   		StartServer 			_server,
 		String[] 				_args ) 
-  {
-    listeners = new ArrayList();
-    
+  {   
     azureus_core	= _azureus_core;
     startServer 	= _server;
     args 			= _args;
@@ -324,8 +324,15 @@ Initializer
      
 	    Iterator iter = listeners.iterator();
 	    while(iter.hasNext()) {
-	    	InitializerListener listener = (InitializerListener) iter.next();
-	      listener.reportCurrentTask(currentTaskString);
+	    	try{
+	    		InitializerListener listener = (InitializerListener) iter.next();
+	      
+	    		listener.reportCurrentTask(currentTaskString);
+	    		
+	    	}catch( Throwable e ){
+	    		
+	    		Debug.printStackTrace( e );
+	    	}
 	    }
     }finally{
     	
@@ -341,8 +348,15 @@ Initializer
     
 	    Iterator iter = listeners.iterator();
 	    while(iter.hasNext()) {
-	    	InitializerListener listener = (InitializerListener) iter.next();
-	      listener.reportPercent(overallPercent);
+	    	try{
+	    		InitializerListener listener = (InitializerListener) iter.next();
+	      
+	    		listener.reportPercent(overallPercent);
+	    		
+	    	}catch( Throwable e ){
+	    		
+	    		Debug.printStackTrace( e );
+	    	}
 	    }
 
 	    if (overallPercent > 100) {
