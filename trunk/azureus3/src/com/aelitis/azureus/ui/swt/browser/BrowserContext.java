@@ -252,7 +252,7 @@ public class BrowserContext
 
 					// Backup in case changed(..) is never called
 					timerevent = SimpleTimer.addEvent("Hide Indicator",
-							System.currentTimeMillis() + 5000, hideIndicatorPerformer);
+							System.currentTimeMillis() + 20000, hideIndicatorPerformer);
 				}
 			}
 		});
