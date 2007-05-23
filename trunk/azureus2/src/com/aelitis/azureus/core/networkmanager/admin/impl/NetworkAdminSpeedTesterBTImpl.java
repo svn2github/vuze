@@ -222,7 +222,8 @@ public class NetworkAdminSpeedTesterBTImpl
             
             	// make sure we've got a bunch of upload slots
             
-            core_download.getDownloadState().setIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS, 10 );
+            core_download.getDownloadState().setIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS, 32 );
+            core_download.getDownloadState().setIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING, 32 );
             
             if ( use_crypto ){
             	
