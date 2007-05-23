@@ -105,7 +105,10 @@ public class SelectorGuard {
     consecutiveZeroSelects++;
     
     if( consecutiveZeroSelects % 20 == 0 && Constants.isWindows ) {
-      Debug.out( "consecutiveZeroSelects=" +consecutiveZeroSelects );
+    	// getting triggered with 20 +_ sometimes 40 due to general high CPU usage
+      if ( consecutiveZeroSelects > 40 ){
+    	  Debug.out( "consecutiveZeroSelects=" +consecutiveZeroSelects );
+      }
     }
     
     
