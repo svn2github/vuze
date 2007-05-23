@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
@@ -64,7 +65,7 @@ public class Initializer
 
 	private final String[] args;
 
-	private ArrayList listeners = new ArrayList();
+	private CopyOnWriteList listeners = new CopyOnWriteList();
 
 	private AEMonitor listeners_mon = new AEMonitor("Initializer:l");
 
