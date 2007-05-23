@@ -80,13 +80,16 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	private MouseMoveListener mMoveListener;
 	private MouseListener mListener;
 	private int xSize;
-
+	private boolean separateDataProt;
+	
 	protected MiniBar(MiniBarManager manager) {
 		this.manager = manager;
 		this.constructing = false;
 		this.constructed = false;
 		this.xSize = 0;
 		this.hSize = -1;
+		
+		this.separateDataProt = DisplayFormatters.isDataProtSeparate();
 	}
 	
 	//
@@ -147,7 +150,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	
 	protected final Label createDataLabel(int width) {
 		assertConstructing();
-	    Label result = new Label(splash, SWT.NONE);
+	    Label result = new Label(splash, SWT.CENTER);
 	    result.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
 	    result.setText("");
 	    result.addMouseListener(this.mListener);
@@ -201,6 +204,25 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 				return DisplayFormatters.formatPercentFromThousands(value);
 			}
 		});
+	}
+	
+	protected int
+	getDataLabelWidth()
+	{
+		if ( separateDataProt ){
+			
+			return( 110 );
+			
+		}else{
+			
+			return( 65 );
+		}
+	}
+	
+	protected boolean
+	isSeparateDataProt()
+	{
+		return( separateDataProt );
 	}
 	
 	protected static interface ProgressBarText {

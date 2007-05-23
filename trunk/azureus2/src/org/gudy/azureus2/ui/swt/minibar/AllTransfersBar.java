@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -79,11 +80,11 @@ public class AllTransfersBar extends MiniBar {
 
 		// Download speed.
 		this.createFixedTextLabel("ConfigView.download.abbreviated", false, false);
-		this.down_speed = this.createDataLabel(65);
+		this.down_speed = this.createDataLabel(getDataLabelWidth());
 		
 		// Upload speed.
 		this.createFixedTextLabel("ConfigView.upload.abbreviated", false, false);
-		this.up_speed = this.createDataLabel(65);
+		this.up_speed = this.createDataLabel(getDataLabelWidth());
 	}
 	
 	public void buildMenu(Menu menu) {
@@ -137,8 +138,16 @@ public class AllTransfersBar extends MiniBar {
 	}
 	
 	public void refresh() {
-    	this.down_speed.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(g_manager.getStats().getDataReceiveRate()));
-    	this.up_speed.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(g_manager.getStats().getDataSendRate()));
+		GlobalManagerStats stats = g_manager.getStats();
+		
+		if ( isSeparateDataProt()){
+		   	this.down_speed.setText(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(stats.getDataReceiveRate(),stats.getProtocolReceiveRate()));
+	    	this.up_speed.setText(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(stats.getDataSendRate(),stats.getProtocolSendRate()));
+
+		}else{
+	    	this.down_speed.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()));
+	    	this.up_speed.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()));
+		}
 	}
 	
 	public String getPluginMenuIdentifier(Object context) {

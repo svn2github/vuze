@@ -21,6 +21,8 @@
 package org.gudy.azureus2.ui.swt.minibar;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
+import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -90,11 +92,11 @@ public class DownloadBar extends MiniBar {
 		
 		// Download speed.
 		this.createFixedTextLabel("ConfigView.download.abbreviated", false, false);
-		this.down_speed = this.createDataLabel(65);
+		this.down_speed = this.createDataLabel(getDataLabelWidth());
 		
 		// Upload speed.
 		this.createFixedTextLabel("ConfigView.upload.abbreviated", false, false);
-		this.up_speed = this.createDataLabel(65);
+		this.up_speed = this.createDataLabel(getDataLabelWidth());
 		
 		// ETA.
 		this.createFixedTextLabel("MyTorrentsView.eta", true, false);
@@ -131,11 +133,21 @@ public class DownloadBar extends MiniBar {
 	}
 	
 	public void refresh() {
+		DownloadManagerStats stats = download.getStats();
+
         download_name.setText(download.getDisplayName());
-        int percent = download.getStats().getCompleted();
-        down_speed.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(download.getStats().getDataReceiveRate()));
-        up_speed.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(download.getStats().getDataSendRate()));
-        eta.setText(DisplayFormatters.formatETA(download.getStats().getETA()));
+        int percent = stats.getCompleted();
+        
+		if ( isSeparateDataProt()){
+		   	this.down_speed.setText(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(stats.getDataReceiveRate(),stats.getProtocolReceiveRate()));
+	    	this.up_speed.setText(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(stats.getDataSendRate(),stats.getProtocolSendRate()));
+
+		}else{
+	    	this.down_speed.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()));
+	    	this.up_speed.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()));
+		}
+		
+        eta.setText(DisplayFormatters.formatETA(stats.getETA()));
         if (progress_bar.getSelection() != percent) {
         	progress_bar.setSelection(percent);
         	progress_bar.redraw();

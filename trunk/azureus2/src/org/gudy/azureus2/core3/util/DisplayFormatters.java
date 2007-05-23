@@ -411,6 +411,12 @@ DisplayFormatters
 				+ (rate ? units_rate[unitIndex] : units[unitIndex]);
 	}
 
+	public static boolean
+	isDataProtSeparate()
+	{
+		return( separate_prot_data_stats );
+	}
+	
 	public static String
 	formatDataProtByteCountToKiBEtc(
 		long	data,
