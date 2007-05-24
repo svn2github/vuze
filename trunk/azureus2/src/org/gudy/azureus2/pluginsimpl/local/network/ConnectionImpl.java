@@ -26,7 +26,6 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.plugins.network.*;
 
-import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 
 
 /**

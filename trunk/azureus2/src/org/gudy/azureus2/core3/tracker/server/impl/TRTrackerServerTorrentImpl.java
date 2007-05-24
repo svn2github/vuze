@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
-import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 
 
 public class 

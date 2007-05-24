@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
-import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerWebPageResponseImpl;
 import org.gudy.azureus2.pluginsimpl.local.*;
 
 import com.aelitis.azureus.core.util.HTTPUtils;
