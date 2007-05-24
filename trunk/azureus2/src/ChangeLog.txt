@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 -----------------
 
-2007.05.xx | Azureus 3.0.1.4
+2007.05.24 | Azureus 3.0.1.4
 
 FEATURE: Core | Byte-level download control for Downloads [Parg] 
 FEATURE: Core | Speed tester wizard [ranul,Parg]
