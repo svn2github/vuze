@@ -41,7 +41,7 @@ UpdaterUpdateChecker
 	public static String
 	getPluginID()
 	{
-		return( UpdaterUtils.PLUGIN_ID );
+		return( UpdaterUtils.AZUPDATER_PLUGIN_ID );
 	}
 	
 	public void

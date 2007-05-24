@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 /**
@@ -34,9 +35,13 @@ import org.gudy.azureus2.core3.util.FileUtil;
  */
 public class UpdaterUtils
 {
-	protected static String PLUGIN_ID = "azupdater";
+	protected static String AZUPDATER_PLUGIN_ID = "azupdater";
+	protected static String AZUPNPAV_PLUGIN_ID 	= "azupnpav";
 
-	public static boolean disableNativeCode(String version) {
+	public static boolean 
+	disableNativeCode(
+		String version )
+	{
 		try {
 			File plugin_dir = null;
 
@@ -45,7 +50,7 @@ public class UpdaterUtils
 
 			File shared_plugin_dir = FileUtil.getApplicationFile("plugins");
 
-			File shared_updater_plugin = new File(shared_plugin_dir, PLUGIN_ID);
+			File shared_updater_plugin = new File(shared_plugin_dir, AZUPDATER_PLUGIN_ID);
 
 			if (shared_updater_plugin.exists()) {
 
@@ -67,61 +72,118 @@ public class UpdaterUtils
 		return (false);
 	}
 
-	public static void checkPlugin() {
-		try {
-			// this is a bootstrap to ensure that the updater plugin exists
+	public static void 
+	checkBootstrapPlugins() 
+	{
+		try{
+			File	target_props = getPropsIfNotPresent( AZUPDATER_PLUGIN_ID, true );
+			
+			if ( target_props != null ){
+				
+				writePluginProperties(
+					target_props,
+					new String[]{
+						"plugin.class=org.gudy.azureus2.update.UpdaterUpdateChecker;org.gudy.azureus2.update.UpdaterPatcher",
+						"plugin.name=Azureus Update Support;Azureus Updater Support Patcher" });
 
-			File user_plugin_dir = FileUtil.getUserFile("plugins");
-
-			File user_updater_plugin = new File(user_plugin_dir, PLUGIN_ID);
-
-			File user_updater_props = new File(user_updater_plugin,
-					"plugin.properties");
-
-			if (user_updater_props.exists()) {
-
-				return;
 			}
 
-			File shared_plugin_dir = FileUtil.getApplicationFile("plugins");
-
-			File shared_updater_plugin = new File(shared_plugin_dir, PLUGIN_ID);
-
-			FileUtil.mkdirs(shared_updater_plugin);
-
-			File props = new File(shared_updater_plugin, "plugin.properties");
-
-			if (props.exists()) {
-
-				return;
+				// has to go into USER dir as currently VISTA plugin install into shared is BROKEN!
+			
+			target_props = getPropsIfNotPresent( AZUPNPAV_PLUGIN_ID, false );
+			
+			if ( target_props != null ){
+				
+				writePluginProperties(
+					target_props,
+					new String[]{
+						"plugin.class=com.aelitis.azureus.plugins.upnpmediaserver.UPnPMediaServer",
+						"plugin.name=UPnP Media Server",
+						"plugin.id=azupnpav" });
 			}
+		}catch( Throwable e){
+			
+			Debug.printStackTrace(e);
+		}
+	}
 
+	protected static void
+	writePluginProperties(
+		File		target,
+		String[]	lines )
+	{
+		try{
 			PrintWriter pw = null;
-
-			try {
-				pw = new PrintWriter(new FileWriter(props));
-
-				pw.println("plugin.class=org.gudy.azureus2.update.UpdaterUpdateChecker;org.gudy.azureus2.update.UpdaterPatcher");
-				pw.println("plugin.name=Azureus Update Support;Azureus Updater Support Patcher");
-
-			} finally {
-
-				if (pw != null) {
-
+			
+			try{
+				pw = new PrintWriter(new FileWriter(target));
+	
+				for (int i=0;i<lines.length;i++){
+				
+					pw.println( lines[i] );
+				}
+				
+				pw.println( "plugin.install_if_missing=yes" );
+				
+			}finally{
+	
+				if ( pw != null ){
+	
 					pw.close();
 				}
 			}
 
-			if (!props.exists()) {
+			if (!target.exists()) {
 
-				throw (new Exception("Failed to write '" + props.toString() + "'"));
+				throw (new Exception("Failed to write '" + target.toString() + "'"));
 			}
-
 		} catch (Throwable e) {
 
-			Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
-					"azupdater plugin: initialisation error", e));
+			Logger.log(
+				new LogAlert(
+					LogAlert.UNREPEATABLE,
+					"Plugin bootstrap: initialisation error for " + target, e ));
 		}
 	}
+	
+	protected static File
+	getPropsIfNotPresent(
+		String		id,
+		boolean		use_shared )
+	{
+		File user_plugin_dir = FileUtil.getUserFile("plugins");
 
+		File user_plugin = new File(user_plugin_dir, id);
+
+		File user_props = new File( user_plugin, "plugin.properties" );
+
+		if ( user_props.exists()){
+
+			return( null );
+		}
+
+		File shared_plugin_dir = FileUtil.getApplicationFile("plugins");
+
+		File shared_plugin = new File(shared_plugin_dir, id);
+
+		File shared_props = new File(shared_plugin, "plugin.properties");
+
+		if ( shared_props.exists()){
+
+			return( null );
+		}
+
+		if ( use_shared ){
+		
+			FileUtil.mkdirs( shared_plugin );
+			
+			return( shared_props );
+			
+		}else{
+			
+			FileUtil.mkdirs( user_plugin );
+			
+			return( user_props );	
+		}
+	}	
 }
