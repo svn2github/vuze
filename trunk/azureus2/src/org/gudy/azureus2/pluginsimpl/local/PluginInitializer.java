@@ -313,7 +313,7 @@ PluginInitializer
        
     plugin_manager = PluginManagerImpl.getSingleton( this );
     
-    UpdaterUtils.checkPlugin();
+    UpdaterUtils.checkBootstrapPlugins();
   }
   
   	public List 
@@ -722,6 +722,13 @@ PluginInitializer
       if ( plugin_class_string == null ){
       	
       	plugin_class_string = (String)props.get( "plugin.classes");
+      	
+      	if ( plugin_class_string == null ){
+      		
+      			// set so we don't bork later will npe
+      		
+      		plugin_class_string = "";
+      	}
       }
       
       String	plugin_name_string = (String)props.get( "plugin.name");
@@ -865,7 +872,15 @@ PluginInitializer
 	    		  
 	    	  }catch( Throwable e ){
 	      	
-	    		  load_failure	= e;
+	    		  if ( 	e instanceof ClassNotFoundException &&
+	    				props.getProperty( "plugin.install_if_missing", "no" ).equalsIgnoreCase( "yes" )){
+	    			  
+	    			  // don't report the failure
+	    			  
+	    		  }else{
+	    			  
+	    			  load_failure	= e;
+	    		  }
 	      	
 	    		  plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
 	    	  }
