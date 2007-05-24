@@ -23,7 +23,6 @@
 package org.gudy.azureus2.plugins.ui.menus;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /** Menu item access for the UI.
  *

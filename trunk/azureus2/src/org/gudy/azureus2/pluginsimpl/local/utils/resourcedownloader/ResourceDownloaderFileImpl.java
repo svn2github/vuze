@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
-import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerWebPageResponseImpl;
 
 import com.aelitis.azureus.core.util.HTTPUtils;
 

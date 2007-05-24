@@ -22,8 +22,6 @@
 
 package org.gudy.azureus2.ui.swt.components;
 
-import java.util.ArrayList;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
