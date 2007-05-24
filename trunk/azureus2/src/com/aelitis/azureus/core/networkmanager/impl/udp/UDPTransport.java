@@ -24,14 +24,9 @@ package com.aelitis.azureus.core.networkmanager.impl.udp;
 
 import java.nio.ByteBuffer;
 
-import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.TransportEndpoint;
-import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
-import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportImpl;
 
