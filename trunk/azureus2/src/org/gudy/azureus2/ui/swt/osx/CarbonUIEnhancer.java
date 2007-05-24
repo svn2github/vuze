@@ -10,9 +10,7 @@
 package org.gudy.azureus2.ui.swt.osx;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.internal.Callback;
@@ -28,7 +26,6 @@ import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;

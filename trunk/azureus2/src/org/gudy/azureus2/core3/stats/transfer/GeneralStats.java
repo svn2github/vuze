@@ -20,8 +20,6 @@
  */
 package org.gudy.azureus2.core3.stats.transfer;
 
-import java.util.Map;
-
 /**
  * @author Olivier
  *

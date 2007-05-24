@@ -29,7 +29,6 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
-import org.gudy.azureus2.platform.win32.PlatformManagerImpl;
 import org.gudy.azureus2.platform.win32.access.AEWin32Access;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
 

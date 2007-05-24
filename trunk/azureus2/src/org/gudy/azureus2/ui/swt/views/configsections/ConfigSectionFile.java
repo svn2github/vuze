@@ -25,12 +25,8 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
