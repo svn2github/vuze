@@ -40,7 +40,6 @@ import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerChannelImpl;
@@ -113,37 +112,6 @@ DownloadManagerEnhancer
 			    	boolean seeding_only_mode )
 			    {
 			    }
-			});
-		
-		final PluginInterface	plugin_interface = core.getPluginManager().getDefaultPluginInterface();
-		
-		plugin_interface.addListener(
-			new PluginListener()
-			{
-				public void
-				initializationComplete()
-				{
-					PluginInterface	ms_pi = plugin_interface.getPluginManager().getPluginInterfaceByID("azupnpav");
-					
-					if ( ms_pi != null ){
-						
-						progressive_enabled = true;
-						
-					}else{
-						
-						System.out.println( "No MediaServer plugin found" );
-					}
-				}
-				
-				public void
-				closedownInitiated()
-				{	
-				}
-				
-				public void
-				closedownComplete()
-				{
-				}
 			});
 		
 		PlatformTorrentUtils.addListener(
@@ -252,6 +220,18 @@ DownloadManagerEnhancer
 	protected boolean
 	isProgressiveAvailable()
 	{
+		if ( progressive_enabled ){
+			
+			return( true );
+		}
+	
+		PluginInterface	ms_pi = core.getPluginManager().getPluginInterfaceByID( "azupnpav" );
+		
+		if ( ms_pi != null ){
+			
+			progressive_enabled = true;
+		}
+		
 		return( progressive_enabled );
 	}
 }
