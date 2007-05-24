@@ -41,7 +41,6 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
