@@ -20,6 +20,7 @@
 package org.gudy.azureus2.core3.util;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -216,7 +217,11 @@ public class UrlUtils
 	 * @return
 	 */
 	public static String encode(String s) {
-		return URLEncoder.encode(s).replaceAll("\\+", "%20");
+		try {
+			return URLEncoder.encode(s, "UTF-8").replaceAll("\\+", "%20");
+		} catch (UnsupportedEncodingException e) {
+			return URLEncoder.encode(s).replaceAll("\\+", "%20");
+		}
 	}
 	
 	public static String escapeXML(String s) {
