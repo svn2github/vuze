@@ -184,13 +184,19 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 
       	// must do this last as it saves a copy of the torrent state for future opening...
       
+      /*
+       * actually, don't need to do this as the "open-for-seeding" option used when adding the download	
+       * does the job. Reason I stopped doing this is 
+       * https://sourceforge.net/tracker/index.php?func=detail&aid=1721917&group_id=84122&atid=575154
+       * 
 	  DownloadManagerState	download_manager_state = 
 			DownloadManagerStateFactory.getDownloadState( torrent ); 
 
 	  TorrentUtils.setResumeDataCompletelyValid( download_manager_state );
 
 	  download_manager_state.save();
-     
+     */
+      
       this.reportCurrentTask(MessageText.getString("wizard.savingfile"));
       
       final File torrent_file = new File(((NewTorrentWizard)wizard).savePath);
