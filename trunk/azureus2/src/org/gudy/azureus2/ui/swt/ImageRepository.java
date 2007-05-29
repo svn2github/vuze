@@ -194,26 +194,37 @@ public class ImageRepository {
     imagesToPath.put(name,res);
     Image im = getImage(name,false);
     if(null == im) {
-      InputStream is = loader.getResourceAsStream(res);
-      if(null != is) {
-      	try { 
-	        if(alpha == 255) {
-	          im = new Image(display, is);
-	        } else {
-	          ImageData icone = new ImageData(is);
-	          icone.alpha = alpha;
-	          im = new Image(display,icone);
-	        }
-	        images.put(name, im);
-      	} catch (SWTException e) {
-      		return null;
-      	}
-      } else {
-        System.out.println("ImageRepository:loadImage:: Resource not found: " + res);
-		
-		im = new Image( display, 1, 1 );
-		
-		images.put(name, im);
+      try{
+	      InputStream is = loader.getResourceAsStream(res);
+	      if(null != is) {
+	      	try { 
+		        if(alpha == 255) {
+		          im = new Image(display, is);
+		        } else {
+		          ImageData icone = new ImageData(is);
+		          icone.alpha = alpha;
+		          im = new Image(display,icone);
+		        }
+		        images.put(name, im);
+	      	} catch (SWTException e) {
+	      		return null;
+	      	}
+	      } else {
+	        Debug.outNoStack("ImageRepository:loadImage:: Resource not found: " + res);
+			
+			im = new Image( display, 1, 1 );
+			
+			images.put(name, im);
+	      }
+      }catch( Throwable e ){
+    	  
+    	  	// can get here is getResourceAsStream borks, which is known to do sometimes
+    	  
+    	  Debug.outNoStack("ImageRepository:loadImage:: Resource not found: " + res + " - " + Debug.getNestedExceptionMessage(e));
+			
+		  im = new Image( display, 1, 1 );
+			
+		  images.put(name, im);
       }
     }
     return im;
