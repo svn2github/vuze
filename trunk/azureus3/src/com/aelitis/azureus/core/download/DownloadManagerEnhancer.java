@@ -91,9 +91,16 @@ DownloadManagerEnhancer
 				downloadManagerRemoved(
 					DownloadManager	dm )
 				{
+					EnhancedDownloadManager	edm;
+					
 					synchronized( download_map ){
 						
-						download_map.remove( dm );
+						edm = (EnhancedDownloadManager)download_map.remove( dm );
+					}
+					
+					if ( edm != null ){
+						
+						edm.destroy();
 					}
 				}
 					

@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
+import org.gudy.azureus2.core3.util.ConcurrentHasher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -138,6 +139,8 @@ EnhancedDownloadManager
 	private long	time_download_started;
 	private Average	download_speed_average	= AverageFactory.MovingImmediateAverage( 5 );
 	
+	private boolean	marked_active;
+	private boolean	destroyed;
 
 		// ********* reset these in resetVars ***********
 	
@@ -1052,6 +1055,44 @@ EnhancedDownloadManager
 	}
 	
 	protected void
+	setRTA(
+		boolean	active )
+	{
+		synchronized( this ){
+
+			if ( marked_active && !active ){
+								
+				marked_active = false;
+
+				ConcurrentHasher.getSingleton().removeRealTimeTask();
+			}
+			
+			if ( destroyed ){
+				
+				return;
+			}
+			
+			if ( !marked_active && active ){
+				
+				marked_active = true;
+
+				ConcurrentHasher.getSingleton().addRealTimeTask();
+			}
+		}
+	}
+	
+	protected void 
+	destroy()
+	{
+		synchronized( this ){
+			
+			setRTA( false );
+
+			destroyed = true;
+		}
+	}
+	
+	protected void
 	log(
 		String	str )
 	{
@@ -1320,7 +1361,13 @@ EnhancedDownloadManager
 		private long		provider_last_byte_position	= -1;
 		private long		provider_blocking_byte_position;
 		private Average		provider_speed_average	= AverageFactory.MovingImmediateAverage( 10 );
-						
+			
+		protected
+		progressiveStats()
+		{
+			setRTA( false );
+		}
+		
 		protected void
 		updateCurrentProvider(
 			PieceRTAProvider	provider )
@@ -1356,6 +1403,9 @@ EnhancedDownloadManager
 						provider_life_secs = 0;
 					}
 				}
+				
+				setRTA( current_provider != null );
+				
 			}else{
 				
 				provider_life_secs++;
