@@ -57,8 +57,11 @@ TOTorrentImpl
 	protected static final String TK_PATH_UTF8			= "path.utf-8";
 	protected static final String TK_COMMENT_UTF8		= "comment.utf-8";
 	
+	protected static final String TK_WEBSEED_BT			= "httpseeds";
+	protected static final String TK_WEBSEED_GR			= "url-list";
+	
 	protected static final List	TK_ADDITIONAL_OK_ATTRS = 
-		Arrays.asList(new String[]{TK_COMMENT_UTF8, AZUREUS_PROPERTIES });
+		Arrays.asList(new String[]{ TK_COMMENT_UTF8, AZUREUS_PROPERTIES, TK_WEBSEED_BT, TK_WEBSEED_GR });
 	
 	private byte[]							torrent_name;
 	private byte[]							torrent_name_utf8;
