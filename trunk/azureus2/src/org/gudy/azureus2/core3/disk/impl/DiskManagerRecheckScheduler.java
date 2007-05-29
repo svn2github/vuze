@@ -30,6 +30,7 @@ import java.util.List;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.ConcurrentHasher;
 
 public class 
 DiskManagerRecheckScheduler 
@@ -124,28 +125,39 @@ DiskManagerRecheckScheduler
 			instance_mon.enter();
 
 			if ( instances.get(0) == instance ){
-					    		
-	            if ( friendly_hashing ){
-	            	
-	            	delay	= 0;	// delay introduced elsewhere
-	            	
-	            }else if ( !instance.isLowPriority()){
-	            	
-	            	delay	= 1;	// high priority recheck, just a smidge of a delay
-	            	
-	            }else{
-	            	
-		            	//delay a bit normally anyway, as we don't want to kill the user's system
-		            	//during the post-completion check (10k of piece = 1ms of sleep)
-	            	
-	            	delay = instance.getPieceLength() /1024 /10;
-	              
-	            	delay = Math.min( delay, 409 );
-	              
-	            	delay = Math.max( delay, 12 );
-  				}
+					    
+				boolean	low_priority = instance.isLowPriority();
 				
-	            result	= true;
+					// defer low priority activities if we are running a real-time task
+				
+				if ( low_priority && ConcurrentHasher.getSingleton().isRealTimeTaskActive()){
+					
+					result = false;
+					
+				}else{
+					
+		            if ( friendly_hashing ){
+		            	
+		            	delay	= 0;	// delay introduced elsewhere
+		            	
+		            }else if ( !low_priority ){
+		            	
+		            	delay	= 1;	// high priority recheck, just a smidge of a delay
+		            	
+		            }else{
+		            	
+			            	//delay a bit normally anyway, as we don't want to kill the user's system
+			            	//during the post-completion check (10k of piece = 1ms of sleep)
+		            	
+		            	delay = instance.getPieceLength() /1024 /10;
+		              
+		            	delay = Math.min( delay, 409 );
+		              
+		            	delay = Math.max( delay, 12 );
+	  				}
+					
+		            result	= true;
+				}
 			}
 		}finally{
 			

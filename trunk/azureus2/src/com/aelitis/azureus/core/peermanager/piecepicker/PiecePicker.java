@@ -110,6 +110,9 @@ public interface PiecePicker
 		PiecePickerListener		listener );
 
 	public void
+	destroy();
+	
+	public void
 	generateEvidence(
 		IndentWriter	writer );
 	

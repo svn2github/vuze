@@ -49,19 +49,19 @@ ConcurrentHasher
 		
 	protected AEMonitor			requests_mon	= new AEMonitor( "ConcurrentHasher:R" );
 
-  private static boolean friendly_hashing;
-  
-  static{
-    friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
-    
-    COConfigurationManager.addParameterListener( "diskmanager.friendly.hashchecking", new ParameterListener() {
-      public void parameterChanged( String  str ) {
-          friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );        
-      }
-    });
-  }
-  
-  
+	private static boolean friendly_hashing;
+
+	static{
+		friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
+
+		COConfigurationManager.addParameterListener( "diskmanager.friendly.hashchecking", new ParameterListener() {
+			public void parameterChanged( String  str ) {
+				friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );        
+			}
+		});
+	}
+
+	private static int	realtime_task_count;
   
 	
 	public static ConcurrentHasher
@@ -197,7 +197,30 @@ ConcurrentHasher
 		scheduler.start();
 	}
 	
-
+	public void
+	addRealTimeTask()
+	{
+		synchronized( this ){
+			
+			realtime_task_count++;
+		}
+	}
+	
+	public void
+	removeRealTimeTask()
+	{
+		synchronized( this ){
+			
+			realtime_task_count--;
+		}
+	}
+	
+	public boolean
+	isRealTimeTaskActive()
+	{
+		return( realtime_task_count > 0 );
+	}
+	
 		/**
 		 * add a synchronous request - on return it will have run (or been cancelled)
 	     */

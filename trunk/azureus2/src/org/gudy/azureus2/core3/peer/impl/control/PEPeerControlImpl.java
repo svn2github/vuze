@@ -359,6 +359,8 @@ PEPeerControlImpl
 
 		ip_filter.removeListener(this);
 		
+		piecePicker.destroy();
+		
 		final ArrayList peer_manager_listeners = peer_manager_listeners_cow;
 
 		for( int i=0; i < peer_manager_listeners.size(); i++ ) {

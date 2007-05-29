@@ -2352,6 +2352,12 @@ public class PiecePickerImpl
 		}
 	}
 	
+	public void
+	destroy()
+	{
+		
+	}
+	
 	public String
 	getPieceString(
 		int	piece_number )
