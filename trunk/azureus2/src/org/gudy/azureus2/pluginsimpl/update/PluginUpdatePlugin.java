@@ -762,8 +762,6 @@ PluginUpdatePlugin
 
 		String	target_version = version.endsWith("_CVS")?version.substring(0,version.length()-4):version;
 
-		final String	plugin_dir	= plugin.getPluginDirectoryName();
-		
 		UpdateInstaller	installer	= null;
 		
 		try{
@@ -774,7 +772,9 @@ PluginUpdatePlugin
 			
 			boolean update_txt_found	= false;
 
-			if ( plugin_dir == null || plugin_dir.length() == 0 ){
+			String plugin_dir_name = plugin.getPluginDirectoryName();
+			
+			if ( plugin_dir_name == null || plugin_dir_name.length() == 0 ){
 				
 					// update to a built-in plugin
 				
@@ -788,7 +788,9 @@ PluginUpdatePlugin
 				
 			}else{
 				
-			
+				final File	plugin_dir	= new File( plugin_dir_name );
+				final File	user_dir	= new File( plugin_interface.getUtilities().getAzureusUserDir());
+				final File	prog_dir	= new File( plugin_interface.getUtilities().getAzureusProgramDir());
 	
 					// .jar files get copied straight in with the right version number
 					// .zip files need to be unzipped. There are various possibilities for
@@ -796,17 +798,79 @@ PluginUpdatePlugin
 					// need to remove any zip paths to ensure it ends up in the right place
 					// There's also the issue of overwriting stuff like "plugin.properties"
 					// and any other config files....
-								
-				String	target = plugin_dir + File.separator + 
-									plugin.getPluginID() + "_" + target_version + (is_jar?".jar":".zip");
+					
+				boolean	force_indirect_install = false;
 				
-				FileUtil.copyFile( data, new FileOutputStream(target));
+					// for windows Vista we may not have write access to the plugin directory and have
+					// to use an installer + restart to copy the files (as the restart can elevate
+					// permissions)
+				
+				if ( Constants.isWindowsVista ){
+					
+						// test with .dll as this will fail write to virtual-store as required
+					
+					File	test_file = new File( plugin_dir, "_aztest45.dll" );
+					
+					boolean	ok = false;
+					
+					try{
+						if ( test_file.exists()){
+							
+							test_file.delete();
+						}
+
+						if ( test_file.createNewFile()){
+							
+							ok = test_file.delete();
+						}					
+					}catch( Throwable e ){					
+					}
+					
+					if ( !ok ){
+						
+						log.log( "Can't write directly to the plugin directroy, installing indirectly" );
+						
+						force_indirect_install = true;				
+					}
+				}
+				
+				File	target_plugin_dir;
+				File	target_prog_dir;
+				File	target_user_dir;
+				
+				if ( force_indirect_install ){
+					
+					File temp_dir = AETemporaryFileHandler.createTempDir();
+					
+					target_plugin_dir	= new File( temp_dir, "plugin" );
+					target_user_dir		= new File( temp_dir, "user" );
+					target_prog_dir		= new File( temp_dir, "prog" );
+					
+					target_plugin_dir.mkdirs();
+					target_user_dir.mkdirs();
+					target_prog_dir.mkdirs();
+					
+					installer = update.getCheckInstance().createInstaller();
+
+					update.setRestartRequired( Update.RESTART_REQUIRED_YES );
+
+				}else{
+					
+					target_plugin_dir	= plugin_dir;
+					target_user_dir		= user_dir;
+					target_prog_dir		= prog_dir;
+				}
+				
+				File	target_jar_zip = new File( target_plugin_dir, plugin.getPluginID() + "_" + target_version + (is_jar?".jar":".zip"));
+				
+
+				FileUtil.copyFile( data, new FileOutputStream(target_jar_zip));
 			
 				if ( !is_jar ){
 					
 					ZipInputStream	zis = 
 						new ZipInputStream( 
-								new BufferedInputStream( new FileInputStream( target ) ));
+								new BufferedInputStream( new FileInputStream( target_jar_zip ) ));
 					
 					
 						// first look for a common dir prefix and platform-specific stuff
@@ -945,7 +1009,6 @@ PluginUpdatePlugin
 								
 								log.log( LoggerChannel.LT_INFORMATION,
 										"platform is '" + selected_platform +"'" );
-
 							}
 						}
 					}
@@ -961,10 +1024,9 @@ PluginUpdatePlugin
 							
 							common_prefix = common_prefix.substring(0,pos+1);
 						}
-					
-						
+									
 						zis = new ZipInputStream( 
-									new BufferedInputStream( new FileInputStream( target ) ));
+									new BufferedInputStream( new FileInputStream( target_jar_zip ) ));
 											
 						try{
 							while( true ){
@@ -980,6 +1042,7 @@ PluginUpdatePlugin
 								
 								OutputStream	entry_os = null;
 								
+								File			origin					= null;
 								File			initial_target			= null;
 								File			final_target			= null;
 								boolean			is_plugin_properties 	= false;
@@ -1013,7 +1076,8 @@ PluginUpdatePlugin
 											}
 										}
 										
-										String	install_root;
+										File	install_root;
+										File	origin_root;
 										
 										if ( file_name.startsWith( "shared/lib" )){
 											
@@ -1028,22 +1092,26 @@ PluginUpdatePlugin
 											
 											if ( plugin.isShared()){
 												
-												install_root 	= plugin_interface.getUtilities().getAzureusProgramDir();
+												origin_root		= prog_dir;
+												install_root 	= target_prog_dir;
 											
 											}else{
 												
-												install_root 	= plugin_interface.getUtilities().getAzureusUserDir();
+												origin_root		= user_dir;
+												install_root 	= target_user_dir;
 											}
 										}else{
 											
-											install_root 	= plugin_dir;
+											origin_root		= plugin_dir;
+											install_root 	= target_plugin_dir;
 										}
 										
-										initial_target 	= new File( install_root + File.separator + file_name );
+										origin 			= new File( origin_root, file_name );
+										initial_target 	= new File( install_root, file_name );
 										
 										final_target	= initial_target;
 														
-										if ( initial_target.exists()){
+										if ( origin.exists()){
 											
 											if ( 	file_name.toLowerCase().endsWith(".properties") ||
 													file_name.toLowerCase().endsWith(".config" )){
@@ -1054,7 +1122,7 @@ PluginUpdatePlugin
 												
 												file_name = file_name + "_" + target_version;
 												
-												final_target = new File( install_root + File.separator + file_name );
+												final_target = new File( install_root, file_name );
 												
 												log.log( LoggerChannel.LT_INFORMATION,
 															"saving new file '" + old_file_name + "'as '" + file_name +"'" );
@@ -1075,43 +1143,55 @@ PluginUpdatePlugin
 													log.log( LoggerChannel.LT_INFORMATION,
 															"overwriting '" + file_name +"'" );
 													
+													File	backup = new File( origin.getParentFile(), origin.getName() + ".bak" );
+
 														// back up just in case
-													
-													File	backup = new File( initial_target.getParentFile(), initial_target.getName() + ".bak" );
-													
-													if ( backup.exists()){
+
+													if ( force_indirect_install ){
 														
-														backup.delete();
-													}
-													
-													if ( !initial_target.renameTo( backup )){
+														if ( backup.exists()){
 														
-														log.log( LoggerChannel.LT_INFORMATION,
-																"    failed to backup '" + file_name +"', deferring until restart" );
-	
-														if ( installer == null ){
-															
-															update.setRestartRequired( Update.RESTART_REQUIRED_YES );
-															
-															installer = update.getCheckInstance().createInstaller();
+															installer.addRemoveAction( backup.getAbsolutePath());
 														}
 														
-														File	tmp = new File( initial_target.getParentFile(), initial_target.getName() + ".tmp" );
-	
-														tmp.delete();
+														installer.addMoveAction( origin.getAbsolutePath(), backup.getAbsolutePath());
 														
-														installer.addMoveAction( tmp.getAbsolutePath(), initial_target.getAbsolutePath());
+													}else{
 														
-														final_target = tmp;
+														if ( backup.exists()){
+															
+															backup.delete();
+														}
+														
+														if ( !initial_target.renameTo( backup )){
+															
+															log.log( LoggerChannel.LT_INFORMATION,
+																	"    failed to backup '" + file_name +"', deferring until restart" );
+		
+															if ( installer == null ){
+																
+																update.setRestartRequired( Update.RESTART_REQUIRED_YES );
+																
+																installer = update.getCheckInstance().createInstaller();
+															}
+															
+															File	tmp = new File( initial_target.getParentFile(), initial_target.getName() + ".tmp" );
+		
+															tmp.delete();
+															
+															installer.addMoveAction( tmp.getAbsolutePath(), initial_target.getAbsolutePath());
+															
+															final_target = tmp;
+														}
 													}
 												}
 											}
 										}
 										
 										if ( !skip_file ){
-											
+																						
 											FileUtil.mkdirs(final_target.getParentFile());
-										
+											
 											entry_os = new FileOutputStream( final_target );
 										}
 									}
@@ -1164,7 +1244,7 @@ PluginUpdatePlugin
 									Map		props_to_insert		= new HashMap();
 									
 									try{
-										FileInputStream fis = new FileInputStream( initial_target );
+										FileInputStream fis = new FileInputStream( origin );
 										
 										old_props.load( fis );
 										
@@ -1228,15 +1308,26 @@ PluginUpdatePlugin
 										}
 									}
 									
-									File	tmp_file 	= new File(initial_target.toString() + ".tmp");
-									File	bak_file	= new File(initial_target.toString() + ".bak");
+									File	tmp_file;
+									
+									if ( force_indirect_install ){
+										
+											// install into temp dir so we don't need to create a temp file and then rename
+											// later as this installer will do this
+										
+										tmp_file = initial_target;
+										
+									}else{
+										
+										tmp_file = new File( initial_target.getParentFile(), initial_target.getName() + ".tmp" );
+									}
 									
 									LineNumberReader	lnr = null;
 									
 									PrintWriter			tmp = null;
 									
 									try{
-										lnr = new LineNumberReader(new FileReader(initial_target));
+										lnr = new LineNumberReader(new FileReader( origin ));
 									
 										tmp = new PrintWriter(new FileWriter( tmp_file ));			
 									
@@ -1302,24 +1393,38 @@ PluginUpdatePlugin
 										}
 									}
 									
-									if ( bak_file.exists()){
+									File	bak_file	= new File( origin.getParentFile(), origin.getName() + ".bak" );
+
+									if ( force_indirect_install ){
+										
+										if ( bak_file.exists()){
+
+											installer.addRemoveAction( bak_file.getAbsolutePath());
+										}
+										
+										installer.addMoveAction( origin.getAbsolutePath(), bak_file.getAbsolutePath());
+										
+									}else{
+										
+										if ( bak_file.exists()){
+											
+											bak_file.delete();
+										}
+										
+										if ( !initial_target.renameTo( bak_file)){
+											
+											throw( new IOException( "Failed to rename '" + initial_target.toString() + "' to '" + bak_file.toString() + "'" ));
+										}
+										
+										if ( !tmp_file.renameTo( initial_target )){
+											
+											bak_file.renameTo( initial_target );
+											
+											throw( new IOException( "Failed to rename '" + tmp_file.toString() + "' to '" + initial_target.toString() + "'" ));
+										}
 										
 										bak_file.delete();
 									}
-									
-									if ( !initial_target.renameTo( bak_file)){
-										
-										throw( new IOException( "Failed to rename '" + initial_target.toString() + "' to '" + bak_file.toString() + "'" ));
-									}
-									
-									if ( !tmp_file.renameTo( initial_target )){
-										
-										bak_file.renameTo( initial_target );
-										
-										throw( new IOException( "Failed to rename '" + tmp_file.toString() + "' to '" + initial_target.toString() + "'" ));
-									}
-									
-									bak_file.delete();
 									
 								}else if ( final_target != null && final_target.getName().equalsIgnoreCase( "update.txt" )){
 									
@@ -1362,8 +1467,18 @@ PluginUpdatePlugin
 					}
 				}
 				
+				if ( force_indirect_install ){
+					
+						// create installation move actions for the files that have been installed
+						// into temp location
+					
+					addInstallationActions( installer, target_plugin_dir, plugin_dir );
+					addInstallationActions( installer, target_prog_dir, prog_dir );
+					addInstallationActions( installer, target_user_dir, user_dir );					
 				
-				if ( unloadable ){
+						// don't delete temp store, it'll get deleted on restart
+					
+				}else if ( unloadable ){
 					
 					log.log( "Plugin initialising, please wait... " );
 					
@@ -1396,6 +1511,31 @@ PluginUpdatePlugin
 		}finally{
 			
 			update.complete();
+		}
+	}
+	
+	protected void
+	addInstallationActions(
+		UpdateInstaller		installer,
+		File				from_file,
+		File				to_file )
+	
+		throws UpdateException
+	{
+		if ( from_file.isDirectory()){
+			
+			File[]	files = from_file.listFiles();
+			
+			if ( files != null ){
+				
+				for (int i=0;i<files.length;i++){
+					
+					addInstallationActions( installer, files[i], new File( to_file, files[i].getName()));
+				}
+			}
+		}else{
+			
+			installer.addMoveAction( from_file.getAbsolutePath(), to_file.getAbsolutePath());
 		}
 	}
 	

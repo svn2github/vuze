@@ -195,6 +195,11 @@ UpdateInstallerImpl
 			
 			File	parent = to_f.getParentFile();
 			
+			if ( parent != null && !parent.exists()){
+				
+				parent.mkdirs();
+			}
+			
 			if ( parent != null ){
 				
 				// we're going to need write access to the parent, let's try
@@ -203,7 +208,7 @@ UpdateInstallerImpl
 					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
 							"The location '" + parent.toString()
 									+ "' isn't writable, this update will probably fail."
-									+ " Check permissions and rety the update"));
+									+ " Check permissions and retry the update"));
 				}
 			}
 							

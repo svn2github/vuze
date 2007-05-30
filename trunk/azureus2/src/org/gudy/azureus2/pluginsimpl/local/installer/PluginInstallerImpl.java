@@ -236,6 +236,9 @@ PluginInstallerImpl
 				
 				target_dir += File.separator + plugin_id;
 		
+					// this may fail on Vista but it doesn't matter as we recover this later
+					// on. So *don't* check for success here
+				
 				new File( target_dir ).mkdir();
 				
 				if ( existing_plugin == null ){
