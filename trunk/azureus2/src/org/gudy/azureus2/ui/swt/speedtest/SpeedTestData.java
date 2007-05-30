@@ -34,6 +34,10 @@ public class SpeedTestData {
 
     private NetworkAdminSpeedTesterResult lastResult;
 
+
+    private int highestDownloadOnlyResult;
+    private int lastUploadOnlyResult;
+
     public static SpeedTestData getInstance() {
         return ourInstance;
     }
@@ -56,4 +60,46 @@ public class SpeedTestData {
     public NetworkAdminSpeedTesterResult getLastResult(){
         return lastResult;
     }
+
+
+    //Results needed for AutoSpeedV2.
+
+    /**
+     * We are keeping the highest download result, since we want results biased toward
+     * fast downloads.
+     * @param currDownRateInKBytePerSec - result of a "download only" test.
+     */
+    public void setHighestDownloadResult(int currDownRateInKBytePerSec){
+        if( highestDownloadOnlyResult<currDownRateInKBytePerSec ){
+            highestDownloadOnlyResult=currDownRateInKBytePerSec;
+        }
+    }
+
+    /**
+     *
+     * @return - int
+     */
+    public int getHightestDownloadResult(){
+        return highestDownloadOnlyResult;
+    }
+
+    /**
+     * Record the last upload only result, but the minimum allowed result is 20 kbytes/sec.
+     * @param currUpRateInKBytesPerSec - 
+     */
+    public void setLastUploadOnlyResult(int currUpRateInKBytesPerSec){
+
+        //The lowest upload rate allowed in 20 kB/s.
+        if(currUpRateInKBytesPerSec<20){
+            currUpRateInKBytesPerSec=20;
+        }
+
+        lastUploadOnlyResult = currUpRateInKBytesPerSec;
+    }
+
+    
+    public int getLastUploadOnlyResult(){
+        return lastUploadOnlyResult;
+    }
+
 }

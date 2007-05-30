@@ -22,10 +22,10 @@
 
 package com.aelitis.azureus.core.speedmanager.impl;
 
-public class SaturatedMode {
+public class SaturatedMode implements Comparable {
     public static final SaturatedMode AT_LIMIT = new SaturatedMode("AT_LIMIT",0.97f);
     public static final SaturatedMode HIGH = new SaturatedMode("HIGH",0.80f);
-    public static final SaturatedMode MED = new SaturatedMode("MED",0.40f);
+    public static final SaturatedMode MED = new SaturatedMode("MED",0.30f);
     public static final SaturatedMode LOW = new SaturatedMode("LOW",0.03f);
     public static final SaturatedMode NONE = new SaturatedMode("NONE",0.0f);
 
@@ -68,5 +68,39 @@ public class SaturatedMode {
 
     public String toString() {
         return name;
+    }
+
+    /**
+     * @param satMode the SaturatedMode to be compared.
+     * @return a negative integer, zero, or a positive integer as this object
+     *         is less than, equal to, or greater than the specified object.
+     */
+    public int compareTo(SaturatedMode satMode) {
+
+        if( percentCapacity < satMode.getThreshold() ){
+            return -1;
+        }
+        else if( percentCapacity > satMode.getThreshold() ){
+            return +1;
+        }
+
+        return 0;
+    }
+
+    /**
+
+     * @param obj the Object to be compared.
+     * @return a negative integer, zero, or a positive integer as this object
+     *         is less than, equal to, or greater than the specified object.
+     * @throws ClassCastException if the specified object's type prevents it
+     *                            from being compared to this Object.
+     */
+    public int compareTo(Object obj) {
+
+        if( !(obj instanceof SaturatedMode) ){
+            throw new ClassCastException("Only comparable to SaturatedMode class.");
+        }
+        SaturatedMode casted = (SaturatedMode) obj;
+        return compareTo(casted);
     }
 }

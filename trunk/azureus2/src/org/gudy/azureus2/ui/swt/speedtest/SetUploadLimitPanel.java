@@ -13,6 +13,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.SWT;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderV2;
 
 
 /**
@@ -90,6 +91,49 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         gridData.horizontalSpan = 3;
         spacer.setLayoutData(gridData);
 
+        Label spacer1 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        spacer1.setLayoutData(gridData);
+
+        Label bytesCol = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        bytesCol.setLayoutData(gridData);
+        Messages.setLanguageText(bytesCol,"SpeedTestWizard.set.upload.bytes.per.sec");
+
+        Label bitsCol = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        bitsCol.setLayoutData(gridData);
+        Messages.setLanguageText(bitsCol,"SpeedTestWizard.set.upload.bits.per.sec");
+
+        
+        //download limit label.
+        Label dl = new Label( panel, SWT.NULL );
+        gridData = new GridData();
+        dl.setLayoutData(gridData);
+        Messages.setLanguageText(
+                dl,
+                "SpeedTestWizard.set.download.label",
+                new String[] { DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)});
+
+        final Text downloadLimitSetting = new Text(panel, SWT.BORDER);
+        gridData = new GridData(GridData.BEGINNING);
+        gridData.widthHint=80;
+        downloadLimitSetting.setLayoutData(gridData);
+
+        int bestDownloadSetting = determineDownloadSetting();
+        downloadLimitSetting.setText( ""+bestDownloadSetting );
+        downloadLimitSetting.addListener(SWT.Verify, new NumberListener(downloadLimitSetting) );
+
+        //echo
+        final Label downEcho = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        downEcho.setLayoutData(gridData);
+        downEcho.setText( DisplayFormatters.formatByteCountToBitsPerSec(bestDownloadSetting*1024) );
+
+        //convert bytes to bits on the fly for user.
+        downloadLimitSetting.addListener(SWT.Modify, new ByteConversionListener(downEcho, downloadLimitSetting) );
+
         //upload limit label.
         Label ul = new Label(panel, SWT.NULL );
         gridData = new GridData();
@@ -110,19 +154,26 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
             eightyPercent=20;
 
         uploadLimitSetting.setText( ""+eightyPercent );
-        uploadLimitSetting.addListener(SWT.Verify, new Listener() {
-          public void handleEvent(Event e) {
-            String text = e.text;
-            char[] chars = new char[text.length()];
-            text.getChars(0, chars.length, chars, 0);
-            for (int i = 0; i < chars.length; i++) {
-              if (!('0' <= chars[i] && chars[i] <= '9')) {
-                e.doit = false;
-                return;
-              }
-            }
-          }
-        });
+        uploadLimitSetting.addListener(SWT.Verify, new NumberListener(uploadLimitSetting));
+
+
+        //echo
+        final Label echo = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        echo.setLayoutData(gridData);
+        echo.setText( DisplayFormatters.formatByteCountToBitsPerSec(eightyPercent*1024) );
+        //This space has a change listener the updates in bits/sec.
+
+        //want a change listener to update the echo label which has the value in bits/sec.
+        uploadLimitSetting.addListener(SWT.Modify, new ByteConversionListener(echo,uploadLimitSetting));
+
+
+        //spacer col
+        Label c1 = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.horizontalSpan = 1;
+        c1.setLayoutData(gridData);
 
 
         apply = new Button(panel, SWT.PUSH);
@@ -135,6 +186,7 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
 
                 //Turn the string into an int and make it kbps.
                 int uploadLimitKBPS = Integer.parseInt( uploadLimitSetting.getText() );
+                int downlaodLimitKBPS = Integer.parseInt( downloadLimitSetting.getText() );
                 //No value less then 20 kpbs should be allowed.
                 if(uploadLimitKBPS<20)
                     uploadLimitKBPS=20;
@@ -144,40 +196,17 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
                 COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_CONFIGKEY, uploadLimitKBPS );
                 COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY , uploadLimitKBPS );
 
+                //provide the linkage to Auto-Speed V2 configuration settings.
+                COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitKBPS*1024);
+                COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downlaodLimitKBPS*1024);
+
+                //ToDo: This should also set the download limits. Do we want the SpeedTest to configure the AutoSpeedV2.
+
                 wizard.setFinishEnabled(true);
                 wizard.setPreviousEnabled(false);
             }
         });
 
-
-        //spacer col
-        Label c1 = new Label(panel, SWT.NULL);
-        gridData = new GridData();
-        gridData.horizontalSpan = 1;
-        c1.setLayoutData(gridData);
-
-        //echo
-        final Label echo = new Label(panel, SWT.NULL);
-        gridData = new GridData();
-        gridData.horizontalSpan = 1;
-        echo.setLayoutData(gridData);
-        echo.setText( DisplayFormatters.formatByteCountToBitsPerSec(eightyPercent*1024) );
-        //This space has a change listener the updates in bits/sec.
-
-        //want a change listener to update the echo label which has the value in bits/sec.
-        uploadLimitSetting.addListener(SWT.Modify, new Listener(){
-            public void handleEvent(Event e){
-                String newVal = uploadLimitSetting.getText();
-                try{
-                    int newValInt = Integer.parseInt(newVal);
-                    if( echo!=null ){
-                        echo.setText( DisplayFormatters.formatByteCountToBitsPerSec(newValInt*1024) );
-                    }
-                }catch(Throwable t){
-                    //echo.setText(" - ");
-                }
-            }
-        });
 
         //spacer col
         Label c3 = new Label(panel, SWT.NULL);
@@ -330,6 +359,41 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         return  Math.round( ((float)value/100.0f)*(percent) );
     }
 
+    /**
+     * Estimate a resonable download setting given available data.
+     *
+     * Here is the algorithm used.
+     * #1) The download-rate can never be less then the upload rate.
+     * #2) Get the setting from the AutoSpeedV2 panel. If it is higher then the
+     *     highest test result, use it.
+     * #3) If an download test in this session is higher use it.
+     *
+     * @return - value in kilo-bytes per second.
+     */
+    public int determineDownloadSetting(){
+
+        int retVal = measuredUploadKbps;
+
+        if( retVal < measuredDownloadKbps ){
+            retVal = measuredDownloadKbps;
+        }
+
+        //get AutoSpeedV2 download setting.
+        int autoSpeedV2Limit = COConfigurationManager.getIntParameter(
+                SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT )/1024;
+
+        if( retVal < autoSpeedV2Limit ){
+            retVal = autoSpeedV2Limit;
+        }
+
+        //The result cannot be less then 20 kbytes/sec.
+        if(retVal < 20 ){
+            retVal = 20;
+        }
+
+        return retVal;        
+    }
+
     public void finish(){
         wizard.switchToClose();
     }//finish
@@ -343,5 +407,54 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         //This is the final step for now.
         return false;
     }
-    
+
+    /**
+     * Convert the bytes into bit.
+     */
+    class ByteConversionListener implements Listener
+    {
+        final Label echoLbl;
+        final Text setting;
+
+        public ByteConversionListener(final Label _echoLbl, final Text _setting){
+            echoLbl = _echoLbl;
+            setting = _setting;
+        }
+
+        public void handleEvent(Event e){
+            String newVal = setting.getText();
+            try{
+                int newValInt = Integer.parseInt(newVal);
+                if( echoLbl!=null ){
+                    echoLbl.setText( DisplayFormatters.formatByteCountToBitsPerSec(newValInt*1024) );
+                }
+            }catch(Throwable t){
+                //echo.setText(" - ");
+            }
+        }
+    }//class
+
+    /**
+     * Only numbers are allowed.
+     */
+    class NumberListener implements Listener
+    {
+        final Text setting;
+        public NumberListener(final Text _setting){
+            setting = _setting;
+        }
+
+        public void handleEvent(Event e){
+            String text = e.text;
+            char[] chars = new char[text.length()];
+            text.getChars(0, chars.length, chars, 0);
+            for (int i = 0; i < chars.length; i++) {
+              if (!('0' <= chars[i] && chars[i] <= '9')) {
+                e.doit = false;
+                return;
+              }
+            }
+        }
+    }//class
+
 }

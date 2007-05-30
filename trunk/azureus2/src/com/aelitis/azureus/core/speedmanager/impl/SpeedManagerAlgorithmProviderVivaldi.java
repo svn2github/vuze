@@ -59,22 +59,19 @@ public class SpeedManagerAlgorithmProviderVivaldi
     private long timeSinceLastUpdate;
     private static final long VIVALDI_TIME_BETWEEN_UPDATES = 15000;
 
-    //use for home network.
-    private static int uploadLimitMax = 38000;
-    private static int uploadLimitMin = 5000;
-    private static int downloadLimitMax = 80000;
-    private static int downloadLimitMin = 8000;
-
+    //metric values for DHT Ping times and Vivaldi
     private static int metricGoodResult = 100;
     private static int metricGoodTolerance = 300;
     private static int metricBadResult = 1300;
     private static int metricBadTolerance = 300;
     private static boolean useVivaldi = false;
 
-    private static float upDownRatio=2.0f;
 
     private int consecutiveUpticks=0;
     private int consecutiveDownticks=0;
+
+    //SpeedLimitMonitor
+    private static SpeedLimitMonitor limitMonitor = new SpeedLimitMonitor();
 
     //variables for display and vivaldi.
     private int lastMetricValue;
@@ -99,10 +96,8 @@ public class SpeedManagerAlgorithmProviderVivaldi
                     public void configurationSaved(){
 
                         try{
-                            uploadLimitMax=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
-                            uploadLimitMin=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT);
-                            downloadLimitMax=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
-                            downloadLimitMin=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT);
+
+                            limitMonitor.updateFromCOConfigManager();
 
                             String mode=COConfigurationManager.getStringParameter( SpeedManagerAlgorithmProviderV2.SETTING_DATA_SOURCE_INPUT );
                             //what mode are we?
@@ -135,10 +130,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
                                 numIntervalsBetweenCal=COConfigurationManager.getIntParameter(
                                         SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
 
-                                //tie the upload and download ratios together.
-                                upDownRatio = ( (float)downloadLimitMax/(float)uploadLimitMax );
-                                COConfigurationManager.setParameter(
-                                        SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
                             }
 
                         }catch( Throwable t ){
@@ -174,7 +165,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
     public void reset() {
         log("reset");
 
-        log("curr-data: curr-down-rate : curr-down-limit : down-saturation-mode : curr-up-rate : curr-up-limit : upload-saturation-mode ");
+        log("curr-data: curr-down-rate : curr-down-limit : down-bandwith-mode : down-limit-mode : curr-up-rate : curr-up-limit : upload-bandwidth-mode : upload-limit-mode");
 
         log( "new-limit:newLimit:currStep:signalStrength:multiple:currUpLimit:maxStep:uploadLimitMax:uploadLimitMin" );
 
@@ -192,7 +183,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
     public void updateStats() {
 
         //update some stats used in the UI.
-        int currDownLimit = adapter.getCurrentDownloadLimit();
 
         int currUploadLimit = adapter.getCurrentUploadLimit();
         int currDataUploadSpeed = adapter.getCurrentDataUploadSpeed();
@@ -207,14 +197,28 @@ public class SpeedManagerAlgorithmProviderVivaldi
         //current download average
         //current download data rate
 
+        int currDownLimit = adapter.getCurrentDownloadLimit();
         int downDataRate = adapter.getCurrentDataDownloadSpeed();
         int downProtoRate = adapter.getCurrentProtocolDownloadSpeed();
         int downRate = downDataRate+downProtoRate;
 
-        SaturatedMode downSatMode = SaturatedMode.getSaturatedMode(downRate,currDownLimit);
-        SaturatedMode upSatMode = SaturatedMode.getSaturatedMode(currDataUploadSpeed,currUploadLimit);
+        //update the bandwidth status
+        limitMonitor.setDownloadBandwidthMode(downRate,currDownLimit);
+        limitMonitor.setUploadBandwidthMode(currDataUploadSpeed,currUploadLimit);
 
-        log("curr-data:"+downRate+":"+currDownLimit+":"+downSatMode+":"+upRate+":"+currUploadLimit+":"+upSatMode);
+
+        //update the limts status.  (is it near a forced max or min?)
+        limitMonitor.setDownloadLimitSettingMode(currDownLimit);
+        limitMonitor.setUploadLimitSettingMode(currUploadLimit);
+
+        StringBuffer sb = new StringBuffer("curr-data:"+downRate+":"+currDownLimit+":");
+        sb.append(limitMonitor.getDownloadBandwidthMode()).append(":");
+        sb.append(limitMonitor.getDownloadLimitSettingMode()).append(":");
+        sb.append(upRate).append(":").append(currUploadLimit).append(":");
+        sb.append(limitMonitor.getUploadBandwidthMode()).append(":");
+        sb.append(limitMonitor.getUploadLimitSettingMode()).append(":");
+
+        log( sb.toString() );
     }
 
     /**
@@ -364,16 +368,26 @@ public class SpeedManagerAlgorithmProviderVivaldi
         float signalStrength = determineSignalStrength(lastMetricValue);
         if( signalStrength!=0.0f ){
             hadAdjustmentLastInterval=true;
-            int newLimit = createNewLimit(signalStrength);
 
-            int kbpsLimit = newLimit/1024;
-            log(" setting new limit to: "+kbpsLimit+" kb/s");
+            float multiple = consectiveMultiplier();
+            int currUpLimit = adapter.getCurrentUploadLimit();
+            //int newLimit = limitMonitor.createNewLimit(signalStrength,multiple,currUpLimit);  //ToDo: remove.
+            SpeedLimitMonitor.Update update = limitMonitor.createNewLimitEx(signalStrength,multiple,currUpLimit);
 
-            //based on the value need to set a limit.
-            //adapter.setCurrentUploadLimit( newLimit );
+            //log
+            if( update.hasNewUploadLimit ){
+                int kbpsUpoadLimit = update.newUploadLimit/1024;
+                log(" setting new limit to: "+ kbpsUpoadLimit +" kb/s");
+            }
+
+            if( update.hasNewDownloadLimit ){
+                int kpbsDownloadLimit = update.newDownloadLimit/1024;
+                log(" new down limit: "+kpbsDownloadLimit+" kb/s");
+            }
 
             //setting new
-            setNewLimits( newLimit );
+            setNewLimits( update );
+            //setNewLimits( newLimit );//ToDo: remove.
 
         }else{
             hadAdjustmentLastInterval=false;
@@ -384,16 +398,40 @@ public class SpeedManagerAlgorithmProviderVivaldi
     }
 
     /**
-     * Adjusts both upload and download limits but at a fixed ratio.
-     * @param newLimit
+     * Just update the limits.
+     * @param update - SpeedLimitMonitor.Update
      */
-    private void setNewLimits( int newLimit ){
+    private void setNewLimits( SpeedLimitMonitor.Update update ){
 
-        adapter.setCurrentUploadLimit( newLimit );
+        adapter.setCurrentUploadLimit( update.newUploadLimit );
+        adapter.setCurrentDownloadLimit( update.newDownloadLimit );
 
-        int downLimit = (int)(newLimit * upDownRatio);
+    }
+
+    /**
+     * Adjusts both upload and download limits but at a fixed ratio.
+     * @param newUpLimit -
+     */
+    private void setNewLimits( int newUpLimit ){
+
+        //ToDo: the calculation to SpeedLimitMonitor
+
+        adapter.setCurrentUploadLimit( newUpLimit );
+
+        int downLimit = (int)(newUpLimit * limitMonitor.getUpDownRatio() );
         //apply the fixed ratio.
-        adapter.setCurrentDownloadLimit( downLimit );       
+        adapter.setCurrentDownloadLimit( downLimit );
+
+
+        //Determine if we should try pushing the limits higher.
+//        if( newUpLimit == uploadLimitMax && limitMonitor.bandwidthUsageAtLimit() ){
+//            //check to see if we should probe for higher limits.
+//
+//        }else{
+//            //reset the counter.
+//
+//        }
+
     }
 
     private static int calculateMedianVivaldiDistance(DHT[] dhts) {
@@ -434,67 +472,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
         return Math.round( meanDistance.floatValue() );
     }
 
-
-    /**
-     * We need to move the upload limit. Calculate what it should be.
-     * @param signalStrength -
-     * @return -
-     */
-    private int createNewLimit(float signalStrength){
-
-        int newLimit;
-
-        float multiple = consectiveMultiplier();
-
-        //The amount to move it against the new limit is.
-        float multi = Math.abs( signalStrength * multiple * 0.3f );
-
-        //Force the value to the limit.
-        if(multi>1.0f){
-            if( signalStrength>0.0f ){
-                log("forcing max upload limit.");
-                return uploadLimitMax;
-            }else{
-                log("forcing min upload limit.");
-                return uploadLimitMin;
-            }
-        }
-
-        //don't move it all the way.
-        int maxStep;
-        int currStep;
-        int minStep=1024;
-        int currUpLimit = adapter.getCurrentUploadLimit();
-
-        if(signalStrength>0.0f){
-            maxStep = Math.round( uploadLimitMax -currUpLimit );
-        }else{
-            maxStep = Math.round( currUpLimit- uploadLimitMin);
-        }
-
-        currStep = Math.round(maxStep*multi);
-        if(currStep<minStep){
-            currStep=minStep;
-        }
-
-        if( signalStrength<0.0f ){
-            currStep = -1 * currStep;
-        }
-
-        newLimit = currUpLimit+currStep;
-        newLimit = (( newLimit + 1023 )/1024) * 1024;
-
-        if(newLimit> uploadLimitMax){
-            newLimit= uploadLimitMax;
-        }
-        if(newLimit< uploadLimitMin){
-            newLimit= uploadLimitMin;
-        }
-
-        log( "new-limit:"+newLimit+":"+currStep+":"+signalStrength+":"+multiple+":"+currUpLimit+":"+maxStep+":"+uploadLimitMax+":"+uploadLimitMin );
-
-        return newLimit;
-    }//createNewLimit
 
     /**
      * Determine if we should drop any ping sources.
@@ -559,39 +536,39 @@ public class SpeedManagerAlgorithmProviderVivaldi
     /**
      * Determined by the vivaldi value and the number of consecutive calculations
      * with the same result.
-     * @param vivaldiValue -
+     * @param currMetricValue -
      * @return -
      */
-    private float determineSignalStrength(int vivaldiValue){
+    private float determineSignalStrength(int currMetricValue){
 
         //determine if this is an up-tick (+1), down-tick (-1) or neutral (0).
         float signal=0.0f;
-        if( vivaldiValue< metricGoodResult){
+        if( currMetricValue< metricGoodResult){
             //strong up signal.
             signal=1.0f;
             consecutiveUpticks++;
             consecutiveDownticks=0;
         }
-        else if( vivaldiValue < (metricGoodResult + metricGoodTolerance)){
+        else if( currMetricValue < (metricGoodResult + metricGoodTolerance)){
             //weak up signal.
-            signal = (float)(vivaldiValue- metricGoodResult)/ metricGoodTolerance;
+            signal = (float)(currMetricValue- metricGoodResult)/ metricGoodTolerance;
 
             consecutiveUpticks++;
             consecutiveDownticks=0;
         }
-        else if( vivaldiValue > metricBadResult){
+        else if( currMetricValue > metricBadResult){
             //strong down signal
             signal = -1.0f;
             consecutiveUpticks=0;
             consecutiveDownticks++;
         }
-        else if( vivaldiValue > (metricBadResult - metricBadTolerance) ){
+        else if( currMetricValue > (metricBadResult - metricBadTolerance) ){
             //weak down signal
             consecutiveUpticks=0;
             consecutiveDownticks++;
 
             int lowerBound= metricBadResult - metricBadTolerance;
-            signal = (vivaldiValue-lowerBound) / metricBadTolerance;
+            signal = (currMetricValue-lowerBound) / metricBadTolerance;
             signal -= 1.0f;
         }
         else{
@@ -604,20 +581,32 @@ public class SpeedManagerAlgorithmProviderVivaldi
     }
 
     /**
-     * The longer were get the same signal the stronger it is.
+     * The longer were get the same signal the stronger it is. On upticks however we only increase the
+     * rates when if the upload or download is saturated.
+     *
      * @return -
      */
     private float consectiveMultiplier(){
 
         float multiple;
+
         if( consecutiveUpticks > consecutiveDownticks ){
+
+            //Set the consecutive upticks back to zero if the bandwidth is not being used.
+            if( limitMonitor.bandwidthUsageLow() ){
+                consecutiveUpticks=0;
+            }
+
             multiple = calculateUpTickMultiple(consecutiveUpticks);
         }else{
             multiple = calculateDownTickMultiple(consecutiveDownticks);
+            limitMonitor.notifyOfDownSingal();
         }
 
         return multiple;
     }
+
+
 
     /**
      * Want to rise much slower then drop.
@@ -664,6 +653,12 @@ public class SpeedManagerAlgorithmProviderVivaldi
             default:
                 multiple=3.0f;
         }//switch
+
+        //decrease the signal strength if bandwith usage is only in MED use.
+        if( limitMonitor.bandwidthUsageMedium() ){
+            multiple /= 2.0f;
+        }
+
         return multiple;
     }
 
