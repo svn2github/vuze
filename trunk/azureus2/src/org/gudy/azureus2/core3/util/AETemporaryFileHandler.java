@@ -63,13 +63,16 @@ AETemporaryFileHandler
 						
 						File	file = files[i];
 						
-						if ( file.isDirectory()){
-							
-							continue;
-							
-						}else if ( file.getName().startsWith(PREFIX) && file.getName().endsWith(SUFFIX)){
+						if ( file.getName().startsWith(PREFIX) && file.getName().endsWith(SUFFIX)){
 						
-							file.delete();
+							if ( file.isDirectory()){
+							
+								FileUtil.recursiveDelete( file );
+								
+							}else{
+							
+								file.delete();
+							}
 						}
 					}
 				}
@@ -100,10 +103,32 @@ AETemporaryFileHandler
 	public static File 
 	createTempFile()
 	
-			throws IOException
+		throws IOException
 	{
 		startup();
 		
 		return( File.createTempFile( PREFIX, SUFFIX, tmp_dir ));
+	}
+	
+	public static File 
+	createTempDir()
+	
+		throws IOException
+	{
+		startup();
+		
+		for (int i=0;i<16;i++){
+			
+			File f = File.createTempFile( PREFIX, SUFFIX, tmp_dir );
+			
+			f.delete();
+			
+			if ( f.mkdirs()){
+				
+				return( f );
+			}
+		}
+		
+		throw( new IOException( "Failed to create temporary directory in " + tmp_dir ));
 	}
 }
