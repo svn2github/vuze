@@ -21,7 +21,6 @@ package org.gudy.azureus2.pluginsimpl.local.ui.tables;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.plugins.ui.menus.*;
