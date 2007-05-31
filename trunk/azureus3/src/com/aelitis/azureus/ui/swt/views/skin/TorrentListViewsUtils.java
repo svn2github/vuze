@@ -551,7 +551,7 @@ public class TorrentListViewsUtils
 		try {
   		Program program = Program.findProgram(".qtl");
   		boolean hasQuickTime = program == null ? false
-  				: program.getName().toLowerCase().contains("quicktime");
+  				: ( program.getName().toLowerCase().indexOf("quicktime") != -1 );
 
 			pi.getIPC().invoke("setQuickTimeAvailable", new Object[] {
 				new Boolean(hasQuickTime)
