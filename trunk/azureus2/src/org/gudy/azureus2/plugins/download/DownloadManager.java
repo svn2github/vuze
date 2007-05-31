@@ -335,7 +335,7 @@ DownloadManager
 	 * an easy way to register listeners against all downloads handled by
 	 * Azureus.
 	 * 
-	 * @since 3.0.0.7
+	 * @since 3.0.1.5
 	 */
-	//public DownloadEventNotifier getGlobalDownloadEventNotifier();
+	public DownloadEventNotifier getGlobalDownloadEventNotifier();
 }

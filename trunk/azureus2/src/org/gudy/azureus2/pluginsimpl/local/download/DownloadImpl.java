@@ -977,6 +977,12 @@ DownloadImpl
 		}
 	}
 	
+	// Used by DownloadEventNotifierImpl.
+	void announceTrackerResultsToListener(DownloadTrackerListener l) {
+		l.announceResult(last_announce_result);
+		l.scrapeResult(last_scrape_result);
+	}
+	
 	public void
 	announceResult(
 		TRTrackerAnnouncerResponse			response )
@@ -1147,11 +1153,7 @@ DownloadImpl
 			tracker_listeners_mon.exit();
 		}
 		
-		if (immediateTrigger) {
-			l.announceResult( last_announce_result );
-			
-			l.scrapeResult( last_scrape_result );
-		}
+		if (immediateTrigger) {this.announceTrackerResultsToListener(l);}
 	}
 	
 	public void

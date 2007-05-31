@@ -21,6 +21,10 @@ package org.gudy.azureus2.plugins.download;
  * This interface defines what methods an object should have defined to be able
  * to inform listener objects about various events which occur on a download.
  * 
+ * In previous versions of Azureus, the {@link Download} class was the only
+ * interface which defined these methods - now
+ * {@link DownloadManager#getGlobalDownloadEventNotifier} supports these methods too.
+ * 
  * @since 3.0.0.9
  * @author amc1
  */

@@ -39,6 +39,7 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadEventNotifier;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerStats;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
@@ -82,6 +83,7 @@ DownloadManagerImpl
 	private AzureusCore				azureus_core;
 	private GlobalManager			global_manager;
 	private DownloadManagerStats	stats;
+	private DownloadEventNotifierImpl global_dl_notifier;
 	
 	private List			listeners		= new ArrayList();
 	private CopyOnWriteList	dwba_listeners	= new CopyOnWriteList();
@@ -99,6 +101,7 @@ DownloadManagerImpl
 		global_manager	= _azureus_core.getGlobalManager();
 		
 		stats = new DownloadManagerStatsImpl( global_manager );
+		global_dl_notifier = new DownloadEventNotifierImpl(this);
 		
 		global_manager.addListener(
 			new GlobalManagerListener()
@@ -453,7 +456,7 @@ DownloadManagerImpl
 	}
 
 	/**
-	 * Retrieve the plugin Downlaod object related to the DowloadManager
+	 * Retrieve the plugin Downlaod object related to the DownloadManager
 	 * 
 	 * @param dm DownloadManager to find
 	 * @return plugin object
@@ -911,6 +914,10 @@ DownloadManagerImpl
 				Debug.printStackTrace( e );
 			}
 		}
+	}
+	
+	public DownloadEventNotifier getGlobalDownloadEventNotifier() {
+		return this.global_dl_notifier;
 	}
 	
 	public boolean

@@ -442,4 +442,10 @@ RPDownloadManager
 	{
 		notSupported();
 	}
+	
+	public DownloadEventNotifier getGlobalDownloadEventNotifier() {
+		notSupported();
+		return null;
+	}
+	
 }
