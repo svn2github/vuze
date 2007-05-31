@@ -206,6 +206,20 @@ public class PeerDatabase {
 	  }
   }
   
+  public int
+  getDiscoveredPeerCount()
+  {
+	  try{  
+		  map_mon.enter();
+	  
+		  return( discovered_peers.size());
+		  
+	  }finally{  
+		
+		  map_mon.exit();  
+	  } 
+  }
+  
   /**
    * Get the next potential peer for optimistic connect.
    * @return peer to connect, or null of no optimistic peer available

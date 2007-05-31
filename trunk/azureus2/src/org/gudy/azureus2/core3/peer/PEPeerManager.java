@@ -147,6 +147,9 @@ PEPeerManager
   public int
   getMaxNewConnectionsAllowed();
   
+  public boolean
+  hasPotentialConnections();
+  
   /**
    * Data bytes received.
    * @param l

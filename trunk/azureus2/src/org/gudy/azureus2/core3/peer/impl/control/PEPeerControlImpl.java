@@ -3680,6 +3680,12 @@ PEPeerControlImpl
 		return( allowed_peers );
 	}
 	
+	public boolean
+	hasPotentialConnections()
+	{
+		return( udp_fallbacks.size() + peer_database.getDiscoveredPeerCount() > 0 );
+	}
+	
 	public String 
 	getRelationText() 
 	{
