@@ -2246,6 +2246,10 @@ public class TableViewSWTImpl
 		// We are being called from a plugin (probably), so we must refresh
 		columnInvalidate(tableColumn, true);
 	}
+	
+	public void cellInvalidate(TableColumnCore tableColumn, Object data_source) {
+		cellInvalidate(tableColumn, data_source, true);
+	}
 
 	public void columnRefresh(TableColumnCore tableColumn) {
 		final String sColumnName = tableColumn.getName();
@@ -2289,6 +2293,20 @@ public class TableViewSWTImpl
 					cell.invalidate(bMustRefresh);
 			}
 		});
+	}
+	
+	public void cellInvalidate(TableColumnCore tableColumn,
+			final Object data_source, final boolean bMustRefresh) {
+		final String sColumnName = tableColumn.getName();
+
+		runForAllRows(new TableGroupRowRunner() {
+			public void run(TableRowCore row) {
+				TableCellSWT cell = ((TableRowSWT) row).getTableCellSWT(sColumnName);
+				if (cell != null && cell.getDataSource() != null && cell.getDataSource().equals(data_source)) {
+					cell.invalidate(bMustRefresh);
+				}
+			}
+		});		
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getColumnCells(java.lang.String)
@@ -2407,7 +2425,7 @@ public class TableViewSWTImpl
 	 *
 	 * @return an array containing the selected data sources
 	 * 
-	 * @TODO TuxPaper: Virtual row not created when usint getSelection?
+	 * @TODO TuxPaper: Virtual row not created when using getSelection?
 	 *                  computePossibleActions isn't being calculated right
 	 *                  because of non-created rows when select user selects all
 	 */

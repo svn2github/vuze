@@ -141,6 +141,22 @@ public class TableStructureEventDispatcher implements
 		}
 	}
 
+	public void cellInvalidate(TableColumnCore tableColumn, Object data_source) {
+		try {
+			listeners_mon.enter();
+
+			Iterator iter = listeners.iterator();
+			while (iter.hasNext()) {
+				TableStructureModificationListener listener = (TableStructureModificationListener) iter.next();
+				listener.cellInvalidate(tableColumn, data_source);
+			}
+		} finally {
+
+			listeners_mon.exit();
+		}
+	}
+
+	
 	public void columnOrderChanged(int[] iPositions) {
 		try {
 			listeners_mon.enter();

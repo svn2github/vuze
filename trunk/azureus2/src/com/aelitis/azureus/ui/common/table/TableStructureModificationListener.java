@@ -37,4 +37,6 @@ public interface TableStructureModificationListener
 	void columnSizeChanged(TableColumnCore tableColumn);
 
 	void columnInvalidate(TableColumnCore tableColumn);
+	
+	void cellInvalidate(TableColumnCore tableColumn, Object data_source);
 }

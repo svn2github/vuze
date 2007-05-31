@@ -444,6 +444,13 @@ public interface TableColumn {
    * @since 2.1.0.0
    */
   public void invalidateCells();
+  
+  /**
+   * Invalidates any cells which are linked to the given data source object.
+   * 
+   * @since 3.0.1.5
+   */
+  public void invalidateCell(Object data_source);
 
 
   /** Adds a Context Menu item to the "This Column" sub menu

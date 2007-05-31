@@ -498,6 +498,11 @@ public class TableColumnImpl
 		TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
 		tsed.columnInvalidate(this);
 	}
+	
+	public void invalidateCell(Object data_source) {
+		TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
+		tsed.cellInvalidate(this, data_source);
+	}
 
 	public void addListeners(Object listenerObject) {
 		if (listenerObject instanceof TableCellDisposeListener) {
