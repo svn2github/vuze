@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
  */
 
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
 import java.util.*;
 
@@ -63,7 +64,7 @@ ResourceDownloaderFactoryImpl
 		if ( url.getProtocol().equalsIgnoreCase("file")){
 			
 			try{
-				return( new ResourceDownloaderFileImpl( null, new File( url.toURI())));
+				return( new ResourceDownloaderFileImpl( null, new File( new URI( url.toString()))));
 			
 			}catch( Throwable e ){
 				
