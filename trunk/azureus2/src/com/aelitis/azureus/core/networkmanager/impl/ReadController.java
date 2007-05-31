@@ -277,6 +277,12 @@ public class ReadController implements AzureusCoreStatsProvider{
 	
 					  last_entity_check_count	= entity_check_count;
 					  
+					  	// force a wait
+					  
+					  if ( read_waiter.waitForEvent( IDLE_SLEEP_TIME )){
+		            		wait_count++;
+					  }
+					  
 					  return( false);
 				  }
 	
