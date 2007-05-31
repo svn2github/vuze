@@ -188,8 +188,6 @@ UpdateJarPatcher
 				baos.write( buffer, 0, l );
 			}
 				
-			String	name = ent.getName();
-						
 			patch_entries.put( ent.getName(), new ByteArrayInputStream( baos.toByteArray()));
 		}
 	}

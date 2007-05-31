@@ -214,7 +214,7 @@ Initializer
 
 					Cursors.init();
 
-					MainWindow main_window = new MainWindow(core, Initializer.this,
+					new MainWindow(core, Initializer.this,
 							logEvents);
 
 					if (finalLogListener != null)

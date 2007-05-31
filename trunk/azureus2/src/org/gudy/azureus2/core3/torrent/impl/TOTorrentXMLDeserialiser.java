@@ -83,8 +83,6 @@ TOTorrentXMLDeserialiser
 			
 			URL		announce_url 					= null;
 			
-			SimpleXMLParserDocumentNode	info_node 	= null;
-			
 			byte[]	torrent_hash = null;
 			
 			for (int i=0;i<kids.length;i++){

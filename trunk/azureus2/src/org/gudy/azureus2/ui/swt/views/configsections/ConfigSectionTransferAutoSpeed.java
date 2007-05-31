@@ -81,7 +81,7 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 		
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
-		LinkLabel linkLabel = new LinkLabel(cSection, gridData, "ConfigView.label.please.visit.here",
+		new LinkLabel(cSection, gridData, "ConfigView.label.please.visit.here",
 				"http://azureus.aelitis.com/wiki/index.php/Auto_Speed");
 
 		

@@ -109,7 +109,7 @@ public class ConfigSectionConnectionEncryption implements UISWTConfigSection {
 
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
-		LinkLabel linkLabel = new LinkLabel(gCrypto, gridData, CFG_PREFIX
+		new LinkLabel(gCrypto, gridData, CFG_PREFIX
 				+ "encrypt.info.link",
 				"http://azureus.aelitis.com/wiki/index.php/Avoid_traffic_shaping");
 		

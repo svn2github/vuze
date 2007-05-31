@@ -193,9 +193,7 @@ TOTorrentXMLSerialiser
 			TOTorrentFileImpl[] files = (TOTorrentFileImpl[])torrent.getFiles();
 			
 			if ( torrent.isSimpleTorrent()){
-					
-				TOTorrentFile	file = files[0];
-			
+		
 				writeTag( "LENGTH", files[0].getLength());
 			
 			}else{
