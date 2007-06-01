@@ -80,7 +80,6 @@ SpeedManagerAlgorithmProviderV2
 		adapter	= _adapter;
 		adapter.setLoggingEnabled( true );
 
-        //strategy = new SpeedManagerAlgorithmProviderPingTrendsMethod(_adapter);
         //strategy = new SpeedManagerAlgorithmProviderSpeedSense(_adapter);
         strategy = new SpeedManagerAlgorithmProviderVivaldi(_adapter);
 
@@ -171,7 +170,7 @@ SpeedManagerAlgorithmProviderV2
 	log(
 		String	str )
 	{
-		adapter.log( str );
-	}
+        SpeedManagerLogger.log( str );
+    }
 
 }

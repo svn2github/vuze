@@ -1,9 +1,8 @@
 package com.aelitis.azureus.core.speedmanager.impl;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.SystemTime;
+
 
 /**
  * Created on May 23, 2007
@@ -75,14 +74,11 @@ public class SpeedLimitMonitor
     //these methods are used to see how high limits can go.
     private boolean isUploadMaxPinned=true;   //ToDo: Might want to change this into a mode class.
     private boolean isDownloadMaxPinned=true; //ToDo: Might want to change this into a mode class.
-    long uploadAtLimitStartTime =0;
-    long downloadAtLimitStartTime =0;
+    long uploadAtLimitStartTime =SystemTime.getCurrentTime();
+    long downloadAtLimitStartTime = SystemTime.getCurrentTime();
 
     private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 5 * 60 * 1000; //five minutes.//ToDo: make this configurable.
     //private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 1 * 60 * 1000; //ToDo: REMOVE THIS IS FOR TESTING ONLY.
-
-
-    private AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("v3.AutoSpeed_Beta_Debug");
 
 
     public SpeedLimitMonitor(){
@@ -187,9 +183,6 @@ public class SpeedLimitMonitor
     }
 
     /**
-     * //ToDo: The reason this method and class exists is to make the business rules much more complex.
-     * //ToDo: Test this logic.
-     *
      * Here we need to handle several cases.
      * (a) If the download bandwidth is HIGH, then we need to back off on the upload limit to 80% of max.
      * (b) If upload bandwidth and limits are AT_LIMIT for a period of time then need to "unpin" that max limit
@@ -258,10 +251,6 @@ public class SpeedLimitMonitor
         if(newLimit< uploadLimitMin){
             newLimit= uploadLimitMin;
         }
-
-
-        //determine if we should set new limits higher.
-        checkForUnpinningCondition();
 
 
         log( "new-limit:"+newLimit+":"+currStep+":"+signalStrength+":"+multiple+":"+currUpLimit+":"+maxStep+":"+uploadLimitMax+":"+uploadLimitMin );
@@ -360,7 +349,7 @@ public class SpeedLimitMonitor
         long currTime = SystemTime.getCurrentTime();
 
         //upload useage must be at limits for a set period of time before unpinning.
-        if( !uploadBandwidthStatus.equals(SaturatedMode.AT_LIMIT) &&
+        if( !uploadBandwidthStatus.equals(SaturatedMode.AT_LIMIT) ||
                 !uploadLimitSettingStatus.equals(SaturatedMode.AT_LIMIT) )
         {
             //start the clock over.
@@ -375,7 +364,7 @@ public class SpeedLimitMonitor
         }
 
         //download usage must be at limits for a set period of time before unpinning.
-        if( !downloadBandwidthStatus.equals(SaturatedMode.AT_LIMIT) &&
+        if( !downloadBandwidthStatus.equals(SaturatedMode.AT_LIMIT) ||
                 !downloadLimitSettingStatus.equals(SaturatedMode.AT_LIMIT) )
         {
             //start the clock over.
@@ -423,9 +412,8 @@ public class SpeedLimitMonitor
 
 
     protected void log(String str){
-        if(dLog!=null){
-            dLog.log(str);
-        }
+
+        SpeedManagerLogger.log(str);
     }//log
 
 

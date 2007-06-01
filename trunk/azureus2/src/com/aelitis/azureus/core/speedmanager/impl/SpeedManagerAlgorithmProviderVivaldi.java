@@ -10,8 +10,6 @@ import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
@@ -54,7 +52,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
     private SpeedManagerAlgorithmProviderAdapter adapter;
     private PluginInterface dhtPlugin;
 
-    private AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("v3.AutoSpeed_Beta_Debug");
+    //private AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("v3.AutoSpeed_Beta_Debug");
 
     private long timeSinceLastUpdate;
     private static final long VIVALDI_TIME_BETWEEN_UPDATES = 15000;
@@ -133,7 +131,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
                             }
 
                         }catch( Throwable t ){
-
+                            SpeedManagerLogger.log(t.getMessage());
                         }
 
                     }//configurationSaved
@@ -174,6 +172,8 @@ public class SpeedManagerAlgorithmProviderVivaldi
         log("metric:value:type");
 
         log("user-comment:log");
+
+        //log("pin:")
     }
 
     /**
@@ -188,14 +188,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
         int currDataUploadSpeed = adapter.getCurrentDataUploadSpeed();
         int currProtoUploadSpeed = adapter.getCurrentProtocolUploadSpeed();
         int upRate = currDataUploadSpeed + currProtoUploadSpeed;
-
-        //current upload limit setting
-        //current upload average
-        //current upload data rate
-
-        //current download limit setting
-        //current download average
-        //current download data rate
 
         int currDownLimit = adapter.getCurrentDownloadLimit();
         int downDataRate = adapter.getCurrentDataDownloadSpeed();
@@ -371,19 +363,12 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
             float multiple = consectiveMultiplier();
             int currUpLimit = adapter.getCurrentUploadLimit();
-            //int newLimit = limitMonitor.createNewLimit(signalStrength,multiple,currUpLimit);  //ToDo: remove.
+
+            limitMonitor.checkForUnpinningCondition();
             SpeedLimitMonitor.Update update = limitMonitor.createNewLimitEx(signalStrength,multiple,currUpLimit);
 
             //log
-            if( update.hasNewUploadLimit ){
-                int kbpsUpoadLimit = update.newUploadLimit/1024;
-                log(" setting new limit to: "+ kbpsUpoadLimit +" kb/s");
-            }
-
-            if( update.hasNewDownloadLimit ){
-                int kpbsDownloadLimit = update.newDownloadLimit/1024;
-                log(" new down limit: "+kpbsDownloadLimit+" kb/s");
-            }
+            logNewLimits(update);
 
             //setting new
             setNewLimits( update );
@@ -394,6 +379,18 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         //determine if we need to drop a ping source.
         checkPingSources(sources);
+    }
+
+    private void logNewLimits(SpeedLimitMonitor.Update update) {
+        if( update.hasNewUploadLimit ){
+            int kbpsUpoadLimit = update.newUploadLimit/1024;
+            log(" setting new limit to: "+ kbpsUpoadLimit +" kb/s");
+        }
+
+        if( update.hasNewDownloadLimit ){
+            int kpbsDownloadLimit = update.newDownloadLimit/1024;
+            log(" new down limit: "+kpbsDownloadLimit+" kb/s");
+        }
     }
 
     /**
@@ -719,12 +716,8 @@ public class SpeedManagerAlgorithmProviderVivaldi
     }
 
     protected void log(String str){
-        if(adapter!=null){
-            adapter.log( str );
-        }
-        if(dLog!=null){
-            dLog.log(str);
-        }
+
+        SpeedManagerLogger.log(str);
     }//log
 
 }
