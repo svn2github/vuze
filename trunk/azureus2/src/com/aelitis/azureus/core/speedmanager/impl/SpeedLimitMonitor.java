@@ -206,7 +206,7 @@ public class SpeedLimitMonitor
         //If we are in an unpinned limits mode then consider consider
         if( !isUploadMaxPinned || !isDownloadMaxPinned ){
             //we are in a mode that is moving the limits.
-            return calculateNewUnpinnedLimits(signalStrength, multiple, currUpLimit);            
+            return calculateNewUnpinnedLimits(signalStrength);
         }//if
 
         //Force the value to the limit.
@@ -281,7 +281,7 @@ public class SpeedLimitMonitor
         log( sb.toString() );
     }
 
-    private Update calculateNewUnpinnedLimits(float signalStrength,float multiple,int currUpLimit){
+    private Update calculateNewUnpinnedLimits(float signalStrength){
 
         //first verify that is this is an up signal.
         if(signalStrength<0.0f){
@@ -306,18 +306,18 @@ public class SpeedLimitMonitor
 
         boolean uploadChanged=false;
         boolean downloadChanged=false;
-        //Lets do something very simple at this point to get it tested.
-        //ToDo: get a better algorithm.
+
+
         if(updateUpload){
             //increase limit by one kilobyte.
-            uploadLimitMax+=1024;
+            uploadLimitMax = calculateUnpinnedStepSize( uploadLimitMax );
             uploadChanged=true;
             COConfigurationManager.setParameter(
                     SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
         }
         if(updateDownload){
             //increase limit by one kilobyte.
-            downloadLimitMax+=1024;
+            downloadLimitMax = calculateUnpinnedStepSize( downloadLimitMax );
             downloadChanged=true;
             COConfigurationManager.setParameter(
                     SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downloadLimitMax);
@@ -335,10 +335,26 @@ public class SpeedLimitMonitor
         COConfigurationManager.setParameter(
                 SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
 
-        
-        //ToDo: these will need to vary independently. (There is a bug here, this only works if both are saturated.)
         return new Update(uploadLimitMax,uploadChanged,downloadLimitMax,downloadChanged);
     }//calculateNewUnpinnedLimits
+
+    /**
+     * If setting is less then 100kBytes take 1 kByte steps.
+     * If setting is less then 500kBytes take 5 kByte steps.
+     * if setting is larger take 10 kBytes steps.
+     * @param currLimitMax - current limit setting.
+     * @return - set size for next change.
+     */
+    private int calculateUnpinnedStepSize(int currLimitMax){
+        if(currLimitMax<102400){
+            return 1024;
+        }else if(currLimitMax<512000){
+            return 1024*5;
+        }else if(currLimitMax>=51200){
+            return 1024*10;
+        }
+        return 1024;
+    }//
 
     /**
      * Make a decision about unpinning either the upload or download limit. This is based on the
