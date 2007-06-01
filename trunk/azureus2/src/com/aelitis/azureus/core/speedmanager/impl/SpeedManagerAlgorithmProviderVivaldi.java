@@ -387,7 +387,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
             //setting new
             setNewLimits( update );
-            //setNewLimits( newLimit );//ToDo: remove.
 
         }else{
             hadAdjustmentLastInterval=false;
@@ -408,31 +407,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
     }
 
-    /**
-     * Adjusts both upload and download limits but at a fixed ratio.
-     * @param newUpLimit -
-     */
-    private void setNewLimits( int newUpLimit ){
-
-        //ToDo: the calculation to SpeedLimitMonitor
-
-        adapter.setCurrentUploadLimit( newUpLimit );
-
-        int downLimit = (int)(newUpLimit * limitMonitor.getUpDownRatio() );
-        //apply the fixed ratio.
-        adapter.setCurrentDownloadLimit( downLimit );
-
-
-        //Determine if we should try pushing the limits higher.
-//        if( newUpLimit == uploadLimitMax && limitMonitor.bandwidthUsageAtLimit() ){
-//            //check to see if we should probe for higher limits.
-//
-//        }else{
-//            //reset the counter.
-//
-//        }
-
-    }
 
     private static int calculateMedianVivaldiDistance(DHT[] dhts) {
         DHT forSelf = dhts[dhts.length-1];
@@ -727,7 +701,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
     }
 
     public int getMaxPingMillis() {
-        return 42;  //To change body of implemented methods use File | Settings | File Templates.
+        return 912;  //Currently a fixed number to be sure of algorightm.
     }
 
     /**

@@ -40,10 +40,16 @@ import org.gudy.azureus2.core3.util.SystemTime;
  * #2) When downloading. If the download is AT_LIMIT for a period of time it will
  * allow that to adjust upward.
  *
- * #3) When downloading, if a down-tick is detected and the upload it near a limit,
+ * #3) When downloading, if a down-tick is detected and the upload is near a limit,
  * it will drop the upload limit to 80% of MAX_UPLOAD.
  *
  * #4) Once that limit is reached it will drop both the upload and download limits together.
+ *
+ * #5) Seeding mode is triggered when - download bandwidth at LOW - compared to CAPACITY for 5 minutes continously.
+ *
+ * #6) Download mode is triggered when - download bandwidth reaches MEDIUM - compared to CURRENT_LIMIT for the first time.
+ *
+ * Rules #5 and #6 favor downloading over seeding.
  *
  */
 
@@ -72,7 +78,8 @@ public class SpeedLimitMonitor
     long uploadAtLimitStartTime =0;
     long downloadAtLimitStartTime =0;
 
-    private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 5 * 60 * 1000; //five minutes.
+    private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 5 * 60 * 1000; //five minutes.//ToDo: make this configurable.
+    //private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 1 * 60 * 1000; //ToDo: REMOVE THIS IS FOR TESTING ONLY.
 
 
     private AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("v3.AutoSpeed_Beta_Debug");
@@ -101,23 +108,6 @@ public class SpeedLimitMonitor
     public float getUpDownRatio(){
         return upDownRatio;
     }
-
-//ToDo: do we need these methods?
-//    public int getNewCurrUploadLimit(){
-//        return (0);
-//    }
-//
-//    public int getNewCurrDownloadLimit(){
-//        return (0);
-//    }
-//
-//    public int getNewMaxUploadLimit(){
-//        return (0);
-//    }
-//
-//    public int getNewMaxDownloadLimit(){
-//        return (0);
-//    }
 
 
     public void setDownloadBandwidthMode(int rate, int limit){
@@ -229,11 +219,11 @@ public class SpeedLimitMonitor
         //Force the value to the limit.
         if(multi>1.0f){
             if( signalStrength>0.0f ){
-                log("forcing max upload limit.");
+                log("forcing: max upload limit.");
                 int newDownloadLimit = Math.round( uploadLimitMax*upDownRatio );
                 return new Update(uploadLimitMax, true,newDownloadLimit, true);
             }else{
-                log("forcing min upload limit.");
+                log("forcing: min upload limit.");
                 int newDownloadLimit = Math.round( uploadLimitMin*upDownRatio );
                 return new Update(uploadLimitMin, true, newDownloadLimit, true);
             }
@@ -278,6 +268,28 @@ public class SpeedLimitMonitor
 
         int newDownloadLimit = Math.round( newLimit*upDownRatio );
         return new Update(newLimit, true, newDownloadLimit, true );
+    }
+
+    /**
+     * Log debug info needed during beta period.
+     */
+    private void logPinningInfo() {
+        StringBuffer sb = new StringBuffer("pin: ");
+        if(isUploadMaxPinned){
+            sb.append("ul-pinned:");
+        }else{
+            sb.append("ul-unpinned:");
+        }
+        if(isDownloadMaxPinned){
+            sb.append("dl-pinned:");
+        }else{
+            sb.append("dl-unpinned:");
+        }
+        long currTime = SystemTime.getCurrentTime();
+        long upWait = currTime - uploadAtLimitStartTime;
+        long downWait = currTime - downloadAtLimitStartTime;
+        sb.append(upWait).append(":").append(downWait);
+        log( sb.toString() );
     }
 
     private Update calculateNewUnpinnedLimits(float signalStrength,float multiple,int currUpLimit){
@@ -348,8 +360,8 @@ public class SpeedLimitMonitor
         long currTime = SystemTime.getCurrentTime();
 
         //upload useage must be at limits for a set period of time before unpinning.
-        if( !uploadBandwidthStatus.equals(SaturatedMode.AT_LIMIT) ||
-                uploadLimitSettingStatus.equals(SaturatedMode.AT_LIMIT) )
+        if( !uploadBandwidthStatus.equals(SaturatedMode.AT_LIMIT) &&
+                !uploadLimitSettingStatus.equals(SaturatedMode.AT_LIMIT) )
         {
             //start the clock over.
             uploadAtLimitStartTime = currTime;
@@ -363,8 +375,8 @@ public class SpeedLimitMonitor
         }
 
         //download usage must be at limits for a set period of time before unpinning.
-        if( !downloadBandwidthStatus.equals(SaturatedMode.AT_LIMIT) ||
-                downloadLimitSettingStatus.equals(SaturatedMode.AT_LIMIT) )
+        if( !downloadBandwidthStatus.equals(SaturatedMode.AT_LIMIT) &&
+                !downloadLimitSettingStatus.equals(SaturatedMode.AT_LIMIT) )
         {
             //start the clock over.
             downloadAtLimitStartTime = currTime;
@@ -376,6 +388,8 @@ public class SpeedLimitMonitor
                 log("unpinning the download max limit!!");
             }
         }
+
+        logPinningInfo();
     }
 
     /**
@@ -398,66 +412,6 @@ public class SpeedLimitMonitor
         isUploadMaxPinned = true;
         isDownloadMaxPinned = true;
     }
-
-    /**
-     * We need to move the upload limit. Calculate what it should be.
-     * @param signalStrength -
-     * @param multiple -
-     * @param currUpLimit -
-     * @return -
-     */
-    public int createNewLimit(float signalStrength, float multiple, int currUpLimit){
-
-        int newLimit;
-
-        //The amount to move it against the new limit is.
-        float multi = Math.abs( signalStrength * multiple * 0.3f );
-
-        //Force the value to the limit.
-        if(multi>1.0f){
-            if( signalStrength>0.0f ){
-                log("forcing max upload limit.");
-                return uploadLimitMax;
-            }else{
-                log("forcing min upload limit.");
-                return uploadLimitMin;
-            }
-        }
-
-        //don't move it all the way.
-        int maxStep;
-        int currStep;
-        int minStep=1024;
-
-        if(signalStrength>0.0f){
-            maxStep = Math.round( uploadLimitMax -currUpLimit );
-        }else{
-            maxStep = Math.round( currUpLimit- uploadLimitMin);
-        }
-
-        currStep = Math.round(maxStep*multi);
-        if(currStep<minStep){
-            currStep=minStep;
-        }
-
-        if( signalStrength<0.0f ){
-            currStep = -1 * currStep;
-        }
-
-        newLimit = currUpLimit+currStep;
-        newLimit = (( newLimit + 1023 )/1024) * 1024;
-
-        if(newLimit> uploadLimitMax){
-            newLimit= uploadLimitMax;
-        }
-        if(newLimit< uploadLimitMin){
-            newLimit= uploadLimitMin;
-        }
-
-        log( "new-limit:"+newLimit+":"+currStep+":"+signalStrength+":"+multiple+":"+currUpLimit+":"+maxStep+":"+uploadLimitMax+":"+uploadLimitMin );
-
-        return newLimit;
-    }//createNewLimit
 
 
     /**
