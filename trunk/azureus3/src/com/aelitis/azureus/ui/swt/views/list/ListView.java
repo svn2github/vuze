@@ -353,7 +353,7 @@ public class ListView
 		if (listCanvas == null || listCanvas.isDisposed()) {
 			return;
 		}
-		
+
 		Rectangle clientArea = listCanvas.getClientArea();
 
 		if (clientArea.width == 0 || clientArea.height == 0) {
@@ -425,8 +425,8 @@ public class ListView
 					}
 
 					if (DEBUGPAINT) {
-						logPAINT(visibleRows.length + " visible;" + "; " + start
-								+ " - " + (end - 1));
+						logPAINT(visibleRows.length + " visible;" + "; " + start + " - "
+								+ (end - 1));
 					}
 					long lStart = System.currentTimeMillis();
 					for (int i = start; i < end; i++) {
@@ -802,8 +802,7 @@ public class ListView
 						Image img = sortColumn.isSortAscending() ? imgSortAsc : imgSortDesc;
 						if (img != null) {
 							Rectangle imgBounds = img.getBounds();
-							e.gc.drawImage(img, middlePos
-									- (imgBounds.width / 2),
+							e.gc.drawImage(img, middlePos - (imgBounds.width / 2),
 									bounds.height + bounds.y - imgBounds.height);
 						}
 					}
@@ -2690,7 +2689,7 @@ public class ListView
 	}
 
 	public boolean isRowVisible(final ListRow row) {
-		
+
 		return Utils.execSWTThreadWithBool("isRowVisible", new AERunnableBoolean() {
 			public boolean runSupport() {
 				return _isRowVisible(row);
@@ -3133,6 +3132,26 @@ public class ListView
 		if (tc != null) {
 			columnInvalidate(tc, tc.getType() == TableColumnCore.TYPE_TEXT_ONLY);
 		}
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableStructureModificationListener#cellInvalidate(com.aelitis.azureus.ui.common.table.TableColumnCore, java.lang.Object)
+	public void cellInvalidate(TableColumnCore tableColumn, Object data_source) {
+		cellInvalidate(tableColumn, data_source, true);
+	}
+
+	public void cellInvalidate(TableColumnCore tableColumn,
+			final Object data_source, final boolean bMustRefresh) {
+		final String sColumnName = tableColumn.getName();
+
+		runForAllRows(new TableGroupRowRunner() {
+			public void run(TableRowCore row) {
+				TableCellSWT cell = ((TableRowSWT) row).getTableCellSWT(sColumnName);
+				if (cell != null && cell.getDataSource() != null
+						&& cell.getDataSource().equals(data_source)) {
+					cell.invalidate(bMustRefresh);
+				}
+			}
+		});
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#delete()
