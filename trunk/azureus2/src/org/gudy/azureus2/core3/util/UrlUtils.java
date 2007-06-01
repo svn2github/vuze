@@ -167,6 +167,10 @@ public class UrlUtils
 	}
 
 	public static String parseHTMLforURL(String text) {
+		if (text == null) {
+			return null;
+		}
+
 		// examples:
 		// <A HREF=http://abc.om/moo>test</a>
 		// <A style=cow HREF="http://abc.om/moo">test</a>
@@ -217,6 +221,9 @@ public class UrlUtils
 	 * @return
 	 */
 	public static String encode(String s) {
+		if (s == null) {
+			return "";
+		}
 		try {
 			return URLEncoder.encode(s, "UTF-8").replaceAll("\\+", "%20");
 		} catch (UnsupportedEncodingException e) {
@@ -225,6 +232,9 @@ public class UrlUtils
 	}
 	
 	public static String escapeXML(String s) {
+		if (s == null) {
+			return "";
+		}
 		String ret = s;
 		for (int i = 0; i < XMLescapes.length; i++) {
 			String[] escapeEntry = (String[])XMLescapes[i];
@@ -234,6 +244,9 @@ public class UrlUtils
 	}
 
 	public static String unescapeXML(String s) {
+		if (s == null) {
+			return "";
+		}
 		String ret = s;
 		for (int i = 0; i < XMLescapes.length; i++) {
 			String[] escapeEntry = (String[])XMLescapes[i];
