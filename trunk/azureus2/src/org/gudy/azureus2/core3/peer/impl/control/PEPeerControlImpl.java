@@ -2634,6 +2634,13 @@ PEPeerControlImpl
 						
 						pePiece.reset();
 					}
+				}else{
+					
+						// no active piece for some reason, clear down DM piece anyway
+					
+					Debug.out(getDisplayName() + "Piece #" +pieceNumber +" failed check and no active piece, resetting..." );
+
+					dm_pieces[pieceNumber].reset();
 				}
 			}else{
 				
@@ -3807,7 +3814,7 @@ PEPeerControlImpl
 			
 			if ( num_active == 0 ){
 				
-				writer.println( "  Inactive Pieces (excluding done/skiped)" );
+				writer.println( "  Inactive Pieces (excluding done/skipped)" );
 				
 				try{
 					writer.indent();
