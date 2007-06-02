@@ -117,7 +117,7 @@ BasicPluginConfigModel
 	 * @param key
 	 * @param resource_name
 	 * @param values
-	 * @param labels
+	 * @param labels A list of localised message strings corresponding to each value.
 	 * @param defaultValue
 	 * @return
 	 * @since 2.3.0.6
