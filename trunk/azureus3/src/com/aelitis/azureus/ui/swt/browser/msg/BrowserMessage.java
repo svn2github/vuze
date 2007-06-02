@@ -23,9 +23,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.StatusTextEvent;
-
 import org.gudy.azureus2.core3.util.Debug;
 import org.json.JSONArray;
 import org.json.JSONObject;

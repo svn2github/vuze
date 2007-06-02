@@ -26,7 +26,6 @@ import java.util.Map;
 import org.eclipse.swt.browser.Browser;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 
 /**
  * Manages the context for a single SWT {@link Browser} component.

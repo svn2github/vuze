@@ -23,7 +23,6 @@
 
 package com.aelitis.azureus.core.content;
 
-import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;

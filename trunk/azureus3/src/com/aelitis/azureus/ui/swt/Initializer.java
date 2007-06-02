@@ -19,7 +19,6 @@
  */
 package com.aelitis.azureus.ui.swt;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.eclipse.swt.widgets.Display;
