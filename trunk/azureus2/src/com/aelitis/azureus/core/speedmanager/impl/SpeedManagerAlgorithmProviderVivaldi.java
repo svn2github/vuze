@@ -165,7 +165,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         log("curr-data: curr-down-rate : curr-down-limit : down-bandwith-mode : down-limit-mode : curr-up-rate : curr-up-limit : upload-bandwidth-mode : upload-limit-mode");
 
-        log( "new-limit:newLimit:currStep:signalStrength:multiple:currUpLimit:maxStep:uploadLimitMax:uploadLimitMin" );
+        log( "new-limit:newLimit:currStep:signalStrength:multiple:currUpLimit:maxStep:uploadLimitMax:uploadLimitMin:transferMode" );
 
         log("consecutive:up:down");
 
@@ -198,10 +198,11 @@ public class SpeedManagerAlgorithmProviderVivaldi
         limitMonitor.setDownloadBandwidthMode(downRate,currDownLimit);
         limitMonitor.setUploadBandwidthMode(currDataUploadSpeed,currUploadLimit);
 
-
         //update the limts status.  (is it near a forced max or min?)
         limitMonitor.setDownloadLimitSettingMode(currDownLimit);
         limitMonitor.setUploadLimitSettingMode(currUploadLimit);
+
+        limitMonitor.updateTransferMode();
 
         StringBuffer sb = new StringBuffer("curr-data:"+downRate+":"+currDownLimit+":");
         sb.append(limitMonitor.getDownloadBandwidthMode()).append(":");
@@ -209,6 +210,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
         sb.append(upRate).append(":").append(currUploadLimit).append(":");
         sb.append(limitMonitor.getUploadBandwidthMode()).append(":");
         sb.append(limitMonitor.getUploadLimitSettingMode()).append(":");
+        sb.append(limitMonitor.getTransferModeAsString());
 
         log( sb.toString() );
     }
@@ -309,7 +311,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
             //if we don't have any pings, then either the connection is lost or very bad network congestion.
             //force an adjustment down.
             if( pingTimeList.size()==0 ){
-                lastMetricValue =10000;  //ToDo: This is a high value to force an adjusment down.
+                lastMetricValue =10000;  //This is a high value to force an adjusment down.
             }else{
                 int medianIndex = pingTimeList.size()/2;
 

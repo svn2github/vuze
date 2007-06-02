@@ -71,6 +71,8 @@ public class SpeedLimitMonitor
     private SaturatedMode uploadLimitSettingStatus=SaturatedMode.AT_LIMIT;
     private SaturatedMode downloadLimitSettingStatus=SaturatedMode.AT_LIMIT;  
 
+    private TransferMode transferMode = new TransferMode();
+
     //these methods are used to see how high limits can go.
     private boolean isUploadMaxPinned=true;   //ToDo: Might want to change this into a mode class.
     private boolean isDownloadMaxPinned=true; //ToDo: Might want to change this into a mode class.
@@ -137,6 +139,16 @@ public class SpeedLimitMonitor
     public SaturatedMode getUploadLimitSettingMode(){
         return uploadLimitSettingStatus;
     }
+
+    public void updateTransferMode(){
+            
+        transferMode.updateStatus( downloadBandwidthStatus );
+    }
+
+    public String getTransferModeAsString(){
+        return transferMode.getString();
+    }
+
 
     /**
      * Are both the upload and download bandwidths usages is low?
