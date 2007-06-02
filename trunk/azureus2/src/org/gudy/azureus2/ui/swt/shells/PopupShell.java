@@ -38,8 +38,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 public class PopupShell {
   
   protected Shell shell;
-  
-  private String image;  
+    
   public static final String IMG_INFORMATION = "information";
   
   /**

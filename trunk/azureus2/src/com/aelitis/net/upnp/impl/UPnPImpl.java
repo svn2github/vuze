@@ -98,8 +98,6 @@ UPnPImpl
 	
 	private int		trace_index		= 0;
 	
-	private String	secondary_route_log = "";
-	
 	private ThreadPool	device_dispatcher	 = new ThreadPool("UPnPDispatcher", 1, true );
 	private Set			device_dispatcher_pending	= new HashSet();
 	

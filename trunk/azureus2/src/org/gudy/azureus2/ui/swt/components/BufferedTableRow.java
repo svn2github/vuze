@@ -70,9 +70,6 @@ BufferedTableRow
 	
 	protected Color		foreground;
 	
-	// remove when things work
-	private static final boolean bDebug = false;
-	
 	private Point ptIconSize = null;
 	
 	/**
