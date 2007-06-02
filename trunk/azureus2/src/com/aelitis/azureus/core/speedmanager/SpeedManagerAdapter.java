@@ -22,8 +22,6 @@
 
 package com.aelitis.azureus.core.speedmanager;
 
-import org.gudy.azureus2.core3.global.GlobalManagerStats;
-
 public interface 
 SpeedManagerAdapter 
 {
