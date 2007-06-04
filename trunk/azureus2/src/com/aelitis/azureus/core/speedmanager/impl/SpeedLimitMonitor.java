@@ -64,7 +64,6 @@ public class SpeedLimitMonitor
     private static float upDownRatio=2.0f;
 
     private TransferMode transferMode = new TransferMode();
-    private int uploadLimitMax;
 
     //Upload and Download bandwidth usage modes. Compare usage to current limit.
     private SaturatedMode uploadBandwidthStatus =SaturatedMode.NONE;

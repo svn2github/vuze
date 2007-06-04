@@ -3,7 +3,6 @@ package com.aelitis.azureus.core.speedmanager.impl;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreException;
-import com.aelitis.azureus.core.util.average.Average;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
@@ -52,7 +51,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
     private SpeedManagerAlgorithmProviderAdapter adapter;
     private PluginInterface dhtPlugin;
 
-    //private AEDiagnosticsLogger dLog = AEDiagnostics.getLogger("v3.AutoSpeed_Beta_Debug");
 
     private long timeSinceLastUpdate;
     private static final long VIVALDI_TIME_BETWEEN_UPDATES = 15000;
@@ -83,9 +81,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
     private int intervalCount = 0;
 
     //for managing ping sources.
-    private final Map pingAverages = new HashMap(); //<Source,PingSourceStats>
-    private long lastPingRemoval=0;
-    private static final long TIME_BETWEEN_REMOVALS = 5 * 60000; //five minutes.
+    PingSourceManager pingSourceManager = new PingSourceManager();
 
 
     static{
@@ -223,13 +219,10 @@ public class SpeedManagerAlgorithmProviderVivaldi
      */
 
     public void pingSourceFound(SpeedManagerPingSource source, boolean is_replacement) {
-
         //We might not use ping source if the vivaldi data is available.
         log("pingSourceFound");
-
         //add a new ping source to the list.
-        PingSourceStats pss = new PingSourceStats(source);
-        pingAverages.put(source,pss);
+        pingSourceManager.pingSourceFound(source, is_replacement);
     }
 
     /**
@@ -242,9 +235,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
         //Where does the vivaldi data for the chart come from.
         log("pingSourceFailed");
 
-        if( pingAverages.remove(source)==null){
-            log("didn't find source: "+source.getAddress().getHostName());
-        }
+        pingSourceManager.pingSourceFailed(source);
     }
 
     /**
@@ -259,13 +250,11 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         int len = sources.length;
         for(int i=0; i<len; i++){
-            PingSourceStats pss = (PingSourceStats) pingAverages.get(sources[i]);
+            pingSourceManager.addPingTime( sources[i] );
             int pingTime = sources[i].getPingTime();
 
             //exclude ping-times of -1 which mess up the averages.
             if(pingTime>0){
-                pss.addPingTime( sources[i].getPingTime() );
-
                 pingTimeList.add( new Integer( sources[i].getPingTime() ) );
                 intervalCount++;
             }//if
@@ -380,7 +369,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
         }
 
         //determine if we need to drop a ping source.
-        checkPingSources(sources);
+        pingSourceManager.checkPingSources(sources);
     }
 
     private void logNewLimits(SpeedLimitMonitor.Update update) {
@@ -443,68 +432,8 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         //We now have meanDistance!!! use it to set the upload limit!!!
         return Math.round( meanDistance.floatValue() );
-    }
+    }//calculateMediaVivaldiDistance
 
-
-    /**
-     * Determine if we should drop any ping sources.
-     * Sort them, if one significantly higher then the other two. then drop it.
-     * @param sources - SpeedManagerPingSource[] inputs
-     */
-    private void checkPingSources(SpeedManagerPingSource[] sources){
-
-        //if the long term average of one source is 10 the lowest and twice a large as the
-        //two lowest then drop the highest at the moment. Also, don't force sources to
-        //drop to frequently.
-
-        //if we just recently removed a ping source then wait.
-        long currTime = SystemTime.getCurrentTime();
-        if( currTime<lastPingRemoval+TIME_BETWEEN_REMOVALS ){
-            return;
-        }
-
-        //no sources.
-        if( sources==null ){
-            return;
-        }
-
-        //if we have only two sources then don't do this test.
-        if( sources.length<3 ){
-            return;
-        }
-
-        double highestLongTermPing=0.0;
-        SpeedManagerPingSource highestSource=null;
-        double lowestLongTermPing=10000.0;
-
-        int len = sources.length;
-        for(int i=0; i<len; i++){
-            PingSourceStats pss = (PingSourceStats) pingAverages.get(sources[i]);
-            Average a = pss.getLongTermAve();
-            double avePingTime = a.getAverage();
-
-            //is this a new highest value?
-            if( avePingTime>highestLongTermPing ){
-                highestLongTermPing = avePingTime;
-                highestSource = sources[i];
-            }
-
-            //is this a new lowest value?
-            if( avePingTime<lowestLongTermPing ){
-                lowestLongTermPing = avePingTime;
-            }
-        }//for
-
-        //if the highest value is 10x the lowest then find another source.
-        if( lowestLongTermPing*10 < highestLongTermPing ){
-            //remove the slow source we will get a new one to replace it.
-            if( highestSource!=null ){
-                log("dropping ping source: "+highestSource.getAddress()+" for being 10x greater then min source.");
-                highestSource.destroy();
-            }
-        }//if
-
-    }//checkPingSources
 
     /**
      * Determined by the vivaldi value and the number of consecutive calculations
