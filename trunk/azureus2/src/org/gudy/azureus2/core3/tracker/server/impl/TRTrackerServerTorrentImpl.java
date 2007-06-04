@@ -478,20 +478,6 @@ TRTrackerServerTorrentImpl
 			
 			if ( peer != null ){
 				
-					// if the peer has already been removed above then it will have reported the
-					// event already
-				
-				if ( !peer_already_removed ){
-					
-					try{
-						peerEvent( peer, event_type, url_parameters );
-						
-					}catch( TRTrackerServerException	e ){
-						
-						deferred_failure = e;
-					}
-				}
-
 				peer.setTimeout( now, new_timeout );
 							
 					// if this is the first time we've heard from this peer then we don't want to
@@ -553,6 +539,23 @@ TRTrackerServerTorrentImpl
 				if (!(event_type == TRTrackerServerTorrentPeerListener.ET_STOPPED || was_seed || !is_seed )){
 					
 					seed_count++;
+				}
+				
+					// report event *after* updating totals above so listeners get a valid initial
+					// view of the peer (e.g. is it a seed)
+					
+					// if the peer has already been removed above then it will have reported the
+					// event already
+
+				if ( !peer_already_removed ){
+
+					try{
+						peerEvent( peer, event_type, url_parameters );
+
+					}catch( TRTrackerServerException	e ){
+
+						deferred_failure = e;
+					}
 				}
 			}
 			
