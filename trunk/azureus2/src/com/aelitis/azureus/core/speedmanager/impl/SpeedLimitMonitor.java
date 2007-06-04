@@ -63,15 +63,16 @@ public class SpeedLimitMonitor
 
     private static float upDownRatio=2.0f;
 
+    private TransferMode transferMode = new TransferMode();
+    private int uploadLimitMax;
+
     //Upload and Download bandwidth usage modes. Compare usage to current limit.
     private SaturatedMode uploadBandwidthStatus =SaturatedMode.NONE;
     private SaturatedMode downloadBandwidthStatus =SaturatedMode.NONE;
 
     //Compare current limit to max limit.
     private SaturatedMode uploadLimitSettingStatus=SaturatedMode.AT_LIMIT;
-    private SaturatedMode downloadLimitSettingStatus=SaturatedMode.AT_LIMIT;  
-
-    private TransferMode transferMode = new TransferMode();
+    private SaturatedMode downloadLimitSettingStatus=SaturatedMode.AT_LIMIT;
 
     //these methods are used to see how high limits can go.
     private boolean isUploadMaxPinned=true;   //ToDo: Might want to change this into a mode class.
@@ -209,8 +210,16 @@ public class SpeedLimitMonitor
      * @param currUpLimit -
      * @return -
      */
-    public Update createNewLimitEx(float signalStrength, float multiple, int currUpLimit){
+    public Update createNewLimit(float signalStrength, float multiple, int currUpLimit){
         int newLimit;
+
+        int usedUploadLimit = uploadLinespeedCapacity;
+        float usedUpDownRatio = upDownRatio;
+        if( transferMode.isDownloadMode() ){
+            usedUploadLimit = Math.round( 0.8f * uploadLinespeedCapacity );
+            //re-calculate the up-down ratio.
+            usedUpDownRatio = ( (float) downloadLinespeedCapacity /(float) usedUploadLimit);
+        }
 
         //The amount to move it against the new limit is.
         float multi = Math.abs( signalStrength * multiple * 0.3f );
@@ -225,11 +234,11 @@ public class SpeedLimitMonitor
         if(multi>1.0f){
             if( signalStrength>0.0f ){
                 log("forcing: max upload limit.");
-                int newDownloadLimit = Math.round( uploadLinespeedCapacity *upDownRatio );
-                return new Update(uploadLinespeedCapacity, true,newDownloadLimit, true);
+                int newDownloadLimit = Math.round( usedUploadLimit*usedUpDownRatio );
+                return new Update(usedUploadLimit, true,newDownloadLimit, true);
             }else{
                 log("forcing: min upload limit.");
-                int newDownloadLimit = Math.round( uploadLimitMin*upDownRatio );
+                int newDownloadLimit = Math.round( uploadLimitMin*usedUpDownRatio );
                 return new Update(uploadLimitMin, true, newDownloadLimit, true);
             }
         }
@@ -240,7 +249,7 @@ public class SpeedLimitMonitor
         int minStep=1024;
 
         if(signalStrength>0.0f){
-            maxStep = Math.round( uploadLinespeedCapacity -currUpLimit );
+            maxStep = Math.round( usedUploadLimit -currUpLimit );
         }else{
             maxStep = Math.round( currUpLimit- uploadLimitMin);
         }
@@ -257,17 +266,17 @@ public class SpeedLimitMonitor
         newLimit = currUpLimit+currStep;
         newLimit = (( newLimit + 1023 )/1024) * 1024;
 
-        if(newLimit> uploadLinespeedCapacity){
-            newLimit= uploadLinespeedCapacity;
+        if(newLimit> usedUploadLimit){
+            newLimit= usedUploadLimit;
         }
         if(newLimit< uploadLimitMin){
             newLimit= uploadLimitMin;
         }
 
 
-        log( "new-limit:"+newLimit+":"+currStep+":"+signalStrength+":"+multiple+":"+currUpLimit+":"+maxStep+":"+ uploadLinespeedCapacity +":"+uploadLimitMin );
+        log( "new-limit:"+newLimit+":"+currStep+":"+signalStrength+":"+multiple+":"+currUpLimit+":"+maxStep+":"+ usedUploadLimit +":"+uploadLimitMin );
 
-        int newDownloadLimit = Math.round( newLimit*upDownRatio );
+        int newDownloadLimit = Math.round( newLimit*usedUpDownRatio );
         return new Update(newLimit, true, newDownloadLimit, true );
     }
 
@@ -293,6 +302,11 @@ public class SpeedLimitMonitor
         log( sb.toString() );
     }
 
+    /**
+     *
+     * @param signalStrength -
+     * @return -
+     */
     private Update calculateNewUnpinnedLimits(float signalStrength){
 
         //first verify that is this is an up signal.
@@ -320,8 +334,8 @@ public class SpeedLimitMonitor
         boolean downloadChanged=false;
 
 
-        if(updateUpload){
-            //increase limit by calculated amount.
+        if(updateUpload && !transferMode.isDownloadMode() ){
+            //increase limit by calculated amount, but only if not in downloading mode.
             uploadLinespeedCapacity += calculateUnpinnedStepSize(uploadLinespeedCapacity);
             uploadChanged=true;
             COConfigurationManager.setParameter(

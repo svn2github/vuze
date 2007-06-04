@@ -83,6 +83,16 @@ public class TransferMode
     }
 
     /**
+     * Are we in downloading mode?
+     * @return - boolean - true if in downloading mode. Otherwise false.
+     */
+    public boolean isDownloadMode(){
+
+        return ( mode==State.DOWNLOADING );
+
+    }//isDownloadMode
+
+    /**
      * Java 1.4 enumeration. - Seeding mode or Downloading mode.
      */
     static class State{

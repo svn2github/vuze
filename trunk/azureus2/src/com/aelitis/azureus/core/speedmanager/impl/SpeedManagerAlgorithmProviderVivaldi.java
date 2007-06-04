@@ -367,7 +367,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
             int currUpLimit = adapter.getCurrentUploadLimit();
 
             limitMonitor.checkForUnpinningCondition();
-            SpeedLimitMonitor.Update update = limitMonitor.createNewLimitEx(signalStrength,multiple,currUpLimit);
+            SpeedLimitMonitor.Update update = limitMonitor.createNewLimit(signalStrength,multiple,currUpLimit);
 
             //log
             logNewLimits(update);
