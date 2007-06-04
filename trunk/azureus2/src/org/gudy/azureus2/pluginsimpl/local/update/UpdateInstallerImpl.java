@@ -205,10 +205,18 @@ UpdateInstallerImpl
 				// we're going to need write access to the parent, let's try
 				
 				if ( !parent.canWrite()){
-					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+					
+						// Vista install process goes through permissions elevation process
+						// so don't warn about lack of write permissions
+					
+					if ( !Constants.isWindowsVista ){
+						
+						Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
 							"The location '" + parent.toString()
 									+ "' isn't writable, this update will probably fail."
 									+ " Check permissions and retry the update"));
+						
+					}
 				}
 			}
 							
