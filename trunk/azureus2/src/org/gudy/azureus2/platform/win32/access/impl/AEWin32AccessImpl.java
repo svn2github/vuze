@@ -504,7 +504,7 @@ AEWin32AccessImpl
 					
 				time = Integer.parseInt( tok.nextToken().trim());
 
-				boolean is_udp = Integer.parseInt( tok.nextToken().trim()) == 1;
+				//boolean is_udp = Integer.parseInt( tok.nextToken().trim()) == 1;
 				
 				// System.out.println( "udp = " + is_udp );
 			}else{

@@ -332,9 +332,8 @@ WebPlugin
 			param_rootres.setVisible( false );
 		}
 		
-		config_model.addLabelParameter2( "webui.mode.info" );
-		StringListParameter	param_mode		= 
-			config_model.addStringListParameter2(	
+		config_model.addLabelParameter2( "webui.mode.info" ); 
+		config_model.addStringListParameter2(	
 					CONFIG_MODE, "webui.mode", new String[]{ "full", "view" }, CONFIG_MODE_DEFAULT );
 		
 		
