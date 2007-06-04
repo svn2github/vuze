@@ -56,9 +56,9 @@ public class SpeedLimitMonitor
 {
 
     //use for home network.
-    private int uploadLimitMax = 38000;
+    private int uploadLinespeedCapacity = 38000;
     private int uploadLimitMin = 5000;
-    private int downloadLimitMax = 80000;
+    private int downloadLinespeedCapacity = 80000;
     private int downloadLimitMin = 8000;
 
     private static float upDownRatio=2.0f;
@@ -89,13 +89,13 @@ public class SpeedLimitMonitor
 
     public void updateFromCOConfigManager(){
 
-        uploadLimitMax= COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
+        uploadLinespeedCapacity = COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT);
         uploadLimitMin=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT);
-        downloadLimitMax=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
+        downloadLinespeedCapacity =COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
         downloadLimitMin=COConfigurationManager.getIntParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT);
 
         //tie the upload and download ratios together.
-        upDownRatio = ( (float)downloadLimitMax/(float)uploadLimitMax );
+        upDownRatio = ( (float) downloadLinespeedCapacity /(float) uploadLinespeedCapacity);
         COConfigurationManager.setParameter(
                 SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
 
@@ -117,11 +117,11 @@ public class SpeedLimitMonitor
     }
 
     public void setDownloadLimitSettingMode(int currLimit){
-        downloadLimitSettingStatus = SaturatedMode.getSaturatedMode(currLimit,downloadLimitMax);
+        downloadLimitSettingStatus = SaturatedMode.getSaturatedMode(currLimit, downloadLinespeedCapacity);
     }
 
     public void setUploadLimitSettingMode(int currLimit){
-        uploadLimitSettingStatus = SaturatedMode.getSaturatedMode(currLimit,uploadLimitMax);
+        uploadLimitSettingStatus = SaturatedMode.getSaturatedMode(currLimit, uploadLinespeedCapacity);
     }
 
     public SaturatedMode getDownloadBandwidthMode(){
@@ -225,8 +225,8 @@ public class SpeedLimitMonitor
         if(multi>1.0f){
             if( signalStrength>0.0f ){
                 log("forcing: max upload limit.");
-                int newDownloadLimit = Math.round( uploadLimitMax*upDownRatio );
-                return new Update(uploadLimitMax, true,newDownloadLimit, true);
+                int newDownloadLimit = Math.round( uploadLinespeedCapacity *upDownRatio );
+                return new Update(uploadLinespeedCapacity, true,newDownloadLimit, true);
             }else{
                 log("forcing: min upload limit.");
                 int newDownloadLimit = Math.round( uploadLimitMin*upDownRatio );
@@ -240,7 +240,7 @@ public class SpeedLimitMonitor
         int minStep=1024;
 
         if(signalStrength>0.0f){
-            maxStep = Math.round( uploadLimitMax -currUpLimit );
+            maxStep = Math.round( uploadLinespeedCapacity -currUpLimit );
         }else{
             maxStep = Math.round( currUpLimit- uploadLimitMin);
         }
@@ -257,15 +257,15 @@ public class SpeedLimitMonitor
         newLimit = currUpLimit+currStep;
         newLimit = (( newLimit + 1023 )/1024) * 1024;
 
-        if(newLimit> uploadLimitMax){
-            newLimit= uploadLimitMax;
+        if(newLimit> uploadLinespeedCapacity){
+            newLimit= uploadLinespeedCapacity;
         }
         if(newLimit< uploadLimitMin){
             newLimit= uploadLimitMin;
         }
 
 
-        log( "new-limit:"+newLimit+":"+currStep+":"+signalStrength+":"+multiple+":"+currUpLimit+":"+maxStep+":"+uploadLimitMax+":"+uploadLimitMin );
+        log( "new-limit:"+newLimit+":"+currStep+":"+signalStrength+":"+multiple+":"+currUpLimit+":"+maxStep+":"+ uploadLinespeedCapacity +":"+uploadLimitMin );
 
         int newDownloadLimit = Math.round( newLimit*upDownRatio );
         return new Update(newLimit, true, newDownloadLimit, true );
@@ -321,33 +321,33 @@ public class SpeedLimitMonitor
 
 
         if(updateUpload){
-            //increase limit by one kilobyte.
-            uploadLimitMax = calculateUnpinnedStepSize( uploadLimitMax );
+            //increase limit by calculated amount.
+            uploadLinespeedCapacity += calculateUnpinnedStepSize(uploadLinespeedCapacity);
             uploadChanged=true;
             COConfigurationManager.setParameter(
-                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitMax);
+                    SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLinespeedCapacity);
         }
         if(updateDownload){
-            //increase limit by one kilobyte.
-            downloadLimitMax = calculateUnpinnedStepSize( downloadLimitMax );
+            //increase limit by calculated amount.
+            downloadLinespeedCapacity += calculateUnpinnedStepSize(downloadLinespeedCapacity);
             downloadChanged=true;
             COConfigurationManager.setParameter(
-                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downloadLimitMax);
+                    SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downloadLinespeedCapacity);
         }
 
         //apply any rules that need applied.
         //The download limit can never be less then the upload limit.
-        if( uploadLimitMax>downloadLimitMax ){
-            downloadLimitMax=uploadLimitMax;
+        if( uploadLinespeedCapacity > downloadLinespeedCapacity){
+            downloadLinespeedCapacity = uploadLinespeedCapacity;
             downloadChanged=true;
         }
 
         //calculate the new ratio.
-        upDownRatio = ( (float)downloadLimitMax/(float)uploadLimitMax );
+        upDownRatio = ( (float) downloadLinespeedCapacity /(float) uploadLinespeedCapacity);
         COConfigurationManager.setParameter(
                 SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
 
-        return new Update(uploadLimitMax,uploadChanged,downloadLimitMax,downloadChanged);
+        return new Update(uploadLinespeedCapacity,uploadChanged, downloadLinespeedCapacity,downloadChanged);
     }//calculateNewUnpinnedLimits
 
     /**

@@ -173,7 +173,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         log("user-comment:log");
 
-        //log("pin:")
+        log("pin:upload-status,download-status,upload-unpin-timer,download-unpin-timer");
     }
 
     /**

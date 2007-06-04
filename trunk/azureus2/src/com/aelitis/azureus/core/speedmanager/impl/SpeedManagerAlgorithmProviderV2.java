@@ -34,6 +34,11 @@ SpeedManagerAlgorithmProviderV2
     //Test algorithms below.
     private SpeedManagerAlgorithmProvider strategy;
 
+
+    //line-speed limits.
+    public static final String SETTING_DOWNLOAD_LINESPEED_CAPACITY = "SpeedManagerAlgorithmProviderV2.setting.download.linespeed.capacity";
+    public static final String SETTING_UPLOAD_LINESPEED_CAPACITY = "SpeedManagerAlgorithmProviderV2.setting.upload.linespeed.capacity";
+    
     //key names are below.
     public static final String SETTING_DOWNLOAD_MAX_LIMIT = "SpeedManagerAlgorithmProviderV2.setting.download.max.limit";
     public static final String SETTING_DOWNLOAD_MIN_LIMIT = "SpeedManagerAlgorithmProviderV2.setting.download.min.limit";
