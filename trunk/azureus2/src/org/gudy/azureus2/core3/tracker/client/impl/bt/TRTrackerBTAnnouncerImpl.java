@@ -2000,7 +2000,7 @@ TRTrackerBTAnnouncerImpl
 		boolean	shuffle )
 	{
 		try{
-			trackerUrlLists = new ArrayList();
+			trackerUrlLists = new ArrayList(1);
 	  
 				//This entry is present on multi-tracker torrents
 	  
