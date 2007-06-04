@@ -53,6 +53,9 @@ TorrentUtils
 	private static final String		TORRENT_AZ_PROP_TORRENT_FLAGS			= "torrent_flags";
 	private static final String		TORRENT_AZ_PROP_PLUGINS					= "plugins";
 	
+	private static final String		MEM_ONLY_TORRENT_PATH		= "?/\\!:mem_only:!\\/?";
+	
+	
 	private static final List	created_torrents;
 	private static final Set	created_torrents_set;
 	
@@ -199,6 +202,26 @@ TorrentUtils
 	}
 	
 	public static void
+	setMemoryOnly(
+		TOTorrent			torrent,
+		boolean				mem_only )
+	{
+		if ( mem_only ){
+			
+			torrent.setAdditionalStringProperty("torrent filename", MEM_ONLY_TORRENT_PATH );
+			
+		}else{
+			
+			String s = torrent.getAdditionalStringProperty("torrent filename");
+			
+			if ( s != null && s.equals( MEM_ONLY_TORRENT_PATH )){
+				
+				torrent.removeAdditionalProperty( "torrent filename" );
+			}
+		}
+	}
+	
+	public static void
 	writeToFile(
 		final TOTorrent		torrent )
 	
@@ -228,7 +251,12 @@ TorrentUtils
 	    		
 	    		throw (new TOTorrentException("TorrentUtils::writeToFile: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND));
 	    	}
-	    		  	    	
+	    	
+	    	if ( str.equals( MEM_ONLY_TORRENT_PATH )){
+	    		
+	    		return;
+	    	}
+	    	
 	    	File torrent_file = new File(str);
 	    	
 	    	if ( 	( force_backup ||COConfigurationManager.getBooleanParameter("Save Torrent Backup", false)) &&
@@ -292,6 +320,11 @@ TorrentUtils
     		throw( new TOTorrentException("TorrentUtils::getTorrentFileName: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND));
     	}
 
+    	if ( str.equals( MEM_ONLY_TORRENT_PATH )){
+    		
+    		return( null );
+    	}
+    	
 		return( str );
 	}
 	
@@ -332,6 +365,11 @@ TorrentUtils
 	    	if ( str == null ){
 	    		
 	    		throw( new TOTorrentException("TorrentUtils::delete: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND));
+	    	}
+	    	
+	    	if ( str.equals( MEM_ONLY_TORRENT_PATH )){
+	    		
+	    		return;
 	    	}
 	    	
 	    	if ( !new File(str).delete()){
