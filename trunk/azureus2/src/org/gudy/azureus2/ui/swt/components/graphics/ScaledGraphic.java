@@ -37,10 +37,15 @@ public class ScaledGraphic extends BackGroundGraphic {
   protected Image bufferScale;
   protected int lastMax;
   
+  private int update_divider_width = 0;
   
   public ScaledGraphic(Scale scale,ValueFormater formater) {
     this.scale = scale;
     this.formater = formater;
+  }
+  
+  public void setUpdateDividerWidth(int width) {
+	  this.update_divider_width = width;
   }
   
   protected void drawScale(boolean sizeChanged) {
@@ -71,6 +76,12 @@ public class ScaledGraphic extends BackGroundGraphic {
         int height = bounds.height - scale.getScaledValue(levels[i]) - 2;
         gcBuffer.drawLine(1,height,bounds.width - 70 ,height);
         gcBuffer.drawText(formater.format(levels[i]),bounds.width - 65,height - 12,true);
+      }
+      if (this.update_divider_width > 0) {
+    	  for (int i=bounds.width - 70; i > 0; i-=this.update_divider_width) {
+    		  gcBuffer.setForeground(Colors.grey);
+    		  gcBuffer.drawLine(i, 0, i, bounds.height);
+    	  }
       }
       gcBuffer.dispose();
     }

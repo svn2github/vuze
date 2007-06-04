@@ -215,6 +215,11 @@ public class ConfigSectionStats implements UISWTConfigSection {
     
     enableStats.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
 
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    BooleanParameter graph_dividers = new BooleanParameter(gStats, "Stats Graph Dividers", "ConfigView.section.stats.graph_update_dividers");
+    graph_dividers.setLayoutData(gridData);
+
     return gStats;
   }
 }

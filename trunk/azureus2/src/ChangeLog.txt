@@ -3,6 +3,7 @@ AZUREUS CHANGELOG
 
 2007.0x.xx | Azureus 3.0.1.5
 
+FEATURE: UI   | Option to display divider lines every 60 updates on the Statistics view [amc1]
 FEATURE: Plug | Added helper class to make listening to download events across all downloads easier [amc1]
 
 

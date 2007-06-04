@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
@@ -48,7 +49,7 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
  * @author Olivier
  *
  */
-public class ActivityView extends AbstractIView {
+public class ActivityView extends AbstractIView implements ParameterListener {
 
   GlobalManager manager;
   GlobalManagerStats stats;
@@ -113,23 +114,27 @@ public class ActivityView extends AbstractIView {
     upSpeedCanvas.setLayoutData(gridData);
     upSpeedGraphic = SpeedGraphic.getInstance();
     upSpeedGraphic.initialize(upSpeedCanvas);
-		upSpeedGraphic.setLineColors(colors);
+    
+    COConfigurationManager.addAndFireParameterListener("Stats Graph Dividers", this);
+   
+    upSpeedGraphic.setLineColors(colors);
   
-		String[] colorConfigs = new String[] {
-			"ActivityView.legend.peeraverage",
-			"ActivityView.legend.achieved",
-			"ActivityView.legend.limit",
-			"ActivityView.legend.swarmaverage",
-			"ActivityView.legend.trimmed"
-		};
+	String[] colorConfigs = new String[] {
+		"ActivityView.legend.peeraverage",
+		"ActivityView.legend.achieved",
+		"ActivityView.legend.limit",
+		"ActivityView.legend.swarmaverage",
+		"ActivityView.legend.trimmed"
+	};
 
-		Legend.createLegendComposite(panel, colors, colorConfigs);
+	Legend.createLegendComposite(panel, colors, colorConfigs);
   }
   
   public void delete() {    
     Utils.disposeComposite(panel);
     downSpeedGraphic.dispose();
     upSpeedGraphic.dispose();
+    COConfigurationManager.removeParameterListener("Stats Graph Dividers", this);
   }
 
   public String getFullTitle() {
@@ -148,6 +153,12 @@ public class ActivityView extends AbstractIView {
   public String getData() {
     return "SpeedView.title.full";
   }
-  
+
+  public void parameterChanged(String param_name) {
+	  boolean update_dividers = COConfigurationManager.getBooleanParameter("Stats Graph Dividers");
+	  int update_divider_width = update_dividers ? 60 : 0;
+      downSpeedGraphic.setUpdateDividerWidth(update_divider_width);
+      upSpeedGraphic.setUpdateDividerWidth(update_divider_width);
+  }
   
 }

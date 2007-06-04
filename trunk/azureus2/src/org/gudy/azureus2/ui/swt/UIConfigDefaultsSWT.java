@@ -76,6 +76,8 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Open Stats On Start", false);
 		def.addParameter("Start Minimized", false);
 		
+        def.addParameter("Stats Graph Dividers", false);
+		
 		def.addParameter("Open Bar Incomplete", false);
 		def.addParameter("Open Bar Complete", false);
 
