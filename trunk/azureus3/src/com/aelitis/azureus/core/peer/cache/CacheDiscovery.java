@@ -72,6 +72,11 @@ CacheDiscovery
 					BannedIp		ip )
 				{
 				}
+
+				public void IPBlockedListChanged(
+					IpFilter	filter)
+				{
+				}
 			});
 		
 		new AEThread( "CacheDiscovery:ban checker", true )
