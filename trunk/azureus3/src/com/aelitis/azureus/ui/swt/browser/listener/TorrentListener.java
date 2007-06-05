@@ -3,12 +3,14 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 import java.net.URL;
 
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
+import com.aelitis.azureus.util.MapUtils;
 
 public class TorrentListener
 	extends AbstractMessageListener
@@ -46,7 +48,11 @@ public class TorrentListener
 	public void handleMessage(BrowserMessage message) {
 		if (OP_LOAD_TORRENT.equals(message.getOperationId())
 				|| OP_LOAD_TORRENT_OLD.equals(message.getOperationId())) {
-			loadTorrent(message.getDecodedObject().getString("url"));
+			String url = MapUtils.getMapString(message.getDecodedMap(), "url",
+					null);
+			if (url != null) {
+				loadTorrent(url);
+			}
 		} else {
 			throw new IllegalArgumentException("Unknown operation: "
 					+ message.getOperationId());

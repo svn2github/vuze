@@ -20,21 +20,17 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
@@ -52,7 +48,7 @@ public class PlatformConfigMessenger
 	public static final String SECTION_TYPE_MINIBROWSE = "minibrowse";
 
 	private static int iRPCVersion = 0;
-	
+
 	private static String DEFAULT_WHITELIST = "https?://"
 			+ Constants.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/" + ".*";
 
@@ -77,14 +73,14 @@ public class PlatformConfigMessenger
 			}
 
 			public void replyReceived(PlatformMessage message, String replyType,
-					Object JSONReply) {
-				if (JSONReply instanceof JSONArray) {
-					JSONArray array = (JSONArray) JSONReply;
-					Map[] reply = new HashMap[array.size()];
-					for (int i = 0; i < reply.length; i++) {
-						reply[i] = array.getJSONObject(i).toMap();
+					Map reply) {
+				if (reply != null) {
+					List array = (List) reply.get("value");
+					Map[] newReply = new HashMap[array.size()];
+					for (int i = 0; i < newReply.length; i++) {
+						newReply[i] = (Map) array.get(i);
 
-						String url = (String) reply[i].get("url");
+						String url = (String) newReply[i].get("url");
 						if (url != null && !url.startsWith("http://")) {
 							url = Constants.URL_PREFIX + url;
 							if (url.indexOf('?') < 0) {
@@ -94,10 +90,10 @@ public class PlatformConfigMessenger
 							}
 							url += Constants.URL_SUFFIX;
 
-							reply[i].put("url", url);
+							newReply[i].put("url", url);
 						}
 					}
-					replyListener.replyReceived(reply);
+					replyListener.replyReceived(newReply);
 				} else {
 					replyListener.replyReceived(new Map[0]);
 				}
@@ -129,34 +125,30 @@ public class PlatformConfigMessenger
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
 			public void replyReceived(PlatformMessage message, String replyType,
-					Object jsonReply) {
-				if (jsonReply instanceof JSONObject) {
-					JSONObject jsonObject = (JSONObject) jsonReply;
-					if (jsonObject.has("url-whitelist")) {
-						try {
-							JSONArray array = jsonObject.getJSONArray("url-whitelist");
-							String[] sNewWhiteList = new String[array.length() + 1];
-							sNewWhiteList[0] = DEFAULT_WHITELIST;
-
-							for (int i = 0; i < array.length(); i++) {
-								String string = array.getString(i);
-								PlatformTorrentUtils.log("v3.login: got whitelist of " + string);
-								sNewWhiteList[i + 1] = string;
-							}
-							sURLWhiteList = sNewWhiteList;
-						} catch (Exception e) {
-							Debug.out(e);
-						}
-					}
-
-					if (jsonObject.has("rpc-version")) {
-						try {
-							iRPCVersion = jsonObject.getInt("rpc-version");
-						} catch (Exception e) {
-							Debug.out(e);
-						}
-					}
+					Map reply) {
+				if (reply == null) {
+					return;
 				}
+
+				try {
+					List listURLs = (List) MapUtils.getMapObject(reply, "url-whitelist",
+							null, List.class);
+					if (listURLs != null) {
+						String[] sNewWhiteList = new String[listURLs.size() + 1];
+						sNewWhiteList[0] = DEFAULT_WHITELIST;
+
+						for (int i = 0; i < listURLs.size(); i++) {
+							String string = (String) listURLs.get(i);
+							PlatformMessenger.debug("v3.login: got whitelist of " + string);
+							sNewWhiteList[i + 1] = string;
+						}
+						sURLWhiteList = sNewWhiteList;
+					}
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+
+				iRPCVersion = MapUtils.getMapInt(reply, "rpc-version", 0);
 			}
 
 			public void messageSent(PlatformMessage message) {

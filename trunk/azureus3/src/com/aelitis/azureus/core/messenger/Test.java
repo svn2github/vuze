@@ -20,10 +20,7 @@
 
 package com.aelitis.azureus.core.messenger;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -31,7 +28,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.json.JSONObject;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -59,13 +55,13 @@ public class Test
 		parameters.put("locale", Locale.getDefault().toString());
 		System.out.println(SystemTime.getCurrentTime() + ": queueMessage 0");
 		PlatformMessenger.queueMessage(new PlatformMessage("AZMSG", "config",
-				"get-browse-sections", new JSONObject(parameters), 150),
+				"get-browse-sections", parameters, 150),
 				new PlatformMessengerListener() {
 
 					public void replyReceived(PlatformMessage message, String replyType,
-							Object JSONReply) {
+							Map reply) {
 						System.out.println(SystemTime.getCurrentTime() + ": replyRecieved "
-								+ message + ";" + replyType + ";" + JSONReply);
+								+ message + ";" + replyType + ";" + reply);
 					}
 
 					public void messageSent(PlatformMessage message) {
@@ -80,13 +76,13 @@ public class Test
 		parameters.put("locale", Locale.getDefault().toString());
 		System.out.println(SystemTime.getCurrentTime() + ": queueMessage 1");
 		PlatformMessenger.queueMessage(new PlatformMessage("AZMSG", "config",
-				"get-browse-sections", new JSONObject(parameters), 550),
+				"get-browse-sections", parameters, 550),
 				new PlatformMessengerListener() {
 
 					public void replyReceived(PlatformMessage message, String replyType,
-							Object JSONReply) {
+							Map reply) {
 						System.out.println(SystemTime.getCurrentTime() + ": replyRecieved "
-								+ message + ";" + replyType + ";" + JSONReply);
+								+ message + ";" + replyType + ";" + reply);
 					}
 
 					public void messageSent(PlatformMessage message) {

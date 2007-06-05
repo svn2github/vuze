@@ -19,15 +19,12 @@
  */
 package com.aelitis.azureus.ui.swt.browser.msg;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import com.aelitis.azureus.util.JSFunctionParametersParser;
+import com.aelitis.azureus.util.JSONUtils;
 
 /**
  * Holds a message being dispatched to a {@link MessageListener}.
@@ -143,12 +140,12 @@ public class BrowserMessage
             switch ( leading ) {
             case '{':
                 paramType = OBJECT_PARAM;
-                decodedParams = new JSONObject(params);
+                decodedParams = JSONUtils.decodeJSON(params);
                 break;
 
             case '[':
                 paramType = ARRAY_PARAM;
-                decodedParams = new JSONArray(params);
+                decodedParams = JSONUtils.decodeJSON(params).get("value");
                 break;
 
             default:
@@ -214,18 +211,18 @@ public class BrowserMessage
         return params;
     }
     
-    public JSONObject getDecodedObject ( ) {
+    public Map getDecodedMap ( ) {
         if ( ! isParamObject() ) {
-            throw new IllegalStateException("Decoded parameter is not a JSONObject");
+            throw new IllegalStateException("Decoded parameter is not a Map");
         }
-        return (JSONObject) decodedParams;
+        return (Map) decodedParams;
     }
 
-    public JSONArray getDecodedArray ( ) {
+    public List getDecodedArray ( ) {
         if ( ! isParamArray() ) {
-            throw new IllegalStateException("Decoded parameter is not a JSONArray");
+            throw new IllegalStateException("Decoded parameter is not a List");
         }
-        return (JSONArray) decodedParams;
+        return (List) decodedParams;
     }
 
     public List getDecodedList ( ) {
@@ -263,9 +260,9 @@ public class BrowserMessage
      * @param data Any data the message results wants to send
      */
     public void complete(boolean bOnlyNonDelayed, boolean success, Object data) {
-    	System.out.println("complete called with " + bOnlyNonDelayed);
+    	//System.out.println("complete called with " + bOnlyNonDelayed);
     	if (completed || (bOnlyNonDelayed && completeDelayed)) {
-    		System.out.println("exit early" + completed);
+    		//System.out.println("exit early" + completed);
     		return;
     	}
     	triggerCompletionListeners(success, data);

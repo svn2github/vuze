@@ -20,14 +20,10 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
@@ -60,9 +56,8 @@ public class PlatformTorrentMessenger
 			}
 
 			public void replyReceived(PlatformMessage message, String replyType,
-					Object JSONReply) {
-				if (JSONReply instanceof JSONObject) {
-					Map reply = ((JSONObject) JSONReply).toMap();
+					Map reply) {
+				if (reply != null) {
 					replyListener.replyReceived(replyType, reply);
 				} else {
 					replyListener.replyReceived(replyType, new HashMap());
@@ -92,9 +87,9 @@ public class PlatformTorrentMessenger
 		if (PlatformConfigMessenger.getRPCVersion() > 0) {
 			// We can use the better function
 
-			JSONObject jsonObject = new JSONObject();
-			JSONArray jsonArray = new JSONArray();
-			jsonObject.put("hashes", jsonArray);
+			Map mapParameters = new HashMap();
+			List listHashes = new ArrayList();
+			mapParameters.put("hashes", listHashes);
 
 			for (int i = 0; i < torrents.length; i++) {
 				TOTorrent torrent = torrents[i];
@@ -107,8 +102,8 @@ public class PlatformTorrentMessenger
 				}
 
 				if (hash != null) {
-					JSONObject jsonSubObject = new JSONObject();
-					jsonArray.put(jsonObject);
+					Map jsonSubObject = new HashMap();
+					listHashes.add(mapParameters);
 					jsonSubObject.put("hash", hash);
 					jsonSubObject.put("last-revision", new Long(
 							PlatformTorrentUtils.getContentLastUpdated(torrent)));
@@ -116,7 +111,7 @@ public class PlatformTorrentMessenger
 			}
 
 			PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-					OP_GETMETADATA, jsonObject, maxDelayMS);
+					OP_GETMETADATA, mapParameters, maxDelayMS);
 
 			PlatformMessengerListener listener = new PlatformMessengerListener() {
 				public void messageSent(PlatformMessage message) {
@@ -124,9 +119,8 @@ public class PlatformTorrentMessenger
 				}
 
 				public void replyReceived(PlatformMessage message, String replyType,
-						Object JSONReply) {
-					if (JSONReply instanceof JSONObject) {
-						Map reply = ((JSONObject) JSONReply).toMap();
+						Map reply) {
+					if (reply != null) {
 						replyListener.replyReceived(replyType, reply);
 					} else {
 						replyListener.replyReceived(replyType, new HashMap());

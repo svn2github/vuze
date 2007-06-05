@@ -20,17 +20,14 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author TuxPaper
@@ -64,15 +61,9 @@ public class PlatformRatingMessenger
 			}
 
 			public void replyReceived(PlatformMessage message, String replyType,
-					Object JSONReply) {
-				if (JSONReply instanceof JSONObject) {
-					Map reply = ((JSONObject) JSONReply).toMap();
-					GetRatingReply ratingReply = new GetRatingReply(reply);
+					Map reply) {
 
-					replyListener.replyReceived(replyType, ratingReply);
-				} else {
-					replyListener.replyReceived(replyType, new GetRatingReply(null));
-				}
+				replyListener.replyReceived(replyType, new GetRatingReply(reply));
 			}
 		};
 
@@ -97,15 +88,8 @@ public class PlatformRatingMessenger
 			}
 
 			public void replyReceived(PlatformMessage message, String replyType,
-					Object JSONReply) {
-				if (JSONReply instanceof JSONObject) {
-					Map reply = ((JSONObject) JSONReply).toMap();
-					GetRatingReply ratingReply = new GetRatingReply(reply);
-
-					replyListener.replyReceived(replyType, ratingReply);
-				} else {
-					replyListener.replyReceived(replyType, new GetRatingReply(null));
-				}
+					Map reply) {
+				replyListener.replyReceived(replyType, new GetRatingReply(reply));
 			}
 		};
 
@@ -115,8 +99,8 @@ public class PlatformRatingMessenger
 	public static void setUserRating(String torrentHash, int rating,
 			long maxDelayMS, final PlatformMessengerListener l) {
 
-		JSONArray array = new JSONArray();
-		array.put(PlatformMessage.parseParams(new Object[] {
+		List array = new ArrayList();
+		array.add(PlatformMessage.parseParams(new Object[] {
 			"rating-type",
 			"content",
 			"rating-value",
@@ -135,8 +119,6 @@ public class PlatformRatingMessenger
 			// @see com.aelitis.azureus.core.messenger.PlatformMessengerListener#messageSent(com.aelitis.azureus.core.messenger.PlatformMessage)
 
 			public void messageSent(PlatformMessage message) {
-				System.out.println(SystemTime.getCurrentTime() + ": messageSent"
-						+ message);
 				if (l != null) {
 					l.messageSent(message);
 				}
@@ -145,27 +127,22 @@ public class PlatformRatingMessenger
 			// @see com.aelitis.azureus.core.messenger.PlatformMessengerListener#replyReceived(com.aelitis.azureus.core.messenger.PlatformMessage, java.lang.String, java.lang.Object)
 
 			public void replyReceived(PlatformMessage message, String replyType,
-					Object jsonReply) {
-				System.out.println(SystemTime.getCurrentTime() + ": replyRecieved "
-						+ message + ";" + replyType + ";" + jsonReply);
+					Map reply) {
 				if (l != null) {
-					l.replyReceived(message, replyType, jsonReply);
+					l.replyReceived(message, replyType, reply);
 				}
 			}
 		});
 	}
 
-	public static boolean ratingSucceeded(Object jsonReply) {
-		if (jsonReply instanceof JSONObject) {
-			JSONObject jsonObject = (JSONObject) jsonReply;
-			if (jsonObject.has("message")) {
-				return jsonObject.getString("message").equals("Ok");
-			} else if (jsonObject.has("success")) {
-				return jsonObject.getBoolean("success");
-			}
+	public static boolean ratingSucceeded(Map map) {
+		String message = MapUtils.getMapString(map, "message", null);
+
+		if (message != null) {
+			return message.equals("Ok");
 		}
 
-		return false;
+		return MapUtils.getMapBoolean(map, "success", false);
 	}
 
 	public static abstract class GetRatingReplyListener
@@ -202,15 +179,13 @@ public class PlatformRatingMessenger
 		public long getRatingValue(String hash, String type) {
 			int rating = -1;
 
-			JSONObject mapRating = (JSONObject) reply.get(hash);
+			Map mapRating = (Map) reply.get(hash);
 			if (mapRating != null) {
-				JSONObject mapValues = (JSONObject) mapRating.get(RATE_TYPE_CONTENT);
+				Map mapValues = (Map) mapRating.get(RATE_TYPE_CONTENT);
 				if (mapValues != null) {
-					if (mapValues.has("value")) {
-						Object val = mapValues.get("value");
-						if (val instanceof Double) {
-							rating = ((Double) val).intValue();
-						}
+					Object val = mapValues.get("value");
+					if (val instanceof Double) {
+						rating = ((Double) val).intValue();
 					}
 				}
 			}
@@ -221,15 +196,13 @@ public class PlatformRatingMessenger
 		public long getRatingCount(String hash, String type) {
 			long rating = -1;
 			try {
-				JSONObject mapRating = (JSONObject) reply.get(hash);
+				Map mapRating = (Map) reply.get(hash);
 				if (mapRating != null) {
-					JSONObject mapValues = (JSONObject) mapRating.get(RATE_TYPE_CONTENT);
+					Map mapValues = (Map) mapRating.get(RATE_TYPE_CONTENT);
 					if (mapValues != null) {
-						if (mapValues.has("count")) {
-							Object val = mapValues.get("count");
-							if (val instanceof Number) {
-								rating = ((Number) val).longValue();
-							}
+						Object val = mapValues.get("count");
+						if (val instanceof Number) {
+							rating = ((Number) val).longValue();
 						}
 					}
 				}
@@ -244,17 +217,15 @@ public class PlatformRatingMessenger
 			String rating = "--";
 
 			try {
-				JSONObject mapRating = (JSONObject) reply.get(hash);
+				Map mapRating = (Map) reply.get(hash);
 				if (mapRating != null) {
-					JSONObject mapValues = (JSONObject) mapRating.get(RATE_TYPE_CONTENT);
+					Map mapValues = (Map) mapRating.get(RATE_TYPE_CONTENT);
 					if (mapValues != null) {
-						if (mapValues.has("value")) {
-							Object val = mapValues.get("value");
-							if (val instanceof String) {
-								rating = (String) val;
-							} else if (val instanceof Double) {
-								rating = ((Double) val).toString();
-							}
+						Object val = mapValues.get("value");
+						if (val instanceof String) {
+							rating = (String) val;
+						} else if (val instanceof Double) {
+							rating = ((Double) val).toString();
 						}
 					}
 				}
@@ -269,15 +240,14 @@ public class PlatformRatingMessenger
 			String color = null;
 
 			try {
-				JSONObject mapRating = (JSONObject) reply.get(hash);
+				Map mapRating = (Map) reply.get(hash);
 				if (mapRating != null) {
-					JSONObject mapValues = (JSONObject) mapRating.get(RATE_TYPE_CONTENT);
+					Map mapValues = (Map) mapRating.get(RATE_TYPE_CONTENT);
 					if (mapValues != null) {
-						if (mapValues.has("display-settings")) {
-							JSONObject map = mapValues.getJSONObject("display-settings");
-							if (map.has("color")) {
-								color = map.getString("color");
-							}
+						Map map = (Map) MapUtils.getMapObject(mapRating,
+								"display-settings", null, Map.class);
+						if (map != null && map.containsKey("color")) {
+							color = (String) map.get("color");
 						}
 					}
 				}
@@ -291,15 +261,13 @@ public class PlatformRatingMessenger
 		public long getRatingExpireyMins(String hash, String type) {
 			long expiryMins = -1;
 			try {
-				JSONObject mapRating = (JSONObject) reply.get(hash);
+				Map mapRating = (Map) reply.get(hash);
 				if (mapRating != null) {
-					JSONObject mapValues = (JSONObject) mapRating.get(RATE_TYPE_CONTENT);
+					Map mapValues = (Map) mapRating.get(RATE_TYPE_CONTENT);
 					if (mapValues != null) {
-						if (mapValues.has("expires-in-mins")) {
-							Object val = mapValues.get("expires-in-mins");
-							if (val instanceof Long) {
-								expiryMins = ((Long) val).longValue();
-							}
+						Object val = mapValues.get("expires-in-mins");
+						if (val instanceof Long) {
+							expiryMins = ((Long) val).longValue();
 						}
 					}
 				}

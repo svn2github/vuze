@@ -20,14 +20,13 @@
 
 package com.aelitis.azureus.core.messenger;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.json.simple.JSONObject;
+
+import com.aelitis.azureus.util.JSONUtils;
 
 /**
  * @author TuxPaper
@@ -42,7 +41,7 @@ public class PlatformMessage
 
 	private final String operationID;
 
-	private final JSONObject parameters;
+	private final Map parameters;
 
 	private final long fireBeforeDate;
 
@@ -58,24 +57,12 @@ public class PlatformMessage
 	 * @param maxDelay
 	 */
 	public PlatformMessage(String messageID, String listenerID,
-			String operationID, JSONObject parameters, long maxDelayMS) {
-
-		this.messageID = messageID;
-		this.listenerID = listenerID;
-		this.operationID = operationID;
-		this.parameters = parameters;
-
-		messageCreatedOn = SystemTime.getCurrentTime();
-		fireBeforeDate = messageCreatedOn + maxDelayMS;
-	}
-
-	public PlatformMessage(String messageID, String listenerID,
 			String operationID, Map parameters, long maxDelayMS) {
 
 		this.messageID = messageID;
 		this.listenerID = listenerID;
 		this.operationID = operationID;
-		this.parameters = new JSONObject(parameters);
+		this.parameters = JSONUtils.encodeToJSONObject(parameters);
 
 		messageCreatedOn = SystemTime.getCurrentTime();
 		fireBeforeDate = messageCreatedOn + maxDelayMS;
@@ -88,20 +75,20 @@ public class PlatformMessage
 		this.listenerID = listenerID;
 		this.operationID = operationID;
 
-		this.parameters = parseParams(parameters);
+		this.parameters = JSONUtils.encodeToJSONObject(parseParams(parameters));
 
 		messageCreatedOn = SystemTime.getCurrentTime();
 		fireBeforeDate = messageCreatedOn + maxDelayMS;
 	}
 
-	public static JSONObject parseParams(Object[] parameters) {
-		JSONObject result = new JSONObject();
+	public static Map parseParams(Object[] parameters) {
+		Map result = new HashMap();
 		for (int i = 0; i < parameters.length - 1; i += 2) {
 			try {
 				if (parameters[i] instanceof String) {
 					if (parameters[i + 1] instanceof String[]) {
 						List list = Arrays.asList((String[]) parameters[i + 1]);
-						result.put((String) parameters[i], new JSONArray(list));
+						result.put((String) parameters[i], list);
 					} else if (parameters[i + 1] instanceof Object[]) {
 						result.put((String) parameters[i],
 								parseParams((Object[]) parameters[i + 1]));
@@ -127,7 +114,7 @@ public class PlatformMessage
 		return messageCreatedOn;
 	}
 
-	public JSONObject getParameters() {
+	public Map getParameters() {
 		return parameters;
 	}
 
@@ -153,6 +140,7 @@ public class PlatformMessage
 
 	public String toString() {
 		return "PlaformMessage {" + lSequenceNo + ", " + messageID + ", "
-				+ listenerID + ", " + operationID + "," + parameters + "}";
+				+ listenerID + ", " + operationID + ","
+				+ parameters + "}";
 	}
 }

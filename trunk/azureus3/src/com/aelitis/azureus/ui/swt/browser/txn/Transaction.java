@@ -19,7 +19,9 @@
  */
 package com.aelitis.azureus.ui.swt.browser.txn;
 
-import org.json.JSONString;
+import java.util.Map;
+
+import org.eclipse.swt.browser.Browser;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 
@@ -201,7 +203,7 @@ public abstract class Transaction
      * @param op identifies the operation to perform
      * @param params optional message parameters
      */
-    protected void sendBrowserMessage ( String key , String op , JSONString params ) {
+    protected void sendBrowserMessage ( String key , String op , Map params ) {
         if ( context.getTransaction(type) == this ) {
             context.sendBrowserMessage(key, op, params);
         }

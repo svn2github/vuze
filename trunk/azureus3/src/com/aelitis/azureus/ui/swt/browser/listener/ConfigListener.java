@@ -20,16 +20,17 @@
 
 package com.aelitis.azureus.ui.swt.browser.listener;
 
+import java.util.Map;
+
 import org.eclipse.swt.browser.Browser;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.Constants;
-import org.json.JSONObject;
 
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
-import com.aelitis.azureus.util.JSONUtils;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author TuxPaper
@@ -62,8 +63,8 @@ public class ConfigListener
 		String opid = message.getOperationId();
 		
 		if (OP_GET_VERSION.equals(opid)) {
-			JSONObject decodedObject = message.getDecodedObject();
-			String callback = JSONUtils.getJSONString(decodedObject, "callback", null);
+			Map decodedMap = message.getDecodedMap();
+			String callback = MapUtils.getMapString(decodedMap, "callback", null);
 			if (callback != null && browser != null) {
 				browser.execute(callback + "('" + Constants.AZUREUS_VERSION + "')");
 			} else {

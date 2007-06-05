@@ -20,11 +20,12 @@
 
 package com.aelitis.azureus.core.messenger;
 
+import java.util.Collection;
+import java.util.Map;
+
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.widgets.Control;
-
-import org.json.JSONString;
 
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher;
@@ -89,8 +90,7 @@ public interface ClientMessageContext
 	 * @param op identifies the operation to perform
 	 * @param params optional message parameters
 	 */
-	public abstract boolean sendBrowserMessage(String key, String op,
-			JSONString params);
+	public abstract boolean sendBrowserMessage(String key, String op, Map params);
 
 	public abstract boolean executeInBrowser(final String javascript);
 
@@ -126,4 +126,14 @@ public interface ClientMessageContext
 	public abstract void debug(String message, Throwable t);
 
 	public MessageDispatcher getMessageDispatcher();
+
+	/**
+	 * @param key
+	 * @param op
+	 * @param params
+	 * @return
+	 *
+	 * @since 3.0.1.5
+	 */
+	boolean sendBrowserMessage(String key, String op, Collection params);
 }

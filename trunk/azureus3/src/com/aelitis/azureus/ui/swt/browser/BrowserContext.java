@@ -19,6 +19,10 @@
  */
 package com.aelitis.azureus.ui.swt.browser;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.DisposeEvent;
@@ -28,7 +32,8 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.json.JSONString;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
@@ -328,22 +333,36 @@ public class BrowserContext
 	}
 
 	public boolean sendBrowserMessage(String key, String op) {
-		return sendBrowserMessage(key, op, null);
+		return sendBrowserMessage(key, op, (Map)null);
 	}
 
-	public boolean sendBrowserMessage(String key, String op, JSONString params) {
+	public boolean sendBrowserMessage(String key, String op, Map params) {
 		StringBuffer msg = new StringBuffer();
 		msg.append("az.msg.dispatch('").append(key).append("', '").append(op).append(
 				"'");
 		if (params != null) {
-			msg.append(", ").append(params.toJSONString());
+			JSONObject json = new JSONObject(params);
+			msg.append(", ").append(json.toString());
+		}
+		msg.append(")");
+
+		return executeInBrowser(msg.toString());
+	}
+	
+	public boolean sendBrowserMessage(String key, String op, Collection params) {
+		StringBuffer msg = new StringBuffer();
+		msg.append("az.msg.dispatch('").append(key).append("', '").append(op).append(
+				"'");
+		if (params != null) {
+			JSONArray json = new JSONArray(params);
+			msg.append(", ").append(json.toString());
 		}
 		msg.append(")");
 
 		return executeInBrowser(msg.toString());
 	}
 
-	protected boolean maySend(String key, String op, JSONString params) {
+	protected boolean maySend(String key, String op, Map params) {
 		return !pageLoading;
 	}
 

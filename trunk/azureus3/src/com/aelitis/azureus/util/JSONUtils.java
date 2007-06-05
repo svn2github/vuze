@@ -20,8 +20,12 @@
 
 package com.aelitis.azureus.util;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.*;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+
 
 /**
  * @author TuxPaper
@@ -30,28 +34,61 @@ import org.json.JSONObject;
  */
 public class JSONUtils
 {
-	public static int getJSONInt(JSONObject json, String key, int def) {
-		try {
-			return json.getInt(key);
-		} catch (JSONException e) {
-			return def;
+	/**
+	 * decodes JSON formatted text into a map.
+	 * 
+	 *  If the json text is not a map, a map with the key "value" will be returned.
+	 *  the value of "value" will either be an List, String, Number, Boolean, or null
+	 */
+	public static Map decodeJSON(String json) {
+		Object object = JSONValue.parse(json);
+		if (object instanceof Map) {
+			return (Map) object;
 		}
+		// could be : ArrayList, String, Number, Boolean
+		Map map = new HashMap();
+		map.put("value", object);
+		return map;
+	}
+	
+	public static Map encodeToJSONObject(Map map) {
+		Map newMap = new JSONObject();
+		
+		for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
+			Object key = (Object) iter.next();
+			Object value = map.get(key);
+			
+			if ((value instanceof Map) && !(value instanceof JSONObject)) {
+				value = encodeToJSONObject((Map)value);
+			} else if ((value instanceof List) && !(value instanceof JSONArray)) {
+				value = encodeToJSONArray((List)value);
+			}
+			
+			newMap.put(key, value);
+		}
+		return newMap;
 	}
 
-	public static String getJSONString(JSONObject json, String key, String def) {
-		try {
-			return json.getString(key);
-		} catch (JSONException e) {
-			return def;
-		}
-	}
+	/**
+	 * @param value
+	 * @return
+	 *
+	 * @since 3.0.1.5
+	 */
+	private static List encodeToJSONArray(List list) {
+		List newList = new JSONArray(list);
 
-	public static boolean getJSONBoolean(JSONObject json, String key, boolean def) {
-		try {
-			return json.getBoolean(key);
-		} catch (JSONException e) {
-			return def;
+		for (int i = 0; i < newList.size(); i++) {
+			Object value = newList.get(i);
+			
+			if ((value instanceof Map) && !(value instanceof JSONObject)) {
+				newList.set(i, encodeToJSONObject((Map)value));
+				
+			} else if ((value instanceof List) && !(value instanceof JSONArray)) {
+				newList.set(i, encodeToJSONArray((List)value));
+			}
 		}
+		
+		return newList;
 	}
-
 }

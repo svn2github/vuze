@@ -5,15 +5,15 @@ package com.aelitis.azureus.ui.swt.browser.listener.publish;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Base32;
+
+import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
+import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
+import com.aelitis.azureus.util.MapUtils;
+
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 
 public class SeedingListener extends AbstractMessageListener {
 
@@ -50,18 +50,27 @@ public class SeedingListener extends AbstractMessageListener {
     }
 	
 	public void handleMessage(BrowserMessage message) {
-		if ( OP_SEND_UPDATE.equals(message.getOperationId()) ) {
-            sendUpdate();
-        } else if ( OP_REMOVE.equals(message.getOperationId()) ) {
-            removeTorrent(message.getDecodedObject().getString("id"));
-        } else if ( OP_START.equals(message.getOperationId()) ) {
-            startTorrent(message.getDecodedObject().getString("id"));
-        } else if ( OP_STOP.equals(message.getOperationId()) ) {
-            stopTorrent(message.getDecodedObject().getString("id"));
-        }
-        else {
-            throw new IllegalArgumentException("Unknown operation: " + message.getOperationId());
-        }
+		if (OP_SEND_UPDATE.equals(message.getOperationId())) {
+			sendUpdate();
+		} else if (OP_REMOVE.equals(message.getOperationId())) {
+			String id = MapUtils.getMapString(message.getDecodedMap(), "id", null);
+			if (id != null) {
+				removeTorrent(id);
+			}
+		} else if (OP_START.equals(message.getOperationId())) {
+			String id = MapUtils.getMapString(message.getDecodedMap(), "id", null);
+			if (id != null) {
+				startTorrent(id);
+			}
+		} else if (OP_STOP.equals(message.getOperationId())) {
+			String id = MapUtils.getMapString(message.getDecodedMap(), "id", null);
+			if (id != null) {
+				stopTorrent(id);
+			}
+		} else {
+			throw new IllegalArgumentException("Unknown operation: "
+					+ message.getOperationId());
+		}
 	}
 	
 	private Download getDownloadByMagnet(String magnet) {
@@ -236,7 +245,7 @@ public class SeedingListener extends AbstractMessageListener {
 					g_eta = 0;
 				}
 
-            JSONArray torrents = new JSONArray();
+            List torrents = new ArrayList();
             
             for( Iterator it = indiv_torrents.iterator(); it.hasNext(); ) {
                IndividualProgress ind = (IndividualProgress)it.next();
@@ -247,7 +256,7 @@ public class SeedingListener extends AbstractMessageListener {
                   mod_eta = g_eta;                  
                }
                
-               torrents.put( constructJSTorrentProgress( ind.infohash, ind.name, ind.percent, mod_eta ) );
+               torrents.add( constructJSTorrentProgress( ind.infohash, ind.name, ind.percent, mod_eta ) );
             }
                      
 				context.sendBrowserMessage( JS_UPLOAD_PROGRESS_MSG_KEY, JS_GLOBAL_UPDATE_MSG_OP, constructJSGlobalProgress( (int)g_percent, g_eta ) );
@@ -281,25 +290,25 @@ public class SeedingListener extends AbstractMessageListener {
 	}
 
 	
-	private JSONObject constructJSTorrentProgress( byte[] infohash, String name, int percent, long _eta ) {
+	private Map constructJSTorrentProgress( byte[] infohash, String name, int percent, long _eta ) {
 	    String hash = infohash == null ? "<null>" : Base32.encode( infohash );
        String eta = formatETA( _eta );	    
 	    
-	    JSONObject torrent = new JSONObject();
+	    Map torrent = new HashMap();
 	    torrent.put("hash", hash);
 	    torrent.put("name", name);
-	    torrent.put("percent", percent);
+	    torrent.put("percent", new Long(percent));
 	    torrent.put("eta", eta);
 	    
 	    return torrent;
 	  }
 
    
-	private JSONObject constructJSGlobalProgress( int percent, long _eta ) {
+	private Map constructJSGlobalProgress( int percent, long _eta ) {
       String eta = formatETA( _eta );
 	    
-      JSONObject global = new JSONObject();
-      global.put("percent", percent);
+      Map global = new HashMap();
+      global.put("percent", new Long(percent));
       global.put("eta", eta);
 	    
       return global;

@@ -30,8 +30,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
-import org.json.JSONObject;
-import org.json.JSONString;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
@@ -91,6 +89,8 @@ public class PlatformTorrentUtils
 	private static final String TOR_AZ_PROP_QOS_CLASS = "QOS Class";
 
 	private static final String TOR_AZ_PROP_AD_ID = "Ad ID";
+
+	private static final String TOR_AZ_PROP_AD_ENABLED = "Ad Enabled";
 
 	private static final ArrayList metaDataListeners = new ArrayList();
 
@@ -444,14 +444,14 @@ public class PlatformTorrentUtils
 				} catch (TOTorrentException e) {
 				}
 			}
-			JSONObject jsonMapMetaData = hash == null ? null
-					: (JSONObject) mapHashes.get(hash);
+			Map jsonMapMetaData = hash == null ? null
+					: (Map) mapHashes.get(hash);
 			if (jsonMapMetaData != null) {
 				long oldLastUpdated = getContentLastUpdated(torrent);
 				long expireyMins = 0;
 
-				for (Iterator iterator = jsonMapMetaData.keys(); iterator.hasNext();) {
-					String key = (String) iterator.next();
+				for (Iterator iter = jsonMapMetaData.keySet().iterator(); iter.hasNext();) {
+					String key = (String) iter.next();
 					Object value = jsonMapMetaData.get(key);
 
 					if (value == null || value.equals(null)) {
@@ -461,11 +461,8 @@ public class PlatformTorrentUtils
 						contentMap.put(key, Base64.decode((String) value));
 					} else if (key.equals("expires-in-mins") && value instanceof Long) {
 						expireyMins = ((Long) value).longValue();
-					} else if (!(value instanceof JSONString)) {
-						final String s = jsonMapMetaData.getString(key);
-						contentMap.put(key, s);
 					} else {
-						System.out.println("BOO! " + key + ";" + value);
+						contentMap.put(key, value);
 					}
 					try {
 						TorrentUtils.writeToFile(torrent);
@@ -494,6 +491,8 @@ public class PlatformTorrentUtils
 					refreshOn = SystemTime.getCurrentTime() + (expireyMins * 60 * 1000L);
 				} else {
 					long newLastUpdated = getContentLastUpdated(torrent);
+					
+					System.out.println("new " + new Date(newLastUpdated) + ";old " + new Date(oldLastUpdated));
 
 					long diff = newLastUpdated - oldLastUpdated;
 					if (diff > 0 && oldLastUpdated != 0) {
@@ -562,6 +561,10 @@ public class PlatformTorrentUtils
 
 	public static long getContentMinimumSpeedBps(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_MIN_SPEED, MIN_SPEED_DEFAULT );
+	}
+
+	public static boolean isContentAdEnabled(TOTorrent torrent) {
+		return getContentMapLong(torrent, TOR_AZ_PROP_AD_ENABLED, 0) == 1;
 	}
 
 	public static void log(String str) {

@@ -1,5 +1,7 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
+import java.util.Map;
+
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -9,11 +11,10 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -24,15 +25,13 @@ import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet;
-import com.aelitis.azureus.util.JSONUtils;
+import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
-
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 public class DisplayListener
 	extends AbstractMessageListener
@@ -72,48 +71,42 @@ public class DisplayListener
 		String opid = message.getOperationId();
 
 		if (OP_COPY_TO_CLIPBOARD.equals(opid)) {
-			JSONObject decodedObject = message.getDecodedObject();
-			copyToClipboard(decodedObject.getString("text"));
+			Map decodedMap = message.getDecodedMap();
+			copyToClipboard(MapUtils.getMapString(decodedMap, "text", ""));
 		} else if (OP_OPEN_URL.equals(opid)) {
-			JSONObject decodedObject = message.getDecodedObject();
-			String target = JSONUtils.getJSONString(decodedObject, "target", null);
-			if (target == null && !decodedObject.has("width")) {
-				launchUrl(JSONUtils.getJSONString(decodedObject, "url", null));
+			Map decodedMap = message.getDecodedMap();
+			String target = MapUtils.getMapString(decodedMap, "target", null);
+			if (target == null && !decodedMap.containsKey("width")) {
+				launchUrl(MapUtils.getMapString(decodedMap, "url", null));
 			} else {
 				message.setCompleteDelayed(true);
-				showBrowser(JSONUtils.getJSONString(decodedObject, "url", null),
-						target, JSONUtils.getJSONInt(decodedObject, "width", 0),
-						JSONUtils.getJSONInt(decodedObject, "height", 0),
-						JSONUtils.getJSONBoolean(decodedObject, "resizable", false),
+				showBrowser(MapUtils.getMapString(decodedMap, "url", null),
+						target, MapUtils.getMapInt(decodedMap, "width", 0),
+						MapUtils.getMapInt(decodedMap, "height", 0),
+						MapUtils.getMapBoolean(decodedMap, "resizable", false),
 						message);
 			}
 		} else if (OP_RESET_URL.equals(opid)) {
 			resetURL();
 		} else if (OP_SEND_EMAIL.equals(opid)) {
-			JSONObject decodedObject = message.getDecodedObject();
+			Map decodedMap = message.getDecodedMap();
 
-			String to = decodedObject.getString("to");
-			String subject = decodedObject.getString("subject");
+			String to = MapUtils.getMapString(decodedMap, "to", "");
+			String subject = MapUtils.getMapString(decodedMap, "subject", "");
 
-			String body = null;
-
-			try {
-				body = decodedObject.getString("body");
-			} catch (JSONException e) {
-				// Do nothing if its not found 
-			}
+			String body = MapUtils.getMapString(decodedMap, "body", null);
 
 			sendEmail(to, subject, body);
 
 		} else if (OP_IRC_SUPPORT.equals(opid)) {
-			JSONObject decodedObject = message.getDecodedObject();
-			openIrc(null, decodedObject.getString("channel"),
-					decodedObject.getString("user"));
+			Map decodedMap = message.getDecodedMap();
+			openIrc(null, MapUtils.getMapString(decodedMap, "channel", ""),
+					MapUtils.getMapString(decodedMap, "user", ""));
 		} else if (OP_BRING_TO_FRONT.equals(opid)) {
 			bringToFront();
 		} else if (OP_SWITCH_TO_TAB.equals(opid)) {
-			JSONObject decodedObject = message.getDecodedObject();
-			switchToTab(decodedObject.getString("target"));
+			Map decodedMap = message.getDecodedMap();
+			switchToTab(MapUtils.getMapString(decodedMap, "target", ""));
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
 		}

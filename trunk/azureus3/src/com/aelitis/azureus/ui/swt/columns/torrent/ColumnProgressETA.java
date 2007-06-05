@@ -7,6 +7,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -395,27 +396,60 @@ public class ColumnProgressETA
 						TorrentListViewsUtils.playViaMediaServer(pDL);
 					}
 				} else if (areaStream != null && areaStream.contains(event.x, event.y)) {
-					if (edm.getProgressiveMode()) {
-						edm.setProgressiveMode(false);
-					} else {
-						// Check existing downloading torrents and turn off any
-						// existing progressive
-						Object[] dms = dm.getGlobalManager().getDownloadManagers().toArray();
-						for (int i = 0; i < dms.length; i++) {
-							DownloadManager dmCheck = (DownloadManager) dms[i];
-							if (!dmCheck.isDownloadComplete(false)) {
-								EnhancedDownloadManager edmCheck = getEDM(dmCheck);
-								if (edmCheck != null && edmCheck.getProgressiveMode()) {
-									edmCheck.setProgressiveMode(false);
-								}
-							}
-						}
-						edm.setProgressiveMode(true);
-					}
+					flipProgressiveMode(dm);
 				}
 				refresh(event.cell, true);
 			}
 			bMouseDowned = false;
+		}
+		
+		private void flipProgressiveMode(DownloadManager dm) {
+			EnhancedDownloadManager edm = getEDM(dm);
+			if (edm == null) {
+				return;
+			}
+
+			GlobalManager gm = dm.getGlobalManager(); 
+			if (edm.getProgressiveMode()) {
+				edm.setProgressiveMode(false);
+				resumeIncomplete(gm);
+			} else {
+				// Check existing downloading torrents and turn off any
+				// existing progressive/downloading
+				Object[] dms = gm.getDownloadManagers().toArray();
+				for (int i = 0; i < dms.length; i++) {
+					DownloadManager dmCheck = (DownloadManager) dms[i];
+					if (dmCheck == dm) {
+						continue;
+					}
+
+					if (!dmCheck.isDownloadComplete(false)) {
+						int state = dmCheck.getState();
+						if (state == DownloadManager.STATE_DOWNLOADING
+								|| state == DownloadManager.STATE_QUEUED) {
+							dmCheck.pause();
+						}
+						EnhancedDownloadManager edmCheck = getEDM(dmCheck);
+						if (edmCheck != null && edmCheck.getProgressiveMode()) {
+							edmCheck.setProgressiveMode(false);
+						}
+					}
+				}
+				if (dm.isPaused()) {
+					dm.resume();
+				}
+				edm.setProgressiveMode(true);
+			}
+		}
+
+		private void resumeIncomplete(GlobalManager gm) {
+			Object[] dms = gm.getDownloadManagers().toArray();
+			for (int i = 0; i < dms.length; i++) {
+				DownloadManager dmCheck = (DownloadManager) dms[i];
+				if (dmCheck.isPaused()) {
+					dmCheck.resume();
+				}
+			}
 		}
 
 		private void disposeExisting(TableCell cell) {

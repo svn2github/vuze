@@ -19,6 +19,8 @@
  */
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
+import java.util.Map;
+
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
@@ -243,8 +245,8 @@ public class ColumnRateUpDown
 							PlatformRatingMessenger.setUserRating(hash, value, 0,
 									new PlatformMessengerListener() {
 										public void replyReceived(PlatformMessage message,
-												String replyType, Object jsonReply) {
-											if (PlatformRatingMessenger.ratingSucceeded(jsonReply)) {
+												String replyType, Map reply) {
+											if (PlatformRatingMessenger.ratingSucceeded(reply)) {
 												PlatformTorrentUtils.setUserRating(torrent, value);
 												GlobalRatingUtils.updateFromPlatform(torrent, 2000);
 											} else {
@@ -275,8 +277,8 @@ public class ColumnRateUpDown
 						PlatformRatingMessenger.setUserRating(hash, -1, 0,
 								new PlatformMessengerListener() {
 									public void replyReceived(PlatformMessage message,
-											String replyType, Object jsonReply) {
-										if (PlatformRatingMessenger.ratingSucceeded(jsonReply)) {
+											String replyType, Map reply) {
+										if (PlatformRatingMessenger.ratingSucceeded(reply)) {
 											PlatformTorrentUtils.setUserRating(torrent, -1);
 											GlobalRatingUtils.updateFromPlatform(torrent, 2000);
 										} else {

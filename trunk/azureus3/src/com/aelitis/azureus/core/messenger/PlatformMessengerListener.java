@@ -20,6 +20,8 @@
 
 package com.aelitis.azureus.core.messenger;
 
+import java.util.Map;
+
 /**
  * @author TuxPaper
  * @created Sep 25, 2006
@@ -29,6 +31,5 @@ public interface PlatformMessengerListener
 {
 	public void messageSent(PlatformMessage message);
 
-	public void replyReceived(PlatformMessage message, String replyType,
-			Object jsonReply);
+	public void replyReceived(PlatformMessage message, String replyType, Map reply);
 }

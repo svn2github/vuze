@@ -29,26 +29,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.ImageLoader;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.image.FileFormat;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.json.JSONObject;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.browser.txn.Transaction;
 import com.aelitis.azureus.ui.swt.utils.ImageResizeException;
 import com.aelitis.azureus.ui.swt.utils.ImageResizer;
+import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -139,15 +133,18 @@ public class PublishTransaction extends Transaction
     public void chooseThumbnail(BrowserMessage message) {
     	final int resize_size[] = {DEFAULT_IMAGE_BOX_SIZE,DEFAULT_IMAGE_BOX_SIZE};
     	final float image_quality[] = {DEFAULT_JPEG_QUALITY};
-    	JSONObject elements = null; //will be used if several thumbnails are required on a single page
+    	Map elements = null; //will be used if several thumbnails are required on a single page
         if ( message.isParamObject() ) {
-            JSONObject parameters = message.getDecodedObject();
+            Map parameters = message.getDecodedMap();
     		try {
-    			resize_size[0] = parameters.getInt("width");
-    			resize_size[1] = parameters.getInt("height");
-    			image_quality[0] = (float) parameters.getDouble("quality");
-    			if (parameters.has(ELEMENTS)){
-    				elements = parameters.getJSONObject(ELEMENTS);
+    			resize_size[0] = MapUtils.getMapInt(parameters, "width", 
+    					DEFAULT_IMAGE_BOX_SIZE);
+    			resize_size[1] = MapUtils.getMapInt(parameters, "height", 
+    					DEFAULT_IMAGE_BOX_SIZE);
+    			image_quality[0] = ((Number) MapUtils.getMapObject(parameters,
+						"quality", new Double(DEFAULT_JPEG_QUALITY), Number.class)).floatValue();
+    			if (parameters.containsKey(ELEMENTS)){
+    				elements = (Map) parameters.get(ELEMENTS);
     			}
     		} catch(Exception e) {
     			//Possible bad parameters given, use default values
@@ -177,10 +174,10 @@ public class PublishTransaction extends Transaction
 	    	    				debug("Size : " + info.data.length);
 	    	    				
 	    	    				final String encoded = new String(Base64.encode(info.data));
-	                            JSONObject params = new JSONObject();
+	                            Map params = new HashMap();
 	                            params.put("url", thumbURL);
-	                            params.put("width", info.width);
-	                            params.put("height", info.height);
+	                            params.put("width", new Long(info.width));
+	                            params.put("height", new Long(info.height));
 	                            params.put("data", encoded);
 	                            if ( elements != null ){
 	                            	params.put(ELEMENTS, elements);
@@ -192,7 +189,7 @@ public class PublishTransaction extends Transaction
     						debug("Error resizing image",e);
     						sendBrowserMessage("thumb", "clear", elements);
                             
-                            JSONObject params = new JSONObject();
+                            Map params = new HashMap();
                             params.put("message", e.getMessage());
                             sendBrowserMessage("page", "error",params);
     					}
@@ -200,7 +197,7 @@ public class PublishTransaction extends Transaction
         					debug("Error reading file",e);
                             sendBrowserMessage("thumb", "clear", elements);
                             
-                            JSONObject params = new JSONObject();
+                            Map params = new HashMap();
                             params.put("message", "Azureus cannot process this image. Please select another one.");
                             sendBrowserMessage("page", "error",params);
         				}
@@ -209,7 +206,7 @@ public class PublishTransaction extends Transaction
                         	
                         	sendBrowserMessage("thumb", "clear", elements);
                             
-                            JSONObject params = new JSONObject();
+                            Map params = new HashMap();
                             params.put("message", "Azureus cannot process this image (likely reason is that it is too big). Please select another one.");
                             sendBrowserMessage("page", "error",params);
                         	
@@ -221,12 +218,16 @@ public class PublishTransaction extends Transaction
     	}
     }
 
-    /**
-     * Pulls the modified torrent from the result web page and saves it locally.
-     */
-    public void torrentIsReady ( BrowserMessage message ) {
-         torrentIsReady(message.getDecodedObject().getString("torrent"));
-    }
+ 	/**
+	 * Pulls the modified torrent from the result web page and saves it locally.
+	 */
+	public void torrentIsReady(BrowserMessage message) {
+		String torrent = MapUtils.getMapString(message.getDecodedMap(),
+				"torrent", null);
+		if (torrent != null) {
+			torrentIsReady(torrent);
+		}
+	}
 
     protected void torrentIsReady ( String strTorrent ) {
     	
@@ -273,7 +274,7 @@ public class PublishTransaction extends Transaction
     	
     	sendBrowserMessage("torrent","failed");
     	
-    	JSONObject params = new JSONObject();
+    	Map params = new HashMap();
 		params.put("message", "Azureus cannot process this file. Please select another file.");
 		sendBrowserMessage("page", "error",params);
 		
@@ -295,7 +296,7 @@ public class PublishTransaction extends Transaction
     						debug("local torrent creation complete: " +torrent.getName()+ " : " +torrent.getMagnetURI() );        						    						
     						
     						final String tData = new String( Base64.encode( torrent.writeToBEncodedData() ) );
-                            JSONObject params = new JSONObject();
+    						Map params = new HashMap();
                             params.put("data", tData);
     						sendBrowserMessage("torrent", "done", params);
     					}
@@ -316,8 +317,8 @@ public class PublishTransaction extends Transaction
 
     				public void reportPercentageDone(int percent) {
     					//debug("creation progress : " + percent);
-                        JSONObject params = new JSONObject();
-                        params.put("percent", percent);
+    					Map params = new HashMap();
+    					params.put("percent", new Long(percent));
     					sendBrowserMessage("torrent", "progress", params);
     				}
 
@@ -337,11 +338,11 @@ public class PublishTransaction extends Transaction
 				
     		}
             
-            JSONObject params = new JSONObject();
-            params.put("folder", dataFile.isDirectory());
+            Map params = new HashMap();
+            params.put("folder", new Boolean(dataFile.isDirectory()));
             params.put("name", dataFile.getName());
             long size = getSize(dataFile);
-            params.put("size", size);
+            params.put("size", new Long(size));
             params.put("size-text", DisplayFormatters.formatByteCountToKiBEtc(size));
             sendBrowserMessage("torrent", "chosen", params);
     	} else {
