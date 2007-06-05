@@ -44,7 +44,9 @@ public class IpRangeImpl implements IpRange
 
 	private final static byte FLAG_INVALID = FLAG_INVALID_START | FLAG_INVALID_END;
 
-	private int[] ips;
+	private int ipStart;
+
+	private int ipEnd;
 
 	private byte flags;
 
@@ -69,14 +71,13 @@ public class IpRangeImpl implements IpRange
 					"Invalid start/end values - null not supported"));
 		}
 		
-		ips = new int[2];
 		try {
-			ips[0] = PRHelpers.addressToInt(_startIp);
+			ipStart = PRHelpers.addressToInt(_startIp);
 		} catch (UnknownHostException e) {
 			flags |= FLAG_INVALID_START;
 		}
 		try {
-			ips[1] = PRHelpers.addressToInt(_endIp);
+			ipEnd = PRHelpers.addressToInt(_endIp);
 		} catch (UnknownHostException e) {
 			flags |= FLAG_INVALID_END;
 		}
@@ -94,9 +95,8 @@ public class IpRangeImpl implements IpRange
 			flags = FLAG_SESSION_ONLY;
 		}
 
-		//startIp = new Integer(_startIp);
-		//endIp = new Integer(_endIp);
-		ips = new int[] { _startIp, _endIp };
+		ipStart = _startIp;
+		ipEnd = _endIp;
 
 		if (_description != "") {
 			setDescription(_description);
@@ -114,23 +114,19 @@ public class IpRangeImpl implements IpRange
 			return false;
 		}
 
-		if (ips != null) {
-  		long start_address = ips[0];
-  		long end_address = ips[1];			
+		long start_address = ipStart;
+		long end_address = ipEnd;			
 
-			if (start_address < 0) {
+		if (start_address < 0) {
 
-				start_address += 0x100000000L;
-			}
-			if (end_address < 0) {
+			start_address += 0x100000000L;
+		}
+		if (end_address < 0) {
 
-				end_address += 0x100000000L;
-			}
-
-			return (end_address >= start_address);
+			end_address += 0x100000000L;
 		}
 
-		return (false);
+		return (end_address >= start_address);
 	}
 
 	public boolean isInRange(String ipAddress) {
@@ -146,8 +142,8 @@ public class IpRangeImpl implements IpRange
 				int_address += 0x100000000L;
 			}
 
-  		long start_address = ips[0];
-  		long end_address = ips[1];			
+  		long start_address = ipStart;
+  		long end_address = ipEnd;			
 
 			if (start_address < 0) {
 
@@ -177,22 +173,23 @@ public class IpRangeImpl implements IpRange
 	}
 
 	public String getStartIp() {
-		return ips == null ? "" : PRHelpers.intToAddress(ips[0]);
+		return (flags & FLAG_INVALID_START) > 0 ? ""
+				: PRHelpers.intToAddress(ipStart);
 	}
 
 	public long getStartIpLong() {
-		if (ips != null) {
-			long val = ips[0];
-
-			if (val < 0) {
-
-				val += 0x100000000L;
-			}
-
-			return (val);
+		if ((flags & FLAG_INVALID_START) > 0) {
+			return -1;
 		}
 
-		return (-1);
+		long val = ipStart;
+
+		if (val < 0) {
+
+			val += 0x100000000L;
+		}
+
+		return (val);
 	}
 
 	public void setStartIp(String str) {
@@ -206,7 +203,7 @@ public class IpRangeImpl implements IpRange
 
 		flags &= ~FLAG_INVALID_START;
 		try {
-			ips[0] = PRHelpers.addressToInt(str);
+			ipStart = PRHelpers.addressToInt(str);
 		} catch (UnknownHostException e) {
 			flags |= FLAG_INVALID_START;
 		}
@@ -217,21 +214,21 @@ public class IpRangeImpl implements IpRange
 	}
 
 	public String getEndIp() {
-		return ips == null ? "" : PRHelpers.intToAddress(ips[1]);
+		return (flags & FLAG_INVALID_END) > 0 ? "" : PRHelpers.intToAddress(ipEnd);
 	}
 
 	public long getEndIpLong() {
-		if (ips != null) {
-			long val = ips[1];
-
-			if (val < 0) {
-				val += 0x100000000L;
-			}
-
-			return (val);
+		if ((flags & FLAG_INVALID_END) > 0) {
+			return -1;
 		}
 
-		return (-1);
+		long val = ipEnd;
+
+		if (val < 0) {
+			val += 0x100000000L;
+		}
+
+		return (val);
 	}
 
 	public void setEndIp(String str)
@@ -247,7 +244,7 @@ public class IpRangeImpl implements IpRange
 
 		flags &= ~FLAG_INVALID_END;
 		try {
-			ips[1] = PRHelpers.addressToInt(str);
+			ipEnd = PRHelpers.addressToInt(str);
 		} catch (UnknownHostException e) {
 			flags |= FLAG_INVALID_END;
 		}
@@ -331,8 +328,8 @@ public class IpRangeImpl implements IpRange
 	public void resetMergeInfo() {
 		flags &= ~FLAG_MERGED;
 
-		if (ips != null) {
-			merged_end = ips[1];
+		if ((flags & FLAG_INVALID_END) == 0) {
+			merged_end = ipEnd;
 		}
 	}
 
