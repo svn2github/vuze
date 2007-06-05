@@ -217,4 +217,20 @@ public class ByteFormatter
   	
   	return( res );
   }
+
+  /**
+   * Convert a Network Byte Order byte array into an int
+   *  
+   * @param array
+   * @return
+   *
+   * @since 3.0.1.5
+   */
+  public static int
+  byteArrayToInt(
+  	byte[] array)
+  {
+		return (array[0] << 24) & 0xff000000 | (array[1] << 16) & 0x00ff0000
+				| (array[2] << 8) & 0x0000ff00 | array[3] & 0x000000ff;
+	}
 }
