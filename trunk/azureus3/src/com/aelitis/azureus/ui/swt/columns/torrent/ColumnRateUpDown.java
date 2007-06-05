@@ -167,7 +167,7 @@ public class ColumnRateUpDown
 
 				final TOTorrent torrent = dm.getTorrent();
 				try {
-					final String fHash = torrent.getHashWrapper().toString();
+					final String fHash = torrent.getHashWrapper().toBase32String();
 					PlatformRatingMessenger.getUserRating(new String[] {
 						PlatformRatingMessenger.RATE_TYPE_CONTENT
 					}, new String[] {
