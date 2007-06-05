@@ -375,6 +375,20 @@ COConfigurationManager
 	  ConfigurationManager.getInstance().addParameterListener(parameter, listener);
 	}
 
+	/**
+	 * @param strings
+	 * @param parameterListener
+	 *
+	 * @since 3.0.1.5
+	 */
+	public static void addParameterListener(String[] ids,
+			ParameterListener listener) {
+		ConfigurationManager instance = ConfigurationManager.getInstance();
+		for (int i = 0; i < ids.length; i++) {
+		  instance.addParameterListener(ids[i], listener);
+		}
+	}
+
 	public static void
 	addAndFireParameterListener(String parameter, ParameterListener listener)
 	{
