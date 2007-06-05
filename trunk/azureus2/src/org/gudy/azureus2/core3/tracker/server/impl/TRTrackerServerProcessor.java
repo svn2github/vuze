@@ -554,5 +554,11 @@ TRTrackerServerProcessor
 		{
 			return( null );
 		}
+		
+		public int
+		getSecsToLive()
+		{
+			return( -1 );
+		}
 	}
 }

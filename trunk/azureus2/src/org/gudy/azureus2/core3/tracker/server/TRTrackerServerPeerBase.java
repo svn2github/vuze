@@ -32,4 +32,6 @@ TRTrackerServerPeerBase
 	public int
 	getTCPPort();
 	
+	public int
+	getSecsToLive();
 }

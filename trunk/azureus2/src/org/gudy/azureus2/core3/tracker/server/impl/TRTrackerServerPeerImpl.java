@@ -363,6 +363,12 @@ TRTrackerServerPeerImpl
 		return( timeout );
 	}
 
+	public int
+	getSecsToLive()
+	{
+		return((int)(( timeout - SystemTime.getCurrentTime())/1000 ));
+	}
+	
 	protected void
 	setStats(
 		long		_uploaded,

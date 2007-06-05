@@ -1627,6 +1627,8 @@ TRTrackerServerTorrentImpl
 												
 						added.add( peer );
 						
+							// it'll be added back in below, don't worry!
+						
 						it.remove();
 					}
 				}
@@ -2640,7 +2642,8 @@ TRTrackerServerTorrentImpl
 			az_ver			= _az_ver;
 			seed			= _seed;
 			
-			create_time_secs 	= (int)SystemTime.getCurrentTime()/1000;
+			create_time_secs 	= (int)( SystemTime.getCurrentTime()/1000 );
+			
 			timeout_secs		= _timeout_secs * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER;
 		}
 		
@@ -2745,7 +2748,20 @@ TRTrackerServerTorrentImpl
 				create_time_secs = now_secs;
 			}
 			
-			return( create_time_secs + timeout_secs > now_secs );
+			return( create_time_secs + timeout_secs < now_secs );
+		}
+		
+		public int
+		getSecsToLive()
+		{
+			int	now_secs = (int)(SystemTime.getCurrentTime()/1000);
+			
+			if ( now_secs < create_time_secs ){
+				
+				create_time_secs = now_secs;
+			}
+			
+			return(( create_time_secs + timeout_secs ) - now_secs );
 		}
 		
 		protected String
