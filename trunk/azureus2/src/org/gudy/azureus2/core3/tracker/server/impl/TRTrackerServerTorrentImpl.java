@@ -349,7 +349,18 @@ TRTrackerServerTorrentImpl
 									up_speed,
 									network_position );
 					
+					Set	biased_peer_set = server.getBiasedPeers();
+					
+					boolean biased = biased_peer_set != null && biased_peer_set.contains( peer.getIPRaw());
+				
 					if ( ip_override ){
+				
+							// never allow an ip-override to take on the guise of a biased peer
+						
+						if ( biased ){
+							
+							throw( new TRTrackerServerException( "IP Override denied" ));
+						}
 						
 						ip_override_count++;
 					}
@@ -362,7 +373,7 @@ TRTrackerServerTorrentImpl
 					
 					Set	b = server.getBiasedPeers();
 					
-					if ( b != null && b.contains( peer.getIPRaw())){
+					if ( biased ){
 							
 						peer.setBiased( true );
 						
@@ -412,11 +423,21 @@ TRTrackerServerTorrentImpl
 					
 				}
 				
-					// prevent an ip_override peer from affecting a non-override entry
-				
-				if ( ip_override && !peer.isIPOverride()){
+				if ( ip_override ){
 					
-					throw( new TRTrackerServerException( "IP Override denied" ));
+						// biased peers are never ip-override
+					
+					if ( peer.isBiased()){
+						
+						throw( new TRTrackerServerException( "IP Override denied" ));
+					}
+					
+						// prevent an ip_override peer from affecting a non-override entry
+				
+					if ( !peer.isIPOverride()){
+					
+						throw( new TRTrackerServerException( "IP Override denied" ));
+					}
 				}
 
 				already_completed	= peer.getDownloadCompleted();
@@ -691,7 +712,13 @@ TRTrackerServerTorrentImpl
 		try{
 			this_mon.enter();
 				
-			QueuedPeer	new_qp = new QueuedPeer( ip, tcp_port, udp_port, http_port, crypto_level, az_ver, (int)timeout_secs, seed );
+			Set	biased_peer_set = server.getBiasedPeers();
+			
+			boolean biased = biased_peer_set != null && biased_peer_set.contains( ip );
+
+			QueuedPeer	new_qp = 
+				new QueuedPeer( ip, tcp_port, udp_port, http_port, crypto_level, 
+						az_ver, (int)timeout_secs, seed, biased );
 		
 			String	reuse_key = new_qp.getIP() + ":" + tcp_port;
 
@@ -702,6 +729,8 @@ TRTrackerServerTorrentImpl
 				return;
 			}
 		
+			boolean	add = true;
+			
 			if ( queued_peers != null ){
 				
 				Iterator	it = queued_peers.iterator();
@@ -730,6 +759,13 @@ TRTrackerServerTorrentImpl
 						
 						QueuedPeer	qp = (QueuedPeer)it.next();
 						
+							// never drop biased peers
+						
+						if ( qp.isBiased()){
+							
+							continue;
+						}
+						
 						if ( oldest == null ){
 							
 							oldest = qp;
@@ -743,14 +779,24 @@ TRTrackerServerTorrentImpl
 						}
 					}
 					
-					queued_peers.remove( oldest );
+					if ( oldest == null ){
+						
+						add = false;
+						
+					}else{
+						
+						queued_peers.remove( oldest );
+					}
 				}
 			}else{
 				
 				queued_peers = new LinkedList();
 			}
 			
-			queued_peers.addFirst( new_qp );
+			if ( add ){
+				
+				queued_peers.addFirst( new_qp );
+			}
 			
 		}finally{
 			
@@ -894,6 +940,11 @@ TRTrackerServerTorrentImpl
 					 
 					 if ( biased ){
 						 
+						 if ( this_peer.isIPOverride()){
+							 
+							 Debug.out( "IPOverride peer set to biased!!!!" );
+						 }
+						 
 						 if ( !biased_peers.contains( this_peer )){
 							 
 							 biased_peers.add( this_peer );
@@ -902,6 +953,18 @@ TRTrackerServerTorrentImpl
 						 
 						 biased_peers.remove( this_peer );
 					 }
+				}
+			}
+			
+			if ( queued_peers != null ){
+				
+				it = queued_peers.iterator();
+				
+				while( it.hasNext()){
+					
+					QueuedPeer	peer = (QueuedPeer)it.next();
+
+					peer.setBiased( biased_peers_set.contains(  peer.getIP()));
 				}
 			}
 		}finally{
@@ -2606,6 +2669,9 @@ TRTrackerServerTorrentImpl
 	QueuedPeer
 		implements TRTrackerServerPeerBase
 	{
+		private static final byte	FLAG_SEED			= 0x01;
+		private static final byte	FLAG_BIASED			= 0x02;
+		
 		private short	tcp_port;
 		private short	udp_port;
 		private short	http_port;
@@ -2614,7 +2680,7 @@ TRTrackerServerTorrentImpl
 		private byte	az_ver;
 		private int		create_time_secs;
 		private int		timeout_secs;
-		private boolean	seed;
+		private byte	flags;
 		
 		protected
 		QueuedPeer(
@@ -2625,7 +2691,8 @@ TRTrackerServerTorrentImpl
 			byte		_crypto_level,
 			byte		_az_ver,
 			int			_timeout_secs,
-			boolean		_seed )
+			boolean		_seed,
+			boolean		_biased )
 		{
 			try{
 				ip = _ip_str.getBytes( Constants.BYTE_ENCODING );
@@ -2640,7 +2707,9 @@ TRTrackerServerTorrentImpl
 			http_port	= (short)_http_port;
 			crypto_level	= _crypto_level;
 			az_ver			= _az_ver;
-			seed			= _seed;
+			
+			setFlag( FLAG_SEED, 		_seed );
+			setFlag( FLAG_BIASED, 		_biased );
 			
 			create_time_secs 	= (int)( SystemTime.getCurrentTime()/1000 );
 			
@@ -2652,7 +2721,8 @@ TRTrackerServerTorrentImpl
 			TRTrackerServerPeerImpl	peer )
 		{
 			return( tcp_port == peer.getTCPPort() &&
-					Arrays.equals( ip, peer.getIPAsRead()));
+					Arrays.equals( ip, peer.getIPAsRead()) &&
+					isIPOverride() == peer.isIPOverride());
 		}
 		
 		protected boolean
@@ -2684,9 +2754,52 @@ TRTrackerServerTorrentImpl
 		protected boolean
 		isSeed()
 		{
-			return( seed );
+			return( getFlag( FLAG_SEED ));
 		}
 		
+		protected void
+		setBiased(
+			boolean	_biased )
+		{
+			setFlag( FLAG_BIASED, _biased );
+		}
+		
+		protected boolean
+		isBiased()
+		{
+			return( getFlag( FLAG_BIASED ));
+		}
+		
+		protected boolean
+		isIPOverride()
+		{
+				// we never allow IP override queued peers
+			
+			return( false );
+		}
+		
+		protected void
+		setFlag(
+			byte		flag,
+			boolean		value )
+		{
+			if ( value ){
+				
+				flags |= flag;
+				
+			}else{
+				
+				flags &= ~flag;
+			}
+		}
+		
+		protected boolean
+		getFlag(
+			byte		flag )
+		{
+			return((flags & flag ) != 0 );
+		}
+			
 		protected byte[]
 		getIPAddressBytes()
 		{
