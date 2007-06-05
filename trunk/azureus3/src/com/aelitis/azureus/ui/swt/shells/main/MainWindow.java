@@ -58,7 +58,6 @@ import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
-import org.json.JSONObject;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -150,7 +149,11 @@ public class MainWindow
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				createWindow(splash);
+				try {
+  				createWindow(splash);
+				} catch (Throwable e) {
+					Logger.log(new LogAlert(false, "Error Initialize MainWindow", e));
+				}
 				if (splash != null) {
 					splash.closeSplash();
 				}
@@ -347,235 +350,241 @@ public class MainWindow
 		ImageRepository.loadImages(display);
 
 		shell = new Shell(display, SWT.SHELL_TRIM);
-		shell.setData("class", this);
-		shell.setText("Azureus");
-		Utils.setShellIcon(shell);
-		Utils.linkShellMetricsToConfig(shell, "window");
-
-		if (splash != null) {
-			splash.reportPercent(splash.getPercent() + 1);
-		}
-
-		skin = SWTSkinFactory.getInstance();
-
-		initSkinListeners();
-
-		if (splash != null) {
-			splash.reportPercent(splash.getPercent() + 1);
-		}
-
-		// attach the UI to plugins
-		// Must be done before initializing views, since plugins may register
-		// table columns and other objects
-		uiSWTInstanceImpl = new UISWTInstanceImpl(core);
-		uiSWTInstanceImpl.init();
-
-		skin.initialize(shell, "main.shell");
-
-		if (splash != null) {
-			splash.reportPercent(splash.getPercent() + 1);
-		}
-
-		System.out.println("skin init took "
-				+ (SystemTime.getCurrentTime() - startTime) + "ms");
-		startTime = SystemTime.getCurrentTime();
-
-		menu = new MainMenu(skin, shell);
-
-		if (org.gudy.azureus2.core3.util.Constants.isOSX) {
-			try {
-
-				Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer");
-
-				Method method = ehancerClass.getMethod("registerToolbarToggle",
-						new Class[] {
-							Shell.class
-						});
-				method.invoke(null, new Object[] {
-					shell
-				});
-
-			} catch (Exception e) {
-				Debug.printStackTrace(e);
-			}
-
-			Listener toggleListener = new Listener() {
-				public void handleEvent(Event event) {
-					boolean bVisible = (event.type == SWT.Expand);
-					MainMenu.setVisibility(skin, "SearchBar.visible", "searchbar",
-							bVisible);
-				}
-			};
-			shell.addListener(SWT.Expand, toggleListener);
-			shell.addListener(SWT.Collapse, toggleListener);
-		}
-
-		System.out.println("createWindow init took "
-				+ (SystemTime.getCurrentTime() - startTime) + "ms");
-		startTime = SystemTime.getCurrentTime();
-
-		if (splash != null) {
-			splash.reportPercent(splash.getPercent() + 1);
-		}
-
-		skin.layout();
-
-		System.out.println("skin layout took "
-				+ (SystemTime.getCurrentTime() - startTime) + "ms");
-		startTime = SystemTime.getCurrentTime();
-
+		
 		try {
-			Utils.createTorrentDropTarget(shell, false);
-		} catch (Throwable e) {
-			Logger.log(new LogEvent(LOGID, "Drag and Drop not available", e));
+  		shell.setData("class", this);
+  		shell.setText("Azureus");
+  		Utils.setShellIcon(shell);
+  		Utils.linkShellMetricsToConfig(shell, "window");
+  
+  		if (splash != null) {
+  			splash.reportPercent(splash.getPercent() + 1);
+  		}
+  
+  		skin = SWTSkinFactory.getInstance();
+  
+  		initSkinListeners();
+  
+  		if (splash != null) {
+  			splash.reportPercent(splash.getPercent() + 1);
+  		}
+  
+  		// attach the UI to plugins
+  		// Must be done before initializing views, since plugins may register
+  		// table columns and other objects
+  		uiSWTInstanceImpl = new UISWTInstanceImpl(core);
+  		uiSWTInstanceImpl.init();
+  
+  		skin.initialize(shell, "main.shell");
+  
+  		if (splash != null) {
+  			splash.reportPercent(splash.getPercent() + 1);
+  		}
+  
+  		System.out.println("skin init took "
+  				+ (SystemTime.getCurrentTime() - startTime) + "ms");
+  		startTime = SystemTime.getCurrentTime();
+  
+  		menu = new MainMenu(skin, shell);
+  
+  		if (org.gudy.azureus2.core3.util.Constants.isOSX) {
+  			try {
+  
+  				Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer");
+  
+  				Method method = ehancerClass.getMethod("registerToolbarToggle",
+  						new Class[] {
+  							Shell.class
+  						});
+  				method.invoke(null, new Object[] {
+  					shell
+  				});
+  
+  			} catch (Exception e) {
+  				Debug.printStackTrace(e);
+  			}
+  
+  			Listener toggleListener = new Listener() {
+  				public void handleEvent(Event event) {
+  					boolean bVisible = (event.type == SWT.Expand);
+  					MainMenu.setVisibility(skin, "SearchBar.visible", "searchbar",
+  							bVisible);
+  				}
+  			};
+  			shell.addListener(SWT.Expand, toggleListener);
+  			shell.addListener(SWT.Collapse, toggleListener);
+  		}
+  
+  		System.out.println("createWindow init took "
+  				+ (SystemTime.getCurrentTime() - startTime) + "ms");
+  		startTime = SystemTime.getCurrentTime();
+  
+  		if (splash != null) {
+  			splash.reportPercent(splash.getPercent() + 1);
+  		}
+  
+  		skin.layout();
+  
+  		System.out.println("skin layout took "
+  				+ (SystemTime.getCurrentTime() - startTime) + "ms");
+  		startTime = SystemTime.getCurrentTime();
+  
+  		try {
+  			Utils.createTorrentDropTarget(shell, false);
+  		} catch (Throwable e) {
+  			Logger.log(new LogEvent(LOGID, "Drag and Drop not available", e));
+  		}
+  
+  		shell.addDisposeListener(new DisposeListener() {
+  			public void widgetDisposed(DisposeEvent e) {
+  				dispose(false, false);
+  			}
+  		});
+  
+  		shell.addShellListener(new ShellAdapter() {
+  			public void shellClosed(ShellEvent event) {
+  				if (disposedOrDisposing) {
+  					return;
+  				}
+  				if (systemTraySWT != null
+  						&& COConfigurationManager.getBooleanParameter("Enable System Tray")
+  						&& COConfigurationManager.getBooleanParameter("Close To Tray")) {
+  
+  					minimizeToTray(event);
+  				} else {
+  					event.doit = dispose(false, false);
+  				}
+  			}
+  
+  			public void shellIconified(ShellEvent event) {
+  				if (disposedOrDisposing) {
+  					return;
+  				}
+  				if (systemTraySWT != null
+  						&& COConfigurationManager.getBooleanParameter("Enable System Tray")
+  						&& COConfigurationManager.getBooleanParameter("Minimize To Tray")) {
+  
+  					minimizeToTray(event);
+  				}
+  			}
+  
+  		});
+  
+  		shell.addListener(SWT.Deiconify, new Listener() {
+  			public void handleEvent(Event e) {
+  				if (Constants.isOSX
+  						&& COConfigurationManager.getBooleanParameter("Password enabled")) {
+  					e.doit = false;
+  					shell.setVisible(false);
+  					PasswordWindow.showPasswordWindow(display);
+  				}
+  			}
+  		});
+  
+  		try {
+  			//AdManagerOld.getInstance().intialize(core);
+  		} catch (Throwable e) {
+  		}
+  
+  		// TODO: Move this out of MainWindow and put somewhere into the messenger
+  		// class structure
+  		ExternalStimulusHandler.addListener(new ExternalStimulusListener() {
+  			public boolean receive(String name, Map values) {
+  				try {
+  					if (values == null) {
+  						return false;
+  					}
+  
+  					if (!name.equals("AZMSG")) {
+  						return false;
+  					}
+  
+  					Object valueObj = values.get("value");
+  					if (!(valueObj instanceof String)) {
+  						return false;
+  					}
+  
+  					String value = (String) valueObj;
+  
+  					ClientMessageContext context = PlatformMessenger.getClientMessageContext();
+  					if (context == null) {
+  						return false;
+  					}
+  					BrowserMessage browserMsg = new BrowserMessage(value);
+  					if (browserMsg.getOperationId().equals(DisplayListener.OP_OPEN_URL)) {
+  						Map decodedMap = browserMsg.getDecodedMap();
+  						String url = MapUtils.getMapString(decodedMap, "url", null);
+  						if (decodedMap.containsKey("target")
+  								&& !PlatformConfigMessenger.isURLBlocked(url)) {
+  
+  							// implicit bring to front
+  							final UIFunctions functions = UIFunctionsManager.getUIFunctions();
+  							if (functions != null) {
+  								functions.bringToFront();
+  							}
+  
+  							// this is actually sync.. so we could add a completion listener
+  							// and return the boolean result if we wanted/needed
+  							context.getMessageDispatcher().dispatch(browserMsg);
+  							context.getMessageDispatcher().resetSequence();
+  							return true;
+  						}
+  					} else if (browserMsg.getOperationId().equals("is-ready")) {
+  						// The platform needs to know when it can call open-url, and it
+  						// determines this by the is-ready function
+  						return isReady;
+  					} else if (browserMsg.getOperationId().equals("is-version-ge")) {
+  						Map decodedMap = browserMsg.getDecodedMap();
+  						if (decodedMap.containsKey("version")) {
+  							String id = MapUtils.getMapString(decodedMap, "id", "client");
+  							String version = MapUtils.getMapString(decodedMap, "version", "");
+  							if (id.equals("client")) {
+  								return org.gudy.azureus2.core3.util.Constants.compareVersions(
+  										org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
+  										version) >= 0;
+  							} else {
+  								return false;
+  							}
+  						}
+  					} else if (browserMsg.getOperationId().equals("is-active-tab")) {
+  						Map decodedMap = browserMsg.getDecodedMap();
+  						if (decodedMap.containsKey("tab")) {
+  							String tabID = MapUtils.getMapString(decodedMap, "tab", "");
+  							if (tabID.length() > 0) {
+  								SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
+  								if (tabSet != null) {
+  									SWTSkinObjectTab activeTab = tabSet.getActiveTab();
+  									if (activeTab != null) {
+  										return activeTab.getViewID().equals("tab-" + tabID);
+  									}
+  								}
+  							}
+  						}
+  					}
+  				} catch (Exception e) {
+  					Debug.out(e);
+  				}
+  				return false;
+  			}
+  		});
+  
+  		initWidgets();
+  
+  		System.out.println("skin widgets init took "
+  				+ (SystemTime.getCurrentTime() - startTime) + "ms");
+  		startTime = SystemTime.getCurrentTime();
+		} finally {
+  		showMainWindow();
+  		System.out.println("shell.open took "
+  				+ (SystemTime.getCurrentTime() - startTime) + "ms");
+  		startTime = SystemTime.getCurrentTime();
+  
+  		processStartupDMS();
+  
+  		System.out.println("processStartupDMS took "
+  				+ (SystemTime.getCurrentTime() - startTime) + "ms");
+  		startTime = SystemTime.getCurrentTime();
 		}
-
-		shell.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				dispose(false, false);
-			}
-		});
-
-		shell.addShellListener(new ShellAdapter() {
-			public void shellClosed(ShellEvent event) {
-				if (disposedOrDisposing) {
-					return;
-				}
-				if (systemTraySWT != null
-						&& COConfigurationManager.getBooleanParameter("Enable System Tray")
-						&& COConfigurationManager.getBooleanParameter("Close To Tray")) {
-
-					minimizeToTray(event);
-				} else {
-					event.doit = dispose(false, false);
-				}
-			}
-
-			public void shellIconified(ShellEvent event) {
-				if (disposedOrDisposing) {
-					return;
-				}
-				if (systemTraySWT != null
-						&& COConfigurationManager.getBooleanParameter("Enable System Tray")
-						&& COConfigurationManager.getBooleanParameter("Minimize To Tray")) {
-
-					minimizeToTray(event);
-				}
-			}
-
-		});
-
-		shell.addListener(SWT.Deiconify, new Listener() {
-			public void handleEvent(Event e) {
-				if (Constants.isOSX
-						&& COConfigurationManager.getBooleanParameter("Password enabled")) {
-					e.doit = false;
-					shell.setVisible(false);
-					PasswordWindow.showPasswordWindow(display);
-				}
-			}
-		});
-
-		//AdManager.getInstance().intialize(core);
-
-		// TODO: Move this out of MainWindow and put somewhere into the messenger
-		// class structure
-		ExternalStimulusHandler.addListener(new ExternalStimulusListener() {
-			public boolean receive(String name, Map values) {
-				try {
-					if (values == null) {
-						return false;
-					}
-
-					if (!name.equals("AZMSG")) {
-						return false;
-					}
-
-					Object valueObj = values.get("value");
-					if (!(valueObj instanceof String)) {
-						return false;
-					}
-
-					String value = (String) valueObj;
-
-					ClientMessageContext context = PlatformMessenger.getClientMessageContext();
-					if (context == null) {
-						return false;
-					}
-					BrowserMessage browserMsg = new BrowserMessage(value);
-					if (browserMsg.getOperationId().equals(DisplayListener.OP_OPEN_URL)) {
-						JSONObject decodedObject = browserMsg.getDecodedObject();
-						String url = JSONUtils.getJSONString(decodedObject, "url", null);
-						if (decodedObject.has("target")
-								&& !PlatformConfigMessenger.isURLBlocked(url)) {
-
-							// implicit bring to front
-							final UIFunctions functions = UIFunctionsManager.getUIFunctions();
-							if (functions != null) {
-								functions.bringToFront();
-							}
-
-							// this is actually sync.. so we could add a completion listener
-							// and return the boolean result if we wanted/needed
-							context.getMessageDispatcher().dispatch(browserMsg);
-							context.getMessageDispatcher().resetSequence();
-							return true;
-						}
-					} else if (browserMsg.getOperationId().equals("is-ready")) {
-						// The platform needs to know when it can call open-url, and it
-						// determines this by the is-ready function
-						return isReady;
-					} else if (browserMsg.getOperationId().equals("is-version-ge")) {
-						JSONObject decodedObject = browserMsg.getDecodedObject();
-						if (decodedObject.has("version")) {
-							String id = JSONUtils.getJSONString(decodedObject, "id", "client");
-							String version = JSONUtils.getJSONString(decodedObject, "version", "");
-							if (id.equals("client")) {
-								return org.gudy.azureus2.core3.util.Constants.compareVersions(
-										org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
-										version) >= 0;
-							} else {
-								return false;
-							}
-						}
-					} else if (browserMsg.getOperationId().equals("is-active-tab")) {
-						JSONObject decodedObject = browserMsg.getDecodedObject();
-						if (decodedObject.has("tab")) {
-							String tabID = JSONUtils.getJSONString(decodedObject, "tab", "");
-							if (tabID.length() > 0) {
-								SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
-								if (tabSet != null) {
-									SWTSkinObjectTab activeTab = tabSet.getActiveTab();
-									if (activeTab != null) {
-										return activeTab.getViewID().equals("tab-" + tabID);
-									}
-								}
-							}
-						}
-					}
-				} catch (Exception e) {
-					Debug.out(e);
-				}
-				return false;
-			}
-		});
-
-		initWidgets();
-
-		System.out.println("skin widgets init took "
-				+ (SystemTime.getCurrentTime() - startTime) + "ms");
-		startTime = SystemTime.getCurrentTime();
-
-		showMainWindow();
-		System.out.println("shell.open took "
-				+ (SystemTime.getCurrentTime() - startTime) + "ms");
-		startTime = SystemTime.getCurrentTime();
-
-		processStartupDMS();
-
-		System.out.println("processStartupDMS took "
-				+ (SystemTime.getCurrentTime() - startTime) + "ms");
-		startTime = SystemTime.getCurrentTime();
 	}
 
 	public boolean dispose(final boolean for_restart,
