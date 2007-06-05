@@ -48,7 +48,7 @@ public class PingSourceManager
     private final Map pingAverages = new HashMap(); //<Source,PingSourceStats>
     private long lastPingRemoval=0;
     private static final long TIME_BETWEEN_BAD_PING_REMOVALS = 2 * 60 * 1000; // two minutes.
-    private static final long TIME_BETWEEN_SLOW_PING_REMOVALS = 15 * 60 * 1000;// fifteen minutes.
+    private static final long TIME_BETWEEN_SLOW_PING_REMOVALS = 5 * 60 * 1000;// fifteen minutes.
     private static final long TIME_BETWEEN_FORCED_CYCLE_REMOVALS = 30 * 60 * 1000;// thirty minutes.
 
 
@@ -90,7 +90,7 @@ public class PingSourceManager
 
 
     /**
-     * Force the slowest ping source to be recycled just to keep thing fresh.
+     * If one ping source is twice the fastest then replace it. Otherwise reset the timer.
      * @param sources -
      * @return - true is a souce has been changed.
      */
@@ -109,6 +109,7 @@ public class PingSourceManager
         //just find the slowest ping-source and remove it.
         SpeedManagerPingSource slowestSource = null;
         double slowestPing = 0.0;
+        double fastestPing = 10000.0;
 
         int len = sources.length;
         for(int i=0; i<len; i++){
@@ -116,23 +117,34 @@ public class PingSourceManager
             Average ave = pss.getHistory();
             double pingTime = ave.getAverage();
 
+            //find slowest
             if( pingTime>slowestPing ){
                 slowestPing = pingTime;
                 slowestSource=sources[i];
             }
+
+            //find sped of fastest.
+            if( pingTime<fastestPing ){
+                fastestPing = pingTime;
+            }
+
         }//for
 
-        if(slowestSource!=null){
-            resetTimer();
-            slowestSource.destroy();
-            return true;
+        //regardless of result, reset the timer.
+        resetTimer();
+        //only replace the slowest if it is twice the fastest.
+        if( slowestPing > 2*fastestPing ){
+            if(slowestSource!=null){
+                slowestSource.destroy();
+                return true;
+            }
         }
 
         return false;
     }
 
     /**
-     * A slow source is something that is 3x the slower then the two fastest.
+     * A slow source is something that is 2x the slower then the two fastest.
      * @param sources -
      * @return - true is a source has been removed.
      */
@@ -177,7 +189,7 @@ public class PingSourceManager
         double sumFastest = fastA+fastB;
 
         boolean removedSource = false;
-        if( sumFastest*3 < slowest ){
+        if( sumFastest*2 < slowest ){
             //destroy this source. It is a bit too slow.
             if(slowestSource!=null){
                 slowestSource.destroy();
@@ -226,8 +238,8 @@ public class PingSourceManager
         }//for
 
         boolean removedSource = false;
-        //if the highest value is 10x the lowest then find another source.
-        if( lowestLongTermPing*10 < highestLongTermPing ){
+        //if the highest value is 8x the lowest then find another source.
+        if( lowestLongTermPing*8 < highestLongTermPing ){
             //remove the slow source we will get a new one to replace it.
             if( highestSource!=null ){
                 SpeedManagerLogger.log("dropping ping source: "+highestSource.getAddress()+" for being 10x greater then min source.");
