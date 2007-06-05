@@ -73,9 +73,10 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
 
 		
-		Label linfo = new Label(cSection, SWT.NULL);
+		Label linfo = new Label(cSection, SWT.WRAP);
 		Messages.setLanguageText( linfo, CFG_PREFIX + "info" );
-		gridData = new GridData();
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.widthHint = 300;
 		gridData.horizontalSpan = 2;
 		linfo.setLayoutData(gridData);
 		

@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
@@ -78,11 +79,12 @@ ConfigSectionTrackerClient
     gridLayout.numColumns = 1;
     scrapeGroup.setLayout(gridLayout);
     
-    gridData = new GridData();
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     scrapeGroup.setLayoutData( gridData );
     
-    label = new Label(scrapeGroup, SWT.NULL);
+    label = new Label(scrapeGroup, SWT.WRAP);
+    label.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
     Messages.setLanguageText(label, "ConfigView.section.tracker.client.scrapeinfo");
 
     BooleanParameter	scrape = 
@@ -139,25 +141,28 @@ ConfigSectionTrackerClient
     gridLayout.numColumns = 2;
     overrideGroup.setLayout(gridLayout);
     
-    gridData = new GridData();
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     overrideGroup.setLayoutData( gridData );
     
     
+    label = new Label(overrideGroup, SWT.WRAP);
+    label.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
+    Messages.setLanguageText(label, "ConfigView.label.overrideip");
     StringParameter overrideip = new StringParameter(overrideGroup, "Override Ip", "");
-    GridData data = new GridData();
+    GridData data = new GridData(GridData.FILL_HORIZONTAL);
     data.widthHint = 100;
     overrideip.setLayoutData(data);
-    label = new Label(overrideGroup, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.overrideip");
     
     
+    label = new Label(overrideGroup, SWT.WRAP);
+    label.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
+    Messages.setLanguageText(label, "ConfigView.label.announceport");
+
     StringParameter tcpAnnounce = new StringParameter(overrideGroup, "TCP.Announce.Port", "");
     data = new GridData();
     data.widthHint = 40;
     tcpAnnounce.setLayoutData(data);
-    label = new Label(overrideGroup, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.announceport");
     
     //////////////////////////
     
@@ -205,6 +210,7 @@ ConfigSectionTrackerClient
                          "ConfigView.section.tracker.separatepeerids").setLayoutData(gridData);
   
     label = new Label(gMainTab, SWT.WRAP);
+    label.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
     Messages.setLanguageText(label,  "ConfigView.section.tracker.separatepeerids.info");
     
     }

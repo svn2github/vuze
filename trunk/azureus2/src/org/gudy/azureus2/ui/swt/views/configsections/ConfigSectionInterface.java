@@ -41,6 +41,7 @@ import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
@@ -89,6 +90,8 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		cDisplay.setLayoutData(gridData);
 		layout = new GridLayout();
 		layout.numColumns = 1;
+		layout.marginWidth = 0;
+		layout.marginHeight = 0;
 		cDisplay.setLayout(layout);
 
 		new BooleanParameter(cDisplay, "Open Details", LBLKEY_PREFIX
@@ -129,8 +132,10 @@ public class ConfigSectionInterface implements UISWTConfigSection {
         Messages.setLanguageText(limit_group, LBLKEY_PREFIX + "set_ui_transfer_speeds");
         layout = new GridLayout();
         limit_group.setLayout(layout);
+        limit_group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
         Label limit_group_label = new Label(limit_group, SWT.WRAP);
+        limit_group_label.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.GRAB_HORIZONTAL));
         Messages.setLanguageText(limit_group_label, LBLKEY_PREFIX + "set_ui_transfer_speeds.description");
         
         String[] limit_types = new String[] {"download", "upload"};

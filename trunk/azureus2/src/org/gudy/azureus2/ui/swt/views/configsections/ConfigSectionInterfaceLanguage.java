@@ -71,6 +71,7 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
     layout = new GridLayout();
     layout.numColumns = 1;
     layout.marginHeight = 0;
+    layout.marginWidth = 0;
     cMain.setLayout( layout );
     
     label = new Label( cMain, SWT.NULL );
@@ -99,6 +100,7 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
     StringListParameter locale_param = new StringListParameter(cMain, "locale",
 				drop_labels, drop_values, false);
     gridData = new GridData(GridData.FILL_BOTH);
+    gridData.minimumHeight = 50;
     locale_param.setLayoutData(gridData);
     // There may be no "locale" setting stored in config, so set it to
     // what we are using now.  Don't automatically write it to config, because
@@ -119,7 +121,6 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
       }
     });
     
-
     return cMain;
   }
 

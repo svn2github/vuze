@@ -86,7 +86,7 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     gSaveTorrents.setLayoutData(gridData);
     layout = new GridLayout();
     layout.marginHeight = 0;
-    layout.marginWidth = 4;
+    layout.marginWidth = 0;
     layout.numColumns = 3;
     gSaveTorrents.setLayout(layout);
 
@@ -117,6 +117,7 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
         }
       }
     });
+    browse2.setLayoutData(new GridData());
 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
@@ -146,7 +147,7 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     gWatchFolder.setLayoutData(gridData);
     layout = new GridLayout();
     layout.marginHeight = 0;
-    layout.marginWidth = 4;
+    layout.marginWidth = 0;
     layout.numColumns = 3;
     gWatchFolder.setLayout(layout);
 

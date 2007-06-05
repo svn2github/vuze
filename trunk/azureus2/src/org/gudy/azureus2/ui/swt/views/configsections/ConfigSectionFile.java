@@ -114,7 +114,8 @@ public class ConfigSectionFile implements UISWTConfigSection {
       public void handleEvent(Event event) {
         DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(pathParameter.getValue());
-        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaultsavepath"));
+        dialog.setMessage(MessageText.getString("ConfigView.dialog.choosedefaultsavepath"));
+        dialog.setText(MessageText.getString("ConfigView.section.file.defaultdir.ask"));
         String path = dialog.open();
         if (path != null) {
           pathParameter.setValue(path);

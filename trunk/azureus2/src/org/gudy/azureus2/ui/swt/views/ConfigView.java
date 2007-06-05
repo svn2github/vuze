@@ -222,6 +222,7 @@ public class ConfigView extends AbstractIView {
       layoutConfigSection = new StackLayout();
       cConfigSection.setLayout(layoutConfigSection);
       gridData = new GridData(GridData.FILL_BOTH);
+      gridData.horizontalIndent = 2;
       cConfigSection.setLayoutData(gridData);
   
   

@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
 import org.gudy.azureus2.ui.swt.config.StringParameter;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
@@ -107,11 +108,9 @@ ConfigSectionSecurity
 	    
 	    // row
 
-	    Label	info_label = new Label( gSecurity, SWT.NULL );
+	    Label	info_label = new Label( gSecurity, SWT.WRAP );
 	    Messages.setLanguageText( info_label, "ConfigView.section.security.toolsinfo" );
-	    gridData = new GridData();
-	    gridData.horizontalSpan = 3;
-	    info_label.setLayoutData( gridData );
+	    info_label.setLayoutData(Utils.getWrappableLabelGridData(3, 0));
 	
 	    // row
 	    

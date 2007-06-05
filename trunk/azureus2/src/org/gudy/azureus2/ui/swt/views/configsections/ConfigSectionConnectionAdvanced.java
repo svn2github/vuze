@@ -37,6 +37,7 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -108,7 +109,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		
 		Group gSocket = new Group(cSection, SWT.NULL);
 		Messages.setLanguageText(gSocket, CFG_PREFIX + "socket.group");
-		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.FILL_HORIZONTAL);
 		gSocket.setLayoutData(gridData);
 		GridLayout glayout = new GridLayout();
 		glayout.numColumns = 2;
@@ -135,10 +136,8 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData.widthHint = 100;
 		bindip.setLayoutData(gridData);
 
-		Label lbind2 = new Label(gSocket, SWT.NULL);
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.horizontalSpan = 2;
-		lbind2.setLayoutData(gridData);
+		Label lbind2 = new Label(gSocket, SWT.WRAP);
+		lbind2.setLayoutData(Utils.getWrappableLabelGridData(2, 0));
 		Messages.setLanguageText(
 				lbind2,
 				"ConfigView.label.bindip.info",

@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
@@ -81,6 +82,7 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 				| GridData.HORIZONTAL_ALIGN_FILL);
 		cSection.setLayoutData(gridData);
 		layout = new GridLayout();
+		layout.marginWidth = 0;
 		//layout.numColumns = 2;
 		cSection.setLayout(layout);
 
@@ -116,7 +118,7 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 			return cSection;
 		}
 
-		Composite cArea = new Composite(cSection, SWT.NULL);
+		Composite cArea = new Composite(cSection, SWT.NONE);
 		layout = new GridLayout();
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
@@ -170,9 +172,7 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 
 			// download info
 
-			gridData = new GridData();
-
-			gridData.widthHint = 150;
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
 
 			final StringParameter d_pathParameter = new StringParameter(cArea,
 					"Play Download Finished File", "");
@@ -291,9 +291,7 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 
 			// file info
 
-			gridData = new GridData();
-
-			gridData.widthHint = 150;
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
 
 			final StringParameter f_pathParameter = new StringParameter(cArea,
 					"Play File Finished File", "");
@@ -402,8 +400,9 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 		show_alert_timestamps.setLayoutData(gridData);
 
 		// Auto-hide popup setting.
-		Label label = new Label(cArea, SWT.NULL);
+		Label label = new Label(cArea, SWT.WRAP);
 		Messages.setLanguageText(label, LBLKEY_PREFIX + "popup.autohide");
+		label.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
 		IntParameter auto_hide_alert = new IntParameter(cArea,
 				"Message Popup Autoclose in Seconds", 0, 86400);
 		gridData = new GridData();
