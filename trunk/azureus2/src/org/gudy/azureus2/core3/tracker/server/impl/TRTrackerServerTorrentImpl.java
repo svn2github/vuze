@@ -678,7 +678,7 @@ TRTrackerServerTorrentImpl
 		int			http_port,
 		byte		crypto_level,
 		byte		az_ver,
-		int			timeout_secs,
+		long		timeout_secs,
 		boolean		seed )
 	{
 		// System.out.println( "peerQueued: " + ip + "/" + tcp_port + "/" + udp_port + "/" + crypto_level );
@@ -691,9 +691,9 @@ TRTrackerServerTorrentImpl
 		try{
 			this_mon.enter();
 				
-			QueuedPeer	new_qp = new QueuedPeer( ip, tcp_port, udp_port, http_port, crypto_level, az_ver, timeout_secs, seed );
+			QueuedPeer	new_qp = new QueuedPeer( ip, tcp_port, udp_port, http_port, crypto_level, az_ver, (int)timeout_secs, seed );
 		
-			String	reuse_key = new String( new_qp.getIP(), Constants.BYTE_ENCODING ) + ":" + tcp_port;
+			String	reuse_key = new_qp.getIP() + ":" + tcp_port;
 
 				// if still active then drop it
 			
@@ -751,10 +751,6 @@ TRTrackerServerTorrentImpl
 			}
 			
 			queued_peers.addFirst( new_qp );
-			
-		}catch( UnsupportedEncodingException e ){
-			
-			Debug.printStackTrace(e);
 			
 		}finally{
 			
@@ -1181,7 +1177,7 @@ TRTrackerServerTorrentImpl
 							
 							if ( compact_mode != COMPACT_MODE_NONE ){
 								
-								byte[]	peer_bytes = peer.getIPBytes();
+								byte[]	peer_bytes = peer.getIPAddressBytes();
 								
 								if ( peer_bytes == null ){
 									
@@ -1394,7 +1390,7 @@ TRTrackerServerTorrentImpl
 											
 											if ( compact_mode != COMPACT_MODE_NONE ){
 												
-												byte[]	peer_bytes = peer.getIPBytes();
+												byte[]	peer_bytes = peer.getIPAddressBytes();
 												
 												if ( peer_bytes == null ){
 																						
@@ -1577,7 +1573,7 @@ TRTrackerServerTorrentImpl
 							
 							// don't return "crypto required" peers to those that can't correctly connect to them
 						
-					}else if ( remove_ips != null && remove_ips.contains( new String( peer.getIP()))){
+					}else if ( remove_ips != null && remove_ips.contains( peer.getIP())){
 						
 							// skippy skippy
 						
@@ -1587,7 +1583,7 @@ TRTrackerServerTorrentImpl
 				
 						if ( compact_mode != COMPACT_MODE_NONE ){
 										
-							byte[]	peer_bytes = peer.getIPBytes();
+							byte[]	peer_bytes = peer.getIPAddressBytes();
 							
 							if ( peer_bytes == null ){
 								
@@ -1609,13 +1605,13 @@ TRTrackerServerTorrentImpl
 								
 								if ( compact_mode >= COMPACT_MODE_XML ){
 									
-									rep_peer.put( "ip", peer.getIP());
+									rep_peer.put( "ip", peer.getIPAsRead());
 								}
 							}
 								
 						}else{
 							
-							rep_peer.put( "ip", peer.getIP());
+							rep_peer.put( "ip", peer.getIPAsRead());
 						}
 							
 						rep_peer.put( "port", new Long( peer.getTCPPort()));
@@ -2018,7 +2014,7 @@ TRTrackerServerTorrentImpl
 		
 		if ( compact_mode != COMPACT_MODE_NONE ){
 			
-			byte[]	peer_bytes = peer.getIPBytes();
+			byte[]	peer_bytes = peer.getIPAddressBytes();
 			
 			if ( peer_bytes == null ){
 													
@@ -2251,13 +2247,13 @@ TRTrackerServerTorrentImpl
 		return( stats );
 	}
 	
-	public int
+	protected int
 	getPeerCount()
 	{
 		return( peer_map.size() + lightweight_seed_map.size());
 	}
 	
-	public int
+	protected int
 	getSeedCount()
 	{
 		if ( seed_count < 0 ){
@@ -2268,7 +2264,7 @@ TRTrackerServerTorrentImpl
 		return( seed_count + lightweight_seed_map.size());
 	}
 	
-	public int
+	protected int
 	getLeecherCount()
 	{
 			// this isn't synchronised so could possible end up negative
@@ -2290,6 +2286,42 @@ TRTrackerServerTorrentImpl
 		
 			return( res );
 			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	protected int
+	getQueuedCount()
+	{
+		List	l = queued_peers;
+		
+		if ( l == null ){
+			
+			return( 0 );
+		}
+		
+		return( l.size());
+	}
+	
+	public TRTrackerServerPeerBase[]
+	getQueuedPeers()
+	{
+		try{
+			this_mon.enter();
+
+			if ( queued_peers == null ){
+				
+				return( new TRTrackerServerPeerBase[0] );
+			}
+			
+			TRTrackerServerPeerBase[]	res = new TRTrackerServerPeerBase[queued_peers.size()];
+			
+			queued_peers.toArray( res );
+		
+			return( res );
+
 		}finally{
 			
 			this_mon.exit();
@@ -2570,6 +2602,7 @@ TRTrackerServerTorrentImpl
 	
 	protected static class
 	QueuedPeer
+		implements TRTrackerServerPeerBase
 	{
 		private short	tcp_port;
 		private short	udp_port;
@@ -2583,7 +2616,7 @@ TRTrackerServerTorrentImpl
 		
 		protected
 		QueuedPeer(
-			String		ip_str,
+			String		_ip_str,
 			int			_tcp_port,
 			int			_udp_port,
 			int			_http_port,
@@ -2593,7 +2626,7 @@ TRTrackerServerTorrentImpl
 			boolean		_seed )
 		{
 			try{
-				ip = ip_str.getBytes( Constants.BYTE_ENCODING );
+				ip = _ip_str.getBytes( Constants.BYTE_ENCODING );
 				
 			}catch( UnsupportedEncodingException e  ){
 				
@@ -2628,9 +2661,21 @@ TRTrackerServerTorrentImpl
 		}
 		
 		protected byte[]
-        getIP()
+        getIPAsRead()
 		{
 			return( ip );
+		}
+		
+		public String
+        getIP()
+		{
+			try{
+				return( new String( ip, Constants.BYTE_ENCODING ));
+			
+			}catch( UnsupportedEncodingException e ){
+					
+				return( new String( ip ));
+			}
 		}
 		
 		protected boolean
@@ -2640,7 +2685,7 @@ TRTrackerServerTorrentImpl
 		}
 		
 		protected byte[]
-		getIPBytes()
+		getIPAddressBytes()
 		{
 			try{
 				return( HostNameToIPResolver.hostAddressToBytes( new String( ip, Constants.BYTE_ENCODING )));
@@ -2653,7 +2698,7 @@ TRTrackerServerTorrentImpl
 			}
 		}
 		
-		protected int
+		public int
 		getTCPPort()
 		{
 			return( tcp_port & 0xffff );

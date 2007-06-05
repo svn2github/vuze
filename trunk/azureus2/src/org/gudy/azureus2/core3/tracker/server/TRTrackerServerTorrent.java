@@ -39,6 +39,9 @@ TRTrackerServerTorrent
 	public TRTrackerServerPeer[]
 	getPeers();
 	
+	public TRTrackerServerPeerBase[]
+	getQueuedPeers();
+	
 	public TRTrackerServerTorrentStats
 	getStats();
 	

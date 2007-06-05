@@ -31,7 +31,7 @@ public class
 TRTrackerServerTorrentStatsImpl
 	implements TRTrackerServerTorrentStats 
 {
-	private TRTrackerServerTorrentImpl	torrent;
+	private TRTrackerServerTorrentImpl		torrent;
 	private long							announce_count;
 	private long							scrape_count;
 	private long							completed_count;
@@ -184,6 +184,12 @@ TRTrackerServerTorrentStatsImpl
 	}
 	
 	public int
+	getQueuedCount()
+	{
+		return( torrent.getQueuedCount());
+	}
+	
+	public int
 	getBadNATPeerCount()
 	{
 		return( torrent.getBadNATPeerCount());
@@ -192,6 +198,6 @@ TRTrackerServerTorrentStatsImpl
 	public String
 	getString()
 	{
-		return( "an=" + announce_count + ",sc=" + scrape_count + ",co=" + completed_count +",le=" + getLeecherCount() + ",se=" + getSeedCount() + ",bi=" + bytes_in + ",bo=" + bytes_out );
+		return( "an=" + announce_count + ",sc=" + scrape_count + ",co=" + completed_count +",le=" + getLeecherCount() + ",se=" + getSeedCount() + ",q=" + getQueuedCount() + ",bi=" + bytes_in + ",bo=" + bytes_out );
 	}
 }

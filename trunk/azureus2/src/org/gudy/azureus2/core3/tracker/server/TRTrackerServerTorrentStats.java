@@ -33,6 +33,9 @@ TRTrackerServerTorrentStats
 	public int
 	getLeecherCount();
 	
+	public int
+	getQueuedCount();
+
 	public long
 	getScrapeCount();
 		

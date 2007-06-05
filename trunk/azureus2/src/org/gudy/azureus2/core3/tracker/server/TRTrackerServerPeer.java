@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.tracker.server;
 
 public interface 
 TRTrackerServerPeer 
+	extends TRTrackerServerPeerBase
 {
 	public static final byte	NAT_CHECK_UNKNOWN				= 0;
 	public static final byte	NAT_CHECK_DISABLED				= 1;
@@ -50,13 +51,7 @@ TRTrackerServerPeer
 	getAmountLeft();
 	
 	public String
-	getIP();
-	
-	public String
 	getIPRaw();
-	
-	public int
-	getTCPPort();
 	
 	public byte[]
 	getPeerID();

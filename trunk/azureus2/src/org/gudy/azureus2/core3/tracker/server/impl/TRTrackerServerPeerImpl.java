@@ -299,8 +299,8 @@ TRTrackerServerPeerImpl
 		 * @return
 		 */
 	
-	public byte[]
-	getIPBytes()
+	protected byte[]
+	getIPAddressBytes()
 	{
 		return( ip_bytes );
 	}

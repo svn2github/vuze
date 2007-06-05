@@ -178,7 +178,24 @@ TRTrackerServerProcessor
 					throw( new TRTrackerServerException( "peer_id missing from request"));
 				}
 				
-				long	interval = server.getAnnounceRetryInterval( torrent );
+				boolean	queue_it = stop_to_queue && ( QUEUE_TEST || !( loopback || ip_override ));
+
+				long	interval;
+				long	min_interval;
+				
+				if ( queue_it ){
+					
+						// when queued we use the scrape timeouts as it is scrape operations that
+						// will keep the entry alive from this point on
+					
+					interval 		= server.getScrapeRetryInterval( torrent );
+					min_interval	= server.getMinScrapeRetryInterval();
+					
+				}else{
+					
+					interval 		= server.getAnnounceRetryInterval( torrent );
+					min_interval 	= server.getMinAnnounceRetryInterval();
+				}
 				
 				TRTrackerServerPeerImpl peer = 
 					torrent.peerContact( 	
@@ -190,9 +207,9 @@ TRTrackerServerProcessor
 						interval,
 						up_speed, network_position );
 				
-				if ( stop_to_queue && ( QUEUE_TEST || !( loopback || ip_override ))){
+				if ( queue_it ){
 					
-					torrent.peerQueued( client_ip_address, port, udp_port, http_port, crypto_level, az_ver, (int)server.getScrapeRetryInterval( torrent ), left==0);
+					torrent.peerQueued( client_ip_address, port, udp_port, http_port, crypto_level, az_ver, interval, left==0 );
 				}
 				
 				HashMap	pre_map = new HashMap();
@@ -212,7 +229,7 @@ TRTrackerServerProcessor
 				
 				boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
 				
-				root_out[0] = torrent.exportAnnounceToMap( pre_map, peer, left > 0, stopped?0:num_want, interval, server.getMinAnnounceRetryInterval(), no_peer_id, compact_mode, crypto_level, network_position );
+				root_out[0] = torrent.exportAnnounceToMap( pre_map, peer, left > 0, stopped?0:num_want, interval, min_interval, no_peer_id, compact_mode, crypto_level, network_position );
 				
 				peer_out[0]	= peer;	
 				
