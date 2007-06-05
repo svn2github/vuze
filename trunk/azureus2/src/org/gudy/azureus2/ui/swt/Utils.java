@@ -1328,5 +1328,12 @@ public class Utils {
 			}
 		}
 	}
+	
+	public static GridData getWrappableLabelGridData(int hspan, int styles) {
+		GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | styles);
+		gridData.horizontalSpan = hspan;
+		gridData.widthHint = 0;
+		return gridData;
+	}
 }
 
