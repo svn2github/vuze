@@ -123,7 +123,7 @@ public class Publish
 	 */
 	public void restart() {
 		if (browser != null) {
-			String sURL = Constants.URL_PREFIX + "PublishedContent.html?"
+			String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISH + "?"
 					+ Constants.URL_SUFFIX;
 			System.out.println(sURL);
 			browser.setUrl(sURL);
