@@ -22,8 +22,11 @@
 package org.gudy.azureus2.ui.swt.config;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
-import org.gudy.azureus2.core3.config.*;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -103,10 +106,32 @@ public class StringListParameter extends Parameter {
     
     String value = COConfigurationManager.getStringParameter(name,defaultValue);
     int index = findIndex(value,values);
-    if (bUseCombo)
+    if (bUseCombo) {
     	list = new Combo(composite,SWT.SINGLE | SWT.READ_ONLY);
-    else
-    	list = new List(composite, SWT.SINGLE | SWT.BORDER);
+    } else {
+    	list = new List(composite, SWT.SINGLE | SWT.BORDER | SWT.HORIZONTAL | SWT.VERTICAL) {
+    		// I know what I'm doing. Maybe ;)
+    		public void checkSubclass() {
+    		}
+
+      	// @see org.eclipse.swt.widgets.Text#computeSize(int, int, boolean)
+      	public Point computeSize(int wHint, int hHint, boolean changed) {
+      		// List widget, at least on Windows, forces the preferred height
+      		Point pt = super.computeSize(wHint, hHint, changed);
+      		
+      		if (hHint == SWT.DEFAULT) {
+        		Object ld = getLayoutData();
+        		if (ld instanceof GridData) {
+        			if (((GridData)ld).grabExcessVerticalSpace) {
+        				pt.y = 20;
+        			}
+        		}
+      		}
+
+      		return pt;
+      	}
+    	};
+    }
     
     for(int i = 0 ; i < labels.length  ;i++) {
     	if (bUseCombo)

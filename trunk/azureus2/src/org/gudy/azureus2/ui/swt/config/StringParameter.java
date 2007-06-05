@@ -21,12 +21,11 @@
 package org.gudy.azureus2.ui.swt.config;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
-import org.gudy.azureus2.core3.config.*;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.*;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -51,7 +50,29 @@ public class StringParameter extends Parameter{
   	super(name);
     this.name = name;
     this.defaultValue = defaultValue;
-    inputField = new Text(composite, SWT.BORDER);
+    inputField = new Text(composite, SWT.BORDER) {
+  		// I know what I'm doing. Maybe ;)
+  		public void checkSubclass() {
+  		}
+
+    	// @see org.eclipse.swt.widgets.Text#computeSize(int, int, boolean)
+    	public Point computeSize(int wHint, int hHint, boolean changed) {
+    		// Text widget, at least on Windows, forces the preferred width
+    		// to the width of the text inside of it
+    		// Fix this by forcing to LayoutData's minWidth
+    		Point pt = super.computeSize(wHint, hHint, changed);
+    		
+    		if (wHint == SWT.DEFAULT) {
+      		Object ld = getLayoutData();
+      		if (ld instanceof GridData) {
+      			if (((GridData)ld).grabExcessHorizontalSpace) {
+      				pt.x = 10;
+      			}
+      		}
+    		}
+    		return pt;
+    	}
+    };
     String value = COConfigurationManager.getStringParameter(name, defaultValue);
     inputField.setText(value);
     inputField.addListener(SWT.Verify, new Listener() {
