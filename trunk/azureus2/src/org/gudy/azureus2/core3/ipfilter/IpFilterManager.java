@@ -46,7 +46,7 @@ IpFilterManager
 	 * @param range
 	 * @param description
 	 */
-	Object addDecription(IpRange range, byte[] description);
+	Object addDescription(IpRange range, byte[] description);
 
 	/**
 	 * 
@@ -57,4 +57,11 @@ IpFilterManager
 	 * 
 	 */
 	void clearDescriptionCache();
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.1.5
+	 */
+	void deleteAllDescriptions();
 }

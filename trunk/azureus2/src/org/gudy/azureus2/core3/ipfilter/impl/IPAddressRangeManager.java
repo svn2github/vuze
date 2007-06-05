@@ -32,6 +32,7 @@ import java.util.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
@@ -574,5 +575,21 @@ IPAddressRangeManager
 
 	public ArrayList getEntries() {
 		return entries;
+	}
+	
+	public void clearAllEntries() {
+		try{
+			this_mon.enter();
+		
+			entries.clear();
+		
+			IpFilterManagerFactory.getSingleton().deleteAllDescriptions();
+			
+			rebuild_required	= true;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 }

@@ -37,10 +37,14 @@ public class IpRangeImpl implements IpRange
 	private final static byte FLAG_SESSION_ONLY = 0x1;
 
 	private final static byte FLAG_ADDED_TO_RANGE_LIST = 0x2;
+	
+	private final static byte FLAG_INVALID_START = 0x8;
 
-	private Object startIp; // Integer if value, String/null otherwise
+	private final static byte FLAG_INVALID_END = 0x10;
 
-	private Object endIp; // Integer if value, String/null otherwise
+	private final static byte FLAG_INVALID = FLAG_INVALID_START | FLAG_INVALID_END;
+
+	private int[] ips;
 
 	private byte flags;
 
@@ -64,17 +68,17 @@ public class IpRangeImpl implements IpRange
 			throw (new RuntimeException(
 					"Invalid start/end values - null not supported"));
 		}
-
-		if (_startIp == "") {
-			startIp = "";
-		} else {
-			startIp = _startIp.trim();
+		
+		ips = new int[2];
+		try {
+			ips[0] = PRHelpers.addressToInt(_startIp);
+		} catch (UnknownHostException e) {
+			flags |= FLAG_INVALID_START;
 		}
-
-		if (_endIp == "") {
-			endIp = "";
-		} else {
-			endIp = _endIp.trim();
+		try {
+			ips[1] = PRHelpers.addressToInt(_endIp);
+		} catch (UnknownHostException e) {
+			flags |= FLAG_INVALID_END;
 		}
 
 		if (_description != "") {
@@ -84,39 +88,35 @@ public class IpRangeImpl implements IpRange
 		checkValid();
 	}
 
-	public void checkValid() {
-		if (startIp != null && endIp != null) {
-
-			if (startIp instanceof String) {
-
-				try {
-					startIp = new Integer(PRHelpers.addressToInt((String) startIp));
-
-				} catch (UnknownHostException e) {
-
-				}
-			}
-
-			if (endIp instanceof String) {
-
-				try {
-					endIp = new Integer(PRHelpers.addressToInt((String) endIp));
-
-				} catch (UnknownHostException e) {
-
-				}
-			}
+	public IpRangeImpl(String _description, int _startIp, int _endIp,
+			boolean _sessionOnly) {
+		if (_sessionOnly) {
+			flags = FLAG_SESSION_ONLY;
 		}
 
-		((IpFilterImpl) IpFilterImpl.getInstance()).setValidOrNot(this, isValid());
+		//startIp = new Integer(_startIp);
+		//endIp = new Integer(_endIp);
+		ips = new int[] { _startIp, _endIp };
 
+		if (_description != "") {
+			setDescription(_description);
+		}
+
+		checkValid();
+	}
+
+	public void checkValid() {
+		((IpFilterImpl) IpFilterImpl.getInstance()).setValidOrNot(this, isValid());
 	}
 
 	public boolean isValid() {
-		if (startIp instanceof Integer && endIp instanceof Integer) {
+		if ((flags & FLAG_INVALID) > 0) {
+			return false;
+		}
 
-			long start_address = ((Integer) startIp).intValue();
-			long end_address = ((Integer) endIp).intValue();
+		if (ips != null) {
+  		long start_address = ips[0];
+  		long end_address = ips[1];			
 
 			if (start_address < 0) {
 
@@ -146,8 +146,8 @@ public class IpRangeImpl implements IpRange
 				int_address += 0x100000000L;
 			}
 
-			long start_address = ((Integer) startIp).intValue();
-			long end_address = ((Integer) endIp).intValue();
+  		long start_address = ips[0];
+  		long end_address = ips[1];			
 
 			if (start_address < 0) {
 
@@ -172,20 +172,17 @@ public class IpRangeImpl implements IpRange
 	}
 
 	public void setDescription(String str) {
-		descRef = IpFilterManagerFactory.getSingleton().addDecription(this,
+		descRef = IpFilterManagerFactory.getSingleton().addDescription(this,
 				str.getBytes());
 	}
 
 	public String getStartIp() {
-		return (startIp instanceof Integer
-				? PRHelpers.intToAddress(((Integer) startIp).intValue())
-				: (String) startIp);
+		return ips == null ? "" : PRHelpers.intToAddress(ips[0]);
 	}
 
 	public long getStartIpLong() {
-		if (startIp instanceof Integer) {
-
-			long val = ((Integer) startIp).intValue();
+		if (ips != null) {
+			long val = ips[0];
 
 			if (val < 0) {
 
@@ -207,22 +204,25 @@ public class IpRangeImpl implements IpRange
 			return;
 		}
 
-		startIp = str;
+		flags &= ~FLAG_INVALID_START;
+		try {
+			ips[0] = PRHelpers.addressToInt(str);
+		} catch (UnknownHostException e) {
+			flags |= FLAG_INVALID_START;
+		}
 
-		if (endIp != "") {
+		if ((flags & FLAG_INVALID) == 0) {
 			checkValid();
 		}
 	}
 
 	public String getEndIp() {
-		return (endIp instanceof Integer)
-				? PRHelpers.intToAddress(((Integer) endIp).intValue()) : (String) endIp;
+		return ips == null ? "" : PRHelpers.intToAddress(ips[1]);
 	}
 
 	public long getEndIpLong() {
-		if (endIp instanceof Integer) {
-
-			long val = ((Integer) endIp).intValue();
+		if (ips != null) {
+			long val = ips[1];
 
 			if (val < 0) {
 				val += 0x100000000L;
@@ -245,9 +245,14 @@ public class IpRangeImpl implements IpRange
 			return;
 		}
 
-		endIp = str;
+		flags &= ~FLAG_INVALID_END;
+		try {
+			ips[1] = PRHelpers.addressToInt(str);
+		} catch (UnknownHostException e) {
+			flags |= FLAG_INVALID_END;
+		}
 
-		if (startIp != "") {
+		if ((flags & FLAG_INVALID) == 0) {
 			checkValid();
 		}
 	}
@@ -299,7 +304,7 @@ public class IpRangeImpl implements IpRange
 		}
 	}
 
-	protected boolean getAddedToRangeList() {
+	public boolean getAddedToRangeList() {
 		return (flags & FLAG_ADDED_TO_RANGE_LIST) != 0;
 	}
 
@@ -326,8 +331,8 @@ public class IpRangeImpl implements IpRange
 	public void resetMergeInfo() {
 		flags &= ~FLAG_MERGED;
 
-		if (endIp instanceof Integer) {
-			merged_end = ((Integer) endIp).intValue();
+		if (ips != null) {
+			merged_end = ips[1];
 		}
 	}
 

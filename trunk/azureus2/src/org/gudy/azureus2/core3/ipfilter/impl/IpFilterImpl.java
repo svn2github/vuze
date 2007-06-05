@@ -26,16 +26,16 @@ package org.gudy.azureus2.core3.ipfilter.impl;
  *
  */
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.ipfilter.*;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import org.gudy.azureus2.core3.util.*;
 
@@ -67,7 +67,8 @@ IpFilterImpl
     
   
 	private List	listeners = new ArrayList();
-	
+
+	private IpFilterAutoLoaderImpl ipFilterAutoLoader;
 	
 	private IpFilterImpl() 
 	{
@@ -77,7 +78,9 @@ IpFilterImpl
 	  
 	  ipsBlocked = new LinkedList();
 	  
-	  try{
+		ipFilterAutoLoader = new IpFilterAutoLoaderImpl(this);
+		
+		try{
 		  loadBannedIPs();
 		  
 	  }catch( Throwable e ){
@@ -86,12 +89,21 @@ IpFilterImpl
 	  }
 	  try{
 	  	
-	  	loadFilters();
+	  	loadFilters(true, true);
 	  	
 	  }catch( Exception e ){
 	  	
 	  	Debug.printStackTrace( e );
 	  }
+	  
+	  COConfigurationManager.addParameterListener(new String[] {
+			"Ip Filter Allow",
+			"Ip Filter Enabled"
+		}, new ParameterListener() {
+			public void parameterChanged(String parameterName) {
+				markAsUpToDate();
+			}
+		});
 	}
   
 	public static IpFilter getInstance() {
@@ -118,7 +130,16 @@ IpFilterImpl
 	reload()
 		throws Exception
 	{
-		loadFilters();
+		reload(true);
+	}
+	
+	public void
+	reload(boolean allowAsyncDownloading)
+		throws Exception
+	{
+		range_manager.clearAllEntries();
+		markAsUpToDate();
+		loadFilters(allowAsyncDownloading, false);
 	}
 	
 	public void 
@@ -176,9 +197,17 @@ IpFilterImpl
 	}
   
 	private void 
-	loadFilters() 
+	loadFilters(boolean allowAsyncDownloading, boolean loadOldWhileAsyncDownloading) 
 		throws Exception
 	{
+		long startTime = System.currentTimeMillis();
+		ipFilterAutoLoader.loadOtherFilters(allowAsyncDownloading, loadOldWhileAsyncDownloading);
+		
+		if (getNbRanges() > 0) {
+			Logger.log(new LogEvent(LOGID, (System.currentTimeMillis() - startTime)
+					+ "ms for " + getNbRanges() + ". now loading norm"));
+		}
+
 		try{
 			class_mon.enter();
 		
@@ -237,6 +266,8 @@ IpFilterImpl
 			
 			class_mon.exit();
 		}
+		Logger.log(new LogEvent(LOGID, (System.currentTimeMillis() - startTime)
+				+ "ms to load all IP Filters"));
 	}
   
 	protected void
@@ -351,7 +382,7 @@ IpFilterImpl
 	}
 	protected boolean
 	isInRange(
-		IpRangeImpl	range,
+		IpRange	range,
 		String		address )
 	{
 		return( range_manager.isInRange( range, address ));
@@ -402,7 +433,7 @@ IpFilterImpl
 	  }
 	  
 	  
-	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled",true)){
+	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled")){
 		  
 	    return false;
 	  }
@@ -486,7 +517,7 @@ IpFilterImpl
 	  }
 	  
 	  
-	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled",true)){
+	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled")){
 		  
 	    return false;
 	  }
@@ -701,7 +732,7 @@ IpFilterImpl
 	
 	protected void
 	setValidOrNot(
-		IpRangeImpl		range,
+		IpRange		range,
 		boolean			valid )
 	{
 		try{
@@ -1025,7 +1056,7 @@ IpFilterImpl
 	public boolean
 	isEnabled()
 	{
-		return( COConfigurationManager.getBooleanParameter("Ip Filter Enabled",true));	
+		return( COConfigurationManager.getBooleanParameter("Ip Filter Enabled"));	
 	}
 
 	public void
@@ -1038,7 +1069,17 @@ IpFilterImpl
 	public void
 	markAsUpToDate()
 	{
-	  	last_update_time	= SystemTime.getCurrentTime();		
+	  	last_update_time	= SystemTime.getCurrentTime();
+	  	
+	  	Object[] listenersArray = listeners.toArray();
+	  	for (int i = 0; i < listenersArray.length; i++) {
+	  		try {
+  				IPFilterListener l = (IPFilterListener) listenersArray[i];
+  				l.IPBlockedListChanged(this);
+	  		} catch (Exception e) {
+	  			Debug.out(e);
+	  		}
+			}
 	}
 
 	public long

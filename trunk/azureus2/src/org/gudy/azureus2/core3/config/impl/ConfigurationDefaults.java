@@ -185,6 +185,7 @@ public class ConfigurationDefaults {
     def.put("Ip Filter Ban Discard Min KB", new Long(128));
     def.put("Ip Filter Banning Persistent", TRUE);
     def.put("Ip Filter Enable Description Cache", TRUE);
+    def.put("Ip Filter Autoload File", "");
     def.put("Allow Same IP Peers",FALSE);
     def.put("Use Super Seeding",FALSE);
     def.put("Pause Downloads On Exit", FALSE );

@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.core3.ipfilter;
 
+
 public interface 
 IPFilterListener 
 {
@@ -32,4 +33,8 @@ IPFilterListener
 	public void
 	IPBanned(
 		BannedIp		ip );
+	
+	public void
+	IPBlockedListChanged(
+		IpFilter filter);
 }

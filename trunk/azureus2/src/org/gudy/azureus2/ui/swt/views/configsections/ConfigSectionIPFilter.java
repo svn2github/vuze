@@ -24,35 +24,35 @@
 
 package org.gudy.azureus2.ui.swt.views.configsections;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.*;
 
-import com.aelitis.azureus.core.*;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.ipfilter.*;
+import org.gudy.azureus2.core3.ipfilter.impl.IpFilterAutoLoaderImpl;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.ipfilter.IpFilter;
-import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
-import org.gudy.azureus2.core3.ipfilter.IpRange;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
+
+import com.aelitis.azureus.core.AzureusCore;
+
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
 public class ConfigSectionIPFilter implements UISWTConfigSection {
   AzureusCore	azureus_core;
@@ -101,6 +101,8 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
   
   IpRange 	ipRanges[];
   Label		percentage_blocked;
+
+	private IPFilterListener filterListener;
   
   public
   ConfigSectionIPFilter(
@@ -134,16 +136,20 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 	  	ipFilterManager.clearDescriptionCache();
 	  	bIsCachingDescriptions = false;
   	}
+  	
+  	filter.removeListener(filterListener);
   }
 
   public Composite configSectionCreate(final Composite parent) {
+    Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
+    String sCurConfigID;
+
     GridData gridData;
 
     int userMode = COConfigurationManager.getIntParameter("User Mode");
 
     final IpFilterManager ipFilterManager = azureus_core.getIpFilterManager();
     filter = ipFilterManager.getIPFilter();
-    
 
     Composite gFilter = new Composite(parent, SWT.NULL);
     GridLayout layout = new GridLayout();
@@ -153,14 +159,6 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gFilter.setLayoutData(gridData);
     
-    
-    percentage_blocked  = new Label(gFilter, SWT.NULL);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-	gridData.horizontalSpan = 3;
-
-    percentage_blocked.setLayoutData(gridData);
-
-    setPercentageBlocked();
     
     // start controls
 
@@ -198,56 +196,73 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
   persist_bad_data_banning.setLayoutData( gridData );
   Messages.setLanguageText(persist_bad_data_banning.getControl(), "ConfigView.section.ipfilter.persistblocking");
 
-    	// row block bad + group ban
-    
-	gridData = new GridData();
-	
-    BooleanParameter enable_bad_data_banning = new BooleanParameter(gFilter, "Ip Filter Enable Banning");
-	enable_bad_data_banning.setLayoutData( gridData );
-    Messages.setLanguageText(enable_bad_data_banning.getControl(), "ConfigView.section.ipfilter.enablebanning");
-
- 	// block banning
-
-    Composite cLine = new Composite(gFilter, SWT.NULL);
+    Group gBlockBanning = new Group(gFilter, SWT.NULL);
+    Messages.setLanguageText(gBlockBanning, "ConfigView.section.ipfilter.peerblocking.group");
     layout = new GridLayout();
-    layout.marginHeight = 0;
-    layout.marginWidth = 0;
-    layout.numColumns = 4;
-    cLine.setLayout(layout);
+    layout.numColumns = 2;
+    gBlockBanning.setLayout(layout);
 
-    Label discard_label = new Label(cLine, SWT.NULL);
+
+  	// row block bad + group ban
+
+		BooleanParameter enable_bad_data_banning = new BooleanParameter(
+				gBlockBanning, "Ip Filter Enable Banning",
+				"ConfigView.section.ipfilter.enablebanning");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		enable_bad_data_banning.setLayoutData(gridData);
+
+    Label discard_label = new Label(gBlockBanning, SWT.NULL);
     Messages.setLanguageText(discard_label,
-    "ConfigView.section.ipfilter.discardbanning");
+				"ConfigView.section.ipfilter.discardbanning");
 
-    FloatParameter discard_ratio = new FloatParameter(cLine, "Ip Filter Ban Discard Ratio");
+    FloatParameter discard_ratio = new FloatParameter(gBlockBanning, "Ip Filter Ban Discard Ratio");
     gridData = new GridData();
     gridData.widthHint = 30;
     discard_ratio.setLayoutData(gridData);
 
-    Label discard_min_label = new Label(cLine, SWT.NULL);
+
+    Composite cIndent = new Composite(gBlockBanning, SWT.NONE);
+    gridData = new GridData(GridData.FILL_BOTH);
+    gridData.horizontalSpan = 2;
+    gridData.horizontalIndent = 15;
+    cIndent.setLayoutData(gridData);
+    layout = new GridLayout(3, false);
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    cIndent.setLayout(layout);
+    
+		Label label = new Label(cIndent, SWT.NULL);
+		Image img = ImageRepository.getImage("subitem");
+		img.setBackground(label.getBackground());
+		gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+		label.setLayoutData(gridData);
+		label.setImage(img);
+
+    
+		Label discard_min_label = new Label(cIndent, SWT.NULL);
     Messages.setLanguageText(discard_min_label,
     "ConfigView.section.ipfilter.discardminkb", new String[]{ DisplayFormatters.getUnit( DisplayFormatters.UNIT_KB)});
 
-    IntParameter discard_min = new IntParameter(cLine, "Ip Filter Ban Discard Min KB");
+    IntParameter discard_min = new IntParameter(cIndent, "Ip Filter Ban Discard Min KB");
     gridData = new GridData();
     gridData.widthHint = 30;
     discard_min.setLayoutData(gridData);
     
-  	   	// block banning
+   	// block banning
 
-    Label block_label = new Label(cLine, SWT.NULL);
+    Label block_label = new Label(gBlockBanning, SWT.NULL);
     Messages.setLanguageText(block_label,
     "ConfigView.section.ipfilter.blockbanning");
 
-    IntParameter block_banning = new IntParameter(cLine,
+    IntParameter block_banning = new IntParameter(gBlockBanning,
     "Ip Filter Ban Block Limit");
     gridData = new GridData();
     gridData.widthHint = 30;
     block_banning.setLayoutData(gridData);
 
-    new Label(cLine, SWT.NULL);
-    new Label(cLine, SWT.NULL);
-
+    // triggers
+    
     enable_bad_data_banning.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
     		new Control[] { 
     				block_banning.getControl(), block_label, 
@@ -255,6 +270,72 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     				discard_min.getControl(), discard_min_label }));
 
 
+    Group gAutoLoad = new Group(gFilter, SWT.NONE);
+    Messages.setLanguageText(gAutoLoad, "ConfigView.section.ipfilter.autoload.group");
+    layout = new GridLayout();
+    layout.numColumns = 4;
+    gAutoLoad.setLayout(layout);
+    gAutoLoad.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+    
+    // Load from file
+    sCurConfigID = "Ip Filter Autoload File";
+    //allConfigIDs.add(sCurConfigID);
+    Label lblDefaultDir = new Label(gAutoLoad, SWT.NONE);
+    Messages.setLanguageText(lblDefaultDir, "ConfigView.section.ipfilter.autoload.file");
+    lblDefaultDir.setLayoutData(new GridData());
+    
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.minimumWidth = 50;
+    final StringParameter pathParameter = new StringParameter(gAutoLoad, sCurConfigID);
+    pathParameter.setLayoutData(gridData);
+
+    Button browse = new Button(gAutoLoad, SWT.PUSH);
+    browse.setImage(imgOpenFolder);
+    imgOpenFolder.setBackground(browse.getBackground());
+
+    browse.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        FileDialog dialog = new FileDialog(parent.getShell(), SWT.APPLICATION_MODAL);
+        dialog.setFilterPath(pathParameter.getValue());
+        dialog.setText(MessageText.getString("ConfigView.section.ipfilter.autoload.file"));
+        dialog.setFilterExtensions(new String[] {
+					"*.dat" + File.pathSeparator + "*.p2p" + File.pathSeparator + "*.p2b"
+							+ File.pathSeparator + "*.txt",
+					"*.*"
+				});
+        dialog.setFileName("ipfilter.dat");
+        String file = dialog.open();
+        if (file != null) {
+          pathParameter.setValue(file);
+        }
+      }
+    });
+    browse.setLayoutData(new GridData());
+    
+    final Button btnLoadNow = new Button(gAutoLoad, SWT.PUSH);
+    Messages.setLanguageText(btnLoadNow, "ConfigView.section.ipfilter.autoload.loadnow");
+    btnLoadNow.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				try {
+					btnLoadNow.getShell().setCursor(btnLoadNow.getDisplay().getSystemCursor(
+							SWT.CURSOR_WAIT));
+					COConfigurationManager.setParameter(IpFilterAutoLoaderImpl.CFG_AUTOLOAD_LAST, 0);
+					filter.reload();
+					btnLoadNow.getShell().setCursor(btnLoadNow.getDisplay().getSystemCursor(
+							SWT.CURSOR_ARROW));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+    btnLoadNow.setLayoutData(new GridData());
+    
+    Label lblAutoLoadInfo = new Label(gAutoLoad, SWT.WRAP);
+    Messages.setLanguageText(lblAutoLoadInfo, "ConfigView.section.ipfilter.autoload.info");
+    lblAutoLoadInfo.setLayoutData(Utils.getWrappableLabelGridData(4, 0));
+
+    
+    
     // description scratch file
     if (userMode > 0) {
     	gridData = new GridData();
@@ -311,18 +392,17 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     table.setHeaderVisible(true);
 
     gridData = new GridData(GridData.FILL_BOTH);
-    gridData.heightHint = table.getHeaderHeight() * 2;
+    gridData.heightHint = table.getHeaderHeight() * 3;
 		gridData.widthHint = 200;
     table.setLayoutData(gridData);
-
-	gridData = new GridData();
 
     Composite cArea = new Composite(gFilter, SWT.NULL);
     layout = new GridLayout();
     layout.marginHeight = 0;
     layout.marginWidth = 0;
-    layout.numColumns = 3;
+    layout.numColumns = 4;
     cArea.setLayout(layout);
+  	gridData = new GridData(GridData.FILL_HORIZONTAL);
     cArea.setLayoutData(gridData);
 
     Button add = new Button(cArea, SWT.PUSH);
@@ -368,6 +448,12 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
       }
     });
 
+    percentage_blocked  = new Label(cArea, SWT.WRAP | SWT.RIGHT);
+    percentage_blocked.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
+    setPercentageBlocked();
+    
+
+    
     table.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
         TableItem[] selection = table.getSelection();
@@ -386,23 +472,23 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 
     ipRanges = getSortedRanges(filter.getRanges());
 
-    table.addListener(SWT.SetData,new Listener() {
-      public void handleEvent(Event event) {
-        TableItem item = (TableItem) event.item;
-		int index = table.indexOf (item);
-		
-			// seems we can get -1 here (see bug 1219314 )
-		
-		if ( index < 0 || index >= ipRanges.length ){
-			return;
-		}
-		IpRange range = ipRanges[index];		
-        item.setText(0, range.getDescription());
-        item.setText(1, range.getStartIp());
-        item.setText(2, range.getEndIp());
-        item.setData(range);
-      }
-    });
+    table.addListener(SWT.SetData, new Listener() {
+			public void handleEvent(Event event) {
+				TableItem item = (TableItem) event.item;
+				int index = table.indexOf(item);
+
+				// seems we can get -1 here (see bug 1219314 )
+
+				if (index < 0 || index >= ipRanges.length) {
+					return;
+				}
+				IpRange range = ipRanges[index];
+				item.setText(0, range.getDescription());
+				item.setText(1, range.getStartIp());
+				item.setText(2, range.getEndIp());
+				item.setData(range);
+			}
+		});
     
     table.setItemCount(ipRanges.length);
     table.clearAll();
@@ -420,6 +506,32 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
         resizeTable();
 			}
 		});
+    
+    
+		filterListener = new IPFilterListener() {
+			public boolean canIPBeBanned(String ip) {
+				return true;
+			}
+		
+			public void IPBanned(BannedIp ip) {
+			}
+
+			public void IPBlockedListChanged(final IpFilter filter) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (table.isDisposed()) {
+					  	filter.removeListener(filterListener);
+					  	return;
+						}
+		        ipRanges = getSortedRanges(filter.getRanges());
+		        table.setItemCount(ipRanges.length);
+		        table.clearAll();
+		        table.redraw();
+					}
+				});
+			}
+		};
+    filter.addListener(filterListener);
     
     return gFilter;
   }

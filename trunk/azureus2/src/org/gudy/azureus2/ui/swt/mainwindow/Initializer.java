@@ -30,9 +30,9 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
@@ -73,6 +73,8 @@ Initializer
 
   private String[] args;
   
+  private AESemaphore semFilterLoader = new AESemaphore("filter loader");
+  
   public 
   Initializer(
   		final AzureusCore		_azureus_core,
@@ -83,6 +85,18 @@ Initializer
     startServer 	= _server;
     args 			= _args;
     
+    Thread filterLoaderThread = new AEThread("filter loader", true) {
+			public void runSupport() {
+				try {
+					azureus_core.getIpFilterManager().getIPFilter();
+				} finally {
+					semFilterLoader.releaseForever();
+				}
+			}
+		};
+		filterLoaderThread.setPriority(Thread.MIN_PRIORITY);
+		filterLoaderThread.start();
+
     try {
       SWTThread.createInstance(this);
     } catch(SWTThreadAlreadyInstanciatedException e) {
@@ -207,6 +221,16 @@ Initializer
 
 					new UserAlerts(gm);
 
+					nextTask();
+					IpFilterManager ipFilterManager = azureus_core.getIpFilterManager();
+					if (ipFilterManager != null) {
+						String s = MessageText.getString("splash.loadIpFilters");
+  					do {
+  						reportCurrentTask(s);
+  						s += ".";
+  					} while (!semFilterLoader.reserve(3000));
+					}
+					
 					nextTask();
 					reportCurrentTaskByKey("splash.initializeGui");
 

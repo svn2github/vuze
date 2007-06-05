@@ -56,28 +56,48 @@ IpFilterManagerImpl
 				"Ip Filter Enable Description Cache", this);
 	}
 	
-	public Object addDecription(IpRange range, byte[] description) {
+	public Object addDescription(IpRange range, byte[] description) {
 		//if (true) return;
-		if (rafDescriptions == null)
+		if (rafDescriptions == null) {
 			return null;
+		}
 		
 		try {
 			if (description == null || description.length == 0)
 				return null;
-			
-			int[] info = new int[2];
-			info[0] = (int)rafDescriptions.getFilePointer();
+
+			int start;
+			int end;
+			start = (int)rafDescriptions.getFilePointer();
 			int len = (int)rafDescriptions.length();
-			if (info[0] != len) {
-				rafDescriptions.seek(len);
-				info[0] = (int)rafDescriptions.getFilePointer();
+
+			//System.out.println(len - 0x1FFFFFF);
+			if (len + 61 >= 0x1FFFFFF) {
+				// we could try to fit a desc < 61, but why bother.. at this point
+				// we have at least 550,072 ranges
+				return null;
 			}
 			
-			rafDescriptions.write(description);
-			info[1] = (int)rafDescriptions.getFilePointer();
+			if (start != len) {
+				rafDescriptions.seek(len);
+				start = (int)rafDescriptions.getFilePointer();
+			}
 			
-			return info;
-			//System.out.println("add " + new String(description) + "; " + info[0] + " - " + info[1]);
+			// last 25: position
+			// 26 - 31 (6, 61 chars max): len
+			
+			if (description.length <= 61) {
+				rafDescriptions.write(description);
+			} else {
+				rafDescriptions.write(description, 0,  61);
+			}
+			end = (int)rafDescriptions.getFilePointer();
+			
+			//System.out.println("add " + new String(description, 0, (end - start)) + "; " + start + " - " + end);
+			
+			int info = start + ((end - start) << 25);
+			
+			return new Integer(info);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -87,20 +107,22 @@ IpFilterManagerImpl
 	}
 	
 	public byte[] getDescription(Object info) {
+		// if cached, info is an object array, with the first index being the descr
 		if (info instanceof Object[]) {
 			return (byte[])(((Object[])info)[0]);
 		}
 		
-		if (rafDescriptions == null || !(info instanceof int[])) {
+		if (rafDescriptions == null || !(info instanceof Integer)) {
 			return "".getBytes();
 		}
 		
 		try {
-			int[] pos = (int[])info;
-			int len = pos[1] - pos[0];
+			int posInfo = ((Integer)info).intValue();
+			int pos = posInfo & 0x1FFFFFF;
+			int len = posInfo >> 25;
 
-			if (rafDescriptions.getFilePointer() != pos[0]) {
-				rafDescriptions.seek(pos[0]);
+			if (rafDescriptions.getFilePointer() != pos) {
+				rafDescriptions.seek(pos);
 			}
 
 			byte[] bytes = new byte[len];
@@ -116,7 +138,7 @@ IpFilterManagerImpl
 		IpRange[] ranges = getIPFilter().getRanges();
 		for (int i = 0; i < ranges.length; i++) {
 			Object info = ((IpRangeImpl)ranges[i]).getDescRef();
-			if (info instanceof int[]) {
+			if (info instanceof Integer) {
 				byte[] desc = getDescription(info);
 				Object[] data = { desc, info }; 
 				((IpRangeImpl)ranges[i]).setDescRef(data);
@@ -129,10 +151,22 @@ IpFilterManagerImpl
 		for (int i = 0; i < ranges.length; i++) {
 			Object info = ((IpRangeImpl)ranges[i]).getDescRef();
 			if (info instanceof Object[]) {
-				int[] data = (int[])((Object[])info)[1]; 
+				Integer data = (Integer)((Object[])info)[1]; 
 				((IpRangeImpl)ranges[i]).setDescRef(data);
 			}
 		}
+	}
+	
+	public void deleteAllDescriptions() {
+		if (rafDescriptions != null) {
+  		try {
+  			rafDescriptions.close();
+  		} catch (IOException e) {
+  		}
+  		rafDescriptions = null;
+		}
+		
+		parameterChanged(null);
 	}
 
 	public static IpFilterManager
@@ -154,7 +188,7 @@ IpFilterManagerImpl
 	}
 
 	public void parameterChanged(String parameterName) {
-		boolean enable = COConfigurationManager.getBooleanParameter(parameterName);
+		boolean enable = COConfigurationManager.getBooleanParameter("Ip Filter Enable Description Cache");
 		if (enable && rafDescriptions == null) {
 			File fDescriptions = FileUtil.getUserFile("ipfilter.cache");
 			try {

@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
+import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
@@ -3621,6 +3622,21 @@ PEPeerControlImpl
 		String ip ) 
 	{
 		return true;
+	}
+	
+	public void IPBlockedListChanged(IpFilter filter) {
+		Iterator	it = peer_transports_cow.iterator();
+		
+		while( it.hasNext()){
+			try {
+  			PEPeerTransport	peer = (PEPeerTransport)it.next();
+  			
+  			if (filter.isInRange(peer.getIp(), adapter.getDisplayName())) {
+  				peer.closeConnection( "IP address blocked by filters" );
+  			}
+			} catch (Exception e) {
+			}
+		}
 	}
 	
 	public void IPBanned(BannedIp ip)
