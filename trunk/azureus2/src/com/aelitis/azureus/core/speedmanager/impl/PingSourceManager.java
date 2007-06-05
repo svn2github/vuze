@@ -47,7 +47,9 @@ public class PingSourceManager
     //
     private final Map pingAverages = new HashMap(); //<Source,PingSourceStats>
     private long lastPingRemoval=0;
-    private static final long TIME_BETWEEN_REMOVALS = 5 * 60000; //five minutes.
+    private static final long TIME_BETWEEN_BAD_PING_REMOVALS = 2 * 60 * 1000; // two minutes.
+    private static final long TIME_BETWEEN_SLOW_PING_REMOVALS = 15 * 60 * 1000;// fifteen minutes.
+    private static final long TIME_BETWEEN_FORCED_CYCLE_REMOVALS = 30 * 60 * 1000;// thirty minutes.
 
 
     /**
@@ -61,12 +63,6 @@ public class PingSourceManager
         //two lowest then drop the highest at the moment. Also, don't force sources to
         //drop to frequently.
 
-        //if we just recently removed a ping source then wait.
-        long currTime = SystemTime.getCurrentTime();
-        if( currTime<lastPingRemoval+TIME_BETWEEN_REMOVALS ){
-            return;
-        }
-
         //no sources.
         if( sources==null ){
             return;
@@ -75,6 +71,136 @@ public class PingSourceManager
         //if we have only two sources then don't do this test.
         if( sources.length<3 ){
             return;
+        }
+
+        //Test for a very bad ping source. i.e. slowest source is 10x slower then the fastest,
+        if( checkForBadPing(sources) ){
+            return;
+        }
+
+        //Test for slower then average source. i.e. slowest source is 3x media.
+        if( checkForSlowSource(sources) ){
+            return;
+        }
+
+        //Even if everything is going well then force a change every 30 minutes.
+        forcePingSourceChange(sources);
+
+    }//checkPingSources
+
+
+    /**
+     * Force the slowest ping source to be recycled just to keep thing fresh.
+     * @param sources -
+     * @return - true is a souce has been changed.
+     */
+    private boolean forcePingSourceChange(SpeedManagerPingSource[] sources){
+
+        //We only apply this rule if nothing has been removed in the past 30 minutes.
+        long currTime = SystemTime.getCurrentTime();
+        if( currTime<lastPingRemoval+ TIME_BETWEEN_FORCED_CYCLE_REMOVALS){
+            return false;
+        }
+
+        if(sources.length<3){
+            return false;
+        }
+
+        //just find the slowest ping-source and remove it.
+        SpeedManagerPingSource slowestSource = null;
+        double slowestPing = 0.0;
+
+        int len = sources.length;
+        for(int i=0; i<len; i++){
+            PingSourceStats pss = (PingSourceStats) pingAverages.get(sources[i]);
+            Average ave = pss.getHistory();
+            double pingTime = ave.getAverage();
+
+            if( pingTime>slowestPing ){
+                slowestPing = pingTime;
+                slowestSource=sources[i];
+            }
+        }//for
+
+        if(slowestSource!=null){
+            resetTimer();
+            slowestSource.destroy();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * A slow source is something that is 3x the slower then the two fastest.
+     * @param sources -
+     * @return - true is a source has been removed.
+     */
+    private boolean checkForSlowSource(SpeedManagerPingSource[] sources){
+
+        //We only apply this rule if nothing has been removed in the past 15 minutes.
+        long currTime = SystemTime.getCurrentTime();
+        if( currTime<lastPingRemoval+ TIME_BETWEEN_SLOW_PING_REMOVALS){
+            return false;
+        }
+
+        SpeedManagerPingSource slowestSource = null;
+        if( sources.length<3 ){
+            return false;
+        }
+
+        double fastA = 10000.0;
+        double fastB = 10000.0;
+        double slowest = 0.0;
+        int len = sources.length;
+        for(int i=0; i<len; i++){
+            PingSourceStats pss = (PingSourceStats) pingAverages.get(sources[i]);
+            Average ave = pss.getHistory();
+            double pingTime = ave.getAverage();
+
+            //determine fastest or second fastest.
+            if(pingTime<fastA){
+                fastB=fastA;
+                fastA=pingTime;
+            }else if(pingTime<fastB){
+                fastB=pingTime;
+            }
+
+            //determine slowest.
+            if(pingTime>slowest){
+                slowest = pingTime;
+                slowestSource = sources[i];
+                resetTimer();
+            }
+        }//for
+
+        double sumFastest = fastA+fastB;
+
+        boolean removedSource = false;
+        if( sumFastest*3 < slowest ){
+            //destroy this source. It is a bit too slow.
+            if(slowestSource!=null){
+                slowestSource.destroy();
+                SpeedManagerLogger.log("dropping ping source: "+slowestSource.getAddress()+" for being 3x slower then two fastest.");
+                removedSource = true;
+                resetTimer();
+            }
+        }//if
+
+        return removedSource;
+    }//checkForSlowSource
+
+    /**
+     * If the slowest ping in 10x the fastest then remove it.
+     * @param sources -
+     * @return - true is a source has been removed.
+     */
+    private boolean checkForBadPing(SpeedManagerPingSource[] sources) {
+
+        //if we just recently removed a ping source then wait.
+        long currTime = SystemTime.getCurrentTime();
+        if( currTime<lastPingRemoval+ TIME_BETWEEN_BAD_PING_REMOVALS){
+            return false;
         }
 
         double highestLongTermPing=0.0;
@@ -99,16 +225,20 @@ public class PingSourceManager
             }
         }//for
 
+        boolean removedSource = false;
         //if the highest value is 10x the lowest then find another source.
         if( lowestLongTermPing*10 < highestLongTermPing ){
             //remove the slow source we will get a new one to replace it.
             if( highestSource!=null ){
                 SpeedManagerLogger.log("dropping ping source: "+highestSource.getAddress()+" for being 10x greater then min source.");
                 highestSource.destroy();
+                removedSource = true;
+                resetTimer();
             }
         }//if
 
-    }//checkPingSources
+        return removedSource;
+    }
 
 
     public void pingSourceFound(SpeedManagerPingSource source, boolean is_replacement){
@@ -131,5 +261,12 @@ public class PingSourceManager
         }
 
     }//addPingTime
+
+    /**
+     * After a ping-source has been removed, need to reset the timer.
+     */
+    private void resetTimer(){
+        lastPingRemoval = SystemTime.getCurrentTime();
+    }
 
 }

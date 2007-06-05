@@ -38,6 +38,8 @@ public class PingSourceStats
     Average medTerm = AverageFactory.MovingImmediateAverage( 6 );
     Average longTerm = AverageFactory.MovingImmediateAverage( 10 );
 
+    Average forChecks = AverageFactory.MovingImmediateAverage( 100 );
+
     public PingSourceStats(SpeedManagerPingSource _source){
         source = _source;
     }
@@ -146,6 +148,14 @@ public class PingSourceStats
      */
     public Average getLongTermAve(){
         return longTerm;
+    }
+
+    /**
+     * Get the average that should be used for checking ping times.
+     * @return - ping time of history.
+     */
+    public Average getHistory(){
+        return forChecks;
     }
 
 }
