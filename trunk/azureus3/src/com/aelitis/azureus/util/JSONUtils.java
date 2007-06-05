@@ -58,15 +58,23 @@ public class JSONUtils
 			Object key = (Object) iter.next();
 			Object value = map.get(key);
 			
-			if ((value instanceof Map) && !(value instanceof JSONObject)) {
-				value = encodeToJSONObject((Map)value);
-			} else if ((value instanceof List) && !(value instanceof JSONArray)) {
-				value = encodeToJSONArray((List)value);
-			}
+			value = coerce(value);
 			
 			newMap.put(key, value);
 		}
 		return newMap;
+	}
+	
+	private static Object coerce(Object value) {
+		if ((value instanceof Map) && !(value instanceof JSONObject)) {
+			value = encodeToJSONObject((Map)value);
+		} else if ((value instanceof List) && !(value instanceof JSONArray)) {
+			value = encodeToJSONArray((List)value);
+		} else if (value instanceof Object[]) {
+			Object[] array = (Object[])value;
+			value = encodeToJSONArray(Arrays.asList(array));
+		}
+		return value;
 	}
 
 	/**
@@ -81,12 +89,7 @@ public class JSONUtils
 		for (int i = 0; i < newList.size(); i++) {
 			Object value = newList.get(i);
 			
-			if ((value instanceof Map) && !(value instanceof JSONObject)) {
-				newList.set(i, encodeToJSONObject((Map)value));
-				
-			} else if ((value instanceof List) && !(value instanceof JSONArray)) {
-				newList.set(i, encodeToJSONArray((List)value));
-			}
+			newList.set(i, coerce(value));
 		}
 		
 		return newList;
