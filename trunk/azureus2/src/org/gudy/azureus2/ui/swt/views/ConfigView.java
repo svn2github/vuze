@@ -743,8 +743,13 @@ public class ConfigView extends AbstractIView {
   }
 
   public void delete() {
-    for (int i = 0; i < pluginSections.size(); i++)
-      ((ConfigSection)pluginSections.get(i)).configSectionDelete();
+    for (int i = 0; i < pluginSections.size(); i++) {
+    	try {
+    		((ConfigSection)pluginSections.get(i)).configSectionDelete();
+    	} catch (Exception e) {
+    		Debug.out("Error while deleting config section", e);
+    	}
+    }
     pluginSections.clear();
     if(! tree.isDisposed()) {
 	    TreeItem[] items = tree.getItems();
