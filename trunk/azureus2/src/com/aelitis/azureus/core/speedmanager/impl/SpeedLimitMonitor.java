@@ -690,17 +690,28 @@ public class SpeedLimitMonitor
         int newMinLimitSetting = Math.max( Math.round( newMaxLimitSetting * 0.1f ), 5000 );
         COConfigurationManager.setParameter(settingMinLimitName, newMinLimitSetting );
 
-        //temp fix.  //Need a param listener above.
+        //temp fix.  //Need a param listener above and all rules need to be one method.
         StringBuffer sb = new StringBuffer();
         if( transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH ){
             sb.append("new upload limits: ");
             uploadLinespeedCapacity=newMaxLimitSetting;
             uploadLimitMin=newMinLimitSetting;
+            //downloadCapacity can never be less then upload capacity.
+            if( downloadLinespeedCapacity<uploadLinespeedCapacity ){
+                downloadLinespeedCapacity=uploadLinespeedCapacity;
+                COConfigurationManager.setParameter(
+                        SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_LINESPEED_CAPACITY,downloadLinespeedCapacity);
+            }
         }else{
             sb.append("new download limits: ");
             downloadLinespeedCapacity=newMaxLimitSetting;
             downloadLimitMin=newMinLimitSetting;
         }
+        upDownRatio = ((float)uploadLinespeedCapacity/(float)downloadLinespeedCapacity);
+        COConfigurationManager.setParameter(
+                SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
+
+
         sb.append(newMaxLimitSetting).append(":").append(newMinLimitSetting);
 
         SpeedManagerLogger.trace( sb.toString() );
