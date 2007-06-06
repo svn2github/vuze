@@ -151,7 +151,11 @@ public class BDecoder {
 	          CharBuffer	cb = Constants.BYTE_CHARSET.decode(ByteBuffer.wrap(tempByteArray));
 	          
 	          String	key = new String(cb.array(),0,cb.limit());
-	                    
+	             
+	          	// keys often repeat a lot - intern to save space
+	          
+	          key = key.intern();
+	          
 	          tempMap.put( key, value);
 	        }
 	
