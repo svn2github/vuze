@@ -78,6 +78,7 @@ public class SpeedLimitMonitor
     private SpeedLimitConfidence downloadLimitConf = SpeedLimitConfidence.NONE;
     private long confLimitTestStartTime=-1;
     private boolean currTestDone;
+    private boolean beginLimitTest;
     private int highestUploadRate=0;
     private int highestDownloadRate=0;
     private int preTestUploadSetting;
@@ -229,6 +230,12 @@ public class SpeedLimitMonitor
      * @return -
      */
     public Update createNewLimit(float signalStrength, float multiple, int currUpLimit){
+
+        //this flag is set in a previous method.
+        if( isStartLimitTestFlagSet() ){
+            return startLimitTesting();
+        }
+
         int newLimit;
 
         int usedUploadLimit = uploadLinespeedCapacity;
@@ -421,7 +428,7 @@ public class SpeedLimitMonitor
 
                 //if( transferMode.isDownloadConfidenceLow()  ){
                 if( isDownloadConfidenceLow() ){
-                    transferMode.setMode( TransferMode.State.DOWNLOAD_LIMIT_SEARCH );
+                    triggerLimitTestingFlag();
                 }else{
                     //Don't unpin the limit is we have absolute confidence in it.
                     if( !isUploadConfidenceAbsolute() ){
@@ -444,7 +451,7 @@ public class SpeedLimitMonitor
             if( downloadAtLimitStartTime+TIME_AT_LIMIT_BEFORE_UNPINNING < currTime ){
 
                 if( isUploadConfidenceLow() ){
-                    transferMode.setMode( TransferMode.State.UPLOAD_LIMIT_SEARCH );
+                    triggerLimitTestingFlag();
                 }else{
                     if( !isDownloadConfidenceAbsolute() ){
                         //we have been AT_LIMIT long enough. Time to un-pin the limit see if we can go higher.
@@ -482,7 +489,7 @@ public class SpeedLimitMonitor
 
     /**
      * Return true if we are confidence testing the limits.
-     * @return
+     * @return - Update
      */
     public boolean isConfTestingLimits(){
         return transferMode.isConfTestingLimits();
@@ -539,12 +546,14 @@ public class SpeedLimitMonitor
         long currTime = SystemTime.getCurrentTime();
         if(currTime>  confLimitTestStartTime+CONF_LIMIT_TEST_LENGTH){
             //set the test done flag.
+            SpeedManagerLogger.log("finished limit search test.");
             currTestDone=true;
         }
     }
 
     /**
      * Call this method to start the limit testing.
+     * @return - Update
      */
     public Update startLimitTesting(){
 
@@ -552,6 +561,9 @@ public class SpeedLimitMonitor
         highestUploadRate=0;
         highestDownloadRate=0;
         currTestDone=false;
+
+        //reset the flag.
+        beginLimitTest=false;
 
         //configure the limits for this test. One will be at min and the other unlimited.
         Update retVal;
@@ -568,12 +580,21 @@ public class SpeedLimitMonitor
         return retVal;
     }
 
+    public void triggerLimitTestingFlag(){
+        beginLimitTest=true;
+    }
+
+    public synchronized boolean isStartLimitTestFlagSet(){
+        return beginLimitTest;
+    }
+
     public synchronized boolean isConfLimitTestFinished(){
         return currTestDone;
     }
 
     /**
      * Call this method to end the limit testing.
+     * @return - Update
      */
     public synchronized Update endLimitTesting(){
 
@@ -581,7 +602,6 @@ public class SpeedLimitMonitor
         //determine if the new setting is different then the old setting.
         if( transferMode.getMode()==TransferMode.State.DOWNLOAD_LIMIT_SEARCH ){
 
-            //ToDo: here we are concerned with download settings.
             downloadLimitConf = determineConfidenceLevel();
 
             //set that value.
@@ -589,11 +609,8 @@ public class SpeedLimitMonitor
             //change back to original mode.
             transferMode.setMode( TransferMode.State.DOWNLOADING );
 
-
-
         }else if( transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH){
 
-            //ToDo: here we are concerned with upload settings.
             uploadLimitConf = determineConfidenceLevel();
 
             //set that value.
