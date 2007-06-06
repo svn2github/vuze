@@ -570,10 +570,12 @@ public class SpeedLimitMonitor
         if( transferMode.isDownloadMode() ){
             //test the download limit.
             retVal = new Update(uploadLimitMin,true,0,true);
+            preTestDownloadSetting = downloadLinespeedCapacity;
             transferMode.setMode( TransferMode.State.DOWNLOAD_LIMIT_SEARCH );
         }else{
             //test the upload limit.
             retVal = new Update(0,true,downloadLimitMin,true);
+            preTestUploadSetting = uploadLinespeedCapacity;
             transferMode.setMode( TransferMode.State.UPLOAD_LIMIT_SEARCH );
         }
 
@@ -644,13 +646,13 @@ public class SpeedLimitMonitor
         if(transferMode.getMode()==TransferMode.State.DOWNLOAD_LIMIT_SEARCH){
 
             configConfParamName = DOWNLOAD_CONF_LIMIT_SETTING;
-            configLimitParamName = SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT;//ToDo: should this be LineSpeedCapacity?
+            configLimitParamName = SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT;
             preTestValue = preTestDownloadSetting;
             highestValue = highestDownloadRate;
         }else if(transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH){
 
             configConfParamName = UPLOAD_CONF_LIMIT_SETTING;
-            configLimitParamName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT;//ToDo: should this be LineSpeedCapacity?
+            configLimitParamName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT;
             preTestValue = preTestUploadSetting;
             highestValue = highestUploadRate;
         }else{
@@ -669,6 +671,13 @@ public class SpeedLimitMonitor
         //update the values.
         COConfigurationManager.setParameter(configConfParamName, retVal.getString() );
         COConfigurationManager.setParameter(configLimitParamName, Math.max(highestValue,preTestValue)); 
+
+        //temp fix.  //Need a param listener above.
+        if( transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH ){
+            uploadLinespeedCapacity=Math.max(highestValue,preTestValue);
+        }else{
+            uploadLinespeedCapacity=Math.max(highestValue,preTestValue);
+        }
 
         return retVal;
     }
