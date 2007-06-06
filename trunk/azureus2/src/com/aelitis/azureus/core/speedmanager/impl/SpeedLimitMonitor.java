@@ -676,7 +676,7 @@ public class SpeedLimitMonitor
         if( transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH ){
             uploadLinespeedCapacity=Math.max(highestValue,preTestValue);
         }else{
-            uploadLinespeedCapacity=Math.max(highestValue,preTestValue);
+            downloadLinespeedCapacity=Math.max(highestValue,preTestValue);
         }
 
         return retVal;
