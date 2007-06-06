@@ -44,6 +44,8 @@ public class TransferMode
 
     private static final long WAIT_TIME_FOR_SEEDING_MODE = 1000 * 60 * 5;//ToDo: make configurable. currently 5 minutes.
 
+
+
     public TransferMode()
     {
 
@@ -56,6 +58,14 @@ public class TransferMode
      * @param downloadBandwidth - current download status.
      */
     public void updateStatus(SaturatedMode downloadBandwidth){
+
+        //this setting have no effect while testing the limits.
+        if( isConfTestingLimits() ){
+            if( mode==State.DOWNLOAD_LIMIT_SEARCH ){
+                lastTimeDownloadDetected = SystemTime.getCurrentTime();
+            }
+            return;
+        }
 
         if( downloadBandwidth.compareTo(SaturatedMode.LOW)<=0 ){
             //we don't seem to be downloading at the moment.
@@ -78,8 +88,12 @@ public class TransferMode
         return mode.getString();
     }
 
-    public State getState(){
+    public State getMode(){
         return mode;
+    }
+
+    public void setMode( State newMode ){
+        mode = newMode;
     }
 
     /**
@@ -93,11 +107,23 @@ public class TransferMode
     }//isDownloadMode
 
     /**
+     * We have two types of limit testing. If we are doing a "confidence test" for the limits then
+     * return true. This mode is putting one value at the min setting and the other at unlimited.
+     * @return - true if doing a "conf test of the limits"
+     */
+    public boolean isConfTestingLimits(){
+        return ( mode==State.DOWNLOAD_LIMIT_SEARCH || mode==State.UPLOAD_LIMIT_SEARCH );
+    }
+
+    
+    /**
      * Java 1.4 enumeration. - Seeding mode or Downloading mode.
      */
     static class State{
         public static final State DOWNLOADING = new State("downloading");
         public static final State SEEDING = new State("seeding");
+        public static final State DOWNLOAD_LIMIT_SEARCH = new State("download limit search");
+        public static final State UPLOAD_LIMIT_SEARCH = new State("upload limit search");
         String mode;
 
         private State(String _mode){

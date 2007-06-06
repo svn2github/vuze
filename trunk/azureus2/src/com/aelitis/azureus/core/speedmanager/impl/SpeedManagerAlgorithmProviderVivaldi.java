@@ -200,6 +200,10 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         limitMonitor.updateTransferMode();
 
+        if( limitMonitor.isConfTestingLimits() ){
+            limitMonitor.updateLimitTestingData(downRate,upRate);
+        }
+
         StringBuffer sb = new StringBuffer("curr-data:"+downRate+":"+currDownLimit+":");
         sb.append(limitMonitor.getDownloadBandwidthMode()).append(":");
         sb.append(limitMonitor.getDownloadLimitSettingMode()).append(":");
@@ -245,9 +249,8 @@ public class SpeedManagerAlgorithmProviderVivaldi
      */
 
     public void calculate(SpeedManagerPingSource[] sources) {
-        //Get the vivaldi chart data and calculate a center of mass.
-        //Look at
 
+        //Get new data to ping-source-manager.
         int len = sources.length;
         for(int i=0; i<len; i++){
             pingSourceManager.addPingTime( sources[i] );
@@ -260,6 +263,24 @@ public class SpeedManagerAlgorithmProviderVivaldi
             }//if
         }//for
 
+        //if we are in a limit finding mode then don't even bother with this calculation.
+        if( limitMonitor.isConfTestingLimits() ){
+
+            //just log this fact and wait for the result.
+            log( "conf-test-limit:"+limitMonitor.confTestStatus() );
+
+            if( limitMonitor.isConfLimitTestFinished() ){
+                SpeedLimitMonitor.Update update = limitMonitor.endLimitTesting();
+
+                //log
+                logNewLimits(update);
+                //setting new
+                setNewLimits( update );
+                return;
+            }//if
+        }
+
+        
         long currTime = SystemTime.getCurrentTime();
 
         if( timeSinceLastUpdate==0 ){

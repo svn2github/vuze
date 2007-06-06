@@ -73,11 +73,25 @@ public class SpeedLimitMonitor
     private SaturatedMode uploadLimitSettingStatus=SaturatedMode.AT_LIMIT;
     private SaturatedMode downloadLimitSettingStatus=SaturatedMode.AT_LIMIT;
 
+    //How much confidence to we have in the current limits?
+    private SpeedLimitConfidence uploadLimitConf = SpeedLimitConfidence.NONE;
+    private SpeedLimitConfidence downloadLimitConf = SpeedLimitConfidence.NONE;
+    private long confLimitTestStartTime=-1;
+    private boolean currTestDone;
+    private int highestUploadRate=0;
+    private int highestDownloadRate=0;
+    private int preTestUploadSetting;
+    private int preTestDownloadSetting;
+    public static final String UPLOAD_CONF_LIMIT_SETTING="SpeedLimitMonitor.setting.upload.limit.conf";
+    public static final String DOWNLOAD_CONF_LIMIT_SETTING="SpeedLimitMonitor.setting.download.limit.conf";
+    private static final long CONF_LIMIT_TEST_LENGTH=1000*40;//ToDo: make this configurable.
+
+
     //these methods are used to see how high limits can go.
-    private boolean isUploadMaxPinned=true;   //ToDo: Might want to change this into a mode class.
-    private boolean isDownloadMaxPinned=true; //ToDo: Might want to change this into a mode class.
-    long uploadAtLimitStartTime =SystemTime.getCurrentTime();
-    long downloadAtLimitStartTime = SystemTime.getCurrentTime();
+    private boolean isUploadMaxPinned=true;
+    private boolean isDownloadMaxPinned=true; 
+    private long uploadAtLimitStartTime =SystemTime.getCurrentTime();
+    private long downloadAtLimitStartTime = SystemTime.getCurrentTime();
 
     private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 5 * 60 * 1000; //five minutes.//ToDo: make this configurable.
     //private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 1 * 60 * 1000; //ToDo: REMOVE THIS IS FOR TESTING ONLY.
@@ -98,6 +112,11 @@ public class SpeedLimitMonitor
         upDownRatio = ( (float) downloadLinespeedCapacity /(float) uploadLinespeedCapacity);
         COConfigurationManager.setParameter(
                 SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
+
+        uploadLimitConf = SpeedLimitConfidence.parseString(
+                COConfigurationManager.getStringParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING ));
+        downloadLimitConf = SpeedLimitConfidence.parseString(
+                COConfigurationManager.getStringParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING));
 
     }
 
@@ -389,6 +408,7 @@ public class SpeedLimitMonitor
 
         long currTime = SystemTime.getCurrentTime();
 
+
         //upload useage must be at limits for a set period of time before unpinning.
         if( !uploadBandwidthStatus.equals(SaturatedMode.AT_LIMIT) ||
                 !uploadLimitSettingStatus.equals(SaturatedMode.AT_LIMIT) )
@@ -398,9 +418,18 @@ public class SpeedLimitMonitor
         }else{
             //check to see if we have been here for the time limit.
             if( uploadAtLimitStartTime+TIME_AT_LIMIT_BEFORE_UNPINNING < currTime ){
-                //we have been AT_LIMIT long enough. Time to un-pin the limitsee if we can go higher.
-                isUploadMaxPinned = false;
-                log("unpinning the upload max limit!!");
+
+                //if( transferMode.isDownloadConfidenceLow()  ){
+                if( isDownloadConfidenceLow() ){
+                    transferMode.setMode( TransferMode.State.DOWNLOAD_LIMIT_SEARCH );
+                }else{
+                    //Don't unpin the limit is we have absolute confidence in it.
+                    if( !isUploadConfidenceAbsolute() ){
+                        //we have been AT_LIMIT long enough. Time to un-pin the limit see if we can go higher.
+                        isUploadMaxPinned = false;
+                        log("unpinning the upload max limit!!");
+                    }
+                }
             }
         }
 
@@ -413,9 +442,16 @@ public class SpeedLimitMonitor
         }else{
             //check to see if we have been here for the time limit.
             if( downloadAtLimitStartTime+TIME_AT_LIMIT_BEFORE_UNPINNING < currTime ){
-                //we have been AT_LIMIT long enough. Time to un-pin the limitsee if we can go higher.
-                isDownloadMaxPinned = false;
-                log("unpinning the download max limit!!");
+
+                if( isUploadConfidenceLow() ){
+                    transferMode.setMode( TransferMode.State.UPLOAD_LIMIT_SEARCH );
+                }else{
+                    if( !isDownloadConfidenceAbsolute() ){
+                        //we have been AT_LIMIT long enough. Time to un-pin the limit see if we can go higher.
+                        isDownloadMaxPinned = false;
+                        log("unpinning the download max limit!!");
+                    }
+                }
             }
         }
 
@@ -445,12 +481,180 @@ public class SpeedLimitMonitor
 
 
     /**
-     * Need to
+     * Return true if we are confidence testing the limits.
+     * @return
      */
-    public void updateAtLimit(){
+    public boolean isConfTestingLimits(){
+        return transferMode.isConfTestingLimits();
+    }//
 
+    /**
+     * Determine if we have low confidence in this limit.
+     * @return - true if the confidence setting is LOW or NONE. Otherwise return true.
+     */
+    public boolean isDownloadConfidenceLow(){
+        return ( downloadLimitConf.compareTo(SpeedLimitConfidence.MED) < 0 );
     }
 
+    public boolean isUploadConfidenceLow(){
+        return ( uploadLimitConf.compareTo(SpeedLimitConfidence.MED) < 0 );
+    }
+
+    public boolean isDownloadConfidenceAbsolute(){
+        return ( downloadLimitConf.compareTo(SpeedLimitConfidence.ABSOLUTE)==0 );
+    }
+
+    public boolean isUploadConfidenceAbsolute(){
+        return ( uploadLimitConf.compareTo(SpeedLimitConfidence.ABSOLUTE)==0 );
+    }
+
+    /**
+     * Give the status of confidence testing as a String.
+     * @return -
+     */
+    public String confTestStatus(){
+        //ToDo: figure out what information is relevant here.
+        //current download speed. highest current download speed.
+        //current upload speed. hight current upload speed.
+        //Is this a download or an upload?
+        //current limit confidence.
+        //Time to complete.
+        return "";//ToDo: complete this.
+    }
+
+
+    /**
+     *
+     * @param downloadRate - currentUploadRate in bytes/sec
+     * @param uploadRate - currentUploadRate in bytes/sec
+     */
+    public synchronized void updateLimitTestingData( int downloadRate, int uploadRate ){
+        if( downloadRate>highestDownloadRate ){
+            highestDownloadRate=downloadRate;
+        }
+        if( uploadRate>highestUploadRate){
+            highestUploadRate=uploadRate;
+        }
+
+        long currTime = SystemTime.getCurrentTime();
+        if(currTime>  confLimitTestStartTime+CONF_LIMIT_TEST_LENGTH){
+            //set the test done flag.
+            currTestDone=true;
+        }
+    }
+
+    /**
+     * Call this method to start the limit testing.
+     */
+    public Update startLimitTesting(){
+
+        confLimitTestStartTime=SystemTime.getCurrentTime();
+        highestUploadRate=0;
+        highestDownloadRate=0;
+        currTestDone=false;
+
+        //configure the limits for this test. One will be at min and the other unlimited.
+        Update retVal;
+        if( transferMode.isDownloadMode() ){
+            //test the download limit.
+            retVal = new Update(uploadLimitMin,true,0,true);
+            transferMode.setMode( TransferMode.State.DOWNLOAD_LIMIT_SEARCH );
+        }else{
+            //test the upload limit.
+            retVal = new Update(0,true,downloadLimitMin,true);
+            transferMode.setMode( TransferMode.State.UPLOAD_LIMIT_SEARCH );
+        }
+
+        return retVal;
+    }
+
+    public synchronized boolean isConfLimitTestFinished(){
+        return currTestDone;
+    }
+
+    /**
+     * Call this method to end the limit testing.
+     */
+    public synchronized Update endLimitTesting(){
+
+        Update retVal;
+        //determine if the new setting is different then the old setting.
+        if( transferMode.getMode()==TransferMode.State.DOWNLOAD_LIMIT_SEARCH ){
+
+            //ToDo: here we are concerned with download settings.
+            downloadLimitConf = determineConfidenceLevel();
+
+            //set that value.
+            retVal = new Update(preTestUploadSetting,true,preTestDownloadSetting,true);
+            //change back to original mode.
+            transferMode.setMode( TransferMode.State.DOWNLOADING );
+
+
+
+        }else if( transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH){
+
+            //ToDo: here we are concerned with upload settings.
+            uploadLimitConf = determineConfidenceLevel();
+
+            //set that value.
+            retVal = new Update(preTestUploadSetting,true,preTestDownloadSetting,true);
+            //change back to original mode.
+            transferMode.setMode( TransferMode.State.SEEDING );
+
+        }else{
+            //This is an "illegal state" make it in the logs, but try to recover by setting back to original state.
+            SpeedManagerLogger.log("SpeedLimitMonitor had IllegalState during endLimitTesting.");
+            retVal = new Update(preTestUploadSetting,true,preTestDownloadSetting,true);
+        }
+
+        currTestDone=true;
+
+        return retVal;
+    }
+
+    /**
+     * After a test is complete determine how condifent the client should be in it
+     * based on how different it is from the previous result.  If the new result is within
+     * 20% of the old result then give it a MED. If it is great then give it a LOW. 
+     * @return - what the new confidence interval should be.
+     */
+    public SpeedLimitConfidence determineConfidenceLevel(){
+        SpeedLimitConfidence retVal=SpeedLimitConfidence.NONE;
+        String configLimitParamName;
+        String configConfParamName;
+        int preTestValue;
+        int highestValue;
+        if(transferMode.getMode()==TransferMode.State.DOWNLOAD_LIMIT_SEARCH){
+
+            configConfParamName = DOWNLOAD_CONF_LIMIT_SETTING;
+            configLimitParamName = SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT;//ToDo: should this be LineSpeedCapacity?
+            preTestValue = preTestDownloadSetting;
+            highestValue = highestDownloadRate;
+        }else if(transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH){
+
+            configConfParamName = UPLOAD_CONF_LIMIT_SETTING;
+            configLimitParamName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT;//ToDo: should this be LineSpeedCapacity?
+            preTestValue = preTestUploadSetting;
+            highestValue = highestUploadRate;
+        }else{
+            //
+            SpeedManagerLogger.log("IllegalState in determineConfidenceLevel(). Setting level to NONE.");
+            return SpeedLimitConfidence.NONE;
+        }
+
+        float percentDiff = (float)Math.abs( highestValue-preTestValue )/(float)(Math.max(highestValue,preTestValue));
+        if( percentDiff>0.2f){
+            retVal = SpeedLimitConfidence.LOW;
+        }else if(percentDiff>0.1f){
+            retVal = SpeedLimitConfidence.MED;
+        }
+
+        //update the values.
+        COConfigurationManager.setParameter(configConfParamName, retVal.getString() );
+        COConfigurationManager.setParameter(configLimitParamName, Math.max(highestValue,preTestValue)); 
+
+        return retVal;
+    }
 
     protected void log(String str){
 
