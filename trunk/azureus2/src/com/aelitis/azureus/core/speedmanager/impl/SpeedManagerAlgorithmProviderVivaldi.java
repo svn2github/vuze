@@ -192,7 +192,7 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         //update the bandwidth status
         limitMonitor.setDownloadBandwidthMode(downRate,currDownLimit);
-        limitMonitor.setUploadBandwidthMode(currDataUploadSpeed,currUploadLimit);
+        limitMonitor.setUploadBandwidthMode(upRate,currUploadLimit);
 
         //update the limts status.  (is it near a forced max or min?)
         limitMonitor.setDownloadLimitSettingMode(currDownLimit);
