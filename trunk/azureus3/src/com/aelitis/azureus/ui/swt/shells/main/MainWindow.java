@@ -482,7 +482,7 @@ public class MainWindow
   		});
   
   		try {
-  			//AdManagerOld.getInstance().intialize(core);
+  			//AdManager.getInstance().intialize(core);
   		} catch (Throwable e) {
   		}
   
@@ -1408,9 +1408,7 @@ public class MainWindow
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					String sSearchText = fText.getText().trim();
-					if (!sSearchText.equals(sDefault) && sSearchText.length() > 0) {
-						doSearch(sSearchText);
-					}
+					doSearch(sSearchText);
 				}
 			});
 		}
@@ -1420,6 +1418,11 @@ public class MainWindow
 	 * @param searchText
 	 */
 	protected void doSearch(String sSearchText) {
+		String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
+		if (sSearchText.equals(sDefault) || sSearchText.length() == 0) {
+			return;
+		}
+
 		// Switch to browse tab
 		skin.setActiveTab(SkinConstants.TABSET_MAIN, "maintabs.browse");
 
