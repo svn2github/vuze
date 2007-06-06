@@ -137,7 +137,9 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 	  	bIsCachingDescriptions = false;
   	}
   	
-  	filter.removeListener(filterListener);
+  	if (filter != null) {
+  		filter.removeListener(filterListener);
+  	}
   }
 
   public Composite configSectionCreate(final Composite parent) {
