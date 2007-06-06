@@ -94,8 +94,8 @@ public class SpeedLimitMonitor
     private long uploadAtLimitStartTime =SystemTime.getCurrentTime();
     private long downloadAtLimitStartTime = SystemTime.getCurrentTime();
 
-    private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 5 * 60 * 1000; //five minutes.//ToDo: make this configurable.
-    //private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 1 * 60 * 1000; //ToDo: REMOVE THIS IS FOR TESTING ONLY.
+    //private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 5 * 60 * 1000; //five minutes.//ToDo: make this configurable.
+    private static final long TIME_AT_LIMIT_BEFORE_UNPINNING = 1 * 60 * 1000; //ToDo: REMOVE THIS IS FOR TESTING ONLY.
 
 
     public SpeedLimitMonitor(){
@@ -142,6 +142,14 @@ public class SpeedLimitMonitor
 
     public void setUploadLimitSettingMode(int currLimit){
         uploadLimitSettingStatus = SaturatedMode.getSaturatedMode(currLimit, uploadLinespeedCapacity);
+    }
+
+    public int getUploadLineCapacity(){
+        return uploadLinespeedCapacity;
+    }
+
+    public int getDownloadLineCapacity(){
+        return downloadLinespeedCapacity;
     }
 
     public SaturatedMode getDownloadBandwidthMode(){
@@ -427,14 +435,16 @@ public class SpeedLimitMonitor
             if( uploadAtLimitStartTime+TIME_AT_LIMIT_BEFORE_UNPINNING < currTime ){
 
                 //if( transferMode.isDownloadConfidenceLow()  ){
-                if( isDownloadConfidenceLow() ){
-                    triggerLimitTestingFlag();
+                if( isUploadConfidenceLow() ){
+                    if( !transferMode.isDownloadMode() ){
+                        triggerLimitTestingFlag();
+                    }
                 }else{
                     //Don't unpin the limit is we have absolute confidence in it.
                     if( !isUploadConfidenceAbsolute() ){
                         //we have been AT_LIMIT long enough. Time to un-pin the limit see if we can go higher.
                         isUploadMaxPinned = false;
-                        log("unpinning the upload max limit!!");
+                        SpeedManagerLogger.trace("unpinning the upload max limit!!");
                     }
                 }
             }
@@ -450,13 +460,15 @@ public class SpeedLimitMonitor
             //check to see if we have been here for the time limit.
             if( downloadAtLimitStartTime+TIME_AT_LIMIT_BEFORE_UNPINNING < currTime ){
 
-                if( isUploadConfidenceLow() ){
-                    triggerLimitTestingFlag();
+                if( isDownloadConfidenceLow() ){
+                    if( transferMode.isDownloadMode() ){
+                        triggerLimitTestingFlag();
+                    }
                 }else{
                     if( !isDownloadConfidenceAbsolute() ){
                         //we have been AT_LIMIT long enough. Time to un-pin the limit see if we can go higher.
                         isDownloadMaxPinned = false;
-                        log("unpinning the download max limit!!");
+                        SpeedManagerLogger.trace("unpinning the download max limit!!");
                     }
                 }
             }
@@ -471,11 +483,11 @@ public class SpeedLimitMonitor
     public void notifyOfDownSingal(){
 
         if( !isUploadMaxPinned ){
-            log("pinning the upload max limit, due to downtick signal.");
+            SpeedManagerLogger.trace("pinning the upload max limit, due to downtick signal.");
         }
 
         if( !isDownloadMaxPinned ){
-            log("pinning the download max limit, due to downtick signal.");
+            SpeedManagerLogger.trace("pinning the download max limit, due to downtick signal.");
         }
 
         long currTime = SystemTime.getCurrentTime();
@@ -546,7 +558,7 @@ public class SpeedLimitMonitor
         long currTime = SystemTime.getCurrentTime();
         if(currTime>  confLimitTestStartTime+CONF_LIMIT_TEST_LENGTH){
             //set the test done flag.
-            SpeedManagerLogger.log("finished limit search test.");
+            SpeedManagerLogger.trace("finished limit search test.");
             currTestDone=true;
         }
     }
@@ -639,20 +651,23 @@ public class SpeedLimitMonitor
      */
     public SpeedLimitConfidence determineConfidenceLevel(){
         SpeedLimitConfidence retVal=SpeedLimitConfidence.NONE;
-        String configLimitParamName;
-        String configConfParamName;
+        String settingMaxLimitName;
+        String settingMinLimitName;
+        String settingConfidenceName;
         int preTestValue;
         int highestValue;
         if(transferMode.getMode()==TransferMode.State.DOWNLOAD_LIMIT_SEARCH){
 
-            configConfParamName = DOWNLOAD_CONF_LIMIT_SETTING;
-            configLimitParamName = SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT;
+            settingConfidenceName = DOWNLOAD_CONF_LIMIT_SETTING;
+            settingMaxLimitName = SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT;
+            settingMinLimitName = SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT;
             preTestValue = preTestDownloadSetting;
             highestValue = highestDownloadRate;
         }else if(transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH){
 
-            configConfParamName = UPLOAD_CONF_LIMIT_SETTING;
-            configLimitParamName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT;
+            settingConfidenceName = UPLOAD_CONF_LIMIT_SETTING;
+            settingMaxLimitName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT;
+            settingMinLimitName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT;
             preTestValue = preTestUploadSetting;
             highestValue = highestUploadRate;
         }else{
@@ -669,15 +684,26 @@ public class SpeedLimitMonitor
         }
 
         //update the values.
-        COConfigurationManager.setParameter(configConfParamName, retVal.getString() );
-        COConfigurationManager.setParameter(configLimitParamName, Math.max(highestValue,preTestValue)); 
+        COConfigurationManager.setParameter(settingConfidenceName, retVal.getString() );
+        int newMaxLimitSetting = Math.max(highestValue,preTestValue);
+        COConfigurationManager.setParameter(settingMaxLimitName, newMaxLimitSetting);
+        int newMinLimitSetting = Math.max( Math.round( newMaxLimitSetting * 0.1f ), 5000 );
+        COConfigurationManager.setParameter(settingMinLimitName, newMinLimitSetting );
 
         //temp fix.  //Need a param listener above.
+        StringBuffer sb = new StringBuffer();
         if( transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH ){
-            uploadLinespeedCapacity=Math.max(highestValue,preTestValue);
+            sb.append("new upload limits: ");
+            uploadLinespeedCapacity=newMaxLimitSetting;
+            uploadLimitMin=newMinLimitSetting;
         }else{
-            downloadLinespeedCapacity=Math.max(highestValue,preTestValue);
+            sb.append("new download limits: ");
+            downloadLinespeedCapacity=newMaxLimitSetting;
+            downloadLimitMin=newMinLimitSetting;
         }
+        sb.append(newMaxLimitSetting).append(":").append(newMinLimitSetting);
+
+        SpeedManagerLogger.trace( sb.toString() );
 
         return retVal;
     }

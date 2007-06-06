@@ -193,7 +193,7 @@ public class PingSourceManager
             //destroy this source. It is a bit too slow.
             if(slowestSource!=null){
                 slowestSource.destroy();
-                SpeedManagerLogger.log("dropping ping source: "+slowestSource.getAddress()+" for being 3x slower then two fastest.");
+                SpeedManagerLogger.log("dropping ping source: "+slowestSource.getAddress()+" for being 2x slower then two fastest.");
                 removedSource = true;
                 resetTimer();
             }
@@ -242,7 +242,7 @@ public class PingSourceManager
         if( lowestLongTermPing*8 < highestLongTermPing ){
             //remove the slow source we will get a new one to replace it.
             if( highestSource!=null ){
-                SpeedManagerLogger.log("dropping ping source: "+highestSource.getAddress()+" for being 10x greater then min source.");
+                SpeedManagerLogger.log("dropping ping source: "+highestSource.getAddress()+" for being 8x greater then min source.");
                 highestSource.destroy();
                 removedSource = true;
                 resetTimer();

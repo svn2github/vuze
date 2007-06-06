@@ -23,9 +23,9 @@
 package com.aelitis.azureus.core.speedmanager.impl;
 
 public class SaturatedMode implements Comparable {
-    public static final SaturatedMode AT_LIMIT = new SaturatedMode("AT_LIMIT",0.97f);
-    public static final SaturatedMode HIGH = new SaturatedMode("HIGH",0.80f);
-    public static final SaturatedMode MED = new SaturatedMode("MED",0.30f);
+    public static final SaturatedMode AT_LIMIT = new SaturatedMode("AT_LIMIT",0.95f);
+    public static final SaturatedMode HIGH = new SaturatedMode("HIGH",0.75f);
+    public static final SaturatedMode MED = new SaturatedMode("MED",0.25f);
     public static final SaturatedMode LOW = new SaturatedMode("LOW",0.03f);
     public static final SaturatedMode NONE = new SaturatedMode("NONE",0.0f);
 

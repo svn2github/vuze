@@ -135,7 +135,7 @@ SpeedManagerAlgorithmProviderV2
 			str += (i==0?"":",") + sources[i].getAddress() + " -> " + sources[i].getPingTime();
 		}
 		
-		log( "Calculate: " + str );
+		log( "ping-data: " + str );
 
 
         strategy.calculate(sources);

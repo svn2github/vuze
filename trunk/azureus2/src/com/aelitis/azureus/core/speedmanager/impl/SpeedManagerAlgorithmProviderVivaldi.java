@@ -159,9 +159,9 @@ public class SpeedManagerAlgorithmProviderVivaldi
     public void reset() {
         log("reset");
 
-        log("curr-data: curr-down-rate : curr-down-limit : down-bandwith-mode : down-limit-mode : curr-up-rate : curr-up-limit : upload-bandwidth-mode : upload-limit-mode");
+        log("curr-data: curr-down-rate : curr-down-limit : down-capacity : down-bandwith-mode : down-limit-mode : curr-up-rate : curr-up-limit : up-capacity : upload-bandwidth-mode : upload-limit-mode : up-down-ratio : transfer-mode");
 
-        log( "new-limit:newLimit:currStep:signalStrength:multiple:currUpLimit:maxStep:uploadLimitMax:uploadLimitMin:transferMode" );
+        log("new-limit:newLimit:currStep:signalStrength:multiple:currUpLimit:maxStep:uploadLimitMax:uploadLimitMin:transferMode" );
 
         log("consecutive:up:down");
 
@@ -204,15 +204,30 @@ public class SpeedManagerAlgorithmProviderVivaldi
             limitMonitor.updateLimitTestingData(downRate,upRate);
         }
 
+        //"curr-data" ....
+        logCurrentData(downRate, currDownLimit, upRate, currUploadLimit);
+    }
+
+    /**
+     * log "curr-data" line to the AutoSpeed-Beta file.
+     * @param downRate -
+     * @param currDownLimit -
+     * @param upRate -
+     * @param currUploadLimit -
+     */
+    private void logCurrentData(int downRate, int currDownLimit, int upRate, int currUploadLimit) {
         StringBuffer sb = new StringBuffer("curr-data:"+downRate+":"+currDownLimit+":");
+        sb.append( limitMonitor.getDownloadLineCapacity() ).append(":");
         sb.append(limitMonitor.getDownloadBandwidthMode()).append(":");
         sb.append(limitMonitor.getDownloadLimitSettingMode()).append(":");
         sb.append(upRate).append(":").append(currUploadLimit).append(":");
+        sb.append( limitMonitor.getUploadLineCapacity() ).append(":");
         sb.append(limitMonitor.getUploadBandwidthMode()).append(":");
-        sb.append(limitMonitor.getUploadLimitSettingMode()).append(":");
+        sb.append(limitMonitor.getUploadLimitSettingMode()).append(":");        
+        sb.append( limitMonitor.getUpDownRatio() ).append(":");
         sb.append(limitMonitor.getTransferModeAsString());
 
-        log( sb.toString() );
+        SpeedManagerLogger.log( sb.toString() );
     }
 
     /**
@@ -293,9 +308,6 @@ public class SpeedManagerAlgorithmProviderVivaldi
             log("calculate-deferred");
             return;
         }
-
-
-        log("calculate");
 
 
         if(!useVivaldi){

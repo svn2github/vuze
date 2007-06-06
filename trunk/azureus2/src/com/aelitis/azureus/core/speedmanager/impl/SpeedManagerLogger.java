@@ -45,4 +45,11 @@ public class SpeedManagerLogger
 
     }//log
 
+    /**
+     * Same as log, but intended for debug statements.
+     * @param str -
+     */
+    public static void trace(String str){
+        log("-trace-> "+str);
+    }//trace
 }
