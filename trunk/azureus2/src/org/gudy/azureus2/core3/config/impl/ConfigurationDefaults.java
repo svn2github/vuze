@@ -205,7 +205,8 @@ public class ConfigurationDefaults {
     def.put("update.periodic",TRUE);
     def.put("update.opendialog",TRUE);
     def.put("update.autodownload", FALSE);
-    
+
+    def.put("Send Version Info", TRUE);
     
     // Logging
     def.put("Logger.Enabled", FALSE);  //logging in general
@@ -362,6 +363,7 @@ public class ConfigurationDefaults {
     def.put( "config.style.useUnitsRateBits", FALSE );
     def.put( "config.style.separateProtDataStats", FALSE );
     def.put( "config.style.dataStatsOnly", FALSE );
+    def.put( "config.style.doNotUseGB", FALSE );
     
     def.put( "Save Torrent Backup", FALSE );
     

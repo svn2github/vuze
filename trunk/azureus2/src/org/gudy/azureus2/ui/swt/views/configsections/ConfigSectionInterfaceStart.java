@@ -65,7 +65,7 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
     layout.numColumns = 1;
     cStart.setLayout(layout);
 
-    new BooleanParameter(cStart, "Show Splash", true, "ConfigView.label.showsplash");
+    new BooleanParameter(cStart, "Show Splash", "ConfigView.label.showsplash");
     new BooleanParameter(cStart, "update.start", "ConfigView.label.checkonstart");
     new BooleanParameter(cStart, "update.periodic", "ConfigView.label.periodiccheck");
     BooleanParameter autoDownload = new BooleanParameter(cStart, "update.autodownload", "ConfigView.section.update.autodownload");
@@ -76,10 +76,10 @@ public class ConfigSectionInterfaceStart implements UISWTConfigSection {
     
     new Label(cStart,SWT.NULL);
     new BooleanParameter(cStart, "Open MyTorrents", "ConfigView.label.openmytorrents");
-    new BooleanParameter(cStart, "Open Console", false, "ConfigView.label.openconsole");
-    new BooleanParameter(cStart, "Open Stats On Start", false, "ConfigView.label.openstatsonstart");
-    new BooleanParameter(cStart, "Open Config", false, "ConfigView.label.openconfig");
-    new BooleanParameter(cStart, "Start Minimized", false, "ConfigView.label.startminimized");
+    new BooleanParameter(cStart, "Open Console", "ConfigView.label.openconsole");
+    new BooleanParameter(cStart, "Open Stats On Start", "ConfigView.label.openstatsonstart");
+    new BooleanParameter(cStart, "Open Config", "ConfigView.label.openconfig");
+    new BooleanParameter(cStart, "Start Minimized", "ConfigView.label.startminimized");
     
     if (COConfigurationManager.getStringParameter("ui").equals("az3")) {
 			new BooleanParameter(cStart, "v3.Start Advanced",

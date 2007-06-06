@@ -158,12 +158,12 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 		if (Utils.isGTK) {
 			// See Eclipse Bug #42416 ([Platform Inconsistency] GC(Table) has wrong origin)
-			new BooleanParameter(cLook, "SWT_bGTKTableBug", true, MSG_PREFIX
+			new BooleanParameter(cLook, "SWT_bGTKTableBug", MSG_PREFIX
 					+ "verticaloffset");
 		}
 
 		if (Constants.isOSX) {
-			new BooleanParameter(cLook, "enable_small_osx_fonts", true, MSG_PREFIX
+			new BooleanParameter(cLook, "enable_small_osx_fonts", MSG_PREFIX
 					+ "osx_small_fonts");
 		}
 
@@ -174,7 +174,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				+ "useSIUnits");
 		new BooleanParameter(cLook, "config.style.useUnitsRateBits",
 				MSG_PREFIX + "useUnitsRateBits");
-		new BooleanParameter(cLook, "config.style.doNotUseGB", false, MSG_PREFIX
+		new BooleanParameter(cLook, "config.style.doNotUseGB", MSG_PREFIX
 				+ "doNotUseGB");
 
 		new BooleanParameter(cLook, "config.style.dataStatsOnly", MSG_PREFIX

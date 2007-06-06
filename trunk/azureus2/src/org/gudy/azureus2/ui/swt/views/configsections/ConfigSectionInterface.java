@@ -156,7 +156,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
         	bp.setAdditionalActionPerformer(iaap);
         }
 
-		new BooleanParameter(cDisplay, "Send Version Info", true, LBLKEY_PREFIX
+		new BooleanParameter(cDisplay, "Send Version Info", LBLKEY_PREFIX
 				+ "allowSendVersion");
 
 		Composite cArea = new Composite(cDisplay, SWT.NULL);
