@@ -369,12 +369,12 @@ MainWindow
     if(!useCustomTab) {
       folder = new TabFolder(parent, SWT.V_SCROLL);
     } else {
-      folder = new CTabFolder(parent, SWT.CLOSE | SWT.FLAT);
+      folder = new CTabFolder(parent, SWT.CLOSE | SWT.BORDER);
       final Color bg = ColorUtils.getShade(folder.getBackground(), (Constants.isOSX) ? -25 : -6);
       final Color fg = ColorUtils.getShade(folder.getForeground(), (Constants.isOSX) ? 25 : 6);
       folder.setBackground(bg);
       folder.setForeground(fg);
-      ((CTabFolder)folder).setBorderVisible(false);
+      //((CTabFolder)folder).setBorderVisible(false);
       folder.addDisposeListener(new DisposeListener() {
           public void widgetDisposed(DisposeEvent event) {
               bg.dispose();
