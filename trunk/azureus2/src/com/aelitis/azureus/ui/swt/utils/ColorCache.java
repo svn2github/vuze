@@ -61,7 +61,7 @@ public class ColorCache
 		Long key = new Long(((long) red << 16) + (green << 8) + blue);
 
 		Color color = (Color) mapColors.get(key);
-		if (color == null) {
+		if (color == null || color.isDisposed()) {
 			try {
 				color = new Color(device, red, green, blue);
 			} catch (IllegalArgumentException e) {
