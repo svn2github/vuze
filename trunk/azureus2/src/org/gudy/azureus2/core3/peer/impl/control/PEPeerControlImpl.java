@@ -38,7 +38,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
-import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
@@ -1200,7 +1199,7 @@ PEPeerControlImpl
 			}
 			setNbPeersSnubbed(0);
 			
-			final boolean checkPieces =COConfigurationManager.getBooleanParameter("Check Pieces on Completion", true);
+			final boolean checkPieces =COConfigurationManager.getBooleanParameter( "Check Pieces on Completion" );
 
 			// re-check all pieces to make sure they are not corrupt, but only if we weren't already complete
 			if (checkPieces &&!start_of_day)
@@ -2910,7 +2909,7 @@ PEPeerControlImpl
 	parameterChanged(
 		String parameterName)
 	{   
-		disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);
+		disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter( "Disconnect Seed" );
 		
 		if ( parameterName.equals("Ip Filter Enabled")){
 			
