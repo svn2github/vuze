@@ -34,12 +34,16 @@ GlobalManagerStats
 	public int getProtocolReceiveRate();
 	public int getProtocolReceiveRateNoLAN();
 	
+	public int getDataAndProtocolReceiveRate();
+	
 	public int getDataSendRate();
 	public int getDataSendRateNoLAN();
 	  
 	public int getProtocolSendRate();
 	public int getProtocolSendRateNoLAN();
   
+	public int getDataAndProtocolSendRate();
+
 	public int getDataSendRateAtClose();
   
 	public long getTotalDataBytesReceived();

@@ -174,6 +174,19 @@ public final class TransferSpeedValidator
     	return( DOWNLOAD_CONFIGKEY );
     }
     
+	public static int
+	getGlobalDownloadRateLimitBytesPerSecond() 
+	{
+		return( COConfigurationManager.getIntParameter( getDownloadParameter()) * 1024 );
+	}
+	
+	public static void
+	setGlobalDownloadRateLimitBytesPerSecond(
+		int		bytes_per_second )
+	{
+		COConfigurationManager.setParameter( getDownloadParameter(), bytes_per_second/1024 );
+	}
+	
     public static boolean
     isAutoUploadAvailable(
     	AzureusCore	core )

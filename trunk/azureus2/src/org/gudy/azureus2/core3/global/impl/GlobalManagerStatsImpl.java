@@ -116,7 +116,6 @@ GlobalManagerStatsImpl
 		data_send_speed.addValue(length);
 	}
 
-
 	public void protocolBytesSent(int length, boolean LAN) {
 		total_protocol_bytes_sent += length;
 		if ( !LAN ){
@@ -139,6 +138,10 @@ GlobalManagerStatsImpl
 		return (int)protocol_receive_speed_no_lan.getAverage();
 	}
 
+	public int getDataAndProtocolReceiveRate(){
+		return((int)( protocol_receive_speed.getAverage() + data_receive_speed.getAverage()));
+	}
+
 	public int getDataSendRate() {
 		return (int)data_send_speed.getAverage();
 	}
@@ -152,7 +155,9 @@ GlobalManagerStatsImpl
 		return (int)protocol_send_speed_no_lan.getAverage();
 	}
 
-
+	public int getDataAndProtocolSendRate(){
+		return((int)( protocol_send_speed.getAverage() + data_send_speed.getAverage()));
+	}
 
     public long getTotalDataBytesSent() {
     	return total_data_bytes_sent;

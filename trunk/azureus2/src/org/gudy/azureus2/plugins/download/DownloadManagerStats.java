@@ -60,12 +60,18 @@ DownloadManagerStats
 	public int 
 	getProtocolReceiveRate();
 		
+	public int
+	getDataAndProtocolReceiveRate();
+	
 	public int 
 	getDataSendRate();
 	  
 	public int 
 	getProtocolSendRate();
-	    
+	   
+	public int
+	getDataAndProtocolSendRate();
+
 		/**
 		 * data received since session start
 		 * @return

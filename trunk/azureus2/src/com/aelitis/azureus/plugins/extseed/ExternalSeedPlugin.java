@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.download.DownloadManagerStats;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
@@ -50,8 +51,9 @@ ExternalSeedPlugin
 		new ExternalSeedReaderFactoryWebSeed(),
 	};
 	
-	private PluginInterface		plugin_interface;
-	private LoggerChannel		log;
+	private PluginInterface			plugin_interface;
+	private DownloadManagerStats	dm_stats;
+	private LoggerChannel			log;
 	
 	private 		Random	random = new Random();
 	
@@ -63,6 +65,8 @@ ExternalSeedPlugin
 		PluginInterface	_plugin_interface )
 	{
 		plugin_interface	= _plugin_interface;
+		
+		dm_stats = plugin_interface.getDownloadManager().getStats();
 		
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"External Seed" );
@@ -417,6 +421,12 @@ ExternalSeedPlugin
 			
 			download_mon.exit();
 		}	
+	}
+	
+	public int
+	getGlobalDownloadRateBytesPerSec()
+	{
+		return( dm_stats.getDataAndProtocolReceiveRate());
 	}
 	
 	public void

@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.extseed.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -268,9 +269,29 @@ ExternalSeedReaderImpl
 						
 				int	existing_peer_count = existing_peers.length;
 				
-				int	download_limit = peer_manager.getDownloadRateLimitBytesPerSecond();
-								
-				if ( 	( download_limit == 0 || download_limit > STALLED_DOWNLOAD_SPEED + 2*1024 ) &&
+				int	global_limit	= TransferSpeedValidator.getGlobalDownloadRateLimitBytesPerSecond();
+				
+				if ( global_limit > 0 ){
+				
+						// if we have a global limit in force and we are near it then no point in
+						// activating 
+					
+					int current_down = plugin.getGlobalDownloadRateBytesPerSec();
+					
+					if ( global_limit - current_down < 5*1024 ){
+						
+						return( false );
+					}
+				}
+				
+				int	download_limit  = peer_manager.getDownloadRateLimitBytesPerSecond();
+						
+				if ( global_limit > 0 && global_limit < download_limit ){
+					
+					download_limit = global_limit;
+				}
+				
+				if ( 	( download_limit == 0 || download_limit > STALLED_DOWNLOAD_SPEED + 5*1024 ) &&
 						peer_manager.getStats().getDownloadAverage() < STALLED_DOWNLOAD_SPEED ){
 					
 					for (int i=0;i<existing_peers.length;i++){
