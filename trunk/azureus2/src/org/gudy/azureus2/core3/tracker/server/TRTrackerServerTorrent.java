@@ -75,6 +75,10 @@ TRTrackerServerTorrent
 		String	link );
 	
 	public void
+	remove(
+		TRTrackerServerPeerBase		peer );
+	
+	public void
 	addListener(
 		TRTrackerServerTorrentListener	l );
 	

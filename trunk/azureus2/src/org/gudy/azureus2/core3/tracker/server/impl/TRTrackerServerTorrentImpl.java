@@ -804,6 +804,43 @@ TRTrackerServerTorrentImpl
 		}
 	}
 	
+	public void
+	remove(
+		TRTrackerServerPeerBase		peer )
+	{
+		try{
+			this_mon.enter();
+
+			if ( peer instanceof TRTrackerServerPeerImpl ){
+		
+				TRTrackerServerPeerImpl	pi = (TRTrackerServerPeerImpl)peer;
+			
+				if ( peer_map.containsKey( pi )){
+					
+					int	index = peer_list.indexOf( pi );
+					
+					if ( index != -1 ){
+						
+						removePeer( pi, index, TRTrackerServerTorrentPeerListener.ET_FAILED, null );
+					}
+				}
+			}else{
+				
+				if ( queued_peers != null ){
+				
+					queued_peers.remove( peer );
+				
+					if ( queued_peers.size() == 0 ){
+						
+						queued_peers = null;
+					}
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
 	protected void
 	removePeer(
 		TRTrackerServerPeerImpl	peer,
