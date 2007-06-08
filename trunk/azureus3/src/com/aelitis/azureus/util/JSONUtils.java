@@ -65,6 +65,10 @@ public class JSONUtils
 		return newMap;
 	}
 	
+	public static String encodeToJSON(Map map) {
+		return encodeToJSONObject(map).toString();
+	}
+	
 	private static Object coerce(Object value) {
 		if ((value instanceof Map) && !(value instanceof JSONObject)) {
 			value = encodeToJSONObject((Map)value);
