@@ -66,18 +66,18 @@ public class VersionCheckClient {
 	public static final String	REASON_RECOMMENDED_PLUGINS		= "rp";
 	public static final String	REASON_SECONDARY_CHECK			= "sc";
 	
-	
-  private static final String 	AZ_MSG_SERVER_ADDRESS 	= "version.aelitis.com";
+
+  private static final String 	AZ_MSG_SERVER_ADDRESS 	= "version.azureusplatform.com";
   private static final int 		AZ_MSG_SERVER_PORT 		= 27001;
   private static final String 	MESSAGE_TYPE_ID 		= "AZVER";
   
-  public static final String 	HTTP_SERVER_ADDRESS 	= "version.aelitis.com";
-  public static final int 		HTTP_SERVER_PORT 		= 2080;
+  public static final String 	HTTP_SERVER_ADDRESS 	= AZ_MSG_SERVER_ADDRESS;
+  public static final int 		HTTP_SERVER_PORT 		= 80;
 
-  public static final String 	TCP_SERVER_ADDRESS 		= "version.aelitis.com";
-  public static final int 		TCP_SERVER_PORT 		= 2080;
+  public static final String 	TCP_SERVER_ADDRESS 		= AZ_MSG_SERVER_ADDRESS;
+  public static final int 		TCP_SERVER_PORT 		= 80;
 
-  public static final String 	UDP_SERVER_ADDRESS 		= "version.aelitis.com";
+  public static final String 	UDP_SERVER_ADDRESS 		= AZ_MSG_SERVER_ADDRESS;
   public static final int 		UDP_SERVER_PORT 		= 2080;
 
   
