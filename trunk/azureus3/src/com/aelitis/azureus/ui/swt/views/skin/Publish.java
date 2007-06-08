@@ -39,6 +39,7 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.DownloadStateAndRemoveListener;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.LocalResourceHTTPServer;
@@ -56,9 +57,11 @@ public class Publish
 {
 	private LocalResourceHTTPServer local_publisher;
 
-	private Browser browser;
+	private SWTSkinObjectBrowser browserSkinObject;
 
 	public Object showSupport(final SWTSkinObject skinObject, Object params) {
+		browserSkinObject = (SWTSkinObjectBrowser) skinObject;
+
 		AzureusCore core = AzureusCoreFactory.getSingleton();
 
 		// first, check if it's already there (evil!)
@@ -86,26 +89,23 @@ public class Publish
 			Debug.out("Failed to create local resource publisher", e);
 		}
 
-		Composite cArea = (Composite) skinObject.getControl();
-		browser = new Browser(cArea, SWT.NONE);
-		browser.setLayoutData(Utils.getFilledFormData());
+		Browser browser = browserSkinObject.getBrowser();
 
 		// copied from DirectorPlugin.java
 		// We are going to monitor Published Torrent to alert the User when he 
 		// removes a published torrent from azureus
 		DownloadStateAndRemoveListener downloadListener = new DownloadStateAndRemoveListener(
-				pi, cArea.getDisplay(), swtInstance);
+				pi, browser.getDisplay(), swtInstance);
 		pi.getDownloadManager().addListener(downloadListener);
 
 		// copied from PublisherPanel.initUI
 		ClientMessageContext context = new BrowserContext("publish", browser, null);
 		PublishUtils.setupContext(context, browser, pi, this, downloadListener);
 
-		restart();
+		String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISH + "?"
+				+ Constants.URL_SUFFIX;
+		browserSkinObject.setURL(sURL);
 
-		//browser.setUrl("google.com");
-
-		cArea.layout(true);
 		return null;
 	}
 
@@ -122,12 +122,6 @@ public class Publish
 	 * 
 	 */
 	public void restart() {
-		if (browser != null) {
-			String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISH + "?"
-					+ Constants.URL_SUFFIX;
-			System.out.println(sURL);
-			browser.setUrl(sURL);
-			browser.setData("StartURL", sURL);
-		}
+		browserSkinObject.restart();
 	}
 }

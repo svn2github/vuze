@@ -107,8 +107,12 @@ public class SWTSkinTabSet
 
 		return false;
 	}
-
+	
 	public void setActiveTab(final SWTSkinObjectTab newTab) {
+		setActiveTab(newTab, false);
+	}
+
+	private void setActiveTab(final SWTSkinObjectTab newTab, final boolean bEvenIfSame) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				// Don't exit early if we are already on tab.  We want to be notified if
@@ -127,8 +131,8 @@ public class SWTSkinTabSet
 					}
 
 					activeTab = newTab;
-				} else {
-					System.err.println("Already on tab " + newTab + " in " + sID);
+				} else if (!bEvenIfSame) {
+					return;
 				}
 
 				String sConfigID = activeTab.getConfigID();
@@ -210,7 +214,7 @@ public class SWTSkinTabSet
 					bDownPressed = false;
 
 					Control control = (Control) event.widget;
-					setActiveTab((SWTSkinObjectTab) control.getData("Tab"));
+					setActiveTab((SWTSkinObjectTab) control.getData("Tab"), true);
 				}
 			};
 		}

@@ -243,10 +243,6 @@ public class BrowserContext
 				boolean blocked = PlatformConfigMessenger.isURLBlocked(event.location);
 
 				if (blocked) {
-					String[] whitelist = PlatformConfigMessenger.getURLWhitelist();
-					debug("Canceling URL change to external: " + event.location
-							+ " (does not match one of the " + whitelist.length
-							+ " whitelist entries)");
 					event.doit = false;
 					browser.back();
 				} else {
