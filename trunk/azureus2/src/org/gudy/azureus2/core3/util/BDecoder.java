@@ -154,7 +154,7 @@ public class BDecoder {
 	             
 	          	// keys often repeat a lot - intern to save space
 	          
-	          key = key.intern();
+	         // key = key.intern();
 	          
 	          tempMap.put( key, value);
 	        }

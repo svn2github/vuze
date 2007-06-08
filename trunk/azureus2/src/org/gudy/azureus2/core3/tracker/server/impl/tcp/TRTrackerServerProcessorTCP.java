@@ -586,6 +586,7 @@ TRTrackerServerProcessorTCP
 				
 			}catch( Exception e ){
 				
+				String	warning_message = null;
 				
 				if ( e instanceof TRTrackerServerException ){
 					
@@ -619,6 +620,12 @@ TRTrackerServerProcessorTCP
 
 						return;
 					}
+					
+					if ( tr_excep.isUserMessage()){
+						
+						warning_message = tr_excep.getMessage();
+					}
+					
 				}else if ( e instanceof NullPointerException ){
 					
 					e.printStackTrace();
@@ -638,6 +645,11 @@ TRTrackerServerProcessorTCP
 				root	= new HashMap();
 				
 				root.put( "failure reason", message );
+				
+				if ( warning_message != null ){
+					
+					root.put( "warning message", warning_message );
+				}
 			}
 		
 			setTaskState( "writing response" );

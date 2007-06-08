@@ -31,6 +31,8 @@ TRTrackerServerException
 	private String	response_text;
 	private Map		response_headers;
 	
+	private boolean	user_message;
+	
 	public
 	TRTrackerServerException(
 		int		_response_code,
@@ -73,5 +75,19 @@ TRTrackerServerException
 	getResponseHeaders()
 	{
 		return( response_headers );
+	}
+	
+	
+	public void
+	setUserMessage(
+		boolean	b )
+	{
+		user_message	= b;
+	}
+	
+	public boolean
+	isUserMessage()
+	{
+		return( user_message );
 	}
 }
