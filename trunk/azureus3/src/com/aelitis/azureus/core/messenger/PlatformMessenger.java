@@ -286,7 +286,6 @@ public class PlatformMessenger
 			Map actionResults = null;
 
 			if (replySections.length == 3) {
-				System.out.println(replySections[2]);
 				try {
 					actionResults = JSONUtils.decodeJSON(replySections[2]);
 				} catch (Throwable e) {
