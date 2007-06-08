@@ -815,7 +815,7 @@ TRTrackerServerTorrentImpl
 		
 				TRTrackerServerPeerImpl	pi = (TRTrackerServerPeerImpl)peer;
 			
-				if ( peer_map.containsKey( pi )){
+				if ( peer_map.containsKey( pi.getPeerId())){
 					
 					int	index = peer_list.indexOf( pi );
 					
