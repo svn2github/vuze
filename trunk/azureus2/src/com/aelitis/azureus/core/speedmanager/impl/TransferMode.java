@@ -80,6 +80,8 @@ public class TransferMode
             //Some downloading is happening. Remove from SEEDING mode.
             mode = State.DOWNLOADING;
             lastTimeDownloadDetected = SystemTime.getCurrentTime();
+
+            SpeedManagerLogger.trace("Switching to Downloading status. DownloadBandwidth - SaturateMode="+downloadBandwidth);            
         }
 
     }
@@ -93,6 +95,9 @@ public class TransferMode
     }
 
     public void setMode( State newMode ){
+
+        SpeedManagerLogger.trace( " setting transfer mode to: "+newMode.getString() );
+
         mode = newMode;
     }
 

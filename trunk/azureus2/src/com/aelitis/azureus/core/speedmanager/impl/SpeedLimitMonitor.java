@@ -717,7 +717,7 @@ public class SpeedLimitMonitor
             downloadLinespeedCapacity=newMaxLimitSetting;
             downloadLimitMin=newMinLimitSetting;
         }
-        upDownRatio = ((float)uploadLinespeedCapacity/(float)downloadLinespeedCapacity);
+        upDownRatio = ((float)downloadLinespeedCapacity/(float)uploadLinespeedCapacity);
         COConfigurationManager.setParameter(
                 SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
 
