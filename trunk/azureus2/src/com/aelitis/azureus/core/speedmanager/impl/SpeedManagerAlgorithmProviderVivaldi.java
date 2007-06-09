@@ -382,14 +382,17 @@ public class SpeedManagerAlgorithmProviderVivaldi
         log("metric:"+ lastMetricValue);
 
         float signalStrength = determineSignalStrength(lastMetricValue);
-        if( signalStrength!=0.0f ){
+
+        //if are are NOT looking for limits and we have a signal then make an adjustment.
+        if( signalStrength!=0.0f && !limitMonitor.isConfTestingLimits() ){
             hadAdjustmentLastInterval=true;
 
             float multiple = consectiveMultiplier();
             int currUpLimit = adapter.getCurrentUploadLimit();
+            int currDownLimit = adapter.getCurrentDownloadLimit();
 
             limitMonitor.checkForUnpinningCondition();
-            SpeedLimitMonitor.Update update = limitMonitor.createNewLimit(signalStrength,multiple,currUpLimit);
+            SpeedLimitMonitor.Update update = limitMonitor.createNewLimit(signalStrength,multiple,currUpLimit,currDownLimit);
 
             //log
             logNewLimits(update);
@@ -399,6 +402,16 @@ public class SpeedManagerAlgorithmProviderVivaldi
 
         }else{
             hadAdjustmentLastInterval=false;
+
+            //verify the limits. It is possible for the user to adjust the capacity down below the current limit, so check that condition here.
+            int currUploadLimit = adapter.getCurrentUploadLimit();
+            int currDownloadLimit = adapter.getCurrentDownloadLimit();
+            if( !limitMonitor.areSettingsInSpec(currUploadLimit, currDownloadLimit) ){
+                SpeedLimitMonitor.Update update = limitMonitor.adjustLimitsToSpec(currUploadLimit, currDownloadLimit);
+                logNewLimits( update );
+                setNewLimits( update );
+            }
+
         }
 
         //determine if we need to drop a ping source.

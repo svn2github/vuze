@@ -56,7 +56,7 @@ public class SpeedLimitMonitor
 {
 
     //use for home network.
-    private int uploadLinespeedCapacity = 38000;
+    private int uploadLinespeedCapacity = 40000;
     private int uploadLimitMin = 5000;
     private int downloadLinespeedCapacity = 80000;
     private int downloadLimitMin = 8000;
@@ -81,8 +81,11 @@ public class SpeedLimitMonitor
     private boolean beginLimitTest;
     private int highestUploadRate=0;
     private int highestDownloadRate=0;
-    private int preTestUploadSetting;
-    private int preTestDownloadSetting;
+    private int preTestUploadCapacity=5042;
+    private int preTestUploadLimit=5142;
+    private int preTestDownloadCapacity=5042;
+    private int preTestDownloadLimit=5142;
+
     public static final String UPLOAD_CONF_LIMIT_SETTING="SpeedLimitMonitor.setting.upload.limit.conf";
     public static final String DOWNLOAD_CONF_LIMIT_SETTING="SpeedLimitMonitor.setting.download.limit.conf";
     private static final long CONF_LIMIT_TEST_LENGTH=1000*40;//ToDo: make this configurable.
@@ -231,17 +234,17 @@ public class SpeedLimitMonitor
      *      limit to see how high it will go.
      *
      *
-     *
      * @param signalStrength -
      * @param multiple -
      * @param currUpLimit -
+     * @param currDownLimit -
      * @return -
      */
-    public Update createNewLimit(float signalStrength, float multiple, int currUpLimit){
+    public Update createNewLimit(float signalStrength, float multiple, int currUpLimit, int currDownLimit){
 
         //this flag is set in a previous method.
         if( isStartLimitTestFlagSet() ){
-            return startLimitTesting();
+            return startLimitTesting(currUpLimit,currDownLimit);
         }
 
         int newLimit;
@@ -567,7 +570,7 @@ public class SpeedLimitMonitor
      * Call this method to start the limit testing.
      * @return - Update
      */
-    public Update startLimitTesting(){
+    public Update startLimitTesting(int currUploadLimit, int currDownloadLimit){
 
         confLimitTestStartTime=SystemTime.getCurrentTime();
         highestUploadRate=0;
@@ -577,17 +580,21 @@ public class SpeedLimitMonitor
         //reset the flag.
         beginLimitTest=false;
 
+        //get the limits before the test, we are restoring them after the test.
+        preTestUploadLimit = currUploadLimit;
+        preTestDownloadLimit = currDownloadLimit;
+
         //configure the limits for this test. One will be at min and the other unlimited.
         Update retVal;
         if( transferMode.isDownloadMode() ){
             //test the download limit.
             retVal = new Update(uploadLimitMin,true,0,true);
-            preTestDownloadSetting = downloadLinespeedCapacity;
+            preTestDownloadCapacity = downloadLinespeedCapacity;
             transferMode.setMode( TransferMode.State.DOWNLOAD_LIMIT_SEARCH );
         }else{
             //test the upload limit.
             retVal = new Update(0,true,downloadLimitMin,true);
-            preTestUploadSetting = uploadLinespeedCapacity;
+            preTestUploadCapacity = uploadLinespeedCapacity;
             transferMode.setMode( TransferMode.State.UPLOAD_LIMIT_SEARCH );
         }
 
@@ -619,7 +626,10 @@ public class SpeedLimitMonitor
             downloadLimitConf = determineConfidenceLevel();
 
             //set that value.
-            retVal = new Update(preTestUploadSetting,true,preTestDownloadSetting,true);
+            SpeedManagerLogger.trace("pre-upload-setting="+ preTestUploadCapacity +" up-capacity"+uploadLinespeedCapacity
+                    +" pre-download-setting="+ preTestDownloadCapacity +" down-capacity="+downloadLinespeedCapacity);
+
+            retVal = new Update(preTestUploadLimit,true, preTestDownloadLimit,true);
             //change back to original mode.
             transferMode.setMode( TransferMode.State.DOWNLOADING );
 
@@ -628,14 +638,14 @@ public class SpeedLimitMonitor
             uploadLimitConf = determineConfidenceLevel();
 
             //set that value.
-            retVal = new Update(preTestUploadSetting,true,preTestDownloadSetting,true);
+            retVal = new Update(preTestUploadLimit,true, preTestDownloadLimit,true);
             //change back to original mode.
             transferMode.setMode( TransferMode.State.SEEDING );
 
         }else{
             //This is an "illegal state" make it in the logs, but try to recover by setting back to original state.
             SpeedManagerLogger.log("SpeedLimitMonitor had IllegalState during endLimitTesting.");
-            retVal = new Update(preTestUploadSetting,true,preTestDownloadSetting,true);
+            retVal = new Update(preTestUploadLimit,true, preTestDownloadLimit,true);
         }
 
         currTestDone=true;
@@ -661,14 +671,14 @@ public class SpeedLimitMonitor
             settingConfidenceName = DOWNLOAD_CONF_LIMIT_SETTING;
             settingMaxLimitName = SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT;
             settingMinLimitName = SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT;
-            preTestValue = preTestDownloadSetting;
+            preTestValue = preTestDownloadCapacity;
             highestValue = highestDownloadRate;
         }else if(transferMode.getMode()==TransferMode.State.UPLOAD_LIMIT_SEARCH){
 
             settingConfidenceName = UPLOAD_CONF_LIMIT_SETTING;
             settingMaxLimitName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT;
             settingMinLimitName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT;
-            preTestValue = preTestUploadSetting;
+            preTestValue = preTestUploadCapacity;
             highestValue = highestUploadRate;
         }else{
             //
@@ -712,12 +722,75 @@ public class SpeedLimitMonitor
                 SpeedManagerAlgorithmProviderV2.SETTING_V2_UP_DOWN_RATIO, upDownRatio);
 
 
-        sb.append(newMaxLimitSetting).append(":").append(newMinLimitSetting);
+        sb.append(newMaxLimitSetting).append(":").append(newMinLimitSetting).append(":").append(upDownRatio);
 
         SpeedManagerLogger.trace( sb.toString() );
 
         return retVal;
     }
+
+    /**
+     * If the user changes the line capacity settings on the configuration panel and adjustment
+     * needs to occur even if the signal is NO-CHANGE-NEEDED. Test for that condition here.
+     * @param currUploadLimit  - reported upload capacity from the adapter
+     * @param currDownloadLimit - reported download capacity from the adapter.
+     * @return - true if the "capacity" is lower then the current limit.
+     */
+    public boolean areSettingsInSpec(int currUploadLimit, int currDownloadLimit){
+
+        boolean retVal = true;
+        if( currUploadLimit>uploadLinespeedCapacity ){
+            retVal = false;
+        }
+        if(  currDownloadLimit>downloadLinespeedCapacity){
+            retVal = false;
+        }
+        return retVal;
+    }
+
+    /**
+     * It is likely the user adjusted the "line speed capacity" on the configuration panel.
+     * We need to adjust the current limits down to adjust.
+     * @param currUploadLimit -
+     * @param currDownloadLimit -
+     * @return - Updates as needed.
+     */
+    public Update adjustLimitsToSpec(int currUploadLimit, int currDownloadLimit){
+
+        int newUploadLimit = currUploadLimit;
+        boolean uploadChanged = false;
+        int newDownloadLimit = currDownloadLimit;
+        boolean downloadChanged = false;
+
+        //check for the case when the line-speed capacity is below the current limit.
+        if( currUploadLimit>uploadLinespeedCapacity ){
+            newUploadLimit = uploadLinespeedCapacity;
+            uploadChanged = true;
+        }
+
+        //check for the case when the min setting has been moved above the current limit.
+        if( currDownloadLimit>downloadLinespeedCapacity ){
+            newDownloadLimit = downloadLinespeedCapacity;
+            downloadChanged = true;
+        }
+
+        //Another possibility is the min limits have been raised.
+        if( currUploadLimit<uploadLimitMin ){
+            newUploadLimit = uploadLimitMin;
+            uploadChanged = true;
+        }
+
+        if( currDownloadLimit<downloadLimitMin ){
+            newDownloadLimit = downloadLimitMin;
+            downloadChanged = true;
+        }
+
+        SpeedManagerLogger.trace("Adjusting limits due to out of spec: new-up="+newUploadLimit
+                +" new-down="+newDownloadLimit);
+
+        return new Update(newUploadLimit,uploadChanged,newDownloadLimit,downloadChanged);
+    }
+
 
     protected void log(String str){
 
