@@ -482,7 +482,7 @@ public class MainWindow
   		});
   
   		try {
-  			//AdManager.getInstance().intialize(core);
+  			AdManager.getInstance().intialize(core);
   		} catch (Throwable e) {
   		}
   
@@ -528,6 +528,8 @@ public class MainWindow
   							context.getMessageDispatcher().dispatch(browserMsg);
   							context.getMessageDispatcher().resetSequence();
   							return true;
+  						} else {
+  							context.debug("no target or open url");
   						}
   					} else if (browserMsg.getOperationId().equals("is-ready")) {
   						// The platform needs to know when it can call open-url, and it

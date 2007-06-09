@@ -92,6 +92,8 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_AD_ENABLED = "Ad Enabled";
 
+	private static final String TOR_AZ_PROP_EXPIRESON = "Expires On";
+
 	private static final ArrayList metaDataListeners = new ArrayList();
 
 	public static Map getContentMap(TOTorrent torrent) {
@@ -565,6 +567,25 @@ public class PlatformTorrentUtils
 
 	public static boolean isContentAdEnabled(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_AD_ENABLED, 0) == 1;
+	}
+
+	public static long getExpiresOn(TOTorrent torrent) {
+		Map mapContent = getContentMap(torrent);
+		Long l = (Long) mapContent.get(TOR_AZ_PROP_EXPIRESON);
+		if (l == null) {
+			return 0;
+		}
+		return l.longValue();
+	}
+
+	public static void setExpiresOn(TOTorrent torrent, long expiresOn) {
+		Map mapContent = getContentMap(torrent);
+		mapContent.put(TOR_AZ_PROP_EXPIRESON, new Long(expiresOn));
+		try {
+			TorrentUtils.writeToFile(torrent);
+		} catch (TOTorrentException e) {
+			Debug.out(e);
+		}
 	}
 
 	public static void log(String str) {

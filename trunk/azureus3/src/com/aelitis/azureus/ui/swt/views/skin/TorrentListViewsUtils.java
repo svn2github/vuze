@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -66,14 +67,13 @@ import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
+import com.aelitis.azureus.util.AdManager;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
-
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 /**
  * @author TuxPaper
@@ -298,7 +298,7 @@ public class TorrentListViewsUtils
 		return btn;
 	}
 
-	public static void playOrStream(DownloadManager dm) {
+	public static void playOrStream(final DownloadManager dm) {
 		if (dm == null) {
 			return;
 		}
@@ -338,7 +338,8 @@ public class TorrentListViewsUtils
 		boolean trusted = isTrustedContent(ext);
 
 		if (untrusted || !trusted) {
-			String sPrefix = untrusted ? "v3.mb.notTrusted." : "v3.mb.UnknownContent.";
+			String sPrefix = untrusted ? "v3.mb.notTrusted."
+					: "v3.mb.UnknownContent.";
 
 			UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 			if (functionsSWT == null) {
@@ -373,17 +374,16 @@ public class TorrentListViewsUtils
 		}
 
 		if (bComplete) {
-			String runFile = null; // AdManager.getInstance().createASX(dm, file);
-			if (runFile == null) {
-				runFile = dm.getSaveLocation().toString();
-			}
-			
-			if (PlatformTorrentUtils.isContentDRM(dm.getTorrent())) {
-				if (!runInMediaPlayer(runFile)) {
-					Utils.launch(runFile);
-				}
+			TOTorrent torrent = dm.getTorrent();
+			if (PlatformTorrentUtils.isContentAdEnabled(torrent)) {
+				AdManager.getInstance().createASX(dm,
+						new AdManager.ASXCreatedListener() {
+							public void asxCreated(File asxFile) {
+								runFile(dm.getTorrent(), asxFile.getAbsolutePath());
+							}
+						});
 			} else {
-				Utils.launch(runFile);
+				runFile(dm.getTorrent(), dm.getSaveLocation().toString());
 			}
 		} else {
 			try {
@@ -391,6 +391,16 @@ public class TorrentListViewsUtils
 			} catch (DownloadException e) {
 				Debug.out(e);
 			}
+		}
+	}
+
+	private static void runFile(TOTorrent torrent, String runFile) {
+		if (PlatformTorrentUtils.isContentDRM(torrent)) {
+			if (!runInMediaPlayer(runFile)) {
+				Utils.launch(runFile);
+			}
+		} else {
+			Utils.launch(runFile);
 		}
 	}
 
@@ -549,9 +559,9 @@ public class TorrentListViewsUtils
 		}
 
 		try {
-  		Program program = Program.findProgram(".qtl");
-  		boolean hasQuickTime = program == null ? false
-  				: ( program.getName().toLowerCase().indexOf("quicktime") != -1 );
+			Program program = Program.findProgram(".qtl");
+			boolean hasQuickTime = program == null ? false
+					: (program.getName().toLowerCase().indexOf("quicktime") != -1);
 
 			pi.getIPC().invoke("setQuickTimeAvailable", new Object[] {
 				new Boolean(hasQuickTime)
@@ -560,7 +570,7 @@ public class TorrentListViewsUtils
 			Logger.log(new LogEvent(LogIDs.UI3, LogEvent.LT_WARNING,
 					"IPC to media server plugin failed", e));
 		}
-		
+
 		try {
 			pi.getIPC().invoke("playDownload", new Object[] {
 				download
@@ -646,23 +656,25 @@ public class TorrentListViewsUtils
 	public static void removeDownload(final DownloadManager dm,
 			final ListView view, final boolean bDeleteTorrent,
 			final boolean bDeleteData) {
-		
+
 		TOTorrent torrent = dm.getTorrent();
 
 		Shell shell = view.getControl().getShell();
 		if (PublishUtils.isPublished(dm)) {
 			String title = MessageText.getString("v3.mb.stopSeeding.title");
-			String text = MessageText.getString("v3.mb.stopSeeding.text", new String[] {
-				dm.getDisplayName(),
-				Constants.URL_PREFIX,
-				Constants.DEFAULT_ADDRESS,
-				Constants.URL_PUBLISH_INFO
-			});
+			String text = MessageText.getString("v3.mb.stopSeeding.text",
+					new String[] {
+						dm.getDisplayName(),
+						Constants.URL_PREFIX,
+						Constants.DEFAULT_ADDRESS,
+						Constants.URL_PUBLISH_INFO
+					});
 
-			MessageBoxShell mb = new MessageBoxShell(shell, title, text, new String[] {
-				MessageText.getString("v3.mb.stopSeeding.delete"),
-				MessageText.getString("v3.mb.stopSeeding.cancel")
-			}, 1);
+			MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+					new String[] {
+						MessageText.getString("v3.mb.stopSeeding.delete"),
+						MessageText.getString("v3.mb.stopSeeding.cancel")
+					}, 1);
 			mb.setRelatedObject(dm);
 
 			int result = mb.open();
@@ -679,18 +691,19 @@ public class TorrentListViewsUtils
 				dm.getDisplayName()
 			});
 
-			MessageBoxShell mb = new MessageBoxShell(shell, title, text, new String[] {
-				MessageText.getString(prefix + "button.delete"),
-				MessageText.getString(prefix + "button.cancel")
-			}, 1);
+			MessageBoxShell mb = new MessageBoxShell(shell, title, text,
+					new String[] {
+						MessageText.getString(prefix + "button.delete"),
+						MessageText.getString(prefix + "button.cancel")
+					}, 1);
 			mb.setRelatedObject(dm);
 
 			int result = mb.open();
 			if (result == 0) {
-				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED, bDeleteTorrent,
-						bDeleteData);
+				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+						bDeleteTorrent, bDeleteData);
 			}
-			
+
 		} else {
 			// This is copied from ManagerUtils.java and modified so we
 			// can remove the list row before stopping and removing
@@ -702,7 +715,7 @@ public class TorrentListViewsUtils
 				String text = MessageText.getString("deletetorrent.message1")
 						+ dm.getDisplayName() + " :\n" + dm.getTorrentFileName()
 						+ MessageText.getString("deletetorrent.message2");
-				
+
 				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
 						new String[] {
 							MessageText.getString(prefix + "button.delete"),
@@ -727,7 +740,7 @@ public class TorrentListViewsUtils
 				String text = MessageText.getString("deletedata.message1")
 						+ dm.getDisplayName() + " :\n" + path
 						+ MessageText.getString("deletedata.message2");
-				
+
 				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
 						new String[] {
 							MessageText.getString(prefix + "button.delete"),
@@ -752,9 +765,9 @@ public class TorrentListViewsUtils
 								dm.getGlobalManager().removeDownloadManager(dm);
 							} catch (GlobalManagerDownloadRemovalVetoException f) {
 								if (!f.isSilent()) {
-									Alerts.showErrorMessageBoxUsingResourceString(
-											new Object[] { dm },
-											"globalmanager.download.remove.veto", f);
+									Alerts.showErrorMessageBoxUsingResourceString(new Object[] {
+										dm
+									}, "globalmanager.download.remove.veto", f);
 								}
 								view.addDataSource(dm, true);
 							} catch (Exception ex) {
@@ -765,9 +778,9 @@ public class TorrentListViewsUtils
 					}.start();
 				} catch (GlobalManagerDownloadRemovalVetoException f) {
 					if (!f.isSilent()) {
-						Alerts.showErrorMessageBoxUsingResourceString(
-								new Object[] { dm },
-								"globalmanager.download.remove.veto", f);
+						Alerts.showErrorMessageBoxUsingResourceString(new Object[] {
+							dm
+						}, "globalmanager.download.remove.veto", f);
 					}
 				}
 			}
