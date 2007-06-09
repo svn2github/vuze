@@ -38,6 +38,50 @@ StringInterner
 	
 	private static Map map = new WeakHashMap( MAX_MAP_SIZE );
 	
+	private static final String[] COMMON_KEYS = {
+		"src","port","prot","ip","udpport","azver","httpport","downloaded",
+		"Content","Refresh On","path.utf-8","uploaded","completed","persistent","attributes","encoding",
+		"azureus_properties","stats.download.added.time","networks","p1","resume data","dndflags","blocks","resume",
+		"primaryfile","resumecomplete","data","peersources","name.utf-8","valid","torrent filename","parameters",
+		"secrets","timesincedl","tracker_cache","filedownloaded","timesinceul","tracker_peers","trackerclientextensions","GlobalRating",
+		"comment.utf-8","Count","String","stats.counted","Thumbnail","Plugin.<internal>.DDBaseTTTorrent::sha1","type","Title",
+		"displayname","Publisher","Creation Date","Revision Date","Content Hash","flags","stats.download.completed.time","Description",
+		"Progressive","Content Type","QOS Class","DRM","hash","ver","id",
+		"body","seed","eip","rid","iip","dp2","tp","orig",
+		"dp","Quality","private","dht_backup_enable","max.uploads","filelinks","Speed Bps","cdn_properties",
+		"sha1","ed2k","DRM Key","Plugin.aeseedingengine.attributes","initial_seed","dht_backup_requested","ta","size",
+		"DIRECTOR PUBLISH","Plugin.azdirector.ContentMap","dateadded","bytesin","announces","status","bytesout","scrapes",
+		"passive",
+	};
+	
+	private static final ByteArrayHashMap	byte_map = new ByteArrayHashMap( COMMON_KEYS.length );
+	
+	static{
+		try{
+			for (int i=0;i<COMMON_KEYS.length;i++){
+				
+				byte_map.put( COMMON_KEYS[i].getBytes(Constants.BYTE_ENCODING), COMMON_KEYS[i] );
+			}
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	private static boolean general_interning_enabled = false;
+	
+	static{
+		
+			// can't use config here as too early in init!
+		
+		String	str = System.getProperty( "azureus.general.interning.enable" );
+		
+		if ( str != null && str.equals( "1" )){
+			
+			general_interning_enabled = true;
+		}
+	}
+	
 	// private final static ReferenceQueue queue = new ReferenceQueue();
 
 	static{
@@ -66,8 +110,24 @@ StringInterner
 	
 	public static String
 	intern(
+		byte[]	bytes )
+	{
+		String res = (String)byte_map.get( bytes );
+		
+		// System.out.println( new String( bytes ) + " -> " + res );
+		
+		return( res );
+	}
+	
+	public static String
+	intern(
 		String		str )
 	{
+		if ( !general_interning_enabled ){
+			
+			return( str );
+		}
+		
 		synchronized( StringInterner.class ){
 			
 			entryDetails entry;
@@ -169,12 +229,23 @@ StringInterner
 					}
 				});
 		
-		for (int i=0;i<Math.min( 32, l.size());i++){
+		String	line = "";
+		
+		for (int i=0;i<Math.min( 128, l.size());i++){
 			
 			entryDetails	e = (entryDetails)l.get(i);
 			
-			System.out.println( e.get() + " -> " + e.hit_count );
+			line += "\"" + e.get() + "\",";
+			
+			if ( (i+1) % 8 == 0 ){
+				
+				System.out.println( line );
+				
+				line = "";
+			}
 		}
+		
+		System.out.println( line );
 		*/
 	}
 	

@@ -145,16 +145,19 @@ public class BDecoder {
 	        	//decode some more
 	        	
 	          Object value = decodeInputStream(bais,nesting+1);
-	          
-	          	//add the value to the map
-	          
-	          CharBuffer	cb = Constants.BYTE_CHARSET.decode(ByteBuffer.wrap(tempByteArray));
-	          
-	          String	key = new String(cb.array(),0,cb.limit());
-	             
+
 	          	// keys often repeat a lot - intern to save space
+
+	          String	key = StringInterner.intern( tempByteArray );
 	          
-	          key = StringInterner.intern( key );
+	          if ( key == null ){
+	        	 	          
+	        	  CharBuffer	cb = Constants.BYTE_CHARSET.decode(ByteBuffer.wrap(tempByteArray));
+	          
+	        	  key = new String(cb.array(),0,cb.limit());
+	          
+	        	  key = StringInterner.intern( key );
+	          }
 	          
 	          tempMap.put( key, value);
 	        }
