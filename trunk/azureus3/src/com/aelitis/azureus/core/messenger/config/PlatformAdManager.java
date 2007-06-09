@@ -188,6 +188,7 @@ public class PlatformAdManager
 				public void replyReceived(PlatformMessage message, String replyType,
 						Map reply) {
 					if (!replyType.equals(PlatformMessenger.REPLY_RESULT)) {
+						replyListener.replyReceived(replyType, null);
 						return;
 					}
 

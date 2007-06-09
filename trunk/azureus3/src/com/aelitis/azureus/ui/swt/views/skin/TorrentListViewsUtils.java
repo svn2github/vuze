@@ -381,6 +381,10 @@ public class TorrentListViewsUtils
 							public void asxCreated(File asxFile) {
 								runFile(dm.getTorrent(), asxFile.getAbsolutePath());
 							}
+
+							public void asxFailed() {
+								runFile(dm.getTorrent(), dm.getSaveLocation().toString());
+							}
 						});
 			} else {
 				runFile(dm.getTorrent(), dm.getSaveLocation().toString());

@@ -281,6 +281,7 @@ public class AdManager
 				new PlatformAdManager.GetPlaylistReplyListener() {
 					public void replyReceived(String replyType, String playlist) {
 						if (playlist == null) {
+							l.asxFailed();
 							return;
 						}
 						File saveLocation = dm.getAbsoluteSaveLocation();
@@ -299,5 +300,7 @@ public class AdManager
 	
 	public interface ASXCreatedListener {
 		public void asxCreated(File asxFile);
+		
+		public void asxFailed();
 	}
 }
