@@ -47,7 +47,7 @@ public class AdManager
 {
 	private final static AdManager instance;
 
-	private static boolean DEBUG_ADS = true;
+	private static boolean DEBUG_ADS = false;
 
 	static {
 		instance = new AdManager();
