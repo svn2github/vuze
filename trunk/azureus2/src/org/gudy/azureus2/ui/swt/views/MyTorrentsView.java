@@ -880,7 +880,8 @@ public class MyTorrentsView
 
 				}
 				int state = dm.getState();
-				bChangeDir &= (state == DownloadManager.STATE_ERROR || state == DownloadManager.STATE_STOPPED)
+				bChangeDir &= (state == DownloadManager.STATE_ERROR
+						|| state == DownloadManager.STATE_STOPPED || state == DownloadManager.STATE_QUEUED)
 						&& dm.isDownloadComplete(false);
 				
 				/**
