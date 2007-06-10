@@ -1,5 +1,6 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.eclipse.swt.widgets.Shell;
@@ -51,7 +52,7 @@ public class TorrentListener
 			String url = MapUtils.getMapString(message.getDecodedMap(), "url",
 					null);
 			if (url != null) {
-				loadTorrent(url);
+				loadTorrent(url, message.getReferer());
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown operation: "
@@ -59,10 +60,16 @@ public class TorrentListener
 		}
 	}
 
-	private void loadTorrent(String url) {
+	private void loadTorrent(String url, String referer) {
+		URL urlReferer = null;
+		try {
+			urlReferer = new URL(referer);
+		} catch (MalformedURLException e) {
+			Debug.out(e);
+		}
 		try {
 			core.getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
-					new URL(url), false);
+					new URL(url), urlReferer);
 		} catch (Exception e) {
 			Debug.out(e);
 		}

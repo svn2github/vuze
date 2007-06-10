@@ -68,6 +68,8 @@ public class BrowserMessage
 		private boolean completed;
 
 		private boolean completeDelayed;
+		
+		private String referer;
 
     public BrowserMessage ( String sMsg ) {
         if ( sMsg == null ) {
@@ -277,4 +279,12 @@ public class BrowserMessage
         return "[" + sequence + "] " + listenerId + "." 
                 + operationId + "(" + params + ")";
     }
+
+		public String getReferer() {
+			return referer;
+		}
+
+		public void setReferer(String referer) {
+			this.referer = referer;
+		}
 }

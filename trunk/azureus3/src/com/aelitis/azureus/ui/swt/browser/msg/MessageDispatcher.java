@@ -170,16 +170,16 @@ public class MessageDispatcher implements StatusTextListener, TitleListener
      * @see org.eclipse.swt.browser.StatusTextListener#changed(org.eclipse.swt.browser.StatusTextEvent)
      */
     public void changed(StatusTextEvent event) {
-    	processIncomingMessage(event.text);
+    	processIncomingMessage(event.text, ((Browser)event.widget).getUrl());
     }
 
 
 		// @see org.eclipse.swt.browser.TitleListener#changed(org.eclipse.swt.browser.TitleEvent)
 		public void changed(TitleEvent event) {
-    	processIncomingMessage(event.title);
+    	processIncomingMessage(event.title, ((Browser)event.widget).getUrl());
 		}
 		
-	private void processIncomingMessage(String msg) {
+	private void processIncomingMessage(String msg, String referer) {
 		if (msg == null) {
 			return;
 		}
@@ -197,7 +197,9 @@ public class MessageDispatcher implements StatusTextListener, TitleListener
 
 		if (msg.startsWith(BrowserMessage.MESSAGE_PREFIX)) {
 			try {
-				dispatch(new BrowserMessage(msg));
+				BrowserMessage browserMessage = new BrowserMessage(msg);
+				browserMessage.setReferer(referer);
+				dispatch(browserMessage);
 			} catch (Exception e) {
 				Debug.out(e);
 			}
