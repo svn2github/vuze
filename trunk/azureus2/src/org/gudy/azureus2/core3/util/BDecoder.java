@@ -537,7 +537,7 @@ public class BDecoder {
   main(
 	 String[]	args )
   {	  
-	  print( 	new File( "C:\\Temp\\plat.torrent" ),
-			  	new File( "C:\\Temp\\plat.txt" ));
+	  print( 	new File( "C:\\Temp\\xxx.torrent" ),
+			  	new File( "C:\\Temp\\xxx.txt" ));
   }
 }

@@ -3785,6 +3785,11 @@ PEPeerControlImpl
 	{
 		writer.println( "PeerManager: seeding=" + seeding_mode );
 		
+		writer.println( 
+				"    udp_fb=" + udp_fallbacks.size() +
+				",udp_tc=" + udp_traversal_count +
+				",pd=[" + peer_database.getString() + "]");
+		
 		if ( !seeding_mode ){
 			
 			writer.println( "  Active Pieces" );

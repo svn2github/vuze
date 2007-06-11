@@ -375,4 +375,10 @@ public class PeerDatabase {
   
   
   //TODO destroy() method?
+  
+  public String
+  getString()
+  {
+	  return("pc=" + peer_connections.size() + ",dp=" + discovered_peers.size());
+  }
 }
