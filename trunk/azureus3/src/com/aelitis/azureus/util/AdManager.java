@@ -89,9 +89,12 @@ public class AdManager
 
 			public void downloadManagerAdded(final DownloadManager dm) {
 
-				hookDM(new DownloadManager[] {
-					dm
-				});
+				TOTorrent torrent = dm.getTorrent();
+				if (PlatformTorrentUtils.getAdId(torrent) == null) {
+  				hookDM(new DownloadManager[] {
+  					dm
+  				});
+				}
 			}
 		}, false);
 		DownloadManager[] dms = (DownloadManager[]) gm.getDownloadManagers().toArray(
@@ -132,8 +135,11 @@ public class AdManager
 						list.add(dm);
 					}
 				}
-
-				// TODO: Add incomplete ads
+				
+				if (list.size() == 0) {
+					debug("no ad enabled content.  skipping ad get.");
+					return;
+				}
 
 				try {
 					debug("sending ad request for " + list.size()
@@ -144,7 +150,7 @@ public class AdManager
 					PlatformAdManager.getAds(dmAdable, 1000,
 							new PlatformAdManager.GetAdsDataReplyListener() {
 								public void replyReceived(String replyType, Map mapHashes) {
-									debug("bad reply");
+									debug("bad reply. " + mapHashes.get("text"));
 								}
 
 								public void messageSent() {
