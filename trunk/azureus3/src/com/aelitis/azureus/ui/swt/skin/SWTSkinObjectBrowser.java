@@ -20,11 +20,15 @@
 
 package com.aelitis.azureus.ui.swt.skin;
 
+import java.io.File;
+import java.net.URL;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -34,6 +38,11 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
+import com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster;
+import com.aelitis.azureus.ui.swt.browser.listener.publish.PublishListener;
+import com.aelitis.azureus.util.LocalResourceHTTPServer;
+
+import org.gudy.azureus2.plugins.PluginInterface;
 
 /**
  * @author TuxPaper
@@ -42,6 +51,7 @@ import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
  */
 public class SWTSkinObjectBrowser
 	extends SWTSkinObjectBasic
+	implements LocalHoster
 {
 
 	private Browser browser;
@@ -49,6 +59,8 @@ public class SWTSkinObjectBrowser
 	private Composite cArea;
 
 	private String sStartURL;
+
+	private LocalResourceHTTPServer local_publisher;
 
 	/**
 	 * @param skin
@@ -83,6 +95,8 @@ public class SWTSkinObjectBrowser
 		context.addMessageListener(new TorrentListener(core));
 		context.addMessageListener(new DisplayListener(browser));
 		context.addMessageListener(new ConfigListener(browser));
+		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
+		context.addMessageListener(new PublishListener(skin.getShell(), pi, this));
 
 		setControl(browser);
 	}
@@ -105,7 +119,8 @@ public class SWTSkinObjectBrowser
 	}
 
 	public void restart() {
-		setURL(sStartURL);
+		// TODO: Replace the existing rand
+		setURL(sStartURL + (sStartURL.indexOf('?') > 0 ? "&" : "?") + "rand=" + SystemTime.getCurrentTime());
 	}
 
 	/**
@@ -113,5 +128,24 @@ public class SWTSkinObjectBrowser
 	 */
 	public void layout() {
 		cArea.layout();
+	}
+
+	// @see com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster#hostFile(java.io.File)
+	public URL hostFile(File f) {
+		if (local_publisher == null) {
+			try {
+				PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
+				local_publisher = new LocalResourceHTTPServer(pi, null);
+			} catch (Throwable e) {
+				Debug.out("Failed to create local resource publisher", e);
+				return null;
+			}
+		}
+		try {
+			return local_publisher.publishResource(f);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }
