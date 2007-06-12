@@ -8,12 +8,15 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.config.StringListParameter;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.SWT;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSpeedTesterResult;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderV2;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedLimitConfidence;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedLimitMonitor;
 
 
 /**
@@ -48,6 +51,9 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
     Text uploadText;
     Button apply;
 
+    StringListParameter downConfLevel;
+    StringListParameter upConfLevel;
+
 
 
     public SetUploadLimitPanel(Wizard wizard, IWizardPanel previousPanel, int upload, int download) {
@@ -76,19 +82,19 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         panel.setLayoutData(gridData);
 
         layout = new GridLayout();
-        layout.numColumns = 3;
+        layout.numColumns = 4;
         panel.setLayout(layout);
 
         Label explain = new Label(panel, SWT.WRAP);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
-        gridData.horizontalSpan = 3;
+        gridData.horizontalSpan = 4;
         explain.setLayoutData(gridData);
         Messages.setLanguageText(explain,"SpeedTestWizard.set.upload.panel.explain");
 
         //spacer line
         Label spacer = new Label(panel, SWT.NULL);
         gridData = new GridData();
-        gridData.horizontalSpan = 3;
+        gridData.horizontalSpan = 4;
         spacer.setLayoutData(gridData);
 
         Label spacer1 = new Label(panel, SWT.NULL);
@@ -97,15 +103,23 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
 
         Label bytesCol = new Label(panel, SWT.NULL);
         gridData = new GridData();
+        gridData.widthHint=80;
         bytesCol.setLayoutData(gridData);
         Messages.setLanguageText(bytesCol,"SpeedTestWizard.set.upload.bytes.per.sec");
 
         Label bitsCol = new Label(panel, SWT.NULL);
         gridData = new GridData();
+        gridData.widthHint=80;
         bitsCol.setLayoutData(gridData);
         Messages.setLanguageText(bitsCol,"SpeedTestWizard.set.upload.bits.per.sec");
 
-        
+        Label confLevel = new Label(panel, SWT.NULL);
+        gridData = new GridData();
+        gridData.widthHint=80;
+        confLevel.setLayoutData(gridData);
+        Messages.setLanguageText(confLevel,"SpeedTestWizard.set.limit.conf.level");
+
+
         //download limit label.
         Label dl = new Label( panel, SWT.NULL );
         gridData = new GridData();
@@ -134,6 +148,19 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         //convert bytes to bits on the fly for user.
         downloadLimitSetting.addListener(SWT.Modify, new ByteConversionListener(downEcho, downloadLimitSetting) );
 
+        //download confidence setting.
+        String[] confName = {
+                SpeedLimitConfidence.ABSOLUTE.getInternationalizedString(),
+                SpeedLimitConfidence.HIGH.getInternationalizedString(),
+                SpeedLimitConfidence.MED.getInternationalizedString(),
+                SpeedLimitConfidence.LOW.getInternationalizedString()
+        };
+
+        downConfLevel = new StringListParameter(panel,
+                SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
+                SpeedLimitConfidence.HIGH.getString(),
+                confName, confName,true);
+
         //upload limit label.
         Label ul = new Label(panel, SWT.NULL );
         gridData = new GridData();
@@ -147,13 +174,13 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         gridData = new GridData(GridData.BEGINNING);
         gridData.widthHint=80;
         uploadLimitSetting.setLayoutData(gridData);
-        int eightyPercent = calculatePercent(measuredUploadKbps,80);
+        int uploadCapacity = calculatePercent(measuredUploadKbps,100);
 
         //don't accept any value less the 20 kb/s
-        if(eightyPercent<20)
-            eightyPercent=20;
+        if(uploadCapacity<20)
+            uploadCapacity=20;
 
-        uploadLimitSetting.setText( ""+eightyPercent );
+        uploadLimitSetting.setText( ""+uploadCapacity );
         uploadLimitSetting.addListener(SWT.Verify, new NumberListener(uploadLimitSetting));
 
 
@@ -162,11 +189,17 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         gridData = new GridData();
         gridData.horizontalSpan = 1;
         echo.setLayoutData(gridData);
-        echo.setText( DisplayFormatters.formatByteCountToBitsPerSec(eightyPercent*1024) );
+        echo.setText( DisplayFormatters.formatByteCountToBitsPerSec(uploadCapacity*1024) );
         //This space has a change listener the updates in bits/sec.
 
         //want a change listener to update the echo label which has the value in bits/sec.
         uploadLimitSetting.addListener(SWT.Modify, new ByteConversionListener(echo,uploadLimitSetting));
+
+        //upload confidence setting.
+        upConfLevel = new StringListParameter(panel,
+                SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,
+                SpeedLimitConfidence.HIGH.getString(),
+                confName, confName, true);
 
 
         //spacer col
@@ -191,6 +224,11 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
                 if(uploadLimitKBPS<20)
                     uploadLimitKBPS=20;
 
+                //download value can never be less then upload.
+                if( downlaodLimitKBPS < uploadLimitKBPS ){
+                    downlaodLimitKBPS = uploadLimitKBPS;
+                }
+
                 //set upload limits
                 COConfigurationManager.setParameter( "AutoSpeed Max Upload KBs", uploadLimitKBPS ); //ToDo: does this go in TransferSpeedValidator?
                 COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_CONFIGKEY, uploadLimitKBPS );
@@ -200,7 +238,25 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
                 COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT, uploadLimitKBPS*1024);
                 COConfigurationManager.setParameter(SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT, downlaodLimitKBPS*1024);
 
-                //ToDo: This should also set the download limits. Do we want the SpeedTest to configure the AutoSpeedV2.
+                //set the min values as the greater of 10% of max, or 5 kBytes/sec.
+                int uploadMinKBPS = uploadLimitKBPS/10;
+                int downloadMinKBPS = downlaodLimitKBPS/10;
+
+                if( uploadMinKBPS<5 ){
+                    uploadMinKBPS = 5;
+                }
+                if( downloadMinKBPS<5){
+                    downloadMinKBPS = 5;
+                }
+
+
+
+
+                String downConfValue = downConfLevel.getValue();
+                String upConfValue = upConfLevel.getValue();
+                COConfigurationManager.setParameter( SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, downConfValue );
+                COConfigurationManager.setParameter( SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING, upConfValue );
+
 
                 wizard.setFinishEnabled(true);
                 wizard.setPreviousEnabled(false);

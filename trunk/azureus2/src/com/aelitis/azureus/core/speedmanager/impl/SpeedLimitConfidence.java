@@ -1,5 +1,7 @@
 package com.aelitis.azureus.core.speedmanager.impl;
 
+import org.gudy.azureus2.core3.internat.MessageText;
+
 /**
  * Created on Jun 5, 2007
  * Created by Alan Snyder
@@ -67,6 +69,18 @@ public class SpeedLimitConfidence
 
     public String getString(){
         return name;
+    }
+
+
+    private static final String MESSAGE_BUNDLE_PREFIX = "SpeedTestWizard.name.conf.level.";
+    /**
+     * Get the internationalized string for UI panels and
+     * drop downs.
+     * @return - Internationalized String.
+     */
+    public String getInternationalizedString(){
+
+        return MessageText.getString( MESSAGE_BUNDLE_PREFIX + name.toLowerCase() );
     }
 
     /**
