@@ -37,6 +37,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.update.AzureusRestarter;
 
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 public class 
 AzureusRestarterImpl 
@@ -186,7 +187,7 @@ AzureusRestarterImpl
 				Logger.log(new LogEvent(LOGID, str));
 			}
 
-		}, MAIN_CLASS, properties, parameters);
+		}, MAIN_CLASS, properties, parameters, update_only);
 		
 			// just check if any non-logged data exists
 		
@@ -252,7 +253,7 @@ AzureusRestarterImpl
 				if (AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUpdateManager().getInstallers().length > 0) {
 					log.println("Vista restart w/Updates.. checking if EXE needed");
 					try {
-						final File writeFile = FileUtil.getApplicationFile("write.tst");
+						final File writeFile = FileUtil.getApplicationFile("write.dll");
 						// should fail if no perms, but sometimes it's created in
 						// virtualstore (if ran from java(w).exe for example)
 						FileOutputStream fos = new FileOutputStream(writeFile);
@@ -298,33 +299,59 @@ AzureusRestarterImpl
   		String exeUpdater,
       String[]  properties,
       String[]  parameters,
-      String backupJavaRunString) 
+      String backupJavaRunString,
+      boolean update_only) 
   {
+		String azRunner = null;
+		File fileRestart = null;
+		if (!update_only) {
+  		try {
+  			azRunner = PlatformManagerFactory.getPlatformManager().getApplicationCommandLine();
+  		} catch (PlatformManagerException e) {
+  			// TODO Auto-generated catch block
+  			e.printStackTrace();
+  		}
+		}
+
 		try {
-			String execEXE = "\"-J" + getClassPath().replaceAll("\\\"", "") + "\" ";
-
-			for (int i = 0; i < properties.length; i++) {
-				execEXE += "\"-J" + properties[i].replaceAll("\\\"", "") + "\" ";
-			}
-
-			for (int i = 0; i < properties.length; i++) {
-				execEXE += "\"-J" + properties[i].replaceAll("\\\"", "") + "\" ";
-			}
-
-			for (int i = 0; i < parameters.length; i++) {
-				execEXE += " \"" + parameters[i].replaceAll("\\\"", "") + "\"";
-			}
-
-			log.println("Launch via " + exeUpdater + " params " + execEXE);
-			
 			int result;
-			
 			AEWin32Access accessor = AEWin32Manager.getAccessor(true);
 			if (accessor == null) {
 				result = -123;
 			} else {
-				result = accessor.shellExecute(null, exeUpdater, execEXE,
-					SystemProperties.getApplicationPath(), AEWin32Access.SW_NORMAL);
+				if (azRunner != null) {
+					// create a batch file to run the updater, then to restart azureus
+					// bceause the updater would restart azureus as administrator user
+					// and confuse the user
+					fileRestart = FileUtil.getUserFile("restart.bat");
+					String s = "title Azureus Updater Runner\r\n";
+					s += exeUpdater + " \"updateonly\"";
+					for (int i = 1; i < parameters.length; i++) {
+						s += " \"" + parameters[i].replaceAll("\\\"", "") + "\"";
+					}
+					s += "\r\n";
+					s += "start \"\" \"" + azRunner + "\"";
+					FileUtil.writeBytesAsFile(fileRestart.getAbsolutePath(), s.getBytes());
+
+					result = accessor.shellExecute(null, fileRestart.getAbsolutePath(),
+							null, SystemProperties.getApplicationPath(),
+							AEWin32Access.SW_SHOWMINIMIZED);
+				} else {
+					String execEXE = "\"-J" + getClassPath().replaceAll("\\\"", "")
+							+ "\" ";
+
+					for (int i = 0; i < properties.length; i++) {
+						execEXE += "\"-J" + properties[i].replaceAll("\\\"", "") + "\" ";
+					}
+
+					for (int i = 0; i < parameters.length; i++) {
+						execEXE += " \"" + parameters[i].replaceAll("\\\"", "") + "\"";
+					}
+
+					log.println("Launch via " + exeUpdater + " params " + execEXE);
+					result = accessor.shellExecute(null, exeUpdater, execEXE,
+							SystemProperties.getApplicationPath(), AEWin32Access.SW_NORMAL);
+				}
 			}
 
 			/*
@@ -371,7 +398,7 @@ AzureusRestarterImpl
 					case 11:
 						key = "bad";
 						break;
-						
+
 					case -123:
 						key = "nowin32";
 						break;
@@ -414,7 +441,8 @@ AzureusRestarterImpl
       PrintWriter log, 
     String    mainClass,
     String[]  properties,
-    String[]  parameters ) 
+    String[]  parameters,
+    boolean update_only) 
   {
     if(Constants.isOSX){
     	
@@ -426,7 +454,7 @@ AzureusRestarterImpl
       
     }else{
     	
-    	restartAzureus_win32(log,mainClass,properties,parameters);
+    	restartAzureus_win32(log,mainClass,properties,parameters,update_only);
     }
   }
   
@@ -435,7 +463,8 @@ AzureusRestarterImpl
       PrintWriter log,
     String    mainClass,
     String[]  properties,
-    String[]  parameters) 
+    String[]  parameters,
+    boolean	update_only) 
   {
   	String exeUpdater = getExeUpdater(log);  // Not for Updater.java
 
@@ -455,7 +484,7 @@ AzureusRestarterImpl
 		}
 
 		if (exeUpdater != null) {
-			restartViaEXE(log, exeUpdater, properties, parameters, exec);
+			restartViaEXE(log, exeUpdater, properties, parameters, exec, update_only);
 		} else {
 			if (log != null) {
 				log.println("  " + exec);
