@@ -263,6 +263,6 @@ public class ImageLoader
 	}
 
 	public static boolean isRealImage(Image image) {
-		return image != null && image != getNoImage();
+		return image != null && image != getNoImage() && !image.isDisposed();
 	}
 }
