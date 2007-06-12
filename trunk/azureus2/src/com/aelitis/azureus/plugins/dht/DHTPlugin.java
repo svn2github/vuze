@@ -1057,6 +1057,18 @@ DHTPlugin
 		}
 	}
 	
+	public boolean
+	hasLocalKey(
+		byte[]		hash )
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+		
+		return( dhts[0].getLocalValue( hash ) != null );
+	}
+	
 	public void
 	remove(
 		final byte[]						key,

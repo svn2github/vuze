@@ -97,6 +97,11 @@ DHTTrackerPlugin
 	private static final int	INTERESTING_AVAIL_MAX		= 8;	// won't pub if more
 	private static final int	INTERESTING_PUB_MAX_DEFAULT	= 30;	// limit on pubs
 	
+	private static final int	REG_TYPE_NONE			= 1;
+	private static final int	REG_TYPE_FULL			= 2;
+	private static final int	REG_TYPE_DERIVED		= 3;
+	
+	
 	private static final boolean	TRACK_NORMAL_DEFAULT	= true;
 	
 	private static final int	NUM_WANT			= 30;	// Limit to ensure replies fit in 1 packet
@@ -125,7 +130,7 @@ DHTTrackerPlugin
 	private Map					interesting_downloads 	= new HashMap();
 	private int					interesting_published	= 0;
 	private int					interesting_pub_max		= INTERESTING_PUB_MAX_DEFAULT;
-	private Set					running_downloads 		= new HashSet();
+	private Map					running_downloads 		= new HashMap();
 	private Map					registered_downloads 	= new HashMap();
 	
 	private Map					query_map			 	= new HashMap();
@@ -629,7 +634,7 @@ DHTTrackerPlugin
 	{
 		int	state = download.getState();
 			
-		boolean	register_it	= false;
+		int	register_type	= REG_TYPE_NONE;
 		
 		String	register_reason;
 		
@@ -644,7 +649,7 @@ DHTTrackerPlugin
 				state == Download.ST_SEEDING 		||
 				// state == Download.ST_QUEUED 		||	
 				download.isPaused()){	// pause is a transitory state, don't dereg
-			
+						
 			String[]	networks = download.getListAttribute( ta_networks );
 			
 			Torrent	torrent = download.getTorrent();
@@ -669,10 +674,10 @@ DHTTrackerPlugin
 						
 							// peer source not relevant for decentralised torrents
 						
-						register_it	= true;
+						register_type	= REG_TYPE_FULL;
 						
 						register_reason = "decentralised";
-	
+							
 					}else{
 						
 						if ( torrent.isDecentralisedBackupEnabled()){
@@ -696,10 +701,21 @@ DHTTrackerPlugin
 								register_reason = "decentralised peer source disabled";
 								
 							}else{
-										
+									// this will always be true since change to exclude queued...
+								
+								boolean	is_active = 
+											state == Download.ST_DOWNLOADING ||
+											state == Download.ST_SEEDING ||
+											download.isPaused();
+
+								if ( is_active ){
+									
+									register_type = REG_TYPE_DERIVED;
+								}
+								
 								if( torrent.isDecentralisedBackupRequested()){
 									
-									register_it	= true;
+									register_type	= REG_TYPE_FULL;
 									
 									register_reason = "torrent requests decentralised tracking";
 									
@@ -707,9 +723,7 @@ DHTTrackerPlugin
 									
 										// only track if torrent's tracker is not available
 																
-									if ( 	state == Download.ST_DOWNLOADING ||
-											state == Download.ST_SEEDING ||
-											download.isPaused()){
+									if ( is_active ){
 										
 										DownloadAnnounceResult result = download.getLastAnnounceResult();
 										
@@ -717,7 +731,7 @@ DHTTrackerPlugin
 												result.getResponseType() == DownloadAnnounceResult.RT_ERROR ||
 												TorrentUtils.isDecentralised(result.getURL())){
 											
-											register_it	= true;
+											register_type	= REG_TYPE_FULL;
 											
 											register_reason = "tracker unavailable (announce)";
 											
@@ -733,7 +747,7 @@ DHTTrackerPlugin
 												result.getResponseType() == DownloadScrapeResult.RT_ERROR ||
 												TorrentUtils.isDecentralised(result.getURL())){
 											
-											register_it	= true;
+											register_type	= REG_TYPE_FULL;
 											
 											register_reason = "tracker unavailable (scrape)";
 											
@@ -743,7 +757,7 @@ DHTTrackerPlugin
 										}
 									}
 								}else{
-									register_it	= true;
+									register_type	= REG_TYPE_FULL;
 									
 									register_reason = "peer source enabled";
 								}
@@ -760,6 +774,18 @@ DHTTrackerPlugin
 			}else{
 				
 				register_reason = "torrent is broken";
+			}
+			
+			if ( register_type == REG_TYPE_DERIVED ){
+								
+				if ( register_reason.length() == 0 ){
+					
+					register_reason = "derived";
+					
+				}else{
+					
+					register_reason = "derived (overriding ' " + register_reason + "')";
+				}
 			}
 		}else if ( 	state == Download.ST_STOPPED ||
 					state == Download.ST_ERROR ){
@@ -783,18 +809,28 @@ DHTTrackerPlugin
 			try{
 				this_mon.enter();
 	
-				if ( register_it ){
+				Integer	existing_type = (Integer)running_downloads.get( download );
+			
+				if ( register_type != REG_TYPE_NONE ){
 				
-					if ( !running_downloads.contains( download )){
+					if ( existing_type == null ){
 						
 						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
 								"Monitoring '" + download.getName() + "': " + register_reason);
 						
-						running_downloads.add( download );
+						running_downloads.put( download, new Integer( register_type ));
+						
+					}else if ( 	existing_type.intValue() == REG_TYPE_DERIVED &&
+								register_type == REG_TYPE_FULL ){
+						
+							// upgrade
+						
+						running_downloads.put( download, new Integer( register_type ));
+
 					}
 				}else{
 					
-					if ( running_downloads.contains( download )){
+					if ( existing_type  != null ){
 						
 						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
 								"Not monitoring '" + download.getName() + "': "
@@ -834,7 +870,7 @@ DHTTrackerPlugin
 		try{
 			this_mon.enter();
 
-			rds = new ArrayList(running_downloads);
+			rds = new ArrayList(running_downloads.keySet());
 			
 		}finally{
 			
@@ -861,17 +897,23 @@ DHTTrackerPlugin
 				
 				log.log((existing_reg==null?"Registering":"Re-registering") + " download '" + dl.getName() + "' as " + (new_flags == DHTPlugin.FLAG_SEEDING?"Seeding":"Downloading"));
 				
-				final 	long	start = SystemTime.getCurrentTime();
-				
 				RegistrationDetails	new_reg = new RegistrationDetails( port_details, new_flags );
 				
 				registered_downloads.put( dl, new_reg );
+				
+				int	reg_type = REG_TYPE_NONE;
 				
 				try{ 
 					this_mon.enter();
 
 					query_map.put( dl, new Long( now ));
+				
+					Integer x = (Integer)running_downloads.get( dl );
 					
+					if ( x != null ){
+						
+						reg_type = x.intValue();
+					}
 				}finally{
 					
 					this_mon.exit();
@@ -893,6 +935,8 @@ DHTTrackerPlugin
 		  		if ( tcp_port == 0 ){
 		  			
 		  			log.log( "    port = 0, registration not performed" );
+		  			
+		  		}else if ( reg_type == REG_TYPE_NONE ){
 		  			
 		  		}else{
 		  			
@@ -957,49 +1001,7 @@ DHTTrackerPlugin
 						value_to_put += ";" + udp_port;
 					}
 			  	    
-			  	    // don't let a put block an announce as we don't want to be waiting for 
-			  	    // this at start of day to get a torrent running
-			  	    
-			  	    // increaseActive( dl );
-			  	    
-					dht.put( 
-							dl.getTorrent().getHash(),
-							"Tracker registration of '" + dl.getName() + "' -> " + value_to_put,
-							value_to_put.getBytes(),
-							new_flags,
-							new DHTPluginOperationListener()
-							{
-								public void
-								diversified()
-								{
-								}
-								
-								public void
-								valueRead(
-									DHTPluginContact	originator,
-									DHTPluginValue		value )
-								{							
-								}
-								
-								public void
-								valueWritten(
-									DHTPluginContact	target,
-									DHTPluginValue		value )
-								{	
-								}
-	
-								public void
-								complete(
-									boolean	timeout_occurred )
-								{
-									log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
-											"Registration of '" + dl.getName()
-													+ "' completed (elapsed="
-													+ (SystemTime.getCurrentTime() - start) + ")");
-									
-									// decreaseActive( dl );
-								}
-							});
+					trackerPut( dl, value_to_put, new_flags, reg_type );
 		  		}
 			}
 		}
@@ -1015,7 +1017,7 @@ DHTTrackerPlugin
 			try{ 
 				this_mon.enter();
 
-				unregister = !running_downloads.contains( dl );
+				unregister = !running_downloads.containsKey( dl );
 				
 			}finally{
 				
@@ -1026,9 +1028,7 @@ DHTTrackerPlugin
 				
 				log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 						"Unregistering download '" + dl.getName() + "'");
-				
-				final long	start = SystemTime.getCurrentTime();
-				
+								
 				it.remove();
 				
 				try{
@@ -1041,43 +1041,7 @@ DHTTrackerPlugin
 					this_mon.exit();
 				}
 				
-				increaseActive( dl );
-				
-				dht.remove( 
-						dl.getTorrent().getHash(),
-						"Tracker deregistration of '" + dl.getName() + "'",
-						new DHTPluginOperationListener()
-						{
-							public void
-							diversified()
-							{
-							}
-							
-							public void
-							valueRead(
-								DHTPluginContact	originator,
-								DHTPluginValue		value )
-							{								
-							}
-							
-							public void
-							valueWritten(
-								DHTPluginContact	target,
-								DHTPluginValue		value )
-							{
-							}	
-
-							public void
-							complete(
-								boolean	timeout_occurred )
-							{
-								log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
-								"Unregistration of '" + dl.getName() + "' completed (elapsed="
-										+ (SystemTime.getCurrentTime() - start) + ")");
-								
-								decreaseActive( dl );
-							}
-						});
+				trackerRemove( dl );
 			}
 		}
 		
@@ -1101,11 +1065,19 @@ DHTTrackerPlugin
 			
 			if ( next_time != null && now >= next_time.longValue()){
 			
+				int	reg_type = REG_TYPE_NONE;
+				
 				try{
 					this_mon.enter();
 		
 					query_map.remove( dl );
 					
+					Integer x = (Integer)running_downloads.get( dl );
+					
+					if ( x != null ){
+						
+						reg_type = x.intValue();
+					}
 				}finally{
 					
 					this_mon.exit();
@@ -1119,7 +1091,7 @@ DHTTrackerPlugin
 				
 					// don't query if this download already has an active DHT operation
 				
-				boolean	skip	= isActive( dl );
+				boolean	skip	= isActive( dl ) || reg_type == REG_TYPE_NONE;
 				
 				if ( skip ){
 					
@@ -1140,7 +1112,7 @@ DHTTrackerPlugin
 					try{
 						this_mon.enter();
 					
-						if ( running_downloads.contains( dl )){
+						if ( running_downloads.containsKey( dl )){
 							
 								// use "min" here as we're just deferring it
 							
@@ -1152,439 +1124,618 @@ DHTTrackerPlugin
 						this_mon.exit();
 					}
 				}else{
-					final Torrent	torrent = dl.getTorrent();
-					
-					final URL	url_to_report = torrent.isDecentralised()?torrent.getAnnounceURL():DEFAULT_URL;
-					
-					increaseActive( dl );
-					
-					dht.get(dl.getTorrent().getHash(), 
-							"Tracker announce for '" + dl.getName() + "'",
-							dl.isComplete()?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
-							NUM_WANT, 
-							ANNOUNCE_TIMEOUT,
-							false, false,
-							new DHTPluginOperationListener()
-							{
-								List	addresses 	= new ArrayList();
-								List	ports		= new ArrayList();
-								List	udp_ports	= new ArrayList();
-								List	is_seeds	= new ArrayList();
-								List	flags		= new ArrayList();
-								
-								int		seed_count;
-								int		leecher_count;
-								
-								public void
-								diversified()
-								{
-								}
-								
-								public void
-								valueRead(
-									DHTPluginContact	originator,
-									DHTPluginValue		value )
-								{
-									try{										
-										String[]	tokens = new String(value.getValue()).split(";");
 									
-										String	tcp_part = tokens[0].trim();
-										
-										int	sep = tcp_part.indexOf(':');
-										
-										String	ip_str		= null;
-										String	tcp_port_str;
-										
-										if ( sep == -1 ){
-											
-											tcp_port_str = tcp_part;
-											
-										}else{
-											
-											ip_str 			= tcp_part.substring( 0, sep );							
-											tcp_port_str	= tcp_part.substring( sep+1 );	
-										}
-										
-										int	tcp_port = Integer.parseInt( tcp_port_str );
-											
-										if ( tcp_port > 0 && tcp_port < 65536 ){
-
-											String	flag_str	= null;
-											int		udp_port	= -1;
-											
-											try{
-												for (int i=1;i<tokens.length;i++){
-												
-													String	token = tokens[i].trim();
-													
-													if ( token.length() > 0 ){
-														
-														if ( Character.isDigit( token.charAt( 0 ))){
-															
-															udp_port = Integer.parseInt( token );
-															
-															if ( udp_port <= 0 || udp_port >=65536 ){
-																
-																udp_port = -1;
-															}
-														}else{
-															
-															flag_str = token;
-														}
-													}
-												}
-											}catch( Throwable e ){
-											}
-										
-											addresses.add( 
-													ip_str==null?originator.getAddress().getAddress().getHostAddress():ip_str);
-											
-											ports.add( new Integer( tcp_port ));
-											
-											udp_ports.add( new Integer( udp_port==-1?originator.getAddress().getPort():udp_port));
-											
-											flags.add( flag_str );
-											
-											if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
-												
-												leecher_count++;
-												
-												is_seeds.add( new Boolean( false ));
-
-											}else{
-												
-												is_seeds.add( new Boolean( true ));
-												
-												seed_count++;
-											}
-										}
-										
-									}catch( Throwable e ){
-										
-										// in case we get crap back (someone spamming the DHT) just
-										// silently ignore
-									}
-								}
-								
-								public void
-								valueWritten(
-									DHTPluginContact	target,
-									DHTPluginValue		value )
-								{
-								}
-	
-								public void
-								complete(
-									boolean	timeout_occurred )
-								{
-									log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
-											"Get of '" + dl.getName() + "' completed (elapsed="
-													+ (SystemTime.getCurrentTime() - start)
-													+ "), addresses = " + addresses.size() + ", seeds = "
-													+ seed_count + ", leechers = " + leecher_count);
-								
-									decreaseActive(dl);
-									
-									int	peers_found = addresses.size();
-									
-									List	peers_for_announce = new ArrayList();
-									
-										// scale min and max based on number of active torrents
-										// we don't want more than a few announces a minute
-									
-									int	announce_per_min = 4;
-									
-									int	num_active = query_map.size();
-									
-									int	announce_min = Math.max( ANNOUNCE_MIN_DEFAULT, ( num_active / announce_per_min )*60*1000 );
-									
-									announce_min = Math.min( announce_min, ANNOUNCE_MAX );
-									
-									final long	retry = announce_min + peers_found*(ANNOUNCE_MAX-announce_min)/NUM_WANT;
-																		
-									try{
-										this_mon.enter();
-									
-										if ( running_downloads.contains( dl )){
-											
-											query_map.put( dl, new Long( SystemTime.getCurrentTime() + retry ));
-										}
-										
-									}finally{
-										
-										this_mon.exit();
-									}
-									
-									boolean	we_are_seeding = dl.getState() == Download.ST_SEEDING;
-									
-									for (int i=0;i<addresses.size();i++){
-										
-											// when we are seeding ignore seeds
-										
-										if ( we_are_seeding && ((Boolean)is_seeds.get(i)).booleanValue()){
-											
-											continue;
-										}
-										
-										final int f_i = i;
-										
-										peers_for_announce.add(
-											new DownloadAnnounceResultPeer()
-											{
-												public String
-												getSource()
-												{
-													return( PEPeerSource.PS_DHT );
-												}
-												
-												public String
-												getAddress()
-												{
-													return((String)addresses.get(f_i));
-												}
-												
-												public int
-												getPort()
-												{
-													return(((Integer)ports.get(f_i)).intValue());
-												}
-												
-												public int
-												getUDPPort()
-												{
-													return(((Integer)udp_ports.get(f_i)).intValue());
-												}
-												
-												public byte[]
-												getPeerID()
-												{
-													return( null );
-												}
-												
-												public short
-												getProtocol()
-												{
-													String	flag = (String)flags.get(f_i);
-													
-													short protocol;
-													
-													if ( flag != null && flag.indexOf("C") != -1 ){
-														
-														protocol = PROTOCOL_CRYPT;
-														
-													}else{
-														
-														protocol = PROTOCOL_NORMAL;
-													}
-													
-													return( protocol );
-												}
-											});
-										
-									}
-																	
-									if ( 	dl.getState() == Download.ST_DOWNLOADING ||
-											dl.getState() == Download.ST_SEEDING ){
-									
-										final DownloadAnnounceResultPeer[]	peers = new DownloadAnnounceResultPeer[peers_for_announce.size()];
-										
-										peers_for_announce.toArray( peers );
-										
-										dl.setAnnounceResult(
-												new DownloadAnnounceResult()
-												{
-													public Download
-													getDownload()
-													{
-														return( dl );
-													}
-																								
-													public int
-													getResponseType()
-													{
-														return( DownloadAnnounceResult.RT_SUCCESS );
-													}
-																							
-													public int
-													getReportedPeerCount()
-													{
-														return( peers.length);
-													}
-															
-													public int
-													getSeedCount()
-													{
-														return( seed_count );
-													}
-													
-													public int
-													getNonSeedCount()
-													{
-														return( leecher_count );	
-													}
-													
-													public String
-													getError()
-													{
-														return( null );
-													}
-																								
-													public URL
-													getURL()
-													{
-														return( url_to_report );
-													}
-													
-													public DownloadAnnounceResultPeer[]
-													getPeers()
-													{
-														return( peers );
-													}
-													
-													public long
-													getTimeToWait()
-													{
-														return( retry/1000 );
-													}
-													
-													public Map
-													getExtensions()
-													{
-														return( null );
-													}
-												});
-									}
-										
-										// only inject the scrape result if the torrent is decentralised. If we do this for
-										// "normal" torrents then it can have unwanted side-effects, such as stopping the torrent
-										// due to ignore rules if there are no downloaders in the DHT - bthub backup, for example,
-										// isn't scrapable...
-									
-										// hmm, ok, try being a bit more relaxed about this, inject the scrape if
-										// we have any peers. 
-																		
-									boolean	inject_scrape = leecher_count > 0;
-									
-									DownloadScrapeResult result = dl.getLastScrapeResult();
-																		
-									if (	result == null || 
-											result.getResponseType() == DownloadScrapeResult.RT_ERROR ){									
-			
-									}else{
-									
-											// if the currently reported values are the same as the 
-											// ones we previously injected then overwrite them
-											// note that we can't test the URL to see if we originated
-											// the scrape values as this gets replaced when a normal
-											// scrape fails :(
-											
-										int[]	prev = (int[])scrape_injection_map.get( dl );
-											
-										if ( 	prev != null && 
-												prev[0] == result.getSeedCount() &&
-												prev[1] == result.getNonSeedCount()){
-																								
-											inject_scrape	= true;
-										}
-									}
-									
-									if ( torrent.isDecentralised() || inject_scrape ){
-										
-										
-											// make sure that the injected scrape values are consistent
-											// with our currently connected peers
-										
-										PeerManager	pm = dl.getPeerManager();
-										
-										int	local_seeds 	= 0;
-										int	local_leechers 	= 0;
-										
-										if ( pm != null ){
-											
-											Peer[]	dl_peers = pm.getPeers();
-											
-											for (int i=0;i<dl_peers.length;i++){
-												
-												Peer	dl_peer = dl_peers[i];
-												
-												if ( dl_peer.getPercentDoneInThousandNotation() == 1000 ){
-													
-													local_seeds++;
-													
-												}else{
-													local_leechers++;
-												}
-											}							
-										}
-										
-										final int f_adj_seeds 		= Math.max( seed_count, local_seeds );
-										final int f_adj_leechers	= Math.max( leecher_count, local_leechers );
-										
-										scrape_injection_map.put( dl, new int[]{ f_adj_seeds, f_adj_leechers });
-
-										dl.setScrapeResult(
-											new DownloadScrapeResult()
-											{
-												public Download
-												getDownload()
-												{
-													return( dl );
-												}
-												
-												public int
-												getResponseType()
-												{
-													return( RT_SUCCESS );
-												}
-												
-												public int
-												getSeedCount()
-												{
-													return( f_adj_seeds );
-												}
-												
-												public int
-												getNonSeedCount()
-												{
-													return( f_adj_leechers );
-												}
-		
-												public long
-												getScrapeStartTime()
-												{
-													return( start );
-												}
-													
-												public void 
-												setNextScrapeStartTime(
-													long nextScrapeStartTime)
-												{
-													
-												}
-												public long
-												getNextScrapeStartTime()
-												{
-													return( SystemTime.getCurrentTime() + retry );
-												}
-												
-												public String
-												getStatus()
-												{
-													return( "OK" );
-												}
-		
-												public URL
-												getURL()
-												{
-													return( url_to_report );
-												}
-											});
-										}	
-								}
-							});
+					trackerGet( dl, reg_type );
 				}
 			}
 		}
+	}
+	
+	protected void
+	trackerPut(
+		final Download	download,
+		String			value,
+		byte			flags,
+		int				reg_type )
+	{
+		final 	long	start = SystemTime.getCurrentTime();
+		
+  	    // don't let a put block an announce as we don't want to be waiting for 
+  	    // this at start of day to get a torrent running
+  	    
+  	    // increaseActive( dl );
+  	    
+		trackerTarget[] targets = getTrackerTargets( download, reg_type );
+		
+		for (int i=0;i<targets.length;i++){
+			
+			final trackerTarget target = targets[i];
+
+			dht.put( 
+					target.getHash(),
+					"Tracker registration of '" + download.getName() + "'" + target.getDesc() + " -> " + value,
+					value.getBytes(),
+					flags,
+					new DHTPluginOperationListener()
+					{
+						public void
+						diversified()
+						{
+						}
+						
+						public void
+						valueRead(
+							DHTPluginContact	originator,
+							DHTPluginValue		value )
+						{							
+						}
+						
+						public void
+						valueWritten(
+							DHTPluginContact	target,
+							DHTPluginValue		value )
+						{	
+						}
+	
+						public void
+						complete(
+							boolean	timeout_occurred )
+						{
+							log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
+									"Registration of '" + download.getName()
+											+ "'" + target.getDesc() + " completed (elapsed="
+											+ (SystemTime.getCurrentTime() - start) + ")");
+							
+							// decreaseActive( dl );
+						}
+					});
+		}
+	}
+	
+	protected void
+	trackerGet(
+		final Download	download,
+		int				reg_type )
+	{
+		final 	long	start = SystemTime.getCurrentTime();
+
+		final Torrent	torrent = download.getTorrent();
+		
+		final URL	url_to_report = torrent.isDecentralised()?torrent.getAnnounceURL():DEFAULT_URL;
+
+		trackerTarget[] targets = getTrackerTargets( download, reg_type );
+		
+		for (int i=0;i<targets.length;i++){
+			
+			final trackerTarget target = targets[i];
+	
+			increaseActive( download );
+			
+			dht.get(target.getHash(), 
+					"Tracker announce for '" + download.getName() + "'" + target.getDesc(),
+					download.isComplete()?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
+					NUM_WANT, 
+					ANNOUNCE_TIMEOUT,
+					false, false,
+					new DHTPluginOperationListener()
+					{
+						List	addresses 	= new ArrayList();
+						List	ports		= new ArrayList();
+						List	udp_ports	= new ArrayList();
+						List	is_seeds	= new ArrayList();
+						List	flags		= new ArrayList();
+						
+						int		seed_count;
+						int		leecher_count;
+						
+						public void
+						diversified()
+						{
+						}
+						
+						public void
+						valueRead(
+							DHTPluginContact	originator,
+							DHTPluginValue		value )
+						{
+							try{										
+								String[]	tokens = new String(value.getValue()).split(";");
+							
+								String	tcp_part = tokens[0].trim();
+								
+								int	sep = tcp_part.indexOf(':');
+								
+								String	ip_str		= null;
+								String	tcp_port_str;
+								
+								if ( sep == -1 ){
+									
+									tcp_port_str = tcp_part;
+									
+								}else{
+									
+									ip_str 			= tcp_part.substring( 0, sep );							
+									tcp_port_str	= tcp_part.substring( sep+1 );	
+								}
+								
+								int	tcp_port = Integer.parseInt( tcp_port_str );
+									
+								if ( tcp_port > 0 && tcp_port < 65536 ){
+	
+									String	flag_str	= null;
+									int		udp_port	= -1;
+									
+									try{
+										for (int i=1;i<tokens.length;i++){
+										
+											String	token = tokens[i].trim();
+											
+											if ( token.length() > 0 ){
+												
+												if ( Character.isDigit( token.charAt( 0 ))){
+													
+													udp_port = Integer.parseInt( token );
+													
+													if ( udp_port <= 0 || udp_port >=65536 ){
+														
+														udp_port = -1;
+													}
+												}else{
+													
+													flag_str = token;
+												}
+											}
+										}
+									}catch( Throwable e ){
+									}
+								
+									addresses.add( 
+											ip_str==null?originator.getAddress().getAddress().getHostAddress():ip_str);
+									
+									ports.add( new Integer( tcp_port ));
+									
+									udp_ports.add( new Integer( udp_port==-1?originator.getAddress().getPort():udp_port));
+									
+									flags.add( flag_str );
+									
+									if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
+										
+										leecher_count++;
+										
+										is_seeds.add( new Boolean( false ));
+	
+									}else{
+										
+										is_seeds.add( new Boolean( true ));
+										
+										seed_count++;
+									}
+								}
+								
+							}catch( Throwable e ){
+								
+								// in case we get crap back (someone spamming the DHT) just
+								// silently ignore
+							}
+						}
+						
+						public void
+						valueWritten(
+							DHTPluginContact	target,
+							DHTPluginValue		value )
+						{
+						}
+	
+						public void
+						complete(
+							boolean	timeout_occurred )
+						{
+							log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
+									"Get of '" + download.getName() + "'" + target.getDesc() + " completed (elapsed="
+											+ (SystemTime.getCurrentTime() - start)
+											+ "), addresses=" + addresses.size() + ", seeds="
+											+ seed_count + ", leechers=" + leecher_count);
+						
+							decreaseActive(download);
+							
+							int	peers_found = addresses.size();
+							
+							List	peers_for_announce = new ArrayList();
+							
+								// scale min and max based on number of active torrents
+								// we don't want more than a few announces a minute
+							
+							int	announce_per_min = 4;
+							
+							int	num_active = query_map.size();
+							
+							int	announce_min = Math.max( ANNOUNCE_MIN_DEFAULT, ( num_active / announce_per_min )*60*1000 );
+							
+							announce_min = Math.min( announce_min, ANNOUNCE_MAX );
+							
+							final long	retry = announce_min + peers_found*(ANNOUNCE_MAX-announce_min)/NUM_WANT;
+																
+							try{
+								this_mon.enter();
+							
+								if ( running_downloads.containsKey( download )){
+									
+									query_map.put( download, new Long( SystemTime.getCurrentTime() + retry ));
+								}
+								
+							}finally{
+								
+								this_mon.exit();
+							}
+							
+							int download_state = download.getState();
+							
+							boolean	we_are_seeding = download_state == Download.ST_SEEDING;
+							
+							for (int i=0;i<addresses.size();i++){
+								
+									// when we are seeding ignore seeds
+								
+								if ( we_are_seeding && ((Boolean)is_seeds.get(i)).booleanValue()){
+									
+									continue;
+								}
+								
+								final int f_i = i;
+								
+								peers_for_announce.add(
+									new DownloadAnnounceResultPeer()
+									{
+										public String
+										getSource()
+										{
+											return( PEPeerSource.PS_DHT );
+										}
+										
+										public String
+										getAddress()
+										{
+											return((String)addresses.get(f_i));
+										}
+										
+										public int
+										getPort()
+										{
+											return(((Integer)ports.get(f_i)).intValue());
+										}
+										
+										public int
+										getUDPPort()
+										{
+											return(((Integer)udp_ports.get(f_i)).intValue());
+										}
+										
+										public byte[]
+										getPeerID()
+										{
+											return( null );
+										}
+										
+										public short
+										getProtocol()
+										{
+											String	flag = (String)flags.get(f_i);
+											
+											short protocol;
+											
+											if ( flag != null && flag.indexOf("C") != -1 ){
+												
+												protocol = PROTOCOL_CRYPT;
+												
+											}else{
+												
+												protocol = PROTOCOL_NORMAL;
+											}
+											
+											return( protocol );
+										}
+									});
+								
+							}
+															
+							if ( 	download_state == Download.ST_DOWNLOADING ||
+									download_state == Download.ST_SEEDING ){
+							
+								final DownloadAnnounceResultPeer[]	peers = new DownloadAnnounceResultPeer[peers_for_announce.size()];
+								
+								peers_for_announce.toArray( peers );
+								
+								download.setAnnounceResult(
+										new DownloadAnnounceResult()
+										{
+											public Download
+											getDownload()
+											{
+												return( download );
+											}
+																						
+											public int
+											getResponseType()
+											{
+												return( DownloadAnnounceResult.RT_SUCCESS );
+											}
+																					
+											public int
+											getReportedPeerCount()
+											{
+												return( peers.length);
+											}
+													
+											public int
+											getSeedCount()
+											{
+												return( seed_count );
+											}
+											
+											public int
+											getNonSeedCount()
+											{
+												return( leecher_count );	
+											}
+											
+											public String
+											getError()
+											{
+												return( null );
+											}
+																						
+											public URL
+											getURL()
+											{
+												return( url_to_report );
+											}
+											
+											public DownloadAnnounceResultPeer[]
+											getPeers()
+											{
+												return( peers );
+											}
+											
+											public long
+											getTimeToWait()
+											{
+												return( retry/1000 );
+											}
+											
+											public Map
+											getExtensions()
+											{
+												return( null );
+											}
+										});
+							}
+								
+								// only inject the scrape result if the torrent is decentralised. If we do this for
+								// "normal" torrents then it can have unwanted side-effects, such as stopping the torrent
+								// due to ignore rules if there are no downloaders in the DHT - bthub backup, for example,
+								// isn't scrapable...
+							
+								// hmm, ok, try being a bit more relaxed about this, inject the scrape if
+								// we have any peers. 
+																
+							boolean	inject_scrape = leecher_count > 0;
+							
+							DownloadScrapeResult result = download.getLastScrapeResult();
+																
+							if (	result == null || 
+									result.getResponseType() == DownloadScrapeResult.RT_ERROR ){									
+	
+							}else{
+							
+									// if the currently reported values are the same as the 
+									// ones we previously injected then overwrite them
+									// note that we can't test the URL to see if we originated
+									// the scrape values as this gets replaced when a normal
+									// scrape fails :(
+									
+								int[]	prev = (int[])scrape_injection_map.get( download );
+									
+								if ( 	prev != null && 
+										prev[0] == result.getSeedCount() &&
+										prev[1] == result.getNonSeedCount()){
+																						
+									inject_scrape	= true;
+								}
+							}
+							
+							if ( torrent.isDecentralised() || inject_scrape ){
+								
+								
+									// make sure that the injected scrape values are consistent
+									// with our currently connected peers
+								
+								PeerManager	pm = download.getPeerManager();
+								
+								int	local_seeds 	= 0;
+								int	local_leechers 	= 0;
+								
+								if ( pm != null ){
+									
+									Peer[]	dl_peers = pm.getPeers();
+									
+									for (int i=0;i<dl_peers.length;i++){
+										
+										Peer	dl_peer = dl_peers[i];
+										
+										if ( dl_peer.getPercentDoneInThousandNotation() == 1000 ){
+											
+											local_seeds++;
+											
+										}else{
+											local_leechers++;
+										}
+									}							
+								}
+								
+								final int f_adj_seeds 		= Math.max( seed_count, local_seeds );
+								final int f_adj_leechers	= Math.max( leecher_count, local_leechers );
+								
+								scrape_injection_map.put( download, new int[]{ f_adj_seeds, f_adj_leechers });
+	
+								download.setScrapeResult(
+									new DownloadScrapeResult()
+									{
+										public Download
+										getDownload()
+										{
+											return( download );
+										}
+										
+										public int
+										getResponseType()
+										{
+											return( RT_SUCCESS );
+										}
+										
+										public int
+										getSeedCount()
+										{
+											return( f_adj_seeds );
+										}
+										
+										public int
+										getNonSeedCount()
+										{
+											return( f_adj_leechers );
+										}
+	
+										public long
+										getScrapeStartTime()
+										{
+											return( start );
+										}
+											
+										public void 
+										setNextScrapeStartTime(
+											long nextScrapeStartTime)
+										{
+											
+										}
+										public long
+										getNextScrapeStartTime()
+										{
+											return( SystemTime.getCurrentTime() + retry );
+										}
+										
+										public String
+										getStatus()
+										{
+											return( "OK" );
+										}
+	
+										public URL
+										getURL()
+										{
+											return( url_to_report );
+										}
+									});
+								}	
+						}
+					});
+		}
+	}
+	
+	protected void
+	trackerRemove(
+		final Download	download )
+	{
+		final 	long	start = SystemTime.getCurrentTime();
+
+			// always remove all registrations
+		
+		trackerTarget[] targets = getTrackerTargets( download, REG_TYPE_FULL );
+		
+		for (int i=0;i<targets.length;i++){
+			
+			final trackerTarget target = targets[i];
+			
+			if ( dht.hasLocalKey( target.getHash())){
+				
+				increaseActive( download );
+				
+				dht.remove( 
+						target.getHash(),
+						"Tracker deregistration of '" + download.getName() + "' " + target.getDesc(),
+						new DHTPluginOperationListener()
+						{
+							public void
+							diversified()
+							{
+							}
+							
+							public void
+							valueRead(
+								DHTPluginContact	originator,
+								DHTPluginValue		value )
+							{								
+							}
+							
+							public void
+							valueWritten(
+								DHTPluginContact	target,
+								DHTPluginValue		value )
+							{
+							}	
+		
+							public void
+							complete(
+								boolean	timeout_occurred )
+							{
+								log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
+								"Unregistration of '" + download.getName() + "' " + target.getDesc() + " completed (elapsed="
+										+ (SystemTime.getCurrentTime() - start) + ")");
+								
+								decreaseActive( download );
+							}
+						});
+			}
+		}
+	}
+	
+	protected trackerTarget[]
+	getTrackerTargets(
+		Download		download,
+		int				type )
+	{
+		byte[]	torrent_hash = download.getTorrent().getHash();
+		
+		List	result = new ArrayList();
+		
+		if ( type == REG_TYPE_FULL ){
+			
+			result.add( new trackerTarget( torrent_hash, REG_TYPE_FULL, "" ));
+		}
+		
+		String as 	= COConfigurationManager.getStringParameter( "ASN AS", null );
+		String asn 	= COConfigurationManager.getStringParameter( "ASN ASN", null );
+
+		if ( as != null && as.length() > 0 && asn != null && asn.length() > 0 ){
+			 
+			String	key = "azderived:asn:" + as;
+			
+			try{
+				byte[] asn_bytes = key.getBytes( "UTF-8" );
+			
+				byte[] key_bytes = new byte[torrent_hash.length + asn_bytes.length];
+				
+				System.arraycopy( torrent_hash, 0, key_bytes, 0, torrent_hash.length );
+				
+				System.arraycopy( asn_bytes, 0, key_bytes, torrent_hash.length, asn_bytes.length );
+				
+				result.add( new trackerTarget( key_bytes, REG_TYPE_DERIVED, asn + "/" + as ));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		return((trackerTarget[])result.toArray( new trackerTarget[result.size()]));
 	}
 	
 	protected void
@@ -1615,7 +1766,9 @@ DHTTrackerPlugin
 					continue;
 				}
 				
-				if ( !running_downloads.contains( download)){
+				Integer state = (Integer)running_downloads.get( download );
+
+				if ( state == null || state.intValue() == REG_TYPE_DERIVED ){
 					
 						// looks like we'll need the scrape below
 					
@@ -1652,7 +1805,9 @@ DHTTrackerPlugin
 					continue;
 				}
 				
-				if ( !running_downloads.contains( download)){
+				Integer state = (Integer)running_downloads.get( download );
+				
+				if ( state == null || state.intValue() == REG_TYPE_DERIVED ){
 					
 					boolean	force =  torrent.wasCreatedByUs();
 					
@@ -1855,7 +2010,7 @@ DHTTrackerPlugin
 					state == Download.ST_QUEUED ){	// included queued here for the mo to avoid lots
 													// of thrash for torrents that flip a lot
 				
-				if ( running_downloads.contains( download )){
+				if ( running_downloads.containsKey( download )){
 					
 						// force requery
 					
@@ -2094,6 +2249,48 @@ DHTTrackerPlugin
 		getFlags()
 		{
 			return( flags );
+		}
+	}
+	
+	protected static class
+	trackerTarget
+	{
+		private String		desc;
+		private	byte[]		hash;
+		private int			type;
+		
+		protected
+		trackerTarget(
+			byte[]			_hash,
+			int				_type,
+			String			_desc )
+		{
+			hash		= _hash;
+			type		= _type;
+			desc		= _desc;
+		}
+		
+		private int
+		getType()
+		{
+			return( type );
+		}
+		
+		protected byte[]
+		getHash()
+		{
+			return( hash );
+		}
+		
+		protected String
+		getDesc()
+		{
+			if ( type != REG_TYPE_FULL ){
+			
+				return( " (" + desc + ")" );
+			}
+			
+			return( "" );
 		}
 	}
 }
