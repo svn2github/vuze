@@ -143,10 +143,8 @@ SpeedTestPanel
         	int	test_type = test_types[i];
         	
         	String	resource = null;
-        	
-        	if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_UPLOAD_AND_DOWNLOAD ){
-        		resource = "updown";
-        	}else if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_UPLOAD_ONLY ){
+        	        	
+            if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_UPLOAD_ONLY ){
         		resource = "up";
                 up_only_index = i;
             }else if ( test_type == NetworkAdminSpeedTester.TEST_TYPE_DOWNLOAD_ONLY ){
@@ -154,7 +152,8 @@ SpeedTestPanel
         	}else{
         		Debug.out( "Unknown test type" );
         	}
-        	testCombo.add( "BT " + MessageText.getString( "speedtest.wizard.test.mode." + resource ), i);
+            //List all test in drop-down.
+            testCombo.add( "BT " + MessageText.getString( "speedtest.wizard.test.mode." + resource ), i);
         }
         
         testCombo.select( up_only_index );

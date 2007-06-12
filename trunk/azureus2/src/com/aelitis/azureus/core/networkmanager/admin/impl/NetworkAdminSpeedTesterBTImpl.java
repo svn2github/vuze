@@ -68,7 +68,7 @@ public class NetworkAdminSpeedTesterBTImpl
     public static final String DOWNLOAD_STD_DEV = "download-std-dev";
     public static final String UPLOAD_STD_DEV = "upload-std-dev";
 
-    private static int testMode	= TEST_TYPE_UPLOAD_AND_DOWNLOAD;
+    private static int testMode = TEST_TYPE_UPLOAD_ONLY;
 
     private static TorrentAttribute speedTestAttrib;
 
@@ -379,10 +379,11 @@ public class NetworkAdminSpeedTesterBTImpl
      */
     private static int setStartPieceBasedOnMode(int mode, int totalPieces){
 
-        if(mode==TEST_TYPE_UPLOAD_AND_DOWNLOAD){
-            //upload half the pieces
-            return totalPieces/2;
-        }else if(mode==TEST_TYPE_UPLOAD_ONLY){
+        //if(mode==TEST_TYPE_UPLOAD_AND_DOWNLOAD){
+        //    //upload half the pieces
+        //    return totalPieces/2;
+        //}else
+        if(mode==TEST_TYPE_UPLOAD_ONLY){
             //upload all the pieces
             return 0;
         }else if(mode==TEST_TYPE_DOWNLOAD_ONLY){
