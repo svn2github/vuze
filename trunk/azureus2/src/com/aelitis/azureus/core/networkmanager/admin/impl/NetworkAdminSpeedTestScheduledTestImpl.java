@@ -427,6 +427,8 @@ NetworkAdminSpeedTestScheduledTestImpl
     handleChallengeFromSpeedTestService(
     	File		jar_file,
     	Map 		result )
+    
+    	throws IOException
     {
         //verify the following items are in the response.
 
@@ -460,8 +462,6 @@ NetworkAdminSpeedTestScheduledTestImpl
  
             retVal = sendRequest( request );
 
-        }catch( Throwable t ){
-            Debug.printStackTrace(t);
         }finally{
             //close
             try{
