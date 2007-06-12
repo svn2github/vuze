@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.peermanager.nat;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -68,12 +70,26 @@ PeerNATTraverser
 		return( singleton );
 	}
 	
-	private static final int MAX_ACTIVE_REQUESTS	= 3;
+	private static int MAX_ACTIVE_REQUESTS;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"peer.nat.traversal.request.conc.max",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					MAX_ACTIVE_REQUESTS = COConfigurationManager.getIntParameter( name );
+				}
+			});
+	}
 	
 	private static final int TIMER_PERIOD			= 10*1000;
 	private static final int USAGE_PERIOD			= TIMER_PERIOD;
 	private static final int USAGE_DURATION_SECS	= 60;
-	private static final int MAX_USAGE_PER_MIN		= 15*1000;
+	private static final int MAX_USAGE_PER_MIN		= MAX_ACTIVE_REQUESTS*5*1000;
 	
 	private static final int STATS_TICK_COUNT		= 120*1000 / TIMER_PERIOD;
 	
@@ -92,7 +108,7 @@ PeerNATTraverser
 	
 	private BloomFilter	negative_result_bloom = BloomFilterFactory.createAddOnly( BLOOM_SIZE );
 	
-	private static final int BLOOM_SIZE				= 4096;
+	private static final int BLOOM_SIZE				= MAX_ACTIVE_REQUESTS*1024;
 	private static final int BLOOM_REBUILD_PERIOD	= 5*60*1000;
 	private static final int BLOOM_REBUILD_TICKS	= BLOOM_REBUILD_PERIOD/TIMER_PERIOD;
 	
@@ -329,6 +345,32 @@ PeerNATTraverser
 	          	}
 			}
 		}
+	}
+	
+	public List
+	getTraversals(
+		PeerNATInitiator	initiator )
+	{
+		List result = new ArrayList();
+		
+		synchronized( initiators ){
+			
+			LinkedList	requests = (LinkedList)initiators.get( initiator );
+
+			if ( requests != null ){
+				
+				Iterator it = requests.iterator();
+				
+				while( it.hasNext()){
+					
+					PeerNATTraversal	x = (PeerNATTraversal)it.next();
+					
+					result.add( x.getTarget());
+				}
+			}
+		}
+		
+		return( result );
 	}
 	
 	protected void

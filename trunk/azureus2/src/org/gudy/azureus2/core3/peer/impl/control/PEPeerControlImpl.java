@@ -3790,6 +3790,47 @@ PEPeerControlImpl
 				",udp_tc=" + udp_traversal_count +
 				",pd=[" + peer_database.getString() + "]");
 		
+		String	pending_udp = "";
+		
+		try{
+			peer_transports_mon.enter();
+
+			Iterator	it = udp_fallbacks.values().iterator();
+			
+			while( it.hasNext()){
+			
+				PeerItem	peer_item = (PeerItem)it.next();
+			
+				pending_udp += (pending_udp.length()==0?"":",") + peer_item.getAddressString() + ":" + peer_item.getUDPPort();
+			}
+		}finally{
+			
+			peer_transports_mon.exit();
+		}
+		
+		if ( pending_udp.length() > 0 ){
+			
+			writer.println( "    pending_udp=" + pending_udp );
+		}
+		
+		List	traversals = PeerNATTraverser.getSingleton().getTraversals( this );
+		
+		String	active_udp = "";
+		
+		Iterator it = traversals.iterator();
+		
+		while( it.hasNext()){
+			
+			InetSocketAddress ad = (InetSocketAddress)it.next();
+			
+			active_udp += (active_udp.length()==0?"":",") + ad.getAddress().getHostAddress() + ":" + ad.getPort();
+		}
+		
+		if ( active_udp.length() > 0 ){
+			
+			writer.println( "    active_udp=" + active_udp );
+		}
+		
 		if ( !seeding_mode ){
 			
 			writer.println( "  Active Pieces" );
@@ -3885,7 +3926,7 @@ PEPeerControlImpl
 			try{
 				writer.indent();
 				
-				Iterator it = peer_transports_cow.iterator();
+				it = peer_transports_cow.iterator();
 				
 				while( it.hasNext()){
 				

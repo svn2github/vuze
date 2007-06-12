@@ -456,6 +456,8 @@ public class ConfigurationDefaults {
     
     def.put( "network.bind.local.port", ZERO );
     
+    def.put( "peer.nat.traversal.request.conc.max", new Long(3));
+
     // Memory settings
     
     def.put( "memory.slice.limit.multiplier", new Long(1));
