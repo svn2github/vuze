@@ -66,7 +66,7 @@ public class GUIUpdater extends AEThread implements ParameterListener {
   GUIUpdater(
 	MainWindow 		mainWindow) 
   {       
-    super("GUI updater");
+    super("GUI updater", true);
     this.mainWindow = mainWindow;
     this.display = mainWindow.getDisplay();
     
