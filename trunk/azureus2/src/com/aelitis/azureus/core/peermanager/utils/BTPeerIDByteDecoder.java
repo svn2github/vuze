@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.peermanager.utils;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -37,12 +38,11 @@ public class BTPeerIDByteDecoder {
 	
 	final static boolean LOG_UNKNOWN;
 		
-	static{
+	static {
 		String	prop = System.getProperty("log.unknown.peerids");
-		
 		LOG_UNKNOWN = prop != null && prop.equals("1");
 	}
-	 
+	
   /**
    * Decodes the given peerID, returning an identification string.
    */  
@@ -566,9 +566,53 @@ public class BTPeerIDByteDecoder {
 		return "" + byteArray[pos];
 	}
   
-  public static void main(String[] args) {
-  	for (int i = 0; i < 26; i++) {
-  		System.out.println((char)('a' + i) + ":" + parseOneByteVersionNumber(new byte[] { (byte)('a' + i) }, 0));
-  	}
-	}
+  private static void assertDecode(String client_result, String peer_id) throws Exception {
+	  if (peer_id.length() > 40) {
+		  peer_id = peer_id.replaceAll("[ ]", "");
+	  }
+	  
+	  byte[] byte_peer_id = null;
+	  if (peer_id.length() == 40) {
+		  byte_peer_id = ByteFormatter.decodeString(peer_id);
+	  }
+	  else if (peer_id.length() == 20) {
+		  byte_peer_id = peer_id.getBytes(Constants.BYTE_ENCODING);
+	  }
+	  else {
+		  throw new IllegalArgumentException(peer_id);
+	  }
+	  assertDecode(client_result, byte_peer_id);
+  }
+	  
+  private static void assertDecode(String client_result, byte[] peer_id) throws Exception {
+	  String peer_id_as_string = new String(peer_id, Constants.BYTE_ENCODING);
+	  System.out.println("Testing for " + client_result + ", peer ID: " + peer_id_as_string);
+	  String decoded_result = decode(peer_id);
+	  if (decoded_result.equals(client_result)) {return;}
+	  throw new RuntimeException("assertion failure - expected \"" + client_result + "\", got \"" + decoded_result + "\": " + peer_id_as_string);
+  }
+  
+  public static void main(String[] args) throws Exception {
+	  //assertDecode("BitTornado 0.3.9", "T0390----5uL5NvjBe2z"); // currently reported as TorrentFlux
+	  assertDecode("Mainline", "0000000000000000000000004C53441933104277");
+	  assertDecode("Shareaza 2.1.3.2", "2D535A323133322D000000000000000000000000");
+	  //assertDecode("ABC 2.6.9", "413236392D2D2D2D345077199FAEC4A673BECA01");
+	  assertDecode("BitComet 0.56", "6578626300387A4463102D6E9AD6723B339F35A9");
+	  assertDecode("Azureus 2.2.0.0", "2D415A323230302D3677664732776B3677574C63");
+	  assertDecode("BitSpirit v2", "000242539B7ED3E058A8384AA748485454504254");
+	  // assertDecode("Mainline 4.0.2", "4D342D302D322D2D6898D9D0CAF25E4555445030"); // BitSpirit spoofing Mainline.
+	  assertDecode("BitLord 0.56", "6578626300384C4F52443200048ECED57BD71028");
+	  assertDecode("BitTornado 0.3.10", "543033412D2D2D2D2D6351374B5848424E733264");
+	  assertDecode("Azureus 2.0.3.2", "2D2D2D2D2D417A757265757354694E7A2A6454A7");
+	  assertDecode("Opera (Build 7685)", "OP7685f2c1495b1680bf");
+	  assertDecode("KTorrent 1.1 RC1", "-KT11R1-693649213030");
+	  // assertDecode("BitComet UDP", "00034253 07248896 44C59530 8A5FF2CA 55445030"); // This is BitSpirit v3.
+	  //assertDecode("", "2D545432 3130772D 6471216E 57667E51 63657874"); // TuoTu
+	  //assertDecode("", "2D415432 3532302D 76454574 30774F36 76306372"); // Cyber Artemis
+	  //assertDecode("", "-AG2053-Em6o1EmvwLtD"); // Ares
+	  assertDecode("FlashGet 1.80", "2D464730 31383075 F8005782 1359D64B B3DFD265");
+	  assertDecode("Mainline 5.0.7", "4D352D30 2D372D2D 39616137 35376566 64356265");
+	  assertDecode("BitTornado 0.3.12", "54303343 2D2D2D2D 2D367459 6F6C7868 56554653");
+	  assertDecode("Rufus 0.6.9", "00455253 416E6F6E 796D6F75 7382BE42 75024AE3");
+  }
 }
