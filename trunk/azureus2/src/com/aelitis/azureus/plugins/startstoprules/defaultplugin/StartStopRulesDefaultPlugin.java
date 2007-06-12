@@ -28,13 +28,13 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt.StartStopRulesDefaultPluginSWTUI;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
@@ -169,9 +169,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	private TableContextMenuItem debugMenuItem = null;
 
 	private boolean bSWTUI = false;
-
-	TorrentAttribute torrentAttributeContent = null;
-
+	
+	private CopyOnWriteList listenersFP = new CopyOnWriteList();
+	
 	public void initialize(PluginInterface _plugin_interface) {
 		if (bAlreadyInitialized) {
 			System.err.println("StartStopRulesDefaultPlugin Already initialized!!");
@@ -184,8 +184,6 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		startedOn = SystemTime.getCurrentTime();
 
 		pi = _plugin_interface;
-		torrentAttributeContent = pi.getTorrentManager().getPluginAttribute(
-				TorrentAttribute.TA_CONTENT_MAP);
 		download_manager = pi.getDownloadManager();
 
 		pi.getPluginProperties().setProperty("plugin.version", "1.0");
@@ -1961,6 +1959,18 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		} finally {
 			writer.exdent();
 		}
+	}
+	
+	public void addListener(StartStopRulesFPListener listener) {
+		listenersFP.add(listener);
+	}
+	
+	public void removeListener(StartStopRulesFPListener listener) {
+		listenersFP.remove(listener);
+	}
+	
+	public List getFPListeners() {
+		return listenersFP.getList();
 	}
 } // class
 

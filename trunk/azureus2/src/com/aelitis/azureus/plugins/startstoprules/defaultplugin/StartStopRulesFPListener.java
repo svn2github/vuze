@@ -1,6 +1,5 @@
-/*
- * Created on Jul 25, 2006 10:42:49 AM
- * Copyright (C) 2006 Aelitis, All Rights Reserved.
+/**
+ * Copyright (C) 2007 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -8,32 +7,29 @@
  * of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
- * AELITIS, SAS au capital de 46,603.30 euros
+ * AELITIS, SAS au capital de 63.529,40 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ *
  */
-package org.gudy.azureus2.pluginsimpl.local.torrent;
+
+package com.aelitis.azureus.plugins.startstoprules.defaultplugin;
+
+import org.gudy.azureus2.plugins.download.Download;
 
 /**
  * @author TuxPaper
- * @created Jul 25, 2006
+ * @created Jun 11, 2007
  *
  */
-public class TorrentAttributeContentMapImpl extends BaseTorrentAttributeImpl
+public class StartStopRulesFPListener
 {
-	/**
-	 * 
-	 */
-	public TorrentAttributeContentMapImpl() {
+	public boolean isFirstPriority(Download download, int numSeeds, int numPeers) {
+		return false;
 	}
-
-	public String getName() {
-		return TA_CONTENT_MAP;
-	}
-
 }

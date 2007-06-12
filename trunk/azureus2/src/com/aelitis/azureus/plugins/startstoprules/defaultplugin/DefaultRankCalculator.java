@@ -19,6 +19,8 @@
  */
 package com.aelitis.azureus.plugins.startstoprules.defaultplugin;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
@@ -700,16 +702,12 @@ public class DefaultRankCalculator implements Comparable {
 		
 		int numPeers = rules.calcPeersNoUs(dl);
 		int numSeeds = rules.calcSeedsNoUs(dl);
-
-		// FP while our content doesn't have another seed
-		if (dl.getState() == Download.ST_SEEDING) {
-			Map contentMap = dl.getMapAttribute(rules.torrentAttributeContent);
-			if (contentMap != null && contentMap.containsKey("ourContent")) {
-				if (((Long) contentMap.get("ourContent")).longValue() == 1) {
-					if (dl.getStats().getAvailability() < 2 && numSeeds == 0) {
-						return true;
-					}
-				}
+		
+		List listeners = rules.getFPListeners();
+		for (Iterator iter = listeners.iterator(); iter.hasNext();) {
+			StartStopRulesFPListener l = (StartStopRulesFPListener) iter.next();
+			if (l.isFirstPriority(dl, numSeeds, numPeers)) {
+				return true;
 			}
 		}
 

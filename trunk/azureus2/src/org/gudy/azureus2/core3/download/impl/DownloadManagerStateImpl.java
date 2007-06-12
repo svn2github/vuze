@@ -22,36 +22,24 @@
 
 package org.gudy.azureus2.core3.download.impl;
 
+import java.io.*;
+import java.net.URL;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import java.io.*;
-import java.net.URL;
 
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryManager;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFactory;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
-import org.gudy.azureus2.core3.category.*;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AENetworkClassifier;
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
@@ -1508,11 +1496,11 @@ DownloadManagerStateImpl
 	}
 	
 	public boolean isOurContent() {
-		Map map = getMapAttribute(AT_CONTENT_MAP);
-		if (map == null || !map.containsKey("ourContent")) {
-			return false;
-		}
-		return ((Long)map.get("ourContent")).longValue() != 0;
+		// HACK!
+		Map mapAttr = getMapAttribute("Plugin.azdirector.ContentMap");
+
+		return mapAttr != null
+				&& mapAttr.containsKey("DIRECTOR PUBLISH");
 	}
 	
 		// general stuff

@@ -632,10 +632,6 @@ DownloadImpl
 		
 		return( DownloadManagerState.AT_RELATIVE_SAVE_PATH );	
 		
-	}else if ( attribute.getName() == TorrentAttribute.TA_CONTENT_MAP ){
-		
-		return( DownloadManagerState.AT_CONTENT_MAP );
-		
 	}else if ( attribute.getName() == TorrentAttribute.TA_SHARE_PROPERTIES ){
   		
 			// this is a share-level attribute only, not propagated to individual downloads
@@ -686,10 +682,6 @@ DownloadImpl
 		
 		return ( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_RELATIVE_SAVE_PATH ));
 		
-	}else if ( name.equals ( DownloadManagerState.AT_CONTENT_MAP)){
-		
-		return ( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_CONTENT_MAP ));
-
 	}else if ( name.startsWith( "Plugin." )){
   		
 		return( TorrentManagerImpl.getSingleton().getAttribute( name ));
