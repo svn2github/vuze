@@ -67,6 +67,8 @@ import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.GetRatingReplyListener;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFPListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -86,6 +88,8 @@ import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 
 /**
  * @author TuxPaper
@@ -575,6 +579,22 @@ public class MainWindow
   		System.out.println("skin widgets init took "
   				+ (SystemTime.getCurrentTime() - startTime) + "ms");
   		startTime = SystemTime.getCurrentTime();
+
+			PluginInterface pi = core.getPluginManager().getPluginInterfaceByID(
+					"azbpstartstoprules");
+			if (pi != null) {
+				// plugin is built in, so instead of using IPC, just cast it
+				StartStopRulesDefaultPlugin plugin = (StartStopRulesDefaultPlugin) pi.getPlugin();
+				plugin.addListener(new StartStopRulesFPListener() {
+					public boolean isFirstPriority(Download dl, int numSeeds, int numPeers) {
+						// FP while our content doesn't have another seed
+						boolean b = dl.getState() == Download.ST_SEEDING
+								&& PublishUtils.isPublished(dl)
+								&& dl.getStats().getAvailability() < 2 && numSeeds == 0;
+						return b;
+					}
+				});
+			}
 		} finally {
   		showMainWindow();
   		System.out.println("shell.open took "
@@ -615,10 +635,12 @@ public class MainWindow
 			oldMainWindow = null;
 
 			if (res == false) {
+				disposedOrDisposing = false;
 				return false;
 			}
 		} else {
 			if (!UIExitUtilsSWT.canClose(core.getGlobalManager(), bForRestart)) {
+				disposedOrDisposing = false;
 				return false;
 			}
 

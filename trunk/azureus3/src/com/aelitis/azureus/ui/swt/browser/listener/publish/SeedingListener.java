@@ -8,12 +8,12 @@ import org.gudy.azureus2.core3.util.Base32;
 
 import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
+import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
 public class SeedingListener extends AbstractMessageListener {
 
@@ -178,7 +178,7 @@ public class SeedingListener extends AbstractMessageListener {
 			
 				Download d = downloads[i];
 			
-				if( isPublished( d ) ) {  //this one we're uploading as published
+				if (PublishUtils.isPublished(d)) {  //this one we're uploading as published
 				
 					//TODO use something more explicit than swarm availability / uploaded bytes
 					
@@ -268,25 +268,6 @@ public class SeedingListener extends AbstractMessageListener {
 		catch( Throwable tt ) {
 			tt.printStackTrace();
 		}
-	}
-	
-	
-	
-	/*
-	 * TODO : Thsi method is duplicated in the DirectorPlugin
-	 */
-	private boolean isPublished( Download d ) {
-	  	//get the "content" attribute for the download
-	  	final TorrentAttribute attrib = pluginInterface.getTorrentManager().getPluginAttribute( TorrentAttribute.TA_CONTENT_MAP );
-	  	
-	  	Map content_map = d.getMapAttribute( attrib );
-			
-	    //this one we're uploading as published
-			if( content_map != null && content_map.containsKey( PublishTransaction.PUBLISH_ATTRIBUTE_KEY ) ) {   			
-				return true;			
-			}
-	  	
-	  	return false;
 	}
 
 	

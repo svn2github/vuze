@@ -20,29 +20,13 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.io.File;
-import java.net.URL;
-
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.widgets.Composite;
-
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.DownloadStateAndRemoveListener;
-import com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.LocalResourceHTTPServer;
 
 import org.gudy.azureus2.plugins.*;
 
@@ -53,16 +37,17 @@ import org.gudy.azureus2.plugins.*;
  */
 public class Publish
 	extends SkinView
-	implements LocalHoster
 {
-	private LocalResourceHTTPServer local_publisher;
-
 	private SWTSkinObjectBrowser browserSkinObject;
 
 	public Object showSupport(final SWTSkinObject skinObject, Object params) {
 		browserSkinObject = (SWTSkinObjectBrowser) skinObject;
 
 		AzureusCore core = AzureusCoreFactory.getSingleton();
+
+		// Need to have a "azdirector" plugin interface because 
+		// DownloadStateAndRemoveListener uses plugin attributes from it, and I'm
+		// to lazy to refactor it atm
 
 		// first, check if it's already there (evil!)
 		PluginInterface pi = core.getPluginManager().getPluginInterfaceByID(
@@ -78,44 +63,20 @@ public class Publish
 			pi = core.getPluginManager().getPluginInterfaceByID("azdirector");
 		}
 
-		// bridge between pi and core
-		UISWTInstance swtInstance = UIFunctionsManagerSWT.getUIFunctionsSWT().getUISWTInstance();
-
-		// copied from DirectorPlugin.initialize
-		// For sending the thumbnail to the platform
-		try {
-			local_publisher = new LocalResourceHTTPServer(pi, null);
-		} catch (Throwable e) {
-			Debug.out("Failed to create local resource publisher", e);
-		}
-
-		Browser browser = browserSkinObject.getBrowser();
-
 		// copied from DirectorPlugin.java
 		// We are going to monitor Published Torrent to alert the User when he 
 		// removes a published torrent from azureus
 		DownloadStateAndRemoveListener downloadListener = new DownloadStateAndRemoveListener(
-				pi, browser.getDisplay(), swtInstance);
+				pi, skinObject.getControl().getDisplay());
 		pi.getDownloadManager().addListener(downloadListener);
 
-		// copied from PublisherPanel.initUI
-		ClientMessageContext context = new BrowserContext("publish", browser, null);
-		PublishUtils.setupContext(context, browser, pi, this, downloadListener);
+		PublishUtils.setupContext(browserSkinObject.getContext(), pi, downloadListener);
 
 		String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISH + "?"
 				+ Constants.URL_SUFFIX;
 		browserSkinObject.setURL(sURL);
 
 		return null;
-	}
-
-	public URL hostFile(File f) {
-		try {
-			return local_publisher.publishResource(f);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
 	}
 
 	/**

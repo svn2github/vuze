@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
@@ -61,6 +60,8 @@ public class SWTSkinObjectBrowser
 	private String sStartURL;
 
 	private LocalResourceHTTPServer local_publisher;
+
+	private BrowserContext context;
 
 	/**
 	 * @param skin
@@ -90,7 +91,7 @@ public class SWTSkinObjectBrowser
 			}
 		}
 
-		final ClientMessageContext context = new BrowserContext(sID, browser,
+		context = new BrowserContext(sID, browser,
 				widgetIndicator);
 		context.addMessageListener(new TorrentListener(core));
 		context.addMessageListener(new DisplayListener(browser));
@@ -147,5 +148,9 @@ public class SWTSkinObjectBrowser
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public BrowserContext getContext() {
+		return context;
 	}
 }

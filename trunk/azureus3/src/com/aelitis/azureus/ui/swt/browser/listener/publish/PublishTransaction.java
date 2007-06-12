@@ -42,6 +42,7 @@ import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.browser.txn.Transaction;
 import com.aelitis.azureus.ui.swt.utils.ImageResizeException;
 import com.aelitis.azureus.ui.swt.utils.ImageResizer;
+import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -245,18 +246,7 @@ public class PublishTransaction extends Transaction
 
             final Download download = pluginInterface.getDownloadManager().addDownload(torrent, null, dataFile );
             
-            
-            //get the "content" attribute for the download
-            TorrentAttribute attrib = pluginInterface.getTorrentManager().getPluginAttribute( TorrentAttribute.TA_CONTENT_MAP );
-            Map content_map = download.getMapAttribute( attrib );
-            
-            if( content_map == null ) {
-            	//System.out.print( "torrentIsReady:: content_map == null" );
-            	content_map = new HashMap();
-            }
-            
-            content_map.put( PUBLISH_ATTRIBUTE_KEY, new Long(1) );   //mark this download as "Director published" so we can pick it up later
-            download.setMapAttribute( attrib, content_map );
+            PublishUtils.setPublished(download);
             
             download.setForceStart( true );
   

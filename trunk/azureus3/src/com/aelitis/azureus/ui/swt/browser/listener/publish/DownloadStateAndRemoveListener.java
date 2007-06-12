@@ -1,24 +1,21 @@
 package com.aelitis.azureus.ui.swt.browser.listener.publish;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.swt.widgets.Display;
+
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.utils.PublishUtils;
+
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadListener;
-import org.gudy.azureus2.plugins.download.DownloadManagerListener;
-import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
-import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.plugins.utils.Semaphore;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 
 public class DownloadStateAndRemoveListener implements DownloadManagerListener, DownloadListener, DownloadWillBeRemovedListener {
-	
-	public static final String REMOVAL_ATTRIBUTE_KEY = "REMOVAL ALLOWED";
 	
 	
 	private PluginInterface pluginInterface;
@@ -28,7 +25,7 @@ public class DownloadStateAndRemoveListener implements DownloadManagerListener, 
 	private HashMap downloadSemaphores;
 	
 	public void downloadAdded(Download download) {
-		if(!isRemovalAllowed(download)) {
+		if(!PublishUtils.isRemovalAllowed(download)) {
 			downloadSemaphores.put(download, pluginInterface.getUtilities().getSemaphore());
 			download.addListener(this);
 			download.addDownloadWillBeRemovedListener(this);
@@ -40,18 +37,18 @@ public class DownloadStateAndRemoveListener implements DownloadManagerListener, 
 	}
 	
 	
-	public DownloadStateAndRemoveListener(PluginInterface pi,Display display,UISWTInstance swt) {
+	public DownloadStateAndRemoveListener(PluginInterface pi,Display display) {
 		this.pluginInterface = pi;
 		this.display = display;		
-		this.swtInstance = swt;
+		swtInstance = UIFunctionsManagerSWT.getUIFunctionsSWT().getUISWTInstance();
 		
 		this.downloadSemaphores = new HashMap();		
 	}
 	
 	public void downloadWillBeRemoved(Download download) throws DownloadRemovalVetoException {
-		if(isPublished(download)) {
+		if (PublishUtils.isPublished(download)) {
 			
-			if(isRemovalAllowed(download)) {
+			if(PublishUtils.isRemovalAllowed(download)) {
 				return;
 			}
 			
@@ -60,7 +57,7 @@ public class DownloadStateAndRemoveListener implements DownloadManagerListener, 
 				sem.reserve();
 			}
 			
-			if(! isRemovalAllowed(download)) {
+			if(!PublishUtils.isRemovalAllowed(download)) {
 				throw new DownloadRemovalVetoException("Director Plugin Veto",true);
 			}
 		}
@@ -71,7 +68,8 @@ public class DownloadStateAndRemoveListener implements DownloadManagerListener, 
 	}
 	
 	public void stateChanged(Download download, int old_state, int new_state) {
-		if(new_state == Download.ST_STOPPED && isPublished(download) && ! isRemovalAllowed(download)) {
+		if (new_state == Download.ST_STOPPED && PublishUtils.isPublished(download)
+				&& !PublishUtils.isRemovalAllowed(download)) {
 			
 			final boolean[] stop = new boolean[1];
 			
@@ -90,7 +88,7 @@ public class DownloadStateAndRemoveListener implements DownloadManagerListener, 
 			if(!stop[0]) {
 				download.setForceStart(true);
 			} else {
-				setRemovalAllowed(download);
+				PublishUtils.setRemovalAllowed(download);
 			}
 						
 			Semaphore sem = (Semaphore) downloadSemaphores.get(download);
@@ -99,52 +97,4 @@ public class DownloadStateAndRemoveListener implements DownloadManagerListener, 
 			}
 		}
 	}
-	
-	private boolean isRemovalAllowed( Download d ) {
-	  	//get the "content" attribute for the download
-	  	final TorrentAttribute attrib = pluginInterface.getTorrentManager().getPluginAttribute( TorrentAttribute.TA_CONTENT_MAP );
-	  	
-	  	Map content_map = d.getMapAttribute( attrib );
-			
-	    //this one we're uploading as published
-			if( content_map != null && content_map.containsKey( REMOVAL_ATTRIBUTE_KEY ) ) {   			
-				return true;			
-			}
-			
-			// Somehow the torrent is in stoppped state and the removal attribute wasn't set
-			// Allow removal
-			if (d.getState() == Download.ST_STOPPED) {
-				return true;
-			}
-	  	return false;
-	}
-	
-	private void setRemovalAllowed( Download d ) {
-	  	//	  get the "content" attribute for the download
-        TorrentAttribute attrib = pluginInterface.getTorrentManager().getPluginAttribute( TorrentAttribute.TA_CONTENT_MAP );
-        Map content_map = d.getMapAttribute( attrib );
-        
-        if( content_map == null ) {
-        	//System.out.print( "torrentIsReady:: content_map == null" );
-        	content_map = new HashMap();
-        }
-        
-        content_map.put( REMOVAL_ATTRIBUTE_KEY, new Long(1) );   //mark this download as "Removable" so we can pick it up later
-        d.setMapAttribute( attrib, content_map );
-	}
-
-	private boolean isPublished( Download d ) {
-	  	//get the "content" attribute for the download
-	  	final TorrentAttribute attrib = pluginInterface.getTorrentManager().getPluginAttribute( TorrentAttribute.TA_CONTENT_MAP );
-	  	
-	  	Map content_map = d.getMapAttribute( attrib );
-			
-	    //this one we're uploading as published
-			if( content_map != null && content_map.containsKey( PublishTransaction.PUBLISH_ATTRIBUTE_KEY ) ) {   			
-				return true;			
-			}
-	  	
-	  	return false;
-	}
-
 }
