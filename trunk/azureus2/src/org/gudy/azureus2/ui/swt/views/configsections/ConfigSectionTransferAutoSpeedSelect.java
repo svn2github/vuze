@@ -7,7 +7,6 @@ import org.gudy.azureus2.ui.swt.config.ParameterChangeListener;
 import org.gudy.azureus2.ui.swt.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -243,7 +242,7 @@ public class ConfigSectionTransferAutoSpeedSelect
          * <p/>
          * Not called when parameter set via COConfigurationManager.setParameter
          *
-         * @param p -
+         * @param owner -
          * @param toValue -
          */
         public void floatParameterChanging(Parameter owner, double toValue) {

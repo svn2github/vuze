@@ -13,6 +13,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.SWT;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderV2;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedLimitMonitor;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedLimitConfidence;
 
 /**
  * Created on May 15, 2007
@@ -48,6 +50,9 @@ public class ConfigSectionTransferAutoSpeedBeta
     IntParameter downMinLim;
     IntParameter uploadMaxLim;
     IntParameter uploadMinLim;
+
+    StringListParameter confDownload;
+    StringListParameter confUpload;
 
     //add a comment to the auto-speed debug logs.
     Group commentGroup;
@@ -198,7 +203,8 @@ public class ConfigSectionTransferAutoSpeedBeta
         //Messages.setLanguageText
         modeGroup.setText("AutoSpeed-Beta mode");
         GridLayout modeLayout = new GridLayout();
-        modeLayout.numColumns = 3;
+        //modeLayout.numColumns = 3;
+        modeLayout.numColumns = 4;
         modeGroup.setLayout(modeLayout);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         modeGroup.setLayoutData(gridData);
@@ -230,7 +236,8 @@ public class ConfigSectionTransferAutoSpeedBeta
         //spacer
         Label spacer = new Label(modeGroup, SWT.NULL);
         gridData = new GridData();
-        gridData.horizontalSpan=3;
+        //gridData.horizontalSpan=3;
+        gridData.horizontalSpan=4;
         spacer.setLayoutData(gridData);
 
         //label column for speed test results
@@ -252,6 +259,11 @@ public class ConfigSectionTransferAutoSpeedBeta
         limMin.setText("min");
         //Messages.setLanguageText //ToDo: internationalize
 
+        Label confLevel = new Label(modeGroup, SWT.NULL);
+        gridData =  new GridData();
+        confLevel.setLayoutData(gridData);
+        confLevel.setText("confidence level");
+        //Messages.setLanguageText //ToDo: internationalize
 
         //download settings
         Label setDown = new Label(modeGroup, SWT.NULL);
@@ -265,11 +277,22 @@ public class ConfigSectionTransferAutoSpeedBeta
         downMaxLim = new IntParameter(modeGroup,SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MAX_LIMIT);
         downMaxLim.setLayoutData( gridData );
 
-
         gridData = new GridData();
         gridData.widthHint = 50;
         downMinLim = new IntParameter(modeGroup,SpeedManagerAlgorithmProviderV2.SETTING_DOWNLOAD_MIN_LIMIT);
         downMinLim.setLayoutData( gridData );
+
+        String[] confStrings = {
+                SpeedLimitConfidence.ABSOLUTE.getInternationalizedString(),
+                SpeedLimitConfidence.HIGH.getInternationalizedString(),
+                SpeedLimitConfidence.MED.getInternationalizedString(),
+        };
+
+        gridData = new GridData();
+        gridData.widthHint = 80;
+        confDownload = new StringListParameter(modeGroup, SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING, confStrings, confStrings);
+        confDownload.setLayoutData( gridData );
+
 
         //upload settings
         Label setUp = new Label(modeGroup, SWT.NULL);
@@ -290,10 +313,15 @@ public class ConfigSectionTransferAutoSpeedBeta
         uploadMinLim = new IntParameter(modeGroup, SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT, 800, 5000);
         uploadMinLim.setLayoutData( gridData );
 
+        gridData = new GridData();
+        gridData.widthHint = 80;
+        confUpload = new StringListParameter(modeGroup, SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,confStrings,confStrings);
+        confUpload.setLayoutData( gridData );
+
         //spacer
         spacer = new Label(cSection, SWT.NULL);
         gridData = new GridData();
-        gridData.horizontalSpan=3;
+        gridData.horizontalSpan=4;
         spacer.setLayoutData(gridData);
 
 
@@ -304,9 +332,6 @@ public class ConfigSectionTransferAutoSpeedBeta
         dhtGroup = new Group(cSection, SWT.NULL);
         //Messages.setLanguageText
         dhtGroup.setText("Data: DHT Pings");
-        //GridLayout dhtLayout = new GridLayout();
-        //dhtLayout.numColumns = 3;
-        ////dhtGroup.setLayout(dhtLayout);
         dhtGroup.setLayout(subPanel);
 
         gridData = new GridData(GridData.FILL_HORIZONTAL);
