@@ -46,6 +46,8 @@ import com.aelitis.net.magneturi.MagnetURIHandler;
  */
 public class AdManager
 {
+	private final static long EXPIRE_ASX = 1000L * 60 * 10; // 10 min
+	
 	private final static AdManager instance;
 
 	static {
@@ -59,6 +61,8 @@ public class AdManager
 	private AzureusCore core;
 
 	private List adsDMList = new ArrayList();
+
+	private List adSupportedDMList = new ArrayList();
 
 	private Object lastSpyID;
 
@@ -122,7 +126,7 @@ public class AdManager
 				// build list of ad supported content
 				List list = new ArrayList();
 				for (int i = 0; i < dms.length; i++) {
-					DownloadManager dm = dms[i];
+					final DownloadManager dm = dms[i];
 
 					TOTorrent torrent = dm.getTorrent();
 					if (torrent == null) {
@@ -149,6 +153,16 @@ public class AdManager
 							&& PlatformTorrentUtils.getContentHash(torrent) != null
 							&& PlatformTorrentUtils.isContentAdEnabled(torrent)) {
 						list.add(dm);
+						if (!adSupportedDMList.contains(dm)) {
+							adSupportedDMList.add(dm);
+							dm.addListener(new DownloadManagerAdapter() {
+								public void downloadComplete(DownloadManager manager) {
+									// good chance we still have internet here, so get/cache
+									// the asx
+									createASX(dm, null);
+								}
+							});
+						}
 					}
 				}
 
@@ -262,6 +276,8 @@ public class AdManager
 			if (dm == null) {
 				System.err.println("DM for Ad not found. CHEATER!!");
 			}
+			
+			dm.setData("LastASX", null);
 
 			PlatformAdManager.storeImpresssion(spyID, SystemTime.getCurrentTime(),
 					contentHash, 5000);
@@ -294,6 +310,24 @@ public class AdManager
 		if (torrent == null || !PlatformTorrentUtils.isContent(torrent)) {
 			return;
 		}
+
+		Object lastASXObject = dm.getData("LastASX");
+		if (lastASXObject instanceof Long) {
+			long lastASX = ((Long)lastASXObject).longValue();
+			if (SystemTime.getCurrentTime() - lastASX < EXPIRE_ASX) {
+				File saveLocation = dm.getAbsoluteSaveLocation();
+				File asxFile = new File(saveLocation.isFile()
+						? saveLocation.getParentFile() : saveLocation, "play.asx");
+				if (asxFile.isFile()) {
+					PlatformAdManager.debug("playing using existing asx");
+					if (l != null) {
+						l.asxCreated(asxFile);
+					}
+					return;
+				}
+			}
+		}
+
 		String contentHash = PlatformTorrentUtils.getContentHash(torrent);
 
 		PlatformAdManager.getPlayList(dm, "http://127.0.0.1:"
@@ -302,7 +336,9 @@ public class AdManager
 				new PlatformAdManager.GetPlaylistReplyListener() {
 					public void replyReceived(String replyType, String playlist) {
 						if (playlist == null) {
-							l.asxFailed();
+							if (l != null) {
+								l.asxFailed();
+							}
 							return;
 						}
 						File saveLocation = dm.getAbsoluteSaveLocation();
@@ -310,8 +346,12 @@ public class AdManager
 								? saveLocation.getParentFile() : saveLocation, "play.asx");
 						FileUtil.writeBytesAsFile(asxFile.getAbsolutePath(),
 								playlist.getBytes());
+						
+						dm.setData("LastASX", new Long(SystemTime.getCurrentTime()));
 
-						l.asxCreated(asxFile);
+						if (l != null) {
+							l.asxCreated(asxFile);
+						}
 					}
 
 					public void messageSent() {
