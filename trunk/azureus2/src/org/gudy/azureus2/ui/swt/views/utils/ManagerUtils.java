@@ -222,14 +222,14 @@ public class ManagerUtils {
     }
   }
   
-  public static void stop(DownloadManager dm,Composite panel) {
-  	stop(dm, panel, DownloadManager.STATE_STOPPED);
+  public static void stop(DownloadManager dm, Shell shell) {
+  	stop(dm, shell, DownloadManager.STATE_STOPPED);
   }
   
   public static void 
   stop(
   		DownloadManager dm,
-		Composite panel,
+		Shell shell,
 		int stateAfterStopped ) 
   {
 		if (dm == null) {
@@ -250,7 +250,10 @@ public class ManagerUtils {
 			if (dm.getStats().getShareRatio() >= 0
 					&& dm.getStats().getShareRatio() < 1000
 					&& COConfigurationManager.getBooleanParameter("Alert on close", false)) {
-				MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING
+				if (shell == null) {
+					shell = Utils.findAnyShell();
+				}
+				MessageBox mb = new MessageBox(shell, SWT.ICON_WARNING
 						| SWT.YES | SWT.NO);
 				mb.setText(MessageText.getString("seedmore.title"));
 				mb.setMessage(MessageText.getString("seedmore.shareratio")
@@ -269,7 +272,10 @@ public class ManagerUtils {
 	        numSeeds--;
 	      
 	      if (numSeeds == 0) {
-					int result = Utils.openMessageBox(panel.getShell(), SWT.YES | SWT.NO,
+					if (shell == null) {
+						shell = Utils.findAnyShell();
+					}
+					int result = Utils.openMessageBox(shell, SWT.YES | SWT.NO,
 							"Content.alert.notuploaded", new String[] {
 									dm.getDisplayName(),
 									MessageText.getString("Content.alert.notuploaded.stop") });

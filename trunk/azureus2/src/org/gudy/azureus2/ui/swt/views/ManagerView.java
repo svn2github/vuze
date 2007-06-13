@@ -333,12 +333,12 @@ public class ManagerView extends AbstractIView implements
 		}
 		
 		if (itemKey.equals("start")) {
-			ManagerUtils.queue(manager, folder);
+			ManagerUtils.queue(manager, folder.getShell());
 			return;
 		}
 		
 		if (itemKey.equals("stop")) {
-			ManagerUtils.stop(manager, folder);
+			ManagerUtils.stop(manager, folder.getShell());
 			return;
 		}
 		

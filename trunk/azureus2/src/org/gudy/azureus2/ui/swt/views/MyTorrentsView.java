@@ -2390,7 +2390,7 @@ public class MyTorrentsView
   private void stopSelectedTorrents() {
     tv.runForSelectedRows(new TableGroupRowRunner() {
       public void run(TableRowCore row) {
-        ManagerUtils.stop((DownloadManager)row.getDataSource(true), cTablePanel);
+        ManagerUtils.stop((DownloadManager)row.getDataSource(true), cTablePanel.getShell());
       }
     });
   }
@@ -2398,7 +2398,7 @@ public class MyTorrentsView
   private void queueSelectedTorrents() {
     tv.runForSelectedRows(new TableGroupRowRunner() {
       public void run(TableRowCore row) {
-        ManagerUtils.queue((DownloadManager)row.getDataSource(true), cTablePanel);
+        ManagerUtils.queue((DownloadManager)row.getDataSource(true), cTablePanel.getShell());
       }
     });
   }
@@ -2414,7 +2414,7 @@ public class MyTorrentsView
   private void hostSelectedTorrents() {
     tv.runForSelectedRows(new TableGroupRowRunner() {
       public void run(TableRowCore row) {
-        ManagerUtils.host(azureus_core, (DownloadManager)row.getDataSource(true), cTablePanel);
+        ManagerUtils.host(azureus_core, (DownloadManager)row.getDataSource(true), cTablePanel.getShell());
       }
     });
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
