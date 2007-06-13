@@ -294,15 +294,19 @@ ResourceDownloaderTorrentImpl
 			
 			final File	data_dir		= download_dir==null?torrent_file.getParentFile():download_dir;
 			
-			torrent_holder[0].serialiseToBEncodedFile( torrent_file );
-						
+			final TOTorrent	torrent = torrent_holder[0];
+			
+			torrent.serialiseToBEncodedFile( torrent_file );
+				
+			TorrentUtils.setFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
+
 			if ( persistent ){
 				
-				download = download_manager.addDownload( new TorrentImpl(torrent_holder[0]), torrent_file, data_dir );
+				download = download_manager.addDownload( new TorrentImpl(torrent), torrent_file, data_dir );
 				
 			}else{
 				
-				download = download_manager.addNonPersistentDownload( new TorrentImpl(torrent_holder[0]), torrent_file, data_dir );
+				download = download_manager.addNonPersistentDownload( new TorrentImpl(torrent), torrent_file, data_dir );
 			}
 			
 			download.moveTo(1);		
@@ -372,7 +376,7 @@ ResourceDownloaderTorrentImpl
 														
 							int	this_percentage = download.getStats().getCompleted()/10;
 							
-							long	total	= torrent_holder[0].getSize();
+							long	total	= torrent.getSize();
 														
 							if ( this_percentage != last_percentage ){
 								
