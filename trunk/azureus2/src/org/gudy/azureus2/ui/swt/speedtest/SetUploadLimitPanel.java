@@ -322,7 +322,7 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         //if the transfer rate is near limit it is less likely to be the true limit.
         //decide here if we should have low setting.
         //ToDo: these limits shouldn't be hard coded since the Service can change at any time.
-        if( transferRateKBPS < 550 && transferRateKBPS < 450 ){
+        if( transferRateKBPS < 550 && transferRateKBPS > 450 ){
 
             //Need to over-ride the parameter.
             String prevSetting = COConfigurationManager.getStringParameter(paramName,

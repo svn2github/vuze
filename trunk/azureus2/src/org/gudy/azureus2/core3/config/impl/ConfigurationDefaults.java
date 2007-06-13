@@ -497,6 +497,9 @@ public class ConfigurationDefaults {
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT, new Long(1000) );
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE, new Long(300) );
 
+    //section
+    def.put("Auto Upload Speed Version", new Long(1) );
+
   }
   
   protected void
