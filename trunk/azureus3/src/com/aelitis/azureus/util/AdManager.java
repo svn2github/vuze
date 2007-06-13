@@ -330,17 +330,20 @@ public class AdManager
 
 		String contentHash = PlatformTorrentUtils.getContentHash(torrent);
 
+		PlatformAdManager.debug("getting asx");
 		PlatformAdManager.getPlayList(dm, "http://127.0.0.1:"
 				+ MagnetURIHandler.getSingleton().getPort()
 				+ "/setinfo?name=adtracker&contentHash=" + contentHash, 0,
 				new PlatformAdManager.GetPlaylistReplyListener() {
 					public void replyReceived(String replyType, String playlist) {
 						if (playlist == null) {
+							PlatformAdManager.debug("no asx in reply");
 							if (l != null) {
 								l.asxFailed();
 							}
 							return;
 						}
+						PlatformAdManager.debug("got asx");
 						File saveLocation = dm.getAbsoluteSaveLocation();
 						File asxFile = new File(saveLocation.isFile()
 								? saveLocation.getParentFile() : saveLocation, "play.asx");
