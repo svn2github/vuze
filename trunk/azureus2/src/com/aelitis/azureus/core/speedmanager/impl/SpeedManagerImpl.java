@@ -27,6 +27,9 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -63,6 +66,7 @@ SpeedManagerImpl
 	private static int					FORCED_MIN_SPEED;
 
 
+	private static final String	CONFIG_VERSION			= "Auto Upload Speed Version";
 	private static final String	CONFIG_AVAIL			= "AutoSpeed Available";	// informative only
 	private static final String	CONFIG_MIN_UP			= "AutoSpeed Min Upload KBs";
 	private static final String	CONFIG_MAX_UP			= "AutoSpeed Max Upload KBs";
@@ -134,6 +138,7 @@ SpeedManagerImpl
 	private SpeedManagerAlgorithmProvider	provider;
 	
 	
+	private	int					provider_version	= -1;
 	private boolean				enabled;
     private boolean             use_v2_provider;
 
@@ -144,6 +149,7 @@ SpeedManagerImpl
 	
 	private Object	original_limits;
 	
+	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
 	public
 	SpeedManagerImpl(
@@ -153,35 +159,66 @@ SpeedManagerImpl
 		core			= _core;
 		adapter			= _adapter;
 
-        try{
-            use_v2_provider = COConfigurationManager.getBooleanParameter(SpeedManagerAlgorithmProviderV2.SETTING_V2_BETA_ENABLED);
-            if(use_v2_provider){
-                System.setProperty("azureus.autospeed.alg.provider.version","2");
-            }
-        }catch(Throwable t){
-            Debug.out("SpeedManagerImpl had: "+t.getMessage());
-        }
-
-        String	alg = System.getProperty( "azureus.autospeed.alg.provider.version" );
-		
-		if ( alg == null || alg.equals( "1" )){
-			
-			provider = new SpeedManagerAlgorithmProviderV1( this );
-			
-		}else{
-			
-			provider = new SpeedManagerAlgorithmProviderV2( this );
-		}
+		COConfigurationManager.addAndFireParameterListener( 
+			CONFIG_VERSION,
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					final String name )
+				{
+					dispatcher.dispatch(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								boolean	do_reset = provider_version == -1;
+								
+								int version = COConfigurationManager.getIntParameter( name );
+								
+								if ( version != provider_version ){
+									
+									provider_version = version;
+									
+									if ( isEnabled()){
+										
+										setEnabledSupport( false );
+										
+										setEnabledSupport( true );
+									}
+								}
+								
+								if ( do_reset ){
+									
+									reset();
+								}
+							}
+						});
+				}
+			});
 		
 		COConfigurationManager.setParameter( CONFIG_AVAIL, false );
-		
-		reset();
 	}
 	
 	protected void
 	reset()
 	{
 		total_contacts		= 0;
+		
+		if ( provider_version == 1 ){
+			
+			if ( !( provider instanceof SpeedManagerAlgorithmProviderV1 )){
+				
+				provider = new SpeedManagerAlgorithmProviderV1( this );
+			}
+		}else{
+			
+			if ( !( provider instanceof SpeedManagerAlgorithmProviderV2 )){
+				
+				provider = new SpeedManagerAlgorithmProviderV2( this );
+			}
+		}
 		
 		provider.reset();
 	}
@@ -343,7 +380,41 @@ SpeedManagerImpl
 		
 	public void
 	setEnabled(
-		boolean		_enabled )
+		final boolean		_enabled )
+	{
+			// unfortunately we need this to run synchronously as the caller may be disabling it
+			// and then setting speed limits in which case we can't go async and restore the
+			// original values below and overwrite the new limit...
+		
+		final AESemaphore	sem = new AESemaphore( "SpeedManagerImpl.setEnabled" );
+		
+			// single thread enable/disable (and derivative reset) ops
+		
+		dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					try{
+						setEnabledSupport( _enabled );
+						
+					}finally{
+						
+						sem.release();
+					}
+				}
+			});
+		
+		if ( !sem.reserve( 10000 )){
+			
+			Debug.out( "operation didn't complete in time" );
+		}
+	}
+	
+	protected void
+	setEnabledSupport(
+		boolean	_enabled )
 	{
 		if ( enabled != _enabled ){
 			
