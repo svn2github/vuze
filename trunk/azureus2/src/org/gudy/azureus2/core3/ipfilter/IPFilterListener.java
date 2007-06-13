@@ -36,5 +36,10 @@ IPFilterListener
 	
 	public void
 	IPBlockedListChanged(
-		IpFilter filter);
+		IpFilter 		filter );
+	
+	public boolean
+	canIPBeBlocked(
+		String			ip,
+		byte[]			torrent_hash );
 }

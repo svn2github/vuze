@@ -241,7 +241,7 @@ TRBlockingServer
 				
 				String	ip = socket.getInetAddress().getHostAddress();
 								
-				if ( (!isIPFilterEnabled()) || (!ip_filter.isInRange( ip, "Tracker" ))){
+				if ( (!isIPFilterEnabled()) || (!ip_filter.isInRange( ip, "Tracker", null ))){
 					
 					runProcessor( new TRBlockingServerProcessor( this, socket ));
 					

@@ -272,7 +272,7 @@ TRNonBlockingServer
         	removeAndCloseConnection( processor );
         
         }else if ( 	isIPFilterEnabled() && 
-					ip_filter.isInRange( channel.socket().getInetAddress().getHostAddress(), "Tracker" )){
+					ip_filter.isInRange( channel.socket().getInetAddress().getHostAddress(), "Tracker", null )){
         	
         	removeAndCloseConnection( processor );
         	

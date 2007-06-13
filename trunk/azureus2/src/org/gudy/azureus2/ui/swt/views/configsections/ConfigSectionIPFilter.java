@@ -531,6 +531,14 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 		        table.redraw();
 					}
 				});
+				
+			}
+			public boolean
+			canIPBeBlocked(
+				String	ip,
+				byte[]	torrent_hash )
+			{
+				return true;
 			}
 		};
     filter.addListener(filterListener);

@@ -63,19 +63,22 @@ IpFilter
   
 	public boolean 
 	isInRange(
-		String ipAddress, 
-		String torrent_name);
+		String 	ipAddress, 
+		String 	torrent_name,
+		byte[]	torrent_hash );
 	
 	public boolean 
 	isInRange(
-		String ipAddress, 
-		String torrent_name,
+		String 	ipAddress, 
+		String 	torrent_name,
+		byte[]	torrent_hash,
 		boolean	loggable );
 	
 	public boolean 
 	isInRange(
 		InetAddress 	ipAddress, 
 		String 			torrent_name,
+		byte[]			torrent_hash,
 		boolean			loggable );
 	
 	public IpRange
