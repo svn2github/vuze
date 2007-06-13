@@ -134,4 +134,9 @@ public class SpeedManagerAlgorithmProviderSpeedSense
     public int getMaxUploadSpeed() {
         return 0;
     }
+    
+    public boolean getAdjustsDownloadLimits() {
+    	// TODO Auto-generated method stub
+    	return false;
+    }
 }

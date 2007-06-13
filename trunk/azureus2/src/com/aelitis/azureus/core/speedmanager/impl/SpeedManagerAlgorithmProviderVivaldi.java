@@ -692,6 +692,10 @@ public class SpeedManagerAlgorithmProviderVivaldi
         return 3;
     }
 
+    public boolean getAdjustsDownloadLimits() {
+    	// TODO Auto-generated method stub
+    	return true;
+    }
     protected void log(String str){
 
         SpeedManagerLogger.log(str);

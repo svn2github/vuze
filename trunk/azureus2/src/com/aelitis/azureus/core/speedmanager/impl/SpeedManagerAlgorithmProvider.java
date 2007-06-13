@@ -99,4 +99,12 @@ SpeedManagerAlgorithmProvider
 	
 	public int
 	getMaxUploadSpeed();
+	
+		/**
+		 * Indicates whether or not the provider is adjusting download as well as upload limits
+		 * @return
+		 */
+	
+	public boolean
+	getAdjustsDownloadLimits();
 }

@@ -171,6 +171,11 @@ SpeedManagerAlgorithmProviderV2
         return strategy.getMaxUploadSpeed();
 	}
 	
+	public boolean getAdjustsDownloadLimits() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	   
 	protected void
 	log(
 		String	str )

@@ -50,33 +50,6 @@ SpeedManagerAlgorithmProviderAdapter
 
     public void
     setCurrentDownloadLimit(int bytes_per_second);
-
-
-        /**
-		 * Various config parameters
-		 * @param str
-		 */
-	
-	public int
-	getMaxUp();
-	
-	public int
-	getMinUp();
-	
-	public int
-	getForcedMinSpeed();
-	
-	public int
-	getMaxIncrement();
-	
-	public int
-	getMaxDecrement();
-	
-	public int
-	getPingChokeTime();
-	
-	public int
-	getLatencyFactor();
 	
 	public void
 	setLoggingEnabled(

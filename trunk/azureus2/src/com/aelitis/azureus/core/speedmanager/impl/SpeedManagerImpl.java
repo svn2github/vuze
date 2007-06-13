@@ -54,42 +54,17 @@ SpeedManagerImpl
 	
 		// config items start
 	
-	private static int					PING_CHOKE_TIME;
-	private static int					MIN_UP;
-	private static int					MAX_UP;
 	private static boolean				DEBUG;
-	private static boolean				ADJUST_DOWNLOAD_ENABLE;
-	private static float				ADJUST_DOWNLOAD_RATIO;
-	private static int					MAX_INCREMENT;
-	private static int					MAX_DECREMENT;
-	private static int					LATENCY_FACTOR;
-	private static int					FORCED_MIN_SPEED;
-
 
 	public  static final String	CONFIG_VERSION			= "Auto Upload Speed Version";
 	private static final String	CONFIG_AVAIL			= "AutoSpeed Available";	// informative only
-	private static final String	CONFIG_MIN_UP			= "AutoSpeed Min Upload KBs";
-	private static final String	CONFIG_MAX_UP			= "AutoSpeed Max Upload KBs";
-	private static final String	CONFIG_MAX_INC			= "AutoSpeed Max Increment KBs";
-	private static final String	CONFIG_MAX_DEC			= "AutoSpeed Max Decrement KBs";
-	private static final String	CONFIG_CHOKE_PING		= "AutoSpeed Choking Ping Millis";
-	private static final String	CONFIG_DOWNADJ_ENABLE	= "AutoSpeed Download Adj Enable";
-	private static final String	CONFIG_DOWNADJ_RATIO	= "AutoSpeed Download Adj Ratio";
-	private static final String	CONFIG_LATENCY_FACTOR	= "AutoSpeed Latency Factor";
-	private static final String	CONFIG_FORCED_MIN		= "AutoSpeed Forced Min KBs";
+
 	private static final String	CONFIG_DEBUG			= "Auto Upload Speed Debug Enabled";
 	
+	
 	private static final String[]	CONFIG_PARAMS = {
-		CONFIG_MIN_UP, CONFIG_MAX_UP, 
-		CONFIG_MAX_INC, CONFIG_MAX_DEC,
-		CONFIG_CHOKE_PING, 
-		CONFIG_DOWNADJ_ENABLE,
-		CONFIG_DOWNADJ_RATIO,
-		CONFIG_LATENCY_FACTOR,
-		CONFIG_FORCED_MIN,
 		CONFIG_DEBUG };
 		
-	
 	static{
 		COConfigurationManager.addAndFireParameterListeners(
 				CONFIG_PARAMS,
@@ -98,32 +73,8 @@ SpeedManagerImpl
 					public void 
 					parameterChanged(
 						String parameterName )
-					{
-						PING_CHOKE_TIME	= COConfigurationManager.getIntParameter( CONFIG_CHOKE_PING );
-						MIN_UP			= COConfigurationManager.getIntParameter( CONFIG_MIN_UP ) * 1024;
-						MAX_UP			= COConfigurationManager.getIntParameter( CONFIG_MAX_UP ) * 1024;
-						MAX_INCREMENT	= COConfigurationManager.getIntParameter( CONFIG_MAX_INC ) * 1024;
-						MAX_DECREMENT	= COConfigurationManager.getIntParameter( CONFIG_MAX_DEC ) * 1024;
-						ADJUST_DOWNLOAD_ENABLE	= COConfigurationManager.getBooleanParameter( CONFIG_DOWNADJ_ENABLE );
-						String	str 	= COConfigurationManager.getStringParameter( CONFIG_DOWNADJ_RATIO );
-						LATENCY_FACTOR	= COConfigurationManager.getIntParameter( CONFIG_LATENCY_FACTOR );
-
-						if ( LATENCY_FACTOR < 1 ){
-							LATENCY_FACTOR = 1;
-						}
-
-						FORCED_MIN_SPEED	= COConfigurationManager.getIntParameter( CONFIG_FORCED_MIN ) * 1024;
-
-						if ( FORCED_MIN_SPEED < 1024 ){
-							FORCED_MIN_SPEED = 1024;
-						}
-						
-						DEBUG			= COConfigurationManager.getBooleanParameter( CONFIG_DEBUG );
-						
-						try{
-							ADJUST_DOWNLOAD_RATIO = Float.parseFloat(str);
-						}catch( Throwable e ){
-						}
+					{						
+						DEBUG = COConfigurationManager.getBooleanParameter( CONFIG_DEBUG );
 					}
 				});
 		
@@ -432,7 +383,7 @@ SpeedManagerImpl
 			
 			if ( !enabled ){
 									
-				adapter.setLimits( original_limits, true, ADJUST_DOWNLOAD_ENABLE );
+				adapter.setLimits( original_limits, true, provider.getAdjustsDownloadLimits());
 			}
 		}
 	}
@@ -515,13 +466,6 @@ SpeedManagerImpl
 		if ( enabled ){
 			
 			adapter.setCurrentUploadLimit( bytes_per_second );
-			
-			if ( ADJUST_DOWNLOAD_ENABLE && !( Float.isInfinite( ADJUST_DOWNLOAD_RATIO ) || Float.isNaN( ADJUST_DOWNLOAD_RATIO ))){
-				
-				int	dl_limit = (int)(bytes_per_second * ADJUST_DOWNLOAD_RATIO);
-				
-				adapter.setCurrentDownloadLimit( dl_limit );
-			}
 		}
 	}
 
@@ -551,50 +495,6 @@ SpeedManagerImpl
     public void setCurrentDownloadLimit(int bytes_per_second) {
         adapter.setCurrentDownloadLimit( bytes_per_second );
     }
-
-    // config access
-	
-	public int
-	getMaxUp()
-	{
-		return( MAX_UP );
-	}
-	
-	public int
-	getMinUp()
-	{
-		return( MIN_UP );
-	}
-	
-	public int
-	getForcedMinSpeed()
-	{
-		return( FORCED_MIN_SPEED );
-	}
-	
-	public int
-	getMaxIncrement()
-	{
-		return( MAX_INCREMENT );
-	}
-	
-	public int
-	getMaxDecrement()
-	{
-		return( MAX_DECREMENT );
-	}
-	
-	public int
-	getPingChokeTime()
-	{
-		return( PING_CHOKE_TIME );
-	}
-	
-	public int
-	getLatencyFactor()
-	{
-		return( LATENCY_FACTOR );
-	}
 	
 	public void
 	setLoggingEnabled(
