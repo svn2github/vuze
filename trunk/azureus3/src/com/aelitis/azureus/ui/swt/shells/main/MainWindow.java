@@ -163,7 +163,8 @@ public class MainWindow
 							13).getTimeInMillis()) {
 				// install older than 3016
 				GlobalManager gm = core.getGlobalManager();
-				if (gm != null && gm.getDownloadManagers().size() == 0) {
+				if (gm != null && gm.getDownloadManagers().size() == 0
+						&& gm.getStats().getTotalProtocolBytesReceived() < 1024 * 1024 * 100) {
 					File fileTestWrite = FileUtil.getApplicationFile("testwrite.dll");
 					fileTestWrite.deleteOnExit();
 					try {
