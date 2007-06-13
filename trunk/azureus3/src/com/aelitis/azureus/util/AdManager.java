@@ -47,8 +47,6 @@ public class AdManager
 {
 	private final static AdManager instance;
 
-	private static boolean DEBUG_ADS = false;
-
 	static {
 		instance = new AdManager();
 	}
@@ -91,15 +89,18 @@ public class AdManager
 
 				TOTorrent torrent = dm.getTorrent();
 				if (PlatformTorrentUtils.getAdId(torrent) == null) {
-  				hookDM(new DownloadManager[] {
-  					dm
-  				});
+					hookDM(new DownloadManager[] {
+						dm
+					});
 				}
 			}
 		}, false);
 		DownloadManager[] dms = (DownloadManager[]) gm.getDownloadManagers().toArray(
 				new DownloadManager[0]);
 		hookDM(dms);
+
+		PlatformAdManager.loadUnsentImpressions();
+		PlatformAdManager.sendUnsentImpressions(5000);
 	}
 
 	private void hookDM(final DownloadManager[] dms) {
@@ -119,7 +120,7 @@ public class AdManager
 
 						// TODO: Check expirey
 						try {
-							debug("found ad " + dm + ": "
+							PlatformAdManager.debug("found ad " + dm + ": "
 									+ PlatformTorrentUtils.getAdId(torrent) + ": "
 									+ dm.getTorrent().getHashWrapper().toBase32String());
 						} catch (TOTorrentException e) {
@@ -135,14 +136,14 @@ public class AdManager
 						list.add(dm);
 					}
 				}
-				
+
 				if (list.size() == 0) {
-					debug("no ad enabled content.  skipping ad get.");
+					PlatformAdManager.debug("no ad enabled content.  skipping ad get.");
 					return;
 				}
 
 				try {
-					debug("sending ad request for " + list.size()
+					PlatformAdManager.debug("sending ad request for " + list.size()
 							+ " pieces of content.  We already have " + adsDMList.size()
 							+ " ads");
 					DownloadManager[] dmAdable = (DownloadManager[]) list.toArray(new DownloadManager[0]);
@@ -150,21 +151,22 @@ public class AdManager
 					PlatformAdManager.getAds(dmAdable, 1000,
 							new PlatformAdManager.GetAdsDataReplyListener() {
 								public void replyReceived(String replyType, Map mapHashes) {
-									debug("bad reply. " + mapHashes.get("text"));
+									PlatformAdManager.debug("bad reply. " + mapHashes.get("text"));
 								}
 
 								public void messageSent() {
 								}
 
 								public void adsReceived(List torrents) {
-									debug(torrents.size() + " Ads recieved");
+									PlatformAdManager.debug(torrents.size() + " Ads recieved");
 									for (Iterator iter = torrents.iterator(); iter.hasNext();) {
 										TOTorrent torrent = (TOTorrent) iter.next();
 										try {
-											debug("Ad: " + new String(torrent.getName()));
+											PlatformAdManager.debug("Ad: "
+													+ new String(torrent.getName()));
 											File tempFile = File.createTempFile("AZ_", ".torrent");
 
-											debug("  Writing to " + tempFile);
+											PlatformAdManager.debug("  Writing to " + tempFile);
 											torrent.serialiseToBEncodedFile(tempFile);
 
 											String sDefDir = null;
@@ -192,7 +194,8 @@ public class AdManager
 													});
 												}
 												// TODO: Add Expiry date
-												debug("  ADDED ad " + adDM.getDisplayName());
+												PlatformAdManager.debug("  ADDED ad "
+														+ adDM.getDisplayName());
 											}
 											tempFile.deleteOnExit();
 										} catch (Exception e) {
@@ -228,11 +231,11 @@ public class AdManager
 
 			String contentHash = (String) values.get("contentHash");
 			if (contentHash == null) {
-				debug("No Content Hash!");
+				PlatformAdManager.debug("No Content Hash!");
 				return;
 			}
 
-			debug("spy " + spyID + " commencing on " + contentHash);
+			PlatformAdManager.debug("spy " + spyID + " commencing on " + contentHash);
 
 			DownloadManager dm = core.getGlobalManager().getDownloadManager(
 					new HashWrapper(Base32.decode(adHash)));
@@ -248,20 +251,11 @@ public class AdManager
 		}
 	}
 
-	private static void debug(String string) {
-		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.ads");
-		diag_logger.log(string);
-		if (Constants.DIAG_TO_STDOUT || DEBUG_ADS) {
-			System.out.println(Thread.currentThread().getName() + "|ADS|"
-					+ System.currentTimeMillis() + "] " + string);
-		}
-	}
-
 	public DownloadManager[] getAds(boolean bIncludeIncomplete) {
 		if (bIncludeIncomplete) {
 			return (DownloadManager[]) adsDMList.toArray(new DownloadManager[0]);
 		}
-		
+
 		ArrayList ads = new ArrayList(adsDMList);
 		for (Iterator iter = ads.iterator(); iter.hasNext();) {
 			DownloadManager dm = (DownloadManager) iter.next();
@@ -269,8 +263,9 @@ public class AdManager
 				iter.remove();
 			}
 		}
-		
-		debug("Get Ads" + (bIncludeIncomplete ? " including incomplete" : "") + ads.size());
+
+		PlatformAdManager.debug("Get Ads"
+				+ (bIncludeIncomplete ? " including incomplete" : "") + ads.size());
 		return (DownloadManager[]) ads.toArray(new DownloadManager[0]);
 	}
 
@@ -295,7 +290,7 @@ public class AdManager
 								? saveLocation.getParentFile() : saveLocation, "play.asx");
 						FileUtil.writeBytesAsFile(asxFile.getAbsolutePath(),
 								playlist.getBytes());
-						
+
 						l.asxCreated(asxFile);
 					}
 
@@ -303,10 +298,11 @@ public class AdManager
 					}
 				});
 	}
-	
-	public interface ASXCreatedListener {
+
+	public interface ASXCreatedListener
+	{
 		public void asxCreated(File asxFile);
-		
+
 		public void asxFailed();
 	}
 }
