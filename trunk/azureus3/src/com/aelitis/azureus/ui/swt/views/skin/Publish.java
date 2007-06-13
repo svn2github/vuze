@@ -20,15 +20,9 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.ui.swt.browser.listener.publish.DownloadStateAndRemoveListener;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
-import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.Constants;
-
-import org.gudy.azureus2.plugins.*;
 
 /**
  * @author TuxPaper
@@ -42,8 +36,6 @@ public class Publish
 
 	public Object showSupport(final SWTSkinObject skinObject, Object params) {
 		browserSkinObject = (SWTSkinObjectBrowser) skinObject;
-
-		AzureusCore core = AzureusCoreFactory.getSingleton();
 
 		String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISH + "?"
 				+ Constants.URL_SUFFIX;
