@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.messenger.config.PlatformAdManager;
+import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.net.magneturi.MagnetURIHandler;
 
@@ -101,6 +102,18 @@ public class AdManager
 
 		PlatformAdManager.loadUnsentImpressions();
 		PlatformAdManager.sendUnsentImpressions(5000);
+
+		PlatformTorrentUtils.addListener(new MetaDataUpdateListener() {
+			public void metaDataUpdated(TOTorrent torrent) {
+				GlobalManager gm = core.getGlobalManager();
+				DownloadManager dm = gm.getDownloadManager(torrent);
+				if (dm != null) {
+					hookDM(new DownloadManager[] {
+						dm
+					});
+				}
+			}
+		});
 	}
 
 	private void hookDM(final DownloadManager[] dms) {
@@ -127,7 +140,9 @@ public class AdManager
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						adsDMList.add(dm);
+						if (!adsDMList.contains(dm)) {
+							adsDMList.add(dm);
+						}
 					}
 
 					if (PlatformTorrentUtils.isContent(torrent)
