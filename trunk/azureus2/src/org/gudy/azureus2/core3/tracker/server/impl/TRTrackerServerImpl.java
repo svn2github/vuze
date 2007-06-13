@@ -54,6 +54,7 @@ TRTrackerServerImpl
 	public static int		max_seed_retention			= 0;
 	public static int		seed_limit					= 0;
 	public static boolean	full_scrape_enable			= true;
+	public static boolean	restrict_non_blocking_requests	= true;
 	
 	public static boolean	all_networks_permitted		= true;
 	public static String[]	permitted_networks			= {};
@@ -132,6 +133,8 @@ TRTrackerServerImpl
 		redirect_on_not_found = COConfigurationManager.getStringParameter( "Tracker Server Not Found Redirect" ).trim();
 		
 		support_experimental_extensions = COConfigurationManager.getBooleanParameter( "Tracker Server Support Experimental Extensions" );
+		
+		restrict_non_blocking_requests = COConfigurationManager.getBooleanParameter( "Tracker TCP NonBlocking Restrict Request Types" );
 	}
 	
 	protected static boolean

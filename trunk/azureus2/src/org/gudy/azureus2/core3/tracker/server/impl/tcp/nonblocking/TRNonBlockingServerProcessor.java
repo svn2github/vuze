@@ -30,6 +30,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.tracker.server.impl.TRTrackerServerImpl;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerProcessorTCP;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerTCP;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -196,11 +197,11 @@ TRNonBlockingServerProcessor
 			url = url.substring(0,pos);
 				
 			ByteArrayOutputStream	response = 
-				process( 		request_header,
+				process( 	request_header,
 							request_header.toLowerCase(),
 							url, 
 							(InetSocketAddress)socket_channel.socket().getRemoteSocketAddress(),
-							true,
+							TRTrackerServerImpl.restrict_non_blocking_requests,
 							new ByteArrayInputStream(new byte[0]));
 			
 			if ( response == null ){

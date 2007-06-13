@@ -339,6 +339,7 @@ public class ConfigurationDefaults {
     def.put( "Tracker Max POST Time Multiplier", ONE);
     def.put( "Tracker Max Threads", new Long( 48 ));
     def.put( "Tracker TCP NonBlocking", FALSE);
+    def.put( "Tracker TCP NonBlocking Restrict Request Types", TRUE);
     def.put( "Tracker TCP NonBlocking Conc Max", new Long(2048));
     def.put( "Tracker Client Scrape Enable", TRUE);
     def.put( "Tracker Client Scrape Stopped Enable", TRUE);
