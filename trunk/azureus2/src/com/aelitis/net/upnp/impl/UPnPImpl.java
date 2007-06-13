@@ -967,6 +967,7 @@ UPnPImpl
 		}
 	}
 	
+	/*
 	public static void
 	main(
 		String[]		args )
@@ -1095,4 +1096,5 @@ UPnPImpl
 			}
 		}
 	}
+	*/
 }
