@@ -223,8 +223,9 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
                 int uploadLimitKBPS = Integer.parseInt( uploadLimitSetting.getText() );
                 int downlaodLimitKBPS = Integer.parseInt( downloadLimitSetting.getText() );
                 //No value less then 20 kpbs should be allowed.
-                if(uploadLimitKBPS<20)
+                if(uploadLimitKBPS<20){
                     uploadLimitKBPS=20;
+                }
 
                 //download value can never be less then upload.
                 if( downlaodLimitKBPS < uploadLimitKBPS ){

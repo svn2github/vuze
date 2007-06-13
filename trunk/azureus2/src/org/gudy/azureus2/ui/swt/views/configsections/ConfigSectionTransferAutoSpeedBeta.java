@@ -87,7 +87,7 @@ public class ConfigSectionTransferAutoSpeedBeta
      * return the configSectionGetName result of your parent.<br>
      */
     public String configSectionGetParentSection() {
-        return ConfigSection.SECTION_TRANSFER;
+        return "transfer.select";
     }
 
     /**
@@ -98,7 +98,7 @@ public class ConfigSectionTransferAutoSpeedBeta
      * @return The name of the configuration section
      */
     public String configSectionGetName() {
-        return "transfer.autospeedbeta";
+        return "transfer.select.v2";
     }
 
     /**
@@ -108,6 +108,7 @@ public class ConfigSectionTransferAutoSpeedBeta
      * parameters.
      */
     public void configSectionSave() {
+
     }
 
     /**

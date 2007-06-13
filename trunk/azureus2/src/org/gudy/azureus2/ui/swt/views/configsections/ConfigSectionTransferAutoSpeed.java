@@ -33,7 +33,6 @@ import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -46,8 +45,8 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 	private final String CFG_PREFIX = "ConfigView.section.transfer.autospeed.";
 	
 	public String configSectionGetParentSection() {
-		return ConfigSection.SECTION_TRANSFER;
-	}
+        return "transfer.select";
+    }
 
 	public String configSectionGetName() {
 		return "transfer.autospeed";
