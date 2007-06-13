@@ -102,7 +102,7 @@ public class SWTSkinObjectBrowser
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
 		context.addMessageListener(new PublishListener(skin.getShell(), pi, this));
 		DownloadStateAndRemoveListener downloadListener = new DownloadStateAndRemoveListener(
-				pi, getControl().getDisplay());
+				pi, browser.getDisplay());
 		pi.getDownloadManager().addListener(downloadListener);
 		PublishUtils.setupContext(getContext(), pi, downloadListener);
 
