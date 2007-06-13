@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -43,7 +42,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -57,6 +55,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
@@ -66,7 +65,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapte
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
-import com.aelitis.azureus.ui.swt.views.list.ListView;
 import com.aelitis.azureus.util.AdManager;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.win32.Win32Utils;
@@ -74,6 +72,8 @@ import com.aelitis.azureus.util.win32.Win32Utils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
+
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 /**
  * @author TuxPaper
@@ -132,17 +132,8 @@ public class TorrentListViewsUtils
 				TableRowCore[] selectedRows = view.getSelectedRows();
 				for (int i = 0; i < selectedRows.length; i++) {
 					DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
-					int state = dm.getState();
-					if (state == DownloadManager.STATE_ERROR) {
-						dm.stopIt(DownloadManager.STATE_QUEUED, false, false);
-					} else if (state == DownloadManager.STATE_STOPPED) {
-						ManagerUtils.queue(dm, (Composite) btn.getSkinObject().getControl());
-
-						StartStopButtonUtil.updateStopButton(view, btn);
-					} else {
-						ManagerUtils.stop(dm, (Composite) btn.getSkinObject().getControl());
-						StartStopButtonUtil.updateStopButton(view, btn);
-					}
+					stop(dm);
+					StartStopButtonUtil.updateStopButton(view, btn);
 				}
 			}
 		});
@@ -152,6 +143,22 @@ public class TorrentListViewsUtils
 			}
 		});
 		return btn;
+	}
+
+	/**
+	 * @param dm
+	 *
+	 * @since 3.0.1.5
+	 */
+	public static void stop(DownloadManager dm) {
+		int state = dm.getState();
+		if (state == DownloadManager.STATE_ERROR) {
+			dm.stopIt(DownloadManager.STATE_QUEUED, false, false);
+		} else if (state == DownloadManager.STATE_STOPPED) {
+			ManagerUtils.queue(dm, null);
+		} else {
+			ManagerUtils.stop(dm, null);
+		}
 	}
 
 	public static SWTSkinButtonUtility addDetailsButton(final SWTSkin skin,
@@ -167,7 +174,7 @@ public class TorrentListViewsUtils
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
 				TableRowCore[] selectedRows = view.getSelectedRows();
 				if (selectedRows.length > 0) {
-					viewDetails(skin, selectedRows[0]);
+					viewDetails(selectedRows[0]);
 				}
 			}
 		});
@@ -175,23 +182,28 @@ public class TorrentListViewsUtils
 		return btn;
 	}
 
-	public static void viewDetails(SWTSkin skin, TableRowCore row) {
+	public static void viewDetails(TableRowCore row) {
 		DownloadManager dm = (DownloadManager) row.getDataSource(true);
-		if (dm != null) {
-			if (!PlatformTorrentUtils.isContent(dm.getTorrent())) {
-				return;
-			}
+		viewDetails(dm);
+	}
 
-			try {
-				String url = Constants.URL_PREFIX + Constants.URL_DETAILS
-						+ dm.getTorrent().getHashWrapper().toBase32String() + ".html?"
-						+ Constants.URL_SUFFIX;
+	public static void viewDetails(DownloadManager dm) {
+		if (dm == null) {
+			return;
+		}
+		if (!PlatformTorrentUtils.isContent(dm.getTorrent())) {
+			return;
+		}
 
-				UIFunctions functions = UIFunctionsManager.getUIFunctions();
-				functions.viewURL(url, "browse", 0, 0, false);
-			} catch (TOTorrentException e) {
-				Debug.out(e);
-			}
+		try {
+			String url = Constants.URL_PREFIX + Constants.URL_DETAILS
+					+ dm.getTorrent().getHashWrapper().toBase32String() + ".html?"
+					+ Constants.URL_SUFFIX;
+
+			UIFunctions functions = UIFunctionsManager.getUIFunctions();
+			functions.viewURL(url, "browse", 0, 0, false);
+		} catch (TOTorrentException e) {
+			Debug.out(e);
 		}
 	}
 
@@ -658,12 +670,12 @@ public class TorrentListViewsUtils
 	}
 
 	public static void removeDownload(final DownloadManager dm,
-			final ListView view, final boolean bDeleteTorrent,
+			final TableView tableView, final boolean bDeleteTorrent,
 			final boolean bDeleteData) {
 
 		TOTorrent torrent = dm.getTorrent();
 
-		Shell shell = view.getControl().getShell();
+		Shell shell = Utils.findAnyShell();
 		if (PublishUtils.isPublished(dm)) {
 			String title = MessageText.getString("v3.mb.stopSeeding.title");
 			String text = MessageText.getString("v3.mb.stopSeeding.text",
@@ -759,7 +771,7 @@ public class TorrentListViewsUtils
 			if (choice == 0) {
 				try {
 					dm.getGlobalManager().canDownloadManagerBeRemoved(dm);
-					view.removeDataSource(dm, true);
+					tableView.removeDataSource(dm, true);
 					new AEThread("asyncStop", true) {
 						public void runSupport() {
 
@@ -773,9 +785,9 @@ public class TorrentListViewsUtils
 										dm
 									}, "globalmanager.download.remove.veto", f);
 								}
-								view.addDataSource(dm, true);
+								tableView.addDataSource(dm, true);
 							} catch (Exception ex) {
-								view.addDataSource(dm, true);
+								tableView.addDataSource(dm, true);
 								Debug.printStackTrace(ex);
 							}
 						}
