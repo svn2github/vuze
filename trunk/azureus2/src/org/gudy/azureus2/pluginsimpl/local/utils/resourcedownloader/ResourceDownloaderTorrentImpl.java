@@ -296,10 +296,10 @@ ResourceDownloaderTorrentImpl
 			
 			final TOTorrent	torrent = torrent_holder[0];
 			
-			torrent.serialiseToBEncodedFile( torrent_file );
-				
 			TorrentUtils.setFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
 
+			torrent.serialiseToBEncodedFile( torrent_file );
+				
 			if ( persistent ){
 				
 				download = download_manager.addDownload( new TorrentImpl(torrent), torrent_file, data_dir );
