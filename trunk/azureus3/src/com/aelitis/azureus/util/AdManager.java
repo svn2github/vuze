@@ -179,6 +179,10 @@ public class AdManager
 										try {
 											PlatformAdManager.debug("Ad: "
 													+ new String(torrent.getName()));
+											
+											TorrentUtils.setFlag(torrent,
+													TorrentUtils.TORRENT_FLAG_LOW_NOISE, true);
+
 											File tempFile = File.createTempFile("AZ_", ".torrent");
 
 											PlatformAdManager.debug("  Writing to " + tempFile);
@@ -198,13 +202,14 @@ public class AdManager
 													tempFile.getAbsolutePath(), sDefDir);
 
 											if (adDM != null) {
-												adDM.setForceStart(true);
 												if (adDM.getAssumedComplete()) {
 													adsDMList.add(adDM);
 												} else {
+													adDM.setForceStart(true);
 													adDM.addListener(new DownloadManagerAdapter() {
 														public void downloadComplete(DownloadManager manager) {
 															adsDMList.add(manager);
+															manager.removeListener(this);
 														}
 													});
 												}
