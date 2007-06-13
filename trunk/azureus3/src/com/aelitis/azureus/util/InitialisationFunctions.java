@@ -40,13 +40,13 @@ public class InitialisationFunctions
 		
 		DownloadUtils.initialise( core );
 		
-		DownloadManagerEnhancer.initialise(core);
+		DownloadManagerEnhancer dme = DownloadManagerEnhancer.initialise(core);
 
 		registerTrackerURLExtensions(core);
 
 		AzureusPlatformContentDirectory.register();
 
-		CacheDiscovery.initialise();
+		CacheDiscovery.initialise( dme );
 	}
 
 	public static void lateInitialisation(AzureusCore core) {

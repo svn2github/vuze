@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
@@ -39,6 +40,8 @@ import org.gudy.azureus2.core3.util.IPToHostNameResolver;
 import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
+import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.peer.cache.cachelogic.CLCacheDiscovery;
 
 public class 
@@ -54,7 +57,8 @@ CacheDiscovery
 	private static Set	cache_ips = Collections.synchronizedSet(new HashSet());
 	
 	public static void
-	initialise()
+	initialise(
+		final DownloadManagerEnhancer		dme )
 	{
 		
 		ip_filter.addListener(
@@ -73,9 +77,30 @@ CacheDiscovery
 				{
 				}
 
-				public void IPBlockedListChanged(
+				public void 
+				IPBlockedListChanged(
 					IpFilter	filter)
 				{
+				}
+				
+				public boolean 
+				canIPBeBlocked(
+					String 	ip, 
+					byte[] 	torrent_hash) 
+				{
+					EnhancedDownloadManager dm = dme.getEnhancedDownload( torrent_hash );
+					
+					if ( dm == null ){
+						
+						return( true );
+					}
+					
+					if ( dm.isPlatform()){
+						
+						return( canBan( ip ));
+					}
+					
+					return( true );
 				}
 			});
 		

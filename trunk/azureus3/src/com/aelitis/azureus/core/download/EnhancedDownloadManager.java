@@ -366,10 +366,23 @@ EnhancedDownloadManager
 			});
 	}
 
-	protected String
+	public String
 	getName()
 	{
 		return( download_manager.getDisplayName());
+	}
+	
+	public boolean
+	isPlatform()
+	{
+		TOTorrent	torrent = download_manager.getTorrent();
+		
+		if ( torrent != null ){
+			
+			return( PlatformTorrentUtils.isContent( torrent ));
+		}
+
+		return( false );
 	}
 	
 	protected void

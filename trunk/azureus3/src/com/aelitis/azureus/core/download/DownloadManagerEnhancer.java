@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -51,11 +52,16 @@ DownloadManagerEnhancer
 	
 	private static DownloadManagerEnhancer		singleton;
 	
-	public static synchronized void
+	public static synchronized DownloadManagerEnhancer
 	initialise(
 		AzureusCore		core )
 	{
-		singleton	= new DownloadManagerEnhancer( core );
+		if ( singleton == null ){
+			
+			singleton	= new DownloadManagerEnhancer( core );
+		}
+		
+		return( singleton );
 	}
 	
 	public static synchronized DownloadManagerEnhancer
@@ -203,6 +209,20 @@ DownloadManagerEnhancer
 					}
 				}
 			});
+	}
+	
+	public EnhancedDownloadManager
+	getEnhancedDownload(
+		byte[]			hash )
+	{
+		DownloadManager dm = core.getGlobalManager().getDownloadManager(new HashWrapper( hash ));
+		
+		if ( dm == null ){
+			
+			return( null );
+		}
+		
+		return( getEnhancedDownload( dm ));
 	}
 	
 	public EnhancedDownloadManager
