@@ -6,12 +6,14 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.SWT;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderV2;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
 
 /**
  * Created on May 15, 2007
@@ -175,6 +177,7 @@ public class ConfigSectionTransferAutoSpeedBeta
                 if(comment!=null){
                     if( comment.length()>0){
                         dLog.log( "user-comment:"+comment );
+                        commentBox.setText("");
                     }
                 }
             }
@@ -206,6 +209,8 @@ public class ConfigSectionTransferAutoSpeedBeta
         gridData.horizontalAlignment = GridData.END;
         enableV2AutoSpeedBeta = new BooleanParameter(modeGroup,SpeedManagerAlgorithmProviderV2.SETTING_V2_BETA_ENABLED);
         enableV2AutoSpeedBeta.setLayoutData(gridData);
+
+        enableV2AutoSpeedBeta.addChangeListener( new GroupModeChangeListener() );
 
         Label enableLabel = new Label(modeGroup, SWT.NULL);
         enableLabel.setText("Enable AutoSpeed Beta");
@@ -551,10 +556,20 @@ public class ConfigSectionTransferAutoSpeedBeta
                 //make this section visible.
                 commentGroup.setEnabled(true);
                 commentGroup.setVisible(true);
+
+                //Need to also set "Auto Upload Speed Enabled" for DHT Pings and "Auto Speed Upload Version" to 2
+                COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, true );
+                COConfigurationManager.setParameter( SpeedManagerImpl.CONFIG_VERSION, 2 );
+
             }else{
                 //make it invisible.
                 commentGroup.setEnabled(false);
                 commentGroup.setVisible(false);
+
+                //Set to V1, then set "Auto Upload Speed Enabled" to false.
+                //ToDo: V1 will need a different set of parameters, to decoule from the global parameter.
+                COConfigurationManager.setParameter( SpeedManagerImpl.CONFIG_VERSION, 1 );
+                COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, false );
             }
         }
     }

@@ -66,7 +66,7 @@ SpeedManagerImpl
 	private static int					FORCED_MIN_SPEED;
 
 
-	private static final String	CONFIG_VERSION			= "Auto Upload Speed Version";
+	public  static final String	CONFIG_VERSION			= "Auto Upload Speed Version";
 	private static final String	CONFIG_AVAIL			= "AutoSpeed Available";	// informative only
 	private static final String	CONFIG_MIN_UP			= "AutoSpeed Min Upload KBs";
 	private static final String	CONFIG_MAX_UP			= "AutoSpeed Max Upload KBs";
@@ -140,8 +140,6 @@ SpeedManagerImpl
 	
 	private	int					provider_version	= -1;
 	private boolean				enabled;
-    private boolean             use_v2_provider;
-
 
     private Map							contacts	= new HashMap();
 	private volatile int				total_contacts;
@@ -518,7 +516,7 @@ SpeedManagerImpl
 			
 			adapter.setCurrentUploadLimit( bytes_per_second );
 			
-			if ( !use_v2_provider && ADJUST_DOWNLOAD_ENABLE && !( Float.isInfinite( ADJUST_DOWNLOAD_RATIO ) || Float.isNaN( ADJUST_DOWNLOAD_RATIO ))){
+			if ( ADJUST_DOWNLOAD_ENABLE && !( Float.isInfinite( ADJUST_DOWNLOAD_RATIO ) || Float.isNaN( ADJUST_DOWNLOAD_RATIO ))){
 				
 				int	dl_limit = (int)(bytes_per_second * ADJUST_DOWNLOAD_RATIO);
 				

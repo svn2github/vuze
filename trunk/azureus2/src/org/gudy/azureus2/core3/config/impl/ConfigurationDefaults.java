@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerAlgorithmProviderV2;
+import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
 
 /**
  *
@@ -146,7 +147,8 @@ public class ConfigurationDefaults {
     def.put( "Max Upload Speed Seeding KBs", ZERO );
     def.put( "enable.seedingonly.upload.rate", FALSE );
     
-    def.put( "Auto Upload Speed Enabled", FALSE );
+    //def.put( "Auto Upload Speed Enabled", FALSE );
+    def.put( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, FALSE ); //"Auto Upload Speed Enabled"
     def.put( "Auto Upload Speed Seeding Enabled", FALSE );
     def.put( "AutoSpeed Available", FALSE );	// informative read-only parameter
     def.put( "AutoSpeed Min Upload KBs", ZERO );
@@ -498,7 +500,7 @@ public class ConfigurationDefaults {
     def.put(SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE, new Long(300) );
 
     //section
-    def.put("Auto Upload Speed Version", new Long(1) );
+    def.put(SpeedManagerImpl.CONFIG_VERSION, new Long(1) );
 
   }
   
