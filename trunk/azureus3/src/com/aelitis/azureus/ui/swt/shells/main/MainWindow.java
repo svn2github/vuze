@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.shells.main;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
@@ -150,6 +151,42 @@ public class MainWindow
 		this.core = core;
 		this.display = display;
 		disposedOrDisposing = false;
+
+		// Hack for 3014 -> 3016 upgrades on Vista who become an Administrator
+		// user after restart.
+		if (Constants.isWindows
+				&& System.getProperty("os.name").indexOf("Vista") > 0
+				&& !COConfigurationManager.getBooleanParameter("vista.adminquit", false)) {
+			File fileFromInstall = FileUtil.getApplicationFile("license.txt");
+			if (fileFromInstall.exists()
+					&& fileFromInstall.lastModified() < new GregorianCalendar(2007, 06,
+							13).getTimeInMillis()) {
+				// install older than 3016
+				GlobalManager gm = core.getGlobalManager();
+				if (gm != null && gm.getDownloadManagers().size() == 0) {
+					File fileTestWrite = FileUtil.getApplicationFile("testwrite.dll");
+					fileTestWrite.deleteOnExit();
+					try {
+						FileOutputStream fos = new FileOutputStream(fileTestWrite);
+						fos.write(23);
+						fos.close();
+
+						COConfigurationManager.setParameter("vista.adminquit", true);
+						MessageBoxShell.open(shell,
+								MessageText.getString("mb.azmustclose.title"),
+								MessageText.getString("mb.azmustclose.text"), new String[] {
+									MessageText.getString("Button.ok")
+								}, 0);
+						if (splash != null) {
+							splash.closeSplash();
+						}
+						dispose(false, false);
+						return;
+					} catch (Exception e) {
+					}
+				}
+			}
+		}
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
