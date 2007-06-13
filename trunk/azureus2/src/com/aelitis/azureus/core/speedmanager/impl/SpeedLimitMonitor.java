@@ -679,7 +679,7 @@ public class SpeedLimitMonitor
             settingMaxLimitName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MAX_LIMIT;
             settingMinLimitName = SpeedManagerAlgorithmProviderV2.SETTING_UPLOAD_MIN_LIMIT;
             preTestValue = preTestUploadCapacity;
-            highestValue = highestUploadRate;
+            highestValue = Math.round( highestUploadRate* 0.75f );//ToDo: replace with a SpeedTest like check.
         }else{
             //
             SpeedManagerLogger.log("IllegalState in determineConfidenceLevel(). Setting level to NONE.");
@@ -687,9 +687,9 @@ public class SpeedLimitMonitor
         }
 
         float percentDiff = (float)Math.abs( highestValue-preTestValue )/(float)(Math.max(highestValue,preTestValue));
-        if( percentDiff>0.2f){
+        if( percentDiff>0.25f){
             retVal = SpeedLimitConfidence.LOW;
-        }else if(percentDiff>0.1f){
+        }else if(percentDiff>0.15f){
             retVal = SpeedLimitConfidence.MED;
         }
 

@@ -156,9 +156,10 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
                 SpeedLimitConfidence.LOW.getInternationalizedString()
         };
 
+        String downDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredDownloadKbps,SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING);
         downConfLevel = new StringListParameter(panel,
                 SpeedLimitMonitor.DOWNLOAD_CONF_LIMIT_SETTING,
-                SpeedLimitConfidence.HIGH.getString(),
+                downDefaultConfidenceLevel,
                 confName, confName,true);
 
         //upload limit label.
@@ -196,9 +197,10 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         uploadLimitSetting.addListener(SWT.Modify, new ByteConversionListener(echo,uploadLimitSetting));
 
         //upload confidence setting.
+        String upDefaultConfidenceLevel = setDefaultConfidenceLevel(measuredUploadKbps,SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING);
         upConfLevel = new StringListParameter(panel,
                 SpeedLimitMonitor.UPLOAD_CONF_LIMIT_SETTING,
-                SpeedLimitConfidence.HIGH.getString(),
+                upDefaultConfidenceLevel,
                 confName, confName, true);
 
 
@@ -248,8 +250,6 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
                 if( downloadMinKBPS<5){
                     downloadMinKBPS = 5;
                 }
-
-
 
 
                 String downConfValue = downConfLevel.getValue();
@@ -309,6 +309,40 @@ public class SetUploadLimitPanel extends AbstractWizardPanel {
         }
 
     }//show
+
+    /**
+     * Set the default Confidence setting to high, unless the value is close to 500 KBytes/sec.
+     * In this case it is very possible that the real limit is higher.
+     * @param transferRateKBPS - in kBytes/sec
+     * @param paramName - configuration param to set. 
+     * @return - String -  Absolute | High | Med | Low | None
+     */
+    private static String setDefaultConfidenceLevel(int transferRateKBPS, String paramName){
+
+        //if the transfer rate is near limit it is less likely to be the true limit.
+        //decide here if we should have low setting.
+        //ToDo: these limits shouldn't be hard coded since the Service can change at any time.
+        if( transferRateKBPS < 550 && transferRateKBPS < 450 ){
+
+            //Need to over-ride the parameter.
+            String prevSetting = COConfigurationManager.getStringParameter(paramName,
+                    SpeedLimitConfidence.LOW.getString() );
+
+            //if it was previous set to ABSOLUTE then leave it alone.
+            if( prevSetting.equalsIgnoreCase( SpeedLimitConfidence.ABSOLUTE.getString() ) )
+            {
+                return prevSetting;
+            }
+
+            //set to low, when near limit and previous not set to ABSOLUTE
+            COConfigurationManager.setParameter( paramName, SpeedLimitConfidence.LOW.getString() );
+            return SpeedLimitConfidence.LOW.getString();
+        }
+
+        //In all other cases set to HIGH.
+        COConfigurationManager.setParameter( paramName, SpeedLimitConfidence.HIGH.getString() );
+        return SpeedLimitConfidence.HIGH.getString();
+    }
 
     /**
      * Create a label for the test. The layout is assumed to be five across. If an error
