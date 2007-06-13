@@ -45,33 +45,6 @@ public class Publish
 
 		AzureusCore core = AzureusCoreFactory.getSingleton();
 
-		// Need to have a "azdirector" plugin interface because 
-		// DownloadStateAndRemoveListener uses plugin attributes from it, and I'm
-		// to lazy to refactor it atm
-
-		// first, check if it's already there (evil!)
-		PluginInterface pi = core.getPluginManager().getPluginInterfaceByID(
-				"azdirector");
-		if (pi == null) {
-			PluginManager.registerPlugin(new Plugin() {
-				public void initialize(PluginInterface pluginInterface)
-						throws PluginException {
-				}
-			}, "azdirector");
-
-			// initialization should be immediate, since the UI is running
-			pi = core.getPluginManager().getPluginInterfaceByID("azdirector");
-		}
-
-		// copied from DirectorPlugin.java
-		// We are going to monitor Published Torrent to alert the User when he 
-		// removes a published torrent from azureus
-		DownloadStateAndRemoveListener downloadListener = new DownloadStateAndRemoveListener(
-				pi, skinObject.getControl().getDisplay());
-		pi.getDownloadManager().addListener(downloadListener);
-
-		PublishUtils.setupContext(browserSkinObject.getContext(), pi, downloadListener);
-
 		String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISH + "?"
 				+ Constants.URL_SUFFIX;
 		browserSkinObject.setURL(sURL);
