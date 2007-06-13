@@ -180,7 +180,7 @@ public class TorrentOpener {
 				final File source = new File(sourceNames[i]);
 				String sURL = UrlUtils.parseTextForURL(sourceNames[i], true);
 
-				if (sURL != null || !source.exists()) {
+				if (sURL != null && !source.exists()) {
 					openTorrentWindow(null, new String[] { sURL }, bOverrideToStopped);
 				} else if (source.isFile()) {
 					String filename = source.getAbsolutePath();
