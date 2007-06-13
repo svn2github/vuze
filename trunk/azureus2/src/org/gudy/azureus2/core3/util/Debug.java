@@ -369,7 +369,7 @@ public class Debug {
 	getNestedExceptionMessageAndStack(
 		Throwable 		e )
 	{
-		return( getNestedExceptionMessage(e) + ", " + getCompressedStackTrace( e, 2 ));
+		return( getNestedExceptionMessage(e) + ", " + getCompressedStackTrace( e, 0 ));
 	}
 	
 	public static String
